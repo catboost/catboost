@@ -13,6 +13,7 @@ DEFINE_ENUM(EProcessExitCode,
     ((ArgumentsError)      (1))
     ((GenericError)        (2))
     ((IOError)             (3))
+    ((InternalError)       (4))
     ((OutOfMemory)         (9))
 );
 

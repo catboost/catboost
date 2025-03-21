@@ -6,6 +6,7 @@ from util.generic.string cimport TString, TStringBuf
 
 
 cdef extern from "library/cpp/resource/resource.h" namespace "NResource":
+    cdef bool Has(const TStringBuf key) except +
     cdef size_t Count() except +
     cdef TStringBuf KeyByIndex(size_t idx) except +
     cdef bool FindExact(const TStringBuf key, TString* result) nogil except +
@@ -31,6 +32,13 @@ def find(s):
         return res.c_str()[:res.length()]
 
     return None
+
+
+def has(s):
+    if isinstance(s, str):
+        s = utf_8_encode(s)[0]
+
+    return Has(s)
 
 
 include "importer.pxi"

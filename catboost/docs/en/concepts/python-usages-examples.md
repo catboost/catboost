@@ -493,7 +493,7 @@ dataset = cb.Pool(X, y, cat_features=['d'])
 
 {% note info %}
 
-Specify a non-default `fill_value` for categorical feature columns with string data because the default value (`fill_value=np.NaN`) is [prohibited for categorical feature values](faq.md).
+Specify a non-default `fill_value` for categorical feature columns with string data because the default value (`fill_value=np.nan`) is [prohibited for categorical feature values](faq.md).
 
 {% endnote %}
 

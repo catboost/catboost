@@ -107,7 +107,7 @@ static String *pcode = 0;	/* Perl code associated with each class */
 static int member_func = 0;	/* Set to 1 when wrapping a member function */
 static String *func_stubs = 0;	/* Function stubs */
 static String *const_stubs = 0;	/* Constant stubs */
-static int num_consts = 0;	/* Number of constants */
+static Node *const_stubs_enum_class = 0; /* Node for enum class if we're currently generating one */
 static String *var_stubs = 0;	/* Variable stubs */
 static String *exported = 0;	/* Exported symbols */
 static String *pragma_include = 0;
@@ -205,7 +205,6 @@ public:
     Preprocessor_define("SWIGPERL 1", 0);
     // SWIGPERL5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPERL5 1", 0);
-    SWIG_typemap_lang("perl5");
     SWIG_config_file("perl5.swg");
     allow_overloading();
   }
@@ -585,10 +584,9 @@ public:
       /* Emit package code for different classes */
       Printf(f_pm, "%s", pm);
 
-      if (num_consts > 0) {
+      if (Len(const_stubs) > 0) {
 	/* Emit constant stubs */
 	Printf(f_pm, "\n# ------- CONSTANT STUBS -------\n\n");
-	Printf(f_pm, "package %s;\n\n", namespace_module);
 	Printf(f_pm, "%s", const_stubs);
       }
 
@@ -652,7 +650,7 @@ public:
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *overname = 0;
     int director_method = 0;
@@ -702,7 +700,7 @@ public:
     } else {
       Printf(f->code, "    if (items < %d) {\n", num_required);
     }
-    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, l));
+    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), returntype, l));
     Printf(f->code, "}\n");
 
     /* Write code to extract parameters. */
@@ -854,9 +852,9 @@ public:
       }
       Printf(f->code, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     /* If there were any output args, take care of them. */
 
@@ -893,6 +891,10 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(f->code, "$symname", iname);
 
     /* Dump the wrapper function */
@@ -1075,8 +1077,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
 
     if (!addSymbol(iname, n))
@@ -1117,8 +1118,22 @@ public:
 	       "tie %__", iname, "_hash,\"", is_shadow(type), "\", $",
 	       cmodule, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(type), ";\n", NIL);
       } else if (do_constants) {
-	Printv(const_stubs, "sub ", name, " () { $", cmodule, "::", name, " }\n", NIL);
-	num_consts++;
+	char *dcolon = Strstr(name, "::");
+	if (!dcolon) {
+	  if (Len(const_stubs) == 0 || const_stubs_enum_class != NULL) {
+	    Printf(const_stubs, "package %s;\n", namespace_module);
+	    const_stubs_enum_class = NULL;
+	  }
+	  Printv(const_stubs, "sub ", iname, " () { $", cmodule, "::", iname, " }\n", NIL);
+	} else {
+	  // C++11 strongly-typed enum.
+	  Node *parent = Getattr(n, "parentNode");
+	  if (const_stubs_enum_class != parent) {
+	    Printf(const_stubs, "package %s::%s;\n", namespace_module, Getattr(parent, "sym:name"));
+	    const_stubs_enum_class = parent;
+	  }
+	  Printv(const_stubs, "sub ", Getattr(n, "enumvalueDeclaration:sym:name"), " () { $", cmodule, "::", iname, " }\n", NIL);
+	}
       } else {
 	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
@@ -2035,7 +2050,7 @@ public:
     Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
     bool pure_virtual = false;
@@ -2426,6 +2441,7 @@ public:
 
     /* emit the director method */
     if (status == SWIG_OK) {
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!Getattr(n, "defaultargs")) {
 	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
@@ -2440,6 +2456,7 @@ public:
     DelWrapper(w);
     return status;
   }
+
   int classDirectorDisown(Node *n) {
     int rv;
     member_func = 1;
@@ -2452,6 +2469,7 @@ public:
     }
     return rv;
   }
+
   int classDirectorDestructor(Node *n) {
     /* TODO: it would be nice if this didn't have to copy the body of Language::classDirectorDestructor() */
     String *DirectorClassName = directorClassName(getCurrentClass());

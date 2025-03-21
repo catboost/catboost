@@ -3,9 +3,13 @@
 #include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
+// if ptxas warns like this
+// 'Value of threads per SM for entry ... is out of range. .minnctapersm will be ignored'
+// check that CUDA_MAX_THREADS_PER_SM is consistent with
+// https://docs.nvidia.com/cuda/cuda-c-programming-guide/#features-and-technical-specifications
 #if __CUDA_ARCH__ == 750
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1024;
-#elif __CUDA_ARCH__ == 860 || __CUDA_ARCH__ == 870
+#elif __CUDA_ARCH__ == 860 || __CUDA_ARCH__ == 870 || __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 1200
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1536;
 #else
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 2048;

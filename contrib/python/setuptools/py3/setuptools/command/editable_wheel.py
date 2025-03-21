@@ -12,43 +12,27 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 from __future__ import annotations
 
-import logging
 import io
+import logging
 import os
 import shutil
 import traceback
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
 from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import (
-    TYPE_CHECKING,
-    Iterable,
-    Iterator,
-    Mapping,
-    Protocol,
-    TypeVar,
-    cast,
-)
+from types import TracebackType
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
-from .. import (
-    Command,
-    _normalization,
-    _path,
-    errors,
-    namespaces,
-)
+from .. import Command, _normalization, _path, _shutil, errors, namespaces
 from .._path import StrPath
-from ..compat import py39
+from ..compat import py312
 from ..discovery import find_package_path
 from ..dist import Distribution
-from ..warnings import (
-    InformationOnly,
-    SetuptoolsDeprecationWarning,
-    SetuptoolsWarning,
-)
+from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, SetuptoolsWarning
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls
@@ -57,6 +41,8 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
@@ -134,13 +120,13 @@ class editable_wheel(Command):
         self.project_dir = None
         self.mode = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         dist = self.distribution
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.dist_dir.mkdir(exist_ok=True)
             self._ensure_dist_info()
@@ -245,7 +231,6 @@ class editable_wheel(Command):
         """Set the ``editable_mode`` flag in the build sub-commands"""
         dist = self.distribution
         build = dist.get_command_obj("build")
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
         for cmd_name in build.get_sub_commands():
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
@@ -299,7 +284,7 @@ class editable_wheel(Command):
         build = self.get_finalized_command("build")
         for name in build.get_sub_commands():
             cmd = self.get_finalized_command(name)
-            if name == "build_py" and type(cmd) != build_py_cls:
+            if name == "build_py" and type(cmd) is not build_py_cls:
                 self._safely_run(name)
             else:
                 self.run_command(name)
@@ -333,7 +318,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from ..extern.wheel.wheelfile import WheelFile
+        from wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name
@@ -394,25 +379,30 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
-
-    def __enter__(self): ...
-
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __call__(
+        self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]
+    ) -> object: ...
+    def __enter__(self) -> Self: ...
+    def __exit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_value: BaseException | None,
+        _traceback: TracebackType | None,
+    ) -> object: ...
 
 
 class _StaticPth:
-    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]):
+    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]) -> None:
         self.dist = dist
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = f"""
         Editable install will be performed using .pth file to extend `sys.path` with:
         {list(map(os.fspath, self.path_entries))!r}
@@ -420,7 +410,13 @@ class _StaticPth:
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
+        pass
 
 
 class _LinkTree(_StaticPth):
@@ -440,14 +436,13 @@ class _LinkTree(_StaticPth):
         name: str,
         auxiliary_dir: StrPath,
         build_lib: StrPath,
-    ):
+    ) -> None:
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
-        self._file = dist.get_command_obj("build_py").copy_file  # type: ignore[union-attr]
+        self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         self._create_links(files, mapping)
         super().__call__(wheel, files, mapping)
 
@@ -462,15 +457,14 @@ class _LinkTree(_StaticPth):
         dest = self.auxiliary_dir / relative_output
         if not dest.parent.is_dir():
             dest.parent.mkdir(parents=True)
-        # TODO: Update typeshed distutils stubs so distutils.cmd.Command.copy_file, accepts PathLike
-        # same with methods used by copy_file
-        self._file(src_file, dest, link=link)  # type: ignore[arg-type]
+        self._file(src_file, dest, link=link)
 
-    def _create_links(self, outputs, output_mapping):
+    def _create_links(self, outputs, output_mapping: Mapping[str, str]):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
-        mappings = {self._normalize_output(k): v for k, v in output_mapping.items()}
-        mappings.pop(None, None)  # remove files that are not relative to build_lib
+        normalised = ((self._normalize_output(k), v) for k, v in output_mapping.items())
+        # remove files that are not relative to build_lib
+        mappings = {k: v for k, v in normalised if k is not None}
 
         for output in outputs:
             relative = self._normalize_output(output)
@@ -480,12 +474,17 @@ class _LinkTree(_StaticPth):
         for relative, src in mappings.items():
             self._create_file(relative, src, link=link_type)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Strict editable install will be performed using a link tree.\n"
         _logger.warning(msg + _STRICT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = f"""\n
         Strict editable installation performed using the auxiliary directory:
             {self.auxiliary_dir}
@@ -497,7 +496,7 @@ class _LinkTree(_StaticPth):
 
 
 class _TopLevelFinder:
-    def __init__(self, dist: Distribution, name: str):
+    def __init__(self, dist: Distribution, name: str) -> None:
         self.dist = dist
         self.name = name
 
@@ -507,7 +506,7 @@ class _TopLevelFinder:
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
 
-        namespaces_: dict[str, list[str]] = dict(
+        namespaces_ = dict(
             chain(
                 _find_namespaces(self.dist.packages or [], roots),
                 ((ns, []) for ns in _find_virtual_namespaces(roots)),
@@ -537,16 +536,21 @@ class _TopLevelFinder:
         content = _encode_pth(f"import {finder}; {finder}.install()")
         yield (f"__editable__.{self.name}.pth", content)
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Editable install will be performed using a meta path finder.\n"
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = """\n
         Please be careful with folders in your working directory with the same
         name as your package as they may take precedence during imports.
@@ -555,7 +559,9 @@ class _TopLevelFinder:
 
 
 def _encode_pth(content: str) -> bytes:
-    """.pth files are always read with 'locale' encoding, the recommendation
+    """
+    Prior to Python 3.13 (see https://github.com/python/cpython/issues/77102),
+    .pth files are always read with 'locale' encoding, the recommendation
     from the cpython core developers is to write them as ``open(path, "w")``
     and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
     This function tries to simulate this behaviour without having to create an
@@ -565,7 +571,8 @@ def _encode_pth(content: str) -> bytes:
     or ``locale.getencoding()``).
     """
     with io.BytesIO() as buffer:
-        wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
+        wrapper = io.TextIOWrapper(buffer, encoding=py312.PTH_ENCODING)
+        # TODO: Python 3.13 replace the whole function with `bytes(content, "utf-8")`
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)
@@ -766,18 +773,18 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
 
 def _empty_dir(dir_: _P) -> _P:
     """Create a directory ensured to be empty. Existing files may be removed."""
-    shutil.rmtree(dir_, ignore_errors=True)
+    _shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
 
 
 class _NamespaceInstaller(namespaces.Installer):
-    def __init__(self, distribution, installation_dir, editable_name, src_root):
+    def __init__(self, distribution, installation_dir, editable_name, src_root) -> None:
         self.distribution = distribution
         self.src_root = src_root
         self.installation_dir = installation_dir
         self.editable_name = editable_name
-        self.outputs = []
+        self.outputs: list[str] = []
         self.dry_run = False
 
     def _get_nspkg_file(self):
@@ -805,7 +812,7 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname: str, _path=None, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, path=None, target=None) -> ModuleSpec | None:  # type: ignore
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -851,7 +858,7 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return [*paths, PATH_PLACEHOLDER]
 
     @classmethod
-    def find_spec(cls, fullname: str, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, target=None) -> ModuleSpec | None:  # type: ignore
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
             spec.submodule_search_locations = cls._paths(fullname)

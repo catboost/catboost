@@ -8,7 +8,7 @@ from distutils import archive_util, dir_util, file_util
 from distutils._log import log
 from glob import glob
 from itertools import filterfalse
-from warnings import warn
+from typing import ClassVar
 
 from ..core import Command
 from ..errors import DistutilsOptionError, DistutilsTemplateError
@@ -24,10 +24,10 @@ def show_formats():
     from ..archive_util import ARCHIVE_FORMATS
     from ..fancy_getopt import FancyGetopt
 
-    formats = []
-    for format in ARCHIVE_FORMATS.keys():
-        formats.append(("formats=" + format, None, ARCHIVE_FORMATS[format][2]))
-    formats.sort()
+    formats = sorted(
+        ("formats=" + format, None, ARCHIVE_FORMATS[format][2])
+        for format in ARCHIVE_FORMATS.keys()
+    )
     FancyGetopt(formats).print_help("List of available source distribution formats:")
 
 
@@ -115,7 +115,7 @@ class sdist(Command):
 
     sub_commands = [('check', checking_metadata)]
 
-    READMES = ('README', 'README.txt', 'README.rst')
+    READMES: ClassVar[tuple[str, ...]] = ('README', 'README.txt', 'README.rst')
 
     def initialize_options(self):
         # 'template' and 'manifest' are, respectively, the names of
@@ -176,17 +176,6 @@ class sdist(Command):
         # Otherwise, go ahead and create the source distribution tarball,
         # or zipfile, or whatever.
         self.make_distribution()
-
-    def check_metadata(self):
-        """Deprecated API."""
-        warn(
-            "distutils.command.sdist.check_metadata is deprecated, \
-              use the check command instead",
-            PendingDeprecationWarning,
-        )
-        check = self.distribution.get_command_obj('check')
-        check.ensure_finalized()
-        check.run()
 
     def get_file_list(self):
         """Figure out the list of files to include in the source
@@ -374,8 +363,7 @@ class sdist(Command):
                 # convert_path function
                 except (DistutilsTemplateError, ValueError) as msg:
                     self.warn(
-                        "%s, line %d: %s"
-                        % (template.filename, template.current_line, msg)
+                        f"{template.filename}, line {int(template.current_line)}: {msg}"
                     )
         finally:
             template.close()
@@ -391,7 +379,7 @@ class sdist(Command):
         build = self.get_finalized_command('build')
         base_dir = self.distribution.get_fullname()
 
-        self.filelist.exclude_pattern(None, prefix=build.build_base)
+        self.filelist.exclude_pattern(None, prefix=os.fspath(build.build_base))
         self.filelist.exclude_pattern(None, prefix=base_dir)
 
         if sys.platform == 'win32':

@@ -95,9 +95,9 @@ def setup_hnsw_submodule(argv, extensions):
 
 
 def get_setup_requires(argv):
-    setup_requires = ['wheel']
+    setup_requires = ['wheel', 'cython']
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
-        setup_requires += ['jupyterlab (>=3.0.6, == 3.*)']
+        setup_requires += ['jupyterlab (>=3.0.6, <3.6.0)']
     return setup_requires
 
 
@@ -152,7 +152,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('contrib', 'libs'),
         os.path.join('contrib', 'python', 'numpy'),
         os.path.join('contrib', 'restricted'),
-        os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'protoc'),
         os.path.join('contrib', 'tools', 'swig'),
         'tools',
@@ -201,8 +200,10 @@ def emph(s):
 
 def get_catboost_version():
     version_py = os.path.join('catboost', 'version.py')
-    exec(compile(open(version_py).read(), version_py, 'exec'))
-    return locals()['VERSION']
+    d = {}
+    with open(version_py) as f:
+        exec(compile(f.read(), version_py, "exec"), globals(), d)
+    return d['VERSION']
 
 
 class OptionsHelper(object):

@@ -27,6 +27,7 @@ class TTFont(object):
     they're actually accessed. This means that simple operations can be extremely fast.
 
     Example usage:
+
     .. code-block:: pycon
 
         >>>
@@ -39,8 +40,10 @@ class TTFont(object):
         >> tt['head'].unitsPerEm
         2048
 
-    For details of the objects returned when accessing each table, see :ref:`tables`.
+    For details of the objects returned when accessing each table, see the
+    :doc:`tables </ttLib/tables>` documentation.
     To add a table to the font, use the :py:func:`newTable` function:
+
     .. code-block:: pycon
 
         >>>
@@ -50,7 +53,8 @@ class TTFont(object):
         >> font["OS/2"] = os2
 
     TrueType fonts can also be serialized to and from XML format (see also the
-    :ref:`ttx` binary):
+    :doc:`ttx </ttx>` binary):
+
     .. code-block:: pycon
 
         >>

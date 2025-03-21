@@ -39,7 +39,6 @@ target_link_options(catboost-private-libs-algo_helpers-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

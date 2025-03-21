@@ -13,20 +13,22 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Mapping
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Mapping
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Callable
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic
-from ._apply_pyprojecttoml import apply as _apply
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic, apply as _apply
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution
     from typing_extensions import Self
+
+    from setuptools.dist import Distribution
 
 _logger = logging.getLogger(__name__)
 
@@ -43,8 +45,8 @@ def validate(config: dict, filepath: StrPath) -> bool:
 
     trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
     if hasattr(trove_classifier, "_disable_download"):
-        # Improve reproducibility by default. See issue 31 for validate-pyproject.
-        trove_classifier._disable_download()  # type: ignore
+        # Improve reproducibility by default. See abravalheri/validate-pyproject#31
+        trove_classifier._disable_download()  # type: ignore[union-attr]
 
     try:
         return validator.validate(config)
@@ -62,7 +64,7 @@ def validate(config: dict, filepath: StrPath) -> bool:
 def apply_configuration(
     dist: Distribution,
     filepath: StrPath,
-    ignore_option_errors=False,
+    ignore_option_errors: bool = False,
 ) -> Distribution:
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
@@ -73,10 +75,10 @@ def apply_configuration(
 
 def read_configuration(
     filepath: StrPath,
-    expand=True,
-    ignore_option_errors=False,
+    expand: bool = True,
+    ignore_option_errors: bool = False,
     dist: Distribution | None = None,
-):
+) -> dict[str, Any]:
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file in the ``pyproject.toml``
@@ -121,13 +123,16 @@ def read_configuration(
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    if dist and getattr(dist, "include_package_data", None) is not None:
+    if dist and dist.include_package_data is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
     # Persist changes:
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
+
+    if "ext-modules" in setuptools_table:
+        _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
 
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
@@ -171,7 +176,7 @@ class _ConfigExpander:
         root_dir: StrPath | None = None,
         ignore_option_errors: bool = False,
         dist: Distribution | None = None,
-    ):
+    ) -> None:
         self.config = config
         self.root_dir = root_dir or os.getcwd()
         self.project_cfg = config.get("project", {})
@@ -180,7 +185,7 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
-        self._referenced_files: set[str] = set()
+        self._referenced_files = set[str]()
 
     def _ensure_dist(self) -> Distribution:
         from setuptools.dist import Distribution
@@ -278,7 +283,7 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
-        from setuptools.extern.more_itertools import always_iterable
+        from more_itertools import always_iterable
 
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
@@ -303,7 +308,10 @@ class _ConfigExpander:
     def _obtain_version(self, dist: Distribution, package_dir: Mapping[str, str]):
         # Since plugins can set version, let's silently skip if it cannot be obtained
         if "version" in self.dynamic and "version" in self.dynamic_cfg:
-            return _expand.version(self._obtain(dist, "version", package_dir))
+            return _expand.version(
+                # We already do an early check for the presence of "version"
+                self._obtain(dist, "version", package_dir)  # pyright: ignore[reportArgumentType]
+            )
         return None
 
     def _obtain_readme(self, dist: Distribution) -> dict[str, str] | None:
@@ -313,16 +321,17 @@ class _ConfigExpander:
         dynamic_cfg = self.dynamic_cfg
         if "readme" in dynamic_cfg:
             return {
+                # We already do an early check for the presence of "readme"
                 "text": self._obtain(dist, "readme", {}),
                 "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
-            }
+            }  # pyright: ignore[reportReturnType]
 
         self._ensure_previously_set(dist, "readme")
         return None
 
     def _obtain_entry_points(
         self, dist: Distribution, package_dir: Mapping[str, str]
-    ) -> dict[str, dict] | None:
+    ) -> dict[str, dict[str, Any]] | None:
         fields = ("entry-points", "scripts", "gui-scripts")
         if not any(field in self.dynamic for field in fields):
             return None
@@ -332,7 +341,8 @@ class _ConfigExpander:
             return None
 
         groups = _expand.entry_points(text)
-        expanded = {"entry-points": groups}
+        # Any is str | dict[str, str], but causes variance issues
+        expanded: dict[str, dict[str, Any]] = {"entry-points": groups}
 
         def _set_scripts(field: str, group: str):
             if group in groups:
@@ -403,7 +413,7 @@ def _ignore_errors(ignore_option_errors: bool):
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
     def __init__(
         self, distribution: Distribution, project_cfg: dict, setuptools_cfg: dict
-    ):
+    ) -> None:
         super().__init__(distribution)
         self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
@@ -430,7 +440,12 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         return super().__enter__()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         """When exiting the context, if values of ``packages``, ``py_modules`` and
         ``package_dir`` are missing in ``setuptools_cfg``, copy from ``dist``.
         """

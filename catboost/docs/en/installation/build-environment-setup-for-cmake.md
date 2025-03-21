@@ -51,13 +51,15 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
         For `aarch64` CPU archirecture the minimum version is 18.1
 
-        For other CPU architectures the minimum version is 14
+        For other CPU architectures the minimum version is 16
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 
       For Linux target the default CMake toolchain assumes that `clang` and `clang++` are available from the command line and will use them to compile {{ product }} components. If the default version of `clang` and `clang++` is not what is intended to be used for building then modify the toolchain file `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain` - replace all occurences of `clang` and `clang++` with `clang-$CLANG_VERSION` and `clang++-$CLANG_VERSION` respectively where `$CLANG_VERSION` is the version of `clang` you want to use like, for example, `16` or `17` (must be already installed).
 
       For compilation with CUDA support the default CMake toolchain assumes that `clang-14` is available from the command line.
+
+      For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) supported `clang` versions for `x86_64` architecture have been 14 - 18
 
       For revisions before [4602574](https://github.com/catboost/catboost/commit/4602574d7e5cbfd8bb1ea0f7f68a45561c844414) the minimal supported `clang` version for `aarch64` architecture has been 14.
 
@@ -69,7 +71,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   - macOS
 
-      - XCode command line tools (must contain `clang` with version 14+, so XCode version must be greater than 14.0 as well)
+      - XCode command line tools (must contain `clang` with version 15+, so XCode version must be greater than 15.0 as well)
+
+      For revisions before [1d5e677](https://github.com/catboost/catboost/commit/1d5e677b916a4ce3375b3200c4c2f95884d481de) the minimal supported `clang` version has been 14 (means XCode version must have been 14.0 as well)
 
       For revisions before [136f14f](https://github.com/catboost/catboost/commit/136f14f5d55119028a7bb1886814775cd1e2c649) the minimal supported `clang` version has been 12 (means XCode version must have been 12.0+ as well).
 
@@ -81,7 +85,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
         - Microsoft Visual Studio 2022 with `clang-cl` compiler with version 14+ installed (can be selected in `Individual components` pane of the Visual Studio Installer for Visual Studio 2022). See details [here](https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170)
 
       - for builds with CUDA support:
-        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a paricular Visual Studio version)
+        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a particular Visual Studio version)
+
+      For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) builds without CUDA required Microsoft Visual Studio 2022 with `clang-cl` compiler with versions 14 - 18.
 
       For revisions before [d5ac776](https://github.com/catboost/catboost/commit/d5ac776e0dd4eeb2ffd99d3fabaaee3e86b8dba1) builds without CUDA have also been using MSVC v142 - Visual Studio 2019 C++ x64/x86 build tools version v14.28 - 16.8 or v14.28 - 16.9.
 
@@ -150,3 +156,15 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   Note that they are specific to [CPython Python implementation](https://en.wikipedia.org/wiki/CPython). {{ product }} does not currently support other Python implementations like PyPy, Jython or IronPython.
 
   One convenient way to install different Python versions with development artifacts in one step is to use [pyenv](https://github.com/pyenv/pyenv) (and its variant for Windows - [pyenv-win](https://github.com/pyenv-win/pyenv-win))
+
+### Cython (only for Python package)
+
+  [Cython](https://cython.org/) is required to build the python package.
+
+  `cython` command should be available from the command line.
+
+  {% cut "Previous requirements" %}
+
+  Before revision [7b76b2c](https://github.com/catboost/catboost/commit/7b76b2cbece906fbc87d1187410d60fde8747d57) an additional installation of Cython had not been needed because [internal Cython from contrib](https://github.com/catboost/catboost/tree/30a96912bf8c0976a3450132e79d7dfa71dfda26/contrib/tools/cython) had been used.
+
+  {% endcut %}

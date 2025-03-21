@@ -11,6 +11,12 @@ Install the package. You have two options:
         ```
    - Build package from source.
 
+        CatBoost Node.js package is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
+
+        In order to build it some environment setup is necessary. Modern versions of CatBoost use CMake build system, build environment setup for CMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-cmake), CatBoost versions before 1.2 used Ya Make build system, build environment setup for YaMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-ya-make).
+
+        ------
+
         CatBoost source code is stored as a [Git](https://git-scm.com/) repository on GitHub at <https://github.com/catboost/catboost/>. You can obtain a local copy of this Git repository by running the following command from a command line interpreter (you need to have Git command line tools installed):
 
         ```sh

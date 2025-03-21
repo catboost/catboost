@@ -37,7 +37,6 @@ target_link_options(catboost-private-libs-text_features-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

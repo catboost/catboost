@@ -24,7 +24,6 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: Implementation :: CPython
 
-
 scandir, a better directory iterator and faster os.walk()
 =========================================================
 

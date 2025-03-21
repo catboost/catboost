@@ -829,6 +829,11 @@ void PrintTo(const ::std::pair<T1, T2>& value, ::std::ostream* os) {
   *os << ')';
 }
 
+template <typename C, typename D>
+void PrintTo(const ::std::chrono::time_point<C, D>& value, ::std::ostream* os) {
+	*os << "TimeStamp(" << static_cast<int64_t>(value.time_since_epoch().count()) << ")";
+}
+
 // Implements printing a non-reference type T by letting the compiler
 // pick the right overload of PrintTo() for T.
 template <typename T>

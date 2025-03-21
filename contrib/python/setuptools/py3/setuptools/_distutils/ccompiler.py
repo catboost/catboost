@@ -4,12 +4,14 @@ Contains CCompiler, an abstract base class that defines the interface
 for the Distutils compiler abstraction model."""
 
 import os
+import pathlib
 import re
 import sys
 import types
 import warnings
 
-from ._itertools import always_iterable
+from more_itertools import always_iterable
+
 from ._log import log
 from ._modified import newer_group
 from .dir_util import mkpath
@@ -22,7 +24,7 @@ from .errors import (
 )
 from .file_util import move_file
 from .spawn import spawn
-from .util import execute, split_quoted, is_mingw
+from .util import execute, is_mingw, split_quoted
 
 
 class CCompiler:
@@ -968,27 +970,33 @@ int main (int argc, char **argv) {{
         return dict.fromkeys(self.src_extensions, self.obj_extension)
 
     def _make_out_path(self, output_dir, strip_dir, src_name):
-        base, ext = os.path.splitext(src_name)
-        base = self._make_relative(base)
+        return self._make_out_path_exts(
+            output_dir, strip_dir, src_name, self.out_extensions
+        )
+
+    @classmethod
+    def _make_out_path_exts(cls, output_dir, strip_dir, src_name, extensions):
+        r"""
+        >>> exts = {'.c': '.o'}
+        >>> CCompiler._make_out_path_exts('.', False, '/foo/bar.c', exts).replace('\\', '/')
+        './foo/bar.o'
+        >>> CCompiler._make_out_path_exts('.', True, '/foo/bar.c', exts).replace('\\', '/')
+        './bar.o'
+        """
+        src = pathlib.PurePath(src_name)
+        # Ensure base is relative to honor output_dir (python/cpython#37775).
+        base = cls._make_relative(src)
         try:
-            new_ext = self.out_extensions[ext]
+            new_ext = extensions[src.suffix]
         except LookupError:
-            raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
+            raise UnknownFileError(f"unknown file type '{src.suffix}' (from '{src}')")
         if strip_dir:
-            base = os.path.basename(base)
-        return os.path.join(output_dir, base + new_ext)
+            base = pathlib.PurePath(base.name)
+        return os.path.join(output_dir, base.with_suffix(new_ext))
 
     @staticmethod
-    def _make_relative(base):
-        """
-        In order to ensure that a filename always honors the
-        indicated output_dir, make sure it's relative.
-        Ref python/cpython#37775.
-        """
-        # Chop off the drive
-        no_drive = os.path.splitdrive(base)[1]
-        # If abs, chop off leading /
-        return no_drive[os.path.isabs(no_drive) :]
+    def _make_relative(base: pathlib.Path):
+        return base.relative_to(base.anchor)
 
     def shared_object_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
@@ -1124,10 +1132,10 @@ def show_compilers():
     # commands that use it.
     from distutils.fancy_getopt import FancyGetopt
 
-    compilers = []
-    for compiler in compiler_class.keys():
-        compilers.append(("compiler=" + compiler, None, compiler_class[compiler][2]))
-    compilers.sort()
+    compilers = sorted(
+        ("compiler=" + compiler, None, compiler_class[compiler][2])
+        for compiler in compiler_class.keys()
+    )
     pretty_printer = FancyGetopt(compilers)
     pretty_printer.print_help("List of available compilers:")
 
@@ -1218,8 +1226,7 @@ def gen_preprocess_options(macros, include_dirs):
                 # shell at all costs when we spawn the command!
                 pp_opts.append("-D{}={}".format(*macro))
 
-    for dir in include_dirs:
-        pp_opts.append(f"-I{dir}")
+    pp_opts.extend(f"-I{dir}" for dir in include_dirs)
     return pp_opts
 
 
@@ -1230,10 +1237,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
     directories.  Returns a list of command-line options suitable for use
     with some compiler (depending on the two format strings passed in).
     """
-    lib_opts = []
-
-    for dir in library_dirs:
-        lib_opts.append(compiler.library_dir_option(dir))
+    lib_opts = [compiler.library_dir_option(dir) for dir in library_dirs]
 
     for dir in runtime_library_dirs:
         lib_opts.extend(always_iterable(compiler.runtime_library_dir_option(dir)))

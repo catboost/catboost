@@ -1,5 +1,7 @@
 # {{ python-package }} installation
 
+{% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
+
 {% note alert %}
 
 Installation is only supported by the 64-bit version of Python.

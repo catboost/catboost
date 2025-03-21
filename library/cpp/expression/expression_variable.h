@@ -10,16 +10,22 @@
 class TExpressionVariable {
 public:
     TExpressionVariable();
-    TExpressionVariable(const TString& source);
+    TExpressionVariable(TString source);
     TExpressionVariable(double source);
     TExpressionVariable(const THistogramPointsAndBins& source);
     TExpressionVariable(const TExpressionVariable& source);
     explicit TExpressionVariable(bool source);
 
-    TExpressionVariable& operator=(const TString& source);
+    TExpressionVariable& operator=(TString source);
     TExpressionVariable& operator=(double source);
     TExpressionVariable& operator=(THistogramPointsAndBins& source);
     TExpressionVariable& operator=(const TExpressionVariable& source);
+
+    // covers std::string, TStringBuf, string literals
+    template <typename T, typename = std::enable_if_t<std::is_constructible_v<TString, T>>>
+    TExpressionVariable& operator=(T&& source) {
+        return *this = TString{std::forward<T>(source)};
+    }
 
     double Not();
     double Minus();

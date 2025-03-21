@@ -8,6 +8,7 @@ a package's PKG-INFO metadata.
 import os
 import re
 import sys
+from typing import ClassVar
 
 from .. import dir_util
 from .._log import log
@@ -18,7 +19,7 @@ class install_egg_info(Command):
     """Install an .egg-info file for the package"""
 
     description = "Install package's PKG-INFO metadata as an .egg-info file"
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('install-dir=', 'd', "directory to install to"),
     ]
 
@@ -31,11 +32,9 @@ class install_egg_info(Command):
         Allow basename to be overridden by child class.
         Ref pypa/distutils#2.
         """
-        return "%s-%s-py%d.%d.egg-info" % (
-            to_filename(safe_name(self.distribution.get_name())),
-            to_filename(safe_version(self.distribution.get_version())),
-            *sys.version_info[:2],
-        )
+        name = to_filename(safe_name(self.distribution.get_name()))
+        version = to_filename(safe_version(self.distribution.get_version()))
+        return f"{name}-{version}-py{sys.version_info.major}.{sys.version_info.minor}.egg-info"
 
     def finalize_options(self):
         self.set_undefined_options('install_lib', ('install_dir', 'install_dir'))

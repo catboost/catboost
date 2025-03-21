@@ -12,15 +12,13 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(CUDAToolkit REQUIRED)
-
 add_library(cpp-cuda-exception)
 
 
 target_link_libraries(cpp-cuda-exception PUBLIC
   contrib-libs-cxxsupp
   yutil
-  CUDA::toolkit
+  build-platform-cuda
 )
 
 target_sources(cpp-cuda-exception PRIVATE

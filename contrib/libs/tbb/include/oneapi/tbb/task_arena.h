@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2023 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -110,7 +110,8 @@ inline void enqueue_impl(task_handle&& th, d1::task_arena_base* ta) {
 
 namespace d1 {
 
-static constexpr int priority_stride = INT_MAX / 4;
+static constexpr unsigned num_priority_levels = 3;
+static constexpr int priority_stride = INT_MAX / (num_priority_levels + 1);
 
 class task_arena_base {
     friend struct r1::task_arena_impl;
@@ -187,13 +188,8 @@ protected:
         , my_num_reserved_slots(reserved_for_masters)
         , my_priority(a_priority)
         , my_numa_id(constraints_.numa_id)
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
         , my_core_type(constraints_.core_type)
         , my_max_threads_per_core(constraints_.max_threads_per_core)
-#else
-        , my_core_type(automatic)
-        , my_max_threads_per_core(automatic)
-#endif
         {}
 #endif /*__TBB_ARENA_BINDING*/
 public:
@@ -280,10 +276,8 @@ public:
             constraints{}
                 .set_numa_id(s.my_numa_id)
                 .set_max_concurrency(s.my_max_concurrency)
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
                 .set_core_type(s.my_core_type)
                 .set_max_threads_per_core(s.my_max_threads_per_core)
-#endif
             , s.my_num_reserved_slots, s.my_priority)
     {}
 #else
@@ -337,10 +331,8 @@ public:
         if( !is_active() ) {
             my_numa_id = constraints_.numa_id;
             my_max_concurrency = constraints_.max_concurrency;
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
             my_core_type = constraints_.core_type;
             my_max_threads_per_core = constraints_.max_threads_per_core;
-#endif
             my_num_reserved_slots = reserved_for_masters;
             my_priority = a_priority;
             r1::initialize(*this);

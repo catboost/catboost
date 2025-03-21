@@ -12,9 +12,12 @@ import warnings
 from datetime import date
 from inspect import cleandoc
 from textwrap import indent
-from typing import Tuple
+from typing import TYPE_CHECKING
 
-_DueDate = Tuple[int, int, int]  # time tuple
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+_DueDate: TypeAlias = tuple[int, int, int]  # time tuple
 _INDENT = 8 * " "
 _TEMPLATE = f"""{80 * '*'}\n{{details}}\n{80 * '*'}"""
 
@@ -32,7 +35,7 @@ class SetuptoolsWarning(UserWarning):
         see_url: str | None = None,
         stacklevel: int = 2,
         **kwargs,
-    ):
+    ) -> None:
         """Private: reserved for ``setuptools`` internal use only"""
         # Default values:
         summary_ = summary or getattr(cls, "_SUMMARY", None) or ""
@@ -56,7 +59,7 @@ class SetuptoolsWarning(UserWarning):
         due_date: date | None = None,
         see_url: str | None = None,
         format_args: dict | None = None,
-    ):
+    ) -> str:
         """Private: reserved for ``setuptools`` internal use only"""
         today = date.today()
         summary = cleandoc(summary).format_map(format_args or {})

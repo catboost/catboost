@@ -19,7 +19,6 @@
 #       https://www.unicode.org/reports/tr24/#Assignment_ScriptX_Values
 #
 
-
 RANGES = [
     0x0000,  # .. 0x0040 ; Common
     0x0041,  # .. 0x005A ; Latin

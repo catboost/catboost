@@ -716,3 +716,22 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #else
     #define Y_RETURNS_NONNULL
 #endif
+
+/**
+ * @def Y_NONNULL
+ *
+ * The nonnull attribute indicates that some function parameters must not be null.
+ *
+ * @see
+ *    GCC: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-nonnull-function-attribute
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#id15
+ *
+ * @code
+ * void func(char* Y_NONNULL arr, size_t len);
+ * @endcode
+ */
+#if Y_HAVE_ATTRIBUTE(nonnull)
+    #define Y_NONNULL __attribute__((nonnull))
+#else
+    #define Y_NONNULL
+#endif

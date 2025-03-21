@@ -1,3 +1,4 @@
+#include <contrib/libs/openssl/redef.h>
 /*
  * Copyright 2003-2016 The OpenSSL Project Authors. All Rights Reserved.
  *

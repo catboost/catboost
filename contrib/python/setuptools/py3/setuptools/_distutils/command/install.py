@@ -10,7 +10,8 @@ import sysconfig
 from distutils._log import log
 from site import USER_BASE, USER_SITE
 
-from .. import _collections
+import jaraco.collections
+
 from ..core import Command
 from ..debug import DEBUG
 from ..errors import DistutilsOptionError, DistutilsPlatformError
@@ -406,8 +407,8 @@ class install(Command):
             'dist_version': self.distribution.get_version(),
             'dist_fullname': self.distribution.get_fullname(),
             'py_version': py_version,
-            'py_version_short': '%d.%d' % sys.version_info[:2],
-            'py_version_nodot': '%d%d' % sys.version_info[:2],
+            'py_version_short': f'{sys.version_info.major}.{sys.version_info.minor}',
+            'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
             'sys_prefix': prefix,
             'prefix': prefix,
             'sys_exec_prefix': exec_prefix,
@@ -428,7 +429,7 @@ class install(Command):
             local_vars['userbase'] = self.install_userbase
             local_vars['usersite'] = self.install_usersite
 
-        self.config_vars = _collections.DictStack([
+        self.config_vars = jaraco.collections.DictStack([
             fw.vars(),
             compat_vars,
             sysconfig.get_config_vars(),
@@ -680,7 +681,7 @@ class install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for _name, path in self.config_vars.items():
+        for path in self.config_vars.values():
             if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)

@@ -2,6 +2,8 @@
 
 #include "compact_vector.h"
 
+#include <string>
+
 Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     Y_UNIT_TEST(TestSimple1) {
     }
@@ -42,6 +44,29 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(4u, vector[4]);
         UNIT_ASSERT_VALUES_EQUAL(5u, vector[5]);
         UNIT_ASSERT_VALUES_EQUAL(11u, vector[11]);
+    }
+
+    Y_UNIT_TEST(TestEmplace) {
+        struct TFoo {
+            explicit TFoo(int)
+                : ConstructedFrom("int")
+            {
+            }
+
+            explicit TFoo(char)
+                : ConstructedFrom("char")
+            {
+            }
+
+            std::string ConstructedFrom;
+        };
+
+        TCompactVector<TFoo> vector;
+        auto& x = vector.emplace_back(123);
+        UNIT_ASSERT_VALUES_EQUAL(&x, &vector.back());
+        UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "int");
+        vector.emplace_back('c');
+        UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "char");
     }
 
     Y_UNIT_TEST(TestInitializerListConstructor) {
@@ -145,5 +170,16 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(vector[0], vector2[0]);
         UNIT_ASSERT_VALUES_EQUAL(vector[1], vector2[1]);
         UNIT_ASSERT_VALUES_EQUAL(vector[2], vector2[2]);
+    }
+
+    Y_UNIT_TEST(TestComparison) {
+        // UNIT_ASSERT_VALUES_EQUAL needs a specialization for Out(), so we just use bool assertions
+        TCompactVector<int> vector {1, 2, 3};
+        TCompactVector<int> vector2 {1, 2};
+        UNIT_ASSERT(vector != vector2);  // diff size
+        vector2.emplace_back(4);
+        UNIT_ASSERT(vector != vector2);  // diff values
+        vector2.back() = 3;
+        UNIT_ASSERT(vector == vector2);
     }
 }

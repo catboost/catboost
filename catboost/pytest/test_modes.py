@@ -5,6 +5,7 @@ import yatest.common as yc
 from lib import (
     data_file,
     get_limited_precision_dsv_diff_tool,
+    compare_with_limited_precision
 )
 
 CATBOOST_PATH = yc.binary_path("catboost/app/catboost")
@@ -115,7 +116,7 @@ class TestModeNormalizeModel(object):
             normalized_model = self.normalize_model(model, dataset, 'test_file')
             normalized_eval = self.eval_model(normalized_model, dataset, 'test_file')
             normalized_minmax = self.get_minmax(normalized_eval)
-            assert normalized_minmax == (0, 1)
+            assert compare_with_limited_precision(normalized_minmax, [0.0, 1.0])
 
     def test_normalize_bad(self):
         dataset = Dataset('precipitation_small')

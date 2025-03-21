@@ -17,6 +17,7 @@ add_library(contrib-libs-tbb)
 
 target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_BUILD
+  -D__TBB_GNU_ASM_VERSION=2041
   -DUSE_PTHREAD
   -D__TBB_USE_ITT_NOTIFY
   -DDO_ITT_NOTIFY
@@ -58,6 +59,10 @@ target_sources(contrib-libs-tbb PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task_dispatcher.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task_group_context.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/tcm_adaptor.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/thread_dispatcher.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/thread_request_serializer.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/threading_control.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/version.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/itt_notify.cpp
 )

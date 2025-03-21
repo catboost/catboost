@@ -16,10 +16,8 @@ __all__ = [
     'install_scripts',
     'install_data',
     'sdist',
-    'register',
     'bdist',
     'bdist_dumb',
     'bdist_rpm',
     'check',
-    'upload',
 ]

@@ -2763,27 +2763,27 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
     else:
         assert False
 
-    params = {
-        '--loss-function': loss_func,
-        '--grow-policy': grow_policy,
-        '--score-function': score_function,
-        '-m': model_path,
-        '-f': learn,
-        '-t': test,
-        '--column-description': cd,
-        '-i': '20',
-        '-T': '4',
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-        '--eval-file': output_eval_path,
-        '--use-best-model': 'false',
-        '--metric-period': '1',
-    }
+    params = (
+        '--loss-function', loss_func,
+        '--grow-policy', grow_policy,
+        '--score-function', score_function,
+        '-m', model_path,
+        '-f', learn,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '20',
+        '-T', '4',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+        '--metric-period', '1',
+    ) + NO_RANDOM_PARAMS
 
     if boosting_type != 'Default':
-        params['--boosting-type'] = boosting_type
+        params += ('--boosting-type', boosting_type)
     if grow_policy == 'Lossguide':
-        params['--depth'] = 100
+        params += ('--depth', '100')
 
     # try:
     if is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
@@ -2800,6 +2800,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
     calc_cmd = (
         CATBOOST_PATH,
         'calc',
+        '-T', '4',
         '--input-path', test,
         '--column-description', cd,
         '-m', model_path,
@@ -2861,12 +2862,13 @@ def test_model_based_eval(dataset):
             '--cd', get_table_path('cd'),
             '-i', '100',
             '-T', '4',
-            '-w', '0.01',
+            '-w', '0.001',
             '--test-err-log', test_err_log,
             '--data-partition', 'DocParallel',
             '--random-strength', '0',
             '--bootstrap-type', 'No',
             '--has-time',
+            '--metric-period', '1',
         )
 
     ignored_features = '10:11:12:13:15' if dataset['cd'] != 'train_with_id.cd' else 'C7:C8:C9:F3:F5'

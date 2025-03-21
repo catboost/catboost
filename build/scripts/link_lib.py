@@ -1,12 +1,25 @@
+from __future__ import print_function
+
 import sys
 import subprocess
 import tempfile
 import os
 import shutil
+import argparse
 
 
 class Opts(object):
     def __init__(self, args):
+        kvs = args.index('--')
+        kve = args.index('--', kvs + 1)
+        kv = args[kvs + 1:kve]
+        args = args[:kvs] + args[kve + 1:]
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--plugin')
+        kvargs = parser.parse_args(kv)
+
+        self.ar_plugin = kvargs.plugin
         self.archiver = args[0]
         self.arch_type = args[1]
         self.llvm_ar_format = args[2]
@@ -99,3 +112,6 @@ if __name__ == "__main__":
 
     if exit_code != 0:
         raise Exception('{0} returned non-zero exit code {1}. Stop.'.format(' '.join(cmd), exit_code))
+
+    if opts.ar_plugin:
+        subprocess.check_call([sys.executable, opts.ar_plugin, opts.output, '--'] + sys.argv[1:])

@@ -1,25 +1,25 @@
 """Wheels support."""
 
+import contextlib
 import email
-import itertools
 import functools
+import itertools
 import os
 import posixpath
 import re
 import zipfile
-import contextlib
 
-from distutils.util import get_platform
+from packaging.tags import sys_tags
+from packaging.utils import canonicalize_name
+from packaging.version import Version as parse_version
 
 import setuptools
-from setuptools.extern.packaging.version import Version as parse_version
-from setuptools.extern.packaging.tags import sys_tags
-from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.command.egg_info import write_requirements, _egg_basename
 from setuptools.archive_util import _unpack_zipfile_obj
+from setuptools.command.egg_info import _egg_basename, write_requirements
 
 from .unicode_utils import _read_utf8_with_fallback
 
+from distutils.util import get_platform
 
 WHEEL_NAME = re.compile(
     r"""^(?P<project_name>.+?)-(?P<version>\d.*?)
@@ -31,7 +31,7 @@ WHEEL_NAME = re.compile(
 NAMESPACE_PACKAGE_INIT = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_supported_tags():
     # We calculate the supported tags only once, otherwise calling
     # this method on thousands of wheels takes seconds instead of
@@ -39,7 +39,7 @@ def _get_supported_tags():
     return {(t.interpreter, t.abi, t.platform) for t in sys_tags()}
 
 
-def unpack(src_dir, dst_dir):
+def unpack(src_dir, dst_dir) -> None:
     """Move everything under `src_dir` to `dst_dir`, and delete the former."""
     for dirpath, dirnames, filenames in os.walk(src_dir):
         subdir = os.path.relpath(dirpath, src_dir)
@@ -76,10 +76,10 @@ def disable_info_traces():
 
 
 class Wheel:
-    def __init__(self, filename):
+    def __init__(self, filename) -> None:
         match = WHEEL_NAME(os.path.basename(filename))
         if match is None:
-            raise ValueError('invalid wheel name: %r' % filename)
+            raise ValueError(f'invalid wheel name: {filename!r}')
         self.filename = filename
         for k, v in match.groupdict().items():
             setattr(self, k, v)
@@ -116,15 +116,15 @@ class Wheel:
                 return dirname
         raise ValueError("unsupported wheel format. .dist-info not found")
 
-    def install_as_egg(self, destination_eggdir):
+    def install_as_egg(self, destination_eggdir) -> None:
         """Install wheel as an egg directory."""
         with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)
 
     def _install_as_egg(self, destination_eggdir, zf):
-        dist_basename = '%s-%s' % (self.project_name, self.version)
+        dist_basename = f'{self.project_name}-{self.version}'
         dist_info = self.get_dist_info(zf)
-        dist_data = '%s.data' % dist_basename
+        dist_data = f'{dist_basename}.data'
         egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
 
         self._convert_metadata(zf, destination_eggdir, dist_info, egg_info)
@@ -145,7 +145,7 @@ class Wheel:
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
         wheel_v1 = parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         if not wheel_v1:
-            raise ValueError('unsupported wheel format version: %s' % wheel_version)
+            raise ValueError(f'unsupported wheel format version: {wheel_version}')
         # Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.

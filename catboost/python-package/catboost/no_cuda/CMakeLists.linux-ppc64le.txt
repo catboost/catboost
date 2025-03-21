@@ -75,7 +75,6 @@ target_link_options(_catboost_no_cuda PRIVATE
   -Wl,-z,notext
   -Wl,-Bsymbolic
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )
@@ -105,7 +104,6 @@ target_cython_options(_catboost_no_cuda
 target_cython_include_directories(_catboost_no_cuda
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )

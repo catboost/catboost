@@ -145,6 +145,8 @@ class FilesCombiner(object):
             'gnu',  # llvm_ar_format, used only if arch_type == 'LLVM_AR'
             opts.parsed_args.project_binary_dir,
             'None',  # plugin. Unused for now
+            '--',  # for plugins. Unused for now
+            '--',
         ]
         # the remaining archiving cmd args are [output, .. input .. ]
 

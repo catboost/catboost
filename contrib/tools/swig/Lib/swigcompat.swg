@@ -2,6 +2,10 @@
  * swigcompat.swg
  *
  * Macros to provide support compatibility with older C and C++ standards.
+ *
+ * Note that SWIG expects __cplusplus to be defined to the appropriate C++ standard.
+ * MSVC users are urged to check and examine the /Zc:__cplusplus compiler option.
+ * See https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus.
  * ----------------------------------------------------------------------------- */
 
 /* C99 and C++11 should provide snprintf, but define SWIG_NO_SNPRINTF

@@ -10,7 +10,7 @@ from .utils import (
 try:  # pragma: no cover
     from .redis import RedisLock
 except ImportError:  # pragma: no cover
-    RedisLock = None  # type: ignore
+    RedisLock = None  # type: ignore[assignment,misc]
 
 
 #: The package name on Pypi
@@ -20,7 +20,7 @@ __author__ = __about__.__author__
 #: Current author's email address
 __email__ = __about__.__email__
 #: Version number
-__version__ = '3.0.0'
+__version__ = '3.1.1'
 #: Package description for Pypi
 __description__ = __about__.__description__
 #: Package homepage
@@ -61,19 +61,19 @@ LockFlags = constants.LockFlags
 #: context wrappers
 
 __all__ = [
-    'lock',
-    'unlock',
     'LOCK_EX',
-    'LOCK_SH',
     'LOCK_NB',
+    'LOCK_SH',
     'LOCK_UN',
-    'LockFlags',
-    'LockException',
-    'Lock',
-    'RLock',
     'AlreadyLocked',
     'BoundedSemaphore',
-    'TemporaryFileLock',
-    'open_atomic',
+    'Lock',
+    'LockException',
+    'LockFlags',
+    'RLock',
     'RedisLock',
+    'TemporaryFileLock',
+    'lock',
+    'open_atomic',
+    'unlock',
 ]

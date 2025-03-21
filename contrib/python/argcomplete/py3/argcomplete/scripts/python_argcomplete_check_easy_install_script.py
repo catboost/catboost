@@ -33,7 +33,7 @@ def main():
             lines = head.split("\n", 12)
             for line in lines:
                 if line.startswith("# EASY-INSTALL-SCRIPT"):
-                    import pkg_resources
+                    import pkg_resources  # type: ignore
 
                     re_match = re.match("# EASY-INSTALL-SCRIPT: '(.+)','(.+)'", line)
                     assert re_match is not None
@@ -48,7 +48,7 @@ def main():
                     dist, group, name = re_match.groups()
                     import pkgutil
 
-                    import pkg_resources
+                    import pkg_resources  # type: ignore
 
                     entry_point_info = pkg_resources.get_distribution(dist).get_entry_info(group, name)
                     assert entry_point_info is not None
@@ -71,7 +71,7 @@ def main():
                     module = re_match.groups()[0]
                     import pkgutil
 
-                    import pkg_resources
+                    import pkg_resources  # type: ignore
 
                     with open(pkgutil.get_loader(module).get_filename()) as mod_fh:  # type: ignore
                         if "PYTHON_ARGCOMPLETE_OK" in mod_fh.read(1024):

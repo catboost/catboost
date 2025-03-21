@@ -4,9 +4,12 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+from __future__ import annotations
+
 import functools
 import importlib.util
 import os
+import pathlib
 import re
 import string
 import subprocess
@@ -14,13 +17,15 @@ import sys
 import sysconfig
 import tempfile
 
+from jaraco.functools import pass_none
+
 from ._log import log
 from ._modified import newer
 from .errors import DistutilsByteCompileError, DistutilsPlatformError
 from .spawn import spawn
 
 
-def get_host_platform():
+def get_host_platform() -> str:
     """
     Return a string that identifies the current platform. Use this
     function to distinguish platform-specific build directories and
@@ -29,15 +34,7 @@ def get_host_platform():
 
     # This function initially exposed platforms as defined in Python 3.9
     # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig, but maintains compatibility.
-
-    if sys.version_info < (3, 9):
-        if os.name == "posix" and hasattr(os, 'uname'):
-            osname, host, release, version, machine = os.uname()
-            if osname[:3] == "aix":
-                from .compat.py38 import aix_platform
-
-                return aix_platform(osname, version, release)
+    # Now it delegates to stdlib sysconfig.
 
     return sysconfig.get_platform()
 
@@ -116,33 +113,23 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
-def convert_path(pathname):
-    """Return 'pathname' as a name that will work on the native filesystem,
-    i.e. split it on '/' and put it back together again using the current
-    directory separator.  Needed because filenames in the setup script are
-    always supplied in Unix style, and have to be converted to the local
-    convention before we can actually use them in the filesystem.  Raises
-    ValueError on non-Unix-ish systems if 'pathname' either starts or
-    ends with a slash.
+@pass_none
+def convert_path(pathname: str | os.PathLike) -> str:
+    r"""
+    Allow for pathlib.Path inputs, coax to a native path string.
+
+    If None is passed, will just pass it through as
+    Setuptools relies on this behavior.
+
+    >>> convert_path(None) is None
+    True
+
+    Removes empty paths.
+
+    >>> convert_path('foo/./bar').replace('\\', '/')
+    'foo/bar'
     """
-    if os.sep == '/':
-        return pathname
-    if not pathname:
-        return pathname
-    if pathname[0] == '/':
-        raise ValueError(f"path '{pathname}' cannot be absolute")
-    if pathname[-1] == '/':
-        raise ValueError(f"path '{pathname}' cannot end with '/'")
-
-    paths = pathname.split('/')
-    while '.' in paths:
-        paths.remove('.')
-    if not paths:
-        return os.curdir
-    return os.path.join(*paths)
-
-
-# convert_path ()
+    return os.fspath(pathlib.PurePath(pathname))
 
 
 def change_root(new_root, pathname):
@@ -293,7 +280,7 @@ def split_quoted(s):
             elif s[end] == '"':  # slurp doubly-quoted string
                 m = _dquote_re.match(s, end)
             else:
-                raise RuntimeError("this can't happen (bad char '%c')" % s[end])
+                raise RuntimeError(f"this can't happen (bad char '{s[end]}')")
 
             if m is None:
                 raise ValueError(f"bad string (mismatched {s[end]} quotes?)")
@@ -508,3 +495,8 @@ def is_mingw():
     get_platform() starts with 'mingw'.
     """
     return sys.platform == 'win32' and get_platform().startswith('mingw')
+
+
+def is_freethreaded():
+    """Return True if the Python interpreter is built with free threading support."""
+    return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))

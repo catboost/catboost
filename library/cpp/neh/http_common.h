@@ -7,6 +7,7 @@
 #include <util/stream/mem.h>
 #include <util/stream/output.h>
 #include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/http/misc/httpcodes.h>
 
 #include "location.h"
 #include "neh.h"
@@ -298,4 +299,6 @@ namespace NNeh {
 
         bool IsHttpScheme(TStringBuf scheme);
     }
+
+    HttpCodes GetHttpCode(const IRequest::TResponseError&);
 }

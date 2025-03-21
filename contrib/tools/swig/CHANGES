@@ -5,6 +5,146 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 4.2.1 (24 Feb 2024)
+===========================
+
+2024-02-23: wsfulton
+            #2814 Correctly ignore duplicate template instantiation (when the
+            duplicate contains typedef'd template parameters).
+
+2024-02-22: erezgeva
+            [Ruby, Octave, R] #2284 Fix segfault shrinking STL containers.
+
+2024-02-22: simark
+	    Fix -Wundef warning about testing the value of __cplusplus when
+	    compiling SWIG-generated C code.  Warning introduced by a change in
+	    SWIG 4.2.0.
+
+2024-02-21: olly
+	    #2808 [PHP] Fix memory leak when getting or setting a PHP
+	    attribute which wraps a C++ member variable.  Bug introduced in
+	    SWIG 4.1.0.
+
+2024-02-18: wsfulton
+            #2745 Fix for wrapping STL containers that are static member variables
+            or global variables (most scripting languages). Previously a copy of the
+            STL container was made into a target language container when reading the
+            variable. Changes, such as adjusting an element or adding/erasing
+            elements, were made to the copy of the container rather the actual
+            underlying C++ container. Also applies to const reference STL static
+            members.
+
+            If you really need the old behaviour, add in the typemap that used
+            to provide it. For example, for std::list< int > and
+            const std::list< int >&, use:
+
+              %typemap(varout,noblock=1,fragment="SWIG_" "Traits" "_" {std::list< int >})
+                  std::list< int >, const std::list< int >&  {
+                $result = swig::from(static_cast< std::list< int > >($1));
+              }
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-02-15: olly
+	    Improve type deduction for enum values in expressions.
+
+2024-02-15: rlaboiss
+	    #2799 [Octave] Add support for Octave 9.0; fix warnings about use
+	    of deprecated Octave APIs with Octave 7 and later.
+
+2024-02-14: olly
+	    SWIG now warns and ignores if %constant is used with an implicit
+	    type which SWIG can't deduce.
+
+2024-02-13: olly
+	    Fix type deduction for certain cases involving C-style casts, or
+	    which are syntactically like a C-style cast applied to an unary
+	    operator, such as: (7)*6
+
+2024-02-13: olly
+	    #2796 Fix handling of enum initialised by expression including a
+	    cast to a typedef-ed type.  Regression introduced in 4.2.0.
+
+2024-02-09: wsfulton
+            #2794 Fix SwigType_isvariadic assertion to add support for variadic
+            templated functions in a template.
+
+2024-02-08: wsfulton
+            #2761 [Tcl] Fix assert in SWIG_Tcl_ConvertPtrFromString().
+
+2024-02-03: wsfulton
+            #1897 [C#, Java] Fix crash handling enums with same name in different
+            namespaces.
+
+2024-02-01: wsfulton
+            #2781 Correctly report line number warnings/errors for base classes that
+            are templates.
+
+2024-01-31: olly
+	    Fix assertion failure and segfault trying to use %constant to
+	    deduce the type of a "float _Complex" constant.
+
+2024-01-31: jim-easterbrook
+            #2771 [Python] builtin fixes to handle NULL values passed to slots using
+            functype: ssizeobjargproc and ternaryfunc.
+
+2024-01-31: olly
+	    [Java] #2766 Fix segfault trying to wrap a constant whose type is unknown
+	    to SWIG with "%javaconst(1);" enabled.
+
+2024-01-31: wsfulton
+            #2768 Fix seg fault handling upcasting when using %shared_ptr on some
+            templates.
+
+2024-01-31: olly
+	    #2783 Fix incorrectly deduced type for function call.  Regression
+	    introduced in 4.2.0.
+
+2024-01-27: wsfulton
+            [Python] Fix compilation error when wrapping two or more classes that
+            have the same friend operator overload when the classes are in a namespace.
+
+2024-01-15: wsfulton
+            https://sourceforge.net/p/swig/bugs/960/
+            https://sourceforge.net/p/swig/bugs/807/
+            Fix so that friend operators within a namespace can be correctly ignored
+            or renamed.
+
+2024-01-15: wsfulton
+            Wrap friend functions that are defined or declared within a namespace.
+            Previously unqualified friend definitions/declarations in a namespace were
+            ignored.
+
+            The visibility of unqualified friend functions in C++ is somewhat quirky
+            and the documentation has been enhanced to aid wrapping of friends.
+
+2024-01-12: wsfulton
+            #2749 Fix seg fault handling friend constructor/destructor declarations.
+
+2024-01-12: olly
+	    [Ruby, Tcl] #2751 Fix -external-runtime output to define
+	    SWIG_snprintf (bug introduced in 4.2.0).
+
+2024-01-12: olly
+	    Improve preprocessor warning for use of an undefined function-like
+	    macro. SWIG now warns:
+
+	    Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
+	    Warning 202: Use of undefined function-like macro
+
+	    instead of:
+
+	    Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
+	    Warning 202: Syntax error: expected operator
+
+2024-01-11: PaulObermeier
+	    [Tcl] Improve support for Tcl 9.0.  All examples and tests now pass
+	    with Tcl 9.0.b1.
+
+2024-01-06: wsfulton
+            [Python] #2744 Regression fix - add in missing SwigPyIterator_T fragment for
+            SwigPyIteratorClosed_T when using %import on an instantiated std::map.
+
 Version 4.2.0 (30 Dec 2023)
 ===========================
 

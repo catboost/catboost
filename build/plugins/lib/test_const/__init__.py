@@ -230,6 +230,7 @@ class TestRequirements(Enum):
     Dns = 'dns'
     Kvm = 'kvm'
     Network = 'network'
+    PortoLayers = 'porto_layers'
     Ram = 'ram'
     RamDisk = 'ram_disk'
     SbVault = 'sb_vault'
@@ -369,16 +370,20 @@ class TestSize(Enum):
 
 
 class ModuleLang(Enum):
-    ABSENT = "absent"
-    NUMEROUS = "numerous"
-    UNKNOWN = "unknown"
     CPP = "cpp"
     DOCS = "docs"
     GO = "go"
     JAVA = "java"
     KOTLIN = "kotlin"
+    LANG_AGNOSTIC = "agnostic"  # This module (or node) is not language specific
     PY = "py"
     TS = "ts"
+    UNKNOWN = "unknown"
+
+
+class AggregateLang(Enum):
+    ABSENT = "absent"
+    NUMEROUS = "numerous"
 
 
 class NodeType(Enum):
@@ -444,6 +449,9 @@ class PythonLinterName(Enum):
 
 class CppLinterName(Enum):
     ClangFormat = "clang_format"
+    ClangFormatYT = "clang_format_yt"
+    ClangFormat15 = "clang_format_15"
+    ClangFormat18Vanilla = "clang_format_18_vanilla"
 
 
 class DefaultLinterConfig(Enum):
@@ -451,8 +459,16 @@ class DefaultLinterConfig(Enum):
     Python = "build/config/tests/py_style/default_configs.json"
 
 
+class LinterConfigsValidationRules(Enum):
+    Cpp = "build/config/tests/cpp_style/configs_validation_rules.json"
+    Python = "build/config/tests/py_style/configs_validation_rules.json"
+
+
 LINTER_CONFIG_TYPES = {
     CppLinterName.ClangFormat: (".clang-format",),
+    CppLinterName.ClangFormat15: (".clang-format",),
+    CppLinterName.ClangFormat18Vanilla: (".clang-format",),
+    CppLinterName.ClangFormatYT: (".clang-format",),
     PythonLinterName.Black: ("pyproject.toml",),
     PythonLinterName.Ruff: ("pyproject.toml", "ruff.toml"),
 }

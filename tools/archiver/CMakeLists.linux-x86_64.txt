@@ -36,7 +36,6 @@ target_link_options(archiver PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

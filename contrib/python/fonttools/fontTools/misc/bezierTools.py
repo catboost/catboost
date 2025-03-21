@@ -631,7 +631,14 @@ def splitCubicAtT(pt1, pt2, pt3, pt4, *ts):
         ((77.3438, 56.25), (85.9375, 43.75), (93.75, 25), (100, 0))
     """
     a, b, c, d = calcCubicParameters(pt1, pt2, pt3, pt4)
-    return _splitCubicAtT(a, b, c, d, *ts)
+    split = _splitCubicAtT(a, b, c, d, *ts)
+
+    # the split impl can introduce floating point errors; we know the first
+    # segment should always start at pt1 and the last segment should end at pt4,
+    # so we set those values directly before returning.
+    split[0] = (pt1, *split[0][1:])
+    split[-1] = (*split[-1][:-1], pt4)
+    return split
 
 
 @cython.locals(

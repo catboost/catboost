@@ -1,12 +1,9 @@
-"""distutils.errors
+"""
+Exceptions used by the Distutils modules.
 
-Provides exceptions used by the Distutils modules.  Note that Distutils
-modules may raise standard exceptions; in particular, SystemExit is
-usually raised for errors that are obviously the end-user's fault
-(eg. bad command-line arguments).
-
-This module is safe to use in "from ... import *" mode; it only exports
-symbols whose names start with "Distutils" and end with "Error"."""
+Distutils modules may raise these or standard exceptions,
+including :exc:`SystemExit`.
+"""
 
 
 class DistutilsError(Exception):

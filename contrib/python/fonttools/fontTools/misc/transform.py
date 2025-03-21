@@ -52,6 +52,8 @@ translate, rotation, scale, skew, and transformation-center components.
 	>>>
 """
 
+from __future__ import annotations
+
 import math
 from typing import NamedTuple
 from dataclasses import dataclass
@@ -65,7 +67,7 @@ _ONE_EPSILON = 1 - _EPSILON
 _MINUS_ONE_EPSILON = -1 + _EPSILON
 
 
-def _normSinCos(v):
+def _normSinCos(v: float) -> float:
     if abs(v) < _EPSILON:
         v = 0
     elif v > _ONE_EPSILON:
@@ -214,7 +216,7 @@ class Transform(NamedTuple):
         xx, xy, yx, yy = self[:4]
         return [(xx * dx + yx * dy, xy * dx + yy * dy) for dx, dy in vectors]
 
-    def translate(self, x=0, y=0):
+    def translate(self, x: float = 0, y: float = 0):
         """Return a new transformation, translated (offset) by x, y.
 
         :Example:
@@ -225,7 +227,7 @@ class Transform(NamedTuple):
         """
         return self.transform((1, 0, 0, 1, x, y))
 
-    def scale(self, x=1, y=None):
+    def scale(self, x: float = 1, y: float | None = None):
         """Return a new transformation, scaled by x, y. The 'y' argument
         may be None, which implies to use the x value for y as well.
 
@@ -241,7 +243,7 @@ class Transform(NamedTuple):
             y = x
         return self.transform((x, 0, 0, y, 0, 0))
 
-    def rotate(self, angle):
+    def rotate(self, angle: float):
         """Return a new transformation, rotated by 'angle' (radians).
 
         :Example:
@@ -251,13 +253,11 @@ class Transform(NamedTuple):
                 <Transform [0 1 -1 0 0 0]>
                 >>>
         """
-        import math
-
         c = _normSinCos(math.cos(angle))
         s = _normSinCos(math.sin(angle))
         return self.transform((c, s, -s, c, 0, 0))
 
-    def skew(self, x=0, y=0):
+    def skew(self, x: float = 0, y: float = 0):
         """Return a new transformation, skewed by x and y.
 
         :Example:
@@ -267,8 +267,6 @@ class Transform(NamedTuple):
                 <Transform [1 0 1 1 0 0]>
                 >>>
         """
-        import math
-
         return self.transform((1, math.tan(y), math.tan(x), 1, 0, 0))
 
     def transform(self, other):
@@ -336,7 +334,7 @@ class Transform(NamedTuple):
         dx, dy = -xx * dx - yx * dy, -xy * dx - yy * dy
         return self.__class__(xx, xy, yx, yy, dx, dy)
 
-    def toPS(self):
+    def toPS(self) -> str:
         """Return a PostScript representation
 
         :Example:
@@ -352,7 +350,7 @@ class Transform(NamedTuple):
         """Decompose into a DecomposedTransform."""
         return DecomposedTransform.fromTransform(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """Returns True if transform is not identity, False otherwise.
 
         :Example:
@@ -374,14 +372,14 @@ class Transform(NamedTuple):
         """
         return self != Identity
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s [%g %g %g %g %g %g]>" % ((self.__class__.__name__,) + self)
 
 
 Identity = Transform()
 
 
-def Offset(x=0, y=0):
+def Offset(x: float = 0, y: float = 0) -> Transform:
     """Return the identity transformation offset by x, y.
 
     :Example:
@@ -392,7 +390,7 @@ def Offset(x=0, y=0):
     return Transform(1, 0, 0, 1, x, y)
 
 
-def Scale(x, y=None):
+def Scale(x: float, y: float | None = None) -> Transform:
     """Return the identity transformation scaled by x, y. The 'y' argument
     may be None, which implies to use the x value for y as well.
 
@@ -492,7 +490,7 @@ class DecomposedTransform:
             0,
         )
 
-    def toTransform(self):
+    def toTransform(self) -> Transform:
         """Return the Transform() equivalent of this transformation.
 
         :Example:

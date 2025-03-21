@@ -110,7 +110,7 @@ typedef struct {
   unsigned int flag_marked:1;	/* Mark flag. Used to avoid recursive loops in places */
   unsigned int flag_user:1;	/* User flag */
   unsigned int flag_usermark:1;	/* User marked */
-  unsigned int refcount:28;	/* Reference count (max 16 million) */
+  unsigned int refcount:28;	/* Reference count (max 256 million) */
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */

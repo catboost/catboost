@@ -141,6 +141,13 @@ enum ELanguage: unsigned {
     LANG_TYV = 124,         // Tuvan
     LANG_CHE = 125,         // Chechen
     LANG_MNS = 126,         // Mansi
+    LANG_ARZ = 127,         // Egyptian Arabic
+    LANG_KRC = 128,         // Karachay-Balkar
+    LANG_KBD = 129,         // Kabardino-Cherkess
+    LANG_NOG = 130,         // Nogai
+    LANG_ABQ = 131,         // Abaza
+    LANG_MYV = 132,         // Erzya
+    LANG_MDF = 133,         // Moksha
     LANG_MAX
 };
 

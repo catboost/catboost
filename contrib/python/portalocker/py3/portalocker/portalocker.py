@@ -26,10 +26,10 @@ if os.name == 'nt':  # pragma: no cover
 
     __overlapped = pywintypes.OVERLAPPED()
 
-    def lock(file_: typing.IO | int, flags: LockFlags):
+    def lock(file_: types.IO | int, flags: LockFlags) -> None:
         # Windows locking does not support locking through `fh.fileno()` so
         # we cast it to make mypy and pyright happy
-        file_ = typing.cast(typing.IO, file_)
+        file_ = typing.cast(types.IO, file_)
 
         mode = 0
         if flags & LockFlags.NON_BLOCKING:
@@ -44,7 +44,7 @@ if os.name == 'nt':  # pragma: no cover
         if savepos:
             file_.seek(0)
 
-        os_fh = msvcrt.get_osfhandle(file_.fileno())  # type: ignore
+        os_fh = msvcrt.get_osfhandle(file_.fileno())  # type: ignore[attr-defined]
         try:
             win32file.LockFileEx(os_fh, mode, 0, -0x10000, __overlapped)
         except pywintypes.error as exc_value:
@@ -64,13 +64,13 @@ if os.name == 'nt':  # pragma: no cover
             if savepos:
                 file_.seek(savepos)
 
-    def unlock(file_: typing.IO):
+    def unlock(file_: types.IO) -> None:
         try:
             savepos = file_.tell()
             if savepos:
                 file_.seek(0)
 
-            os_fh = msvcrt.get_osfhandle(file_.fileno())  # type: ignore
+            os_fh = msvcrt.get_osfhandle(file_.fileno())  # type: ignore[attr-defined]
             try:
                 win32file.UnlockFileEx(
                     os_fh,
@@ -102,7 +102,7 @@ elif os.name == 'posix':  # pragma: no cover
     # but any callable that matches the syntax will be accepted.
     LOCKER = fcntl.flock  # pyright: ignore[reportConstantRedefinition]
 
-    def lock(file: int | types.IO, flags: LockFlags):  # type: ignore[misc]
+    def lock(file: int | types.IO, flags: LockFlags) -> None:  # type: ignore[misc]
         assert LOCKER is not None, 'We need a locking function in `LOCKER` '
         # Locking with NON_BLOCKING without EXCLUSIVE or SHARED enabled
         # results in an error
@@ -146,7 +146,7 @@ elif os.name == 'posix':  # pragma: no cover
                 fh=file,
             ) from exc_value
 
-    def unlock(file: types.IO):  # type: ignore[misc]
+    def unlock(file: types.IO) -> None:  # type: ignore[misc]
         assert LOCKER is not None, 'We need a locking function in `LOCKER` '
         LOCKER(file.fileno(), LockFlags.UNBLOCK)
 

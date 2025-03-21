@@ -53,6 +53,7 @@ target_sources(abseil-cpp-absl-log PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_sink_set.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/nullguard.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/proto.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/structured_proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/vlog_config.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc

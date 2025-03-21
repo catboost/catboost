@@ -125,7 +125,7 @@ cpdef to_polynom(model):
 
 
 cpdef to_polynom_string(model):
-    return to_native_str(ConvertFullModelToPolynomString(dereference((<_CatBoost>model).__model)))
+    return to_str(ConvertFullModelToPolynomString(dereference((<_CatBoost>model).__model)))
 
 
 cpdef explain_features(model):
@@ -134,7 +134,17 @@ cpdef explain_features(model):
     for featureExpl in featuresExplanations:
         borders = []
         for borderExpl in featureExpl.BordersExplanations:
-            borders.append(BorderExplanation(borderExpl.Border, borderExpl.ProbabilityToSatisfy, list(borderExpl.ExpectedValueChange)))
+            borders.append(
+                BorderExplanation(
+                    borderExpl.Border,
+                    borderExpl.ProbabilityToSatisfy,
+                    tvector_to_py(<TConstArrayRef[double]>borderExpl.ExpectedValueChange))
+            )
         feature_type = "Float" if featureExpl.FeatureType == EMonoForestFeatureType_Float else "OneHot"
-        result.append(FeatureExplanation(featureExpl.FeatureIdx, feature_type, list(featureExpl.ExpectedBias), borders))
+        result.append(
+            FeatureExplanation(
+                featureExpl.FeatureIdx,
+                feature_type,
+                tvector_to_py(<TConstArrayRef[double]>featureExpl.ExpectedBias), borders)
+        )
     return result

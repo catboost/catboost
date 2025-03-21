@@ -23,7 +23,7 @@ from ..errors import (
 )
 from ..extension import Extension
 from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
-from ..util import get_platform, is_mingw
+from ..util import get_platform, is_freethreaded, is_mingw
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
@@ -333,6 +333,12 @@ class build_ext(Command):
         if os.name == 'nt' and self.plat_name != get_platform():
             self.compiler.initialize(self.plat_name)
 
+        # The official Windows free threaded Python installer doesn't set
+        # Py_GIL_DISABLED because its pyconfig.h is shared with the
+        # default build, so define it here (pypa/setuptools#4662).
+        if os.name == 'nt' and is_freethreaded():
+            self.compiler.define_macro('Py_GIL_DISABLED', '1')
+
         # And make sure that any compile/link-related options (which might
         # come from the command-line or from the setup script) are set in
         # that CCompiler object -- that way, they automatically apply to
@@ -437,8 +443,7 @@ class build_ext(Command):
                 for macro in macros:
                     if not (isinstance(macro, tuple) and len(macro) in (1, 2)):
                         raise DistutilsSetupError(
-                            "'macros' element of build info dict "
-                            "must be 1- or 2-tuple"
+                            "'macros' element of build info dict must be 1- or 2-tuple"
                         )
                     if len(macro) == 1:
                         ext.undef_macros.append(macro[0])
@@ -465,10 +470,7 @@ class build_ext(Command):
         # And build the list of output (built) filenames.  Note that this
         # ignores the 'inplace' flag, and assumes everything goes in the
         # "build" tree.
-        outputs = []
-        for ext in self.extensions:
-            outputs.append(self.get_ext_fullpath(ext.name))
-        return outputs
+        return [self.get_ext_fullpath(ext.name) for ext in self.extensions]
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -641,8 +643,7 @@ class build_ext(Command):
 
         # Do not override commandline arguments
         if not self.swig_opts:
-            for o in extension.swig_opts:
-                swig_cmd.append(o)
+            swig_cmd.extend(extension.swig_opts)
 
         for source in swig_sources:
             target = swig_targets[source]
@@ -670,8 +671,7 @@ class build_ext(Command):
                 return "swig.exe"
         else:
             raise DistutilsPlatformError(
-                "I don't know how to find (much less run) SWIG "
-                f"on platform '{os.name}'"
+                f"I don't know how to find (much less run) SWIG on platform '{os.name}'"
             )
 
     # -- Name generators -----------------------------------------------

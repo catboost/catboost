@@ -38,7 +38,7 @@ bool IsPermutation(TVector<IndexType>&& indicesSubset) {
     if (size == (size_t)0) {
         return true;
     }
-    if (size > Max<IndexType>()) {
+    if (size > (size_t)Max<IndexType>()) {
         return false;
     }
     const IndexType sizeAsIndexType = (IndexType)size;

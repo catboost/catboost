@@ -33,7 +33,6 @@ target_link_options(catboost-libs-dataset_statistics-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

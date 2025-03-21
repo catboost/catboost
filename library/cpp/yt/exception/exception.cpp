@@ -20,14 +20,14 @@ void AddAttributes(TSimpleException::TAttributes& attrs, TRange&& range)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TSimpleException::TSimpleException(TString message)
+TSimpleException::TSimpleException(std::string message)
     : Message_(std::move(message))
     , What_(Message_)
 { }
 
 TSimpleException::TSimpleException(
     const std::exception& exception,
-    TString message)
+    std::string message)
     : InnerException_(std::current_exception())
     , Message_(std::move(message))
     , What_(Message_ + "\n" + exception.what())
@@ -43,7 +43,7 @@ const char* TSimpleException::what() const noexcept
     return What_.c_str();
 }
 
-const TString& TSimpleException::GetMessage() const
+const std::string& TSimpleException::GetMessage() const
 {
     return Message_;
 }

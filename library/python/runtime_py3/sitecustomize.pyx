@@ -3,7 +3,6 @@ import io
 import os
 import re
 import sys
-import warnings
 
 from importlib.metadata import (
     Distribution,
@@ -13,11 +12,6 @@ from importlib.metadata import (
 from importlib.resources.abc import Traversable
 
 import __res
-
-with warnings.catch_warnings(action="ignore", category=DeprecationWarning):
-    from importlib.abc import ResourceReader
-
-ResourceReader.register(__res._ResfsResourceReader)
 
 METADATA_NAME = re.compile("^Name: (.*)$", re.MULTILINE)
 
@@ -48,6 +42,9 @@ class ArcadiaTraversable(Traversable):
     def suffix(self):
         return self._path.suffix
 
+    @property
+    def stem(self):
+        return self._path.stem
 
 
 class ArcadiaResource(ArcadiaTraversable):

@@ -1,29 +1,26 @@
 """
-Improved support for Microsoft Visual C++ compilers.
+Environment info about Microsoft Compilers.
 
-Known supported compilers:
---------------------------
-Microsoft Visual C++ 14.X:
-    Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
-    Microsoft Visual Studio Build Tools 2017 (x86, x64, arm, arm64)
-    Microsoft Visual Studio Build Tools 2019 (x86, x64, arm, arm64)
-
-This may also support compilers shipped with compatible Visual Studio versions.
+>>> getfixture('windows_only')
+>>> ei = EnvironmentInfo('amd64')
 """
 
 from __future__ import annotations
 
-import json
-from os import listdir, pathsep
-from os.path import join, isfile, isdir, dirname
-from subprocess import CalledProcessError
 import contextlib
-import platform
 import itertools
-import subprocess
+import json
+import os
+import os.path
+import platform
+from typing import TYPE_CHECKING, TypedDict
+
+from more_itertools import unique_everseen
+
 import distutils.errors
-from typing import TYPE_CHECKING
-from setuptools.extern.more_itertools import unique_everseen
+
+if TYPE_CHECKING:
+    from typing_extensions import LiteralString, NotRequired
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -41,239 +38,6 @@ else:
     environ: dict[str, str] = dict()
 
 
-def _msvc14_find_vc2015():
-    """Python 3.8 "distutils/_msvccompiler.py" backport"""
-    try:
-        key = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"Software\Microsoft\VisualStudio\SxS\VC7",
-            0,
-            winreg.KEY_READ | winreg.KEY_WOW64_32KEY,
-        )
-    except OSError:
-        return None, None
-
-    best_version = 0
-    best_dir = None
-    with key:
-        for i in itertools.count():
-            try:
-                v, vc_dir, vt = winreg.EnumValue(key, i)
-            except OSError:
-                break
-            if v and vt == winreg.REG_SZ and isdir(vc_dir):
-                try:
-                    version = int(float(v))
-                except (ValueError, TypeError):
-                    continue
-                if version >= 14 and version > best_version:
-                    best_version, best_dir = version, vc_dir
-    return best_version, best_dir
-
-
-def _msvc14_find_vc2017():
-    """Python 3.8 "distutils/_msvccompiler.py" backport
-
-    Returns "15, path" based on the result of invoking vswhere.exe
-    If no install is found, returns "None, None"
-
-    The version is returned to avoid unnecessarily changing the function
-    result. It may be ignored when the path is not None.
-
-    If vswhere.exe is not available, by definition, VS 2017 is not
-    installed.
-    """
-    root = environ.get("ProgramFiles(x86)") or environ.get("ProgramFiles")
-    if not root:
-        return None, None
-
-    suitable_components = (
-        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-        "Microsoft.VisualStudio.Workload.WDExpress",
-    )
-
-    for component in suitable_components:
-        # Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
-        with contextlib.suppress(CalledProcessError, OSError, UnicodeDecodeError):
-            path = (
-                subprocess.check_output([
-                    join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
-                    "-latest",
-                    "-prerelease",
-                    "-requires",
-                    component,
-                    "-property",
-                    "installationPath",
-                    "-products",
-                    "*",
-                ])
-                .decode(encoding="mbcs", errors="strict")
-                .strip()
-            )
-
-            path = join(path, "VC", "Auxiliary", "Build")
-            if isdir(path):
-                return 15, path
-
-    return None, None  # no suitable component found
-
-
-PLAT_SPEC_TO_RUNTIME = {
-    'x86': 'x86',
-    'x86_amd64': 'x64',
-    'x86_arm': 'arm',
-    'x86_arm64': 'arm64',
-}
-
-
-def _msvc14_find_vcvarsall(plat_spec):
-    """Python 3.8 "distutils/_msvccompiler.py" backport"""
-    _, best_dir = _msvc14_find_vc2017()
-    vcruntime = None
-
-    if plat_spec in PLAT_SPEC_TO_RUNTIME:
-        vcruntime_plat = PLAT_SPEC_TO_RUNTIME[plat_spec]
-    else:
-        vcruntime_plat = 'x64' if 'amd64' in plat_spec else 'x86'
-
-    if best_dir:
-        vcredist = join(
-            best_dir,
-            "..",
-            "..",
-            "redist",
-            "MSVC",
-            "**",
-            vcruntime_plat,
-            "Microsoft.VC14*.CRT",
-            "vcruntime140.dll",
-        )
-        try:
-            import glob
-
-            vcruntime = glob.glob(vcredist, recursive=True)[-1]
-        except (ImportError, OSError, LookupError):
-            vcruntime = None
-
-    if not best_dir:
-        best_version, best_dir = _msvc14_find_vc2015()
-        if best_version:
-            vcruntime = join(
-                best_dir,
-                'redist',
-                vcruntime_plat,
-                "Microsoft.VC140.CRT",
-                "vcruntime140.dll",
-            )
-
-    if not best_dir:
-        return None, None
-
-    vcvarsall = join(best_dir, "vcvarsall.bat")
-    if not isfile(vcvarsall):
-        return None, None
-
-    if not vcruntime or not isfile(vcruntime):
-        vcruntime = None
-
-    return vcvarsall, vcruntime
-
-
-def _msvc14_get_vc_env(plat_spec):
-    """Python 3.8 "distutils/_msvccompiler.py" backport"""
-    if "DISTUTILS_USE_SDK" in environ:
-        return {key.lower(): value for key, value in environ.items()}
-
-    vcvarsall, vcruntime = _msvc14_find_vcvarsall(plat_spec)
-    if not vcvarsall:
-        raise distutils.errors.DistutilsPlatformError("Unable to find vcvarsall.bat")
-
-    try:
-        out = subprocess.check_output(
-            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
-            stderr=subprocess.STDOUT,
-        ).decode('utf-16le', errors='replace')
-    except subprocess.CalledProcessError as exc:
-        raise distutils.errors.DistutilsPlatformError(
-            "Error executing {}".format(exc.cmd)
-        ) from exc
-
-    env = {
-        key.lower(): value
-        for key, _, value in (line.partition('=') for line in out.splitlines())
-        if key and value
-    }
-
-    if vcruntime:
-        env['py_vcruntime_redist'] = vcruntime
-    return env
-
-
-def msvc14_get_vc_env(plat_spec):
-    """
-    Patched "distutils._msvccompiler._get_vc_env" for support extra
-    Microsoft Visual C++ 14.X compilers.
-
-    Set environment without use of "vcvarsall.bat".
-
-    Parameters
-    ----------
-    plat_spec: str
-        Target architecture.
-
-    Return
-    ------
-    dict
-        environment
-    """
-
-    # Always use backport from CPython 3.8
-    try:
-        return _msvc14_get_vc_env(plat_spec)
-    except distutils.errors.DistutilsPlatformError as exc:
-        _augment_exception(exc, 14.0)
-        raise
-
-
-def _augment_exception(exc, version, arch=''):
-    """
-    Add details to the exception message to help guide the user
-    as to what action will resolve it.
-    """
-    # Error if MSVC++ directory not found or environment not set
-    message = exc.args[0]
-
-    if "vcvarsall" in message.lower() or "visual c" in message.lower():
-        # Special error message if MSVC++ not installed
-        tmpl = 'Microsoft Visual C++ {version:0.1f} or greater is required.'
-        message = tmpl.format(**locals())
-        msdownload = 'www.microsoft.com/download/details.aspx?id=%d'
-        if version == 9.0:
-            if arch.lower().find('ia64') > -1:
-                # For VC++ 9.0, if IA64 support is needed, redirect user
-                # to Windows SDK 7.0.
-                # Note: No download link available from Microsoft.
-                message += ' Get it with "Microsoft Windows SDK 7.0"'
-            else:
-                # For VC++ 9.0 redirect user to Vc++ for Python 2.7 :
-                # This redirection link is maintained by Microsoft.
-                # Contact vspython@microsoft.com if it needs updating.
-                message += ' Get it from http://aka.ms/vcpython27'
-        elif version == 10.0:
-            # For VC++ 10.0 Redirect user to Windows SDK 7.1
-            message += ' Get it with "Microsoft Windows SDK 7.1": '
-            message += msdownload % 8279
-        elif version >= 14.0:
-            # For VC++ 14.X Redirect user to latest Visual C++ Build Tools
-            message += (
-                ' Get it with "Microsoft C++ Build Tools": '
-                r'https://visualstudio.microsoft.com'
-                r'/visual-cpp-build-tools/'
-            )
-
-    exc.args = (message,)
-
-
 class PlatformInfo:
     """
     Current and Target Architectures information.
@@ -286,7 +50,7 @@ class PlatformInfo:
 
     current_cpu = environ.get('processor_architecture', '').lower()
 
-    def __init__(self, arch):
+    def __init__(self, arch) -> None:
         self.arch = arch.lower().replace('x64', 'amd64')
 
     @property
@@ -323,7 +87,7 @@ class PlatformInfo:
         """
         return self.current_cpu == 'x86'
 
-    def current_dir(self, hidex86=False, x64=False):
+    def current_dir(self, hidex86=False, x64=False) -> str:
         """
         Current platform specific subfolder.
 
@@ -344,10 +108,10 @@ class PlatformInfo:
             if (self.current_cpu == 'x86' and hidex86)
             else r'\x64'
             if (self.current_cpu == 'amd64' and x64)
-            else r'\%s' % self.current_cpu
+            else rf'\{self.current_cpu}'
         )
 
-    def target_dir(self, hidex86=False, x64=False):
+    def target_dir(self, hidex86=False, x64=False) -> str:
         r"""
         Target platform specific subfolder.
 
@@ -368,7 +132,7 @@ class PlatformInfo:
             if (self.target_cpu == 'x86' and hidex86)
             else r'\x64'
             if (self.target_cpu == 'amd64' and x64)
-            else r'\%s' % self.target_cpu
+            else rf'\{self.target_cpu}'
         )
 
     def cross_dir(self, forcex86=False):
@@ -391,7 +155,7 @@ class PlatformInfo:
         return (
             ''
             if self.target_cpu == current
-            else self.target_dir().replace('\\', '\\%s_' % current)
+            else self.target_dir().replace('\\', f'\\{current}_')
         )
 
 
@@ -412,11 +176,11 @@ class RegistryInfo:
         winreg.HKEY_CLASSES_ROOT,
     )
 
-    def __init__(self, platform_info):
+    def __init__(self, platform_info) -> None:
         self.pi = platform_info
 
     @property
-    def visualstudio(self):
+    def visualstudio(self) -> str:
         """
         Microsoft Visual Studio root registry key.
 
@@ -437,7 +201,7 @@ class RegistryInfo:
         str
             Registry key
         """
-        return join(self.visualstudio, 'SxS')
+        return os.path.join(self.visualstudio, 'SxS')
 
     @property
     def vc(self):
@@ -449,7 +213,7 @@ class RegistryInfo:
         str
             Registry key
         """
-        return join(self.sxs, 'VC7')
+        return os.path.join(self.sxs, 'VC7')
 
     @property
     def vs(self):
@@ -461,10 +225,10 @@ class RegistryInfo:
         str
             Registry key
         """
-        return join(self.sxs, 'VS7')
+        return os.path.join(self.sxs, 'VS7')
 
     @property
-    def vc_for_python(self):
+    def vc_for_python(self) -> str:
         """
         Microsoft Visual C++ for Python registry key.
 
@@ -476,7 +240,7 @@ class RegistryInfo:
         return r'DevDiv\VCForPython'
 
     @property
-    def microsoft_sdk(self):
+    def microsoft_sdk(self) -> str:
         """
         Microsoft SDK registry key.
 
@@ -497,7 +261,7 @@ class RegistryInfo:
         str
             Registry key
         """
-        return join(self.microsoft_sdk, 'Windows')
+        return os.path.join(self.microsoft_sdk, 'Windows')
 
     @property
     def netfx_sdk(self):
@@ -509,10 +273,10 @@ class RegistryInfo:
         str
             Registry key
         """
-        return join(self.microsoft_sdk, 'NETFXSDK')
+        return os.path.join(self.microsoft_sdk, 'NETFXSDK')
 
     @property
-    def windows_kits_roots(self):
+    def windows_kits_roots(self) -> str:
         """
         Microsoft Windows Kits Roots registry key.
 
@@ -540,7 +304,7 @@ class RegistryInfo:
             Registry key
         """
         node64 = '' if self.pi.current_is_x86() or x86 else 'Wow6432Node'
-        return join('Software', node64, 'Microsoft', key)
+        return os.path.join('Software', node64, 'Microsoft', key)
 
     def lookup(self, key, name):
         """
@@ -602,7 +366,7 @@ class SystemInfo:
     ProgramFiles = environ.get('ProgramFiles', '')
     ProgramFilesx86 = environ.get('ProgramFiles(x86)', ProgramFiles)
 
-    def __init__(self, registry_info, vc_ver=None):
+    def __init__(self, registry_info, vc_ver=None) -> None:
         self.ri = registry_info
         self.pi = self.ri.pi
 
@@ -662,7 +426,7 @@ class SystemInfo:
                             vs_vers.append(ver)
         return sorted(vs_vers)
 
-    def find_programdata_vs_vers(self):
+    def find_programdata_vs_vers(self) -> dict[float, str]:
         r"""
         Find Visual studio 2017+ versions from information in
         "C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances".
@@ -672,11 +436,11 @@ class SystemInfo:
         dict
             float version as key, path as value.
         """
-        vs_versions = {}
+        vs_versions: dict[float, str] = {}
         instances_dir = r'C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances'
 
         try:
-            hashed_names = listdir(instances_dir)
+            hashed_names = os.listdir(instances_dir)
 
         except OSError:
             # Directory not exists with all Visual Studio versions
@@ -685,13 +449,13 @@ class SystemInfo:
         for name in hashed_names:
             try:
                 # Get VS installation path from "state.json" file
-                state_path = join(instances_dir, name, 'state.json')
+                state_path = os.path.join(instances_dir, name, 'state.json')
                 with open(state_path, 'rt', encoding='utf-8') as state_file:
                     state = json.load(state_file)
                 vs_path = state['installationPath']
 
                 # Raises OSError if this VS installation does not contain VC
-                listdir(join(vs_path, r'VC\Tools\MSVC'))
+                os.listdir(os.path.join(vs_path, r'VC\Tools\MSVC'))
 
                 # Store version and path
                 vs_versions[self._as_float_version(state['installationVersion'])] = (
@@ -732,12 +496,12 @@ class SystemInfo:
             path
         """
         # Default path
-        default = join(
-            self.ProgramFilesx86, 'Microsoft Visual Studio %0.1f' % self.vs_ver
+        default = os.path.join(
+            self.ProgramFilesx86, f'Microsoft Visual Studio {self.vs_ver:0.1f}'
         )
 
         # Try to get path from registry, if fail use default path
-        return self.ri.lookup(self.ri.vs, '%0.1f' % self.vs_ver) or default
+        return self.ri.lookup(self.ri.vs, f'{self.vs_ver:0.1f}') or default
 
     @property
     def VCInstallDir(self):
@@ -751,7 +515,7 @@ class SystemInfo:
         """
         path = self._guess_vc() or self._guess_vc_legacy()
 
-        if not isdir(path):
+        if not os.path.isdir(path):
             msg = 'Microsoft Visual C++ directory not found'
             raise distutils.errors.DistutilsPlatformError(msg)
 
@@ -776,14 +540,14 @@ class SystemInfo:
             # Else, search with path from registry
             vs_dir = self.VSInstallDir
 
-        guess_vc = join(vs_dir, r'VC\Tools\MSVC')
+        guess_vc = os.path.join(vs_dir, r'VC\Tools\MSVC')
 
         # Subdir with VC exact version as name
         try:
             # Update the VC version with real one instead of VS version
-            vc_ver = listdir(guess_vc)[-1]
+            vc_ver = os.listdir(guess_vc)[-1]
             self.vc_ver = self._as_float_version(vc_ver)
-            return join(guess_vc, vc_ver)
+            return os.path.join(guess_vc, vc_ver)
         except (OSError, IndexError):
             return ''
 
@@ -796,20 +560,21 @@ class SystemInfo:
         str
             path
         """
-        default = join(
-            self.ProgramFilesx86, r'Microsoft Visual Studio %0.1f\VC' % self.vs_ver
+        default = os.path.join(
+            self.ProgramFilesx86,
+            rf'Microsoft Visual Studio {self.vs_ver:0.1f}\VC',
         )
 
         # Try to get "VC++ for Python" path from registry as default path
-        reg_path = join(self.ri.vc_for_python, '%0.1f' % self.vs_ver)
+        reg_path = os.path.join(self.ri.vc_for_python, f'{self.vs_ver:0.1f}')
         python_vc = self.ri.lookup(reg_path, 'installdir')
-        default_vc = join(python_vc, 'VC') if python_vc else default
+        default_vc = os.path.join(python_vc, 'VC') if python_vc else default
 
         # Try to get path from registry, if fail use default path
-        return self.ri.lookup(self.ri.vc, '%0.1f' % self.vs_ver) or default_vc
+        return self.ri.lookup(self.ri.vc, f'{self.vs_ver:0.1f}') or default_vc
 
     @property
-    def WindowsSdkVersion(self):
+    def WindowsSdkVersion(self) -> tuple[LiteralString, ...]:
         """
         Microsoft Windows SDK versions for specified MSVC++ version.
 
@@ -828,7 +593,7 @@ class SystemInfo:
             return '8.1', '8.1a'
         elif self.vs_ver >= 14.0:
             return '10.0', '8.1'
-        return None
+        return ()
 
     @property
     def WindowsSdkLastVersion(self):
@@ -840,10 +605,10 @@ class SystemInfo:
         str
             version
         """
-        return self._use_last_dir_name(join(self.WindowsSdkDir, 'lib'))
+        return self._use_last_dir_name(os.path.join(self.WindowsSdkDir, 'lib'))
 
     @property
-    def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
+    def WindowsSdkDir(self) -> str | None:  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
 
@@ -852,37 +617,37 @@ class SystemInfo:
         str
             path
         """
-        sdkdir = ''
+        sdkdir: str | None = ''
         for ver in self.WindowsSdkVersion:
             # Try to get it from registry
-            loc = join(self.ri.windows_sdk, 'v%s' % ver)
+            loc = os.path.join(self.ri.windows_sdk, f'v{ver}')
             sdkdir = self.ri.lookup(loc, 'installationfolder')
             if sdkdir:
                 break
-        if not sdkdir or not isdir(sdkdir):
+        if not sdkdir or not os.path.isdir(sdkdir):
             # Try to get "VC++ for Python" version from registry
-            path = join(self.ri.vc_for_python, '%0.1f' % self.vc_ver)
+            path = os.path.join(self.ri.vc_for_python, f'{self.vc_ver:0.1f}')
             install_base = self.ri.lookup(path, 'installdir')
             if install_base:
-                sdkdir = join(install_base, 'WinSDK')
-        if not sdkdir or not isdir(sdkdir):
+                sdkdir = os.path.join(install_base, 'WinSDK')
+        if not sdkdir or not os.path.isdir(sdkdir):
             # If fail, use default new path
             for ver in self.WindowsSdkVersion:
                 intver = ver[: ver.rfind('.')]
-                path = r'Microsoft SDKs\Windows Kits\%s' % intver
-                d = join(self.ProgramFiles, path)
-                if isdir(d):
+                path = rf'Microsoft SDKs\Windows Kits\{intver}'
+                d = os.path.join(self.ProgramFiles, path)
+                if os.path.isdir(d):
                     sdkdir = d
-        if not sdkdir or not isdir(sdkdir):
+        if not sdkdir or not os.path.isdir(sdkdir):
             # If fail, use default old path
             for ver in self.WindowsSdkVersion:
-                path = r'Microsoft SDKs\Windows\v%s' % ver
-                d = join(self.ProgramFiles, path)
-                if isdir(d):
+                path = rf'Microsoft SDKs\Windows\v{ver}'
+                d = os.path.join(self.ProgramFiles, path)
+                if os.path.isdir(d):
                     sdkdir = d
         if not sdkdir:
             # If fail, use Platform SDK
-            sdkdir = join(self.VCInstallDir, 'PlatformSDK')
+            sdkdir = os.path.join(self.VCInstallDir, 'PlatformSDK')
         return sdkdir
 
     @property
@@ -902,17 +667,17 @@ class SystemInfo:
         else:
             netfxver = 40
             hidex86 = True if self.vs_ver <= 12.0 else False
-            arch = self.pi.current_dir(x64=True, hidex86=hidex86)
-        fx = 'WinSDK-NetFx%dTools%s' % (netfxver, arch.replace('\\', '-'))
+            arch = self.pi.current_dir(x64=True, hidex86=hidex86).replace('\\', '-')
+        fx = f'WinSDK-NetFx{netfxver}Tools{arch}'
 
         # list all possibles registry paths
         regpaths = []
         if self.vs_ver >= 14.0:
             for ver in self.NetFxSdkVersion:
-                regpaths += [join(self.ri.netfx_sdk, ver, fx)]
+                regpaths += [os.path.join(self.ri.netfx_sdk, ver, fx)]
 
         for ver in self.WindowsSdkVersion:
-            regpaths += [join(self.ri.windows_sdk, 'v%sA' % ver, fx)]
+            regpaths += [os.path.join(self.ri.windows_sdk, f'v{ver}A', fx)]
 
         # Return installation folder from the more recent path
         for path in regpaths:
@@ -932,7 +697,7 @@ class SystemInfo:
         str
             path
         """
-        path = join(self.ri.visualstudio, r'%0.1f\Setup\F#' % self.vs_ver)
+        path = os.path.join(self.ri.visualstudio, rf'{self.vs_ver:0.1f}\Setup\F#')
         return self.ri.lookup(path, 'productdir') or ''
 
     @property
@@ -950,7 +715,7 @@ class SystemInfo:
 
         # Find path of the more recent Kit
         for ver in vers:
-            sdkdir = self.ri.lookup(self.ri.windows_kits_roots, 'kitsroot%s' % ver)
+            sdkdir = self.ri.lookup(self.ri.windows_kits_roots, f'kitsroot{ver}')
             if sdkdir:
                 return sdkdir or ''
 
@@ -966,7 +731,7 @@ class SystemInfo:
         str
             version
         """
-        return self._use_last_dir_name(join(self.UniversalCRTSdkDir, 'lib'))
+        return self._use_last_dir_name(os.path.join(self.UniversalCRTSdkDir, 'lib'))
 
     @property
     def NetFxSdkVersion(self):
@@ -997,7 +762,7 @@ class SystemInfo:
         """
         sdkdir = ''
         for ver in self.NetFxSdkVersion:
-            loc = join(self.ri.netfx_sdk, ver)
+            loc = os.path.join(self.ri.netfx_sdk, ver)
             sdkdir = self.ri.lookup(loc, 'kitsinstallationfolder')
             if sdkdir:
                 break
@@ -1014,7 +779,7 @@ class SystemInfo:
             path
         """
         # Default path
-        guess_fw = join(self.WinDir, r'Microsoft.NET\Framework')
+        guess_fw = os.path.join(self.WinDir, r'Microsoft.NET\Framework')
 
         # Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vc, 'frameworkdir32') or guess_fw
@@ -1030,13 +795,13 @@ class SystemInfo:
             path
         """
         # Default path
-        guess_fw = join(self.WinDir, r'Microsoft.NET\Framework64')
+        guess_fw = os.path.join(self.WinDir, r'Microsoft.NET\Framework64')
 
         # Try to get path from registry, if fail use default path
         return self.ri.lookup(self.ri.vc, 'frameworkdir64') or guess_fw
 
     @property
-    def FrameworkVersion32(self):
+    def FrameworkVersion32(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 32bit versions.
 
@@ -1048,7 +813,7 @@ class SystemInfo:
         return self._find_dot_net_versions(32)
 
     @property
-    def FrameworkVersion64(self):
+    def FrameworkVersion64(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 64bit versions.
 
@@ -1059,7 +824,7 @@ class SystemInfo:
         """
         return self._find_dot_net_versions(64)
 
-    def _find_dot_net_versions(self, bits):
+    def _find_dot_net_versions(self, bits) -> tuple[str, ...]:
         """
         Find Microsoft .NET Framework versions.
 
@@ -1074,8 +839,8 @@ class SystemInfo:
             versions
         """
         # Find actual .NET version in registry
-        reg_ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits)
-        dot_net_dir = getattr(self, 'FrameworkDir%d' % bits)
+        reg_ver = self.ri.lookup(self.ri.vc, f'frameworkver{bits}')
+        dot_net_dir = getattr(self, f'FrameworkDir{bits}')
         ver = reg_ver or self._use_last_dir_name(dot_net_dir, 'v') or ''
 
         # Set .NET versions for specified MSVC++ version
@@ -1087,7 +852,7 @@ class SystemInfo:
             return 'v3.5', 'v2.0.50727'
         elif self.vs_ver == 8.0:
             return 'v3.0', 'v2.0.50727'
-        return None
+        return ()
 
     @staticmethod
     def _use_last_dir_name(path, prefix=''):
@@ -1108,10 +873,19 @@ class SystemInfo:
         """
         matching_dirs = (
             dir_name
-            for dir_name in reversed(listdir(path))
-            if isdir(join(path, dir_name)) and dir_name.startswith(prefix)
+            for dir_name in reversed(os.listdir(path))
+            if os.path.isdir(os.path.join(path, dir_name))
+            and dir_name.startswith(prefix)
         )
         return next(matching_dirs, None) or ''
+
+
+class _EnvironmentDict(TypedDict):
+    include: str
+    lib: str
+    libpath: str
+    path: str
+    py_vcruntime_redist: NotRequired[str | None]
 
 
 class EnvironmentInfo:
@@ -1138,7 +912,7 @@ class EnvironmentInfo:
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparison.
 
-    def __init__(self, arch, vc_ver=None, vc_min_ver=0):
+    def __init__(self, arch, vc_ver=None, vc_min_ver=0) -> None:
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
         self.si = SystemInfo(self.ri, vc_ver)
@@ -1187,9 +961,9 @@ class EnvironmentInfo:
             arch_subdir = self.pi.current_dir(hidex86=True, x64=True)
             paths += [r'Common7\IDE\CommonExtensions\Microsoft\TestWindow']
             paths += [r'Team Tools\Performance Tools']
-            paths += [r'Team Tools\Performance Tools%s' % arch_subdir]
+            paths += [rf'Team Tools\Performance Tools{arch_subdir}']
 
-        return [join(self.si.VSInstallDir, path) for path in paths]
+        return [os.path.join(self.si.VSInstallDir, path) for path in paths]
 
     @property
     def VCIncludes(self):
@@ -1202,8 +976,8 @@ class EnvironmentInfo:
             paths
         """
         return [
-            join(self.si.VCInstallDir, 'Include'),
-            join(self.si.VCInstallDir, r'ATLMFC\Include'),
+            os.path.join(self.si.VCInstallDir, 'Include'),
+            os.path.join(self.si.VCInstallDir, r'ATLMFC\Include'),
         ]
 
     @property
@@ -1220,12 +994,12 @@ class EnvironmentInfo:
             arch_subdir = self.pi.target_dir(x64=True)
         else:
             arch_subdir = self.pi.target_dir(hidex86=True)
-        paths = ['Lib%s' % arch_subdir, r'ATLMFC\Lib%s' % arch_subdir]
+        paths = [f'Lib{arch_subdir}', rf'ATLMFC\Lib{arch_subdir}']
 
         if self.vs_ver >= 14.0:
-            paths += [r'Lib\store%s' % arch_subdir]
+            paths += [rf'Lib\store{arch_subdir}']
 
-        return [join(self.si.VCInstallDir, path) for path in paths]
+        return [os.path.join(self.si.VCInstallDir, path) for path in paths]
 
     @property
     def VCStoreRefs(self):
@@ -1239,7 +1013,7 @@ class EnvironmentInfo:
         """
         if self.vs_ver < 14.0:
             return []
-        return [join(self.si.VCInstallDir, r'Lib\store\references')]
+        return [os.path.join(self.si.VCInstallDir, r'Lib\store\references')]
 
     @property
     def VCTools(self):
@@ -1252,30 +1026,34 @@ class EnvironmentInfo:
             paths
         """
         si = self.si
-        tools = [join(si.VCInstallDir, 'VCPackages')]
+        tools = [os.path.join(si.VCInstallDir, 'VCPackages')]
 
         forcex86 = True if self.vs_ver <= 10.0 else False
         arch_subdir = self.pi.cross_dir(forcex86)
         if arch_subdir:
-            tools += [join(si.VCInstallDir, 'Bin%s' % arch_subdir)]
+            tools += [os.path.join(si.VCInstallDir, f'Bin{arch_subdir}')]
 
         if self.vs_ver == 14.0:
-            path = 'Bin%s' % self.pi.current_dir(hidex86=True)
-            tools += [join(si.VCInstallDir, path)]
+            path = f'Bin{self.pi.current_dir(hidex86=True)}'
+            tools += [os.path.join(si.VCInstallDir, path)]
 
         elif self.vs_ver >= 15.0:
             host_dir = (
                 r'bin\HostX86%s' if self.pi.current_is_x86() else r'bin\HostX64%s'
             )
-            tools += [join(si.VCInstallDir, host_dir % self.pi.target_dir(x64=True))]
+            tools += [
+                os.path.join(si.VCInstallDir, host_dir % self.pi.target_dir(x64=True))
+            ]
 
             if self.pi.current_cpu != self.pi.target_cpu:
                 tools += [
-                    join(si.VCInstallDir, host_dir % self.pi.current_dir(x64=True))
+                    os.path.join(
+                        si.VCInstallDir, host_dir % self.pi.current_dir(x64=True)
+                    )
                 ]
 
         else:
-            tools += [join(si.VCInstallDir, 'Bin')]
+            tools += [os.path.join(si.VCInstallDir, 'Bin')]
 
         return tools
 
@@ -1291,13 +1069,13 @@ class EnvironmentInfo:
         """
         if self.vs_ver <= 10.0:
             arch_subdir = self.pi.target_dir(hidex86=True, x64=True)
-            return [join(self.si.WindowsSdkDir, 'Lib%s' % arch_subdir)]
+            return [os.path.join(self.si.WindowsSdkDir, f'Lib{arch_subdir}')]
 
         else:
             arch_subdir = self.pi.target_dir(x64=True)
-            lib = join(self.si.WindowsSdkDir, 'lib')
+            lib = os.path.join(self.si.WindowsSdkDir, 'lib')
             libver = self._sdk_subdir
-            return [join(lib, '%sum%s' % (libver, arch_subdir))]
+            return [os.path.join(lib, f'{libver}um{arch_subdir}')]
 
     @property
     def OSIncludes(self):
@@ -1309,10 +1087,10 @@ class EnvironmentInfo:
         list of str
             paths
         """
-        include = join(self.si.WindowsSdkDir, 'include')
+        include = os.path.join(self.si.WindowsSdkDir, 'include')
 
         if self.vs_ver <= 10.0:
-            return [include, join(include, 'gl')]
+            return [include, os.path.join(include, 'gl')]
 
         else:
             if self.vs_ver >= 14.0:
@@ -1320,9 +1098,9 @@ class EnvironmentInfo:
             else:
                 sdkver = ''
             return [
-                join(include, '%sshared' % sdkver),
-                join(include, '%sum' % sdkver),
-                join(include, '%swinrt' % sdkver),
+                os.path.join(include, f'{sdkver}shared'),
+                os.path.join(include, f'{sdkver}um'),
+                os.path.join(include, f'{sdkver}winrt'),
             ]
 
     @property
@@ -1335,27 +1113,29 @@ class EnvironmentInfo:
         list of str
             paths
         """
-        ref = join(self.si.WindowsSdkDir, 'References')
+        ref = os.path.join(self.si.WindowsSdkDir, 'References')
         libpath = []
 
         if self.vs_ver <= 9.0:
             libpath += self.OSLibraries
 
         if self.vs_ver >= 11.0:
-            libpath += [join(ref, r'CommonConfiguration\Neutral')]
+            libpath += [os.path.join(ref, r'CommonConfiguration\Neutral')]
 
         if self.vs_ver >= 14.0:
             libpath += [
                 ref,
-                join(self.si.WindowsSdkDir, 'UnionMetadata'),
-                join(ref, 'Windows.Foundation.UniversalApiContract', '1.0.0.0'),
-                join(ref, 'Windows.Foundation.FoundationContract', '1.0.0.0'),
-                join(ref, 'Windows.Networking.Connectivity.WwanContract', '1.0.0.0'),
-                join(
+                os.path.join(self.si.WindowsSdkDir, 'UnionMetadata'),
+                os.path.join(ref, 'Windows.Foundation.UniversalApiContract', '1.0.0.0'),
+                os.path.join(ref, 'Windows.Foundation.FoundationContract', '1.0.0.0'),
+                os.path.join(
+                    ref, 'Windows.Networking.Connectivity.WwanContract', '1.0.0.0'
+                ),
+                os.path.join(
                     self.si.WindowsSdkDir,
                     'ExtensionSDKs',
                     'Microsoft.VCLibs',
-                    '%0.1f' % self.vs_ver,
+                    f'{self.vs_ver:0.1f}',
                     'References',
                     'CommonConfiguration',
                     'neutral',
@@ -1386,26 +1166,26 @@ class EnvironmentInfo:
         """
         if self.vs_ver < 15.0:
             bin_dir = 'Bin' if self.vs_ver <= 11.0 else r'Bin\x86'
-            yield join(self.si.WindowsSdkDir, bin_dir)
+            yield os.path.join(self.si.WindowsSdkDir, bin_dir)
 
         if not self.pi.current_is_x86():
             arch_subdir = self.pi.current_dir(x64=True)
-            path = 'Bin%s' % arch_subdir
-            yield join(self.si.WindowsSdkDir, path)
+            path = f'Bin{arch_subdir}'
+            yield os.path.join(self.si.WindowsSdkDir, path)
 
         if self.vs_ver in (10.0, 11.0):
             if self.pi.target_is_x86():
                 arch_subdir = ''
             else:
                 arch_subdir = self.pi.current_dir(hidex86=True, x64=True)
-            path = r'Bin\NETFX 4.0 Tools%s' % arch_subdir
-            yield join(self.si.WindowsSdkDir, path)
+            path = rf'Bin\NETFX 4.0 Tools{arch_subdir}'
+            yield os.path.join(self.si.WindowsSdkDir, path)
 
         elif self.vs_ver >= 15.0:
-            path = join(self.si.WindowsSdkDir, 'Bin')
+            path = os.path.join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
             sdkver = self.si.WindowsSdkLastVersion
-            yield join(path, '%s%s' % (sdkver, arch_subdir))
+            yield os.path.join(path, f'{sdkver}{arch_subdir}')
 
         if self.si.WindowsSDKExecutablePath:
             yield self.si.WindowsSDKExecutablePath
@@ -1421,7 +1201,7 @@ class EnvironmentInfo:
             subdir
         """
         ucrtver = self.si.WindowsSdkLastVersion
-        return ('%s\\' % ucrtver) if ucrtver else ''
+        return (f'{ucrtver}\\') if ucrtver else ''
 
     @property
     def SdkSetup(self):
@@ -1436,7 +1216,7 @@ class EnvironmentInfo:
         if self.vs_ver > 9.0:
             return []
 
-        return [join(self.si.WindowsSdkDir, 'Setup')]
+        return [os.path.join(self.si.WindowsSdkDir, 'Setup')]
 
     @property
     def FxTools(self):
@@ -1460,9 +1240,13 @@ class EnvironmentInfo:
 
         tools = []
         if include32:
-            tools += [join(si.FrameworkDir32, ver) for ver in si.FrameworkVersion32]
+            tools += [
+                os.path.join(si.FrameworkDir32, ver) for ver in si.FrameworkVersion32
+            ]
         if include64:
-            tools += [join(si.FrameworkDir64, ver) for ver in si.FrameworkVersion64]
+            tools += [
+                os.path.join(si.FrameworkDir64, ver) for ver in si.FrameworkVersion64
+            ]
         return tools
 
     @property
@@ -1479,7 +1263,7 @@ class EnvironmentInfo:
             return []
 
         arch_subdir = self.pi.target_dir(x64=True)
-        return [join(self.si.NetFxSdkDir, r'lib\um%s' % arch_subdir)]
+        return [os.path.join(self.si.NetFxSdkDir, rf'lib\um{arch_subdir}')]
 
     @property
     def NetFxSDKIncludes(self):
@@ -1494,7 +1278,7 @@ class EnvironmentInfo:
         if self.vs_ver < 14.0 or not self.si.NetFxSdkDir:
             return []
 
-        return [join(self.si.NetFxSdkDir, r'include\um')]
+        return [os.path.join(self.si.NetFxSdkDir, r'include\um')]
 
     @property
     def VsTDb(self):
@@ -1506,7 +1290,7 @@ class EnvironmentInfo:
         list of str
             paths
         """
-        return [join(self.si.VSInstallDir, r'VSTSDB\Deploy')]
+        return [os.path.join(self.si.VSInstallDir, r'VSTSDB\Deploy')]
 
     @property
     def MSBuild(self):
@@ -1527,12 +1311,12 @@ class EnvironmentInfo:
             base_path = self.si.VSInstallDir
             arch_subdir = ''
 
-        path = r'MSBuild\%0.1f\bin%s' % (self.vs_ver, arch_subdir)
-        build = [join(base_path, path)]
+        path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
+        build = [os.path.join(base_path, path)]
 
         if self.vs_ver >= 15.0:
             # Add Roslyn C# & Visual Basic Compiler
-            build += [join(base_path, path, 'Roslyn')]
+            build += [os.path.join(base_path, path, 'Roslyn')]
 
         return build
 
@@ -1549,7 +1333,7 @@ class EnvironmentInfo:
         if self.vs_ver < 11.0:
             return []
 
-        return [join(self.si.ProgramFilesx86, 'HTML Help Workshop')]
+        return [os.path.join(self.si.ProgramFilesx86, 'HTML Help Workshop')]
 
     @property
     def UCRTLibraries(self):
@@ -1565,9 +1349,9 @@ class EnvironmentInfo:
             return []
 
         arch_subdir = self.pi.target_dir(x64=True)
-        lib = join(self.si.UniversalCRTSdkDir, 'lib')
+        lib = os.path.join(self.si.UniversalCRTSdkDir, 'lib')
         ucrtver = self._ucrt_subdir
-        return [join(lib, '%sucrt%s' % (ucrtver, arch_subdir))]
+        return [os.path.join(lib, f'{ucrtver}ucrt{arch_subdir}')]
 
     @property
     def UCRTIncludes(self):
@@ -1582,8 +1366,8 @@ class EnvironmentInfo:
         if self.vs_ver < 14.0:
             return []
 
-        include = join(self.si.UniversalCRTSdkDir, 'include')
-        return [join(include, '%sucrt' % self._ucrt_subdir)]
+        include = os.path.join(self.si.UniversalCRTSdkDir, 'include')
+        return [os.path.join(include, f'{self._ucrt_subdir}ucrt')]
 
     @property
     def _ucrt_subdir(self):
@@ -1596,7 +1380,7 @@ class EnvironmentInfo:
             subdir
         """
         ucrtver = self.si.UniversalCRTSdkLastVersion
-        return ('%s\\' % ucrtver) if ucrtver else ''
+        return (f'{ucrtver}\\') if ucrtver else ''
 
     @property
     def FSharp(self):
@@ -1614,44 +1398,41 @@ class EnvironmentInfo:
         return [self.si.FSharpInstallDir]
 
     @property
-    def VCRuntimeRedist(self):
+    def VCRuntimeRedist(self) -> str | None:
         """
         Microsoft Visual C++ runtime redistributable dll.
 
-        Return
-        ------
-        str
-            path
+        Returns the first suitable path found or None.
         """
-        vcruntime = 'vcruntime%d0.dll' % self.vc_ver
+        vcruntime = f'vcruntime{self.vc_ver}0.dll'
         arch_subdir = self.pi.target_dir(x64=True).strip('\\')
 
         # Installation prefixes candidates
         prefixes = []
         tools_path = self.si.VCInstallDir
-        redist_path = dirname(tools_path.replace(r'\Tools', r'\Redist'))
-        if isdir(redist_path):
+        redist_path = os.path.dirname(tools_path.replace(r'\Tools', r'\Redist'))
+        if os.path.isdir(redist_path):
             # Redist version may not be exactly the same as tools
-            redist_path = join(redist_path, listdir(redist_path)[-1])
-            prefixes += [redist_path, join(redist_path, 'onecore')]
+            redist_path = os.path.join(redist_path, os.listdir(redist_path)[-1])
+            prefixes += [redist_path, os.path.join(redist_path, 'onecore')]
 
-        prefixes += [join(tools_path, 'redist')]  # VS14 legacy path
+        prefixes += [os.path.join(tools_path, 'redist')]  # VS14 legacy path
 
         # CRT directory
         crt_dirs = (
-            'Microsoft.VC%d.CRT' % (self.vc_ver * 10),
+            f'Microsoft.VC{self.vc_ver * 10}.CRT',
             # Sometime store in directory with VS version instead of VC
-            'Microsoft.VC%d.CRT' % (int(self.vs_ver) * 10),
+            f'Microsoft.VC{int(self.vs_ver) * 10}.CRT',
         )
 
         # vcruntime path
-        for prefix, crt_dir in itertools.product(prefixes, crt_dirs):
-            path = join(prefix, arch_subdir, crt_dir, vcruntime)
-            if isfile(path):
-                return path
-        return None
+        candidate_paths = (
+            os.path.join(prefix, arch_subdir, crt_dir, vcruntime)
+            for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
+        )
+        return next(filter(os.path.isfile, candidate_paths), None)  # type: ignore[arg-type] #python/mypy#12682
 
-    def return_env(self, exists=True):
+    def return_env(self, exists: bool = True) -> _EnvironmentDict:
         """
         Return environment dict.
 
@@ -1665,7 +1446,7 @@ class EnvironmentInfo:
         dict
             environment
         """
-        env = dict(
+        env = _EnvironmentDict(
             include=self._build_paths(
                 'include',
                 [
@@ -1708,7 +1489,7 @@ class EnvironmentInfo:
                 exists,
             ),
         )
-        if self.vs_ver >= 14 and isfile(self.VCRuntimeRedist):
+        if self.vs_ver >= 14 and self.VCRuntimeRedist:
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
         return env
 
@@ -1736,11 +1517,11 @@ class EnvironmentInfo:
         """
         # flatten spec_path_lists
         spec_paths = itertools.chain.from_iterable(spec_path_lists)
-        env_paths = environ.get(name, '').split(pathsep)
+        env_paths = environ.get(name, '').split(os.pathsep)
         paths = itertools.chain(spec_paths, env_paths)
-        extant_paths = list(filter(isdir, paths)) if exists else paths
+        extant_paths = list(filter(os.path.isdir, paths)) if exists else paths
         if not extant_paths:
-            msg = "%s environment variable is empty" % name.upper()
+            msg = f"{name.upper()} environment variable is empty"
             raise distutils.errors.DistutilsPlatformError(msg)
         unique_paths = unique_everseen(extant_paths)
-        return pathsep.join(unique_paths)
+        return os.pathsep.join(unique_paths)

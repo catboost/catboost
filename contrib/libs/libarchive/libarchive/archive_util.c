@@ -59,7 +59,7 @@
 #include <zlib.h>
 #endif
 #ifdef HAVE_LZMA_H
-#error #include <lzma.h>
+#include <lzma.h>
 #endif
 #ifdef HAVE_BZLIB_H
 #include <bzlib.h>

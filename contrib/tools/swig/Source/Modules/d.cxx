@@ -335,8 +335,6 @@ public:
     // use in our library files.
     Preprocessor_define("SWIG_D_VERSION 2", 0);
 
-    // Add typemap definitions
-    SWIG_typemap_lang("d");
     SWIG_config_file("d.swg");
 
     allow_overloading();
@@ -946,14 +944,9 @@ public:
     Setattr(n, "value", tmpValue);
 
     // Deal with enum values that are not int
-    int swigtype = SwigType_type(Getattr(n, "type"));
-    if (swigtype == T_BOOL) {
-      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
-      Setattr(n, "enumvalue", val);
-    } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", val);
-      Delete(val);
+    {
+      String *numval = Getattr(n, "enumnumval");
+      if (numval) Setattr(n, "enumvalue", numval);
     }
 
     // Emit the enum item.
@@ -1449,19 +1442,7 @@ public:
       // Note that this is only called for global constants, static member
       // constants are already handled in staticmemberfunctionHandler().
 
-      Swig_save("constantWrapper", n, "value", NIL);
       Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
-
-      // Add the stripped quotes back in.
-      String *old_value = Getattr(n, "value");
-      SwigType *t = Getattr(n, "type");
-      if (SwigType_type(t) == T_STRING) {
-	Setattr(n, "value", NewStringf("\"%s\"", old_value));
-	Delete(old_value);
-      } else if (SwigType_type(t) == T_CHAR) {
-	Setattr(n, "value", NewStringf("\'%s\'", old_value));
-	Delete(old_value);
-      }
 
       SetFlag(n, "feature:immutable");
       int result = globalvariableHandler(n);
@@ -1472,7 +1453,6 @@ public:
 
     String *constants_code = NewString("");
     SwigType *t = Getattr(n, "type");
-    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
 
     // Attach the non-standard typemaps to the parameter list.
@@ -1505,20 +1485,9 @@ public:
     } else {
       // Just take the value from the C definition and hope it compiles in D.
       if (Getattr(n, "wrappedasconstant")) {
-	if (SwigType_type(valuetype) == T_CHAR)
-          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
-	else
-          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-	// Add the stripped quotes back in.
-	String* value = Getattr(n, "value");
-	if (SwigType_type(t) == T_STRING) {
-	  Printf(constants_code, "\"%s\";\n", value);
-	} else if (SwigType_type(t) == T_CHAR) {
-	  Printf(constants_code, "\'%s\';\n", value);
-	} else {
-	  Printf(constants_code, "%s;\n", value);
-	}
+	Printf(constants_code, "%s;\n", Getattr(n, "value"));
       }
     }
 
@@ -1544,7 +1513,7 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int functionWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     Parm *p;
@@ -1583,7 +1552,7 @@ public:
       Printf(c_return_type, "%s", tm);
     } else {
       Swig_warning(WARN_D_TYPEMAP_CTYPE_UNDEF, input_file, line_number,
-	"No ctype typemap defined for %s\n", SwigType_str(t, 0));
+	"No ctype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
     if ((tm = lookupDTypemap(n, "imtype"))) {
@@ -1595,7 +1564,7 @@ public:
       }
       Printf(im_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_D_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_D_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
@@ -1758,9 +1727,9 @@ public:
 	if (Len(tm))
 	  Printf(f->code, "\n");
       } else {
-	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
       }
-      emit_return_variable(n, t, f);
+      emit_return_variable(n, returntype, f);
     }
 
     /* Output argument output code */
@@ -1800,6 +1769,8 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
@@ -2374,6 +2345,7 @@ public:
       } else {
 	Replaceall(w->code, "$null", "");
       }
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!ignored_method)
 	Printv(director_dcallbacks_code, callback_def, callback_code, NIL);
       if (!Getattr(n, "defaultargs")) {

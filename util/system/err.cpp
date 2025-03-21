@@ -9,6 +9,8 @@
 #include <util/stream/printf.h>
 #include <util/stream/output.h>
 
+#include <cstdlib>
+
 void vwarnx(const char* fmt, va_list args) {
     Cerr << GetProgramName() << ": ";
 

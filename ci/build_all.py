@@ -180,7 +180,13 @@ def run_with_native_python_with_version_in_python_package_dir(
     )
 
 
-def patch_sources(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = False, verbose:bool = False):
+def patch_sources(
+    src_root_dir: str,
+    build_test_tools:bool = False,
+    only_native_artifacts:bool = False,
+    dry_run:bool = False,
+    verbose:bool = False):
+
     # TODO(akhropov): Remove when system cuda.cmake is updated for Linux cross-build
     distutils.file_util.copy_file(
         src=os.path.join(src_root_dir, 'ci', 'cmake', 'cuda.cmake'),
@@ -406,6 +412,7 @@ def build_all_for_one_platform(
     conan_host_profile:str=None,
     cmake_extra_args:List[str]=None,
     build_test_tools:bool=False,
+    only_native_artifacts:bool=False,
     dry_run:bool=False,
     verbose:bool=False):
 
@@ -536,26 +543,27 @@ def build_all_for_one_platform(
             verbose=verbose
         )
 
-    build_r_package(
-        src_root_dir,
-        build_native_root_dir,
-        build_with_cuda_for_main_targets,
-        platform_name,
-        dry_run,
-        verbose
-    )
+    if not only_native_artifacts:
+        build_r_package(
+            src_root_dir,
+            build_native_root_dir,
+            build_with_cuda_for_main_targets,
+            platform_name,
+            dry_run,
+            verbose
+        )
 
-    build_jvm_artifacts(
-        src_root_dir,
-        build_native_root_dir,
-        platform_name,
-        macos_universal_binaries,
-        build_with_cuda_for_main_targets,
-        dry_run,
-        verbose
-    )
+        build_jvm_artifacts(
+            src_root_dir,
+            build_native_root_dir,
+            platform_name,
+            macos_universal_binaries,
+            build_with_cuda_for_main_targets,
+            dry_run,
+            verbose
+        )
 
-    # build python version-specific wheels.
+    # build python version-specific dynamic libraries and wheels (the latter only if not 'only_native_artifacts').
     # Note: assumes build_widget has already been called
     for py_ver in PYTHON_VERSIONS:
         python_include_path, python_library_path = get_python_version_include_and_library_paths(py_ver)
@@ -586,40 +594,48 @@ def build_all_for_one_platform(
             cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
         )
 
-        build_native_sub_dir = os.path.join(
-            build_native_root_dir,
-            'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
-            platform_name
-        )
+        if not only_native_artifacts:
+            build_native_sub_dir = os.path.join(
+                build_native_root_dir,
+                'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
+                platform_name
+            )
 
-        # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
-        bdist_wheel_cmd = [
-            'setup.py',
-            'bdist_wheel',
-            '--plat-name', get_python_plat_name(platform_name),
-            '--with-hnsw',
-            '--prebuilt-widget',
-            f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
-        ]
+            # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
+            bdist_wheel_cmd = [
+                'setup.py',
+                'bdist_wheel',
+                '--plat-name', get_python_plat_name(platform_name),
+                '--with-hnsw',
+                '--prebuilt-widget',
+                f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
+            ]
 
-        run_with_native_python_with_version_in_python_package_dir(
+            run_with_native_python_with_version_in_python_package_dir(
+                src_root_dir,
+                dry_run,
+                verbose,
+                py_ver,
+                [bdist_wheel_cmd]
+            )
+
+def build_all(
+    src_root_dir: str,
+    build_test_tools:bool = False,
+    only_native_artifacts:bool = False,
+    dry_run:bool = False,
+    verbose:bool = False):
+
+    if not only_native_artifacts:
+        run_in_python_package_dir(
             src_root_dir,
             dry_run,
             verbose,
-            py_ver,
-            [bdist_wheel_cmd]
+            [
+                ['python3', 'setup.py', 'build_widget'],
+                ['python3', '-m', 'build', '--sdist']
+            ]
         )
-
-def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = False, verbose:bool = False):
-    run_in_python_package_dir(
-        src_root_dir,
-        dry_run,
-        verbose,
-        [
-            ['python3', 'setup.py', 'build_widget'],
-            ['python3', '-m', 'build', '--sdist']
-        ]
-    )
 
     build_native_root_dir = os.path.join(src_root_dir, 'build_native_root')
 
@@ -632,10 +648,7 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
     else:
         cmake_target_toolchain=None
         conan_build_profile=None
-        if platform_name.startswith('windows'):
-            conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'windows.x86_64.profile')
-        else:
-            conan_host_profile=None
+        conan_host_profile=None
 
     build_all_for_one_platform(
         src_root_dir=src_root_dir,
@@ -645,6 +658,7 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
         conan_build_profile=conan_build_profile,
         conan_host_profile=conan_host_profile,
         build_test_tools=build_test_tools,
+        only_native_artifacts=only_native_artifacts,
         dry_run=dry_run,
         verbose=verbose
     )
@@ -661,6 +675,7 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
             conan_build_profile=conan_build_profile,
             conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'dockcross.manylinux2014_aarch64.profile'),
             build_test_tools=build_test_tools,
+            only_native_artifacts=only_native_artifacts,
             dry_run=dry_run,
             verbose=verbose,
             native_built_tools_root_dir=os.path.join(
@@ -686,17 +701,20 @@ if __name__ == '__main__':
     args_parser.add_argument('--dry-run', action='store_true', help='Only print, not execute commands')
     args_parser.add_argument('--verbose', action='store_true', help='Verbose output')
     args_parser.add_argument('--build-test-tools', action='store_true', help='Build tools for tests')
+    args_parser.add_argument('--only-native-artifacts', action='store_true', help='Build only native artifacts')
     parsed_args = args_parser.parse_args()
 
     patch_sources(
         os.path.abspath(os.getcwd()),
         parsed_args.build_test_tools,
+        parsed_args.only_native_artifacts,
         parsed_args.dry_run,
         parsed_args.verbose
     )
     build_all(
         os.path.abspath(os.getcwd()),
         parsed_args.build_test_tools,
+        parsed_args.only_native_artifacts,
         parsed_args.dry_run,
         parsed_args.verbose
     )

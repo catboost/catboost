@@ -49,6 +49,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
         ui32 GetFloatFeatureCount() noexcept
         ui32 GetCatFeatureCount() noexcept
+        ui32 GetTextFeatureCount() noexcept
         ui32 GetEmbeddingFeatureCount() noexcept
         ui32 GetExternalFeatureCount() noexcept
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() noexcept

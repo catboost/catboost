@@ -24,10 +24,10 @@ jobs:
     name: Test per OS
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+         os: [linux, macos, windows]
       fail-fast: false
     with:
-      runs-on_value: ${{ matrix.os }}
+      os: ${{ matrix.os }}
       artifacts_version: ${{ inputs.artifacts_version }}
       artifacts_run_id: ${{ inputs.artifacts_run_id }}
       artifacts_repository: ${{ inputs.artifacts_repository }}

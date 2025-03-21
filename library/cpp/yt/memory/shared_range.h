@@ -58,7 +58,7 @@ public:
 
     //! Constructs an empty TSharedRange from a nullptr expression.
     TSharedRange(std::nullptr_t)
-        : TRange<T>(nullptr, 0UL)
+        : TRange<T>(nullptr, static_cast<size_t>(0))
         , Holder_(nullptr)
     { }
 

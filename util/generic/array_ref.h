@@ -71,7 +71,7 @@ public:
     }
 
     template <size_t N>
-    constexpr inline TArrayRef(T (&array)[N] Y_LIFETIME_BOUND) noexcept
+    constexpr inline TArrayRef(T (&array Y_LIFETIME_BOUND)[N]) noexcept
         : T_(array)
         , S_(N)
     {

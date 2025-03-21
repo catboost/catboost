@@ -12,6 +12,7 @@
 #include <typeinfo>
 #include <stdexcept>
 #include <ios>
+#include <iostream>
 
 #define CKDTREE_METHODS_IMPL
 #include "ckdtree_decl.h"
@@ -201,8 +202,6 @@ traverse_checking(const ckdtree *self,
     }
 }
 
-
-#include <iostream>
 
 extern "C" PyObject*
 query_pairs(const ckdtree *self,

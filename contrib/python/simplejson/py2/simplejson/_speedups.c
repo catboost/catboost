@@ -10,11 +10,13 @@
 #define JSON_UNICHR Py_UCS4
 #define JSON_InternFromString PyUnicode_InternFromString
 #define PyString_GET_SIZE PyUnicode_GET_LENGTH
+#define JSON_StringCheck PyUnicode_Check
 #define PY2_UNUSED
 #define PY3_UNUSED UNUSED
 #else /* PY_MAJOR_VERSION >= 3 */
 #define PY2_UNUSED UNUSED
 #define PY3_UNUSED
+#define JSON_StringCheck(obj) (PyString_Check(obj) || PyUnicode_Check(obj))
 #define PyBytes_Check PyString_Check
 #define PyUnicode_READY(obj) 0
 #define PyUnicode_KIND(obj) (sizeof(Py_UNICODE))
@@ -3034,25 +3036,29 @@ encoder_listencode_dict(PyEncoderObject *s, JSON_Accu *rval, PyObject *dct, Py_s
         if (value == NULL)
             goto bail;
 
-        encoded = PyDict_GetItem(s->key_memo, key);
-        if (encoded != NULL) {
-            Py_INCREF(encoded);
-        } else {
-            kstr = encoder_stringify_key(s, key);
-            if (kstr == NULL)
-                goto bail;
-            else if (kstr == Py_None) {
-                /* skipkeys */
-                Py_DECREF(item);
-                Py_DECREF(kstr);
-                continue;
-            }
+        kstr = encoder_stringify_key(s, key);
+        if (kstr == NULL)
+            goto bail;
+        else if (kstr == Py_None) {
+            /* skipkeys */
+            Py_DECREF(item);
+            Py_DECREF(kstr);
+            continue;
         }
         if (idx) {
             if (JSON_Accu_Accumulate(rval, s->item_separator))
                 goto bail;
         }
-        if (encoded == NULL) {
+        /*
+         * Only cache the encoding of string keys. False and True are
+         * indistinguishable from 0 and 1 in a dictionary lookup and there
+         * may be other quirks with user defined subclasses.
+         */
+        encoded = PyDict_GetItem(s->key_memo, kstr);
+        if (encoded != NULL) {
+            Py_INCREF(encoded);
+            Py_CLEAR(kstr);
+        } else {
             encoded = encoder_encode_string(s, kstr);
             Py_CLEAR(kstr);
             if (encoded == NULL)

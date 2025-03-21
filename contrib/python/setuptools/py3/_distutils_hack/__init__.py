@@ -1,11 +1,9 @@
 # don't import any costly modules
-import sys
 import os
-
+import sys
 
 report_url = (
-    "https://github.com/pypa/setuptools/issues/new?"
-    "template=distutils-deprecation.yml"
+    "https://github.com/pypa/setuptools/issues/new?template=distutils-deprecation.yml"
 )
 
 
@@ -92,7 +90,7 @@ def do_override():
 
 
 class _TrivialRe:
-    def __init__(self, *patterns):
+    def __init__(self, *patterns) -> None:
         self._patterns = patterns
 
     def match(self, string):
@@ -218,10 +216,10 @@ def add_shim():
 
 
 class shim:
-    def __enter__(self):
+    def __enter__(self) -> None:
         insert_shim()
 
-    def __exit__(self, exc, value, tb):
+    def __exit__(self, exc: object, value: object, tb: object) -> None:
         _remove_shim()
 
 

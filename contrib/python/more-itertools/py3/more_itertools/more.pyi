@@ -5,26 +5,140 @@ from __future__ import annotations
 import sys
 import types
 
-from typing import (
-    Any,
-    Callable,
+from collections.abc import (
     Container,
-    ContextManager,
-    Generic,
     Hashable,
-    Mapping,
     Iterable,
     Iterator,
     Mapping,
-    overload,
     Reversible,
     Sequence,
     Sized,
-    Type,
+)
+from contextlib import AbstractContextManager
+from typing import (
+    Any,
+    Callable,
+    Generic,
     TypeVar,
+    overload,
     type_check_only,
 )
 from typing_extensions import Protocol
+
+__all__ = [
+    'AbortThread',
+    'SequenceView',
+    'UnequalIterablesError',
+    'adjacent',
+    'all_unique',
+    'always_iterable',
+    'always_reversible',
+    'bucket',
+    'callback_iter',
+    'chunked',
+    'chunked_even',
+    'circular_shifts',
+    'collapse',
+    'combination_index',
+    'combination_with_replacement_index',
+    'consecutive_groups',
+    'constrained_batches',
+    'consumer',
+    'count_cycle',
+    'countable',
+    'dft',
+    'difference',
+    'distinct_combinations',
+    'distinct_permutations',
+    'distribute',
+    'divide',
+    'doublestarmap',
+    'duplicates_everseen',
+    'duplicates_justseen',
+    'classify_unique',
+    'exactly_n',
+    'filter_except',
+    'filter_map',
+    'first',
+    'gray_product',
+    'groupby_transform',
+    'ichunked',
+    'iequals',
+    'idft',
+    'ilen',
+    'interleave',
+    'interleave_evenly',
+    'interleave_longest',
+    'intersperse',
+    'is_sorted',
+    'islice_extended',
+    'iterate',
+    'iter_suppress',
+    'join_mappings',
+    'last',
+    'locate',
+    'longest_common_prefix',
+    'lstrip',
+    'make_decorator',
+    'map_except',
+    'map_if',
+    'map_reduce',
+    'mark_ends',
+    'minmax',
+    'nth_or_last',
+    'nth_permutation',
+    'nth_prime',
+    'nth_product',
+    'nth_combination_with_replacement',
+    'numeric_range',
+    'one',
+    'only',
+    'outer_product',
+    'padded',
+    'partial_product',
+    'partitions',
+    'peekable',
+    'permutation_index',
+    'powerset_of_sets',
+    'product_index',
+    'raise_',
+    'repeat_each',
+    'repeat_last',
+    'replace',
+    'rlocate',
+    'rstrip',
+    'run_length',
+    'sample',
+    'seekable',
+    'set_partitions',
+    'side_effect',
+    'sliced',
+    'sort_together',
+    'split_after',
+    'split_at',
+    'split_before',
+    'split_into',
+    'split_when',
+    'spy',
+    'stagger',
+    'strip',
+    'strictly_n',
+    'substrings',
+    'substrings_indexes',
+    'takewhile_inclusive',
+    'time_limited',
+    'unique_in_window',
+    'unique_to_each',
+    'unzip',
+    'value_chain',
+    'windowed',
+    'windowed_complete',
+    'with_iter',
+    'zip_broadcast',
+    'zip_equal',
+    'zip_offset',
+]
 
 # Type and type variable definitions
 _T = TypeVar('_T')
@@ -38,7 +152,7 @@ _V = TypeVar('_V')
 _W = TypeVar('_W')
 _T_co = TypeVar('_T_co', covariant=True)
 _GenFn = TypeVar('_GenFn', bound=Callable[..., Iterator[Any]])
-_Raisable = BaseException | Type[BaseException]
+_Raisable = BaseException | type[BaseException]
 
 # The type of isinstance's second argument (from typeshed builtins)
 if sys.version_info >= (3, 10):
@@ -91,7 +205,7 @@ def consumer(func: _GenFn) -> _GenFn: ...
 def ilen(iterable: Iterable[_T]) -> int: ...
 def iterate(func: Callable[[_T], _T], start: _T) -> Iterator[_T]: ...
 def with_iter(
-    context_manager: ContextManager[Iterable[_T]],
+    context_manager: AbstractContextManager[Iterable[_T]],
 ) -> Iterator[_T]: ...
 def one(
     iterable: Iterable[_T],
@@ -410,7 +524,7 @@ class numeric_range(Generic[_T, _U], Sequence[_T], Hashable, Reversible[_T]):
     def __len__(self) -> int: ...
     def __reduce__(
         self,
-    ) -> tuple[Type[numeric_range[_T, _U]], tuple[_T, _T, _U]]: ...
+    ) -> tuple[type[numeric_range[_T, _U]], tuple[_T, _T, _U]]: ...
     def __repr__(self) -> str: ...
     def __reversed__(self) -> Iterator[_T]: ...
     def count(self, value: _T) -> int: ...
@@ -567,12 +681,12 @@ def distinct_combinations(
 def filter_except(
     validator: Callable[[Any], object],
     iterable: Iterable[_T],
-    *exceptions: Type[BaseException],
+    *exceptions: type[BaseException],
 ) -> Iterator[_T]: ...
 def map_except(
     function: Callable[[Any], _U],
     iterable: Iterable[_T],
-    *exceptions: Type[BaseException],
+    *exceptions: type[BaseException],
 ) -> Iterator[_U]: ...
 def map_if(
     iterable: Iterable[Any],
@@ -587,7 +701,7 @@ def _sample_counted(
     population: Iterator[_T], k: int, counts: Iterable[int], strict: bool
 ) -> list[_T]: ...
 def _sample_weighted(
-    iterator: Iterator[_T], k: int, weights, strict
+    iterator: Iterator[_T], k: int, weights: Iterator[float], strict: bool
 ) -> list[_T]: ...
 def sample(
     iterable: Iterable[_T],
@@ -617,7 +731,7 @@ class callback_iter(Generic[_T], Iterator[_T]):
     def __enter__(self) -> callback_iter[_T]: ...
     def __exit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: types.TracebackType | None,
     ) -> bool | None: ...
@@ -797,7 +911,7 @@ def outer_product(
 ) -> Iterator[tuple[_V, ...]]: ...
 def iter_suppress(
     iterable: Iterable[_T],
-    *exceptions: Type[BaseException],
+    *exceptions: type[BaseException],
 ) -> Iterator[_T]: ...
 def filter_map(
     func: Callable[[_T], _V | None],
@@ -813,3 +927,5 @@ def doublestarmap(
 ) -> Iterator[_T]: ...
 def dft(xarr: Sequence[complex]) -> Iterator[complex]: ...
 def idft(Xarr: Sequence[complex]) -> Iterator[complex]: ...
+def _nth_prime_ub(n: int) -> float: ...
+def nth_prime(n: int) -> int: ...

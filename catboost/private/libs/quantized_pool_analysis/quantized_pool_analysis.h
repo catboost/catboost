@@ -11,12 +11,14 @@
 
 #include <util/generic/vector.h>
 
+#include <util/system/types.h>
+
 
 namespace NCB {
 
     struct TBinarizedFeatureStatistics {
         TVector<float> Borders; // empty in case of one-hot features
-        TVector<int> BinarizedFeature;
+        TVector<ui32> BinarizedFeature;
         TVector<float> MeanTarget;
         TVector<float> MeanWeightedTarget;
         TVector<float> MeanPrediction;

@@ -18,7 +18,7 @@ DEFAULT_UNAVAILABLE_TIMEOUT = 1
 DEFAULT_THREAD_SLEEP_TIME = 0.1
 
 
-class PubSubWorkerThread(redis.client.PubSubWorkerThread):  # type: ignore
+class PubSubWorkerThread(redis.client.PubSubWorkerThread):
     def run(self) -> None:
         try:
             super().run()
@@ -28,7 +28,7 @@ class PubSubWorkerThread(redis.client.PubSubWorkerThread):  # type: ignore
 
 
 class RedisLock(utils.LockBase):
-    '''
+    """
     An extremely reliable Redis lock based on pubsub with a keep-alive thread
 
     As opposed to most Redis locking systems based on key/value pairs,
@@ -62,7 +62,7 @@ class RedisLock(utils.LockBase):
             to override these you need to explicitly specify a value (e.g.
             `health_check_interval=0`)
 
-    '''
+    """
 
     redis_kwargs: dict[str, typing.Any]
     thread: PubSubWorkerThread | None
@@ -87,7 +87,7 @@ class RedisLock(utils.LockBase):
         thread_sleep_time: float = DEFAULT_THREAD_SLEEP_TIME,
         unavailable_timeout: float = DEFAULT_UNAVAILABLE_TIMEOUT,
         redis_kwargs: dict[str, typing.Any] | None = None,
-    ):
+    ) -> None:
         # We don't want to close connections given as an argument
         self.close_connection = not connection
 
@@ -131,7 +131,7 @@ class RedisLock(utils.LockBase):
         self.connection.publish(data['response_channel'], str(time.time()))
 
     @property
-    def client_name(self):
+    def client_name(self) -> str:
         return f'{self.channel}-lock'
 
     def acquire(  # type: ignore[override]
@@ -201,7 +201,7 @@ class RedisLock(utils.LockBase):
         self,
         connection: redis.client.Redis[str],
         timeout: float,
-    ):
+    ) -> bool | None:
         # Random channel name to get messages back from the lock
         response_channel = f'{self.channel}-{random.random()}'
 
@@ -234,7 +234,7 @@ class RedisLock(utils.LockBase):
                 )
         return None
 
-    def release(self):
+    def release(self) -> None:
         if self.thread:  # pragma: no branch
             self.thread.stop()
             self.thread.join()
@@ -246,5 +246,5 @@ class RedisLock(utils.LockBase):
             self.pubsub.close()
             self.pubsub = None
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.release()

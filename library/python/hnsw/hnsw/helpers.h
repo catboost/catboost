@@ -21,6 +21,16 @@
 #include <util/generic/xrange.h>
 #include <util/generic/variant.h>
 #include <util/stream/buffer.h>
+#include <util/system/compiler.h>
+
+
+#if PY_MAJOR_VERSION < 3
+inline const char* PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *size) {
+    Y_UNUSED(unicode, size);
+    return nullptr;
+}
+#endif
+
 
 namespace NHnsw::PythonHelpers {
     class TGilGuard : public TNonCopyable {

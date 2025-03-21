@@ -28,10 +28,6 @@ from ._common import conn_to_ntuple
 from ._common import get_procfs_path
 from ._common import memoize_when_activated
 from ._common import usage_percent
-from ._compat import PY3
-from ._compat import FileNotFoundError
-from ._compat import PermissionError
-from ._compat import ProcessLookupError
 
 
 __extra__all__ = ["PROCFS_PATH"]
@@ -148,12 +144,10 @@ def cpu_count_cores():
     cmd = ["lsdev", "-Cc", "processor"]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    if PY3:
-        stdout, stderr = (
-            x.decode(sys.stdout.encoding) for x in (stdout, stderr)
-        )
+    stdout, stderr = (x.decode(sys.stdout.encoding) for x in (stdout, stderr))
     if p.returncode != 0:
-        raise RuntimeError("%r command error\n%s" % (cmd, stderr))
+        msg = f"{cmd!r} command error\n{stderr}"
+        raise RuntimeError(msg)
     processors = stdout.strip().splitlines()
     return len(processors) or None
 
@@ -211,12 +205,6 @@ def net_connections(kind, _pid=-1):
     """Return socket connections.  If pid == -1 return system-wide
     connections (as opposed to connections opened by one process only).
     """
-    cmap = _common.conn_tmap
-    if kind not in cmap:
-        raise ValueError(
-            "invalid %r kind argument; choose between %s"
-            % (kind, ', '.join([repr(x) for x in cmap]))
-        )
     families, types = _common.conn_tmap[kind]
     rawlist = cext.net_connections(_pid)
     ret = []
@@ -243,7 +231,7 @@ def net_connections(kind, _pid=-1):
 def net_if_stats():
     """Get NIC stats (isup, duplex, speed, mtu)."""
     duplex_map = {"Full": NIC_DUPLEX_FULL, "Half": NIC_DUPLEX_HALF}
-    names = set([x[0] for x in net_if_addrs()])
+    names = {x[0] for x in net_if_addrs()}
     ret = {}
     for name in names:
         mtu = cext_posix.net_if_mtu(name)
@@ -260,10 +248,9 @@ def net_if_stats():
             stderr=subprocess.PIPE,
         )
         stdout, stderr = p.communicate()
-        if PY3:
-            stdout, stderr = (
-                x.decode(sys.stdout.encoding) for x in (stdout, stderr)
-            )
+        stdout, stderr = (
+            x.decode(sys.stdout.encoding) for x in (stdout, stderr)
+        )
         if p.returncode == 0:
             re_result = re.search(
                 r"Running: (\d+) Mbps.*?(\w+) Duplex", stdout
@@ -330,18 +317,18 @@ def wrap_exceptions(fun):
 
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
+        pid, ppid, name = self.pid, self._ppid, self._name
         try:
             return fun(self, *args, **kwargs)
-        except (FileNotFoundError, ProcessLookupError):
+        except (FileNotFoundError, ProcessLookupError) as err:
             # ENOENT (no such file or directory) gets raised on open().
             # ESRCH (no such process) can get raised on read() if
             # process is gone in meantime.
-            if not pid_exists(self.pid):
-                raise NoSuchProcess(self.pid, self._name)
-            else:
-                raise ZombieProcess(self.pid, self._name, self._ppid)
-        except PermissionError:
-            raise AccessDenied(self.pid, self._name)
+            if not pid_exists(pid):
+                raise NoSuchProcess(pid, name) from err
+            raise ZombieProcess(pid, name, ppid) from err
+        except PermissionError as err:
+            raise AccessDenied(pid, name) from err
 
     return wrapper
 
@@ -444,7 +431,7 @@ class Process:
             # is no longer there.
             if not retlist:
                 # will raise NSP if process is gone
-                os.stat('%s/%s' % (self._procfs_path, self.pid))
+                os.stat(f"{self._procfs_path}/{self.pid}")
             return retlist
 
     @wrap_exceptions
@@ -457,7 +444,7 @@ class Process:
         # is no longer there.
         if not ret:
             # will raise NSP if process is gone
-            os.stat('%s/%s' % (self._procfs_path, self.pid))
+            os.stat(f"{self._procfs_path}/{self.pid}")
         return ret
 
     @wrap_exceptions
@@ -503,10 +490,10 @@ class Process:
     def cwd(self):
         procfs_path = self._procfs_path
         try:
-            result = os.readlink("%s/%s/cwd" % (procfs_path, self.pid))
+            result = os.readlink(f"{procfs_path}/{self.pid}/cwd")
             return result.rstrip('/')
         except FileNotFoundError:
-            os.stat("%s/%s" % (procfs_path, self.pid))  # raise NSP or AD
+            os.stat(f"{procfs_path}/{self.pid}")  # raise NSP or AD
             return ""
 
     @wrap_exceptions
@@ -533,10 +520,9 @@ class Process:
             stderr=subprocess.PIPE,
         )
         stdout, stderr = p.communicate()
-        if PY3:
-            stdout, stderr = (
-                x.decode(sys.stdout.encoding) for x in (stdout, stderr)
-            )
+        stdout, stderr = (
+            x.decode(sys.stdout.encoding) for x in (stdout, stderr)
+        )
         if "no such process" in stderr.lower():
             raise NoSuchProcess(self.pid, self._name)
         procfiles = re.findall(r"(\d+): S_IFREG.*name:(.*)\n", stdout)
@@ -554,7 +540,7 @@ class Process:
     def num_fds(self):
         if self.pid == 0:  # no /proc/0/fd
             return 0
-        return len(os.listdir("%s/%s/fd" % (self._procfs_path, self.pid)))
+        return len(os.listdir(f"{self._procfs_path}/{self.pid}/fd"))
 
     @wrap_exceptions
     def num_ctx_switches(self):
@@ -570,10 +556,10 @@ class Process:
         def io_counters(self):
             try:
                 rc, wc, rb, wb = cext.proc_io_counters(self.pid)
-            except OSError:
+            except OSError as err:
                 # if process is terminated, proc_io_counters returns OSError
                 # instead of NSP
                 if not pid_exists(self.pid):
-                    raise NoSuchProcess(self.pid, self._name)
+                    raise NoSuchProcess(self.pid, self._name) from err
                 raise
             return _common.pio(rc, wc, rb, wb)

@@ -1,12 +1,13 @@
-from distutils.util import convert_path
-from distutils import log
-from distutils.errors import DistutilsOptionError
-import distutils
-import os
 import configparser
+import os
 
 from .. import Command
 from ..unicode_utils import _cfg_read_utf8_with_fallback
+
+import distutils
+from distutils import log
+from distutils.errors import DistutilsOptionError
+from distutils.util import convert_path
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -22,7 +23,7 @@ def config_file(kind="local"):
         return os.path.join(os.path.dirname(distutils.__file__), 'distutils.cfg')
     if kind == 'user':
         dot = os.name == 'posix' and '.' or ''
-        return os.path.expanduser(convert_path("~/%spydistutils.cfg" % dot))
+        return os.path.expanduser(convert_path(f"~/{dot}pydistutils.cfg"))
     raise ValueError("config_file() type must be 'local', 'global', or 'user'", kind)
 
 
@@ -36,7 +37,7 @@ def edit_config(filename, settings, dry_run=False):
     """
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
-    opts.optionxform = lambda x: x
+    opts.optionxform = lambda optionstr: optionstr  # type: ignore[method-assign] # overriding method
     _cfg_read_utf8_with_fallback(opts, filename)
 
     for section, options in settings.items():
@@ -125,14 +126,14 @@ class setopt(option_base):
         self.set_value = None
         self.remove = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         option_base.finalize_options(self)
         if self.command is None or self.option is None:
             raise DistutilsOptionError("Must specify --command *and* --option")
         if self.set_value is None and not self.remove:
             raise DistutilsOptionError("Must specify --set-value or --remove")
 
-    def run(self):
+    def run(self) -> None:
         edit_config(
             self.filename,
             {self.command: {self.option.replace('-', '_'): self.set_value}},
