@@ -948,9 +948,7 @@ static void SelectBestCandidate(
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
-                //Cout<<candidate.BestScore.Val<<" "<<candidate.BestScore.StDev<<Endl;
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
-                //Cout<<"score: "<<score<<Endl;
 
                 score *= GetCatFeatureWeight(candidate, ctx, fold, maxFeatureValueCount);
 
