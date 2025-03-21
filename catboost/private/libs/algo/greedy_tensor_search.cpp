@@ -52,7 +52,6 @@ namespace {
                 , BestCandidate(bestCandidate)
                 , Stats(stats)
         {
-            //CB_ENSURE(false, std::to_string(Stats->size()));
         }
 
         bool operator<(const TSplitLeafCandidate& other) const {
