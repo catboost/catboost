@@ -55,7 +55,7 @@
 #include <bzlib.h>
 #endif
 #ifdef HAVE_LZMA_H
-#error #include <lzma.h>
+#include <lzma.h>
 #endif
 #ifdef HAVE_ZSTD_H
 #include <zstd.h>

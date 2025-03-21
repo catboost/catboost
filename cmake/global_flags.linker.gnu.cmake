@@ -27,3 +27,17 @@ endif()
 if (CMAKE_SYSTEM_NAME MATCHES "^(Android|Linux)$")
   add_link_options(-rdynamic)
 endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # NB:
+  #   glibc merged pthread into libc.so as of 2.34 / Ubuntu 22.04, see
+  #   https://developers.redhat.com/articles/2021/12/17/why-glibc-234-removed-libpthread
+  #
+  # In macOS and iOS libpthread points to libSystem already (just as libc.tbd does):
+  #   $ file libpthread.tbd
+  #   libpthread.tbd: symbolic link to libSystem.tbd
+  #
+  # Android does not provide libpthread at all.
+  # Once we will be building against glibc=2.34, we might simply remove -lpthread
+  link_libraries(pthread)
+endif()

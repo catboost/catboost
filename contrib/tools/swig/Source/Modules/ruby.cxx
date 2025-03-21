@@ -398,7 +398,7 @@ private:
       }
 
       if (value) {
-	String *new_value = convertValue(value, Getattr(p, "type"));
+	String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
 	if (new_value) {
 	  value = new_value;
 	} else {
@@ -407,6 +407,9 @@ private:
 	    value = Getattr(lookup, "sym:name");
 	}
 	Printf(doc, "=%s", value);
+
+	if (new_value)
+	  Delete(new_value);
       }
       Delete(type_str);
       Delete(made_name);
@@ -768,22 +771,32 @@ private:
    *    Check if string v can be a Ruby value literal,
    *    (eg. number or string), or translate it to a Ruby literal.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-	/* number or string (or maybe NULL pointer) */
-	if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	  return NewString("None");
-	else
-	  return v;
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
+    if (stringval) {
+      return NewStringf("\"%(escape)s\"", stringval);
+    }
+    if (numval) {
+      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+      SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
+      if (Equal(unqualified_type, "bool")) {
+	Delete(resolved_type);
+	Delete(unqualified_type);
+	return NewString(*Char(numval) == '0' ? "false" : "true");
       }
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("True");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("False");
+      Delete(resolved_type);
+      Delete(unqualified_type);
+      if (SwigType_ispointer(type) && Equal(v, "0"))
+	return NewString("None");
+      return Copy(v);
+    }
+    if (v && Len(v) > 0) {
+      if (Equal(v, "NULL") || Equal(v, "nullptr"))
+	return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
+      // FIXME: TRUE and FALSE are not standard and could be defined in other ways
+      if (Equal(v, "TRUE"))
+	return NewString("true");
+      if (Equal(v, "FALSE"))
+	return NewString("false");
     }
     return 0;
   }
@@ -898,8 +911,6 @@ public:
     /* Add a symbol to the parser for conditional compilation */
     Preprocessor_define("SWIGRUBY 1", 0);
 
-    /* Add typemap definitions */
-    SWIG_typemap_lang("ruby");
     SWIG_config_file("ruby.swg");
     allow_overloading();
   }
@@ -1155,6 +1166,7 @@ public:
     if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
+      Swig_insert_file("director_guard.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -1644,7 +1656,7 @@ public:
     bool destructor;
 
     String *symname = Copy(Getattr(n, "sym:name"));
-    SwigType *t = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     int director_method = 0;
     String *tm;
@@ -1842,7 +1854,7 @@ public:
       }
 
       /* Return value if necessary */
-      if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
+      if (SwigType_type(returntype) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
         need_result = 1;
         if (GetFlag(n, "feature:predicate")) {
           Printv(actioncode, tab4, "vresult = (", Swig_cresult_name(), " ? Qtrue : Qfalse);\n", NIL);
@@ -1873,7 +1885,7 @@ public:
 
             Delete(tm);
           } else {
-            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
+            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(returntype, 0));
           }
         }
       }
@@ -1881,7 +1893,7 @@ public:
         Append(f->code, actioncode);
         Delete(actioncode);
       }
-      emit_return_variable(n, t, f);
+      emit_return_variable(n, returntype, f);
     }
 
     /* Extra code needed for new and initialize methods */
@@ -1891,7 +1903,7 @@ public:
       SwigType *psmart = smart ? Copy(smart) : 0;
       if (psmart)
 	SwigType_add_pointer(psmart);
-      SwigType *classtype = psmart ? psmart : t;
+      SwigType *classtype = psmart ? psmart : returntype;
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
@@ -1904,7 +1916,7 @@ public:
     else
       {
 	if ( need_result > 1 ) {
-	  if ( SwigType_type(t) == T_VOID )
+	  if ( SwigType_type(returntype) == T_VOID )
 	    Printf(f->code, "vresult = rb_ary_new();\n");
 	  else
 	    {
@@ -1983,6 +1995,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
@@ -2292,8 +2307,7 @@ public:
 
     char *iname = GetChar(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
 
     if (current == CLASS_CONST) {
       iname = klass->strip(iname);
@@ -3020,7 +3034,7 @@ public:
     Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     Parm *p;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
@@ -3353,6 +3367,7 @@ public:
 
     /* emit the director method */
     if (status == SWIG_OK) {
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!Getattr(n, "defaultargs")) {
 	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);

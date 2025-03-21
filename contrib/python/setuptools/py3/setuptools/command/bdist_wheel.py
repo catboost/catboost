@@ -9,34 +9,25 @@ from __future__ import annotations
 import os
 import re
 import shutil
-import stat
 import struct
 import sys
 import sysconfig
 import warnings
-from email.generator import BytesGenerator, Generator
-from email.policy import EmailPolicy
-from distutils import log
+from collections.abc import Iterable, Sequence
+from email.generator import BytesGenerator
 from glob import iglob
-from shutil import rmtree
-from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
+from typing import Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
-from .. import Command, __version__
-from ..extern.wheel.metadata import pkginfo_to_metadata
-from ..extern.packaging import tags
-from ..extern.packaging import version as _packaging_version
-from ..extern.wheel.wheelfile import WheelFile
+from packaging import tags, version as _packaging_version
+from wheel.wheelfile import WheelFile
 
-if TYPE_CHECKING:
-    import types
+from .. import Command, __version__, _shutil
+from .._normalization import safer_name
+from ..warnings import SetuptoolsDeprecationWarning
+from .egg_info import egg_info as egg_info_cls
 
-
-def safe_name(name: str) -> str:
-    """Convert an arbitrary string to a standard distribution name
-    Any runs of non-alphanumeric/. characters are replaced with a single '-'.
-    """
-    return re.sub("[^A-Za-z0-9.]+", "-", name)
+from distutils import log
 
 
 def safe_version(version: str) -> str:
@@ -61,14 +52,14 @@ def _is_32bit_interpreter() -> bool:
 
 
 def python_tag() -> str:
-    return f"py{sys.version_info[0]}"
+    return f"py{sys.version_info.major}"
 
 
 def get_platform(archive_root: str | None) -> str:
     """Return our platform name 'win32', 'linux_x86_64'"""
     result = sysconfig.get_platform()
-    if result.startswith("macosx") and archive_root is not None:
-        from ..extern.wheel.macosx_libfile import calculate_macosx_platform_tag
+    if result.startswith("macosx") and archive_root is not None:  # pragma: no cover
+        from wheel.macosx_libfile import calculate_macosx_platform_tag
 
         result = calculate_macosx_platform_tag(archive_root, result)
     elif _is_32bit_interpreter():
@@ -107,25 +98,20 @@ def get_abi_tag() -> str | None:
     impl = tags.interpreter_name()
     if not soabi and impl in ("cp", "pp") and hasattr(sys, "maxunicode"):
         d = ""
-        m = ""
         u = ""
         if get_flag("Py_DEBUG", hasattr(sys, "gettotalrefcount"), warn=(impl == "cp")):
             d = "d"
 
-        if get_flag(
-            "WITH_PYMALLOC",
-            impl == "cp",
-            warn=(impl == "cp" and sys.version_info < (3, 8)),
-        ) and sys.version_info < (3, 8):
-            m = "m"
-
-        abi = f"{impl}{tags.interpreter_version()}{d}{m}{u}"
+        abi = f"{impl}{tags.interpreter_version()}{d}{u}"
     elif soabi and impl == "cp" and soabi.startswith("cpython"):
         # non-Windows
         abi = "cp" + soabi.split("-")[1]
     elif soabi and impl == "cp" and soabi.startswith("cp"):
         # Windows
         abi = soabi.split("-")[0]
+        if hasattr(sys, "gettotalrefcount"):
+            # using debug build; append "d" flag
+            abi += "d"
     elif soabi and impl == "pp":
         # we want something like pypy36-pp73
         abi = "-".join(soabi.split("-")[:2])
@@ -141,25 +127,8 @@ def get_abi_tag() -> str | None:
     return abi
 
 
-def safer_name(name: str) -> str:
-    return safe_name(name).replace("-", "_")
-
-
 def safer_version(version: str) -> str:
     return safe_version(version).replace("-", "_")
-
-
-def remove_readonly(
-    func: Callable[..., object],
-    path: str,
-    excinfo: tuple[type[Exception], Exception, types.TracebackType],
-) -> None:
-    remove_readonly_exc(func, path, excinfo[1])
-
-
-def remove_readonly_exc(func: Callable[..., object], path: str, exc: Exception) -> None:
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
 
 
 class bdist_wheel(Command):
@@ -201,13 +170,11 @@ class bdist_wheel(Command):
             "g",
             "Group name used when creating a tar file [default: current group]",
         ),
-        ("universal", None, "make a universal wheel [default: false]"),
+        ("universal", None, "*DEPRECATED* make a universal wheel [default: false]"),
         (
             "compression=",
             None,
-            "zipfile compression (one of: {}) [default: 'deflated']".format(
-                ", ".join(supported_compressions)
-            ),
+            f"zipfile compression (one of: {', '.join(supported_compressions)}) [default: 'deflated']",
         ),
         (
             "python-tag=",
@@ -226,46 +193,50 @@ class bdist_wheel(Command):
             None,
             "Python tag (cp32|cp33|cpNN) for abi3 wheel tag [default: false]",
         ),
+        (
+            "dist-info-dir=",
+            None,
+            "directory where a pre-generated dist-info can be found (e.g. as a "
+            "result of calling the PEP517 'prepare_metadata_for_build_wheel' "
+            "method)",
+        ),
     ]
 
     boolean_options = ["keep-temp", "skip-build", "relative", "universal"]
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
-        self.data_dir = None
+        self.data_dir = ""
         self.plat_name: str | None = None
-        self.plat_tag = None
+        self.plat_tag: str | None = None
         self.format = "zip"
         self.keep_temp = False
         self.dist_dir: str | None = None
-        self.egginfo_dir = None
+        self.dist_info_dir = None
+        self.egginfo_dir: str | None = None
         self.root_is_pure: bool | None = None
-        self.skip_build = None
+        self.skip_build = False
         self.relative = False
         self.owner = None
         self.group = None
-        self.universal: bool = False
+        self.universal = False
         self.compression: str | int = "deflated"
-        self.python_tag: str = python_tag()
+        self.python_tag = python_tag()
         self.build_number: str | None = None
         self.py_limited_api: str | Literal[False] = False
         self.plat_name_supplied = False
 
-    def finalize_options(self):
-        if self.bdist_dir is None:
+    def finalize_options(self) -> None:
+        if not self.bdist_dir:
             bdist_base = self.get_finalized_command("bdist").bdist_base
             self.bdist_dir = os.path.join(bdist_base, "wheel")
 
-        egg_info = self.distribution.get_command_obj("egg_info")
-        egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
+        if self.dist_info_dir is None:
+            egg_info = cast(egg_info_cls, self.distribution.get_command_obj("egg_info"))
+            egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
 
         self.data_dir = self.wheel_dist_name + ".data"
-        self.plat_name_supplied = self.plat_name is not None
-
-        try:
-            self.compression = self.supported_compressions[self.compression]
-        except KeyError:
-            raise ValueError(f"Unsupported compression: {self.compression}") from None
+        self.plat_name_supplied = bool(self.plat_name)
 
         need_options = ("dist_dir", "plat_name", "skip_build")
 
@@ -275,39 +246,64 @@ class bdist_wheel(Command):
             self.distribution.has_ext_modules() or self.distribution.has_c_libraries()
         )
 
-        if self.py_limited_api and not re.match(
-            PY_LIMITED_API_PATTERN, self.py_limited_api
-        ):
-            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+        self._validate_py_limited_api()
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
-        if "universal" in wheel:
+        if "universal" in wheel:  # pragma: no cover
             # please don't define this in your global configs
             log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
             if val.lower() in ("1", "true", "yes"):
                 self.universal = True
 
+        if self.universal:
+            SetuptoolsDeprecationWarning.emit(
+                "bdist_wheel.universal is deprecated",
+                """
+                With Python 2.7 end-of-life, support for building universal wheels
+                (i.e., wheels that support both Python 2 and Python 3)
+                is being obviated.
+                Please discontinue using this option, or if you still need it,
+                file an issue with pypa/setuptools describing your use case.
+                """,
+                due_date=(2025, 8, 30),  # Introduced in 2024-08-30
+            )
+
         if self.build_number is not None and not self.build_number[:1].isdigit():
             raise ValueError("Build tag (build-number) must start with a digit.")
 
+    def _validate_py_limited_api(self) -> None:
+        if not self.py_limited_api:
+            return
+
+        if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
+            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            raise ValueError(
+                f"`py_limited_api={self.py_limited_api!r}` not supported. "
+                "`Py_LIMITED_API` is currently incompatible with "
+                "`Py_GIL_DISABLED`."
+                "See https://github.com/python/cpython/issues/111506."
+            )
+
     @property
-    def wheel_dist_name(self):
+    def wheel_dist_name(self) -> str:
         """Return distribution full name with - replaced with _"""
-        components = (
+        components = [
             safer_name(self.distribution.get_name()),
             safer_version(self.distribution.get_version()),
-        )
+        ]
         if self.build_number:
-            components += (self.build_number,)
+            components.append(self.build_number)
         return "-".join(components)
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
         # wheels if the user supplied it.
-        if self.plat_name_supplied:
-            plat_name = cast(str, self.plat_name)
+        if self.plat_name_supplied and self.plat_name:
+            plat_name = self.plat_name
         elif self.root_is_pure:
             plat_name = "any"
         else:
@@ -356,9 +352,9 @@ class bdist_wheel(Command):
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
-            assert (
-                tag in supported_tags
-            ), f"would build wheel with unsupported tag {tag}"
+            assert tag in supported_tags, (
+                f"would build wheel with unsupported tag {tag}"
+            )
         return tag
 
     def run(self):
@@ -422,7 +418,16 @@ class bdist_wheel(Command):
             f"{safer_version(self.distribution.get_version())}.dist-info"
         )
         distinfo_dir = os.path.join(self.bdist_dir, distinfo_dirname)
-        self.egg2dist(self.egginfo_dir, distinfo_dir)
+        if self.dist_info_dir:
+            # Use the given dist-info directly.
+            log.debug(f"reusing {self.dist_info_dir}")
+            shutil.copytree(self.dist_info_dir, distinfo_dir)
+            # Egg info is still generated, so remove it now to avoid it getting
+            # copied into the wheel.
+            _shutil.rmtree(self.egginfo_dir)
+        else:
+            # Convert the generated egg-info into dist-info.
+            self.egg2dist(self.egginfo_dir, distinfo_dir)
 
         self.write_wheelfile(distinfo_dir)
 
@@ -431,27 +436,24 @@ class bdist_wheel(Command):
             os.makedirs(self.dist_dir)
 
         wheel_path = os.path.join(self.dist_dir, archive_basename + ".whl")
-        with WheelFile(wheel_path, "w", self.compression) as wf:
+        with WheelFile(wheel_path, "w", self._zip_compression()) as wf:
             wf.write_files(archive_root)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, "dist_files", []).append((
             "bdist_wheel",
-            "{}.{}".format(*sys.version_info[:2]),  # like 3.7
+            f"{sys.version_info.major}.{sys.version_info.minor}",
             wheel_path,
         ))
 
         if not self.keep_temp:
             log.info(f"removing {self.bdist_dir}")
             if not self.dry_run:
-                if sys.version_info < (3, 12):
-                    rmtree(self.bdist_dir, onerror=remove_readonly)
-                else:
-                    rmtree(self.bdist_dir, onexc=remove_readonly_exc)
+                _shutil.rmtree(self.bdist_dir)
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
-    ):
+    ) -> None:
         from email.message import Message
 
         msg = Message()
@@ -486,7 +488,7 @@ class bdist_wheel(Command):
             # Setuptools has resolved any patterns to actual file names
             return self.distribution.metadata.license_files or ()
 
-        files: set[str] = set()
+        files = set[str]()
         metadata = self.distribution.get_option_dict("metadata")
         if setuptools_major_version >= 42:
             # Setuptools recognizes the license_files option but does not do globbing
@@ -525,13 +527,13 @@ class bdist_wheel(Command):
 
         return files
 
-    def egg2dist(self, egginfo_path: str, distinfo_path: str):
+    def egg2dist(self, egginfo_path: str, distinfo_path: str) -> None:
         """Convert an .egg-info directory into a .dist-info directory"""
 
         def adios(p: str) -> None:
             """Appropriately delete directory, file or link."""
             if os.path.exists(p) and not os.path.islink(p) and os.path.isdir(p):
-                shutil.rmtree(p)
+                _shutil.rmtree(p)
             elif os.path.exists(p):
                 os.unlink(p)
 
@@ -553,45 +555,46 @@ class bdist_wheel(Command):
 
             raise ValueError(err)
 
-        if os.path.isfile(egginfo_path):
-            # .egg-info is a single file
-            pkg_info = pkginfo_to_metadata(egginfo_path, egginfo_path)
-            os.mkdir(distinfo_path)
-        else:
-            # .egg-info is a directory
-            pkginfo_path = os.path.join(egginfo_path, "PKG-INFO")
-            pkg_info = pkginfo_to_metadata(egginfo_path, pkginfo_path)
+        # .egg-info is a directory
+        pkginfo_path = os.path.join(egginfo_path, "PKG-INFO")
 
-            # ignore common egg metadata that is useless to wheel
-            shutil.copytree(
-                egginfo_path,
-                distinfo_path,
-                ignore=lambda x, y: {
-                    "PKG-INFO",
-                    "requires.txt",
-                    "SOURCES.txt",
-                    "not-zip-safe",
-                },
-            )
-
-            # delete dependency_links if it is only whitespace
-            dependency_links_path = os.path.join(distinfo_path, "dependency_links.txt")
-            with open(dependency_links_path, encoding="utf-8") as dependency_links_file:
-                dependency_links = dependency_links_file.read().strip()
-            if not dependency_links:
-                adios(dependency_links_path)
-
-        pkg_info_path = os.path.join(distinfo_path, "METADATA")
-        serialization_policy = EmailPolicy(
-            utf8=True,
-            mangle_from_=False,
-            max_line_length=0,
+        # ignore common egg metadata that is useless to wheel
+        shutil.copytree(
+            egginfo_path,
+            distinfo_path,
+            ignore=lambda x, y: {
+                "PKG-INFO",
+                "requires.txt",
+                "SOURCES.txt",
+                "not-zip-safe",
+            },
         )
-        with open(pkg_info_path, "w", encoding="utf-8") as out:
-            Generator(out, policy=serialization_policy).flatten(pkg_info)
+
+        # delete dependency_links if it is only whitespace
+        dependency_links_path = os.path.join(distinfo_path, "dependency_links.txt")
+        with open(dependency_links_path, encoding="utf-8") as dependency_links_file:
+            dependency_links = dependency_links_file.read().strip()
+        if not dependency_links:
+            adios(dependency_links_path)
+
+        metadata_path = os.path.join(distinfo_path, "METADATA")
+        shutil.copy(pkginfo_path, metadata_path)
 
         for license_path in self.license_paths:
             filename = os.path.basename(license_path)
             shutil.copy(license_path, os.path.join(distinfo_path, filename))
 
         adios(egginfo_path)
+
+    def _zip_compression(self) -> int:
+        if (
+            isinstance(self.compression, int)
+            and self.compression in self.supported_compressions.values()
+        ):
+            return self.compression
+
+        compression = self.supported_compressions.get(str(self.compression))
+        if compression is not None:
+            return compression
+
+        raise ValueError(f"Unsupported compression: {self.compression!r}")

@@ -28,6 +28,7 @@ namespace NCB {
         TVector<TVector<TString>> OutputColumnsIds; // [modelIdx]
         EFstrType FstrType = EFstrType::FeatureImportance;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
+        TString AnnotationsJson;
 
         ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Regular;
         TMaybe<double> BinClassLogitThreshold;

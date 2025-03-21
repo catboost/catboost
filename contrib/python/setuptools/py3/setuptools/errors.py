@@ -3,8 +3,9 @@
 Provides exceptions used by setuptools modules.
 """
 
-from distutils import errors as _distutils_errors
+from __future__ import annotations
 
+from distutils import errors as _distutils_errors
 
 # Re-export errors from distutils to facilitate the migration to PEP632
 
@@ -29,15 +30,15 @@ UnknownFileError = _distutils_errors.UnknownFileError
 BaseError = _distutils_errors.DistutilsError
 
 
-class InvalidConfigError(OptionError):
+class InvalidConfigError(OptionError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
     """Error used for invalid configurations."""
 
 
-class RemovedConfigError(OptionError):
+class RemovedConfigError(OptionError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
     """Error used for configurations that were deprecated and removed."""
 
 
-class RemovedCommandError(BaseError, RuntimeError):
+class RemovedCommandError(BaseError, RuntimeError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
     """Error used for commands that have been removed in setuptools.
 
     Since ``setuptools`` is built on ``distutils``, simply removing a command
@@ -47,7 +48,7 @@ class RemovedCommandError(BaseError, RuntimeError):
     """
 
 
-class PackageDiscoveryError(BaseError, RuntimeError):
+class PackageDiscoveryError(BaseError, RuntimeError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
     """Impossible to perform automatic discovery of packages and/or modules.
 
     The current project layout or given discovery options can lead to problems when

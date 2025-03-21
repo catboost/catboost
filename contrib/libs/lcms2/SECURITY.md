@@ -6,7 +6,7 @@ Security updates are applied only to the latest release.
 
 ## Reporting a Vulnerability
 
-LittleCMS is located deep in the Linux dependency tree. So, security issues are real and should be addressed. The proposed process is quite simple, if you detect a potential security issue and you are able to create a patch, please send us the patch to analyse. We have an extensive test bed of apps and utilities using lcms, so we can check if all those goes fine. If you don’t want to create a patch and only want to report the vulnerability, thats ok too.  and we will be very gratefull. Just contact us.
+LittleCMS is located deep in the Linux dependency tree. So, security issues are real and should be addressed. The proposed process is quite simple, if you detect a potential security issue and you are able to create a patch, please send us the patch to analyse. We have an extensive test bed of apps and utilities using lcms, so we can check if all those goes fine. If you don’t want to create a patch and only want to report the vulnerability, that's ok too. And we will be very grateful. Just contact us.
 
 **Please avoid public advisories if possible, as doing that, hints how to use the flaw for malicious use**.
 

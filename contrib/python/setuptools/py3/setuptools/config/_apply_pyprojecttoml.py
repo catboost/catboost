@@ -12,32 +12,33 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Mapping,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
+
+from .. import _static
 from .._path import StrPath
 from ..errors import RemovedConfigError
+from ..extension import Extension
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
-    from distutils.dist import _OptionsList
+    from typing_extensions import TypeAlias
+
     from setuptools._importlib import metadata
     from setuptools.dist import Distribution
 
+    from distutils.dist import _OptionsList  # Comes from typeshed
+
+
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_ProjectReadmeValue = Union[str, Dict[str, str]]
-_CorrespFn = Callable[["Distribution", Any, StrPath], None]
-_Correspondence = Union[str, _CorrespFn]
+_ProjectReadmeValue: TypeAlias = Union[str, dict[str, str]]
+_Correspondence: TypeAlias = Callable[["Distribution", Any, Union[StrPath, None]], None]
+_T = TypeVar("_T")
 
 _logger = logging.getLogger(__name__)
 
@@ -65,10 +66,11 @@ def apply(dist: Distribution, config: dict, filename: StrPath) -> Distribution:
 
 
 def _apply_project_table(dist: Distribution, config: dict, root_dir: StrPath):
-    project_table = config.get("project", {}).copy()
-    if not project_table:
+    orig_config = config.get("project", {})
+    if not orig_config:
         return  # short-circuit
 
+    project_table = {k: _static.attempt_conversion(v) for k, v in orig_config.items()}
     _handle_missing_dynamic(dist, project_table)
     _unify_entry_points(project_table)
 
@@ -98,7 +100,11 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
             raise RemovedConfigError("\n".join([cleandoc(msg), suggestion]))
 
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
-        _set_config(dist, norm_key, value)
+        corresp = TOOL_TABLE_CORRESPONDENCE.get(norm_key, norm_key)
+        if callable(corresp):
+            corresp(dist, value)
+        else:
+            _set_config(dist, corresp, value)
 
     _copy_command_options(config, dist, filename)
 
@@ -120,13 +126,14 @@ def json_compatible_key(key: str) -> str:
 
 
 def _set_config(dist: Distribution, field: str, value: Any):
+    val = _PREPROCESS.get(field, _noop)(dist, value)
     setter = getattr(dist.metadata, f"set_{field}", None)
     if setter:
-        setter(value)
+        setter(val)
     elif hasattr(dist.metadata, field) or field in SETUPTOOLS_PATCHES:
-        setattr(dist.metadata, field, value)
+        setattr(dist.metadata, field, val)
     else:
-        setattr(dist, field, value)
+        setattr(dist, field, val)
 
 
 _CONTENT_TYPES = {
@@ -142,14 +149,16 @@ def _guess_content_type(file: str) -> str | None:
         return None
 
     if ext in _CONTENT_TYPES:
-        return _CONTENT_TYPES[ext]
+        return _static.Str(_CONTENT_TYPES[ext])
 
     valid = ", ".join(f"{k} ({v})" for k, v in _CONTENT_TYPES.items())
     msg = f"only the following file extensions are recognized: {valid}."
     raise ValueError(f"Undefined content type for {file}, {msg}")
 
 
-def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath):
+def _long_description(
+    dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath | None
+):
     from setuptools.config import expand
 
     file: str | tuple[()]
@@ -162,26 +171,29 @@ def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: St
         text = val.get("text") or expand.read_files(file, root_dir)
         ctype = val["content-type"]
 
-    _set_config(dist, "long_description", text)
+    # XXX: Is it completely safe to assume static?
+    _set_config(dist, "long_description", _static.Str(text))
 
     if ctype:
-        _set_config(dist, "long_description_content_type", ctype)
+        _set_config(dist, "long_description_content_type", _static.Str(ctype))
 
     if file:
         dist._referenced_files.add(file)
 
 
-def _license(dist: Distribution, val: dict, root_dir: StrPath):
+def _license(dist: Distribution, val: dict, root_dir: StrPath | None):
     from setuptools.config import expand
 
     if "file" in val:
-        _set_config(dist, "license", expand.read_files([val["file"]], root_dir))
+        # XXX: Is it completely safe to assume static?
+        value = expand.read_files([val["file"]], root_dir)
+        _set_config(dist, "license", _static.Str(value))
         dist._referenced_files.add(val["file"])
     else:
-        _set_config(dist, "license", val["text"])
+        _set_config(dist, "license", _static.Str(val["text"]))
 
 
-def _people(dist: Distribution, val: list[dict], _root_dir: StrPath, kind: str):
+def _people(dist: Distribution, val: list[dict], _root_dir: StrPath | None, kind: str):
     field = []
     email_field = []
     for person in val:
@@ -194,36 +206,52 @@ def _people(dist: Distribution, val: list[dict], _root_dir: StrPath, kind: str):
             email_field.append(str(addr))
 
     if field:
-        _set_config(dist, kind, ", ".join(field))
+        _set_config(dist, kind, _static.Str(", ".join(field)))
     if email_field:
-        _set_config(dist, f"{kind}_email", ", ".join(email_field))
+        _set_config(dist, f"{kind}_email", _static.Str(", ".join(email_field)))
 
 
-def _project_urls(dist: Distribution, val: dict, _root_dir):
+def _project_urls(dist: Distribution, val: dict, _root_dir: StrPath | None):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: dict, _root_dir):
-    from setuptools.extern.packaging.specifiers import SpecifierSet
-
-    _set_config(dist, "python_requires", SpecifierSet(val))
+def _python_requires(dist: Distribution, val: str, _root_dir: StrPath | None):
+    _set_config(dist, "python_requires", _static.SpecifierSet(val))
 
 
-def _dependencies(dist: Distribution, val: list, _root_dir):
+def _dependencies(dist: Distribution, val: list, _root_dir: StrPath | None):
     if getattr(dist, "install_requires", []):
         msg = "`install_requires` overwritten in `pyproject.toml` (dependencies)"
         SetuptoolsWarning.emit(msg)
     dist.install_requires = val
 
 
-def _optional_dependencies(dist: Distribution, val: dict, _root_dir):
-    existing = getattr(dist, "extras_require", None) or {}
-    dist.extras_require = {**existing, **val}
+def _optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | None):
+    if getattr(dist, "extras_require", None):
+        msg = "`extras_require` overwritten in `pyproject.toml` (optional-dependencies)"
+        SetuptoolsWarning.emit(msg)
+    dist.extras_require = val
+
+
+def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:
+    existing = dist.ext_modules or []
+    args = ({k.replace("-", "_"): v for k, v in x.items()} for x in val)
+    new = [Extension(**kw) for kw in args]
+    return [*existing, *new]
+
+
+def _noop(_dist: Distribution, val: _T) -> _T:
+    return val
+
+
+def _identity(val: _T) -> _T:
+    return val
 
 
 def _unify_entry_points(project_table: dict):
     project = project_table
-    entry_points = project.pop("entry-points", project.pop("entry_points", {}))
+    given = project.pop("entry-points", project.pop("entry_points", {}))
+    entry_points = dict(given)  # Avoid problems with static
     renaming = {"scripts": "console_scripts", "gui_scripts": "gui_scripts"}
     for key, value in list(project.items()):  # eager to allow modifications
         norm_key = json_compatible_key(key)
@@ -261,8 +289,9 @@ def _copy_command_options(pyproject: dict, dist: Distribution, filename: StrPath
 
 
 def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
-    from .._importlib import metadata
     from setuptools.dist import Distribution
+
+    from .._importlib import metadata
 
     valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
 
@@ -278,6 +307,11 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
 
 
 def _load_ep(ep: metadata.EntryPoint) -> tuple[str, type] | None:
+    if ep.value.startswith("wheel.bdist_wheel"):
+        # Ignore deprecated entrypoint from wheel and avoid warning pypa/wheel#631
+        # TODO: remove check when `bdist_wheel` has been fully removed from pypa/wheel
+        return None
+
     # Ignore all the errors
     try:
         return (ep.name, ep.load())
@@ -309,6 +343,14 @@ def _get_previous_scripts(dist: Distribution) -> list | None:
 def _get_previous_gui_scripts(dist: Distribution) -> list | None:
     value = getattr(dist, "entry_points", None) or {}
     return value.get("gui_scripts")
+
+
+def _set_static_list_metadata(attr: str, dist: Distribution, val: list) -> None:
+    """Apply distutils metadata validation but preserve "static" behaviour"""
+    meta = dist.metadata
+    setter, getter = getattr(meta, f"set_{attr}"), getattr(meta, f"get_{attr}")
+    setter(val)
+    setattr(meta, attr, _static.List(getter()))
 
 
 def _attrgetter(attr):
@@ -364,6 +406,12 @@ TOOL_TABLE_REMOVALS = {
         See https://packaging.python.org/en/latest/guides/packaging-namespace-packages/.
         """,
 }
+TOOL_TABLE_CORRESPONDENCE = {
+    # Fields with corresponding core metadata need to be marked as static:
+    "obsoletes": partial(_set_static_list_metadata, "obsoletes"),
+    "provides": partial(_set_static_list_metadata, "provides"),
+    "platforms": partial(_set_static_list_metadata, "platforms"),
+}
 
 SETUPTOOLS_PATCHES = {
     "long_description_content_type",
@@ -371,6 +419,10 @@ SETUPTOOLS_PATCHES = {
     "provides_extras",
     "license_file",
     "license_files",
+}
+
+_PREPROCESS = {
+    "ext_modules": _ext_modules,
 }
 
 _PREVIOUSLY_DEFINED = {
@@ -396,17 +448,17 @@ _PREVIOUSLY_DEFINED = {
 _RESET_PREVIOUSLY_DEFINED: dict = {
     # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
     # dict: pyproject name => value to which reset
-    "license": {},
-    "authors": [],
-    "maintainers": [],
-    "keywords": [],
-    "classifiers": [],
-    "urls": {},
-    "entry-points": {},
-    "scripts": {},
-    "gui-scripts": {},
-    "dependencies": [],
-    "optional-dependencies": {},
+    "license": _static.EMPTY_DICT,
+    "authors": _static.EMPTY_LIST,
+    "maintainers": _static.EMPTY_LIST,
+    "keywords": _static.EMPTY_LIST,
+    "classifiers": _static.EMPTY_LIST,
+    "urls": _static.EMPTY_DICT,
+    "entry-points": _static.EMPTY_DICT,
+    "scripts": _static.EMPTY_DICT,
+    "gui-scripts": _static.EMPTY_DICT,
+    "dependencies": _static.EMPTY_LIST,
+    "optional-dependencies": _static.EMPTY_DICT,
 }
 
 

@@ -1,16 +1,15 @@
-from distutils.util import convert_path
-from distutils import log
-from distutils.errors import DistutilsOptionError
-import os
 import glob
+import os
 
-from setuptools.command.easy_install import easy_install
-from setuptools import _normalization
-from setuptools import _path
-from setuptools import namespaces
 import setuptools
+from setuptools import _normalization, _path, namespaces
+from setuptools.command.easy_install import easy_install
 
 from ..unicode_utils import _read_utf8_with_fallback
+
+from distutils import log
+from distutils.errors import DistutilsOptionError
+from distutils.util import convert_path
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -43,7 +42,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         self.setup_path = None
         self.always_copy_from = '.'  # always copy eggs installed in curdir
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         import pkg_resources
 
         ei = self.get_finalized_command("egg_info")
@@ -105,7 +104,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
             )
         return path_to_setup
 
-    def install_for_development(self):
+    def install_for_development(self) -> None:
         self.run_command('egg_info')
 
         # Build extensions in-place
@@ -127,7 +126,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
 
-    def uninstall_link(self):
+    def uninstall_link(self) -> None:
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
 
@@ -186,10 +185,10 @@ class VersionlessRequirement:
     'foo'
     """
 
-    def __init__(self, dist):
+    def __init__(self, dist) -> None:
         self.__dist = dist
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return getattr(self.__dist, name)
 
     def as_requirement(self):

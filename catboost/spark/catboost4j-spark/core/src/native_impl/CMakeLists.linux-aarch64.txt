@@ -12,11 +12,11 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+find_package(Java REQUIRED)
+
 find_package(SWIG REQUIRED COMPONENTS
   java
 )
-
-find_package(Java REQUIRED)
 
 include(UseSWIG)
 
@@ -80,7 +80,6 @@ target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -Wl,--exclude-libs,ALL
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -486,7 +486,7 @@ static Node *first_nontemplate(Node *n) {
  * Handle swig pragma directives.  
  * -------------------------------------------------------------------------- */
 
-void swig_pragma(char *lang, char *name, char *value) {
+static void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
     if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
@@ -629,24 +629,9 @@ int Language::constantDirective(Node *n) {
 
   if (!ImportMode) {
     Swig_require("constantDirective", n, "name", "?value", NIL);
-    String *name = Getattr(n, "name");
-    String *value = Getattr(n, "value");
-    if (!value) {
-      value = Copy(name);
-    } else {
-      /*      if (checkAttribute(n,"type","char")) {
-         value = NewString(value);
-         } else {
-         value = NewStringf("%(escape)s", value);
-         }
-       */
-      Setattr(n, "rawvalue", value);
-      value = NewStringf("%(escape)s", value);
-      if (!Len(value))
-	Append(value, "\\0");
-      /*      Printf(stdout,"'%s' = '%s'\n", name, value); */
+    if (!Getattr(n, "value")) {
+      Setattr(n, "value", Getattr(n, "name"));
     }
-    Setattr(n, "value", value);
     this->constantWrapper(n);
     Swig_restore(n);
     return SWIG_OK;
@@ -1328,9 +1313,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
   SwigType *type = Getattr(n, "type");
   ParmList *parms = Getattr(n, "parms");
   String *cb = GetFlagAttr(n, "feature:callback");
-  String *cname, *mrename;
+  String *cname;
+  String *mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (!Extend) {
+  if (!(Extend && GetFlag(n, "isextendmember"))) {
     Node *sb = Getattr(n, "cplus:staticbase");
     String *sname = Getattr(sb, "name");
     if (isNonVirtualProtectedAccess(n))
@@ -1343,10 +1329,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
     cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
     Delete(classname_str);
-  }
-  mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (Extend) {
     String *code = Getattr(n, "code");
     String *defaultargs = Getattr(n, "defaultargs");
     String *mangled = Swig_name_mangle_string(mrename);
@@ -2203,7 +2186,7 @@ int Language::classDirectorInit(Node *n) {
 int Language::classDirectorDestructor(Node *n) {
   /* 
      Always emit the virtual destructor in the declaration and in the
-     compilation unit.  Been explicit here can't make any damage, and
+     compilation unit.  Being explicit here can't make any damage, and
      can solve some nasty C++ compiler problems.
    */
   File *f_directors = Swig_filebyname("director");

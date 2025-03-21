@@ -2,12 +2,13 @@
 # coding: utf-8
 # cython: wraparound=False
 
-from catboost.base_defs cimport ProcessException
+from catboost.base_defs cimport TJsonValue, ProcessException
 
 from libcpp cimport bool as bool_t
 
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.ptr cimport TIntrusivePtr
+from util.generic.string cimport TString
 from util.generic.vector cimport TVector
 
 
@@ -16,7 +17,7 @@ cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
         double WPlus
         double WMinus
         double PValue
-    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
+    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
@@ -131,3 +132,6 @@ cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
         bool_t ordered,
         TDstValue defaultValue
     ) except +ProcessException
+
+cdef extern from "catboost/libs/helpers/json_helpers.h":
+    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException nogil

@@ -11,7 +11,6 @@
 #define _LIBCPP___FILESYSTEM_DIRECTORY_ITERATOR_H
 
 #include <__assert>
-#include <__availability>
 #include <__config>
 #include <__filesystem/directory_entry.h>
 #include <__filesystem/directory_options.h>
@@ -28,6 +27,9 @@
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
 #endif
+
+_LIBCPP_PUSH_MACROS
+#include <__undef_macros>
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_LIBCPP_HAS_NO_FILESYSTEM)
 
@@ -73,7 +75,8 @@ public:
   _LIBCPP_HIDE_FROM_ABI ~directory_iterator() = default;
 
   _LIBCPP_HIDE_FROM_ABI const directory_entry& operator*() const {
-    _LIBCPP_ASSERT_UNCATEGORIZED(__imp_, "The end iterator cannot be dereferenced");
+    // Note: this check duplicates a check in `__dereference()`.
+    _LIBCPP_ASSERT_NON_NULL(__imp_, "The end iterator cannot be dereferenced");
     return __dereference();
   }
 
@@ -142,5 +145,7 @@ _LIBCPP_AVAILABILITY_FILESYSTEM_LIBRARY inline constexpr bool
 #  endif // _LIBCPP_STD_VER >= 20
 
 #endif // _LIBCPP_STD_VER >= 17 && !defined(_LIBCPP_HAS_NO_FILESYSTEM)
+
+_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___FILESYSTEM_DIRECTORY_ITERATOR_H

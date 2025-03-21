@@ -52,13 +52,21 @@ class CppyBuildExt(build_ext):
                 # linking for `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`, and the UCRT.
                 # This avoids requiring specific versions of `MSVCP140.dll`, while
                 # keeping shared state with the rest of the Python process/extensions.
-                ext.extra_compile_args.append("/MT")
+                is_debug = hasattr(sys, "gettotalrefcount")  # only present in Python debug build
+
+                # Mixing debug and release code is bad practice under Windows. The problem is that the
+                # different versions can depend on different fundamental parts of the C++ runtime library,
+                # such as how memory is allocated, structures for things like iterators might be
+                # different, extra code could be generated to perform operations (e.g. checked iterators).
+                # As a consequence we build as debug if python is built with debug symbols.
+                debug_ext = "d" if is_debug else ""
+                ext.extra_compile_args.append(f"/MT{debug_ext}")
                 ext.extra_link_args.extend(
                     [
-                        "ucrt.lib",
-                        "vcruntime.lib",
-                        "/nodefaultlib:libucrt.lib",
-                        "/nodefaultlib:libvcruntime.lib",
+                        f"ucrt{debug_ext}.lib",
+                        f"vcruntime{debug_ext}.lib",
+                        f"/nodefaultlib:libucrt{debug_ext}.lib",
+                        f"/nodefaultlib:libvcruntime{debug_ext}.lib",
                     ]
                 )
                 if os.environ.get("CPPY_DISABLE_FH4"):

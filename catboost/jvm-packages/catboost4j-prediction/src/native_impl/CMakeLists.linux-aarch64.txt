@@ -36,7 +36,6 @@ target_link_options(catboost4j-prediction PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

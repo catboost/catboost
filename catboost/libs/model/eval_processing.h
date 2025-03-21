@@ -8,7 +8,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
-#include <library/cpp/fast_exp/fast_exp.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 #include <cmath>
 
@@ -17,7 +17,7 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
     for (size_t dim = 0; dim < approx.size(); ++dim) {
         softmax[dim] = approx[dim] - maxApprox;
     }
-    FastExpInplace(softmax.data(), softmax.ysize());
+    NCB::FastExpWithInfInplace(softmax.data(), softmax.ysize());
     double sumExpApprox = 0;
     for (auto curSoftmax : softmax) {
         sumExpApprox += curSoftmax;
@@ -28,7 +28,7 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
 }
 
 inline TVector<double> CalcExponent(TVector<double> approx) {
-    FastExpInplace(approx.data(), approx.ysize());
+    NCB::FastExpWithInfInplace(approx.data(), approx.ysize());
     return approx;
 }
 
@@ -40,7 +40,7 @@ inline void CalcSquaredExponentInplace(TArrayRef<double> approx) {
         for (size_t j = 0; j < currBlockSize; ++j) {
             blockStartPtr[j] *= 2.0f;
         }
-        FastExpInplace(blockStartPtr, currBlockSize);
+        NCB::FastExpWithInfInplace(blockStartPtr, currBlockSize);
     }
 }
 
@@ -58,7 +58,7 @@ inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TArrayRef<double
     for (size_t dim = 0; dim < approx.size(); ++dim) {
         logSoftmax[dim] = approx[dim] - maxApprox;
     }
-    FastExpInplace(logSoftmax.data(), logSoftmax.ysize());
+    NCB::FastExpWithInfInplace(logSoftmax.data(), logSoftmax.ysize());
     double logSumExpApprox = 0;
     for (auto curLogSoftmax : logSoftmax) {
         logSumExpApprox += curLogSoftmax;
@@ -93,7 +93,7 @@ inline TVector<double> InvertSign(const TConstArrayRef<double> approx) {
 inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
     InvertSign(approx, target);
-    FastExpInplace(target.data(), target.size());
+    NCB::FastExpWithInfInplace(target.data(), target.size());
     for (auto& val : target) {
         val = 1. / (1. + val);
     }
@@ -123,7 +123,7 @@ inline TVector<double> CalcEntropyFromProbabilities(const TConstArrayRef<double>
 inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
     InvertSign(approx, target);
-    FastExpInplace(target.data(), target.size());
+    NCB::FastExpWithInfInplace(target.data(), target.size());
     for (auto& val : target) {
         val = -std::log(1. + val);
     }
@@ -191,7 +191,7 @@ namespace NCB::NModelEvaluation {
                         CalcSigmoid(blockView, blockView);
                         break;
                     case EPredictionType::Exponent:
-                        FastExpInplace(blockView.data(), blockView.ysize());
+                        NCB::FastExpWithInfInplace(blockView.data(), blockView.ysize());
                         break;
                     case EPredictionType::Class:
                         for (auto &val : blockView) {

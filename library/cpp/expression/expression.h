@@ -22,7 +22,7 @@ protected:
     IExpressionAdaptor() = default;
 
 public:
-    virtual bool FindValue(const TString& name, TString& value) const = 0;
+    virtual bool FindValue(const TString& name, TExpressionVariable& value) const = 0;
 };
 
 template <typename T>
@@ -35,12 +35,12 @@ public:
         : Container(container)
     {
     }
-    bool FindValue(const TString& name, TString& value) const override {
+    bool FindValue(const TString& name, TExpressionVariable& value) const override {
         typename T::const_iterator it = Container.find(name);
         if (it == Container.end()) {
             return false;
         }
-        value = ToString(it->second);
+        value = it->second;
         return true;
     }
 };
@@ -48,7 +48,7 @@ public:
 template <typename... Ts>
 class TExpressionMultiAdaptorImpl {
 public:
-    bool FindValue(const TString& /*name*/, TString& /*value*/) const {
+    bool FindValue(const TString& /*name*/, TExpressionVariable& /*value*/) const {
         return false;
     }
 
@@ -118,12 +118,12 @@ public:
         return Impl.template FindOnce<T>(name);
     }
 
-    bool FindValue(const TString& name, TString& valueStr) const override {
+    bool FindValue(const TString& name, TExpressionVariable& valueOut) const override {
         const auto value = FindOnce<double>(name);
         const bool found = value.Defined();
 
         if (found) {
-            valueStr = ToString(*value);
+            valueOut = *value;
         }
 
         return found;
@@ -149,12 +149,12 @@ public:
         return Impl.template FindSum<T>(name);
     }
 
-    bool FindValue(const TString& name, TString& valueStr) const override {
+    bool FindValue(const TString& name, TExpressionVariable& valueOut) const override {
         const auto value = FindSum<double>(name);
         const bool found = value.Defined();
 
         if (found) {
-            valueStr = ToString(*value);
+            valueOut = *value;
         }
 
         return found;

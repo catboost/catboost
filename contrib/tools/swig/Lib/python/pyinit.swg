@@ -57,7 +57,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
     }
     if (obj) {
       PyDict_SetItemString(d, constants[i].name, obj);
-      Py_DECREF(obj);
+      SWIG_Py_DECREF(obj);
     }
   }
 }
@@ -313,7 +313,7 @@ SWIG_init(void) {
   (void)public_symbol;
 
   PyDict_SetItemString(md, "__all__", public_interface);
-  Py_DECREF(public_interface);
+  SWIG_Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
     SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
   for (i = 0; swig_const_table[i].name != 0; ++i)

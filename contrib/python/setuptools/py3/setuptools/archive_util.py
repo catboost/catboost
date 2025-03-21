@@ -1,14 +1,15 @@
 """Utilities for extracting common archive formats"""
 
-import zipfile
-import tarfile
-import os
-import shutil
-import posixpath
 import contextlib
-from distutils.errors import DistutilsError
+import os
+import posixpath
+import shutil
+import tarfile
+import zipfile
 
 from ._path import ensure_directory
+
+from distutils.errors import DistutilsError
 
 __all__ = [
     "unpack_archive",
@@ -30,7 +31,9 @@ def default_filter(src, dst):
     return dst
 
 
-def unpack_archive(filename, extract_dir, progress_filter=default_filter, drivers=None):
+def unpack_archive(
+    filename, extract_dir, progress_filter=default_filter, drivers=None
+) -> None:
     """Unpack `filename` to `extract_dir`, or raise ``UnrecognizedFormat``
 
     `progress_filter` is a function taking two arguments: a source path
@@ -59,16 +62,16 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter, driver
         else:
             return
     else:
-        raise UnrecognizedFormat("Not a recognized archive type: %s" % filename)
+        raise UnrecognizedFormat(f"Not a recognized archive type: {filename}")
 
 
-def unpack_directory(filename, extract_dir, progress_filter=default_filter):
+def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> None:
     """ "Unpack" a directory, using the same interface as for archives
 
     Raises ``UnrecognizedFormat`` if `filename` is not a directory
     """
     if not os.path.isdir(filename):
-        raise UnrecognizedFormat("%s is not a directory" % filename)
+        raise UnrecognizedFormat(f"{filename} is not a directory")
 
     paths = {
         filename: ('', extract_dir),
@@ -89,7 +92,7 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
             shutil.copystat(f, target)
 
 
-def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
+def unpack_zipfile(filename, extract_dir, progress_filter=default_filter) -> None:
     """Unpack zip `filename` to `extract_dir`
 
     Raises ``UnrecognizedFormat`` if `filename` is not a zipfile (as determined
@@ -98,7 +101,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
     """
 
     if not zipfile.is_zipfile(filename):
-        raise UnrecognizedFormat("%s is not a zip file" % (filename,))
+        raise UnrecognizedFormat(f"{filename} is not a zip file")
 
     with zipfile.ZipFile(filename) as z:
         _unpack_zipfile_obj(z, extract_dir, progress_filter)
@@ -184,7 +187,7 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
             yield member, final_dst
 
 
-def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
+def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> bool:
     """Unpack tar/tar.gz/tar.bz2 `filename` to `extract_dir`
 
     Raises ``UnrecognizedFormat`` if `filename` is not a tarfile (as determined
@@ -195,7 +198,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         tarobj = tarfile.open(filename)
     except tarfile.TarError as e:
         raise UnrecognizedFormat(
-            "%s is not a compressed or uncompressed tar file" % (filename,)
+            f"{filename} is not a compressed or uncompressed tar file"
         ) from e
 
     for member, final_dst in _iter_open_tar(

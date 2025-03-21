@@ -132,7 +132,7 @@ public:
     }
 
     template <typename T>
-    inline TBasicStringBuf(const TBasicString<TCharType, T>& str Y_STRING_LIFETIME_BOUND) noexcept
+    inline TBasicStringBuf(const TBasicString<TCharType, T>& str Y_LIFETIME_BOUND) noexcept
         : TStringView(str.data(), str.size())
     {
     }

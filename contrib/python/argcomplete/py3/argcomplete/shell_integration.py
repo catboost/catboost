@@ -34,6 +34,12 @@ _python_argcomplete%(function_suffix)s() {
     local IFS=$'\013'
     local script="%(argcomplete_script)s"
     if [[ -n "${ZSH_VERSION-}" ]]; then
+        if [[ "${_matcher_num-}" -gt 1 ]]; then
+            # Return early if the completer is called multiple times in the same completion run.
+            # Currently the only known occurrence of this is in zsh when a matcher-list zstyle is declared.
+            # When this happens, _matcher_num is incremented past 1.
+            return
+        fi
         local completions
         completions=($(IFS="$IFS" \
             COMP_LINE="$BUFFER" \

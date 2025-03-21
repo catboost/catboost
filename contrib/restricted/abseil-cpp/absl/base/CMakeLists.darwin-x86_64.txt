@@ -40,6 +40,7 @@ target_sources(abseil-cpp-absl-base PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/sysinfo.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/thread_identity.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/tracing.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/unscaledcycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/log_severity.cc
 )

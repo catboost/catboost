@@ -4,14 +4,20 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
 import sys
+from collections.abc import Callable
+from typing import Any, ClassVar, TypeVar, overload
 
 from . import _modified, archive_util, dir_util, file_util, util
 from ._log import log
 from .errors import DistutilsOptionError
+
+_CommandT = TypeVar("_CommandT", bound="Command")
 
 
 class Command:
@@ -44,7 +50,14 @@ class Command:
     # 'sub_commands' is usually defined at the *end* of a class, because
     # predicates can be unbound methods, so they must already have been
     # defined.  The canonical example is the "install" command.
-    sub_commands = []
+    sub_commands: ClassVar[  # Any to work around variance issues
+        list[tuple[str, Callable[[Any], bool] | None]]
+    ] = []
+
+    user_options: ClassVar[
+        # Specifying both because list is invariant. Avoids mypy override assignment issues
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = []
 
     # -- Creation/initialization methods -------------------------------
 
@@ -305,7 +318,17 @@ class Command:
 
     # XXX rename to 'get_reinitialized_command()'? (should do the
     # same in dist.py, if so)
-    def reinitialize_command(self, command, reinit_subcommands=False):
+    @overload
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False
+    ) -> Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | Command, reinit_subcommands=False
+    ) -> Command:
         return self.distribution.reinitialize_command(command, reinit_subcommands)
 
     def run_command(self, command):

@@ -17,7 +17,7 @@
 
 #include "unwind.h"
 
-#ifdef __USING_WASM_EXCEPTIONS__
+#ifdef __WASM_EXCEPTIONS__
 #include <threads.h>
 
 _Unwind_Reason_Code __gxx_personality_wasm0(int version, _Unwind_Action actions,
@@ -129,4 +129,10 @@ _LIBUNWIND_EXPORT _Unwind_Reason_Code
 _Unwind_RaiseException(_Unwind_Exception *exception_object __attribute__((unused))) {
   abort();
 }
-#endif // defined(__USING_WASM_EXCEPTIONS__)
+
+#if !defined(NDEBUG) && defined(STANDALONE_WASM)
+void __throw_exception_with_stack_trace(_Unwind_Exception* ex) {
+  _Unwind_RaiseException(ex);
+}
+#endif
+#endif // defined(__WASM_EXCEPTIONS__)

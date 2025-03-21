@@ -1,48 +1,52 @@
 """PyPI and direct package downloading."""
 
-import sys
-import subprocess
-import os
-import re
-import io
-import shutil
-import socket
+from __future__ import annotations
+
 import base64
-import hashlib
-import itertools
 import configparser
+import hashlib
 import html
 import http.client
+import io
+import itertools
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
+from fnmatch import translate
 from functools import wraps
+from typing import NamedTuple
+
+from more_itertools import unique_everseen
 
 import setuptools
 from pkg_resources import (
-    CHECKOUT_DIST,
-    Distribution,
     BINARY_DIST,
-    normalize_path,
+    CHECKOUT_DIST,
+    DEVELOP_DIST,
+    EGG_DIST,
     SOURCE_DIST,
+    Distribution,
     Environment,
+    Requirement,
     find_distributions,
+    normalize_path,
+    parse_version,
     safe_name,
     safe_version,
     to_filename,
-    Requirement,
-    DEVELOP_DIST,
-    EGG_DIST,
-    parse_version,
 )
+from setuptools.wheel import Wheel
+
+from .unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
+
 from distutils import log
 from distutils.errors import DistutilsError
-from fnmatch import translate
-from setuptools.wheel import Wheel
-from setuptools.extern.more_itertools import unique_everseen
-
-from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
-
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -62,10 +66,7 @@ __all__ = [
 
 _SOCKET_TIMEOUT = 15
 
-_tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(
-    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools
-)
+user_agent = f"setuptools/{setuptools.__version__} Python-urllib/{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def parse_requirement_arg(spec):
@@ -73,7 +74,7 @@ def parse_requirement_arg(spec):
         return Requirement.parse(spec)
     except ValueError as e:
         raise DistutilsError(
-            "Not a URL, existing file, or requirement spec: %r" % (spec,)
+            f"Not a URL, existing file, or requirement spec: {spec!r}"
         ) from e
 
 
@@ -103,7 +104,7 @@ def parse_bdist_wininst(name):
 
 def egg_info_for_url(url):
     parts = urllib.parse.urlparse(url)
-    scheme, server, path, parameters, query, fragment = parts
+    _scheme, server, path, _parameters, _query, fragment = parts
     base = urllib.parse.unquote(path.split('/')[-1])
     if server == 'sourceforge.net' and base == 'download':  # XXX Yuck
         base = urllib.parse.unquote(path.split('/')[-2])
@@ -269,7 +270,7 @@ class HashChecker(ContentChecker):
         r'(?P<expected>[a-f0-9]+)'
     )
 
-    def __init__(self, hash_name, expected):
+    def __init__(self, hash_name, expected) -> None:
         self.hash_name = hash_name
         self.hash = hashlib.new(hash_name)
         self.expected = expected
@@ -301,20 +302,20 @@ class PackageIndex(Environment):
 
     def __init__(
         self,
-        index_url="https://pypi.org/simple/",
+        index_url: str = "https://pypi.org/simple/",
         hosts=('*',),
         ca_bundle=None,
-        verify_ssl=True,
+        verify_ssl: bool = True,
         *args,
         **kw,
-    ):
+    ) -> None:
         super().__init__(*args, **kw)
         self.index_url = index_url + "/"[: not index_url.endswith('/')]
-        self.scanned_urls = {}
-        self.fetched_urls = {}
-        self.package_pages = {}
+        self.scanned_urls: dict = {}
+        self.fetched_urls: dict = {}
+        self.package_pages: dict = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
-        self.to_scan = []
+        self.to_scan: list = []
         self.opener = urllib.request.urlopen
 
     def add(self, dist):
@@ -326,7 +327,7 @@ class PackageIndex(Environment):
         return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
-    def process_url(self, url, retrieve=False):  # noqa: C901
+    def process_url(self, url, retrieve: bool = False) -> None:  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
@@ -356,7 +357,7 @@ class PackageIndex(Environment):
         if f is None:
             return
         if isinstance(f, urllib.error.HTTPError) and f.code == 401:
-            self.info("Authentication error: %s" % f.msg)
+            self.info(f"Authentication error: {f.msg}")
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
@@ -379,7 +380,7 @@ class PackageIndex(Environment):
         if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
-    def process_filename(self, fn, nested=False):
+    def process_filename(self, fn, nested: bool = False) -> None:
         # process filenames or directories
         if not os.path.exists(fn):
             self.warn("Not found: %s", fn)
@@ -395,7 +396,7 @@ class PackageIndex(Environment):
             self.debug("Found: %s", fn)
             list(map(self.add, dists))
 
-    def url_ok(self, url, fatal=False):
+    def url_ok(self, url, fatal: bool = False) -> bool:
         s = URL_SCHEME(url)
         is_file = s and s.group(1).lower() == 'file'
         if is_file or self.allows(urllib.parse.urlparse(url)[1]):
@@ -411,7 +412,7 @@ class PackageIndex(Environment):
             self.warn(msg, url)
             return False
 
-    def scan_egg_links(self, search_path):
+    def scan_egg_links(self, search_path) -> None:
         dirs = filter(os.path.isdir, search_path)
         egg_links = (
             (path, entry)
@@ -421,7 +422,7 @@ class PackageIndex(Environment):
         )
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
-    def scan_egg_link(self, path, entry):
+    def scan_egg_link(self, path, entry) -> None:
         content = _read_utf8_with_fallback(os.path.join(path, entry))
         # filter non-empty lines
         lines = list(filter(None, map(str.strip, content.splitlines())))
@@ -430,7 +431,7 @@ class PackageIndex(Environment):
             # format is not recognized; punt
             return
 
-        egg_path, setup_path = lines
+        egg_path, _setup_path = lines
 
         for dist in find_distributions(os.path.join(path, egg_path)):
             dist.location = os.path.join(path, *lines)
@@ -473,30 +474,30 @@ class PackageIndex(Environment):
             base, frag = egg_info_for_url(new_url)
             if base.endswith('.py') and not frag:
                 if ver:
-                    new_url += '#egg=%s-%s' % (pkg, ver)
+                    new_url += f'#egg={pkg}-{ver}'
                 else:
                     self.need_version_info(url)
             self.scan_url(new_url)
 
         return PYPI_MD5.sub(
-            lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
+            lambda m: '<a href="{}#md5={}">{}</a>'.format(*m.group(1, 3, 2)), page
         )
 
-    def need_version_info(self, url):
+    def need_version_info(self, url) -> None:
         self.scan_all(
             "Page at %s links to .py file(s) without version info; an index "
             "scan is required.",
             url,
         )
 
-    def scan_all(self, msg=None, *args):
+    def scan_all(self, msg=None, *args) -> None:
         if self.index_url not in self.fetched_urls:
             if msg:
                 self.warn(msg, *args)
             self.info("Scanning index of all packages (this may take a while)")
         self.scan_url(self.index_url)
 
-    def find_packages(self, requirement):
+    def find_packages(self, requirement) -> None:
         self.scan_url(self.index_url + requirement.unsafe_name + '/')
 
         if not self.package_pages.get(requirement.key):
@@ -520,21 +521,20 @@ class PackageIndex(Environment):
             self.debug("%s does not match %s", requirement, dist)
         return super().obtain(requirement, installer)
 
-    def check_hash(self, checker, filename, tfp):
+    def check_hash(self, checker, filename, tfp) -> None:
         """
         checker is a ContentChecker
         """
-        checker.report(self.debug, "Validating %%s checksum for %s" % filename)
+        checker.report(self.debug, f"Validating %s checksum for {filename}")
         if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(
-                "%s validation failed for %s; "
+                f"{checker.hash.name} validation failed for {os.path.basename(filename)}; "
                 "possible download problem?"
-                % (checker.hash.name, os.path.basename(filename))
             )
 
-    def add_find_links(self, urls):
+    def add_find_links(self, urls) -> None:
         """Add `urls` to the list that will be prescanned for searches"""
         for url in urls:
             if (
@@ -555,14 +555,11 @@ class PackageIndex(Environment):
             list(map(self.scan_url, self.to_scan))
         self.to_scan = None  # from now on, go ahead and process immediately
 
-    def not_found_in_index(self, requirement):
+    def not_found_in_index(self, requirement) -> None:
         if self[requirement.key]:  # we've seen at least one distro
             meth, msg = self.info, "Couldn't retrieve index page for %r"
         else:  # no distros seen for this name, might be misspelled
-            meth, msg = (
-                self.warn,
-                "Couldn't find index page for %r (maybe misspelled?)",
-            )
+            meth, msg = self.warn, "Couldn't find index page for %r (maybe misspelled?)"
         meth(msg, requirement.unsafe_name)
         self.scan_all()
 
@@ -604,11 +601,11 @@ class PackageIndex(Environment):
         self,
         requirement,
         tmpdir,
-        force_scan=False,
-        source=False,
-        develop_ok=False,
+        force_scan: bool = False,
+        source: bool = False,
+        develop_ok: bool = False,
         local_index=None,
-    ):
+    ) -> Distribution | None:
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -630,7 +627,7 @@ class PackageIndex(Environment):
         skipped = set()
         dist = None
 
-        def find(req, env=None):
+        def find(req, env: Environment | None = None):
             if env is None:
                 env = self
             # Find a matching distribution; may be called more than once
@@ -682,7 +679,9 @@ class PackageIndex(Environment):
             self.info("Best match: %s", dist)
             return dist.clone(location=dist.download_location)
 
-    def fetch(self, requirement, tmpdir, force_scan=False, source=False):
+    def fetch(
+        self, requirement, tmpdir, force_scan: bool = False, source: bool = False
+    ) -> str | None:
         """Obtain a file suitable for fulfilling `requirement`
 
         DEPRECATED; use the ``fetch_distribution()`` method now instead.  For
@@ -720,20 +719,15 @@ class PackageIndex(Environment):
             with open(os.path.join(tmpdir, 'setup.py'), 'w', encoding="utf-8") as file:
                 file.write(
                     "from setuptools import setup\n"
-                    "setup(name=%r, version=%r, py_modules=[%r])\n"
-                    % (
-                        dists[0].project_name,
-                        dists[0].version,
-                        os.path.splitext(basename)[0],
-                    )
+                    f"setup(name={dists[0].project_name!r}, version={dists[0].version!r}, py_modules=[{os.path.splitext(basename)[0]!r}])\n"
                 )
             return filename
 
         elif match:
             raise DistutilsError(
-                "Can't unambiguously interpret project/version identifier %r; "
+                f"Can't unambiguously interpret project/version identifier {fragment!r}; "
                 "any dashes in the name or version should be escaped using "
-                "underscores. %r" % (fragment, dists)
+                f"underscores. {dists!r}"
             )
         else:
             raise DistutilsError(
@@ -751,9 +745,7 @@ class PackageIndex(Environment):
             checker = HashChecker.from_url(url)
             fp = self.open_url(url)
             if isinstance(fp, urllib.error.HTTPError):
-                raise DistutilsError(
-                    "Can't download %s: %s %s" % (url, fp.code, fp.msg)
-                )
+                raise DistutilsError(f"Can't download {url}: {fp.code} {fp.msg}")
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
@@ -779,7 +771,7 @@ class PackageIndex(Environment):
             if fp:
                 fp.close()
 
-    def reporthook(self, url, filename, blocknum, blksize, size):
+    def reporthook(self, url, filename, blocknum, blksize, size) -> None:
         pass  # no-op
 
     # FIXME:
@@ -793,34 +785,32 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, msg)
             else:
-                raise DistutilsError('%s %s' % (url, msg)) from v
+                raise DistutilsError(f'{url} {msg}') from v
         except urllib.error.HTTPError as v:
             return v
         except urllib.error.URLError as v:
             if warning:
                 self.warn(warning, v.reason)
             else:
-                raise DistutilsError(
-                    "Download error for %s: %s" % (url, v.reason)
-                ) from v
+                raise DistutilsError(f"Download error for {url}: {v.reason}") from v
         except http.client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
             else:
                 raise DistutilsError(
-                    '%s returned a bad status line. The server might be '
-                    'down, %s' % (url, v.line)
+                    f'{url} returned a bad status line. The server might be '
+                    f'down, {v.line}'
                 ) from v
         except (http.client.HTTPException, OSError) as v:
             if warning:
                 self.warn(warning, v)
             else:
-                raise DistutilsError("Download error for %s: %s" % (url, v)) from v
+                raise DistutilsError(f"Download error for {url}: {v}") from v
 
     def _download_url(self, url, tmpdir):
         # Determine download filename
         #
-        name, fragment = egg_info_for_url(url)
+        name, _fragment = egg_info_for_url(url)
         if name:
             while '..' in name:
                 name = name.replace('..', '.').replace('\\', '_')
@@ -848,7 +838,7 @@ class PackageIndex(Environment):
         >>> rvcs('http://foo/bar')
         """
         scheme = urllib.parse.urlsplit(url).scheme
-        pre, sep, post = scheme.partition('+')
+        pre, sep, _post = scheme.partition('+')
         # svn and git have their own protocol; hg does not
         allowed = set(['svn', 'git'] + ['hg'] * bool(sep))
         return next(iter({pre} & allowed), None)
@@ -886,7 +876,7 @@ class PackageIndex(Environment):
         self.url_ok(url, True)
         return self._attempt_download(url, filename)
 
-    def scan_url(self, url):
+    def scan_url(self, url) -> None:
         self.process_url(url, True)
 
     def _attempt_download(self, url, filename):
@@ -932,13 +922,13 @@ class PackageIndex(Environment):
 
         return resolved, rev
 
-    def debug(self, msg, *args):
+    def debug(self, msg, *args) -> None:
         log.debug(msg, *args)
 
-    def info(self, msg, *args):
+    def info(self, msg, *args) -> None:
         log.info(msg, *args)
 
-    def warn(self, msg, *args):
+    def warn(self, msg, *args) -> None:
         log.warn(msg, *args)
 
 
@@ -1000,21 +990,20 @@ def _encode_auth(auth):
     return encoded.replace('\n', '')
 
 
-class Credential:
+class Credential(NamedTuple):
     """
-    A username/password pair. Use like a namedtuple.
+    A username/password pair.
+
+    Displayed separated by `:`.
+    >>> str(Credential('username', 'password'))
+    'username:password'
     """
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    username: str
+    password: str
 
-    def __iter__(self):
-        yield self.username
-        yield self.password
-
-    def __str__(self):
-        return '%(username)s:%(password)s' % vars(self)
+    def __str__(self) -> str:
+        return f'{self.username}:{self.password}'
 
 
 class PyPIConfig(configparser.RawConfigParser):
@@ -1071,7 +1060,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     if scheme in ('http', 'https'):
         auth, address = _splituser(netloc)
     else:
-        auth = None
+        auth, address = (None, None)
 
     if not auth:
         cred = PyPIConfig().find_credential(url)
@@ -1104,6 +1093,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
 
 # copy of urllib.parse._splituser from Python 3.8
+# See https://github.com/python/cpython/issues/80072.
 def _splituser(host):
     """splituser('user[:passwd]@host[:port]')
     --> 'user[:passwd]', 'host[:port]'."""
@@ -1121,7 +1111,7 @@ def fix_sf_url(url):
 
 def local_open(url):
     """Read a local path, with special support for directories"""
-    scheme, server, path, param, query, frag = urllib.parse.urlparse(url)
+    _scheme, _server, path, _param, _query, _frag = urllib.parse.urlparse(url)
     filename = urllib.request.url2pathname(path)
     if os.path.isfile(filename):
         return urllib.request.urlopen(url)
@@ -1134,7 +1124,7 @@ def local_open(url):
                 break
             elif os.path.isdir(filepath):
                 f += '/'
-            files.append('<a href="{name}">{name}</a>'.format(name=f))
+            files.append(f'<a href="{f}">{f}</a>')
         else:
             tmpl = "<html><head><title>{url}</title></head><body>{files}</body></html>"
             body = tmpl.format(url=url, files='\n'.join(files))

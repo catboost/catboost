@@ -1,7 +1,6 @@
-
 /* pngwutil.c - utilities to write a PNG file
  *
- * Copyright (c) 2018-2022 Cosmin Truta
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -9,11 +8,29 @@
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
  * and license in png.h
+ *
+ * This file contains routines that are only called from within
+ * libpng itself during the course of writing an image.
  */
 
 #include "pngpriv.h"
 
 #ifdef PNG_WRITE_SUPPORTED
+
+#ifdef PNG_WRITE_INTERLACING_SUPPORTED
+/* Arrays to facilitate interlacing - use pass (0 - 6) as index. */
+
+/* Start of interlace block */
+static const png_byte png_pass_start[7] = {0, 4, 0, 2, 0, 1, 0};
+/* Offset to next interlace block */
+static const png_byte png_pass_inc[7] = {8, 8, 4, 4, 2, 2, 1};
+/* Start of interlace block in the y direction */
+static const png_byte png_pass_ystart[7] = {0, 0, 4, 0, 2, 0, 1};
+/* Offset to next interlace block in the y direction */
+static const png_byte png_pass_yinc[7] = {8, 8, 8, 4, 4, 2, 2};
+
+/* TODO: Move these arrays to a common utility module to avoid duplication. */
+#endif
 
 #ifdef PNG_WRITE_INT_FUNCTIONS_SUPPORTED
 /* Place a 32-bit number into a buffer in PNG byte order.  We work
@@ -1496,6 +1513,73 @@ png_write_bKGD(png_structrp png_ptr, png_const_color_16p back, int color_type)
 }
 #endif
 
+#ifdef PNG_WRITE_cICP_SUPPORTED
+/* Write the cICP data */
+void /* PRIVATE */
+png_write_cICP(png_structrp png_ptr,
+               png_byte colour_primaries, png_byte transfer_function,
+               png_byte matrix_coefficients, png_byte video_full_range_flag)
+{
+   png_byte buf[4];
+
+   png_debug(1, "in png_write_cICP");
+
+   png_write_chunk_header(png_ptr, png_cICP, 4);
+
+   buf[0] = colour_primaries;
+   buf[1] = transfer_function;
+   buf[2] = matrix_coefficients;
+   buf[3] = video_full_range_flag;
+   png_write_chunk_data(png_ptr, buf, 4);
+
+   png_write_chunk_end(png_ptr);
+}
+#endif
+
+#ifdef PNG_WRITE_cLLI_SUPPORTED
+void /* PRIVATE */
+png_write_cLLI_fixed(png_structrp png_ptr, png_uint_32 maxCLL,
+   png_uint_32 maxFALL)
+{
+   png_byte buf[8];
+
+   png_debug(1, "in png_write_cLLI_fixed");
+
+   png_save_uint_32(buf, maxCLL);
+   png_save_uint_32(buf + 4, maxFALL);
+
+   png_write_complete_chunk(png_ptr, png_cLLI, buf, 8);
+}
+#endif
+
+#ifdef PNG_WRITE_mDCV_SUPPORTED
+void /* PRIVATE */
+png_write_mDCV_fixed(png_structrp png_ptr,
+   png_uint_16 red_x, png_uint_16 red_y,
+   png_uint_16 green_x, png_uint_16 green_y,
+   png_uint_16 blue_x, png_uint_16 blue_y,
+   png_uint_16 white_x, png_uint_16 white_y,
+   png_uint_32 maxDL, png_uint_32 minDL)
+{
+   png_byte buf[24];
+
+   png_debug(1, "in png_write_mDCV_fixed");
+
+   png_save_uint_16(buf +  0, red_x);
+   png_save_uint_16(buf +  2, red_y);
+   png_save_uint_16(buf +  4, green_x);
+   png_save_uint_16(buf +  6, green_y);
+   png_save_uint_16(buf +  8, blue_x);
+   png_save_uint_16(buf + 10, blue_y);
+   png_save_uint_16(buf + 12, white_x);
+   png_save_uint_16(buf + 14, white_y);
+   png_save_uint_32(buf + 16, maxDL);
+   png_save_uint_32(buf + 20, minDL);
+
+   png_write_complete_chunk(png_ptr, png_mDCV, buf, 24);
+}
+#endif
+
 #ifdef PNG_WRITE_eXIf_SUPPORTED
 /* Write the Exif data */
 void /* PRIVATE */
@@ -1990,22 +2074,6 @@ png_write_fdAT(png_structp png_ptr,
 void /* PRIVATE */
 png_write_start_row(png_structrp png_ptr)
 {
-#ifdef PNG_WRITE_INTERLACING_SUPPORTED
-   /* Arrays to facilitate easy interlacing - use pass (0 - 6) as index */
-
-   /* Start of interlace block */
-   static const png_byte png_pass_start[7] = {0, 4, 0, 2, 0, 1, 0};
-
-   /* Offset to next interlace block */
-   static const png_byte png_pass_inc[7] = {8, 8, 4, 4, 2, 2, 1};
-
-   /* Start of interlace block in the y direction */
-   static const png_byte png_pass_ystart[7] = {0, 0, 4, 0, 2, 0, 1};
-
-   /* Offset to next interlace block in the y direction */
-   static const png_byte png_pass_yinc[7] = {8, 8, 8, 4, 4, 2, 2};
-#endif
-
    png_alloc_size_t buf_size;
    int usr_pixel_depth;
 
@@ -2105,22 +2173,6 @@ png_write_start_row(png_structrp png_ptr)
 void /* PRIVATE */
 png_write_finish_row(png_structrp png_ptr)
 {
-#ifdef PNG_WRITE_INTERLACING_SUPPORTED
-   /* Arrays to facilitate easy interlacing - use pass (0 - 6) as index */
-
-   /* Start of interlace block */
-   static const png_byte png_pass_start[7] = {0, 4, 0, 2, 0, 1, 0};
-
-   /* Offset to next interlace block */
-   static const png_byte png_pass_inc[7] = {8, 8, 4, 4, 2, 2, 1};
-
-   /* Start of interlace block in the y direction */
-   static const png_byte png_pass_ystart[7] = {0, 0, 4, 0, 2, 0, 1};
-
-   /* Offset to next interlace block in the y direction */
-   static const png_byte png_pass_yinc[7] = {8, 8, 8, 4, 4, 2, 2};
-#endif
-
    png_debug(1, "in png_write_finish_row");
 
    /* Next row */
@@ -2196,14 +2248,6 @@ png_write_finish_row(png_structrp png_ptr)
 void /* PRIVATE */
 png_do_write_interlace(png_row_infop row_info, png_bytep row, int pass)
 {
-   /* Arrays to facilitate easy interlacing - use pass (0 - 6) as index */
-
-   /* Start of interlace block */
-   static const png_byte png_pass_start[7] = {0, 4, 0, 2, 0, 1, 0};
-
-   /* Offset to next interlace block */
-   static const png_byte png_pass_inc[7] = {8, 8, 4, 4, 2, 2, 1};
-
    png_debug(1, "in png_do_write_interlace");
 
    /* We don't have to do anything on the last pass (6) */
@@ -2412,7 +2456,7 @@ png_setup_sub_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 
 static void /* PRIVATE */
@@ -2462,7 +2506,7 @@ png_setup_up_row(png_structrp png_ptr, size_t row_bytes, size_t lmins)
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_up_row_only(png_structrp png_ptr, size_t row_bytes)
@@ -2518,7 +2562,7 @@ png_setup_avg_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_avg_row_only(png_structrp png_ptr, png_uint_32 bpp,
@@ -2601,7 +2645,7 @@ png_setup_paeth_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_paeth_row_only(png_structrp png_ptr, png_uint_32 bpp,

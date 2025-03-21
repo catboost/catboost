@@ -288,7 +288,7 @@ public:
     std::enable_if_t<TMoveAssignable<U>::value,
                      TMaybe&>
     operator=(TMaybe<U, Policy>&& right) noexcept(
-        std::is_nothrow_assignable<T&, U&&>::value&& std::is_nothrow_constructible<T, U&&>::value)
+        std::is_nothrow_assignable<T&, U&&>::value && std::is_nothrow_constructible<T, U&&>::value)
     {
         if (right.Defined()) {
             if (Defined()) {

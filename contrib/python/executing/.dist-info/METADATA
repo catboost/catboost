@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 2.1.0
+Version: 2.2.0
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
@@ -42,7 +42,7 @@ This mini-package lets you get information about what a frame is currently doing
 * [How does it work?](#how-does-it-work)
 * [Is it reliable?](#is-it-reliable)
 * [Which nodes can it identify?](#which-nodes-can-it-identify)
-* [Libraries that use this](#libraries-that-use-this)
+* [Projects that use this](#projects-that-use-this)
 
 ## Usage
 

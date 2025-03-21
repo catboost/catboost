@@ -37,7 +37,6 @@ target_link_options(catboost-private-libs-quantization-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -36,7 +36,6 @@ target_link_options(catboost-libs-helpers-parallel_sort-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -7474,7 +7474,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
 
-    return [local_canonical_file(eval_path)]
+    return [local_canonical_file(eval_path, diff_tool=diff_tool(1e-13))]
 
 
 def test_set_class_names_implicitly():

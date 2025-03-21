@@ -2,7 +2,7 @@
 
 #include <library/cpp/yt/string/format.h>
 
-#include <library/cpp/yt/small_containers/compact_vector.h>
+#include <library/cpp/yt/compact_containers/compact_vector.h>
 
 #include <util/generic/hash_set.h>
 
@@ -70,6 +70,7 @@ static_assert(CFormattable<std::multimap<int, int>>);
 static_assert(CFormattable<THashSet<int>>);
 static_assert(CFormattable<THashMap<int, int>>);
 static_assert(CFormattable<THashMultiSet<int>>);
+static_assert(CFormattable<TCompactFlatMap<int, int, 2>>);
 static_assert(CFormattable<std::pair<int, int>>);
 static_assert(CFormattable<std::optional<int>>);
 static_assert(CFormattable<TDuration>);
@@ -237,6 +238,20 @@ TEST(TFormatTest, Pointers)
         EXPECT_EQ("12345678abcdefab", Format("%x", ptr));
         EXPECT_EQ("12345678ABCDEFAB", Format("%X", ptr));
     }
+}
+
+TEST(TFormatTest, Tuples)
+{
+    EXPECT_EQ("{}", Format("%v", std::tuple()));
+    EXPECT_EQ("{1, 2, 3}", Format("%v", std::tuple(1, 2, 3)));
+    EXPECT_EQ("{1, 2}", Format("%v", std::pair(1, 2)));
+}
+
+TEST(TFormatTest, CompactIntervalView)
+{
+    EXPECT_EQ("[]", Format("%v", MakeCompactIntervalView(std::vector<int>{})));
+    EXPECT_EQ("[1]", Format("%v", MakeCompactIntervalView(std::vector<int>{1})));
+    EXPECT_EQ("[0, 2-4, 7]", Format("%v", MakeCompactIntervalView(std::vector<int>{0, 2, 3, 4, 7})));
 }
 
 TEST(TFormatTest, LazyMultiValueFormatter)

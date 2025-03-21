@@ -252,6 +252,7 @@ extern "C" {
   extern ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
   extern SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope);
   extern SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab);
+  extern int Swig_symbol_isvalid(const String *s);
 
 /* --- Parameters and Parameter Lists --- */
 
@@ -272,6 +273,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
+  extern String *Swig_name_type(const_String_or_char_ptr tname);
   extern String *Swig_name_mangle_string(const String *s);
   extern String *Swig_name_mangle_type(const SwigType *s);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
@@ -332,6 +334,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_scopename_suffix(const String *s);
   extern List *Swig_scopename_tolist(const String *s);
   extern int Swig_scopename_check(const String *s);
+  extern int Swig_scopename_isvalid(const String *s);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);
   extern String *Swig_string_title(String *s);
@@ -341,7 +344,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern int Swig_value_wrapper_mode(int mode);
   extern int Swig_is_generated_overload(Node *n);
-  extern Node *Swig_item_in_list(List *list, const String *name);
+  extern Node *Swig_item_in_list(List *list, const DOH *item);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 

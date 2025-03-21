@@ -3,8 +3,7 @@
 #define _LIBCPP_ABI_VERSION 1
 #define _LIBCPP_ABI_NAMESPACE __y1
 
-#define _LIBCPP_DISABLE_NODISCARD_EXT
-#define _LIBCPP_PSTL_CPU_BACKEND_THREAD
+#define _LIBCPP_PSTL_BACKEND_STD_THREAD
 
 #ifndef _YNDX_LIBCPP_ENABLE_EXTENSIONS
 #   define _YNDX_LIBCPP_ENABLE_EXTENSIONS 1
@@ -31,6 +30,7 @@
 #define _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS
 #define _LIBCPP_NO_AUTO_LINK
 #define _LIBCPP_DISABLE_DEPRECATION_WARNINGS
+#define _LIBCPP_DISABLE_AVAILABILITY
 
 // should be removed in https://st.yandex-team.ru/IGNIETFERRO-1957
 #define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR
@@ -41,6 +41,7 @@
 // should be removed in https://st.yandex-team.ru/IGNIETFERRO-1955
 #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS
 #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_VOID_SPECIALIZATION
+#define _LIBCPP_ENABLE_REMOVED_ALLOCATOR_CONST
 
 // should be removed in https://st.yandex-team.ru/IGNIETFERRO-1956
 #define _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS
@@ -48,12 +49,24 @@
 
 #define _LIBCPP_NO_ASAN_CONTIGUOUS_CONTAINER_FEATURES
 
+#define _LIBCPP_ENABLE_CXX20_REMOVED_SHARED_PTR_UNIQUE
+
 #ifdef _musl_
 #   define _LIBCPP_HAS_MUSL_LIBC
 #endif
 
-#ifdef NDEBUG
-#   define _LIBCPP_HARDENING_MODE_DEFAULT _LIBCPP_HARDENING_MODE_NONE
+#if defined(__has_feature) && (__has_feature(address_sanitizer) || \
+                               __has_feature(leak_sanitizer) || \
+                               __has_feature(thread_sanitizer) || \
+                               __has_feature(memory_sanitizer) || \
+                               __has_feature(undefined_behavior_sanitizer))
+#       define _LIBCPP_HARDENING_MODE_DEFAULT _LIBCPP_HARDENING_MODE_FAST
+#elif defined(NDEBUG)
+#       define _LIBCPP_HARDENING_MODE_DEFAULT _LIBCPP_HARDENING_MODE_NONE
 #else
 #   define _LIBCPP_HARDENING_MODE_DEFAULT _LIBCPP_HARDENING_MODE_FAST
+#endif
+
+#if defined(_WIN32) && defined(_MSC_VER)
+#	define _WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ 1
 #endif

@@ -38,7 +38,6 @@ target_link_options(catboost-libs-train_lib-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

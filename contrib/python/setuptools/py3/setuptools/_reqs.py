@@ -1,11 +1,17 @@
-from functools import lru_cache
-from typing import Callable, Iterable, Iterator, TypeVar, Union, overload
+from __future__ import annotations
 
-import setuptools.extern.jaraco.text as text
-from setuptools.extern.packaging.requirements import Requirement
+from collections.abc import Iterable, Iterator
+from functools import lru_cache
+from typing import TYPE_CHECKING, Callable, TypeVar, Union, overload
+
+import jaraco.text as text
+from packaging.requirements import Requirement
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 _T = TypeVar("_T")
-_StrOrIter = Union[str, Iterable[str]]
+_StrOrIter: TypeAlias = Union[str, Iterable[str]]
 
 
 parse_req: Callable[[str], Requirement] = lru_cache()(Requirement)
@@ -23,15 +29,13 @@ def parse_strings(strs: _StrOrIter) -> Iterator[str]:
     return text.join_continuation(map(text.drop_comment, text.yield_lines(strs)))
 
 
+# These overloads are only needed because of a mypy false-positive, pyright gets it right
+# https://github.com/python/mypy/issues/3737
 @overload
 def parse(strs: _StrOrIter) -> Iterator[Requirement]: ...
-
-
 @overload
 def parse(strs: _StrOrIter, parser: Callable[[str], _T]) -> Iterator[_T]: ...
-
-
-def parse(strs, parser=parse_req):
+def parse(strs: _StrOrIter, parser: Callable[[str], _T] = parse_req) -> Iterator[_T]:  # type: ignore[assignment]
     """
     Replacement for ``pkg_resources.parse_requirements`` that uses ``packaging``.
     """

@@ -44,7 +44,6 @@ target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

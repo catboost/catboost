@@ -40,7 +40,7 @@
 #include <unistd.h>
 #endif
 #if HAVE_LZMA_H
-#error #include <lzma.h>
+#include <lzma.h>
 #endif
 
 #include "archive.h"

@@ -3,6 +3,9 @@ name: Build per OS
 on:
   workflow_call:
     inputs:
+      os:
+        required: true
+        type: string
       runs-on_value:
         required: true
         type: string
@@ -39,7 +42,7 @@ jobs:
         shell: pwsh
         run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: Checkout actions from catboost
         uses: actions/checkout@v4
         with:
@@ -47,12 +50,12 @@ jobs:
           sparse-checkout: .github
           fetch-depth: 0
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Maximize build space: stage 1'
         # Remove packages & tools cache not covered by easimon/maximize-build-space action
         uses: ./actions_from_catboost/.github/actions/build_linux_docker_cleanup_unneeded
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Maximize build space: stage 2'
         uses: easimon/maximize-build-space@master
         with:
@@ -64,7 +67,7 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: Get python_versions_macos_arm64 from cache
         uses: actions/cache/restore@v4
         with:
@@ -75,10 +78,10 @@ jobs:
           restore-keys: |
             python_versions_macos_arm64
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: Env setup on macOS
         run: |
-          python3 -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
+          python3 -m pip install -U conan==2.4.1 cython==3.0.12 setuptools wheel jupyterlab==3.0.6 build
 
           brew update
           brew install ninja
@@ -104,8 +107,9 @@ jobs:
           ln -s $RUNNER_TOOL_CACHE/Python/3.10.*/x64 ./3.10
           ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
           ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
+          ln -s $RUNNER_TOOL_CACHE/Python/3.13.*/x64 ./3.13
 
-          for PY_VER in 3.8 3.9 3.10 3.11 3.12
+          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13
           do
               $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel
           done
@@ -126,18 +130,27 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
 
+      # Python 3.13 is not included in the standard 'windows-2022' image yet.
+      # Should be available soon: https://github.com/actions/runner-images/pull/11438
       - if: inputs.runs-on_value == 'windows-2022'
+        name: Install python3.13 on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - if: inputs.os == 'windows'
         name: Install CUDA on Windows
         uses: Jimver/cuda-toolkit@v0.2.15
         id: cuda-toolkit
         with:
           cuda: '11.8.0'
-          method: 'local'
+          method: 'network'
+          sub-packages: '["nvcc","cudart","thrust"]'
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: Env setup on Windows
         run: |
-          python -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
+          python -m pip install -U conan==2.4.1 cython==3.0.12 setuptools wheel jupyterlab==3.0.6 build
 
           choco install ninja
 
@@ -160,8 +173,9 @@ jobs:
           New-Item -Path .\3.10 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.10.*\x64"
           New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64"
           New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\x64"
+          New-Item -Path .\3.13 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64"
 
-          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12') {
+          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel
           }
 
@@ -169,10 +183,6 @@ jobs:
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
           New-Item -Path CUDA -ItemType Directory
           New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
-
-          # MSVC toolset
-          $VS_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "$VS_DIR" --channelId VisualStudio.16.Release --add Microsoft.VisualStudio.Component.VC.14.28.16.9.x86.x64 --downloadThenInstall --quiet --norestart --nocache
 
 
       - name: Checkout
@@ -214,14 +224,15 @@ jobs:
           Set-Location -Path catboost
           python ./ci/fixup_python_version.py
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: Build all in container
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
-          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan2 $HOME/ && python3 -m pip install conan==2.4.1 && cd /src/catboost && ./ci/build_all.py  --build-test-tools"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export PATH=\$HOME/.local/bin:\$PATH && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root \$HOME/ && rsync -rptl /opt/.conan2 \$HOME/ && python3 -m pip install cython==3.0.12 && cd /src/catboost && ./ci/build_all.py  --build-test-tools"
 
-      - if: inputs.runs-on_value != 'ubuntu-22.04'
+      - if: inputs.os != 'linux'
         name: Build all without container
         shell: pwsh
         run: |
@@ -240,7 +251,7 @@ jobs:
       # https://github.com/actions/upload-artifact/issues/331, so we have to do this unfortunate copy-paste
       # for now
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: CLI for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -248,7 +259,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: CLI for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -256,7 +267,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifacts: python packages for Linux aarch64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -265,7 +276,7 @@ jobs:
           platform_tag: manylinux2014_aarch64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifacts: python packages for Linux x86_64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -274,7 +285,7 @@ jobs:
           platform_tag: manylinux2014_x86_64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: source python package'
         uses: actions/upload-artifact@v4
         with:
@@ -282,7 +293,7 @@ jobs:
           path: catboost/catboost/python-package/dist/*.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: python package visualization widget'
         uses: actions/upload-artifact@v4
         with:
@@ -290,7 +301,7 @@ jobs:
           path: catboost/catboost/python-package/build/widget
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: R package for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -298,7 +309,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-linux-x86_64.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: R package for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -306,7 +317,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-linux-aarch64.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: catboostmodel library for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -314,7 +325,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: catboostmodel library for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -338,7 +349,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
           overwrite: true
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: catboost4j-spark_core_resources-linux'
         uses: actions/upload-artifact@v4
         with:
@@ -346,7 +357,7 @@ jobs:
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/linux*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: catboost4j-prediction_resources-linux'
         uses: actions/upload-artifact@v4
         with:
@@ -354,7 +365,7 @@ jobs:
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: test tools for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -365,7 +376,7 @@ jobs:
             catboost/build_native_root/no_cuda/linux-x86_64/catboost/tools/model_comparator/model_comparator
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.os == 'linux'
         name: 'Upload artifact: test tools for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -376,7 +387,7 @@ jobs:
             catboost/build_native_root/no_cuda/linux-aarch64/catboost/tools/model_comparator/model_comparator
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: CLI for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
@@ -384,7 +395,7 @@ jobs:
           path: catboost/build_native_root/no_cuda/darwin-universal2/catboost/app/catboost
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifacts: python packages for macOS universal2'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -393,7 +404,7 @@ jobs:
           platform_tag: macosx_11_0_universal2
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: R package for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
@@ -401,7 +412,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-darwin-universal2.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: catboostmodel library for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
@@ -409,7 +420,7 @@ jobs:
           path: catboost/build_native_root/no_cuda/darwin-universal2/catboost/libs/model_interface/libcatboostmodel.*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: catboost4j-spark_core_resources-darwin'
         uses: actions/upload-artifact@v4
         with:
@@ -417,7 +428,7 @@ jobs:
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/darwin*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: catboost4j-prediction_resources-darwin'
         uses: actions/upload-artifact@v4
         with:
@@ -425,7 +436,7 @@ jobs:
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'macos-13'
+      - if: inputs.os == 'macos'
         name: 'Upload artifact: test tools for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
@@ -436,7 +447,7 @@ jobs:
             catboost/build_native_root/no_cuda/darwin-universal2/catboost/tools/model_comparator/model_comparator
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: CLI for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -444,7 +455,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/windows-x86_64/catboost/app/catboost.exe
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifacts: python packages for Windows x86_64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -453,7 +464,7 @@ jobs:
           platform_tag: win_amd64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: R package for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -461,7 +472,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-windows-x86_64.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: catboostmodel library for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -471,7 +482,7 @@ jobs:
             catboost/build_native_root/have_cuda/windows-x86_64/catboost/libs/model_interface/catboostmodel.lib
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: catboost4j-spark_core_resources-windows'
         uses: actions/upload-artifact@v4
         with:
@@ -479,7 +490,7 @@ jobs:
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/win*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: catboost4j-prediction_resources-windows'
         uses: actions/upload-artifact@v4
         with:
@@ -487,7 +498,7 @@ jobs:
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'windows-2022'
+      - if: inputs.os == 'windows'
         name: 'Upload artifact: test tools for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:

@@ -1,5 +1,7 @@
 # Build Python package from source
 
+{% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
+
 {% if audience == "internal" %}
 
 {% include [internal-note__use-outside-arcadia](../yandex_specific/_includes/note__use-outside-arcadia.md) %}
@@ -77,6 +79,12 @@ One important option is `--prebuilt-extensions-build-root-dir=<path>`. It allows
 The resulting wheel distribution will be created in `dist/catboost-<version>-<...>.whl`
 
 ### Build the source distribution (sdist)
+
+{% note info %}
+
+Python package `build` has to be installed
+
+{% endnote %}
 
 ```
 python -m build --sdist

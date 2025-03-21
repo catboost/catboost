@@ -33,7 +33,7 @@ namespace NNetliba {
 
         TIntrusivePtr<TIBContext> ctx;
         TIntrusivePtr<TIBPort> resPort;
-        int numDevices;
+        int numDevices{0};
         ibv_device** deviceList = ibv_get_device_list(&numDevices);
         //for (int i = 0; i < numDevices; ++i) {
         //    ibv_device *dev = deviceList[i];

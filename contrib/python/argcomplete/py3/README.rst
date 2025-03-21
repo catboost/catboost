@@ -40,6 +40,9 @@ follows:
     args = parser.parse_args()
     ...
 
+If using ``pyproject.toml`` ``[project.scripts]`` entry points, the ``PYTHON_ARGCOMPLETE_OK`` marker should appear
+at the beginning of the file that contains the entry point.
+
 Register your Python application with your shell's completion framework by running ``register-python-argcomplete``::
 
     eval "$(register-python-argcomplete my-python-app)"
@@ -223,9 +226,9 @@ multiple Python versions on the same system, the version being used to run the s
  ``/etc/shells``, and run ``chsh`` to change your shell). You can check the version of the running copy of bash with
  ``echo $BASH_VERSION``.
 
-.. note:: If you use setuptools/distribute ``scripts`` or ``entry_points`` directives to package your module,
+.. note:: If you use ``project.scripts`` directives to provide command line entry points to your package,
  argcomplete will follow the wrapper scripts to their destination and look for ``PYTHON_ARGCOMPLETE_OK`` in the
- destination code.
+ first kilobyte of the file containing the destination code.
 
 If you choose not to use global completion, or ship a completion module that depends on argcomplete, you must register
 your script explicitly using ``eval "$(register-python-argcomplete my-python-app)"``. Standard completion module
@@ -250,7 +253,7 @@ work for zsh as well.
 
 Python Support
 --------------
-Argcomplete requires Python 3.7+.
+Argcomplete requires Python 3.9+.
 
 Support for other shells
 ------------------------

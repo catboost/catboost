@@ -4,21 +4,20 @@ Provides the Distribution class, which represents the module distribution
 being built/installed/distributed.
 """
 
+from __future__ import annotations
+
 import contextlib
 import logging
 import os
 import pathlib
 import re
 import sys
+import warnings
 from collections.abc import Iterable
 from email import message_from_file
+from typing import TYPE_CHECKING, Literal, TypeVar, overload
 
-from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
-
-try:
-    import warnings
-except ImportError:
-    warnings = None
+from packaging.utils import canonicalize_name, canonicalize_version
 
 from ._log import log
 from .debug import DEBUG
@@ -30,6 +29,12 @@ from .errors import (
 )
 from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
+
+if TYPE_CHECKING:
+    # type-only import because of mutual dependence between these modules
+    from .cmd import Command
+
+_CommandT = TypeVar("_CommandT", bound="Command")
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -143,7 +148,7 @@ Common commands: (see '--help-commands' for more)
         self.dry_run = False
         self.help = False
         for attr in self.display_option_names:
-            setattr(self, attr, 0)
+            setattr(self, attr, False)
 
         # Store the distribution meta-data (name, version, author, and so
         # forth) in a separate object -- we're getting to have enough
@@ -173,7 +178,7 @@ Common commands: (see '--help-commands' for more)
         # and sys.argv[1:], but they can be overridden when the caller is
         # not necessarily a setup script run from the command-line.
         self.script_name = None
-        self.script_args = None
+        self.script_args: list[str] | None = None
 
         # 'command_options' is where we store command options between
         # parsing them (from config files, the command-line, etc.) and when
@@ -249,10 +254,7 @@ Common commands: (see '--help-commands' for more)
                 attrs['license'] = attrs['licence']
                 del attrs['licence']
                 msg = "'licence' distribution option is deprecated; use 'license'"
-                if warnings is not None:
-                    warnings.warn(msg)
-                else:
-                    sys.stderr.write(msg + "\n")
+                warnings.warn(msg)
 
             # Now work on the rest of the attributes.  Any attribute that's
             # not already defined is invalid!
@@ -276,6 +278,8 @@ Common commands: (see '--help-commands' for more)
         self.want_user_cfg = True
 
         if self.script_args is not None:
+            # Coerce any possible iterable from attrs into a list
+            self.script_args = list(self.script_args)
             for arg in self.script_args:
                 if not arg.startswith('-'):
                     break
@@ -354,7 +358,8 @@ Common commands: (see '--help-commands' for more)
         prefix = '.' * (os.name == 'posix')
         filename = prefix + 'pydistutils.cfg'
         if self.want_user_cfg:
-            yield pathlib.Path('~').expanduser() / filename
+            with contextlib.suppress(RuntimeError):
+                yield pathlib.Path('~').expanduser() / filename
 
         # All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
@@ -658,7 +663,7 @@ Common commands: (see '--help-commands' for more)
             )
             print()
 
-        for command in self.commands:
+        for command in commands:
             if isinstance(command, type) and issubclass(command, Command):
                 klass = command
             else:
@@ -728,7 +733,7 @@ Common commands: (see '--help-commands' for more)
             except AttributeError:
                 description = "(no description available)"
 
-            print("  %-*s  %s" % (max_length, cmd, description))
+            print(f"  {cmd:<{max_length}}  {description}")
 
     def print_commands(self):
         """Print out a help message listing all available commands with a
@@ -741,14 +746,9 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
-        extra_commands = []
-        for cmd in self.cmdclass.keys():
-            if cmd not in is_std:
-                extra_commands.append(cmd)
+        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
         max_length = 0
         for cmd in std_commands + extra_commands:
@@ -772,14 +772,9 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
-        extra_commands = []
-        for cmd in self.cmdclass.keys():
-            if cmd not in is_std:
-                extra_commands.append(cmd)
+        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
         rv = []
         for cmd in std_commands + extra_commands:
@@ -845,7 +840,15 @@ Common commands: (see '--help-commands' for more)
 
         raise DistutilsModuleError(f"invalid command '{command}'")
 
-    def get_command_obj(self, command, create=True):
+    @overload
+    def get_command_obj(
+        self, command: str, create: Literal[True] = True
+    ) -> Command: ...
+    @overload
+    def get_command_obj(
+        self, command: str, create: Literal[False]
+    ) -> Command | None: ...
+    def get_command_obj(self, command: str, create: bool = True) -> Command | None:
         """Return the command object for 'command'.  Normally this object
         is cached on a previous call to 'get_command_obj()'; if no command
         object for 'command' is in the cache, then we either create and
@@ -916,7 +919,17 @@ Common commands: (see '--help-commands' for more)
             except ValueError as msg:
                 raise DistutilsOptionError(msg)
 
-    def reinitialize_command(self, command, reinit_subcommands=False):
+    @overload
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False
+    ) -> Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | Command, reinit_subcommands=False
+    ) -> Command:
         """Reinitializes a command to the state it was in when first
         returned by 'get_command_obj()': ie., initialized but not yet
         finalized.  This provides the opportunity to sneak option
@@ -1301,7 +1314,4 @@ def fix_help_options(options):
     """Convert a 4-tuple 'help_options' list as found in various command
     classes to the 3-tuple form required by FancyGetopt.
     """
-    new_options = []
-    for help_tuple in options:
-        new_options.append(help_tuple[0:3])
-    return new_options
+    return [opt[0:3] for opt in options]

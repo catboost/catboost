@@ -43,7 +43,7 @@ extern void bzero(void *, int);
 
 #if defined(PYOS_OS2) && !defined(PYCC_GCC)
 #include <sys/time.h>
-#include <utils.h>
+#error #include <utils.h>
 #endif
 
 #ifdef MS_WINDOWS

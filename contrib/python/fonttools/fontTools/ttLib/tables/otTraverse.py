@@ -79,7 +79,8 @@ def bfs_base_table(
     """Breadth-first search tree of BaseTables.
 
     Args:
-    the root of the tree.
+        root
+            the root of the tree.
         root_accessor (Optional[str]): attribute name for the root table, if any (mostly
             useful for debugging).
         skip_root (Optional[bool]): if True, the root itself is not visited, only its

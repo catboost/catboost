@@ -6,12 +6,14 @@ indirectly provides the Distribution and Command classes, although they are
 really defined in distutils.dist and distutils.cmd.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tokenize
+from collections.abc import Iterable
 
 from .cmd import Command
-from .config import PyPIRCCommand
 from .debug import DEBUG
 
 # Mainly import these so setup scripts can "from distutils.core import" them.
@@ -24,7 +26,7 @@ from .errors import (
 )
 from .extension import Extension
 
-__all__ = ['Distribution', 'Command', 'PyPIRCCommand', 'Extension', 'setup']
+__all__ = ['Distribution', 'Command', 'Extension', 'setup']
 
 # This is a barebones help message generated displayed when the user
 # runs the setup script with no arguments at all.  More useful help
@@ -216,7 +218,7 @@ def run_commands(dist):
     return dist
 
 
-def run_setup(script_name, script_args=None, stop_after="run"):
+def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after="run"):
     """Run a setup script in a somewhat controlled environment, and
     return the Distribution instance that drives things.  This is useful
     if you need to find out the distribution meta-data (passed as

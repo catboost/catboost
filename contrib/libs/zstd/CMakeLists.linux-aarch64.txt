@@ -46,6 +46,7 @@ target_sources(contrib-libs-zstd PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/compress/zstd_lazy.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/compress/zstd_ldm.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/compress/zstd_opt.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/compress/zstd_preSplit.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/compress/zstdmt_compress.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/decompress/huf_decompress.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/decompress/zstd_ddict.c

@@ -4,6 +4,7 @@ writing command line scripts fun. Unlike other modules, it's based
 around a simple API that does not come with too much magic and is
 composable.
 """
+
 from .core import Argument as Argument
 from .core import BaseCommand as BaseCommand
 from .core import Command as Command
@@ -18,6 +19,7 @@ from .decorators import command as command
 from .decorators import confirmation_option as confirmation_option
 from .decorators import group as group
 from .decorators import help_option as help_option
+from .decorators import HelpOption as HelpOption
 from .decorators import make_pass_decorator as make_pass_decorator
 from .decorators import option as option
 from .decorators import pass_context as pass_context
@@ -70,4 +72,4 @@ from .utils import get_binary_stream as get_binary_stream
 from .utils import get_text_stream as get_text_stream
 from .utils import open_file as open_file
 
-__version__ = "8.1.7"
+__version__ = "8.1.8"

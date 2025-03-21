@@ -20,7 +20,7 @@
 
      SwigPtr_PyObject func(SwigPtr_PyObject obj) {     
        SwigPtr_PyObject out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
-       Py_DECREF(out);
+       SWIG_Py_DECREF(out);
        return out;
      }
 
@@ -49,12 +49,12 @@ namespace swig {
   /* For output */
   %typemap(out,noblock=1)  SwigPtr_PyObject {
     $result = (PyObject *)$1;
-    Py_INCREF($result);
+    SWIG_Py_INCREF($result);
   }
   
   %typemap(out,noblock=1)  SwigPtr_PyObject const & {
     $result = (PyObject *)*$1;
-    Py_INCREF($result);
+    SWIG_Py_INCREF($result);
   }
   
 }
@@ -73,7 +73,7 @@ namespace swig {
     SwigPtr_PyObject(const SwigPtr_PyObject& item) : _obj(item._obj)
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      Py_XINCREF(_obj);      
+      SWIG_Py_XINCREF(_obj);
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
     
@@ -81,7 +81,7 @@ namespace swig {
     {
       if (initial_ref) {
         SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-        Py_XINCREF(_obj);
+        SWIG_Py_XINCREF(_obj);
         SWIG_PYTHON_THREAD_END_BLOCK;
       }
     }
@@ -89,8 +89,8 @@ namespace swig {
     SwigPtr_PyObject & operator=(const SwigPtr_PyObject& item) 
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      Py_XINCREF(item._obj);
-      Py_XDECREF(_obj);
+      SWIG_Py_XINCREF(item._obj);
+      SWIG_Py_XDECREF(_obj);
       _obj = item._obj;
       SWIG_PYTHON_THREAD_END_BLOCK;
       return *this;      
@@ -99,7 +99,7 @@ namespace swig {
     ~SwigPtr_PyObject() 
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      Py_XDECREF(_obj);
+      SWIG_Py_XDECREF(_obj);
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
     
@@ -145,7 +145,7 @@ namespace swig {
     
     SwigVar_PyObject & operator = (PyObject* obj)
     {
-      Py_XDECREF(_obj);
+      SWIG_Py_XDECREF(_obj);
       _obj = obj;
       return *this;      
     }

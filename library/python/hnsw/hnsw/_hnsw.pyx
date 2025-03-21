@@ -1,8 +1,10 @@
 # distutils: language = c++
 # coding: utf-8
 # cython: wraparound=False, boundscheck=False
+# cython: language_level=2
 
 from cpython.ref cimport PyObject, Py_DECREF
+from cpython.version cimport PY_MAJOR_VERSION
 
 from six import PY3
 
@@ -10,6 +12,7 @@ import numpy as np
 cimport numpy as np  # noqa
 
 from libcpp cimport bool as bool_t
+from libcpp cimport nullptr
 
 from util.generic.string cimport TString
 from util.memory.blob cimport TBlob
@@ -70,10 +73,10 @@ cdef extern from "library/python/hnsw/hnsw/helpers.h" namespace "NHnsw::PythonHe
                        ui32* resultNeighInd,  # [nQueries x topSize] array
 
                        # [nQueries x topSize] array, can be null (do not return distance in this case)
-                       void* resultNeighDist) except +  
-                                     
+                       void* resultNeighDist) except +
+
     TBlob BuildDenseVectorIndex[T](const TString& jsonOptions, const TDenseVectorStorage[T]* storage,
-                                             EDistance distance) nogil except +
+                                             EDistance distance) except + nogil
     void SaveIndex(const TBlob& indexBlob, const TString& path) except +
     TBlob LoadIndex(const TString &path) except +
 
@@ -87,16 +90,43 @@ cdef extern from "library/python/hnsw/hnsw/helpers.h" namespace "NOnlineHnsw::Py
         PyObject* GetNearestNeighborsAndAddItem(const T* query) except +
         size_t GetNumItems()
 
+cdef extern from "Python.h":
+    char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
-cdef _to_binary_str(string):
-    if PY3:
-        return string.encode()
-    return string
+cdef _npbytes_ = np.bytes_
+cdef _npunicode_ = np.str_ if np.lib.NumpyVersion(np.__version__) >= '2.0.0' else np.unicode_
 
 cdef to_native_str(binary):
     if PY3:
         return binary.decode()
     return binary
+
+cdef inline TString to_arcadia_string(s) except *:
+    cdef const unsigned char[:] bytes_s
+    cdef const char* utf8_str_pointer
+    cdef Py_ssize_t utf8_str_size
+    cdef type s_type = type(s)
+    if len(s) == 0:
+        return TString()
+    if s_type is unicode or s_type is _npunicode_:
+        # Fast path for most common case(s).
+        if PY_MAJOR_VERSION >= 3:
+            # we fallback to calling .encode method to properly report error
+            utf8_str_pointer = PyUnicode_AsUTF8AndSize(s, &utf8_str_size)
+            if utf8_str_pointer != nullptr:
+                return TString(utf8_str_pointer, utf8_str_size)
+        else:
+            tmp = (<unicode>s).encode('utf8')
+            return TString(<const char*>tmp, len(tmp))
+    elif s_type is bytes or s_type is _npbytes_:
+        return TString(<const char*>s, len(s))
+
+    if PY_MAJOR_VERSION >= 3 and hasattr(s, 'encode'):
+        # encode to the specific encoding used inside of the module
+        bytes_s = s.encode('utf8')
+    else:
+        bytes_s = s
+    return TString(<const char*>&bytes_s[0], len(bytes_s))
 
 
 log_cout = None
@@ -177,8 +207,8 @@ cdef class _DenseFloatVectorStorage:
     def __cinit__(self, vectors_filename = None, dimension = 0, bin_data = None, array_data = None):
         self._dimension = dimension
         if vectors_filename is not None:
-            self._load_from_file(_to_binary_str(vectors_filename))
-        if bin_data is not None: 
+            self._load_from_file(to_arcadia_string(vectors_filename))
+        if bin_data is not None:
             self._load_from_bytearray(bin_data)
         if array_data is not None:
             self._load_from_array(array_data)
@@ -209,8 +239,8 @@ cdef class _DenseI8VectorStorage:
     def __cinit__(self, vectors_filename = None, dimension = 0, bin_data = None, array_data = None):
         self._dimension = dimension
         if vectors_filename is not None:
-            self._load_from_file(_to_binary_str(vectors_filename))
-        if bin_data is not None: 
+            self._load_from_file(to_arcadia_string(vectors_filename))
+        if bin_data is not None:
             self._load_from_bytearray(bin_data)
         if array_data is not None:
             self._load_from_array(array_data)
@@ -241,8 +271,8 @@ cdef class _DenseI32VectorStorage:
     def __cinit__(self, vectors_filename = None, dimension = 0, bin_data = None, array_data = None):
         self._dimension = dimension
         if vectors_filename is not None:
-            self._load_from_file(_to_binary_str(vectors_filename))
-        if bin_data is not None: 
+            self._load_from_file(to_arcadia_string(vectors_filename))
+        if bin_data is not None:
             self._load_from_bytearray(bin_data)
         if array_data is not None:
             self._load_from_array(array_data)
@@ -283,8 +313,7 @@ cdef class _HnswDenseVectorIndex:
     def _load(self, index_path):
         if self._index_impl != NULL:
             del self._index_impl
-        index_path = _to_binary_str(index_path)
-        self._index_blob = LoadIndex(index_path)
+        self._index_blob = LoadIndex(to_arcadia_string(index_path))
         self._index_impl = new THnswIndexBase(self._index_blob)
 
     def _load_from_bytes(self, index_bin_data):
@@ -294,8 +323,7 @@ cdef class _HnswDenseVectorIndex:
         self._index_impl = new THnswIndexBase(self._index_blob)
 
     def _save(self, index_path):
-        index_path = _to_binary_str(index_path)
-        SaveIndex(self._index_blob, TString(<const char*>index_path))
+        SaveIndex(self._index_blob, to_arcadia_string(index_path))
 
 
 cdef class _HnswDenseFloatVectorIndex(_HnswDenseVectorIndex):
@@ -308,8 +336,7 @@ cdef class _HnswDenseFloatVectorIndex(_HnswDenseVectorIndex):
     def _build(self, json_options):
         if self._index_impl != NULL:
             del self._index_impl
-        json_options = _to_binary_str(json_options)
-        cdef TString options = TString(<const char*>json_options)
+        cdef TString options = to_arcadia_string(json_options)
         SetPythonInterruptHandler()
         try:
             self._index_blob = BuildDenseVectorIndex[float](options, self._storage._storage_impl, self._distance)
@@ -322,7 +349,7 @@ cdef class _HnswDenseFloatVectorIndex(_HnswDenseVectorIndex):
         return _get_nearest_neighbors_float(self._index_impl, &q[0], top_size, search_neighborhood_size,
                                             distance_calc_limit, self._storage._storage_impl, self._distance)
 
-    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance, 
+    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance,
                     size_t search_neighborhood_size, size_t distance_calc_limit):
         cdef np.float32_t[:, ::1] queries = np.ascontiguousarray(X, dtype=np.float32)
         cdef np.ndarray neigh_ind = np.empty((queries.shape[0], n_neighbors), dtype=np.uint32)
@@ -347,7 +374,7 @@ cdef class _HnswDenseFloatVectorIndex(_HnswDenseVectorIndex):
                 self._index_impl,
                 <const float*>&queries[0,0],
                 queries.shape[0],
-                n_neighbors, 
+                n_neighbors,
                 search_neighborhood_size,
                 distance_calc_limit,
                 self._storage._storage_impl,
@@ -370,8 +397,7 @@ cdef class _HnswDenseI8VectorIndex(_HnswDenseVectorIndex):
     def _build(self, json_options):
         if self._index_impl != NULL:
             del self._index_impl
-        json_options = _to_binary_str(json_options)
-        cdef TString options = TString(<const char*>json_options)
+        cdef TString options = to_arcadia_string(json_options)
         SetPythonInterruptHandler()
         try:
             self._index_blob = BuildDenseVectorIndex[i8](options, self._storage._storage_impl, self._distance)
@@ -384,7 +410,7 @@ cdef class _HnswDenseI8VectorIndex(_HnswDenseVectorIndex):
         return _get_nearest_neighbors_i8(self._index_impl, &q[0], top_size, search_neighborhood_size,
                                          distance_calc_limit, self._storage._storage_impl, self._distance)
 
-    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance, 
+    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance,
                     size_t search_neighborhood_size, size_t distance_calc_limit):
         cdef np.int8_t[:, ::1] queries = np.ascontiguousarray(X, dtype=np.int8)
         cdef np.ndarray neigh_ind = np.empty((queries.shape[0], n_neighbors), dtype=np.uint32)
@@ -409,7 +435,7 @@ cdef class _HnswDenseI8VectorIndex(_HnswDenseVectorIndex):
                 self._index_impl,
                 &queries[0,0],
                 queries.shape[0],
-                n_neighbors, 
+                n_neighbors,
                 search_neighborhood_size,
                 distance_calc_limit,
                 self._storage._storage_impl,
@@ -432,8 +458,7 @@ cdef class _HnswDenseI32VectorIndex(_HnswDenseVectorIndex):
     def _build(self, json_options):
         if self._index_impl != NULL:
             del self._index_impl
-        json_options = _to_binary_str(json_options)
-        cdef TString options = TString(<const char*>json_options)
+        cdef TString options = to_arcadia_string(json_options)
         SetPythonInterruptHandler()
         try:
             self._index_blob = BuildDenseVectorIndex[i32](options, self._storage._storage_impl, self._distance)
@@ -446,7 +471,7 @@ cdef class _HnswDenseI32VectorIndex(_HnswDenseVectorIndex):
         return _get_nearest_neighbors_i32(self._index_impl, &q[0], top_size, search_neighborhood_size,
                                           distance_calc_limit, self._storage._storage_impl, self._distance)
 
-    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance, 
+    def _kneighbors(self, X, size_t n_neighbors, bool_t return_distance, EDistance distance,
                     size_t search_neighborhood_size, size_t distance_calc_limit):
         cdef np.int32_t[:, ::1] queries = np.ascontiguousarray(X, dtype=np.int32)
         cdef np.ndarray neigh_ind = np.empty((queries.shape[0], n_neighbors), dtype=np.uint32)
@@ -471,7 +496,7 @@ cdef class _HnswDenseI32VectorIndex(_HnswDenseVectorIndex):
                 self._index_impl,
                 <i32*>&queries[0,0],
                 queries.shape[0],
-                n_neighbors, 
+                n_neighbors,
                 search_neighborhood_size,
                 distance_calc_limit,
                 self._storage._storage_impl,
@@ -490,8 +515,7 @@ cdef class _OnlineHnswDenseFloatVectorIndex:
 
     def __init__(self, dimension, EDistance distance, json_options):
         self._dimension = dimension
-        json_options = _to_binary_str(json_options)
-        self._online_index = new PyOnlineHnswDenseVectorIndex[float](TString(<const char*>json_options), dimension, distance)
+        self._online_index = new PyOnlineHnswDenseVectorIndex[float](to_arcadia_string(json_options), dimension, distance)
 
     def __dealloc__(self):
         if self._online_index != NULL:
@@ -526,8 +550,7 @@ cdef class _OnlineHnswDenseI32VectorIndex:
 
     def __init__(self, dimension, EDistance distance, json_options):
         self._dimension = dimension
-        json_options = _to_binary_str(json_options)
-        self._online_index = new PyOnlineHnswDenseVectorIndex[i32](TString(<const char*>json_options), dimension, distance)
+        self._online_index = new PyOnlineHnswDenseVectorIndex[i32](to_arcadia_string(json_options), dimension, distance)
 
     def __dealloc__(self):
         if self._online_index != NULL:
@@ -562,8 +585,7 @@ cdef class _OnlineHnswDenseI8VectorIndex:
 
     def __init__(self, dimension, EDistance distance, json_options):
         self._dimension = dimension
-        json_options = _to_binary_str(json_options)
-        self._online_index = new PyOnlineHnswDenseVectorIndex[i8](TString(<const char*>json_options), dimension, distance)
+        self._online_index = new PyOnlineHnswDenseVectorIndex[i8](to_arcadia_string(json_options), dimension, distance)
 
     def __dealloc__(self):
         if self._online_index != NULL:

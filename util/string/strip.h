@@ -157,8 +157,28 @@ template <class T, class TStripCriterion>
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, true>::StripString(from, criterion);
+}
+
 template <class T>
 [[nodiscard]] static inline T StripString(const T& from) {
+    return TStripImpl<true, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, true>::StripString(from);
 }
 
@@ -167,8 +187,28 @@ template <class T>
     return TStripImpl<true, false>::StripString(from);
 }
 
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, false>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, false>::StripString(from);
+}
+
 template <class T>
 [[nodiscard]] static inline T StripStringRight(const T& from) {
+    return TStripImpl<false, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<false, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<false, true>::StripString(from);
 }
 
@@ -177,8 +217,28 @@ template <class T, class TStripCriterion>
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, false>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, false>::StripString(from, criterion);
+}
+
 template <class T, class TStripCriterion>
 [[nodiscard]] static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
+    return TStripImpl<false, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<false, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 

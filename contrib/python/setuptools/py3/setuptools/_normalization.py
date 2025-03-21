@@ -5,7 +5,7 @@ and core metadata
 
 import re
 
-from .extern import packaging
+import packaging
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
@@ -54,7 +54,7 @@ def safe_version(version: str) -> str:
     >>> safe_version("ubuntu lts")
     Traceback (most recent call last):
     ...
-    setuptools.extern.packaging.version.InvalidVersion: Invalid version: 'ubuntu.lts'
+    packaging.version.InvalidVersion: Invalid version: 'ubuntu.lts'
     """
     v = version.replace(' ', '.')
     try:
@@ -134,7 +134,13 @@ def filename_component_broken(value: str) -> str:
 def safer_name(value: str) -> str:
     """Like ``safe_name`` but can be used as filename component for wheel"""
     # See bdist_wheel.safer_name
-    return filename_component(safe_name(value))
+    return (
+        # Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
+        re.sub(r"[-_.]+", "-", safe_name(value))
+        .lower()
+        # Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
+        .replace("-", "_")
+    )
 
 
 def safer_best_effort_version(value: str) -> str:

@@ -1,4 +1,3 @@
-
 /* pnginfo.h - header file for PNG reference library
  *
  * Copyright (c) 2018 Cosmin Truta
@@ -101,11 +100,37 @@ struct png_info_def
    png_colorspace colorspace;
 #endif
 
+#ifdef PNG_cICP_SUPPORTED
+   /* cICP chunk data */
+   png_byte cicp_colour_primaries;
+   png_byte cicp_transfer_function;
+   png_byte cicp_matrix_coefficients;
+   png_byte cicp_video_full_range_flag;
+#endif
+
 #ifdef PNG_iCCP_SUPPORTED
    /* iCCP chunk data. */
    png_charp iccp_name;     /* profile name */
    png_bytep iccp_profile;  /* International Color Consortium profile data */
    png_uint_32 iccp_proflen;  /* ICC profile data length */
+#endif
+
+#ifdef PNG_cLLI_SUPPORTED
+   png_uint_32 maxCLL;  /* cd/m2 (nits) * 10,000 */
+   png_uint_32 maxFALL;
+#endif
+
+#ifdef PNG_mDCV_SUPPORTED
+   png_uint_16 mastering_red_x;  /* CIE (xy) x * 50,000 */
+   png_uint_16 mastering_red_y;
+   png_uint_16 mastering_green_x;
+   png_uint_16 mastering_green_y;
+   png_uint_16 mastering_blue_x;
+   png_uint_16 mastering_blue_y;
+   png_uint_16 mastering_white_x;
+   png_uint_16 mastering_white_y;
+   png_uint_32 mastering_maxDL; /* cd/m2 (nits) * 10,000 */
+   png_uint_32 mastering_minDL;
 #endif
 
 #ifdef PNG_TEXT_SUPPORTED

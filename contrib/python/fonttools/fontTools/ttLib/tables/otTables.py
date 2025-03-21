@@ -2226,24 +2226,28 @@ _equivalents = {
 def fixLookupOverFlows(ttf, overflowRecord):
     """Either the offset from the LookupList to a lookup overflowed, or
     an offset from a lookup to a subtable overflowed.
-    The table layout is:
-    GPSO/GUSB
-            Script List
-            Feature List
-            LookUpList
-                    Lookup[0] and contents
-                            SubTable offset list
-                                    SubTable[0] and contents
-                                    ...
-                                    SubTable[n] and contents
-                    ...
-                    Lookup[n] and contents
-                            SubTable offset list
-                                    SubTable[0] and contents
-                                    ...
-                                    SubTable[n] and contents
+
+    The table layout is::
+
+      GPSO/GUSB
+              Script List
+              Feature List
+              LookUpList
+                      Lookup[0] and contents
+                              SubTable offset list
+                                      SubTable[0] and contents
+                                      ...
+                                      SubTable[n] and contents
+                      ...
+                      Lookup[n] and contents
+                              SubTable offset list
+                                      SubTable[0] and contents
+                                      ...
+                                      SubTable[n] and contents
+
     If the offset to a lookup overflowed (SubTableIndex is None)
-            we must promote the *previous*	lookup to an Extension type.
+            we must promote the *previous* lookup to an Extension type.
+
     If the offset from a lookup to subtable overflowed, then we must promote it
             to an Extension Lookup type.
     """

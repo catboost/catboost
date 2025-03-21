@@ -3,13 +3,11 @@ Re-implementation of find_module and get_frozen_object
 from the deprecated imp module.
 """
 
-import os
-import importlib.util
 import importlib.machinery
+import importlib.util
+import os
 import tokenize
-
 from importlib.util import module_from_spec
-
 
 PY_SOURCE = 1
 PY_COMPILED = 2
@@ -31,7 +29,7 @@ def find_module(module, paths=None):
     """Just like 'imp.find_module()', but with package support"""
     spec = find_spec(module, paths)
     if spec is None:
-        raise ImportError("Can't find %s" % module)
+        raise ImportError(f"Can't find {module}")
     if not spec.has_location and hasattr(spec, 'submodule_search_locations'):
         spec = importlib.util.spec_from_loader('__init__.py', spec.loader)
 
@@ -78,12 +76,12 @@ def find_module(module, paths=None):
 def get_frozen_object(module, paths=None):
     spec = find_spec(module, paths)
     if not spec:
-        raise ImportError("Can't find %s" % module)
+        raise ImportError(f"Can't find {module}")
     return spec.loader.get_code(module)
 
 
 def get_module(module, paths, info):
     spec = find_spec(module, paths)
     if not spec:
-        raise ImportError("Can't find %s" % module)
+        raise ImportError(f"Can't find {module}")
     return module_from_spec(spec)

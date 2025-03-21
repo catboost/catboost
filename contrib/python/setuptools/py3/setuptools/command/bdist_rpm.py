@@ -1,6 +1,7 @@
-import distutils.command.bdist_rpm as orig
-
+from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
+
+import distutils.command.bdist_rpm as orig
 
 
 class bdist_rpm(orig.bdist_rpm):
@@ -12,7 +13,9 @@ class bdist_rpm(orig.bdist_rpm):
        disable eggs in RPM distributions.
     """
 
-    def run(self):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+
+    def run(self) -> None:
         SetuptoolsDeprecationWarning.emit(
             "Deprecated command",
             """

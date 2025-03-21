@@ -65,8 +65,7 @@ lzma_memcmplen(const uint8_t *buf1, const uint8_t *buf2,
 			|| (defined(_MSC_VER) && (defined(_M_X64) \
 				|| defined(_M_ARM64) || defined(_M_ARM64EC))))
 	// This is only for x86-64 and ARM64 for now. This might be fine on
-	// other 64-bit processors too. On big endian one should use xor
-	// instead of subtraction and switch to __builtin_clzll().
+	// other 64-bit processors too.
 	//
 	// Reasons to use subtraction instead of xor:
 	//
@@ -82,7 +81,11 @@ lzma_memcmplen(const uint8_t *buf1, const uint8_t *buf2,
 	// version 2023-05-26. https://www.agner.org/optimize/
 #define LZMA_MEMCMPLEN_EXTRA 8
 	while (len < limit) {
+#	ifdef WORDS_BIGENDIAN
+		const uint64_t x = read64ne(buf1 + len) ^ read64ne(buf2 + len);
+#	else
 		const uint64_t x = read64ne(buf1 + len) - read64ne(buf2 + len);
+#	endif
 		if (x != 0) {
 	// MSVC or Intel C compiler on Windows
 #	if defined(_MSC_VER) || defined(__INTEL_COMPILER)
@@ -90,6 +93,8 @@ lzma_memcmplen(const uint8_t *buf1, const uint8_t *buf2,
 			_BitScanForward64(&tmp, x);
 			len += (uint32_t)tmp >> 3;
 	// GCC, Clang, or Intel C compiler
+#	elif defined(WORDS_BIGENDIAN)
+			len += (uint32_t)__builtin_clzll(x) >> 3;
 #	else
 			len += (uint32_t)__builtin_ctzll(x) >> 3;
 #	endif

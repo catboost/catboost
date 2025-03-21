@@ -22,6 +22,7 @@
 
 #ifndef __CXXABI_H_
 #define __CXXABI_H_
+#include <stddef.h>
 #include <stdint.h>
 #include "unwind.h"
 namespace std 
@@ -41,7 +42,7 @@ namespace std
 
 #ifdef __cplusplus
 #if __cplusplus < 201103L
-#define _LIBCXXRT_NOEXCEPT noexcept
+#define _LIBCXXRT_NOEXCEPT throw()
 #else
 #define _LIBCXXRT_NOEXCEPT noexcept
 #endif

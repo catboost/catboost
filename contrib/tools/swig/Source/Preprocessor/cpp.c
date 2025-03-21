@@ -75,6 +75,29 @@ static int skip_tochar(String *s, int ch, String *out) {
   return 0;
 }
 
+/* Skip to a specified character or the end of the line */
+static int skip_tochar_or_eol(String *s, int ch, String *out) {
+  int c;
+  while ((c = Getc(s)) != EOF) {
+    if (c == '\n') {
+	Ungetc(c, s);
+	break;
+    }
+    if (out)
+      Putc(c, out);
+    if (c == ch)
+      break;
+    if (c == '\\') {
+      c = Getc(s);
+      if ((c != EOF) && (out))
+	Putc(c, out);
+    }
+  }
+  if (c == EOF)
+    return -1;
+  return 0;
+}
+
 static void copy_location(const DOH *s1, DOH *s2) {
   Setfile(s2, Getfile((DOH *) s1));
   Setline(s2, Getline((DOH *) s1));
@@ -288,31 +311,25 @@ void Preprocessor_error_as_warning(int a) {
  * ----------------------------------------------------------------------------- */
 
 
-String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
-  String *argname;
+static String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
   String *varargname;
   char *s, *dots;
 
-  argname = Copy(str);
-  s = Char(argname);
+  s = Char(str);
   dots = strchr(s, '.');
   if (!dots) {
-    Delete(argname);
     return NULL;
   }
 
   if (strcmp(dots, "...") != 0) {
     Swig_error(Getfile(line), Getline(line), "Illegal macro argument name '%s'\n", str);
-    Delete(argname);
     return NULL;
   }
   if (dots == s) {
     varargname = NewString("__VA_ARGS__");
   } else {
-    *dots = '\0';
-    varargname = NewString(s);
+    varargname = NewStringWithSize(s, (int)(dots - s));
   }
-  Delete(argname);
   return varargname;
 }
 
@@ -497,18 +514,18 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 
   /* Get rid of whitespace surrounding # */
   /*  Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE); */
-  while (strstr(Char(macrovalue), "\001 ")) {
-    Replace(macrovalue, "\001 ", "\001", DOH_REPLACE_ANY);
-  }
-  while (strstr(Char(macrovalue), " \001")) {
-    Replace(macrovalue, " \001", "\001", DOH_REPLACE_ANY);
-  }
+  while (Replace(macrovalue, "\001 ", "\001", DOH_REPLACE_ANY) > 0) { }
+  while (Replace(macrovalue, " \001", "\001", DOH_REPLACE_ANY) > 0) { }
   /* Replace '##' with a special token */
   Replace(macrovalue, "\001\001", "\002", DOH_REPLACE_ANY);
   /* Replace '#@' with a special token */
   Replace(macrovalue, "\001@", "\004", DOH_REPLACE_ANY);
   /* Replace '##@' with a special token */
   Replace(macrovalue, "\002@", "\005", DOH_REPLACE_ANY);
+  if (varargs) {
+    /* Replace '__VA_OPT__' with a special token */
+    Replace(macrovalue, "__VA_OPT__", "\006", DOH_REPLACE_ID|DOH_REPLACE_ANY);
+  }
 
   /* Go create the macro */
   macro = NewHash();
@@ -636,9 +653,11 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
         if (c == '*') {
           while ((c = Getc(s)) != EOF) {
             if (c == '*') {
+another_star:
               c = Getc(s);
               if (c == '/' || c == EOF)
                 break;
+	      if (c == '*') goto another_star;
             }
           }
           c = Getc(s);
@@ -922,6 +941,38 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Printf(tempa, "\"%s\"", arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
       }
+      if (isvarargs && i == l - 1) {
+	char *s = Char(ns);
+	char *a = s;
+	while ((a = strchr(a, '\006')) != NULL) {
+	  *a = ' ';
+	  while (isspace((unsigned char)*++a)) { }
+	  if (*a == '(') {
+	    char *e = a;
+	    int depth = 1;
+	    while (*++e) {
+	      if (*e == ')') {
+		if (--depth == 0) break;
+	      } else if (*e == '(') {
+		++depth;
+	      }
+	    }
+	    if (*e) {
+	      if (Len(arg) == 0) {
+		// Empty varargs so replace ( and ) and everything between with
+		// spaces.
+		memset(a, ' ', e - a + 1);
+	      } else {
+		// Non-empty varargs so replace ( and ) with spaces.
+		*a = ' ';
+		*e = ' ';
+	      }
+	    }
+	    a = e + 1;
+	  }
+	}
+      }
+
       if (strchr(Char(ns), '\002')) {
 	/* Look for concatenation tokens */
 	Clear(temp);
@@ -929,6 +980,26 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Printf(temp, "\002%s", aname);
 	Append(tempa, "\002\003");
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
+	if (isvarargs && i == l - 1 && Len(arg) == 0) {
+	  // ## followed by a zero length varargs macro argument - if preceded
+	  // by a comma (possibly with whitespace in between) we nuke the
+	  // comma.
+	  char *s = Char(ns);
+	  char *a = s + 1;
+	  while ((a = strstr(a, "\002\003")) != NULL) {
+	    char *t = a;
+	    while (--t >= s) {
+	      if (!isspace((unsigned char)*t)) {
+		if (*t == ',') *t = ' ';
+		break;
+	      }
+	    }
+	    // Advance 3 since we're only interested in \002\003 when it could
+	    // be preceded by a comma.
+	    a += 3;
+	  }
+	}
+
 	Clear(temp);
 	Clear(tempa);
 	Printf(temp, "%s\002", aname);
@@ -975,36 +1046,6 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Delete(marg);
       }
 
-      if (isvarargs && i == l - 1 && Len(arg) == 0) {
-	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
-	char *a, *s, *t, *name;
-	int namelen;
-	s = Char(ns);
-	name = Char(aname);
-	namelen = Len(aname);
-	a = strstr(s, name);
-	while (a) {
-	  char ca = a[namelen];
-	  if (!isidchar((int) ca)) {
-	    /* Matched the entire vararg name, not just a prefix */
-	    if (a > s) {
-	      t = a - 1;
-	      if (*t == '\002') {
-		t--;
-		while (t >= s) {
-		  if (isspace((int) *t))
-		    t--;
-		  else if (*t == ',') {
-		    *t = ' ';
-		  } else
-		    break;
-		}
-	      }
-	    }
-	  }
-	  a = strstr(a + namelen, name);
-	}
-      }
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
       Replace(ns, aname, reparg, DOH_REPLACE_ID);	/* Replace expanded args */
       Replace(ns, "\003", arg, DOH_REPLACE_ANY);	/* Replace unexpanded arg */
@@ -1378,11 +1419,10 @@ static void addline(DOH *s1, DOH *s2, int allow) {
   if (allow) {
     Append(s1, s2);
   } else {
-    char *c = Char(s2);
-    while (*c) {
-      if (*c == '\n')
+    int len = Len(s2);
+    for (int i = 0; i < len; ++i) {
+      if (Char(s2)[i] == '\n')
 	Putc('\n', s1);
-      c++;
     }
   }
 }
@@ -1590,10 +1630,10 @@ state1:
 	state = 45;
       } else if (c == '\"') {
 	Putc(c, value);
-	skip_tochar(s, '\"', value);
+	skip_tochar_or_eol(s, '\"', value);
       } else if (c == '\'') {
 	Putc(c, value);
-	skip_tochar(s, '\'', value);
+	skip_tochar_or_eol(s, '\'', value);
       } else {
 	Putc(c, value);
 	if (c == '\\')

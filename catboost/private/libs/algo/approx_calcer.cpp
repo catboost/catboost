@@ -12,6 +12,7 @@
 #include "yetirank_helpers.h"
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/quantile.h>
@@ -584,7 +585,7 @@ static void UpdateApproxDeltasHistoricallyImpl(
                 approxDers[rowIdx - rowStart], rowWeight, /* updateWeight */ true, &leafDer);
             double approxDelta = CalcMethodDelta<EstimationMethod>(leafDer, l2Regularizer, sumWeights, rowIdx);
             if (UseExpApprox) {
-                FastExpInplace(&approxDelta, /*count*/ 1);
+                NCB::FastExpWithInfInplace(&approxDelta, /*count*/ 1);
             }
             approxDeltas[rowIdx] = UpdateApprox<UseExpApprox>(approxDeltas[rowIdx], approxDelta);
         }

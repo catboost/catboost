@@ -34,7 +34,7 @@
 #pragma once
 #pragma clang system_header
 #if defined(__clang__) && !defined(__NVCC__)
-#include <contrib/libs/clang14/lib/Headers/cuda_wrappers/new>
+#include <cuda_wrappers/new>
 #endif
 
 

@@ -1,4 +1,4 @@
-from setuptools.extern.more_itertools import consume  # noqa: F401
+from more_itertools import consume  # noqa: F401
 
 
 # copied from jaraco.itertools 6.1

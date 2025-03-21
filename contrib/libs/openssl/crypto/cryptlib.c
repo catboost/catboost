@@ -94,6 +94,7 @@ static variant_char *ossl_strchr(const variant_char *str, char srch)
 #  define OPENSSL_CPUID_SETUP
 typedef uint64_t IA32CAP;
 
+__attribute__((no_sanitize("memory", "address")))
 void OPENSSL_cpuid_setup(void)
 {
     static int trigger = 0;

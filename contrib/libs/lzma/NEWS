@@ -2,10 +2,56 @@
 XZ Utils Release Notes
 ======================
 
+5.6.4 (2025-01-23)
+
+    * liblzma: Fix LZMA/LZMA2 encoder on big endian ARM64.
+
+    * xz:
+
+        - Fix --filters= and --filters1= ... --filters9= options
+          parsing. They require an argument, thus "xz --filters lzma2"
+          should work in addition to "xz --filters=lzma2".
+
+        - On the man page, note in the --compress and --decompress
+          options that the default behavior is to delete the input
+          file unless writing to standard output. It was already
+          documented in the DESCRIPTION section but new users in
+          a hurry might miss it.
+
+    * Windows (native builds, not Cygwin): Fix regressions introduced
+      in XZ Utils 5.6.3 which caused non-ASCII characters to display
+      incorrectly. Only builds with translation support were affected
+      (--enable-nls or ENABLE_NLS=ON). The following changes affect
+      builds that have translations enabled:
+
+        - Require UCRT because MSVCRT doesn't support UTF-8
+          locales and thus translations won't be readable on
+          Windows 10 version 1903 and later. (MSVCRT builds
+          are still possible with --disable-nls or ENABLE_NLS=OFF.)
+
+        - Require gettext-runtime >= 0.23.1 because older versions
+          don't autodetect the use of the UTF-8 code page. This
+          resulted in garbled non-ASCII characters even with UCRT.
+
+        - Partially fix alignment issues in xz --verbose --list
+          with translated messages. Chinese (simplified),
+          Chinese (traditional), and Korean column headings
+          are misaligned still because Windows and MinGW-w64
+          don't provide wcwidth() and XZ Utils doesn't include
+          a replacement function either.
+
+    * CMake: Explicitly disable unity builds. This prevents build
+      failures when another project uses XZ Utils via CMake's
+      FetchContent module, and that project enables unity builds.
+
+    * Update Chinese (traditional) and Serbian translations.
+
+
 5.6.3 (2024-10-01)
 
     IMPORTANT: This includes a Windows-specific security fix to
-    the command line tools. liblzma isn't affected by this issue.
+    the command line tools (CVE-2024-47611). liblzma isn't affected
+    by this issue.
 
     * liblzma:
 
@@ -55,6 +101,7 @@ XZ Utils Release Notes
               which can be exploited with malicious filenames to do
               argument injection or directory traversal attacks.
               UTF-8 avoids best-fit mappings and thus fixes the issue.
+              (CVE-2024-47611)
 
               Forcing the process code page to UTF-8 is possible only
               on Windows 10 version 1903 and later. The command line
