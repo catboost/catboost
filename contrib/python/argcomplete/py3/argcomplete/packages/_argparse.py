@@ -75,7 +75,7 @@ class IntrospectiveArgumentParser(ArgumentParser):
     except for the lines that contain the string "Added by argcomplete".
     '''
 
-    def _parse_known_args(self, arg_strings, namespace, intermixed=False):
+    def _parse_known_args(self, arg_strings, namespace, intermixed=False, **kwargs):
         _num_consumed_args.clear()  # Added by argcomplete
         self._argcomplete_namespace = namespace
         self.active_actions: List[Action] = []  # Added by argcomplete

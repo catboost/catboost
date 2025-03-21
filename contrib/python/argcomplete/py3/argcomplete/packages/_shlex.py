@@ -36,7 +36,7 @@ class shlex:
         else:
             self.eof = ''
         self.commenters = '#'
-        self.wordchars = 'abcdfeghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+        self.wordchars = 'abcdfeghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
         # Modified by argcomplete: 2/3 compatibility
         # if self.posix:
         #     self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'

@@ -124,6 +124,12 @@ __python_argcomplete_which() {
 _python_argcomplete_global() {
 
     if [[ -n "${ZSH_VERSION-}" ]]; then
+        if [[ "${_matcher_num-}" -gt 1 ]]; then
+            # Return early if the completer is called multiple times in the same completion run.
+            # Currently the only known occurrence of this is in zsh when a matcher-list zstyle is declared.
+            # When this happens, _matcher_num is incremented past 1.
+            return
+        fi
         # Store result of a regex match in the
         # BASH_REMATCH variable rather than MATCH
         setopt local_options BASH_REMATCH
