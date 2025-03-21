@@ -11,7 +11,7 @@ from typing import Sequence
 import dask.dataframe as dd
 
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
-from narwhals._expression_parsing import is_simple_aggregation
+from narwhals._expression_parsing import is_elementary_expression
 
 try:
     import dask.dataframe.dask_expr as dx
@@ -121,7 +121,7 @@ def agg_dask(
     all_simple_aggs = True
     for expr in exprs:
         if not (
-            is_simple_aggregation(expr)
+            is_elementary_expression(expr)
             and re.sub(r"(\w+->)", "", expr._function_name) in POLARS_TO_DASK_AGGREGATIONS
         ):
             all_simple_aggs = False

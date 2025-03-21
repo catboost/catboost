@@ -2142,14 +2142,15 @@ def when(*predicates: IntoExpr | Iterable[IntoExpr]) -> When:
     """Start a `when-then-otherwise` expression.
 
     Expression similar to an `if-else` statement in Python. Always initiated by a
-    `pl.when(<condition>).then(<value if condition>)`, and optionally followed by
-    chaining one or more `.when(<condition>).then(<value>)` statements.
-    Chained when-then operations should be read as Python `if, elif, ... elif`
-    blocks, not as `if, if, ... if`, i.e. the first condition that evaluates to
-    `True` will be picked.
-    If none of the conditions are `True`, an optional
-    `.otherwise(<value if all statements are false>)` can be appended at the end.
-    If not appended, and none of the conditions are `True`, `None` will be returned.
+    `pl.when(<condition>).then(<value if condition>)`, and optionally followed by a
+    `.otherwise(<value if condition is false>)` can be appended at the end. If not
+    appended, and the condition is not `True`, `None` will be returned.
+
+    !!! info
+
+        Chaining multiple `.when(<condition>).then(<value>)` statements is currently
+        not supported.
+        See [Narwhals#668](https://github.com/narwhals-dev/narwhals/issues/668).
 
     Arguments:
         predicates: Condition(s) that must be met in order to apply the subsequent

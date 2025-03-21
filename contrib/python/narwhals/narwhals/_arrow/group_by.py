@@ -12,7 +12,7 @@ import pyarrow.compute as pc
 
 from narwhals._arrow.utils import extract_py_scalar
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
-from narwhals._expression_parsing import is_simple_aggregation
+from narwhals._expression_parsing import is_elementary_expression
 from narwhals.utils import generate_temporary_column_name
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ class ArrowGroupBy:
         all_simple_aggs = True
         for expr in exprs:
             if not (
-                is_simple_aggregation(expr)
+                is_elementary_expression(expr)
                 and re.sub(r"(\w+->)", "", expr._function_name)
                 in POLARS_TO_ARROW_AGGREGATIONS
             ):

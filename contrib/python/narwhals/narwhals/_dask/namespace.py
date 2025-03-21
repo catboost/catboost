@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import operator
+from functools import partial
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
@@ -25,7 +26,9 @@ from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
 from narwhals.typing import CompliantNamespace
 from narwhals.utils import Implementation
+from narwhals.utils import exclude_column_names
 from narwhals.utils import get_column_names
+from narwhals.utils import passthrough_column_names
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -53,43 +56,25 @@ class DaskNamespace(CompliantNamespace[DaskLazyFrame, "dx.Series"]):  # pyright:
         self._version = version
 
     def all(self: Self) -> DaskExpr:
-        def func(df: DaskLazyFrame) -> list[dx.Series]:
-            return [df._native_frame[column_name] for column_name in df.columns]
-
-        return DaskExpr(
-            func,
-            depth=0,
+        return DaskExpr.from_column_names(
+            get_column_names,
             function_name="all",
-            evaluate_output_names=get_column_names,
-            alias_output_names=None,
             backend_version=self._backend_version,
             version=self._version,
         )
 
     def col(self: Self, *column_names: str) -> DaskExpr:
         return DaskExpr.from_column_names(
-            *column_names, backend_version=self._backend_version, version=self._version
+            passthrough_column_names(column_names),
+            function_name="col",
+            backend_version=self._backend_version,
+            version=self._version,
         )
 
     def exclude(self: Self, excluded_names: Container[str]) -> DaskExpr:
-        def evaluate_output_names(df: DaskLazyFrame) -> Sequence[str]:
-            return [
-                column_name
-                for column_name in df.columns
-                if column_name not in excluded_names
-            ]
-
-        def func(df: DaskLazyFrame) -> list[dx.Series]:
-            return [
-                df._native_frame[column_name] for column_name in evaluate_output_names(df)
-            ]
-
-        return DaskExpr(
-            func,
-            depth=0,
+        return DaskExpr.from_column_names(
+            partial(exclude_column_names, names=excluded_names),
             function_name="exclude",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
             backend_version=self._backend_version,
             version=self._version,
         )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import operator
+from functools import partial
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
@@ -19,7 +20,9 @@ from narwhals._spark_like.selectors import SparkLikeSelectorNamespace
 from narwhals._spark_like.utils import maybe_evaluate_expr
 from narwhals._spark_like.utils import narwhals_to_native_dtype
 from narwhals.typing import CompliantNamespace
+from narwhals.utils import exclude_column_names
 from narwhals.utils import get_column_names
+from narwhals.utils import passthrough_column_names
 
 if TYPE_CHECKING:
     from pyspark.sql import Column
@@ -48,46 +51,30 @@ class SparkLikeNamespace(CompliantNamespace["SparkLikeLazyFrame", "Column"]):  #
         return SparkLikeSelectorNamespace(self)
 
     def all(self: Self) -> SparkLikeExpr:
-        def _all(df: SparkLikeLazyFrame) -> list[Column]:
-            return [df._F.col(col_name) for col_name in df.columns]
-
-        return SparkLikeExpr(
-            call=_all,
+        return SparkLikeExpr.from_column_names(
+            get_column_names,
             function_name="all",
-            evaluate_output_names=get_column_names,
-            alias_output_names=None,
+            implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
-            implementation=self._implementation,
         )
 
     def col(self: Self, *column_names: str) -> SparkLikeExpr:
         return SparkLikeExpr.from_column_names(
-            *column_names,
+            passthrough_column_names(column_names),
+            function_name="col",
+            implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
-            implementation=self._implementation,
         )
 
     def exclude(self: Self, excluded_names: Container[str]) -> SparkLikeExpr:
-        def evaluate_output_names(df: SparkLikeLazyFrame) -> Sequence[str]:
-            return [
-                column_name
-                for column_name in df.columns
-                if column_name not in excluded_names
-            ]
-
-        def func(df: SparkLikeLazyFrame) -> list[Column]:
-            return [df._F.col(column_name) for column_name in evaluate_output_names(df)]
-
-        return SparkLikeExpr(
-            func,
+        return SparkLikeExpr.from_column_names(
+            partial(exclude_column_names, names=excluded_names),
             function_name="exclude",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
+            implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
-            implementation=self._implementation,
         )
 
     def nth(self: Self, *column_indices: int) -> SparkLikeExpr:

@@ -31,13 +31,18 @@ if TYPE_CHECKING:
     from typing_extensions import Concatenate
     from typing_extensions import ParamSpec
     from typing_extensions import Self
+    from typing_extensions import TypeAlias
 
     from narwhals.dtypes import DType
     from narwhals.typing import CompliantExpr
+    from narwhals.typing import CompliantNamespace
     from narwhals.typing import IntoExpr
 
     PS = ParamSpec("PS")
     R = TypeVar("R")
+    _ToCompliant: TypeAlias = Callable[
+        [CompliantNamespace[Any, Any]], CompliantExpr[Any, Any]
+    ]
 
 
 class Expr:
@@ -47,7 +52,7 @@ class Expr:
         metadata: ExprMetadata,
     ) -> None:
         # callable from CompliantNamespace to CompliantExpr
-        self._to_compliant_expr = to_compliant_expr
+        self._to_compliant_expr: _ToCompliant = to_compliant_expr
         self._metadata = metadata
 
     def _from_callable(self, to_compliant_expr: Callable[[Any], Any]) -> Self:
@@ -608,7 +613,7 @@ class Expr:
 
     def map_batches(
         self: Self,
-        function: Callable[[Any], Self],
+        function: Callable[[Any], CompliantExpr[Any, Any]],
         return_dtype: DType | None = None,
     ) -> Self:
         """Apply a custom python function to a whole Series or sequence of Series.

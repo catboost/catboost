@@ -77,11 +77,7 @@ def evaluate_into_exprs(
     *exprs: CompliantExpr[CompliantFrameT, CompliantSeriesT_co],
 ) -> list[CompliantSeriesT_co]:
     """Evaluate each expr into Series."""
-    return [
-        item
-        for sublist in (evaluate_into_expr(df, into_expr) for into_expr in exprs)
-        for item in sublist
-    ]
+    return list(chain.from_iterable(evaluate_into_expr(df, expr) for expr in exprs))
 
 
 @overload
@@ -145,7 +141,6 @@ def reuse_series_implementation(
         attr: name of method.
         returns_scalar: whether the Series version returns a scalar. In this case,
             the expression version should return a 1-row Series.
-        args: arguments to pass to function.
         call_kwargs: non-expressifiable args which we may need to reuse in `agg` or `over`,
             such as `ddof` for `std` and `var`.
         expressifiable_args: keyword arguments to pass to function, which may
@@ -222,7 +217,6 @@ def reuse_series_namespace_implementation(
         expr: expression object.
         series_namespace: The Series namespace (e.g. `dt`, `cat`, `str`, `list`, `name`)
         attr: name of method.
-        args: arguments to pass to function.
         kwargs: keyword arguments to pass to function.
     """
     plx = expr.__narwhals_namespace__()
@@ -238,8 +232,8 @@ def reuse_series_namespace_implementation(
     )
 
 
-def is_simple_aggregation(expr: CompliantExpr[Any, Any]) -> bool:
-    """Check if expr is a very simple one.
+def is_elementary_expression(expr: CompliantExpr[Any, Any]) -> bool:
+    """Check if expr is elementary.
 
     Examples:
         - nw.col('a').mean()  # depth 1
@@ -250,7 +244,8 @@ def is_simple_aggregation(expr: CompliantExpr[Any, Any]) -> bool:
 
         - nw.col('a').filter(nw.col('b')>nw.col('c')).max()
 
-    because then, we can use a fastpath in pandas.
+    Elementary expressions are the only ones supported properly in
+    pandas, PyArrow, and Dask.
     """
     return expr._depth < 2
 

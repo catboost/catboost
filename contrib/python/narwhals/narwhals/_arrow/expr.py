@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Literal
+from typing import Mapping
 from typing import Sequence
 
 from narwhals._arrow.expr_cat import ArrowExprCatNamespace
@@ -21,6 +22,7 @@ from narwhals.dependencies import is_numpy_array
 from narwhals.exceptions import ColumnNotFoundError
 from narwhals.typing import CompliantExpr
 from narwhals.utils import Implementation
+from narwhals.utils import not_implemented
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -87,12 +89,13 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
     @classmethod
     def from_column_names(
         cls: type[Self],
-        *column_names: str,
+        evaluate_column_names: Callable[[ArrowDataFrame], Sequence[str]],
+        /,
+        *,
+        function_name: str,
         backend_version: tuple[int, ...],
         version: Version,
     ) -> Self:
-        from narwhals._arrow.series import ArrowSeries
-
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
             try:
                 return [
@@ -102,10 +105,12 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
                         backend_version=df._backend_version,
                         version=df._version,
                     )
-                    for column_name in column_names
+                    for column_name in evaluate_column_names(df)
                 ]
             except KeyError as e:
-                missing_columns = [x for x in column_names if x not in df.columns]
+                missing_columns = [
+                    x for x in evaluate_column_names(df) if x not in df.columns
+                ]
                 raise ColumnNotFoundError.from_missing_and_available_column_names(
                     missing_columns=missing_columns, available_columns=df.columns
                 ) from e
@@ -113,8 +118,8 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         return cls(
             func,
             depth=0,
-            function_name="col",
-            evaluate_output_names=lambda _df: column_names,
+            function_name=function_name,
+            evaluate_output_names=evaluate_column_names,
             alias_output_names=None,
             backend_version=backend_version,
             version=version,
@@ -259,7 +264,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
     def skew(self: Self) -> Self:
         return reuse_series_implementation(self, "skew", returns_scalar=True)
 
-    def cast(self: Self, dtype: DType) -> Self:
+    def cast(self: Self, dtype: DType | type[DType]) -> Self:
         return reuse_series_implementation(self, "cast", dtype=dtype)
 
     def abs(self: Self) -> Self:
@@ -382,7 +387,11 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         return reuse_series_implementation(self, "unique", maintain_order=False)
 
     def replace_strict(
-        self: Self, old: Sequence[Any], new: Sequence[Any], *, return_dtype: DType | None
+        self: Self,
+        old: Sequence[Any] | Mapping[Any, Any],
+        new: Sequence[Any],
+        *,
+        return_dtype: DType | type[DType] | None,
     ) -> Self:
         return reuse_series_implementation(
             self, "replace_strict", old=old, new=new, return_dtype=return_dtype
@@ -414,7 +423,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
             self, "clip", lower_bound=lower_bound, upper_bound=upper_bound
         )
 
-    def over(self: Self, keys: list[str], kind: ExprKind) -> Self:
+    def over(self: Self, keys: Sequence[str], kind: ExprKind) -> Self:
         if not is_scalar_like(kind):
             msg = "Only aggregation or literal operations are supported in `over` context for PyArrow."
             raise NotImplementedError(msg)
@@ -431,8 +440,9 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
                 raise NotImplementedError(msg)
 
             tmp = df.group_by(*keys, drop_null_keys=False).agg(self)
+            on = list(keys)
             tmp = df.simple_select(*keys).join(
-                tmp, how="left", left_on=keys, right_on=keys, suffix="_right"
+                tmp, how="left", left_on=on, right_on=on, suffix="_right"
             )
             return [tmp[alias] for alias in aliases]
 
@@ -452,7 +462,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
     def map_batches(
         self: Self,
         function: Callable[[Any], Any],
-        return_dtype: DType | None,
+        return_dtype: DType | type[DType] | None,
     ) -> Self:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
             input_series_list = self._call(df)
@@ -575,6 +585,8 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         return reuse_series_implementation(
             self, "rank", method=method, descending=descending
         )
+
+    ewm_mean = not_implemented()
 
     @property
     def dt(self: Self) -> ArrowExprDateTimeNamespace:

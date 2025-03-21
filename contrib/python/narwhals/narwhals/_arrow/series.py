@@ -403,18 +403,28 @@ class ArrowSeries(CompliantSeries):
     def scatter(self: Self, indices: int | Sequence[int], values: Any) -> Self:
         import numpy as np  # ignore-banned-import
 
-        mask: _1DArray = np.zeros(self.len(), dtype=bool)
-        mask[indices] = True
-        if isinstance(values, self.__class__):
-            ser, values = extract_native(self, values)
+        if isinstance(indices, int):
+            indices_native = pa.array([indices])
+            values_native = pa.array([values])
         else:
-            ser = self._native_series
-        if isinstance(values, pa.ChunkedArray):
-            values = values.combine_chunks()
-        if not isinstance(values, pa.Array):
-            values = pa.array(values)
+            # TODO(unassigned): we may also want to let `indices` be a Series.
+            # https://github.com/narwhals-dev/narwhals/issues/2155
+            indices_native = pa.array(indices)
+            if isinstance(values, self.__class__):
+                values_native = values._native_series.combine_chunks()
+            else:
+                values_native = pa.array(values)
+
+        sorting_indices = pc.sort_indices(indices_native)  # type: ignore[call-overload]
+        indices_native = pc.take(indices_native, sorting_indices)
+        values_native = pc.take(values_native, sorting_indices)
+
+        mask: _1DArray = np.zeros(self.len(), dtype=bool)
+        mask[indices_native] = True
         result = pc.replace_with_mask(
-            ser, cast("list[bool]", mask), values.take(cast("Indices", indices))
+            self._native_series,
+            cast("list[bool]", mask),
+            values_native.take(cast("Indices", indices_native)),
         )
         return self._from_native_series(result)
 
@@ -519,7 +529,7 @@ class ArrowSeries(CompliantSeries):
     def is_nan(self: Self) -> Self:
         return self._from_native_series(pc.is_nan(self._native_series))
 
-    def cast(self: Self, dtype: DType) -> Self:
+    def cast(self: Self, dtype: DType | type[DType]) -> Self:
         ser = self._native_series
         data_type = narwhals_to_native_dtype(dtype, self._version)
         return self._from_native_series(pc.cast(ser, data_type))

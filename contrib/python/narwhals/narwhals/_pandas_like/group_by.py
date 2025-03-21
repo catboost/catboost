@@ -8,7 +8,7 @@ from typing import Any
 from typing import Iterator
 
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
-from narwhals._expression_parsing import is_simple_aggregation
+from narwhals._expression_parsing import is_elementary_expression
 from narwhals._pandas_like.utils import horizontal_concat
 from narwhals._pandas_like.utils import native_series_from_iterable
 from narwhals._pandas_like.utils import select_columns_by_name
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from narwhals._pandas_like.dataframe import PandasLikeDataFrame
     from narwhals._pandas_like.expr import PandasLikeExpr
 
-POLARS_TO_PANDAS_AGGREGATIONS = {
+AGGREGATIONS_TO_PANDAS_EQUIVALENT = {
     "sum": "sum",
     "mean": "mean",
     "median": "median",
@@ -84,9 +84,9 @@ class PandasLikeGroupBy:
             new_names.extend(aliases)
 
             if not (
-                is_simple_aggregation(expr)
+                is_elementary_expression(expr)
                 and re.sub(r"(\w+->)", "", expr._function_name)
-                in POLARS_TO_PANDAS_AGGREGATIONS
+                in AGGREGATIONS_TO_PANDAS_EQUIVALENT
             ):
                 all_aggs_are_simple = False
 
@@ -115,7 +115,7 @@ class PandasLikeGroupBy:
                 )
                 if expr._depth == 0:
                     # e.g. agg(nw.len()) # noqa: ERA001
-                    function_name = POLARS_TO_PANDAS_AGGREGATIONS.get(
+                    function_name = AGGREGATIONS_TO_PANDAS_EQUIVALENT.get(
                         expr._function_name, expr._function_name
                     )
                     simple_aggs_functions.add(function_name)
@@ -128,7 +128,7 @@ class PandasLikeGroupBy:
 
                 # e.g. agg(nw.mean('a')) # noqa: ERA001
                 function_name = re.sub(r"(\w+->)", "", expr._function_name)
-                function_name = POLARS_TO_PANDAS_AGGREGATIONS.get(
+                function_name = AGGREGATIONS_TO_PANDAS_EQUIVALENT.get(
                     function_name, function_name
                 )
 

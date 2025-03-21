@@ -24,6 +24,7 @@ from narwhals._duckdb.utils import narwhals_to_native_dtype
 from narwhals._expression_parsing import ExprKind
 from narwhals.typing import CompliantExpr
 from narwhals.utils import Implementation
+from narwhals.utils import not_implemented
 
 if TYPE_CHECKING:
     import duckdb
@@ -79,17 +80,20 @@ class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type
     @classmethod
     def from_column_names(
         cls: type[Self],
-        *column_names: str,
+        evaluate_column_names: Callable[[DuckDBLazyFrame], Sequence[str]],
+        /,
+        *,
+        function_name: str,
         backend_version: tuple[int, ...],
         version: Version,
     ) -> Self:
-        def func(_: DuckDBLazyFrame) -> list[duckdb.Expression]:
-            return [ColumnExpression(col_name) for col_name in column_names]
+        def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
+            return [ColumnExpression(col_name) for col_name in evaluate_column_names(df)]
 
         return cls(
             func,
-            function_name="col",
-            evaluate_output_names=lambda _df: column_names,
+            function_name=function_name,
+            evaluate_output_names=evaluate_column_names,
             alias_output_names=None,
             backend_version=backend_version,
             version=version,
@@ -479,3 +483,36 @@ class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type
     @property
     def list(self: Self) -> DuckDBExprListNamespace:
         return DuckDBExprListNamespace(self)
+
+    arg_min = not_implemented()
+    arg_max = not_implemented()
+    arg_true = not_implemented()
+    head = not_implemented()
+    tail = not_implemented()
+    mode = not_implemented()
+    sort = not_implemented()
+    rank = not_implemented()
+    sample = not_implemented()
+    map_batches = not_implemented()
+    ewm_mean = not_implemented()
+    rolling_sum = not_implemented()
+    rolling_mean = not_implemented()
+    rolling_var = not_implemented()
+    rolling_std = not_implemented()
+    gather_every = not_implemented()
+    drop_nulls = not_implemented()
+    diff = not_implemented()
+    unique = not_implemented()
+    shift = not_implemented()
+    is_unique = not_implemented()
+    is_first_distinct = not_implemented()
+    is_last_distinct = not_implemented()
+    cum_sum = not_implemented()
+    cum_count = not_implemented()
+    cum_min = not_implemented()
+    cum_max = not_implemented()
+    cum_prod = not_implemented()
+    replace_strict = not_implemented()
+    over = not_implemented()
+
+    cat = not_implemented()  # pyright: ignore[reportAssignmentType]

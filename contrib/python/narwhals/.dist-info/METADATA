@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: narwhals
-Version: 1.29.0
+Version: 1.29.1
 Summary: Extremely lightweight compatibility layer between dataframe libraries
 Project-URL: Homepage, https://github.com/narwhals-dev/narwhals
 Project-URL: Documentation, https://narwhals-dev.github.io/narwhals/
