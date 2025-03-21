@@ -220,8 +220,13 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         case ELossFunction::Tweedie: {
             CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("variance_power"), "Param variance_power is mandatory for Tweedie loss");
             defaultEstimationMethod = ELeavesEstimation::Newton;
-            defaultNewtonIterations = 1;
-            defaultGradientIterations = 1;
+            if (taskType == ETaskType::CPU) {
+                defaultNewtonIterations = 1;
+                defaultGradientIterations = 1;
+            } else {
+                defaultNewtonIterations = 20;
+                defaultGradientIterations = 20;
+            }
             break;
         }
         case ELossFunction::Focal: {
