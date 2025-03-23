@@ -39,8 +39,8 @@ RUN apt-get install -y python-is-python3
 # Update pip
 RUN pip3 install --upgrade pip
 
-# Update setuptools and wheel
-RUN pip3 install --upgrade 'setuptools>=64.0' wheel
+# Update setuptools, wheel and build
+RUN pip3 install --upgrade 'setuptools>=64.0' wheel build
 
 # Install jupyterlab for catboost-widget
 RUN pip3 install jupyterlab==3.0.6
@@ -50,6 +50,10 @@ RUN pip3 install 'cmake>=3.24.0'
 
 # Install Conan 2.4.1
 RUN pip3 install conan==2.4.1
+
+RUN pip3 install cython==3.0.12
+
+RUN pip3 install numpy
 
 # Install Ninja
 RUN pip3 install ninja
