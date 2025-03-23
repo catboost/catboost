@@ -51,6 +51,8 @@ RUN pip3 install 'cmake>=3.24.0'
 # Install Conan 2.4.1
 RUN pip3 install conan==2.4.1
 
+RUN pip3 install cython==3.0.12
+
 # Install Ninja
 RUN pip3 install ninja
 
