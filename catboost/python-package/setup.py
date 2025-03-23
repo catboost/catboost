@@ -95,7 +95,18 @@ def setup_hnsw_submodule(argv, extensions):
 
 
 def get_setup_requires(argv):
-    setup_requires = ['wheel', 'cython', 'numpy (>=1.16.0, <2.0)']
+    setup_requires = ['wheel']
+
+    # numpy definitions for cython have been moved from cython itself to numpy so now numpy is required for setup as well
+    # https://github.com/cython/cython/issues/6249#issuecomment-2176633822
+    if sys.version_info < (3, 9):
+        setup_requires += ['cython', 'numpy']
+    else:
+        # Numpy 2.x is compatible only with Python 3.9+ and packages built with numpy 2.x will work with numpy 1.x as well
+        # technically you could still try to use older cython and numpy versions but the built packages will be
+        # compatible with numpy 1.x only, so it is easier to just prohibit it to avoid unnecessary complications
+        setup_requires += ['cython >= 3', 'numpy >= 2']
+
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
         setup_requires += ['jupyterlab (>=3.0.6, <3.6.0)']
     return setup_requires
@@ -763,7 +774,7 @@ if __name__ == '__main__':
         install_requires=[
             'graphviz',
             'matplotlib',
-            'numpy (>=1.16.0, <2.0)',
+            'numpy (>=1.16.0, <3.0)',
             'pandas (>=0.24)',
             'scipy',
             'plotly',

@@ -53,3 +53,11 @@ runs:
         name: catboost-python-package-dist-cp312-cp312-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
         path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp312-cp312-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
+
+    - name: Upload python package artifact for cp313-cp313-${{ inputs.platform_tag }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: catboost-python-package-dist-cp313-cp313-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp313-cp313-${{ inputs.platform_tag }}.whl
+        retention-days: ${{ inputs.artifact_retention_days }}
+
