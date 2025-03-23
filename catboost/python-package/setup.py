@@ -95,7 +95,7 @@ def setup_hnsw_submodule(argv, extensions):
 
 
 def get_setup_requires(argv):
-    setup_requires = ['wheel', 'cython']
+    setup_requires = ['wheel', 'cython', 'numpy (>=1.16.0, <2.0)']
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
         setup_requires += ['jupyterlab (>=3.0.6, <3.6.0)']
     return setup_requires
@@ -150,7 +150,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'cmake',
         os.path.join('contrib', 'deprecated'),
         os.path.join('contrib', 'libs'),
-        os.path.join('contrib', 'python', 'numpy'),
         os.path.join('contrib', 'restricted'),
         os.path.join('contrib', 'tools', 'protoc'),
         os.path.join('contrib', 'tools', 'swig'),
@@ -184,14 +183,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         else:
             distutils.dir_util.mkpath(os.path.dirname(dst))
             distutils.file_util.copy_file(src, dst, update=1, verbose=verbose, dry_run=dry_run)
-
-    # TODO: proper automatic dependencies
-    contrib_python_cmakelists_txt = os.path.join(pkgdir, 'contrib', 'python', 'CMakeLists.txt')
-    if verbose:
-        log.info(f'Creating {contrib_python_cmakelists_txt} with numpy')
-    if not dry_run:
-        with open(contrib_python_cmakelists_txt, 'w') as f:
-            f.write('add_subdirectory(numpy)')
 
 
 def emph(s):

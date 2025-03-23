@@ -12,6 +12,21 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+# Unfortunately, standard FindPython3 CMake module does not support Interpreter and NumPy COMPONENTS
+# from different Python installations that prevents CI building for multiple Python versions and
+# Cross-compilation, so we'll handle these special cases by setting ${Python3_NumPy_INCLUDE_DIRS} explicitly
+if(Python3_NumPy_INCLUDE_DIR)
+  if(EXISTS "${Python3_NumPy_INCLUDE_DIR}" AND IS_DIRECTORY "${Python3_NumPy_INCLUDE_DIR}")
+    set(Python3_NumPy_INCLUDE_DIRS ${Python3_NumPy_INCLUDE_DIR})
+  else()
+    message(FATAL_ERROR "Python3_NumPy_INCLUDE_DIR=\"${Python3_NumPy_INCLUDE_DIR}\" does not exist.")
+  endif()
+else()
+  find_package(Python3 REQUIRED COMPONENTS
+    Development NumPy
+  )
+endif()
+
 find_package(Python3 REQUIRED COMPONENTS
   Development
 )
@@ -28,7 +43,6 @@ target_link_libraries(_hnsw PUBLIC
   contrib-libs-cxxsupp
   yutil
   Python3::Module
-  python-numpy-include
   cpp-hnsw-helpers
   cpp-hnsw-index
   cpp-hnsw-index_builder
@@ -75,8 +89,6 @@ target_cython_options(_hnsw
 target_cython_include_directories(_hnsw
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
 
 set_python_type_for_cython(_hnsw
@@ -84,3 +96,11 @@ set_python_type_for_cython(_hnsw
 )
 
 vcs_info(_hnsw)
+
+target_include_directories(_hnsw PRIVATE
+  ${Python3_NumPy_INCLUDE_DIRS}
+)
+
+target_cython_include_directories(_hnsw
+  ${Python3_NumPy_INCLUDE_DIRS}
+)
