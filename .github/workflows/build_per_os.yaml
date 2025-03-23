@@ -111,7 +111,7 @@ jobs:
 
           for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13
           do
-              $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel 'numpy<2' cython==3.0.12
+              $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           done
 
           mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-arm64
@@ -176,7 +176,7 @@ jobs:
           New-Item -Path .\3.13 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64"
 
           foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13') {
-            & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel 'numpy<2' cython==3.0.12
+            & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           }
 
           # CUDA
