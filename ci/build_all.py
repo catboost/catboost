@@ -595,6 +595,9 @@ def build_all_for_one_platform(
         )
 
         if not only_native_artifacts:
+            # for some reason 'bdist_wheel' sometimes fails to re-run on the same directory with some cached '.eggs'
+            run_in_python_package_dir(src_root_dir, dry_run, verbose, [['cmake', '-E', 'rm', '-rf', '.eggs']])
+
             build_native_sub_dir = os.path.join(
                 build_native_root_dir,
                 'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
