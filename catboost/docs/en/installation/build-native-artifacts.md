@@ -237,6 +237,8 @@ So it is recommended to pass toolchain that will set `clang` and `clang++` as C 
 
 - [`-DPython3_INCLUDE_DIR=<path>`](https://cmake.org/cmake/help/latest/module/FindPython3.html#artifacts-specification) - The path to the directory of the Python headers. Use if specifying `Python3_ROOT_DIR` has not been sufficient (if CMake default search logic has been unable to find this library inside `Python3_ROOT_DIR`)
 
+- [`-DPython3_NumPy_INCLUDE_DIR=<path>`](https://cmake.org/cmake/help/latest/module/FindPython3.html#artifacts-specification) - The path to the directory of the NumPy headers. Use if specifying `Python3_ROOT_DIR` has not been sufficient (if CMake default search logic has been unable to find this library inside `Python3_ROOT_DIR`)
+
 - [`-DCMAKE_FIND_ROOT_PATH=<path>[;<path>]`](https://cmake.org/cmake/help/latest/variable/CMAKE_FIND_ROOT_PATH.html) - Semicolon-separated list of root paths to search on the filesystem. This variable is most useful when cross-compiling.
 
 - [`-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$CATBOOST_SRC_ROOT/cmake/conan_provider.cmake`](https://github.com/conan-io/cmake-conan?tab=readme-ov-file#in-your-own-project) for a proper `conan` integration.

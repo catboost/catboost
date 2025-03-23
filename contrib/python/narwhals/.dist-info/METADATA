@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: narwhals
-Version: 1.28.0
+Version: 1.29.1
 Summary: Extremely lightweight compatibility layer between dataframe libraries
 Project-URL: Homepage, https://github.com/narwhals-dev/narwhals
 Project-URL: Documentation, https://narwhals-dev.github.io/narwhals/
@@ -68,6 +68,8 @@ Provides-Extra: pyarrow
 Requires-Dist: pyarrow>=11.0.0; extra == 'pyarrow'
 Provides-Extra: pyspark
 Requires-Dist: pyspark>=3.5.0; extra == 'pyspark'
+Provides-Extra: sqlframe
+Requires-Dist: sqlframe>=3.22.0; extra == 'sqlframe'
 Provides-Extra: tests
 Requires-Dist: covdefaults; extra == 'tests'
 Requires-Dist: hypothesis; extra == 'tests'

@@ -35,7 +35,7 @@ class SparkLikeLazyGroupBy:
             native_expressions = expr(df)
             exclude = (
                 self._keys
-                if expr._function_name.split("->", maxsplit=1)[0] in ("all", "selector")
+                if expr._function_name.split("->", maxsplit=1)[0] in {"all", "selector"}
                 else []
             )
             agg_columns.extend(

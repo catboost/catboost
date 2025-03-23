@@ -253,7 +253,7 @@ work for zsh as well.
 
 Python Support
 --------------
-Argcomplete requires Python 3.7+.
+Argcomplete requires Python 3.9+.
 
 Support for other shells
 ------------------------

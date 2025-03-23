@@ -9,7 +9,10 @@ from inspect import getattr_static
 from secrets import token_hex
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
+from typing import Container
 from typing import Iterable
+from typing import Literal
 from typing import Sequence
 from typing import TypeVar
 from typing import Union
@@ -26,6 +29,7 @@ from narwhals.dependencies import get_pandas
 from narwhals.dependencies import get_polars
 from narwhals.dependencies import get_pyarrow
 from narwhals.dependencies import get_pyspark_sql
+from narwhals.dependencies import get_sqlframe
 from narwhals.dependencies import is_cudf_series
 from narwhals.dependencies import is_modin_series
 from narwhals.dependencies import is_pandas_dataframe
@@ -45,6 +49,7 @@ if TYPE_CHECKING:
 
     import pandas as pd
     from typing_extensions import Self
+    from typing_extensions import TypeAlias
     from typing_extensions import TypeIs
 
     from narwhals.dataframe import DataFrame
@@ -53,7 +58,7 @@ if TYPE_CHECKING:
     from narwhals.series import Series
     from narwhals.typing import CompliantDataFrame
     from narwhals.typing import CompliantExpr
-    from narwhals.typing import CompliantFrameT_contra
+    from narwhals.typing import CompliantFrameT
     from narwhals.typing import CompliantLazyFrame
     from narwhals.typing import CompliantSeries
     from narwhals.typing import CompliantSeriesT_co
@@ -71,9 +76,15 @@ if TYPE_CHECKING:
     _T1 = TypeVar("_T1")
     _T2 = TypeVar("_T2")
     _T3 = TypeVar("_T3")
+    _Fn = TypeVar("_Fn", bound="Callable[..., Any]")
+
+    _TracksDepth: TypeAlias = "Literal[Implementation.DASK,Implementation.CUDF,Implementation.MODIN,Implementation.PANDAS,Implementation.PYSPARK]"
 
     class _SupportsVersion(Protocol):
         __version__: str
+
+    class _SupportsGet(Protocol):  # noqa: PYI046
+        def __get__(self, instance: Any, owner: Any | None = None, /) -> Any: ...
 
     class _StoresImplementation(Protocol):
         _implementation: Implementation
@@ -101,6 +112,10 @@ if TYPE_CHECKING:
         - `_backend_version`
         - `_version`
         """
+
+    class _StoresColumns(Protocol):
+        @property
+        def columns(self) -> Sequence[str]: ...
 
 
 class Version(Enum):
@@ -157,6 +172,7 @@ class Implementation(Enum):
             get_dask_dataframe(): Implementation.DASK,
             get_duckdb(): Implementation.DUCKDB,
             get_ibis(): Implementation.IBIS,
+            get_sqlframe(): Implementation.SQLFRAME,
         }
         return mapping.get(native_namespace, Implementation.UNKNOWN)
 
@@ -182,6 +198,7 @@ class Implementation(Enum):
             "dask": Implementation.DASK,
             "duckdb": Implementation.DUCKDB,
             "ibis": Implementation.IBIS,
+            "sqlframe": Implementation.SQLFRAME,
         }
         return mapping.get(backend_name, Implementation.UNKNOWN)
 
@@ -244,6 +261,12 @@ class Implementation(Enum):
             import duckdb  # ignore-banned-import
 
             return duckdb
+
+        if self is Implementation.SQLFRAME:
+            import sqlframe  # ignore-banned-import
+
+            return sqlframe
+
         msg = "Not supported Implementation"  # pragma: no cover
         raise AssertionError(msg)
 
@@ -282,6 +305,22 @@ class Implementation(Enum):
             Implementation.MODIN,
             Implementation.CUDF,
         }
+
+    def is_spark_like(self: Self) -> bool:
+        """Return whether implementation is pyspark or sqlframe.
+
+        Returns:
+            Boolean.
+
+        Examples:
+            >>> import pandas as pd
+            >>> import narwhals as nw
+            >>> df_native = pd.DataFrame({"a": [1, 2, 3]})
+            >>> df = nw.from_native(df_native)
+            >>> df.implementation.is_spark_like()
+            False
+        """
+        return self in {Implementation.PYSPARK, Implementation.SQLFRAME}
 
     def is_polars(self: Self) -> bool:
         """Return whether implementation is Polars.
@@ -411,6 +450,22 @@ class Implementation(Enum):
         """
         return self is Implementation.IBIS  # pragma: no cover
 
+    def is_sqlframe(self: Self) -> bool:
+        """Return whether implementation is SQLFrame.
+
+        Returns:
+            Boolean.
+
+        Examples:
+            >>> import polars as pl
+            >>> import narwhals as nw
+            >>> df_native = pl.DataFrame({"a": [1, 2, 3]})
+            >>> df = nw.from_native(df_native)
+            >>> df.implementation.is_sqlframe()
+            False
+        """
+        return self is Implementation.SQLFRAME  # pragma: no cover
+
 
 MIN_VERSIONS: dict[Implementation, tuple[int, ...]] = {
     Implementation.PANDAS: (0, 25, 3),
@@ -422,7 +477,7 @@ MIN_VERSIONS: dict[Implementation, tuple[int, ...]] = {
     Implementation.DASK: (2024, 8),
     Implementation.DUCKDB: (1,),
     Implementation.IBIS: (6,),
-    Implementation.SQLFRAME: (3, 14, 2),
+    Implementation.SQLFRAME: (3, 22, 0),
 }
 
 
@@ -613,8 +668,8 @@ def maybe_align_index(
             msg = "given index doesn't have a unique index"
             raise ValueError(msg)
 
-    lhs_any = cast(Any, lhs)
-    rhs_any = cast(Any, rhs)
+    lhs_any = cast("Any", lhs)
+    rhs_any = cast("Any", rhs)
     if isinstance(
         getattr(lhs_any, "_compliant_frame", None), PandasLikeDataFrame
     ) and isinstance(getattr(rhs_any, "_compliant_frame", None), PandasLikeDataFrame):
@@ -698,7 +753,7 @@ def maybe_get_index(obj: DataFrame[Any] | LazyFrame[Any] | Series[Any]) -> Any |
         >>> nw.maybe_get_index(series)
         RangeIndex(start=0, stop=2, step=1)
     """
-    obj_any = cast(Any, obj)
+    obj_any = cast("Any", obj)
     native_obj = obj_any.to_native()
     if is_pandas_like_dataframe(native_obj) or is_pandas_like_series(native_obj):
         return native_obj.index
@@ -754,7 +809,7 @@ def maybe_set_index(
     """
     from narwhals.translate import to_native
 
-    df_any = cast(Any, obj)
+    df_any = cast("Any", obj)
     native_obj = df_any.to_native()
 
     if column_names is not None and index is not None:
@@ -829,7 +884,7 @@ def maybe_reset_index(obj: FrameOrSeriesT) -> FrameOrSeriesT:
         >>> nw.maybe_get_index(series)
         RangeIndex(start=0, stop=2, step=1)
     """
-    obj_any = cast(Any, obj)
+    obj_any = cast("Any", obj)
     native_obj = obj_any.to_native()
     if is_pandas_like_dataframe(native_obj):
         native_namespace = obj_any.__native_namespace__()
@@ -903,7 +958,7 @@ def maybe_convert_dtypes(
         b           boolean
         dtype: object
     """
-    obj_any = cast(Any, obj)
+    obj_any = cast("Any", obj)
     native_obj = obj_any.to_native()
     if is_pandas_like_dataframe(native_obj):
         return obj_any._from_compliant_dataframe(
@@ -1139,8 +1194,8 @@ def issue_deprecation_warning(message: str, _version: str) -> None:
 
 
 def validate_strict_and_pass_though(
-    strict: bool | None,
-    pass_through: bool | None,
+    strict: bool | None,  # noqa: FBT001
+    pass_through: bool | None,  # noqa: FBT001
     *,
     pass_through_default: bool,
     emit_deprecation_warning: bool,
@@ -1303,12 +1358,29 @@ def dtype_matches_time_unit_and_time_zone(
     )
 
 
+def get_column_names(frame: _StoresColumns, /) -> Sequence[str]:
+    return frame.columns
+
+
+def exclude_column_names(frame: _StoresColumns, names: Container[str]) -> Sequence[str]:
+    return [col_name for col_name in frame.columns if col_name not in names]
+
+
+def passthrough_column_names(names: Sequence[str], /) -> Callable[[Any], Sequence[str]]:
+    def fn(_frame: Any, /) -> Sequence[str]:
+        return names
+
+    return fn
+
+
 def _hasattr_static(obj: Any, attr: str) -> bool:
     sentinel = object()
     return getattr_static(obj, attr, sentinel) is not sentinel
 
 
-def is_compliant_dataframe(obj: Any) -> TypeIs[CompliantDataFrame]:
+def is_compliant_dataframe(
+    obj: CompliantDataFrame[CompliantSeriesT_co] | Any,
+) -> TypeIs[CompliantDataFrame[CompliantSeriesT_co]]:
     return _hasattr_static(obj, "__narwhals_dataframe__")
 
 
@@ -1321,8 +1393,8 @@ def is_compliant_series(obj: Any) -> TypeIs[CompliantSeries]:
 
 
 def is_compliant_expr(
-    obj: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | Any,
-) -> TypeIs[CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]]:
+    obj: CompliantExpr[CompliantFrameT, CompliantSeriesT_co] | Any,
+) -> TypeIs[CompliantExpr[CompliantFrameT, CompliantSeriesT_co]]:
     return hasattr(obj, "__narwhals_expr__")
 
 
@@ -1332,3 +1404,129 @@ def has_native_namespace(obj: Any) -> TypeIs[SupportsNativeNamespace]:
 
 def _supports_dataframe_interchange(obj: Any) -> TypeIs[DataFrameLike]:
     return hasattr(obj, "__dataframe__")
+
+
+def is_tracks_depth(obj: Implementation, /) -> TypeIs[_TracksDepth]:  # pragma: no cover
+    # Return `True` for implementations that utilize `CompliantExpr._depth`.
+    return obj.is_pandas_like() or obj in {Implementation.PYARROW, Implementation.DASK}
+
+
+# TODO @dangotbanned: Extend with runtime behavior for `v1.*`
+# See `narwhals.exceptions.NarwhalsUnstableWarning`
+def unstable(fn: _Fn, /) -> _Fn:
+    """Visual-only marker for unstable functionality.
+
+    Arguments:
+        fn: Function to decorate.
+
+    Returns:
+        Decorated function (unchanged).
+
+    Examples:
+        >>> from narwhals.utils import unstable
+        >>> @unstable
+        ... def a_work_in_progress_feature(*args):
+        ...     return args
+        >>>
+        >>> a_work_in_progress_feature.__name__
+        'a_work_in_progress_feature'
+        >>> a_work_in_progress_feature(1, 2, 3)
+        (1, 2, 3)
+    """
+    return fn
+
+
+class not_implemented:  # noqa: N801
+    """Mark some functionality as unsupported.
+
+    Arguments:
+        alias: optional name used instead of the data model hook [`__set_name__`].
+
+    Returns:
+        An exception-raising [descriptor].
+
+    Notes:
+        - Attribute/method name *doesn't* need to be declared twice
+        - Allows different behavior when looked up on the class vs instance
+        - Allows us to use `isinstance(...)` instead of monkeypatching an attribute to the function
+
+    Examples:
+        >>> from narwhals.utils import not_implemented
+        >>> class Thing:
+        ...     def totally_ready(self) -> str:
+        ...         return "I'm ready!"
+        ...
+        ...     not_ready_yet = not_implemented()
+        >>>
+        >>> thing = Thing()
+        >>> thing.totally_ready()
+        "I'm ready!"
+        >>> thing.not_ready_yet()
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: 'not_ready_yet' is not implemented for: 'Thing'.
+        ...
+        >>> isinstance(Thing.not_ready_yet, not_implemented)
+        True
+
+    [`__set_name__`]: https://docs.python.org/3/reference/datamodel.html#object.__set_name__
+    [descriptor]: https://docs.python.org/3/howto/descriptor.html
+    """
+
+    def __init__(self, alias: str | None = None, /) -> None:
+        # NOTE: Don't like this
+        # Trying to workaround `mypy` requiring `@property` everywhere
+        self._alias: str | None = alias
+
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__}>: {self._name_owner}.{self._name}"
+
+    def __set_name__(self, owner: type[_T], name: str) -> None:
+        # https://docs.python.org/3/howto/descriptor.html#customized-names
+        self._name_owner: str = owner.__name__
+        self._name: str = self._alias or name
+
+    def __get__(
+        self, instance: _T | Literal["raise"] | None, owner: type[_T] | None = None, /
+    ) -> Any:
+        if instance is None:
+            # NOTE: Branch for `cls._name`
+            # We can check that to see if an instance of `type(self)` for
+            # https://narwhals-dev.github.io/narwhals/api-completeness/expr/
+            return self
+        # NOTE: Prefer not exposing the actual class we're defining in
+        # `_implementation` may not be available everywhere
+        who = getattr(instance, "_implementation", self._name_owner)
+        raise _not_implemented_error(self._name, who)
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        # NOTE: Purely to duck-type as assignable to **any** instance method
+        # Wouldn't be reachable through *regular* attribute access
+        return self.__get__("raise")
+
+
+def _not_implemented_error(what: str, who: str, /) -> NotImplementedError:
+    msg = (
+        f"{what!r} is not implemented for: {who!r}.\n\n"
+        "If you would like to see this functionality in `narwhals`, "
+        "please open an issue at: https://github.com/narwhals-dev/narwhals/issues"
+    )
+    return NotImplementedError(msg)
+
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 13):
+        # NOTE: avoids `mypy`
+        #     error: Module "narwhals.utils" does not explicitly export attribute "deprecated"  [attr-defined]
+        from warnings import deprecated as deprecated  # noqa: PLC0414
+    else:
+        from typing_extensions import deprecated as deprecated  # noqa: PLC0414
+else:
+
+    def deprecated(message: str, /) -> Callable[[_Fn], _Fn]:  # noqa: ARG001
+        def wrapper(func: _Fn, /) -> _Fn:
+            return func
+
+        return wrapper

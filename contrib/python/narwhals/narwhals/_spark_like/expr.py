@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import operator
+from importlib import import_module
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Literal
 from typing import Sequence
+from typing import cast
 
 from narwhals._expression_parsing import ExprKind
 from narwhals._spark_like.expr_dt import SparkLikeExprDateTimeNamespace
@@ -13,8 +16,10 @@ from narwhals._spark_like.expr_name import SparkLikeExprNameNamespace
 from narwhals._spark_like.expr_str import SparkLikeExprStringNamespace
 from narwhals._spark_like.utils import maybe_evaluate_expr
 from narwhals._spark_like.utils import narwhals_to_native_dtype
+from narwhals.dependencies import get_pyspark
 from narwhals.typing import CompliantExpr
 from narwhals.utils import Implementation
+from narwhals.utils import not_implemented
 from narwhals.utils import parse_version
 
 if TYPE_CHECKING:
@@ -27,7 +32,7 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
-class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
+class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):  # type: ignore[type-var] # (#2044)
     _depth = 0  # Unused, just for compatibility with CompliantExpr
 
     def __init__(
@@ -73,31 +78,41 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
         )
 
     @property
-    def _F(self) -> Any:  # noqa: N802
+    def _F(self: Self) -> Any:  # noqa: N802
         if self._implementation is Implementation.SQLFRAME:
-            from sqlframe.duckdb import functions
+            from sqlframe.base.session import _BaseSession
 
-            return functions
+            return import_module(
+                f"sqlframe.{_BaseSession().execution_dialect_name}.functions"
+            )
+
         from pyspark.sql import functions
 
         return functions
 
     @property
-    def _native_types(self) -> Any:
+    def _native_dtypes(self: Self) -> Any:
         if self._implementation is Implementation.SQLFRAME:
-            from sqlframe.duckdb import types
+            from sqlframe.base.session import _BaseSession
 
-            return types
+            return import_module(
+                f"sqlframe.{_BaseSession().execution_dialect_name}.types"
+            )
+
         from pyspark.sql import types
 
         return types
 
     @property
-    def _Window(self) -> Any:  # noqa: N802
+    def _Window(self: Self) -> Any:  # noqa: N802
         if self._implementation is Implementation.SQLFRAME:
-            from sqlframe.duckdb import Window
+            from sqlframe.base.session import _BaseSession
 
-            return Window
+            _window = import_module(
+                f"sqlframe.{_BaseSession().execution_dialect_name}.window"
+            )
+            return _window.Window
+
         from pyspark.sql import Window
 
         return Window
@@ -117,18 +132,21 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
     @classmethod
     def from_column_names(
         cls: type[Self],
-        *column_names: str,
+        evaluate_column_names: Callable[[SparkLikeLazyFrame], Sequence[str]],
+        /,
+        *,
+        function_name: str,
+        implementation: Implementation,
         backend_version: tuple[int, ...],
         version: Version,
-        implementation: Implementation,
     ) -> Self:
         def func(df: SparkLikeLazyFrame) -> list[Column]:
-            return [df._F.col(col_name) for col_name in column_names]
+            return [df._F.col(col_name) for col_name in evaluate_column_names(df)]
 
         return cls(
             func,
-            function_name="col",
-            evaluate_output_names=lambda _df: column_names,
+            function_name=function_name,
+            evaluate_output_names=evaluate_column_names,
             alias_output_names=None,
             backend_version=backend_version,
             version=version,
@@ -287,7 +305,8 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
         )
 
     def __invert__(self: Self) -> Self:
-        return self._from_call(lambda _input: _input.__invert__(), "__invert__")
+        invert = cast("Callable[..., Column]", operator.invert)
+        return self._from_call(invert, "__invert__")
 
     def abs(self: Self) -> Self:
         return self._from_call(self._F.abs, "abs")
@@ -318,7 +337,7 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
     def cast(self: Self, dtype: DType | type[DType]) -> Self:
         def _cast(_input: Column) -> Column:
             spark_dtype = narwhals_to_native_dtype(
-                dtype, self._version, self._native_types
+                dtype, self._version, self._native_dtypes
             )
             return _input.cast(spark_dtype)
 
@@ -335,9 +354,11 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
 
     def median(self: Self) -> Self:
         def _median(_input: Column) -> Column:
-            import pyspark  # ignore-banned-import
-
-            if parse_version(pyspark) < (3, 4):
+            if (
+                self._implementation.is_pyspark()
+                and (pyspark := get_pyspark()) is not None
+                and parse_version(pyspark) < (3, 4)
+            ):
                 # Use percentile_approx with default accuracy parameter (10000)
                 return self._F.percentile_approx(_input.cast("double"), 0.5)
 
@@ -364,7 +385,13 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
 
         from narwhals._spark_like.utils import _std
 
-        func = partial(_std, ddof=ddof, np_version=parse_version(np), functions=self._F)
+        func = partial(
+            _std,
+            ddof=ddof,
+            np_version=parse_version(np),
+            functions=self._F,
+            implementation=self._implementation,
+        )
 
         return self._from_call(func, "std")
 
@@ -375,7 +402,13 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
 
         from narwhals._spark_like.utils import _var
 
-        func = partial(_var, ddof=ddof, np_version=parse_version(np), functions=self._F)
+        func = partial(
+            _var,
+            ddof=ddof,
+            np_version=parse_version(np),
+            functions=self._F,
+            implementation=self._implementation,
+        )
 
         return self._from_call(func, "var")
 
@@ -419,7 +452,7 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
 
     def is_in(self: Self, values: Sequence[Any]) -> Self:
         def _is_in(_input: Column) -> Column:
-            return _input.isin(values)
+            return _input.isin(values) if values else self._F.lit(False)  # noqa: FBT003
 
         return self._from_call(_is_in, "is_in")
 
@@ -449,12 +482,12 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
     def n_unique(self: Self) -> Self:
         def _n_unique(_input: Column) -> Column:
             return self._F.count_distinct(_input) + self._F.max(
-                self._F.isnull(_input).cast(self._native_types.IntegerType())
+                self._F.isnull(_input).cast(self._native_dtypes.IntegerType())
             )
 
         return self._from_call(_n_unique, "n_unique")
 
-    def over(self: Self, keys: list[str], kind: ExprKind) -> Self:
+    def over(self: Self, keys: Sequence[str], kind: ExprKind) -> Self:
         def func(df: SparkLikeLazyFrame) -> list[Column]:
             return [expr.over(self._Window.partitionBy(*keys)) for expr in self._call(df)]
 
@@ -494,3 +527,36 @@ class SparkLikeExpr(CompliantExpr["SparkLikeLazyFrame", "Column"]):
     @property
     def list(self: Self) -> SparkLikeExprListNamespace:
         return SparkLikeExprListNamespace(self)
+
+    arg_min = not_implemented()
+    arg_max = not_implemented()
+    arg_true = not_implemented()
+    head = not_implemented()
+    tail = not_implemented()
+    mode = not_implemented()
+    sort = not_implemented()
+    rank = not_implemented()
+    sample = not_implemented()
+    map_batches = not_implemented()
+    ewm_mean = not_implemented()
+    rolling_sum = not_implemented()
+    rolling_mean = not_implemented()
+    rolling_var = not_implemented()
+    rolling_std = not_implemented()
+    gather_every = not_implemented()
+    drop_nulls = not_implemented()
+    diff = not_implemented()
+    unique = not_implemented()
+    shift = not_implemented()
+    is_first_distinct = not_implemented()
+    is_last_distinct = not_implemented()
+    cum_sum = not_implemented()
+    cum_count = not_implemented()
+    cum_min = not_implemented()
+    cum_max = not_implemented()
+    cum_prod = not_implemented()
+    replace_strict = not_implemented()
+    fill_null = not_implemented()
+    quantile = not_implemented()
+
+    cat = not_implemented()  # pyright: ignore[reportAssignmentType]

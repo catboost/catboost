@@ -9,19 +9,16 @@ from typing import Literal
 from typing import Mapping
 from typing import Protocol
 from typing import Sequence
-from typing import TypeVar
-from typing import Union
 from typing import overload
 
 from narwhals._expression_parsing import ExprKind
 from narwhals._expression_parsing import ExprMetadata
 from narwhals._expression_parsing import apply_n_ary_operation
-from narwhals._expression_parsing import check_expressions_transform
+from narwhals._expression_parsing import check_expressions_preserve_length
 from narwhals._expression_parsing import combine_metadata
 from narwhals._expression_parsing import extract_compliant
 from narwhals._expression_parsing import infer_kind
-from narwhals.dataframe import DataFrame
-from narwhals.dataframe import LazyFrame
+from narwhals._expression_parsing import is_scalar_like
 from narwhals.dependencies import is_numpy_array
 from narwhals.dependencies import is_numpy_array_2d
 from narwhals.expr import Expr
@@ -38,12 +35,6 @@ from narwhals.utils import parse_version
 from narwhals.utils import validate_laziness
 from narwhals.utils import validate_native_namespace_and_backend
 
-# Missing type parameters for generic type "DataFrame"
-# However, trying to provide one results in mypy still complaining...
-# The rest of the annotations seem to work fine with this anyway
-FrameT = TypeVar("FrameT", bound=Union[DataFrame, LazyFrame])  # type: ignore[type-arg]
-
-
 if TYPE_CHECKING:
     from types import ModuleType
 
@@ -51,6 +42,8 @@ if TYPE_CHECKING:
     import pyarrow as pa
     from typing_extensions import Self
 
+    from narwhals.dataframe import DataFrame
+    from narwhals.dataframe import LazyFrame
     from narwhals.dtypes import DType
     from narwhals.series import Series
     from narwhals.typing import CompliantExpr
@@ -796,12 +789,12 @@ def _read_csv_impl(
 ) -> DataFrame[Any]:
     eager_backend = Implementation.from_backend(backend)
     native_namespace = eager_backend.to_native_namespace()
-    if eager_backend in (
+    if eager_backend in {
         Implementation.POLARS,
         Implementation.PANDAS,
         Implementation.MODIN,
         Implementation.CUDF,
-    ):
+    }:
         native_frame = native_namespace.read_csv(source, **kwargs)
     elif eager_backend is Implementation.PYARROW:
         from pyarrow import csv  # ignore-banned-import
@@ -859,13 +852,13 @@ def _scan_csv_impl(
     implementation = Implementation.from_native_namespace(native_namespace)
     if implementation is Implementation.POLARS:
         native_frame = native_namespace.scan_csv(source, **kwargs)
-    elif implementation in (
+    elif implementation in {
         Implementation.PANDAS,
         Implementation.MODIN,
         Implementation.CUDF,
         Implementation.DASK,
         Implementation.DUCKDB,
-    ):
+    }:
         native_frame = native_namespace.read_csv(source, **kwargs)
     elif implementation is Implementation.PYARROW:
         from pyarrow import csv  # ignore-banned-import
@@ -923,13 +916,13 @@ def _read_parquet_impl(
     source: str, *, native_namespace: ModuleType, **kwargs: Any
 ) -> DataFrame[Any]:
     implementation = Implementation.from_native_namespace(native_namespace)
-    if implementation in (
+    if implementation in {
         Implementation.POLARS,
         Implementation.PANDAS,
         Implementation.MODIN,
         Implementation.CUDF,
         Implementation.DUCKDB,
-    ):
+    }:
         native_frame = native_namespace.read_parquet(source, **kwargs)
     elif implementation is Implementation.PYARROW:
         import pyarrow.parquet as pq  # ignore-banned-import
@@ -988,13 +981,13 @@ def _scan_parquet_impl(
     implementation = Implementation.from_native_namespace(native_namespace)
     if implementation is Implementation.POLARS:
         native_frame = native_namespace.scan_parquet(source, **kwargs)
-    elif implementation in (
+    elif implementation in {
         Implementation.PANDAS,
         Implementation.MODIN,
         Implementation.CUDF,
         Implementation.DASK,
         Implementation.DUCKDB,
-    ):
+    }:
         native_frame = native_namespace.read_parquet(source, **kwargs)
     elif implementation is Implementation.PYARROW:
         import pyarrow.parquet as pq  # ignore-banned-import
@@ -1043,6 +1036,43 @@ def col(*names: str | Iterable[str]) -> Expr:
 
     def func(plx: Any) -> Any:
         return plx.col(*flatten(names))
+
+    return Expr(func, ExprMetadata.selector())
+
+
+def exclude(*names: str | Iterable[str]) -> Expr:
+    """Creates an expression that excludes columns by their name(s).
+
+    Arguments:
+        names: Name(s) of the columns to exclude.
+
+    Returns:
+        A new expression.
+
+    Examples:
+        >>> import polars as pl
+        >>> import narwhals as nw
+        >>>
+        >>> df_native = pl.DataFrame({"a": [1, 2], "b": [3, 4], "c": ["x", "z"]})
+        >>> nw.from_native(df_native).select(nw.exclude("c", "a"))
+        ┌──────────────────┐
+        |Narwhals DataFrame|
+        |------------------|
+        |  shape: (2, 1)   |
+        |  ┌─────┐         |
+        |  │ b   │         |
+        |  │ --- │         |
+        |  │ i64 │         |
+        |  ╞═════╡         |
+        |  │ 3   │         |
+        |  │ 4   │         |
+        |  └─────┘         |
+        └──────────────────┘
+    """
+    exclude_names = frozenset(flatten(names))
+
+    def func(plx: Any) -> Any:
+        return plx.exclude(exclude_names)
 
     return Expr(func, ExprMetadata.selector())
 
@@ -1138,7 +1168,7 @@ def len_() -> Expr:
     def func(plx: Any) -> Any:
         return plx.len()
 
-    return Expr(func, ExprMetadata(ExprKind.AGGREGATION, order_dependent=False))
+    return Expr(func, ExprMetadata(ExprKind.AGGREGATION, n_open_windows=0))
 
 
 def sum(*columns: str) -> Expr:
@@ -1436,7 +1466,7 @@ def max_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
 class When:
     def __init__(self: Self, *predicates: IntoExpr | Iterable[IntoExpr]) -> None:
         self._predicate = all_horizontal(*flatten(predicates))
-        check_expressions_transform(self._predicate, function_name="when")
+        check_expressions_preserve_length(self._predicate, function_name="when")
 
     def then(self: Self, value: IntoExpr | Any) -> Then:
         return Then(
@@ -1458,11 +1488,9 @@ class Then(Expr):
         def func(plx: CompliantNamespace[Any, Any]) -> CompliantExpr[Any, Any]:
             compliant_expr = self._to_compliant_expr(plx)
             compliant_value = extract_compliant(plx, value, str_as_lit=False)
-            if (
-                kind is ExprKind.AGGREGATION or kind is ExprKind.LITERAL
-            ) and is_compliant_expr(compliant_value):
+            if is_scalar_like(kind) and is_compliant_expr(compliant_value):
                 compliant_value = compliant_value.broadcast(kind)
-            return compliant_expr.otherwise(compliant_value)  # type: ignore[no-any-return]
+            return compliant_expr.otherwise(compliant_value)  # type: ignore[attr-defined, no-any-return]
 
         return Expr(
             func,
@@ -1474,14 +1502,15 @@ def when(*predicates: IntoExpr | Iterable[IntoExpr]) -> When:
     """Start a `when-then-otherwise` expression.
 
     Expression similar to an `if-else` statement in Python. Always initiated by a
-    `pl.when(<condition>).then(<value if condition>)`, and optionally followed by
-    chaining one or more `.when(<condition>).then(<value>)` statements.
-    Chained when-then operations should be read as Python `if, elif, ... elif`
-    blocks, not as `if, if, ... if`, i.e. the first condition that evaluates to
-    `True` will be picked.
-    If none of the conditions are `True`, an optional
-    `.otherwise(<value if all statements are false>)` can be appended at the end.
-    If not appended, and none of the conditions are `True`, `None` will be returned.
+    `pl.when(<condition>).then(<value if condition>)`, and optionally followed by a
+    `.otherwise(<value if condition is false>)` can be appended at the end. If not
+    appended, and the condition is not `True`, `None` will be returned.
+
+    !!! info
+
+        Chaining multiple `.when(<condition>).then(<value>)` statements is currently
+        not supported.
+        See [Narwhals#668](https://github.com/narwhals-dev/narwhals/issues/668).
 
     Arguments:
         predicates: Condition(s) that must be met in order to apply the subsequent
@@ -1596,7 +1625,7 @@ def lit(value: Any, dtype: DType | type[DType] | None = None) -> Expr:
 
     return Expr(
         lambda plx: plx.lit(value, dtype),
-        ExprMetadata(ExprKind.LITERAL, order_dependent=False),
+        ExprMetadata(ExprKind.LITERAL, n_open_windows=0),
     )
 
 

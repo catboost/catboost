@@ -296,12 +296,27 @@ def copy_tree(src, dst, copy_function=shutil.copy2):
 # File read
 # Throws OSError
 @errorfix_win
-def read_file(path, binary=True):
+def read_file(path, binary=True, size=-1):
+    """
+    Read file contents
+
+    :param path:
+        File path
+
+    :param binary:
+        If `True`, read in binary mode. Read in text mode otherwise.
+
+    :param size:
+        An optional numeric argument.
+        When size is omitted or negative, the entire contents of the file will be read and returned;
+        it’s your problem if the file is twice as large as your machine’s memory.
+        Otherwise, at most size characters (in text mode) or size bytes (in binary mode) are read and returned.
+    """
     kwargs = {}
     if not binary and six.PY3:
         kwargs['encoding'] = sys.getfilesystemencoding()
     with open(path, 'r' + ('b' if binary else ''), **kwargs) as f:
-        return f.read()
+        return f.read(size)
 
 
 # Text file read

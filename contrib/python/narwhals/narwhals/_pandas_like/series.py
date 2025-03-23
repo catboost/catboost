@@ -531,6 +531,7 @@ class PandasLikeSeries(CompliantSeries):
     ) -> Self:
         ser = self._native_series
         if value is not None:
+            _, value = align_and_extract_native(self, value)
             res_ser = self._from_native_series(ser.fillna(value=value))
         else:
             res_ser = self._from_native_series(
@@ -645,13 +646,13 @@ class PandasLikeSeries(CompliantSeries):
             )
         return self
 
-    def __array__(self: Self, dtype: Any, copy: bool | None) -> _1DArray:
+    def __array__(self: Self, dtype: Any, *, copy: bool | None) -> _1DArray:
         # pandas used to always return object dtype for nullable dtypes.
         # So, we intercept __array__ and pass to `to_numpy` ourselves to make
         # sure an appropriate numpy dtype is returned.
         return self.to_numpy(dtype=dtype, copy=copy)
 
-    def to_numpy(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:
+    def to_numpy(self: Self, dtype: Any = None, *, copy: bool | None = None) -> _1DArray:
         # the default is meant to be None, but pandas doesn't allow it?
         # https://numpy.org/doc/stable/reference/generated/numpy.ndarray.__array__.html
         copy = copy or self._implementation is Implementation.CUDF

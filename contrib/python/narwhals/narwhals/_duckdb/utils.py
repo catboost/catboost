@@ -34,10 +34,10 @@ def maybe_evaluate_expr(
     return duckdb.ConstantExpression(obj)
 
 
-def parse_exprs(
+def evaluate_exprs(
     df: DuckDBLazyFrame, /, *exprs: DuckDBExpr
-) -> dict[str, duckdb.Expression]:
-    native_results: dict[str, duckdb.Expression] = {}
+) -> list[tuple[str, duckdb.Expression]]:
+    native_results: list[tuple[str, duckdb.Expression]] = []
     for expr in exprs:
         native_series_list = expr._call(df)
         output_names = expr._evaluate_output_names(df)
@@ -46,7 +46,7 @@ def parse_exprs(
         if len(output_names) != len(native_series_list):  # pragma: no cover
             msg = f"Internal error: got output names {output_names}, but only got {len(native_series_list)} results"
             raise AssertionError(msg)
-        native_results.update(zip(output_names, native_series_list))
+        native_results.extend(zip(output_names, native_series_list))
     return native_results
 
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Sequence
-from typing import Union
 from typing import cast
 from typing import overload
 
@@ -116,6 +115,9 @@ class PolarsSeries:
             self._native_series.dtype, self._version, self._backend_version
         )
 
+    def alias(self, name: str) -> Self:
+        return self._from_native_object(self._native_series.alias(name))
+
     @overload
     def __getitem__(self: Self, item: int) -> Any: ...
 
@@ -146,7 +148,7 @@ class PolarsSeries:
             raise NotImplementedError(msg)
         return self._from_native_series(ser.replace_strict(old, new, return_dtype=dtype))
 
-    def __array__(self: Self, dtype: Any, copy: bool | None) -> _1DArray:
+    def __array__(self: Self, dtype: Any, *, copy: bool | None) -> _1DArray:
         if self._backend_version < (0, 20, 29):
             return self._native_series.__array__(dtype=dtype)
         return self._native_series.__array__(dtype=dtype, copy=copy)
@@ -513,8 +515,8 @@ class PolarsSeries:
             and (bin_count is not None)
             and (self._native_series.count() > 0)
         ):  # pragma: no cover
-            lower = cast(Union[int, float], self._native_series.min())
-            upper = cast(Union[int, float], self._native_series.max())
+            lower = cast("float", self._native_series.min())
+            upper = cast("float", self._native_series.max())
             pad_lowest_bin = False
             if lower == upper:
                 width = 1 / bin_count

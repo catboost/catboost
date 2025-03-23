@@ -12,6 +12,21 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+# Unfortunately, standard FindPython3 CMake module does not support Interpreter and NumPy COMPONENTS
+# from different Python installations that prevents CI building for multiple Python versions and
+# Cross-compilation, so we'll handle these special cases by setting ${Python3_NumPy_INCLUDE_DIRS} explicitly
+if(Python3_NumPy_INCLUDE_DIR)
+  if(EXISTS "${Python3_NumPy_INCLUDE_DIR}" AND IS_DIRECTORY "${Python3_NumPy_INCLUDE_DIR}")
+    set(Python3_NumPy_INCLUDE_DIRS ${Python3_NumPy_INCLUDE_DIR})
+  else()
+    message(FATAL_ERROR "Python3_NumPy_INCLUDE_DIR=\"${Python3_NumPy_INCLUDE_DIR}\" does not exist.")
+  endif()
+else()
+  find_package(Python3 REQUIRED COMPONENTS
+    Development NumPy
+  )
+endif()
+
 find_package(Python3 REQUIRED COMPONENTS
   Development
 )
@@ -55,7 +70,6 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   private-libs-options
   private-libs-quantized_pool_analysis
   private-libs-target
-  python-numpy-include
   library-cpp-grid_creator
   cpp-json-writer
   cpp-text_processing-tokenizer
@@ -102,8 +116,6 @@ target_cython_options(_catboost_no_cuda
 target_cython_include_directories(_catboost_no_cuda
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
 
 set_python_type_for_cython(_catboost_no_cuda
@@ -111,3 +123,17 @@ set_python_type_for_cython(_catboost_no_cuda
 )
 
 vcs_info(_catboost_no_cuda)
+
+# for compatibility between Cython 0.29.x and Cython 3.0.x
+# TODO: remove after final switch to Cython 3.x+
+target_compile_options(_catboost_no_cuda PRIVATE
+  "-DCYTHON_EXTERN_C=extern \"C\""
+)
+
+target_include_directories(_catboost_no_cuda PRIVATE
+  ${Python3_NumPy_INCLUDE_DIRS}
+)
+
+target_cython_include_directories(_catboost_no_cuda
+  ${Python3_NumPy_INCLUDE_DIRS}
+)

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import operator
+from functools import partial
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Container
 from typing import Iterable
 from typing import Literal
 from typing import Sequence
+from typing import cast
 
 from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
@@ -17,6 +20,9 @@ from narwhals._spark_like.selectors import SparkLikeSelectorNamespace
 from narwhals._spark_like.utils import maybe_evaluate_expr
 from narwhals._spark_like.utils import narwhals_to_native_dtype
 from narwhals.typing import CompliantNamespace
+from narwhals.utils import exclude_column_names
+from narwhals.utils import get_column_names
+from narwhals.utils import passthrough_column_names
 
 if TYPE_CHECKING:
     from pyspark.sql import Column
@@ -28,7 +34,7 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
-class SparkLikeNamespace(CompliantNamespace["SparkLikeLazyFrame", "Column"]):
+class SparkLikeNamespace(CompliantNamespace["SparkLikeLazyFrame", "Column"]):  # type: ignore[type-var] # (#2044)
     def __init__(
         self: Self,
         *,
@@ -45,25 +51,30 @@ class SparkLikeNamespace(CompliantNamespace["SparkLikeLazyFrame", "Column"]):
         return SparkLikeSelectorNamespace(self)
 
     def all(self: Self) -> SparkLikeExpr:
-        def _all(df: SparkLikeLazyFrame) -> list[Column]:
-            return [df._F.col(col_name) for col_name in df.columns]
-
-        return SparkLikeExpr(
-            call=_all,
+        return SparkLikeExpr.from_column_names(
+            get_column_names,
             function_name="all",
-            evaluate_output_names=lambda df: df.columns,
-            alias_output_names=None,
+            implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
-            implementation=self._implementation,
         )
 
     def col(self: Self, *column_names: str) -> SparkLikeExpr:
         return SparkLikeExpr.from_column_names(
-            *column_names,
+            passthrough_column_names(column_names),
+            function_name="col",
+            implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
+        )
+
+    def exclude(self: Self, excluded_names: Container[str]) -> SparkLikeExpr:
+        return SparkLikeExpr.from_column_names(
+            partial(exclude_column_names, names=excluded_names),
+            function_name="exclude",
             implementation=self._implementation,
+            backend_version=self._backend_version,
+            version=self._version,
         )
 
     def nth(self: Self, *column_indices: int) -> SparkLikeExpr:
@@ -221,7 +232,7 @@ class SparkLikeNamespace(CompliantNamespace["SparkLikeLazyFrame", "Column"]):
         *,
         how: Literal["horizontal", "vertical", "diagonal"],
     ) -> SparkLikeLazyFrame:
-        dfs: list[DataFrame] = [item._native_frame for item in items]
+        dfs = cast("Sequence[DataFrame]", [item._native_frame for item in items])
         if how == "horizontal":
             msg = (
                 "Horizontal concatenation is not supported for LazyFrame backed by "

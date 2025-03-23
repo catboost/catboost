@@ -169,6 +169,14 @@ public:
         return std::make_reverse_iterator(begin());
     }
 
+    value_type* data() {
+        return Begin();
+    }
+
+    const value_type* data() const {
+        return Begin();
+    }
+
     void Swap(TThis& that) noexcept {
         DoSwap(Ptr, that.Ptr);
     }

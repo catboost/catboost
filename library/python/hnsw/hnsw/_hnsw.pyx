@@ -94,7 +94,7 @@ cdef extern from "Python.h":
     char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
 cdef _npbytes_ = np.bytes_
-cdef _npunicode_ = np.unicode_
+cdef _npunicode_ = np.str_ if np.lib.NumpyVersion(np.__version__) >= '2.0.0' else np.unicode_
 
 cdef to_native_str(binary):
     if PY3:

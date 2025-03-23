@@ -63,13 +63,22 @@ class FilesCompleter(BaseCompleter):
                 # that was fixed in bash 5.3 but affects older versions. Environment variables are not treated
                 # correctly in older versions and calling bind makes them available. For details, see
                 # https://savannah.gnu.org/support/index.php?111125
-                files = _call(["bash", "-c", "bind; compgen -A directory -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL)
+                files = _call(
+                    ["bash", "-c", "bind; compgen -A directory -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL
+                )
                 completion += [f + "/" for f in files]
             for x in self.allowednames:
-                completion += _call(["bash", "-c", "bind; compgen -A file -X '!*.{0}' -- '{p}'".format(x, p=prefix)], stderr=subprocess.DEVNULL)
+                completion += _call(
+                    ["bash", "-c", "bind; compgen -A file -X '!*.{0}' -- '{p}'".format(x, p=prefix)],
+                    stderr=subprocess.DEVNULL,
+                )
         else:
-            completion += _call(["bash", "-c", "bind; compgen -A file -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL)
-            anticomp = _call(["bash", "-c", "bind; compgen -A directory -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL)
+            completion += _call(
+                ["bash", "-c", "bind; compgen -A file -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL
+            )
+            anticomp = _call(
+                ["bash", "-c", "bind; compgen -A directory -- '{p}'".format(p=prefix)], stderr=subprocess.DEVNULL
+            )
             completion = list(set(completion) - set(anticomp))
 
             if self.directories:

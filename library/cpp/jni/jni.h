@@ -27,7 +27,12 @@ void RethrowExceptionFromJavaToCpp();
 
 struct TGlobalRefPolicy {
     static jobject Ref(jobject object, JNIEnv* env) { return env->NewGlobalRef(object); }
-    static void Unref(jobject object, JNIEnv* env) { return env->DeleteGlobalRef(object); }
+    static void Unref(jobject object, JNIEnv* env) {
+        if (!object) {
+            return;
+        }
+        return env->DeleteGlobalRef(object);
+    }
 };
 
 struct TIntentionallyLeakedRefPolicy {
@@ -41,12 +46,22 @@ struct TIntentionallyLeakedRefPolicy {
 
 struct TWeakGlobalRefPolicy {
     static jobject Ref(jobject object, JNIEnv* env) { return env->NewWeakGlobalRef(object); }
-    static void Unref(jobject object, JNIEnv* env) { return env->DeleteWeakGlobalRef(object); }
+    static void Unref(jobject object, JNIEnv* env) {
+        if (!object) {
+            return;
+        }
+        return env->DeleteWeakGlobalRef(object);
+    }
 };
 
 struct TLocalRefPolicy {
     static jobject Ref(jobject object, JNIEnv*) { return object; }
-    static void Unref(jobject object, JNIEnv* env) { return env->DeleteLocalRef(object); }
+    static void Unref(jobject object, JNIEnv* env) {
+        if (!object) {
+            return;
+        }
+        return env->DeleteLocalRef(object);
+    }
 };
 
 template <typename TRefPolicy, typename TObject>

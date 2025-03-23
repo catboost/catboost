@@ -16,9 +16,10 @@ from typing import overload
 from warnings import warn
 
 from narwhals._expression_parsing import ExprKind
-from narwhals._expression_parsing import all_exprs_are_aggs_or_literals
-from narwhals._expression_parsing import check_expressions_transform
+from narwhals._expression_parsing import all_exprs_are_scalar_like
+from narwhals._expression_parsing import check_expressions_preserve_length
 from narwhals._expression_parsing import infer_kind
+from narwhals._expression_parsing import is_scalar_like
 from narwhals.dependencies import get_polars
 from narwhals.dependencies import is_numpy_array
 from narwhals.dependencies import is_numpy_array_1d
@@ -33,6 +34,7 @@ from narwhals.utils import find_stacklevel
 from narwhals.utils import flatten
 from narwhals.utils import generate_repr
 from narwhals.utils import is_sequence_but_not_str
+from narwhals.utils import issue_deprecation_warning
 from narwhals.utils import parse_version
 
 if TYPE_CHECKING:
@@ -137,9 +139,7 @@ class BaseFrame(Generic[_FrameT]):
     ) -> Self:
         compliant_exprs, kinds = self._flatten_and_extract(*exprs, **named_exprs)
         compliant_exprs = [
-            compliant_expr.broadcast(kind)
-            if (kind is ExprKind.LITERAL or kind is ExprKind.AGGREGATION)
-            else compliant_expr
+            compliant_expr.broadcast(kind) if is_scalar_like(kind) else compliant_expr
             for compliant_expr, kind in zip(compliant_exprs, kinds)
         ]
         return self._from_compliant_dataframe(
@@ -166,14 +166,12 @@ class BaseFrame(Generic[_FrameT]):
                     missing_columns, available_columns
                 ) from e
         compliant_exprs, kinds = self._flatten_and_extract(*flat_exprs, **named_exprs)
-        if compliant_exprs and all_exprs_are_aggs_or_literals(*flat_exprs, **named_exprs):
+        if compliant_exprs and all_exprs_are_scalar_like(*flat_exprs, **named_exprs):
             return self._from_compliant_dataframe(
                 self._compliant_frame.aggregate(*compliant_exprs),
             )
         compliant_exprs = [
-            compliant_expr.broadcast(kind)
-            if (kind is ExprKind.LITERAL or kind is ExprKind.AGGREGATION)
-            else compliant_expr
+            compliant_expr.broadcast(kind) if is_scalar_like(kind) else compliant_expr
             for compliant_expr, kind in zip(compliant_exprs, kinds)
         ]
         return self._from_compliant_dataframe(
@@ -204,21 +202,22 @@ class BaseFrame(Generic[_FrameT]):
             and isinstance(predicates[0], list)
             and all(isinstance(x, bool) for x in predicates[0])
         ):
+            from narwhals.functions import col
+
             flat_predicates = flatten(predicates)
-            check_expressions_transform(*flat_predicates, function_name="filter")
-            compliant_predicates, _kinds = self._flatten_and_extract(*flat_predicates)
+            check_expressions_preserve_length(*flat_predicates, function_name="filter")
             plx = self.__narwhals_namespace__()
+            compliant_predicates, _kinds = self._flatten_and_extract(*flat_predicates)
+            compliant_constraints = (
+                (col(name) == v)._to_compliant_expr(plx)
+                for name, v in constraints.items()
+            )
             predicate = plx.all_horizontal(
-                *chain(
-                    compliant_predicates,
-                    (plx.col(name) == v for name, v in constraints.items()),
-                )
+                *chain(compliant_predicates, compliant_constraints)
             )
         else:
             predicate = predicates[0]
-        return self._from_compliant_dataframe(
-            self._compliant_frame.filter(predicate),
-        )
+        return self._from_compliant_dataframe(self._compliant_frame.filter(predicate))
 
     def sort(
         self: Self,
@@ -499,7 +498,7 @@ class DataFrame(BaseFrame[DataFrameT]):
     def __len__(self: Self) -> int:
         return self._compliant_frame.__len__()  # type: ignore[no-any-return]
 
-    def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _2DArray:
+    def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _2DArray:  # noqa: FBT001
         return self._compliant_frame.__array__(dtype, copy=copy)  # type: ignore[no-any-return]
 
     def __repr__(self: Self) -> str:  # pragma: no cover
@@ -616,41 +615,18 @@ class DataFrame(BaseFrame[DataFrameT]):
 
         Examples:
             >>> import pandas as pd
-            >>> import polars as pl
-            >>> import pyarrow as pa
             >>> import narwhals as nw
-            >>> data = {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
-            >>> df_pd = pd.DataFrame(data)
-            >>> df_pl = pl.DataFrame(data)
-            >>> df_pa = pa.table(data)
+            >>> df_native = pd.DataFrame(
+            ...     {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
+            ... )
 
             Calling `to_native` on a Narwhals DataFrame returns the native object:
 
-            >>> nw.from_native(df_pd).to_native()
+            >>> nw.from_native(df_native).to_native()
                foo  bar ham
             0    1  6.0   a
             1    2  7.0   b
             2    3  8.0   c
-            >>> nw.from_native(df_pl).to_native()
-            shape: (3, 3)
-            ┌─────┬─────┬─────┐
-            │ foo ┆ bar ┆ ham │
-            │ --- ┆ --- ┆ --- │
-            │ i64 ┆ f64 ┆ str │
-            ╞═════╪═════╪═════╡
-            │ 1   ┆ 6.0 ┆ a   │
-            │ 2   ┆ 7.0 ┆ b   │
-            │ 3   ┆ 8.0 ┆ c   │
-            └─────┴─────┴─────┘
-            >>> nw.from_native(df_pa).to_native()
-            pyarrow.Table
-            foo: int64
-            bar: double
-            ham: string
-            ----
-            foo: [[1,2,3]]
-            bar: [[6,7,8]]
-            ham: [["a","b","c"]]
         """
         return self._compliant_frame._native_frame  # type: ignore[no-any-return]
 
@@ -661,38 +637,13 @@ class DataFrame(BaseFrame[DataFrameT]):
             A pandas DataFrame.
 
         Examples:
-            Construct pandas, Polars (eager) and PyArrow DataFrames:
-
-            >>> import pandas as pd
             >>> import polars as pl
-            >>> import pyarrow as pa
             >>> import narwhals as nw
-            >>> from narwhals.typing import IntoDataFrame
-            >>> data = {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
-            >>> df_pd = pd.DataFrame(data)
-            >>> df_pl = pl.DataFrame(data)
-            >>> df_pa = pa.table(data)
-
-            We define a library agnostic function:
-
-            >>> def agnostic_to_pandas(df_native: IntoDataFrame) -> pd.DataFrame:
-            ...     df = nw.from_native(df_native)
-            ...     return df.to_pandas()
-
-            We can then pass any supported library such as pandas, Polars (eager), or
-            PyArrow to `agnostic_to_pandas`:
-
-            >>> agnostic_to_pandas(df_pd)
-               foo  bar ham
-            0    1  6.0   a
-            1    2  7.0   b
-            2    3  8.0   c
-            >>> agnostic_to_pandas(df_pl)
-               foo  bar ham
-            0    1  6.0   a
-            1    2  7.0   b
-            2    3  8.0   c
-            >>> agnostic_to_pandas(df_pa)
+            >>> df_native = pl.DataFrame(
+            ...     {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
+            ... )
+            >>> df = nw.from_native(df_native)
+            >>> df.to_pandas()
                foo  bar ham
             0    1  6.0   a
             1    2  7.0   b
@@ -741,32 +692,14 @@ class DataFrame(BaseFrame[DataFrameT]):
             String or None.
 
         Examples:
-            Construct pandas, Polars (eager) and PyArrow DataFrames:
-
             >>> import pandas as pd
-            >>> import polars as pl
-            >>> import pyarrow as pa
             >>> import narwhals as nw
-            >>> from narwhals.typing import IntoDataFrame
-            >>> data = {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
-            >>> df_pd = pd.DataFrame(data)
-            >>> df_pl = pl.DataFrame(data)
-            >>> df_pa = pa.table(data)
-
-            We define a library agnostic function:
-
-            >>> def agnostic_write_csv(df_native: IntoDataFrame) -> str:
-            ...     df = nw.from_native(df_native)
-            ...     return df.write_csv()
-
-            We can pass any supported library such as pandas, Polars or PyArrow to `agnostic_write_csv`:
-
-            >>> agnostic_write_csv(df_pd)
+            >>> df_native = pd.DataFrame(
+            ...     {"foo": [1, 2, 3], "bar": [6.0, 7.0, 8.0], "ham": ["a", "b", "c"]}
+            ... )
+            >>> df = nw.from_native(df_native)
+            >>> df.write_csv()
             'foo,bar,ham\n1,6.0,a\n2,7.0,b\n3,8.0,c\n'
-            >>> agnostic_write_csv(df_pl)
-            'foo,bar,ham\n1,6.0,a\n2,7.0,b\n3,8.0,c\n'
-            >>> agnostic_write_csv(df_pa)
-            '"foo","bar","ham"\n1,6,"a"\n2,7,"b"\n3,8,"c"\n'
 
             If we had passed a file name to `write_csv`, it would have been
             written to that file.
@@ -1237,6 +1170,37 @@ class DataFrame(BaseFrame[DataFrameT]):
             [(1, 6.0), (2, 7.0)]
         """
         return self._compliant_frame.rows(named=named)  # type: ignore[no-any-return]
+
+    def iter_columns(self: Self) -> Iterator[Series[Any]]:
+        """Returns an iterator over the columns of this DataFrame.
+
+        Yields:
+            A Narwhals Series, backed by a native series.
+
+        Examples:
+            >>> import pandas as pd
+            >>> import narwhals as nw
+            >>> df_native = pd.DataFrame({"foo": [1, 2], "bar": [6.0, 7.0]})
+            >>> iter_columns = nw.from_native(df_native).iter_columns()
+            >>> next(iter_columns)
+            ┌───────────────────────┐
+            |    Narwhals Series    |
+            |-----------------------|
+            |0    1                 |
+            |1    2                 |
+            |Name: foo, dtype: int64|
+            └───────────────────────┘
+            >>> next(iter_columns)
+            ┌─────────────────────────┐
+            |     Narwhals Series     |
+            |-------------------------|
+            |0    6.0                 |
+            |1    7.0                 |
+            |Name: bar, dtype: float64|
+            └─────────────────────────┘
+        """
+        for series in self._compliant_frame.iter_columns():
+            yield self._series(series, level=self._level)
 
     @overload
     def iter_rows(
@@ -2204,18 +2168,18 @@ class LazyFrame(BaseFrame[FrameT]):
             plx = self.__narwhals_namespace__()
             return plx.col(arg)
         if isinstance(arg, Expr):
-            if arg._metadata.is_order_dependent():
+            if arg._metadata.n_open_windows > 0:
                 msg = (
                     "Order-dependent expressions are not supported for use in LazyFrame.\n\n"
                     "Hints:\n"
                     "- Instead of `lf.select(nw.col('a').sort())`, use `lf.select('a').sort()\n"
                     "- Instead of `lf.select(nw.col('a').head())`, use `lf.select('a').head()\n"
                     "- `Expr.cum_sum`, and other such expressions, are not currently supported.\n"
-                    "  In a future version of Narwhals, a `order_by` argument will be added and \n"
-                    "  they will be supported."
+                    "  In a future version of Narwhals, a `order_by` argument will be added to\n"
+                    "  `over` and they will be supported."
                 )
                 raise OrderDependentExprError(msg)
-            if arg._metadata.is_changes_length():
+            if arg._metadata.kind.is_filtration():
                 msg = (
                     "Length-changing expressions are not supported for use in LazyFrame, unless\n"
                     "followed by an aggregation.\n\n"
@@ -3112,6 +3076,11 @@ class LazyFrame(BaseFrame[FrameT]):
     def gather_every(self: Self, n: int, offset: int = 0) -> Self:
         r"""Take every nth row in the DataFrame and return as a new DataFrame.
 
+        !!! warning
+            `LazyFrame.gather_every` is deprecated and will be removed in a future version.
+            Note: this will remain available in `narwhals.stable.v1`.
+            See [stable api](../backcompat.md/) for more information.
+
         Arguments:
             n: Gather every *n*-th row.
             offset: Starting index.
@@ -3119,6 +3088,13 @@ class LazyFrame(BaseFrame[FrameT]):
         Returns:
             The LazyFrame containing only the selected rows.
         """
+        msg = (
+            "`LazyFrame.gather_every` is deprecated and will be removed in a future version.\n\n"
+            "Note: this will remain available in `narwhals.stable.v1`.\n"
+            "See https://narwhals-dev.github.io/narwhals/backcompat/ for more information.\n"
+        )
+        issue_deprecation_warning(msg, _version="1.29.0")
+
         return super().gather_every(n=n, offset=offset)
 
     def unpivot(

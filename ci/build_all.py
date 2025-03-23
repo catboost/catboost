@@ -119,29 +119,12 @@ def get_python_root_dir(py_ver: Tuple[int, int])-> str:
         return os.path.join('python', f'cp{py_ver_str}-cp{py_ver_str}')
 
 
-def get_python_version_include_and_library_paths(py_ver: Tuple[int, int]) -> Tuple[str, str]:
-    # returns (python include path, python library path) relative to CMAKE_FIND_ROOT_PATH
+def get_cython_bin_dir(py_ver: Tuple[int, int]):
+    # returns cython_root_dir relative to CMAKE_FIND_ROOT_PATH
 
-    base_path = get_python_root_dir(py_ver)
+    python_root_dir = get_python_root_dir(py_ver)
+    return os.path.join(python_root_dir, 'Scripts' if sys.platform == 'win32' else 'bin')
 
-    if sys.platform == 'win32':
-        return (os.path.join(base_path, 'include'), os.path.join(base_path, 'libs', f'python{py_ver[0]}{py_ver[1]}.lib'))
-
-    python_sub_name = f'python{py_ver[0]}.{py_ver[1]}'
-
-    if sys.platform == 'darwin':
-        lib_sub_path = os.path.join(
-            'lib',
-            f'python{py_ver[0]}.{py_ver[1]}',
-            f'config-{py_ver[0]}.{py_ver[1]}-darwin'
-        )
-    elif sys.platform == 'linux':
-        lib_sub_path = 'lib'
-
-    return (
-        os.path.join(base_path, 'include', python_sub_name),
-        os.path.join(base_path, lib_sub_path, f'lib{python_sub_name}.a')
-    )
 
 def run_in_python_package_dir(
     src_root_dir:str,
@@ -159,6 +142,16 @@ def run_in_python_package_dir(
 
     os.chdir(src_root_dir)
 
+def get_native_python_executable(py_ver: Tuple[int, int]) -> str:
+    # returns absolute path
+
+    base_path = os.path.join(CMAKE_BUILD_ENV_ROOT, get_native_platform_name(), get_python_root_dir(py_ver))
+    if sys.platform == 'win32':
+        return os.path.join(base_path, 'python.exe')
+    else:
+        return os.path.join(base_path, 'bin', 'python')
+
+
 def run_with_native_python_with_version_in_python_package_dir(
     src_root_dir:str,
     dry_run:bool,
@@ -166,17 +159,11 @@ def run_with_native_python_with_version_in_python_package_dir(
     py_ver: Tuple[int, int],
     python_cmds_args: List[List[str]]):
 
-    base_path = os.path.join(CMAKE_BUILD_ENV_ROOT, get_native_platform_name(), get_python_root_dir(py_ver))
-    if sys.platform == 'win32':
-        python_bin_path = os.path.join(base_path, 'python.exe')
-    else:
-        python_bin_path = os.path.join(base_path, 'bin', 'python')
-
     run_in_python_package_dir(
         src_root_dir,
         dry_run,
         verbose,
-        [[python_bin_path] + cmd_args for cmd_args in python_cmds_args]
+        [[get_native_python_executable(py_ver)] + cmd_args for cmd_args in python_cmds_args]
     )
 
 
@@ -426,6 +413,44 @@ def build_all_for_one_platform(
     sys.path = [os.path.join(src_root_dir, 'build')] + sys.path
     import build_native
 
+    ##################################################################################################
+
+    # local definition because requires build_native
+    def get_relative_python_dev_paths(py_ver: Tuple[int, int]) -> build_native.PythonDevPaths:
+        # returns paths relative to CMAKE_FIND_ROOT_PATH
+
+        if sys.platform == 'win32':
+            sub_paths = build_native.PythonDevPaths(
+                'include',
+                os.path.join('libs', f'python{py_ver[0]}{py_ver[1]}.lib'),
+                # numpy include path, numpy 2.x uses '_core' and numpy 1.x uses 'core'
+                os.path.join('Lib', 'site-packages', 'numpy', 'core' if py_ver == (3,8) else '_core', 'include')
+            )
+        else:
+            python_sub_name = f'python{py_ver[0]}.{py_ver[1]}'
+            if sys.platform == 'darwin':
+                lib_sub_path = os.path.join('lib', python_sub_name, f'config-{py_ver[0]}.{py_ver[1]}-darwin')
+            elif sys.platform == 'linux':
+                lib_sub_path = 'lib'
+
+            sub_paths = build_native.PythonDevPaths(
+                os.path.join('include', python_sub_name),
+                os.path.join(lib_sub_path, f'lib{python_sub_name}.a'),
+                # numpy include path, numpy 2.x uses '_core' and numpy 1.x uses 'core'
+                os.path.join(
+                    'lib',
+                    python_sub_name,
+                    'site-packages',
+                    'numpy',
+                    'core' if py_ver == (3,8) else '_core',
+                    'include'
+                )
+            )
+
+        return sub_paths.prepend_paths(get_python_root_dir(py_ver))
+
+    ##################################################################################################
+
     # exclude python-dependent targets that will be built for concrete python
     # and SWIG (which is always w/o CUDA) and includes JVM-only 'catboost4j-spark-impl'
     all_catboost_targets_except_python_and_spark=[
@@ -435,7 +460,14 @@ def build_all_for_one_platform(
 
     build_with_cuda_for_main_targets = need_to_build_with_cuda_for_main_targets(platform_name)
 
-    default_cmake_extra_args = [f'-DJAVA_HOME={JAVA_HOME}']
+    default_cmake_extra_args = [
+        f'-DJAVA_HOME={JAVA_HOME}',
+        # We have to pass Python3_EXECUTABLE explicitly because FindPython3 module logic wants an Interpreter component
+        # if NumPy component is specified and default logic often fails, especially when cross-compiling.
+        # Also, keep it the same as the current executable to avoid rebuilding targets that require a Python interpeter
+        # when we change Development and Numpy parts for different Python versions
+        f'-DPython3_EXECUTABLE={sys.executable}',
+    ]
     if cmake_extra_args is not None:
         default_cmake_extra_args += cmake_extra_args
 
@@ -450,7 +482,7 @@ def build_all_for_one_platform(
     else:
         target_platform = platform_name
         macos_universal_binaries = False
-        default_cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name)}']
+        cmake_platform_to_root_path = {platform_name: os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name)}
 
     def call_build_native(
         targets,
@@ -566,25 +598,24 @@ def build_all_for_one_platform(
     # build python version-specific dynamic libraries and wheels (the latter only if not 'only_native_artifacts').
     # Note: assumes build_widget has already been called
     for py_ver in PYTHON_VERSIONS:
-        python_include_path, python_library_path = get_python_version_include_and_library_paths(py_ver)
+        relative_python_dev_paths = get_relative_python_dev_paths(py_ver)
         if macos_universal_binaries:
-            cmake_extra_args=[]
-            cmake_platform_to_python_dev_paths = dict(
-                (
-                    platform_name,
-                    build_native.PythonDevPaths(
-                        os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name, python_include_path),
-                        os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name, python_library_path)
-                    )
-                )
-                for platform_name in ['darwin-x86_64', 'darwin-arm64']
-            )
+            platform_names_for_python_dev_paths = ['darwin-x86_64', 'darwin-arm64']
         else:
-            cmake_extra_args=[
-                f'-DPython3_LIBRARY={os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name, python_library_path)}',
-                f'-DPython3_INCLUDE_DIR={os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name, python_include_path)}'
-            ]
-            cmake_platform_to_python_dev_paths=None
+            platform_names_for_python_dev_paths = [platform_name]
+
+        cmake_platform_to_python_dev_paths = dict(
+            (
+                platform_name,
+                relative_python_dev_paths.prepend_paths(os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name))
+            )
+            for platform_name in platform_names_for_python_dev_paths
+        )
+        cmake_extra_args=[
+            # select Python-version specific Cython installation because it will get NumPy information from it's interpreter
+            '-UCYTHON_*',
+            f'-DCython_ROOT={os.path.join(CMAKE_BUILD_ENV_ROOT, get_native_platform_name(), get_cython_bin_dir(py_ver))}'
+        ]
 
         call_build_native(
             targets=['_hnsw', '_catboost'],
@@ -595,6 +626,9 @@ def build_all_for_one_platform(
         )
 
         if not only_native_artifacts:
+            # for some reason 'bdist_wheel' sometimes fails to re-run on the same directory with some cached '.eggs'
+            run_in_python_package_dir(src_root_dir, dry_run, verbose, [['cmake', '-E', 'rm', '-rf', '.eggs']])
+
             build_native_sub_dir = os.path.join(
                 build_native_root_dir,
                 'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',

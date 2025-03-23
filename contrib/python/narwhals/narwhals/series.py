@@ -112,7 +112,7 @@ class Series(Generic[IntoSeriesT]):
         """
         return self._compliant_series._implementation  # type: ignore[no-any-return]
 
-    def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:
+    def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:  # noqa: FBT001
         return self._compliant_series.__array__(dtype=dtype, copy=copy)  # type: ignore[no-any-return]
 
     @overload
@@ -154,7 +154,7 @@ class Series(Generic[IntoSeriesT]):
             ]
         """
         if isinstance(idx, int) or (
-            is_numpy_scalar(idx) and idx.dtype.kind in ("i", "u")
+            is_numpy_scalar(idx) and idx.dtype.kind in {"i", "u"}
         ):
             return self._compliant_series[idx]
         return self._from_compliant_series(
@@ -1328,7 +1328,9 @@ class Series(Generic[IntoSeriesT]):
             msg = f"strategy not supported: {strategy}"
             raise ValueError(msg)
         return self._from_compliant_series(
-            self._compliant_series.fill_null(value=value, strategy=strategy, limit=limit)
+            self._compliant_series.fill_null(
+                value=self._extract_native(value), strategy=strategy, limit=limit
+            )
         )
 
     def is_between(

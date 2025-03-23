@@ -10,8 +10,9 @@ from typing import cast
 import pyarrow as pa
 import pyarrow.compute as pc
 
+from narwhals._arrow.utils import extract_py_scalar
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
-from narwhals._expression_parsing import is_simple_aggregation
+from narwhals._expression_parsing import is_elementary_expression
 from narwhals.utils import generate_temporary_column_name
 
 if TYPE_CHECKING:
@@ -50,7 +51,7 @@ class ArrowGroupBy:
         all_simple_aggs = True
         for expr in exprs:
             if not (
-                is_simple_aggregation(expr)
+                is_elementary_expression(expr)
                 and re.sub(r"(\w+->)", "", expr._function_name)
                 in POLARS_TO_ARROW_AGGREGATIONS
             ):
@@ -156,20 +157,9 @@ class ArrowGroupBy:
             *it, "", null_handling="replace", null_replacement=null_token
         )
         table = table.add_column(i=0, field_=col_token, column=key_values)
-
-        yield from (
-            (
-                next(
-                    (
-                        t := self._df._from_native_frame(
-                            table.filter(pc.equal(table[col_token], v)).drop([col_token])
-                        )
-                    )
-                    .simple_select(*self._keys)
-                    .head(1)
-                    .iter_rows(named=False, buffer_size=512)
-                ),
-                t,
+        for v in pc.unique(key_values):
+            t = self._df._from_native_frame(
+                table.filter(pc.equal(table[col_token], v)).drop([col_token])
             )
-            for v in pc.unique(key_values)
-        )
+            row = t.simple_select(*self._keys).row(0)
+            yield tuple(extract_py_scalar(el) for el in row), t

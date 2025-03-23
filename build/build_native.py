@@ -143,9 +143,24 @@ class Opts(object):
                 setattr(self, key, option.default)
 
 class PythonDevPaths:
-    def __init__(self, include_path:str, library_path:str):
+    def __init__(self, include_path:str, library_path:str, numpy_include_path:str):
         self.include_path = include_path
         self.library_path = library_path
+        self.numpy_include_path = numpy_include_path
+
+    def prepend_paths(self, path_prefix: str):
+        return PythonDevPaths(
+            os.path.join(path_prefix, self.include_path),
+            os.path.join(path_prefix, self.library_path),
+            os.path.join(path_prefix, self.numpy_include_path)
+        )
+
+    def add_to_cmake_args(self, cmake_args):
+        cmake_args += [
+            f'-DPython3_INCLUDE_DIR={self.include_path}',
+            f'-DPython3_LIBRARY={self.library_path}',
+            f'-DPython3_NumPy_INCLUDE_DIR={self.numpy_include_path}',
+        ]
 
 
 def get_host_platform():
@@ -221,15 +236,12 @@ def build_macos_universal_binaries(
     host_build_opts.target_platform = host_platform
     host_build_opts.build_root_dir = host_build_root_dir
     host_build_opts.cmake_extra_args = copy.copy(host_build_opts.cmake_extra_args)
-    if cmake_platform_to_root_path is not None:
-        host_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[host_platform]}']
-    if cmake_platform_to_python_dev_paths is not None:
-        host_build_opts.cmake_extra_args += [
-            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[host_platform].include_path}',
-            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[host_platform].library_path}'
-        ]
 
-    build(host_build_opts)
+    build(
+        host_build_opts,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+    )
 
     cross_build_root_dir = os.path.join(opts.build_root_dir, cross_build_platform)
     mkdir_if_not_exists(cross_build_root_dir, opts.verbose, opts.dry_run)
@@ -239,17 +251,15 @@ def build_macos_universal_binaries(
     cross_build_opts.target_platform = cross_build_platform
     cross_build_opts.build_root_dir = cross_build_root_dir
     cross_build_opts.cmake_extra_args = copy.copy(cross_build_opts.cmake_extra_args)
-    if cmake_platform_to_root_path is not None:
-        cross_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[cross_build_platform]}']
-    if cmake_platform_to_python_dev_paths is not None:
-        cross_build_opts.cmake_extra_args += [
-            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[cross_build_platform].include_path}',
-            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[cross_build_platform].library_path}'
-        ]
     if cross_build_opts.native_built_tools_root_dir is None:
         cross_build_opts.native_built_tools_root_dir = os.path.abspath(host_build_opts.build_root_dir)
 
-    cross_build(cross_build_opts, cmd_runner)
+    cross_build(
+        cross_build_opts,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths,
+        cmd_runner=cmd_runner
+    )
 
     lipo(opts, cmd_runner)
 
@@ -297,7 +307,15 @@ def get_default_cross_build_conan_host_profile(source_root_dir, target_platform)
     )
 
 
-def cross_build(opts: Opts, cmd_runner=None):
+def cross_build(
+    opts: Opts,
+    cmake_platform_to_root_path:Dict[str,str]=None,
+    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths]=None,
+    cmd_runner=None):
+    """
+        cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
+        cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
+    """
     if cmd_runner is None:
         cmd_runner = CmdRunner(opts.dry_run)
 
@@ -312,18 +330,22 @@ def cross_build(opts: Opts, cmd_runner=None):
 
         logging.info("Build tools")
         build(
-            dry_run=opts.dry_run,
-            verbose=opts.verbose,
-            build_root_dir=native_built_tools_root_dir,
-            build_type='Release',
-            rebuild=opts.rebuild,
-            targets=Targets.tools,
-            cmake_target_toolchain=opts.cmake_build_toolchain,
-            conan_build_profile=opts.conan_build_profile,
-            conan_host_profile=opts.conan_build_profile,
-            msvs_version=opts.msvs_version,
-            msvc_toolset=opts.msvc_toolset,
-            macosx_version_min=opts.macosx_version_min
+            opts=Opts(
+                dry_run=opts.dry_run,
+                verbose=opts.verbose,
+                build_root_dir=native_built_tools_root_dir,
+                build_type='Release',
+                rebuild=opts.rebuild,
+                targets=Targets.tools,
+                cmake_target_toolchain=opts.cmake_build_toolchain,
+                conan_build_profile=opts.conan_build_profile,
+                conan_host_profile=opts.conan_build_profile,
+                msvs_version=opts.msvs_version,
+                msvc_toolset=opts.msvc_toolset,
+                macosx_version_min=opts.macosx_version_min
+            ),
+            cmake_platform_to_root_path=cmake_platform_to_root_path,
+            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
         )
 
     source_root_dir = get_source_root_dir()
@@ -359,7 +381,12 @@ def cross_build(opts: Opts, cmd_runner=None):
     final_build_opts.native_built_tools_root_dir = native_built_tools_root_dir
 
     logging.info(f"Run build for target platform {opts.target_platform}")
-    build(opts=final_build_opts, cross_build_final_stage=True)
+    build(
+        opts=final_build_opts,
+        cross_build_final_stage=True,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+    )
 
 
 def get_require_pic(targets):
@@ -503,8 +530,6 @@ def build(
     """
         cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
         cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
-        used only for macOS universal builds because in other cases it is sufficient
-        to add Python3_INCLUDE_DIR, Python3_LIBRARY, CMAKE_FIND_ROOT_PATH to cmake_extra_args
     """
 
     if opts is None:
@@ -522,7 +547,7 @@ def build(
         return
     elif opts.target_platform is not None:
         if (opts.target_platform != get_host_platform()) and not cross_build_final_stage:
-            cross_build(opts, cmd_runner)
+            cross_build(opts, cmake_platform_to_root_path, cmake_platform_to_python_dev_paths, cmd_runner)
             return
         target_platform = opts.target_platform
     else:
@@ -604,6 +629,11 @@ def build(
 
     if opts.native_built_tools_root_dir:
         cmake_cmd += [f'-DTOOLS_ROOT={opts.native_built_tools_root_dir}']
+
+    if cmake_platform_to_root_path is not None:
+        cmake_cmd += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[target_platform]}']
+    if cmake_platform_to_python_dev_paths is not None:
+        cmake_platform_to_python_dev_paths[target_platform].add_to_cmake_args(cmake_cmd)
 
     if opts.cmake_extra_args is not None:
         cmake_cmd += opts.cmake_extra_args

@@ -1,17 +1,33 @@
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
-from typing import Generic
+from typing import Iterator
 from typing import Literal
+from typing import Mapping
 from typing import Protocol
 from typing import Sequence
 from typing import TypeVar
 from typing import Union
 
+from narwhals.utils import deprecated
+from narwhals.utils import unstable
+
+if not TYPE_CHECKING:
+    if sys.version_info >= (3, 9):
+        from typing import Protocol as Protocol38
+    else:
+        from typing import Generic as Protocol38
+else:
+    # TODO @dangotbanned: Remove after dropping `3.8` (#2084)
+    # - https://github.com/narwhals-dev/narwhals/pull/2064#discussion_r1965921386
+    from typing import Protocol as Protocol38
+
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import Mapping
 
     import numpy as np
     from typing_extensions import Self
@@ -19,6 +35,7 @@ if TYPE_CHECKING:
 
     from narwhals import dtypes
     from narwhals._expression_parsing import ExprKind
+    from narwhals._selectors import CompliantSelectorNamespace
     from narwhals.dataframe import DataFrame
     from narwhals.dataframe import LazyFrame
     from narwhals.dtypes import DType
@@ -52,7 +69,12 @@ class CompliantSeries(Protocol):
     def alias(self, name: str) -> Self: ...
 
 
-class CompliantDataFrame(Protocol):
+CompliantSeriesT_co = TypeVar(
+    "CompliantSeriesT_co", bound=CompliantSeries, covariant=True
+)
+
+
+class CompliantDataFrame(Protocol[CompliantSeriesT_co]):
     def __narwhals_dataframe__(self) -> Self: ...
     def __narwhals_namespace__(self) -> Any: ...
     def simple_select(
@@ -61,6 +83,13 @@ class CompliantDataFrame(Protocol):
     def aggregate(self, *exprs: Any) -> Self:
         ...  # `select` where all args are aggregations or literals
         # (so, no broadcasting is necessary).
+
+    @property
+    def columns(self) -> Sequence[str]: ...
+    @property
+    def schema(self) -> Mapping[str, DType]: ...
+    def get_column(self, name: str) -> CompliantSeriesT_co: ...
+    def iter_columns(self) -> Iterator[CompliantSeriesT_co]: ...
 
 
 class CompliantLazyFrame(Protocol):
@@ -73,34 +102,176 @@ class CompliantLazyFrame(Protocol):
         ...  # `select` where all args are aggregations or literals
         # (so, no broadcasting is necessary).
 
+    @property
+    def columns(self) -> Sequence[str]: ...
+    @property
+    def schema(self) -> Mapping[str, DType]: ...
+    def _iter_columns(self) -> Iterator[Any]: ...
 
-CompliantFrameT_contra = TypeVar(
-    "CompliantFrameT_contra",
-    bound="CompliantDataFrame | CompliantLazyFrame",
-    contravariant=True,
+
+CompliantFrameT = TypeVar(
+    "CompliantFrameT", bound="CompliantDataFrame[Any] | CompliantLazyFrame"
 )
-CompliantSeriesT_co = TypeVar(
-    "CompliantSeriesT_co", bound=CompliantSeries, covariant=True
-)
 
 
-class CompliantExpr(Protocol, Generic[CompliantFrameT_contra, CompliantSeriesT_co]):
+class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
     _implementation: Implementation
     _backend_version: tuple[int, ...]
     _version: Version
-    _evaluate_output_names: Callable[[CompliantFrameT_contra], Sequence[str]]
+    _evaluate_output_names: Callable[[CompliantFrameT], Sequence[str]]
     _alias_output_names: Callable[[Sequence[str]], Sequence[str]] | None
     _depth: int
     _function_name: str
 
-    def __call__(self, df: Any) -> Sequence[CompliantSeriesT_co]: ...
+    def __call__(self, df: CompliantFrameT) -> Sequence[CompliantSeriesT_co]: ...
     def __narwhals_expr__(self) -> None: ...
     def __narwhals_namespace__(
         self,
-    ) -> CompliantNamespace[CompliantFrameT_contra, CompliantSeriesT_co]: ...
+    ) -> CompliantNamespace[CompliantFrameT, CompliantSeriesT_co]: ...
     def is_null(self) -> Self: ...
+    def abs(self) -> Self: ...
+    def all(self) -> Self: ...
+    def any(self) -> Self: ...
     def alias(self, name: str) -> Self: ...
-    def cast(self, dtype: DType) -> Self: ...
+    def cast(self, dtype: DType | type[DType]) -> Self: ...
+    def count(self) -> Self: ...
+    def min(self) -> Self: ...
+    def max(self) -> Self: ...
+    def arg_min(self) -> Self: ...
+    def arg_max(self) -> Self: ...
+    def arg_true(self) -> Self: ...
+    def mean(self) -> Self: ...
+    def sum(self) -> Self: ...
+    def median(self) -> Self: ...
+    def skew(self) -> Self: ...
+    def std(self, *, ddof: int) -> Self: ...
+    def var(self, *, ddof: int) -> Self: ...
+    def n_unique(self) -> Self: ...
+    def null_count(self) -> Self: ...
+    def drop_nulls(self) -> Self: ...
+    def fill_null(
+        self,
+        value: Any | None,
+        strategy: Literal["forward", "backward"] | None,
+        limit: int | None,
+    ) -> Self: ...
+    def diff(self) -> Self: ...
+    def unique(self) -> Self: ...
+    def len(self) -> Self: ...
+    def round(self, decimals: int) -> Self: ...
+    def mode(self) -> Self: ...
+    def head(self, n: int) -> Self: ...
+    def tail(self, n: int) -> Self: ...
+    def shift(self, n: int) -> Self: ...
+    def is_finite(self) -> Self: ...
+    def is_nan(self) -> Self: ...
+    def is_unique(self) -> Self: ...
+    def is_first_distinct(self) -> Self: ...
+    def is_last_distinct(self) -> Self: ...
+    def cum_sum(self, *, reverse: bool) -> Self: ...
+    def cum_count(self, *, reverse: bool) -> Self: ...
+    def cum_min(self, *, reverse: bool) -> Self: ...
+    def cum_max(self, *, reverse: bool) -> Self: ...
+    def cum_prod(self, *, reverse: bool) -> Self: ...
+    def is_in(self, other: Any) -> Self: ...
+    def sort(self, *, descending: bool, nulls_last: bool) -> Self: ...
+    def rank(
+        self,
+        method: Literal["average", "min", "max", "dense", "ordinal"],
+        *,
+        descending: bool,
+    ) -> Self: ...
+    def replace_strict(
+        self,
+        old: Sequence[Any] | Mapping[Any, Any],
+        new: Sequence[Any],
+        *,
+        return_dtype: DType | type[DType] | None,
+    ) -> Self: ...
+    def over(self: Self, keys: Sequence[str], kind: ExprKind) -> Self: ...
+    def sample(
+        self,
+        n: int | None,
+        *,
+        fraction: float | None,
+        with_replacement: bool,
+        seed: int | None,
+    ) -> Self: ...
+    def quantile(
+        self,
+        quantile: float,
+        interpolation: Literal["nearest", "higher", "lower", "midpoint", "linear"],
+    ) -> Self: ...
+    def map_batches(
+        self,
+        function: Callable[[CompliantSeries], CompliantExpr[Any, Any]],
+        return_dtype: DType | type[DType] | None,
+    ) -> Self: ...
+
+    @property
+    def str(self) -> Any: ...
+    @property
+    def name(self) -> Any: ...
+    @property
+    def dt(self) -> Any: ...
+    @property
+    def cat(self) -> Any: ...
+    @property
+    def list(self) -> Any: ...
+
+    @unstable
+    def ewm_mean(
+        self,
+        *,
+        com: float | None,
+        span: float | None,
+        half_life: float | None,
+        alpha: float | None,
+        adjust: bool,
+        min_samples: int,
+        ignore_nulls: bool,
+    ) -> Self: ...
+
+    @unstable
+    def rolling_sum(
+        self,
+        window_size: int,
+        *,
+        min_samples: int | None,
+        center: bool,
+    ) -> Self: ...
+
+    @unstable
+    def rolling_mean(
+        self,
+        window_size: int,
+        *,
+        min_samples: int | None,
+        center: bool,
+    ) -> Self: ...
+
+    @unstable
+    def rolling_var(
+        self,
+        window_size: int,
+        *,
+        min_samples: int | None,
+        center: bool,
+        ddof: int,
+    ) -> Self: ...
+
+    @unstable
+    def rolling_std(
+        self,
+        window_size: int,
+        *,
+        min_samples: int | None,
+        center: bool,
+        ddof: int,
+    ) -> Self: ...
+
+    @deprecated("Since `1.22.0`")
+    def gather_every(self, n: int, offset: int) -> Self: ...
     def __and__(self, other: Any) -> Self: ...
     def __or__(self, other: Any) -> Self: ...
     def __add__(self, other: Any) -> Self: ...
@@ -114,23 +285,30 @@ class CompliantExpr(Protocol, Generic[CompliantFrameT_contra, CompliantSeriesT_c
     def __ge__(self, other: Any) -> Self: ...
     def __lt__(self, other: Any) -> Self: ...
     def __le__(self, other: Any) -> Self: ...
+    def __invert__(self) -> Self: ...
     def broadcast(
         self, kind: Literal[ExprKind.AGGREGATION, ExprKind.LITERAL]
     ) -> Self: ...
 
 
-class CompliantNamespace(Protocol, Generic[CompliantFrameT_contra, CompliantSeriesT_co]):
+class CompliantNamespace(Protocol[CompliantFrameT, CompliantSeriesT_co]):
     def col(
         self, *column_names: str
-    ) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]: ...
+    ) -> CompliantExpr[CompliantFrameT, CompliantSeriesT_co]: ...
     def lit(
         self, value: Any, dtype: DType | None
-    ) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]: ...
+    ) -> CompliantExpr[CompliantFrameT, CompliantSeriesT_co]: ...
+    @property
+    def selectors(self) -> CompliantSelectorNamespace[Any, Any]: ...
 
 
 class SupportsNativeNamespace(Protocol):
     def __native_namespace__(self) -> ModuleType: ...
 
+
+IntoCompliantExpr: TypeAlias = (
+    "CompliantExpr[CompliantFrameT, CompliantSeriesT_co] | CompliantSeriesT_co"
+)
 
 IntoExpr: TypeAlias = Union["Expr", str, "Series[Any]"]
 """Anything which can be converted to an expression.
@@ -319,14 +497,6 @@ class DTypes:
     List: type[dtypes.List]
     Array: type[dtypes.Array]
     Unknown: type[dtypes.Unknown]
-
-
-if TYPE_CHECKING:
-    # This one needs to be in TYPE_CHECKING to pass on 3.9,
-    # and can only be defined after CompliantExpr has been defined
-    IntoCompliantExpr: TypeAlias = (
-        CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | CompliantSeriesT_co
-    )
 
 
 __all__ = [

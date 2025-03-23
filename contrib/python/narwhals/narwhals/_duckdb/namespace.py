@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import functools
 import operator
+from functools import partial
 from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Container
 from typing import Literal
 from typing import Sequence
 
 from duckdb import CaseExpression
 from duckdb import CoalesceOperator
-from duckdb import ColumnExpression
 from duckdb import FunctionExpression
 from duckdb.typing import BIGINT
 from duckdb.typing import VARCHAR
@@ -24,6 +24,10 @@ from narwhals._duckdb.utils import narwhals_to_native_dtype
 from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
 from narwhals.typing import CompliantNamespace
+from narwhals.utils import Implementation
+from narwhals.utils import exclude_column_names
+from narwhals.utils import get_column_names
+from narwhals.utils import passthrough_column_names
 
 if TYPE_CHECKING:
     import duckdb
@@ -35,6 +39,8 @@ if TYPE_CHECKING:
 
 
 class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]):  # type: ignore[type-var]
+    _implementation: Implementation = Implementation.DUCKDB
+
     def __init__(
         self: Self, *, backend_version: tuple[int, ...], version: Version
     ) -> None:
@@ -46,14 +52,9 @@ class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]
         return DuckDBSelectorNamespace(self)
 
     def all(self: Self) -> DuckDBExpr:
-        def _all(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
-            return [ColumnExpression(col_name) for col_name in df.columns]
-
-        return DuckDBExpr(
-            call=_all,
+        return DuckDBExpr.from_column_names(
+            get_column_names,
             function_name="all",
-            evaluate_output_names=lambda df: df.columns,
-            alias_output_names=None,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -75,9 +76,7 @@ class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]
         if how == "vertical" and not all(x.schema == schema for x in items[1:]):
             msg = "inputs should all have the same schema"
             raise TypeError(msg)
-        res = functools.reduce(
-            lambda x, y: x.union(y), (item._native_frame for item in items)
-        )
+        res = reduce(lambda x, y: x.union(y), (item._native_frame for item in items))
         return first._from_native_frame(res)
 
     def concat_str(
@@ -233,7 +232,18 @@ class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]
 
     def col(self: Self, *column_names: str) -> DuckDBExpr:
         return DuckDBExpr.from_column_names(
-            *column_names, backend_version=self._backend_version, version=self._version
+            passthrough_column_names(column_names),
+            function_name="col",
+            backend_version=self._backend_version,
+            version=self._version,
+        )
+
+    def exclude(self: Self, excluded_names: Container[str]) -> DuckDBExpr:
+        return DuckDBExpr.from_column_names(
+            partial(exclude_column_names, names=excluded_names),
+            function_name="exclude",
+            backend_version=self._backend_version,
+            version=self._version,
         )
 
     def nth(self: Self, *column_indices: int) -> DuckDBExpr:

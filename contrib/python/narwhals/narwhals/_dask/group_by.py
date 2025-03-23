@@ -11,7 +11,7 @@ from typing import Sequence
 import dask.dataframe as dd
 
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
-from narwhals._expression_parsing import is_simple_aggregation
+from narwhals._expression_parsing import is_elementary_expression
 
 try:
     import dask.dataframe.dask_expr as dx
@@ -26,9 +26,8 @@ if TYPE_CHECKING:
 
     from narwhals._dask.dataframe import DaskLazyFrame
     from narwhals._dask.expr import DaskExpr
-    from narwhals.typing import CompliantExpr
 
-    PandasSeriesGroupBy: TypeAlias = "_PandasSeriesGroupBy[Any, Any]"
+    PandasSeriesGroupBy: TypeAlias = _PandasSeriesGroupBy[Any, Any]
     _AggFn: TypeAlias = Callable[..., Any]
     Aggregation: TypeAlias = "str | _AggFn"
 
@@ -73,7 +72,7 @@ class DaskLazyGroupBy:
     def __init__(
         self: Self, df: DaskLazyFrame, keys: list[str], *, drop_null_keys: bool
     ) -> None:
-        self._df = df
+        self._df: DaskLazyFrame = df
         self._keys = keys
         self._grouped = self._df._native_frame.groupby(
             list(self._keys),
@@ -93,21 +92,20 @@ class DaskLazyGroupBy:
             self._from_native_frame,
         )
 
-    def _from_native_frame(self: Self, df: DaskLazyFrame) -> DaskLazyFrame:
+    def _from_native_frame(self: Self, df: dd.DataFrame) -> DaskLazyFrame:
         from narwhals._dask.dataframe import DaskLazyFrame
 
         return DaskLazyFrame(
-            df,  # pyright: ignore[reportArgumentType]
+            df,
             backend_version=self._df._backend_version,
             version=self._df._version,
-            validate_column_names=True,
         )
 
 
 def agg_dask(
     df: DaskLazyFrame,
     grouped: Any,
-    exprs: Sequence[CompliantExpr[DaskLazyFrame, dx.Series]],
+    exprs: Sequence[DaskExpr],
     keys: list[str],
     from_dataframe: Callable[[Any], DaskLazyFrame],
 ) -> DaskLazyFrame:
@@ -123,7 +121,7 @@ def agg_dask(
     all_simple_aggs = True
     for expr in exprs:
         if not (
-            is_simple_aggregation(expr)
+            is_elementary_expression(expr)
             and re.sub(r"(\w+->)", "", expr._function_name) in POLARS_TO_DASK_AGGREGATIONS
         ):
             all_simple_aggs = False
@@ -139,7 +137,7 @@ def agg_dask(
                     expr._function_name, expr._function_name
                 )
                 simple_aggregations.update(
-                    {alias: (keys[0], function_name) for alias in aliases}
+                    dict.fromkeys(aliases, (keys[0], function_name))
                 )
                 continue
 
@@ -148,7 +146,7 @@ def agg_dask(
             agg_function = POLARS_TO_DASK_AGGREGATIONS.get(function_name, function_name)
             # deal with n_unique case in a "lazy" mode to not depend on dask globally
             agg_function = (
-                agg_function(**expr._call_kwargs)  # type: ignore[attr-defined]
+                agg_function(**expr._call_kwargs)
                 if callable(agg_function)
                 else agg_function
             )

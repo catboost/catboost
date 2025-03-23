@@ -56,6 +56,8 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
+# TODO @dangotbanned: move into `_arrow.utils`
+# Lots of modules are importing inline
 @overload
 def maybe_extract_py_scalar(
     value: pa.Scalar[_BasicDataType[_AsPyType]],
@@ -401,25 +403,35 @@ class ArrowSeries(CompliantSeries):
     def scatter(self: Self, indices: int | Sequence[int], values: Any) -> Self:
         import numpy as np  # ignore-banned-import
 
-        mask: _1DArray = np.zeros(self.len(), dtype=bool)
-        mask[indices] = True
-        if isinstance(values, self.__class__):
-            ser, values = extract_native(self, values)
+        if isinstance(indices, int):
+            indices_native = pa.array([indices])
+            values_native = pa.array([values])
         else:
-            ser = self._native_series
-        if isinstance(values, pa.ChunkedArray):
-            values = values.combine_chunks()
-        if not isinstance(values, pa.Array):
-            values = pa.array(values)
+            # TODO(unassigned): we may also want to let `indices` be a Series.
+            # https://github.com/narwhals-dev/narwhals/issues/2155
+            indices_native = pa.array(indices)
+            if isinstance(values, self.__class__):
+                values_native = values._native_series.combine_chunks()
+            else:
+                values_native = pa.array(values)
+
+        sorting_indices = pc.sort_indices(indices_native)  # type: ignore[call-overload]
+        indices_native = pc.take(indices_native, sorting_indices)
+        values_native = pc.take(values_native, sorting_indices)
+
+        mask: _1DArray = np.zeros(self.len(), dtype=bool)
+        mask[indices_native] = True
         result = pc.replace_with_mask(
-            ser, cast("list[bool]", mask), values.take(cast("Indices", indices))
+            self._native_series,
+            cast("list[bool]", mask),
+            values_native.take(cast("Indices", indices_native)),
         )
         return self._from_native_series(result)
 
     def to_list(self: Self) -> list[Any]:
         return self._native_series.to_pylist()
 
-    def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:
+    def __array__(self: Self, dtype: Any = None, *, copy: bool | None = None) -> _1DArray:
         return self._native_series.__array__(dtype=dtype, copy=copy)
 
     def to_numpy(self: Self) -> _1DArray:
@@ -517,7 +529,7 @@ class ArrowSeries(CompliantSeries):
     def is_nan(self: Self) -> Self:
         return self._from_native_series(pc.is_nan(self._native_series))
 
-    def cast(self: Self, dtype: DType) -> Self:
+    def cast(self: Self, dtype: DType | type[DType]) -> Self:
         ser = self._native_series
         data_type = narwhals_to_native_dtype(dtype, self._version)
         return self._from_native_series(pc.cast(ser, data_type))
@@ -667,10 +679,10 @@ class ArrowSeries(CompliantSeries):
             )
 
         ser = self._native_series
-        dtype = ser.type
 
         if value is not None:
-            res_ser = self._from_native_series(pc.fill_null(ser, lit(value, dtype)))  # type: ignore[attr-defined]
+            _, value = extract_native(self, value)
+            res_ser = self._from_native_series(pc.fill_null(ser, value))  # type: ignore[attr-defined]
         elif limit is None:
             fill_func = (
                 pc.fill_null_forward if strategy == "forward" else pc.fill_null_backward
@@ -997,7 +1009,7 @@ class ArrowSeries(CompliantSeries):
         )
 
         cum_sum_sq = (
-            padded_series.__pow__(2)
+            pow(padded_series, 2)
             .cum_sum(reverse=False)
             .fill_null(value=None, strategy="forward", limit=None)
         )
@@ -1091,7 +1103,6 @@ class ArrowSeries(CompliantSeries):
         def _hist_from_bin_count(bin_count: int):  # type: ignore[no-untyped-def] # noqa: ANN202
             d = pc.min_max(self._native_series)
             lower, upper = d["min"], d["max"]
-            pad_lowest_bin = False
             pa_float = pa.type_for_alias("float")
             if lower == upper:
                 range_ = lit(1.0)
@@ -1100,7 +1111,6 @@ class ArrowSeries(CompliantSeries):
                 lower = pc.subtract(lower, mid)
                 upper = pc.add(upper, mid)
             else:
-                pad_lowest_bin = True
                 range_ = pc.subtract(upper, lower)
                 width = pc.divide(pc.cast(range_, pa_float), lit(float(bin_count)))
 
@@ -1151,15 +1161,7 @@ class ArrowSeries(CompliantSeries):
             # extract left/right side of the intervals
             bin_left = pc.add(lower, pc.multiply(counts.column("values"), width))
             bin_right = pc.add(bin_left, width)
-            if pad_lowest_bin:
-                # pad lowest bin by 1% of range
-                lowest_padded = [
-                    pc.subtract(
-                        bin_left[0], pc.multiply(pc.cast(range_, pa_float), lit(0.001))
-                    )
-                ]
-                bin_left = chunked_array([lowest_padded, cast("Any", bin_left[1:])])
-            return counts.column("counts"), bin_left, bin_right
+            return counts.column("counts"), bin_right
 
         def _hist_from_bins(bins: Sequence[int | float]):  # type: ignore[no-untyped-def] # noqa: ANN202
             bin_indices = np.searchsorted(bins, self._native_series, side="left")
@@ -1169,20 +1171,19 @@ class ArrowSeries(CompliantSeries):
             counts[np.isin(obj_cats, obs_cats)] = obs_counts[np.isin(obs_cats, obj_cats)]
 
             bin_right = bins[1:]
-            bin_left = bins[:-1]
-            return counts, bin_left, bin_right
+            return counts, bin_right
 
         if bins is not None:
             if len(bins) < 2:
-                counts, bin_left, bin_right = [], [], []
+                counts, bin_right = [], []
             else:
-                counts, bin_left, bin_right = _hist_from_bins(bins)
+                counts, bin_right = _hist_from_bins(bins)
 
         elif bin_count is not None:
             if bin_count == 0:
-                counts, bin_left, bin_right = [], [], []
+                counts, bin_right = [], []
             else:
-                counts, bin_left, bin_right = _hist_from_bin_count(bin_count)
+                counts, bin_right = _hist_from_bin_count(bin_count)
 
         else:  # pragma: no cover
             # caller guarantees that either bins or bin_count is specified

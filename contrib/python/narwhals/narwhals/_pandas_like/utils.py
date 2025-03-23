@@ -701,12 +701,12 @@ def convert_str_slice_to_int_slice(
 ) -> tuple[int | None, int | None, int | None]:
     # We can safely cast to int because we know that `columns` doesn't contain duplicates.
     start = (
-        cast(int, columns.get_loc(str_slice.start))
+        cast("int", columns.get_loc(str_slice.start))
         if str_slice.start is not None
         else None
     )
     stop = (
-        cast(int, columns.get_loc(str_slice.stop)) + 1
+        cast("int", columns.get_loc(str_slice.stop)) + 1
         if str_slice.stop is not None
         else None
     )

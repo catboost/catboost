@@ -21,7 +21,7 @@ cdef extern from "Python.h":
 np.import_array()
 
 cdef _util_npbytes_ = np.bytes_
-cdef _util_npunicode_ = np.unicode_
+cdef _util_npunicode_ = np.str_ if np.lib.NumpyVersion(np.__version__) >= '2.0.0' else np.unicode_
 
 
 cdef inline TString to_arcadia_string(s) except *:

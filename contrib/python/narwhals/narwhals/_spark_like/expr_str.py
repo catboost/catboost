@@ -90,6 +90,12 @@ class SparkLikeExprStringNamespace:
 
         return self._compliant_expr._from_call(func, "slice")
 
+    def split(self: Self, by: str) -> SparkLikeExpr:
+        return self._compliant_expr._from_call(
+            lambda _input: self._compliant_expr._F.split(_input, by),
+            "split",
+        )
+
     def to_uppercase(self: Self) -> SparkLikeExpr:
         return self._compliant_expr._from_call(
             self._compliant_expr._F.upper, "to_uppercase"

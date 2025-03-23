@@ -2024,7 +2024,7 @@ cdef class _PreprocessGrids:
 cdef all_string_types_plus_bytes = string_types + (bytes,)
 
 cdef _npbytes_ = np.bytes_
-cdef _npunicode_ = np.unicode_
+cdef _npunicode_ = np.str_ if np.lib.NumpyVersion(np.__version__) >= '2.0.0' else np.unicode_
 cdef _npint8 = np.int8
 cdef _npint16 = np.int16
 cdef _npuint8 = np.uint8

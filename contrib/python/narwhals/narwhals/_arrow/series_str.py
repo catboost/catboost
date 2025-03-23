@@ -72,6 +72,10 @@ class ArrowSeriesStringNamespace:
             )
         )
 
+    def split(self: Self, by: str) -> ArrowSeries:
+        split_series = pc.split_pattern(self._compliant_series._native_series, by)  # type: ignore[call-overload]
+        return self._compliant_series._from_native_series(split_series)
+
     def to_datetime(self: Self, format: str | None) -> ArrowSeries:  # noqa: A002
         native = self._compliant_series._native_series
         format = parse_datetime_format(native) if format is None else format
