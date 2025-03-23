@@ -359,7 +359,7 @@ public class CatBoostModel implements AutoCloseable {
         return hashes;
     }
 
-    FormulaEvaluatorType[] getSupportedEvaluatorTypes() throws CatBoostError {
+    public FormulaEvaluatorType[] getSupportedEvaluatorTypes() throws CatBoostError {
         final String[][] evaluatorTypesAsStrings = new String[1][];
         implLibrary.catBoostModelGetSupportedEvaluatorTypes(handle, evaluatorTypesAsStrings);
         int evaluatorTypesSize = evaluatorTypesAsStrings[0].length;
@@ -370,11 +370,11 @@ public class CatBoostModel implements AutoCloseable {
         return evaluatorTypes;
     }
 
-    void setEvaluatorType(FormulaEvaluatorType evaluatorType) throws CatBoostError {
+    public void setEvaluatorType(FormulaEvaluatorType evaluatorType) throws CatBoostError {
         implLibrary.catBoostModelSetEvaluatorType(handle, evaluatorType.toString());
     }
 
-    FormulaEvaluatorType getEvaluatorType() throws CatBoostError, IllegalArgumentException {
+    public FormulaEvaluatorType getEvaluatorType() throws CatBoostError, IllegalArgumentException {
         final String[] evaluatorTypeAsString = new String[1];
         implLibrary.catBoostModelGetEvaluatorType(handle, evaluatorTypeAsString);
         return FormulaEvaluatorType.valueOf(evaluatorTypeAsString[0]);
