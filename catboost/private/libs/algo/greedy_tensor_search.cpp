@@ -242,8 +242,8 @@ static void CompressCandidates(
             << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
                 splitCandidate.FeatureIdx,
                 (splitCandidate.Type == ESplitType::FloatFeature) ?
-                EFeatureType::Float :
-                EFeatureType::Categorical
+                    EFeatureType::Float :
+                    EFeatureType::Categorical
             )
             << " is mis-included into more than one aggregated column");
 
@@ -681,7 +681,7 @@ static void CalcBestScore(
                         scoreCalcer.Reset(new TPairwiseScoreCalcer);
                     } else {
                         scoreCalcer = MakePointwiseScoreCalcer(
-                                ctx->Params.ObliviousTreeOptions->ScoreFunction
+                            ctx->Params.ObliviousTreeOptions->ScoreFunction
                         );
                     }
 
