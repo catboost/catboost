@@ -239,13 +239,13 @@ static void CompressCandidates(
                 + maybePackedBinaryIndex.Defined()
                 + maybeFeaturesGroupIndex.Defined() <= 1,
             "Feature #"
-                    << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
-                        splitCandidate.FeatureIdx,
-                        (splitCandidate.Type == ESplitType::FloatFeature) ?
-                        EFeatureType::Float :
-                        EFeatureType::Categorical
-                    )
-                    << " is mis-included into more than one aggregated column");
+            << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
+                splitCandidate.FeatureIdx,
+                (splitCandidate.Type == ESplitType::FloatFeature) ?
+                EFeatureType::Float :
+                EFeatureType::Categorical
+            )
+            << " is mis-included into more than one aggregated column");
 
         if (maybeExclusiveBundleIndex) {
             selectedFeaturesInBundles[maybeExclusiveBundleIndex->BundleIdx].push_back(
@@ -675,39 +675,39 @@ static void CalcBestScore(
             }
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor->ExecRange(
-                    [&](int oneCandidate) {
-                        THolder<IScoreCalcer> scoreCalcer;
-                        if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-                            scoreCalcer.Reset(new TPairwiseScoreCalcer);
-                        } else {
-                            scoreCalcer = MakePointwiseScoreCalcer(
-                                    ctx->Params.ObliviousTreeOptions->ScoreFunction
-                            );
-                        }
+                [&](int oneCandidate) {
+                    THolder<IScoreCalcer> scoreCalcer;
+                    if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+                        scoreCalcer.Reset(new TPairwiseScoreCalcer);
+                    } else {
+                        scoreCalcer = MakePointwiseScoreCalcer(
+                                ctx->Params.ObliviousTreeOptions->ScoreFunction
+                        );
+                    }
 
-                        CalcStatsAndScores(
-                            *candidatesContext.LearnData,
-                            fold->GetAllCtrs(),
-                            ctx->SampledDocs,
-                            ctx->SmallestSplitSideDocs,
-                            fold,
-                            pairs,
-                            ctx->Params,
-                            candidate.Candidates[oneCandidate],
-                            currentTree.GetDepth(),
-                            ctx->UseTreeLevelCaching(),
-                            currTreeMonotonicConstraints,
-                            monotonicConstraints,
-                            ctx->LocalExecutor,
-                            &ctx->PrevTreeLevelStats,
-                            /*stats3d*/nullptr,
-                            /*pairwiseStats*/nullptr,
-                            scoreCalcer.Get());
-                        scoreCalcer->GetScores().swap(allScores[oneCandidate]);
-                    },
-                    0,
-                    candidate.Candidates.ysize(),
-                    NPar::TLocalExecutor::WAIT_COMPLETE);
+                    CalcStatsAndScores(
+                        *candidatesContext.LearnData,
+                        fold->GetAllCtrs(),
+                        ctx->SampledDocs,
+                        ctx->SmallestSplitSideDocs,
+                        fold,
+                        pairs,
+                        ctx->Params,
+                        candidate.Candidates[oneCandidate],
+                        currentTree.GetDepth(),
+                        ctx->UseTreeLevelCaching(),
+                        currTreeMonotonicConstraints,
+                        monotonicConstraints,
+                        ctx->LocalExecutor,
+                        &ctx->PrevTreeLevelStats,
+                        /*stats3d*/nullptr,
+                        /*pairwiseStats*/nullptr,
+                        scoreCalcer.Get());
+                    scoreCalcer->GetScores().swap(allScores[oneCandidate]);
+                },
+                0,
+                candidate.Candidates.ysize(),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                 fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
@@ -922,8 +922,8 @@ static double GetCatFeatureWeight(
 
             return pow(
                 1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
-                           static_cast<double>(maxFeatureValueCount)),
-             -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                        static_cast<double>(maxFeatureValueCount)),
+                -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
         }
     }
     return 1.0;
