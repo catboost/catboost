@@ -815,4 +815,3 @@ void SetBestScore(
         }
     }
 }
-
