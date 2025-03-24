@@ -53,6 +53,7 @@ namespace NCB {
 
     TVector<TKNNCalcer::TNeighbor> TKNNCalcer::GetNearestNeighborsAndDistances(
         const TEmbeddingsArray& embed) const {
+
         TVector<TNeighbor> result;
         auto neighbors = Cloud->GetNearestNeighbors(embed.data(), CloseNum);
         auto cloudPtr = dynamic_cast<TKNNUpdatableCloud*>(Cloud.Get());
@@ -71,27 +72,27 @@ namespace NCB {
         return result;
     }
 
-    void TKNNCalcer::CompareAndCompute(TVector<TNeighbor>& neighbors, 
+    void TKNNCalcer::CompareAndCompute(TVector<TNeighbor>* neighbors, 
                                        TOutputFloatIterator iterator) const {
         TVector<float> result(FeatureCount_, 0);
 
-        if (neighbors.size() > CloseNum) {
-            Sort(neighbors.begin(), neighbors.end(), [](const auto& lhs, const auto& rhs){
+        if (neighbors->size() > CloseNum) {
+            Sort(neighbors->begin(), neighbors->end(), [](const auto& lhs, const auto& rhs){
                 return lhs.Distance < rhs.Distance;
             });
-            neighbors.resize(CloseNum);
+            neighbors->resize(CloseNum);
         }
     
         if (IsClassification) {
-            for (const auto& neighbor: neighbors) {
+            for (const auto& neighbor: *neighbors) {
                 ++result[neighbor.Target];
             }
         } else {
-            if (neighbors.size()) {
-                for (const auto& neighbor: neighbors) {
+            if (neighbors->size()) {
+                for (const auto& neighbor: *neighbors) {
                     result[0] += neighbor.Target;
                 }
-                result[0] /= (float)neighbors.size();
+                result[0] /= (float)neighbors->size();
             }
         }
     
