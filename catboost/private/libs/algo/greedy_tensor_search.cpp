@@ -236,14 +236,14 @@ static void CompressCandidates(
         }
         CB_ENSURE_INTERNAL(
             maybeExclusiveBundleIndex.Defined()
-            + maybePackedBinaryIndex.Defined()
-            + maybeFeaturesGroupIndex.Defined() <= 1,
+                + maybePackedBinaryIndex.Defined()
+                + maybeFeaturesGroupIndex.Defined() <= 1,
             "Feature #"
                     << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
-                            splitCandidate.FeatureIdx,
-                            (splitCandidate.Type == ESplitType::FloatFeature) ?
-                            EFeatureType::Float :
-                            EFeatureType::Categorical
+                        splitCandidate.FeatureIdx,
+                        (splitCandidate.Type == ESplitType::FloatFeature) ?
+                        EFeatureType::Float :
+                        EFeatureType::Categorical
                     )
                     << " is mis-included into more than one aggregated column");
 
@@ -351,7 +351,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
             case ESplitEnsembleType::ExclusiveBundle:
                 {
                     TVector<ui32>& selectedFeaturesInBundle
-                            = selectedFeaturesInBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx];
+                        = selectedFeaturesInBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx];
 
                     TVector<ui32> filteredFeaturesInBundle;
                     filteredFeaturesInBundle.reserve(selectedFeaturesInBundle.size());
@@ -368,7 +368,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
             case ESplitEnsembleType::FeaturesGroup:
                 {
                     TVector<ui32>& selectedFeaturesInGroup
-                            = selectedFeaturesInGroups[splitEnsemble.FeaturesGroupRef.GroupIdx];
+                        = selectedFeaturesInGroups[splitEnsemble.FeaturesGroupRef.GroupIdx];
 
                     TVector<ui32> filteredFeaturesInGroup;
                     filteredFeaturesInGroup.reserve(selectedFeaturesInGroup.size());
@@ -519,7 +519,7 @@ static void AddTreeCtrs(
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&](TCatFeatureIdx catFeatureIdx) {
                 const bool isOneHot =
-                        (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly <= oneHotMaxSize);
+                    (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly <= oneHotMaxSize);
                 if (isOneHot || (ctx->LearnProgress->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm)) {
                     return;
                 }
@@ -576,56 +576,56 @@ static void ForEachCtrCandidate(
 
 
 static void SelectCtrsToDropAfterCalc(
-        size_t memoryLimit,
-int sampleCount,
-int threadCount,
+    size_t memoryLimit,
+    int sampleCount,
+    int threadCount,
 
-// note: if ctrs are in precomputed storage this function should return false
-const std::function<bool(const TProjection&)>& isInCache,
-        TCandidateList* candList) {
+    // note: if ctrs are in precomputed storage this function should return false
+    const std::function<bool(const TProjection&)>& isInCache,
+    TCandidateList* candList) {
 
-size_t maxMemoryForOneCtr = 0;
-size_t fullNeededMemoryForCtrs = 0;
+    size_t maxMemoryForOneCtr = 0;
+    size_t fullNeededMemoryForCtrs = 0;
 
-ForEachCtrCandidate(
-[&] (TCandidatesInfoList* candSubList) {
-if (isInCache(candSubList->Candidates[0].SplitEnsemble.SplitCandidate.Ctr.Projection)) {
-const size_t neededMem = sampleCount * candSubList->Candidates.size();
-maxMemoryForOneCtr = Max<size_t>(neededMem, maxMemoryForOneCtr);
-fullNeededMemoryForCtrs += neededMem;
-}
-},
-candList);
+    ForEachCtrCandidate(
+        [&] (TCandidatesInfoList* candSubList) {
+            if (isInCache(candSubList->Candidates[0].SplitEnsemble.SplitCandidate.Ctr.Projection)) {
+                const size_t neededMem = sampleCount * candSubList->Candidates.size();
+                maxMemoryForOneCtr = Max<size_t>(neededMem, maxMemoryForOneCtr);
+                fullNeededMemoryForCtrs += neededMem;
+            }
+        },
+        candList);
 
-if (!fullNeededMemoryForCtrs) {
-return;
-}
-auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
-if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
-CATBOOST_DEBUG_LOG << "Need more memory than allowed, will drop some ctrs after score calculation"
-<< Endl;
-const float GB = (ui64)1024 * 1024 * 1024;
-CATBOOST_DEBUG_LOG << "current rss: " << currentMemoryUsage / GB << " full needed memory: "
-<< fullNeededMemoryForCtrs / GB << Endl;
-size_t currentNonDroppableMemory = currentMemoryUsage;
-size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
+    if (!fullNeededMemoryForCtrs) {
+        return;
+    }
+    auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
+    if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
+        CATBOOST_DEBUG_LOG << "Need more memory than allowed, will drop some ctrs after score calculation"
+            << Endl;
+        const float GB = (ui64)1024 * 1024 * 1024;
+        CATBOOST_DEBUG_LOG << "current rss: " << currentMemoryUsage / GB << " full needed memory: "
+            << fullNeededMemoryForCtrs / GB << Endl;
+        size_t currentNonDroppableMemory = currentMemoryUsage;
+        size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
 
-ForEachCtrCandidate(
-[&] (TCandidatesInfoList* candSubList) {
-if (isInCache(candSubList->Candidates[0].SplitEnsemble.SplitCandidate.Ctr.Projection)) {
-const size_t neededMem = sampleCount * candSubList->Candidates.size();
-if (currentNonDroppableMemory + neededMem + maxMemForOtherThreadsApprox <= memoryLimit) {
-candSubList->ShouldDropCtrAfterCalc = false;
-currentNonDroppableMemory += neededMem;
-} else {
-candSubList->ShouldDropCtrAfterCalc = true;
-}
-} else {
-candSubList->ShouldDropCtrAfterCalc = false;
-}
-},
-candList);
-}
+        ForEachCtrCandidate(
+            [&] (TCandidatesInfoList* candSubList) {
+                if (isInCache(candSubList->Candidates[0].SplitEnsemble.SplitCandidate.Ctr.Projection)) {
+                    const size_t neededMem = sampleCount * candSubList->Candidates.size();
+                    if (currentNonDroppableMemory + neededMem + maxMemForOtherThreadsApprox <= memoryLimit) {
+                        candSubList->ShouldDropCtrAfterCalc = false;
+                        currentNonDroppableMemory += neededMem;
+                    } else {
+                        candSubList->ShouldDropCtrAfterCalc = true;
+                    }
+                } else {
+                    candSubList->ShouldDropCtrAfterCalc = false;
+                }
+            },
+            candList);
+    }
 }
 
 
@@ -853,8 +853,8 @@ static double CalcScoreStDev(
     TLearnContext* ctx) {
 
     const double derivativesStDevFromZero = ctx->Params.SystemOptions->IsSingleHost()
-                                        ? CalcDerivativesStDevFromZero(fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
-                                        : MapCalcDerivativesStDevFromZero(learnSampleCount, ctx);
+        ? CalcDerivativesStDevFromZero(fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
+        : MapCalcDerivativesStDevFromZero(learnSampleCount, ctx);
 
     return ctx->Params.ObliviousTreeOptions->RandomStrength
         * derivativesStDevFromZero
@@ -921,9 +921,9 @@ static double GetCatFeatureWeight(
                 fold.GetCtrs(projection).GetUniqValuesCounts(projection);
 
             return pow(
-               1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
-                 static_cast<double>(maxFeatureValueCount)),
-            -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
+                           static_cast<double>(maxFeatureValueCount)),
+             -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
         }
     }
     return 1.0;
@@ -1046,7 +1046,7 @@ static TVector<TCandidatesContext> SelectFeaturesForScoring(
         SelectDatasetFeaturesForScoring(
             /*isEstimated*/ true,
             /*isOnlineEstimated*/ false,
-    data.EstimatedObjectsData.Learn,
+            data.EstimatedObjectsData.Learn,
             /*testSampleCount*/ 0, // unused
             currentSplitTree,
             fold,
@@ -1056,7 +1056,7 @@ static TVector<TCandidatesContext> SelectFeaturesForScoring(
         SelectDatasetFeaturesForScoring(
             /*isEstimated*/ true,
             /*isOnlineEstimated*/ true,
-    fold->GetOnlineEstimatedFeatures().Learn,
+            fold->GetOnlineEstimatedFeatures().Learn,
             /*testSampleCount*/ 0, // unused
             currentSplitTree,
             fold,
@@ -1378,7 +1378,6 @@ inline static void CalcBestScoreAndCandidate (
         subTrickInfo.CandidatesContexts,
         subTrickInfo.Fold,
         subTrickInfo.Ctx);
-
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
     SelectBestCandidate(
