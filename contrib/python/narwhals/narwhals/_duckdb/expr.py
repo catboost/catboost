@@ -18,6 +18,7 @@ from narwhals._duckdb.expr_dt import DuckDBExprDateTimeNamespace
 from narwhals._duckdb.expr_list import DuckDBExprListNamespace
 from narwhals._duckdb.expr_name import DuckDBExprNameNamespace
 from narwhals._duckdb.expr_str import DuckDBExprStringNamespace
+from narwhals._duckdb.expr_struct import DuckDBExprStructNamespace
 from narwhals._duckdb.utils import lit
 from narwhals._duckdb.utils import maybe_evaluate_expr
 from narwhals._duckdb.utils import narwhals_to_native_dtype
@@ -483,6 +484,10 @@ class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type
     @property
     def list(self: Self) -> DuckDBExprListNamespace:
         return DuckDBExprListNamespace(self)
+
+    @property
+    def struct(self: Self) -> DuckDBExprStructNamespace:
+        return DuckDBExprStructNamespace(self)
 
     arg_min = not_implemented()
     arg_max = not_implemented()

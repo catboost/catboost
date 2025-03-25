@@ -27,7 +27,9 @@ else:
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import Iterable
     from typing import Mapping
+    from typing import Sized
 
     import numpy as np
     from typing_extensions import Self
@@ -53,8 +55,8 @@ if TYPE_CHECKING:
 
         def join(self, *args: Any, **kwargs: Any) -> Any: ...
 
-    class NativeSeries(Protocol):
-        def __len__(self) -> int: ...
+    class NativeSeries(Sized, Iterable[Any], Protocol):
+        def filter(self, *args: Any, **kwargs: Any) -> Any: ...
 
     class DataFrameLike(Protocol):
         def __dataframe__(self, *args: Any, **kwargs: Any) -> Any: ...
@@ -65,8 +67,11 @@ class CompliantSeries(Protocol):
     def dtype(self) -> DType: ...
     @property
     def name(self) -> str: ...
+    @property
+    def native(self) -> Any: ...
     def __narwhals_series__(self) -> CompliantSeries: ...
     def alias(self, name: str) -> Self: ...
+    def _from_native_series(self, series: Any) -> Self: ...
 
 
 CompliantSeriesT_co = TypeVar(
@@ -188,7 +193,9 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
         *,
         return_dtype: DType | type[DType] | None,
     ) -> Self: ...
-    def over(self: Self, keys: Sequence[str], kind: ExprKind) -> Self: ...
+    def over(
+        self: Self, keys: Sequence[str], kind: ExprKind, order_by: Sequence[str] | None
+    ) -> Self: ...
     def sample(
         self,
         n: int | None,
@@ -218,6 +225,8 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
     def cat(self) -> Any: ...
     @property
     def list(self) -> Any: ...
+    @property
+    def struct(self) -> Any: ...
 
     @unstable
     def ewm_mean(
@@ -237,7 +246,7 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
         self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
     ) -> Self: ...
 
@@ -246,7 +255,7 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
         self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
     ) -> Self: ...
 
@@ -255,7 +264,7 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
         self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self: ...
@@ -265,7 +274,7 @@ class CompliantExpr(Protocol38[CompliantFrameT, CompliantSeriesT_co]):
         self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self: ...

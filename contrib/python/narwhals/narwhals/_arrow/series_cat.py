@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 import pyarrow as pa
 
+from narwhals._arrow.utils import ArrowSeriesNamespace
+
 if TYPE_CHECKING:
     from typing_extensions import Self
 
@@ -11,13 +13,8 @@ if TYPE_CHECKING:
     from narwhals._arrow.typing import Incomplete
 
 
-class ArrowSeriesCatNamespace:
-    def __init__(self: Self, series: ArrowSeries) -> None:
-        self._compliant_series: ArrowSeries = series
-
+class ArrowSeriesCatNamespace(ArrowSeriesNamespace):
     def get_categories(self: Self) -> ArrowSeries:
         # NOTE: Should be `list[pa.DictionaryArray]`, but `DictionaryArray` has no attributes
-        chunks: Incomplete = self._compliant_series._native_series.chunks
-        return self._compliant_series._from_native_series(
-            pa.concat_arrays(x.dictionary for x in chunks).unique()
-        )
+        chunks: Incomplete = self.native.chunks
+        return self.from_native(pa.concat_arrays(x.dictionary for x in chunks).unique())

@@ -406,8 +406,8 @@ class ArrowDataFrame(CompliantDataFrame["ArrowSeries"], CompliantLazyFrame):
         other: Self,
         *,
         how: Literal["left", "inner", "cross", "anti", "semi"],
-        left_on: list[str] | None,
-        right_on: list[str] | None,
+        left_on: Sequence[str] | None,
+        right_on: Sequence[str] | None,
         suffix: str,
     ) -> Self:
         how_to_join_map: dict[str, JoinType] = {
@@ -442,8 +442,8 @@ class ArrowDataFrame(CompliantDataFrame["ArrowSeries"], CompliantLazyFrame):
         return self._from_native_frame(
             self._native_frame.join(
                 other._native_frame,
-                keys=left_on or [],
-                right_keys=right_on,
+                keys=left_on or [],  # type: ignore[arg-type]
+                right_keys=right_on,  # type: ignore[arg-type]
                 join_type=how_to_join_map[how],
                 right_suffix=suffix,
             ),

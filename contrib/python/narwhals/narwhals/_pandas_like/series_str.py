@@ -85,11 +85,23 @@ class PandasLikeSeriesStringNamespace:
         )
 
     def to_datetime(self: Self, format: str | None) -> PandasLikeSeries:  # noqa: A002
-        return self._compliant_series._from_native_series(
-            to_datetime(self._compliant_series._implementation)(
+        if format is not None and any(x in format for x in ("%z", "Z")):
+            # We know that the inputs are timezone-aware, so we can directly pass
+            # `utc=True` for better performance.
+            return self._compliant_series._from_native_series(
+                to_datetime(self._compliant_series._implementation, utc=True)(
+                    self._compliant_series._native_series, format=format
+                )
+            )
+        result = self._compliant_series._from_native_series(
+            to_datetime(self._compliant_series._implementation, utc=False)(
                 self._compliant_series._native_series, format=format
             )
         )
+        result_time_zone = result.dtype.time_zone  # type: ignore[attr-defined]
+        if result_time_zone is not None and result_time_zone != "UTC":
+            result = result.dt.convert_time_zone("UTC")
+        return result
 
     def to_uppercase(self: Self) -> PandasLikeSeries:
         return self._compliant_series._from_native_series(

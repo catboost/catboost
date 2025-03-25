@@ -55,6 +55,8 @@ def native_to_narwhals_dtype(
     if isinstance(dtype, native.TimestampNTZType):
         return dtypes.Datetime()
     if isinstance(dtype, native.TimestampType):
+        # TODO(marco): is UTC correct, or should we be getting the connection timezone?
+        # https://github.com/narwhals-dev/narwhals/issues/2165
         return dtypes.Datetime(time_zone="UTC")
     if isinstance(dtype, native.DecimalType):
         return dtypes.Decimal()

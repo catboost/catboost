@@ -40,11 +40,6 @@ from narwhals.dependencies import is_sqlframe_dataframe
 from narwhals.utils import Version
 
 if TYPE_CHECKING:
-    import pandas as pd
-    import polars as pl
-    import pyarrow as pa
-
-    from narwhals._arrow.typing import ArrowChunkedArray
     from narwhals.dataframe import DataFrame
     from narwhals.dataframe import LazyFrame
     from narwhals.series import Series
@@ -790,21 +785,14 @@ def _from_native_impl(  # noqa: PLR0915
 
 
 def get_native_namespace(
-    obj: DataFrame[Any]
-    | LazyFrame[Any]
-    | Series[Any]
-    | pd.DataFrame
-    | pd.Series[Any]
-    | pl.DataFrame
-    | pl.LazyFrame
-    | pl.Series
-    | pa.Table
-    | ArrowChunkedArray,
+    *obj: DataFrame[Any] | LazyFrame[Any] | Series[Any] | IntoFrame | IntoSeries,
 ) -> Any:
     """Get native namespace from object.
 
     Arguments:
-        obj: Dataframe, Lazyframe, or Series.
+        obj: Dataframe, Lazyframe, or Series. Multiple objects can be
+            passed positionally, in which case they must all have the
+            same native namespace (else an error is raised).
 
     Returns:
         Native module.
@@ -820,6 +808,19 @@ def get_native_namespace(
         >>> nw.get_native_namespace(df)
         <module 'polars'...>
     """
+    if not obj:
+        msg = "At least one object must be passed to `get_native_namespace`."
+        raise ValueError(msg)
+    result = {_get_native_namespace_single_obj(x) for x in obj}
+    if len(result) != 1:
+        msg = f"Found objects with different native namespaces: {result}."
+        raise ValueError(msg)
+    return result.pop()
+
+
+def _get_native_namespace_single_obj(
+    obj: DataFrame[Any] | LazyFrame[Any] | Series[Any] | IntoFrame | IntoSeries,
+) -> Any:
     from narwhals.utils import has_native_namespace
 
     if has_native_namespace(obj):

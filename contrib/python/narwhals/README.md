@@ -110,6 +110,7 @@ for an up-to-date plan of future work.
 Join the party!
 
 - [altair](https://github.com/vega/altair/)
+- [darts](https://github.com/unit8co/darts)
 - [hierarchicalforecast](https://github.com/Nixtla/hierarchicalforecast)
 - [marimo](https://github.com/marimo-team/marimo)
 - [panel-graphic-walker](https://github.com/panel-extensions/panel-graphic-walker)

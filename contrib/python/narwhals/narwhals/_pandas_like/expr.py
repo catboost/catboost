@@ -17,13 +17,14 @@ from narwhals._pandas_like.expr_dt import PandasLikeExprDateTimeNamespace
 from narwhals._pandas_like.expr_list import PandasLikeExprListNamespace
 from narwhals._pandas_like.expr_name import PandasLikeExprNameNamespace
 from narwhals._pandas_like.expr_str import PandasLikeExprStringNamespace
+from narwhals._pandas_like.expr_struct import PandasLikeExprStructNamespace
 from narwhals._pandas_like.group_by import AGGREGATIONS_TO_PANDAS_EQUIVALENT
 from narwhals._pandas_like.series import PandasLikeSeries
-from narwhals._pandas_like.utils import rename
 from narwhals.dependencies import get_numpy
 from narwhals.dependencies import is_numpy_array
 from narwhals.exceptions import ColumnNotFoundError
 from narwhals.typing import CompliantExpr
+from narwhals.utils import generate_temporary_column_name
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -43,6 +44,7 @@ WINDOW_FUNCTIONS_TO_PANDAS_EQUIVALENT = {
     # Pandas cumcount counts nulls while Polars does not
     # So, instead of using "cumcount" we use "cumsum" on notna() to get the same result
     "cum_count": "cumsum",
+    "rolling_sum": "sum",
     "shift": "shift",
     "rank": "rank",
     "diff": "diff",
@@ -64,6 +66,12 @@ def window_kwargs_to_pandas_equivalent(
         }
     elif function_name.startswith("cum_"):  # Cumulative operation
         pandas_kwargs = {"skipna": True}
+    elif function_name.startswith("rolling_"):  # Rolling operation
+        pandas_kwargs = {
+            "min_periods": kwargs["min_samples"],
+            "window": kwargs["window_size"],
+            "center": kwargs["center"],
+        }
     else:  # e.g. std, var
         pandas_kwargs = kwargs
     return pandas_kwargs
@@ -380,8 +388,8 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
 
     def filter(self: Self, *predicates: PandasLikeExpr) -> Self:
         plx = self.__narwhals_namespace__()
-        other = plx.all_horizontal(*predicates)
-        return reuse_series_implementation(self, "filter", other=other)
+        predicate = plx.all_horizontal(*predicates)
+        return reuse_series_implementation(self, "filter", predicate=predicate)
 
     def drop_nulls(self: Self) -> Self:
         return reuse_series_implementation(self, "drop_nulls")
@@ -457,63 +465,96 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
             call_kwargs=self._call_kwargs,
         )
 
-    def over(self: Self, partition_by: Sequence[str], kind: ExprKind) -> Self:
-        if not is_elementary_expression(self):
+    def over(
+        self: Self,
+        partition_by: Sequence[str],
+        kind: ExprKind,
+        order_by: Sequence[str] | None,
+    ) -> Self:
+        if not partition_by:
+            # e.g. `nw.col('a').cum_sum().order_by(key)`
+            # We can always easily support this as it doesn't require grouping.
+            assert order_by is not None  # noqa: S101  # help type-check
+
+            def func(df: PandasLikeDataFrame) -> Sequence[PandasLikeSeries]:
+                token = generate_temporary_column_name(8, df.columns)
+                df = df.with_row_index(token).sort(
+                    *order_by, descending=False, nulls_last=False
+                )
+                results = self(df)
+                sorting_indices = df[token]
+                for s in results:
+                    s._scatter_in_place(sorting_indices, s)
+                return results
+        elif not is_elementary_expression(self):
             msg = (
                 "Only elementary expressions are supported for `.over` in pandas-like backends.\n\n"
                 "Please see: "
                 "https://narwhals-dev.github.io/narwhals/pandas_like_concepts/improve_group_by_operation/"
             )
             raise NotImplementedError(msg)
-        function_name = re.sub(r"(\w+->)", "", self._function_name)
-        try:
-            pandas_function_name = WINDOW_FUNCTIONS_TO_PANDAS_EQUIVALENT[function_name]
-        except KeyError:
-            try:
-                pandas_function_name = AGGREGATIONS_TO_PANDAS_EQUIVALENT[function_name]
-            except KeyError:
+        else:
+            function_name: str = re.sub(r"(\w+->)", "", self._function_name)
+            pandas_function_name = WINDOW_FUNCTIONS_TO_PANDAS_EQUIVALENT.get(
+                function_name,
+                AGGREGATIONS_TO_PANDAS_EQUIVALENT.get(function_name),
+            )
+            if pandas_function_name is None:
                 msg = (
                     f"Unsupported function: {function_name} in `over` context.\n\n"
                     f"Supported functions are {', '.join(WINDOW_FUNCTIONS_TO_PANDAS_EQUIVALENT)}\n"
                     f"and {', '.join(AGGREGATIONS_TO_PANDAS_EQUIVALENT)}."
                 )
-                raise NotImplementedError(msg) from None
-
-        def func(df: PandasLikeDataFrame) -> list[PandasLikeSeries]:
-            output_names, aliases = evaluate_output_names_and_aliases(self, df, [])
+                raise NotImplementedError(msg)
             pandas_kwargs = window_kwargs_to_pandas_equivalent(
                 function_name, self._call_kwargs
             )
 
-            if function_name == "cum_count":
-                plx = self.__narwhals_namespace__()
-                df = df.with_columns(~plx.col(*output_names).is_null())
-            if function_name.startswith("cum_"):
-                reverse = self._call_kwargs["reverse"]
-            else:
-                assert "reverse" not in self._call_kwargs  # debug assertion  # noqa: S101
-                reverse = False
-            if reverse:
-                # Only select the columns we need to avoid reversing columns
-                # unnecessarily
-                columns = list(set(partition_by).union(output_names))
-                native_frame = df[columns]._native_frame[::-1]
-            else:
-                native_frame = df._native_frame
-            res_native = native_frame.groupby(partition_by)[list(output_names)].transform(
-                pandas_function_name, **pandas_kwargs
-            )
-            result_frame = df._from_native_frame(
-                rename(
-                    res_native,
-                    columns=dict(zip(output_names, aliases)),
-                    implementation=self._implementation,
-                    backend_version=self._backend_version,
+            def func(df: PandasLikeDataFrame) -> Sequence[PandasLikeSeries]:
+                output_names, aliases = evaluate_output_names_and_aliases(self, df, [])
+                if function_name == "cum_count":
+                    plx = self.__narwhals_namespace__()
+                    df = df.with_columns(~plx.col(*output_names).is_null())
+
+                if function_name.startswith("cum_"):
+                    reverse = self._call_kwargs["reverse"]
+                else:
+                    assert "reverse" not in self._call_kwargs  # noqa: S101
+                    reverse = False
+
+                if order_by:
+                    columns = list(set(partition_by).union(output_names).union(order_by))
+                    token = generate_temporary_column_name(8, columns)
+                    df = (
+                        df[columns]
+                        .with_row_index(token)
+                        .sort(*order_by, descending=reverse, nulls_last=reverse)
+                    )
+                    sorting_indices = df[token]
+                elif reverse:
+                    columns = list(set(partition_by).union(output_names))
+                    df = df[columns][::-1]
+                if function_name.startswith("rolling"):
+                    rolling = df._native_frame.groupby(partition_by)[
+                        list(output_names)
+                    ].rolling(**pandas_kwargs)
+                    assert pandas_function_name is not None  # help mypy  # noqa: S101
+                    res_native = getattr(rolling, pandas_function_name)()
+                else:
+                    res_native = df._native_frame.groupby(partition_by)[
+                        list(output_names)
+                    ].transform(pandas_function_name, **pandas_kwargs)
+                result_frame = df._from_native_frame(res_native).rename(
+                    dict(zip(output_names, aliases))
                 )
-            )
-            if reverse:
-                return [result_frame[name][::-1] for name in aliases]
-            return [result_frame[name] for name in aliases]
+                results = [result_frame[name] for name in aliases]
+                if order_by:
+                    for s in results:
+                        s._scatter_in_place(sorting_indices, s)
+                    return results
+                if reverse:
+                    return [s[::-1] for s in results]
+                return results
 
         return self.__class__(
             func,
@@ -623,25 +664,23 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
         )
 
     def rolling_sum(
-        self: Self,
-        window_size: int,
-        *,
-        min_samples: int | None,
-        center: bool,
+        self: Self, window_size: int, *, min_samples: int, center: bool
     ) -> Self:
         return reuse_series_implementation(
             self,
             "rolling_sum",
-            window_size=window_size,
-            min_samples=min_samples,
-            center=center,
+            call_kwargs={
+                "window_size": window_size,
+                "min_samples": min_samples,
+                "center": center,
+            },
         )
 
     def rolling_mean(
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
     ) -> Self:
         return reuse_series_implementation(
@@ -656,7 +695,7 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -673,7 +712,7 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -715,3 +754,7 @@ class PandasLikeExpr(CompliantExpr["PandasLikeDataFrame", PandasLikeSeries]):
     @property
     def list(self: Self) -> PandasLikeExprListNamespace:
         return PandasLikeExprListNamespace(self)
+
+    @property
+    def struct(self: Self) -> PandasLikeExprStructNamespace:
+        return PandasLikeExprStructNamespace(self)

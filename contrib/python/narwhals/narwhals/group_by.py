@@ -46,69 +46,32 @@ class GroupBy(Generic[DataFrameT]):
             the grouped sum of another column.
 
             >>> import pandas as pd
-            >>> import polars as pl
             >>> import narwhals as nw
-            >>> df_pd = pd.DataFrame(
+            >>> df_native = pd.DataFrame(
             ...     {
             ...         "a": ["a", "b", "a", "b", "c"],
             ...         "b": [1, 2, 1, 3, 3],
             ...         "c": [5, 4, 3, 2, 1],
             ...     }
             ... )
-            >>> df_pl = pl.DataFrame(
-            ...     {
-            ...         "a": ["a", "b", "a", "b", "c"],
-            ...         "b": [1, 2, 1, 3, 3],
-            ...         "c": [5, 4, 3, 2, 1],
-            ...     }
-            ... )
-
-            We define library agnostic functions:
-
-            >>> @nw.narwhalify
-            ... def func(df):
-            ...     return df.group_by("a").agg(nw.col("b").sum()).sort("a")
-
-            >>> @nw.narwhalify
-            ... def func_mult_col(df):
-            ...     return df.group_by("a", "b").agg(nw.sum("c")).sort("a", "b")
-
-            We can then pass either pandas or Polars to `func` and `func_mult_col`:
-
-            >>> func(df_pd)
-               a  b
-            0  a  2
-            1  b  5
-            2  c  3
-            >>> func(df_pl)
-            shape: (3, 2)
-            ┌─────┬─────┐
-            │ a   ┆ b   │
-            │ --- ┆ --- │
-            │ str ┆ i64 │
-            ╞═════╪═════╡
-            │ a   ┆ 2   │
-            │ b   ┆ 5   │
-            │ c   ┆ 3   │
-            └─────┴─────┘
-            >>> func_mult_col(df_pd)
+            >>> df = nw.from_native(df_native)
+            >>>
+            >>> df.group_by("a").agg(nw.col("b").sum()).sort("a")
+            ┌──────────────────┐
+            |Narwhals DataFrame|
+            |------------------|
+            |        a  b      |
+            |     0  a  2      |
+            |     1  b  5      |
+            |     2  c  3      |
+            └──────────────────┘
+            >>>
+            >>> df.group_by("a", "b").agg(nw.col("c").sum()).sort("a", "b").to_native()
                a  b  c
             0  a  1  8
             1  b  2  4
             2  b  3  2
             3  c  3  1
-            >>> func_mult_col(df_pl)
-            shape: (4, 3)
-            ┌─────┬─────┬─────┐
-            │ a   ┆ b   ┆ c   │
-            │ --- ┆ --- ┆ --- │
-            │ str ┆ i64 ┆ i64 │
-            ╞═════╪═════╪═════╡
-            │ a   ┆ 1   ┆ 8   │
-            │ b   ┆ 2   ┆ 4   │
-            │ b   ┆ 3   ┆ 2   │
-            │ c   ┆ 3   ┆ 1   │
-            └─────┴─────┴─────┘
         """
         flat_aggs = tuple(flatten(aggs))
         if not all_exprs_are_scalar_like(*flat_aggs, **named_aggs):
@@ -162,29 +125,16 @@ class LazyGroupBy(Generic[LazyFrameT]):
             >>> import polars as pl
             >>> import narwhals as nw
             >>> from narwhals.typing import IntoFrameT
-            >>> lf_pl = pl.LazyFrame(
+            >>> lf_native = pl.LazyFrame(
             ...     {
             ...         "a": ["a", "b", "a", "b", "c"],
             ...         "b": [1, 2, 1, 3, 3],
             ...         "c": [5, 4, 3, 2, 1],
             ...     }
             ... )
-
-            We define library agnostic functions:
-
-            >>> def agnostic_func_one_col(lf_native: IntoFrameT) -> IntoFrameT:
-            ...     lf = nw.from_native(lf_native)
-            ...     return nw.to_native(lf.group_by("a").agg(nw.col("b").sum()).sort("a"))
-
-            >>> def agnostic_func_mult_col(lf_native: IntoFrameT) -> IntoFrameT:
-            ...     lf = nw.from_native(lf_native)
-            ...     return nw.to_native(
-            ...         lf.group_by("a", "b").agg(nw.sum("c")).sort("a", "b")
-            ...     )
-
-            We can then pass a lazy frame and materialise it with `collect`:
-
-            >>> agnostic_func_one_col(lf_pl).collect()
+            >>> lf = nw.from_native(lf_native)
+            >>>
+            >>> nw.to_native(lf.group_by("a").agg(nw.col("b").sum()).sort("a")).collect()
             shape: (3, 2)
             ┌─────┬─────┐
             │ a   ┆ b   │
@@ -195,18 +145,23 @@ class LazyGroupBy(Generic[LazyFrameT]):
             │ b   ┆ 5   │
             │ c   ┆ 3   │
             └─────┴─────┘
-            >>> agnostic_func_mult_col(lf_pl).collect()
-            shape: (4, 3)
-            ┌─────┬─────┬─────┐
-            │ a   ┆ b   ┆ c   │
-            │ --- ┆ --- ┆ --- │
-            │ str ┆ i64 ┆ i64 │
-            ╞═════╪═════╪═════╡
-            │ a   ┆ 1   ┆ 8   │
-            │ b   ┆ 2   ┆ 4   │
-            │ b   ┆ 3   ┆ 2   │
-            │ c   ┆ 3   ┆ 1   │
-            └─────┴─────┴─────┘
+            >>>
+            >>> lf.group_by("a", "b").agg(nw.sum("c")).sort("a", "b").collect()
+            ┌───────────────────┐
+            |Narwhals DataFrame |
+            |-------------------|
+            |shape: (4, 3)      |
+            |┌─────┬─────┬─────┐|
+            |│ a   ┆ b   ┆ c   │|
+            |│ --- ┆ --- ┆ --- │|
+            |│ str ┆ i64 ┆ i64 │|
+            |╞═════╪═════╪═════╡|
+            |│ a   ┆ 1   ┆ 8   │|
+            |│ b   ┆ 2   ┆ 4   │|
+            |│ b   ┆ 3   ┆ 2   │|
+            |│ c   ┆ 3   ┆ 1   │|
+            |└─────┴─────┴─────┘|
+            └───────────────────┘
         """
         flat_aggs = tuple(flatten(aggs))
         if not all_exprs_are_scalar_like(*flat_aggs, **named_aggs):

@@ -220,6 +220,7 @@ def reuse_series_namespace_implementation(
         kwargs: keyword arguments to pass to function.
     """
     plx = expr.__narwhals_namespace__()
+
     return plx._create_expr_from_callable(  # type: ignore[return-value]
         lambda df: [
             getattr(getattr(series, series_namespace), attr)(**kwargs)

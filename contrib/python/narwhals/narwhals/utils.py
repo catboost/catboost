@@ -13,6 +13,7 @@ from typing import Callable
 from typing import Container
 from typing import Iterable
 from typing import Literal
+from typing import Protocol
 from typing import Sequence
 from typing import TypeVar
 from typing import Union
@@ -45,7 +46,6 @@ from narwhals.exceptions import InvalidOperationError
 if TYPE_CHECKING:
     from types import ModuleType
     from typing import AbstractSet as Set
-    from typing import Protocol
 
     import pandas as pd
     from typing_extensions import Self
@@ -61,7 +61,6 @@ if TYPE_CHECKING:
     from narwhals.typing import CompliantFrameT
     from narwhals.typing import CompliantLazyFrame
     from narwhals.typing import CompliantSeries
-    from narwhals.typing import CompliantSeriesT_co
     from narwhals.typing import DataFrameLike
     from narwhals.typing import DTypes
     from narwhals.typing import IntoSeriesT
@@ -116,6 +115,75 @@ if TYPE_CHECKING:
     class _StoresColumns(Protocol):
         @property
         def columns(self) -> Sequence[str]: ...
+
+
+NativeT_co = TypeVar("NativeT_co", covariant=True)
+CompliantT_co = TypeVar("CompliantT_co", covariant=True)
+CompliantExprT_co = TypeVar(
+    "CompliantExprT_co", bound="CompliantExpr[Any, Any]", covariant=True
+)
+CompliantSeriesT_co = TypeVar(
+    "CompliantSeriesT_co", bound="CompliantSeries", covariant=True
+)
+
+
+class _StoresNative(Protocol[NativeT_co]):
+    """Provides access to a native object.
+
+    Native objects have types like:
+
+    >>> from pandas import Series
+    >>> from pyarrow import Table
+    """
+
+    @property
+    def native(self) -> NativeT_co:
+        """Return the native object."""
+        ...
+
+
+class _StoresCompliant(Protocol[CompliantT_co]):
+    """Provides access to a compliant object.
+
+    Compliant objects have types like:
+
+    >>> from narwhals._pandas_like.series import PandasLikeSeries
+    >>> from narwhals._arrow.dataframe import ArrowDataFrame
+    """
+
+    @property
+    def compliant(self) -> CompliantT_co:
+        """Return the compliant object."""
+        ...
+
+
+class _SeriesNamespace(  # type: ignore[misc]  # noqa: PYI046
+    _StoresCompliant[CompliantSeriesT_co],
+    _StoresNative[NativeT_co],
+    Protocol[CompliantSeriesT_co, NativeT_co],
+):
+    _compliant_series: CompliantSeriesT_co
+
+    @property
+    def compliant(self) -> CompliantSeriesT_co:
+        return self._compliant_series
+
+    @property
+    def native(self) -> NativeT_co:
+        return self._compliant_series.native
+
+    def from_native(self, series: Any, /) -> CompliantSeriesT_co:
+        return self.compliant._from_native_series(series)
+
+
+class _ExprNamespace(  # type: ignore[misc] # noqa: PYI046
+    _StoresCompliant[CompliantExprT_co], Protocol[CompliantExprT_co]
+):
+    _compliant_expr: CompliantExprT_co
+
+    @property
+    def compliant(self) -> CompliantExprT_co:
+        return self._compliant_expr
 
 
 class Version(Enum):
@@ -816,7 +884,7 @@ def maybe_set_index(
         msg = "Only one of `column_names` or `index` should be provided"
         raise ValueError(msg)
 
-    if not column_names and not index:
+    if not column_names and index is None:
         msg = "Either `column_names` or `index` should be provided"
         raise ValueError(msg)
 
@@ -916,9 +984,9 @@ def _has_default_index(
     index = native_frame_or_series.index
     return (
         _is_range_index(index, native_namespace)
-        and index.start == 0  # type: ignore[comparison-overlap]
-        and index.stop == len(index)  # type: ignore[comparison-overlap]
-        and index.step == 1  # type: ignore[comparison-overlap]
+        and index.start == 0
+        and index.stop == len(index)
+        and index.step == 1
     )
 
 

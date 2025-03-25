@@ -7,11 +7,14 @@ from typing import Literal
 from typing import Mapping
 from typing import Sequence
 
+import pyarrow.compute as pc
+
 from narwhals._arrow.expr_cat import ArrowExprCatNamespace
 from narwhals._arrow.expr_dt import ArrowExprDateTimeNamespace
 from narwhals._arrow.expr_list import ArrowExprListNamespace
 from narwhals._arrow.expr_name import ArrowExprNameNamespace
 from narwhals._arrow.expr_str import ArrowExprStringNamespace
+from narwhals._arrow.expr_struct import ArrowExprStructNamespace
 from narwhals._arrow.series import ArrowSeries
 from narwhals._expression_parsing import ExprKind
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
@@ -22,6 +25,7 @@ from narwhals.dependencies import is_numpy_array
 from narwhals.exceptions import ColumnNotFoundError
 from narwhals.typing import CompliantExpr
 from narwhals.utils import Implementation
+from narwhals.utils import generate_temporary_column_name
 from narwhals.utils import not_implemented
 
 if TYPE_CHECKING:
@@ -236,8 +240,8 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
 
     def filter(self: Self, *predicates: ArrowExpr) -> Self:
         plx = self.__narwhals_namespace__()
-        other = plx.all_horizontal(*predicates)
-        return reuse_series_implementation(self, "filter", other=other)
+        predicate = plx.all_horizontal(*predicates)
+        return reuse_series_implementation(self, "filter", predicate=predicate)
 
     def mean(self: Self) -> Self:
         return reuse_series_implementation(self, "mean", returns_scalar=True)
@@ -423,28 +427,57 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
             self, "clip", lower_bound=lower_bound, upper_bound=upper_bound
         )
 
-    def over(self: Self, keys: Sequence[str], kind: ExprKind) -> Self:
-        if not is_scalar_like(kind):
-            msg = "Only aggregation or literal operations are supported in `over` context for PyArrow."
+    def over(
+        self: Self,
+        partition_by: Sequence[str],
+        kind: ExprKind,
+        order_by: Sequence[str] | None,
+    ) -> Self:
+        if partition_by and not is_scalar_like(kind):
+            msg = "Only aggregation or literal operations are supported in grouped `over` context for PyArrow."
             raise NotImplementedError(msg)
 
-        def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            output_names, aliases = evaluate_output_names_and_aliases(self, df, [])
-            if overlap := set(output_names).intersection(keys):
-                # E.g. `df.select(nw.all().sum().over('a'))`. This is well-defined,
-                # we just don't support it yet.
-                msg = (
-                    f"Column names {overlap} appear in both expression output names and in `over` keys.\n"
-                    "This is not yet supported."
-                )
-                raise NotImplementedError(msg)
+        if not partition_by:
+            # e.g. `nw.col('a').cum_sum().order_by(key)`
+            # which we can always easily support, as it doesn't require grouping.
+            assert order_by is not None  # help type checkers  # noqa: S101
 
-            tmp = df.group_by(*keys, drop_null_keys=False).agg(self)
-            on = list(keys)
-            tmp = df.simple_select(*keys).join(
-                tmp, how="left", left_on=on, right_on=on, suffix="_right"
-            )
-            return [tmp[alias] for alias in aliases]
+            def func(df: ArrowDataFrame) -> Sequence[ArrowSeries]:
+                token = generate_temporary_column_name(8, df.columns)
+                df = df.with_row_index(token).sort(
+                    *order_by, descending=False, nulls_last=False
+                )
+                result = self(df)
+                # TODO(marco): is there a way to do this efficiently without
+                # doing 2 sorts? Here we're sorting the dataframe and then
+                # again calling `sort_indices`. `ArrowSeries.scatter` would also sort.
+                sorting_indices = pc.sort_indices(df[token]._native_series)  # type: ignore[call-overload]
+                return [
+                    ser._from_native_series(pc.take(ser._native_series, sorting_indices))  # type: ignore[call-overload]
+                    for ser in result
+                ]
+        else:
+
+            def func(df: ArrowDataFrame) -> Sequence[ArrowSeries]:
+                output_names, aliases = evaluate_output_names_and_aliases(self, df, [])
+                if overlap := set(output_names).intersection(partition_by):
+                    # E.g. `df.select(nw.all().sum().over('a'))`. This is well-defined,
+                    # we just don't support it yet.
+                    msg = (
+                        f"Column names {overlap} appear in both expression output names and in `over` keys.\n"
+                        "This is not yet supported."
+                    )
+                    raise NotImplementedError(msg)
+
+                tmp = df.group_by(*partition_by, drop_null_keys=False).agg(self)
+                tmp = df.simple_select(*partition_by).join(
+                    tmp,
+                    how="left",
+                    left_on=partition_by,
+                    right_on=partition_by,
+                    suffix="_right",
+                )
+                return [tmp[alias] for alias in aliases]
 
         return self.__class__(
             func,
@@ -513,11 +546,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         return reuse_series_implementation(self, "cum_prod", reverse=reverse)
 
     def rolling_sum(
-        self: Self,
-        window_size: int,
-        *,
-        min_samples: int | None,
-        center: bool,
+        self: Self, window_size: int, *, min_samples: int, center: bool
     ) -> Self:
         return reuse_series_implementation(
             self,
@@ -531,7 +560,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
     ) -> Self:
         return reuse_series_implementation(
@@ -546,7 +575,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -563,7 +592,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -607,3 +636,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
     @property
     def list(self: Self) -> ArrowExprListNamespace:
         return ArrowExprListNamespace(self)
+
+    @property
+    def struct(self: Self) -> ArrowExprStructNamespace:
+        return ArrowExprStructNamespace(self)

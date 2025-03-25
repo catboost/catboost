@@ -83,6 +83,10 @@ def native_to_narwhals_dtype(duckdb_dtype: str, version: Version) -> DType:
         return dtypes.Date()
     if duckdb_dtype == "TIMESTAMP":
         return dtypes.Datetime()
+    if duckdb_dtype == "TIMESTAMP WITH TIME ZONE":
+        # TODO(marco): is UTC correct, or should we be getting the connection timezone?
+        # https://github.com/narwhals-dev/narwhals/issues/2165
+        return dtypes.Datetime(time_zone="UTC")
     if duckdb_dtype == "BOOLEAN":
         return dtypes.Boolean()
     if duckdb_dtype == "INTERVAL":

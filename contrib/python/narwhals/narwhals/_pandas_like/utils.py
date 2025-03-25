@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import functools
 import re
 import warnings
 from contextlib import suppress
-from functools import lru_cache
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
@@ -356,7 +356,7 @@ def rename(
     return obj.rename(*args, **kwargs, copy=False)  # type: ignore[attr-defined]
 
 
-@lru_cache(maxsize=16)
+@functools.lru_cache(maxsize=16)
 def non_object_native_to_narwhals_dtype(dtype: str, version: Version) -> DType:
     dtypes = import_dtypes_module(version)
     if dtype in {"int64", "Int64", "Int64[pyarrow]", "int64[pyarrow]"}:
@@ -679,9 +679,11 @@ def align_series_full_broadcast(
     return reindexed
 
 
-def to_datetime(implementation: Implementation) -> Any:
+def to_datetime(implementation: Implementation, *, utc: bool) -> Any:
     if implementation in PANDAS_LIKE_IMPLEMENTATION:
-        return implementation.to_native_namespace().to_datetime
+        return functools.partial(
+            implementation.to_native_namespace().to_datetime, utc=utc
+        )
 
     else:  # pragma: no cover
         msg = f"Expected pandas-like implementation ({PANDAS_LIKE_IMPLEMENTATION}), found {implementation}"

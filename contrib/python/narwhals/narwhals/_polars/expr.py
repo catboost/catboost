@@ -97,14 +97,28 @@ class PolarsExpr:
             )
         return self._from_native_expr(self._native_expr.is_nan())
 
-    def over(self: Self, keys: list[str], kind: ExprKind) -> Self:
-        return self._from_native_expr(self._native_expr.over(keys))
+    def over(
+        self: Self,
+        partition_by: Sequence[str],
+        kind: ExprKind,
+        order_by: Sequence[str] | None,
+    ) -> Self:
+        if self._backend_version < (1, 9):
+            if order_by:
+                msg = "`order_by` in Polars requires version 1.10 or greater"
+                raise NotImplementedError(msg)
+            return self._from_native_expr(
+                self._native_expr.over(partition_by or pl.lit(1))
+            )
+        return self._from_native_expr(
+            self._native_expr.over(partition_by or pl.lit(1), order_by=order_by)
+        )
 
     def rolling_var(
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -130,7 +144,7 @@ class PolarsExpr:
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
         ddof: int,
     ) -> Self:
@@ -153,11 +167,7 @@ class PolarsExpr:
         )
 
     def rolling_sum(
-        self: Self,
-        window_size: int,
-        *,
-        min_samples: int | None,
-        center: bool,
+        self: Self, window_size: int, *, min_samples: int, center: bool
     ) -> Self:
         extra_kwargs = (
             {"min_periods": min_samples}
@@ -177,7 +187,7 @@ class PolarsExpr:
         self: Self,
         window_size: int,
         *,
-        min_samples: int | None,
+        min_samples: int,
         center: bool,
     ) -> Self:
         extra_kwargs = (
@@ -306,6 +316,10 @@ class PolarsExpr:
     def list(self: Self) -> PolarsExprListNamespace:
         return PolarsExprListNamespace(self)
 
+    @property
+    def struct(self: Self) -> PolarsExprStructNamespace:
+        return PolarsExprStructNamespace(self)
+
 
 class PolarsExprDateTimeNamespace:
     def __init__(self: Self, expr: PolarsExpr) -> None:
@@ -388,6 +402,22 @@ class PolarsExprListNamespace:
             args, kwargs = extract_args_kwargs(args, kwargs)  # type: ignore[assignment]
             return self._expr._from_native_expr(
                 getattr(self._expr._native_expr.list, attr)(*args, **kwargs)
+            )
+
+        return func
+
+
+class PolarsExprStructNamespace:
+    def __init__(self: Self, expr: PolarsExpr) -> None:
+        self._expr = expr
+
+    def __getattr__(
+        self: Self, attr: str
+    ) -> Callable[[Any], PolarsExpr]:  # pragma: no cover
+        def func(*args: Any, **kwargs: Any) -> PolarsExpr:
+            args, kwargs = extract_args_kwargs(args, kwargs)  # type: ignore[assignment]
+            return self._expr._from_native_expr(
+                getattr(self._expr._native_expr.struct, attr)(*args, **kwargs)
             )
 
         return func

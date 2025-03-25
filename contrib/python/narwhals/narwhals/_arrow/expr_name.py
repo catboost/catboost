@@ -4,16 +4,15 @@ from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Sequence
 
+from narwhals._arrow.utils import ArrowExprNamespace
+
 if TYPE_CHECKING:
     from typing_extensions import Self
 
     from narwhals._arrow.expr import ArrowExpr
 
 
-class ArrowExprNameNamespace:
-    def __init__(self: Self, expr: ArrowExpr) -> None:
-        self._compliant_expr = expr
-
+class ArrowExprNameNamespace(ArrowExprNamespace):
     def keep(self: Self) -> ArrowExpr:
         return self._from_colname_func_and_alias_output_names(
             name_mapping_func=lambda name: name,
@@ -65,19 +64,18 @@ class ArrowExprNameNamespace:
         name_mapping_func: Callable[[str], str],
         alias_output_names: Callable[[Sequence[str]], Sequence[str]] | None,
     ) -> ArrowExpr:
-        return self._compliant_expr.__class__(
+        return self.compliant.__class__(
             call=lambda df: [
                 series.alias(name_mapping_func(name))
                 for series, name in zip(
-                    self._compliant_expr._call(df),
-                    self._compliant_expr._evaluate_output_names(df),
+                    self.compliant._call(df), self.compliant._evaluate_output_names(df)
                 )
             ],
-            depth=self._compliant_expr._depth,
-            function_name=self._compliant_expr._function_name,
-            evaluate_output_names=self._compliant_expr._evaluate_output_names,
+            depth=self.compliant._depth,
+            function_name=self.compliant._function_name,
+            evaluate_output_names=self.compliant._evaluate_output_names,
             alias_output_names=alias_output_names,
-            backend_version=self._compliant_expr._backend_version,
-            version=self._compliant_expr._version,
-            call_kwargs=self._compliant_expr._call_kwargs,
+            backend_version=self.compliant._backend_version,
+            version=self.compliant._version,
+            call_kwargs=self.compliant._call_kwargs,
         )

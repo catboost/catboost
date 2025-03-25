@@ -12,15 +12,19 @@ from typing import overload
 import pyarrow as pa
 import pyarrow.compute as pc
 
+from narwhals.utils import _ExprNamespace
+from narwhals.utils import _SeriesNamespace
 from narwhals.utils import import_dtypes_module
 from narwhals.utils import isinstance_or_issubclass
 
 if TYPE_CHECKING:
     from typing import TypeVar
 
+    from typing_extensions import Self
     from typing_extensions import TypeAlias
     from typing_extensions import TypeIs
 
+    from narwhals._arrow.expr import ArrowExpr
     from narwhals._arrow.series import ArrowSeries
     from narwhals._arrow.typing import ArrowArray
     from narwhals._arrow.typing import ArrowChunkedArray
@@ -225,22 +229,22 @@ def extract_native(
     from narwhals._arrow.series import ArrowSeries
 
     if rhs is None:
-        return lhs._native_series, lit(None, type=lhs._native_series.type)
+        return lhs.native, lit(None, type=lhs._type)
 
     if isinstance(rhs, ArrowDataFrame):
         return NotImplemented
 
     if isinstance(rhs, ArrowSeries):
         if lhs._broadcast and not rhs._broadcast:
-            return lhs._native_series[0], rhs._native_series
+            return lhs.native[0], rhs.native
         if rhs._broadcast:
-            return lhs._native_series, rhs._native_series[0]
-        return lhs._native_series, rhs._native_series
+            return lhs.native, rhs.native[0]
+        return lhs.native, rhs.native
 
     if isinstance(rhs, list):
         msg = "Expected Series or scalar, got list."
         raise TypeError(msg)
-    return lhs._native_series, rhs
+    return lhs.native, rhs
 
 
 def align_series_full_broadcast(*series: ArrowSeries) -> Sequence[ArrowSeries]:
@@ -255,13 +259,12 @@ def align_series_full_broadcast(*series: ArrowSeries) -> Sequence[ArrowSeries]:
     is_max_length_gt_1 = max_length > 1
     reshaped = []
     for s, length in zip(series, lengths):
-        s_native = s._native_series
         if is_max_length_gt_1 and length == 1:
-            value = s_native[0]
+            value = s.native[0]
             if s._backend_version < (13,) and hasattr(value, "as_py"):
                 value = value.as_py()
             reshaped.append(
-                s._from_native_series(pa.array([value] * max_length, type=s_native.type))
+                s._from_native_series(pa.array([value] * max_length, type=s._type))
             )
         else:
             reshaped.append(s)
@@ -275,17 +278,15 @@ def extract_dataframe_comparand(
     backend_version: tuple[int, ...],
 ) -> ArrowChunkedArray:
     """Extract native Series, broadcasting to `length` if necessary."""
+    if not other._broadcast:
+        return other.native
+
     import numpy as np  # ignore-banned-import
 
-    if other._broadcast:
-        import numpy as np  # ignore-banned-import
-
-        value = other._native_series[0]
-        if backend_version < (13,) and hasattr(value, "as_py"):
-            value = value.as_py()
-        return pa.chunked_array([np.full(shape=length, fill_value=value)])
-
-    return other._native_series
+    value = other.native[0]
+    if backend_version < (13,) and hasattr(value, "as_py"):
+        value = value.as_py()
+    return pa.chunked_array([np.full(shape=length, fill_value=value)])
 
 
 def horizontal_concat(dfs: list[pa.Table]) -> pa.Table:
@@ -533,22 +534,22 @@ def pad_series(
     Returns:
         A tuple containing the padded ArrowSeries and the offset value.
     """
-    if center:
-        offset_left = window_size // 2
-        offset_right = offset_left - (
-            window_size % 2 == 0
-        )  # subtract one if window_size is even
+    if not center:
+        return series, 0
+    offset_left = window_size // 2
+    # subtract one if window_size is even
+    offset_right = offset_left - (window_size % 2 == 0)
+    pad_left = pa.array([None] * offset_left, type=series._type)
+    pad_right = pa.array([None] * offset_right, type=series._type)
+    concat = pa.concat_arrays([pad_left, *series.native.chunks, pad_right])
+    return series._from_native_series(concat), offset_left + offset_right
 
-        native_series = series._native_series
 
-        pad_left = pa.array([None] * offset_left, type=native_series.type)
-        pad_right = pa.array([None] * offset_right, type=native_series.type)
-        padded_arr = series._from_native_series(
-            pa.concat_arrays([pad_left, *native_series.chunks, pad_right])
-        )
-        offset = offset_left + offset_right
-    else:
-        padded_arr = series
-        offset = 0
+class ArrowSeriesNamespace(_SeriesNamespace["ArrowSeries", "ArrowChunkedArray"]):
+    def __init__(self: Self, series: ArrowSeries, /) -> None:
+        self._compliant_series = series
 
-    return padded_arr, offset
+
+class ArrowExprNamespace(_ExprNamespace["ArrowExpr"]):
+    def __init__(self: Self, expr: ArrowExpr, /) -> None:
+        self._compliant_expr = expr

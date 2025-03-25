@@ -20,6 +20,7 @@ from narwhals.expr_dt import ExprDateTimeNamespace
 from narwhals.expr_list import ExprListNamespace
 from narwhals.expr_name import ExprNameNamespace
 from narwhals.expr_str import ExprStringNamespace
+from narwhals.expr_struct import ExprStructNamespace
 from narwhals.translate import to_native
 from narwhals.utils import _validate_rolling_arguments
 from narwhals.utils import flatten
@@ -1551,15 +1552,22 @@ class Expr:
         if self._metadata.kind.is_filtration():
             msg = "`.over()` can not be used for expressions which change length."
             raise LengthChangingExprError(msg)
+
+        flat_partition_by = flatten(partition_by)
+        order_by = [_order_by] if isinstance(_order_by, str) else _order_by
+        if not flat_partition_by and not _order_by:  # pragma: no cover
+            msg = "At least one of `partition_by` or `order_by` must be specified."
+            raise ValueError(msg)
+
         kind = ExprKind.TRANSFORM
         n_open_windows = self._metadata.n_open_windows
         if _order_by is not None and self._metadata.kind.is_window():
             n_open_windows -= 1
         metadata = ExprMetadata(kind, n_open_windows=n_open_windows)
-        flat_partition_by = flatten(partition_by)
+
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).over(
-                flat_partition_by, kind=self._metadata.kind
+                flat_partition_by, order_by=order_by, kind=self._metadata.kind
             ),
             metadata,
         )
@@ -2184,14 +2192,14 @@ class Expr:
             |3  4.0            6.0|
             └─────────────────────┘
         """
-        window_size, min_samples = _validate_rolling_arguments(
+        window_size, min_samples_int = _validate_rolling_arguments(
             window_size=window_size, min_samples=min_samples
         )
 
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).rolling_sum(
                 window_size=window_size,
-                min_samples=min_samples,
+                min_samples=min_samples_int,
                 center=center,
             ),
             self._metadata.with_kind_and_extra_open_window(ExprKind.WINDOW),
@@ -2471,6 +2479,10 @@ class Expr:
     @property
     def list(self: Self) -> ExprListNamespace[Self]:
         return ExprListNamespace(self)
+
+    @property
+    def struct(self: Self) -> ExprStructNamespace[Self]:
+        return ExprStructNamespace(self)
 
 
 __all__ = [
