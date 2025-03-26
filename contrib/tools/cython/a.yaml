@@ -1,0 +1,26 @@
+service: cc
+title: Third party components
+
+ci:
+  secret: sec-01e0d4agf6pfvwdjwxp61n3fvg
+  runtime:
+    sandbox-owner: DEVTOOLS-LARGE
+
+  actions:
+    my-action:
+      flow: add-cython-fakeid-issue
+      triggers:
+        - on: pr
+
+  flows:
+    add-cython-fakeid-issue:
+      jobs:
+        cython-fakeid-issue:
+          title: Cython FakeID issue
+          task: projects/devtools/write_pr_comment/write_pr_comment
+          input:
+            config:
+              data: Любые правки в Cython должны также менять CYTHON_FAKEID для тестирования зависимостей от Cython!
+              pr_id: ${context.launch_pull_request_info.pull_request.id}
+              issue: true
+              once: true
