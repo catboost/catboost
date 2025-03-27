@@ -82,6 +82,7 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.h
   ${PROJECT_SOURCE_DIR}/util/generic/cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/deque.h
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.h
   ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.h
   ${PROJECT_SOURCE_DIR}/util/generic/flags.h
@@ -348,6 +349,7 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/flags.cpp

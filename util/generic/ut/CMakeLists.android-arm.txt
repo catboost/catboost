@@ -12,6 +12,13 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
 add_executable(util-generic-ut)
 
 
@@ -20,6 +27,7 @@ target_link_libraries(util-generic-ut PUBLIC
   yutil
   cpp-testing-unittest_main
   cpp-containers-absl_flat_hash
+  tools-enum_parser-enum_serialization_runtime
 )
 
 target_allocator(util-generic-ut
@@ -43,6 +51,7 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/buffer_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/flags_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/function_ref_ut.cpp
@@ -123,6 +132,12 @@ set_yunittest_property(
   util-generic-ut
   PROPERTY
   ENVIRONMENT
+)
+
+generate_enum_serilization(util-generic-ut
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast_ut.h
+  INCLUDE_HEADERS
+  util/generic/enum_cast_ut.h
 )
 
 vcs_info(util-generic-ut)
