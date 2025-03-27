@@ -10,7 +10,7 @@
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit_impl.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/device/device_radix_sort.cuh>
+#include <cub/device/device_radix_sort.cuh>
 
 namespace NKernel {
 

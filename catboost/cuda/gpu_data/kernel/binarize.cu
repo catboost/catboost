@@ -4,7 +4,7 @@
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
+#include <cub/block/block_radix_sort.cuh>
 
 namespace NKernel {
 

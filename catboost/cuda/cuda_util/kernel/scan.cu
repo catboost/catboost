@@ -2,8 +2,8 @@
 #include "segmented_scan_helpers.cuh"
 #include "fill.cuh"
 
-#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
-#include <contrib/libs/nvidia/cub/cub/iterator/transform_input_iterator.cuh>
+#include <cub/device/device_scan.cuh>
+#include <cub/iterator/transform_input_iterator.cuh>
 
 namespace NKernel {
 

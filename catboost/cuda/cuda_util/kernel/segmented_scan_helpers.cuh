@@ -1,7 +1,7 @@
 #include "scan.cuh"
 #include "kernel_helpers.cuh"
 #include "index_wrapper.cuh"
-#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
+#include <cub/device/device_scan.cuh>
 
 #include <type_traits>
 

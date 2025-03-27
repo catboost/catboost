@@ -23,7 +23,6 @@ target_link_libraries(catboost-cuda-cuda_util PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
-  libs-nvidia-cub
   build-platform-cuda
 )
 
@@ -91,7 +90,6 @@ target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
-  libs-nvidia-cub
   build-platform-cuda
 )
 
