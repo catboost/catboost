@@ -1,4 +1,0 @@
-_plotly_future_
-_plotly_utils
-plotly
-plotlywidget
