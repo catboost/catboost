@@ -95,7 +95,7 @@ public:
 
 private:
     /*
-     * we do not want dependancy on cstdlib here...
+     * we do not want a dependency on cstdlib here...
      */
     static void DoDestroy(void* t) noexcept;
 };
@@ -161,7 +161,7 @@ public:
 };
 
 /*
- * void*-like pointers does not have operator*
+ * void*-like pointers do not have operator*
  */
 template <class Base>
 class TPointerBase<Base, void>: public TPointerCommon<Base, void> {
