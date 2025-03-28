@@ -2,7 +2,7 @@
 
 #include <library/cpp/dbg_output/dump.h>
 
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/map.h>

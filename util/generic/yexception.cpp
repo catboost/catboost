@@ -1,4 +1,3 @@
-#include "bt_exception.h"
 #include "yexception.h"
 
 #include <util/system/backtrace.h>

@@ -78,7 +78,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/array_size.h
   ${PROJECT_SOURCE_DIR}/util/generic/bitmap.h
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.h
-  ${PROJECT_SOURCE_DIR}/util/generic/bt_exception.h
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.h
   ${PROJECT_SOURCE_DIR}/util/generic/cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/deque.h
@@ -345,7 +344,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/array_size.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/bitmap.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.cpp
-  ${PROJECT_SOURCE_DIR}/util/generic/bt_exception.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp

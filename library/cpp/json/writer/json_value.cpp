@@ -12,7 +12,7 @@
 #include <util/string/vector.h>
 #include <util/system/yassert.h>
 #include <util/ysaveload.h>
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 
 static bool
 AreJsonMapsEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {

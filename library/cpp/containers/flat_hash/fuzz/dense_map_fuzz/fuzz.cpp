@@ -8,7 +8,7 @@
 
 #include <util/generic/hash.h>
 #include <util/generic/xrange.h>
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 
 using namespace NFlatHash;
 
