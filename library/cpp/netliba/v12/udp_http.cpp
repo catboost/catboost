@@ -1116,7 +1116,7 @@ namespace NNetliba_v12 {
             return nullptr;
         }
         ~TUdpHttp() override {
-            if (std::uncaught_exception()) {
+            if (std::uncaught_exceptions()) {
                 TUdpHttp::StopNoWait();
                 AtomicSwap(&AbortTransactions, 1);
             }
