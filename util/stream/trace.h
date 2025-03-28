@@ -1,6 +1,6 @@
 #pragma once
 
-#include "debug.h"
+#include <util/stream/output.h>
 #include <util/system/defaults.h>
 
 /**
@@ -38,11 +38,11 @@ enum ETraceLevel: ui8 {
  * @see ETraceLevel
  */
 #define Y_DBGTRACE(elevel, args) Y_DBGTRACE0(int(TRACE_##elevel), args)
-#define Y_DBGTRACE0(level, args)                \
-    do {                                        \
-        if constexpr (Y_IS_DEBUG_BUILD) {       \
-            if ((level) <= StdDbgLevel()) {     \
-                StdDbgStream() << args << Endl; \
-            }                                   \
-        }                                       \
+#define Y_DBGTRACE0(level, args)            \
+    do {                                    \
+        if constexpr (Y_IS_DEBUG_BUILD) {   \
+            if ((level) <= StdDbgLevel()) { \
+                Cdbg << args << Endl;       \
+            }                               \
+        }                                   \
     } while (false)

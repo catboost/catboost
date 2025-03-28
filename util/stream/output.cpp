@@ -1,7 +1,8 @@
 #include "output.h"
 
 #include <util/string/cast.h>
-#include "format.h"
+#include <util/stream/format.h>
+#include <util/stream/null.h>
 #include <util/memory/tempbuf.h>
 #include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
@@ -17,6 +18,7 @@
 
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <string_view>
 #include <optional>
@@ -457,4 +459,44 @@ void RedirectStdioToAndroidLog(bool redirect) {
 #else
     Y_UNUSED(redirect);
 #endif
+}
+void TDebugOutput::DoWrite(const void* buf, size_t len) {
+    if (len != fwrite(buf, 1, len, stderr)) {
+        ythrow yexception() << "write failed(" << LastSystemErrorText() << ")";
+    }
+}
+
+namespace {
+    struct TDbgSelector {
+        inline TDbgSelector() {
+            char* dbg = getenv("DBGOUT");
+            if (dbg) {
+                Out = &Cerr;
+                try {
+                    Level = FromString(dbg);
+                } catch (const yexception&) {
+                    Level = 0;
+                }
+            } else {
+                Out = &Cnull;
+                Level = 0;
+            }
+        }
+
+        IOutputStream* Out;
+        int Level;
+    };
+} // namespace
+
+template <>
+struct TSingletonTraits<TDbgSelector> {
+    static constexpr size_t Priority = 8;
+};
+
+IOutputStream& NPrivate::StdDbgStream() noexcept {
+    return *(Singleton<TDbgSelector>()->Out);
+}
+
+int StdDbgLevel() noexcept {
+    return Singleton<TDbgSelector>()->Level;
 }

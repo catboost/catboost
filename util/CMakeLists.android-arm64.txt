@@ -172,7 +172,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/aligned.h
   ${PROJECT_SOURCE_DIR}/util/stream/buffer.h
   ${PROJECT_SOURCE_DIR}/util/stream/buffered.h
-  ${PROJECT_SOURCE_DIR}/util/stream/debug.h
   ${PROJECT_SOURCE_DIR}/util/stream/direct_io.h
   ${PROJECT_SOURCE_DIR}/util/stream/file.h
   ${PROJECT_SOURCE_DIR}/util/stream/format.h
@@ -449,7 +448,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/stream/aligned.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/buffered.cpp
-  ${PROJECT_SOURCE_DIR}/util/stream/debug.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/direct_io.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/file.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/format.cpp
