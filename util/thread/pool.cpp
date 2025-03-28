@@ -80,8 +80,11 @@ public:
         , ThreadCountExpected(0)
         , ThreadCountReal(0)
         , Forked(false)
+        , IsForkAware_(params.IsForkAware_)
     {
-        TAtforkQueueRestarter::Get().RegisterObject(this);
+        if (IsForkAware_) {
+            TAtforkQueueRestarter::Get().RegisterObject(this);
+        }
         Start(thrnum, maxqueue);
     }
 
@@ -92,7 +95,9 @@ public:
             // ¯\_(ツ)_/¯
         }
 
-        TAtforkQueueRestarter::Get().UnregisterObject(this);
+        if (IsForkAware_) {
+            TAtforkQueueRestarter::Get().UnregisterObject(this);
+        }
         Y_ASSERT(Tharr.empty());
     }
 
@@ -268,6 +273,7 @@ private:
     size_t ThreadCountExpected;
     size_t ThreadCountReal;
     bool Forked;
+    bool IsForkAware_;
 
     class TAtforkQueueRestarter {
     public:
