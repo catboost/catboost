@@ -5574,7 +5574,10 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
             error.Stats[0] += CalcAUC(&samples) * queryWeight;
         } else if (Type == EAucType::Mu) {
             TConstArrayRef<float> currentTarget(target.begin() + startIdx, target.begin() + endIdx);
-            TConstArrayRef<float> currentWeight(weight.begin() + startIdx, weight.begin() + endIdx);
+            TConstArrayRef<float> currentWeight;
+            if (UseWeights) {
+                currentWeight = TConstArrayRef<float>(weight.begin() + startIdx, weight.begin() + endIdx);
+            }
 
             TVector<TVector<double>> currentApprox;
             TVector<TVector<double>> currentApproxDelta;
@@ -5593,7 +5596,7 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
                 }
             }
 
-            error.Stats[0] = CalcMuAuc(currentApprox, currentTarget, UseWeights ? currentWeight : TConstArrayRef<float>(), 1, MisclassCostMatrix) * queryWeight;
+            error.Stats[0] = CalcMuAuc(currentApprox, currentTarget, currentWeight, 1, MisclassCostMatrix) * queryWeight;
         }
         else {
             TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
