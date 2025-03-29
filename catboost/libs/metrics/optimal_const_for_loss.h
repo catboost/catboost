@@ -153,6 +153,32 @@ namespace NCB {
         return left;
     }
 
+    // based on reasoning from https://gist.github.com/andrey-khropov/b1435bad6e105c54da50d98a734cb3d5
+    inline float CalculateOptimalConstApproxForRMSPE(
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights
+    ) {
+        if (target.empty()) {
+            return 0.0;
+        }
+
+        Y_ASSERT(target.size() == weights.size());
+
+        TVector<float> weightsWithTarget = weights.empty()
+            ? TVector<float>(target.size(), 1.0)
+            : TVector<float>(weights.begin(), weights.end());
+
+        float numenatorSum = 0.0;
+        float denominatorSum = 0.0;
+
+        for (auto idx : xrange(target.size())) {
+            float targetAdj = Max(1.0f, Abs(target[idx]));
+            numenatorSum += (weights[idx]*target[idx] / (targetAdj*targetAdj));
+            denominatorSum += (weights[idx] / (targetAdj*targetAdj));
+        }
+        return numenatorSum / denominatorSum;
+    }
+
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
     inline TMaybe<double> CalcOneDimensionalOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
@@ -182,6 +208,8 @@ namespace NCB {
             }
             case ELossFunction::MAPE:
                 return CalculateOptimalConstApproxForMAPE(target, weights);
+            case ELossFunction::RMSPE:
+                return CalculateOptimalConstApproxForRMSPE(target, weights);
             case ELossFunction::LogCosh: {
                 return CalculateOptimalConstApproxForLogCosh(target, weights);
             }
