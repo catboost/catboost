@@ -5,16 +5,12 @@ load_adult_pool <- function(name) {
 
   column_description_vector <- rep("numeric", 15)
   cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15) # same as extdata/adult.cd
-  for (i in cat_features) {
-    column_description_vector[i] <- "factor"
-  }
+  column_description_vector[cat_features] <- "factor"
 
   data <- read.table(pool_path, head = FALSE, sep = "\t", colClasses = column_description_vector, na.strings = "NAN")
 
   # Transform categorical features to numeric.
-  for (i in cat_features) {
-    data[, i] <- as.numeric(factor(data[, i]))
-  }
+  data[, cat_features] <- as.numeric(factor(data[, cat_features]))
 
   target <- c(1)
   # WS: unused variable data_matrix
@@ -25,6 +21,7 @@ load_adult_pool <- function(name) {
 }
 
 test_that("test caret train and parameter tuning on adult pool", {
+  skip_if_not_installed("caret")
   data_train <- load_adult_pool("train")
   X_train <- data_train$X
   y_train <- data_train$y
