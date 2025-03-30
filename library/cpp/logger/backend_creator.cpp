@@ -2,7 +2,7 @@
 #include "stream.h"
 #include "uninitialized_creator.h"
 #include <util/system/yassert.h>
-#include <util/stream/debug.h>
+#include <util/stream/output.h>
 #include <util/stream/output.h>
 
 

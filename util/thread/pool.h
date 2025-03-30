@@ -86,6 +86,7 @@ struct TThreadPoolParams {
     IThreadFactory* Factory_ = SystemThreadFactory();
     TString ThreadName_;
     bool EnumerateThreads_ = false;
+    bool IsForkAware_ = true;
 
     using TSelf = TThreadPoolParams;
 
@@ -129,6 +130,11 @@ struct TThreadPoolParams {
     TSelf& SetThreadNamePrefix(const TString& prefix) {
         ThreadName_ = prefix;
         EnumerateThreads_ = true;
+        return *this;
+    }
+
+    TSelf& SetForkAware(bool val) {
+        IsForkAware_ = val;
         return *this;
     }
 };

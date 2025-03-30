@@ -5,9 +5,9 @@
 
 #include <library/cpp/cuda/wrappers/arch.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/cub.cuh>
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
-#include <contrib/libs/nvidia/cub/cub/block/block_scan.cuh>
+#include <cub/cub.cuh>
+#include <cub/block/block_radix_sort.cuh>
+#include <cub/block/block_scan.cuh>
 
 
 namespace NKernel {

@@ -71,7 +71,10 @@ namespace NPar {
         LocalExecutor().ClearLPQueue();
         ContextMaster = nullptr;
         Master = nullptr;
-        QueryProc = nullptr;
+        if (QueryProc.Get()) {
+            QueryProc->Stop();
+            QueryProc = nullptr;
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -86,6 +89,7 @@ namespace NPar {
         qp->RunSlave(port);
         Y_ASSERT(LocalExecutor().GetQueueSize() == 0);
         LocalExecutor().ClearLPQueue();
+        qp->Stop();
     }
 
     IRootEnvironment* RunLocalMaster(int workerThreadCount) {

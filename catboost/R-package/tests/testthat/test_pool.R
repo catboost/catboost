@@ -52,7 +52,7 @@ test_that("pool: load_pool from file multitarget", {
 
 test_that("pool: load_pool from matrix multitarget", {
   target <- as.matrix(
-    data.frame(      
+    data.frame(
       sample(c(1, -1), size = 1000, replace = TRUE),
       sample(c(1, -1), size = 1000, replace = TRUE)
     )
@@ -189,21 +189,16 @@ test_that("pool: data.frame weights", {
 })
 
 test_that("pool: nan", {
-  train_path <- system.file("extdata", "adult_train.1000", package = "catboost")
-  cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+  data_path <- system.file("extdata", "float_with_nan.tsv", package = "catboost")
+  column_description_path <- system.file("extdata", "float_with_nan.cd", package = "catboost")
 
-  first_pool <- catboost.load_pool(train_path, column_description = cd_path)
+  first_pool <- catboost.load_pool(data_path, column_description = column_description_path)
 
-  column_description_vector <- rep("numeric", 15)
-  cd <- read.table(cd_path)
-  cat_features <- cd[cd[, 2] == "Categ", 1] + 1
+  column_description_vector <- rep("numeric", 3)
 
-  for (i in cat_features)
-      column_description_vector[i] <- "factor"
-
-  train <- read.table(train_path, head = FALSE, sep = "\t", colClasses = column_description_vector, na.strings = "NAN")
+  dataset_table <- read.table(data_path, head = FALSE, sep = "\t", colClasses = column_description_vector, na.strings = "NaN")
   target <- c(1)
-  second_pool <- catboost.load_pool(data = train[, -target], label = train[, target])
+  second_pool <- catboost.load_pool(data = dataset_table[, -target], label = dataset_table[, target])
 
   expect_true(identical(matrix(unlist(head(first_pool, nrow(first_pool))), nrow = nrow(first_pool), byrow = TRUE),
                         matrix(unlist(head(second_pool, nrow(second_pool))), nrow = nrow(second_pool), byrow = TRUE)))
@@ -229,13 +224,6 @@ test_that("pool: data.frame vs tibble::tbl_df vs pool", {
   model_tbl_df <- catboost.train(tbl_df_pool, NULL, params)
 
   pool <- catboost.load_pool(pool_path, column_description = column_description_path)
-
-  head_pool <- head(pool)
-  head_data_frame_pool <- head(data_frame_pool)
-  head_tbl_df_pool <- head(tbl_df_pool)
-
-  expect_equal(head_pool, head_data_frame_pool)
-  expect_equal(head_pool, head_tbl_df_pool)
 
   prediction <- catboost.predict(model, pool)
   data_frame_prediction <- catboost.predict(model, data_frame_pool)

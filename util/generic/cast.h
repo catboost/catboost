@@ -104,6 +104,14 @@ namespace NPrivate {
                                        ((std::is_signed<TSmallInt>::value == std::is_signed<TLargeInt>::value && sizeof(TSmallInt) >= sizeof(TLargeInt)) ||
                                         (std::is_signed<TSmallInt>::value && sizeof(TSmallInt) > sizeof(TLargeInt)));
     };
+
+    template <class TLargeInt>
+    [[noreturn]] void ThrowBadIntegerCast(const TLargeInt largeInt, const std::type_info& smallIntType, const TStringBuf reason) {
+        ythrow TBadCastException() << "Conversion '" << TypeName<TLargeInt>() << '{' << largeInt << "}' to '"
+                                   << TypeName(smallIntType)
+                                   << "', " << reason;
+    }
+
 } // namespace NPrivate
 
 template <class TSmallInt, class TLargeInt>
@@ -116,27 +124,22 @@ inline std::enable_if_t<!::NPrivate::TSafelyConvertible<TSmall, TLarge>::Result,
     using TSmallInt = ::NPrivate::TUnderlyingTypeOrSelf<TSmall>;
     using TLargeInt = ::NPrivate::TUnderlyingTypeOrSelf<TLarge>;
 
-    if (std::is_unsigned<TSmallInt>::value && std::is_signed<TLargeInt>::value) {
+    if constexpr (std::is_unsigned<TSmallInt>::value && std::is_signed<TLargeInt>::value) {
         if (IsNegative(largeInt)) {
-            ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                       << TypeName<TSmallInt>()
-                                       << "', negative value converted to unsigned";
+            ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "negative value converted to unsigned"sv);
         }
     }
 
     TSmallInt smallInt = TSmallInt(largeInt);
 
-    if (std::is_signed<TSmallInt>::value && std::is_unsigned<TLargeInt>::value) {
+    if constexpr (std::is_signed<TSmallInt>::value && std::is_unsigned<TLargeInt>::value) {
         if (IsNegative(smallInt)) {
-            ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                       << TypeName<TSmallInt>()
-                                       << "', positive value converted to negative";
+            ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "positive value converted to negative"sv);
         }
     }
 
     if (TLargeInt(smallInt) != largeInt) {
-        ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                   << TypeName<TSmallInt>() << "', loss of data";
+        ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "loss of data"sv);
     }
 
     return static_cast<TSmall>(smallInt);

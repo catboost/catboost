@@ -186,7 +186,13 @@ namespace NPar {
 
         void RunMaster(const TVector<TNetworkAddress>& baseSearcherAddrs, unsigned short masterListenPort = 0);
         void RunSlave(int port);
+
         void StopSlaves();
+
+        // needs an explicit Stop instead of just a destructor because some code in MetaThread can hold TInstrusivePtrs
+        // to 'this' and then it is possible that the destructor will be called from MetaThread that will mean
+        // self TThread::Join that is prohibited
+        void Stop();
     };
 
     template <class T>

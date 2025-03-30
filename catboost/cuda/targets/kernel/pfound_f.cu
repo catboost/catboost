@@ -6,7 +6,7 @@
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/scan.cuh>
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
+#include <cub/block/block_radix_sort.cuh>
 
 #include <util/generic/cast.h>
 

@@ -329,6 +329,31 @@ static inline void SetElementsDenseUnrolled(
 }
 
 
+static inline size_t FindTrue(
+    TArrayRef<const bool> srcControlRef,
+    size_t sourceCount,
+    size_t srcIdx
+) {
+    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
+    const bool* controlData = srcControlRef.data();
+    while (srcIdx < sourceCount && (reinterpret_cast<size_t>(controlData + srcIdx) & (boolsPerUi64 - 1))) {
+        if (controlData[srcIdx]) {
+            return srcIdx;
+        }
+        ++srcIdx;
+    }
+    for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
+        if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
+            break;
+        }
+    }
+    while (srcIdx < sourceCount && !controlData[srcIdx]) {
+        ++srcIdx;
+    }
+    return srcIdx;
+}
+
+
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
 static inline void SetElementsSparse(
     TArrayRef<const bool> srcControlRef,
@@ -342,19 +367,10 @@ static inline void SetElementsSparse(
     const size_t sourceCount = srcRef.size();
     auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
-    const bool* controlData = srcControlRef.data();
     size_t dstIdx = *endElementIdx;
     size_t srcIdx = *sourceIdx;
-    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
     while (dstIdx < destinationCount) {
-        for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
-            if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
-                break;
-            }
-        }
-        while (srcIdx < sourceCount && !controlData[srcIdx]) {
-            ++srcIdx;
-        }
+        srcIdx = FindTrue(srcControlRef, sourceCount, srcIdx);
         if (srcIdx >= sourceCount) {
             break;
         }

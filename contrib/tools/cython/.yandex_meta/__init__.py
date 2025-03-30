@@ -42,6 +42,7 @@ cython = NixProject(
         "Cython/ya.make",
         "generated_c_headers.h",
         "generated_cpp_headers.h",
+        "a.yaml",
     ],
     post_install=post_install,
 )

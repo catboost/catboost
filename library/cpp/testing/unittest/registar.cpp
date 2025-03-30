@@ -3,7 +3,7 @@
 #include <library/cpp/diff/diff.h>
 #include <library/cpp/colorizer/colors.h>
 
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 #include <util/random/fast.h>
 #include <util/string/printf.h>
 #include <util/system/backtrace.h>

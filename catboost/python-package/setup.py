@@ -159,7 +159,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('catboost', 'private'),
         os.path.join('catboost', 'tools'),
         'cmake',
-        os.path.join('contrib', 'deprecated'),
         os.path.join('contrib', 'libs'),
         os.path.join('contrib', 'restricted'),
         os.path.join('contrib', 'tools', 'protoc'),

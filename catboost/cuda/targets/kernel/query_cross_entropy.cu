@@ -7,7 +7,7 @@
 
 #include <util/generic/cast.h>
 
-#include <contrib/libs/nvidia/cub/cub/util_ptx.cuh>
+#include <cub/util_ptx.cuh>
 
 
 #include <cooperative_groups.h>

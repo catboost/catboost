@@ -18,7 +18,6 @@ static inline void Throw2DontMove() {
 #include <util/string/split.h>
 
 #include "yexception_ut.h"
-#include "bt_exception.h"
 
 #if defined(_MSC_VER)
     #pragma warning(disable : 4702) /*unreachable code*/

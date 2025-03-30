@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/methods/kernel/score_calcers.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/block/block_reduce.cuh>
+#include <cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>

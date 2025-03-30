@@ -84,18 +84,18 @@ struct TEnumTraits<T, true>
     static constexpr bool IsStringSerializableEnum = TEnumTraitsImpl<T>::IsStringSerializableEnum;
     static constexpr bool IsMonotonic = TEnumTraitsImpl<T>::IsMonotonic;
 
-    static TStringBuf GetTypeName();
+    static constexpr TStringBuf GetTypeName();
 
     static constexpr std::optional<T> TryGetUnknownValue();
-    static std::optional<TStringBuf> FindLiteralByValue(T value);
-    static std::optional<T> FindValueByLiteral(TStringBuf literal);
+    static constexpr std::optional<TStringBuf> FindLiteralByValue(T value);
+    static constexpr std::optional<T> FindValueByLiteral(TStringBuf literal);
 
     static constexpr bool IsKnownValue(T value)
         requires (!TEnumTraitsImpl<T>::IsBitEnum);
     static constexpr bool IsValidValue(T value);
 
     static TString ToString(T value);
-    static T FromString(TStringBuf literal);
+    static constexpr T FromString(TStringBuf literal);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

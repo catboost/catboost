@@ -804,8 +804,8 @@ bool ToUpper(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::np
  *
  * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
  */
-bool ToLower(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
-bool ToUpper(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
+bool ToLower(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
+bool ToUpper(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
 
 /* Titlecase first symbol and lowercase the rest, see `ToLower` for more details.
  */
@@ -813,7 +813,7 @@ bool ToTitle(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::np
 
 /* Titlecase first symbol and lowercase the rest, see `ToLower` for more details.
  */
-bool ToTitle(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
+bool ToTitle(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
 
 /* @param text      Pointer to the string to modify
  * @param length    Length of the string to modify
@@ -855,9 +855,9 @@ TUtf16String ToLowerRet(const TWtringBuf text, size_t pos = 0, size_t count = TW
 TUtf16String ToUpperRet(const TWtringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
 TUtf16String ToTitleRet(const TWtringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
 
-TUtf32String ToLowerRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
-TUtf32String ToUpperRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
-TUtf32String ToTitleRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TWtringBuf::npos) Y_WARN_UNUSED_RESULT;
+TUtf32String ToLowerRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TUtf32StringBuf::npos) Y_WARN_UNUSED_RESULT;
+TUtf32String ToUpperRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TUtf32StringBuf::npos) Y_WARN_UNUSED_RESULT;
+TUtf32String ToTitleRet(const TUtf32StringBuf text, size_t pos = 0, size_t count = TUtf32StringBuf::npos) Y_WARN_UNUSED_RESULT;
 
 //! replaces the '<', '>' and '&' characters in string with '&lt;', '&gt;' and '&amp;' respectively
 // insertBr=true - replace '\r' and '\n' with "<BR>"

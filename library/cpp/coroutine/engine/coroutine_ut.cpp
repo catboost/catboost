@@ -112,7 +112,7 @@ void TCoroTest::TestException() {
 
     auto f2 = [&unc, &f2run](TCont*) {
         f2run = true;
-        unc = std::uncaught_exception();
+        unc = std::uncaught_exceptions();
 
         // check segfault
         try {

@@ -48,7 +48,7 @@ Authors@R: c(
     person("Dmitry", "Baksheev", role = "aut")
     )
 Author: CatBoost DevTeam [aut, cre]
-Maintainer: Stanislav Kirillov <staskirillov@gmail.com>
+Maintainer: Andrei Khropov <5002794+andrey-khropov@users.noreply.github.com>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, tibble, e1071

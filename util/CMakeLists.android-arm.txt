@@ -77,10 +77,10 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/array_size.h
   ${PROJECT_SOURCE_DIR}/util/generic/bitmap.h
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.h
-  ${PROJECT_SOURCE_DIR}/util/generic/bt_exception.h
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.h
   ${PROJECT_SOURCE_DIR}/util/generic/cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/deque.h
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.h
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.h
   ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.h
   ${PROJECT_SOURCE_DIR}/util/generic/flags.h
@@ -171,7 +171,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/aligned.h
   ${PROJECT_SOURCE_DIR}/util/stream/buffer.h
   ${PROJECT_SOURCE_DIR}/util/stream/buffered.h
-  ${PROJECT_SOURCE_DIR}/util/stream/debug.h
   ${PROJECT_SOURCE_DIR}/util/stream/direct_io.h
   ${PROJECT_SOURCE_DIR}/util/stream/file.h
   ${PROJECT_SOURCE_DIR}/util/stream/format.h
@@ -343,10 +342,10 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/array_size.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/bitmap.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/bitops.cpp
-  ${PROJECT_SOURCE_DIR}/util/generic/bt_exception.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/flags.cpp
@@ -448,7 +447,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/stream/aligned.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/buffered.cpp
-  ${PROJECT_SOURCE_DIR}/util/stream/debug.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/direct_io.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/file.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/format.cpp

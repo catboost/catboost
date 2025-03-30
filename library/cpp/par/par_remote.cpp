@@ -458,8 +458,16 @@ namespace NPar {
     }
 
     TRemoteQueryProcessor::~TRemoteQueryProcessor() {
-        DoRun = false;
-        MetaThread->Join();
+        if (DoRun) {
+            Stop();
+        }
+    }
+
+    void TRemoteQueryProcessor::Stop() {
+        if (DoRun) {
+            DoRun = false;
+            MetaThread->Join();
+        }
     }
 
     void TRemoteQueryProcessor::MetaThreadFunction() {

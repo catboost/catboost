@@ -115,13 +115,14 @@ constexpr bool CheckDomainNames(const TNames& names)
         [[maybe_unused]] static constexpr bool IsMonotonic = \
             ::NYT::NDetail::CheckValuesMonotonic(Values); \
         \
-        static TStringBuf GetTypeName() \
+        static constexpr TStringBuf TypeName = PP_STRINGIZE(enumType); \
+        \
+        static constexpr TStringBuf GetTypeName() \
         { \
-            static constexpr TStringBuf Result = PP_STRINGIZE(enumType); \
-            return Result; \
+            return TypeName; \
         } \
         \
-        static const std::optional<TStringBuf> FindLiteralByValue(T value) \
+        static constexpr std::optional<TStringBuf> FindLiteralByValue(T value) \
         { \
             for (int i = 0; i < GetDomainSize(); ++i) { \
                 if (Values[i] == value) { \
@@ -131,7 +132,7 @@ constexpr bool CheckDomainNames(const TNames& names)
             return std::nullopt; \
         } \
         \
-        static std::optional<T> FindValueByLiteral(TStringBuf literal) \
+        static constexpr std::optional<T> FindValueByLiteral(TStringBuf literal) \
         { \
             for (int i = 0; i < GetDomainSize(); ++i) { \
                 if (Names[i] == literal) { \
@@ -292,7 +293,7 @@ std::vector<T> TEnumTraitsWithKnownDomain<T, true>::Decompose(T value)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-TStringBuf TEnumTraits<T, true>::GetTypeName()
+constexpr TStringBuf TEnumTraits<T, true>::GetTypeName()
 {
     return TEnumTraitsImpl<T>::GetTypeName();
 }
@@ -305,13 +306,13 @@ constexpr std::optional<T> TEnumTraits<T, true>::TryGetUnknownValue()
 }
 
 template <class T>
-std::optional<T> TEnumTraits<T, true>::FindValueByLiteral(TStringBuf literal)
+constexpr std::optional<T> TEnumTraits<T, true>::FindValueByLiteral(TStringBuf literal)
 {
     return TEnumTraitsImpl<T>::FindValueByLiteral(literal);
 }
 
 template <class T>
-std::optional<TStringBuf> TEnumTraits<T, true>::FindLiteralByValue(T value)
+constexpr std::optional<TStringBuf> TEnumTraits<T, true>::FindLiteralByValue(T value)
 {
     return TEnumTraitsImpl<T>::FindLiteralByValue(value);
 }
@@ -349,7 +350,7 @@ TString TEnumTraits<T, true>::ToString(T value)
 }
 
 template <class T>
-T TEnumTraits<T, true>::FromString(TStringBuf literal)
+constexpr T TEnumTraits<T, true>::FromString(TStringBuf literal)
 {
     auto optionalValue = FindValueByLiteral(literal);
     if (!optionalValue) {

@@ -5,7 +5,7 @@
 
 #include <util/generic/cast.h>
 
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
+#include <cub/block/block_radix_sort.cuh>
 
 
 namespace NKernel {

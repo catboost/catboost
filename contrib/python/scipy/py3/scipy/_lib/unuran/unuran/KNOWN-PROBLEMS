@@ -1,7 +1,0 @@
-
-(*) Using unur_sample_cont(), unur_sample_discr(), or unur_distr_vec()
-    with a generator object of the wrong distribution type results in
-    undefined behavior or causes a segmentation fault. 
-
-(*) The String API does not provide the full functionality as the API
-    using function calls. 
