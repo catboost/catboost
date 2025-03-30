@@ -323,7 +323,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return           Hash for categorical feature.
      * @throws CatBoostError In case of error within native library.
      */
-    static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
+    public static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
         int hash[] = new int[1];
         implLibrary.catBoostHashCatFeature(catFeature, hash);
         return hash[0];
@@ -339,7 +339,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param hashes      Array of hashes of categorical features.
      * @throws CatBoostError In case of error within native library.
      */
-    static void hashCategoricalFeatures(
+    public static void hashCategoricalFeatures(
             final @NotNull String[] catFeatures,
             final @NotNull int[] hashes) throws CatBoostError {
         implLibrary.catBoostHashCatFeatures(catFeatures, hashes);
@@ -353,7 +353,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     @NotNull
-    static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
+    public static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
         final int[] hashes = new int[catFeatures.length];
         hashCategoricalFeatures(catFeatures, hashes);
         return hashes;
