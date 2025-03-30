@@ -78,7 +78,6 @@ catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs,
             if (length(lev) > 2) {
                 param$loss_function <- "MultiClass"
             }
-            y <- as.double(y) - 1
         }
     }
     test_pool <- NULL

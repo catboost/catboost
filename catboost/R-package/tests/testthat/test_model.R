@@ -1,10 +1,6 @@
 context("test_model.R")
 
-test_that("model: catboost.train", {
-  target <- sample(c(1, -1), size = 1000, replace = TRUE)
-  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
-                         f2 = rnorm(length(target), mean = 0, sd = 1))
-
+check_model_train_simple <- function(target, features, loss_function) {
   split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
 
   pool_train <- catboost.load_pool(features[split, ], target[split])
@@ -12,7 +8,7 @@ test_that("model: catboost.train", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss",
+                 loss_function = loss_function,
                  random_seed = 12345,
                  use_best_model = FALSE,
                  allow_writing_files = FALSE)
@@ -24,6 +20,38 @@ test_that("model: catboost.train", {
   prediction_train <- catboost.predict(model_train, pool_test)
 
   expect_equal(prediction_train_test, prediction_train)
+}
+
+test_that("model: catboost.train binary classification with double target", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_model_train_simple(target, features, "Logloss")
+})
+
+test_that("model: catboost.train binary classification with integer target", {
+  target <- sample(c(1L, -1L), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_model_train_simple(target, features, "Logloss")
+})
+
+test_that("model: catboost.train binary classification with factor target", {
+  target <- as.factor(sample(c(1, -1), size = 1000, replace = TRUE))
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_model_train_simple(target, features, "Logloss")
+})
+
+test_that("model: catboost.train binary classification with character target", {
+  target <- sample(c("class0", "class1"), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_model_train_simple(target, features, "Logloss")
 })
 
 test_that("model: catboost.train with per_float_quantization and ignored_features", {
@@ -90,19 +118,19 @@ test_that("model: catboost.train synonyms", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
                          f2 = rnorm(length(target), mean = 0, sd = 1))
-  
+
   pool <- catboost.load_pool(features, target)
-  
+
   params <- list(iterations = 10,
                 loss_function = "Logloss",
                 random_seed = 12345,
                 random_state = 12345,
                 allow_writing_files = FALSE)
-  
+
   expect_error(catboost.train(pool, NULL, params),
                "Only one of the parameters [random_seed, random_state] should be initialized.",
                fixed = TRUE)
-  
+
   synonym_params <- list(
       c('loss_function', 'objective'),
       c('iterations', 'num_boost_round', 'n_estimators', 'num_trees'),
@@ -169,16 +197,13 @@ test_that("model: catboost.importance with shapvalues for multiclass", {
 
   model <- catboost.train(pool, NULL, params)
   feature_importance <- catboost.get_feature_importance(model = model, pool = pool, type = 'ShapValues')
-  expect_true(TRUE)  
+  expect_true(TRUE)
 })
 
-test_that("model: catboost.train & catboost.predict multiclass", {
-  classes <- c(0, 1, 2)
-  target <- sample(classes, size = 1000, replace = TRUE)
-  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
-                         f2 = rnorm(length(target), mean = 0, sd = 1))
 
+check_train_pred_multiclass <- function(classes, target, features) {
   pool <- catboost.load_pool(features, target)
+
   params <- list(iterations = 10,
                  loss_function = "MultiClass",
                  random_seed = 12345,
@@ -197,8 +222,45 @@ test_that("model: catboost.train & catboost.predict multiclass", {
 
   expect_equal(prediction_first, staged_preds$nextElem())
   expect_equal(prediction_second, staged_preds$nextElem())
+}
 
+
+test_that("model: catboost.train & catboost.predict multiclass with double target", {
+  classes <- c(0, 1, 2)
+  target <- sample(classes, size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_train_pred_multiclass(classes, target, features)
 })
+
+test_that("model: catboost.train & catboost.predict multiclass with integer target", {
+  classes <- c(0L, 1L, 2L)
+  target <- sample(classes, size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_train_pred_multiclass(classes, target, features)
+})
+
+test_that("model: catboost.train & catboost.predict multiclass with factor target", {
+  classes <- c(0L, 1L, 2L)
+  target <- as.factor(sample(classes, size = 1000, replace = TRUE))
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_train_pred_multiclass(classes, target, features)
+})
+
+test_that("model: catboost.train & catboost.predict multiclass with character target", {
+  classes <- c("class0", "class1", "class2")
+  target <- sample(classes, size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  check_train_pred_multiclass(classes, target, features)
+})
+
 
 is_equal_model_and_load_model <- function(model, pool, file_format = "cbm") {
   prediction <- catboost.predict(model, pool)
@@ -436,11 +498,11 @@ test_that("model: catboost.cv", {
 })
 
 test_that("model: catboost.cv with eval_metric=AUC", {
-  dataset <- matrix(c(sample(1:100, 20, T), 
-                      sample(1:100, 20, T), 
+  dataset <- matrix(c(sample(1:100, 20, T),
+                      sample(1:100, 20, T),
                       sample(1:100, 20, T)),
-                    nrow = 20, 
-                    ncol = 3, 
+                    nrow = 20,
+                    ncol = 3,
                     byrow = TRUE)
 
   label_values <- sample(0:1, 20, T)

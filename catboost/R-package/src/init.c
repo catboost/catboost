@@ -6,7 +6,7 @@
 static const R_CallMethodDef CallEntries[] = {
     {"CatBoostCalcRegularFeatureEffect_R",    (DL_FUNC) &CatBoostCalcRegularFeatureEffect_R,     4},
     {"CatBoostCreateFromFile_R",              (DL_FUNC) &CatBoostCreateFromFile_R,              10},
-    {"CatBoostCreateFromMatrix_R",            (DL_FUNC) &CatBoostCreateFromMatrix_R,            14},
+    {"CatBoostCreateFromMatrix_R",            (DL_FUNC) &CatBoostCreateFromMatrix_R,            15},
     {"CatBoostCV_R",                          (DL_FUNC) &CatBoostCV_R,                           7},
     {"CatBoostDeserializeModel_R",            (DL_FUNC) &CatBoostDeserializeModel_R,             1},
     {"CatBoostDropUnusedFeaturesFromModel_R", (DL_FUNC) &CatBoostDropUnusedFeaturesFromModel_R,  1},
