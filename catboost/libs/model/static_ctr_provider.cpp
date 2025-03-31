@@ -188,8 +188,10 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
     for (const auto& table : tables) {
         indexViewers.emplace_back(table->GetIndexHashViewer());
         for (const auto bucket : indexViewers.back().GetBuckets()) {
-            if (bucket.Hash != NCatboost::TBucket::InvalidHashValue) {
-                uniqueHashes.insert(bucket.Hash);
+            // make a copy because we can't pass a reference to an unaligned struct member to 'uniqueHashes' methods
+            const auto bucketHash = bucket.Hash;
+            if (bucketHash != NCatboost::TBucket::InvalidHashValue) {
+                uniqueHashes.insert(bucketHash);
             }
         }
     }

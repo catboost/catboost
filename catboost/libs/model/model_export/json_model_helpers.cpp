@@ -447,12 +447,14 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
                 if (value == NCatboost::TDenseIndexHashView::NotFoundIndex) {
                     continue;
                 }
-                if (hashIndexes.find(bucket.Hash) != hashIndexes.end()) {
+                // make a copy because we can't pass a reference to an unaligned struct member to 'hashIndexes' methods
+                auto bucketHash = bucket.Hash;
+                if (hashIndexes.find(bucketHash) != hashIndexes.end()) {
                     continue;
                 } else {
-                    hashIndexes.insert(bucket.Hash);
+                    hashIndexes.insert(bucketHash);
                 }
-                hashValue.AppendValue(ToString(bucket.Hash));
+                hashValue.AppendValue(ToString(bucketHash));
                 if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                     if (value != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();

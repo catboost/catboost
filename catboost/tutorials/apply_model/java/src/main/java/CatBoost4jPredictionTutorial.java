@@ -156,8 +156,7 @@ public class CatBoost4jPredictionTutorial {
         System.out.print(String.format("Person B make over 50K a year with probability %f\n", personsABMakeOver50KProbabilities[1]));
         System.out.print(String.format("Person B %s\n", answer(personsABMakeOver50K[1])));
 
-        // TODO(yazevnul): add examples with hashed categorical features when `CatBoostModel.hashCategoricalFeatures`
-        // will become public.
+        // TODO: add examples with hashed categorical features
     }
 
     public static void main(String[] args) throws CatBoostError, IOException {

@@ -149,12 +149,22 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
 
+  if (is.character(label))
+      label <- as.factor(label)
+
+  if (is.factor(label)) {
+      class_labels <- labels(label)
+      # R starts integer labels from 1, we generally prefer to start from 0
+      label <- as.integer(label) - 1L
+  } else {
+      class_labels <- NULL
+  }
+
   if (!is.null(label) && !is.matrix(label))
       label <- as.matrix(label)
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
-  if (!is.null(label) && !is.double(label))
-      label <- matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+
   if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
@@ -223,7 +233,7 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
                 float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
-                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }

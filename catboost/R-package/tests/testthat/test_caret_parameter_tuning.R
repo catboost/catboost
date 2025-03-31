@@ -30,7 +30,7 @@ test_that("test caret train and parameter tuning on adult pool", {
   y_train <- data_train$y
 
   data_test <- load_adult_pool("test")
-  test_pool <- catboost.load_pool(data_test$X, data_test$y)
+  test_pool <- catboost.load_pool(data_test$X, as.factor(make.names(data_test$y)))
 
   fit_control <- caret::trainControl(method = "cv", number = 5, classProbs = TRUE)
 
