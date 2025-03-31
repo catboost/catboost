@@ -39,17 +39,11 @@ from pyspark.ml.classification import JavaProbabilisticClassificationModel
 from pyspark.ml.regression import JavaRegressionModel
 """
         )
-      case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => out.println(s"""
+      case _ => out.println(s"""
 from pyspark.ml.classification import _JavaProbabilisticClassificationModel
 from pyspark.ml.regression import _JavaRegressionModel
 """
         )
-      case _ => out.println(s"""
-from pyspark.ml.classification import JavaClassificationModel
-from pyspark.ml.util import JavaPredictionModel
-from pyspark.ml.wrapper import JavaModel
-"""
-      )
     }
 
     out.println(
@@ -652,7 +646,6 @@ ${generateForwardedAccessors(forwardedAccessors)}
     modelBaseClassName: String,
     estimatorDoc: String,
     modelDoc: String,
-    sparkCompatVersion: String,
     out: PrintWriter
   ) = {
     val estimatorClassName = typeOf[EstimatorClass].typeSymbol.name.toString.split("\\.").last
@@ -766,11 +759,7 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
 @inherit_doc"""
     )
 
-    if (sparkCompatVersion.startsWith("3.")) {
-      out.print(s"class $modelClassName($modelBaseClassName, MLReadable, JavaMLWritable):")
-    } else {
-      out.print(s"class $modelClassName(JavaModel, $modelBaseClassName, MLReadable, JavaMLWritable):")
-    }
+    out.print(s"class $modelClassName($modelBaseClassName, MLReadable, JavaMLWritable):")
 
   out.println(
       s"""
@@ -1018,24 +1007,6 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
 
 """
     )
-    if (!sparkCompatVersion.startsWith("3.") && (modelBaseClassName == "JavaClassificationModel")) {
-      // Add methods that are defined in JavaClassificationModel only since Spark 3.0.0
-      out.println(
-s"""
-    def predictRaw(self, value):
-        "\""
-        Raw prediction for each possible label.
-        "\""
-        return self._call_java("predictRaw", value)
-
-    def predictProbability(self, value):
-        "\""
-        Predict the probability of each class given the features.
-        "\""
-        return self._call_java("predictProbability", value)
-"""
-      )
-    }
   }
 
   def generateVersionPy(modulePath: File, version: String) = {
@@ -1088,11 +1059,14 @@ __all__ = [
    * @param args expects 3 arguments:
    *  1) package version
    *  2) output dir
-   *  3) spark compat version (like '2.4')
+   *  3) spark compat version (like '3.5')
    */
   def main(args: Array[String]) : Unit = {
     try {
       val sparkCompatVersion = args(2)
+      if (sparkCompatVersion.startsWith("2.")) {
+        throw new RuntimeException(s"Spark 2.x is no longer supported")
+      }
 
       val modulePath = new File(args(1))
       modulePath.mkdirs()
@@ -1122,12 +1096,10 @@ __all__ = [
           new CatBoostRegressionModel(new native_impl.TFullModel()),
           sparkCompatVersion match {
             case "3.0" => "JavaRegressionModel"
-            case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => "_JavaRegressionModel"
-            case _ => "JavaPredictionModel"
+            case _ => "_JavaRegressionModel"
           },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
-          sparkCompatVersion,
           corePyWriter
         )
         generateEstimatorAndModelWrapper(
@@ -1135,12 +1107,10 @@ __all__ = [
           new CatBoostClassificationModel(new native_impl.TFullModel()),
           sparkCompatVersion match {
             case "3.0" => "JavaProbabilisticClassificationModel"
-            case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => "_JavaProbabilisticClassificationModel"
-            case _ => "JavaClassificationModel"
+            case _ => "_JavaProbabilisticClassificationModel"
           },
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
-          sparkCompatVersion,
           corePyWriter
         )
       } finally {
