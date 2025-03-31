@@ -7,6 +7,7 @@
 #include <util/system/defaults.h>
 #include <util/string/cast.h>
 #include <library/cpp/cgiparam/cgiparam.h>
+#include <util/memory/blob.h>
 #include <util/network/address.h>
 #include <util/network/socket.h>
 #include <util/generic/hash.h>
@@ -52,6 +53,10 @@ public:
         return OrigQuery_;
     }
 
+    TStringBuf Body() const {
+        return Body_.AsStringBuf();
+    }
+
     void AppendQueryString(TStringBuf str);
     TStringBuf RemoteAddr() const;
     void SetRemoteAddr(TStringBuf addr);
@@ -77,6 +82,10 @@ public:
         Socket_ = s;
     }
 
+    void SetBody(const TBlob& body) noexcept {
+        Body_ = body;
+    }
+
     ui64 RequestBeginTime() const noexcept {
         return BeginTime_;
     }
@@ -93,6 +102,7 @@ private:
     TString Path_;
     TStringBuf Query_;
     TStringBuf OrigQuery_;
+    TBlob Body_;
     THttpHeadersContainer HeadersIn_;
     SOCKET Socket_;
     ui64 BeginTime_;
