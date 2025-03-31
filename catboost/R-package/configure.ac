@@ -54,7 +54,7 @@ OS_TYPE=$(uname)
 if [[[ $OS_TYPE == 'Darwin' ]]]; then
    DYNLIB_SUFFIX='dylib'
    echo "*** creating .so -> .dylib symlink for working with different R installations"
-   ln -s 'libcatboostr.dylib' 'src/libcatboostr.so'
+   ln -sf 'libcatboostr.dylib' 'src/libcatboostr.so'
 elif [[[ $OS_TYPE == 'Linux' ]]]; then
    DYNLIB_SUFFIX='so'
 else
