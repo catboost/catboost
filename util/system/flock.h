@@ -2,7 +2,6 @@
 
 #include "error.h"
 #include "defaults.h"
-#include "file.h"
 
 #if defined(_unix_)
 
