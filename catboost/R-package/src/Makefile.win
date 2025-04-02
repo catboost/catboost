@@ -1,0 +1,13 @@
+unexport YA_BUILD_RESULTS_REPORT
+
+CUDA_ROOT := $(or $(CUDA_ROOT),$(CUDA_PATH))
+HAVE_CUDA := $(or $(HAVE_CUDA),$(if $(CUDA_ROOT),yes,no))
+
+.PHONY : all clean
+
+all: libcatboostr.dll
+
+libcatboostr.dll:
+	$(CURDIR)/../../../ya.bat make -r -o ../../.. -DHAVE_CUDA=$(HAVE_CUDA) "-DCUDA_ROOT=$(CUDA_ROOT)" -DCUDA_HOST_COMPILER=
+
+clean:
