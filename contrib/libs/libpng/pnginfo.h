@@ -86,20 +86,6 @@ struct png_info_def
     * and initialize the appropriate fields below.
     */
 
-#if defined(PNG_COLORSPACE_SUPPORTED) || defined(PNG_GAMMA_SUPPORTED)
-   /* png_colorspace only contains 'flags' if neither GAMMA or COLORSPACE are
-    * defined.  When COLORSPACE is switched on all the colorspace-defining
-    * chunks should be enabled, when GAMMA is switched on all the gamma-defining
-    * chunks should be enabled.  If this is not done it becomes possible to read
-    * inconsistent PNG files and assign a probably incorrect interpretation to
-    * the information.  (In other words, by carefully choosing which chunks to
-    * recognize the system configuration can select an interpretation for PNG
-    * files containing ambiguous data and this will result in inconsistent
-    * behavior between different libpng builds!)
-    */
-   png_colorspace colorspace;
-#endif
-
 #ifdef PNG_cICP_SUPPORTED
    /* cICP chunk data */
    png_byte cicp_colour_primaries;
@@ -211,11 +197,8 @@ defined(PNG_READ_BACKGROUND_SUPPORTED)
 #endif
 
 #ifdef PNG_eXIf_SUPPORTED
-   int num_exif;  /* Added at libpng-1.6.31 */
+   png_uint_32 num_exif;  /* Added at libpng-1.6.31 */
    png_bytep exif;
-# ifdef PNG_READ_eXIf_SUPPORTED
-   png_bytep eXIf_buf;  /* Added at libpng-1.6.32 */
-# endif
 #endif
 
 #ifdef PNG_hIST_SUPPORTED
@@ -288,6 +271,18 @@ defined(PNG_READ_BACKGROUND_SUPPORTED)
    png_bytepp row_pointers;        /* the image bits */
 #endif
 
+#ifdef PNG_cHRM_SUPPORTED
+   png_xy cHRM;
+#endif
+
+#ifdef PNG_gAMA_SUPPORTED
+   png_fixed_point gamma;
+#endif
+
+#ifdef PNG_sRGB_SUPPORTED
+   int rendering_intent;
+#endif
+
 #ifdef PNG_APNG_SUPPORTED
    png_uint_32 num_frames; /* including default image */
    png_uint_32 num_plays;
@@ -300,6 +295,5 @@ defined(PNG_READ_BACKGROUND_SUPPORTED)
    png_byte next_frame_dispose_op;
    png_byte next_frame_blend_op;
 #endif
-
 };
 #endif /* PNGINFO_H */
