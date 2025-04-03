@@ -106,8 +106,8 @@ Text features are transformed to numerical. The transformation method generally 
 
     - {{ dictionary__feature-calcers__BoW }} (Bag of words) — Boolean (0/1) features reflecting whether the object contains the token_id. The number of features is equal to the dictionary size.
 
-    Supported options:
-    - top_tokens_count — The maximum number of features to create. If set, the specified number top tokens is taken into account and the corresponding number of new features is created.
+        Supported parameters:
+        - top_tokens_count — The maximum number of features to create. If set, the specified number top tokens is taken into account and the corresponding number of new features is created.
 
     - {{ dictionary__feature-calcers__NaiveBayes }} — Multinomial naive bayes model, the number of created features is equal to the number of classes. To avoid target leakage, this model is computed online on several dataset permutations (similarly to the estimation of CTRs).
 
