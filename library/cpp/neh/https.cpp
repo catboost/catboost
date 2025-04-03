@@ -11,7 +11,6 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <openssl/bio.h>
 #include <openssl/x509v3.h>
 
 #include <library/cpp/openssl/init/init.h>
@@ -26,12 +25,10 @@
 #include <util/generic/list.h>
 #include <util/generic/utility.h>
 #include <util/network/socket.h>
-#include <util/stream/str.h>
 #include <util/stream/zlib.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/system/condvar.h>
-#include <util/system/error.h>
 #include <util/system/types.h>
 #include <util/thread/factory.h>
 
@@ -448,8 +445,7 @@ namespace NNeh {
             };
 
             TConnCache()
-                : InPurging_(0)
-                , MaxConnId_(0)
+                : MaxConnId_(0)
                 , Shutdown_(false)
             {
                 T_ = SystemThreadFactory()->Run(this);
@@ -557,7 +553,7 @@ namespace NNeh {
 
         private:
             void SuggestPurgeCache() {
-                if (AtomicTryLock(&InPurging_)) {
+                if (InPurging_.TryAcquire()) {
                     //evaluate the usefulness of purging the cache
                     //если в кеше мало соединений (< MaxConnId_/16 или 64), не чистим кеш
                     if ((size_t)CachedConnections.Val() > (Min((size_t)MaxConnId_.load(std::memory_order_acquire), (size_t)1024U) >> 4)) {
@@ -577,7 +573,7 @@ namespace NNeh {
                             return; //memo: thread MUST unlock InPurging_ (see DoExecute())
                         }
                     }
-                    AtomicUnlock(&InPurging_);
+                    InPurging_.Release();
                 }
             }
 
@@ -594,7 +590,7 @@ namespace NNeh {
 
                     PurgeCache();
 
-                    AtomicUnlock(&InPurging_);
+                    InPurging_.Release();
                 }
             }
 
@@ -660,7 +656,7 @@ namespace NNeh {
 
             NHttp::TLockFreeSequence<TConnList> Lst_;
 
-            TAtomic InPurging_;
+            TSpinLock InPurging_;
             std::atomic<size_t> MaxConnId_;
 
             TAutoPtr<IThreadFactory::IThread> T_;
