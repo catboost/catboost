@@ -21,6 +21,7 @@
 #
 
 import argparse
+import concurrent.futures
 import distutils
 import hashlib
 import logging
@@ -390,29 +391,103 @@ def get_real_build_root_dir(src_root_dir:str, built_output_root_dir:str):
         return built_output_root_dir
 
 
-def build_all_for_one_platform(
-    src_root_dir:str,
-    built_output_root_dir:str,  # will contain 'no_cuda/{platform_name}' and 'have_cuda/{platform_name}' subdirs
-    platform_name:str,  # either "{system}-{arch}' of 'darwin-universal2'
-    native_built_tools_root_dir:str=None,
-    cmake_target_toolchain:str=None,
-    conan_build_profile:str=None,
-    conan_host_profile:str=None,
-    cmake_extra_args:List[str]=None,
-    build_test_tools:bool=False,
-    only_native_artifacts:bool=False,
-    build_tools_only:bool=False,
-    dry_run:bool=False,
-    verbose:bool=False):
+class BuildNativeWrapper:
+    def __init__(
+        self,
+        dry_run,
+        verbose,
+        src_root_dir,
+        build_native_root_dir,
+        macos_universal_binaries,
+        default_cmake_extra_args,
+        platform_name,
+        cmake_target_toolchain,
+        conan_build_profile,
+        conan_host_profile,
+        target_platform,
+        cmake_platform_to_root_path,
+    ):
+        self.dry_run = dry_run
+        self.verbose = verbose
+        self.src_root_dir = src_root_dir
+        self.build_native_root_dir = build_native_root_dir
+        self.macos_universal_binaries = macos_universal_binaries
+        self.default_cmake_extra_args = default_cmake_extra_args
+        self.platform_name = platform_name
+        self.cmake_target_toolchain = cmake_target_toolchain
+        self.conan_build_profile = conan_build_profile
+        self.conan_host_profile = conan_host_profile
+        self.target_platform = target_platform
+        self.cmake_platform_to_root_path = cmake_platform_to_root_path
 
-    build_native_root_dir = get_real_build_root_dir(src_root_dir, built_output_root_dir)
 
-    for prefix in ['no_cuda', 'have_cuda']:
-        build_dir = os.path.join(build_native_root_dir, prefix, platform_name)
-        if not dry_run:
-            os.makedirs(build_dir, exist_ok=True)
+    def run(
+        self,
+        targets,
+        have_cuda,
+        macos_universal_binaries=None,
+        build_root_dir=None,
+        native_built_tools_root_dir=None,
+        cmake_extra_args=[],
+        cmake_platform_to_python_dev_paths=None
+    ):
+        if macos_universal_binaries is None:
+            macos_universal_binaries = self.macos_universal_binaries
 
-    sys.path = [os.path.join(src_root_dir, 'build')] + sys.path
+        if build_root_dir is None:
+            build_root_dir = os.path.join(
+                self.build_native_root_dir,
+                'have_cuda' if have_cuda else 'no_cuda',
+                self.platform_name
+            )
+
+        sys.path = [os.path.join(self.src_root_dir, 'build')] + sys.path
+        import build_native
+
+        build_native.build(
+            dry_run=self.dry_run,
+            verbose=self.verbose,
+            build_root_dir=build_root_dir,
+            targets=targets,
+            cmake_target_toolchain=self.cmake_target_toolchain,
+            conan_build_profile=self.conan_build_profile,
+            conan_host_profile=self.conan_host_profile,
+            have_cuda=have_cuda,
+            cuda_root_dir=CUDA_ROOT if have_cuda else None,
+            target_platform=self.target_platform,
+            msvs_version=MSVS_VERSION,
+            msvc_toolset=MSVC_TOOLSET,
+            macos_universal_binaries=macos_universal_binaries,
+            native_built_tools_root_dir=native_built_tools_root_dir,
+            cmake_extra_args=self.default_cmake_extra_args + cmake_extra_args,
+            cmake_platform_to_root_path=self.cmake_platform_to_root_path,
+            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+        )
+
+
+def build_targets_wo_cuda(
+    build_native_wrapper: BuildNativeWrapper,
+    targets_wo_cuda: List[str],
+    native_built_tools_root_dir: bool):
+
+    # build Spark native part and test tools w/o CUDA
+    build_native_wrapper.run(
+        targets=targets_wo_cuda,
+        have_cuda=False,
+        native_built_tools_root_dir=native_built_tools_root_dir
+    )
+
+
+def build_python_packages(
+    build_native_wrapper: BuildNativeWrapper,
+    build_with_cuda_for_main_targets: bool,
+    only_native_artifacts: bool,
+    native_built_tools_root_dir: str):
+
+    # build python version-specific dynamic libraries and wheels (the latter only if not 'only_native_artifacts').
+    # Note: assumes build_widget has already been called
+
+    sys.path = [os.path.join(build_native_wrapper.src_root_dir, 'build')] + sys.path
     import build_native
 
     ##################################################################################################
@@ -453,6 +528,95 @@ def build_all_for_one_platform(
 
     ##################################################################################################
 
+
+    for py_ver in PYTHON_VERSIONS:
+        relative_python_dev_paths = get_relative_python_dev_paths(py_ver)
+        if build_native_wrapper.macos_universal_binaries:
+            platform_names_for_python_dev_paths = ['darwin-x86_64', 'darwin-arm64']
+        else:
+            platform_names_for_python_dev_paths = [build_native_wrapper.platform_name]
+
+        cmake_platform_to_python_dev_paths = dict(
+            (
+                platform_name,
+                relative_python_dev_paths.prepend_paths(os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name))
+            )
+            for platform_name in platform_names_for_python_dev_paths
+        )
+        cmake_extra_args=[
+            # select Python-version specific Cython installation because it will get NumPy information from it's interpreter
+            '-UCYTHON_*',
+            f'-DCython_ROOT={os.path.join(CMAKE_BUILD_ENV_ROOT, get_native_platform_name(), get_cython_bin_dir(py_ver))}'
+        ]
+
+        build_native_wrapper.run(
+            targets=['_hnsw', '_catboost'],
+            cmake_extra_args=cmake_extra_args,
+            have_cuda=build_with_cuda_for_main_targets,
+            native_built_tools_root_dir=native_built_tools_root_dir,
+            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+        )
+
+        if not only_native_artifacts:
+            # for some reason 'bdist_wheel' sometimes fails to re-run on the same directory with some cached '.eggs'
+            run_in_python_package_dir(
+                build_native_wrapper.src_root_dir,
+                build_native_wrapper.dry_run,
+                build_native_wrapper.verbose,
+                [['cmake', '-E', 'rm', '-rf', '.eggs']]
+            )
+
+            build_native_sub_dir = os.path.join(
+                build_native_wrapper.build_native_root_dir,
+                'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
+                build_native_wrapper.platform_name
+            )
+
+            # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
+            bdist_wheel_cmd = [
+                'setup.py',
+                'bdist_wheel',
+                '--plat-name', get_python_plat_name(build_native_wrapper.platform_name),
+                '--with-hnsw',
+                '--prebuilt-widget',
+                f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
+            ]
+
+            run_with_native_python_with_version_in_python_package_dir(
+                build_native_wrapper.src_root_dir,
+                build_native_wrapper.dry_run,
+                build_native_wrapper.verbose,
+                py_ver,
+                [bdist_wheel_cmd]
+            )
+
+
+def build_all_for_one_platform(
+    src_root_dir:str,
+    built_output_root_dir:str,  # will contain 'no_cuda/{platform_name}' and 'have_cuda/{platform_name}' subdirs
+    platform_name:str,  # either "{system}-{arch}' of 'darwin-universal2'
+    native_built_tools_root_dir:str=None,
+    cmake_target_toolchain:str=None,
+    conan_build_profile:str=None,
+    conan_host_profile:str=None,
+    cmake_extra_args:List[str]=None,
+    build_test_tools:bool=False,
+    only_native_artifacts:bool=False,
+    build_tools_only:bool=False,
+    disable_async:bool = False,
+    dry_run:bool=False,
+    verbose:bool=False):
+
+    sys.path = [os.path.join(src_root_dir, 'build')] + sys.path
+    import build_native
+
+    build_native_root_dir = get_real_build_root_dir(src_root_dir, built_output_root_dir)
+
+    for prefix in ['no_cuda', 'have_cuda']:
+        build_dir = os.path.join(build_native_root_dir, prefix, platform_name)
+        if not dry_run:
+            os.makedirs(build_dir, exist_ok=True)
+
     # exclude python-dependent targets that will be built for concrete python
     # and SWIG (which is always w/o CUDA) and includes JVM-only 'catboost4j-spark-impl'
     all_catboost_targets_except_python_and_spark=[
@@ -486,41 +650,20 @@ def build_all_for_one_platform(
         macos_universal_binaries = False
         cmake_platform_to_root_path = {platform_name: os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name)}
 
-    def call_build_native(
-        targets,
-        have_cuda,
+    build_native_wrapper = BuildNativeWrapper(
+        dry_run=dry_run,
+        verbose=verbose,
+        src_root_dir=src_root_dir,
+        build_native_root_dir=build_native_root_dir,
         macos_universal_binaries=macos_universal_binaries,
-        build_root_dir=None,
-        native_built_tools_root_dir=None,
-        cmake_extra_args=[],
-        cmake_platform_to_python_dev_paths=None
-    ):
-        if build_root_dir is None:
-            build_root_dir = os.path.join(
-                build_native_root_dir,
-                'have_cuda' if have_cuda else 'no_cuda',
-                platform_name
-            )
-
-        build_native.build(
-            dry_run=dry_run,
-            verbose=verbose,
-            build_root_dir=build_root_dir,
-            targets=targets,
-            cmake_target_toolchain=cmake_target_toolchain,
-            conan_build_profile=conan_build_profile,
-            conan_host_profile=conan_host_profile,
-            have_cuda=have_cuda,
-            cuda_root_dir=CUDA_ROOT if have_cuda else None,
-            target_platform=target_platform,
-            msvs_version=MSVS_VERSION,
-            msvc_toolset=MSVC_TOOLSET,
-            macos_universal_binaries=macos_universal_binaries,
-            native_built_tools_root_dir=native_built_tools_root_dir,
-            cmake_extra_args=default_cmake_extra_args + cmake_extra_args,
-            cmake_platform_to_root_path=cmake_platform_to_root_path,
-            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
-        )
+        default_cmake_extra_args=default_cmake_extra_args,
+        platform_name=platform_name,
+        cmake_target_toolchain=cmake_target_toolchain,
+        conan_build_profile=conan_build_profile,
+        conan_host_profile=conan_host_profile,
+        target_platform=target_platform,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+    )
 
     if not native_built_tools_root_dir:
         # build all tools w/o CUDA (will need them for Spark anyway)
@@ -540,7 +683,7 @@ def build_all_for_one_platform(
         if not dry_run:
             os.makedirs(native_built_tools_root_dir, exist_ok=True)
 
-        call_build_native(
+        build_native_wrapper.run(
             targets=build_native.Targets.tools,
             have_cuda=False,
             build_root_dir=native_built_tools_root_dir,
@@ -550,20 +693,9 @@ def build_all_for_one_platform(
     if build_tools_only:
         return
 
-    targets_wo_cuda = ['catboost4j-spark-impl-cpp']
-    if build_test_tools:
-        targets_wo_cuda += build_native.Targets.test_tools.keys()
 
-
-    # build Spark native part and test tools w/o CUDA
-    call_build_native(
-        targets=targets_wo_cuda,
-        have_cuda=False,
-        native_built_tools_root_dir=native_built_tools_root_dir
-    )
-
-    # build all non python-version specific variants
-    call_build_native(
+    # build all non python-version specific variants for targets that could use CUDA
+    build_native_wrapper.run(
         targets=all_catboost_targets_except_python_and_spark,
         have_cuda=build_with_cuda_for_main_targets,
         native_built_tools_root_dir=native_built_tools_root_dir
@@ -600,69 +732,45 @@ def build_all_for_one_platform(
             verbose
         )
 
-    # build python version-specific dynamic libraries and wheels (the latter only if not 'only_native_artifacts').
-    # Note: assumes build_widget has already been called
-    for py_ver in PYTHON_VERSIONS:
-        relative_python_dev_paths = get_relative_python_dev_paths(py_ver)
-        if macos_universal_binaries:
-            platform_names_for_python_dev_paths = ['darwin-x86_64', 'darwin-arm64']
-        else:
-            platform_names_for_python_dev_paths = [platform_name]
+    targets_wo_cuda = ['catboost4j-spark-impl-cpp']
+    if build_test_tools:
+        targets_wo_cuda += build_native.Targets.test_tools.keys()
 
-        cmake_platform_to_python_dev_paths = dict(
-            (
-                platform_name,
-                relative_python_dev_paths.prepend_paths(os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name))
+
+    if build_with_cuda_for_main_targets and (not disable_async):
+        # we can build targets without CUDA and python packages asynchronously
+        # because they are independent and python packages compilation uses a single thread for Cython output
+        # compilation most of the time
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=2) as e:
+            build_targets_wo_cuda_future = e.submit(build_targets_wo_cuda, build_native_wrapper, targets_wo_cuda, native_built_tools_root_dir)
+            build_python_packages_future = e.submit(
+                build_python_packages,
+                build_native_wrapper,
+                build_with_cuda_for_main_targets,
+                only_native_artifacts,
+                native_built_tools_root_dir
             )
-            for platform_name in platform_names_for_python_dev_paths
+
+            build_targets_wo_cuda_future.result()
+            build_python_packages_future.result()
+
+    else:
+        build_targets_wo_cuda(build_native_wrapper, targets_wo_cuda, native_built_tools_root_dir)
+        build_python_packages(
+            build_native_wrapper,
+            build_with_cuda_for_main_targets,
+            only_native_artifacts,
+            native_built_tools_root_dir
         )
-        cmake_extra_args=[
-            # select Python-version specific Cython installation because it will get NumPy information from it's interpreter
-            '-UCYTHON_*',
-            f'-DCython_ROOT={os.path.join(CMAKE_BUILD_ENV_ROOT, get_native_platform_name(), get_cython_bin_dir(py_ver))}'
-        ]
 
-        call_build_native(
-            targets=['_hnsw', '_catboost'],
-            cmake_extra_args=cmake_extra_args,
-            have_cuda=build_with_cuda_for_main_targets,
-            native_built_tools_root_dir=native_built_tools_root_dir,
-            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
-        )
-
-        if not only_native_artifacts:
-            # for some reason 'bdist_wheel' sometimes fails to re-run on the same directory with some cached '.eggs'
-            run_in_python_package_dir(src_root_dir, dry_run, verbose, [['cmake', '-E', 'rm', '-rf', '.eggs']])
-
-            build_native_sub_dir = os.path.join(
-                build_native_root_dir,
-                'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
-                platform_name
-            )
-
-            # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
-            bdist_wheel_cmd = [
-                'setup.py',
-                'bdist_wheel',
-                '--plat-name', get_python_plat_name(platform_name),
-                '--with-hnsw',
-                '--prebuilt-widget',
-                f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
-            ]
-
-            run_with_native_python_with_version_in_python_package_dir(
-                src_root_dir,
-                dry_run,
-                verbose,
-                py_ver,
-                [bdist_wheel_cmd]
-            )
 
 def build_all(
     src_root_dir: str,
     build_test_tools:bool = False,
     only_native_artifacts:bool = False,
     target_platforms: Optional[str] = None,
+    disable_async:bool = False,
     dry_run:bool = False,
     verbose:bool = False):
 
@@ -703,6 +811,7 @@ def build_all(
         build_test_tools=build_test_tools,
         only_native_artifacts=only_native_artifacts,
         build_tools_only=(target_platforms is not None) and (platform_name not in target_platforms),
+        disable_async=disable_async,
         dry_run=dry_run,
         verbose=verbose
     )
@@ -720,6 +829,7 @@ def build_all(
             conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'dockcross.manylinux2014_aarch64.profile'),
             build_test_tools=build_test_tools,
             only_native_artifacts=only_native_artifacts,
+            disable_async=disable_async,
             dry_run=dry_run,
             verbose=verbose,
             native_built_tools_root_dir=os.path.join(
@@ -746,7 +856,12 @@ if __name__ == '__main__':
     args_parser.add_argument('--verbose', action='store_true', help='Verbose output')
     args_parser.add_argument('--build-test-tools', action='store_true', help='Build tools for tests')
     args_parser.add_argument('--only-native-artifacts', action='store_true', help='Build only native artifacts')
-    args_parser.add_argument('--target-platforms', action='store', help=',-delimited list of target platforms')
+    args_parser.add_argument(
+        '--target-platforms',
+        action='store',
+        help=',-delimited list of target platforms. Build on all target platforms for current OS by default'
+    )
+    args_parser.add_argument('--disable-async', action='store_true', help='Disable async processing')
     parsed_args = args_parser.parse_args()
 
     patch_sources(
@@ -761,6 +876,7 @@ if __name__ == '__main__':
         parsed_args.build_test_tools,
         parsed_args.only_native_artifacts,
         parsed_args.target_platforms,
+        parsed_args.disable_async,
         parsed_args.dry_run,
         parsed_args.verbose
     )
