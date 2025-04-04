@@ -701,17 +701,6 @@ def build_all_for_one_platform(
         native_built_tools_root_dir=native_built_tools_root_dir
     )
 
-    if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
-        copy_built_artifacts_to_canonical_place(
-            platform_name,
-            build_with_cuda_for_main_targets,
-            build_native_root_dir,
-            built_output_root_dir,
-            build_test_tools=build_test_tools,
-            dry_run=dry_run,
-            verbose=verbose
-        )
-
     if not only_native_artifacts:
         build_r_package(
             src_root_dir,
@@ -762,6 +751,17 @@ def build_all_for_one_platform(
             build_with_cuda_for_main_targets,
             only_native_artifacts,
             native_built_tools_root_dir
+        )
+
+    if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
+        copy_built_artifacts_to_canonical_place(
+            platform_name,
+            build_with_cuda_for_main_targets,
+            build_native_root_dir,
+            built_output_root_dir,
+            build_test_tools=build_test_tools,
+            dry_run=dry_run,
+            verbose=verbose
         )
 
 
