@@ -10,7 +10,7 @@
 #    Used to adjust standard paths to dependencies
 #  - CMAKE_BUILD_ENV_ROOT (optional):
 #    path to the root directory with platform-specific subdirectories with dependencies data for CMake
-#  - MAKE_BUILD_CACHE_DIR (optional): Use build artifacts cache if specified
+#  - CMAKE_BUILD_CACHE_DIR (optional): Use build artifacts cache if specified
 #  - HOME (on Linux and macOS): To derive CMAKE_BUILD_ENV_ROOT path if it has not been specified explicitly
 #  - USERPROFILE (on Windows): To derive CMAKE_BUILD_ENV_ROOT path if it has not been specified explicitly
 #
