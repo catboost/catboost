@@ -28,7 +28,7 @@
 #define	ARCHIVE_ENTRY_H_INCLUDED
 
 /* Note: Compiler will complain if this does not match archive.h! */
-#define	ARCHIVE_VERSION_NUMBER 3007007
+#define	ARCHIVE_VERSION_NUMBER 3007008
 
 /*
  * Note: archive_entry.h is for use outside of libarchive; the
@@ -127,7 +127,8 @@ typedef ssize_t la_ssize_t;
 # define __LA_DECL
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 3 && __GNUC_MINOR__ >= 1
+#if defined(__GNUC__) && (__GNUC__ > 3 || \
+    (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 # define __LA_DEPRECATED __attribute__((deprecated))
 #else
 # define __LA_DEPRECATED

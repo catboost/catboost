@@ -303,7 +303,7 @@ file_open(struct archive *a, void *client_data)
 		}
 		if (fd < 0) {
 			archive_set_error(a, errno,
-			    "Failed to open '%S'", wfilename);
+			    "Failed to open '%ls'", wfilename);
 			return (ARCHIVE_FATAL);
 		}
 #else
@@ -315,7 +315,7 @@ file_open(struct archive *a, void *client_data)
 	if (fstat(fd, &st) != 0) {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 		if (mine->filename_type == FNT_WCS)
-			archive_set_error(a, errno, "Can't stat '%S'",
+			archive_set_error(a, errno, "Can't stat '%ls'",
 			    wfilename);
 		else
 #endif
@@ -447,7 +447,7 @@ file_read(struct archive *a, void *client_data, const void **buff)
 				    "Error reading '%s'", mine->filename.m);
 			else
 				archive_set_error(a, errno,
-				    "Error reading '%S'", mine->filename.w);
+				    "Error reading '%ls'", mine->filename.w);
 		}
 		return (bytes_read);
 	}
@@ -509,7 +509,7 @@ file_skip_lseek(struct archive *a, void *client_data, int64_t request)
 		archive_set_error(a, errno, "Error seeking in '%s'",
 		    mine->filename.m);
 	else
-		archive_set_error(a, errno, "Error seeking in '%S'",
+		archive_set_error(a, errno, "Error seeking in '%ls'",
 		    mine->filename.w);
 	return (-1);
 }
@@ -555,7 +555,7 @@ file_seek(struct archive *a, void *client_data, int64_t request, int whence)
 		archive_set_error(a, errno, "Error seeking in '%s'",
 		    mine->filename.m);
 	else
-		archive_set_error(a, errno, "Error seeking in '%S'",
+		archive_set_error(a, errno, "Error seeking in '%ls'",
 		    mine->filename.w);
 	return (ARCHIVE_FATAL);
 }

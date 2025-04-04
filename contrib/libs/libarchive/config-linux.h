@@ -334,16 +334,16 @@ typedef uint64_t uintmax_t;
 /* #undef ARCHIVE_XATTR_LINUX */
 
 /* Version number of bsdcpio */
-#define BSDCPIO_VERSION_STRING "3.7.7"
+#define BSDCPIO_VERSION_STRING "3.7.8"
 
 /* Version number of bsdtar */
-#define BSDTAR_VERSION_STRING "3.7.7"
+#define BSDTAR_VERSION_STRING "3.7.8"
 
 /* Version number of bsdcat */
-#define BSDCAT_VERSION_STRING "3.7.7"
+#define BSDCAT_VERSION_STRING "3.7.8"
 
 /* Version number of bsdunzip */
-#define BSDUNZIP_VERSION_STRING "3.7.7"
+#define BSDUNZIP_VERSION_STRING "3.7.8"
 
 /* Define to 1 if you have the `acl_create_entry' function. */
 /* #undef HAVE_ACL_CREATE_ENTRY */
@@ -735,9 +735,6 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the `lzma' library (-llzma). */
 #define HAVE_LIBLZMA 1
 
-/* Define to 1 if you have the `lzmadec' library (-llzmadec). */
-/* #undef HAVE_LIBLZMADEC */
-
 /* Define to 1 if you have the `lzo2' library (-llzo2). */
 /* #undef HAVE_LIBLZO2 */
 
@@ -846,9 +843,6 @@ typedef uint64_t uintmax_t;
 
 /* Define to 1 if you have the <lz4.h> header file. */
 #define HAVE_LZ4_H 1
-
-/* Define to 1 if you have the <lzmadec.h> header file. */
-/* #undef HAVE_LZMADEC_H */
 
 /* Define to 1 if you have the <lzma.h> header file. */
 #define HAVE_LZMA_H 1
@@ -1172,6 +1166,12 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <sys/xattr.h> header file. */
 #define HAVE_SYS_XATTR_H 1
 
+/* Define to 1 if you have the `tcgetattr' function. */
+#define HAVE_TCGETATTR 1
+
+/* Define to 1 if you have the `tcsetattr' function. */
+#define HAVE_TCSETATTR 1
+
 /* Define to 1 if you have the `timegm' function. */
 #define HAVE_TIMEGM 1
 
@@ -1293,10 +1293,10 @@ typedef uint64_t uintmax_t;
 #define ICONV_CONST 
 
 /* Version number of libarchive as a single integer */
-#define LIBARCHIVE_VERSION_NUMBER "3007007"
+#define LIBARCHIVE_VERSION_NUMBER "3007008"
 
 /* Version number of libarchive */
-#define LIBARCHIVE_VERSION_STRING "3.7.7"
+#define LIBARCHIVE_VERSION_STRING "3.7.8"
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
@@ -1350,7 +1350,7 @@ typedef uint64_t uintmax_t;
 #endif /* SAFE_TO_DEFINE_EXTENSIONS */
 
 /* Version number of package */
-#define VERSION "3.7.7"
+#define VERSION "3.7.8"
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
