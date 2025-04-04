@@ -162,7 +162,7 @@ jobs:
         name: Download catboost4j-prediction_resources
         uses: actions/download-artifact@v4
         with:
-          name: catboost4j-prediction_resources-${{ inputs.os }}-${{ inputs.artifacts_version }}
+          name: catboost4j-prediction_resources-${{ inputs.os }}-${{ inputs.machine }}-${{ inputs.artifacts_version }}
           path: prebuilt/catboost4j-prediction_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
@@ -172,7 +172,7 @@ jobs:
         name: Download catboost4j-prediction_resources
         uses: actions/download-artifact@v4
         with:
-          name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
+          name: catboost4j-prediction_resources-darwin-universal2-${{ inputs.artifacts_version }}
           path: prebuilt/catboost4j-prediction_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
@@ -202,7 +202,7 @@ jobs:
         name: Download catboost4j-spark_core_resources for Ubuntu
         uses: actions/download-artifact@v4
         with:
-          name: catboost4j-spark_core_resources-linux-${{ inputs.artifacts_version }}
+          name: catboost4j-spark_core_resources-linux-${{ inputs.machine }}-${{ inputs.artifacts_version }}
           path: prebuilt/spark/catboost4j-spark_core_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
@@ -212,7 +212,7 @@ jobs:
         name: Download catboost4j-spark_core_resources for macOS
         uses: actions/download-artifact@v4
         with:
-          name: catboost4j-spark_core_resources-darwin-${{ inputs.artifacts_version }}
+          name: catboost4j-spark_core_resources-darwin-universal2-${{ inputs.artifacts_version }}
           path: prebuilt/spark/catboost4j-spark_core_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}

@@ -29,7 +29,7 @@ import platform
 import subprocess
 import sys
 import tarfile
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 IS_IN_GITHUB_ACTION = 'GITHUB_ACTION' in os.environ
@@ -401,6 +401,7 @@ def build_all_for_one_platform(
     cmake_extra_args:List[str]=None,
     build_test_tools:bool=False,
     only_native_artifacts:bool=False,
+    build_tools_only:bool=False,
     dry_run:bool=False,
     verbose:bool=False):
 
@@ -546,6 +547,9 @@ def build_all_for_one_platform(
             macos_universal_binaries=False
         )
 
+    if build_tools_only:
+        return
+
     targets_wo_cuda = ['catboost4j-spark-impl-cpp']
     if build_test_tools:
         targets_wo_cuda += build_native.Targets.test_tools.keys()
@@ -658,8 +662,12 @@ def build_all(
     src_root_dir: str,
     build_test_tools:bool = False,
     only_native_artifacts:bool = False,
+    target_platforms: Optional[str] = None,
     dry_run:bool = False,
     verbose:bool = False):
+
+    if target_platforms:
+        target_platforms = target_platforms.split(',')
 
     if not only_native_artifacts:
         run_in_python_package_dir(
@@ -694,11 +702,12 @@ def build_all(
         conan_host_profile=conan_host_profile,
         build_test_tools=build_test_tools,
         only_native_artifacts=only_native_artifacts,
+        build_tools_only=(target_platforms is not None) and (platform_name not in target_platforms),
         dry_run=dry_run,
         verbose=verbose
     )
 
-    if platform_name.startswith('linux'):
+    if platform_name.startswith('linux') and ((target_platforms is None) or ('linux-aarch64' in target_platforms)):
         platform_java_home = os.path.join(CMAKE_BUILD_ENV_ROOT, 'linux-aarch64', JAVA_HOME[1:])
 
         # build for aarch64 as well
@@ -737,6 +746,7 @@ if __name__ == '__main__':
     args_parser.add_argument('--verbose', action='store_true', help='Verbose output')
     args_parser.add_argument('--build-test-tools', action='store_true', help='Build tools for tests')
     args_parser.add_argument('--only-native-artifacts', action='store_true', help='Build only native artifacts')
+    args_parser.add_argument('--target-platforms', action='store', help=',-delimited list of target platforms')
     parsed_args = args_parser.parse_args()
 
     patch_sources(
@@ -750,6 +760,7 @@ if __name__ == '__main__':
         os.path.abspath(os.getcwd()),
         parsed_args.build_test_tools,
         parsed_args.only_native_artifacts,
+        parsed_args.target_platforms,
         parsed_args.dry_run,
         parsed_args.verbose
     )
