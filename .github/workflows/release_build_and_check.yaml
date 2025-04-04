@@ -34,10 +34,10 @@ jobs:
     name: Build and check per OS
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+        os: [linux, macos, windows]
       fail-fast: false
     with:
-      runs-on_value: ${{ matrix.os }}
+      os: ${{ matrix.os }}
       revision: v${{ inputs.version }}
       catboost_package_name: ${{ inputs.catboost_package_name }}
       artifacts_version: v${{ inputs.version }}
