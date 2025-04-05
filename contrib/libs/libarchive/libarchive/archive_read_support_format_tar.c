@@ -129,7 +129,11 @@ struct tar {
 	int64_t			 entry_offset;
 	int64_t			 entry_padding;
 	int64_t 		 entry_bytes_unconsumed;
-	int64_t			 realsize;
+	int64_t			 disk_size;
+	int64_t			 GNU_sparse_realsize;
+	int64_t			 GNU_sparse_size;
+	int64_t			 SCHILY_sparse_realsize;
+	int64_t			 pax_size;
 	struct sparse_block	*sparse_list;
 	struct sparse_block	*sparse_last;
 	int64_t			 sparse_offset;
@@ -138,6 +142,7 @@ struct tar {
 	int			 sparse_gnu_minor;
 	char			 sparse_gnu_attributes_seen;
 	char			 filetype;
+	char			 size_fields; /* Bits defined below */
 
 	struct archive_string	 localname;
 	struct archive_string_conv *opt_sconv;
@@ -148,8 +153,14 @@ struct tar {
 	int			 compat_2x;
 	int			 process_mac_extensions;
 	int			 read_concatenated_archives;
-	int			 realsize_override;
 };
+
+/* Track which size fields were present in the headers */
+#define TAR_SIZE_PAX_SIZE 1
+#define TAR_SIZE_GNU_SPARSE_REALSIZE 2
+#define TAR_SIZE_GNU_SPARSE_SIZE 4
+#define TAR_SIZE_SCHILY_SPARSE_REALSIZE 8
+
 
 static int	archive_block_is_null(const char *p);
 static char	*base64_decode(const char *, size_t, size_t *);
@@ -529,8 +540,7 @@ archive_read_format_tar_read_header(struct archive_read *a,
 	tar = (struct tar *)(a->format->data);
 	tar->entry_offset = 0;
 	gnu_clear_sparse_list(tar);
-	tar->realsize = -1; /* Mark this as "unset" */
-	tar->realsize_override = 0;
+	tar->size_fields = 0; /* We don't have any size info yet */
 
 	/* Setup default string conversion. */
 	tar->sconv = tar->opt_sconv;
@@ -622,7 +632,7 @@ archive_read_format_tar_read_data(struct archive_read *a,
 			tar->entry_padding = 0;
 			*buff = NULL;
 			*size = 0;
-			*offset = tar->realsize;
+			*offset = tar->disk_size;
 			return (ARCHIVE_EOF);
 		}
 
@@ -1290,6 +1300,11 @@ read_body_to_string(struct archive_read *a, struct tar *tar,
  * allows header_old_tar and header_ustar
  * to handle filenames differently, while still putting most of the
  * common parsing into one place.
+ *
+ * This is called _after_ ustar, GNU tar, Schily, etc, special
+ * fields have already been parsed into the `tar` structure.
+ * So we can make final decisions here about how to reconcile
+ * size, mode, etc, information.
  */
 static int
 header_common(struct archive_read *a, struct tar *tar,
@@ -1323,28 +1338,60 @@ header_common(struct archive_read *a, struct tar *tar,
 		archive_entry_set_mtime(entry, tar_atol(header->mtime, sizeof(header->mtime)), 0);
 	}
 
-	/* Update size information as appropriate */
-	if (!archive_entry_size_is_set(entry)) {
-		tar->entry_bytes_remaining = tar_atol(header->size, sizeof(header->size));
-		if (tar->entry_bytes_remaining < 0) {
-			tar->entry_bytes_remaining = 0;
-			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
-					  "Tar entry has negative size");
-			return (ARCHIVE_FATAL);
-		}
-		if (tar->entry_bytes_remaining > entry_limit) {
-			tar->entry_bytes_remaining = 0;
-			archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
-					  "Tar entry size overflow");
-			return (ARCHIVE_FATAL);
-		}
-		if (!tar->realsize_override) {
-			tar->realsize = tar->entry_bytes_remaining;
-		}
-		archive_entry_set_size(entry, tar->realsize);
-	} else if (tar->realsize_override) {
-		tar->entry_bytes_remaining = tar->realsize;
-		archive_entry_set_size(entry, tar->realsize);
+	/* Reconcile the size info. */
+	/* First, how big is the file on disk? */
+	if ((tar->size_fields & TAR_SIZE_GNU_SPARSE_REALSIZE) != 0) {
+		/* GNU sparse format 1.0 uses `GNU.sparse.realsize`
+		 * to hold the size of the file on disk. */
+		tar->disk_size = tar->GNU_sparse_realsize;
+	} else if ((tar->size_fields & TAR_SIZE_GNU_SPARSE_SIZE) != 0
+		   && (tar->sparse_gnu_major == 0)) {
+		/* GNU sparse format 0.0 and 0.1 use `GNU.sparse.size`
+		 * to hold the size of the file on disk. */
+		tar->disk_size = tar->GNU_sparse_size;
+	} else if ((tar->size_fields & TAR_SIZE_SCHILY_SPARSE_REALSIZE) != 0) {
+		tar->disk_size = tar->SCHILY_sparse_realsize;
+	} else if ((tar->size_fields & TAR_SIZE_PAX_SIZE) != 0) {
+		tar->disk_size = tar->pax_size;
+	} else {
+		/* There wasn't a suitable pax header, so use the ustar info */
+		tar->disk_size = tar_atol(header->size, sizeof(header->size));
+	}
+
+	if (tar->disk_size < 0) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+				  "Tar entry has negative file size");
+		return (ARCHIVE_FATAL);
+	} else if (tar->disk_size > entry_limit) {
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+				  "Tar entry size overflow");
+		return (ARCHIVE_FATAL);
+	} else {
+		archive_entry_set_size(entry, tar->disk_size);
+	}
+
+	/* Second, how big is the data in the archive? */
+	if ((tar->size_fields & TAR_SIZE_GNU_SPARSE_SIZE) != 0
+	    && (tar->sparse_gnu_major == 1)) {
+		/* GNU sparse format 1.0 uses `GNU.sparse.size`
+		 * to hold the size of the data in the archive. */
+		tar->entry_bytes_remaining = tar->GNU_sparse_size;
+	} else if ((tar->size_fields & TAR_SIZE_PAX_SIZE) != 0) {
+		tar->entry_bytes_remaining = tar->pax_size;
+	} else {
+		tar->entry_bytes_remaining
+			= tar_atol(header->size, sizeof(header->size));
+	}
+	if (tar->entry_bytes_remaining < 0) {
+		tar->entry_bytes_remaining = 0;
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+				  "Tar entry has negative size");
+		return (ARCHIVE_FATAL);
+	} else if (tar->entry_bytes_remaining > entry_limit) {
+		tar->entry_bytes_remaining = 0;
+		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
+				  "Tar entry size overflow");
+		return (ARCHIVE_FATAL);
 	}
 
 	/* Handle the tar type flag appropriately. */
@@ -2299,10 +2346,13 @@ pax_attribute(struct archive_read *a, struct tar *tar, struct archive_entry *ent
 				}
 				else if (key_length == 4 && memcmp(key, "size", 4) == 0) {
 					/* GNU.sparse.size */
+					/* This is either the size of stored entry OR the size of data on disk,
+					 * depending on which GNU sparse format version is in use.
+					 * Since pax attributes can be in any order, we may not actually
+					 * know at this point how to interpret this. */
 					if ((err = pax_attribute_read_number(a, value_length, &t)) == ARCHIVE_OK) {
-						tar->realsize = t;
-						archive_entry_set_size(entry, tar->realsize);
-						tar->realsize_override = 1;
+						tar->GNU_sparse_size = t;
+						tar->size_fields |= TAR_SIZE_GNU_SPARSE_SIZE;
 					}
 					return (err);
 				}
@@ -2370,11 +2420,10 @@ pax_attribute(struct archive_read *a, struct tar *tar, struct archive_entry *ent
 					return (err);
 				}
 				else if (key_length == 8 && memcmp(key, "realsize", 8) == 0) {
-					/* GNU.sparse.realsize */
+					/* GNU.sparse.realsize = size of file on disk */
 					if ((err = pax_attribute_read_number(a, value_length, &t)) == ARCHIVE_OK) {
-						tar->realsize = t;
-						archive_entry_set_size(entry, tar->realsize);
-						tar->realsize_override = 1;
+						tar->GNU_sparse_realsize = t;
+						tar->size_fields |= TAR_SIZE_GNU_SPARSE_REALSIZE;
 					}
 					return (err);
 				}
@@ -2555,12 +2604,12 @@ pax_attribute(struct archive_read *a, struct tar *tar, struct archive_entry *ent
 			}
 			else if (key_length == 8 && memcmp(key, "realsize", 8) == 0) {
 				if ((err = pax_attribute_read_number(a, value_length, &t)) == ARCHIVE_OK) {
-					tar->realsize = t;
-					tar->realsize_override = 1;
-					archive_entry_set_size(entry, tar->realsize);
+					tar->SCHILY_sparse_realsize = t;
+					tar->size_fields |= TAR_SIZE_SCHILY_SPARSE_REALSIZE;
 				}
 				return (err);
 			}
+			/* TODO: Is there a SCHILY.sparse.size similar to GNU.sparse.size ? */
 			else if (key_length > 6 && memcmp(key, "xattr.", 6) == 0) {
 				key_length -= 6;
 				key += 6;
@@ -2727,19 +2776,8 @@ pax_attribute(struct archive_read *a, struct tar *tar, struct archive_entry *ent
 		if (key_length == 4 && memcmp(key, "size", 4) == 0) {
 			/* "size" is the size of the data in the entry. */
 			if ((err = pax_attribute_read_number(a, value_length, &t)) == ARCHIVE_OK) {
-				tar->entry_bytes_remaining = t;
-				/*
-				 * The "size" pax header keyword always overrides the
-				 * "size" field in the tar header.
-				 * GNU.sparse.realsize, GNU.sparse.size and
-				 * SCHILY.realsize override this value.
-				 */
-				if (!tar->realsize_override) {
-					archive_entry_set_size(entry,
-							       tar->entry_bytes_remaining);
-					tar->realsize
-						= tar->entry_bytes_remaining;
-				}
+				tar->pax_size = t;
+				tar->size_fields |= TAR_SIZE_PAX_SIZE;
 			}
 			else if (t == INT64_MAX) {
 				/* Note: pax_attr_read_number returns INT64_MAX on overflow or < 0 */
@@ -2851,11 +2889,6 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 	 * filename is stored as in old-style archives.
 	 */
 
-	/* Grab fields common to all tar variants. */
-	err = header_common(a, tar, entry, h);
-	if (err == ARCHIVE_FATAL)
-		return (err);
-
 	/* Copy filename over (to ensure null termination). */
 	header = (const struct archive_entry_header_gnutar *)h;
 	const char *existing_pathname = archive_entry_pathname(entry);
@@ -2904,8 +2937,6 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 		archive_entry_set_rdev(entry, 0);
 	}
 
-	tar->entry_padding = 0x1ff & (-tar->entry_bytes_remaining);
-
 	/* Grab GNU-specific fields. */
 	if (!archive_entry_atime_is_set(entry)) {
 		t = tar_atol(header->atime, sizeof(header->atime));
@@ -2919,10 +2950,10 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 	}
 
 	if (header->realsize[0] != 0) {
-		tar->realsize
+		/* Treat as a synonym for the pax GNU.sparse.realsize attr */
+		tar->GNU_sparse_realsize
 		    = tar_atol(header->realsize, sizeof(header->realsize));
-		archive_entry_set_size(entry, tar->realsize);
-		tar->realsize_override = 1;
+		tar->size_fields |= TAR_SIZE_GNU_SPARSE_REALSIZE;
 	}
 
 	if (header->sparse[0].offset[0] != 0) {
@@ -2934,6 +2965,13 @@ header_gnutar(struct archive_read *a, struct tar *tar,
 			/* XXX WTF? XXX */
 		}
 	}
+
+	/* Grab fields common to all tar variants. */
+	err = header_common(a, tar, entry, h);
+	if (err == ARCHIVE_FATAL)
+		return (err);
+
+	tar->entry_padding = 0x1ff & (-tar->entry_bytes_remaining);
 
 	return (err);
 }
@@ -3114,8 +3152,7 @@ gnu_sparse_01_parse(struct archive_read *a, struct tar *tar, const char *p, size
  * it's not possible to support both variants.  This code supports
  * the later variant at the expense of not supporting the former.
  *
- * This variant also replaced GNU.sparse.size with GNU.sparse.realsize
- * and introduced the GNU.sparse.major/GNU.sparse.minor attributes.
+ * This variant also introduced the GNU.sparse.major/GNU.sparse.minor attributes.
  */
 
 /*
