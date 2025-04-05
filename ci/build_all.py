@@ -701,25 +701,6 @@ def build_all_for_one_platform(
         native_built_tools_root_dir=native_built_tools_root_dir
     )
 
-    if not only_native_artifacts:
-        build_r_package(
-            src_root_dir,
-            build_native_root_dir,
-            build_with_cuda_for_main_targets,
-            platform_name,
-            dry_run,
-            verbose
-        )
-
-        build_jvm_artifacts(
-            src_root_dir,
-            build_native_root_dir,
-            platform_name,
-            macos_universal_binaries,
-            build_with_cuda_for_main_targets,
-            dry_run,
-            verbose
-        )
 
     targets_wo_cuda = ['catboost4j-spark-impl-cpp']
     if build_test_tools:
@@ -762,6 +743,26 @@ def build_all_for_one_platform(
             build_test_tools=build_test_tools,
             dry_run=dry_run,
             verbose=verbose
+        )
+
+    if not only_native_artifacts:
+        build_r_package(
+            src_root_dir,
+            build_native_root_dir,
+            build_with_cuda_for_main_targets,
+            platform_name,
+            dry_run,
+            verbose
+        )
+
+        build_jvm_artifacts(
+            src_root_dir,
+            build_native_root_dir,
+            platform_name,
+            macos_universal_binaries,
+            build_with_cuda_for_main_targets,
+            dry_run,
+            verbose
         )
 
 
