@@ -1,11 +1,13 @@
 #pragma once
 
+// IWYU pragma: begin_exports
 #include <library/cpp/testing/gtest/matchers.h>
 
 #include <library/cpp/testing/gtest_extensions/gtest_extensions.h>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+// IWYU pragma: end_exports
 
 #include <optional>
 #include <string_view>
