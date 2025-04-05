@@ -744,7 +744,9 @@ namespace NCB {
                                         = index2d.PerTypeFeatureIdx;
                                     sparseDataPart.Indices[dstIdx].ObjectIdx
                                         = index2d.ObjectIdx - objectIdxShift;
-                                    sparseDataPart.Values[dstIdx] = std::move(sparseDataPart.Values[i]);
+                                    if (i != dstIdx) {
+                                        sparseDataPart.Values[dstIdx] = std::move(sparseDataPart.Values[i]);
+                                    }
                                     ++dstIdx;
                                 }
                             }
