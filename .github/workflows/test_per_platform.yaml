@@ -295,8 +295,7 @@ jobs:
 
       # TODO: maybe test on other Spark versions as well
 
-      # temporarily disabled until issues with tests diffs are resolved
-      - if: false #inputs.os != 'windows'
+      - if: inputs.os != 'windows'
         name: Run catboost4j-spark tests
         shell: pwsh
         run: |
