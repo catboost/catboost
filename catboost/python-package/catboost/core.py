@@ -2230,62 +2230,62 @@ class CatBoostEstimator(_CatBoostBase):
             If  None, all params are set to their defaults.
             If  dict, overriding parameters present in dict.
         """
-        params_that_can_be_None = {
-            "iterations": 1000,
-            "learning_rate": 0.03,
-            "depth": 6,
-            "l2_leaf_reg": 3.0,
-            "loss_function": "Logloss",
-            "border_count": 254,
-            "feature_border_type": "GreedyLogSum",
-            "fold_permutation_block": 1,
-            "nan_mode": "Min",
-            "counter_calc_method": "Full",
-            "leaf_estimation_iterations": 1,
-            "leaf_estimation_method": "Newton",
-            "thread_count": -1,
-            "random_seed": 0,
-            "use_best_model": False,
-            "verbose": 1,
-            "logging_level": "Verbose",
-            "metric_period": 1,
-            "store_all_simple_ctr": False,
-            "max_ctr_complexity": 4,
-            "has_time": False,
-            "allow_const_label": False,
-            "random_strength": 1.0,
-            "random_score_type": "PerTree",
-            "bagging_temperature": 1.0,
-            "save_snapshot": False,
-            "snapshot_interval": 600,
-            "fold_len_multiplier": 2.0,
-            "gpu_ram_part": 0.95,
-            "allow_writing_files": True,
-            "final_ctr_computation_mode": "Default",
-            "boosting_type": "Ordered",
-            "task_type": "CPU",
-            "bootstrap_type": "Bayesian",
-            "sampling_unit": "Object",
-            "sampling_frequency": "PerTree",
-            "grow_policy": "SymmetricTree",
-            "min_data_in_leaf": 1,
-            "score_function": "Cosine",
-            "leaf_estimation_backtracking": "AnyImprovement",
-            "penalties_coefficient": 1.0,
-        }
+        # params_that_can_be_None = {
+        #     "iterations": 1000,
+        #     "learning_rate": 0.03,
+        #     "depth": 6,
+        #     "l2_leaf_reg": 3.0,
+        #     "loss_function": "Logloss",
+        #     "border_count": 254,
+        #     "feature_border_type": "GreedyLogSum",
+        #     "fold_permutation_block": 1,
+        #     "nan_mode": "Min",
+        #     "counter_calc_method": "Full",
+        #     "leaf_estimation_iterations": 1,
+        #     "leaf_estimation_method": "Newton",
+        #     "thread_count": -1,
+        #     "random_seed": 0,
+        #     "use_best_model": False,
+        #     "verbose": 1,
+        #     "logging_level": "Verbose",
+        #     "metric_period": 1,
+        #     "store_all_simple_ctr": False,
+        #     "max_ctr_complexity": 4,
+        #     "has_time": False,
+        #     "allow_const_label": False,
+        #     "random_strength": 1.0,
+        #     "random_score_type": "PerTree",
+        #     "bagging_temperature": 1.0,
+        #     "save_snapshot": False,
+        #     "snapshot_interval": 600,
+        #     "fold_len_multiplier": 2.0,
+        #     "gpu_ram_part": 0.95,
+        #     "allow_writing_files": True,
+        #     "final_ctr_computation_mode": "Default",
+        #     "boosting_type": "Ordered",
+        #     "task_type": "CPU",
+        #     "bootstrap_type": "Bayesian",
+        #     "sampling_unit": "Object",
+        #     "sampling_frequency": "PerTree",
+        #     "grow_policy": "SymmetricTree",
+        #     "min_data_in_leaf": 1,
+        #     "score_function": "Cosine",
+        #     "leaf_estimation_backtracking": "AnyImprovement",
+        #     "penalties_coefficient": 1.0,
+        # }
+        #
+        # new_params = {}
+        # for key, value in iteritems(params):
+        #     if value is not None:
+        #         new_params[key] = value
+        #     elif key in params_that_can_be_None.keys():
+        #         if key ==  "loss_function":
+        #             if params_that_can_be_None["target_border"] is None:
+        #                 new_params[key] = "RMSE"
+        #                 continue
+        #         new_params[key] = params_that_can_be_None[key]
 
-        new_params = {}
-        for key, value in iteritems(params):
-            if value is not None:
-                new_params[key] = value
-            elif key in params_that_can_be_None.keys():
-                if key ==  "loss_function":
-                    if params_that_can_be_None["target_border"] is None:
-                        new_params[key] = "RMSE"
-                        continue
-                new_params[key] = params_that_can_be_None[key]
-
-        super(CatBoostEstimator, self).__init__(new_params)
+        super(CatBoostEstimator, self).__init__(params)
 
 
 class CatBoost(CatBoostEstimator):
@@ -4604,7 +4604,7 @@ class CatBoost(CatBoostEstimator):
         self._object._convert_oblivious_to_asymmetric()
 
 
-class CatBoostClassifier(CatBoostEstimator):
+class CatBoostClassifier(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -5686,7 +5686,7 @@ class CatBoostClassifier(CatBoostEstimator):
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
-class CatBoostRegressor(CatBoostEstimator):
+class CatBoostRegressor(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -6096,7 +6096,7 @@ class CatBoostRegressor(CatBoostEstimator):
         return 'RawFormulaVal'
 
 
-class CatBoostRanker(CatBoostEstimator):
+class CatBoostRanker(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost ranking.
     Parameters
