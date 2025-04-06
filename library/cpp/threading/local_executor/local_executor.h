@@ -54,8 +54,12 @@ namespace NPar {
         // @param flags                     Same as for `Exec`.
         virtual void ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) = 0;
 
-        // 0-based ILocalExecutor worker thread identification
+        // returns:
+        //   0 for for a thread outside the internal pool
+        //      (because ILocalExecutor is allowed to use a calling thread to execute tasks as well),
+        //   1 ... GetThreadCount() for a thread inside the internal pool
         virtual int GetWorkerThreadId() const noexcept = 0;
+
         virtual int GetThreadCount() const noexcept = 0;
 
         // Describes a range of tasks with parameters from integer range [FirstId, LastId).
@@ -237,7 +241,6 @@ namespace NPar {
         int GetLPQueueSize() const noexcept;
         void ClearLPQueue();
 
-        // 0-based TLocalExecutor worker thread identification
         int GetWorkerThreadId() const noexcept override;
         int GetThreadCount() const noexcept override;
 

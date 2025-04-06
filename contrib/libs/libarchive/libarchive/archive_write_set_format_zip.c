@@ -529,7 +529,7 @@ archive_write_zip_header(struct archive_write *a, struct archive_entry *entry)
 		__archive_write_entry_filetype_unsupported(
 		    &a->archive, entry, "zip");
 		return ARCHIVE_FAILED;
-	};
+	}
 
 	/* If we're not using Zip64, reject large files. */
 	if (zip->flags & ZIP_FLAG_AVOID_ZIP64) {

@@ -41,27 +41,21 @@ png_set_cHRM_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
     png_fixed_point red_y, png_fixed_point green_x, png_fixed_point green_y,
     png_fixed_point blue_x, png_fixed_point blue_y)
 {
-   png_xy xy;
-
    png_debug1(1, "in %s storage function", "cHRM fixed");
 
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
-   xy.redx = red_x;
-   xy.redy = red_y;
-   xy.greenx = green_x;
-   xy.greeny = green_y;
-   xy.bluex = blue_x;
-   xy.bluey = blue_y;
-   xy.whitex = white_x;
-   xy.whitey = white_y;
+   info_ptr->cHRM.redx = red_x;
+   info_ptr->cHRM.redy = red_y;
+   info_ptr->cHRM.greenx = green_x;
+   info_ptr->cHRM.greeny = green_y;
+   info_ptr->cHRM.bluex = blue_x;
+   info_ptr->cHRM.bluey = blue_y;
+   info_ptr->cHRM.whitex = white_x;
+   info_ptr->cHRM.whitey = white_y;
 
-   if (png_colorspace_set_chromaticities(png_ptr, &info_ptr->colorspace, &xy,
-       2/* override with app values*/) != 0)
-      info_ptr->colorspace.flags |= PNG_COLORSPACE_FROM_cHRM;
-
-   png_colorspace_sync_info(png_ptr, info_ptr);
+   info_ptr->valid |= PNG_INFO_cHRM;
 }
 
 void PNGFAPI
@@ -73,6 +67,7 @@ png_set_cHRM_XYZ_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
     png_fixed_point int_blue_Z)
 {
    png_XYZ XYZ;
+   png_xy xy;
 
    png_debug1(1, "in %s storage function", "cHRM XYZ fixed");
 
@@ -89,11 +84,14 @@ png_set_cHRM_XYZ_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
    XYZ.blue_Y = int_blue_Y;
    XYZ.blue_Z = int_blue_Z;
 
-   if (png_colorspace_set_endpoints(png_ptr, &info_ptr->colorspace,
-       &XYZ, 2) != 0)
-      info_ptr->colorspace.flags |= PNG_COLORSPACE_FROM_cHRM;
+   if (png_xy_from_XYZ(&xy, &XYZ) == 0)
+   {
+      info_ptr->cHRM = xy;
+      info_ptr->valid |= PNG_INFO_cHRM;
+   }
 
-   png_colorspace_sync_info(png_ptr, info_ptr);
+   else
+      png_app_error(png_ptr, "invalid cHRM XYZ");
 }
 
 #  ifdef PNG_FLOATING_POINT_SUPPORTED
@@ -205,8 +203,7 @@ png_set_cLLI(png_const_structrp png_ptr, png_inforp info_ptr,
 
 #ifdef PNG_mDCV_SUPPORTED
 static png_uint_16
-png_ITU_fixed_16(png_const_structrp png_ptr, png_fixed_point v,
-   png_const_charp text)
+png_ITU_fixed_16(int *error, png_fixed_point v)
 {
    /* Return a safe uint16_t value scaled according to the ITU H273 rules for
     * 16-bit display chromaticities.  Functions like the corresponding
@@ -216,11 +213,10 @@ png_ITU_fixed_16(png_const_structrp png_ptr, png_fixed_point v,
     */
    v /= 2; /* rounds to 0 in C: avoids insignificant arithmetic errors */
    if (v > 65535 || v < 0)
-      png_fixed_error(png_ptr, text);
-
-#  ifndef PNG_ERROR_TEXT_SUPPORTED
-   PNG_UNUSED(text)
-#  endif
+   {
+      *error = 1;
+      return 0;
+   }
 
    return (png_uint_16)/*SAFE*/v;
 }
@@ -235,6 +231,7 @@ png_set_mDCV_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
     png_uint_32 minDL)
 {
    png_uint_16 rx, ry, gx, gy, bx, by, wx, wy;
+   int error;
 
    png_debug1(1, "in %s storage function", "mDCV");
 
@@ -242,14 +239,23 @@ png_set_mDCV_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
       return;
 
    /* Check the input values to ensure they are in the expected range: */
-   rx = png_ITU_fixed_16(png_ptr, red_x, "png_set_mDCV(red(x))");
-   ry = png_ITU_fixed_16(png_ptr, red_y, "png_set_mDCV(red(y))");
-   gx = png_ITU_fixed_16(png_ptr, green_x, "png_set_mDCV(green(x))");
-   gy = png_ITU_fixed_16(png_ptr, green_y, "png_set_mDCV(green(y))");
-   bx = png_ITU_fixed_16(png_ptr, blue_x, "png_set_mDCV(blue(x))");
-   by = png_ITU_fixed_16(png_ptr, blue_y, "png_set_mDCV(blue(y))");
-   wx = png_ITU_fixed_16(png_ptr, white_x, "png_set_mDCV(white(x))");
-   wy = png_ITU_fixed_16(png_ptr, white_y, "png_set_mDCV(white(y))");
+   error = 0;
+   rx = png_ITU_fixed_16(&error, red_x);
+   ry = png_ITU_fixed_16(&error, red_y);
+   gx = png_ITU_fixed_16(&error, green_x);
+   gy = png_ITU_fixed_16(&error, green_y);
+   bx = png_ITU_fixed_16(&error, blue_x);
+   by = png_ITU_fixed_16(&error, blue_y);
+   wx = png_ITU_fixed_16(&error, white_x);
+   wy = png_ITU_fixed_16(&error, white_y);
+
+   if (error)
+   {
+      png_chunk_report(png_ptr,
+         "mDCV chromaticities outside representable range",
+         PNG_CHUNK_WRITE_ERROR);
+      return;
+   }
 
    /* Check the light level range: */
    if (maxDL > 0x7FFFFFFFU || minDL > 0x7FFFFFFFU)
@@ -362,8 +368,8 @@ png_set_gAMA_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
-   png_colorspace_set_gamma(png_ptr, &info_ptr->colorspace, file_gamma);
-   png_colorspace_sync_info(png_ptr, info_ptr);
+   info_ptr->gamma = file_gamma;
+   info_ptr->valid |= PNG_INFO_gAMA;
 }
 
 #  ifdef PNG_FLOATING_POINT_SUPPORTED
@@ -827,8 +833,8 @@ png_set_sRGB(png_const_structrp png_ptr, png_inforp info_ptr, int srgb_intent)
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
-   (void)png_colorspace_set_sRGB(png_ptr, &info_ptr->colorspace, srgb_intent);
-   png_colorspace_sync_info(png_ptr, info_ptr);
+   info_ptr->rendering_intent = srgb_intent;
+   info_ptr->valid |= PNG_INFO_sRGB;
 }
 
 void PNGAPI
@@ -840,15 +846,20 @@ png_set_sRGB_gAMA_and_cHRM(png_const_structrp png_ptr, png_inforp info_ptr,
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
-   if (png_colorspace_set_sRGB(png_ptr, &info_ptr->colorspace,
-       srgb_intent) != 0)
-   {
-      /* This causes the gAMA and cHRM to be written too */
-      info_ptr->colorspace.flags |=
-         PNG_COLORSPACE_FROM_gAMA|PNG_COLORSPACE_FROM_cHRM;
-   }
+   png_set_sRGB(png_ptr, info_ptr, srgb_intent);
 
-   png_colorspace_sync_info(png_ptr, info_ptr);
+#  ifdef PNG_gAMA_SUPPORTED
+      png_set_gAMA_fixed(png_ptr, info_ptr, PNG_GAMMA_sRGB_INVERSE);
+#  endif /* gAMA */
+
+#  ifdef PNG_cHRM_SUPPORTED
+      png_set_cHRM_fixed(png_ptr, info_ptr,
+         /* color      x       y */
+         /* white */ 31270, 32900,
+         /* red   */ 64000, 33000,
+         /* green */ 30000, 60000,
+         /* blue  */ 15000,  6000);
+#  endif /* cHRM */
 }
 #endif /* sRGB */
 
@@ -870,27 +881,6 @@ png_set_iCCP(png_const_structrp png_ptr, png_inforp info_ptr,
 
    if (compression_type != PNG_COMPRESSION_TYPE_BASE)
       png_app_error(png_ptr, "Invalid iCCP compression method");
-
-   /* Set the colorspace first because this validates the profile; do not
-    * override previously set app cHRM or gAMA here (because likely as not the
-    * application knows better than libpng what the correct values are.)  Pass
-    * the info_ptr color_type field to png_colorspace_set_ICC because in the
-    * write case it has not yet been stored in png_ptr.
-    */
-   {
-      int result = png_colorspace_set_ICC(png_ptr, &info_ptr->colorspace, name,
-          proflen, profile, info_ptr->color_type);
-
-      png_colorspace_sync_info(png_ptr, info_ptr);
-
-      /* Don't do any of the copying if the profile was bad, or inconsistent. */
-      if (result == 0)
-         return;
-
-      /* But do write the gAMA and cHRM chunks from the profile. */
-      info_ptr->colorspace.flags |=
-         PNG_COLORSPACE_FROM_gAMA|PNG_COLORSPACE_FROM_cHRM;
-   }
 
    length = strlen(name)+1;
    new_iccp_name = png_voidcast(png_charp, png_malloc_warn(png_ptr, length));
@@ -1338,40 +1328,40 @@ png_uint_32 PNGAPI
 png_set_acTL(png_structp png_ptr, png_infop info_ptr,
     png_uint_32 num_frames, png_uint_32 num_plays)
 {
-    png_debug1(1, "in %s storage function", "acTL");
+   png_debug1(1, "in %s storage function", "acTL");
 
-    if (png_ptr == NULL || info_ptr == NULL)
-    {
-        png_warning(png_ptr,
-                    "Call to png_set_acTL() with NULL png_ptr "
-                    "or info_ptr ignored");
-        return (0);
-    }
-    if (num_frames == 0)
-    {
-        png_warning(png_ptr,
-                    "Ignoring attempt to set acTL with num_frames zero");
-        return (0);
-    }
-    if (num_frames > PNG_UINT_31_MAX)
-    {
-        png_warning(png_ptr,
-                    "Ignoring attempt to set acTL with num_frames > 2^31-1");
-        return (0);
-    }
-    if (num_plays > PNG_UINT_31_MAX)
-    {
-        png_warning(png_ptr,
-                    "Ignoring attempt to set acTL with num_plays > 2^31-1");
-        return (0);
-    }
+   if (png_ptr == NULL || info_ptr == NULL)
+   {
+      png_warning(png_ptr,
+                  "Call to png_set_acTL() with NULL png_ptr "
+                  "or info_ptr ignored");
+      return (0);
+   }
+   if (num_frames == 0)
+   {
+      png_warning(png_ptr,
+                  "Ignoring attempt to set acTL with num_frames zero");
+      return (0);
+   }
+   if (num_frames > PNG_UINT_31_MAX)
+   {
+      png_warning(png_ptr,
+                  "Ignoring attempt to set acTL with num_frames > 2^31-1");
+      return (0);
+   }
+   if (num_plays > PNG_UINT_31_MAX)
+   {
+      png_warning(png_ptr,
+                  "Ignoring attempt to set acTL with num_plays > 2^31-1");
+      return (0);
+   }
 
-    info_ptr->num_frames = num_frames;
-    info_ptr->num_plays = num_plays;
+   info_ptr->num_frames = num_frames;
+   info_ptr->num_plays = num_plays;
 
-    info_ptr->valid |= PNG_INFO_acTL;
+   info_ptr->valid |= PNG_INFO_acTL;
 
-    return (1);
+   return (1);
 }
 
 /* delay_num and delay_den can hold any 16-bit values including zero */
@@ -1382,42 +1372,42 @@ png_set_next_frame_fcTL(png_structp png_ptr, png_infop info_ptr,
     png_uint_16 delay_num, png_uint_16 delay_den,
     png_byte dispose_op, png_byte blend_op)
 {
-    png_debug1(1, "in %s storage function", "fcTL");
+   png_debug1(1, "in %s storage function", "fcTL");
 
-    if (png_ptr == NULL || info_ptr == NULL)
-    {
-        png_warning(png_ptr,
-                    "Call to png_set_fcTL() with NULL png_ptr or info_ptr "
-                    "ignored");
-        return (0);
-    }
+   if (png_ptr == NULL || info_ptr == NULL)
+   {
+      png_warning(png_ptr,
+                  "Call to png_set_fcTL() with NULL png_ptr or info_ptr "
+                  "ignored");
+      return (0);
+   }
 
-    png_ensure_fcTL_is_valid(png_ptr, width, height, x_offset, y_offset,
-                             delay_num, delay_den, dispose_op, blend_op);
+   png_ensure_fcTL_is_valid(png_ptr, width, height, x_offset, y_offset,
+                            delay_num, delay_den, dispose_op, blend_op);
 
-    if (blend_op == PNG_BLEND_OP_OVER)
-    {
-        if ((png_ptr->color_type & PNG_COLOR_MASK_ALPHA) == 0 &&
-            png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) == 0)
-        {
-          png_warning(png_ptr, "PNG_BLEND_OP_OVER is meaningless "
-                               "and wasteful for opaque images, ignored");
-          blend_op = PNG_BLEND_OP_SOURCE;
-        }
-    }
+   if (blend_op == PNG_BLEND_OP_OVER)
+   {
+      if ((png_ptr->color_type & PNG_COLOR_MASK_ALPHA) == 0 &&
+          png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) == 0)
+      {
+         png_warning(png_ptr, "PNG_BLEND_OP_OVER is meaningless "
+                              "and wasteful for opaque images, ignored");
+         blend_op = PNG_BLEND_OP_SOURCE;
+      }
+   }
 
-    info_ptr->next_frame_width = width;
-    info_ptr->next_frame_height = height;
-    info_ptr->next_frame_x_offset = x_offset;
-    info_ptr->next_frame_y_offset = y_offset;
-    info_ptr->next_frame_delay_num = delay_num;
-    info_ptr->next_frame_delay_den = delay_den;
-    info_ptr->next_frame_dispose_op = dispose_op;
-    info_ptr->next_frame_blend_op = blend_op;
+   info_ptr->next_frame_width = width;
+   info_ptr->next_frame_height = height;
+   info_ptr->next_frame_x_offset = x_offset;
+   info_ptr->next_frame_y_offset = y_offset;
+   info_ptr->next_frame_delay_num = delay_num;
+   info_ptr->next_frame_delay_den = delay_den;
+   info_ptr->next_frame_dispose_op = dispose_op;
+   info_ptr->next_frame_blend_op = blend_op;
 
-    info_ptr->valid |= PNG_INFO_fcTL;
+   info_ptr->valid |= PNG_INFO_fcTL;
 
-    return (1);
+   return (1);
 }
 
 void /* PRIVATE */
@@ -1427,49 +1417,49 @@ png_ensure_fcTL_is_valid(png_structp png_ptr,
     png_uint_16 delay_num, png_uint_16 delay_den,
     png_byte dispose_op, png_byte blend_op)
 {
-    if (width == 0 || width > PNG_UINT_31_MAX)
-        png_error(png_ptr, "invalid width in fcTL (0 or > 2^31-1)");
-    if (height == 0 || height > PNG_UINT_31_MAX)
-        png_error(png_ptr, "invalid height in fcTL (0 or > 2^31-1)");
-    if (x_offset > PNG_UINT_31_MAX)
-        png_error(png_ptr, "invalid x_offset in fcTL (> 2^31-1)");
-    if (y_offset > PNG_UINT_31_MAX)
-        png_error(png_ptr, "invalid y_offset in fcTL (> 2^31-1)");
-    if (width + x_offset > png_ptr->first_frame_width ||
-        height + y_offset > png_ptr->first_frame_height)
-        png_error(png_ptr, "dimensions of a frame are greater than "
-                           "the ones in IHDR");
+   if (width == 0 || width > PNG_UINT_31_MAX)
+      png_error(png_ptr, "invalid width in fcTL (0 or > 2^31-1)");
+   if (height == 0 || height > PNG_UINT_31_MAX)
+      png_error(png_ptr, "invalid height in fcTL (0 or > 2^31-1)");
+   if (x_offset > PNG_UINT_31_MAX)
+      png_error(png_ptr, "invalid x_offset in fcTL (> 2^31-1)");
+   if (y_offset > PNG_UINT_31_MAX)
+      png_error(png_ptr, "invalid y_offset in fcTL (> 2^31-1)");
+   if (width + x_offset > png_ptr->first_frame_width ||
+       height + y_offset > png_ptr->first_frame_height)
+      png_error(png_ptr, "dimensions of a frame are greater than "
+                         "the ones in IHDR");
 
-    if (dispose_op != PNG_DISPOSE_OP_NONE &&
-        dispose_op != PNG_DISPOSE_OP_BACKGROUND &&
-        dispose_op != PNG_DISPOSE_OP_PREVIOUS)
-        png_error(png_ptr, "invalid dispose_op in fcTL");
+   if (dispose_op != PNG_DISPOSE_OP_NONE &&
+       dispose_op != PNG_DISPOSE_OP_BACKGROUND &&
+       dispose_op != PNG_DISPOSE_OP_PREVIOUS)
+      png_error(png_ptr, "invalid dispose_op in fcTL");
 
-    if (blend_op != PNG_BLEND_OP_SOURCE &&
-        blend_op != PNG_BLEND_OP_OVER)
-        png_error(png_ptr, "invalid blend_op in fcTL");
+   if (blend_op != PNG_BLEND_OP_SOURCE &&
+       blend_op != PNG_BLEND_OP_OVER)
+      png_error(png_ptr, "invalid blend_op in fcTL");
 
-    PNG_UNUSED(delay_num)
-    PNG_UNUSED(delay_den)
+   PNG_UNUSED(delay_num)
+   PNG_UNUSED(delay_den)
 }
 
 png_uint_32 PNGAPI
 png_set_first_frame_is_hidden(png_structp png_ptr, png_infop info_ptr,
                               png_byte is_hidden)
 {
-    png_debug(1, "in png_first_frame_is_hidden()");
+   png_debug(1, "in png_first_frame_is_hidden()");
 
-    if (png_ptr == NULL)
-        return 0;
+   if (png_ptr == NULL)
+      return 0;
 
-    if (is_hidden != 0)
-        png_ptr->apng_flags |= PNG_FIRST_FRAME_HIDDEN;
-    else
-        png_ptr->apng_flags &= ~PNG_FIRST_FRAME_HIDDEN;
+   if (is_hidden != 0)
+      png_ptr->apng_flags |= PNG_FIRST_FRAME_HIDDEN;
+   else
+      png_ptr->apng_flags &= ~PNG_FIRST_FRAME_HIDDEN;
 
-    PNG_UNUSED(info_ptr)
+   PNG_UNUSED(info_ptr)
 
-    return 1;
+   return 1;
 }
 #endif /* APNG */
 
@@ -1986,8 +1976,24 @@ png_set_chunk_malloc_max(png_structrp png_ptr,
 {
    png_debug(1, "in png_set_chunk_malloc_max");
 
+   /* pngstruct::user_chunk_malloc_max is initialized to a non-zero value in
+    * png.c.  This API supports '0' for unlimited, make sure the correct
+    * (unlimited) value is set here to avoid a need to check for 0 everywhere
+    * the parameter is used.
+    */
    if (png_ptr != NULL)
-      png_ptr->user_chunk_malloc_max = user_chunk_malloc_max;
+   {
+      if (user_chunk_malloc_max == 0U) /* unlimited */
+      {
+#        ifdef PNG_MAX_MALLOC_64K
+            png_ptr->user_chunk_malloc_max = 65536U;
+#        else
+            png_ptr->user_chunk_malloc_max = PNG_SIZE_MAX;
+#        endif
+      }
+      else
+         png_ptr->user_chunk_malloc_max = user_chunk_malloc_max;
+   }
 }
 #endif /* ?SET_USER_LIMITS */
 

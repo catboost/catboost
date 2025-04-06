@@ -2606,7 +2606,7 @@ set_times(struct archive_write_disk *a,
     time_t ctime_sec, long ctime_nanos)
 {
 #define EPOC_TIME ARCHIVE_LITERAL_ULL(116444736000000000)
-#define WINTIME(sec, nsec) ((Int32x32To64(sec, 10000000) + EPOC_TIME)\
+#define WINTIME(sec, nsec) (((sec * 10000000LL) + EPOC_TIME)\
 	 + ((nsec)/100))
 
 	HANDLE hw = 0;

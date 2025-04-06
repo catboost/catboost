@@ -196,6 +196,13 @@ __archive_md5final(archive_md5_ctx *ctx, void *md)
 
 #elif defined(ARCHIVE_CRYPTO_MD5_LIBSYSTEM)
 
+// These functions are available in macOS 10.4 and later, but deprecated from 10.15 onwards.
+// We need to continue supporting this feature regardless, so suppress the warnings.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 static int
 __archive_md5init(archive_md5_ctx *ctx)
 {
@@ -217,6 +224,10 @@ __archive_md5final(archive_md5_ctx *ctx, void *md)
   CC_MD5_Final(md, ctx);
   return (ARCHIVE_OK);
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 #elif defined(ARCHIVE_CRYPTO_MD5_MBEDTLS)
 

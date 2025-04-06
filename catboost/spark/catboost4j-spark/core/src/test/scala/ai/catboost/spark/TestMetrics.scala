@@ -1,5 +1,6 @@
 package ai.catboost.spark
 
+import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.mllib.evaluation.RankingMetrics
 import org.apache.spark.sql.Row
 
@@ -7,6 +8,15 @@ import org.junit.Assert
 
 
 object TestMetrics {
+  def assertRMSEWithWeightIsExpected(
+    expectedValue: Double,
+    dataset: Pool,
+    model: CatBoostRegressionModel
+  ) = {
+    val evaluator = new RegressionEvaluator().setMetricName("rmse").setWeightCol("weight")
+    Assert.assertEquals(expectedValue, evaluator.evaluate(model.transform(dataset.data)), 1e-3)
+  }
+
   def assertMeanAveragePrecisionIsEqual(
     expectedMAPtopK : Double,
     dataset: Pool,

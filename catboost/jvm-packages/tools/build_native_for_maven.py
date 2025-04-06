@@ -217,9 +217,16 @@ def postprocess_after_cmake(parsed_args, top_src_root_dir, resources_dir):
 
     file_with_swig_generated_sources = os.path.join(native_lib_build_dir, "swig_gen_java.lst")
     if os.path.exists(file_with_swig_generated_sources):
+        java_bin_dir = os.path.join(os.environ['JAVA_HOME'], 'bin')
+        executable_suffux = '.exe' if sys.platform.startswith("win") else ''
+
         print('compile generated java code to resources dir', file=sys.stderr)
         subprocess.check_call(
-            ['javac', '-d',  resources_dir, f'@{file_with_swig_generated_sources}']
+            [
+                os.path.join(java_bin_dir, 'javac' + executable_suffux),
+                '-d',  resources_dir,
+                f'@{file_with_swig_generated_sources}'
+            ]
         )
 
         target_dir = os.path.join(parsed_args.base_dir, 'target')
@@ -229,7 +236,7 @@ def postprocess_after_cmake(parsed_args, top_src_root_dir, resources_dir):
         print('create sources jar in target', file=sys.stderr)
         subprocess.check_call(
             [
-                'jar',
+                os.path.join(java_bin_dir, 'jar' + executable_suffux),
                 'cMf', os.path.join(target_dir, parsed_args.lib_name + '-sources.jar'),
                 '-C', os.path.join(native_lib_build_dir, 'java'),
                 'ru'

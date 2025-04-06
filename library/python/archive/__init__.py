@@ -68,6 +68,8 @@ def extract_tar(
     """
     output_dir = encode(output_dir, ENCODING)
     _make_dirs(output_dir)
+    mtime2fix = []
+
     with libarchive.Archive(tar_file_path, mode="rb") as tarfile:
         for e in tarfile:
             if entry_filter and not entry_filter(e):
@@ -75,9 +77,12 @@ def extract_tar(
             p = _strip_prefix(e.pathname, strip_components)
             if not p:
                 continue
+
             dest = os.path.join(output_dir, encode(p, ENCODING))
             if e.pathname.endswith("/") or e.isdir():
                 _make_dirs(dest)
+                if apply_mtime:
+                    mtime2fix.append((dest, e.mtime))
                 continue
 
             if strip_components and fail_on_duplicates:
@@ -87,14 +92,25 @@ def extract_tar(
                     )
 
             _make_dirs(os.path.dirname(dest))
+            if apply_mtime:
+                mtime2fix.append((dest, e.mtime))
 
             if e.ishardlink():
                 src = os.path.join(output_dir, _strip_prefix(e.hardlink, strip_components))
                 _hardlink(src, dest)
+                if apply_mtime:
+                    mtime2fix.append((dest, e.mtime))
                 continue
+
             if e.issym():
                 src = _strip_prefix(e.linkname, strip_components)
                 _symlink(src, dest)
+                if apply_mtime:
+                    if six.PY2:
+                        raise AssertionError(
+                            "You have requested apply_mtime, but it cannot be done with os.utime in python2, it does not support follow_symlinks parameter"
+                        )
+                    mtime2fix.append((dest, e.mtime))
                 continue
 
             with open(dest, "wb") as f:
@@ -107,7 +123,23 @@ def extract_tar(
                     f.fileno(),
                 )
             if apply_mtime:
-                os.utime(dest, (e.mtime, e.mtime))
+                mtime2fix.append((dest, e.mtime))
+
+    if mtime2fix:
+        seen = set()
+        sep = encode(os.sep, ENCODING)
+        for path, mtime in mtime2fix:
+            rel = path[len(output_dir) + 1 :]
+            path = output_dir
+            for x in rel.split(sep):
+                path = os.path.join(path, x)
+                if path in seen:
+                    continue
+                if six.PY3:
+                    os.utime(path, (mtime, mtime), follow_symlinks=False)
+                else:
+                    os.utime(path, (mtime, mtime))
+                seen.add(path)
 
 
 def _strip_prefix(path, strip_components):

@@ -6239,6 +6239,18 @@ Version 1.6.46 [January 23, 2025]
   Cleaned up contrib/pngminus: corrected an old typo, removed an old
     workaround, and updated the CMake file.
 
+Version 1.6.47 [February 18, 2025]
+  Modified the behaviour of colorspace chunks in order to adhere
+    to the new precedence rules formulated in the latest draft of
+    the PNG Specification.
+    (Contributed by John Bowler)
+  Fixed a latent bug in `png_write_iCCP`.
+    This would have been a read-beyond-end-of-malloc vulnerability,
+    introduced early in the libpng-1.6.0 development, yet (fortunately!)
+    it was inaccessible before the above-mentioned modification of the
+    colorspace precedence rules, due to pre-existing colorspace checks.
+    (Reported by Bob Friesenhahn; fixed by John Bowler)
+
 Send comments/corrections/commendations to png-mng-implement at lists.sf.net.
 Subscription is required; visit
 https://lists.sourceforge.net/lists/listinfo/png-mng-implement

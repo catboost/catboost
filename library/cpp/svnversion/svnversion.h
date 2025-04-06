@@ -10,4 +10,4 @@
 #include <util/system/compiler.h>
 
 // Automatically generated functions.
-#include "build/scripts/c_templates/svnversion.h"
+#include <build/scripts/c_templates/svnversion.h>  // IWYU pragma: export

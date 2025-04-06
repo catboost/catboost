@@ -1745,15 +1745,6 @@ decompression_cleanup(struct archive_read *a)
 #if defined(HAVE_LZMA_H) && defined(HAVE_LIBLZMA)
 	if (xar->lzstream_valid)
 		lzma_end(&(xar->lzstream));
-#elif defined(HAVE_LZMA_H) && defined(HAVE_LIBLZMA)
-	if (xar->lzstream_valid) {
-		if (lzmadec_end(&(xar->lzstream)) != LZMADEC_OK) {
-			archive_set_error(&a->archive,
-			    ARCHIVE_ERRNO_MISC,
-			    "Failed to clean up lzmadec decompressor");
-			r = ARCHIVE_FATAL;
-		}
-	}
 #endif
 	return (r);
 }
@@ -2070,7 +2061,7 @@ xml_start(struct archive_read *a, const char *name, struct xmlattr_list *list)
 					if (xar->file->link > 0)
 						if (add_link(a, xar, xar->file) != ARCHIVE_OK) {
 							return (ARCHIVE_FATAL);
-						};
+						}
 				}
 			}
 		}
@@ -2850,7 +2841,6 @@ xml_data(void *userData, const char *s, size_t len)
 	case FILE_EA_FSTYPE:
 		xar->file->has |= HAS_XATTR;
 		archive_strncpy(&(xar->xattr->fstype), s, len);
-		break;
 		break;
 	case FILE_ACL_DEFAULT:
 	case FILE_ACL_ACCESS:

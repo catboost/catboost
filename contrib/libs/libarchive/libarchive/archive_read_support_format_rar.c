@@ -475,7 +475,7 @@ static inline uint32_t vm_read_32(struct rar_virtual_machine*, size_t);
   ((rar_br_has(br, (n)) || rar_br_fillup(a, br)) || rar_br_has(br, (n)))
 /* Notify how many bits we consumed. */
 #define rar_br_consume(br, n) ((br)->cache_avail -= (n))
-#define rar_br_consume_unalined_bits(br) ((br)->cache_avail &= ~7)
+#define rar_br_consume_unaligned_bits(br) ((br)->cache_avail &= ~7)
 
 static const uint32_t cache_masks[] = {
   0x00000000, 0x00000001, 0x00000003, 0x00000007,
@@ -2276,7 +2276,7 @@ parse_codes(struct archive_read *a)
   free_codes(a);
 
   /* Skip to the next byte */
-  rar_br_consume_unalined_bits(br);
+  rar_br_consume_unaligned_bits(br);
 
   /* PPMd block flag */
   if (!rar_br_read_ahead(a, br, 1))
@@ -2803,7 +2803,7 @@ make_table(struct archive_read *a, struct huffman_code *code)
   else
     code->tablesize = code->maxlength;
 
-  code->table = calloc(1U << code->tablesize, sizeof(*code->table));
+  code->table = calloc(((size_t)1U) << code->tablesize, sizeof(*code->table));
 
   return make_table_recurse(a, code, 0, code->table, 0, code->tablesize);
 }

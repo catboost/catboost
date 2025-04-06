@@ -54,7 +54,7 @@ struct attr_counter {
 	int count;
 };
 
-struct att_counter_set {
+struct attr_counter_set {
 	struct attr_counter *uid_list;
 	struct attr_counter *gid_list;
 	struct attr_counter *mode_list;
@@ -141,7 +141,7 @@ struct mtree_writer {
 		unsigned long	fflags_set;
 		unsigned long	fflags_clear;
 	} set;
-	struct att_counter_set	acs;
+	struct attr_counter_set	acs;
 	int classic;
 	int depth;
 
@@ -437,7 +437,7 @@ write_global(struct mtree_writer *mtree)
 {
 	struct archive_string setstr;
 	struct archive_string unsetstr;
-	struct att_counter_set *acs;
+	struct attr_counter_set *acs;
 	int keys, oldkeys, effkeys;
 
 	archive_string_init(&setstr);
@@ -638,7 +638,7 @@ static int
 attr_counter_set_collect(struct mtree_writer *mtree, struct mtree_entry *me)
 {
 	struct attr_counter *ac, *last;
-	struct att_counter_set *acs = &mtree->acs;
+	struct attr_counter_set *acs = &mtree->acs;
 	int keys = mtree->keys;
 
 	if (keys & (F_UNAME | F_UID)) {
@@ -714,7 +714,7 @@ attr_counter_set_collect(struct mtree_writer *mtree, struct mtree_entry *me)
 static void
 attr_counter_set_free(struct mtree_writer *mtree)
 {
-	struct att_counter_set *acs = &mtree->acs;
+	struct attr_counter_set *acs = &mtree->acs;
 
 	attr_counter_free(&acs->uid_list);
 	attr_counter_free(&acs->gid_list);

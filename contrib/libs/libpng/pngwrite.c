@@ -185,7 +185,6 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
    }
 #endif
 
-#ifdef PNG_COLORSPACE_SUPPORTED
 #  ifdef PNG_WRITE_cICP_SUPPORTED /* Priority 4 */
    if ((info_ptr->valid & PNG_INFO_cICP) != 0)
       {
@@ -197,50 +196,28 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
       }
 #  endif
 
-      /* PNG v3 change: it is now permitted to write both sRGB and ICC profiles,
-       * however because the libpng code auto-generates an sRGB for the
-       * corresponding ICC profiles and because PNG v2 disallowed this we need
-       * to only write one.
-       *
-       * Remove the PNG v2 warning about writing an sRGB ICC profile as well
-       * because it's invalid with PNG v3.
-       */
 #  ifdef PNG_WRITE_iCCP_SUPPORTED /* Priority 3 */
-         if ((info_ptr->colorspace.flags & PNG_COLORSPACE_INVALID) == 0 &&
-             (info_ptr->valid & PNG_INFO_iCCP) != 0)
+         if ((info_ptr->valid & PNG_INFO_iCCP) != 0)
          {
             png_write_iCCP(png_ptr, info_ptr->iccp_name,
-                info_ptr->iccp_profile);
+                info_ptr->iccp_profile, info_ptr->iccp_proflen);
          }
-#     ifdef PNG_WRITE_sRGB_SUPPORTED
-         else
-#     endif
 #  endif
 
 #  ifdef PNG_WRITE_sRGB_SUPPORTED /* Priority 2 */
-         if ((info_ptr->colorspace.flags & PNG_COLORSPACE_INVALID) == 0 &&
-             (info_ptr->valid & PNG_INFO_sRGB) != 0)
-            png_write_sRGB(png_ptr, info_ptr->colorspace.rendering_intent);
+         if ((info_ptr->valid & PNG_INFO_sRGB) != 0)
+            png_write_sRGB(png_ptr, info_ptr->rendering_intent);
 #  endif /* WRITE_sRGB */
-#endif /* COLORSPACE */
 
-#ifdef PNG_GAMMA_SUPPORTED
 #  ifdef PNG_WRITE_gAMA_SUPPORTED /* Priority 1 */
-      if ((info_ptr->colorspace.flags & PNG_COLORSPACE_INVALID) == 0 &&
-          (info_ptr->colorspace.flags & PNG_COLORSPACE_FROM_gAMA) != 0 &&
-          (info_ptr->valid & PNG_INFO_gAMA) != 0)
-         png_write_gAMA_fixed(png_ptr, info_ptr->colorspace.gamma);
+      if ((info_ptr->valid & PNG_INFO_gAMA) != 0)
+         png_write_gAMA_fixed(png_ptr, info_ptr->gamma);
 #  endif
-#endif
 
-#ifdef PNG_COLORSPACE_SUPPORTED
 #  ifdef PNG_WRITE_cHRM_SUPPORTED /* Also priority 1 */
-         if ((info_ptr->colorspace.flags & PNG_COLORSPACE_INVALID) == 0 &&
-             (info_ptr->colorspace.flags & PNG_COLORSPACE_FROM_cHRM) != 0 &&
-             (info_ptr->valid & PNG_INFO_cHRM) != 0)
-            png_write_cHRM_fixed(png_ptr, &info_ptr->colorspace.end_points_xy);
+         if ((info_ptr->valid & PNG_INFO_cHRM) != 0)
+            png_write_cHRM_fixed(png_ptr, &info_ptr->cHRM);
 #  endif
-#endif
 
       png_ptr->mode |= PNG_WROTE_INFO_BEFORE_PLTE;
    }
@@ -2487,33 +2464,33 @@ png_write_frame_head(png_structp png_ptr, png_infop info_ptr,
     png_uint_16 delay_num, png_uint_16 delay_den, png_byte dispose_op,
     png_byte blend_op)
 {
-    png_debug(1, "in png_write_frame_head");
+   png_debug(1, "in png_write_frame_head");
 
-    /* there is a chance this has been set after png_write_info was called,
-    * so it would be set but not written. is there a way to be sure? */
-    if ((info_ptr->valid & PNG_INFO_acTL) == 0)
-        png_error(png_ptr, "png_write_frame_head(): acTL not set");
+   /* there is a chance this has been set after png_write_info was called,
+   * so it would be set but not written. is there a way to be sure? */
+   if ((info_ptr->valid & PNG_INFO_acTL) == 0)
+      png_error(png_ptr, "png_write_frame_head(): acTL not set");
 
-    png_write_reset(png_ptr);
+   png_write_reset(png_ptr);
 
-    png_write_reinit(png_ptr, info_ptr, width, height);
+   png_write_reinit(png_ptr, info_ptr, width, height);
 
-    if ((png_ptr->apng_flags & PNG_FIRST_FRAME_HIDDEN) == 0 ||
-        png_ptr->num_frames_written != 0)
-        png_write_fcTL(png_ptr, width, height, x_offset, y_offset,
-                       delay_num, delay_den, dispose_op, blend_op);
+   if ((png_ptr->apng_flags & PNG_FIRST_FRAME_HIDDEN) == 0 ||
+       png_ptr->num_frames_written != 0)
+      png_write_fcTL(png_ptr, width, height, x_offset, y_offset,
+                     delay_num, delay_den, dispose_op, blend_op);
 
-    PNG_UNUSED(row_pointers)
+   PNG_UNUSED(row_pointers)
 }
 
 void PNGAPI
 png_write_frame_tail(png_structp png_ptr, png_infop info_ptr)
 {
-    png_debug(1, "in png_write_frame_tail");
+   png_debug(1, "in png_write_frame_tail");
 
-    png_ptr->num_frames_written++;
+   png_ptr->num_frames_written++;
 
-    PNG_UNUSED(info_ptr)
+   PNG_UNUSED(info_ptr)
 }
 #endif /* WRITE_APNG */
 #endif /* WRITE */
