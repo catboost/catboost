@@ -9077,7 +9077,6 @@ def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
                 assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Crashes, investigation in progress")
 @pytest.mark.parametrize(
     'features_dtype',
     numpy_num_data_types,
