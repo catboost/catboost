@@ -513,6 +513,8 @@ def num_and_one_hot_cat_features_with_eval_sets():
         os.remove(cd_path)
 
 def one_hot_and_ctr_cat_features():
+    eval_metric = 'RMSE'
+
     learn_set_path = tempfile.mkstemp(prefix='catboost_learn_set_')[1]
     cd_path = tempfile.mkstemp(prefix='catboost_cd_')[1]
 
@@ -542,7 +544,7 @@ def one_hot_and_ctr_cat_features():
 
         model = utils.run_local_train(
             ['--iterations', '20',
-             '--loss-function', 'RMSE',
+             '--loss-function', eval_metric,
              '--dev-efb-max-buckets', '0',
              '--max-ctr-complexity', '1',
              '--has-time',
@@ -558,8 +560,15 @@ def one_hot_and_ctr_cat_features():
             model_class=cb.CatBoostRegressor
         )
         train_pool = cb.Pool(learn_set_path, column_description=cd_path)
+        learn_metric_values = model.eval_metrics(train_pool, metrics=[eval_metric])
 
-        result = {'prediction': model.predict(train_pool).tolist()}
+        result = {
+            'metrics': {
+                'learn': {
+                    eval_metric : learn_metric_values[eval_metric][-1]
+                }
+            }
+        }
 
         json.dump(
             result,
