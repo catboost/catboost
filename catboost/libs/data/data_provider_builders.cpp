@@ -246,7 +246,7 @@ namespace NCB {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
             ui32 hashVal = CalcCatFeatureHash(feature);
             int hashPartIdx = LocalExecutor->GetWorkerThreadId();
-            CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
+            CheckThreadId(hashPartIdx);
             auto& catFeatureHashes = HashMapParts[hashPartIdx].CatFeatureHashes;
             catFeatureHashes.resize(CatFeatureCount);
             auto& catFeatureHash = catFeatureHashes[*catFeatureIdx];
@@ -622,6 +622,14 @@ namespace NCB {
         template <EFeatureType FeatureType>
         TFeatureIdx<FeatureType> GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
             return Data.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx);
+        }
+
+        static void CheckThreadId(int threadId) {
+            CB_ENSURE(
+                threadId < CB_THREAD_LIMIT,
+                "thread ID exceeds an internal thread limit (" << CB_THREAD_LIMIT << "),"
+                "try decreasing the specified number of threads"
+            );
         }
 
     private:
@@ -1057,6 +1065,7 @@ namespace NCB {
                 Y_POD_STATIC_THREAD(int) threadId(-1);
                 if (Y_UNLIKELY(threadId == -1)) {
                     threadId = storage->LocalExecutor->GetWorkerThreadId();
+                    TRawObjectsOrderDataProviderBuilder::CheckThreadId(threadId);
                 }
                 auto& sparseDataPart = storage->SparseDataParts[threadId];
                 for (auto idx : indices) {
