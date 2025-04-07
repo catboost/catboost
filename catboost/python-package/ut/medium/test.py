@@ -7696,10 +7696,12 @@ def test_param_synonyms(task_type):
         (['random_seed', 'random_state'], 1),
         (['l2_leaf_reg', 'reg_lambda'], 4),
         (['depth', 'max_depth'], 7),
-        (['rsm', 'colsample_bylevel'], 0.5),
         (['border_count', 'max_bin'], 32),
         # (['verbose', 'verbose_eval'], True), # TODO(akhropov): support 'verbose_eval' in CatBoostClassifier ?
     ]
+
+    if task_type == 'CPU':
+        synonym_params.append((['rsm', 'colsample_bylevel'], 0.5))
 
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
 
