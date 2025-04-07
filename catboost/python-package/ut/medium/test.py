@@ -7448,9 +7448,32 @@ def test_model_sum_labels():
 
 def test_tree_depth_pairwise(task_type):
     if task_type == 'GPU':
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
         with pytest.raises(CatBoostError):
-            CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'depth': 9})
-        CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'depth': 8})
+            model = CatBoost(
+                {
+                    'iterations': 2,
+                    'loss_function':
+                    'PairLogitPairwise',
+                    'task_type': task_type,
+                    'gpu_ram_part': TEST_GPU_RAM_PART,
+                    'devices': '0',
+                    'depth': 9
+                }
+            )
+            model.fit(train_pool)
+
+        model = CatBoost(
+            {
+                'iterations': 2,
+                'loss_function': 'PairLogitPairwise',
+                'task_type': task_type,
+                'gpu_ram_part': TEST_GPU_RAM_PART,
+                'devices': '0',
+                'depth': 8
+            }
+        )
+        model.fit(train_pool)
 
 
 def test_eval_set_with_no_target(task_type):
