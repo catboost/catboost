@@ -141,7 +141,6 @@ namespace NPrivate {
 
     void TTestEnv::ReInitialize() {
         IsRunningFromTest = false;
-        ArcadiaTestsDataDir = "";
         SourceRoot = "";
         BuildRoot = "";
         WorkPath = "";
@@ -169,11 +168,6 @@ namespace NPrivate {
             value = context.GetValueByPath("runtime.build_root");
             if (value) {
                 BuildRoot = value->GetStringSafe("");
-            }
-
-            value = context.GetValueByPath("runtime.atd_root");
-            if (value) {
-                ArcadiaTestsDataDir = value->GetStringSafe("");
             }
 
             value = context.GetValueByPath("runtime.work_path");
@@ -247,10 +241,6 @@ namespace NPrivate {
 
         if (!BuildRoot) {
             BuildRoot = GetEnv("ARCADIA_BUILD_ROOT");
-        }
-
-        if (!ArcadiaTestsDataDir) {
-            ArcadiaTestsDataDir = GetEnv("ARCADIA_TESTS_DATA_DIR");
         }
 
         if (!WorkPath) {

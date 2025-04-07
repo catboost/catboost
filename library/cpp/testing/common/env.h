@@ -69,7 +69,6 @@ namespace NPrivate {
         void AddTestParam(TStringBuf name, TStringBuf value);
 
         bool IsRunningFromTest;
-        TString ArcadiaTestsDataDir;
         TString SourceRoot;
         TString BuildRoot;
         TString WorkPath;
