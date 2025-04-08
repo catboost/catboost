@@ -58,6 +58,7 @@ TChunkedMemoryPool::TChunkedMemoryPool(
     , ChunkProviderHolder_(std::move(chunkProvider))
     , ChunkProvider_(ChunkProviderHolder_.Get())
 {
+    YT_VERIFY(ChunkProviderHolder_);
     Initialize(startChunkSize);
 }
 
