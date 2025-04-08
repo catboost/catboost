@@ -11,6 +11,7 @@
 #include <util/generic/map.h>
 #include <util/ysaveload.h>
 
+#include <cmath>
 #include <limits>
 
 
