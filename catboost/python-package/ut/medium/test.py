@@ -11512,15 +11512,14 @@ def test_carry_model():
 
 
 def test_custom_gpu_objective_metric(task_type):
-
     if (task_type == 'CPU'):
         return
 
-    if (task_type == 'GPU'):
-        try:
-            from numba import cuda
-        except ImportError:
-            return
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
+
+    if task_type == 'GPU':
+        from numba import cuda
 
     class GPURMSEObjective(object):
 
@@ -11597,12 +11596,11 @@ def test_custom_gpu_objective_metric(task_type):
 
 
 def test_custom_gpu_eval_metric(task_type):
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
 
-    if (task_type == 'GPU'):
-        try:
-            from numba import cuda
-        except ImportError:
-            pass
+    if task_type == 'GPU':
+        from numba import cuda
 
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -11693,13 +11691,11 @@ def test_custom_gpu_eval_metric(task_type):
 @pytest.mark.parametrize('add_evaluate', [False, True])
 @pytest.mark.parametrize('add_gpu_evaluate', [False, True])
 def test_eval_metric_correct_selection(task_type, add_evaluate, add_gpu_evaluate):
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
 
-    if (task_type == 'GPU'):
-        try:
-            from numba import cuda
-        except ImportError:
-            add_gpu_evaluate = False
-            pass
+    if task_type == 'GPU':
+        from numba import cuda
 
     # Base class for metric mocks
     class EvaluationMetricMockBase(object):
