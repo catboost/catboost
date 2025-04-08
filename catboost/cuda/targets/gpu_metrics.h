@@ -125,9 +125,10 @@ namespace NCatboostCuda {
     public:
         explicit TGpuCustomMetric(
             const TCustomMetricDescriptor& metricDescriptor,
-            const NCatboostOptions::TLossDescription& config,
-            ui32 approxDim
-        ) : IGpuMetric(config, approxDim), Descriptor(metricDescriptor)
+            const NCatboostOptions::TLossDescription& config
+        )
+            : IGpuMetric(MakeCustomMetric(metricDescriptor), config)
+            , Descriptor(metricDescriptor)
         {
         }
 

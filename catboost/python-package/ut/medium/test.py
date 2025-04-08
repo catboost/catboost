@@ -3110,8 +3110,9 @@ class LoglossObjectiveNumpy32(object):
 
 
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
 def test_custom_objective(task_type, loss_objective):
+    if task_type == 'GPU':
+        pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
@@ -3132,8 +3133,10 @@ def test_custom_objective(task_type, loss_objective):
         assert abs(p1 - p2) < EPS
 
 
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
 def test_multilabel_custom_objective(task_type, n=10):
+    if task_type == 'GPU':
+        pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
+
     class MultiRMSEObjective(MultiTargetCustomObjective):
         def calc_ders_multi(self, approxes, targets, weight):
             assert len(approxes) == len(targets)

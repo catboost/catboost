@@ -1474,20 +1474,27 @@ cdef void _GpuObjectiveCalcDersRange(
     size_t blockSize,
     size_t numBlocks
 ) noexcept with gil:
-    from numba import cuda as numba_cuda
-    approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
-    target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
-    weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
-    value_gpu = _ToPythonObjArrayRefOnGpu(value.size(), <uint64_t>value.data())
-    der1Result_gpu = _ToPythonObjArrayRefOnGpu(der1Result.size(), <uint64_t>der1Result.data())
-    der2Result_gpu = _ToPythonObjArrayRefOnGpu(der2Result.size(), <uint64_t>der2Result.data())
-    cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
-    metric_object = <object> customData
+    cdef TString errorMessage
 
-    if len(value_gpu):
-        value_gpu[0] = 0.0
+    try:
+        from numba import cuda as numba_cuda
+        approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
+        target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
+        weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+        value_gpu = _ToPythonObjArrayRefOnGpu(value.size(), <uint64_t>value.data())
+        der1Result_gpu = _ToPythonObjArrayRefOnGpu(der1Result.size(), <uint64_t>der1Result.data())
+        der2Result_gpu = _ToPythonObjArrayRefOnGpu(der2Result.size(), <uint64_t>der2Result.data())
+        cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
+        metric_object = <object> customData
 
-    (<object>(metric_object.calc_ders_range_gpu))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, value_gpu, der1Result_gpu, der2Result_gpu)
+        if len(value_gpu):
+            value_gpu[0] = 0.0
+
+        (<object>(metric_object.calc_ders_range_gpu))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, value_gpu, der1Result_gpu, der2Result_gpu)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
 cdef void _GpuMetricEval(
     TConstArrayRef[float] approx,
@@ -1502,16 +1509,23 @@ cdef void _GpuMetricEval(
     size_t blockSize,
     size_t numBlocks
 ) noexcept with gil:
-    from numba import cuda as numba_cuda
-    approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
-    target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
-    weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
-    result_gpu = _ToPythonObjArrayRefOnGpu(result.size(), <uint64_t>result.data())
-    result_weight_gpu = _ToPythonObjArrayRefOnGpu(resultWeight.size(), <uint64_t>resultWeight.data());
-    cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
-    metric_object = <object>customData
+    cdef TString errorMessage
 
-    (<object>(metric_object.gpu_evaluate))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, result_gpu, result_weight_gpu)
+    try:
+        from numba import cuda as numba_cuda
+        approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
+        target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
+        weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+        result_gpu = _ToPythonObjArrayRefOnGpu(result.size(), <uint64_t>result.data())
+        result_weight_gpu = _ToPythonObjArrayRefOnGpu(resultWeight.size(), <uint64_t>resultWeight.data());
+        cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
+        metric_object = <object>customData
+
+        (<object>(metric_object.gpu_evaluate))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, result_gpu, result_weight_gpu)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
 cdef TMetricHolder _MetricEval(
     TConstArrayRef[TConstArrayRef[double]]& approx,
@@ -1818,6 +1832,9 @@ cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject
     _try_jit_methods(metricObject, custom_gpu_metric_methods_to_optimize, isCuda=True)
     descriptor.CustomData = <void*>metricObject
     descriptor.GpuEvalFunc = &_GpuMetricEval
+    descriptor.GetDescriptionFunc = &_MetricGetDescription
+    descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
+    descriptor.IsAdditiveFunc = &_MetricIsAdditive
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
