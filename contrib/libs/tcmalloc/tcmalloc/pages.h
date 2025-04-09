@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +17,19 @@
 #define TCMALLOC_PAGES_H_
 
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <string>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "tcmalloc/common.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/optimization.h"
+#include "tcmalloc/selsan/selsan.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -57,7 +63,7 @@ class Length {
   }
 
   constexpr Length& operator-=(Length rhs) {
-    ASSERT(n_ >= rhs.n_);
+    TC_ASSERT_GE(n_, rhs.n_);
     n_ -= rhs.n_;
     return *this;
   }
@@ -68,13 +74,13 @@ class Length {
   }
 
   constexpr Length& operator/=(size_t rhs) {
-    ASSERT(rhs != 0);
+    TC_ASSERT_NE(rhs, 0);
     n_ /= rhs;
     return *this;
   }
 
   constexpr Length& operator%=(Length rhs) {
-    ASSERT(rhs.n_ != 0);
+    TC_ASSERT_NE(rhs.n_, 0);
     n_ %= rhs.n_;
     return *this;
   }
@@ -85,6 +91,11 @@ class Length {
   friend constexpr bool operator>=(Length lhs, Length rhs);
   friend constexpr bool operator==(Length lhs, Length rhs);
   friend constexpr bool operator!=(Length lhs, Length rhs);
+
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const Length& v) {
+    absl::Format(&sink, "%zu", v.in_bytes());
+  }
 
  private:
   uintptr_t n_;
@@ -127,9 +138,19 @@ class PageId {
   }
 
   constexpr PageId& operator-=(Length rhs) {
-    ASSERT(pn_ >= rhs.raw_num());
+    TC_ASSERT_GE(pn_, rhs.raw_num());
     pn_ -= rhs.raw_num();
     return *this;
+  }
+
+  template <typename H>
+  friend H AbslHashValue(H h, const PageId& p) {
+    return H::combine(std::move(h), p.pn_);
+  }
+
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const PageId& v) {
+    absl::Format(&sink, "%p", v.start_addr());
   }
 
  private:
@@ -142,6 +163,23 @@ class PageId {
   friend constexpr Length operator-(PageId lhs, PageId rhs);
 
   uintptr_t pn_;
+};
+
+struct Range {
+  constexpr Range() = default;
+  constexpr Range(PageId page, Length len) : p(page), n(len) {}
+
+  constexpr Range(const Range&) = default;
+  constexpr Range& operator=(const Range&) = default;
+
+  constexpr Range(Range&&) = default;
+  constexpr Range& operator=(Range&&) = default;
+
+  void* start_addr() const { return p.start_addr(); }
+  size_t in_bytes() const { return n.in_bytes(); }
+
+  PageId p;
+  Length n;
 };
 
 TCMALLOC_ATTRIBUTE_CONST
@@ -211,13 +249,19 @@ inline constexpr PageId operator-(PageId lhs, Length rhs) { return lhs -= rhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
 inline constexpr Length operator-(PageId lhs, PageId rhs) {
-  ASSERT(lhs.pn_ >= rhs.pn_);
+  TC_ASSERT_GE(lhs.pn_, rhs.pn_);
   return Length(lhs.pn_ - rhs.pn_);
 }
 
 TCMALLOC_ATTRIBUTE_CONST
 inline PageId PageIdContaining(const void* p) {
+  TC_ASSERT_EQ(selsan::RemoveTag(p), p);
   return PageId(reinterpret_cast<uintptr_t>(p) >> kPageShift);
+}
+
+TCMALLOC_ATTRIBUTE_CONST
+inline PageId PageIdContainingTagged(const void* p) {
+  return PageIdContaining(selsan::RemoveTag(p));
 }
 
 TCMALLOC_ATTRIBUTE_CONST
@@ -255,40 +299,30 @@ inline Length& operator++(Length& l) { return l += Length(1); }
 inline Length& operator--(Length& l) { return l -= Length(1); }
 
 TCMALLOC_ATTRIBUTE_CONST
-inline constexpr Length operator+(Length lhs, Length rhs) {
-  return Length(lhs.raw_num() + rhs.raw_num());
-}
+inline constexpr Length operator+(Length lhs, Length rhs) { return lhs += rhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
-inline constexpr Length operator-(Length lhs, Length rhs) {
-  return Length(lhs.raw_num() - rhs.raw_num());
-}
+inline constexpr Length operator-(Length lhs, Length rhs) { return lhs -= rhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
-inline constexpr Length operator*(Length lhs, size_t rhs) {
-  return Length(lhs.raw_num() * rhs);
-}
+inline constexpr Length operator*(Length lhs, size_t rhs) { return lhs *= rhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
-inline constexpr Length operator*(size_t lhs, Length rhs) {
-  return Length(lhs * rhs.raw_num());
-}
+inline constexpr Length operator*(size_t lhs, Length rhs) { return rhs *= lhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
 inline constexpr size_t operator/(Length lhs, Length rhs) {
+  TC_ASSERT_NE(rhs.raw_num(), 0);
   return lhs.raw_num() / rhs.raw_num();
 }
 
 TCMALLOC_ATTRIBUTE_CONST
-inline constexpr Length operator/(Length lhs, size_t rhs) {
-  ASSERT(rhs != 0);
-  return Length(lhs.raw_num() / rhs);
-}
+inline constexpr Length operator/(Length lhs, size_t rhs) { return lhs /= rhs; }
 
 TCMALLOC_ATTRIBUTE_CONST
 inline constexpr Length operator%(Length lhs, Length rhs) {
-  ASSERT(rhs.raw_num() != 0);
-  return Length(lhs.raw_num() % rhs.raw_num());
+  TC_ASSERT_NE(rhs.raw_num(), 0);
+  return lhs %= rhs;
 }
 
 }  // namespace tcmalloc_internal

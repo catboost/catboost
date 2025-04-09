@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  contrib-libs-tcmalloc
   cpp-testing-unittest_main
   cpp-containers-2d_array
   catboost-cuda-gpu_data
@@ -30,7 +31,6 @@ target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
 
 target_allocator(catboost-cuda-gpu_data-ut
   cpp-malloc-tcmalloc
-  contrib-libs-tcmalloc
 )
 
 target_link_options(catboost-cuda-gpu_data-ut PRIVATE
