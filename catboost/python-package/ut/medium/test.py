@@ -1167,9 +1167,11 @@ def test_predict_class_raw(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=2, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
-    pred = model.predict(test_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool)
+        )
     return local_canonical_file(preds_path)
 
 
@@ -1833,9 +1835,11 @@ def test_predict_class(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
-    pred = model.predict(test_pool, prediction_type="Class")
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool, prediction_type="Class")
+        )
     return local_canonical_file(preds_path)
 
 
@@ -2426,8 +2430,11 @@ def test_staged_predict(task_type):
     preds = []
     for pred in model.staged_predict(test_pool):
         preds.append(pred)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(preds))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            preds
+        )
     return local_canonical_file(preds_path)
 
 
@@ -6291,8 +6298,11 @@ def test_fit_and_predict_on_sliced_pools(task_type):
     model.fit(train_subset_pool, eval_set=test_subset_pool)
 
     pred = model.predict(test_subset_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            pred
+        )
     return local_canonical_file(preds_path)
 
 
@@ -6388,9 +6398,11 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
         task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0',
     )
     model.fit(train_pool, eval_set=test_pool)
-    pred = model.predict(test_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool)
+        )
     return local_canonical_file(preds_path)
 
 
