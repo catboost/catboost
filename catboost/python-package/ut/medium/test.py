@@ -9709,7 +9709,7 @@ def test_text_processing_dictionary():
 
     dictionary_path = test_output_path('dictionary.tsv')
     dictionary.save(dictionary_path)
-    return compare_canonical_models(dictionary_path)
+    return local_canonical_file(dictionary_path)
 
 
 def test_log_proba():
