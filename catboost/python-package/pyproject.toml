@@ -4,15 +4,6 @@ requires = [
     "wheel",
     "jupyterlab (>=3.0.6, <3.6.0)",
     "conan ~= 2.4.1",
-
-    # Numpy 2.x is compatible only with Python 3.9+ and packages built with numpy 2.x will work with numpy 1.x as well
-    # technically you could still try to use older cython and numpy versions but the built packages will be
-    # compatible with numpy 1.x only, so it is easier to just prohibit it to avoid unnecessary complications
-    "cython; python_version<='3.8'",
-    "cython >= 3; python_version>='3.9'",
-
-    # numpy definitions for cython have been moved from cython itself to numpy so now numpy is required for setup as well
-    # https://github.com/cython/cython/issues/6249#issuecomment-2176633822
-    "numpy; python_version<='3.8'",
-    "numpy >= 2; python_version>='3.9'"
+    "cython",
+    "numpy"
 ]
