@@ -253,7 +253,7 @@ void FormatCompactIntervalRange(
 
     auto first = range.begin();
     auto last = first;
-    auto current = first + 1;
+    auto current = std::next(first);
 
     while (current != range.end()) {
         if (valueGetter(current) != valueGetter(last) + 1) {
