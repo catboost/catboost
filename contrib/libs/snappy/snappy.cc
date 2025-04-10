@@ -74,6 +74,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -1499,7 +1500,7 @@ class SnappyDecompressor {
   // If ip < ip_limit_min_maxtaglen_ it's safe to read kMaxTagLength from
   // buffer.
   const char* ip_limit_min_maxtaglen_;
-  uint32_t peeked_;                  // Bytes peeked from reader (need to skip)
+  uint64_t peeked_;                  // Bytes peeked from reader (need to skip)
   bool eof_;                         // Hit end of input without an error?
   char scratch_[kMaximumTagLength];  // See RefillTag().
 
@@ -1690,7 +1691,8 @@ constexpr uint32_t CalculateNeeded(uint8_t tag) {
 #if __cplusplus >= 201402L
 constexpr bool VerifyCalculateNeeded() {
   for (int i = 0; i < 1; i++) {
-    if (CalculateNeeded(i) != (char_table[i] >> 11) + 1) return false;
+    if (CalculateNeeded(i) != static_cast<uint32_t>((char_table[i] >> 11)) + 1)
+      return false;
   }
   return true;
 }
@@ -1726,7 +1728,7 @@ bool SnappyDecompressor::RefillTag() {
   assert(needed <= sizeof(scratch_));
 
   // Read more bytes from reader if needed
-  uint32_t nbuf = ip_limit_ - ip;
+  uint64_t nbuf = ip_limit_ - ip;
   if (nbuf < needed) {
     // Stitch together bytes from ip and reader to form the word
     // contents.  We store the needed bytes in "scratch_".  They
@@ -1739,7 +1741,7 @@ bool SnappyDecompressor::RefillTag() {
       size_t length;
       const char* src = reader_->Peek(&length);
       if (length == 0) return false;
-      uint32_t to_add = std::min<uint32_t>(needed - nbuf, length);
+      uint64_t to_add = std::min<uint64_t>(needed - nbuf, length);
       std::memcpy(scratch_ + nbuf, src, to_add);
       nbuf += to_add;
       reader_->Skip(to_add);
@@ -1802,6 +1804,7 @@ size_t Compress(Source* reader, Sink* writer, CompressionOptions options) {
   int token = 0;
   size_t written = 0;
   size_t N = reader->Available();
+  assert(N <= 0xFFFFFFFFu);
   const size_t uncompressed_size = N;
   char ulength[Varint::kMax32];
   char* p = Varint::Encode32(ulength, N);
