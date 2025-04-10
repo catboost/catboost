@@ -42,7 +42,7 @@ namespace NUnitTest {
 
     extern bool ShouldColorizeDiff;
     TString ColoredDiff(TStringBuf s1, TStringBuf s2, const TString& delims = TString(), bool reverse = false);
-    TString GetFormatTag(const char* name);
+    TString GetFormatTag(TStringBuf name);
     TString GetResetTag();
 
     // Raise error handler

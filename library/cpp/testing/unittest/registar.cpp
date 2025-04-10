@@ -5,7 +5,6 @@
 
 #include <util/generic/yexception.h>
 #include <util/random/fast.h>
-#include <util/string/printf.h>
 #include <util/system/backtrace.h>
 #include <util/system/guard.h>
 #include <util/system/tls.h>
@@ -134,8 +133,8 @@ struct TTraceDiffFormatter {
     }
 };
 
-TString NUnitTest::GetFormatTag(const char* name) {
-    return Sprintf("[[%s]]", name);
+TString NUnitTest::GetFormatTag(TStringBuf name) {
+    return TString::Join("[[", name, "]]");
 }
 
 TString NUnitTest::GetResetTag() {
@@ -156,7 +155,7 @@ TString NUnitTest::ColoredDiff(TStringBuf s1, TStringBuf s2, const TString& deli
 }
 
 static TString MakeTestName(const NUnitTest::ITestSuiteProcessor::TTest& test) {
-    return TStringBuilder() << test.unit->name << "::" << test.name;
+    return TString::Join(test.unit->name, "::", test.name);
 }
 
 static size_t CountTests(const TMap<TString, size_t>& testErrors, bool succeeded) {
