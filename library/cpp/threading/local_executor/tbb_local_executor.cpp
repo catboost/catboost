@@ -36,7 +36,7 @@ void NPar::TTbbLocalExecutor<RespectTls>::Exec(TIntrusivePtr<ILocallyExecutable>
     if (flags & WAIT_COMPLETE) {
         exec->LocalExec(id);
     } else {
-        TbbArena.execute([=] {
+        TbbArena.execute([this, exec, id] {
             SubmitAsyncTasks([=] (int id) { exec->LocalExec(id); }, id, id + 1);
         });
     }
@@ -55,8 +55,8 @@ void NPar::TTbbLocalExecutor<RespectTls>::ExecRange(TIntrusivePtr<ILocallyExecut
             }
         });
     } else {
-        TbbArena.execute([=] {
-            SubmitAsyncTasks([=] (int id) { exec->LocalExec(id); }, firstId, lastId);
+        TbbArena.execute([this, exec, firstId, lastId] {
+            SubmitAsyncTasks([exec] (int id) { exec->LocalExec(id); }, firstId, lastId);
         });
     }
 }
