@@ -13,7 +13,6 @@
 #include <util/string/join.h>
 
 #include <optional>
-#include <stdarg.h>
 
 namespace NLastGetopt {
     enum EHasArg {
