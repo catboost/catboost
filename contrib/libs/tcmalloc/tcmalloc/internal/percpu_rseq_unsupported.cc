@@ -15,6 +15,7 @@
 // Provides skeleton RSEQ functions which raise a hard error in the case of
 // being erroneously called on an unsupported platform.
 
+#include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/percpu.h"
 
 #if !TCMALLOC_PERCPU_RSEQ_SUPPORTED_PLATFORM
@@ -26,31 +27,53 @@ namespace subtle {
 namespace percpu {
 
 static void Unsupported() {
-  TC_BUG("RSEQ function called on unsupported platform.");
+  Crash(kCrash, __FILE__, __LINE__,
+        "RSEQ function called on unsupported platform.");
 }
 
-int TcmallocSlab_Internal_PerCpuCmpxchg64(int target_cpu, intptr_t* p,
-                                          intptr_t old_val, intptr_t new_val,
-                                          size_t virtual_cpu_id_offset) {
+int TcmallocSlab_Internal_PerCpuCmpxchg64(int target_cpu, intptr_t *p,
+                                          intptr_t old_val, intptr_t new_val) {
   Unsupported();
   return -1;
 }
 
-size_t TcmallocSlab_Internal_PushBatch(size_t size_class, void** batch,
-                                       size_t len, uintptr_t slabs_and_shift,
-                                       size_t virtual_cpu_id_offset) {
+int TcmallocSlab_Internal_Push(void *ptr, size_t cl, void *item, size_t shift,
+                               OverflowHandler f) {
+  Unsupported();
+  return -1;
+}
+
+int TcmallocSlab_Internal_Push_FixedShift(void *ptr, size_t cl, void *item,
+                                          OverflowHandler f) {
+  Unsupported();
+  return -1;
+}
+
+void *TcmallocSlab_Internal_Pop(void *ptr, size_t cl, UnderflowHandler f,
+                                size_t shift) {
+  Unsupported();
+  return nullptr;
+}
+
+void *TcmallocSlab_Internal_Pop_FixedShift(void *ptr, size_t cl,
+                                           UnderflowHandler f) {
+  Unsupported();
+  return nullptr;
+}
+
+size_t TcmallocSlab_Internal_PushBatch_FixedShift(void *ptr, size_t cl,
+                                                  void **batch, size_t len) {
   Unsupported();
   return 0;
 }
 
-size_t TcmallocSlab_Internal_PopBatch(size_t size_class, void** batch,
-                                      size_t len, uintptr_t slabs_and_shift,
-                                      size_t virtual_cpu_id_offset) {
+size_t TcmallocSlab_Internal_PopBatch_FixedShift(void *ptr, size_t cl,
+                                                 void **batch, size_t len) {
   Unsupported();
   return 0;
 }
 
-int PerCpuReadCycleCounter(int64_t* cycles) {
+int PerCpuReadCycleCounter(int64_t *cycles) {
   Unsupported();
   return -1;
 }

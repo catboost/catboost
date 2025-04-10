@@ -1,4 +1,3 @@
-#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,42 +19,27 @@
 
 #include <stddef.h>
 
-#include "absl/base/attributes.h"
+#include "tcmalloc/common.h"
 #include "tcmalloc/huge_address_map.h"
 #include "tcmalloc/huge_pages.h"
-#include "tcmalloc/internal/config.h"
-#include "tcmalloc/internal/logging.h"
-#include "tcmalloc/metadata_allocator.h"
 #include "tcmalloc/stats.h"
-#include "tcmalloc/system-alloc.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
 // these typedefs allow replacement of tcmalloc::System* for tests.
-class VirtualAllocator {
- public:
-  VirtualAllocator() = default;
-  virtual ~VirtualAllocator() = default;
-
-  VirtualAllocator(const VirtualAllocator&) = delete;
-  VirtualAllocator(VirtualAllocator&&) = delete;
-  VirtualAllocator& operator=(const VirtualAllocator&) = delete;
-  VirtualAllocator& operator=(VirtualAllocator&&) = delete;
-
-  // Allocates bytes of virtual address space with align alignment.
-  [[nodiscard]] virtual AddressRange operator()(size_t bytes, size_t align) = 0;
-};
+typedef void *(*MemoryAllocFunction)(size_t bytes, size_t *actual,
+                                     size_t align);
+typedef void *(*MetadataAllocFunction)(size_t bytes);
 
 // This tracks available ranges of hugepages and fulfills requests for
 // usable memory, allocating more from the system as needed.  All
 // hugepages are treated as (and assumed to be) unbacked.
 class HugeAllocator {
  public:
-  constexpr HugeAllocator(
-      VirtualAllocator& allocate ABSL_ATTRIBUTE_LIFETIME_BOUND,
-      MetadataAllocator& meta_allocate ABSL_ATTRIBUTE_LIFETIME_BOUND)
+  constexpr HugeAllocator(MemoryAllocFunction allocate,
+                          MetadataAllocFunction meta_allocate)
       : free_(meta_allocate), allocate_(allocate) {}
 
   // Obtain a range of n unbacked hugepages, distinct from all other
@@ -73,7 +57,8 @@ class HugeAllocator {
   // Unused memory in the allocator.
   HugeLength size() const { return from_system_ - in_use_; }
 
-  void AddSpanStats(SmallSpanStats* small, LargeSpanStats* large) const;
+  void AddSpanStats(SmallSpanStats *small, LargeSpanStats *large,
+                    PageAgeHistograms *ages) const;
 
   BackingStats stats() const {
     BackingStats s;
@@ -83,8 +68,8 @@ class HugeAllocator {
     return s;
   }
 
-  void Print(Printer& out);
-  void PrintInPbtxt(PbtxtRegion& hpaa) const;
+  void Print(Printer *out);
+  void PrintInPbtxt(PbtxtRegion *hpaa) const;
 
  private:
   // We're constrained in several ways by existing code.  Hard requirements:
@@ -100,7 +85,7 @@ class HugeAllocator {
   // don't matter, and most of the simple ideas can't hit all of the above
   // requirements.
   HugeAddressMap free_;
-  HugeAddressMap::Node* Find(HugeLength n);
+  HugeAddressMap::Node *Find(HugeLength n);
 
   void CheckFreelist();
   void DebugCheckFreelist() {
@@ -112,7 +97,7 @@ class HugeAllocator {
   HugeLength from_system_{NHugePages(0)};
   HugeLength in_use_{NHugePages(0)};
 
-  VirtualAllocator& allocate_;
+  MemoryAllocFunction allocate_;
   HugeRange AllocateRange(HugeLength n);
 };
 

@@ -1,4 +1,3 @@
-#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +17,14 @@
 
 #include <stddef.h>
 
-#include <optional>
+#include <map>
+#include <string>
 
-#include "absl/functional/function_ref.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "tcmalloc/experiment_config.h"
-#include "tcmalloc/internal/config.h"
+#include "tcmalloc/internal/logging.h"
+#include "tcmalloc/malloc_extension.h"
 
 // TCMalloc Experiment Controller
 //
@@ -51,18 +51,19 @@ constexpr size_t kNumExperiments =
 // buffer must be sized for kMaxExperimentID entries.
 //
 // This is exposed for testing purposes only.
-const bool* SelectExperiments(bool* buffer, absl::string_view test_target,
-                              absl::string_view active,
-                              absl::string_view disabled, bool unset);
+const bool* SelectExperiments(bool* buffer, absl::string_view active,
+                              absl::string_view disabled);
+
+void FillExperimentProperties(
+    std::map<std::string, MallocExtension::Property>* result);
+
+void PrintExperiments(Printer* printer);
 
 }  // namespace tcmalloc_internal
 
 bool IsExperimentActive(Experiment exp);
 
-std::optional<Experiment> FindExperimentByName(absl::string_view name);
-
-void WalkExperiments(
-    absl::FunctionRef<void(absl::string_view name, bool active)> callback);
+absl::optional<Experiment> FindExperimentByName(absl::string_view name);
 
 }  // namespace tcmalloc
 GOOGLE_MALLOC_SECTION_END

@@ -19,14 +19,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <cstddef>
-#include <cstdint>
-
 #include "absl/strings/numbers.h"
-#include "absl/strings/string_view.h"
 #include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
-#include "tcmalloc/internal/page_size.h"
 #include "tcmalloc/internal/util.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
@@ -54,21 +49,21 @@ bool GetMemoryStats(MemoryStats* stats) {
 
   FDCloser fd;
   fd.fd = signal_safe_open("/proc/self/statm", O_RDONLY | O_CLOEXEC);
-  TC_ASSERT_GE(fd.fd, 0);
+  ASSERT(fd.fd >= 0);
   if (fd.fd < 0) {
     return false;
   }
 
   char buf[1024];
   ssize_t rc = signal_safe_read(fd.fd, buf, sizeof(buf), nullptr);
-  TC_ASSERT_GE(rc, 0);
-  TC_ASSERT_LT(rc, static_cast<ssize_t>(sizeof(buf)));
-  if (rc < 0 || rc >= static_cast<ssize_t>(sizeof(buf))) {
+  ASSERT(rc >= 0);
+  ASSERT(rc < sizeof(buf));
+  if (rc < 0 || rc >= sizeof(buf)) {
     return false;
   }
   buf[rc] = '\0';
 
-  const size_t pagesize = GetPageSize();
+  const size_t pagesize = getpagesize();
   absl::string_view contents(buf, rc);
   absl::string_view::size_type start = 0;
   int index = 0;

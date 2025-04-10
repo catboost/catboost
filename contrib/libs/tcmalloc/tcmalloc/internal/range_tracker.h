@@ -1,4 +1,3 @@
-#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +19,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <algorithm>
+#include <climits>
 #include <limits>
 #include <type_traits>
 
 #include "absl/numeric/bits.h"
-#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/optimization.h"
 
@@ -47,8 +45,6 @@ class Bitmap {
 
   // Returns the number of set bits [index, ..., index + n - 1].
   size_t CountBits(size_t index, size_t n) const;
-  // Returns the total number of set bits.
-  size_t CountBits() const;
 
   // Returns whether the bitmap is entirely zero or not.
   bool IsZero() const;
@@ -62,7 +58,7 @@ class Bitmap {
 
   // If there is at least one free range at or after <start>,
   // put it in *index, *length and return true; else return false.
-  bool NextFreeRange(size_t start, size_t* index, size_t* length) const;
+  bool NextFreeRange(size_t start, size_t *index, size_t *length) const;
 
   // Returns index of the first {true, false} bit >= index, or N if none.
   size_t FindSet(size_t index) const;
@@ -106,20 +102,18 @@ class RangeTracker {
   size_t size() const;
   // Number of bits marked
   size_t used() const;
+  // Number of bits clear
+  size_t total_free() const;
   // Longest contiguous range of clear bits.
   size_t longest_free() const;
   // Count of live allocations.
   size_t allocs() const;
 
   // REQUIRES: there is a free range of at least n bits
-  // (i.e. n <= longest_free()).
-  //
-  // Finds and marks n free bits, returning index of the first bit.  Chooses by
-  // best fit.
+  // (i.e. n <= longest_free())
+  // finds and marks n free bits, returning index of the first bit.
+  // Chooses by best fit.
   size_t FindAndMark(size_t n);
-
-  // REQUIRES: the range [index, index + n) is fully unmarked.
-  void Mark(size_t index, size_t n);
 
   // REQUIRES: the range [index, index + n) is fully marked, and
   // was the returned value from a call to FindAndMark.
@@ -127,7 +121,7 @@ class RangeTracker {
   void Unmark(size_t index, size_t n);
   // If there is at least one free range at or after <start>,
   // put it in *index, *length and return true; else return false.
-  bool NextFreeRange(size_t start, size_t* index, size_t* length) const;
+  bool NextFreeRange(size_t start, size_t *index, size_t *length) const;
 
   void Clear();
 
@@ -181,6 +175,11 @@ inline size_t RangeTracker<N>::used() const {
 }
 
 template <size_t N>
+inline size_t RangeTracker<N>::total_free() const {
+  return N - used();
+}
+
+template <size_t N>
 inline size_t RangeTracker<N>::longest_free() const {
   return longest_free_;
 }
@@ -192,7 +191,7 @@ inline size_t RangeTracker<N>::allocs() const {
 
 template <size_t N>
 inline size_t RangeTracker<N>::FindAndMark(size_t n) {
-  TC_ASSERT_GT(n, 0);
+  ASSERT(n > 0);
 
   // We keep the two longest ranges in the bitmap since we might allocate
   // from one.
@@ -222,7 +221,7 @@ inline size_t RangeTracker<N>::FindAndMark(size_t n) {
     index += len;
   }
 
-  TC_CHECK_LT(best_index, N);
+  CHECK_CONDITION(best_index < N);
   bits_.SetRange(best_index, n);
 
   if (best_len == longest_len) {
@@ -236,36 +235,11 @@ inline size_t RangeTracker<N>::FindAndMark(size_t n) {
   return best_index;
 }
 
-// REQUIRES: the range [index, index + n) is fully unmarked.
-// Marks it.
-template <size_t N>
-inline void RangeTracker<N>::Mark(size_t index, size_t n) {
-  TC_ASSERT_GE(bits_.FindSet(index), index + n);
-  bits_.SetRange(index, n);
-  nused_ += n;
-  nallocs_++;
-
-  size_t longest_len = 0;
-  size_t scan_index = 0, scan_len;
-
-  // We just marked a range as used. This might change the longest free range
-  // recorded in longest_free_. Recompute.
-  while (bits_.NextFreeRange(scan_index, &scan_index, &scan_len)) {
-    if (scan_len > longest_len) {
-      longest_len = scan_len;
-    }
-
-    scan_index += scan_len;
-  }
-
-  longest_free_ = longest_len;
-}
-
 // REQUIRES: the range [index, index + n) is fully marked.
 // Unmarks it.
 template <size_t N>
 inline void RangeTracker<N>::Unmark(size_t index, size_t n) {
-  TC_ASSERT(bits_.FindClear(index) >= index + n);
+  ASSERT(bits_.FindClear(index) >= index + n);
   bits_.ClearRange(index, n);
   nused_ -= n;
   nallocs_--;
@@ -282,8 +256,8 @@ inline void RangeTracker<N>::Unmark(size_t index, size_t n) {
 // If there is at least one free range at or after <start>,
 // put it in *index, *length and return true; else return false.
 template <size_t N>
-inline bool RangeTracker<N>::NextFreeRange(size_t start, size_t* index,
-                                           size_t* length) const {
+inline bool RangeTracker<N>::NextFreeRange(size_t start, size_t *index,
+                                           size_t *length) const {
   return bits_.NextFreeRange(start, index, length);
 }
 
@@ -298,12 +272,12 @@ inline void RangeTracker<N>::Clear() {
 // Count the set bits [from, to) in the i-th word to Value.
 template <size_t N>
 inline size_t Bitmap<N>::CountWordBits(size_t i, size_t from, size_t to) const {
-  TC_ASSERT_LT(from, kWordSize);
-  TC_ASSERT_LE(to, kWordSize);
+  ASSERT(from < kWordSize);
+  ASSERT(to <= kWordSize);
   const size_t all_ones = ~static_cast<size_t>(0);
   // how many bits are we setting?
   const size_t n = to - from;
-  TC_ASSERT(0 < n && n <= kWordSize);
+  ASSERT(0 < n && n <= kWordSize);
   const size_t mask = (all_ones >> (kWordSize - n)) << from;
 
   ASSUME(i < kWords);
@@ -314,12 +288,12 @@ inline size_t Bitmap<N>::CountWordBits(size_t i, size_t from, size_t to) const {
 template <size_t N>
 template <bool Value>
 inline void Bitmap<N>::SetWordBits(size_t i, size_t from, size_t to) {
-  TC_ASSERT_LT(from, kWordSize);
-  TC_ASSERT_LE(to, kWordSize);
+  ASSERT(from < kWordSize);
+  ASSERT(to <= kWordSize);
   const size_t all_ones = ~static_cast<size_t>(0);
   // how many bits are we setting?
   const size_t n = to - from;
-  TC_ASSERT(n > 0 && n <= kWordSize);
+  ASSERT(n > 0 && n <= kWordSize);
   const size_t mask = (all_ones >> (kWordSize - n)) << from;
   ASSUME(i < kWords);
   if (Value) {
@@ -331,7 +305,7 @@ inline void Bitmap<N>::SetWordBits(size_t i, size_t from, size_t to) {
 
 template <size_t N>
 inline bool Bitmap<N>::GetBit(size_t i) const {
-  TC_ASSERT_LT(i, N);
+  ASSERT(i < N);
   size_t word = i / kWordSize;
   size_t offset = i % kWordSize;
   ASSUME(word < kWords);
@@ -340,7 +314,7 @@ inline bool Bitmap<N>::GetBit(size_t i) const {
 
 template <size_t N>
 inline void Bitmap<N>::SetBit(size_t i) {
-  TC_ASSERT_LT(i, N);
+  ASSERT(i < N);
   size_t word = i / kWordSize;
   size_t offset = i % kWordSize;
   ASSUME(word < kWords);
@@ -349,16 +323,11 @@ inline void Bitmap<N>::SetBit(size_t i) {
 
 template <size_t N>
 inline void Bitmap<N>::ClearBit(size_t i) {
-  TC_ASSERT_LT(i, N);
+  ASSERT(i < N);
   size_t word = i / kWordSize;
   size_t offset = i % kWordSize;
   ASSUME(word < kWords);
   bits_[word] &= ~(size_t{1} << offset);
-}
-
-template <size_t N>
-inline size_t Bitmap<N>::CountBits() const {
-  return CountBits(0, N);
 }
 
 template <size_t N>
@@ -417,7 +386,7 @@ inline void Bitmap<N>::ClearLowestBit() {
 template <size_t N>
 template <bool Value>
 inline void Bitmap<N>::SetRangeValue(size_t index, size_t n) {
-  TC_ASSERT_LE(index + n, N);
+  ASSERT(index + n <= N);
   size_t word = index / kWordSize;
   size_t offset = index % kWordSize;
   size_t k = offset + n;
@@ -434,8 +403,8 @@ inline void Bitmap<N>::SetRangeValue(size_t index, size_t n) {
 }
 
 template <size_t N>
-inline bool Bitmap<N>::NextFreeRange(size_t start, size_t* index,
-                                     size_t* length) const {
+inline bool Bitmap<N>::NextFreeRange(size_t start, size_t *index,
+                                     size_t *length) const {
   if (start >= N) return false;
   size_t i = FindClear(start);
   if (i == N) return false;
@@ -475,7 +444,7 @@ inline void Bitmap<N>::Clear() {
 template <size_t N>
 template <bool Goal>
 inline size_t Bitmap<N>::FindValue(size_t index) const {
-  TC_ASSERT_LT(index, N);
+  ASSERT(index < N);
   size_t offset = index % kWordSize;
   size_t word = index / kWordSize;
   ASSUME(word < kWords);
@@ -504,7 +473,7 @@ inline size_t Bitmap<N>::FindValue(size_t index) const {
 template <size_t N>
 template <bool Goal>
 inline ssize_t Bitmap<N>::FindValueBackwards(size_t index) const {
-  TC_ASSERT_LT(index, N);
+  ASSERT(index < N);
   size_t offset = index % kWordSize;
   ssize_t word = index / kWordSize;
   ASSUME(word < kWords);

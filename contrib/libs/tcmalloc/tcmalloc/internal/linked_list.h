@@ -1,4 +1,3 @@
-#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,6 @@
 
 #include "absl/base/attributes.h"
 #include "absl/base/optimization.h"
-#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
@@ -61,17 +59,14 @@ inline void* SLL_Pop(void** list) {
 // LinkedList forms an in-place linked list with its void* elements.
 class LinkedList {
  private:
-  void* list_ = nullptr;  // Linked list.
-  uint32_t length_ = 0;   // Current length.
+  void* list_;       // Linked list.
+  uint32_t length_;  // Current length.
 
  public:
-  constexpr LinkedList() = default;
-
-  // Not copy constructible or movable.
-  LinkedList(const LinkedList&) = delete;
-  LinkedList(LinkedList&&) = delete;
-  LinkedList& operator=(const LinkedList&) = delete;
-  LinkedList& operator=(LinkedList&&) = delete;
+  void Init() {
+    list_ = nullptr;
+    length_ = 0;
+  }
 
   // Return current length of list
   size_t length() const { return length_; }
@@ -106,7 +101,7 @@ class LinkedList {
 
   // PushBatch and PopBatch do not guarantee an ordering.
   void PushBatch(int N, void** batch) {
-    TC_ASSERT_GT(N, 0);
+    ASSERT(N > 0);
     for (int i = 0; i < N - 1; ++i) {
       SLL_SetNext(batch[i], batch[i + 1]);
     }
@@ -122,7 +117,7 @@ class LinkedList {
       p = SLL_Next(p);
     }
     list_ = p;
-    TC_ASSERT_GE(length_, N);
+    ASSERT(length_ >= N);
     length_ -= N;
   }
 };
@@ -151,9 +146,9 @@ class TList {
       // potential aliasing and does unnecessary reloads after stores.
       Elem* next = next_;
       Elem* prev = prev_;
-      TC_ASSERT_EQ(prev->next_, this);
+      ASSERT(prev->next_ == this);
       prev->next_ = next;
-      TC_ASSERT_EQ(next->prev_, this);
+      ASSERT(next->prev_ == this);
       next->prev_ = prev;
 #ifndef NDEBUG
       prev_ = nullptr;
@@ -182,12 +177,6 @@ class TList {
   // Initialize to empty list.
   constexpr TList() { head_.next_ = head_.prev_ = &head_; }
 
-  // Not copy constructible/movable.
-  TList(const TList&) = delete;
-  TList(TList&&) = delete;
-  TList& operator=(const TList&) = delete;
-  TList& operator=(TList&&) = delete;
-
   bool empty() const { return head_.next_ == &head_; }
 
   // Return the length of the linked list. O(n).
@@ -201,15 +190,15 @@ class TList {
 
   // Returns first element in the list. The list must not be empty.
   ABSL_ATTRIBUTE_RETURNS_NONNULL T* first() const {
-    TC_ASSERT(!empty());
-    TC_ASSERT_NE(head_.next_, nullptr);
+    ASSERT(!empty());
+    ASSERT(head_.next_ != nullptr);
     return static_cast<T*>(head_.next_);
   }
 
   // Returns last element in the list. The list must not be empty.
   ABSL_ATTRIBUTE_RETURNS_NONNULL T* last() const {
-    TC_ASSERT(!empty());
-    TC_ASSERT_NE(head_.prev_, nullptr);
+    ASSERT(!empty());
+    ASSERT(head_.prev_ != nullptr);
     return static_cast<T*>(head_.prev_);
   }
 

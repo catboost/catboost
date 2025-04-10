@@ -16,18 +16,13 @@
 
 #include <stdio.h>
 
-#include <memory>
-#include <utility>
-
 #include "absl/base/internal/spinlock.h"
 #include "absl/memory/memory.h"
-#include "absl/time/clock.h"
-#include "tcmalloc/internal/allocation_guard.h"
-#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
-#include "tcmalloc/internal/sampled_allocation.h"
-#include "tcmalloc/malloc_extension.h"
+#include "tcmalloc/page_heap_allocator.h"
 #include "tcmalloc/parameters.h"
+#include "tcmalloc/sampler.h"
+#include "tcmalloc/span.h"
 #include "tcmalloc/stack_trace_table.h"
 #include "tcmalloc/static_vars.h"
 
@@ -36,9 +31,10 @@ namespace tcmalloc {
 namespace tcmalloc_internal {
 
 bool PeakHeapTracker::IsNewPeak() {
-  size_t current_peak_size = CurrentPeakSize();
-  return (static_cast<double>(tc_globals.sampled_objects_size_.value()) >
-          current_peak_size * Parameters::peak_sampling_heap_growth_fraction());
+  return peak_sampled_heap_size_.value() == 0 ||
+         (static_cast<double>(Static::sampled_objects_size_.value()) /
+              peak_sampled_heap_size_.value() >
+          Parameters::peak_sampling_heap_growth_fraction());
 }
 
 void PeakHeapTracker::MaybeSaveSample() {
@@ -46,36 +42,49 @@ void PeakHeapTracker::MaybeSaveSample() {
     return;
   }
 
-  AllocationGuardSpinLockHolder h(&recorder_lock_);
+  absl::base_internal::SpinLockHolder h(&pageheap_lock);
 
   // double-check in case another allocation was sampled (or a sampled
   // allocation freed) while we were waiting for the lock
   if (!IsNewPeak()) {
     return;
   }
-  SetCurrentPeakSize(tc_globals.sampled_objects_size_.value());
-  last_peak_ = absl::Now();
+  peak_sampled_heap_size_.LossyAdd(Static::sampled_objects_size_.value() -
+                                   peak_sampled_heap_size_.value());
 
-  // Guaranteed to have no live sample after this call since we are doing this
-  // under `recorder_lock_`.
-  peak_heap_recorder_.UnregisterAll();
-  tc_globals.sampled_allocation_recorder().Iterate(
-      [this](const SampledAllocation& sampled_allocation) {
-        recorder_lock_.AssertHeld();
-        StackTrace st = sampled_allocation.sampled_stack;
-        peak_heap_recorder_.Register(std::move(st));
-      });
+  StackTrace *t = peak_sampled_span_stacks_, *next = nullptr;
+  while (t != nullptr) {
+    next = reinterpret_cast<StackTrace*>(t->stack[kMaxStackDepth - 1]);
+    Static::DestroySampleUserData(t->user_data);
+    Static::stacktrace_allocator().Delete(t);
+    t = next;
+  }
+
+  next = nullptr;
+  for (Span* s : Static::sampled_objects_) {
+    t = Static::stacktrace_allocator().New();
+
+    StackTrace* sampled_stack = s->sampled_stack();
+    *t = *sampled_stack;
+    t->user_data = Static::CopySampleUserData(sampled_stack->user_data);
+    if (t->depth == kMaxStackDepth) {
+      t->depth = kMaxStackDepth - 1;
+    }
+    t->stack[kMaxStackDepth - 1] = reinterpret_cast<void*>(next);
+    next = t;
+  }
+  peak_sampled_span_stacks_ = t;
 }
 
-std::unique_ptr<ProfileBase> PeakHeapTracker::DumpSample() {
-  auto profile = std::make_unique<StackTraceTable>(ProfileType::kPeakHeap);
+std::unique_ptr<ProfileBase> PeakHeapTracker::DumpSample() const {
+  auto profile = absl::make_unique<StackTraceTable>(
+      ProfileType::kPeakHeap, Sampler::GetSamplePeriod(), true, true);
 
-  AllocationGuardSpinLockHolder h(&recorder_lock_);
-  profile->SetStartTime(last_peak_);
-  peak_heap_recorder_.Iterate(
-      [&profile](const SampledAllocation& peak_heap_record) {
-        profile->AddTrace(1.0, peak_heap_record.sampled_stack);
-      });
+  absl::base_internal::SpinLockHolder h(&pageheap_lock);
+  for (StackTrace* t = peak_sampled_span_stacks_; t != nullptr;
+       t = reinterpret_cast<StackTrace*>(t->stack[kMaxStackDepth - 1])) {
+    profile->AddTrace(1.0, *t);
+  }
   return profile;
 }
 

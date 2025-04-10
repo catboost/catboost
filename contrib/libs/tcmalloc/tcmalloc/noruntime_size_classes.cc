@@ -1,5 +1,4 @@
-#pragma clang system_header
-// Copyright 2022 The TCMalloc Authors
+// Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TCMALLOC_INTERNAL_PAGE_SIZE_H_
-#define TCMALLOC_INTERNAL_PAGE_SIZE_H_
-
-#include <stddef.h>
-
 #include "absl/base/attributes.h"
-#include "tcmalloc/internal/config.h"
+#include "tcmalloc/runtime_size_classes.h"
+#include "tcmalloc/size_class_info.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
-ABSL_ATTRIBUTE_PURE_FUNCTION size_t GetPageSize();
+// Default implementation doesn't load runtime size classes.
+// To enable runtime size classes, link with :runtime_size_classes.
+// This is in a separate library so that it doesn't get inlined inside common.cc
+ABSL_ATTRIBUTE_WEAK ABSL_ATTRIBUTE_NOINLINE int MaybeSizeClassesFromEnv(
+    int max_size, int max_classes, SizeClassInfo* parsed) {
+  return -1;
+}
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
 GOOGLE_MALLOC_SECTION_END
-
-#endif  // TCMALLOC_INTERNAL_PAGE_SIZE_H_

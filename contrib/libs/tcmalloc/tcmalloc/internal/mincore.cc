@@ -18,11 +18,9 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 
 #include "tcmalloc/internal/config.h"
-#include "tcmalloc/internal/page_size.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -46,7 +44,7 @@ size_t MInCore::residence_impl(void* addr, size_t size,
     return 0;
   }
   unsigned char res[kArrayLength];
-  const size_t kPageSize = GetPageSize();
+  const size_t kPageSize = getpagesize();
 
   uintptr_t uaddr = reinterpret_cast<uintptr_t>(addr);
   // Round address down to get the start of the page containing the data.
@@ -63,10 +61,7 @@ size_t MInCore::residence_impl(void* addr, size_t size,
   // then handle the case where the object spans more than one page.
   if (remainingPages == kPageSize) {
     // Find out whether the first page is resident.
-    if (mincore->mincore(reinterpret_cast<void*>(basePage), remainingPages,
-                         res) != 0) {
-      return 0;
-    }
+    mincore->mincore(reinterpret_cast<void*>(basePage), remainingPages, res);
     // Residence info is returned in LSB, other bits are undefined.
     if ((res[0] & 1) == 1) {
       return size;
