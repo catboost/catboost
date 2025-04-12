@@ -4,6 +4,6 @@ requires = [
     "wheel",
     "jupyterlab (>=3.0.6, <3.6.0)",
     "conan ~= 2.4.1",
-    "cython",
+    "cython ~= 3.0.10",
     "numpy"
 ]

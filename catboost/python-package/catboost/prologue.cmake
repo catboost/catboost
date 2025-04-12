@@ -13,3 +13,7 @@ else()
     Development NumPy
   )
 endif()
+
+if (NOT USE_INTERNAL_CYTHON)
+  find_package(Cython 3.0.10...<4.0 REQUIRED)
+endif()

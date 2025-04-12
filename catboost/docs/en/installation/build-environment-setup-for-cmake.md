@@ -157,9 +157,11 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   One convenient way to install different Python versions with development artifacts in one step is to use [pyenv](https://github.com/pyenv/pyenv) (and its variant for Windows - [pyenv-win](https://github.com/pyenv-win/pyenv-win))
 
-### Cython (only for Python package)
+### [Cython](https://cython.org/) (only for Python package)
 
-  [Cython](https://cython.org/) is required to build the python package.
+  Required only to build the python package.
+
+  Version 3.0.*, >= 3.0.10
 
   `cython` command should be available from the command line.
 
