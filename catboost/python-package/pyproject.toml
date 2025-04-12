@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools >= 64.0",
+    "cmake",
     "wheel",
     "jupyterlab (>=3.0.6, <3.6.0)",
     "conan ~= 2.4.1",
