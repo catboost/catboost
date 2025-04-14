@@ -11,7 +11,7 @@ from importlib.metadata import (
 )
 from importlib.resources.abc import Traversable
 
-import __res
+from __res import _ResfsResourceReader, find, iter_keys, resfs_read, resfs_files
 
 METADATA_NAME = re.compile("^Name: (.*)$", re.MULTILINE)
 
@@ -55,7 +55,7 @@ class ArcadiaResource(ArcadiaTraversable):
         return False
 
     def open(self, mode="r", *args, **kwargs):
-        data = __res.find(self._resfs.encode("utf-8"))
+        data = find(self._resfs.encode("utf-8"))
         if data is None:
             raise FileNotFoundError(self._resfs)
 
@@ -85,7 +85,7 @@ class ArcadiaResourceContainer(ArcadiaTraversable):
 
     def iterdir(self):
         seen = set()
-        for key, path_without_prefix in __res.iter_keys(self._resfs.encode("utf-8")):
+        for key, path_without_prefix in iter_keys(self._resfs.encode("utf-8")):
             if b"/" in path_without_prefix:
                 subdir = path_without_prefix.split(b"/", maxsplit=1)[0].decode("utf-8")
                 if subdir not in seen:
@@ -127,7 +127,7 @@ class ArcadiaDistribution(Distribution):
         self._path = pathlib.Path(prefix)
 
     def read_text(self, filename):
-        data = __res.resfs_read(f"{self._prefix}{filename}")
+        data = resfs_read(f"{self._prefix}{filename}")
         if data is not None:
             return data.decode("utf-8")
 
@@ -149,11 +149,11 @@ class MetadataArcadiaFinder(DistributionFinder):
     def _init_prefixes(cls):
         cls.prefixes.clear()
 
-        for resource in __res.resfs_files():
+        for resource in resfs_files():
             resource = resource.decode("utf-8")
             if not resource.endswith("METADATA"):
                 continue
-            data = __res.resfs_read(resource).decode("utf-8")
+            data = resfs_read(resource).decode("utf-8")
             metadata_name = METADATA_NAME.search(data)
             if metadata_name:
                 cls.prefixes[Prepared(metadata_name.group(1)).normalized] = resource.removesuffix("METADATA")
