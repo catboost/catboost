@@ -13,6 +13,7 @@ fn main() {
         .unwrap();
 
     let mut build_native_args = vec![
+        "../../../build/build_native.py",
         "--targets",
         "catboostmodel",
         "--build-root-dir",
@@ -27,7 +28,7 @@ fn main() {
     #[cfg(feature = "gpu")]
     build_native_args.push("--have-cuda");
 
-    let build_cmd_status = Command::new("../../../build/build_native.py")
+    let build_cmd_status = Command::new("python")
         .args(&build_native_args)
         .status()
         .unwrap_or_else(|e| {
