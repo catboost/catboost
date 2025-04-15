@@ -1,5 +1,6 @@
 #include "histogram_points_and_bins.h"
 
+#include <cmath>
 
 THistogramPointsAndBins::THistogramPointsAndBins()
     : Points()

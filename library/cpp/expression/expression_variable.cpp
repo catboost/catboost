@@ -1,4 +1,5 @@
 #include <limits>
+#include <cmath>
 
 #include "expression_variable.h"
 
