@@ -3,6 +3,7 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/expat.svg)](https://repology.org/metapackage/expat/versions)
 [![Downloads SourceForge](https://img.shields.io/sourceforge/dt/expat?label=Downloads%20SourceForge)](https://sourceforge.net/projects/expat/files/)
 [![Downloads GitHub](https://img.shields.io/github/downloads/libexpat/libexpat/total?label=Downloads%20GitHub)](https://github.com/libexpat/libexpat/releases)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10205/badge)](https://www.bestpractices.dev/projects/10205)
 
 > [!CAUTION]
 >
@@ -11,7 +12,7 @@
 > at the top of the `Changes` file.
 
 
-# Expat, Release 2.7.0
+# Expat, Release 2.7.1
 
 This is Expat, a C99 library for parsing
 [XML 1.0 Fourth Edition](https://www.w3.org/TR/2006/REC-xml-20060816/), started by
