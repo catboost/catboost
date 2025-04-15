@@ -1,15 +1,3 @@
-# def count() -> int:
-#     # implemented in C++ part of this module
-#
-# def key_by_index(idx: key) -> bytes:
-#     # implemented in C++ part of this module
-#
-# def find(key: str | bytes) -> bytes:
-#     # implemented in C++ part of this module
-#
-# def has(key: str | bytes) -> bool:
-#     # implemented in C++ part of this module
-
 import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
@@ -28,6 +16,8 @@ from _frozen_importlib_external import (
 
 from _io import FileIO
 
+import __res as __resource
+
 _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
@@ -35,6 +25,7 @@ cfg_source_root = b'arcadia-source-root'
 env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
 res_ya_ide_venv = b'YA_IDE_VENV'
 executable = sys.executable or 'Y_PYTHON'
+sys.modules['run_import_hook'] = __resource
 
 def _probe(environ_dict, key, default_value=None):
     """ Probe bytes and str variants for environ.
@@ -56,10 +47,9 @@ def _probe(environ_dict, key, default_value=None):
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
-EXTERNAL_PY_FILES_MODE = find(b'py/conf/ENABLE_EXTERNAL_PY_FILES') in (b'1', b'yes')
+EXTERNAL_PY_FILES_MODE = __resource.find(b'py/conf/ENABLE_EXTERNAL_PY_FILES') in (b'1', b'yes')
 
-YA_IDE_VENV = find(res_ya_ide_venv)
-
+YA_IDE_VENV = __resource.find(res_ya_ide_venv)
 Y_PYTHON_EXTENDED_SOURCE_SEARCH = _probe(_os.environ, env_extended_source_search) or YA_IDE_VENV
 
 
@@ -192,8 +182,8 @@ def _print(*xs):
 
 def iter_keys(prefix):
     l = len(prefix)
-    for idx in range(count()):
-        key = key_by_index(idx)
+    for idx in range(__resource.count()):
+        key = __resource.key_by_index(idx)
         if key.startswith(prefix):
             yield key, key[l:]
 
@@ -239,14 +229,14 @@ def resfs_src(key, resfs_file=False):
     """
     if resfs_file:
         key = b'resfs/file/' + _b(key)
-    return find(b'resfs/src/' + _b(key))
+    return __resource.find(b'resfs/src/' + _b(key))
 
 
 def resfs_has(path):
     """
     Return true if the requested file is embedded in the program
     """
-    return has(b'resfs/file/' + _b(path))
+    return __resource.has(b'resfs/file/' + _b(path))
 
 
 def resfs_read(path, builtin=None):
@@ -263,7 +253,7 @@ def resfs_read(path, builtin=None):
                 return file_bytes(fspath)
 
     if builtin is not False:
-        return find(b'resfs/file/' + _b(path))
+        return __resource.find(b'resfs/file/' + _b(path))
 
 
 def resfs_files(prefix=b''):
@@ -615,7 +605,7 @@ class ArcadiaSourceFinder:
         for key, dirty_path in iter_keys(self.NAMESPACE_PREFIX):
             # dirty_path contains unique prefix to prevent repeatable keys in the resource storage
             path = dirty_path.split(b'/', 1)[1]
-            namespaces = find(key).split(b':')
+            namespaces = __resource.find(key).split(b':')
             for n in namespaces:
                 package_name = _s(n.rstrip(b'.'))
                 self.module_path_cache.setdefault(package_name, set()).add(_s(path))
