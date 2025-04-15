@@ -645,7 +645,7 @@ private:
         return (target - approx) / (target * target);
     }
 
-    double CalcDer2(double approx, float target) const override {
+    double CalcDer2(double /*approx*/, float target) const override {
         return - 1 / (target * target);
     }
 
