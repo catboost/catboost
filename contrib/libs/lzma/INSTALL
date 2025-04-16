@@ -16,7 +16,7 @@ XZ Utils Installation
             1.2.8. DOS
             1.2.9. z/OS
        1.3. Adding support for new platforms
-    2. configure options
+    2. configure and CMake options
        2.1. Static vs. dynamic linking of liblzma
        2.2. Optimizing xzdec and lzmadec
     3. xzgrep and other scripts
@@ -75,6 +75,11 @@ XZ Utils Installation
     If you use IBM XL C compiler, pass CC=xlc_r to configure. If
     you use CC=xlc instead, you must disable threading support
     with --disable-threads (usually not recommended).
+
+    If building a 32-bit executable, the address space available to xz
+    might be limited to 256 MiB by default. To increase the address
+    space to 2 GiB, pass LDFLAGS=-Wl,-bmaxdata:0x80000000 as an argument
+    to configure.
 
 
 1.2.2. IRIX
@@ -213,19 +218,53 @@ XZ Utils Installation
     in C89 or C++.
 
 
-2. configure options
---------------------
+2. configure and CMake options
+------------------------------
 
     In most cases, the defaults are what you want. Many of the options
     below are useful only when building a size-optimized version of
     liblzma or command line tools.
 
+    configure options are those that begin with two dashes "--"
+    or "gl_".
+
+    CMake options begin with "XZ_", "TUKLIB_", or "CMAKE_". To use
+    them on the command line, prefix them with "-D", for example,
+    "cmake -DCMAKE_COMPILE_WARNING_AS_ERROR=ON".
+
+    CMAKE_BUILD_TYPE=TYPE
+                CMake only:
+
+                For release builds, CMAKE_BUILD_TYPE=Release is fine.
+                On targets where CMake defaults to -O3, the default
+                value is overridden to -O2.
+
+                Empty value (CMAKE_BUILD_TYPE=) is fine if using custom
+                optimization options. *In this package* the empty build
+                type also disables debugging code just like "Release"
+                does. To enable debugging code with empty build type,
+                use -UNDEBUG in the CFLAGS environment variable or in
+                the CMAKE_C_FLAGS CMake variable to override -DNDEBUG.
+
+                Non-standard build types like "None" do NOT disable
+                debugging code! Such non-standard build types should
+                be avoided for production builds!
+
     --enable-encoders=LIST
     --disable-encoders
-                Specify a comma-separated LIST of filter encoders to
-                build. See "./configure --help" for exact list of
-                available filter encoders. The default is to build all
-                supported encoders.
+    XZ_ENCODERS=LIST
+                Specify a LIST of filter encoders to build. In the
+                configure option the list is comma separated.
+                CMake lists are semicolon separated.
+
+                To see the exact list of available filter encoders:
+
+                  - Autotools: ./configure --help
+
+                  - CMake: Configure the tree normally first, then use
+                    "cmake -LH ." to list the cache variables.
+
+                The default is to build all supported encoders.
 
                 If LIST is empty or --disable-encoders is used, no filter
                 encoders will be built and also the code shared between
@@ -237,10 +276,12 @@ XZ Utils Installation
 
     --enable-decoders=LIST
     --disable-decoders
+    XZ_DECODERS=LIST
                 This is like --enable-encoders but for decoders. The
                 default is to build all supported decoders.
 
     --enable-match-finders=LIST
+    XZ_MATCH_FINDERS=LIST
                 liblzma includes two categories of match finders:
                 hash chains and binary trees. Hash chains (hc3 and hc4)
                 are quite fast but they don't provide the best compression
@@ -257,9 +298,11 @@ XZ Utils Installation
                 or LZMA2 filter encoders are being built.
 
     --enable-checks=LIST
+    XZ_CHECKS=LIST
                 liblzma support multiple integrity checks. CRC32 is
-                mandatory, and cannot be omitted. See "./configure --help"
-                for exact list of available integrity check types.
+                mandatory, and cannot be omitted. Supported check
+                types are "crc32", "crc64", and "sha256". By default
+                all supported check types are enabled.
 
                 liblzma and the command line tools can decompress files
                 which use unsupported integrity check type, but naturally
@@ -270,6 +313,7 @@ XZ Utils Installation
                 it is known to not cause problems.
 
     --enable-external-sha256
+    XZ_EXTERNAL_SHA256=ON
                 Try to use SHA-256 code from the operating system libc
                 or similar base system libraries. This doesn't try to
                 use OpenSSL or libgcrypt or such libraries.
@@ -306,6 +350,8 @@ XZ Utils Installation
                         time xz --test foo.xz
 
     --disable-microlzma
+    XZ_MICROLZMA_ENCODER=OFF
+    XZ_MICROLZMA_DECODER=OFF
                 Don't build MicroLZMA encoder and decoder. This omits
                 lzma_microlzma_encoder() and lzma_microlzma_decoder()
                 API functions from liblzma. These functions are needed
@@ -313,6 +359,7 @@ XZ Utils Installation
                 erofs-utils but they may be used by others too.
 
     --disable-lzip-decoder
+    XZ_LZIP_DECODER=OFF
                 Disable decompression support for .lz (lzip) files.
                 This omits the API function lzma_lzip_decoder() from
                 liblzma and .lz support from the xz tool.
@@ -321,6 +368,10 @@ XZ Utils Installation
     --disable-xzdec
     --disable-lzmadec
     --disable-lzmainfo
+    XZ_TOOL_XZ=OFF
+    XZ_TOOL_XZDEC=OFF
+    XZ_TOOL_LZMADEC=OFF
+    XZ_TOOL_LZMAINFO=OFF
                 Don't build and install the command line tool mentioned
                 in the option name.
 
@@ -330,29 +381,40 @@ XZ Utils Installation
                 a dangling man page symlink lzmadec.1 -> xzdec.1 is
                 created.
 
+    XZ_TOOL_SYMLINKS=OFF
+                Don't create the unxz and xzcat symlinks. (There is
+                no "configure" option to disable these symlinks.)
+
     --disable-lzma-links
+    XZ_TOOL_SYMLINKS_LZMA=OFF
                 Don't create symlinks for LZMA Utils compatibility.
                 This includes lzma, unlzma, and lzcat. If scripts are
                 installed, also lzdiff, lzcmp, lzgrep, lzegrep, lzfgrep,
                 lzmore, and lzless will be omitted if this option is used.
 
     --disable-scripts
+    XZ_TOOL_SCRIPTS=OFF
                 Don't install the scripts xzdiff, xzgrep, xzmore, xzless,
                 and their symlinks.
 
     --disable-doc
+    XZ_DOC=OFF
                 Don't install the documentation files to $docdir
                 (often /usr/doc/xz or /usr/local/doc/xz). Man pages
                 will still be installed. The $docdir can be changed
                 with --docdir=DIR.
 
     --enable-doxygen
+    XZ_DOXYGEN=ON
                 Enable generation of the HTML version of the liblzma API
                 documentation using Doxygen. The resulting files are
                 installed to $docdir/api. This option assumes that
                 the 'doxygen' tool is available.
 
+                NOTE: --disable-doc or XZ_DOC=OFF don't affect this.
+
     --disable-assembler
+    XZ_ASM_I386=OFF
                 This disables CRC32 and CRC64 assembly code on
                 32-bit x86. This option currently does nothing
                 on other architectures (not even on x86-64).
@@ -365,7 +427,16 @@ XZ Utils Installation
                 pre-i686 systems, you may want to disable the assembler
                 code.
 
+                The assembly code is compatible with only certain OSes
+                and toolchains (it's not compatible with MSVC).
+
+                Since XZ Utils 5.7.1alpha, the 32-bit x86 assembly code
+                co-exists with the modern CLMUL code: CLMUL is used if
+                support for it is detected at runtime. On old processors
+                the assembly code is used.
+
     --disable-clmul-crc
+    XZ_CLMUL_CRC=OFF
                 Disable the use of carryless multiplication for CRC
                 calculation even if compiler support for it is detected.
                 The code uses runtime detection of SSSE3, SSE4.1, and
@@ -378,6 +449,7 @@ XZ Utils Installation
                 detection isn't used and the generic code is omitted.
 
     --disable-arm64-crc32
+    XZ_ARM64_CRC32=OFF
                 Disable the use of the ARM64 CRC32 instruction extension
                 even if compiler support for it is detected. The code will
                 detect support for the instruction at runtime.
@@ -387,7 +459,16 @@ XZ Utils Installation
                 and later) then runtime detection isn't used and the
                 generic code is omitted.
 
+    --disable-loongarch-crc32
+    XZ_LOONGARCH_CRC32=OFF
+                Disable the use of the 64-bit LoongArch CRC32
+                instruction extension even if compiler support for
+                it is detected. There is no runtime detection because
+                all 64-bit LoongArch processors should support
+                the CRC32 instructions.
+
     --enable-unaligned-access
+    TUKLIB_FAST_UNALIGNED_ACCESS=ON
                 Allow liblzma to use unaligned memory access for 16-bit,
                 32-bit, and 64-bit loads and stores. This should be
                 enabled only when the hardware supports this, that is,
@@ -435,6 +516,7 @@ XZ Utils Installation
                         how unaligned access is done in the C code.
 
     --enable-unsafe-type-punning
+    TUKLIB_USE_UNSAFE_TYPE_PUNNING=ON
                 This enables use of code like
 
                     uint8_t *buf8 = ...;
@@ -451,6 +533,7 @@ XZ Utils Installation
                 GCC 3 and early 4.x on x86, GCC < 6 on ARMv6 and ARMv7).
 
     --enable-small
+    XZ_SMALL=ON
                 Reduce the size of liblzma by selecting smaller but
                 semantically equivalent version of some functions, and
                 omit precomputed lookup tables. This option tends to
@@ -467,6 +550,7 @@ XZ Utils Installation
                 flag(s) to CFLAGS manually.
 
     --enable-assume-ram=SIZE
+    XZ_ASSUME_RAM=SIZE
                 On the most common operating systems, XZ Utils is able to
                 detect the amount of physical memory on the system. This
                 information is used by the options --memlimit-compress,
@@ -483,6 +567,7 @@ XZ Utils Installation
                 src/common/tuklib_physmem.c for details.
 
     --enable-threads=METHOD
+    XZ_THREADS=METHOD
                 Threading support is enabled by default so normally there
                 is no need to specify this option.
 
@@ -519,6 +604,7 @@ XZ Utils Installation
                                 one thread, something bad may happen.
 
     --enable-sandbox=METHOD
+    XZ_SANDBOX=METHOD
                 There is limited sandboxing support in the xz and xzdec
                 tools. If built with sandbox support, xz uses it
                 automatically when (de)compressing exactly one file to
@@ -554,6 +640,7 @@ XZ Utils Installation
                                 is found, configure will give an error.
 
     --enable-symbol-versions[=VARIANT]
+    XZ_SYMBOL_VERSIONING=VARIANT
                 Use symbol versioning for liblzma shared library.
                 This is enabled by default on GNU/Linux (glibc only),
                 other GNU-based systems, and FreeBSD.
@@ -598,13 +685,25 @@ XZ Utils Installation
                 run-time consistency checks. It makes the code slower, so
                 you normally don't want to have this enabled.
 
+                In CMake, the build type (CMAKE_BUILD_TYPE) controls if
+                -DNDEBUG is passed to the compiler. *In this package*,
+                an empty build type disables debugging code too.
+                Non-standard build types like "None" do NOT disable
+                debugging code!
+
+                To enable debugging code with empty build type in CMake,
+                use -UNDEBUG in the CFLAGS environment variable or in
+                the CMAKE_C_FLAGS CMake variable to override -DNDEBUG.
+
     --enable-werror
+    CMAKE_COMPILE_WARNING_AS_ERROR=ON (CMake >= 3.24)
                 If building with GCC, make all compiler warnings an error,
                 that abort the compilation. This may help catching bugs,
                 and should work on most systems. This has no effect on the
                 resulting binaries.
 
     --enable-path-for-scripts=PREFIX
+    (CMake determines this from the path of XZ_POSIX_SHELL)
                 If PREFIX isn't empty, PATH=PREFIX:$PATH will be set in
                 the beginning of the scripts (xzgrep and others).
                 The default is empty except on Solaris the default is
@@ -620,6 +719,36 @@ XZ Utils Installation
                 Older xz releases support a different method for setting
                 the PATH for the scripts. It is described in section 3.2
                 and is supported in this xz version too.
+
+    gl_cv_posix_shell=/path/to/bin/sh
+    XZ_POSIX_SHELL=/path/to/bin/sh
+                POSIX shell to use for xzgrep and other scripts.
+
+                  - configure should autodetect this well enough.
+                    Typically it's /bin/sh but in some cases, like
+                    Solaris, something else is used.
+
+                  - CMake build uses /bin/sh except on Solaris the
+                    default is /usr/xpg4/bin/sh.
+
+    CMAKE_DLL_NAME_WITH_SOVERSION=ON
+                CMake on native Windows (not Cygwin) only:
+
+                This changes the filename liblzma.dll to liblzma-5.dll.
+
+                The unversioned filename liblzma.dll has been used
+                since XZ Utils 5.0.0 when creating binary packages
+                using the included windows/build.bash. The same
+                unversioned filename is the default with CMake.
+                However, there are popular builds that, very
+                understandably and reasonably, use the versioned
+                filename produced by GNU Libtool.
+
+                This option should usually be left to its default value
+                (OFF). It can be set to ON if the liblzma DLL filename
+                must be compatible with the versioned filename
+                produced by GNU Libtool. For example, binaries
+                distributed in MSYS2 use a versioned DLL filename.
 
 
 2.1. Static vs. dynamic linking of liblzma
