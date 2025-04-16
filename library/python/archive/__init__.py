@@ -135,7 +135,7 @@ def extract_tar(
                 path = os.path.join(path, x)
                 if path in seen:
                     continue
-                if six.PY3:
+                if six.PY3 and not sys.platform.startswith('win'):
                     os.utime(path, (mtime, mtime), follow_symlinks=False)
                 else:
                     os.utime(path, (mtime, mtime))
