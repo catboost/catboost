@@ -316,7 +316,7 @@ typename TFormattableView<TRange, TFormatter>::TEnd TFormattableView<TRange, TFo
 }
 
 template <class TRange, class TFormatter>
-TFormattableView<TRange, TFormatter> MakeFormattableView(
+TFormattableView<TRange, std::decay_t<TFormatter>> MakeFormattableView(
     const TRange& range,
     TFormatter&& formatter)
 {
@@ -324,7 +324,7 @@ TFormattableView<TRange, TFormatter> MakeFormattableView(
 }
 
 template <class TRange, class TFormatter>
-TFormattableView<TRange, TFormatter> MakeShrunkFormattableView(
+TFormattableView<TRange, std::decay_t<TFormatter>> MakeShrunkFormattableView(
     const TRange& range,
     TFormatter&& formatter,
     size_t limit)
