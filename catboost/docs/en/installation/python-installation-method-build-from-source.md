@@ -52,6 +52,10 @@ For building with earlier versions see these pages:
 
 1. Installation dependencies are listed in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `install_requires` parameter and processed using standard Python tools.
 
+1. User-defined functions
+
+    {% include [python__user-defined-functions-dependencies](../_includes/work_src/reusage-installation/python__user-defined-functions-dependencies.md) %}
+
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
 
 ## Building

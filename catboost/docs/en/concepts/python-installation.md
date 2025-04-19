@@ -34,6 +34,10 @@ To install the {{ python-package }}:
 
 1. {% include [general-install-data-visualization-support-package](../_includes/work_src/reusage-installation/install-data-visualization-support-package.md) %}
 
+1. (Optionally) Additional setup if user-defined functions are used:
+
+    {% include [python__user-defined-functions-dependencies](../_includes/work_src/reusage-installation/python__user-defined-functions-dependencies.md) %}
+
 1. (Optionally) [Test {{ product }}](../installation/python-installation-test-catboost.md).
 
 Note that there are additional [system requirements](#gpu-system-requirements) if training on GPU is required.
