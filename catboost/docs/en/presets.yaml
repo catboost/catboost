@@ -641,7 +641,7 @@ default:
   github-repo-tutorials: 'https://github.com/catboost/tutorials/'
   pmml-header: 'http://dmg.org/pmml/v4-3/Header.html'
   pmml-v4point3: 'http://dmg.org/pmml/pmml-v4-3.html'
-  clickhouse__applying-catboost-tutorial: 'https://clickhouse.tech/docs/en/guides/apply_catboost_model/'
+  clickhouse__applying-catboost-tutorial: 'https://github.com/ClickHouse/clickhouse-presentations/blob/master/tutorials/catboost_with_clickhouse_en.md'
   wikipedia_under-the-curve: >-
     https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
   learning-to-select-for-predefined-ranking: 'http://proceedings.mlr.press/v97/vorobev19a/vorobev19a.pdf'
