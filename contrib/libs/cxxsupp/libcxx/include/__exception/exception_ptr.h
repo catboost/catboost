@@ -138,7 +138,7 @@ _LIBCPP_HIDE_FROM_ABI exception_ptr make_exception_ptr(_Ep __e) _NOEXCEPT {
 
 #else // _LIBCPP_ABI_MICROSOFT
 
-_LIBCPP_HIDE_FROM_ABI exception_ptr __copy_exception_ptr(void* __exception, const void* __ptr);
+_LIBCPP_EXPORTED_FROM_ABI exception_ptr __copy_exception_ptr(void* __except, const void* __ptr);
 
 // This is a built-in template function which automagically extracts the required
 // information.

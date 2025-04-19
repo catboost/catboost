@@ -63,7 +63,7 @@ extern "C" EHExceptionRecord** __current_exception();
 #ifdef __clang__
 struct _ThrowInfo;
 // defined in vcruntime<ver>.dll
-extern "C" _LIBCPP_NORETURN void __stdcall _CxxThrowException(void* __exc, _ThrowInfo* __throw_info);
+extern "C" [[noreturn]] void __stdcall _CxxThrowException(void* __exc, _ThrowInfo* __throw_info);
 #endif
 
 namespace {
@@ -163,7 +163,6 @@ exception_ptr::exception_ptr(const exception_ptr& __other) noexcept : __ptr_(__o
     reinterpret_cast<ExceptionPtr*>(__ptr_)->counter.fetch_add(1);
   }
 }
-
 exception_ptr& exception_ptr::operator=(const exception_ptr& __other) noexcept {
   auto before = __ptr_;
   __ptr_      = __other.__ptr_;
@@ -211,7 +210,7 @@ exception_ptr current_exception() noexcept {
   return exception_ptr();
 }
 
-_LIBCPP_NORETURN void rethrow_exception(exception_ptr p) {
+[[noreturn]] void rethrow_exception(exception_ptr p) {
   if (!p) {
     throw std::bad_exception();
   }
@@ -232,7 +231,7 @@ nested_exception::nested_exception() noexcept : __ptr_(current_exception()) {}
 
 nested_exception::~nested_exception() noexcept {}
 
-_LIBCPP_NORETURN void nested_exception::rethrow_nested() const {
+[[noreturn]] void nested_exception::rethrow_nested() const {
   if (__ptr_ == nullptr)
     terminate();
   rethrow_exception(__ptr_);
