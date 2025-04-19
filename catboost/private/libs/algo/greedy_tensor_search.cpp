@@ -44,12 +44,15 @@ namespace {
         TIndexType Leaf;
         double Gain;
         TCandidateInfo BestCandidate;
+        std::shared_ptr<TVector<TBucketStats>> Stats;
 
-        TSplitLeafCandidate(TIndexType leaf, double gain, const TCandidateInfo& bestCandidate)
-            : Leaf(leaf)
-            , Gain(gain)
-            , BestCandidate(bestCandidate)
-        {}
+        TSplitLeafCandidate(TIndexType leaf, double gain, const TCandidateInfo& bestCandidate, std::shared_ptr<TVector<TBucketStats>> &stats)
+                : Leaf(leaf)
+                , Gain(gain)
+                , BestCandidate(bestCandidate)
+                , Stats(stats)
+        {
+        }
 
         bool operator<(const TSplitLeafCandidate& other) const {
             return Gain < other.Gain;
@@ -1288,139 +1291,12 @@ static void SplitDocsSubset(
     }
 }
 
-static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
-    const TTrainingDataProviders& data,
-    double modelLength,
-    TProfileInfo& profile,
-    TVector<TIndexType>* indices,
-    TFold* fold,
-    TLearnContext* ctx) {
-
-    Y_ASSERT(IsSamplingPerTree(ctx->Params.ObliviousTreeOptions));
-
-    TNonSymmetricTreeStructure currentStructure;
-
-    const ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
-    TArrayRef<TIndexType> indicesRef(*indices);
-
-    const double scoreStDev = CalcScoreStDev(learnSampleCount, modelLength, *fold, ctx);
-
-    TPriorityQueue<TSplitLeafCandidate> queue;
-    TVector<ui32> leafDepth(ctx->Params.ObliviousTreeOptions->MaxLeaves);
-    const auto findBestCandidate = [&](TIndexType leaf) {
-        Y_DEFER { profile.AddOperation(TStringBuilder() << "Find best candidate for leaf " << leaf); };
-        const auto leafBounds = ctx->SampledDocs.LeavesBounds[leaf];
-        const bool needSplit = leafDepth[leaf] < ctx->Params.ObliviousTreeOptions->MaxDepth
-            && leafBounds.GetSize() >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
-        if (!needSplit) {
-            return;
-        }
-        auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
-        CalcBestScoreLeafwise(
-            data,
-            {leaf},
-            TStatsForSubtractionTrick{},
-            ctx->LearnProgress->Rand.GenRand(),
-            scoreStDev,
-            &candidatesContexts,
-            fold,
-            ctx);
-        const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
-        CheckInterrupted(); // check after long-lasting operation
-
-        double bestScore = MINIMAL_SCORE;
-        const TCandidateInfo* bestSplitCandidate = nullptr;
-        const double scoreBeforeSplit = CalcScoreWithoutSplit(leaf, *fold, *ctx);
-        SelectBestCandidate(data, *ctx, candidatesContexts, maxFeatureValueCount, *fold, scoreBeforeSplit, &bestScore, &bestSplitCandidate);
-        fold->DropEmptyCTRs();
-        if (bestSplitCandidate == nullptr) {
-            return;
-        }
-        const double gain = bestScore - scoreBeforeSplit;
-        CATBOOST_DEBUG_LOG << "Best gain for leaf #" << leaf << " = " << gain << Endl;
-        if (gain < 1e-9) {
-            return;
-        }
-        queue.emplace(leaf, gain, *bestSplitCandidate);
-    };
-    findBestCandidate(0);
-
-    TVector<TIndexedSubset<ui32>> subsetsForLeafs(ctx->Params.ObliviousTreeOptions->MaxLeaves);
-    subsetsForLeafs[0] = xrange(learnSampleCount).operator TIndexedSubset<ui32>();
-
-    while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
-        /*
-         * There is a problem with feature penalties calculation.
-         * We consider a feature unused until we extracted a split with it from the queue.
-         * Before that, all new splits are calculated with penalty for that feature.
-         * And when first split by this feature is extracted from the queue, all other
-         * splits in the queue should be recalculated without penalty for that feature.
-         * However, we don't do it for performance and code simplicity.
-         */
-        const TSplitLeafCandidate curSplitLeaf = queue.top();
-        queue.pop();
-
-        const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
-            data,
-            *fold,
-            ctx->Params.CatFeatureParams->OneHotMaxSize);
-        if (bestSplit.Type == ESplitType::OnlineCtr) {
-            ProcessCtrSplit(data, bestSplit, fold, ctx);
-        }
-
-        const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
-        MarkFeaturesAsUsed(
-            bestSplit,
-            subsetsForLeafs[splittedNodeIdx],
-            ctx->LearnProgress->EstimatedFeaturesContext,
-            *ctx->Layout,
-            &ctx->LearnProgress->UsedFeatures,
-            &ctx->LearnProgress->UsedFeaturesPerObject
-        );
-
-        const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
-        const TIndexType leftChildIdx = ~node.Left;
-        const TIndexType rightChildIdx = ~node.Right;
-        UpdateIndices(
-            node,
-            data,
-            subsetsForLeafs[splittedNodeIdx],
-            *fold,
-            ctx->LocalExecutor,
-            indicesRef
-        );
-
-        Y_ASSERT(leftChildIdx == splittedNodeIdx);
-        TIndexedSubset<ui32> leftChildSubset, rightChildSubset;
-        SplitDocsSubset(subsetsForLeafs[splittedNodeIdx], indicesRef, leftChildIdx, &leftChildSubset, &rightChildSubset);
-        subsetsForLeafs[leftChildIdx] = std::move(leftChildSubset);
-        subsetsForLeafs[rightChildIdx] = std::move(rightChildSubset);
-
-        ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
-            splittedNodeIdx,
-            leftChildIdx,
-            rightChildIdx,
-            *indices,
-            ctx->LocalExecutor);
-        const int newDepth = leafDepth[splittedNodeIdx] + 1;
-        leafDepth[leftChildIdx] = newDepth;
-        leafDepth[rightChildIdx] = newDepth;
-        CATBOOST_DEBUG_LOG << "For node #" << splittedNodeIdx << " built childs: " << leftChildIdx << " and " << rightChildIdx
-            << "with split: " << BuildDescription(*ctx->Layout, bestSplit) << " and score = " << curSplitLeaf.Gain << Endl;
-        findBestCandidate(leftChildIdx);
-        findBestCandidate(rightChildIdx);
-    }
-
-    return currentStructure;
-}
-
 namespace {
     struct TSubtractTrickInfo {
         const TTrainingDataProviders* Data;
         TVector<TCandidatesContext>* CandidatesContexts;
         TFold* Fold;
         TLearnContext* Ctx;
-        TQueue<TVector<TBucketStats>>* ParentsQueue;
         double ScoreStDev;
         int MaxBucketCount;
         ui64 MaxSplitEnsembles;
@@ -1432,13 +1308,11 @@ namespace {
             TVector<TCandidatesContext>* candidatesContexts,
             TFold* fold,
             TLearnContext* ctx,
-            TQueue<TVector<TBucketStats>>* parentsQueue,
             double scoresStDev)
             : Data(data)
             , CandidatesContexts(candidatesContexts)
             , Fold(fold)
             , Ctx(ctx)
-            , ParentsQueue(parentsQueue)
             , ScoreStDev(scoresStDev)
         {
             size_t nFeatures = 0;
@@ -1465,9 +1339,10 @@ namespace {
             // for MultiClassClassification or MultiTarget multiply by approxDimensionion
             StatsSize = MaxBucketCount * nFeatures * MaxSplitEnsembles;
         }
-        void ParentsQueuePop() {
-            if (!ParentsQueue->empty()) {
-                ParentsQueue->pop();
+
+        static void PopIfNonEmpty(TQueue<TVector<TBucketStats>> &parentsQueue) {
+            if (!parentsQueue.empty()) {
+                parentsQueue.pop();
             }
         }
     };
@@ -1501,6 +1376,7 @@ inline static void CalcBestScoreAndCandidate (
         subTrickInfo.CandidatesContexts,
         subTrickInfo.Fold,
         subTrickInfo.Ctx);
+    CheckInterrupted();
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
     SelectBestCandidate(
@@ -1512,6 +1388,7 @@ inline static void CalcBestScoreAndCandidate (
         scoreBeforeSplitLocal,
         &bestScoreLocal,
         bestSplitCandidateLocal);
+    subTrickInfo.Fold->DropEmptyCTRs();
     if (*bestSplitCandidateLocal) {
         *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
@@ -1551,15 +1428,15 @@ static TVector<TBucketStats> CalculateWithSubtractTrick(
     const TArrayRef<TBucketStats> smallStats,
     double* gain,
     const TCandidateInfo** bestSplitCandidate,
-    TSplit* bestSplit) {
+    TSplit* bestSplit,
+    TVector<TBucketStats> &parentStats) {
 
     TVector<TBucketStats> largeStats;
     CB_ENSURE(subTrickInfo.Fold->GetApproxDimension() == 1, "Subtraction trick is not implemented for MultiClass and MultiRegression");
     largeStats.yresize(subTrickInfo.StatsSize);
-    CB_ENSURE(!subTrickInfo.ParentsQueue->empty());
     TStatsForSubtractionTrick statsForSubtractionTrickLarge(
         largeStats,
-        subTrickInfo.ParentsQueue->front(),
+        parentStats,
         smallStats,
         subTrickInfo.MaxBucketCount,
         subTrickInfo.MaxSplitEnsembles);
@@ -1614,7 +1491,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             &candidatesContexts,
             fold,
             ctx,
-            &parentsQueue,
             scoreStDev
         );
 
@@ -1659,8 +1535,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     smallStats,
                     &nextGain,
                     &bestSplitCandidateNext,
-                    &bestSplitNext);
-                subTrickInfo.ParentsQueuePop();
+                    &bestSplitNext,
+                    parentsQueue.front());
+                TSubtractTrickInfo::PopIfNonEmpty(parentsQueue);
                 ConditionalPushToParentsQueue(gain, bestSplitCandidate, std::move(smallStats), &parentsQueue);
                 ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, std::move(largeStats), &parentsQueue);
                 isStatsCalculated = true;
@@ -1677,8 +1554,9 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     smallStats,
                     &gain,
                     &bestSplitCandidate,
-                    &bestSplit);
-                subTrickInfo.ParentsQueuePop();
+                    &bestSplit,
+                    parentsQueue.front());
+                TSubtractTrickInfo::PopIfNonEmpty(parentsQueue);
                 ConditionalPushToParentsQueue(gain, bestSplitCandidate, std::move(largeStats), &parentsQueue);
                 ConditionalPushToParentsQueue(nextGain, bestSplitCandidateNext, std::move(smallStats), &parentsQueue);
                 isStatsCalculated = true;
@@ -1689,7 +1567,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                     &gain,
                     &bestSplitCandidate,
                     &bestSplit);
-                subTrickInfo.ParentsQueuePop();
+                TSubtractTrickInfo::PopIfNonEmpty(parentsQueue);
                 ConditionalPushToParentsQueue(gain, bestSplitCandidate, std::move(stats), &parentsQueue);
                 isStatsCalculated = false;
             }
@@ -1745,6 +1623,258 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Build level " << curDepth);
+    }
+
+    return currentStructure;
+}
+
+static void FindBestCandidate(TIndexType leftLeaf, TIndexType rightLeaf, const std::shared_ptr<TVector<TBucketStats>> &parent, const TTrainingDataProviders& data,
+                              TProfileInfo& profile, TFold* fold, TLearnContext* ctx, double scoreStDev, TVector<ui32>& leafDepth, TPriorityQueue<TSplitLeafCandidate>& queue,
+                              bool isSubtractTrickAllowed) {
+    Y_DEFER { profile.AddOperation(TStringBuilder() << "Find best candidate for left leaf " << leftLeaf); };
+    Y_DEFER { profile.AddOperation(TStringBuilder() << "Find best candidate for right leaf " << rightLeaf); };
+
+    const auto leftLeafBounds = ctx->SampledDocs.LeavesBounds[leftLeaf];
+    const auto rightLeafBounds = ctx->SampledDocs.LeavesBounds[rightLeaf];
+
+    const ui32 leftLeafBoundsSize = leftLeafBounds.GetSize();
+    const ui32 rightLeafBoundsSize = rightLeafBounds.GetSize();
+
+    const auto maxDepth = ctx->Params.ObliviousTreeOptions->MaxDepth;
+    const auto minDataLeaf = ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
+
+    const bool needSplitLeftLeaf = leafDepth[leftLeaf] < maxDepth
+                                   && leftLeafBoundsSize >= minDataLeaf;
+    const bool needSplitRightLeaf = leafDepth[rightLeaf] < maxDepth
+                                    && rightLeafBoundsSize >= minDataLeaf;
+    if (!needSplitLeftLeaf && !needSplitRightLeaf) {
+        return;
+    }
+    auto candidatesContextsLeftLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
+    auto candidatesContextsRightLeaf = candidatesContextsLeftLeaf;
+
+    TSubtractTrickInfo subTrickInfoLeftLeaf(
+            &data,
+            &candidatesContextsLeftLeaf,
+            fold,
+            ctx,
+            scoreStDev
+    );
+    TSubtractTrickInfo subTrickInfoRightLeaf(
+            &data,
+            &candidatesContextsRightLeaf,
+            fold,
+            ctx,
+            scoreStDev
+    );
+
+    const TCandidateInfo* leftLeafBestSplitCandidate = nullptr;
+    double leftLeafGain = 0;
+    TSplit leftLeafBestSplit;
+
+    const TCandidateInfo* rightLeafBestSplitCandidate = nullptr;
+    double rightLeafGain = 0;
+    TSplit rightLeafBestSplit;
+
+    TVector<TBucketStats> leftLeafStats;
+    TVector<TBucketStats> rightLeafStats;
+
+    if(isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf){
+        if (leftLeafBoundsSize <= rightLeafBoundsSize) {
+            leftLeafStats = CalculateStats(
+                    subTrickInfoLeftLeaf,
+                    leftLeaf,
+                    &leftLeafGain,
+                    &leftLeafBestSplitCandidate,
+                    &leftLeafBestSplit);
+
+            rightLeafStats = CalculateWithSubtractTrick(
+                    subTrickInfoRightLeaf,
+                    rightLeaf,
+                    leftLeafStats,
+                    &rightLeafGain,
+                    &rightLeafBestSplitCandidate,
+                    &rightLeafBestSplit,
+                    *parent);
+        } else {
+            rightLeafStats = CalculateStats(
+                    subTrickInfoRightLeaf,
+                    rightLeaf,
+                    &rightLeafGain,
+                    &rightLeafBestSplitCandidate,
+                    &rightLeafBestSplit);
+
+            leftLeafStats = CalculateWithSubtractTrick(
+                    subTrickInfoLeftLeaf,
+                    leftLeaf,
+                    rightLeafStats,
+                    &leftLeafGain,
+                    &leftLeafBestSplitCandidate,
+                    &leftLeafBestSplit,
+                    *parent);
+        }
+    } else {
+        if (needSplitLeftLeaf) {
+            leftLeafStats = CalculateStats(
+                    subTrickInfoLeftLeaf,
+                    leftLeaf,
+                    &leftLeafGain,
+                    &leftLeafBestSplitCandidate,
+                    &leftLeafBestSplit);
+        }
+
+        if (needSplitRightLeaf) {
+            rightLeafStats = CalculateStats(
+                    subTrickInfoRightLeaf,
+                    rightLeaf,
+                    &rightLeafGain,
+                    &rightLeafBestSplitCandidate,
+                    &rightLeafBestSplit);
+        }
+    }
+
+    auto leftLeafStatsPtr = std::make_shared<TVector<TBucketStats>>(std::move(leftLeafStats));
+    auto rightLeafStatsPtr = std::make_shared<TVector<TBucketStats>>(std::move(rightLeafStats));
+
+    if (needSplitLeftLeaf && leftLeafBestSplitCandidate != nullptr && leftLeafGain >= 1e-9) {
+        queue.emplace(leftLeaf, leftLeafGain, *leftLeafBestSplitCandidate, leftLeafStatsPtr);
+    }
+
+    if (needSplitRightLeaf && rightLeafBestSplitCandidate != nullptr && rightLeafGain >= 1e-9) {
+        queue.emplace(rightLeaf, rightLeafGain, *rightLeafBestSplitCandidate, rightLeafStatsPtr);
+    }
+}
+
+static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
+    const TTrainingDataProviders& data,
+    double modelLength,
+    TProfileInfo& profile,
+    TVector<TIndexType>* indices,
+    TFold* fold,
+    TLearnContext* ctx) {
+
+    Y_ASSERT(IsSamplingPerTree(ctx->Params.ObliviousTreeOptions));
+
+    TNonSymmetricTreeStructure currentStructure;
+
+    const ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
+    TArrayRef<TIndexType> indicesRef(*indices);
+
+    const double scoreStDev = CalcScoreStDev(learnSampleCount, modelLength, *fold, ctx);
+
+    const bool isMultiClassOrMultiRegression = fold->GetApproxDimension() != 1;
+    const bool isSimpleRsm = ctx->Params.ObliviousTreeOptions->Rsm == 1.0f;
+    const bool isSubtractTrickAllowed = !isMultiClassOrMultiRegression && isSimpleRsm;
+
+    TPriorityQueue<TSplitLeafCandidate> queue;
+    TVector<ui32> leafDepth(ctx->Params.ObliviousTreeOptions->MaxLeaves);
+
+    const auto findBestCandidateRoot = [&](TIndexType leaf) {
+        Y_DEFER { profile.AddOperation(TStringBuilder() << "Find best candidate for leaf " << leaf); };
+        const auto leafBounds = ctx->SampledDocs.LeavesBounds[leaf];
+
+        const ui32 leafBoundsSize = leafBounds.GetSize();
+
+        const bool needSplit = leafDepth[leaf] < ctx->Params.ObliviousTreeOptions->MaxDepth
+                               && leafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
+        if (!needSplit) {
+            return;
+        }
+
+        auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
+
+        TSubtractTrickInfo subTrickInfo(
+            &data,
+            &candidatesContexts,
+            fold,
+            ctx,
+            scoreStDev
+        );
+
+        const TCandidateInfo* leafBestSplitCandidate = nullptr;
+        double leafGain = 0;
+        TSplit leafBestSplit;
+
+        TVector<TBucketStats> leafStats = CalculateStats(
+            subTrickInfo,
+            leaf,
+            &leafGain,
+            &leafBestSplitCandidate,
+            &leafBestSplit);
+
+        auto leafStatsPtr = std::make_shared<TVector<TBucketStats>>(std::move(leafStats));
+
+        if (leafBestSplitCandidate != nullptr && leafGain >= 1e-9) {
+            queue.emplace(leaf, leafGain, *leafBestSplitCandidate, leafStatsPtr);
+        }
+    };
+
+    findBestCandidateRoot(0);
+
+    TVector<TIndexedSubset<ui32>> subsetsForLeafs(ctx->Params.ObliviousTreeOptions->MaxLeaves);
+    subsetsForLeafs[0] = xrange(learnSampleCount).operator TIndexedSubset<ui32>();
+
+    while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
+        /*
+         * There is a problem with feature penalties calculation.
+         * We consider a feature unused until we extracted a split with it from the queue.
+         * Before that, all new splits are calculated with penalty for that feature.
+         * And when first split by this feature is extracted from the queue, all other
+         * splits in the queue should be recalculated without penalty for that feature.
+         * However, we don't do it for performance and code simplicity.
+         */
+
+        const TSplitLeafCandidate curSplitLeaf = queue.top();
+        queue.pop();
+
+        const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
+            data,
+            *fold,
+            ctx->Params.CatFeatureParams->OneHotMaxSize);
+        if (bestSplit.Type == ESplitType::OnlineCtr) {
+            ProcessCtrSplit(data, bestSplit, fold, ctx);
+        }
+
+        const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
+        MarkFeaturesAsUsed(
+            bestSplit,
+            subsetsForLeafs[splittedNodeIdx],
+            ctx->LearnProgress->EstimatedFeaturesContext,
+            *ctx->Layout,
+            &ctx->LearnProgress->UsedFeatures,
+            &ctx->LearnProgress->UsedFeaturesPerObject
+        );
+
+        const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
+        const TIndexType leftChildIdx = ~node.Left;
+        const TIndexType rightChildIdx = ~node.Right;
+        UpdateIndices(
+            node,
+            data,
+            subsetsForLeafs[splittedNodeIdx],
+            *fold,
+            ctx->LocalExecutor,
+            indicesRef
+        );
+
+        Y_ASSERT(leftChildIdx == splittedNodeIdx);
+        TIndexedSubset<ui32> leftChildSubset, rightChildSubset;
+        SplitDocsSubset(subsetsForLeafs[splittedNodeIdx], indicesRef, leftChildIdx, &leftChildSubset, &rightChildSubset);
+        subsetsForLeafs[leftChildIdx] = std::move(leftChildSubset);
+        subsetsForLeafs[rightChildIdx] = std::move(rightChildSubset);
+
+        ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
+            splittedNodeIdx,
+            leftChildIdx,
+            rightChildIdx,
+            *indices,
+            ctx->LocalExecutor);
+        const int newDepth = leafDepth[splittedNodeIdx] + 1;
+        leafDepth[leftChildIdx] = newDepth;
+        leafDepth[rightChildIdx] = newDepth;
+        CATBOOST_DEBUG_LOG << "For node #" << splittedNodeIdx << " built childs: " << leftChildIdx << " and " << rightChildIdx
+                           << "with split: " << BuildDescription(*ctx->Layout, bestSplit) << " and score = " << curSplitLeaf.Gain << Endl;
+        FindBestCandidate(leftChildIdx, rightChildIdx, curSplitLeaf.Stats, data, profile, fold, ctx, scoreStDev, leafDepth, queue, isSubtractTrickAllowed);
     }
 
     return currentStructure;
