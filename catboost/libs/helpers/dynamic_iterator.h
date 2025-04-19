@@ -154,7 +154,7 @@ namespace NCB {
         bool Next(std::pair<TIndex, TValue>* value) override {
             TValue nextValue;
             if (ValueIterator->Next(&nextValue)) {
-                *value = std::pair<TIndex, TValue>(Index++, *nextValue);
+                *value = std::pair<TIndex, TValue>(Index++, nextValue);
                 return true;
             }
             return false;
