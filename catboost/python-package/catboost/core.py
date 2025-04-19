@@ -152,7 +152,7 @@ class _CustomLoggersStack(object):
                 return _CustomLoggersStack._get_stream_like_object(log)
 
             cout = init_log(log_cout, sys.stdout, 0)
-            cerr = init_log(log_cout, sys.stderr, 1)
+            cerr = init_log(log_cerr, sys.stderr, 1)
 
             _reset_logger()
             _set_logger(cout, cerr)
