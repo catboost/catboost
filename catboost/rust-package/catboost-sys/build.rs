@@ -56,10 +56,5 @@ fn main() {
         out_dir.join("catboost/libs/model_interface").display()
     );
 
-    if target.contains("apple") {
-        println!("cargo:rustc-link-lib=c++");
-    } else {
-        println!("cargo:rustc-link-lib=stdc++");
-    }
     println!("cargo:rustc-link-lib=dylib=catboostmodel");
 }
