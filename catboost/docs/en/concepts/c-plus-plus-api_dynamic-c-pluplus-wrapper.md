@@ -8,18 +8,6 @@ Prebuilt shared library artifacts are available.
 
 {% include [reusage-cli-releases-page](../_includes/work_src/reusage-cli/releases-page.md) %}
 
-|Operating system|CPU architectures|GPU support using [CUDA](https://developer.nvidia.com/cuda-zone)|
-|--------|-----------------|------------|
-| Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
-| macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
-| Windows 10 and 11 | x86_64 |yes|
-
-|Operating system|Files|
-|--|-----|
-|Linux|`libcatboostmodel-linux-{cpu_arch}-{release_version}.so`|
-|macOS|`libcatboostmodel-darwin-universal2-{release_version}.dylib`|
-|Windows|`catboostmodel-windows-{cpu_arch}-{release_version}.lib` and `catboostmodel-windows-{cpu_arch}-{release_version}.dll`|
-
 {% note info %}
 
 {% include [reusage-installation-gpu-support-from-the-box__p](../_includes/work_src/reusage-installation/gpu-support-from-the-box__p.md) %}
@@ -30,12 +18,11 @@ Inference on CUDA-enabled GPUs requires NVIDIA Driver of version 450.80.02 or hi
 
 {% endnote %}
 
-{% note info %}
-
-Release binaries for x86_64 CPU architectures are built with SIMD extensions SSE2, SSE3, SSSE3, SSE4 enabled. If you need to run {{ product }} on older CPUs that do not support these instruction sets [build library binary artifacts yourself](#build)
-
-{% endnote %}
-
+|Operating system|Files|
+|--|-----|
+|Linux|`libcatboostmodel-linux-{cpu_arch}-{release_version}.so`|
+|macOS|`libcatboostmodel-darwin-universal2-{release_version}.dylib`|
+|Windows|`catboostmodel-windows-{cpu_arch}-{release_version}.lib` and `catboostmodel-windows-{cpu_arch}-{release_version}.dll`|
 
 ## Build from source {#build}
 
