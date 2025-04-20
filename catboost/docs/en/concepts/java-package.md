@@ -19,6 +19,16 @@ To apply a previously trained {{ product }} model in Java:
 
     {% endnote %}
 
+    {% note info %}
+
+    {% include [reusage-installation-gpu-support-from-the-box__p](../_includes/work_src/reusage-installation/gpu-support-from-the-box__p.md) %}
+
+    {% include [installation-compute-capability-requirements](../_includes/work_src/reusage-code-examples/compute-capability-requirements.md) %}
+
+    Inference on CUDA-enabled GPUs requires NVIDIA Driver of version 450.80.02 or higher.
+
+    {% endnote %}
+
     Add the following block to the dependencies section of the pom.xml file for Maven:
 
     ```xml

@@ -2,8 +2,14 @@
 
 {% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
 
-{% include [reusage-installation-gpu-support-from-the-box__p](../_includes/work_src/reusage-installation/gpu-support-from-the-box__p.md) %}
+{% note info %}
 
+All Conda packages for Windows have CUDA support.
+Conda packages for Linux contain variants with or without CUDA support.
+
+All necessary CUDA libraries are statically linked in the released Linux and Windows binaries, the only installation necessary is the appropriate version of the CUDA driver.
+
+{% endnote %}
 
 {% include [installation-install-from-conda-forge-channel](../_includes/work_src/reusage-common-phrases/install-from-conda-forge-channel.md) %}
 

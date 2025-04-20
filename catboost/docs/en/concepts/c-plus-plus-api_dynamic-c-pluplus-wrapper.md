@@ -20,13 +20,13 @@ Prebuilt shared library artifacts are available.
 |macOS|`libcatboostmodel-darwin-universal2-{release_version}.dylib`|
 |Windows|`catboostmodel-windows-{cpu_arch}-{release_version}.lib` and `catboostmodel-windows-{cpu_arch}-{release_version}.dll`|
 
-Applying on GPU requires NVIDIA Driver of version 450.80.02 or higher.
-
 {% note info %}
 
-Only CUDA {{ cuda_version__compiled-packages }} is officially supported in compiled binaries for Windows. [Вuild the binary from a local copy](#build) if GPU support is required and the installed version of CUDA differs from {{ cuda_version__compiled-packages }}. {{ product }} should work fine with CUDA {{ cuda_version__compiled-packages }} and later versions.
+{% include [reusage-installation-gpu-support-from-the-box__p](../_includes/work_src/reusage-installation/gpu-support-from-the-box__p.md) %}
 
-All necessary CUDA libraries are statically linked to the Linux and macOS binaries of the {{ product }} applier library, therefore, the only installation necessary is the appropriate version of the CUDA driver.
+{% include [installation-compute-capability-requirements](../_includes/work_src/reusage-code-examples/compute-capability-requirements.md) %}
+
+Inference on CUDA-enabled GPUs requires NVIDIA Driver of version 450.80.02 or higher.
 
 {% endnote %}
 
