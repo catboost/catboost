@@ -258,7 +258,7 @@ items:
       - href: references/training-parameters/ctr.md
         name: CTR settings
       - href: references/training-parameters/input.md
-        name: Input file settings
+        name: Input settings
       - href: references/training-parameters/multiclassification.md
         name: Multiclassification settings
       - href: references/training-parameters/output.md

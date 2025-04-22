@@ -1,4 +1,4 @@
-# Input file settings
+# Input settings
 
 These parameters are only for Command-line.
 
