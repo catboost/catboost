@@ -4,15 +4,38 @@
 
 using namespace NNeh;
 
+namespace {
+    bool IsHttps(TStringBuf scheme) {
+        return TStringBuf("https") == scheme || TStringBuf("fulls") == scheme || TStringBuf("posts") == scheme;
+    }
+
+    bool SplitUserInfo(TStringBuf& path, TStringBuf& userInfo, bool mayHaveSpecificUserInfo) {
+        const size_t pos = path.find_first_of(mayHaveSpecificUserInfo ? TStringBuf("?@") :  TStringBuf("?@/"));
+
+        if (TStringBuf::npos != pos && '@' == path[pos]) {
+            if (mayHaveSpecificUserInfo) {
+                if (!(path.StartsWith("cert=") || path.StartsWith("key="))) {
+                    return false;
+                }
+            }
+
+            path.SplitAt(pos, userInfo, path);
+            path.Skip(1);
+        }
+
+        return true;
+    }
+}
+
 TParsedLocation::TParsedLocation(TStringBuf path) {
     path.Split(':', Scheme, path);
     path.Skip(2);
 
-    const size_t pos = path.find_first_of(TStringBuf("?@"));
-
-    if (TStringBuf::npos != pos && '@' == path[pos]) {
-        path.SplitAt(pos, UserInfo, path);
-        path.Skip(1);
+    // try to handle both https://cert=./path_to_cert@host:port/... (userinfo is "cert=./path_to_cert")
+    // and http[s]://host:port/@zzz (userinfo is empty, host is host, not zzz
+    // see SEARCH-14238
+    if (!SplitUserInfo(path, UserInfo, IsHttps(Scheme))) {
+        SplitUserInfo(path, UserInfo, false);
     }
 
     auto checkRange = [](size_t b, size_t e){
@@ -43,7 +66,7 @@ TParsedLocation::TParsedLocation(TStringBuf path) {
 
 ui16 TParsedLocation::GetPort() const {
     if (!Port) {
-        return TStringBuf("https") == Scheme || TStringBuf("fulls") == Scheme || TStringBuf("posts") == Scheme ? 443 : 80;
+        return IsHttps(Scheme) ? 443 : 80;
     }
 
     return FromString<ui16>(Port);
