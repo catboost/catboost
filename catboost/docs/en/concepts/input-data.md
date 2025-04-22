@@ -14,7 +14,7 @@ Other data transmission methods are available for the [Python](python-installati
 
 {% note info %}
 
-The data format is the same for training, testing, and applying the model. Information about the label value (if available) is ignored during model application.
+The data format is the same for training, testing, and applying the model. Model application uses only features data.
 
 {% endnote %}
 
