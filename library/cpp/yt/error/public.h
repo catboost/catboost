@@ -18,12 +18,13 @@ struct TOriginAttributes;
 ////////////////////////////////////////////////////////////////////////////////
 
 YT_DEFINE_ERROR_ENUM(
-    ((OK)                    (0))
-    ((Generic)               (1))
-    ((Canceled)              (2))
-    ((Timeout)               (3))
-    ((FutureCombinerFailure) (4))
-    ((FutureCombinerShortcut)(5))
+    ((Fatal)                 (-1))
+    ((OK)                     (0))
+    ((Generic)                (1))
+    ((Canceled)               (2))
+    ((Timeout)                (3))
+    ((FutureCombinerFailure)  (4))
+    ((FutureCombinerShortcut) (5))
 );
 
 ////////////////////////////////////////////////////////////////////////////////
