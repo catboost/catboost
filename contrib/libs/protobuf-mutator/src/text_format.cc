@@ -28,9 +28,8 @@ bool ParseTextMessage(const uint8_t* data, size_t size, Message* output) {
 bool ParseTextMessage(const TProtoStringType& data, protobuf::Message* output) {
   output->Clear();
   TextFormat::Parser parser;
-  parser.SetRecursionLimit(100);
   parser.AllowPartialMessage(true);
-  parser.AllowUnknownField(true);
+  PrepareTextParser(parser);
   if (!parser.ParseFromString(data, output)) {
     output->Clear();
     return false;
@@ -49,8 +48,8 @@ size_t SaveMessageAsText(const Message& message, uint8_t* data,
 }
 
 TProtoStringType SaveMessageAsText(const protobuf::Message& message) {
-  String tmp;
-  if (!protobuf::TextFormat::PrintToString(message, &tmp)) return {};
+  TProtoStringType tmp;
+  if (!protobuf::TextFormat::PrintToString(message, &tmp)) tmp.clear();
   return tmp;
 }
 

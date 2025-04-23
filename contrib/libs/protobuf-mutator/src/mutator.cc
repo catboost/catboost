@@ -87,11 +87,7 @@ bool GetRandomBool(RandomEngine* random, size_t n = 2) {
 }
 
 bool IsProto3SimpleField(const FieldDescriptor& field) {
-  assert(field.file()->syntax() == FileDescriptor::SYNTAX_PROTO3 ||
-         field.file()->syntax() == FileDescriptor::SYNTAX_PROTO2);
-  return field.file()->syntax() == FileDescriptor::SYNTAX_PROTO3 &&
-         field.cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE &&
-         !field.containing_oneof() && !field.is_repeated();
+  return !field.is_repeated() && !HasPresence(field);
 }
 
 struct CreateDefaultField : public FieldFunction<CreateDefaultField> {
@@ -384,14 +380,14 @@ std::unique_ptr<Message> UnpackAny(const Any& any) {
 }
 
 const Any* CastToAny(const Message* message) {
-  return Any::GetDescriptor() == message->GetDescriptor()
-             ? static_cast<const Any*>(message)
+  return Any::descriptor() == message->GetDescriptor()
+             ? protobuf::DownCastMessage<Any>(message)
              : nullptr;
 }
 
 Any* CastToAny(Message* message) {
-  return Any::GetDescriptor() == message->GetDescriptor()
-             ? static_cast<Any*>(message)
+  return Any::descriptor() == message->GetDescriptor()
+             ? protobuf::DownCastMessage<Any>(message)
              : nullptr;
 }
 
@@ -486,7 +482,7 @@ class PostProcessing {
           Run(It->second.get(), max_depth);
           TProtoStringType value;
           It->second->SerializePartialToString(&value);
-          *any->mutable_value() = value;
+          *any->mutable_value() = std::move(value);
         }
       }
     }
