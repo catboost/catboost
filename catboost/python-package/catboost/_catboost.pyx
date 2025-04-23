@@ -363,7 +363,7 @@ def make_embedding_type_cast_array_holder(
         if len(element) != embedding_dimension:
             raise CatBoostError(
                 (
-                    'Inсonsistent array size for embedding_feature[object_idx={},feature_idx={}]={}, should be '
+                    'Inconsistent array size for embedding_feature[object_idx={},feature_idx={}]={}, should be '
                     + 'equal to array size for the first object ={}'
                 ).format(
                     object_idx,
