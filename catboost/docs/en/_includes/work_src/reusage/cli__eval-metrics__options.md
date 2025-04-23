@@ -108,11 +108,7 @@ The delimiter character used to separate the data in the dataset description inp
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
-{% note info %}
-
-Used only if the dataset is given in the [Delimiter-separated values format](../../../concepts/input-data_values-file.md).
-
-{% endnote %}
+{% include [note-restriction-delimiter-separated-format](../reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
 **{{ cli__params-table__title__default }}**
 
@@ -123,7 +119,9 @@ The input data is assumed to be tab-separated
 
 #### Description
 
-False (the first line is supposed to have the same data as the rest of them)
+Read the column names from the first line of the dataset file if this parameter is set.
+
+{% include [note-restriction-delimiter-separated-format](../reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
 **{{ cli__params-table__title__default }}**
 
