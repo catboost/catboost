@@ -63,7 +63,7 @@ public:
     bool WeakUnref() const;
 
 private:
-    // NB: Must we 64 bit as TAtomicIntrusivePtr grabs refs in 64K batches.
+    // NB: Must be 64 bit as TAtomicIntrusivePtr grabs refs in 64K batches.
     using TRefCount = i64;
     mutable std::atomic<TRefCount> StrongCount_ = 1;
     mutable std::atomic<TRefCount> WeakCount_ = 1;
