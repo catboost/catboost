@@ -523,7 +523,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         int threadCount,
         bool_t verbose,
         bool_t loadSampleIds,
-        bool_t forceUnitAutoPAirweights
+        bool_t forceUnitAutoPairWeights
     ) except +ProcessException nogil
 
 
