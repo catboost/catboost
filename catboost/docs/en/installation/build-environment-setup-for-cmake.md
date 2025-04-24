@@ -170,3 +170,11 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   Before revision [7b76b2c](https://github.com/catboost/catboost/commit/7b76b2cbece906fbc87d1187410d60fde8747d57) an additional installation of Cython had not been needed because [internal Cython from contrib](https://github.com/catboost/catboost/tree/30a96912bf8c0976a3450132e79d7dfa71dfda26/contrib/tools/cython) had been used.
 
   {% endcut %}
+
+### [Numpy](https://numpy.org/) (only for Python package)
+
+  {% cut "Previous requirements" %}
+
+  Before revision [bdcf319](https://github.com/catboost/catboost/commit/bdcf31952223442f5e07867df7d6f75bfd61b523) an additional installation of Numpy had not been needed because [internal Numpy from contrib](https://github.com/catboost/catboost/tree/61c6cd88e8dcfa85306085fc18889f9dac32ec88/contrib/python/numpy) had been used.
+
+  {% endcut %}
