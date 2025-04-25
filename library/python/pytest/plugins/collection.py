@@ -90,7 +90,9 @@ def _is_skipped_module_level(module):
     # pytest.skip.Exception https://docs.pytest.org/en/stable/reference/reference.html#pytest-skip
     try:
         module.obj
-    except pytest.skip.Exception:
+    except pytest.skip.Exception as e:
+        if not e.allow_module_level:
+            raise RuntimeError("Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`.")
         return True
     except Exception:
         # letting other exceptions such as ImportError slip through
