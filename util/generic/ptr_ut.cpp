@@ -36,6 +36,7 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestRefCountedPtrsInHashSet);
     UNIT_TEST(TestSharedPtrDowncast);
     UNIT_TEST(TestStdCompatibility);
+    UNIT_TEST(TestGetRef);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -91,6 +92,7 @@ private:
     void TestRefCountedPtrsInHashSet();
     void TestSharedPtrDowncast();
     void TestStdCompatibility();
+    void TestGetRef();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TPointerTest);
@@ -960,5 +962,32 @@ void TPointerTest::TestStdCompatibility() {
         TIntrusivePtr<TOp> ptr;
         UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, TOp);
         UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+}
+
+void TPointerTest::TestGetRef() {
+    {
+        TSimpleSharedPtr<int> ptr = MakeSimpleShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), int&);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 5);
+        ptr.GetRef() += 5;
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 10);
+    }
+    {
+        THolder<const int> ptr = MakeHolder<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), const int&);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 5);
+    }
+    {
+        THolder<const int> ptr;
+        UNIT_ASSERT_EXCEPTION(ptr.GetRef(), yexception);
+    }
+
+    {
+        THolder<void, TNoAction> ptr((void*)10);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), void);
+        ptr.GetRef();
+        ptr = {};
+        UNIT_ASSERT_EXCEPTION(ptr.GetRef(), yexception);
     }
 }
