@@ -470,7 +470,7 @@ BOOST_MATH_GPU_ENABLED T bessel_k0_imp(const T& x, const boost::math::integral_c
             BOOST_MATH_BIG_CONSTANT(T, 113, 8.370574966987293592457152146806662562e+03),
             BOOST_MATH_BIG_CONSTANT(T, 113, 4.871254714311063594080644835895740323e+01)
          };
-         if(x < tools::log_max_value<T>())
+         if(-x > tools::log_min_value<T>())
             return  ((tools::evaluate_rational(P, Q, T(1 / x)) + Y) * exp(-x) / sqrt(x));
          else
          {

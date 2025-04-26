@@ -11,8 +11,6 @@
 #ifndef BOOST_MATH_DISTRIBUTIONS_FWD_HPP
 #define BOOST_MATH_DISTRIBUTIONS_FWD_HPP
 
-// 33 distributions at Boost 1.9.1 after adding hyperexpon and arcsine
-
 namespace boost{ namespace math{
 
 template <class RealType, class Policy>

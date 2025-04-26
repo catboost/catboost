@@ -96,7 +96,7 @@ BOOST_MATH_GPU_ENABLED inline T sph_bessel_j_small_z_series(unsigned v, T x, con
 }
 
 template <class T, class Policy>
-BOOST_MATH_GPU_ENABLED T cyl_bessel_j_imp_final(T v, T x, const bessel_no_int_tag& t, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T cyl_bessel_j_imp_final(T v, T x, const bessel_no_int_tag&, const Policy& pol)
 {
    BOOST_MATH_STD_USING
 
@@ -264,7 +264,7 @@ BOOST_MATH_GPU_ENABLED T cyl_bessel_i_imp(T v, T x, const Policy& pol)
 }
 
 template <class T, class Policy>
-BOOST_MATH_GPU_ENABLED inline T cyl_bessel_k_imp(T v, T x, const bessel_no_int_tag& /* t */, const Policy& pol)
+BOOST_MATH_GPU_ENABLED inline T cyl_bessel_k_imp(T v, T x, const bessel_no_int_tag&, const Policy& pol)
 {
    constexpr auto function = "boost::math::cyl_bessel_k<%1%>(%1%,%1%)";
    BOOST_MATH_STD_USING
