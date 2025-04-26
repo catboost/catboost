@@ -4100,20 +4100,20 @@ cdef class _PoolBase:
                 pool_file_path,
                 pairs_file_path,
                 graph_file_path,
-                TPathWithScheme(),
-                TPathWithScheme(),
-                TPathWithScheme(),
-                feature_names_file_path,
-                TPathWithScheme(),
-                input_borders_file_path,
-                columnarPoolFormatParams,
-                emptyIntVec,
-                EObjectsOrder_Undefined,
-                prep_params.tree,
-                block_size,
-                TQuantizedFeaturesInfoPtr(),
-                thread_count,
-                False
+                groupWeightsFilePath=TPathWithScheme(),
+                timestampsFilePath=TPathWithScheme(),
+                baselineFilePath=TPathWithScheme(),
+                featureNamesPath=feature_names_file_path,
+                poolMetaInfoPath=TPathWithScheme(),
+                inputBordersPath=input_borders_file_path,
+                columnarPoolFormatParams=columnarPoolFormatParams,
+                ignoredFeatures=emptyIntVec,
+                objectsOrder=EObjectsOrder_Undefined,
+                plainJsonParams=prep_params.tree,
+                blockSize=block_size,
+                quantizedFeaturesInfo=TQuantizedFeaturesInfoPtr(),
+                threadCount=thread_count,
+                verbose=False
             )
         else:
             self.__pool = ReadDataset(
@@ -4121,18 +4121,18 @@ cdef class _PoolBase:
                 pool_file_path,
                 pairs_file_path,
                 graph_file_path,
-                TPathWithScheme(),
-                TPathWithScheme(),
-                TPathWithScheme(),
-                feature_names_file_path,
-                TPathWithScheme(),
-                columnarPoolFormatParams,
-                emptyIntVec,
-                EObjectsOrder_Undefined,
-                thread_count,
-                False,
-                False,
-                False
+                groupWeightsFilePath=TPathWithScheme(),
+                timestampsFilePath=TPathWithScheme(),
+                baselineFilePath=TPathWithScheme(),
+                featureNamesPath=feature_names_file_path,
+                poolMetaInfoPath=TPathWithScheme(),
+                columnarPoolFormatParams=columnarPoolFormatParams,
+                ignoredFeatures=emptyIntVec,
+                objectsOrder=EObjectsOrder_Undefined,
+                threadCount=thread_count,
+                verbose=False,
+                loadSampleIds=False,
+                forceUnitAutoPairWeights=False
             )
         self.__data_holders = None # free previously used resources
         self.target_type = str
@@ -4288,12 +4288,12 @@ cdef class _PoolBase:
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
-            False,
-            data_meta_info,
-            False,
-            _get_object_count(data),
-            EObjectsOrder_Undefined,
-            resource_holders
+            inBlock=False,
+            metaInfo=data_meta_info,
+            haveUnknownNumberOfSparseFeatures=False,
+            objectCount=_get_object_count(data),
+            objectsOrder=EObjectsOrder_Undefined,
+            resourceHolders=resource_holders
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
 
@@ -5410,9 +5410,9 @@ cdef class _CatBoost:
             to_arcadia_string(fspath(output_file)),
             modelType,
             to_arcadia_string(export_parameters),
-            False,
-            &feature_id if pool else <TVector[TString]*>nullptr,
-            &cat_features_hash_to_string if pool else <THashMap[ui32, TString]*>nullptr
+            addFileFormatExtension=False,
+            featureId=&feature_id if pool else <TVector[TString]*>nullptr,
+            catFeaturesHashToString=&cat_features_hash_to_string if pool else <THashMap[ui32, TString]*>nullptr
         )
 
     cpdef _serialize_model(self):
