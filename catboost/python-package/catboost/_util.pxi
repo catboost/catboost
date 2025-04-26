@@ -52,9 +52,6 @@ cdef inline TString to_arcadia_string(s) except *:
     return TString(<const char*>&bytes_s[0], len(bytes_s))
 
 
-# versions for both TStringBuf and TString are needed because of Cython's bugs that prevent conversion
-# of 'const TString&' to 'TStringBuf' in generated code
-
 cdef inline bytes to_bytes(const TString& s):
     return bytes(s.data()[:s.size()])
 
