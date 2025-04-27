@@ -73,7 +73,7 @@ ctypedef fused common_tvector_type:
     TString
 
 
-cdef tvector_to_py(TConstArrayRef[common_tvector_type] src):
+cdef array_ref_to_py(TConstArrayRef[common_tvector_type] src):
     cdef size_t i = 0
     cdef size_t src_size = src.size()
     res = []
@@ -87,13 +87,13 @@ cdef tvector_to_py(TConstArrayRef[common_tvector_type] src):
     return res
 
 
-cdef tvector_tvector_to_py(TConstArrayRef[TVector[common_tvector_type]] src):
+cdef array_ref_tvector_to_py(TConstArrayRef[TVector[common_tvector_type]] src):
     cdef size_t i = 0
     cdef size_t src_size = src.size()
     res = []
 
     for i in xrange(src_size):
-        res.append(tvector_to_py(<TConstArrayRef[common_tvector_type]>src[i]))
+        res.append(array_ref_to_py(<TConstArrayRef[common_tvector_type]>src[i]))
 
     return res
 
