@@ -2330,6 +2330,7 @@ cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLa
 
 cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData) except *:
     cdef TVector[ui32] result
+    cdef ui32 idx
 
     if hasSeparateEmbeddingFeaturesData:
         result.reserve(featuresLayout.GetExternalFeatureCount() - featuresLayout.GetEmbeddingFeatureCount())
@@ -2653,6 +2654,7 @@ cdef inline TVector[np.float32_t] get_embedding_array_as_vector(
 
     # TODO(akhropov): make yresize accessible in Cython
     object_embedding_data.resize(embedding_dimension)
+    cdef size_t element_idx
     for element_idx in xrange(embedding_dimension):
         try:
             object_embedding_data[element_idx] = _FloatOrNan(src_array[element_idx])
@@ -2723,6 +2725,7 @@ cdef create_embedding_factor_data(
 
     cdef Py_EmbeddingSequencePtr py_embedding_factor_data
 
+    cdef size_t object_idx
     cdef size_t object_count = len(column_values)
     cdef size_t embedding_dimension = len(column_values[0])
 
@@ -3917,7 +3920,7 @@ cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
 
 cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
     cdef ui32 baseline_len = len(baseline)
-    cdef ui32 i
+    cdef ui32 i, j
     for i in xrange(baseline_len):
         for j, value in enumerate(baseline[i]):
             builder_visitor[0].AddBaseline(i, j, float(value))
@@ -3926,6 +3929,7 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
     cdef ui32 baseline_count = len(baseline[0])
     cdef TVector[float] one_dim_baseline
     cdef ui32 baseline_idx
+    cdef int i
     for baseline_idx in xrange(baseline_count):
         one_dim_baseline.clear()
         one_dim_baseline.reserve(len(baseline))
@@ -4154,7 +4158,7 @@ cdef class _PoolBase:
         pairs_weight,
         baseline,
         timestamp,
-        thread_count):
+        int thread_count):
 
         cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
         cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor(thread_count)
@@ -4280,7 +4284,7 @@ cdef class _PoolBase:
         pairs_weight,
         baseline,
         timestamp,
-        thread_count):
+        int thread_count):
 
         cdef Py_ObjectsOrderBuilderVisitor py_builder_visitor = Py_ObjectsOrderBuilderVisitor(thread_count)
         cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
@@ -4328,7 +4332,7 @@ cdef class _PoolBase:
 
     cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
                      group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
-                     thread_count):
+                     int thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
@@ -4432,10 +4436,11 @@ cdef class _PoolBase:
         )
 
     cpdef _set_group_id(self, group_id):
-        rows = self.num_row()
+        cdef ui32 rows = self.num_row()
         cdef TVector[TGroupId] group_id_vector
         group_id_vector.reserve(rows)
 
+        cdef ui32 i
         for i in xrange(rows):
             group_id_vector.push_back(_calc_group_id_for(i, group_id))
 
@@ -4452,10 +4457,11 @@ cdef class _PoolBase:
         )
 
     cpdef _set_subgroup_id(self, subgroup_id):
-        rows = self.num_row()
+        cdef ui32 rows = self.num_row()
         cdef TVector[TSubgroupId] subgroup_id_vector
         subgroup_id_vector.reserve(rows)
 
+        cdef ui32 i
         for i in xrange(rows):
             subgroup_id_vector.push_back(_calc_subgroup_id_for(i, subgroup_id))
 
@@ -4466,13 +4472,15 @@ cdef class _PoolBase:
     cpdef _set_pairs_weight(self, pairs_weight):
         cdef TConstArrayRef[TPair] old_pairs = GetUngroupedPairs(self.__pool.Get()[0])
         cdef TVector[TPair] new_pairs
+        cdef size_t i
         for i in xrange(old_pairs.size()):
             new_pairs.push_back(TPair(old_pairs[i].WinnerId, old_pairs[i].LoserId, pairs_weight[i]))
         self.__pool.Get()[0].SetPairs(TConstArrayRef[TPair](new_pairs.data(), new_pairs.size()))
 
     cpdef _set_baseline(self, baseline):
-        rows = self.num_row()
-        approx_dimension = len(baseline[0])
+        cdef ui32 rows = self.num_row()
+        cdef size_t approx_dimension = len(baseline[0])
+        cdef size_t j
 
         cdef TVector[TVector[float]] baseline_matrix # [approxIdx][objectIdx]
         cdef TVector[TConstArrayRef[float]] baseline_matrix_view # [approxIdx][objectIdx]
@@ -4485,6 +4493,7 @@ cdef class _PoolBase:
                 baseline_matrix[j].size()
             )
 
+        cdef ui32 i
         for i in xrange(rows):
             for j, value in enumerate(baseline[i]):
                 baseline_matrix[j][i] = float(value)
@@ -4597,6 +4606,7 @@ cdef class _PoolBase:
 
         cdef TMaybeData[const TFloatValuesHolder*] maybe_factor_data = raw_objects_data_provider[0].GetFloatFeature(factor_idx)
         cdef TMaybeOwningArrayHolder[float] factor_data
+        cdef ui32 doc
 
         if maybe_factor_data.Defined():
             factor_data = maybe_factor_data.GetRef()[0].ExtractValues(local_executor)
@@ -4628,6 +4638,7 @@ cdef class _PoolBase:
 
         data = np.empty(self.shape, dtype=np.float32)
 
+        cdef ui32 factor
         for factor in xrange(self.num_col()):
             self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>local_executor.Get(), data)
 
@@ -4767,6 +4778,7 @@ cdef class _PoolBase:
         """
         cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
         cdef const TGroupId* groupIdsPtr
+        cdef size_t i
         if arr_group_ids.Defined():
             result_group_ids = np.empty(arr_group_ids.GetRef().size(), dtype=np.uint64)
             groupIdsPtr = arr_group_ids.GetRef().data()
@@ -4786,6 +4798,8 @@ cdef class _PoolBase:
         """
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = self.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline
+        cdef size_t baseline_idx
+        cdef ui32 object_idx
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
             result = np.empty((self.num_row(), baseline.size()), dtype=np.float32)
@@ -4801,7 +4815,7 @@ cdef class _PoolBase:
         for index in row_indices:
             rowIndices.push_back(index)
 
-        thread_count = UpdateThreadCount(-1)
+        cdef int thread_count = UpdateThreadCount(-1)
         self.__pool = pool.__pool.Get()[0].GetSubset(
             GetGroupingSubsetFromObjectsSubset(
                 pool.__pool.Get()[0].ObjectsGrouping,
@@ -4893,6 +4907,7 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_spars
 
 cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices) except *:
     cdef pair[int, int] pair_of_features
+    cdef size_t idx
     if not isinstance(interaction_indices, list):
         raise CatBoostError(
             "interaction_indices is not a list type")
@@ -5010,13 +5025,15 @@ cdef class _CatBoost:
     def __ne__(self, _CatBoost other):
         return dereference(self.__model) != dereference(other.__model)
 
-    cpdef _reserve_test_evals(self, num_tests):
+    cpdef _reserve_test_evals(self, size_t num_tests):
         self.__test_evals.resize(num_tests)
+        cdef size_t i
         for i in xrange(num_tests):
             if self.__test_evals[i] == NULL:
                 self.__test_evals[i] = new TEvalResult()
 
     cpdef _clear_test_evals(self):
+        cdef size_t i
         for i in xrange(self.__test_evals.size()):
             dereference(self.__test_evals[i]).ClearRawValues()
 
@@ -5089,9 +5106,10 @@ cdef class _CatBoost:
 
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
-        num_tests = len(test_evals)
+        cdef size_t num_tests = len(test_evals)
         self._reserve_test_evals(num_tests)
         self._clear_test_evals()
+        cdef size_t test_no
         for test_no in xrange(num_tests):
             for row in test_evals[test_no]:
                 for value in row:
@@ -5101,7 +5119,8 @@ cdef class _CatBoost:
 
     cpdef _get_test_evals(self):
         test_evals = []
-        num_tests = self.__test_evals.size()
+        cdef size_t num_tests = self.__test_evals.size()
+        cdef size_t test_no, i
         for test_no in xrange(num_tests):
             test_eval = []
             for i in xrange(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
@@ -5117,6 +5136,7 @@ cdef class _CatBoost:
             return {}
         best_scores = {}
         best_scores["learn"] = _best_scores_cpp_to_py(self.__metrics_history.LearnBestError)
+        cdef size_t testIdx
         for testIdx in xrange(self.__metrics_history.TestBestError.size()):
             eval_set_name = "validation"
             if self.__metrics_history.TestBestError.size() > 1:
@@ -5481,6 +5501,7 @@ cdef class _CatBoost:
         if not TryFromString[ECtrTableMergePolicy](to_arcadia_string(ctr_merge_policy), merge_policy):
             raise CatBoostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
         assert(len(models) == len(weights))
+        cdef size_t model_id
         for model_id in xrange(len(models)):
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
@@ -5596,6 +5617,7 @@ cdef class _CatBoost:
         result_metrics = set()
         if choose_by_train_test_split:
             self.__metrics_history = trainTestResults
+        cdef size_t metric_idx
         for metric_idx in xrange(results.CvResult.size()):
             name = to_str(results.CvResult[metric_idx].Metric)
             if name in result_metrics:
@@ -5825,6 +5847,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     cdef ui64 current_num
     cdef const TGroupId* group_id_ptr
     cdef TGroupId current_group
+    cdef size_t idx
 
     if not arr_group_ids.Defined():
         for train_test in folds:
@@ -5884,6 +5907,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
     cdef TVector[TFullModel] cvFullModels
+    cdef size_t i
 
     cvParams.FoldCount = fold_count
     cvParams.PartitionRandSeed = partition_random_seed
@@ -5922,6 +5946,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 
     cv_results = defaultdict(list)
     result_metrics = set()
+    cdef size_t metric_idx
     for metric_idx in xrange(results.size()):
         name = to_str(results[metric_idx].Metric)
         if name in result_metrics:
@@ -5943,7 +5968,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     if return_models:
         cv_models = []
         cvFullModels = results.front().CVFullModels
-        for i in xrange(<int>cvFullModels.size()):
+        for i in xrange(cvFullModels.size()):
             catboost_model = _CatBoost()
             catboost_model.__model.Swap(cvFullModels[i])
             cv_models.append(catboost_model)
@@ -5997,14 +6022,16 @@ cdef _metrics_evals_cpp_to_py(const THashMap[TString, double]& src_metrics_evals
 cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
     metrics_evals = defaultdict(functools.partial(defaultdict, list))
 
-    iteration_count = history.LearnMetricsHistory.size()
+    cdef size_t test_count
+    cdef size_t iteration_count = history.LearnMetricsHistory.size()
+    cdef size_t iteration_num, test_index
     for iteration_num in xrange(iteration_count):
         _metrics_evals_cpp_to_py(history.LearnMetricsHistory[iteration_num], metrics_evals["learn"])
 
     if not history.TestMetricsHistory.empty():
         test_count = 0
-        for i in xrange(iteration_count):
-            test_count = max(test_count, history.TestMetricsHistory[i].size())
+        for iteration_num in xrange(iteration_count):
+            test_count = max(test_count, history.TestMetricsHistory[iteration_num].size())
         for iteration_num in xrange(iteration_count):
             for test_index in xrange(history.TestMetricsHistory[iteration_num].size()):
                 eval_set_name = "validation"
@@ -6049,6 +6076,9 @@ cdef class _StagedPredictIterator:
         )
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = pool.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline
+
+        cdef size_t baseline_idx
+        cdef ui32 object_idx
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
             for baseline_idx in xrange(baseline.size()):
@@ -6062,6 +6092,8 @@ cdef class _StagedPredictIterator:
         raise CatBoostError('Can\'t deepcopy _StagedPredictIterator object')
 
     def __next__(self):
+        cdef size_t i, j
+
         if self.ntree_start >= self.ntree_end:
             raise StopIteration
 
@@ -6193,6 +6225,7 @@ cdef class _MetricCalcerBase:
 
         cdef TVector[const IMetric*] metrics = self.__calcer.GetMetricRawPtrs()
 
+        cdef size_t metric_idx
         for metric_idx in xrange(metrics.size()):
             metric = metrics[metric_idx]
             name = to_str(metric.GetDescription())
@@ -6234,13 +6267,15 @@ cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) e
 
 cpdef _eval_metric_util(
     label_param, approx_param, metric, weight_param, group_id_param,
-    group_weight_param, subgroup_id_param, pairs_param, thread_count
+    group_weight_param, subgroup_id_param, pairs_param, int thread_count
 ):
     if (len(label_param[0]) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
-    doc_count = len(label_param[0]);
+    cdef size_t doc_count = len(label_param[0]);
+    cdef size_t i
 
     cdef TVector[TVector[float]] label
+    cdef size_t labelIdx
     for labelIdx in xrange(len(label_param)):
         label.push_back(to_tvector_float(np.array(label_param[labelIdx], dtype=np.float32).ravel()))
 
@@ -6305,7 +6340,7 @@ cpdef _eval_metric_util(
     )
 
 
-cpdef _get_confusion_matrix(model, pool, thread_count):
+cpdef _get_confusion_matrix(model, pool, int thread_count):
     thread_count = UpdateThreadCount(thread_count)
     cdef TVector[double] cm = MakeConfusionMatrix(
         dereference((<_CatBoost>model).__model), (<_PoolBase>pool).__pool, thread_count
@@ -6314,7 +6349,7 @@ cpdef _get_confusion_matrix(model, pool, thread_count):
     return np.array([counter for counter in cm]).reshape((n_classes, n_classes))
 
 
-cpdef _get_roc_curve(model, pools_list, thread_count):
+cpdef _get_roc_curve(model, pools_list, int thread_count):
     thread_count = UpdateThreadCount(thread_count)
     cdef TVector[TDataProviderPtr] pools
     for pool in pools_list:
@@ -6328,7 +6363,7 @@ cpdef _get_roc_curve(model, pools_list, thread_count):
     return fpr, tpr, thresholds
 
 
-cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
+cpdef _select_threshold(model, data, curve, FPR, FNR, int thread_count):
     if FPR is not None and FNR is not None:
         raise CatBoostError('Only one of the parameters FPR, FNR should be initialized.')
 
