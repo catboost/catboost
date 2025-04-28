@@ -1446,9 +1446,12 @@ static TVector<TBucketStats> CalculateWithSubtractTrick(
     return largeStats;
 }
 
-static bool checkSubtractTrickAllowed(
-    bool isMultiClassOrMultiRegression,
-    bool isSimpleRsm) {
+static bool CheckSubtractTrickAllowed(
+    const TFold& fold,
+    const TLearnContext& ctx) {
+
+    const bool isMultiClassOrMultiRegression = fold.GetApproxDimension() != 1;
+    const bool isSimpleRsm = ctx.Params.ObliviousTreeOptions->Rsm == 1.0f;
 
     return !isMultiClassOrMultiRegression && isSimpleRsm;
 }
@@ -1473,9 +1476,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
     std::iota(subsetsForLeafs[0].data(), subsetsForLeafs[0].data() + learnSampleCount, 0);
 
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
-    const bool isMultiClassOrMultiRegression = fold->GetApproxDimension() != 1;
-    const bool isSimpleRsm = ctx->Params.ObliviousTreeOptions->Rsm == 1.0f;
-    const bool isSubtractTrickAllowed = checkSubtractTrickAllowed(isMultiClassOrMultiRegression, isSimpleRsm);
+    const bool isSubtractTrickAllowed = CheckSubtractTrickAllowed(*fold, *ctx);
 
     TVector<TIndexType> curLevelLeafs = {0};
 
@@ -1814,9 +1815,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     TNonSymmetricTreeStructure currentStructure;
     TArrayRef<TIndexType> indicesRef(*indices);
 
-    const bool isMultiClassOrMultiRegression = fold->GetApproxDimension() != 1;
-    const bool isSimpleRsm = ctx->Params.ObliviousTreeOptions->Rsm == 1.0f;
-    const bool isSubtractTrickAllowed = checkSubtractTrickAllowed(isMultiClassOrMultiRegression, isSimpleRsm);
+    const bool isSubtractTrickAllowed = CheckSubtractTrickAllowed(*fold, *ctx);
 
     while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
         /*
