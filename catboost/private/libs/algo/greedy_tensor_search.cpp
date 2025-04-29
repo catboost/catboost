@@ -1083,6 +1083,7 @@ static size_t CalcMaxFeatureValueCount(
             }
         }
     }
+    Cout<<"CalcMaxFeatureValueCount"<<Endl;
     return SafeIntegerCast<size_t>(maxFeatureValueCount);
 }
 
@@ -1206,7 +1207,6 @@ static TSplitTree GreedyTensorSearchOblivious(
         const TCandidateInfo* bestSplitCandidate = nullptr;
         SelectBestCandidate(data, *ctx, candidatesContexts, maxFeatureValueCount, *fold, scoreBeforeSplit, &bestScore, &bestSplitCandidate);
         fold->DropEmptyCTRs();
-        Cout<<"tt"<<Endl;
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
@@ -1391,7 +1391,6 @@ inline static void CalcBestScoreAndCandidate (
         &bestScoreLocal,
         bestSplitCandidateLocal);
     subTrickInfo.Fold->DropEmptyCTRs();
-    Cout<<"tt"<<Endl;
     if (*bestSplitCandidateLocal) {
         *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
@@ -1399,6 +1398,7 @@ inline static void CalcBestScoreAndCandidate (
             subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
     }
     *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
+    Cout<<"done proc"<<Endl;
 }
 
 static TVector<TBucketStats> CalculateStats(
@@ -1632,7 +1632,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
         curLevelLeafs = std::move(nextLevelLeafs);
 
         fold->DropEmptyCTRs();
-        Cout<<"tt"<<Endl;
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Build level " << curDepth);
     }
