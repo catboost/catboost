@@ -1805,7 +1805,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         fold->DropEmptyCTRs();
 
         auto leafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>();
-        leftLeafStatsPtr->swap(leafStats);
+        leafStatsPtr->swap(leafStats);
 
         if (leafBestSplitCandidate != nullptr && leafGain >= 1e-9) {
             queue.emplace(leaf, leafGain, *leafBestSplitCandidate, leafStatsPtr);
