@@ -1389,7 +1389,6 @@ inline static void CalcBestScoreAndCandidate (
         scoreBeforeSplitLocal,
         &bestScoreLocal,
         bestSplitCandidateLocal);
-    subTrickInfo.Fold->DropEmptyCTRs();
     if (*bestSplitCandidateLocal) {
         *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
@@ -1738,8 +1737,12 @@ static void FindBestCandidate(
                 *parent);
     }
 
-    auto leftLeafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>(leftLeafStats);
-    auto rightLeafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>(rightLeafStats);
+    fold->DropEmptyCTRs();
+
+    auto leftLeafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>();
+    leftLeafStatsPtr->swap(leftLeafStats);
+    auto rightLeafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>();
+    leftLeafStatsPtr->swap(rightLeafStats);
 
     if (needSplitLeftLeaf && leftLeafBestSplitCandidate != nullptr && leftLeafGain >= 1e-9) {
         queue->emplace(leftLeaf, leftLeafGain, *leftLeafBestSplitCandidate, leftLeafStatsPtr);
@@ -1799,8 +1802,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             &leafGain,
             &leafBestSplitCandidate,
             &leafBestSplit);
+        fold->DropEmptyCTRs();
 
-        auto leafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>(leafStats);
+        auto leafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>();
+        leftLeafStatsPtr->swap(leafStats);
 
         if (leafBestSplitCandidate != nullptr && leafGain >= 1e-9) {
             queue.emplace(leaf, leafGain, *leafBestSplitCandidate, leafStatsPtr);
