@@ -1,6 +1,6 @@
 SUBSCRIBER(g:matrixnet)
 
-PROGRAM(catboost-python)
+PY2_PROGRAM(catboost-python)
 
 PEERDIR(
     contrib/python/six
