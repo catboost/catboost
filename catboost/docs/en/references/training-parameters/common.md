@@ -216,7 +216,7 @@ Used for reducing the gradient step.
 
 **Default value**
 
-The default value is defined automatically for {{ error-function--Logit }}, {{ error-function--MultiClass }} & {{ error-function--RMSE }} loss functions depending on the number of iterations if none of parameters leaf_estimation_iterations, `--leaf-estimation-method`,l2_leaf_reg is set. In this case, the selected learning rate is printed to stdout and saved in the model.
+The default value is defined automatically for [`Logloss`](../../concepts/loss-functions-classification.md#Logit), [`MultiClass`](../../concepts/loss-functions-multiclassification.md#MultiClass) and [`RMSE`](../../concepts/loss-functions-regression.md#RMSE) loss functions depending on the number of iterations if none of parameters [`leaf_estimation_iterations`](#leaf_estimation_iterations), [`leaf_estimation_method`](#leaf_estimation_method), [`l2_leaf_reg`](#l2_leaf_reg) is set. In this case, the selected learning rate is printed to stdout and saved in the model.
 
 In other cases, the default value is 0.03.
 
