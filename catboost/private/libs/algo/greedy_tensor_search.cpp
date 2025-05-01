@@ -845,6 +845,7 @@ static void CalcBestScoreLeafwise(
         0,
         tasks.ysize(),
         NPar::TLocalExecutor::WAIT_COMPLETE);
+    Cout<<"CalcBestScoreLeafwise"<<Endl;
 }
 
 static double CalcScoreStDev(
@@ -1391,6 +1392,7 @@ inline static void CalcBestScoreAndCandidate (
         &bestScoreLocal,
         bestSplitCandidateLocal);
     subTrickInfo.Fold->DropEmptyCTRs();
+    //Cout<<"DropEmptyCTRs"<<Endl;
     if (*bestSplitCandidateLocal) {
         *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
