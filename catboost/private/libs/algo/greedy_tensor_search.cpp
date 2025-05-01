@@ -1304,7 +1304,6 @@ namespace {
         int MaxBucketCount;
         ui64 MaxSplitEnsembles;
         ui64 StatsSize;
-        size_t MaxFeatureValueCount;
 
         TSubtractTrickInfo(
             const TTrainingDataProviders* data,
@@ -1338,7 +1337,6 @@ namespace {
                     }
                 }
             }
-            MaxFeatureValueCount = CalcMaxFeatureValueCount(*fold, *CandidatesContexts);
             // for MultiClassClassification or MultiTarget multiply by approxDimensionion
             StatsSize = MaxBucketCount * nFeatures * MaxSplitEnsembles;
         }
@@ -1379,6 +1377,7 @@ inline static void CalcBestScoreAndCandidate (
         subTrickInfo.CandidatesContexts,
         subTrickInfo.Fold,
         subTrickInfo.Ctx);
+    const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*subTrickInfo.Fold, *subTrickInfo.CandidatesContexts);
     CheckInterrupted();
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
@@ -1386,7 +1385,7 @@ inline static void CalcBestScoreAndCandidate (
         *subTrickInfo.Data,
         *subTrickInfo.Ctx,
         *subTrickInfo.CandidatesContexts,
-        subTrickInfo.MaxFeatureValueCount,
+        maxFeatureValueCount,
         *subTrickInfo.Fold,
         scoreBeforeSplitLocal,
         &bestScoreLocal,
