@@ -845,7 +845,7 @@ static void CalcBestScoreLeafwise(
         0,
         tasks.ysize(),
         NPar::TLocalExecutor::WAIT_COMPLETE);
-    Cout<<"CalcBestScoreLeafwise"<<Endl;
+    //Cout<<"CalcBestScoreLeafwise"<<Endl;
 }
 
 static double CalcScoreStDev(
@@ -1084,7 +1084,7 @@ static size_t CalcMaxFeatureValueCount(
             }
         }
     }
-    Cout<<"CalcMaxFeatureValueCount"<<Endl;
+    //Cout<<"CalcMaxFeatureValueCount"<<Endl;
     return SafeIntegerCast<size_t>(maxFeatureValueCount);
 }
 
@@ -1399,7 +1399,7 @@ inline static void CalcBestScoreAndCandidate (
             subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
     }
     *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
-    Cout<<"done proc"<<Endl;
+    //Cout<<"done proc"<<Endl;
 }
 
 static TVector<TBucketStats> CalculateStats(
@@ -1844,7 +1844,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
          */
 
         const TSplitLeafCandidate curSplitLeaf = queue.top();
-        Cout<<curSplitLeaf.Leaf<<Endl;
+        //Cout<<curSplitLeaf.Leaf<<Endl;
         queue.pop();
 
         const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
