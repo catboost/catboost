@@ -1685,18 +1685,26 @@ static void FindBestCandidate(
     TVector<TBucketStats> leftLeafStats;
     TVector<TBucketStats> rightLeafStats;
 
+    TSubtractTrickInfo subTrickInfoLeftLeaf(
+            &data,
+            &candidatesContextsLeftLeaf,
+            fold,
+            ctx,
+            scoreStDev
+    );
+    TSubtractTrickInfo subTrickInfoRightLeaf(
+            &data,
+            &candidatesContextsRightLeaf,
+            fold,
+            ctx,
+            scoreStDev
+    );
+
     const bool isCalcDirectly = !isSubtractTrickAllowed || needSplitLeftLeaf != needSplitRightLeaf;
 
     const bool calcLeftDirectly = (isCalcDirectly || (leftLeafBoundsSize <= rightLeafBoundsSize));
     const bool calcRightDirectly = (isCalcDirectly || (leftLeafBoundsSize > rightLeafBoundsSize));
     if (needSplitLeftLeaf && calcLeftDirectly) {
-        TSubtractTrickInfo subTrickInfoLeftLeaf(
-                &data,
-                &candidatesContextsLeftLeaf,
-                fold,
-                ctx,
-                scoreStDev
-        );
         leftLeafStats = CalculateStats(
                 subTrickInfoLeftLeaf,
                 leftLeaf,
@@ -1705,13 +1713,6 @@ static void FindBestCandidate(
                 &leftLeafBestSplit);
     }
     if (needSplitRightLeaf && calcRightDirectly) {
-        TSubtractTrickInfo subTrickInfoRightLeaf(
-                &data,
-                &candidatesContextsRightLeaf,
-                fold,
-                ctx,
-                scoreStDev
-        );
         rightLeafStats = CalculateStats(
                 subTrickInfoRightLeaf,
                 rightLeaf,
@@ -1720,13 +1721,6 @@ static void FindBestCandidate(
                 &rightLeafBestSplit);
     }
     if (needSplitLeftLeaf && !calcLeftDirectly) {
-        TSubtractTrickInfo subTrickInfoLeftLeaf(
-                &data,
-                &candidatesContextsLeftLeaf,
-                fold,
-                ctx,
-                scoreStDev
-        );
         leftLeafStats = CalculateWithSubtractTrick(
                 subTrickInfoLeftLeaf,
                 leftLeaf,
@@ -1737,13 +1731,6 @@ static void FindBestCandidate(
                 *parent);
     }
     if (needSplitRightLeaf && !calcRightDirectly) {
-        TSubtractTrickInfo subTrickInfoRightLeaf(
-                &data,
-                &candidatesContextsRightLeaf,
-                fold,
-                ctx,
-                scoreStDev
-        );
         rightLeafStats = CalculateWithSubtractTrick(
                 subTrickInfoRightLeaf,
                 rightLeaf,
