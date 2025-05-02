@@ -1827,7 +1827,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
          */
 
         const TSplitLeafCandidate curSplitLeaf = queue.top();
-        //Cout<<curSplitLeaf.Leaf<<Endl;
         queue.pop();
 
         const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
