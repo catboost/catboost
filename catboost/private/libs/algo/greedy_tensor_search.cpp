@@ -48,10 +48,10 @@ namespace {
         TSimpleSharedPtr<TVector<TBucketStats>> Stats;
 
         TSplitLeafCandidate(TIndexType leaf, double gain, const TCandidateInfo& bestCandidate, const TSimpleSharedPtr<TVector<TBucketStats>>& stats)
-                : Leaf(leaf)
-                , Gain(gain)
-                , BestCandidate(bestCandidate)
-                , Stats(stats)
+            : Leaf(leaf)
+            , Gain(gain)
+            , BestCandidate(bestCandidate)
+            , Stats(stats)
         {
         }
 
@@ -845,7 +845,6 @@ static void CalcBestScoreLeafwise(
         0,
         tasks.ysize(),
         NPar::TLocalExecutor::WAIT_COMPLETE);
-    //Cout<<"CalcBestScoreLeafwise"<<Endl;
 }
 
 static double CalcScoreStDev(
@@ -1084,7 +1083,6 @@ static size_t CalcMaxFeatureValueCount(
             }
         }
     }
-    //Cout<<"CalcMaxFeatureValueCount"<<Endl;
     return SafeIntegerCast<size_t>(maxFeatureValueCount);
 }
 
@@ -1391,7 +1389,6 @@ inline static void CalcBestScoreAndCandidate (
         &bestScoreLocal,
         bestSplitCandidateLocal);
     subTrickInfo.Fold->DropEmptyCTRs();
-    //Cout<<"DropEmptyCTRs"<<Endl;
     if (*bestSplitCandidateLocal) {
         *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
@@ -1399,7 +1396,6 @@ inline static void CalcBestScoreAndCandidate (
             subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
     }
     *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
-    //Cout<<"done proc"<<Endl;
 }
 
 static TVector<TBucketStats> CalculateStats(
@@ -1686,18 +1682,18 @@ static void FindBestCandidate(
     TVector<TBucketStats> rightLeafStats;
 
     TSubtractTrickInfo subTrickInfoLeftLeaf(
-            &data,
-            &candidatesContextsLeftLeaf,
-            fold,
-            ctx,
-            scoreStDev
+        &data,
+        &candidatesContextsLeftLeaf,
+        fold,
+        ctx,
+        scoreStDev
     );
     TSubtractTrickInfo subTrickInfoRightLeaf(
-            &data,
-            &candidatesContextsRightLeaf,
-            fold,
-            ctx,
-            scoreStDev
+        &data,
+        &candidatesContextsRightLeaf,
+        fold,
+        ctx,
+        scoreStDev
     );
 
     const bool isCalcDirectly = !isSubtractTrickAllowed || needSplitLeftLeaf != needSplitRightLeaf;
@@ -1706,39 +1702,39 @@ static void FindBestCandidate(
     const bool calcRightDirectly = (isCalcDirectly || (leftLeafBoundsSize > rightLeafBoundsSize));
     if (needSplitLeftLeaf && calcLeftDirectly) {
         leftLeafStats = CalculateStats(
-                subTrickInfoLeftLeaf,
-                leftLeaf,
-                &leftLeafGain,
-                &leftLeafBestSplitCandidate,
-                &leftLeafBestSplit);
+            subTrickInfoLeftLeaf,
+            leftLeaf,
+            &leftLeafGain,
+            &leftLeafBestSplitCandidate,
+            &leftLeafBestSplit);
     }
     if (needSplitRightLeaf && calcRightDirectly) {
         rightLeafStats = CalculateStats(
-                subTrickInfoRightLeaf,
-                rightLeaf,
-                &rightLeafGain,
-                &rightLeafBestSplitCandidate,
-                &rightLeafBestSplit);
+            subTrickInfoRightLeaf,
+            rightLeaf,
+            &rightLeafGain,
+            &rightLeafBestSplitCandidate,
+            &rightLeafBestSplit);
     }
     if (needSplitLeftLeaf && !calcLeftDirectly) {
         leftLeafStats = CalculateWithSubtractTrick(
-                subTrickInfoLeftLeaf,
-                leftLeaf,
-                rightLeafStats,
-                &leftLeafGain,
-                &leftLeafBestSplitCandidate,
-                &leftLeafBestSplit,
-                *parent);
+            subTrickInfoLeftLeaf,
+            leftLeaf,
+            rightLeafStats,
+            &leftLeafGain,
+            &leftLeafBestSplitCandidate,
+            &leftLeafBestSplit,
+            *parent);
     }
     if (needSplitRightLeaf && !calcRightDirectly) {
         rightLeafStats = CalculateWithSubtractTrick(
-                subTrickInfoRightLeaf,
-                rightLeaf,
-                leftLeafStats,
-                &rightLeafGain,
-                &rightLeafBestSplitCandidate,
-                &rightLeafBestSplit,
-                *parent);
+            subTrickInfoRightLeaf,
+            rightLeaf,
+            leftLeafStats,
+            &rightLeafGain,
+            &rightLeafBestSplitCandidate,
+            &rightLeafBestSplit,
+            *parent);
     }
 
     auto leftLeafStatsPtr = MakeSimpleShared<TVector<TBucketStats>>(leftLeafStats);
@@ -1777,7 +1773,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         const ui32 leafBoundsSize = leafBounds.GetSize();
 
         const bool needSplit = leafDepth[leaf] < ctx->Params.ObliviousTreeOptions->MaxDepth
-                               && leafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
+            && leafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
         if (!needSplit) {
             return;
         }
