@@ -1302,18 +1302,22 @@ namespace {
         int MaxBucketCount;
         ui64 MaxSplitEnsembles;
         ui64 StatsSize;
+        size_t MaxFeatureValueCount;
+        bool IsCalcDepthwise;
 
         TSubtractTrickInfo(
             const TTrainingDataProviders* data,
             TVector<TCandidatesContext>* candidatesContexts,
             TFold* fold,
             TLearnContext* ctx,
-            double scoresStDev)
+            double scoresStDev,
+            bool isCalcDepthwise)
             : Data(data)
             , CandidatesContexts(candidatesContexts)
             , Fold(fold)
             , Ctx(ctx)
             , ScoreStDev(scoresStDev)
+            , IsCalcDepthwise(isCalcDepthwise)
         {
             size_t nFeatures = 0;
             MaxBucketCount = 0;
@@ -1334,6 +1338,9 @@ namespace {
                         MaxBucketCount = std::max(MaxBucketCount, currentBucketCount);
                     }
                 }
+            }
+            if (isCalcDepthwise) {
+                MaxFeatureValueCount = CalcMaxFeatureValueCount(*fold, *CandidatesContexts);
             }
             // for MultiClassClassification or MultiTarget multiply by approxDimensionion
             StatsSize = MaxBucketCount * nFeatures * MaxSplitEnsembles;
@@ -1375,7 +1382,8 @@ inline static void CalcBestScoreAndCandidate (
         subTrickInfo.CandidatesContexts,
         subTrickInfo.Fold,
         subTrickInfo.Ctx);
-    const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*subTrickInfo.Fold, *subTrickInfo.CandidatesContexts);
+    const size_t maxFeatureValueCount = subTrickInfo.IsCalcDepthwise ? subTrickInfo.MaxFeatureValueCount :
+        CalcMaxFeatureValueCount(*subTrickInfo.Fold, *subTrickInfo.CandidatesContexts);
     CheckInterrupted();
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
@@ -1499,7 +1507,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             &candidatesContexts,
             fold,
             ctx,
-            scoreStDev
+            scoreStDev,
+            true
         );
 
         TSplit bestSplitNext;
@@ -1686,14 +1695,16 @@ static void FindBestCandidate(
         &candidatesContextsLeftLeaf,
         fold,
         ctx,
-        scoreStDev
+        scoreStDev,
+        false
     );
     TSubtractTrickInfo subTrickInfoRightLeaf(
         &data,
         &candidatesContextsRightLeaf,
         fold,
         ctx,
-        scoreStDev
+        scoreStDev,
+        false
     );
 
     const bool isCalcDirectly = !isSubtractTrickAllowed || needSplitLeftLeaf != needSplitRightLeaf;
@@ -1785,7 +1796,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             &candidatesContexts,
             fold,
             ctx,
-            scoreStDev
+            scoreStDev,
+            false
         );
 
         const TCandidateInfo* leafBestSplitCandidate = nullptr;
