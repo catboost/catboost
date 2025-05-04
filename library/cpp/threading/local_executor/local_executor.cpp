@@ -57,7 +57,7 @@ namespace {
 
         void LocalExec(int id) override {
             Y_ASSERT(FirstId <= id && id < LastId);
-            NThreading::NImpl::SetValue(Promises[id - FirstId], [=] { Exec(id); });
+            NThreading::NImpl::SetValue(Promises[id - FirstId], [this, id] { Exec(id); });
         }
 
         TVector<NThreading::TFuture<void>> GetFutures() const {

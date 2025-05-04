@@ -754,7 +754,9 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     Y_UNIT_TEST(MinMaxElementMovableKeys) {
         const TString strings[] = {"one", "two", "three", "four"};
-        struct TMoveOnlyKey: TString, TMoveOnly {
+        struct TMoveOnlyKey
+            : TString,
+              TMoveOnly {
             using TString::TString;
         };
         auto keyFn = [](TString s) { return TMoveOnlyKey{std::move(s)}; };

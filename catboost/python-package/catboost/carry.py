@@ -3,7 +3,7 @@ from . import _catboost
 _carry_by_index = _catboost._carry_by_index
 _carry_by_name = _catboost._carry_by_name
 _uplift_by_index = _catboost._uplift_by_index
-_uplift_by_name = _catboost._uplift_by_index
+_uplift_by_name = _catboost._uplift_by_name
 
 
 def carry(model, features):

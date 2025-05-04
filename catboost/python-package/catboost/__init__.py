@@ -7,7 +7,7 @@ from .core import (
 from .version import VERSION as __version__  # noqa
 __all__ = [
     'FeaturesData', 'EFstrType', 'EShapCalcType', 'EFeaturesSelectionAlgorithm', 'EFeaturesSelectionGrouping',
-    'Pool', 'CatBoost', 'CatBoostClassifier', 'CatBoostRegressor', 'CatBoostRanker', 'CatboostError',
+    'Pool', 'CatBoost', 'CatBoostClassifier', 'CatBoostRegressor', 'CatBoostRanker', 'CatBoostError', 'CatboostError',
     'cv', 'sample_gaussian_process', 'train', 'sum_models', '_have_equal_features',
     'to_regressor', 'to_classifier', 'to_ranker', 'MultiRegressionCustomMetric', 'MultiRegressionCustomObjective',
     'MultiTargetCustomMetric', 'MultiTargetCustomObjective'

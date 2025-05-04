@@ -1,4 +1,5 @@
 #include "ptr.h"
+#include "yexception.h"
 
 #include <util/system/defaults.h>
 #include <util/memory/alloc.h>
@@ -15,3 +16,7 @@ void TDelete::Destroy(void* t) noexcept {
 }
 
 TThrRefBase::~TThrRefBase() = default;
+
+[[noreturn]] void NDetail::NullDerefenceThrowImpl() {
+    ythrow yexception{} << "nullptr dereference";
+}

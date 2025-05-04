@@ -1,9 +1,9 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[CPU-1024]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-1024_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-1024_/predictions.txt"
     },
     "test.test_allow_writing_files_and_used_ram_limit[CPU-2Gb]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.txt"
     },
     "test.test_approximate_shap_feature_importance[CPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_CPU_/feature_importance.npy"
@@ -509,7 +509,7 @@
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
     "test.test_fit_and_predict_on_sliced_pools[CPU]": {
-        "uri": "file://test.test_fit_and_predict_on_sliced_pools_CPU_/predictions.npy"
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_CPU_/predictions.txt"
     },
     "test.test_fit_data[CPU]": {
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
@@ -791,13 +791,13 @@
         "uri": "file://test.test_pool_with_timestamp_CPU_/model.bin"
     },
     "test.test_predict_class[CPU]": {
-        "uri": "file://test.test_predict_class_CPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_CPU_/predictions.txt"
     },
     "test.test_predict_class_proba[CPU]": {
         "uri": "file://test.test_predict_class_proba_CPU_/predictions.npy"
     },
     "test.test_predict_class_raw[CPU]": {
-        "uri": "file://test.test_predict_class_raw_CPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_raw_CPU_/predictions.txt"
     },
     "test.test_predict_regress[CPU]": {
         "uri": "file://test.test_predict_regress_CPU_/model.bin"
@@ -1020,7 +1020,7 @@
         "uri": "file://test.test_sparse_input_with_categorical_features_with_default_value_present_only_in_eval/predictions.txt"
     },
     "test.test_staged_predict[CPU]": {
-        "uri": "file://test.test_staged_predict_CPU_/predictions.npy"
+        "uri": "file://test.test_staged_predict_CPU_/predictions.txt"
     },
     "test.test_text_processing_dictionary": {
         "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"

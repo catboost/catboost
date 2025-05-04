@@ -67,7 +67,8 @@ namespace NCatboostCuda {
         }
 
         if (HasTest && IsSkipOnTestFlags[0]) {
-            CATBOOST_WARNING_LOG << "Warning: Eval metric " << Metrics[0]->GetMetricDescription() << " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
+            CATBOOST_WARNING_LOG << "Warning: Eval metric " << Metrics[0]->GetCpuMetric().GetDescription()
+                << " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
         }
     }
 

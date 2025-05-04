@@ -404,6 +404,7 @@ template <typename T, typename U>
 class MatcherCastImpl<T, Matcher<U>> {
  public:
   static Matcher<T> Cast(const Matcher<U>& source_matcher) {
+    // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
     return Matcher<T>(new Impl(source_matcher));
   }
 

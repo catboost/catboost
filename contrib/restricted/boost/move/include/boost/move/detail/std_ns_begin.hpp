@@ -9,6 +9,9 @@
 #//
 #//////////////////////////////////////////////////////////////////////////////
 #
+#ifndef BOOST_CONFIG_HPP
+#  include <boost/config.hpp>
+#endif
 #if defined(_LIBCPP_VERSION)
    #if defined(__clang__)
       #define BOOST_MOVE_STD_NS_GCC_DIAGNOSTIC_PUSH
@@ -26,6 +29,9 @@
 #elif defined(BOOST_DINKUMWARE_STDLIB)
    #define BOOST_MOVE_STD_NS_BEG _STD_BEGIN
    #define BOOST_MOVE_STD_NS_END _STD_END
+#else
+   #define BOOST_MOVE_STD_NS_BEG namespace std {
+   #define BOOST_MOVE_STD_NS_END }
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1915)

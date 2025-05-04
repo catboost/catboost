@@ -147,8 +147,19 @@ struct TCustomMetricDescriptor {
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
 
     bool IsMultiTargetMetric() const {
-        CB_ENSURE(EvalFunc.Defined() || EvalMultiTargetFunc.Defined(), "Any custom eval function must be defined");
-        CB_ENSURE(EvalFunc.Empty() || EvalMultiTargetFunc.Empty(), "Only one custom eval function must be defined");
+        CB_ENSURE(
+            EvalFunc.Empty() || EvalMultiTargetFunc.Empty(),
+            "Only one of custom CPU eval functions must be defined"
+        );
+        if (GpuEvalFunc.Defined()) {
+            // TODO: support Multitarget custom GPU eval functions
+            return false;
+        }
+
+        CB_ENSURE(
+            EvalFunc.Defined() || EvalMultiTargetFunc.Defined(),
+            "Any custom CPU eval function must be defined"
+        );
         return EvalMultiTargetFunc.Defined();
     }
 };

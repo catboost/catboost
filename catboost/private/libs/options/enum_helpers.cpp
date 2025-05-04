@@ -206,6 +206,9 @@ MakeRegister(LossInfos,
     Registree(SMAPE,
         EMetricAttribute::IsRegression
     ),
+    Registree(RMSPE,
+        EMetricAttribute::IsRegression
+    ),
     Registree(Huber,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
@@ -537,6 +540,7 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::LogLinQuantile,
     ELossFunction::Expectile,
     ELossFunction::MAPE,
+    ELossFunction::RMSPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
     ELossFunction::Huber,

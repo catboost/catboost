@@ -1,3 +1,35 @@
+# Release 1.2.8
+
+## Python package
+* Support Python 3.13 #2748. Thanks to @jeremy010203.
+* Support NumPy 2.x. #2671
+* Drop support for obsolete Python 3.7.
+* Use the proper name of the implementation class as a string id when storing values calculated for custom metrics on GPU. #1792
+* Propagate exceptions from custom metrics code on GPU. #1792
+
+## CatBoost for Apache Spark
+* Fix workers hanging after training. #2151. Thanks to @Shamann.
+* Remove support for Spark 2.x
+
+## Improvements
+* \[R-package\] Allow targets of `character` and `factor` types (useful for classes). #1874
+* Better default `leaf_estimation_iterations` for Tweedie regression on GPU. #2812
+
+## Build & testing
+* Switch to external Cython 3.0.10+ instead of 0.29.x-based version from contrib. #2810
+* Switch to Conan 2.x. #2582
+* \[CUDA\]. Do not output detailed ptxas statistics by default.
+* Used OpenSSL version updated to 3.0.15
+
+## Bugfixes
+* \[JVM applier\]. Methods related to evaluator types have been `private` by mistake.
+* \[JVM applier\]. Categorical features hashing methods have been `private` by mistake.
+* Fix crash when training on a quantized dataset that contains categorical features. #2816
+* Fix prediction of type `Probability` on CPUs that do not have SSE4 instruction set (that includes all ARM CPUs).
+  Values with probability 0 have been erroneously computed as `nan`.
+* Fix race condition when loading sparse datasets.
+
+
 # Node package Release 1.26.0
 (uses `catboostmodel` native libraries from the main CatBoost release v1.2.7)
 * Fix MultiClassification models support. #1903

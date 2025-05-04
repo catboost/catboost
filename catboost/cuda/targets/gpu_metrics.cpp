@@ -737,8 +737,7 @@ namespace NCatboostCuda {
             if (evalMetricDescriptor.Defined() && evalMetricDescriptor.GetRef().GpuEvalFunc.Defined()) {
                 metrics.emplace_back(new TGpuCustomMetric(
                     evalMetricDescriptor.GetRef(),
-                    evalMetricDescription,
-                    cpuApproxDim
+                    evalMetricDescription
                 ));
             } else {
                 metrics.emplace_back(new TCpuFallbackMetric(

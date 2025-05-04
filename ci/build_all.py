@@ -2,7 +2,7 @@
 
 # This script has to be run in CI from CatBoost source tree root
 #
-# For python3.12 it requires 'setuptools' package to be installed (for 'distutils')
+# For python3.12+ it requires 'setuptools' package to be installed (for 'distutils')
 #
 # Environment variables used:
 #

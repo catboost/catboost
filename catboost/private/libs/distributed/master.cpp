@@ -577,7 +577,7 @@ static void UpdateLeavesExact(
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const auto lossFunction = ctx->Params.LossFunctionDescription;
 
-    Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE));
+    Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE));
     averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
     double alpha = 0.5;
     double delta = 0.0;

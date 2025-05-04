@@ -67,7 +67,7 @@ Possible types: tensor of shape [N_examples] and type float
 
 ## Examples {#examples}
 
-The following examples use the [{{ python-package }}](python-quickstart.md) for training and the[ONNX Runtime](https://github.com/Microsoft/onnxruntime) scoring engine for applying the model.
+The following examples use the [{{ python-package }}](python-quickstart.md) for training and the [ONNX Runtime](https://github.com/Microsoft/onnxruntime) scoring engine for applying the model.
 
 ### Binary classification
 

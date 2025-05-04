@@ -13,7 +13,7 @@
 // Azzalini, A. (1985). "A class of distributions which includes the normal ones".
 // Scand. J. Statist. 12: 171-178.
 
-#include <boost/math/distributions/fwd.hpp> // TODO add skew_normal distribution to fwd.hpp!
+#include <boost/math/distributions/fwd.hpp>
 #include <boost/math/special_functions/owens_t.hpp> // Owen's T function
 #include <boost/math/distributions/complement.hpp>
 #include <boost/math/distributions/normal.hpp>

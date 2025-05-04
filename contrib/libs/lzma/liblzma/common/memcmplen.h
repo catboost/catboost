@@ -58,8 +58,7 @@ lzma_memcmplen(const uint8_t *buf1, const uint8_t *buf2,
 
 #if defined(TUKLIB_FAST_UNALIGNED_ACCESS) \
 		&& (((TUKLIB_GNUC_REQ(3, 4) || defined(__clang__)) \
-				&& (defined(__x86_64__) \
-					|| defined(__aarch64__))) \
+				&& SIZE_MAX == UINT64_MAX) \
 			|| (defined(__INTEL_COMPILER) && defined(__x86_64__)) \
 			|| (defined(__INTEL_COMPILER) && defined(_M_X64)) \
 			|| (defined(_MSC_VER) && (defined(_M_X64) \

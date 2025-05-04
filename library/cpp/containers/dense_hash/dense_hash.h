@@ -168,14 +168,10 @@ public:
         } else {
             initSize = FastClp2(initSize);
         }
-        BucketMask = initSize - 1;
+        Buckets.clear();
+        BucketMask = 0;
         NumFilled = 0;
-        TVector<value_type> tmp;
-        for (size_type i = 0; i < initSize; ++i) {
-            tmp.emplace_back(EmptyMarker, mapped_type{});
-        }
-        tmp.swap(Buckets);
-        GrowThreshold = Max<size_type>(1, initSize * MaxLoadFactor / 100) - 1;
+        Grow(initSize);
     }
 
     template <class K>

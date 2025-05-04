@@ -1,37 +1,39 @@
-# Library for parallel task execution in thread pool
+# Library for parallel task execution in a thread pool
 
-This library allows easy parallelization of existing code and cycles.
+This library allows easy parallelization of the existing code, particularly loops.
 It provides `NPar::TLocalExecutor` class and `NPar::LocalExecutor()` singleton accessor.
-At start, `TLocalExecutor` has no threads in thread pool and all async tasks will be queued for later execution when extra threads appear.
-All tasks should be `NPar::ILocallyExecutable` child class or function equal to `std::function<void(int)>`
+At the start, `TLocalExecutor` has no threads in the thread pool and all async tasks will be queued for later execution when extra threads appear.
+All tasks should be either derived from `NPar::ILocallyExecutable` or be of type `std::function<void(int)>`.
 
 ## TLocalExecutor methods
 
-`TLocalExecutor::Run(int threadcount)` - add threads to thread pool (**WARNING!** `Run(threadcount)` will *add* `threadcount` threads to pool)
+`TLocalExecutor::Run(int threadcount)` - add threads to the thread pool (**WARNING!** `Run(threadcount)` will *add* `threadcount` threads to pool)
 
-`void TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int flags)` - run one task and pass id as task function input, flags - bitmask composition of:
+`void TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int flags)` - run a single task and pass `id` as a task function argument, flags - bitmask that can contain:
 
-- `TLocalExecutor::HIGH_PRIORITY = 0` - put task in high priority queue
-- `TLocalExecutor::MED_PRIORITY = 1` - put task in medium priority queue
-- `TLocalExecutor::LOW_PRIORITY = 2` - put task in low priority queue
-- `TLocalExecutor::WAIT_COMPLETE = 4` - wait for task completion
+- `TLocalExecutor::HIGH_PRIORITY = 0` - put the task in the high priority queue
+- `TLocalExecutor::MED_PRIORITY = 1` - put the task in the medium priority queue
+- `TLocalExecutor::LOW_PRIORITY = 2` - put the task in the low priority queue
+- `TLocalExecutor::WAIT_COMPLETE = 4` - wait for the task completion
 
-`void TLocalExecutor::ExecRange(TLocallyExecutableFunction exec, TExecRangeParams blockParams, int flags);` - run range of tasks `[TExecRangeParams::FirstId, TExecRangeParams::LastId).`
+`void TLocalExecutor::ExecRange(TLocallyExecutableFunction exec, TExecRangeParams blockParams, int flags);` - run a range of tasks with ids `[TExecRangeParams::FirstId, TExecRangeParams::LastId).`
 
 `flags` is the same as for `TLocalExecutor::Exec`.
 
-`TExecRangeParams` is a structure that describes the range.
-By default each task is executed separately. Threads from thread pool are taking
-the tasks in the manner first come first serve.
+By default each task for each `id` is executed separately. Threads from the thread pool are taking the tasks in the FIFO manner.
 
-It is also possible to partition range of tasks in consequtive blocks and execute each block as a bigger task.
-`TExecRangeParams::SetBlockCountToThreadCount()` will result in thread count tasks,
-    where thread count is the count of threads in thread pool.
-    each thread will execute approximately equal count of tasks from range.
+It is also possible to partition a range of tasks to consecutive blocks and execute each block as a bigger task.
 
-`TExecRangeParams::SetBlockSize()` and `TExecRangeParams::SetBlockCount()` will partition
-the range of tasks into consequtive blocks of approximately given size, or of size calculated
-     by partitioning the range into approximately equal size blocks of given count.
+`TExecRangeParams` is a structure that is used for that.
+
+`TExecRangeParams::SetBlockCountToThreadCount()`  will partition
+the range of tasks into consecutive blocks with the number of tasks equivalent to the number of threads in the execution pool. The intent is that each thread will take an exactly single block from this partition, although it is not guaranteed, especially if the thread pool is already busy.
+
+`TExecRangeParams::SetBlockSize(TBlockSize blockSize)` will partition
+the range of tasks into consecutive blocks of the size approximately equal to `blockSize`.
+
+`TExecRangeParams::SetBlockCount(TBlockCount blockCount)` will partition
+the range of tasks into consecutive `blockCount` blocks with the approximately equal size.
 
 ## Examples
 
@@ -51,7 +53,7 @@ SomeOtherCode();
 event.WaitI();
 ```
 
-### Execute task range and wait completion
+### Execute a task range and wait for completion
 
 ```cpp
 using namespace NPar;
@@ -64,11 +66,11 @@ LocalExecutor().ExecRange([](int id) {
 
 ### Exception handling
 
-By default if a not caught exception arise in a task which runs through the Local Executor, then std::terminate() will be called immediately. The exception will be printed to stderr before the termination. Best practice is to handle exception within a task, or avoid throwing exceptions at all for performance reasons.
+By default if an uncaught exception is thrown in a task that runs through the Local Executor, then `std::terminate()` will be called immediately. Best practice is to handle exception within a task, or avoid throwing exceptions at all for performance reasons.
 
-However, if you'd like to handle and/or rethrow exceptions outside of a range, you can use ExecRangeWithFuture().
-It returns vector [0 .. LastId-FirstId] elements, where i-th element is a TFuture corresponding to task with id = (FirstId + i).
-Use method .HasValue() of the element to check in Async mode if the corresponding task is complete.
-Use .GetValue() or .GetValueSync() to wait for completion of the corresponding task. GetValue() and GetValueSync() will also rethrow an exception if it appears during execution of the task.
+However, if you'd like to get exceptions that might have occured during the tasks execution instead, you can use `ExecRangeWithFutures()`.
+It returns a vector of [0 .. LastId-FirstId] elements, where i-th element is a `TFuture` corresponding to the task with `id = (FirstId + i)`.
+Use a method `.HasValue()` of the element to check in Async mode if the corresponding task is complete.
+Use `.GetValue()` or `.GetValueSync()` to wait for completion of the corresponding task. `GetValue()` and `GetValueSync()` will also rethrow an exception if it has been thrown during the execution of the task.
 
-You may also use ExecRangeWithThrow() to just receive an exception from a range if it appears. It rethrows an exception from a task with minimal id if such an exception exists, and guarantees normal flow if no exception arise.
+You may also use `ExecRangeWithThrow()` to just receive an exception from a range if it has been thrown from at least one task. It rethrows an exception from a task with the minimal `id` from all the tasks where exceptions have been thrown or just continues as normal of there were no exceptions.

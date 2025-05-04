@@ -140,10 +140,10 @@ explicitly supports the following:
 1. C++11
 2. Clang (gcc and MSVC are best-effort).
 3. Low level optimizations (e.g. assembly or equivalent intrinsics) for:
-  1. [x86](https://en.wikipedia.org/wiki/X86)
-  2. [x86-64](https://en.wikipedia.org/wiki/X86-64)
-  3. ARMv7 (32-bit)
-  4. ARMv8 (AArch64)
+     - [x86](https://en.wikipedia.org/wiki/X86)
+     - [x86-64](https://en.wikipedia.org/wiki/X86-64)
+     - ARMv7 (32-bit)
+     - ARMv8 (AArch64)
 4. Supports only the Snappy compression scheme as described in
   [format_description.txt](format_description.txt).
 5. CMake for building

@@ -1,7 +1,11 @@
 name: Add macOS extra python environments to cache
 
 on:
-  workflow_dispatch
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
 
 jobs:
   add_macos_arm64_extra_env_to_cache:

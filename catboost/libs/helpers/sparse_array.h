@@ -579,7 +579,7 @@ namespace NCB {
 
         // if strict is true compare bit-by-bit, else compare values
         bool EqualTo(const TTypedSequenceContainer<T>& rhs, bool strict = true) const {
-            return Impl->EqualTo(*(rhs->Impl), strict);
+            return Impl->EqualTo(*(rhs.Impl), strict);
         }
 
         ui32 GetSize() const {

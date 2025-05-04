@@ -1,9 +1,9 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[GPU-1024]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-1024_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-1024_/predictions.txt"
     },
     "test.test_allow_writing_files_and_used_ram_limit[GPU-2Gb]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.txt"
     },
     "test.test_approximate_shap_feature_importance[GPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_GPU_/feature_importance.npy"
@@ -323,7 +323,7 @@
         "uri": "file://test.test_feature_importance_prettified_GPU_/feature_importance.txt"
     },
     "test.test_fit_and_predict_on_sliced_pools[GPU]": {
-        "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.npy"
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.txt"
     },
     "test.test_fit_data[GPU]": {
         "uri": "file://test.test_fit_data_GPU_/predictions.npy"
@@ -417,13 +417,13 @@
         "uri": "file://test.test_pool_with_timestamp_GPU_/model.bin"
     },
     "test.test_predict_class[GPU]": {
-        "uri": "file://test.test_predict_class_GPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_GPU_/predictions.txt"
     },
     "test.test_predict_class_proba[GPU]": {
         "uri": "file://test.test_predict_class_proba_GPU_/predictions.npy"
     },
     "test.test_predict_class_raw[GPU]": {
-        "uri": "file://test.test_predict_class_raw_GPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_raw_GPU_/predictions.txt"
     },
     "test.test_predict_regress[GPU]": {
         "uri": "file://test.test_predict_regress_GPU_/model.bin"
@@ -536,7 +536,7 @@
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
     },
     "test.test_staged_predict[GPU]": {
-        "uri": "file://test.test_staged_predict_GPU_/predictions.npy"
+        "uri": "file://test.test_staged_predict_GPU_/predictions.txt"
     },
     "test.test_train_with_embedding_features[GPU-classification]": {
         "uri": "file://test.test_train_with_embedding_features_GPU-classification_/predictions.txt"

@@ -37,6 +37,44 @@
 !! THANK YOU!                        Sebastian Pipping -- Berlin, 2024-03-09 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+Release 2.7.1 Thu March 27 2025
+        Bug fixes:
+       #980 #989  Restore event pointer behavior from Expat 2.6.4
+                    (that the fix to CVE-2024-8176 changed in 2.7.0);
+                    affected API functions are:
+                    - XML_GetCurrentByteCount
+                    - XML_GetCurrentByteIndex
+                    - XML_GetCurrentColumnNumber
+                    - XML_GetCurrentLineNumber
+                    - XML_GetInputContext
+
+        Other changes:
+       #976 #977  Autotools: Integrate files "fuzz/xml_lpm_fuzzer.{cpp,proto}"
+                    with Automake that were missing from 2.7.0 release tarballs
+       #983 #984  Fix printf format specifiers for 32bit Emscripten
+            #992  docs: Promote OpenSSF Best Practices self-certification
+            #978  tests/benchmark: Resolve mistaken double close
+            #986  Address compiler warnings
+       #990 #993  Version info bumped from 11:1:10 (libexpat*.so.1.10.1)
+                    to 11:2:10 (libexpat*.so.1.10.2); see https://verbump.de/
+                    for what these numbers do
+
+        Infrastructure:
+            #982  CI: Start running Perl XML::Parser integration tests
+            #987  CI: Enforce Clang Static Analyzer clean code
+            #991  CI: Re-enable warning clang-analyzer-valist.Uninitialized
+                    for clang-tidy
+            #981  CI: Cover compilation with musl
+       #983 #984  CI: Cover compilation with 32bit Emscripten
+       #976 #977  CI: Protect against fuzzer files missing from future
+                    release archives
+
+        Special thanks to:
+            Berkay Eren Ürün
+            Matthew Fernandez
+                 and
+            Perl XML::Parser
+
 Release 2.7.0 Thu March 13 2025
         Security fixes:
        #893 #973  CVE-2024-8176 -- Fix crash from chaining a large number

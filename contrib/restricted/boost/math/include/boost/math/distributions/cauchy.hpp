@@ -45,23 +45,11 @@ BOOST_MATH_GPU_ENABLED RealType cdf_imp(const cauchy_distribution<RealType, Poli
    //
    // This calculates the cdf of the Cauchy distribution and/or its complement.
    //
-   // The usual formula for the Cauchy cdf is:
+   // This implementation uses the formula
    //
-   // cdf = 0.5 + atan(x)/pi
+   //     cdf = atan2(1, -x)/pi
    //
-   // But that suffers from cancellation error as x -> -INF.
-   //
-   // Recall that for x < 0:
-   //
-   // atan(x) = -pi/2 - atan(1/x)
-   //
-   // Substituting into the above we get:
-   //
-   // CDF = -atan(1/x)/pi  ; x < 0
-   //
-   // So the procedure is to calculate the cdf for -fabs(x)
-   // using the above formula, and then subtract from 1 when required
-   // to get the result.
+   // where x is the standardized (i.e. shifted and scaled) domain variable.
    //
    BOOST_MATH_STD_USING // for ADL of std functions
    constexpr auto function = "boost::math::cdf(cauchy<%1%>&, %1%)";
@@ -99,13 +87,8 @@ BOOST_MATH_GPU_ENABLED RealType cdf_imp(const cauchy_distribution<RealType, Poli
    { // Catches x == NaN
       return result;
    }
-   RealType mx = -fabs((x - location) / scale); // scale is > 0
-   if(mx > -tools::epsilon<RealType>() / 8)
-   {  // special case first: x extremely close to location.
-      return static_cast<RealType>(0.5f);
-   }
-   result = -atan(1 / mx) / constants::pi<RealType>();
-   return (((x > location) != complement) ? 1 - result : result);
+   RealType x_std = static_cast<RealType>((complement) ? 1 : -1)*(x - location) / scale;
+   return atan2(static_cast<RealType>(1), x_std) / constants::pi<RealType>();
 } // cdf
 
 template <class RealType, class Policy>
