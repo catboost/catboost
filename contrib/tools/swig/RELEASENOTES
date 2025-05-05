@@ -7,6 +7,11 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.3.1 summary:
+- Small number of regression fixes for Python and Java.
+- Corner case operator precedence bug fix affecting type deduction.
+- Octave 10 compilation errors fix.
+
 SWIG-4.3.0 summary:
 - Add experimental support for C as a target language.
 - MzScheme/Racket is deprecated and planned for removal in SWIG-4.4.

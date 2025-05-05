@@ -31,16 +31,13 @@
 # include <Python.h>
 #endif
 
-#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
-//# define SWIG_HEAPTYPES
-
-/* Note: Currently this won't activate - it is in place ready for when the
- * SWIGPYTHON_BUILTIN condition above gets removed. */
-# if PY_VERSION_HEX < 0x030c0000 && defined(SWIGPYTHON_BUILTIN)
-#  error #include <structmember.h>
-#  define Py_READONLY READONLY
-#  define Py_T_PYSSIZET T_PYSSIZET
-# endif
+#if defined(SWIGPYTHON_BUILTIN) && defined(SWIG_HEAPTYPES)
+/* SWIG_HEAPTYPES is not ready for use with SWIGPYTHON_BUILTIN, but if turned on manually requires the following */
+#if PY_VERSION_HEX >= 0x03030000 && PY_VERSION_HEX < 0x030c0000
+#error #include <structmember.h>
+#define Py_READONLY READONLY
+#define Py_T_PYSSIZET T_PYSSIZET
+#endif
 #endif
 
 #if __GNUC__ >= 7
