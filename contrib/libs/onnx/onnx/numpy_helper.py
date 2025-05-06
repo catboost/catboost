@@ -1,32 +1,37 @@
 # Copyright (c) ONNX Project Contributors
 #
 # SPDX-License-Identifier: Apache-2.0
-
-# pylint: disable=C3001,isinstance-second-argument-not-valid-type
+from __future__ import annotations
 
 import sys
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Sequence
 
 import numpy as np
 
-from onnx import MapProto, OptionalProto, SequenceProto, TensorProto, helper
+import onnx._custom_element_types as custom_np_types
+from onnx import MapProto, OptionalProto, SequenceProto, TensorProto, helper, subbyte
 from onnx.external_data_helper import load_external_data_for_tensor, uses_external_data
 
 
-def combine_pairs_to_complex(fa: Sequence[int]) -> List[complex]:
+def combine_pairs_to_complex(fa: Sequence[int]) -> list[complex]:
     return [complex(fa[i * 2], fa[i * 2 + 1]) for i in range(len(fa) // 2)]
 
 
 def bfloat16_to_float32(
-    data: Union[np.int16, np.int32, np.ndarray],
-    dims: Optional[Union[int, Sequence[int]]] = None,
+    data: np.int16 | np.int32 | np.ndarray,
+    dims: int | Sequence[int] | None = None,
 ) -> np.ndarray:
     """Converts ndarray of bf16 (as uint32) to f32 (as uint32).
 
-    :param data: a numpy array, empty dimensions are allowed if dims is None
-    :param dims: if specified, the function reshapes the results
-    :return: a numpy array of float32 with the same dimension if dims is None,
-        or reshaped to dims if specified"""
+    Args:
+        data: A numpy array, empty dimensions are allowed if dims is
+            None.
+        dims: If specified, the function reshapes the results.
+
+    Returns:
+        A numpy array of float32 with the same dimension if dims is
+        None, or reshaped to dims if specified
+    """
     shift = lambda x: x << 16  # noqa: E731
     if dims is None:
         if len(data.shape) == 0:
@@ -38,19 +43,20 @@ def bfloat16_to_float32(
 def _float8e4m3_to_float32_scalar(ival: int, fn: bool, uz: bool) -> np.float32:
     if not fn:
         raise NotImplementedError("fn=False is not implemented.")
-    if ival < 0 or ival > 255:
+    if ival < 0 or ival > 255:  # noqa: PLR2004
         raise ValueError(f"{ival} is not a float8.")
     if uz:
         exponent_bias = 8
-        if ival == 0x80:
+        if ival == 0x80:  # noqa: PLR2004
             return np.nan  # type: ignore[return-value]
     else:
         exponent_bias = 7
-        if ival == 255:
+        if ival == 255:  # noqa: PLR2004
             return np.float32(-np.nan)
-        if ival == 127:
+        if ival == 127:  # noqa: PLR2004
             return np.float32(np.nan)
 
+    ival = np.uint32(ival)  # type: ignore[assignment]
     expo = (ival & 0x78) >> 3
     mant = ival & 0x07
     sign = ival & 0x80
@@ -72,7 +78,7 @@ def _float8e4m3_to_float32_scalar(ival: int, fn: bool, uz: bool) -> np.float32:
         res |= mant << 20
         expo += 0x7F - exponent_bias
         res |= expo << 23
-    f = np.uint32(res).view(np.float32)  # pylint: disable=E1121
+    f = np.uint32(res).view(np.float32)
     return f
 
 
@@ -82,21 +88,24 @@ _float8e4m3_to_float32 = np.vectorize(
 
 
 def float8e4m3_to_float32(
-    data: Union[np.int16, np.int32, np.ndarray],
-    dims: Optional[Union[int, Sequence[int]]] = None,
+    data: np.int16 | np.int32 | np.ndarray,
+    dims: int | Sequence[int] | None = None,
     fn: bool = True,
     uz: bool = False,
 ) -> np.ndarray:
     """Converts ndarray of float8, e4m3 (as uint32) to f32 (as uint32).
 
-    :param data: a numpy array, empty dimensions are allowed if dims is None
-    :param dims: if specified, the function reshapes the results
-    :param fn: no infinite values
-    :param uz: no negative zero
-    :return: a numpy array of float32 with the same dimension if dims is None,
-        or reshaped to dims if specified.
-
     See :ref:`onnx-detail-float8` for technical details.
+
+    Args:
+        data: A numpy array, empty dimensions are allowed if dims is None.
+        dims: If specified, the function reshapes the results.
+        fn: No infinite values.
+        uz: No negative zero.
+
+    Returns:
+        A numpy array of float32 with the same dimension if dims is None,
+        or reshaped to dims if specified.
     """
     if not fn:
         raise NotImplementedError(
@@ -110,7 +119,7 @@ def float8e4m3_to_float32(
 
 def _float8e5m2_to_float32_scalar(ival: int, fn: bool, uz: bool) -> np.float32:
     if fn and uz:
-        if ival == 0x80:
+        if ival == 0x80:  # noqa: PLR2004
             return np.float32(np.nan)
         exponent_bias = 16
     elif not fn and not uz:
@@ -118,14 +127,15 @@ def _float8e5m2_to_float32_scalar(ival: int, fn: bool, uz: bool) -> np.float32:
             return np.float32(-np.nan)
         if ival in {125, 126, 127}:
             return np.float32(np.nan)
-        if ival == 252:
+        if ival == 252:  # noqa: PLR2004
             return np.float32(-np.inf)
-        if ival == 124:
+        if ival == 124:  # noqa: PLR2004
             return np.float32(np.inf)
         exponent_bias = 15
     else:
         raise NotImplementedError("fn and uz must be both False or True.")
 
+    ival = np.uint32(ival)  # type: ignore[assignment]
     expo = (ival & 0x7C) >> 2
     mant = ival & 0x03
     sign = ival & 0x80
@@ -143,7 +153,7 @@ def _float8e5m2_to_float32_scalar(ival: int, fn: bool, uz: bool) -> np.float32:
         res |= mant << 21
         expo += 0x7F - exponent_bias
         res |= expo << 23
-    f = np.uint32(res).view(np.float32)  # pylint: disable=E1121
+    f = np.uint32(res).view(np.float32)
     return f
 
 
@@ -153,28 +163,65 @@ _float8e5m2_to_float32 = np.vectorize(
 
 
 def float8e5m2_to_float32(
-    data: Union[np.int16, np.int32, np.ndarray],
-    dims: Optional[Union[int, Sequence[int]]] = None,
+    data: np.int16 | np.int32 | np.ndarray,
+    dims: int | Sequence[int] | None = None,
     fn: bool = False,
     uz: bool = False,
 ) -> np.ndarray:
     """Converts ndarray of float8, e5m2 (as uint32) to f32 (as uint32).
 
-    :param data: a numpy array, empty dimensions are allowed if dims is None
-    :param dims: if specified, the function reshapes the results
-    :param fn: no infinite values
-    :param uz: no negative zero
-    :return: a numpy array of float32 with the same dimension if dims is None,
-        or reshaped to dims if specified"""
+    See :ref:`onnx-detail-float8` for technical details.
+
+    Args:
+        data: A numpy array, empty dimensions are allowed if dims is None.
+        dims: If specified, the function reshapes the results.
+        fn: No infinite values.
+        uz: No negative zero.
+
+    Returns:
+        A numpy array of float32 with the same dimension if dims is None,
+        or reshaped to dims if specified
+    """
     res = _float8e5m2_to_float32(data, fn=fn, uz=uz)
     if dims is None:
         return res  # type: ignore[no-any-return]
     return res.reshape(dims)  # type: ignore[no-any-return]
 
 
-def to_array(  # pylint: disable=too-many-branches
-    tensor: TensorProto, base_dir: str = ""
+def unpack_int4(
+    data: np.int32 | np.ndarray,
+    dims: int | Sequence[int],
+    signed: bool,
 ) -> np.ndarray:
+    """Converts ndarray of int4 (as packed uint8) to f32
+    See :ref:`onnx-detail-int4` for technical details.
+
+    Args:
+        data: A numpy array, empty dimensions are allowed if dims is
+            None.
+        dims: The dimensions are used to reshape the unpacked buffer
+        signed: Whether the 4 bit integer is signed or unsigned
+
+    Returns:
+        A numpy array of float32 reshaped to dims.
+    """
+    single_func = lambda x: subbyte.unpack_single_4bitx2(x, signed)  # noqa: E731
+    func = np.frompyfunc(single_func, 1, 2)
+
+    res_high, res_low = func(data.ravel())
+    res = np.empty((res_high.size + res_low.size,), dtype=np.float32)
+    res[0::2] = res_high
+    res[1::2] = res_low
+
+    if (
+        res.size == np.prod(dims) + 1
+    ):  # handle single-element padding due to odd number of elements
+        res = res.ravel()[:-1]
+    res = res.reshape(dims)
+    return res
+
+
+def _to_array(tensor: TensorProto, base_dir: str = "") -> np.ndarray:  # noqa: PLR0911
     """Converts a tensor def object to a numpy array.
 
     Args:
@@ -199,7 +246,7 @@ def to_array(  # pylint: disable=too-many-branches
 
     if tensor.data_type == TensorProto.STRING:
         utf8_strings = getattr(tensor, storage_field)
-        ss = list(s.decode("utf-8") for s in utf8_strings)
+        ss = [s.decode("utf-8") for s in utf8_strings]
         return np.asarray(ss).astype(np_dtype).reshape(dims)
 
     # Load raw data from external tensor if it exists
@@ -208,32 +255,41 @@ def to_array(  # pylint: disable=too-many-branches
 
     if tensor.HasField("raw_data"):
         # Raw_bytes support: using frombuffer.
+        raw_data = tensor.raw_data
         if sys.byteorder == "big":
             # Convert endian from little to big
-            convert_endian(tensor)
+            raw_data = np.frombuffer(raw_data, dtype=np_dtype).byteswap().tobytes()
 
         # manually convert bf16 since there's no numpy support
         if tensor_dtype == TensorProto.BFLOAT16:
-            data = np.frombuffer(tensor.raw_data, dtype=np.int16)
+            data = np.frombuffer(raw_data, dtype=np.int16)
             return bfloat16_to_float32(data, dims)
 
         if tensor_dtype == TensorProto.FLOAT8E4M3FN:
-            data = np.frombuffer(tensor.raw_data, dtype=np.int8)
+            data = np.frombuffer(raw_data, dtype=np.int8)
             return float8e4m3_to_float32(data, dims)
 
         if tensor_dtype == TensorProto.FLOAT8E4M3FNUZ:
-            data = np.frombuffer(tensor.raw_data, dtype=np.int8)
+            data = np.frombuffer(raw_data, dtype=np.int8)
             return float8e4m3_to_float32(data, dims, uz=True)
 
         if tensor_dtype == TensorProto.FLOAT8E5M2:
-            data = np.frombuffer(tensor.raw_data, dtype=np.int8)
+            data = np.frombuffer(raw_data, dtype=np.int8)
             return float8e5m2_to_float32(data, dims)
 
         if tensor_dtype == TensorProto.FLOAT8E5M2FNUZ:
-            data = np.frombuffer(tensor.raw_data, dtype=np.int8)
+            data = np.frombuffer(raw_data, dtype=np.int8)
             return float8e5m2_to_float32(data, dims, fn=True, uz=True)
 
-        return np.frombuffer(tensor.raw_data, dtype=np_dtype).reshape(dims)  # type: ignore[no-any-return]
+        if tensor_dtype == TensorProto.UINT4:
+            data = np.frombuffer(raw_data, dtype=np.uint8)
+            return unpack_int4(data, dims, signed=False)
+
+        if tensor_dtype == TensorProto.INT4:
+            data = np.frombuffer(raw_data, dtype=np.int8)
+            return unpack_int4(data, dims, signed=True)
+
+        return np.frombuffer(raw_data, dtype=np_dtype).reshape(dims)  # type: ignore[no-any-return]
 
     # float16 is stored as int32 (uint16 type); Need view to get the original value
     if tensor_dtype == TensorProto.FLOAT16:
@@ -264,6 +320,14 @@ def to_array(  # pylint: disable=too-many-branches
         data = np.asarray(tensor.int32_data, dtype=np.int32)
         return float8e5m2_to_float32(data, dims, fn=True, uz=True)
 
+    if tensor_dtype == TensorProto.UINT4:
+        data = np.asarray(tensor.int32_data, dtype=storage_np_dtype)
+        return unpack_int4(data, dims, signed=False)
+
+    if tensor_dtype == TensorProto.INT4:
+        data = np.asarray(tensor.int32_data, dtype=storage_np_dtype)
+        return unpack_int4(data, dims, signed=True)
+
     data = getattr(tensor, storage_field)
     if tensor_dtype in (TensorProto.COMPLEX64, TensorProto.COMPLEX128):
         data = combine_pairs_to_complex(data)  # type: ignore[assignment,arg-type]
@@ -271,7 +335,79 @@ def to_array(  # pylint: disable=too-many-branches
     return np.asarray(data, dtype=storage_np_dtype).astype(np_dtype).reshape(dims)
 
 
-def from_array(arr: np.ndarray, name: Optional[str] = None) -> TensorProto:
+def to_array(tensor: TensorProto, base_dir: str = "") -> np.ndarray:
+    """Converts a tensor def object to a numpy array.
+    Supports types defined in :mod:`onnx._custom_element_types`.
+
+    Args:
+        tensor: a TensorProto object.
+        base_dir: if external tensor exists, base_dir can help to find the path to it
+
+    Returns:
+        arr: the converted array.
+    """
+    elem_type = tensor.data_type
+    if elem_type == TensorProto.BFLOAT16:
+        if uses_external_data(tensor):
+            load_external_data_for_tensor(tensor, base_dir)
+        data = tensor.int32_data
+        shape = tuple(tensor.dims)
+        y = np.empty(shape, dtype=custom_np_types.bfloat16).ravel()
+        for i, d in enumerate(data):
+            y[i] = d
+        return y.reshape(shape)
+
+    if elem_type in (
+        TensorProto.FLOAT8E4M3FN,
+        TensorProto.FLOAT8E4M3FNUZ,
+        TensorProto.FLOAT8E5M2,
+        TensorProto.FLOAT8E5M2FNUZ,
+    ):
+        m = {
+            TensorProto.FLOAT8E4M3FN: custom_np_types.float8e4m3fn,
+            TensorProto.FLOAT8E4M3FNUZ: custom_np_types.float8e4m3fnuz,
+            TensorProto.FLOAT8E5M2: custom_np_types.float8e5m2,
+            TensorProto.FLOAT8E5M2FNUZ: custom_np_types.float8e5m2fnuz,
+        }
+
+        if uses_external_data(tensor):
+            load_external_data_for_tensor(tensor, base_dir)
+        if tensor.HasField("raw_data"):
+            data = tensor.raw_data  # type: ignore[assignment]
+        else:
+            data = tensor.int32_data
+        shape = tuple(tensor.dims)
+        y = np.empty(shape, dtype=m[elem_type]).ravel()  # type: ignore[index]
+        for i, d in enumerate(data):
+            y[i] = d
+        return y.reshape(shape)
+
+    if elem_type in (TensorProto.UINT4, TensorProto.INT4):
+        if uses_external_data(tensor):
+            load_external_data_for_tensor(tensor, base_dir)
+        if tensor.HasField("raw_data"):
+            data = tensor.raw_data  # type: ignore[assignment]
+        else:
+            data = tensor.int32_data
+        shape = tuple(tensor.dims)
+        m = {
+            TensorProto.INT4: custom_np_types.int4,
+            TensorProto.UINT4: custom_np_types.uint4,
+        }
+        dtype = m[elem_type]  # type: ignore[index]
+        signed = elem_type == TensorProto.INT4
+        # 2 packed int4 elements must be represented as a single uint8 value.
+        # Therefore, y is np.uint8 (not the dtype to which the int4 maps)
+        y = np.empty(len(data), dtype=np.uint8).ravel()  # type: ignore[assignment]
+        for i, d in enumerate(data):
+            y[i] = d
+        unpacked_data = unpack_int4(y, dims=shape, signed=signed)
+        return unpacked_data.astype(dtype)
+
+    return _to_array(tensor, base_dir=base_dir)
+
+
+def _from_array(arr: np.ndarray, name: str | None = None) -> TensorProto:
     """Converts a numpy array to a tensor def.
 
     Args:
@@ -281,12 +417,17 @@ def from_array(arr: np.ndarray, name: Optional[str] = None) -> TensorProto:
     Returns:
         TensorProto: the converted tensor def.
     """
+    if not isinstance(arr, (np.ndarray, np.generic)):
+        raise TypeError(
+            f"arr must be of type np.generic or np.ndarray, got {type(arr)}"
+        )
+
     tensor = TensorProto()
     tensor.dims.extend(arr.shape)
     if name:
         tensor.name = name
 
-    if arr.dtype == object:
+    if arr.dtype == object or np.issubdtype(arr.dtype, np.str_):
         # Special care for strings.
         tensor.data_type = helper.np_dtype_to_tensor_dtype(arr.dtype)
         # TODO: Introduce full string support.
@@ -321,9 +462,7 @@ def from_array(arr: np.ndarray, name: Optional[str] = None) -> TensorProto:
     try:
         dtype = helper.np_dtype_to_tensor_dtype(arr.dtype)
     except KeyError as e:
-        raise RuntimeError(
-            f"Numpy data type not understood yet: {str(arr.dtype)}"
-        ) from e
+        raise RuntimeError(f"Numpy data type not understood yet: {arr.dtype!r}") from e
     tensor.data_type = dtype
     tensor.raw_data = arr.tobytes()  # note: tobytes() is only after 1.9.
     if sys.byteorder == "big":
@@ -333,7 +472,68 @@ def from_array(arr: np.ndarray, name: Optional[str] = None) -> TensorProto:
     return tensor
 
 
-def to_list(sequence: SequenceProto) -> List[Any]:
+def from_array(tensor: np.ndarray, name: str | None = None) -> TensorProto:
+    """Converts an array into a TensorProto including
+    supported type defined in :mod:`onnx._custom_element_types`.
+
+    Args:
+        tensor: a numpy array.
+        name: (optional) the name of the tensor.
+
+    Returns:
+        TensorProto: the converted tensor def.
+    """
+    if not isinstance(tensor, np.ndarray):
+        return _from_array(tensor, name)
+
+    dt = tensor.dtype
+    if dt == custom_np_types.float8e4m3fn and dt.descr[0][0] == "e4m3fn":
+        to = TensorProto.FLOAT8E4M3FN
+        dt_to = np.uint8  # type: ignore[assignment]
+    elif dt == custom_np_types.float8e4m3fnuz and dt.descr[0][0] == "e4m3fnuz":
+        to = TensorProto.FLOAT8E4M3FNUZ
+        dt_to = np.uint8  # type: ignore[assignment]
+    elif dt == custom_np_types.float8e5m2 and dt.descr[0][0] == "e5m2":
+        to = TensorProto.FLOAT8E5M2
+        dt_to = np.uint8  # type: ignore[assignment]
+    elif dt == custom_np_types.float8e5m2fnuz and dt.descr[0][0] == "e5m2fnuz":
+        to = TensorProto.FLOAT8E5M2FNUZ
+        dt_to = np.uint8  # type: ignore[assignment]
+    elif dt == custom_np_types.bfloat16 and dt.descr[0][0] == "bfloat16":
+        to = TensorProto.BFLOAT16
+        dt_to = np.uint16  # type: ignore[assignment]
+    elif dt == custom_np_types.int4 and dt.descr[0][0] == "int4":
+        to = TensorProto.INT4
+        dt_to = np.int8  # type: ignore[assignment]
+    elif dt == custom_np_types.uint4 and dt.descr[0][0] == "uint4":
+        to = TensorProto.UINT4
+        dt_to = np.uint8  # type: ignore[assignment]
+    else:
+        return _from_array(tensor, name)
+
+    if to in (TensorProto.UINT4, TensorProto.INT4):
+        value = tensor.astype(dt_to).ravel()
+        if value.size % 2 == 1:
+            raise ValueError(
+                f"The conversion of a tensor of INT4 or UINT4 requires an even size "
+                f"(shape={tensor.shape}). Every byte stores two INT4 or two UINT4."
+            )
+        buffer = (value[::2] & 0x0F) + (value[1::2] << 4)
+
+        pb = TensorProto()
+        pb.dims.extend(tensor.shape)
+        if name:
+            pb.name = name
+        pb.raw_data = buffer.tobytes()
+        pb.data_type = to
+        return pb
+
+    t = _from_array(tensor.astype(dt_to), name)
+    t.data_type = to
+    return t
+
+
+def to_list(sequence: SequenceProto) -> list[Any]:
     """Converts a sequence def to a Python list.
 
     Args:
@@ -354,9 +554,9 @@ def to_list(sequence: SequenceProto) -> List[Any]:
     raise TypeError("The element type in the input sequence is not supported.")
 
 
-def from_list(  # pylint: disable=too-many-branches
-    lst: List[Any], name: Optional[str] = None, dtype: Optional[int] = None
-) -> SequenceProto:  # pylint: disable=too-many-branches
+def from_list(
+    lst: list[Any], name: str | None = None, dtype: int | None = None
+) -> SequenceProto:
     """Converts a list into a sequence def.
 
     Args:
@@ -411,16 +611,16 @@ def from_list(  # pylint: disable=too-many-branches
     return sequence
 
 
-def to_dict(map_proto: MapProto) -> Dict[Any, Any]:
+def to_dict(map_proto: MapProto) -> dict[Any, Any]:
     """Converts a map def to a Python dictionary.
 
     Args:
-        map: a MapProto object.
+        map_proto: a MapProto object.
 
     Returns:
-        dict: the converted dictionary.
+        The converted dictionary.
     """
-    key_list: List[Any] = []
+    key_list: list[Any] = []
     if map_proto.key_type == TensorProto.STRING:
         key_list = list(map_proto.string_keys)
     else:
@@ -437,11 +637,11 @@ def to_dict(map_proto: MapProto) -> Dict[Any, Any]:
     return dictionary
 
 
-def from_dict(dict_: Dict[Any, Any], name: Optional[str] = None) -> MapProto:
+def from_dict(dict_: dict[Any, Any], name: str | None = None) -> MapProto:
     """Converts a Python dictionary into a map def.
 
     Args:
-        dict: Python dictionary
+        dict_: Python dictionary
         name: (optional) the name of the map.
 
     Returns:
@@ -451,7 +651,7 @@ def from_dict(dict_: Dict[Any, Any], name: Optional[str] = None) -> MapProto:
     if name:
         map_proto.name = name
     keys = list(dict_)
-    raw_key_type = np.array(keys[0]).dtype
+    raw_key_type = np.result_type(keys[0])
     key_type = helper.np_dtype_to_tensor_dtype(raw_key_type)
 
     valid_key_int_types = [
@@ -465,12 +665,11 @@ def from_dict(dict_: Dict[Any, Any], name: Optional[str] = None) -> MapProto:
         TensorProto.UINT64,
     ]
 
-    if not all(
-        isinstance(
-            key,
-            raw_key_type,  # type: ignore[arg-type]
+    if not (
+        all(
+            np.result_type(key) == raw_key_type  # type: ignore[arg-type]
+            for key in keys
         )
-        for key in keys
     ):
         raise TypeError(
             "The key type in the input dictionary is not the same "
@@ -478,8 +677,8 @@ def from_dict(dict_: Dict[Any, Any], name: Optional[str] = None) -> MapProto:
         )
 
     values = list(dict_.values())
-    raw_value_type = type(values[0])
-    if not all(isinstance(val, raw_value_type) for val in values):
+    raw_value_type = np.result_type(values[0])
+    if not all(np.result_type(val) == raw_value_type for val in values):
         raise TypeError(
             "The value type in the input dictionary is not the same "
             "for all values and therefore is not valid as a map."
@@ -496,7 +695,7 @@ def from_dict(dict_: Dict[Any, Any], name: Optional[str] = None) -> MapProto:
     return map_proto
 
 
-def to_optional(optional: OptionalProto) -> Optional[Any]:
+def to_optional(optional: OptionalProto) -> Any | None:
     """Converts an optional def to a Python optional.
 
     Args:
@@ -522,7 +721,7 @@ def to_optional(optional: OptionalProto) -> Optional[Any]:
 
 
 def from_optional(
-    opt: Optional[Any], name: Optional[str] = None, dtype: Optional[int] = None
+    opt: Any | None, name: str | None = None, dtype: int | None = None
 ) -> OptionalProto:
     """Converts an optional value into a Optional def.
 
@@ -574,11 +773,10 @@ def from_optional(
 
 
 def convert_endian(tensor: TensorProto) -> None:
-    """
-    Call to convert endianess of raw data in tensor.
+    """Call to convert endianness of raw data in tensor.
 
-    Arguments:
-        tensor (TensorProto): TensorProto to be converted.
+    Args:
+        tensor: TensorProto to be converted.
     """
     tensor_dtype = tensor.data_type
     np_dtype = helper.tensor_dtype_to_np_dtype(tensor_dtype)
@@ -588,18 +786,17 @@ def convert_endian(tensor: TensorProto) -> None:
 
 
 def create_random_int(
-    input_shape: Tuple[int], dtype: np.dtype, seed: int = 1
+    input_shape: tuple[int], dtype: np.dtype, seed: int = 1
 ) -> np.ndarray:
-    """
-    Create random integer array for backend/test/case/node.
+    """Create random integer array for backend/test/case/node.
 
     Args:
-        input_shape: specify the shape for the returned integer array.
-        dtype: specify the NumPy data type for the returned integer array.
-        seed: (optional) the seed for np.random.
+        input_shape: The shape for the returned integer array.
+        dtype: The NumPy data type for the returned integer array.
+        seed: The seed for np.random.
 
     Returns:
-        np.ndarray: the created random integer array.
+        np.ndarray: Random integer array.
     """
     np.random.seed(seed)
     if dtype in (

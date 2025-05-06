@@ -7,7 +7,10 @@ complete.
 
 """
 
-from typing import Dict, List, Optional, Sequence, Union
+from __future__ import annotations
+
+import os
+from typing import Sequence
 
 import onnx
 from onnx.onnx_cpp2py_export import shape_inference as C  # noqa: N812
@@ -15,7 +18,7 @@ from onnx import AttributeProto, FunctionProto, ModelProto, TypeProto
 
 
 def infer_shapes(
-    model: Union[ModelProto, bytes],
+    model: ModelProto | bytes,
     check_type: bool = False,
     strict_mode: bool = False,
     data_prop: bool = False,
@@ -29,11 +32,11 @@ def infer_shapes(
     bug in shape inference), and the result is unspecified.
 
     Arguments:
-        model (Union[ModelProto, bytes], bool, bool, bool) -> ModelProto
-        check_type (bool): Checks the type-equality for input and output
-        strict_mode (bool): Stricter shape inference, it will throw errors if any;
-            Otherwise, simply stop if any error
-        data_prop (bool): Enables data propagation for limited operators to perform shape computation
+        model: ModelProto.
+        check_type: Checks the type-equality for input and output.
+        strict_mode: Stricter shape inference, it will throw errors if any;
+            Otherwise, simply stop if any error.
+        data_prop: Enables data propagation for limited operators to perform shape computation.
 
     Returns:
         (ModelProto) model with inferred shape information
@@ -56,43 +59,52 @@ def infer_shapes(
 
 
 def infer_shapes_path(
-    model_path: str,
-    output_path: str = "",
+    model_path: str | os.PathLike,
+    output_path: str | os.PathLike = "",
     check_type: bool = False,
     strict_mode: bool = False,
     data_prop: bool = False,
 ) -> None:
-    """
-    Take model path for shape_inference same as infer_shape; it support >2GB models
-    Directly output the inferred model to the output_path; Default is the original model path
+    """Take model path for shape_inference.
+
+    This function is the same as :func:`infer_shape` but supports >2GB models.
+    The function outputs the inferred model to the `output_path`. The original model path
+    is used if not specified.
     """
     if isinstance(model_path, ModelProto):
         raise TypeError(
             "infer_shapes_path only accepts model Path (String),"
             "you can use infer_shapes for the ModelProto."
         )
-    # Directly output the inferred model into the specified path, return nothing
-    if isinstance(model_path, str):
-        # If output_path is not defined, default output_path would be the original model path
-        if output_path == "":
-            output_path = model_path
-        C.infer_shapes_path(model_path, output_path, check_type, strict_mode, data_prop)
-    else:
+    try:
+        model_path = os.fspath(model_path)
+    except TypeError as exp:
         raise TypeError(
-            "infer_shapes_path only accepts model path (String), "
-            f"incorrect type: {type(model_path)}"
-        )
+            "infer_shapes_path only accepts model path as a string or PathLike, "
+            f"incorrect model path type: {type(model_path)}"
+        ) from exp
+    try:
+        output_path = os.fspath(output_path)
+    except TypeError as exp:
+        raise TypeError(
+            "infer_shapes_path only accepts output path as a string or PathLike, "
+            f"incorrect output path type: {type(output_path)}"
+        ) from exp
+
+    if output_path == "":
+        output_path = model_path
+    C.infer_shapes_path(model_path, output_path, check_type, strict_mode, data_prop)
 
 
 def infer_node_outputs(
     schema: onnx.defs.OpSchema,
     node: onnx.NodeProto,
-    input_types: Dict[str, onnx.TypeProto],
-    input_data: Optional[Dict[str, onnx.TensorProto]] = None,
-    input_sparse_data: Optional[Dict[str, onnx.SparseTensorProto]] = None,
-    opset_imports: Optional[List[onnx.OperatorSetIdProto]] = None,
+    input_types: dict[str, onnx.TypeProto],
+    input_data: dict[str, onnx.TensorProto] | None = None,
+    input_sparse_data: dict[str, onnx.SparseTensorProto] | None = None,
+    opset_imports: list[onnx.OperatorSetIdProto] | None = None,
     ir_version: int = onnx.IR_VERSION,
-) -> Dict[str, onnx.TypeProto]:
+) -> dict[str, onnx.TypeProto]:
     if not schema.has_type_and_shape_inference_function:  # type: ignore
         return {}
     if input_data is None:
@@ -106,7 +118,7 @@ def infer_node_outputs(
 
     # catch KeyError if node's input does not exist in input_types
     passed_input_types = {
-        key: input_types[key].SerializeToString() for key in node.input
+        key: input_types[key].SerializeToString() for key in node.input if key != ""
     }
     # input_types will also be used as outer_scope_value_types so do not filter by node's input here
     for key in input_types:
@@ -123,7 +135,7 @@ def infer_node_outputs(
         if key in input_sparse_data
     }
 
-    outputs = schema._infer_node_outputs(  # pylint: disable=protected-access
+    outputs = schema._infer_node_outputs(
         node.SerializeToString(),
         passed_input_types,
         passed_input_data,
@@ -138,9 +150,8 @@ def infer_function_output_types(
     function: FunctionProto,
     input_types: Sequence[TypeProto],
     attributes: Sequence[AttributeProto],
-) -> List[TypeProto]:
-    """
-    Apply type-and-shape-inference to given function body, with given input types
+) -> list[TypeProto]:
+    """Apply type-and-shape-inference to given function body, with given input types
     and given input attribute values.
     """
     result = C.infer_function_output_types(

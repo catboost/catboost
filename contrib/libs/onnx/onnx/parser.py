@@ -1,6 +1,7 @@
 # Copyright (c) ONNX Project Contributors
 #
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
 
 import onnx
 from onnx.onnx_cpp2py_export import parser as C  # noqa: N812

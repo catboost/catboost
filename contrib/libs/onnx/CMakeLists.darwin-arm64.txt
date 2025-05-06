@@ -53,6 +53,8 @@ target_sources(contrib-libs-onnx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/function.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/generator/defs.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/generator/old.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/generator/utils.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/image/defs.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/logical/defs.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/logical/old.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/math/defs.cc
@@ -81,9 +83,11 @@ target_sources(contrib-libs-onnx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/tensor/utils.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/tensor_proto_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/tensor_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/text/defs.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/traditionalml/old.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/training/defs.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/inliner/inliner.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/shape_inference/implementation.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/convert.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/helper.cc
