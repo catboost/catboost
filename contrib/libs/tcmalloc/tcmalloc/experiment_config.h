@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +22,18 @@
 namespace tcmalloc {
 
 enum class Experiment : int {
-  TCMALLOC_TEMERAIRE,
-  TCMALLOC_SANS_56_SIZECLASS,
+  // clang-format off
+  // go/keep-sorted start
+  TCMALLOC_L3_AWARE_VCPUS,  // TODO(b/239977380): Complete experiment.
+  TCMALLOC_MIN_HOT_ACCESS_HINT_ABLATION,  // TODO(b/376902157): Complete experiment.
+  TEST_ONLY_L3_AWARE,  // TODO(b/239977380): Complete experiment.
+  TEST_ONLY_TCMALLOC_DENSE_TRACKERS_SORTED_ON_SPANS_ALLOCATED,  // TODO(b/348043731): Complete experiment.
+  TEST_ONLY_TCMALLOC_HUGE_CACHE_RELEASE_30S,  // TODO(b/319872040): Complete experiment.
   TEST_ONLY_TCMALLOC_POW2_SIZECLASS,
-  TEST_ONLY_TCMALLOC_POW2_BELOW64_SIZECLASS,
-  TEST_ONLY_TCMALLOC_RING_BUFFER_TRANSFER_CACHE,
   TEST_ONLY_TCMALLOC_SHARDED_TRANSFER_CACHE,
+  // go/keep-sorted end
   kMaxExperimentID,
+  // clang-format on
 };
 
 struct ExperimentConfig {
@@ -37,12 +43,15 @@ struct ExperimentConfig {
 
 // clang-format off
 inline constexpr ExperimentConfig experiments[] = {
-    {Experiment::TCMALLOC_TEMERAIRE, "TCMALLOC_TEMERAIRE"},
-    {Experiment::TCMALLOC_SANS_56_SIZECLASS, "TCMALLOC_SANS_56_SIZECLASS"},
+    // go/keep-sorted start
+    {Experiment::TCMALLOC_L3_AWARE_VCPUS, "TCMALLOC_L3_AWARE_VCPUS"},
+    {Experiment::TCMALLOC_MIN_HOT_ACCESS_HINT_ABLATION, "TCMALLOC_MIN_HOT_ACCESS_HINT_ABLATION"},
+    {Experiment::TEST_ONLY_L3_AWARE, "TEST_ONLY_L3_AWARE"},
+    {Experiment::TEST_ONLY_TCMALLOC_DENSE_TRACKERS_SORTED_ON_SPANS_ALLOCATED, "TEST_ONLY_TCMALLOC_DENSE_TRACKERS_SORTED_ON_SPANS_ALLOCATED"},
+    {Experiment::TEST_ONLY_TCMALLOC_HUGE_CACHE_RELEASE_30S, "TEST_ONLY_TCMALLOC_HUGE_CACHE_RELEASE_30S"},
     {Experiment::TEST_ONLY_TCMALLOC_POW2_SIZECLASS, "TEST_ONLY_TCMALLOC_POW2_SIZECLASS"},
-    {Experiment::TEST_ONLY_TCMALLOC_POW2_BELOW64_SIZECLASS, "TEST_ONLY_TCMALLOC_POW2_BELOW64_SIZECLASS"},
-    {Experiment::TEST_ONLY_TCMALLOC_RING_BUFFER_TRANSFER_CACHE, "TEST_ONLY_TCMALLOC_RING_BUFFER_TRANSFER_CACHE"},
     {Experiment::TEST_ONLY_TCMALLOC_SHARDED_TRANSFER_CACHE, "TEST_ONLY_TCMALLOC_SHARDED_TRANSFER_CACHE"},
+    // go/keep-sorted end
 };
 // clang-format on
 

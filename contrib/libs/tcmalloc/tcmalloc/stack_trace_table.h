@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +18,11 @@
 #ifndef TCMALLOC_STACK_TRACE_TABLE_H_
 #define TCMALLOC_STACK_TRACE_TABLE_H_
 
-#include <stdint.h>
-
-#include <string>
-
 #include "absl/base/thread_annotations.h"
+#include "absl/time/time.h"
 #include "tcmalloc/common.h"
-#include "tcmalloc/internal_malloc_extension.h"
+#include "tcmalloc/internal/config.h"
+#include "tcmalloc/internal/logging.h"
 #include "tcmalloc/malloc_extension.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
@@ -32,62 +31,44 @@ namespace tcmalloc_internal {
 
 class StackTraceTable final : public ProfileBase {
  public:
-  // If merge is true, traces with identical size and stack are merged
-  // together.  Else they are kept distinct.
-  // If unsample is true, Iterate() will scale counts to report estimates
-  // of the true total assuming traces were added by the sampler.
-  // REQUIRES: L < pageheap_lock
-  StackTraceTable(ProfileType type, int64_t period, bool merge, bool unsample);
+  StackTraceTable(ProfileType type) ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
-  // REQUIRES: L < pageheap_lock
-  ~StackTraceTable() override;
+  ~StackTraceTable() override ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   // base::Profile methods.
   void Iterate(
       absl::FunctionRef<void(const Profile::Sample&)> func) const override;
 
-  int64_t Period() const override { return period_; }
-
   ProfileType Type() const override { return type_; }
 
-  // Adds stack trace "t" to table with the specified count.
-  // The count is a floating point value to reduce rounding
-  // errors when accounting for sampling probabilities.
-  void AddTrace(double count, const StackTrace& t)
-      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+  void SetStartTime(absl::Time start_time) { start_time_ = start_time; }
+  std::optional<absl::Time> StartTime() const override { return start_time_; }
+
+  void SetDuration(absl::Duration duration) { duration_ = duration; }
+  absl::Duration Duration() const override { return duration_; }
+
+  // Adds stack trace "t" of the sample to table with the given weight of the
+  // sample. `sample_weight` is a floating point value used to calculate the
+  // the expected number of objects allocated (might be fractional considering
+  // fragmentation) corresponding to a given sample.
+  void AddTrace(double sample_weight, const StackTrace& t)
+      ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   // Exposed for PageHeapAllocator
-  struct Bucket {
-    // Key
-    uintptr_t hash;
-    StackTrace trace;
-
-    // Payload
-    double count;
-    size_t total_weight;
-    Bucket* next;
-
-    bool KeyEqual(uintptr_t h, const StackTrace& t) const;
+  struct LinkedSample {
+    Profile::Sample sample;
+    LinkedSample* next;
   };
 
   // For testing
   int depth_total() const { return depth_total_; }
-  int bucket_total() const { return bucket_total_; }
 
  private:
-  static constexpr int kHashTableSize = 1 << 14;  // => table_ is 128k
-
   ProfileType type_;
-  int64_t period_;
-  int bucket_mask_;
+  absl::Duration duration_ = absl::ZeroDuration();
+  absl::Time start_time_;
   int depth_total_;
-  Bucket** table_;
-  int bucket_total_;
-  bool merge_;
-  bool error_;
-  bool unsample_;
-
-  int num_buckets() const { return bucket_mask_ + 1; }
+  LinkedSample* all_;
 };
 
 }  // namespace tcmalloc_internal

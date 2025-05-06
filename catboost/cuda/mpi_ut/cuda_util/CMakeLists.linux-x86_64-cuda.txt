@@ -19,6 +19,7 @@ target_link_libraries(cuda_util PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  contrib-libs-tcmalloc
   library-cpp-cpuid_check
   cpp-testing-unittest
   catboost-cuda-cuda_lib
@@ -27,7 +28,6 @@ target_link_libraries(cuda_util PUBLIC
 
 target_allocator(cuda_util
   cpp-malloc-tcmalloc
-  contrib-libs-tcmalloc
 )
 
 target_link_options(cuda_util PRIVATE
