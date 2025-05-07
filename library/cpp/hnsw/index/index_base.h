@@ -53,6 +53,8 @@ namespace NHnsw {
          *                                  If the value is too low search could return less than topSize results.
          * @param distanceCalcLimit         Limit of distance calculations.
          * @param itemStorage               Storage with method GetItem(ui32 id) which provides item with given id.
+         * @param stopSearchSize            Minimum number of nearest neighbors at which to stop search if
+         *                                  the best from candidates is worse than the worst of nearest neighbors
          */
 
         template <class TItemStorage,
@@ -67,9 +69,10 @@ namespace NHnsw {
             size_t distanceCalcLimit,
             const TItemStorage& itemStorage,
             const TDistance& distance = {},
-            const TDistanceLess& distanceLess = {}) const
+            const TDistanceLess& distanceLess = {},
+            const size_t stopSearchSize = 1) const
         {
-            if (Levels.empty() || searchNeighborhoodSize == 0) {
+            if (Levels.empty() || searchNeighborhoodSize == 0 || stopSearchSize == 0) {
                 return {};
             }
             ui32 entryId = 0;
@@ -117,7 +120,7 @@ namespace NHnsw {
             while (!candidates.empty() && !distanceCalcLimitReached) {
                 auto cur = candidates.top();
                 candidates.pop();
-                if (!nearest.empty() && distanceLess(nearest.top().Dist, cur.Dist)) {
+                if (nearest.size() >= stopSearchSize && distanceLess(nearest.top().Dist, cur.Dist)) {
                     break;
                 }
                 const ui32* neighbors = GetNeighbors(/*level*/ 0, cur.Id);
@@ -170,6 +173,8 @@ namespace NHnsw {
          *                                  Typically, search time depends linearly on this param.
          *                                  If the value is too low search could return less than topSize results.
          * @param itemStorage               Storage with method GetItem(ui32 id) which provides item with given id.
+         * @param stopSearchSize            Minimum number of nearest neighbors at which to stop search if
+         *                                  the best from candidates is worse than the worst of nearest neighbors
          */
         template <class TItemStorage,
                   class TDistance,
@@ -182,9 +187,10 @@ namespace NHnsw {
             size_t searchNeighborhoodSize,
             const TItemStorage& itemStorage,
             const TDistance& distance = {},
-            const TDistanceLess& distanceLess = {}) const
+            const TDistanceLess& distanceLess = {},
+            const size_t stopSearchSize = 1) const
         {
-            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess);
+            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess, stopSearchSize);
         }
 
     protected:
