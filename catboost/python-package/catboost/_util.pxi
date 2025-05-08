@@ -69,6 +69,9 @@ cdef inline to_str(const TString& s):
 ctypedef fused common_tvector_type:
     int
     ui32
+    ui64
+    size_t
+    float
     double
     TString
 
