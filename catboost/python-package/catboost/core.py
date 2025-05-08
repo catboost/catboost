@@ -4553,7 +4553,7 @@ class CatBoostEstimator(CatBoost):
         params_that_can_be_none = [
             "iterations",
             "learning_rate",
-            "depth",
+            "depth"
         ]
 
         new_params = {}
