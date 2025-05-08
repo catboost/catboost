@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +16,18 @@
 #ifndef TCMALLOC_INTERNAL_UTIL_H_
 #define TCMALLOC_INTERNAL_UTIL_H_
 
+#include <errno.h>
 #include <poll.h>  // IWYU pragma: keep
 #include <sched.h>
 #include <signal.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
 
-#include <vector>
-
-#include "absl/base/internal/sysinfo.h"
 #include "absl/time/time.h"
-#include "absl/types/span.h"
 #include "tcmalloc/internal/config.h"
+#include "tcmalloc/internal/logging.h"
 
 #define TCMALLOC_RETRY_ON_TEMP_FAILURE(expression)               \
   (__extension__({                                               \
@@ -49,7 +47,7 @@ namespace tcmalloc_internal {
 // signal_safe_open() - a wrapper for open(2) which ignores signals
 // Semantics equivalent to open(2):
 //   returns a file-descriptor (>=0) on success, -1 on failure, error in errno
-int signal_safe_open(const char *path, int flags, ...);
+int signal_safe_open(const char* path, int flags, ...);
 
 // signal_safe_close() - a wrapper for close(2) which ignores signals
 // Semantics equivalent to close(2):
@@ -68,8 +66,8 @@ int signal_safe_close(int fd);
 // flushed from the buffer in the first write.  To handle this case the optional
 // bytes_written parameter is provided, when not-NULL, it will always return the
 // total bytes written before any error.
-ssize_t signal_safe_write(int fd, const char *buf, size_t count,
-                          size_t *bytes_written);
+ssize_t signal_safe_write(int fd, const char* buf, size_t count,
+                          size_t* bytes_written);
 
 // signal_safe_read() - a wrapper for read(2) which ignores signals
 // Semantics equivalent to read(2):
@@ -83,7 +81,7 @@ ssize_t signal_safe_write(int fd, const char *buf, size_t count,
 // read by a previous read.  To handle this case the optional bytes_written
 // parameter is provided, when not-NULL, it will always return the total bytes
 // read before any error.
-ssize_t signal_safe_read(int fd, char *buf, size_t count, size_t *bytes_read);
+ssize_t signal_safe_read(int fd, char* buf, size_t count, size_t* bytes_read);
 
 // signal_safe_poll() - a wrapper for poll(2) which ignores signals
 // Semantics equivalent to poll(2):
@@ -93,42 +91,52 @@ ssize_t signal_safe_read(int fd, char *buf, size_t count, size_t *bytes_read);
 // poll for data.  Unlike ppoll/pselect, signal_safe_poll is *ignoring* signals
 // not attempting to re-enable them.  Protecting us from the traditional races
 // involved with the latter.
-int signal_safe_poll(struct ::pollfd *fds, int nfds, absl::Duration timeout);
+int signal_safe_poll(struct ::pollfd* fds, int nfds, absl::Duration timeout);
 
-// Affinity helpers.
-
-// Returns a vector of the which cpus the currently allowed thread is allowed to
-// run on.  There are no guarantees that this will not change before, after, or
-// even during, the call to AllowedCpus().
-std::vector<int> AllowedCpus();
-
-// Enacts a scoped affinity mask on the constructing thread.  Attempts to
-// restore the original affinity mask on destruction.
-//
-// REQUIRES: For test-use only.  Do not use this in production code.
-class ScopedAffinityMask {
+class ScopedSigmask {
  public:
-  // When racing with an external restriction that has a zero-intersection with
-  // "allowed_cpus" we will construct, but immediately register as "Tampered()",
-  // without actual changes to affinity.
-  explicit ScopedAffinityMask(absl::Span<int> allowed_cpus);
-  explicit ScopedAffinityMask(int allowed_cpu);
+  // Masks all signal handlers. (SIG_SETMASK, All)
+  ScopedSigmask() noexcept;
 
-  // Restores original affinity iff our scoped affinity has not been externally
-  // modified (i.e. Tampered()).  Otherwise, the updated affinity is preserved.
-  ~ScopedAffinityMask();
+  // No copy, move or assign
+  ScopedSigmask(const ScopedSigmask&) = delete;
+  ScopedSigmask& operator=(const ScopedSigmask&) = delete;
 
-  // Returns true if the affinity mask no longer matches what was set at point
-  // of construction.
-  //
-  // Note:  This is instantaneous and not fool-proof.  It's possible for an
-  // external affinity modification to subsequently align with our originally
-  // specified "allowed_cpus".  In this case Tampered() will return false when
-  // time may have been spent executing previously on non-specified cpus.
-  bool Tampered();
+  // Restores the masked signal handlers to its former state.
+  ~ScopedSigmask() noexcept;
 
  private:
-  cpu_set_t original_cpus_, specified_cpus_;
+  void Setmask(int how, sigset_t* set, sigset_t* old);
+
+  sigset_t old_set_;
+};
+
+inline ScopedSigmask::ScopedSigmask() noexcept {
+  sigset_t set;
+  sigfillset(&set);
+  Setmask(SIG_SETMASK, &set, &old_set_);
+}
+
+inline ScopedSigmask::~ScopedSigmask() noexcept {
+  Setmask(SIG_SETMASK, &old_set_, nullptr);
+}
+
+inline void ScopedSigmask::Setmask(int how, sigset_t* set, sigset_t* old) {
+  const int result = pthread_sigmask(how, set, old);
+  TC_CHECK_EQ(result, 0);
+}
+
+// RAII class that will restore errno to the value it has when created.
+class ErrnoRestorer {
+ public:
+  ErrnoRestorer() : saved_errno_(errno) {}
+  ~ErrnoRestorer() { errno = saved_errno_; }
+
+  ErrnoRestorer(const ErrnoRestorer&) = delete;
+  ErrnoRestorer& operator=(const ErrnoRestorer&) = delete;
+
+ private:
+  int saved_errno_;
 };
 
 }  // namespace tcmalloc_internal

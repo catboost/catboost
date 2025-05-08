@@ -1012,7 +1012,7 @@ TMetricHolder TLqMetric::EvalSingleThread(
         int end
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
@@ -1120,7 +1120,7 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
     int end
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight, auto isMAE) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight, auto isMAE) {
         double alpha = Alpha;
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
@@ -1237,7 +1237,7 @@ TMetricHolder TExpectileMetric::EvalSingleThread(
     int end
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         double alpha = Alpha;
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
@@ -1329,7 +1329,7 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    const auto impl = [=] (auto isExpApprox, auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto isExpApprox, auto hasDelta, auto hasWeight) {
         double alpha = Alpha;
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
@@ -1727,7 +1727,7 @@ TMetricHolder TTweedieMetric::EvalSingleThread(
         int end
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
@@ -1822,7 +1822,7 @@ TMetricHolder TFocalMetric::EvalSingleThread(
         int end
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
@@ -2406,7 +2406,7 @@ TMetricHolder TMultiQuantileMetric::EvalSingleThread(
 ) const {
     CB_ENSURE(approx.size() == Alpha.size(), "Metric MultiQuantile expects same number of predictions and quantiles");
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TMetricHolder error(2);
         for (auto j : xrange(approx.size())) {
             const auto alpha = Alpha[j];
@@ -2630,7 +2630,7 @@ TMetricHolder TQueryRMSEMetric::EvalSingleThread(
     int queryEndIndex
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
@@ -2775,7 +2775,7 @@ TMetricHolder TGroupQuantileMetric::EvalSingleThread(
     int queryEndIndex
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
@@ -2925,7 +2925,7 @@ TMetricHolder TPFoundMetric::EvalSingleThread(
     int queryStartIndex,
     int queryEndIndex
 ) const {
-    const auto impl = [=] (auto hasDelta, auto isExpApprox) {
+    const auto impl = [=, this] (auto hasDelta, auto isExpApprox) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TPFoundCalcer calcer(TopSize, Decay);
@@ -3235,7 +3235,7 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
     TArrayRef<double> softmax
 ) const {
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+    const auto impl = [=, this] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxesRef;
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         double sumWeightedTargets = 0;

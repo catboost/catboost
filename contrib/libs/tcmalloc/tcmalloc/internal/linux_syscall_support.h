@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +15,14 @@
 
 #ifndef TCMALLOC_INTERNAL_LINUX_SYSCALL_SUPPORT_H_
 #define TCMALLOC_INTERNAL_LINUX_SYSCALL_SUPPORT_H_
+
+#ifdef __linux__
+#ifdef __has_include
+#if __has_include(<linux/kernel-page-flags.h>)
+#include <linux/kernel-page-flags.h>
+#endif  // __has_include(<linux/kernel-page-flags.h>)
+#endif  // __has_include
+#endif  // __linux__
 
 /* include/uapi/linux/rseq.h                                                 */
 
@@ -41,11 +50,6 @@ static_assert(sizeof(kernel_rseq) == (4 * sizeof(unsigned long long)),
               "Unexpected size for rseq structure");
 
 struct kernel_rseq_cs {
-  unsigned version;
-  unsigned flags;
-  unsigned long long start_ip;
-  unsigned long long post_commit_offset;
-  unsigned long long abort_ip;
   // This is aligned, per upstream RSEQ specification.
 } __attribute__((aligned(4 * sizeof(unsigned long long))));
 
@@ -55,12 +59,15 @@ static_assert(sizeof(kernel_rseq_cs) == (4 * sizeof(unsigned long long)),
 #if !defined(__NR_rseq)
 #if defined(__x86_64__)
 #define __NR_rseq 334
-#define __NR_membarrier 324
 #elif defined(__aarch64__)
 #define __NR_rseq 293
 #elif defined(__PPC__)
 #define __NR_rseq 387
 #endif
+#endif
+
+#ifndef KPF_ZERO_PAGE
+#define KPF_ZERO_PAGE 24
 #endif
 
 #endif  // TCMALLOC_INTERNAL_LINUX_SYSCALL_SUPPORT_H_

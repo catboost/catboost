@@ -62,7 +62,7 @@
 #define PACKAGE_NAME "swig"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "swig 4.3.0"
+#define PACKAGE_STRING "swig 4.3.1"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "swig"
@@ -71,7 +71,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "4.3.0"
+#define PACKAGE_VERSION "4.3.1"
 
 /* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
@@ -82,7 +82,7 @@
 #define SWIG_CXX "g++"
 
 /* Directory for SWIG system-independent libraries */
-#define SWIG_LIB "/var/empty/swig-4.3.0/share/swig/4.3.0"
+#define SWIG_LIB "/var/empty/swig-4.3.1/share/swig/4.3.1"
 
 /* Directory for SWIG system-independent libraries (Unix install on native
    Windows) */
@@ -92,7 +92,7 @@
 #define SWIG_PLATFORM "x86_64-pc-linux-gnu"
 
 /* Version number of package */
-#define VERSION "4.3.0"
+#define VERSION "4.3.1"
 
 
 /* Deal with attempt by Microsoft to deprecate C standard runtime functions */

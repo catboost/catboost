@@ -21,11 +21,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <utility>
+#include <type_traits>
 
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "tcmalloc/internal/logging.h"
+#include "tcmalloc/internal/config.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -34,9 +34,11 @@ namespace tcmalloc_internal {
 int signal_safe_open(const char* path, int flags, ...) {
   int fd;
   va_list ap;
+  using mode_t_va_arg_type =
+      std::conditional<sizeof(mode_t) < sizeof(int), int, mode_t>::type;
 
   va_start(ap, flags);
-  mode_t mode = va_arg(ap, mode_t);
+  mode_t mode = va_arg(ap, mode_t_va_arg_type);
   va_end(ap);
 
   do {
@@ -119,75 +121,6 @@ ssize_t signal_safe_read(int fd, char* buf, size_t count, size_t* bytes_read) {
   if (rc != -1 || errno == EINTR)
     rc = total_bytes;  // return the cumulative bytes read
   return rc;
-}
-
-std::vector<int> AllowedCpus() {
-  // We have no need for dynamically sized sets (currently >1024 CPUs for glibc)
-  // at the present time.  We could change this in the future.
-  cpu_set_t allowed_cpus;
-  CHECK_CONDITION(sched_getaffinity(0, sizeof(allowed_cpus), &allowed_cpus) ==
-                  0);
-  int n = CPU_COUNT(&allowed_cpus), c = 0;
-
-  std::vector<int> result(n);
-  for (int i = 0; i < CPU_SETSIZE && n; i++) {
-    if (CPU_ISSET(i, &allowed_cpus)) {
-      result[c++] = i;
-      n--;
-    }
-  }
-  CHECK_CONDITION(0 == n);
-
-  return result;
-}
-
-static cpu_set_t SpanToCpuSetT(absl::Span<int> mask) {
-  cpu_set_t result;
-  CPU_ZERO(&result);
-  for (int cpu : mask) {
-    CPU_SET(cpu, &result);
-  }
-  return result;
-}
-
-ScopedAffinityMask::ScopedAffinityMask(absl::Span<int> allowed_cpus) {
-  specified_cpus_ = SpanToCpuSetT(allowed_cpus);
-  // getaffinity should never fail.
-  CHECK_CONDITION(
-      sched_getaffinity(0, sizeof(original_cpus_), &original_cpus_) == 0);
-  // See destructor comments on setaffinity interactions.  Tampered() will
-  // necessarily be true in this case.
-  sched_setaffinity(0, sizeof(specified_cpus_), &specified_cpus_);
-}
-
-ScopedAffinityMask::ScopedAffinityMask(int allowed_cpu) {
-  CPU_ZERO(&specified_cpus_);
-  CPU_SET(allowed_cpu, &specified_cpus_);
-
-  // getaffinity should never fail.
-  CHECK_CONDITION(
-      sched_getaffinity(0, sizeof(original_cpus_), &original_cpus_) == 0);
-  // See destructor comments on setaffinity interactions.  Tampered() will
-  // necessarily be true in this case.
-  sched_setaffinity(0, sizeof(specified_cpus_), &specified_cpus_);
-}
-
-ScopedAffinityMask::~ScopedAffinityMask() {
-  // If something else has already reset our affinity, do not attempt to
-  // restrict towards our original mask.  This is best-effort as the tampering
-  // may obviously occur during the destruction of *this.
-  if (!Tampered()) {
-    // Note:  We do not assert success here, conflicts may restrict us from all
-    // 'original_cpus_'.
-    sched_setaffinity(0, sizeof(original_cpus_), &original_cpus_);
-  }
-}
-
-bool ScopedAffinityMask::Tampered() {
-  cpu_set_t current_cpus;
-  CHECK_CONDITION(sched_getaffinity(0, sizeof(current_cpus), &current_cpus) ==
-                  0);
-  return !CPU_EQUAL(&current_cpus, &specified_cpus_);  // Mismatch => modified.
 }
 
 }  // namespace tcmalloc_internal

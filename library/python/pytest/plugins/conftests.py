@@ -46,7 +46,10 @@ def pytest_load_initial_conftests(early_config, parser, args):
             mod.__orig_file__ = mod.__file__
             mod.__file__ = ""
         conftest_modules.append(mod)
-        early_config.pluginmanager.consider_conftest(mod)
+        if sys.version_info > (3,):
+            early_config.pluginmanager.consider_conftest(mod, registration_name=mod.__file__)
+        else:
+            early_config.pluginmanager.consider_conftest(mod)
 
 
 def getconftestmodules(*args, **kwargs):

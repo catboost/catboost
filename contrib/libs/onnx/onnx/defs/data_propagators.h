@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#pragma once
+
+#include <utility>
+
 #include "onnx/defs/shape_inference.h"
 
 namespace ONNX_NAMESPACE {
@@ -46,7 +50,7 @@ inline bool axisIsZero(DataPropagationContext& ctx, bool defaultZero = false) {
 }
 
 inline void PropagateShapeDataFromInputToOutput(DataPropagationContext& ctx, int idx) {
-  // propogate input data
+  // propagate input data
   const auto input_data = ctx.getInputData(idx);
   if (input_data != nullptr) {
     TensorShapeProto tsp;

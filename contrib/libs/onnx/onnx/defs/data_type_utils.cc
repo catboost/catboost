@@ -2,12 +2,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "data_type_utils.h"
+
 #include <cctype>
 #include <iostream>
 #include <iterator>
 #include <sstream>
-
-#include "data_type_utils.h"
 
 namespace ONNX_NAMESPACE {
 namespace Utils {
@@ -139,7 +139,6 @@ std::string DataTypeUtils::ToString(const TypeProto& type_proto, const std::stri
     }
 #ifdef ONNX_ML
     case TypeProto::ValueCase::kOpaqueType: {
-      static const std::string empty;
       std::string result;
       const auto& op_type = type_proto.opaque_type();
       result.append(left).append("opaque(");
@@ -440,6 +439,8 @@ TypesWrapper::TypesWrapper() {
   type_str_to_tensor_data_type_["float8e4m3fnuz"] = TensorProto_DataType_FLOAT8E4M3FNUZ;
   type_str_to_tensor_data_type_["float8e5m2"] = TensorProto_DataType_FLOAT8E5M2;
   type_str_to_tensor_data_type_["float8e5m2fnuz"] = TensorProto_DataType_FLOAT8E5M2FNUZ;
+  type_str_to_tensor_data_type_["uint4"] = TensorProto_DataType_UINT4;
+  type_str_to_tensor_data_type_["int4"] = TensorProto_DataType_INT4;
 
   for (auto& str_type_pair : type_str_to_tensor_data_type_) {
     tensor_data_type_to_type_str_[str_type_pair.second] = str_type_pair.first;

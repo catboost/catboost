@@ -3,8 +3,13 @@
  */
 
 #include "onnx/defs/schema.h"
+
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <unordered_set>
+#include <utility>
+
 #include "onnx/checker.h"
 #include "onnx/defs/operator_sets.h"
 #include "onnx/defs/operator_sets_preview.h"
@@ -15,7 +20,6 @@
 #endif
 
 #include "onnx/common/assertions.h"
-#include "onnx/common/stl_backports.h"
 #include "onnx/defs/parser.h"
 
 namespace ONNX_NAMESPACE {
@@ -28,8 +32,31 @@ constexpr int OpSchema::kUninitializedSinceVersion;
 
 // By default if opset_version_to_load=0, it registers all opset schema for all opset versions
 // Otherwise, it only registers the latest schema according to opset_version_to_load
-void RegisterSchema(OpSchema schema, int opset_version_to_load) {
-  OpSchemaRegistry::OpSchemaRegisterOnce ONNX_UNUSED registration(schema, opset_version_to_load);
+void RegisterSchema(
+    const OpSchema& schema,
+    int opset_version_to_load,
+    bool fail_duplicate_schema,
+    bool fail_with_exception) {
+  RegisterSchema(OpSchema(schema), opset_version_to_load, fail_duplicate_schema, fail_with_exception);
+}
+void RegisterSchema(
+    OpSchema&& schema,
+    int opset_version_to_load,
+    bool fail_duplicate_schema,
+    bool fail_with_exception) {
+  if (fail_with_exception) {
+    OpSchemaRegistry::OpSchemaRegisterOnce::OpSchemaRegisterImpl(
+        std::move(schema), opset_version_to_load, fail_duplicate_schema);
+  } else {
+    OpSchemaRegistry::OpSchemaRegisterOnce::OpSchemaRegisterNoExcept(
+        std::move(schema), opset_version_to_load, fail_duplicate_schema);
+  }
+}
+
+// The (name, version, domain) must match the target exactly
+// Otherwise will raise an SchemaError
+void DeregisterSchema(const std::string& op_type, int version, const std::string& domain) {
+  OpSchemaRegistry::OpSchemaDeregister(op_type, version, domain);
 }
 
 #ifndef NDEBUG
@@ -82,6 +109,10 @@ OpSchemaRegistry* OpSchemaRegistry::Instance() {
 
 void OpSchema::CheckInputOutputType(struct InferenceContext& ctx) const {
   std::unordered_map<std::string, std::string> type_constraints;
+  // Check the number of inputs / output.
+  VerifyInputNum(ctx.getNumInputs());
+  VerifyOutputNum(ctx.getNumOutputs());
+
   // check all input types
   for (size_t in_idx = 0; in_idx < ctx.getNumInputs(); ++in_idx) {
     // If the last input is Variadic by definition, checker still needs to check the rest of actual input's type
@@ -151,41 +182,8 @@ void OpSchema::Verify(const NodeProto& node) const {
     fail_check("Operator '", name_, "' has been deprecated since version ", since_version_);
   }
 
-  // Check the number of inputs.
-  if (node.input_size() < min_input_ || node.input_size() > max_input_) {
-    fail_check(
-        "Node (",
-        node.name(),
-        ") has input size ",
-        node.input_size(),
-        " not in range [min=",
-        min_input_,
-        ", max=",
-        max_input_,
-        "].");
-  }
-
-  if (!num_inputs_allowed_(node.input_size())) {
-    fail_check("Node (", node.name(), ") has input size ", node.input_size(), " not in allowed input sizes.");
-  }
-
-  // Check the number of outputs.
-  if (node.output_size() < min_output_ || node.output_size() > max_output_) {
-    fail_check(
-        "Node (",
-        node.name(),
-        ") has output size ",
-        node.output_size(),
-        " not in range [min=",
-        min_output_,
-        ", max=",
-        max_output_,
-        "].");
-  }
-
-  if (!num_outputs_allowed_(node.output_size())) {
-    fail_check("Node (", node.name(), "has output size ", node.output_size(), " not in allowed output sizes.");
-  }
+  VerifyInputNum(node.input_size(), node.name());
+  VerifyOutputNum(node.output_size(), node.name());
 
   // Check the values of inputs / outputs
   for (int in_idx = 0; in_idx < node.input_size(); ++in_idx) {
@@ -260,7 +258,14 @@ void OpSchema::Verify(const NodeProto& node) const {
 
     // Type would be UNDEFINED if not set
     if (attr_proto.type() != expected_type) {
-      fail_check("Mismatched attribute type in '", node.name() + " : " + name, "'");
+      fail_check(
+          "Mismatched attribute type in '",
+          node.name() + " : " + name,
+          "'. Expected: '",
+          AttributeProto_AttributeType_Name(expected_type),
+          "', actual: '",
+          AttributeProto_AttributeType_Name(attr_proto.type()),
+          "'");
     }
 
     // ref_attr_name is only valid when non-empty
@@ -298,40 +303,15 @@ void OpSchema::Verify(const NodeProto& node) const {
           fail_check("Attribute '", name, "' is expected to have field 'type_proto'");
         }
         break;
-      case AttributeProto::FLOATS:
-        if (!attr_proto.floats_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'floats'");
-        }
-        break;
       case AttributeProto::INTS:
-        if (!attr_proto.ints_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'ints'");
-        }
-        break;
-      case AttributeProto::STRINGS:
-        if (!attr_proto.strings_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'strings'");
-        }
-        break;
+      case AttributeProto::FLOATS:
       case AttributeProto::TENSORS:
-        if (!attr_proto.tensors_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'tensors'");
-        }
-        break;
+      case AttributeProto::STRINGS:
       case AttributeProto::SPARSE_TENSORS:
-        // Not adding check ... we should likely delete the check in all other
-        // cases, which will not allow us to have an empty list as a valid value
-        // for an attribute and this seems undesirable.
-        break;
       case AttributeProto::GRAPHS:
-        if (!attr_proto.graphs_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'graphs'");
-        }
-        break;
       case AttributeProto::TYPE_PROTOS:
-        if (!attr_proto.type_protos_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'type_protos'");
-        }
+        // No check ... whether an empty list is a valid value for the attribute
+        // is op specific.
         break;
       default:
         fail_check("Attribute '", name, " has unknown expected type");
@@ -348,6 +328,51 @@ void OpSchema::Verify(const NodeProto& node) const {
   }
 
   // Phew. All verifications passed.
+}
+
+std::string OpSchema::VerifyFailPrefix(std::string_view node_name) const {
+  std::string str = "Node";
+  if (!node_name.empty()) {
+    str = str + "(" + std::string(node_name) + ")";
+  }
+  str = str + " with schema(" + domain() + "::" + Name() + ":" + std::to_string(since_version()) + ")";
+  return str;
+}
+
+void OpSchema::VerifyInputNum(int input_num, std::string_view node_name) const {
+  if (input_num < min_input_ || input_num > max_input_) {
+    fail_check(
+        VerifyFailPrefix(node_name),
+        " has input size ",
+        input_num,
+        " not in range [min=",
+        min_input_,
+        ", max=",
+        max_input_,
+        "].");
+  }
+
+  if (!num_inputs_allowed_(input_num)) {
+    fail_check(VerifyFailPrefix(node_name), " has input size ", input_num, " not in allowed input sizes.");
+  }
+}
+
+void OpSchema::VerifyOutputNum(int output_num, std::string_view node_name) const {
+  if (output_num < min_output_ || output_num > max_output_) {
+    fail_check(
+        VerifyFailPrefix(node_name),
+        " has output size ",
+        output_num,
+        " not in range [min=",
+        min_output_,
+        ", max=",
+        max_output_,
+        "].");
+  }
+
+  if (!num_outputs_allowed_(output_num)) {
+    fail_check(VerifyFailPrefix(node_name), " has output size ", output_num, " not in allowed output sizes.");
+  }
 }
 
 OpSchema& OpSchema::SinceVersion(OperatorSetVersion v) {
@@ -392,14 +417,14 @@ OpSchema& OpSchema::Deprecate() {
 }
 
 OpSchema& OpSchema::NumInputs(std::set<int> allowed_input_nums) {
-  num_inputs_allowed_ = [MOVE_CAPTURE_IF_CPP14(allowed_input_nums)](int n) -> bool {
+  num_inputs_allowed_ = [allowed_input_nums = std::move(allowed_input_nums)](int n) -> bool {
     return allowed_input_nums.count(n);
   };
   return *this;
 }
 
 OpSchema& OpSchema::NumOutputs(std::set<int> allowed_output_nums) {
-  num_outputs_allowed_ = [MOVE_CAPTURE_IF_CPP14(allowed_output_nums)](int n) -> bool {
+  num_outputs_allowed_ = [allowed_output_nums = std::move(allowed_output_nums)](int n) -> bool {
     return allowed_output_nums.count(n) > 0;
   };
   return *this;
@@ -952,6 +977,11 @@ void OpSchema::Finalize() {
   // "optional" but not trailing inputs>. <Max number of inputs> = <number of
   // all inputs or std::numeric_limits<int>::max() (if the last input is
   // variadic).
+
+  max_input_ = 0;
+  min_input_ = 0;
+  min_output_ = 0;
+  max_output_ = 0;
 
   // Flag indicates whether an optional input is trailing one (there's no single
   // or variadic input behind).

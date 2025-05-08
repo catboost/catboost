@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,19 +16,26 @@
 #ifndef TCMALLOC_PAGE_ALLOCATOR_H_
 #define TCMALLOC_PAGE_ALLOCATOR_H_
 
-#include <inttypes.h>
 #include <stddef.h>
 
+#include <array>
+#include <cstdint>
+#include <limits>
 #include <utility>
 
+#include "absl/base/attributes.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include "tcmalloc/common.h"
 #include "tcmalloc/huge_page_aware_allocator.h"
+#include "tcmalloc/internal/allocation_guard.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
 #include "tcmalloc/internal/optimization.h"
 #include "tcmalloc/page_allocator_interface.h"
-#include "tcmalloc/page_heap.h"
 #include "tcmalloc/pages.h"
+#include "tcmalloc/parameters.h"
 #include "tcmalloc/span.h"
 #include "tcmalloc/stats.h"
 
@@ -45,17 +53,23 @@ class PageAllocator {
   //
   // Any address in the returned Span is guaranteed to satisfy
   // GetMemoryTag(addr) == "tag".
-  Span* New(Length n, MemoryTag tag) ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  Span* New(Length n, SpanAllocInfo span_alloc_info, MemoryTag tag)
+      ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   // As New, but the returned span is aligned to a <align>-page boundary.
   // <align> must be a power of two.
-  Span* NewAligned(Length n, Length align, MemoryTag tag)
-      ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  Span* NewAligned(Length n, Length align, SpanAllocInfo span_alloc_info,
+                   MemoryTag tag) ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   // Delete the span "[p, p+n-1]".
   // REQUIRES: span was returned by earlier call to New() with the same value of
   //           "tag" and has not yet been deleted.
+#ifdef TCMALLOC_INTERNAL_LEGACY_LOCKING
   void Delete(Span* span, MemoryTag tag)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+#endif  // TCMALLOC_INTERNAL_LEGACY_LOCKING
+
+  void Delete(PageAllocatorInterface::AllocationState s, MemoryTag tag)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
   BackingStats stats() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
@@ -72,21 +86,38 @@ class PageAllocator {
   // may also be larger than num_pages since page_heap might decide to
   // release one large range instead of fragmenting it into two
   // smaller released and unreleased ranges.
-  Length ReleaseAtLeastNPages(Length num_pages)
+  Length ReleaseAtLeastNPages(Length num_pages, PageReleaseReason reason)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+
+  // Returns the number of pages that have been released, combined across all
+  // child PageAllocatorInterface implementations.
+  PageReleaseStats GetReleaseStats() const
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
   // Prints stats about the page heap to *out.
-  void Print(Printer* out, MemoryTag tag) ABSL_LOCKS_EXCLUDED(pageheap_lock);
-  void PrintInPbtxt(PbtxtRegion* region, MemoryTag tag)
+  void Print(Printer& out, MemoryTag tag) ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  void PrintInPbtxt(PbtxtRegion& region, MemoryTag tag)
       ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
-  void set_limit(size_t limit, bool is_hard) ABSL_LOCKS_EXCLUDED(pageheap_lock);
-  std::pair<size_t, bool> limit() const ABSL_LOCKS_EXCLUDED(pageheap_lock);
-  int64_t limit_hits() const ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  enum LimitKind { kSoft, kHard, kNumLimits };
+  void set_limit(size_t limit, LimitKind limit_kind)
+      ABSL_LOCKS_EXCLUDED(pageheap_lock);
+  int64_t limit(LimitKind limit_kind) const ABSL_LOCKS_EXCLUDED(pageheap_lock) {
+    TC_ASSERT_LT(limit_kind, kNumLimits);
+    PageHeapSpinLockHolder h;
+    return limits_[limit_kind];
+  }
+
+  int64_t limit_hits(LimitKind limit_kind) const
+      ABSL_LOCKS_EXCLUDED(pageheap_lock);
+
+  int64_t successful_shrinks_after_limit_hit(LimitKind limit_kind) const
+      ABSL_LOCKS_EXCLUDED(pageheap_lock);
 
   // If we have a usage limit set, ensure we're not violating it from our latest
   // allocation.
-  void ShrinkToUsageLimit() ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+  void ShrinkToUsageLimit(Length n)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
 
   const PageAllocInfo& info(MemoryTag tag) const
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
@@ -98,35 +129,66 @@ class PageAllocator {
 
   Algorithm algorithm() const { return alg_; }
 
- private:
-  bool ShrinkHardBy(Length pages) ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+  struct PeakStats {
+    size_t backed_bytes;
+    size_t sampled_application_bytes;
+  };
 
-  ABSL_ATTRIBUTE_RETURNS_NONNULL PageAllocatorInterface* impl(
-      MemoryTag tag) const;
+  PeakStats peak_stats() const ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock) {
+    return PeakStats{peak_backed_bytes_, peak_sampled_application_bytes_};
+  }
+
+ private:
+  bool ShrinkHardBy(Length page, LimitKind limit_kind)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(pageheap_lock);
+
+  using Interface = HugePageAwareAllocator;
+
+  ABSL_ATTRIBUTE_RETURNS_NONNULL Interface* impl(MemoryTag tag) const;
 
   size_t active_numa_partitions() const;
 
-  static constexpr size_t kNumHeaps = kNumaPartitions + 1;
+  static constexpr size_t kNumHeaps =
+      kNumaPartitions + 2 + (kSelSanPresent ? 1 : 0);
 
   union Choices {
     Choices() : dummy(0) {}
     ~Choices() {}
     int dummy;
-    PageHeap ph;
     HugePageAwareAllocator hpaa;
   } choices_[kNumHeaps];
-  std::array<PageAllocatorInterface*, kNumaPartitions> normal_impl_;
-  PageAllocatorInterface* sampled_impl_;
+  std::array<Interface*, kNumaPartitions> normal_impl_;
+  Interface* sampled_impl_;
+  Interface* selsan_impl_ = nullptr;
+  Interface* cold_impl_;
   Algorithm alg_;
+  bool has_cold_impl_;
 
-  bool limit_is_hard_{false};
   // Max size of backed spans we will attempt to maintain.
-  size_t limit_{std::numeric_limits<size_t>::max()};
+  // Crash if we can't maintain below limits_[kHard], which is guaranteed to be
+  // higher than limits_[kSoft].
+  size_t limits_[kNumLimits] = {std::numeric_limits<size_t>::max(),
+                                std::numeric_limits<size_t>::max()};
+
   // The number of times the limit has been hit.
-  int64_t limit_hits_{0};
+  int64_t limit_hits_[kNumLimits]{0};
+  // Number of times we succeeded in shrinking the memory usage to be less than
+  // or at the limit.
+  int64_t successful_shrinks_after_limit_hit_[kNumLimits]{0};
+
+  // peak_backed_bytes_ tracks the maximum number of pages backed (with physical
+  // memory) in the page heap and metadata.
+  //
+  // peak_sampled_application_bytes_ is a snapshot of
+  // tc_globals.sampled_objects_size_ at the time of the most recent
+  // peak_backed_bytes_ high water mark.  While this is an estimate of true
+  // in-use by application demand, it is generally accurate at scale and
+  // requires minimal work to compute.
+  size_t peak_backed_bytes_{0};
+  size_t peak_sampled_application_bytes_{0};
 };
 
-inline PageAllocatorInterface* PageAllocator::impl(MemoryTag tag) const {
+inline PageAllocator::Interface* PageAllocator::impl(MemoryTag tag) const {
   switch (tag) {
     case MemoryTag::kNormalP0:
       return normal_impl_[0];
@@ -134,22 +196,36 @@ inline PageAllocatorInterface* PageAllocator::impl(MemoryTag tag) const {
       return normal_impl_[1];
     case MemoryTag::kSampled:
       return sampled_impl_;
+    case MemoryTag::kSelSan:
+      return selsan_impl_;
+    case MemoryTag::kCold:
+      return cold_impl_;
     default:
       ASSUME(false);
       __builtin_unreachable();
   }
 }
 
-inline Span* PageAllocator::New(Length n, MemoryTag tag) {
-  return impl(tag)->New(n);
+inline Span* PageAllocator::New(Length n, SpanAllocInfo span_alloc_info,
+                                MemoryTag tag) {
+  return impl(tag)->New(n, span_alloc_info);
 }
 
-inline Span* PageAllocator::NewAligned(Length n, Length align, MemoryTag tag) {
-  return impl(tag)->NewAligned(n, align);
+inline Span* PageAllocator::NewAligned(Length n, Length align,
+                                       SpanAllocInfo span_alloc_info,
+                                       MemoryTag tag) {
+  return impl(tag)->NewAligned(n, align, span_alloc_info);
 }
 
+#ifdef TCMALLOC_INTERNAL_LEGACY_LOCKING
 inline void PageAllocator::Delete(Span* span, MemoryTag tag) {
   impl(tag)->Delete(span);
+}
+#endif  // TCMALLOC_INTERNAL_LEGACY_LOCKING
+
+inline void PageAllocator::Delete(PageAllocatorInterface::AllocationState s,
+                                  MemoryTag tag) {
+  impl(tag)->Delete(s);
 }
 
 inline BackingStats PageAllocator::stats() const {
@@ -158,6 +234,12 @@ inline BackingStats PageAllocator::stats() const {
     ret += normal_impl_[partition]->stats();
   }
   ret += sampled_impl_->stats();
+  if (selsan_impl_) {
+    ret += selsan_impl_->stats();
+  }
+  if (has_cold_impl_) {
+    ret += cold_impl_->stats();
+  }
   return ret;
 }
 
@@ -170,6 +252,16 @@ inline void PageAllocator::GetSmallSpanStats(SmallSpanStats* result) {
   }
   sampled_impl_->GetSmallSpanStats(&sampled);
   *result = normal + sampled;
+  if (has_cold_impl_) {
+    SmallSpanStats cold;
+    cold_impl_->GetSmallSpanStats(&cold);
+    *result += cold;
+  }
+  if (selsan_impl_) {
+    SmallSpanStats selsan;
+    selsan_impl_->GetSmallSpanStats(&selsan);
+    *result += selsan;
+  }
 }
 
 inline void PageAllocator::GetLargeSpanStats(LargeSpanStats* result) {
@@ -181,53 +273,111 @@ inline void PageAllocator::GetLargeSpanStats(LargeSpanStats* result) {
   }
   sampled_impl_->GetLargeSpanStats(&sampled);
   *result = normal + sampled;
+  if (has_cold_impl_) {
+    LargeSpanStats cold;
+    cold_impl_->GetLargeSpanStats(&cold);
+    *result = *result + cold;
+  }
+  if (selsan_impl_) {
+    LargeSpanStats selsan;
+    selsan_impl_->GetLargeSpanStats(&selsan);
+    *result = *result + selsan;
+  }
 }
 
-inline Length PageAllocator::ReleaseAtLeastNPages(Length num_pages) {
+inline Length PageAllocator::ReleaseAtLeastNPages(Length num_pages,
+                                                  PageReleaseReason reason) {
   Length released;
+  // TODO(ckennelly): Refine this policy.  Cold data should be the most
+  // resilient to not being on huge pages.
+  if (has_cold_impl_) {
+    released = cold_impl_->ReleaseAtLeastNPages(num_pages, reason);
+  }
+  if (selsan_impl_) {
+    released += selsan_impl_->ReleaseAtLeastNPages(
+        num_pages > released ? num_pages - released : Length(0), reason);
+  }
   for (int partition = 0; partition < active_numa_partitions(); partition++) {
-    released +=
-        normal_impl_[partition]->ReleaseAtLeastNPages(num_pages - released);
-    if (released >= num_pages) {
-      return released;
-    }
+    released += normal_impl_[partition]->ReleaseAtLeastNPages(
+        num_pages > released ? num_pages - released : Length(0), reason);
   }
 
-  released += sampled_impl_->ReleaseAtLeastNPages(num_pages - released);
+  released += sampled_impl_->ReleaseAtLeastNPages(
+      num_pages > released ? num_pages - released : Length(0), reason);
   return released;
 }
 
-inline void PageAllocator::Print(Printer* out, MemoryTag tag) {
+inline PageReleaseStats PageAllocator::GetReleaseStats() const {
+  PageReleaseStats stats;
+
+  if (has_cold_impl_) {
+    stats += cold_impl_->GetReleaseStats();
+  }
+  if (selsan_impl_) {
+    stats += selsan_impl_->GetReleaseStats();
+  }
+  for (int partition = 0; partition < active_numa_partitions(); partition++) {
+    stats += normal_impl_[partition]->GetReleaseStats();
+  }
+
+  stats += sampled_impl_->GetReleaseStats();
+
+  return stats;
+}
+
+inline void PageAllocator::Print(Printer& out, MemoryTag tag) {
+  if (tag == MemoryTag::kCold && !has_cold_impl_) {
+    return;
+  }
+  if (tag == MemoryTag::kSelSan && !selsan_impl_) {
+    return;
+  }
+
   const absl::string_view label = MemoryTagToLabel(tag);
   if (tag != MemoryTag::kNormal) {
-    out->printf("\n>>>>>>> Begin %s page allocator <<<<<<<\n", label);
+    out.printf("\n>>>>>>> Begin %s page allocator <<<<<<<\n", label);
   }
   impl(tag)->Print(out);
   if (tag != MemoryTag::kNormal) {
-    out->printf(">>>>>>> End %s page allocator <<<<<<<\n", label);
+    out.printf(">>>>>>> End %s page allocator <<<<<<<\n", label);
   }
 }
 
-inline void PageAllocator::PrintInPbtxt(PbtxtRegion* region, MemoryTag tag) {
-  PbtxtRegion pa = region->CreateSubRegion("page_allocator");
+inline void PageAllocator::PrintInPbtxt(PbtxtRegion& region, MemoryTag tag) {
+  if (tag == MemoryTag::kCold && !has_cold_impl_) {
+    return;
+  }
+  if (tag == MemoryTag::kSelSan && !selsan_impl_) {
+    return;
+  }
+
+  PbtxtRegion pa = region.CreateSubRegion("page_allocator");
   pa.PrintRaw("tag", MemoryTagToLabel(tag));
-  impl(tag)->PrintInPbtxt(&pa);
+  impl(tag)->PrintInPbtxt(pa);
 }
 
-inline void PageAllocator::set_limit(size_t limit, bool is_hard) {
-  absl::base_internal::SpinLockHolder h(&pageheap_lock);
-  limit_ = limit;
-  limit_is_hard_ = is_hard;
+inline void PageAllocator::set_limit(size_t limit, LimitKind limit_kind) {
+  PageHeapSpinLockHolder h;
+  limits_[limit_kind] = limit;
+  if (limits_[kHard] < limits_[kSoft]) {
+    // Soft limit can not be higher than hard limit.
+    limits_[kSoft] = limits_[kHard];
+  }
+  // Attempt to shed memory to get below the new limit.
+  ShrinkToUsageLimit(Length(0));
 }
 
-inline std::pair<size_t, bool> PageAllocator::limit() const {
-  absl::base_internal::SpinLockHolder h(&pageheap_lock);
-  return {limit_, limit_is_hard_};
+inline int64_t PageAllocator::limit_hits(LimitKind limit_kind) const {
+  TC_ASSERT_LT(limit_kind, kNumLimits);
+  PageHeapSpinLockHolder l;
+  return limit_hits_[limit_kind];
 }
 
-inline int64_t PageAllocator::limit_hits() const {
-  absl::base_internal::SpinLockHolder h(&pageheap_lock);
-  return limit_hits_;
+inline int64_t PageAllocator::successful_shrinks_after_limit_hit(
+    LimitKind limit_kind) const {
+  TC_ASSERT_LT(limit_kind, kNumLimits);
+  PageHeapSpinLockHolder l;
+  return successful_shrinks_after_limit_hit_[limit_kind];
 }
 
 inline const PageAllocInfo& PageAllocator::info(MemoryTag tag) const {
