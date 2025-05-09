@@ -424,6 +424,12 @@ size_t GetByteSize(const std::vector<T>& parts);
 #include "ref-inl.h"
 #undef REF_INL_H_
 
-//! Serialize TSharedRef like vector<char>. Useful for ::Save, ::Load serialization/deserialization. See util/ysaveload.h.
+//! Serialize TSharedRef like vector<char>.
+/*!
+ *  Useful for ::Save, ::Load serialization/deserialization.
+ *  See util/ysaveload.h.
+ */
 template <>
-class TSerializer<NYT::TSharedRef>: public TVectorSerializer<NYT::TSharedRange<char>> {};
+class TSerializer<NYT::TSharedRef>
+    : public TVectorSerializer<NYT::TSharedRange<char>>
+{ };
