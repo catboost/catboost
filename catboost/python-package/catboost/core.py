@@ -99,6 +99,7 @@ from pathlib import Path
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
+    from pathlib import Path
     PATH_TYPES = STRING_TYPES + (Path,)
 else:
     PATH_TYPES = STRING_TYPES
@@ -1717,7 +1718,6 @@ class _CatBoostBase(object):
         if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] is None:
             self._init_params['fixed_binary_splits'] = []
         self._object = _CatBoost()
-
 
     def __getstate__(self):
         params = self._init_params.copy()
@@ -4536,179 +4536,7 @@ class CatBoost(_CatBoostBase):
         self._object._convert_oblivious_to_asymmetric()
 
 
-class CatBoostEstimator(CatBoost):
-    def __init__(self, params=None):
-        """
-        Initialize the CatBoostEstimator.
-
-        Parameters
-        ----------
-        params : dict
-            Parameters for CatBoost.
-            If  None, all params are set to their defaults.
-            If  dict, overriding parameters present in dict.
-        """
-        if params is None:
-            params = {}
-        params_that_can_be_none = [
-            "iterations",
-            "learning_rate",
-            "depth"
-        ]
-
-        new_params = {}
-        for key, value in iteritems(params):
-            if key in params_that_can_be_none or value is not None:
-                new_params[key] = value
-
-        super(CatBoostEstimator, self).__init__(new_params)
-
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None,
-            sample_weight=None, group_id=None,
-            group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
-            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
-            log_cout=None, log_cerr=None):
-        """
-        Fit the CatBoost model.
-
-        Parameters
-        ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
-             or string.
-            If not catboost.Pool or catboost.FeaturesData it must be 2 dimensional Feature matrix
-             or string - file with dataset.
-
-             Must be non-empty (contain > 0 objects)
-
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels of the training data.
-            If not None, can be a single- or two- dimensional array with either:
-              - numerical values - for regression (including multiregression), ranking and binary classification problems
-              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
-            Use only if X is not catboost.Pool and does not point to a file.
-
-        cat_features : list or numpy.ndarray, optional (default=None)
-            If not None, giving the list of Categ columns indices.
-            Use only if X is not catboost.Pool and not catboost.FeaturesData
-
-        text_features: list or numpy.ndarray, optional (default=None)
-            If not none, giving the list of Text columns indices.
-            Use only if X is not catboost.Pool and not catboost.FeaturesData
-
-        embedding_features: list or numpy.ndarray, optional (default=None)
-            If not none, giving the list of Embedding columns indices.
-            Use only if X is not catboost.Pool and not catboost.FeaturesData
-
-        pairs : list or numpy.ndarray or pandas.DataFrame
-            The pairs description.
-            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
-            The shape should be Nx2, where N is the pairs' count. The first element of the pair is
-            the index of the winner object in the training set. The second element of the pair is
-            the index of the loser object in the training set.
-
-        graph : list or numpy.ndarray or pandas.DataFrame
-            The graph edges list description.
-            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
-
-        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Instance weights, 1 dimensional array like.
-
-        group_id : list or numpy.ndarray, optional (default=None)
-            group id for each instance.
-            If not None, giving 1 dimensional array like data.
-            Use only if X is not catboost.Pool.
-
-        group_weight : list or numpy.ndarray, optional (default=None)
-            Group weight for each instance.
-            If not None, giving 1 dimensional array like data.
-
-        subgroup_id : list or numpy.ndarray, optional (default=None)
-            subgroup id for each instance.
-            If not None, giving 1 dimensional array like data.
-            Use only if X is not catboost.Pool.
-
-        pairs_weight : list or numpy.ndarray, optional (default=None)
-            Weight for each pair.
-            If not None, giving 1 dimensional array like pairs.
-
-        baseline : list or numpy.ndarray, optional (default=None)
-            If not None, giving 2 dimensional array like data.
-            Use only if X is not catboost.Pool.
-
-        use_best_model : bool, optional (default=None)
-            Flag to use best model
-
-        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
-            Validation dataset or datasets for metrics calculation and possibly early stopping.
-
-        logging_level : string, optional (default=None)
-            Possible values:
-                - 'Silent'
-                - 'Verbose'
-                - 'Info'
-                - 'Debug'
-
-        metric_period : int
-            Frequency of evaluating metrics.
-
-        verbose : bool or int
-            If verbose is bool, then if set to True, logging_level is set to Verbose,
-            if set to False, logging_level is set to Silent.
-            If verbose is int, it determines the frequency of writing metrics to output and
-            logging_level is set to Verbose.
-
-        silent : bool
-            If silent is True, logging_level is set to Silent.
-            If silent is False, logging_level is set to Verbose.
-
-        verbose_eval : bool or int
-            Synonym for verbose. Only one of these parameters should be set.
-
-        plot : bool, optional (default=False)
-            If True, draw train and eval error in Jupyter notebook
-
-        plot_file : file-like or str, optional (default=None)
-            If not None, save train and eval error graphs to file
-
-        early_stopping_rounds : int
-            Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
-
-        save_snapshot : bool, [default=None]
-            Enable progress snapshotting for restoring progress after crashes or interruptions
-
-        snapshot_file : string or pathlib.Path, [default=None]
-            Learn progress snapshot file path, if None will use default filename
-
-        snapshot_interval: int, [default=600]
-            Interval between saving snapshots (seconds)
-
-        init_model : CatBoost class or string or pathlib.Path, [default=None]
-            Continue training starting from the existing model.
-            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
-
-        callbacks : list, optional (default=None)
-            List of callback objects that are applied at end of each iteration.
-
-        log_cout: output stream or callback for logging (default=None)
-            If None is specified, sys.stdout is used
-
-        log_cerr: error stream or callback for logging (default=None)
-            If None is specified, sys.stderr is used
-
-        Returns
-        -------
-        model : CatBoost
-        """
-        return self._fit(X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id,
-                         group_weight, subgroup_id,
-                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
-                         column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
-
-
-class CatBoostClassifier(CatBoostEstimator):
+class CatBoostClassifier(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -5299,7 +5127,7 @@ class CatBoostClassifier(CatBoostEstimator):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
-            if key not in not_params:
+            if key not in not_params and value is not None:
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
@@ -5791,8 +5619,11 @@ class CatBoostClassifier(CatBoostEstimator):
             raise CatBoostError("Invalid loss_function='{}': for classifier use "
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
 
-class CatBoostRegressor(CatBoostEstimator):
+
+class CatBoostRegressor(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -5936,9 +5767,8 @@ class CatBoostRegressor(CatBoostEstimator):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None,
-            sample_weight=None, group_id=None,
-            group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None,
+            sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
@@ -6188,7 +6018,7 @@ class CatBoostRegressor(CatBoostEstimator):
         is_regression = CatBoost._is_regression_objective(loss_function) or CatBoost._is_multiregression_objective(loss_function) or CatBoost._is_survivalregression_objective(loss_function)
         if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
+                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq, RMSPE or custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
@@ -6202,8 +6032,11 @@ class CatBoostRegressor(CatBoostEstimator):
                 return 'RMSEWithUncertainty'
         return 'RawFormulaVal'
 
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
 
-class CatBoostRanker(CatBoostEstimator):
+
+class CatBoostRanker(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost ranking.
     Parameters
@@ -6583,6 +6416,9 @@ class CatBoostRanker(CatBoostEstimator):
                                 "YetiRank, YetiRankPairwise, StochasticFilter, StochasticRank, "
                                 "QueryCrossEntropy, QueryRMSE, GroupQuantile, QuerySoftMax, PairLogit, PairLogitPairwise. "
                                 "It's also possible to use a regression loss".format(loss_function))
+
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
