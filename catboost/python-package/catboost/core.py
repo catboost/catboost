@@ -5132,9 +5132,8 @@ class CatBoostClassifier(CatBoost):
 
         super(CatBoostClassifier, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None,
-            sample_weight=None, group_id=None,
-            group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None,
+            sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
