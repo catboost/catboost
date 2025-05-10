@@ -1,4 +1,5 @@
 # select_features
+need add what's CatBoostClassifier's version support select_features method?  
 
 ## {{ dl--purpose }} {#purpose}
 
