@@ -319,7 +319,8 @@ def _get_features_indices(features, feature_names):
         raise CatBoostError("feature names should be a sequence, but got " + repr(features))
     if feature_names is not None:
         return [
-            feature_names.index(f) if isinstance(f, STRING_TYPES) else f
+            # feature_names.index(f) if isinstance(f, STRING_TYPES) else f
+            feature_names.index(f) if (isinstance(f, STRING_TYPES) and f in feature_names) else f
             for f in features
         ]
     else:
