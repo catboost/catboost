@@ -6,6 +6,10 @@
 #   include "jconfigint-armv8a.h"
 #elif defined(__i686__) || defined(_M_IX86)
 #   include "jconfigint-x86.h"
+#elif defined(__wasm__) && !defined(__wasm64__)
+#   include "jconfigint-wasm32.h"
+#elif defined(__wasm64__)
+#   include "jconfigint-wasm64.h"
 #elif defined(__ANDROID__)
 #   include "jconfigint-android.h"
 #elif defined(__IOS__)
