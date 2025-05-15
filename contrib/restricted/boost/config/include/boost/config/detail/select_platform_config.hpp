@@ -127,7 +127,7 @@
 #  include "boost/config/platform/solaris.hpp"
 #  include "boost/config/platform/irix.hpp"
 #  include "boost/config/platform/hpux.hpp"
-#  include "boost/config/platform/cygwin.hpp"
+#  error #include "boost/config/platform/cygwin.hpp"
 #  include "boost/config/platform/win32.hpp"
 #  include "boost/config/platform/beos.hpp"
 #  include "boost/config/platform/macos.hpp"
