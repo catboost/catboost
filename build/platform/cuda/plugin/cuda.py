@@ -175,17 +175,18 @@ def process_cuda_libraries_by_nvprune(cmd, cuda_manager, build_root):
     if not cuda_manager.has_cuda_fatbins(cmd):
         return cmd
 
-    # add custom linker script
+    if not cuda_manager.can_prune_libs:
+        return cmd
+
+    return process_cuda_library_by_external_tool(cmd, build_root, 'pruner', cuda_manager.prune_lib, cuda_manager.fatbin_libs)
+
+
+def add_custom_linker_script(cmd, cuda_manager, build_root):
     to_dirpath = next(tmpdir_generator(build_root, 'cuda_linker_script'))
-    script_path = os.path.join(to_dirpath, 'script')
+    script_path = os.path.join(to_dirpath, 'script.ld')
     with open(script_path, 'w') as f:
         cuda_manager.write_linker_script(f)
-    flags_with_linker = list(cmd) + ['-Wl,--script={}'.format(script_path)]
-
-    if not cuda_manager.can_prune_libs:
-        return flags_with_linker
-
-    return process_cuda_library_by_external_tool(flags_with_linker, build_root, 'pruner', cuda_manager.prune_lib, cuda_manager.fatbin_libs)
+    return list(cmd) + [script_path]
 
 
 def fix_cmd_for_dynamic_cuda(cmd):
@@ -219,20 +220,22 @@ def parse_kv(args, prefix):
 if __name__ == '__main__':
     cmd, kv = parse_kv(sys.argv[1:], '-L/CUDA:')
 
+    ca = kv['ARCH']
+    nv = kv['NVPRUNE']
+    oc = kv['OBJCOPY']
+
+    cuda_manager = CUDAManager(ca, nv)
+
+    try:
+        br = get_flag('--build-root')
+    except ValueError:
+        br = os.getcwd()
+
+    cmd = add_custom_linker_script(cmd, cuda_manager, br)
+
     if '--dynamic-cuda' in cmd:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
     else:
-        ca = kv['ARCH']
-        nv = kv['NVPRUNE']
-        oc = kv['OBJCOPY']
-
-        try:
-            br = get_flag('--build-root')
-        except ValueError:
-            br = os.getcwd()
-
-        cuda_manager = CUDAManager(ca, nv)
-
         cmd = process_cuda_libraries_by_nvprune(cmd, cuda_manager, br)
         cmd = process_cuda_libraries_by_objcopy(cmd, br, oc)
 
