@@ -256,8 +256,12 @@
 // GCC4.8 on RHEL7 does not support std::is_trivially_copyable
 #define __TBB_CPP11_TYPE_PROPERTIES_PRESENT             (_LIBCPP_VERSION || _MSC_VER >= 1700 || (__TBB_GLIBCXX_VERSION >= 50000 && __GXX_EXPERIMENTAL_CXX0X__))
 
-#define __TBB_CPP17_MEMORY_RESOURCE_PRESENT             (_MSC_VER >= 1913 && (__TBB_LANG > 201402L) || \
+#if defined(__cpp_lib_memory_resource)
+    #define __TBB_CPP17_MEMORY_RESOURCE_PRESENT         (_MSC_VER >= 1913 && (__TBB_LANG > 201402L) || \
                                                         __TBB_GLIBCXX_VERSION >= 90000 && __TBB_LANG >= 201703L)
+#else
+    #define __TBB_CPP17_MEMORY_RESOURCE_PRESENT         0
+#endif
 #define __TBB_CPP17_HW_INTERFERENCE_SIZE_PRESENT        0
 #define __TBB_CPP17_LOGICAL_OPERATIONS_PRESENT          (__TBB_LANG >= 201703L)
 #define __TBB_CPP17_ALLOCATOR_IS_ALWAYS_EQUAL_PRESENT   (__TBB_LANG >= 201703L)
