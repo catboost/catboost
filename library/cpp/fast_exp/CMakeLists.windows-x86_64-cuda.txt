@@ -33,7 +33,7 @@ target_sources_custom(library-cpp-fast_exp
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_avx2.cpp
   CUSTOM_FLAGS
   /arch:AVX2
-  /DAVX2_ENABLED=1
+  /D__AVX2__
 )
 
 target_sources_custom(library-cpp-fast_exp
