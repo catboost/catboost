@@ -11,23 +11,23 @@
 #include <util/system/platform.h>
 
 #if (defined(_i386_) || defined(_x86_64_)) && defined(_sse_)
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <pmmintrin.h>
-#define ARCADIA_SSE
-#if defined(_ssse3_)
-#include <tmmintrin.h>
-#endif
-#if defined(_sse4_1_)
-#include <smmintrin.h>
-#endif
-#if defined(_sse4_2_)
-#include <nmmintrin.h>
-#endif
+    #include <xmmintrin.h>
+    #include <emmintrin.h>
+    #include <pmmintrin.h>
+    #define ARCADIA_SSE
+    #if defined(_ssse3_)
+        #include <tmmintrin.h>
+    #endif
+    #if defined(_sse4_1_)
+        #include <smmintrin.h>
+    #endif
+    #if defined(_sse4_2_)
+        #include <nmmintrin.h>
+    #endif
 #elif defined(_arm64_)
-#include "sse2neon.h"
-#define ARCADIA_SSE
+    #include "sse2neon.h"
+    #define ARCADIA_SSE
 #elif defined(_ppc64_)
-#include "powerpc.h"
-#define ARCADIA_SSE
+    #include "powerpc.h"
+    #define ARCADIA_SSE
 #endif
