@@ -52,10 +52,10 @@ class TStringBuilder
     : public TStringBuilderBase
 {
 public:
-    TString Flush();
+    std::string Flush();
 
 protected:
-    TString Buffer_;
+    std::string Buffer_;
 
     void DoReset() override;
     void DoReserve(size_t size) override;
