@@ -12,24 +12,10 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(algorithm)
-add_subdirectory(base)
-add_subdirectory(cleanup)
-add_subdirectory(container)
-add_subdirectory(debugging)
-add_subdirectory(hash)
-add_subdirectory(numeric)
-add_subdirectory(strings)
-add_subdirectory(types)
-add_subdirectory(memory)
-add_subdirectory(meta)
-add_subdirectory(profiling)
-add_subdirectory(synchronization)
-add_subdirectory(time)
-add_subdirectory(crc)
-add_subdirectory(flags)
-add_subdirectory(functional)
-add_subdirectory(log)
-add_subdirectory(random)
-add_subdirectory(status)
-add_subdirectory(utility)
+add_library(abseil-cpp-absl-cleanup INTERFACE)
+
+
+target_link_libraries(abseil-cpp-absl-cleanup INTERFACE
+  contrib-libs-linux-headers
+)
+
