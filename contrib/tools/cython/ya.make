@@ -2,18 +2,16 @@
 
 PY3_LIBRARY()
 
+SUBSCRIBER(g:python-contrib)
+
 LICENSE(
     Apache-2.0 AND
     LicenseRef-scancode-unknown-license-reference
 )
 
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+VERSION(3.0.10)
 
-SUBSCRIBER(g:python-contrib)
-
-VERSION(0.29.37)
-
-ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.37.tar.gz)
+ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-3.0.10.tar.gz)
 
 NO_LINT()
 

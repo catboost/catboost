@@ -24,7 +24,7 @@
 using namespace NCB;
 
 
-extern "C" PyObject* PyCatboostExceptionType;
+extern "C++" PyObject* PyCatboostExceptionType;
 
 void ProcessException() {
     try {
