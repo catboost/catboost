@@ -2,12 +2,14 @@
 
 PY3_LIBRARY()
 
-SUBSCRIBER(g:python-contrib)
-
 LICENSE(
     Apache-2.0 AND
     LicenseRef-scancode-unknown-license-reference
 )
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+SUBSCRIBER(g:python-contrib)
 
 VERSION(3.0.10)
 

@@ -763,3 +763,4 @@ def generated_file_exists(filename, is_standalone=False):
         return library.python.resource.resfs_src(filename, resfs_file=True)
 
     return os.path.exists(filename)
+
