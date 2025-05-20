@@ -43,7 +43,9 @@ namespace NHnsw {
             size_t distanceCalcLimit,
             const TDistance& distance = {},
             const TDistanceLess& distanceLess = {},
-            const size_t stopSearchSize = 1) const
+            const size_t stopSearchSize = 1,
+            const EFilterMode filterMode = EFilterMode::NO_FILTER,
+            const TFilterBase& filter = {}) const
         {
             return THnswIndexBase::GetNearestNeighbors<TItemStorage, TDistance, TDistanceResult, TDistanceLess, TItem>(
                 query,
@@ -53,7 +55,9 @@ namespace NHnsw {
                 static_cast<const TItemStorage&>(*this),
                 distance,
                 distanceLess,
-                stopSearchSize);
+                stopSearchSize,
+                filterMode,
+                filter);
         }
 
         template <class TDistance,
@@ -66,7 +70,9 @@ namespace NHnsw {
             size_t searchNeighborhoodSize,
             const TDistance& distance = {},
             const TDistanceLess& distanceLess = {},
-            const size_t stopSearchSize = 1) const
+            const size_t stopSearchSize = 1,
+            const EFilterMode filterMode = EFilterMode::NO_FILTER,
+            const TFilterBase& filter = {}) const
         {
             return THnswIndexBase::GetNearestNeighbors<TItemStorage, TDistance, TDistanceResult, TDistanceLess, TItem>(
                 query,
@@ -76,7 +82,9 @@ namespace NHnsw {
                 static_cast<const TItemStorage&>(*this),
                 distance,
                 distanceLess,
-                stopSearchSize);
+                stopSearchSize,
+                filterMode,
+                filter);
         }
     };
 
