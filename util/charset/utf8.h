@@ -442,3 +442,11 @@ bool ToUpperUTF8Impl(const char* beg, size_t n, TString& newString);
 TString ToUpperUTF8(const TString& s);
 TString ToUpperUTF8(TStringBuf s);
 TString ToUpperUTF8(const char* s);
+
+//! cut utf-8 string to fit into |size| bytes
+void Utf8TruncateInplace(TString& s, size_t size);
+//! cut on a valid utf-8 sequence less or equal |size|
+void Utf8TruncateInplaceRobust(TString& s, size_t size);
+[[nodiscard]] TStringBuf Utf8Truncate(TStringBuf sb Y_LIFETIME_BOUND, size_t size);
+//! on error returns the longest valid utf8 sequence
+[[nodiscard]] TStringBuf Utf8TruncateRobust(TStringBuf sb Y_LIFETIME_BOUND, size_t size) noexcept;
