@@ -66,7 +66,7 @@ uncachable_builtins = [
     # Global/builtin names that cannot be cached because they may or may not
     # be available at import time, for various reasons:
     ## Python 3.13+
-    'IncompleteInputError',
+    '_IncompleteInputError',
     'PythonFinalizationError',
     ## Python 3.11+
     'BaseExceptionGroup',
@@ -641,18 +641,23 @@ class UtilityCode(UtilityCodeBase):
                 self.cleanup(writer, output.module_pos)
 
 
-def sub_tempita(s, context, file=None, name=None):
+def sub_tempita(s, context, file=None, name=None, __cache={}):
     "Run tempita on string s with given context."
     if not s:
         return None
 
     if file:
-        context['__name'] = "%s:%s" % (file, name)
-    elif name:
+        name = "%s:%s" % (file, name)
+    if name:
         context['__name'] = name
 
-    from ..Tempita import sub
-    return sub(s, **context)
+    try:
+        template = __cache[s]
+    except KeyError:
+        from ..Tempita import Template
+        template = __cache[s] = Template(s, name=name)
+
+    return template.substitute(context)
 
 
 class TempitaUtilityCode(UtilityCode):
@@ -1542,8 +1547,18 @@ class GlobalState(object):
                 # which aren't necessarily PyObjects, so aren't appropriate
                 # to clear.
                 continue
-            self.parts['module_state_clear'].putln(
-                "Py_CLEAR(clear_module_state->%s);" % cname)
+
+            self.parts['module_state_clear'].put_xdecref_clear(
+                "clear_module_state->%s" % cname,
+                c.type,
+                clear_before_decref=True,
+                nanny=False,
+            )
+
+            if c.type.is_memoryviewslice:
+                # TODO: Implement specific to type like CodeWriter.put_xdecref_clear()
+                cname += "->memview"
+
             self.parts['module_state_traverse'].putln(
                 "Py_VISIT(traverse_module_state->%s);" % cname)
 
@@ -2083,14 +2098,6 @@ class CCodeWriter(object):
             self.level += dl
         elif fix_indent:
             self.level += 1
-
-    def putln_tempita(self, code, **context):
-        from ..Tempita import sub
-        self.putln(sub(code, **context))
-
-    def put_tempita(self, code, **context):
-        from ..Tempita import sub
-        self.put(sub(code, **context))
 
     def increase_indent(self):
         self.level += 1

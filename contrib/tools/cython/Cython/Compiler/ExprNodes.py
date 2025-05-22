@@ -481,7 +481,12 @@ class ExprNode(Node):
 
     constant_result = constant_value_not_set
 
-    child_attrs = property(fget=operator.attrgetter('subexprs'))
+    if getattr(getattr(sys, "implementation", None), "name", "cpython") == "cpython":
+        child_attrs = property(fget=operator.attrgetter('subexprs'))
+    else:
+        @property
+        def child_attrs(self):
+            return self.subexprs
 
     def analyse_annotations(self, env):
         pass
@@ -6590,7 +6595,7 @@ class PyMethodCallNode(SimpleCallNode):
 
         self_arg = code.funcstate.allocate_temp(py_object_type, manage_ref=True)
         code.putln("%s = NULL;" % self_arg)
-        arg_offset_cname = code.funcstate.allocate_temp(PyrexTypes.c_int_type, manage_ref=False)
+        arg_offset_cname = code.funcstate.allocate_temp(PyrexTypes.c_uint_type, manage_ref=False)
         code.putln("%s = 0;" % arg_offset_cname)
 
         def attribute_is_likely_method(attr):
