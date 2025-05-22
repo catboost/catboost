@@ -1,6 +1,7 @@
 #include <atomic>
 
 #include <util/system/defaults.h>
+#include <util/system/spinlock.h>
 
 #if defined(_unix_)
     #include <pthread.h>
@@ -295,30 +296,36 @@ private:
 
     private:
         void ChildAction() {
-            TTryGuard guard{ActionMutex};
-            // If you get an error here, it means you've used fork(2) in multi-threaded environment and probably created thread pools often.
-            // Don't use fork(2) in multi-threaded programs, don't create thread pools often.
-            // The mutex is locked after fork iff the fork(2) call was concurrent with RegisterObject / UnregisterObject in another thread.
-            Y_ABORT_UNLESS(guard.WasAcquired(), "Failed to acquire ActionMutex after fork");
+            Y_ABORT_UNLESS(ActionMutex.IsLocked(), "ActionMutex must be locked after fork");
 
             for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
                 it->AtforkAction();
             }
+
+            ActionMutex.Release();
         }
 
         static void ProcessChildAction() {
             Get().ChildAction();
         }
 
+        static void ProcessParentBeforeFork() {
+            Get().ActionMutex.Acquire();
+        }
+
+        static void ProcessParentAfterFork() {
+            Get().ActionMutex.Release();
+        }
+
         TIntrusiveList<TImpl> RegisteredObjects;
-        TMutex ActionMutex;
+        TAdaptiveLock ActionMutex;
 
     public:
         inline TAtforkQueueRestarter() {
 #if defined(_bionic_)
 // no pthread_atfork on android libc
 #elif defined(_unix_)
-            pthread_atfork(nullptr, nullptr, ProcessChildAction);
+            pthread_atfork(ProcessParentBeforeFork, ProcessParentAfterFork, ProcessChildAction);
 #endif
         }
     };
