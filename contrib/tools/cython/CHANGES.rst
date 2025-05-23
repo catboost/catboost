@@ -2,6 +2,35 @@
 Cython Changelog
 ================
 
+3.0.12 (2025-02-11)
+===================
+
+Bugs fixed
+----------
+
+* Release 3.0.11 introduced some incorrect ``noexcept`` warnings.
+  (Github issue :issue:`6335`)
+
+* Conditional assignments to variables using the walrus operator could crash.
+  (Github issue :issue:`6094`)
+
+* Dict assignments to struct members with reserved C names could generate invalid C code.
+
+* Fused ctuples with the same entry types but different sizes could fail to compile.
+  (Github issue :issue:`6328`)
+
+* In Py3, `pyximport` was not searching `sys.path` when looking for importable source files.
+  (Github issue :issue:`5615`)
+
+* Using `& 0` on integers produced with `int.from_bytes()` could read invalid memory on Python 3.10.
+  (Github issue :issue:`6480`)
+
+* Modules could fail to compile in PyPy 3.11 due to missing CPython specific header files.
+  Patch by Matti Picus.  (Github issue :issue:`6482`)
+
+* Minor fix in C++ ``partial_sum()`` declaration.
+
+
 3.0.11 (2024-08-05)
 ===================
 

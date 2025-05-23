@@ -1052,7 +1052,7 @@ class ExprNode(Node):
                         src = CoerceToPyTypeNode(src, env, type=dst_type)
                 # FIXME: I would expect that CoerceToPyTypeNode(type=dst_type) returns a value of type dst_type
                 #        but it doesn't for ctuples. Thus, we add a PyTypeTestNode which then triggers the
-                #        Python conversion and becomes useless. That sems backwards and inefficient.
+                #        Python conversion and becomes useless. That seems backwards and inefficient.
                 #        We should not need a PyTypeTestNode after a previous conversion above.
                 if not src.type.subtype_of(dst_type):
                     src = PyTypeTestNode(src, dst_type, env)
@@ -9296,6 +9296,9 @@ class DictNode(ExprNode):
                     len(self.key_value_pairs),
                     code.error_goto_if_null(self.result(), self.pos)))
             self.generate_gotref(code)
+            struct_scope = None
+        else:
+            struct_scope = self.type.scope
 
         keys_seen = set()
         key_type = None
@@ -9344,17 +9347,16 @@ class DictNode(ExprNode):
                 if self.exclude_null_values:
                     code.putln('}')
             else:
+                key = str(item.key.value)
+                member = struct_scope.lookup_here(key)
+                assert member is not None, "struct member %s not found, error was not handled during coercion" % key
+                key_cname = member.cname
+                value_cname = item.value.result()
                 if item.value.type.is_array:
                     code.putln("memcpy(%s.%s, %s, sizeof(%s));" % (
-                            self.result(),
-                            item.key.value,
-                            item.value.result(),
-                            item.value.result()))
+                        self.result(), key_cname, value_cname, value_cname))
                 else:
-                    code.putln("%s.%s = %s;" % (
-                            self.result(),
-                            item.key.value,
-                            item.value.result()))
+                    code.putln("%s.%s = %s;" % (self.result(), key_cname, value_cname))
             item.generate_disposal_code(code)
             item.free_temps(code)
 
