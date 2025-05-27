@@ -132,58 +132,58 @@ target_sources(contrib-libs-protobuf PRIVATE
 
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/any.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/any.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/api.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/api.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/duration.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/empty.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/source_context.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/struct.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/type.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/type.proto
 )
 
 copy_file(
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
-  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  "${PROJECT_SOURCE_DIR}"/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  "${PROJECT_BINARY_DIR}"/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
 )
 
 add_global_library_for(contrib-libs-protobuf.global
