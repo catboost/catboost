@@ -3,9 +3,27 @@
 #include "helpers.h"
 
 #include <library/cpp/hnsw/helpers/interrupt.h>
+
+#include <util/generic/string.h>
+#include <util/generic/yexception.h>
 #include <util/memory/blob.h>
 
 namespace NHnsw::PythonHelpers {
+    void ThrowCppExceptionWithMessage(const TString& message) {
+        ythrow yexception() << message;
+    }
+
+    void ProcessException() {
+        try {
+            throw;
+        } catch (const TInterruptException& exc) {
+            PyErr_SetString(PyExc_KeyboardInterrupt, exc.what());
+        } catch (const std::exception& exc) {
+            PyErr_SetString(PyHnswExceptionType, exc.what());
+        }
+    }
+
+
     void PyCheckInterrupted() {
         TGilGuard guard;
         if (PyErr_CheckSignals() == -1) {

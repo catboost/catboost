@@ -11,6 +11,8 @@ from six import PY3
 import numpy as np
 cimport numpy as np  # noqa
 
+import traceback
+
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
 
@@ -25,14 +27,18 @@ np.import_array()
 class HnswException(Exception):
     pass
 
+cdef public object PyHnswExceptionType = <object>HnswException
+
 
 cdef extern from "library/python/hnsw/hnsw/helpers.h" namespace "NHnsw::PythonHelpers":
+    void ThrowCppExceptionWithMessage(const TString&) nogil
+    void ProcessException()
     void SetPythonInterruptHandler() nogil
     void ResetPythonInterruptHandler() nogil
 
 
 cdef extern from "library/cpp/hnsw/logging/logging.h" namespace "NHnsw":
-    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil)
+    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) noexcept with gil)
     cdef void RestoreOriginalLogger()
 
 
@@ -132,10 +138,21 @@ cdef inline TString to_arcadia_string(s) except *:
 log_cout = None
 
 
-cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
-    cdef bytes bytes_str = str[:len]
-    log_cout.write(to_native_str(bytes_str))
-    log_cout.flush()
+cdef void _CoutLogPrinter(const char* str, size_t len) noexcept with gil:
+    cdef TString errorMessage
+    cdef bytes bytes_str
+    try:
+        bytes_str = str[:len]
+        log_cout.write(to_native_str(bytes_str))
+        log_cout.flush()
+    except:
+        try:
+            errorMessage = to_arcadia_string(traceback.format_exc())
+        except:
+            errorMessage = "Error while generating error message"
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
 
 cdef object _get_nearest_neighbors_float(const THnswIndexBase* index, const float* query, size_t topSize,
                                         size_t searchNeighborhoodSize, size_t distanceCalcLimit,

@@ -32,7 +32,13 @@ inline const char* PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *size) 
 #endif
 
 
+extern "C++" PyObject* PyHnswExceptionType;
+
+
 namespace NHnsw::PythonHelpers {
+    void ThrowCppExceptionWithMessage(const TString& message);
+    void ProcessException();
+
     class TGilGuard : public TNonCopyable {
     public:
         TGilGuard()
