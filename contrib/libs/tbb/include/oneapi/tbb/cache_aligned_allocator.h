@@ -23,7 +23,7 @@
 #include <utility>
 
 #if __TBB_CPP17_MEMORY_RESOURCE_PRESENT
-#error #include <memory_resource>
+#include <memory_resource>
 #endif
 
 namespace tbb {

@@ -7,12 +7,13 @@
 #if PY_MAJOR_VERSION < 3
 void Py_InitArgcArgv(int argc, char **argv);
 
-int %(main_method)s(int argc, char** argv) {
-#elif defined(WIN32) || defined(MS_WINDOWS)
-int %(wmain_method)s(int argc, wchar_t **argv) {
+int %(main_method)s(int argc, char** argv)
+#elif defined(_WIN32) || defined(WIN32) || defined(MS_WINDOWS)
+int %(wmain_method)s(int argc, wchar_t **argv)
 #else
-static int __Pyx_main(int argc, wchar_t **argv) {
+static int __Pyx_main(int argc, wchar_t **argv)
 #endif
+{
     /* 754 requires that FP exceptions run in "no stop" mode by default,
      * and until C vendors implement C99's ways to control FP exceptions,
      * Python requires non-stop mode.  Alas, some platforms enable FP
@@ -24,11 +25,22 @@ static int __Pyx_main(int argc, wchar_t **argv) {
     m = fpgetmask();
     fpsetmask(m & ~FP_X_OFL);
 #endif
-#if PY_VERSION_HEX < 0x03080000
-    if (argc && argv) {
+#if PY_MAJOR_VERSION < 3
+    if (argc && argv)
         Py_InitArgcArgv(argc, argv);
+#endif
+#if PY_VERSION_HEX < 0x03080000
+    if (argc && argv)
         Py_SetProgramName(argv[0]);
-    }
+#endif
+
+    #if PY_MAJOR_VERSION < 3
+    if (PyImport_AppendInittab("%(module_name)s", init%(module_name)s) < 0) return 1;
+    #else
+    if (PyImport_AppendInittab("%(module_name)s", PyInit_%(module_name)s) < 0) return 1;
+    #endif
+
+#if PY_VERSION_HEX < 0x03080000
     Py_Initialize();
     if (argc && argv)
         PySys_SetArgv(argc, argv);
@@ -64,29 +76,13 @@ static int __Pyx_main(int argc, wchar_t **argv) {
         PyConfig_Clear(&config);
     }
 #endif
+
     { /* init module '%(module_name)s' as '__main__' */
       PyObject* m = NULL;
       %(module_is_main)s = 1;
-      #if PY_MAJOR_VERSION < 3
-          init%(module_name)s();
-      #elif CYTHON_PEP489_MULTI_PHASE_INIT
-          m = PyInit_%(module_name)s();
-          if (!PyModule_Check(m)) {
-              PyModuleDef *mdef = (PyModuleDef *) m;
-              PyObject *modname = PyUnicode_FromString("__main__");
-              m = NULL;
-              if (modname) {
-                  // FIXME: not currently calling PyModule_FromDefAndSpec() here because we do not have a module spec!
-                  // FIXME: not currently setting __file__, __path__, __spec__, ...
-                  m = PyModule_NewObject(modname);
-                  Py_DECREF(modname);
-                  if (m) PyModule_ExecDef(m, mdef);
-              }
-          }
-      #else
-          m = PyInit_%(module_name)s();
-      #endif
-      if (PyErr_Occurred()) {
+      m = PyImport_ImportModule("%(module_name)s");
+
+      if (!m && PyErr_Occurred()) {
           PyErr_Print(); /* This exits with the right code if SystemExit. */
           #if PY_MAJOR_VERSION < 3
           if (Py_FlushLine()) PyErr_Clear();
@@ -105,8 +101,10 @@ static int __Pyx_main(int argc, wchar_t **argv) {
 }
 
 
-#if PY_MAJOR_VERSION >= 3 && !defined(WIN32) && !defined(MS_WINDOWS)
+#if PY_MAJOR_VERSION >= 3 && !defined(_WIN32) && !defined(WIN32) && !defined(MS_WINDOWS)
 #include <locale.h>
+
+#if PY_VERSION_HEX < 0x03050000
 
 static wchar_t*
 __Pyx_char2wchar(char* arg)
@@ -211,6 +209,8 @@ oom:
     fprintf(stderr, "out of memory\\n");
     return NULL;
 }
+
+#endif
 
 int
 %(main_method)s(int argc, char **argv)

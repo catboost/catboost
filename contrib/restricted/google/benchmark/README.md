@@ -50,7 +50,7 @@ IRC channels:
 
 ## Requirements
 
-The library can be used with C++03. However, it requires C++14 to build,
+The library can be used with C++11. However, it requires C++17 to build,
 including compiler and standard library support.
 
 _See [dependencies.md](docs/dependencies.md) for more details regarding supported
@@ -78,7 +78,7 @@ $ cmake -E make_directory "build"
 # Generate build system files with cmake, and download any dependencies.
 $ cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
 # or, starting with CMake 3.13, use a simpler form:
-# cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
+# cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release -S . -B "build"
 # Build the library.
 $ cmake --build "build" --config Release
 ```

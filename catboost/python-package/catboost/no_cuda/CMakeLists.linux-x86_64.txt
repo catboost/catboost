@@ -108,6 +108,8 @@ use_export_script(_catboost_no_cuda
 )
 
 target_cython_options(_catboost_no_cuda
+  -X
+  legacy_implicit_noexcept=True
   -E
   UNAME_SYSNAME=Linux
   --module-name

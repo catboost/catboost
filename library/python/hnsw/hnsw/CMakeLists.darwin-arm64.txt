@@ -77,6 +77,8 @@ use_export_script(_hnsw
 )
 
 target_cython_options(_hnsw
+  -X
+  legacy_implicit_noexcept=True
   -E
   UNAME_SYSNAME=Darwin
   --module-name

@@ -17,13 +17,7 @@ cdef extern from "library/cpp/grid_creator/binarization.h":
 
 
 cpdef _calculate_quantization_grid(values, max_borders_count, border_type):
-    cdef TVector[float] valuesVector
-    cdef int values_len = len(values)
-    valuesVector.reserve(values_len)
-
-    cdef int i
-    for i in xrange(values_len):
-        valuesVector.push_back(float(values[i]))
+    cdef TVector[float] valuesVector = py_to_tvector[float](values)
     cdef EBorderSelectionType borderSelectionType
     if not TryFromString[EBorderSelectionType](to_arcadia_string(border_type), borderSelectionType):
         raise CatBoostError('Unknown border selection type {}.'.format(border_type))

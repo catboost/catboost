@@ -243,6 +243,8 @@ public:
         return ret;
     }
 
+    bool operator==(const TInteger128& a) const = default;
+
     explicit constexpr operator bool() const noexcept {
         return Low_ || High_;
     }
@@ -476,14 +478,6 @@ namespace std {
             return 0;
         }
     };
-}
-
-constexpr bool operator==(const ui128 lhs, const ui128 rhs) noexcept {
-    return GetLow(lhs) == GetLow(rhs) && GetHigh(lhs) == GetHigh(rhs);
-}
-
-constexpr bool operator==(const i128 lhs, const i128 rhs) noexcept {
-    return GetLow(lhs) == GetLow(rhs) && GetHigh(lhs) == GetHigh(rhs);
 }
 
 constexpr bool operator!=(const ui128 lhs, const ui128 rhs) noexcept {

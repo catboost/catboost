@@ -36,11 +36,6 @@
     #define YT_ENABLE_SPIN_LOCK_OWNERSHIP_TRACKING
 #endif
 
-// Configure SSE usage.
-#ifdef SSE42_ENABLED
-    #define YT_USE_SSE42
-#endif
-
 #ifdef _win_
     // Someone above has defined this by including one of Windows headers.
     #undef GetMessage

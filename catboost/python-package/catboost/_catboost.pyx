@@ -2255,9 +2255,7 @@ class FeaturesData(object):
 
 cdef list_to_vector(values_list, TVector[ui32]* values_vector):
     if values_list is not None:
-        values_vector[0].reserve(len(values_list))
-        for value in values_list:
-            values_vector[0].push_back(value)
+        values_vector[0] = py_to_tvector[ui32](values_list)
 
 
 cdef TFeaturesLayout* _init_features_layout(
@@ -3858,11 +3856,7 @@ cdef _set_weight(weight, IRawObjectsOrderDataVisitor* builder_visitor):
         builder_visitor[0].AddWeight(i, float(weight[i]))
 
 cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_visitor):
-    cdef TVector[float] weightVector
-    cdef int weights_len = len(weight)
-    weightVector.reserve(weights_len)
-    for i in xrange(weights_len):
-        weightVector.push_back(float(weight[i]))
+    cdef TVector[float] weightVector = py_to_tvector[float](weight)
     builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
 cdef inline TGroupId _calc_group_id_for(i, py_group_ids) except *:
@@ -3891,12 +3885,7 @@ cdef _set_group_weight(group_weight, IRawObjectsOrderDataVisitor* builder_visito
         builder_visitor[0].AddGroupWeight(i, float(group_weight[i]))
 
 cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor* builder_visitor):
-    cdef TVector[float] groupWeightVector
-    cdef int group_weight_len = len(group_weight)
-    cdef int i
-    groupWeightVector.reserve(group_weight_len)
-    for i in xrange(group_weight_len):
-        groupWeightVector.push_back(float(group_weight[i]))
+    cdef TVector[float] groupWeightVector = py_to_tvector[float](group_weight)
     builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
 cdef inline TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
@@ -4428,9 +4417,7 @@ cdef class _PoolBase:
         self.__pool.Get()[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
 
     cpdef _set_weight(self, weight):
-        cdef TVector[float] weight_vector
-        for value in weight:
-            weight_vector.push_back(value)
+        cdef TVector[float] weight_vector = py_to_tvector[float](weight)
         self.__pool.Get()[0].SetWeights(
             TConstArrayRef[float](weight_vector.data(), weight_vector.size())
         )
@@ -4449,9 +4436,7 @@ cdef class _PoolBase:
         )
 
     cpdef _set_group_weight(self, group_weight):
-        cdef TVector[float] group_weight_vector
-        for value in group_weight:
-            group_weight_vector.push_back(value)
+        cdef TVector[float] group_weight_vector = py_to_tvector[float](group_weight)
         self.__pool.Get()[0].SetGroupWeights(
             TConstArrayRef[float](group_weight_vector.data(), group_weight_vector.size())
         )
@@ -4503,9 +4488,7 @@ cdef class _PoolBase:
         )
 
     cpdef _set_timestamp(self, timestamp):
-        cdef TVector[ui64] timestamp_vector
-        for value in timestamp:
-            timestamp_vector.push_back(<ui64>value)
+        cdef TVector[ui64] timestamp_vector = py_to_tvector[ui64](timestamp)
         self.__pool.Get()[0].SetTimestamps(
             TConstArrayRef[ui64](timestamp_vector.data(), timestamp_vector.size())
         )
@@ -4811,9 +4794,7 @@ cdef class _PoolBase:
             return np.empty((self.num_row(), 0), dtype=np.float32)
 
     cpdef _take_slice(self, _PoolBase pool, row_indices):
-        cdef TVector[ui32] rowIndices
-        for index in row_indices:
-            rowIndices.push_back(index)
+        cdef TVector[ui32] rowIndices = py_to_tvector[ui32](row_indices)
 
         cdef int thread_count = UpdateThreadCount(-1)
         self.__pool = pool.__pool.Get()[0].GetSubset(
@@ -5237,9 +5218,7 @@ cdef class _CatBoost:
 
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
         thread_count = UpdateThreadCount(thread_count);
-        cdef TVector[TString] metricDescriptions
-        for metric_description in metric_descriptions:
-            metricDescriptions.push_back(to_arcadia_string(metric_description))
+        cdef TVector[TString] metricDescriptions = py_to_tvector[TString](metric_descriptions)
 
         cdef TVector[TVector[double]] metrics
         metrics = EvalMetrics(
@@ -5669,12 +5648,8 @@ cdef class _CatBoost:
     cpdef _get_binarized_statistics(self, _PoolBase pool, catFeaturesNums, floatFeaturesNums, predictionType, int thread_count):
         thread_count = UpdateThreadCount(thread_count)
         cdef TVector[TBinarizedFeatureStatistics] statistics
-        cdef TVector[size_t] catFeaturesNumsVec
-        cdef TVector[size_t] floatFeaturesNumsVec
-        for num in catFeaturesNums:
-            catFeaturesNumsVec.push_back(num)
-        for num in floatFeaturesNums:
-            floatFeaturesNumsVec.push_back(num)
+        cdef TVector[size_t] catFeaturesNumsVec = py_to_tvector[size_t](catFeaturesNums)
+        cdef TVector[size_t] floatFeaturesNumsVec = py_to_tvector[size_t](floatFeaturesNums)
         statistics_vec = GetBinarizedStatistics(
             dereference(self.__model),
             dereference(pool.__pool.Get()),
@@ -6213,9 +6188,7 @@ cdef class _MetricCalcerBase:
     cpdef _create_calcer(self, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count,
                          tmp_dir, bool_t delete_temp_dir_on_exit):
         thread_count=UpdateThreadCount(thread_count);
-        cdef TVector[TString] metricsDescription
-        for metric_description in metrics_description:
-            metricsDescription.push_back(to_arcadia_string(metric_description))
+        cdef TVector[TString] metricsDescription = py_to_tvector[TString](metrics_description)
 
         self.__calcer = new TMetricsPlotCalcerPythonWrapper(metricsDescription, dereference(self.__catboost.__model),
                                                             ntree_start, ntree_end, eval_period, thread_count,
@@ -6433,12 +6406,8 @@ cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen, PyObject*
 
 
 cpdef compute_wx_test(baseline, test):
-    cdef TVector[double] baselineVec
-    cdef TVector[double] testVec
-    for x in baseline:
-        baselineVec.push_back(x)
-    for x in test:
-        testVec.push_back(x)
+    cdef TVector[double] baselineVec = py_to_tvector[double](baseline)
+    cdef TVector[double] testVec = py_to_tvector[double](test)
     result=WxTest(baselineVec, testVec)
     return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
 
@@ -6590,17 +6559,14 @@ cpdef get_num_feature_values_sample(
 
     if sample_indices is not None:
         object_count = len(sample_indices)
-        for sample_idx in sample_indices:
-            sample_indices_vector.push_back(sample_idx)
+        sample_indices_vector = py_to_tvector[ui32](sample_indices)
 
     if sample_ids is not None:
         if sample_indices is not None:
             raise CatBoostError('both sample_indices and sample_ids specified')
 
         object_count = len(sample_ids)
-        for sample_id in sample_ids:
-            sample_ids_vector.push_back(to_arcadia_string(sample_id))
-
+        sample_ids_vector = py_to_tvector[TString](sample_ids)
 
     cdef TVector[TString] feature_names = GetModelUsedFeaturesNames(dereference(model.__model))
     cdef TConstArrayRef[TFloatFeature] float_features = model.__model.ModelTrees.Get().GetFloatFeatures()

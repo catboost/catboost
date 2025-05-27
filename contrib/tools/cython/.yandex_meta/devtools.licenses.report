@@ -55,14 +55,25 @@ BELONGS ya.make
         Match type      : INTRO
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
     Files with this license:
-        README.rst [37:37]
+        README.rst [40:40]
     Scancode info:
         Original SPDX id: Apache-2.0
         Score           : 100.00
         Match type      : REFERENCE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        README.rst [37:37]
+        README.rst [40:40]
+
+KEEP     Apache-2.0           158a5755dff2e18f301fa2391d29ce23
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        LICENSE.txt [1:176]
 
 KEEP     Apache-2.0           184f7a78939a4fbb79148cfa29a95a48
 BELONGS ya.make
@@ -76,17 +87,6 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         COPYING.txt [7:8]
-
-KEEP     Apache-2.0           34f8c1142fd6208a8be89399cb521df9
-BELONGS ya.make
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: Apache-2.0
-        Score           : 100.00
-        Match type      : TEXT
-        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
-    Files with this license:
-        LICENSE.txt [1:176]
 
 SKIP     GPL-2.0-or-later AND Bootloader-exception 35b681ec6079cfeb49b0bd28c29f807a
 BELONGS Cython/ya.make
@@ -109,25 +109,13 @@ BELONGS Cython/ya.make
     Files with this license:
         Cython/Build/IpythonMagic.py [42:44]
 
-KEEP     Public-Domain        5e5fc519986cb79a430b651afa9afe9b
-BELONGS Cython/ya.make
-    License text:
-        //   Written by Rusty Russell, public domain, http://ccodearchive.net/
-    Scancode info:
-        Original SPDX id: LicenseRef-scancode-public-domain
-        Score           : 70.00
-        Match type      : REFERENCE
-        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
-    Files with this license:
-        Cython/Utility/ObjectHandling.c [1984:1984]
-
-KEEP     Apache-2.0           61d70dcaa7e25996bcb85b4855e537d3
+KEEP     Apache-2.0           6daa5d0a3df49b5ad21479adec3c9229
 BELONGS ya.make
     License text:
-        License: Apache
+        License: Apache-2.0
     Scancode info:
         Original SPDX id: Apache-2.0
-        Score           : 90.00
+        Score           : 100.00
         Match type      : TAG
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
@@ -146,6 +134,18 @@ FILE_INCLUDE LICENSE.txt found in files: COPYING.txt at line 11
     Files with this license:
         COPYING.txt [11:11]
 
+KEEP     Public-Domain        8176b91ad5b7258faab82ba488e9da9d
+BELONGS Cython/ya.make
+    License text:
+        //   Written by Rusty Russell, public domain, https://ccodearchive.net/
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 70.00
+        Match type      : REFERENCE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        Cython/Utility/ObjectHandling.c [2521:2521]
+
 KEEP     Apache-2.0           86e8237b9a37a6951edea992afba41f3
 BELONGS ya.make
     License text:
@@ -160,7 +160,7 @@ BELONGS ya.make
 
 KEEP     LicenseRef-scancode-unknown-license-reference 8ec7c99b03de2d2c6bd840f80b68cb59
 BELONGS ya.make
-FILE_INCLUDE LICENSE.txt found in files: README.rst at line 39
+FILE_INCLUDE LICENSE.txt found in files: README.rst at line 42
     License text:
         See `LICENSE.txt <https://github.com/cython/cython/blob/master/LICENSE.txt>`_.
     Scancode info:
@@ -169,4 +169,4 @@ FILE_INCLUDE LICENSE.txt found in files: README.rst at line 39
         Match type      : REFERENCE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
     Files with this license:
-        README.rst [39:39]
+        README.rst [42:42]

@@ -27,5 +27,6 @@ target_sources_custom(cpp-float16-float16_avx_impl
   ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16_avx_impl/float16_avx.cpp
   CUSTOM_FLAGS
   /arch:AVX
-  /DAVX_ENABLED=1
+  /D__AVX__
+  /D__PCLMUL__=1
 )

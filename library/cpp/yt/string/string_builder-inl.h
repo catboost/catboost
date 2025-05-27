@@ -94,7 +94,7 @@ void TStringBuilderBase::AppendFormat(const char (&format)[Length], TArgs&& ... 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline TString TStringBuilder::Flush()
+inline std::string TStringBuilder::Flush()
 {
     Buffer_.resize(GetLength());
     auto result = std::move(Buffer_);
@@ -104,14 +104,14 @@ inline TString TStringBuilder::Flush()
 
 inline void TStringBuilder::DoReset()
 {
-    Buffer_ = {};
+    Buffer_.clear();
 }
 
 inline void TStringBuilder::DoReserve(size_t newLength)
 {
-    Buffer_.ReserveAndResize(newLength);
+    Buffer_.resize(newLength);
     auto capacity = Buffer_.capacity();
-    Buffer_.ReserveAndResize(capacity);
+    Buffer_.resize(capacity);
     Begin_ = &*Buffer_.begin();
     End_ = Begin_ + capacity;
 }

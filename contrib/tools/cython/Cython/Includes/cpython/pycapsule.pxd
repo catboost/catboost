@@ -1,5 +1,5 @@
 
-# available since Python 3.1!
+# available since Python 2.7!
 
 
 cdef extern from "Python.h":
@@ -141,4 +141,3 @@ cdef extern from "Python.h":
     # set an exception and return NULL. However, if PyCapsule_Import()
     # failed to import the module, and no_block was true, no exception
     # is set.
-

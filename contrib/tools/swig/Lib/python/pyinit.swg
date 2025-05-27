@@ -261,6 +261,7 @@ SWIG_init(void) {
   (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
+  SWIG_runtime_data_module();
   SWIG_This();
   SWIG_Python_TypeCache();
   SwigPyPacked_type();

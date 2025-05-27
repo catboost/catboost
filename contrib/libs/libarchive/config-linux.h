@@ -1114,7 +1114,7 @@ typedef uint64_t uintmax_t;
 /* #undef HAVE_SYS_MKDEV_H */
 
 /* Define to 1 if you have the <sys/mount.h> header file. */
-/* #undef HAVE_SYS_MOUNT_H */
+#define HAVE_SYS_MOUNT_H 1
 
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */

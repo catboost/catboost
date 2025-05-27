@@ -1,10 +1,13 @@
 #pragma once
 
 #include "index_reader.h"
+#include "filter_base.h"
+#include "neighbors_getter.h"
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
 #include <library/cpp/hnsw/helpers/is_item_marked_deleted.h>
 
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/queue.h>
 #include <util/memory/blob.h>
@@ -53,6 +56,10 @@ namespace NHnsw {
          *                                  If the value is too low search could return less than topSize results.
          * @param distanceCalcLimit         Limit of distance calculations.
          * @param itemStorage               Storage with method GetItem(ui32 id) which provides item with given id.
+         * @param stopSearchSize            Minimum number of nearest neighbors at which to stop search if
+         *                                  the best from candidates is worse than the worst of nearest neighbors
+         * @param filterMode                Filtering mode in HNSW, no filtration by default
+         * @param filter                    Class with Check(id) method that returns true if an item passes the filter
          */
 
         template <class TItemStorage,
@@ -67,9 +74,11 @@ namespace NHnsw {
             size_t distanceCalcLimit,
             const TItemStorage& itemStorage,
             const TDistance& distance = {},
-            const TDistanceLess& distanceLess = {}) const
-        {
-            if (Levels.empty() || searchNeighborhoodSize == 0) {
+            const TDistanceLess& distanceLess = {},
+            const size_t stopSearchSize = 1,
+            const EFilterMode filterMode = EFilterMode::NO_FILTER,
+            const TFilterBase& filter = {}) const {
+            if (Levels.empty() || searchNeighborhoodSize == 0 || stopSearchSize == 0) {
                 return {};
             }
             ui32 entryId = 0;
@@ -107,7 +116,9 @@ namespace NHnsw {
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborGreater)> candidates(neighborGreater);
             TDenseHashSet<ui32> visited(/*emptyKey*/ Max<ui32>());
 
-            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId)) {
+            auto neighborsGetter = CreateNeighborsGetter(filterMode, filter);
+
+            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId) && (filterMode == EFilterMode::NO_FILTER || filter.Check(entryId))) {
                 nearest.push({entryDist, entryId});
             }
 
@@ -117,11 +128,10 @@ namespace NHnsw {
             while (!candidates.empty() && !distanceCalcLimitReached) {
                 auto cur = candidates.top();
                 candidates.pop();
-                if (!nearest.empty() && distanceLess(nearest.top().Dist, cur.Dist)) {
+                if (nearest.size() >= stopSearchSize && distanceLess(nearest.top().Dist, cur.Dist)) {
                     break;
                 }
-                const ui32* neighbors = GetNeighbors(/*level*/ 0, cur.Id);
-                size_t numNeighbors = GetNumNeighbors(/*level*/ 0);
+                const auto [neighbors, numNeighbors] = neighborsGetter->GetLayerNeighbors(cur.Id);
                 PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, &visited);
                 for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
                     ui32 id = neighbors[i];
@@ -131,11 +141,18 @@ namespace NHnsw {
                     auto distToQuery = distance(query, itemStorage.GetItem(id));
                     distanceCalcLimitReached = --distanceCalcLimit == 0;
                     if (nearest.size() < searchNeighborhoodSize || distanceLess(distToQuery, nearest.top().Dist)) {
-                        if (!NPrivate::IsItemMarkedDeleted(itemStorage, id)) {
-                            nearest.push({distToQuery, id});
-                        }
                         candidates.push({distToQuery, id});
                         visited.Insert(id);
+
+                        if (NPrivate::IsItemMarkedDeleted(itemStorage, id)) {
+                            continue;
+                        }
+
+                        if (filterMode == EFilterMode::FILTER_NEAREST && !filter.Check(id)) {
+                            continue;
+                        }
+
+                        nearest.push({distToQuery, id});
                         if (nearest.size() > searchNeighborhoodSize) {
                             nearest.pop();
                         }
@@ -170,6 +187,10 @@ namespace NHnsw {
          *                                  Typically, search time depends linearly on this param.
          *                                  If the value is too low search could return less than topSize results.
          * @param itemStorage               Storage with method GetItem(ui32 id) which provides item with given id.
+         * @param stopSearchSize            Minimum number of nearest neighbors at which to stop search if
+         *                                  the best from candidates is worse than the worst of nearest neighbors
+         * @param filterMode                Filtering mode in HNSW, no filtration by default
+         * @param filter                    Class with Check(id) method that returns true if an item passes the filter
          */
         template <class TItemStorage,
                   class TDistance,
@@ -182,9 +203,12 @@ namespace NHnsw {
             size_t searchNeighborhoodSize,
             const TItemStorage& itemStorage,
             const TDistance& distance = {},
-            const TDistanceLess& distanceLess = {}) const
+            const TDistanceLess& distanceLess = {},
+            const size_t stopSearchSize = 1,
+            const EFilterMode filterMode = EFilterMode::NO_FILTER,
+            const TFilterBase& filter = {}) const
         {
-            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess);
+            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess, stopSearchSize, filterMode, filter);
         }
 
     protected:
@@ -226,10 +250,19 @@ namespace NHnsw {
             }
         }
 
+        THolder<INeighborsGetter> CreateNeighborsGetter(const EFilterMode filterMode, const TFilterBase& filter) const {
+            switch (filterMode) {
+                case EFilterMode::ACORN:
+                    return MakeHolder<TAcornNeighborsGetter>(Levels[0], GetNumNeighbors(0), filter);
+                default:
+                    return MakeHolder<TNeighborsGetterBase>(Levels[0], GetNumNeighbors(0));
+            }
+        }
+
     private:
         TBlob Data;
         TVector<ui32> NumNeighborsInLevels;
         TVector<const ui32*> Levels;
     };
 
-}
+} // namespace NHnsw

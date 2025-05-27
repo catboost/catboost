@@ -46,8 +46,19 @@
               : 2012-05-02 andreasvc
               : (see revision control)
 """
-from libc.string cimport strcat, strncat, \
-    memset, memchr, memcmp, memcpy, memmove
+
+cdef extern from *:
+    """
+    #if CYTHON_COMPILING_IN_PYPY
+    #ifdef _MSC_VER
+    #pragma message ("This module uses CPython specific internals of 'array.array', which are not available in PyPy.")
+    #else
+    #warning This module uses CPython specific internals of 'array.array', which are not available in PyPy.
+    #endif
+    #endif
+    """
+
+from libc.string cimport memset, memcpy
 
 from cpython.object cimport Py_SIZE
 from cpython.ref cimport PyTypeObject, Py_TYPE
@@ -158,6 +169,6 @@ cdef inline int extend(array self, array other) except -1:
         PyErr_BadArgument()
     return extend_buffer(self, other.data.as_chars, Py_SIZE(other))
 
-cdef inline void zero(array self):
+cdef inline void zero(array self) noexcept:
     """ set all elements of array to zero. """
     memset(self.data.as_chars, 0, Py_SIZE(self) * self.ob_descr.itemsize)

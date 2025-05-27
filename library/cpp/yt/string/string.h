@@ -148,8 +148,8 @@ TString UnderscoreCaseToCamelCase(TStringBuf str);
 void CamelCaseToUnderscoreCase(TStringBuilderBase* builder, TStringBuf str);
 TString CamelCaseToUnderscoreCase(TStringBuf str);
 
-TString TrimLeadingWhitespaces(const TString& str);
-TString Trim(const TString& str, const TString& whitespaces);
+TString TrimLeadingWhitespaces(TStringBuf str);
+TString Trim(TStringBuf str, TStringBuf whitespaces);
 
 ////////////////////////////////////////////////////////////////////////////////
 

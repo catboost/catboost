@@ -60,6 +60,8 @@ SWIG_Python_str_FromChar(const char *c)
 #endif
 }
 
+#define SWIG_RUNTIME_MODULE "swig_runtime_data" SWIG_RUNTIME_VERSION
+
 /* SWIGPY_USE_CAPSULE is no longer used within SWIG itself, but some user interface files check for it. */
 # define SWIGPY_USE_CAPSULE
 #ifdef SWIGPYTHON_BUILTIN
@@ -67,7 +69,7 @@ SWIG_Python_str_FromChar(const char *c)
 #else
 # define SWIGPY_CAPSULE_ATTR_NAME "type_pointer_capsule" SWIG_TYPE_TABLE_NAME
 #endif
-# define SWIGPY_CAPSULE_NAME ("swig_runtime_data" SWIG_RUNTIME_VERSION "." SWIGPY_CAPSULE_ATTR_NAME)
+#define SWIGPY_CAPSULE_NAME SWIG_RUNTIME_MODULE "." SWIGPY_CAPSULE_ATTR_NAME
 
 #if PY_VERSION_HEX < 0x03020000
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)

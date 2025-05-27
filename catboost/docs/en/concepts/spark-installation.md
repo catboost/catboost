@@ -3,8 +3,15 @@
 ## Requirements
 
 * Linux or macOS with a CPU architecture `x86_64` or `aarch64`/`arm64`. Windows support in progress.
-* Apache Spark 2.3 - 3.5
-* Scala 2.11, 2.12 or 2.13 (corresponding to versions supported by the particular Spark version)
+* Apache Spark 3.0 - 3.5
+* Scala 2.12 or 2.13 (corresponding to versions supported by the particular Spark version)
+
+  {% cut "Previous versions" %}
+
+  CatBoost versions before 1.2.8 supported Apache Spark versions 2.3 - 2.4 as well.
+  CatBoost packages for these Apache Spark versions also had Scala 2.11 compatible variants.
+
+  {% endcut %}
 
 ## Choose installation method
 

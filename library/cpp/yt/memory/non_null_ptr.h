@@ -20,7 +20,7 @@ public:
     TNonNullPtrBase(const TNonNullPtrBase& other) = default;
 
     TNonNullPtrBase(std::nullptr_t) = delete;
-    TNonNullPtrBase operator=(const TNonNullPtrBase&) = delete;
+    TNonNullPtrBase& operator=(const TNonNullPtrBase&) = default;
 
     T* operator->() const noexcept;
     T& operator*() const noexcept;

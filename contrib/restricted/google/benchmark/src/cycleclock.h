@@ -219,7 +219,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__hexagon__)
   uint64_t pcycle;
   asm volatile("%0 = C15:14" : "=r"(pcycle));
-  return static_cast<double>(pcycle);
+  return static_cast<int64_t>(pcycle);
 #elif defined(__alpha__)
   // Alpha has a cycle counter, the PCC register, but it is an unsigned 32-bit
   // integer and thus wraps every ~4s, making using it for tick counts
@@ -229,6 +229,18 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__hppa__) || defined(__linux__)
+  // Fallback for all other architectures with a recent Linux kernel, e.g.:
+  // HP PA-RISC provides a user-readable clock counter (cr16), but
+  // it's not syncronized across CPUs and only 32-bit wide when programs
+  // are built as 32-bit binaries.
+  // Same for SH-4 and possibly others.
+  // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
+  // because is provides nanosecond resolution.
+  // Initialize to always return 0 if clock_gettime fails.
+  struct timespec ts = {0, 0};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #else
   // The soft failover to a generic implementation is automatic only for ARM.
   // For other platforms the developer is expected to make an attempt to create
