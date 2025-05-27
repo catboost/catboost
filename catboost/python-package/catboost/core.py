@@ -331,6 +331,7 @@ def _get_features_indices(features, feature_names):
     return features
 
 
+
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                  feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
                                  nan_mode, input_borders, task_type, used_ram_limit, random_seed,
