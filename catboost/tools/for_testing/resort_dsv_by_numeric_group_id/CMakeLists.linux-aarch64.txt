@@ -23,7 +23,8 @@ target_link_libraries(resort_dsv_by_numeric_group_id PUBLIC
 )
 
 target_allocator(resort_dsv_by_numeric_group_id
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(resort_dsv_by_numeric_group_id PRIVATE

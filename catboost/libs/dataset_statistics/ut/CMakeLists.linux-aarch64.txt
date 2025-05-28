@@ -24,7 +24,8 @@ target_link_libraries(catboost-libs-dataset_statistics-ut PUBLIC
 )
 
 target_allocator(catboost-libs-dataset_statistics-ut
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(catboost-libs-dataset_statistics-ut PRIVATE

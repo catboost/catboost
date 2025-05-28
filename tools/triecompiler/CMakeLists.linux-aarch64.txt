@@ -25,7 +25,8 @@ target_link_libraries(triecompiler PUBLIC
 )
 
 target_allocator(triecompiler
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(triecompiler PRIVATE

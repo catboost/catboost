@@ -26,7 +26,8 @@ target_link_libraries(gpu_data PUBLIC
 )
 
 target_allocator(gpu_data
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(gpu_data PRIVATE

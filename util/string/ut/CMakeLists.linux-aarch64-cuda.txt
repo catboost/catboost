@@ -23,7 +23,8 @@ target_link_libraries(util-string-ut PUBLIC
 )
 
 target_allocator(util-string-ut
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(util-string-ut PRIVATE

@@ -23,7 +23,8 @@ target_link_libraries(format PUBLIC
 )
 
 target_allocator(format
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(format PRIVATE
