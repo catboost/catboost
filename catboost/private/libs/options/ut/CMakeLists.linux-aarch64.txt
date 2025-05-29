@@ -24,8 +24,7 @@ target_link_libraries(json_options_ut PUBLIC
 )
 
 target_allocator(json_options_ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(json_options_ut PRIVATE

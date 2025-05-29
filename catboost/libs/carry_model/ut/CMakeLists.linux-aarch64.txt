@@ -25,8 +25,7 @@ target_link_libraries(catboost-libs-carry_model-ut PUBLIC
 )
 
 target_allocator(catboost-libs-carry_model-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-libs-carry_model-ut PRIVATE

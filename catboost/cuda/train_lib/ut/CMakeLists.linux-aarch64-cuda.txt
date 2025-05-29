@@ -31,8 +31,7 @@ target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
 )
 
 target_allocator(catboost-cuda-train_lib-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-cuda-train_lib-ut PRIVATE

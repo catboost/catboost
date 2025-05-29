@@ -35,8 +35,7 @@ target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
 )
 
 target_allocator(catboost-private-libs-quantized_pool-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE

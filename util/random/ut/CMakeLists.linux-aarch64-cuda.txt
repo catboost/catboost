@@ -23,8 +23,7 @@ target_link_libraries(util-random-ut PUBLIC
 )
 
 target_allocator(util-random-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(util-random-ut PRIVATE

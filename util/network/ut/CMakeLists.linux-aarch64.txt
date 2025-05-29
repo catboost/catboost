@@ -24,8 +24,7 @@ target_link_libraries(util-network-ut PUBLIC
 )
 
 target_allocator(util-network-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(util-network-ut PRIVATE

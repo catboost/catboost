@@ -24,8 +24,7 @@ target_link_libraries(util-thread-ut PUBLIC
 )
 
 target_allocator(util-thread-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(util-thread-ut PRIVATE

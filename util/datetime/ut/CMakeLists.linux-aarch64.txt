@@ -23,8 +23,7 @@ target_link_libraries(util-datetime-ut PUBLIC
 )
 
 target_allocator(util-datetime-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(util-datetime-ut PRIVATE

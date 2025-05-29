@@ -36,8 +36,7 @@ target_link_libraries(catboost-libs-data-ut PUBLIC
 )
 
 target_allocator(catboost-libs-data-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-libs-data-ut PRIVATE

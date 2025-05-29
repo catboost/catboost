@@ -32,8 +32,7 @@ target_link_libraries(flatc PUBLIC
 )
 
 target_allocator(flatc
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(flatc PRIVATE

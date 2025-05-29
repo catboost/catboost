@@ -29,8 +29,7 @@ target_link_libraries(catboost-cuda-methods-ut PUBLIC
 )
 
 target_allocator(catboost-cuda-methods-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-cuda-methods-ut PRIVATE

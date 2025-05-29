@@ -29,8 +29,7 @@ target_link_libraries(catboost-libs-train_lib-ut PUBLIC
 )
 
 target_allocator(catboost-libs-train_lib-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(catboost-libs-train_lib-ut PRIVATE

@@ -32,8 +32,7 @@ target_link_libraries(util-generic-ut PUBLIC
 )
 
 target_allocator(util-generic-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(util-generic-ut PRIVATE

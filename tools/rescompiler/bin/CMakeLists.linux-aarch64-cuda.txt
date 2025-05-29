@@ -23,8 +23,7 @@ target_link_libraries(rescompiler PUBLIC
 )
 
 target_allocator(rescompiler
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  cpp-malloc-jemalloc
 )
 
 target_link_options(rescompiler PRIVATE
