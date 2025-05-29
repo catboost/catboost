@@ -1,5 +1,7 @@
 #include "str.h"
 
+#include <util/generic/bitops.h>
+
 static constexpr size_t MIN_BUFFER_GROW_SIZE = 16;
 
 TStringInput::~TStringInput() = default;
