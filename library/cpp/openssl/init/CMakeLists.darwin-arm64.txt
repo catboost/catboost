@@ -20,7 +20,7 @@ add_library(cpp-openssl-init INTERFACE)
 target_link_libraries(cpp-openssl-init INTERFACE
   contrib-libs-cxxsupp
   yutil
-  OpenSSL::OpenSSL
+  openssl::openssl
 )
 
 
