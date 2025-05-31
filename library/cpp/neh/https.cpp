@@ -13,7 +13,6 @@
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
 
-#include <library/cpp/openssl/init/init.h>
 #include <library/cpp/openssl/method/io.h>
 #include <library/cpp/coroutine/listener/listen.h>
 #include <library/cpp/dns/cache.h>
@@ -358,12 +357,6 @@ namespace NNeh {
                     }
                 }
             }
-
-            struct TSSLInit {
-                inline TSSLInit() {
-                    InitOpenSSL();
-                }
-            } SSL_INIT;
         }
 
         static inline void PrepareSocket(SOCKET s) {

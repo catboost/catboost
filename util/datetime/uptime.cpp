@@ -43,13 +43,10 @@ TDuration Uptime() {
 #if defined(_win_)
     return TDuration::MilliSeconds(GetTickCount64());
 #elif defined(_linux_)
-    TUnbufferedFileInput in("/proc/uptime");
-    TString uptimeStr = in.ReadLine();
-    double up, idle;
-    if (sscanf(uptimeStr.data(), "%lf %lf", &up, &idle) < 2) {
-        ythrow yexception() << "cannot read values from /proc/uptime";
-    }
-    return TDuration::MilliSeconds(up * 1000.0);
+    struct timespec ts;
+    int ret = clock_gettime(CLOCK_BOOTTIME, &ts);
+    Y_ENSURE_EX(ret != -1, TSystemError() << "Failed to read the CLOCK_BOOTTIME timer");
+    return TDuration::Seconds(ts.tv_sec) + TDuration::MicroSeconds(ts.tv_nsec / 1000);
 #elif defined(_darwin_)
     return GetDarwinUptime();
 #elif defined(_emscripten_)

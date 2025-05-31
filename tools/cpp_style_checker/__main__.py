@@ -65,8 +65,13 @@ def check_file(clang_format_binary, style_config_json, filename):
     if styled_source == actual_source:
         return reporter.LintStatus.GOOD, ""
     else:
-        diff = make_diff(actual_source, styled_source)
-        return reporter.LintStatus.FAIL, diff
+        # FIXME(YA-2574) remove retry
+        styled_source = subprocess.check_output(command, input=actual_source)
+        if styled_source == actual_source:
+            return reporter.LintStatus.GOOD, ""
+        else:
+            diff = make_diff(actual_source, styled_source)
+            return reporter.LintStatus.FAIL, diff
 
 
 def make_diff(left, right):
