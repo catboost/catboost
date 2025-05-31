@@ -11,8 +11,6 @@
 #include <util/system/yassert.h>
 
 #include <atomic>
-#include <type_traits>
-#include <utility>
 
 namespace NThreading {
 ////////////////////////////////////////////////////////////////////////////////
@@ -287,7 +285,7 @@ namespace NThreading {
         ui64 NextTag() {
             // TODO: can we avoid synchronization here? it costs 1.5x performance penalty
             // return GetCycleCount();
-            return WriteTag.fetch_add(1);
+            return WriteTag.fetch_add(1, std::memory_order_relaxed);
         }
 
         template <typename TT>
