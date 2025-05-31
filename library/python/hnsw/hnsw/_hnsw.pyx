@@ -139,6 +139,7 @@ log_cout = None
 
 
 cdef void _CoutLogPrinter(const char* str, size_t len) noexcept with gil:
+    cdef const char* errorInErrorMessageGeneration = "Error while generating error message"
     cdef TString errorMessage
     cdef bytes bytes_str
     try:
@@ -149,7 +150,7 @@ cdef void _CoutLogPrinter(const char* str, size_t len) noexcept with gil:
         try:
             errorMessage = to_arcadia_string(traceback.format_exc())
         except:
-            errorMessage = "Error while generating error message"
+            errorMessage = TString(errorInErrorMessageGeneration)
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
