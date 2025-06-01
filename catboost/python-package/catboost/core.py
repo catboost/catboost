@@ -2462,7 +2462,6 @@ class CatBoost(_CatBoostBase):
             log_cout=None, log_cerr=None):
         """
         Fit the CatBoost model.
-
         Parameters
         ----------
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
