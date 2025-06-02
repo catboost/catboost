@@ -104,6 +104,7 @@ class CUDAManager:
         script = textwrap.dedent("""
             SECTIONS {
                 .nv_fatbin : { *(.nv_fatbin) }
+                .ldata : { *(.ldata) }
             } INSERT AFTER .bss
         """).strip()
 
