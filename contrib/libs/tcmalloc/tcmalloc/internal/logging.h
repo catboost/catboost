@@ -63,6 +63,10 @@ public:
     static UserData Make() {
       return UserData{CreateSampleUserData()};
     }
+    // must be matched with preceding Release
+    static void DestroyRaw(void* ptr) {
+      DestroySampleUserData(ptr);
+    }
 
     constexpr UserData() noexcept : ptr_(nullptr) {}
 
@@ -94,7 +98,12 @@ public:
       DestroySampleUserData(ptr_);
     }
 
-    void* Get() const { return ptr_; }
+    // should be paired with subsequent DestroyRaw
+    void* Release() && {
+      void* p = ptr_;
+      ptr_ = nullptr;
+      return p;
+    }
   private:
     UserData(void* ptr) noexcept : ptr_(ptr) {}
   private:

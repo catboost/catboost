@@ -39,6 +39,7 @@ StackTraceTable::StackTraceTable(ProfileType type)
 StackTraceTable::~StackTraceTable() {
   LinkedSample* cur = all_;
   while (cur != nullptr) {
+    SampleUserDataSupport::UserData::DestroyRaw(cur->sample.user_data);
     LinkedSample* next = cur->next;
     tc_globals.linked_sample_allocator().Delete(cur);
     cur = next;
@@ -88,7 +89,7 @@ void StackTraceTable::AddTrace(double sample_weight, const StackTrace& t) {
   s->sample.span_start_address = t.span_start_address;
   s->sample.guarded_status = t.guarded_status;
   s->sample.type = t.allocation_type;
-  s->sample.user_data = t.user_data.Get();
+  s->sample.user_data = SampleUserDataSupport::UserData{t.user_data}.Release();
 
   static_assert(kMaxStackDepth <= Profile::Sample::kMaxStackDepth,
                 "Profile stack size smaller than internal stack sizes");
