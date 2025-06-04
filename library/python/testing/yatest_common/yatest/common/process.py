@@ -733,6 +733,7 @@ def py_execute(
 
 
 def _format_error(error):
+    error, _ = _try_convert_bytes_to_string(error)
     return truncate(error, MAX_MESSAGE_LEN)
 
 
