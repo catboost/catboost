@@ -12,31 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(blockcodecs-codecs-brotli INTERFACE)
-
-
-target_link_libraries(blockcodecs-codecs-brotli INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-  brotli-c-enc
-  brotli-c-dec
-  cpp-blockcodecs-core
-)
-
-
-add_global_library_for(blockcodecs-codecs-brotli.global
-  blockcodecs-codecs-brotli)
-
-
-target_link_libraries(blockcodecs-codecs-brotli.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  brotli-c-enc
-  brotli-c-dec
-  cpp-blockcodecs-core
-)
-
-target_sources(blockcodecs-codecs-brotli.global PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/brotli/brotli.cpp
-)
-
+add_subdirectory(enc)
+add_subdirectory(common)
+add_subdirectory(dec)

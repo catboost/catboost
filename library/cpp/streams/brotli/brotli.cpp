@@ -1,7 +1,7 @@
 #include "brotli.h"
 
-#include <contrib/libs/brotli/include/brotli/decode.h>
-#include <contrib/libs/brotli/include/brotli/encode.h>
+#include <contrib/libs/brotli/c/include/brotli/decode.h>
+#include <contrib/libs/brotli/c/include/brotli/encode.h>
 
 #include <util/generic/yexception.h>
 #include <util/memory/addstorage.h>

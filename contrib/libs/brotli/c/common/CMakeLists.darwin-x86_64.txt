@@ -12,31 +12,24 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(blockcodecs-codecs-brotli INTERFACE)
+add_library(brotli-c-common)
 
 
-target_link_libraries(blockcodecs-codecs-brotli INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-  brotli-c-enc
-  brotli-c-dec
-  cpp-blockcodecs-core
+target_compile_options(brotli-c-common PRIVATE
+  -DBROTLI_BUILD_PORTABLE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
-
-add_global_library_for(blockcodecs-codecs-brotli.global
-  blockcodecs-codecs-brotli)
-
-
-target_link_libraries(blockcodecs-codecs-brotli.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  brotli-c-enc
-  brotli-c-dec
-  cpp-blockcodecs-core
+target_include_directories(brotli-c-common PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/include
 )
 
-target_sources(blockcodecs-codecs-brotli.global PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/brotli/brotli.cpp
+target_link_libraries(brotli-c-common PUBLIC
+  contrib-libs-cxxsupp
+)
+
+target_sources(brotli-c-common PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/dictionary.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/transform.c
 )
 
