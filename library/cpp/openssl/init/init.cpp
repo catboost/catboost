@@ -8,6 +8,3 @@ namespace {
     // (it looks like it does nothing when openssl is linked statically).
     [[maybe_unused]] auto _ = OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN | OPENSSL_INIT_NO_ATEXIT, nullptr);
 }
-
-void InitOpenSSL() {
-}
