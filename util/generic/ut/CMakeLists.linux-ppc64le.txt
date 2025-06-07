@@ -27,6 +27,7 @@ target_link_libraries(util-generic-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
+  library-cpp-case_insensitive_string
   cpp-containers-absl_flat_hash
   tools-enum_parser-enum_serialization_runtime
 )

@@ -267,8 +267,9 @@ inline bool operator==(const THashSet<Value, HashFcn, EqualKey, Alloc>& hs1, con
     if (hs1.size() != hs2.size()) {
         return false;
     }
-    for (const auto& it : hs1) {
-        if (!hs2.contains(it)) {
+    for (const auto& value : hs1) {
+        auto it2 = hs2.find(value);
+        if (it2 == hs2.end() || !(value == *it2)) {
             return false;
         }
     }
@@ -470,16 +471,21 @@ inline bool operator==(const THashMultiSet<Val, HashFcn, EqualKey, Alloc>& hs1, 
     if (hs1.size() != hs2.size()) {
         return false;
     }
-    EqualKey equalKey;
-    auto it = hs1.begin();
-    while (it != hs1.end()) {
-        const auto& value = *it;
-        size_t count = 0;
-        for (; (it != hs1.end()) && (equalKey(*it, value)); ++it, ++count) {
+    EqualKey equalKey = hs1.key_eq();
+    auto it1Begin = hs1.begin();
+    while (it1Begin != hs1.end()) {
+        const auto& value = *it1Begin;
+        auto it1End = it1Begin;
+        typename THashMultiSet<Val, HashFcn, EqualKey, Alloc>::difference_type distance1 = 1;
+        for (++it1End; (it1End != hs1.end()) && (equalKey(*it1End, value)); ++it1End) {
+            ++distance1;
         }
-        if (hs2.count(value) != count) {
+        auto&& [it2Begin, it2End] = hs2.equal_range(value);
+        if (distance1 != std::distance(it2Begin, it2End) ||
+            !std::is_permutation(it1Begin, it1End, it2Begin)) {
             return false;
         }
+        it1Begin = it1End;
     }
     return true;
 }

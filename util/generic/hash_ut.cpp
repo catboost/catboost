@@ -3,12 +3,14 @@
 #include "vector.h"
 #include "hash_set.h"
 
+#include <library/cpp/case_insensitive_string/case_insensitive_string.h>
 #include <library/cpp/testing/common/probe.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <utility>
 #include <util/str_stl.h>
 #include <util/digest/multi.h>
+#include <util/string/join.h>
 
 static const char star = 42;
 
@@ -17,7 +19,9 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHMapConstructorsAndAssignments);
     UNIT_TEST(TestHMap1);
     UNIT_TEST(TestHMapEqualityOperator);
+    UNIT_TEST(TestHMapEqualityOperatorWithCustomPred);
     UNIT_TEST(TestHMMapEqualityOperator);
+    UNIT_TEST(TestHMMapEqualityOperatorWithCustomPred);
     UNIT_TEST(TestHMMapConstructorsAndAssignments);
     UNIT_TEST(TestHMMap1);
     UNIT_TEST(TestHMMapHas);
@@ -25,10 +29,12 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHSetSize);
     UNIT_TEST(TestHSet2);
     UNIT_TEST(TestHSetEqualityOperator);
+    UNIT_TEST(TestHSetEqualityOperatorWithCustomPred);
     UNIT_TEST(TestHMSetConstructorsAndAssignments);
     UNIT_TEST(TestHMSetSize);
     UNIT_TEST(TestHMSet1);
     UNIT_TEST(TestHMSetEqualityOperator);
+    UNIT_TEST(TestHMSetEqualityOperatorWithCustomPred);
     UNIT_TEST(TestHMSetEmplace);
     UNIT_TEST(TestInsertErase);
     UNIT_TEST(TestResizeOnInsertSmartPtrBug)
@@ -71,7 +77,9 @@ protected:
     void TestHMapConstructorsAndAssignments();
     void TestHMap1();
     void TestHMapEqualityOperator();
+    void TestHMapEqualityOperatorWithCustomPred();
     void TestHMMapEqualityOperator();
+    void TestHMMapEqualityOperatorWithCustomPred();
     void TestHMMapConstructorsAndAssignments();
     void TestHMMap1();
     void TestHMMapHas();
@@ -79,10 +87,12 @@ protected:
     void TestHSetSize();
     void TestHSet2();
     void TestHSetEqualityOperator();
+    void TestHSetEqualityOperatorWithCustomPred();
     void TestHMSetConstructorsAndAssignments();
     void TestHMSetSize();
     void TestHMSet1();
     void TestHMSetEqualityOperator();
+    void TestHMSetEqualityOperatorWithCustomPred();
     void TestHMSetEmplace();
     void TestInsertErase();
     void TestResizeOnInsertSmartPtrBug();
@@ -120,6 +130,47 @@ protected:
 };
 
 UNIT_TEST_SUITE_REGISTRATION(THashTest);
+
+template <class TContainer, class T, class... TLHSParams, class... TRHSParams>
+static void TestStringEquality(
+    const TStringBuf testSubCaseName,
+    const bool expected,
+    const std::initializer_list<T>& lhsList,
+    const std::initializer_list<T>& rhsList,
+    const std::tuple<TLHSParams...>& lhsParams = std::tuple<>{},
+    const std::tuple<TRHSParams...>& rhsParams = std::tuple<>{})
+{
+    auto make = [](const std::initializer_list<T>& list, const auto& params) {
+        TContainer r = std::make_from_tuple<TContainer>(params);
+        for (const auto& v : list) {
+            r.emplace(v);
+        }
+        return r;
+    };
+    auto makeRepr = [](const TContainer& c) -> TString {
+        TStringBuilder sb;
+        for (const auto& v : c) {
+            if (sb) {
+                sb << ", "sv;
+            }
+            if constexpr (requires {v.first; v.second; }) {
+                sb << "{" << v.first.Quote() << "," << v.second << "}"sv;
+            } else {
+                sb << v.Quote();
+            }
+        }
+        return '{' + std::move(sb) + '}';
+    };
+
+    const TContainer lhs = make(lhsList, lhsParams);
+    const TContainer rhs = make(rhsList, rhsParams);
+
+    const bool eq = (lhs == rhs);
+    const TStringBuf expectedStr = expected ? "=="sv : "!="sv;
+
+    UNIT_ASSERT_C(eq == expected, (TStringBuilder() << "case '" << testSubCaseName << "' failed: "
+                                                    << makeRepr(lhs) << expectedStr << makeRepr(rhs)));
+}
 
 void THashTest::TestHMapConstructorsAndAssignments() {
     using container = THashMap<TString, int>;
@@ -232,6 +283,16 @@ void THashTest::TestHMapEqualityOperator() {
     UNIT_ASSERT(c3 != base);
 }
 
+void THashTest::TestHMapEqualityOperatorWithCustomPred() {
+    using container = THashMap<TString, int, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+    using containerCI = THashMap<TCaseInsensitiveString, int, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("idenitity_1", true, {{"one", 1}, {"two", 2}}, {{"one", 1}, {"two", 2}});
+    TestStringEquality<containerCI, std::pair<const TStringBuf, int>>("idenitity_2", true, {{"one", 1}, {"two", 2}}, {{"ONE", 1}, {"TWO", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("idenitity_1", false, {{"one", 1}, {"two", 2}}, {{"ONE", 1}, {"two", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("idenitity_1", false, {{"one", 1}, {"two", 2}}, {{"onw", 0}, {"two", 2}});
+}
+
 void THashTest::TestHMMapEqualityOperator() {
     using container = THashMultiMap<TString, int>;
     using value = container::value_type;
@@ -265,6 +326,17 @@ void THashTest::TestHMMapEqualityOperator() {
     c4.insert(value("one", 0));
     c4.insert(value("two", 2));
     UNIT_ASSERT(c3 != base);
+}
+
+void THashTest::TestHMMapEqualityOperatorWithCustomPred() {
+    using container = THashMultiMap<TString, int, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("idenitity", true, {{"string1", 1}, {"string2", -2}, {"string2", 2}}, {{"string1", 1}, {"string2", -2}, {"string2", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("case2", false, {{"string1", 1}, {"string2", -2}, {"string2", 2}}, {{"string1", 1}, {"string1", -1}, {"string2", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("case3", false, {{"string1", 1}, {"string2", -2}, {"string2", 2}}, {{"string1", 1}, {"STRING2", -2}, {"STRING2", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("case4", false, {{"string1", 1}, {"string2", -2}, {"string2", 2}}, {{"string1", 1}, {"STRING2", -2}, {"string2", 2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("case5", false, {{"string1", 1}, {"string2", -2}, {"string2", 2}}, {{"string1", 1}, {"string2", 2}, {"STRING2", -2}});
+    TestStringEquality<container, std::pair<const TStringBuf, int>>("case6", true, {{"string1", 1}, {"STRING2", -2}, {"string2", 2}}, {{"string1", 1}, {"string2", 2}, {"STRING2", -2}});
 }
 
 void THashTest::TestHMMapConstructorsAndAssignments() {
@@ -464,6 +536,16 @@ void THashTest::TestHSetEqualityOperator() {
     UNIT_ASSERT(c3 != base);
 }
 
+void THashTest::TestHSetEqualityOperatorWithCustomPred() {
+    using container = THashSet<TString, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+    using containerCI = THashSet<TCaseInsensitiveString, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+
+    TestStringEquality<container>("idenitity", true, {"string1", "string2"}, {"string1", "string2"});
+    TestStringEquality<container>("not_inserted", true, {"string1", "string2"}, {"string1", "string2", "STRING1"});
+    TestStringEquality<container>("different_values", false, {"string1", "string2"}, {"STRING1", "string2"});
+    TestStringEquality<containerCI>("same_values", true, {"string1", "string2"}, {"STRING1", "string2"});
+}
+
 void THashTest::TestHMSetConstructorsAndAssignments() {
     using container = THashMultiSet<int>;
 
@@ -559,6 +641,19 @@ void THashTest::TestHMSetEqualityOperator() {
 
     c3.insert(3);
     UNIT_ASSERT(!(c3 == base));
+}
+
+void THashTest::TestHMSetEqualityOperatorWithCustomPred() {
+    using container = THashMultiSet<TString, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+    using containerCI = THashMultiSet<TCaseInsensitiveString, THash<TCaseInsensitiveStringBuf>, TEqualTo<TCaseInsensitiveStringBuf>>;
+
+    TestStringEquality<container>("idenitity", true, {"string1", "string2", "string2"}, {"string1", "string2", "string2"});
+    TestStringEquality<container>("diff_cardinality_1", false, {"string1", "string2", "string2"}, {"string1", "string2", "string2", "string2"});
+    TestStringEquality<container>("diff_cardinality_2", false, {"string1", "string2", "string2"}, {"string1", "string2", "string1"});
+    TestStringEquality<container>("different_values_1", false, {"string1", "string2", "string2"}, {"STRING1", "string2", "string2"});
+    TestStringEquality<container>("different_values_2", false, {"string1", "string2", "string2"}, {"string1", "STRING2", "string2"});
+    TestStringEquality<containerCI>("same_values", true, {"string1", "string2", "string2"}, {"string1", "STRING2", "string2"});
+    TestStringEquality<container>("permutation", true, {"string1", "string2", "STRING2", "STRING2"}, {"string1", "STRING2", "string2", "STRING2"});
 }
 
 void THashTest::TestHMSetEmplace() {

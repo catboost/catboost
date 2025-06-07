@@ -12,6 +12,15 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(crc32c)
-add_subdirectory(md5)
-add_subdirectory(lower_case)
+add_library(cpp-digest-murmur)
+
+
+target_link_libraries(cpp-digest-murmur PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+)
+
+target_sources(cpp-digest-murmur PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/digest/murmur/murmur.cpp
+)
+
