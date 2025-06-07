@@ -25,7 +25,6 @@ target_include_directories(brotli-c-enc PUBLIC
 )
 
 target_link_libraries(brotli-c-enc PUBLIC
-  contrib-libs-cxxsupp
   brotli-c-common
   brotli-c-dec
 )
