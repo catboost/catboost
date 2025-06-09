@@ -1,5 +1,7 @@
 #pragma once
 
+#include "public.h"
+
 #include <library/cpp/yt/misc/concepts.h>
 
 namespace NYT {
@@ -17,6 +19,7 @@ class TNonNullPtrBase
 {
 public:
     TNonNullPtrBase(T* ptr) noexcept;
+    TNonNullPtrBase(TIntrusivePtr<T> ptr) noexcept;
     TNonNullPtrBase(const TNonNullPtrBase& other) = default;
 
     TNonNullPtrBase(std::nullptr_t) = delete;
@@ -63,6 +66,12 @@ public:
         : TNonNullPtrBase<T>()
     {
         TNonNullPtrBase<T>::Ptr_ = mutPtr.Ptr_;
+    }
+
+    TNonNullPtr(TIntrusivePtr<std::remove_pointer_t<TMutablePtr>> ptr) noexcept
+        : TNonNullPtrBase<T>()
+    {
+        TNonNullPtrBase<T>::Ptr_ = ptr.Get();
     }
 };
 

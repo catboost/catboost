@@ -19,6 +19,13 @@ TNonNullPtrBase<T>::TNonNullPtrBase(T* ptr) noexcept
 }
 
 template <class T>
+TNonNullPtrBase<T>::TNonNullPtrBase(TIntrusivePtr<T> ptr) noexcept
+    : Ptr_(ptr.Get())
+{
+    YT_VERIFY(ptr);
+}
+
+template <class T>
 T* TNonNullPtrBase<T>::operator->() const noexcept
 {
     return Ptr_;

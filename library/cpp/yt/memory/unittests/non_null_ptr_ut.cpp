@@ -1,6 +1,8 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
+#include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/non_null_ptr.h>
+#include <library/cpp/yt/memory/ref_counted.h>
 
 namespace NYT {
 namespace {
@@ -68,6 +70,23 @@ EBinaryFuncResult Baz(TNonNullPtr<int> /*arg*/)
     return EBinaryFuncResult::OK;
 }
 
+class TClass
+    : public TRefCounted
+{
+public:
+    TClass() = default;
+};
+
+EBinaryFuncResult Bar(TNonNullPtr<TClass> /*arg*/)
+{
+    return EBinaryFuncResult::OK;
+}
+
+EBinaryFuncResult Baz(TNonNullPtr<const TClass> /*arg*/)
+{
+    return EBinaryFuncResult::OK;
+}
+
 TEST(TNonNullPtrTest, Simple)
 {
     TDerived derived{};
@@ -96,6 +115,22 @@ TEST(TNonNullPtrTest, ConstructionFromRawPointer)
     int i{};
 
     EXPECT_EQ(EBinaryFuncResult::OK, Baz(&i));
+}
+
+TEST(TNonNullPtrTest, ConstructionFromIntrusivePtr)
+{
+    TIntrusivePtr<TClass> obj = New<TClass>();
+    EXPECT_EQ(EBinaryFuncResult::OK, Bar(obj));
+}
+
+TEST(TNonNullPtrTest, ConstructionConstFromIntrusivePtr)
+{
+    TIntrusivePtr<TClass> obj1 = New<TClass>();
+    TNonNullPtr<TClass> obj1Ptr = obj1;
+    EXPECT_EQ(EBinaryFuncResult::OK, Baz(obj1Ptr));
+
+    TIntrusivePtr<const TClass> obj2 = obj1;
+    EXPECT_EQ(EBinaryFuncResult::OK, Baz(obj2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
