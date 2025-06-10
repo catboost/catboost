@@ -46,6 +46,7 @@ namespace tcmalloc_internal {
 ABSL_CONST_INIT SampleUserDataSupport::CreateSampleUserDataCallback* SampleUserDataSupport::create_sample_user_data_callback_ = nullptr;
 ABSL_CONST_INIT SampleUserDataSupport::CopySampleUserDataCallback* SampleUserDataSupport::copy_sample_user_data_callback_ = nullptr;
 ABSL_CONST_INIT SampleUserDataSupport::DestroySampleUserDataCallback* SampleUserDataSupport::destroy_sample_user_data_callback_ = nullptr;
+ABSL_CONST_INIT SampleUserDataSupport::ComputeSampleUserDataHashCallback* SampleUserDataSupport::compute_sample_user_data_hash_callback_ = nullptr;
 
 // Variables for storing crash output.  Allocated statically since we
 // may not be able to heap-allocate while crashing.

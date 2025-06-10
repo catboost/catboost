@@ -188,8 +188,9 @@ class Static final {
   static void SetSampleUserDataCallbacks(
       SampleUserDataSupport::CreateSampleUserDataCallback create,
       SampleUserDataSupport::CopySampleUserDataCallback copy,
-      SampleUserDataSupport::DestroySampleUserDataCallback destroy) {
-    SampleUserDataSupport::Enable(create, copy, destroy);
+      SampleUserDataSupport::DestroySampleUserDataCallback destroy,
+      SampleUserDataSupport::ComputeSampleUserDataHashCallback compute_hash) {
+    SampleUserDataSupport::Enable(create, copy, destroy, compute_hash);
   }
 
   static bool ABSL_ATTRIBUTE_ALWAYS_INLINE HaveHooks() {

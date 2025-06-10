@@ -379,8 +379,9 @@ void TCMallocPostFork() {
 extern "C" void MallocExtension_SetSampleUserDataCallbacks(
     MallocExtension::CreateSampleUserDataCallback create,
     MallocExtension::CopySampleUserDataCallback copy,
-    MallocExtension::DestroySampleUserDataCallback destroy) {
-  Static::SetSampleUserDataCallbacks(create, copy, destroy);
+    MallocExtension::DestroySampleUserDataCallback destroy,
+    MallocExtension::ComputeSampleUserDataHashCallback compute_hash) {
+  Static::SetSampleUserDataCallbacks(create, copy, destroy, compute_hash);
 }
 
 // nallocx slow path.

@@ -57,6 +57,7 @@ public:
   using CreateSampleUserDataCallback = void*();
   using CopySampleUserDataCallback = void*(void*);
   using DestroySampleUserDataCallback = void(void*);
+  using ComputeSampleUserDataHashCallback = size_t(void*);
 
   class UserData {
   public:
@@ -112,11 +113,21 @@ public:
 
   static void Enable(CreateSampleUserDataCallback create,
                      CopySampleUserDataCallback copy,
-                     DestroySampleUserDataCallback destroy) {
+                     DestroySampleUserDataCallback destroy,
+                     ComputeSampleUserDataHashCallback compute_hash) {
     create_sample_user_data_callback_ = create;
     copy_sample_user_data_callback_ = copy;
     destroy_sample_user_data_callback_ = destroy;
+    compute_sample_user_data_hash_callback_ = compute_hash;
   }
+
+  static size_t ComputeSampleUserDataHash(void* ptr) noexcept {
+    if (compute_sample_user_data_hash_callback_ != nullptr) {
+      return compute_sample_user_data_hash_callback_(ptr);
+    }
+    return 0;
+  }
+
 private:
   static void* CreateSampleUserData() {
     if (create_sample_user_data_callback_ != nullptr) {
@@ -137,9 +148,11 @@ private:
       destroy_sample_user_data_callback_(ptr);
     }
   }
+
   ABSL_CONST_INIT static CreateSampleUserDataCallback* create_sample_user_data_callback_;
   ABSL_CONST_INIT static CopySampleUserDataCallback* copy_sample_user_data_callback_;
   ABSL_CONST_INIT static DestroySampleUserDataCallback* destroy_sample_user_data_callback_;
+  ABSL_CONST_INIT static ComputeSampleUserDataHashCallback* compute_sample_user_data_hash_callback_;
 };
 
 static constexpr int kMaxStackDepth = 64;

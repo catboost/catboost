@@ -128,10 +128,11 @@ struct SampleEqWithSubFields {
 
 struct SampleHashWithSubFields {
   size_t operator()(const Profile::Sample& s) const {
+    size_t user_data_hash = SampleUserDataSupport::ComputeSampleUserDataHash(s.user_data);
     return absl::HashOf(
         absl::MakeConstSpan(s.stack, s.depth), s.depth, s.requested_size,
         s.requested_alignment, s.requested_size_returning, s.allocated_size,
-        s.access_hint, s.access_allocated, s.guarded_status, s.type);
+        s.access_hint, s.access_allocated, s.guarded_status, s.type, user_data_hash);
   }
 };
 

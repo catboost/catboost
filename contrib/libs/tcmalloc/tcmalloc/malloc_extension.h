@@ -672,8 +672,16 @@ class MallocExtension final {
   using CreateSampleUserDataCallback = void*();
   using CopySampleUserDataCallback = void*(void*);
   using DestroySampleUserDataCallback = void(void*);
+  using ComputeSampleUserDataHashCallback = size_t(void*);
 
   // Sets callbacks for lifetime control of custom user data attached to allocation samples
+  static void SetSampleUserDataCallbacks(
+    CreateSampleUserDataCallback create,
+    CopySampleUserDataCallback copy,
+    DestroySampleUserDataCallback destroy,
+    ComputeSampleUserDataHashCallback compute_hash);
+
+  // Temporary compat shim. Use 4-argument overload instead.
   static void SetSampleUserDataCallbacks(
     CreateSampleUserDataCallback create,
     CopySampleUserDataCallback copy,
