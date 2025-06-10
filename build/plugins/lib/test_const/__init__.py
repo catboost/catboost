@@ -438,8 +438,9 @@ class ServiceTags(Enum):
     AnyTag = "ya:anytag"
 
 
-# NOTE: Linter constants are used in ya style, ya ide, config validator check (devtools/ya/handlers/style/config_validator).
-# ya and validator have different release cycles, make sure you preserve compatibility:
+# NOTE: Linter constants are used in ya style, ya ide, config validator check
+# (devtools/ya/handlers/style/config_validator, devtools/pr_checks/checker).
+# ya and pr_checks have different release cycles, make sure you preserve compatibility:
 # - don't delete anything from here until you get rid of all usages and roll out the changes;
 # - keep in mind that changes of constants used in multiple tools may get to production at different times;
 
