@@ -16,7 +16,7 @@ add_library(brotli-c-enc)
 
 
 target_compile_options(brotli-c-enc PRIVATE
-  -DBROTLI_BUILD_PORTABLE
+  -DBROTLI_HAVE_LOG2=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
@@ -36,12 +36,15 @@ target_sources(brotli-c-enc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/block_splitter.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/brotli_bit_stream.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/cluster.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/command.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compound_dictionary.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compress_fragment.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compress_fragment_two_pass.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/dictionary_hash.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/encode.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/encoder_dict.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/entropy_encode.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/fast_log.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/histogram.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/literal_cost.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/memory.c

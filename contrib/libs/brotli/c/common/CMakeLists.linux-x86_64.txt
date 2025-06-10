@@ -16,7 +16,7 @@ add_library(brotli-c-common)
 
 
 target_compile_options(brotli-c-common PRIVATE
-  -DBROTLI_BUILD_PORTABLE
+  -DBROTLI_HAVE_LOG2=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
@@ -29,7 +29,11 @@ target_link_libraries(brotli-c-common PUBLIC
 )
 
 target_sources(brotli-c-common PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/constants.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/context.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/dictionary.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/platform.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/shared_dictionary.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/common/transform.c
 )
 

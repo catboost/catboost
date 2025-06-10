@@ -16,7 +16,7 @@ add_library(brotli-c-dec)
 
 
 target_compile_options(brotli-c-dec PRIVATE
-  -DBROTLI_BUILD_PORTABLE
+  -DBROTLI_HAVE_LOG2=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
