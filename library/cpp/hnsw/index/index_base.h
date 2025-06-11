@@ -60,6 +60,7 @@ namespace NHnsw {
          *                                  the best from candidates is worse than the worst of nearest neighbors
          * @param filterMode                Filtering mode in HNSW, no filtration by default
          * @param filter                    Class with Check(id) method that returns true if an item passes the filter
+         * @param filterCheckLimit          Limit of the number of items for which filters are checked
          */
 
         template <class TItemStorage,
@@ -77,7 +78,9 @@ namespace NHnsw {
             const TDistanceLess& distanceLess = {},
             const size_t stopSearchSize = 1,
             const EFilterMode filterMode = EFilterMode::NO_FILTER,
-            const TFilterBase& filter = {}) const {
+            const TFilterBase& filter = {},
+            const size_t filterCheckLimit = Max<size_t>()) const
+        {
             if (Levels.empty() || searchNeighborhoodSize == 0 || stopSearchSize == 0) {
                 return {};
             }
@@ -116,16 +119,17 @@ namespace NHnsw {
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborGreater)> candidates(neighborGreater);
             TDenseHashSet<ui32> visited(/*emptyKey*/ Max<ui32>());
 
-            auto neighborsGetter = CreateNeighborsGetter(filterMode, filter);
+            TFilterWithLimit filterWithLimit(filter, filterCheckLimit);
+            auto neighborsGetter = CreateNeighborsGetter(filterMode, filterWithLimit);
 
-            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId) && (filterMode == EFilterMode::NO_FILTER || filter.Check(entryId))) {
+            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId) && (filterMode == EFilterMode::NO_FILTER || filterWithLimit.Check(entryId))) {
                 nearest.push({entryDist, entryId});
             }
 
             candidates.push({entryDist, entryId});
             visited.Insert(entryId);
 
-            while (!candidates.empty() && !distanceCalcLimitReached) {
+            while (!candidates.empty() && !distanceCalcLimitReached && (filterMode == EFilterMode::NO_FILTER || !filterWithLimit.IsLimitReached())) {
                 auto cur = candidates.top();
                 candidates.pop();
                 if (nearest.size() >= stopSearchSize && distanceLess(nearest.top().Dist, cur.Dist)) {
@@ -148,8 +152,13 @@ namespace NHnsw {
                             continue;
                         }
 
-                        if (filterMode == EFilterMode::FILTER_NEAREST && !filter.Check(id)) {
-                            continue;
+                        if (filterMode == EFilterMode::FILTER_NEAREST) {
+                            if (filterWithLimit.IsLimitReached()) {
+                                break;
+                            }
+                            if (!filterWithLimit.Check(id)) {
+                                continue;
+                            }
                         }
 
                         nearest.push({distToQuery, id});
@@ -191,6 +200,7 @@ namespace NHnsw {
          *                                  the best from candidates is worse than the worst of nearest neighbors
          * @param filterMode                Filtering mode in HNSW, no filtration by default
          * @param filter                    Class with Check(id) method that returns true if an item passes the filter
+         * @param filterCheckLimit          Limit of the number of items for which filters are checked
          */
         template <class TItemStorage,
                   class TDistance,
@@ -206,9 +216,10 @@ namespace NHnsw {
             const TDistanceLess& distanceLess = {},
             const size_t stopSearchSize = 1,
             const EFilterMode filterMode = EFilterMode::NO_FILTER,
-            const TFilterBase& filter = {}) const
+            const TFilterBase& filter = {},
+            const size_t filterCheckLimit = Max<size_t>()) const
         {
-            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess, stopSearchSize, filterMode, filter);
+            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), itemStorage, distance, distanceLess, stopSearchSize, filterMode, filter, filterCheckLimit);
         }
 
     protected:
@@ -250,7 +261,7 @@ namespace NHnsw {
             }
         }
 
-        THolder<INeighborsGetter> CreateNeighborsGetter(const EFilterMode filterMode, const TFilterBase& filter) const {
+        THolder<INeighborsGetter> CreateNeighborsGetter(const EFilterMode filterMode, const TFilterWithLimit& filter) const {
             switch (filterMode) {
                 case EFilterMode::ACORN:
                     return MakeHolder<TAcornNeighborsGetter>(Levels[0], GetNumNeighbors(0), filter);

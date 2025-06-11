@@ -46,7 +46,7 @@ namespace NHnsw {
 
     class TAcornNeighborsGetter: public TNeighborsGetterBase {
     public:
-        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, const TFilterBase& filter)
+        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, const TFilterWithLimit& filter)
             : TNeighborsGetterBase(level, numNeighbors)
             , Filter(filter)
         {
@@ -70,7 +70,7 @@ namespace NHnsw {
     private:
         void ScanNeighbors(const ui32 id, ui32& acornCount, bool isFirstHop) {
             auto neighbors = GetNeighbors(id);
-            for (size_t i = 0; i < GetNumNeighbors(); ++i) {
+            for (size_t i = 0; i < GetNumNeighbors() && !Filter.IsLimitReached(); ++i) {
                 ui32 neighbor = neighbors[i];
 
                 if (isFirstHop && !SeenInFirstHop.Insert(neighbor)) {
@@ -101,7 +101,7 @@ namespace NHnsw {
         }
 
     private:
-        const TFilterBase& Filter;
+        const TFilterWithLimit& Filter;
         TVector<ui32> AcornNeighbors;
 
         TDenseHash<ui32, bool> FilterResult;

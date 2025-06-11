@@ -61,12 +61,13 @@ namespace NHnsw {
                                                                 const TDistanceLess& distanceLess = {},
                                                                 const size_t stopSearchSize = 1,
                                                                 const EFilterMode filterMode = EFilterMode::NO_FILTER,
-                                                                const TFilterBase& filter = {}) const {
+                                                                const TFilterBase& filter = {},
+                                                                const size_t filterCheckLimit = Max<size_t>()) const {
             auto distanceWithDimension = [this, &distance](const TVectorComponent* a, const TVectorComponent* b) {
                 return distance(a, b, this->GetDimension());
             };
             return TIndexBase::template GetNearestNeighbors<decltype(distanceWithDimension), TDistanceResult, TDistanceLess>(
-                query, topSize, searchNeighborhoodSize, distanceCalcLimit, distanceWithDimension, distanceLess, stopSearchSize, filterMode, filter);
+                query, topSize, searchNeighborhoodSize, distanceCalcLimit, distanceWithDimension, distanceLess, stopSearchSize, filterMode, filter, filterCheckLimit);
         }
 
         template <class TDistance,
@@ -79,8 +80,9 @@ namespace NHnsw {
                                                                 const TDistanceLess& distanceLess = {},
                                                                 const size_t stopSearchSize = 1,
                                                                 const EFilterMode filterMode = EFilterMode::NO_FILTER,
-                                                                const TFilterBase& filter = {}) const {
-            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), distance, distanceLess, stopSearchSize, filterMode, filter);
+                                                                const TFilterBase& filter = {},
+                                                                const size_t filterCheckLimit = Max<size_t>()) const {
+            return GetNearestNeighbors(query, topSize, searchNeighborhoodSize, Max<size_t>(), distance, distanceLess, stopSearchSize, filterMode, filter, filterCheckLimit);
         }
     };
 
