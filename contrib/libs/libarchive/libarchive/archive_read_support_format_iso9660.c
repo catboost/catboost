@@ -2273,7 +2273,7 @@ parse_rockridge(struct archive_read *a, struct file_info *file,
 				if (version == 1) {
 					if (data_length >= 8)
 						file->mode
-						    = toi(data, 4);
+						    = (__LA_MODE_T)toi(data, 4);
 					if (data_length >= 16)
 						file->nlinks
 						    = toi(data + 8, 4);

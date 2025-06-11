@@ -334,16 +334,16 @@ typedef uint64_t uintmax_t;
 /* #undef ARCHIVE_XATTR_LINUX */
 
 /* Version number of bsdcpio */
-#define BSDCPIO_VERSION_STRING "3.7.9"
+#define BSDCPIO_VERSION_STRING "3.8.0"
 
 /* Version number of bsdtar */
-#define BSDTAR_VERSION_STRING "3.7.9"
+#define BSDTAR_VERSION_STRING "3.8.0"
 
 /* Version number of bsdcat */
-#define BSDCAT_VERSION_STRING "3.7.9"
+#define BSDCAT_VERSION_STRING "3.8.0"
 
 /* Version number of bsdunzip */
-#define BSDUNZIP_VERSION_STRING "3.7.9"
+#define BSDUNZIP_VERSION_STRING "3.8.0"
 
 /* Define to 1 if you have the `acl_create_entry' function. */
 /* #undef HAVE_ACL_CREATE_ENTRY */
@@ -729,6 +729,9 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the `gcc' library (-lgcc). */
 /* #undef HAVE_LIBGCC */
 
+/* Define to 1 if you have the `iconv' library (-liconv). */
+/* #undef HAVE_LIBICONV */
+
 /* Define to 1 if you have the `lz4' library (-llz4). */
 #define HAVE_LIBLZ4 1
 
@@ -765,6 +768,9 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <libxml/xmlwriter.h> header file. */
 /* #undef HAVE_LIBXML_XMLWRITER_H */
 
+/* Define to 1 if you have the <libxml/xmlversion.h> header file. */
+/* #undef HAVE_LIBXML_XMLVERSION_H */
+
 /* Define to 1 if you have the `z' library (-lz). */
 #define HAVE_LIBZ 1
 
@@ -773,6 +779,9 @@ typedef uint64_t uintmax_t;
 
 /* Define to 1 if you have the ZSTD_compressStream function. */
 #define HAVE_ZSTD_compressStream 1
+
+/* Define to 1 if you have the ZSTD_minCLevel function. */
+#define HAVE_ZSTD_minCLevel 1
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
@@ -865,6 +874,9 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <mbedtls/pkcs5.h> header file. */
 /* #undef HAVE_MBEDTLS_PKCS5_H */
 
+/* Define to 1 if you have the <mbedtls/pkcs5.h> header file. */
+/* #undef HAVE_MBEDTLS_VERSION_H */
+
 /* Define to 1 if you have the `mbrtowc' function. */
 #define HAVE_MBRTOWC 1
 
@@ -910,6 +922,9 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <nettle/sha.h> header file. */
 /* #undef HAVE_NETTLE_SHA_H */
 
+/* Define to 1 if you have the <nettle/version.h> header file. */
+/* #undef HAVE_NETTLE_VERSION_H */
+
 /* Define to 1 if you have the `nl_langinfo' function. */
 #define HAVE_NL_LANGINFO 1
 
@@ -918,6 +933,9 @@ typedef uint64_t uintmax_t;
 
 /* Define to 1 if you have the <openssl/evp.h> header file. */
 #define HAVE_OPENSSL_EVP_H 1
+
+/* Define to 1 if you have the <openssl/opensslv.h> header file. */
+#define HAVE_OPENSSL_OPENSSLV_H 1
 
 /* Define to 1 if you have the <paths.h> header file. */
 #define HAVE_PATHS_H 1
@@ -1141,7 +1159,6 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
-
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
 #define HAVE_SYS_SYSMACROS_H 1
 
@@ -1265,6 +1282,9 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have a working FS_IOC_GETFLAGS */
 #define HAVE_WORKING_FS_IOC_GETFLAGS 1
 
+/* Define to 1 if you have the Windows `xmllite' library (-lxmllite). */
+/* #undef HAVE_XMLLITE_H */
+
 /* Define to 1 if you have the <zlib.h> header file. */
 #define HAVE_ZLIB_H 1
 
@@ -1293,10 +1313,10 @@ typedef uint64_t uintmax_t;
 #define ICONV_CONST 
 
 /* Version number of libarchive as a single integer */
-#define LIBARCHIVE_VERSION_NUMBER "3007009"
+#define LIBARCHIVE_VERSION_NUMBER "3008000"
 
 /* Version number of libarchive */
-#define LIBARCHIVE_VERSION_STRING "3.7.9"
+#define LIBARCHIVE_VERSION_STRING "3.8.0"
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
@@ -1321,6 +1341,15 @@ typedef uint64_t uintmax_t;
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 /* #undef TIME_WITH_SYS_TIME */
+
+/* Version number of package */
+/* #undef LIBATTR_PKGCONFIG_VERSION */
+
+/* Version number of package */
+/* #undef LIBACL_PKGCONFIG_VERSION */
+
+/* Version number of package */
+/* #undef LIBRICHACL_PKGCONFIG_VERSION */
 
 /*
  * Some platform requires a macro to use extension functions.
@@ -1350,7 +1379,7 @@ typedef uint64_t uintmax_t;
 #endif /* SAFE_TO_DEFINE_EXTENSIONS */
 
 /* Version number of package */
-#define VERSION "3.7.9"
+#define VERSION "3.8.0"
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */

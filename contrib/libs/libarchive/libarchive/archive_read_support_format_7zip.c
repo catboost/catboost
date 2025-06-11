@@ -53,6 +53,7 @@
 #include "archive_ppmd7_private.h"
 #include "archive_private.h"
 #include "archive_read_private.h"
+#include "archive_time_private.h"
 #include "archive_endian.h"
 
 #ifndef HAVE_ZLIB_H
@@ -62,7 +63,26 @@
 #define _7ZIP_SIGNATURE	"7z\xBC\xAF\x27\x1C"
 #define SFX_MIN_ADDR	0x27000
 #define SFX_MAX_ADDR	0x60000
+#define SFX_MAX_OFFSET	(SFX_MAX_ADDR - SFX_MIN_ADDR)
 
+/*
+ * PE format
+ */
+#define PE_DOS_HDR_LEN				0x40
+#define PE_DOS_HDR_ELFANEW_OFFSET	0x3c
+#define PE_COFF_HDR_LEN				0x18
+#define PE_COFF_HDR_SEC_CNT_OFFSET	0x6
+#define PE_COFF_HDR_OPT_SZ_OFFSET	0x14
+#define PE_SEC_HDR_LEN 				0x28
+#define PE_SEC_HDR_RAW_ADDR_OFFSET	0x14
+#define PE_SEC_HDR_RAW_SZ_OFFSET	0x10
+
+/*
+ * ELF format
+ */
+#define ELF_HDR_MIN_LEN 0x34
+#define ELF_HDR_EI_CLASS_OFFSET 0x04
+#define ELF_HDR_EI_DATA_OFFSET 0x05
 
 /*
  * Codec ID
@@ -86,6 +106,7 @@
 #define _7Z_ARM		0x03030501
 #define _7Z_ARMTHUMB	0x03030701
 #define _7Z_ARM64	0xa
+#define _7Z_RISCV	0xb
 #define _7Z_SPARC	0x03030805
 
 #define _7Z_ZSTD	0x4F71101 /* Copied from https://github.com/mcmilk/7-Zip-zstd.git */
@@ -146,7 +167,6 @@ struct _7z_digests {
 	unsigned char	*defineds;
 	uint32_t	*digests;
 };
-
 
 struct _7z_folder {
 	uint64_t		 numCoders;
@@ -227,13 +247,13 @@ struct _7zip_entry {
 #define CRC32_IS_SET	(1<<3)
 #define HAS_STREAM	(1<<4)
 
-	time_t			 mtime;
-	time_t			 atime;
-	time_t			 ctime;
-	long			 mtime_ns;
-	long			 atime_ns;
-	long			 ctime_ns;
-	uint32_t		 mode;
+	int64_t			 mtime;
+	int64_t			 atime;
+	int64_t			 ctime;
+	uint32_t		 mtime_ns;
+	uint32_t		 atime_ns;
+	uint32_t		 ctime_ns;
+	__LA_MODE_T		 mode;
 	uint32_t		 attr;
 };
 
@@ -391,7 +411,6 @@ static int	decode_encoded_header_info(struct archive_read *,
 static int	decompress(struct archive_read *, struct _7zip *,
 		    void *, size_t *, const void *, size_t *);
 static ssize_t	extract_pack_stream(struct archive_read *, size_t);
-static void	fileTimeToUtc(uint64_t, time_t *, long *);
 static uint64_t folder_uncompressed_size(struct _7z_folder *);
 static void	free_CodersInfo(struct _7z_coders_info *);
 static void	free_Digest(struct _7z_digests *);
@@ -427,7 +446,9 @@ static ssize_t	read_stream(struct archive_read *, const void **, size_t,
 		    size_t);
 static int	seek_pack(struct archive_read *);
 static int64_t	skip_stream(struct archive_read *, size_t);
-static int	skip_sfx(struct archive_read *, ssize_t);
+static int	skip_sfx(struct archive_read *, const ssize_t);
+static ssize_t	find_pe_overlay(struct archive_read *);
+static ssize_t	find_elf_data_sec(struct archive_read *);
 static int	slurp_central_directory(struct archive_read *, struct _7zip *,
 		    struct _7z_header_info *);
 static int	setup_decode_folder(struct archive_read *, struct _7z_folder *,
@@ -527,15 +548,17 @@ archive_read_format_7zip_bid(struct archive_read *a, int best_bid)
 	 * It may a 7-Zip SFX archive file. If first two bytes are
 	 * 'M' and 'Z' available on Windows or first four bytes are
 	 * "\x7F\x45LF" available on posix like system, seek the 7-Zip
-	 * signature. Although we will perform a seek when reading
-	 * a header, what we do not use __archive_read_seek() here is
-	 * due to a bidding performance.
+	 * signature. While find_pe_overlay can be performed without
+	 * performing a seek, find_elf_data_sec requires one,
+	 * thus a performance difference between the two is expected. 
 	 */
 	if ((p[0] == 'M' && p[1] == 'Z') || memcmp(p, "\x7F\x45LF", 4) == 0) {
-		ssize_t offset = SFX_MIN_ADDR;
+		const ssize_t min_addr = p[0] == 'M' ? find_pe_overlay(a) :
+						       find_elf_data_sec(a);
+		ssize_t offset = min_addr;
 		ssize_t window = 4096;
 		ssize_t bytes_avail;
-		while (offset + window <= (SFX_MAX_ADDR)) {
+		while (offset + window <= (min_addr + SFX_MAX_OFFSET)) {
 			const char *buff = __archive_read_ahead(a,
 					offset + window, &bytes_avail);
 			if (buff == NULL) {
@@ -585,21 +608,14 @@ check_7zip_header_in_sfx(const char *p)
 }
 
 static int
-skip_sfx(struct archive_read *a, ssize_t bytes_avail)
+skip_sfx(struct archive_read *a, const ssize_t min_addr)
 {
 	const void *h;
 	const char *p, *q;
 	size_t skip, offset;
 	ssize_t bytes, window;
 
-	/*
-	 * If bytes_avail > SFX_MIN_ADDR we do not have to call
-	 * __archive_read_seek() at this time since we have
-	 * already had enough data.
-	 */
-	if (bytes_avail > SFX_MIN_ADDR)
-		__archive_read_consume(a, SFX_MIN_ADDR);
-	else if (__archive_read_seek(a, SFX_MIN_ADDR, SEEK_SET) < 0)
+	if (__archive_read_seek(a, min_addr, SEEK_SET) < 0)
 		return (ARCHIVE_FATAL);
 
 	offset = 0;
@@ -632,7 +648,7 @@ skip_sfx(struct archive_read *a, ssize_t bytes_avail)
 				    (struct _7zip *)a->format->data;
 				skip = p - (const char *)h;
 				__archive_read_consume(a, skip);
-				zip->seek_base = SFX_MIN_ADDR + offset + skip;
+				zip->seek_base = min_addr + offset + skip;
 				return (ARCHIVE_OK);
 			}
 			p += step;
@@ -647,6 +663,207 @@ fatal:
 	archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
 	    "Couldn't find out 7-Zip header");
 	return (ARCHIVE_FATAL);
+}
+
+static ssize_t
+find_pe_overlay(struct archive_read *a)
+{
+	const char *h;
+	ssize_t bytes, max_offset, offset, sec_end;
+	ssize_t opt_hdr_sz, sec_cnt;
+
+	for (;;) {
+		/*
+		 * Read Dos header to find e_lfanew
+		 */
+		h = __archive_read_ahead(a, PE_DOS_HDR_LEN, &bytes);
+		if (h == NULL || h[0] != 'M' || h[1] != 'Z') {
+			break;
+		}
+		offset = archive_le32dec(h + PE_DOS_HDR_ELFANEW_OFFSET);
+
+		/*
+		 * Read COFF header to find opt header size and sec cnt
+		 */
+		if (bytes < offset + PE_COFF_HDR_LEN) {
+			h = __archive_read_ahead(a, offset + PE_COFF_HDR_LEN,
+			    &bytes);
+			if (h == NULL || h[offset] != 'P' ||
+			    h[offset + 1] != 'E') {
+				break;
+			}
+		}
+		sec_cnt = archive_le16dec(
+		    h + offset + PE_COFF_HDR_SEC_CNT_OFFSET);
+		opt_hdr_sz = archive_le16dec(
+		    h + offset + PE_COFF_HDR_OPT_SZ_OFFSET);
+
+		/*
+		 * Skip optional header
+		 */
+		if (opt_hdr_sz != 0) {
+			offset += PE_COFF_HDR_LEN + opt_hdr_sz;
+		} else {
+			break;
+		}
+
+		/*
+		 * Traverse sec table to find max raw offset (i.e., overlay)
+		 */
+		if (bytes < offset + sec_cnt * PE_SEC_HDR_LEN) {
+			h = __archive_read_ahead(a,
+			    offset + sec_cnt * PE_SEC_HDR_LEN, NULL);
+			if (h == NULL) {
+				break;
+			}
+		}
+		max_offset = offset;
+		while (sec_cnt > 0) {
+			sec_end = archive_le32dec(
+				      h + offset + PE_SEC_HDR_RAW_SZ_OFFSET) +
+			    archive_le32dec(
+				h + offset + PE_SEC_HDR_RAW_ADDR_OFFSET);
+			if (sec_end > max_offset) {
+				max_offset = sec_end;
+			}
+			offset += PE_SEC_HDR_LEN;
+			sec_cnt--;
+		}
+		return (max_offset);
+	}
+
+	/*
+	 * If encounter any weirdness, revert to old brute-force style search
+	 */
+	return (SFX_MIN_ADDR);
+}
+
+static ssize_t
+find_elf_data_sec(struct archive_read *a)
+{
+	const char *h;
+	char big_endian, format_64;
+	ssize_t bytes, min_addr = SFX_MIN_ADDR;
+	uint64_t e_shoff, strtab_offset, strtab_size;
+	uint16_t e_shentsize, e_shnum, e_shstrndx;
+	uint16_t (*dec16)(const void *);
+	uint32_t (*dec32)(const void *);
+	uint64_t (*dec64)(const void *);
+
+	for (;;) {
+		/*
+		 * Read Elf header to find bitness & endianness
+		 */
+		h = __archive_read_ahead(a, ELF_HDR_MIN_LEN, &bytes);
+		if (h == NULL || memcmp(h, "\x7F\x45LF", 4) != 0) {
+			break;
+		}
+		format_64 = h[ELF_HDR_EI_CLASS_OFFSET] == 0x2;
+		big_endian = h[ELF_HDR_EI_DATA_OFFSET] == 0x2;
+		if (big_endian) {
+			dec16 = &archive_be16dec;
+			dec32 = &archive_be32dec;
+			dec64 = &archive_be64dec;
+		} else {
+			dec16 = &archive_le16dec;
+			dec32 = &archive_le32dec;
+			dec64 = &archive_le64dec;
+		}
+
+		/*
+		 * Read section header table info
+		 */
+		if (format_64) {
+			e_shoff = (*dec64)(h + 0x28);
+			e_shentsize = (*dec16)(h + 0x3A);
+			e_shnum = (*dec16)(h + 0x3C);
+			e_shstrndx = (*dec16)(h + 0x3E);
+			if (e_shnum < e_shstrndx || e_shentsize < 0x28)
+				break;
+
+		} else {
+			e_shoff = (*dec32)(h + 0x20);
+			e_shentsize = (*dec16)(h + 0x2E);
+			e_shnum = (*dec16)(h + 0x30);
+			e_shstrndx = (*dec16)(h + 0x32);
+			if (e_shnum < e_shstrndx || e_shentsize < 0x18)
+				break;
+		}
+
+		/*
+		 * Reading the section table to find strtab section
+		 */
+		if (__archive_read_seek(a, e_shoff, SEEK_SET) < 0) {
+			break;
+		}
+		h = __archive_read_ahead(a, (size_t)e_shnum * (size_t)e_shentsize, NULL);
+		if (h == NULL) {
+			break;
+		}
+		if (format_64) {
+			strtab_offset = (*dec64)(
+			    h + e_shstrndx * e_shentsize + 0x18);
+			strtab_size = (*dec64)(
+			    h + e_shstrndx * e_shentsize + 0x20);
+		} else {
+			strtab_offset = (*dec32)(
+			    h + e_shstrndx * e_shentsize + 0x10);
+			strtab_size = (*dec32)(
+			    h + e_shstrndx * e_shentsize + 0x14);
+		}
+
+		/*
+		 * Read the STRTAB section to find the .data offset
+		 */
+		if (__archive_read_seek(a, strtab_offset, SEEK_SET) < 0) {
+			break;
+		}
+		h = __archive_read_ahead(a, strtab_size, NULL);
+		if (h == NULL) {
+			break;
+		}
+		ssize_t data_sym_offset = -1;
+		for (size_t offset = 0; offset < strtab_size - 6; offset++) {
+			if (memcmp(h + offset, ".data\00", 6) == 0) {
+				data_sym_offset = offset;
+				break;
+			}
+		}
+		if (data_sym_offset == -1) {
+			break;
+		}
+
+		/*
+		 * Find the section with the .data name
+		 */
+		if (__archive_read_seek(a, e_shoff, SEEK_SET) < 0) {
+			break;
+		}
+		h = __archive_read_ahead(a, (size_t)e_shnum * (size_t)e_shentsize, NULL);
+		if (h == NULL) {
+			break;
+		}
+		ssize_t sec_tbl_offset = 0, name_offset;
+		while (e_shnum > 0) {
+			name_offset = (*dec32)(h + sec_tbl_offset);
+			if (name_offset == data_sym_offset) {
+				if (format_64) {
+					min_addr = (*dec64)(
+					    h + sec_tbl_offset + 0x18);
+				} else {
+					min_addr = (*dec32)(
+					    h + sec_tbl_offset + 0x10);
+				}
+				break;
+			}
+			sec_tbl_offset += e_shentsize;
+			e_shnum--;
+		}
+		break;
+	}
+
+	__archive_read_seek(a, 0, SEEK_SET);
+	return (min_addr);
 }
 
 static int
@@ -1231,6 +1448,12 @@ init_decompression(struct archive_read *a, struct _7zip *zip,
 				fi++;
 				break;
 #endif
+#ifdef LZMA_FILTER_RISCV
+			case _7Z_RISCV:
+				filters[fi].id = LZMA_FILTER_RISCV;
+				fi++;
+				break;
+#endif
 			case _7Z_SPARC:
 				filters[fi].id = LZMA_FILTER_SPARC;
 				fi++;
@@ -1403,6 +1626,7 @@ init_decompression(struct archive_read *a, struct _7zip *zip,
 	case _7Z_ARM:
 	case _7Z_ARMTHUMB:
 	case _7Z_ARM64:
+	case _7Z_RISCV:
 	case _7Z_SPARC:
 	case _7Z_DELTA:
 		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC,
@@ -2852,23 +3076,6 @@ read_Header(struct archive_read *a, struct _7z_header_info *h,
 	return (0);
 }
 
-#define EPOC_TIME ARCHIVE_LITERAL_ULL(116444736000000000)
-static void
-fileTimeToUtc(uint64_t fileTime, time_t *timep, long *ns)
-{
-
-	if (fileTime >= EPOC_TIME) {
-		fileTime -= EPOC_TIME;
-		/* milli seconds base */
-		*timep = (time_t)(fileTime / 10000000);
-		/* nano seconds base */
-		*ns = (long)(fileTime % 10000000) * 100;
-	} else {
-		*timep = 0;
-		*ns = 0;
-	}
-}
-
 static int
 read_Times(struct archive_read *a, struct _7z_header_info *h, int type)
 {
@@ -2911,19 +3118,19 @@ read_Times(struct archive_read *a, struct _7z_header_info *h, int type)
 			goto failed;
 		switch (type) {
 		case kCTime:
-			fileTimeToUtc(archive_le64dec(p),
+			ntfs_to_unix(archive_le64dec(p),
 			    &(entries[i].ctime),
 			    &(entries[i].ctime_ns));
 			entries[i].flg |= CTIME_IS_SET;
 			break;
 		case kATime:
-			fileTimeToUtc(archive_le64dec(p),
+			ntfs_to_unix(archive_le64dec(p),
 			    &(entries[i].atime),
 			    &(entries[i].atime_ns));
 			entries[i].flg |= ATIME_IS_SET;
 			break;
 		case kMTime:
-			fileTimeToUtc(archive_le64dec(p),
+			ntfs_to_unix(archive_le64dec(p),
 			    &(entries[i].mtime),
 			    &(entries[i].mtime_ns));
 			entries[i].flg |= MTIME_IS_SET;
@@ -3018,7 +3225,9 @@ slurp_central_directory(struct archive_read *a, struct _7zip *zip,
 
 	if ((p[0] == 'M' && p[1] == 'Z') || memcmp(p, "\x7F\x45LF", 4) == 0) {
 		/* This is an executable ? Must be self-extracting... */
-		r = skip_sfx(a, bytes_avail);
+		const ssize_t min_addr = p[0] == 'M' ? find_pe_overlay(a) :
+						       find_elf_data_sec(a);
+		r = skip_sfx(a, min_addr);
 		if (r < ARCHIVE_WARN)
 			return (r);
 		if ((p = __archive_read_ahead(a, 32, &bytes_avail)) == NULL)
@@ -4312,4 +4521,3 @@ Bcj2_Decode(struct _7zip *zip, uint8_t *outBuf, size_t outSize)
 
 	return ((ssize_t)outPos);
 }
-
