@@ -1,6 +1,6 @@
 SUBSCRIBER(g:matrixnet)
 
-PY2_PROGRAM(catboost-python)
+PY3_PROGRAM(catboost-python)
 
 PEERDIR(
     contrib/python/six
@@ -8,7 +8,6 @@ PEERDIR(
     contrib/python/numpy
     contrib/python/pandas
     contrib/python/scipy
-    contrib/deprecated/python/enum34
     library/python/pymain
 )
 
