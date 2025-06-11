@@ -302,7 +302,7 @@ struct __optional_destruct_base<_Tp, false> {
   _LIBCPP_HIDE_FROM_ABI constexpr explicit __optional_destruct_base(in_place_t, _Args&&... __args)
       : __val_(std::forward<_Args>(__args)...), __engaged_(true) {}
 
-#  if _LIBCPP_STD_VER >= 23
+#  if _LIBCPP_STD_VER >= 20
   template <class _Fp, class... _Args>
   _LIBCPP_HIDE_FROM_ABI constexpr explicit __optional_destruct_base(
       __optional_construct_from_invoke_tag, _Fp&& __f, _Args&&... __args)
@@ -333,7 +333,7 @@ struct __optional_destruct_base<_Tp, true> {
   _LIBCPP_HIDE_FROM_ABI constexpr explicit __optional_destruct_base(in_place_t, _Args&&... __args)
       : __val_(std::forward<_Args>(__args)...), __engaged_(true) {}
 
-#  if _LIBCPP_STD_VER >= 23
+#  if _LIBCPP_STD_VER >= 20
   template <class _Fp, class... _Args>
   _LIBCPP_HIDE_FROM_ABI constexpr __optional_destruct_base(
       __optional_construct_from_invoke_tag, _Fp&& __f, _Args&&... __args)
@@ -709,7 +709,7 @@ public:
     this->__construct_from(std::move(__v));
   }
 
-#  if _LIBCPP_STD_VER >= 23
+#  if _LIBCPP_STD_VER >= 20
   template <class _Tag,
             class _Fp,
             class... _Args,
@@ -862,7 +862,7 @@ public:
     return this->has_value() ? std::move(this->__get()) : static_cast<value_type>(std::forward<_Up>(__v));
   }
 
-#  if _LIBCPP_STD_VER >= 23
+#  if _LIBCPP_STD_VER >= 20
   template <class _Func>
   _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_THROW_BAD_OPTIONAL_ACCESS constexpr auto and_then(_Func&& __f) & {
     using _Up = invoke_result_t<_Func, value_type&>;
@@ -972,7 +972,7 @@ public:
       return std::move(*this);
     return std::forward<_Func>(__f)();
   }
-#  endif // _LIBCPP_STD_VER >= 23
+#  endif // _LIBCPP_STD_VER >= 20
 
   using __base::reset;
 };

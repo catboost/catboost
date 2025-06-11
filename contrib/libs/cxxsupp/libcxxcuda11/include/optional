@@ -318,7 +318,7 @@ struct __optional_destruct_base<_Tp, false>
         :  __val_(_VSTD::forward<_Args>(__args)...),
            __engaged_(true) {}
 
-#if _LIBCPP_STD_VER >= 23
+#if _LIBCPP_STD_VER >= 20
   template <class _Fp, class... _Args>
   _LIBCPP_HIDE_FROM_ABI
   constexpr __optional_destruct_base(__optional_construct_from_invoke_tag, _Fp&& __f, _Args&&... __args)
@@ -360,7 +360,7 @@ struct __optional_destruct_base<_Tp, true>
         :  __val_(_VSTD::forward<_Args>(__args)...),
            __engaged_(true) {}
 
-#if _LIBCPP_STD_VER >= 23
+#if _LIBCPP_STD_VER >= 20
   template <class _Fp, class... _Args>
   _LIBCPP_HIDE_FROM_ABI
   constexpr __optional_destruct_base(__optional_construct_from_invoke_tag, _Fp&& __f, _Args&&... __args)
@@ -873,7 +873,7 @@ public:
         this->__construct_from(_VSTD::move(__v));
     }
 
-#if _LIBCPP_STD_VER >= 23
+#if _LIBCPP_STD_VER >= 20
   template<class _Fp, class... _Args>
   _LIBCPP_HIDE_FROM_ABI
   constexpr explicit optional(__optional_construct_from_invoke_tag, _Fp&& __f, _Args&&... __args)
@@ -1115,7 +1115,7 @@ public:
                                   static_cast<value_type>(_VSTD::forward<_Up>(__v));
     }
 
-#if _LIBCPP_STD_VER >= 23
+#if _LIBCPP_STD_VER >= 20
   template<class _Func>
   _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_THROW_BAD_OPTIONAL_ACCESS
   constexpr auto and_then(_Func&& __f) & {
@@ -1239,7 +1239,7 @@ public:
       return _VSTD::move(*this);
     return _VSTD::forward<_Func>(__f)();
   }
-#endif // _LIBCPP_STD_VER >= 23
+#endif // _LIBCPP_STD_VER >= 20
 
     using __base::reset;
 };
