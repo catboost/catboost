@@ -50,8 +50,6 @@ TRACE_FILE_NAME = "ytest.report.trace"
 TRUNCATING_IGNORE_FILE_LIST = {TRACE_FILE_NAME, SUITE_CONTEXT_FILE_NAME, "run_test.log"}
 YT_RUN_TEST_DIR_NAME = "yt_run_test"
 YT_RUN_TEST_TAR_NAME = "yt_run_test.tar"
-COVERAGE_CFLAGS = ["-fprofile-instr-generate", "-fcoverage-mapping", "-DCLANG_COVERAGE"]
-COVERAGE_LDFLAGS = ["-fprofile-instr-generate", "-fcoverage-mapping"]
 
 CANON_BACKEND_KEY = "{canondata_backend}"
 DEFAULT_CANONIZATION_BACKEND = "storage.yandex-team.ru/get-devtools"
