@@ -16,6 +16,7 @@ public:
     using key_equal = typename ht::key_equal;
     using mapped_type = T;
     using allocator_type = typename ht::allocator_type;
+    using node_allocator_type = typename ht::node_allocator_type;
 
     using size_type = typename ht::size_type;
     using difference_type = typename ht::difference_type;
