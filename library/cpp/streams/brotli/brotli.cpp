@@ -21,12 +21,18 @@ namespace {
 
 class TBrotliCompress::TImpl {
 public:
-    TImpl(IOutputStream* slave, int quality)
+    TImpl(IOutputStream* slave,
+          int quality,
+          const TBrotliDictionary* dictionary)
         : Slave_(slave)
         , EncoderState_(BrotliEncoderCreateInstance(&TAllocator::Allocate, &TAllocator::Deallocate, nullptr))
     {
         if (!EncoderState_) {
             ythrow yexception() << "Brotli encoder initialization failed";
+        }
+
+        if (dictionary) {
+            BrotliEncoderAttachPreparedDictionary(EncoderState_, dictionary->GetPreparedDictionary());
         }
 
         auto res = BrotliEncoderSetParameter(
@@ -91,8 +97,10 @@ private:
     }
 };
 
-TBrotliCompress::TBrotliCompress(IOutputStream* slave, int quality) {
-    Impl_.Reset(new TImpl(slave, quality));
+TBrotliCompress::TBrotliCompress(IOutputStream* slave,
+                                 int quality,
+                                 const TBrotliDictionary* dictionary) {
+    Impl_.Reset(new TImpl(slave, quality, dictionary));
 }
 
 TBrotliCompress::~TBrotliCompress() {
@@ -124,8 +132,10 @@ void TBrotliCompress::DoFinish() {
 
 class TBrotliDecompress::TImpl: public TAdditionalStorage<TImpl> {
 public:
-    TImpl(IInputStream* slave)
+    TImpl(IInputStream* slave,
+          const TBrotliDictionary* dictionary)
         : Slave_(slave)
+        , Dictionary_(dictionary)
     {
         InitDecoder();
     }
@@ -188,6 +198,8 @@ private:
     IInputStream* Slave_;
     BrotliDecoderState* DecoderState_;
 
+    const TBrotliDictionary* Dictionary_ = nullptr;
+
     bool SubstreamFinished_ = false;
     bool InputExhausted_ = false;
     const ui8* InputBuffer_ = nullptr;
@@ -203,6 +215,13 @@ private:
 
     void InitDecoder() {
         DecoderState_ = BrotliDecoderCreateInstance(&TAllocator::Allocate, &TAllocator::Deallocate, nullptr);
+        if (Dictionary_) {
+            BrotliDecoderAttachDictionary(
+                DecoderState_,
+                BROTLI_SHARED_DICTIONARY_RAW,
+                Dictionary_->GetSize(),
+                Dictionary_->GetData());
+        }
         if (!DecoderState_) {
             ythrow yexception() << "Brotli decoder initialization failed";
         }
@@ -219,8 +238,10 @@ private:
     }
 };
 
-TBrotliDecompress::TBrotliDecompress(IInputStream* slave, size_t bufferSize)
-    : Impl_(new (bufferSize) TImpl(slave))
+TBrotliDecompress::TBrotliDecompress(IInputStream* slave,
+                                     size_t bufferSize,
+                                     const TBrotliDictionary* dictionary)
+    : Impl_(new (bufferSize) TImpl(slave, dictionary))
 {
 }
 
