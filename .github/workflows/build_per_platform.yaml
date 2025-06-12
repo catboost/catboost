@@ -139,13 +139,13 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
 
-      # Python 3.13 is not included in the standard 'windows-2022' image yet.
-      # Should be available soon: https://github.com/actions/runner-images/pull/11438
+      # Python 3.8 is no longer included in the standard 'windows-2022' image.
       - if: inputs.runs-on_value == 'windows-2022'
-        name: Install python3.13 on Windows
+        name: Install python3.8 on Windows
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.8'
+          update-environment: false
 
       - if: inputs.os == 'windows'
         name: Install CUDA on Windows
