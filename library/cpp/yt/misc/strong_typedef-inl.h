@@ -6,6 +6,8 @@
 
 #include "wrapper_traits.h"
 
+#include <util/ysaveload.h>
+
 #include <util/generic/strbuf.h>
 
 #include <functional>
@@ -89,6 +91,18 @@ TStrongTypedef<T, TTag>::operator bool() const
     noexcept(noexcept(static_cast<bool>(Underlying_)))
 {
     return static_cast<bool>(Underlying_);
+}
+
+template <class T, class TTag>
+void TStrongTypedef<T, TTag>::Save(IOutputStream* out) const
+{
+    ::Save(out, Underlying_);
+}
+
+template <class T, class TTag>
+void TStrongTypedef<T, TTag>::Load(IInputStream* in)
+{
+    ::Load(in, Underlying_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

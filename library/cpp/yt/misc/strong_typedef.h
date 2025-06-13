@@ -4,6 +4,8 @@
 
 #include <util/generic/string.h>
 
+#include <util/stream/fwd.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +55,9 @@ public:
     constexpr T& Underlying() &;
     constexpr const T& Underlying() const &;
     constexpr T&& Underlying() &&;
+
+    void Save(IOutputStream* out) const;
+    void Load(IInputStream* in);
 
 private:
     T Underlying_;
