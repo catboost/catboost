@@ -1,18 +1,14 @@
 ;
 ; jccolor.asm - colorspace conversion (64-bit AVX2)
 ;
-; Copyright (C) 2009, 2016, D. R. Commander.
+; Copyright (C) 2009, 2016, 2024, D. R. Commander.
 ; Copyright (C) 2015, Intel Corporation.
 ;
 ; Based on the x86 SIMD extension for IJG JPEG library
 ; Copyright (C) 1999-2006, MIYASAKA Masaru.
 ; For conditions of distribution and use, see copyright notice in jsimdext.inc
 ;
-; This file should be assembled with NASM (Netwide Assembler),
-; can *not* be assembled with Microsoft's MASM or any compatible
-; assembler (including Borland's Turbo Assembler).
-; NASM is available from http://nasm.sourceforge.net/ or
-; http://sourceforge.net/project/showfiles.php?group_id=6208
+; This file should be assembled with NASM (Netwide Assembler) or Yasm.
 
 %include "jsimdext.inc"
 
@@ -33,7 +29,7 @@ F_0_337 equ (F_0_587 - F_0_250)  ; FIX(0.58700) - FIX(0.25000)
 ; --------------------------------------------------------------------------
     SECTION     SEG_CONST
 
-    alignz      32
+    ALIGNZ      32
     GLOBAL_DATA(jconst_rgb_ycc_convert_avx2)
 
 EXTN(jconst_rgb_ycc_convert_avx2):
@@ -46,7 +42,7 @@ PD_ONEHALFM1_CJ times 8 dd  (1 << (SCALEBITS - 1)) - 1 + \
                             (CENTERJSAMPLE << SCALEBITS)
 PD_ONEHALF      times 8 dd  (1 << (SCALEBITS - 1))
 
-    alignz      32
+    ALIGNZ      32
 
 ; --------------------------------------------------------------------------
     SECTION     SEG_TEXT

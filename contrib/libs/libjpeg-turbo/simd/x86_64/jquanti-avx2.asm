@@ -2,7 +2,7 @@
 ; jquanti.asm - sample data conversion and quantization (64-bit AVX2)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
-; Copyright (C) 2009, 2016, 2018, D. R. Commander.
+; Copyright (C) 2009, 2016, 2018, 2024, D. R. Commander.
 ; Copyright (C) 2016, Matthieu Darbois.
 ; Copyright (C) 2018, Matthias Räncker.
 ;
@@ -10,11 +10,7 @@
 ; Copyright (C) 1999-2006, MIYASAKA Masaru.
 ; For conditions of distribution and use, see copyright notice in jsimdext.inc
 ;
-; This file should be assembled with NASM (Netwide Assembler),
-; can *not* be assembled with Microsoft's MASM or any compatible
-; assembler (including Borland's Turbo Assembler).
-; NASM is available from http://nasm.sourceforge.net/ or
-; http://sourceforge.net/project/showfiles.php?group_id=6208
+; This file should be assembled with NASM (Netwide Assembler) or Yasm.
 
 %include "jsimdext.inc"
 %include "jdct.inc"
@@ -38,10 +34,10 @@
     GLOBAL_FUNCTION(jsimd_convsamp_avx2)
 
 EXTN(jsimd_convsamp_avx2):
+    ENDBR64
     push        rbp
-    mov         rax, rsp
     mov         rbp, rsp
-    collect_args 3
+    COLLECT_ARGS 3
 
     mov         eax, r11d
 
@@ -84,7 +80,7 @@ EXTN(jsimd_convsamp_avx2):
     vmovdqu     YMMWORD [YMMBLOCK(6,0,r12,SIZEOF_DCTELEM)], ymm3
 
     vzeroupper
-    uncollect_args 3
+    UNCOLLECT_ARGS 3
     pop         rbp
     ret
 
@@ -93,8 +89,8 @@ EXTN(jsimd_convsamp_avx2):
 ; Quantize/descale the coefficients, and store into coef_block
 ;
 ; This implementation is based on an algorithm described in
-;   "How to optimize for the Pentium family of microprocessors"
-;   (http://www.agner.org/assem/).
+;   "Optimizing subroutines in assembly language:
+;   An optimization guide for x86 platforms" (https://agner.org/optimize).
 ;
 ; GLOBAL(void)
 ; jsimd_quantize_avx2(JCOEFPTR coef_block, DCTELEM *divisors,
@@ -116,10 +112,10 @@ EXTN(jsimd_convsamp_avx2):
     GLOBAL_FUNCTION(jsimd_quantize_avx2)
 
 EXTN(jsimd_quantize_avx2):
+    ENDBR64
     push        rbp
-    mov         rax, rsp
     mov         rbp, rsp
-    collect_args 3
+    COLLECT_ARGS 3
 
     vmovdqu     ymm4, [YMMBLOCK(0,0,r12,SIZEOF_DCTELEM)]
     vmovdqu     ymm5, [YMMBLOCK(2,0,r12,SIZEOF_DCTELEM)]
@@ -154,7 +150,7 @@ EXTN(jsimd_quantize_avx2):
     vmovdqu     [YMMBLOCK(6,0,r10,SIZEOF_DCTELEM)], ymm3
 
     vzeroupper
-    uncollect_args 3
+    UNCOLLECT_ARGS 3
     pop         rbp
     ret
 

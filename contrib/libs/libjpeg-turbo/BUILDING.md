@@ -8,14 +8,16 @@ Build Requirements
 
 ### All Systems
 
-- [CMake](http://www.cmake.org) v2.8.12 or later
+- [CMake](https://cmake.org) v2.8.12 or later
 
-- [NASM](http://www.nasm.us) or [Yasm](http://yasm.tortall.net)
+- [NASM](https://nasm.us) or [Yasm](https://yasm.tortall.net)
   (if building x86 or x86-64 SIMD extensions)
   * If using NASM, 2.13 or later is required.
   * If using Yasm, 1.2.0 or later is required.
+  * NASM 2.15 or later is required if building libjpeg-turbo with Intel
+    Control-flow Enforcement Technology (CET) support.
   * If building on macOS, NASM or Yasm can be obtained from
-    [MacPorts](http://www.macports.org/) or [Homebrew](http://brew.sh/).
+    [MacPorts](https://macports.org) or [Homebrew](https://brew.sh).
      - NOTE: Currently, if it is desirable to hide the SIMD function symbols in
        Mac executables or shared libraries that statically link with
        libjpeg-turbo, then NASM 2.14 or later or Yasm must be used when
@@ -25,9 +27,9 @@ Build Requirements
     variable or the `ASM_NASM` environment variable.  On Windows, use forward
     slashes rather than backslashes in the path (for example,
     **c:/nasm/nasm.exe**).
-  * NASM and Yasm are located in the CRB (Code Ready Builder) repository on
-    Red Hat Enterprise Linux 8 and in the PowerTools repository on RHEL
-    derivatives, which is not enabled by default.
+  * NASM and Yasm are located in the CRB (Code Ready Builder) or PowerTools
+    repository on Red Hat Enterprise Linux 8+ and derivatives, which is not
+    enabled by default.
 
 ### Un*x Platforms (including Linux, Mac, FreeBSD, Solaris, and Cygwin)
 
@@ -37,7 +39,7 @@ Build Requirements
   required.  Most modern Linux distributions, as well as Solaris 10 and later,
   include JDK or OpenJDK.  For other systems, you can obtain the Oracle Java
   Development Kit from
-  <http://www.oracle.com/technetwork/java/javase/downloads>.
+  <https://oracle.com/java/technologies/downloads>.
 
   * If using JDK 11 or later, CMake 3.10.x or later must also be used.
 
@@ -67,14 +69,14 @@ Build Requirements
 
 - MinGW
 
-  [MSYS2](http://msys2.github.io/) or [tdm-gcc](http://tdm-gcc.tdragon.net/)
+  [MSYS2](https://msys2.org) or [tdm-gcc](https://jmeubank.github.io/tdm-gcc)
   recommended if building on a Windows machine.  Both distributions install a
   Start Menu link that can be used to launch a command prompt with the
   appropriate compiler paths automatically set.
 
 - If building the TurboJPEG Java wrapper, JDK 1.5 or later is required.  This
   can be downloaded from
-  <http://www.oracle.com/technetwork/java/javase/downloads>.
+  <https://oracle.com/java/technologies/downloads>.
 
   * If using JDK 11 or later, CMake 3.10.x or later must also be used.
 
@@ -288,15 +290,6 @@ API/ABI-compatible with libjpeg v8.  See [README.md](README.md) for more
 information about libjpeg v7 and v8 emulation.
 
 
-### In-Memory Source/Destination Managers
-
-When using libjpeg v6b or v7 API/ABI emulation, add `-DWITH_MEM_SRCDST=0` to
-the CMake command line to build a version of libjpeg-turbo that lacks the
-`jpeg_mem_src()` and `jpeg_mem_dest()` functions.  These functions were not
-part of the original libjpeg v6b and v7 APIs, so removing them ensures strict
-conformance with those APIs.  See [README.md](README.md) for more information.
-
-
 ### Arithmetic Coding Support
 
 Since the patent on arithmetic coding has expired, this functionality has been
@@ -372,8 +365,12 @@ located (usually **/usr/bin**.)  Next, execute the following commands:
 
     cd {build_directory}
     cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+      -DCMAKE_INSTALL_PREFIX={install_path} \
       [additional CMake flags] {source_directory}
     make
+
+*{install\_path}* is the path under which the libjpeg-turbo binaries should be
+installed.
 
 
 ### 64-bit MinGW Build on Un*x (including Mac and Cygwin)
@@ -391,8 +388,12 @@ located (usually **/usr/bin**.)  Next, execute the following commands:
 
     cd {build_directory}
     cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+      -DCMAKE_INSTALL_PREFIX={install_path} \
       [additional CMake flags] {source_directory}
     make
+
+*{install\_path}* is the path under which the libjpeg-turbo binaries should be
+installed.
 
 
 Building libjpeg-turbo for iOS
@@ -414,27 +415,27 @@ iPhone 5S/iPad Mini 2/iPad Air and newer.
 
     IOS_PLATFORMDIR=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform
     IOS_SYSROOT=($IOS_PLATFORMDIR/Developer/SDKs/iPhoneOS*.sdk)
-    export CFLAGS="-Wall -arch arm64 -miphoneos-version-min=8.0 -funwind-tables"
+    export CFLAGS="-Wall -miphoneos-version-min=8.0 -funwind-tables"
 
     cd {build_directory}
 
-    cat <<EOF >toolchain.cmake
-    set(CMAKE_SYSTEM_NAME Darwin)
-    set(CMAKE_SYSTEM_PROCESSOR aarch64)
-    set(CMAKE_C_COMPILER /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang)
-    EOF
-
-    cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+    cmake -G"Unix Makefiles" \
+      -DCMAKE_C_COMPILER=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang \
+      -DCMAKE_OSX_ARCHITECTURES=arm64 \
       -DCMAKE_OSX_SYSROOT=${IOS_SYSROOT[0]} \
       [additional CMake flags] {source_directory}
     make
+
+Replace `iPhoneOS` with `iPhoneSimulator` and `-miphoneos-version-min` with
+`-miphonesimulator-version-min` to build libjpeg-turbo for the iOS simulator on
+Macs with Apple silicon CPUs.
 
 
 Building libjpeg-turbo for Android
 ----------------------------------
 
 Building libjpeg-turbo for Android platforms requires v13b or later of the
-[Android NDK](https://developer.android.com/tools/sdk/ndk).
+[Android NDK](https://developer.android.com/ndk).
 
 
 ### Armv7 (32-bit)
@@ -602,15 +603,6 @@ brackets, then its final value will depend on the final value of that other
 variable.  For instance, the default value of `CMAKE_INSTALL_MANDIR` is
 **\<CMAKE\_INSTALL\_DATAROOTDIR\>/man**.
 
-NOTE: If setting one of these directory variables to a relative path using the
-CMake command line, you must specify that the variable is of type `PATH`.
-For example:
-
-    cmake -G"{generator type}" -DCMAKE_INSTALL_LIBDIR:PATH=lib {source_directory}
-
-Otherwise, CMake will assume that the path is relative to the build directory
-rather than the install directory.
-
 
 Creating Distribution Packages
 ==============================
@@ -647,18 +639,19 @@ are installed by default on OS X/macOS 10.7 and later.
 In order to create a Mac package/disk image that contains universal
 x86-64/Arm binaries, set the following CMake variable:
 
-* `ARMV8_BUILD`: Directory containing an Armv8 (64-bit) iOS or macOS build of
-  libjpeg-turbo to include in the universal binaries
+* `SECONDARY_BUILD`: Directory containing a cross-compiled x86-64 or Armv8
+  (64-bit) iOS or macOS build of libjpeg-turbo to include in the universal
+  binaries
 
-You should first use CMake to configure an Armv8 sub-build of libjpeg-turbo
-(see "Building libjpeg-turbo for iOS" above, if applicable) in a build
-directory that matches the one specified in the aforementioned CMake variable.
-Next, configure the primary (x86-64) build of libjpeg-turbo as an out-of-tree
-build, specifying the aforementioned CMake variable, and build it.  Once the
-primary build has been built, run `make dmg` from the build directory.  The
-packaging system will build the sub-build, use lipo to combine it with the
-primary build into a single set of universal binaries, then package the
-universal binaries.
+You should first use CMake to configure the cross-compiled x86-64 or Armv8
+secondary build of libjpeg-turbo (see "Building libjpeg-turbo for iOS" above,
+if applicable) in a build directory that matches the one specified in the
+aforementioned CMake variable.  Next, configure the primary (native) build of
+libjpeg-turbo as an out-of-tree build, specifying the aforementioned CMake
+variable, and build it.  Once the primary build has been built, run `make dmg`
+from the build directory.  The packaging system will build the secondary build,
+use lipo to combine it with the primary build into a single set of universal
+binaries, then package the universal binaries.
 
 
 Windows
@@ -683,7 +676,7 @@ as the configuration you built (such as *{build_directory}*\Debug\ or
 *{build_directory}*\Release\).
 
 Building a Windows installer requires the
-[Nullsoft Install System](http://nsis.sourceforge.net/).  makensis.exe should
+[Nullsoft Install System](https://nsis.sourceforge.io).  makensis.exe should
 be in your `PATH`.
 
 

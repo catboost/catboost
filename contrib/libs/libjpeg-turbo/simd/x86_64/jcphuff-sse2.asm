@@ -3,16 +3,14 @@
 ; (64-bit SSE2)
 ;
 ; Copyright (C) 2016, 2018, Matthieu Darbois
+; Copyright (C) 2023, Aliaksiej Kandracienka.
+; Copyright (C) 2024, D. R. Commander.
 ;
 ; Based on the x86 SIMD extension for IJG JPEG library
 ; Copyright (C) 1999-2006, MIYASAKA Masaru.
 ; For conditions of distribution and use, see copyright notice in jsimdext.inc
 ;
-; This file should be assembled with NASM (Netwide Assembler),
-; can *not* be assembled with Microsoft's MASM or any compatible
-; assembler (including Borland's Turbo Assembler).
-; NASM is available from http://nasm.sourceforge.net/ or
-; http://sourceforge.net/project/showfiles.php?group_id=6208
+; This file should be assembled with NASM (Netwide Assembler) or Yasm.
 ;
 ; This file contains an SSE2 implementation of data preparation for progressive
 ; Huffman encoding.  See jcphuff.c for more details.
@@ -281,16 +279,13 @@
     GLOBAL_FUNCTION(jsimd_encode_mcu_AC_first_prepare_sse2)
 
 EXTN(jsimd_encode_mcu_AC_first_prepare_sse2):
+    ENDBR64
     push        rbp
-    mov         rax, rsp                     ; rax = original rbp
-    sub         rsp, byte 4
+    mov         rbp, rsp
     and         rsp, byte (-SIZEOF_XMMWORD)  ; align to 128 bits
-    mov         [rsp], rax
-    mov         rbp, rsp                     ; rbp = aligned rbp
-    lea         rsp, [rbp - 16]
-    collect_args 6
-
-    movdqa      XMMWORD [rbp - 16], ZERO
+    sub         rsp, SIZEOF_XMMWORD
+    movdqa      XMMWORD [rsp], ZERO
+    COLLECT_ARGS 6
 
     movd        AL, r13d
     pxor        ZERO, ZERO
@@ -384,10 +379,9 @@ EXTN(jsimd_encode_mcu_AC_first_prepare_sse2):
 
     REDUCE0
 
-    movdqa      ZERO, XMMWORD [rbp - 16]
-    uncollect_args 6
-    mov         rsp, rbp                ; rsp <- aligned rbp
-    pop         rsp                     ; rsp <- original rbp
+    UNCOLLECT_ARGS 6
+    movdqa      ZERO, XMMWORD [rsp]
+    mov         rsp, rbp
     pop         rbp
     ret
 
@@ -449,16 +443,13 @@ EXTN(jsimd_encode_mcu_AC_first_prepare_sse2):
     GLOBAL_FUNCTION(jsimd_encode_mcu_AC_refine_prepare_sse2)
 
 EXTN(jsimd_encode_mcu_AC_refine_prepare_sse2):
+    ENDBR64
     push        rbp
-    mov         rax, rsp                     ; rax = original rbp
-    sub         rsp, byte 4
+    mov         rbp, rsp
     and         rsp, byte (-SIZEOF_XMMWORD)  ; align to 128 bits
-    mov         [rsp], rax
-    mov         rbp, rsp                     ; rbp = aligned rbp
-    lea         rsp, [rbp - 16]
-    collect_args 6
-
-    movdqa      XMMWORD [rbp - 16], ZERO
+    sub         rsp, SIZEOF_XMMWORD
+    movdqa      XMMWORD [rsp], ZERO
+    COLLECT_ARGS 6
 
     xor         SIGN, SIGN
     xor         EOB, EOB
@@ -606,10 +597,9 @@ EXTN(jsimd_encode_mcu_AC_refine_prepare_sse2):
     REDUCE0
 
     mov         eax, EOB
-    movdqa      ZERO, XMMWORD [rbp - 16]
-    uncollect_args 6
-    mov         rsp, rbp                ; rsp <- aligned rbp
-    pop         rsp                     ; rsp <- original rbp
+    UNCOLLECT_ARGS 6
+    movdqa      ZERO, XMMWORD [rsp]
+    mov         rsp, rbp
     pop         rbp
     ret
 

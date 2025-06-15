@@ -2,7 +2,7 @@
  * jchuff-neon.c - Huffman entropy encoding (64-bit Arm Neon)
  *
  * Copyright (C) 2020-2021, Arm Limited.  All Rights Reserved.
- * Copyright (C) 2020, 2022, D. R. Commander.  All Rights Reserved.
+ * Copyright (C) 2020, 2022, 2024, D. R. Commander.  All Rights Reserved.
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -25,11 +25,11 @@
  */
 
 #define JPEG_INTERNALS
-#include "../../../jinclude.h"
-#include "../../../jpeglib.h"
-#include "../../../jsimd.h"
-#include "../../../jdct.h"
-#include "../../../jsimddct.h"
+#include "../../../src/jinclude.h"
+#include "../../../src/jpeglib.h"
+#include "../../../src/jsimd.h"
+#include "../../../src/jdct.h"
+#include "../../../src/jsimddct.h"
 #include "../../jsimd.h"
 #include "../align.h"
 #include "../jchuff.h"

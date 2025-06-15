@@ -2,17 +2,14 @@
 ; jfdctflt.asm - floating-point FDCT (64-bit SSE)
 ;
 ; Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
-; Copyright (C) 2009, 2016, D. R. Commander.
+; Copyright (C) 2009, 2016, 2024, D. R. Commander.
+; Copyright (C) 2023, Aliaksiej Kandracienka.
 ;
 ; Based on the x86 SIMD extension for IJG JPEG library
 ; Copyright (C) 1999-2006, MIYASAKA Masaru.
 ; For conditions of distribution and use, see copyright notice in jsimdext.inc
 ;
-; This file should be assembled with NASM (Netwide Assembler),
-; can *not* be assembled with Microsoft's MASM or any compatible
-; assembler (including Borland's Turbo Assembler).
-; NASM is available from http://nasm.sourceforge.net/ or
-; http://sourceforge.net/project/showfiles.php?group_id=6208
+; This file should be assembled with NASM (Netwide Assembler) or Yasm.
 ;
 ; This file contains a floating-point implementation of the forward DCT
 ; (Discrete Cosine Transform). The following code is based directly on
@@ -34,7 +31,7 @@
 ; --------------------------------------------------------------------------
     SECTION     SEG_CONST
 
-    alignz      32
+    ALIGNZ      32
     GLOBAL_DATA(jconst_fdct_float_sse)
 
 EXTN(jconst_fdct_float_sse):
@@ -44,7 +41,7 @@ PD_0_707 times 4 dd 0.707106781186547524400844
 PD_0_541 times 4 dd 0.541196100146196984399723
 PD_1_306 times 4 dd 1.306562964876376527856643
 
-    alignz      32
+    ALIGNZ      32
 
 ; --------------------------------------------------------------------------
     SECTION     SEG_TEXT
@@ -58,21 +55,22 @@ PD_1_306 times 4 dd 1.306562964876376527856643
 
 ; r10 = FAST_FLOAT *data
 
-%define wk(i)   rbp - (WK_NUM - (i)) * SIZEOF_XMMWORD  ; xmmword wk[WK_NUM]
+%define wk(i)   r15 - (WK_NUM - (i)) * SIZEOF_XMMWORD  ; xmmword wk[WK_NUM]
 %define WK_NUM  2
 
     align       32
     GLOBAL_FUNCTION(jsimd_fdct_float_sse)
 
 EXTN(jsimd_fdct_float_sse):
+    ENDBR64
     push        rbp
-    mov         rax, rsp                     ; rax = original rbp
-    sub         rsp, byte 4
+    mov         rbp, rsp
+    push        r15
     and         rsp, byte (-SIZEOF_XMMWORD)  ; align to 128 bits
-    mov         [rsp], rax
-    mov         rbp, rsp                     ; rbp = aligned rbp
-    lea         rsp, [wk(0)]
-    collect_args 1
+    ; Allocate stack space for wk array.  r15 is used to access it.
+    mov         r15, rsp
+    sub         rsp, byte (SIZEOF_XMMWORD * WK_NUM)
+    COLLECT_ARGS 1
 
     ; ---- Pass 1: process rows.
 
@@ -344,9 +342,9 @@ EXTN(jsimd_fdct_float_sse):
     dec         rcx
     jnz         near .columnloop
 
-    uncollect_args 1
-    mov         rsp, rbp                ; rsp <- aligned rbp
-    pop         rsp                     ; rsp <- original rbp
+    UNCOLLECT_ARGS 1
+    lea         rsp, [rbp-8]
+    pop         r15
     pop         rbp
     ret
 
