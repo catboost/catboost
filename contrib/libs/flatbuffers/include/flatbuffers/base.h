@@ -237,7 +237,7 @@ namespace flatbuffers {
     #elif __has_include("absl/strings/string_view.h") && \
           __has_include("absl/base/config.h") && \
           (__cplusplus >= 201411)
-      #include "absl/base/config.h"
+      #error #include "absl/base/config.h"
       #if !defined(ABSL_USES_STD_STRING_VIEW)
         #error #include "absl/strings/string_view.h"
         namespace flatbuffers {
