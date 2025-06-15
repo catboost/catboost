@@ -1,3 +1,14 @@
+3.1.1
+=====
+
+### Significant changes relative to 3.1.0:
+
+1. Hardened the libjpeg API against hypothetical calling applications that may
+erroneously change the value of the `data_precision` field in
+`jpeg_compress_struct` or `jpeg_decompress_struct` after calling
+`jpeg_start_compress()` or `jpeg_start_decompress()`.
+
+
 3.1.0
 =====
 
