@@ -124,7 +124,7 @@ def fix_gnu_param(arch, ex):
 
 
 def fix_windows_param(ex):
-    with tempfile.NamedTemporaryFile(delete=False) as def_file:
+    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as def_file:
         exports = []
         for item in ex:
             if item.get('lang') == 'C':

@@ -53,7 +53,7 @@ def get_args(args):
 
 
 def run(*args):
-    return subprocess.check_output(list(args), shell=False).strip()
+    return subprocess.check_output(list(args), shell=False, text=True).strip()
 
 
 def gen_renames_1(d):
