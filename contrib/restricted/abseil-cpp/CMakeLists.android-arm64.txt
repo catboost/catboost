@@ -99,7 +99,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/structured_proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/vlog_config.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/numeric/int128.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased.cc
@@ -108,7 +107,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/gaussian_distribution.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/chi_square.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/distribution_test_util.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/pool_urbg.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/entropy_pool.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_detect.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_hwaes.cc
@@ -125,7 +124,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/charconv.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord_analysis.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord_buffer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/escaping.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/charconv_bigint.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/charconv_parse.cc
@@ -187,8 +185,5 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/time_zone_posix.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/zone_info_source.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/time.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_any_cast.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_optional_access.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_variant_access.cc
 )
 

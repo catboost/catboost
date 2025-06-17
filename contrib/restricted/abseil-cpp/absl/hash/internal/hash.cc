@@ -55,13 +55,9 @@ uint64_t MixingHashState::CombineLargeContiguousImpl64(
 
 ABSL_CONST_INIT const void* const MixingHashState::kSeed = &kSeed;
 
-#ifdef ABSL_INTERNAL_NEED_REDUNDANT_CONSTEXPR_DECL
-constexpr uint64_t MixingHashState::kStaticRandomData[];
-#endif
-
 uint64_t MixingHashState::LowLevelHashImpl(const unsigned char* data,
                                            size_t len) {
-  return LowLevelHashLenGt16(data, len, Seed(), &kStaticRandomData[0]);
+  return LowLevelHashLenGt32(data, len, Seed(), &kStaticRandomData[0]);
 }
 
 }  // namespace hash_internal
