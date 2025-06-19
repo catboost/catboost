@@ -188,6 +188,91 @@ TEST(TestFutureTraits, CrashOnExceptionInCoroutineHandlerResume) {
     );
 }
 
+TEST(TestFutureTraits, DestructorOrder) {
+    class TTrackedValue {
+    public:
+        TTrackedValue(TVector<TString>& result, TString name)
+            : Result(result)
+            , Name(std::move(name))
+        {
+            Result.push_back(Name + " constructed");
+        }
+
+        TTrackedValue(TTrackedValue&& rhs)
+            : Result(rhs.Result)
+            , Name(std::move(rhs.Name))
+        {
+            Result.push_back(Name + " moved");
+            rhs.Name.clear();
+        }
+
+        ~TTrackedValue() {
+            if (!Name.empty()) {
+                Result.push_back(Name + " destroyed");
+            }
+        }
+
+    private:
+        TVector<TString>& Result;
+        TString Name;
+    };
+
+    TVector<TString> result;
+    NThreading::TPromise<void> promise = NThreading::NewPromise<void>();
+    NThreading::TFuture<void> future = promise.GetFuture();
+
+    auto coroutine1 = [&](TTrackedValue arg) -> NThreading::TFuture<TString> {
+        TTrackedValue a(result, "local a");
+        result.push_back("before co_await future");
+        co_await future;
+        result.push_back("after co_await future");
+        Y_UNUSED(arg);
+        co_return "42";
+    };
+
+    auto coroutine2 = [&]() -> NThreading::TFuture<void> {
+        TTrackedValue b(result, "local b");
+        result.push_back("before co_await coroutine1(...)");
+        TString value = co_await coroutine1(TTrackedValue(result, "arg"));
+        result.push_back("after co_await coroutine1(...)");
+        result.push_back("value = " + value);
+    };
+
+    result.push_back("before coroutine2()");
+    auto future2 = coroutine2();
+    result.push_back("after coroutine2()");
+    EXPECT_FALSE(future2.HasValue() || future2.HasException());
+    future2.Subscribe([&](const auto&) {
+        result.push_back("in coroutine2() callback");
+    });
+
+    promise.SetValue();
+    EXPECT_TRUE(future2.HasValue());
+
+    EXPECT_THAT(
+        result,
+        ::testing::ContainerEq(
+            TVector<TString>({
+                "before coroutine2()",
+                "local b constructed",
+                "before co_await coroutine1(...)",
+                "arg constructed",
+                "arg moved",
+                "local a constructed",
+                "before co_await future",
+                "after coroutine2()",
+                "after co_await future",
+                "local a destroyed",
+                "arg destroyed",
+                "after co_await coroutine1(...)",
+                "value = 42",
+                "local b destroyed",
+                "in coroutine2() callback",
+            })
+        )
+    );
+}
+
 TEST(ExtractingFutureAwaitable, Simple) {
     NThreading::TPromise<THolder<size_t>> suspendPromise = NThreading::NewPromise<THolder<size_t>>();
     auto coro = [](NThreading::TFuture<THolder<size_t>> future) -> NThreading::TFuture<THolder<size_t>> {

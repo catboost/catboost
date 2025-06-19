@@ -140,9 +140,8 @@ namespace NThreading {
             }
 
             template <typename TT>
-            bool TrySetValue(TT&& value) {
+            bool TrySetValue(TT&& value, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -153,7 +152,6 @@ namespace NThreading {
                     new (&Value) T(std::forward<TT>(value));
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ValueSet);
                 }
@@ -162,11 +160,8 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
-                    TFuture<T> temp(this);
-                    for (auto& callback : callbacks) {
-                        callback(temp);
-                    }
+                if (!deferCallbacks) {
+                    RunCallbacks();
                 }
 
                 return true;
@@ -179,9 +174,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetException(std::exception_ptr e) {
+            bool TrySetException(std::exception_ptr e, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent;
-                TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -192,7 +186,6 @@ namespace NThreading {
                     Exception = std::move(e);
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ExceptionSet);
                 }
@@ -201,14 +194,22 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
+                if (!deferCallbacks) {
+                    RunCallbacks();
+                }
+
+                return true;
+            }
+
+            void RunCallbacks() {
+                Y_ASSERT(AtomicGet(State) != NotReady);
+                if (!Callbacks.empty()) {
+                    TCallbackList<T> callbacks = std::move(Callbacks);
                     TFuture<T> temp(this);
                     for (auto& callback : callbacks) {
                         callback(temp);
                     }
                 }
-
-                return true;
             }
 
             template <typename F>
@@ -331,9 +332,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetValue() {
+            bool TrySetValue(bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -342,7 +342,6 @@ namespace NThreading {
                     }
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ValueSet);
                 }
@@ -351,11 +350,8 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
-                    TFuture<void> temp(this);
-                    for (auto& callback : callbacks) {
-                        callback(temp);
-                    }
+                if (!deferCallbacks) {
+                    RunCallbacks();
                 }
 
                 return true;
@@ -368,9 +364,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetException(std::exception_ptr e) {
+            bool TrySetException(std::exception_ptr e, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -381,7 +376,6 @@ namespace NThreading {
                     Exception = std::move(e);
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ExceptionSet);
                 }
@@ -390,14 +384,22 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
+                if (!deferCallbacks) {
+                    RunCallbacks();
+                }
+
+                return true;
+            }
+
+            void RunCallbacks() {
+                Y_ASSERT(AtomicGet(State) != NotReady);
+                if (!Callbacks.empty()) {
+                    TCallbackList<void> callbacks = std::move(Callbacks);
                     TFuture<void> temp(this);
                     for (auto& callback : callbacks) {
                         callback(temp);
                     }
                 }
-
-                return true;
             }
 
             template <typename F>
