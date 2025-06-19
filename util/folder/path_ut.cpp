@@ -701,6 +701,10 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         MakePathIfNotExist(testSubdir.c_str());
 
 #ifdef _win_
+        if (IsWine()) {
+            // Broken since f8699c0a71a528d287b84cd0bc5b5bb7cec924f0 (5.11 wine-version)
+            return;
+        }
         Chmod(testSubdir.c_str(), 0);
         Y_DEFER {
             Chmod(testSubdir.c_str(), MODE0777);
