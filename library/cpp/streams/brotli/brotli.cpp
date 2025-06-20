@@ -23,7 +23,8 @@ class TBrotliCompress::TImpl {
 public:
     TImpl(IOutputStream* slave,
           int quality,
-          const TBrotliDictionary* dictionary)
+          const TBrotliDictionary* dictionary,
+          size_t offset = 0)
         : Slave_(slave)
         , EncoderState_(BrotliEncoderCreateInstance(&TAllocator::Allocate, &TAllocator::Deallocate, nullptr))
     {
@@ -35,19 +36,12 @@ public:
             BrotliEncoderAttachPreparedDictionary(EncoderState_, dictionary->GetPreparedDictionary());
         }
 
-        auto res = BrotliEncoderSetParameter(
-            EncoderState_,
-            BROTLI_PARAM_QUALITY,
-            quality);
-
-        if (!res) {
-            BrotliEncoderDestroyInstance(EncoderState_);
-            ythrow yexception() << "Failed to set brotli encoder quality to " << quality;
-        }
+        SetEncoderParameter(BROTLI_PARAM_QUALITY, quality, "quality");
+        SetEncoderParameter(BROTLI_PARAM_STREAM_OFFSET, offset, "stream offset");
     }
 
     ~TImpl() {
-        BrotliEncoderDestroyInstance(EncoderState_);
+        FreeEncoder();
     }
 
     void Write(const void* buffer, size_t size) {
@@ -67,6 +61,19 @@ public:
 private:
     IOutputStream* Slave_;
     BrotliEncoderState* EncoderState_;
+
+    void SetEncoderParameter(BrotliEncoderParameter parameter,
+                             ui32 value,
+                             TStringBuf parameterName) {
+        if (!BrotliEncoderSetParameter(EncoderState_, parameter, value)) {
+            FreeEncoder();
+            ythrow yexception() << "Failed to set brotli encoder " << parameterName << " to " << value;
+        }
+    }
+
+    void FreeEncoder() {
+        BrotliEncoderDestroyInstance(EncoderState_);
+    }
 
     void DoWrite(const void* buffer, size_t size, BrotliEncoderOperation operation) {
         size_t availableOut = 0;
@@ -99,8 +106,12 @@ private:
 
 TBrotliCompress::TBrotliCompress(IOutputStream* slave,
                                  int quality,
-                                 const TBrotliDictionary* dictionary) {
-    Impl_.Reset(new TImpl(slave, quality, dictionary));
+                                 const TBrotliDictionary* dictionary,
+                                 size_t offset) {
+    Impl_.Reset(new TImpl(slave,
+                          quality,
+                          dictionary,
+                          offset));
 }
 
 TBrotliCompress::~TBrotliCompress() {

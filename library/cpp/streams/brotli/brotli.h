@@ -18,10 +18,12 @@ public:
       @param slave stream to write compressed data to
       @param quality the higher the quality, the slower and better the compression. Range is 0 to 11.
       @param dictionary custom brotli dictionary
+      @param offset number of bytes already processed by a different encoder instance
     */
     explicit TBrotliCompress(IOutputStream* slave,
                              int quality = NBrotli::BEST_BROTLI_QUALITY,
-                             const TBrotliDictionary* dictionary = nullptr);
+                             const TBrotliDictionary* dictionary = nullptr,
+                             size_t offset = 0);
     ~TBrotliCompress() override;
 
 private:

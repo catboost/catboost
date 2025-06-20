@@ -95,4 +95,22 @@ Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
         TStringBuf dict = "Bond";
         UNIT_ASSERT_VALUES_EQUAL(str, Decompress(Compress(str, dict), dict));
     }
+
+    Y_UNIT_TEST(TestStreamOffset) {
+        TString first = "apple pen";
+        TString second = " pineapple pen";
+
+        TString compressed;
+        TStringOutput out1(compressed);
+        TBrotliCompress stream1(&out1, NBrotli::BEST_BROTLI_QUALITY);
+        stream1.Write(first);
+        stream1.Flush();
+
+        TStringOutput out2(compressed);
+        TBrotliCompress stream2(&out2, NBrotli::BEST_BROTLI_QUALITY, nullptr, first.size());
+        stream2.Write(second);
+        stream2.Finish();
+
+        UNIT_ASSERT_VALUES_EQUAL(first + second, Decompress(compressed));
+    }
 } // Y_UNIT_TEST_SUITE(TBrotliTestSuite)
