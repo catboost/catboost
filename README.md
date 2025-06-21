@@ -34,6 +34,7 @@ Install CatBoost by following the guide for the
  * [Сommand line](https://catboost.ai/en/docs/concepts/cli-installation)
  * [Package for Apache Spark](https://catboost.ai/en/docs/concepts/spark-installation)
 
+
 Next you may want to investigate:
 * [Tutorials](https://github.com/catboost/tutorials/#readme)
 * [Training modes and metrics](https://catboost.ai/docs/concepts/loss-functions.html)
