@@ -150,8 +150,8 @@ public:
         TRefCountedTypeCookie cookie)
     {
         if (options.ExtendToUsableSize) {
-            if (auto usableSize = GetUsableSpaceSize(); usableSize != 0) {
-                size = usableSize;
+            if (auto usableSize = GetUsableSpaceSize()) {
+                size = *usableSize;
             }
         }
         Initialize(size, options, cookie);

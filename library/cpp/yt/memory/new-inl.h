@@ -340,12 +340,17 @@ void* TWithExtraSpace<T>::GetExtraSpacePtr()
 }
 
 template <class T>
-size_t TWithExtraSpace<T>::GetUsableSpaceSize() const
+std::optional<size_t> TWithExtraSpace<T>::GetUsableSpaceSize() const
 {
 #ifdef _win_
     return 0;
 #else
-    return malloc_usable_size(const_cast<T*>(static_cast<const T*>(this))) - sizeof(T);
+    size_t usableSize = malloc_usable_size(const_cast<T*>(static_cast<const T*>(this)));
+    if (usableSize == 0) {
+        return std::nullopt;
+    }
+    YT_ASSERT(usableSize >= sizeof(T));
+    return usableSize - sizeof(T);
 #endif
 }
 

@@ -130,9 +130,14 @@ template <class T>
 class TWithExtraSpace
 {
 protected:
+    //! Returns the pointer to the extra space associated with this instance.
     const void* GetExtraSpacePtr() const;
     void* GetExtraSpacePtr();
-    size_t GetUsableSpaceSize() const;
+
+    //! Returns the size of the extra space associated with this instance.
+    //! This is determined via the call to |malloc_usable_size| and may be
+    //! null if the allocator support is unavailable.
+    std::optional<size_t> GetUsableSpaceSize() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
