@@ -10,14 +10,6 @@
 #   include "jconfigint-wasm32.h"
 #elif defined(__wasm64__)
 #   include "jconfigint-wasm64.h"
-#elif defined(__ANDROID__)
-#   include "jconfigint-android.h"
-#elif defined(__IOS__)
-#   include "jconfigint-ios.h"
-#elif defined(__APPLE__)
-#   include "jconfigint-osx.h"
-#elif defined(_MSC_VER)
-#   include "jconfigint-win.h"
 #else
 #   include "jconfigint-linux.h"
 #endif
