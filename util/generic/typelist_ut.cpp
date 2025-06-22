@@ -11,6 +11,8 @@ class TTypeListTest: public TTestBase {
     UNIT_TEST(TestGet);
     UNIT_TEST(TestFloatList);
     UNIT_TEST(TestSelectBy);
+    UNIT_TEST(TestUnique);
+    UNIT_TEST(TestUniqueTypeList);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -78,6 +80,19 @@ public:
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<i32>, float);
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<ui64>, double);
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<i64>, double);
+    }
+
+    void TestUnique() {
+        static_assert(std::is_same_v<NTL::TUnique<TSignedInts>::type, TSignedInts>);
+        static_assert(std::is_same_v<typename NTL::TUnique<typename NTL::TConcat<TSignedInts, TSignedInts>::type>::type, TSignedInts>);
+    }
+
+    void TestUniqueTypeList() {
+        static_assert(std::is_same_v<TUniqueTypeList<int>, TTypeList<int>>);
+        static_assert(std::is_same_v<TUniqueTypeList<int, int, int, int, int, int, int, int, int>, TTypeList<int>>);
+        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts>, TTypeList<TSignedInts>>);
+        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TTypeList<TSignedInts>>);
+        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts>>);
     }
 };
 
