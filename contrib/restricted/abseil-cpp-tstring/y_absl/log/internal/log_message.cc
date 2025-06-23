@@ -585,15 +585,11 @@ void LogMessage::LogBacktraceIfNeeded() {
     return;
   OstreamView view(*data_);
   view.stream() << " (stacktrace:\n";
-#ifndef Y_ABSL_DONT_USE_DEBUG_LIBRARY
   debugging_internal::DumpStackTrace(
       1, log_internal::MaxFramesInLogStackTrace(),
       log_internal::ShouldSymbolizeLogStackTrace(), WriteToStream,
       &view.stream());
   view.stream() << ") ";
-#else
-  view.stream() << "abseil disable stacktrace prining) ";
-#endif
 }
 
 // Encodes into `data_->encoded_remaining()` a partial `logging.proto.Event`
