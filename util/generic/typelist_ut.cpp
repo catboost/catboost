@@ -4,6 +4,12 @@
 #include "typelist.h"
 #include "vector.h"
 
+template <class A, class B>
+void UnitAssertTypesEqual()
+{
+    UNIT_ASSERT_TYPES_EQUAL(A, B);
+}
+
 class TTypeListTest: public TTestBase {
     UNIT_TEST_SUITE(TTypeListTest);
     UNIT_TEST(TestSimple);
@@ -83,16 +89,16 @@ public:
     }
 
     void TestUnique() {
-        static_assert(std::is_same_v<NTL::TUnique<TSignedInts>::type, TSignedInts>);
-        static_assert(std::is_same_v<typename NTL::TUnique<typename NTL::TConcat<TSignedInts, TSignedInts>::type>::type, TSignedInts>);
+        UnitAssertTypesEqual<NTL::TUnique<TSignedInts>::type, TSignedInts>();
+        UnitAssertTypesEqual<typename NTL::TUnique<typename NTL::TConcat<TSignedInts, TSignedInts>::type>::type, TSignedInts>();
     }
 
     void TestUniqueTypeList() {
-        static_assert(std::is_same_v<TUniqueTypeList<int>, TTypeList<int>>);
-        static_assert(std::is_same_v<TUniqueTypeList<int, int, int, int, int, int, int, int, int>, TTypeList<int>>);
-        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts>, TTypeList<TSignedInts>>);
-        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TTypeList<TSignedInts>>);
-        static_assert(std::is_same_v<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts>>);
+        UnitAssertTypesEqual<TUniqueTypeList<int>, TTypeList<int>>();
+        UnitAssertTypesEqual<TUniqueTypeList<int, int, int, int, int, int, int, int, int>, TTypeList<int>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts>, TTypeList<TSignedInts>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TTypeList<TSignedInts>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts>>();
     }
 };
 
