@@ -1,11 +1,7 @@
 #pragma once
 
-#ifndef PIRE_NO_CONFIG
-#define PIRE_NO_CONFIG
-#endif
-
-#include <contrib/libs/pire/pire/pire.h>
-#include <contrib/libs/pire/pire/extra.h>
+#include <library/cpp/regex/pire/pire/pire.h>
+#include <library/cpp/regex/pire/pire/extra.h>
 
 #include <library/cpp/charset/doccodes.h>
 
