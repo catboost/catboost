@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "csv.h"
 
 TStringBuf NCsvFormat::CsvSplitter::Consume() {
@@ -70,10 +72,10 @@ TString NCsvFormat::TLinesSplitter::ConsumeLine() {
     TString result;
     TString line;
     while (Input.ReadLine(line)) {
-        for (auto it = line.begin(); it != line.end(); ++it) {
-            if (*it == Quote) {
-                Escape = !Escape;
-            }
+        const size_t quoteCount = std::count(line.cbegin(), line.cend(), Quote);
+        // A theoretically faster version of "if (quoteCount %2 == 1)"
+        if (quoteCount & 1) {
+            Escape = !Escape;
         }
         if (!result) {
             result = line;
