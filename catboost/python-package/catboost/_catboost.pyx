@@ -5942,7 +5942,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         results_output = cv_results
     if return_models:
         cv_models = []
-        cvFullModels = results.front().CVFullModels
+        cvFullModels = move(results.front().CVFullModels)
         for i in xrange(cvFullModels.size()):
             catboost_model = _CatBoost()
             catboost_model.__model.Swap(cvFullModels[i])
