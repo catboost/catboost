@@ -2100,7 +2100,6 @@ cdef inline get_id_object_bytes_string_representation(
         Internal CatBoostError is typically catched up the calling stack to provide more detailed error
         description.
     """
-    cdef double double_val
     cdef type obj_type = type(id_object)
 
     # For some reason Cython does not allow assignment to dereferenced pointer, so we are using ptr[0] trick
