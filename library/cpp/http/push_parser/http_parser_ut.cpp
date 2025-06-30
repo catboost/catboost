@@ -506,4 +506,42 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         UNIT_ASSERT(p.Content().empty());
         UNIT_ASSERT(p.GetExtraDataSize() == 5);
     }
+
+    Y_UNIT_TEST(TChunkedBodyNotExpected) {
+        // RFC9112 6.1: Transfer-Encoding MAY be sent in a response to a HEAD request ... to indicate
+        // that the origin server would have applied a transfer coding to the message body if the request
+        // had been an unconditional GET.
+        THttpParser p;
+        p.BodyNotExpected();
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 200 OK\r\n"));
+        UNIT_ASSERT(!Parse(p, "Transfer-Encoding: chunked\r\n"));
+        UNIT_ASSERT(Parse(p, "\r\n"));
+
+        UNIT_ASSERT(p.Headers().HasHeader("Transfer-Encoding"));
+        UNIT_ASSERT(p.Content().empty());
+    }
+
+    Y_UNIT_TEST(T304NotModifiedBodyNotParsed) {
+        // RFC9112 6.3
+        THttpParser p;
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 304 Not Modified\r\n"));
+        UNIT_ASSERT(!Parse(p, "Content-Length: 1234\r\n"));
+        UNIT_ASSERT(Parse(p, "\r\n"));
+
+        UNIT_ASSERT(p.Headers().HasHeader("Content-Length"));
+        UNIT_ASSERT(p.Headers().FindHeader("Content-Length")->Value() == "1234");
+    }
+
+    Y_UNIT_TEST(T304NotModifiedChunkedBodyNotParsed) {
+        // RFC9112 6.1: Transfer-Encoding MAY be sent in ... a 304 (Not Modified) response to a GET request ...
+        // to indicate that the origin server would have applied a transfer coding to the message body
+        // if the request had been an unconditional GET.
+        THttpParser p;
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 304 Not Modified\r\n"));
+        UNIT_ASSERT(!Parse(p, "Transfer-Encoding: chunked\r\n"));
+        UNIT_ASSERT(Parse(p, "\r\n"));
+
+        UNIT_ASSERT(p.Headers().HasHeader("Transfer-Encoding"));
+        UNIT_ASSERT(p.Content().empty());
+    }
 }

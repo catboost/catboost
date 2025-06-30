@@ -64,6 +64,11 @@ bool THttpParser::FirstLineParser() {
             ParseHttpVersion(httpVersion);
             GetNext(s, ' ', statusCode);
             RetCode_ = FromString<unsigned>(statusCode);
+
+            if (RetCode_ < 200 || RetCode_ == 204 || RetCode_ == 304) {
+                // RFC9112 6.3
+                BodyNotExpected_ = true;
+            }
         } else {
             // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
             TStringBuf httpVersion = s.After(' ').After(' ');
@@ -123,7 +128,7 @@ bool THttpParser::ContentParser() {
     } else {
         if (MessageType_ == Request) {
             return OnEndParsing(); //RFC2616 4.4-5
-        } else if (Y_UNLIKELY(BodyNotExpected_ || RetCode() < 200 || RetCode() == 204 || RetCode() == 304)) {
+        } else if (Y_UNLIKELY(BodyNotExpected_)) {
             return OnEndParsing(); //RFC2616 4.4-1
         }
 
@@ -135,6 +140,11 @@ bool THttpParser::ContentParser() {
 }
 
 bool THttpParser::ChunkedContentParser() {
+    if (BodyNotExpected_) {
+        // RFC9112 6.1,6.3
+        return OnEndParsing();
+    }
+
     DBGOUT("ReadChunkedContent");
     TChunkInputState& ci = *ChunkInputState_;
 
