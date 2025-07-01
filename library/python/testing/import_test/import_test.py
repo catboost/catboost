@@ -13,6 +13,8 @@ from __res import importer
 
 
 def setup_test_environment():
+    if "YA_TEST_RUNNER" not in os.environ:
+        return
     try:
         from yatest_lib.ya import Ya
         import yatest.common as yc
