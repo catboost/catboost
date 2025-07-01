@@ -320,7 +320,8 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
             "zstd08_1,zstd08_10,zstd08_11,zstd08_12,zstd08_13,zstd08_14,zstd08_15,zstd08_16,zstd08_17,zstd08_18,"
             "zstd08_19,zstd08_2,zstd08_20,zstd08_21,zstd08_22,zstd08_3,zstd08_4,zstd08_5,zstd08_6,zstd08_7,zstd08_8,"
             "zstd08_9,zstd_1,zstd_10,zstd_11,zstd_12,zstd_13,zstd_14,zstd_15,zstd_16,zstd_17,zstd_18,zstd_19,zstd_2,"
-            "zstd_20,zstd_21,zstd_22,zstd_3,zstd_4,zstd_5,zstd_6,zstd_7,zstd_8,zstd_9";
+            "zstd_20,zstd_21,zstd_22,zstd_3,zstd_4,zstd_5,zstd_6,zstd_7,zstd_8,zstd_9,"
+            "zstd_fast_1,zstd_fast_2,zstd_fast_3,zstd_fast_4,zstd_fast_5,zstd_fast_6,zstd_fast_7";
 
         UNIT_ASSERT_VALUES_EQUAL(ALL_CODECS, JoinSeq(",", ListAllCodecs()));
     }
