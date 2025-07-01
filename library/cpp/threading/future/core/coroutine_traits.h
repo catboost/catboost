@@ -126,23 +126,19 @@ namespace NThreading {
     template <typename T>
     using TExtractingFutureAwaitable = TFutureAwaitable<T, true>;
 
-} // namespace NThreading
+    template <typename T>
+    auto operator co_await(const NThreading::TFuture<T>& future) noexcept {
+        return NThreading::TFutureAwaitable{future};
+    }
 
-template <typename T>
-auto operator co_await(const NThreading::TFuture<T>& future) noexcept {
-    return NThreading::TFutureAwaitable{future};
-}
-
-template <typename T>
-auto operator co_await(NThreading::TFuture<T>&& future) noexcept {
-    // Not TExtractongFutureAwaitable, because TFuture works like std::shared_future.
-    // auto value = co_await GetCachedFuture();
-    // If GetCachedFuture stores a future in some cache and returns its copies,
-    // then subsequent uses of co_await will return a moved-from value.
-    return NThreading::TFutureAwaitable{std::move(future)};
-}
-
-namespace NThreading {
+    template <typename T>
+    auto operator co_await(NThreading::TFuture<T>&& future) noexcept {
+        // Not TExtractongFutureAwaitable, because TFuture works like std::shared_future.
+        // auto value = co_await GetCachedFuture();
+        // If GetCachedFuture stores a future in some cache and returns its copies,
+        // then subsequent uses of co_await will return a moved-from value.
+        return NThreading::TFutureAwaitable{std::move(future)};
+    }
 
     template <typename T>
     auto AsAwaitable(const NThreading::TFuture<T>& fut) noexcept {
