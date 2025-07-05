@@ -10,7 +10,7 @@ Input data for training, testing, and applying models can be passed as files con
 - [Group weights](input-data_group-weights.md)
 - [Baseline](input-data_baseline.md)
 
-Other data transmission methods are available for the [Python](python-installation.md) and [R](r-installation.md) packages.
+Non-CLI packages and libraries also support passing input data in data structures native to their languages.
 
 {% note info %}
 
