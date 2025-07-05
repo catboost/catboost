@@ -8,7 +8,7 @@ Input data for training, testing, and applying models can be passed as files con
 - [Pairs description](input-data_pairs-description.md)
 - [Custom quantization borders and missing value modes](input-data_custom-borders.md)
 - [Group weights](input-data_group-weights.md)
-- [Baseline ](input-data_baseline.md)
+- [Baseline](input-data_baseline.md)
 
 Other data transmission methods are available for the [Python](python-installation.md) and [R](r-installation.md) packages.
 
