@@ -1,6 +1,6 @@
 # Input data
 
-Input data for training, testing, and applying the model can be passed as files containing:
+Input data for training, testing, and applying models can be passed as files containing:
 
 - [Columns description](input-data_column-descfile.md)
 - [Dataset description in delimiter-separated values format](input-data_values-file.md)
@@ -14,7 +14,7 @@ Other data transmission methods are available for the [Python](python-installati
 
 {% note info %}
 
-The data format is the same for training, testing, and applying the model. Model application uses only features data.
+The data format is the same for training, testing, and applying models. Model application uses only features data.
 
 {% endnote %}
 
