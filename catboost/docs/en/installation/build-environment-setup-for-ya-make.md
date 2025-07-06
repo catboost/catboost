@@ -19,7 +19,7 @@ For building {{ product }} using CMake see [here](../concepts/build-from-source.
 
 ### Microsoft Visual Studio setup (only for Windows)
 
-{% if audience == "internal" %} {% include [arcadia_users_step](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %} Install [Visual Studio Community 2019](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2019).
+{% if audience == "internal" %} This step is for users outside Arcadia {% endif %} Install [Visual Studio Community 2019](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2019).
 
 - Choose the **Windows Platform development** and **Desktop Development with C++** options in the **workloads** tab.
 - Choose a suitable version of the MSVC compiler. It is advised to install VC++ 2019 version 16.11.11 v14.28 and CUDA Toolkit 11.0 or newer.

@@ -106,7 +106,9 @@ In this case, the metrics are calculated for the following tree ranges: `[0, 2)`
 #### Description
 
 The number of threads to use.
-{% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
+
+Optimizes the speed of execution. This parameter doesn't affect results.
+
 
 **Possible types**
 
