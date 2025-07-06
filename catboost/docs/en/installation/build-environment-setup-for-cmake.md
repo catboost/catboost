@@ -130,6 +130,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       [Ninja](https://ninja-build.org/) is the preferred build system for CMake.
 
+      For Windows builds version 1.13.0 is not supported because of [Ninja issue #2616](https://github.com/ninja-build/ninja/issues/2616)
+
       `ninja` command should be available from the command line.
 
   - Microsoft Visual Studio solutions
