@@ -735,3 +735,33 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #else
     #define Y_NONNULL
 #endif
+
+/**
+ * @def Y_NO_UNIQUE_ADDRESS
+ *
+ * A macro that applies the [[no_unique_address]] attribute to a class/struct member,
+ * allowing it to potentially occupy no additional memory if it is empty.
+ * https://en.cppreference.com/w/cpp/language/attributes/no_unique_address
+ *
+ * @code
+ *
+ * struct TEmpty { ... };
+ *
+ * struct TFoo {
+ *     ...
+ *     Y_NO_UNIQUE_ADDRESS TEmpty Empty;
+ * };
+ *
+ * @endcode
+ */
+#if defined(__has_cpp_attribute)
+    #if __has_cpp_attribute(no_unique_address)
+        #define Y_NO_UNIQUE_ADDRESS [[no_unique_address]]
+    #elif __has_cpp_attribute(msvc::no_unique_address)
+        #define Y_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+    #else
+        #define Y_NO_UNIQUE_ADDRESS
+    #endif
+#else
+    #define Y_NO_UNIQUE_ADDRESS
+#endif
