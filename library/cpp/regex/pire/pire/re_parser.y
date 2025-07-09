@@ -13,7 +13,7 @@
  * it under the terms of the GNU Lesser Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Pire is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -61,7 +61,7 @@ void AppendRange(const Encoding& encoding, Fsm& a, const Term::CharacterRange& c
 
 %parse-param { Pire::Lexer& rlex }
 %lex-param { Pire::Lexer& rlex }
-%pure-parser
+%define api.pure
 
 // Terminal declarations
 %term YRE_LETTERS
