@@ -21,18 +21,6 @@ TCompactFlatMap<TKey, TValue, N, TKeyCompare>::TCompactFlatMap(std::initializer_
 { }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
-bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::operator==(const TCompactFlatMap& rhs) const
-{
-    return Storage_ == rhs.Storage_;
-}
-
-template <class TKey, class TValue, size_t N, class TKeyCompare>
-bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::operator!=(const TCompactFlatMap& rhs) const
-{
-    return !(*this == rhs);
-}
-
-template <class TKey, class TValue, size_t N, class TKeyCompare>
 typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::begin()
 {
     return Storage_.begin();
@@ -130,18 +118,18 @@ bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::contains(const TOtherKey& k)
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::insert(const value_type& value) -> std::pair<iterator, bool>
 {
-    return do_insert(value);
+    return DoInsert(value);
 }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::insert(value_type&& value) -> std::pair<iterator, bool>
 {
-    return do_insert(std::move(value));
+    return DoInsert(std::move(value));
 }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <class TArg>
-auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::do_insert(TArg&& value) -> std::pair<iterator, bool>
+auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::DoInsert(TArg&& value) -> std::pair<iterator, bool>
 {
     auto [rangeBegin, rangeEnd] = equal_range(value.first);
     if (rangeBegin != rangeEnd) {

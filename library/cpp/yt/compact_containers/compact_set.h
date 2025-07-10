@@ -41,9 +41,16 @@ public:
     class const_iterator;
     using size_type = std::size_t;
     using key_type = T;
+    using value_type = T;
 
     TCompactSet() = default;
     TCompactSet(const A& allocator);
+
+    template <class TIterator>
+    TCompactSet(TIterator first, TIterator last);
+    TCompactSet(std::initializer_list<key_type> values);
+
+    bool operator==(const TCompactSet& rhs) const;
 
     [[nodiscard]] bool empty() const;
 
@@ -51,16 +58,16 @@ public:
 
     const T& front() const;
 
-    size_type count(const T& v) const;
+    size_type count(const T& value) const;
 
-    bool contains(const T& v) const;
+    bool contains(const T& value) const;
 
-    std::pair<const_iterator, bool> insert(const T& v);
+    std::pair<const_iterator, bool> insert(const T& value);
 
     template <typename TIter>
-    void insert(TIter i, TIter e);
+    void insert(TIter first, TIter last);
 
-    bool erase(const T& v);
+    bool erase(const T& value);
 
     void clear();
 

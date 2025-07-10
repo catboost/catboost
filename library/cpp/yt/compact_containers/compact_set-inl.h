@@ -208,6 +208,34 @@ TCompactSet<T, N, C, A>::TCompactSet(const A& allocator)
 { }
 
 template <typename T, size_t N,  typename C, typename A>
+template <typename TIterator>
+TCompactSet<T, N, C, A>::TCompactSet(TIterator first, TIterator last)
+{
+    insert(first, last);
+}
+
+template <typename T, size_t N,  typename C, typename A>
+TCompactSet<T, N, C, A>::TCompactSet(std::initializer_list<key_type> values)
+{
+    insert(values.begin(), values.end());
+}
+
+template <typename T, size_t N,  typename C, typename A>
+bool TCompactSet<T, N, C, A>::operator==(const TCompactSet& rhs) const
+{
+    if (size() != rhs.size()) {
+        return false;
+    }
+
+    for (const auto& value : *this) {
+        if (!rhs.contains(value)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename T, size_t N,  typename C, typename A>
 bool TCompactSet<T, N, C, A>::empty() const
 {
     return Vector_.empty() && Set_.empty();
