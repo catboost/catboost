@@ -51,7 +51,7 @@ bool SetLowestThreadPriority() {
     struct sched_param sch;
     memset(&sch, 0, sizeof(sch));
     sch.sched_priority = 0;
-    #ifdef _darwin_
+    #if defined(_darwin_) || defined(_freebsd_)
     return pthread_setschedparam(pthread_self(), SCHED_RR, &sch) == 0;
     #else
     return pthread_setschedparam(pthread_self(), SCHED_IDLE, &sch) == 0;
@@ -353,6 +353,8 @@ TThread::TId TThread::CurrentThreadId() noexcept {
 TThread::TId TThread::CurrentThreadNumericId() noexcept {
 #if defined(_win_)
     return GetCurrentThreadId();
+#elif defined(_freebsd_)
+    return pthread_getthreadid_np();
 #elif defined(_darwin_)
     // There is no gettid() on MacOS and SYS_gettid returns completely unrelated numbers.
     // See: http://elliotth.blogspot.com/2012/04/gettid-on-mac-os.html

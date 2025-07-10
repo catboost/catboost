@@ -5,11 +5,11 @@
 #elif defined(_linux_)
     #include <util/stream/file.h>
     #include <util/string/cast.h>
-#elif defined(_darwin_)
+#elif defined(_darwin_) || defined(_freebsd_)
     #include <sys/sysctl.h>
 #endif
 
-#if defined(_darwin_)
+#if defined(_darwin_) || defined(_freebsd_)
 namespace {
     TInstant GetBootTime() {
         struct timeval timeSinceBoot;
@@ -21,7 +21,7 @@ namespace {
         return TInstant::MicroSeconds(timeSinceBoot.tv_sec * 1'000'000 + timeSinceBoot.tv_usec);
     }
 
-    TDuration GetDarwinUptime() {
+    TDuration GetBSDUptime() {
         TInstant beforeNow;
         TInstant afterNow;
         TInstant now;
@@ -47,8 +47,8 @@ TDuration Uptime() {
     int ret = clock_gettime(CLOCK_BOOTTIME, &ts);
     Y_ENSURE_EX(ret != -1, TSystemError() << "Failed to read the CLOCK_BOOTTIME timer");
     return TDuration::Seconds(ts.tv_sec) + TDuration::MicroSeconds(ts.tv_nsec / 1000);
-#elif defined(_darwin_)
-    return GetDarwinUptime();
+#elif defined(_darwin_) || defined(_freebsd_)
+    return GetBSDUptime();
 #elif defined(_emscripten_)
     ythrow yexception() << "unimplemented";
 #else

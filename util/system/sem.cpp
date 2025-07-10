@@ -26,7 +26,7 @@
     #include <sys/ipc.h>
     #include <sys/sem.h>
 
-    #if defined(_linux_) || defined(_sun_) || defined(_cygwin_)
+    #if defined(_linux_) || defined(_sun_) || defined(_cygwin_) || defined(_freebsd_)
 union semun {
     int val;
     struct semid_ds* buf;

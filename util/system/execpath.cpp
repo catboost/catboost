@@ -14,6 +14,7 @@
     #include <sys/types.h> // for u_int not defined in sysctl.h
     #include <sys/sysctl.h>
     #include <unistd.h>
+    #include <util/folder/dirut.h>
 #endif
 
 #include <util/generic/singleton.h>
