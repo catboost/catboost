@@ -20,7 +20,15 @@ target_link_libraries(cpp-http-push_parser PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-http-io
-  library-cpp-blockcodecs
+  cpp-blockcodecs-core
+  blockcodecs-codecs-brotli
+  blockcodecs-codecs-bzip
+  blockcodecs-codecs-fastlz
+  blockcodecs-codecs-lz4
+  blockcodecs-codecs-lzma
+  blockcodecs-codecs-snappy
+  blockcodecs-codecs-zlib
+  blockcodecs-codecs-zstd
   cpp-streams-brotli
 )
 
