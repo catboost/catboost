@@ -6,17 +6,25 @@
 
 #include <util/stream/file.h>
 
+#include <library/json/json_reader.h> 
 
 namespace NCB {
     class TCatboostModelToCppConverter: public ICatboostModelExporter {
     private:
         TOFStream Out;
+        TString Namespace; 
 
     public:
         TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson)
             : Out(modelFile + (addFileFormatExtension ? ".cpp" : ""))
         {
-            CB_ENSURE(userParametersJson.empty(), "JSON user params for exporting the model to C++ are not supported");
+            if (!userParametersJson.empty()) {
+              NJson::TJsonValue json;
+              NJson::ReadJsonTree(userParametersJson, &json)
+              if (json.Has(namespace)) {
+                  Namespace = json["namespace"].GetString();
+              }  
+            }
         };
 
         void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override {
