@@ -606,8 +606,8 @@ Highlight = _Highlight()
 
 
 class _StatusColorMap(object):
-    # There should be no XFAILDIFF, because it's internal status.
-    # It should be replaced with XFAIL or XPASS during verification of canon data.
+    # XFAILDIFF is internal status and should be replaced
+    # with XFAIL or XPASS during verification stage of canon data
 
     _MAP = {
         'crashed': Highlight.WARNING,
@@ -622,6 +622,7 @@ class _StatusColorMap(object):
         'skipped': Highlight.UNIMPORTANT,
         'timeout': Highlight.BAD,
         'xfail': Highlight.WARNING,
+        'xfaildiff': Highlight.WARNING,
         'xpass': Highlight.WARNING,
     }
 
