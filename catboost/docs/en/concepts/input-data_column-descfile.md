@@ -48,12 +48,15 @@ The columns description file is optional. {{ column-desc__default }}
 
 ## {{ input_data__title__specification }}
 
-- List each column on a new line.
-- Additional properties are set on the corresponding line.
-- Use a tab as the delimiter to separate data for a single column.
-- Columns that contain numerical features don't require descriptions. Any columns that aren't specified in the file are assumed to be `Num`.
+The file has a text format.
+
+Each line describes a single column.
+
+Adding descriptions for [{{ cd-file__col-type__Num }}](#num) columns that represent numerical features is optional. Any columns that aren't specified in the column description file are assumed to be [{{ cd-file__col-type__Num }}](#num).
 
 ## {{ input_data__title__row-format }}
+
+ Each line has two or three fields separated by a tab character (shown as `<\t>` below).
 
 ```
 <column index (numbering starts from zero)><\t><data type><\t><feature id/name (optional, applicable for feature type columns only ({{ cd-file__col-type__Num }}, {{ cd-file__col-type__Categ }}, {{ cd-file__col-type__Text }} and {{ cd-file__col-type__NumVector }})>
