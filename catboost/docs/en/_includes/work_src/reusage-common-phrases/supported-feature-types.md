@@ -1,6 +1,6 @@
 
 {{ product }} supports the following types of features:
-- Numerical. Examples are the height (<q>182</q>, <q>173</q>), or any binary feature (<q>0</q>, <q>1</q>).
+- Numerical. Values of such features can be real numbers, positive and negative infinity and `NaN` (the latter represents [missing values](../../../concepts/algorithm-missing-values-processing.md)). Examples are the height (<q>182</q>, <q>173</q>), or any binary feature (<q>0</q>, <q>1</q>).
 
 - Categorical (cat). Such features can take one of a limited number of possible values. These values are usually fixed. Examples are the musical genre (<q>rock</q>, <q>indie</q>, <q>pop</q>) and the musical style (<q>dance</q>, <q>classical</q>).
 
