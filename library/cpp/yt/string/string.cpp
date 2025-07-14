@@ -322,9 +322,14 @@ size_t TCaseInsensitiveStringHasher::operator()(TStringBuf arg) const
     }
 }
 
-bool TCaseInsensitiveStringEqualityComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
+bool TCaseInsensitiveStringEqualComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
 {
     return AsciiEqualsIgnoreCase(lhs, rhs);
+}
+
+bool TCaseInsensitiveStringLessComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
+{
+    return AsciiCompareIgnoreCase(lhs, rhs) < 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

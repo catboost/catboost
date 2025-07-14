@@ -168,8 +168,15 @@ struct TCaseInsensitiveStringHasher
     size_t operator()(TStringBuf arg) const;
 };
 
-struct TCaseInsensitiveStringEqualityComparer
+struct TCaseInsensitiveStringEqualComparer
 {
+    using is_transparent = void;
+    bool operator()(TStringBuf lhs, TStringBuf rhs) const;
+};
+
+struct TCaseInsensitiveStringLessComparer
+{
+    using is_transparent = void;
     bool operator()(TStringBuf lhs, TStringBuf rhs) const;
 };
 
