@@ -27,7 +27,8 @@ target_link_libraries(cpp_styleguide PUBLIC
 )
 
 target_allocator(cpp_styleguide
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(cpp_styleguide PRIVATE

@@ -28,7 +28,8 @@ target_link_libraries(catboost-private-libs-text_features-ut PUBLIC
 )
 
 target_allocator(catboost-private-libs-text_features-ut
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(catboost-private-libs-text_features-ut PRIVATE

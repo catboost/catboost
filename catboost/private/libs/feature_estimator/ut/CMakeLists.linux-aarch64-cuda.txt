@@ -26,7 +26,8 @@ target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
 )
 
 target_allocator(catboost-private-libs-feature_estimator-ut
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE

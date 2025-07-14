@@ -24,7 +24,8 @@ target_link_libraries(gmtime_r PUBLIC
 )
 
 target_allocator(gmtime_r
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(gmtime_r PRIVATE

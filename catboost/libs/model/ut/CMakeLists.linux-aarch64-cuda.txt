@@ -32,7 +32,8 @@ target_link_libraries(model_ut PUBLIC
 )
 
 target_allocator(model_ut
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(model_ut PRIVATE

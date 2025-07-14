@@ -34,7 +34,8 @@ target_link_libraries(model_comparator PUBLIC
 )
 
 target_allocator(model_comparator
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(model_comparator PRIVATE

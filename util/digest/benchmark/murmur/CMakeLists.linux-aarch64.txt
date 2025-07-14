@@ -23,7 +23,8 @@ target_link_libraries(murmur PUBLIC
 )
 
 target_allocator(murmur
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(murmur PRIVATE

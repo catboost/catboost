@@ -27,7 +27,8 @@ target_link_libraries(protoc PUBLIC
 )
 
 target_allocator(protoc
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(protoc PRIVATE

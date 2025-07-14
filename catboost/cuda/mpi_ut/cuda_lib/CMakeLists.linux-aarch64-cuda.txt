@@ -25,7 +25,8 @@ target_link_libraries(cuda_lib PUBLIC
 )
 
 target_allocator(cuda_lib
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(cuda_lib PRIVATE

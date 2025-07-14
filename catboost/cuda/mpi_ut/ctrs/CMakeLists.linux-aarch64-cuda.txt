@@ -25,7 +25,8 @@ target_link_libraries(ctrs PUBLIC
 )
 
 target_allocator(ctrs
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(ctrs PRIVATE

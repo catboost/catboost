@@ -26,7 +26,8 @@ target_link_libraries(model_perftest PUBLIC
 )
 
 target_allocator(model_perftest
-  cpp-malloc-jemalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 
 target_link_options(model_perftest PRIVATE
