@@ -6,7 +6,7 @@
 
 Categorical features are used to build new numeric features based on categorical features and their combinations. See the [Transforming categorical features to numerical features](../concepts/algorithm-main-stages_cat-to-numberic.md) section for details.
 
-By default, {{ product }} uses one-hot encoding for categorical features with a small amount of different values in most modes. It is not available if training is performed on CPU in
+By default, {{ product }} uses one-hot encoding for categorical features with a small amount of different values in most modes. One-hot encoding is not supported if training is performed on CPU in
 
 {% cut "Pairwise scoring" %}
 
@@ -16,7 +16,7 @@ The following loss functions use Pairwise scoring:
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryCrossEntropy }}
 
-Pairwise scoring is slightly different from regular training on pairs, since pairs are generated only internally during the training for the corresponding metrics. One-hot encoding is not available for these loss functions.
+Pairwise scoring is slightly different from regular training on pairs, since pairs are generated only internally during the training for the corresponding metrics. One-hot encoding is not supported for these loss functions.
 
 {% endcut %}
 
