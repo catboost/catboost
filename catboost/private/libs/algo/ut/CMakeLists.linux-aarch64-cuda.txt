@@ -35,8 +35,7 @@ target_link_libraries(catboost-private-libs-algo-ut PUBLIC
 )
 
 target_allocator(catboost-private-libs-algo-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  system_allocator
 )
 
 target_link_options(catboost-private-libs-algo-ut PRIVATE

@@ -24,8 +24,7 @@ target_link_libraries(catboost-private-libs-embedding_features-ut PUBLIC
 )
 
 target_allocator(catboost-private-libs-embedding_features-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  system_allocator
 )
 
 target_link_options(catboost-private-libs-embedding_features-ut PRIVATE

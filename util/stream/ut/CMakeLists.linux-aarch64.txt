@@ -23,8 +23,7 @@ target_link_libraries(util-stream-ut PUBLIC
 )
 
 target_allocator(util-stream-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  system_allocator
 )
 
 target_link_options(util-stream-ut PRIVATE

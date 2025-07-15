@@ -29,8 +29,7 @@ target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
 )
 
 target_allocator(ndcg_cpu_vs_gpu
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
+  system_allocator
 )
 
 target_link_options(ndcg_cpu_vs_gpu PRIVATE
