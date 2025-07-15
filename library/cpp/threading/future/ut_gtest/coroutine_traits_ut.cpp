@@ -84,50 +84,102 @@ TEST(TestFutureTraits, Simple) {
     );
 }
 
-TEST(TestFutureTraits, Exception) {
+TEST(TestFutureTraits, ErrorViaThrow) {
     TVector<TString> result;
 
-    auto coroutine1 = [&result]() -> NThreading::TFuture<size_t> {
-        result.push_back("coroutine1");
+    auto coroutineReturnValue = [&result]() -> NThreading::TFuture<size_t> {
+        result.push_back("coroutine_return_value");
         co_return 1;
     };
 
-    auto coroutine2 = [&result]() -> NThreading::TFuture<size_t> {
-        result.push_back("coroutine2");
-        ythrow yexception() << "coroutine2 exception";
+    auto coroutineThrow = [&result]() -> NThreading::TFuture<size_t> {
+        result.push_back("coroutine_throw");
+        ythrow yexception() << "coroutine exception";
     };
 
-    auto coroutineAll = [&]() -> NThreading::TFuture<size_t> {
+    auto coroutineReturnValueThrow = [&]() -> NThreading::TFuture<size_t> {
         Y_DEFER {
             result.push_back("coroutine_all_destroy");
         };
 
-        result.push_back("pre_coroutine1");
-        size_t coroutine1Res = co_await coroutine1();
-        result.push_back("post_coroutine1");
+        result.push_back("pre_coroutine_return_value");
+        size_t res1 = co_await coroutineReturnValue();
+        result.push_back("post_coroutine_return_value");
 
-        result.push_back("pre_coroutine2");
-        size_t coroutine2Res = co_await coroutine2();
-        result.push_back("post_coroutine2");
+        result.push_back("pre_coroutine_throw");
+        size_t res2 = co_await coroutineThrow();
+        result.push_back("post_coroutine_throw");
 
-        co_return coroutine1Res + coroutine2Res;
+        co_return res1 + res2;
     };
 
     EXPECT_THROW_MESSAGE_HAS_SUBSTR(
-        coroutineAll().GetValueSync(),
+        coroutineReturnValueThrow().GetValueSync(),
         yexception,
-        "coroutine2 exception"
+        "coroutine exception"
     );
     EXPECT_THAT(
         result,
         ::testing::ContainerEq(
             TVector<TString>({
-                "pre_coroutine1",
-                "coroutine1",
-                "post_coroutine1",
+                "pre_coroutine_return_value",
+                "coroutine_return_value",
+                "post_coroutine_return_value",
 
-                "pre_coroutine2",
-                "coroutine2",
+                "pre_coroutine_throw",
+                "coroutine_throw",
+
+                "coroutine_all_destroy"
+            })
+        )
+    );
+}
+
+TEST(TestFutureTraits, ErrorViaReturnException) {
+
+    TVector<TString> result;
+
+    auto coroutineReturnValue = [&result]() -> NThreading::TFuture<size_t> {
+        result.push_back("coroutine_return_value");
+        co_return 1;
+    };
+
+    auto coroutineReturnException = [&result]() -> NThreading::TFuture<size_t> {
+        result.push_back("coroutine_return_exception");
+        co_return std::runtime_error("exception_to_return");
+    };
+
+    auto coroutineReturnValueReturnException = [&]() -> NThreading::TFuture<size_t> {
+        Y_DEFER {
+            result.push_back("coroutine_all_destroy");
+        };
+
+        result.push_back("pre_coroutine_return_value");
+        size_t res1 = co_await coroutineReturnValue();
+        result.push_back("post_coroutine_return_value");
+
+        result.push_back("pre_coroutine_return_exception");
+        size_t res2 = co_await coroutineReturnException();
+        result.push_back("post_coroutine_return_exception");
+
+        co_return res1 + res2;
+    };
+
+    EXPECT_THROW_MESSAGE_HAS_SUBSTR(
+        coroutineReturnValueReturnException().GetValueSync(),
+        std::runtime_error,
+        "exception_to_return"
+    );
+    EXPECT_THAT(
+        result,
+        ::testing::ContainerEq(
+            TVector<TString>({
+                "pre_coroutine_return_value",
+                "coroutine_return_value",
+                "post_coroutine_return_value",
+
+                "pre_coroutine_return_exception",
+                "coroutine_return_exception",
 
                 "coroutine_all_destroy"
             })
