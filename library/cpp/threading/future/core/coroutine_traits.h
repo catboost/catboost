@@ -3,6 +3,7 @@
 #include <library/cpp/threading/future/future.h>
 
 #include <coroutine>
+#include <utility>
 
 template <typename... Args>
 struct std::coroutine_traits<NThreading::TFuture<void>, Args...> {
@@ -75,11 +76,12 @@ struct std::coroutine_traits<NThreading::TFuture<T>, Args...> {
             Y_ASSERT(success && "value already set");
         }
 
-        template <typename E> requires std::derived_from<E, std::exception>
+        template <typename E>
+        requires std::derived_from<std::remove_cvref_t<E>, std::exception>
         void return_value(E&& err) {
             // Allow co_return std::exception instances in order to avoid stack unwinding
             bool success = State_->TrySetException(
-                std::make_exception_ptr(std::move(err)),
+                std::make_exception_ptr(std::forward<E>(err)),
                 /* deferCallbacks */ true
             );
             Y_ASSERT(success && "value already set");

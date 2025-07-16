@@ -147,6 +147,9 @@ TEST(TestFutureTraits, ErrorViaReturnException) {
     auto coroutineReturnException = [&result]() -> NThreading::TFuture<size_t> {
         result.push_back("coroutine_return_exception");
         co_return std::runtime_error("exception_to_return");
+
+        static std::runtime_error another("another_exception_not_to_return");
+        co_return another;
     };
 
     auto coroutineReturnValueReturnException = [&]() -> NThreading::TFuture<size_t> {
