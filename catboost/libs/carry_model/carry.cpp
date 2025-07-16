@@ -152,6 +152,14 @@ namespace {
         }
         return MakeIntrusive<TStaticCtrProvider>(ctrData);
     }
+
+    TVector<size_t> GetWeightsOffsets(const THolder<IModelTreeData>& applyData) {
+        TVector<size_t> weightOffsets(applyData->GetTreeSizes().size());
+        for (size_t i = 1; i < weightOffsets.size(); ++i) {
+            weightOffsets[i] = weightOffsets[i - 1] + (1ull << applyData->GetTreeSizes()[i - 1]);
+        }
+        return weightOffsets;
+    }
 }
 
 TFullModel CarryModel(const TFullModel& model, const TVector<TFeaturePosition>& factorIds, const TVector<TVector<double>>& factorValues) {
@@ -172,7 +180,8 @@ TFullModel CarryModel(const TFullModel& model, const TVector<TFeaturePosition>& 
     const auto& binFeatures = trees->GetBinFeatures();
     const auto& applyData = trees->GetApplyData();
     const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
-
+    const auto weightOffsets = GetWeightsOffsets(data);
+    const bool saveWeights = (data->GetLeafWeights().size() > 0) && (factorValues.front().size() == 1);
     TObliviousTreeBuilder builder(floatFeatures, catFeatures, {}, {}, factorValues.front().size());
     for (size_t treeIdx = 0; treeIdx < data->GetTreeSizes().size(); ++treeIdx) {
         ui64 mask = 0;
@@ -205,16 +214,24 @@ TFullModel CarryModel(const TFullModel& model, const TVector<TFeaturePosition>& 
             data->GetLeafValues().begin() + leafOffsets[treeIdx],
             data->GetLeafValues().begin() + leafOffsets[treeIdx] + trees->GetDimensionsCount() * (1ull << data->GetTreeSizes()[treeIdx]));
 
+        TConstArrayRef<double> weightValueRef(
+            data->GetLeafWeights().begin() + weightOffsets[treeIdx],
+            data->GetLeafWeights().begin() + weightOffsets[treeIdx] + (1ull << data->GetTreeSizes()[treeIdx]));
+
         if (!modelSplits.empty()) {
-            TVector<double> leafValues(paths.size() * (1ull << modelSplits.size()), 0);
+            TVector<double> leafValues(paths.size() * (1ull << modelSplits.size()), 0.0);
+            TVector<double> weights(saveWeights ? (1ull << modelSplits.size()) : 0, 0.0);
             for (size_t idx = 0; idx < leafValuesRef.size(); ++idx) {
                 for (size_t i = 0; i < paths.size(); ++i) {
                     if ((idx & mask) == paths[i]) {
                         leafValues[RemoveMask(idx, mask) * paths.size() + i] = leafValuesRef[idx];
+                        if (saveWeights) {
+                            weights[RemoveMask(idx, mask)] = weightValueRef[idx];
+                        }
                     }
                 }
             }
-            builder.AddTree(modelSplits, leafValues, TConstArrayRef<double>());
+            builder.AddTree(modelSplits, leafValues, weights);
         } else {
             for (size_t i = 0; i < paths.size(); ++i) {
                 bias[i] += leafValuesRef[paths[i]];
@@ -250,6 +267,8 @@ TFullModel UpliftModel(const TFullModel& model, const TVector<TFeaturePosition>&
     const auto& binFeatures = trees->GetBinFeatures();
     const auto& applyData = trees->GetApplyData();
     const auto& leafOffsets = applyData->TreeFirstLeafOffsets;
+    const auto weightOffsets = GetWeightsOffsets(data);
+    const bool saveWeights = (data->GetLeafWeights().size() > 0);
 
     TObliviousTreeBuilder builder(floatFeatures, catFeatures, {}, {}, 1);
     for (size_t treeIdx = 0; treeIdx < data->GetTreeSizes().size(); ++treeIdx) {
@@ -286,14 +305,23 @@ TFullModel UpliftModel(const TFullModel& model, const TVector<TFeaturePosition>&
             TConstArrayRef<double> leafValuesRef(
                 data->GetLeafValues().begin() + leafOffsets[treeIdx],
                 data->GetLeafValues().begin() + leafOffsets[treeIdx] + trees->GetDimensionsCount() * (1ull << data->GetTreeSizes()[treeIdx]));
+            TConstArrayRef<double> weightValueRef(
+                data->GetLeafWeights().begin() + weightOffsets[treeIdx],
+                data->GetLeafWeights().begin() + weightOffsets[treeIdx] + (1ull << data->GetTreeSizes()[treeIdx]));
             if (!modelSplits.empty()) {
                 TVector<double> leafValues(1ull << modelSplits.size(), 0.0);
+                TVector<double> weights(saveWeights ? (1ull << modelSplits.size()) : 0, 0.0);
                 for (size_t idx = 0; idx < leafValuesRef.size(); ++idx) {
                     leafValues[RemoveMask(idx, mask)] =
                         leafValuesRef[(idx & (~mask)) | (nextPath & mask)] -
                         leafValuesRef[(idx & (~mask)) | (basePath & mask)];
+                    if (saveWeights) {
+                        weights[RemoveMask(idx, mask)] =
+                            weightValueRef[(idx & (~mask)) | (nextPath & mask)] +
+                            weightValueRef[(idx & (~mask)) | (basePath & mask)];
+                    }
                 }
-                builder.AddTree(modelSplits, leafValues, TConstArrayRef<double>());
+                builder.AddTree(modelSplits, leafValues, weights);
             } else {
                 bias += leafValuesRef[nextPath] - leafValuesRef[basePath];
             }
