@@ -2508,6 +2508,10 @@ void TextFormat::Printer::PrintField(const Message& message,
     PrintFieldName(message, field_index, count, reflection, field, generator);
 
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
+      if (TryRedactFieldValue(message, field, generator,
+                              /*insert_value_separator=*/true)) {
+        break;
+      }
       const FastFieldValuePrinter* printer = GetFieldPrinter(field);
       const Message& sub_message =
           field->is_repeated()
@@ -2582,9 +2586,8 @@ void TextFormat::Printer::PrintFieldValue(const Message& message,
       << "Index must be -1 for non-repeated fields";
 
   const FastFieldValuePrinter* printer = GetFieldPrinter(field);
-  if (redact_debug_string_ && field->options().debug_redact()) {
-    // TODO(b/258975650): Create OSS redaction documentation
-    generator->PrintString("[REDACTED]");
+  if (TryRedactFieldValue(message, field, generator,
+                          /*insert_value_separator=*/false)) {
     return;
   }
 
@@ -2797,6 +2800,30 @@ void TextFormat::Printer::PrintUnknownFields(
         break;
     }
   }
+}
+
+bool TextFormat::Printer::TryRedactFieldValue(
+    const Message& message, const FieldDescriptor* field,
+    BaseTextGenerator* generator, bool insert_value_separator) const {
+  auto do_redact = [&](const TProtoStringType& replacement) {
+    if (insert_value_separator) {
+      generator->PrintMaybeWithMarker(MarkerToken(), ": ");
+    }
+    generator->PrintString(replacement);
+    if (insert_value_separator) {
+      if (single_line_mode_) {
+        generator->PrintLiteral(" ");
+      } else {
+        generator->PrintLiteral("\n");
+      }
+    }
+  };
+
+  if (redact_debug_string_ && field->options().debug_redact()) {
+    do_redact("[REDACTED]");
+    return true;
+  }
+  return false;
 }
 
 }  // namespace protobuf
