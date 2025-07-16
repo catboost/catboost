@@ -150,3 +150,10 @@ Builds in the process. So [build environment setup for CMake](build-environment-
 ```
 python -m pip install <path-to-sdist-tar.gz>
 ```
+
+{% note info %}
+
+If `CUDA_PATH` or `CUDA_ROOT` environment variable is defined and contains a path to a valid `CUDA` installation, then CatBoost python package will be built with this `CUDA` version.
+Otherwise `CUDA` support will be disabled in the package.
+
+{% endnote %}
