@@ -20,11 +20,17 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   Python 3.x interpreter. Python is used in some auxiliary scripts and [`conan` package manager](#conan) uses it.
 
+  {% cut "Previous requirements" %}
+
   For revisions before [98df6bf](https://github.com/catboost/catboost/commit/98df6bf8d4e6ab054b75b727f8d758c3399f4867) python had to have [`six` package](https://pypi.org/project/six/) installed.
+
+  {% endcut %}
 
 ### [CMake](https://cmake.org/)
 
   Version 3.24+
+
+  {% cut "Previous requirements" %}
 
   Before commit [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e):
 
@@ -35,6 +41,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   | Target OS is Android | 3.21 |
   | CUDA support, target OS is not Windows | 3.18 |
   | None of the above | 3.15 |
+
+  {% endcut %}
 
 ### [Android NDK](https://developer.android.com/ndk/downloads) (only for Android target platform)
 
@@ -59,6 +67,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       For compilation with CUDA support the default CMake toolchain assumes that `clang-14` is available from the command line.
 
+      {% cut "Previous requirements" %}
+
       For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) supported `clang` versions for `x86_64` architecture have been 14 - 18
 
       For revisions before [4602574](https://github.com/catboost/catboost/commit/4602574d7e5cbfd8bb1ea0f7f68a45561c844414) the minimal supported `clang` version for `aarch64` architecture has been 14.
@@ -67,15 +77,21 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       For revisions before [136f14f](https://github.com/catboost/catboost/commit/136f14f5d55119028a7bb1886814775cd1e2c649) the minimal supported `clang` version has been 12.
 
+      {% endcut %}
+
       Android target uses its own CMake toolchain and compiler tools specified there are all provided by the NDK.
 
   - macOS
 
       - XCode command line tools (must contain `clang` with version 15+, so XCode version must be greater than 15.0 as well)
 
+      {% cut "Previous requirements" %}
+
       For revisions before [1d5e677](https://github.com/catboost/catboost/commit/1d5e677b916a4ce3375b3200c4c2f95884d481de) the minimal supported `clang` version has been 14 (means XCode version must have been 14.0 as well)
 
       For revisions before [136f14f](https://github.com/catboost/catboost/commit/136f14f5d55119028a7bb1886814775cd1e2c649) the minimal supported `clang` version has been 12 (means XCode version must have been 12.0+ as well).
+
+      {% endcut %}
 
   - Windows
 
@@ -87,11 +103,15 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
       - for builds with CUDA support:
         - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a particular Visual Studio version)
 
+      {% cut "Previous requirements" %}
+
       For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) builds without CUDA required Microsoft Visual Studio 2022 with `clang-cl` compiler with versions 14 - 18.
 
       For revisions before [d5ac776](https://github.com/catboost/catboost/commit/d5ac776e0dd4eeb2ffd99d3fabaaee3e86b8dba1) builds without CUDA have also been using MSVC v142 - Visual Studio 2019 C++ x64/x86 build tools version v14.28 - 16.8 or v14.28 - 16.9.
 
       For revisions before between [d5ac776](https://github.com/catboost/catboost/commit/d5ac776e0dd4eeb2ffd99d3fabaaee3e86b8dba1) and [136f14f](https://github.com/catboost/catboost/commit/136f14f5d55119028a7bb1886814775cd1e2c649) for builds without CUDA support the minimum supported `clang-cl` version has been 12 (so, Visual Studio 2019 that includes it has also been supported).
+
+      {% endcut %}
 
   {% endlist %}
 
@@ -107,14 +127,22 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   CUDA 12.3+ support is in progress: [GitHub issue #2755](https://github.com/catboost/catboost/issues/2755).
 
+  {% cut "Previous requirements" %}
+
   For revisions before [45cc2e1](https://github.com/catboost/catboost/commit/45cc2e12189e8fef6b0ccfd30ac192efab22ae98) the minimal supported CUDA version has been 11.0 .
+
+  {% endcut %}
 
 
 ### [Conan](https://conan.io/) {#conan}
 
   Version 2.4.1+.
 
+  {% cut "Previous requirements" %}
+
   For revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
+
+  {% endcut %}
 
   Used for some dependencies.
 
