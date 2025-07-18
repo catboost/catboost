@@ -43,7 +43,7 @@ Next you may want to investigate:
 * [Regular](https://catboost.ai/docs/features/prediction.html#prediction) and [staged](https://catboost.ai/docs/features/staged-prediction.html#staged-prediction) predictions
 * CatBoost for Apache Spark videos: [Introduction](https://youtu.be/47-mAVms-b8) and [Architecture](https://youtu.be/nrGt5VKZpzc)
 
-If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger. 
+If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger.
 
 Catboost models in production
 --------------
@@ -76,4 +76,4 @@ at NIPS 2017.
 
 License
 -------
-© YANDEX LLC, 2017-2024. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+© YANDEX LLC, 2017-2025. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
