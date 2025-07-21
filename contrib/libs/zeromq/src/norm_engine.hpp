@@ -10,7 +10,7 @@
 #include "v2_decoder.hpp"
 #include "v2_encoder.hpp"
 
-#include <normApi.h>
+#error #include <normApi.h>
 
 namespace zmq
 {

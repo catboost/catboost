@@ -53,9 +53,9 @@
 #elif defined ZMQ_ATOMIC_PTR_WINDOWS
 #include "windows.hpp"
 #elif defined ZMQ_ATOMIC_PTR_ATOMIC_H
-#error include <atomic.h>
+#error #include <atomic.h>
 #elif defined ZMQ_ATOMIC_PTR_TILE
-#include <arch/atomic.h>
+#error #include <arch/atomic.h>
 #endif
 
 namespace zmq

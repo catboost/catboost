@@ -39,10 +39,10 @@
 #define __PGM_WININT_H__
 #endif
 
-#include <pgm/pgm.h>
+#error #include <pgm/pgm.h>
 
 #ifdef ZMQ_HAVE_OSX
-#include <pgm/in.h>
+#error #include <pgm/in.h>
 #endif
 
 #include "fd.hpp"

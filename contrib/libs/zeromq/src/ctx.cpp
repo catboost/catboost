@@ -47,9 +47,9 @@
 #include "msg.hpp"
 
 #if defined (ZMQ_USE_TWEETNACL)
-#   include "randombytes.h"
+#   error #include "randombytes.h"
 #elif defined (ZMQ_USE_LIBSODIUM)
-#   include "sodium.h"
+#   error #include "sodium.h"
 #endif
 
 #define ZMQ_CTX_TAG_VALUE_GOOD 0xabadcafe

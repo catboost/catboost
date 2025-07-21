@@ -43,7 +43,7 @@
 #endif
 
 #if defined ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
+#error #include <ioctl.h>
 #endif
 
 void zmq::tune_tcp_socket (fd_t s_)

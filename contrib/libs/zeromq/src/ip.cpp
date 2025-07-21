@@ -43,7 +43,7 @@
 #endif
 
 #if defined ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
+#error #include <ioctl.h>
 #endif
 
 zmq::fd_t zmq::open_socket (int domain_, int type_, int protocol_)

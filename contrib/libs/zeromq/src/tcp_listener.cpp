@@ -56,7 +56,7 @@
 #endif
 
 #ifdef ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
+#error #include <ioctl.h>
 #endif
 
 zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,

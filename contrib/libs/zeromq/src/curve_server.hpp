@@ -35,10 +35,10 @@
 #include "platform.hpp"
 
 #if defined (ZMQ_USE_TWEETNACL)
-#   include "tweetnacl_base.h"
-#   include "randombytes.h"
+#   error #include "tweetnacl_base.h"
+#   error #include "randombytes.h"
 #elif defined (ZMQ_USE_LIBSODIUM)
-#   include "sodium.h"
+#   error #include "sodium.h"
 #endif
 
 #if crypto_box_NONCEBYTES != 24 \

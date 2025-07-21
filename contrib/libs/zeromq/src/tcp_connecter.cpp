@@ -54,7 +54,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #ifdef ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
+#error #include <ioctl.h>
 #endif
 #endif
 

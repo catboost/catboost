@@ -42,9 +42,9 @@
 #endif
 
 #if defined (ZMQ_USE_TWEETNACL)
-#   include "tweetnacl_base.h"
+#   error #include "tweetnacl_base.h"
 #elif defined (ZMQ_USE_LIBSODIUM)
-#   include "sodium.h"
+#   error #include "sodium.h"
 #endif
 
 void zmq_sleep (int seconds_)

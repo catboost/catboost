@@ -54,9 +54,9 @@
 #elif defined ZMQ_ATOMIC_COUNTER_WINDOWS
 #include "windows.hpp"
 #elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
-#error include <atomic.h>
+#error #include <atomic.h>
 #elif defined ZMQ_ATOMIC_COUNTER_TILE
-#include <arch/atomic.h>
+#error #include <arch/atomic.h>
 #endif
 
 namespace zmq

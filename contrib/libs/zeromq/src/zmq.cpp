@@ -81,7 +81,7 @@ struct iovec {
 
 #if defined ZMQ_HAVE_OPENPGM
 #define __PGM_WININT_H__
-#include <pgm/pgm.h>
+#error #include <pgm/pgm.h>
 #endif
 
 //  Compile time check whether msg_t fits into zmq_msg_t.

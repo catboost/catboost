@@ -32,7 +32,7 @@
 
 #ifdef HAVE_LIBGSSAPI_KRB5
 
-#include "gssapi_mechanism_base.hpp"
+#error #include "gssapi_mechanism_base.hpp"
 
 namespace zmq
 {
