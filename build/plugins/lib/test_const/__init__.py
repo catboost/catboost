@@ -47,6 +47,7 @@ TESTING_OUT_RAM_DRIVE_DIR_NAME = "ram_drive_output"
 TESTING_OUT_TAR_NAME = TESTING_OUT_DIR_NAME + ".tar.zstd"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 TRACE_FILE_NAME = "ytest.report.trace"
+TEMPORARY_TRACE_DIR_NAME = "temporary_traces"
 TRUNCATING_IGNORE_FILE_LIST = {TRACE_FILE_NAME, SUITE_CONTEXT_FILE_NAME, "run_test.log"}
 YT_RUN_TEST_DIR_NAME = "yt_run_test"
 YT_RUN_TEST_TAR_NAME = "yt_run_test.tar"
