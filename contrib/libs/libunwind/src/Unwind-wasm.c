@@ -129,10 +129,4 @@ _LIBUNWIND_EXPORT _Unwind_Reason_Code
 _Unwind_RaiseException(_Unwind_Exception *exception_object __attribute__((unused))) {
   abort();
 }
-
-#if !defined(NDEBUG) && defined(STANDALONE_WASM)
-void __throw_exception_with_stack_trace(_Unwind_Exception* ex) {
-  _Unwind_RaiseException(ex);
-}
-#endif
 #endif // defined(__WASM_EXCEPTIONS__)
