@@ -4,7 +4,7 @@
 
 A list of possible methods to load the dataset from a file is given in the table below.
 
-### Use the default columns description
+### From a file in DSV format with default columns
 
 If the columns description file is omitted,  it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
 
@@ -14,7 +14,7 @@ Usage example:
 Pool(dataset_desc_file)
 ```
 
-### Use the specified columns description
+### From a file in DSV format with custom columns
 
 If specified, the `cd_file` should contain the [columns description](input-data_column-descfile.md).
 
@@ -22,6 +22,16 @@ Usage example:
 
 ```python
 Pool(dataset_desc_file, column_description=cd_file)
+```
+
+### From a file in libsvm format
+
+To load a file in [libsvm format](https://github.com/cjlin1/libsvm/blob/557d85749aaf0ca83fd229af0f00e4f4cb7be85c/README#L53) specify a `libsvm://` prefix before a file path in the `Pool`'s constructor `data` argument value.
+
+Usage example:
+
+```python
+Pool('libsvm://' + dataset_desc_file)
 ```
 
 ## Loading data from array-like structures {#load-from-array-like-structures}
