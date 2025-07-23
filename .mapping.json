@@ -1464,6 +1464,7 @@
   "cmake/conan-profiles/macos.arm64.profile":"",
   "cmake/conan-profiles/macos.x86_64.profile":"",
   "cmake/conan-profiles/windows.msvs2022.x86_64.profile":"catboost/github_toplevel/cmake/conan-profiles/windows.msvs2022.x86_64.profile",
+  "cmake/conan_provider.cmake":"",
   "cmake/cuda.cmake":"",
   "cmake/cython.cmake":"",
   "cmake/fbs.cmake":"",
