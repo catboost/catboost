@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2024 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -426,10 +426,9 @@ static const unsigned LinkTableSize = sizeof(TbbBindLinkTable) / sizeof(dynamic_
 #define LIBRARY_PREFIX "lib"
 #endif /* __unix__ */
 
-#define TBBBIND_NAME LIBRARY_PREFIX "tbbbind" DEBUG_SUFFIX LIBRARY_EXTENSION
-#define TBBBIND_2_0_NAME LIBRARY_PREFIX "tbbbind_2_0" DEBUG_SUFFIX LIBRARY_EXTENSION
-
-#define TBBBIND_2_5_NAME LIBRARY_PREFIX "tbbbind_2_5" DEBUG_SUFFIX LIBRARY_EXTENSION
+#define TBBBIND_NAME            LIBRARY_PREFIX "tbbbind"            DEBUG_SUFFIX LIBRARY_EXTENSION
+#define TBBBIND_2_0_NAME        LIBRARY_PREFIX "tbbbind_2_0"        DEBUG_SUFFIX LIBRARY_EXTENSION
+#define TBBBIND_2_5_NAME        LIBRARY_PREFIX "tbbbind_2_5"        DEBUG_SUFFIX LIBRARY_EXTENSION
 #endif /* _WIN32 || _WIN64 || __unix__ */
 
 // Representation of system hardware topology information on the TBB side.

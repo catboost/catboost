@@ -18,6 +18,8 @@ add_library(contrib-libs-tbb)
 target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_BUILD
   -D__TBB_GNU_ASM_VERSION=2041
+  -D__TBB_SKIP_DEPENDENCY_SIGNATURE_VERIFICATION=1
+  -D__TBB_DYNAMIC_LOAD_ENABLED=0
   -DUSE_PTHREAD
   -D__TBB_USE_ITT_NOTIFY
   -DDO_ITT_NOTIFY

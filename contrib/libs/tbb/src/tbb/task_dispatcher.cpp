@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2022 Intel Corporation
+    Copyright (c) 2020-2025 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ void __TBB_EXPORTED_FUNC submit(d1::task& t, d1::task_group_context& ctx, arena*
 
     if ( tls.is_attached_to(a) ) {
         arena_slot* slot = tls.my_arena_slot;
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
         if( as_critical ) {
             a->my_critical_task_stream.push( &t, subsequent_lane_selector(slot->critical_hint()) );
         } else
@@ -99,7 +99,7 @@ void __TBB_EXPORTED_FUNC submit(d1::task& t, d1::task_group_context& ctx, arena*
         }
     } else {
         random_lane_selector lane_selector{tls.my_random};
-#if !__TBB_PREVIEW_CRITICAL_TASKS
+#if !__TBB_CRITICAL_TASKS
         suppress_unused_warning(as_critical);
 #else
         if ( as_critical ) {

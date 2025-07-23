@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@
     #if __INTEL_COMPILER
         #pragma warning(push)
         #pragma warning(disable:1478)
-    #elif __clang__
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #elif __GNUC__
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     #endif
 	#define _XOPEN_SOURCE 700
 #endif // __APPLE__
@@ -363,8 +363,8 @@ inline void destroy_coroutine(coroutine_type& c) {
 #if __APPLE__
     #if __INTEL_COMPILER
         #pragma warning(pop) // 1478 warning
-    #elif __clang__
-        #pragma clang diagnostic pop // "-Wdeprecated-declarations"
+    #elif __GNUC__
+        #pragma GCC diagnostic pop // "-Wdeprecated-declarations"
     #endif
 #endif
 

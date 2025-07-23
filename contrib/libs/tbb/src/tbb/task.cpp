@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2024 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ void resume(suspend_point_type* sp) {
             // The target is not in the process of executing critical task, so the resume task is not critical.
             a.my_resume_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
         } else {
-    #if __TBB_PREVIEW_CRITICAL_TASKS
+    #if __TBB_CRITICAL_TASKS
             // The target is in the process of executing critical task, so the resume task is critical.
             a.my_critical_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
     #endif

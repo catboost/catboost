@@ -277,7 +277,7 @@ arena::arena(threading_control* control, unsigned num_slots, unsigned num_reserv
     }
     my_fifo_task_stream.initialize(my_num_slots);
     my_resume_task_stream.initialize(my_num_slots);
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     my_critical_task_stream.initialize(my_num_slots);
 #endif
     my_mandatory_requests = 0;
@@ -337,7 +337,7 @@ void arena::free_arena () {
     my_co_cache.cleanup();
     my_default_ctx->~task_group_context();
     cache_aligned_deallocate(my_default_ctx);
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     __TBB_ASSERT( my_critical_task_stream.empty(), "Not all critical tasks were executed");
 #endif
     // Clear enfources synchronization with observe(false)
@@ -375,7 +375,7 @@ bool arena::has_tasks() {
         tasks_are_available = !my_slots[k].is_empty();
     }
     tasks_are_available = tasks_are_available || has_enqueued_tasks() || !my_resume_task_stream.empty();
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     tasks_are_available = tasks_are_available || !my_critical_task_stream.empty();
 #endif
     return tasks_are_available;

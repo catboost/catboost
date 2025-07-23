@@ -274,7 +274,7 @@ struct arena_base : padded<intrusive_list_node> {
     //! Task pool for the tasks scheduled via tbb::resume() function.
     task_stream<front_accessor> my_resume_task_stream; // heavy use in stealing loop
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     //! Task pool for the tasks with critical property set.
     /** Critical tasks are scheduled for execution ahead of other sources (including local task pool
         and even bypassed tasks) unless the thread already executes a critical task in an outer
@@ -423,7 +423,7 @@ public:
     template<task_stream_accessor_type accessor>
     d1::task* get_stream_task(task_stream<accessor>& stream, unsigned& hint);
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     //! Tries to find a critical task in global critical task stream
     d1::task* get_critical_task(unsigned& hint, isolation_type isolation);
 #endif
@@ -576,7 +576,7 @@ inline d1::task* arena::get_stream_task(task_stream<accessor>& stream, unsigned&
     return stream.pop(subsequent_lane_selector(hint));
 }
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
 // Retrieves critical task respecting isolation level, if provided. The rule is:
 // 1) If no outer critical task and no isolation => take any critical task
 // 2) If working on an outer critical task and no isolation => cannot take any critical task
@@ -593,7 +593,7 @@ inline d1::task* arena::get_critical_task(unsigned& hint, isolation_type isolati
         return my_critical_task_stream.pop(preceding_lane_selector(hint));
     }
 }
-#endif // __TBB_PREVIEW_CRITICAL_TASKS
+#endif // __TBB_CRITICAL_TASKS
 
 } // namespace r1
 } // namespace detail

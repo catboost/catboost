@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2024 Intel Corporation
+    Copyright (c) 2020-2025 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -403,7 +403,7 @@ inline void task_dispatcher::recall_point() {
 }
 #endif /* __TBB_RESUMABLE_TASKS */
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
 inline d1::task* task_dispatcher::get_critical_task(d1::task* t, execution_data_ext& ed, isolation_type isolation, bool critical_allowed) {
     __TBB_ASSERT( critical_allowed || !m_properties.critical_task_allowed, nullptr );
 
@@ -476,4 +476,3 @@ d1::task* task_dispatcher::local_wait_for_all(d1::task* t, Waiter& waiter) {
 } // namespace tbb
 
 #endif // _TBB_task_dispatcher_H
-
