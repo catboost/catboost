@@ -262,7 +262,11 @@ If omitted, default values are used.
 
 {% include [save_borders-save_model__div_desc](../_includes/work_src/reusage-python/save_model__div_desc.md) %}
 
+### [save_model](python-reference_catboost_save_model.md)
 
+
+
+{% include [sections-with-methods-desc-save_model--purpose](../_includes/work_src/reusage/save_model--purpose.md) %}
 
 ### [select_features](python-reference_catboost_select_features.md)
 
