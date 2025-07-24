@@ -658,7 +658,27 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #endif
 
 /**
- * @def Y_HAS_ATTRIBUTE
+ * @def Y_LIFETIME_BOUND
+ *
+ * The attribute on a function parameter can be used to tell the compiler
+ * that function return value may refer that parameter.
+ * The compiler may produce a compile-time warning if it is able to detect that
+ * an object or a reference refers to another object with a shorter lifetime.
+ */
+#if defined(__clang__) && defined(__cplusplus) && defined(__has_cpp_attribute)
+    #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
+        #define Y_LIFETIME_BOUND
+    #elif __has_cpp_attribute(clang::lifetimebound)
+        #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+    #else
+        #define Y_LIFETIME_BOUND
+    #endif
+#else
+    #define Y_LIFETIME_BOUND
+#endif
+
+/**
+ * @def Y_HAVE_ATTRIBUTE
  *
  * A function-like feature checking macro that is a wrapper around
  * `__has_attribute` that is defined by GCC 5+ and Clang and evaluates to a
@@ -671,44 +691,9 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  *     Clang: https://clang.llvm.org/docs/LanguageExtensions.html
  */
 #ifdef __has_attribute
-    #define Y_HAS_ATTRIBUTE(x) __has_attribute(x)
+    #define Y_HAVE_ATTRIBUTE(x) __has_attribute(x)
 #else
-    #define Y_HAS_ATTRIBUTE(x) 0
-#endif
-
-/**
- * @def Y_HAS_CPP_ATTRIBUTE
- *
- * A function-like feature checking macro that is a wrapper around
- * `__has_cpp_attribute` evaluates to a  nonzero constant integer
- * if the attribute is supported or 0 if not.
- *
- * It evaluates to zero if `__has_cpp_attribute` is not defined by the compiler.
- *
- * @see
- *     GCC: https://gcc.gnu.org/gcc-5/changes.html
- *     Clang: https://clang.llvm.org/docs/LanguageExtensions.html
- */
-#ifdef __has_cpp_attribute
-    #define Y_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
-#else
-    #define Y_HAS_CPP_ATTRIBUTE(x) 0
-#endif
-
-/**
- * @def Y_LIFETIME_BOUND
- *
- * The attribute on a function parameter can be used to tell the compiler
- * that function return value may refer that parameter.
- * The compiler may produce a compile-time warning if it is able to detect that
- * an object or a reference refers to another object with a shorter lifetime.
- */
-#if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
-    #define Y_LIFETIME_BOUND
-#elif Y_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
-    #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
-#else
-    #define Y_LIFETIME_BOUND
+    #define Y_HAVE_ATTRIBUTE(x) 0
 #endif
 
 /**
@@ -726,7 +711,7 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  * Y_RETURNS_NONNULL extern void* mymalloc(size_t len);
  * @endcode
  */
-#if Y_HAS_ATTRIBUTE(returns_nonnull)
+#if Y_HAVE_ATTRIBUTE(returns_nonnull)
     #define Y_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
     #define Y_RETURNS_NONNULL
@@ -745,7 +730,7 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  * void func(char* Y_NONNULL arr, size_t len);
  * @endcode
  */
-#if Y_HAS_ATTRIBUTE(nonnull)
+#if Y_HAVE_ATTRIBUTE(nonnull)
     #define Y_NONNULL __attribute__((nonnull))
 #else
     #define Y_NONNULL
@@ -769,8 +754,12 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  *
  * @endcode
  */
-#if Y_HAS_CPP_ATTRIBUTE(no_unique_address)
-    #define Y_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#if defined(__has_cpp_attribute)
+    #if __has_cpp_attribute(no_unique_address)
+        #define Y_NO_UNIQUE_ADDRESS [[no_unique_address]]
+    #else
+        #define Y_NO_UNIQUE_ADDRESS
+    #endif
 #else
     #define Y_NO_UNIQUE_ADDRESS
 #endif
