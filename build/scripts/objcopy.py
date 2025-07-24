@@ -9,7 +9,7 @@ from collections import namedtuple
 
 
 def call(cmd, cwd=None, env=None):
-    return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env)
+    return subprocess.check_output(cmd, stdin=None, stderr=sys.stderr, cwd=cwd, env=env)
 
 
 class LLVMResourceInserter:
