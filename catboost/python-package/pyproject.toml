@@ -1,4 +1,5 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = [
     "setuptools >= 64.0",
     "cmake",
