@@ -145,6 +145,10 @@ namespace NCB {
     }
 
     void TCatboostModelToCppConverter::WriteApplicator(bool forCatFeatures) {
+        if (!Namespace.empty()) {
+          Out << "namespace" << Namespace << " {" << '\n';
+        }
+
         if (forCatFeatures) {
             Out << NResource::Find("catboost_model_export_cpp_ctr_calcer");
             Out << '\n';
@@ -152,11 +156,20 @@ namespace NCB {
         } else {
             Out << NResource::Find("catboost_model_export_cpp_model_applicator_without_cat");
         }
+
+        if (!Namespace.empty()) {
+          Out << "} // namespace" << Namespace << '\n';
+        }
+
     }
 
     void TCatboostModelToCppConverter::WriteModel(bool forCatFeatures, const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         TIndent indent(0);
         TSequenceCommaSeparator comma;
+
+        if (!Namespace.empty()) {
+          Out << "namespace" << Namespace << " {" << '\n';
+        }
 
         Out << "/* Model data */" << '\n';
 
@@ -249,6 +262,11 @@ namespace NCB {
             Out << --indent << "};" << '\n';
             Out << '\n';
         }
+
+        if (!Namespace.empty()) {
+          Out << " } // namespace" << Namespace << '\n';
+        }
+
     }
 
     void TCatboostModelToCppConverter::WriteHeader(bool forCatFeatures) {
