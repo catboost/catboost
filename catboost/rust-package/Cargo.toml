@@ -3,6 +3,7 @@ name = "catboost"
 version = "0.1.0"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
 edition = "2018"
+rust-version = "1.64"
 
 [dependencies]
 catboost-sys = { path = "catboost-sys", version = "0.1"}
