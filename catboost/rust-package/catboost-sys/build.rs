@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
-    let target = env::var("TARGET").unwrap();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let debug = env::var("DEBUG").unwrap();
     let cb_model_interface_root = Path::new("../../libs/model_interface/")
