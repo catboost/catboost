@@ -1457,11 +1457,11 @@ def test_pairlogit_no_target(compressed_data, boosting_type):
     output_test_error_path = yatest.common.test_output_path('test_error.tsv')
     params = [
         '--loss-function', 'PairLogit',
-        '-f', os.path.join(compressed_data.name, 'mslr_web1k', 'train'),
-        '-t', os.path.join(compressed_data.name, 'mslr_web1k', 'test'),
-        '--column-description', os.path.join(compressed_data.name, 'mslr_web1k', 'cd.no_target'),
-        '--learn-pairs', os.path.join(compressed_data.name, 'mslr_web1k', 'train.pairs'),
-        '--test-pairs', os.path.join(compressed_data.name, 'mslr_web1k', 'test.pairs'),
+        '-f', os.path.join(compressed_data, 'mslr_web1k', 'train'),
+        '-t', os.path.join(compressed_data, 'mslr_web1k', 'test'),
+        '--column-description', os.path.join(compressed_data, 'mslr_web1k', 'cd.no_target'),
+        '--learn-pairs', os.path.join(compressed_data, 'mslr_web1k', 'train.pairs'),
+        '--test-pairs', os.path.join(compressed_data, 'mslr_web1k', 'test.pairs'),
         '--boosting-type', boosting_type,
         '-i', '250',
         '-T', '4',
@@ -2601,9 +2601,9 @@ def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric
     output_test_error_path = yatest.common.test_output_path('test_error.tsv')
     output_eval_error_path = yatest.common.test_output_path('eval_file.tsv')
 
-    train_file = os.path.join(compressed_data.name, 'mslr_web1k', 'train')
-    test_file = os.path.join(compressed_data.name, 'mslr_web1k', 'test')
-    cd_file = os.path.join(compressed_data.name, 'mslr_web1k', 'cd.with_cat_features')
+    train_file = os.path.join(compressed_data, 'mslr_web1k', 'train')
+    test_file = os.path.join(compressed_data, 'mslr_web1k', 'test')
+    cd_file = os.path.join(compressed_data, 'mslr_web1k', 'cd.with_cat_features')
 
     params = [
         '--loss-function', loss_function,

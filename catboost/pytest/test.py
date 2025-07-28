@@ -8779,9 +8779,9 @@ def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric
 
     cmd = (
         '--loss-function', loss_function,
-        '-f', os.path.join(compressed_data.name, 'mslr_web1k', 'train'),
-        '-t', os.path.join(compressed_data.name, 'mslr_web1k', 'test'),
-        '--column-description', os.path.join(compressed_data.name, 'mslr_web1k', 'cd.with_cat_features'),
+        '-f', os.path.join(compressed_data, 'mslr_web1k', 'train'),
+        '-t', os.path.join(compressed_data, 'mslr_web1k', 'test'),
+        '--column-description', os.path.join(compressed_data, 'mslr_web1k', 'cd.with_cat_features'),
         '--boosting-type', boosting_type,
         '-i', '100',
         '-T', '8',

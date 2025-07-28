@@ -2,12 +2,11 @@ import os
 import pytest
 import re
 import sys
+import shutil
 import tempfile
 import time
 from .common_helpers import *  # noqa
 import zipfile
-
-from testpath.tempdir import TemporaryDirectory
 
 
 _use_cmake_paths = False
@@ -198,10 +197,13 @@ def execute_dist_train(cmd):
 @pytest.fixture(scope="module")
 def compressed_data():
     data_path = yatest.common.source_path("catboost/pytest/data")
-    tmp_dir = TemporaryDirectory()
-    for file_name in os.listdir(data_path):
-        if file_name.endswith('.zip'):
-            with zipfile.ZipFile(os.path.join(data_path, file_name)) as zip_file:
-                zip_file.extractall(path=tmp_dir.name)
+    try:
+        tmp_dir = tempfile.mkdtemp()
+        for file_name in os.listdir(data_path):
+            if file_name.endswith('.zip'):
+                with zipfile.ZipFile(os.path.join(data_path, file_name)) as zip_file:
+                    zip_file.extractall(path=tmp_dir)
 
-    return tmp_dir
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir)
