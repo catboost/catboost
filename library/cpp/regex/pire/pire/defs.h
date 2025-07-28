@@ -37,73 +37,73 @@
 namespace Pire {
 
 #ifdef PIRE_DEBUG
-#	define PIRE_IFDEBUG(x) x
+#    define PIRE_IFDEBUG(x) x
 #else
-#	define PIRE_IFDEBUG(x)
+#    define PIRE_IFDEBUG(x)
 #endif
 
 #ifdef PIRE_CHECKED
-#	define PIRE_IF_CHECKED(e) e
+#    define PIRE_IF_CHECKED(e) e
 #else
-#	define PIRE_IF_CHECKED(e)
+#    define PIRE_IF_CHECKED(e)
 #endif
 
 
-	typedef unsigned short Char;
+    typedef unsigned short Char;
 
-	namespace SpecialChar {
-	enum {
-		Epsilon = 257,
-		BeginMark = 258,
-		EndMark = 259,
+    namespace SpecialChar {
+    enum {
+        Epsilon = 257,
+        BeginMark = 258,
+        EndMark = 259,
 
-		// Actual size of input alphabet
-		MaxCharUnaligned = 260,
+        // Actual size of input alphabet
+        MaxCharUnaligned = 260,
 
-		// Size of letter transition tables, must be a multiple of the machine word size
-		MaxChar = (MaxCharUnaligned + (sizeof(void*)-1)) & ~(sizeof(void*)-1)
-	};
-	}
+        // Size of letter transition tables, must be a multiple of the machine word size
+        MaxChar = (MaxCharUnaligned + (sizeof(void*)-1)) & ~(sizeof(void*)-1)
+    };
+    }
 
-	using namespace SpecialChar;
+    using namespace SpecialChar;
 
-	namespace Impl {
+    namespace Impl {
 #ifndef PIRE_WORDS_BIGENDIAN
-		inline size_t ToLittleEndian(size_t val) { return val; }
+        inline size_t ToLittleEndian(size_t val) { return val; }
 #else
-		template<unsigned N>
-		inline size_t SwapBytes(size_t val)
-		{
-			static const size_t Mask = (1 << (N/2)) - 1;
-			return ((SwapBytes<N/2>(val) & Mask) << (N/2)) | SwapBytes<N/2>(val >> (N/2));
-		}
+        template<unsigned N>
+        inline size_t SwapBytes(size_t val)
+        {
+            static const size_t Mask = (1 << (N/2)) - 1;
+            return ((SwapBytes<N/2>(val) & Mask) << (N/2)) | SwapBytes<N/2>(val >> (N/2));
+        }
 
-		template<>
-		inline size_t SwapBytes<8>(size_t val) { return val & 0xFF; }
+        template<>
+        inline size_t SwapBytes<8>(size_t val) { return val & 0xFF; }
 
-		inline size_t ToLittleEndian(size_t val) { return SwapBytes<sizeof(val)*8>(val); }
+        inline size_t ToLittleEndian(size_t val) { return SwapBytes<sizeof(val)*8>(val); }
 #endif
 
         struct Struct { void* p; };
-	}
+    }
 }
 
 #ifndef PIRE_ALIGNED_DECL
-#	if defined(PIRE_HAVE_ALIGNAS)
-#		define PIRE_ALIGNED_DECL(x) alignas(::Pire::Impl::Struct) static const char x[]
-#	elif defined(PIRE_HAVE_ATTR_ALIGNED)
-#		define PIRE_ALIGNED_DECL(x) static const char x[] __attribute__((aligned(sizeof(void*))))
-#	elif defined(PIRE_HAVE_DECLSPEC_ALIGN)
-#		define PIRE_ALIGNED_DECL(x) __declspec(align(8)) static const char x[]
-#	endif
+#    if defined(PIRE_HAVE_ALIGNAS)
+#        define PIRE_ALIGNED_DECL(x) alignas(::Pire::Impl::Struct) static const char x[]
+#    elif defined(PIRE_HAVE_ATTR_ALIGNED)
+#        define PIRE_ALIGNED_DECL(x) static const char x[] __attribute__((aligned(sizeof(void*))))
+#    elif defined(PIRE_HAVE_DECLSPEC_ALIGN)
+#        define PIRE_ALIGNED_DECL(x) __declspec(align(8)) static const char x[]
+#    endif
 #endif
 
 #ifndef PIRE_LITERAL
-#	if defined(PIRE_HAVE_LAMBDAS)
-#		define PIRE_LITERAL(data) ([]() -> const char* { PIRE_ALIGNED_DECL(__pire_regexp__) = data; return __pire_regexp__; })()
-#	elif defined(PIRE_HAVE_SCOPED_EXPR)
-#		define PIRE_LITERAL(data) ({ PIRE_ALIGNED_DECL(__pire_regexp__) = data; __pire_regexp__; })
-#	endif
+#    if defined(PIRE_HAVE_LAMBDAS)
+#        define PIRE_LITERAL(data) ([]() -> const char* { PIRE_ALIGNED_DECL(__pire_regexp__) = data; return __pire_regexp__; })()
+#    elif defined(PIRE_HAVE_SCOPED_EXPR)
+#        define PIRE_LITERAL(data) ({ PIRE_ALIGNED_DECL(__pire_regexp__) = data; __pire_regexp__; })
+#    endif
 #endif
 
 #endif

@@ -24,5 +24,5 @@
 #include "fsm.h"
 
 namespace Pire {
-	Fsm CreateApproxFsm(const Fsm& regexp, size_t distance);
+    Fsm CreateApproxFsm(const Fsm& regexp, size_t distance);
 }

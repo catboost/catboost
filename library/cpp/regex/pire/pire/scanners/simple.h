@@ -39,220 +39,220 @@ namespace Pire {
  */
 class SimpleScanner {
 private:
-	static const size_t STATE_ROW_SIZE = MaxChar + 1; // All characters + 1 element to store final state flag
+    static const size_t STATE_ROW_SIZE = MaxChar + 1; // All characters + 1 element to store final state flag
 
 public:
-	typedef size_t      Transition;
-	typedef ui16        Letter;
-	typedef ui32        Action;
-	typedef ui8         Tag;
+    typedef size_t      Transition;
+    typedef ui16        Letter;
+    typedef ui32        Action;
+    typedef ui8         Tag;
 
-	SimpleScanner()	{ Alias(Null()); }
+    SimpleScanner()    { Alias(Null()); }
 
-	explicit SimpleScanner(Fsm& fsm, size_t distance = 0);
+    explicit SimpleScanner(Fsm& fsm, size_t distance = 0);
 
-	size_t Size() const { return m.statesCount; }
-	bool Empty() const { return m_transitions == Null().m_transitions; }
+    size_t Size() const { return m.statesCount; }
+    bool Empty() const { return m_transitions == Null().m_transitions; }
 
-	typedef size_t State;
+    typedef size_t State;
 
-	size_t RegexpsCount() const { return Empty() ? 0 : 1; }
-	size_t LettersCount() const { return MaxChar; }
+    size_t RegexpsCount() const { return Empty() ? 0 : 1; }
+    size_t LettersCount() const { return MaxChar; }
 
-	/// Checks whether specified state is in any of the final sets
-	bool Final(const State& state) const { return *(((const Transition*) state) - 1) != 0; }
+    /// Checks whether specified state is in any of the final sets
+    bool Final(const State& state) const { return *(((const Transition*) state) - 1) != 0; }
 
-	bool Dead(const State&) const { return false; }
+    bool Dead(const State&) const { return false; }
 
-	ypair<const size_t*, const size_t*> AcceptedRegexps(const State& s) const {
-		return Final(s) ? Accept() : Deny();
-	}
+    ypair<const size_t*, const size_t*> AcceptedRegexps(const State& s) const {
+        return Final(s) ? Accept() : Deny();
+    }
 
-	/// returns an initial state for this scanner
-	void Initialize(State& state) const { state = m.initial; }
+    /// returns an initial state for this scanner
+    void Initialize(State& state) const { state = m.initial; }
 
-	/// Handles one characters
-	Action Next(State& state, Char c) const
-	{
-		Transition shift = reinterpret_cast<const Transition*>(state)[c];
-		state += shift;
-		return 0;
-	}
+    /// Handles one characters
+    Action Next(State& state, Char c) const
+    {
+        Transition shift = reinterpret_cast<const Transition*>(state)[c];
+        state += shift;
+        return 0;
+    }
 
-	bool TakeAction(State&, Action) const { return false; }
+    bool TakeAction(State&, Action) const { return false; }
 
-	SimpleScanner(const SimpleScanner& s): m(s.m)
-	{
-		if (!s.m_buffer) {
-			// Empty or mmap()-ed scanner, just copy pointers
-			m_buffer = 0;
-			m_transitions = s.m_transitions;
-		} else {
-			// In-memory scanner, perform deep copy
-			m_buffer = BufferType(new char[BufSize()]);
-			memcpy(m_buffer.Get(), s.m_buffer.Get(), BufSize());
-			Markup(m_buffer.Get());
+    SimpleScanner(const SimpleScanner& s): m(s.m)
+    {
+        if (!s.m_buffer) {
+            // Empty or mmap()-ed scanner, just copy pointers
+            m_buffer = 0;
+            m_transitions = s.m_transitions;
+        } else {
+            // In-memory scanner, perform deep copy
+            m_buffer = BufferType(new char[BufSize()]);
+            memcpy(m_buffer.Get(), s.m_buffer.Get(), BufSize());
+            Markup(m_buffer.Get());
 
-			m.initial += (m_transitions - s.m_transitions) * sizeof(Transition);
-		}
-	}
+            m.initial += (m_transitions - s.m_transitions) * sizeof(Transition);
+        }
+    }
 
-	// Makes a shallow ("weak") copy of the given scanner.
-	// The copied scanner does not maintain lifetime of the original's entrails.
-	void Alias(const SimpleScanner& s)
-	{
-		m = s.m;
-		m_buffer.Reset();
-		m_transitions = s.m_transitions;
-	}
+    // Makes a shallow ("weak") copy of the given scanner.
+    // The copied scanner does not maintain lifetime of the original's entrails.
+    void Alias(const SimpleScanner& s)
+    {
+        m = s.m;
+        m_buffer.Reset();
+        m_transitions = s.m_transitions;
+    }
 
-	void Swap(SimpleScanner& s)
-	{
-		DoSwap(m_buffer, s.m_buffer);
-		DoSwap(m.statesCount, s.m.statesCount);
-		DoSwap(m.initial, s.m.initial);
-		DoSwap(m_transitions, s.m_transitions);
-	}
+    void Swap(SimpleScanner& s)
+    {
+        DoSwap(m_buffer, s.m_buffer);
+        DoSwap(m.statesCount, s.m.statesCount);
+        DoSwap(m.initial, s.m.initial);
+        DoSwap(m_transitions, s.m_transitions);
+    }
 
-	SimpleScanner& operator = (const SimpleScanner& s) { SimpleScanner(s).Swap(*this); return *this; }
+    SimpleScanner& operator = (const SimpleScanner& s) { SimpleScanner(s).Swap(*this); return *this; }
 
-	~SimpleScanner() = default;
+    ~SimpleScanner() = default;
 
-	/*
-	 * Constructs the scanner from mmap()-ed memory range, returning a pointer
-	 * to unconsumed part of the buffer.
-	 */
-	const void* Mmap(const void* ptr, size_t size)
-	{
-		Impl::CheckAlign(ptr);
-		SimpleScanner s;
+    /*
+     * Constructs the scanner from mmap()-ed memory range, returning a pointer
+     * to unconsumed part of the buffer.
+     */
+    const void* Mmap(const void* ptr, size_t size)
+    {
+        Impl::CheckAlign(ptr);
+        SimpleScanner s;
 
-		const size_t* p = reinterpret_cast<const size_t*>(ptr);
-		Impl::ValidateHeader(p, size, ScannerIOTypes::SimpleScanner, sizeof(m));
-		if (size < sizeof(s.m))
-			throw Error("EOF reached while mapping NPire::Scanner");
+        const size_t* p = reinterpret_cast<const size_t*>(ptr);
+        Impl::ValidateHeader(p, size, ScannerIOTypes::SimpleScanner, sizeof(m));
+        if (size < sizeof(s.m))
+            throw Error("EOF reached while mapping NPire::Scanner");
 
-		memcpy(&s.m, p, sizeof(s.m));
-		Impl::AdvancePtr(p, size, sizeof(s.m));
-		Impl::AlignPtr(p, size);
+        memcpy(&s.m, p, sizeof(s.m));
+        Impl::AdvancePtr(p, size, sizeof(s.m));
+        Impl::AlignPtr(p, size);
 
-		bool empty = *((const bool*) p);
-		Impl::AdvancePtr(p, size, sizeof(empty));
-		Impl::AlignPtr(p, size);
+        bool empty = *((const bool*) p);
+        Impl::AdvancePtr(p, size, sizeof(empty));
+        Impl::AlignPtr(p, size);
 
-		if (empty)
-			s.Alias(Null());
-		else {
-			if (size < s.BufSize())
-				throw Error("EOF reached while mapping NPire::Scanner");
-			s.Markup(const_cast<size_t*>(p));
-			s.m.initial += reinterpret_cast<size_t>(s.m_transitions);
+        if (empty)
+            s.Alias(Null());
+        else {
+            if (size < s.BufSize())
+                throw Error("EOF reached while mapping NPire::Scanner");
+            s.Markup(const_cast<size_t*>(p));
+            s.m.initial += reinterpret_cast<size_t>(s.m_transitions);
 
-			Swap(s);
-			Impl::AdvancePtr(p, size, BufSize());
-		}
-		return Impl::AlignPtr(p, size);
-	}
+            Swap(s);
+            Impl::AdvancePtr(p, size, BufSize());
+        }
+        return Impl::AlignPtr(p, size);
+    }
 
-	size_t StateIndex(State s) const
-	{
-		return (s - reinterpret_cast<size_t>(m_transitions)) / (STATE_ROW_SIZE * sizeof(Transition));
-	}
+    size_t StateIndex(State s) const
+    {
+        return (s - reinterpret_cast<size_t>(m_transitions)) / (STATE_ROW_SIZE * sizeof(Transition));
+    }
 
-	// Returns the size of the memory buffer used (or required) by scanner.
-	size_t BufSize() const
-	{
-		return STATE_ROW_SIZE * m.statesCount * sizeof(Transition); // Transitions table
-	}
+    // Returns the size of the memory buffer used (or required) by scanner.
+    size_t BufSize() const
+    {
+        return STATE_ROW_SIZE * m.statesCount * sizeof(Transition); // Transitions table
+    }
 
-	void Save(yostream*) const;
-	void Load(yistream*);
+    void Save(yostream*) const;
+    void Load(yistream*);
 
 protected:
-	struct Locals {
-		size_t statesCount;
-		size_t initial;
-	} m;
+    struct Locals {
+        size_t statesCount;
+        size_t initial;
+    } m;
 
-	using BufferType = TArrayHolder<char>;
-	BufferType m_buffer;
+    using BufferType = TArrayHolder<char>;
+    BufferType m_buffer;
 
-	Transition* m_transitions;
+    Transition* m_transitions;
 
-	inline static const SimpleScanner& Null()
-	{
-		static const SimpleScanner n = Fsm::MakeFalse().Compile<SimpleScanner>();
-		return n;
-	}
+    inline static const SimpleScanner& Null()
+    {
+        static const SimpleScanner n = Fsm::MakeFalse().Compile<SimpleScanner>();
+        return n;
+    }
 
-	static ypair<const size_t*, const size_t*> Accept()
-	{
-		static size_t v[1] = { 0 };
-		return ymake_pair(v, v + 1);
-	}
+    static ypair<const size_t*, const size_t*> Accept()
+    {
+        static size_t v[1] = { 0 };
+        return ymake_pair(v, v + 1);
+    }
 
-	static ypair<const size_t*, const size_t*> Deny()
-	{
-		static size_t v[1] = { 0 };
-		return ymake_pair(v, v);
-	}
+    static ypair<const size_t*, const size_t*> Deny()
+    {
+        static size_t v[1] = { 0 };
+        return ymake_pair(v, v);
+    }
 
-	/*
-	 * Initializes pointers depending on buffer start, letters and states count
-	 */
-	void Markup(void* ptr)
-	{
-		m_transitions = reinterpret_cast<Transition*>(ptr);
-	}
+    /*
+     * Initializes pointers depending on buffer start, letters and states count
+     */
+    void Markup(void* ptr)
+    {
+        m_transitions = reinterpret_cast<Transition*>(ptr);
+    }
 
-	void SetJump(size_t oldState, Char c, size_t newState)
-	{
-		Y_ASSERT(m_buffer);
-		Y_ASSERT(oldState < m.statesCount);
-		Y_ASSERT(newState < m.statesCount);
-		m_transitions[oldState * STATE_ROW_SIZE + 1 + c]
-			= (((newState - oldState) * STATE_ROW_SIZE) * sizeof(Transition));
-	}
+    void SetJump(size_t oldState, Char c, size_t newState)
+    {
+        Y_ASSERT(m_buffer);
+        Y_ASSERT(oldState < m.statesCount);
+        Y_ASSERT(newState < m.statesCount);
+        m_transitions[oldState * STATE_ROW_SIZE + 1 + c]
+            = (((newState - oldState) * STATE_ROW_SIZE) * sizeof(Transition));
+    }
 
-	unsigned long RemapAction(unsigned long action) { return action; }
+    unsigned long RemapAction(unsigned long action) { return action; }
 
-	void SetInitial(size_t state)
-	{
-		Y_ASSERT(m_buffer);
-		m.initial = reinterpret_cast<size_t>(m_transitions + state * STATE_ROW_SIZE + 1);
-	}
+    void SetInitial(size_t state)
+    {
+        Y_ASSERT(m_buffer);
+        m.initial = reinterpret_cast<size_t>(m_transitions + state * STATE_ROW_SIZE + 1);
+    }
 
-	void SetTag(size_t state, size_t tag)
-	{
-		Y_ASSERT(m_buffer);
-		m_transitions[state * STATE_ROW_SIZE] = tag;
-	}
+    void SetTag(size_t state, size_t tag)
+    {
+        Y_ASSERT(m_buffer);
+        m_transitions[state * STATE_ROW_SIZE] = tag;
+    }
 
 };
 inline SimpleScanner::SimpleScanner(Fsm& fsm, size_t distance)
 {
-	if (distance) {
-		fsm = CreateApproxFsm(fsm, distance);
-	}
-	fsm.Canonize();
+    if (distance) {
+        fsm = CreateApproxFsm(fsm, distance);
+    }
+    fsm.Canonize();
 
-	m.statesCount = fsm.Size();
-	m_buffer = BufferType(new char[BufSize()]);
-	memset(m_buffer.Get(), 0, BufSize());
-	Markup(m_buffer.Get());
-	m.initial = reinterpret_cast<size_t>(m_transitions + fsm.Initial() * STATE_ROW_SIZE + 1);
-	for (size_t state = 0; state < fsm.Size(); ++state)
-		SetTag(state, fsm.Tag(state) | (fsm.IsFinal(state) ? 1 : 0));
+    m.statesCount = fsm.Size();
+    m_buffer = BufferType(new char[BufSize()]);
+    memset(m_buffer.Get(), 0, BufSize());
+    Markup(m_buffer.Get());
+    m.initial = reinterpret_cast<size_t>(m_transitions + fsm.Initial() * STATE_ROW_SIZE + 1);
+    for (size_t state = 0; state < fsm.Size(); ++state)
+        SetTag(state, fsm.Tag(state) | (fsm.IsFinal(state) ? 1 : 0));
 
-	for (size_t from = 0; from != fsm.Size(); ++from)
-		for (auto&& i : fsm.Letters()) {
-			const auto& tos = fsm.Destinations(from, i.first);
-			if (tos.empty())
-				continue;
-			for (auto&& l : i.second.second)
-				for (auto&& to : tos)
-					SetJump(from, l, to);
-		}
+    for (size_t from = 0; from != fsm.Size(); ++from)
+        for (auto&& i : fsm.Letters()) {
+            const auto& tos = fsm.Destinations(from, i.first);
+            if (tos.empty())
+                continue;
+            for (auto&& l : i.second.second)
+                for (auto&& to : tos)
+                    SetJump(from, l, to);
+        }
 }
 
 

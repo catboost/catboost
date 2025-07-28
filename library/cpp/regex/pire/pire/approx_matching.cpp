@@ -23,72 +23,72 @@
 #include "approx_matching.h"
 
 namespace Pire {
-	Fsm CreateApproxFsm(const Fsm& regexp, size_t distance) {
-		Fsm approxFsm = regexp;
+    Fsm CreateApproxFsm(const Fsm& regexp, size_t distance) {
+        Fsm approxFsm = regexp;
 
-		TVector<TSet<Char>> outgoingLettersTable(regexp.Size());
-		for (size_t state = 0; state < regexp.Size(); ++state) {
-			outgoingLettersTable[state] = regexp.OutgoingLetters(state);
-		}
+        TVector<TSet<Char>> outgoingLettersTable(regexp.Size());
+        for (size_t state = 0; state < regexp.Size(); ++state) {
+            outgoingLettersTable[state] = regexp.OutgoingLetters(state);
+        }
 
-		TVector<TMap<Char, Fsm::StatesSet>> destinationsTable(regexp.Size());
-		for (size_t state = 0; state < regexp.Size(); ++state) {
-			for (Char letter : outgoingLettersTable[state]) {
-				destinationsTable[state][letter] = regexp.Destinations(state, letter);
-			}
-		}
+        TVector<TMap<Char, Fsm::StatesSet>> destinationsTable(regexp.Size());
+        for (size_t state = 0; state < regexp.Size(); ++state) {
+            for (Char letter : outgoingLettersTable[state]) {
+                destinationsTable[state][letter] = regexp.Destinations(state, letter);
+            }
+        }
 
-		for (size_t fsmIdx = 0; fsmIdx < distance; ++fsmIdx) {
-			approxFsm.Import(regexp);
-			const auto shift = fsmIdx * regexp.Size();
+        for (size_t fsmIdx = 0; fsmIdx < distance; ++fsmIdx) {
+            approxFsm.Import(regexp);
+            const auto shift = fsmIdx * regexp.Size();
 
-			for (size_t state = 0; state < regexp.Size(); ++state) {
-				for (Char letter : outgoingLettersTable[state]) {
-					for (size_t to : destinationsTable[state][letter]) {
-						for (Char ch = 0; ch < MaxChar; ++ch) {
-							if (!approxFsm.Connected(state + shift, to + shift, ch)) {
-								approxFsm.Connect(state + shift, to + shift + regexp.Size(), ch);
-							}
-						}
+            for (size_t state = 0; state < regexp.Size(); ++state) {
+                for (Char letter : outgoingLettersTable[state]) {
+                    for (size_t to : destinationsTable[state][letter]) {
+                        for (Char ch = 0; ch < MaxChar; ++ch) {
+                            if (!approxFsm.Connected(state + shift, to + shift, ch)) {
+                                approxFsm.Connect(state + shift, to + shift + regexp.Size(), ch);
+                            }
+                        }
 
-						approxFsm.Connect(state + shift, to + shift + regexp.Size(), Epsilon);
-					}
+                        approxFsm.Connect(state + shift, to + shift + regexp.Size(), Epsilon);
+                    }
 
-					for (Char ch = 0; ch < MaxChar; ++ch) {
-						approxFsm.Connect(state + shift, state + shift + regexp.Size(), ch);
-					}
-				}
+                    for (Char ch = 0; ch < MaxChar; ++ch) {
+                        approxFsm.Connect(state + shift, state + shift + regexp.Size(), ch);
+                    }
+                }
 
-				if (regexp.IsFinal(state)) {
-					approxFsm.SetFinal(state + shift + regexp.Size(), true);
-				}
-			}
-		}
+                if (regexp.IsFinal(state)) {
+                    approxFsm.SetFinal(state + shift + regexp.Size(), true);
+                }
+            }
+        }
 
-		size_t maxState = (distance > 0) ? approxFsm.Size() - regexp.Size() : 0;
-		for (size_t state = 0; state < maxState; ++state) {
-			size_t currentDist = state / regexp.Size();
-			size_t intState = state % regexp.Size();
+        size_t maxState = (distance > 0) ? approxFsm.Size() - regexp.Size() : 0;
+        for (size_t state = 0; state < maxState; ++state) {
+            size_t currentDist = state / regexp.Size();
+            size_t intState = state % regexp.Size();
 
-			for (Char firstLetter : outgoingLettersTable[intState]) {
-				for (size_t firstDest : destinationsTable[intState][firstLetter]) {
-					for (Char secondLetter : outgoingLettersTable[firstDest]) {
-						for (size_t secondDest : destinationsTable[firstDest][secondLetter]) {
-							if (secondDest != intState || firstDest != intState) {
-								approxFsm.Resize(approxFsm.Size() + 1);
+            for (Char firstLetter : outgoingLettersTable[intState]) {
+                for (size_t firstDest : destinationsTable[intState][firstLetter]) {
+                    for (Char secondLetter : outgoingLettersTable[firstDest]) {
+                        for (size_t secondDest : destinationsTable[firstDest][secondLetter]) {
+                            if (secondDest != intState || firstDest != intState) {
+                                approxFsm.Resize(approxFsm.Size() + 1);
 
-								size_t to = secondDest + (currentDist + 1) * regexp.Size();
-								size_t middle = approxFsm.Size() - 1;
+                                size_t to = secondDest + (currentDist + 1) * regexp.Size();
+                                size_t middle = approxFsm.Size() - 1;
 
-								approxFsm.Connect(state, middle, secondLetter);
-								approxFsm.Connect(middle, to, firstLetter);
-							}
-						}
-					}
-				}
-			}
-		}
+                                approxFsm.Connect(state, middle, secondLetter);
+                                approxFsm.Connect(middle, to, firstLetter);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-		return approxFsm;
-	}
+        return approxFsm;
+    }
 }

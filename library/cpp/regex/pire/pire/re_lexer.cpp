@@ -241,8 +241,8 @@ namespace {
             for (; ch != End && ch != (Control | ']'); ch = CorrectChar(GetChar(), controls)) {
                 if (ch == (Control | 'x')) {
                     UngetChar(ch);
-					firstUnicode = true;
-					unicodeSymbol = ReadUnicodeCharacter();
+                    firstUnicode = true;
+                    unicodeSymbol = ReadUnicodeCharacter();
                 } else {
                     firstUnicode = false;
                 }
