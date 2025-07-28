@@ -76,14 +76,14 @@ CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 /**
  * If error occured will return stored exception message.
  * If no error occured, will return invalid pointer
- * @return
+ * @return Error message string. Uses UTF-8 encoding
  */
 CATBOOST_API const char* GetErrorString();
 
 /**
  * Load model from file into given model handle
  * @param calcer
- * @param filename
+ * @param filename path to the file. Uses UTF-8 encoding
  * @return false if error occured
  */
 CATBOOST_API bool LoadFullModelFromFile(
