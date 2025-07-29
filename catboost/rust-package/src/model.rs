@@ -5,7 +5,6 @@ use crate::features::{
     EmptyEmbeddingFeatures
 };
 use std::ffi::{CStr,CString};
-use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 
 pub struct Model {
@@ -25,7 +24,7 @@ impl Model {
     /// Load a model from a file
     pub fn load<P: AsRef<Path>>(path: P) -> CatBoostResult<Self> {
         let model = Model::new();
-        let path_c_str = CString::new(path.as_ref().as_os_str().as_bytes()).unwrap();
+        let path_c_str = CString::new(path.as_ref().to_str().unwrap()).unwrap();
         CatBoostError::check_return_value(unsafe {
             catboost_sys::LoadFullModelFromFile(model.handle, path_c_str.as_ptr())
         })?;
