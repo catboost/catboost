@@ -280,9 +280,13 @@ mod tests {
         assert!(model.is_ok());
     }
 
-    #[test]
-    fn calc_prediction() {
+    fn test_calc_prediction(on_gpu: bool) {
         let model = Model::load("tmp/model.bin").unwrap();
+
+        if on_gpu {
+            model.enable_gpu_evaluation().unwrap()
+        }
+
         let prediction = model
             .calc_model_prediction(
                 vec![
@@ -320,6 +324,18 @@ mod tests {
         assert_eq!(prediction[0], 0.9980003729960197);
         assert_eq!(prediction[1], 0.00249414628534181);
         assert_eq!(prediction[2], -0.0013677527881450977);
+    }
+
+    #[test]
+    fn calc_prediction_on_cpu() {
+        test_calc_prediction(false);
+    }
+
+    #[cfg(feature = "gpu")]
+    #[test]
+    #[should_panic]
+    fn calc_prediction_on_gpu() {
+        test_calc_prediction(true);
     }
 
     #[test]
@@ -726,28 +742,4 @@ mod tests {
         Ok(data)
     }
 
-    #[cfg(feature = "gpu")]
-    #[test]
-    fn calc_prediction_on_gpu() {
-        let model = Model::load("tmp/model.bin").unwrap();
-        assert!(model.enable_gpu_evaluation());
-        let prediction = model
-            .calc_model_prediction(
-                vec![
-                    vec![-10.0, 5.0, 753.0],
-                    vec![30.0, 1.0, 760.0],
-                    vec![40.0, 0.1, 705.0],
-                ],
-                vec![
-                    vec![String::from("north")],
-                    vec![String::from("south")],
-                    vec![String::from("south")],
-                ],
-            )
-            .unwrap();
-
-        assert_eq!(prediction[0], 0.9980003729960197);
-        assert_eq!(prediction[1], 0.00249414628534181);
-        assert_eq!(prediction[2], -0.0013677527881450977);
-    }
 }
