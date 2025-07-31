@@ -39,12 +39,14 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/backtrace_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/byteorder_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/compat_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/compiler_ut.c
   ${PROJECT_SOURCE_DIR}/util/system/compiler_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/context_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/condvar_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/cpu_id_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/datetime_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/daemon_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/defaults_ut.c
   ${PROJECT_SOURCE_DIR}/util/system/direct_io_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/env_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/error_ut.cpp
