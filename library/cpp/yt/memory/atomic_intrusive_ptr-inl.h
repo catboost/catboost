@@ -116,7 +116,7 @@ template <class T>
 TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
     : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
 {
-    other.Ptr_.store(nullptr, std::memory_order::relaxed);
+    other.Ptr_.store(uintptr_t(0), std::memory_order::relaxed);
 }
 
 template <class T>
