@@ -349,7 +349,7 @@ public:
  * @brief Execute command in shell and provide its results
  * @attention Not thread-safe
  */
-class TShellCommand: public TNonCopyable {
+class TShellCommand: public TMoveOnly {
 private:
     TShellCommand();
 
