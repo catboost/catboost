@@ -437,7 +437,7 @@ bool TSharedRefArray::AreBitwiseEqual(
         return false;
     }
     for (size_t index = 0; index < lhs.Size(); ++index) {
-        if (TRef::AreBitwiseEqual(lhs[index], rhs[index])) {
+        if (!TRef::AreBitwiseEqual(lhs[index], rhs[index])) {
             return false;
         }
     }
