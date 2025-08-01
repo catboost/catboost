@@ -429,6 +429,21 @@ TSharedRefArray TSharedRefArray::MakeCopy(
     return builder.Finish();
 }
 
+bool TSharedRefArray::AreBitwiseEqual(
+    const TSharedRefArray& lhs,
+    const TSharedRefArray& rhs)
+{
+    if (lhs.Size() != rhs.Size()) {
+        return false;
+    }
+    for (size_t index = 0; index < lhs.Size(); ++index) {
+        if (TRef::AreBitwiseEqual(lhs[index], rhs[index])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TSharedRefArrayBuilder::TSharedRefArrayBuilder(

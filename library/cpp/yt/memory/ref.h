@@ -329,6 +329,9 @@ public:
     //! The memory is marked with a given tag.
     static TSharedRefArray MakeCopy(const TSharedRefArray& array, TRefCountedTypeCookie tagCookie);
 
+    //! Checks if #lhs and #rhs consist of the same number of bitwise-equal parts.
+    static bool AreBitwiseEqual(const TSharedRefArray& lhs, const TSharedRefArray& rhs);
+
 private:
     friend class TSharedRefArrayBuilder;
 
