@@ -2,7 +2,7 @@
 build-backend = "setuptools.build_meta"
 requires = [
     "setuptools >= 64.0",
-    "cmake",
+    "cmake >= 3.24",
     "wheel",
     "jupyterlab (>=3.0.6, <3.6.0)",
     "conan ~= 2.4.1",
