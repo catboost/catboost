@@ -44,6 +44,7 @@ target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/iterator_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/path_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/tempdir_ut.cpp
 )
 
 

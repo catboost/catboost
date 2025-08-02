@@ -12,6 +12,12 @@ public:
     /// Create new directory with this fixed name. If it already exists, clear it.
     TTempDir(const TString& tempDir);
 
+    TTempDir(const TTempDir&) = delete;
+    TTempDir(TTempDir&& other);
+
+    TTempDir& operator=(const TTempDir&) = delete;
+    TTempDir& operator=(TTempDir&& other) = delete;
+
     ~TTempDir();
 
     /// Create new directory in given folder.

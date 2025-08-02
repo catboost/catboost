@@ -5,8 +5,16 @@
 #include <util/system/fs.h>
 #include <util/system/maxlen.h>
 
+#include <utility>
+
 TTempDir::TTempDir()
     : TTempDir(nullptr, TCreationToken{})
+{
+}
+
+TTempDir::TTempDir(TTempDir&& other)
+    : TempDir(std::move(other.TempDir))
+    , Remove(std::exchange(other.Remove, false))
 {
 }
 
