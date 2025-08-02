@@ -85,7 +85,11 @@ namespace {
                     out << TStringBuf(CpuBrand(store));
                 }
 
-                out << NFs::CurrentWorkingDirectory();
+                try {
+                    out << NFs::CurrentWorkingDirectory();
+                } catch (const TSystemError& e) {
+                    // the current working directory has been unliked or unavailable for similar reasons
+                }
 
                 out.Finish();
             }
