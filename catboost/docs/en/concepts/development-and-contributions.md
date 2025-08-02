@@ -217,6 +217,6 @@ The following coding conventions must be followed in order to successfully contr
 Do not change the package version when submitting pull requests. Yandex uses an internal repository for this purpose.
 
 
-## Yandex Contributor License Agreement {#yandex-cla}
+## License
 
-To contribute to {{ product }} you need to read the Yandex CLA and indicate that you agree to its terms. Details of how to do that and the text of the CLA can be found in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md).
+By contributing to this project, you agree that your contributions will be licensed under [the Apache 2.0 license](https://github.com/catboost/catboost/blob/master/LICENSE).
