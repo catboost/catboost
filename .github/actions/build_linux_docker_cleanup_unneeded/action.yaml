@@ -5,21 +5,32 @@ description: 'Build on Linux in Docker: cleanup unneeded packages & tools cache 
 runs:
   using: "composite"
   steps:
+    - name: Remove unnneeded directories
+      shell: bash
+      run: |
+        sudo rm -fr /usr/local/julia*                              # 991 Mb
+        sudo rm -fr /usr/local/share/chromium                      # 593 Mb
+        sudo rm -fr /usr/local/bin/aliyun                          # 59 Mb
+        sudo rm -fr /usr/local/aws-cli                             # 250 Mb
+
     - name: Remove apt packages
       shell: bash
       run: |
-        sudo apt-get remove -y '^llvm-.*'                       # 1150 Mb
-        sudo apt-get remove -y 'php.*'                          # 56.6 Mb
-        sudo apt-get remove -y '^mongodb-.*' --fix-missing      # 0 Mb
-        sudo apt-get remove -y '^mysql-.*' --fix-missing        # 209 Mb
+        sudo apt-get remove -y '^llvm-.*'                          # 1150 Mb
+        sudo apt-get remove -y 'php.*'                             # 56.6 Mb
+        sudo apt-get remove -y '^mongodb-.*' --fix-missing         # 0 Mb
+        sudo apt-get remove -y '^mysql-.*' --fix-missing           # 209 Mb
+        sudo apt-get remove -y '^postgresql-.*' --fix-missing      # 60.4 MB
         sudo apt-get remove -y azure-cli google-chrome-stable firefox mono-devel libgl1-mesa-dri --fix-missing    # 1500 Mb
-        sudo apt-get remove -y google-cloud-sdk --fix-missing   # 0 Mb
-        sudo apt-get remove -y google-cloud-cli --fix-missing   # 663 Mb
-        sudo apt-get remove -y '^gfortran-.*' --fix-missing     # 125 Mb
-        sudo apt-get remove -y java-common --fix-missing        # 1223 Mb
-        sudo apt-get remove -y '^r-.*' --fix-missing            # 80 Mb
-        sudo apt-get remove -y '^lib.*-dev' --fix-missing       # 954 Mb
-        sudo apt-get autoremove -y                              # 216 Mb
+        sudo apt-get remove -y google-cloud-sdk --fix-missing      # 0 Mb
+        sudo apt-get remove -y google-cloud-cli --fix-missing      # 663 Mb
+        sudo apt-get remove -y '^gfortran-.*' --fix-missing        # 125 Mb
+        sudo apt-get remove -y java-common --fix-missing           # 1223 Mb
+        sudo apt-get remove -y '^r-.*' --fix-missing               # 80 Mb
+        sudo apt-get remove -y '^lib.*-dev' --fix-missing          # 954 Mb
+        sudo apt-get remove -y microsoft-edge-stable --fix-missing # 625 Mb
+        sudo apt-get remove -y openssh-client --fix-missing        # 116 Mb
+        sudo apt-get autoremove -y                                 # 216 Mb
         sudo apt-get clean
     - name: Remove tools cache
       shell: bash
