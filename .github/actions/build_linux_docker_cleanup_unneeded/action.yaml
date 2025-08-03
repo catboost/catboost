@@ -8,17 +8,17 @@ runs:
     - name: Remove apt packages
       shell: bash
       run: |
-        sudo apt-get remove -y '^llvm-.*'
-        sudo apt-get remove -y 'php.*'
-        sudo apt-get remove -y '^mongodb-.*' --fix-missing
-        sudo apt-get remove -y '^mysql-.*' --fix-missing
-        sudo apt-get remove -y azure-cli google-chrome-stable firefox mono-devel libgl1-mesa-dri --fix-missing
-        sudo apt-get remove -y google-cloud-sdk --fix-missing
-        sudo apt-get remove -y google-cloud-cli --fix-missing
+        sudo apt-get remove -y '^llvm-.*'                       # 1150 Mb
+        sudo apt-get remove -y 'php.*'                          # 56.6 Mb
+        sudo apt-get remove -y '^mongodb-.*' --fix-missing      # 0 Mb
+        sudo apt-get remove -y '^mysql-.*' --fix-missing        # 209 Mb
+        sudo apt-get remove -y azure-cli google-chrome-stable firefox mono-devel libgl1-mesa-dri --fix-missing    # 1500 Mb
+        sudo apt-get remove -y google-cloud-sdk --fix-missing   # 0 Mb
+        sudo apt-get remove -y google-cloud-cli --fix-missing   # 663 Mb
         sudo apt-get remove -y '^gfortran-.*' --fix-missing     # 125 Mb
         sudo apt-get remove -y java-common --fix-missing        # 1223 Mb
         sudo apt-get remove -y '^r-.*' --fix-missing            # 80 Mb
-        sudo apt-get remove -y '^lib.*-dev' --fix-missing       # 716 Mb
+        sudo apt-get remove -y '^lib.*-dev' --fix-missing       # 954 Mb
         sudo apt-get autoremove -y                              # 216 Mb
         sudo apt-get clean
     - name: Remove tools cache
