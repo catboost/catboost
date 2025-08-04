@@ -246,7 +246,7 @@ public:
     #endif
             result.Ptr = mmap((caddr_t) nullptr, size, ModeToMmapProt(Mode_), ModeToMmapFlags(Mode_), File_.GetHandle(), base);
 
-            if (result.Ptr == (char*)(-1)) {
+            if (result.Ptr == MAP_FAILED) {
                 result.Ptr = nullptr;
             }
     #if defined(_unix_)
