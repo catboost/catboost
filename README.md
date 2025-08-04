@@ -59,9 +59,7 @@ Help to Make CatBoost Better
 ----------------------------
 * Check out [open problems](https://github.com/catboost/catboost/blob/master/open_problems/open_problems.md) and [help wanted issues](https://github.com/catboost/catboost/labels/help%20wanted) to see what can be improved, or open an issue if you want something.
 * Add your stories and experience to [Awesome CatBoost](AWESOME.md).
-* To contribute to CatBoost you need to first read CLA text and add to your pull request, that you agree to the terms of the CLA. More information can be found
-in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md)
-* Instructions for contributors can be found [here](https://catboost.ai/docs/concepts/development-and-contributions.html).
+* [Instructions for contributors](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md).
 
 News
 --------------

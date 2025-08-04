@@ -8,8 +8,6 @@ The documentation is developed using [Yandex Flavored Markdown](https://github.c
 
 ## Making the CatBoost docs better
 
-To contribute to the CatBoost docs you need to first read the [Yandex Contributor License Agreement](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md) (CLA) text and add to your pull request, that you agree to the terms of the CLA. Instructions for contributors can be found [here](https://catboost.ai/docs/concepts/development-and-contributions.html).
-
 If you notice a typo or error in the documentation or want to add any section, create a pull request (PR) with edits via GitHub.
 
 ## Building the CatBoost docs
