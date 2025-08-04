@@ -1,5 +1,5 @@
 #include <Python.h>
-#include <contrib/tools/python3/Include/internal/pycore_runtime.h> // _PyRuntime_Initialize()
+#include <internal/pycore_runtime.h> // _PyRuntime_Initialize()
 
 #include <stdlib.h>
 #include <string.h>
