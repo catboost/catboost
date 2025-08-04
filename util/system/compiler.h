@@ -678,6 +678,24 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #endif
 
 /**
+ * @def Y_LIFETIME_CAPTURE_BY(X)
+ *
+ * The attribute on a function parameter or implicit object parameter indicates
+ * that the capturing entity X may refer to the object referred by that parameter.
+ */
+#if defined(__clang__) && defined(__cplusplus) && defined(__has_cpp_attribute)
+    #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
+        #define Y_LIFETIME_CAPTURE_BY(X)
+    #elif __has_cpp_attribute(clang::lifetime_capture_by)
+        #define Y_LIFETIME_CAPTURE_BY(X) [[clang::lifetime_capture_by(X)]]
+    #else
+        #define Y_LIFETIME_CAPTURE_BY(X)
+    #endif
+#else
+    #define Y_LIFETIME_CAPTURE_BY(X)
+#endif
+
+/**
  * @def Y_HAVE_ATTRIBUTE
  *
  * A function-like feature checking macro that is a wrapper around
