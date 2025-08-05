@@ -414,47 +414,8 @@ auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Non-container objects.
-
-#define XX(valueType, castType, genericSpec) \
-    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
-    { \
-        NYT::NDetail::FormatIntValue(builder, static_cast<castType>(value), spec, genericSpec); \
-    }
-
-XX(i8,                  i32,      TStringBuf("d"))
-XX(ui8,                 ui32,     TStringBuf("u"))
-XX(i16,                 i32,      TStringBuf("d"))
-XX(ui16,                ui32,     TStringBuf("u"))
-XX(i32,                 i32,      TStringBuf("d"))
-XX(ui32,                ui32,     TStringBuf("u"))
-XX(long,                i64,      TStringBuf(PRIdLEAST64))
-XX(long long,           i64,      TStringBuf(PRIdLEAST64))
-XX(unsigned long,       ui64,     TStringBuf(PRIuLEAST64))
-XX(unsigned long long,  ui64,     TStringBuf(PRIuLEAST64))
-
-#undef XX
-
-#define XX(valueType, castType, genericSpec) \
-    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
-    { \
-        NYT::NDetail::FormatValueViaSprintf(builder, static_cast<castType>(value), spec, genericSpec); \
-    }
-
-XX(double,              double,   TStringBuf("lf"))
-XX(float,               float,    TStringBuf("f"))
-
-#undef XX
-
-// Pointer
-template <class T>
-void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf spec)
-{
-    NYT::NDetail::FormatPointerValue(builder, static_cast<const void*>(value), spec);
-}
-
-// TStringBuf
-inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBuf spec)
+template <class TStringBuilder>
+void FormatString(TStringBuilder* builder, TStringBuf value, TStringBuf spec)
 {
     if (!spec) {
         builder->AppendString(value);
@@ -541,6 +502,53 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
     if (padRight) {
         builder->AppendChar(' ', padding);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Non-container objects.
+
+#define XX(valueType, castType, genericSpec) \
+    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
+    { \
+        NYT::NDetail::FormatIntValue(builder, static_cast<castType>(value), spec, genericSpec); \
+    }
+
+XX(i8,                  i32,      TStringBuf("d"))
+XX(ui8,                 ui32,     TStringBuf("u"))
+XX(i16,                 i32,      TStringBuf("d"))
+XX(ui16,                ui32,     TStringBuf("u"))
+XX(i32,                 i32,      TStringBuf("d"))
+XX(ui32,                ui32,     TStringBuf("u"))
+XX(long,                i64,      TStringBuf(PRIdLEAST64))
+XX(long long,           i64,      TStringBuf(PRIdLEAST64))
+XX(unsigned long,       ui64,     TStringBuf(PRIuLEAST64))
+XX(unsigned long long,  ui64,     TStringBuf(PRIuLEAST64))
+
+#undef XX
+
+#define XX(valueType, castType, genericSpec) \
+    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
+    { \
+        NYT::NDetail::FormatValueViaSprintf(builder, static_cast<castType>(value), spec, genericSpec); \
+    }
+
+XX(double,              double,   TStringBuf("lf"))
+XX(float,               float,    TStringBuf("f"))
+
+#undef XX
+
+// Pointer
+template <class T>
+void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf spec)
+{
+    NYT::NDetail::FormatPointerValue(builder, static_cast<const void*>(value), spec);
+}
+
+// TStringBuf
+inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBuf spec)
+{
+    FormatString(builder, value, spec);
 }
 
 // TString
