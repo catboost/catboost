@@ -47,7 +47,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.0',
             'spark_version_placeholder': '3.0.1',
             'hadoop_version_placeholder': '2.7.3',
@@ -63,7 +63,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.1',
             'spark_version_placeholder': '3.1.0',
             'hadoop_version_placeholder': '3.2.0',
@@ -79,7 +79,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.2',
             'spark_version_placeholder': '3.2.0',
             'hadoop_version_placeholder': '3.3.1',
@@ -95,7 +95,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
+            'scala_version_placeholder': '2.13.16',
             'spark_compat_version_placeholder': '3.2',
             'spark_version_placeholder': '3.2.0',
             'hadoop_version_placeholder': '3.3.1',
@@ -111,7 +111,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.3',
             'spark_version_placeholder': '3.3.0',
             'hadoop_version_placeholder': '3.3.2',
@@ -127,7 +127,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
+            'scala_version_placeholder': '2.13.16',
             'spark_compat_version_placeholder': '3.3',
             'spark_version_placeholder': '3.3.0',
             'hadoop_version_placeholder': '3.3.2',
@@ -143,7 +143,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.4',
             'spark_version_placeholder': '3.4.0',
             'hadoop_version_placeholder': '3.3.4',
@@ -159,7 +159,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
+            'scala_version_placeholder': '2.13.16',
             'spark_compat_version_placeholder': '3.4',
             'spark_version_placeholder': '3.4.0',
             'hadoop_version_placeholder': '3.3.4',
@@ -175,7 +175,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.5/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
+            'scala_version_placeholder': '2.12.20',
             'spark_compat_version_placeholder': '3.5',
             'spark_version_placeholder': '3.5.0',
             'hadoop_version_placeholder': '3.3.4',
@@ -191,7 +191,7 @@ configs = [
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_3.5/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
+            'scala_version_placeholder': '2.13.16',
             'spark_compat_version_placeholder': '3.5',
             'spark_version_placeholder': '3.5.0',
             'hadoop_version_placeholder': '3.3.4',
