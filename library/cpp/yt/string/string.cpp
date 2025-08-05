@@ -65,42 +65,26 @@ TString CamelCaseToUnderscoreCase(TStringBuf str)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TString TrimLeadingWhitespaces(TStringBuf str)
+[[nodiscard]] TStringBuf TrimLeadingWhitespaces(TStringBuf str Y_LIFETIME_BOUND)
 {
-    for (size_t i = 0; i < str.size(); ++i) {
-        if (str[i] != ' ') {
-            return TString(str.substr(i));
-        }
-    }
-    return "";
+    auto begin = str.find_first_not_of(' ');
+    return begin == TStringBuf::npos ? "" : str.substr(begin);
 }
 
-TString Trim(TStringBuf str, TStringBuf whitespaces)
+[[nodiscard]] TStringBuf Trim(TStringBuf str Y_LIFETIME_BOUND, TStringBuf whitespaces)
 {
-    size_t end = str.size();
-    while (end > 0) {
-        size_t i = end - 1;
-        bool isWhitespace = false;
-        for (auto c : whitespaces) {
-            if (str[i] == c) {
-                isWhitespace = true;
-                break;
-            }
-        }
-        if (!isWhitespace) {
-            break;
-        }
-        --end;
+    if (whitespaces.empty()) {
+        return str;
     }
+    auto end = str.find_last_not_of(whitespaces);
 
-    if (end == 0) {
+    if (end == TStringBuf::npos) {
         return "";
     }
 
-    size_t begin = str.find_first_not_of(whitespaces);
-    YT_VERIFY(begin != TString::npos);
-    YT_VERIFY(begin < end);
-    return TString(str.substr(begin, end - begin));
+    auto begin = str.find_first_not_of(whitespaces);
+    YT_VERIFY(begin != TStringBuf::npos);
+    return str.substr(begin, end - begin + 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
