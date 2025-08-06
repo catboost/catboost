@@ -13,7 +13,7 @@
 #endif
 
 /**
- * On Windows there may be many copies of enviroment variables, there at least two known, one is
+ * On Windows there may be many copies of environment variables, there at least two known, one is
  * manipulated by Win32 API, another by C runtime, so we must be consistent in the choice of
  * functions used to manipulate them.
  *
