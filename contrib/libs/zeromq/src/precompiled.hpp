@@ -1,56 +1,107 @@
-/*
-    Copyright (c) 2007-2015 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* SPDX-License-Identifier: MPL-2.0 */
 
 #ifndef __ZMQ_PRECOMPILED_HPP_INCLUDED__
 #define __ZMQ_PRECOMPILED_HPP_INCLUDED__
 
-#ifdef _MSC_VER
+//  On AIX platform, poll.h has to be included first to get consistent
+//  definition of pollfd structure (AIX uses 'reqevents' and 'retnevents'
+//  instead of 'events' and 'revents' and defines macros to map from POSIX-y
+//  names to AIX-specific names).
+//  zmq.h must be included *after* poll.h for AIX to build properly.
+//  precompiled.hpp includes include/zmq.h
+#if defined ZMQ_POLL_BASED_ON_POLL && defined ZMQ_HAVE_AIX
+#include <poll.h>
+#endif
 
-// Windows headers
 #include "platform.hpp"
-#include "windows.hpp"
-#include <fcntl.h>
-#include <intrin.h>
-#include <io.h>
-#include <rpc.h>
-#include <sys/stat.h>
 
-// standard C++ headers
-#include <algorithm>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
+#define __STDC_LIMIT_MACROS
+
+// This must be included before any windows headers are compiled.
+#if defined ZMQ_HAVE_WINDOWS
+#include "windows.hpp"
+#endif
+
+#if defined ZMQ_HAVE_OPENBSD
+#define ucred sockpeercred
+#endif
 
 // 0MQ definitions and exported functions
 #include "../include/zmq.h"
 
+// 0MQ DRAFT definitions and exported functions
+#include "zmq_draft.h"
+
+// TODO: expand pch implementation to non-windows builds.
+#ifdef _MSC_VER
+
+// standard C headers
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <io.h>
+#include <ipexport.h>
+#include <iphlpapi.h>
+#include <limits.h>
+#include <mstcpip.h>
+#include <mswsock.h>
+#include <process.h>
+#include <rpc.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+// standard C++ headers
+#include <algorithm>
+#include <climits>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <deque>
+#include <limits>
+#include <map>
+#include <new>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#if _MSC_VER >= 1800
+#include <inttypes.h>
+#endif
+
+#if _MSC_VER >= 1700
+#include <atomic>
+#endif
+
+#if defined _WIN32_WCE
+#include <cmnintrin.h>
+#else
+#include <intrin.h>
+#endif
+
+#if defined HAVE_LIBGSSAPI_KRB5
+#include "err.hpp"
+#include "msg.hpp"
+#include "mechanism.hpp"
+#include "session_base.hpp"
+#include "gssapi_server.hpp"
+#include "wire.hpp"
+#include <gssapi/gssapi.h>
+#include <gssapi/gssapi_krb5.h>
+#endif
+
+#include "options.hpp"
+
 #endif // _MSC_VER
 
-#endif
+#endif //ifndef __ZMQ_PRECOMPILED_HPP_INCLUDED__
