@@ -2,6 +2,7 @@
 
 #include <util/folder/dirut.h>
 #include <util/folder/path.h>
+#include <util/generic/noncopyable.h>
 #include <util/generic/singleton.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
@@ -15,6 +16,7 @@
 #include <util/system/error.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
+#include <util/system/sysstat.h>
 
 #ifdef _darwin_
 #include <sys/types.h>
@@ -29,7 +31,7 @@ namespace {
         }                                                                 \
     } while (false)
 
-    class TPortGuard : public NTesting::IPort {
+    class TPortGuard : public NTesting::IPort, TNonCopyable {
     public:
         TPortGuard(ui16 port, THolder<TFileLock> lock)
             : Lock_(std::move(lock))
@@ -38,7 +40,16 @@ namespace {
         }
 
         ~TPortGuard() override {
-            Y_VERIFY_SYSERROR(NFs::Remove(Lock_->GetName()));
+            try {
+                if (!NFs::Remove(Lock_->GetName())) {
+                    // Deletion may fail if the current user does not have
+                    // write permission to the PORT_SYNC_PATH directory.
+                    // At least let's release the lock file.
+                    Lock_->Release();
+                }
+            } catch (const TSystemError& e) {
+                Y_ABORT("Failed to unlock port %d, error=%d", Port_, e.Status());
+            }
         }
 
         ui16 Get() override {
@@ -107,6 +118,7 @@ namespace {
             }
             Y_ABORT_UNLESS(SyncDir_.IsDefined());
             NFs::MakeDirectoryRecursive(SyncDir_);
+            Chmod(SyncDir_.c_str(), NFs::FP_COMMON_FILE); // override umask
 
             Ranges_ = GetPortRanges();
             TotalCount_ = 0;
