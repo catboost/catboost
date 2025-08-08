@@ -4796,7 +4796,7 @@ class CatBoostClassifier(CatBoost):
         MVS bootstrap is supported only on GPU.
 
     subsample : float, [default=None]
-        Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
+        Sample rate for bagging. This parameter can be used Poisson or Bernoulli bootstrap types.
 
     mvs_reg : float, [default is set automatically at each iteration based on gradient distribution]
         Regularization parameter for MVS sampling algorithm
