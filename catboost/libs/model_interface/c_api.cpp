@@ -300,6 +300,17 @@ CATBOOST_API bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const 
     return true;
 }
 
+CATBOOST_API bool LoadFullModelZeroCopy(ModelCalcerHandle* modelHandle, const void* binaryBuffer, size_t binaryBufferSize) {
+    try {
+        *FULL_MODEL_PTR(modelHandle) = ReadZeroCopyModel(binaryBuffer, binaryBufferSize);
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+
+    return true;
+}
+
 CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId) {
     try {
         //TODO(kirillovs): fix this after adding set evaluator props interface
