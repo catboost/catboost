@@ -20,9 +20,9 @@ inline void y_deallocate(void* p) {
 }
 
 /**
- * Behavior of realloc from C++99 to C++11 changed (http://www.cplusplus.com/reference/cstdlib/realloc/).
+ * Behavior of 'realloc' changed from C++98 to C++11 (http://www.cplusplus.com/reference/cstdlib/realloc/).
  *
- * Our implementation work as C++99: if new_sz == 0 free will be called on 'p' and nullptr returned.
+ * Our implementation works as in C++98: if new_sz == 0 'free' will be called on 'p' and 'nullptr' returned.
  */
 inline void* y_reallocate(void* p, size_t new_sz) {
     if (!new_sz) {
