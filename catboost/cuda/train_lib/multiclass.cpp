@@ -11,4 +11,5 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MultiCrossEntropyRegistrator(GetTrainerFactoryKey(ELossFunction::MultiCrossEntropy));
 
     TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MultiRMSERegistrator(GetTrainerFactoryKey(ELossFunction::MultiRMSE));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MultiRMSEWithMissingValuesRegistrator(GetTrainerFactoryKey(ELossFunction::MultiRMSEWithMissingValues));
 }
