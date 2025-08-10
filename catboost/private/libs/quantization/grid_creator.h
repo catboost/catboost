@@ -26,7 +26,7 @@ namespace NCB {
         virtual const TVector<TVector<float>>& Borders() = 0;
 
         virtual TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature,
-                                            ui32 borderCount) const = 0;
+                                            ui32 borderCount, ENanMode nanMode = ENanMode::Forbidden) const = 0;
     };
 
     template <class T>

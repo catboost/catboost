@@ -18,4 +18,7 @@ namespace NCudaLib {
 
     REGISTER_KERNEL(0xA11BB09, TMultiRMSEValueAndDerKernel);
     REGISTER_KERNEL(0xA11BB0A, TMultiRMSESecondDerKernel);
+
+    REGISTER_KERNEL(0xA11BB0B, TMultiRMSEWithMissingValuesValueAndDerKernel);
+    REGISTER_KERNEL(0xA11BB0C, TMultiRMSEWithMissingValuesSecondDerKernel);
 }
