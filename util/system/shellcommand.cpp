@@ -192,8 +192,7 @@ using REALPIPEHANDLE = PIPEHANDLE;
     #define INVALID_REALPIPEHANDLE INVALID_PIPEHANDLE
 #endif
 
-class TShellCommand::TImpl
-    : public TAtomicRefCount<TShellCommand::TImpl> {
+class TShellCommand::TImpl {
 private:
     TString Command;
     TList<TString> Arguments;
