@@ -67,6 +67,7 @@ private:
     struct T ## Tag \
     { }; \
     using T = ::NYT::TStrongTypedef<TUnderlying, T##Tag>; \
+    static_assert(true)
 
 template <class T>
 struct TStrongTypedefTraits;
