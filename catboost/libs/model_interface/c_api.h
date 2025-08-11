@@ -102,6 +102,19 @@ CATBOOST_API bool LoadFullModelFromBuffer(
     const void* binaryBuffer,
     size_t binaryBufferSize);
 
+
+/**
+ * Use model directly from given memory region with zero-copy method
+ * @param calcer
+ * @param binaryBuffer pointer to a memory buffer where model file is mapped
+ * @param binaryBufferSize size of the buffer in bytes
+ * @return false if error occured
+ */
+CATBOOST_API bool LoadFullModelZeroCopy(
+    ModelCalcerHandle* modelHandle,
+    const void* binaryBuffer,
+    size_t binaryBufferSize);
+
 /**
  * Use CUDA GPU device for model evaluation
 */
