@@ -8,8 +8,6 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 WITHOUT_LICENSE_TEXTS()
 
-SUBSCRIBER(g:yatool)
-
 NO_LINT()
 
 # Minimal set of the files required to support coverage (DEVTOOLS-4095)
