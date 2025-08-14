@@ -144,7 +144,7 @@ namespace NCatboostOptions {
     const TTextColumnDictionaryOptions& TRuntimeTextOptions::GetDictionaryOptions(const TString& dictionaryId) const {
         CB_ENSURE(
             Dictionaries->contains(dictionaryId),
-            "No options for dictionaryId " << dictionaryId
+            "No options for dictionary_id " << dictionaryId
         );
         return Dictionaries->at(dictionaryId);
     }
