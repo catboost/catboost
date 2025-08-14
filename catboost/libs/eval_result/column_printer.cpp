@@ -172,8 +172,10 @@ namespace NCB {
                     } else {
                         str << (predictionType == EPredictionType::RMSEWithUncertainty ? "Std" : "Log(Std)");
                     }
-                } else if (lossFunction == ELossFunction::MultiQuantile) {
+                } else if (lossFunction == ELossFunction::MultiQuantile ) {
                     str << ":QuantileId=" << classId;
+                } else if (lossFunction == ELossFunction::MultiRMSE ) {
+                    str << ":Dim=" << classId;
                 } else {
                     str << (isMultiTarget && !isMultiLabel ? ":Dim=" : ":Class=")
                         << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
