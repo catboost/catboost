@@ -24,6 +24,15 @@ cls_struct_2byte cls_struct_2byte_fn(struct cls_struct_2byte a1,
 
   printf("%d %d %d %d: %d %d\n", a1.a, a1.b, a2.a, a2.b, result.a, result.b);
 
+  CHECK(a1.a == 12);
+  CHECK(a1.b == 127);
+
+  CHECK(a2.a == 1);
+  CHECK(a2.b == 13);
+
+  CHECK(result.a == 13);
+  CHECK(result.b == 140);
+
   return  result;
 }
 
@@ -78,6 +87,8 @@ int main (void)
   /* { dg-output "12 127 1 13: 13 140" } */
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 13 140" } */
+  CHECK(res_dbl.a == 13);
+  CHECK(res_dbl.b == 140);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_2byte_gn, NULL, code) == FFI_OK);
 
@@ -85,6 +96,8 @@ int main (void)
   /* { dg-output "\n12 127 1 13: 13 140" } */
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 13 140" } */
+  CHECK(res_dbl.a == 13);
+  CHECK(res_dbl.b == 140);
 
   exit(0);
 }

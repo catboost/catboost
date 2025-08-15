@@ -14,6 +14,8 @@ static void cls_ret_ushort_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
 
   printf("%d: %d\n",*(unsigned short *)args[0],
 	 (int)*(ffi_arg *)(resp));
+  CHECK(*(unsigned short *)args[0] == 65535);
+  CHECK((int)*(ffi_arg *)(resp) == 65535);
 }
 typedef unsigned short (*cls_ret_ushort)(unsigned short);
 
@@ -38,6 +40,7 @@ int main (void)
   /* { dg-output "65535: 65535" } */
   printf("res: %d\n",res);
   /* { dg-output "\nres: 65535" } */
+  CHECK(res == 65535);
 
   exit(0);
 }

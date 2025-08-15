@@ -37,6 +37,7 @@ closure_test_fn0(ffi_cif* cif __UNUSED__, void* resp, void** args,
 	 (int)*(int *)args[12], (int)(*(int *)args[13]),
 	 (int)(*(double *)args[14]), (int)(*(double *)args[15]),
 	 (int)(intptr_t)userdata, (int)*(ffi_arg *)resp);
+  CHECK((int)*(ffi_arg *)resp == 680);
 
 }
 
@@ -86,5 +87,6 @@ int main (void)
   /* { dg-output "1 2 3 4 127 429 7 8 9 10 11 12 13 19 21 1 3: 680" } */
   printf("res: %d\n",res);
   /* { dg-output "\nres: 680" } */
+  CHECK(res == 680);
   exit(0);
 }

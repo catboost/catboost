@@ -9,6 +9,9 @@
 #include "ffitest.h"
 static long long return_ll(int ll0, long long ll1, int ll2)
 {
+  CHECK(ll0 == 11111111);
+  CHECK(ll1 == 11111111111000LL);
+  CHECK(ll2 == 11111111);
   return ll0 + ll1 + ll2;
 }
 
@@ -39,5 +42,7 @@ int main (void)
   ffi_call(&cif, FFI_FN(return_ll), &rlonglong, values);
   printf("res: %" PRIdLL ", %" PRIdLL "\n", rlonglong, ll0 + ll1 + ll2);
   /* { dg-output "res: 11111133333222, 11111133333222" } */
+  CHECK(rlonglong == 11111133333222);
+  CHECK(ll0 + ll1 + ll2 == 11111133333222);
   exit(0);
 }

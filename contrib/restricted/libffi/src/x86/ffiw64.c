@@ -30,6 +30,7 @@
 #include <ffi_common.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <tramp.h>
 
 #ifdef X86_WIN64
 #define EFI64(name) name
@@ -107,6 +108,13 @@ EFI64(ffi_prep_cif_machdep)(ffi_cif *cif)
   return FFI_OK;
 }
 
+/* We perform some black magic here to use some of the parent's stack frame in
+ * ffi_call_win64() that breaks with the MSVC compiler with the /RTCs or /GZ
+ * flags.  Disable the 'Stack frame run time error checking' for this function
+ * so we don't hit weird exceptions in debug builds. */
+#if defined(_MSC_VER)
+#pragma runtime_checks("s", off)
+#endif
 static void
 ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
 	      void **avalue, void *closure)
@@ -115,8 +123,24 @@ ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
   UINT64 *stack;
   size_t rsize;
   struct win64_call_frame *frame;
+  ffi_type **arg_types = cif->arg_types;
+  int nargs = cif->nargs;
 
   FFI_ASSERT(cif->abi == FFI_GNUW64 || cif->abi == FFI_WIN64);
+
+  /* If we have any large structure arguments, make a copy so we are passing
+     by value.  */
+  for (i = 0; i < nargs; i++)
+    {
+      ffi_type *at = arg_types[i];
+      int size = at->size;
+      if (at->type == FFI_TYPE_STRUCT && size > 8)
+        {
+          char *argcopy = alloca (size);
+          memcpy (argcopy, avalue[i], size);
+          avalue[i] = argcopy;
+        }
+    }
 
   flags = cif->flags;
   rsize = 0;
@@ -171,6 +195,9 @@ ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
 
   ffi_call_win64 (stack, frame, closure);
 }
+#if defined(_MSC_VER)
+#pragma runtime_checks("s", restore)
+#endif
 
 void
 EFI64(ffi_call)(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
@@ -187,22 +214,30 @@ EFI64(ffi_call_go)(ffi_cif *cif, void (*fn)(void), void *rvalue,
 
 
 extern void ffi_closure_win64(void) FFI_HIDDEN;
+#if defined(FFI_EXEC_STATIC_TRAMP)
+extern void ffi_closure_win64_alt(void) FFI_HIDDEN;
+#endif
+
+#ifdef FFI_GO_CLOSURES
 extern void ffi_go_closure_win64(void) FFI_HIDDEN;
+#endif
 
 ffi_status
 EFI64(ffi_prep_closure_loc)(ffi_closure* closure,
 		      ffi_cif* cif,
 		      void (*fun)(ffi_cif*, void*, void**, void*),
 		      void *user_data,
-		      void *codeloc)
+		      void *codeloc MAYBE_UNUSED)
 {
-  static const unsigned char trampoline[16] = {
-    /* leaq  -0x7(%rip),%r10   # 0x0  */
-    0x4c, 0x8d, 0x15, 0xf9, 0xff, 0xff, 0xff,
-    /* jmpq  *0x3(%rip)        # 0x10 */
-    0xff, 0x25, 0x03, 0x00, 0x00, 0x00,
-    /* nopl  (%rax) */
-    0x0f, 0x1f, 0x00
+  static const unsigned char trampoline[FFI_TRAMPOLINE_SIZE - 8] = {
+    /* endbr64 */
+    0xf3, 0x0f, 0x1e, 0xfa,
+    /* leaq  -0xb(%rip),%r10   # 0x0  */
+    0x4c, 0x8d, 0x15, 0xf5, 0xff, 0xff, 0xff,
+    /* jmpq  *0x7(%rip)        # 0x18 */
+    0xff, 0x25, 0x07, 0x00, 0x00, 0x00,
+    /* nopl  0(%rax) */
+    0x0f, 0x1f, 0x80, 0x00, 0x00, 0x00, 0x00
   };
   char *tramp = closure->tramp;
 
@@ -215,9 +250,22 @@ EFI64(ffi_prep_closure_loc)(ffi_closure* closure,
       return FFI_BAD_ABI;
     }
 
-  memcpy (tramp, trampoline, sizeof(trampoline));
-  *(UINT64 *)(tramp + 16) = (uintptr_t)ffi_closure_win64;
+#if defined(FFI_EXEC_STATIC_TRAMP)
+  if (ffi_tramp_is_present(closure))
+    {
+      /* Initialize the static trampoline's parameters. */
+      ffi_tramp_set_parms (closure->ftramp, ffi_closure_win64_alt, closure);
+      goto out;
+    }
+#endif
 
+  /* Initialize the dynamic trampoline. */
+  memcpy (tramp, trampoline, sizeof(trampoline));
+  *(UINT64 *)(tramp + sizeof (trampoline)) = (uintptr_t)ffi_closure_win64;
+
+#if defined(FFI_EXEC_STATIC_TRAMP)
+out:
+#endif
   closure->cif = cif;
   closure->fun = fun;
   closure->user_data = user_data;
@@ -225,6 +273,7 @@ EFI64(ffi_prep_closure_loc)(ffi_closure* closure,
   return FFI_OK;
 }
 
+#ifdef FFI_GO_CLOSURES
 ffi_status
 EFI64(ffi_prep_go_closure)(ffi_go_closure* closure, ffi_cif* cif,
 		     void (*fun)(ffi_cif*, void*, void**, void*))
@@ -244,6 +293,7 @@ EFI64(ffi_prep_go_closure)(ffi_go_closure* closure, ffi_cif* cif,
 
   return FFI_OK;
 }
+#endif
 
 struct win64_closure_frame
 {

@@ -20,6 +20,11 @@ closure_test(ffi_cif* cif __UNUSED__, void* resp, void** args, void* userdata)
 	 (int)(*(int *)args[2]), (int)(*(int *)args[3]),
          (int)*(ffi_arg *)resp);
 
+  CHECK((int)*(int *)args[0] == 0);
+  CHECK((int)*(int *)args[1] == 1);
+  CHECK((int)*(int *)args[2] == 2);
+  CHECK((int)*(int *)args[3] == 3);
+  CHECK((int)*(ffi_arg *)resp == 9);
 }
 
 typedef int (ABI_ATTR *closure_test_type0)(int, int, int, int);
@@ -50,6 +55,7 @@ int main (void)
 
   printf("res: %d\n",res);
   /* { dg-output "\nres: 9" } */
+  CHECK(res == 9);
 
   exit(0);
 }

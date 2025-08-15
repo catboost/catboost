@@ -4,27 +4,23 @@
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-/* #undef CRAY_STACKSEG_END */
-
-/* Define to 1 if using `alloca.c'. */
-/* #undef C_ALLOCA */
-
 /* Define to the flags needed for the .section .eh_frame directive. */
 /* #undef EH_FRAME_FLAGS */
 
 /* Define this if you want extra debugging. */
 /* #undef FFI_DEBUG */
 
-/* Cannot use PROT_EXEC on this target, so, we revert to alternative means */
+/* Define this if you want statically defined trampolines */
+/* #undef FFI_EXEC_STATIC_TRAMP */
+
+/* Cannot use PROT_EXEC on this target, so, we revert to alternative means */
 /* #undef FFI_EXEC_TRAMPOLINE_TABLE */
 
-/* Define this if you want to enable pax emulated trampolines */
+/* Define this if you want to enable pax emulated trampolines (experimental)
+   */
 /* #undef FFI_MMAP_EXEC_EMUTRAMP_PAX */
 
-/* Cannot use malloc on this target, so, we revert to alternative means */
+/* Cannot use malloc on this target, so, we revert to alternative means */
 /* #undef FFI_MMAP_EXEC_WRIT */
 
 /* Define this if you do not want support for the raw API. */
@@ -33,12 +29,11 @@
 /* Define this if you do not want support for aggregate types. */
 /* #undef FFI_NO_STRUCTS */
 
-/* Define to 1 if you have `alloca', as a function or macro. */
-#define HAVE_ALLOCA 1
-
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if you have the <alloca.h> header file. */
 /* #undef HAVE_ALLOCA_H */
+
+/* Define if your compiler supports pointer authentication. */
+/* #undef HAVE_ARM64E_PTRAUTH */
 
 /* Define if your assembler supports .cfi_* directives. */
 /* #undef HAVE_AS_CFI_PSEUDO_OP */
@@ -75,34 +70,19 @@
 /* #undef HAVE_LONG_DOUBLE_VARIANT */
 
 /* Define to 1 if you have the `memcpy' function. */
-/* #undef HAVE_MEMCPY */
+#define HAVE_MEMCPY 1
 
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
-
-/* Define to 1 if you have the `mkostemp' function. */
-/* #undef HAVE_MKOSTEMP */
-
-/* Define to 1 if you have the `mmap' function. */
-/* #undef HAVE_MMAP */
-
-/* Define if mmap with MAP_ANON(YMOUS) works. */
-/* #undef HAVE_MMAP_ANON */
-
-/* Define if mmap of /dev/zero works. */
-/* #undef HAVE_MMAP_DEV_ZERO */
-
-/* Define if read-only mmap of a plain file works. */
-/* #undef HAVE_MMAP_FILE */
-
-/* Define if your compiler supports pointer authentication. */
-/* #undef HAVE_PTRAUTH */
+/* Define to 1 if you have the `memfd_create' function. */
+/* #undef HAVE_MEMFD_CREATE */
 
 /* Define if .eh_frame sections should be read-only. */
 /* #undef HAVE_RO_EH_FRAME */
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
@@ -113,8 +93,8 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the <sys/mman.h> header file. */
-/* #undef HAVE_SYS_MMAN_H */
+/* Define to 1 if you have the <sys/memfd.h> header file. */
+/* #undef HAVE_SYS_MEMFD_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -128,12 +108,8 @@
 /* Define to 1 if GNU symbol versioning is used for libatomic. */
 /* #undef LIBFFI_GNU_SYMBOL_VERSIONING */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-/* #undef NO_MINUS_C_MINUS_O */
 
 /* Name of package */
 #define PACKAGE "libffi"
@@ -145,7 +121,7 @@
 #define PACKAGE_NAME "libffi"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libffi 3.3"
+#define PACKAGE_STRING "libffi 3.5.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libffi"
@@ -154,7 +130,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.3"
+#define PACKAGE_VERSION "3.5.2"
 
 /* The size of `double', as computed by sizeof. */
 #define SIZEOF_DOUBLE 8
@@ -165,15 +141,9 @@
 /* The size of `size_t', as computed by sizeof. */
 #define SIZEOF_SIZE_T 8
 
-/* If using the C implementation of alloca, define if you know the
-   direction of stack growth for your system; otherwise it will be
-   automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
-/* #undef STACK_DIRECTION */
-
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
 
 /* Define if symbols are underscored. */
@@ -184,7 +154,7 @@
 /* #undef USING_PURIFY */
 
 /* Version number of package */
-#define VERSION "3.3"
+#define VERSION "3.5.2"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -197,9 +167,6 @@
 /* #  undef WORDS_BIGENDIAN */
 # endif
 #endif
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-/* #undef size_t */
 
 
 #ifdef HAVE_HIDDEN_VISIBILITY_ATTRIBUTE

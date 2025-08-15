@@ -7,7 +7,7 @@
 /* { dg-do run } */
 #include "ffitest.h"
 
-unsigned short test_func_fn(unsigned char a1, unsigned short a2,
+static unsigned short test_func_fn(unsigned char a1, unsigned short a2,
 			    unsigned char a3, unsigned short a4)
 {
   unsigned short result;
@@ -15,6 +15,12 @@ unsigned short test_func_fn(unsigned char a1, unsigned short a2,
   result = a1 + a2 + a3 + a4;
 
   printf("%d %d %d %d: %d\n", a1, a2, a3, a4, result);
+
+  CHECK(a1 == 1);
+  CHECK(a2 == 2);
+  CHECK(a3 == 127);
+  CHECK(a4 == 128);
+  CHECK(result == 258);
 
   return result;
 
@@ -74,6 +80,7 @@ int main (void)
   /* { dg-output "1 2 127 128: 258" } */
   printf("res: %d\n", (unsigned short)res_call);
   /* { dg-output "\nres: 258" } */
+  CHECK((unsigned short)res_call == 258);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == FFI_OK);
 
@@ -81,6 +88,7 @@ int main (void)
   /* { dg-output "\n1 2 127 128: 258" } */
   printf("res: %d\n", res_closure);
   /* { dg-output "\nres: 258" } */
+  CHECK(res_closure == 258);
 
   exit(0);
 }

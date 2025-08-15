@@ -17,7 +17,7 @@ typedef struct cls_struct_6byte {
   unsigned char f;
 } cls_struct_6byte;
 
-cls_struct_6byte cls_struct_6byte_fn(struct cls_struct_6byte a1,
+static cls_struct_6byte cls_struct_6byte_fn(struct cls_struct_6byte a1,
 			    struct cls_struct_6byte a2)
 {
   struct cls_struct_6byte result;
@@ -33,6 +33,27 @@ cls_struct_6byte cls_struct_6byte_fn(struct cls_struct_6byte a1,
 	 a1.a, a1.b, a1.c, a1.d, a1.e, a1.f,
 	 a2.a, a2.b, a2.c, a2.d, a2.e, a2.f,
 	 result.a, result.b, result.c, result.d, result.e, result.f);
+
+  CHECK(a1.a == 127);
+  CHECK(a1.b == 120);
+  CHECK(a1.c == 1);
+  CHECK(a1.d == 3);
+  CHECK(a1.e == 4);
+  CHECK(a1.f == 5);
+
+  CHECK(a2.a == 12);
+  CHECK(a2.b == 128);
+  CHECK(a2.c == 9);
+  CHECK(a2.d == 3);
+  CHECK(a2.e == 4);
+  CHECK(a2.f == 5);
+
+  CHECK(result.a == 139);
+  CHECK(result.b == 248);
+  CHECK(result.c == 10);
+  CHECK(result.d == 6);
+  CHECK(result.e == 8);
+  CHECK(result.f == 10);
 
   return  result;
 }
@@ -109,5 +130,11 @@ int main (void)
 	 res_dbl.d, res_dbl.e, res_dbl.f);
   /* { dg-output "\nres: 139 248 10 6 8 10" } */
 
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 6);
+  CHECK(res_dbl.e == 8);
+  CHECK(res_dbl.f == 10);
   exit(0);
 }

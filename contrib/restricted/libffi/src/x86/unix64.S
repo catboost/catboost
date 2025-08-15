@@ -39,7 +39,10 @@
    actual table.  The entry points into the table are all 8 bytes.
    The use of ORG asserts that we're at the correct location.  */
 /* ??? The clang assembler doesn't handle .org with symbolic expressions.  */
-#if defined(__clang__) || defined(__APPLE__) || (defined (__sun__) && defined(__svr4__))
+#ifdef __CET__
+/* Double slot size to 16 byte to add 4 bytes of ENDBR64.  */
+# define E(BASE, X)	.balign 8; .org BASE + X * 16
+#elif defined(__clang__) || defined(__APPLE__) || (defined (__sun__) && defined(__svr4__))
 # define E(BASE, X)	.balign 8
 #else
 # define E(BASE, X)	.balign 8; .org BASE + X * 8
@@ -58,6 +61,7 @@
 
 C(ffi_call_unix64):
 L(UW0):
+	_CET_ENDBR
 	movq	(%rsp), %r10		/* Load return address.  */
 	leaq	(%rdi, %rsi), %rax	/* Find local stack base.  */
 	movq	%rdx, (%rax)		/* Save flags.  */
@@ -79,7 +83,6 @@ L(UW1):
 
 	movq	%rdi, %r10		/* Save a copy of the register area. */
 	movq	%r8, %r11		/* Save a copy of the target fn.  */
-	movl	%r9d, %eax		/* Set number of SSE registers.  */
 
 	/* Load up all argument registers.  */
 	movq	(%r10), %rdi
@@ -88,7 +91,7 @@ L(UW1):
 	movq	0x18(%r10), %rcx
 	movq	0x20(%r10), %r8
 	movq	0x28(%r10), %r9
-	movl	0xb0(%r10), %eax
+	movl	0xb0(%r10), %eax	/* Set number of SSE registers.  */
 	testl	%eax, %eax
 	jnz	L(load_sse)
 L(ret_from_load_sse):
@@ -116,6 +119,11 @@ L(UW2):
 	movzbl	%cl, %r10d
 	leaq	L(store_table)(%rip), %r11
 	ja	L(sa)
+#ifdef __CET__
+	/* NB: Originally, each slot is 8 byte.  4 bytes of ENDBR64 +
+	   4 bytes NOP padding double slot size to 16 bytes.  */
+	addl	%r10d, %r10d
+#endif
 	leaq	(%r11, %r10, 8), %r10
 
 	/* Prep for the structure cases: scratch area in redzone.  */
@@ -125,57 +133,73 @@ L(UW2):
 	.balign	8
 L(store_table):
 E(L(store_table), UNIX64_RET_VOID)
+	_CET_ENDBR
 	ret
 E(L(store_table), UNIX64_RET_UINT8)
+	_CET_ENDBR
 	movzbl	%al, %eax
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_UINT16)
+	_CET_ENDBR
 	movzwl	%ax, %eax
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_UINT32)
+	_CET_ENDBR
 	movl	%eax, %eax
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_SINT8)
+	_CET_ENDBR
 	movsbq	%al, %rax
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_SINT16)
+	_CET_ENDBR
 	movswq	%ax, %rax
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_SINT32)
+	_CET_ENDBR
 	cltq
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_INT64)
+	_CET_ENDBR
 	movq	%rax, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_XMM32)
+	_CET_ENDBR
 	movd	%xmm0, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_XMM64)
+	_CET_ENDBR
 	movq	%xmm0, (%rdi)
 	ret
 E(L(store_table), UNIX64_RET_X87)
+	_CET_ENDBR
 	fstpt	(%rdi)
 	ret
 E(L(store_table), UNIX64_RET_X87_2)
+	_CET_ENDBR
 	fstpt	(%rdi)
 	fstpt	16(%rdi)
 	ret
 E(L(store_table), UNIX64_RET_ST_XMM0_RAX)
+	_CET_ENDBR
 	movq	%rax, 8(%rsi)
 	jmp	L(s3)
 E(L(store_table), UNIX64_RET_ST_RAX_XMM0)
+	_CET_ENDBR
 	movq	%xmm0, 8(%rsi)
 	jmp	L(s2)
 E(L(store_table), UNIX64_RET_ST_XMM0_XMM1)
+	_CET_ENDBR
 	movq	%xmm1, 8(%rsi)
 	jmp	L(s3)
 E(L(store_table), UNIX64_RET_ST_RAX_RDX)
+	_CET_ENDBR
 	movq	%rdx, 8(%rsi)
 L(s2):
 	movq	%rax, (%rsi)
@@ -227,6 +251,7 @@ ENDF(C(ffi_call_unix64))
 
 C(ffi_closure_unix64_sse):
 L(UW5):
+	_CET_ENDBR
 	subq	$ffi_closure_FS, %rsp
 L(UW6):
 	/* cfi_adjust_cfa_offset(ffi_closure_FS) */
@@ -250,6 +275,7 @@ ENDF(C(ffi_closure_unix64_sse))
 
 C(ffi_closure_unix64):
 L(UW8):
+	_CET_ENDBR
 	subq	$ffi_closure_FS, %rsp
 L(UW9):
 	/* cfi_adjust_cfa_offset(ffi_closure_FS) */
@@ -286,6 +312,11 @@ L(UW10):
 	movzbl	%al, %r10d
 	leaq	L(load_table)(%rip), %r11
 	ja	L(la)
+#ifdef __CET__
+	/* NB: Originally, each slot is 8 byte.  4 bytes of ENDBR64 +
+	   4 bytes NOP padding double slot size to 16 bytes.  */
+	addl	%r10d, %r10d
+#endif
 	leaq	(%r11, %r10, 8), %r10
 	leaq	ffi_closure_RED_RVALUE(%rsp), %rsi
 	jmp	*%r10
@@ -293,51 +324,67 @@ L(UW10):
 	.balign	8
 L(load_table):
 E(L(load_table), UNIX64_RET_VOID)
+	_CET_ENDBR
 	ret
 E(L(load_table), UNIX64_RET_UINT8)
+	_CET_ENDBR
 	movzbl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_UINT16)
+	_CET_ENDBR
 	movzwl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_UINT32)
+	_CET_ENDBR
 	movl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_SINT8)
+	_CET_ENDBR
 	movsbl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_SINT16)
+	_CET_ENDBR
 	movswl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_SINT32)
+	_CET_ENDBR
 	movl	(%rsi), %eax
 	ret
 E(L(load_table), UNIX64_RET_INT64)
+	_CET_ENDBR
 	movq	(%rsi), %rax
 	ret
 E(L(load_table), UNIX64_RET_XMM32)
+	_CET_ENDBR
 	movd	(%rsi), %xmm0
 	ret
 E(L(load_table), UNIX64_RET_XMM64)
+	_CET_ENDBR
 	movq	(%rsi), %xmm0
 	ret
 E(L(load_table), UNIX64_RET_X87)
+	_CET_ENDBR
 	fldt	(%rsi)
 	ret
 E(L(load_table), UNIX64_RET_X87_2)
+	_CET_ENDBR
 	fldt	16(%rsi)
 	fldt	(%rsi)
 	ret
 E(L(load_table), UNIX64_RET_ST_XMM0_RAX)
+	_CET_ENDBR
 	movq	8(%rsi), %rax
 	jmp	L(l3)
 E(L(load_table), UNIX64_RET_ST_RAX_XMM0)
+	_CET_ENDBR
 	movq	8(%rsi), %xmm0
 	jmp	L(l2)
 E(L(load_table), UNIX64_RET_ST_XMM0_XMM1)
+	_CET_ENDBR
 	movq	8(%rsi), %xmm1
 	jmp	L(l3)
 E(L(load_table), UNIX64_RET_ST_RAX_RDX)
+	_CET_ENDBR
 	movq	8(%rsi), %rdx
 L(l2):
 	movq	(%rsi), %rax
@@ -358,6 +405,7 @@ ENDF(C(ffi_closure_unix64))
 
 C(ffi_go_closure_unix64_sse):
 L(UW12):
+	_CET_ENDBR
 	subq	$ffi_closure_FS, %rsp
 L(UW13):
 	/* cfi_adjust_cfa_offset(ffi_closure_FS) */
@@ -381,6 +429,7 @@ ENDF(C(ffi_go_closure_unix64_sse))
 
 C(ffi_go_closure_unix64):
 L(UW15):
+	_CET_ENDBR
 	subq	$ffi_closure_FS, %rsp
 L(UW16):
 	/* cfi_adjust_cfa_offset(ffi_closure_FS) */
@@ -406,6 +455,97 @@ L(sse_entry2):
 L(UW17):
 ENDF(C(ffi_go_closure_unix64))
 
+#if defined(FFI_EXEC_STATIC_TRAMP)
+	.balign	8
+	.globl	C(ffi_closure_unix64_sse_alt)
+	FFI_HIDDEN(C(ffi_closure_unix64_sse_alt))
+
+C(ffi_closure_unix64_sse_alt):
+	/* See the comments above trampoline_code_table. */
+	_CET_ENDBR
+	movq	8(%rsp), %r10			/* Load closure in r10 */
+	addq	$16, %rsp			/* Restore the stack */
+	jmp	C(ffi_closure_unix64_sse)
+ENDF(C(ffi_closure_unix64_sse_alt))
+
+	.balign	8
+	.globl	C(ffi_closure_unix64_alt)
+	FFI_HIDDEN(C(ffi_closure_unix64_alt))
+
+C(ffi_closure_unix64_alt):
+	/* See the comments above trampoline_code_table. */
+	_CET_ENDBR
+	movq	8(%rsp), %r10			/* Load closure in r10 */
+	addq	$16, %rsp			/* Restore the stack */
+	jmp	C(ffi_closure_unix64)
+	ENDF(C(ffi_closure_unix64_alt))
+
+/*
+ * Below is the definition of the trampoline code table. Each element in
+ * the code table is a trampoline.
+ *
+ * Because we jump to the trampoline, we place a _CET_ENDBR at the
+ * beginning of the trampoline to mark it as a valid branch target. This is
+ * part of the the Intel CET (Control Flow Enforcement Technology).
+ */
+/*
+ * The trampoline uses register r10. It saves the original value of r10 on
+ * the stack.
+ *
+ * The trampoline has two parameters - target code to jump to and data for
+ * the target code. The trampoline extracts the parameters from its parameter
+ * block (see tramp_table_map()). The trampoline saves the data address on
+ * the stack. Finally, it jumps to the target code.
+ *
+ * The target code can choose to:
+ *
+ * - restore the value of r10
+ * - load the data address in a register
+ * - restore the stack pointer to what it was when the trampoline was invoked.
+ */
+#ifdef ENDBR_PRESENT
+# define X86_DATA_OFFSET	4077
+# ifdef __ILP32__
+#  define X86_CODE_OFFSET	4069
+# else
+#  define X86_CODE_OFFSET	4073
+# endif
+#else
+# define X86_DATA_OFFSET	4081
+# ifdef __ILP32__
+#  define X86_CODE_OFFSET	4073
+# else
+#  define X86_CODE_OFFSET	4077
+# endif
+#endif
+
+	.align	UNIX64_TRAMP_MAP_SIZE
+	.globl	trampoline_code_table
+	FFI_HIDDEN(C(trampoline_code_table))
+
+C(trampoline_code_table):
+	.rept	UNIX64_TRAMP_MAP_SIZE / UNIX64_TRAMP_SIZE
+	_CET_ENDBR
+	subq	$16, %rsp			/* Make space on the stack */
+	movq	%r10, (%rsp)			/* Save %r10 on stack */
+#ifdef __ILP32__
+	movl	X86_DATA_OFFSET(%rip), %r10d	/* Copy data into %r10 */
+#else
+	movq	X86_DATA_OFFSET(%rip), %r10	/* Copy data into %r10 */
+#endif
+	movq	%r10, 8(%rsp)			/* Save data on stack */
+#ifdef __ILP32__
+	movl	X86_CODE_OFFSET(%rip), %r10d	/* Copy code into %r10 */
+#else
+	movq	X86_CODE_OFFSET(%rip), %r10	/* Copy code into %r10 */
+#endif
+	jmp	*%r10				/* Jump to code */
+	.align	8
+	.endr
+ENDF(C(trampoline_code_table))
+	.align	UNIX64_TRAMP_MAP_SIZE
+#endif /* FFI_EXEC_STATIC_TRAMP */
+
 /* Sadly, OSX cctools-as doesn't understand .cfi directives at all.  */
 
 #ifdef __APPLE__
@@ -424,7 +564,12 @@ EHFrame0:
 #endif
 
 /* Simplify advancing between labels.  Assume DW_CFA_advance_loc1 fits.  */
-#define ADV(N, P)	.byte 2, L(N)-L(P)
+#ifdef __CET__
+/* Use DW_CFA_advance_loc2 when IBT is enabled.  */
+# define ADV(N, P)	.byte 3; .2byte L(N)-L(P)
+#else
+# define ADV(N, P)	.byte 2, L(N)-L(P)
+#endif
 
 	.balign 8
 L(CIE):

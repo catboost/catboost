@@ -74,6 +74,7 @@ int main (void)
   /* { dg-output "\n0: 2.0 : total: 2.0" } */
   printf("ffi: %.1f\n", resfp);
   /* { dg-output "\nffi: 2.0" } */
+  CHECK_DOUBLE_EQ(resfp, 2);
 
   /* Second test, float_va_fn(2,2.0,3.0,4.0), now with variadic params */
   /* Call it statically and then via ffi */
@@ -81,6 +82,7 @@ int main (void)
   /* { dg-output "\n2: 2.0 : 0:3.0  1:4.0  total: 11.0" } */
   printf("compiled: %.1f\n", resfp);
   /* { dg-output "\ncompiled: 11.0" } */
+  CHECK_DOUBLE_EQ(resfp, 11);
 
   arg_types[0] = &ffi_type_uint;
   arg_types[1] = &ffi_type_double;
@@ -102,6 +104,7 @@ int main (void)
   /* { dg-output "\n2: 2.0 : 0:3.0  1:4.0  total: 11.0" } */
   printf("ffi: %.1f\n", resfp);
   /* { dg-output "\nffi: 11.0" } */
+  CHECK_DOUBLE_EQ(resfp, 11);
 
   exit(0);
 }

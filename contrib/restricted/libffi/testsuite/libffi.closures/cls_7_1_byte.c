@@ -18,7 +18,7 @@ typedef struct cls_struct_7byte {
   unsigned char g;
 } cls_struct_7byte;
 
-cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
+static cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
 			    struct cls_struct_7byte a2)
 {
   struct cls_struct_7byte result;
@@ -35,6 +35,30 @@ cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
 	 a1.a, a1.b, a1.c, a1.d, a1.e, a1.f, a1.g,
 	 a2.a, a2.b, a2.c, a2.d, a2.e, a2.f, a2.g,
 	 result.a, result.b, result.c, result.d, result.e, result.f, result.g);
+
+  CHECK(a1.a == 127);
+  CHECK(a1.b == 120);
+  CHECK(a1.c == 1);
+  CHECK(a1.d == 3);
+  CHECK(a1.e == 4);
+  CHECK(a1.f == 5);
+  CHECK(a1.g == 6);
+
+  CHECK(a2.a == 12);
+  CHECK(a2.b == 128);
+  CHECK(a2.c == 9);
+  CHECK(a2.d == 3);
+  CHECK(a2.e == 4);
+  CHECK(a2.f == 5);
+  CHECK(a2.g == 6);
+
+  CHECK(result.a == 139);
+  CHECK(result.b == 248);
+  CHECK(result.c == 10);
+  CHECK(result.d == 6);
+  CHECK(result.e == 8);
+  CHECK(result.f == 10);
+  CHECK(result.g == 12);
 
   return  result;
 }
@@ -96,6 +120,13 @@ int main (void)
   printf("res: %d %d %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
   /* { dg-output "\nres: 139 248 10 6 8 10 12" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 6);
+  CHECK(res_dbl.e == 8);
+  CHECK(res_dbl.f == 10);
+  CHECK(res_dbl.g == 12);
 
   res_dbl.a = 0;
   res_dbl.b = 0;
@@ -112,6 +143,13 @@ int main (void)
   printf("res: %d %d %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
   /* { dg-output "\nres: 139 248 10 6 8 10 12" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 6);
+  CHECK(res_dbl.e == 8);
+  CHECK(res_dbl.f == 10);
+  CHECK(res_dbl.g == 12);
 
   exit(0);
 }

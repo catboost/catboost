@@ -14,7 +14,7 @@ typedef struct cls_struct_20byte {
   int c;
 } cls_struct_20byte;
 
-cls_struct_20byte cls_struct_20byte_fn(struct cls_struct_20byte a1,
+static cls_struct_20byte cls_struct_20byte_fn(struct cls_struct_20byte a1,
 			    struct cls_struct_20byte a2)
 {
   struct cls_struct_20byte result;
@@ -25,6 +25,18 @@ cls_struct_20byte cls_struct_20byte_fn(struct cls_struct_20byte a1,
 
   printf("%g %g %d %g %g %d: %g %g %d\n", a1.a, a1.b, a1.c, a2.a, a2.b, a2.c,
 	 result.a, result.b, result.c);
+
+  CHECK(a1.a == 1);
+  CHECK(a1.b == 2);
+  CHECK(a1.c == 3);
+
+  CHECK(a2.a == 4);
+  CHECK(a2.b == 5);
+  CHECK(a2.c == 7);
+
+  CHECK(result.a == 5);
+  CHECK(result.b == 7);
+  CHECK(result.c == 10);
   return result;
 }
 
@@ -79,6 +91,9 @@ int main (void)
   /* { dg-output "1 2 3 4 5 7: 5 7 10" } */
   printf("res: %g %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 5 7 10" } */
+  CHECK(res_dbl.a == 5);
+  CHECK(res_dbl.b == 7);
+  CHECK(res_dbl.c == 10);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_20byte_gn, NULL, code) == FFI_OK);
 
@@ -86,6 +101,9 @@ int main (void)
   /* { dg-output "\n1 2 3 4 5 7: 5 7 10" } */
   printf("res: %g %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 5 7 10" } */
+  CHECK(res_dbl.a == 5);
+  CHECK(res_dbl.b == 7);
+  CHECK(res_dbl.c == 10);
 
   exit(0);
 }

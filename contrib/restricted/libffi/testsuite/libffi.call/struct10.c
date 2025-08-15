@@ -16,7 +16,7 @@ struct s {
   signed char s8;
 };
 
-struct s make_s(void) {
+struct s ABI_ATTR make_s(void) {
   struct s r;
   r.s32 = 0x1234;
   r.f32 = 7.0;

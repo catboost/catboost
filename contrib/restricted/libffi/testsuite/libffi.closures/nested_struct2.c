@@ -19,7 +19,7 @@ typedef struct B {
   unsigned char y;
 } B;
 
-B B_fn(struct A b0, struct B b1)
+static B B_fn(struct A b0, struct B b1)
 {
   struct B result;
 
@@ -29,6 +29,15 @@ B B_fn(struct A b0, struct B b1)
 
   printf("%lu %d %lu %d %d: %lu %d %d\n", b0.a, b0.b, b1.x.a, b1.x.b, b1.y,
 	 result.x.a, result.x.b, result.y);
+
+  CHECK(b0.a == 1);
+  CHECK(b0.b == 7);
+  CHECK(b1.x.a == 12);
+  CHECK(b1.x.b == 127);
+  CHECK(b1.y == 99);
+  CHECK(result.x.a == 13);
+  CHECK(result.x.b == 233);
+  CHECK(result.y == 134);
 
   return result;
 }

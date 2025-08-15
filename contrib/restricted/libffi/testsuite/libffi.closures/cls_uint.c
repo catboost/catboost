@@ -14,6 +14,9 @@ static void cls_ret_uint_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
 
   printf("%d: %d\n",*(unsigned int *)args[0],
 	 (int)*(ffi_arg *)(resp));
+
+  CHECK(*(unsigned int *)args[0] == 2147483647);
+  CHECK((int)*(ffi_arg *)(resp) == 2147483647);
 }
 typedef unsigned int (*cls_ret_uint)(unsigned int);
 
@@ -38,6 +41,7 @@ int main (void)
   /* { dg-output "2147483647: 2147483647" } */
   printf("res: %d\n",res);
   /* { dg-output "\nres: 2147483647" } */
+  CHECK(res == 2147483647);
 
   exit(0);
 }

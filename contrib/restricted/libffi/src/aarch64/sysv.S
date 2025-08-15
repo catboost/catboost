@@ -40,6 +40,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #endif
 #endif
 
+#ifdef __APPLE__
+# define L(X)     CONCAT1(L, X)
+#else
+# define L(X)     CONCAT1(.L, X)
+#endif
+
 #ifdef __AARCH64EB__
 # define BE(X)	X
 #else
@@ -58,6 +64,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define PTR_SIZE	8
 #endif
 
+#define BTI_C hint #34
+#define BTI_J hint #36
+/*
+ * The ELF Notes section needs to indicate if BTI is supported, as the first ELF loaded that doesn't
+ * declare this support disables it for memory region containing the loaded library.
+ */
+# define GNU_PROPERTY_AARCH64_BTI (1 << 0)         /* Has Branch Target Identification */
 	.text
 	.align 4
 
@@ -76,16 +89,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
    x5 closure
 */
 
-	cfi_startproc
 CNAME(ffi_call_SYSV):
+	cfi_startproc
+	BTI_C
+	PAC_CFI_WINDOW_SAVE
+	/* Sign the lr with x1 since that is the CFA which is the modifer used in auth instructions */
+	SIGN_LR_WITH_REG(x1)
+
+#if defined(HAVE_ARM64E_PTRAUTH) && defined(__APPLE__)
+	/* darwin's libunwind assumes that the cfa is the sp and that's the data
+	 * used to sign the lr.  In order to allow unwinding through this
+	 * function it is necessary to point the cfa at the signing register.
+	 */
+	cfi_def_cfa(x1, 0);
+#endif
 	/* Use a stack frame allocated by our caller.  */
-	cfi_def_cfa(x1, 32);
 	stp	x29, x30, [x1]
-	mov	x29, x1
-	mov	sp, x0
-	cfi_def_cfa_register(x29)
+	cfi_def_cfa_register(x1)
 	cfi_rel_offset (x29, 0)
 	cfi_rel_offset (x30, 8)
+	mov	x9, sp
+	str	x9, [x1, #32]
+	mov	x29, x1
+	cfi_def_cfa_register(x29)
+	mov	sp, x0
 
 	mov	x9, x2			/* save fn */
 	mov	x8, x3			/* install structure return */
@@ -111,90 +138,161 @@ CNAME(ffi_call_SYSV):
 	/* Deallocate the context, leaving the stacked arguments.  */
 	add	sp, sp, #CALL_CONTEXT_SIZE
 
-	blr     x9			/* call fn */
+	BRANCH_AND_LINK_TO_REG     x9			/* call fn */
 
 	ldp	x3, x4, [x29, #16]	/* reload rvalue and flags */
 
 	/* Partially deconstruct the stack frame.  */
-	mov     sp, x29
+	ldr	x9, [x29, #32]
+	mov	sp, x9
 	cfi_def_cfa_register (sp)
+	mov	x2, x29			/* Preserve for auth */
 	ldp     x29, x30, [x29]
 
 	/* Save the return value as directed.  */
 	adr	x5, 0f
 	and	w4, w4, #AARCH64_RET_MASK
-	add	x5, x5, x4, lsl #3
+	add	x5, x5, x4, lsl #4
 	br	x5
 
-	/* Note that each table entry is 2 insns, and thus 8 bytes.
+	/* Note that each table entry is 4 insns, and thus 16 bytes.
 	   For integer data, note that we're storing into ffi_arg
 	   and therefore we want to extend to 64 bits; these types
 	   have two consecutive entries allocated for them.  */
 	.align	4
-0:	ret				/* VOID */
+0:	BTI_J				/* VOID */
+	b 99f
+	nop 
 	nop
-1:	str	x0, [x3]		/* INT64 */
-	ret
-2:	stp	x0, x1, [x3]		/* INT128 */
-	ret
+1:	BTI_J				/* INT64 */
+	str	x0, [x3]
+	b 99f
+	nop
+2:	BTI_J				/* INT128 */
+	stp	x0, x1, [x3]
+	b 99f
+	nop
 3:	brk	#1000			/* UNUSED */
-	ret
+	b 99f
+	nop
+	nop
 4:	brk	#1000			/* UNUSED */
-	ret
+	b 99f
+	nop
+	nop
 5:	brk	#1000			/* UNUSED */
-	ret
+	b 99f
+	nop
+	nop
 6:	brk	#1000			/* UNUSED */
-	ret
+	b 99f
+	nop
+	nop
 7:	brk	#1000			/* UNUSED */
-	ret
-8:	st4	{ v0.s, v1.s, v2.s, v3.s }[0], [x3]	/* S4 */
-	ret
-9:	st3	{ v0.s, v1.s, v2.s }[0], [x3]	/* S3 */
-	ret
-10:	stp	s0, s1, [x3]		/* S2 */
-	ret
-11:	str	s0, [x3]		/* S1 */
-	ret
-12:	st4	{ v0.d, v1.d, v2.d, v3.d }[0], [x3]	/* D4 */
-	ret
-13:	st3	{ v0.d, v1.d, v2.d }[0], [x3]	/* D3 */
-	ret
-14:	stp	d0, d1, [x3]		/* D2 */
-	ret
-15:	str	d0, [x3]		/* D1 */
-	ret
-16:	str	q3, [x3, #48]		/* Q4 */
+	b 99f
 	nop
-17:	str	q2, [x3, #32]		/* Q3 */
 	nop
-18:	stp	q0, q1, [x3]		/* Q2 */
-	ret
-19:	str	q0, [x3]		/* Q1 */
-	ret
-20:	uxtb	w0, w0			/* UINT8 */
+8:	BTI_J				/* S4 */
+	st4	{ v0.s, v1.s, v2.s, v3.s }[0], [x3]
+	b 99f
+	nop
+9:	BTI_J				/* S3 */
+	st3	{ v0.s, v1.s, v2.s }[0], [x3]
+	b 99f
+	nop
+10:	BTI_J				/* S2 */
+	stp	s0, s1, [x3]
+	b 99f
+	nop
+11:	BTI_J
+	str	s0, [x3]		/* S1 */
+	b 99f
+	nop
+12:	BTI_J				/* D4 */
+	st4	{ v0.d, v1.d, v2.d, v3.d }[0], [x3]
+	b 99f
+	nop
+13:	BTI_J				/* D3 */
+	st3	{ v0.d, v1.d, v2.d }[0], [x3]
+	b 99f
+	nop
+14:	BTI_J				/* D2 */
+	stp	d0, d1, [x3]
+	b 99f
+	nop
+15:	BTI_J				/* D1 */
+	str	d0, [x3]
+	b 99f
+	nop
+16:	BTI_J				/* Q4 */
+	str	q3, [x3, #48]
+	nop
+	nop
+17:	BTI_J				/* Q3 */
+	str	q2, [x3, #32]
+	nop
+	nop
+18:	BTI_J				/* Q2 */
+	stp	q0, q1, [x3]
+	b 99f
+	nop
+19:	BTI_J				/* Q1 */
+	str	q0, [x3]
+	b 99f
+	nop
+20:	BTI_J				/* UINT8 */
+	uxtb	w0, w0
 	str	x0, [x3]
-21:	ret				/* reserved */
 	nop
-22:	uxth	w0, w0			/* UINT16 */
+21:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+22:	BTI_J				/* UINT16 */
+	uxth	w0, w0
 	str	x0, [x3]
-23:	ret				/* reserved */
 	nop
-24:	mov	w0, w0			/* UINT32 */
+23:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+24:	BTI_J				/* UINT32 */
+	mov	w0, w0
 	str	x0, [x3]
-25:	ret				/* reserved */
 	nop
-26:	sxtb	x0, w0			/* SINT8 */
+25:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+26:	BTI_J				/* SINT8 */
+	sxtb	x0, w0
 	str	x0, [x3]
-27:	ret				/* reserved */
 	nop
-28:	sxth	x0, w0			/* SINT16 */
+27:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+28:	BTI_J				/* SINT16 */
+	sxth	x0, w0
 	str	x0, [x3]
-29:	ret				/* reserved */
 	nop
-30:	sxtw	x0, w0			/* SINT32 */
+29:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+30:	BTI_J				/* SINT32 */
+	sxtw	x0, w0
 	str	x0, [x3]
-31:	ret				/* reserved */
 	nop
+31:	b 99f				/* reserved */
+	nop
+	nop
+	nop
+
+	/* Return now that result has been populated. */
+99:
+	AUTH_LR_WITH_REG(x2)
+	ret
 
 	cfi_endproc
 
@@ -204,6 +302,8 @@ CNAME(ffi_call_SYSV):
 	.type	CNAME(ffi_call_SYSV), #function
 	.size CNAME(ffi_call_SYSV), .-CNAME(ffi_call_SYSV)
 #endif
+
+#if FFI_CLOSURES
 
 /* ffi_closure_SYSV
 
@@ -224,6 +324,9 @@ CNAME(ffi_call_SYSV):
 	.align 4
 CNAME(ffi_closure_SYSV_V):
 	cfi_startproc
+	BTI_C
+	SIGN_LR
+	PAC_CFI_WINDOW_SAVE
 	stp     x29, x30, [sp, #-ffi_closure_SYSV_FS]!
 	cfi_adjust_cfa_offset (ffi_closure_SYSV_FS)
 	cfi_rel_offset (x29, 0)
@@ -245,8 +348,11 @@ CNAME(ffi_closure_SYSV_V):
 #endif
 
 	.align	4
-	cfi_startproc
 CNAME(ffi_closure_SYSV):
+	cfi_startproc
+	BTI_C
+	SIGN_LR
+	PAC_CFI_WINDOW_SAVE
 	stp     x29, x30, [sp, #-ffi_closure_SYSV_FS]!
 	cfi_adjust_cfa_offset (ffi_closure_SYSV_FS)
 	cfi_rel_offset (x29, 0)
@@ -263,7 +369,9 @@ CNAME(ffi_closure_SYSV):
 	/* Load ffi_closure_inner arguments.  */
 	ldp	PTR_REG(0), PTR_REG(1), [x17, #FFI_TRAMPOLINE_CLOSURE_OFFSET]	/* load cif, fn */
 	ldr	PTR_REG(2), [x17, #FFI_TRAMPOLINE_CLOSURE_OFFSET+PTR_SIZE*2]	/* load user_data */
-.Ldo_closure:
+#ifdef FFI_GO_CLOSURES
+L(do_closure):
+#endif
 	add	x3, sp, #16				/* load context */
 	add	x4, sp, #ffi_closure_SYSV_FS		/* load stack */
 	add	x5, sp, #16+CALL_CONTEXT_SIZE		/* load rvalue */
@@ -273,80 +381,142 @@ CNAME(ffi_closure_SYSV):
 	/* Load the return value as directed.  */
 	adr	x1, 0f
 	and	w0, w0, #AARCH64_RET_MASK
-	add	x1, x1, x0, lsl #3
+	add	x1, x1, x0, lsl #4
 	add	x3, sp, #16+CALL_CONTEXT_SIZE
 	br	x1
 
-	/* Note that each table entry is 2 insns, and thus 8 bytes.  */
+	/* Note that each table entry is 4 insns, and thus 16 bytes.  */
 	.align	4
-0:	b	99f			/* VOID */
+0:	BTI_J				/* VOID */
+	b	99f
 	nop
-1:	ldr	x0, [x3]		/* INT64 */
+	nop
+1:	BTI_J				/* INT64 */
+	ldr	x0, [x3]
 	b	99f
-2:	ldp	x0, x1, [x3]		/* INT128 */
+	nop
+2:	BTI_J				/* INT128 */
+	ldp	x0, x1, [x3]
 	b	99f
+	nop
 3:	brk	#1000			/* UNUSED */
+	nop
+	nop
 	nop
 4:	brk	#1000			/* UNUSED */
 	nop
+	nop
+	nop
 5:	brk	#1000			/* UNUSED */
+	nop
+	nop
 	nop
 6:	brk	#1000			/* UNUSED */
 	nop
+	nop
+	nop
 7:	brk	#1000			/* UNUSED */
 	nop
-8:	ldr	s3, [x3, #12]		/* S4 */
 	nop
-9:	ldr	s2, [x3, #8]		/* S3 */
 	nop
-10:	ldp	s0, s1, [x3]		/* S2 */
-	b	99f
-11:	ldr	s0, [x3]		/* S1 */
-	b	99f
-12:	ldr	d3, [x3, #24]		/* D4 */
+8:	BTI_J				/* S4 */
+	ldr	s3, [x3, #12]
 	nop
-13:	ldr	d2, [x3, #16]		/* D3 */
 	nop
-14:	ldp	d0, d1, [x3]		/* D2 */
-	b	99f
-15:	ldr	d0, [x3]		/* D1 */
-	b	99f
-16:	ldr	q3, [x3, #48]		/* Q4 */
+9:	BTI_J				/* S3 */
+	ldr	s2, [x3, #8]
 	nop
-17:	ldr	q2, [x3, #32]		/* Q3 */
 	nop
-18:	ldp	q0, q1, [x3]		/* Q2 */
+10:	BTI_J				/* S2 */
+	ldp	s0, s1, [x3]
 	b	99f
-19:	ldr	q0, [x3]		/* Q1 */
+	nop
+11:	BTI_J				/* S1 */
+	ldr	s0, [x3]
 	b	99f
-20:	ldrb	w0, [x3, #BE(7)]	/* UINT8 */
+	nop
+12:	BTI_J				/* D4 */
+	ldr	d3, [x3, #24]
+	nop
+	nop
+13:	BTI_J				/* D3 */
+	ldr	d2, [x3, #16]
+	nop
+	nop
+14:	BTI_J				/* D2 */
+	ldp	d0, d1, [x3]
 	b	99f
+	nop
+15:	BTI_J				/* D1 */
+	ldr	d0, [x3]
+	b	99f
+	nop
+16:	BTI_J				/* Q4 */
+	ldr	q3, [x3, #48]
+	nop
+	nop
+17:	BTI_J				/* Q3 */
+	ldr	q2, [x3, #32]
+	nop
+	nop
+18:	BTI_J				/* Q2 */
+	ldp	q0, q1, [x3]
+	b	99f
+	nop
+19:	BTI_J				/* Q1 */
+	ldr	q0, [x3]
+	b	99f
+	nop
+20:	BTI_J				/* UINT8 */
+	ldrb	w0, [x3, #BE(7)]
+	b	99f
+	nop
 21:	brk	#1000			/* reserved */
 	nop
-22:	ldrh	w0, [x3, #BE(6)]	/* UINT16 */
+	nop
+	nop
+22:	BTI_J				/* UINT16 */
+	ldrh	w0, [x3, #BE(6)]
 	b	99f
+	nop
 23:	brk	#1000			/* reserved */
 	nop
-24:	ldr	w0, [x3, #BE(4)]	/* UINT32 */
+	nop
+	nop
+24:	BTI_J				/* UINT32 */
+	ldr	w0, [x3, #BE(4)]
 	b	99f
+	nop
 25:	brk	#1000			/* reserved */
 	nop
-26:	ldrsb	x0, [x3, #BE(7)]	/* SINT8 */
+	nop
+	nop
+26:	BTI_J				/* SINT8 */
+	ldrsb	x0, [x3, #BE(7)]
 	b	99f
+	nop
 27:	brk	#1000			/* reserved */
 	nop
-28:	ldrsh	x0, [x3, #BE(6)]	/* SINT16 */
+	nop
+	nop
+28:	BTI_J				/* SINT16 */
+	ldrsh	x0, [x3, #BE(6)]
 	b	99f
+	nop
 29:	brk	#1000			/* reserved */
 	nop
-30:	ldrsw	x0, [x3, #BE(4)]	/* SINT32 */
+	nop
+	nop
+30:	BTI_J				/* SINT32 */
+	ldrsw	x0, [x3, #BE(4)]
+	nop
 	nop
 31:					/* reserved */
 99:	ldp     x29, x30, [sp], #ffi_closure_SYSV_FS
 	cfi_adjust_cfa_offset (-ffi_closure_SYSV_FS)
 	cfi_restore (x29)
 	cfi_restore (x30)
-	ret
+	AUTH_LR_AND_RET
 	cfi_endproc
 
 	.globl	CNAME(ffi_closure_SYSV)
@@ -355,6 +525,78 @@ CNAME(ffi_closure_SYSV):
 	.type	CNAME(ffi_closure_SYSV), #function
 	.size	CNAME(ffi_closure_SYSV), . - CNAME(ffi_closure_SYSV)
 #endif
+
+#if defined(FFI_EXEC_STATIC_TRAMP)
+	.align 4
+CNAME(ffi_closure_SYSV_V_alt):
+	BTI_C
+	/* See the comments above trampoline_code_table. */
+	ldr	x17, [sp, #8]			/* Load closure in x17 */
+	add	sp, sp, #16			/* Restore the stack */
+	b	CNAME(ffi_closure_SYSV_V)
+
+	.globl	CNAME(ffi_closure_SYSV_V_alt)
+	FFI_HIDDEN(CNAME(ffi_closure_SYSV_V_alt))
+#ifdef __ELF__
+	.type	CNAME(ffi_closure_SYSV_V_alt), #function
+	.size	CNAME(ffi_closure_SYSV_V_alt), . - CNAME(ffi_closure_SYSV_V_alt)
+#endif
+
+	.align 4
+CNAME(ffi_closure_SYSV_alt):
+	BTI_C
+	/* See the comments above trampoline_code_table. */
+	ldr	x17, [sp, #8]			/* Load closure in x17 */
+	add	sp, sp, #16			/* Restore the stack */
+	b	CNAME(ffi_closure_SYSV)
+
+	.globl	CNAME(ffi_closure_SYSV_alt)
+	FFI_HIDDEN(CNAME(ffi_closure_SYSV_alt))
+#ifdef __ELF__
+	.type	CNAME(ffi_closure_SYSV_alt), #function
+	.size	CNAME(ffi_closure_SYSV_alt), . - CNAME(ffi_closure_SYSV_alt)
+#endif
+
+/*
+ * Below is the definition of the trampoline code table. Each element in
+ * the code table is a trampoline.
+ */
+/*
+ * The trampoline uses register x17. It saves the original value of x17 on
+ * the stack.
+ *
+ * The trampoline has two parameters - target code to jump to and data for
+ * the target code. The trampoline extracts the parameters from its parameter
+ * block (see tramp_table_map()). The trampoline saves the data address on
+ * the stack. Finally, it jumps to the target code.
+ *
+ * The target code can choose to:
+ *
+ * - restore the value of x17
+ * - load the data address in a register
+ * - restore the stack pointer to what it was when the trampoline was invoked.
+ */
+	.align	AARCH64_TRAMP_MAP_SHIFT
+CNAME(trampoline_code_table):
+	.rept	AARCH64_TRAMP_MAP_SIZE / AARCH64_TRAMP_SIZE
+	sub	sp, sp, #16		/* Make space on the stack */
+	str	x17, [sp]		/* Save x17 on stack */
+	adr	x17, #16376		/* Get data address */
+	ldr	x17, [x17]		/* Copy data into x17 */
+	str	x17, [sp, #8]		/* Save data on stack */
+	adr	x17, #16372		/* Get code address */
+	ldr	x17, [x17]		/* Load code address into x17 */
+	br	x17			/* Jump to code */
+	.endr
+
+	.globl CNAME(trampoline_code_table)
+	FFI_HIDDEN(CNAME(trampoline_code_table))
+#ifdef __ELF__
+	.type	CNAME(trampoline_code_table), #function
+	.size	CNAME(trampoline_code_table), . - CNAME(trampoline_code_table)
+#endif
+	.align	AARCH64_TRAMP_MAP_SHIFT
+#endif /* FFI_EXEC_STATIC_TRAMP */
 
 #if FFI_EXEC_TRAMPOLINE_TABLE
 
@@ -366,7 +608,7 @@ CNAME(ffi_closure_trampoline_table_page):
     adr x16, -PAGE_MAX_SIZE
     ldp x17, x16, [x16]
     br x16
-	nop		/* each entry in the trampoline config page is 2*sizeof(void*) so the trampoline itself cannot be smaller that 16 bytes */
+	nop		/* each entry in the trampoline config page is 2*sizeof(void*) so the trampoline itself cannot be smaller than 16 bytes */
     .endr
 
     .globl CNAME(ffi_closure_trampoline_table_page)
@@ -383,6 +625,7 @@ CNAME(ffi_closure_trampoline_table_page):
 	.align 4
 CNAME(ffi_go_closure_SYSV_V):
 	cfi_startproc
+	BTI_C
 	stp     x29, x30, [sp, #-ffi_closure_SYSV_FS]!
 	cfi_adjust_cfa_offset (ffi_closure_SYSV_FS)
 	cfi_rel_offset (x29, 0)
@@ -404,8 +647,11 @@ CNAME(ffi_go_closure_SYSV_V):
 #endif
 
 	.align	4
-	cfi_startproc
 CNAME(ffi_go_closure_SYSV):
+	cfi_startproc
+	BTI_C
+	SIGN_LR_LINUX_ONLY
+	PAC_CFI_WINDOW_SAVE
 	stp     x29, x30, [sp, #-ffi_closure_SYSV_FS]!
 	cfi_adjust_cfa_offset (ffi_closure_SYSV_FS)
 	cfi_rel_offset (x29, 0)
@@ -422,7 +668,7 @@ CNAME(ffi_go_closure_SYSV):
 	/* Load ffi_closure_inner arguments.  */
 	ldp	PTR_REG(0), PTR_REG(1), [x18, #PTR_SIZE]/* load cif, fn */
 	mov	x2, x18					/* load user_data */
-	b	.Ldo_closure
+	b	L(do_closure)
 	cfi_endproc
 
 	.globl	CNAME(ffi_go_closure_SYSV)
@@ -432,9 +678,22 @@ CNAME(ffi_go_closure_SYSV):
 	.size	CNAME(ffi_go_closure_SYSV), . - CNAME(ffi_go_closure_SYSV)
 #endif
 #endif /* FFI_GO_CLOSURES */
+#endif /* FFI_CLOSURES */
 #endif /* __arm64__ */
 
 #if defined __ELF__ && defined __linux__
 	.section .note.GNU-stack,"",%progbits
+
+	.pushsection .note.gnu.property, "a";
+	.balign 8;
+	.long 4;
+	.long 0x10;
+	.long 0x5;
+	.asciz "GNU";
+	.long 0xc0000000; /* GNU_PROPERTY_AARCH64_FEATURE_1_AND */
+	.long 4;
+	.long GNU_PROPERTY_AARCH64_BTI | GNU_PROPERTY_AARCH64_POINTER_AUTH;
+	.long 0;
+	.popsection;
 #endif
 

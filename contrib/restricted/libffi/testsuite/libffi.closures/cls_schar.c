@@ -15,6 +15,8 @@ static void cls_ret_schar_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
   *(ffi_arg*)resp = *(signed char *)args[0];
   printf("%d: %d\n",*(signed char *)args[0],
 	 (int)*(ffi_arg *)(resp));
+  CHECK(*(signed char *)args[0] == 127);
+  CHECK((int)*(ffi_arg *)(resp) == 127);
 }
 typedef signed char (*cls_ret_schar)(signed char);
 
@@ -39,6 +41,7 @@ int main (void)
   /* { dg-output "127: 127" } */
   printf("res: %d\n", res);
   /* { dg-output "\nres: 127" } */
+  CHECK(res == 127);
 
   exit(0);
 }

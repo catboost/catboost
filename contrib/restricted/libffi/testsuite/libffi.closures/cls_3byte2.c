@@ -24,6 +24,15 @@ cls_struct_3byte_1 cls_struct_3byte_fn1(struct cls_struct_3byte_1 a1,
 
   printf("%d %d %d %d: %d %d\n", a1.a, a1.b, a2.a, a2.b, result.a, result.b);
 
+  CHECK(a1.a == 15);
+  CHECK(a1.b == 125);
+
+  CHECK(a2.a == 9);
+  CHECK(a2.b == 19);
+
+  CHECK(result.a == 24);
+  CHECK(result.b == 144);
+
   return  result;
 }
 
@@ -78,6 +87,8 @@ int main (void)
   /* { dg-output "15 125 9 19: 24 144" } */
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 24 144" } */
+  CHECK(res_dbl.a == 24);
+  CHECK(res_dbl.b == 144);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_3byte_gn1, NULL, code) == FFI_OK);
 
@@ -85,6 +96,8 @@ int main (void)
   /* { dg-output "\n15 125 9 19: 24 144" } */
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 24 144" } */
+  CHECK(res_dbl.a == 24);
+  CHECK(res_dbl.b == 144);
 
   exit(0);
 }

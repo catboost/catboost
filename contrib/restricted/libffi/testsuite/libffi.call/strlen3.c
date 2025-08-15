@@ -8,9 +8,9 @@
 
 #include "ffitest.h"
 
-static size_t ABI_ATTR my_f(float a, char *s)
+static int ABI_ATTR my_f(float a, char *s)
 {
-  return (size_t) ((int) strlen(s) + (int) a);
+  return (int) strlen(s) + (int) a;
 }
 
 int main (void)

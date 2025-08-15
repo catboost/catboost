@@ -25,7 +25,7 @@ typedef struct cls_struct_combined {
   cls_struct_16byte2 e;
 } cls_struct_combined;
 
-cls_struct_combined cls_struct_combined_fn(struct cls_struct_16byte1 b0,
+static cls_struct_combined cls_struct_combined_fn(struct cls_struct_16byte1 b0,
 			    struct cls_struct_16byte2 b1,
 			    struct cls_struct_combined b2)
 {
@@ -45,6 +45,29 @@ cls_struct_combined cls_struct_combined_fn(struct cls_struct_16byte1 b0,
 	 b2.e.ii, b2.e.dd, b2.e.ff,
 	 result.d.a, result.d.b, result.d.c,
 	 result.e.ii, result.e.dd, result.e.ff);
+
+  CHECK_DOUBLE_EQ(b0.a, 9);
+  CHECK_FLOAT_EQ(b0.b, 2);
+  CHECK(b0.c == 6);
+
+  CHECK(b1.ii == 1);
+  CHECK_DOUBLE_EQ(b1.dd, 2);
+  CHECK_FLOAT_EQ(b1.ff, 3);
+
+  CHECK_DOUBLE_EQ(b2.d.a, 4);
+  CHECK_FLOAT_EQ(b2.d.b, 5);
+  CHECK(b2.d.c == 6);
+
+  CHECK(b2.e.ii == 3);
+  CHECK_DOUBLE_EQ(b2.e.dd, 1);
+  CHECK_FLOAT_EQ(b2.e.ff, 8);
+
+  CHECK_DOUBLE_EQ(result.d.a, 15);
+  CHECK_FLOAT_EQ(result.d.b, 10);
+  CHECK(result.d.c == 13);
+  CHECK(result.e.ii == 10);
+  CHECK_DOUBLE_EQ(result.e.dd, 12);
+  CHECK_FLOAT_EQ(result.e.ff, 13);
 
   return result;
 }
@@ -128,12 +151,12 @@ int main (void)
 
   ffi_call(&cif, FFI_FN(cls_struct_combined_fn), &res_dbl, args_dbl);
   /* { dg-output "9 2 6 1 2 3 4 5 6 3 1 8: 15 10 13 10 12 13" } */
-  CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
-  CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
+  CHECK_DOUBLE_EQ( res_dbl.d.a, (e_dbl.a + f_dbl.dd + g_dbl.d.a));
+  CHECK_FLOAT_EQ( res_dbl.d.b,  (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
   CHECK( res_dbl.e.ii == (e_dbl.c + f_dbl.ii + g_dbl.e.ii));
-  CHECK( res_dbl.e.dd == (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
-  CHECK( res_dbl.e.ff == (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
+  CHECK_DOUBLE_EQ( res_dbl.e.dd, (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
+  CHECK_FLOAT_EQ( res_dbl.e.ff, (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_combined_gn, NULL, code) == FFI_OK);
 
@@ -142,11 +165,11 @@ int main (void)
 				     cls_struct_combined))
 	     (code))(e_dbl, f_dbl, g_dbl);
   /* { dg-output "\n9 2 6 1 2 3 4 5 6 3 1 8: 15 10 13 10 12 13" } */
-  CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
-  CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
+  CHECK_DOUBLE_EQ( res_dbl.d.a, (e_dbl.a + f_dbl.dd + g_dbl.d.a));
+  CHECK_FLOAT_EQ( res_dbl.d.b,  (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
   CHECK( res_dbl.e.ii == (e_dbl.c + f_dbl.ii + g_dbl.e.ii));
-  CHECK( res_dbl.e.dd == (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
-  CHECK( res_dbl.e.ff == (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
+  CHECK_DOUBLE_EQ( res_dbl.e.dd, (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
+  CHECK_FLOAT_EQ( res_dbl.e.ff, (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
   exit(0);
 }

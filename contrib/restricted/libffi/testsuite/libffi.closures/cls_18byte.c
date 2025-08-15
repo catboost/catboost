@@ -29,6 +29,22 @@ cls_struct_18byte cls_struct_18byte_fn(struct cls_struct_18byte a1,
   printf("%g %d %d %g %g %d %d %g: %g %d %d %g\n", a1.a, a1.b, a1.c, a1.d,
 	 a2.a, a2.b, a2.c, a2.d,
 	 result.a, result.b, result.c, result.d);
+
+  CHECK(a1.a == 1);
+  CHECK(a1.b == 127);
+  CHECK(a1.c == 126);
+  CHECK(a1.d == 3);
+
+  CHECK(a2.a == 4);
+  CHECK(a2.b == 125);
+  CHECK(a2.c == 124);
+  CHECK(a2.d == 5);
+
+  CHECK(result.a == 5);
+  CHECK(result.b == 252);
+  CHECK(result.c == 250);
+  CHECK(result.d == 8);
+
   return result;
 }
 
@@ -84,6 +100,10 @@ int main (void)
   /* { dg-output "1 127 126 3 4 125 124 5: 5 252 250 8" } */
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 5 252 250 8" } */
+  CHECK(res_dbl.a == 5);
+  CHECK(res_dbl.b == 252);
+  CHECK(res_dbl.c == 250);
+  CHECK(res_dbl.d == 8);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_18byte_gn, NULL, code) == FFI_OK);
 
@@ -91,6 +111,10 @@ int main (void)
   /* { dg-output "\n1 127 126 3 4 125 124 5: 5 252 250 8" } */
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 5 252 250 8" } */
+  CHECK(res_dbl.a == 5);
+  CHECK(res_dbl.b == 252);
+  CHECK(res_dbl.c == 250);
+  CHECK(res_dbl.d == 8);
 
   exit(0);
 }

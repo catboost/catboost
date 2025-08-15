@@ -8,6 +8,8 @@
 #include "ffitest.h"
 static long return_sl(long l1, long l2)
 {
+  CHECK(l1 == 1073741823L);
+  CHECK(l2 == 1073741824L);
   return l1 - l2;
 }
 
@@ -33,6 +35,8 @@ int main (void)
   ffi_call(&cif, FFI_FN(return_sl), &res, values);
   printf("res: %ld, %ld\n", (long)res, l1 - l2);
   /* { dg-output "res: -1, -1" } */
+  CHECK((long)res == -1);
+  CHECK(l1 + 1 == l2);
 
   exit(0);
 }

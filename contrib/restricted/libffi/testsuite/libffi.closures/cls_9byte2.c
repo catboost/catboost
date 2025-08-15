@@ -15,7 +15,7 @@ typedef struct cls_struct_9byte {
   int b;
 } cls_struct_9byte;
 
-cls_struct_9byte cls_struct_9byte_fn(struct cls_struct_9byte b1,
+static cls_struct_9byte cls_struct_9byte_fn(struct cls_struct_9byte b1,
 			    struct cls_struct_9byte b2)
 {
   struct cls_struct_9byte result;
@@ -25,6 +25,15 @@ cls_struct_9byte cls_struct_9byte_fn(struct cls_struct_9byte b1,
 
   printf("%g %d %g %d: %g %d\n", b1.a, b1.b,  b2.a, b2.b,
 	 result.a, result.b);
+
+  CHECK(b1.a == 7);
+  CHECK(b1.b == 8);
+
+  CHECK(b2.a == 1);
+  CHECK(b2.b == 9);
+
+  CHECK(result.a == 8);
+  CHECK(result.b == 17);
 
   return result;
 }
@@ -78,7 +87,8 @@ int main (void)
   /* { dg-output "7 8 1 9: 8 17" } */
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 8 17" } */
-
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 17);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_9byte_gn, NULL, code) == FFI_OK);
 
@@ -86,6 +96,8 @@ int main (void)
   /* { dg-output "\n7 8 1 9: 8 17" } */
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
   /* { dg-output "\nres: 8 17" } */
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 17);
 
   exit(0);
 }

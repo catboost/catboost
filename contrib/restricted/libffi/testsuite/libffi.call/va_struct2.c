@@ -33,12 +33,22 @@ test_fn (int n, ...)
   struct small_tag s2;
   struct large_tag l;
 
+  (void) n;
   va_start (ap, n);
   s1 = va_arg (ap, struct small_tag);
   l = va_arg (ap, struct large_tag);
   s2 = va_arg (ap, struct small_tag);
   printf ("%u %u %u %u %u %u %u %u %u\n", s1.a, s1.b, l.a, l.b, l.c, l.d, l.e,
 	  s2.a, s2.b);
+  CHECK(s1.a == 5);
+  CHECK(s1.b == 6);
+  CHECK(l.a == 10);
+  CHECK(l.b == 11);
+  CHECK(l.c == 12);
+  CHECK(l.d == 13);
+  CHECK(l.e == 14);
+  CHECK(s2.a == 7);
+  CHECK(s2.b == 8);
   va_end (ap);
   s1.a += s2.a;
   s1.b += s2.b;
@@ -118,6 +128,8 @@ main (void)
   /* { dg-output "5 6 10 11 12 13 14 7 8" } */
   printf("res: %d %d\n", res.a, res.b);
   /* { dg-output "\nres: 12 14" } */
+  CHECK(res.a == 12);
+  CHECK(res.b == 14);
 
   return 0;
 }

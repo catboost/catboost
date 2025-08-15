@@ -36,6 +36,17 @@ static B B_fn(struct A b2, struct B b3, struct C b4)
 	 b3.x.a, (int)b3.x.b, b3.y, (int)b4.d, b4.e,
 	 result.x.a, (int)result.x.b, result.y);
 
+  CHECK((int)b2.a == 1);
+  CHECK(b2.b == 7);
+  CHECK((int)b3.x.a == 12);
+  CHECK(b3.x.b == 127);
+  CHECK(b3.y == 99);
+  CHECK((int)b4.d == 2); 
+  CHECK(b4.e == 9);
+  CHECK((int)result.x.a == 15);
+  CHECK(result.x.b == 242);
+  CHECK(result.y == 143);
+  
   return result;
 }
 

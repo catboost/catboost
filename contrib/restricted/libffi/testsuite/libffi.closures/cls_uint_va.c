@@ -16,6 +16,9 @@ static void cls_ret_T_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
    *(ffi_arg *)resp = *(T *)args[0];
 
    printf("%d: %d %d\n", (int)*(ffi_arg *)resp, *(T *)args[0], *(T *)args[1]);
+   CHECK(*(T *)args[0] == 67);
+   CHECK(*(T *)args[1] == 4);
+   CHECK((int)*(ffi_arg *)resp == 67);
  }
 
 typedef T (*cls_ret_T)(T, ...);
@@ -41,5 +44,6 @@ int main (void)
   /* { dg-output "67: 67 4" } */
   printf("res: %d\n", res);
   /* { dg-output "\nres: 67" } */
+  CHECK(res == 67);
   exit(0);
 }

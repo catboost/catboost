@@ -31,8 +31,32 @@ cls_struct_24byte cls_struct_24byte_fn(struct cls_struct_24byte b0,
 	 b0.a, b0.b, b0.c, b0.d,
 	 b1.a, b1.b, b1.c, b1.d,
 	 b2.a, b2.b, b2.c, b2.d,
-	 b3.a, b3.b, b3.c, b2.d,
+	 b3.a, b3.b, b3.c, b3.d,
 	 result.a, result.b, result.c, result.d);
+  CHECK_DOUBLE_EQ(b0.a, 9);
+  CHECK_DOUBLE_EQ(b0.b, 2);
+  CHECK(b0.c == 6);
+  CHECK_FLOAT_EQ(b0.d, 5);
+
+  CHECK_DOUBLE_EQ(b1.a, 1);
+  CHECK_DOUBLE_EQ(b1.b, 2);
+  CHECK(b1.c == 3);
+  CHECK_FLOAT_EQ(b1.d, 7);
+
+  CHECK_DOUBLE_EQ(b2.a, 4);
+  CHECK_DOUBLE_EQ(b2.b, 5);
+  CHECK(b2.c == 7);
+  CHECK_FLOAT_EQ(b2.d, 9);
+
+  CHECK_DOUBLE_EQ(b3.a, 8);
+  CHECK_DOUBLE_EQ(b3.b, 6);
+  CHECK(b3.c == 1);
+  CHECK_FLOAT_EQ(b3.d, 4);
+
+  CHECK_DOUBLE_EQ(result.a, 22);
+  CHECK_DOUBLE_EQ(result.b, 15);
+  CHECK(result.c == 17);
+  CHECK_FLOAT_EQ(result.d, 25);
 
   return result;
 }
@@ -94,9 +118,13 @@ int main (void)
   args_dbl[4] = NULL;
 
   ffi_call(&cif, FFI_FN(cls_struct_24byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 9: 22 15 17 25" } */
+  /* { dg-output "9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 4: 22 15 17 25" } */
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 22 15 17 25" } */
+  CHECK_DOUBLE_EQ(res_dbl.a, 22);
+  CHECK_DOUBLE_EQ(res_dbl.b, 15);
+  CHECK(res_dbl.c == 17);
+  CHECK_FLOAT_EQ(res_dbl.d, 25);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_24byte_gn, NULL, code) == FFI_OK);
 
@@ -105,9 +133,13 @@ int main (void)
 				   cls_struct_24byte,
 				   cls_struct_24byte))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  /* { dg-output "\n9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 9: 22 15 17 25" } */
+  /* { dg-output "\n9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 4: 22 15 17 25" } */
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 22 15 17 25" } */
+  CHECK_DOUBLE_EQ(res_dbl.a, 22);
+  CHECK_DOUBLE_EQ(res_dbl.b, 15);
+  CHECK(res_dbl.c == 17);
+  CHECK_FLOAT_EQ(res_dbl.d, 25);
 
   exit(0);
 }

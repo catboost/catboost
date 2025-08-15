@@ -5,7 +5,7 @@
    Originator:	<hos@tamanegi.org> 20031203	 */
 
 /* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-options -mlong-double-128 { target powerpc64*-*-linux* } } */
+/* { dg-options -mlong-double-128 { target powerpc64*-*-linux-gnu* } } */
 
 #include "ffitest.h"
 
@@ -19,7 +19,7 @@ typedef struct cls_struct_align {
   long double g;
 } cls_struct_align;
 
-cls_struct_align cls_struct_align_fn(
+static cls_struct_align cls_struct_align_fn(
 	cls_struct_align	a1,
 	cls_struct_align	a2)
 {
@@ -39,32 +39,34 @@ cls_struct_align cls_struct_align_fn(
 		a2.a, a2.b, a2.c, a2.d, a2.e, a2.f, a2.g,
 		r.a, r.b, r.c, r.d, r.e, r.f, r.g);
 
-	return r;
-}
+	CHECK(a1.a == 1);
+	CHECK(a1.b == 2);
+	CHECK(a1.c == 3);
+	CHECK(a1.d == 4);
+	CHECK(a1.e == 5);
+	CHECK(a1.f == 6);
+	CHECK(a1.g == 7);
 
-cls_struct_align cls_struct_align_fn2(
-	cls_struct_align	a1)
-{
-	struct cls_struct_align r;
+	CHECK(a2.a == 8);
+	CHECK(a2.b == 9);
+	CHECK(a2.c == 10);
+	CHECK(a2.d == 11);
+	CHECK(a2.e == 12);
+	CHECK(a2.f == 13);
+	CHECK(a2.g == 14);
 
-	r.a = a1.a + 1;
-	r.b = a1.b + 1;
-	r.c = a1.c + 1;
-	r.d = a1.d + 1;
-	r.e = a1.e + 1;
-	r.f = a1.f + 1;
-	r.g = a1.g + 1;
-
-	printf("%Lg %Lg %Lg %Lg %Lg %Lg %Lg: "
-		"%Lg %Lg %Lg %Lg %Lg %Lg %Lg\n",
-		a1.a, a1.b, a1.c, a1.d, a1.e, a1.f, a1.g,
-		r.a, r.b, r.c, r.d, r.e, r.f, r.g);
-
+	CHECK(r.a == 9);
+	CHECK(r.b == 11);
+	CHECK(r.c == 13);
+	CHECK(r.d == 15);
+	CHECK(r.e == 17);
+	CHECK(r.f == 19);
+	CHECK(r.g == 21);
 	return r;
 }
 
 static void
-cls_struct_align_gn(ffi_cif* cif __UNUSED__, void* resp, void** args, 
+cls_struct_align_gn(ffi_cif* cif __UNUSED__, void* resp, void** args,
 		    void* userdata __UNUSED__)
 {
 	struct cls_struct_align a1, a2;
@@ -119,6 +121,13 @@ int main (void)
 	printf("res: %Lg %Lg %Lg %Lg %Lg %Lg %Lg\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
 	/* { dg-output "\nres: 9 11 13 15 17 19 21" } */
+	CHECK(res_dbl.a == 9);
+	CHECK(res_dbl.b == 11);
+	CHECK(res_dbl.c == 13);
+	CHECK(res_dbl.d == 15);
+	CHECK(res_dbl.e == 17);
+	CHECK(res_dbl.f == 19);
+	CHECK(res_dbl.g == 21);
 
 	CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == FFI_OK);
 
@@ -127,6 +136,12 @@ int main (void)
 	printf("res: %Lg %Lg %Lg %Lg %Lg %Lg %Lg\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
 	/* { dg-output "\nres: 9 11 13 15 17 19 21" } */
-
+	CHECK(res_dbl.a == 9);
+	CHECK(res_dbl.b == 11);
+	CHECK(res_dbl.c == 13);
+	CHECK(res_dbl.d == 15);
+	CHECK(res_dbl.e == 17);
+	CHECK(res_dbl.f == 19);
+	CHECK(res_dbl.g == 21);
   exit(0);
 }

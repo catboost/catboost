@@ -76,7 +76,7 @@ int main (void)
 
   printf ("%d,%di %d,%di, x %d 1234, y %d 11110\n",
 	  (int)tc_result, (int)(tc_result * -I), 2, 8, tc_int_arg_x, tc_y);
-  /* dg-output "-2,8i 2,8i, x 1234 1234, y 11110 11110" */
+  /* { dg-output "-2,8i 2,8i, x 1234 1234, y 11110 11110" } */
   CHECK (creal (tc_result) == -2);
   CHECK (cimag (tc_result) == 8);
   CHECK (tc_int_arg_x == 1234);
