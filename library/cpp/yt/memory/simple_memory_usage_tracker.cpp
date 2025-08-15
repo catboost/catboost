@@ -1,4 +1,4 @@
-#include "memory_usage_tracker.h"
+#include "simple_memory_usage_tracker.h"
 
 #include "leaky_ref_counted_singleton.h"
 
@@ -6,7 +6,7 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TNulSimplelMemoryUsageTracker
+class TNullSimpleMemoryUsageTracker
     : public ISimpleMemoryUsageTracker
 {
 public:
@@ -98,7 +98,7 @@ void TSimpleMemoryUsageTrackerGuard::SetSize(i64 size)
 
 ISimpleMemoryUsageTrackerPtr GetNullSimpleMemoryUsageTracker()
 {
-    return LeakyRefCountedSingleton<TNulSimplelMemoryUsageTracker>();
+    return LeakyRefCountedSingleton<TNullSimpleMemoryUsageTracker>();
 }
 
 TSharedRef TrackMemory(

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "blob.h"
-#include "memory_usage_tracker.h"
+#include "simple_memory_usage_tracker.h"
 
 #include <library/cpp/yt/memory/ref.h>
 
