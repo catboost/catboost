@@ -1,5 +1,18 @@
 #include "tempfile.h"
 
+#include "error.h"
+
+#include <util/generic/yexception.h>
+
+TTempFile& TTempFile::operator=(TTempFile&& rhs) {
+    if (Name_.Defined()) {
+        Y_ENSURE(NFs::Remove(*Name_), "Removing \"" << *Name_ << "\" failed: " << LastSystemErrorText());
+    }
+    Name_ = std::move(rhs.Name_);
+    rhs.Name_.Clear();
+    return *this;
+}
+
 TTempFileHandle::TTempFileHandle()
     : TTempFile(MakeTempName())
     , TFile(CreateFile())
