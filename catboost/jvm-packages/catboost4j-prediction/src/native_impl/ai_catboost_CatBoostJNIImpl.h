@@ -209,6 +209,14 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3_3Ljava_lang_String_2_3_3_3F_3D
   (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jdoubleArray);
 
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelPredictTransposed
+ * Signature: (J[[F[D)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredictTransposed
+  (JNIEnv *, jclass, jlong, jobjectArray, jdoubleArray);
+
 #ifdef __cplusplus
 }
 #endif
