@@ -29,6 +29,12 @@ DEFINE_BIT_ENUM(EFlag,
     ((_4)(0x0008))
 );
 
+DEFINE_BIT_ENUM(EAmbiguousFlag,
+    ((A)  (0x1))
+    ((B)  (0x2))
+    ((AB) (0x3))
+);
+
 DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(EMultipleNames, int,
      (A1)
     ((A2)(0))
@@ -297,8 +303,14 @@ TEST(TEnumTest, UnknownValue)
     EXPECT_EQ(TEnumTraits<EWithUnknown>::TryGetUnknownValue(), EWithUnknown::Unknown);
 }
 
+TEST(TEnumTest, PopCount)
+{
+    EXPECT_EQ(PopCount(EAmbiguousFlag::A), 1);
+    EXPECT_EQ(PopCount(EAmbiguousFlag::B), 1);
+    EXPECT_EQ(PopCount(EAmbiguousFlag::AB), 2);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 } // namespace NYT
-

@@ -212,6 +212,23 @@ template <typename E>
     requires TEnumTraits<E>::IsBitEnum
 constexpr bool None(E value) noexcept;
 
+//! Returns the number of set bits in |value|.
+//!
+//! Note that this may not be equivalent of "number of set variants", because
+//! variants themselves are not required to have popcount of 1.
+//!
+//! For example, given an enum:
+//! DEFINE_BIT_ENUM(EMyEnum,
+//!    ((Read)  (1))
+//!    ((Write) (2))
+//!    ((Both)  (3))
+//! );
+//!
+//! `PopCount(EMyEnum::Both)` will return 2.
+template <typename E>
+    requires TEnumTraits<E>::IsBitEnum
+constexpr int PopCount(E value);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT

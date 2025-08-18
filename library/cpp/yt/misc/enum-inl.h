@@ -427,6 +427,13 @@ constexpr bool None(E value) noexcept
     return ToUnderlying(value) == 0;
 }
 
+template <typename E>
+    requires TEnumTraits<E>::IsBitEnum
+constexpr int PopCount(E value)
+{
+    return std::popcount(static_cast<std::underlying_type_t<E>>(value));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
