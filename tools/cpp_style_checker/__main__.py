@@ -1,9 +1,7 @@
 import difflib
-import json
 import os
 import subprocess
 import time
-import yaml
 from pathlib import PurePath
 
 from build.plugins.lib.test_const import CLANG_FORMAT_RESOURCE
@@ -37,21 +35,17 @@ def main():
 
     style_config_path = params.configs[0]
 
-    with open(style_config_path) as f:
-        style_config = yaml.safe_load(f)
-    style_config_json = json.dumps(style_config)
-
     report = reporter.LintReport()
     for file_name in params.files:
         start_time = time.time()
-        status, message = check_file(clang_format_binary, style_config_json, file_name)
+        status, message = check_file(clang_format_binary, style_config_path, file_name)
         elapsed = time.time() - start_time
         report.add(file_name, status, message, elapsed=elapsed)
 
     report.dump(params.report_file)
 
 
-def check_file(clang_format_binary, style_config_json, filename):
+def check_file(clang_format_binary, style_config_path, filename):
     with open(filename, "rb") as f:
         actual_source = f.read()
 
@@ -59,7 +53,7 @@ def check_file(clang_format_binary, style_config_json, filename):
     if skip_reason:
         return reporter.LintStatus.SKIPPED, "Style check is omitted: {}".format(skip_reason)
 
-    command = [clang_format_binary, '-assume-filename=' + filename, '-style=' + style_config_json]
+    command = [clang_format_binary, '-assume-filename=' + filename, '-style=file:' + style_config_path]
     styled_source = subprocess.check_output(command, input=actual_source)
 
     if styled_source == actual_source:
