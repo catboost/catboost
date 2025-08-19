@@ -83,7 +83,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   - macOS
 
-      - XCode command line tools (must contain `clang` with version 15+, so XCode version must be greater than 15.0 as well)
+      - XCode command line tools from XCode versions 15.0 - 16.2 (must contain `clang` with versions 15 - 16)
 
       {% cut "Previous requirements" %}
 
