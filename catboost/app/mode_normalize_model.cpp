@@ -97,7 +97,7 @@ namespace {
 
             CB_ENSURE(modeParams.ModelFileName.size() == 1, "Model normalization requires exactly one model");
             TFullModel model = ReadModel(modeParams.ModelFileName[0], modeParams.ModelType);
-            CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize empty model");
+            CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize an empty model");
             CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multitarget model");
             TScaleAndBias inputScaleAndBias = model.GetScaleAndBias();
             if (modeParams.PrintScaleAndBias) {

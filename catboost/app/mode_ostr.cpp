@@ -44,7 +44,11 @@ struct TObjectImportancesParams {
             .DefaultValue("object_importances.tsv");
         parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
             .StoreResult(&ThreadCount);
-        parser.AddLongOption("update-method", "Should be one of: SinglePoint, TopKLeaves, AllPoints or TopKLeaves:top=2 to set the top size in TopKLeaves method.")
+        parser.AddLongOption(
+                "update-method",
+                "Should be one of: 'SinglePoint', 'TopKLeaves', 'AllPoints' or 'TopKLeaves:top=2' to set "
+                "the top size in TopKLeaves method."
+            )
             .StoreResult(&UpdateMethod)
             .DefaultValue("SinglePoint");
     }

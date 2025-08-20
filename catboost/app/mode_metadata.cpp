@@ -78,7 +78,7 @@ int get_keys(int argc, const char* argv[]) {
     params.BindParser(parser);
     parser.AddLongOption("key", "keys to dump")
         .AppendTo(&keys);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgDefaultTitle("KEY", "you can use freeargs to select keys");
@@ -108,7 +108,7 @@ int dump(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgsMax(0);
@@ -134,7 +134,7 @@ int dump_feature_names(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgsMax(0);

@@ -52,7 +52,11 @@ struct TModeEvalMetricsParams {
                 .RequiredArgument("INT")
                 .DefaultValue("150000")
                 .StoreResult(&ReadBlockSize);
-        parser.AddLongOption("tmp-dir", "Dir to store approx for non-additive metrics. Use \"-\" to generate directory.")
+        parser.AddLongOption(
+                "tmp-dir",
+                "Dir to store approx for non-additive metrics. "
+                "Use \"-\" to generate a temporary directory automatically."
+            )
                 .RequiredArgument("String")
                 .DefaultValue("-")
                 .StoreResult(&TmpDir);
