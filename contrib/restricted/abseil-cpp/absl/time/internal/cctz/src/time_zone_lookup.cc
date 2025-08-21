@@ -114,9 +114,9 @@ std::string win32_local_time_zone() {
   std::string local_time_str;
   local_time_str.resize(static_cast<size_t>(num_bytes_in_utf8));
   ::WideCharToMultiByte(
-       CP_UTF8, 0, reinterpret_cast<const wchar_t*>(buffer.data()),
-       static_cast<int>(num_chars_in_buffer), &local_time_str[0],
-       num_bytes_in_utf8, nullptr, nullptr);
+      CP_UTF8, 0, reinterpret_cast<const wchar_t*>(buffer.data()),
+      static_cast<int>(num_chars_in_buffer), &local_time_str[0],
+      num_bytes_in_utf8, nullptr, nullptr);
   return local_time_str;
 }
 #endif  // USE_WIN32_LOCAL_TIME_ZONE

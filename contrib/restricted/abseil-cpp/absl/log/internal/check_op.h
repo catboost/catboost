@@ -133,41 +133,39 @@
 //   string literal and abort without doing any streaming.  We don't need to
 //   strip the call to stringify the non-ok `Status` as long as we don't log it;
 //   dropping the `Status`'s message text is out of scope.
-#define ABSL_LOG_INTERNAL_CHECK_OK(val, val_text)                          \
-  for (::std::pair<const ::absl::Status* absl_nonnull,                     \
-                   const char* absl_nullable>                              \
-           absl_log_internal_check_ok_goo;                                 \
-       absl_log_internal_check_ok_goo.first =                              \
-           ::absl::log_internal::AsStatus(val),                            \
-       absl_log_internal_check_ok_goo.second =                             \
-           ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok())   \
-               ? nullptr                                                   \
-               : ::absl::status_internal::MakeCheckFailString(             \
-                     absl_log_internal_check_ok_goo.first,                 \
-                     ABSL_LOG_INTERNAL_STRIP_STRING_LITERAL(val_text       \
-                                                            " is OK")),    \
-       !ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok());)    \
-    ABSL_LOG_INTERNAL_CONDITION_FATAL(STATELESS, true)                     \
-  ABSL_LOG_INTERNAL_CHECK(::absl::implicit_cast<const char* absl_nonnull>( \
-                              absl_log_internal_check_ok_goo.second))      \
+#define ABSL_LOG_INTERNAL_CHECK_OK(val, val_text)                         \
+  for (::std::pair<const ::absl::Status* absl_nonnull,                    \
+                   const char* absl_nonnull>                              \
+           absl_log_internal_check_ok_goo;                                \
+       absl_log_internal_check_ok_goo.first =                             \
+           ::absl::log_internal::AsStatus(val),                           \
+       absl_log_internal_check_ok_goo.second =                            \
+           ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok())  \
+               ? "" /* Don't use nullptr, to keep the annotation happy */ \
+               : ::absl::status_internal::MakeCheckFailString(            \
+                     absl_log_internal_check_ok_goo.first,                \
+                     ABSL_LOG_INTERNAL_STRIP_STRING_LITERAL(val_text      \
+                                                            " is OK")),   \
+       !ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok());)   \
+    ABSL_LOG_INTERNAL_CONDITION_FATAL(STATELESS, true)                    \
+  ABSL_LOG_INTERNAL_CHECK(absl_log_internal_check_ok_goo.second)          \
       .InternalStream()
-#define ABSL_LOG_INTERNAL_QCHECK_OK(val, val_text)                          \
-  for (::std::pair<const ::absl::Status* absl_nonnull,                      \
-                   const char* absl_nullable>                               \
-           absl_log_internal_qcheck_ok_goo;                                 \
-       absl_log_internal_qcheck_ok_goo.first =                              \
-           ::absl::log_internal::AsStatus(val),                             \
-       absl_log_internal_qcheck_ok_goo.second =                             \
-           ABSL_PREDICT_TRUE(absl_log_internal_qcheck_ok_goo.first->ok())   \
-               ? nullptr                                                    \
-               : ::absl::status_internal::MakeCheckFailString(              \
-                     absl_log_internal_qcheck_ok_goo.first,                 \
-                     ABSL_LOG_INTERNAL_STRIP_STRING_LITERAL(val_text        \
-                                                            " is OK")),     \
-       !ABSL_PREDICT_TRUE(absl_log_internal_qcheck_ok_goo.first->ok());)    \
-    ABSL_LOG_INTERNAL_CONDITION_QFATAL(STATELESS, true)                     \
-  ABSL_LOG_INTERNAL_QCHECK(::absl::implicit_cast<const char* absl_nonnull>( \
-                               absl_log_internal_qcheck_ok_goo.second))     \
+#define ABSL_LOG_INTERNAL_QCHECK_OK(val, val_text)                        \
+  for (::std::pair<const ::absl::Status* absl_nonnull,                    \
+                   const char* absl_nonnull>                              \
+           absl_log_internal_qcheck_ok_goo;                               \
+       absl_log_internal_qcheck_ok_goo.first =                            \
+           ::absl::log_internal::AsStatus(val),                           \
+       absl_log_internal_qcheck_ok_goo.second =                           \
+           ABSL_PREDICT_TRUE(absl_log_internal_qcheck_ok_goo.first->ok()) \
+               ? "" /* Don't use nullptr, to keep the annotation happy */ \
+               : ::absl::status_internal::MakeCheckFailString(            \
+                     absl_log_internal_qcheck_ok_goo.first,               \
+                     ABSL_LOG_INTERNAL_STRIP_STRING_LITERAL(val_text      \
+                                                            " is OK")),   \
+       !ABSL_PREDICT_TRUE(absl_log_internal_qcheck_ok_goo.first->ok());)  \
+    ABSL_LOG_INTERNAL_CONDITION_QFATAL(STATELESS, true)                   \
+  ABSL_LOG_INTERNAL_QCHECK(absl_log_internal_qcheck_ok_goo.second)        \
       .InternalStream()
 
 namespace absl {
@@ -225,6 +223,19 @@ void MakeCheckOpValueString(std::ostream& os, char v);
 void MakeCheckOpValueString(std::ostream& os, signed char v);
 void MakeCheckOpValueString(std::ostream& os, unsigned char v);
 void MakeCheckOpValueString(std::ostream& os, const void* absl_nullable p);
+
+void MakeCheckOpUnprintableString(std::ostream& os);
+
+// A wrapper for types that have no operator<<.
+struct UnprintableWrapper {
+  template <typename T>
+  explicit UnprintableWrapper(const T&) {}
+
+  friend std::ostream& operator<<(std::ostream& os, const UnprintableWrapper&) {
+    MakeCheckOpUnprintableString(os);
+    return os;
+  }
+};
 
 namespace detect_specialization {
 
@@ -300,12 +311,11 @@ const T& Detect(int);
 
 // This overload triggers when the call is ambiguous.
 // It means that T is either one from this list or printed as one from this
-// list. Eg an enum that decays to `int` for printing.
+// list. Eg an unscoped enum that decays to `int` for printing.
 // We ask the overload set to give us the type we want to convert it to.
 template <typename T>
-decltype(detect_specialization::operator<<(std::declval<std::ostream&>(),
-                                           std::declval<const T&>()))
-Detect(char);
+decltype(detect_specialization::operator<<(
+    std::declval<std::ostream&>(), std::declval<const T&>())) Detect(char);
 
 // A sink for AbslStringify which redirects everything to a std::ostream.
 class StringifySink {
@@ -346,6 +356,44 @@ template <typename T>
 std::enable_if_t<HasAbslStringify<T>::value,
                  StringifyToStreamWrapper<T>>
 Detect(...);  // Ellipsis has lowest preference when int passed.
+
+// is_streamable is true for types that have an output stream operator<<.
+template <class T, class = void>
+struct is_streamable : std::false_type {};
+
+template <class T>
+struct is_streamable<T, std::void_t<decltype(std::declval<std::ostream&>()
+                                             << std::declval<T>())>>
+    : std::true_type {};
+
+// This overload triggers when T is neither possible to print nor an enum.
+template <typename T>
+std::enable_if_t<std::negation_v<std::disjunction<
+                     std::is_convertible<T, int>, std::is_enum<T>,
+                     std::is_pointer<T>, std::is_same<T, std::nullptr_t>,
+                     is_streamable<T>, HasAbslStringify<T>>>,
+                 UnprintableWrapper>
+Detect(...);
+
+// This overload triggers when T is a scoped enum that has not defined an output
+// stream operator (operator<<) or AbslStringify. It causes the enum value to be
+// converted to a type that can be streamed. For consistency with other enums, a
+// scoped enum backed by a bool or char is converted to its underlying type, and
+// one backed by another integer is converted to (u)int64_t.
+template <typename T>
+std::enable_if_t<
+    std::conjunction_v<
+        std::is_enum<T>, std::negation<std::is_convertible<T, int>>,
+        std::negation<is_streamable<T>>, std::negation<HasAbslStringify<T>>>,
+    std::conditional_t<
+        std::is_same_v<std::underlying_type_t<T>, bool> ||
+            std::is_same_v<std::underlying_type_t<T>, char> ||
+            std::is_same_v<std::underlying_type_t<T>, signed char> ||
+            std::is_same_v<std::underlying_type_t<T>, unsigned char>,
+        std::underlying_type_t<T>,
+        std::conditional_t<std::is_signed_v<std::underlying_type_t<T>>, int64_t,
+                           uint64_t>>>
+Detect(...);
 }  // namespace detect_specialization
 
 template <typename T>

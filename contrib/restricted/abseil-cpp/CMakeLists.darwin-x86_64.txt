@@ -79,7 +79,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/usage_config.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/city.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/hash.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/low_level_hash.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/die_if_null.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/flags.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/globals.cc
@@ -95,10 +94,13 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/structured_proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/vlog_config.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/numeric/int128.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/hashtable.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/periodic_sampler.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/profile_builder.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/discrete_distribution.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/gaussian_distribution.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/chi_square.cc
