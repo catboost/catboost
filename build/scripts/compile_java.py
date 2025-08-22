@@ -11,8 +11,8 @@ import sys
 # Explicitly enable local imports
 # Don't forget to add imported scripts to inputs of the calling command!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import process_command_files as pcf
-import java_command_file as jcf
+import process_command_files as pcf  # noqa: E402
+import java_command_file as jcf  # noqa: E402
 
 
 def parse_args(args):
