@@ -160,3 +160,5 @@ class TArrayRef;
 
 template <class T>
 using TConstArrayRef = TArrayRef<const T>;
+
+class TBlob;
