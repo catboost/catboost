@@ -165,6 +165,6 @@ class CatBoostJNIImpl {
     @Nullable
     final static native String catBoostModelPredictTransposed(
             long handle,
-            @NotNull float[][] transposedFeatures,
+            @NotNull float[][] numericFeatures,
             @NotNull double[] predictions);
 }

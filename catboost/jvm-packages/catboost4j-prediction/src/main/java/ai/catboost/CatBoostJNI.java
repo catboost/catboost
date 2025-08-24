@@ -183,8 +183,8 @@ class CatBoostJNI {
 
     final void catBoostModelPredictTransposed(
             final long handle,
-            final @NotNull float[][] transposedFeatures,
+            final @NotNull float[][] numericFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredictTransposed(handle, transposedFeatures, predictions));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredictTransposed(handle, numericFeatures, predictions));
     }
 }

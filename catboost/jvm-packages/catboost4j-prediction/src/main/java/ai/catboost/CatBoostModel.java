@@ -679,17 +679,17 @@ public class CatBoostModel implements AutoCloseable {
 
     /**
      * Apply model to a batch of objects, but features of objects used in column format.
-     * @param transposedFeatures numeric features in column format (row of matrix is one feature for all objects).
-     * @return                   Model predictions.
-     * @throws CatBoostError     In case of error within native library.
+     * @param numericFeatures numeric features in column format (row of matrix is one feature for all objects).
+     * @return                Model predictions.
+     * @throws CatBoostError  In case of error within native library.
      */
     @NotNull
-    public CatBoostPredictions predictTransposed(final float[][] transposedFeatures) throws CatBoostError {
-        int resultSize = transposedFeatures[0].length;
+    public CatBoostPredictions predictTransposed(final float[][] numericFeatures) throws CatBoostError {
+        int resultSize = numericFeatures[0].length;
         final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
         implLibrary.catBoostModelPredictTransposed(
             handle,
-            transposedFeatures,
+            numericFeatures,
             prediction.getRawData()
         );
 
