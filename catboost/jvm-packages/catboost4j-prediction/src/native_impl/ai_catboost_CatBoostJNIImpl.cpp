@@ -1423,8 +1423,8 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredictT
             CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
-                documentCount <= rowSize,
-                "numeric feature count doesn't match for row " << i << ": "
+                documentCount == rowSize,
+                "document count doesn't match for row " << i << ": "
                 LabeledOutput(documentCount, rowSize));
             numericFeatureMatrixRowObjects.push_back(row);
             numericFeatureMatrixRows.push_back(MakeArrayRef(

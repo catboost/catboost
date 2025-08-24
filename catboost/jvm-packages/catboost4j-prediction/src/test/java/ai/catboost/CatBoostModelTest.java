@@ -375,6 +375,23 @@ public class CatBoostModelTest {
 
     @ParameterizedTest
     @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNumericOnlyTransposedIncorrectNumberOfObjects(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
+            try {
+                final float[][] features = new float[][]{
+                        {0.f, 0.f, 0.f},
+                        {0.f, 1.f, 2.f},
+                        {0.f, 3.f}};
+                model.predict(features, (String[][]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
     public void testFailPredictMultipleNumericOnlyNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             model.setEvaluatorType(evaluatorType);
