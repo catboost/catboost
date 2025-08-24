@@ -684,7 +684,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError  In case of error within native library.
      */
     @NotNull
-    public CatBoostPredictions predictTransposed(final float[][] numericFeatures) throws CatBoostError {
+    public CatBoostPredictions predictTransposed(final @NotNull float[][] numericFeatures) throws CatBoostError {
         int resultSize = numericFeatures[0].length;
         final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
         implLibrary.catBoostModelPredictTransposed(
