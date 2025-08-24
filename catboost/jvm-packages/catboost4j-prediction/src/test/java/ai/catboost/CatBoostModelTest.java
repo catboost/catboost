@@ -383,7 +383,7 @@ public class CatBoostModelTest {
                         {0.f, 0.f, 0.f},
                         {0.f, 1.f, 2.f},
                         {0.f, 3.f}};
-                model.predict(features, (String[][]) null);
+                model.predictTransposed(features);
                 fail();
             } catch (CatBoostError e) {
             }
