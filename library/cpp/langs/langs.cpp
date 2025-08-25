@@ -163,6 +163,12 @@ namespace {
         {LANG_ABQ, SCRIPT_CYRILLIC, "Abaza", "abq", "abq", nullptr},
         {LANG_MYV, SCRIPT_CYRILLIC, "Erzya", "myv", "myv", nullptr},
         {LANG_MDF, SCRIPT_CYRILLIC, "Moksha", "mdf", "mdf", nullptr},
+        {LANG_BUA, SCRIPT_CYRILLIC, "Buryat", "bua", "bua", nullptr},
+        {LANG_ADY, SCRIPT_CYRILLIC, "Adyghe", "ady", "ady", nullptr},
+        {LANG_LEZ, SCRIPT_CYRILLIC, "Lezgian", "lez", "lez", nullptr},
+        {LANG_CRH, SCRIPT_CYRILLIC, "Crimean Tatar", "crh", "crh", nullptr},
+        {LANG_EVN, SCRIPT_CYRILLIC, "Evenki", "evn", "evn", nullptr},
+        {LANG_VEP, SCRIPT_CYRILLIC, "Veps", "vep", "vep", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");

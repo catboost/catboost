@@ -148,6 +148,12 @@ enum ELanguage: unsigned {
     LANG_ABQ = 131,         // Abaza
     LANG_MYV = 132,         // Erzya
     LANG_MDF = 133,         // Moksha
+    LANG_BUA = 134,         // Buryat
+    LANG_ADY = 135,         // Adyghe
+    LANG_LEZ = 136,         // Lezgian
+    LANG_CRH = 137,         // Crimean Tatar
+    LANG_EVN = 138,         // Evenki
+    LANG_VEP = 139,         // Veps
     LANG_MAX
 };
 
