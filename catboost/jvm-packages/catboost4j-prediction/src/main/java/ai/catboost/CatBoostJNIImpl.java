@@ -161,4 +161,10 @@ class CatBoostJNIImpl {
             @Nullable String[][] textFeatures,
             @Nullable float[][][] embeddingFeatures,
             @NotNull double[] predictions);
+
+    @Nullable
+    final static native String catBoostModelPredictTransposed(
+            long handle,
+            @NotNull float[][] numericFeatures,
+            @NotNull double[] predictions);
 }

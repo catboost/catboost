@@ -910,6 +910,14 @@ static size_t GetMatrixColumnCount(JNIEnv* const jenv, const jobjectArray matrix
     return jenv->GetArrayLength(firstRow);
 }
 
+static size_t GetMatrixRowCount(JNIEnv* const jenv, const jobjectArray matrix) {
+    if (jenv->IsSameObject(matrix, NULL) == JNI_TRUE) {
+        return 0;
+    }
+
+    return jenv->GetArrayLength(matrix);
+}
+
 static size_t GetDocumentCount(
     JNIEnv* const jenv,
     jobjectArray jnumericFeaturesMatrix,
@@ -1366,6 +1374,73 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     Y_END_JNI_API_CALL();
 }
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredictTransposed
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jdoubleArray jpredictions) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const size_t documentCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
+    if (documentCount == 0) {
+        return 0;
+    }
+
+    const size_t modelPredictionSize = model->GetDimensionsCount();
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+
+    const size_t numericFeatureCount = GetMatrixRowCount(jenv, jnumericFeaturesMatrix);
+
+    CB_ENSURE(
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
+
+    const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
+    CB_ENSURE(
+        predictionsSize >= documentCount * modelPredictionSize,
+        "`prediction` size is insufficient, must be at least document count * model prediction dimension: "
+        LabeledOutput(predictionsSize, documentCount * modelPredictionSize));
+
+    TVector<jfloatArray> numericFeatureMatrixRowObjects;
+    TVector<TConstArrayRef<float>> numericFeatureMatrixRows;
+
+    Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
+        const auto size = numericFeatureMatrixRows.size();
+        for (size_t i = 0; i < size; ++i) {
+            jenv->ReleaseFloatArrayElements(
+                numericFeatureMatrixRowObjects[i],
+                const_cast<float*>(numericFeatureMatrixRows[i].data()),
+                JNI_ABORT);
+        }
+    };
+
+    if (numericFeatureCount) {
+        numericFeatureMatrixRowObjects.reserve(numericFeatureCount);
+        numericFeatureMatrixRows.reserve(numericFeatureCount);
+        for (size_t i = 0; i < numericFeatureCount; ++i) {
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            const size_t rowSize = jenv->GetArrayLength(row);
+            CB_ENSURE(
+                documentCount == rowSize,
+                "document count doesn't match for row " << i << ": "
+                LabeledOutput(documentCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
+            numericFeatureMatrixRows.push_back(MakeArrayRef(
+                jenv->GetFloatArrayElements(row, nullptr),
+                documentCount));
+        }
+    }
+
+    TVector<double> predictions;
+    predictions.yresize(documentCount * modelPredictionSize);
+    model->CalcFlatTransposed(numericFeatureMatrixRows, predictions);
+    jenv->SetDoubleArrayRegion(jpredictions, 0, predictions.size(), predictions.data());
+
+    Y_END_JNI_API_CALL();
+}
+
 
 #undef Y_BEGIN_JNI_API_CALL
 #undef Y_END_JNI_API_CALL

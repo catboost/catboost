@@ -180,4 +180,11 @@ class CatBoostJNI {
             final @NotNull double[] predictions) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, predictions));
     }
+
+    final void catBoostModelPredictTransposed(
+            final long handle,
+            final @NotNull float[][] numericFeatures,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredictTransposed(handle, numericFeatures, predictions));
+    }
 }
