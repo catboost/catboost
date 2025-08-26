@@ -197,37 +197,37 @@ namespace boost { namespace detail { namespace lcast {
             return true;
         }
 
-        bool shl_real_type(float val, char* begin) {
-            const double val_as_double = val;
+        bool shl_real_type(lcast::exact<float> val, char* begin) {
+            const double val_as_double = val.payload;
             finish = start +
                 boost::core::snprintf(begin, CharacterBufferSize,
                 "%.*g", static_cast<int>(boost::detail::lcast_precision<float>::value), val_as_double);
             return finish > start;
         }
 
-        bool shl_real_type(double val, char* begin) {
+        bool shl_real_type(lcast::exact<double> val, char* begin) {
             finish = start +
                 boost::core::snprintf(begin, CharacterBufferSize,
-                "%.*g", static_cast<int>(boost::detail::lcast_precision<double>::value), val);
+                "%.*g", static_cast<int>(boost::detail::lcast_precision<double>::value), val.payload);
             return finish > start;
         }
 
 #ifndef __MINGW32__
-        bool shl_real_type(long double val, char* begin) {
+        bool shl_real_type(lcast::exact<long double> val, char* begin) {
             finish = start +
                 boost::core::snprintf(begin, CharacterBufferSize,
-                "%.*Lg", static_cast<int>(boost::detail::lcast_precision<long double>::value), val );
+                "%.*Lg", static_cast<int>(boost::detail::lcast_precision<long double>::value), val.payload );
             return finish > start;
         }
 #else
-        bool shl_real_type(long double val, char* begin) {
-            return shl_real_type(static_cast<double>(val), begin);
+        bool shl_real_type(lcast::exact<long double> val, char* begin) {
+            return shl_real_type(lcast::exact<double>{static_cast<double>(val.payload)}, begin);
         }
 #endif
 
 #if !defined(BOOST_LCAST_NO_WCHAR_T)
-        bool shl_real_type(float val, wchar_t* begin) {
-            const double val_as_double = val;
+        bool shl_real_type(lcast::exact<float> val, wchar_t* begin) {
+            const double val_as_double = val.payload;
             finish = start + boost::core::swprintf(
                 begin, CharacterBufferSize, L"%.*g",
                 static_cast<int>(boost::detail::lcast_precision<float>::value),
@@ -236,20 +236,20 @@ namespace boost { namespace detail { namespace lcast {
             return finish > start;
         }
 
-        bool shl_real_type(double val, wchar_t* begin) {
+        bool shl_real_type(lcast::exact<double> val, wchar_t* begin) {
             finish = start + boost::core::swprintf(
               begin, CharacterBufferSize, L"%.*g",
               static_cast<int>(boost::detail::lcast_precision<double>::value),
-              val
+              val.payload
             );
             return finish > start;
         }
 
-        bool shl_real_type(long double val, wchar_t* begin) {
+        bool shl_real_type(lcast::exact<long double> val, wchar_t* begin) {
             finish = start + boost::core::swprintf(
                 begin, CharacterBufferSize, L"%.*Lg",
                 static_cast<int>(boost::detail::lcast_precision<long double>::value),
-                val
+                val.payload
             );
             return finish > start;
         }
@@ -320,14 +320,14 @@ namespace boost { namespace detail { namespace lcast {
                 stream_in(lcast::exact<Type> x)                  { return shl_unsigned(x.payload); }
 
         template <class Type>
-        auto stream_in(lcast::exact<Type> x) -> decltype(shl_real_type(x.payload, buffer)) {
+        auto stream_in(lcast::exact<Type> x) -> decltype(shl_real_type(x, buffer)) {
             const CharT* inf_nan  = detail::get_inf_nan(x.payload, CharT());
             if (inf_nan) {
                 start = inf_nan;
                 finish = start + Traits::length(inf_nan);
                 return true;
             }
-            return shl_real_type(x.payload, buffer);
+            return shl_real_type(x, buffer);
         }
 
         template <class C, std::size_t N>
@@ -434,7 +434,7 @@ namespace boost { namespace detail { namespace lcast {
                 return true;
             }
 
-            lcast_set_precision(out_stream, &val);
+            boost::detail::lcast_set_precision(out_stream, &val);
             return shl_input_streamable(val);
         }
 
@@ -583,7 +583,7 @@ namespace boost { namespace detail { namespace lcast {
             try {
 #endif
             stream.unsetf(std::ios::skipws);
-            lcast_set_precision(stream, static_cast<InputStreamable*>(0));
+            boost::detail::lcast_set_precision(stream, static_cast<InputStreamable*>(0));
 
             return (stream >> output)
                 && (stream.get() == Traits::eof());
