@@ -22,6 +22,7 @@
 /local.ymake
 om.conf.local
 test-results
+.devcontainer
 
 /msvs/Debug/*
 /msvs/Release/*

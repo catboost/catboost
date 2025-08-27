@@ -1716,6 +1716,10 @@ class _CatBoostBase(object):
             self._init_params['fixed_binary_splits'] = []
         self._object = _CatBoost()
 
+    def __repr__(self) -> str:
+        params_str = ", ".join(f"{key}={val!r}" for key, val in iteritems(self._init_params)) if self._init_params else ""
+        return f"{self.__class__.__name__}({params_str})"
+
     def __getstate__(self):
         params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
