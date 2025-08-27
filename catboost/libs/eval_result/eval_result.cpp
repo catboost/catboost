@@ -175,7 +175,7 @@ namespace NCB {
                     if (auxiliaryColumnNames.contains(name)) {  // can add by Id
                         continue;
                     }
-                    CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
+                    CB_ENSURE(featureIds.contains(name), "Pool doesn't have a column with name `" << name << "`.");
                     CB_ENSURE(
                         notQuantizedPool,
                         "Raw feature values are not available for quantized pools"
