@@ -37,6 +37,8 @@ public:
     constexpr TEnumIndexedArray& operator=(const TEnumIndexedArray&) = default;
     constexpr TEnumIndexedArray& operator=(TEnumIndexedArray&&) = default;
 
+    constexpr bool operator==(const TEnumIndexedArray&) const = default;
+
     T& operator[] (E index);
     const T& operator[] (E index) const;
 
