@@ -7,6 +7,7 @@ import six
 from .tools import to_str
 from .external import ExternalDataInfo
 
+
 TESTING_OUT_DIR_NAME = "testing_out_stuff"  # XXX import from test.const
 
 yatest_logger = logging.getLogger("ya.test")
@@ -40,11 +41,15 @@ class Ya(object):
         gdb_path=None,
         data_root=None,
         env_file=None,
+        project_path=None,
     ):
         context_file_path = os.environ.get("YA_TEST_CONTEXT_FILE", None)
         if context_file_path:
             with open(context_file_path, 'r') as afile:
                 test_context = json.load(afile)
+            if six.PY2:
+                from library.python.strings import ensure_str_deep
+                test_context = ensure_str_deep(test_context)
             context_runtime = test_context["runtime"]
             context_internal = test_context.get("internal", {})
             context_build = test_context.get("build", {})
@@ -89,7 +94,7 @@ class Ya(object):
             self._test_params.update(dict(x.split('=', 1) for x in test_params))
         self._test_params.update(context_runtime.get("test_params", {}))
 
-        self._context["project_path"] = context_runtime.get("project_path")
+        self._context["project_path"] = context_runtime.get("project_path") or project_path
         self._context["modulo"] = context_runtime.get("split_count", 1)
         self._context["modulo_index"] = context_runtime.get("split_index", 0)
         self._context["work_path"] = to_str(context_runtime.get("work_path"))

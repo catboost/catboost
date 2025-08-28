@@ -213,7 +213,6 @@ def pytest_configure(config):
     config.suite_metrics = {}
     config.configure_timestamp = time.time()
     context = {
-        "project_path": config.option.project_path,
         "test_stderr": config.option.test_stderr,
         "test_debug": config.option.test_debug,
         "build_type": config.option.build_type,
@@ -237,6 +236,7 @@ def pytest_configure(config):
         config.option.valgrind_path,
         config.option.gdb_path,
         config.option.data_root,
+        project_path=config.option.project_path,
     )
     config.option.test_log_level = {
         "critical": logging.CRITICAL,
