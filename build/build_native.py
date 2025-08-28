@@ -5,15 +5,10 @@ import copy
 import logging
 import os
 import platform
+import shlex
 import subprocess
-import sys
 import tempfile
 from typing import Dict
-
-if sys.version_info < (3, 8):
-    import pipes
-else:
-    import shlex
 
 
 MSVS_TO_DEFAULT_MSVC_TOOLSET = {
@@ -173,21 +168,11 @@ class CmdRunner(object):
     def __init__(self, dry_run=False):
         self.dry_run = dry_run
 
-    @staticmethod
-    def shlex_join(cmd):
-        if sys.version_info >= (3, 8):
-            return shlex.join(cmd)
-        else:
-            return ' '.join(
-                pipes.quote(part)
-                for part in cmd
-            )
-
     def run(self, cmd, run_even_with_dry_run=False, **subprocess_run_kwargs):
         if 'shell' in subprocess_run_kwargs:
             printed_cmd = cmd
         else:
-            printed_cmd = CmdRunner.shlex_join(cmd)
+            printed_cmd = shlex.join(cmd)
         logging.info(f'Running "{printed_cmd}"')
         if run_even_with_dry_run or (not self.dry_run):
             subprocess.run(cmd, check=True, **subprocess_run_kwargs)
