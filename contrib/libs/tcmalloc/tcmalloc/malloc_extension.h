@@ -677,7 +677,15 @@ class MallocExtension final {
   using DestroySampleUserDataCallback = void(void*);
   using ComputeSampleUserDataHashCallback = size_t(void*);
 
-  // Sets callbacks for lifetime control of custom user data attached to allocation samples
+  // Sets callbacks for lifetime control of custom user data attached to allocation samples.
+  // In general, create, copy and destroy callbacks are used with shared_ptr-like semantics:
+  // - Each non-null user_data returned will be result of the create or copy callbacks.
+  // - For each create or copy call (with result R), there will be matching destroy call with argument R.
+  // - Copy and compute_hash callbacks can be called concurrently, but any such call happens before matching destroy call.
+  // Provided functions must satisfy following requirements:
+  // - create and destroy callbacks may not call back into the allocator except for allocating or deallocating memory.
+  // - copy callback may not call back into the allocator at all.
+  // - only compute_hash may throw exceptions (TODO: can this be relaxed safely?)
   static void SetSampleUserDataCallbacks(
     CreateSampleUserDataCallback create,
     CopySampleUserDataCallback copy,
