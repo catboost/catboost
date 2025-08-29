@@ -52,6 +52,7 @@ If you want to evaluate Catboost model in your application read [model api docum
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
+* Ask a question on [CatBoost GitHub Discussions Q&A forum](https://github.com/catboost/catboost/discussions/categories/q-a).
 * Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost) with the catboost tag, we monitor this for new questions.
 * Seek prompt advice at [Telegram group](https://t.me/catboost_en) or Russian-speaking [Telegram chat](https://t.me/catboost_ru)
 
