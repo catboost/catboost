@@ -45,9 +45,9 @@ Next you may want to investigate:
 
 If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger.
 
-Catboost models in production
+CatBoost models in production
 --------------
-If you want to evaluate Catboost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
+If you want to evaluate CatBoost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
 
 Questions and bug reports
 --------------
