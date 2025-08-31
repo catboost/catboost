@@ -27,6 +27,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVSimple")
         .getOrCreate()
 
@@ -74,6 +75,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithHeader")
         .getOrCreate()
 
@@ -121,6 +123,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithHeader")
         .getOrCreate()
 
@@ -177,6 +180,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVGroupData")
         .getOrCreate()
 
@@ -241,6 +245,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVFloatAndCatFeatures")
         .getOrCreate()
 
@@ -267,6 +272,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadLibSVMSimple")
         .getOrCreate();
 
@@ -322,6 +328,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadLibSVMSimple")
         .getOrCreate();
 
@@ -384,6 +391,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithPairs")
         .getOrCreate()
 
@@ -469,6 +477,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithPairsWithWeights")
         .getOrCreate()
 
