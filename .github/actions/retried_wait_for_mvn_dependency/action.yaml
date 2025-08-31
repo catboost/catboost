@@ -29,7 +29,7 @@ runs:
         @retry(stop=stop_after_delay(7200), wait=wait_fixed(60))
         def dependency_get():
             subprocess.check_call(
-              'mvn -U'
+              'mvn --batch-mode -U'
               ' -DgroupId=${{ inputs.groupId }}'
               ' -DartifactId=${{ inputs.artifactId }}'
               ' -Dversion=${{ inputs.version }}'
