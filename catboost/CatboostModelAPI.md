@@ -175,7 +175,7 @@ void cpp_catboost_wrapper_demo() {
 ModelCalcerWrapper also has a constructor from a memory buffer.
 
 ## C++ header-only evaluator
-**Not recommended to use**. This variant is the simplest way to integrate model evaluation code into your C++ application, but have lots limitations:
+**Not recommended to use**. This variant is the simplest way to integrate model evaluation code into your C++ application, but has a lot of limitations:
 * Only valid for models with float features only.
 * Depends on Flatbuffers library - you have to install and build `flatc` toolkit manually or have it integrated in your build system.
 We implemented this evaluator to allow simple catboost code integration in some Android projects and to simplify integration of Catboost models in CERN experiments.
