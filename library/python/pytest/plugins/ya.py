@@ -341,7 +341,9 @@ def _graceful_shutdown(*args):
         library.python.coverage.stop_coverage_tracing()
     except ImportError:
         pass
-    traceback.print_stack(file=sys.stderr)
+    stack = traceback.format_stack()
+    # NOTE: Using os.write because it's reentrant, Python I/O stack isn't https://bugs.python.org/issue24283
+    os.write(sys.stderr.fileno(), b''.join(item.encode() for item in stack))
     capman = pytest_config.pluginmanager.getplugin("capturemanager")
     capman.suspend(in_=True)
     _graceful_shutdown_on_log(not capman.is_globally_capturing())
