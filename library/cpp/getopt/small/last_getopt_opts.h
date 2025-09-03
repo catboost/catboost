@@ -398,9 +398,22 @@ namespace NLastGetopt {
          * Note: don't use this on options with default values. If option with default value wasn't specified,
          * parser will run handlers for default value, thus triggering a false-positive exclusivity check.
          */
-        template <typename T1, typename T2>
-        void MutuallyExclusive(T1&& opt1, T2&& opt2) {
-            MutuallyExclusiveOpt(GetOption(std::forward<T1>(opt1)), GetOption(std::forward<T2>(opt2)));
+        template <typename Opt1, typename Opt2>
+        void MutuallyExclusive(Opt1&& name1, Opt2&& name2) {
+            TOpt& opt1 = GetOption(name1);
+            TOpt& opt2 = GetOption(name2);
+            MutuallyExclusiveOpt(opt1, opt2);
+        }
+
+        template <typename Opt1, typename... OtherOpts>
+        void MutuallyExclusive(Opt1&& name1, OtherOpts&& ...otherNames) {
+            TOpt& opt1 = GetOption(name1);
+            std::array<std::string_view, sizeof...(OtherOpts)> otherNamesArr{otherNames...};
+            for (const auto& otherName: otherNamesArr) {
+                TOpt& otherOpt = GetOption(otherName);
+                MutuallyExclusiveOpt(opt1, otherOpt);
+            }
+            MutuallyExclusive(std::forward<OtherOpts>(otherNames)...);
         }
 
         /**
