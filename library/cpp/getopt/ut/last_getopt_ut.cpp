@@ -867,4 +867,36 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
                     TOptsParseResultTestWrapper(&opts, {"copy", "-fr"}));
         }
     }
+
+    Y_UNIT_TEST(TestMutuallyExclusive) {
+        // FIXME: somehow MutuallyExclusive() does not work without SetFlag()
+        bool flag;
+        TOptsNoDefault opts;
+        opts.AddLongOption("do").SetFlag(&flag);
+        opts.AddLongOption("dont").SetFlag(&flag);
+        opts.AddLongOption("maybe-do-maybe-dont").SetFlag(&flag);
+
+        opts.MutuallyExclusive("do", "dont", "maybe-do-maybe-dont");
+
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, {"--do", "--dont"}),
+            TUsageException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, {"--dont", "--maybe-do-maybe-dont"}),
+            TUsageException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, {"--do", "--maybe-do-maybe-dont"}),
+            TUsageException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, {"-d", "-n"}),
+            TUsageException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, {"--do", "--dont", "--maybe-do-maybe-dont"}),
+            TUsageException
+        );
+    }
 }
