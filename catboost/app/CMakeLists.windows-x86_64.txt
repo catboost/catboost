@@ -26,6 +26,7 @@ add_executable(catboost)
 target_link_libraries(catboost PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   catboost-libs-data
   catboost-libs-dataset_statistics

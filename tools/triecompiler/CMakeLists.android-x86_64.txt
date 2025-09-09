@@ -20,6 +20,7 @@ add_executable(triecompiler)
 target_link_libraries(triecompiler PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   tools-triecompiler-lib
 )

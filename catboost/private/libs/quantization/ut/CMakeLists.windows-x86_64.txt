@@ -22,6 +22,7 @@ target_include_directories(catboost-private-libs-quantization-ut PRIVATE
 target_link_libraries(catboost-private-libs-quantization-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-quantization

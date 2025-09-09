@@ -19,6 +19,7 @@ target_link_libraries(cuda_lib PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest
   catboost-cuda-cuda_lib

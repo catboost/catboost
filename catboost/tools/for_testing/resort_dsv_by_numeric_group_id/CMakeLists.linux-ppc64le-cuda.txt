@@ -19,6 +19,7 @@ target_link_libraries(resort_dsv_by_numeric_group_id PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   private-libs-data_types
 )
 

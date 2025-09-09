@@ -18,6 +18,7 @@ add_executable(ndcg_cpu_vs_gpu)
 target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   catboost-cuda-cuda_lib
   catboost-cuda-targets

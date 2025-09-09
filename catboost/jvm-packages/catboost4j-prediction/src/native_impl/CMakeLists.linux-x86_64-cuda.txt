@@ -19,6 +19,7 @@ target_link_libraries(catboost4j-prediction PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   catboost-libs-helpers
   catboost-libs-model
   libs-model-model_export

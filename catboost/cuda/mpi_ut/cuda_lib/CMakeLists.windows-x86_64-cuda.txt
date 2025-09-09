@@ -18,6 +18,7 @@ add_executable(cuda_lib)
 target_link_libraries(cuda_lib PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
 )
 

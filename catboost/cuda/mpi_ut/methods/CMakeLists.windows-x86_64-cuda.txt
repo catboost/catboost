@@ -18,6 +18,7 @@ add_executable(methods)
 target_link_libraries(methods PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
 )
 

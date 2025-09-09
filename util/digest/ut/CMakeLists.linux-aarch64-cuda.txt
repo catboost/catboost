@@ -19,6 +19,7 @@ target_link_libraries(util-digest-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
 )
 

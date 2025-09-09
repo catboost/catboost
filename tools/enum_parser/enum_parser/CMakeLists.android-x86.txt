@@ -18,6 +18,7 @@ add_executable(enum_parser)
 target_link_libraries(enum_parser PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-getopt-small
   tools-enum_parser-parse_enum
 )

@@ -18,6 +18,7 @@ add_executable(gpu_data)
 target_link_libraries(gpu_data PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
 )
 

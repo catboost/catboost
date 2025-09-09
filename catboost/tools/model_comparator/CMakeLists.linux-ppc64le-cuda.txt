@@ -24,6 +24,7 @@ target_link_libraries(model_comparator PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   catboost-libs-model
   libs-model-model_export
   contrib-libs-onnx

@@ -20,6 +20,7 @@ add_executable(model_ut)
 target_link_libraries(model_ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-algo

@@ -19,6 +19,7 @@ target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   catboost-cuda-cuda_lib
   catboost-cuda-targets
   catboost-libs-logging

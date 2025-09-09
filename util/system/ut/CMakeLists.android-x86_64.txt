@@ -18,6 +18,7 @@ add_executable(util-system-ut)
 target_link_libraries(util-system-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   cpp-testing-benchmark

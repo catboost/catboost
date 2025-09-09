@@ -19,6 +19,7 @@ target_link_libraries(limited_precision_json_diff PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-json
   cpp-getopt-small
 )

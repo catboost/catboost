@@ -21,6 +21,7 @@ target_link_libraries(model_ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-algo

@@ -18,6 +18,7 @@ add_executable(util-thread-ut)
 target_link_libraries(util-thread-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   cpp-threading-future
 )

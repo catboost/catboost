@@ -26,6 +26,7 @@ target_link_libraries(util-generic-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   library-cpp-case_insensitive_string

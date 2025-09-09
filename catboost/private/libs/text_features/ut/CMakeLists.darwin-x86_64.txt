@@ -20,6 +20,7 @@ add_executable(catboost-private-libs-text_features-ut)
 target_link_libraries(catboost-private-libs-text_features-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   libs-helpers-flatbuffers

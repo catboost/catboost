@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
@@ -27,6 +28,10 @@
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
     #include "hide_ptr.h"
 #endif
+
+extern "C" {
+    extern const int TStringUseCow;
+}
 
 template <class TCharType, class TCharTraits, class TAllocator>
 void ResizeUninitialized(std::basic_string<TCharType, TCharTraits, TAllocator>& s, size_t len) {
@@ -411,6 +416,16 @@ public:
         reserve(rt.Capacity);
     }
 
+#if 0
+    inline ~TBasicString() {
+        if (!TStringUseCow) {
+            if (S_.RefCount() > 1) {
+                abort();
+            }
+        }
+    }
+#endif
+
     inline TBasicString(const TBasicString& s)
 #ifdef TSTRING_IS_STD_STRING
         : Storage_(s.Storage_)
@@ -418,6 +433,11 @@ public:
         : S_(s.S_)
 #endif
     {
+#ifndef TSTRING_IS_STD_STRING
+        if (!TStringUseCow) {
+            Detach();
+        }
+#endif
     }
 
     inline TBasicString(TBasicString&& s) noexcept

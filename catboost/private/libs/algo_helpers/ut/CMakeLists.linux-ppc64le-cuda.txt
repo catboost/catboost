@@ -23,6 +23,7 @@ target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   private-libs-algo_helpers
 )

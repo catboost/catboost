@@ -18,6 +18,7 @@ add_executable(tensorboard_logger_example)
 target_link_libraries(tensorboard_logger_example PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   catboost-libs-loggers
 )
 
