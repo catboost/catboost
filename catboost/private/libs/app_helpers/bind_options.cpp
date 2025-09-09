@@ -221,8 +221,8 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
             const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
-            const auto enum_ = FromString<ELossFunction>(lossFunctionName);
-            CB_ENSURE(IsIn(allObjectives, enum_), lossFunctionName + " objective is not known");
+            const auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+            CB_ENSURE(IsIn(allObjectives, lossFunction), lossFunctionName + " objective is not known");
             (*plainJsonPtr)["loss_function"] = value;
         });
 
@@ -262,8 +262,8 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
                 for (const auto& format : StringSplitter(formatsLine).Split(',').SkipEmpty()) {
-                    const auto enum_ = FromString<EModelType>(format.Token());
-                    (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
+                    const auto modelType = FromString<EModelType>(format.Token());
+                    (*plainJsonPtr)["model_format"].AppendValue(ToString(modelType));
                 }
                 CB_ENSURE(!(*plainJsonPtr)["model_format"].GetArray().empty(), "Empty model format list " << formatsLine);
             })
