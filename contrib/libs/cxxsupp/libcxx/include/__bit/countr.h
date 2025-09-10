@@ -40,7 +40,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp>
 [[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 int __countr_zero(_Tp __t) _NOEXCEPT {
-#if __has_builtin(__builtin_ctzg)
+#if __has_builtin(__builtin_ctzg) && !defined(__CUDACC__)
   return __builtin_ctzg(__t, numeric_limits<_Tp>::digits);
 #else  // __has_builtin(__builtin_ctzg)
   if (__t == 0)
