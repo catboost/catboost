@@ -211,7 +211,7 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
-    const auto allObjectives = GetAllObjectives();
+    auto allObjectives = GetAllObjectives();
     const auto lossFunctionDescription = TString::Join(
         "Should be one of: ",
         JoinSeq(", ", allObjectives),
@@ -219,7 +219,7 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
     parser
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
+        .Handler1T<TString>([plainJsonPtr, allObjectives=std::move(allObjectives)](const auto& value) {
             const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
             const auto lossFunction = FromString<ELossFunction>(lossFunctionName);
             CB_ENSURE(IsIn(allObjectives, lossFunction), lossFunctionName + " objective is not known");
