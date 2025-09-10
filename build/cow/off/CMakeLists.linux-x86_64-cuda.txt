@@ -12,5 +12,14 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(on)
-add_subdirectory(off)
+add_library(build-cow-off)
+
+
+target_link_libraries(build-cow-off PUBLIC
+  contrib-libs-linux-headers
+)
+
+target_sources(build-cow-off PRIVATE
+  ${PROJECT_SOURCE_DIR}/build/cow/off/lib.c
+)
+
