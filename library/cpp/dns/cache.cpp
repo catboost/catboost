@@ -98,7 +98,7 @@ namespace {
             //3. replace host to alias, if exist
             if (A_.size()) {
                 TReadGuard guard(LA_);
-                TStringBuf names[] = {"*", host};
+                TString names[] = {"*", host};
 
                 for (const auto& name : names) {
                     TAliases::const_iterator it = A_.find(name);
