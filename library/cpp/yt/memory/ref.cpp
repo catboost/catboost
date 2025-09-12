@@ -278,11 +278,15 @@ std::vector<TSharedRef> TSharedRef::Split(size_t partSize) const
 {
     YT_VERIFY(partSize > 0);
     std::vector<TSharedRef> result;
+    if (partSize >= Size()) {
+        result.push_back(Slice(Begin(), End()));
+        return result;
+    }
     result.reserve(Size() / partSize + 1);
     auto sliceBegin = Begin();
     while (sliceBegin < End()) {
         auto sliceEnd = sliceBegin + partSize;
-        if (sliceEnd < sliceBegin || sliceEnd > End()) {
+        if (sliceEnd > End()) {
             sliceEnd = End();
         }
         result.push_back(Slice(sliceBegin, sliceEnd));
