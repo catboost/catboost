@@ -3446,7 +3446,7 @@ class CatBoost(_CatBoostBase):
             Input file name.
         """
         if (fname is None) + (stream is None) + (blob is None) != 2:
-            raise CatBoostError("Exactly one of fname/stream/blob arguments mustn't be None")
+            raise CatBoostError("Only one of fname/stream/blob arguments should be specified")
 
         if fname is not None:
             self._load_model(fname, format)
