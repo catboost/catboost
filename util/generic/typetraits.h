@@ -133,7 +133,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
         struct TBase {                                                                    \
             void method();                                                                \
         };                                                                                \
-        class THelper: public T, public TBase {                                           \
+        class THelper: public std::remove_const_t<T>, public TBase {                      \
         public:                                                                           \
             template <class T1>                                                           \
             inline THelper(const T1& = T1()) {                                            \
