@@ -12,6 +12,13 @@ pub struct Model {
 }
 
 unsafe impl Send for Model {}
+unsafe impl Sync for Model {}
+
+pub fn local_executor_run_additional_threads(threads_count: i32) {
+    unsafe {
+        catboost_sys::LocalExecutorRunAdditionalThreads(threads_count);
+    }
+}
 
 impl Model {
     fn new() -> Self {
