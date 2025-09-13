@@ -35,7 +35,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/fp_mode.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi-assert.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi.S
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-libc-mem-routines.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
@@ -82,6 +81,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extenddftf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhftf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsfdf2.c
