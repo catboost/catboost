@@ -16,7 +16,7 @@ catboost_download_dynlib <- function(dest_dir) {
   }
   url <- paste(base_url, ver, src_dynlib, sep = "/")
 
-  message(sprintf("downloading CatBoost (%s - %s)", dst_dynlib, ver))
+  message(sprintf("downloading CatBoost R dynamic library binary from GitHub release (%s - %s)", dst_dynlib, ver))
   status <- tryCatch({
     if (!dir.exists(dest_dir)) {
       dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
@@ -25,10 +25,10 @@ catboost_download_dynlib <- function(dest_dir) {
     suppressWarnings(file.remove(dest_fpath))
     options(timeout = 600)
     if (download.file(url, dest_fpath, mode = "wb") == 0) {
-      message("CatBoost fetch successful")
+      message("CatBoost R dynamic library binary downloaded successfully")
       TRUE
     } else {
-      message("CatBoost download error")
+      message("CatBoost R dynamic library binary download error")
       FALSE
     }
   },
