@@ -55,7 +55,7 @@ target_sources(libs-onnx-proto PRIVATE
 
 target_proto_outs(libs-onnx-proto
   --cpp_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
+  --cpp_styleguide_out=:${PROJECT_BINARY_DIR}/contrib/libs/onnx
 )
 
 target_proto_addincls(libs-onnx-proto

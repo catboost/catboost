@@ -48,7 +48,7 @@ target_sources(idl-pool-proto PRIVATE
 
 target_proto_outs(idl-pool-proto
   --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=:${PROJECT_BINARY_DIR}/
 )
 
 target_proto_addincls(idl-pool-proto

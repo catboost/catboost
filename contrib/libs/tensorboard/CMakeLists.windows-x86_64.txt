@@ -56,7 +56,7 @@ target_sources(contrib-libs-tensorboard PRIVATE
 
 target_proto_outs(contrib-libs-tensorboard
   --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=:${PROJECT_BINARY_DIR}/
 )
 
 target_proto_addincls(contrib-libs-tensorboard
