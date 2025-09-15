@@ -27,7 +27,7 @@ inline int mode_calc(int argc, const char** argv) {
         );
     } else {
         CB_ENSURE(NCB::TModeCalcImplementationFactory::Has(NCB::EImplementationType::OpenSource),
-                  "Mode calc implementation factory should have open source implementation");
+                  "Mode calc implementation factory should have an open source implementation");
         modeCalcImplementaion.Reset(
             NCB::TModeCalcImplementationFactory::Construct(NCB::EImplementationType::OpenSource)
         );
@@ -43,7 +43,7 @@ inline int mode_dataset_statistics(int argc, const char** argv) {
         );
     } else {
         CB_ENSURE(NCB::TModeDatasetStatisticsImplementationFactory::Has(NCB::EImplementationType::OpenSource),
-                  "Mode dataset statistics implementation factory should have open source implementation");
+                  "Mode dataset statistics implementation factory should have an open source implementation");
         modeDatasetStatisticsImplementaion.Reset(
             NCB::TModeDatasetStatisticsImplementationFactory::Construct(NCB::EImplementationType::OpenSource)
         );
@@ -59,7 +59,7 @@ inline int mode_fstr(int argc, const char** argv) {
         );
     } else {
         CB_ENSURE(NCB::TModeFstrImplementationFactory::Has(NCB::EImplementationType::OpenSource),
-                  "Mode fstr implementation factory should have open source implementation");
+                  "Mode fstr implementation factory should have an open source implementation");
         modeFstrImplementaion.Reset(
             NCB::TModeFstrImplementationFactory::Construct(NCB::EImplementationType::OpenSource)
         );

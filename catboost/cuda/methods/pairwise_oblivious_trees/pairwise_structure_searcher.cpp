@@ -49,7 +49,7 @@ namespace NCatboostCuda {
 
         CB_ENSURE(
             target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice(),
-            "Slices of pairs and pair weight/derivatives should have same size");
+            "Slices of pairs and pair weight/derivatives should have the same size");
         CATBOOST_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
         CATBOOST_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
         return target;
