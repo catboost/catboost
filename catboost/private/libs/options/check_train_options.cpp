@@ -18,7 +18,8 @@ void CheckFitParams(
     }
     auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
 
-    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction())) {
+    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction()) && options.LossFunctionDescription->GetLossFunction() != ELossFunction::UserPerObjMetric)
+    {
         CB_ENSURE(objectiveDescriptor != nullptr, "Error: provide objective descriptor for custom loss");
     }
 
