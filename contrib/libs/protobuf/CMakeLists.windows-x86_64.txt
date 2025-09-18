@@ -12,6 +12,8 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+add_subdirectory(third_party)
+
 add_library(contrib-libs-protobuf)
 
 
@@ -32,6 +34,7 @@ target_include_directories(contrib-libs-protobuf PRIVATE
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
+  protobuf-third_party-utf8_range
   contrib-libs-zlib
   contrib-restricted-abseil-cpp-tstring
   cpp-sanitizer-include
@@ -115,7 +118,6 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range/utf8_validity.cc
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
@@ -206,6 +208,7 @@ target_include_directories(contrib-libs-protobuf.global PRIVATE
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-cxxsupp
   yutil
+  protobuf-third_party-utf8_range
   contrib-libs-zlib
   contrib-restricted-abseil-cpp-tstring
   cpp-sanitizer-include
