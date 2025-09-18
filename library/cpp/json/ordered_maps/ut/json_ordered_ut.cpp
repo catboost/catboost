@@ -118,8 +118,8 @@ Y_UNIT_TEST_SUITE(JsonWriter) {
                           "  1,\n"
                           "  \"hello\",\n"
                           "  {\n"
-                          "    \"abc\":3,\n"
-                          "    \"def\":4\n"
+                          "    \"abc\": 3,\n"
+                          "    \"def\": 4\n"
                           "  }\n"
                           "]";
         UNIT_ASSERT_STRINGS_EQUAL(exp, w.Str());

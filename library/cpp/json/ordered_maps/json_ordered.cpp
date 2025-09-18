@@ -57,15 +57,17 @@ namespace NJsonOrderedWriter {
         Y_ASSERT(!Stack.empty());
         const EJsonEntity current = StackTop();
         Stack.pop_back();
+        bool needMinusLevel = Stack.empty()
+            ? false : StackTop() == EJsonEntity::JE_OBJECT;
         switch (current) {
             case JE_OUTER_SPACE:
                 ythrow TError() << "JSON writer: stack empty";
             case JE_LIST:
-                PrintIndentation(true);
+                PrintIndentation(true, needMinusLevel);
                 RawWriteChar(']');
                 break;
             case JE_OBJECT:
-                PrintIndentation(true);
+                PrintIndentation(true, needMinusLevel);
                 RawWriteChar('}');
                 break;
             case JE_PAIR:
@@ -83,10 +85,11 @@ namespace NJsonOrderedWriter {
         StackPop();
     }
 
-    void TBuf::PrintIndentation(bool closing) {
+    void TBuf::PrintIndentation(bool closing, bool sublevel) {
         if (!IndentSpaces)
             return;
-        const int indentation = IndentSpaces * (Stack.size() - 1);
+        int substruct = Min<int>(int(sublevel) + 1, Stack.size());
+        const int indentation = IndentSpaces * (Stack.size() - substruct);
         if (!indentation && !closing)
             return;
 
@@ -144,18 +147,18 @@ namespace NJsonOrderedWriter {
     }
 
     TValueContext TBuf::BeginList() {
-        NeedNewline = true;
         BeginValue();
         RawWriteChar('[');
+        NeedNewline = true;
         StackPush(JE_LIST);
         NeedComma = false;
         return TValueContext(*this);
     }
 
     TPairContext TBuf::BeginObject() {
-        NeedNewline = true;
         BeginValue();
         RawWriteChar('{');
+        NeedNewline = true;
         StackPush(JE_OBJECT);
         NeedComma = false;
         return TPairContext(*this);
@@ -178,6 +181,9 @@ namespace NJsonOrderedWriter {
         BeginKey();
         WriteBareString(s, hem);
         RawWriteChar(':');
+        if (IndentSpaces) {
+            RawWriteChar(' ');
+        }
         return TAfterColonContext(*this);
     }
 
