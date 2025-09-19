@@ -1582,12 +1582,13 @@ namespace NNetliba_v12 {
         fprintf(stderr, "\n");
     }
     void TUdpHost::SendAckForConnection(TConnection* connection, const float& deltaT) {
-        for (TRecvTransfers::TIdIterator i = connection->GetRecvQueue().Begin(); i != connection->GetRecvQueue().End(); ++i) {
+        for (TRecvTransfers::TIdIterator i = connection->GetRecvQueue().Begin(); i != connection->GetRecvQueue().End(); ) {
             TTransfer transfer(connection, *i);
             TUdpInTransfer& xfer = *connection->GetRecvQueue().Get(*i);
             xfer.TimeSinceLastRecv += deltaT;
             if (xfer.TimeSinceLastRecv > UDP_MAX_INPUT_DATA_WAIT) {
                 fprintf(stderr, "recv %" PRIu64 " failed by timeout\n", (ui64)*i);
+                ++i;
                 connection->FailedRecvTransfer(transfer.Id);
                 continue;
             }
@@ -1599,10 +1600,12 @@ namespace NNetliba_v12 {
                 std::pair<char*, ui8> packetBuffer = GetPacketBuffer(UDP_PACKET_BUF_SIZE, connection, transfer.Id);
                 if (!packetBuffer.first) { // buffer overflow, stop trying to send ACK, continue just checking keep alives.
                     fprintf(stderr, "can`t get packetBuffer to send ACK, err: %i\n", packetBuffer.second);
+                    ++i;
                     continue;
                 }
                 AddAcksToPacketQueue(S, packetBuffer.first, UDP_PACKET_BUF_SIZE, connection, transfer.Id, &xfer);
             }
+            ++i;
         }
     }
 
