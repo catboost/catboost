@@ -565,7 +565,9 @@ namespace NCB {
 
         ELossFunction lossFunction = Options.LossFunctionDescription.Get().GetLossFunction();
         if (IsClassificationObjective(lossFunction)) {
+            if (ClassificationTargetHelper.Serialize().length() != 0)  {
             dstModel->ModelInfo["class_params"] = ClassificationTargetHelper.Serialize();
+            }
         }
 
         {
