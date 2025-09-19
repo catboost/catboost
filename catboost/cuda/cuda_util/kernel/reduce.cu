@@ -6,6 +6,7 @@
 #include <cub/device/device_reduce.cuh>
 #include <cub/device/device_segmented_reduce.cuh>
 
+#include <thrust/functional.h>
 
 namespace NKernel {
 
@@ -136,21 +137,21 @@ namespace NKernel {
             case EOperatorType::Sum: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Sum(),
+                                                 thrust::plus<T>(),
                                                  T(),
                                                  stream);
             }
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Max(),
+                                                 thrust::maximum<T>(),
                                                  -std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Min(),
+                                                 thrust::minimum<T>(),
                                                  std::numeric_limits<T>::infinity(),
                                                  stream);
             }
@@ -182,7 +183,7 @@ namespace NKernel {
                                                      keys, outKeys,
                                                      input, output,
                                                      outputSize,
-                                                     cub::Sum(),
+                                                     thrust::plus<T>(),
                                                      size,
                                                      stream);
             }
@@ -191,7 +192,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-                                                      cub::Max(),
+                                                      thrust::maximum<T>(),
                                                       size,
                                                       stream);
             }
@@ -200,7 +201,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-                                                      cub::Min(),
+                                                      thrust::minimum<T>(),
                                                       size,
                                                       stream);
             }
@@ -299,7 +300,7 @@ namespace NKernel {
                     return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                               input, output, numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Sum(),
+                                                              thrust::plus<T>(),
                                                               T(),
                                                               stream);
                 }
@@ -308,7 +309,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Max(),
+                                                              thrust::maximum<T>(),
                                                               T(),
                                                               stream);
                 }
@@ -317,7 +318,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Min(),
+                                                              thrust::minimum<T>(),
                                                               T(),
                                                               stream);
                 }
