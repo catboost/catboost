@@ -83,7 +83,7 @@ set_yunittest_property(
   catboost-cuda-train_lib-ut
   PROPERTY
   LABELS
-  SMALL
+  MEDIUM
 )
 
 set_yunittest_property(
