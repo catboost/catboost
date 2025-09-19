@@ -82,7 +82,7 @@ set_yunittest_property(
   catboost-cuda-gpu_data-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(

@@ -67,7 +67,7 @@ set_yunittest_property(
   catboost-cuda-train_lib-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(
