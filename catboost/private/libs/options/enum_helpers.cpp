@@ -575,7 +575,8 @@ static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::MultiClassOneVsAll,
     ELossFunction::MultiLogloss,
     ELossFunction::MultiCrossEntropy,
-    ELossFunction::Focal
+    ELossFunction::Focal,
+    ELossFunction::UserPerObjMetric
 };
 
 static const TVector<ELossFunction> MultiLabelObjectives = {
