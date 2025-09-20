@@ -365,6 +365,23 @@ test_that("model: catboost.predict vs catboost.staged_predict", {
   expect_equal(prediction_second, staged_preds$nextElem())
 })
 
+test_that("model: catboost.predict vs stats::predict", {
+  pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
+
+  pool <- catboost.load_pool(pool_path, column_description = column_description_path)
+
+  params <- list(iterations = 10,
+                 loss_function = "Logloss",
+                 allow_writing_files = FALSE)
+
+  model <- catboost.train(pool, NULL, params)
+  prediction_first <- catboost.predict(model, pool)
+  prediction_second <- stats::predict(model, pool)
+
+  expect_equal(prediction_first, prediction_second)
+})
+
 test_that("model: save/load by R", {
   train_path <- system.file("extdata", "adult_train.1000", package = "catboost")
   test_path <- system.file("extdata", "adult_test.1000", package = "catboost")
