@@ -16,8 +16,8 @@
 )
 
 catboost.predict(
-  object,
-  newdata,
+  model,
+  pool,
   verbose = FALSE,
   prediction_type = "RawFormulaVal",
   ntree_start = 0,
@@ -67,19 +67,28 @@ Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end e
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
 Default value: 1}
+
+\item{model}{The model obtained as the result of training.
+
+Default value: Required argument}
+
+\item{pool}{The input data on which to make predictions. Should be a `catboost.Pool`
+object.
+
+Default value: Required argument}
 }
 \value{
 Vector of predictions (matrix for multi-class classification).
 }
 \description{
 Get predictions from a CatBoost model on new data.
+
+In case of multiclassification the prediction is returned in the form of a matrix.
+Each row of this matrix contains the predictions for one row of the input dataset.
 }
 \details{
 The function `catboost.predict` is a synonym for `predict.catboost.Model`,
 which is an S3 method (i.e. called like `predict(model, newdata)`).
-
-In case of multiclassification the prediction is returned in the form of a matrix.
-Each row of this matrix contains the predictions for one row of the input dataset.
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
