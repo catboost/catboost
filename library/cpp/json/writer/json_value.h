@@ -90,6 +90,12 @@ namespace NJson {
         TJsonValue& Back() Y_LIFETIME_BOUND;
         const TJsonValue& Back() const Y_LIFETIME_BOUND;
 
+        // path lookup syntax
+        //  1. steps delimited by delimiter char
+        //  2. if step is use square brackets `[1]` - array lookup by index will be performed
+        //    2.1 negative `[-1]` indexes allow to lookup array-items from end
+        //    2.2 empty brackets `[]` in modification methods allow to create an item
+        //  3. otherwise - dict lookup by string-key will be performed
         bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.') const;
         bool SetValueByPath(TStringBuf path, const TJsonValue& value, char delimiter = '.');
         bool SetValueByPath(TStringBuf path, TJsonValue&& value, char delimiter = '.');

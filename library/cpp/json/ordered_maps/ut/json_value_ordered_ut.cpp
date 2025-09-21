@@ -289,6 +289,33 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             UNIT_ASSERT(lhs.SetValueByPath("l/a/c/se", "h", '/'));
             UNIT_ASSERT(lhs.GetValueByPath("l/a/c/se", result, '/'));
             UNIT_ASSERT(result.GetStringRobust() == "h");
+
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[]", "new_array_elem1", '/'));
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[]", "new_array_elem2", '/'));
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[0]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-2]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(!lhs.GetValueByPath("l/b/[-5]", result, '/'));
+
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[-5]", "new_array_elem_min5", '/'));
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-2]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-5]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem_min5");
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-4]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "null");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-3]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "null");
         }
     }
 

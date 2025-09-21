@@ -825,7 +825,7 @@ namespace NJson {
         template <class TPtr, class T>
         TPtr* CreateOrNullptr(const TPtr* p, T key, std::false_type /*create*/) noexcept {
             const TPtr* const next = &(*p)[key];
-            return next->IsDefined() ? const_cast<TPtr*>(next) : nullptr;
+            return next->GetType() != JSON_UNDEFINED ? const_cast<TPtr*>(next) : nullptr;
         }
 
         template <bool Create, class TJsonPtr>
@@ -836,10 +836,27 @@ namespace NJson {
             constexpr std::integral_constant<bool, Create> create_tag{};
 
             while (!path.empty()) {
-                size_t index = 0;
+                i64 index = 0;
                 const TStringBuf step = path.NextTok(delimiter);
                 if (step.size() > 2 && *step.begin() == '[' && step.back() == ']' && TryFromString(step.substr(1, step.size() - 2), index)) {
+                    if (index < 0) {
+                        if constexpr (Create) {
+                            currentJson->SetType(JSON_ARRAY);
+                            TJsonArray::TArray& dst = currentJson->GetArraySafe();
+                            while (i64(dst.size()) < -index) {
+                                dst.push_front({JSON_NULL});
+                            }
+                        }
+                        index = i64(currentJson->GetArray().size()) - (-index);
+                    }
+                    if (index < 0) {
+                        return nullptr;
+                    }
                     currentJson = CreateOrNullptr(currentJson, index, create_tag);
+                } else if (Create && step == "[]") {
+                    if constexpr (Create) {
+                        currentJson = &currentJson->AppendValue({});
+                    }
                 } else {
                     currentJson = CreateOrNullptr(currentJson, step, create_tag);
                 }
