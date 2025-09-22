@@ -111,9 +111,11 @@ template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
   return false;
 }
 
+#if defined(_LIBCPP_PREFERRED_OVERLOAD) && !defined(__CUDACC__)
 [[__nodiscard__]] inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI bool isnan(float __x) _NOEXCEPT {
   return __builtin_isnan(__x);
 }
+#endif
 
 [[__nodiscard__]] inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI
 #ifdef _LIBCPP_PREFERRED_OVERLOAD && !defined(__CUDACC__)
@@ -124,9 +126,11 @@ _LIBCPP_PREFERRED_OVERLOAD
   return __builtin_isnan(__x);
 }
 
+#if defined(_LIBCPP_PREFERRED_OVERLOAD) && !defined(__CUDACC__)
 [[__nodiscard__]] inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI bool isnan(long double __x) _NOEXCEPT {
   return __builtin_isnan(__x);
 }
+#endif
 
 // isnormal
 
