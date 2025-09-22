@@ -562,6 +562,18 @@ class TransferCacheManager {
     }
   }
 
+  void AcquireInternalLocks() {
+    for (int i = 0; i < kNumClasses; ++i) {
+      freelist_[i].AcquireInternalLocks();
+    }
+  }
+
+  void ReleaseInternalLocks() {
+    for (int i = 0; i < kNumClasses; ++i) {
+      freelist_[i].ReleaseInternalLocks();
+    }
+  }
+
   void InsertRange(int size_class, absl::Span<void*> batch) {
     freelist_[size_class].InsertRange(batch);
   }
