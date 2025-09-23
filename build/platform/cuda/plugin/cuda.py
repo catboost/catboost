@@ -52,6 +52,7 @@ CUDA_LIBRARIES = {
     '-lnppisu_static': '-lnppisu',
     '-lnppitc_static': '-lnppitc',
     '-lnpps_static': '-lnpps',
+    '-lnvJitLink_static': '-lnvJitLink',
 }
 
 
