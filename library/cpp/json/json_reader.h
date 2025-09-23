@@ -134,4 +134,4 @@ namespace NJson {
     //// relaxed json, used in library/cpp/scheme
     bool ReadJsonFastTree(TStringBuf in, TJsonValue* out, bool throwOnError = false, bool notClosedBracketIsError = false);
     TJsonValue ReadJsonFastTree(TStringBuf in, bool notClosedBracketIsError = false);
-}
+} // namespace NJson

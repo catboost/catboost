@@ -69,8 +69,9 @@ namespace NJson {
     }
 
     void TJsonWriter::Write(const TStringBuf& value) {
-        if (ValidateUtf8 && !IsUtf(value))
+        if (ValidateUtf8 && !IsUtf(value)) {
             throw yexception() << "JSON writer: invalid UTF-8";
+        }
         if (Buf.KeyExpected()) {
             Buf.WriteKey(value);
         } else {
@@ -112,7 +113,7 @@ namespace NJson {
                 return *a < *b;
             }
         };
-    }
+    } // namespace
 
     void TJsonWriter::Write(const TJsonValue* v) {
         Buf.WriteJsonValue(v, SortKeys, FloatToStringMode, DoubleNDigits);
@@ -146,4 +147,4 @@ namespace NJson {
         w.Flush();
     }
 
-}
+} // namespace NJson

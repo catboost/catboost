@@ -5,9 +5,9 @@ using namespace NJson::NOrderedJson;
 
 namespace {
 
-constexpr TStringBuf JSON_NAN_TEST = "{ \"Value1\": 0.0, \"Value2\": 1, \"Value3\": NaN }";
+    constexpr TStringBuf JSON_NAN_TEST = "{ \"Value1\": 0.0, \"Value2\": 1, \"Value3\": NaN }";
 
-}
+} // namespace
 
 Y_UNIT_TEST_SUITE(TJsonReaderNanTest) {
     Y_UNIT_TEST(WithoutNanTest) {
@@ -15,7 +15,6 @@ Y_UNIT_TEST_SUITE(TJsonReaderNanTest) {
         TJsonValue out;
         // This read will fail
         UNIT_ASSERT(!ReadJsonTree(JSON_NAN_TEST, &cfg, &out, /* throwOnError */ false));
-
     }
     Y_UNIT_TEST(WithNanTest) {
         TJsonReaderConfig cfg;
@@ -25,5 +24,4 @@ Y_UNIT_TEST_SUITE(TJsonReaderNanTest) {
         // This read will ok
         UNIT_ASSERT(ReadJsonTree(JSON_NAN_TEST, &cfg, &out, /* throwOnError */ false));
     }
-}
-
+} // Y_UNIT_TEST_SUITE(TJsonReaderNanTest)

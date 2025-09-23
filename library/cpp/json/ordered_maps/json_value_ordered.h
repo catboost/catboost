@@ -124,7 +124,7 @@ namespace NJson::NOrderedJson {
         const TMapType& GetMap() const Y_LIFETIME_BOUND;
         const TArray& GetArray() const Y_LIFETIME_BOUND;
 
-        //throwing TJsonException possible
+        // throwing TJsonException possible
         bool GetBooleanSafe() const;
         long long GetIntegerSafe() const;
         unsigned long long GetUIntegerSafe() const;
@@ -279,7 +279,8 @@ namespace NJson::NOrderedJson {
     public:
         TJsonMap()
             : TJsonValue(NJson::NOrderedJson::JSON_MAP)
-        {}
+        {
+        }
 
         TJsonMap(const std::initializer_list<std::pair<TString, TJsonValue>>& list)
             : TJsonValue(NJson::NOrderedJson::JSON_MAP)
@@ -298,7 +299,8 @@ namespace NJson::NOrderedJson {
     public:
         TJsonArray()
             : TJsonValue(NJson::NOrderedJson::JSON_ARRAY)
-        {}
+        {
+        }
 
         TJsonArray(const std::initializer_list<TJsonValue>& list)
             : TJsonValue(NJson::NOrderedJson::JSON_ARRAY)
@@ -306,4 +308,4 @@ namespace NJson::NOrderedJson {
             GetArraySafe() = TJsonValue::TArray(list);
         }
     };
-}
+} // namespace NJson::NOrderedJson

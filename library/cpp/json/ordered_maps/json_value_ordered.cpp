@@ -20,25 +20,25 @@ AreJsonMapsEqual(const NJson::NOrderedJson::TJsonValue& lhs, const NJson::NOrder
 
     Y_ABORT_UNLESS(lhs.GetType() == JSON_MAP, "lhs has not a JSON_MAP type.");
 
-    if (rhs.GetType() != JSON_MAP)
+    if (rhs.GetType() != JSON_MAP) {
         return false;
-
+    }
     typedef TJsonValue::TMapType TMapType;
     const TMapType& lhsMap = lhs.GetMap();
     const TMapType& rhsMap = rhs.GetMap();
 
-    if (lhsMap.size() != rhsMap.size())
+    if (lhsMap.size() != rhsMap.size()) {
         return false;
-
+    }
     for (const auto& lhsIt : lhsMap) {
         TMapType::const_iterator rhsIt = rhsMap.find(lhsIt.first);
-        if (rhsIt == rhsMap.end())
+        if (rhsIt == rhsMap.end()) {
             return false;
-
-        if (lhsIt.second != rhsIt->second)
+        }
+        if (lhsIt.second != rhsIt->second) {
             return false;
+        }
     }
-
     return true;
 }
 
@@ -48,22 +48,22 @@ AreJsonArraysEqual(const NJson::NOrderedJson::TJsonValue& lhs, const NJson::NOrd
 
     Y_ABORT_UNLESS(lhs.GetType() == JSON_ARRAY, "lhs has not a JSON_ARRAY type.");
 
-    if (rhs.GetType() != JSON_ARRAY)
+    if (rhs.GetType() != JSON_ARRAY) {
         return false;
-
+    }
     typedef TJsonValue::TArray TArray;
     const TArray& lhsArray = lhs.GetArray();
     const TArray& rhsArray = rhs.GetArray();
 
-    if (lhsArray.size() != rhsArray.size())
+    if (lhsArray.size() != rhsArray.size()) {
         return false;
-
+    }
     for (TArray::const_iterator lhsIt = lhsArray.begin(), rhsIt = rhsArray.begin();
          lhsIt != lhsArray.end(); ++lhsIt, ++rhsIt) {
-        if (*lhsIt != *rhsIt)
+        if (*lhsIt != *rhsIt) {
             return false;
+        }
     }
-
     return true;
 }
 
@@ -149,16 +149,18 @@ namespace NJson::NOrderedJson {
     }
 
     TJsonValue& TJsonValue::operator=(const TJsonValue& val) {
-        if (this == &val)
+        if (this == &val) {
             return *this;
+        }
         TJsonValue tmp(val);
         tmp.Swap(*this);
         return *this;
     }
 
     TJsonValue& TJsonValue::operator=(TJsonValue&& val) noexcept {
-        if (this == &val)
+        if (this == &val) {
             return *this;
+        }
         TJsonValue tmp(std::move(val));
         tmp.Swap(*this);
         return *this;
@@ -224,12 +226,11 @@ namespace NJson::NOrderedJson {
     }
 
     TJsonValue& TJsonValue::SetType(const EJsonValueType type) {
-        if (Type == type)
+        if (Type == type) {
             return *this;
-
+        }
         Clear();
         Type = type;
-
         switch (Type) {
             case JSON_STRING:
                 new (&Value.String) TString();
@@ -248,7 +249,6 @@ namespace NJson::NOrderedJson {
             case JSON_DOUBLE:
                 break;
         }
-
         return *this;
     }
 
@@ -316,8 +316,9 @@ namespace NJson::NOrderedJson {
     void TJsonValue::EraseValue(const TStringBuf key) {
         if (IsMap()) {
             TMapType::iterator it = Value.Map->find(key);
-            if (it != Value.Map->end())
+            if (it != Value.Map->end()) {
                 Value.Map->erase(it);
+            }
         }
     }
 
@@ -356,8 +357,9 @@ namespace NJson::NOrderedJson {
 
     TJsonValue& TJsonValue::operator[](const size_t idx) {
         SetType(JSON_ARRAY);
-        if (Value.Array->size() <= idx)
+        if (Value.Array->size() <= idx) {
             Value.Array->resize(idx + 1);
+        }
         return (*Value.Array)[idx];
     }
 
@@ -373,21 +375,21 @@ namespace NJson::NOrderedJson {
             const TJsonValue::TArray Array{};
             const TJsonValue Value{};
         };
-    }
+    } // namespace
 
     const TJsonValue& TJsonValue::operator[](const size_t idx) const noexcept {
         const TJsonValue* ret = nullptr;
-        if (GetValuePointer(idx, &ret))
+        if (GetValuePointer(idx, &ret)) {
             return *ret;
-
+        }
         return Singleton<TDefaultsHolder>()->Value;
     }
 
     const TJsonValue& TJsonValue::operator[](const TStringBuf& key) const noexcept {
         const TJsonValue* ret = nullptr;
-        if (GetValuePointer(key, &ret))
+        if (GetValuePointer(key, &ret)) {
             return *ret;
-
+        }
         return Singleton<TDefaultsHolder>()->Value;
     }
 
@@ -396,9 +398,9 @@ namespace NJson::NOrderedJson {
     }
 
     long long TJsonValue::GetInteger() const {
-        if (!IsInteger())
+        if (!IsInteger()) {
             return 0;
-
+        }
         switch (Type) {
             case JSON_INTEGER:
                 return Value.Integer;
@@ -416,19 +418,16 @@ namespace NJson::NOrderedJson {
     }
 
     unsigned long long TJsonValue::GetUInteger() const {
-        if (!IsUInteger())
+        if (!IsUInteger()) {
             return 0;
-
+        }
         switch (Type) {
             case JSON_UINTEGER:
                 return Value.UInteger;
-
             case JSON_INTEGER:
                 return Value.Integer;
-
             case JSON_DOUBLE:
                 return Value.Double;
-
             default:
                 Y_ASSERT(false && "Unexpected type.");
                 return 0;
@@ -436,19 +435,16 @@ namespace NJson::NOrderedJson {
     }
 
     double TJsonValue::GetDouble() const {
-        if (!IsDouble())
+        if (!IsDouble()) {
             return 0.0;
-
+        }
         switch (Type) {
             case JSON_DOUBLE:
                 return Value.Double;
-
             case JSON_INTEGER:
                 return Value.Integer;
-
             case JSON_UINTEGER:
                 return Value.UInteger;
-
             default:
                 Y_ASSERT(false && "Unexpected type.");
                 return 0.0;
@@ -468,79 +464,79 @@ namespace NJson::NOrderedJson {
     }
 
     bool TJsonValue::GetBooleanSafe() const {
-        if (Type != JSON_BOOLEAN)
+        if (Type != JSON_BOOLEAN) {
             ythrow TJsonException() << "Not a boolean";
-
+        }
         return Value.Boolean;
     }
 
     long long TJsonValue::GetIntegerSafe() const {
-        if (!IsInteger())
+        if (!IsInteger()) {
             ythrow TJsonException() << "Not an integer";
-
+        }
         return GetInteger();
     }
 
     unsigned long long TJsonValue::GetUIntegerSafe() const {
-        if (!IsUInteger())
+        if (!IsUInteger()) {
             ythrow TJsonException() << "Not an unsigned integer";
-
+        }
         return GetUInteger();
     }
 
     double TJsonValue::GetDoubleSafe() const {
-        if (!IsDouble())
+        if (!IsDouble()) {
             ythrow TJsonException() << "Not a double";
-
+        }
         return GetDouble();
     }
 
     const TString& TJsonValue::GetStringSafe() const {
-        if (Type != JSON_STRING)
+        if (Type != JSON_STRING) {
             ythrow TJsonException() << "Not a string";
-
+        }
         return Value.String;
     }
 
     bool TJsonValue::GetBooleanSafe(const bool defaultValue) const {
-        if (Type == JSON_UNDEFINED)
+        if (Type == JSON_UNDEFINED) {
             return defaultValue;
-
+        }
         return GetBooleanSafe();
     }
 
     long long TJsonValue::GetIntegerSafe(const long long defaultValue) const {
-        if (Type == JSON_UNDEFINED)
+        if (Type == JSON_UNDEFINED) {
             return defaultValue;
-
+        }
         return GetIntegerSafe();
     }
 
     unsigned long long TJsonValue::GetUIntegerSafe(const unsigned long long defaultValue) const {
-        if (Type == JSON_UNDEFINED)
+        if (Type == JSON_UNDEFINED) {
             return defaultValue;
-
+        }
         return GetUIntegerSafe();
     }
 
     double TJsonValue::GetDoubleSafe(const double defaultValue) const {
-        if (Type == JSON_UNDEFINED)
+        if (Type == JSON_UNDEFINED) {
             return defaultValue;
-
+        }
         return GetDoubleSafe();
     }
 
     TString TJsonValue::GetStringSafe(const TString& defaultValue) const {
-        if (Type == JSON_UNDEFINED)
+        if (Type == JSON_UNDEFINED) {
             return defaultValue;
-
+        }
         return GetStringSafe();
     }
 
     const TJsonValue::TMapType& TJsonValue::GetMapSafe() const {
-        if (Type != JSON_MAP)
+        if (Type != JSON_MAP) {
             ythrow TJsonException() << "Not a map";
-
+        }
         return *Value.Map;
     }
 
@@ -549,9 +545,9 @@ namespace NJson::NOrderedJson {
     }
 
     const TJsonValue::TArray& TJsonValue::GetArraySafe() const {
-        if (Type != JSON_ARRAY)
+        if (Type != JSON_ARRAY) {
             ythrow TJsonException() << "Not an array";
-
+        }
         return *Value.Array;
     }
 
@@ -721,73 +717,73 @@ namespace NJson::NOrderedJson {
     }
 
     bool TJsonValue::GetBoolean(bool* value) const noexcept {
-        if (Type != JSON_BOOLEAN)
+        if (Type != JSON_BOOLEAN) {
             return false;
-
+        }
         *value = Value.Boolean;
         return true;
     }
 
     bool TJsonValue::GetInteger(long long* value) const noexcept {
-        if (!IsInteger())
+        if (!IsInteger()) {
             return false;
-
+        }
         *value = GetInteger();
         return true;
     }
 
     bool TJsonValue::GetUInteger(unsigned long long* value) const noexcept {
-        if (!IsUInteger())
+        if (!IsUInteger()) {
             return false;
-
+        }
         *value = GetUInteger();
         return true;
     }
 
     bool TJsonValue::GetDouble(double* value) const noexcept {
-        if (!IsDouble())
+        if (!IsDouble()) {
             return false;
-
+        }
         *value = GetDouble();
         return true;
     }
 
     bool TJsonValue::GetString(TString* value) const {
-        if (Type != JSON_STRING)
+        if (Type != JSON_STRING) {
             return false;
-
+        }
         *value = Value.String;
         return true;
     }
 
     bool TJsonValue::GetMap(TJsonValue::TMapType* value) const {
-        if (Type != JSON_MAP)
+        if (Type != JSON_MAP) {
             return false;
-
+        }
         *value = *Value.Map;
         return true;
     }
 
     bool TJsonValue::GetArray(TJsonValue::TArray* value) const {
-        if (Type != JSON_ARRAY)
+        if (Type != JSON_ARRAY) {
             return false;
-
+        }
         *value = *Value.Array;
         return true;
     }
 
     bool TJsonValue::GetMapPointer(const TJsonValue::TMapType** value) const noexcept {
-        if (Type != JSON_MAP)
+        if (Type != JSON_MAP) {
             return false;
-
+        }
         *value = Value.Map;
         return true;
     }
 
     bool TJsonValue::GetArrayPointer(const TJsonValue::TArray** value) const noexcept {
-        if (Type != JSON_ARRAY)
+        if (Type != JSON_ARRAY) {
             return false;
-
+        }
         *value = Value.Array;
         return true;
     }
@@ -845,13 +841,10 @@ namespace NJson::NOrderedJson {
         switch (Type) {
             case JSON_INTEGER:
                 return true;
-
             case JSON_UINTEGER:
                 return (Value.UInteger <= static_cast<unsigned long long>(Max<long long>()));
-
             case JSON_DOUBLE:
                 return ((long long)Value.Double == Value.Double);
-
             default:
                 return false;
         }
@@ -861,13 +854,10 @@ namespace NJson::NOrderedJson {
         switch (Type) {
             case JSON_UINTEGER:
                 return true;
-
             case JSON_INTEGER:
                 return (Value.Integer >= 0);
-
             case JSON_DOUBLE:
                 return ((unsigned long long)Value.Double == Value.Double);
-
             default:
                 return false;
         }
@@ -879,13 +869,10 @@ namespace NJson::NOrderedJson {
         switch (Type) {
             case JSON_DOUBLE:
                 return true;
-
             case JSON_INTEGER:
                 return (1ll << std::numeric_limits<double>::digits) >= Abs(Value.Integer);
-
             case JSON_UINTEGER:
                 return (1ull << std::numeric_limits<double>::digits) >= Value.UInteger;
-
             default:
                 return false;
         }
@@ -936,12 +923,10 @@ namespace NJson::NOrderedJson {
                 } else {
                     currentJson = CreateOrNullptr(currentJson, step, create_tag);
                 }
-
                 if (!currentJson) {
                     return nullptr;
                 }
             }
-
             return currentJson;
         }
     } // anonymous namespace
@@ -985,7 +970,6 @@ namespace NJson::NOrderedJson {
         if (!callback.Do(path, parent, *this)) {
             return;
         }
-
         if (Type == JSON_MAP) {
             for (auto&& i : *Value.Map) {
                 i.second.DoScan(!!path ? TString::Join(path, ".", i.first) : i.first, this, callback);
@@ -1023,40 +1007,24 @@ namespace NJson::NOrderedJson {
 
     bool TJsonValue::operator==(const TJsonValue& rhs) const {
         switch (Type) {
-            case JSON_UNDEFINED: {
+            case JSON_UNDEFINED:
                 return (rhs.GetType() == JSON_UNDEFINED);
-            }
-
-            case JSON_NULL: {
+            case JSON_NULL:
                 return rhs.IsNull();
-            }
-
-            case JSON_BOOLEAN: {
+            case JSON_BOOLEAN:
                 return (rhs.IsBoolean() && Value.Boolean == rhs.Value.Boolean);
-            }
-
-            case JSON_INTEGER: {
+            case JSON_INTEGER:
                 return (rhs.IsInteger() && GetInteger() == rhs.GetInteger());
-            }
-
-            case JSON_UINTEGER: {
+            case JSON_UINTEGER:
                 return (rhs.IsUInteger() && GetUInteger() == rhs.GetUInteger());
-            }
-
-            case JSON_STRING: {
+            case JSON_STRING:
                 return (rhs.IsString() && Value.String == rhs.Value.String);
-            }
-
-            case JSON_DOUBLE: {
+            case JSON_DOUBLE:
                 return (rhs.IsDouble() && fabs(GetDouble() - rhs.GetDouble()) <= FLT_EPSILON);
-            }
-
             case JSON_MAP:
                 return AreJsonMapsEqual(*this, rhs);
-
             case JSON_ARRAY:
                 return AreJsonArraysEqual(*this, rhs);
-
             default:
                 Y_ASSERT(false && "Unknown type.");
                 return false;
@@ -1071,7 +1039,6 @@ namespace NJson::NOrderedJson {
         } else {
             std::memcpy(&output.Value, &Value, sizeof(Value));
         }
-
         output.Type = Type;
         Type = JSON_UNDEFINED;
     }
@@ -1096,48 +1063,49 @@ namespace NJson::NOrderedJson {
 
     bool GetMapPointer(const TJsonValue& jv, const size_t index, const TJsonValue::TMapType** value) {
         const TJsonValue* v;
-        if (!jv.GetValuePointer(index, &v) || !v->IsMap())
+        if (!jv.GetValuePointer(index, &v) || !v->IsMap()) {
             return false;
-
+        }
         *value = &v->GetMap();
         return true;
     }
 
     bool GetArrayPointer(const TJsonValue& jv, const size_t index, const TJsonValue::TArray** value) {
         const TJsonValue* v;
-        if (!jv.GetValuePointer(index, &v) || !v->IsArray())
+        if (!jv.GetValuePointer(index, &v) || !v->IsArray()) {
             return false;
-
+        }
         *value = &v->GetArray();
         return true;
     }
 
     bool GetMapPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TMapType** value) {
         const TJsonValue* v;
-        if (!jv.GetValuePointer(key, &v) || !v->IsMap())
+        if (!jv.GetValuePointer(key, &v) || !v->IsMap()) {
             return false;
-
+        }
         *value = &v->GetMap();
         return true;
     }
 
     bool GetArrayPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TArray** value) {
         const TJsonValue* v;
-        if (!jv.GetValuePointer(key, &v) || !v->IsArray())
+        if (!jv.GetValuePointer(key, &v) || !v->IsArray()) {
             return false;
-
+        }
         *value = &v->GetArray();
         return true;
     }
 
     void TJsonValue::BackChecks() const {
-        if (Type != JSON_ARRAY)
+        if (Type != JSON_ARRAY) {
             ythrow TJsonException() << "Not an array";
-
-        if (Value.Array->empty())
+        }
+        if (Value.Array->empty()) {
             ythrow TJsonException() << "Get back on empty array";
+        }
     }
-}
+} // namespace NJson::NOrderedJson
 
 template <>
 void Out<NJson::NOrderedJson::TJsonValue>(IOutputStream& out, const NJson::NOrderedJson::TJsonValue& v) {

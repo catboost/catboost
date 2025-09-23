@@ -25,7 +25,6 @@ namespace NJsonOrderedWriter {
             StringStream.Reset(new TStringStream);
             Stream = StringStream.Get();
         }
-
         Stack.reserve(64); // should be enough for most cases
         StackPush(JE_OUTER_SPACE);
     }
@@ -58,7 +57,8 @@ namespace NJsonOrderedWriter {
         const EJsonEntity current = StackTop();
         Stack.pop_back();
         bool needMinusLevel = Stack.empty()
-            ? false : StackTop() == EJsonEntity::JE_OBJECT;
+                                  ? false
+                                  : StackTop() == EJsonEntity::JE_OBJECT;
         switch (current) {
             case JE_OUTER_SPACE:
                 ythrow TError() << "JSON writer: stack empty";
@@ -86,13 +86,14 @@ namespace NJsonOrderedWriter {
     }
 
     void TBuf::PrintIndentation(bool closing, bool sublevel) {
-        if (!IndentSpaces)
+        if (!IndentSpaces) {
             return;
+        }
         int substruct = Min<int>(int(sublevel) + 1, Stack.size());
         const int indentation = IndentSpaces * (Stack.size() - substruct);
-        if (!indentation && !closing)
+        if (!indentation && !closing) {
             return;
-
+        }
         PrintWhitespaces(Max(0, indentation), true);
     }
 
@@ -106,7 +107,7 @@ namespace NJsonOrderedWriter {
             const TStringBuf buffer = whitespacesTemplate.SubString(prependWithNewLine ? 0 : 1, count);
             count -= buffer.size();
             UnsafeWriteRawBytes(buffer);
-            prependWithNewLine = false;  // skip '\n' in subsequent writes
+            prependWithNewLine = false; // skip '\n' in subsequent writes
         } while (count > 0);
     }
 
@@ -288,7 +289,7 @@ namespace NJsonOrderedWriter {
                 }
             }
         };
-    }
+    } // namespace
 
     inline void TBuf::WriteBareString(const TStringBuf s, EHtmlEscapeMode hem) {
         RawWriteChar('"');
@@ -326,10 +327,10 @@ namespace NJsonOrderedWriter {
         RawWriteChar(hexDigits[(c & 0x0f)]);
     }
 
-#define MATCH(sym, string)                        \
-    case sym:                                     \
-        UnsafeWriteRawBytes(beg, cur - beg);      \
-        UnsafeWriteRawBytes(TStringBuf(string));  \
+#define MATCH(sym, string)                       \
+    case sym:                                    \
+        UnsafeWriteRawBytes(beg, cur - beg);     \
+        UnsafeWriteRawBytes(TStringBuf(string)); \
         return true
 
     inline bool TBuf::EscapedWriteChar(const char* beg, const char* cur, EHtmlEscapeMode hem) {
@@ -342,12 +343,11 @@ namespace NJsonOrderedWriter {
                 MATCH('>', "&gt;");
                 MATCH('&', "&amp;");
             }
-            //for other characters, we fall through to the non-HTML-escaped part
+            // for other characters, we fall through to the non-HTML-escaped part
         }
-
-        if (hem == HEM_RELAXED && c == '/')
+        if (hem == HEM_RELAXED && c == '/') {
             return false;
-
+        }
         if (hem != HEM_UNSAFE) {
             switch (c) {
                 case '/':
@@ -363,7 +363,6 @@ namespace NJsonOrderedWriter {
             }
             // for other characters, fall through to the non-escaped part
         }
-
         switch (c) {
             MATCH('"', "\\\"");
             MATCH('\\', "\\\\");
@@ -378,7 +377,6 @@ namespace NJsonOrderedWriter {
             WriteHexEscape(c);
             return true;
         }
-
         return false;
     }
 
@@ -413,8 +411,9 @@ namespace NJsonOrderedWriter {
             case JSON_ARRAY: {
                 BeginList();
                 const TJsonValue::TArray& arr = v->GetArray();
-                for (const auto& it : arr)
+                for (const auto& it : arr) {
                     WriteJsonValue(&it, sortKeys, mode, ndigits);
+                }
                 EndList();
                 break;
             }
@@ -519,5 +518,4 @@ namespace NJsonOrderedWriter {
         NeedNewline = from.NeedNewline;
         Stack.swap(from.Stack);
     }
-
-}
+} // namespace NJsonOrderedWriter

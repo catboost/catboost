@@ -201,4 +201,4 @@ Y_UNIT_TEST_SUITE(JsonPrettifier) {
                                       true),
                                   "{g:{x:{a:{b:c,e:f},q:{x:y}},y:fff}}");
     }
-}
+} // Y_UNIT_TEST_SUITE(JsonPrettifier)

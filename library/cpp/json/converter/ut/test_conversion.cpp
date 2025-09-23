@@ -11,7 +11,6 @@
 #include <util/generic/map.h>
 #include <util/generic/maybe.h>
 
-
 namespace NJson {
     void AssertJsonsEqual(const TJsonValue& actualJson, const TJsonValue& expectedJson) {
         const auto actualString = WriteJson(actualJson, /*formatOutput*/ true, /*sortkeys*/ true, /*validateUtf8*/ true);
@@ -24,7 +23,7 @@ namespace NJson {
         AssertJsonsEqual(actualJson, expectedJson);
     }
 
-    template<typename T>
+    template <typename T>
     struct TConverterTester {
         using TValues = THashMap<TStringBuf, T>;
 
@@ -62,8 +61,8 @@ namespace NJson {
         }
     };
 
-    template<typename T>
-    requires std::is_floating_point_v<T>
+    template <typename T>
+        requires std::is_floating_point_v<T>
     struct TConverterTester<T> {
         using TValues = THashMap<TStringBuf, T>;
 
@@ -202,5 +201,5 @@ namespace NJson {
                 },
             });
         }
-    }
-}
+    } // Y_UNIT_TEST_SUITE(ConversionTests)
+} // namespace NJson
