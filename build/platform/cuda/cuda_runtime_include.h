@@ -14,3 +14,5 @@
 #include <new>
 #include <utility>
 #include <thread>
+
+#include <cuda/atomic>
