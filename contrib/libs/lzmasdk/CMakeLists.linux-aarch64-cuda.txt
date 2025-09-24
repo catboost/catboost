@@ -42,3 +42,123 @@ target_sources(contrib-libs-lzmasdk PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Sha256.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/7zStream.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Aes.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/AesOpt.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Alloc.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Bra.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Bra86.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/BraIA64.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/CpuArch.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzFind.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Dec.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Enc.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaDec.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaEnc.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaLib.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Sha256.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

@@ -105,6 +105,14 @@ target_sources(util-generic-ut PRIVATE
 
 
 set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/util/generic/yexception_ut.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
   TARGET
   util-generic-ut
   PROPERTY

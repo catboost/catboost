@@ -60,6 +60,14 @@ target_sources(catboostr PRIVATE
 )
 
 
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
 use_export_script(catboostr
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
 )

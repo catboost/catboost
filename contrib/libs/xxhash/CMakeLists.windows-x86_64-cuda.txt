@@ -23,3 +23,11 @@ target_sources(contrib-libs-xxhash PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

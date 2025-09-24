@@ -53,3 +53,171 @@ target_sources(brotli-c-enc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/utf8_util.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/backward_references.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/backward_references_hq.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/bit_cost.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/block_splitter.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/brotli_bit_stream.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/cluster.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/command.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compound_dictionary.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compress_fragment.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/compress_fragment_two_pass.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/dictionary_hash.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/encode.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/encoder_dict.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/entropy_encode.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/fast_log.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/histogram.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/literal_cost.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/memory.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/metablock.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/static_dict.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/c/enc/utf8_util.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

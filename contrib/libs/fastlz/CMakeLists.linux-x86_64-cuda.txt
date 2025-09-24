@@ -29,3 +29,11 @@ target_sources(contrib-libs-fastlz PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/rename.h
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/fastlz.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
