@@ -295,7 +295,6 @@ MakeRegister(LossInfos,
     ),
     Registree(UserQuerywiseMetric,
         EMetricAttribute::IsUserDefined
-        // | EMetricAttribute::IsGroupwise
     ),
     Registree(R2,
         EMetricAttribute::IsRegression
@@ -762,7 +761,7 @@ bool IsPairwiseMetric(ELossFunction loss) {
 bool IsRankingMetric(ELossFunction loss) {
     auto info = GetInfo(loss);
     return info->HasFlags(EMetricAttribute::IsPairwise)
-               || info->HasFlags(EMetricAttribute::IsGroupwise);
+        || info->HasFlags(EMetricAttribute::IsGroupwise);
 }
 
 bool IsRankingObjective(ELossFunction loss) {

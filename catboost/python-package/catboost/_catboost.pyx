@@ -1942,11 +1942,6 @@ cdef class _PreprocessParams:
         objective = params.get("loss_function")
         callback = params.get("callbacks")
 
-        # Debug prints
-        print("DEBUG: eval_metric =", eval_metric)
-        print("DEBUG: objective =", objective)
-        print("DEBUG: callback =", callback)
-
         is_custom_eval_metric = eval_metric is not None and not isinstance(eval_metric, string_types)
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
         is_custom_callback = callback is not None
@@ -5161,7 +5156,6 @@ cdef class _CatBoost:
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose, str task_type):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
-        print("prediction type: ", prediction_type)
         cdef EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType_GPU if task_type == 'GPU' else EFormulaEvaluatorType_CPU
         thread_count = UpdateThreadCount(thread_count);
         dereference(self.__model).SetEvaluatorType(formulaEvaluatorType);
@@ -6458,7 +6452,6 @@ cpdef is_pairwise_metric(metric_name):
 
 cpdef is_ranking_metric(metric_name):
     return IsRankingMetric(to_arcadia_string(metric_name))
-
 
 
 cpdef is_minimizable_metric(metric_name):
