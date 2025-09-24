@@ -193,72 +193,84 @@ default:
   fit__bagging-temperature: '1'
   fit__json-log: catboost_training.json
   fit__profiler-log: catboost_profile.log
-  error-function--RMSE: RMSE
-  error-function__MultiRMSE: MultiRMSE
-  error-function__MultiRMSEWithMissingValues: MultiRMSEWithMissingValues
-  error-function--R2: R2
-  error-function__LLP: LogLikelihoodOfPrediction
-  error-function__Tweedie: Tweedie
-  error-function--MAE: MAE
-  error-function__Huber: Huber
-  error-function__LogCosh: LogCosh
   error-function--Logit: Logloss
-  error-function--Precision: Precision
-  error-function--Recall: Recall
-  error-function--F: F
-  error-function--F1: F1
-  error-function--totalF1: TotalF1
   error-function--CrossEntropy: CrossEntropy
+  error-function__CtrFactor: CtrFactor
+  error-function__Focal: Focal
+  error-function--RMSE: RMSE
+  error-function__LogCosh: LogCosh
+  error-function__lq: Lq
+  error-function--MAE: MAE
   error-function--Quantile: Quantile
   error-function--MultiQuantile: MultiQuantile
-  error-function--LogLinQuantile: LogLinQuantile
-  error-function__lq: Lq
   error-function__Expectile: Expectile
-  error-function--Poisson: Poisson
+  error-function--LogLinQuantile: LogLinQuantile
   error-function--MAPE: MAPE
+  error-function--Poisson: Poisson
+  error-function__MSLE: MSLE
+  error-function__MedianAbsoluteError: MedianAbsoluteError
+  error-function__SMAPE: SMAPE
+  error-function__Huber: Huber
+  error-function__Tweedie: Tweedie
+  error-function__Cox: Cox
+  error-function__RMSEWithUncertainty: RMSEWithUncertainty
   error-function--MultiClass: MultiClass
   error-function--MultiClassOneVsAll: MultiClassOneVsAll
-  error-function--MCC: MCC
   error-function__PairLogit: PairLogit
   error-function__PairLogitPairwise: PairLogitPairwise
-  error-function__PairAccuracy: PairAccuracy
-  error-function__QueryCrossEntropy: QueryCrossEntropy
+  error-function__YetiRank: YetiRank
+  error-function__YetiRankPairwise: YetiRankPairwise
   error-function__QueryRMSE: QueryRMSE
-  error-function__QueryAverage: AverageGain
-  error-function__QuerySoftMax: QuerySoftMax
   error-function__GroupQuantile: GroupQuantile
+  error-function__QuerySoftMax: QuerySoftMax
+  error-function__QueryCrossEntropy: QueryCrossEntropy
+  error-function__StochasticFilter: StochasticFilter
+  error-function__LambdaMart: LambdaMart
+  error-function__StochasticRank: StochasticRank
+  error-function__UserPerObjMetric: UserPerObjMetric
+  error-function__UserQuerywiseMetric: UserQuerywiseMetric
+  error-function--R2: R2
+  error-function__NumErrors: NumErrors
+  error-function__FairLoss: FairLoss
+  error-function--AUC: AUC
+  error-function--Accuracy: Accuracy
+  error-function__BalancedAccuracy: BalancedAccuracy
+  error-function__BalancedErrorRate: BalancedErrorRate
   error-function__Brierscore: BrierScore
+  error-function--Precision: Precision
+  error-function--Recall: Recall
+  error-function--F1: F1
+  error-function--totalF1: TotalF1
+  error-function--F: F
+  error-function--MCC: MCC
+  error-function__ZeroOneLoss: ZeroOneLoss
+  error-function__HammingLoss: HammingLoss
   error-function__HingeLoss: HingeLoss
   error-function__Kappa: Kappa
   error-function__WKappa: WKappa
-  error-function__HammingLoss: HammingLoss
-  error-function__FairLoss: FairLoss
-  error-function__NumErrors: NumErrors
-  error-function__ZeroOneLoss: ZeroOneLoss
-  error-function__MSLE: MSLE
-  error-function__MedianAbsoluteError: MedianAbsoluteError
-  error-function__BalancedAccuracy: BalancedAccuracy
-  error-function__BalancedErrorRate: BalancedErrorRate
-  error-function__Cox: Cox
-  error-function__SurvivalAft: SurvivalAft
-  error-function__SMAPE: SMAPE
-  error-function__CtrFactor: CtrFactor
-  error-function--AUC: AUC
-  error-function--QueryAUC: QueryAUC
-  error-function--PRAUC: PRAUC
+  error-function__LLP: LogLikelihoodOfPrediction
   error-function--NormalizedGini: NormalizedGini
-  error-function--Accuracy: Accuracy
-  error-function--MultiRMSE: MultiRMSE
-  error-function__YetiRank: YetiRank
-  error-function__YetiRankPairwise: YetiRankPairwise
+  error-function--PRAUC: PRAUC
+  error-function__PairAccuracy: PairAccuracy
+  error-function__AverageGain: AverageGain
+  error-function__QueryAverage: QueryAverage
+  error-function--QueryAUC: QueryAUC
   error-function__PFound: PFound
+  error-function__PrecisionAtK: PrecisionAt
+  error-function__RecallAtK: RecallAt
+  error-function__mapk: MAP
   error-function__ndcg: NDCG
   error-function__dcg: DCG
   error-function__FilteredDCG: FilteredDCG
+  error-function__mrr: MRR
+  error-function__err: ERR
+  error-function__SurvivalAft: SurvivalAft
+  error-function__MultiRMSE: MultiRMSE
+  error-function__MultiRMSEWithMissingValues: MultiRMSEWithMissingValues
+  error-function__MultiLogloss: MultiLogloss
+  error-function__MultiCrossEntropy: MultiCrossEntropy
+  error-function__Combination: Combination
   error-function__FilteredNDCG: FilteredNDCG
-  error-function__LambdaMart: LambdaMart
-  error-function__StochasticFilter: StochasticFilter
-  error-function__StochasticRank: StochasticRank
   error-function__ndcg__type__Exp: Exp
   error-function__ndcg__denominator__Position: Position
   error-function__filtereddcg__denominator__Position: Position
@@ -272,14 +284,7 @@ default:
   error-function__ndcg__denominator__default: LogPosition
   error-function__dcg__denominator__default: LogPosition
   error-function__filtereddcg__denominator__default: Position
-  error-function__mapk: MAP
-  error-function__err: ERR
-  error-function__mrr: MRR
-  error-function__RecallAtK: RecallAt
-  error-function__PrecisionAtK: PrecisionAt
   error-function__idcg: iDCG
-  error-function__MultiLogloss: MultiLogloss
-  error-function__MultiCrossEntropy: MultiCrossEntropy
   prediction-type--Probability: Probability
   prediction-type--Exponent: Exponent
   prediction-type--LogProbability: LogProbability
