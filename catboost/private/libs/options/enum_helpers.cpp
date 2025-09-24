@@ -295,6 +295,7 @@ MakeRegister(LossInfos,
     ),
     Registree(UserQuerywiseMetric,
         EMetricAttribute::IsUserDefined
+        // | EMetricAttribute::IsGroupwise
     ),
     Registree(R2,
         EMetricAttribute::IsRegression
@@ -597,7 +598,6 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::StochasticFilter,
     ELossFunction::LambdaMart,
     ELossFunction::StochasticRank,
-    ELossFunction::UserPerObjMetric,
     ELossFunction::UserQuerywiseMetric,
     ELossFunction::Combination
 };
@@ -762,7 +762,16 @@ bool IsPairwiseMetric(ELossFunction loss) {
 bool IsRankingMetric(ELossFunction loss) {
     auto info = GetInfo(loss);
     return info->HasFlags(EMetricAttribute::IsPairwise)
-        || info->HasFlags(EMetricAttribute::IsGroupwise);
+               || info->HasFlags(EMetricAttribute::IsGroupwise);
+}
+
+bool IsRankingObjective(ELossFunction loss) {
+    return IsIn(RankingObjectives, loss);
+}
+
+bool IsRankingObjective(const TStringBuf lossDescription) {
+    ELossFunction lossType = ParseLossType(lossDescription);
+    return IsRankingObjective(lossType);
 }
 
 bool IsUserDefined(ELossFunction loss) {
