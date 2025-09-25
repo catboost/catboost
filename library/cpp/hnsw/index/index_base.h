@@ -5,6 +5,7 @@
 #include "neighbors_getter.h"
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
+#include <library/cpp/hnsw/helpers/distance.h>
 #include <library/cpp/hnsw/helpers/is_item_marked_deleted.h>
 
 #include <util/generic/ptr.h>
@@ -85,7 +86,7 @@ namespace NHnsw {
                 return {};
             }
             ui32 entryId = 0;
-            auto entryDist = distance(query, itemStorage.GetItem(entryId));
+            auto entryDist = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, entryId);
             bool distanceCalcLimitReached = --distanceCalcLimit == 0;
             for (ui32 level = GetNumLevels(); level-- > 1 && !distanceCalcLimitReached;) {
                 for (bool entryChanged = true; entryChanged && !distanceCalcLimitReached;) {
@@ -95,7 +96,7 @@ namespace NHnsw {
                     PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, nullptr);
                     for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
                         ui32 id = neighbors[i];
-                        auto distToQuery = distance(query, itemStorage.GetItem(id));
+                        auto distToQuery = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, id);
                         distanceCalcLimitReached = --distanceCalcLimit == 0;
                         if (distanceLess(distToQuery, entryDist)) {
                             entryDist = distToQuery;
@@ -142,7 +143,7 @@ namespace NHnsw {
                     if (visited.Has(id)) {
                         continue;
                     }
-                    auto distToQuery = distance(query, itemStorage.GetItem(id));
+                    auto distToQuery = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, id);
                     distanceCalcLimitReached = --distanceCalcLimit == 0;
                     if (nearest.size() < searchNeighborhoodSize || distanceLess(distToQuery, nearest.top().Dist)) {
                         candidates.push({distToQuery, id});
