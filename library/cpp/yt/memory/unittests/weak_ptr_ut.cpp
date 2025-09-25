@@ -2,8 +2,10 @@
 
 #include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/weak_ptr.h>
+#include <library/cpp/yt/threading/event_count.h>
 
 #include <array>
+#include <thread>
 
 namespace NYT {
 namespace {
@@ -18,8 +20,10 @@ using ::testing::StrictMock;
 // Auxiliary types and functions.
 ////////////////////////////////////////////////////////////////////////////////
 
-static int ConstructorShadowState = 0;
-static int DestructorShadowState = 0;
+static std::atomic<int> ConstructorShadowState = 0;
+static std::atomic<int> DestructorShadowState = 0;
+
+std::unique_ptr<NThreading::TEvent> DeathEvent;
 
 void ResetShadowState()
 {
@@ -360,7 +364,6 @@ TEST_F(TWeakPtrTest, VirtualBase)
     ptr.Reset();
 }
 
-#if 0
 class TSlowlyDyingObject
     : public TRefCounted
 {
@@ -386,17 +389,12 @@ void PrintTo(const TSlowlyDyingObject& arg, ::std::ostream* os)
 using TSlowlyDyingObjectPtr = TIntrusivePtr<TSlowlyDyingObject>;
 using TSlowlyDyingObjectWkPtr = TWeakPtr<TSlowlyDyingObject>;
 
-static void* AsynchronousDeleter(void* param)
+static void AsynchronousDeleter(TSlowlyDyingObjectPtr& indirectObject)
 {
-    TSlowlyDyingObjectPtr* indirectObject =
-        reinterpret_cast<TSlowlyDyingObjectPtr*>(param);
-    indirectObject->Reset();
-    return nullptr;
+    indirectObject.Reset();
 }
 
-std::unique_ptr<NThreading::TEvent> DeathEvent;
-
-TEST_F(TWeakPtrTest, DISABLED_AcquisionOfSlowlyDyingObject)
+TEST_F(TWeakPtrTest, AcquisitionOfSlowlyDyingObject)
 {
     DeathEvent.reset(new NThreading::TEvent());
 
@@ -412,8 +410,7 @@ TEST_F(TWeakPtrTest, DISABLED_AcquisionOfSlowlyDyingObject)
     ASSERT_EQ(0, DestructorShadowState);
 
     // Kick off object deletion in the background.
-    TThread thread(&AsynchronousDeleter, &object);
-    thread.Start();
+    std::thread thread(AsynchronousDeleter, std::ref(object));
     Sleep(TDuration::Seconds(0.100));
 
     ASSERT_EQ(1, ConstructorShadowState);
@@ -424,7 +421,7 @@ TEST_F(TWeakPtrTest, DISABLED_AcquisionOfSlowlyDyingObject)
 
     // Finalize object destruction.
     DeathEvent->NotifyAll();
-    thread.Join();
+    thread.join();
 
     ASSERT_EQ(1, ConstructorShadowState);
     ASSERT_EQ(2, DestructorShadowState);
@@ -432,7 +429,62 @@ TEST_F(TWeakPtrTest, DISABLED_AcquisionOfSlowlyDyingObject)
     EXPECT_EQ(TSlowlyDyingObjectPtr(), ptr.Lock());
 }
 
-#endif
+////////////////////////////////////////////////////////////////////////////////
+
+constexpr int Depth = 10;
+constexpr int Attempts = 1000;
+volatile int SomeNumbers[Depth + 1];
+
+template <int N>
+class TClassStack;
+
+template <>
+class TClassStack<0>
+    : public virtual TRefCounted
+{
+public:
+    virtual int Get() const
+    {
+        return SomeNumbers[0];
+    }
+    virtual ~TClassStack()
+    {
+        SomeNumbers[0] = Get() + 1;
+    }
+};
+
+template <int N>
+class TClassStack
+    : public TClassStack<N - 1>
+{
+public:
+    virtual int Get() const override
+    {
+        return SomeNumbers[N];
+    }
+    virtual ~TClassStack()
+    {
+        SomeNumbers[N] = Get() + 1;
+    }
+};
+
+using TClassStackObject = TClassStack<Depth>;
+using TClassStackPtr = TIntrusivePtr<TClassStackObject>;
+using TClassStackWeakPtr = TWeakPtr<TClassStackObject>;
+
+TEST_F(TWeakPtrTest, WeakVirtualRef)
+{
+    for (int i = 0; i < Attempts; i++) {
+        auto strong = New<TClassStackObject>();
+        TClassStackWeakPtr weak(strong);
+        std::thread thread([&] {
+            TClassStackWeakPtr copy(weak);
+            copy.Lock();
+        });
+        strong.Reset();
+        thread.join();
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
