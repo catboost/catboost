@@ -226,7 +226,7 @@ static inline bool operator==(Symbol lhs, BuiltinSymbol rhs) {
   return static_cast<uint32_t>(lhs) == static_cast<uint32_t>(rhs);
 }
 
-inline Symbol operator"" _sym(const char* s, size_t) {
+inline Symbol operator""_sym(const char* s, size_t) {
   return Symbol(s);
 }
 
