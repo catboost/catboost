@@ -12,6 +12,14 @@ void TWriterStarvingRWSpinLock::AcquireReaderSlow() noexcept
     }
 }
 
+void TWriterStarvingRWSpinLock::AcquireReaderForkFriendlySlow() noexcept
+{
+    TSpinWait spinWait(Location_, ESpinLockActivityKind::Read);
+    while (!TryAcquireReaderForkFriendly()) {
+        spinWait.Wait();
+    }
+}
+
 void TWriterStarvingRWSpinLock::AcquireWriterSlow() noexcept
 {
     TSpinWait spinWait(Location_, ESpinLockActivityKind::Write);

@@ -20,6 +20,14 @@ inline void TWriterStarvingRWSpinLock::AcquireReader() noexcept
     AcquireReaderSlow();
 }
 
+inline void TWriterStarvingRWSpinLock::AcquireReaderForkFriendly() noexcept
+{
+    if (TryAcquireReaderForkFriendly()) {
+        return;
+    }
+    AcquireReaderForkFriendlySlow();
+}
+
 inline void TWriterStarvingRWSpinLock::ReleaseReader() noexcept
 {
     auto prevValue = Value_.fetch_sub(ReaderDelta, std::memory_order::release);
@@ -75,6 +83,19 @@ inline bool TWriterStarvingRWSpinLock::TryAndTryAcquireReader() noexcept
         return false;
     }
     return TryAcquireReader();
+}
+
+inline bool TWriterStarvingRWSpinLock::TryAcquireReaderForkFriendly() noexcept
+{
+    auto oldValue = Value_.load(std::memory_order::relaxed);
+    if ((oldValue & WriterMask) != 0) {
+        return false;
+    }
+    auto newValue = oldValue + ReaderDelta;
+
+    bool acquired = Value_.compare_exchange_weak(oldValue, newValue, std::memory_order::acquire);
+    NDetail::MaybeRecordSpinLockAcquired(acquired);
+    return acquired;
 }
 
 inline bool TWriterStarvingRWSpinLock::TryAcquireWriter() noexcept

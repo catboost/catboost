@@ -1,4 +1,5 @@
 #include "at_fork.h"
+#include "writer_starving_rw_spin_lock.h"
 
 #include <library/cpp/yt/memory/leaky_singleton.h>
 
@@ -37,7 +38,7 @@ public:
         set.Initialized.store(true);
     }
 
-    TReaderWriterSpinLock* GetForkLock()
+    TWriterStarvingRWSpinLock* GetForkLock()
     {
         return &ForkLock_;
     }
@@ -45,7 +46,7 @@ public:
 private:
     DECLARE_LEAKY_SINGLETON_FRIEND()
 
-    TReaderWriterSpinLock ForkLock_;
+    TWriterStarvingRWSpinLock ForkLock_;
 
     struct TAtForkHandlerSet
     {
@@ -128,7 +129,7 @@ void RegisterAtForkHandlers(
         std::move(child));
 }
 
-TReaderWriterSpinLock* GetForkLock()
+TWriterStarvingRWSpinLock* GetForkLock()
 {
     return TAtForkManager::Get()->GetForkLock();
 }
