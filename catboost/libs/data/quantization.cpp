@@ -185,7 +185,7 @@ namespace NCB {
             ui32 nonDefaultSampleSize;
             TMaybe<TDefaultValue<float>> defaultValue;
 
-            if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
+            if (/* const auto* denseData = */ dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
                 nonDefaultSampleSize = sampleSize;
             } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&srcFeature)) {
                 const auto& sparseArray = sparseData->GetData();
