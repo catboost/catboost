@@ -30,6 +30,10 @@ namespace __cxxabiv1 {
 #define FROM_CONTEXT_IMPL
 #include "context.h"
 
+#if !defined(_x86_64_) && !defined(NDEBUG) // !_x86_x64_ && debug
+void* MAGIC_PTR_VALUE = reinterpret_cast<void*>(0xFEEDC0DEULL);
+#endif
+
 void ITrampoLine::DoRun() {
 }
 
@@ -50,10 +54,6 @@ static inline void Run(void* arg) {
 #if defined(USE_JUMP_CONT)
 extern "C" void __mylongjmp(__myjmp_buf env, int val) __attribute__((__noreturn__));
 extern "C" int __mysetjmp(__myjmp_buf env) __attribute__((__returns_twice__));
-
-    #ifndef _x86_64_
-constexpr size_t MAGIC_VALUE = 0xFEEDC0DEULL;
-    #endif
 
 namespace {
     class TStackType {
@@ -132,28 +132,17 @@ namespace {
     Y_NO_SANITIZE("address")
     Y_NO_SANITIZE("memory") static void
     ContextTrampoLine() {
-        /*
-            +--------+-----+-----+--..--+---------+-------+-------+------------+------------+
-            | argPtr | ret | ... | .... | nullptr | MAGIC | MAGIC | trampoline | trampoline |
-            +--------+-----+-----+--..--+---------+-------+-------+------------+------------+
-            ^                                                                  ^
-            |                                                                  |
-            +--- current stack pointer                                         |
-                                        required address ----------------------+
-        */
         void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        size_t maxAttempts = 32;
-        void* magicPtr = reinterpret_cast<void*>(MAGIC_VALUE);
-        while (maxAttempts && *argPtr != magicPtr) {
-            argPtr++;
-            maxAttempts--;
+        #ifndef NDEBUG
+        // Need to scan since clang-20
+        size_t maxIters = 64;
+        argPtr += maxIters / 2;
+        while (maxIters && *argPtr != MAGIC_PTR_VALUE) {
+            argPtr--;
+            maxIters--;
         }
-        Y_ASSERT(maxAttempts > 0);
-        argPtr++;
-        Y_ASSERT(*argPtr == magicPtr);
-        argPtr += 2;
-        Y_ASSERT(*(argPtr - 1) == *(argPtr));
-        Run(*argPtr);
+        #endif
+        Run(*(argPtr - 1));
     }
     #endif
 } // namespace
@@ -203,11 +192,13 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
     stack.Push(nullptr); // fake return address
     #else
-    static_assert(sizeof(MAGIC_VALUE) == sizeof(trampoline), "Magic value shoule be the same size");
     stack.Push(trampoline);
+        #ifndef NDEBUG
+    static_assert(sizeof(MAGIC_PTR_VALUE) == sizeof(trampoline), "Magic value should be the same size");
+    stack.Push(MAGIC_PTR_VALUE);
     stack.Push(trampoline);
-    stack.Push(MAGIC_VALUE);
-    stack.Push(MAGIC_VALUE);
+        #endif
+    stack.Push(trampoline);
     stack.ReAlign();
     /*
      * fake return address
