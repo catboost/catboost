@@ -126,6 +126,10 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 
 namespace NNeh {
     const NDns::TResolvedHost* Resolve(const TStringBuf host, ui16 port, NHttp::EResolverType resolverType);
+
+    bool IsNotError(unsigned httpCode) {
+        return (httpCode >= 200u && httpCode < (!THttp2Options::RedirectionNotError ? 300u : 400u)) || THttp2Options::AnyResponseIsNotError;
+    }
 }
 
 namespace {
@@ -1229,7 +1233,7 @@ namespace {
     void THttpRequest::OnResponse(TAutoPtr<THttpParser>& rsp) {
         DBGOUT("THttpRequest::OnResponse()");
         ReleaseConn();
-        if (Y_LIKELY(((rsp->RetCode() >= 200u && rsp->RetCode() < (!THttp2Options::RedirectionNotError ? 300u : 400u)) || THttp2Options::AnyResponseIsNotError))) {
+        if (Y_LIKELY(IsNotError(rsp->RetCode()))) {
             NotifyResponse(rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
         } else {
             TString message;
