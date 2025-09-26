@@ -38,6 +38,7 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_VALUES_EQUAL(CalcExpression("small * -small", m), -1);
         UNIT_ASSERT_VALUES_EQUAL(CalcExpression("(small + small) * -small", m), -2);
         UNIT_ASSERT_VALUES_EQUAL(CalcExpression("0*-1000", m), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("1||0&&0", m), 0);
 
         UNIT_ASSERT_EQUAL(CalcExpression("-2 + 2", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("mv&32768==32768", m), 1);
