@@ -1,4 +1,4 @@
-#include "yeti_rank_pointwise.cuh"
+#include "pfound_f.cuh"
 #include "radix_sort_block.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 #include <library/cpp/cuda/wrappers/arch.cuh>
