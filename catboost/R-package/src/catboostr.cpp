@@ -495,7 +495,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
 
     CB_ENSURE(
         featuresLayout.GetExternalFeatureCount() == featuresLayout.GetFloatFeatureCount(),
-        "Dataset slicing error: non-numeric features present, slicing datasets with categorical and text features is not supported"
+        "Dataset slicing error: non-numeric features present, slicing datasets with categorical, text or embedding features is not supported"
     );
 
     result = PROTECT(allocVector(VECSXP, size));
@@ -682,7 +682,7 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
     cvParams.Stratified = asLogical(stratifiedParam);
 
     CB_ENSURE(TryFromString<ECrossValidation>(CHAR(asChar(typeParam)), cvParams.Type),
-              "unsupported type of cross_validation: 'Classical', 'Inverted', 'TimeSeries' was expected");
+              "unsupported type of cross_validation: 'Classical', 'Inverted' or 'TimeSeries' was expected");
 
     TVector<TCVResult> cvResults;
 
@@ -1102,9 +1102,9 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     auto treeCountStart = asInteger(treeCountStartParam);
     auto treeCountEnd = asInteger(treeCountEndParam);
     auto evalPeriod = asInteger(evalPeriodParam);
-    CB_ENSURE(treeCountStart >= 0, "Tree start index should be greater or equal zero");
-    CB_ENSURE(treeCountStart < treeCountEnd, "Tree start index should be less than tree end index");
-    CB_ENSURE(evalPeriod <= (treeCountEnd - treeCountStart), "Eval period should be less or equal than number of trees");
+    CB_ENSURE(treeCountStart >= 0, "Tree start index should be greater or equal than zero");
+    CB_ENSURE(treeCountStart < treeCountEnd, "Tree start index should be less than the tree end index");
+    CB_ENSURE(evalPeriod <= (treeCountEnd - treeCountStart), "Eval period should be less or equal than the number of trees");
     CB_ENSURE(evalPeriod > 0, "Eval period should be more than zero");
 
     size_t metricsParamLen = length(metricsParam);
