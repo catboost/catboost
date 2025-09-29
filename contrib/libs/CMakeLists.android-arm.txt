@@ -13,7 +13,6 @@
 # changes in this file.
 
 add_subdirectory(cxxsupp)
-add_subdirectory(libunwind)
 add_subdirectory(zlib)
 add_subdirectory(double-conversion)
 add_subdirectory(libc_compat)
