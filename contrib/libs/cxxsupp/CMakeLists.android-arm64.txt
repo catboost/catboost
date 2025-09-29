@@ -13,6 +13,8 @@
 # changes in this file.
 
 add_subdirectory(libcxx)
+add_subdirectory(builtins)
+add_subdirectory(libcxxabi)
 
 add_library(contrib-libs-cxxsupp INTERFACE)
 
