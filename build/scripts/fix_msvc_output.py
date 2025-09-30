@@ -46,7 +46,7 @@ if __name__ == '__main__':
     if mode == 'link' and '--start-plugins' in args:
         ib = args.index('--start-plugins')
         ie = args.index('--end-plugins')
-        plugins = args[ib + 1:ie]
+        plugins = list(sorted(args[ib + 1:ie]))
         args = args[:ib] + args[ie + 1:]
 
     for p in plugins:
