@@ -28,13 +28,17 @@ namespace NYT::NThreading {
  *  WARNING: You probably should not use this lock if forks are possible: see
  *  fork_aware_rw_spin_lock.h for a proper fork-safe lock which does the housekeeping for you.
  *
- *  WARNING: This lock is not recursive: you can't call AcquireReader() twice in the same
+ *  WARNING: This lock is not recursive/reentrant: you can't call AcquireReader() twice in the same
  *  thread, as that may lead to a deadlock. For the same reason you shouldn't do WaitFor or any
- *  other context switch under lock.
+ *  other context switch under lock. Both invariants are checked with debug-mode assertions, which
+ *  can result in an allocation.
  *
  *  See tla+/spinlock.tla for the formally verified lock's properties.
  */
-class TReaderWriterSpinLock
+
+namespace NDetail {
+
+class TUncheckedReaderWriterSpinLock
     : public TSpinLockBase
 {
 public:
@@ -134,6 +138,44 @@ private:
     void AcquireWriterSlow() noexcept;
 };
 
+class TCheckedReaderWriterSpinLock
+    : public TUncheckedReaderWriterSpinLock
+{
+public:
+    using TUncheckedReaderWriterSpinLock::TUncheckedReaderWriterSpinLock;
+
+    // Acquire methods: *at first* assert non-reentrancy, then call base.
+    // Note this could result in a false-positive result, even if e.g. TryAcquireReader did not succeed.
+    // Better be safe than sorry and deadlocked.
+    // See TUncheckedReaderWriterSpinLock for details.
+
+    void AcquireReader() noexcept;
+    void AcquireReaderForkFriendly() noexcept;
+    void AcquireWriter() noexcept;
+
+    bool TryAcquireReader() noexcept;
+    bool TryAcquireReaderForkFriendly() noexcept;
+    bool TryAcquireWriter() noexcept;
+
+    // Release methods: call base first, then disarm the non-reentrancy check./
+    // See TUncheckedReaderWriterSpinLock for details.
+
+    void ReleaseReader() noexcept;
+    void ReleaseWriter() noexcept;
+
+private:
+    void RecordThreadAcquisition(bool acquired = true);
+    void RecordThreadRelease();
+};
+
+} // namespace NDetail
+
+#ifndef NDEBUG
+using TReaderWriterSpinLock = NDetail::TCheckedReaderWriterSpinLock;
+#else
+using TReaderWriterSpinLock = NDetail::TUncheckedReaderWriterSpinLock;
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 
 //! A variant of TReaderWriterSpinLock occupying the whole cache line.
@@ -189,4 +231,3 @@ auto WriterGuard(const T* lock);
 #define RW_SPIN_LOCK_INL_H_
 #include "rw_spin_lock-inl.h"
 #undef RW_SPIN_LOCK_INL_H_
-
