@@ -213,13 +213,13 @@ TString FormatExc(const std::exception& exception);
 /// @def Y_ENSURE_SIMPLE
 /// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
 /// Should not be used directly.
-#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE, THROW_FUNCTION)                                                                 \
-    do {                                                                                                                    \
-        if (Y_UNLIKELY(!(CONDITION))) {                                                                                     \
-            /* use variable to guarantee evaluation at compile time */                                                      \
-            static constexpr const ::NPrivate::TSimpleExceptionMessage __SIMPLE_EXCEPTION_MESSAGE{__LOCATION__, (MESSAGE)}; \
-            THROW_FUNCTION(__SIMPLE_EXCEPTION_MESSAGE);                                                                     \
-        }                                                                                                                   \
+#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE, THROW_FUNCTION)                                                             \
+    do {                                                                                                                \
+        if (Y_UNLIKELY(!(CONDITION))) {                                                                                 \
+            /* use variable to guarantee evaluation at compile time */                                                  \
+            static constexpr const ::NPrivate::TSimpleExceptionMessage simpleExceptionMessage{__LOCATION__, (MESSAGE)}; \
+            THROW_FUNCTION(simpleExceptionMessage);                                                                     \
+        }                                                                                                               \
     } while (false)
 
 #define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)

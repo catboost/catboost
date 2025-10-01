@@ -142,10 +142,10 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
         template <class T1, T1 val>                                                       \
         class TChecker {};                                                                \
         struct TNo {                                                                      \
-            char ch;                                                                      \
+            char Ch;                                                                      \
         };                                                                                \
         struct TYes {                                                                     \
-            char arr[2];                                                                  \
+            char Arr[2];                                                                  \
         };                                                                                \
         template <class T1>                                                               \
         static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr); \
