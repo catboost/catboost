@@ -946,9 +946,7 @@ namespace NCB {
         using TSparseSrcData = TSparsePolymorphicArrayValuesHolder<TSrc>;
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
-            if (const auto* nontrivialIncrementalIndexing
-                = std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
-            {
+            if (std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing)) {
                 TConstArrayRef<ui32> dstIndices
                     = std::get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
 
