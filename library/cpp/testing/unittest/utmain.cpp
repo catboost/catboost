@@ -9,6 +9,7 @@
 #include <library/cpp/json/writer/json_value.h>
 #include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/hook/hook.h>
+#include <library/cpp/testing/hook/yt_initialize_hook.h>
 
 #include <util/datetime/base.h>
 
@@ -709,6 +710,8 @@ int NUnitTest::RunMain(int argc, char** argv) {
         Y_ABORT_UNLESS(!sigaction(SIGUSR2, &sa, nullptr));
     }
 #endif
+    InitializeYt(argc, argv);
+
     NTesting::THook::CallBeforeInit();
     InitNetworkSubSystem();
     Singleton<::NPrivate::TTestEnv>();
