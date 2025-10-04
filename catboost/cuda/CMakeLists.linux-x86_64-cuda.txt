@@ -12,23 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_executable(cuda_lib)
-
-
-target_link_libraries(cuda_lib PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  build-cow-on
-  library-cpp-cpuid_check
-)
-
-target_allocator(cuda_lib
-  system_allocator
-)
-
-target_sources(cuda_lib PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
-)
-
-
-vcs_info(cuda_lib)
+add_subdirectory(train_lib)
+add_subdirectory(cpu_compatibility_helpers)
+add_subdirectory(data)
+add_subdirectory(cuda_lib)
+add_subdirectory(models)
+add_subdirectory(cuda_util)
+add_subdirectory(gpu_data)
+add_subdirectory(ctrs)
+add_subdirectory(methods)
+add_subdirectory(targets)
+add_subdirectory(ut_helpers)
+add_subdirectory(utils)
+add_subdirectory(mpi_ut)
