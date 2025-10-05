@@ -13,7 +13,7 @@ import org.apache.spark.ml._
 import org.apache.spark.ml.param._
 
 import ai.catboost.spark._
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
