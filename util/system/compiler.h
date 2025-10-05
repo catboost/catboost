@@ -75,7 +75,7 @@
  *
  * void Foo(const int argumentUsedOnlyForDebugPurposes Y_DECLARE_UNUSED) {
  *     assert(argumentUsedOnlyForDebugPurposes == 42);
- *     // however you may as well omit `Y_DECLARE_UNUSED` and use `UNUSED` macro instead
+ *     // however you may as well omit `Y_DECLARE_UNUSED` and use `Y_UNUSED` macro instead
  *     Y_UNUSED(argumentUsedOnlyForDebugPurposes);
  * }
  * @endcode
