@@ -156,8 +156,8 @@ private:
 #define ythrow throw __LOCATION__ +
 
 namespace NPrivate {
-    /// Encapsulates data for one of the most common case in which
-    /// exception message consists of single constant string
+    /// Encapsulates data for the most common case when
+    /// an exception message consists of a single constant string
     struct TSimpleExceptionMessage {
         TSourceLocation Location;
         TStringBuf Message;
