@@ -30,10 +30,6 @@ namespace __cxxabiv1 {
 #define FROM_CONTEXT_IMPL
 #include "context.h"
 
-#if !defined(_x86_64_) && !defined(NDEBUG) // !_x86_x64_ && debug
-void* MAGIC_PTR_VALUE = reinterpret_cast<void*>(0xFEEDC0DEULL);
-#endif
-
 void ITrampoLine::DoRun() {
 }
 
@@ -133,15 +129,6 @@ namespace {
     Y_NO_SANITIZE("memory") static void
     ContextTrampoLine() {
         void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        #ifndef NDEBUG
-        // Need to scan since clang-20
-        size_t maxIters = 64;
-        argPtr += maxIters / 2;
-        while (maxIters && *argPtr != MAGIC_PTR_VALUE) {
-            argPtr--;
-            maxIters--;
-        }
-        #endif
         Run(*(argPtr - 1));
     }
     #endif
@@ -193,11 +180,6 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
     stack.Push(nullptr); // fake return address
     #else
     stack.Push(trampoline);
-        #ifndef NDEBUG
-    static_assert(sizeof(MAGIC_PTR_VALUE) == sizeof(trampoline), "Magic value should be the same size");
-    stack.Push(MAGIC_PTR_VALUE);
-    stack.Push(trampoline);
-        #endif
     stack.Push(trampoline);
     stack.ReAlign();
     /*

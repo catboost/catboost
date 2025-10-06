@@ -4,6 +4,7 @@
 #include <library/cpp/string_utils/relaxed_escaper/relaxed_escaper.h>
 #include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/hook/hook.h>
+#include <library/cpp/testing/hook/yt_initialize_hook.h>
 #include <util/generic/scope.h>
 #include <util/string/join.h>
 #include <util/system/src_root.h>
@@ -241,6 +242,8 @@ namespace {
 }
 
 int NGTest::Main(int argc, char** argv) {
+    InitializeYt(argc, argv);
+
     auto flags = ParseFlags(argc, argv);
 
     ::testing::GTEST_FLAG(filter) = flags.Filter;

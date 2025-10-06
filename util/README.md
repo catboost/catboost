@@ -44,7 +44,7 @@ to send a graceful ping into [Igni et ferro](https://wiki.yandex-team.ru/ignietf
 Certain exceptions apply. The following trivial changes do not need to be reviewed:
 
 * grammar and misspelling fixes,
-* renaming of an internal variable to match the styleguide.
+* making the code compliant with the style guide.
 
 Whenever a breaking change happens to accidentally land into trunk, reverting it does not need to be reviewed.
 
