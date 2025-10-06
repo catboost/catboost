@@ -194,7 +194,7 @@
     #define _dll_
 #endif
 
-// 16, 32 or 64
+// 32 or 64
 #if defined(__sparc_v9__) || defined(_x86_64_) || defined(_ia64_) || defined(_arm64_) || defined(_ppc64_) || defined(_wasm64_)
     #define _64_
 #else
