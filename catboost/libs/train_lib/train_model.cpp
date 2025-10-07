@@ -1272,6 +1272,11 @@ void TrainModel(
         needFstr = false;
     }
 
+    TMaybe<TFullModel> initModel;
+    if (loadOptions.InitModelPath) {
+        initModel = ReadModel(loadOptions.InitModelPath.Path, modelFormat);
+    }
+
     TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
     if (loadOptions.PrecomputedMetadataFile) {
         precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrMetaData(
@@ -1337,7 +1342,7 @@ void TrainModel(
         /*callbackDescriptor*/ Nothing(),
         std::move(pools),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
-        /*initModel*/ Nothing(),
+        std::move(initModel),
         /*initLearnProgress*/ nullptr,
         &loadOptions,
         /*outputModelPath*/ "",
