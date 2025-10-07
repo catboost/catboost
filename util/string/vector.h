@@ -127,7 +127,7 @@ template <typename T, typename TStringType>
 TVector<T> Scan(const TVector<TStringType>& input) {
     TVector<T> output;
     output.reserve(input.size());
-    for (int i = 0; i < input.ysize(); ++i) {
+    for (size_t i = 0; i < input.size(); ++i) {
         output.push_back(FromString<T>(input[i]));
     }
     return output;

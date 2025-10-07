@@ -23,7 +23,7 @@ namespace NAddr {
         TVector<char> buf;
         buf.resize(1000000);
         PIP_ADAPTER_ADDRESSES adapterBuf = (PIP_ADAPTER_ADDRESSES)&buf[0];
-        ULONG bufSize = buf.ysize();
+        ULONG bufSize = buf.size();
 
         if (GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, adapterBuf, &bufSize) == ERROR_SUCCESS) {
             for (PIP_ADAPTER_ADDRESSES ptr = adapterBuf; ptr != 0; ptr = ptr->Next) {
