@@ -169,19 +169,6 @@ namespace {
         {LANG_CRH, SCRIPT_CYRILLIC, "Crimean Tatar", "crh", "crh", nullptr},
         {LANG_EVN, SCRIPT_CYRILLIC, "Evenki", "evn", "evn", nullptr},
         {LANG_VEP, SCRIPT_CYRILLIC, "Veps", "vep", "vep", nullptr},
-        {LANG_AVA, SCRIPT_CYRILLIC, "Avar", "ava", "av", nullptr},
-        {LANG_KUM, SCRIPT_CYRILLIC, "Kumyk", "kum", "kum", nullptr},
-        {LANG_DAR, SCRIPT_CYRILLIC, "Dargwa", "dar", "dar", nullptr},
-        {LANG_INH, SCRIPT_CYRILLIC, "Ingush", "inh", "inh", nullptr},
-        {LANG_XAL, SCRIPT_CYRILLIC, "Kalmyk", "xal", "xal", nullptr},
-        {LANG_LBE, SCRIPT_CYRILLIC, "Lak", "lbe", "lbe", nullptr},
-        {LANG_TAB, SCRIPT_CYRILLIC, "Tabasaran", "tab", "tab", nullptr},
-        {LANG_ALT, SCRIPT_CYRILLIC, "Southern Altai", "alt", "alt", nullptr},
-        {LANG_ATV, SCRIPT_CYRILLIC, "Northern Altai", "atv", "atv", nullptr},
-        {LANG_YRK, SCRIPT_CYRILLIC, "Nenets", "yrk", "yrk", nullptr},
-        {LANG_AGX, SCRIPT_CYRILLIC, "Aghul", "agx", "agx", nullptr},
-        {LANG_RUT, SCRIPT_CYRILLIC, "Rutul", "rut", "rut", nullptr},
-        {LANG_ABK, SCRIPT_CYRILLIC, "Abkhaz", "abk", "ab", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");
