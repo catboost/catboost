@@ -201,6 +201,9 @@
     #define _32_
 #endif
 
+
+// The following SIZEOF_* definitions are needed for use in preprocessor conditional directives (#if, #elif).
+
 /* All modern 64-bit Unix systems use scheme LP64 (long, pointers are 64-bit).
  * Microsoft uses a different scheme: LLP64 (long long, pointers are 64-bit).
  *
