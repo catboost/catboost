@@ -153,6 +153,16 @@ const char *ibv_get_device_name(struct ibv_device *device) {
 }
 
 Y_HIDDEN
+int ibv_get_device_index(struct ibv_device *device) {
+    return Call(IBSym()->ibv_get_device_index, device);
+}
+
+Y_HIDDEN
+__be64 ibv_get_device_guid(struct ibv_device *device) {
+    return Call(IBSym()->ibv_get_device_guid, device);
+}
+
+Y_HIDDEN
 int ibv_get_async_event(struct ibv_context *context, struct ibv_async_event *event) {
     return Call(IBSym()->ibv_get_async_event, context, event);
 }
@@ -200,6 +210,16 @@ void ibv_ack_cq_events(struct ibv_cq *cq, unsigned int nevents) {
 Y_HIDDEN
 const char *ibv_port_state_str(enum ibv_port_state port_state) {
     return Call(IBSym()->ibv_port_state_str, port_state);
+}
+
+Y_HIDDEN
+int ibv_set_ece(struct ibv_qp *qp, struct ibv_ece *ece) {
+    return Call(IBSym()->ibv_set_ece, qp, ece);
+}
+
+Y_HIDDEN
+int ibv_query_ece(struct ibv_qp *qp, struct ibv_ece *ece) {
+    return Call(IBSym()->ibv_query_ece, qp, ece);
 }
 
 // rdma
@@ -260,6 +280,11 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param) {
 }
 
 Y_HIDDEN
+int rdma_establish(struct rdma_cm_id *id) {
+    return Call(RDSym()->rdma_establish, id);
+}
+
+Y_HIDDEN
 int rdma_disconnect(struct rdma_cm_id *id) {
     return Call(RDSym()->rdma_disconnect, id);
 }
@@ -310,6 +335,11 @@ uint16_t rdma_get_src_port(struct rdma_cm_id *id) {
 }
 
 Y_HIDDEN
+int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel) {
+    return Call(RDSym()->rdma_migrate_id, id, channel);
+}
+
+Y_HIDDEN
 int rdma_getaddrinfo(const char *node, const char *service, const struct rdma_addrinfo *hints, struct rdma_addrinfo **res) {
     return Call(RDSym()->rdma_getaddrinfo, node, service, hints, res);
 }
@@ -317,6 +347,21 @@ int rdma_getaddrinfo(const char *node, const char *service, const struct rdma_ad
 Y_HIDDEN
 void rdma_freeaddrinfo(struct rdma_addrinfo *res) {
     return Call(RDSym()->rdma_freeaddrinfo, res);
+}
+
+Y_HIDDEN
+int rdma_init_qp_attr(struct rdma_cm_id *id, struct ibv_qp_attr *qp_attr, int *qp_attr_mask) {
+    return Call(RDSym()->rdma_init_qp_attr, id, qp_attr, qp_attr_mask);
+}
+
+Y_HIDDEN
+int rdma_set_local_ece(struct rdma_cm_id *id, struct ibv_ece *ece) {
+    return Call(RDSym()->rdma_set_local_ece, id, ece);
+}
+
+Y_HIDDEN
+const char* rdma_event_str(enum rdma_cm_event_type event) {
+    return Call(RDSym()->rdma_event_str, event);
 }
 
 // mlx5
@@ -429,6 +474,11 @@ int mlx5dv_devx_obj_query_async(struct mlx5dv_devx_obj *obj, const void *in, siz
 Y_HIDDEN
 int mlx5dv_devx_qp_query(struct ibv_qp *qp, const void *in, size_t inlen, void *out, size_t outlen) {
     return Call(M5Sym()->mlx5dv_devx_qp_query, qp, in, inlen, out, outlen);
+}
+
+Y_HIDDEN
+int mlx5dv_devx_qp_modify(struct ibv_qp *qp, const void *in, size_t inlen, void *out, size_t outlen) {
+    return Call(M5Sym()->mlx5dv_devx_qp_modify, qp, in, inlen, out, outlen);
 }
 
 Y_HIDDEN
@@ -617,6 +667,11 @@ int mlx5dv_init_obj(struct mlx5dv_obj *obj, uint64_t obj_type) {
 }
 
 Y_HIDDEN
+bool mlx5dv_is_supported(struct ibv_device *device) {
+    return Call(M5Sym()->mlx5dv_is_supported, device);
+}
+
+Y_HIDDEN
 struct ibv_context *mlx5dv_open_device(struct ibv_device *device, struct mlx5dv_context_attr *attr) {
     return Call(M5Sym()->mlx5dv_open_device, device, attr);
 }
@@ -644,4 +699,14 @@ int mlx5dv_query_devx_port(struct ibv_context *ctx, uint32_t port_num, struct ml
 Y_HIDDEN
 int mlx5dv_set_context_attr(struct ibv_context *context, enum mlx5dv_set_ctx_attr_type type, void *attr) {
     return Call(M5Sym()->mlx5dv_set_context_attr, context, type, attr);
+}
+
+Y_HIDDEN
+struct mlx5dv_mkey *mlx5dv_create_mkey(struct mlx5dv_mkey_init_attr *mkey_init_attr) {
+    return Call(M5Sym()->mlx5dv_create_mkey, mkey_init_attr);
+}
+
+Y_HIDDEN
+int mlx5dv_destroy_mkey(struct mlx5dv_mkey *mkey) {
+    return Call(M5Sym()->mlx5dv_destroy_mkey, mkey);
 }

@@ -54,6 +54,8 @@ extern "C" {
     M(ibv_query_port, int (struct ibv_context *context, uint8_t port_num, struct _compat_ibv_port_attr *port_attr)) \
     M(ibv_wc_status_str, const char *(enum ibv_wc_status status)) \
     M(ibv_get_device_name, const char *(struct ibv_device *device)) \
+    M(ibv_get_device_index, int (struct ibv_device *device)) \
+    M(ibv_get_device_guid, __be64 (struct ibv_device *device)) \
     M(ibv_get_async_event, int (struct ibv_context *context, struct ibv_async_event *event)) \
     M(ibv_event_type_str, const char *(enum ibv_event_type event)) \
     M(ibv_query_qp, int (struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask, struct ibv_qp_init_attr *init_attr)) \
@@ -64,6 +66,8 @@ extern "C" {
     M(ibv_get_cq_event, int (struct ibv_comp_channel *channel, struct ibv_cq **cq, void **cq_context)) \
     M(ibv_ack_cq_events, void (struct ibv_cq *cq, unsigned int nevents)) \
     M(ibv_port_state_str, const char *(enum ibv_port_state port_state)) \
+    M(ibv_set_ece, int (struct ibv_qp *qp, struct ibv_ece *ece)) \
+    M(ibv_query_ece, int (struct ibv_qp *qp, struct ibv_ece *ece)) \
 // DOVERBS
 
 struct TInfinibandSymbols {
@@ -86,6 +90,7 @@ const struct TInfinibandSymbols* IBSym();
     M(rdma_listen, int (struct rdma_cm_id *id, int backlog)) \
     M(rdma_accept, int (struct rdma_cm_id *id, struct rdma_conn_param *conn_param)) \
     M(rdma_connect, int (struct rdma_cm_id *id, struct rdma_conn_param *conn_param)) \
+    M(rdma_establish, int (struct rdma_cm_id *id)) \
     M(rdma_disconnect, int (struct rdma_cm_id *id)) \
     M(rdma_set_option, int (struct rdma_cm_id *id, int level, int optname, void *optval, size_t optlen)) \
     M(rdma_destroy_id, int (struct rdma_cm_id *id)) \
@@ -96,8 +101,12 @@ const struct TInfinibandSymbols* IBSym();
     M(rdma_reject, int (struct rdma_cm_id *id, const void *private_data, uint8_t private_data_len)) \
     M(rdma_get_dst_port, uint16_t (struct rdma_cm_id *id)) \
     M(rdma_get_src_port, uint16_t (struct rdma_cm_id *id)) \
+    M(rdma_migrate_id, int (struct rdma_cm_id *id, struct rdma_event_channel *channel)) \
     M(rdma_getaddrinfo, int (const char *node, const char *service, const struct rdma_addrinfo *hints, struct rdma_addrinfo **res)) \
     M(rdma_freeaddrinfo, void (struct rdma_addrinfo *res)) \
+    M(rdma_init_qp_attr, int(struct rdma_cm_id *id, struct ibv_qp_attr *qp_attr, int *qp_attr_mask)) \
+    M(rdma_set_local_ece, int(struct rdma_cm_id *id, struct ibv_ece *ece)) \
+    M(rdma_event_str, const char* (enum rdma_cm_event_type event)) \
 // DORDMA
 
 struct TRdmaSymbols {
@@ -131,6 +140,7 @@ const struct TRdmaSymbols* RDSym();
     M(mlx5dv_devx_obj_query, int (struct mlx5dv_devx_obj *obj, const void *in, size_t inlen, void *out, size_t outlen)) \
     M(mlx5dv_devx_obj_query_async, int (struct mlx5dv_devx_obj *obj, const void *in, size_t inlen, size_t outlen, uint64_t wr_id, struct mlx5dv_devx_cmd_comp *cmd_comp)) \
     M(mlx5dv_devx_qp_query, int (struct ibv_qp *qp, const void *in, size_t inlen, void *out, size_t outlen)) \
+    M(mlx5dv_devx_qp_modify, int (struct ibv_qp *qp, const void *in, size_t inlen, void *out, size_t outlen)) \
     M(mlx5dv_devx_query_eqn, int (struct ibv_context *context, uint32_t vector, uint32_t *eqn)) \
     M(mlx5dv_devx_subscribe_devx_event, int (struct mlx5dv_devx_event_channel *event_channel, struct mlx5dv_devx_obj *obj, uint16_t events_sz, uint16_t events_num[], uint64_t cookie)) \
     M(mlx5dv_devx_subscribe_devx_event_fd, int (struct mlx5dv_devx_event_channel *event_channel, int fd, struct mlx5dv_devx_obj *obj, uint16_t event_num)) \
@@ -168,12 +178,15 @@ const struct TRdmaSymbols* RDSym();
     M(mlx5dv_dump_dr_domain, int (FILE *fout, struct mlx5dv_dr_domain *domain)) \
     M(mlx5dv_free_var, void (struct mlx5dv_var *dv_var)) \
     M(mlx5dv_init_obj, int (struct mlx5dv_obj *obj, uint64_t obj_type)) \
+    M(mlx5dv_is_supported, bool (struct ibv_device *device)) \
     M(mlx5dv_open_device, struct ibv_context *(struct ibv_device *device, struct mlx5dv_context_attr *attr)) \
     M(mlx5dv_pp_alloc, struct mlx5dv_pp *(struct ibv_context *context, size_t pp_context_sz, const void *pp_context, uint32_t flags)) \
     M(mlx5dv_pp_free, void (struct mlx5dv_pp *pp)) \
     M(mlx5dv_query_device, int (struct ibv_context *ctx_in, struct mlx5dv_context *attrs_out)) \
     M(mlx5dv_query_devx_port, int (struct ibv_context *ctx, uint32_t port_num, struct mlx5dv_devx_port *mlx5_devx_port)) \
     M(mlx5dv_set_context_attr, int (struct ibv_context *context, enum mlx5dv_set_ctx_attr_type type, void *attr)) \
+    M(mlx5dv_create_mkey, struct mlx5dv_mkey *(struct mlx5dv_mkey_init_attr *mkey_init_attr)) \
+    M(mlx5dv_destroy_mkey, int (struct mlx5dv_mkey *mkey)) \
 // DOMLX5
 
 struct TMlx5Symbols {
