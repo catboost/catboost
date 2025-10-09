@@ -217,8 +217,8 @@ TString FormatExc(const std::exception& exception);
     do {                                                                                                                \
         if (Y_UNLIKELY(!(CONDITION))) {                                                                                 \
             /* use variable to guarantee evaluation at compile time */                                                  \
-            static constexpr const ::NPrivate::TSimpleExceptionMessage simpleExceptionMessage{__LOCATION__, (MESSAGE)}; \
-            THROW_FUNCTION(simpleExceptionMessage);                                                                     \
+            static constexpr const ::NPrivate::TSimpleExceptionMessage SimpleExceptionMessage{__LOCATION__, (MESSAGE)}; \
+            THROW_FUNCTION(SimpleExceptionMessage);                                                                     \
         }                                                                                                               \
     } while (false)
 
