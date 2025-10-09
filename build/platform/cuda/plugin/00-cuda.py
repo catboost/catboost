@@ -25,6 +25,7 @@ CUDA_LIBRARIES = {
     '-lcudnn_engines_runtime_compiled_static': '-lcudnn',
     '-lcudnn_heuristic_static': '-lcudnn',
     '-lcufft_static_nocallback': '-lcufft',
+    '-lcufft_static': '-lcufft',
     '-lcupti_static': '-lcupti',
     '-lcurand_static': '-lcurand',
     '-lcusolver_static': '-lcusolver',
