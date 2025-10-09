@@ -11,7 +11,7 @@
 
 namespace NCB {
 
-    static volatile TAtomic HasBeenInterrupted = 0;
+    static TAtomic HasBeenInterrupted = 0;
 
     static void AppInterruptHandler() {
         if (AtomicGet(HasBeenInterrupted)) {
