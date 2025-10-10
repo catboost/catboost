@@ -141,11 +141,11 @@ using ::wctomb _LIBCPP_USING_IF_EXISTS;
 using ::mbstowcs _LIBCPP_USING_IF_EXISTS;
 using ::wcstombs _LIBCPP_USING_IF_EXISTS;
 #endif
-#if !defined(_LIBCPP_CXX03_LANG) && __has_attribute(using_if_exists)
+#if !defined(_LIBCPP_CXX03_LANG)
 using ::at_quick_exit _LIBCPP_USING_IF_EXISTS;
 using ::quick_exit _LIBCPP_USING_IF_EXISTS;
 #endif
-#if _LIBCPP_STD_VER >= 17 && __has_attribute(using_if_exists) && !defined(_LIBCPP_MSVCRT)
+#if _LIBCPP_STD_VER >= 17 && !defined(_LIBCPP_MSVCRT)
 using ::aligned_alloc _LIBCPP_USING_IF_EXISTS;
 #endif
 
