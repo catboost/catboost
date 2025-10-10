@@ -1195,7 +1195,11 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .RequiredArgument("{...}")
         .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
-            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+            try {
+                NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"], /*throwOnError*/true);
+            } catch (const NJson::TJsonException& error) {
+                CB_ENSURE(false, "Can't parse text processing JSON: " << error.what());
+            }
         });
 }
 
