@@ -17,10 +17,11 @@
 #include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/info.h>
 #include <util/system/spin_wait.h>
+
+#include <atomic>
 
 
 int ModeFitImpl(const TVector<TString>& args) {
@@ -61,7 +62,7 @@ static NPar::TNetworkAddress CreateAddress(const TString& server) {
 
 
 class TStopMetaRequester {
-    TAtomic ResultCount = 0;
+    std::atomic<size_t> ResultCount = 0;
     TSystemEvent Ready;
 
     TVector<NPar::TNetworkAddress> WorkerAddresses;
@@ -95,7 +96,7 @@ public:
             Requester->SendRequest(reqId, workerAddress, "stop", /*data*/ nullptr);
         }
 
-        if (WorkerAddresses.size() != SafeIntegerCast<size_t>(AtomicGet(ResultCount))) {
+        if (WorkerAddresses.size() != ResultCount) {
             CB_ENSURE(
                 Ready.WaitT(TDuration::Seconds(timeoutInSeconds)),
                 "Shutdown workers: timeout of " << timeoutInSeconds << " s expired"
@@ -146,7 +147,7 @@ public:
     void ReplyCallbackImpl(TAutoPtr<NPar::TNetworkResponse> response) {
         PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " Got reply for redId "
             << GetGuidAsString(response->ReqId) << Endl;
-        if (SafeIntegerCast<size_t>(AtomicIncrement(ResultCount)) == WorkerAddresses.size())
+        if (++ResultCount == WorkerAddresses.size())
             Ready.Signal();
     }
 };

@@ -11,10 +11,12 @@
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
+#include <util/generic/xrange.h>
 #include <util/memory/pool.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/info.h>
 #include <util/system/spinlock.h>
+
+#include <atomic>
 
 
 struct TRestorableFastRng64;
@@ -170,8 +172,8 @@ public:
         TUnsizedVector<float> PairwiseWeights;
         TUnsizedVector<float> SamplePairwiseWeights;
 
-        TAtomic BodyFinish = 0;
-        TAtomic TailFinish = 0;
+        std::atomic<int> BodyFinish = 0;
+        std::atomic<int> TailFinish = 0;
     };
 
     struct TVectorSlicing {
@@ -289,8 +291,9 @@ private:
 
 private:
     inline void ClearBodyTail() {
-        for (auto& bodyTail : BodyTailArr) {
-            bodyTail.BodyFinish = bodyTail.TailFinish = 0;
+        for (auto i : xrange(BodyTailCount)) {
+            BodyTailArr[i].BodyFinish = 0;
+            BodyTailArr[i].TailFinish = 0;
         }
     }
 
@@ -387,7 +390,7 @@ public:
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
     TVector<TQueryInfo> LearnQueriesInfo;
-    TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
+    TArrayHolder<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
     int MainDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
     int OnlineDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;

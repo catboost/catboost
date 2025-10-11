@@ -12,6 +12,9 @@
 #include <catboost/cuda/cuda_lib/tasks_impl/cpu_func.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
 
+#include <atomic>
+
+
 namespace NCudaLib {
     class TCudaSingleDevice {
     private:
@@ -30,7 +33,7 @@ namespace NCudaLib {
         using TRemoteFunc = TCpuFunc<TFunc, true>;
 #endif
 
-        TAtomic ExceptionsCount;
+        std::atomic<size_t> ExceptionsCount;
         friend class TSetDeviceExceptionCallback;
 
         void* TaskQueue;

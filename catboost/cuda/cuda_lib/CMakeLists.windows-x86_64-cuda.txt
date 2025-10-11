@@ -27,7 +27,6 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   cpp-threading-future
   cpp-threading-local_executor
   cpp-threading-name_guard
-  cpp-deprecated-atomic
   build-platform-cuda
 )
 
@@ -108,7 +107,6 @@ target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC
   cpp-threading-future
   cpp-threading-local_executor
   cpp-threading-name_guard
-  cpp-deprecated-atomic
   build-platform-cuda
 )
 
