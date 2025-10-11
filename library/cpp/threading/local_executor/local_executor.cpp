@@ -62,7 +62,7 @@ namespace {
 
         TVector<NThreading::TFuture<void>> GetFutures() const {
             TVector<NThreading::TFuture<void>> out;
-            out.reserve(Promises.ysize());
+            out.reserve(Promises.size());
             for (auto& promise : Promises) {
                 out.push_back(promise.GetFuture());
             }
