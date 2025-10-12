@@ -431,6 +431,14 @@ static bool IsFromAucFamily(ELossFunction loss) {
 
 void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
     if (IsUserDefined(metric) || IsUserDefined(modelLoss)) {
+
+        if (IsRankingObjective(modelLoss)){
+            // accept user defined ranking
+            CB_ENSURE(
+                IsRankingMetric(metric),
+                "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
+            );
+        }
         return;
     }
 
