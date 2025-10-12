@@ -21,7 +21,7 @@ void CheckFitParams(
     bool isNotPerObjectOrQuerywise = (loss != ELossFunction::UserPerObjMetric &&
                                       loss != ELossFunction::UserQuerywiseMetric);
 
-    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction()) &isNotPerObjectOrQuerywise) {
+    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction()) && isNotPerObjectOrQuerywise) {
         CB_ENSURE(objectiveDescriptor != nullptr, "Error: provide objective descriptor for custom loss");
     }
 
