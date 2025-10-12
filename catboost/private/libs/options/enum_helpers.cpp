@@ -293,7 +293,7 @@ MakeRegister(LossInfos,
     Registree(UserPerObjMetric,
         EMetricAttribute::IsUserDefined
     ),
-    RankingRegistree(UserQuerywiseMetric, ERankingType::AbsoluteValue,
+    RankingRegistree(UserQuerywiseMetric, ERankingType::UserDefined,
         EMetricAttribute::IsUserDefined
         | EMetricAttribute::IsGroupwise
     ),
