@@ -406,8 +406,8 @@ public:
             size_t flatIndex = static_cast<size_t>(feature.Position.FlatIndex);
             CB_ENSURE(
                 flatIndex < featureNames.size(),
-                "Model has a feature with index " << flatIndex << " but provided features names size "
-                << featureNames.size() << "is too small for it"
+                "Model has a feature with index " << flatIndex << " but the length of the provided features names array ("
+                << featureNames.size() << ") is too small for it"
             );
             feature.FeatureId = featureNames[flatIndex];
         };
