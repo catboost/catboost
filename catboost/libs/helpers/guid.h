@@ -11,7 +11,7 @@
 #include <util/string/hex.h>
 #include <util/str_stl.h>
 
-#include <contrib/libs/cxxsupp/libcxx/include/array>
+#include <array>
 
 namespace NCB {
 
