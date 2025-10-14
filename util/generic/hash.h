@@ -108,6 +108,7 @@ public:
     size_type size() const noexcept {
         return rep.size();
     }
+    // DEPRECATED. DO NOT USE.
     yssize_t ysize() const noexcept {
         return (yssize_t)rep.size();
     }

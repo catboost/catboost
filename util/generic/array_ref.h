@@ -222,6 +222,7 @@ public:
         return TArrayRef(T_ + offset, size);
     }
 
+    // DEPRECATED. DO NOT USE.
     constexpr inline yssize_t ysize() const noexcept {
         return static_cast<yssize_t>(this->size());
     }

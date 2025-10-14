@@ -110,6 +110,7 @@ public:
         return TBase::empty();
     }
 
+    // DEPRECATED. DO NOT USE.
     inline yssize_t ysize() const noexcept {
         return static_cast<yssize_t>(TBase::size());
     }
