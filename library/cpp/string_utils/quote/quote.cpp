@@ -274,12 +274,11 @@ TString UrlUnescapeRet(const TStringBuf from) {
     return to;
 }
 
-char* UrlEscape(char* to, const char* from, bool forceEscape) {
-    from = FixZero(from);
-
-    while (*from) {
+char* UrlEscape(char* to, TStringBuf src, bool forceEscape) {
+    for (auto from = src.begin(); from != src.end(); ++from) {
         const bool escapePercent = (*from == '%') &&
-                                   (forceEscape || !((*(from + 1) && IsAsciiHex(*(from + 1)) && *(from + 2) && IsAsciiHex(*(from + 2)))));
+                                   (forceEscape || !((std::next(from) != src.end() && IsAsciiHex(*(std::next(from)))
+                                   && std::next(from, 2) != src.end() && IsAsciiHex(*(std::next(from, 2))))));
 
         if (escapePercent || (unsigned char)*from <= ' ' || (unsigned char)*from > '~') {
             *to++ = '%';
@@ -287,7 +286,6 @@ char* UrlEscape(char* to, const char* from, bool forceEscape) {
             *to++ = d2x((unsigned char)*from & 0xF);
         } else
             *to++ = *from;
-        ++from;
     }
 
     *to = 0;
@@ -298,12 +296,12 @@ char* UrlEscape(char* to, const char* from, bool forceEscape) {
 void UrlEscape(TString& url, bool forceEscape) {
     TTempBuf tempBuf(CgiEscapeBufLen(url.size()));
     char* to = tempBuf.Data();
-    url.AssignNoAlias(to, UrlEscape(to, url.data(), forceEscape));
+    url.AssignNoAlias(to, UrlEscape(to, url, forceEscape));
 }
 
 TString UrlEscapeRet(const TStringBuf from, bool forceEscape) {
     TString to;
     to.ReserveAndResize(CgiEscapeBufLen(from.size()));
-    to.resize(UrlEscape(to.begin(), from.begin(), forceEscape) - to.data());
+    to.resize(UrlEscape(to.begin(), from, forceEscape) - to.data());
     return to;
 }
