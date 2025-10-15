@@ -714,6 +714,7 @@ public:                       \
 //values
 #define UNIT_ASSERT_VALUES_EQUAL_IMPL(A, B, C, EQflag, EQstr, NEQstr)                                                                  \
     do {                                                                                                                               \
+        /* NOLINTBEGIN(bugprone-reserved-identifier, readability-identifier-naming) */                                                 \
         TString _as;                                                                                                                   \
         TString _bs;                                                                                                                   \
         TString _asInd;                                                                                                                \
@@ -727,6 +728,7 @@ public:                       \
             }                                                                                                                          \
             UNIT_FAIL_IMPL("assertion failed", failMsg);                                                                               \
         }                                                                                                                              \
+        /* NOLINTEND(bugprone-reserved-identifier, readability-identifier-naming) */                                                   \
     } while (false)
 
 #define UNIT_ASSERT_VALUES_EQUAL_C(A, B, C) \
