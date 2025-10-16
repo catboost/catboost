@@ -19,6 +19,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/class_label_options.h>
 
+#include <library/cpp/iterator/enumerate.h>
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/dbg_output/dump.h>
 #include <library/cpp/dbg_output/auto.h>
@@ -695,8 +696,8 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
 void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     CB_ENSURE(IsValidFloat(scaleAndBias.Scale), "Invalid scale " << scaleAndBias.Scale);
     TVector<double> bias = scaleAndBias.GetBiasRef();
-    for (auto b: bias) {
-        CB_ENSURE(IsValidFloat(b), "Invalid bias " << b);
+    for (auto [i, b]: Enumerate(bias)) {
+        CB_ENSURE(IsValidFloat(b), "Invalid bias[" << i << "] : " << b);
     }
     if (bias.empty()) {
         bias.resize(GetDimensionsCount(), 0);
