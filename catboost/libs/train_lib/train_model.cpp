@@ -21,6 +21,7 @@
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>

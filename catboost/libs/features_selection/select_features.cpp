@@ -6,6 +6,7 @@
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/fstr/calc_fstr.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/dir_helper.h>

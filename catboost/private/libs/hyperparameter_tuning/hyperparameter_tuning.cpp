@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>

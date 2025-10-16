@@ -16,6 +16,7 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>

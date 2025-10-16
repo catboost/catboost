@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/sample.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>

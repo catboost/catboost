@@ -2,6 +2,7 @@
 
 #include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model_estimated_features.h>
