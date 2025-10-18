@@ -261,7 +261,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
             raise RuntimeError('Cross-compilation from macOS to non-macOS is not supported')
         return os.path.join(
             default_toolchains_dir,
-            f'cross-build.host.darwin.target.{target_system_arch}-darwin-default.clang.toolchain'
+            f'cross-build.host.darwin.target.{target_system_arch}-apple-darwin.clang.toolchain'
         )
     elif build_system_name == 'linux':
         if target_system_name == 'android':
