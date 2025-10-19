@@ -76,6 +76,22 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
+      # Python 3.8 is no longer included in the standard 'windows-2022' image.
+      - if: inputs.runs-on_value == 'windows-2022'
+        name: Install python3.8 on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+          update-environment: false
+
+      # Python 3.14 is not included in standard macOS and Windows images yet
+      - if: inputs.os != 'linux'
+        name: Install python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          update-environment: false
+
       - if: inputs.os == 'macos'
         name: Get python_versions_macos_arm64 from cache
         uses: actions/cache/restore@v4
@@ -117,8 +133,9 @@ jobs:
           ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
           ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
           ln -s $RUNNER_TOOL_CACHE/Python/3.13.*/x64 ./3.13
+          ln -s $RUNNER_TOOL_CACHE/Python/3.14.*/x64 ./3.14
 
-          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13
+          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13 3.14
           do
               $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           done
@@ -138,14 +155,6 @@ jobs:
           mkdir -p Python
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
-
-      # Python 3.8 is no longer included in the standard 'windows-2022' image.
-      - if: inputs.runs-on_value == 'windows-2022'
-        name: Install python3.8 on Windows
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-          update-environment: false
 
       - if: inputs.os == 'windows'
         name: Install CUDA on Windows
@@ -184,8 +193,9 @@ jobs:
           New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64"
           New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\x64"
           New-Item -Path .\3.13 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64"
+          New-Item -Path .\3.14 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.14.*\x64"
 
-          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13') {
+          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13','3.14') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           }
 
