@@ -8,7 +8,7 @@ import platform
 import shlex
 import subprocess
 import tempfile
-from typing import Dict
+from typing import Dict, Iterable, List, Optional, Set
 
 
 MSVS_TO_DEFAULT_MSVC_TOOLSET = {
@@ -17,10 +17,10 @@ MSVS_TO_DEFAULT_MSVC_TOOLSET = {
 }
 
 class Target(object):
-    def __init__(self, catboost_component, need_pic, macos_binaries_paths):
-        self.catboost_component = catboost_component
-        self.need_pic = need_pic
-        self.macos_binaries_paths = macos_binaries_paths # needed for lipo
+    def __init__(self, catboost_component: Optional[str], need_pic: bool, macos_binaries_paths: List[str]):
+        self.catboost_component: Optional[str] = catboost_component
+        self.need_pic: bool = need_pic
+        self.macos_binaries_paths: List[str] = macos_binaries_paths # needed for lipo
 
 class Targets(object):
     catboost = {
@@ -59,9 +59,9 @@ class Targets(object):
 
 
 class Option(object):
-    def __init__(self, description, required=False, default=None, opt_type=str):
-        self.description = description
-        self.required = required
+    def __init__(self, description: str, required: Optional[bool] = False, default=None, opt_type=str):
+        self.description: str = description
+        self.required: Optional[bool] = required
         if required and (default is not None):
             raise RuntimeError("Required option shouldn't have default specified")
         self.default = default
@@ -138,10 +138,10 @@ class Opts(object):
                 setattr(self, key, option.default)
 
 class PythonDevPaths:
-    def __init__(self, include_path:str, library_path:str, numpy_include_path:str):
-        self.include_path = include_path
-        self.library_path = library_path
-        self.numpy_include_path = numpy_include_path
+    def __init__(self, include_path: str, library_path: str, numpy_include_path: str):
+        self.include_path: str = include_path
+        self.library_path: str = library_path
+        self.numpy_include_path: str = numpy_include_path
 
     def prepend_paths(self, path_prefix: str):
         return PythonDevPaths(
@@ -150,7 +150,7 @@ class PythonDevPaths:
             os.path.join(path_prefix, self.numpy_include_path)
         )
 
-    def add_to_cmake_args(self, cmake_args):
+    def add_to_cmake_args(self, cmake_args: List[str]):
         cmake_args += [
             f'-DPython3_INCLUDE_DIR={self.include_path}',
             f'-DPython3_LIBRARY={self.library_path}',
@@ -158,17 +158,17 @@ class PythonDevPaths:
         ]
 
 
-def get_host_platform():
+def get_host_platform() -> str:
     arch = platform.machine()
     if arch == 'AMD64':
         arch = 'x86_64'
     return f'{platform.system().lower()}-{arch}'
 
 class CmdRunner(object):
-    def __init__(self, dry_run=False):
-        self.dry_run = dry_run
+    def __init__(self, dry_run: bool = False):
+        self.dry_run: bool = dry_run
 
-    def run(self, cmd, run_even_with_dry_run=False, **subprocess_run_kwargs):
+    def run(self, cmd = str | Iterable[str], run_even_with_dry_run: bool = False, **subprocess_run_kwargs):
         if 'shell' in subprocess_run_kwargs:
             printed_cmd = cmd
         else:
@@ -177,10 +177,10 @@ class CmdRunner(object):
         if run_even_with_dry_run or (not self.dry_run):
             subprocess.run(cmd, check=True, **subprocess_run_kwargs)
 
-def get_source_root_dir():
+def get_source_root_dir() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-def mkdir_if_not_exists(dir, verbose, dry_run):
+def mkdir_if_not_exists(dir: str, verbose: bool, dry_run: bool):
     if verbose:
         logging.info(f'create directory {dir}')
     if not dry_run:
@@ -199,8 +199,8 @@ def lipo(opts : Opts, cmd_runner: CmdRunner):
 
 def build_macos_universal_binaries(
     opts: Opts,
-    cmake_platform_to_root_path:Dict[str,str],
-    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths],
+    cmake_platform_to_root_path: Optional[Dict[str,str]],
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]],
     cmd_runner: CmdRunner):
 
     host_platform = get_host_platform()
@@ -250,7 +250,7 @@ def build_macos_universal_binaries(
 
 
 
-def get_default_cross_build_toolchain(source_root_dir, opts):
+def get_default_cross_build_toolchain(source_root_dir: str, opts: Opts) -> str:
     build_system_name = platform.system().lower()
     target_system_name, target_system_arch = opts.target_platform.split('-')
 
@@ -279,7 +279,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
     else:
         raise RuntimeError(f'Cross-compilation from {build_system_name} is not supported')
 
-def get_default_cross_build_conan_host_profile(source_root_dir, target_platform):
+def get_default_cross_build_conan_host_profile(source_root_dir: str, target_platform: str) -> str:
     target_system_name, target_system_arch = target_platform.split('-')
 
     # a bit of name mismatch
@@ -294,9 +294,9 @@ def get_default_cross_build_conan_host_profile(source_root_dir, target_platform)
 
 def cross_build(
     opts: Opts,
-    cmake_platform_to_root_path:Dict[str,str]=None,
-    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths]=None,
-    cmd_runner=None):
+    cmake_platform_to_root_path: Optional[Dict[str,str]],
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]],
+    cmd_runner: Optional[CmdRunner] = None):
     """
         cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
         cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
@@ -374,7 +374,7 @@ def cross_build(
     )
 
 
-def get_require_pic(targets):
+def get_require_pic(targets : Iterable[str]) -> bool:
     for target in targets:
         if target in Targets.catboost:
             if Targets.catboost[target].need_pic:
@@ -382,7 +382,7 @@ def get_require_pic(targets):
 
     return False
 
-def get_msvs_dir(msvs_installation_path, msvs_version):
+def get_msvs_dir(msvs_installation_path: Optional[str], msvs_version: str) -> str:
     if msvs_installation_path is None:
         program_files = 'Program Files' if msvs_version == '2022' else 'Program Files (x86)'
         msvs_base_dir = f'c:\\{program_files}\\Microsoft Visual Studio\\{msvs_version}'
@@ -398,7 +398,7 @@ def get_msvs_dir(msvs_installation_path, msvs_version):
 
     return msvs_dir
 
-def get_msvc_toolset(msvs_version, msvc_toolset):
+def get_msvc_toolset(msvs_version: str, msvc_toolset: Optional[str]) -> str:
     if msvc_toolset:
         return msvc_toolset
 
@@ -406,7 +406,13 @@ def get_msvc_toolset(msvs_version, msvc_toolset):
         raise RuntimeError(f'No default C++ toolset for Microsoft Visual Studio {msvs_version}')
     return MSVS_TO_DEFAULT_MSVC_TOOLSET[msvs_version]
 
-def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
+def get_msvc_environ(
+    msvs_installation_path: Optional[str],
+    msvs_version: str,
+    msvc_toolset: Optional[str],
+    cmd_runner: CmdRunner,
+    dry_run: bool) -> Dict[str, str]:
+
     msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
     msvc_toolset = get_msvc_toolset(msvs_version, msvc_toolset)
 
@@ -424,13 +430,13 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
 
     return env_vars
 
-def get_cuda_root_dir(cuda_root_dir_option):
+def get_cuda_root_dir(cuda_root_dir_option: Optional[str]) -> str:
     cuda_root_dir = cuda_root_dir_option or os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT')
     if not cuda_root_dir:
         raise RuntimeError('No cuda_root_dir specified and CUDA_PATH and CUDA_ROOT environment variables also not defined')
     return cuda_root_dir
 
-def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir):
+def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir: str):
     cuda_bin_dir = os.path.join(cuda_root_dir, 'bin')
     if platform.system().lower() == 'windows':
         if 'Path' in build_environ:
@@ -443,7 +449,7 @@ def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir):
     else:
         build_environ['PATH'] = cuda_bin_dir + ':' + build_environ['PATH']
 
-def get_catboost_components(targets):
+def get_catboost_components(targets : Iterable[str]) -> Set[str]:
     catboost_components = set()
 
     for target in targets:
@@ -452,13 +458,13 @@ def get_catboost_components(targets):
 
     return catboost_components
 
-def get_default_build_platform_toolchain(source_root_dir):
+def get_default_build_platform_toolchain(source_root_dir: str) -> str:
     if platform.system().lower() == 'windows':
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'default.toolchain'))
     else:
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'clang.toolchain'))
 
-def get_build_environ(opts, target_platform, cmd_runner):
+def get_build_environ(opts: Opts, target_platform: str, cmd_runner: CmdRunner):
     if platform.system().lower() == 'windows':
         # Need vcvars set up for Ninja generator
         build_environ = get_msvc_environ(
@@ -487,10 +493,10 @@ def get_build_environ(opts, target_platform, cmd_runner):
     return build_environ
 
 def get_default_windows_conan_host_profile(
-    source_root_dir,
-    target_platform,
-    msvs_version,
-    msvc_toolset):
+    source_root_dir: str,
+    target_platform: str,
+    msvs_version: str,
+    msvc_toolset: Optional[str]) -> Optional[str]:
 
     target_system_name, target_system_arch = target_platform.split('-')
     assert target_system_name == 'windows'
@@ -507,10 +513,10 @@ def get_default_windows_conan_host_profile(
     return None
 
 def build(
-    opts=None,
-    cross_build_final_stage=False,
-    cmake_platform_to_root_path:Dict[str,str]=None,
-    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths]=None,
+    opts: Optional[Opts] = None,
+    cross_build_final_stage: bool = False,
+    cmake_platform_to_root_path: Optional[Dict[str,str]] = None,
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]] = None,
     **kwargs):
     """
         cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
