@@ -12,13 +12,17 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(app)
-add_subdirectory(libs)
-add_subdirectory(private)
-add_subdirectory(idl)
-add_subdirectory(cuda)
-add_subdirectory(R-package)
-add_subdirectory(jvm-packages)
-add_subdirectory(python-package)
-add_subdirectory(spark)
-add_subdirectory(tools)
+add_library(cpp-text_processing-app_helpers)
+
+
+target_link_libraries(cpp-text_processing-app_helpers PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  cpp-text_processing-dictionary
+  cpp-text_processing-tokenizer
+)
+
+target_sources(cpp-text_processing-app_helpers PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/app_helpers/app_helpers.cpp
+)
+

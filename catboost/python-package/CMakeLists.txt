@@ -11,14 +11,8 @@
 #
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
+if((NOT DEFINED CATBOOST_COMPONENTS) OR (PYTHON-PACKAGE IN_LIST CATBOOST_COMPONENTS) OR (python-package IN_LIST CATBOOST_COMPONENTS))
 
-add_subdirectory(app)
-add_subdirectory(libs)
-add_subdirectory(private)
-add_subdirectory(idl)
-add_subdirectory(cuda)
-add_subdirectory(R-package)
-add_subdirectory(jvm-packages)
-add_subdirectory(python-package)
-add_subdirectory(spark)
-add_subdirectory(tools)
+add_subdirectory(catboost)
+
+endif()
