@@ -8,7 +8,7 @@ import platform
 import shlex
 import subprocess
 import tempfile
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 
 MSVS_TO_DEFAULT_MSVC_TOOLSET = {
@@ -168,7 +168,7 @@ class CmdRunner(object):
     def __init__(self, dry_run: bool = False):
         self.dry_run: bool = dry_run
 
-    def run(self, cmd = str | Iterable[str], run_even_with_dry_run: bool = False, **subprocess_run_kwargs):
+    def run(self, cmd = Union[str, Iterable[str]], run_even_with_dry_run: bool = False, **subprocess_run_kwargs):
         if 'shell' in subprocess_run_kwargs:
             printed_cmd = cmd
         else:
