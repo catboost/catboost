@@ -304,6 +304,28 @@ public:
     }
 
     template <typename... Args>
+    T& GetOrEmplace(Args&&... args) {
+        if (!Defined()) {
+            Init(std::forward<Args>(args)...);
+        }
+        return *Data();
+    }
+
+    template <typename... Args>
+    T& Emplace(Args&&... args) {
+        Clear();
+        Init(std::forward<Args>(args)...);
+        return *Data();
+    }
+
+    template <typename... Args>
+    T& emplace(Args&&... args) {
+        Clear();
+        Init(std::forward<Args>(args)...);
+        return *Data();
+    }
+
+    template <typename... Args>
     T& ConstructInPlace(Args&&... args) {
         Clear();
         Init(std::forward<Args>(args)...);
