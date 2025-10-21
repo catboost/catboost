@@ -496,6 +496,19 @@ namespace NStringSplitPrivate {
     Y_HAS_MEMBER(insert, Insert);
     Y_HAS_MEMBER(data, Data);
 
+    template <bool UseSentinel>
+    struct TIteratorStateTokenCounter {
+        bool HaveToUseNextToken = true; // At least one token must be returned. Only the first token needs to be distinguished.
+    };
+
+    // reserve an address that never aliases with user-provided strings
+    alignas(wchar32) Y_HIDDEN extern const char SPLITTER_EMPTY_SENTINEL;
+
+    template <>
+    struct TIteratorStateTokenCounter<true> {
+        static constexpr bool HaveToUseNextToken = false; // The sentinel value guarantees that the first token is not skipped anyway.
+    };
+
     /**
      * This one is needed here so that `std::string_view -> std::string_view`
      * conversion works.
@@ -656,7 +669,7 @@ namespace NStringSplitPrivate {
     class TStringSplitter;
 
     template <class String>
-    struct TIterState: public TStringBufOf<String> {
+    struct TIterState: public TStringBufOf<String>, private TIteratorStateTokenCounter<THasData<String>::value> {
     public:
         using TStringBufType = TStringBufOf<String>;
         using TIterator = TIteratorOf<String>;
@@ -664,7 +677,7 @@ namespace NStringSplitPrivate {
 
         template <typename S = String, std::enable_if_t<THasData<S>::value, int> = 0>
         TIterState(const String& string) noexcept
-            : TStringBufType()
+            : TStringBufType(MakeEmptyState())
             , DelimiterEnd_(string.data())
             , OriginEnd_(string.data() + string.size())
         {
@@ -672,7 +685,7 @@ namespace NStringSplitPrivate {
 
         template <typename S = String, std::enable_if_t<!THasData<S>::value, int> = 0>
         TIterState(const String& string) noexcept
-            : TStringBufType()
+            : TStringBufType(MakeEmptyState())
             , DelimiterEnd_(std::begin(string))
             , OriginEnd_(std::end(string))
         {
@@ -705,15 +718,28 @@ namespace NStringSplitPrivate {
     private:
         void UpdateParentBuf(TIterator tokenStart, TIterator tokenDelim) noexcept {
             *static_cast<TStringBufType*>(this) = MakeStringBuf<TStringBufType>(tokenStart, tokenDelim);
+            if constexpr (!THasData<String>::value) {
+                this->HaveToUseNextToken = false;
+            }
         }
 
         bool DelimiterIsEmpty() const noexcept {
-            return TokenDelim() == DelimiterEnd_;
+            return TokenDelim() == DelimiterEnd_ && !this->HaveToUseNextToken;
         }
 
         void MarkExhausted() noexcept {
             UpdateParentBuf(OriginEnd_, OriginEnd_);
             DelimiterEnd_ = OriginEnd_;
+        }
+
+        static TStringBufType MakeEmptyState() noexcept {
+            if constexpr (THasData<String>::value) {
+                using TElement = std::remove_reference_t<decltype(*std::declval<TStringBufType>().data())>;
+                const TElement* ptr = reinterpret_cast<const TElement*>(&::NStringSplitPrivate::SPLITTER_EMPTY_SENTINEL);
+                return TStringBufType(ptr, ptr);
+            } else {
+                return TStringBufType{};
+            }
         }
 
     private:
