@@ -357,7 +357,7 @@ def copy_built_artifacts_to_canonical_place(
                 + f'built_output_root_dir =\n{build_native_root_dir}\n'
                 +  'Do not copy to itself'
             )
-            return
+        return
 
     system = platform_name.split('-')[0]
     cuda_status_prefix = 'have_cuda' if with_cuda else 'no_cuda'
