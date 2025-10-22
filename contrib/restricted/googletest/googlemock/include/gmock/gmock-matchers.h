@@ -5747,7 +5747,7 @@ PolymorphicMatcher<internal::ExceptionMatcherImpl<Err>> ThrowsMessage(
   inline name##Matcher GMOCK_INTERNAL_WARNING_PUSH()                          \
       GMOCK_INTERNAL_WARNING_CLANG(ignored, "-Wunused-function")              \
           GMOCK_INTERNAL_WARNING_CLANG(ignored, "-Wunused-member-function")   \
-              name GMOCK_INTERNAL_WARNING_POP()() {                           \
+              name GMOCK_INTERNAL_WARNING_POP()() {                           /* NOLINT(readability-identifier-naming) */ \
     return {};                                                                \
   }                                                                           \
   template <typename arg_type>                                                \
@@ -5828,7 +5828,7 @@ PolymorphicMatcher<internal::ExceptionMatcherImpl<Err>> ThrowsMessage(
     };                                                                         \
   };                                                                           \
   template <GMOCK_INTERNAL_MATCHER_TEMPLATE_PARAMS(args)>                      \
-  inline full_name<GMOCK_INTERNAL_MATCHER_TYPE_PARAMS(args)> name(             \
+  inline full_name<GMOCK_INTERNAL_MATCHER_TYPE_PARAMS(args)> name(             /* NOLINT(readability-identifier-naming) */\
       GMOCK_INTERNAL_MATCHER_FUNCTION_ARGS(args)) {                            \
     return full_name<GMOCK_INTERNAL_MATCHER_TYPE_PARAMS(args)>(                \
         GMOCK_INTERNAL_MATCHER_ARGS_USAGE(args));                              \
@@ -5866,7 +5866,7 @@ PolymorphicMatcher<internal::ExceptionMatcherImpl<Err>> ThrowsMessage(
 #define GMOCK_INTERNAL_MATCHER_MEMBERS(args) \
   GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_MATCHER_MEMBER, , args)
 #define GMOCK_INTERNAL_MATCHER_MEMBER(i_unused, data_unused, arg) \
-  const arg##_type arg;
+  const arg##_type arg; // NOLINT(readability-identifier-naming)
 
 #define GMOCK_INTERNAL_MATCHER_MEMBERS_USAGE(args) \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_MATCHER_MEMBER_USAGE, , args))
