@@ -155,6 +155,12 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m == 2);
         x = 7;
         UNIT_ASSERT(m == 7);
+
+        m.emplace(4);
+        UNIT_ASSERT(m == 4);
+        UNIT_ASSERT(m.GetOrEmplace(3) == 4);
+        m.Clear();
+        UNIT_ASSERT(m.GetOrEmplace(4) == 4);
     }
 
     Y_UNIT_TEST(TestMove) {

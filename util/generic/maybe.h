@@ -304,7 +304,7 @@ public:
     }
 
     template <typename... Args>
-    T& GetOrEmplace(Args&&... args) {
+    T& GetOrEmplace(Args&&... args) Y_LIFETIME_BOUND {
         if (!Defined()) {
             Init(std::forward<Args>(args)...);
         }
@@ -312,21 +312,21 @@ public:
     }
 
     template <typename... Args>
-    T& Emplace(Args&&... args) {
+    T& Emplace(Args&&... args) Y_LIFETIME_BOUND {
         Clear();
         Init(std::forward<Args>(args)...);
         return *Data();
     }
 
     template <typename... Args>
-    T& emplace(Args&&... args) {
+    T& emplace(Args&&... args) Y_LIFETIME_BOUND {
         Clear();
         Init(std::forward<Args>(args)...);
         return *Data();
     }
 
     template <typename... Args>
-    T& ConstructInPlace(Args&&... args) {
+    T& ConstructInPlace(Args&&... args) Y_LIFETIME_BOUND {
         Clear();
         Init(std::forward<Args>(args)...);
         return *Data();
