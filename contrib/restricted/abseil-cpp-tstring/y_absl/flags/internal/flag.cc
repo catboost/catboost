@@ -34,7 +34,9 @@
 #include "y_absl/base/config.h"
 #include "y_absl/base/const_init.h"
 #include "y_absl/base/dynamic_annotations.h"
+#include "y_absl/base/no_destructor.h"
 #include "y_absl/base/optimization.h"
+#include "y_absl/base/thread_annotations.h"
 #include "y_absl/flags/config.h"
 #include "y_absl/flags/internal/commandlineflag.h"
 #include "y_absl/flags/usage_config.h"
@@ -85,11 +87,15 @@ class MutexRelock {
 // we move the memory to the freelist where it lives indefinitely, so it can
 // still be safely accessed. This also prevents leak checkers from complaining
 // about the leaked memory that can no longer be accessed through any pointer.
-Y_ABSL_CONST_INIT y_absl::Mutex s_freelist_guard(y_absl::kConstInit);
-Y_ABSL_CONST_INIT std::vector<void*>* s_freelist = nullptr;
+y_absl::Mutex* FreelistMutex() {
+  static y_absl::NoDestructor<y_absl::Mutex> mutex;
+  return mutex.get();
+}
+Y_ABSL_CONST_INIT std::vector<void*>* s_freelist Y_ABSL_GUARDED_BY(FreelistMutex())
+    Y_ABSL_PT_GUARDED_BY(FreelistMutex()) = nullptr;
 
 void AddToFreelist(void* p) {
-  y_absl::MutexLock l(&s_freelist_guard);
+  y_absl::MutexLock l(FreelistMutex());
   if (!s_freelist) {
     s_freelist = new std::vector<void*>;
   }
@@ -101,7 +107,7 @@ void AddToFreelist(void* p) {
 ///////////////////////////////////////////////////////////////////////////////
 
 uint64_t NumLeakedFlagValues() {
-  y_absl::MutexLock l(&s_freelist_guard);
+  y_absl::MutexLock l(FreelistMutex());
   return s_freelist == nullptr ? 0u : s_freelist->size();
 }
 
@@ -335,6 +341,8 @@ void FlagImpl::StoreValue(const void* src, ValueSource source) {
 }
 
 y_absl::string_view FlagImpl::Name() const { return name_; }
+
+y_absl::string_view FlagImpl::TypeName() const { return type_name_; }
 
 TString FlagImpl::Filename() const {
   return flags_internal::GetUsageConfig().normalize_filename(filename_);

@@ -31,6 +31,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "y_absl/base/attributes.h"
+#include "y_absl/base/config.h"
 #include "y_absl/base/internal/invoke.h"
 #include "y_absl/base/internal/low_level_scheduling.h"
 #include "y_absl/base/internal/raw_logging.h"
@@ -147,10 +149,10 @@ enum {
 };
 
 template <typename Callable, typename... Args>
-Y_ABSL_ATTRIBUTE_NOINLINE void CallOnceImpl(
-    y_absl::Nonnull<std::atomic<uint32_t>*> control,
-    base_internal::SchedulingMode scheduling_mode, Callable&& fn,
-    Args&&... args) {
+    void
+    CallOnceImpl(y_absl::Nonnull<std::atomic<uint32_t>*> control,
+                 base_internal::SchedulingMode scheduling_mode, Callable&& fn,
+                 Args&&... args) {
 #ifndef NDEBUG
   {
     uint32_t old_control = control->load(std::memory_order_relaxed);
@@ -209,7 +211,8 @@ void LowLevelCallOnce(y_absl::Nonnull<y_absl::once_flag*> flag, Callable&& fn,
 }  // namespace base_internal
 
 template <typename Callable, typename... Args>
-void call_once(y_absl::once_flag& flag, Callable&& fn, Args&&... args) {
+    void
+    call_once(y_absl::once_flag& flag, Callable&& fn, Args&&... args) {
   std::atomic<uint32_t>* once = base_internal::ControlWord(&flag);
   uint32_t s = once->load(std::memory_order_acquire);
   if (Y_ABSL_PREDICT_FALSE(s != base_internal::kOnceDone)) {

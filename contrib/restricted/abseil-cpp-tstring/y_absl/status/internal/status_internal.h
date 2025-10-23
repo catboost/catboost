@@ -111,7 +111,7 @@ y_absl::StatusCode MapToLocalCode(int value);
 //
 // This is an internal implementation detail for Abseil logging.
 Y_ABSL_ATTRIBUTE_PURE_FUNCTION
-y_absl::Nonnull<TString*> MakeCheckFailString(
+y_absl::Nonnull<const char*> MakeCheckFailString(
     y_absl::Nonnull<const y_absl::Status*> status,
     y_absl::Nonnull<const char*> prefix);
 

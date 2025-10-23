@@ -24,6 +24,7 @@
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
 
+y_absl::string_view CommandLineFlag::TypeName() const { return ""; }
 bool CommandLineFlag::IsRetired() const { return false; }
 bool CommandLineFlag::ParseFrom(y_absl::string_view value, TString* error) {
   return ParseFrom(value, flags_internal::SET_FLAGS_VALUE,

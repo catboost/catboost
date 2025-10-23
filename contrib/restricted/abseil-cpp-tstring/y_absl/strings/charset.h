@@ -46,15 +46,13 @@
 #ifndef Y_ABSL_STRINGS_CHARSET_H_
 #define Y_ABSL_STRINGS_CHARSET_H_
 
-#include <cstddef>
 #include <cstdint>
-#include <cstring>
 
-#include "y_absl/base/macros.h"
-#include "y_absl/base/port.h"
+#include "y_absl/base/config.h"
 #include "y_absl/strings/string_view.h"
 
 namespace y_absl {
+Y_ABSL_NAMESPACE_BEGIN
 
 class CharSet {
  public:
@@ -159,6 +157,7 @@ class CharSet {
   uint64_t m_[4];
 };
 
+Y_ABSL_NAMESPACE_END
 }  // namespace y_absl
 
 #endif  // Y_ABSL_STRINGS_CHARSET_H_

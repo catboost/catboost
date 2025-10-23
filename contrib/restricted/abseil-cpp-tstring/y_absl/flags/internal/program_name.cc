@@ -19,7 +19,7 @@
 
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
-#include "y_absl/base/const_init.h"
+#include "y_absl/base/no_destructor.h"
 #include "y_absl/base/thread_annotations.h"
 #include "y_absl/flags/internal/path_util.h"
 #include "y_absl/strings/string_view.h"
@@ -29,30 +29,31 @@ namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 
-Y_ABSL_CONST_INIT static y_absl::Mutex program_name_guard(y_absl::kConstInit);
-Y_ABSL_CONST_INIT static TString* program_name
-    Y_ABSL_GUARDED_BY(program_name_guard) = nullptr;
+static y_absl::Mutex* ProgramNameMutex() {
+  static y_absl::NoDestructor<y_absl::Mutex> mutex;
+  return mutex.get();
+}
+Y_ABSL_CONST_INIT static TString* program_name Y_ABSL_GUARDED_BY(
+    ProgramNameMutex()) Y_ABSL_PT_GUARDED_BY(ProgramNameMutex()) = nullptr;
 
 TString ProgramInvocationName() {
-  y_absl::MutexLock l(&program_name_guard);
-
+  y_absl::MutexLock l(ProgramNameMutex());
   return program_name ? *program_name : "UNKNOWN";
 }
 
 TString ShortProgramInvocationName() {
-  y_absl::MutexLock l(&program_name_guard);
-
+  y_absl::MutexLock l(ProgramNameMutex());
   return program_name ? TString(flags_internal::Basename(*program_name))
                       : "UNKNOWN";
 }
 
 void SetProgramInvocationName(y_absl::string_view prog_name_str) {
-  y_absl::MutexLock l(&program_name_guard);
-
-  if (!program_name)
+  y_absl::MutexLock l(ProgramNameMutex());
+  if (!program_name) {
     program_name = new TString(prog_name_str);
-  else
+  } else {
     program_name->assign(prog_name_str.data(), prog_name_str.size());
+  }
 }
 
 }  // namespace flags_internal

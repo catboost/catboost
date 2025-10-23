@@ -17,7 +17,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <iostream>
+#include <ostream>
 #include <util/generic/string.h>
 
 #include "y_absl/base/config.h"
