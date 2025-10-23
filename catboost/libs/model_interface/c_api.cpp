@@ -15,6 +15,7 @@
 #include <util/system/compiler.h>
 
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <new>
 
@@ -941,9 +942,10 @@ CATBOOST_API int GetStringCatFeatureHash(const char* data, size_t size) {
 }
 
 CATBOOST_API int GetIntegerCatFeatureHash(long long val) {
-    TStringBuilder valStr;
-    valStr << val;
-    return CalcCatFeatureHash(valStr);
+    char buf[78]; // enough for up to 256 bits
+    static_assert(sizeof(long long) * CHAR_BIT <= 256);
+    auto size = ToString(val, buf, sizeof(buf));
+    return CalcCatFeatureHash(TStringBuf(buf, size));
 }
 
 CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle) {
