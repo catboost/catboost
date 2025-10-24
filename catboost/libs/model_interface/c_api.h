@@ -76,6 +76,9 @@ CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 /**
  * If error occured will return stored exception message.
  * If no error occured, will return invalid pointer
+ * The underlying variable is thread-local so:
+ *  - it is thread-safe to get it
+ *  - indicates only errors that happened in the current thread
  * @return Error message string. Uses UTF-8 encoding
  */
 CATBOOST_API const char* GetErrorString();
