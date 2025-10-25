@@ -75,6 +75,7 @@ class Opts(object):
         'build_root_dir': Option('CMake build dir (-B)', required=True),
         'build_type': Option('build type (Debug,Release,RelWithDebInfo,MinSizeRel)', default='Release'),
         'rebuild': Option('Rebuild targets from scratch', default=False, opt_type=bool),
+        'keep_going': Option('Continue to build even if errors have already been encountered', default=False, opt_type=bool),
         'targets':
             Option(
                 f'List of CMake targets to build (,-separated). Note: you cannot mix targets that require PIC and non-PIC targets here',
@@ -663,6 +664,8 @@ def build(
         ninja_cmd += ['-v']
     if opts.parallel_build_jobs is not None:
         ninja_cmd += ['-j', str(opts.parallel_build_jobs)]
+    if opts.keep_going:
+        ninja_cmd += ['-k', '0']
     ninja_cmd += opts.targets
     cmd_runner.run(ninja_cmd, env=build_environ)
 
