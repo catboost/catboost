@@ -1032,17 +1032,17 @@ using TAtomicSharedPtr = TSharedPtr<T, TAtomicCounter, D>;
 template <class T, class D = TDelete>
 using TSimpleSharedPtr = TSharedPtr<T, TSimpleCounter, D>;
 
-template <typename T, typename C, typename... Args>
+template <typename T, typename C, typename... Args, class = std::enable_if_t<std::is_constructible_v<T, Args...>>>
 [[nodiscard]] TSharedPtr<T, C> MakeShared(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
-template <typename T, typename... Args>
+template <typename T, typename... Args, class = std::enable_if_t<std::is_constructible_v<T, Args...>>>
 [[nodiscard]] inline TAtomicSharedPtr<T> MakeAtomicShared(Args&&... args) {
     return MakeShared<T, TAtomicCounter>(std::forward<Args>(args)...);
 }
 
-template <typename T, typename... Args>
+template <typename T, typename... Args, class = std::enable_if_t<std::is_constructible_v<T, Args...>>>
 [[nodiscard]] inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
     return MakeShared<T, TSimpleCounter>(std::forward<Args>(args)...);
 }
