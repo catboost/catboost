@@ -3026,13 +3026,13 @@ class raw_hash_set {
   //   s.insert({"abc", 42});
   std::pair<iterator, bool> insert(init_type&& value)
       Y_ABSL_ATTRIBUTE_LIFETIME_BOUND
-#if __cplusplus >= 202002L
+#if Y_ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L && (!defined(_MSC_VER) || defined(__clang__))
     requires(!IsLifetimeBoundAssignmentFrom<init_type>::value)
 #endif
   {
     return emplace(std::move(value));
   }
-#if __cplusplus >= 202002L
+#if Y_ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L && (!defined(_MSC_VER) || defined(__clang__))
   std::pair<iterator, bool> insert(
       init_type&& value Y_ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this))
       Y_ABSL_ATTRIBUTE_LIFETIME_BOUND
