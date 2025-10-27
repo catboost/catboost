@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function, absolute_import, division
-
 import marshal
 import sys
 
@@ -20,5 +15,5 @@ def main():
         marshal.dump(code, out_file)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
