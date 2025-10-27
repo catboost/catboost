@@ -84,11 +84,11 @@ static inline I1* FastStrChr(I1* str, I2 f) noexcept {
 
 template <class I>
 static inline I* FastStrStr(I* str, I* f, size_t l) noexcept {
-    std::basic_string_view<I> strView(str);
+    auto strView = std::basic_string_view(str);
     const auto ret = strView.find(*f);
 
     if (ret != std::string::npos) {
-        std::basic_string_view<I> fView(f, l);
+        auto fView = std::basic_string_view(f, l);
         strView = strView.substr(ret);
         for (; strView.size() >= l; strView = strView.substr(1)) {
             if (strView.substr(0, l) == fView) {
@@ -117,7 +117,7 @@ struct TStringDelimiter {
     }
 
     inline Char* Find(Char*& b, Char* e) const noexcept {
-        const auto ret = std::basic_string_view<Char>(b, e - b).find(Delim, 0, Len);
+        const auto ret = std::basic_string_view(b, e - b).find(Delim, 0, Len);
 
         if (ret != std::string::npos) {
             const auto result = b + ret;
@@ -148,7 +148,7 @@ struct TCharDelimiter {
     }
 
     inline Char* Find(Char*& b, Char* e) const noexcept {
-        const auto ret = std::basic_string_view<Char>(b, e - b).find(Ch);
+        const auto ret = std::basic_string_view(b, e - b).find(Ch);
 
         if (ret != std::string::npos) {
             const auto result = b + ret;
@@ -213,7 +213,7 @@ struct TFindFirstOf {
     }
 
     inline Char* FindFirstOf(Char* b) const noexcept {
-        const std::basic_string_view<Char> bView(b);
+        const auto bView = std::basic_string_view(b);
         const auto ret = bView.find_first_of(Set);
         return ret != std::string::npos ? b + ret : b + bView.size();
     }
