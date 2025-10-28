@@ -381,7 +381,7 @@ private:
     T* T_;
 };
 
-template <typename T, typename... Args>
+template <typename T, typename... Args, class = std::enable_if_t<std::is_constructible_v<T, Args...>>>
 [[nodiscard]] THolder<T> MakeHolder(Args&&... args) {
     return THolder<T>(new T(std::forward<Args>(args)...));
 }
