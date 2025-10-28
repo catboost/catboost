@@ -76,8 +76,8 @@ public:
     {
     }
 
-    template <class Container>
-    constexpr inline TArrayRef(Container&& container, decltype(std::declval<T*&>() = container.data(), nullptr) = nullptr) noexcept
+    template <class Container, typename = std::enable_if_t<std::is_convertible_v<decltype(std::declval<Container>().data()), T*>>>
+    constexpr inline TArrayRef(Container&& container) noexcept
         : TArrayRef(container.data(), container.size())
     {
     }
