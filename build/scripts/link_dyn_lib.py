@@ -203,7 +203,6 @@ if __name__ == '__main__':
 
     cmd = args
     cmd = fix_cmd(opts.arch, cmd)
-
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
     thinlto_cache.preprocess(opts, cmd)
 
