@@ -137,7 +137,7 @@ namespace NKernel {
             case EOperatorType::Sum: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                  thrust::plus<T>(),
 #else
                                                  cuda::std::plus<T>(),
@@ -148,7 +148,7 @@ namespace NKernel {
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                  thrust::maximum<T>(),
 #else
                                                  cuda::maximum<T>(),
@@ -159,7 +159,7 @@ namespace NKernel {
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                  thrust::minimum<T>(),
 #else
                                                  cuda::minimum<T>(),
@@ -195,7 +195,7 @@ namespace NKernel {
                                                      keys, outKeys,
                                                      input, output,
                                                      outputSize,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                      thrust::plus<T>(),
 #else
                                                      cuda::std::plus<T>(),
@@ -208,7 +208,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                       thrust::maximum<T>(),
 #else
                                                       cuda::maximum<T>(),
@@ -221,7 +221,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                       thrust::minimum<T>(),
 #else
                                                       cuda::minimum<T>(),
@@ -324,7 +324,7 @@ namespace NKernel {
                     return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                               input, output, numSegments,
                                                               beginOffsets, endOffsets,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                               thrust::plus<T>(),
 #else
                                                               cuda::std::plus<T>(),
@@ -337,7 +337,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                               thrust::maximum<T>(),
 #else
                                                               cuda::maximum<T>(),
@@ -350,7 +350,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#ifdef OPENSOURCE
+#if __CUDACC_VER_MAJOR__ < 12
                                                               thrust::minimum<T>(),
 #else
                                                               cuda::minimum<T>(),

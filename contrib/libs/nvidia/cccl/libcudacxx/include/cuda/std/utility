@@ -1,0 +1,70 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_UTILITY
+#define _CUDA_STD_UTILITY
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__functional/binary_function.h>
+#include <cuda/std/__functional/hash.h>
+#include <cuda/std/__functional/reference_wrapper.h>
+#include <cuda/std/__functional/unary_function.h>
+#include <cuda/std/__functional/unwrap_ref.h>
+#include <cuda/std/__functional/weak_result_type.h>
+#include <cuda/std/__fwd/get.h>
+#include <cuda/std/__memory/construct_at.h>
+#include <cuda/std/__utility/as_const.h>
+#include <cuda/std/__utility/auto_cast.h>
+#include <cuda/std/__utility/cmp.h>
+#include <cuda/std/__utility/convert_to_integral.h>
+#include <cuda/std/__utility/declval.h>
+#include <cuda/std/__utility/exchange.h>
+#include <cuda/std/__utility/forward.h>
+#include <cuda/std/__utility/forward_like.h>
+#include <cuda/std/__utility/in_place.h>
+#include <cuda/std/__utility/integer_sequence.h>
+#include <cuda/std/__utility/monostate.h>
+#include <cuda/std/__utility/move.h>
+#include <cuda/std/__utility/pair.h>
+#include <cuda/std/__utility/piecewise_construct.h>
+#include <cuda/std/__utility/priority_tag.h>
+#include <cuda/std/__utility/rel_ops.h>
+#include <cuda/std/__utility/swap.h>
+#include <cuda/std/__utility/to_underlying.h>
+#include <cuda/std/__utility/unreachable.h>
+#include <cuda/std/limits>
+
+// standard-mandated includes
+#include <cuda/std/concepts>
+#include <cuda/std/version>
+
+// [utility.syn]
+#if _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#  include <cuda/std/compare>
+#endif // _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#include <cuda/std/initializer_list>
+
+// [tuple.creation]
+#include <cuda/std/__tuple_dir/ignore.h>
+
+// [tuple.helper]
+#include <cuda/std/__tuple_dir/tuple_element.h>
+#include <cuda/std/__tuple_dir/tuple_size.h>
+
+#endif // _CUDA_STD_UTILITY

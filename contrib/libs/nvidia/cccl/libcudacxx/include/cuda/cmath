@@ -1,0 +1,36 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_CMATH
+#define _CUDA_CMATH
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/__cmath/ceil_div.h>
+#include <cuda/__cmath/fast_modulo_division.h>
+#include <cuda/__cmath/ilog.h>
+#include <cuda/__cmath/ipow.h>
+#include <cuda/__cmath/isqrt.h>
+#include <cuda/__cmath/neg.h>
+#include <cuda/__cmath/pow2.h>
+#include <cuda/__cmath/round_down.h>
+#include <cuda/__cmath/round_up.h>
+#include <cuda/__cmath/uabs.h>
+#include <cuda/std/cmath>
+
+#endif // _CUDA_CMATH

@@ -1,0 +1,70 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_ITERATOR
+#define _CUDA_STD_ITERATOR
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__iterator/access.h>
+#include <cuda/std/__iterator/advance.h>
+#include <cuda/std/__iterator/back_insert_iterator.h>
+#include <cuda/std/__iterator/bounded_iter.h>
+#include <cuda/std/__iterator/concepts.h>
+#include <cuda/std/__iterator/counted_iterator.h>
+#include <cuda/std/__iterator/data.h>
+#include <cuda/std/__iterator/default_sentinel.h>
+#include <cuda/std/__iterator/distance.h>
+#include <cuda/std/__iterator/empty.h>
+#include <cuda/std/__iterator/erase_if_container.h>
+#include <cuda/std/__iterator/front_insert_iterator.h>
+#include <cuda/std/__iterator/incrementable_traits.h>
+#include <cuda/std/__iterator/indirectly_comparable.h>
+#include <cuda/std/__iterator/insert_iterator.h>
+#include <cuda/std/__iterator/istream_iterator.h>
+#include <cuda/std/__iterator/istreambuf_iterator.h>
+#include <cuda/std/__iterator/iter_move.h>
+#include <cuda/std/__iterator/iter_swap.h>
+#include <cuda/std/__iterator/iterator.h>
+#include <cuda/std/__iterator/iterator_traits.h>
+#include <cuda/std/__iterator/mergeable.h>
+#include <cuda/std/__iterator/move_iterator.h>
+#include <cuda/std/__iterator/move_sentinel.h>
+#include <cuda/std/__iterator/next.h>
+#include <cuda/std/__iterator/ostream_iterator.h>
+#include <cuda/std/__iterator/ostreambuf_iterator.h>
+#include <cuda/std/__iterator/permutable.h>
+#include <cuda/std/__iterator/prev.h>
+#include <cuda/std/__iterator/projected.h>
+#include <cuda/std/__iterator/readable_traits.h>
+#include <cuda/std/__iterator/reverse_access.h>
+#include <cuda/std/__iterator/reverse_iterator.h>
+#include <cuda/std/__iterator/size.h>
+#include <cuda/std/__iterator/sortable.h>
+#include <cuda/std/__iterator/unreachable_sentinel.h>
+#include <cuda/std/__iterator/wrap_iter.h>
+#include <cuda/std/detail/libcxx/include/iosfwd> // for forward declarations of vector and string.
+#include <cuda/std/version>
+
+// Mandated by the Standard.
+#if _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#  include <cuda/std/detail/libcxx/include/compare>
+#endif // _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#include <cuda/std/concepts>
+
+#endif // _CUDA_STD_ITERATOR
