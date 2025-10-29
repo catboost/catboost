@@ -137,21 +137,33 @@ namespace NKernel {
             case EOperatorType::Sum: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
+#ifdef OPENSOURCE
                                                  thrust::plus<T>(),
+#else
+                                                 cuda::std::plus<T>(),
+#endif
                                                  T(),
                                                  stream);
             }
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
+#ifdef OPENSOURCE
                                                  thrust::maximum<T>(),
+#else
+                                                 cuda::maximum<T>(),
+#endif
                                                  -std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
+#ifdef OPENSOURCE
                                                  thrust::minimum<T>(),
+#else
+                                                 cuda::minimum<T>(),
+#endif
                                                  std::numeric_limits<T>::infinity(),
                                                  stream);
             }
@@ -183,7 +195,11 @@ namespace NKernel {
                                                      keys, outKeys,
                                                      input, output,
                                                      outputSize,
+#ifdef OPENSOURCE
                                                      thrust::plus<T>(),
+#else
+                                                     cuda::std::plus<T>(),
+#endif
                                                      size,
                                                      stream);
             }
@@ -192,7 +208,11 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
+#ifdef OPENSOURCE
                                                       thrust::maximum<T>(),
+#else
+                                                      cuda::maximum<T>(),
+#endif
                                                       size,
                                                       stream);
             }
@@ -201,7 +221,11 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
+#ifdef OPENSOURCE
                                                       thrust::minimum<T>(),
+#else
+                                                      cuda::minimum<T>(),
+#endif
                                                       size,
                                                       stream);
             }
@@ -300,7 +324,11 @@ namespace NKernel {
                     return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                               input, output, numSegments,
                                                               beginOffsets, endOffsets,
+#ifdef OPENSOURCE
                                                               thrust::plus<T>(),
+#else
+                                                              cuda::std::plus<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }
@@ -309,7 +337,11 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
+#ifdef OPENSOURCE
                                                               thrust::maximum<T>(),
+#else
+                                                              cuda::maximum<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }
@@ -318,7 +350,11 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
+#ifdef OPENSOURCE
                                                               thrust::minimum<T>(),
+#else
+                                                              cuda::minimum<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }
