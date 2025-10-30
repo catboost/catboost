@@ -31,7 +31,7 @@ def check_extend_option_present(config: Path) -> bool:
 
 
 def run_ruff(ruff_bin: str, cmd_args: list[str], filename: str, config: Path) -> list[str]:
-    # XXX: `--no-cache` is important because we run ruff in source root and don't want to pollute arcadia
+    # XXX: `--no-cache` is important when we run ruff in source root and don't want to pollute arcadia
     cmd = [ruff_bin, *cmd_args, '--no-cache', '--config', config, filename]
     res = subprocess.run(
         cmd,
@@ -39,29 +39,24 @@ def run_ruff(ruff_bin: str, cmd_args: list[str], filename: str, config: Path) ->
         encoding='utf8',
         errors='replace',
         env=dict(os.environ.copy(), RUFF_OUTPUT_FORMAT='concise'),
-        cwd=os.path.dirname(config),  # for correct support of `exclude`
+        # When config is passed through `--config`, `exclude` starts searching from cwd
+        # so set cwd to config cwd to mimic behavior of autodiscovery.
+        # Note that it stops being accurate when `extend` is used.
+        # https://docs.astral.sh/ruff/configuration/#config-file-discovery
+        cwd=os.path.dirname(config),
     )
     return res.stdout.splitlines(keepends=True) if res.returncode else []
 
 
-def process_file(orig_filename: str, ruff_bin: str, orig_config: Path, source_root: str, check_format: bool) -> str:
+def process_file(
+    orig_filename: str, ruff_bin: str, orig_config: Path, source_root: str, check_format: bool, run_in_source_root: bool
+) -> str:
     logger.debug('Check %s with config %s', orig_filename, orig_config)
-
-    # In order for `exclude` option (pyproject.toml) to work we have two options:
-    # 1. Run ruff with files AND config in build root
-    # 2. Run ruff with files AND config in source root
-    # For these two options there are differences in how 1st party vs 3rd party libraries are detected: in source root
-    # we have access to the whole arcadia. Because of that PEERDIR'ed arcadia libraries are considered 1st party.
-    # In build root, on the contrary, PEERDIR'ed libraries are not available so they are considered 3rd party.
-    # In order to match `ya style` behavior which is executed as in the second case we have to go with the second option.
-    # Then we MUST make sure we don't write anything to arcadia and don't "steal" files from arcadia.
-    # From the model point of view first option is more correct but it would require marking all PEERDIR'ed libraries
-    # 3rd party in pyproject.toml (`known-third-party`).
 
     file_path = os.path.relpath(orig_filename, source_root)
 
-    if file_path.startswith(('fintech/uservices', 'taxi', 'sdg', 'electro')):
-        # TODO(alevitskii) TPS-28865, TPS-31380. Run checks for fintech and taxi in build root too.
+    if run_in_source_root or file_path.startswith('sdg'):
+        # FIXME: have to give a pass for sdg, because they started using `extend`...
         filename = os.path.realpath(orig_filename) if os.path.islink(orig_filename) else orig_filename
         config = orig_config.resolve() if orig_config.is_symlink() else orig_config
     else:
@@ -105,9 +100,10 @@ def main():
 
     style_config_path = Path(params.configs[0])
 
-    # TODO To enable `extend` we first need to fully move execution to build root (src files + configs)
+    # TODO: Ideally, to enable `extend` we first should move execution to build root (src files + configs)
     # otherwise we risk allowing to steal from arcadia. To do that we need to mark modules 1st-party/3rd-party
     # in pyproject.toml.
+    # UPD: it turned out to be more complicated for uservices-like projects because they use TOP_LEVEL / NAMESPACES
     extend_option_present = check_extend_option_present(style_config_path)
 
     ruff_bin = get_ruff_bin(params)
@@ -138,7 +134,12 @@ def main():
             continue
 
         error = process_file(
-            file_name, ruff_bin, style_config_path, params.source_root, params.extra_params.get('check_format') == 'yes'
+            file_name,
+            ruff_bin,
+            style_config_path,
+            params.source_root,
+            params.extra_params.get('check_format') == 'yes',
+            params.extra_params.get('run_in_source_root') == 'yes',
         )
         elapsed = time.perf_counter() - start_time
 
