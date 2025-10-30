@@ -101,6 +101,7 @@ AttributeMacros: [
 ]
 IndentExternBlock: Indent
 TypenameMacros: [
+    BENCHMARK_F,
     Y_POD_STATIC_THREAD,
     Y_POD_THREAD,
     Y_STATIC_THREAD,
