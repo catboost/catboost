@@ -86,10 +86,26 @@ SortIncludes: false
 IndentPPDirectives: BeforeHash
 
 SpaceBeforeInheritanceColon: false
-NamespaceMacros: [Y_UNIT_TEST_SUITE]
-AttributeMacros: [Y_PRINTF_FORMAT, Y_NO_SANITIZE, Y_FORCE_INLINE, Y_NO_INLINE, Y_WARN_UNUSED_RESULT, Y_HIDDEN, Y_PUBLIC, Y_PURE_FUNCTION]
+NamespaceMacros: [
+    Y_UNIT_TEST_SUITE
+]
+AttributeMacros: [
+    Y_FORCE_INLINE,
+    Y_HIDDEN,
+    Y_NO_INLINE,
+    Y_NO_SANITIZE,
+    Y_PRINTF_FORMAT,
+    Y_PUBLIC,
+    Y_PURE_FUNCTION,
+    Y_WARN_UNUSED_RESULT,
+]
 IndentExternBlock: Indent
-TypenameMacros: [Y_THREAD, Y_STATIC_THREAD, Y_POD_THREAD, Y_POD_STATIC_THREAD]
+TypenameMacros: [
+    Y_POD_STATIC_THREAD,
+    Y_POD_THREAD,
+    Y_STATIC_THREAD,
+    Y_THREAD,
+]
 StatementAttributeLikeMacros: [ythrow]
 SpacesInLineCommentPrefix:
     Minimum: 1
