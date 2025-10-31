@@ -55,8 +55,7 @@ def process_file(
 
     file_path = os.path.relpath(orig_filename, source_root)
 
-    if run_in_source_root or file_path.startswith('sdg'):
-        # FIXME: have to give a pass for sdg, because they started using `extend`...
+    if run_in_source_root:
         filename = os.path.realpath(orig_filename) if os.path.islink(orig_filename) else orig_filename
         config = orig_config.resolve() if orig_config.is_symlink() else orig_config
     else:
