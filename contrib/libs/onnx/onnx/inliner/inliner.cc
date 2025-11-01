@@ -230,10 +230,10 @@ class InliningRenamer : private MutableVisitor {
       node->set_name(MakeUnique(node->name()));
 
     for (auto& x : *node->mutable_input()) {
-      LookupOrRename(x, false);
+      LookupOrRename(x.MutRef(), false);
     }
     for (auto& y : *node->mutable_output()) {
-      LookupOrRename(y, true);
+      LookupOrRename(y.MutRef(), true);
     }
     return true; // Process attribute subgraphs in traversal
   }
@@ -244,11 +244,11 @@ class InliningRenamer : private MutableVisitor {
   void VisitGraph(GraphProto* graph) override {
     rename_scopes.emplace_back();
     for (auto& x : *graph->mutable_input())
-      Rename(*x.mutable_name());
+      Rename(x.mutable_name()->MutRef());
     for (auto& init : *graph->mutable_initializer())
-      Rename(*init.mutable_name());
+      Rename(init.mutable_name()->MutRef());
     for (auto& y : *graph->mutable_output())
-      Rename(*y.mutable_name());
+      Rename(y.mutable_name()->MutRef());
     for (auto& n : *graph->mutable_node())
       VisitNode(&n);
     rename_scopes.pop_back();
@@ -267,7 +267,7 @@ class InliningRenamer : private MutableVisitor {
 
     renamer.VisitFunction(&callee);
     for (auto& v : *callee.mutable_value_info())
-      renamer.LookupOrRename(*v.mutable_name(), false);
+      renamer.LookupOrRename(v.mutable_name()->MutRef(), false);
   }
 };
 
