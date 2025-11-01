@@ -48,7 +48,7 @@ Y_UNIT_TEST_SUITE(TSerializationTest) {
 
         UNIT_ASSERT_UNEQUAL(deserializedPtr, nullptr);
         UNIT_ASSERT_EQUAL(deserializedPtr->GetStreamId(), 1u);
-        UNIT_ASSERT_EQUAL(deserializedPtr->GetCommandType(), EComandType::StreamKernel);
+        UNIT_ASSERT_EQUAL(deserializedPtr->GetCommandType(), ECommandType::StreamKernel);
         UNIT_ASSERT_EQUAL(deserializedPtr->GetKernel().Data1, 11);
         UNIT_ASSERT_EQUAL(deserializedPtr->GetKernel().Data2, val2);
     }
@@ -68,7 +68,7 @@ Y_UNIT_TEST_SUITE(TSerializationTest) {
 
             UNIT_ASSERT_UNEQUAL(deserializedPtr, nullptr);
             UNIT_ASSERT_EQUAL(deserializedPtr->GetStreamId(), 10u);
-            UNIT_ASSERT_EQUAL(deserializedPtr->GetCommandType(), EComandType::StreamKernel);
+            UNIT_ASSERT_EQUAL(deserializedPtr->GetCommandType(), ECommandType::StreamKernel);
             UNIT_ASSERT_EQUAL(deserializedPtr->GetKernel().Data1, kernel.Data1);
             UNIT_ASSERT_EQUAL(deserializedPtr->GetKernel().Data2, kernel.Data2);
         }
