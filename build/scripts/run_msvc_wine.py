@@ -12,8 +12,8 @@ import errno
 # Explicitly enable local imports
 # Don't forget to add imported scripts to inputs of the calling command!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import process_command_files as pcf
-import process_whole_archive_option as pwa
+import process_command_files as pcf  # noqa: E402
+import process_whole_archive_option as pwa  # noqa: E402
 
 
 procs = []
@@ -21,14 +21,14 @@ build_kekeke = 45
 
 
 def stringize(s):
-    return s.encode('utf-8') if isinstance(s, unicode) else s
+    return s.encode('utf-8')
 
 
 def run_subprocess(*args, **kwargs):
     if 'env' in kwargs:
-        kwargs['env'] = {stringize(k): stringize(v) for k, v in kwargs['env'].iteritems()}
+        kwargs['env'] = {stringize(k): stringize(v) for k, v in kwargs['env'].items()}
 
-    p = subprocess.Popen(*args, **kwargs)
+    p = subprocess.Popen(*args, **kwargs, text=True)
 
     procs.append(p)
 
@@ -72,12 +72,12 @@ def sig_term(sig, fr):
     sys.exit(sig)
 
 
-def subst_path(l):
-    if len(l) > 3:
-        if l[:3].lower() in ('z:\\', 'z:/'):
-            return l[2:].replace('\\', '/')
+def subst_path(line):
+    if len(line) > 3:
+        if line[:3].lower() in ('z:\\', 'z:/'):
+            return line[2:].replace('\\', '/')
 
-    return l
+    return line
 
 
 def call_wine_cmd_once(wine, cmd, env, mode):
@@ -145,25 +145,25 @@ def call_wine_cmd_once(wine, cmd, env, mode):
         'err:winediag:',
     ]
 
-    def good_line(l):
+    def good_line(li):
         for x in prefixes:
-            if l.startswith(x):
+            if li.startswith(x):
                 return False
 
         for x in suffixes:
-            if l.endswith(x):
+            if li.endswith(x):
                 return False
 
         for x in substrs:
-            if x in l:
+            if x in li:
                 return False
 
         return True
 
     def filter_lines():
-        for l in lines:
-            if good_line(l):
-                yield subst_path(l.strip())
+        for line in lines:
+            if good_line(line):
+                yield subst_path(line.strip())
 
     stdout_and_stderr = '\n'.join(filter_lines()).strip()
 
@@ -279,65 +279,65 @@ GRN = '\x1b[32m'
 CYA = '\x1b[36m'
 
 
-def colorize_strings(l):
-    p = l.find("'")
+def colorize_strings(line):
+    p = line.find("'")
 
     if p >= 0:
-        yield l[:p]
+        yield line[:p]
 
-        l = l[p + 1 :]
+        line = line[p + 1 :]
 
-        p = l.find("'")
+        p = line.find("'")
 
         if p >= 0:
-            yield CYA + "'" + subst_path(l[:p]) + "'" + RST
+            yield CYA + "'" + subst_path(line[:p]) + "'" + RST
 
-            for x in colorize_strings(l[p + 1 :]):
+            for x in colorize_strings(line[p + 1 :]):
                 yield x
         else:
-            yield "'" + l
+            yield "'" + line
     else:
-        yield l
+        yield line
 
 
-def colorize_line(l):
-    lll = l
+def colorize_line(li):
+    lll = li
 
     try:
         parts = []
 
-        if l.startswith('(compiler file'):
-            return ''.join(colorize_strings(l))
+        if li.startswith('(compiler file'):
+            return ''.join(colorize_strings(li))
 
-        if l.startswith('/'):
-            p = l.find('(')
-            parts.append(GRAY + l[:p] + RST)
-            l = l[p:]
+        if li.startswith('/'):
+            p = li.find('(')
+            parts.append(GRAY + li[:p] + RST)
+            li = li[p:]
 
-        if l and l.startswith('('):
-            p = l.find(')')
-            parts.append(':' + MGT + l[1:p] + RST)
-            l = l[p + 1 :]
+        if li and li.startswith('('):
+            p = li.find(')')
+            parts.append(':' + MGT + li[1:p] + RST)
+            li = li[p + 1 :]
 
-        if l:
-            if l.startswith(' : '):
-                l = l[1:]
+        if li:
+            if li.startswith(' : '):
+                li = li[1:]
 
-            if l.startswith(': error'):
+            if li.startswith(': error'):
                 parts.append(': ' + RED + 'error' + RST)
-                l = l[7:]
-            elif l.startswith(': warning'):
+                li = li[7:]
+            elif li.startswith(': warning'):
                 parts.append(': ' + YEL + 'warning' + RST)
-                l = l[9:]
-            elif l.startswith(': note'):
+                li = li[9:]
+            elif li.startswith(': note'):
                 parts.append(': ' + GRN + 'note' + RST)
-                l = l[6:]
-            elif l.startswith('fatal error'):
+                li = li[6:]
+            elif li.startswith('fatal error'):
                 parts.append(RED + 'fatal error' + RST)
-                l = l[11:]
+                li = li[11:]
 
-        if l:
-            parts.extend(colorize_strings(l))
+        if li:
+            parts.extend(colorize_strings(li))
 
         return ''.join(parts)
     except Exception:
@@ -345,7 +345,7 @@ def colorize_line(l):
 
 
 def colorize(out):
-    return '\n'.join(colorize_line(l) for l in out.split('\n'))
+    return '\n'.join(colorize_line(li) for li in out.split('\n'))
 
 
 def trim_path(path, winepath):
@@ -423,7 +423,8 @@ def process_free_args(args, wine, bld_root, mode):
 
     free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args))
 
-    process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+    def process_link(x):
+        return make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
 
     def process_arg(arg):
         with_wa_prefix = arg.startswith(whole_archive_prefix)
