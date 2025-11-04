@@ -2,6 +2,9 @@
 
 #include <catboost/libs/data/columns.h>
 
+#include <util/generic/ymath.h>
+
+
 TBetaPriorEstimator::TBetaPrior
 TBetaPriorEstimator::EstimateBetaPrior(
     const TBetaPriorEstimator::TClassesType* classes,

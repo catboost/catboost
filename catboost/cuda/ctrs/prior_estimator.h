@@ -60,10 +60,6 @@ private:
         double Der2AlphaBeta = 0;
     };
 
-    static inline double Sqr(double x) {
-        return x * x;
-    }
-
     static TBetaPrior OptimizationStep(const TBetaPrior& point,
                                        const TDerivatives& derivatives,
                                        double step = 1.0,
