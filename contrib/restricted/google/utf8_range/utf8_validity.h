@@ -7,16 +7,16 @@
 #ifndef THIRD_PARTY_UTF8_RANGE_UTF8_VALIDITY_H_
 #define THIRD_PARTY_UTF8_RANGE_UTF8_VALIDITY_H_
 
-#include "y_absl/strings/string_view.h"
+#include "absl/strings/string_view.h"
 
 namespace utf8_range {
 
 // Returns true if the sequence of characters is a valid UTF-8 sequence.
-bool IsStructurallyValid(y_absl::string_view str);
+bool IsStructurallyValid(absl::string_view str);
 
 // Returns the length in bytes of the prefix of str that is all
 // structurally valid UTF-8.
-size_t SpanStructurallyValid(y_absl::string_view str);
+size_t SpanStructurallyValid(absl::string_view str);
 
 }  // namespace utf8_range
 

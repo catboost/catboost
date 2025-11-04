@@ -12,8 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(third_party)
-
 add_library(contrib-libs-protobuf)
 
 
@@ -28,15 +26,15 @@ target_include_directories(contrib-libs-protobuf PUBLIC
 )
 
 target_include_directories(contrib-libs-protobuf PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range
 )
 
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
-  protobuf-third_party-utf8_range
   contrib-libs-zlib
   contrib-restricted-abseil-cpp-tstring
+  restricted-google-utf8_range
   cpp-sanitizer-include
 )
 
@@ -202,15 +200,15 @@ target_include_directories(contrib-libs-protobuf.global PUBLIC
 )
 
 target_include_directories(contrib-libs-protobuf.global PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range
 )
 
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-cxxsupp
   yutil
-  protobuf-third_party-utf8_range
   contrib-libs-zlib
   contrib-restricted-abseil-cpp-tstring
+  restricted-google-utf8_range
   cpp-sanitizer-include
 )
 

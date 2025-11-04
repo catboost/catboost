@@ -20,8 +20,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "y_absl/strings/ascii.h"
-#include "y_absl/strings/string_view.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/string_view.h"
 
 #ifdef __SSE4_1__
 #include <emmintrin.h>
@@ -32,8 +32,8 @@
 namespace utf8_range {
 namespace {
 
-inline arc_ui64 UNALIGNED_LOAD64(const void* p) {
-  arc_ui64 t;
+inline uint64_t UNALIGNED_LOAD64(const void* p) {
+  uint64_t t;
   memcpy(&t, p, sizeof t);
   return t;
 }
@@ -73,7 +73,7 @@ size_t ValidUTF8Span(const char* data, const char* end) {
        SkipAscii function which is multiplatform and extremely fast.
      */
     /* [00..7F] ASCII -> 1 byte */
-    if (y_absl::ascii_isascii(byte1)) {
+    if (absl::ascii_isascii(byte1)) {
       codepoint_bytes = 1;
       continue;
     }
@@ -136,7 +136,7 @@ size_t ValidUTF8Span(const char* data, const char* end) {
 /* Returns the number of bytes needed to skip backwards to get to the first
    byte of codepoint.
  */
-inline int CodepointSkipBackwards(arc_i32 codepoint_word) {
+inline int CodepointSkipBackwards(int32_t codepoint_word) {
   const int8_t* const codepoint =
       reinterpret_cast<const int8_t*>(&codepoint_word);
   if (!TrailByteOk(codepoint[3])) {
@@ -157,7 +157,7 @@ inline const char* SkipAscii(const char* data, const char* end) {
          (UNALIGNED_LOAD64(data) & 0x8080808080808080) == 0) {
     data += 8;
   }
-  while (data < end && y_absl::ascii_isascii(*data)) {
+  while (data < end && absl::ascii_isascii(*data)) {
     ++data;
   }
   return data;
@@ -447,11 +447,11 @@ size_t ValidUTF8(const char* data, size_t len) {
 
 }  // namespace
 
-bool IsStructurallyValid(y_absl::string_view str) {
+bool IsStructurallyValid(absl::string_view str) {
   return ValidUTF8</*ReturnPosition=*/false>(str.data(), str.size());
 }
 
-size_t SpanStructurallyValid(y_absl::string_view str) {
+size_t SpanStructurallyValid(absl::string_view str) {
   return ValidUTF8</*ReturnPosition=*/true>(str.data(), str.size());
 }
 
