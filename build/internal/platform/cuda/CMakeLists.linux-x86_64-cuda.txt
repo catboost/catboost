@@ -12,19 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(libs-gpu_config-maybe_have_cuda)
+find_package(CUDAToolkit REQUIRED)
+
+add_subdirectory(plugin)
+
+add_library(internal-platform-cuda INTERFACE)
 
 
-target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
+target_link_libraries(internal-platform-cuda INTERFACE
   contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-logging
-  libs-gpu_config-interface
-  internal-platform-cuda
-)
-
-target_sources(libs-gpu_config-maybe_have_cuda PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/maybe_have_cuda/get_gpu_device_count_cuda.cpp
+  CUDA::toolkit
+  platform-cuda-plugin
 )
 

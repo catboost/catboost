@@ -12,16 +12,4 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(CUDAToolkit REQUIRED)
-
-add_subdirectory(plugin)
-
-add_library(build-platform-cuda INTERFACE)
-
-
-target_link_libraries(build-platform-cuda INTERFACE
-  contrib-libs-linux-headers
-  CUDA::toolkit
-  platform-cuda-plugin
-)
-
+add_subdirectory(platform)

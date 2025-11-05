@@ -22,7 +22,7 @@ target_link_libraries(models PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_cuda_sources(models PRIVATE
@@ -73,7 +73,7 @@ target_link_libraries(models.global PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(models.global PRIVATE

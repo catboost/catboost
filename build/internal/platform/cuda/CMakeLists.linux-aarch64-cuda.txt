@@ -16,10 +16,10 @@ find_package(CUDAToolkit REQUIRED)
 
 add_subdirectory(plugin)
 
-add_library(build-platform-cuda INTERFACE)
+add_library(internal-platform-cuda INTERFACE)
 
 
-target_link_libraries(build-platform-cuda INTERFACE
+target_link_libraries(internal-platform-cuda INTERFACE
   contrib-libs-linux-headers
   CUDA::toolkit
   platform-cuda-plugin

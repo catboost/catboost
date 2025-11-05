@@ -31,7 +31,7 @@ target_link_libraries(catboost-cuda-targets PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-targets PRIVATE
@@ -100,7 +100,7 @@ target_link_libraries(catboost-cuda-targets.global PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-targets.global PRIVATE
