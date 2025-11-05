@@ -6722,7 +6722,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, plot_file=None, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5,
-       folds=None, type='Classical', return_models=False, log_cout=None, log_cerr=None):
+       folds=None, type='Classical', return_models=False, log_cout=None, log_cerr=None, callbacks=None):
     """
     Cross-validate the CatBoost model.
 
@@ -6977,7 +6977,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Cross-validation plot', train_dirs=plot_dirs):
         if not return_models:
-            return _cv(
+            results = _cv(
                 params,
                 pool,
                 fold_count,
@@ -6991,6 +6991,19 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                 type,
                 return_models
             )
+            if callbacks:
+                if as_pandas:
+                    for i, row in enumerate(results.itertuples(index=False)):
+                        metrics = row._asdict()
+                        for cb in callbacks:
+                            cb(i, metrics)
+                else:
+                    keys = list(results.keys())
+                    for i in range(len(results[keys[0]])):
+                        metrics = {k: results[k][i] for k in keys}
+                        for cb in callbacks:
+                            cb(i, metrics)
+            return results
         else:
             results, cv_models = _cv(
                 params,
@@ -7007,6 +7020,18 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                 return_models
             )
             output_cv_models = _convert_to_catboost(cv_models)
+            if callbacks:
+                if as_pandas:
+                    for i, row in enumerate(results.itertuples(index=False)):
+                        metrics = row._asdict()
+                        for cb in callbacks:
+                            cb(i, metrics)
+                else:
+                    keys = list(results.keys())
+                    for i in range(len(results[keys[0]])):
+                        metrics = {k: results[k][i] for k in keys}
+                        for cb in callbacks:
+                            cb(i, metrics)
             return results, output_cv_models
 
 
