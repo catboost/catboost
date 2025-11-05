@@ -121,8 +121,12 @@ class Ya(object):
                 for ljson in file.readlines():
                     variable = json.loads(ljson)
                     for key, value in six.iteritems(variable):
-                        os.environ[key] = str(value)
-                        var_list.append(key)
+                        if value is not None:
+                            os.environ[key] = str(value)
+                            var_list.append(key)
+                        else:
+                            if key in os.environ:
+                                del os.environ[key]
             yatest_logger.debug("Variables loaded: %s", var_list)
 
     @property
