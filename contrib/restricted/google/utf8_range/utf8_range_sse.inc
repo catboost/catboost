@@ -1,184 +1,10 @@
-// Copyright 2022 Google LLC
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file or at
-// https://opensource.org/licenses/MIT.
-
-/* This is a wrapper for the Google range-sse.cc algorithm which checks whether a
- * sequence of bytes is a valid UTF-8 sequence and finds the longest valid prefix of
- * the UTF-8 sequence.
- *
- * The key difference is that it checks for as much ASCII symbols as possible
- * and then falls back to the range-sse.cc algorithm. The changes to the
- * algorithm are cosmetic, mostly to trick the clang compiler to produce optimal
- * code.
- *
- * For API see the utf8_validity.h header.
- */
-#include "utf8_validity.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "absl/strings/ascii.h"
-#include "absl/strings/string_view.h"
-
-#ifdef __SSE4_1__
 #include <emmintrin.h>
 #include <smmintrin.h>
 #include <tmmintrin.h>
-#endif
 
-namespace utf8_range {
-namespace {
-
-inline uint64_t UNALIGNED_LOAD64(const void* p) {
-  uint64_t t;
-  memcpy(&t, p, sizeof t);
-  return t;
-}
-
-inline bool TrailByteOk(const char c) {
-  return static_cast<int8_t>(c) <= static_cast<int8_t>(0xBF);
-}
-
-/* If ReturnPosition is false then it returns 1 if |data| is a valid utf8
- * sequence, otherwise returns 0.
- * If ReturnPosition is set to true, returns the length in bytes of the prefix
-   of |data| that is all structurally valid UTF-8.
- */
-template <bool ReturnPosition>
-size_t ValidUTF8Span(const char* data, const char* end) {
-  /* We return err_pos in the loop which is always 0 if !ReturnPosition */
-  size_t err_pos = 0;
-  size_t codepoint_bytes = 0;
-  /* The early check is done because of early continue's on codepoints of all
-   * sizes, i.e. we first check for ascii and if it is, we call continue, then
-   * for 2 byte codepoints, etc. This is done in order to reduce indentation and
-   * improve readability of the codepoint validity check.
-   */
-  while (data + codepoint_bytes < end) {
-    if (ReturnPosition) {
-      err_pos += codepoint_bytes;
-    }
-    data += codepoint_bytes;
-    const size_t len = end - data;
-    const unsigned char byte1 = data[0];
-
-    /* We do not skip many ascii bytes at the same time as this function is
-       used for tail checking (< 16 bytes) and for non x86 platforms. We also
-       don't think that cases where non-ASCII codepoints are followed by ascii
-       happen often. For small strings it also introduces some penalty. For
-       purely ascii UTF8 strings (which is the overwhelming case) we call
-       SkipAscii function which is multiplatform and extremely fast.
-     */
-    /* [00..7F] ASCII -> 1 byte */
-    if (absl::ascii_isascii(byte1)) {
-      codepoint_bytes = 1;
-      continue;
-    }
-    /* [C2..DF], [80..BF] -> 2 bytes */
-    if (len >= 2 && byte1 >= 0xC2 && byte1 <= 0xDF && TrailByteOk(data[1])) {
-      codepoint_bytes = 2;
-      continue;
-    }
-    if (len >= 3) {
-      const unsigned char byte2 = data[1];
-      const unsigned char byte3 = data[2];
-
-      /* Is byte2, byte3 between [0x80, 0xBF]
-       * Check for 0x80 was done above.
-       */
-      if (!TrailByteOk(byte2) || !TrailByteOk(byte3)) {
-        return err_pos;
-      }
-
-      if (/* E0, A0..BF, 80..BF */
-          ((byte1 == 0xE0 && byte2 >= 0xA0) ||
-           /* E1..EC, 80..BF, 80..BF */
-           (byte1 >= 0xE1 && byte1 <= 0xEC) ||
-           /* ED, 80..9F, 80..BF */
-           (byte1 == 0xED && byte2 <= 0x9F) ||
-           /* EE..EF, 80..BF, 80..BF */
-           (byte1 >= 0xEE && byte1 <= 0xEF))) {
-        codepoint_bytes = 3;
-        continue;
-      }
-      if (len >= 4) {
-        const unsigned char byte4 = data[3];
-        /* Is byte4 between 0x80 ~ 0xBF */
-        if (!TrailByteOk(byte4)) {
-          return err_pos;
-        }
-
-        if (/* F0, 90..BF, 80..BF, 80..BF */
-            ((byte1 == 0xF0 && byte2 >= 0x90) ||
-             /* F1..F3, 80..BF, 80..BF, 80..BF */
-             (byte1 >= 0xF1 && byte1 <= 0xF3) ||
-             /* F4, 80..8F, 80..BF, 80..BF */
-             (byte1 == 0xF4 && byte2 <= 0x8F))) {
-          codepoint_bytes = 4;
-          continue;
-        }
-      }
-    }
-    return err_pos;
-  }
-  if (ReturnPosition) {
-    err_pos += codepoint_bytes;
-  }
-  /* if ReturnPosition is false, this returns 1.
-   * if ReturnPosition is true, this returns err_pos.
-   */
-  return err_pos + (1 - ReturnPosition);
-}
-
-/* Returns the number of bytes needed to skip backwards to get to the first
-   byte of codepoint.
- */
-inline int CodepointSkipBackwards(int32_t codepoint_word) {
-  const int8_t* const codepoint =
-      reinterpret_cast<const int8_t*>(&codepoint_word);
-  if (!TrailByteOk(codepoint[3])) {
-    return 1;
-  } else if (!TrailByteOk(codepoint[2])) {
-    return 2;
-  } else if (!TrailByteOk(codepoint[1])) {
-    return 3;
-  }
-  return 0;
-}
-
-/* Skipping over ASCII as much as possible, per 8 bytes. It is intentional
-   as most strings to check for validity consist only of 1 byte codepoints.
- */
-inline const char* SkipAscii(const char* data, const char* end) {
-  while (8 <= end - data &&
-         (UNALIGNED_LOAD64(data) & 0x8080808080808080) == 0) {
-    data += 8;
-  }
-  while (data < end && absl::ascii_isascii(*data)) {
-    ++data;
-  }
-  return data;
-}
-
-template <bool ReturnPosition>
-size_t ValidUTF8(const char* data, size_t len) {
-  if (len == 0) return 1 - ReturnPosition;
-  const char* const end = data + len;
-  data = SkipAscii(data, end);
-  /* SIMD algorithm always outperforms the naive version for any data of
-     length >=16.
-   */
-  if (end - data < 16) {
-    return (ReturnPosition ? (data - (end - len)) : 0) +
-           ValidUTF8Span<ReturnPosition>(data, end);
-  }
-#ifndef __SSE4_1__
-  return (ReturnPosition ? (data - (end - len)) : 0) +
-         ValidUTF8Span<ReturnPosition>(data, end);
-#else
+static FORCE_INLINE_ATTR size_t utf8_range_ValidateUTF8Simd(
+    const char* data_original, const char* data, const char* end,
+    int return_position) {
   /* This code checks that utf-8 ranges are structurally valid 16 bytes at once
    * using superscalar instructions.
    * The mapping between ranges of codepoint and their corresponding utf-8
@@ -328,9 +154,9 @@ size_t ValidUTF8(const char* data, size_t len) {
   __m128i prev_input = _mm_set1_epi8(0);
   __m128i prev_first_len = _mm_set1_epi8(0);
   __m128i error = _mm_set1_epi8(0);
+
   while (end - data >= 16) {
-    const __m128i input =
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(data));
+    const __m128i input = _mm_loadu_si128((const __m128i*)(data));
 
     /* high_nibbles = input >> 4 */
     const __m128i high_nibbles =
@@ -410,7 +236,7 @@ size_t ValidUTF8(const char* data, size_t len) {
     __m128i max_range = _mm_shuffle_epi8(range_max_table, range);
 
     /* Check value range */
-    if (ReturnPosition) {
+    if (return_position) {
       error = _mm_cmplt_epi8(input, min_range);
       error = _mm_or_si128(error, _mm_cmpgt_epi8(input, max_range));
       /* 5% performance drop from this conditional branch */
@@ -428,31 +254,19 @@ size_t ValidUTF8(const char* data, size_t len) {
     data += 16;
   }
   /* If we got to the end, we don't need to skip any bytes backwards */
-  if (ReturnPosition && (data - (end - len)) == 0) {
-    return ValidUTF8Span<true>(data, end);
+  if (return_position && data == data_original) {
+    return utf8_range_ValidateUTF8Naive(data, end, return_position);
   }
   /* Find previous codepoint (not 80~BF) */
-  data -= CodepointSkipBackwards(_mm_extract_epi32(prev_input, 3));
-  if (ReturnPosition) {
-    return (data - (end - len)) + ValidUTF8Span<true>(data, end);
+  data -= utf8_range_CodepointSkipBackwards(_mm_extract_epi32(prev_input, 3));
+  if (return_position) {
+    return (data - data_original) +
+           utf8_range_ValidateUTF8Naive(data, end, return_position);
   }
   /* Test if there was any error */
   if (!_mm_testz_si128(error, error)) {
     return 0;
   }
   /* Check the tail */
-  return ValidUTF8Span<false>(data, end);
-#endif
+  return utf8_range_ValidateUTF8Naive(data, end, return_position);
 }
-
-}  // namespace
-
-bool IsStructurallyValid(absl::string_view str) {
-  return ValidUTF8</*ReturnPosition=*/false>(str.data(), str.size());
-}
-
-size_t SpanStructurallyValid(absl::string_view str) {
-  return ValidUTF8</*ReturnPosition=*/true>(str.data(), str.size());
-}
-
-}  // namespace utf8_range

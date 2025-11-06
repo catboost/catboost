@@ -20,7 +20,6 @@ target_compile_options(restricted-google-utf8_range PRIVATE
 )
 
 target_link_libraries(restricted-google-utf8_range PUBLIC
-  contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
 )
 
@@ -28,7 +27,7 @@ target_sources(restricted-google-utf8_range PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/naive.c
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/range2-neon.c
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/range2-sse.c
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/utf8_validity.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/utf8_range.c
 )
 
 
@@ -51,6 +50,14 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/range2-sse.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/utf8_range/utf8_range.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
