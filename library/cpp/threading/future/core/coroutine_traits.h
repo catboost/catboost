@@ -87,7 +87,11 @@ struct std::coroutine_traits<NThreading::TFuture<T>, Args...> {
             Y_ASSERT(success && "value already set");
         }
 
-        // Allow only rvalues to be returned to prevent slicing
+        // Allow only rvalues to be returned to prevent accidental slicing if used this way:
+        // } catch (const std::exception& ex) {
+        //      co_return ex;
+        // }
+        // (rethrow exception to preserve actual exception type)
         template <typename E>
         requires std::derived_from<std::remove_cvref_t<E>, std::exception>
         void return_value(E& err) = delete;
