@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <util/generic/va_args.h>
 #include <util/generic/yexception.h>
+#include <util/system/defaults.h>
 
 class TCudaException : public TWithBackTrace<yexception> {
 public:
