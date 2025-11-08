@@ -1,6 +1,5 @@
 #pragma once
 #include <cuda_runtime.h>
-#include <util/system/types.h>
 #include <util/generic/array_ref.h>
 
 

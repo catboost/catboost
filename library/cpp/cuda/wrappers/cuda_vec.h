@@ -2,9 +2,17 @@
 
 #include "base.h"
 
+#include <library/cpp/cuda/exception/exception.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/ptr.h>
+#include <util/generic/vector.h>
 #include <util/system/types.h>
+
+#include <initializer_list>
+
+#include <cuda_runtime.h>
+
 
 enum class EMemoryType {
     Host,

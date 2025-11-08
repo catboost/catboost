@@ -1,11 +1,14 @@
 #pragma once
 
-#include "kernel.cuh"
-
 #include <library/cpp/cuda/exception/exception.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/noncopyable.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/yexception.h>
+#include <util/stream/output.h>
 
 #include <cuda_runtime.h>
 

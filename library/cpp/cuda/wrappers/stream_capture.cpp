@@ -1,6 +1,7 @@
 #include "stream_capture.h"
 
-#include "cuda_graph.h"
+#include <cuda_runtime.h>
+
 
 TStreamCapture::~TStreamCapture() {
     cudaGraph_t graph;

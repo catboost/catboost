@@ -2,6 +2,11 @@
 
 #include "base.h"
 
+#include <util/generic/ptr.h>
+
+#include <cuda_runtime.h>
+
+
 class TStreamCapture;
 
 class TCudaGraph {

@@ -5,6 +5,8 @@
 #include <cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
+#include <util/system/types.h>
+
 template<int Alignment, typename T>
 __forceinline__ __device__ __host__ T AlignBy(T x) {
     return NKernel::CeilDivide<size_t>(x, Alignment) * Alignment;

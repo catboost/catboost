@@ -1,7 +1,9 @@
 #pragma once
-#include "kernel.cuh"
 
-#include <tuple>
+#include <util/system/types.h>
+
+#include <cuda_runtime.h>
+
 
 namespace NKernel {
 

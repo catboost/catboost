@@ -3,6 +3,9 @@
 #include "base.h"
 #include "cuda_graph.h"
 
+#include <util/system/defaults.h>
+
+
 class TStreamCapture {
 public:
     ~TStreamCapture();
