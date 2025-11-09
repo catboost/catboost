@@ -152,7 +152,6 @@ private:
 };
 
 
-//return 0 if success and 1 otherwise
 void GetMemoryInfo(int device, size_t* available, size_t* total);
 int GetDeviceCount();
 
@@ -174,7 +173,7 @@ private:
     TString Message_;
     TInstant Start;
 };
-//
+
 
 template <class T>
 inline void ClearMemoryAsync(TArrayRef<T> data, TCudaStream stream) {
