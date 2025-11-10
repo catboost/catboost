@@ -10,10 +10,16 @@ In order to build it some environment setup is necessary. Modern versions of Cat
 
 ### Basic usage example
 
-1. Add a dependency to your Cargo.toml:
+1. Add a dependency to your Cargo.toml
+Build and link shared library:
 ```
 [dependencies]
 catboost = { git = "https://github.com/catboost/catboost" }
+```
+Build and link static library:
+```
+[dependencies]
+catboost = { git = "https://github.com/catboost/catboost", features = ["static-link"] }
 ```
 
 2. Now you can apply pretrained model in your code:
