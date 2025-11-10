@@ -56,11 +56,15 @@ fn main() {
         .expect("Couldn't write bindings.");
 
     #[cfg(feature = "static-link")]
-    println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface/static").display());
-    println!("cargo:rustc-link-lib=static=catboostmodel_static");
-    println!("cargo:rustc-link-lib=static=catboostmodel_static.global");
+    {
+        println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface/static").display());
+        println!("cargo:rustc-link-lib=static=catboostmodel_static");
+        println!("cargo:rustc-link-lib=static=catboostmodel_static.global");
+    }
 
     #[cfg(not(feature = "static-link"))]
-    println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface").display());
-    println!("cargo:rustc-link-lib=dylib=catboostmodel");
+    {
+        println!("cargo:rustc-link-search={}", out_dir.join("catboost/libs/model_interface").display());
+        println!("cargo:rustc-link-lib=dylib=catboostmodel");
+    }
 }
