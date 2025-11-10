@@ -16,59 +16,59 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>::TStrongTypedef()
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr TStrongTypedef<T, TTag, Options>::TStrongTypedef()
     requires std::is_default_constructible_v<T>
     : Underlying_{}
 { }
 
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>::TStrongTypedef(const T& underlying)
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr TStrongTypedef<T, TTag, Options>::TStrongTypedef(const T& underlying)
     requires std::is_copy_constructible_v<T>
     : Underlying_(underlying)
 { }
 
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>::TStrongTypedef(T&& underlying)
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr TStrongTypedef<T, TTag, Options>::TStrongTypedef(T&& underlying)
     requires std::is_move_constructible_v<T>
     : Underlying_(std::move(underlying))
 { }
 
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>::operator const T&() const
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr TStrongTypedef<T, TTag, Options>::operator const T&() const
 {
     return Underlying_;
 }
 
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>::operator T&()
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr TStrongTypedef<T, TTag, Options>::operator T&()
 {
     return Underlying_;
 }
 
-template <class T, class TTag>
-constexpr T& TStrongTypedef<T, TTag>::Underlying() &
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr T& TStrongTypedef<T, TTag, Options>::Underlying() &
 {
     return Underlying_;
 }
 
-template <class T, class TTag>
-constexpr const T& TStrongTypedef<T, TTag>::Underlying() const&
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr const T& TStrongTypedef<T, TTag, Options>::Underlying() const&
 {
     return Underlying_;
 }
 
-template <class T, class TTag>
-constexpr T&& TStrongTypedef<T, TTag>::Underlying() &&
+template <class T, class TTag, TStrongTypedefOptions Options>
+constexpr T&& TStrongTypedef<T, TTag, Options>::Underlying() &&
 {
     return std::move(Underlying_);
 }
 
 #define XX(op, defaultValue) \
-    template <class T, class TTag> \
-    constexpr auto TStrongTypedef<T, TTag>::operator op(const TStrongTypedef& rhs) const \
+    template <class T, class TTag, TStrongTypedefOptions Options> \
+    constexpr auto TStrongTypedef<T, TTag, Options>::operator op(const TStrongTypedef& rhs) const \
         noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
-            requires requires (T lhs, T rhs) {lhs op rhs; } \
+            requires requires (T lhs, T rhs) { lhs op rhs; } && (Options.IsComparable) \
     { \
         if constexpr (std::same_as<T, void>) { \
             return defaultValue; \
@@ -86,21 +86,21 @@ XX(<=>, std::strong_ordering::equal)
 
 #undef XX
 
-template <class T, class TTag>
-TStrongTypedef<T, TTag>::operator bool() const
+template <class T, class TTag, TStrongTypedefOptions Options>
+TStrongTypedef<T, TTag, Options>::operator bool() const
     noexcept(noexcept(static_cast<bool>(Underlying_)))
 {
     return static_cast<bool>(Underlying_);
 }
 
-template <class T, class TTag>
-void TStrongTypedef<T, TTag>::Save(IOutputStream* out) const
+template <class T, class TTag, TStrongTypedefOptions Options>
+void TStrongTypedef<T, TTag, Options>::Save(IOutputStream* out) const
 {
     ::Save(out, Underlying_);
 }
 
-template <class T, class TTag>
-void TStrongTypedef<T, TTag>::Load(IInputStream* in)
+template <class T, class TTag, TStrongTypedefOptions Options>
+void TStrongTypedef<T, TTag, Options>::Load(IInputStream* in)
 {
     ::Load(in, Underlying_);
 }
@@ -113,8 +113,8 @@ struct TStrongTypedefTraits
     constexpr static bool IsStrongTypedef = false;
 };
 
-template <class T, class TTag>
-struct TStrongTypedefTraits<TStrongTypedef<T, TTag>>
+template <class T, class TTag, TStrongTypedefOptions Options>
+struct TStrongTypedefTraits<TStrongTypedef<T, TTag, Options>>
 {
     constexpr static bool IsStrongTypedef = true;
     using TUnderlying = T;
@@ -133,8 +133,8 @@ bool TryFromStringImpl(const TChar* data, size_t size, T& value)
 
 class TStringBuilderBase;
 
-template <class T, class TTag>
-void FormatValue(TStringBuilderBase* builder, const TStrongTypedef<T, TTag>& value, TStringBuf format)
+template <class T, class TTag, TStrongTypedefOptions Options>
+void FormatValue(TStringBuilderBase* builder, const TStrongTypedef<T, TTag, Options>& value, TStringBuf format)
     noexcept(noexcept(FormatValue(builder, value.Underlying(), format)))
 {
     FormatValue(builder, value.Underlying(), format);
@@ -142,20 +142,20 @@ void FormatValue(TStringBuilderBase* builder, const TStrongTypedef<T, TTag>& val
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
-struct TBasicWrapperTraits<TStrongTypedef<T, TTag>>
+template <class T, class TTag, TStrongTypedefOptions Options>
+struct TBasicWrapperTraits<TStrongTypedef<T, TTag, Options>>
 {
     static constexpr bool IsTrivialWrapper = false;
 
     using TUnwrapped = T;
 
-    static constexpr bool HasValue(const TStrongTypedef<T, TTag>&) noexcept
+    static constexpr bool HasValue(const TStrongTypedef<T, TTag, Options>&) noexcept
     {
         return true;
     }
 
     template <class U>
-        requires std::same_as<std::remove_cvref_t<U>, TStrongTypedef<T, TTag>>
+        requires std::same_as<std::remove_cvref_t<U>, TStrongTypedef<T, TTag, Options>>
     static constexpr decltype(auto) Unwrap(U&& wrapper) noexcept
     {
         return std::forward<U>(wrapper).Underlying();
@@ -170,10 +170,10 @@ namespace std {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
-struct hash<NYT::TStrongTypedef<T, TTag>>
+template <class T, class TTag, NYT::TStrongTypedefOptions Options>
+struct hash<NYT::TStrongTypedef<T, TTag, Options>>
 {
-    size_t operator()(const NYT::TStrongTypedef<T, TTag>& value) const
+    size_t operator()(const NYT::TStrongTypedef<T, TTag, Options>& value) const
     {
         return std::hash<T>()(value.Underlying());
     }
@@ -181,9 +181,9 @@ struct hash<NYT::TStrongTypedef<T, TTag>>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
+template <class T, class TTag, NYT::TStrongTypedefOptions Options>
     requires std::numeric_limits<T>::is_specialized
-class numeric_limits<NYT::TStrongTypedef<T, TTag>>
+class numeric_limits<NYT::TStrongTypedef<T, TTag, Options>>
 {
 public:
     #define XX(name) \
@@ -216,9 +216,9 @@ public:
     #undef XX
 
     #define XX(name) \
-        static constexpr NYT::TStrongTypedef<T, TTag> name() noexcept \
+        static constexpr NYT::TStrongTypedef<T, TTag, Options> name() noexcept \
         { \
-            return NYT::TStrongTypedef<T, TTag>(numeric_limits<T>::name()); \
+            return NYT::TStrongTypedef<T, TTag, Options>(numeric_limits<T>::name()); \
         }
 
     XX(min)
@@ -240,10 +240,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
-struct THash<NYT::TStrongTypedef<T, TTag>>
+template <class T, class TTag, NYT::TStrongTypedefOptions Options>
+struct THash<NYT::TStrongTypedef<T, TTag, Options>>
 {
-    size_t operator()(const NYT::TStrongTypedef<T, TTag>& value) const
+    size_t operator()(const NYT::TStrongTypedef<T, TTag, Options>& value) const
     {
         static constexpr bool IsHashable = requires (T value) {
             { THash<T>()(value) } -> std::same_as<size_t>;
@@ -259,8 +259,8 @@ struct THash<NYT::TStrongTypedef<T, TTag>>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
-IOutputStream& operator<<(IOutputStream& out, const NYT::TStrongTypedef<T, TTag>& value)
+template <class T, class TTag, NYT::TStrongTypedefOptions Options>
+IOutputStream& operator<<(IOutputStream& out, const NYT::TStrongTypedef<T, TTag, Options>& value)
 {
     return out << value.Underlying();
 }
