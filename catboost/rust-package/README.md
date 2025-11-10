@@ -11,6 +11,7 @@ In order to build it some environment setup is necessary. Modern versions of Cat
 ### Basic usage example
 
 1. Add a dependency to your Cargo.toml
+
 Build and link shared library:
 ```
 [dependencies]
