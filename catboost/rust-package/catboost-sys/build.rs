@@ -18,10 +18,10 @@ fn main() {
     ];
 
     #[cfg(feature = "static-link")]
-    build_native_args.push("--targets=['catboostmodel_static']");
+    build_native_args.push("--targets=catboostmodel_static");
 
     #[cfg(not(feature = "static-link"))]
-    build_native_args.push("--targets=['catboostmodel']");
+    build_native_args.push("--targets=catboostmodel");
 
     if debug == "true" {
         build_native_args.push("--build-type=Debug");
