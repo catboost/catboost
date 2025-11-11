@@ -405,13 +405,11 @@ public:
     inline void Ref(intptr_t d) noexcept {
         auto resultCount = Counter_.Add(d);
         Y_ASSERT(resultCount >= d);
-        (void)resultCount;
     }
 
     inline void Ref() noexcept {
         auto resultCount = Counter_.Inc();
         Y_ASSERT(resultCount != 0);
-        (void)resultCount;
     }
 
     inline void UnRef(intptr_t d) noexcept {
@@ -433,7 +431,6 @@ public:
     inline void DecRef() noexcept {
         auto resultCount = Counter_.Dec();
         Y_ASSERT(resultCount >= 0);
-        (void)resultCount;
     }
 
     TRefCounted(const TRefCounted&)
