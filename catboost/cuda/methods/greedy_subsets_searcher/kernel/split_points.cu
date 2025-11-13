@@ -1,6 +1,6 @@
 #include "split_points.cuh"
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 

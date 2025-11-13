@@ -1,6 +1,6 @@
 #include "compute_scores.cuh"
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>

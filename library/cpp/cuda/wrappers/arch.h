@@ -2,6 +2,9 @@
 
 #include <util/system/types.h>
 
+// temporary workaround for strict dependencies
+#include <utility>
+
 #include <cuda_runtime.h>
 
 

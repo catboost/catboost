@@ -3,7 +3,7 @@
 
 #include <library/cpp/cuda/wrappers/kernel.cuh>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
 
 #include <util/string/cast.h>
