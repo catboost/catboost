@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2020-2024 Intel Corporation
+    Copyright (c) 2020-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -62,6 +63,7 @@ TBB_EXPORT d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::execution_da
 TBB_EXPORT d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::task_arena_base&);
 TBB_EXPORT d1::task_group_context* __TBB_EXPORTED_FUNC current_context();
 TBB_EXPORT d1::wait_tree_vertex_interface* get_thread_reference_vertex(d1::wait_tree_vertex_interface* wc);
+TBB_EXPORT d1::task* __TBB_EXPORTED_FUNC current_task_ptr();
 
 // Do not place under __TBB_RESUMABLE_TASKS. It is a stub for unsupported platforms.
 struct suspend_point_type;
@@ -190,33 +192,6 @@ private:
     wait_context m_wait;
 };
 
-class reference_vertex : public wait_tree_vertex_interface {
-public:
-    reference_vertex(wait_tree_vertex_interface* parent, std::uint32_t ref_count) : my_parent{parent}, m_ref_count{ref_count}
-    {}
-
-    void reserve(std::uint32_t delta = 1) override {
-        if (m_ref_count.fetch_add(static_cast<std::uint64_t>(delta)) == 0) {
-            my_parent->reserve();
-        }
-    }
-
-    void release(std::uint32_t delta = 1) override {
-        auto parent = my_parent;
-        std::uint64_t ref = m_ref_count.fetch_sub(static_cast<std::uint64_t>(delta)) - static_cast<std::uint64_t>(delta);
-        if (ref == 0) {
-            parent->release();
-        }
-    }
-
-    std::uint32_t get_num_child() {
-        return static_cast<std::uint32_t>(m_ref_count.load(std::memory_order_acquire));
-    }
-private:
-    wait_tree_vertex_interface* my_parent;
-    std::atomic<std::uint64_t> m_ref_count;
-};
-
 struct execution_data {
     task_group_context* context{};
     slot_id original_slot{};
@@ -269,6 +244,7 @@ inline void wait(wait_context& wait_ctx, task_group_context& ctx) {
     call_itt_task_notify(destroy, &wait_ctx);
 }
 
+using r1::current_task_ptr;
 using r1::current_context;
 
 class task_traits {

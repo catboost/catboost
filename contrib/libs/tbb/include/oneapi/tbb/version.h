@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,7 +30,7 @@
 // Product version
 #define TBB_VERSION_MAJOR 2022
 // Update version
-#define TBB_VERSION_MINOR 2
+#define TBB_VERSION_MINOR 3
 // "Patch" version for custom releases
 #define TBB_VERSION_PATCH 0
 // Suffix string
@@ -44,7 +45,7 @@
 // OneAPI oneTBB specification version
 #define ONETBB_SPEC_VERSION 104
 // Full interface version
-#define TBB_INTERFACE_VERSION 12160
+#define TBB_INTERFACE_VERSION 12170
 // Major interface version
 #define TBB_INTERFACE_VERSION_MAJOR (TBB_INTERFACE_VERSION/1000)
 // Minor interface version
