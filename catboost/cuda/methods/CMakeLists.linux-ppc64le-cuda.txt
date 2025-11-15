@@ -35,6 +35,7 @@ target_link_libraries(catboost-cuda-methods PUBLIC
   catboost-libs-loggers
   catboost-libs-metrics
   catboost-libs-overfitting_detector
+  cpp-cuda-exception
   cpp-threading-local_executor
   internal-platform-cuda
 )
@@ -163,6 +164,7 @@ target_link_libraries(catboost-cuda-methods.global PUBLIC
   catboost-libs-loggers
   catboost-libs-metrics
   catboost-libs-overfitting_detector
+  cpp-cuda-exception
   cpp-threading-local_executor
   internal-platform-cuda
 )

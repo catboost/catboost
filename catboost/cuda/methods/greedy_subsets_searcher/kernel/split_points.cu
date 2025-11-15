@@ -10,6 +10,8 @@
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit_impl.cuh>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <cub/device/device_radix_sort.cuh>
 
 namespace NKernel {

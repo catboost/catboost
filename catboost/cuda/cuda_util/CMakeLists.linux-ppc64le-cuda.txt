@@ -23,6 +23,7 @@ target_link_libraries(catboost-cuda-cuda_util PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
+  cpp-cuda-exception
   internal-platform-cuda
 )
 
@@ -90,6 +91,7 @@ target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
+  cpp-cuda-exception
   internal-platform-cuda
 )
 

@@ -12,6 +12,7 @@
 #include <catboost/cuda/cuda_lib/tasks_impl/request_stream_task.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
 
+#include <library/cpp/cuda/exception/exception.h>
 #include <library/cpp/threading/name_guard/name_guard.h>
 
 #include <util/generic/map.h>
