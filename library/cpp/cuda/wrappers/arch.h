@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/system/types.h>
+#include <cstddef>
 
 #include <array>
 #include <cstddef>
@@ -56,7 +56,7 @@ namespace NKernel {
             return Instance.Props[devId].multiProcessorCount;
         }
 
-        static ui64 GlobalMemorySize() {
+        static size_t GlobalMemorySize() {
             int devId = Instance.GetCurrentDevice();
             return Instance.Props[devId].totalGlobalMem;
         }
