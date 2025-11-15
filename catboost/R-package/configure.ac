@@ -49,12 +49,16 @@ AC_MSG_RESULT($R_PATH)
 ##### Get CatBoost dyn lib #####################################################
 CATBOOST_FOUND=0
 OS_TYPE=$(uname)
+OS_ARCH=$(uname -m)
 
 # set dynlib suffix
 if [[[ $OS_TYPE == 'Darwin' ]]]; then
    DYNLIB_SUFFIX='dylib'
    echo "*** creating .so -> .dylib symlink for working with different R installations"
    ln -sf 'libcatboostr.dylib' 'src/libcatboostr.so'
+   if [[[ $OS_ARCH == 'arm64' ]]]; then
+      echo "StagedInstall: FALSE" >> DESCRIPTION
+   fi
 elif [[[ $OS_TYPE == 'Linux' ]]]; then
    DYNLIB_SUFFIX='so'
 else
