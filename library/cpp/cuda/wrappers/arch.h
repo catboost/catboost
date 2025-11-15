@@ -2,6 +2,9 @@
 
 #include <util/system/types.h>
 
+#include <array>
+#include <cstddef>
+
 // temporary workaround for strict dependencies
 #include <utility>
 
@@ -10,19 +13,16 @@
 
 namespace NKernel {
 
-    #define NUM_CACHED_PROPS 16
-
     class TArchProps {
+        // TODO: should we support more than 16 devices per host?
+        constexpr static size_t MAX_DEVICE_ID = 16;
+
         static TArchProps Instance;
 
-        cudaDeviceProp Props[NUM_CACHED_PROPS];
-        bool PropsCached[NUM_CACHED_PROPS];
+        std::array<cudaDeviceProp, MAX_DEVICE_ID> Props;
+        std::array<bool, MAX_DEVICE_ID> PropsCached = {};
 
-        TArchProps() {
-            for (int i = 0; i < NUM_CACHED_PROPS; i++) {
-                PropsCached[i] = false;
-            }
-        }
+        TArchProps() = default;
 
         inline void CacheProps(int devId) {
             cudaGetDeviceProperties(&Props[devId], devId);
