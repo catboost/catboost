@@ -1,19 +1,20 @@
 [package]
 name = "catboost"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
-edition = "2018"
-rust-version = "1.64"
+edition = "2021"
 description = "CatBoost Rust Package"
 documentation = "https://catboost.ai/docs/en/concepts/apply-rust"
 repository = "https://github.com/catboost/catboost"
 license = "Apache-2.0"
 
 [dependencies]
-catboost-sys = { path = "catboost-sys", version = "0.1"}
+catboost-sys = { path = "catboost-sys", version = "0.1.1"}
 # catboost-sys = "0.1"
 approx = "0.5.1"
 libc = "0.2"
+log = "0.4.28"
 
 [features]
 gpu = ["catboost-sys/gpu"]
+

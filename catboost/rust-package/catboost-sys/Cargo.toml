@@ -1,11 +1,17 @@
 [package]
 name = "catboost-sys"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
-edition = "2018"
-
-[build-dependencies]
-bindgen = "~0.59"
+edition = "2021"
+license = "Apache-2.0"
 
 [features]
 gpu = []
+default = ["use_prebuilt"]
+use_prebuilt = ["reqwest"]
+cuda = []
+
+[build-dependencies]
+bindgen = { version = "0.71" }
+dunce =  { version = "1.0.5" }
+reqwest = { version = "0.12.15", features = ["blocking"], optional = true }

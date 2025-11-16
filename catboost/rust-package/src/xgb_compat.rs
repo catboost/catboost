@@ -1,7 +1,6 @@
 // Minimal XGBoost-like compatibility shim for the CatBoost rust-package
-// This file provides a Booster and DMatrix type with similar function
-// signatures to many xgboost Rust wrappers. Fill in the TODOs where
-// the underlying catboost model API is invoked.
+// This file provides a Booster with similar function signatures to many 
+// xgboost Rust wrappers. 
 
 use crate::error::CatBoostError;
 use crate::features::ObjectsOrderFeatures;
@@ -32,7 +31,7 @@ impl Booster {
         })
     }
 
-    /// Predict on a single DMatrix returning a flattened Vec<f32> of predictions.
+    /// Predict using the model. Use empty vectors for unused feature types.
     /// For binary classification this would return one score per row; for multi-class it will
     /// be nrow * nclass elements (row-major).
     pub fn predict(
@@ -41,7 +40,7 @@ impl Booster {
         cat_features: &[Vec<String>],
         text_features: &[Vec<String>],
         embedding_features: &[Vec<Vec<f32>>],
-    ) -> Result<Vec<f32>, CatBoostError> {
+    ) -> Result<Vec<f64>, CatBoostError> {
         // The underlying API for text features requires a Vec<Vec<CString>>.
         let text_features_cstr: Vec<Vec<CString>> = text_features
             .iter()
@@ -58,9 +57,7 @@ impl Booster {
             text_features: text_features_cstr,
             embedding_features,
         };
-
-        let preds_f64 = self.inner.predict(features)?;
-        Ok(preds_f64.into_iter().map(|x| x as f32).collect())
+        self.inner.predict(features)
     }
 
     /// Save model to a file path
