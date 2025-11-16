@@ -6,7 +6,6 @@
 use crate::error::CatBoostError;
 use crate::features::ObjectsOrderFeatures;
 use crate::model::Model as CatBoostModel;
-use std::ffi::CStr;
 use std::path::Path;
 
 /// A simple DMatrix-like container for dense data (row-major).
@@ -131,7 +130,7 @@ mod tests {
     #[test]
     fn test_feature_names() {
         let booster = Booster::load_model("tmp/model.bin").unwrap();
-        let feature_names = booster.feature_names().unwrap();
-        assert_eq!(feature_names, vec!["float1", "float2", "float3", "cat1"]);
+        let feature_names = booster.get_feature_names().unwrap();
+        assert_eq!(feature_names, vec!["0", "1", "wind direction", "3"]);
     }
 }

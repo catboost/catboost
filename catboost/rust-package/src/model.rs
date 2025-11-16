@@ -229,13 +229,12 @@ impl Model {
 
             let ok =
                 catboost_sys::GetModelUsedFeaturesNames(self.handle, &mut names_ptr, &mut count);
-
-            if !ok {
-                return Err("GetModelUsedFeaturesNames returned false".into());
-            }
+            CatBoostError::check_return_value(ok)?;
 
             if names_ptr.is_null() {
-                return Err("GetModelUsedFeaturesNames returned null pointer".into());
+                return Err(
+                    CatBoostError{ description: "GetModelUsedFeaturesNames returned null pointer".to_owned() }
+                );
             }
 
             let mut names = Vec::with_capacity(count);
