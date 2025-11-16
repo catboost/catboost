@@ -6,45 +6,13 @@
 use crate::error::CatBoostError;
 use crate::features::ObjectsOrderFeatures;
 use crate::model::Model as CatBoostModel;
+use std::ffi::CString;
 use std::path::Path;
-
-/// A simple DMatrix-like container for dense data (row-major).
-/// Keep this minimal and extend later to accept sparse formats.
-#[derive(Debug, Clone)]
-pub struct DMatrix {
-    pub data: Vec<f32>, // row-major, length = nrow * ncol
-    pub nrow: usize,
-    pub ncol: usize,
-    pub missing: Option<f32>,
-}
-
-impl DMatrix {
-    /// Create DMatrix from a dense slice. The caller must ensure len == nrow * ncol.
-    pub fn from_dense(data: &[f32], nrow: usize, ncol: usize) -> Self {
-        DMatrix {
-            data: data.to_vec(),
-            nrow,
-            ncol,
-            missing: None,
-        }
-    }
-
-    /// Convenience constructor with explicit missing value sentinel
-    pub fn from_dense_with_missing(data: &[f32], nrow: usize, ncol: usize, missing: f32) -> Self {
-        DMatrix {
-            data: data.to_vec(),
-            nrow,
-            ncol,
-            missing: Some(missing),
-        }
-    }
-}
 
 /// A Booster wrapper that aims to match xgboost-like function signatures.
 /// Internally holds the CatBoost model and delegates calls.
 pub struct Booster {
     inner: CatBoostModel,
-    cat_features: Vec<Vec<String>>,
 }
 
 impl Booster {
@@ -52,8 +20,7 @@ impl Booster {
     pub fn load_model<P: AsRef<Path>>(path: P) -> Result<Self, CatBoostError> {
         let model = CatBoostModel::load(path)?;
         Ok(Booster {
-            inner: model,
-            cat_features: vec![],
+            inner: model
         })
     }
 
@@ -61,30 +28,36 @@ impl Booster {
     pub fn from_buffer(buf: &[u8]) -> Result<Self, CatBoostError> {
         let model = CatBoostModel::load_buffer(&buf.to_vec())?;
         Ok(Booster {
-            inner: model,
-            cat_features: vec![],
+            inner: model
         })
-    }
-
-    /// Set categorical features for the next prediction.
-    /// The number of rows must match the DMatrix used in `predict`.
-    pub fn set_categories(&mut self, cat_features: &[Vec<String>]) {
-        self.cat_features = cat_features.to_vec();
     }
 
     /// Predict on a single DMatrix returning a flattened Vec<f32> of predictions.
     /// For binary classification this would return one score per row; for multi-class it will
     /// be nrow * nclass elements (row-major).
-    pub fn predict(&self, dmat: &DMatrix) -> Result<Vec<f32>, CatBoostError> {
-        let float_features: Vec<Vec<f32>> = if dmat.nrow > 0 {
-            dmat.data.chunks(dmat.ncol).map(|s| s.to_vec()).collect()
-        } else {
-            vec![]
-        };
+    pub fn predict(
+        &self,
+        float_features: &[Vec<f32>],
+        cat_features: &[Vec<String>],
+        text_features: &[Vec<String>],
+        embedding_features: &[Vec<Vec<f32>>],
+    ) -> Result<Vec<f32>, CatBoostError> {
+        // The underlying API for text features requires a Vec<Vec<CString>>.
+        let text_features_cstr: Vec<Vec<CString>> = text_features
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|s| CString::new(s.as_str()).unwrap())
+                    .collect()
+            })
+            .collect();
 
-        let features = ObjectsOrderFeatures::new()
-            .with_float_features(float_features)
-            .with_cat_features(&self.cat_features);
+        let features = ObjectsOrderFeatures {
+            float_features,
+            cat_features,
+            text_features: text_features_cstr,
+            embedding_features,
+        };
 
         let preds_f64 = self.inner.predict(features)?;
         Ok(preds_f64.into_iter().map(|x| x as f32).collect())
@@ -121,20 +94,22 @@ mod tests {
 
     #[test]
     fn test_booster_load_and_predict() {
-        let mut booster = Booster::load_model("tmp/model.bin").unwrap();
+        let booster = Booster::load_model("tmp/model.bin").unwrap();
         assert_eq!(booster.num_feature(), 4); // 3 float + 1 cat
 
         let cat_features: Vec<Vec<String>> = vec![
             vec!["north".to_string()],
             vec!["south".to_string()],
-            vec!["unused".to_string()],
+            vec!["south".to_string()],
         ];
-        booster.set_categories(&cat_features);
 
-        let test_data = vec![-10.0, 5.0, 753.0, 30.0, 1.0, 760.0, 40.0, 0.1, 705.0];
-        let dmatrix = DMatrix::from_dense(&test_data, 3, 3);
+        let float_features = vec![
+            vec![-10.0, 5.0, 753.0],
+            vec![30.0, 1.0, 760.0],
+            vec![40.0, 0.1, 705.0],
+        ];
 
-        let result = booster.predict(&dmatrix);
+        let result = booster.predict(&float_features, &cat_features, &[], &[]);
         assert!(result.is_ok());
         let predictions = result.unwrap();
         assert_eq!(predictions.len(), 3);
