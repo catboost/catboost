@@ -81,6 +81,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "catboost-sys",
+ "libc",
 ]
 
 [[package]]

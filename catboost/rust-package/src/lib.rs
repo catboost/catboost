@@ -24,3 +24,4 @@ pub use crate::features::{
 
 mod model;
 pub use crate::model::Model;
+pub mod xgb_compat;

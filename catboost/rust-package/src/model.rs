@@ -222,6 +222,46 @@ impl Model {
         )
     }
 
+    pub fn get_feature_names(&self) -> CatBoostResult<Vec<String>> {
+        unsafe {
+            let mut names_ptr: *mut *mut std::ffi::c_char = std::ptr::null_mut();
+            let mut count: usize = 0;
+
+            let ok =
+                catboost_sys::GetModelUsedFeaturesNames(self.handle, &mut names_ptr, &mut count);
+
+            if !ok {
+                return Err("GetModelUsedFeaturesNames returned false".into());
+            }
+
+            if names_ptr.is_null() {
+                return Err("GetModelUsedFeaturesNames returned null pointer".into());
+            }
+
+            let mut names = Vec::with_capacity(count);
+
+            // Convert char** → Vec<String>
+            for i in 0..count {
+                let ptr = *names_ptr.add(i);
+                if ptr.is_null() {
+                    names.push(String::new());
+                    continue;
+                }
+
+                let s = CStr::from_ptr(ptr).to_string_lossy().into_owned();
+                names.push(s);
+
+                // free each string
+                libc::free(ptr as *mut _);
+            }
+
+            // free the outer array
+            libc::free(names_ptr as *mut _);
+
+            Ok(names)
+        }
+    }
+
     /// Get expected float feature count for model
     pub fn get_float_features_count(&self) -> usize {
         unsafe { catboost_sys::GetFloatFeaturesCount(self.handle) }
