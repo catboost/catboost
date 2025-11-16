@@ -97,10 +97,18 @@ inline void DeviceSynchronize() {
     CUDA_SAFE_CALL(cudaDeviceSynchronize());
 }
 
+namespace NCuda {
+    inline int GetDevice() {
+        int devId;
+        CUDA_SAFE_CALL(cudaGetDevice(&devId));
+        return devId;
+    }
+}
+
 class TDeviceGuard: private TNonCopyable {
 public:
     TDeviceGuard(int device) {
-        CUDA_SAFE_CALL(cudaGetDevice(&PreviousDevice));
+        PreviousDevice = NCuda::GetDevice();
         if (device != PreviousDevice) {
             CUDA_SAFE_CALL(cudaSetDevice(device));
         } else {

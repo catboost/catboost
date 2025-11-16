@@ -245,12 +245,6 @@ namespace NCudaLib {
         CUDA_SAFE_CALL(cudaSetDevice(devId));
     }
 
-    inline int GetDevice() {
-        int devId;
-        CUDA_SAFE_CALL(cudaGetDevice(&devId));
-        return devId;
-    }
-
     inline void CheckLastError() {
         CUDA_SAFE_CALL(cudaGetLastError());
     }

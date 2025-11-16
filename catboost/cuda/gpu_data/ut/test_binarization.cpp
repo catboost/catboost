@@ -60,7 +60,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         auto features = dataSet.GetFeatures();
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             //            TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
             TVector<ui32> compressedIndex;

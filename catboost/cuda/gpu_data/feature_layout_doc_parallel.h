@@ -62,7 +62,7 @@ namespace NCatboostCuda {
 
             const TSlice featuresSlice = TSlice(0, featureCount);
 
-            for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+            for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
                 const ui64 docCount = docsMapping.DeviceSlice(dev).Size();
 
                 const ui64 devCIndexOffset = cindexOffsets.At(dev);
@@ -81,9 +81,9 @@ namespace NCatboostCuda {
                 }
             };
 
-            CB_ENSURE(allFeatures.size() == GetDeviceCount() * featureCount);
+            CB_ENSURE(allFeatures.size() == NCudaLib::GetDeviceCount() * featureCount);
             if (features.size()) {
-                auto layout = CreateLayout(features.size() / GetDeviceCount());
+                auto layout = CreateLayout(features.size() / NCudaLib::GetDeviceCount());
                 result.CudaFeaturesDevice.Reset(layout);
                 result.CudaFeaturesDevice.Write(features);
             }

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <cstddef>
+#include "base.h"
+
+#include <library/cpp/cuda/exception/exception.h>
 
 #include <array>
 #include <cstddef>
@@ -25,7 +27,7 @@ namespace NKernel {
         TArchProps() = default;
 
         inline void CacheProps(int devId) {
-            cudaGetDeviceProperties(&Props[devId], devId);
+            CUDA_SAFE_CALL(cudaGetDeviceProperties(&Props[devId], devId));
             Instance.PropsCached[devId] = true;
         }
 
@@ -36,8 +38,7 @@ namespace NKernel {
         }
 
         inline int GetCurrentDevice() {
-            int devId = -1;
-            cudaGetDevice(&devId);
+            int devId = NCuda::GetDevice();
             if (!PropsCached[devId]) {
                 CacheProps(devId);
             }

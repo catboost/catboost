@@ -6,6 +6,9 @@
 #include <catboost/cuda/cuda_lib/device_id.h>
 #include <catboost/cuda/cuda_lib/peer_devices.h>
 
+#include <library/cpp/cuda/wrappers/base.h>
+
+
 namespace NKernelHost {
     using TDeviceId = NCudaLib::TDeviceId;
 
@@ -22,7 +25,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream&) const {
             int myHostId = NCudaLib::GetHostId();
-            int myDevice = NCudaLib::GetDevice();
+            int myDevice = NCuda::GetDevice();
             auto& peerHelper = NCudaLib::GetPeerDevicesHelper();
 
             for (auto& deviceId : Devices) {
@@ -48,7 +51,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream&) const {
             int myHostId = NCudaLib::GetHostId();
-            int myDevice = NCudaLib::GetDevice();
+            int myDevice = NCuda::GetDevice();
             auto& peerHelper = NCudaLib::GetPeerDevicesHelper();
 
             for (auto& deviceId : Devices) {
