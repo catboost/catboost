@@ -44,19 +44,32 @@ impl DMatrix {
 /// Internally holds the CatBoost model and delegates calls.
 pub struct Booster {
     inner: CatBoostModel,
+    cat_features: Vec<Vec<String>>,
 }
 
 impl Booster {
     /// Load a model from file path (like xgboost::Booster::load_model)
     pub fn load_model<P: AsRef<Path>>(path: P) -> Result<Self, CatBoostError> {
         let model = CatBoostModel::load(path)?;
-        Ok(Booster { inner: model })
+        Ok(Booster {
+            inner: model,
+            cat_features: vec![],
+        })
     }
 
     /// Load from raw bytes if your CatBoost model loader supports it.
     pub fn from_buffer(buf: &[u8]) -> Result<Self, CatBoostError> {
         let model = CatBoostModel::load_buffer(&buf.to_vec())?;
-        Ok(Booster { inner: model })
+        Ok(Booster {
+            inner: model,
+            cat_features: vec![],
+        })
+    }
+
+    /// Set categorical features for the next prediction.
+    /// The number of rows must match the DMatrix used in `predict`.
+    pub fn set_categories(&mut self, cat_features: &[Vec<String>]) {
+        self.cat_features = cat_features.to_vec();
     }
 
     /// Predict on a single DMatrix returning a flattened Vec<f32> of predictions.
@@ -69,7 +82,9 @@ impl Booster {
             vec![]
         };
 
-        let features = ObjectsOrderFeatures::new().with_float_features(float_features);
+        let features = ObjectsOrderFeatures::new()
+            .with_float_features(float_features)
+            .with_cat_features(&self.cat_features);
 
         let preds_f64 = self.inner.predict(features)?;
         Ok(preds_f64.into_iter().map(|x| x as f32).collect())
@@ -105,19 +120,33 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn test_booster_load_and_predict_err() {
-        let booster = Booster::load_model("tmp/model.bin").unwrap();
+    fn test_booster_load_and_predict() {
+        let mut booster = Booster::load_model("tmp/model.bin").unwrap();
         assert_eq!(booster.num_feature(), 4); // 3 float + 1 cat
+
+        let cat_features: Vec<Vec<String>> = vec![
+            vec!["north".to_string()],
+            vec!["south".to_string()],
+            vec!["unused".to_string()],
+        ];
+        booster.set_categories(&cat_features);
 
         let test_data = vec![-10.0, 5.0, 753.0, 30.0, 1.0, 760.0, 40.0, 0.1, 705.0];
         let dmatrix = DMatrix::from_dense(&test_data, 3, 3);
 
-        // The provided model expects categorical features too, which DMatrix doesn't support.
-        // The predict call will fail. This test verifies that we can load and call predict.
-        // To make it pass, we would need to extend DMatrix to support categorical features.
         let result = booster.predict(&dmatrix);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().description.contains("cat feature"));
+        assert!(result.is_ok());
+        let predictions = result.unwrap();
+        assert_eq!(predictions.len(), 3);
+
+        let expected = vec![
+            0.9980003729960197,
+            0.00249414628534181,
+            -0.0013677527881450977,
+        ];
+        for (p, e) in predictions.iter().zip(expected.iter()) {
+            assert!((p - e).abs() < 1e-6);
+        }
     }
 
     #[test]
