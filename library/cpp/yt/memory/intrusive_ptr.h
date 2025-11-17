@@ -57,9 +57,7 @@ public:
     TIntrusivePtr(const TIntrusivePtr<U>& other) noexcept
         : T_(other.Get())
     {
-        static_assert(
-            std::derived_from<T, TRefCountedBase>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         if (T_) {
             Ref(T_);
         }
@@ -77,9 +75,7 @@ public:
     TIntrusivePtr(TIntrusivePtr<U>&& other) noexcept
         : T_(other.Get())
     {
-        static_assert(
-            std::derived_from<T, TRefCountedBase>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         other.T_ = nullptr;
     }
 
@@ -105,9 +101,7 @@ public:
         static_assert(
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
-        static_assert(
-            std::derived_from<T, TRefCountedBase>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         TIntrusivePtr(other).Swap(*this);
         return *this;
     }
@@ -126,9 +120,7 @@ public:
         static_assert(
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
-        static_assert(
-            std::derived_from<T, TRefCountedBase>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         TIntrusivePtr(std::move(other)).Swap(*this);
         return *this;
     }
@@ -193,6 +185,16 @@ private:
     friend class TIntrusivePtr;
 
     T* T_ = nullptr;
+
+    template <class U>
+    static constexpr void ValidateCastFrom() noexcept
+    {
+        if constexpr (!std::is_same_v<const U, T>) {
+            static_assert(
+                std::derived_from<T, TRefCountedBase>,
+                "Cast allowed only for types derived from TRefCountedBase");
+        }
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
