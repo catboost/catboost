@@ -46,7 +46,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         const auto& cpuGrid = dataSet->GetCpuGrid(policy);
         const auto foldOffset = cpuGrid.ComputeFoldOffsets();
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             TSlice docSlice = tgts.GetMapping().DeviceSlice(dev);
 
             TVector<ui32> compressedIndex;

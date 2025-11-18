@@ -95,7 +95,7 @@ namespace NCatboostCuda {
                 const ui32 compressedSize = CompressedSize<ui64>(docCount, 2);
                 TMirrorBuffer<ui64> broadcastedBits = TMirrorBuffer<ui64>::Create(NCudaLib::TMirrorMapping(compressedSize));
 
-                const ui32 devCount = GetDeviceCount();
+                const ui32 devCount = NCudaLib::GetDeviceCount();
 
                 for (ui32 dev = 0; dev < devCount; ++dev) {
                     if (!feature.IsEmpty(dev)) {

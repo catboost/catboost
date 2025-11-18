@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
+#include <library/cpp/cuda/exception/exception.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 #include <util/generic/noncopyable.h>
@@ -21,13 +22,6 @@ Y_DECLARE_PODTYPE(cudaDeviceProp);
 Y_DECLARE_PODTYPE(uint2);
 Y_DECLARE_PODTYPE(uint4);
 
-#define CUDA_SAFE_CALL(statement)                                                                                    \
-    {                                                                                                                \
-        cudaError_t errorCode = statement;                                                                           \
-        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            ythrow TCatBoostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
-        }                                                                                                            \
-    }
 
 namespace NCudaLib {
     class TCudaStreamsProvider: public TNonCopyable {
@@ -249,12 +243,6 @@ namespace NCudaLib {
 
     inline void SetDevice(int devId) {
         CUDA_SAFE_CALL(cudaSetDevice(devId));
-    }
-
-    inline int GetDevice() {
-        int devId;
-        CUDA_SAFE_CALL(cudaGetDevice(&devId));
-        return devId;
     }
 
     inline void CheckLastError() {

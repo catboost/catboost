@@ -1,17 +1,17 @@
 # coding: utf-8
 
 import base64
+import collections
 import errno
-import sys
-import os
-import logging
 import fnmatch
+import inspect
 import json
+import logging
+import os
+import signal
+import sys
 import time
 import traceback
-import collections
-import signal
-import inspect
 import warnings
 
 import faulthandler
@@ -136,7 +136,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     root_logger.setLevel(level)
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
-        log_format = '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s: %(message)s'
+        log_format = '%(asctime)s - %(levelname)s - %(name)s.%(process)d  - %(funcName)s: %(message)s'
         file_handler.setFormatter(_TokenFilterFormatter(log_format))
         file_handler.setLevel(level)
         root_logger.addHandler(file_handler)
@@ -166,6 +166,7 @@ def pytest_addoption(parser):
     parser.addoption("--python-path", action="store", dest="python_path", default="", help="path the canonical python binary")
     parser.addoption("--valgrind-path", action="store", dest="valgrind_path", default="", help="path the canonical valgring binary")
     parser.addoption("--test-filter", action="append", dest="test_filter", default=None, help="test filter")
+    parser.addoption("--test-filter-file", action="store", dest="test_filter_file", default=None, help="file with test filters")
     parser.addoption("--test-file-filter", action="store", dest="test_file_filter", default=None, help="test file filter")
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
@@ -401,6 +402,16 @@ def _get_item_tags(item):
     return tags
 
 
+def get_test_filter(option):
+    filters = []
+    if option.test_filter_file:
+        with open(option.test_filter_file, 'r') as fd:
+            filters = fd.read().splitlines()
+    if option.test_filter:
+        filters.extend(option.test_filter)
+    return filters
+
+
 def pytest_runtest_setup(item):
     item.rusage = _get_rusage()
     pytest_config.test_cores_count = 0
@@ -491,8 +502,10 @@ def pytest_collection_modifyitems(items, config):
             filters = chunks[config.option.modulo_index]
             filter_by_full_name(filters)
     else:
-        if config.option.test_filter:
-            filter_items(config.option.test_filter)
+        test_filter = get_test_filter(config.option)
+        if test_filter:
+            filter_items(test_filter)
+
         partition_mode = config.option.partition_mode
         modulo = config.option.modulo
         if modulo > 1:

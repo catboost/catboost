@@ -6,6 +6,8 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 using NCudaLib::EPtrType;
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;

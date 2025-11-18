@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_util/kernel/cub_storage_context.cuh>
 #include <catboost/cuda/cuda_util/kernel/reduce.cuh>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <type_traits>
 
 using NCudaLib::EPtrType;

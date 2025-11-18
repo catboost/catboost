@@ -21,11 +21,11 @@ public:
     TYsonStringBuf();
 
     //! Constructs an instance from TYsonString.
-    TYsonStringBuf(const TYsonString& ysonString);
+    TYsonStringBuf(const TYsonString& ysonString Y_LIFETIME_BOUND);
 
     //! Constructs a non-null instance with given type and content.
     explicit TYsonStringBuf(
-        const TString& data,
+        const TString& data Y_LIFETIME_BOUND,
         EYsonType type = EYsonType::Node);
 
     //! Constructs a non-null instance with given type and content.
@@ -37,7 +37,7 @@ public:
     //! (without this overload there is no way to construct TYsonStringBuf from
     //! string literal).
     explicit TYsonStringBuf(
-        const char* data,
+        const char* data Y_LIFETIME_BOUND,
         EYsonType type = EYsonType::Node);
 
     //! Returns |true| if the instance is not null.

@@ -1,5 +1,7 @@
 #include "stream_capture.h"
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <cuda_runtime.h>
 
 

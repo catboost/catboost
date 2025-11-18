@@ -43,9 +43,7 @@ target_sources(private-libs-text_features PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.bfbs
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.bfbs
 )

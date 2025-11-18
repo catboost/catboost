@@ -99,7 +99,7 @@ namespace NCatboostCuda {
                                             TBinarizedFeaturesManager& featuresManager,
                                             TCompressedCatFeatureDataSet& dataSet,
                                             NPar::ILocalExecutor* localExecutor)
-            : DevCount(GetDeviceCount())
+            : DevCount(NCudaLib::GetDeviceCount())
             , DataSet(dataSet)
             , DataProvider(dataProvider)
             , FeaturesManager(featuresManager)

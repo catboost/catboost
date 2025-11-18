@@ -28,7 +28,7 @@ class Pool(data,
 
 Dataset processing.
 
-The fastest way to pass the features data to the Pool constructor (and other [CatBoost](python-reference_catboost.md), [CatBoostClassifier](python-reference_catboostclassifier.md), [CatBoostRegressor](python-reference_catboostregressor.md) methods that accept it) if most (or all) of your features are numerical is to pass it using FeaturesData class. Another way to get similar performance with datasets that contain numerical features only is to pass features data as numpy.ndarray with numpy.float32 dtype.
+The fastest way to pass the features data to the Pool constructor (and other [CatBoost](python-reference_catboost.md), [CatBoostClassifier](python-reference_catboostclassifier.md), [CatBoostRegressor](python-reference_catboostregressor.md) and [CatBoostRanker](python-reference_catboostranker.md) methods that accept it) if most (or all) of your features are numerical is to pass it using FeaturesData class. Another way to get similar performance with datasets that contain numerical features only is to pass features data as numpy.ndarray with numpy.float32 dtype.
 
 ## {{ dl--parameters }} {#parameters}
 

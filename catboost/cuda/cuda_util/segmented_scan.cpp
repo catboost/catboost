@@ -5,6 +5,8 @@
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 #include <catboost/cuda/cuda_util/kernel/segmented_scan.cuh>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 using NCudaLib::EPtrType;
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
