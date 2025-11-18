@@ -205,6 +205,11 @@ struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_storage
   __storage __storage_{};
   bool __engaged_{};
 
+  _CCCL_API constexpr __compressed_box_storage(bool __engaged) noexcept
+      : __storage_()
+      , __engaged_(__engaged)
+  {}
+
   _CCCL_EXEC_CHECK_DISABLE
   _CCCL_TEMPLATE(class _Tp2 = _Tp)
   _CCCL_REQUIRES(is_default_constructible_v<_Tp2>)
@@ -253,6 +258,11 @@ struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_storage<_Index, _Tp, true>
   __storage __storage_{};
   bool __engaged_{};
 
+  _CCCL_API constexpr __compressed_box_storage(bool __engaged) noexcept
+      : __storage_()
+      , __engaged_(__engaged)
+  {}
+
   _CCCL_EXEC_CHECK_DISABLE
   _CCCL_TEMPLATE(class _Tp2 = _Tp)
   _CCCL_REQUIRES(is_default_constructible_v<_Tp2>)
@@ -277,6 +287,10 @@ struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_base<_Index, _Tp, __compresse
     : __compressed_box_storage<_Index, _Tp>
 {
   using __base = __compressed_box_storage<_Index, _Tp>;
+
+  _CCCL_API constexpr __compressed_box_base(bool __engaged) noexcept
+      : __base(__engaged)
+  {}
 
   _CCCL_EXEC_CHECK_DISABLE
   _CCCL_TEMPLATE(class _Tp2 = _Tp)
@@ -319,14 +333,16 @@ struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_base<_Index, _Tp, __compresse
   }
 };
 
+//! @brief We only need to do something for types that require the engaged state
 template <class _Tp>
 inline constexpr __smf_availability __compressed_box_copy_construct_available =
-  copy_constructible<_Tp> && is_trivially_copy_constructible_v<_Tp> ? __smf_availability::__trivial
-  : copy_constructible<_Tp>
+  (is_copy_constructible_v<_Tp> && __compressed_box_choose<_Tp>() != __compressed_box_specialization::__with_engaged)
+    ? __smf_availability::__trivial
+  : is_copy_constructible_v<_Tp>
     ? __smf_availability::__available
     : __smf_availability::__deleted;
 
-//! @brief Nothing to do for trivially copy constructible types
+//! @brief Nothing to do for copy constructible types
 template <size_t _Index, class _Tp, __smf_availability = __compressed_box_copy_construct_available<_Tp>>
 struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_copy_base : __compressed_box_base<_Index, _Tp>
 {
@@ -340,16 +356,12 @@ __compressed_box_copy_base<_Index, _Tp, __smf_availability::__available> : __com
 {
   _LIBCUDACXX_DELEGATE_CONSTRUCTORS(__compressed_box_copy_base, __compressed_box_base, _Index, _Tp);
 
-  // This ctor shouldn't need to initialize the base explicitly, but g++ 9 considers it to be uninitialized
-  // during constexpr evaluation if it isn't initialized explicitly. This can be replaced with the pattern
-  // below, in __compressed_box_move_base, once g++ 9 falls off our support matrix.
   _CCCL_API _CCCL_CONSTEXPR_CXX20
   __compressed_box_copy_base(const __compressed_box_copy_base& __other) noexcept(is_nothrow_copy_constructible_v<_Tp>)
-      : __base()
+      : __base(__other.__engaged())
   {
     if (__other.__engaged())
     {
-      this->__set_engaged(__other.__engaged());
       this->__construct(__other.__get());
     }
   }
@@ -371,14 +383,16 @@ __compressed_box_copy_base<_Index, _Tp, __smf_availability::__deleted> : __compr
   _CCCL_HIDE_FROM_ABI __compressed_box_copy_base& operator=(__compressed_box_copy_base&&)      = default;
 };
 
+//! @brief We only need to do something for types that require the engaged state
 template <class _Tp>
 inline constexpr __smf_availability __compressed_box_move_construct_available =
-  is_trivially_move_constructible_v<_Tp> ? __smf_availability::__trivial
+  (is_move_constructible_v<_Tp> && __compressed_box_choose<_Tp>() != __compressed_box_specialization::__with_engaged)
+    ? __smf_availability::__trivial
   : is_move_constructible_v<_Tp>
     ? __smf_availability::__available
     : __smf_availability::__deleted;
 
-//! @brief Nothing to do for trivially move constructible types
+//! @brief Nothing to do for move constructible types
 template <size_t _Index, class _Tp, __smf_availability = __compressed_box_move_construct_available<_Tp>>
 struct _CCCL_DECLSPEC_EMPTY_BASES __compressed_box_move_base : __compressed_box_copy_base<_Index, _Tp>
 {
@@ -392,17 +406,13 @@ __compressed_box_move_base<_Index, _Tp, __smf_availability::__available> : __com
 {
   _LIBCUDACXX_DELEGATE_CONSTRUCTORS(__compressed_box_move_base, __compressed_box_copy_base, _Index, _Tp);
 
-  // This ctor shouldn't need to initialize the base explicitly, but g++ 9 considers it to be uninitialized
-  // during constexpr evaluation if it isn't initialized explicitly. This can be replaced with the pattern
-  // below, in __compressed_box_move_base, once g++ 9 falls off our support matrix.
   _CCCL_HIDE_FROM_ABI __compressed_box_move_base(const __compressed_box_move_base&) = default;
   _CCCL_API _CCCL_CONSTEXPR_CXX20
   __compressed_box_move_base(__compressed_box_move_base&& __other) noexcept(is_nothrow_move_constructible_v<_Tp>)
-      : __base()
+      : __base(__other.__engaged())
   {
     if (__other.__engaged())
     {
-      this->__set_engaged(__other.__engaged());
       this->__construct(::cuda::std::move(__other.__get()));
     }
   }

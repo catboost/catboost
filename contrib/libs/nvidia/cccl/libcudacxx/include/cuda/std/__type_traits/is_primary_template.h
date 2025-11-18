@@ -84,11 +84,13 @@ template <class _Iter>
 struct __is_primary_std_template : bool_constant<__is_primary_std_template_impl<_Iter, _CCCL_TRAIT(is_pointer, _Iter)>>
 {};
 #  elif defined(_LIBCPP_VERSION)
+
 // libc++ uses the same mechanism than we do with __primary_template
 template <class _Traits>
 using __test_for_primary_std_template = enable_if_t<_IsSame<_Traits, typename _Traits::__primary_template>::value>;
 template <class _Iter>
 using __is_primary_std_template = _IsValidExpansion<__test_for_primary_std_template, ::std::iterator_traits<_Iter>>;
+
 #  elif defined(_MSVC_STL_VERSION) || defined(_IS_WRS)
 // On MSVC we must check for the base class because `_From_primary` is only defined in C++20
 template <class _Iter, bool>

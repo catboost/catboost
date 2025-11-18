@@ -27,6 +27,10 @@
 #include <cuda/std/__type_traits/is_same.h>
 #include <cuda/std/__type_traits/promote.h>
 
+#if !_CCCL_COMPILER(NVRTC)
+#  include <math.h>
+#endif // !_CCCL_COMPILER(NVRTC)
+
 #include <cuda/std/__cccl/prologue.h>
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD

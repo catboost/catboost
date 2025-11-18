@@ -42,6 +42,11 @@ template <>
 struct char_traits<wchar_t>;
 #endif // _CCCL_HAS_WCHAR_T()
 
+template <class _Tp>
+inline constexpr bool __is_cuda_std_char_traits_v = false;
+template <class _Tp>
+inline constexpr bool __is_cuda_std_char_traits_v<char_traits<_Tp>> = true;
+
 _LIBCUDACXX_END_NAMESPACE_STD
 
 #include <cuda/std/__cccl/epilogue.h>
