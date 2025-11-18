@@ -80,8 +80,8 @@ namespace NCatboostCuda {
             constexpr ui32 FeatureBlockSize = 16;
             const auto featureCount = floatFeatureIds.size();
             for (auto featureIdx : xrange<ui32>(0, featureCount, FeatureBlockSize)) {
-                const auto begin = floatFeatureIds.begin() + featureIdx;
-                const auto end = floatFeatureIds.begin() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
+                const auto begin = floatFeatureIds.data() + featureIdx;
+                const auto end = floatFeatureIds.data() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
                 WriteFloatFeatures(MakeArrayRef(begin, end), DataProvider);
                 CheckInterrupted(); // check after long-lasting operation
             }
