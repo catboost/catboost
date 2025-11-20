@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/json/writer/fwd.h>
+
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
@@ -7,10 +9,6 @@
 #include <util/generic/yexception.h>
 #include <util/stream/str.h>
 #include <util/string/cast.h>
-
-namespace NJson {
-    class TJsonValue;
-} // namespace NJson
 
 namespace NJsonWriter {
     enum EJsonEntity: ui8 {
