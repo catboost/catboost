@@ -341,7 +341,11 @@ template <class C, class P>
 void EraseNodesIf(C& c, P p) {
     for (auto iter = c.begin(), last = c.end(); iter != last;) {
         if (p(*iter)) {
-            c.erase(iter++);
+            if constexpr (std::is_same_v<decltype(iter), decltype(c.erase(iter))>) {
+                iter = c.erase(iter);
+            } else {
+                c.erase(iter++);
+            }
         } else {
             ++iter;
         }
