@@ -31,6 +31,7 @@
 #include <cuda/std/__type_traits/is_nothrow_default_constructible.h>
 #include <cuda/std/__type_traits/is_nothrow_move_constructible.h>
 #include <cuda/std/__type_traits/is_same.h>
+#include <cuda/std/__type_traits/is_signed.h>
 #include <cuda/std/__type_traits/remove_cvref.h>
 #include <cuda/std/__utility/forward.h>
 #include <cuda/std/__utility/move.h>
@@ -136,6 +137,8 @@ private:
   {
     return __store_.template __get<1>();
   }
+
+  static_assert(::cuda::std::is_signed_v<_Index>, "tabulate_output_iterator: _Index must be a signed integer");
 
 public:
   using iterator_concept  = _CUDA_VSTD::random_access_iterator_tag;
