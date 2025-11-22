@@ -206,8 +206,8 @@ public:                                                           \
                                                                   \
 protected:                                                        \
     virtual void DestroyContents() override {                     \
-        int nHoldRefs = this->RefData, nHoldObjs = this->ObjData; \
         this->~classname();                                       \
+        int nHoldRefs = this->RefData, nHoldObjs = this->ObjData; \
         new (this) classname();                                   \
         this->RefData += nHoldRefs;                               \
         this->ObjData += nHoldObjs;                               \
