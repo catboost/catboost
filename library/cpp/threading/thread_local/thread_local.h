@@ -1,6 +1,8 @@
 #pragma once
 
+#include <util/generic/deque.h>
 #include <util/generic/hash.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -91,6 +93,7 @@ enum class EThreadLocalImpl {
     HotSwap,
     SkipList,
     ForwardList,
+    StdThreadLocal // completely different implementation over thread_local keyword, correctly destroys objects on thread finish
 };
 
 namespace NDetail {
@@ -121,6 +124,125 @@ private:
 
     mutable std::array<TStorage, NumShards> Shards_;
 };
+
+template <typename T, size_t NumShards>
+class TThreadLocalValue<T, EThreadLocalImpl::StdThreadLocal, NumShards> : private TNonCopyable {
+public:
+    ~TThreadLocalValue() {
+        AllValues_.Destroy(ObjectId_);
+        FlatIds.Put(ObjectId_);
+    }
+
+    template <typename ...ConstructArgs>
+    T& GetRef(ConstructArgs&& ...args) const {
+        return *Get(std::forward<ConstructArgs>(args)...);
+    }
+
+    template <typename ...ConstructArgs>
+    T* Get(ConstructArgs&& ...args) const {
+        auto& values = Values_.Storage;
+
+        with_lock (Values_.Lock) {
+            if (ObjectId_ >= values.size()) {
+                values.resize(ObjectId_ + 1);
+            }
+        }
+
+        TMaybe<T>& v = values[ObjectId_];
+        if (!v.Defined()) {
+            v.ConstructInPlace(std::forward<ConstructArgs>(args)...);
+        }
+
+        return &*v;
+    }
+private:
+    struct TAllValues;
+
+    struct TPerThreadValues {
+        TAdaptiveLock Lock;
+        TDeque<TMaybe<T>> Storage;
+    public:
+        explicit TPerThreadValues(TAllValues* allValues)
+            : AllValues_(allValues)
+        {
+            AllValues_->Add(this);
+        }
+
+        ~TPerThreadValues() {
+            AllValues_->Remove(this);
+        }
+    private:
+        TAllValues* const AllValues_;
+    };
+
+    class TFlatIdGenerator {
+    public:
+        ui32 Get() {
+            with_lock (Lock_) {
+                if (Free_.empty()) {
+                    return MaxUnused_++;
+                } else {
+                    ui32 free = Free_.back();
+                    Free_.pop_back();
+                    return free;
+                }
+            }
+        }
+
+        void Put(ui32 id) {
+            with_lock (Lock_) {
+                Free_.push_back(id);
+            }
+        }
+    private:
+        TAdaptiveLock Lock_;
+        TVector<ui32> Free_;
+        ui32 MaxUnused_ = 0;
+    };
+
+    struct TAllValues {
+    public:
+        void Add(TPerThreadValues* v) {
+            with_lock (Lock_) {
+                Ptrs_.insert(v);
+            }
+        }
+
+        void Remove(TPerThreadValues* v) {
+            with_lock (Lock_) {
+                Ptrs_.erase(v);
+            }
+        }
+
+        void Destroy(ui32 objectId) {
+            with_lock (Lock_) {
+                for (auto* v : Ptrs_) {
+                    TMaybe<T>* toDestroy = nullptr;
+                    with_lock (v->Lock) {
+                        if (objectId < v->Storage.size()) {
+                            toDestroy = &v->Storage[objectId];
+                        }
+                    }
+
+                    if (toDestroy) {
+                        toDestroy->Clear();
+                    }
+                }
+            }
+        }
+    private:
+        TAdaptiveLock Lock_;
+        THashSet<TPerThreadValues*> Ptrs_;
+    };
+
+private:
+    static inline TFlatIdGenerator FlatIds;
+    const ui32 ObjectId_ = FlatIds.Get();
+
+    static inline TAllValues AllValues_;
+    static inline thread_local TPerThreadValues Values_{&AllValues_};
+};
+
 
 namespace NDetail {
 
