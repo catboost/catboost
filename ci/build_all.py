@@ -76,12 +76,12 @@ else:
         CUDA_ROOT = None
 
 
-def need_to_build_with_cuda_for_main_targets(platform_name: str):
+def need_to_build_with_cuda_for_main_targets(platform_name: str) -> bool:
     system, _ = platform_name.split('-')
     return system in ['linux', 'windows']
 
 
-def get_primary_platform_name():
+def get_primary_platform_name() -> str:
     if sys.platform == 'darwin':
         return 'darwin-universal2'
     else:
@@ -90,7 +90,7 @@ def get_primary_platform_name():
             'linux': 'linux'
         }[sys.platform] + '-x86_64'
 
-def get_native_platform_name():
+def get_native_platform_name() -> str:
     system_name = 'windows' if sys.platform == 'win32' else sys.platform
     arch = platform.machine()
     if arch == 'AMD64':
@@ -100,7 +100,7 @@ def get_native_platform_name():
 
 # Unfortunately CMake's FindPython does not work reliably in all cases so we have to recreate similar logic here.
 
-def get_python_root_dir(py_ver: Tuple[int, int])-> str:
+def get_python_root_dir(py_ver: Tuple[int, int]) -> str:
     # returns python_root_dir relative to CMAKE_FIND_ROOT_PATH
 
     if sys.platform == 'win32':
@@ -123,7 +123,7 @@ def get_python_root_dir(py_ver: Tuple[int, int])-> str:
         return os.path.join('python', f'cp{py_ver_str}-cp{py_ver_str}')
 
 
-def get_cython_bin_dir(py_ver: Tuple[int, int]):
+def get_cython_bin_dir(py_ver: Tuple[int, int]) -> str:
     # returns cython_root_dir relative to CMAKE_FIND_ROOT_PATH
 
     python_root_dir = get_python_root_dir(py_ver)
@@ -131,9 +131,9 @@ def get_cython_bin_dir(py_ver: Tuple[int, int]):
 
 
 def run_in_python_package_dir(
-    src_root_dir:str,
-    dry_run:bool,
-    verbose:bool,
+    src_root_dir: str,
+    dry_run: bool,
+    verbose: bool,
     commands: List[List[str]]):
 
     os.chdir(os.path.join(src_root_dir, 'catboost', 'python-package'))
@@ -157,9 +157,9 @@ def get_native_python_executable(py_ver: Tuple[int, int]) -> str:
 
 
 def run_with_native_python_with_version_in_python_package_dir(
-    src_root_dir:str,
-    dry_run:bool,
-    verbose:bool,
+    src_root_dir: str,
+    dry_run: bool,
+    verbose: bool,
     py_ver: Tuple[int, int],
     python_cmds_args: List[List[str]]):
 
@@ -173,10 +173,10 @@ def run_with_native_python_with_version_in_python_package_dir(
 
 def patch_sources(
     src_root_dir: str,
-    build_test_tools:bool = False,
-    only_native_artifacts:bool = False,
-    dry_run:bool = False,
-    verbose:bool = False):
+    build_test_tools: bool = False,
+    only_native_artifacts: bool = False,
+    dry_run: bool = False,
+    verbose: bool = False):
 
     # TODO(akhropov): Remove when system cuda.cmake is updated for Linux cross-build
     distutils.file_util.copy_file(
@@ -187,7 +187,7 @@ def patch_sources(
     )
 
 
-def get_python_plat_name(platform_name: str):
+def get_python_plat_name(platform_name: str) -> str:
     system, arch = platform_name.split('-')
     if system == 'windows':
         return 'win_amd64'
@@ -278,7 +278,7 @@ def build_jvm_artifacts(
     src_root_dir: str,
     build_native_root_dir: str,
     platform_name: str,
-    macos_universal_binaries:bool,
+    macos_universal_binaries: bool,
     build_with_cuda_for_main_targets: str,
     dry_run: bool,
     verbose: bool):
@@ -323,15 +323,15 @@ def build_jvm_artifacts(
             subprocess.check_call(cmd, env=environ)
 
 
-def get_exe_files(system:str, name:str) -> List[str]:
+def get_exe_files(system: str, name: str) -> List[str]:
     return [name + '.exe' if system == 'windows' else name]
 
-def get_static_lib_files(system:str, name:str) -> List[str]:
+def get_static_lib_files(system: str, name: str) -> List[str]:
     prefix = '' if system == 'windows' else 'lib'
     suffix = '.lib' if system == 'windows' else '.a'
     return [prefix + name + sub_suffix + suffix for sub_suffix in ['', '.global']]
 
-def get_shared_lib_files(system:str, name:str) -> List[str]:
+def get_shared_lib_files(system: str, name: str) -> List[str]:
     if system == 'windows':
         return [name + '.lib', name + '.dll']
     else:
@@ -340,11 +340,11 @@ def get_shared_lib_files(system:str, name:str) -> List[str]:
 
 def copy_built_artifacts_to_canonical_place(
     platform_name: str,
-    with_cuda:bool,
-    build_native_root_dir:str,
-    built_output_root_dir:str,
-    build_test_tools:bool,
-    dry_run:bool,
+    with_cuda: bool,
+    build_native_root_dir: str,
+    built_output_root_dir: str,
+    build_test_tools: bool,
+    dry_run: bool,
     verbose: bool
 ):
     """
@@ -387,7 +387,7 @@ def copy_built_artifacts_to_canonical_place(
                 distutils.dir_util.mkpath(os.path.dirname(dst), verbose=verbose, dry_run=dry_run)
                 distutils.file_util.copy_file(src, dst, verbose=verbose, dry_run=dry_run)
 
-def get_real_build_root_dir(src_root_dir:str, built_output_root_dir:str):
+def get_real_build_root_dir(src_root_dir: str, built_output_root_dir: str) -> str:
     if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
         build_native_root_dir = os.path.join(
             os.environ['CMAKE_BUILD_CACHE_DIR'],
@@ -600,20 +600,20 @@ def build_python_packages(
 
 
 def build_all_for_one_platform(
-    src_root_dir:str,
-    built_output_root_dir:str,  # will contain 'no_cuda/{platform_name}' and 'have_cuda/{platform_name}' subdirs
-    platform_name:str,  # either "{system}-{arch}' of 'darwin-universal2'
-    native_built_tools_root_dir:str=None,
-    cmake_target_toolchain:str=None,
-    conan_build_profile:str=None,
-    conan_host_profile:str=None,
-    cmake_extra_args:List[str]=None,
-    build_test_tools:bool=False,
-    only_native_artifacts:bool=False,
-    build_tools_only:bool=False,
-    disable_async:bool = False,
-    dry_run:bool=False,
-    verbose:bool=False):
+    src_root_dir: str,
+    built_output_root_dir: str,  # will contain 'no_cuda/{platform_name}' and 'have_cuda/{platform_name}' subdirs
+    platform_name: str,  # either "{system}-{arch}' of 'darwin-universal2'
+    native_built_tools_root_dir: Optional[str] = None,
+    cmake_target_toolchain: Optional[str] = None,
+    conan_build_profile: Optional[str] = None,
+    conan_host_profile: Optional[str] = None,
+    cmake_extra_args: Optional[List[str]] = None,
+    build_test_tools: bool = False,
+    only_native_artifacts: bool = False,
+    build_tools_only: bool = False,
+    disable_async: bool = False,
+    dry_run: bool = False,
+    verbose: bool = False):
 
     sys.path = [os.path.join(src_root_dir, 'build')] + sys.path
     import build_native
@@ -776,12 +776,12 @@ def build_all_for_one_platform(
 
 def build_all(
     src_root_dir: str,
-    build_test_tools:bool = False,
-    only_native_artifacts:bool = False,
+    build_test_tools: bool = False,
+    only_native_artifacts: bool = False,
     target_platforms: Optional[str] = None,
-    disable_async:bool = False,
-    dry_run:bool = False,
-    verbose:bool = False):
+    disable_async: bool = False,
+    dry_run: bool = False,
+    verbose: bool = False):
 
     if target_platforms:
         target_platforms = target_platforms.split(',')
