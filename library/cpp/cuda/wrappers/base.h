@@ -15,11 +15,16 @@
 
 class TCudaEvent;
 
-enum class EStreamPriority {
-    Default,
-    Low,
-    High
-};
+
+namespace NCuda {
+
+    enum class EStreamPriority {
+        Default,
+        Low,
+        High
+    };
+
+}
 
 class TCudaStream {
 private:
@@ -29,10 +34,10 @@ private:
             CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamDestroy(Stream_));
         }
 
-        explicit TImpl(bool nonBlocking, EStreamPriority streamPriority)
+        explicit TImpl(bool nonBlocking, NCuda::EStreamPriority streamPriority)
             : NonBlocking(nonBlocking)
         {
-            if (streamPriority == EStreamPriority::Default) {
+            if (streamPriority == NCuda::EStreamPriority::Default) {
                 if (nonBlocking) {
                     CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&Stream_, cudaStreamNonBlocking));
                 } else {
@@ -43,7 +48,7 @@ private:
                 int greatestPriority = 0;
                 CUDA_SAFE_CALL(cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority));
                 CUDA_ENSURE(nonBlocking, "non default priority for nonBlocking streams only");
-                int priority = leastPriority ? streamPriority == EStreamPriority::Low : greatestPriority;
+                int priority = leastPriority ? streamPriority == NCuda::EStreamPriority::Low : greatestPriority;
                 CUDA_SAFE_CALL(cudaStreamCreateWithPriority(&Stream_, cudaStreamNonBlocking, priority));
             }
         }
@@ -82,7 +87,7 @@ public:
         return TCudaStream();
     }
 
-    static TCudaStream NewStream(bool nonBlocking = true, EStreamPriority streamPriority = EStreamPriority::Default) {
+    static TCudaStream NewStream(bool nonBlocking = true, NCuda::EStreamPriority streamPriority = NCuda::EStreamPriority::Default) {
         return TCudaStream(new TImpl(nonBlocking, streamPriority));
     }
 
@@ -93,61 +98,61 @@ public:
     void WaitEvent(const TCudaEvent& event) const;
 };
 
-inline void DeviceSynchronize() {
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
-}
 
 namespace NCuda {
+    inline void DeviceSynchronize() {
+        CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    }
+
     inline int GetDevice() {
         int devId;
         CUDA_SAFE_CALL(cudaGetDevice(&devId));
         return devId;
     }
+
+    class TDeviceGuard: private TNonCopyable {
+    public:
+        TDeviceGuard(int device) {
+            PreviousDevice = NCuda::GetDevice();
+            if (device != PreviousDevice) {
+                CUDA_SAFE_CALL(cudaSetDevice(device));
+            } else {
+                PreviousDevice = -1;
+            }
+        }
+
+        ~TDeviceGuard() {
+            if (PreviousDevice != -1) {
+                CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaSetDevice(PreviousDevice));
+            }
+        }
+
+    private:
+        int PreviousDevice = -1;
+    };
+
+    void GetMemoryInfo(int device, size_t* available, size_t* total);
+    int GetDeviceCount();
+
+    class TProfile: private TNonCopyable {
+    public:
+        TProfile(const TString& message)
+            : Message_(message)
+        {
+            NCuda::DeviceSynchronize();
+            Start = TInstant::Now();
+        }
+
+        ~TProfile() {
+            NCuda::DeviceSynchronize();
+            Cout << Message_ << " in " << (TInstant::Now() - Start).SecondsFloat() << " seconds" << Endl;
+        }
+
+    private:
+        TString Message_;
+        TInstant Start;
+    };
 }
-
-class TDeviceGuard: private TNonCopyable {
-public:
-    TDeviceGuard(int device) {
-        PreviousDevice = NCuda::GetDevice();
-        if (device != PreviousDevice) {
-            CUDA_SAFE_CALL(cudaSetDevice(device));
-        } else {
-            PreviousDevice = -1;
-        }
-    }
-
-    ~TDeviceGuard() {
-        if (PreviousDevice != -1) {
-            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaSetDevice(PreviousDevice));
-        }
-    }
-
-private:
-    int PreviousDevice = -1;
-};
-
-
-void GetMemoryInfo(int device, size_t* available, size_t* total);
-int GetDeviceCount();
-
-class TProfile: private TNonCopyable {
-public:
-    TProfile(const TString& message)
-        : Message_(message)
-    {
-        DeviceSynchronize();
-        Start = TInstant::Now();
-    }
-
-    ~TProfile() {
-        DeviceSynchronize();
-        Cout << Message_ << " in " << (TInstant::Now() - Start).SecondsFloat() << " seconds" << Endl;
-    }
-
-private:
-    TString Message_;
-    TInstant Start;
-};
 
 
 template <class T>
