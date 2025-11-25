@@ -521,6 +521,15 @@ def build(
     **kwargs):
     """
         cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
+            Note that if 'cuda_root_dir' is specified in 'opts' or **kwargs then the following directories must exist and will be used:
+              - 'cuda_root_dir' - for CUDA compiler 'nvcc' and other tools like 'ptxas' to be used on the host platform
+              - os.path.join(cmake_platform_to_root_path[target_platform], cuda_root_dir) - for CUDA headers and libraries for the target platform
+                If cuda_root_dir contains a drive letter on Windows if will be cut from the start of cuda_root_dir before this join.
+                E.g. if
+                  cuda_root_dir = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
+                  cmake_platform_to_root_path[target_platform] = 'C:/cmake_build_env/windows-x86_64'
+                then the full path to the CUDA for the target platform will be
+                  'C:/cmake_build_env/windows-x86_64/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
         cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
     """
 
@@ -615,7 +624,7 @@ def build(
     if opts.have_cuda:
         cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
         cmake_cmd += [
-            f'-DCUDAToolkit_ROOT={cuda_root_dir}',
+            f'-DCUDAToolkit_ROOT={os.path.splitdrive(cuda_root_dir)[1] if cmake_platform_to_root_path is not None else cuda_root_dir}',
             f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}'
         ]
 
