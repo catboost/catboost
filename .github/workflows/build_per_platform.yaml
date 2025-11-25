@@ -223,8 +223,8 @@ jobs:
 
           # CUDA
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
-          New-Item -Path CUDA -ItemType Directory
-          New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          $CUDA_PATH_WO_DRIVE_AND_ROOT = (Split-Path "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -NoQualifier).TrimStart('\/')
+          New-Item -Path $CUDA_PATH_WO_DRIVE_AND_ROOT -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -Force
 
 
       - name: Update CMake build cache on every commit

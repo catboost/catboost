@@ -56,12 +56,11 @@ if sys.platform == 'win32':
         os.path.join(os.environ['USERPROFILE'], 'cmake_build_env_root')
     )
 
-    # without C: because we use CMAKE_FIND_ROOT_PATH for speeding up build for many pythons
+    CUDA_ROOT = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
+
     if IS_IN_GITHUB_ACTION:
-        CUDA_ROOT = '/CUDA/v11.8'
         JAVA_HOME = '/jdk-8'
     else:
-        CUDA_ROOT = '/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
         JAVA_HOME = '/Program Files/Eclipse Adoptium/jdk-8.0.362.9-hotspot/'
 else:
     CMAKE_BUILD_ENV_ROOT = os.environ.get(
