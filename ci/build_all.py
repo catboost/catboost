@@ -123,6 +123,21 @@ def get_python_root_dir(py_ver: Tuple[int, int]) -> str:
         return os.path.join('python', f'cp{py_ver_str}-cp{py_ver_str}')
 
 
+def get_base_python_root_dir(python_root_dir: str) -> str:
+    # maybe in venv, in this case return a directory from 'home' in pyvenv.cfg
+    pyvenv_cfg_path = os.path.join(python_root_dir, "pyvenv.cfg")
+    if os.path.exists(pyvenv_cfg_path):
+        with open(pyvenv_cfg_path) as f:
+            for l in f.readlines():
+                elements = l.split("=", 1)
+                if len(elements) == 2:
+                    if elements[0].strip() == 'home':
+                        return os.path.dirname(elements[1].strip())
+        raise RuntimeError(f'expected "home" entry not found in {pyvenv_cfg_path}')
+    else:
+        return python_root_dir
+
+
 def get_cython_bin_dir(py_ver: Tuple[int, int]) -> str:
     # returns cython_root_dir relative to CMAKE_FIND_ROOT_PATH
 
@@ -295,7 +310,7 @@ def build_jvm_artifacts(
         build_dir = os.path.join(build_native_root_dir, cuda_status_prefix, platform_name)
 
         cmd = [
-            'python3',
+            sys.executable,
             os.path.join('catboost', 'jvm-packages', 'tools', 'build_native_for_maven.py'),
             '--only-postprocessing',
             '--base-dir', base_dir,
@@ -500,9 +515,10 @@ def build_python_packages(
 
     ##################################################################################################
 
-    # local definition because requires build_native
+    # local definitions because require build_native
+
     def get_relative_python_dev_paths(py_ver: Tuple[int, int]) -> build_native.PythonDevPaths:
-        # returns paths relative to CMAKE_FIND_ROOT_PATH
+        # returns paths relative to Python root dir
 
         if sys.platform == 'win32':
             sub_paths = build_native.PythonDevPaths(
@@ -532,7 +548,24 @@ def build_python_packages(
                 )
             )
 
-        return sub_paths.prepend_paths(get_python_root_dir(py_ver))
+        return sub_paths
+
+
+    def resolve_python_dev_paths(
+        python_root_dir: str,   # maybe in venv, in this case adjust paths to INCLUDE_DIR and LIBRARY
+        relative_python_dev_paths: build_native.PythonDevPaths
+    ) -> build_native.PythonDevPaths:
+        base_python_root_dir = get_base_python_root_dir(python_root_dir)
+
+        numpy_include_path = os.path.join(python_root_dir, relative_python_dev_paths.numpy_include_path)
+        if not os.path.exists(numpy_include_path):
+            numpy_include_path = os.path.join(base_python_root_dir, relative_python_dev_paths.numpy_include_path)
+
+        return build_native.PythonDevPaths(
+            include_path = os.path.join(base_python_root_dir, relative_python_dev_paths.include_path),
+            library_path = os.path.join(base_python_root_dir, relative_python_dev_paths.library_path),
+            numpy_include_path = numpy_include_path,
+        )
 
     ##################################################################################################
 
@@ -547,7 +580,10 @@ def build_python_packages(
         cmake_platform_to_python_dev_paths = dict(
             (
                 platform_name,
-                relative_python_dev_paths.prepend_paths(os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name))
+                resolve_python_dev_paths(
+                    os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name, get_python_root_dir(py_ver)),
+                    relative_python_dev_paths
+                )
             )
             for platform_name in platform_names_for_python_dev_paths
         )
@@ -792,8 +828,8 @@ def build_all(
             dry_run,
             verbose,
             [
-                ['python3', 'setup.py', 'build_widget'],
-                ['python3', '-m', 'build', '--sdist']
+                [sys.executable, 'setup.py', 'build_widget'],
+                [sys.executable, '-m', 'build', '--sdist']
             ]
         )
 
