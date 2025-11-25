@@ -11,7 +11,7 @@ namespace {
             return Data_.Get();
         }
     private:
-        NThreading::TThreadLocalValue<TData> Data_;
+        NThreading::TThreadLocalValue<TData, NThreading::EThreadLocalImpl::StdThreadLocal> Data_;
     };
 
     NThreading::TGenericLocalStorageFactory genericLocalStorageFactory = []() {
