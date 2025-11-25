@@ -11,9 +11,6 @@
 #include <atomic>
 #include <cstddef>
 
-// temporary workaround for strict dependencies
-#include <utility>
-
 #include <cuda_runtime.h>
 
 
