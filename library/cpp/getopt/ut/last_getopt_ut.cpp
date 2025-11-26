@@ -182,6 +182,22 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         TOptsParseResultTestWrapper r22(&opts, {"cp", "/etc", "/var/tmp"});
     }
 
+    Y_UNIT_TEST(TestProgramSubcommandPathSetter) {
+        TOptsNoDefault opts;
+        TOptsParseResultTestWrapper r(&opts, {"tool"});
+        const TVector<TString> parts = {"tool", "sub", "command"};
+        r.SetProgramSubcommandPath(parts);
+        UNIT_ASSERT_VALUES_EQUAL(parts, r.GetProgramSubcommandPath());
+    }
+
+    Y_UNIT_TEST(TestProgramCanonicalNameCompat) {
+        TOptsNoDefault opts;
+        TOptsParseResultTestWrapper r(&opts, {"tool"});
+        r.SetProgramSubcommandPath({"tool", "outer", "inner"});
+        const TVector<TString> expected = {"tool", "outer", "inner"};
+        UNIT_ASSERT_VALUES_EQUAL(expected, r.GetProgramSubcommandPath());
+    }
+
     Y_UNIT_TEST(TestCharOptionsRequiredOptional) {
         TOptsNoDefault opts;
         opts.AddCharOption('d', REQUIRED_ARGUMENT);
