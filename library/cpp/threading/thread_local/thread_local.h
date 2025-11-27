@@ -129,8 +129,8 @@ template <typename T, size_t NumShards>
 class TThreadLocalValue<T, EThreadLocalImpl::StdThreadLocal, NumShards> : private TNonCopyable {
 public:
     ~TThreadLocalValue() {
-        AllValues_.Destroy(ObjectId_);
-        FlatIds.Put(ObjectId_);
+        StaticState_->AllValues.Destroy(ObjectId_);
+        StaticState_->FlatIds.Put(ObjectId_);
     }
 
     template <typename ...ConstructArgs>
@@ -156,23 +156,23 @@ public:
         return &*v;
     }
 private:
-    struct TAllValues;
+    struct TStaticState;
 
     struct TPerThreadValues {
         TAdaptiveLock Lock;
         TDeque<TMaybe<T>> Storage;
     public:
-        explicit TPerThreadValues(TAllValues* allValues)
-            : AllValues_(allValues)
+        explicit TPerThreadValues(TAtomicSharedPtr<TStaticState> staticState)
+            : StaticState_(std::move(staticState))
         {
-            AllValues_->Add(this);
+            StaticState_->AllValues.Add(this);
         }
 
         ~TPerThreadValues() {
-            AllValues_->Remove(this);
+            StaticState_->AllValues.Remove(this);
         }
     private:
-        TAllValues* const AllValues_;
+        TAtomicSharedPtr<TStaticState> StaticState_;
     };
 
     class TFlatIdGenerator {
@@ -234,13 +234,21 @@ private:
         TAdaptiveLock Lock_;
         THashSet<TPerThreadValues*> Ptrs_;
     };
-
 private:
-    static inline TFlatIdGenerator FlatIds;
-    const ui32 ObjectId_ = FlatIds.Get();
+    struct TStaticState {
+        TFlatIdGenerator FlatIds;
+        TAllValues AllValues;
+    };
 
-    static inline TAllValues AllValues_;
-    static inline thread_local TPerThreadValues Values_{&AllValues_};
+    static TAtomicSharedPtr<TStaticState> GetStaticState() {
+        static TAtomicSharedPtr<TStaticState> state = MakeAtomicShared<TStaticState>();
+        return state;
+    }
+private:
+    TAtomicSharedPtr<TStaticState> StaticState_ = GetStaticState();
+    const ui32 ObjectId_ = StaticState_->FlatIds.Get();
+
+    static inline thread_local TPerThreadValues Values_{GetStaticState()};
 };
 
 
