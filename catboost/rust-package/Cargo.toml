@@ -16,4 +16,5 @@ libc = "0.2"
 
 [features]
 gpu = ["catboost-sys/gpu"]
+use_prebuilt = ["catboost-sys/use_prebuilt"]
 
