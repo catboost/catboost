@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [features]
 gpu = []
-default = ["use_prebuilt"]
+default = []
 use_prebuilt = ["reqwest"]
 cuda = []
 
