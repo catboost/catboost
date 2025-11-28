@@ -73,6 +73,7 @@ namespace NLastGetopt {
 
         TdVec Opts_;    //Parsing result for all options, that have been explicitly defined in argc/argv
         TdVec OptsDef_; //Parsing result for options, that have been defined by default values only
+        TVector<TString> ProgramSubcommandPath_;
 
     private:
         TOptParseResult& OptParseResult();
@@ -161,6 +162,8 @@ namespace NLastGetopt {
          * @return argv[0]
          */
         TString GetProgramName() const;
+        void SetProgramSubcommandPath(const TVector<TString>& parts);
+        const TVector<TString>& GetProgramSubcommandPath() const;
 
         /**
          * Print usage string.

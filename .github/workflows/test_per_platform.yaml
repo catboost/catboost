@@ -47,12 +47,14 @@ jobs:
       - name: Install pytest with plugins
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python -m pip install pytest pytest-xdist pytest-randomly
 
       - if: inputs.os != 'windows'
         name: Generate CatBoost for Apache Spark projects
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
           python ./generate_projects/generate.py
 
@@ -241,6 +243,8 @@ jobs:
       - name: Prepare binaries from artifacts
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           if ("${{ inputs.os }}" -ne "windows") {
             chmod a+x ${{ github.workspace }}/build_native_root/catboost/app/catboost
           }
@@ -255,6 +259,8 @@ jobs:
       - name: Run pytest
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           python -m pip install pytest numpy pandas
           python -m pip uninstall -y catboost
           python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
@@ -269,6 +275,8 @@ jobs:
       - name: Run python package tests
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           python -m pip install pytest numpy pandas ipywidgets scikit-learn
           python -m pip uninstall -y catboost
           python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
@@ -282,12 +290,16 @@ jobs:
       - name: Run jvm-packages/common tests
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
           mvn --batch-mode test
 
       - name: Run catboost4j-prediction tests
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
           mvn --batch-mode install -DskipTests -D"gpg.skip"
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
@@ -299,6 +311,8 @@ jobs:
         name: Run catboost4j-spark tests
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
           mvn --batch-mode install -DskipTests -D"gpg.skip"
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark/projects/spark_3.5_2.12
@@ -308,6 +322,8 @@ jobs:
         name: Check R package
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-${{ inputs.os }}-${{ inputs.machine }}.tgz', INSTALL_opts = c('--no-multiarch', '--install-tests'))"
           Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
 
@@ -315,6 +331,8 @@ jobs:
         name: Check R package
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Rscript -e "install.packages('remotes', Ncpus = parallel::detectCores()); remotes::install_local('catboost_R_package/catboost-R-darwin-universal2.tgz', INSTALL_opts = c('--no-multiarch', '--no-staged-install', '--install-tests'))"
           Rscript -e "install.packages(c('testthat','caret','tibble'), Ncpus = parallel::detectCores()); testthat::test_package('catboost')"
 

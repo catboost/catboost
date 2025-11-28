@@ -1,5 +1,6 @@
 #pragma once
 
+#include <library/cpp/json/writer/fwd.h>
 #include <library/cpp/json/common/defs.h>
 
 #include <util/generic/string.h>
@@ -22,8 +23,6 @@ namespace NJson {
         JSON_ARRAY /* "Array" */,
         JSON_UINTEGER /* "UInteger" */
     };
-
-    class TJsonValue;
 
     class IScanCallback {
     public:

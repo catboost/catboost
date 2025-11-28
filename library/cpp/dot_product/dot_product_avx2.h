@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include <util/system/types.h>
 #include <util/system/compiler.h>
 
@@ -17,3 +19,7 @@ float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept
 
 Y_PURE_FUNCTION
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept;
+
+Y_PURE_FUNCTION
+TTriWayDotProduct<float> TriWayDotProductAvx2
+    (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept;

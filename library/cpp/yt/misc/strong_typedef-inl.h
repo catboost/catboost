@@ -64,25 +64,22 @@ constexpr T&& TStrongTypedef<T, TTag, Options>::Underlying() &&
     return std::move(Underlying_);
 }
 
-#define XX(op, defaultValue) \
+#define XX(returnType, op) \
     template <class T, class TTag, TStrongTypedefOptions Options> \
-    constexpr auto TStrongTypedef<T, TTag, Options>::operator op(const TStrongTypedef& rhs) const \
+    constexpr returnType TStrongTypedef<T, TTag, Options>::operator op(const TStrongTypedef& rhs) const \
         noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
             requires requires (T lhs, T rhs) { lhs op rhs; } && (Options.IsComparable) \
     { \
-        if constexpr (std::same_as<T, void>) { \
-            return defaultValue; \
-        } \
         return Underlying_ op rhs.Underlying_; \
     }
 
-XX(<, false)
-XX(>, false)
-XX(<=, true)
-XX(>=, true)
-XX(==, true)
-XX(!=, false)
-XX(<=>, std::strong_ordering::equal)
+XX(bool, <)
+XX(bool, >)
+XX(bool, <=)
+XX(bool, >=)
+XX(bool, ==)
+XX(bool, !=)
+XX(auto, <=>)
 
 #undef XX
 

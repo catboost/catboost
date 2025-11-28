@@ -240,7 +240,7 @@ __forceinline__ __device__ TReduceType TileReduce4(cooperative_groups::thread_bl
 
 template <int TileSize, class TOp = TCudaAdd<float>>
 __forceinline__ __device__ float4 WarpReduce4(const float4 threadValue) {
-    #define FULL_MASK 0xffffffff
+    constexpr unsigned FULL_MASK = 0xffffffff;
     TOp op;
     __syncwarp();
     float4 val = threadValue;

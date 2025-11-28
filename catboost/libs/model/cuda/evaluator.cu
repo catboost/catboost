@@ -61,22 +61,22 @@ void TCudaQuantizedData::SetDimensions(ui32 effectiveBucketCount, ui32 objectsCo
     const auto one32blockSize = WarpSize * effectiveBucketCount;
     const auto desiredQuantBuff = one32blockSize * NKernel::CeilDivide<ui32>(objectsCount, 128) * 4;
     if (BinarizedFeaturesBuffer.Size() < desiredQuantBuff) {
-        BinarizedFeaturesBuffer = TCudaVec<TCudaQuantizationBucket>(desiredQuantBuff, EMemoryType::Device);
+        BinarizedFeaturesBuffer = TCudaVec<TCudaQuantizationBucket>(desiredQuantBuff, NCuda::EMemoryType::Device);
     }
 }
 
 void TEvaluationDataCache::PrepareCopyBufs(size_t bufSize, size_t objectsCount) {
     if (CopyDataBufDevice.Size() < bufSize) {
-        CopyDataBufDevice = TCudaVec<float>(AlignBy<2048>(bufSize), EMemoryType::Device);
+        CopyDataBufDevice = TCudaVec<float>(AlignBy<2048>(bufSize), NCuda::EMemoryType::Device);
     }
     if (CopyDataBufHost.Size() < bufSize) {
-        CopyDataBufHost = TCudaVec<float>(AlignBy<2048>(bufSize), EMemoryType::Host);
+        CopyDataBufHost = TCudaVec<float>(AlignBy<2048>(bufSize), NCuda::EMemoryType::Host);
     }
     if (ResultsFloatBuf.Size() < objectsCount) {
-        ResultsFloatBuf = TCudaVec<float>(AlignBy<2048>(objectsCount), EMemoryType::Device);
+        ResultsFloatBuf = TCudaVec<float>(AlignBy<2048>(objectsCount), NCuda::EMemoryType::Device);
     }
     if (ResultsDoubleBuf.Size() < objectsCount) {
-        ResultsDoubleBuf = TCudaVec<double>(AlignBy<2048>(objectsCount), EMemoryType::Device);
+        ResultsDoubleBuf = TCudaVec<double>(AlignBy<2048>(objectsCount), NCuda::EMemoryType::Device);
     }
 }
 
@@ -373,7 +373,7 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         ProcessResults<false>(*this, predictionType, data->GetObjectsCount());
     }
 
-    MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, data->GetObjectsCount()), result, Stream);
+    NCuda::MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, data->GetObjectsCount()), result, Stream);
 }
 
 void TGPUCatboostEvaluationContext::QuantizeData(const TGPUDataInput& dataInput, TCudaQuantizedData* quantizedData) const{

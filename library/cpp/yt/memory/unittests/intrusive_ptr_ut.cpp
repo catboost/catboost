@@ -635,6 +635,22 @@ TEST(TIntrusivePtrTest, TestObjectConstructionFail)
     ASSERT_THROW(New<TObjectWithExceptionInConstructor>(), int);
 }
 
+TEST(TIntrusivePtrTest, TestConstCast)
+{
+    struct TUi64Pair final
+    {
+        ui64 First;
+        ui64 Second;
+
+        bool operator==(const TUi64Pair&) const = default;
+    };
+
+    auto ptr = New<TUi64Pair>(TUi64Pair{1, 2});
+    TIntrusivePtr<const TUi64Pair> constPtr = ptr;
+    EXPECT_EQ(ptr.Get(), constPtr.Get());
+    EXPECT_EQ(*ptr, *constPtr);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

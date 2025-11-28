@@ -256,6 +256,7 @@ jobs:
       - name: Generate CatBoost for Apache Spark projects
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
           python ./generate_projects/generate.py
 

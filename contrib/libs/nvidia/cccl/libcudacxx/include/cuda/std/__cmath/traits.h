@@ -33,6 +33,10 @@
 
 #include <nv/target>
 
+#if !_CCCL_COMPILER(NVRTC)
+#  include <math.h>
+#endif // !_CCCL_COMPILER(NVRTC)
+
 #include <cuda/std/__cccl/prologue.h>
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD

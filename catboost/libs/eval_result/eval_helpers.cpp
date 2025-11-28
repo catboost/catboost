@@ -184,7 +184,7 @@ static void CalcClassificationUncertainty(
         }
         for (size_t idx = 0; idx < approx.size(); ++idx) {
             TConstArrayRef<double> arrayRef = TConstArrayRef<double>(
-                approx[idx].begin() + firstLineId,
+                approx[idx].data() + firstLineId,
                 lastLineId - firstLineId);
             TVector<double> probability = CalcSigmoid(arrayRef);
             auto entropy = CalcEntropyFromProbabilities(probability);

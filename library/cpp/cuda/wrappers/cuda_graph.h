@@ -7,7 +7,9 @@
 #include <cuda_runtime.h>
 
 
-class TStreamCapture;
+namespace NCuda {
+    class TStreamCapture;
+}
 
 class TCudaGraph {
 private:
@@ -25,7 +27,7 @@ private:
 private:
     TIntrusivePtr<TInner> Impl_;
 
-    friend class TStreamCapture;
+    friend class NCuda::TStreamCapture;
 
     explicit TCudaGraph(cudaGraph_t graph)
         : Impl_(new TInner(graph))

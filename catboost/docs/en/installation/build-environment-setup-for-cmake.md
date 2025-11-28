@@ -103,9 +103,11 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
         - Microsoft Visual Studio 2022 with `clang-cl` compiler with version 14+ installed (can be selected in `Individual components` pane of the Visual Studio Installer for Visual Studio 2022). See details [here](https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170)
 
       - for builds with CUDA support:
-        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a particular Visual Studio version)
+        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x, v14.29 - 16.x or 14.4x (can be selected in `Individual components` pane of the Visual Studio Installer for a particular Visual Studio version)
 
       {% cut "Previous requirements" %}
+
+      For revisions before [b6b6b3f](https://github.com/catboost/catboost/commit/b6b6b3f2747c0c903beb5679ac5d674fc8653cd0) builds with CUDA required MSVC v142 - Visual Studio 2019 C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x.
 
       For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) builds without CUDA required Microsoft Visual Studio 2022 with `clang-cl` compiler with versions 14 - 18.
 
