@@ -2,6 +2,7 @@
 name = "catboost-sys"
 version = "0.1.1"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+rust-version = "1.64"
 edition = "2021"
 license = "Apache-2.0"
 
