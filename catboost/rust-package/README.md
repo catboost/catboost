@@ -55,11 +55,14 @@ Run `cargo doc --open` in `catboost/rust-package` directory.
 
 Run `cargo test` in `catboost/rust-package` directory.
 
+
 ### Precompiled catboost C lib
 
-Compiling catboost might take some time as it would also compile the C library. 
+Compiling catboost might take some time as it would also compile the C library.
+This requires a `python` interpreter and built tools for C on your machine.
 If you don't want this, you can also use the prebuilt official releases and 
 download those during compilation:
 ```
+[dependencies]
 catboost = { git = "https://github.com/catboost/catboost", features = ["use_prebuilt"] } 
 ```
