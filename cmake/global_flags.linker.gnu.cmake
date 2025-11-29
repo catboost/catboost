@@ -40,4 +40,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # Android does not provide libpthread at all.
   # Once we will be building against glibc=2.34, we might simply remove -lpthread
   link_libraries(pthread)
+  
+  # Add standard C library and other essential libraries when using -nodefaultlibs
+  link_libraries(c m dl rt)
 endif()
