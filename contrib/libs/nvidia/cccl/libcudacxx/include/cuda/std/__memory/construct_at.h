@@ -25,6 +25,7 @@
 #include <cuda/std/__iterator/access.h>
 #include <cuda/std/__memory/addressof.h>
 #include <cuda/std/__memory/voidify.h>
+#include <cuda/std/__new/device_new.h>
 #include <cuda/std/__type_traits/enable_if.h>
 #include <cuda/std/__type_traits/integral_constant.h>
 #include <cuda/std/__type_traits/is_arithmetic.h>
@@ -37,10 +38,6 @@
 #include <cuda/std/__utility/declval.h>
 #include <cuda/std/__utility/forward.h>
 #include <cuda/std/__utility/move.h>
-
-#if _CCCL_CUDA_COMPILER(CLANG)
-#  include <new>
-#endif // _CCCL_CUDA_COMPILER(CLANG)
 
 #if _CCCL_STD_VER >= 2020 // need to backfill ::std::construct_at
 #  if !_CCCL_COMPILER(NVRTC)

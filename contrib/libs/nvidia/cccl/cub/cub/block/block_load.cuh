@@ -46,6 +46,8 @@
 #include <cub/util_ptx.cuh>
 #include <cub/util_type.cuh>
 
+#include <cuda/std/__new/device_new.h>
+
 CUB_NAMESPACE_BEGIN
 
 //! @name Blocked arrangement I/O (direct)

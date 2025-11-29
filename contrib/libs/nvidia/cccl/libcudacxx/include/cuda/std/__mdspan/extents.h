@@ -175,8 +175,8 @@ constexpr size_t __count_dynamic_v = (size_t{0} + ... + static_cast<size_t>(_Val
 // The position of a dynamic value is indicated through a tag value.
 // We manually implement EBCO because MSVC and some odler compiler fail hard with [[no_unique_address]]
 template <class _TDynamic, class _TStatic, _TStatic _DynTag, _TStatic... _Values>
-struct __maybe_static_array
-    : private __possibly_empty_array<_TDynamic, __count_dynamic_v<_TStatic, _DynTag, _Values...>>
+struct _CCCL_DECLSPEC_EMPTY_BASES
+__maybe_static_array : private __possibly_empty_array<_TDynamic, __count_dynamic_v<_TStatic, _DynTag, _Values...>>
 {
   static_assert(_CCCL_TRAIT(is_convertible, _TStatic, _TDynamic),
                 "__maybe_static_array: _TStatic must be convertible to _TDynamic");
