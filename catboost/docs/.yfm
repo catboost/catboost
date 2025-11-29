@@ -13,3 +13,8 @@ docs-viewer:
   logo-dark-src: https://catboost-opensource.s3.yandex.net/logo_white_for_dark_theme.svg
   langs: ['en']
   github-url-prefix: https://github.com/catboost/catboost/tree/master/catboost/docs
+
+resources:
+  csp:
+    - "frame-src":
+      - "https://www.youtube.com"
