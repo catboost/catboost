@@ -15,7 +15,7 @@ import org.apache.spark.sql.types._
 
 import ai.catboost.spark._
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
