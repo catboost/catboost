@@ -70,7 +70,9 @@ Use Python's standard procedures:
 
 {% note warning %}
 
-Note that built Python wheels will be binary compatible only with the same Python X.Y versions.
+Note that built Python wheels will be compatible only with:
+- the same platform that you build them on (i.e. `linux-x86_64`, `macos-arm64` etc.). Cross-compilation on Linux and building universal2 - compatible packages on macOS are possible but complicated, you can look at [ci/build_all.py script](https://github.com/catboost/catboost/blob/master/ci/build_all.py) for details.
+- the same Python X.Y versions as the Python interpreter that you run the build command with.
 
 {% endnote %}
 
