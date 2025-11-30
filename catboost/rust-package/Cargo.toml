@@ -13,7 +13,6 @@ license = "Apache-2.0"
 catboost-sys = { path = "catboost-sys", version = "0.1.1"}
 # catboost-sys = "0.1"
 approx = "0.5.1"
-libc = "0.2"
 
 [features]
 gpu = ["catboost-sys/gpu"]
