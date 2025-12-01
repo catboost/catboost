@@ -1,4 +1,5 @@
 #include <library/cpp/dot_product/dot_product_avx2.h>
+#include <library/cpp/dot_product/dot_product_simple.h>
 #include <library/cpp/dot_product/dot_product_sse.h>
 
 #include <library/cpp/testing/unittest/registar.h>
@@ -10,38 +11,6 @@ using TriWayFunc = TTriWayDotProduct<float> (*)
         (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept;
 
 namespace {
-
-TTriWayDotProduct<float> TriWayDotProductSimple(
-    const float* lhs,
-    const float* rhs,
-    size_t length,
-    bool computeRR) noexcept
-{
-    float sumLL = 0.0f;
-    float sumLR = 0.0f;
-    float sumRR = 0.0f;
-
-    for (size_t i = 0; i < length; ++i) {
-        const float l = lhs[i];
-        const float r = rhs[i];
-        sumLL += l * l;
-        sumLR += l * r;
-        if (computeRR) {
-            sumRR += r * r;
-        }
-    }
-
-    TTriWayDotProduct<float> result;
-    result.LL = sumLL;
-    result.LR = sumLR;
-    if (computeRR) {
-        result.RR = sumRR;
-    } else {
-        static constexpr TTriWayDotProduct<float> def;
-        result.RR = def.RR;
-    }
-    return result;
-}
 
 void TestTriWay(size_t length, TriWayFunc func) {
     const float lhsMultiplier = 0.25f;

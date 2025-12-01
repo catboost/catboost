@@ -17,10 +17,8 @@ namespace NDotProductImpl {
     float (*DotProductFloatImpl)(const float* lhs, const float* rhs, size_t length) noexcept = &DotProductSimple;
     double (*DotProductDoubleImpl)(const double* lhs, const double* rhs, size_t length) noexcept = &DotProductSimple;
 
-    // TODO: originally there was SSE implementation only, thus
-    // should be OK to have it by default
     TTriWayDotProduct<float> (*TriWayDotProductImpl)
-        (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept = &TriWayDotProductSse;
+        (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept = &TriWayDotProductSimple;
 
 
     namespace {
@@ -167,19 +165,20 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, si
 
 namespace NDotProduct {
     void DisableAvx2() {
-        NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSse;
 #ifdef ARCADIA_SSE
         NDotProductImpl::DotProductI8Impl = &DotProductSse;
         NDotProductImpl::DotProductUi8Impl = &DotProductSse;
         NDotProductImpl::DotProductI32Impl = &DotProductSse;
         NDotProductImpl::DotProductFloatImpl = &DotProductSse;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSse;
+        NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSse;
 #else
         NDotProductImpl::DotProductI8Impl = &DotProductSimple;
         NDotProductImpl::DotProductUi8Impl = &DotProductSimple;
         NDotProductImpl::DotProductI32Impl = &DotProductSimple;
         NDotProductImpl::DotProductFloatImpl = &DotProductSimple;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSimple;
+        NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSimple;
 #endif
     }
 }

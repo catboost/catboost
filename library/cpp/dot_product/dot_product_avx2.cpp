@@ -308,11 +308,11 @@ static void TriWayDotProductIterationAvx2(__m256& sumLL, __m256& sumLR, __m256& 
     }
 }
 
-TTriWayDotProduct<float> TriWayDotProductAvx2(
+template <bool computeRR>
+TTriWayDotProduct<float> TriWayDotProductAvx2Impl(
     const float* lhs,
     const float* rhs,
-    size_t length,
-    bool computeRR) noexcept
+    size_t length) noexcept
 {
     __m256 sumLL1 = _mm256_setzero_ps();
     __m256 sumLR1 = _mm256_setzero_ps();
@@ -321,18 +321,16 @@ TTriWayDotProduct<float> TriWayDotProductAvx2(
     __m256 sumLR2 = _mm256_setzero_ps();
     __m256 sumRR2 = _mm256_setzero_ps();
 
-    auto* iterationFunc = computeRR ? TriWayDotProductIterationAvx2<true> : TriWayDotProductIterationAvx2<false>;
-
     while (length >= 16) {
-        iterationFunc(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
-        iterationFunc(sumLL2, sumLR2, sumRR2, _mm256_loadu_ps(lhs + 8), _mm256_loadu_ps(rhs + 8));
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
+        TriWayDotProductIterationAvx2<computeRR>(sumLL2, sumLR2, sumRR2, _mm256_loadu_ps(lhs + 8), _mm256_loadu_ps(rhs + 8));
         length -= 16;
         lhs += 16;
         rhs += 16;
     }
 
     if (length >= 8) {
-        iterationFunc(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
         length -= 8;
         lhs += 8;
         rhs += 8;
@@ -405,7 +403,7 @@ TTriWayDotProduct<float> TriWayDotProductAvx2(
             default:
                 Y_UNREACHABLE();
         }
-        iterationFunc(sumLL1, sumLR1, sumRR1, a, b);
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, a, b);
     }
 
     __m128 sumLL128 = _mm_add_ps(_mm256_castps256_ps128(sumLL1),
@@ -441,6 +439,19 @@ TTriWayDotProduct<float> TriWayDotProductAvx2(
     return result;
 }
 
+TTriWayDotProduct<float> TriWayDotProductAvx2(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    if (computeRR) {
+        return TriWayDotProductAvx2Impl<true>(lhs, rhs, length);
+    } else {
+        return TriWayDotProductAvx2Impl<false>(lhs, rhs, length);
+    }
+}
+
 #elif defined(ARCADIA_SSE)
 
 i32 DotProductAvx2(const i8* lhs, const i8* rhs, size_t length) noexcept {
@@ -461,6 +472,15 @@ float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept
 
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept {
     return DotProductSse(lhs, rhs, length);
+}
+
+TTriWayDotProduct<float> TriWayDotProductAvx2(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    return TriWayDotProductSse(lhs, rhs, length, computeRR);
 }
 
 #else
@@ -491,7 +511,7 @@ TTriWayDotProduct<float> TriWayDotProductAvx2(
     size_t length,
     bool computeRR) noexcept
 {
-    return TriWayDotProductSse(lhs, rhs, length, computeRR);
+    return TriWayDotProductSimple(lhs, rhs, length, computeRR);
 }
 
 #endif

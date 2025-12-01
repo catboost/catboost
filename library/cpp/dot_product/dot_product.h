@@ -62,7 +62,12 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, si
  * For two vectors L and R computes 3 dot-products: L·L, L·R, R·R
  */
 Y_PURE_FUNCTION
-static inline TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, size_t length, ETriWayDotProductComputeMask mask = ETriWayDotProductComputeMask::All) noexcept {
+static inline TTriWayDotProduct<float> TriWayDotProduct(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    ETriWayDotProductComputeMask mask = ETriWayDotProductComputeMask::All) noexcept
+{
     return TriWayDotProduct(lhs, rhs, length, static_cast<unsigned>(mask));
 }
 

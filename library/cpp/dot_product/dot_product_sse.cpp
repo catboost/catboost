@@ -227,11 +227,11 @@ static void TriWayDotProductIterationSse(__m128& sumLL, __m128& sumLR, __m128& s
     }
 }
 
-TTriWayDotProduct<float> TriWayDotProductSse(
+template <bool computeRR>
+TTriWayDotProduct<float> TriWayDotProductSseImpl(
     const float* lhs,
     const float* rhs,
-    size_t length,
-    bool computeRR) noexcept
+    size_t length) noexcept
 {
     __m128 sumLL1 = _mm_setzero_ps();
     __m128 sumLR1 = _mm_setzero_ps();
@@ -240,18 +240,16 @@ TTriWayDotProduct<float> TriWayDotProductSse(
     __m128 sumLR2 = _mm_setzero_ps();
     __m128 sumRR2 = _mm_setzero_ps();
 
-    auto* iterationFunc = computeRR ? TriWayDotProductIterationSse<true> : TriWayDotProductIterationSse<false>;
-
     while (length >= 8) {
-        iterationFunc(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
-        iterationFunc(sumLL2, sumLR2, sumRR2, _mm_loadu_ps(lhs + 4), _mm_loadu_ps(rhs + 4));
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
+        TriWayDotProductIterationSse<computeRR>(sumLL2, sumLR2, sumRR2, _mm_loadu_ps(lhs + 4), _mm_loadu_ps(rhs + 4));
         length -= 8;
         lhs += 8;
         rhs += 8;
     }
 
     if (length >= 4) {
-        iterationFunc(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
         length -= 4;
         lhs += 4;
         rhs += 4;
@@ -282,7 +280,7 @@ TTriWayDotProduct<float> TriWayDotProductSse(
             default:
                 Y_UNREACHABLE();
         }
-        iterationFunc(sumLL1, sumLR1, sumRR1, a, b);
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, a, b);
     }
 
     __m128 t0 = sumLL1;
@@ -302,6 +300,19 @@ TTriWayDotProduct<float> TriWayDotProductSse(
         result.RR = def.RR;
     }
     return result;
+}
+
+TTriWayDotProduct<float> TriWayDotProductSse(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    if (computeRR) {
+        return TriWayDotProductSseImpl<true>(lhs, rhs, length);
+    } else {
+        return TriWayDotProductSseImpl<false>(lhs, rhs, length);
+    }
 }
 
 #endif // ARCADIA_SSE
