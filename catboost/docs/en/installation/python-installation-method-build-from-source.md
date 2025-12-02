@@ -30,6 +30,8 @@ For building with earlier versions see these pages:
 
 1. As {{ product }} Python package has a native extension library as its' core [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
 
+1. `build` Python package.
+
 1. `setuptools` Python package, version 64.0+. Installed by default for Python < 3.12, an explicit installation is needed for Python 3.12+.
 
 1. Other setup dependencies that can be formulated as python packages are listed in [`pyproject.toml`](https://github.com/catboost/catboost/blob/master/catboost/python-package/pyproject.toml)'s `build-system.requires` and in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `setup_requires` parameter and processed using standard Python tools.
@@ -77,8 +79,24 @@ Note that built Python wheels will be compatible only with:
 {% endnote %}
 
 ```
+python -m build --wheel --config-setting=--global-option=bdist_wheel <bdist_wheel options>
+```
+
+`bdist_wheel` options should be specified in the following way: `--config-setting=--global-option=--<flag_option>` or `--config-setting=--global-option=--<option_key>=<option_value>`
+
+Example:
+
+```
+python -m build --wheel --config-setting=--global-option=bdist_wheel --config-setting=--global-option=--with-hnsw --config-setting=--global-option=--prebuilt-extensions-build-root-dir=/home/user/catboost/build/
+```
+
+You can also use older non-[PEP517](https://peps.python.org/pep-0517/) compliant way to build wheels:
+
+```
 python setup.py bdist_wheel <options>
 ```
+
+But it is deprecated and this command does not work properly for CatBoost on recent macOS versions (14+).
 
 Options can be listed by calling `python setup.py bdist_wheel --help`.
 
@@ -87,12 +105,6 @@ One important option is `--prebuilt-extensions-build-root-dir=<path>`. It allows
 The resulting wheel distribution will be created in `dist/catboost-<version>-<...>.whl`
 
 ### Build the source distribution (sdist)
-
-{% note info %}
-
-Python package `build` has to be installed
-
-{% endnote %}
 
 ```
 python -m build --sdist
