@@ -538,11 +538,24 @@ def pytest_collection_modifyitems(items, config):
     elif config.option.mode == yatest_lib.ya.RunMode.List:
         tests = []
         for item in items:
-            item = CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix, item.keywords)
+            item = CustomTestItem(
+                nodeid=item.nodeid,
+                location=item.location,
+                test_suffix=pytest_config.option.test_suffix,
+                keywords=item.keywords,
+                callspec=item.callspec if hasattr(item, "callspec") else None,
+                pytest_class=item.cls.__name__ if hasattr(item, "cls") and item.cls else None,
+                file_path=item.module.__file__ if hasattr(item, "module") and item.module else None,
+            )
             record = {
                 "class": item.class_name,
                 "test": item.test_name,
                 "tags": _get_item_tags(item),
+                "nodeid": item.node_id,
+                "path": item.file_path,
+                "line": item.location_number,
+                "params": item.params,
+                "pytest_class": item.pytest_class,
             }
             tests.append(record)
         if config.option.test_list_file:
@@ -754,7 +767,16 @@ class TestItem(object):
 
 class CustomTestItem(TestItem):
 
-    def __init__(self, nodeid, location, test_suffix, keywords=None):
+    def __init__(
+        self,
+        nodeid,
+        location,
+        test_suffix,
+        keywords=None,
+        callspec=None,
+        pytest_class=None,
+        file_path=None,
+    ):
         self._result = None
         self.nodeid = nodeid
         self._location = location
@@ -762,6 +784,38 @@ class CustomTestItem(TestItem):
         self._duration = 0
         self._error = ""
         self._keywords = keywords if keywords is not None else {}
+        self._callspec = callspec
+        self._pytest_class = pytest_class
+        self._file_path = file_path
+
+    @property
+    def location(self):
+        return self._location[0]
+
+    @property
+    def location_number(self):
+        return self._location[1] + 1
+
+    @property
+    def markers(self):
+        return [m.name for m in self._markers]
+
+    @property
+    def params(self):
+        return self._callspec.id if self._callspec else None
+
+    @property
+    def pytest_class(self):
+        return self._pytest_class
+
+    @property
+    def file_path(self):
+        return str(self._file_path)
+
+    @property
+    def node_id(self):
+        file_name = os.path.basename(self._location[0])
+        return "{}::{}".format(file_name, self.test_name)
 
 
 class NotLaunchedTestItem(CustomTestItem):
