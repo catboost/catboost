@@ -344,65 +344,16 @@ TTriWayDotProduct<float> TriWayDotProductAvx2Impl(
     }
 
     if (length) {
-        __m256 a, b;
-        switch (length) {
-            case 7:
-                a = _mm256_set_ps(0.0f,
-                                lhs[6], lhs[5], lhs[4],
-                                lhs[3], lhs[2], lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f,
-                                rhs[6], rhs[5], rhs[4],
-                                rhs[3], rhs[2], rhs[1], rhs[0]);
-                break;
-            case 6:
-                a = _mm256_set_ps(0.0f, 0.0f,
-                                lhs[5], lhs[4],
-                                lhs[3], lhs[2], lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f,
-                                rhs[5], rhs[4],
-                                rhs[3], rhs[2], rhs[1], rhs[0]);
-                break;
-            case 5:
-                a = _mm256_set_ps(0.0f, 0.0f, 0.0f,
-                                lhs[4],
-                                lhs[3], lhs[2], lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f, 0.0f,
-                                rhs[4],
-                                rhs[3], rhs[2], rhs[1], rhs[0]);
-                break;
-            case 4:
-                a = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                lhs[3], lhs[2], lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                rhs[3], rhs[2], rhs[1], rhs[0]);
-                break;
-            case 3:
-                a = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f,
-                                lhs[2], lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f,
-                                rhs[2], rhs[1], rhs[0]);
-                break;
-            case 2:
-                a = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f,
-                                lhs[1], lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f,
-                                rhs[1], rhs[0]);
-                break;
-            case 1:
-                a = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f, 0.0f,
-                                lhs[0]);
-                b = _mm256_set_ps(0.0f, 0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f, 0.0f,
-                                rhs[0]);
-                break;
-            default:
-                Y_UNREACHABLE();
-        }
+        static const int32_t maskTable[14] = {
+            -1, -1, -1, -1, -1, -1, -1,
+             0,  0,  0,  0,  0,  0,  0
+        };
+
+        const __m256i mask = _mm256_loadu_si256((const __m256i*)(maskTable + 7 - length));
+
+        __m256 a = _mm256_maskload_ps(lhs, mask);
+        __m256 b = _mm256_maskload_ps(rhs, mask);
+
         TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, a, b);
     }
 
