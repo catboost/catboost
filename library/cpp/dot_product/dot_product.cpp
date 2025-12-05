@@ -37,6 +37,7 @@ namespace NDotProductImpl {
                 DotProductI32Impl = &DotProductSse;
                 DotProductFloatImpl = &DotProductSse;
                 DotProductDoubleImpl = &DotProductSse;
+                TriWayDotProductImpl = &TriWayDotProductSse;
 #endif
             }
             return 0;
