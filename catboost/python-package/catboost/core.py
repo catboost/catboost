@@ -66,6 +66,7 @@ is_multitarget_objective = _catboost.is_multitarget_objective
 is_survivalregression_objective = _catboost.is_survivalregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
+is_ranking_objective = _catboost.is_ranking_objective
 is_maximizable_metric = _catboost.is_maximizable_metric
 is_minimizable_metric = _catboost.is_minimizable_metric
 _PreprocessParams = _catboost._PreprocessParams
@@ -1983,7 +1984,9 @@ class _CatBoostBase(object):
 
     @staticmethod
     def _is_ranking_objective(loss_function):
-        return isinstance(loss_function, str) and is_ranking_metric(loss_function)
+        return isinstance(loss_function, str) and is_ranking_objective(
+            loss_function
+        )
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
