@@ -49,26 +49,26 @@ namespace NCB::NModelEvaluation {
                     flatBordersVec.insert(flatBordersVec.end(), floatFeature.Borders.begin(), floatFeature.Borders.end());
                     ++currentBinarizedBucket;
                 }
-                Ctx.GPUModelData.FloatFeatureForBucketIdx = TCudaVec<ui32>(floatFeatureForBucketIdx, EMemoryType::Device);
-                Ctx.GPUModelData.TreeSplits = TCudaVec<TGPURepackedBin>(gpuBins, EMemoryType::Device);
-                Ctx.GPUModelData.BordersOffsets = TCudaVec<ui32>(bordersOffsets, EMemoryType::Device);
-                Ctx.GPUModelData.BordersCount = TCudaVec<ui32>(bordersCount, EMemoryType::Device);
-                Ctx.GPUModelData.FlatBordersVector = TCudaVec<float>(flatBordersVec, EMemoryType::Device);
+                Ctx.GPUModelData.FloatFeatureForBucketIdx = TCudaVec<ui32>(floatFeatureForBucketIdx, NCuda::EMemoryType::Device);
+                Ctx.GPUModelData.TreeSplits = TCudaVec<TGPURepackedBin>(gpuBins, NCuda::EMemoryType::Device);
+                Ctx.GPUModelData.BordersOffsets = TCudaVec<ui32>(bordersOffsets, NCuda::EMemoryType::Device);
+                Ctx.GPUModelData.BordersCount = TCudaVec<ui32>(bordersCount, NCuda::EMemoryType::Device);
+                Ctx.GPUModelData.FlatBordersVector = TCudaVec<float>(flatBordersVec, NCuda::EMemoryType::Device);
 
                 Ctx.GPUModelData.TreeSizes = TCudaVec<ui32>(
                     TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeSizes().begin(), ModelTrees->GetModelTreeData()->GetTreeSizes().end()),
-                    EMemoryType::Device
+                    NCuda::EMemoryType::Device
                 );
                 Ctx.GPUModelData.TreeStartOffsets = TCudaVec<ui32>(
                     TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeStartOffsets().begin(), ModelTrees->GetModelTreeData()->GetTreeStartOffsets().end()),
-                    EMemoryType::Device
+                    NCuda::EMemoryType::Device
                 );
                 const auto& firstLeafOffsetRef = ApplyData->TreeFirstLeafOffsets;
                 TVector<ui32> firstLeafOffset(firstLeafOffsetRef.begin(), firstLeafOffsetRef.end());
-                Ctx.GPUModelData.TreeFirstLeafOffsets = TCudaVec<ui32>(firstLeafOffset, EMemoryType::Device);
+                Ctx.GPUModelData.TreeFirstLeafOffsets = TCudaVec<ui32>(firstLeafOffset, NCuda::EMemoryType::Device);
                 Ctx.GPUModelData.ModelLeafs = TCudaVec<TCudaEvaluatorLeafType>(
                     TVector<TCudaEvaluatorLeafType>(ModelTrees->GetModelTreeData()->GetLeafValues().begin(), ModelTrees->GetModelTreeData()->GetLeafValues().end()),
-                    EMemoryType::Device
+                    NCuda::EMemoryType::Device
                 );
 
                 Ctx.GPUModelData.ApproxDimension = ModelTrees->GetDimensionsCount();
@@ -77,7 +77,7 @@ namespace NCB::NModelEvaluation {
                 const auto& biasRef = scaleAndBias.GetBiasRef();
                 Ctx.GPUModelData.Bias = TCudaVec<double>(
                     biasRef.empty() ? TVector<double>(Ctx.GPUModelData.ApproxDimension, 0.0) : biasRef,
-                    EMemoryType::Device
+                    NCuda::EMemoryType::Device
                 );
                 Ctx.GPUModelData.Scale = scaleAndBias.Scale;
 
@@ -165,7 +165,7 @@ namespace NCB::NModelEvaluation {
                     }
                     memcpy(&buf[featureId * stride], transposedFeatures[featureId].data(), sizeof(float) * transposedFeatures[featureId].size());
                 }
-                MemoryCopyAsync<float>(MakeArrayRef(buf), Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+                NCuda::MemoryCopyAsync<float>(MakeArrayRef(buf), Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
                 Ctx.EvalData(dataInput, treeStart, treeEnd, results, PredictionType);
             }
 
@@ -208,7 +208,7 @@ namespace NCB::NModelEvaluation {
                 for (size_t docId = 0; docId < docCount; ++docId) {
                     memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
                 }
-                MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+                NCuda::MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
                 Ctx.EvalData(dataInput, treeStart, treeEnd, results, PredictionType);
             }
 
@@ -370,7 +370,7 @@ namespace NCB::NModelEvaluation {
                     sizeof(float) * expectedFlatVecSize
                 );
             }
-            MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+            NCuda::MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
             TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
             Ctx.QuantizeData(dataInput, cudaQuantizedData);
         }

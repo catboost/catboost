@@ -71,7 +71,7 @@ struct __constraints
 } // namespace __layout_stride_detail
 
 template <class _Extents>
-class layout_stride::mapping
+class _CCCL_DECLSPEC_EMPTY_BASES layout_stride::mapping
     : private __mdspan_ebco<_Extents,
                             __mdspan_detail::__possibly_empty_array<typename _Extents::index_type, _Extents::rank()>>
 {

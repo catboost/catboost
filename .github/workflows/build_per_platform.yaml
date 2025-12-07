@@ -78,9 +78,15 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
-      # Python 3.8 is no longer included in the standard 'windows-2022' image.
-      - if: inputs.runs-on_value == 'windows-2022'
-        name: Install python3.8 on Windows
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          fetch-depth: 0
+
+      # Python 3.8 is not included in 'macos-15-intel' and 'windows-2022' images.
+      - if: inputs.os != 'linux'
+        name: Install python3.8
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
@@ -106,9 +112,24 @@ jobs:
             python_versions_macos_arm64
 
       - if: inputs.os == 'macos'
+        name: Setup JDK 8 on macOS
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+          java-package: jdk
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/jvm-packages/common/pom.xml
+            catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
+            catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
+
+
+      - if: inputs.os == 'macos'
         name: Env setup on macOS
         run: |
-          python3 -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
+          python3 -m venv python_main_build_env
+          python_main_build_env/bin/python -m pip install -U conan==2.15.1 setuptools wheel jupyterlab==3.0.6 build
 
           brew update
           brew install ninja
@@ -121,25 +142,22 @@ jobs:
 
           # JDK
           cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
-          mkdir -p Library/Java/JavaVirtualMachines
-          cd Library/Java/JavaVirtualMachines
-          ln -s /Library/Java/JavaVirtualMachines/Temurin-Hotspot-8.jdk ./jdk-8
+          mkdir -p Library/Java/JavaVirtualMachines/jdk-8/Contents
+          cd Library/Java/JavaVirtualMachines/jdk-8/Contents
+          ln -s $JAVA_HOME_8_X64 ./Home
 
           # Python
           cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
           mkdir -p Python
           cd Python
-          ln -s $RUNNER_TOOL_CACHE/Python/3.8.*/x64 ./3.8
-          ln -s $RUNNER_TOOL_CACHE/Python/3.9.*/x64 ./3.9
-          ln -s $RUNNER_TOOL_CACHE/Python/3.10.*/x64 ./3.10
-          ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
-          ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
-          ln -s $RUNNER_TOOL_CACHE/Python/3.13.*/x64 ./3.13
-          ln -s $RUNNER_TOOL_CACHE/Python/3.14.*/x64 ./3.14
 
           for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13 3.14
           do
-              $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
+              PYTHON_BIN_PATH=$(ls -d ${RUNNER_TOOL_CACHE}/Python/${PY_VER}.* | sort -V | tail -n 1)/x64/bin/python
+
+              # the venv name is just ${PY_VER}
+              ${PYTHON_BIN_PATH} -m venv ${PY_VER}
+              ./${PY_VER}/bin/python -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           done
 
           mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-arm64
@@ -205,15 +223,9 @@ jobs:
 
           # CUDA
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
-          New-Item -Path CUDA -ItemType Directory
-          New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          $CUDA_PATH_WO_DRIVE_AND_ROOT = (Split-Path "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -NoQualifier).TrimStart('\/')
+          New-Item -Path $CUDA_PATH_WO_DRIVE_AND_ROOT -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -Force
 
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: catboost
-          fetch-depth: 0
 
       - name: Update CMake build cache on every commit
         uses: actions/cache@v4
@@ -268,6 +280,15 @@ jobs:
 
           $Env:CMAKE_BUILD_ENV_ROOT = Join-Path ${{ github.workspace }} cmake_build_env_root
           $Env:CMAKE_BUILD_CACHE_DIR = Join-Path ${{ github.workspace }} cmake_build_cache
+
+          # use build venv if present
+          if (Test-Path python_main_build_env) {
+            # 'source ...activate' won't work in PowerShell
+            $Env:VIRTUAL_ENV = Join-Path ${{ github.workspace }} python_main_build_env
+            $Env:PATH = "$Env:VIRTUAL_ENV/bin:$Env:PATH"
+            Remove-Item Env:PYTHONHOME -ErrorAction SilentlyContinue
+          }
+
           Set-Location -Path catboost
           python ./ci/build_all.py --build-test-tools --target-platforms ${{ inputs.target_platform }}
 

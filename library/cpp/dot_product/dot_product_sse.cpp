@@ -216,4 +216,103 @@ double DotProductSse(const double* lhs, const double* rhs, size_t length) noexce
     return res[0] + res[1];
 }
 
+template <bool computeRR>
+Y_FORCE_INLINE
+static void TriWayDotProductIterationSse(__m128& sumLL, __m128& sumLR, __m128& sumRR, const __m128 a, const __m128 b) {
+    sumLL = _mm_add_ps(sumLL, _mm_mul_ps(a, a));
+    sumLR = _mm_add_ps(sumLR, _mm_mul_ps(a, b));
+
+    if constexpr (computeRR) {
+        sumRR = _mm_add_ps(sumRR, _mm_mul_ps(b, b));
+    }
+}
+
+template <bool computeRR>
+TTriWayDotProduct<float> TriWayDotProductSseImpl(
+    const float* lhs,
+    const float* rhs,
+    size_t length) noexcept
+{
+    __m128 sumLL1 = _mm_setzero_ps();
+    __m128 sumLR1 = _mm_setzero_ps();
+    __m128 sumRR1 = _mm_setzero_ps();
+    __m128 sumLL2 = _mm_setzero_ps();
+    __m128 sumLR2 = _mm_setzero_ps();
+    __m128 sumRR2 = _mm_setzero_ps();
+
+    while (length >= 8) {
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
+        TriWayDotProductIterationSse<computeRR>(sumLL2, sumLR2, sumRR2, _mm_loadu_ps(lhs + 4), _mm_loadu_ps(rhs + 4));
+        length -= 8;
+        lhs += 8;
+        rhs += 8;
+    }
+
+    if (length >= 4) {
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
+        length -= 4;
+        lhs += 4;
+        rhs += 4;
+    }
+
+    sumLL1 = _mm_add_ps(sumLL1, sumLL2);
+    sumLR1 = _mm_add_ps(sumLR1, sumLR2);
+
+    if (computeRR) {
+        sumRR1 = _mm_add_ps(sumRR1, sumRR2);
+    }
+
+    if (length) {
+        __m128 a, b;
+        switch (length) {
+            case 3:
+                a = _mm_set_ps(0.0f, lhs[2], lhs[1], lhs[0]);
+                b = _mm_set_ps(0.0f, rhs[2], rhs[1], rhs[0]);
+                break;
+            case 2:
+                a = _mm_set_ps(0.0f, 0.0f, lhs[1], lhs[0]);
+                b = _mm_set_ps(0.0f, 0.0f, rhs[1], rhs[0]);
+                break;
+            case 1:
+                a = _mm_set_ps(0.0f, 0.0f, 0.0f, lhs[0]);
+                b = _mm_set_ps(0.0f, 0.0f, 0.0f, rhs[0]);
+                break;
+            default:
+                Y_UNREACHABLE();
+        }
+        TriWayDotProductIterationSse<computeRR>(sumLL1, sumLR1, sumRR1, a, b);
+    }
+
+    __m128 t0 = sumLL1;
+    __m128 t1 = sumLR1;
+    __m128 t2 = sumRR1;
+    __m128 t3 = _mm_setzero_ps();
+    _MM_TRANSPOSE4_PS(t0, t1, t2, t3);
+    t0 = _mm_add_ps(t0, t1);
+    t0 = _mm_add_ps(t0, t2);
+    t0 = _mm_add_ps(t0, t3);
+
+    alignas(16) float res[4];
+    _mm_store_ps(res, t0);
+    TTriWayDotProduct<float> result{res[0], res[1], res[2]};
+    if (!computeRR) {
+        static constexpr const TTriWayDotProduct<float> def;
+        result.RR = def.RR;
+    }
+    return result;
+}
+
+TTriWayDotProduct<float> TriWayDotProductSse(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    if (computeRR) {
+        return TriWayDotProductSseImpl<true>(lhs, rhs, length);
+    } else {
+        return TriWayDotProductSseImpl<false>(lhs, rhs, length);
+    }
+}
+
 #endif // ARCADIA_SSE

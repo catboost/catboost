@@ -1,15 +1,16 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Part of libcu++, the C++ Standard Library for your entire system,
 // under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+// SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _CUDA_STD_NEW
-#define _CUDA_STD_NEW
+#ifndef _CUDA_STD___NEW_DEVICE_NEW_H
+#define _CUDA_STD___NEW_DEVICE_NEW_H
 
 #include <cuda/std/detail/__config>
 
@@ -21,10 +22,9 @@
 #  pragma system_header
 #endif // no system header
 
-#include <cuda/std/__new/allocate.h>
-#include <cuda/std/__new/bad_alloc.h>
-#include <cuda/std/__new/device_new.h>
-#include <cuda/std/__new/launder.h>
-#include <cuda/std/version>
+// clang-cuda only provides device flavors of operator new if we included <new>
+#if _CCCL_CUDA_COMPILER(CLANG)
+#  include <new>
+#endif // _CCCL_CUDA_COMPILER(CLANG)
 
-#endif // _CUDA_STD_NEW
+#endif // _CUDA_STD___NEW_DEVICE_NEW_H

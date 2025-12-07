@@ -26,11 +26,14 @@ size_t NaNSafeHash(const T& value);
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Provides a hasher that randomizes the results of another one.
+//! \note In case seed value is 0, the hash is just the underlying hash.
 template <class TElement, class TUnderlying = ::THash<TElement>>
 class TRandomizedHash
 {
 public:
     TRandomizedHash();
+    explicit TRandomizedHash(size_t seed);
+
     size_t operator()(const TElement& element) const;
 
 private:

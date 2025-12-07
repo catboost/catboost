@@ -4,6 +4,7 @@
 #include <util/generic/vector.h>
 
 #include <functional>
+#include <mutex>
 
 namespace NThreading {
 
@@ -62,6 +63,10 @@ namespace NThreading {
         };
     public:
         T* Get() const {
+            std::call_once(InitOnce_, [this]() {
+                Storage_ = MakeGenericLocalStorage();
+            });
+
             return static_cast<T*>(Storage_->GetMemory(Traits()));
         }
 
@@ -69,7 +74,8 @@ namespace NThreading {
             return *Get();
         }
     private:
-        THolder<IGenericLocalStorage> Storage_ = MakeGenericLocalStorage();
+        mutable std::once_flag InitOnce_;
+        mutable THolder<IGenericLocalStorage> Storage_;
     };
 }
 

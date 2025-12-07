@@ -36,18 +36,18 @@ public:
     constexpr explicit operator const T&() const;
     constexpr explicit operator T&();
 
-    #define XX(op) \
-        constexpr auto operator op(const TStrongTypedef& rhs) const \
+    #define XX(returnType, op) \
+        constexpr returnType operator op(const TStrongTypedef& rhs) const \
             noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
-                requires requires(T lhs, T rhs) { lhs op rhs; } && (Options.IsComparable);
+            requires requires(T lhs, T rhs) { lhs op rhs; } && (Options.IsComparable);
 
-    XX(<)
-    XX(>)
-    XX(<=)
-    XX(>=)
-    XX(==)
-    XX(!=)
-    XX(<=>)
+    XX(bool, <)
+    XX(bool, >)
+    XX(bool, <=)
+    XX(bool, >=)
+    XX(bool, ==)
+    XX(bool, !=)
+    XX(auto, <=>)
 
     #undef XX
 

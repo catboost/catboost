@@ -126,6 +126,8 @@ if (HAVE_CUDA)
     " --expt-relaxed-constexpr"
     # Allow to use newer compilers than CUDA Toolkit officially supports
     " --allow-unsupported-compiler"
+    # Allow to use libc++ with CUDA 12.3+
+    " -D_ALLOW_UNSUPPORTED_LIBCPP"
   )
 
   set(NVCC_STD_VER 17)

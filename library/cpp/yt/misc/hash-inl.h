@@ -52,9 +52,16 @@ TRandomizedHash<TElement, TUnderlying>::TRandomizedHash()
 { }
 
 template <class TElement, class TUnderlying>
+TRandomizedHash<TElement, TUnderlying>::TRandomizedHash(size_t seed)
+    : Seed_(seed)
+{ }
+
+template <class TElement, class TUnderlying>
 size_t TRandomizedHash<TElement, TUnderlying>::operator ()(const TElement& element) const
 {
-    return Underlying_(element) + Seed_;
+    auto result = Seed_;
+    HashCombine(result, Underlying_(element));
+    return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -237,10 +237,6 @@ namespace NCudaLib {
         CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, cudaMemcpyDefault, stream.GetStream()));
     }
 
-    inline void DeviceSynchronize() {
-        CUDA_SAFE_CALL(cudaDeviceSynchronize());
-    }
-
     inline void SetDevice(int devId) {
         CUDA_SAFE_CALL(cudaSetDevice(devId));
     }

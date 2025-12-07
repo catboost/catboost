@@ -99,6 +99,14 @@ namespace NLastGetopt {
         return Parser_->ProgramName_;
     }
 
+    void TOptsParseResult::SetProgramSubcommandPath(const TVector<TString>& parts) {
+        ProgramSubcommandPath_ = parts;
+    }
+
+    const TVector<TString>& TOptsParseResult::GetProgramSubcommandPath() const {
+        return ProgramSubcommandPath_;
+    }
+
     void TOptsParseResult::PrintUsage(IOutputStream& os) const {
         Parser_->Opts_->PrintUsage(Parser_->ProgramName_, os);
     }

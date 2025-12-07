@@ -23,6 +23,7 @@
 #endif // no system header
 
 #include <cuda/std/__memory/uses_allocator.h>
+#include <cuda/std/__new/device_new.h>
 #include <cuda/std/__type_traits/integral_constant.h>
 #include <cuda/std/__type_traits/is_constructible.h>
 #include <cuda/std/__type_traits/remove_cvref.h>

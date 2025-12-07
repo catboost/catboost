@@ -50,7 +50,7 @@ env:
       "darwin-universal2" : {
         "executable_suffix": "",
         "python_platform_tag": "macosx_11_0_universal2",
-        "runs_on": "macos-13"
+        "runs_on": "macos-15-intel"
       },
       "windows-x86_64" : {
         "executable_suffix": ".exe",
