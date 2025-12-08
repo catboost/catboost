@@ -33,6 +33,8 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
 
 target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cache.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/column_aligment_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cpu_reducers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_base.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.cpp
@@ -41,7 +43,7 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_manager.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_profiler.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_id.cpp
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_subtasks_helper.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_provider.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_list.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/local_promise_future.cpp
@@ -49,14 +51,21 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/promise_factory.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/fwd.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/gpu_single_worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/hwloc_wrapper.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/inter_device_stream_section.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mapping.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_copy_performance.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_provider_trait.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_pool/stack_like_memory_pool.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mpi/mpi_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/peer_devices.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/read_and_write_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/remote_objects.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/serialization/task_factory.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/single_device.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/slice.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/stream_section_tasks_launcher.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/cpu_func.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/stream_section_task.cpp
