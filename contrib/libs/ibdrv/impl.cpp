@@ -138,6 +138,16 @@ int ibv_query_gid(struct ibv_context *context, uint8_t port_num, int index, unio
 }
 
 Y_HIDDEN
+int _ibv_query_gid_ex(struct ibv_context *context, uint32_t port_num, uint32_t gid_index, struct ibv_gid_entry *entry, uint32_t flags, size_t entry_size) {
+    return Call(IBSym()->_ibv_query_gid_ex, context, port_num, gid_index, entry, flags, entry_size);
+}
+
+Y_HIDDEN
+ssize_t _ibv_query_gid_table(struct ibv_context *context, struct ibv_gid_entry *entries, size_t max_entries, uint32_t flags, size_t entry_size) {
+    return Call(IBSym()->_ibv_query_gid_table, context, entries, max_entries, flags, entry_size);
+}
+
+Y_HIDDEN
 int ibv_query_port(struct ibv_context *context, uint8_t port_num, struct _compat_ibv_port_attr *port_attr) {
     return Call(IBSym()->ibv_query_port, context, port_num, port_attr);
 }
