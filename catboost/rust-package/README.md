@@ -3,7 +3,7 @@ CatBoost Rust Package
 
 ### Prerequisites
 
-The minimal supported Rust version is 1.64.0 .
+The minimal supported Rust version is 1.64.0 / Rust 2021.
 
 CatBoost Rust package uses `catboost-sys` crate inside that is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
 In order to build it some environment setup is necessary. Modern versions of CatBoost use CMake build system, build environment setup for CMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-cmake), CatBoost versions before 1.2 used Ya Make build system, build environment setup for YaMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-ya-make).
@@ -13,8 +13,9 @@ In order to build it some environment setup is necessary. Modern versions of Cat
 1. Add a dependency to your Cargo.toml:
 ```
 [dependencies]
-catboost = { git = "https://github.com/catboost/catboost" }
+catboost = { git = "https://github.com/catboost/catboost" } 
 ```
+
 
 2. Now you can apply pretrained model in your code:
 ```rust
@@ -53,3 +54,15 @@ Run `cargo doc --open` in `catboost/rust-package` directory.
 ### Tests
 
 Run `cargo test` in `catboost/rust-package` directory.
+
+
+### Precompiled catboost C lib
+
+Compiling catboost might take some time as it would also compile the C library.
+This requires a `python` interpreter and built tools for C on your machine.
+If you don't want this, you can also use the prebuilt official releases and 
+download those during compilation:
+```
+[dependencies]
+catboost = { git = "https://github.com/catboost/catboost", features = ["use_prebuilt"] } 
+```
