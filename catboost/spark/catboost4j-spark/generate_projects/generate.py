@@ -170,7 +170,7 @@ configs = [
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
     },
-     {
+    {
         'dst_dir' : '../projects/spark_4.0_2.13',
         'substitution_dict' : {
             'version_specific_src_dir': 'spark_4.0/scala',
