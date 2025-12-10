@@ -169,6 +169,22 @@ configs = [
             'netty_all_version_placeholer': '4.1.96.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
+    },
+     {
+        'dst_dir' : '../projects/spark_4.0_2.13',
+        'substitution_dict' : {
+            'version_specific_src_dir': 'spark_4.0/scala',
+            'scala_compat_version_placeholder': '2.13',
+            'scala_version_placeholder': '2.13.16',
+            'spark_compat_version_placeholder': '4.0',
+            'spark_version_placeholder': '4.0.1',
+            'hadoop_version_placeholder': '3.4.2',
+            'json4s_version_placeholder': '4.0.7',
+            'jackson_databind_version_placeholder': '2.20.1',
+            'jackson_module_scala_version_placeholder': '2.20.1',
+            'netty_all_version_placeholer': '4.2.7.Final',
+            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
+        }
     }
 ]
 
