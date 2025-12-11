@@ -14,7 +14,7 @@ import org.json4s.JsonDSL._
 
 import org.apache.spark.ml.param._;
 import org.apache.spark.ml.util.Identifiable
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.EOverfittingDetectorType
 
