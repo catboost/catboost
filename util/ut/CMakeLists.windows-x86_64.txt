@@ -28,6 +28,7 @@ target_allocator(util-ut
 )
 
 target_sources(util-ut PRIVATE
+  ${PROJECT_SOURCE_DIR}/util/ysafeptr_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/ysaveload_ut.cpp
 )
 
