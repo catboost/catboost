@@ -104,6 +104,7 @@ class CatBoostRegressor(iterations=None,
 
 {% include [catboost-regressor-purpose](../_includes/work_src/reusage-python/purpose.md) %}
 
+{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
 
 ## {{ dl--parameters }} {#parameters}
 
