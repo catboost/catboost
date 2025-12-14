@@ -18,7 +18,7 @@ import ai.catboost.spark.params._
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.ERawTargetType
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 
 /** Classification model trained by CatBoost. Use [[CatBoostClassifier]] to train it
