@@ -293,7 +293,7 @@ def build_jvm_artifacts(
     build_native_root_dir: str,
     platform_name: str,
     macos_universal_binaries: bool,
-    build_with_cuda_for_main_targets: str,
+    build_with_cuda_for_main_targets: bool,
     dry_run: bool,
     verbose: bool):
 
@@ -813,13 +813,10 @@ def build_all(
     src_root_dir: str,
     build_test_tools: bool = False,
     only_native_artifacts: bool = False,
-    target_platforms: Optional[str] = None,
+    target_platforms: Optional[List[str]] = None,
     disable_async: bool = False,
     dry_run: bool = False,
     verbose: bool = False):
-
-    if target_platforms:
-        target_platforms = target_platforms.split(',')
 
     if not only_native_artifacts:
         run_in_python_package_dir(
@@ -908,6 +905,10 @@ if __name__ == '__main__':
     args_parser.add_argument('--disable-async', action='store_true', help='Disable async processing')
     parsed_args = args_parser.parse_args()
 
+    target_platforms: Optional[List[str]] = None
+    if parsed_args.target_platforms is not None:
+        target_platforms = parsed_args.target_platforms.split(',')
+
     patch_sources(
         os.path.abspath(os.getcwd()),
         parsed_args.build_test_tools,
@@ -919,7 +920,7 @@ if __name__ == '__main__':
         os.path.abspath(os.getcwd()),
         parsed_args.build_test_tools,
         parsed_args.only_native_artifacts,
-        parsed_args.target_platforms,
+        target_platforms,
         parsed_args.disable_async,
         parsed_args.dry_run,
         parsed_args.verbose
