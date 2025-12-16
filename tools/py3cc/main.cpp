@@ -35,7 +35,7 @@ int runSlowPy3cc(const char* slowPy3cc, const char* srcpath, const char* inPath,
 
 int main(int argc, char** argv) {
     if (argc != 6) {
-        Cerr << "Usage:\n\t" << argv[0] << "--slow-py3cc <slow-py3cc> SRC_PATH_X- SRC OUT" << Endl;
+        Cerr << "Usage:\n\t" << argv[0] << " --slow-py3cc <slow-py3cc> SRC_PATH_X- SRC OUT" << Endl;
         return 1;
     }
 

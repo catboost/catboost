@@ -10725,14 +10725,18 @@ def test_fit_cat_features_type():
 
 def test_sklearn_meta_algo():
     from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.frozen import FrozenEstimator
 
-    X_train = [[1, 2, 3, 4], [2, 3, 4, 5]]
-    y_train = [1, 0]
+    X_train = DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['feature{}'.format(i) for i in range(5)]
+    )
+    y_train = np.random.randint(0, 2, size=100)
 
     model = CatBoostClassifier()
     model.fit(X_train, y_train)
 
-    cc_model = CalibratedClassifierCV(model, cv='prefit', method='isotonic')
+    cc_model = CalibratedClassifierCV(FrozenEstimator(model), method='isotonic')
     model = cc_model.fit(X_train, y_train)
 
 

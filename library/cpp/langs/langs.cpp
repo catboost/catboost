@@ -168,7 +168,7 @@ namespace {
         {LANG_LEZ, SCRIPT_CYRILLIC, "Lezgian", "lez", "lez", nullptr},
         {LANG_CRH, SCRIPT_CYRILLIC, "Crimean Tatar", "crh", "crh", nullptr},
         {LANG_EVN, SCRIPT_CYRILLIC, "Evenki", "evn", "evn", nullptr},
-        {LANG_VEP, SCRIPT_CYRILLIC, "Veps", "vep", "vep", nullptr},
+        {LANG_VEP, SCRIPT_LATIN, "Veps", "vep", "vep", nullptr},
         {LANG_AVA, SCRIPT_CYRILLIC, "Avar", "ava", "av", nullptr},
         {LANG_KUM, SCRIPT_CYRILLIC, "Kumyk", "kum", "kum", nullptr},
         {LANG_DAR, SCRIPT_CYRILLIC, "Dargwa", "dar", "dar", nullptr},
@@ -182,6 +182,7 @@ namespace {
         {LANG_AGX, SCRIPT_CYRILLIC, "Aghul", "agx", "agx", nullptr},
         {LANG_RUT, SCRIPT_CYRILLIC, "Rutul", "rut", "rut", nullptr},
         {LANG_ABK, SCRIPT_CYRILLIC, "Abkhaz", "abk", "ab", nullptr},
+        {LANG_KRL, SCRIPT_CYRILLIC, "Karelian", "krl", "krl", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");

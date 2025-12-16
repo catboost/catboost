@@ -1218,8 +1218,8 @@ void TFullModel::Load(IInputStream* s) {
             } else {
                 CB_ENSURE(
                     false,
-                    "Got unknown partId = " << modelPartId << " via deserialization"
-                        << "only static ctr and text processing collection model parts are supported"
+                    "Got unknown partId = " << modelPartId << " via deserialization. "
+                        << "Only static ctr, text or embedding processing collection model parts are supported"
                 );
             }
         }
@@ -1274,8 +1274,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
             } else {
                 CB_ENSURE(
                     false,
-                    "Got unknown partId = " << modelPartId << " via deserialization"
-                                            << "only static ctr and text processing collection model parts are supported"
+                    "Got unknown partId = " << modelPartId << " via deserialization. "
+                                            << "Only static ctr, text or embedding processing collection model parts are supported"
                 );
             }
         }

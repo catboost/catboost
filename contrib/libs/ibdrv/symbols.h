@@ -68,6 +68,8 @@ extern "C" {
     M(ibv_port_state_str, const char *(enum ibv_port_state port_state)) \
     M(ibv_set_ece, int (struct ibv_qp *qp, struct ibv_ece *ece)) \
     M(ibv_query_ece, int (struct ibv_qp *qp, struct ibv_ece *ece)) \
+    M(_ibv_query_gid_ex, int (struct ibv_context *context, uint32_t port_num, uint32_t gid_index, struct ibv_gid_entry *entry, uint32_t flags, size_t entry_size)) \
+    M(_ibv_query_gid_table, ssize_t (struct ibv_context *context, struct ibv_gid_entry *entries, size_t max_entries, uint32_t flags, size_t entry_size)) \
 // DOVERBS
 
 struct TInfinibandSymbols {

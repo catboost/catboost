@@ -371,7 +371,7 @@ namespace NCB::NModelEvaluation {
                 );
             }
             NCuda::MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
-            TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
+            TCudaQuantizedData* cudaQuantizedData = static_cast<TCudaQuantizedData*>(quantizedData);
             Ctx.QuantizeData(dataInput, cudaQuantizedData);
         }
         private:
