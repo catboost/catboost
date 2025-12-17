@@ -12,6 +12,10 @@
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 
+// Forward declaration (defined in catboost/libs/model/cuda/evaluator.cuh).
+// Declared unconditionally because some CUDA-enabled targets might not define HAVE_CUDA.
+struct TGPUDataInput;
+
 namespace NCB {  // split due to CUDA-compiler inability to parse nested namespace definitions
     namespace NModelEvaluation {
         class TFeatureLayout {
@@ -300,6 +304,31 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             virtual void Quantize(
                 TConstArrayRef<TConstArrayRef<float>> features,
                 IQuantizedData* quantizedData
+            ) const = 0;
+        };
+
+        // Optional GPU-only extension interface used for pure GPU inference on GPU-resident inputs.
+        // Implemented by CUDA evaluator backend.
+        class IGpuModelEvaluator {
+        public:
+            virtual ~IGpuModelEvaluator() = default;
+
+            // `results` can point to host memory (D2H copy) or device memory (D2D copy).
+            virtual void CalcOnDevice(
+                const ::TGPUDataInput& dataInput,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results
+            ) const = 0;
+
+            // Calculates per-tree leaf indexes for oblivious models.
+            // Output layout: row-major [objectIdx * (treeEnd - treeStart) + treeLocalIdx].
+            // `indexes` can point to host memory (D2H copy) or device memory (D2D copy).
+            virtual void CalcLeafIndexesOnDevice(
+                const ::TGPUDataInput& dataInput,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<TCalcerIndexType> indexes
             ) const = 0;
         };
 

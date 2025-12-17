@@ -10,6 +10,8 @@
 
 #include <catboost/private/libs/ctr_description/ctr_config.h>
 
+#include <functional>
+
 namespace NCatboostCuda {
     /*
      * Warning: this class doesn't guarantee optimal performance
@@ -18,11 +20,6 @@ namespace NCatboostCuda {
      */
     class TBatchedBinarizedCtrsCalcer {
     public:
-        struct TBinarizedCtr {
-            ui32 BinCount = 0;
-            TVector<ui8> BinarizedCtr;
-        };
-
         template <class TUi32>
         TBatchedBinarizedCtrsCalcer(TBinarizedFeaturesManager& featuresManager,
                                     const TCtrTargets<NCudaLib::TMirrorMapping>& ctrTargets,
@@ -44,9 +41,16 @@ namespace NCatboostCuda {
             }
         }
 
-        void ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
-                                  TVector<TBinarizedCtr>* learnCtrs,
-                                  TVector<TBinarizedCtr>* testCtrs);
+        using TBinarizedCtrWriter = std::function<void(
+            ui32 featureId,
+            ui32 binCount,
+            const TSingleBuffer<const float>& values,
+            TConstArrayRef<float> borders,
+            ui32 stream,
+            bool isTest
+        )>;
+
+        void ComputeBinarizedCtrs(const TVector<ui32>& ctrs, const TBinarizedCtrWriter& writer);
 
     private:
         TVector<TVector<NCB::TCtrConfig>> CreateGrouppedConfigs(const TVector<ui32>& ctrIds);

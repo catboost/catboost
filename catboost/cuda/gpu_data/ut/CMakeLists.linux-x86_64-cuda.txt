@@ -52,6 +52,7 @@ target_link_options(catboost-cuda-gpu_data-ut PRIVATE
 target_sources(catboost-cuda-gpu_data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_gpu_input_cat_hash.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_uniform_binarization.cpp
 )
 

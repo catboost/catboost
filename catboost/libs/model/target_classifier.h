@@ -37,6 +37,10 @@ public:
         return TargetId;
     }
 
+    const TVector<float>& GetBorders() const {
+        return Borders;
+    }
+
 private:
     ui32 TargetId = 0;
     TVector<float> Borders;

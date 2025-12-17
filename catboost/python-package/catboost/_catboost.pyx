@@ -1074,6 +1074,60 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) except +ProcessException
     TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model) except +ProcessException
 
+    cdef TDataProviderPtr CreateGpuDataProvider(
+        const TDataMetaInfo& metaInfo,
+        PyObject* data,
+        PyObject* label,
+        PyObject* weight,
+        int threadCount
+    ) except +ProcessException
+
+    cdef cppclass TCudaMemcpyTrackerStats:
+        ui64 HostToHostBytes
+        ui64 HostToDeviceBytes
+        ui64 DeviceToHostBytes
+        ui64 DeviceToDeviceBytes
+        ui64 UnknownBytes
+
+    cdef void ResetCudaMemcpyTrackerConfig() except +ProcessException
+    cdef void ResetCudaMemcpyTrackerStats() except +ProcessException
+    cdef TCudaMemcpyTrackerStats GetCudaMemcpyTrackerStats() except +ProcessException
+    cdef void TestCudaMemcpyTrackerDeviceToHost(ui64 bytes) except +ProcessException
+
+#if defined(HAVE_CUDA)
+    cdef TVector[TVector[double]] ApplyModelMultiGpuInput(
+        const TFullModel& model,
+        const TDataProvider& srcData,
+        bool_t verbose,
+        const EPredictionType predictionType,
+        int begin,
+        int end,
+        int threadCount,
+        const TString& devices
+    ) except +ProcessException nogil
+
+    cdef void ApplyModelMultiGpuInputToDevice(
+        const TFullModel& model,
+        const TDataProvider& srcData,
+        bool_t verbose,
+        const EPredictionType predictionType,
+        int begin,
+        int end,
+        ui64 dstDevicePtr,
+        ui32 dstSize,
+        const TString& devices
+    ) except +ProcessException nogil
+
+    cdef TVector[ui32] CalcLeafIndexesMultiGpuInput(
+        const TFullModel& model,
+        const TDataProvider& srcData,
+        bool_t verbose,
+        int begin,
+        int end,
+        int threadCount
+    ) except +ProcessException nogil
+#endif
+
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef TVector[TVector[double]] EvalMetrics(
@@ -1234,6 +1288,28 @@ cdef inline float _FloatOrNan(object obj) except *:
 
 cpdef _float_or_nan(obj):
     return _FloatOrNan(obj)
+
+cpdef _cuda_memcpy_tracker_reset_config():
+    ResetCudaMemcpyTrackerConfig()
+
+
+cpdef _cuda_memcpy_tracker_reset_stats():
+    ResetCudaMemcpyTrackerStats()
+
+
+cpdef _cuda_memcpy_tracker_get_stats():
+    cdef TCudaMemcpyTrackerStats stats = GetCudaMemcpyTrackerStats()
+    return {
+        'host_to_host_bytes': stats.HostToHostBytes,
+        'host_to_device_bytes': stats.HostToDeviceBytes,
+        'device_to_host_bytes': stats.DeviceToHostBytes,
+        'device_to_device_bytes': stats.DeviceToDeviceBytes,
+        'unknown_bytes': stats.UnknownBytes,
+    }
+
+
+cpdef _cuda_memcpy_tracker_test_device_to_host(ui64 bytes):
+    TestCudaMemcpyTrackerDeviceToHost(bytes)
 
 cdef inline to_native_str(binary):
     if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
@@ -2279,7 +2355,11 @@ cdef TFeaturesLayout* _init_features_layout(
         cat_features = [i for i in xrange(data.get_num_feature_count(), feature_count)]
         feature_names = data.get_feature_names()
     else:
-        feature_count = np.shape(data)[1]
+        shape = getattr(data, 'shape', None)
+        if shape is not None:
+            feature_count = shape[1]
+        else:
+            feature_count = np.shape(data)[1]
         if embedding_features_data is not None:
             feature_count += len(embedding_features_data)
 
@@ -2346,6 +2426,9 @@ cdef _get_object_count(data):
     if isinstance(data, FeaturesData):
         return data.get_object_count()
     else:
+        shape = getattr(data, 'shape', None)
+        if shape is not None:
+            return shape[0]
         return np.shape(data)[0]
 
 def _set_features_order_data_features_data(
@@ -4406,6 +4489,61 @@ cdef class _PoolBase:
                 thread_count
             )
 
+    cpdef _init_pool_gpu(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
+                         group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
+                         int thread_count):
+        if group_weight is not None and weight is not None:
+            raise CatBoostError('Pool must have either weight or group_weight.')
+
+        thread_count = UpdateThreadCount(thread_count)
+
+        cdef TDataMetaInfo data_meta_info
+        if label is not None:
+            label_shape = getattr(label, 'shape', None)
+            if label_shape is None:
+                raise CatBoostError('label has no shape attribute')
+            if len(label_shape) == 1:
+                data_meta_info.TargetCount = 1
+            else:
+                data_meta_info.TargetCount = <ui32>label_shape[1]
+            if data_meta_info.TargetCount:
+                data_meta_info.TargetType = ERawTargetType_Float
+
+        data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
+        data_meta_info.HasGroupId = group_id is not None
+        data_meta_info.HasGroupWeight = group_weight is not None
+        data_meta_info.HasSubgroupIds = subgroup_id is not None
+        data_meta_info.HasWeights = weight is not None
+        data_meta_info.HasTimestamp = timestamp is not None
+        data_meta_info.HasPairs = pairs is not None
+        data_meta_info.HasGraph = graph is not None
+
+        data_meta_info.FeaturesLayout = _init_features_layout(
+            data,
+            embedding_features_data,
+            cat_features,
+            text_features,
+            embedding_features,
+            feature_names,
+            feature_tags,
+            data_meta_info.HasGraph
+        )
+
+        self.__pool = CreateGpuDataProvider(
+            data_meta_info,
+            <PyObject*>data,
+            <PyObject*>label if label is not None else <PyObject*>NULL,
+            <PyObject*>weight if weight is not None else <PyObject*>NULL,
+            thread_count
+        )
+
+        # Keep GPU inputs alive for the duration of training.
+        self.__data_holders = [data]
+        if label is not None:
+            self.__data_holders.append(label)
+        if weight is not None:
+            self.__data_holders.append(weight)
+
     cpdef _save(self, fname):
         cdef TString file_name = to_arcadia_string(fspath(fname))
         SaveQuantizedPool(self.__pool, file_name)
@@ -5152,12 +5290,135 @@ cdef class _CatBoost:
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return dict([(feature.Position.FlatIndex, <const vector[float]&>feature.Borders) for feature in arrayView])
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose, str task_type):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose, str task_type, output_type=None, devices=None):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
         cdef EFormulaEvaluatorType formulaEvaluatorType = EFormulaEvaluatorType_GPU if task_type == 'GPU' else EFormulaEvaluatorType_CPU
+        cdef ui32 n
+        cdef size_t approx_dimension
+        cdef ui64 out_ptr
+        cdef ui64 out_elems
+        cdef TString devicesStr
         thread_count = UpdateThreadCount(thread_count);
         dereference(self.__model).SetEvaluatorType(formulaEvaluatorType);
+        cdef bint is_gpu_input = bool(getattr(pool, '_is_gpu_input', False))
+        if is_gpu_input and task_type != 'GPU':
+            raise CatBoostError("GPU-resident inputs require task_type='GPU' for prediction.")
+
+        cdef object out_type = output_type if output_type is not None else 'numpy'
+        if is_gpu_input and task_type == 'GPU':
+            devices_ = devices
+            if devices_ is not None and isinstance(devices_, list):
+                devices_ = ':'.join(map(str, devices_))
+            devicesStr = to_arcadia_string(devices_) if devices_ is not None else to_arcadia_string('')
+            if out_type == 'numpy':
+                with nogil:
+                    pred = ApplyModelMultiGpuInput(
+                        dereference(self.__model),
+                        dereference(pool.__pool.Get()),
+                        verbose,
+                        predictionType,
+                        ntree_start,
+                        ntree_end,
+                        thread_count,
+                        devicesStr
+                    )
+                return transform_predictions(pred, predictionType, thread_count, self.__model)
+
+            if out_type not in ('cupy', 'dlpack', 'cudf'):
+                raise CatBoostError("Unsupported output_type='{}' for GPU prediction. Use 'numpy', 'cupy', 'cudf', or 'dlpack'.".format(out_type))
+
+            try:
+                import cupy as cp
+            except Exception as e:
+                raise CatBoostError("output_type='{}' requires cupy to be installed: {}".format(out_type, e))
+            approx_dimension = dereference(self.__model).GetDimensionsCount()
+            n = <ui32>pool.num_row()
+            out_elems = <ui64>n * <ui64>approx_dimension
+            if out_elems > <ui64>(<ui32>-1):
+                raise CatBoostError("GPU prediction output is too large: {} elements".format(out_elems))
+            if approx_dimension == 1:
+                out_raw = cp.empty(n, dtype=cp.float64)
+            else:
+                out_raw = cp.empty((n, approx_dimension), dtype=cp.float64)
+            out_ptr = <ui64>out_raw.data.ptr
+            with nogil:
+                ApplyModelMultiGpuInputToDevice(
+                    dereference(self.__model),
+                    dereference(pool.__pool.Get()),
+                    verbose,
+                    predictionType,
+                    ntree_start,
+                    ntree_end,
+                    out_ptr,
+                    <ui32>out_elems,
+                    devicesStr
+                )
+
+            # GPU output path returns raw formula values; apply requested post-processing on GPU.
+            if predictionType == EPredictionType_Probability:
+                if approx_dimension == 1:
+                    p = 1.0 / (1.0 + cp.exp(-out_raw))
+                    out = cp.stack((1.0 - p, p), axis=1)
+                else:
+                    loss_function_name = _get_loss_function_name(dereference(self.__model))
+                    if loss_function_name in ("MultiClassOneVsAll", "MultiLogloss", "MultiCrossEntropy"):
+                        out = 1.0 / (1.0 + cp.exp(-out_raw))
+                    else:
+                        m = cp.max(out_raw, axis=1, keepdims=True)
+                        e = cp.exp(out_raw - m)
+                        out = e / cp.sum(e, axis=1, keepdims=True)
+            elif predictionType == EPredictionType_LogProbability:
+                if approx_dimension == 1:
+                    out = cp.stack((-cp.logaddexp(0.0, out_raw), -cp.logaddexp(0.0, -out_raw)), axis=1)
+                else:
+                    loss_function_name = _get_loss_function_name(dereference(self.__model))
+                    if loss_function_name in ("MultiClassOneVsAll", "MultiLogloss", "MultiCrossEntropy"):
+                        out = -cp.logaddexp(0.0, -out_raw)
+                    else:
+                        m = cp.max(out_raw, axis=1, keepdims=True)
+                        shifted = out_raw - m
+                        logsumexp = cp.log(cp.sum(cp.exp(shifted), axis=1, keepdims=True))
+                        out = shifted - logsumexp
+            elif predictionType == EPredictionType_Class:
+                if approx_dimension == 1:
+                    out = (out_raw > 0).astype(cp.int32)
+                else:
+                    loss_function_name = _get_loss_function_name(dereference(self.__model))
+                    if loss_function_name in ("MultiLogloss", "MultiCrossEntropy"):
+                        out = (out_raw > 0).astype(cp.int32)
+                    else:
+                        out = cp.argmax(out_raw, axis=1).astype(cp.int32)
+            elif predictionType == EPredictionType_Exponent:
+                if approx_dimension != 1:
+                    raise CatBoostError("GPU output_type='{}' is not implemented for multidimensional prediction_type='{}'.".format(out_type, prediction_type))
+                out = cp.exp(out_raw)
+            elif predictionType == EPredictionType_RMSEWithUncertainty:
+                if approx_dimension != 2:
+                    raise CatBoostError("GPU output_type='{}' requires a 2-dimensional model for prediction_type='{}'.".format(out_type, prediction_type))
+                out = out_raw.copy()
+                out[:, 1] = cp.exp(out[:, 1] * 2.0)
+            elif predictionType == EPredictionType_RawFormulaVal:
+                out = out_raw
+            else:
+                raise CatBoostError("GPU output_type='{}' is not implemented for prediction_type='{}'.".format(out_type, prediction_type))
+
+            if out_type == 'cupy':
+                return out
+            if out_type == 'dlpack':
+                return out.__dlpack__()
+
+            try:
+                import cudf
+            except Exception as e:
+                raise CatBoostError("output_type='cudf' requires cudf to be installed: {}".format(e))
+            if out.ndim == 1:
+                return cudf.Series(out)
+            return cudf.DataFrame({i: out[:, i] for i in range(out.shape[1])})
+
+        if out_type != 'numpy':
+            raise CatBoostError("output_type='{}' is supported only for GPU-resident inputs with task_type='GPU'.".format(out_type))
+
         with nogil:
             pred = ApplyModelMulti(
                 dereference(self.__model),
@@ -5189,6 +5450,12 @@ cdef class _CatBoost:
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
+        cdef bint is_gpu_input = bool(getattr(pool, '_is_gpu_input', False))
+        if is_gpu_input:
+            dereference(self.__model).SetEvaluatorType(EFormulaEvaluatorType_GPU)
+            gpuStagedPredictIterator = _GpuStagedPredictIterator(prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+            gpuStagedPredictIterator._initialize(self.__model, pool)
+            return gpuStagedPredictIterator
         stagedPredictIterator = _StagedPredictIterator(prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         stagedPredictIterator._initialize_model_calcer(self.__model, pool)
         return stagedPredictIterator
@@ -5199,6 +5466,20 @@ cdef class _CatBoost:
         cdef int object_count = pool.__pool.Get()[0].ObjectsData.Get()[0].GetObjectCount()
         cdef TVector[ui32] flat_leaf_indexes
         thread_count = UpdateThreadCount(thread_count);
+        cdef bint is_gpu_input = bool(getattr(pool, '_is_gpu_input', False))
+        if is_gpu_input:
+            dereference(self.__model).SetEvaluatorType(EFormulaEvaluatorType_GPU)
+            with nogil:
+                flat_leaf_indexes = CalcLeafIndexesMultiGpuInput(
+                    dereference(self.__model),
+                    dereference(pool.__pool.Get()),
+                    verbose,
+                    ntree_start,
+                    ntree_end,
+                    thread_count
+                )
+            return _vector_of_uints_to_2d_np_array(flat_leaf_indexes, object_count, tree_count)
+
         with nogil:
             flat_leaf_indexes = CalcLeafIndexesMulti(
                 dereference(self.__model),
@@ -6017,6 +6298,77 @@ cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
                 )
     return {k: dict(v) for k, v in iteritems(metrics_evals)}
 
+
+
+cdef class _GpuStagedPredictIterator:
+    cdef TVector[TVector[double]] __approx
+    cdef TVector[TVector[double]] __pred
+    cdef TFullModel* __model
+    cdef TDataProviderPtr __pool
+    cdef EPredictionType predictionType
+    cdef int ntree_start, ntree_end, eval_period, thread_count
+    cdef bool_t verbose
+
+    def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        if eval_period < 1:
+            raise CatBoostError('eval_period for staged_predict must be >= 1')
+        self.predictionType = string_to_prediction_type(prediction_type)
+        self.ntree_start = ntree_start
+        self.ntree_end = ntree_end
+        self.eval_period = eval_period
+        self.thread_count = UpdateThreadCount(thread_count)
+        self.verbose = verbose
+
+    cdef _initialize(self, TFullModel* model, _PoolBase pool):
+        self.__model = model
+        self.__pool = pool.__pool
+
+    def __deepcopy__(self, _):
+        raise CatBoostError('Can\'t deepcopy _GpuStagedPredictIterator object')
+
+    def __next__(self):
+        cdef size_t i, j
+        cdef int cur_end
+        cdef TVector[TVector[double]] chunk
+        cdef TString devicesStr = to_arcadia_string('')
+
+        if self.ntree_start >= self.ntree_end:
+            raise StopIteration
+
+        cur_end = min(self.ntree_start + self.eval_period, self.ntree_end)
+        with nogil:
+            chunk = ApplyModelMultiGpuInput(
+                dereference(self.__model),
+                dereference(self.__pool.Get()),
+                self.verbose,
+                EPredictionType_InternalRawFormulaVal,
+                self.ntree_start,
+                cur_end,
+                self.thread_count,
+                devicesStr
+            )
+
+        if self.__approx.empty():
+            self.__approx.swap(chunk)
+        else:
+            for i in xrange(self.__approx.size()):
+                for j in xrange(self.__approx[i].size()):
+                    self.__approx[i][j] += chunk[i][j]
+
+        self.ntree_start += self.eval_period
+
+        with nogil:
+            self.__pred = PrepareEvalForInternalApprox(
+                self.predictionType,
+                dereference(self.__model),
+                self.__approx,
+                self.thread_count
+            )
+
+        return transform_predictions(self.__pred, self.predictionType, self.thread_count, self.__model)
+
+    def __iter__(self):
+        return self
 
 
 cdef class _StagedPredictIterator:

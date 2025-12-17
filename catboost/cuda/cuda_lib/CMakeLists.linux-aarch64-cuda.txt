@@ -38,6 +38,7 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cpu_reducers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_base.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memcpy_tracker.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_events_provider.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_kernel_buffer.cpp

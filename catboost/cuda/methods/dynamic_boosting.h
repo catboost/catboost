@@ -4,6 +4,7 @@
 #include "learning_rate.h"
 #include "random_score_helper.h"
 #include "boosting_progress_tracker.h"
+#include "gpu_optimum_const_approx.h"
 
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
@@ -565,10 +566,17 @@ namespace NCatboostCuda {
                     !DataProvider->TargetData->GetBaseline()
                     && (!TestDataProvider || !TestDataProvider->TargetData->GetBaseline()),
                     "You can't use boost_from_average or RMSEWithUncertainty with baseline now.");
-                state->StartingPoint = NCB::CalcOptimumConstApprox(
-                    CatBoostOptions.LossFunctionDescription,
-                    *DataProvider->TargetData->GetTarget(),
-                    GetWeights(*DataProvider->TargetData));
+                if (DataProvider->TargetData->GetTarget().Defined()) {
+                    state->StartingPoint = NCB::CalcOptimumConstApprox(
+                        CatBoostOptions.LossFunctionDescription,
+                        *DataProvider->TargetData->GetTarget(),
+                        GetWeights(*DataProvider->TargetData));
+                } else {
+                    state->StartingPoint = CalcOptimumConstApproxFromGpuTarget(
+                        state->DataSets.GetDataSetForPermutation(0).GetTarget(),
+                        CatBoostOptions.LossFunctionDescription
+                    );
+                }
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;

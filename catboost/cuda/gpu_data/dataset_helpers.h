@@ -194,29 +194,32 @@ namespace NCatboostCuda {
                 auto batchGroups = CreateBatchGroups(ctrs);
 
                 for (const auto& group : batchGroups) {
-                    TVector<TBatchedBinarizedCtrsCalcer::TBinarizedCtr> learnCtrs;
-                    TVector<TBatchedBinarizedCtrsCalcer::TBinarizedCtr> testCtrs;
-                    CtrCalcer.ComputeBinarizedCtrs(group, &learnCtrs, &testCtrs);
-                    for (ui32 i = 0; i < group.size(); ++i) {
-                        const ui32 featureId = group[i];
-                        IndexBuilder.WriteBinsVector(
-                            DataSetId,
-                            featureId,
-                            learnCtrs[i].BinCount,
-                            /*permute=*/true,
-                            learnCtrs[i].BinarizedCtr);
-
-                        if (testCtrs.size()) {
-                            CB_ENSURE(TestDataSetId != (ui32)-1, "Error: set test dataset");
-                            CB_ENSURE(testCtrs[i].BinCount == learnCtrs[i].BinCount);
-                            IndexBuilder.WriteBinsVector(
-                                TestDataSetId,
-                                featureId,
-                                testCtrs[i].BinCount,
-                                /*permute=*/true,
-                                testCtrs[i].BinarizedCtr);
+                    TAdaptiveLock writeLock;
+                    CtrCalcer.ComputeBinarizedCtrs(
+                        group,
+                        [&] (
+                            ui32 featureId,
+                            ui32 binCount,
+                            const TSingleBuffer<const float>& values,
+                            TConstArrayRef<float> borders,
+                            ui32 stream,
+                            bool isTest
+                        ) {
+                            with_lock (writeLock) {
+                                const ui32 dstDataSetId = isTest ? TestDataSetId : DataSetId;
+                                CB_ENSURE(!isTest || (TestDataSetId != (ui32)-1), "Error: set test dataset");
+                                IndexBuilder.WriteFloatFeatureFromDeviceValues(
+                                    dstDataSetId,
+                                    featureId,
+                                    binCount,
+                                    /*permute=*/ true,
+                                    values,
+                                    borders,
+                                    stream
+                                );
+                            }
                         }
-                    }
+                    );
                     CheckInterrupted(); // check after long-lasting operation
                 }
             }

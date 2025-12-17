@@ -5,7 +5,11 @@
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <catboost/cuda/cuda_lib/memcpy_tracker.h>
+#include <catboost/cuda/data/gpu_input_provider.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
+#include <catboost/cuda/gpu_data/kernel/binarize.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/full_model_saver.h>
@@ -35,6 +39,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/folder/path.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/scope.h>
 #include <util/system/compiler.h>
 #include <util/system/guard.h>
@@ -42,6 +47,10 @@
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
 #include <catboost/cuda/models/compact_model.h>
+
+#include <cuda_runtime_api.h>
+
+#include <cmath>
 
 using namespace NCB;
 
@@ -130,17 +139,157 @@ namespace NCatboostCuda {
         return false;
     }
 
+    static inline const NCB::TGpuInputTargets* GetGpuInputTargets(const NCB::TTrainingDataProvider& dataProvider) {
+        const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(dataProvider.ObjectsData.Get());
+        if (!gpuObjects) {
+            return nullptr;
+        }
+        const auto& gpuTargets = gpuObjects->GetGpuTargets();
+        return gpuTargets.TargetCount ? &gpuTargets : nullptr;
+    }
+
+    static inline cudaStream_t GetCudaStreamFromCudaArrayInterface(ui64 stream) {
+        if (stream == 0) {
+            return 0;
+        }
+        if (stream == 1) {
+            return cudaStreamPerThread;
+        }
+        return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+    }
+
+    static inline EBorderSelectionType NormalizeBorderSelectionTypeForGpuInput(EBorderSelectionType borderSelectionType) {
+        switch (borderSelectionType) {
+            case EBorderSelectionType::GreedyLogSum:
+            case EBorderSelectionType::GreedyMinEntropy:
+            case EBorderSelectionType::Median:
+                return EBorderSelectionType::Median;
+            case EBorderSelectionType::Uniform:
+                return EBorderSelectionType::Uniform;
+            default:
+                return EBorderSelectionType::Median;
+        }
+    }
+
+    static TVector<float> ComputeFloatBordersFromGpuTarget(
+        const NCB::TGpuInputColumnDesc& targetColumn,
+        ui32 objectCount,
+        const NCatboostOptions::TBinarizationOptions& binarizationOptions
+    ) {
+        CB_ENSURE(targetColumn.Data != 0, "GPU target pointer is null");
+        CB_ENSURE(targetColumn.DeviceId >= 0, "Invalid GPU target device id");
+        CB_ENSURE(targetColumn.StrideBytes > 0, "Invalid GPU target stride");
+
+        const ui32 borderCount = binarizationOptions.BorderCount.Get();
+        if (borderCount == 0 || objectCount == 0) {
+            return {};
+        }
+        CB_ENSURE(borderCount <= 255, "BorderCount is too large for GPU target binarization");
+
+        const EBorderSelectionType borderSelectionType = NormalizeBorderSelectionTypeForGpuInput(
+            binarizationOptions.BorderSelectionType.Get()
+        );
+
+        CUDA_SAFE_CALL(cudaSetDevice(targetColumn.DeviceId));
+        const cudaStream_t stream = GetCudaStreamFromCudaArrayInterface(targetColumn.Stream);
+
+        float* values = nullptr;
+        CUDA_SAFE_CALL(cudaMalloc(&values, static_cast<size_t>(objectCount) * sizeof(float)));
+        Y_DEFER { cudaFree(values); };
+
+        const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+        NKernel::CopyStridedGpuInputToFloat(
+            src,
+            targetColumn.StrideBytes,
+            objectCount,
+            static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+            values,
+            stream
+        );
+        CUDA_SAFE_CALL(cudaGetLastError());
+
+        if (borderSelectionType == EBorderSelectionType::Uniform) {
+            float minValue = 0.0f;
+            float maxValue = 0.0f;
+            NKernel::ComputeMinMaxToHost(values, objectCount, &minValue, &maxValue, stream);
+            if (!std::isfinite(minValue) || !std::isfinite(maxValue) || (minValue == maxValue)) {
+                return {};
+            }
+
+            TVector<float> borders;
+            borders.yresize(borderCount);
+            for (ui32 i = 0; i < borderCount; ++i) {
+                const double v = static_cast<double>(minValue)
+                    + (static_cast<double>(i) + 1.0)
+                        * (static_cast<double>(maxValue) - static_cast<double>(minValue))
+                        / (static_cast<double>(borderCount) + 1.0);
+                borders[i] = static_cast<float>(v);
+            }
+            SortUnique(borders);
+            return borders;
+        }
+
+        float* bordersDev = nullptr;
+        CUDA_SAFE_CALL(cudaMalloc(&bordersDev, static_cast<size_t>(borderCount + 1) * sizeof(float)));
+        Y_DEFER { cudaFree(bordersDev); };
+
+        NKernel::FastGpuBorders(values, objectCount, bordersDev, borderCount, stream);
+        CUDA_SAFE_CALL(cudaGetLastError());
+
+        TVector<float> borders;
+        borders.yresize(borderCount);
+        NCudaLib::TMemcpyTracker::Instance().RecordMemcpyAsync(
+            /*dst*/ borders.data(),
+            /*src*/ bordersDev + 1,
+            static_cast<ui64>(borderCount) * sizeof(float),
+            cudaMemcpyDeviceToHost
+        );
+        CUDA_SAFE_CALL(cudaMemcpyAsync(
+            borders.data(),
+            bordersDev + 1,
+            static_cast<size_t>(borderCount) * sizeof(float),
+            cudaMemcpyDeviceToHost,
+            stream
+        ));
+        CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+
+        EraseIf(borders, [] (float v) {
+            return !std::isfinite(v);
+        });
+        SortUnique(borders);
+        return borders;
+    }
+
     static inline void EstimatePriors(const NCB::TTrainingDataProvider& dataProvider,
                                       TBinarizedFeaturesManager& featureManager,
                                       NCatboostOptions::TCatFeatureParams& options,
                                       NPar::ILocalExecutor* localExecutor) {
         CB_ENSURE(&(featureManager.GetCatFeatureOptions()) == &options, "Error: for consistent catFeature options should be equal to one in feature manager");
 
+        bool needAnyPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
+        if (options.PerFeatureCtrs.IsSet()) {
+            for (const auto& [/*featureId*/_, ctrs] : options.PerFeatureCtrs.Get()) {
+                if (NeedPriorEstimation(ctrs)) {
+                    needAnyPriorEstimation = true;
+                    break;
+                }
+            }
+        }
+
+        if (!needAnyPriorEstimation) {
+            return;
+        }
+
         bool needSimpleCtrsPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
         const auto& borders = featureManager.GetTargetBorders();
         if (borders.size() > 1) {
             return;
         }
+
+        CB_ENSURE(
+            dataProvider.TargetData->GetTarget().Defined(),
+            "CTR prior estimation is not supported with GPU-resident targets; set prior_estimation=No"
+        );
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
@@ -367,18 +516,36 @@ namespace NCatboostCuda {
                 trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedCatboostOptions)));
             }
 
-            NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-            featuresManager.SetTargetBorders(
-                NCB::TBordersBuilder(
-                    gridBuilderFactory,
-                    (*trainingData.Learn->TargetData->GetTarget())[0])(featuresManager.GetTargetBinarizationDescription())); // esp: fix for multi-target
+            if (const auto* gpuTargets = GetGpuInputTargets(*trainingData.Learn)) {
+                featuresManager.SetTargetBorders(
+                    ComputeFloatBordersFromGpuTarget(
+                        gpuTargets->Targets[0],
+                        trainingData.Learn->GetObjectCount(),
+                        featuresManager.GetTargetBinarizationDescription()
+                    )
+                );
+            } else {
+                NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+                featuresManager.SetTargetBorders(
+                    NCB::TBordersBuilder(
+                        gridBuilderFactory,
+                        (*trainingData.Learn->TargetData->GetTarget())[0]
+                    )(featuresManager.GetTargetBinarizationDescription())
+                ); // esp: fix for multi-target
+            }
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
 
+            const ui32 targetDimension = [&] () -> ui32 {
+                if (const auto* gpuTargets = GetGpuInputTargets(*trainingData.Learn)) {
+                    return gpuTargets->TargetCount;
+                }
+                return trainingData.Learn->TargetData->GetTargetDimension();
+            }();
             ui32 approxDimension = GetApproxDimension(
                 updatedCatboostOptions,
                 labelConverter,
-                trainingData.Learn->TargetData->GetTargetDimension()
+                targetDimension
             );
 
             TVector<TVector<double>> rawValues(approxDimension);
@@ -531,21 +698,39 @@ namespace NCatboostCuda {
                 featuresManager,
                 localExecutor);
 
-            NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-            featuresManager.SetTargetBorders(
-                NCB::TBordersBuilder(
-                    gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
+            if (const auto* gpuTargets = GetGpuInputTargets(*trainingData.Learn)) {
+                featuresManager.SetTargetBorders(
+                    ComputeFloatBordersFromGpuTarget(
+                        gpuTargets->Targets[0],
+                        trainingData.Learn->GetObjectCount(),
+                        featuresManager.GetTargetBinarizationDescription()
+                    )
+                );
+            } else {
+                NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+                featuresManager.SetTargetBorders(
+                    NCB::TBordersBuilder(
+                        gridBuilderFactory,
+                        *trainingData.Learn->TargetData->GetOneDimensionalTarget()
+                    )(featuresManager.GetTargetBinarizationDescription())
+                );
+            }
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
             auto deviceRequestConfig = NCudaLib::CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          updatedCatboostOptions.LoggingLevel);
 
+            const ui32 targetDimension = [&] () -> ui32 {
+                if (const auto* gpuTargets = GetGpuInputTargets(*trainingData.Learn)) {
+                    return gpuTargets->TargetCount;
+                }
+                return trainingData.Learn->TargetData->GetTargetDimension();
+            }();
             ui32 approxDimension = GetApproxDimension(
                 updatedCatboostOptions,
                 labelConverter,
-                trainingData.Learn->TargetData->GetTargetDimension()
+                targetDimension
             );
 
             CheckMetrics(updatedCatboostOptions.MetricOptions);

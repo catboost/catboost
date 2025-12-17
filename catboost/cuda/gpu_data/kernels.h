@@ -44,16 +44,16 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Dst.Size() > BorderCount);
 
-            if (BorderType == EBorderSelectionType::Median) {
-                NKernel::FastGpuBorders(Feature.Get(), Feature.Size(), Dst.Get(),
-                                        BorderCount, stream.GetStream());
-            } else if (BorderType == EBorderSelectionType::Uniform) {
+            if (BorderType == EBorderSelectionType::Uniform) {
                 NKernel::ComputeUniformBorders(Feature.Get(), static_cast<ui32>(Feature.Size()),
                                                Dst.Get(), BorderCount,
                                                stream.GetStream());
             } else {
-                ythrow TCatBoostException() << "Error: unsupported binarization for combinations ctrs "
-                                            << BorderType;
+                // FastGpuBorders is GPU-only and keeps D2H traffic bounded to the resulting borders.
+                // For border selection types without a dedicated GPU implementation, approximate with
+                // quantile-based borders.
+                NKernel::FastGpuBorders(Feature.Get(), Feature.Size(), Dst.Get(),
+                                        BorderCount, stream.GetStream());
             }
         }
     };

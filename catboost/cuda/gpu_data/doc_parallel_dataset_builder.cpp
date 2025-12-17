@@ -4,6 +4,14 @@
 #include "dataset_helpers.h"
 #include "estimated_features_calcer.h"
 
+#include <catboost/cuda/data/gpu_input_provider.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
+#include <catboost/cuda/cuda_util/transform.h>
+#include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
+
+#include <cuda_runtime_api.h>
+
 template <typename T>
 static TVector<T> Flatten2D(TVector<TVector<T>>&& src) {
     if (src.empty()) {
@@ -15,6 +23,102 @@ static TVector<T> Flatten2D(TVector<TVector<T>>&& src) {
         result.insert(result.end(), v.begin(), v.end());
     }
     return result;
+}
+
+namespace {
+    static inline cudaStream_t GetCudaStreamFromCudaArrayInterface(ui64 stream) {
+        if (stream == 0) {
+            return 0;
+        }
+        if (stream == 1) {
+            return cudaStreamPerThread;
+        }
+        return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+    }
+
+    static void FillTargetsAndWeightsFromGpuInput(
+        const NCB::TGpuInputTargets& gpuTargets,
+        const ui32 objectCount,
+        const NCatboostCuda::TDataPermutation& loadBalancingPermutation,
+        const NCudaLib::TStripeMapping& dstMapping,
+        NCudaLib::TCudaBuffer<float, NCudaLib::TStripeMapping>* targets,
+        NCudaLib::TCudaBuffer<float, NCudaLib::TStripeMapping>* weights
+    ) {
+        CB_ENSURE(targets, "targets buffer is null");
+        CB_ENSURE(weights, "weights buffer is null");
+        CB_ENSURE(gpuTargets.TargetCount > 0, "GPU targets are empty");
+        CB_ENSURE(gpuTargets.Targets.size() == gpuTargets.TargetCount, "GPU targets size mismatch");
+        CB_ENSURE(objectCount > 0, "Object count is zero");
+
+        const i32 deviceId = gpuTargets.Targets[0].DeviceId;
+        CB_ENSURE(deviceId >= 0, "Invalid device id for GPU target");
+        for (const auto& t : gpuTargets.Targets) {
+            CB_ENSURE(t.DeviceId == deviceId, "All GPU target columns must reside on the same device");
+            CB_ENSURE(t.FullObjectCount == objectCount, "GPU target size mismatch");
+        }
+
+        NCudaLib::SetDevice(deviceId);
+        const cudaStream_t caiStream = GetCudaStreamFromCudaArrayInterface(gpuTargets.Targets[0].Stream);
+
+        TSingleBuffer<float> targetsSingle;
+        targetsSingle.Reset(NCudaLib::TSingleMapping(deviceId, objectCount), gpuTargets.TargetCount);
+
+        TSingleBuffer<float> weightsSingle;
+        weightsSingle.Reset(NCudaLib::TSingleMapping(deviceId, objectCount));
+
+        // Ensure handle-based buffers are materialized before using raw CUDA runtime calls.
+        NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(deviceId));
+
+        for (ui32 targetIdx = 0; targetIdx < gpuTargets.TargetCount; ++targetIdx) {
+            const auto& col = gpuTargets.Targets[targetIdx];
+            const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(col.Data));
+            NKernel::CopyStridedGpuInputToFloat(
+                src,
+                col.StrideBytes,
+                objectCount,
+                static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(col.DType)),
+                targetsSingle.At(deviceId).GetColumn(targetIdx),
+                caiStream
+            );
+        }
+        CUDA_SAFE_CALL(cudaStreamSynchronize(caiStream));
+
+        if (gpuTargets.HasWeights) {
+            CB_ENSURE(gpuTargets.Weights.DeviceId == deviceId, "GPU weights must reside on the same device as GPU targets");
+            CB_ENSURE(gpuTargets.Weights.FullObjectCount == objectCount, "GPU weight size mismatch");
+            const cudaStream_t weightStream = GetCudaStreamFromCudaArrayInterface(gpuTargets.Weights.Stream);
+            const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(gpuTargets.Weights.Data));
+            NKernel::CopyStridedGpuInputToFloat(
+                src,
+                gpuTargets.Weights.StrideBytes,
+                objectCount,
+                static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(gpuTargets.Weights.DType)),
+                weightsSingle.At(deviceId).Get(),
+                weightStream
+            );
+            CUDA_SAFE_CALL(cudaStreamSynchronize(weightStream));
+        } else {
+            FillBuffer(weightsSingle, 1.0f);
+        }
+
+        TSingleBuffer<ui32> order;
+        order.Reset(NCudaLib::TSingleMapping(deviceId, objectCount));
+        loadBalancingPermutation.WriteOrder(order);
+
+        TSingleBuffer<float> targetsPermuted;
+        targetsPermuted.Reset(NCudaLib::TSingleMapping(deviceId, objectCount), gpuTargets.TargetCount);
+        Gather(targetsPermuted, targetsSingle, order);
+
+        TSingleBuffer<float> weightsPermuted;
+        weightsPermuted.Reset(NCudaLib::TSingleMapping(deviceId, objectCount));
+        Gather(weightsPermuted, weightsSingle, order);
+
+        targets->Reset(dstMapping, gpuTargets.TargetCount);
+        weights->Reset(dstMapping);
+
+        NCudaLib::Reshard(targetsPermuted, *targets, /*stream*/ 0);
+        NCudaLib::Reshard(weightsPermuted, *weights, /*stream*/ 0);
+    }
 }
 
 NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
@@ -34,13 +138,29 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     TCudaBuffer<float, NCudaLib::TStripeMapping> targets;
     TCudaBuffer<float, NCudaLib::TStripeMapping> weights;
 
-    const auto cpuTargets = *DataProvider.TargetData->GetTarget();
-    const auto targetCount = cpuTargets.size();
-    targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping, targetCount);
-    weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
+    const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(DataProvider.ObjectsData.Get());
+    const bool hasGpuTargets = gpuObjects && (gpuObjects->GetGpuTargets().TargetCount > 0);
 
-    targets.Write(Flatten2D(learnLoadBalancingPermutation.Gather2D(*DataProvider.TargetData->GetTarget())));
-    weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
+    ui32 targetCount = 0;
+    if (hasGpuTargets) {
+        const auto& gpuTargets = gpuObjects->GetGpuTargets();
+        targetCount = gpuTargets.TargetCount;
+        FillTargetsAndWeightsFromGpuInput(
+            gpuTargets,
+            DataProvider.GetObjectCount(),
+            learnLoadBalancingPermutation,
+            dataSetsHolder.LearnDocPerDevicesSplit->Mapping,
+            &targets,
+            &weights
+        );
+    } else {
+        const auto cpuTargets = *DataProvider.TargetData->GetTarget();
+        targetCount = cpuTargets.size();
+        targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping, targetCount);
+        weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
+        targets.Write(Flatten2D(learnLoadBalancingPermutation.Gather2D(*DataProvider.TargetData->GetTarget())));
+        weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
+    }
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
         dataSetsHolder.PermutationDataSets[permutationId] = THolder<TDocParallelDataSet>(new TDocParallelDataSet(DataProvider,
@@ -62,8 +182,23 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping, targetCount);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(Flatten2D(testLoadBalancingPermutation.Gather2D(*LinkedTest->TargetData->GetTarget())));
-        testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
+        const auto* testGpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(LinkedTest->ObjectsData.Get());
+        const bool testHasGpuTargets = testGpuObjects && (testGpuObjects->GetGpuTargets().TargetCount > 0);
+        if (testHasGpuTargets) {
+            const auto& gpuTargets = testGpuObjects->GetGpuTargets();
+            CB_ENSURE(gpuTargets.TargetCount == targetCount, "Learn/test GPU target dimension mismatch");
+            FillTargetsAndWeightsFromGpuInput(
+                gpuTargets,
+                LinkedTest->GetObjectCount(),
+                testLoadBalancingPermutation,
+                dataSetsHolder.TestDocPerDevicesSplit->Mapping,
+                &testTargets,
+                &testWeights
+            );
+        } else {
+            testTargets.Write(Flatten2D(testLoadBalancingPermutation.Gather2D(*LinkedTest->TargetData->GetTarget())));
+            testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
+        }
 
         dataSetsHolder.TestDataSet = THolder<TDocParallelDataSet>(new TDocParallelDataSet(*LinkedTest,
                                                              dataSetsHolder.CompressedIndex,

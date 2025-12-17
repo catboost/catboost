@@ -148,22 +148,14 @@ namespace NKernel {
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                 thrust::maximum<T>(),
-#else
-                                                 cuda::maximum<T>(),
-#endif
+                                                 cub::Max(),
                                                  -std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                 thrust::minimum<T>(),
-#else
-                                                 cuda::minimum<T>(),
-#endif
+                                                 cub::Min(),
                                                  std::numeric_limits<T>::infinity(),
                                                  stream);
             }
@@ -208,11 +200,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                      thrust::maximum<T>(),
-#else
-                                                      cuda::maximum<T>(),
-#endif
+                                                      cub::Max(),
                                                       size,
                                                       stream);
             }
@@ -221,11 +209,7 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                      thrust::minimum<T>(),
-#else
-                                                      cuda::minimum<T>(),
-#endif
+                                                      cub::Min(),
                                                       size,
                                                       stream);
             }
@@ -337,11 +321,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                              thrust::maximum<T>(),
-#else
-                                                              cuda::maximum<T>(),
-#endif
+                                                              cub::Max(),
                                                               T(),
                                                               stream);
                 }
@@ -350,11 +330,7 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                              thrust::minimum<T>(),
-#else
-                                                              cuda::minimum<T>(),
-#endif
+                                                              cub::Min(),
                                                               T(),
                                                               stream);
                 }

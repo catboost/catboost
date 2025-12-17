@@ -93,6 +93,46 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
+
+def _get_object_module_name(obj):
+    try:
+        return obj.__class__.__module__ or ''
+    except Exception:
+        return ''
+
+
+def _is_cuda_array(obj):
+    try:
+        return getattr(obj, '__cuda_array_interface__', None) is not None
+    except Exception:
+        return False
+
+
+def _is_cudf_dataframe(obj):
+    mod = _get_object_module_name(obj)
+    if not mod.startswith('cudf'):
+        return False
+    # cuDF DataFrame does not implement __cuda_array_interface__, so use light duck-typing.
+    # cuDF categorical Series also does not implement __cuda_array_interface__.
+    if hasattr(obj, 'columns') and hasattr(obj, 'dtypes') and hasattr(obj, 'to_cupy'):
+        return True
+    return hasattr(obj, 'dtype') and hasattr(obj, 'to_cupy')
+
+def _is_dlpack_cuda(obj):
+    try:
+        dev_fn = getattr(obj, '__dlpack_device__', None)
+        if dev_fn is None or getattr(obj, '__dlpack__', None) is None:
+            return False
+        dev = dev_fn()
+        # DLPack device types: kDLCPU=1, kDLCUDA=2, ...
+        return isinstance(dev, tuple) and len(dev) == 2 and dev[0] == 2
+    except Exception:
+        return False
+
+
+def _is_gpu_input(obj):
+    return _is_cuda_array(obj) or _is_cudf_dataframe(obj) or _is_dlpack_cuda(obj)
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
@@ -921,6 +961,8 @@ class Pool(_PoolBase):
         """
         Check type of data.
         """
+        if _is_gpu_input(data):
+            return
         if not isinstance(data, (PATH_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
             raise CatBoostError(
                 ("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData " +
@@ -936,6 +978,17 @@ class Pool(_PoolBase):
         if isinstance(data, PATH_TYPES):
             if not data:
                 raise CatBoostError("Features filename is empty.")
+        elif _is_gpu_input(data):
+            data_shape = getattr(data, 'shape', None)
+            # Special-case cuDF Series: allow as a single-column dataset (shape [n_objects]).
+            if _is_cudf_dataframe(data) and not hasattr(data, 'columns'):
+                if not data_shape or len(data_shape) != 1:
+                    raise CatBoostError("Input data has invalid shape: {}. cuDF Series must be 1 dimensional".format(data_shape))
+            else:
+                if not data_shape or len(data_shape) != 2:
+                    raise CatBoostError("Input data has invalid shape: {}. Must be 2 dimensional".format(data_shape))
+                if data_shape[1] == 0:
+                    raise CatBoostError("Input data must have at least one feature")
         elif isinstance(data, (ARRAY_TYPES, SPARSE_MATRIX_TYPES)):
             if isinstance(data, list):
                 data_shape = np.shape(np.asarray(data, dtype=object))
@@ -1399,6 +1452,99 @@ class Pool(_PoolBase):
         """
         Initialize Pool from array like data.
         """
+        if _is_gpu_input(data) or _is_gpu_input(label) or _is_gpu_input(weight):
+            is_cudf_series_input = _is_cudf_dataframe(data) and not hasattr(data, 'columns') and hasattr(data, 'to_frame')
+            if is_cudf_series_input:
+                if feature_names is None:
+                    series_name = getattr(data, 'name', None)
+                    if series_name:
+                        feature_names = [str(series_name)]
+                data = data.to_frame()
+            if not _is_gpu_input(data):
+                raise CatBoostError(
+                    "GPU-resident label/weight is supported only when 'data' is GPU-resident (CuPy/cuDF)."
+                )
+            if isinstance(data, FeaturesData):
+                raise CatBoostError("GPU-resident inputs are not supported with FeaturesData.")
+            if embedding_features_data is not None:
+                raise CatBoostError("embedding_features_data is not supported for GPU-resident inputs.")
+            if text_features is not None and len(text_features) > 0:
+                raise CatBoostError("text_features is not supported for GPU-resident inputs.")
+            if embedding_features is not None and len(embedding_features) > 0:
+                raise CatBoostError("embedding_features is not supported for GPU-resident inputs.")
+            if any(v is not None for v in [pairs, graph, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp]):
+                raise CatBoostError(
+                    "pairs, graph, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp "
+                    "are not supported for GPU-resident inputs."
+                )
+
+            if _is_cudf_dataframe(data) and feature_names is None and not is_cudf_series_input:
+                feature_names = [str(c) for c in data.columns]
+
+            data_shape = getattr(data, 'shape', None)
+            if not data_shape or len(data_shape) != 2:
+                raise CatBoostError("Input data has invalid shape: {}. Must be 2 dimensional".format(data_shape))
+            samples_count, features_count = data_shape
+
+            pairs_len = 0
+            if label is not None:
+                if _is_gpu_input(label):
+                    label_shape = getattr(label, 'shape', None)
+                    if not label_shape:
+                        raise CatBoostError("Label has invalid shape: {}".format(label_shape))
+                    if len(label_shape) == 1:
+                        if label_shape[0] != samples_count:
+                            raise CatBoostError(
+                                "Length of label={} and length of data={} is different.".format(label_shape[0], samples_count)
+                            )
+                    elif len(label_shape) == 2:
+                        if label_shape[0] != samples_count:
+                            raise CatBoostError(
+                                "Length of label={} and length of data={} is different.".format(label_shape[0], samples_count)
+                            )
+                    else:
+                        raise CatBoostError("Label has invalid shape: {}. Must be 1D or 2D".format(label_shape))
+                else:
+                    self._check_label_type(label)
+                    self._check_label_empty(label)
+                    label = self._label_if_pandas_to_numpy(label)
+                    if len(np.shape(label)) == 1:
+                        label = np.expand_dims(label, 1)
+                    self._check_label_shape(label, samples_count)
+
+            if feature_names is not None:
+                self._check_feature_names(feature_names, features_count)
+            if cat_features is not None:
+                cat_features = _get_features_indices(cat_features, feature_names)
+                self._check_string_feature_type(cat_features, 'cat_features')
+                self._check_string_feature_value(cat_features, features_count, 'cat_features')
+
+            if weight is not None:
+                if _is_gpu_input(weight):
+                    weight_shape = getattr(weight, 'shape', None)
+                    if not weight_shape or len(weight_shape) != 1:
+                        raise CatBoostError("Weight has invalid shape: {}. Must be 1 dimensional".format(weight_shape))
+                    if weight_shape[0] != samples_count:
+                        raise CatBoostError(
+                            "Length of weight={} and length of data={} are different.".format(weight_shape[0], samples_count)
+                        )
+                else:
+                    self._check_weight_type(weight)
+                    weight = self._if_pandas_to_numpy(weight)
+                    self._check_weight_shape(weight, samples_count)
+
+            if feature_tags is not None:
+                feature_tags = self._check_transform_tags(feature_tags, feature_names)
+
+            self._init_pool_gpu(
+                data, label, cat_features,
+                text_features, embedding_features, embedding_features_data,
+                pairs, graph, weight, group_id, group_weight, subgroup_id, pairs_weight,
+                baseline, timestamp, feature_names, feature_tags, thread_count
+            )
+            setattr(self, '_is_gpu_input', True)
+            return
+
         if isinstance(data, DataFrame):
             if feature_names is None:
                 feature_names = self._infer_feature_names(data, embedding_features_data, embedding_features)
@@ -1838,8 +1984,8 @@ class _CatBoostBase(object):
     def _get_embedding_feature_indices(self):
         return self._object._get_embedding_feature_indices()
 
-    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type):
-        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type)
+    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type, output_type=None, devices=None):
+        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type, output_type, devices)
 
     def _base_virtual_ensembles_predict(self, pool, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose):
         return self._object._base_virtual_ensembles_predict(pool, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose)
@@ -2168,12 +2314,17 @@ def _params_type_cast(params):
 
 
 def _is_data_single_object(data):
+    # GPU-resident inputs (CuPy / cuDF / DLPack) are always treated as "dataset-like" here.
+    # Pool GPU path requires 2D feature matrices, so 1D "single object" mode is not supported for GPU inputs.
+    if _is_gpu_input(data):
+        return False
     if isinstance(data, (Pool, FeaturesData, DataFrame) + SPARSE_MATRIX_TYPES):
         return False
     if not isinstance(data, ARRAY_TYPES):
         raise CatBoostError(
             "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame,"
-            " scipy.sparse matrix, catboost.FeaturesData or catboost.Pool".format(type(data))
+            " scipy.sparse matrix, catboost.FeaturesData, catboost.Pool, or a GPU-resident input"
+            " (CuPy ndarray, cuDF DataFrame/Series, or CUDA DLPack tensor)".format(type(data))
         )
     return len(np.shape(data)) == 1
 
@@ -2319,6 +2470,11 @@ class CatBoost(_CatBoostBase):
         _check_param_types(params)
         params = _params_type_cast(params)
         _check_train_params(params)
+
+        if getattr(train_pool, '_is_gpu_input', False):
+            task_type = str(params.get('task_type', 'CPU')).upper()
+            if task_type != 'GPU':
+                raise CatBoostError("GPU-resident inputs are supported only for task_type='GPU'.")
 
         if params.get('eval_fraction', 0.0) != 0.0:
             if eval_set is not None:
@@ -2613,17 +2769,22 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in valid_prediction_types:
             raise CatBoostError("Invalid value of prediction_type={}: must be {}.".format(prediction_type, ', '.join(valid_prediction_types)))
 
-    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name, task_type="CPU"):
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name, task_type="CPU", output_type=None, devices=None):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
-        predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type)
+        devices_ = devices
+        if devices_ is None and task_type == "GPU":
+            devices_ = self.get_param("devices")
+        if devices_ is not None and isinstance(devices_, list):
+            devices_ = ":".join(map(str, devices_))
+        predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type, output_type, devices_)
         return predictions[0] if data_is_single_object else predictions
 
-    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict with data.
 
@@ -2678,7 +2839,7 @@ class CatBoost(_CatBoostBase):
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type, output_type, devices)
 
     def _virtual_ensembles_predict(self, data, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
@@ -5247,7 +5408,7 @@ class CatBoostClassifier(CatBoost):
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
-    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict with data.
 
@@ -5304,9 +5465,9 @@ class CatBoostClassifier(CatBoost):
                 - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with log probability for every class for each object.
         """
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type, output_type, devices)
 
-    def predict_proba(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict_proba(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict class probability with X.
 
@@ -5348,9 +5509,9 @@ class CatBoostClassifier(CatBoost):
                 return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                 with probability for every class for each object.
         """
-        return self._predict(X, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba', task_type)
+        return self._predict(X, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba', task_type, output_type, devices)
 
-    def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict class log probability with data.
 
@@ -5392,7 +5553,7 @@ class CatBoostClassifier(CatBoost):
                 return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                 with log probability for every class for each object.
         """
-        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_log_proba', task_type)
+        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_log_proba', task_type, output_type, devices)
 
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -5875,7 +6036,7 @@ class CatBoostRegressor(CatBoost):
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
-    def predict(self, data, prediction_type=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
+    def predict(self, data, prediction_type=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict with data.
 
@@ -5921,7 +6082,7 @@ class CatBoostRegressor(CatBoost):
         """
         if prediction_type is None:
             prediction_type = self._get_default_prediction_type()
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict', task_type, output_type, devices)
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -6286,7 +6447,7 @@ class CatBoostRanker(CatBoost):
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
-    def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU", output_type=None, devices=None):
         """
         Predict with data.
         Parameters
@@ -6313,7 +6474,7 @@ class CatBoostRanker(CatBoost):
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-        return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict')
+        return self._predict(X, 'RawFormulaVal', ntree_start, ntree_end, thread_count, verbose, 'predict', task_type, output_type, devices)
 
     def staged_predict(self, X, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """

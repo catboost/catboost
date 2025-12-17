@@ -21,9 +21,21 @@
 #include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/system/mem_info.h>
+#include <util/system/type_name.h>
 #include <util/thread/singleton.h>
 
+#include <algorithm>
 #include <numeric>
+
+#if defined(HAVE_CUDA)
+#include <catboost/cuda/cuda_lib/cuda_base.h>
+#include <catboost/cuda/data/gpu_input_columns.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_final_ctr.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_factorize.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_targets.cuh>
+#include <cuda_runtime_api.h>
+#endif
 
 
 using namespace NCB;
@@ -939,6 +951,815 @@ void CalcFinalCtrsImpl(
     }
 }
 
+#if defined(HAVE_CUDA)
+namespace {
+    template <class T>
+    class TCudaDeviceArray final {
+    public:
+        TCudaDeviceArray() = default;
+
+        explicit TCudaDeviceArray(ui64 size) {
+            if (size) {
+                CUDA_SAFE_CALL(cudaMalloc(&Ptr, static_cast<size_t>(size) * sizeof(T)));
+            }
+        }
+
+        TCudaDeviceArray(const TCudaDeviceArray&) = delete;
+        TCudaDeviceArray& operator=(const TCudaDeviceArray&) = delete;
+
+        TCudaDeviceArray(TCudaDeviceArray&& other) noexcept
+            : Ptr(other.Ptr)
+        {
+            other.Ptr = nullptr;
+        }
+
+        TCudaDeviceArray& operator=(TCudaDeviceArray&& other) noexcept {
+            if (this != &other) {
+                Reset();
+                Ptr = other.Ptr;
+                other.Ptr = nullptr;
+            }
+            return *this;
+        }
+
+        ~TCudaDeviceArray() {
+            Reset();
+        }
+
+        T* Get() const noexcept {
+            return Ptr;
+        }
+
+    private:
+        void Reset() noexcept {
+            if (Ptr) {
+                cudaFree(Ptr);
+                Ptr = nullptr;
+            }
+        }
+
+    private:
+        T* Ptr = nullptr;
+    };
+
+    template <class T>
+    static void CopyHostToDevice(const T* srcHost, T* dstDev, ui64 size, cudaStream_t stream) {
+        if (size == 0) {
+            return;
+        }
+        NCudaLib::TMemcpyTracker::Instance().RecordMemcpyAsync(
+            /*dst*/ dstDev,
+            /*src*/ srcHost,
+            sizeof(T) * size,
+            cudaMemcpyHostToDevice
+        );
+        CUDA_SAFE_CALL(cudaMemcpyAsync(dstDev, srcHost, sizeof(T) * size, cudaMemcpyHostToDevice, stream));
+    }
+
+    template <class T>
+    static void CopyDeviceToHost(const T* srcDev, T* dstHost, ui64 size, cudaStream_t stream) {
+        if (size == 0) {
+            return;
+        }
+        NCudaLib::TMemcpyTracker::Instance().RecordMemcpyAsync(
+            /*dst*/ dstHost,
+            /*src*/ srcDev,
+            sizeof(T) * size,
+            cudaMemcpyDeviceToHost
+        );
+        CUDA_SAFE_CALL(cudaMemcpyAsync(dstHost, srcDev, sizeof(T) * size, cudaMemcpyDeviceToHost, stream));
+    }
+
+    static bool TryCalcFinalCtrsOnGpu(
+        const ECtrType ctrType,
+        const TProjection& projection,
+        const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+        int targetBorderClassifierIdx,
+        ui64 ctrLeafCountLimit,
+        bool storeAllSimpleCtr,
+        ECounterCalc counterCalcMethod,
+        TCtrValueTable* result
+    ) {
+        const bool requireGpuFinalCtr = !datasetDataForFinalCtrs.Targets.Defined();
+        const auto bail = [&] (TStringBuf reason) -> bool {
+            if (requireGpuFinalCtr) {
+                CB_ENSURE(
+                    false,
+                    TStringBuilder()
+                        << "Final CTR GPU path failed: " << reason
+                        << " (ctrType=" << static_cast<int>(ctrType) << ", projection=" << projection << ")"
+                );
+            }
+            return false;
+        };
+
+        if (projection.CatFeatures.empty() && projection.OneHotFeatures.empty()) {
+            return bail("projection has no categorical/one-hot features");
+        }
+
+        ui32 learnSampleCount = datasetDataForFinalCtrs.Data.Learn->GetObjectCount();
+        ui32 totalSampleCount = learnSampleCount;
+        if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
+            totalSampleCount += datasetDataForFinalCtrs.Data.GetTestSampleCount();
+        }
+
+        if (projection.IsSingleCatFeature() && storeAllSimpleCtr) {
+            ctrLeafCountLimit = Max<ui64>();
+        }
+
+        const auto& learnObjectsDataProvider = *datasetDataForFinalCtrs.Data.Learn->ObjectsData;
+        const auto quantizedFeaturesInfo = learnObjectsDataProvider.GetQuantizedFeaturesInfo();
+        if (!quantizedFeaturesInfo) {
+            return bail("QuantizedFeaturesInfo is null");
+        }
+
+        struct TBinFeatureGpuData {
+            int FloatFeatureIdx = 0;
+            int SplitIdx = 0;
+            float BorderValue = 0.0f;
+            bool UseRawFloatValues = false;
+        };
+        TVector<TBinFeatureGpuData> binFeaturesGpu;
+        binFeaturesGpu.reserve(projection.BinFeatures.size());
+
+        TVector<const NCB::TGpuExternalCatValuesHolder*> learnCatHolders;
+        learnCatHolders.reserve(projection.CatFeatures.size());
+
+        i32 deviceId = -1;
+        for (const int featureIdx : projection.CatFeatures) {
+            const auto& holder = **(learnObjectsDataProvider.GetCatFeature(featureIdx));
+            const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&holder);
+            if (!gpuHolder) {
+                return bail(TStringBuilder() << "cat feature holder is not GPU-backed (featureIdx=" << featureIdx << ")");
+            }
+            if (deviceId == -1) {
+                deviceId = gpuHolder->GetDeviceId();
+            } else if (deviceId != gpuHolder->GetDeviceId()) {
+                return bail("multiple devices in categorical features projection");
+            }
+            learnCatHolders.push_back(gpuHolder);
+        }
+
+        for (const auto& feature : projection.OneHotFeatures) {
+            const int featureIdx = feature.CatFeatureIdx;
+            const auto& holder = **(learnObjectsDataProvider.GetCatFeature(featureIdx));
+            const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&holder);
+            if (!gpuHolder) {
+                return bail(TStringBuilder() << "one-hot feature holder is not GPU-backed (featureIdx=" << featureIdx << ")");
+            }
+            if (deviceId == -1) {
+                deviceId = gpuHolder->GetDeviceId();
+            } else if (deviceId != gpuHolder->GetDeviceId()) {
+                return bail("multiple devices in one-hot features projection");
+            }
+        }
+
+        for (const auto& feature : projection.BinFeatures) {
+            const int floatFeatureIdx = feature.FloatFeature;
+            const auto& holder = **(learnObjectsDataProvider.GetFloatFeature(floatFeatureIdx));
+            const int splitIdx = feature.SplitIdx;
+            if (const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalFloatValuesHolder*>(&holder)) {
+                const int featureDeviceId = gpuHolder->GetColumnDesc().DeviceId;
+                if (deviceId == -1) {
+                    deviceId = featureDeviceId;
+                } else if (deviceId != featureDeviceId) {
+                    return bail("multiple devices in float bin features projection");
+                }
+
+                const auto& borders = quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(static_cast<ui32>(floatFeatureIdx)));
+                if ((splitIdx < 0) || (static_cast<ui32>(splitIdx) >= borders.size())) {
+                    return bail("float split index is out of bounds for borders");
+                }
+                binFeaturesGpu.push_back(TBinFeatureGpuData{floatFeatureIdx, splitIdx, borders[splitIdx], /*UseRawFloatValues*/ true});
+            } else if (const auto* qHolder = dynamic_cast<const NCB::TQuantizedFloatValuesHolder*>(&holder)) {
+                Y_UNUSED(qHolder);
+                if (splitIdx < 0) {
+                    return bail("float split index is negative");
+                }
+                // We'll read the already-quantized 8-bit bins from host and update hashes on device.
+                // This is used for projections that depend on non-raw float features (e.g. precomputed).
+                binFeaturesGpu.push_back(TBinFeatureGpuData{floatFeatureIdx, splitIdx, 0.0f, /*UseRawFloatValues*/ false});
+            } else {
+                if (!datasetDataForFinalCtrs.Targets.Defined()) {
+                    CB_ENSURE(
+                        false,
+                        TStringBuilder()
+                            << "Final CTR GPU path does not support float feature holder type for bin feature "
+                            << "(floatFeatureIdx=" << floatFeatureIdx << ", splitIdx=" << splitIdx << "): "
+                            << TypeName(typeid(holder))
+                    );
+                }
+                return false;
+            }
+        }
+        if (deviceId < 0) {
+            return bail("could not determine device id for projection");
+        }
+
+        NCudaLib::SetDevice(deviceId);
+        const cudaStream_t stream = 0;
+
+        const NCB::TGpuInputTargets* learnGpuTargets = nullptr;
+        if (const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(datasetDataForFinalCtrs.Data.Learn->ObjectsData.Get())) {
+            const auto& gpuTargets = gpuObjects->GetGpuTargets();
+            if (gpuTargets.TargetCount > 0) {
+                for (const auto& t : gpuTargets.Targets) {
+                    if (t.DeviceId != deviceId) {
+                        return bail("GPU target device id mismatch");
+                    }
+                }
+                learnGpuTargets = &gpuTargets;
+            }
+        }
+
+        // Copy bin->hashedCatValue maps to device (small, per-feature).
+        TVector<TCudaDeviceArray<ui32>> binToHashMapsDev;
+        binToHashMapsDev.reserve(projection.CatFeatures.size());
+        TVector<const ui32*> binToHashPtrsDev;
+        binToHashPtrsDev.reserve(projection.CatFeatures.size());
+
+        for (const int featureIdx : projection.CatFeatures) {
+            CB_ENSURE(
+                (ui32)featureIdx < perfectHashedToHashedCatValuesMap.size(),
+                "perfectHashedToHashedCatValuesMap is out of bounds for cat feature " << featureIdx
+            );
+            const auto& mapping = perfectHashedToHashedCatValuesMap[featureIdx];
+            auto mappingDev = TCudaDeviceArray<ui32>(mapping.size());
+            if (!mapping.empty()) {
+                CopyHostToDevice(mapping.data(), mappingDev.Get(), mapping.size(), stream);
+            }
+            binToHashPtrsDev.push_back(mappingDev.Get());
+            binToHashMapsDev.push_back(std::move(mappingDev));
+        }
+
+        // Build projection hash for learn and (optionally) test datasets on device.
+        TCudaDeviceArray<ui64> hashesDev(totalSampleCount);
+        if (totalSampleCount) {
+            CUDA_SAFE_CALL(cudaMemsetAsync(hashesDev.Get(), 0, static_cast<size_t>(totalSampleCount) * sizeof(ui64), stream));
+        }
+
+        ui32 offset = 0;
+        for (ui32 f = 0; f < learnCatHolders.size(); ++f) {
+            const ui32* bins = learnCatHolders[f]->GetDeviceBinsPtr();
+            CB_ENSURE(bins != nullptr, "GPU bins pointer is null for cat feature " << projection.CatFeatures[f]);
+            NKernel::UpdateHashesFromCatFeature(
+                bins,
+                learnSampleCount,
+                binToHashPtrsDev[f],
+                hashesDev.Get() + offset,
+                stream
+            );
+        }
+
+        for (const auto& feature : binFeaturesGpu) {
+            const auto& holder = **(learnObjectsDataProvider.GetFloatFeature(feature.FloatFeatureIdx));
+            if (feature.UseRawFloatValues) {
+                const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalFloatValuesHolder*>(&holder);
+                CB_ENSURE(gpuHolder != nullptr, "Float feature holder is not GPU-backed");
+                const auto& column = gpuHolder->GetColumnDesc();
+                CB_ENSURE(column.DeviceId == deviceId, "Unexpected device id mismatch for float feature");
+                CB_ENSURE(column.Data != 0, "GPU float feature pointer is null");
+                CB_ENSURE(column.StrideBytes > 0, "Invalid stride for GPU float feature");
+
+                TCudaDeviceArray<float> valuesDev(learnSampleCount);
+                if (learnSampleCount) {
+                    const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(column.Data));
+                    NKernel::CopyStridedGpuInputToFloat(
+                        src,
+                        column.StrideBytes,
+                        learnSampleCount,
+                        static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(column.DType)),
+                        valuesDev.Get(),
+                        stream
+                    );
+                    NKernel::UpdateHashesFromFloatSplit(
+                        valuesDev.Get(),
+                        learnSampleCount,
+                        feature.BorderValue,
+                        hashesDev.Get() + offset,
+                        stream
+                    );
+                }
+            } else {
+                const auto* qHolder = dynamic_cast<const NCB::TQuantizedFloatValuesHolder*>(&holder);
+                CB_ENSURE(qHolder != nullptr, "Float feature holder is not CPU-quantized");
+                CB_ENSURE(qHolder->GetBitsPerKey() == 8, "Only 8-bit quantized floats are supported for final CTR hashing");
+                const ui32 threshold = SafeIntegerCast<ui32>(feature.SplitIdx + 1);
+                CB_ENSURE(threshold <= 255, "Float split index is too large for 8-bit binarized feature");
+
+                TConstPtrArraySubset<ui8> arraySubset = qHolder->GetArrayData<ui8>();
+                CB_ENSURE(
+                    std::holds_alternative<TFullSubset<ui32>>(*arraySubset.GetSubsetIndexing()),
+                    "Only full subset indexing is supported for CPU-quantized float features in final CTR hashing"
+                );
+                const ui8* binsHost = *arraySubset.GetSrc();
+                CB_ENSURE(binsHost != nullptr, "CPU-quantized float bins pointer is null");
+
+                TCudaDeviceArray<ui8> binsDev(learnSampleCount);
+                if (learnSampleCount) {
+                    CopyHostToDevice(binsHost, binsDev.Get(), learnSampleCount, stream);
+                }
+                NKernel::UpdateHashesFromBinarizedSplit(
+                    binsDev.Get(),
+                    learnSampleCount,
+                    static_cast<ui8>(threshold),
+                    hashesDev.Get() + offset,
+                    stream
+                );
+            }
+        }
+
+        for (const auto& feature : projection.OneHotFeatures) {
+            const int featureIdx = feature.CatFeatureIdx;
+            const auto& holder = **(learnObjectsDataProvider.GetCatFeature(featureIdx));
+            const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&holder);
+            CB_ENSURE(gpuHolder != nullptr, "One-hot feature holder is not GPU-backed");
+            CB_ENSURE(gpuHolder->GetDeviceId() == deviceId, "Unexpected device id mismatch for one-hot feature");
+            const ui32* bins = gpuHolder->GetDeviceBinsPtr();
+            CB_ENSURE(bins != nullptr, "GPU bins pointer is null for one-hot feature " << featureIdx);
+            NKernel::UpdateHashesFromOneHotFeature(
+                bins,
+                learnSampleCount,
+                SafeIntegerCast<ui32>(feature.Value),
+                hashesDev.Get() + offset,
+                stream
+            );
+        }
+
+        offset += learnSampleCount;
+
+        if (totalSampleCount > learnSampleCount) {
+            for (const auto& testDataPtr : datasetDataForFinalCtrs.Data.Test) {
+                const auto& testObjectsDataProvider = *testDataPtr->ObjectsData;
+                const ui32 testCount = testDataPtr->GetObjectCount();
+
+                for (ui32 f = 0; f < projection.CatFeatures.size(); ++f) {
+                    const int featureIdx = projection.CatFeatures[f];
+                    const auto& holder = **(testObjectsDataProvider.GetCatFeature(featureIdx));
+                    const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&holder);
+                    if (!gpuHolder || gpuHolder->GetDeviceId() != deviceId) {
+                        return false;
+                    }
+                    const ui32* bins = gpuHolder->GetDeviceBinsPtr();
+                    CB_ENSURE(bins != nullptr, "GPU bins pointer is null for test cat feature " << featureIdx);
+                    NKernel::UpdateHashesFromCatFeature(
+                        bins,
+                        testCount,
+                        binToHashPtrsDev[f],
+                        hashesDev.Get() + offset,
+                        stream
+                    );
+                }
+
+                for (const auto& feature : binFeaturesGpu) {
+                    const auto& holder = **(testObjectsDataProvider.GetFloatFeature(feature.FloatFeatureIdx));
+                    if (feature.UseRawFloatValues) {
+                        const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalFloatValuesHolder*>(&holder);
+                        if (!gpuHolder || (gpuHolder->GetColumnDesc().DeviceId != deviceId)) {
+                            return false;
+                        }
+                        const auto& column = gpuHolder->GetColumnDesc();
+                        if ((column.Data == 0) || (column.StrideBytes == 0)) {
+                            return false;
+                        }
+                        TCudaDeviceArray<float> valuesDev(testCount);
+                        if (testCount) {
+                            const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(column.Data));
+                            NKernel::CopyStridedGpuInputToFloat(
+                                src,
+                                column.StrideBytes,
+                                testCount,
+                                static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(column.DType)),
+                                valuesDev.Get(),
+                                stream
+                            );
+                            NKernel::UpdateHashesFromFloatSplit(
+                                valuesDev.Get(),
+                                testCount,
+                                feature.BorderValue,
+                                hashesDev.Get() + offset,
+                                stream
+                            );
+                        }
+                    } else {
+                        const auto* qHolder = dynamic_cast<const NCB::TQuantizedFloatValuesHolder*>(&holder);
+                        if (!qHolder || (qHolder->GetBitsPerKey() != 8)) {
+                            return false;
+                        }
+                        const ui32 threshold = SafeIntegerCast<ui32>(feature.SplitIdx + 1);
+                        if (threshold > 255) {
+                            return false;
+                        }
+                        TConstPtrArraySubset<ui8> arraySubset = qHolder->GetArrayData<ui8>();
+                        if (!std::holds_alternative<TFullSubset<ui32>>(*arraySubset.GetSubsetIndexing())) {
+                            return false;
+                        }
+                        const ui8* binsHost = *arraySubset.GetSrc();
+                        if (!binsHost) {
+                            return false;
+                        }
+                        TCudaDeviceArray<ui8> binsDev(testCount);
+                        if (testCount) {
+                            CopyHostToDevice(binsHost, binsDev.Get(), testCount, stream);
+                        }
+                        NKernel::UpdateHashesFromBinarizedSplit(
+                            binsDev.Get(),
+                            testCount,
+                            static_cast<ui8>(threshold),
+                            hashesDev.Get() + offset,
+                            stream
+                        );
+                    }
+                }
+
+                for (const auto& feature : projection.OneHotFeatures) {
+                    const int featureIdx = feature.CatFeatureIdx;
+                    const auto& holder = **(testObjectsDataProvider.GetCatFeature(featureIdx));
+                    const auto* gpuHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&holder);
+                    if (!gpuHolder || (gpuHolder->GetDeviceId() != deviceId)) {
+                        return false;
+                    }
+                    const ui32* bins = gpuHolder->GetDeviceBinsPtr();
+                    if (!bins) {
+                        return false;
+                    }
+                    NKernel::UpdateHashesFromOneHotFeature(
+                        bins,
+                        testCount,
+                        SafeIntegerCast<ui32>(feature.Value),
+                        hashesDev.Get() + offset,
+                        stream
+                    );
+                }
+
+                offset += testCount;
+            }
+        }
+
+        CB_ENSURE(offset == totalSampleCount, "Unexpected final CTR hash size mismatch");
+
+        // Factorize hashes on device: ranks per object + unique hash values and their counts.
+        TCudaDeviceArray<ui32> ranksDev(totalSampleCount);
+        TCudaDeviceArray<ui64> uniqueHashesDev(totalSampleCount);
+        TCudaDeviceArray<ui32> countsDev(totalSampleCount);
+        TCudaDeviceArray<ui32> uniqueCountDev(1);
+
+        NKernel::FactorizeStridedGpuInputToUnique(
+            hashesDev.Get(),
+            sizeof(ui64),
+            totalSampleCount,
+            NKernel::EGpuInputDType::UInt64,
+            ranksDev.Get(),
+            uniqueHashesDev.Get(),
+            countsDev.Get(),
+            uniqueCountDev.Get(),
+            stream
+        );
+
+        ui32 uniqueCount = 0;
+        CopyDeviceToHost(uniqueCountDev.Get(), &uniqueCount, 1, stream);
+        CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+
+        TVector<ui64> uniqueHashes;
+        TVector<ui32> counts;
+        uniqueHashes.yresize(uniqueCount);
+        counts.yresize(uniqueCount);
+        if (uniqueCount) {
+            CopyDeviceToHost(uniqueHashesDev.Get(), uniqueHashes.data(), uniqueCount, stream);
+            CopyDeviceToHost(countsDev.Get(), counts.data(), uniqueCount, stream);
+            CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+        }
+
+        ui32 leafCount = uniqueCount;
+        TVector<ui32> bucketCounts = counts;
+        const ui32* ranksForAccum = ranksDev.Get();
+        TCudaDeviceArray<ui32> remapDev;
+        TCudaDeviceArray<ui32> remappedRanksDev;
+
+        if ((ctrLeafCountLimit != Max<ui64>()) && (uniqueCount > ctrLeafCountLimit)) {
+            leafCount = SafeIntegerCast<ui32>(ctrLeafCountLimit);
+            CB_ENSURE(leafCount > 0, "ctr_leaf_count_limit must be positive");
+
+            TVector<ui32> topIdx(uniqueCount);
+            std::iota(topIdx.begin(), topIdx.end(), 0);
+            std::nth_element(
+                topIdx.begin(),
+                topIdx.begin() + leafCount,
+                topIdx.end(),
+                [&bucketCounts] (ui32 lhs, ui32 rhs) {
+                    return bucketCounts[lhs] > bucketCounts[rhs];
+                }
+            );
+            topIdx.resize(leafCount);
+
+            TVector<ui32> remapHost(uniqueCount, leafCount - 1);
+            TVector<ui64> bucketHashByIndex;
+            bucketHashByIndex.yresize(leafCount);
+            for (ui32 newIdx = 0; newIdx < leafCount; ++newIdx) {
+                const ui32 oldIdx = topIdx[newIdx];
+                remapHost[oldIdx] = newIdx;
+                bucketHashByIndex[newIdx] = uniqueHashes[oldIdx];
+            }
+
+            TVector<ui32> aggregatedCounts(leafCount, 0);
+            for (ui32 oldIdx = 0; oldIdx < uniqueCount; ++oldIdx) {
+                aggregatedCounts[remapHost[oldIdx]] += bucketCounts[oldIdx];
+            }
+            bucketCounts = std::move(aggregatedCounts);
+
+            remapDev = TCudaDeviceArray<ui32>(uniqueCount);
+            if (uniqueCount) {
+                CopyHostToDevice(remapHost.data(), remapDev.Get(), uniqueCount, stream);
+            }
+            remappedRanksDev = TCudaDeviceArray<ui32>(totalSampleCount);
+            NKernel::RemapIndices(ranksDev.Get(), totalSampleCount, remapDev.Get(), remappedRanksDev.Get(), stream);
+            ranksForAccum = remappedRanksDev.Get();
+
+            auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
+            for (ui32 i = 0; i < leafCount; ++i) {
+                hashIndexBuilder.SetIndex(bucketHashByIndex[i], i);
+            }
+        } else {
+            auto hashIndexBuilder = result->GetIndexHashBuilder(uniqueCount);
+            for (ui32 i = 0; i < uniqueCount; ++i) {
+                hashIndexBuilder.SetIndex(uniqueHashes[i], i);
+            }
+        }
+
+        if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+            TCudaDeviceArray<float> sumsDev(leafCount);
+            if (leafCount) {
+                CUDA_SAFE_CALL(cudaMemsetAsync(sumsDev.Get(), 0, static_cast<size_t>(leafCount) * sizeof(float), stream));
+            }
+
+            if (ctrType == ECtrType::BinarizedTargetMeanValue) {
+                if (datasetDataForFinalCtrs.LearnTargetClass.Defined() && datasetDataForFinalCtrs.TargetClassesCount.Defined()) {
+                    const int targetClassesCount = (**datasetDataForFinalCtrs.TargetClassesCount)[targetBorderClassifierIdx];
+                    const int targetBorderCount = targetClassesCount - 1;
+                    CB_ENSURE(targetBorderCount > 0, "Invalid target border count for BinarizedTargetMeanValue");
+
+                    const auto& targetClassHost = (**datasetDataForFinalCtrs.LearnTargetClass)[targetBorderClassifierIdx];
+                    CB_ENSURE(targetClassHost.size() == learnSampleCount, "targetClass size mismatch");
+
+                    TCudaDeviceArray<ui32> targetClassDev(learnSampleCount);
+                    if (learnSampleCount) {
+                        CopyHostToDevice(reinterpret_cast<const ui32*>(targetClassHost.data()), targetClassDev.Get(), learnSampleCount, stream);
+                    }
+
+                    NKernel::AccumulateBinarizedTargetSumByIndex(
+                        ranksForAccum,
+                        targetClassDev.Get(),
+                        learnSampleCount,
+                        1.0f / static_cast<float>(targetBorderCount),
+                        sumsDev.Get(),
+                        stream
+                    );
+                } else {
+                    CB_ENSURE(learnGpuTargets != nullptr, "GPU targets are not available for target-dependent CTR");
+                    CB_ENSURE(
+                        datasetDataForFinalCtrs.TargetClassifiers.Defined() && (*datasetDataForFinalCtrs.TargetClassifiers != nullptr),
+                        "TargetClassifiers is not set for target-dependent CTR"
+                    );
+                    const auto& targetClassifier = (**datasetDataForFinalCtrs.TargetClassifiers)[targetBorderClassifierIdx];
+                    const ui32 targetId = targetClassifier.GetTargetId();
+                    CB_ENSURE(targetId < learnGpuTargets->TargetCount, "GPU target id is out of range");
+
+                    const auto& targetColumn = learnGpuTargets->Targets[targetId];
+                    CB_ENSURE(targetColumn.DeviceId == deviceId, "Target device id mismatch");
+                    CB_ENSURE(targetColumn.Data != 0, "GPU target pointer is null");
+                    CB_ENSURE(targetColumn.StrideBytes > 0, "Invalid stride for GPU target");
+
+                    const auto& bordersHost = targetClassifier.GetBorders();
+                    const ui32 borderCount = SafeIntegerCast<ui32>(bordersHost.size());
+                    CB_ENSURE(borderCount > 0, "Invalid target border count for BinarizedTargetMeanValue");
+
+                    TCudaDeviceArray<float> targetsDev(learnSampleCount);
+                    if (learnSampleCount) {
+                        const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+                        NKernel::CopyStridedGpuInputToFloat(
+                            srcTarget,
+                            targetColumn.StrideBytes,
+                            learnSampleCount,
+                            static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                            targetsDev.Get(),
+                            stream
+                        );
+                    }
+
+                    TCudaDeviceArray<float> bordersDev(borderCount);
+                    if (borderCount) {
+                        CopyHostToDevice(bordersHost.data(), bordersDev.Get(), borderCount, stream);
+                    }
+
+                    TCudaDeviceArray<ui32> targetClassDev(learnSampleCount);
+                    if (learnSampleCount) {
+                        NKernel::BinarizeToUi32(
+                            targetsDev.Get(),
+                            learnSampleCount,
+                            bordersDev.Get(),
+                            borderCount,
+                            targetClassDev.Get(),
+                            stream
+                        );
+                    }
+
+                    NKernel::AccumulateBinarizedTargetSumByIndex(
+                        ranksForAccum,
+                        targetClassDev.Get(),
+                        learnSampleCount,
+                        1.0f / static_cast<float>(borderCount),
+                        sumsDev.Get(),
+                        stream
+                    );
+                }
+            } else {
+                if (datasetDataForFinalCtrs.Targets.Defined()) {
+                    CB_ENSURE(
+                        datasetDataForFinalCtrs.TargetClassifiers.Defined() && (*datasetDataForFinalCtrs.TargetClassifiers != nullptr),
+                        "TargetClassifiers is not set for FloatTargetMeanValue CTR"
+                    );
+                    const auto targetId = (**datasetDataForFinalCtrs.TargetClassifiers)[targetBorderClassifierIdx].GetTargetId();
+                    const auto targetsHost = (*datasetDataForFinalCtrs.Targets)[targetId];
+                    CB_ENSURE(targetsHost.size() == learnSampleCount, "targets size mismatch");
+
+                    TCudaDeviceArray<float> targetsDev(learnSampleCount);
+                    if (learnSampleCount) {
+                        CopyHostToDevice(targetsHost.data(), targetsDev.Get(), learnSampleCount, stream);
+                    }
+                    NKernel::AccumulateFloatByIndex(
+                        ranksForAccum,
+                        targetsDev.Get(),
+                        learnSampleCount,
+                        sumsDev.Get(),
+                        stream
+                    );
+                } else {
+                    CB_ENSURE(learnGpuTargets != nullptr, "GPU targets are not available for FloatTargetMeanValue CTR");
+                    CB_ENSURE(
+                        datasetDataForFinalCtrs.TargetClassifiers.Defined() && (*datasetDataForFinalCtrs.TargetClassifiers != nullptr),
+                        "TargetClassifiers is not set for FloatTargetMeanValue CTR"
+                    );
+                    const auto targetId = (**datasetDataForFinalCtrs.TargetClassifiers)[targetBorderClassifierIdx].GetTargetId();
+                    CB_ENSURE(targetId < learnGpuTargets->TargetCount, "GPU target id is out of range");
+
+                    const auto& targetColumn = learnGpuTargets->Targets[targetId];
+                    CB_ENSURE(targetColumn.DeviceId == deviceId, "Target device id mismatch");
+                    CB_ENSURE(targetColumn.Data != 0, "GPU target pointer is null");
+                    CB_ENSURE(targetColumn.StrideBytes > 0, "Invalid stride for GPU target");
+
+                    TCudaDeviceArray<float> targetsDev(learnSampleCount);
+                    if (learnSampleCount) {
+                        const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+                        NKernel::CopyStridedGpuInputToFloat(
+                            srcTarget,
+                            targetColumn.StrideBytes,
+                            learnSampleCount,
+                            static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                            targetsDev.Get(),
+                            stream
+                        );
+                    }
+                    NKernel::AccumulateFloatByIndex(
+                        ranksForAccum,
+                        targetsDev.Get(),
+                        learnSampleCount,
+                        sumsDev.Get(),
+                        stream
+                    );
+                }
+            }
+
+            TVector<float> sumsHost;
+            sumsHost.yresize(leafCount);
+            if (leafCount) {
+                CopyDeviceToHost(sumsDev.Get(), sumsHost.data(), leafCount, stream);
+                CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+            }
+
+            auto meanHist = result->AllocateBlobAndGetArrayRef<TCtrMeanHistory>(leafCount);
+            for (ui32 i = 0; i < leafCount; ++i) {
+                meanHist[i].Sum = sumsHost[i];
+                meanHist[i].Count = SafeIntegerCast<int>(bucketCounts[i]);
+            }
+        } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+            auto ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount);
+            int maxCount = 0;
+            for (ui32 i = 0; i < leafCount; ++i) {
+                const int c = SafeIntegerCast<int>(bucketCounts[i]);
+                ctrIntArray[i] = c;
+                maxCount = Max(maxCount, c);
+            }
+            if (ctrType == ECtrType::Counter) {
+                result->CounterDenominator = maxCount;
+            } else {
+                result->CounterDenominator = SafeIntegerCast<int>(totalSampleCount);
+            }
+        } else {
+            int targetClassesCount = 0;
+            TCudaDeviceArray<ui32> targetClassDev(learnSampleCount);
+
+            if (datasetDataForFinalCtrs.LearnTargetClass.Defined() && datasetDataForFinalCtrs.TargetClassesCount.Defined()) {
+                targetClassesCount = (**datasetDataForFinalCtrs.TargetClassesCount)[targetBorderClassifierIdx];
+                CB_ENSURE(targetClassesCount > 0, "Invalid target classes count");
+
+                const auto& targetClassHost = (**datasetDataForFinalCtrs.LearnTargetClass)[targetBorderClassifierIdx];
+                CB_ENSURE(targetClassHost.size() == learnSampleCount, "targetClass size mismatch");
+
+                if (learnSampleCount) {
+                    CopyHostToDevice(reinterpret_cast<const ui32*>(targetClassHost.data()), targetClassDev.Get(), learnSampleCount, stream);
+                }
+            } else {
+                CB_ENSURE(learnGpuTargets != nullptr, "GPU targets are not available for target-dependent CTR");
+                CB_ENSURE(
+                    datasetDataForFinalCtrs.TargetClassifiers.Defined() && (*datasetDataForFinalCtrs.TargetClassifiers != nullptr),
+                    "TargetClassifiers is not set for target-dependent CTR"
+                );
+
+                const auto& targetClassifier = (**datasetDataForFinalCtrs.TargetClassifiers)[targetBorderClassifierIdx];
+                targetClassesCount = targetClassifier.GetClassesCount();
+                CB_ENSURE(targetClassesCount > 0, "Invalid target classes count");
+
+                const ui32 targetId = targetClassifier.GetTargetId();
+                CB_ENSURE(targetId < learnGpuTargets->TargetCount, "GPU target id is out of range");
+
+                const auto& targetColumn = learnGpuTargets->Targets[targetId];
+                CB_ENSURE(targetColumn.DeviceId == deviceId, "Target device id mismatch");
+                CB_ENSURE(targetColumn.Data != 0, "GPU target pointer is null");
+                CB_ENSURE(targetColumn.StrideBytes > 0, "Invalid stride for GPU target");
+
+                const auto& bordersHost = targetClassifier.GetBorders();
+                const ui32 borderCount = SafeIntegerCast<ui32>(bordersHost.size());
+                CB_ENSURE(
+                    targetClassesCount == SafeIntegerCast<int>(borderCount + 1),
+                    "Target classifier borders size mismatch"
+                );
+
+                TCudaDeviceArray<float> targetsDev(learnSampleCount);
+                if (learnSampleCount) {
+                    const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+                    NKernel::CopyStridedGpuInputToFloat(
+                        srcTarget,
+                        targetColumn.StrideBytes,
+                        learnSampleCount,
+                        static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                        targetsDev.Get(),
+                        stream
+                    );
+                }
+
+                TCudaDeviceArray<float> bordersDev(borderCount);
+                if (borderCount) {
+                    CopyHostToDevice(bordersHost.data(), bordersDev.Get(), borderCount, stream);
+                }
+
+                if (learnSampleCount) {
+                    NKernel::BinarizeToUi32(
+                        targetsDev.Get(),
+                        learnSampleCount,
+                        bordersDev.Get(),
+                        borderCount,
+                        targetClassDev.Get(),
+                        stream
+                    );
+                }
+            }
+
+            const ui64 countsSize = static_cast<ui64>(leafCount) * static_cast<ui64>(targetClassesCount);
+
+            TCudaDeviceArray<ui32> classCountsDev(countsSize);
+            if (countsSize) {
+                CUDA_SAFE_CALL(cudaMemsetAsync(classCountsDev.Get(), 0, static_cast<size_t>(countsSize) * sizeof(ui32), stream));
+            }
+
+            NKernel::AccumulateClassCountsByIndex(
+                ranksForAccum,
+                targetClassDev.Get(),
+                learnSampleCount,
+                SafeIntegerCast<ui32>(targetClassesCount),
+                classCountsDev.Get(),
+                stream
+            );
+
+            TVector<ui32> classCountsHost;
+            classCountsHost.yresize(countsSize);
+            if (countsSize) {
+                CopyDeviceToHost(classCountsDev.Get(), classCountsHost.data(), countsSize, stream);
+                CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+            }
+
+            result->TargetClassesCount = targetClassesCount;
+            auto ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(countsSize);
+            for (ui64 i = 0; i < countsSize; ++i) {
+                ctrIntArray[SafeIntegerCast<size_t>(i)] = SafeIntegerCast<int>(classCountsHost[SafeIntegerCast<size_t>(i)]);
+            }
+        }
+
+        return true;
+    }
+}
+#endif
+
 
 static void CalcFinalCtrs(
     const ECtrType ctrType,
@@ -952,6 +1773,22 @@ static void CalcFinalCtrs(
     ECounterCalc counterCalcMethod,
     TCtrValueTable* result,
     NPar::ILocalExecutor* localExecutor) {
+
+#if defined(HAVE_CUDA)
+    if (TryCalcFinalCtrsOnGpu(
+            ctrType,
+            projection,
+            datasetDataForFinalCtrs,
+            perfectHashedToHashedCatValuesMap,
+            targetBorderClassifierIdx,
+            ctrLeafCountLimit,
+            storeAllSimpleCtr,
+            counterCalcMethod,
+            result))
+    {
+        return;
+    }
+#endif
 
     ui32 learnSampleCount = datasetDataForFinalCtrs.Data.Learn->GetObjectCount();
     ui32 totalSampleCount = learnSampleCount;
@@ -1116,15 +1953,27 @@ void CalcFinalCtrsAndSaveToModel(
             return resTable;
         };
 
+        const auto getTargetClassesCountForEstimation = [&] (const TModelCtrBase& ctr) -> int {
+            if (!NeedTargetClassifier(ctr.CtrType)) {
+                return 0;
+            }
+            if (datasetDataForFinalCtrs.TargetClassesCount.Defined() && (*datasetDataForFinalCtrs.TargetClassesCount != nullptr)) {
+                return (**datasetDataForFinalCtrs.TargetClassesCount)[ctr.TargetBorderClassifierIdx];
+            }
+            CB_ENSURE(
+                datasetDataForFinalCtrs.TargetClassifiers.Defined() && (*datasetDataForFinalCtrs.TargetClassifiers != nullptr),
+                "TargetClassifiers is not set for target-dependent CTRs"
+            );
+            return (**datasetDataForFinalCtrs.TargetClassifiers)[ctr.TargetBorderClassifierIdx].GetClassesCount();
+        };
+
         for (const auto& ctr : usedCtrBases) {
             finalCtrExecutor.Add(
                 {
                     EstimateCalcFinalCtrsCpuRamUsage(
                         ctr.CtrType,
                         datasetDataForFinalCtrs.Data,
-                        NeedTargetClassifier(ctr.CtrType) ?
-                            (**datasetDataForFinalCtrs.TargetClassesCount)[ctr.TargetBorderClassifierIdx]
-                            : 0,
+                        getTargetClassesCountForEstimation(ctr),
                         ctrLeafCountLimit,
                         counterCalcMethod
                     ),
@@ -1141,4 +1990,3 @@ void CalcFinalCtrsAndSaveToModel(
 
     CATBOOST_DEBUG_LOG << "CTR calculation finished" << Endl;
 }
-

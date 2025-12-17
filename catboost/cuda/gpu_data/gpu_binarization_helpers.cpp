@@ -1,28 +1,30 @@
 #include "gpu_binarization_helpers.h"
-#include <catboost/private/libs/quantization/grid_creator.h>
+#include "kernels.h"
 #include <catboost/private/libs/quantization/utils.h>
 
+#include <util/generic/algorithm.h>
+
+#include <cmath>
 
 inline TVector<float> ComputeBorders(const NCatboostOptions::TBinarizationOptions& binarizationDescription,
                                      const TSingleBuffer<const float>& floatFeature, ui32 stream) {
+    const ui32 borderCount = binarizationDescription.BorderCount.Get();
+    CB_ENSURE(borderCount > 0, "Border count should be > 0");
+
+    auto bordersGpu = TSingleBuffer<float>::Create(floatFeature.GetMapping().RepeatOnAllDevices(borderCount + 1));
+    ComputeBordersOnDevice(floatFeature, binarizationDescription, bordersGpu, stream);
+
+    TVector<float> bordersWithHeader;
+    bordersWithHeader.yresize(borderCount + 1);
+    bordersGpu.Read(bordersWithHeader, stream);
+
     TVector<float> borders;
-    NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-    TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatFeature);
-    sortedFeature.Copy(floatFeature, stream);
-    RadixSort(sortedFeature, false, stream);
+    borders.assign(bordersWithHeader.begin() + 1, bordersWithHeader.end());
+    EraseIf(borders, [] (float v) { return !std::isfinite(v); });
+    SortUnique(borders);
 
-    TVector<float> sortedFeatureCpu;
-    sortedFeature.Read(sortedFeatureCpu,
-                       stream);
-
-    borders = gridBuilderFactory
-        .Create(binarizationDescription.BorderSelectionType)
-        ->BuildBorders(sortedFeatureCpu,
-                       binarizationDescription.BorderCount);
-
-    //hack to work with constant features
-    if (borders.size() == 0) {
-        borders.push_back(0.5);
+    if (borders.empty()) {
+        borders.push_back(0.5f);
     }
     return borders;
 }
@@ -76,4 +78,3 @@ TVector<float> NCatboostCuda::TGpuBordersBuilder::GetOrComputeBorders(
         return GetOrComputeBorders(featureId, binarizationDescription, floatFeatureGpu.AsConstBuf(), stream);
     }
 }
-

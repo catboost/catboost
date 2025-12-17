@@ -1,35 +1,26 @@
 #include "batch_binarized_ctr_calcer.h"
 
 #include "gpu_binarization_helpers.h"
+#include <catboost/cuda/data/gpu_input_columns.h>
 #include <catboost/private/libs/quantization/grid_creator.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
-                                                                      TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* learnCtrs,
-                                                                      TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* testCtrs) {
-    THashMap<TFeatureTensor, TVector<ui32>> groupedByTensorFeatures;
-    //from ctrs[i] to i
-    TMap<ui32, ui32> inverseIndex;
+void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(
+    const TVector<ui32>& ctrs,
+    const TBinarizedCtrWriter& writer
+) {
+    CB_ENSURE(writer, "CTR writer callback is not set");
 
+    THashMap<TFeatureTensor, TVector<ui32>> groupedByTensorFeatures;
     TVector<TFeatureTensor> featureTensors;
 
     for (ui32 i = 0; i < ctrs.size(); ++i) {
         CB_ENSURE(FeaturesManager.IsCtr(ctrs[i]));
         TCtr ctr = FeaturesManager.GetCtr(ctrs[i]);
         groupedByTensorFeatures[ctr.FeatureTensor].push_back(ctrs[i]);
-        inverseIndex[ctrs[i]] = i;
     }
     for (const auto& group : groupedByTensorFeatures) {
         featureTensors.push_back(group.first);
-    }
-
-    learnCtrs->clear();
-    learnCtrs->resize(ctrs.size());
-
-    if (LinkedTest) {
-        CB_ENSURE(testCtrs);
-        testCtrs->clear();
-        testCtrs->resize(ctrs.size());
     }
 
     TAdaptiveLock lock;
@@ -62,35 +53,25 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                     floatCtr.SliceView(CtrTargets.LearnSlice),
                     stream);
 
-
-                TVector<float> ctrValues;
-                floatCtr
-                    .CreateReader()
-                    .SetCustomReadingStream(stream)
-                    .SetReadSlice(CtrTargets.LearnSlice)
-                    .Read(ctrValues);
-
-                ui32 writeIndex = inverseIndex[featureId];
-                auto& dst = (*learnCtrs)[writeIndex];
-
-                dst.BinarizedCtr = NCB::BinarizeLine<ui8>(ctrValues,
-                                                          ENanMode::Forbidden,
-                                                          borders);
-
-                dst.BinCount = borders.size() + 1;
+                const ui32 binCount = SafeIntegerCast<ui32>(borders.size() + 1);
+                writer(
+                    featureId,
+                    binCount,
+                    floatCtr.SliceView(CtrTargets.LearnSlice),
+                    borders,
+                    stream,
+                    /*isTest*/ false
+                );
 
                 if (LinkedTest) {
-                    auto& testDst = (*testCtrs)[writeIndex];
-                    TVector<float> testCtrValues;
-                    floatCtr.CreateReader()
-                        .SetCustomReadingStream(stream)
-                        .SetReadSlice(CtrTargets.TestSlice)
-                        .Read(testCtrValues);
-
-                    testDst.BinarizedCtr = NCB::BinarizeLine<ui8>(testCtrValues,
-                                                                  ENanMode::Forbidden,
-                                                                  borders);
-                    testDst.BinCount = borders.size() + 1;
+                    writer(
+                        featureId,
+                        binCount,
+                        floatCtr.SliceView(CtrTargets.TestSlice),
+                        borders,
+                        stream,
+                        /*isTest*/ true
+                    );
                 }
             };
 
@@ -186,11 +167,22 @@ TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedB
 
     const auto& catFeature = **(dataProvider.ObjectsData->GetCatFeature(
         dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(featureId)));
-    auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
     const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
-    auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
+    TSingleBuffer<ui64> compressedBinsGpu;
 
-    binsGpu.Write(catFeature.ExtractValues<ui32>(LocalExecutor));
-    Compress(binsGpu, compressedBinsGpu, uniqueValues);
+    if (const auto* gpuCatHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&catFeature)) {
+        CB_ENSURE(
+            gpuCatHolder->GetDeviceId() == (i32)devId,
+            "GPU categorical bins are on device " << gpuCatHolder->GetDeviceId()
+                << " but CTR bins are requested on device " << devId
+        );
+        compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(gpuCatHolder->GetBins(), uniqueValues));
+        Compress(gpuCatHolder->GetBins(), compressedBinsGpu, uniqueValues);
+    } else {
+        auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
+        compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
+        binsGpu.Write(catFeature.ExtractValues<ui32>(LocalExecutor));
+        Compress(binsGpu, compressedBinsGpu, uniqueValues);
+    }
     return compressedBinsGpu;
 }

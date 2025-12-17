@@ -14,6 +14,8 @@
 #include <util/ysaveload.h>
 #include <util/system/spinlock.h>
 
+#include "memcpy_tracker.h"
+
 
 static_assert(std::is_pod<cudaDeviceProp>::value, "cudaDeviceProp is not pod type");
 Y_DECLARE_PODTYPE(cudaDeviceProp);
@@ -221,6 +223,12 @@ namespace NCudaLib {
     public:
         template <class T>
         static void CopyMemoryAsync(const T* from, T* to, ui64 size, const TCudaStream& stream) {
+            TMemcpyTracker::Instance().RecordMemcpyAsync(
+                static_cast<const void*>(to),
+                static_cast<const void*>(from),
+                sizeof(T) * size,
+                TMemoryCopyKind<From, To>::Kind()
+            );
             CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, TMemoryCopyKind<From, To>::Kind(), stream.GetStream()));
         }
 
@@ -234,6 +242,12 @@ namespace NCudaLib {
 
     template <class T>
     static void CopyMemoryAsync(const T* from, T* to, ui64 size, const TCudaStream& stream) {
+        TMemcpyTracker::Instance().RecordMemcpyAsync(
+            static_cast<const void*>(to),
+            static_cast<const void*>(from),
+            sizeof(T) * size,
+            cudaMemcpyDefault
+        );
         CUDA_SAFE_CALL(cudaMemcpyAsync(static_cast<void*>(to), static_cast<void*>(const_cast<T*>(from)), sizeof(T) * size, cudaMemcpyDefault, stream.GetStream()));
     }
 

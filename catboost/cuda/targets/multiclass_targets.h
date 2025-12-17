@@ -145,15 +145,21 @@ namespace NCatboostCuda {
             if (targetClassCount) {
                 NumClasses = *targetClassCount;
                 if (!IsMultiLabelObjective(targetOptions.GetLossFunction())) {
-                    TConstArrayRef<float> target = *dataProvider.TargetData->GetOneDimensionalTarget();
-                    TVector<float> tmp(target.begin(), target.end());
-                    SortUnique(tmp);
-                    CB_ENSURE(
-                        NumClasses >= tmp.size(),
-                        "Number of classes (" << NumClasses << ") should be >= number of unique labels (" << tmp.size() << ")");
+                    const auto maybeTarget = dataProvider.TargetData->GetOneDimensionalTarget();
+                    if (maybeTarget.Defined()) {
+                        TConstArrayRef<float> target = *maybeTarget;
+                        TVector<float> tmp(target.begin(), target.end());
+                        SortUnique(tmp);
+                        CB_ENSURE(
+                            NumClasses >= tmp.size(),
+                            "Number of classes (" << NumClasses << ") should be >= number of unique labels (" << tmp.size() << ")");
+                    }
                 }
             } else if (targetOptions.GetLossFunction() == ELossFunction::MultiRMSE) {
                 NumClasses = dataProvider.TargetData->GetTargetDimension();
+                if (NumClasses == 0) {
+                    NumClasses = dataProvider.MetaInfo.TargetCount;
+                }
             } else {
                 CB_ENSURE_INTERNAL(targetOptions.GetLossFunction() == ELossFunction::RMSEWithUncertainty,
                                 "dataProvider.TargetData must contain class count, or loss function must be RMSEWithUncertainty");

@@ -4,9 +4,13 @@
 #include "kernels.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/data/binarizations_manager.h>
+#include <catboost/cuda/data/gpu_input_columns.h>
 #include <catboost/cuda/cuda_util/helpers.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_factorize.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
 #include <catboost/libs/data/lazy_columns.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/private/libs/data_util/path_with_scheme.h>
@@ -16,6 +20,8 @@
 
 #include <util/generic/fwd.h>
 #include <util/random/shuffle.h>
+
+#include <type_traits>
 
 namespace NCatboostCuda {
     struct TDatasetPermutationOrderAndSubsetIndexing {
@@ -163,6 +169,7 @@ namespace NCatboostCuda {
                                                              featureIds,
                                                              &CompressedIndex);
             GatherIndex.push_back(gatherIndices);
+            GpuGatherIndex.push_back(nullptr);
             SeenFeatures.push_back(TSet<ui32>());
             return blockId;
         }
@@ -205,6 +212,151 @@ namespace NCatboostCuda {
             const auto& docsMapping = dataSet.SamplesMapping;
             CB_ENSURE(quantizedFeatureColumn->GetSize() == docsMapping.GetObjectsSlice().Size());
             CB_ENSURE(!SeenFeatures[dataSetId].contains(featureId), "Error: can't write feature twice");
+
+            if (auto* gpuFloatHolder = dynamic_cast<const NCB::TGpuExternalFloatValuesHolder*>(quantizedFeatureColumn)) {
+                CB_ENSURE_INTERNAL(!baseValue.Defined(), "Wide float features are not supported for native GPU inputs yet");
+
+                const auto& column = gpuFloatHolder->GetColumnDesc();
+                CB_ENSURE(column.DeviceId >= 0, "Invalid device id for native GPU float column");
+                const ui32 srcDev = SafeIntegerCast<ui32>(column.DeviceId);
+
+                auto values = TSingleBuffer<float>::Create(NCudaLib::TSingleMapping(srcDev, docsMapping.GetObjectsSlice().Size()));
+                // TCudaBuffer allocations are asynchronous (via device task queue). We need a raw device pointer
+                // for cudaMemcpy2D below, so ensure allocation is materialized before dereferencing handle-based
+                // pointers on host.
+                NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(srcDev));
+                {
+                    NCudaLib::SetDevice(column.DeviceId);
+                    const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(column.Data));
+                    if (column.DType == NCB::EGpuInputDType::Float32) {
+                        CUDA_SAFE_CALL(cudaMemcpy2D(
+                            values.At(srcDev).Get(),
+                            sizeof(float),
+                            src,
+                            column.StrideBytes,
+                            sizeof(float),
+                            docsMapping.GetObjectsSlice().Size(),
+                            cudaMemcpyDeviceToDevice
+                        ));
+                    } else {
+                        NKernel::CopyStridedGpuInputToFloat(
+                            src,
+                            column.StrideBytes,
+                            SafeIntegerCast<ui32>(docsMapping.GetObjectsSlice().Size()),
+                            static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(column.DType)),
+                            values.At(srcDev).Get(),
+                            /*stream*/ 0
+                        );
+                        CUDA_SAFE_CALL(cudaStreamSynchronize(0));
+                    }
+                }
+
+                const auto& qfi = gpuFloatHolder->GetQuantizedFeaturesInfo();
+                CB_ENSURE(qfi, "QuantizedFeaturesInfo is not set for GPU float holder");
+                CB_ENSURE(
+                    qfi->GetFeaturesLayout()->IsCorrectExternalFeatureIdxAndType(gpuFloatHolder->GetId(), EFeatureType::Float),
+                    "Invalid float feature id " << gpuFloatHolder->GetId()
+                );
+                const auto floatFeatureIdx = qfi->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                    gpuFloatHolder->GetId()
+                );
+
+                const auto& borders = qfi->GetBorders(floatFeatureIdx);
+                const auto valuesConst = values.ConstCopyView();
+                WriteFloatFeatureFromDeviceValues(
+                    dataSetId,
+                    featureId,
+                    binCount,
+                    /*permute*/ true,
+                    valuesConst,
+                    borders,
+                    /*stream*/ 0
+                );
+                return *this;
+            }
+
+            if (auto* gpuCatHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(quantizedFeatureColumn)) {
+                CB_ENSURE_INTERNAL(!baseValue.Defined(), "Wide categorical features are not supported for native GPU inputs yet");
+                CB_ENSURE_INTERNAL(binCount <= 256, "Categorical binCount is too large for compressed index (expected one-hot feature)");
+
+                const ui32 docCount = SafeIntegerCast<ui32>(docsMapping.GetObjectsSlice().Size());
+
+                CB_ENSURE(gpuCatHolder->GetDeviceId() >= 0, "Invalid device id for native GPU categorical bins");
+                const ui32 srcDev = SafeIntegerCast<ui32>(gpuCatHolder->GetDeviceId());
+
+                const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
+
+                // Optionally apply dataset gather/permutation on the source device (full vector) before sharding.
+                const auto& binsSrc = gpuCatHolder->GetBins();
+                const TSingleBuffer<ui32>* binsForWrite = &binsSrc;
+
+                TSingleBuffer<ui32> permutedBins;
+                if (GatherIndex[dataSetId] && !GatherIndex[dataSetId]->IndicesVec.empty()) {
+                    const auto& indices = GatherIndex[dataSetId]->IndicesVec;
+                    CB_ENSURE(indices.size() == docCount, "Gather index size mismatch");
+
+                    TSingleBuffer<ui32> gatherMap = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(srcDev, docCount));
+                    gatherMap.Write(indices);
+
+                    permutedBins = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(srcDev, docCount));
+                    ::Gather(permutedBins, binsSrc, gatherMap, /*stream*/ 0);
+                    binsForWrite = &permutedBins;
+                }
+
+                if constexpr (std::is_same_v<TSamplesMapping, NCudaLib::TStripeMapping>) {
+                    // Doc-parallel: shard bins across devices, then cast to ui8 locally.
+                    TStripeBuffer<ui32> binsStripe = TStripeBuffer<ui32>::Create(docsMapping);
+                    NCudaLib::Reshard(*binsForWrite, binsStripe, /*stream*/ 0);
+                    NCudaLib::GetCudaManager().WaitComplete(binsStripe.NonEmptyDevices());
+
+                    TStripeBuffer<ui8> binsUi8 = TStripeBuffer<ui8>::Create(docsMapping);
+                    NCudaLib::GetCudaManager().WaitComplete(binsUi8.NonEmptyDevices());
+                    for (ui32 dev : binsUi8.NonEmptyDevices()) {
+                        NCudaLib::SetDevice(SafeIntegerCast<i32>(dev));
+                        const ui32 sliceSize = SafeIntegerCast<ui32>(docsMapping.DeviceSlice(dev).Size());
+                        NKernel::GatherUi32BinsToUi8(
+                            binsStripe.At(dev).Get(),
+                            sliceSize,
+                            /*gatherIndices*/ nullptr,
+                            binsUi8.At(dev).Get(),
+                            /*stream*/ 0
+                        );
+                        CUDA_SAFE_CALL(cudaStreamSynchronize(0));
+                    }
+                    WriteCompressedFeature(feature, binsUi8, CompressedIndex.FlatStorage, /*stream*/ 0);
+                } else {
+                    // Feature-parallel: feature is stored on a single device.
+                    ui32 writeDev = static_cast<ui32>(-1);
+                    for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
+                        if (!feature.IsEmpty(dev)) {
+                            CB_ENSURE(writeDev == static_cast<ui32>(-1));
+                            writeDev = dev;
+                        }
+                    }
+                    CB_ENSURE(writeDev != static_cast<ui32>(-1));
+                    CB_ENSURE(
+                        srcDev == writeDev,
+                        "GPU categorical bins are on device " << srcDev << " but feature is written on device " << writeDev
+                    );
+
+                    auto binsGpu = TSingleBuffer<ui8>::Create(NCudaLib::TSingleMapping(writeDev, docCount));
+                    NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(writeDev));
+
+                    NKernel::GatherUi32BinsToUi8(
+                        binsForWrite->At(writeDev).Get(),
+                        docCount,
+                        /*gatherIndices*/ nullptr,
+                        binsGpu.At(writeDev).Get(),
+                        /*stream*/ 0
+                    );
+                    CUDA_SAFE_CALL(cudaStreamSynchronize(0));
+                    WriteCompressedFeature(feature, binsGpu, CompressedIndex.FlatStorage, /*stream*/ 0);
+                }
+
+                SeenFeatures[dataSetId].insert(featureId);
+                return *this;
+            }
+
             THolder<IQuantizedFeatureColumn> reorderedColumn;
             if (GatherIndex[dataSetId]) {
                 NCB::TCloningParams cloningParams;
@@ -309,6 +461,136 @@ namespace NCatboostCuda {
             SeenFeatures[dataSetId].insert(featureId);
         }
 
+        // Binarize a GPU-resident float vector (native GPU input / CTR) and write directly to the compressed index.
+        // This avoids host staging of dataset-sized buffers.
+        void WriteFloatFeatureFromDeviceValues(
+            const ui32 dataSetId,
+            const ui32 featureId,
+            const ui32 binCount,
+            bool permute,
+            const TSingleBuffer<const float>& values,
+            TConstArrayRef<float> borders,
+            ui32 stream
+        ) {
+            auto& dataSet = *CompressedIndex.DataSets[dataSetId];
+            const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
+
+            CheckBinCount(feature, binCount);
+
+            const auto srcMapping = values.GetMapping();
+            const ui32 srcDev = srcMapping.GetDeviceId();
+            const ui32 docCount = SafeIntegerCast<ui32>(srcMapping.GetObjectsSlice().Size());
+            CB_ENSURE(docCount == SafeIntegerCast<ui32>(values.GetObjectsSlice().Size()), "Unexpected GPU float values size");
+
+            // Determine where this feature is stored.
+            TVector<ui32> nonEmptyDevs;
+            nonEmptyDevs.reserve(feature.DeviceCount());
+            for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
+                if (!feature.IsEmpty(dev)) {
+                    nonEmptyDevs.push_back(dev);
+                }
+            }
+            CB_ENSURE(!nonEmptyDevs.empty(), "Attempt to write an empty feature " << featureId);
+
+            // Prepare borders in the format expected by the GPU binarization kernel: [count, borders...].
+            TVector<float> bordersWithHeader;
+            bordersWithHeader.yresize(borders.size() + 1);
+            bordersWithHeader[0] = static_cast<float>(borders.size());
+            Copy(borders.begin(), borders.end(), bordersWithHeader.begin() + 1);
+
+            // If dataset permutation is requested, materialize permuted values on the source device.
+            const bool needPermute = permute && GatherIndex[dataSetId] && !GatherIndex[dataSetId]->IndicesVec.empty();
+            const TSingleBuffer<const float>* valuesForWrite = &values;
+
+            TSingleBuffer<float> permutedValues;
+            TSingleBuffer<const float> permutedValuesConst;
+            if (needPermute) {
+                const auto& indices = GatherIndex[dataSetId]->IndicesVec;
+                CB_ENSURE(indices.size() == docCount, "Gather index size mismatch");
+
+                TSingleBuffer<ui32> gatherMap = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(srcDev, docCount));
+                gatherMap.Write(indices);
+
+                permutedValues = TSingleBuffer<float>::Create(NCudaLib::TSingleMapping(srcDev, docCount));
+                ::Gather(permutedValues, values, gatherMap, stream);
+                permutedValuesConst = permutedValues.ConstCopyView();
+                valuesForWrite = &permutedValuesConst;
+            }
+
+            using TKernel = NKernelHost::TBinarizeFloatFeatureKernel;
+
+            if constexpr (std::is_same_v<TSamplesMapping, NCudaLib::TStripeMapping>) {
+                if (nonEmptyDevs.size() == 1) {
+                    const ui32 writeDev = nonEmptyDevs[0];
+                    CB_ENSURE(
+                        writeDev == srcDev,
+                        "Native GPU float values are on device " << srcDev
+                            << " but feature is written on device " << writeDev
+                    );
+
+                    auto bordersGpu = TSingleBuffer<float>::Create(NCudaLib::TSingleMapping(writeDev, bordersWithHeader.size()));
+                    bordersGpu.Write(bordersWithHeader);
+
+                    LaunchKernels<TKernel>(
+                        valuesForWrite->NonEmptyDevices(),
+                        stream,
+                        *valuesForWrite,
+                        bordersGpu,
+                        feature,
+                        /*gatherIndex*/ NKernelHost::TCudaBufferPtr<const ui32>::Nullptr(),
+                        CompressedIndex.FlatStorage,
+                        /*atomicUpdate*/ false
+                    );
+                } else {
+                    // Doc-parallel: distribute (possibly permuted) values across devices and binarize locally on each device.
+                    auto bordersGpu = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(bordersWithHeader.size()));
+                    bordersGpu.Write(bordersWithHeader);
+
+                    TStripeBuffer<float> valuesStripe = TStripeBuffer<float>::Create(dataSet.GetSamplesMapping());
+                    NCudaLib::Reshard(*valuesForWrite, valuesStripe, stream);
+
+                    LaunchKernels<TKernel>(
+                        valuesStripe.NonEmptyDevices(),
+                        stream,
+                        valuesStripe,
+                        bordersGpu,
+                        feature,
+                        /*gatherIndex*/ NKernelHost::TCudaBufferPtr<const ui32>::Nullptr(),
+                        CompressedIndex.FlatStorage,
+                        /*atomicUpdate*/ false
+                    );
+                }
+            } else {
+                CB_ENSURE_INTERNAL(
+                    nonEmptyDevs.size() == 1,
+                    "Mirror samples mapping expects feature to be stored on a single device"
+                );
+
+                const ui32 writeDev = nonEmptyDevs[0];
+                CB_ENSURE(
+                    writeDev == srcDev,
+                    "Native GPU float values are on device " << srcDev
+                        << " but feature is written on device " << writeDev
+                );
+
+                auto bordersGpu = TSingleBuffer<float>::Create(NCudaLib::TSingleMapping(writeDev, bordersWithHeader.size()));
+                bordersGpu.Write(bordersWithHeader);
+
+                LaunchKernels<TKernel>(
+                    valuesForWrite->NonEmptyDevices(),
+                    stream,
+                    *valuesForWrite,
+                    bordersGpu,
+                    feature,
+                    /*gatherIndex*/ NKernelHost::TCudaBufferPtr<const ui32>::Nullptr(),
+                    CompressedIndex.FlatStorage,
+                    /*atomicUpdate*/ false
+                );
+            }
+
+            SeenFeatures[dataSetId].insert(featureId);
+        }
+
         void WriteLazyBinsVector(
             const ui32 dataSetId,
             const ui32 featureId,
@@ -362,7 +644,27 @@ namespace NCatboostCuda {
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
         TVector<TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing>> GatherIndex;
+        TVector<THolder<TSingleBuffer<ui32>>> GpuGatherIndex;
         NPar::ILocalExecutor* LocalExecutor;
+
+        const TSingleBuffer<ui32>* GetOrCreateGpuGatherIndex(ui32 dataSetId, ui32 devId, ui32 docCount) {
+            if (!GatherIndex[dataSetId]) {
+                return nullptr;
+            }
+            const auto& indices = GatherIndex[dataSetId]->IndicesVec;
+            if (indices.empty()) {
+                return nullptr;
+            }
+            CB_ENSURE(indices.size() == docCount, "Gather index size mismatch");
+
+            if (!GpuGatherIndex[dataSetId]) {
+                auto bufHolder = MakeHolder<TSingleBuffer<ui32>>();
+                *bufHolder = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, docCount));
+                bufHolder->Write(indices);
+                GpuGatherIndex[dataSetId] = std::move(bufHolder);
+            }
+            return GpuGatherIndex[dataSetId].Get();
+        }
 
         void DropLoaders() {
             if (NeedToDropLoaders) {

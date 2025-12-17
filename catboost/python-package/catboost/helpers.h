@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
@@ -199,6 +200,27 @@ private:
     PyObject* Stream;
 };
 
+NCB::TDataProviderPtr CreateGpuDataProvider(
+    const NCB::TDataMetaInfo& metaInfo,
+    PyObject* data,
+    PyObject* label,
+    PyObject* weight,
+    int threadCount
+);
+
+struct TCudaMemcpyTrackerStats {
+    ui64 HostToHostBytes = 0;
+    ui64 HostToDeviceBytes = 0;
+    ui64 DeviceToHostBytes = 0;
+    ui64 DeviceToDeviceBytes = 0;
+    ui64 UnknownBytes = 0;
+};
+
+void ResetCudaMemcpyTrackerConfig();
+void ResetCudaMemcpyTrackerStats();
+TCudaMemcpyTrackerStats GetCudaMemcpyTrackerStats();
+void TestCudaMemcpyTrackerDeviceToHost(ui64 bytes);
+
 
 template <class TFloatOrInteger>
 void AsyncSetDataFromCythonMemoryViewCOrder(
@@ -381,3 +403,38 @@ void GetNumFeatureValuesSample(
 
 
 TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model);
+
+// Pure GPU prediction path for GPU-backed pools (TGpuRawObjectsDataProvider).
+TVector<TVector<double>> ApplyModelMultiGpuInput(
+    const TFullModel& model,
+    const NCB::TDataProvider& srcData,
+    bool verbose,
+    EPredictionType predictionType,
+    int begin,
+    int end,
+    int threadCount,
+    const TString& devices = TString()
+);
+
+// Writes `predictionType` results into a device-resident `double` buffer of length `dstSize`.
+// Output layout is 1D [objectIdx] for current GPU evaluator constraints (ApproxDimension==1).
+void ApplyModelMultiGpuInputToDevice(
+    const TFullModel& model,
+    const NCB::TDataProvider& srcData,
+    bool verbose,
+    EPredictionType predictionType,
+    int begin,
+    int end,
+    ui64 dstDevicePtr,
+    ui32 dstSize,
+    const TString& devices = TString()
+);
+
+TVector<ui32> CalcLeafIndexesMultiGpuInput(
+    const TFullModel& model,
+    const NCB::TDataProvider& srcData,
+    bool verbose,
+    int begin,
+    int end,
+    int threadCount
+);

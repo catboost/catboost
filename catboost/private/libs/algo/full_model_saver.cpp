@@ -370,14 +370,19 @@ namespace NCB {
                 outDatasetDataForFinalCtrs->Data = TrainingDataRef;
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
 
-                auto targets =  *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
-                outDatasetDataForFinalCtrs->Targets = TVector<TConstArrayRef<float>>();
-                for (const auto& ref: targets)
-                    outDatasetDataForFinalCtrs->Targets->emplace_back(ref);
+                const auto maybeTargets = outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
+                if (maybeTargets.Defined()) {
+                    outDatasetDataForFinalCtrs->Targets = TVector<TConstArrayRef<float>>();
+                    for (const auto& ref : *maybeTargets) {
+                        outDatasetDataForFinalCtrs->Targets->emplace_back(ref);
+                    }
+                } else {
+                    outDatasetDataForFinalCtrs->Targets = Nothing();
+                }
 
                 *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 
-                if (NeedTargetClasses(coreModel)) {
+                if (NeedTargetClasses(coreModel) && outDatasetDataForFinalCtrs->Targets.Defined()) {
                     NPar::TLocalExecutor localExecutor;
                     localExecutor.RunAdditionalThreads(NumThreads - 1);
 

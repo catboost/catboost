@@ -1,51 +1,194 @@
 #include "dataset_helpers.h"
 #include "feature_layout_doc_parallel.h"
 #include "feature_layout_feature_parallel.h"
+
+#include <catboost/cuda/data/gpu_input_provider.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_targets.cuh>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
+
+#include <cuda_runtime_api.h>
+
 #include <util/generic/maybe.h>
+#include <util/generic/scope.h>
 
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCB::TTrainingDataProvider& dataProvider,
                                                                                             const NCB::TTrainingDataProvider* test) {
-    TVector<float> joinedTarget = Join((*dataProvider.TargetData->GetTarget())[0],
-                                       test ? MakeMaybe((*test->TargetData->GetTarget())[0]) : Nothing()); // espetrov: fix for multi-target + cat features
+    const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(dataProvider.ObjectsData.Get());
+    const bool hasGpuTargets = gpuObjects && (gpuObjects->GetGpuTargets().TargetCount > 0);
 
-    THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
-    ctrsTargetPtr = MakeHolder<TCtrTargets<NCudaLib::TMirrorMapping>>();
+    if (!hasGpuTargets) {
+        TVector<float> joinedTarget = Join((*dataProvider.TargetData->GetTarget())[0],
+                                           test ? MakeMaybe((*test->TargetData->GetTarget())[0]) : Nothing()); // espetrov: fix for multi-target + cat features
+
+        THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
+        ctrsTargetPtr = MakeHolder<TCtrTargets<NCudaLib::TMirrorMapping>>();
+        auto& ctrsTarget = *ctrsTargetPtr;
+        ctrsTarget.BinarizedTarget = BuildBinarizedTarget(featuresManager,
+                                                          joinedTarget);
+
+        ctrsTarget.WeightedTarget.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
+        ctrsTarget.Weights.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
+
+        ctrsTarget.LearnSlice = TSlice(0, dataProvider.GetObjectCount());
+        ctrsTarget.TestSlice = TSlice(dataProvider.GetObjectCount(), joinedTarget.size());
+
+        TVector<float> ctrWeights;
+        ctrWeights.resize(joinedTarget.size(), 1.0f);
+
+        TVector<float> ctrWeightedTargets(joinedTarget.begin(), joinedTarget.end());
+
+        double totalWeight = 0;
+        for (ui32 i = (ui32)ctrsTarget.LearnSlice.Right; i < ctrWeights.size(); ++i) {
+            ctrWeights[i] = 0;
+        }
+
+        for (ui32 i = 0; i < ctrWeightedTargets.size(); ++i) {
+            ctrWeightedTargets[i] *= ctrWeights[i];
+            totalWeight += ctrWeights[i];
+        }
+
+        ctrsTarget.TotalWeight = (float)totalWeight;
+        ctrsTarget.WeightedTarget.Write(ctrWeightedTargets);
+        ctrsTarget.Weights.Write(ctrWeights);
+
+        CB_ENSURE(ctrsTarget.IsTrivialWeights());
+
+        if (!dataProvider.ObjectsGrouping->IsTrivial() && featuresManager.GetCatFeatureOptions().CtrHistoryUnit == ECtrHistoryUnit::Group) {
+            const ui64 groupCountLearn = dataProvider.ObjectsGrouping->GetGroupCount();
+            TVector<ui32> groupIds;
+            groupIds.reserve(joinedTarget.size());
+
+            for (ui32 groupId = 0; groupId < groupCountLearn; ++groupId) {
+                ui32 groupSize = dataProvider.ObjectsGrouping->GetGroup(groupId).GetSize();
+                for (ui32 j  = 0; j < groupSize; ++j) {
+                    groupIds.push_back(groupId);
+                }
+            }
+            const ui64 groupCountTest = test ? test->ObjectsGrouping->GetGroupCount() : 0;
+
+            for (ui32 groupId = 0; groupId < groupCountTest; ++groupId) {
+                ui32 groupSize = test->ObjectsGrouping->GetGroup(groupId).GetSize();
+                for (ui32 j = 0; j < groupSize; ++j) {
+                    groupIds.push_back(groupId + groupCountLearn);
+                }
+            }
+
+
+            auto tmp = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(groupIds.size()));
+            tmp.Write(groupIds);
+            ctrsTarget.GroupIds = tmp.ConstCopyView();
+        }
+        return ctrsTargetPtr;
+    }
+
+    const auto& gpuTargets = gpuObjects->GetGpuTargets();
+    CB_ENSURE(gpuTargets.TargetCount == 1, "CTR target requires one-dimensional target");
+    CB_ENSURE(gpuTargets.Targets.size() == 1, "GPU targets size mismatch");
+
+    const ui32 learnSize = dataProvider.GetObjectCount();
+    const ui32 totalSize = learnSize + (test ? test->GetObjectCount() : 0);
+
+    THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr = MakeHolder<TCtrTargets<NCudaLib::TMirrorMapping>>();
     auto& ctrsTarget = *ctrsTargetPtr;
-    ctrsTarget.BinarizedTarget = BuildBinarizedTarget(featuresManager,
-                                                      joinedTarget);
 
-    ctrsTarget.WeightedTarget.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
-    ctrsTarget.Weights.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
+    ctrsTarget.LearnSlice = TSlice(0, learnSize);
+    ctrsTarget.TestSlice = TSlice(learnSize, totalSize);
+    ctrsTarget.TotalWeight = static_cast<float>(learnSize);
 
-    ctrsTarget.LearnSlice = TSlice(0, dataProvider.GetObjectCount());
-    ctrsTarget.TestSlice = TSlice(dataProvider.GetObjectCount(), joinedTarget.size());
+    const i32 deviceId = gpuTargets.Targets[0].DeviceId;
+    CB_ENSURE(deviceId >= 0, "Invalid device id for GPU target");
+    NCudaLib::SetDevice(deviceId);
 
-    TVector<float> ctrWeights;
-    ctrWeights.resize(joinedTarget.size(), 1.0f);
+    const auto getCudaStreamFromCudaArrayInterface = [] (ui64 stream) -> cudaStream_t {
+        if (stream == 0) {
+            return 0;
+        }
+        if (stream == 1) {
+            return cudaStreamPerThread;
+        }
+        return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+    };
 
-    TVector<float> ctrWeightedTargets(joinedTarget.begin(), joinedTarget.end());
+    const auto& targetColumn = gpuTargets.Targets[0];
+    CB_ENSURE(targetColumn.FullObjectCount == learnSize, "GPU target size mismatch");
 
-    double totalWeight = 0;
-    for (ui32 i = (ui32)ctrsTarget.LearnSlice.Right; i < ctrWeights.size(); ++i) {
-        ctrWeights[i] = 0;
+    const cudaStream_t caiStream = getCudaStreamFromCudaArrayInterface(targetColumn.Stream);
+
+    // Build joined target/weights on a single device, then replicate to mirror mapping.
+    TSingleBuffer<float> joinedTargetSingle;
+    joinedTargetSingle.Reset(NCudaLib::TSingleMapping(deviceId, totalSize));
+    TSingleBuffer<float> joinedWeightsSingle;
+    joinedWeightsSingle.Reset(NCudaLib::TSingleMapping(deviceId, totalSize));
+    TSingleBuffer<ui8> joinedBinarizedSingle;
+    joinedBinarizedSingle.Reset(NCudaLib::TSingleMapping(deviceId, totalSize));
+
+    // Ensure handle-based buffers are materialized before using raw CUDA runtime calls.
+    NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(deviceId));
+
+    CUDA_SAFE_CALL(cudaMemsetAsync(joinedTargetSingle.At(deviceId).Get(), 0, static_cast<size_t>(totalSize) * sizeof(float), caiStream));
+
+    const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+    NKernel::CopyStridedGpuInputToFloat(
+        srcTarget,
+        targetColumn.StrideBytes,
+        learnSize,
+        static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+        joinedTargetSingle.At(deviceId).Get(),
+        caiStream
+    );
+
+    NKernel::FillLearnTestWeights(
+        joinedWeightsSingle.At(deviceId).Get(),
+        learnSize,
+        totalSize,
+        /*learnValue*/ 1.0f,
+        /*testValue*/ 0.0f,
+        caiStream
+    );
+
+    CUDA_SAFE_CALL(cudaMemsetAsync(joinedBinarizedSingle.At(deviceId).Get(), 0, static_cast<size_t>(totalSize) * sizeof(ui8), caiStream));
+
+    if (featuresManager.HasTargetBinarization()) {
+        const auto& borders = featuresManager.GetTargetBorders();
+        const ui32 borderCount = static_cast<ui32>(borders.size());
+        CB_ENSURE(borderCount <= 255, "Target border count is too large for ui8 binarization");
+
+        float* bordersDev = nullptr;
+        CUDA_SAFE_CALL(cudaMalloc(&bordersDev, static_cast<size_t>(borderCount) * sizeof(float)));
+        Y_DEFER { cudaFree(bordersDev); };
+        CUDA_SAFE_CALL(cudaMemcpyAsync(
+            bordersDev,
+            borders.data(),
+            static_cast<size_t>(borderCount) * sizeof(float),
+            cudaMemcpyHostToDevice,
+            caiStream
+        ));
+        NKernel::BinarizeToUi8(
+            joinedTargetSingle.At(deviceId).Get(),
+            totalSize,
+            bordersDev,
+            borderCount,
+            joinedBinarizedSingle.At(deviceId).Get(),
+            caiStream
+        );
     }
 
-    for (ui32 i = 0; i < ctrWeightedTargets.size(); ++i) {
-        ctrWeightedTargets[i] *= ctrWeights[i];
-        totalWeight += ctrWeights[i];
-    }
+    CUDA_SAFE_CALL(cudaStreamSynchronize(caiStream));
 
-    ctrsTarget.TotalWeight = (float)totalWeight;
-    ctrsTarget.WeightedTarget.Write(ctrWeightedTargets);
-    ctrsTarget.Weights.Write(ctrWeights);
+    ctrsTarget.WeightedTarget.Reset(NCudaLib::TMirrorMapping(totalSize));
+    ctrsTarget.Weights.Reset(NCudaLib::TMirrorMapping(totalSize));
+    ctrsTarget.BinarizedTarget.Reset(NCudaLib::TMirrorMapping(totalSize));
 
-    CB_ENSURE(ctrsTarget.IsTrivialWeights());
+    NCudaLib::Reshard(joinedTargetSingle, ctrsTarget.WeightedTarget, /*stream*/ 0);
+    NCudaLib::Reshard(joinedWeightsSingle, ctrsTarget.Weights, /*stream*/ 0);
+    NCudaLib::Reshard(joinedBinarizedSingle, ctrsTarget.BinarizedTarget, /*stream*/ 0);
 
     if (!dataProvider.ObjectsGrouping->IsTrivial() && featuresManager.GetCatFeatureOptions().CtrHistoryUnit == ECtrHistoryUnit::Group) {
         const ui64 groupCountLearn = dataProvider.ObjectsGrouping->GetGroupCount();
         TVector<ui32> groupIds;
-        groupIds.reserve(joinedTarget.size());
+        groupIds.reserve(totalSize);
 
         for (ui32 groupId = 0; groupId < groupCountLearn; ++groupId) {
             ui32 groupSize = dataProvider.ObjectsGrouping->GetGroup(groupId).GetSize();

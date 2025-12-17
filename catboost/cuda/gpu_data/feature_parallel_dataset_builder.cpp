@@ -4,6 +4,12 @@
 #include "dataset_helpers.h"
 
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/cuda/data/gpu_input_provider.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_targets.cuh>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
+
+#include <cuda_runtime_api.h>
 
 namespace NCatboostCuda {
     TFeatureParallelDataSetsHolder TFeatureParallelDataSetHoldersBuilder::BuildDataSet(const ui32 permutationCount,
@@ -40,21 +46,100 @@ namespace NCatboostCuda {
 
         const auto learnWeights = NCB::GetWeights(*DataProvider.TargetData);
 
-        const bool isTrivialLearnWeights = AreEqualTo(learnWeights, 1.0f);
+        bool isTrivialLearnWeights = AreEqualTo(learnWeights, 1.0f);
         {
             const auto learnMapping = NCudaLib::TMirrorMapping(ctrsTarget.LearnSlice.Size());
 
-            if (isTrivialLearnWeights == ctrsTarget.IsTrivialWeights()) {
-                dataSetsHolder.DirectWeights = ctrsTarget.Weights.SliceView(ctrsTarget.LearnSlice);
-            } else {
-                dataSetsHolder.DirectWeights.Reset(learnMapping);
-                dataSetsHolder.DirectWeights.Write(learnWeights);
-            }
-            if (isTrivialLearnWeights && ctrsTarget.IsTrivialWeights()) {
-                dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
-            } else {
+            const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(DataProvider.ObjectsData.Get());
+            const bool hasGpuTargets = gpuObjects && (gpuObjects->GetGpuTargets().TargetCount > 0);
+
+            if (hasGpuTargets) {
+                // Weight values live on GPU; treat as non-trivial to ensure correct permutation handling.
+                isTrivialLearnWeights = false;
+
+                const auto& gpuTargets = gpuObjects->GetGpuTargets();
+                CB_ENSURE(gpuTargets.TargetCount == 1, "Feature-parallel training supports only one-dimensional GPU target");
+                const auto& targetColumn = gpuTargets.Targets[0];
+                const i32 deviceId = targetColumn.DeviceId;
+                CB_ENSURE(deviceId >= 0, "Invalid device id for GPU target");
+                NCudaLib::SetDevice(deviceId);
+
+                auto getCudaStreamFromCudaArrayInterface = [] (ui64 stream) -> cudaStream_t {
+                    if (stream == 0) {
+                        return 0;
+                    }
+                    if (stream == 1) {
+                        return cudaStreamPerThread;
+                    }
+                    return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+                };
+                const cudaStream_t caiStream = getCudaStreamFromCudaArrayInterface(targetColumn.Stream);
+
+                const ui32 learnSize = static_cast<ui32>(ctrsTarget.LearnSlice.Size());
+                CB_ENSURE(targetColumn.FullObjectCount == learnSize, "GPU target size mismatch");
+
+                TSingleBuffer<float> targetSingle;
+                targetSingle.Reset(NCudaLib::TSingleMapping(deviceId, learnSize));
+                TSingleBuffer<float> weightsSingle;
+                weightsSingle.Reset(NCudaLib::TSingleMapping(deviceId, learnSize));
+
+                NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(deviceId));
+
+                const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+                NKernel::CopyStridedGpuInputToFloat(
+                    srcTarget,
+                    targetColumn.StrideBytes,
+                    learnSize,
+                    static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                    targetSingle.At(deviceId).Get(),
+                    caiStream
+                );
+
+                if (gpuTargets.HasWeights) {
+                    const auto& weightColumn = gpuTargets.Weights;
+                    CB_ENSURE(weightColumn.DeviceId == deviceId, "GPU weights must reside on the same device as GPU target");
+                    CB_ENSURE(weightColumn.FullObjectCount == learnSize, "GPU weight size mismatch");
+                    const cudaStream_t weightStream = getCudaStreamFromCudaArrayInterface(weightColumn.Stream);
+                    const void* srcWeight = reinterpret_cast<const void*>(static_cast<uintptr_t>(weightColumn.Data));
+                    NKernel::CopyStridedGpuInputToFloat(
+                        srcWeight,
+                        weightColumn.StrideBytes,
+                        learnSize,
+                        static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(weightColumn.DType)),
+                        weightsSingle.At(deviceId).Get(),
+                        weightStream
+                    );
+                    CUDA_SAFE_CALL(cudaStreamSynchronize(weightStream));
+                } else {
+                    NKernel::FillLearnTestWeights(
+                        weightsSingle.At(deviceId).Get(),
+                        /*learnSize*/ learnSize,
+                        /*totalSize*/ learnSize,
+                        /*learnValue*/ 1.0f,
+                        /*testValue*/ 1.0f,
+                        caiStream
+                    );
+                }
+
+                CUDA_SAFE_CALL(cudaStreamSynchronize(caiStream));
+
                 dataSetsHolder.DirectTarget.Reset(learnMapping);
-                dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetOneDimensionalTarget());
+                dataSetsHolder.DirectWeights.Reset(learnMapping);
+                NCudaLib::Reshard(targetSingle, dataSetsHolder.DirectTarget, /*stream*/ 0);
+                NCudaLib::Reshard(weightsSingle, dataSetsHolder.DirectWeights, /*stream*/ 0);
+            } else {
+                if (isTrivialLearnWeights == ctrsTarget.IsTrivialWeights()) {
+                    dataSetsHolder.DirectWeights = ctrsTarget.Weights.SliceView(ctrsTarget.LearnSlice);
+                } else {
+                    dataSetsHolder.DirectWeights.Reset(learnMapping);
+                    dataSetsHolder.DirectWeights.Write(learnWeights);
+                }
+                if (isTrivialLearnWeights && ctrsTarget.IsTrivialWeights()) {
+                    dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
+                } else {
+                    dataSetsHolder.DirectTarget.Reset(learnMapping);
+                    dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetOneDimensionalTarget());
+                }
             }
         }
 
@@ -291,9 +376,83 @@ namespace NCatboostCuda {
         TMirrorBuffer<ui32> inverseIndices = indices.CopyView();
 
         auto targets = TMirrorBuffer<float>::CopyMapping(indices);
-        targets.Write(*LinkedTest->TargetData->GetOneDimensionalTarget());
         auto weights = TMirrorBuffer<float>::CopyMapping(indices);
-        weights.Write(GetWeights(*LinkedTest->TargetData));
+
+        const auto* gpuObjects = dynamic_cast<const NCB::TGpuInputQuantizedObjectsDataProvider*>(LinkedTest->ObjectsData.Get());
+        const bool hasGpuTargets = gpuObjects && (gpuObjects->GetGpuTargets().TargetCount > 0);
+        if (hasGpuTargets) {
+            const auto& gpuTargets = gpuObjects->GetGpuTargets();
+            CB_ENSURE(gpuTargets.TargetCount == 1, "Feature-parallel training supports only one-dimensional GPU target");
+            const auto& targetColumn = gpuTargets.Targets[0];
+            const i32 deviceId = targetColumn.DeviceId;
+            CB_ENSURE(deviceId >= 0, "Invalid device id for GPU target");
+            NCudaLib::SetDevice(deviceId);
+
+            auto getCudaStreamFromCudaArrayInterface = [] (ui64 stream) -> cudaStream_t {
+                if (stream == 0) {
+                    return 0;
+                }
+                if (stream == 1) {
+                    return cudaStreamPerThread;
+                }
+                return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+            };
+            const cudaStream_t caiStream = getCudaStreamFromCudaArrayInterface(targetColumn.Stream);
+
+            const ui32 testSize = static_cast<ui32>(ctrsTarget.TestSlice.Size());
+            CB_ENSURE(targetColumn.FullObjectCount == testSize, "GPU test target size mismatch");
+
+            TSingleBuffer<float> targetSingle;
+            targetSingle.Reset(NCudaLib::TSingleMapping(deviceId, testSize));
+            TSingleBuffer<float> weightsSingle;
+            weightsSingle.Reset(NCudaLib::TSingleMapping(deviceId, testSize));
+
+            NCudaLib::GetCudaManager().WaitComplete(NCudaLib::TDevicesListBuilder::SingleDevice(deviceId));
+
+            const void* srcTarget = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+            NKernel::CopyStridedGpuInputToFloat(
+                srcTarget,
+                targetColumn.StrideBytes,
+                testSize,
+                static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                targetSingle.At(deviceId).Get(),
+                caiStream
+            );
+
+            if (gpuTargets.HasWeights) {
+                const auto& weightColumn = gpuTargets.Weights;
+                CB_ENSURE(weightColumn.DeviceId == deviceId, "GPU weights must reside on the same device as GPU target");
+                CB_ENSURE(weightColumn.FullObjectCount == testSize, "GPU test weight size mismatch");
+                const cudaStream_t weightStream = getCudaStreamFromCudaArrayInterface(weightColumn.Stream);
+                const void* srcWeight = reinterpret_cast<const void*>(static_cast<uintptr_t>(weightColumn.Data));
+                NKernel::CopyStridedGpuInputToFloat(
+                    srcWeight,
+                    weightColumn.StrideBytes,
+                    testSize,
+                    static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(weightColumn.DType)),
+                    weightsSingle.At(deviceId).Get(),
+                    weightStream
+                );
+                CUDA_SAFE_CALL(cudaStreamSynchronize(weightStream));
+            } else {
+                NKernel::FillLearnTestWeights(
+                    weightsSingle.At(deviceId).Get(),
+                    /*learnSize*/ testSize,
+                    /*totalSize*/ testSize,
+                    /*learnValue*/ 1.0f,
+                    /*testValue*/ 1.0f,
+                    caiStream
+                );
+            }
+
+            CUDA_SAFE_CALL(cudaStreamSynchronize(caiStream));
+
+            NCudaLib::Reshard(targetSingle, targets, /*stream*/ 0);
+            NCudaLib::Reshard(weightsSingle, weights, /*stream*/ 0);
+        } else {
+            targets.Write(*LinkedTest->TargetData->GetOneDimensionalTarget());
+            weights.Write(GetWeights(*LinkedTest->TargetData));
+        }
 
         dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet(*LinkedTest,
                                                                      dataSetsHolder.CompressedIndex,

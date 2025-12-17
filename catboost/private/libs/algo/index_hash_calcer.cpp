@@ -114,7 +114,13 @@ void CalcHashes(
                         auto block = iterator->Next(hashArr.size());
                         Y_ASSERT(block.size() == hashArr.size());
                         for (auto i : xrange(block.size())) {
-                            hashArr[i] = CalcHash(hashArr[i], (int)origValsView[block[i]]);
+                            const auto bin = static_cast<size_t>(block[i]);
+                            CB_ENSURE_INTERNAL(
+                                bin < origValsView.size(),
+                                "Perfect-hashed categorical value is out of bounds: bin=" << bin
+                                    << ", mappingSize=" << origValsView.size()
+                            );
+                            hashArr[i] = CalcHash(hashArr[i], (int)origValsView[bin]);
                         }
                     });
                 }

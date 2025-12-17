@@ -1,5 +1,7 @@
 #include "cat_features_dataset.h"
 
+#include <catboost/cuda/data/gpu_input_columns.h>
+
 namespace NCatboostCuda {
     using EPtrType = NCudaLib::EPtrType;
 
@@ -38,10 +40,6 @@ namespace NCatboostCuda {
 
         const ui64 docCount = catFeature.GetSize();
 
-        TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-            NCudaLib::TSingleMapping(DeviceId, docCount)
-        );
-        tmp.Write(catFeature.ExtractValues<ui32>(LocalExecutor));
         const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
         const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);
         auto compressedMapping = NCudaLib::TSingleMapping(DeviceId, compressedSize);
@@ -49,7 +47,21 @@ namespace NCatboostCuda {
         auto& catIndex = *dst;
         DataSet.Features[featureId] = {static_cast<ui32>(catIndex.size()), uniqueValues};
         catIndex.push_back(TCudaBuffer<ui64, NCudaLib::TSingleMapping, PtrType>::Create(compressedMapping));
-        Compress(tmp, catIndex.back(), uniqueValues);
+
+        if (const auto* gpuCatHolder = dynamic_cast<const NCB::TGpuExternalCatValuesHolder*>(&catFeature)) {
+            CB_ENSURE(
+                gpuCatHolder->GetDeviceId() == (i32)DeviceId,
+                "GPU categorical bins are on device " << gpuCatHolder->GetDeviceId()
+                    << " but cat features dataset builder is writing on device " << DeviceId
+            );
+            Compress(gpuCatHolder->GetBins(), catIndex.back(), uniqueValues);
+        } else {
+            TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
+                NCudaLib::TSingleMapping(DeviceId, docCount)
+            );
+            tmp.Write(catFeature.ExtractValues<ui32>(LocalExecutor));
+            Compress(tmp, catIndex.back(), uniqueValues);
+        }
         MemoryUsage[DeviceId] += compressedMapping.MemorySize();
         DataSet.DeviceFeatures[DeviceId].push_back(featureId);
 

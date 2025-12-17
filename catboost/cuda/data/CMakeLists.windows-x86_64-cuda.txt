@@ -41,6 +41,9 @@ target_sources(catboost-cuda-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/binarizations_manager.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/permutation.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/data_utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/data/gpu_input_columns.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/data/gpu_input_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/data/gpu_input_quantization.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/leaf_path.cpp
 )
 

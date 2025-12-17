@@ -165,9 +165,35 @@ if (HAVE_CUDA)
   enable_language(CUDA)
 
   function(target_cuda_flags Tgt)
-    set_property(TARGET ${Tgt} APPEND PROPERTY
-      CUDA_FLAGS ${ARGN}
-    )
+    set(filteredArgs "${ARGN}")
+
+    # CUDA 12+ no longer supports sm_35. Some generated CMakeLists still include it explicitly,
+    # so prune it here to keep CUDA-enabled builds working on modern toolkits.
+    if (CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0")
+      set(tmpArgs "${filteredArgs}")
+      set(filteredArgs "")
+      while (tmpArgs)
+        list(POP_FRONT tmpArgs arg)
+
+        # Handle both "-gencode arch=..." and "-gencode=arch=..." forms.
+        if (arg STREQUAL "-gencode")
+          if (tmpArgs)
+            list(GET tmpArgs 0 spec)
+            if (spec MATCHES "^arch=compute_35,code=sm_35$")
+              list(POP_FRONT tmpArgs) # drop spec
+              continue()
+            endif()
+          endif()
+        endif()
+        if (arg MATCHES "^-gencode=arch=compute_35,code=sm_35$")
+          continue()
+        endif()
+
+        list(APPEND filteredArgs "${arg}")
+      endwhile()
+    endif()
+
+    set_property(TARGET ${Tgt} APPEND PROPERTY CUDA_FLAGS ${filteredArgs})
   endfunction()
 
   function(target_cuda_cflags Tgt)

@@ -25,8 +25,16 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/scope.h>
 #include <util/stream/labeled.h>
 #include <util/string/builder.h>
+
+#if defined(HAVE_CUDA)
+#include <catboost/cuda/data/gpu_input_provider.h>
+#include <catboost/cuda/data/gpu_input_quantization.h>
+#include <catboost/cuda/gpu_data/kernel/gpu_input_utils.cuh>
+#include <cuda_runtime_api.h>
+#endif
 
 
 namespace NCB {
@@ -89,6 +97,15 @@ namespace NCB {
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
+#if defined(HAVE_CUDA)
+        const TGpuRawObjectsDataProvider* gpuRawObjects = dynamic_cast<const TGpuRawObjectsDataProvider*>(srcData->ObjectsData.Get());
+        const bool hasGpuResidentTarget = (params->GetTaskType() == ETaskType::GPU) &&
+            gpuRawObjects &&
+            (gpuRawObjects->GetData().TargetCount > 0);
+#else
+        const bool hasGpuResidentTarget = false;
+#endif
+
         if (auto* quantizedObjectsDataProvider
                 = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
@@ -123,14 +140,37 @@ namespace NCB {
                 trainingData->ObjectsData = quantizedObjectsDataProvider;
             }
         } else {
-            trainingData->ObjectsData = GetQuantizedObjectsData(
-                *params,
-                srcData,
-                bordersFile,
-                quantizedFeaturesInfo,
-                localExecutor,
-                rand,
-                GetInitialBorders(initModel));
+#if defined(HAVE_CUDA)
+            if ((params->GetTaskType() == ETaskType::GPU) &&
+                dynamic_cast<TGpuRawObjectsDataProvider*>(srcData->ObjectsData.Get()))
+            {
+                trainingData->ObjectsData = QuantizeGpuInputData(
+                    *params,
+                    srcData,
+                    isLearnData,
+                    quantizedFeaturesInfo,
+                    localExecutor,
+                    rand
+                );
+                if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
+                    trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
+                        trainingData->ObjectsData->GetFeaturesSubset(
+                            params->DataProcessingOptions.Get().IgnoredFeatures,
+                            localExecutor).Get()
+                    );
+                }
+            } else
+#endif
+            {
+                trainingData->ObjectsData = GetQuantizedObjectsData(
+                    *params,
+                    srcData,
+                    bordersFile,
+                    quantizedFeaturesInfo,
+                    localExecutor,
+                    rand,
+                    GetInitialBorders(initModel));
+            }
         }
 
         CB_ENSURE(
@@ -144,6 +184,102 @@ namespace NCB {
         if (unloadCatFeaturePerfectHashFromRam) {
             trainingData->ObjectsData->GetQuantizedFeaturesInfo()->UnloadCatFeaturePerfectHashFromRam(tmpDir);
         }
+
+#if defined(HAVE_CUDA)
+        if (hasGpuResidentTarget) {
+            // For native GPU inputs, targets/weights can be GPU-resident. Avoid creating CPU-sized target/weight
+            // vectors here; GPU dataset builders will read targets/weights directly from device pointers.
+            const auto lossFunction = params->LossFunctionDescription->GetLossFunction();
+            if (isLearnData && labelConverter && !labelConverter->IsInitialized()) {
+                const auto& gpuInput = gpuRawObjects->GetData();
+                CB_ENSURE(gpuInput.TargetCount > 0, "GPU-resident target is empty");
+
+                auto getCudaStreamFromCudaArrayInterface = [] (ui64 stream) -> cudaStream_t {
+                    if (stream == 0) {
+                        return 0;
+                    }
+                    if (stream == 1) {
+                        return cudaStreamPerThread;
+                    }
+                    return reinterpret_cast<cudaStream_t>(static_cast<uintptr_t>(stream));
+                };
+
+                auto getMaxLabelPlusOne = [&] (const TGpuInputColumnDesc& targetColumn) -> ui32 {
+                    CB_ENSURE(targetColumn.Data != 0, "GPU target pointer is null");
+                    CB_ENSURE(targetColumn.DeviceId >= 0, "Invalid GPU target device id");
+                    CB_ENSURE(targetColumn.StrideBytes > 0, "Invalid GPU target stride");
+                    CB_ENSURE(targetColumn.FullObjectCount == trainingData->GetObjectCount(), "GPU target size mismatch");
+
+                    const ui32 objectCount = trainingData->GetObjectCount();
+                    if (objectCount == 0) {
+                        return 0;
+                    }
+
+                    CUDA_SAFE_CALL(cudaSetDevice(targetColumn.DeviceId));
+                    const cudaStream_t stream = getCudaStreamFromCudaArrayInterface(targetColumn.Stream);
+
+                    float* values = nullptr;
+                    CUDA_SAFE_CALL(cudaMalloc(&values, static_cast<size_t>(objectCount) * sizeof(float)));
+                    Y_DEFER { cudaFree(values); };
+
+                    const void* src = reinterpret_cast<const void*>(static_cast<uintptr_t>(targetColumn.Data));
+                    NKernel::CopyStridedGpuInputToFloat(
+                        src,
+                        targetColumn.StrideBytes,
+                        objectCount,
+                        static_cast<NKernel::EGpuInputDType>(static_cast<ui8>(targetColumn.DType)),
+                        values,
+                        stream
+                    );
+                    CUDA_SAFE_CALL(cudaGetLastError());
+
+                    float minValue = 0.0f;
+                    float maxValue = 0.0f;
+                    NKernel::ComputeMinMaxToHost(values, objectCount, &minValue, &maxValue, stream);
+
+                    CB_ENSURE(std::isfinite(minValue) && std::isfinite(maxValue), "Non-finite values in GPU target are not supported");
+                    CB_ENSURE(minValue >= 0.0f, "For multiclass GPU targets, labels must be >= 0");
+
+                    const double roundedMax = std::floor(static_cast<double>(maxValue) + 0.5);
+                    CB_ENSURE(std::abs(roundedMax - static_cast<double>(maxValue)) < 1e-5, "For multiclass GPU targets, labels must be integer-coded");
+
+                    const ui64 classes = static_cast<ui64>(roundedMax) + 1u;
+                    CB_ENSURE(classes >= 2, "Only one class found, can't learn multiclass objective");
+                    return SafeIntegerCast<ui32>(classes);
+                };
+
+                if (IsBinaryClassOnlyMetric(lossFunction)) {
+                    labelConverter->InitializeBinClass();
+                } else if (IsMultiClassOnlyMetric(lossFunction) || (lossFunction == ELossFunction::MultiClassOneVsAll)) {
+                    CB_ENSURE(gpuInput.TargetCount == 1, "Multiclass objective requires one-dimensional target");
+                    ui32 classesCount = params->DataProcessingOptions->ClassesCount.Get();
+                    if (classesCount == 0) {
+                        classesCount = getMaxLabelPlusOne(gpuInput.Targets[0]);
+                        params->DataProcessingOptions->ClassesCount.Get() = classesCount;
+                    }
+                    labelConverter->InitializeMultiClass(static_cast<int>(classesCount));
+                }
+            }
+
+            TProcessedTargetData processedTargetData;
+            if (IsBinaryClassOnlyMetric(lossFunction)) {
+                processedTargetData.TargetsClassCount.emplace("", 2u);
+            } else if (IsMultiClassOnlyMetric(lossFunction) || (lossFunction == ELossFunction::MultiClassOneVsAll)) {
+                const ui32 classesCount = params->DataProcessingOptions->ClassesCount.Get();
+                if (classesCount > 0) {
+                    processedTargetData.TargetsClassCount.emplace("", classesCount);
+                }
+            }
+            trainingData->TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingData->ObjectsGrouping,
+                std::move(processedTargetData),
+                /*skipCheck*/ true
+            );
+
+            trainingData->UpdateMetaInfo();
+            return trainingData;
+        }
+#endif
 
         auto& dataProcessingOptions = params->DataProcessingOptions.Get();
 

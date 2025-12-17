@@ -69,6 +69,10 @@ target_cuda_sources(catboost-cuda-gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/split.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/query_helper.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/binarize.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/gpu_final_ctr.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/gpu_input_utils.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/gpu_input_targets.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/gpu_input_factorize.cu
 )
 
 
@@ -127,4 +131,3 @@ target_sources(catboost-cuda-gpu_data.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernels.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/splitter.cpp
 )
-
