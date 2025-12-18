@@ -179,7 +179,6 @@ _custom_loggers_stack = _CustomLoggersStack()
 
 @contextmanager
 def log_fixup(log_cout=None, log_cerr=None):
-    global _custom_loggers_stack
     _custom_loggers_stack.push(log_cout, log_cerr)
     try:
         yield
