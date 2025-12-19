@@ -82,21 +82,26 @@ void _Finalizer(SEXP ext) {
 
 template <typename T>
 static TVector<T> GetVectorFromSEXP(SEXP arg) {
-    TVector<T> result(length(arg));
-    for (size_t i = 0; i < result.size(); ++i) {
-        switch (TYPEOF(arg)) {
-            case INTSXP:
-                result[i] = static_cast<T>(INTEGER(arg)[i]);
-                break;
-            case REALSXP:
-                result[i] = static_cast<T>(REAL(arg)[i]);
-                break;
-            case LGLSXP:
-                result[i] = static_cast<T>(LOGICAL(arg)[i]);
-                break;
-            default:
-                CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
+    TVector<T> result;
+    result.yresize(length(arg));
+
+    auto convertArg = [&](const auto* arg) {
+        for (size_t i = 0; i < result.size(); ++i) {
+            result[i] = static_cast<T>(arg[i]);
         }
+    };
+    switch (TYPEOF(arg)) {
+        case INTSXP:
+            convertArg(INTEGER(arg));
+            break;
+        case REALSXP:
+            convertArg(REAL(arg));
+            break;
+        case LGLSXP:
+            convertArg(LOGICAL(arg));
+            break;
+        default:
+            CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
     }
     return result;
 }
