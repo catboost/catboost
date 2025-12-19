@@ -37,6 +37,10 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         using T4 = TMaybe<TString>;
         static_assert(!std::is_trivially_copy_constructible<T4>::value, "");
         static_assert(!std::is_trivially_destructible<T4>::value, "");
+
+        using T5 = TMaybe<TMoveOnly>;
+        static_assert(!std::is_copy_constructible<T5>::value);
+        static_assert(std::is_move_constructible<T5>::value);
     }
 
     Y_UNIT_TEST(TestWarning) {

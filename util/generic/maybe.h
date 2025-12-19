@@ -36,7 +36,7 @@ constexpr bool operator==(TNothing, TNothing) noexcept {
 }
 
 template <class T, class Policy /*= ::NMaybe::TPolicyUndefinedExcept*/>
-class TMaybe: private TMaybeBase<T> {
+class TMaybe: private TMaybeBase<T>, private NMaybe::TMaybeSFINAEConstructorBase<T> {
 public:
     using TInPlace = NMaybe::TInPlace;
 
