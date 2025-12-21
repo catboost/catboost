@@ -211,6 +211,40 @@ def get_python_plat_name(platform_name: str) -> str:
         return 'manylinux2014_' + arch
 
 
+def get_python_bdist_wheel_cmd(platform_name: str, build_native_sub_dir: str) -> List[str]:
+    system, _ = platform_name.split('-')
+
+    # don't pass CUDA_ROOT because it does not matter when prebuilt extension libraries are used
+
+    # Use newer PEP-517 compliant cmd on darwin but not on other platforms because it is much slower than old-style 'bdist_wheel' on them (TODO)
+    if system == 'darwin':
+        bdist_wheel_cmd = [
+            '-m',
+            'build',
+            '--wheel'
+        ]
+        if IS_IN_GITHUB_ACTION:
+            # we've already prepared the environment and there are issues with downloading packages on Linux (in manylinux2014 containers)
+            bdist_wheel_cmd += ['--no-isolation']
+        bdist_wheel_cmd += [
+            '--config-setting=--global-option=bdist_wheel',
+            f'--config-setting=--global-option=--plat-name={get_python_plat_name(platform_name)}',
+            '--config-setting=--global-option=--with-hnsw',
+            '--config-setting=--global-option=--prebuilt-widget',
+            f'--config-setting=--global-option=--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
+        ]
+    else:
+        bdist_wheel_cmd = [
+            'setup.py',
+            'bdist_wheel',
+            '--plat-name', get_python_plat_name(platform_name),
+            '--with-hnsw',
+            '--prebuilt-widget',
+            f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
+        ]
+    return bdist_wheel_cmd
+
+
 def build_r_package(
     src_root_dir: str,
     build_native_root_dir: str,
@@ -615,22 +649,12 @@ def build_python_packages(
                 build_native_wrapper.platform_name
             )
 
-            # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
-            bdist_wheel_cmd = [
-                'setup.py',
-                'bdist_wheel',
-                '--plat-name', get_python_plat_name(build_native_wrapper.platform_name),
-                '--with-hnsw',
-                '--prebuilt-widget',
-                f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
-            ]
-
             run_with_native_python_with_version_in_python_package_dir(
                 build_native_wrapper.src_root_dir,
                 build_native_wrapper.dry_run,
                 build_native_wrapper.verbose,
                 py_ver,
-                [bdist_wheel_cmd]
+                [get_python_bdist_wheel_cmd(build_native_wrapper.platform_name, build_native_sub_dir)]
             )
 
 

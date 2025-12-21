@@ -82,21 +82,26 @@ void _Finalizer(SEXP ext) {
 
 template <typename T>
 static TVector<T> GetVectorFromSEXP(SEXP arg) {
-    TVector<T> result(length(arg));
-    for (size_t i = 0; i < result.size(); ++i) {
-        switch (TYPEOF(arg)) {
-            case INTSXP:
-                result[i] = static_cast<T>(INTEGER(arg)[i]);
-                break;
-            case REALSXP:
-                result[i] = static_cast<T>(REAL(arg)[i]);
-                break;
-            case LGLSXP:
-                result[i] = static_cast<T>(LOGICAL(arg)[i]);
-                break;
-            default:
-                CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
+    TVector<T> result;
+    result.yresize(length(arg));
+
+    auto convertArg = [&](const auto* arg) {
+        for (size_t i = 0; i < result.size(); ++i) {
+            result[i] = static_cast<T>(arg[i]);
         }
+    };
+    switch (TYPEOF(arg)) {
+        case INTSXP:
+            convertArg(INTEGER(arg));
+            break;
+        case REALSXP:
+            convertArg(REAL(arg));
+            break;
+        case LGLSXP:
+            convertArg(LOGICAL(arg));
+            break;
+        default:
+            CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
     }
     return result;
 }
@@ -145,7 +150,8 @@ void AddTarget(
     IRawFeaturesOrderDataVisitor* visitor
 ) {
     for (auto targetIdx : xrange(targetColumns)) {
-        TVector<float> target(targetRows);
+        TVector<float> target;
+        target.yresize(targetRows);
         for (auto docIdx : xrange(targetRows)) {
             target[docIdx] = static_cast<float>(srcTarget[docIdx + targetRows * targetIdx]);
         }
@@ -263,6 +269,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
         TDataMetaInfo metaInfo;
 
         TVector<TString> featureId;
+        featureId.reserve(dataColumns);
         if (featureNamesParam != R_NilValue) {
             for (size_t i = 0; i < dataColumns; ++i) {
                 featureId.push_back(CHAR(asChar(VECTOR_ELT(featureNamesParam, i))));
@@ -336,7 +343,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             visitor->SetGroupWeights(std::move(groupWeights));
         }
         if (metaInfo.BaselineCount) {
-            TVector<float> baseline(dataRows);
+            TVector<float> baseline;
+            baseline.yresize(dataRows);
             double *ptr_baselineParam = Rf_isNull(baselineParam)? nullptr : REAL(baselineParam);
             for (size_t j = 0; j < baselineColumns; ++j) {
                 for (ui32 i = 0; i < dataRows; ++i) {
@@ -383,8 +391,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             pairsParam = graphParam;
         }
         if (pairsParam != R_NilValue) {
-            TVector<TPair> pairs;
             size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
+            TVector<TPair> pairs;
+            pairs.reserve(pairsCount);
             double *ptr_pairsWeightParam = Rf_isNull(pairsWeightParam)? nullptr : REAL(pairsWeightParam);
             int *ptr_pairsParam = INTEGER(pairsParam);
             for (size_t i = 0; i < pairsCount; ++i) {
