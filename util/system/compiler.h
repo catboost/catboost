@@ -698,10 +698,18 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 /**
  * @def Y_LIFETIME_BOUND
  *
- * The attribute on a function parameter can be used to tell the compiler
- * that function return value may refer that parameter.
+ * This attribute on a function parameter can be used to tell the compiler
+ * that the function return value may refer that parameter.
+ * When applied to a parameter of a constructor it means that the constructed object
+ * may refer that parameter.
+ * This attribute can also be used to annotate non-static member functions meaning that the
+ * return value of this function may refer to the object on which the member function is invoked.
+ *
  * The compiler may produce a compile-time warning if it is able to detect that
  * an object or a reference refers to another object with a shorter lifetime.
+ *
+ * @see
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#lifetimebound
  */
 #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
     #define Y_LIFETIME_BOUND
