@@ -314,8 +314,10 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
         } else if (Rf_isReal(targetParam)) {
             AddTarget(REAL(targetParam), targetColumns, targetRows, visitor);
         }
-        TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
-        TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
+        TVector<float> weights;
+        weights.yresize(metaInfo.HasWeights ? dataRows : 0);
+        TVector<float> groupWeights;
+        groupWeights.yresize(metaInfo.HasGroupWeight ? dataRows : 0);
 
         int *ptr_groupIdParam = Rf_isNull(groupIdParam)? nullptr : INTEGER(groupIdParam);
         int *ptr_subgroupIdParam = Rf_isNull(subgroupIdParam)? nullptr : INTEGER(subgroupIdParam);
