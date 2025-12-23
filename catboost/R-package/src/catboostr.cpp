@@ -81,27 +81,29 @@ void _Finalizer(SEXP ext) {
 }
 
 template <typename T>
-static TVector<T> GetVectorFromSEXP(SEXP arg, const TStringBuf inputArgName) {
+static TVector<T> GetVectorFromNullableSEXP(SEXP arg, const TStringBuf inputArgName) {
     TVector<T> result;
-    result.yresize(length(arg));
+    if (!Rf_isNull(arg)) {
+        result.yresize(length(arg));
 
-    auto convertArg = [&](const auto* arg) {
-        for (size_t i = 0; i < result.size(); ++i) {
-            result[i] = static_cast<T>(arg[i]);
+        auto convertArg = [&](const auto* arg) {
+            for (size_t i = 0; i < result.size(); ++i) {
+                result[i] = static_cast<T>(arg[i]);
+            }
+        };
+        switch (TYPEOF(arg)) {
+            case INTSXP:
+                convertArg(INTEGER(arg));
+                break;
+            case REALSXP:
+                convertArg(REAL(arg));
+                break;
+            case LGLSXP:
+                convertArg(LOGICAL(arg));
+                break;
+            default:
+                CB_ENSURE(false, inputArgName << ": unsupported vector type: int, real or logical is required");
         }
-    };
-    switch (TYPEOF(arg)) {
-        case INTSXP:
-            convertArg(INTEGER(arg));
-            break;
-        case REALSXP:
-            convertArg(REAL(arg));
-            break;
-        case LGLSXP:
-            convertArg(LOGICAL(arg));
-            break;
-        default:
-            CB_ENSURE(false, inputArgName << ": unsupported vector type: int, real or logical is required");
     }
     return result;
 }
@@ -278,8 +280,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
 
         metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
             dataColumns,
-            ToUnsigned(GetVectorFromSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
-            ToUnsigned(GetVectorFromSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
+            ToUnsigned(GetVectorFromNullableSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
+            ToUnsigned(GetVectorFromNullableSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
             TVector<ui32>{}, // TODO(akhropov) support embedding features in R
             featureId);
 
@@ -649,7 +651,7 @@ EXPORT_FUNCTION CatBoostSumModels_R(SEXP modelsParam,
                          SEXP ctrMergePolicyParam) {
     SEXP result = NULL;
     R_API_BEGIN();
-    const auto& weights = GetVectorFromSEXP<double>(weightsParam, "weights"_sb);
+    const auto& weights = GetVectorFromNullableSEXP<double>(weightsParam, "weights"_sb);
     ECtrTableMergePolicy mergePolicy;
     CB_ENSURE(TryFromString<ECtrTableMergePolicy>(CHAR(asChar(ctrMergePolicyParam)), mergePolicy),
         "Unknown value of ctr_table_merge_policy: " << CHAR(asChar(ctrMergePolicyParam)));
