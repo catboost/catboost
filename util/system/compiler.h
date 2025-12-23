@@ -715,6 +715,8 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
     #define Y_LIFETIME_BOUND
 #elif Y_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
     #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::lifetimebound)
+    #define Y_LIFETIME_BOUND [[msvc::lifetimebound]]
 #else
     #define Y_LIFETIME_BOUND
 #endif
