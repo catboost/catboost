@@ -12,31 +12,19 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(cpp-yt-yson_string)
+add_library(cpp-containers-cow_string)
 
 
-target_compile_options(cpp-yt-yson_string PRIVATE
-  -Wdeprecated-this-capture
-  -Wimplicit-fallthrough
-  -Wparentheses
-  -Wno-logical-op-parentheses
-  -Wno-bitwise-op-parentheses
-)
-
-target_link_libraries(cpp-yt-yson_string PUBLIC
+target_link_libraries(cpp-containers-cow_string PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-containers-cow_string
-  cpp-yt-assert
-  cpp-yt-coding
-  cpp-yt-exception
-  cpp-yt-string
-  cpp-yt-memory
-  cpp-yt-misc
 )
 
-target_sources(cpp-yt-yson_string PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/convert.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/string.cpp
+target_sources(cpp-containers-cow_string PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/cow_string.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/output.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/reverse.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/subst.cpp
 )
 
