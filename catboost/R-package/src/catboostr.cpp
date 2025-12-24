@@ -651,7 +651,7 @@ EXPORT_FUNCTION CatBoostSumModels_R(SEXP modelsParam,
                          SEXP ctrMergePolicyParam) {
     SEXP result = NULL;
     R_API_BEGIN();
-    const auto& weights = GetVectorFromNullableSEXP<double>(weightsParam, "weights"_sb);
+    const auto weights = GetVectorFromNullableSEXP<double>(weightsParam, "weights"_sb);
     ECtrTableMergePolicy mergePolicy;
     CB_ENSURE(TryFromString<ECtrTableMergePolicy>(CHAR(asChar(ctrMergePolicyParam)), mergePolicy),
         "Unknown value of ctr_table_merge_policy: " << CHAR(asChar(ctrMergePolicyParam)));
@@ -821,7 +821,7 @@ EXPORT_FUNCTION CatBoostSerializeModel_R(SEXP handleParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle modelHandle = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(handleParam));
-    const TString& raw = SerializeModel(*modelHandle);
+    const TString raw = SerializeModel(*modelHandle);
     result = PROTECT(allocVector(RAWSXP, raw.size()));
     MemCopy(RAW(result), (const unsigned char*)(raw.data()), raw.size());
     R_API_END();
