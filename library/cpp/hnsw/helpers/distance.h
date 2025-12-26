@@ -1,21 +1,53 @@
 #pragma once
 
+#include <util/generic/array_ref.h>
 #include <util/system/types.h>
 
-#include <type_traits>
+#include <cstddef>
 
 namespace NHnsw::NPrivate {
-
     template <class TDistance,
               class TDistanceResult,
               class TItemStorage,
               class TItem>
-    TDistanceResult CalcDistance(const TItemStorage& itemStorage, const TDistance& distance, const TItem& query, const ui32 id) {
-        if constexpr (std::is_invocable_r_v<TDistanceResult, decltype(distance), decltype(query), decltype(itemStorage.GetItem(id)), decltype(id)>) {
-            return distance(query, itemStorage.GetItem(id), id);
-        } else {
-            return distance(query, itemStorage.GetItem(id));
-        }
-    }
+    class TDistanceAdapter {
+    public:
+        TDistanceAdapter(const TItemStorage& itemStorage, const TDistance& distance, size_t distanceCalcLimit)
+            : ItemStorage_(itemStorage)
+            , Distance_(distance)
+            , CalcLimit_(distanceCalcLimit)
+        {}
 
+        bool IsLimitReached() const {
+            return CalcLimit_ && CalcLimit_ <= CalcCount_;
+        }
+
+        TDistanceResult Calc(const TItem& query, const ui32 id) {
+            ++CalcCount_;
+            const auto& storedItem = ItemStorage_.GetItem(id);
+            if constexpr (requires { Distance_(query, storedItem, id); }) {
+                return Distance_(query, storedItem, id);
+            } else {
+                return Distance_(query, storedItem);
+            }
+        }
+
+        void Prefetch(TArrayRef<const ui32> neighbors) {
+            if constexpr (requires { ItemStorage_.PrefetchItem(0); }) {
+                CalcCount_ += neighbors.size();
+                if (IsLimitReached()) {
+                    return;
+                }
+                for (ui32 id: neighbors) {
+                    ItemStorage_.PrefetchItem(id);
+                }
+            }
+        }
+
+    private:
+        const TItemStorage& ItemStorage_;
+        const TDistance& Distance_;
+        const size_t CalcLimit_;
+        size_t CalcCount_ = 0;
+    };
 } // namespace NHnsw::NPrivate

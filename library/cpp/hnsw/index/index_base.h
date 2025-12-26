@@ -86,18 +86,19 @@ namespace NHnsw {
                 return {};
             }
             ui32 entryId = 0;
-            auto entryDist = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, entryId);
-            bool distanceCalcLimitReached = --distanceCalcLimit == 0;
-            for (ui32 level = GetNumLevels(); level-- > 1 && !distanceCalcLimitReached;) {
-                for (bool entryChanged = true; entryChanged && !distanceCalcLimitReached;) {
+            NPrivate::TDistanceAdapter<TDistance, TDistanceResult, TItemStorage, TItem> distanceAdapter(
+                itemStorage, distance, distanceCalcLimit);
+            auto entryDist = distanceAdapter.Calc(query, entryId);
+            for (ui32 level = GetNumLevels(); level-- > 1 && !distanceAdapter.IsLimitReached(); ) {
+                for (bool entryChanged = true; entryChanged && !distanceAdapter.IsLimitReached(); ) {
                     entryChanged = false;
-                    const ui32* neighbors = GetNeighbors(level, entryId);
-                    size_t numNeighbors = GetNumNeighbors(level);
-                    PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, nullptr);
-                    for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
-                        ui32 id = neighbors[i];
-                        auto distToQuery = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, id);
-                        distanceCalcLimitReached = --distanceCalcLimit == 0;
+                    const TNeighborsView neighbors(GetNeighbors(level, entryId), GetNumNeighbors(level));
+                    distanceAdapter.Prefetch(neighbors);
+                    for (ui32 id: neighbors) {
+                        if (distanceAdapter.IsLimitReached()) {
+                            break;
+                        }
+                        const auto distToQuery = distanceAdapter.Calc(query, id);
                         if (distanceLess(distToQuery, entryDist)) {
                             entryDist = distToQuery;
                             entryId = id;
@@ -118,7 +119,6 @@ namespace NHnsw {
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborLess)> nearest(neighborLess);
             nearest.Container().reserve(searchNeighborhoodSize + 1);
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborGreater)> candidates(neighborGreater);
-            TDenseHashSet<ui32> visited(/*emptyKey*/ Max<ui32>());
 
             TFilterWithLimit filterWithLimit(filter, filterCheckLimit);
             auto neighborsGetter = CreateNeighborsGetter(filterMode, filterWithLimit);
@@ -128,26 +128,23 @@ namespace NHnsw {
             }
 
             candidates.push({entryDist, entryId});
-            visited.Insert(entryId);
+            neighborsGetter->MarkVisited(entryId);
 
-            while (!candidates.empty() && !distanceCalcLimitReached && (filterMode == EFilterMode::NO_FILTER || !filterWithLimit.IsLimitReached())) {
+            while (!candidates.empty() && !distanceAdapter.IsLimitReached() && (filterMode == EFilterMode::NO_FILTER || !filterWithLimit.IsLimitReached())) {
                 auto cur = candidates.top();
                 candidates.pop();
                 if (nearest.size() >= stopSearchSize && distanceLess(nearest.top().Dist, cur.Dist)) {
                     break;
                 }
-                const auto [neighbors, numNeighbors] = neighborsGetter->GetLayerNeighbors(cur.Id);
-                PrefetchNeighbors(itemStorage, neighbors, numNeighbors, distanceCalcLimit, &visited);
-                for (size_t i = 0; i < numNeighbors && !distanceCalcLimitReached; ++i) {
-                    ui32 id = neighbors[i];
-                    if (visited.Has(id)) {
-                        continue;
+                const auto neighbors = neighborsGetter->GetLayerNeighbors(cur.Id);
+                distanceAdapter.Prefetch(neighbors);
+                for (ui32 id: neighbors) {
+                    if (distanceAdapter.IsLimitReached()) {
+                        break;
                     }
-                    auto distToQuery = NPrivate::CalcDistance<TDistance, TDistanceResult>(itemStorage, distance, query, id);
-                    distanceCalcLimitReached = --distanceCalcLimit == 0;
+                    const auto distToQuery = distanceAdapter.Calc(query, id);
                     if (nearest.size() < searchNeighborhoodSize || distanceLess(distToQuery, nearest.top().Dist)) {
                         candidates.push({distToQuery, id});
-                        visited.Insert(id);
 
                         if (NPrivate::IsItemMarkedDeleted(itemStorage, id)) {
                             continue;
@@ -238,28 +235,6 @@ namespace NHnsw {
         }
         size_t GetNumNeighbors(ui32 level) const {
             return NumNeighborsInLevels[level];
-        }
-
-        template<typename TItemStorage>
-        void PrefetchNeighbors(const TItemStorage&, const ui32*, size_t, size_t, const TDenseHashSet<ui32>*) const {
-            // Do nothing for TItemStorage without PrefetchItem
-        }
-
-        template<typename TItemStorage>
-        requires requires(TItemStorage itemStorage) {
-            itemStorage.PrefetchItem(0);
-        }
-        void PrefetchNeighbors(const TItemStorage& itemStorage, const ui32* neighbors, size_t numNeighbors, size_t distanceCalcLimit, const TDenseHashSet<ui32>* visited) const {
-            for (size_t i = 0; i < numNeighbors; ++i) {
-                ui32 id = neighbors[i];
-                if (visited != nullptr && visited->Has(id)) {
-                    continue;
-                }
-                itemStorage.PrefetchItem(id);
-                if (--distanceCalcLimit == 0) {
-                    break;
-                }
-            }
         }
 
         THolder<INeighborsGetter> CreateNeighborsGetter(const EFilterMode filterMode, const TFilterWithLimit& filter) const {
