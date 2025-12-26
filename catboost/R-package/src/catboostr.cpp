@@ -109,10 +109,9 @@ static TVector<T> GetVectorFromNullableSEXP(SEXP arg, const TStringBuf inputArgN
 }
 
 static NJson::TJsonValue LoadFitParams(SEXP fitParamsAsJson) {
-    TString paramsStr(CHAR(asChar(fitParamsAsJson)));
-    TStringInput is(paramsStr);
+    TStringBuf paramsStr(CHAR(asChar(fitParamsAsJson)));
     NJson::TJsonValue result;
-    NJson::ReadJsonTree(&is, &result);
+    NJson::ReadJsonTree(paramsStr, &result);
     return result;
 }
 
