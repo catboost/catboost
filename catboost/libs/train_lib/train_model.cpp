@@ -215,7 +215,7 @@ static void InitializeAndCheckMetricData(
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
-    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    // Use only (last_test, first_metric) for the best iteration and overfitting detection
     // In case of changing the order it should be changed in GPU mode also.
     metricsData->ErrorTrackerMetricIdx = 0;
 
