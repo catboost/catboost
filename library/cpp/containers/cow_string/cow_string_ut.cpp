@@ -3,6 +3,7 @@
 #include <library/cpp/containers/cow_string/str_stl.h>
 #include <library/cpp/containers/cow_string/subst.h>
 #include <library/cpp/containers/cow_string/reverse.h>
+#include <library/cpp/containers/cow_string/ysaveload.h>
 
 #include <util/charset/wide.h>
 #include "util/generic/deque.h"
@@ -1124,6 +1125,33 @@ public:
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TWideStringStdTest);
+
+Y_UNIT_TEST_SUITE(TCowStringSerializationTest) {
+    TCowString SerializeThereAndBack(const TCowString& value) {
+        std::array<char, 1024> buf;
+        TMemoryWriteBuffer out{buf.data(), buf.size()};
+        Save(&out, value);
+
+        TMemoryInput in{buf.data(), out.Len()};
+        TCowString deserialized;
+        Load<TCowString>(&in, deserialized);
+        return deserialized;
+    }
+
+    Y_UNIT_TEST(EmptyStringSerializationTest) {
+        TCowString nothing{};
+        TCowString deserialized = SerializeThereAndBack(nothing);
+
+        UNIT_ASSERT_VALUES_EQUAL(nothing, deserialized);
+    }
+
+    Y_UNIT_TEST(RegularStringSerializationTest) {
+        TCowString abra = "cadabra";
+        TCowString deserialized = SerializeThereAndBack(abra);
+
+        UNIT_ASSERT_VALUES_EQUAL(abra, deserialized);
+    }
+} // Y_UNIT_TEST_SUITE(TCowStringSerializationTest)
 
 Y_UNIT_TEST_SUITE(TStringConversionTest) {
     Y_UNIT_TEST(ConversionToStdStringTest) {

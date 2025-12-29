@@ -26,5 +26,6 @@ target_sources(cpp-containers-cow_string PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/output.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/reverse.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/subst.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/ysaveload.cpp
 )
 
