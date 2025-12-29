@@ -126,7 +126,7 @@ namespace NCudaLib {
 
             ui64 Size() const {
                 Y_ASSERT(Offset <= AllocatedSize);
-                CB_ENSURE(Offset <= AllocatedSize, TStringBuilder() << "Offset " << Offset << " > size " << AllocatedSize);
+                CB_ENSURE(Offset <= AllocatedSize, "Offset " << Offset << " > size " << AllocatedSize);
                 return AllocatedSize - Offset;
             }
 
