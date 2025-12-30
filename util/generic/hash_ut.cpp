@@ -63,6 +63,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestAt);
     UNIT_TEST(TestHMapInitializerList);
     UNIT_TEST(TestHMMapInitializerList);
+    UNIT_TEST(TestHMapStringKeyTransparency);
     UNIT_TEST(TestHSetInitializerList);
     UNIT_TEST(TestHMSetInitializerList);
     UNIT_TEST(TestHSetInsertInitializerList);
@@ -121,6 +122,7 @@ protected:
     void TestAt();
     void TestHMapInitializerList();
     void TestHMMapInitializerList();
+    void TestHMapStringKeyTransparency();
     void TestHSetInitializerList();
     void TestHMSetInitializerList();
     void TestHSetInsertInitializerList();
@@ -1308,6 +1310,21 @@ void THashTest::TestHMapInitializerList() {
     h2.insert(std::pair<TString, TString>("bar", "baz"));
     h2.insert(std::pair<TString, TString>("baz", "qux"));
     UNIT_ASSERT_EQUAL(h1, h2);
+}
+
+void THashTest::TestHMapStringKeyTransparency() {
+    auto test = [](auto m) {
+        // Check transparency (is_transparent).
+        m["foo"] = "bar";
+        m[TStringBuf{"foo"}] = "bar";
+        m[std::string_view{"foo"}] = "bar";
+        m[std::string{"foo"}] = "bar";
+
+        UNIT_ASSERT_EQUAL(m["foo"], "bar");
+    };
+
+    test(THashMap<TString, TString>());
+    test(THashMap<std::string, std::string>());
 }
 
 void THashTest::TestHMMapInitializerList() {
