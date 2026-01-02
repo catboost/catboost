@@ -73,7 +73,8 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, size_t N>
-TCompactVector<T, N>::TCompactVector() noexcept
+constexpr TCompactVector<T, N>::TCompactVector() noexcept
+    : InlineMeta_{}
 {
     InlineMeta_.SizePlusOne = 1;
 }
