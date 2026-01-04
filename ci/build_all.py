@@ -47,7 +47,7 @@ PYTHON_VERSIONS = [
 ]
 
 MSVS_VERSION = '2022'
-MSVC_TOOLSET = '14.29.30133'
+MSVC_TOOLSET = '14.40.33807'
 
 
 if sys.platform == 'win32':

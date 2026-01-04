@@ -196,6 +196,12 @@ jobs:
           sub-packages: '["nvcc","cudart","thrust"]'
 
       - if: inputs.os == 'windows'
+        name: Install MSVC tools 14.40
+        uses: thepwrtank18/install-vs-components@v1.0.0
+        with:
+          components: Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64
+
+      - if: inputs.os == 'windows'
         name: Env setup on Windows
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
