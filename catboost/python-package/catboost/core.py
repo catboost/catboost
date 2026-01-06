@@ -1911,7 +1911,7 @@ class _CatBoostBase(object):
         self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params()):
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
             self._init_params[key] = value
 
     def _serialize_model(self):
@@ -1952,7 +1952,7 @@ class _CatBoostBase(object):
         assert self.is_fitted()
         return self._object._get_nan_treatments()
 
-    def _get_params(self):
+    def _get_params_from_model_updated_with_init_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
         for key, value in iteritems(init_params):
