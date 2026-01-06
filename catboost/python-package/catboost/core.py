@@ -1270,7 +1270,6 @@ class Pool(_PoolBase):
             raise CatBoostError('Pool is already quantized')
 
         params = {}
-        _process_synonyms(params)
 
         if border_count is None:
             border_count = max_bin
