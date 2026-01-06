@@ -1279,7 +1279,7 @@ class Pool(_PoolBase):
         dev_max_subset_size_for_build_borders = kwargs.pop('dev_max_subset_size_for_build_borders', None)
 
         if kwargs:
-            raise CatBoostError("got an unexpected keyword arguments: {}".format(kwargs.keys()))
+            raise CatBoostError("got unexpected keyword arguments: {}".format(kwargs.keys()))
 
         _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                      feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
