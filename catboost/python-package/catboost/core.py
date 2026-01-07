@@ -23,6 +23,7 @@ import json
 from enum import Enum
 from operator import itemgetter
 import threading
+from typing import Dict, Optional
 
 if platform.system() == 'Linux':
     try:
@@ -1712,6 +1713,8 @@ class _CatBoostBase(object):
             self._init_params.pop('thread_count')
         if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] is None:
             self._init_params['fixed_binary_splits'] = []
+        # cache of processed _init_params with synonyms taken into account
+        self._canonized_params: Optional[Dict[str, object]] = None
         self._object = _CatBoost()
 
     def __getstate__(self):
@@ -1745,6 +1748,7 @@ class _CatBoostBase(object):
                 setattr(self, attr, state[attr])
                 del state[attr]
         self._init_params.update(state)
+        self._canonized_params = None
 
     def __copy__(self):
         return self.__deepcopy__(None)
@@ -1912,6 +1916,7 @@ class _CatBoostBase(object):
         self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
             self._init_params[key] = value
+        self._canonized_params = None
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -1958,6 +1963,12 @@ class _CatBoostBase(object):
             if key not in params:
                 params[key] = value
         return params
+
+    def _get_canonized_params(self) -> Dict[str, object]:
+        if self._canonized_params is None:
+            self._canonized_params = deepcopy(self._init_params)
+            _process_synonyms(self._canonized_params)
+        return self._canonized_params
 
     @staticmethod
     def _is_classification_objective(loss_function):
@@ -2101,10 +2112,7 @@ class _CatBoostBase(object):
             'binary_only': False,
             'requires_fit': True}
 
-        params = deepcopy(self._init_params)
-        if params is None:
-            params = {}
-        _process_synonyms(params)
+        params = self._get_canonized_params()
 
         tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
         loss_function = params.get('loss_function', '')
@@ -2255,11 +2263,7 @@ class CatBoost(_CatBoostBase):
                               logging_level=None, plot=None, plot_file=None, column_description=None, verbose_eval=None,
                               metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
                               snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None):
-        params = deepcopy(self._init_params)
-        if params is None:
-            params = {}
-
-        _process_synonyms(params)
+        params = deepcopy(self._get_canonized_params())
 
         if isinstance(X, FeaturesData):
             warnings.warn("FeaturesData is deprecated for using in fit function "
@@ -3533,6 +3537,7 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
+        self._canonized_params = None
         return self
 
     def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
@@ -5231,8 +5236,7 @@ class CatBoostClassifier(CatBoost):
         model : CatBoost
         """
 
-        params = self._init_params.copy()
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
@@ -5860,8 +5864,7 @@ class CatBoostRegressor(CatBoost):
         model : CatBoost
         """
 
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
         return self._fit(X, y, cat_features, text_features, embedding_features, None, graph, sample_weight, None, None, None, None, baseline,
@@ -6008,8 +6011,7 @@ class CatBoostRegressor(CatBoost):
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         loss_function = params.get('loss_function')
         if loss_function and isinstance(loss_function, str):
             if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
@@ -6269,8 +6271,7 @@ class CatBoostRanker(CatBoost):
         model : CatBoost
         """
 
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostRanker._check_is_compatible_loss(params['loss_function'])
 
@@ -7251,8 +7252,7 @@ def _to_subclass(model, subclass):
     converted_model = subclass.__new__(subclass)
 
     # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-    params = deepcopy(model._init_params)
-    _process_synonyms(params)
+    params = model._get_canonized_params()
     if 'loss_function' in params:
         subclass._check_is_compatible_loss(params['loss_function'])
 
