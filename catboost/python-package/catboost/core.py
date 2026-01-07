@@ -2404,7 +2404,7 @@ class CatBoost(_CatBoostBase):
             train_pool = train_params["train_pool"]
             allow_clear_pool = train_params["allow_clear_pool"]
 
-            with plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(self.get_params())]):
+            with plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(params)]):
                 self._train(
                     train_pool,
                     train_params["eval_sets"],
@@ -2970,7 +2970,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, plot_file, log_cout, log_cerr)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self._init_params), tmp_dir, plot, plot_file, log_cout, log_cerr)
 
     def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None):
         """
@@ -3468,10 +3468,10 @@ class CatBoost(_CatBoostBase):
         value :
             The param value of the key, returns None if param do not exist.
         """
-        params = self.get_params()
-        if params is None:
-            return {}
-        return params.get(key)
+        value = self._init_params.get(key)
+        if value is not None:
+            return deepcopy(value)
+        return None
 
     def get_params(self, **_unused_kwargs):
         """
@@ -4499,7 +4499,7 @@ class CatBoost(_CatBoostBase):
             elif len(train_params["eval_sets"]) == 1:
                 test_pool = train_params["eval_sets"][0]
 
-            train_dir = _get_train_dir(self.get_params())
+            train_dir = _get_train_dir(params)
             create_dir_if_not_exist(train_dir)
             plot_dirs = []
             for step in range(steps or 1):
