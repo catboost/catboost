@@ -94,6 +94,9 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
+# TODO: remove import to line 104
+from pathlib import Path
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
@@ -316,7 +319,8 @@ def _get_features_indices(features, feature_names):
         raise CatBoostError("feature names should be a sequence, but got " + repr(features))
     if feature_names is not None:
         return [
-            feature_names.index(f) if isinstance(f, STRING_TYPES) else f
+            # feature_names.index(f) if isinstance(f, STRING_TYPES) else f
+            feature_names.index(f) if (isinstance(f, STRING_TYPES) and f in feature_names) else f
             for f in features
         ]
     else:
@@ -325,6 +329,7 @@ def _get_features_indices(features, feature_names):
                 raise CatBoostError("features parameter contains string value '{}' but feature names "
                                     "for a dataset are not specified".format(f))
     return features
+
 
 
 def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
@@ -2459,7 +2464,6 @@ class CatBoost(_CatBoostBase):
             log_cout=None, log_cerr=None):
         """
         Fit the CatBoost model.
-
         Parameters
         ----------
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
@@ -5128,7 +5132,8 @@ class CatBoostClassifier(CatBoost):
 
         super(CatBoostClassifier, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None, sample_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None,
+            sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
@@ -5612,6 +5617,9 @@ class CatBoostClassifier(CatBoost):
             raise CatBoostError("Invalid loss_function='{}': for classifier use "
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
+
 
 class CatBoostRegressor(CatBoost):
     """
@@ -6020,6 +6028,9 @@ class CatBoostRegressor(CatBoost):
                 return 'RMSEWithUncertainty'
         return 'RawFormulaVal'
 
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
+
 
 class CatBoostRanker(CatBoost):
     """
@@ -6400,6 +6411,9 @@ class CatBoostRanker(CatBoost):
                                 "YetiRank, YetiRankPairwise, StochasticFilter, StochasticRank, "
                                 "QueryCrossEntropy, QueryRMSE, GroupQuantile, QuerySoftMax, PairLogit, PairLogitPairwise. "
                                 "It's also possible to use a regression loss".format(loss_function))
+
+    def __sklearn_clone__(self):
+        return self.__class__(**self.get_params(deep=True))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
