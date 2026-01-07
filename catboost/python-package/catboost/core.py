@@ -3473,7 +3473,7 @@ class CatBoost(_CatBoostBase):
             return {}
         return params.get(key)
 
-    def get_params(self, deep=True):
+    def get_params(self, **_unused_kwargs):
         """
         Get all params from CatBoost model.
 
@@ -3482,11 +3482,7 @@ class CatBoost(_CatBoostBase):
         result : dict
             Dictionary of {param_key: param_value}.
         """
-        params = self._init_params.copy()
-        if deep:
-            return deepcopy(params)
-        else:
-            return params
+        return deepcopy(self._init_params)
 
     def get_all_params(self):
         """
