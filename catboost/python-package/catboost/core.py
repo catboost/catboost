@@ -1717,6 +1717,10 @@ class _CatBoostBase(object):
         self._canonized_params: Optional[Dict[str, object]] = None
         self._object = _CatBoost()
 
+    def __repr__(self) -> str:
+        params_str = ", ".join(f"{key}={val!r}" for key, val in sorted(self._init_params.items()))
+        return f"{self.__class__.__name__}({params_str})"
+
     def __getstate__(self):
         params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
