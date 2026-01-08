@@ -20,15 +20,6 @@ namespace ONNX_NAMESPACE {
     return a;                                                                     \
   }
 
-#define ADD_BASIC_ATTR_IMPL_STRING(type, enumType, field)                         \
-  AttributeProto MakeAttribute(const std::string& attr_name, const type& value) { \
-    AttributeProto a;                                                             \
-    a.set_name(attr_name);                                                        \
-    a.set_type(enumType);                                                         \
-    a.set_##field(value);                                                         \
-    return a;                                                                     \
-  }
-
 #define ADD_ATTR_IMPL(type, enumType, field)                                      \
   AttributeProto MakeAttribute(const std::string& attr_name, const type& value) { \
     AttributeProto a;                                                             \
@@ -51,7 +42,7 @@ namespace ONNX_NAMESPACE {
 
 ADD_BASIC_ATTR_IMPL(float, AttributeProto_AttributeType_FLOAT, f)
 ADD_BASIC_ATTR_IMPL(int64_t, AttributeProto_AttributeType_INT, i)
-ADD_BASIC_ATTR_IMPL_STRING(std::string, AttributeProto_AttributeType_STRING, s)
+ADD_BASIC_ATTR_IMPL(std::string, AttributeProto_AttributeType_STRING, s)
 ADD_ATTR_IMPL(TensorProto, AttributeProto_AttributeType_TENSOR, t)
 ADD_ATTR_IMPL(GraphProto, AttributeProto_AttributeType_GRAPH, g)
 ADD_ATTR_IMPL(TypeProto, AttributeProto_AttributeType_TYPE_PROTO, tp)
