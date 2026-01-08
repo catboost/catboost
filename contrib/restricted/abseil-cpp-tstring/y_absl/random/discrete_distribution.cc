@@ -14,6 +14,16 @@
 
 #include "y_absl/random/discrete_distribution.h"
 
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <iterator>
+#include <numeric>
+#include <utility>
+#include <vector>
+
+#include "y_absl/base/config.h"
+
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
 namespace random_internal {

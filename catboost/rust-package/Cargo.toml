@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
 edition = "2018"
 rust-version = "1.64"
+description = "CatBoost Rust Package"
+documentation = "https://catboost.ai/docs/en/concepts/apply-rust"
+repository = "https://github.com/catboost/catboost"
+license = "Apache-2.0"
 
 [dependencies]
 catboost-sys = { path = "catboost-sys", version = "0.1"}

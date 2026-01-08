@@ -12,6 +12,7 @@
 
 #include <library/cpp/yt/compact_containers/compact_vector.h>
 #include <library/cpp/yt/compact_containers/compact_flat_map.h>
+#include <library/cpp/yt/compact_containers/compact_flat_set.h>
 
 #include <library/cpp/yt/containers/enum_indexed_array.h>
 
@@ -168,6 +169,8 @@ template <class... Ts>
 constexpr bool CKnownKVRange<TCompactFlatMap<Ts...>> = true;
 template <class K, class V, size_t N>
 constexpr bool CKnownKVRange<TCompactFlatMap<K, V, N>> = true;
+template <class T, size_t N>
+constexpr bool CKnownRange<TCompactFlatSet<T, N>> = true;
 
 // TODO(arkady-e1ppa): Uncomment me when
 // https://github.com/llvm/llvm-project/issues/58534 is shipped.

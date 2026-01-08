@@ -1,0 +1,17 @@
+#pragma once
+
+namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+struct TStrongTypedefOptions
+{
+    bool IsComparable = true;
+};
+
+template <class T, class TTag, TStrongTypedefOptions Options = TStrongTypedefOptions()>
+class TStrongTypedef;
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT

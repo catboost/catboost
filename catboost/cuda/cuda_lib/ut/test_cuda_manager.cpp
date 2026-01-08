@@ -19,8 +19,8 @@ Y_UNIT_TEST_SUITE(TCudaManagerTest) {
         {
             ui32 count = 100000;
             auto stopCudaManagerGuard = StartCudaManager();
-            auto cudaVec1 = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(GetDeviceCount()));
-            auto cudaVec2 = TCudaBuffer<float, TStripeMapping>::Create(TStripeMapping::SplitBetweenDevices(GetDeviceCount()));
+            auto cudaVec1 = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(NCudaLib::GetDeviceCount()));
+            auto cudaVec2 = TCudaBuffer<float, TStripeMapping>::Create(TStripeMapping::SplitBetweenDevices(NCudaLib::GetDeviceCount()));
 
             for (ui32 id = 0; id < count; ++id) {
                 FillBuffer(cudaVec2, 1.0f);

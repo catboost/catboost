@@ -118,8 +118,8 @@ Y_UNIT_TEST_SUITE(JsonWriter) {
                           "  1,\n"
                           "  \"hello\",\n"
                           "  {\n"
-                          "    \"abc\":3,\n"
-                          "    \"def\":4\n"
+                          "    \"abc\": 3,\n"
+                          "    \"def\": 4\n"
                           "  }\n"
                           "]";
         UNIT_ASSERT_STRINGS_EQUAL(exp, w.Str());
@@ -265,4 +265,4 @@ Y_UNIT_TEST_SUITE(JsonWriter) {
             UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"({"\u003C\u003E&":"Ololo","<>&":"Ololo2"})");
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(JsonWriter)

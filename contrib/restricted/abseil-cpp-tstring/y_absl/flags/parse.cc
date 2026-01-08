@@ -35,7 +35,7 @@
 #include "y_absl/algorithm/container.h"
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
-#include "y_absl/base/const_init.h"
+#include "y_absl/base/no_destructor.h"
 #include "y_absl/base/thread_annotations.h"
 #include "y_absl/flags/commandlineflag.h"
 #include "y_absl/flags/config.h"
@@ -64,14 +64,17 @@ Y_ABSL_NAMESPACE_BEGIN
 namespace flags_internal {
 namespace {
 
-Y_ABSL_CONST_INIT y_absl::Mutex processing_checks_guard(y_absl::kConstInit);
+y_absl::Mutex* ProcessingChecksMutex() {
+  static y_absl::NoDestructor<y_absl::Mutex> mutex;
+  return mutex.get();
+}
 
 Y_ABSL_CONST_INIT bool flagfile_needs_processing
-    Y_ABSL_GUARDED_BY(processing_checks_guard) = false;
+    Y_ABSL_GUARDED_BY(ProcessingChecksMutex()) = false;
 Y_ABSL_CONST_INIT bool fromenv_needs_processing
-    Y_ABSL_GUARDED_BY(processing_checks_guard) = false;
+    Y_ABSL_GUARDED_BY(ProcessingChecksMutex()) = false;
 Y_ABSL_CONST_INIT bool tryfromenv_needs_processing
-    Y_ABSL_GUARDED_BY(processing_checks_guard) = false;
+    Y_ABSL_GUARDED_BY(ProcessingChecksMutex()) = false;
 
 Y_ABSL_CONST_INIT y_absl::Mutex specified_flags_guard(y_absl::kConstInit);
 Y_ABSL_CONST_INIT std::vector<const CommandLineFlag*>* specified_flags
@@ -106,7 +109,7 @@ Y_ABSL_FLAG(std::vector<TString>, flagfile, {},
     .OnUpdate([]() {
       if (y_absl::GetFlag(FLAGS_flagfile).empty()) return;
 
-      y_absl::MutexLock l(&y_absl::flags_internal::processing_checks_guard);
+      y_absl::MutexLock l(y_absl::flags_internal::ProcessingChecksMutex());
 
       // Setting this flag twice before it is handled most likely an internal
       // error and should be reviewed by developers.
@@ -122,7 +125,7 @@ Y_ABSL_FLAG(std::vector<TString>, fromenv, {},
     .OnUpdate([]() {
       if (y_absl::GetFlag(FLAGS_fromenv).empty()) return;
 
-      y_absl::MutexLock l(&y_absl::flags_internal::processing_checks_guard);
+      y_absl::MutexLock l(y_absl::flags_internal::ProcessingChecksMutex());
 
       // Setting this flag twice before it is handled most likely an internal
       // error and should be reviewed by developers.
@@ -138,7 +141,7 @@ Y_ABSL_FLAG(std::vector<TString>, tryfromenv, {},
     .OnUpdate([]() {
       if (y_absl::GetFlag(FLAGS_tryfromenv).empty()) return;
 
-      y_absl::MutexLock l(&y_absl::flags_internal::processing_checks_guard);
+      y_absl::MutexLock l(y_absl::flags_internal::ProcessingChecksMutex());
 
       // Setting this flag twice before it is handled most likely an internal
       // error and should be reviewed by developers.
@@ -415,7 +418,7 @@ bool HandleGeneratorFlags(std::vector<ArgsList>& input_args,
                           std::vector<TString>& flagfile_value) {
   bool success = true;
 
-  y_absl::MutexLock l(&flags_internal::processing_checks_guard);
+  y_absl::MutexLock l(flags_internal::ProcessingChecksMutex());
 
   // flagfile could have been set either on a command line or
   // programmatically before invoking ParseCommandLine. Note that we do not
@@ -478,7 +481,7 @@ void ResetGeneratorFlags(const std::vector<TString>& flagfile_value) {
   // going to be {"f1", "f2"}
   if (!flagfile_value.empty()) {
     y_absl::SetFlag(&FLAGS_flagfile, flagfile_value);
-    y_absl::MutexLock l(&flags_internal::processing_checks_guard);
+    y_absl::MutexLock l(flags_internal::ProcessingChecksMutex());
     flags_internal::flagfile_needs_processing = false;
   }
 
@@ -490,7 +493,7 @@ void ResetGeneratorFlags(const std::vector<TString>& flagfile_value) {
     y_absl::SetFlag(&FLAGS_tryfromenv, {});
   }
 
-  y_absl::MutexLock l(&flags_internal::processing_checks_guard);
+  y_absl::MutexLock l(flags_internal::ProcessingChecksMutex());
   flags_internal::fromenv_needs_processing = false;
   flags_internal::tryfromenv_needs_processing = false;
 }

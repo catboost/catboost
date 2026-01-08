@@ -10723,19 +10723,6 @@ def test_fit_cat_features_type():
     model.fit(X, y, cat_features=[0, 1, 2])
 
 
-def test_sklearn_meta_algo():
-    from sklearn.calibration import CalibratedClassifierCV
-
-    X_train = [[1, 2, 3, 4], [2, 3, 4, 5]]
-    y_train = [1, 0]
-
-    model = CatBoostClassifier()
-    model.fit(X_train, y_train)
-
-    cc_model = CalibratedClassifierCV(model, cv='prefit', method='isotonic')
-    model = cc_model.fit(X_train, y_train)
-
-
 def test_pool_with_timestamp(task_type):
     features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[0, 1])
     np.random.seed(42)

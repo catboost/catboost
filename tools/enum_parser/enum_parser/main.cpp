@@ -269,8 +269,8 @@ void GenerateEnum(
     out << "        NAMES_INITIALIZATION_PAIRS,\n";
     out << "        VALUES_INITIALIZATION_PAIRS,\n";
     out << "        CPP_NAMES_INITIALIZATION_ARRAY,\n";
-    out << "        " << WrapStringBuf(outerScopeStr) << ",\n";
-    out << "        " << WrapStringBuf(name) << "\n";
+    out << "        ::NEnumSerializationRuntime::CommonStringBuffer(" << WrapStringBuf(outerScopeStr) << ", " << WrapStringBuf(name) << ").first,\n";
+    out << "        ::NEnumSerializationRuntime::CommonStringBuffer(" << WrapStringBuf(outerScopeStr) << ", " << WrapStringBuf(name) << ").second,\n";
     out << "    };\n\n";
 
     // Properties

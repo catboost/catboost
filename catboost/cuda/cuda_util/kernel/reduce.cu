@@ -1,11 +1,12 @@
 #include "reduce.cuh"
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 #include <cub/device/device_reduce.cuh>
 #include <cub/device/device_segmented_reduce.cuh>
 
+#include <thrust/functional.h>
 
 namespace NKernel {
 
@@ -136,21 +137,33 @@ namespace NKernel {
             case EOperatorType::Sum: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Sum(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                 thrust::plus<T>(),
+#else
+                                                 cuda::std::plus<T>(),
+#endif
                                                  T(),
                                                  stream);
             }
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Max(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                 thrust::maximum<T>(),
+#else
+                                                 cuda::maximum<T>(),
+#endif
                                                  -std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-                                                 cub::Min(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                 thrust::minimum<T>(),
+#else
+                                                 cuda::minimum<T>(),
+#endif
                                                  std::numeric_limits<T>::infinity(),
                                                  stream);
             }
@@ -182,7 +195,11 @@ namespace NKernel {
                                                      keys, outKeys,
                                                      input, output,
                                                      outputSize,
-                                                     cub::Sum(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                     thrust::plus<T>(),
+#else
+                                                     cuda::std::plus<T>(),
+#endif
                                                      size,
                                                      stream);
             }
@@ -191,7 +208,11 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-                                                      cub::Max(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                      thrust::maximum<T>(),
+#else
+                                                      cuda::maximum<T>(),
+#endif
                                                       size,
                                                       stream);
             }
@@ -200,7 +221,11 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-                                                      cub::Min(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                      thrust::minimum<T>(),
+#else
+                                                      cuda::minimum<T>(),
+#endif
                                                       size,
                                                       stream);
             }
@@ -299,7 +324,11 @@ namespace NKernel {
                     return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                               input, output, numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Sum(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                              thrust::plus<T>(),
+#else
+                                                              cuda::std::plus<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }
@@ -308,7 +337,11 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Max(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                              thrust::maximum<T>(),
+#else
+                                                              cuda::maximum<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }
@@ -317,7 +350,11 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-                                                              cub::Min(),
+#if __CUDACC_VER_MAJOR__ < 12
+                                                              thrust::minimum<T>(),
+#else
+                                                              cuda::minimum<T>(),
+#endif
                                                               T(),
                                                               stream);
                 }

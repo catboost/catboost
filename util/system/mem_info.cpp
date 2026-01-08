@@ -5,6 +5,7 @@
 #include <util/string/cast.h>
 #include <util/string/builder.h>
 #include "error.h"
+#include "getpid.h"
 #include "info.h"
 
 #if defined(_unix_)
@@ -123,6 +124,9 @@ namespace NMemInfo {
         result.VMS = Max(result.VMS, result.RSS);
         #endif
     #elif defined(_freebsd_)
+        if (pid == 0) {
+            pid = GetPID();
+        }
         int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
         size_t size = sizeof(struct kinfo_proc);
 

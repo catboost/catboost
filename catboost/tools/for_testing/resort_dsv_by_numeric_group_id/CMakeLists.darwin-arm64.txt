@@ -18,6 +18,7 @@ add_executable(resort_dsv_by_numeric_group_id)
 target_link_libraries(resort_dsv_by_numeric_group_id PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   private-libs-data_types
 )
 

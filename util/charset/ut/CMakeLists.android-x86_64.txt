@@ -22,6 +22,7 @@ target_include_directories(util-charset-ut PRIVATE
 target_link_libraries(util-charset-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   util-charset

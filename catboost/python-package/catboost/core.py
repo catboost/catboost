@@ -23,6 +23,7 @@ import json
 from enum import Enum
 from operator import itemgetter
 import threading
+from typing import Dict, Optional
 
 if platform.system() == 'Linux':
     try:
@@ -179,7 +180,6 @@ _custom_loggers_stack = _CustomLoggersStack()
 
 @contextmanager
 def log_fixup(log_cout=None, log_cerr=None):
-    global _custom_loggers_stack
     _custom_loggers_stack.push(log_cout, log_cerr)
     try:
         yield
@@ -1271,7 +1271,6 @@ class Pool(_PoolBase):
             raise CatBoostError('Pool is already quantized')
 
         params = {}
-        _process_synonyms(params)
 
         if border_count is None:
             border_count = max_bin
@@ -1280,7 +1279,7 @@ class Pool(_PoolBase):
         dev_max_subset_size_for_build_borders = kwargs.pop('dev_max_subset_size_for_build_borders', None)
 
         if kwargs:
-            raise CatBoostError("got an unexpected keyword arguments: {}".format(kwargs.keys()))
+            raise CatBoostError("got unexpected keyword arguments: {}".format(kwargs.keys()))
 
         _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                      feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
@@ -1714,6 +1713,8 @@ class _CatBoostBase(object):
             self._init_params.pop('thread_count')
         if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] is None:
             self._init_params['fixed_binary_splits'] = []
+        # cache of processed _init_params with synonyms taken into account
+        self._canonized_params: Optional[Dict[str, object]] = None
         self._object = _CatBoost()
 
     def __repr__(self) -> str:
@@ -1751,6 +1752,7 @@ class _CatBoostBase(object):
                 setattr(self, attr, state[attr])
                 del state[attr]
         self._init_params.update(state)
+        self._canonized_params = None
 
     def __copy__(self):
         return self.__deepcopy__(None)
@@ -1916,8 +1918,9 @@ class _CatBoostBase(object):
         self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
-        for key, value in iteritems(self._get_params()):
+        for key, value in iteritems(self._get_params_from_model_updated_with_init_params()):
             self._init_params[key] = value
+        self._canonized_params = None
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -1957,13 +1960,19 @@ class _CatBoostBase(object):
         assert self.is_fitted()
         return self._object._get_nan_treatments()
 
-    def _get_params(self):
+    def _get_params_from_model_updated_with_init_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
         for key, value in iteritems(init_params):
             if key not in params:
                 params[key] = value
         return params
+
+    def _get_canonized_params(self) -> Dict[str, object]:
+        if self._canonized_params is None:
+            self._canonized_params = deepcopy(self._init_params)
+            _process_synonyms(self._canonized_params)
+        return self._canonized_params
 
     @staticmethod
     def _is_classification_objective(loss_function):
@@ -2107,10 +2116,7 @@ class _CatBoostBase(object):
             'binary_only': False,
             'requires_fit': True}
 
-        params = deepcopy(self._init_params)
-        if params is None:
-            params = {}
-        _process_synonyms(params)
+        params = self._get_canonized_params()
 
         tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
         loss_function = params.get('loss_function', '')
@@ -2261,11 +2267,7 @@ class CatBoost(_CatBoostBase):
                               logging_level=None, plot=None, plot_file=None, column_description=None, verbose_eval=None,
                               metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
                               snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None):
-        params = deepcopy(self._init_params)
-        if params is None:
-            params = {}
-
-        _process_synonyms(params)
+        params = deepcopy(self._get_canonized_params())
 
         if isinstance(X, FeaturesData):
             warnings.warn("FeaturesData is deprecated for using in fit function "
@@ -2410,7 +2412,7 @@ class CatBoost(_CatBoostBase):
             train_pool = train_params["train_pool"]
             allow_clear_pool = train_params["allow_clear_pool"]
 
-            with plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(self.get_params())]):
+            with plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(params)]):
                 self._train(
                     train_pool,
                     train_params["eval_sets"],
@@ -2976,7 +2978,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, plot_file, log_cout, log_cerr)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self._init_params), tmp_dir, plot, plot_file, log_cout, log_cerr)
 
     def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None):
         """
@@ -3450,7 +3452,7 @@ class CatBoost(_CatBoostBase):
             Input file name.
         """
         if (fname is None) + (stream is None) + (blob is None) != 2:
-            raise CatBoostError("Exactly one of fname/stream/blob arguments mustn't be None")
+            raise CatBoostError("Only one of fname/stream/blob arguments should be specified")
 
         if fname is not None:
             self._load_model(fname, format)
@@ -3474,12 +3476,12 @@ class CatBoost(_CatBoostBase):
         value :
             The param value of the key, returns None if param do not exist.
         """
-        params = self.get_params()
-        if params is None:
-            return {}
-        return params.get(key)
+        value = self._init_params.get(key)
+        if value is not None:
+            return deepcopy(value)
+        return None
 
-    def get_params(self, deep=True):
+    def get_params(self, **_unused_kwargs):
         """
         Get all params from CatBoost model.
 
@@ -3488,11 +3490,7 @@ class CatBoost(_CatBoostBase):
         result : dict
             Dictionary of {param_key: param_value}.
         """
-        params = self._init_params.copy()
-        if deep:
-            return deepcopy(params)
-        else:
-            return params
+        return deepcopy(self._init_params)
 
     def get_all_params(self):
         """
@@ -3543,6 +3541,7 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
+        self._canonized_params = None
         return self
 
     def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
@@ -4509,7 +4508,7 @@ class CatBoost(_CatBoostBase):
             elif len(train_params["eval_sets"]) == 1:
                 test_pool = train_params["eval_sets"][0]
 
-            train_dir = _get_train_dir(self.get_params())
+            train_dir = _get_train_dir(params)
             create_dir_if_not_exist(train_dir)
             plot_dirs = []
             for step in range(steps or 1):
@@ -5241,8 +5240,7 @@ class CatBoostClassifier(CatBoost):
         model : CatBoost
         """
 
-        params = self._init_params.copy()
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
@@ -5870,8 +5868,7 @@ class CatBoostRegressor(CatBoost):
         model : CatBoost
         """
 
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
         return self._fit(X, y, cat_features, text_features, embedding_features, None, graph, sample_weight, None, None, None, None, baseline,
@@ -6018,8 +6015,7 @@ class CatBoostRegressor(CatBoost):
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         loss_function = params.get('loss_function')
         if loss_function and isinstance(loss_function, str):
             if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
@@ -6279,8 +6275,7 @@ class CatBoostRanker(CatBoost):
         model : CatBoost
         """
 
-        params = deepcopy(self._init_params)
-        _process_synonyms(params)
+        params = self._get_canonized_params()
         if 'loss_function' in params:
             CatBoostRanker._check_is_compatible_loss(params['loss_function'])
 
@@ -7261,8 +7256,7 @@ def _to_subclass(model, subclass):
     converted_model = subclass.__new__(subclass)
 
     # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-    params = deepcopy(model._init_params)
-    _process_synonyms(params)
+    params = model._get_canonized_params()
     if 'loss_function' in params:
         subclass._check_is_compatible_loss(params['loss_function'])
 

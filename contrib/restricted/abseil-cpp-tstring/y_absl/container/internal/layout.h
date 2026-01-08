@@ -306,7 +306,7 @@ constexpr size_t Max(size_t a, size_t b, Ts... rest) {
 template <class T>
 TString TypeName() {
   TString out;
-#if Y_ABSL_INTERNAL_HAS_RTTI
+#ifdef Y_ABSL_INTERNAL_HAS_RTTI
   y_absl::StrAppend(&out, "<",
                   y_absl::debugging_internal::DemangleString(typeid(T).name()),
                   ">");

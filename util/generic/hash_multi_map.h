@@ -100,6 +100,7 @@ public:
     size_type size() const {
         return rep.size();
     }
+    // DEPRECATED. DO NOT USE.
     yssize_t ysize() const {
         return (yssize_t)rep.size();
     }

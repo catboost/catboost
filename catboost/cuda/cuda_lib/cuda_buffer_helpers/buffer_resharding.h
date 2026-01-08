@@ -196,7 +196,7 @@ namespace NCudaLib {
             , Stream(stream)
         {
             Y_ASSERT(from.GetMapping().GetObjectsSlice() == to.GetMapping().GetObjectsSlice());
-            CB_ENSURE(from.GetMapping().GetObjectsSlice() == to.GetMapping().GetObjectsSlice(), TStringBuilder() << from.GetMapping().GetObjectsSlice() << "≠" << to.GetMapping().GetObjectsSlice());
+            CB_ENSURE(from.GetMapping().GetObjectsSlice() == to.GetMapping().GetObjectsSlice(), from.GetMapping().GetObjectsSlice() << "≠" << to.GetMapping().GetObjectsSlice());
             ColumnSlice = TSlice(0, from.GetColumnCount());
         }
 

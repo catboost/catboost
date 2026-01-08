@@ -1,13 +1,14 @@
 import argparse
+import os
 import subprocess
-import sys, os
+import sys
 
 # Explicitly enable local imports
 # Don't forget to add imported scripts to inputs of the calling command!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import process_command_files as pcf
+import process_command_files as pcf  # noqa: E402
 
-from process_whole_archive_option import ProcessWholeArchiveOption
+from process_whole_archive_option import ProcessWholeArchiveOption  # noqa: E402
 
 YA_ARG_PREFIX = '-Ya,'
 

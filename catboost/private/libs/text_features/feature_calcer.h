@@ -15,7 +15,7 @@
 #include <util/stream/input.h>
 #include <util/system/mutex.h>
 
-#include <contrib/libs/cxxsupp/libcxx/include/array>
+#include <array>
 
 namespace NCB {
 

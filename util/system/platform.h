@@ -194,12 +194,15 @@
     #define _dll_
 #endif
 
-// 16, 32 or 64
+// 32 or 64
 #if defined(__sparc_v9__) || defined(_x86_64_) || defined(_ia64_) || defined(_arm64_) || defined(_ppc64_) || defined(_wasm64_)
     #define _64_
 #else
     #define _32_
 #endif
+
+
+// The following SIZEOF_* definitions are needed for use in preprocessor conditional directives (#if, #elif).
 
 /* All modern 64-bit Unix systems use scheme LP64 (long, pointers are 64-bit).
  * Microsoft uses a different scheme: LLP64 (long long, pointers are 64-bit).

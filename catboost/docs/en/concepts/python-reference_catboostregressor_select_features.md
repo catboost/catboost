@@ -73,7 +73,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 
 The validation dataset or datasets used for the following processes:
 - [overfitting detector](../concepts/overfitting-detector.md)
-- best iteration selection
+- the best iteration selection
 - monitoring metrics' changes
 
 **Possible types**

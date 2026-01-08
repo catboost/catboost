@@ -479,6 +479,16 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     Y_UNIT_TEST(TestStringSplitterCountEmpty) {
         TCharDelimiter<const char> delim(' ');
         TestStringSplitterCount("", delim, 1);
+
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TString{}).Split(',').Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TStringBuf{}).Split(',').Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TUtf16String{}).Split(u',').Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TWtringBuf{}).Split(u',').Count(), 1);
+
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TString{}).Split(',').SkipEmpty().Count(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TStringBuf{}).Split(',').SkipEmpty().Count(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TUtf16String{}).Split(u',').SkipEmpty().Count(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TWtringBuf{}).Split(u',').SkipEmpty().Count(), 0);
     }
 
     Y_UNIT_TEST(TestStringSplitterCountOne) {
@@ -856,5 +866,15 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
             i++;
         }
         UNIT_ASSERT_VALUES_EQUAL(i, expected.size());
+    }
+
+    Y_UNIT_TEST(TestInputIteratorEmpty) {
+        const char* a = "";
+        auto splitFn = [](int value) { return value == 0; };
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TDoubleIterator(a), TDoubleIterator(a)).SplitByFunc(splitFn).Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TDoubleIterator(a), TDoubleIterator(a)).SplitByFunc(splitFn).SkipEmpty().Count(), 0);
+        UNIT_ASSERT_C(TDoubleIterator() == TDoubleIterator(nullptr), "prerequisite for the next test case:");
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TDoubleIterator(nullptr), TDoubleIterator(nullptr)).SplitByFunc(splitFn).Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(StringSplitter(TDoubleIterator(nullptr), TDoubleIterator(nullptr)).SplitByFunc(splitFn).SkipEmpty().Count(), 0);
     }
 } // Y_UNIT_TEST_SUITE(StringSplitter)

@@ -37,7 +37,7 @@ struct TRefCountedCookieHolder
 
 template <class T>
 struct TRefCountedWrapper final
-    : public T
+    : public std::remove_const_t<T>
     , public TRefTracked<T>
 {
     template <class... TArgs>
@@ -55,7 +55,7 @@ struct TRefCountedWrapper final
 
 template <class T, class TDeleter>
 class TRefCountedWrapperWithDeleter final
-    : public T
+    : public std::remove_const_t<T>
     , public TRefTracked<T>
 {
 public:
@@ -78,7 +78,7 @@ private:
 
 template <class T>
 struct TRefCountedWrapperWithCookie final
-    : public T
+    : public std::remove_const_t<T>
     , public TRefCountedCookieHolder
 {
     template <class... TArgs>

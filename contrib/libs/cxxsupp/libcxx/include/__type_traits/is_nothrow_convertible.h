@@ -26,7 +26,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if _LIBCPP_STD_VER >= 20
 
-#  if __has_builtin(__is_nothrow_convertible)
+#  if __has_builtin(__is_nothrow_convertible) && !defined(__CUDACC__)
 
 template <class _Tp, class _Up>
 struct is_nothrow_convertible : bool_constant<__is_nothrow_convertible(_Tp, _Up)> {};

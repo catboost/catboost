@@ -121,8 +121,8 @@ protected:
             })
             .Completer(NLastGetopt::NComp::File());
 
-        // These two options can't be together.
-        opts.MutuallyExclusive("post-file", "post-data");
+        // These options can not appear together.
+        opts.MutuallyExclusive("method", "post-file", "post-data");
 
         opts.AddLongOption("header")
             .RequiredArgument("header-line")

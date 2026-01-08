@@ -1,0 +1,128 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_PTX
+#define _CUDA_PTX
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+/*
+ * The cuda::ptx namespace intends to provide PTX wrappers for new hardware
+ * features and new PTX instructions so that they can be experimented with
+ * before higher-level C++ APIs are designed and developed.
+ *
+ * The wrappers have the following responsibilities:
+ *
+ * - They must prevent any PTX assembler errors, that is:
+ *   - They are defined only for versions of the CUDA Toolkit in which nvcc/ptxas
+ *     actually recognizes the instruction.
+ *   - Sizes and types of parameters are correct.
+ * - They must convert state spaces correctly.
+ * - They adhere to the libcu++ coding standards of using:
+ *   - Reserved identifiers for all parameters, variables. E.g. `__meow` or `_Woof`
+ *   - _CUDA_VSTD:: namespace for types
+ *
+ * The wrappers should not do the following:
+ *
+ * - Use any non-native types. For example, an mbarrier instruction wrapper
+ *   takes the barrier address as a uint64_t pointer.
+ *
+ * This header is intended for:
+ *
+ * - internal consumption by higher-level APIs such as cuda::barrier,
+ * - outside developers who want to experiment with the latest features of the
+ *   hardware.
+ *
+ * Stability:
+ *
+ * - These headers are intended to present a stable API (not ABI) within one
+ *   major version of the CTK. This means that:
+ *   - All functions are marked inline
+ *   - The type of a function parameter can be changed to be more generic if
+ *     that means that code that called the original version can still be
+ *     compiled.
+ *
+ * - Good exposure of the PTX should be high priority. If, at a new major
+ *   version, we face a difficult choice between breaking backward-compatibility
+ *   and an improvement of the PTX exposure, we will tend to the latter option
+ *   more easily than in other parts of libcu++.
+ *
+ * Code organization:
+ *
+ * - Each instruction is in a separate file and is included below.
+ * - Some helper function and types can be found in ptx/ptx_helper_functions.h and ptx/ptx_dot_variants.h.
+ */
+
+#include <cuda/__ptx/instructions/barrier_cluster.h>
+#include <cuda/__ptx/instructions/bfind.h>
+#include <cuda/__ptx/instructions/bmsk.h>
+#include <cuda/__ptx/instructions/clusterlaunchcontrol.h>
+#include <cuda/__ptx/instructions/cp_async_bulk.h>
+#include <cuda/__ptx/instructions/cp_async_bulk_commit_group.h>
+#include <cuda/__ptx/instructions/cp_async_bulk_tensor.h>
+#include <cuda/__ptx/instructions/cp_async_bulk_wait_group.h>
+#include <cuda/__ptx/instructions/cp_async_mbarrier_arrive.h>
+#include <cuda/__ptx/instructions/cp_reduce_async_bulk.h>
+#include <cuda/__ptx/instructions/cp_reduce_async_bulk_tensor.h>
+#include <cuda/__ptx/instructions/elect_sync.h>
+#include <cuda/__ptx/instructions/exit.h>
+#include <cuda/__ptx/instructions/fence.h>
+#include <cuda/__ptx/instructions/get_sreg.h>
+#include <cuda/__ptx/instructions/getctarank.h>
+#include <cuda/__ptx/instructions/ld.h>
+#include <cuda/__ptx/instructions/mbarrier_arrive.h>
+#include <cuda/__ptx/instructions/mbarrier_expect_tx.h>
+#include <cuda/__ptx/instructions/mbarrier_init.h>
+#include <cuda/__ptx/instructions/mbarrier_wait.h>
+#include <cuda/__ptx/instructions/multimem_ld_reduce.h>
+#include <cuda/__ptx/instructions/multimem_red.h>
+#include <cuda/__ptx/instructions/multimem_st.h>
+#include <cuda/__ptx/instructions/prmt.h>
+#include <cuda/__ptx/instructions/red_async.h>
+#include <cuda/__ptx/instructions/shfl_sync.h>
+#include <cuda/__ptx/instructions/shl.h>
+#include <cuda/__ptx/instructions/shr.h>
+#include <cuda/__ptx/instructions/st.h>
+#include <cuda/__ptx/instructions/st_async.h>
+#include <cuda/__ptx/instructions/st_bulk.h>
+#include <cuda/__ptx/instructions/tcgen05_alloc.h>
+#include <cuda/__ptx/instructions/tcgen05_commit.h>
+#include <cuda/__ptx/instructions/tcgen05_cp.h>
+#include <cuda/__ptx/instructions/tcgen05_fence.h>
+#include <cuda/__ptx/instructions/tcgen05_ld.h>
+#include <cuda/__ptx/instructions/tcgen05_mma.h>
+#include <cuda/__ptx/instructions/tcgen05_mma_ws.h>
+#include <cuda/__ptx/instructions/tcgen05_shift.h>
+#include <cuda/__ptx/instructions/tcgen05_st.h>
+#include <cuda/__ptx/instructions/tcgen05_wait.h>
+#include <cuda/__ptx/instructions/tensormap_cp_fenceproxy.h>
+#include <cuda/__ptx/instructions/tensormap_replace.h>
+#include <cuda/__ptx/instructions/trap.h>
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_CUDA_DEVICE
+
+namespace ptx = _CUDA_VPTX;
+
+_LIBCUDACXX_END_NAMESPACE_CUDA_DEVICE
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_PTX

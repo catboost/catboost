@@ -27,17 +27,21 @@
 #ifndef Y_ABSL_LOG_INTERNAL_LOG_MESSAGE_H_
 #define Y_ABSL_LOG_INTERNAL_LOG_MESSAGE_H_
 
+#include <cstddef>
 #include <ios>
 #include <memory>
 #include <ostream>
 #include <streambuf>
 #include <util/generic/string.h>
+#include <type_traits>
 
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
 #include "y_absl/base/internal/errno_saver.h"
 #include "y_absl/base/log_severity.h"
+#include "y_absl/base/nullability.h"
 #include "y_absl/log/internal/nullguard.h"
+#include "y_absl/log/internal/structured_proto.h"
 #include "y_absl/log/log_entry.h"
 #include "y_absl/log/log_sink.h"
 #include "y_absl/strings/has_absl_stringify.h"
@@ -49,6 +53,8 @@ Y_ABSL_NAMESPACE_BEGIN
 namespace log_internal {
 constexpr int kLogMessageBufferSize = 15000;
 
+enum class StructuredStringType;
+
 class LogMessage {
  public:
   struct InfoTag {};
@@ -56,15 +62,15 @@ class LogMessage {
   struct ErrorTag {};
 
   // Used for `LOG`.
-  LogMessage(const char* file, int line,
+  LogMessage(y_absl::Nonnull<const char*> file, int line,
              y_absl::LogSeverity severity) Y_ABSL_ATTRIBUTE_COLD;
   // These constructors are slightly smaller/faster to call; the severity is
   // curried into the function pointer.
-  LogMessage(const char* file, int line,
+  LogMessage(y_absl::Nonnull<const char*> file, int line,
              InfoTag) Y_ABSL_ATTRIBUTE_COLD Y_ABSL_ATTRIBUTE_NOINLINE;
-  LogMessage(const char* file, int line,
+  LogMessage(y_absl::Nonnull<const char*> file, int line,
              WarningTag) Y_ABSL_ATTRIBUTE_COLD Y_ABSL_ATTRIBUTE_NOINLINE;
-  LogMessage(const char* file, int line,
+  LogMessage(y_absl::Nonnull<const char*> file, int line,
              ErrorTag) Y_ABSL_ATTRIBUTE_COLD Y_ABSL_ATTRIBUTE_NOINLINE;
   LogMessage(const LogMessage&) = delete;
   LogMessage& operator=(const LogMessage&) = delete;
@@ -95,59 +101,67 @@ class LogMessage {
   // of `errno`.
   LogMessage& WithPerror();
   // Sends this message to `*sink` in addition to whatever other sinks it would
-  // otherwise have been sent to.  `sink` must not be null.
-  LogMessage& ToSinkAlso(y_absl::LogSink* sink);
-  // Sends this message to `*sink` and no others.  `sink` must not be null.
-  LogMessage& ToSinkOnly(y_absl::LogSink* sink);
+  // otherwise have been sent to.
+  LogMessage& ToSinkAlso(y_absl::Nonnull<y_absl::LogSink*> sink);
+  // Sends this message to `*sink` and no others.
+  LogMessage& ToSinkOnly(y_absl::Nonnull<y_absl::LogSink*> sink);
 
   // Don't call this method from outside this library.
   LogMessage& InternalStream() { return *this; }
 
   // By-value overloads for small, common types let us overlook common failures
   // to define globals and static data members (i.e. in a .cc file).
-  // clang-format off
-  // The CUDA toolchain cannot handle these <<<'s:
+  // NOLINTBEGIN(runtime/int)
+  // NOLINTBEGIN(google-runtime-int)
+  // clang-format off:  The CUDA toolchain cannot handle these <<<'s
   LogMessage& operator<<(char v) { return operator<< <char>(v); }
   LogMessage& operator<<(signed char v) { return operator<< <signed char>(v); }
   LogMessage& operator<<(unsigned char v) {
     return operator<< <unsigned char>(v);
   }
-  LogMessage& operator<<(signed short v) {  // NOLINT
-    return operator<< <signed short>(v);  // NOLINT
+  LogMessage& operator<<(signed short v) {
+    return operator<< <signed short>(v);
   }
   LogMessage& operator<<(signed int v) { return operator<< <signed int>(v); }
-  LogMessage& operator<<(signed long v) {  // NOLINT
-    return operator<< <signed long>(v);  // NOLINT
+  LogMessage& operator<<(signed long v) {
+    return operator<< <signed long>(v);
   }
-  LogMessage& operator<<(signed long long v) {  // NOLINT
-    return operator<< <signed long long>(v);  // NOLINT
+  LogMessage& operator<<(signed long long v) {
+    return operator<< <signed long long>(v);
   }
-  LogMessage& operator<<(unsigned short v) {  // NOLINT
-    return operator<< <unsigned short>(v);  // NOLINT
+  LogMessage& operator<<(unsigned short v) {
+    return operator<< <unsigned short>(v);
   }
   LogMessage& operator<<(unsigned int v) {
     return operator<< <unsigned int>(v);
   }
-  LogMessage& operator<<(unsigned long v) {  // NOLINT
-    return operator<< <unsigned long>(v);  // NOLINT
+  LogMessage& operator<<(unsigned long v) {
+    return operator<< <unsigned long>(v);
   }
-  LogMessage& operator<<(unsigned long long v) {  // NOLINT
-    return operator<< <unsigned long long>(v);  // NOLINT
+  LogMessage& operator<<(unsigned long long v) {
+    return operator<< <unsigned long long>(v);
   }
-  LogMessage& operator<<(void* v) { return operator<< <void*>(v); }
-  LogMessage& operator<<(const void* v) { return operator<< <const void*>(v); }
+  LogMessage& operator<<(y_absl::Nullable<void*> v) {
+    return operator<< <void*>(v);
+  }
+  LogMessage& operator<<(y_absl::Nullable<const void*> v) {
+    return operator<< <const void*>(v);
+  }
   LogMessage& operator<<(float v) { return operator<< <float>(v); }
   LogMessage& operator<<(double v) { return operator<< <double>(v); }
   LogMessage& operator<<(bool v) { return operator<< <bool>(v); }
   // clang-format on
+  // NOLINTEND(google-runtime-int)
+  // NOLINTEND(runtime/int)
 
   // These overloads are more efficient since no `ostream` is involved.
   LogMessage& operator<<(const TString& v);
   LogMessage& operator<<(y_absl::string_view v);
 
   // Handle stream manipulators e.g. std::endl.
-  LogMessage& operator<<(std::ostream& (*m)(std::ostream& os));
-  LogMessage& operator<<(std::ios_base& (*m)(std::ios_base& os));
+  LogMessage& operator<<(y_absl::Nonnull<std::ostream& (*)(std::ostream & os)> m);
+  LogMessage& operator<<(
+      y_absl::Nonnull<std::ios_base& (*)(std::ios_base & os)> m);
 
   // Literal strings.  This allows us to record C string literals as literals in
   // the logging.proto.Value.
@@ -206,6 +220,10 @@ class LogMessage {
   struct LogMessageData;  // Opaque type containing message state
   friend class AsLiteralImpl;
   friend class StringifySink;
+  template <StructuredStringType str_type>
+  friend class AsStructuredStringTypeImpl;
+  template <typename T>
+  friend class AsStructuredValueImpl;
 
   // This streambuf writes directly into the structured logging buffer so that
   // arbitrary types can be encoded as string data (using
@@ -236,6 +254,13 @@ class LogMessage {
   template <StringType str_type>
   void CopyToEncodedBuffer(char ch, size_t num) Y_ABSL_ATTRIBUTE_NOINLINE;
 
+  // Copies `field` to the encoded buffer, then appends `str` after it
+  // (truncating `str` if necessary to fit).
+  template <StringType str_type>
+  void CopyToEncodedBufferWithStructuredProtoField(StructuredProtoField field,
+                                                   y_absl::string_view str)
+      Y_ABSL_ATTRIBUTE_NOINLINE;
+
   // Returns `true` if the message is fatal or enabled debug-fatal.
   bool IsFatal() const;
 
@@ -255,7 +280,7 @@ class LogMessage {
 
   // We keep the data in a separate struct so that each instance of `LogMessage`
   // uses less stack space.
-  std::unique_ptr<LogMessageData> data_;
+  y_absl::Nonnull<std::unique_ptr<LogMessageData>> data_;
 };
 
 // Helper class so that `AbslStringify()` can modify the LogMessage.
@@ -273,7 +298,8 @@ class StringifySink final {
   }
 
   // For types that implement `AbslStringify` using `y_absl::Format()`.
-  friend void AbslFormatFlush(StringifySink* sink, y_absl::string_view v) {
+  friend void AbslFormatFlush(y_absl::Nonnull<StringifySink*> sink,
+                              y_absl::string_view v) {
     sink->Append(v);
   }
 
@@ -315,27 +341,28 @@ LogMessage& LogMessage::operator<<(char (&buf)[SIZE]) {
 // We instantiate these specializations in the library's TU to save space in
 // other TUs.  Since the template is marked `Y_ABSL_ATTRIBUTE_NOINLINE` we will be
 // emitting a function call either way.
+// NOLINTBEGIN(runtime/int)
+// NOLINTBEGIN(google-runtime-int)
 extern template LogMessage& LogMessage::operator<<(const char& v);
 extern template LogMessage& LogMessage::operator<<(const signed char& v);
 extern template LogMessage& LogMessage::operator<<(const unsigned char& v);
-extern template LogMessage& LogMessage::operator<<(const short& v);  // NOLINT
-extern template LogMessage& LogMessage::operator<<(
-    const unsigned short& v);  // NOLINT
+extern template LogMessage& LogMessage::operator<<(const short& v);
+extern template LogMessage& LogMessage::operator<<(const unsigned short& v);
 extern template LogMessage& LogMessage::operator<<(const int& v);
+extern template LogMessage& LogMessage::operator<<(const unsigned int& v);
+extern template LogMessage& LogMessage::operator<<(const long& v);
+extern template LogMessage& LogMessage::operator<<(const unsigned long& v);
+extern template LogMessage& LogMessage::operator<<(const long long& v);
+extern template LogMessage& LogMessage::operator<<(const unsigned long long& v);
 extern template LogMessage& LogMessage::operator<<(
-    const unsigned int& v);                                         // NOLINT
-extern template LogMessage& LogMessage::operator<<(const long& v);  // NOLINT
+    y_absl::Nullable<void*> const& v);
 extern template LogMessage& LogMessage::operator<<(
-    const unsigned long& v);  // NOLINT
-extern template LogMessage& LogMessage::operator<<(
-    const long long& v);  // NOLINT
-extern template LogMessage& LogMessage::operator<<(
-    const unsigned long long& v);  // NOLINT
-extern template LogMessage& LogMessage::operator<<(void* const& v);
-extern template LogMessage& LogMessage::operator<<(const void* const& v);
+    y_absl::Nullable<const void*> const& v);
 extern template LogMessage& LogMessage::operator<<(const float& v);
 extern template LogMessage& LogMessage::operator<<(const double& v);
 extern template LogMessage& LogMessage::operator<<(const bool& v);
+// NOLINTEND(google-runtime-int)
+// NOLINTEND(runtime/int)
 
 extern template void LogMessage::CopyToEncodedBuffer<
     LogMessage::StringType::kLiteral>(y_absl::string_view str);
@@ -351,9 +378,10 @@ extern template void LogMessage::CopyToEncodedBuffer<
 // message.
 class LogMessageFatal final : public LogMessage {
  public:
-  LogMessageFatal(const char* file, int line) Y_ABSL_ATTRIBUTE_COLD;
-  LogMessageFatal(const char* file, int line,
-                  y_absl::string_view failure_msg) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageFatal(y_absl::Nonnull<const char*> file,
+                  int line) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageFatal(y_absl::Nonnull<const char*> file, int line,
+                  y_absl::Nonnull<const char*> failure_msg) Y_ABSL_ATTRIBUTE_COLD;
   LogMessageFatal& TryThrow() Y_ABSL_ATTRIBUTE_COLD;
   ~LogMessageFatal();
  private:
@@ -366,7 +394,8 @@ class LogMessageFatal final : public LogMessage {
 // for DLOG(FATAL) variants.
 class LogMessageDebugFatal final : public LogMessage {
  public:
-  LogMessageDebugFatal(const char* file, int line) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageDebugFatal(y_absl::Nonnull<const char*> file,
+                       int line) Y_ABSL_ATTRIBUTE_COLD;
   ~LogMessageDebugFatal();
 };
 
@@ -375,16 +404,19 @@ class LogMessageQuietlyDebugFatal final : public LogMessage {
   // DLOG(QFATAL) calls this instead of LogMessageQuietlyFatal to make sure the
   // destructor is not [[noreturn]] even if this is always FATAL as this is only
   // invoked when DLOG() is enabled.
-  LogMessageQuietlyDebugFatal(const char* file, int line) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageQuietlyDebugFatal(y_absl::Nonnull<const char*> file,
+                              int line) Y_ABSL_ATTRIBUTE_COLD;
   ~LogMessageQuietlyDebugFatal();
 };
 
 // Used for LOG(QFATAL) to make sure it's properly understood as [[noreturn]].
 class LogMessageQuietlyFatal final : public LogMessage {
  public:
-  LogMessageQuietlyFatal(const char* file, int line) Y_ABSL_ATTRIBUTE_COLD;
-  LogMessageQuietlyFatal(const char* file, int line,
-                         y_absl::string_view failure_msg) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageQuietlyFatal(y_absl::Nonnull<const char*> file,
+                         int line) Y_ABSL_ATTRIBUTE_COLD;
+  LogMessageQuietlyFatal(y_absl::Nonnull<const char*> file, int line,
+                         y_absl::Nonnull<const char*> failure_msg)
+      Y_ABSL_ATTRIBUTE_COLD;
   [[noreturn]] ~LogMessageQuietlyFatal();
 };
 

@@ -10,10 +10,7 @@ import unittest
 
 
 class TestStringOutput(unittest.TestCase):
-    def test_ctor1(self):
-        cdef TStringOutput output
-
-    def test_ctor2(self):
+    def test_ctor(self):
         cdef TString string
         cdef THolder[TStringOutput] string_output = THolder[TStringOutput](new TStringOutput(string))
 

@@ -3,6 +3,7 @@
 #include "error.h"
 #include "fs.h"
 
+#include <atomic>
 #include <cmath>
 #include <cstdlib>
 
@@ -234,23 +235,27 @@ size_t NSystemInfo::LoadAverage(double* la, size_t len) {
     return (size_t)ret;
 }
 
-static size_t NCpus;
-static size_t NMillicores;
+static std::atomic<size_t> NCpus{0};
+static std::atomic<size_t> NMillicores{0};
 
 size_t NSystemInfo::CachedNumberOfCpus() {
-    if (!NCpus) {
-        NCpus = NumberOfCpus();
+    auto ncpus_snapshot = NCpus.load();
+    if (!ncpus_snapshot) {
+        ncpus_snapshot = NumberOfCpus();
+        NCpus = ncpus_snapshot;
     }
 
-    return NCpus;
+    return ncpus_snapshot;
 }
 
 size_t NSystemInfo::CachedNumberOfMillicores() {
-    if (!NMillicores) {
-        NMillicores = NumberOfMillicores();
+    auto nmillicores_snapshot = NMillicores.load();
+    if (!nmillicores_snapshot) {
+        nmillicores_snapshot = NumberOfMillicores();
+        NMillicores = nmillicores_snapshot;
     }
 
-    return NMillicores;
+    return nmillicores_snapshot;
 }
 
 size_t NSystemInfo::GetPageSize() noexcept {

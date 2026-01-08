@@ -428,7 +428,7 @@ Status OnnxParser::Parse(TensorProto& tensorProto) {
   // Parse the concrete tensor-type with numeric dimensions:
   TypeProto typeProto;
   PARSE(typeProto);
-  ParseOptionalIdentifier(*tensorProto.mutable_name());
+  ParseOptionalIdentifier(tensorProto.mutable_name()->MutRef());
   (void)Matches('='); // Optional, to unify handling of initializers as well as tensor-protos in other contexts
   return Parse(tensorProto, typeProto);
 }
@@ -549,7 +549,7 @@ Status OnnxParser::ParseSingleAttributeValue(AttributeProto& attr, AttributeProt
       if ((next == '{') || (next == '=') || (NextIsIdentifier())) {
         attr.set_type(AttributeProto_AttributeType_TENSOR);
         auto& tensorProto = *attr.mutable_t();
-        ParseOptionalIdentifier(*tensorProto.mutable_name());
+        ParseOptionalIdentifier(tensorProto.mutable_name()->MutRef());
         (void)Matches('='); // Optional, to unify handling of initializers
         Parse(tensorProto, typeProto);
       } else {

@@ -1,9 +1,11 @@
 #include <benchmark/benchmark.h>
 
 #include <library/cpp/testing/hook/hook.h>
+#include <library/cpp/testing/hook/yt_initialize_hook.h>
 #include <util/generic/scope.h>
 
 int main(int argc, char** argv) {
+    InitializeYt(argc, argv);
     NTesting::THook::CallBeforeInit();
     ::benchmark::Initialize(&argc, argv);
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {

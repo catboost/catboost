@@ -129,8 +129,6 @@ namespace {
     Y_NO_SANITIZE("memory") static void
     ContextTrampoLine() {
         void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        Y_ASSERT(*(argPtr - 1) == *(argPtr - 2));
-
         Run(*(argPtr - 1));
     }
     #endif

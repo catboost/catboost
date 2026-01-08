@@ -1,0 +1,35 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_BIT
+#define _CUDA_STD_BIT
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__bit/bit_cast.h>
+#include <cuda/std/__bit/byteswap.h>
+#include <cuda/std/__bit/countl.h>
+#include <cuda/std/__bit/countr.h>
+#include <cuda/std/__bit/endian.h>
+#include <cuda/std/__bit/has_single_bit.h>
+#include <cuda/std/__bit/integral.h>
+#include <cuda/std/__bit/popcount.h>
+#include <cuda/std/__bit/rotate.h>
+#include <cuda/std/version>
+
+#endif // _CUDA_STD_BIT

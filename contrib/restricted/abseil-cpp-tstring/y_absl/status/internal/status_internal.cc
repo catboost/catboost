@@ -28,6 +28,7 @@
 #include "y_absl/base/config.h"
 #include "y_absl/base/macros.h"
 #include "y_absl/base/nullability.h"
+#include "y_absl/debugging/leak_check.h"
 #include "y_absl/debugging/stacktrace.h"
 #include "y_absl/debugging/symbolize.h"
 #include "y_absl/memory/memory.h"
@@ -234,12 +235,15 @@ y_absl::StatusCode MapToLocalCode(int value) {
   }
 }
 
-y_absl::Nonnull<TString*> MakeCheckFailString(
+y_absl::Nonnull<const char*> MakeCheckFailString(
     y_absl::Nonnull<const y_absl::Status*> status,
     y_absl::Nonnull<const char*> prefix) {
-  return new TString(
-      y_absl::StrCat(prefix, " (",
-                   status->ToString(StatusToStringMode::kWithEverything), ")"));
+  // There's no need to free this string since the process is crashing.
+  return y_absl::IgnoreLeak(
+             new TString(y_absl::StrCat(
+                 prefix, " (",
+                 status->ToString(StatusToStringMode::kWithEverything), ")")))
+      ->c_str();
 }
 
 }  // namespace status_internal

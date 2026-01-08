@@ -19,7 +19,7 @@ target_link_libraries(cpp-cuda-wrappers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  build-platform-cuda
+  internal-platform-cuda
   cpp-cuda-exception
   cpp-threading-future
 )
@@ -28,6 +28,7 @@ target_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/base.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/run_gpu_program.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_event.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_pool.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_vec.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_graph.cpp
@@ -37,7 +38,6 @@ target_sources(cpp-cuda-wrappers PRIVATE
 target_cuda_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
-  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
 )
 
 

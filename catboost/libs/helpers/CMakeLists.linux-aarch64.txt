@@ -75,6 +75,7 @@ target_sources(catboost-libs-helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/maybe.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/maybe_owning_array_holder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/mem_usage.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/memory_utils.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/parallel_tasks.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/polymorphic_type_containers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/power_hash.cpp

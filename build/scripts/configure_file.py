@@ -9,13 +9,13 @@ cmakeDef01 = "#cmakedefine01"
 cmakeDef = "#cmakedefine"
 
 
-def replaceLine(l, varDict, define):
-    words = l.split()
+def replaceLine(line, varDict, define):
+    words = line.split()
     if words:
         if words[0] == cmakeDef:
-            sPos = l.find(cmakeDef)
+            sPos = line.find(cmakeDef)
             ePos = sPos + len(cmakeDef)
-            l = l[:sPos] + define + l[ePos:] + '\n'
+            line = line[:sPos] + define + line[ePos:] + '\n'
         if words[0] == cmakeDef01:
             var = words[1]
             cmakeValue = varDict.get(var)
@@ -23,25 +23,25 @@ def replaceLine(l, varDict, define):
                 val = '1'
             else:
                 val = '0'
-            sPos = l.find(cmakeDef01)
-            ePos = l.find(var) + len(var)
-            l = l[:sPos] + define + ' ' + var + ' ' + val + l[ePos + 1 :] + '\n'
+            sPos = line.find(cmakeDef01)
+            ePos = line.find(var) + len(var)
+            line = line[:sPos] + define + ' ' + var + ' ' + val + line[ePos + 1 :] + '\n'
 
     finder = re.compile(".*?(@[a-zA-Z0-9_]+@).*")
     while True:
-        re_result = finder.match(l)
+        re_result = finder.match(line)
         if not re_result:
-            return l
+            return line
         key = re_result.group(1)[1:-1]
-        l = l[: re_result.start(1)] + varDict.get(key, '') + l[re_result.end(1) :]
+        line = line[: re_result.start(1)] + varDict.get(key, '') + line[re_result.end(1) :]
 
 
 def main(inputPath, outputPath, varDict):
     define = '#define' if os.path.splitext(outputPath)[1] != '.asm' else '%define'
     with open(outputPath, 'w') as output:
         with open(inputPath, 'r') as input:
-            for l in input:
-                output.write(replaceLine(l, varDict, define))
+            for line in input:
+                output.write(replaceLine(line, varDict, define))
 
 
 def usage():

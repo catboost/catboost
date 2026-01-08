@@ -134,22 +134,22 @@ public:
         Tokens.pop_back();
     }
     const TCharSpan* begin() const {
-        return Tokens.begin();
+        return Tokens.data();
     }
     const TCharSpan* end() const {
-        return Tokens.end();
+        return Tokens.data() + Tokens.size();
     }
     TCharSpan* begin() {
-        return Tokens.begin();
+        return Tokens.data();
     }
     TCharSpan* end() {
-        return Tokens.end();
+        return Tokens.data() + Tokens.size();
     }
     const TCharSpan* cbegin() const {
-        return Tokens.cbegin();
+        return Tokens.data();
     }
     const TCharSpan* cend() const {
-        return Tokens.cend();
+        return Tokens.data() + Tokens.size();
     }
     const TCharSpan& operator[](size_t idx) const {
         return Tokens[idx];

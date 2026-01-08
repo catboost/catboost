@@ -75,7 +75,7 @@
  *
  * void Foo(const int argumentUsedOnlyForDebugPurposes Y_DECLARE_UNUSED) {
  *     assert(argumentUsedOnlyForDebugPurposes == 42);
- *     // however you may as well omit `Y_DECLARE_UNUSED` and use `UNUSED` macro instead
+ *     // however you may as well omit `Y_DECLARE_UNUSED` and use `Y_UNUSED` macro instead
  *     Y_UNUSED(argumentUsedOnlyForDebugPurposes);
  * }
  * @endcode
@@ -698,15 +698,25 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 /**
  * @def Y_LIFETIME_BOUND
  *
- * The attribute on a function parameter can be used to tell the compiler
- * that function return value may refer that parameter.
+ * This attribute on a function parameter can be used to tell the compiler
+ * that the function return value may refer that parameter.
+ * When applied to a parameter of a constructor it means that the constructed object
+ * may refer that parameter.
+ * This attribute can also be used to annotate non-static member functions meaning that the
+ * return value of this function may refer to the object on which the member function is invoked.
+ *
  * The compiler may produce a compile-time warning if it is able to detect that
  * an object or a reference refers to another object with a shorter lifetime.
+ *
+ * @see
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#lifetimebound
  */
 #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
     #define Y_LIFETIME_BOUND
 #elif Y_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
     #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::lifetimebound)
+    #define Y_LIFETIME_BOUND [[msvc::lifetimebound]]
 #else
     #define Y_LIFETIME_BOUND
 #endif

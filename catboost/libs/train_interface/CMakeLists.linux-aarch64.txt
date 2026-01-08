@@ -24,6 +24,7 @@ target_link_libraries(catboost_train_interface PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data

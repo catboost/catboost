@@ -374,7 +374,7 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
             UNIT_ASSERT_EQUAL(value["test"].GetDouble(), 0.0);
             UNIT_ASSERT_EQUAL(value["test"].GetDoubleRobust(), static_cast<double>(Max<ui64>()));
         } // Max<ui64>()
-    }     // TJsonDoubleTest
+    } // TJsonDoubleTest
 
     Y_UNIT_TEST(TJsonInvalidTest) {
         {
@@ -473,11 +473,9 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
             UNIT_ASSERT(!ReadJsonTree(&jsonStream, &config, &v));
         }
     }
-}
-
+} // Y_UNIT_TEST_SUITE(TJsonReaderTest)
 
 static const TString YANDEX_STREAMING_JSON("{\"a\":1}//d{\"b\":2}");
-
 
 Y_UNIT_TEST_SUITE(TCompareReadJsonFast) {
     Y_UNIT_TEST(NoEndl) {
@@ -504,4 +502,4 @@ Y_UNIT_TEST_SUITE(TCompareReadJsonFast) {
         bool fast_success = NJson::NOrderedJson::ReadJsonFastTree(streamingJson, &parsed, false);
         UNIT_ASSERT(success != fast_success);
     }
-}
+} // Y_UNIT_TEST_SUITE(TCompareReadJsonFast)

@@ -268,7 +268,7 @@ void TCalcScoreFold::Create(
     IsPairwiseScoring = isPairwiseScoring;
     HasOfflineEstimatedFeatures = hasOfflineEstimatedFeatures;
     Y_ASSERT(BodyTailCount > 0);
-    BodyTailArr.yresize(BodyTailCount);
+    BodyTailArr.Reset(new TBodyTail[BodyTailCount]);
     ApproxDimension = folds[0].GetApproxDimension();
     Y_ASSERT(ApproxDimension > 0);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
@@ -518,8 +518,8 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
                 &tailCount
             );
         }
-        AtomicAdd(dstBodyTail.BodyFinish, bodyCount); // these atomics may take up to 2-3% of iteration time
-        AtomicAdd(dstBodyTail.TailFinish, tailCount);
+        dstBodyTail.BodyFinish += bodyCount; // these atomics may take up to 2-3% of iteration time
+        dstBodyTail.TailFinish += tailCount;
     }
 }
 

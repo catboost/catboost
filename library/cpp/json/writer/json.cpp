@@ -25,7 +25,6 @@ namespace NJsonWriter {
             StringStream.Reset(new TStringStream);
             Stream = StringStream.Get();
         }
-
         Stack.reserve(64); // should be enough for most cases
         StackPush(JE_OUTER_SPACE);
     }
@@ -84,12 +83,13 @@ namespace NJsonWriter {
     }
 
     void TBuf::PrintIndentation(bool closing) {
-        if (!IndentSpaces)
+        if (!IndentSpaces) {
             return;
+        }
         const int indentation = IndentSpaces * (Stack.size() - 1);
-        if (!indentation && !closing)
+        if (!indentation && !closing) {
             return;
-
+        }
         PrintWhitespaces(Max(0, indentation), true);
     }
 
@@ -103,7 +103,7 @@ namespace NJsonWriter {
             const TStringBuf buffer = whitespacesTemplate.SubString(prependWithNewLine ? 0 : 1, count);
             count -= buffer.size();
             UnsafeWriteRawBytes(buffer);
-            prependWithNewLine = false;  // skip '\n' in subsequent writes
+            prependWithNewLine = false; // skip '\n' in subsequent writes
         } while (count > 0);
     }
 
@@ -282,7 +282,7 @@ namespace NJsonWriter {
                 }
             }
         };
-    }
+    } // namespace
 
     inline void TBuf::WriteBareString(const TStringBuf s, EHtmlEscapeMode hem) {
         RawWriteChar('"');
@@ -320,10 +320,10 @@ namespace NJsonWriter {
         RawWriteChar(hexDigits[(c & 0x0f)]);
     }
 
-#define MATCH(sym, string)                        \
-    case sym:                                     \
-        UnsafeWriteRawBytes(beg, cur - beg);      \
-        UnsafeWriteRawBytes(TStringBuf(string));  \
+#define MATCH(sym, string)                       \
+    case sym:                                    \
+        UnsafeWriteRawBytes(beg, cur - beg);     \
+        UnsafeWriteRawBytes(TStringBuf(string)); \
         return true
 
     inline bool TBuf::EscapedWriteChar(const char* beg, const char* cur, EHtmlEscapeMode hem) {
@@ -336,12 +336,11 @@ namespace NJsonWriter {
                 MATCH('>', "&gt;");
                 MATCH('&', "&amp;");
             }
-            //for other characters, we fall through to the non-HTML-escaped part
+            // for other characters, we fall through to the non-HTML-escaped part
         }
-
-        if (hem == HEM_RELAXED && c == '/')
+        if (hem == HEM_RELAXED && c == '/') {
             return false;
-
+        }
         if (hem != HEM_UNSAFE) {
             switch (c) {
                 case '/':
@@ -357,7 +356,6 @@ namespace NJsonWriter {
             }
             // for other characters, fall through to the non-escaped part
         }
-
         switch (c) {
             MATCH('"', "\\\"");
             MATCH('\\', "\\\\");
@@ -372,7 +370,6 @@ namespace NJsonWriter {
             WriteHexEscape(c);
             return true;
         }
-
         return false;
     }
 
@@ -407,8 +404,9 @@ namespace NJsonWriter {
             case JSON_ARRAY: {
                 BeginList();
                 const TJsonValue::TArray& arr = v->GetArray();
-                for (const auto& it : arr)
+                for (const auto& it : arr) {
                     WriteJsonValue(&it, sortKeys, mode, ndigits);
+                }
                 EndList();
                 break;
             }
@@ -513,5 +511,4 @@ namespace NJsonWriter {
         NeedNewline = from.NeedNewline;
         Stack.swap(from.Stack);
     }
-
-}
+} // namespace NJsonWriter

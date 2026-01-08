@@ -22,6 +22,7 @@ add_recursive_library(catboostmodel_static)
 target_link_libraries(catboostmodel_static PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   model_interface-static-lib
 )
 

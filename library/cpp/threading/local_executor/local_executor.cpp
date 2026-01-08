@@ -62,7 +62,7 @@ namespace {
 
         TVector<NThreading::TFuture<void>> GetFutures() const {
             TVector<NThreading::TFuture<void>> out;
-            out.reserve(Promises.ysize());
+            out.reserve(Promises.size());
             for (auto& promise : Promises) {
                 out.push_back(promise.GetFuture());
             }
@@ -325,9 +325,9 @@ void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, i
 
 TVector<NThreading::TFuture<void>>
 NPar::ILocalExecutor::ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
-    TFunctionWrapperWithPromise* execWrapper = new TFunctionWrapperWithPromise(exec, firstId, lastId);
+    auto execWrapper = MakeIntrusive<TFunctionWrapperWithPromise>(exec, firstId, lastId);
     TVector<NThreading::TFuture<void>> out = execWrapper->GetFutures();
-    ExecRange(execWrapper, firstId, lastId, flags);
+    ExecRange(std::move(execWrapper), firstId, lastId, flags);
     return out;
 }
 

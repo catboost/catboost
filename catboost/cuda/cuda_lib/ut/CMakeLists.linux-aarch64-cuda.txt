@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-cuda_lib-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
@@ -50,6 +51,7 @@ target_sources(catboost-cuda-cuda_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cache.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_buffer.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_memory_pool.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce_ring.cpp
@@ -83,7 +85,7 @@ set_yunittest_property(
   catboost-cuda-cuda_lib-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

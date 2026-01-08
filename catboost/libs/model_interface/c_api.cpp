@@ -13,8 +13,10 @@
 #include <util/stream/file.h>
 #include <util/string/builder.h>
 #include <util/system/compiler.h>
+#include <util/system/tls.h>
 
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <new>
 
@@ -31,6 +33,9 @@ struct TModelHandleContent {
 struct TErrorMessageHolder {
     TString Message;
 };
+
+Y_STATIC_THREAD(TErrorMessageHolder) ErrorMessageHolder;
+
 
 class TFeaturesDataWrapper {
 public:
@@ -207,7 +212,7 @@ namespace {
                 std::copy(featureIndices.begin(), featureIndices.end(), *indices);
             }
         } catch(...) {
-            Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+            ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
             return false;
         }
         return true;
@@ -220,7 +225,7 @@ CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount) {
     try {
         return new TFeaturesDataWrapper(docsCount);
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
     }
     return nullptr;
 }
@@ -262,14 +267,14 @@ CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
         auto* fullModel = new TFullModel;
         return new TModelHandleContent{.FullModel = THolder(fullModel)};
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
     }
 
     return nullptr;
 }
 
 CATBOOST_API const char* GetErrorString() {
-    return Singleton<TErrorMessageHolder>()->Message.data();
+    return ErrorMessageHolder.Get().Message.data();
 }
 
 CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
@@ -282,7 +287,7 @@ CATBOOST_API bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const ch
     try {
         *FULL_MODEL_PTR(modelHandle) = ReadModel(filename);
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
 
@@ -293,7 +298,7 @@ CATBOOST_API bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const 
     try {
         *FULL_MODEL_PTR(modelHandle) = ReadModel(binaryBuffer, binaryBufferSize);
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
 
@@ -304,7 +309,7 @@ CATBOOST_API bool LoadFullModelZeroCopy(ModelCalcerHandle* modelHandle, const vo
     try {
         *FULL_MODEL_PTR(modelHandle) = ReadZeroCopyModel(binaryBuffer, binaryBufferSize);
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
 
@@ -317,7 +322,7 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
         CB_ENSURE(deviceId == 0, "FIXME: Only device 0 is supported for now");
         FULL_MODEL_PTR(modelHandle)->SetEvaluatorType(EFormulaEvaluatorType::GPU);
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -346,7 +351,7 @@ CATBOOST_API bool GetSupportedEvaluatorTypes(
         if (*formulaEvaluatorTypes) {
             free(formulaEvaluatorTypes);
         }
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
 
         return false;
     }
@@ -357,7 +362,7 @@ CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, EApiPredicti
     try {
         FULL_MODEL_PTR(modelHandle)->SetPredictionType(static_cast<NCB::NModelEvaluation::EPredictionType>(predictionType));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
 
@@ -370,7 +375,7 @@ CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const 
             FromString<NCB::NModelEvaluation::EPredictionType>(predictionTypeStr)
         );
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
 
@@ -389,7 +394,7 @@ CATBOOST_API bool CalcModelPredictionFlatStaged(ModelCalcerHandle* modelHandle, 
             FULL_MODEL_PTR(modelHandle)->CalcFlat(featuresVec, treeStart, treeEnd, TArrayRef<double>(result, resultSize));
         }
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -412,7 +417,7 @@ CATBOOST_API bool CalcModelPredictionFlatTransposedStaged(
         }
         FULL_MODEL_PTR(modelHandle)->CalcFlatTransposed(featuresVec, treeStart, treeEnd, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -442,7 +447,7 @@ CATBOOST_API bool CalcModelPredictionStaged(
         }
         FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, treeStart, treeEnd, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -496,7 +501,7 @@ CATBOOST_API bool CalcModelPredictionTextStaged(
             TArrayRef<double>(result, resultSize)
         );
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -563,7 +568,7 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddingsStaged(
             TArrayRef<double>(result, resultSize)
         );
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -606,7 +611,7 @@ CATBOOST_API bool CalcModelPredictionSingleStaged(
         }
         FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, treeStart, treeEnd, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -643,7 +648,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* mo
         }
         FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -671,7 +676,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(ModelC
         }
         FULL_MODEL_PTR(modelHandle)->CalcWithHashedCatAndTextAndEmbeddings(floatFeaturesVec, catFeaturesVec, textFeaturesVec, {}, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -717,7 +722,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFea
             TArrayRef<double>(result, resultSize)
         );
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -737,7 +742,7 @@ CATBOOST_API bool PredictSpecificClassFlat(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -763,7 +768,7 @@ CATBOOST_API bool PredictSpecificClass(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -791,7 +796,7 @@ CATBOOST_API bool PredictSpecificClassText(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -821,7 +826,7 @@ CATBOOST_API bool PredictSpecificClassTextAndEmbeddings(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -846,7 +851,7 @@ CATBOOST_API bool PredictSpecificClassSingle(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -872,7 +877,7 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeatures(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -900,7 +905,7 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -930,7 +935,7 @@ CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextAndEmbeddingFe
         }
         GetSpecificClass(classId, rawResult, dim, TArrayRef<double>(result, resultSize));
     } catch (...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        ErrorMessageHolder.Get().Message = CurrentExceptionMessage();
         return false;
     }
     return true;
@@ -941,9 +946,10 @@ CATBOOST_API int GetStringCatFeatureHash(const char* data, size_t size) {
 }
 
 CATBOOST_API int GetIntegerCatFeatureHash(long long val) {
-    TStringBuilder valStr;
-    valStr << val;
-    return CalcCatFeatureHash(valStr);
+    char buf[78]; // enough for up to 256 bits
+    static_assert(sizeof(long long) * CHAR_BIT <= 256);
+    auto size = ToString(val, buf, sizeof(buf));
+    return CalcCatFeatureHash(TStringBuf(buf, size));
 }
 
 CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle) {

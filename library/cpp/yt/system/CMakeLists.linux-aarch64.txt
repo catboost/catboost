@@ -21,6 +21,7 @@ target_compile_options(cpp-yt-system PRIVATE
   -Wparentheses
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
+  -Wswitch
 )
 
 target_link_libraries(cpp-yt-system PUBLIC
@@ -31,6 +32,7 @@ target_link_libraries(cpp-yt-system PUBLIC
 )
 
 target_sources(cpp-yt-system PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/env.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/exit.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/system/thread_id.cpp
 )

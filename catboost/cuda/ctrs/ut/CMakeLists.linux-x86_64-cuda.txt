@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-ctrs-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-cuda-ctrs
@@ -77,7 +78,7 @@ set_yunittest_property(
   catboost-cuda-ctrs-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

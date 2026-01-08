@@ -17,6 +17,10 @@ namespace NDotProductImpl {
     float (*DotProductFloatImpl)(const float* lhs, const float* rhs, size_t length) noexcept = &DotProductSimple;
     double (*DotProductDoubleImpl)(const double* lhs, const double* rhs, size_t length) noexcept = &DotProductSimple;
 
+    TTriWayDotProduct<float> (*TriWayDotProductImpl)
+        (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept = &TriWayDotProductSimple;
+
+
     namespace {
         [[maybe_unused]] const int _ = [] {
             if (!FromYaTest() && GetEnv("Y_NO_AVX_IN_DOT_PRODUCT") == "" && NX86::HaveAVX2() && NX86::HaveFMA()) {
@@ -25,6 +29,7 @@ namespace NDotProductImpl {
                 DotProductI32Impl = &DotProductAvx2;
                 DotProductFloatImpl = &DotProductAvx2;
                 DotProductDoubleImpl = &DotProductAvx2;
+                TriWayDotProductImpl = &TriWayDotProductAvx2;
             } else {
 #ifdef ARCADIA_SSE
                 DotProductI8Impl = &DotProductSse;
@@ -32,6 +37,7 @@ namespace NDotProductImpl {
                 DotProductI32Impl = &DotProductSse;
                 DotProductFloatImpl = &DotProductSse;
                 DotProductDoubleImpl = &DotProductSse;
+                TriWayDotProductImpl = &TriWayDotProductSse;
 #endif
             }
             return 0;
@@ -96,113 +102,16 @@ float L2NormSquared(const float* v, size_t length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-template <bool computeLL, bool computeLR, bool computeRR>
-Y_FORCE_INLINE
-static void TriWayDotProductIteration(__m128& sumLL, __m128& sumLR, __m128& sumRR, const __m128 a, const __m128 b) {
-    if constexpr (computeLL) {
-        sumLL = _mm_add_ps(sumLL, _mm_mul_ps(a, a));
-    }
-    if constexpr (computeLR) {
-        sumLR = _mm_add_ps(sumLR, _mm_mul_ps(a, b));
-    }
-    if constexpr (computeRR) {
-        sumRR = _mm_add_ps(sumRR, _mm_mul_ps(b, b));
-    }
-}
-
-
-template <bool computeLL, bool computeLR, bool computeRR>
-static TTriWayDotProduct<float> TriWayDotProductImpl(const float* lhs, const float* rhs, size_t length) noexcept {
-    __m128 sumLL1 = _mm_setzero_ps();
-    __m128 sumLR1 = _mm_setzero_ps();
-    __m128 sumRR1 = _mm_setzero_ps();
-    __m128 sumLL2 = _mm_setzero_ps();
-    __m128 sumLR2 = _mm_setzero_ps();
-    __m128 sumRR2 = _mm_setzero_ps();
-
-    while (length >= 8) {
-        TriWayDotProductIteration<computeLL, computeLR, computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
-        TriWayDotProductIteration<computeLL, computeLR, computeRR>(sumLL2, sumLR2, sumRR2, _mm_loadu_ps(lhs + 4), _mm_loadu_ps(rhs + 4));
-        length -= 8;
-        lhs += 8;
-        rhs += 8;
-    }
-
-    if (length >= 4) {
-        TriWayDotProductIteration<computeLL, computeLR, computeRR>(sumLL1, sumLR1, sumRR1, _mm_loadu_ps(lhs + 0), _mm_loadu_ps(rhs + 0));
-        length -= 4;
-        lhs += 4;
-        rhs += 4;
-    }
-
-    if constexpr (computeLL) {
-        sumLL1 = _mm_add_ps(sumLL1, sumLL2);
-    }
-    if constexpr (computeLR) {
-        sumLR1 = _mm_add_ps(sumLR1, sumLR2);
-    }
-    if constexpr (computeRR) {
-        sumRR1 = _mm_add_ps(sumRR1, sumRR2);
-    }
-
-    if (length) {
-        __m128 a, b;
-        switch (length) {
-            case 3:
-                a = _mm_set_ps(0.0f, lhs[2], lhs[1], lhs[0]);
-                b = _mm_set_ps(0.0f, rhs[2], rhs[1], rhs[0]);
-                break;
-            case 2:
-                a = _mm_set_ps(0.0f, 0.0f, lhs[1], lhs[0]);
-                b = _mm_set_ps(0.0f, 0.0f, rhs[1], rhs[0]);
-                break;
-            case 1:
-                a = _mm_set_ps(0.0f, 0.0f, 0.0f, lhs[0]);
-                b = _mm_set_ps(0.0f, 0.0f, 0.0f, rhs[0]);
-                break;
-            default:
-                Y_UNREACHABLE();
-        }
-        TriWayDotProductIteration<computeLL, computeLR, computeRR>(sumLL1, sumLR1, sumRR1, a, b);
-    }
-
-    __m128 t0 = sumLL1;
-    __m128 t1 = sumLR1;
-    __m128 t2 = sumRR1;
-    __m128 t3 = _mm_setzero_ps();
-    _MM_TRANSPOSE4_PS(t0, t1, t2, t3);
-    t0 = _mm_add_ps(t0, t1);
-    t0 = _mm_add_ps(t0, t2);
-    t0 = _mm_add_ps(t0, t3);
-
-    alignas(16) float res[4];
-    _mm_store_ps(res, t0);
-    TTriWayDotProduct<float> result{res[0], res[1], res[2]};
-    static constexpr const TTriWayDotProduct<float> def;
-    // fill skipped fields with default values
-    if constexpr (!computeLL) {
-        result.LL = def.LL;
-    }
-    if constexpr (!computeLR) {
-        result.LR = def.LR;
-    }
-    if constexpr (!computeRR) {
-        result.RR = def.RR;
-    }
-    return result;
-}
-
-
 TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, size_t length, unsigned mask) noexcept {
     mask &= 0b111;
     if (Y_LIKELY(mask == 0b111)) { // compute dot-product and length² of two vectors
-        return TriWayDotProductImpl<true, true, true>(lhs, rhs, length);
+        return NDotProductImpl::TriWayDotProductImpl(lhs, rhs, length, true);
     } else if (Y_LIKELY(mask == 0b110 || mask == 0b011)) { // compute dot-product and length² of one vector
         const bool computeLL = (mask == 0b110);
         if (!computeLL) {
             DoSwap(lhs, rhs);
         }
-        auto result = TriWayDotProductImpl<true, true, false>(lhs, rhs, length);
+        auto result = NDotProductImpl::TriWayDotProductImpl(lhs, rhs, length, false);
         if (!computeLL) {
             DoSwap(result.LL, result.RR);
         }
@@ -263,12 +172,14 @@ namespace NDotProduct {
         NDotProductImpl::DotProductI32Impl = &DotProductSse;
         NDotProductImpl::DotProductFloatImpl = &DotProductSse;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSse;
+        NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSse;
 #else
         NDotProductImpl::DotProductI8Impl = &DotProductSimple;
         NDotProductImpl::DotProductUi8Impl = &DotProductSimple;
         NDotProductImpl::DotProductI32Impl = &DotProductSimple;
         NDotProductImpl::DotProductFloatImpl = &DotProductSimple;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSimple;
+        NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSimple;
 #endif
     }
 }

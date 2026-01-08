@@ -1,0 +1,520 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the CUDA Toolkit, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_ARRAY
+#define _CUDA_STD_ARRAY
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__algorithm/equal.h>
+#include <cuda/std/__algorithm/fill_n.h>
+#include <cuda/std/__algorithm/lexicographical_compare.h>
+#include <cuda/std/__algorithm/swap_ranges.h>
+#include <cuda/std/__concepts/concept_macros.h>
+#include <cuda/std/__iterator/reverse_iterator.h>
+#include <cuda/std/__tuple_dir/sfinae_helpers.h>
+#include <cuda/std/__type_traits/conditional.h>
+#include <cuda/std/__type_traits/is_array.h>
+#include <cuda/std/__type_traits/is_const.h>
+#include <cuda/std/__type_traits/is_constructible.h>
+#include <cuda/std/__type_traits/is_move_constructible.h>
+#include <cuda/std/__type_traits/is_nothrow_constructible.h>
+#include <cuda/std/__type_traits/is_nothrow_move_constructible.h>
+#include <cuda/std/__type_traits/is_same.h>
+#include <cuda/std/__type_traits/is_swappable.h>
+#include <cuda/std/__type_traits/remove_cv.h>
+#include <cuda/std/__utility/integer_sequence.h>
+#include <cuda/std/__utility/move.h>
+#include <cuda/std/__utility/unreachable.h>
+#include <cuda/std/cstdint>
+#include <cuda/std/detail/libcxx/include/stdexcept>
+#include <cuda/std/limits>
+
+// standard-mandated includes
+#include <cuda/std/version>
+
+// [iterator.range]
+#include <cuda/std/__iterator/access.h>
+#include <cuda/std/__iterator/data.h>
+#include <cuda/std/__iterator/empty.h>
+#include <cuda/std/__iterator/reverse_access.h>
+#include <cuda/std/__iterator/size.h>
+
+// [array.syn]
+#if _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#  include <compare>
+#endif // _LIBCUDACXX_HAS_SPACESHIP_OPERATOR()
+#include <cuda/std/initializer_list>
+
+// [tuple.helper]
+#include <cuda/std/__tuple_dir/tuple_element.h>
+#include <cuda/std/__tuple_dir/tuple_size.h>
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+template <class _Tp, size_t _Size>
+struct _CCCL_TYPE_VISIBILITY_DEFAULT array
+{
+  // types:
+  using __self                 = array;
+  using value_type             = _Tp;
+  using reference              = value_type&;
+  using const_reference        = const value_type&;
+  using iterator               = value_type*;
+  using const_iterator         = const value_type*;
+  using pointer                = value_type*;
+  using const_pointer          = const value_type*;
+  using size_type              = size_t;
+  using difference_type        = ptrdiff_t;
+  using reverse_iterator       = _CUDA_VSTD::reverse_iterator<iterator>;
+  using const_reverse_iterator = _CUDA_VSTD::reverse_iterator<const_iterator>;
+
+  _Tp __elems_[_Size];
+
+  // No explicit construct/copy/destroy for aggregate type
+  _CCCL_API constexpr void fill(const value_type& __u)
+  {
+    _CUDA_VSTD::fill_n(__elems_, _Size, __u);
+  }
+
+  _CCCL_API constexpr void swap(array& __a) noexcept(__is_nothrow_swappable<_Tp>::value)
+  {
+    _CUDA_VSTD::swap_ranges(__elems_, __elems_ + _Size, __a.data());
+  }
+
+  // iterators:
+  [[nodiscard]] _CCCL_API constexpr iterator begin() noexcept
+  {
+    return iterator(__elems_);
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator begin() const noexcept
+  {
+    return const_iterator(__elems_);
+  }
+  [[nodiscard]] _CCCL_API constexpr iterator end() noexcept
+  {
+    return iterator(__elems_ + _Size);
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator end() const noexcept
+  {
+    return const_iterator(__elems_ + _Size);
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reverse_iterator rbegin() noexcept
+  {
+    return reverse_iterator(end());
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator rbegin() const noexcept
+  {
+    return const_reverse_iterator(end());
+  }
+  [[nodiscard]] _CCCL_API constexpr reverse_iterator rend() noexcept
+  {
+    return reverse_iterator(begin());
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator rend() const noexcept
+  {
+    return const_reverse_iterator(begin());
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_iterator cbegin() const noexcept
+  {
+    return begin();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator cend() const noexcept
+  {
+    return end();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator crbegin() const noexcept
+  {
+    return rbegin();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator crend() const noexcept
+  {
+    return rend();
+  }
+
+  // capacity:
+  [[nodiscard]] _CCCL_API constexpr size_type size() const noexcept
+  {
+    return _Size;
+  }
+  [[nodiscard]] _CCCL_API constexpr size_type max_size() const noexcept
+  {
+    return _Size;
+  }
+  [[nodiscard]] _CCCL_API constexpr bool empty() const noexcept
+  {
+    return _Size == 0;
+  }
+
+  // element access:
+  [[nodiscard]] _CCCL_API constexpr reference operator[](size_type __n) noexcept
+  {
+    _CCCL_ASSERT(__n < _Size, "out-of-bounds access in std::array<T, N>");
+    return __elems_[__n];
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reference operator[](size_type __n) const noexcept
+  {
+    _CCCL_ASSERT(__n < _Size, "out-of-bounds access in std::array<T, N>");
+    return __elems_[__n];
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reference at(size_type __n)
+  {
+    if (__n >= _Size)
+    {
+      _CUDA_VSTD::__throw_out_of_range("array::at");
+    }
+    return __elems_[__n];
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_reference at(size_type __n) const
+  {
+    if (__n >= _Size)
+    {
+      _CUDA_VSTD::__throw_out_of_range("array::at");
+    }
+    return __elems_[__n];
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reference front() noexcept
+  {
+    return (*this)[0];
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reference front() const noexcept
+  {
+    return (*this)[0];
+  }
+  [[nodiscard]] _CCCL_API constexpr reference back() noexcept
+  {
+    return (*this)[_Size - 1];
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reference back() const noexcept
+  {
+    return (*this)[_Size - 1];
+  }
+
+  [[nodiscard]] _CCCL_API constexpr value_type* data() noexcept
+  {
+    return __elems_;
+  }
+  [[nodiscard]] _CCCL_API constexpr const value_type* data() const noexcept
+  {
+    return __elems_;
+  }
+};
+
+_CCCL_DIAG_PUSH
+_CCCL_DIAG_SUPPRESS_MSVC(4702) // Unreachable code
+
+template <class _Tp>
+struct _CCCL_TYPE_VISIBILITY_DEFAULT array<_Tp, 0>
+{
+  // types:
+  using __self                 = array;
+  using value_type             = _Tp;
+  using reference              = value_type&;
+  using const_reference        = const value_type&;
+  using iterator               = value_type*;
+  using const_iterator         = const value_type*;
+  using pointer                = value_type*;
+  using const_pointer          = const value_type*;
+  using size_type              = size_t;
+  using difference_type        = ptrdiff_t;
+  using reverse_iterator       = _CUDA_VSTD::reverse_iterator<iterator>;
+  using const_reverse_iterator = _CUDA_VSTD::reverse_iterator<const_iterator>;
+
+  using _CharType = conditional_t<_CCCL_TRAIT(is_const, _Tp), const char, char>;
+
+  struct _ArrayInStructT
+  {
+    _Tp __data_[1];
+  };
+  _CCCL_ALIGNAS_TYPE(_ArrayInStructT) _CharType __elems_[sizeof(_ArrayInStructT)];
+
+  [[nodiscard]] _CCCL_API constexpr value_type* data() noexcept
+  {
+    return nullptr;
+  }
+  [[nodiscard]] _CCCL_API constexpr const value_type* data() const noexcept
+  {
+    return nullptr;
+  }
+
+  // No explicit construct/copy/destroy for aggregate type
+  _CCCL_API constexpr void fill(const value_type&)
+  {
+    static_assert(!_CCCL_TRAIT(is_const, _Tp), "cannot fill zero-sized array of type 'const T'");
+  }
+
+  _CCCL_API constexpr void swap(array&) noexcept
+  {
+    static_assert(!_CCCL_TRAIT(is_const, _Tp), "cannot swap zero-sized array of type 'const T'");
+  }
+
+  // iterators:
+  [[nodiscard]] _CCCL_API constexpr iterator begin() noexcept
+  {
+    return iterator(nullptr);
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator begin() const noexcept
+  {
+    return const_iterator(nullptr);
+  }
+  [[nodiscard]] _CCCL_API constexpr iterator end() noexcept
+  {
+    return iterator(nullptr);
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator end() const noexcept
+  {
+    return const_iterator(nullptr);
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reverse_iterator rbegin() noexcept
+  {
+    return reverse_iterator(end());
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator rbegin() const noexcept
+  {
+    return const_reverse_iterator(end());
+  }
+  [[nodiscard]] _CCCL_API constexpr reverse_iterator rend() noexcept
+  {
+    return reverse_iterator(begin());
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator rend() const noexcept
+  {
+    return const_reverse_iterator(begin());
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_iterator cbegin() const noexcept
+  {
+    return begin();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_iterator cend() const noexcept
+  {
+    return end();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator crbegin() const noexcept
+  {
+    return rbegin();
+  }
+  [[nodiscard]] _CCCL_API constexpr const_reverse_iterator crend() const noexcept
+  {
+    return rend();
+  }
+
+  // capacity:
+  [[nodiscard]] _CCCL_API constexpr size_type size() const noexcept
+  {
+    return 0;
+  }
+  [[nodiscard]] _CCCL_API constexpr size_type max_size() const noexcept
+  {
+    return 0;
+  }
+  [[nodiscard]] [[nodiscard]] _CCCL_API constexpr bool empty() const noexcept
+  {
+    return true;
+  }
+
+  // element access:
+  [[nodiscard]] _CCCL_API constexpr reference operator[](size_type) noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::operator[] on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_reference operator[](size_type) const noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::operator[] on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reference at(size_type)
+  {
+    _CUDA_VSTD::__throw_out_of_range("array<T, 0>::at");
+    _CCCL_UNREACHABLE();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_reference at(size_type) const
+  {
+    _CUDA_VSTD::__throw_out_of_range("array<T, 0>::at");
+    _CCCL_UNREACHABLE();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reference front() noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::front() on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_reference front() const noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::front() on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr reference back() noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::back() on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+
+  [[nodiscard]] _CCCL_API constexpr const_reference back() const noexcept
+  {
+    _CCCL_ASSERT(false, "cannot call array<T, 0>::back() on a zero-sized array");
+    _CCCL_UNREACHABLE();
+    return *data();
+  }
+};
+
+_CCCL_DIAG_POP
+
+_CCCL_TEMPLATE(class _Tp, class... _Args)
+_CCCL_REQUIRES((_CCCL_TRAIT(is_same, _Tp, _Args) && ...))
+_CCCL_HOST_DEVICE array(_Tp, _Args...) -> array<_Tp, 1 + sizeof...(_Args)>;
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator==(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return _CUDA_VSTD::equal(__x.begin(), __x.end(), __y.begin());
+}
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator!=(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return !(__x == __y);
+}
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator<(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return _CUDA_VSTD::lexicographical_compare(__x.begin(), __x.end(), __y.begin(), __y.end());
+}
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator>(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return __y < __x;
+}
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator<=(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return !(__y < __x);
+}
+
+template <class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr bool operator>=(const array<_Tp, _Size>& __x, const array<_Tp, _Size>& __y)
+{
+  return !(__x < __y);
+}
+
+_CCCL_TEMPLATE(class _Tp, size_t _Size)
+_CCCL_REQUIRES((_Size == 0) || __is_swappable<_Tp>::value)
+_CCCL_API constexpr void swap(array<_Tp, _Size>& __x, array<_Tp, _Size>& __y) noexcept(noexcept(__x.swap(__y)))
+{
+  __x.swap(__y);
+}
+
+template <class _Tp, size_t _Size>
+struct _CCCL_TYPE_VISIBILITY_DEFAULT tuple_size<array<_Tp, _Size>> : public integral_constant<size_t, _Size>
+{};
+
+template <size_t _Ip, class _Tp, size_t _Size>
+struct _CCCL_TYPE_VISIBILITY_DEFAULT tuple_element<_Ip, array<_Tp, _Size>>
+{
+  static_assert(_Ip < _Size, "Index out of bounds in std::tuple_element<> (std::array)");
+  using type = _Tp;
+};
+
+template <size_t _Ip, class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr _Tp& get(array<_Tp, _Size>& __a) noexcept
+{
+  static_assert(_Ip < _Size, "Index out of bounds in std::get<> (std::array)");
+  return __a.__elems_[_Ip];
+}
+
+template <size_t _Ip, class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr const _Tp& get(const array<_Tp, _Size>& __a) noexcept
+{
+  static_assert(_Ip < _Size, "Index out of bounds in std::get<> (const std::array)");
+  return __a.__elems_[_Ip];
+}
+
+template <size_t _Ip, class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr _Tp&& get(array<_Tp, _Size>&& __a) noexcept
+{
+  static_assert(_Ip < _Size, "Index out of bounds in std::get<> (std::array &&)");
+  return _CUDA_VSTD::move(__a.__elems_[_Ip]);
+}
+
+template <size_t _Ip, class _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr const _Tp&& get(const array<_Tp, _Size>&& __a) noexcept
+{
+  static_assert(_Ip < _Size, "Index out of bounds in std::get<> (const std::array &&)");
+  return _CUDA_VSTD::move(__a.__elems_[_Ip]);
+}
+
+template <typename _Tp, size_t _Size, size_t... _Index>
+[[nodiscard]] _CCCL_API constexpr array<remove_cv_t<_Tp>, _Size>
+__to_array_lvalue_impl(_Tp (&__arr)[_Size], index_sequence<_Index...>)
+{
+  return {{__arr[_Index]...}};
+}
+
+template <typename _Tp, size_t _Size, size_t... _Index>
+[[nodiscard]] _CCCL_API constexpr array<remove_cv_t<_Tp>, _Size>
+__to_array_rvalue_impl(_Tp (&&__arr)[_Size], index_sequence<_Index...>)
+{
+  return {{_CUDA_VSTD::move(__arr[_Index])...}};
+}
+
+template <typename _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr array<remove_cv_t<_Tp>, _Size>
+to_array(_Tp (&__arr)[_Size]) noexcept(_CCCL_TRAIT(is_nothrow_constructible, _Tp, _Tp&))
+{
+  static_assert(!_CCCL_TRAIT(is_array, _Tp), "[array.creation]/1: to_array does not accept multidimensional arrays.");
+  static_assert(_CCCL_TRAIT(is_constructible, _Tp, _Tp&),
+                "[array.creation]/1: to_array requires copy constructible elements.");
+  return _CUDA_VSTD::__to_array_lvalue_impl(__arr, make_index_sequence<_Size>());
+}
+
+template <typename _Tp, size_t _Size>
+[[nodiscard]] _CCCL_API constexpr array<remove_cv_t<_Tp>, _Size>
+to_array(_Tp (&&__arr)[_Size]) noexcept(_CCCL_TRAIT(is_nothrow_move_constructible, _Tp))
+{
+  static_assert(!_CCCL_TRAIT(is_array, _Tp), "[array.creation]/4: to_array does not accept multidimensional arrays.");
+  static_assert(_CCCL_TRAIT(is_move_constructible, _Tp),
+                "[array.creation]/4: to_array requires move constructible elements.");
+  return _CUDA_VSTD::__to_array_rvalue_impl(_CUDA_VSTD::move(__arr), make_index_sequence<_Size>());
+}
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_ARRAY

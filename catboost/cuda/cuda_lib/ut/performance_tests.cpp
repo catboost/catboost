@@ -170,25 +170,27 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
     }
 
     Y_UNIT_TEST(PureCudaLatencyTest) {
-        SetDevice(0);
-        auto src = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
-        SetDevice(1);
-        auto dst = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
+        if (NCudaLib::NCudaHelpers::GetDeviceCount() > 1) {
+            SetDevice(0);
+            auto src = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
+            SetDevice(1);
+            auto dst = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
 
-        TCudaStream stream = GetStreamsProvider().RequestStream();
-        auto event = CreateCudaEvent();
-        double val = 0;
-        for (ui64 iter = 0; iter < 10000; ++iter) {
-            stream.Synchronize();
-            auto start = std::chrono::high_resolution_clock::now();
-            TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::CopyMemoryAsync(src, dst, (ui64)2, stream);
-            event->Record(stream);
-            event->WaitComplete();
-            auto elapsed = std::chrono::high_resolution_clock::now() - start;
-            val += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() * 1.0 / 1000;
+            TCudaStream stream = GetStreamsProvider().RequestStream();
+            auto event = CreateCudaEvent();
+            double val = 0;
+            for (ui64 iter = 0; iter < 10000; ++iter) {
+                stream.Synchronize();
+                auto start = std::chrono::high_resolution_clock::now();
+                TMemoryCopier<EPtrType::CudaDevice, EPtrType::CudaDevice>::CopyMemoryAsync(src, dst, (ui64)2, stream);
+                event->Record(stream);
+                event->WaitComplete();
+                auto elapsed = std::chrono::high_resolution_clock::now() - start;
+                val += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() * 1.0 / 1000;
+            }
+            val /= 10000;
+            CATBOOST_INFO_LOG << "Latency 0-1 " << val << Endl;
         }
-        val /= 10000;
-        CATBOOST_INFO_LOG << "Latency 0-1 " << val << Endl;
     }
 
     Y_UNIT_TEST(BandwidthAndLatencyDeviceHost) {

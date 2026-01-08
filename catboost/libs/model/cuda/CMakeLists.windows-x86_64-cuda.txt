@@ -20,7 +20,7 @@ target_link_libraries(libs-model-cuda PUBLIC
   yutil
   catboost-libs-model
   cpp-cuda-wrappers
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_cuda_sources(libs-model-cuda PRIVATE
@@ -63,7 +63,7 @@ target_link_libraries(libs-model-cuda.global PUBLIC
   yutil
   catboost-libs-model
   cpp-cuda-wrappers
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(libs-model-cuda.global PRIVATE

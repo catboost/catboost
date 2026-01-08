@@ -82,9 +82,9 @@ TCatboostLogEntry::~TCatboostLogEntry()
 
 class TCatboostLog::TImpl : public TLog {
 public:
-    TImpl(TAutoPtr<TLogBackend> lowPriorityBackend, TAutoPtr<TLogBackend> highPriorityBackend)
-        : LowPriorityLog(lowPriorityBackend)
-        , HighPriorityLog(highPriorityBackend)
+    TImpl(THolder<TLogBackend> lowPriorityBackend, THolder<TLogBackend> highPriorityBackend)
+        : LowPriorityLog(std::move(lowPriorityBackend))
+        , HighPriorityLog(std::move(highPriorityBackend))
     {}
 
     void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {

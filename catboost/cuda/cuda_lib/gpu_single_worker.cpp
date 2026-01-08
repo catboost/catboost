@@ -62,19 +62,19 @@ namespace NCudaLib {
             } else if (!isEmpty) {
                 THolder<ICommand> task = InputTaskQueue.Dequeue();
 
-                if (task->GetCommandType() == EComandType::SerializedCommand) {
+                if (task->GetCommandType() == ECommandType::SerializedCommand) {
                     task = reinterpret_cast<TSerializedCommand*>(task.Get())->Deserialize();
                 }
 
                 switch (task->GetCommandType()) {
-                    case EComandType::Reset: {
+                    case ECommandType::Reset: {
                         TResetCommand* init = dynamic_cast<TResetCommand*>(task.Get());
                         WaitSubmitAndSync();
                         Reset(*init);
                         break;
                     }
                     //could be run async
-                    case EComandType::StreamKernel: {
+                    case ECommandType::StreamKernel: {
                         THolder<IGpuKernelTask> kernelTask(reinterpret_cast<IGpuKernelTask*>(task.Release()));
                         const ui32 streamId = kernelTask->GetStreamId();
                         if (streamId == 0) {
@@ -93,22 +93,22 @@ namespace NCudaLib {
                         break;
                     }
                     //synchronized on memory defragmentation
-                    case EComandType::MemoryAllocation: {
+                    case ECommandType::MemoryAllocation: {
                         IAllocateMemoryTask* memoryTask = reinterpret_cast<IAllocateMemoryTask*>(task.Get());
                         AllocateMemory(*memoryTask);
                         break;
                     }
-                    case EComandType::MemoryDeallocation: {
+                    case ECommandType::MemoryDeallocation: {
                         THolder<IFreeMemoryTask> freeMemoryTask(reinterpret_cast<IFreeMemoryTask*>(task.Release()));
                         ObjectsToFree.push_back(std::move(freeMemoryTask));
                         WaitSubmitAndSync();
                         break;
                     }
-                    case EComandType::WaitSubmit: {
+                    case ECommandType::WaitSubmit: {
                         WaitAllTaskToSubmit();
                         break;
                     }
-                    case EComandType::HostTask: {
+                    case ECommandType::HostTask: {
                         auto taskPtr = reinterpret_cast<IHostTask*>(task.Get());
                         auto type = taskPtr->GetHostTaskType();
                         if (IsBlockingHostTask(type)) {
@@ -117,12 +117,12 @@ namespace NCudaLib {
                         taskPtr->Exec(*this);
                         break;
                     }
-                    case EComandType::RequestStream: {
+                    case ECommandType::RequestStream: {
                         const ui32 streamId = RequestStreamImpl();
                         reinterpret_cast<IRequestStreamCommand*>(task.Get())->SetStreamId(streamId);
                         break;
                     }
-                    case EComandType::FreeStream: {
+                    case ECommandType::FreeStream: {
                         const auto& streams = reinterpret_cast<TFreeStreamCommand*>(task.Get())->GetStreams();
                         WaitAllTaskToSubmit();
                         for (const auto& stream : streams) {
@@ -131,12 +131,12 @@ namespace NCudaLib {
                         }
                         break;
                     }
-                    case EComandType::StopWorker: {
+                    case ECommandType::StopWorker: {
                         WaitSubmitAndSync();
                         shouldStop = true;
                         break;
                     }
-                    case EComandType::SerializedCommand: {
+                    case ECommandType::SerializedCommand: {
                         Y_UNREACHABLE();
                     }
                     default: {
@@ -152,7 +152,7 @@ namespace NCudaLib {
     }
 
     void TGpuOneDeviceWorker::Run() {
-        AtomicSet(Stopped, 0);
+        Stopped = false;
         SetDevice(LocalDeviceId);
 #if defined(WITH_HWLOC)
         auto& localityHelper = HardwareLocalityHelper();
@@ -176,7 +176,7 @@ namespace NCudaLib {
         FreeStreams.clear();
         ObjectsToFree.clear();
 
-        AtomicSet(Stopped, 1);
+        Stopped = true;
     }
 
 }

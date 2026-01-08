@@ -37,7 +37,7 @@ private:
     using TValue = typename TTraits::TValue;
 
 public:
-    inline TMurmurHash2A(TValue seed = 0)
+    inline explicit TMurmurHash2A(TValue seed = 0)
         : Hash(seed)
     {
     }

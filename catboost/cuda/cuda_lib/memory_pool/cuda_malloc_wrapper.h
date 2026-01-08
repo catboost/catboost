@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
+#include <library/cpp/cuda/exception/exception.h>
 
 namespace NCudaLib {
     //use it only for cuda-memcheck runs, otherwise our custom solution should be faster

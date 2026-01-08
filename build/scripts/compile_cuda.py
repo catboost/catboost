@@ -72,6 +72,8 @@ def main():
         # nvcc concatenates the sources for clang, and clang reports unused
         # things from .h files as if they they were defined in a .cpp file.
         cflags += ['-Wno-unused-function', '-Wno-unused-parameter']
+        # nvcc format source files and give results to clang
+        cflags += ['-Wno-deprecated-literal-operator']
 
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')

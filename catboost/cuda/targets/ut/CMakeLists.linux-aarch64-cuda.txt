@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-targets-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
@@ -84,7 +85,7 @@ set_yunittest_property(
   catboost-cuda-targets-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(

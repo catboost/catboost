@@ -23,6 +23,7 @@ object TestHelpers {
   def getOrCreateSparkSession(appName: String) : SparkSession = {
     SparkSession.builder()
         .master("local[4]")
+        .config("spark.driver.host", "localhost")
         .appName(appName)
         .getOrCreate()
   }

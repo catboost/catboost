@@ -104,4 +104,4 @@ Y_UNIT_TEST_SUITE(Json2Yson) {
             }
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(Json2Yson)

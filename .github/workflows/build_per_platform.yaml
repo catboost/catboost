@@ -49,7 +49,9 @@ jobs:
     steps:
       - name: Get short SHA
         shell: pwsh
-        run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
       - if: inputs.os == 'linux'
         name: Checkout actions from catboost
@@ -76,21 +78,68 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          fetch-depth: 0
+
+      # Python 3.8 is not included in 'macos-14' and 'windows-2022' images.
+      - if: inputs.os != 'linux'
+        name: Install python3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+          update-environment: false
+
+      # Python 3.9 and 3.10 are not included in 'macos-14' image.
       - if: inputs.os == 'macos'
-        name: Get python_versions_macos_arm64 from cache
+        name: Install python 3.9 and 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.9
+            3.10
+          update-environment: false
+
+      # Python 3.14 is not included in standard Windows images yet
+      - if: inputs.os == 'windows'
+        name: Install python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          update-environment: false
+
+      - if: inputs.os == 'macos'
+        name: Get python_versions_macos_x86_64 from cache
         uses: actions/cache/restore@v4
         with:
           enableCrossOsArchive: true
           fail-on-cache-miss: true
-          path: python_versions_macos_arm64.zip
-          key: python_versions_macos_arm64-${{ github.run_id }} # Can use time based key as well
+          path: python_versions_macos_x86_64.zip
+          key: python_versions_macos_x86_64-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            python_versions_macos_arm64
+            python_versions_macos_x86_64
+
+      - if: inputs.os == 'macos'
+        name: Setup JDK 8 on macOS
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '8'
+          java-package: jdk
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/jvm-packages/common/pom.xml
+            catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
+            catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
+
 
       - if: inputs.os == 'macos'
         name: Env setup on macOS
         run: |
-          python3 -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
+          python3 -m venv python_main_build_env
+          python_main_build_env/bin/python -m pip install -U conan==2.15.1 setuptools wheel jupyterlab==3.0.6 build
 
           brew update
           brew install ninja
@@ -99,53 +148,43 @@ jobs:
 
           export CMAKE_BUILD_ENV_ROOT=${{ github.workspace }}/cmake_build_env_root
 
+          mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+
+          # JDK
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+          mkdir -p Library/Java/JavaVirtualMachines/jdk-8/Contents
+          cd Library/Java/JavaVirtualMachines/jdk-8/Contents
+          ln -s $JAVA_HOME_8_ARM64 ./Home
+
+          # Python
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+          mkdir -p Python
+          cd Python
+
+          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13 3.14
+          do
+              PYTHON_BIN_PATH=$(ls -d ${RUNNER_TOOL_CACHE}/Python/${PY_VER}.* | sort -V | tail -n 1)/arm64/bin/python
+
+              # the venv name is just ${PY_VER}
+              ${PYTHON_BIN_PATH} -m venv ${PY_VER}
+              ./${PY_VER}/bin/python -m pip install --upgrade pip setuptools build wheel numpy cython==3.0.12 conan==2.15.1 jupyterlab==3.0.6 cmake==3.24.0
+          done
+
           mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
 
           # JDK
           cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
           mkdir -p Library/Java/JavaVirtualMachines
           cd Library/Java/JavaVirtualMachines
-          ln -s /Library/Java/JavaVirtualMachines/Temurin-Hotspot-8.jdk ./jdk-8
+          wget https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u472-b08/OpenJDK8U-jdk_x64_mac_hotspot_8u472b08.tar.gz
+          tar xzvf OpenJDK8U-jdk_x64_mac_hotspot_8u472b08.tar.gz
+          ln -s ./jdk8u472-b08 ./jdk-8
 
           # Python
           cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
           mkdir -p Python
           cd Python
-          ln -s $RUNNER_TOOL_CACHE/Python/3.8.*/x64 ./3.8
-          ln -s $RUNNER_TOOL_CACHE/Python/3.9.*/x64 ./3.9
-          ln -s $RUNNER_TOOL_CACHE/Python/3.10.*/x64 ./3.10
-          ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
-          ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
-          ln -s $RUNNER_TOOL_CACHE/Python/3.13.*/x64 ./3.13
-
-          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13
-          do
-              $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
-          done
-
-          mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-arm64
-
-          # JDK
-          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
-          mkdir -p Library/Java/JavaVirtualMachines
-          cd Library/Java/JavaVirtualMachines
-          wget https://cdn.azul.com/zulu/bin/zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64.tar.gz
-          tar xzvf zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64.tar.gz
-          ln -s ./zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64/zulu-8.jdk ./jdk-8
-
-          # Python
-          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
-          mkdir -p Python
-          cd Python
-          unzip ${{ github.workspace }}/python_versions_macos_arm64
-
-      # Python 3.8 is no longer included in the standard 'windows-2022' image.
-      - if: inputs.runs-on_value == 'windows-2022'
-        name: Install python3.8 on Windows
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-          update-environment: false
+          unzip ${{ github.workspace }}/python_versions_macos_x86_64
 
       - if: inputs.os == 'windows'
         name: Install CUDA on Windows
@@ -157,8 +196,16 @@ jobs:
           sub-packages: '["nvcc","cudart","thrust"]'
 
       - if: inputs.os == 'windows'
+        name: Install MSVC tools 14.40
+        uses: thepwrtank18/install-vs-components@v1.0.0
+        with:
+          components: Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64
+
+      - if: inputs.os == 'windows'
         name: Env setup on Windows
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           python -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
 
           # version 1.13.0 is broken: https://github.com/ninja-build/ninja/issues/2616
@@ -184,22 +231,17 @@ jobs:
           New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64"
           New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\x64"
           New-Item -Path .\3.13 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64"
+          New-Item -Path .\3.14 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.14.*\x64"
 
-          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13') {
+          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13','3.14') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
           }
 
           # CUDA
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
-          New-Item -Path CUDA -ItemType Directory
-          New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+          $CUDA_PATH_WO_DRIVE_AND_ROOT = (Split-Path "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -NoQualifier).TrimStart('\/')
+          New-Item -Path $CUDA_PATH_WO_DRIVE_AND_ROOT -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}" -Force
 
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: catboost
-          fetch-depth: 0
 
       - name: Update CMake build cache on every commit
         uses: actions/cache@v4
@@ -212,6 +254,8 @@ jobs:
       - name: Prepare CMake build cache
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           if (Test-Path cmake_build_cache) {
             if (Test-Path cmake_build_cache/git_commit_sha) {
               # Set timestamps such as that only files changed after the commit in cache are newer than its files
@@ -231,6 +275,8 @@ jobs:
       - name: Fixup python package version
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           Set-Location -Path catboost
           python ./ci/fixup_python_version.py
 
@@ -239,15 +285,27 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
+          mkdir -p ${{ github.workspace }}/tmp
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export PATH=\$HOME/.local/bin:\$PATH && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root \$HOME/ && rsync -rptl /opt/.conan2 \$HOME/ && cd /src/catboost && ./ci/build_all.py  --build-test-tools --target-platforms ${{ inputs.target_platform }}"
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/tmp:/tmp -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export PATH=\$HOME/.local/bin:\$PATH && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root \$HOME/ && rsync -rptl /opt/.conan2 \$HOME/ && cd /src/catboost && ./ci/build_all.py  --build-test-tools --target-platforms ${{ inputs.target_platform }}"
 
       - if: inputs.os != 'linux'
         name: Build all without container
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+
           $Env:CMAKE_BUILD_ENV_ROOT = Join-Path ${{ github.workspace }} cmake_build_env_root
           $Env:CMAKE_BUILD_CACHE_DIR = Join-Path ${{ github.workspace }} cmake_build_cache
+
+          # use build venv if present
+          if (Test-Path python_main_build_env) {
+            # 'source ...activate' won't work in PowerShell
+            $Env:VIRTUAL_ENV = Join-Path ${{ github.workspace }} python_main_build_env
+            $Env:PATH = "$Env:VIRTUAL_ENV/bin:$Env:PATH"
+            Remove-Item Env:PYTHONHOME -ErrorAction SilentlyContinue
+          }
+
           Set-Location -Path catboost
           python ./ci/build_all.py --build-test-tools --target-platforms ${{ inputs.target_platform }}
 

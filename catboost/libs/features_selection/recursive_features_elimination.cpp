@@ -827,7 +827,7 @@ namespace NCB {
         {
             CATBOOST_NOTICE_LOG << "Train final model" << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-final");
-            const TFullModel finalModel = trainModel(/*isFinal*/ featuresSelectOptions.TrainFinalModel.Get());
+            TFullModel finalModel = trainModel(/*isFinal*/ featuresSelectOptions.TrainFinalModel.Get());
             const double lossValue = calcLoss(applyModel(finalModel), finalModel);
 
             lossGraphBuilders.ForFeatures.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
@@ -840,7 +840,7 @@ namespace NCB {
 
             if (featuresSelectOptions.TrainFinalModel.Get()) {
                 if (dstModel != nullptr) {
-                    *dstModel = finalModel;
+                    *dstModel = std::move(finalModel);
                 } else {
                     CATBOOST_NOTICE_LOG << "Save final model" << Endl;
                     ExportFullModel(

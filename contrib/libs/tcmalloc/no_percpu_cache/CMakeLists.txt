@@ -16,7 +16,7 @@ add_library(libs-tcmalloc-no_percpu_cache)
 
 
 target_compile_options(libs-tcmalloc-no_percpu_cache PRIVATE
-  -DTCMALLOC_256K_PAGES
+  -DTCMALLOC_INTERNAL_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
@@ -37,12 +37,20 @@ target_sources(libs-tcmalloc-no_percpu_cache PRIVATE
 )
 
 
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/no_percpu_cache/aligned_alloc.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
 add_global_library_for(libs-tcmalloc-no_percpu_cache.global
   libs-tcmalloc-no_percpu_cache)
 
 
 target_compile_options(libs-tcmalloc-no_percpu_cache.global PRIVATE
-  -DTCMALLOC_256K_PAGES
+  -DTCMALLOC_INTERNAL_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )

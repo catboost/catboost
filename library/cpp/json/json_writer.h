@@ -193,4 +193,4 @@ namespace NJson {
     TString WriteJson(const TJsonValue*, bool formatOutput = true, bool sortkeys = false, bool validateUtf8 = false);
     TString WriteJson(const TJsonValue&, bool formatOutput = true, bool sortkeys = false, bool validateUtf8 = false);
     void WriteJson(IOutputStream*, const TJsonValue*, const TJsonWriterConfig& config);
-}
+} // namespace NJson

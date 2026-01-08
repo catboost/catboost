@@ -117,6 +117,8 @@ class CatBoostRanker(iterations=None,
 
 Implementation of the scikit-learn API for CatBoost ranking.
 
+{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
+
 ## {{ dl--parameters }} {#parameters}
 
 {% include [python__parameters__metadata](../_includes/work_src/reusage-python/python__parameters_metadata.md) %}

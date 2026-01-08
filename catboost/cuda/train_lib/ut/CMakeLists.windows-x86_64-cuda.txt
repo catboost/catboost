@@ -22,6 +22,7 @@ target_include_directories(catboost-cuda-train_lib-ut PRIVATE
 target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-cuda-train_lib
@@ -66,7 +67,7 @@ set_yunittest_property(
   catboost-cuda-train_lib-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

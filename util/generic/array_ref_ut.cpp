@@ -24,6 +24,46 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(constRef[0], 100);
     }
 
+    // The following commented code should cause compilation errors
+    /*
+        struct TBase {
+            int X;
+        };
+
+        struct TDerived : public TBase {
+            int Y;
+        };
+
+        Y_UNIT_TEST(TestConstructorFromPtrSizeNonCompile) {
+            TDerived x[] = {{{10}, 1}, {{20}, 2}, {{30}, 3}};
+            TArrayRef<TBase> ref(x, 3);
+
+            TArrayRef<const TBase> constRef(x, 3);
+        }
+
+        Y_UNIT_TEST(TestConstructorFromPtrsNonCompile) {
+            TDerived x[] = {{{10}, 1}, {{20}, 2}, {{30}, 3}};
+            TArrayRef<TBase> ref(std::begin(x), std::end(x));
+
+            TArrayRef<const TBase> constRef(std::begin(x), std::end(x));
+        }
+
+
+        Y_UNIT_TEST(TestConstructorFromUnrelatedPtrSizeNonCompile) {
+            float x[] = {10.0f, 20.0f, 30.0f};
+            TArrayRef<i32> ref(x, std::size(x));
+
+            TArrayRef<const i32> constRef(x, std::size(x));
+        }
+
+        Y_UNIT_TEST(TestConstructorFromUnrelatedPtrsNonCompile) {
+            float x[] = {10.0f, 20.0f, 30.0f};
+            TArrayRef<i32> ref(std::begin(x), std::end(x));
+
+            TArrayRef<const i32> constRef(std::begin(x), std::end(x));
+        }
+    */
+
     Y_UNIT_TEST(TestAccessingElements) {
         int a[]{1, 2, 3};
         TArrayRef<int> ref(a);

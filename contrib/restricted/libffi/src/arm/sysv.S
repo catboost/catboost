@@ -120,11 +120,9 @@
 #endif
 
 
-#ifndef __clang__
 	/* We require interworking on LDM, which implies ARMv5T,
 	   which implies the existance of BLX.  */
  	.arch	armv5t
-#endif
 
 	/* Note that we use STC and LDC to encode VFP instructions,
 	   so that we do not need ".fpu vfp", nor get that added to
@@ -142,13 +140,8 @@ ARM_FUNC_START(ffi_call_VFP)
 
 	cmp	r3, #3			@ load only d0 if possible
 	ite	le
-#ifdef __clang__
-	vldrle d0, [r0]
-	vldmgt r0, {d0-d7}
-#else
 	ldcle	p11, cr0, [r0]		@ vldrle d0, [r0]
 	ldcgt	p11, cr0, [r0], {16}	@ vldmgt r0, {d0-d7}
-#endif
 	add	r0, r0, #64		@ discard the vfp register args
 	/* FALLTHRU */
 ARM_FUNC_END(ffi_call_VFP)
@@ -193,25 +186,13 @@ ARM_FUNC_START(ffi_call_SYSV)
 #endif
 0:
 E(ARM_TYPE_VFP_S)
-#ifdef __clang__
-	vstr s0, [r2]
-#else
 	stc	p10, cr0, [r2]		@ vstr s0, [r2]
-#endif
 	pop	{fp,pc}
 E(ARM_TYPE_VFP_D)
-#ifdef __clang__
-	vstr d0, [r2]
-#else
 	stc	p11, cr0, [r2]		@ vstr d0, [r2]
-#endif
 	pop	{fp,pc}
 E(ARM_TYPE_VFP_N)
-#ifdef __clang__
-	vstm r2, {d0-d3}
-#else
 	stc	p11, cr0, [r2], {8}	@ vstm r2, {d0-d3}
-#endif
 	pop	{fp,pc}
 E(ARM_TYPE_INT64)
 	str	r1, [r2, #4]
@@ -320,11 +301,7 @@ ARM_FUNC_START(ffi_closure_VFP)
 	add	ip, sp, #16
 	sub	sp, sp, #64+32			@ allocate frame
 	cfi_adjust_cfa_offset(64+32)
-#ifdef __clang__
-	vstm sp, {d0-d7}
-#else
 	stc	p11, cr0, [sp], {16}		@ vstm sp, {d0-d7}
-#endif
 	stmdb	sp!, {ip,lr}
 
 	/* See above.  */
@@ -358,25 +335,13 @@ ARM_FUNC_START_LOCAL(ffi_closure_ret)
 	cfi_rel_offset(lr, 4)
 0:
 E(ARM_TYPE_VFP_S)
-#ifdef __clang__
-	vldr s0, [r2]
-#else
 	ldc	p10, cr0, [r2]			@ vldr s0, [r2]
-#endif
 	b	call_epilogue
 E(ARM_TYPE_VFP_D)
-#ifdef __clang__
-	vldr d0, [r2]
-#else
 	ldc	p11, cr0, [r2]			@ vldr d0, [r2]
-#endif
 	b	call_epilogue
 E(ARM_TYPE_VFP_N)
-#ifdef __clang__
-	vldm r2, {d0-d3}
-#else
 	ldc	p11, cr0, [r2], {8}		@ vldm r2, {d0-d3}
-#endif
 	b	call_epilogue
 E(ARM_TYPE_INT64)
 	ldr	r1, [r2, #4]

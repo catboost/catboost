@@ -14,6 +14,7 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>

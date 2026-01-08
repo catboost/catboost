@@ -459,7 +459,7 @@ namespace NCudaLib {
                                             TCudaSingleDevice::TSingleBuffer<TC, ToType>& to, ui64 writeOffset, ui64 writeSize) {
             if (writeSize) {
                 Submitted = false;
-                static_assert(sizeof(T) == sizeof(TC), "Error types should have equal size");
+                static_assert(sizeof(T) == sizeof(TC), "The types should be of equal size");
                 TTask task;
                 task.SourceDevice = from.Owner;
                 task.DestDevice = to.Owner;

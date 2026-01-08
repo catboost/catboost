@@ -1,0 +1,50 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the CUDA Toolkit, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_COMPLEX
+#define _CUDA_STD_COMPLEX
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__complex/arg.h>
+#include <cuda/std/__complex/complex.h>
+#include <cuda/std/__complex/exponential_functions.h>
+#include <cuda/std/__complex/hyperbolic_functions.h>
+#include <cuda/std/__complex/inverse_hyperbolic_functions.h>
+#include <cuda/std/__complex/inverse_trigonometric_functions.h>
+#include <cuda/std/__complex/literals.h>
+#include <cuda/std/__complex/logarithms.h>
+#include <cuda/std/__complex/math.h>
+#include <cuda/std/__complex/nvbf16.h>
+#include <cuda/std/__complex/nvfp16.h>
+#include <cuda/std/__complex/roots.h>
+#include <cuda/std/__complex/trigonometric_functions.h>
+#include <cuda/std/__complex/tuple.h>
+#include <cuda/std/__complex/vector_support.h>
+#include <cuda/std/version>
+
+#endif // _CUDA_STD_COMPLEX

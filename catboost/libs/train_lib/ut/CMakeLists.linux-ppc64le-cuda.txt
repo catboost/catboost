@@ -23,6 +23,7 @@ target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   catboost-libs-train_lib
   catboost-libs-helpers

@@ -40,7 +40,7 @@ target_link_libraries(catboost-cuda-gpu_data PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-gpu_data PRIVATE
@@ -122,7 +122,7 @@ target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-gpu_data.global PRIVATE

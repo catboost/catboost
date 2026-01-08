@@ -1,9 +1,11 @@
 #include "expression.h"
 
 #include <util/generic/deque.h>
+#include <util/generic/stack.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ymath.h>
+#include <util/string/strip.h>
 #include <util/system/unaligned_mem.h>
 
 #include <array>
@@ -524,14 +526,6 @@ size_t TExpressionImpl::FindOperation(const TStringBuf& exp, std::array<TStringB
     return numArgs;
 }
 
-static bool Trim(TStringBuf& str) {
-    size_t b = 0, e = 0;
-    for (e = str.size(); e > 0 && str[e - 1] == ' '; --e) {}
-    for (b = 0; b <= e && (b == str.size() || str[b] == ' '); ++b) {}
-    str = str.substr(b, e - b);
-    return e != b;
-}
-
 static size_t InsertOrUpdate(TVector<TString>& values, const TString& v) {
     for (size_t i = 0, size = values.size(); i < size; ++i) {
         if (values[i] == v) {
@@ -542,83 +536,177 @@ static size_t InsertOrUpdate(TVector<TString>& values, const TString& v) {
     return values.size() - 1;
 }
 
+struct TFrame {
+    TFrame() = delete;
+
+    TFrame(const TStringBuf str, const size_t order)
+        : Str(str)
+        , Order(order)
+    {}
+
+    TStringBuf Str;
+    size_t Order;
+    bool Processed = false;
+    TVector<TStringBuf> Args = {};
+    EOperation Operation = EOperation();
+    size_t NumArgs = 0;
+    size_t ArgIndex = 0;
+    TVector<size_t> ArgResults = {};
+};
+
 size_t TExpressionImpl::BuildExpression(TStringBuf str) {
-    Y_ENSURE(Trim(str), "CalcExpression error: empty string. ");
-    std::array<TStringBuf, MaxOperands> args;
-    EOperation oper;
-    size_t order = Operations.size();
-    size_t numArgs = FindOperation(str, args, oper);
-    if (numArgs) {
-        Operations.push_back(TOperator(oper));
-        for (size_t i = 0; i < numArgs; ++i) {
-            Operations[order].Input.push_back(BuildExpression(args[i]));
+    TStack<TFrame> stk;
+    stk.push({str, Operations.size()});
+
+    size_t result = 0;
+
+    while (!stk.empty()) {
+        auto& frame = stk.top();
+
+        if (!frame.Processed) {
+            TStringBuf s = StripString(frame.Str);
+            frame.Order = Operations.size();
+            frame.Processed = true;
+
+            std::array<TStringBuf, MaxOperands> args;
+            size_t numArgs = FindOperation(s, args, frame.Operation);
+            if (numArgs) {
+                Operations.push_back(TOperator(frame.Operation));
+                frame.NumArgs = numArgs;
+                frame.Args = TVector<TStringBuf>(args.begin(), args.begin() + numArgs);
+                frame.ArgIndex = 0;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() == 0) {
+                Operations.push_back(TOperator(O_TOKEN));
+                Operations[frame.Order].Input.push_back(InsertOrUpdate(Tokens, ToString(s)));
+                result = frame.Order;
+                stk.pop();
+                continue;
+            } else if (s[0] == '(') {
+                Y_ENSURE(s.back() == ')', "CalcExpression error: missing closing bracket.");
+                stk.emplace(s.substr(1, s.size() - 2), Operations.size());
+                continue;
+            } else if (s[0] == '"') {
+                Y_ENSURE(s.back() == '"' && s.size() >= 2, "CalcExpression error: missing closing quote.");
+                Operations.push_back(TOperator(O_CONST));
+                Operations[frame.Order].Input.push_back(InsertOrUpdate(Consts, ToString(s.substr(1, s.size() - 2))));
+                result = frame.Order;
+                stk.pop();
+                continue;
+            } else if (s[0] == '\'') {
+                Y_ENSURE(s.back() == '\'' && s.size() >= 2, "CalcExpression error: missing closing singular quote.");
+                Operations.push_back(TOperator(O_TOKEN));
+                Operations[frame.Order].Input.push_back(InsertOrUpdate(Tokens, ToString(s.substr(1, s.size() - 2))));
+                result = frame.Order;
+                stk.pop();
+                continue;
+            } else if (s[0] == '-') {
+                Operations.push_back(TOperator(O_MINUS));
+                frame.Args = {s.substr(1)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s[0] == '!') {
+                Operations.push_back(TOperator(O_NOT));
+                frame.Args = {s.substr(1)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s[0] == '~') {
+                Operations.push_back(TOperator(O_IS_TOKEN));
+                if (s.back() == '\'' && s[1] == '\'') {
+                    Operations[frame.Order].Input.push_back(InsertOrUpdate(Tokens, ToString(s.substr(2, s.size() - 3))));
+                } else {
+                    Operations[frame.Order].Input.push_back(InsertOrUpdate(Tokens, ToString(s.substr(1))));
+                }
+                result = frame.Order;
+                stk.pop();
+                continue;
+            } else if (s.size() > 4 && s.substr(0, 5) == "#EXP#") {
+                Operations.push_back(TOperator(O_EXP));
+                frame.Args = {s.substr(5)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() > 4 && s.substr(0, 5) == "#LOG#") {
+                Operations.push_back(TOperator(O_LOG));
+                frame.Args = {s.substr(5)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() > 4 && s.substr(0, 5) == "#SQR#") {
+                Operations.push_back(TOperator(O_SQR));
+                frame.Args = {s.substr(5)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() > 5 && s.substr(0, 6) == "#SQRT#") {
+                Operations.push_back(TOperator(O_SQRT));
+                frame.Args = {s.substr(6)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() > 8 && s.substr(0, 9) == "#SIGMOID#") {
+                Operations.push_back(TOperator(O_SIGMOID));
+                frame.Args = {s.substr(9)};
+                frame.ArgIndex = 0;
+                frame.NumArgs = 1;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else if (s.size() > 21 && s.substr(0, 22) == "#HISTOGRAM_PERCENTILE#") {
+                Operations.push_back(TOperator(O_HISTOGRAM_PERCENTILE));
+                TVector<TStringBuf> splitByComma = StringSplitter(s.substr(22)).Split(',').ToList<TStringBuf>();
+                frame.Args.clear();
+                frame.Args.push_back(splitByComma[0]);
+                if (splitByComma.size() > 1) {
+                    frame.Args.push_back(s.substr(23 + splitByComma[0].size()));
+                }
+                frame.NumArgs = frame.Args.size();
+                frame.ArgIndex = 0;
+                frame.ArgResults.clear();
+                stk.emplace(frame.Args[0], Operations.size());
+                continue;
+            } else {
+                Operations.push_back(TOperator(O_TOKEN));
+                Operations[frame.Order].Input.push_back(InsertOrUpdate(Tokens, ToString(s)));
+                result = frame.Order;
+                stk.pop();
+                continue;
+            }
+        } else {
+            if (!frame.Args.empty() && frame.ArgIndex < frame.NumArgs) {
+                frame.ArgResults.push_back(result);
+                frame.ArgIndex++;
+                if (frame.ArgIndex < frame.NumArgs) {
+                    stk.emplace(frame.Args[frame.ArgIndex], Operations.size());
+                    continue;
+                } else {
+                    for (auto v : frame.ArgResults) {
+                        Operations[frame.Order].Input.push_back(v);
+                    }
+                }
+            }
+            result = frame.Order;
+            stk.pop();
         }
-        return order;
-    } else if (str.size() == 0) {
-        Operations.push_back(TOperator(O_TOKEN));
-        Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str)));
-        return order;
-    } else if (str[0] == '(') {
-        Y_ENSURE(str.back() == ')', "CalcExpression error: missing closing bracket. ");
-        return BuildExpression(str.substr(1, str.size() - 2));
-    } else if (str[0] == '"') {
-        Y_ENSURE(str.back() == '"' && str.size() >= 2, "CalcExpression error: missing closing quote. ");
-        Operations.push_back(TOperator(O_CONST));
-        Operations[order].Input.push_back(InsertOrUpdate(Consts, ToString(str.substr(1, str.size() - 2))));
-        return order;
-    } else if (str[0] == '\'') {
-        Y_ENSURE(str.back() == '\'' && str.size() >= 2, "CalcExpression error: missing closing singular quote. ");
-        Operations.push_back(TOperator(O_TOKEN));
-        Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str.substr(1, str.size() - 2))));
-        return order;
-    } else if (str[0] == '-') {
-        Operations.push_back(TOperator(O_MINUS));
-        Operations[order].Input.push_back(BuildExpression(str.substr(1)));
-        return order;
-    } else if (str[0] == '!') {
-        Operations.push_back(TOperator(O_NOT));
-        Operations[order].Input.push_back(BuildExpression(str.substr(1)));
-        return order;
-    } else if (str[0] == '~') {
-        Operations.push_back(TOperator(O_IS_TOKEN));
-        if (str.back() == '\'' && str[1] == '\'')
-            Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str.substr(2, str.size() - 3))));
-        else
-            Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str.substr(1))));
-        return order;
-    } else if (str.size() > 4 && str.substr(0, 5) == "#EXP#") {
-        Operations.push_back(TOperator(O_EXP));
-        Operations[order].Input.push_back(BuildExpression(str.substr(5)));
-        return order;
-    } else if (str.size() > 4 && str.substr(0, 5) == "#LOG#") {
-        Operations.push_back(TOperator(O_LOG));
-        Operations[order].Input.push_back(BuildExpression(str.substr(5)));
-        return order;
-    } else if (str.size() > 4 && str.substr(0, 5) == "#SQR#") {
-        Operations.push_back(TOperator(O_SQR));
-        Operations[order].Input.push_back(BuildExpression(str.substr(5)));
-        return order;
-    } else if (str.size() > 5 && str.substr(0, 6) == "#SQRT#") {
-        Operations.push_back(TOperator(O_SQRT));
-        Operations[order].Input.push_back(BuildExpression(str.substr(6)));
-        return order;
-    } else if (str.size() > 8 && str.substr(0, 9) == "#SIGMOID#") {
-        Operations.push_back(TOperator(O_SIGMOID));
-        Operations[order].Input.push_back(BuildExpression(str.substr(9)));
-        return order;
-    } else if (str.size() > 21 && str.substr(0, 22) == "#HISTOGRAM_PERCENTILE#") {
-        Operations.push_back(TOperator(O_HISTOGRAM_PERCENTILE));
-        TVector<TStringBuf> splitByComma = StringSplitter(str.substr(22)).Split(',').ToList<TStringBuf>();
-        Operations[order].Input.push_back(BuildExpression(splitByComma[0]));
-        if (splitByComma.size() > 1) {
-            Operations[order].Input.push_back(BuildExpression(str.substr(23 + splitByComma[0].size()))); // take part after comma
-        }
-        return order;
-    } else {
-        Operations.push_back(TOperator(O_TOKEN));
-        Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str)));
-        return order;
     }
+
+    return result;
 }
 
 TExpressionImpl::TExpressionImpl(TStringBuf expr) {

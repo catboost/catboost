@@ -266,7 +266,6 @@ cdef extern from "catboost/libs/logging/logging.h":
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
     cdef ui32 CalcCatFeatureHash(TStringBuf feature) noexcept
-    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) noexcept
 
 
 cdef class Py_FloatSequencePtr:

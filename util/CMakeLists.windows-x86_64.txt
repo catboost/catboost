@@ -303,6 +303,22 @@ target_sources(yutil PRIVATE
 )
 
 
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/util/folder/lstat_win.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/util/folder/dirent_win.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
 target_joined_source(yutil
   all_datetime.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/base.cpp

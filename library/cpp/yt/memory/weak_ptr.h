@@ -55,8 +55,13 @@ public:
 
     //! Copy constructor.
     TWeakPtr(const TWeakPtr& other) noexcept
-        : TWeakPtr(other.T_)
-    { }
+        : T_(other.T_)
+#if defined(_tsan_enabled_)
+        , RefCounter_(other.RefCounter_)
+#endif
+    {
+        AcquireRef();
+    }
 
     //! Copy constructor with an upcast.
     template <class U, class = typename std::enable_if_t<std::is_convertible_v<U*, T*>>>

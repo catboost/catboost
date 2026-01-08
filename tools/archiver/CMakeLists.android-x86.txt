@@ -18,6 +18,7 @@ add_executable(archiver)
 target_link_libraries(archiver PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-archive
   cpp-digest-md5
   cpp-getopt-small

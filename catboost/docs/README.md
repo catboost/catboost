@@ -26,4 +26,4 @@ Before creating a pull request, build the docs locally for checking your changes
 
 ## Licenses
 
-© YANDEX LLC, 2017-2025. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+© YANDEX LLC, 2017-2026. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.

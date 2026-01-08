@@ -23,6 +23,7 @@ target_link_libraries(catboostmodel_static PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   model_interface-static-lib
 )
 

@@ -62,7 +62,6 @@ def _is_binary():
 
 
 def _is_relaxed_runtime_allowed():
-    global _relaxed_runtime_allowed
     if _relaxed_runtime_allowed:
         return True
     return not _is_binary()

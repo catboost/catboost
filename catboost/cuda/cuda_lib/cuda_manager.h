@@ -493,8 +493,11 @@ THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLe
 
 void RunSlave();
 
-inline ui64 GetDeviceCount() {
-    return NCudaLib::GetCudaManager().GetDeviceCount();
+
+namespace NCudaLib {
+    inline ui64 GetDeviceCount() {
+        return NCudaLib::GetCudaManager().GetDeviceCount();
+    }
 }
 
 template <class T>

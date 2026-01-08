@@ -103,7 +103,7 @@ if (HAVE_CUDA)
       # things from .h files as if they they were defined in a .cpp file.
       list(APPEND localCudaCommonFlags -Wno-unused-function -Wno-unused-parameter)
       if (CMAKE_CXX_COMPILER_TARGET)
-        list(APPEND localCudaCompilerOptions "--target=${CMAKE_CXX_COMPILER_TARGET}") 
+        list(APPEND localCudaCompilerOptions "--target=${CMAKE_CXX_COMPILER_TARGET}")
       endif()
     endif()
 
@@ -126,6 +126,8 @@ if (HAVE_CUDA)
     " --expt-relaxed-constexpr"
     # Allow to use newer compilers than CUDA Toolkit officially supports
     " --allow-unsupported-compiler"
+    # Allow to use libc++ with CUDA 12.3+
+    " -D_ALLOW_UNSUPPORTED_LIBCPP"
   )
 
   set(NVCC_STD_VER 17)
@@ -148,8 +150,8 @@ if (HAVE_CUDA)
 
   # use versions from contrib, standard libraries from CUDA distibution are incompatible with MSVC and libcxx
   set(CUDA_EXTRA_INCLUDE_DIRECTORIES
-    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/thrust
-    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/cub
+    ${PROJECT_SOURCE_DIR}/contrib/deprecated/nvidia/thrust
+    ${PROJECT_SOURCE_DIR}/contrib/deprecated/nvidia/cub
   )
 
   find_package(CUDAToolkit REQUIRED)

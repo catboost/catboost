@@ -75,7 +75,7 @@ inline TArrayRef<typename TArrayLike::value_type> GetSlice(TArrayLike& array, si
     if (array.empty()) {
         return TArrayRef<typename TArrayLike::value_type>();
     }
-    return TArrayRef<typename TArrayLike::value_type>(array.begin() + offset, count);
+    return TArrayRef<typename TArrayLike::value_type>(array.data() + offset, count);
 }
 
 template <typename TArrayLike, typename TIsDefined>

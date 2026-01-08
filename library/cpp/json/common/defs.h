@@ -35,8 +35,9 @@ namespace NJson {
         bool GetHaveErrors() const {
             return HaveErrors;
         }
+
     protected:
         bool ThrowException;
         bool HaveErrors = false;
     };
-}
+} // namespace NJson

@@ -23,6 +23,7 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   contrib-libs-protoc
 )

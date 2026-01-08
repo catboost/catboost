@@ -55,7 +55,7 @@ namespace NCudaLib {
             CB_ENSURE(TSlice::Intersection(slice, deviceSlice) == slice);
             const ui64 devSize = slice.Size() != 0u ? (slice.Left - deviceSlice.Left) : 0;
             if (devSize != 0u) {
-                CB_ENSURE(slice.Left >= deviceSlice.Left, TStringBuilder() << slice << " " << deviceSlice);
+                CB_ENSURE(slice.Left >= deviceSlice.Left, slice << " " << deviceSlice);
             }
             return devSize * SingleObjectSize();
         }
@@ -183,7 +183,7 @@ namespace NCudaLib {
 
         TMirrorMapping ToLocalSlice(const TSlice& slice) const {
             Y_ASSERT(GetObjectsSlice().Contains(slice));
-            CB_ENSURE(GetObjectsSlice().Contains(slice), TStringBuilder() << "Slice " << slice << " should be subset of " << GetObjectsSlice());
+            CB_ENSURE(GetObjectsSlice().Contains(slice), "Slice " << slice << " should be subset of " << GetObjectsSlice());
 
             return TMirrorMapping(slice.Size(), SingleObjectSize());
         }

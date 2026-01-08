@@ -2,9 +2,10 @@
 
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/cuda_events_provider.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/spinlock.h>
 #include <util/generic/hash.h>
+
+#include <atomic>
 
 /*
  * Ability to run  code sections, which should be entered and leaved simultaniously on multiple devices (like memcpy  between different devices)
@@ -25,8 +26,8 @@ namespace NCudaLib {
             ui32 Created = 0;
             ui32 Destroyed = 0;
             ui32 Size = 0;
-            TAtomic NotReadyToEnter = 0;
-            TAtomic NotReadyToLeave = 0;
+            std::atomic<ui64> NotReadyToEnter = 0;
+            std::atomic<ui64> NotReadyToLeave = 0;
 
             explicit TStreamSectionState(ui64 size)
                 : Size(size)
@@ -38,7 +39,7 @@ namespace NCudaLib {
 
         THashMap<ui64, THolder<TStreamSectionState>> Current;
         TAdaptiveLock Lock;
-        TAtomic Counter = 0;
+        std::atomic<ui64> Counter = 0;
 
         void Leave(ui64 handle) {
             with_lock (Lock) {
@@ -70,7 +71,7 @@ namespace NCudaLib {
                 }
 
                 if (Event->IsComplete()) {
-                    auto notReadyToEnter = AtomicDecrement(NotReadyToEnter);
+                    auto notReadyToEnter = --NotReadyToEnter;
                     State = EState::Entered;
                     return notReadyToEnter == 0;
                 } else {
@@ -92,7 +93,7 @@ namespace NCudaLib {
                 }
 
                 if (Event->IsComplete()) {
-                    auto notReadyToLeave = AtomicDecrement(NotReadyToLeave);
+                    auto notReadyToLeave = --NotReadyToLeave;
                     State = EState::Left;
                     return notReadyToLeave == 0;
                 } else {
@@ -108,8 +109,8 @@ namespace NCudaLib {
             friend class TStreamSectionProvider;
 
             TStreamSection(ui64 handle,
-                           TAtomic& entered,
-                           TAtomic& leaved,
+                           std::atomic<ui64>& entered,
+                           std::atomic<ui64>& leaved,
                            const TCudaStream& owner,
                            TStreamSectionProvider& provider)
                 : Handle(handle)
@@ -130,8 +131,8 @@ namespace NCudaLib {
             } State = EState::Uninitialized;
 
             ui64 Handle;
-            TAtomic& NotReadyToEnter;
-            TAtomic& NotReadyToLeave;
+            std::atomic<ui64>& NotReadyToEnter;
+            std::atomic<ui64>& NotReadyToLeave;
             const TCudaStream& Owner;
             TStreamSectionProvider& Provider;
             TCudaEventPtr Event;
@@ -164,7 +165,7 @@ namespace NCudaLib {
         }
 
         ui64 NextUid() {
-            return static_cast<ui64>(AtomicIncrement(Counter));
+            return ++Counter;
         }
     };
 

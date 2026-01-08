@@ -42,6 +42,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-containers-2d_array
   library-cpp-dbg_output
   library-cpp-grid_creator

@@ -211,7 +211,7 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
-    const auto allObjectives = GetAllObjectives();
+    auto allObjectives = GetAllObjectives();
     const auto lossFunctionDescription = TString::Join(
         "Should be one of: ",
         JoinSeq(", ", allObjectives),
@@ -219,10 +219,10 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
     parser
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
+        .Handler1T<TString>([plainJsonPtr, allObjectives=std::move(allObjectives)](const auto& value) {
             const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
-            const auto enum_ = FromString<ELossFunction>(lossFunctionName);
-            CB_ENSURE(IsIn(allObjectives, enum_), lossFunctionName + " objective is not known");
+            const auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+            CB_ENSURE(IsIn(allObjectives, lossFunction), lossFunctionName + " objective is not known");
             (*plainJsonPtr)["loss_function"] = value;
         });
 
@@ -262,8 +262,8 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
                 for (const auto& format : StringSplitter(formatsLine).Split(',').SkipEmpty()) {
-                    const auto enum_ = FromString<EModelType>(format.Token());
-                    (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
+                    const auto modelType = FromString<EModelType>(format.Token());
+                    (*plainJsonPtr)["model_format"].AppendValue(ToString(modelType));
                 }
                 CB_ENSURE(!(*plainJsonPtr)["model_format"].GetArray().empty(), "Empty model format list " << formatsLine);
             })
@@ -337,7 +337,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
-    parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
+    parser.AddLongOption("use-best-model", "If true - save all trees until the best iteration on test.")
         .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
@@ -1195,7 +1195,11 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .RequiredArgument("{...}")
         .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
-            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+            try {
+                NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"], /*throwOnError*/true);
+            } catch (const NJson::TJsonException& error) {
+                CB_ENSURE(false, "Can't parse text processing JSON: " << error.what());
+            }
         });
 }
 

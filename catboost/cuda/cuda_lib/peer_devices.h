@@ -1,6 +1,10 @@
 #pragma once
 
 #include "cuda_base.h"
+
+#include <library/cpp/cuda/exception/exception.h>
+#include <library/cpp/cuda/wrappers/base.h>
+
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 #include <util/generic/set.h>
@@ -19,7 +23,7 @@ namespace NCudaLib {
             if (PeerDevices[currentDevice].contains(targetDevice)) {
                 return;
             }
-            Y_ASSERT(GetDevice() == currentDevice);
+            Y_ASSERT(NCuda::GetDevice() == currentDevice);
             int can = 0;
             CUDA_SAFE_CALL(cudaDeviceCanAccessPeer(&can, currentDevice, targetDevice));
             if (can) {

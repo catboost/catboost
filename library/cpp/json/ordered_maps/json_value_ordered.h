@@ -94,6 +94,12 @@ namespace NJson::NOrderedJson {
         TJsonValue& Back() Y_LIFETIME_BOUND;
         const TJsonValue& Back() const Y_LIFETIME_BOUND;
 
+        // path lookup syntax
+        //  1. steps delimited by delimiter char
+        //  2. if step is use square brackets `[1]` - array lookup by index will be performed
+        //    2.1 negative `[-1]` indexes allow to lookup array-items from end
+        //    2.2 empty brackets `[]` in modification methods allow to create an item
+        //  3. otherwise - dict lookup by string-key will be performed
         bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.') const;
         bool SetValueByPath(TStringBuf path, const TJsonValue& value, char delimiter = '.');
         bool SetValueByPath(TStringBuf path, TJsonValue&& value, char delimiter = '.');
@@ -118,7 +124,7 @@ namespace NJson::NOrderedJson {
         const TMapType& GetMap() const Y_LIFETIME_BOUND;
         const TArray& GetArray() const Y_LIFETIME_BOUND;
 
-        //throwing TJsonException possible
+        // throwing TJsonException possible
         bool GetBooleanSafe() const;
         long long GetIntegerSafe() const;
         unsigned long long GetUIntegerSafe() const;
@@ -273,7 +279,8 @@ namespace NJson::NOrderedJson {
     public:
         TJsonMap()
             : TJsonValue(NJson::NOrderedJson::JSON_MAP)
-        {}
+        {
+        }
 
         TJsonMap(const std::initializer_list<std::pair<TString, TJsonValue>>& list)
             : TJsonValue(NJson::NOrderedJson::JSON_MAP)
@@ -292,7 +299,8 @@ namespace NJson::NOrderedJson {
     public:
         TJsonArray()
             : TJsonValue(NJson::NOrderedJson::JSON_ARRAY)
-        {}
+        {
+        }
 
         TJsonArray(const std::initializer_list<TJsonValue>& list)
             : TJsonValue(NJson::NOrderedJson::JSON_ARRAY)
@@ -300,4 +308,4 @@ namespace NJson::NOrderedJson {
             GetArraySafe() = TJsonValue::TArray(list);
         }
     };
-}
+} // namespace NJson::NOrderedJson

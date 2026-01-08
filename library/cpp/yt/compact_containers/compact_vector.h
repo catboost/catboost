@@ -56,7 +56,7 @@ public:
     using pointer = T*;
     using const_pointer = const T*;
 
-    TCompactVector() noexcept;
+    constexpr TCompactVector() noexcept;
     TCompactVector(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector(const TCompactVector<T, OtherN>& other);

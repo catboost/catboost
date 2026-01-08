@@ -78,7 +78,7 @@ target_sources(contrib-libs-coreml PRIVATE
 
 target_proto_outs(contrib-libs-coreml
   --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=:${PROJECT_BINARY_DIR}/
 )
 
 target_proto_addincls(contrib-libs-coreml

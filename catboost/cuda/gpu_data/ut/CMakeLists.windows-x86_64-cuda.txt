@@ -18,6 +18,7 @@ add_executable(catboost-cuda-gpu_data-ut)
 target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   cpp-containers-2d_array
@@ -65,7 +66,7 @@ set_yunittest_property(
   catboost-cuda-gpu_data-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(

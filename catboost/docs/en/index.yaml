@@ -58,7 +58,7 @@ links:
         href: features/loss-functions-desc
       - title: User-defined metrics
         href: features/custom-loss-functions
-  - title: Metrics
+  - title: Recovery
     imgSrc: https://catboost-opensource.s3.yandex.net/icon__recovery.png
     links:
       - title: Recovery

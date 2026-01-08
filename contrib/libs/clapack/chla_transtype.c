@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Character */ VOID chla_transtype__(char *ret_val, ftnlen ret_val_len, 
+/* Character */ VOID chla_transtype_(char *ret_val, ftnlen ret_val_len, 
 	integer *trans)
 {
 
@@ -59,4 +59,4 @@
 
 /*     End of CHLA_TRANSTYPE */
 
-} /* chla_transtype__ */
+} /* chla_transtype_ */

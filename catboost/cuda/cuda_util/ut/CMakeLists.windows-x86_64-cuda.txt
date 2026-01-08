@@ -18,6 +18,7 @@ add_executable(catboost-cuda-cuda_util-ut)
 target_link_libraries(catboost-cuda-cuda_util-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-cuda-cuda_util
@@ -68,7 +69,7 @@ set_yunittest_property(
   catboost-cuda-cuda_util-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

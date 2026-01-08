@@ -23,7 +23,13 @@ target_link_libraries(catboost-cuda-cuda_util PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
-  build-platform-cuda
+  cpp-cuda-exception
+  internal-platform-cuda
+)
+
+target_sources(catboost-cuda-cuda_util PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/operator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/run_stream_parallel_jobs.cpp
 )
 
 target_cuda_sources(catboost-cuda-cuda_util PRIVATE
@@ -90,7 +96,8 @@ target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
   yutil
   catboost-libs-helpers
   catboost-cuda-cuda_lib
-  build-platform-cuda
+  cpp-cuda-exception
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-cuda_util.global PRIVATE

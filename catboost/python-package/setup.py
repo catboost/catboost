@@ -95,7 +95,7 @@ def setup_hnsw_submodule(argv, extensions):
 
 
 def get_setup_requires(argv):
-    setup_requires = ['cmake >= 3.24', 'wheel', 'conan ~= 2.4.1', 'cython ~= 3.0.10', 'numpy']
+    setup_requires = ['cmake >= 3.24', 'wheel', 'conan (>=2.4.1, <3.0)', 'cython ~= 3.0.10', 'numpy']
 
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
         setup_requires += ['jupyterlab (>=3.0.6, <3.6.0)']

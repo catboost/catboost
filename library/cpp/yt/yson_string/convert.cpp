@@ -315,6 +315,17 @@ TString ConvertFromYsonString<TString>(const TYsonStringBuf& str)
 }
 
 template <>
+std::string ConvertFromYsonString<std::string>(const TYsonStringBuf& str)
+{
+    try {
+        // TODO(sabdenovch): Avoid copying.
+        return ParseStringFromYsonString(str);
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"string\" value from YSON");
+    }
+}
+
+template <>
 float ConvertFromYsonString<float>(const TYsonStringBuf& str)
 {
     try {

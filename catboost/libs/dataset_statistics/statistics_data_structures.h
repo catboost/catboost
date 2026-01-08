@@ -23,7 +23,7 @@
 
 namespace NCB {
 
-using TFeatureCustomBorders = THashMap<ui32, std::pair<double, double>>;
+using TFeatureCustomBorders = THashMap<ui32, std::pair<double, double>>;    // index -> (lower border, upper border)
 
 template <typename T>
 NJson::TJsonValue AggregateStatistics(const TVector<T>& data) {

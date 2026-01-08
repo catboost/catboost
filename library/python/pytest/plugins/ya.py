@@ -1,17 +1,17 @@
 # coding: utf-8
 
 import base64
+import collections
 import errno
-import sys
-import os
-import logging
 import fnmatch
+import inspect
 import json
+import logging
+import os
+import signal
+import sys
 import time
 import traceback
-import collections
-import signal
-import inspect
 import warnings
 
 import faulthandler
@@ -136,7 +136,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     root_logger.setLevel(level)
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
-        log_format = '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s: %(message)s'
+        log_format = '%(asctime)s - %(levelname)s - %(name)s.%(process)d  - %(funcName)s: %(message)s'
         file_handler.setFormatter(_TokenFilterFormatter(log_format))
         file_handler.setLevel(level)
         root_logger.addHandler(file_handler)
@@ -166,6 +166,7 @@ def pytest_addoption(parser):
     parser.addoption("--python-path", action="store", dest="python_path", default="", help="path the canonical python binary")
     parser.addoption("--valgrind-path", action="store", dest="valgrind_path", default="", help="path the canonical valgring binary")
     parser.addoption("--test-filter", action="append", dest="test_filter", default=None, help="test filter")
+    parser.addoption("--test-filter-file", action="store", dest="test_filter_file", default=None, help="file with test filters")
     parser.addoption("--test-file-filter", action="store", dest="test_file_filter", default=None, help="test file filter")
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
@@ -213,7 +214,6 @@ def pytest_configure(config):
     config.suite_metrics = {}
     config.configure_timestamp = time.time()
     context = {
-        "project_path": config.option.project_path,
         "test_stderr": config.option.test_stderr,
         "test_debug": config.option.test_debug,
         "build_type": config.option.build_type,
@@ -237,6 +237,7 @@ def pytest_configure(config):
         config.option.valgrind_path,
         config.option.gdb_path,
         config.option.data_root,
+        project_path=config.option.project_path,
     )
     config.option.test_log_level = {
         "critical": logging.CRITICAL,
@@ -341,7 +342,9 @@ def _graceful_shutdown(*args):
         library.python.coverage.stop_coverage_tracing()
     except ImportError:
         pass
-    traceback.print_stack(file=sys.stderr)
+    stack = traceback.format_stack()
+    # NOTE: Using os.write because it's reentrant, Python I/O stack isn't https://bugs.python.org/issue24283
+    os.write(sys.stderr.fileno(), b''.join(item.encode() for item in stack))
     capman = pytest_config.pluginmanager.getplugin("capturemanager")
     capman.suspend(in_=True)
     _graceful_shutdown_on_log(not capman.is_globally_capturing())
@@ -397,6 +400,16 @@ def _get_item_tags(item):
         elif isinstance(value, _pytest.mark.MarkDecorator):
             tags.append(key)
     return tags
+
+
+def get_test_filter(option):
+    filters = []
+    if option.test_filter_file:
+        with open(option.test_filter_file, 'r') as fd:
+            filters = fd.read().splitlines()
+    if option.test_filter:
+        filters.extend(option.test_filter)
+    return filters
 
 
 def pytest_runtest_setup(item):
@@ -489,8 +502,10 @@ def pytest_collection_modifyitems(items, config):
             filters = chunks[config.option.modulo_index]
             filter_by_full_name(filters)
     else:
-        if config.option.test_filter:
-            filter_items(config.option.test_filter)
+        test_filter = get_test_filter(config.option)
+        if test_filter:
+            filter_items(test_filter)
+
         partition_mode = config.option.partition_mode
         modulo = config.option.modulo
         if modulo > 1:
@@ -523,11 +538,24 @@ def pytest_collection_modifyitems(items, config):
     elif config.option.mode == yatest_lib.ya.RunMode.List:
         tests = []
         for item in items:
-            item = CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix, item.keywords)
+            item = CustomTestItem(
+                nodeid=item.nodeid,
+                location=item.location,
+                test_suffix=pytest_config.option.test_suffix,
+                keywords=item.keywords,
+                callspec=item.callspec if hasattr(item, "callspec") else None,
+                pytest_class=item.cls.__name__ if hasattr(item, "cls") and item.cls else None,
+                file_path=item.module.__file__ if hasattr(item, "module") and item.module else None,
+            )
             record = {
                 "class": item.class_name,
                 "test": item.test_name,
                 "tags": _get_item_tags(item),
+                "nodeid": item.node_id,
+                "path": item.file_path,
+                "line": item.location_number,
+                "params": item.params,
+                "pytest_class": item.pytest_class,
             }
             tests.append(record)
         if config.option.test_list_file:
@@ -739,7 +767,16 @@ class TestItem(object):
 
 class CustomTestItem(TestItem):
 
-    def __init__(self, nodeid, location, test_suffix, keywords=None):
+    def __init__(
+        self,
+        nodeid,
+        location,
+        test_suffix,
+        keywords=None,
+        callspec=None,
+        pytest_class=None,
+        file_path=None,
+    ):
         self._result = None
         self.nodeid = nodeid
         self._location = location
@@ -747,6 +784,38 @@ class CustomTestItem(TestItem):
         self._duration = 0
         self._error = ""
         self._keywords = keywords if keywords is not None else {}
+        self._callspec = callspec
+        self._pytest_class = pytest_class
+        self._file_path = file_path
+
+    @property
+    def location(self):
+        return self._location[0]
+
+    @property
+    def location_number(self):
+        return self._location[1] + 1
+
+    @property
+    def markers(self):
+        return [m.name for m in self._markers]
+
+    @property
+    def params(self):
+        return self._callspec.id if self._callspec else None
+
+    @property
+    def pytest_class(self):
+        return self._pytest_class
+
+    @property
+    def file_path(self):
+        return str(self._file_path)
+
+    @property
+    def node_id(self):
+        file_name = os.path.basename(self._location[0])
+        return "{}::{}".format(file_name, self.test_name)
 
 
 class NotLaunchedTestItem(CustomTestItem):

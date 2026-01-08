@@ -27,10 +27,9 @@
  * DO NOT MAKE GENERAL USE OF THIS TRAIT, AS THE COMPLETENESS OF A TYPE
  * VARIES ACROSS TRANSLATION UNITS AS WELL AS WITHIN A SINGLE UNIT.
  *
-*/
+ */
 
 namespace boost {
-
 
 //
 // We will undef this if the trait isn't fully functional:
@@ -39,7 +38,7 @@ namespace boost {
 
 #if !defined(BOOST_NO_SFINAE_EXPR) && !BOOST_WORKAROUND(BOOST_MSVC, <= 1900) && !BOOST_WORKAROUND(BOOST_GCC_VERSION, < 40600)
 
-   namespace detail{
+   namespace detail {
 
       template <std::size_t N>
       struct ok_tag { double d; char c[N]; };
@@ -48,15 +47,15 @@ namespace boost {
       ok_tag<sizeof(T)> check_is_complete(int);
       template <class T>
       char check_is_complete(...);
-   }
+
+   } // namespace detail
 
    template <class T> struct is_complete
       : public integral_constant<bool, ::boost::is_function<typename boost::remove_reference<T>::type>::value || (sizeof(boost::detail::check_is_complete<T>(0)) != sizeof(char))> {};
 
 #elif !defined(BOOST_NO_SFINAE) && !defined(BOOST_NO_CXX11_FUNCTION_TEMPLATE_DEFAULT_ARGS) && !BOOST_WORKAROUND(BOOST_GCC_VERSION, < 40500)
 
-   namespace detail
-   {
+   namespace detail {
 
       template <class T>
       struct is_complete_imp
@@ -70,7 +69,7 @@ namespace boost {
          static const bool value = sizeof(check<T>(0)) == sizeof(type_traits::yes_type);
       };
 
-} // namespace detail
+   } // namespace detail
 
 
    template <class T>
@@ -78,11 +77,33 @@ namespace boost {
    {};
    template <class T>
    struct is_complete<T&> : boost::is_complete<T> {};
-   
+
 #else
 
-      template <class T> struct is_complete
-         : public boost::integral_constant<bool, true> {};
+   namespace detail {
+
+      template <class T>
+      struct is_complete_impl : public boost::true_type {};
+
+      template < >
+      struct is_complete_impl<void> : public boost::false_type {};
+
+      template <class T>
+      struct is_complete_impl<T[]> : public boost::false_type {};
+
+      template <class T>
+      struct is_complete_impl<T&> : public is_complete_impl<T>::type {};
+
+   } // namespace detail
+
+   template <class T>
+   struct is_complete : public detail::is_complete_impl<T>::type {};
+   template <class T>
+   struct is_complete<const T> : public detail::is_complete_impl<T>::type {};
+   template <class T>
+   struct is_complete<volatile T> : public detail::is_complete_impl<T>::type {};
+   template <class T>
+   struct is_complete<const volatile T> : public detail::is_complete_impl<T>::type {};
 
 #undef BOOST_TT_HAS_WORKING_IS_COMPLETE
 

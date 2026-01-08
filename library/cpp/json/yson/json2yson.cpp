@@ -29,8 +29,9 @@ namespace NJson2Yson {
             case NJson::JSON_ARRAY: {
                 adapter->OnOpenArray();
                 const NJson::TJsonValue::TArray& arr = jsonValue.GetArray();
-                for (const auto& it : arr)
+                for (const auto& it : arr) {
                     WriteJsonValue(it, adapter);
+                }
                 adapter->OnCloseArray();
                 break;
             }
@@ -105,4 +106,4 @@ namespace NJson2Yson {
         ConvertYson2Json(yson, &outputStream);
         return json;
     }
-}
+} // namespace NJson2Yson

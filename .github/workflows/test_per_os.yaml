@@ -26,7 +26,7 @@ env:
   os_to_specs_map: |
     {
       "linux": [["x86_64", "ubuntu-22.04"], ["aarch64", "ubuntu-22.04-arm"]],
-      "macos": [["x86_64", "macos-13"], ["arm64", "macos-14"]],
+      "macos": [["x86_64", "macos-15-intel"], ["arm64", "macos-14"]],
       "windows": [["x86_64", "windows-2022"]]
     }
 

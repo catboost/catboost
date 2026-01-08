@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   contrib-libs-tcmalloc
   library-cpp-cpuid_check
   cpp-testing-unittest_main
@@ -81,7 +82,7 @@ set_yunittest_property(
   catboost-cuda-gpu_data-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(

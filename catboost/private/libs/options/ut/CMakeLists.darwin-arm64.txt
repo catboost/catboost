@@ -18,6 +18,7 @@ add_executable(json_options_ut)
 target_link_libraries(json_options_ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   private-libs-options
 )

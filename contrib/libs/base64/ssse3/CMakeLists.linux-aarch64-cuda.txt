@@ -25,3 +25,19 @@ target_sources(libs-base64-ssse3 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/codec_ssse3.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

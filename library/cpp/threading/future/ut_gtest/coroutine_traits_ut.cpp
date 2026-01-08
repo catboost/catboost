@@ -149,7 +149,12 @@ TEST(TestFutureTraits, ErrorViaReturnException) {
         co_return std::runtime_error("exception_to_return");
 
         static std::runtime_error another("another_exception_not_to_return");
-        co_return another;
+
+        // should not compile
+        // co_return another;
+
+        // explicit slicing is allowed
+        co_return std::exception(another);
     };
 
     auto coroutineReturnValueReturnException = [&]() -> NThreading::TFuture<size_t> {

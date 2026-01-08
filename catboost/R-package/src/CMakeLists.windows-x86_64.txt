@@ -22,6 +22,7 @@ target_include_directories(catboostr PRIVATE
 target_link_libraries(catboostr PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-eval_result
@@ -50,5 +51,13 @@ target_sources(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
 
 vcs_info(catboostr)

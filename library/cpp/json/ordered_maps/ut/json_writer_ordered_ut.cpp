@@ -56,7 +56,7 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
     }
 
     Y_UNIT_TEST(FormatOutput) {
-        TString expected = "{\n  \"key1\":null,\n  \"key2\":\n    {\n      \"subkey1\":\n        [\n          1,\n          {\n            \"subsubkey\":\"test2\"\n          },\n          null,\n          true\n        ],\n      \"subkey2\":\"test\"\n    }\n}";
+        TString expected = "{\n  \"key1\": null,\n  \"key2\": {\n      \"subkey1\": [\n          1,\n          {\n            \"subsubkey\": \"test2\"\n          },\n          null,\n          true\n        ],\n      \"subkey2\": \"test\"\n    }\n}";
         TJsonValue v;
         v["key1"] = JSON_NULL;
         v["key2"]["subkey1"].AppendValue(1);
@@ -120,7 +120,7 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
             WriteJson(&out, &v);
             UNIT_ASSERT_VALUES_EQUAL(out.Str(), expected);
         } // 18446744073709551615
-    }     // SimpleUnsignedIntegerWriteTest
+    } // SimpleUnsignedIntegerWriteTest
 
     Y_UNIT_TEST(WriteOptionalTest) {
         {
@@ -225,4 +225,4 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
             UNIT_ASSERT_VALUES_EQUAL(actual, expected);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TJsonWriterTest)

@@ -28,7 +28,7 @@ void* aligned_malloc(size_t size, size_t alignment)
 {
 #if defined(_win_)
     return _aligned_malloc(size, alignment);
-#elif defined(_darwin_) || defined(_linux_)
+#elif defined(_darwin_) || defined(_linux_) || defined(__FreeBSD__)
     void* ptr = nullptr;
     ::posix_memalign(&ptr, alignment, size);
     return ptr;

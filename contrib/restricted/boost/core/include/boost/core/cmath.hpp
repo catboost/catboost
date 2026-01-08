@@ -20,8 +20,8 @@
 
 #if defined(BOOST_CORE_USE_GENERIC_CMATH) || (!defined(_MSC_VER) && !defined(FP_SUBNORMAL))
 
+#include <boost/core/detail/static_assert.hpp>
 #include <boost/cstdint.hpp>
-#include <boost/static_assert.hpp>
 #include <limits>
 #include <cstring>
 
@@ -81,7 +81,7 @@ inline bool signbit( float x )
 {
     boost::int32_t y;
 
-    BOOST_STATIC_ASSERT( sizeof( x ) == sizeof( y ) );
+    BOOST_CORE_STATIC_ASSERT( sizeof( x ) == sizeof( y ) );
 
     std::memcpy( &y, &x, sizeof( y ) );
 
@@ -92,7 +92,7 @@ inline bool signbit( double x )
 {
     boost::int64_t y;
 
-    BOOST_STATIC_ASSERT( sizeof( x ) == sizeof( y ) );
+    BOOST_CORE_STATIC_ASSERT( sizeof( x ) == sizeof( y ) );
 
     std::memcpy( &y, &x, sizeof( y ) );
 

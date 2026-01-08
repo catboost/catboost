@@ -1,0 +1,56 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_FUNCTIONAL
+#define _CUDA_STD_FUNCTIONAL
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__algorithm/max.h>
+#include <cuda/std/__algorithm/min.h>
+#include <cuda/std/__functional/binary_function.h>
+#include <cuda/std/__functional/binary_negate.h>
+#include <cuda/std/__functional/bind.h>
+#include <cuda/std/__functional/bind_back.h>
+#include <cuda/std/__functional/bind_front.h>
+#include <cuda/std/__functional/binder1st.h>
+#include <cuda/std/__functional/binder2nd.h>
+#include <cuda/std/__functional/compose.h>
+#include <cuda/std/__functional/default_searcher.h>
+#include <cuda/std/__functional/function.h>
+#include <cuda/std/__functional/hash.h>
+#include <cuda/std/__functional/identity.h>
+#include <cuda/std/__functional/invoke.h>
+#include <cuda/std/__functional/is_transparent.h>
+#include <cuda/std/__functional/mem_fn.h>
+#include <cuda/std/__functional/mem_fun_ref.h>
+#include <cuda/std/__functional/not_fn.h>
+#include <cuda/std/__functional/operations.h>
+#include <cuda/std/__functional/perfect_forward.h>
+#include <cuda/std/__functional/pointer_to_binary_function.h>
+#include <cuda/std/__functional/pointer_to_unary_function.h>
+#include <cuda/std/__functional/ranges_operations.h>
+#include <cuda/std/__functional/reference_wrapper.h>
+#include <cuda/std/__functional/unary_function.h>
+#include <cuda/std/__functional/unary_negate.h>
+#include <cuda/std/__functional/unwrap_ref.h>
+#include <cuda/std/__functional/weak_result_type.h>
+#include <cuda/std/detail/libcxx/include/iosfwd> // for forward declarations of vector and string
+#include <cuda/std/version>
+
+#endif // _CUDA_STD_FUNCTIONAL

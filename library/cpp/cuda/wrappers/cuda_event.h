@@ -2,6 +2,13 @@
 
 #include "base.h"
 
+#include <library/cpp/cuda/exception/exception.h>
+
+#include <util/generic/ptr.h>
+
+#include <cuda_runtime.h>
+
+
 class TCudaEvent {
 private:
     struct Inner : public TThrRefBase {

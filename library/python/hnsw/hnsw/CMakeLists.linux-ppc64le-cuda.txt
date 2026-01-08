@@ -46,6 +46,7 @@ target_link_libraries(_hnsw PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   Python3::Module
   cpp-hnsw-helpers
   cpp-hnsw-index

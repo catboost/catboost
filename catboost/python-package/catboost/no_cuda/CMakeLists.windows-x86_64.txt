@@ -45,6 +45,7 @@ target_compile_options(_catboost_no_cuda PRIVATE
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   Python3::Module
   libs-gpu_config-force_no_cuda
   catboost-libs-carry_model

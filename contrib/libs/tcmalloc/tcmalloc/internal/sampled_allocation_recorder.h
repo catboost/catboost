@@ -170,7 +170,19 @@ void SampleRecorder<T, Allocator>::PushDead(T* sample) {
   if (auto* dispose = dispose_.load(std::memory_order_relaxed)) {
     dispose(*sample);
   }
-  sample->sampled_stack.user_data.Reset();
+  {
+    // Here we need to synchronize with any possible Copy call on the same
+    // user_data object.
+    // Currently there is only one source of such calls: from callback in Iterate()
+    // (i.e. user has requested a profile concurently with
+    // deallocation of a sampled allocation).
+    // That one holds sample->lock, so we acquire it here too.
+    // This critical section can not be merged with next, because
+    // graveyard_.lock is too constraining (e.g. if destroy callback tries to
+    // deallocate something, it may try to lock graveyard again and deadlock).
+    AllocationGuardSpinLockHolder sample_lock(&sample->lock);
+    sample->sampled_stack.user_data.Reset();
+  }
 
   AllocationGuardSpinLockHolder graveyard_lock(&graveyard_.lock);
   AllocationGuardSpinLockHolder sample_lock(&sample->lock);
@@ -237,6 +249,8 @@ void SampleRecorder<T, Allocator>::Iterate(
     const absl::FunctionRef<void(const T& sample)>& f) {
   T* s = all_.load(std::memory_order_acquire);
   while (s != nullptr) {
+    // Note that this lock also protects Unregister from
+    // creating a Reset-Copy data race.
     AllocationGuardSpinLockHolder l(&s->lock);
     if (s->dead == nullptr) {
       f(*s);

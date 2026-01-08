@@ -19,6 +19,7 @@ target_link_libraries(util-system-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   cpp-testing-benchmark
@@ -94,6 +95,22 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/type_name_ut.cpp
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/util/system/compiler_ut.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/util/system/defaults_ut.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
 
 set_property(
   TARGET

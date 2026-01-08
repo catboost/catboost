@@ -720,7 +720,7 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
         evalDatasets : Pools, optional
           The validation datasets used for the following processes:
            - overfitting detector
-           - best iteration selection
+           - the best iteration selection
            - monitoring metrics' changes
 
         Returns

@@ -23,6 +23,7 @@ target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  build-cow-on
   cpp-testing-unittest_main
   private-libs-quantized_pool
   idl-pool-flat

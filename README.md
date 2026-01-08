@@ -45,13 +45,14 @@ Next you may want to investigate:
 
 If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger.
 
-Catboost models in production
+CatBoost models in production
 --------------
-If you want to evaluate Catboost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
+If you want to evaluate CatBoost model in your application read [model api documentation](https://github.com/catboost/catboost/tree/master/catboost/CatboostModelAPI.md).
 
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
+* Ask a question on [CatBoost GitHub Discussions Q&A forum](https://github.com/catboost/catboost/discussions/categories/q-a).
 * Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost) with the catboost tag, we monitor this for new questions.
 * Seek prompt advice at [Telegram group](https://t.me/catboost_en) or Russian-speaking [Telegram chat](https://t.me/catboost_ru)
 
@@ -74,4 +75,4 @@ at NIPS 2017.
 
 License
 -------
-© YANDEX LLC, 2017-2025. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+© YANDEX LLC, 2017-2026. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/json/writer/fwd.h>
+
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
@@ -8,12 +10,8 @@
 #include <util/stream/str.h>
 #include <util/string/cast.h>
 
-namespace NJson {
-    class TJsonValue;
-}
-
 namespace NJsonWriter {
-    enum EJsonEntity : ui8 {
+    enum EJsonEntity: ui8 {
         JE_OUTER_SPACE = 1,
         JE_LIST,
         JE_OBJECT,
@@ -39,7 +37,7 @@ namespace NJsonWriter {
         TVector<EJsonEntity> Stack;
     };
 
-    class TBuf : TNonCopyable {
+    class TBuf: TNonCopyable {
     public:
         TBuf(EHtmlEscapeMode mode = HEM_DONT_ESCAPE_HTML, IOutputStream* stream = nullptr);
 
@@ -71,49 +69,49 @@ namespace NJsonWriter {
         TBuf& EndObject();
 
         /*** Indent the resulting JSON with spaces.
-           * By default (spaces==0) no formatting is done.                */
+         * By default (spaces==0) no formatting is done.                */
         TBuf& SetIndentSpaces(int spaces) {
             IndentSpaces = spaces;
             return *this;
         }
 
         /*** NaN and Inf are not valid json values,
-           * so if WriteNanAsString is set, writer would write string
-           * intead of throwing exception (default case)                  */
+         * so if WriteNanAsString is set, writer would write string
+         * intead of throwing exception (default case)                  */
         TBuf& SetWriteNanAsString(bool writeNanAsString = true) {
             WriteNanAsString = writeNanAsString;
             return *this;
         }
 
         /*** Return the string formed in the internal TStringStream.
-           * You may only call it if the `stream' parameter was NULL
-           * at construction time.                                        */
+         * You may only call it if the `stream' parameter was NULL
+         * at construction time.                                        */
         const TString& Str() const;
 
         /*** Dump and forget the string constructed so far.
-           * You may only call it if the `stream' parameter was NULL
-           * at construction time.                                        */
+         * You may only call it if the `stream' parameter was NULL
+         * at construction time.                                        */
         void FlushTo(IOutputStream* stream);
 
         /*** Write a literal string that represents a JSON value
-           * (string, number, object, array, bool, or null).
-           *
-           * Example:
-           * j.UnsafeWriteValue("[1, 2, 3, \"o'clock\", 4, \"o'clock rock\"]");
-           *
-           * As in all of the Unsafe* functions, no escaping is done.     */
+         * (string, number, object, array, bool, or null).
+         *
+         * Example:
+         * j.UnsafeWriteValue("[1, 2, 3, \"o'clock\", 4, \"o'clock rock\"]");
+         *
+         * As in all of the Unsafe* functions, no escaping is done.     */
         void UnsafeWriteValue(const TStringBuf& s);
         void UnsafeWriteValue(const char* s, size_t len);
 
         /*** When in the context of an object, write a literal string
-           * that represents a key:value pair (or several pairs).
-           *
-           * Example:
-           * j.BeginObject();
-           * j.UnsafeWritePair("\"adam\": \"male\", \"eve\": \"female\"");
-           * j.EndObject();
-           *
-           * As in all of the Unsafe* functions, no escaping is done.     */
+         * that represents a key:value pair (or several pairs).
+         *
+         * Example:
+         * j.BeginObject();
+         * j.UnsafeWritePair("\"adam\": \"male\", \"eve\": \"female\"");
+         * j.EndObject();
+         *
+         * As in all of the Unsafe* functions, no escaping is done.     */
         TPairContext UnsafeWritePair(const TStringBuf& s);
 
         /*** Copy the supplied string directly into the output stream.    */
@@ -286,4 +284,4 @@ namespace NJsonWriter {
     }
 
     TString WrapJsonToCallback(const TBuf& buf, TStringBuf callback);
-}
+} // namespace NJsonWriter
