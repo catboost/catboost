@@ -11958,6 +11958,6 @@ def test_fit_fit_quantized_cat_features_type():
     model.fit(train_pool)
 
 
-def test_catboost_repr():
+def test_repr():
     assert(CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
     assert(CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
