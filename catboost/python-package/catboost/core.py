@@ -1906,7 +1906,6 @@ class _CatBoostBase(object):
         self._object._base_drop_unused_features()
 
     def _save_model(self, output_file, format, export_parameters, pool):
-        import json
         if self.is_fitted():
             params_string = ""
             if export_parameters:
