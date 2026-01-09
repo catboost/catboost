@@ -90,11 +90,6 @@ namespace NCB {
         NJson::ReadJsonTree(&is, &userParameters);
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
 
-        CB_ENSURE(
-            !model.HasCategoricalFeatures(),
-            "ONNX-ML format export does yet not support categorical features"
-        );
-
         onnx::ModelProto outModel;
 
         NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
