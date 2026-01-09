@@ -3542,8 +3542,6 @@ class CatBoost(_CatBoostBase):
         **params : key=value format
             List of key=value paris. Example: model.set_params(iterations=500, thread_count=2).
         """
-        if self.is_fitted():
-            raise CatBoostError("You can't change params of fitted model.")
         for key, value in iteritems(params):
             self._init_params[key] = value
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
