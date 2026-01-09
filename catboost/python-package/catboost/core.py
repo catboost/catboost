@@ -632,12 +632,12 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or FeaturesData or string or pathlib.Path
+        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or FeaturesData or string or os.PathLike
             Data source of Pool.
             If list or numpy.ndarrays or pandas.DataFrame or pandas.Series, giving 2 dimensional array like data.
             If FeaturesData - see FeaturesData description for details, 'cat_features' and 'feature_names'
               parameters must be equal to None in this case
-            If string or pathlib.Path, giving the path to the file with data in catboost format.
+            If string or os.PathLike, giving the path to the file with data in catboost format.
               If string starts with "quantized://", the file has to contain quantized dataset saved with Pool.save().
 
         label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series, optional (default=None)
@@ -672,23 +672,23 @@ class Pool(_PoolBase):
             If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
                 Dict keys must be the same as specified in 'embedding_features' parameter
 
-        column_description : string or pathlib.Path, optional (default=None)
+        column_description : string or os.PathLike, optional (default=None)
             ColumnsDescription parameter.
             There are several columns description types: Label, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
             All columns are Num as default, it's not necessary to specify
             this type of columns. Default Label column index is 0 (zero).
             If None, Label column is 0 (zero) as default, all data columns are Num as default.
-            If string or pathlib.Path, giving the path to the file with ColumnsDescription in column_description format.
+            If string or os.PathLike, giving the path to the file with ColumnsDescription in column_description format.
 
-        pairs : list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+        pairs : list or numpy.ndarray or pandas.DataFrame or string or os.PathLike
             The pairs description.
             If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of winner object in the training set. The second element of the pair is
             the index of loser object in the training set.
-            If string or pathlib.Path, giving the path to the file with pairs description.
+            If string or os.PathLike, giving the path to the file with pairs description.
 
-        graph: list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+        graph: list or numpy.ndarray or pandas.DataFrame or string or os.PathLike
             The graph description.
             ...
 
@@ -731,9 +731,9 @@ class Pool(_PoolBase):
             Should be a non-negative integer.
             Useful for sorting a learning dataset by this field during training.
 
-        feature_names : list or string or pathlib.Path, optional (default=None)
+        feature_names : list or string or os.PathLike, optional (default=None)
             If list - list of names for each given data_feature.
-            If string or pathlib.Path - path with scheme for feature names data to load.
+            If string or os.PathLike - path with scheme for feature names data to load.
             If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
               from DataFrame's column names.
             Must be None if 'data' parameter has FeaturesData type
@@ -772,7 +772,7 @@ class Pool(_PoolBase):
                 if graph is not None and isinstance(data, PATH_TYPES) != isinstance(graph, PATH_TYPES):
                     raise CatBoostError("data and graph parameters should be the same types.")
                 if column_description is not None and not isinstance(data, PATH_TYPES):
-                    raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
+                    raise CatBoostError("data should be the string or os.PathLike type if column_description parameter is specified.")
                 if isinstance(data, PATH_TYPES):
                     if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight,
                                                    subgroup_id, pairs_weight, baseline, label]):
@@ -782,7 +782,7 @@ class Pool(_PoolBase):
                         )
                     if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
                         raise CatBoostError(
-                            "feature_names should have None or string or pathlib.Path type when the pool is read from the file."
+                            "feature_names should have None or string or os.PathLike type when the pool is read from the file."
                         )
                     self._read(data, column_description, pairs, graph, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
                 else:
@@ -880,7 +880,7 @@ class Pool(_PoolBase):
         Check type of column_description parameter.
         """
         if not isinstance(column_description, PATH_TYPES):
-            raise CatBoostError("Invalid column_description type={}: must be str or pathlib.Path.".format(type(column_description)))
+            raise CatBoostError("Invalid column_description type={}: must be str or os.PathLike.".format(type(column_description)))
 
     def _check_string_feature_type(self, features, features_name):
         """
@@ -924,7 +924,7 @@ class Pool(_PoolBase):
         if not isinstance(data, (PATH_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
             raise CatBoostError(
                 ("Invalid data type={}: must be list, numpy.ndarray, pandas.DataFrame, pandas.Series, catboost.FeaturesData, " +
-                 "scipy.sparse matrix or a path to a file (str or pathlib.Path)").format(type(data))
+                 "scipy.sparse matrix or a path to a file (str or os.PathLike)").format(type(data))
             )
 
     def _check_data_empty(self, data):
@@ -1193,14 +1193,14 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        fname : string or pathlib.Path
+        fname : string or os.PathLike
             Output file name.
         """
         if not self.is_quantized():
             raise CatBoostError('Pool is not quantized')
 
         if not isinstance(fname, PATH_TYPES):
-            raise CatBoostError("Invalid fname type={}: must be str or pathlib.Path.".format(type(fname)))
+            raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(fname)))
 
         self._save(fname)
 
@@ -1254,7 +1254,7 @@ class Pool(_PoolBase):
                 - 'Max' - each missing value will be processed as the maximum numerical value.
             If None, then nan_mode=Min.
 
-        input_borders : string or pathlib.Path, [default=None]
+        input_borders : string or os.PathLike, [default=None]
             input file with borders used in numeric features binarization.
 
         task_type : string, [default=None]
@@ -1915,7 +1915,7 @@ class _CatBoostBase(object):
 
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
-            raise CatBoostError("Invalid fname type={}: must be str or pathlib.Path.".format(type(model_file)))
+            raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(model_file)))
         self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
@@ -2576,15 +2576,15 @@ class CatBoost(_CatBoostBase):
         save_snapshot : bool, [default=None]
             Enable progress snapshotting for restoring progress after crashes or interruptions
 
-        snapshot_file : string or pathlib.Path, [default=None]
+        snapshot_file : string or os.PathLike, [default=None]
             Learn progress snapshot file path, if None will use default filename
 
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
-        init_model : CatBoost class or string or pathlib.Path, [default=None]
+        init_model : CatBoost class or string or os.PathLike, [default=None]
             Continue training starting from the existing model.
-            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+            If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
@@ -2965,7 +2965,7 @@ class CatBoost(_CatBoostBase):
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
             If -1, then the number of threads is set to the number of CPU cores.
 
-        tmp_dir : string or pathlib.Path (default=None)
+        tmp_dir : string or os.PathLike (default=None)
             The name of the temporary directory for intermediate results.
             If None, then the name will be generated.
 
@@ -3017,7 +3017,7 @@ class CatBoost(_CatBoostBase):
             Allows you to optimize the speed of execution. This parameter doesn't affect results.
             If -1, then the number of threads is set to the number of CPU cores.
 
-        tmp_dir : string or pathlib.Path (default=None)
+        tmp_dir : string or os.PathLike (default=None)
             The name of the temporary directory for intermediate results.
             If None, then the name will be generated.
 
@@ -3439,7 +3439,7 @@ class CatBoost(_CatBoostBase):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
         if not isinstance(fname, PATH_TYPES):
-            raise CatBoostError("Invalid fname type={}: must be str or pathlib.Path.".format(type(fname)))
+            raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(fname)))
         if pool is not None and not isinstance(pool, Pool):
             pool = Pool(
                 data=pool,
@@ -3519,11 +3519,11 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        fname : string or pathlib.Path
+        fname : string or os.PathLike
             Output file name.
         """
         if not isinstance(fname, PATH_TYPES):
-            raise CatBoostError("Invalid fname type={}: must be str or pathlib.Path.".format(type(fname)))
+            raise CatBoostError("Invalid fname type={}: must be str or os.PathLike.".format(type(fname)))
         self._save_borders(fname)
 
     def get_borders(self):
@@ -4074,7 +4074,7 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError("X must not be None")
 
             if y is None and not isinstance(X, PATH_TYPES + (Pool,)):
-                raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or pathlib.Path")
+                raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or os.PathLike")
 
             if not isinstance(param_grid, (Mapping, Iterable)):
                 raise TypeError('Parameter grid is not a dict or a list ({!r})'.format(param_grid))
@@ -4455,7 +4455,7 @@ class CatBoost(_CatBoostBase):
         if X is None:
             raise CatBoostError("X must not be None")
         if y is None and not isinstance(X, PATH_TYPES + (Pool,)):
-            raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or pathlib.Path.")
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or os.PathLike.")
 
         with log_fixup(log_cout, log_cerr):
             train_params = self._prepare_train_params(X=X, y=y, eval_set=eval_set, verbose=verbose, logging_level=logging_level)
@@ -4591,7 +4591,7 @@ class CatBoostClassifier(CatBoost):
         Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 1024 borders.
         Example 3: ['0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
                     '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum'] - defines more quantization properties for first two features.
-    input_borders : string or pathlib.Path, [default=None]
+    input_borders : string or os.PathLike, [default=None]
         input file with borders used in numeric features binarization.
     output_borders : string, [default=None]
         output file for borders that were used in numeric features binarization.
@@ -4748,7 +4748,7 @@ class CatBoostClassifier(CatBoost):
         The name that should be displayed in the visualization tools.
     ignored_features : list, [default=None]
         Indices or names of features that should be excluded when training.
-    train_dir : string or pathlib.Path, [default=None]
+    train_dir : string or os.PathLike, [default=None]
         The directory in which you want to record generated in the process of learning files.
     custom_metric : string or list of strings, [default=None]
         To use your own metric function.
@@ -4760,7 +4760,7 @@ class CatBoostClassifier(CatBoost):
         Typical values are in range [0, 1] (0 - no bagging, 1 - default).
     save_snapshot : bool, [default=None]
         Enable progress snapshotting for restoring progress after crashes or interruptions
-    snapshot_file : string or pathlib.Path, [default=None]
+    snapshot_file : string or os.PathLike, [default=None]
         Learn progress snapshot file path, if None will use default filename
     snapshot_interval: int, [default=600]
         Interval between saving snapshots (seconds)
@@ -5223,15 +5223,15 @@ class CatBoostClassifier(CatBoost):
         save_snapshot : bool, [default=None]
             Enable progress snapshotting for restoring progress after crashes or interruptions
 
-        snapshot_file : string or pathlib.Path, [default=None]
+        snapshot_file : string or os.PathLike, [default=None]
             Learn progress snapshot file path, if None will use default filename
 
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
-        init_model : CatBoost class or string or pathlib.Path, [default=None]
+        init_model : CatBoost class or string or os.PathLike, [default=None]
             Continue training starting from the existing model.
-            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+            If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
@@ -5851,15 +5851,15 @@ class CatBoostRegressor(CatBoost):
         save_snapshot : bool, [default=None]
             Enable progress snapshotting for restoring progress after crashes or interruptions
 
-        snapshot_file : string or pathlib.Path, [default=None]
+        snapshot_file : string or os.PathLike, [default=None]
             Learn progress snapshot file path, if None will use default filename
 
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
-        init_model : CatBoost class or string or pathlib.Path, [default=None]
+        init_model : CatBoost class or string or os.PathLike, [default=None]
             Continue training starting from the existing model.
-            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+            If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
@@ -6261,13 +6261,13 @@ class CatBoostRanker(CatBoost):
             Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
         save_snapshot : bool, [default=None]
             Enable progress snapshotting for restoring progress after crashes or interruptions
-        snapshot_file : string or pathlib.Path, [default=None]
+        snapshot_file : string or os.PathLike, [default=None]
             Learn progress snapshot file path, if None will use default filename
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
-        init_model : CatBoost class or string or pathlib.Path, [default=None]
+        init_model : CatBoost class or string or os.PathLike, [default=None]
             Continue training starting from the existing model.
-            If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+            If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
         callbacks : list, optional (default=None)
             List of callback objects that are applied at end of each iteration.
 
@@ -6479,15 +6479,15 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     save_snapshot : bool, [default=None]
         Enable progress snapshotting for restoring progress after crashes or interruptions
 
-    snapshot_file : string or pathlib.Path, [default=None]
+    snapshot_file : string or os.PathLike, [default=None]
         Learn progress snapshot file path, if None will use default filename
 
     snapshot_interval: int, [default=600]
         Interval between saving snapshots (seconds)
 
-    init_model : CatBoost class or string or pathlib.Path, [default=None]
+    init_model : CatBoost class or string or os.PathLike, [default=None]
         Continue training starting from the existing model.
-        If this parameter is a string or pathlib.Path, load initial model from the path specified by this string.
+        If this parameter is a string or os.PathLike, load initial model from the path specified by this string.
 
     log_cout: output stream or callback for logging (default=None)
         If None is specified, sys.stdout is used
@@ -6820,7 +6820,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     save_snapshot : bool, [default=None]
         Enable progress snapshotting for restoring progress after crashes or interruptions
 
-    snapshot_file : string or pathlib.Path, [default=None]
+    snapshot_file : string or os.PathLike, [default=None]
         Learn progress snapshot file path, if None will use default filename
 
     snapshot_interval: int, [default=600]
