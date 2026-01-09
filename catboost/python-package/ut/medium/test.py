@@ -5725,7 +5725,7 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_custom_metric_object(self):
-        with pytest.raises(CatBoostError, match='custom_metric.*must be string'):
+        with pytest.raises(CatBoostError, match='custom_metric.*must be str or Sequence of strings'):
             model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
