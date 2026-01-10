@@ -7029,7 +7029,7 @@ void CheckPreprocessedTarget(
 
     if (lossFunction != ELossFunction::MultiRMSEWithMissingValues) {
         for (auto objectIdx : xrange(target.size())){
-            CB_ENSURE(!IsNan(target[objectIdx]), "metric/loss-function " << lossFunction << " do not allows nan value on target");
+            CB_ENSURE(!IsNan(target[objectIdx]), "metric/loss-function " << lossFunction << " does not allow nan values in target data");
         }
     }
 }
