@@ -358,6 +358,7 @@ void TCMallocPreFork() {
   ThreadCache::AcquireInternalLocks();
   Static::system_allocator().AcquireInternalLocks();
   Static::sampled_allocation_recorder().AcquireInternalLocks();
+  Static::span_allocator().AcquireInternalLocks();
 
   /*
   Locking order: we have to acquire locks in some order which is consistent with the rest of TCMalloc code.
@@ -378,6 +379,7 @@ void TCMallocPostFork() {
   if (!Static::ForkSupportEnabled()) {
     return;
   }
+  Static::span_allocator().ReleaseInternalLocks();
   Static::system_allocator().ReleaseInternalLocks();
   pageheap_lock.Unlock();
   Static::guardedpage_allocator().ReleaseInternalLocks();
