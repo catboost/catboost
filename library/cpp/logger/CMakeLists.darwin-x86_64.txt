@@ -29,7 +29,6 @@ target_link_libraries(library-cpp-logger PUBLIC
   yutil
   tools-enum_parser-enum_serialization_runtime
   library-cpp-json
-  cpp-deprecated-atomic
 )
 
 target_sources(library-cpp-logger PRIVATE
@@ -70,7 +69,6 @@ target_link_libraries(library-cpp-logger.global PUBLIC
   yutil
   tools-enum_parser-enum_serialization_runtime
   library-cpp-json
-  cpp-deprecated-atomic
 )
 
 target_sources(library-cpp-logger.global PRIVATE
