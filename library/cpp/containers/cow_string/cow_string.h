@@ -3,7 +3,8 @@
 #include <util/generic/string.h>
 
 template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
-class TBasicCowString: public TStringBase<TBasicCowString<TCharType, TTraits>, TCharType, TTraits> {
+class Y_EMPTY_BASES TBasicCowString: public TStringBase<TBasicCowString<TCharType, TTraits>, TCharType, TTraits>,
+                                     public TStdStringCompatibilityBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
 public:
     // TODO: Move to private section
     using TBase = TStringBase<TBasicCowString, TCharType, TTraits>;
