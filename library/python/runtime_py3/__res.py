@@ -13,7 +13,7 @@
 import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
-from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
+from _frozen_importlib import _call_with_frames_removed, spec_from_loader
 from _frozen_importlib_external import (
     _os,
     _path_isfile,
@@ -590,15 +590,6 @@ class _ResfsResourceReader:
         return sitecustomize.ArcadiaResourceContainer(f"resfs/file/{self.path}/")
 
 
-class BuiltinSubmoduleImporter(BuiltinImporter):
-    @classmethod
-    def find_spec(cls, fullname, path=None, target=None):
-        if path is not None:
-            return super().find_spec(fullname, None, target)
-        else:
-            return None
-
-
 class ArcadiaSourceFinder:
     """
         Search modules and packages in arcadia source tree.
@@ -780,7 +771,6 @@ def get_path0():
 
 if YA_IDE_VENV:
     sys.meta_path.append(importer)
-    sys.meta_path.append(BuiltinSubmoduleImporter)
     if executable not in sys.path:
         sys.path.append(executable)
     path0 = get_path0()
@@ -789,7 +779,6 @@ if YA_IDE_VENV:
 
     sys.path_hooks.append(executable_path_hook)
 else:
-    sys.meta_path.insert(0, BuiltinSubmoduleImporter)
     sys.meta_path.insert(0, importer)
     if executable not in sys.path:
         sys.path.insert(0, executable)
