@@ -100,11 +100,15 @@ namespace boost
                ++count;
             }
             last_term = 0;
+            T betaf_lim = betaf * tools::epsilon<T>() * 4;
             for(auto i = k + 1; ; ++i)
             {
                poisf *= d2 / (i + 0.5f);
                xtermf *= (x * (v / 2 + i - 1)) / (i);
                betaf -= xtermf;
+               if (betaf < betaf_lim)
+                  break; // Nothing but garbage left in betaf now!!
+
                T term = poisf * betaf;
                sum += term;
                if((fabs(last_term) >= fabs(term)) && (fabs(term/sum) < errtol))
