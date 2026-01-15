@@ -5,6 +5,10 @@ import os
 import shutil
 import tarfile
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import process_command_files as pcf  # noqa: E402
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -12,7 +16,7 @@ def parse_args():
     parser.add_argument('--dest-arch', default=None)
     parser.add_argument('--dest-dir', required=True)
     parser.add_argument('args', nargs='*')
-    return parser.parse_args()
+    return parser.parse_args(pcf.get_args(sys.argv[1:]))
 
 
 def ensure_dir_exists(path):
