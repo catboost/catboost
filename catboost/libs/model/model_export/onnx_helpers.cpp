@@ -401,10 +401,18 @@ static void AddTree(
                 missingValueTracksTrue = 1;
             }
             splitValue = split.FloatFeature.Split;
+        } else if (split.Type == ESplitType::OneHotFeature) {
+            // For categorical features, we use one-hot encoding with equality comparison
+            splitFlatFeatureIdx = split.OneHotFeature.CatFeatureIdx;
+            nodeMode = TModeNode::BRANCH_EQ;
+            // In ONNX, categorical values are represented as integers
+            splitValue = static_cast<float>(split.OneHotFeature.Value);
+            // For categorical features, missing values typically don't track true
+            missingValueTracksTrue = 0;
         } else {
             CB_ENSURE_INTERNAL(
                 false,
-                "Categorical features splits are unsupported in ONNX-ML format export for now"
+                "Only FloatFeature and OneHotFeature splits are supported in ONNX-ML format export"
             );
         }
 
@@ -626,23 +634,46 @@ static void PrepareTrees(
         } else {
             node.Type = EType::Inner;
 
+            TModelSplit split;
+            
             if (nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT) {
                 std::swap(node.TrueNodeId, node.FalseNodeId);
+                // For LEQ/LT modes, we treat them as float feature splits
+                split.Type = ESplitType::FloatFeature;
+                split.FloatFeature.FloatFeature = treesAttributes.nodes_featureids->ints(idx);
+                split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
+                
+                //update floatFeatures
+                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                    (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
+                    ENanValueTreatment::AsTrue;
+                }
+                floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
+            } else if (nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT) {
+                // For GTE/GT modes, we treat them as float feature splits
+                split.Type = ESplitType::FloatFeature;
+                split.FloatFeature.FloatFeature = treesAttributes.nodes_featureids->ints(idx);
+                split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
+                
+                //update floatFeatures
+                if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                    (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
+                    ENanValueTreatment::AsTrue;
+                }
+                floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
+            } else if (nodeMode == TModeNode::BRANCH_EQ || nodeMode == TModeNode::BRANCH_NEQ) {
+                // For EQ/NEQ modes, we treat them as categorical (one-hot) feature splits
+                split.Type = ESplitType::OneHotFeature;
+                split.OneHotFeature.CatFeatureIdx = treesAttributes.nodes_featureids->ints(idx);
+                split.OneHotFeature.Value = static_cast<int>(treesAttributes.nodes_values->floats(idx));
+                
+                // For NEQ mode, we need to swap true/false nodes
+                if (nodeMode == TModeNode::BRANCH_NEQ) {
+                    std::swap(node.TrueNodeId, node.FalseNodeId);
+                }
             } else {
-                CB_ENSURE(nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT, "Undefined mode of node " << nodeMode);
+                CB_ENSURE(false, "Undefined mode of node " << nodeMode);
             }
-
-            TModelSplit split;
-            split.Type = ESplitType::FloatFeature;
-            split.FloatFeature.FloatFeature = treesAttributes.nodes_featureids->ints(idx);
-            split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
-
-            //update floatFeatures
-            if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
-                (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
-                ENanValueTreatment::AsTrue;
-            }
-            floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
 
             node.SplitCondition = split;
         }
