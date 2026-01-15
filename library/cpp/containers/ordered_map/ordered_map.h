@@ -9,8 +9,44 @@
 
 
 namespace NOrderedMap {
-    template <class TKey, class TValue, class BaseToUse = std::list<std::pair<const TKey, TValue>>> //bases: deque or list
-    class TOrderedMap : protected BaseToUse {
+
+    template<class Key, class Value>
+    struct TPairTraits {
+        using TValue = Value;
+        using Item = std::pair<const Key, Value>;
+        using TMutableItem = std::pair<Key, Value>;
+
+        static const Key& GetSortProjector(const Item& x) {
+            return x.first;
+        }
+
+        static auto& GetValueRef(auto& x) {
+            return x.second;
+        }
+    };
+
+
+    template<class Key>
+    struct TSelfTraits {
+        using Item = const Key;
+        using TMutableItem = Key;
+        using TValue = Item;
+
+        static const Key& GetSortProjector(const Item& x) {
+            return x;
+        }
+
+        static Item& GetValueRef(Item& x) {
+            return x;
+        }
+    };
+
+    template <
+        class TKey,
+        class Traits,
+        class BaseToUse = std::list<typename Traits::Item> //bases: deque or list
+    >
+    class TOrderedMapImpl : protected BaseToUse {
         using TBase = BaseToUse;
 
     public:
@@ -30,26 +66,26 @@ namespace NOrderedMap {
             return empty();
         }
 
-        TOrderedMap() = default;
+        TOrderedMapImpl() = default;
 
-        TOrderedMap(const TOrderedMap& other) {
+        TOrderedMapImpl(const TOrderedMapImpl& other) {
             for (const auto& item : other) {
-                emplace_back(item.first, item.second);
+                emplace_back(item);
             }
         }
-        TOrderedMap(TOrderedMap&& other) noexcept : TBase(std::move(other)), Map_(std::move(other.Map_)) {
+        TOrderedMapImpl(TOrderedMapImpl&& other) noexcept : TBase(std::move(other)), Map_(std::move(other.Map_)) {
             other.Map_.clear();
         }
-        TOrderedMap& operator=(const TOrderedMap& other) {
+        TOrderedMapImpl& operator=(const TOrderedMapImpl& other) {
             if (this != &other) {
                 clear();
                 for (const auto& item : other) {
-                    emplace_back(item.first, item.second);
+                    emplace_back(item);
                 }
             }
             return *this;
         }
-        TOrderedMap& operator=(TOrderedMap&& other) noexcept {
+        TOrderedMapImpl& operator=(TOrderedMapImpl&& other) noexcept {
             if (this != &other) {
                 TBase::operator=(std::move(other));
                 Map_ = std::move(other.Map_);
@@ -59,8 +95,8 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        TValue& operator[](const TheKey& key) {
-            return try_emplace_back(key, TValue{}).second;
+        Traits::TValue& operator[](const TheKey& key) {
+            return Traits::GetValueRef(try_emplace_back(key, typename Traits::TValue{}));
         }
 
         template <class TheKey>
@@ -97,15 +133,31 @@ namespace NOrderedMap {
         }
 
         template <class... TArgs>
-        reference emplace_back(TArgs&&... args) {
+        iterator insert(TArgs&&... args) {
             auto& value = TBase::emplace_back(std::forward<TArgs>(args)...);
-            auto [mapIt, ok] = Map_.try_emplace(&value.first, --TBase::end());
+            auto [mapIt, ok] = Map_.try_emplace(&Traits::GetSortProjector(value), --TBase::end());
             if (!ok) {
                 iterator forDeleteFromList = mapIt->second;
                 //TODO: it is possible to skip double-lookup if be possible to mutate key by iterator, or steal previous value by insert
                 Map_.erase(mapIt);
                 TBase::erase(forDeleteFromList);
-                bool isOk = Map_.try_emplace(&value.first, --TBase::end()).second;
+                auto insertRes = Map_.try_emplace(&Traits::GetSortProjector(value), --TBase::end());
+                Y_ASSERT(insertRes.second);
+                return insertRes.first->second;
+            }
+            return mapIt->second;
+        }
+
+        template <class... TArgs>
+        reference emplace_back(TArgs&&... args) {
+            auto& value = TBase::emplace_back(std::forward<TArgs>(args)...);
+            auto [mapIt, ok] = Map_.try_emplace(&Traits::GetSortProjector(value), --TBase::end());
+            if (!ok) {
+                iterator forDeleteFromList = mapIt->second;
+                //TODO: it is possible to skip double-lookup if be possible to mutate key by iterator, or steal previous value by insert
+                Map_.erase(mapIt);
+                TBase::erase(forDeleteFromList);
+                bool isOk = Map_.try_emplace(&Traits::GetSortProjector(value), --TBase::end()).second;
                 Y_ASSERT(isOk);
             }
             return value;
@@ -114,7 +166,7 @@ namespace NOrderedMap {
         template <class... TArgs>
         reference try_emplace_back(TArgs&&... args) {
             auto& value = TBase::emplace_back(std::forward<TArgs>(args)...);
-            auto [mapIt, ok] = Map_.try_emplace(&value.first, --TBase::end());
+            auto [mapIt, ok] = Map_.try_emplace(&Traits::GetSortProjector(value), --TBase::end());
             if (!ok) {
                 TBase::pop_back();
                 return *mapIt->second;
@@ -137,13 +189,13 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        const TValue& at(const TheKey& key) const {
-            return Map_.at(&key)->second;
+        const Traits::TValue& at(const TheKey& key) const {
+            return Traits::GetValueRef(*Map_.at(&key));
         }
 
         template <class TheKey>
-        TValue& at(const TheKey& key) {
-            return Map_.at(&key)->second;
+        Traits::TValue& at(const TheKey& key) {
+            return Traits::GetValueRef(*Map_.at(&key));
         }
 
         template <class TheKey>
@@ -162,24 +214,24 @@ namespace NOrderedMap {
             if (it == end()) {
                 return end();
             }
-            Map_.erase(&it->first);
+            Map_.erase(&Traits::GetSortProjector(*it));
             return TBase::erase(it);
         }
 
         void Sort() {
-            TVector<std::pair<TKey, TValue>> tmp(Reserve(size()));
+            TVector<typename Traits::TMutableItem> tmp(Reserve(size()));
             for(auto& x : *this) {
                 tmp.emplace_back(std::move(x));
             }
             clear();
-            std::ranges::sort(tmp, {}, &std::pair<TKey, TValue>::first);
-            for (auto&& x : std::move(tmp)) {
+            SortBy(tmp, Traits::GetSortProjector);
+            for (auto& x : tmp) {
                 emplace_back(std::move(x));
             }
         }
 
         template <class TheKey>
-        const TValue* FindPtr(const TheKey& key) const {
+        const Traits::TValue* FindPtr(const TheKey& key) const {
             auto mapIt = Map_.find(&key);
             return mapIt == Map_.end()
                 ? nullptr
@@ -187,7 +239,7 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        TValue* FindPtr(const TheKey& key) {
+        Traits::TValue* FindPtr(const TheKey& key) {
             auto mapIt = Map_.find(&key);
             return mapIt == Map_.end()
                 ? nullptr
@@ -216,5 +268,13 @@ namespace NOrderedMap {
             }
         };
         THashMap<const TKey*, typename TBase::iterator, THashOperationsForPtr, THashOperationsForPtr> Map_{};
+    };
+
+    template <class TKey, class TValue>
+    class TOrderedMap : public TOrderedMapImpl<TKey, TPairTraits<TKey, TValue>> {
+    };
+
+    template <class TKey>
+    class TOrderedSet : public TOrderedMapImpl<TKey, TSelfTraits<TKey>> {
     };
 }
