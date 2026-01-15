@@ -14,6 +14,7 @@ namespace NOrderedMap {
     struct TPairTraits {
         using TValue = Value;
         using Item = std::pair<const Key, Value>;
+        using StorageItem = Item;
         using TMutableItem = std::pair<Key, Value>;
 
         static const Key& GetSortProjector(const Item& x) {
@@ -29,6 +30,7 @@ namespace NOrderedMap {
     template<class Key>
     struct TSelfTraits {
         using Item = const Key;
+        using StorageItem = Key;
         using TMutableItem = Key;
         using TValue = Item;
 
@@ -44,12 +46,13 @@ namespace NOrderedMap {
     template <
         class TKey,
         class Traits,
-        class BaseToUse = std::list<typename Traits::Item> //bases: deque or list
+        class BaseToUse = std::list<typename Traits::StorageItem> //bases: deque or list
     >
     class TOrderedMapImpl : protected BaseToUse {
         using TBase = BaseToUse;
 
     public:
+        using TTraits = Traits;
         using typename TBase::const_iterator;
         using typename TBase::iterator;
         using typename TBase::reference;
@@ -62,6 +65,7 @@ namespace NOrderedMap {
         using TBase::end;
         using TBase::rbegin;
         using TBase::rend;
+
         operator bool() const {
             return empty();
         }
@@ -161,6 +165,11 @@ namespace NOrderedMap {
                 Y_ASSERT(isOk);
             }
             return value;
+        }
+
+        template <class... TArgs>
+        reference emplace(TArgs&&... args) {
+            return emplace_back(std::forward<TArgs>(args)...);
         }
 
         template <class... TArgs>
@@ -276,5 +285,9 @@ namespace NOrderedMap {
 
     template <class TKey>
     class TOrderedSet : public TOrderedMapImpl<TKey, TSelfTraits<TKey>> {
+    public:
+        auto operator==(const TOrderedSet& b) const {
+            return std::lexicographical_compare_three_way(this->begin(), this->end(), b.begin(), b.end()) == std::strong_ordering::equal;
+        }
     };
 }
