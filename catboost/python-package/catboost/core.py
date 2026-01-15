@@ -2108,7 +2108,7 @@ class _CatBoostBase(object):
             'requires_positive_y': False,
             'requires_y': True,
             'poor_score': False,
-            'no_validation': True,
+            'no_validation': False,
             'stateless': False,
             'pairwise': False,
             'multilabel': False,
