@@ -95,7 +95,7 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        Traits::TValue& operator[](const TheKey& key) {
+        typename Traits::TValue& operator[](const TheKey& key) {
             return Traits::GetValueRef(try_emplace_back(key, typename Traits::TValue{}));
         }
 
@@ -189,12 +189,12 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        const Traits::TValue& at(const TheKey& key) const {
+        const typename Traits::TValue& at(const TheKey& key) const {
             return Traits::GetValueRef(*Map_.at(&key));
         }
 
         template <class TheKey>
-        Traits::TValue& at(const TheKey& key) {
+        typename Traits::TValue& at(const TheKey& key) {
             return Traits::GetValueRef(*Map_.at(&key));
         }
 
@@ -231,7 +231,7 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        const Traits::TValue* FindPtr(const TheKey& key) const {
+        const typename Traits::TValue* FindPtr(const TheKey& key) const {
             auto mapIt = Map_.find(&key);
             return mapIt == Map_.end()
                 ? nullptr
@@ -239,7 +239,7 @@ namespace NOrderedMap {
         }
 
         template <class TheKey>
-        Traits::TValue* FindPtr(const TheKey& key) {
+        typename Traits::TValue* FindPtr(const TheKey& key) {
             auto mapIt = Map_.find(&key);
             return mapIt == Map_.end()
                 ? nullptr
