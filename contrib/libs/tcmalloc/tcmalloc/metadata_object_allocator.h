@@ -84,6 +84,14 @@ class MetadataObjectAllocator {
     return stats_;
   }
 
+  void AcquireInternalLocks() {
+    metadata_lock_.Lock();
+  }
+
+  void ReleaseInternalLocks() {
+    metadata_lock_.Unlock();
+  }
+
  private:
   ABSL_ATTRIBUTE_RETURNS_NONNULL T* LockAndAllocMemory(size_t size,
                                                        std::align_val_t align) {

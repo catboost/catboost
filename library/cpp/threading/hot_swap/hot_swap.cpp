@@ -4,18 +4,17 @@
 
 namespace NHotSwapPrivate {
     void TWriterLock::Acquire() noexcept {
-        AtomicIncrement(ReadersCount);
+        ++ReadersCount;
     }
 
     void TWriterLock::Release() noexcept {
-        AtomicDecrement(ReadersCount);
+        --ReadersCount;
     }
 
     void TWriterLock::WaitAllReaders() const noexcept {
-        TAtomicBase cnt = AtomicGet(ReadersCount);
-        while (cnt > 0) {
+        for (i32 cnt = ReadersCount.load(); cnt > 0;) {
             SpinLockPause();
-            cnt = AtomicGet(ReadersCount);
+            cnt = ReadersCount.load();
             Y_ASSERT(cnt >= 0);
         }
     }

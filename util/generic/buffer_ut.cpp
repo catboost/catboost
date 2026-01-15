@@ -202,4 +202,22 @@ Y_UNIT_TEST(TestSpeed) {
         UNIT_ASSERT(buf2 == buf1);
     }
 
+    Y_UNIT_TEST(AsString) {
+        const TStringBuf originalString = "abc";
+
+        {
+            TBuffer buf(originalString.data(), originalString.size());
+            TString str;
+            buf.AsString(str);
+            UNIT_ASSERT_VALUES_EQUAL(str, originalString);
+        }
+
+        {
+            TBuffer buf(originalString.data(), originalString.size());
+            std::string str;
+            buf.AsString(str);
+            UNIT_ASSERT_VALUES_EQUAL(str, originalString);
+        }
+    }
+
 } // Y_UNIT_TEST_SUITE(TBufferTest)

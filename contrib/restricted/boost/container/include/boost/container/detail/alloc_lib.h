@@ -254,17 +254,17 @@ int boost_cont_multialloc_arrays
 
 void boost_cont_multidealloc(boost_cont_memchain *pchain);
 
-size_t boost_cont_footprint();
+size_t boost_cont_footprint(void);
 
-size_t boost_cont_allocated_memory();
+size_t boost_cont_allocated_memory(void);
 
 size_t boost_cont_chunksize(const void *p);
 
-int boost_cont_all_deallocated();
+int boost_cont_all_deallocated(void);
 
-boost_cont_malloc_stats_t boost_cont_malloc_stats();
+boost_cont_malloc_stats_t boost_cont_malloc_stats(void);
 
-size_t boost_cont_in_use_memory();
+size_t boost_cont_in_use_memory(void);
 
 int boost_cont_trim(size_t pad);
 
@@ -279,7 +279,7 @@ int boost_cont_shrink
 void* boost_cont_alloc
    (size_t minbytes, size_t preferred_bytes, size_t *received_bytes);
 
-int boost_cont_malloc_check();
+int boost_cont_malloc_check(void);
 
 boost_cont_command_ret_t boost_cont_allocation_command
    ( allocation_type command
@@ -290,7 +290,7 @@ boost_cont_command_ret_t boost_cont_allocation_command
    , void *reuse_ptr
    );
 
-void *boost_cont_sync_create();
+void *boost_cont_sync_create(void);
 
 void boost_cont_sync_destroy(void *sync);
 
@@ -298,9 +298,9 @@ int boost_cont_sync_lock(void *sync);
 
 void boost_cont_sync_unlock(void *sync);
 
-int boost_cont_global_sync_lock();
+int boost_cont_global_sync_lock(void);
 
-void boost_cont_global_sync_unlock();
+void boost_cont_global_sync_unlock(void);
 
 #ifdef __cplusplus
 }  //extern "C" {

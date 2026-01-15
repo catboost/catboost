@@ -15,6 +15,7 @@ import uuid
 # Don't forget to add imported scripts to inputs of the calling command!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+import process_command_files as pcf
 import fetch_from
 
 
@@ -29,7 +30,7 @@ def parse_args():
     parser.add_argument('--resource-id', type=int, required=True)
     parser.add_argument('--custom-fetcher')
     parser.add_argument('--resource-file')
-    return parser.parse_args()
+    return parser.parse_args(pcf.get_args(sys.argv[1:]))
 
 
 class ResourceInfoError(Exception):

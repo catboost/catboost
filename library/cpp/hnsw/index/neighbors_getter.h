@@ -4,18 +4,21 @@
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <util/system/types.h>
 
-#include <utility>
-
 namespace NHnsw {
+    constexpr ui32 EMPTY_MARKER = Max<ui32>();
+    using TNeighborsView = TArrayRef<const ui32>;
 
     class INeighborsGetter {
     public:
         virtual ~INeighborsGetter() = default;
 
-        virtual std::pair<const ui32*, ui32> GetLayerNeighbors(const ui32 id) = 0;
+        virtual TNeighborsView GetLayerNeighbors(const ui32 id) = 0;
+        virtual void MarkVisited(ui32 id) = 0;
     };
 
     class TNeighborsGetterBase: public INeighborsGetter {
@@ -23,11 +26,17 @@ namespace NHnsw {
         TNeighborsGetterBase(const ui32* level, const ui32 numNeighbors)
             : Level(level)
             , NumNeighbors(numNeighbors)
+            , Visited(EMPTY_MARKER)
         {
+            NeighborsBuffer.reserve(NumNeighbors);
         }
 
-        std::pair<const ui32*, ui32> GetLayerNeighbors(const ui32 id) override {
-            return std::make_pair(GetNeighbors(id), GetNumNeighbors());
+        TNeighborsView GetLayerNeighbors(const ui32 id) override {
+            return PrefilterVisited(TNeighborsView{GetNeighbors(id), NumNeighbors});
+        }
+
+        void MarkVisited(ui32 id) override {
+            Visited.Insert(id);
         }
 
     protected:
@@ -39,9 +48,21 @@ namespace NHnsw {
             return NumNeighbors;
         }
 
+        TNeighborsView PrefilterVisited(TNeighborsView neighbors) {
+            NeighborsBuffer.clear();
+            for (ui32 id: neighbors) {
+                if (Visited.Insert(id)) {
+                    NeighborsBuffer.push_back(id);
+                }
+            }
+            return NeighborsBuffer;
+        }
+
     private:
         const ui32* Level;
         const size_t NumNeighbors;
+        TVector<ui32> NeighborsBuffer;
+        TDenseHashSet<ui32> Visited;
     };
 
     class TAcornNeighborsGetter: public TNeighborsGetterBase {
@@ -54,7 +75,7 @@ namespace NHnsw {
             SecondHopStorage.resize(numNeighbors, 0);
         }
 
-        std::pair<const ui32*, ui32> GetLayerNeighbors(const ui32 id) override {
+        TNeighborsView GetLayerNeighbors(const ui32 id) override {
             ui32 acornCount = 0;
             ScanNeighbors(id, acornCount, /*isFirstHop*/ true);
 
@@ -64,7 +85,7 @@ namespace NHnsw {
                 ScanNeighbors(SecondHopStorage[i], acornCount, /*isFirstHop*/ false);
             }
 
-            return std::make_pair(AcornNeighbors.data(), acornCount);
+            return PrefilterVisited(TNeighborsView{AcornNeighbors.data(), acornCount});
         }
 
     private:

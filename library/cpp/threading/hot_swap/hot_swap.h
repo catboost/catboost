@@ -2,11 +2,11 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
-#include <util/generic/utility.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
+
+#include <atomic>
 
 namespace NHotSwapPrivate {
     // Special guard object for THotSwap
@@ -19,7 +19,7 @@ namespace NHotSwapPrivate {
         void WaitAllReaders() const noexcept;
 
     private:
-        TAtomic ReadersCount = 0;
+        std::atomic<i32> ReadersCount = 0;
     };
 
 }
@@ -52,8 +52,7 @@ public:
     using TPtr = TIntrusivePtr<T, Ops>;
 
 public:
-    THotSwap() noexcept {
-    }
+    THotSwap() noexcept = default;
 
     explicit THotSwap(T* p) noexcept {
         AtomicStore(p);
@@ -70,7 +69,8 @@ public:
     }
 
     THotSwap(THotSwap&& other) noexcept {
-        DoSwap(RawPtr, other.RawPtr); // we don't need thread safety, because both objects are local
+        RawPtr.store(other.RawPtr.load()); // we don't need thread safety, because both objects are local
+        other.RawPtr.store(0);
     }
 
     ~THotSwap() noexcept {
@@ -86,7 +86,7 @@ public:
     ///
     /// @returns          Current value of stored object
     TPtr AtomicLoad() const noexcept {
-        const TAtomicBase lockIndex = GetLockIndex();
+        const ui32 lockIndex = GetLockIndex();
         auto guard = Guard(WriterLocks[lockIndex]); // non-blocking (for other AtomicLoad()'s) guard
         return GetRawPtr();
     }
@@ -105,24 +105,24 @@ public:
 
 private:
     T* GetRawPtr() const noexcept {
-        return reinterpret_cast<T*>(AtomicGet(RawPtr));
+        return reinterpret_cast<T*>(RawPtr.load());
     }
 
-    TAtomicBase GetLockIndex() const noexcept {
-        return AtomicGet(LockIndex);
+    ui32 GetLockIndex() const noexcept {
+        return LockIndex.load();
     }
 
-    TAtomicBase SwitchLockIndex() noexcept; // returns previous index value
+    ui32 SwitchLockIndex() noexcept; // returns previous index value
     void SwitchRawPtr(T* from, T* to) noexcept;
     void WaitReaders() noexcept;
 
 private:
-    TAtomic RawPtr = 0; // T* // Pointer to current value
-    static_assert(sizeof(TAtomic) == sizeof(T*), "TAtomic can't represent a pointer value");
+    std::atomic<intptr_t> RawPtr = 0; // T* // Pointer to current value
+    static_assert(sizeof(std::atomic<intptr_t>) == sizeof(T*), "std::atomic<intptr_t> can't represent a pointer value");
 
     TAdaptiveLock UpdateMutex;                           // Guarantee that AtomicStore() will be one at a time
     mutable NHotSwapPrivate::TWriterLock WriterLocks[2]; // Guarantee that AtomicStore() will wait for all concurrent AtomicLoad()'s completion
-    TAtomic LockIndex = 0;
+    std::atomic<ui32> LockIndex = 0;
 };
 
 // Atomic operations of AtomicLoad:
@@ -167,10 +167,10 @@ void THotSwap<T, Ops>::AtomicStore(T* p) noexcept {
 }
 
 template <class T, class Ops>
-TAtomicBase THotSwap<T, Ops>::SwitchLockIndex() noexcept {
-    const TAtomicBase prevIndex = AtomicGet(LockIndex);
+ui32 THotSwap<T, Ops>::SwitchLockIndex() noexcept {
+    const ui32 prevIndex = LockIndex.load();
     Y_ASSERT(prevIndex == 0 || prevIndex == 1);
-    AtomicSet(LockIndex, prevIndex ^ 1);
+    LockIndex.store(prevIndex ^ 1u);
     return prevIndex;
 }
 
@@ -185,7 +185,7 @@ void THotSwap<T, Ops>::SwitchRawPtr(T* from, T* to) noexcept {
     if (to)
         Ops::Ref(to); // Ref() for new value
 
-    AtomicSet(RawPtr, reinterpret_cast<TAtomicBase>(to));
+    RawPtr.store(reinterpret_cast<intptr_t>(to));
 
     if (from)
         Ops::UnRef(from); // Unref() for old value

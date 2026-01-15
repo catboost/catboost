@@ -337,7 +337,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
-    parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
+    parser.AddLongOption("use-best-model", "If true - save all trees until the best iteration on test.")
         .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);

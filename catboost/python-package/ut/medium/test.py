@@ -5725,7 +5725,7 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_custom_metric_object(self):
-        with pytest.raises(CatBoostError, match='custom_metric.*must be string'):
+        with pytest.raises(CatBoostError, match='custom_metric.*must be str or Sequence of strings'):
             model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -10723,23 +10723,6 @@ def test_fit_cat_features_type():
     model.fit(X, y, cat_features=[0, 1, 2])
 
 
-def test_sklearn_meta_algo():
-    from sklearn.calibration import CalibratedClassifierCV
-    from sklearn.frozen import FrozenEstimator
-
-    X_train = DataFrame(
-        data=np.random.randint(0, 100, size=(100, 5)),
-        columns=['feature{}'.format(i) for i in range(5)]
-    )
-    y_train = np.random.randint(0, 2, size=100)
-
-    model = CatBoostClassifier()
-    model.fit(X_train, y_train)
-
-    cc_model = CalibratedClassifierCV(FrozenEstimator(model), method='isotonic')
-    model = cc_model.fit(X_train, y_train)
-
-
 def test_pool_with_timestamp(task_type):
     features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[0, 1])
     np.random.seed(42)
@@ -11973,3 +11956,9 @@ def test_fit_fit_quantized_cat_features_type():
     train_pool = Pool("quantized://" + quantized_pool)  # not path join to keep //
     model.fit(train_pool)
     model.fit(train_pool)
+
+
+def test_repr():
+    assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
+    assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
+    assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")

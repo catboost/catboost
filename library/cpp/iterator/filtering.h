@@ -2,6 +2,7 @@
 
 #include <util/generic/iterator_range.h>
 #include <util/generic/store_policy.h>
+#include <util/system/compiler.h>
 #include <iterator>
 
 
@@ -53,7 +54,7 @@ private:
     }
     TIterator Iter;
     TIterator Last;
-    TCondition Condition;
+    Y_NO_UNIQUE_ADDRESS TCondition Condition;
 };
 
 
@@ -87,7 +88,7 @@ public:
 
 private:
     mutable TContainerStorage Container;
-    mutable TConditionStorage Condition;
+    Y_NO_UNIQUE_ADDRESS mutable TConditionStorage Condition;
 };
 
 

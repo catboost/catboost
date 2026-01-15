@@ -132,6 +132,19 @@
     #endif
 #endif
 
+/**
+ * @def Y_EMPTY_BASES
+ *
+ * Macro to enable EBO (empty base optimization).
+ */
+#if !defined(Y_EMPTY_BASES)
+    #if defined(_MSC_VER)
+        #define Y_EMPTY_BASES __declspec(empty_bases)
+    #else
+        #define Y_EMPTY_BASES
+    #endif
+#endif
+
 // to cheat compiler about strict aliasing or similar problems
 #if defined(__GNUC__)
     #define Y_FAKE_READ(X)                  \
@@ -698,15 +711,25 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 /**
  * @def Y_LIFETIME_BOUND
  *
- * The attribute on a function parameter can be used to tell the compiler
- * that function return value may refer that parameter.
+ * This attribute on a function parameter can be used to tell the compiler
+ * that the function return value may refer that parameter.
+ * When applied to a parameter of a constructor it means that the constructed object
+ * may refer that parameter.
+ * This attribute can also be used to annotate non-static member functions meaning that the
+ * return value of this function may refer to the object on which the member function is invoked.
+ *
  * The compiler may produce a compile-time warning if it is able to detect that
  * an object or a reference refers to another object with a shorter lifetime.
+ *
+ * @see
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#lifetimebound
  */
 #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
     #define Y_LIFETIME_BOUND
 #elif Y_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
     #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::lifetimebound)
+    #define Y_LIFETIME_BOUND [[msvc::lifetimebound]]
 #else
     #define Y_LIFETIME_BOUND
 #endif
@@ -785,6 +808,8 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  */
 #if Y_HAS_CPP_ATTRIBUTE(no_unique_address)
     #define Y_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::no_unique_address)
+    #define Y_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
     #define Y_NO_UNIQUE_ADDRESS
 #endif

@@ -108,7 +108,8 @@ The amount of randomness to use for scoring splits when the tree structure is se
 
 Command-line: `--use-best-model`
 
-If this parameter is set, the number of trees that are saved in the resulting model is defined.
+Use the validation dataset to identify the iteration with the optimal value of the evaluation metric.
+Save only trees up to this iteration (inclusive) in the resulting model.
 
 ### [best_model_min_trees](common.md#best_model_min_trees)
 

@@ -504,6 +504,13 @@ namespace NLastGetopt {
         }
 
         /**
+         * Get index from where trailing arguments start
+         */
+        ui32 GetTrailingArgsIndex() const {
+            return FreeArgSpecs_.empty() ? 0 : FreeArgSpecs_.rbegin()->first + 1;
+        }
+
+        /**
          * Set exact expected number of free args
          *
          * @param count        new value

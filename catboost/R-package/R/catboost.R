@@ -170,7 +170,7 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
   if (!all(cat_features_indices == as.integer(cat_features_indices)) && !is.null(cat_features_indices))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features_indices))
+      stop("Unsupported cat_features_indices type, expecting integer, got: ", typeof(cat_features_indices))
 
   if (!is.null(text_features_data) && !is.matrix(text_features_data))
      stop("Unsupported text data type, expecting matrix, got: ", class(text_features_data))

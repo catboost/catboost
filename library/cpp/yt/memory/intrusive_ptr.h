@@ -35,7 +35,7 @@ public:
      * Note that it notoriously hard to make this constructor explicit
      * given the current amount of code written.
      */
-    TIntrusivePtr(T* obj, bool addReference = true) noexcept
+    constexpr TIntrusivePtr(T* obj, bool addReference = true) noexcept
         : T_(obj)
     {
         if (T_ && addReference) {

@@ -5,7 +5,7 @@ compiler=msvc
 compiler.cppstd=20
 compiler.runtime=static
 compiler.runtime_type={{ os.getenv("CMAKE_BUILD_TYPE", "Release") }}
-compiler.version=192
+compiler.version=194
 os=Windows
 [conf]
 tools.cmake.cmaketoolchain:generator=Ninja

@@ -163,7 +163,8 @@ private:
 };
 
 template <typename TCharType, typename TTraits>
-class TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
+class Y_EMPTY_BASES TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits>,
+                                  public TStdStringCompatibilityBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
 public:
     // TODO: Move to private section
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;

@@ -856,7 +856,6 @@ namespace {
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
                 bestIterationIdx = iterationIdx;
-                *bestCvResult = cvResult;
             }
             const TString& lossDescription = metrics[0]->GetDescription();
             TOneInterationLogger oneIterLogger(logger);
@@ -895,6 +894,9 @@ namespace {
                     generalQuantizeParamsInfo,
                     oneIterLogger
                 );
+            }
+            if (isUpdateBest) {
+                *bestCvResult = std::move(cvResult);
             }
             profile.FinishIterationBlock(1);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
@@ -1285,7 +1287,7 @@ namespace NCB {
                     &(bestOptionValuesWithCvResult->CvResult)
                 );
             } else {
-                bestOptionValuesWithCvResult->CvResult = bestCvResult;
+                bestOptionValuesWithCvResult->CvResult = std::move(bestCvResult);
             }
         }
     }
@@ -1413,7 +1415,7 @@ namespace NCB {
                     &(bestOptionValuesWithCvResult->CvResult)
                 );
             } else {
-                bestOptionValuesWithCvResult->CvResult = cvResult;
+                bestOptionValuesWithCvResult->CvResult = std::move(cvResult);
             }
         }
     }

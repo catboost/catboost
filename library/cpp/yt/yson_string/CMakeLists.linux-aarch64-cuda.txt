@@ -21,12 +21,14 @@ target_compile_options(cpp-yt-yson_string PRIVATE
   -Wparentheses
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
+  -Wswitch
 )
 
 target_link_libraries(cpp-yt-yson_string PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-containers-cow_string
   cpp-yt-assert
   cpp-yt-coding
   cpp-yt-exception

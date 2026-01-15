@@ -46,7 +46,7 @@ namespace NCudaLib {
 
         TBuffer& GetBuffer(ui32 devId) const {
             Y_ASSERT(Buffers.at(devId).NotEmpty());
-            CB_ENSURE(Buffers.at(devId).NotEmpty(), TStringBuilder() << "Error: no buffer found on device #" << devId);
+            CB_ENSURE(Buffers.at(devId).NotEmpty(), "Error: no buffer found on device #" << devId);
             //TODO: rid of this
             return const_cast<TBuffer&>(Buffers.at(devId));
         }

@@ -270,7 +270,7 @@ template<> struct fp_traits_non_native<double, double_precision>
 // long double (64 bits) -------------------------------------------------------
 
 #if defined(BOOST_NO_INT64_T) || defined(BOOST_NO_INCLASS_MEMBER_INITIALIZATION)\
-   || defined(BOOST_BORLANDC) || defined(__CODEGEAR__)
+   || defined(BOOST_BORLANDC) || defined(__CODEGEAR__) || (defined(__APPLE__) && defined(__aarch64__)) || defined(_MSC_VER)
 
 template<> struct fp_traits_non_native<long double, double_precision>
 {
@@ -297,31 +297,9 @@ private:
     static constexpr int offset_ = BOOST_MATH_ENDIAN_BIG_BYTE ? 0 : 4;
 };
 
-//..............................................................................
-
-#else
-
-template<> struct fp_traits_non_native<long double, double_precision>
-{
-    typedef ieee_copy_all_bits_tag method;
-
-    static const uint64_t sign     = static_cast<uint64_t>(0x80000000u) << 32;
-    static const uint64_t exponent = static_cast<uint64_t>(0x7ff00000) << 32;
-    static const uint64_t flag     = 0;
-    static const uint64_t significand
-        = (static_cast<uint64_t>(0x000fffff) << 32) + static_cast<uint64_t>(0xffffffffu);
-
-    typedef uint64_t bits;
-    static void get_bits(long double x, uint64_t& a) { std::memcpy(&a, &x, 8); }
-    static void set_bits(long double& x, uint64_t a) { std::memcpy(&x, &a, 8); }
-};
-
-#endif
-
-
 // long double (>64 bits), x86 and x64 -----------------------------------------
 
-#if defined(__i386) || defined(__i386__) || defined(_M_IX86) \
+#elif defined(__i386) || defined(__i386__) || defined(_M_IX86) \
     || defined(__amd64) || defined(__amd64__)  || defined(_M_AMD64) \
     || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)
 

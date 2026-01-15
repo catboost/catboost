@@ -436,7 +436,7 @@ True if validation sets are specified (the `eval_set` parameter is defined) and 
 
 The validation dataset or datasets used for the following processes:
 - [overfitting detector](../concepts/overfitting-detector.md)
-- best iteration selection
+- the best iteration selection
 - monitoring metrics' changes
 
 **Possible types**

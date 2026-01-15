@@ -1595,7 +1595,7 @@ Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the sa
 - Added a flag to allow constant labels
 
 ## New metrics
-We added many new metrics that can be used for visualization, overfitting detection, selecting of best iteration of training or for cross-validation:
+We added many new metrics that can be used for visualization, overfitting detection, selecting of the best iteration of training or for cross-validation:
 - BierScore
 - HingeLoss
 - HammingLoss
