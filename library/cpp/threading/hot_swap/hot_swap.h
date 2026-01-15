@@ -70,7 +70,7 @@ public:
 
     THotSwap(THotSwap&& other) noexcept {
         RawPtr.store(other.RawPtr.load()); // we don't need thread safety, because both objects are local
-        other.RawPtr.store(0);
+        other.RawPtr.store(nullptr);
     }
 
     ~THotSwap() noexcept {
@@ -105,7 +105,7 @@ public:
 
 private:
     T* GetRawPtr() const noexcept {
-        return reinterpret_cast<T*>(RawPtr.load());
+        return RawPtr.load();
     }
 
     ui32 GetLockIndex() const noexcept {
@@ -117,8 +117,7 @@ private:
     void WaitReaders() noexcept;
 
 private:
-    std::atomic<intptr_t> RawPtr = 0; // T* // Pointer to current value
-    static_assert(sizeof(std::atomic<intptr_t>) == sizeof(T*), "std::atomic<intptr_t> can't represent a pointer value");
+    std::atomic<T*> RawPtr = nullptr; // Pointer to current value
 
     TAdaptiveLock UpdateMutex;                           // Guarantee that AtomicStore() will be one at a time
     mutable NHotSwapPrivate::TWriterLock WriterLocks[2]; // Guarantee that AtomicStore() will wait for all concurrent AtomicLoad()'s completion
@@ -185,7 +184,7 @@ void THotSwap<T, Ops>::SwitchRawPtr(T* from, T* to) noexcept {
     if (to)
         Ops::Ref(to); // Ref() for new value
 
-    RawPtr.store(reinterpret_cast<intptr_t>(to));
+    RawPtr.store(to);
 
     if (from)
         Ops::UnRef(from); // Unref() for old value
