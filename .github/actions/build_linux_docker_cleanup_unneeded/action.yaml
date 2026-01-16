@@ -8,6 +8,7 @@ runs:
     - name: Remove unnneeded directories
       shell: bash
       run: |
+        sudo rm -fr /usr/local/.ghcup                              # 3700 Mb
         sudo rm -fr /usr/local/julia*                              # 991 Mb
         sudo rm -fr /usr/local/share/chromium                      # 593 Mb
         sudo rm -fr /usr/local/bin/aliyun                          # 59 Mb
