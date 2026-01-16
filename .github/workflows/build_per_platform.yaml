@@ -84,22 +84,22 @@ jobs:
           path: catboost
           fetch-depth: 0
 
-      # Python 3.8 is not included in 'macos-14' and 'windows-2022' images.
+      # Python 3.8 and 3.9 are not included in 'macos-14' and 'windows-2022' images.
       - if: inputs.os != 'linux'
-        name: Install python3.8
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-          update-environment: false
-
-      # Python 3.9 and 3.10 are not included in 'macos-14' image.
-      - if: inputs.os == 'macos'
-        name: Install python 3.9 and 3.10
+        name: Install python 3.8 and 3.9
         uses: actions/setup-python@v5
         with:
           python-version: |
+            3.8
             3.9
-            3.10
+          update-environment: false
+
+      # Python 3.10 is not included in 'macos-14' image.
+      - if: inputs.os == 'macos'
+        name: Install python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
           update-environment: false
 
       # Python 3.14 is not included in standard Windows images yet
