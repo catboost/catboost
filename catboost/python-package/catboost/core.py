@@ -4066,7 +4066,7 @@ class CatBoost(_CatBoostBase):
 
                 for param in currently_not_supported_params:
                     if param in grid:
-                        raise CatBoostError("Parameter '{}' currently is not supported in hyperparaneter search".format(param))
+                        raise CatBoostError("Parameter '{}' is not currently supported in hyperparameter search".format(param))
 
             if X is None:
                 raise CatBoostError("X must not be None")
