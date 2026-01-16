@@ -498,7 +498,6 @@ def plot_features_selection_loss_graph(
         xaxis=dict(title='number of removed ' + entities_name, **axis_options),
         yaxis=dict(
             title='loss value',
-            titlefont=dict(color=loss_graph_color),
             tickfont=dict(color=loss_graph_color),
             **axis_options
         )
@@ -510,7 +509,6 @@ def plot_features_selection_loss_graph(
                 side="right",
                 anchor="x",
                 overlaying="y",
-                titlefont=dict(color=cost_graph_color),
                 tickfont=dict(color=cost_graph_color),
                 **axis_options
             )
