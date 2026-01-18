@@ -35,7 +35,7 @@ TRAIN_FILE = data_file('adult', 'train_small')
 CD_FILE = data_file('adult', 'train.cd')
 
 
-def test_sklearn_meta_algo():
+def test_sklearn_calibrated_classifier_cv_with_frozen_catboost():
     X_train = DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
         columns=['feature{}'.format(i) for i in range(5)]
