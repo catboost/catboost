@@ -53,7 +53,7 @@ def _norm_path(path):
         return None
     assert isinstance(path, six.string_types)
     if "\\" in path:
-        raise AssertionError("path {} contains Windows seprators \\ - replace them with '/'".format(path))
+        raise AssertionError("path {} contains Windows separators \\ - replace them with '/'".format(path))
     return os.path.normpath(path)
 
 
