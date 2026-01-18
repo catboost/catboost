@@ -6718,6 +6718,40 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
         return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
+def test_custom_splitting_before_cv_iter():
+    cv_data = [["France", 1924, 44],
+               ["USA", 1932, 37],
+               ["Switzerland", 1928, 25],
+               ["Norway", 1952, 30],
+               ["Japan", 1972, 35],
+               ["Mexico", 1968, 112]]
+
+    labels = [1, 0, 1, 0, 0, 1]
+    cv_dataset = Pool(data=cv_data,
+                      label=labels,
+                      cat_features=[0])
+
+    params = {"iterations": 100,
+              "depth": 2,
+              "loss_function": "Logloss",
+              "verbose": False,
+              "bootstrap_type": "No",
+              "roc_file": "roc-file"}
+
+    right_scores = cv(cv_dataset,
+                      params,
+                      fold_count=2,
+                      stratified=False,
+                      shuffle=False)
+    train_test = [[[3, 4, 5], [0, 1, 2]],
+                  [[0, 1, 2], [3, 4, 5]]]
+    iter_scores = cv(cv_dataset,
+                     params,
+                     folds=iter(train_test))
+
+    assert (right_scores.equals(iter_scores))
+
+
 def test_use_last_testset_for_best_iteration():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

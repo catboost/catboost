@@ -1,3 +1,6 @@
+import os
+import sys
+
 import pytest
 
 import numpy as np
@@ -7,13 +10,29 @@ import sklearn
 import sklearn.base
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.frozen import FrozenEstimator
+from sklearn.model_selection import KFold
 import sklearn.utils.estimator_checks
 
 from catboost import (
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
+    Pool,
+    cv
 )
+
+try:
+    import catboost_pytest_lib as lib
+    pytest_plugins = "list_plugin"
+except ImportError:
+    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
+    import lib
+
+data_file = lib.data_file
+
+
+TRAIN_FILE = data_file('adult', 'train_small')
+CD_FILE = data_file('adult', 'train.cd')
 
 
 def test_sklearn_meta_algo():
@@ -147,3 +166,26 @@ def get_expected_failed_checks(estimator: CatBoost):
 )
 def test_sklearn_estimator_api_compatibility(estimator, check):
     check(estimator)
+
+
+def test_custom_splitting_before_cv_sklearn_kfold():
+    cv_dataset = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    params = {"iterations": 100,
+              "depth": 2,
+              "loss_function": "Logloss",
+              "verbose": False,
+              "roc_file": "roc-file"}
+
+    right_scores = cv(cv_dataset,
+                      params,
+                      fold_count=4,
+                      stratified=False,
+                      shuffle=False)
+
+    kFoldGenerator = KFold(n_splits=4, shuffle=False, random_state=None)
+    splitter_class_scores = cv(cv_dataset,
+                               params,
+                               folds=kFoldGenerator)
+
+    assert (right_scores.equals(splitter_class_scores))
