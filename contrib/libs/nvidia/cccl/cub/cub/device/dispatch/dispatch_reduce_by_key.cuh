@@ -50,6 +50,7 @@
 #include <cub/thread/thread_operators.cuh>
 #include <cub/util_device.cuh>
 #include <cub/util_math.cuh>
+#include <cub/util_vsmem.cuh>
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
@@ -216,13 +217,12 @@ __launch_bounds__(int(ChainedPolicyT::ActivePolicy::ReduceByKeyPolicyT::BLOCK_TH
     EqualityOpT equality_op,
     ReductionOpT reduction_op,
     OffsetT num_items,
-    _CCCL_GRID_CONSTANT const StreamingContextT streaming_context)
+    _CCCL_GRID_CONSTANT const StreamingContextT streaming_context,
+    vsmem_t vsmem)
 {
-  using AgentReduceByKeyPolicyT = typename ChainedPolicyT::ActivePolicy::ReduceByKeyPolicyT;
-
-  // Thread block type for reducing tiles of value segments
-  using AgentReduceByKeyT = AgentReduceByKey<
-    AgentReduceByKeyPolicyT,
+  using vsmem_helper_t = vsmem_helper_default_fallback_policy_t<
+    typename ChainedPolicyT::ActivePolicy::ReduceByKeyPolicyT,
+    AgentReduceByKey,
     KeysInputIteratorT,
     UniqueOutputIteratorT,
     ValuesInputIteratorT,
@@ -234,11 +234,18 @@ __launch_bounds__(int(ChainedPolicyT::ActivePolicy::ReduceByKeyPolicyT::BLOCK_TH
     AccumT,
     StreamingContextT>;
 
-  // Shared memory for AgentReduceByKey
-  __shared__ typename AgentReduceByKeyT::TempStorage temp_storage;
+  // Thread block type for reducing tiles of value segments
+  using agent_reduce_by_key_t = typename vsmem_helper_t::agent_t;
+
+  // Static shared memory allocation
+  __shared__ typename vsmem_helper_t::static_temp_storage_t static_temp_storage;
+
+  // Get temporary storage
+  typename agent_reduce_by_key_t::TempStorage& temp_storage =
+    vsmem_helper_t::get_temp_storage(static_temp_storage, vsmem);
 
   // Process tiles
-  AgentReduceByKeyT(
+  agent_reduce_by_key_t(
     temp_storage,
     d_keys_in,
     d_unique_out,
@@ -249,6 +256,9 @@ __launch_bounds__(int(ChainedPolicyT::ActivePolicy::ReduceByKeyPolicyT::BLOCK_TH
     reduction_op,
     streaming_context)
     .ConsumeRange(num_items, tile_state, start_tile);
+
+  // If applicable, hints to discard modified cache lines for vsmem
+  vsmem_helper_t::discard_temp_storage(temp_storage);
 }
 
 } // namespace detail::reduce
@@ -313,6 +323,9 @@ struct DispatchReduceByKey
   // The input values type
   using ValueInputT = cub::detail::it_value_t<ValuesInputIteratorT>;
 
+  // Type used to provide context for streaming invocations (this is currently not used by ReduceByKey yet)
+  using streaming_context_t = NullType;
+
   static constexpr int INIT_KERNEL_THREADS = 128;
 
   // Tile status descriptor interface type
@@ -363,9 +376,22 @@ struct DispatchReduceByKey
   CUB_RUNTIME_FUNCTION _CCCL_VISIBILITY_HIDDEN _CCCL_FORCEINLINE cudaError_t
   Invoke(ScanInitKernelT init_kernel, ReduceByKeyKernelT reduce_by_key_kernel)
   {
-    using AgentReduceByKeyPolicyT  = typename ActivePolicyT::ReduceByKeyPolicyT;
-    constexpr int block_threads    = AgentReduceByKeyPolicyT::BLOCK_THREADS;
-    constexpr int items_per_thread = AgentReduceByKeyPolicyT::ITEMS_PER_THREAD;
+    using vsmem_helper_t = detail::vsmem_helper_default_fallback_policy_t<
+      typename ActivePolicyT::ReduceByKeyPolicyT,
+      detail::reduce::AgentReduceByKey,
+      KeysInputIteratorT,
+      UniqueOutputIteratorT,
+      ValuesInputIteratorT,
+      AggregatesOutputIteratorT,
+      NumRunsOutputIteratorT,
+      EqualityOpT,
+      ReductionOpT,
+      OffsetT,
+      AccumT,
+      streaming_context_t>;
+
+    constexpr int block_threads    = vsmem_helper_t::agent_policy_t::BLOCK_THREADS;
+    constexpr int items_per_thread = vsmem_helper_t::agent_policy_t::ITEMS_PER_THREAD;
 
     cudaError error = cudaSuccess;
     do
@@ -382,17 +408,21 @@ struct DispatchReduceByKey
       int tile_size = block_threads * items_per_thread;
       int num_tiles = static_cast<int>(::cuda::ceil_div(num_items, tile_size));
 
+      // The amount of virtual shared memory to allocate
+      const auto vsmem_size = num_tiles * vsmem_helper_t::vsmem_per_block;
+
       // Specify temporary storage allocation requirements
-      size_t allocation_sizes[1];
-      error = CubDebug(ScanTileStateT::AllocationSize(num_tiles, allocation_sizes[0]));
+      size_t tile_descriptor_memory{};
+      error = CubDebug(ScanTileStateT::AllocationSize(num_tiles, tile_descriptor_memory));
       if (cudaSuccess != error)
       {
         break; // bytes needed for tile status descriptors
       }
+      size_t allocation_sizes[2] = {tile_descriptor_memory, vsmem_size};
 
       // Compute allocation pointers into the single storage blob (or compute
       // the necessary size of the blob)
-      void* allocations[1] = {};
+      void* allocations[2] = {};
 
       error = CubDebug(detail::AliasTemporaries(d_temp_storage, temp_storage_bytes, allocations, allocation_sizes));
       if (cudaSuccess != error)
@@ -492,7 +522,8 @@ struct DispatchReduceByKey
                 equality_op,
                 reduction_op,
                 num_items,
-                NullType{});
+                streaming_context_t{},
+                cub::detail::vsmem_t{allocations[1]});
 
         // Check for failure to launch
         error = CubDebug(cudaPeekAtLastError());
@@ -530,7 +561,7 @@ struct DispatchReduceByKey
         ReductionOpT,
         OffsetT,
         AccumT,
-        NullType>);
+        streaming_context_t>);
   }
 
   /**

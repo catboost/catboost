@@ -436,16 +436,18 @@ struct DispatchSelectIf
   // Offset type large enough to represent any index within the input and output iterators
   using num_total_items_t = OffsetT;
 
-  // Type used to provide streaming information about each partition's context
-  static constexpr per_partition_offset_t partition_size = ::cuda::std::numeric_limits<per_partition_offset_t>::max();
+  // Whether the algorithm is a partitioning invocation (versus a selection invocation)
+  static constexpr bool is_partitioning_invocation = (SelectionOpt == SelectImpl::Partition);
 
-  // If the values representable by OffsetT exceed the partition_size, we use a kernel template specialization that
-  // supports streaming (i.e., splitting the input into partitions of up to partition_size number of items)
-  static constexpr bool may_require_streaming =
-    (static_cast<::cuda::std::uint64_t>(partition_size)
-     < static_cast<::cuda::std::uint64_t>(::cuda::std::numeric_limits<OffsetT>::max()));
+  // We always use a streaming context for selection. However, for a partitioning invocation, we only use a streaming
+  // context when necessary. I.e., if the values representable by OffsetT exceed the values representable by
+  // per_partition_offset_t.
+  static constexpr bool use_streaming_context =
+    (!is_partitioning_invocation)
+    || (static_cast<::cuda::std::uint64_t>(::cuda::std::numeric_limits<per_partition_offset_t>::max())
+        < static_cast<::cuda::std::uint64_t>(::cuda::std::numeric_limits<OffsetT>::max()));
 
-  using streaming_context_t = detail::select::streaming_context_t<num_total_items_t, may_require_streaming>;
+  using streaming_context_t = detail::select::streaming_context_t<num_total_items_t, use_streaming_context>;
 
   using ScanTileStateT = ScanTileState<per_partition_offset_t>;
 
@@ -573,12 +575,23 @@ struct DispatchSelectIf
     constexpr auto items_per_thread = VsmemHelperT::agent_policy_t::ITEMS_PER_THREAD;
     constexpr auto tile_size        = static_cast<OffsetT>(block_threads * items_per_thread);
 
+    // The maximum number of items per partition
+    static constexpr auto max_supported_partition_size = ::cuda::std::numeric_limits<per_partition_offset_t>::max();
+    static constexpr auto full_tile_partition_size =
+      max_supported_partition_size - (max_supported_partition_size % (block_threads * items_per_thread));
+
+    // For partitioning invocations, we cap the partition size to the maximum number of items supported.
+    // For selection invocations, we cap at the largest multiple of a full tile. There's a selection-specific bug where
+    // we would otherwise overflow indices for the last partial tile, when discounting for the out-of-bounds items.
+    static constexpr per_partition_offset_t capped_partition_size =
+      is_partitioning_invocation ? max_supported_partition_size : full_tile_partition_size;
+
     // The maximum number of items for which we will ever invoke the kernel (i.e. largest partition size)
-    // The extra check of may_require_streaming ensures that OffsetT is larger than per_partition_offset_t to avoid
+    // The extra check of use_streaming_context ensures that OffsetT is larger than per_partition_offset_t to avoid
     // truncation of partition_size
     auto const max_partition_size =
-      (may_require_streaming && num_items > static_cast<OffsetT>(partition_size))
-        ? static_cast<OffsetT>(partition_size)
+      (use_streaming_context && num_items > static_cast<OffsetT>(capped_partition_size))
+        ? static_cast<OffsetT>(capped_partition_size)
         : num_items;
 
     // The number of partitions required to "iterate" over the total input (ternary to avoid div-by-zero)
