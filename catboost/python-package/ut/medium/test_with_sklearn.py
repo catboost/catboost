@@ -9,6 +9,7 @@ from pandas import DataFrame
 import sklearn
 import sklearn.base
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.datasets import make_classification
 from sklearn.frozen import FrozenEstimator
 from sklearn.model_selection import KFold
 import sklearn.utils.estimator_checks
@@ -29,6 +30,8 @@ except ImportError:
     import lib
 
 data_file = lib.data_file
+local_canonical_file = lib.local_canonical_file
+test_output_path = lib.test_output_path
 
 
 TRAIN_FILE = data_file('adult', 'train_small')
@@ -47,6 +50,21 @@ def test_sklearn_calibrated_classifier_cv_with_frozen_catboost():
 
     cc_model = CalibratedClassifierCV(FrozenEstimator(model), method='isotonic')
     model = cc_model.fit(X_train, y_train)
+
+
+@pytest.mark.parametrize('method', ['sigmoid', 'isotonic'])
+def test_calibrated_classifier_cv(task_type, method):
+    X, y = make_classification(100, 10, random_state=0)
+
+    catboost_classifier = CatBoostClassifier(verbose=0, task_type=task_type, devices='0')
+    calib_classifier = CalibratedClassifierCV(estimator=catboost_classifier, method=method, cv=3)
+    calib_classifier.fit(X, y)
+
+    pred = calib_classifier.predict(X)
+    preds_path = test_output_path('calib_classifier_predictions.tsv')
+    np.savetxt(preds_path, np.array(pred).astype(float), fmt='%.8f')
+
+    return local_canonical_file(preds_path)
 
 
 def get_expected_failed_checks(estimator: CatBoost):
