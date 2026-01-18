@@ -282,9 +282,14 @@ jobs:
           python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
-          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
           $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
+
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_python_package_medium
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
+          python -m pytest -n auto
+
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_python_package_large
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/large
           python -m pytest -n auto
 
       - name: Run jvm-packages/common tests
