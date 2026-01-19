@@ -34,7 +34,7 @@ from catboost import (
     to_classifier,
     to_ranker,
     MultiTargetCustomMetric,
-    MultiTargetCustomObjective,)
+)
 from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
@@ -51,12 +51,18 @@ import scipy.special
 
 import _pickle as pickle
 
+
 try:
     import catboost_pytest_lib as lib
     pytest_plugins = "list_plugin"
+
+    import catboost_python_package_ut_lib as python_package_ut_lib
 except ImportError:
     sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
+    sys.path.insert(0, os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'python-package'))
+    import ut.lib as python_package_ut_lib
+
 
 DelayedTee = lib.DelayedTee
 binary_path = lib.binary_path
@@ -75,6 +81,11 @@ load_dataset_as_dataframe = lib.load_dataset_as_dataframe
 load_pool_features_as_df = lib.load_pool_features_as_df
 compare_with_limited_precision = lib.compare_with_limited_precision
 is_canonical_test_run = lib.is_canonical_test_run
+
+LoglossObjective = python_package_ut_lib.LoglossObjective
+LoglossObjectiveNumpy = python_package_ut_lib.LoglossObjectiveNumpy
+LoglossObjectiveNumpy32 = python_package_ut_lib.LoglossObjectiveNumpy32
+MultiRMSEObjective = python_package_ut_lib.MultiRMSEObjective
 
 
 fails_on_gpu = pytest.mark.fails_on_gpu
@@ -3075,47 +3086,6 @@ def test_custom_eval():
     assert np.all(pred1 == pred2)
 
 
-class LoglossObjective(object):
-    def calc_ders_range(self, approxes, targets, weights):
-        assert len(approxes) == len(targets)
-        if weights is not None:
-            assert len(weights) == len(approxes)
-
-        exponents = []
-        for index in range(len(approxes)):
-            exponents.append(math.exp(approxes[index]))
-
-        result = []
-        for index in range(len(targets)):
-            p = exponents[index] / (1 + exponents[index])
-            der1 = (1 - p) if targets[index] > 0.0 else -p
-            der2 = -p * (1 - p)
-
-            if weights is not None:
-                der1 *= weights[index]
-                der2 *= weights[index]
-
-            result.append((der1, der2))
-
-        return result
-
-
-class LoglossObjectiveNumpy(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights))
-
-
-class LoglossObjectiveNumpy32(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights), dtype=np.float32)
-
-
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
 def test_custom_objective(task_type, loss_objective):
     if task_type == 'GPU':
@@ -3143,22 +3113,6 @@ def test_custom_objective(task_type, loss_objective):
 def test_multilabel_custom_objective(task_type, n=10):
     if task_type == 'GPU':
         pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
-
-    class MultiRMSEObjective(MultiTargetCustomObjective):
-        def calc_ders_multi(self, approxes, targets, weight):
-            assert len(approxes) == len(targets)
-
-            grad = []
-            hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
-
-            for index in range(len(targets)):
-                der1 = (targets[index] - approxes[index]) * weight
-                der2 = -weight
-
-                grad.append(der1)
-                hess[index][index] = der2
-
-            return (grad, hess)
 
     xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
     ys = np.hstack([

@@ -12,6 +12,7 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.datasets import make_classification
 from sklearn.frozen import FrozenEstimator
 from sklearn.model_selection import KFold
+import sklearn.utils
 import sklearn.utils.estimator_checks
 
 from catboost import (
@@ -22,16 +23,26 @@ from catboost import (
     cv
 )
 
+
 try:
     import catboost_pytest_lib as lib
     pytest_plugins = "list_plugin"
+
+    import catboost_python_package_ut_lib as python_package_ut_lib
 except ImportError:
     sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
+    sys.path.insert(0, os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'python-package'))
+    import ut.lib as python_package_ut_lib
+
 
 data_file = lib.data_file
 local_canonical_file = lib.local_canonical_file
 test_output_path = lib.test_output_path
+
+LoglossObjective = python_package_ut_lib.LoglossObjective
+MSEObjective = python_package_ut_lib.MSEObjective
+MultiRMSEObjective = python_package_ut_lib.MultiRMSEObjective
 
 
 TRAIN_FILE = data_file('adult', 'train_small')
@@ -74,23 +85,15 @@ def get_expected_failed_checks(estimator: CatBoost):
             ' https://github.com/catboost/catboost/issues/2995',
         'check_do_not_raise_errors_in_init_or_set_params':
             'TODO: https://github.com/catboost/catboost/issues/2997',
-        'check_valid_tag_types':
-            'TODO: add __sklearn_tags__. https://github.com/catboost/catboost/issues/2955',
         'check_estimator_sparse_array':
             'TODO: support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
         'check_estimator_sparse_matrix':
             'CatBoost does not support scipy.sparse.dia_matrix',
         'check_estimator_sparse_tag':
-            'TODO: 1) default tags are incorrect, add __sklearn_tags__. '
-            'https://github.com/catboost/catboost/issues/2955; '
-            '2) support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
-        'check_estimator_tags_renamed':
-            'TODO: add __sklearn_tags__. https://github.com/catboost/catboost/issues/2955',
+            'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
         'check_estimators_empty_data_messages':
             'TODO: raise ValueError instead of generic CatBoostError.'
             ' https://github.com/catboost/catboost/issues/2996',
-        'check_estimators_nan_inf':
-            'TODO: default tags are incorrect, add __sklearn_tags__. https://github.com/catboost/catboost/issues/2955',
         'check_estimators_unfitted':
             'TODO: raise NotFittedError instead of generic CatBoostError.'
             ' https://github.com/catboost/catboost/issues/3002',
@@ -116,6 +119,8 @@ def get_expected_failed_checks(estimator: CatBoost):
             '2) exact message match is too restrictive',
         'check_sample_weight_equivalence_on_dense_data':
             'TODO: https://github.com/catboost/catboost/issues/3005',
+        'check_sample_weight_equivalence_on_sparse_data':
+            'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
         'check_sample_weights_shape':
             'TODO: raise ValueError instead of generic CatBoostError.'
             ' https://github.com/catboost/catboost/issues/2996',
@@ -207,3 +212,126 @@ def test_custom_splitting_before_cv_sklearn_kfold():
                                folds=kFoldGenerator)
 
     assert (right_scores.equals(splitter_class_scores))
+
+
+@pytest.mark.parametrize(
+    'loss_function',
+    [None, 'Logloss', 'MultiClass', 'MultiLogloss', 'MultiCrossEntropy', LoglossObjective()],
+    ids=['None', 'Logloss', 'MultiClass', 'MultiLogloss', 'MultiCrossEntropy', 'CustomLoglossObjective'],
+)
+def test_sklearn_tags_for_classifier(task_type, loss_function):
+    model = CatBoostClassifier(task_type=task_type, devices='0', loss_function=loss_function)
+    tags = model.__sklearn_tags__()
+    assert tags == sklearn.utils.Tags(
+        estimator_type='classifier',
+        target_tags=sklearn.utils.TargetTags(
+            required=True,
+            one_d_labels=loss_function not in ('MultiLogloss', 'MultiCrossEntropy'),
+            two_d_labels=loss_function in ('MultiLogloss', 'MultiCrossEntropy'),
+            positive_only=False,
+            multi_output=loss_function in ('MultiLogloss', 'MultiCrossEntropy'),
+            single_output=loss_function not in ('MultiLogloss', 'MultiCrossEntropy'),
+        ),
+        classifier_tags=sklearn.utils.ClassifierTags(
+            poor_score=False,
+            multi_class=loss_function in (None, 'MultiClass'),
+            multi_label=loss_function in ('MultiLogloss', 'MultiCrossEntropy'),
+        ),
+        regressor_tags=None,
+        array_api_support=False,
+        no_validation=False,
+        non_deterministic=task_type == 'GPU',
+        requires_fit=True,
+        input_tags=sklearn.utils.InputTags(
+            one_d_array=False,
+            two_d_array=True,
+            three_d_array=False,
+            sparse=True,
+            categorical=True,
+            string=False,
+            dict=False,
+            positive_only=False,
+            allow_nan=True,
+            pairwise=False,
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    'loss_function',
+    [None, 'RMSE', 'MultiRMSE', MSEObjective(), MultiRMSEObjective()],
+    ids=['None', 'RMSE', 'MultiRMSE', 'CustomMSEObjective', 'CustomMultiRMSEObjective'],
+)
+def test_sklearn_tags_for_regressor(task_type, loss_function):
+    is_multiregression = (loss_function == 'MultiRMSE') or isinstance(loss_function, MultiRMSEObjective)
+    model = CatBoostRegressor(task_type=task_type, devices='0', loss_function=loss_function)
+    tags = model.__sklearn_tags__()
+    assert tags == sklearn.utils.Tags(
+        estimator_type='regressor',
+        target_tags=sklearn.utils.TargetTags(
+            required=True,
+            one_d_labels=not is_multiregression,
+            two_d_labels=is_multiregression,
+            positive_only=False,
+            multi_output=is_multiregression,
+            single_output=not is_multiregression,
+        ),
+        classifier_tags=None,
+        regressor_tags=sklearn.utils.RegressorTags(poor_score=False),
+        array_api_support=False,
+        no_validation=False,
+        non_deterministic=task_type == 'GPU',
+        requires_fit=True,
+        input_tags=sklearn.utils.InputTags(
+            one_d_array=False,
+            two_d_array=True,
+            three_d_array=False,
+            sparse=True,
+            categorical=True,
+            string=False,
+            dict=False,
+            positive_only=False,
+            allow_nan=True,
+            pairwise=False,
+        ),
+    )
+
+
+def test_sklearn_tags_for_ranker(task_type):
+    model = CatBoostRegressor(task_type=task_type, devices='0')
+    tags = model.__sklearn_tags__()
+    assert tags == sklearn.utils.Tags(
+        estimator_type='regressor',
+        target_tags=sklearn.utils.TargetTags(
+            required=True,
+            one_d_labels=True,
+            two_d_labels=False,
+            positive_only=False,
+            multi_output=False,
+            single_output=True,
+        ),
+        classifier_tags=None,
+        regressor_tags=sklearn.utils.RegressorTags(poor_score=False),
+        array_api_support=False,
+        no_validation=False,
+        non_deterministic=task_type == 'GPU',
+        requires_fit=True,
+        input_tags=sklearn.utils.InputTags(
+            one_d_array=False,
+            two_d_array=True,
+            three_d_array=False,
+            sparse=True,
+            categorical=True,
+            string=False,
+            dict=False,
+            positive_only=False,
+            allow_nan=True,
+            pairwise=False,
+        ),
+    )
+
+
+def test_sklearn_tags_nan_mode_forbidden(task_type):
+    model = CatBoostRegressor(task_type=task_type, devices='0', nan_mode='Forbidden')
+    tags = model.__sklearn_tags__()
+    assert tags.input_tags.allow_nan is False

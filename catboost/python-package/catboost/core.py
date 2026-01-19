@@ -64,7 +64,9 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_multitarget_objective = _catboost.is_multitarget_objective
+is_multilabel_objective = _catboost.is_multilabel_objective
 is_survivalregression_objective = _catboost.is_survivalregression_objective
+is_multiclass_compatible_objective = _catboost.is_multiclass_compatible_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
 is_maximizable_metric = _catboost.is_maximizable_metric
@@ -1983,11 +1985,25 @@ class _CatBoostBase(object):
 
     @staticmethod
     def _is_multiregression_objective(loss_function):
-        return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+        if loss_function is None:
+            return False
+        elif isinstance(loss_function, str):
+            return is_multiregression_objective(loss_function)
+        else:
+            return id(MultiTargetCustomObjective) in [id(base) for base in type(loss_function).__mro__]
 
     @staticmethod
     def _is_multitarget_objective(loss_function):
-        return isinstance(loss_function, str) and is_multitarget_objective(loss_function)
+        if loss_function is None:
+            return False
+        elif isinstance(loss_function, str):
+            return is_multitarget_objective(loss_function)
+        else:
+            return id(MultiTargetCustomObjective) in [id(base) for base in type(loss_function).__mro__]
+
+    @staticmethod
+    def _is_multilabel_objective(loss_function):
+        return isinstance(loss_function, str) and is_multilabel_objective(loss_function)
 
     @staticmethod
     def _is_survivalregression_objective(loss_function):
@@ -1996,6 +2012,25 @@ class _CatBoostBase(object):
     @staticmethod
     def _is_ranking_objective(loss_function):
         return isinstance(loss_function, str) and is_ranking_metric(loss_function)
+
+    def _is_classifier(self, params_in_canonical_form: Dict[str, object]) -> bool:
+        return (
+            (getattr(self, '_estimator_type', None) == 'classifier')
+            or
+            _CatBoostBase._is_classification_objective(params_in_canonical_form.get('loss_function', 'RMSE'))
+        )
+
+    @staticmethod
+    def _is_multiclass_compatible(params_in_canonical_form: Dict[str, object]) -> bool:
+        # called only for classifiers
+
+        maybe_loss_function = params_in_canonical_form.get('loss_function')
+        if maybe_loss_function is None:
+            return True
+        elif isinstance(maybe_loss_function, str):
+            return is_multiclass_compatible_objective(maybe_loss_function)
+        else:
+            return isinstance(maybe_loss_function, MultiTargetCustomObjective)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -2123,6 +2158,66 @@ class _CatBoostBase(object):
         tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
 
         return tags
+
+    def __sklearn_tags__(self):
+        import sklearn.utils
+
+        params = self._get_canonized_params()
+        loss_function = params.get('loss_function')
+
+        # scikit-learn does not have a separate type for ranking so set the type to 'regressor'
+        # in the case of CatBoost ranker as well
+        estimator_type = 'classifier' if self._is_classifier(params) else 'regressor'
+        is_multitarget_objective = _CatBoostBase._is_multitarget_objective(loss_function)
+        is_multilabel_objective = _CatBoostBase._is_multilabel_objective(loss_function)
+        is_multi_output = (
+            _CatBoostBase._is_multiregression_objective(loss_function)
+            or
+            is_multilabel_objective
+        )
+
+        if estimator_type == 'classifier':
+            classifier_tags = sklearn.utils.ClassifierTags(
+                poor_score=False,
+                multi_class=_CatBoostBase._is_multiclass_compatible(params),
+                multi_label=is_multilabel_objective,
+            )
+            regressor_tags = None
+        else:
+            classifier_tags = None
+            regressor_tags = sklearn.utils.RegressorTags(poor_score=False)
+
+        return sklearn.utils.Tags(
+            estimator_type=estimator_type,
+            target_tags=sklearn.utils.TargetTags(
+                required=True,
+                one_d_labels=not is_multitarget_objective,
+                two_d_labels=is_multitarget_objective,
+
+                # TODO: maybe create a method for user-defined objectives and metrics in the future
+                positive_only=False,
+                multi_output=is_multi_output,
+                single_output=not is_multi_output,
+            ),
+            classifier_tags=classifier_tags,
+            regressor_tags=regressor_tags,
+            array_api_support=False,    # TODO: https://github.com/catboost/catboost/issues/2990
+            no_validation=False,
+            non_deterministic=params.get('task_type') == 'GPU',
+            requires_fit=True,
+            input_tags=sklearn.utils.InputTags(
+                one_d_array=False,
+                two_d_array=True,
+                three_d_array=False,
+                sparse=True,
+                categorical=True,
+                string=False,
+                dict=False,
+                positive_only=False,
+                allow_nan=params.get('nan_mode') != 'Forbidden',
+                pairwise=False,
+            ),
+        )
 
     def get_scale_and_bias(self):
         return self._object._get_scale_and_bias()
@@ -2257,7 +2352,7 @@ class CatBoost(_CatBoostBase):
                 eval_pool will be uninitialized if save_eval_pool is false
         """
 
-        is_classification = (getattr(self, '_estimator_type', None) == 'classifier') or _CatBoostBase._is_classification_objective(params.get('loss_function', 'RMSE'))
+        is_classification = self._is_classifier(params)
 
         return train_pool.train_eval_split(
             params.get('has_time', False),

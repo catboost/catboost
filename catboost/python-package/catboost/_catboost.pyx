@@ -6431,8 +6431,16 @@ cpdef is_multitarget_objective(loss_name):
     return IsMultiTargetObjective(to_arcadia_string(loss_name))
 
 
+cpdef is_multilabel_objective(loss_name):
+    return IsMultiLabelObjective(to_arcadia_string(loss_name))
+
+
 cpdef is_survivalregression_objective(loss_name):
     return IsSurvivalRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_multiclass_compatible_objective(loss_name):
+    return IsMultiClassCompatibleObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_groupwise_metric(metric_name):
