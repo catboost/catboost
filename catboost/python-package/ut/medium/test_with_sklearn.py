@@ -19,6 +19,7 @@ from catboost import (
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
+    CatBoostRanker,
     Pool,
     cv
 )
@@ -298,7 +299,7 @@ def test_sklearn_tags_for_regressor(task_type, loss_function):
 
 
 def test_sklearn_tags_for_ranker(task_type):
-    model = CatBoostRegressor(task_type=task_type, devices='0')
+    model = CatBoostRanker(task_type=task_type, devices='0')
     tags = model.__sklearn_tags__()
     assert tags == sklearn.utils.Tags(
         estimator_type='regressor',
