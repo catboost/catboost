@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
-# Change content of this file to change uids for cython programs - cython 3.0.12 r0
+# Change content of this file to change uids for cython programs - cython 3.1.6 r0
 
 #
 #   Cython -- Main Program, generic
 #
 
-if __name__ == '__main__':
+try:
+    from typing import TYPE_CHECKING
+except ImportError:
+    TYPE_CHECKING = False
+
+if not TYPE_CHECKING and __name__ == '__main__':
 
     import os
     import sys

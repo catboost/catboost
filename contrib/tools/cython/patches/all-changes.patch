@@ -1,6 +1,6 @@
 --- contrib/tools/cython/Cython/Compiler/Annotate.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/Annotate.py	(working tree)
-@@ -10,7 +10,10 @@ import textwrap
+@@ -8,7 +8,10 @@ import textwrap
  from datetime import datetime
  from functools import partial
  from collections import defaultdict
@@ -9,9 +9,9 @@
 +    from xml.sax.saxutils import escape as html_escape
 +except ImportError:
 +    pass
- try:
-     from StringIO import StringIO
- except ImportError:
+ from io import StringIO
+ 
+ from . import Version
 --- contrib/tools/cython/Cython/Compiler/CmdLine.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/CmdLine.py	(working tree)
 @@ -166,6 +166,9 @@ def create_cython_argparser():
@@ -26,15 +26,15 @@
      for name in vars(DebugFlags):
 --- contrib/tools/cython/Cython/Compiler/ExprNodes.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/ExprNodes.py	(working tree)
-@@ -10066,6 +10066,8 @@ class CodeObjectNode(ExprNode):
-             func.name, identifier=True, is_str=False, unicode_value=func.name)
+@@ -10464,6 +10464,8 @@ class CodeObjectNode(ExprNode):
+         func_name_result = code.get_py_string_const(func.name, identifier=True)
          # FIXME: better way to get the module file path at module init time? Encoding to use?
-         file_path = StringEncoding.bytes_literal(func.pos[0].get_filenametable_entry().encode('utf8'), 'utf8')
+         file_path = func.pos[0].get_filenametable_entry()
 +        # XXX Use get_description() to set arcadia root relative filename
-+        file_path = StringEncoding.bytes_literal(func.pos[0].get_description().encode('utf8'), 'utf8')
-         file_path_const = code.get_py_string_const(file_path, identifier=False, is_str=True)
-
-         # This combination makes CPython create a new dict for "frame.f_locals" (see GH #1836).
++        file_path = func.pos[0].get_description()
+         if os.path.isabs(file_path):
+             file_path = func.pos[0].get_description()
+         # Always use / as separator
 --- contrib/tools/cython/Cython/Compiler/Main.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/Main.py	(working tree)
 @@ -235,9 +235,7 @@ class Context(object):
@@ -66,24 +66,24 @@
          # Search include path (and sys.path if sys_path is True) for
          # the .pxd file corresponding to the given fully-qualified
          # module name.
-@@ -498,7 +498,7 @@ def run_pipeline(source, options, full_module_name=None, context=None):
-     # Set up source object
+@@ -489,7 +489,7 @@ def setup_source_object(source, source_ext, full_module_name, options, context):
      cwd = os.getcwd()
      abs_path = os.path.abspath(source)
+ 
 -    full_module_name = full_module_name or context.extract_module_name(source, options)
 +    full_module_name = full_module_name or options.module_name or context.extract_module_name(source, options)
      full_module_name = EncodedString(full_module_name)
-
+ 
      Utils.raise_error_if_module_name_forbidden(full_module_name)
-@@ -509,6 +509,8 @@ def run_pipeline(source, options, full_module_name=None, context=None):
+@@ -499,6 +499,8 @@ def setup_source_object(source, source_ext, full_module_name, options, context):
              rel_path = source  # safety measure to prevent printing incorrect paths
      else:
          rel_path = abs_path
 +    if Options.source_root:
 +        rel_path = os.path.relpath(abs_path, Options.source_root)
      source_desc = FileSourceDescriptor(abs_path, rel_path)
-     source = CompilationSource(source_desc, full_module_name, cwd)
-
+     return CompilationSource(source_desc, full_module_name, cwd)
+ 
 @@ -729,6 +731,22 @@ def search_include_directories(dirs, qualified_name, suffix="", pos=None, includ
              if path:
                  return path
@@ -109,31 +109,15 @@
 
 --- contrib/tools/cython/Cython/Compiler/ModuleNode.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/ModuleNode.py	(working tree)
-@@ -302,16 +302,17 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+@@ -313,7 +313,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+             h_code_main.putln("/* WARNING: the interface of the module init function changed in CPython 3.5. */")
              h_code_main.putln("/* It now returns a PyModuleDef instance instead of a PyModule instance. */")
              h_code_main.putln("")
-             h_code_main.putln("#if PY_MAJOR_VERSION < 3")
--            if env.module_name.isascii():
--                py2_mod_name = env.module_name
-+            init_suffix = EncodedString(options.init_suffix) if options.init_suffix else env.module_name
-+            if init_suffix.isascii():
-+                py2_init_suffix = init_suffix
-             else:
--                py2_mod_name = env.module_name.encode("ascii", errors="ignore").decode("utf-8")
--                h_code_main.putln('#error "Unicode module names are not supported in Python 2";')
--            h_code_main.putln("PyMODINIT_FUNC init%s(void);" % py2_mod_name)
-+                py2_init_suffix = init_suffix.encode("ascii", errors="ignore").decode("utf-8")
-+                h_code_main.putln('#error "Unicode init names are not supported in Python 2";')
-+            h_code_main.putln("PyMODINIT_FUNC init%s(void);" % py2_init_suffix)
-             h_code_main.putln("#else")
 -            py3_mod_func_name = self.mod_init_func_cname('PyInit', env)
 +            py3_mod_func_name = self.mod_init_func_cname('PyInit', env, options)
-             warning_string = EncodedString('Use PyImport_AppendInittab("%s", %s) instead of calling %s directly.' % (
--                py2_mod_name, py3_mod_func_name, py3_mod_func_name))
-+                py2_init_suffix, py3_mod_func_name, py3_mod_func_name))
+             warning_string = EncodedString('Use PyImport_AppendInittab(%s, %s) instead of calling %s directly.' % (
+                 env.module_name.as_c_string_literal(), py3_mod_func_name, py3_mod_func_name))
              h_code_main.putln('/* WARNING: %s from Python 3.5 */' % warning_string.rstrip('.'))
-             h_code_main.putln("PyMODINIT_FUNC %s(void);" % py3_mod_func_name)
-             h_code_main.putln("")
 @@ -530,7 +531,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
          self.generate_module_state_traverse(env, globalstate['module_state_traverse'])
 
@@ -143,7 +127,7 @@
          self.generate_module_cleanup_func(env, globalstate['cleanup_module'])
          if Options.embed:
              self.generate_main_method(env, globalstate['main_method'])
-@@ -943,6 +944,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+@@ -970,6 +970,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
          if code.globalstate.filename_list:
              for source_desc in code.globalstate.filename_list:
                  file_path = source_desc.get_filenametable_entry()
@@ -151,8 +135,8 @@
 +                    # If source root specified, dump description - it's source root relative filename
 +                    file_path = source_desc.get_description()
                  if isabs(file_path):
-                     file_path = basename(file_path)  # never include absolute paths
-                 escaped_filename = file_path.replace("\\", "\\\\").replace('"', r'\"')
+                     # never include absolute paths
+                     file_path = source_desc.get_description()
 @@ -1090,6 +1094,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
              constructor = None
              destructor = None
@@ -162,49 +146,27 @@
                  if attr.type.is_cfunction and attr.type.is_static_method:
                      code.put("static ")
                  elif attr.name == "<init>":
-@@ -2966,24 +2972,25 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-             Naming.fusedfunction_type_cname)
+@@ -2972,17 +2972,17 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln(f'Py_VISIT(traverse_module_state->{Naming.fusedfunction_type_cname});')
          code.putln('#endif')
-
+ 
 -    def generate_module_init_func(self, imported_modules, env, code):
 +    def generate_module_init_func(self, imported_modules, env, options, code):
          subfunction = self.mod_init_subfunction(self.pos, self.scope, code)
-
+ 
 -        self.generate_pymoduledef_struct(env, code)
 +        self.generate_pymoduledef_struct(env, options, code)
-
+ 
          code.enter_cfunc_scope(self.scope)
          code.putln("")
-         code.putln(UtilityCode.load_as_string("PyModInitFuncType", "ModuleSetupCode.c")[0])
--        if env.module_name.isascii():
--            py2_mod_name = env.module_name
-+        init_suffix = EncodedString(options.init_suffix) if options.init_suffix else env.module_name
-+        if init_suffix.isascii():
-+            py2_init_suffix = init_suffix
-             fail_compilation_in_py2 = False
-         else:
-             fail_compilation_in_py2 = True
--            # at this point py2_mod_name is largely a placeholder and the value doesn't matter
--            py2_mod_name = env.module_name.encode("ascii", errors="ignore").decode("utf8")
-+            # at this point py2_init_suffix is largely a placeholder and the value doesn't matter
-+            py2_init_suffix = init_suffix.encode("ascii", errors="ignore").decode("utf8")
-
--        header2 = "__Pyx_PyMODINIT_FUNC init%s(void)" % py2_mod_name
+         code.put_code_here(UtilityCode.load("PyModInitFuncType", "ModuleSetupCode.c"))
+ 
+         modinit_func_name = EncodedString(f"PyInit_{env.module_name}")
 -        header3 = "__Pyx_PyMODINIT_FUNC %s(void)" % self.mod_init_func_cname('PyInit', env)
-+        header2 = "__Pyx_PyMODINIT_FUNC init%s(void)" % py2_init_suffix
 +        header3 = "__Pyx_PyMODINIT_FUNC %s(void)" % self.mod_init_func_cname('PyInit', env, options)
-         header3 = EncodedString(header3)
-         code.putln("#if PY_MAJOR_VERSION < 3")
          # Optimise for small code size as the module init function is only executed once.
-@@ -2992,7 +2999,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-             code.putln('#error "Unicode module names are not supported in Python 2";')
+         code.putln("%s CYTHON_SMALL_CODE; /*proto*/" % header3)
          if self.scope.is_package:
-             code.putln("#if !defined(CYTHON_NO_PYINIT_EXPORT) && (defined(_WIN32) || defined(WIN32) || defined(MS_WINDOWS))")
--            code.putln("__Pyx_PyMODINIT_FUNC init__init__(void) { init%s(); }" % py2_mod_name)
-+            code.putln("__Pyx_PyMODINIT_FUNC init__init__(void) { init%s(); }" % py2_init_suffix)
-             code.putln("#endif")
-         code.putln(header2)
-         code.putln("#else")
 @@ -3000,7 +3007,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
          if self.scope.is_package:
              code.putln("#if !defined(CYTHON_NO_PYINIT_EXPORT) && (defined(_WIN32) || defined(WIN32) || defined(MS_WINDOWS))")
@@ -223,16 +185,16 @@
 
          if profile or linetrace:
              tempdecl_code.put_trace_declarations()
-@@ -3483,9 +3490,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-         except UnicodeEncodeError:
-             return "PyInitU" + (u"_"+name).encode('punycode').replace(b'-', b'_').decode('ascii')
-
+@@ -3500,9 +3500,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+             return None  # workaround is not needed
+         return "PyInitU" + ("_"+name).encode('punycode').replace(b'-', b'_').decode('ascii')
+ 
 -    def mod_init_func_cname(self, prefix, env):
 +    def mod_init_func_cname(self, prefix, env, options=None):
          # from PEP483
 -        return self.punycode_module_name(prefix, env.module_name)
 +        return self.punycode_module_name(prefix, options and options.init_suffix or env.module_name)
-
+ 
      # Returns the name of the C-function that corresponds to the module initialisation.
      # (module initialisation == the cython code outside of functions)
 @@ -3495,7 +3502,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
@@ -244,33 +206,24 @@
          if env.doc:
              doc = "%s" % code.get_string_const(env.doc)
          else:
-@@ -3533,7 +3540,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+@@ -3563,7 +3563,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
          code.putln('#endif')
          code.putln('{')
          code.putln("  PyModuleDef_HEAD_INIT,")
 -        code.putln('  %s,' % env.module_name.as_c_string_literal())
 +        code.putln('  %s,' % (EncodedString(options.module_name) if options.module_name else env.module_name).as_c_string_literal())
          code.putln("  %s, /* m_doc */" % doc)
-         code.putln("#if CYTHON_PEP489_MULTI_PHASE_INIT")
-         code.putln("  0, /* m_size */")
-@@ -3563,7 +3570,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln("#if CYTHON_USE_MODULE_STATE")
+         code.putln(f"  sizeof({Naming.modulestatetype_cname}), /* m_size */")
+@@ -3590,7 +3590,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln('} /* anonymous namespace */')
          code.putln('#endif')
-         code.putln("#endif")
-
+ 
 -    def generate_module_creation_code(self, env, code):
 +    def generate_module_creation_code(self, env, options, code):
          # Generate code to create the module object and
          # install the builtins.
          if env.doc:
-@@ -3581,7 +3588,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-         code.putln(
-             '%s = Py_InitModule4(%s, %s, %s, 0, PYTHON_API_VERSION); Py_XINCREF(%s);' % (
-                 env.module_cname,
--                env.module_name.as_c_string_literal(),
-+                (EncodedString(options.module_name) if options.module_name else env.module_name).as_c_string_literal(),
-                 env.method_table_cname,
-                 doc,
-                 env.module_cname))
 --- contrib/tools/cython/Cython/Compiler/Nodes.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/Nodes.py	(working tree)
 @@ -4756,7 +4756,7 @@ class GeneratorBodyDefNode(DefNode):
@@ -312,39 +265,39 @@
      common_utility_include_dir=None,
 --- contrib/tools/cython/Cython/Compiler/Parsing.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/Parsing.py	(working tree)
-@@ -2105,7 +2105,12 @@ def p_include_statement(s, ctx):
+@@ -2276,7 +2276,12 @@ def p_include_statement(s: PyrexScanner, ctx):
+         include_file_path = s.context.find_include_file(include_file_name, pos)
          if include_file_path:
              s.included_files.append(include_file_name)
-             with Utils.open_source_file(include_file_path) as f:
--                source_desc = FileSourceDescriptor(include_file_path)
-+                if Options.source_root:
-+                    import os
-+                    rel_path = os.path.relpath(include_file_path, Options.source_root)
-+                else:
-+                    rel_path = None
-+                source_desc = FileSourceDescriptor(include_file_path, rel_path)
+-            source_desc = FileSourceDescriptor(include_file_path)
++            if Options.source_root:
++                import os
++                rel_path = os.path.relpath(include_file_path, Options.source_root)
++            else:
++                rel_path = None
++            source_desc = FileSourceDescriptor(include_file_path, rel_path)
+             with source_desc.get_file_object() as f:
                  s2 = PyrexScanner(f, source_desc, s, source_encoding=f.encoding, parse_comments=s.parse_comments)
                  tree = p_statement_list(s2, ctx)
-             return tree
-@@ -3913,6 +3918,9 @@ def p_module(s, pxd, full_module_name, ctx=Ctx):
+@@ -4199,6 +4204,9 @@ def p_module(s: PyrexScanner, pxd, full_module_name, ctx=Ctx):
      directive_comments = p_compiler_directive_comments(s)
      s.parse_comments = False
-
+ 
 +    if s.context.language_level is None:
 +        s.context.set_language_level(2)  # Arcadia default.
 +
      if s.context.language_level is None:
-         s.context.set_language_level('3str')
-         if pos[0].filename:
+         s.context.set_language_level('3')
+ 
 --- contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(working tree)
-@@ -3944,7 +3944,7 @@ class CStructOrUnionType(CType):
-             return expr_code
-         return super(CStructOrUnionType, self).cast_code(expr_code)
-
--cpp_string_conversions = ("std::string",)
-+cpp_string_conversions = ("std::string", "TString", "TStringBuf")
-
+@@ -3986,7 +3986,7 @@ class CStructOrUnionType(CType):
+         # defer to CppClassType since its implementation will be the same
+         CppClassType.generate_explicit_destruction(self, code, entry, extra_access_code=extra_access_code)
+ 
+-cpp_string_conversions = ("std::string", "std::string_view")
++cpp_string_conversions = ("std::string", "std::string_view", "TString", "TStringBuf")
+ 
  builtin_cpp_conversions = {
      # type                element template params
 @@ -3956,6 +3956,11 @@ builtin_cpp_conversions = {
@@ -404,25 +357,30 @@
                  'cname': cname,
 --- contrib/tools/cython/Cython/Compiler/Scanning.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/Scanning.py	(working tree)
-@@ -229,6 +229,8 @@ class FileSourceDescriptor(SourceDescriptor):
-         return lines
-
-     def get_description(self):
+@@ -193,11 +193,8 @@ class FileSourceDescriptor(SourceDescriptor):
+         filename = Utils.decode_filename(filename)
+         self.filename = filename
+         self.path_description = path_description or filename
+-        try:
+-            self._short_path_description = os.path.relpath(self.path_description)
+-        except ValueError:
+-            # path not under current directory => use complete file path
+-            self._short_path_description = self.path_description
 +        # Dump path_description, it's already arcadia root relative (required for proper file matching in coverage)
-+        return self.path_description
-         try:
-             return os.path.relpath(self.path_description)
-         except ValueError:
++        self._short_path_description = self.path_description
+         # Prefer relative paths to current directory (which is most likely the project root) over absolute paths.
+         workdir = os.path.abspath('.') + os.sep
+         self.file_path = filename[len(workdir):] if filename.startswith(workdir) else filename
 --- contrib/tools/cython/Cython/Coverage.py	(index)
 +++ contrib/tools/cython/Cython/Coverage.py	(working tree)
-@@ -56,7 +56,7 @@ from collections import defaultdict
- from coverage.plugin import CoveragePlugin, FileTracer, FileReporter  # requires coverage.py 4.0+
- from coverage.files import canonical_filename
-
+@@ -60,7 +60,7 @@ except ImportError:
+     raise ImportError("Installed 'coverage' does not support plugins. "
+                       "See https://coverage.readthedocs.io/en/latest/install.html#c-extension")
+ 
 -from .Utils import find_root_package_dir, is_package_dir, is_cython_generated_file, open_source_file
 +from .Utils import find_root_package_dir, is_package_dir, is_cython_generated_file, open_source_file, OpenFile, generated_file_exists
-
-
+ 
+ 
  from . import __version__
 @@ -133,10 +133,14 @@ class Plugin(CoveragePlugin):
          """
@@ -504,11 +462,11 @@
          if not os.path.isdir(dir_path):
              return
          splitext = os.path.splitext
-@@ -302,7 +327,7 @@ class Plugin(CoveragePlugin):
+@@ -335,7 +335,7 @@ class Plugin(CoveragePlugin):
          if self._excluded_lines_map is None:
              self._excluded_lines_map = defaultdict(set)
-
--        with open(c_file) as lines:
+ 
+-        with open(c_file, encoding='utf8') as lines:
 +        with OpenFile(c_file, is_standalone=standalone()) as lines:
              lines = iter(lines)
              for line in lines:
@@ -794,28 +752,6 @@
 +        cython.operator.preincrement(iter)
 +    return result
 +
---- contrib/tools/cython/Cython/Utility/Embed.c	(index)
-+++ contrib/tools/cython/Cython/Utility/Embed.c	(working tree)
-@@ -5,6 +5,8 @@
- #endif
-
- #if PY_MAJOR_VERSION < 3
-+void Py_InitArgcArgv(int argc, char **argv);
-+
- int %(main_method)s(int argc, char** argv)
- #elif defined(_WIN32) || defined(WIN32) || defined(MS_WINDOWS)
- int %(wmain_method)s(int argc, wchar_t **argv)
-@@ -23,6 +25,10 @@ static int __Pyx_main(int argc, wchar_t **argv)
-     m = fpgetmask();
-     fpsetmask(m & ~FP_X_OFL);
- #endif
-+#if PY_MAJOR_VERSION < 3
-+    if (argc && argv)
-+        Py_InitArgcArgv(argc, argv);
-+#endif
- #if PY_VERSION_HEX < 0x03080000
-     if (argc && argv)
-         Py_SetProgramName(argv[0]);
 --- contrib/tools/cython/Cython/Utility/ModuleSetupCode.c	(index)
 +++ contrib/tools/cython/Cython/Utility/ModuleSetupCode.c	(working tree)
 @@ -13,6 +13,16 @@
@@ -835,62 +771,6 @@
  #include <stddef.h> /* For offsetof */
  #ifndef offsetof
    #define offsetof(type, member) ( (size_t) & ((type*)0) -> member )
---- contrib/tools/cython/Cython/Utility/Optimize.c	(index)
-+++ contrib/tools/cython/Cython/Utility/Optimize.c	(working tree)
-@@ -1248,7 +1248,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, long intval,
-             }
-             return PyInt_FromLong(x);
-         {{elif op == 'Lshift'}}
--            if (likely(b < (long) (sizeof(long)*8) && a == (a << b) >> b) || !a) {
-+            if (likely(b < (int)(sizeof(long)*8) && a == (a << b) >> b) || !a) {
-                 return PyInt_FromLong(a {{c_op}} b);
-             }
-         {{elif c_op == '*'}}
-@@ -1391,12 +1391,12 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, long intval,
-                 x = a {{c_op}} b;
-                 {{if op == 'Lshift'}}
- #ifdef HAVE_LONG_LONG
--                if (unlikely(!(b < (long) (sizeof(long)*8) && a == x >> b)) && a) {
-+                if (unlikely(!(b < (int)(sizeof(long)*8) && a == x >> b)) && a) {
-                     ll{{ival}} = {{ival}};
-                     goto long_long;
-                 }
- #else
--                if (likely(b < (long) (sizeof(long)*8) && a == x >> b) || !a) /* execute return statement below */
-+                if (likely(b < (int)(sizeof(long)*8) && a == x >> b) || !a) /* execute return statement below */
- #endif
-                 {{endif}}
-             {{endif}}
-@@ -1449,9 +1449,9 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, long intval,
-             double result;
-             {{zerodiv_check('b', 'float')}}
-             // copied from floatobject.c in Py3.5:
--            PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
-+//            PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
-             result = ((double)a) {{c_op}} (double)b;
--            PyFPE_END_PROTECT(result)
-+//            PyFPE_END_PROTECT(result)
-             return PyFloat_FromDouble(result);
-         {{endif}}
-     }
-@@ -1599,7 +1599,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, double floatv
-         }
-     {{else}}
-         // copied from floatobject.c in Py3.5:
--        PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
-+//        PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
-         {{if c_op == '%'}}
-         result = fmod(a, b);
-         if (result)
-@@ -1609,7 +1609,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, double floatv
-         {{else}}
-         result = a {{c_op}} b;
-         {{endif}}
--        PyFPE_END_PROTECT(result)
-+//        PyFPE_END_PROTECT(result)
-         return PyFloat_FromDouble(result);
-     {{endif}}
- }
 --- contrib/tools/cython/Cython/Utility/StringTools.c	(index)
 +++ contrib/tools/cython/Cython/Utility/StringTools.c	(working tree)
 @@ -505,7 +505,7 @@ static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16BE(const char *s, Py_s
@@ -904,10 +784,10 @@
      return __Pyx_decode_c_bytes(
 --- contrib/tools/cython/Cython/Utils.py	(index)
 +++ contrib/tools/cython/Cython/Utils.py	(working tree)
-@@ -172,15 +172,15 @@ def castrate_file(path, st):
+@@ -177,15 +177,14 @@ def castrate_file(path, st):
              os.utime(path, (st.st_atime, st.st_mtime-1))
-
-
+ 
+ 
 -def is_cython_generated_file(path, allow_failed=False, if_not_found=True):
 -    failure_marker = b"#error Do not use this file, it is the result of a failed Cython compilation."
 +def is_cython_generated_file(path, allow_failed=False, if_not_found=True, is_standalone=False):
@@ -917,15 +797,14 @@
 -        try:
 -            with open(path, "rb") as f:
 -                file_content = f.read(len(failure_marker))
--        except (OSError, IOError):
+-        except OSError:
 -            pass  # Probably just doesn't exist any more
-+
 +    try:
 +        with OpenFile(path, is_standalone=is_standalone) as f:
 +            file_content = f.read(len(failure_marker))
 +    except (OSError, IOError):
 +        pass  # Probably just doesn't exist any more
-
+ 
      if file_content is None:
          # file does not exist (yet)
 @@ -188,7 +188,7 @@ def is_cython_generated_file(path, allow_failed=False, if_not_found=True):

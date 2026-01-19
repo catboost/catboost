@@ -11,9 +11,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 SUBSCRIBER(g:python-contrib)
 
-VERSION(3.0.12)
+VERSION(3.1.6)
 
-ORIGINAL_SOURCE(mirror://pypi/c/cython/cython-3.0.12.tar.gz)
+ORIGINAL_SOURCE(mirror://pypi/c/cython/cython-3.1.6.tar.gz)
 
 NO_LINT()
 

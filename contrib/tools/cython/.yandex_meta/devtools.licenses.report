@@ -100,14 +100,14 @@ BELONGS Cython/ya.make
         Match type      : NOTICE
         Links           : http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html, https://spdx.org/licenses/GPL-2.0-or-later
     Files with this license:
-        Cython/Build/IpythonMagic.py [42:44]
+        Cython/Build/IpythonMagic.py [41:43]
     Scancode info:
         Original SPDX id: Bootloader-exception
         Score           : 57.58
         Match type      : NOTICE
         Links           : https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt, https://spdx.org/licenses/Bootloader-exception
     Files with this license:
-        Cython/Build/IpythonMagic.py [42:44]
+        Cython/Build/IpythonMagic.py [41:43]
 
 KEEP     Apache-2.0           6daa5d0a3df49b5ad21479adec3c9229
 BELONGS ya.make
@@ -144,7 +144,7 @@ BELONGS Cython/ya.make
         Match type      : REFERENCE
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
-        Cython/Utility/ObjectHandling.c [2521:2521]
+        Cython/Utility/ObjectHandling.c [2567:2567]
 
 KEEP     Apache-2.0           86e8237b9a37a6951edea992afba41f3
 BELONGS ya.make

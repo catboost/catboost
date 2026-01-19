@@ -42,4 +42,4 @@ BELONGS Cython/ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        Cython/Build/IpythonMagic.py [40:40]
+        Cython/Build/IpythonMagic.py [39:39]
