@@ -143,6 +143,24 @@ class AgentSubWarpSort
       _CCCL_UNREACHABLE();
     }
 #endif // _CCCL_HAS_NVFP16()
+
+#if _CCCL_HAS_NVBF16()
+    _CCCL_DEVICE bool operator()(__nv_bfloat16 lhs, __nv_bfloat16 rhs) const noexcept
+    {
+      // Need to explicitly cast to float for SM < 80.
+      if constexpr (IS_DESCENDING)
+      {
+        NV_IF_TARGET(
+          NV_PROVIDES_SM_80, (return __hgt(lhs, rhs);), (return __bfloat162float(lhs) > __bfloat162float(rhs);));
+      }
+      else
+      {
+        NV_IF_TARGET(
+          NV_PROVIDES_SM_80, (return __hlt(lhs, rhs);), (return __bfloat162float(lhs) < __bfloat162float(rhs);));
+      }
+      _CCCL_UNREACHABLE();
+    }
+#endif // _CCCL_HAS_NVBF16()
   };
 
 #if _CCCL_HAS_NVFP16()
@@ -152,6 +170,14 @@ class AgentSubWarpSort
     NV_IF_TARGET(NV_PROVIDES_SM_53, (return __heq(lhs, rhs);), (return __half2float(lhs) == __half2float(rhs);));
   }
 #endif // _CCCL_HAS_NVFP16()
+
+#if _CCCL_HAS_NVBF16()
+  _CCCL_DEVICE static bool equal(__nv_bfloat16 lhs, __nv_bfloat16 rhs)
+  {
+    // Need to explicitly cast to float for SM < 80.
+    NV_IF_TARGET(NV_PROVIDES_SM_80, (return __heq(lhs, rhs);), (return __bfloat162float(lhs) == __bfloat162float(rhs);));
+  }
+#endif // _CCCL_HAS_NVBF16()
 
   template <typename T>
   _CCCL_DEVICE static bool equal(T lhs, T rhs)

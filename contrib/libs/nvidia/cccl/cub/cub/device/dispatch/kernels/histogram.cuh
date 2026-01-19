@@ -185,6 +185,20 @@ struct Transforms
     }
 #endif // _CCCL_HAS_NVFP16()
 
+#if _CCCL_HAS_NVBF16()
+    _CCCL_HOST_DEVICE _CCCL_FORCEINLINE ScaleT
+    ComputeScale(int num_levels, __nv_bfloat16 max_level, __nv_bfloat16 min_level)
+    {
+      ScaleT result;
+      NV_IF_TARGET(
+        NV_PROVIDES_SM_80,
+        (result.reciprocal = __hdiv(__float2bfloat16(num_levels - 1), __hsub(max_level, min_level));),
+        (result.reciprocal = __float2bfloat16(
+           static_cast<float>(num_levels - 1) / (__bfloat162float(max_level) - __bfloat162float(min_level)));))
+      return result;
+    }
+#endif // _CCCL_HAS_NVBF16()
+
     // All types but __half:
     template <typename T>
     _CCCL_HOST_DEVICE _CCCL_FORCEINLINE int SampleIsValid(T sample, T max_level, T min_level)
@@ -201,6 +215,17 @@ struct Transforms
         (return __half2float(sample) >= __half2float(min_level) && __half2float(sample) < __half2float(max_level);));
     }
 #endif // _CCCL_HAS_NVFP16()
+
+#if _CCCL_HAS_NVBF16()
+    _CCCL_HOST_DEVICE _CCCL_FORCEINLINE int
+    SampleIsValid(__nv_bfloat16 sample, __nv_bfloat16 max_level, __nv_bfloat16 min_level)
+    {
+      NV_IF_TARGET(NV_PROVIDES_SM_80,
+                   (return __hge(sample, min_level) && __hlt(sample, max_level);),
+                   (return __bfloat162float(sample) >= __bfloat162float(min_level)
+                          && __bfloat162float(sample) < __bfloat162float(max_level);));
+    }
+#endif // _CCCL_HAS_NVBF16()
 
     /**
      * @brief Bin computation for floating point (and extended floating point) types
