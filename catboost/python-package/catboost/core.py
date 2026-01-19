@@ -2135,12 +2135,163 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
+    @staticmethod
+    def get_sklearn_estimator_xfail_checks(estimator: '_CatBoostBase') -> Dict[str, str]:
+        '''
+        To pass to:
+            For scikit-learn >= 1.6:
+                to 'expected_failed_checks' parameter in sklearn.utils.estimator_checks.parametrize_with_checks
+            For scikit-learn < 1.6:
+                to '_xfail_checks' field returned by '_CatBoostBase._get_tags'.
+
+        This method is made static to be able to pass it to sklearn.utils.estimator_checks.parametrize_with_checks
+        '''
+        import sklearn
+
+        scikit_learn_version = tuple(map(int, sklearn.__version__.split('.')[:2]))
+
+        params = estimator._get_canonized_params()
+
+        result = {
+            'check_sample_weights_not_an_array':
+                'TODO: not all array-like data is supported.'
+                ' https://github.com/catboost/catboost/issues/2995',
+            'check_do_not_raise_errors_in_init_or_set_params':
+                'TODO: https://github.com/catboost/catboost/issues/2997',
+            'check_estimator_sparse_array':
+                'TODO: support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_estimator_sparse_matrix':
+                'CatBoost does not support scipy.sparse.dia_matrix',
+            'check_estimator_sparse_tag':
+                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_estimators_empty_data_messages':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_estimators_unfitted':
+                'TODO: raise NotFittedError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/3002',
+            'check_fit1d':
+                'TODO: CatBoost API allows to pass 1d array as features data (as a single feature),'
+                ' maybe this behavior should be tunable in the future',
+            'check_fit2d_1sample':
+                'TODO: raise ValueError mentioning "sample" instead of a current error. '
+                'https://github.com/catboost/catboost/issues/3003',
+            'check_fit2d_predict1d':
+                'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
+                ' maybe this behavior should be tunable in the future',
+            'check_n_features_in':
+                'TODO: n_features_in_ must not be defined until fit is called. '
+                'https://github.com/catboost/catboost/issues/3004',
+            'check_n_features_in_after_fitting':
+                'TODO: 1) raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996; '
+                '2) exact message match is too restrictive',
+            'check_requires_y_none':
+                'TODO: 1) raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996; '
+                '2) exact message match is too restrictive',
+            'check_sample_weight_equivalence_on_dense_data':
+                'TODO: https://github.com/catboost/catboost/issues/3005',
+            'check_sample_weight_equivalence_on_sparse_data':
+                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_sample_weights_shape':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_supervised_y_2d':
+                'TODO: CatBoost API allows to pass 2D array for "y" when 1d is expected if 2nd dimension size = 1,'
+                ' maybe this behavior should be tunable in the future',
+            'check_supervised_y_no_nan':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_dtype_object':
+                'TODO: raise TypeError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2998',
+        }
+
+        if scikit_learn_version < (1, 6):
+            result.update(
+                {
+                    'check_estimator_sparse_data':
+                        'CatBoost does not support scipy.sparse.dia_matrix',
+                }
+            )
+            '''
+            'check_sample_weights_invariance' is tricky.
+                for 'kind=ones' it passes.
+                for 'kind=zeros' it fails.
+                    TODO: https://github.com/catboost/catboost/issues/3005
+                So we won't add it here but will check with params in 'test_sklearn_estimator_api_compatibility'
+            '''
+
+        if scikit_learn_version < (1, 4):
+            result.update(
+                {
+                    'check_fit_score_takes_y':
+                        'Bug in the test making all features constant when "categorical" is present in "X_types"',
+                    'check_sample_weights_list':
+                        'Bug in the test making all features constant when "categorical" is present in "X_types"',
+                }
+            )
+            if params.get('nan_mode') != 'Forbidden':
+                result.update(
+                    {
+                        'check_estimators_pickle':
+                            'Bug in the test that tries to assign np.nan to np.ndarray of inp.nt32 when '
+                            '"categorical" is present in "X_types" and "allow_nan" is True',
+                    }
+                )
+        if scikit_learn_version < (1, 3):
+            result.update(
+                {
+                    'check_no_attributes_set_in_init':
+                        'CatBoost does set some private "_*" attributes in init',
+                }
+            )
+
+        if estimator._is_classifier(params):
+            result.update(
+                {
+                    'check_classifier_data_not_an_array':
+                        'TODO: not all array-like data is supported.'
+                        ' https://github.com/catboost/catboost/issues/2994',
+                    'check_classifiers_one_label':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_classifiers_regression_target':
+                        'TODO: CatBoost API allows to pass continuous target for binary classification,'
+                        ' maybe this behavior should be tunable in the future',
+                    'check_classifiers_train':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_complex_data':
+                        'TODO: CatBoost API allows to pass complex data as labels,'
+                        ' maybe this behavior should be changed in the future',
+                }
+            )
+        else:
+            result.update(
+                {
+                    'check_regressor_data_not_an_array':
+                        'TODO: not all array-like data is supported.'
+                        ' https://github.com/catboost/catboost/issues/2994',
+                    'check_complex_data':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_regressors_train':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                }
+            )
+
+        return result
+
     def _get_tags(self):
         params = self._get_canonized_params()
         estimator_type = 'classifier' if self._is_classifier(params) else 'regressor'
         loss_function = params.get('loss_function')
 
         is_multilabel_objective = _CatBoostBase._is_multilabel_objective(loss_function)
+        is_multitarget_objective = _CatBoostBase._is_multitarget_objective(loss_function)
         is_multi_output = (
             _CatBoostBase._is_multiregression_objective(loss_function)
             or
@@ -2152,26 +2303,35 @@ class _CatBoostBase(object):
             and (not is_multilabel_objective)
         )
 
-        tags = {
-            'requires_positive_X': False,
-            'requires_positive_y': False,
-            'requires_y': True,
-            'poor_score': False,
-            'no_validation': False,
-            'stateless': False,
-            'pairwise': False,
-            'multilabel': is_multilabel_objective,
-            '_skip_test': False,
-            'multioutput_only': is_multi_output,
+        X_types = ['2darray', 'sparse', 'categorical']
+        if is_multitarget_objective:
+            X_types.append('2dlabels')
+        else:
+            X_types.append('1dlabels')
+
+        return {
+            'allow_nan': 'nan_mode' not in params or params['nan_mode'] != 'Forbidden',
+            'array_api_support': False,     # TODO: https://github.com/catboost/catboost/issues/2990
             'binary_only': is_binary_only,
-            'requires_fit': True}
+            'multilabel': is_multilabel_objective,
+            'multioutput': is_multi_output,
+            'multioutput_only': is_multi_output,
+            'no_validation': False,
+            'non_deterministic': params.get('task_type') == 'GPU',
+            'pairwise': False,
+            'poor_score': False,
+            'preserves_dtype': [np.float64],
+            'requires_fit': True,
+            'requires_positive_X': False,
+            'requires_y': True,
 
-        tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
-
-        tags['multioutput'] = is_multi_output
-        tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
-
-        return tags
+            # TODO: maybe create a method for user-defined objectives and metrics in the future
+            'requires_positive_y': False,
+            '_skip_test': False,
+            '_xfail_checks': _CatBoostBase.get_sklearn_estimator_xfail_checks(self),
+            'stateless': False,
+            'X_types': X_types,
+        }
 
     def __sklearn_tags__(self):
         import sklearn.utils
