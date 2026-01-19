@@ -2136,6 +2136,22 @@ class _CatBoostBase(object):
         self._object._set_feature_names(feature_names)
 
     def _get_tags(self):
+        params = self._get_canonized_params()
+        estimator_type = 'classifier' if self._is_classifier(params) else 'regressor'
+        loss_function = params.get('loss_function')
+
+        is_multilabel_objective = _CatBoostBase._is_multilabel_objective(loss_function)
+        is_multi_output = (
+            _CatBoostBase._is_multiregression_objective(loss_function)
+            or
+            is_multilabel_objective
+        )
+        is_binary_only = (
+            (estimator_type == 'classifier')
+            and (not _CatBoostBase._is_multiclass_compatible(params))
+            and (not is_multilabel_objective)
+        )
+
         tags = {
             'requires_positive_X': False,
             'requires_positive_y': False,
@@ -2144,17 +2160,15 @@ class _CatBoostBase(object):
             'no_validation': False,
             'stateless': False,
             'pairwise': False,
-            'multilabel': False,
+            'multilabel': is_multilabel_objective,
             '_skip_test': False,
-            'multioutput_only': False,
-            'binary_only': False,
+            'multioutput_only': is_multi_output,
+            'binary_only': is_binary_only,
             'requires_fit': True}
 
-        params = self._get_canonized_params()
-
         tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
-        loss_function = params.get('loss_function', '')
-        tags['multioutput'] = (loss_function == 'MultiRMSE' or loss_function == 'RMSEWithUncertainty')
+
+        tags['multioutput'] = is_multi_output
         tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
 
         return tags
