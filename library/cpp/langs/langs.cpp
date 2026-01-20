@@ -182,7 +182,8 @@ namespace {
         {LANG_AGX, SCRIPT_CYRILLIC, "Aghul", "agx", "agx", nullptr},
         {LANG_RUT, SCRIPT_CYRILLIC, "Rutul", "rut", "rut", nullptr},
         {LANG_ABK, SCRIPT_CYRILLIC, "Abkhaz", "abk", "ab", nullptr},
-        {LANG_KRL, SCRIPT_CYRILLIC, "Karelian", "krl", "krl", nullptr},
+        {LANG_KRL, SCRIPT_LATIN, "Karelian Proper", "krl", "krl", nullptr},
+        {LANG_OLO, SCRIPT_LATIN, "Livvi-Karelian", "olo", "olo", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");
