@@ -7,16 +7,20 @@ import stat
 import sys
 import typing
 
+from collections.abc import Iterator
+from importlib.abc import Loader
 from importlib.metadata import (
     Distribution,
     DistributionFinder,
     Prepared,
 )
-from importlib.resources.abc import Traversable
+from importlib.resources.abc import Traversable, TraversableResources
 
 from __res import find, iter_keys, resfs_files, resfs_read
 
-METADATA_NAME = re.compile("^Name: (.*)$", re.MULTILINE)
+METADATA_NAME: typing.Final[re.Pattern[str]] = re.compile("^Name: (.*)$", re.MULTILINE)
+
+RESFS_PREFIX: typing.Final[typing.Literal["resfs/file/"]] = "resfs/file/"
 
 try:
     BINARY_STAT: typing.Final[os.stat_result] = os.stat(sys.executable)
@@ -62,62 +66,112 @@ RESOURCE_DIRECTORY_STAT: typing.Final[os.stat_result] = os.stat_result(
 )
 
 
-class ArcadiaTraversable(Traversable):
-    def __init__(self, resfs) -> None:
-        self._resfs = str(resfs)
-        self._path = pathlib.Path(resfs)
+class ResfsTraversableResources(TraversableResources):
+
+    __slots__ = ("_resfs_prefix",)
+
+    def __init__(self, loader: Loader, fullname: str) -> None:
+        filename = loader.get_filename(fullname).replace("\\", "/")
+        self._resfs_prefix = f"{RESFS_PREFIX}{os.path.dirname(filename)}/"
+
+    def _get_data(self, resource: str) -> bytes:
+        path = f"{self._resfs_prefix}{resource}"
+        data = find(path.encode("utf-8"))
+        if data is not None:
+            return data
+        raise FileNotFoundError(path)
+
+    def open_resource(self, resource: str) -> io.BytesIO:
+        return io.BytesIO(self._get_data(resource))
+
+    def is_resource(self, path: str) -> bool:
+        try:
+            self._get_data(path)
+        except FileNotFoundError:
+            return False
+        else:
+            return True
+
+    def contents(self) -> Iterator[str]:
+        subdirs_seen = set()
+        len_prefix = len(self._resfs_prefix) - len(RESFS_PREFIX)
+        for key in resfs_files(self._resfs_prefix.removeprefix(RESFS_PREFIX)):
+            res_or_subdir, *other = key[len_prefix:].split(b"/")
+            if not other:
+                yield res_or_subdir.decode("utf-8")
+            elif res_or_subdir not in subdirs_seen:
+                subdirs_seen.add(res_or_subdir)
+                yield res_or_subdir.decode("utf-8")
+
+    def files(self) -> Traversable:
+        return ResfsResourceContainer(self._resfs_prefix)
+
+
+class ResfsTraversable(Traversable):
+
+    __slots__ = ("_resfs",)
+
+    def __init__(self, resfs_path: str | pathlib.Path) -> None:
+        self._resfs = str(resfs_path)
+
+    @functools.cached_property
+    def _resfs_path(self) -> pathlib.Path:
+        return pathlib.Path(self._resfs)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, ArcadiaTraversable):
-            return self._path == other._path
+        if isinstance(other, ResfsTraversable):
+            return self._resfs_path == other._resfs_path
         raise NotImplementedError
 
     def __lt__(self, other) -> bool:
-        if isinstance(other, ArcadiaTraversable):
-            return self._path < other._path
+        if isinstance(other, ResfsTraversable):
+            return self._resfs_path < other._resfs_path
         raise NotImplementedError
 
     def __hash__(self) -> int:
-        return hash(self._path)
+        return hash(self._resfs_path)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._resfs!r})"
 
     @property
     def name(self) -> str:
-        return self._path.name
+        return self._resfs_path.name
 
     @property
     def suffix(self) -> str:
-        return self._path.suffix
+        return self._resfs_path.suffix
 
     @property
     def stem(self) -> str:
-        return self._path.stem
+        return self._resfs_path.stem
 
     def with_suffix(self, suffix: str) -> typing.Self:
-        return type(self)(self._path.with_suffix(suffix))
+        return type(self)(self._resfs_path.with_suffix(suffix))
 
     def lstat(self) -> os.stat_result:
         return self.stat()
 
-    def relative_to(self, other):
-        if isinstance(other, ArcadiaTraversable):
-            return self._path.relative_to(other._path)
+    def relative_to(self, other) -> pathlib.Path:
+        if isinstance(other, ResfsTraversable):
+            return self._resfs_path.relative_to(other._resfs_path)
         raise NotImplementedError
 
     def resolve(self, strict: bool = False) -> typing.Self:
         return self
 
 
-class ArcadiaResource(ArcadiaTraversable):
+class ResfsResource(ResfsTraversable):
     def is_file(self) -> bool:
         return True
 
     def is_dir(self) -> bool:
         return False
 
-    def open(self, mode="r", *args, **kwargs):
+    def iterdir(self) -> Iterator[ResfsTraversable]:
+        return iter(())
+
+    def open(self, mode="r", *args, **kwargs) -> typing.IO:
         data = self.data
         if data is None:
             raise FileNotFoundError(self._resfs)
@@ -128,12 +182,6 @@ class ArcadiaResource(ArcadiaTraversable):
             stream = io.TextIOWrapper(stream, *args, **kwargs)
 
         return stream
-
-    def joinpath(self, *name) -> ArcadiaTraversable:
-        raise RuntimeError("Cannot traverse into a resource")
-
-    def iterdir(self):
-        return iter(())
 
     @functools.cached_property
     def data(self) -> bytes | None:
@@ -165,48 +213,26 @@ class ArcadiaResource(ArcadiaTraversable):
         )
 
 
-class ArcadiaResourceContainer(ArcadiaTraversable):
-    def is_dir(self) -> bool:
-        return True
-
+class ResfsResourceContainer(ResfsTraversable):
     def is_file(self) -> bool:
         return False
 
-    def iterdir(self):
+    def is_dir(self) -> bool:
+        return True
+
+    def iterdir(self) -> Iterator[ResfsTraversable]:
         seen = set()
         for key, path_without_prefix in iter_keys(self._resfs.encode("utf-8")):
             if b"/" in path_without_prefix:
-                subdir = path_without_prefix.split(b"/", maxsplit=1)[0].decode("utf-8")
+                subdir = path_without_prefix.split(b"/", maxsplit=1)[0]
                 if subdir not in seen:
                     seen.add(subdir)
-                    yield ArcadiaResourceContainer(f"{self._resfs}{subdir}/")
+                    yield ResfsResourceContainer(f"{self._resfs}{subdir.decode("utf-8")}/")
             else:
-                yield ArcadiaResource(key.decode("utf-8"))
+                yield ResfsResource(key.decode("utf-8"))
 
-    def open(self, *args, **kwargs):
+    def open(self, *args, **kwargs) -> typing.IO:
         raise IsADirectoryError(self._resfs)
-
-    @staticmethod
-    def _flatten(compound_names):
-        for name in compound_names:
-            yield from str(name).split("/")
-
-    def joinpath(self, *descendants) -> ArcadiaTraversable:
-        if not descendants:
-            return self
-
-        names = self._flatten(descendants)
-        target = next(names)
-        if target == ".":
-            return self
-        for traversable in self.iterdir():
-            if traversable.name == target:
-                if isinstance(traversable, ArcadiaResource):
-                    return traversable
-                else:
-                    return traversable.joinpath(*names)
-
-        raise FileNotFoundError("/".join(self._flatten(descendants)))
 
     @staticmethod
     def stat() -> os.stat_result:
