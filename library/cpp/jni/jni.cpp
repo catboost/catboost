@@ -1,9 +1,12 @@
 #include "jni.h"
 
+#include <cstdarg>
+#include <cstdlib>
 #include <iostream>
-#include <memory>
-#include <string>
+#include <sstream>
+#include <stdexcept>
 #include <thread>
+#include <type_traits>
 
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS__) || defined(_CPPUNWIND)
     #define EXCEPTIONS_ENABLED
