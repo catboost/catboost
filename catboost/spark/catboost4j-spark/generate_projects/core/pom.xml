@@ -98,7 +98,7 @@
                                 <classpath/>
                                 <argument>ai.catboost.spark.impl.pyspark_wrapper_generator.Generator</argument>
                                 <argument>${project.version}</argument>
-                                <argument>${project.build.directory}/classes/catboost_spark</argument>
+                                <argument>${project.build.directory}/classes</argument>
                                 <argument>${spark.compat.version}</argument>
                             </arguments>
                         </configuration>
@@ -164,7 +164,7 @@
                     <trimStackTrace>false</trimStackTrace>
                     <forkCount>1C</forkCount>
                     <reuseForks>false</reuseForks>
-                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx1024m</argLine>
                     <systemPropertyVariables>
                         <catboost.test.data.path>${catboost_root}/pytest/data</catboost.test.data.path>
                         <canonical.data.path>${src.root}/test/resources/canondata</canonical.data.path>
@@ -233,6 +233,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.10.0</version>
+        </dependency>
+        <dependency>
+          <groupId>commons-validator</groupId>
+          <artifactId>commons-validator</artifactId>
+          <version>1.10.1</version>
         </dependency>
 
         <dependency>

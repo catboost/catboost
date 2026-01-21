@@ -1,6 +1,7 @@
 package ai.catboost.spark.impl.pyspark_wrapper_generator
 
 import java.io.{File,PrintWriter}
+import java.nio.file.{Path,Paths}
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -1055,10 +1056,92 @@ __all__ = [
     }
   }
 
+  def generateMainModule(modulePath: File, sparkCompatVersion: String, version: String) : Unit = {
+    modulePath.mkdirs()
+
+    generateVersionPy(modulePath, version)
+
+    val enumsUsedInParams = (
+        getEnumNamesUsedInParams(new params.QuantizationParams)
+        ++ getEnumNamesUsedInParams(new Pool(null))
+        ++ getEnumNamesUsedInParams(new CatBoostClassifier)
+        ++ getEnumNamesUsedInParams(new CatBoostRegressor)
+        + "EModelType"
+        ++ Set("EFstrType", "ECalcTypeShapValues", "EPreCalcShapValues", "EExplainableModelOutput")
+    )
+
+    generateInitPy(modulePath, enumsUsedInParams)
+
+    val corePyWriter = new PrintWriter(new File(modulePath, "core.py"))
+    try {
+      generateCorePyPrologue(sparkCompatVersion, corePyWriter)
+      generateStandardParamsWrapper(new params.PoolLoadParams(), corePyWriter)
+      generateStandardParamsWrapper(new params.QuantizationParams(), corePyWriter)
+      generatePoolWrapper(corePyWriter)
+      generateEnumDefinitions(enumsUsedInParams, corePyWriter)
+      generateEstimatorAndModelWrapper(
+        new CatBoostRegressor,
+        new CatBoostRegressionModel(new native_impl.TFullModel()),
+        sparkCompatVersion match {
+          case "3.0" => "JavaRegressionModel"
+          case _ => "_JavaRegressionModel"
+        },
+        "Class to train CatBoostRegressionModel",
+        "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
+        corePyWriter
+      )
+      generateEstimatorAndModelWrapper(
+        new CatBoostClassifier,
+        new CatBoostClassificationModel(new native_impl.TFullModel()),
+        sparkCompatVersion match {
+          case "3.0" => "JavaProbabilisticClassificationModel"
+          case _ => "_JavaProbabilisticClassificationModel"
+        },
+        "Class to train CatBoostClassificationModel",
+        "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
+        corePyWriter
+      )
+    } finally {
+      corePyWriter.close
+    }
+  }
+
+  def generateStubModule(modulePath: File) : Unit = {
+    modulePath.mkdirs()
+
+    val initPyWriter = new PrintWriter(new File(modulePath, "__init__.py"))
+    try {
+      initPyWriter.print("""
+import sys
+import importlib.util
+
+catboost_spark_spec = importlib.util.find_spec('catboost_spark')
+catboost_spark_module = importlib.import_module('catboost_spark')
+
+sys.modules[__name__] = catboost_spark_module
+
+class CatBoostSparkFinder:
+    def find_spec(self, fullname, path, target=None):
+        if fullname.startswith(f'{__name__}.'):
+            real_name = fullname.replace(__name__, 'catboost_spark', 1)
+            spec = importlib.util.find_spec(real_name)
+            if spec:
+                spec.name = fullname
+                return spec
+        return None
+
+sys.meta_path.insert(0, CatBoostSparkFinder())
+"""
+      )
+    } finally {
+      initPyWriter.close
+    }
+  }
+
   /**
    * @param args expects 3 arguments:
    *  1) package version
-   *  2) output dir
+   *  2) output 'classes' dir (will write to 'catboost_spark' and 'ai/catboost/spark' subdirectories)
    *  3) spark compat version (like '3.5')
    */
   def main(args: Array[String]) : Unit = {
@@ -1068,54 +1151,11 @@ __all__ = [
         throw new RuntimeException(s"Spark 2.x is no longer supported")
       }
 
-      val modulePath = new File(args(1))
-      modulePath.mkdirs()
+      val classesPath = Paths.get(args(1))
 
-      generateVersionPy(modulePath, args(0))
+      generateMainModule(classesPath.resolve("catboost_spark").toFile(), sparkCompatVersion, args(0))
+      generateStubModule(classesPath.resolve("ai").resolve("catboost").resolve("spark").toFile())
 
-      val enumsUsedInParams = (
-          getEnumNamesUsedInParams(new params.QuantizationParams)
-          ++ getEnumNamesUsedInParams(new Pool(null))
-          ++ getEnumNamesUsedInParams(new CatBoostClassifier)
-          ++ getEnumNamesUsedInParams(new CatBoostRegressor)
-          + "EModelType"
-          ++ Set("EFstrType", "ECalcTypeShapValues", "EPreCalcShapValues", "EExplainableModelOutput")
-      )
-
-      generateInitPy(modulePath, enumsUsedInParams)
-
-      val corePyWriter = new PrintWriter(new File(modulePath, "core.py"))
-      try {
-        generateCorePyPrologue(sparkCompatVersion, corePyWriter)
-        generateStandardParamsWrapper(new params.PoolLoadParams(), corePyWriter)
-        generateStandardParamsWrapper(new params.QuantizationParams(), corePyWriter)
-        generatePoolWrapper(corePyWriter)
-        generateEnumDefinitions(enumsUsedInParams, corePyWriter)
-        generateEstimatorAndModelWrapper(
-          new CatBoostRegressor,
-          new CatBoostRegressionModel(new native_impl.TFullModel()),
-          sparkCompatVersion match {
-            case "3.0" => "JavaRegressionModel"
-            case _ => "_JavaRegressionModel"
-          },
-          "Class to train CatBoostRegressionModel",
-          "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
-          corePyWriter
-        )
-        generateEstimatorAndModelWrapper(
-          new CatBoostClassifier,
-          new CatBoostClassificationModel(new native_impl.TFullModel()),
-          sparkCompatVersion match {
-            case "3.0" => "JavaProbabilisticClassificationModel"
-            case _ => "_JavaProbabilisticClassificationModel"
-          },
-          "Class to train CatBoostClassificationModel",
-          "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
-          corePyWriter
-        )
-      } finally {
-        corePyWriter.close
-      }
     } catch {
       case t : Throwable => {
         t.printStackTrace()

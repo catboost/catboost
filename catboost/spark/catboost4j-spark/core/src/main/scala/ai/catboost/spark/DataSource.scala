@@ -359,8 +359,6 @@ private[spark] object CatBoostTextFileFormat {
       ).resolveRelation()
     ) //.select("value")
 
-    import lines.sqlContext.implicits._
-
     dataScheme match {
       case "dsv" if (hasHeaderParamValue) =>
         val firstLines = lines.head(2)
