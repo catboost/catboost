@@ -37,11 +37,9 @@ target_sources(libs-cxxsupp-libcxxabi PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_aux_runtime.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_default_handlers.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_demangle.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_exception.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_exception_storage.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_guard.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_handlers.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_personality.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_vector.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_virtual.cpp
@@ -51,5 +49,7 @@ target_sources(libs-cxxsupp-libcxxabi PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_new_delete.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_stdexcept.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/stdlib_typeinfo.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_exception.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_personality.cpp
 )
 
