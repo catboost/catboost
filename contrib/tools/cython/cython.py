@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Change content of this file to change uids for cython programs - cython 3.1.6 r0
+# Change content of this file to change uids for cython programs - cython 3.1.8 r0
 
 #
 #   Cython -- Main Program, generic

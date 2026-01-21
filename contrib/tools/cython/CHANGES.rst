@@ -2,6 +2,46 @@
 Cython Changelog
 ================
 
+3.1.8 (2026-01-03)
+==================
+
+Bugs fixed
+----------
+
+* Assignment expressions used in comprehensions could look at the wrong scope,
+  thus using different variables and different data.
+  (Github issue :issue:`6547`)
+
+* Some internal C symbols were not declared as ``static``, preventing static linking
+  of multiple modules.
+  Patch by Yury Popov.  (Github issue :issue:`7310`)
+
+* Accidentally using ``except +`` in C mode did not raise a compile error but generated
+  invalid C code leading to obscure error messages.
+  Patch by user202729.  (Github issue :issue:`6560`)
+
+
+3.1.7 (2025-11-12)
+==================
+
+Bugs fixed
+----------
+
+* Unicode characters formatted from C integers with padding, as in ``f"{value:XXc}"``,
+  could result in invalid Python string objects since Cython 3.1.0.
+  Also, lone surrogates failed to format in this way.
+  (Github issue :issue:`7298`)
+
+* Assigning nested structs from a list of structs (item by item) could crash Cython.
+  (Github issue :issue:`7308`)
+
+* Cython incorrectly called ``PyList_GetItemRef()`` in PyPy and GraalPython before Py3.13.
+  (Github issue :issue:`7269`)
+
+* Trying to instantiate internal types used by Cython is now prohibited.
+  (Github issue :issue:`7263`)
+
+
 3.1.6 (2025-10-23)
 ==================
 
