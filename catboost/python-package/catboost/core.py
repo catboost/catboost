@@ -2236,7 +2236,7 @@ class _CatBoostBase(object):
                 result.update(
                     {
                         'check_estimators_pickle':
-                            'Bug in the test that tries to assign np.nan to np.ndarray of inp.nt32 when '
+                            'Bug in the test that tries to assign np.nan to np.ndarray of np.int32 when '
                             '"categorical" is present in "X_types" and "allow_nan" is True',
                     }
                 )
