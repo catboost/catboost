@@ -42,6 +42,7 @@
 // is_equal() with use_strcmp=false so the string names are not compared.
 
 #include <cstdint>
+#include <cstddef>
 #include <cassert>
 #include <string.h>
 #include "abort_message.h"
