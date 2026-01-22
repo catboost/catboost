@@ -223,8 +223,8 @@ void AsyncSetDataFromCythonMemoryViewCOrder(
                         objCount,
                         [=] (ui32 objIdx) {
                             const TFloatOrInteger* dataPtr = data + objIdx * objStride;
-                            const auto value = *dataPtr;
                             for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
+                                const auto value = *dataPtr;
                                 if (isCatFeature[featureIdx]) {
                                     const auto isFloat
                                         = std::is_same<TFloatOrInteger, float>::value
@@ -245,34 +245,36 @@ void AsyncSetDataFromCythonMemoryViewCOrder(
                         }
                     );
                 } else {
-                    if ((elementStride == 1) && std::is_same<TFloatOrInteger, float>::value) {
-                        size_t featureCount = mainDataFeatureIdxToDstFeatureIdx.size();
-                        NPar::ParallelFor(
-                            *localExecutor,
-                            0,
-                            objCount,
-                            [=] (ui32 objIdx) {
-                                const TFloatOrInteger* dataPtr = data + objIdx * objStride;
-                                builderVisitor->AddAllFloatFeatures(
-                                    objIdx,
-                                    TConstArrayRef<float>(dataPtr, featureCount)
-                                );
-                            }
-                        );
-                    } else {
-                        NPar::ParallelFor(
-                            *localExecutor,
-                            0,
-                            objCount,
-                            [=] (ui32 objIdx) {
-                                const TFloatOrInteger* dataPtr = data + objIdx * objStride;
-                                for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
-                                    builderVisitor->AddFloatFeature(objIdx, featureIdx, *dataPtr);
-                                    dataPtr += elementStride;
+                    if constexpr (std::is_same<TFloatOrInteger, float>::value) {
+                        if (elementStride == 1) {
+                            size_t featureCount = mainDataFeatureIdxToDstFeatureIdx.size();
+                            NPar::ParallelFor(
+                                *localExecutor,
+                                0,
+                                objCount,
+                                [=] (ui32 objIdx) {
+                                    const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                                    builderVisitor->AddAllFloatFeatures(
+                                        objIdx,
+                                        TConstArrayRef<float>(dataPtr, featureCount)
+                                    );
                                 }
-                            }
-                        );
+                            );
+                            return;
+                        }
                     }
+                    NPar::ParallelFor(
+                        *localExecutor,
+                        0,
+                        objCount,
+                        [=] (ui32 objIdx) {
+                            const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                            for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
+                                builderVisitor->AddFloatFeature(objIdx, featureIdx, *dataPtr);
+                                dataPtr += elementStride;
+                            }
+                        }
+                    );
                 }
             }
         )
