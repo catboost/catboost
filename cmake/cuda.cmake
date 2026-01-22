@@ -3,6 +3,10 @@ if (HAVE_CUDA)
       message(FATAL_ERROR "Build with CUDA requires at least cmake 3.17.0")
   endif()
 
+  if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES "35-virtual;50-virtual;60-virtual;61-real;70-virtual;75-real;80-real;86-real;89-real;90")
+  endif()
+
   enable_language(CUDA)
 
   include(global_flags)

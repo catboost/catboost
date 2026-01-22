@@ -41,25 +41,6 @@ target_sources(models PRIVATE
 
 target_cuda_flags(models
   -Wno-deprecated-gpu-targets
-  -gencode=arch=compute_35,code=sm_35
-  -gencode
-  arch=compute_50,code=compute_50
-  -gencode
-  arch=compute_52,code=sm_52
-  -gencode
-  arch=compute_60,code=compute_60
-  -gencode
-  arch=compute_61,code=compute_61
-  -gencode
-  arch=compute_61,code=sm_61
-  -gencode
-  arch=compute_70,code=sm_70
-  -gencode
-  arch=compute_70,code=compute_70
-  -gencode=arch=compute_80,code=sm_80
-  -gencode=arch=compute_86,code=sm_86
-  -gencode=arch=compute_89,code=sm_89
-  -gencode=arch=compute_90,code=sm_90
 )
 
 add_global_library_for(models.global
