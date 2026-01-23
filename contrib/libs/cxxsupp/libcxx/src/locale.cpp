@@ -3669,16 +3669,16 @@ __codecvt_utf16<char32_t, true>::result __codecvt_utf16<char32_t, true>::do_out(
   const uint32_t* _frm_end = reinterpret_cast<const uint32_t*>(frm_end);
   const uint32_t* _frm_nxt = _frm;
 #endif
-  uint8_t* _to     = reinterpret_cast<uint8_t*>(to);
-  uint8_t* _to_end = reinterpret_cast<uint8_t*>(to_end);
-  uint8_t* _to_nxt = _to;
+  uint8_t* _to             = reinterpret_cast<uint8_t*>(to);
+  uint8_t* _to_end         = reinterpret_cast<uint8_t*>(to_end);
+  uint8_t* _to_nxt         = _to;
 #if defined(_LIBCPP_SHORT_WCHAR)
-  result r = ucs2_to_utf16le(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
+  result r                 = ucs2_to_utf16le(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
 #else
-  result r = ucs4_to_utf16le(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
+  result r                 = ucs4_to_utf16le(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
 #endif
-  frm_nxt = frm + (_frm_nxt - _frm);
-  to_nxt  = to + (_to_nxt - _to);
+  frm_nxt                  = frm + (_frm_nxt - _frm);
+  to_nxt                   = to + (_to_nxt - _to);
   return r;
 }
 
@@ -3907,17 +3907,17 @@ __codecvt_utf8_utf16<char32_t>::result __codecvt_utf8_utf16<char32_t>::do_in(
   const uint8_t* _frm_end = reinterpret_cast<const uint8_t*>(frm_end);
   const uint8_t* _frm_nxt = _frm;
 #if defined(_LIBCPP_SHORT_WCHAR)
-  uint16_t* _to     = reinterpret_cast<uint16_t*>(to);
-  uint16_t* _to_end = reinterpret_cast<uint16_t*>(to_end);
-  uint16_t* _to_nxt = _to;
+  uint16_t* _to           = reinterpret_cast<uint16_t*>(to);
+  uint16_t* _to_end       = reinterpret_cast<uint16_t*>(to_end);
+  uint16_t* _to_nxt       = _to;
 #else
-  uint32_t* _to     = reinterpret_cast<uint32_t*>(to);
-  uint32_t* _to_end = reinterpret_cast<uint32_t*>(to_end);
-  uint32_t* _to_nxt = _to;
+  uint32_t* _to           = reinterpret_cast<uint32_t*>(to);
+  uint32_t* _to_end       = reinterpret_cast<uint32_t*>(to_end);
+  uint32_t* _to_nxt       = _to;
 #endif
-  result r = utf8_to_utf16(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
-  frm_nxt  = frm + (_frm_nxt - _frm);
-  to_nxt   = to + (_to_nxt - _to);
+  result r                = utf8_to_utf16(_frm, _frm_end, _frm_nxt, _to, _to_end, _to_nxt, __maxcode_, __mode_);
+  frm_nxt                 = frm + (_frm_nxt - _frm);
+  to_nxt                  = to + (_to_nxt - _to);
   return r;
 }
 
