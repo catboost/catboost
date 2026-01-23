@@ -1,0 +1,349 @@
+From 0fb7b9b932f791f63a3bf0d14556880e321bd67a Mon Sep 17 00:00:00 2001
+From: scoder <stefan_ml@behnel.de>
+Date: Mon, 2 Jun 2025 17:10:20 +0200
+Subject: [PATCH] Allow any Python number type as input to PEP-604 'x: float |
+ None' type function arguments (GH-6808)
+
+Convert the value to Python float on the way in.
+
+The reasoning is that Python typing and static type checkers explicitly allow `int` etc. as input.
+
+Incidentally, Cython also allows arbitrary Python numbers as input for
+`x: float` and `x: cython.double` arguments (converting them to C double),
+but not for `float | None` or `Optional[float]` that require actual Python objects.
+
+Closes https://github.com/cython/cython/issues/5750
+---
+ Cython/Compiler/ExprNodes.py       |  71 ++++++++++---------
+ Cython/Compiler/Nodes.py           |   5 +-
+ Cython/Compiler/PyrexTypes.py      |  27 +++++++-
+ Cython/Utility/FunctionArguments.c |   2 +-
+ Cython/Utility/TypeConversion.c    | 105 +++++++++++++++++++++++++++++
+ tests/run/annotation_typing.pyx    |  49 ++++++++++----
+ 6 files changed, 210 insertions(+), 49 deletions(-)
+
+diff --git a/Cython/Compiler/ExprNodes.py b/Cython/Compiler/ExprNodes.py
+index e24b4ea535b..bbe5e6eca9d 100644
+--- a/Cython/Compiler/ExprNodes.py
++++ b/Cython/Compiler/ExprNodes.py
+@@ -775,6 +775,8 @@ def result_in_temp(self):
+         #  this node or one of its subexpressions. Overridden
+         #  by certain nodes which can share the result of
+         #  a subnode.
++        #  Temp-tests from outside of a node class should always
++        #  prefer this method over a plain "node.is_temp".
+         return self.is_temp
+ 
+     def target_code(self):
+@@ -1053,12 +1055,15 @@ def coerce_to(self, dst_type, env):
+                 pass
+             elif src.constant_result is None:
+                 src = NoneNode(src.pos).coerce_to(dst_type, env)
++            elif src.type.is_pyobject:
++                if not src.type.subtype_of(dst_type):
++                    # Apply a type check on assignment.
++                    src = PyTypeTestNode(src, dst_type, env)
+             else:
+-                if not src.type.is_pyobject:
+-                    if dst_type is bytes_type and src.type.is_int:
+-                        src = CoerceIntToBytesNode(src, env)
+-                    else:
+-                        src = CoerceToPyTypeNode(src, env, type=dst_type)
++                if dst_type is bytes_type and src.type.is_int:
++                    src = CoerceIntToBytesNode(src, env)
++                else:
++                    src = CoerceToPyTypeNode(src, env, type=dst_type)
+                 # FIXME: I would expect that CoerceToPyTypeNode(type=dst_type) returns a value of type dst_type
+                 #        but it doesn't for ctuples. Thus, we add a PyTypeTestNode which then triggers the
+                 #        Python conversion and becomes useless. That seems backwards and inefficient.
+@@ -14367,14 +14372,19 @@ class PyTypeTestNode(CoercionNode):
+     #  This node is used to check that a generic Python
+     #  object is an instance of a particular extension type.
+     #  This node borrows the result of its argument node.
++    #  Builtin subtypes or compatible types (e.g. int/float) are coerced
++    #  to the base type automatically.
+ 
+     exact_builtin_type = True
+ 
+     def __init__(self, arg, dst_type, env, notnone=False):
+-        #  The arg is known to be a Python object, and
+-        #  the dst_type is known to be an extension type.
++        #  The arg is known to be a Python object,
++        #  and the dst_type is known to be an extension type or builtin.
+         assert dst_type.is_extension_type or dst_type.is_builtin_type, \
+             "PyTypeTest for %s against non extension type %s" % (arg.type, dst_type)
++        if dst_type.is_builtin_type:
++            # Use a temp to allow builtin type conversions (which cannot replace literals).
++            arg = arg.coerce_to_temp(env)
+         CoercionNode.__init__(self, arg)
+         self.type = dst_type
+         self.result_ctype = arg.ctype()
+@@ -14412,6 +14422,7 @@ def reanalyse(self):
+             return self
+         if not self.type.typeobj_is_available():
+             return self
++        # The argument has the right type, known at compile time, so discard the type check.
+         if self.arg.may_be_none() and self.notnone:
+             return self.arg.as_none_safe_node("Cannot convert NoneType to %.200s" % self.type.name)
+         return self.arg
+@@ -14424,30 +14435,28 @@ def calculate_result_code(self):
+         return self.arg.result()
+ 
+     def generate_result_code(self, code):
+-        if self.type.typeobj_is_available():
+-            allow_none = not self.notnone
+-            if self.type.is_builtin_type:
+-                type_test = self.type.type_test_code(
+-                    code.funcstate.scope,
+-                    self.arg.py_result(),
+-                    allow_none,
+-                    exact=self.exact_builtin_type,
+-                )
+-                code.globalstate.use_utility_code(UtilityCode.load_cached(
+-                    "RaiseUnexpectedTypeError", "ObjectHandling.c"))
+-            else:
+-                type_test = self.type.type_test_code(
+-                    code.funcstate.scope,
+-                    self.arg.py_result(),
+-                    allow_none,
+-                )
+-                code.globalstate.use_utility_code(
+-                    UtilityCode.load_cached("ExtTypeTest", "ObjectHandling.c"))
+-            code.putln("if (!(%s)) %s" % (
+-                type_test, code.error_goto(self.pos)))
+-        else:
+-            error(self.pos, "Cannot test type of extern C class "
+-                "without type object name specification")
++        if not self.type.typeobj_is_available():
++            error(self.pos, "Cannot test type of extern C class without type object name specification")
++            return
++
++        allow_none = not self.notnone
++        is_builtin_type = self.type.is_builtin_type
++
++        if self.exact_builtin_type and is_builtin_type:
++            # Allow conversions instead of rejecting subtypes and compatible (number) types.
++            self.type.convert_to_basetype(code, self.pos, self.arg.py_result(), allow_none)
++            return
++
++        type_test = self.type.type_test_code(
++            code.funcstate.scope,
++            self.arg.py_result(),
++            allow_none,
++            exact=self.exact_builtin_type if is_builtin_type else False,
++        )
++        code.globalstate.use_utility_code(UtilityCode.load_cached(
++            "RaiseUnexpectedTypeError" if is_builtin_type else "ExtTypeTest",
++            "ObjectHandling.c"))
++        code.putln(f"if (!({type_test})) {code.error_goto(self.pos)}")
+ 
+     def generate_post_assignment_code(self, code):
+         self.arg.generate_post_assignment_code(code)
+diff --git a/Cython/Compiler/Nodes.py b/Cython/Compiler/Nodes.py
+index dc5f8aa253c..a5260b17e8f 100644
+--- a/Cython/Compiler/Nodes.py
++++ b/Cython/Compiler/Nodes.py
+@@ -4398,6 +4398,8 @@ def generate_tuple_and_keyword_parsing_code(self, args, code, decl_code):
+     def generate_arg_assignment(self, arg, item, code):
+         if arg.type.is_pyobject:
+             # Python default arguments were already stored in 'item' at the very beginning
++            if arg.type.is_builtin_type and arg.type.name in ('int', 'float'):
++                arg.type.convert_to_basetype(code, arg.pos, item, arg.accept_none, arg.name_cstring)
+             if arg.is_generic:
+                 item = PyrexTypes.typecast(arg.type, PyrexTypes.py_object_type, item)
+             entry = arg.entry
+@@ -9467,8 +9469,7 @@ def generate_execution_code(self, code):
+             if coerced_item is None:
+                 target.generate_assignment_code(self.item, code)
+             else:
+-                coerced_item.allocate_temp_result(code)
+-                coerced_item.generate_result_code(code)
++                coerced_item.generate_evaluation_code(code)
+                 target.generate_assignment_code(coerced_item, code)
+             code.put_decref_clear(item_temp, py_object_type)
+         code.funcstate.release_temp(item_temp)
+diff --git a/Cython/Compiler/PyrexTypes.py b/Cython/Compiler/PyrexTypes.py
+index d393e82f860..665a4134d0e 100644
+--- a/Cython/Compiler/PyrexTypes.py
++++ b/Cython/Compiler/PyrexTypes.py
+@@ -1537,6 +1537,29 @@ def type_test_code(self, scope, arg, allow_none=True, exact=True):
+             check += f'||(({arg}) == Py_None)'
+         return check + f' || __Pyx_RaiseUnexpectedTypeError("{self.name}", {arg})'
+ 
++    def convert_to_basetype(self, code, pos, arg_cname, allow_none=True, arg_name_cstring="NULL"):
++        """Generate type checking code that converts compatible (number) types to the plain base type in-place.
++
++        Replaces the C value in 'arg_cname' on conversion or error, decrefing the original value.
++        """
++        if self.name == 'float':
++            utility_code_name = "pyfloat_simplify"
++            cfunc = "__Pyx_PyFloat_FromNumber"
++        elif self.name == 'int':
++            utility_code_name = "pyint_simplify"
++            cfunc = "__Pyx_PyInt_FromNumber"
++        else:
++            # No conversion, simple type check.
++            type_test = self.type_test_code(code.globalstate, arg_cname, allow_none=allow_none)
++            code.putln(f"if (!({type_test})) {code.error_goto(pos)}")
++            return
++
++        code.globalstate.use_utility_code(
++            UtilityCode.load_cached(utility_code_name, "TypeConversion.c"))
++        code.put_error_if_neg(
++            pos, f"{cfunc}(&{arg_cname}, {arg_name_cstring}, {allow_none:d})"
++        )
++
+     def declaration_code(self, entity_code,
+             for_display = 0, dll_linkage = None, pyrex = 0):
+         if pyrex or for_display:
+@@ -1670,7 +1693,8 @@ def declaration_code(self, entity_code,
+                 entity_code = "*%s" % entity_code
+         return self.base_declaration_code(base_code, entity_code)
+ 
+-    def type_test_code(self, scope, py_arg, allow_none=True):
++    def type_test_code(self, scope, py_arg, allow_none=True, exact=False):
++        assert not exact, "exact extension type tests are not currently implemented here"
+         typeptr_cname = scope.name_in_module_state(self.typeptr_cname)
+         type_check = f"likely(__Pyx_TypeTest({py_arg}, {typeptr_cname}))"
+         scope.use_utility_code(UtilityCode.load_cached("ExtTypeTest", "ObjectHandling.c"))
+@@ -4147,7 +4171,6 @@ def can_coerce_to_pyobject(self, env):
+                     return False
+             return True
+ 
+-
+     def create_to_py_utility_code(self, env):
+         if self.to_py_function is not None:
+             return True
+diff --git a/Cython/Utility/FunctionArguments.c b/Cython/Utility/FunctionArguments.c
+index 0ba840510f1..bb339e3bed6 100644
+--- a/Cython/Utility/FunctionArguments.c
++++ b/Cython/Utility/FunctionArguments.c
+@@ -1,6 +1,5 @@
+ //////////////////// ArgTypeTest.proto ////////////////////
+ 
+-
+ // Exact is 0 (False), 1 (True) or 2 (True and from annotation)
+ // The latter gives a small amount of extra error diagnostics
+ #define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact) \
+@@ -62,6 +61,7 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
+     return 0;
+ }
+ 
++
+ //////////////////// RaiseArgTupleInvalid.proto ////////////////////
+ 
+ static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
+diff --git a/Cython/Utility/TypeConversion.c b/Cython/Utility/TypeConversion.c
+index c243fbb17fd..a2b7ab9eaca 100644
+--- a/Cython/Utility/TypeConversion.c
++++ b/Cython/Utility/TypeConversion.c
+@@ -452,6 +452,109 @@ static CYTHON_INLINE int __Pyx_PyLong_CompactAsLong(PyObject *x, long *return_va
+ #endif
+ 
+ 
++/////////////// pybuiltin_invalid ///////////////
++
++static void __Pyx_PyBuiltin_Invalid(PyObject *obj, const char *type_name, const char *argname) {
++    __Pyx_TypeName obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
++    if (argname) {
++        PyErr_Format(PyExc_TypeError,
++            "Argument '%.200s' has incorrect type (expected %.200s, got " __Pyx_FMT_TYPENAME ")",
++            argname, type_name, obj_type_name
++        );
++    } else {
++        PyErr_Format(PyExc_TypeError,
++            "Expected %.200s, got " __Pyx_FMT_TYPENAME,
++            type_name, obj_type_name
++        );
++    }
++    __Pyx_DECREF_TypeName(obj_type_name);
++}
++
++
++/////////////// pyfloat_simplify.proto ///////////////
++
++static CYTHON_INLINE int __Pyx_PyFloat_FromNumber(PyObject **number_var, const char *argname, int accept_none); /*proto*/
++
++/////////////// pyfloat_simplify ///////////////
++//@requires: pybuiltin_invalid
++
++static CYTHON_INLINE int __Pyx_PyFloat_FromNumber(PyObject **number_var, const char *argname, int accept_none) {
++    // Convert any float-compatible Python number object into a Python float.
++    // NOTE: This function decrefs 'number' if a conversion happens to replace the original object.
++    PyObject *number = *number_var;
++    if (likely((accept_none && number == Py_None) || PyFloat_CheckExact(number))) {
++        return 0;
++    }
++
++    PyObject *float_object;
++    if (likely(PyLong_CheckExact(number))) {
++        double val;
++#if CYTHON_USE_PYLONG_INTERNALS
++        if (likely(__Pyx_PyLong_IsCompact(number))) {
++            val = (double) __Pyx_PyLong_CompactValue(number);
++        } else
++#endif
++        {
++            val = PyLong_AsDouble(number);
++            if (unlikely(val == -1.0 && PyErr_Occurred())) goto bad;
++        }
++        float_object = PyFloat_FromDouble(val);
++    }
++    else if (PyNumber_Check(number)) {
++        // PyNumber_Float() also parses strings, which we must reject.
++        float_object = PyNumber_Float(number);
++    } else {
++        __Pyx_PyBuiltin_Invalid(number, "float", argname);
++        goto bad;
++    }
++    if (unlikely(!float_object)) goto bad;
++
++    *number_var = float_object;
++    Py_DECREF(number);
++    return 0;
++
++bad:
++    *number_var = NULL;
++    Py_DECREF(number);
++    return -1;
++}
++
++
++/////////////// pyint_simplify.proto ///////////////
++
++static CYTHON_INLINE int __Pyx_PyInt_FromNumber(PyObject **number_var, const char *argname, int accept_none); /*proto*/
++
++/////////////// pyint_simplify ///////////////
++//@requires: pybuiltin_invalid
++
++static CYTHON_INLINE int __Pyx_PyInt_FromNumber(PyObject **number_var, const char *argname, int accept_none) {
++    // Convert any int-compatible Python number object into a Python int.
++    // NOTE: This function decrefs 'number' if a conversion happens to replace the original object.
++    PyObject *number = *number_var;
++    if (likely((accept_none && number == Py_None) || PyLong_CheckExact(number))) {
++        return 0;
++    }
++
++    PyObject *int_object;
++    if (likely(PyNumber_Check(number))) {
++        // PyNumber_Long() also parses strings, which we must reject.
++        int_object = PyNumber_Long(number);
++        if (unlikely(!int_object)) goto bad;
++    } else {
++        __Pyx_PyBuiltin_Invalid(number, "int", argname);
++        goto bad;
++    }
++
++    *number_var = int_object;
++    Py_DECREF(number);
++    return 0;
++
++bad:
++    *number_var = NULL;
++    Py_DECREF(number);
++    return -1;
++}
++
+ /////////////// pynumber_float.proto ///////////////
+ 
+ static CYTHON_INLINE PyObject* __Pyx__PyNumber_Float(PyObject* obj); /* proto */

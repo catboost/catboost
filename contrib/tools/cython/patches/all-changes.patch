@@ -333,14 +333,6 @@
              cname = '__pyx_convert_%s_from_py_%s' % (cls, '__and_'.join(tags))
              context.update({
                  'cname': cname,
-@@ -4058,7 +4065,6 @@ class CppClassType(CType):
-                     return False
-             return True
-
--
-     def create_to_py_utility_code(self, env):
-         if self.to_py_function is not None:
-             return True
 @@ -4078,9 +4084,12 @@ class CppClassType(CType):
                  cls = 'string'
                  prefix = 'PyObject_'  # gets specialised by explicit type casts in CoerceToPyTypeNode
