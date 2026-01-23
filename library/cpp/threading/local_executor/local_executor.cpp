@@ -163,7 +163,7 @@ NPar::TLocalExecutor::TImpl::~TImpl() {
 }
 
 void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
-    static const int FAST_ITERATIONS = 200;
+    static constexpr int FAST_ITERATIONS = 200;
 
     auto* const ctx = (TImpl*)p;
     TThread::SetCurrentThreadName("ParLocalExecutor");
@@ -222,16 +222,16 @@ void NPar::TLocalExecutor::TImpl::RunNewThread() {
     thr.Detach();
 }
 
-void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor> rangeExec,
+void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor> execRange,
                                               int queueSizeLimit,
                                               std::atomic<int>* queueSize,
                                               TLockFreeQueue<TSingleJob>* jobQueue) {
-    int count = Min<int>(ThreadCount + 1, rangeExec->GetRangeSize());
+    int count = Min<int>(ThreadCount + 1, execRange->GetRangeSize());
     if (queueSizeLimit >= 0 && queueSize->load() >= queueSizeLimit) {
         return;
     }
     queueSize->fetch_add(count);
-    jobQueue->EnqueueAll(TVector<TSingleJob>{size_t(count), TSingleJob(rangeExec, 0)});
+    jobQueue->EnqueueAll(TVector<TSingleJob>{size_t(count), TSingleJob(std::move(execRange), 0)});
     HasJob.Signal();
 }
 
@@ -309,7 +309,7 @@ void NPar::ILocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstI
     if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
         return;
     }
-    ExecRange(new TFunctionWrapper(exec), firstId, lastId, flags);
+    ExecRange(new TFunctionWrapper(std::move(exec)), firstId, lastId, flags);
 }
 
 void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
@@ -317,7 +317,7 @@ void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, i
     if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
         return;
     }
-    TVector<NThreading::TFuture<void>> currentRun = ExecRangeWithFutures(exec, firstId, lastId, flags);
+    TVector<NThreading::TFuture<void>> currentRun = ExecRangeWithFutures(std::move(exec), firstId, lastId, flags);
     for (auto& result : currentRun) {
         result.GetValueSync(); // Exception will be rethrown if exists. If several exception - only the one with minimal id is rethrown.
     }
@@ -325,7 +325,7 @@ void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, i
 
 TVector<NThreading::TFuture<void>>
 NPar::ILocalExecutor::ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
-    auto execWrapper = MakeIntrusive<TFunctionWrapperWithPromise>(exec, firstId, lastId);
+    auto execWrapper = MakeIntrusive<TFunctionWrapperWithPromise>(std::move(exec), firstId, lastId);
     TVector<NThreading::TFuture<void>> out = execWrapper->GetFutures();
     ExecRange(std::move(execWrapper), firstId, lastId, flags);
     return out;
