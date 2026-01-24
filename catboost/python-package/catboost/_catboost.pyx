@@ -1665,6 +1665,8 @@ cdef void _ObjectiveCalcDersMultiClass(
 ) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef Py_ssize_t indY
 
     approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
 
@@ -1695,6 +1697,8 @@ cdef void _ObjectiveCalcDersMultiTarget(
 ) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef Py_ssize_t indY
 
     approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
     targetes = _CreateNumpyFloatArrayView(target.data(), target.size())
@@ -2178,6 +2182,7 @@ class FeaturesData(object):
         feature_names,
         all_feature_count_ref # 1-element list to emulate pass-by-reference
     ):
+        cdef Py_ssize_t i
         if (feature_names is not None) and (feature_data is None):
             raise CatBoostError(
                 '{}_feature_names specified with not specified {}_feature_data'.format(
@@ -3048,6 +3053,7 @@ cdef object _set_features_order_data_pd_data_frame(
 
     cdef ui32 doc_idx
     cdef ui32 flat_feature_idx
+    cdef Py_ssize_t src_flat_feature_idx
     cdef np.ndarray column_values # for columns that are not Sparse or Categorical
 
     string_factor_data.reserve(doc_count)
@@ -3833,6 +3839,8 @@ cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
 
     cdef TVector[TPair] pairs_vector
     pairs_vector.resize(len(pairs))
+
+    cdef Py_ssize_t pair_idx
 
     for pair_idx, pair in enumerate(pairs):
         pairs_vector[pair_idx].WinnerId = <ui32>pair[0]
