@@ -1,15 +1,5 @@
 {
-    "large_dist_test.test_dist_train_many_trees[calc_block=5000000]": [
-        {
-            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=5000000_/test.eval"
-        }
-    ],
-    "large_dist_test.test_dist_train_many_trees[calc_block=60]": [
-        {
-            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=60_/test.eval"
-        }
-    ],
-    "test.test_all_targets[calc_block=5000000-Ordered-SymmetricTree-CrossEntropy]": [
+   "test.test_all_targets[calc_block=5000000-Ordered-SymmetricTree-CrossEntropy]": [
         {
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-SymmetricTree-CrossEntropy_/test.eval"
         }
