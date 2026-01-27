@@ -19,8 +19,8 @@ SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
 
 
-@pytest.mark.xfail(sys.platform == "darwin", reason="known issue with connections")
-@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
+@pytest.mark.skipif(sys.platform == "darwin", reason="known issue with connections")
+@pytest.mark.skipif(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
