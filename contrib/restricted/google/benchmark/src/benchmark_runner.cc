@@ -123,7 +123,12 @@ BenchmarkReporter::Run CreateRunReport(
               : 0;
     }
 
-    internal::Finish(&report.counters, results.iterations, seconds,
+    // The CPU time is the total time taken by all thread. If we used that as
+    // the denominator, we'd be calculating the rate per thread here. This is
+    // why we have to divide the total cpu_time by the number of threads for
+    // global counters to get a global rate.
+    const double thread_seconds = seconds / b.threads();
+    internal::Finish(&report.counters, results.iterations, thread_seconds,
                      b.threads());
   }
   return report;
@@ -191,7 +196,7 @@ class ThreadRunnerDefault : public ThreadRunnerBase {
   explicit ThreadRunnerDefault(int num_threads)
       : pool(static_cast<size_t>(num_threads - 1)) {}
 
-  void RunThreads(const std::function<void(int)>& fn) final {
+  void RunThreads(const std::function<void(int)>& fn) override final {
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
@@ -212,7 +217,8 @@ class ThreadRunnerDefault : public ThreadRunnerBase {
 };
 
 std::unique_ptr<ThreadRunnerBase> GetThreadRunner(
-    const threadrunner_factory& userThreadRunnerFactory, int num_threads) {
+    const benchmark::threadrunner_factory& userThreadRunnerFactory,
+    int num_threads) {
   return userThreadRunnerFactory
              ? userThreadRunnerFactory(num_threads)
              : std::make_unique<ThreadRunnerDefault>(num_threads);
@@ -400,7 +406,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
 }
 
 double BenchmarkRunner::GetMinTimeToApply() const {
-  // In order to re-use functionality to run and measure benchmarks for running
+  // In order to reuse functionality to run and measure benchmarks for running
   // a warmup phase of the benchmark, we need a way of telling whether to apply
   // min_time or min_warmup_time. This function will figure out if we are in the
   // warmup phase and therefore need to apply min_warmup_time or if we already
