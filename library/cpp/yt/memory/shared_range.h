@@ -142,7 +142,7 @@ public:
         return TSharedRange<T>(begin, end, Holder_);
     }
 
-    const TSharedRangeHolderPtr& GetHolder() const
+    const TSharedRangeHolderPtr& GetHolder() const Y_LIFETIME_BOUND
     {
         return Holder_;
     }
@@ -329,7 +329,7 @@ public:
         return TSharedMutableRange<T>(begin, end, Holder_);
     }
 
-    TSharedRangeHolderPtr GetHolder() const
+    const TSharedRangeHolderPtr& GetHolder() const Y_LIFETIME_BOUND
     {
         return Holder_;
     }
