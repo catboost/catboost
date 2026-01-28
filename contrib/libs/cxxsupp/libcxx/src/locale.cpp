@@ -38,8 +38,8 @@
 #  include <langinfo.h>
 #endif
 
+#include "include/atomic_support.h"
 #include "include/sso_allocator.h"
-#include <mutex>
 
 // On Linux, wint_t and wchar_t have different signed-ness, and this causes
 // lots of noise in the build log, but no bugs that I know of.
@@ -593,17 +593,8 @@ void locale::facet::__on_zero_shared() noexcept { delete this; }
 constinit int32_t locale::id::__next_id = 0;
 
 long locale::id::__get() {
-  int32_t result = __id_.load(std::memory_order_acquire);
-  if (result == 0) {
-    static std::mutex m;
-    std::lock_guard<std::mutex> guard(m);
-    result = __id_.load(std::memory_order_acquire);
-    if (result == 0) {
-      result = ++__next_id;
-      __id_.store(result, std::memory_order_release);
-    }
-  }
-  return result - 1;
+  call_once(__flag_, [&] { __id_ = __libcpp_atomic_add(&__next_id, 1); });
+  return __id_ - 1;
 }
 
 // template <> class collate_byname<char>
