@@ -5,7 +5,6 @@
 #include <library/cpp/par/par_log.h>
 #include <library/cpp/par/par_network.h>
 #include <library/cpp/par/par_remote.h>
-#include <library/cpp/threading/atomic/bool.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/datetime/base.h>
@@ -67,7 +66,7 @@ class TStopMetaRequester {
 
     TVector<NPar::TNetworkAddress> WorkerAddresses;
 
-    NAtomic::TBool RequesterIsSet = false;
+    std::atomic<bool> RequesterIsSet = false;
     TIntrusivePtr<NPar::IRequester> Requester;
 
 public:
