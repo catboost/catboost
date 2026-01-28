@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/cpp/deprecated/atomic/atomic.h>
+#include <atomic>
 
 namespace NAtomic {
     class TBool {
@@ -12,25 +12,26 @@ namespace NAtomic {
         {
         }
 
-        TBool(const TBool& src) noexcept {
-            AtomicSet(Val_, AtomicGet(src.Val_));
+        TBool(const TBool& src) noexcept
+            : Val_(src.Val_.load())
+        {
         }
 
         operator bool() const noexcept {
-            return AtomicGet(Val_);
+            return Val_.load();
         }
 
         const TBool& operator=(bool val) noexcept {
-            AtomicSet(Val_, val);
+            Val_.store(val);
             return *this;
         }
 
         const TBool& operator=(const TBool& src) noexcept {
-            AtomicSet(Val_, AtomicGet(src.Val_));
+            Val_.store(src.Val_.load());
             return *this;
         }
 
     private:
-        TAtomic Val_ = 0;
+        std::atomic<bool> Val_ = false;
     };
-}
+} // namespace NAtomic
