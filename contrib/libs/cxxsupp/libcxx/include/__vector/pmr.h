@@ -6,27 +6,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___TYPE_TRAITS_ADD_CONST_H
-#define _LIBCPP___TYPE_TRAITS_ADD_CONST_H
+#ifndef _LIBCPP___VECTOR_PMR_H
+#define _LIBCPP___VECTOR_PMR_H
 
 #include <__config>
+#include <__fwd/vector.h>
+#include <__memory_resource/polymorphic_allocator.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
 #endif
 
+#if _LIBCPP_STD_VER >= 17
+
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <class _Tp>
-struct _LIBCPP_TEMPLATE_VIS add_const {
-  typedef _LIBCPP_NODEBUG const _Tp type;
-};
-
-#if _LIBCPP_STD_VER >= 14
-template <class _Tp>
-using add_const_t = typename add_const<_Tp>::type;
-#endif
+namespace pmr {
+template <class _ValueT>
+using vector _LIBCPP_AVAILABILITY_PMR = std::vector<_ValueT, polymorphic_allocator<_ValueT>>;
+} // namespace pmr
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP___TYPE_TRAITS_ADD_CONST_H
+#endif
+
+#endif // _LIBCPP___VECTOR_PMR_H
