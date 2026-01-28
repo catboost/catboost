@@ -11,7 +11,6 @@
 #include <library/cpp/neh/rpc.h>
 #include <library/cpp/netliba/v12/ib_low.h>
 #include <library/cpp/netliba/v12/udp_http.h>
-#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/strbuf.h>
 #include <util/network/sock.h>
@@ -21,6 +20,9 @@
 #include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/mutex.h>
 #include <util/thread/factory.h>
+
+#include <atomic>
+
 
 namespace NPar {
     class TNehRequester: public IRequester {
@@ -355,7 +357,7 @@ namespace NPar {
         TAutoPtr<IThreadFactory::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
-        NAtomic::TBool Running = true;
+        std::atomic<bool> Running = true;
     };
 
     class TNetlibaRequester: public IRequester {
@@ -454,7 +456,7 @@ namespace NPar {
         TProcessQueryCallback QueryCallback;
         TProcessReplyCallback ReplyCallback;
 
-        NAtomic::TBool Stopped = false;
+        std::atomic<bool> Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadFactory::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
