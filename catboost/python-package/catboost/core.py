@@ -15,8 +15,6 @@ from six import iteritems, string_types, integer_types
 
 import warnings
 import numpy as np
-import ctypes
-import platform
 import tempfile
 import shutil
 import json
@@ -24,12 +22,6 @@ from enum import Enum
 from operator import itemgetter
 import threading
 from typing import Dict, Optional
-
-if platform.system() == 'Linux':
-    try:
-        ctypes.CDLL('librt.so')
-    except Exception:
-        pass
 
 try:
     from pandas import DataFrame, Series
