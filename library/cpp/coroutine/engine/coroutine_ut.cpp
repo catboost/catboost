@@ -2,7 +2,6 @@
 #include "condvar.h"
 #include "network.h"
 
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/string/cast.h>
@@ -12,6 +11,8 @@
 #include <util/system/thread.h>
 #include <util/generic/xrange.h>
 #include <util/generic/serialized_enum.h>
+
+#include <atomic>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
 
@@ -162,11 +163,11 @@ void TCoroTest::TestSimpleX1() {
 void TCoroTest::TestSimpleX1MultiThread() {
     TVector<THolder<TThread>> threads;
     const size_t nThreads = 0;
-    TAtomic c = 0;
+    std::atomic<size_t> c = 0;
     for (size_t i = 0; i < nThreads; ++i) {
         threads.push_back(MakeHolder<TThread>([&]() {
             TestSimpleX1();
-            AtomicIncrement(c);
+            ++c;
         }));
     }
 
@@ -178,7 +179,7 @@ void TCoroTest::TestSimpleX1MultiThread() {
         t->Join();
     }
 
-    UNIT_ASSERT_EQUAL(c, nThreads);
+    UNIT_ASSERT_EQUAL(c.load(), nThreads);
 }
 
 struct TTestObject {
