@@ -1,7 +1,7 @@
 #include "rq.h"
 #include "lfqueue.h"
 
-#include <library/cpp/threading/atomic/bool.h>
+#include <library/cpp/deprecated/atomic_bool/bool.h>
 
 #include <util/system/tls.h>
 #include <util/system/pipe.h>

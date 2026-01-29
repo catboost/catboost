@@ -8,7 +8,7 @@
 
 #include <library/cpp/dns/cache.h>
 #include <library/cpp/neh/asio/executor.h>
-#include <library/cpp/threading/atomic/bool.h>
+#include <library/cpp/deprecated/atomic_bool/bool.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>

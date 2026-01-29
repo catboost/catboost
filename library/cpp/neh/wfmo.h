@@ -2,7 +2,7 @@
 
 #include "lfqueue.h"
 
-#include <library/cpp/threading/atomic/bool.h>
+#include <library/cpp/deprecated/atomic_bool/bool.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/scope.h>

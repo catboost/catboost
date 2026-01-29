@@ -21,7 +21,7 @@ target_link_libraries(cpp-netliba-v6 PUBLIC
   library-cpp-binsaver
   cpp-netliba-socket
   cpp-string_utils-url
-  cpp-threading-atomic
+  cpp-deprecated-atomic_bool
   cpp-threading-mux_event
 )
 

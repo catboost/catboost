@@ -12,16 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(cpp-threading-atomic)
+add_library(cpp-deprecated-atomic_bool)
 
 
-target_link_libraries(cpp-threading-atomic PUBLIC
+target_link_libraries(cpp-deprecated-atomic_bool PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
 
-target_sources(cpp-threading-atomic PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/threading/atomic/bool.cpp
+target_sources(cpp-deprecated-atomic_bool PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/deprecated/atomic_bool/bool.cpp
 )
 
