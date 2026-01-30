@@ -272,8 +272,8 @@ inline bool TryFromString(const TUtf16String& s, T& result) {
     return TryFromString<T>(s.data(), s.size(), result);
 }
 
-template <class T, class TChar>
-inline TMaybe<T> TryFromString(TBasicStringBuf<TChar> s) {
+template <class T, class TChar, class TTraits>
+inline TMaybe<T> TryFromString(std::basic_string_view<TChar, TTraits> s) {
     TMaybe<T> result{NMaybe::TInPlace{}};
     if (!TryFromString<T>(s, *result)) {
         result.Clear();
