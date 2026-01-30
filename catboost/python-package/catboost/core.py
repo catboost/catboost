@@ -938,8 +938,8 @@ class Pool(_PoolBase):
                     data_shape = tuple(data_shape + tuple([len(data[0])]))
                 else:
                     data_shape = tuple(data_shape + tuple([1]))
-            if not len(data_shape) == 2:
-                raise CatBoostError("Input data has invalid shape: {}. Must be 2 dimensional".format(data_shape))
+            if len(data_shape) not in (2, 3):
+                raise CatBoostError("Input data has invalid shape: {}. Must be 2 or 3 dimensional".format(data_shape))
             if data_shape[1] == 0:
                 raise CatBoostError("Input data must have at least one feature")
 
@@ -1405,7 +1405,7 @@ class Pool(_PoolBase):
                 data = np.asarray(data, dtype=object)
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
-            samples_count, features_count = np.shape(data)
+            samples_count, features_count = np.shape(data)[:2]
         if embedding_features_data is not None:
             features_count += len(embedding_features_data)
             if isinstance(embedding_features_data, dict):
