@@ -70,7 +70,7 @@ jobs:
         name: 'Maximize build space: stage 2'
         uses: easimon/maximize-build-space@master
         with:
-          root-reserve-mb: 48500  # needed for docker image
+          root-reserve-mb: 49500  # needed for docker image
           swap-size-mb: 1024
           remove-dotnet: 'true'
           remove-android: 'true'
