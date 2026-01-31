@@ -1,4 +1,38 @@
 -----------------------
+2.18 Maintenance release
+-----------------------
+Add an extra check for completeness only.
+Fix a signed integer overflow which could trigger a FPE_INTOVF
+Fix Microsoft'2 MHC2 private tag
+Added projects for XCode 26 & Visual Studio 2026
+Added documentation for PCS illuminants and chromatic adaptation
+Check for a possible out-of-bounds in softproofing transforms when using cmsCreateExtendedTransform
+Fix for a out-of-bound read,  issue #522
+Add an extra check for out-of-bounds read when misusing a support function
+avoid divide by zero, special case from spec. notes on CAM02
+Fix CGATS parser bug when number has a "+" sign
+Fix a typo when handling a special case for BPC
+Fixed a loss of precision when Lab16 is used as input color space on integer transforms
+Fixes hypotetical corrupted pointer in non-happy path. Cannot happen in real world
+Fix a theoretical memory leak.
+Add support of localized descriptions in v2 profiles for MacOS
+Mark some tables as const
+Make the param of cmsCreateLab4Profile() to refer to the media white instead of the illuminant
+fix a warning in unit tests
+Remove redundant check. Fixes #497
+Update autotools
+fix plugins soname + add oklab to transicc (experimental)
+meson: ability to disable .so.version libraries
+Fix black point detection when using darker colorant.
+testcms2.c: Fix incorrect string comparisons
+Fix CICp tag size.
+Fix broken linkicc
+meson: Bump minimum Meson version to 0.52 for visibility:hidden
+meson: Disable unused fs import
+Add a guard against a wrong use of flags
+Fix for #469 heap buffer overflow on convert_utf16_to_utf32()
+
+-----------------------
 2.17 Maintenance release
 -----------------------
 Add fuzzers foundation. Many thanks to Amir Montazery and Open Source Technology Improvement Fund (ostif.org), Google, for funding that. 

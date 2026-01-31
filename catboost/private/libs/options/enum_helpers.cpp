@@ -712,6 +712,18 @@ bool IsMultiTargetObjective(TStringBuf loss) {
     return IsMultiTargetObjective(ParseLossType(loss));
 }
 
+bool IsMultiClassCompatibleObjective(ELossFunction lossFunction) {
+    if (!IsClassificationObjective(lossFunction)) {
+        return false;
+    }
+    auto info = GetInfo(lossFunction);
+    return info->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsMultiClassCompatibleObjective(TStringBuf lossDescription) {
+    return IsMultiClassCompatibleObjective(ParseLossType(lossDescription));
+}
+
 bool IsMultiRegressionMetric(ELossFunction loss) {
     return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiRegression);
 }

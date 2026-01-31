@@ -41,7 +41,7 @@ target_link_libraries(library-cpp-neh PUBLIC
   cpp-netliba-v6
   cpp-openssl-init
   cpp-openssl-method
-  cpp-threading-atomic
+  cpp-deprecated-atomic_bool
   cpp-threading-thread_local
   cpp-deprecated-atomic
   tools-enum_parser-enum_serialization_runtime

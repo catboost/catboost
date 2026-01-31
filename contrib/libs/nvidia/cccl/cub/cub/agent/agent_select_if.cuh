@@ -623,6 +623,8 @@ struct AgentSelectIf
     {
       if (selection_flags[ITEM])
       {
+        // selection_indices could potentially overflow on the last tile if that's close to INT_MAX,
+        // so in the streaming invocation we split at INT_MAX round down to a integer multiple of TILE_ITEMS.
         if ((!IS_LAST_TILE) || selection_indices[ITEM] < num_selections)
         {
           *((d_selected_out + streaming_context.num_previously_selected()) + selection_indices[ITEM]) = items[ITEM];

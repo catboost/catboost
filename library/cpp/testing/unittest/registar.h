@@ -482,6 +482,7 @@ public:                       \
 //bool
 #define UNIT_ASSERT_C(A, C)                                                                             \
     do {                                                                                                \
+        static_assert(!std::is_array_v<std::remove_cvref_t<decltype(A)>>, "An array type always evaluates to true in a condition; this is likely an error in the condition expression."); \
         if (!(A)) {                                                                                     \
             UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (::TStringBuilder() << C).data())); \
         }                                                                                               \

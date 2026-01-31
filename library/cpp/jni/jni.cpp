@@ -1,11 +1,36 @@
 #include "jni.h"
 
-#include <util/string/cast.h>
-#include <util/system/mutex.h>
-#include <util/system/thread.h>
-#include <util/system/tls.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
 
-#include <memory>
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS__) || defined(_CPPUNWIND)
+    #define EXCEPTIONS_ENABLED
+#endif
+
+#ifdef EXCEPTIONS_ENABLED
+    #define THROW(arg) throw arg
+    #define TRY try
+    #define CATCH(arg) catch(arg)
+#else
+    #define THROW(arg) \
+        std::cerr << "Exception: " << arg.what() << std::endl; \
+        std::abort();
+    #define TRY if constexpr (true)
+    #define CATCH(arg) else
+#endif
+
+namespace {
+    void Ensure(bool condition) {
+        if (!condition) {
+            THROW(std::runtime_error("ensure failed"));
+        }
+    }
+}
 
 namespace NJni {
 
@@ -26,14 +51,14 @@ TObjectRef<TIntentionallyLeakedRefPolicy, jclass>::~TObjectRef() {
 
 template <typename TRefPolicy, typename TObject>
 TObjectRef<TRefPolicy, TObject>::~TObjectRef() {
-    try {
+    TRY {
         if (!Object) {
             return;
         }
         auto* env = Env()->GetJniEnv();
         TRefPolicy::Unref(Object, env);
         Object = nullptr;
-    } catch (...) {
+    } CATCH (...) {
     }
 }
 
@@ -67,8 +92,16 @@ template class TObjectRef<TLocalRefPolicy, jbyteArray>;
 
 // TJniException ////////////////////////////////////////////////////////////////////////////////
 
-TJniException::TJniException(int error) {
-    *this << "code (" << error << ")";
+TJniException::TJniException(int error) : Error("code (" + std::to_string(error) + ")") {
+}
+
+const char* TJniException::what() const noexcept {
+    return Error.data();
+}
+
+TJniException& TJniException::append(std::string_view error) {
+    Error += error;
+    return *this;
 }
 
 void RethrowExceptionFromJavaToCpp() {
@@ -79,13 +112,13 @@ void RethrowExceptionFromJavaToCpp() {
         auto excClass = TLocalClassRef(env->GetObjectClass(exc.Get()));
         jmethodID getMessage = env->GetMethodID(excClass.Get(), "getMessage", "()Ljava/lang/String;");
         auto message = static_cast<jstring>(env->CallObjectMethod(exc.Get(), getMessage));
-        TString exceptionMsg;
+        std::string exceptionMsg = "<no message>";
         if (message) {
             char const* msg = env->GetStringUTFChars(message, nullptr);
             exceptionMsg = msg;
             env->ReleaseStringUTFChars(message, msg);
         }
-        ythrow TJniException() << (exceptionMsg ? exceptionMsg : "<no message>");
+        THROW(TJniException().append(exceptionMsg));
     }
 }
 
@@ -102,13 +135,18 @@ public:
     TThreadAttacher(JavaVM* jvm)
         : IsAttached(), Jvm(jvm), JniEnv()
     {
-        Y_ENSURE(jvm);
+        Ensure(jvm);
         int ret = Jvm->GetEnv((void**)&JniEnv, JNI_VERSION);
         if (ret == JNI_EDETACHED) {
             JavaVMAttachArgs args;
-            TString name = "Native: " + ToString<size_t>(TThread::CurrentThreadId());
+            std::string nameStr;
+            {
+                std::stringstream name;
+                name << "Native: " << std::this_thread::get_id();
+                nameStr = std::move(name).str();
+            }
             args.version = JNI_VERSION;
-            args.name = (char*)name.data();
+            args.name = (char*)nameStr.data();
             args.group = nullptr;
 
 #if defined(__ANDROID__)
@@ -117,11 +155,11 @@ public:
             int err = Jvm->AttachCurrentThread((void**)&JniEnv, &args);
 #endif
             if (err != JNI_OK) {
-                ythrow TJniException(err) << ": can't attach thread";
+                THROW(TJniException(err).append(": can't attach thread"));
             }
             IsAttached = true;
         } else if (ret != JNI_OK) {
-            ythrow TJniException(ret);
+            THROW(TJniException(ret));
         }
     }
 
@@ -156,7 +194,7 @@ TJniEnv* TJniEnv::Get() {
 }
 
 jint TJniEnv::Init(JavaVM* jvm, EClassLoader classLoader) {
-    Y_ENSURE(jvm);
+    Ensure(jvm);
 
     Resources->Jvm = jvm;
     JNIEnv* env = nullptr;
@@ -173,7 +211,7 @@ void TJniEnv::Cleanup(JavaVM*) {
 }
 
 void TJniEnv::TryToSetClassLoader(EClassLoader classLoader) {
-    try {
+    TRY {
         auto classLoaderClass = FindClass("java/lang/ClassLoader");
 
         NJni::TLocalRef classLoaderRef;
@@ -193,24 +231,29 @@ void TJniEnv::TryToSetClassLoader(EClassLoader classLoader) {
                 break;
             }
             default: {
-                Cerr << "Unknown class loader type: " << ToString(classLoader);
+                std::cerr << "Unknown class loader type: " << static_cast<int64_t>(classLoader);
                 return;
             }
         }
 
         Resources->LoadMethod = GetMethodID(classLoaderClass.Get(), "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;", /*isStatic=*/false);
         Resources->ClassLoader = TSingletonClassRef((jclass)classLoaderRef.Get());
-    } catch (...) {
-        Cerr << "Can't set class loader: " << CurrentExceptionMessage();
     }
+    #ifdef EXCEPTIONS_ENABLED
+    catch (const std::exception& exc) {
+        std::cerr << "Can't set class loader: " << exc.what();
+    } catch (...) {
+        std::cerr << "Can't set class loader: unknown error";
+    }
+    #endif
 }
 
 JNIEnv* TJniEnv::GetJniEnv() const {
-    Y_STATIC_THREAD(TThreadAttacher) attacher(Resources->Jvm);
-    return attacher.Get().GetJniEnv();
+    thread_local TThreadAttacher attacher(Resources->Jvm);
+    return attacher.GetJniEnv();
 }
 
-TLocalClassRef TJniEnv::FindClass(TStringBuf name) const {
+TLocalClassRef TJniEnv::FindClass(std::string_view name) const {
     TLocalClassRef localRef;
     if (Resources->ClassLoader && Resources->LoadMethod) {
         auto jname = NewStringUTF(name);
@@ -229,7 +272,7 @@ TLocalClassRef TJniEnv::FindClass(TStringBuf name) const {
     return localRef;
 }
 
-jmethodID TJniEnv::GetMethodID(jclass clazz, TStringBuf name, TStringBuf signature,
+jmethodID TJniEnv::GetMethodID(jclass clazz, std::string_view name, std::string_view signature,
     bool isStatic) const
 {
     auto* env = GetJniEnv();
@@ -319,7 +362,7 @@ jsize TJniEnv::GetArrayLength(jarray array) const {
     return GetJniEnv()->GetArrayLength(array);
 }
 
-TLocalStringRef TJniEnv::NewStringUTF(TStringBuf str) const {
+TLocalStringRef TJniEnv::NewStringUTF(std::string_view str) const {
     auto* env = GetJniEnv();
     auto ret = TLocalStringRef(env->NewStringUTF(str.data()));
     Check();

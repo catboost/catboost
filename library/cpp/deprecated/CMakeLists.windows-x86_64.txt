@@ -14,5 +14,6 @@
 
 add_subdirectory(atomic)
 add_subdirectory(mapped_file)
+add_subdirectory(atomic_bool)
 add_subdirectory(split)
 add_subdirectory(kmp)

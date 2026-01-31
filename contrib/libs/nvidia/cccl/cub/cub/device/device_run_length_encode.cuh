@@ -331,7 +331,8 @@ struct DeviceRunLengthEncode
   template <typename InputIteratorT,
             typename OffsetsOutputIteratorT,
             typename LengthsOutputIteratorT,
-            typename NumRunsOutputIteratorT>
+            typename NumRunsOutputIteratorT,
+            typename NumItemsT>
   CUB_RUNTIME_FUNCTION _CCCL_FORCEINLINE static cudaError_t NonTrivialRuns(
     void* d_temp_storage,
     size_t& temp_storage_bytes,
@@ -339,29 +340,30 @@ struct DeviceRunLengthEncode
     OffsetsOutputIteratorT d_offsets_out,
     LengthsOutputIteratorT d_lengths_out,
     NumRunsOutputIteratorT d_num_runs_out,
-    int num_items,
+    NumItemsT num_items,
     cudaStream_t stream = 0)
   {
     _CCCL_NVTX_RANGE_SCOPE_IF(d_temp_storage, "cub::DeviceRunLengthEncode::NonTrivialRuns");
 
-    using OffsetT    = int; // Signed integer type for global offsets
-    using EqualityOp = ::cuda::std::equal_to<>; // Default == operator
+    // Offset type used for global offsets
+    using offset_t    = detail::choose_signed_offset_t<NumItemsT>;
+    using equality_op = ::cuda::std::equal_to<>;
 
     return DeviceRleDispatch<
       InputIteratorT,
       OffsetsOutputIteratorT,
       LengthsOutputIteratorT,
       NumRunsOutputIteratorT,
-      EqualityOp,
-      OffsetT>::Dispatch(d_temp_storage,
-                         temp_storage_bytes,
-                         d_in,
-                         d_offsets_out,
-                         d_lengths_out,
-                         d_num_runs_out,
-                         EqualityOp(),
-                         num_items,
-                         stream);
+      equality_op,
+      offset_t>::Dispatch(d_temp_storage,
+                          temp_storage_bytes,
+                          d_in,
+                          d_offsets_out,
+                          d_lengths_out,
+                          d_num_runs_out,
+                          equality_op{},
+                          num_items,
+                          stream);
   }
 };
 

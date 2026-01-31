@@ -34,7 +34,6 @@ target_link_libraries(library-cpp-par PUBLIC
   cpp-logger-global
   library-cpp-neh
   cpp-netliba-v12
-  cpp-threading-atomic
   cpp-threading-local_executor
   cpp-deprecated-atomic
 )

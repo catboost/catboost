@@ -195,4 +195,43 @@ _CCCL_DEVICE _CCCL_FORCEINLINE OffsetT UpperBound(InputIteratorT input, OffsetT 
 }
 #endif // _CCCL_HAS_NVFP16()
 
+#if _CCCL_HAS_NVBF16()
+/**
+ * @param[in] input
+ *   Input sequence
+ *
+ * @param[in] num_items
+ *   Input sequence length
+ *
+ * @param[in] val
+ *   Search key
+ */
+template <typename InputIteratorT, typename OffsetT>
+_CCCL_DEVICE _CCCL_FORCEINLINE OffsetT UpperBound(InputIteratorT input, OffsetT num_items, __nv_bfloat16 val)
+{
+  OffsetT retval = 0;
+  while (num_items > 0)
+  {
+    OffsetT half = num_items >> 1;
+
+    bool lt;
+    NV_IF_TARGET(NV_PROVIDES_SM_80,
+                 (lt = __hlt(val, input[retval + half]);),
+                 (lt = __bfloat162float(val) < __bfloat162float(input[retval + half]);));
+
+    if (lt)
+    {
+      num_items = half;
+    }
+    else
+    {
+      retval    = retval + (half + 1);
+      num_items = num_items - (half + 1);
+    }
+  }
+
+  return retval;
+}
+#endif // _CCCL_HAS_NVBF16()
+
 CUB_NAMESPACE_END

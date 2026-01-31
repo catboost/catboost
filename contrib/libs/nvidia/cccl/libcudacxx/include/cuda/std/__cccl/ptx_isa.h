@@ -31,18 +31,23 @@
  * https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#release-notes
  */
 
-// PTX ISA 9.0 is available from CUDA 13.0
 // The first define is for future major versions of CUDACC.
 // We make sure that these get the highest known PTX ISA version.
-// For clang cuda check https://github.com/llvm/llvm-project/blob/release/<VER>.x/clang/lib/Driver/ToolChains/Cuda.cpp
-// getNVPTXTargetFeatures
-#if _CCCL_CUDACC_AT_LEAST(13, 1)
-#  define __cccl_ptx_isa 900ULL
+// For clang cuda check
+// https://github.com/llvm/llvm-project/blob/release/<VER>.x/clang/lib/Driver/ToolChains/Cuda.cpp getNVPTXTargetFeatures
+#if _CCCL_CUDACC_AT_LEAST(14, 0) && !_CCCL_CUDA_COMPILER(CLANG)
+#  define __cccl_ptx_isa 920ULL
+// PTX ISA 9.2 is available from CUDA 13.2
+#elif _CCCL_CUDACC_AT_LEAST(13, 2) && !_CCCL_CUDA_COMPILER(CLANG)
+#  define __cccl_ptx_isa 920ULL
+// PTX ISA 9.1 is available from CUDA 13.1
+#elif _CCCL_CUDACC_AT_LEAST(13, 1) && !_CCCL_CUDA_COMPILER(CLANG)
+#  define __cccl_ptx_isa 910ULL
 // PTX ISA 9.0 is available from CUDA 13.0, driver r580
-#elif _CCCL_CUDACC_AT_LEAST(13, 0)
+#elif _CCCL_CUDACC_AT_LEAST(13, 0) && !_CCCL_CUDA_COMPILER(CLANG)
 #  define __cccl_ptx_isa 900ULL
 // PTX ISA 8.8 is available from CUDA 12.9, driver r575
-#elif _CCCL_CUDACC_AT_LEAST(12, 9)
+#elif _CCCL_CUDACC_AT_LEAST(12, 9) && !_CCCL_CUDA_COMPILER(CLANG)
 #  define __cccl_ptx_isa 880ULL
 // PTX ISA 8.7 is available from CUDA 12.8, driver r570
 #elif _CCCL_CUDACC_AT_LEAST(12, 8) && !_CCCL_CUDA_COMPILER(CLANG, <, 20)
@@ -115,6 +120,27 @@
 // TODO(bgruber): limit this workaround to NVRTC versions older than the first one shipping those macros
 #if _CCCL_COMPILER(NVRTC)
 
+// missing SM_88
+#  if !defined(NV_PROVIDES_SM_88)
+#    define _NV_TARGET_VAL_SM_88 880
+#    define NV_PROVIDES_SM_88    __NV_PROVIDES_SM_88
+#    define NV_IS_EXACTLY_SM_88  __NV_IS_EXACTLY_SM_88
+#    if (__CUDA_ARCH__ == _NV_TARGET_VAL_SM_88)
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_88 1
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_88      1
+#    else
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_88 0
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_88      0
+#    endif
+#    if (__CUDA_ARCH__ >= _NV_TARGET_VAL_SM_88)
+#      define _NV_TARGET___NV_PROVIDES_SM_88      1
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_88 1
+#    else
+#      define _NV_TARGET___NV_PROVIDES_SM_88      0
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_88 0
+#    endif
+#  endif // !NV_PROVIDES_SM_88
+
 // missing SM_90a
 #  ifndef NV_HAS_FEATURE_SM_90a
 #    define NV_HAS_FEATURE_SM_90a __NV_HAS_FEATURE_SM_90a
@@ -157,6 +183,27 @@
 #  endif // !NV_HAS_FEATURE_SM_100a
 
 // missing SM_103
+#  ifndef NV_PROVIDES_SM_103
+#    define _NV_TARGET_VAL_SM_103 1030
+#    define NV_PROVIDES_SM_103    __NV_PROVIDES_SM_103
+#    define NV_IS_EXACTLY_SM_103  __NV_IS_EXACTLY_SM_103
+#    if (__CUDA_ARCH__ == _NV_TARGET_VAL_SM_103)
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_103 1
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_103      1
+#    else
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_103 0
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_103      0
+#    endif
+#    if (__CUDA_ARCH__ >= _NV_TARGET_VAL_SM_103)
+#      define _NV_TARGET___NV_PROVIDES_SM_103      1
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_103 1
+#    else
+#      define _NV_TARGET___NV_PROVIDES_SM_103      0
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_103 0
+#    endif
+#  endif // !NV_PROVIDES_SM_103
+
+// missing SM_103
 #  ifndef NV_HAS_FEATURE_SM_103a
 #    define NV_HAS_FEATURE_SM_103a __NV_HAS_FEATURE_SM_103a
 #    if defined(__CUDA_ARCH_FEAT_SM103_ALL) || (defined(__CUDA_ARCH_SPECIFIC__) && (__CUDA_ARCH_SPECIFIC__ == 1030))
@@ -165,6 +212,27 @@
 #      define _NV_TARGET_BOOL___NV_HAS_FEATURE_SM_103a 0
 #    endif
 #  endif // !NV_HAS_FEATURE_SM_103a
+
+// missing SM_110
+#  ifndef NV_PROVIDES_SM_110
+#    define _NV_TARGET_VAL_SM_110 1100
+#    define NV_PROVIDES_SM_110    __NV_PROVIDES_SM_110
+#    define NV_IS_EXACTLY_SM_110  __NV_IS_EXACTLY_SM_110
+#    if (__CUDA_ARCH__ == _NV_TARGET_VAL_SM_110)
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_110 1
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_110      1
+#    else
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_110 0
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_110      0
+#    endif
+#    if (__CUDA_ARCH__ >= _NV_TARGET_VAL_SM_110)
+#      define _NV_TARGET___NV_PROVIDES_SM_110      1
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_110 1
+#    else
+#      define _NV_TARGET___NV_PROVIDES_SM_110      0
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_110 0
+#    endif
+#  endif // !NV_PROVIDES_SM_110
 
 // missing SM_110a
 #  ifndef NV_HAS_FEATURE_SM_110a
@@ -176,6 +244,27 @@
 #    endif
 #  endif // NV_HAS_FEATURE_SM_110a
 
+// missing SM_120
+#  ifndef NV_PROVIDES_SM_120
+#    define _NV_TARGET_VAL_SM_120 1200
+#    define NV_PROVIDES_SM_120    __NV_PROVIDES_SM_120
+#    define NV_IS_EXACTLY_SM_120  __NV_IS_EXACTLY_SM_120
+#    if (__CUDA_ARCH__ == _NV_TARGET_VAL_SM_120)
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_120 1
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_120      1
+#    else
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_120 0
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_120      0
+#    endif
+#    if (__CUDA_ARCH__ >= _NV_TARGET_VAL_SM_120)
+#      define _NV_TARGET___NV_PROVIDES_SM_120      1
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_120 1
+#    else
+#      define _NV_TARGET___NV_PROVIDES_SM_120      0
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_120 0
+#    endif
+#  endif // !NV_PROVIDES_SM_120
+
 // missing SM_120a
 #  ifndef NV_HAS_FEATURE_SM_120a
 #    define NV_HAS_FEATURE_SM_120a __NV_HAS_FEATURE_SM_120a
@@ -185,6 +274,27 @@
 #      define _NV_TARGET_BOOL___NV_HAS_FEATURE_SM_120a 0
 #    endif
 #  endif // _CCCL_COMPILER(NVRTC)
+
+// missing SM_121
+#  if !defined(NV_PROVIDES_SM_121)
+#    define _NV_TARGET_VAL_SM_121 1210
+#    define NV_PROVIDES_SM_121    __NV_PROVIDES_SM_121
+#    define NV_IS_EXACTLY_SM_121  __NV_IS_EXACTLY_SM_121
+#    if (__CUDA_ARCH__ == _NV_TARGET_VAL_SM_121)
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_121 1
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_121      1
+#    else
+#      define _NV_TARGET_BOOL___NV_IS_EXACTLY_SM_121 0
+#      define _NV_TARGET___NV_IS_EXACTLY_SM_121      0
+#    endif
+#    if (__CUDA_ARCH__ >= _NV_TARGET_VAL_SM_121)
+#      define _NV_TARGET___NV_PROVIDES_SM_121      1
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_121 1
+#    else
+#      define _NV_TARGET___NV_PROVIDES_SM_121      0
+#      define _NV_TARGET_BOOL___NV_PROVIDES_SM_121 0
+#    endif
+#  endif // !NV_PROVIDES_SM_121
 
 // missing SM_121a
 #  ifndef NV_HAS_FEATURE_SM_121a

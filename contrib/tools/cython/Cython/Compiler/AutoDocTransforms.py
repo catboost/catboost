@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+import inspect
 
 from .Visitor import CythonTransform
 from .StringEncoding import EncodedString
@@ -22,11 +22,11 @@ class AnnotationWriter(ExpressionWriter):
         self.incomplete = False
 
     def visit_Node(self, node):
-        self.put(u"<???>")
+        self.put("<???>")
         self.incomplete = True
         if self.description:
             warning(node.pos,
-                    "Failed to convert code to string representation in {0}".format(
+                    "Failed to convert code to string representation in {}".format(
                         self.description), level=1)
 
     def visit_LambdaNode(self, node):
@@ -35,22 +35,17 @@ class AnnotationWriter(ExpressionWriter):
         self.incomplete = True
         if self.description:
             warning(node.pos,
-                    "Failed to convert lambda to string representation in {0}".format(
+                    "Failed to convert lambda to string representation in {}".format(
                         self.description), level=1)
 
-    def visit_UnicodeNode(self, node):
-        # Discard Unicode prefix in annotations. Any tool looking at them
-        # would probably expect Py3 string semantics.
-        self.emit_string(node, "")
-
     def visit_AnnotationNode(self, node):
-        self.put(node.string.unicode_value)
+        self.put(node.string.value)
 
 
 class EmbedSignature(CythonTransform):
 
     def __init__(self, context):
-        super(EmbedSignature, self).__init__(context)
+        super().__init__(context)
         self.class_name = None
         self.class_node = None
 
@@ -178,7 +173,8 @@ class EmbedSignature(CythonTransform):
             if self.is_format_clinic:
                 docfmt = "%s\n--\n\n%s"
             else:
-                docfmt = "%s\n%s"
+                docfmt = "%s\n\n%s"
+            node_doc = inspect.cleandoc(node_doc)
             return docfmt % (signature, node_doc)
         else:
             if self.is_format_clinic:
@@ -191,7 +187,7 @@ class EmbedSignature(CythonTransform):
         if not Options.docstrings:
             return node
         else:
-            return super(EmbedSignature, self).__call__(node)
+            return super().__call__(node)
 
     def visit_ClassDefNode(self, node):
         oldname = self.class_name
@@ -221,13 +217,14 @@ class EmbedSignature(CythonTransform):
         hide_self = False
         if node.entry.is_special:
             is_constructor = self.class_node and node.name == '__init__'
-            if not is_constructor:
-                return node
-            class_name = None
-            func_name = node.name
-            if self.is_format_c:
-                func_name = self.class_name
-                hide_self = True
+            if is_constructor:
+                class_name = None
+                func_name = node.name
+                if self.is_format_c:
+                    func_name = self.class_name
+                    hide_self = True
+            else:
+                class_name, func_name = self.class_name, node.name
         else:
             class_name, func_name = self.class_name, node.name
 
@@ -252,7 +249,12 @@ class EmbedSignature(CythonTransform):
             else:
                 old_doc = None
             new_doc = self._embed_signature(signature, old_doc)
-            doc_holder.doc = EncodedString(new_doc)
+            if not node.entry.is_special or is_constructor or node.entry.wrapperbase_cname is not None:
+                # TODO: the wrapperbase must be generated for __doc__ to exist;
+                # however this phase is run later in the pipeline than
+                # Compiler/Nodes.py:declare_pyfunction, so wrapperbase_cname
+                # may already be set to None
+                doc_holder.doc = EncodedString(new_doc)
             if not is_constructor and getattr(node, 'py_func', None) is not None:
                 node.py_func.entry.doc = EncodedString(new_doc)
         return node

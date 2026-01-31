@@ -5,6 +5,7 @@
 #include <util/generic/scope.h>
 
 int main(int argc, char** argv) {
+    ::benchmark::MaybeReenterWithoutASLR(argc, argv);
     InitializeYt(argc, argv);
     NTesting::THook::CallBeforeInit();
     ::benchmark::Initialize(&argc, argv);
@@ -14,5 +15,6 @@ int main(int argc, char** argv) {
     NTesting::THook::CallBeforeRun();
     Y_DEFER { NTesting::THook::CallAfterRun(); };
     ::benchmark::RunSpecifiedBenchmarks();
+    ::benchmark::Shutdown();
     return 0;
 }

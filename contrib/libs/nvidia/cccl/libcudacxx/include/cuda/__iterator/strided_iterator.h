@@ -92,7 +92,7 @@ public:
 
   // Those are technically not to spec, but pre-ranges iterator_traits do not work properly with iterators that do not
   // define all 5 aliases, see https://en.cppreference.com/w/cpp/iterator/iterator_traits.html
-  using reference = value_type;
+  using reference = ::cuda::std::iter_reference_t<_Iter>;
   using pointer   = void;
 
   //! @brief value-initializes both the base iterator and stride

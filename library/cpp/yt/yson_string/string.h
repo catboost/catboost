@@ -61,7 +61,7 @@ protected:
 
 //! An owning version of TYsonStringBuf.
 /*!
- *  Internally captures the data either via TString or a polymorphic ref-counted holder.
+ *  Internally captures the data either via TCowString or a polymorphic ref-counted holder.
  */
 class TYsonString
 {

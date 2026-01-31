@@ -2,10 +2,10 @@
 
 #include <jni.h>
 
-#include <util/generic/noncopyable.h>
-#include <util/generic/string.h>
-#include <util/generic/vector.h>
-#include <util/generic/yexception.h>
+#include <exception>
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace NJni {
 
@@ -15,10 +15,17 @@ static constexpr int JNI_VERSION = JNI_VERSION_1_4;
 
 // TJniException ////////////////////////////////////////////////////////////////////////////////
 
-class TJniException : public yexception {
+class TJniException : public std::exception {
 public:
     TJniException() = default;
     explicit TJniException(int error);
+
+    const char* what() const noexcept override;
+
+    TJniException& append(std::string_view error);
+
+private:
+    std::string Error;
 };
 
 void RethrowExceptionFromJavaToCpp();
@@ -37,9 +44,7 @@ struct TGlobalRefPolicy {
 
 struct TIntentionallyLeakedRefPolicy {
     static jobject Ref(jobject object, JNIEnv* env) { return env->NewGlobalRef(object); }
-    static void Unref(jobject object, JNIEnv* env) {
-        Y_UNUSED(object);
-        Y_UNUSED(env);
+    static void Unref(jobject /* object */, JNIEnv* /* env */) {
         return;
     }
 };
@@ -65,7 +70,7 @@ struct TLocalRefPolicy {
 };
 
 template <typename TRefPolicy, typename TObject>
-class TObjectRef : public TMoveOnly {
+class TObjectRef {
 public:
     TObjectRef(): Object() {}
     explicit TObjectRef(TObject object);
@@ -73,6 +78,9 @@ public:
     ~TObjectRef();
 
     TObjectRef& operator= (TObjectRef&& rhs) noexcept;
+
+    TObjectRef(const TObjectRef&) = delete;
+    TObjectRef& operator=(const TObjectRef&) = delete;
 
     operator bool() const { return !!Object; }
 
@@ -121,8 +129,8 @@ public:
     //
     JNIEnv* GetJniEnv() const;
 
-    TLocalClassRef FindClass(TStringBuf name) const;
-    jmethodID GetMethodID(jclass clazz, TStringBuf name, TStringBuf signature, bool isStatic) const;
+    TLocalClassRef FindClass(std::string_view name) const;
+    jmethodID GetMethodID(jclass clazz, std::string_view name, std::string_view signature, bool isStatic) const;
 
     TLocalRef CallStaticObjectMethod(jclass clazz, jmethodID methodId, ...) const;
     TLocalRef CallObjectMethod(jobject object, jmethodID methodId, ...) const;
@@ -134,7 +142,7 @@ public:
     void SetByteArrayRegion(jbyteArray array, jsize start, jsize len, const char* buf) const;
     void GetByteArrayRegion(jbyteArray array, jsize start, jsize len, char* buf) const;
     jsize GetArrayLength(jarray array) const;
-    TLocalStringRef NewStringUTF(TStringBuf str) const;
+    TLocalStringRef NewStringUTF(std::string_view str) const;
     const char* GetStringUTFChars(jstring str, jboolean* isCopy) const; // FIXME: leaky without ReleaseUTFChars
 
     bool acquireLocalRef(const NJni::TWeakGlobalRef& weakRef, NJni::TLocalRef& output) const;

@@ -1665,6 +1665,8 @@ cdef void _ObjectiveCalcDersMultiClass(
 ) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef Py_ssize_t indY
 
     approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
 
@@ -1695,6 +1697,8 @@ cdef void _ObjectiveCalcDersMultiTarget(
 ) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
+    cdef Py_ssize_t index
+    cdef Py_ssize_t indY
 
     approxes = _CreateNumpyDoubleArrayView(approx.data(), approx.size())
     targetes = _CreateNumpyFloatArrayView(target.data(), target.size())
@@ -2178,6 +2182,7 @@ class FeaturesData(object):
         feature_names,
         all_feature_count_ref # 1-element list to emulate pass-by-reference
     ):
+        cdef Py_ssize_t i
         if (feature_names is not None) and (feature_data is None):
             raise CatBoostError(
                 '{}_feature_names specified with not specified {}_feature_data'.format(
@@ -3048,6 +3053,7 @@ cdef object _set_features_order_data_pd_data_frame(
 
     cdef ui32 doc_idx
     cdef ui32 flat_feature_idx
+    cdef Py_ssize_t src_flat_feature_idx
     cdef np.ndarray column_values # for columns that are not Sparse or Categorical
 
     string_factor_data.reserve(doc_count)
@@ -3121,17 +3127,17 @@ cdef object _set_features_order_data_pd_data_frame(
     return new_data_holders
 
 
-cdef _set_data_np(
-    const float [:,:] num_feature_values,
+def _set_data_np(
+    const numpy_num_or_bool_dtype [:,:] main_feature_values,  # can contain cat features if cat_feature_values is None
     object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
     bool_t has_separate_embedding_features_data,
     Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
-    if (num_feature_values is None) and (cat_feature_values is None):
-        raise CatBoostError('both num_feature_values and cat_feature_values are empty')
+    if (main_feature_values is None) and (cat_feature_values is None):
+        raise CatBoostError('both main_feature_values and cat_feature_values are empty')
 
     cdef ui32 doc_count = <ui32>(
-        num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
+        main_feature_values.shape[0] if main_feature_values is not None else cat_feature_values.shape[0]
     )
     if doc_count == 0:
         return
@@ -3145,38 +3151,39 @@ cdef _set_data_np(
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
     cdef TConstArrayRef[ui32] main_data_feature_idx_to_dst_feature_idx_ref = <TConstArrayRef[ui32]>main_data_feature_idx_to_dst_feature_idx
 
-    cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
-    cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+    cdef ui32 main_feature_count = <ui32>(main_feature_values.shape[1] if main_feature_values is not None else 0)
+    cdef ui32 cat_feature_count = features_layout[0].GetCatFeatureCount()
 
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TVector[bool_t] is_cat_feature_mask
+    if (cat_feature_values is None) and (cat_feature_count > 0):
+        # there are some cat features in main_feature_values
+        is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+
     cdef TConstArrayRef[bool_t] is_cat_feature_ref = <TConstArrayRef[bool_t]>is_cat_feature_mask
-    cdef TConstArrayRef[bool_t] empty_mask
 
-    cdef ui32 doc_idx
-    cdef ui32 num_feature_idx
-    cdef ui32 cat_feature_idx
+    cdef future[void] main_features_future
 
-    cdef future[void] num_features_future
-
-    if num_feature_count > 0:
-        AsyncSetDataFromCythonMemoryViewCOrder[np.float32_t](
+    if main_feature_count > 0:
+        AsyncSetDataFromCythonMemoryViewCOrder(
             doc_count,
-            &num_feature_values[0, 0],
-            num_feature_values.strides[0] / sizeof(np.float32_t),
-            num_feature_values.strides[1] / sizeof(np.float32_t),
+            &main_feature_values[0, 0],
+            main_feature_values.strides[0] / sizeof(numpy_num_or_bool_dtype),
+            main_feature_values.strides[1] / sizeof(numpy_num_or_bool_dtype),
             has_separate_embedding_features_data,
-            TConstArrayRef[ui32](&main_data_feature_idx_to_dst_feature_idx_ref[0], num_feature_count),
-            empty_mask,
+            TConstArrayRef[ui32](&main_data_feature_idx_to_dst_feature_idx_ref[0], main_feature_count),
+            is_cat_feature_ref,
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get(),
-            &num_features_future
+            &main_features_future
         )
 
+    cdef ui32 doc_idx
     cdef ui32 src_feature_idx
+    cdef ui32 cat_feature_idx
 
     if cat_feature_values is not None:
         for doc_idx in xrange(doc_count):
-            src_feature_idx = num_feature_count
+            src_feature_idx = main_feature_count
             for cat_feature_idx in xrange(cat_feature_count):
                 builder_visitor[0].AddCatFeature(
                     doc_idx,
@@ -3185,8 +3192,8 @@ cdef _set_data_np(
                 )
                 src_feature_idx += 1
 
-    if num_features_future.valid():
-        num_features_future.get()
+    if main_features_future.valid():
+        main_features_future.get()
 
 
 # scipy.sparse matrixes always have default value 0
@@ -3781,7 +3788,7 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
 
     if isinstance(data, FeaturesData):
         _set_data_np(data.num_feature_data, data.cat_feature_data, embedding_features_data is not None, py_builder_visitor)
-    elif isinstance(data, np.ndarray) and data.dtype == np.float32:
+    elif isinstance(data, np.ndarray) and data.dtype in numpy_num_or_bool_dtype_list: # Cython cannot use fused type lists in normal code:
         _set_data_np(data, None, embedding_features_data is not None, py_builder_visitor)
     elif isinstance(data, SPARSE_MATRIX_TYPES):
         _set_objects_order_data_scipy_sparse_matrix(data, embedding_features_data is not None, features_layout, py_builder_visitor)
@@ -3832,6 +3839,8 @@ cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
 
     cdef TVector[TPair] pairs_vector
     pairs_vector.resize(len(pairs))
+
+    cdef Py_ssize_t pair_idx
 
     for pair_idx, pair in enumerate(pairs):
         pairs_vector[pair_idx].WinnerId = <ui32>pair[0]
@@ -6431,8 +6440,16 @@ cpdef is_multitarget_objective(loss_name):
     return IsMultiTargetObjective(to_arcadia_string(loss_name))
 
 
+cpdef is_multilabel_objective(loss_name):
+    return IsMultiLabelObjective(to_arcadia_string(loss_name))
+
+
 cpdef is_survivalregression_objective(loss_name):
     return IsSurvivalRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_multiclass_compatible_objective(loss_name):
+    return IsMultiClassCompatibleObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_groupwise_metric(metric_name):

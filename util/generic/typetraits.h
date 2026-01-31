@@ -136,7 +136,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
         class THelper: public std::remove_const_t<T>, public TBase {                      \
         public:                                                                           \
             template <class T1>                                                           \
-            inline THelper(const T1& = T1()) {                                            \
+            inline explicit THelper(const T1& = T1()) {                                   \
             }                                                                             \
         };                                                                                \
         template <class T1, T1 val>                                                       \

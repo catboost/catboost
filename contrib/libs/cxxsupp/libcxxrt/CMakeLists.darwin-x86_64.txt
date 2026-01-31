@@ -28,10 +28,10 @@ target_link_libraries(libs-cxxsupp-libcxxrt PUBLIC
 target_sources(libs-cxxsupp-libcxxrt PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/exception.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/guard.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/memory.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/exception.cc
 )
 

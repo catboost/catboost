@@ -527,9 +527,10 @@ class ResourceImporter(SourceFileLoader):
                 yield m
 
     def get_resource_reader(self, fullname):
-        import os
-        path = os.path.dirname(self.get_filename(fullname))
-        return _ResfsResourceReader(self, path)
+        """Return the ResourceReader for a module in a binary file."""
+        from sitecustomize import ResfsTraversableResources
+
+        return ResfsTraversableResources(self, fullname)
 
     @staticmethod
     def find_distributions(*args, **kwargs):
@@ -542,52 +543,8 @@ class ResourceImporter(SourceFileLoader):
         of directories ``context.path``.
         """
         from sitecustomize import MetadataArcadiaFinder
+
         return MetadataArcadiaFinder.find_distributions(*args, **kwargs)
-
-
-class _ResfsResourceReader:
-
-    def __init__(self, importer, path):
-        self.importer = importer
-        self.path = path
-
-    def open_resource(self, resource):
-        path = f'{self.path}/{resource}'
-        from io import BytesIO
-        try:
-            return BytesIO(self.importer.get_data(path))
-        except OSError:
-            raise FileNotFoundError(path)
-
-    def resource_path(self, resource):
-        # All resources are in the binary file, so there is no path to the file.
-        # Raising FileNotFoundError tells the higher level API to extract the
-        # binary data and create a temporary file.
-        raise FileNotFoundError
-
-    def is_resource(self, name):
-        path = f'{self.path}/{name}'
-        try:
-            self.importer.get_data(path)
-        except OSError:
-            return False
-        return True
-
-    def contents(self):
-        subdirs_seen = set()
-        len_path = len(self.path) + 1  # path + /
-        for key in resfs_files(f"{self.path}/"):
-            relative = key[len_path:]
-            res_or_subdir, *other = relative.split(b'/')
-            if not other:
-                yield _s(res_or_subdir)
-            elif res_or_subdir not in subdirs_seen:
-                subdirs_seen.add(res_or_subdir)
-                yield _s(res_or_subdir)
-
-    def files(self):
-        import sitecustomize
-        return sitecustomize.ArcadiaResourceContainer(f"resfs/file/{self.path}/")
 
 
 class ArcadiaSourceFinder:

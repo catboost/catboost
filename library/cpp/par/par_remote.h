@@ -4,7 +4,6 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
-#include <library/cpp/threading/atomic/bool.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
@@ -13,6 +12,9 @@
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
 #include <util/thread/factory.h>
+
+#include <atomic>
+
 
 namespace NPar {
     class TRemoteQueryProcessor;
@@ -139,10 +141,10 @@ namespace NPar {
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
         THolder<IThreadFactory::IThread> MetaThread;
-        NAtomic::TBool DoRun = true;
+        std::atomic<bool> DoRun = true;
         TAutoEvent NetworkEvent;
 
-        NAtomic::TBool RequesterIsSet = false;
+        std::atomic<bool> RequesterIsSet = false;
         TIntrusivePtr<IRequester> Requester;
 
     private:

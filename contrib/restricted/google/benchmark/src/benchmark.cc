@@ -708,11 +708,12 @@ void RegisterProfilerManager(ProfilerManager* manager) {
   internal::profiler_manager = manager;
 }
 
-void AddCustomContext(const std::string& key, const std::string& value) {
+void AddCustomContext(std::string key, std::string value) {
   if (internal::global_context == nullptr) {
     internal::global_context = new std::map<std::string, std::string>();
   }
-  if (!internal::global_context->emplace(key, value).second) {
+  if (!internal::global_context->emplace(std::move(key), std::move(value))
+           .second) {
     std::cerr << "Failed to add custom context \"" << key << "\" as it already "
               << "exists with value \"" << value << "\"\n";
   }
@@ -722,6 +723,7 @@ namespace internal {
 
 void (*HelperPrintf)();
 
+namespace {
 void PrintUsageAndExit() {
   HelperPrintf();
   std::flush(std::cout);
@@ -809,6 +811,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     AddCustomContext(kv.first, kv.second);
   }
 }
+
+}  // end namespace
 
 int InitializeStreams() {
   static std::ios_base::Init init;

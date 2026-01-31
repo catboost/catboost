@@ -21,7 +21,7 @@
 #  include <tuple>
 #endif
 
-#if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG)
+#if _LIBCPP_HAS_THREADS && !defined(_LIBCPP_CXX03_LANG)
 #  include <atomic>
 #endif
 

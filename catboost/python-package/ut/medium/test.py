@@ -34,7 +34,7 @@ from catboost import (
     to_classifier,
     to_ranker,
     MultiTargetCustomMetric,
-    MultiTargetCustomObjective,)
+)
 from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
@@ -51,12 +51,18 @@ import scipy.special
 
 import _pickle as pickle
 
+
 try:
     import catboost_pytest_lib as lib
     pytest_plugins = "list_plugin"
+
+    import catboost_python_package_ut_lib as python_package_ut_lib
 except ImportError:
     sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
+    sys.path.insert(0, os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'python-package'))
+    import ut.lib as python_package_ut_lib
+
 
 DelayedTee = lib.DelayedTee
 binary_path = lib.binary_path
@@ -75,6 +81,11 @@ load_dataset_as_dataframe = lib.load_dataset_as_dataframe
 load_pool_features_as_df = lib.load_pool_features_as_df
 compare_with_limited_precision = lib.compare_with_limited_precision
 is_canonical_test_run = lib.is_canonical_test_run
+
+LoglossObjective = python_package_ut_lib.LoglossObjective
+LoglossObjectiveNumpy = python_package_ut_lib.LoglossObjectiveNumpy
+LoglossObjectiveNumpy32 = python_package_ut_lib.LoglossObjectiveNumpy32
+MultiRMSEObjective = python_package_ut_lib.MultiRMSEObjective
 
 
 fails_on_gpu = pytest.mark.fails_on_gpu
@@ -3075,47 +3086,6 @@ def test_custom_eval():
     assert np.all(pred1 == pred2)
 
 
-class LoglossObjective(object):
-    def calc_ders_range(self, approxes, targets, weights):
-        assert len(approxes) == len(targets)
-        if weights is not None:
-            assert len(weights) == len(approxes)
-
-        exponents = []
-        for index in range(len(approxes)):
-            exponents.append(math.exp(approxes[index]))
-
-        result = []
-        for index in range(len(targets)):
-            p = exponents[index] / (1 + exponents[index])
-            der1 = (1 - p) if targets[index] > 0.0 else -p
-            der2 = -p * (1 - p)
-
-            if weights is not None:
-                der1 *= weights[index]
-                der2 *= weights[index]
-
-            result.append((der1, der2))
-
-        return result
-
-
-class LoglossObjectiveNumpy(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights))
-
-
-class LoglossObjectiveNumpy32(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights), dtype=np.float32)
-
-
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
 def test_custom_objective(task_type, loss_objective):
     if task_type == 'GPU':
@@ -3143,22 +3113,6 @@ def test_custom_objective(task_type, loss_objective):
 def test_multilabel_custom_objective(task_type, n=10):
     if task_type == 'GPU':
         pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
-
-    class MultiRMSEObjective(MultiTargetCustomObjective):
-        def calc_ders_multi(self, approxes, targets, weight):
-            assert len(approxes) == len(targets)
-
-            grad = []
-            hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
-
-            for index in range(len(targets)):
-                der1 = (targets[index] - approxes[index]) * weight
-                der2 = -weight
-
-                grad.append(der1)
-                hess[index][index] = der2
-
-            return (grad, hess)
 
     xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
     ys = np.hstack([
@@ -3931,53 +3885,6 @@ def test_grid_search_aliases(task_type):
     )
     for key, value in results["params"].items():
         assert value in grid[key]
-
-
-def test_grid_search_and_get_best_result(task_type):
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    for refit in [True, False]:
-        for search_by_train_test_split in [True, False]:
-            model = CatBoost(
-                {
-                    "loss_function": "Logloss",
-                    "eval_metric": "AUC",
-                    "task_type": task_type,
-                    "gpu_ram_part": TEST_GPU_RAM_PART,
-                    "custom_metric": ["CrossEntropy", "F1", "F:beta=2"]
-                }
-            )
-            feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
-            one_hot_max_size_list = [4, 7, 10]
-            iterations_list = [5, 7, 10]
-            border_count_list = [4, 10, 50, 100]
-            model.grid_search(
-                {
-                    'feature_border_type': feature_border_type_list,
-                    'one_hot_max_size': one_hot_max_size_list,
-                    'iterations': iterations_list,
-                    'border_count': border_count_list
-                },
-                pool,
-                refit=refit,
-                search_by_train_test_split=search_by_train_test_split
-            )
-            best_scores = model.get_best_score()
-            if refit:
-                assert 'validation' not in best_scores, 'validation results found for refit=True'
-                assert 'learn' in best_scores, 'no train results found for refit=True'
-            elif search_by_train_test_split:
-                assert 'validation' in best_scores, 'no validation results found for refit=False, search_by_train_test_split=True'
-                assert 'learn' in best_scores, 'no train results found for refit=False, search_by_train_test_split=True'
-            else:
-                assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
-                assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
-            if 'validation' in best_scores:
-                for metric in ["AUC", "Logloss", "CrossEntropy", "F1", "F:beta=2"]:
-                    assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
-            if 'learn' in best_scores:
-                for metric in ["Logloss", "CrossEntropy", "F1", "F:beta=2"]:
-                    assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
-                assert "AUC" not in best_scores['learn'], 'train AUC results found'
 
 
 def test_grid_search(task_type):
@@ -5335,42 +5242,6 @@ def test_shap_interaction_value_between_pair():
                     assert abs(interaction_value[doc_idx][0][0] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
                 else:
                     assert abs(interaction_value[doc_idx][0][1] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
-
-
-def test_shap_interaction_value_between_pair_multi():
-    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=10, loss_function='MultiClass', thread_count=8, devices='0')
-    classifier.fit(pool)
-
-    shap_interaction_values = classifier.get_feature_importance(
-        type=EFstrType.ShapInteractionValues,
-        data=pool,
-        thread_count=8
-    )
-    features_count = pool.num_col()
-    doc_count = pool.num_row()
-    checked_doc_count = doc_count // 3
-    classes_count = 3
-
-    for feature_idx_1 in range(features_count):
-        for feature_idx_2 in range(features_count):
-            interaction_value = classifier.get_feature_importance(
-                type=EFstrType.ShapInteractionValues,
-                data=pool,
-                thread_count=8,
-                interaction_indices=[feature_idx_1, feature_idx_2]
-            )
-            if feature_idx_1 == feature_idx_2:
-                assert interaction_value.shape == (doc_count, classes_count, 2, 2)
-            else:
-                assert interaction_value.shape == (doc_count, classes_count, 3, 3)
-
-            for doc_idx in range(checked_doc_count):
-                for class_idx in range(classes_count):
-                    if feature_idx_1 == feature_idx_2:
-                        assert abs(interaction_value[doc_idx][class_idx][0][0] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
-                    else:
-                        assert abs(interaction_value[doc_idx][class_idx][0][1] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
 
 
 def random_xy(num_rows, num_cols_x, seed=20181219, prng=None):
@@ -6743,6 +6614,40 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
     # Unfortunately, for GPU results differ too much between different GPU models.
     if task_type != 'GPU':
         return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
+
+
+def test_custom_splitting_before_cv_iter():
+    cv_data = [["France", 1924, 44],
+               ["USA", 1932, 37],
+               ["Switzerland", 1928, 25],
+               ["Norway", 1952, 30],
+               ["Japan", 1972, 35],
+               ["Mexico", 1968, 112]]
+
+    labels = [1, 0, 1, 0, 0, 1]
+    cv_dataset = Pool(data=cv_data,
+                      label=labels,
+                      cat_features=[0])
+
+    params = {"iterations": 100,
+              "depth": 2,
+              "loss_function": "Logloss",
+              "verbose": False,
+              "bootstrap_type": "No",
+              "roc_file": "roc-file"}
+
+    right_scores = cv(cv_dataset,
+                      params,
+                      fold_count=2,
+                      stratified=False,
+                      shuffle=False)
+    train_test = [[[3, 4, 5], [0, 1, 2]],
+                  [[0, 1, 2], [3, 4, 5]]]
+    iter_scores = cv(cv_dataset,
+                     params,
+                     folds=iter(train_test))
+
+    assert (right_scores.equals(iter_scores))
 
 
 def test_use_last_testset_for_best_iteration():
@@ -10198,10 +10103,13 @@ def test_feature_tags_interface():
     cat.fit(pool)
     assert np.array_equal(np.where(cat.feature_importances_ == 0)[0], [0, 1, 2, 3, 7])
     cat = CatBoostClassifier()
+    plot_file = test_output_path('plot.html')
     result = cat.select_features(
         pool,
         features_for_select=["#tag1", "#tag2"],
-        num_features_to_select=3
+        num_features_to_select=3,
+        plot=True,
+        plot_file=plot_file
     )
     assert all(x in [0, 1, 2, 3, 7] for x in result["selected_features"])
     assert all(x in [0, 1, 2, 3, 7] for x in result["eliminated_features"])

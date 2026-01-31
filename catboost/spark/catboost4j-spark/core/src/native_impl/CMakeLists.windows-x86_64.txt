@@ -48,7 +48,6 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   library-cpp-jni
   library-cpp-json
   library-cpp-par
-  cpp-threading-atomic
   cpp-threading-local_executor
   catboost-libs-cat_feature
   catboost-libs-column_description

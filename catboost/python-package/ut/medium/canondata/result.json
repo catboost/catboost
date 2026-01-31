@@ -1150,5 +1150,11 @@
     },
     "test_catboost_utils.test_create_cd_label_only": {
         "uri": "file://test_catboost_utils.test_create_cd_label_only/column_description"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[CPU-isotonic]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_CPU-isotonic_/calib_classifier_predictions.tsv"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[CPU-sigmoid]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_CPU-sigmoid_/calib_classifier_predictions.tsv"
     }
 }

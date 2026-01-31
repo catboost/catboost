@@ -51,7 +51,12 @@ _CCCL_SUPPRESS_DEPRECATED_PUSH
   // TODO switch to dlopen of libcuda.so instead of the below
   void* __fn;
   ::cudaDriverEntryPointQueryResult __result;
+#  if _CCCL_CTK_AT_LEAST(13, 0)
+  ::cudaError_t __status =
+    ::cudaGetDriverEntryPointByVersion("cuGetProcAddress", &__fn, 13000, ::cudaEnableDefault, &__result);
+#  else
   ::cudaError_t __status = ::cudaGetDriverEntryPoint("cuGetProcAddress", &__fn, ::cudaEnableDefault, &__result);
+#  endif
   if (__status != ::cudaSuccess || __result != ::cudaDriverEntryPointSuccess)
   {
     ::cuda::__throw_cuda_error(::cudaErrorUnknown, "Failed to get cuGetProcAddress");

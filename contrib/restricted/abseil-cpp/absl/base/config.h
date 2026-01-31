@@ -117,8 +117,8 @@
 //
 // LTS releases can be obtained from
 // https://github.com/abseil/abseil-cpp/releases.
-#define ABSL_LTS_RELEASE_VERSION 20250814
-#define ABSL_LTS_RELEASE_PATCH_LEVEL 1
+#define ABSL_LTS_RELEASE_VERSION 20260107
+#define ABSL_LTS_RELEASE_PATCH_LEVEL 0
 
 // Helper macro to convert a CPP variable to a string literal.
 #define ABSL_INTERNAL_DO_TOKEN_STR(x) #x
@@ -360,10 +360,10 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 //   Darwin (macOS and iOS)            __APPLE__
 //   Akaros (http://akaros.org)        __ros__
 //   Windows                           _WIN32
-//   NaCL                              __native_client__
 //   AsmJS                             __asmjs__
 //   WebAssembly (Emscripten)          __EMSCRIPTEN__
 //   Fuchsia                           __Fuchsia__
+//   WebAssembly (WASI)                _WASI_EMULATED_MMAN (implies __wasi__)
 //
 // Note that since Android defines both __ANDROID__ and __linux__, one
 // may probe for either Linux or Android by simply testing for __linux__.
@@ -374,12 +374,13 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // POSIX.1-2001.
 #ifdef ABSL_HAVE_MMAP
 #error ABSL_HAVE_MMAP cannot be directly set
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||    \
-    defined(_AIX) || defined(__ros__) || defined(__native_client__) ||       \
-    defined(__asmjs__) || defined(__EMSCRIPTEN__) || defined(__Fuchsia__) || \
-    defined(__sun) || defined(__myriad2__) || defined(__HAIKU__) ||          \
-    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__QNX__) ||       \
-    defined(__VXWORKS__) || defined(__hexagon__) || defined(__XTENSA__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
+    defined(_AIX) || defined(__ros__) || defined(__asmjs__) ||            \
+    defined(__EMSCRIPTEN__) || defined(__Fuchsia__) || defined(__sun) ||  \
+    defined(__myriad2__) || defined(__HAIKU__) || defined(__OpenBSD__) || \
+    defined(__NetBSD__) || defined(__QNX__) || defined(__VXWORKS__) ||    \
+    defined(__hexagon__) || defined(__XTENSA__) ||                        \
+    defined(_WASI_EMULATED_MMAN)
 #define ABSL_HAVE_MMAP 1
 #endif
 
@@ -455,8 +456,6 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // WASI doesn't support signals
 #elif defined(__Fuchsia__)
 // Signals don't exist on fuchsia.
-#elif defined(__native_client__)
-// Signals don't exist on hexagon/QuRT
 #elif defined(__hexagon__)
 #else
 // other standard libraries
@@ -527,19 +526,10 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #define ABSL_USES_STD_ANY 1
 #define ABSL_HAVE_STD_OPTIONAL 1
 #define ABSL_USES_STD_OPTIONAL 1
+#define ABSL_HAVE_STD_STRING_VIEW 1
+#define ABSL_USES_STD_STRING_VIEW 1
 #define ABSL_HAVE_STD_VARIANT 1
 #define ABSL_USES_STD_VARIANT 1
-
-// ABSL_HAVE_STD_STRING_VIEW
-//
-// Deprecated: always defined to 1.
-// std::string_view was added in C++17, which means all versions of C++
-// supported by Abseil have it.
-#ifdef ABSL_HAVE_STD_STRING_VIEW
-#error "ABSL_HAVE_STD_STRING_VIEW cannot be directly set."
-#else
-#define ABSL_HAVE_STD_STRING_VIEW 1
-#endif
 
 // ABSL_HAVE_STD_ORDERING
 //
@@ -555,20 +545,6 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
     (defined(ABSL_INTERNAL_CPLUSPLUS_LANG) &&        \
      ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L)
 #define ABSL_HAVE_STD_ORDERING 1
-#endif
-
-// ABSL_USES_STD_STRING_VIEW
-//
-// Indicates whether absl::string_view is an alias for std::string_view.
-#if !defined(ABSL_OPTION_USE_STD_STRING_VIEW)
-#error options.h is misconfigured.
-#elif ABSL_OPTION_USE_STD_STRING_VIEW == 0
-#undef ABSL_USES_STD_STRING_VIEW
-#elif ABSL_OPTION_USE_STD_STRING_VIEW == 1 || \
-    ABSL_OPTION_USE_STD_STRING_VIEW == 2
-#define ABSL_USES_STD_STRING_VIEW 1
-#else
-#error options.h is misconfigured.
 #endif
 
 // ABSL_USES_STD_ORDERING
@@ -756,7 +732,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #ifdef ABSL_INTERNAL_HAS_CXA_DEMANGLE
 #error ABSL_INTERNAL_HAS_CXA_DEMANGLE cannot be directly set
 #elif defined(OS_ANDROID) && (defined(__i386__) || defined(__x86_64__))
-#define ABSL_INTERNAL_HAS_CXA_DEMANGLE 0
+#undef ABSL_INTERNAL_HAS_CXA_DEMANGLE
 #elif defined(__GNUC__)
 #define ABSL_INTERNAL_HAS_CXA_DEMANGLE 1
 #elif defined(__clang__) && !defined(_MSC_VER)

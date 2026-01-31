@@ -103,7 +103,7 @@ BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 // arbitrary set of arguments to run the microbenchmark on.
 // The following example enumerates a dense range on
 // one parameter, and a sparse range on the second.
-static void CustomArguments(benchmark::internal::Benchmark* b) {
+static void CustomArguments(benchmark::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
       b->Args({i, j});
@@ -171,7 +171,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <cassert>
 #include <cstddef>
 #include <functional>
-#include <initializer_list>
 #include <iosfwd>
 #include <limits>
 #include <map>
@@ -239,6 +238,16 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   _Pragma("diagnostic push") \
   _Pragma("diag_suppress deprecated_entity_with_custom_message")
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("diagnostic pop")
+#elif defined(_MSC_VER)
+#define BENCHMARK_BUILTIN_EXPECT(x, y) x
+#define BENCHMARK_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
+#define BENCHMARK_WARNING_MSG(msg)                           \
+  __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING( \
+      __LINE__) ") : warning note: " msg))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING \
+  __pragma(warning(push)) \
+  __pragma(warning(disable : 4996))
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING __pragma(warning(pop))
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
@@ -476,10 +485,11 @@ void RegisterProfilerManager(ProfilerManager* profiler_manager);
 
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
-void AddCustomContext(const std::string& key, const std::string& value);
+void AddCustomContext(std::string key, std::string value);
+
+class Benchmark;
 
 namespace internal {
-class Benchmark;
 class BenchmarkImp;
 class BenchmarkFamilies;
 
@@ -611,6 +621,17 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   _ReadWriteBarrier();
 }
 
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
 #else
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
@@ -956,6 +977,8 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   BENCHMARK_ALWAYS_INLINE
   std::string name() const { return name_; }
 
+  size_t range_size() const { return range_.size(); }
+
  private:
   // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
@@ -1102,20 +1125,15 @@ struct ThreadRunnerBase {
   virtual void RunThreads(const std::function<void(int)>& fn) = 0;
 };
 
-namespace internal {
-
 // Define alias of ThreadRunner factory function type
 using threadrunner_factory =
     std::function<std::unique_ptr<ThreadRunnerBase>(int)>;
 
-typedef void(Function)(State&);
-
 // ------------------------------------------------------
-// Benchmark registration object.  The BENCHMARK() macro expands
-// into an internal::Benchmark* object.  Various methods can
-// be called on this object to change the properties of the benchmark.
-// Each method returns "this" so that multiple method calls can
-// chained into one expression.
+// Benchmark registration object.  The BENCHMARK() macro expands into a
+// Benchmark* object.  Various methods can be called on this object to
+// change the properties of the benchmark.  Each method returns "this" so
+// that multiple method calls can chained into one expression.
 class BENCHMARK_EXPORT Benchmark {
  public:
   virtual ~Benchmark();
@@ -1206,7 +1224,7 @@ class BENCHMARK_EXPORT Benchmark {
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
   // Threads, etc.
-  Benchmark* Apply(void (*custom_arguments)(Benchmark* benchmark));
+  Benchmark* Apply(const std::function<void(Benchmark* benchmark)>&);
 
   // Set the range multiplier for non-dense range. If not called, the range
   // multiplier kRangeMultiplier will be used.
@@ -1329,11 +1347,11 @@ class BENCHMARK_EXPORT Benchmark {
   const char* GetArgName(int arg) const;
 
  private:
-  friend class BenchmarkFamilies;
-  friend class BenchmarkInstance;
+  friend class internal::BenchmarkFamilies;
+  friend class internal::BenchmarkInstance;
 
   std::string name_;
-  AggregationReportMode aggregation_report_mode_;
+  internal::AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;      // Args for all benchmark runs
   std::vector<std::vector<int64_t>> args_;  // Args for all benchmark runs
 
@@ -1350,7 +1368,7 @@ class BENCHMARK_EXPORT Benchmark {
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
-  std::vector<Statistics> statistics_;
+  std::vector<internal::Statistics> statistics_;
   std::vector<int> thread_counts_;
 
   callback_function setup_;
@@ -1361,17 +1379,28 @@ class BENCHMARK_EXPORT Benchmark {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
+namespace internal {
+
+// clang-format off
+typedef BENCHMARK_DEPRECATED_MSG("Use ::benchmark::Benchmark instead")
+    ::benchmark::Benchmark Benchmark;
+typedef BENCHMARK_DEPRECATED_MSG(
+    "Use ::benchmark::threadrunner_factory instead")
+    ::benchmark::threadrunner_factory threadrunner_factory;
+// clang-format on
+
+typedef void(Function)(State&);
+
 }  // namespace internal
 
 // Create and register a benchmark with the specified 'name' that invokes
 // the specified functor 'fn'.
 //
 // RETURNS: A pointer to the registered benchmark.
-internal::Benchmark* RegisterBenchmark(const std::string& name,
-                                       internal::Function* fn);
+Benchmark* RegisterBenchmark(const std::string& name, internal::Function* fn);
 
 template <class Lambda>
-internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn);
+Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn);
 
 // Remove all registered benchmarks. All pointers to previously registered
 // benchmarks are invalidated.
@@ -1380,7 +1409,7 @@ BENCHMARK_EXPORT void ClearRegisteredBenchmarks();
 namespace internal {
 // The class used to hold all Benchmarks created from static function.
 // (ie those created using the BENCHMARK(...) macros.
-class BENCHMARK_EXPORT FunctionBenchmark : public Benchmark {
+class BENCHMARK_EXPORT FunctionBenchmark : public benchmark::Benchmark {
  public:
   FunctionBenchmark(const std::string& name, Function* func)
       : Benchmark(name), func_(func) {}
@@ -1392,7 +1421,7 @@ class BENCHMARK_EXPORT FunctionBenchmark : public Benchmark {
 };
 
 template <class Lambda>
-class LambdaBenchmark : public Benchmark {
+class LambdaBenchmark : public benchmark::Benchmark {
  public:
   void Run(State& st) override { lambda_(st); }
 
@@ -1406,15 +1435,15 @@ class LambdaBenchmark : public Benchmark {
 };
 }  // namespace internal
 
-inline internal::Benchmark* RegisterBenchmark(const std::string& name,
-                                              internal::Function* fn) {
+inline Benchmark* RegisterBenchmark(const std::string& name,
+                                    internal::Function* fn) {
   return internal::RegisterBenchmarkInternal(
       ::benchmark::internal::make_unique<internal::FunctionBenchmark>(name,
                                                                       fn));
 }
 
 template <class Lambda>
-internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
+Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
       internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
   return internal::RegisterBenchmarkInternal(
@@ -1423,16 +1452,16 @@ internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
 }
 
 template <class Lambda, class... Args>
-internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn,
-                                       Args&&... args) {
+Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn,
+                             Args&&... args) {
   return benchmark::RegisterBenchmark(
       name, [=](benchmark::State& st) { fn(st, args...); });
 }
 
 // The base class for all fixture tests.
-class Fixture : public internal::Benchmark {
+class Fixture : public Benchmark {
  public:
-  Fixture() : internal::Benchmark("") {}
+  Fixture() : Benchmark("") {}
 
   void Run(State& st) override {
     this->SetUp(st);
@@ -1455,14 +1484,29 @@ class Fixture : public internal::Benchmark {
 // ------------------------------------------------------
 // Macro to register benchmarks
 
+// clang-format off
+#if defined(__clang__)
+#define BENCHMARK_DISABLE_COUNTER_WARNING                        \
+  _Pragma("GCC diagnostic push")                                 \
+  _Pragma("GCC diagnostic ignored \"-Wunknown-warning-option\"") \
+  _Pragma("GCC diagnostic ignored \"-Wc2y-extensions\"")
+#define BENCHMARK_RESTORE_COUNTER_WARNING _Pragma("GCC diagnostic pop")
+#else
+#define BENCHMARK_DISABLE_COUNTER_WARNING
+#define BENCHMARK_RESTORE_COUNTER_WARNING
+#endif
+// clang-format on
+
 // Check that __COUNTER__ is defined and that __COUNTER__ increases by 1
 // every time it is expanded. X + 1 == X + 0 is used in case X is defined to be
 // empty. If X is empty the expression becomes (+1 == +0).
+BENCHMARK_DISABLE_COUNTER_WARNING
 #if defined(__COUNTER__) && (__COUNTER__ + 1 == __COUNTER__ + 0)
 #define BENCHMARK_PRIVATE_UNIQUE_ID __COUNTER__
 #else
 #define BENCHMARK_PRIVATE_UNIQUE_ID __LINE__
 #endif
+BENCHMARK_RESTORE_COUNTER_WARNING
 
 // Helpers for generating unique variable names
 #define BENCHMARK_PRIVATE_NAME(...)                                      \
@@ -1475,17 +1519,19 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method) \
   BaseClass##_##Method##_Benchmark
 
-#define BENCHMARK_PRIVATE_DECLARE(n)                                           \
-  /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */                           \
-  static ::benchmark::internal::Benchmark const* const BENCHMARK_PRIVATE_NAME( \
-      n) BENCHMARK_UNUSED
+#define BENCHMARK_PRIVATE_DECLARE(n)                                   \
+  BENCHMARK_DISABLE_COUNTER_WARNING                                    \
+  /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */                   \
+  static ::benchmark::Benchmark const* const BENCHMARK_PRIVATE_NAME(n) \
+      BENCHMARK_RESTORE_COUNTER_WARNING BENCHMARK_UNUSED
 
-#define BENCHMARK(...)                                                \
-  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                            \
-      (::benchmark::internal::RegisterBenchmarkInternal(              \
-          ::benchmark::internal::make_unique<                         \
-              ::benchmark::internal::FunctionBenchmark>(#__VA_ARGS__, \
-                                                        __VA_ARGS__)))
+#define BENCHMARK(...)                                   \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #__VA_ARGS__,                              \
+              static_cast<::benchmark::internal::Function*>(__VA_ARGS__))))
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -1526,21 +1572,25 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           ::benchmark::internal::make_unique<            \
-              ::benchmark::internal::FunctionBenchmark>(#n "<" #a ">", n<a>)))
+              ::benchmark::internal::FunctionBenchmark>( \
+              #n "<" #a ">",                             \
+              static_cast<::benchmark::internal::Function*>(n<a>))))
 
-#define BENCHMARK_TEMPLATE2(n, a, b)                                          \
-  BENCHMARK_PRIVATE_DECLARE(n) =                                              \
-      (::benchmark::internal::RegisterBenchmarkInternal(                      \
-          ::benchmark::internal::make_unique<                                 \
-              ::benchmark::internal::FunctionBenchmark>(#n "<" #a "," #b ">", \
-                                                        n<a, b>)))
+#define BENCHMARK_TEMPLATE2(n, a, b)                     \
+  BENCHMARK_PRIVATE_DECLARE(n) =                         \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #n "<" #a "," #b ">",                      \
+              static_cast<::benchmark::internal::Function*>(n<a, b>))))
 
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
-              #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>)))
+              #n "<" #__VA_ARGS__ ">",                   \
+              static_cast<::benchmark::internal::Function*>(n<__VA_ARGS__>))))
 
 // This will register a benchmark for a templatized function,
 // with the additional arguments specified by `...`.
@@ -1661,9 +1711,11 @@ class Fixture : public internal::Benchmark {
           ::benchmark::internal::make_unique<UniqueName>()))
 
 #define BENCHMARK_TEMPLATE_INSTANTIATE_F(BaseClass, Method, ...)    \
+  BENCHMARK_DISABLE_COUNTER_WARNING                                 \
   BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(                         \
       BaseClass, Method, BENCHMARK_PRIVATE_NAME(BaseClass##Method), \
-      __VA_ARGS__)
+      __VA_ARGS__)                                                  \
+  BENCHMARK_RESTORE_COUNTER_WARNING
 
 // This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method)           \
@@ -1798,6 +1850,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity(oNone),
           complexity_lambda(),
           complexity_n(0),
+          statistics(),
           report_big_o(false),
           report_rms(false),
           allocs_per_iter(0.0) {}

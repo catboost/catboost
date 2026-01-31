@@ -15,8 +15,6 @@ from six import iteritems, string_types, integer_types
 
 import warnings
 import numpy as np
-import ctypes
-import platform
 import tempfile
 import shutil
 import json
@@ -24,12 +22,6 @@ from enum import Enum
 from operator import itemgetter
 import threading
 from typing import Dict, Optional
-
-if platform.system() == 'Linux':
-    try:
-        ctypes.CDLL('librt.so')
-    except Exception:
-        pass
 
 try:
     from pandas import DataFrame, Series
@@ -64,7 +56,9 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_multitarget_objective = _catboost.is_multitarget_objective
+is_multilabel_objective = _catboost.is_multilabel_objective
 is_survivalregression_objective = _catboost.is_survivalregression_objective
+is_multiclass_compatible_objective = _catboost.is_multiclass_compatible_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
 is_maximizable_metric = _catboost.is_maximizable_metric
@@ -498,7 +492,6 @@ def plot_features_selection_loss_graph(
         xaxis=dict(title='number of removed ' + entities_name, **axis_options),
         yaxis=dict(
             title='loss value',
-            titlefont=dict(color=loss_graph_color),
             tickfont=dict(color=loss_graph_color),
             **axis_options
         )
@@ -510,7 +503,6 @@ def plot_features_selection_loss_graph(
                 side="right",
                 anchor="x",
                 overlaying="y",
-                titlefont=dict(color=cost_graph_color),
                 tickfont=dict(color=cost_graph_color),
                 **axis_options
             )
@@ -946,8 +938,8 @@ class Pool(_PoolBase):
                     data_shape = tuple(data_shape + tuple([len(data[0])]))
                 else:
                     data_shape = tuple(data_shape + tuple([1]))
-            if not len(data_shape) == 2:
-                raise CatBoostError("Input data has invalid shape: {}. Must be 2 dimensional".format(data_shape))
+            if len(data_shape) not in (2, 3):
+                raise CatBoostError("Input data has invalid shape: {}. Must be 2 or 3 dimensional".format(data_shape))
             if data_shape[1] == 0:
                 raise CatBoostError("Input data must have at least one feature")
 
@@ -1413,7 +1405,7 @@ class Pool(_PoolBase):
                 data = np.asarray(data, dtype=object)
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
-            samples_count, features_count = np.shape(data)
+            samples_count, features_count = np.shape(data)[:2]
         if embedding_features_data is not None:
             features_count += len(embedding_features_data)
             if isinstance(embedding_features_data, dict):
@@ -1985,11 +1977,25 @@ class _CatBoostBase(object):
 
     @staticmethod
     def _is_multiregression_objective(loss_function):
-        return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+        if loss_function is None:
+            return False
+        elif isinstance(loss_function, str):
+            return is_multiregression_objective(loss_function)
+        else:
+            return id(MultiTargetCustomObjective) in [id(base) for base in type(loss_function).__mro__]
 
     @staticmethod
     def _is_multitarget_objective(loss_function):
-        return isinstance(loss_function, str) and is_multitarget_objective(loss_function)
+        if loss_function is None:
+            return False
+        elif isinstance(loss_function, str):
+            return is_multitarget_objective(loss_function)
+        else:
+            return id(MultiTargetCustomObjective) in [id(base) for base in type(loss_function).__mro__]
+
+    @staticmethod
+    def _is_multilabel_objective(loss_function):
+        return isinstance(loss_function, str) and is_multilabel_objective(loss_function)
 
     @staticmethod
     def _is_survivalregression_objective(loss_function):
@@ -1998,6 +2004,25 @@ class _CatBoostBase(object):
     @staticmethod
     def _is_ranking_objective(loss_function):
         return isinstance(loss_function, str) and is_ranking_metric(loss_function)
+
+    def _is_classifier(self, params_in_canonical_form: Dict[str, object]) -> bool:
+        return (
+            (getattr(self, '_estimator_type', None) == 'classifier')
+            or
+            _CatBoostBase._is_classification_objective(params_in_canonical_form.get('loss_function', 'RMSE'))
+        )
+
+    @staticmethod
+    def _is_multiclass_compatible(params_in_canonical_form: Dict[str, object]) -> bool:
+        # called only for classifiers
+
+        maybe_loss_function = params_in_canonical_form.get('loss_function')
+        if maybe_loss_function is None:
+            return True
+        elif isinstance(maybe_loss_function, str):
+            return is_multiclass_compatible_objective(maybe_loss_function)
+        else:
+            return isinstance(maybe_loss_function, MultiTargetCustomObjective)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -2102,29 +2127,263 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
+    @staticmethod
+    def get_sklearn_estimator_xfail_checks(estimator: '_CatBoostBase') -> Dict[str, str]:
+        '''
+        To pass to:
+            For scikit-learn >= 1.6:
+                to 'expected_failed_checks' parameter in sklearn.utils.estimator_checks.parametrize_with_checks
+            For scikit-learn < 1.6:
+                to '_xfail_checks' field returned by '_CatBoostBase._get_tags'.
+
+        This method is made static to be able to pass it to sklearn.utils.estimator_checks.parametrize_with_checks
+        '''
+        import sklearn
+
+        scikit_learn_version = tuple(map(int, sklearn.__version__.split('.')[:2]))
+
+        params = estimator._get_canonized_params()
+
+        result = {
+            'check_sample_weights_not_an_array':
+                'TODO: not all array-like data is supported.'
+                ' https://github.com/catboost/catboost/issues/2995',
+            'check_do_not_raise_errors_in_init_or_set_params':
+                'TODO: https://github.com/catboost/catboost/issues/2997',
+            'check_estimator_sparse_array':
+                'TODO: support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_estimator_sparse_matrix':
+                'CatBoost does not support scipy.sparse.dia_matrix',
+            'check_estimator_sparse_tag':
+                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_estimators_empty_data_messages':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_estimators_unfitted':
+                'TODO: raise NotFittedError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/3002',
+            'check_fit1d':
+                'TODO: CatBoost API allows to pass 1d array as features data (as a single feature),'
+                ' maybe this behavior should be tunable in the future',
+            'check_fit2d_1sample':
+                'TODO: raise ValueError mentioning "sample" instead of a current error. '
+                'https://github.com/catboost/catboost/issues/3003',
+            'check_fit2d_predict1d':
+                'TODO: CatBoost API allows to pass 1d array for prediction for a single sample,'
+                ' maybe this behavior should be tunable in the future',
+            'check_n_features_in':
+                'TODO: n_features_in_ must not be defined until fit is called. '
+                'https://github.com/catboost/catboost/issues/3004',
+            'check_n_features_in_after_fitting':
+                'TODO: 1) raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996; '
+                '2) exact message match is too restrictive',
+            'check_requires_y_none':
+                'TODO: 1) raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996; '
+                '2) exact message match is too restrictive',
+            'check_sample_weight_equivalence_on_dense_data':
+                'TODO: https://github.com/catboost/catboost/issues/3005',
+            'check_sample_weight_equivalence_on_sparse_data':
+                'support scipy.sparse sparse arrays. https://github.com/catboost/catboost/issues/3000',
+            'check_sample_weights_shape':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_supervised_y_2d':
+                'TODO: CatBoost API allows to pass 2D array for "y" when 1d is expected if 2nd dimension size = 1,'
+                ' maybe this behavior should be tunable in the future',
+            'check_supervised_y_no_nan':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
+            'check_dtype_object':
+                'TODO: raise TypeError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2998',
+        }
+
+        if scikit_learn_version < (1, 6):
+            result.update(
+                {
+                    'check_estimator_sparse_data':
+                        'CatBoost does not support scipy.sparse.dia_matrix',
+                }
+            )
+            '''
+            'check_sample_weights_invariance' is tricky.
+                for 'kind=ones' it passes.
+                for 'kind=zeros' it fails.
+                    TODO: https://github.com/catboost/catboost/issues/3005
+                So we won't add it here but will check with params in 'test_sklearn_estimator_api_compatibility'
+            '''
+
+        if scikit_learn_version < (1, 4):
+            result.update(
+                {
+                    'check_fit_score_takes_y':
+                        'Bug in the test making all features constant when "categorical" is present in "X_types"',
+                    'check_sample_weights_list':
+                        'Bug in the test making all features constant when "categorical" is present in "X_types"',
+                }
+            )
+            if params.get('nan_mode') != 'Forbidden':
+                result.update(
+                    {
+                        'check_estimators_pickle':
+                            'Bug in the test that tries to assign np.nan to np.ndarray of np.int32 when '
+                            '"categorical" is present in "X_types" and "allow_nan" is True',
+                    }
+                )
+        if scikit_learn_version < (1, 3):
+            result.update(
+                {
+                    'check_no_attributes_set_in_init':
+                        'CatBoost does set some private "_*" attributes in init',
+                }
+            )
+
+        if estimator._is_classifier(params):
+            result.update(
+                {
+                    'check_classifier_data_not_an_array':
+                        'TODO: not all array-like data is supported.'
+                        ' https://github.com/catboost/catboost/issues/2994',
+                    'check_classifiers_one_label':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_classifiers_regression_target':
+                        'TODO: CatBoost API allows to pass continuous target for binary classification,'
+                        ' maybe this behavior should be tunable in the future',
+                    'check_classifiers_train':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_complex_data':
+                        'TODO: CatBoost API allows to pass complex data as labels,'
+                        ' maybe this behavior should be changed in the future',
+                }
+            )
+        else:
+            result.update(
+                {
+                    'check_regressor_data_not_an_array':
+                        'TODO: not all array-like data is supported.'
+                        ' https://github.com/catboost/catboost/issues/2994',
+                    'check_complex_data':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                    'check_regressors_train':
+                        'TODO: raise ValueError instead of generic CatBoostError.'
+                        ' https://github.com/catboost/catboost/issues/2996',
+                }
+            )
+
+        return result
+
     def _get_tags(self):
-        tags = {
-            'requires_positive_X': False,
-            'requires_positive_y': False,
-            'requires_y': True,
-            'poor_score': False,
-            'no_validation': True,
-            'stateless': False,
+        params = self._get_canonized_params()
+        estimator_type = 'classifier' if self._is_classifier(params) else 'regressor'
+        loss_function = params.get('loss_function')
+
+        is_multilabel_objective = _CatBoostBase._is_multilabel_objective(loss_function)
+        is_multitarget_objective = _CatBoostBase._is_multitarget_objective(loss_function)
+        is_multi_output = (
+            _CatBoostBase._is_multiregression_objective(loss_function)
+            or
+            is_multilabel_objective
+        )
+        is_binary_only = (
+            (estimator_type == 'classifier')
+            and (not _CatBoostBase._is_multiclass_compatible(params))
+            and (not is_multilabel_objective)
+        )
+
+        X_types = ['2darray', 'sparse', 'categorical']
+        if is_multitarget_objective:
+            X_types.append('2dlabels')
+        else:
+            X_types.append('1dlabels')
+
+        return {
+            'allow_nan': 'nan_mode' not in params or params['nan_mode'] != 'Forbidden',
+            'array_api_support': False,     # TODO: https://github.com/catboost/catboost/issues/2990
+            'binary_only': is_binary_only,
+            'multilabel': is_multilabel_objective,
+            'multioutput': is_multi_output,
+            'multioutput_only': is_multi_output,
+            'no_validation': False,
+            'non_deterministic': params.get('task_type') == 'GPU',
             'pairwise': False,
-            'multilabel': False,
+            'poor_score': False,
+            'preserves_dtype': [np.float64],
+            'requires_fit': True,
+            'requires_positive_X': False,
+            'requires_y': True,
+
+            # TODO: maybe create a method for user-defined objectives and metrics in the future
+            'requires_positive_y': False,
             '_skip_test': False,
-            'multioutput_only': False,
-            'binary_only': False,
-            'requires_fit': True}
+            '_xfail_checks': _CatBoostBase.get_sklearn_estimator_xfail_checks(self),
+            'stateless': False,
+            'X_types': X_types,
+        }
+
+    def __sklearn_tags__(self):
+        import sklearn.utils
 
         params = self._get_canonized_params()
+        loss_function = params.get('loss_function')
 
-        tags['non_deterministic'] = 'task_type' in params and params['task_type'] == 'GPU'
-        loss_function = params.get('loss_function', '')
-        tags['multioutput'] = (loss_function == 'MultiRMSE' or loss_function == 'RMSEWithUncertainty')
-        tags['allow_nan'] = 'nan_mode' not in params or params['nan_mode'] != 'Forbidden'
+        # scikit-learn does not have a separate type for ranking so set the type to 'regressor'
+        # in the case of CatBoost ranker as well
+        estimator_type = 'classifier' if self._is_classifier(params) else 'regressor'
+        is_multitarget_objective = _CatBoostBase._is_multitarget_objective(loss_function)
+        is_multilabel_objective = _CatBoostBase._is_multilabel_objective(loss_function)
+        is_multi_output = (
+            _CatBoostBase._is_multiregression_objective(loss_function)
+            or
+            is_multilabel_objective
+        )
 
-        return tags
+        if estimator_type == 'classifier':
+            classifier_tags = sklearn.utils.ClassifierTags(
+                poor_score=False,
+                multi_class=_CatBoostBase._is_multiclass_compatible(params),
+                multi_label=is_multilabel_objective,
+            )
+            regressor_tags = None
+        else:
+            classifier_tags = None
+            regressor_tags = sklearn.utils.RegressorTags(poor_score=False)
+
+        return sklearn.utils.Tags(
+            estimator_type=estimator_type,
+            target_tags=sklearn.utils.TargetTags(
+                required=True,
+                one_d_labels=not is_multitarget_objective,
+                two_d_labels=is_multitarget_objective,
+
+                # TODO: maybe create a method for user-defined objectives and metrics in the future
+                positive_only=False,
+                multi_output=is_multi_output,
+                single_output=not is_multi_output,
+            ),
+            classifier_tags=classifier_tags,
+            regressor_tags=regressor_tags,
+            array_api_support=False,    # TODO: https://github.com/catboost/catboost/issues/2990
+            no_validation=False,
+            non_deterministic=params.get('task_type') == 'GPU',
+            requires_fit=True,
+            input_tags=sklearn.utils.InputTags(
+                one_d_array=False,
+                two_d_array=True,
+                three_d_array=False,
+                sparse=True,
+                categorical=True,
+                string=False,
+                dict=False,
+                positive_only=False,
+                allow_nan=params.get('nan_mode') != 'Forbidden',
+                pairwise=False,
+            ),
+        )
 
     def get_scale_and_bias(self):
         return self._object._get_scale_and_bias()
@@ -2259,7 +2518,7 @@ class CatBoost(_CatBoostBase):
                 eval_pool will be uninitialized if save_eval_pool is false
         """
 
-        is_classification = (getattr(self, '_estimator_type', None) == 'classifier') or _CatBoostBase._is_classification_objective(params.get('loss_function', 'RMSE'))
+        is_classification = self._is_classifier(params)
 
         return train_pool.train_eval_split(
             params.get('has_time', False),
@@ -4068,7 +4327,7 @@ class CatBoost(_CatBoostBase):
 
                 for param in currently_not_supported_params:
                     if param in grid:
-                        raise CatBoostError("Parameter '{}' currently is not supported in hyperparaneter search".format(param))
+                        raise CatBoostError("Parameter '{}' is not currently supported in hyperparameter search".format(param))
 
             if X is None:
                 raise CatBoostError("X must not be None")

@@ -82,7 +82,7 @@ namespace NPrivate {
         }
 
     private:
-        std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
+        alignas(T) char StackBasedStorage[CountOnStack][sizeof(T)];
         bool IsStorageUsed = false;
 
     private:

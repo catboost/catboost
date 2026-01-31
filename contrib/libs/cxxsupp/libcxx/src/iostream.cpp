@@ -12,7 +12,7 @@
 #include <string>
 
 #ifdef _LIBCPP_MSVCRT_LIKE
-#  include <__locale_dir/locale_base_api/locale_guard.h>
+#  include <__locale_dir/locale_guard.h>
 #endif
 
 #define _str(s) #s
@@ -35,7 +35,7 @@ alignas(istream) _LIBCPP_EXPORTED_FROM_ABI char cin[sizeof(istream)]
 alignas(__stdinbuf<char>) static char __cin[sizeof(__stdinbuf<char>)];
 static mbstate_t mb_cin;
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
 #  if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(wistream) char _wcin[sizeof(wistream)];
 _LIBCPP_EXPORTED_FROM_ABI wistream& wcin = *reinterpret_cast<wistream*>(_wcin);
@@ -49,7 +49,7 @@ alignas(wistream) _LIBCPP_EXPORTED_FROM_ABI char wcin[sizeof(wistream)]
 #endif
 alignas(__stdinbuf<wchar_t>) static char __wcin[sizeof(__stdinbuf<wchar_t>)];
 static mbstate_t mb_wcin;
-#endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#endif // _LIBCPP_HAS_WIDE_CHARACTERS
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(ostream) char _cout[sizeof(ostream)];
@@ -65,7 +65,7 @@ alignas(ostream) _LIBCPP_EXPORTED_FROM_ABI char cout[sizeof(ostream)]
 alignas(__stdoutbuf<char>) static char __cout[sizeof(__stdoutbuf<char>)];
 static mbstate_t mb_cout;
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
 #  if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(wostream) char _wcout[sizeof(wostream)];
 _LIBCPP_EXPORTED_FROM_ABI wostream& wcout = *reinterpret_cast<wostream*>(_wcout);
@@ -79,7 +79,7 @@ alignas(wostream) _LIBCPP_EXPORTED_FROM_ABI char wcout[sizeof(wostream)]
 #endif
 alignas(__stdoutbuf<wchar_t>) static char __wcout[sizeof(__stdoutbuf<wchar_t>)];
 static mbstate_t mb_wcout;
-#endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#endif // _LIBCPP_HAS_WIDE_CHARACTERS
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(ostream) char _cerr[sizeof(ostream)];
@@ -95,7 +95,7 @@ alignas(ostream) _LIBCPP_EXPORTED_FROM_ABI char cerr[sizeof(ostream)]
 alignas(__stdoutbuf<char>) static char __cerr[sizeof(__stdoutbuf<char>)];
 static mbstate_t mb_cerr;
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
 #  if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(wostream) char _wcerr[sizeof(wostream)];
 _LIBCPP_EXPORTED_FROM_ABI wostream& wcerr = *reinterpret_cast<wostream*>(_wcerr);
@@ -109,7 +109,7 @@ alignas(wostream) _LIBCPP_EXPORTED_FROM_ABI char wcerr[sizeof(wostream)]
 #  endif
 alignas(__stdoutbuf<wchar_t>) static char __wcerr[sizeof(__stdoutbuf<wchar_t>)];
 static mbstate_t mb_wcerr;
-#endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#endif // _LIBCPP_HAS_WIDE_CHARACTERS
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(ostream) char _clog[sizeof(ostream)];
@@ -123,7 +123,7 @@ alignas(ostream) _LIBCPP_EXPORTED_FROM_ABI char clog[sizeof(ostream)]
         ;
 #endif
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
 #  if defined(_LIBCPP_ABI_MICROSOFT) && !defined(__clang__)
 alignas(wostream) char _wclog[sizeof(wostream)];
 _LIBCPP_EXPORTED_FROM_ABI wostream& wclog = *reinterpret_cast<wostream*>(_wclog);
@@ -135,7 +135,7 @@ alignas(wostream) _LIBCPP_EXPORTED_FROM_ABI char wclog[sizeof(wostream)]
 #  endif
         ;
 #endif
-#endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#endif // _LIBCPP_HAS_WIDE_CHARACTERS
 
 // Pretend we're inside a system header so the compiler doesn't flag the use of the init_priority
 // attribute with a value that's reserved for the implementation (we're the implementation).
@@ -147,12 +147,12 @@ alignas(wostream) _LIBCPP_EXPORTED_FROM_ABI char wclog[sizeof(wostream)]
 static void force_locale_initialization() {
 #if defined(_LIBCPP_MSVCRT_LIKE)
   static bool once = []() {
-    auto loc = newlocale(LC_ALL_MASK, "C", 0);
+    auto loc = __locale::__newlocale(LC_ALL_MASK, "C", 0);
     {
-      __libcpp_locale_guard g(loc); // forces initialization of locale TLS
+      __locale_guard g(loc); // forces initialization of locale TLS
       ((void)g);
     }
-    freelocale(loc);
+    __locale::__freelocale(loc);
     return true;
   }();
   ((void)once);
@@ -176,7 +176,7 @@ DoIOSInit::DoIOSInit() {
   std::unitbuf(*cerr_ptr);
   cerr_ptr->tie(cout_ptr);
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
   wistream* wcin_ptr  = ::new (&wcin) wistream(::new (__wcin) __stdinbuf<wchar_t>(stdin, &mb_wcin));
   wostream* wcout_ptr = ::new (&wcout) wostream(::new (__wcout) __stdoutbuf<wchar_t>(stdout, &mb_wcout));
   wostream* wcerr_ptr = ::new (&wcerr) wostream(::new (__wcerr) __stdoutbuf<wchar_t>(stderr, &mb_wcerr));
@@ -194,7 +194,7 @@ DoIOSInit::~DoIOSInit() {
   ostream* clog_ptr = reinterpret_cast<ostream*>(&clog);
   clog_ptr->flush();
 
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
+#if _LIBCPP_HAS_WIDE_CHARACTERS
   wostream* wcout_ptr = reinterpret_cast<wostream*>(&wcout);
   wcout_ptr->flush();
   wostream* wclog_ptr = reinterpret_cast<wostream*>(&wclog);
