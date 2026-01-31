@@ -1116,12 +1116,15 @@ class Pool(_PoolBase):
         self._train_eval_split(train_pool, eval_pool, has_time, is_classification, eval_fraction, save_eval_pool)
         return train_pool, eval_pool
 
+    def _check_and_prepare_pairs_or_graph(self, data, data_name: str):
+        self._check_pairs_or_graph_type(data, data_name)
+        if isinstance(data, DataFrame):
+            data = data.values
+        self._check_pairs_or_graph_value(data, data_name)
+        return data
+
     def set_pairs(self, pairs):
-        self._check_pairs_or_graph_type(pairs, 'pairs')
-        if isinstance(pairs, DataFrame):
-            pairs = pairs.values
-        self._check_pairs_or_graph_value(pairs, 'pairs')
-        self._set_pairs(pairs)
+        self._set_pairs(self._check_and_prepare_pairs_or_graph(pairs, 'pairs'))
         return self
 
     def set_feature_names(self, feature_names):
@@ -1440,16 +1443,10 @@ class Pool(_PoolBase):
             self._check_string_feature_type(embedding_features, 'embedding_features')
             self._check_string_feature_value(embedding_features, features_count, 'embedding_features')
         if pairs is not None:
-            self._check_pairs_or_graph_type(pairs, 'pairs')
-            if isinstance(pairs, DataFrame):
-                pairs = pairs.values
-            self._check_pairs_or_graph_value(pairs, 'pairs')
+            pairs = self._check_and_prepare_pairs_or_graph(pairs, 'pairs')
             pairs_len = np.shape(pairs)[0]
         if graph is not None:
-            self._check_pairs_or_graph_type(graph, 'graph')
-            if isinstance(graph, DataFrame):
-                graph = graph.values
-            self._check_pairs_or_graph_type(graph, 'graph')
+            graph = self._check_and_prepare_pairs_or_graph(graph, 'graph')
         if weight is not None:
             self._check_weight_type(weight)
             weight = self._if_pandas_to_numpy(weight)
