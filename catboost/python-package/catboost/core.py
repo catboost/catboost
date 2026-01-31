@@ -891,23 +891,23 @@ class Pool(_PoolBase):
             if feature >= features_count:
                 raise CatBoostError("Invalid {}[{}] = {} value: index must be < {}.".format(features_name, indx, feature, features_count))
 
-    def _check_pairs_type(self, pairs):
+    def _check_pairs_or_graph_type(self, data, data_name: str):
         """
-        Check type of pairs parameter.
+        Check type of pairs or graph parameter.
         """
-        if not isinstance(pairs, (list, np.ndarray, DataFrame)):
-            raise CatBoostError("Invalid pairs type={}: must be list, numpy.ndarray or pandas.DataFrame.".format(type(pairs)))
+        if not isinstance(data, (list, np.ndarray, DataFrame)):
+            raise CatBoostError(f"Invalid {data_name} type={type(data)}: must be list, numpy.ndarray or pandas.DataFrame.")
 
-    def _check_pairs_value(self, pairs):
+    def _check_pairs_or_graph_value(self, data, data_name: str):
         """
-        Check values in pairs parameter. Must be int indices.
+        Check values in pairs or graph parameter. Must be int indices.
         """
-        for pair_id, pair in enumerate(pairs):
-            if (len(pair) != 2):
-                raise CatBoostError("Length of pairs[{}] isn't equal to 2.".format(pair_id))
-            for i, index in enumerate(pair):
+        for i, e in enumerate(data):
+            if (len(e) != 2):
+                raise CatBoostError(f"Length of {data_name}[{i}] isn't equal to 2.")
+            for j, index in enumerate(e):
                 if not isinstance(index, INTEGER_TYPES):
-                    raise CatBoostError("Invalid pairs[{}][{}] = {} value type={}: must be an integer.".format(pair_id, i, index, type(index)))
+                    raise CatBoostError(f"Invalid {data_name}[{i}][{j}] = '{index}' value type={type(index)}: must be an integer.")
 
     def _check_data_type(self, data):
         """
@@ -1117,10 +1117,10 @@ class Pool(_PoolBase):
         return train_pool, eval_pool
 
     def set_pairs(self, pairs):
-        self._check_pairs_type(pairs)
+        self._check_pairs_or_graph_type(pairs, 'pairs')
         if isinstance(pairs, DataFrame):
             pairs = pairs.values
-        self._check_pairs_value(pairs)
+        self._check_pairs_or_graph_value(pairs, 'pairs')
         self._set_pairs(pairs)
         return self
 
@@ -1440,16 +1440,16 @@ class Pool(_PoolBase):
             self._check_string_feature_type(embedding_features, 'embedding_features')
             self._check_string_feature_value(embedding_features, features_count, 'embedding_features')
         if pairs is not None:
-            self._check_pairs_type(pairs)
+            self._check_pairs_or_graph_type(pairs, 'pairs')
             if isinstance(pairs, DataFrame):
                 pairs = pairs.values
-            self._check_pairs_value(pairs)
+            self._check_pairs_or_graph_value(pairs, 'pairs')
             pairs_len = np.shape(pairs)[0]
         if graph is not None:
-            self._check_pairs_type(graph)
+            self._check_pairs_or_graph_type(graph, 'graph')
             if isinstance(graph, DataFrame):
                 graph = graph.values
-            self._check_pairs_value(graph)
+            self._check_pairs_or_graph_type(graph, 'graph')
         if weight is not None:
             self._check_weight_type(weight)
             weight = self._if_pandas_to_numpy(weight)
