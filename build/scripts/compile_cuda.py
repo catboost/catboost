@@ -5,7 +5,6 @@ import os
 import platform
 import collections
 import re
-import tempfile
 
 
 def fix_win_bin_name(name):
@@ -175,11 +174,6 @@ def main():
     if compiler_args:
         command += ['--compiler-options', ','.join(compiler_args)]
 
-    # --keep is necessary to prevent nvcc from embedding nvcc pid in generated
-    # symbols.  It makes nvcc use the original file name as the prefix in the
-    # generated files (otherwise it also prepends tmpxft_{pid}_00000000-5), and
-    # cicc derives the module name from its {input}.cpp1.ii file name.
-    command += ['--keep', '--keep-dir', tempfile.mkdtemp(prefix='compile_cuda.py.')]
     # nvcc generates symbols like __fatbinwrap_{len}_{basename}_{hash}_{pid} where
     # {basename} is {input}.cpp1.ii with non-C chars translated to _, {len} is
     # {basename} length, {hash} is the hash of first exported symbol in
