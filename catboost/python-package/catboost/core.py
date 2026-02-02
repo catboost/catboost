@@ -1132,12 +1132,15 @@ class Pool(_PoolBase):
         self._set_feature_names(feature_names)
         return self
 
-    def set_baseline(self, baseline):
+    def _check_and_prepare_baseline(self, baseline, samples_count: int):
         self._check_baseline_type(baseline)
         baseline = self._if_pandas_to_numpy(baseline)
-        baseline = np.reshape(baseline, (self.num_row(), -1))
-        self._check_baseline_shape(baseline, self.num_row())
-        self._set_baseline(baseline)
+        baseline = np.reshape(baseline, (samples_count, -1))
+        self._check_baseline_shape(baseline, samples_count)
+        return baseline
+
+    def set_baseline(self, baseline):
+        self._set_baseline(self._check_and_prepare_baseline(baseline, self.num_row()))
         return self
 
     def set_weight(self, weight):
@@ -1468,10 +1471,7 @@ class Pool(_PoolBase):
             pairs_weight = self._if_pandas_to_numpy(pairs_weight)
             self._check_weight_shape(pairs_weight, pairs_len)
         if baseline is not None:
-            self._check_baseline_type(baseline)
-            baseline = self._if_pandas_to_numpy(baseline)
-            baseline = np.reshape(baseline, (samples_count, -1))
-            self._check_baseline_shape(baseline, samples_count)
+            baseline = self._check_and_prepare_baseline(baseline, samples_count)
         if timestamp is not None:
             self._check_timestamp_type(timestamp)
             timestamp = self._if_pandas_to_numpy(timestamp)
