@@ -22,7 +22,7 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER >= 23
+#if _LIBCPP_STD_VER >= 20
 
 template <class _Ap, class _Bp>
 using _CopyConst = _If<is_const_v<_Ap>, const _Bp, _Bp>;
