@@ -891,23 +891,23 @@ class Pool(_PoolBase):
             if feature >= features_count:
                 raise CatBoostError("Invalid {}[{}] = {} value: index must be < {}.".format(features_name, indx, feature, features_count))
 
-    def _check_pairs_type(self, pairs):
+    def _check_pairs_or_graph_type(self, data, data_name: str):
         """
-        Check type of pairs parameter.
+        Check type of pairs or graph parameter.
         """
-        if not isinstance(pairs, (list, np.ndarray, DataFrame)):
-            raise CatBoostError("Invalid pairs type={}: must be list, numpy.ndarray or pandas.DataFrame.".format(type(pairs)))
+        if not isinstance(data, (list, np.ndarray, DataFrame)):
+            raise CatBoostError(f"Invalid {data_name} type={type(data)}: must be list, numpy.ndarray or pandas.DataFrame.")
 
-    def _check_pairs_value(self, pairs):
+    def _check_pairs_or_graph_value(self, data, data_name: str):
         """
-        Check values in pairs parameter. Must be int indices.
+        Check values in pairs or graph parameter. Must be int indices.
         """
-        for pair_id, pair in enumerate(pairs):
-            if (len(pair) != 2):
-                raise CatBoostError("Length of pairs[{}] isn't equal to 2.".format(pair_id))
-            for i, index in enumerate(pair):
+        for i, e in enumerate(data):
+            if (len(e) != 2):
+                raise CatBoostError(f"Length of {data_name}[{i}] isn't equal to 2.")
+            for j, index in enumerate(e):
                 if not isinstance(index, INTEGER_TYPES):
-                    raise CatBoostError("Invalid pairs[{}][{}] = {} value type={}: must be an integer.".format(pair_id, i, index, type(index)))
+                    raise CatBoostError(f"Invalid {data_name}[{i}][{j}] = '{index}' value type={type(index)}: must be an integer.")
 
     def _check_data_type(self, data):
         """
@@ -1116,12 +1116,15 @@ class Pool(_PoolBase):
         self._train_eval_split(train_pool, eval_pool, has_time, is_classification, eval_fraction, save_eval_pool)
         return train_pool, eval_pool
 
+    def _check_and_prepare_pairs_or_graph(self, data, data_name: str):
+        self._check_pairs_or_graph_type(data, data_name)
+        if isinstance(data, DataFrame):
+            data = data.values
+        self._check_pairs_or_graph_value(data, data_name)
+        return data
+
     def set_pairs(self, pairs):
-        self._check_pairs_type(pairs)
-        if isinstance(pairs, DataFrame):
-            pairs = pairs.values
-        self._check_pairs_value(pairs)
-        self._set_pairs(pairs)
+        self._set_pairs(self._check_and_prepare_pairs_or_graph(pairs, 'pairs'))
         return self
 
     def set_feature_names(self, feature_names):
@@ -1129,12 +1132,15 @@ class Pool(_PoolBase):
         self._set_feature_names(feature_names)
         return self
 
-    def set_baseline(self, baseline):
+    def _check_and_prepare_baseline(self, baseline, samples_count: int):
         self._check_baseline_type(baseline)
         baseline = self._if_pandas_to_numpy(baseline)
-        baseline = np.reshape(baseline, (self.num_row(), -1))
-        self._check_baseline_shape(baseline, self.num_row())
-        self._set_baseline(baseline)
+        baseline = np.reshape(baseline, (samples_count, -1))
+        self._check_baseline_shape(baseline, samples_count)
+        return baseline
+
+    def set_baseline(self, baseline):
+        self._set_baseline(self._check_and_prepare_baseline(baseline, self.num_row()))
         return self
 
     def set_weight(self, weight):
@@ -1440,16 +1446,10 @@ class Pool(_PoolBase):
             self._check_string_feature_type(embedding_features, 'embedding_features')
             self._check_string_feature_value(embedding_features, features_count, 'embedding_features')
         if pairs is not None:
-            self._check_pairs_type(pairs)
-            if isinstance(pairs, DataFrame):
-                pairs = pairs.values
-            self._check_pairs_value(pairs)
+            pairs = self._check_and_prepare_pairs_or_graph(pairs, 'pairs')
             pairs_len = np.shape(pairs)[0]
         if graph is not None:
-            self._check_pairs_type(graph)
-            if isinstance(graph, DataFrame):
-                graph = graph.values
-            self._check_pairs_value(graph)
+            graph = self._check_and_prepare_pairs_or_graph(graph, 'graph')
         if weight is not None:
             self._check_weight_type(weight)
             weight = self._if_pandas_to_numpy(weight)
@@ -1471,10 +1471,7 @@ class Pool(_PoolBase):
             pairs_weight = self._if_pandas_to_numpy(pairs_weight)
             self._check_weight_shape(pairs_weight, pairs_len)
         if baseline is not None:
-            self._check_baseline_type(baseline)
-            baseline = self._if_pandas_to_numpy(baseline)
-            baseline = np.reshape(baseline, (samples_count, -1))
-            self._check_baseline_shape(baseline, samples_count)
+            baseline = self._check_and_prepare_baseline(baseline, samples_count)
         if timestamp is not None:
             self._check_timestamp_type(timestamp)
             timestamp = self._if_pandas_to_numpy(timestamp)
