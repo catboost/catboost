@@ -19,6 +19,7 @@ from copy import deepcopy
 from collections import defaultdict
 import functools
 import inspect
+import numbers
 import os
 import traceback
 import types
@@ -2126,6 +2127,13 @@ cdef inline get_id_object_bytes_string_representation(
                 raise CatBoostError("bad object for id: {}".format(id_object))
             bytes_string_buf_representation[0] = ToString[i64](int(id_object))
 
+
+cdef inline ui64 get_timestamp_value(object obj) except *:
+    if isinstance(obj, numbers.Integral) and not isinstance(obj, bool):
+        return <ui64>obj
+    raise CatBoostError(f"bad type of value for timestamp: '{type(obj)}'")
+
+
 cdef UpdateThreadCount(thread_count):
     if thread_count == -1:
         thread_count = CachedNumberOfCpus()
@@ -3938,7 +3946,7 @@ cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
     cdef int i
     cdef int timestamps_len = len(timestamp)
     for i in xrange(timestamps_len):
-        builder_visitor[0].AddTimestamp(i, <ui64>timestamp[i])
+        builder_visitor[0].AddTimestamp(i, get_timestamp_value(timestamp[i]))
 
 
 def _set_label_from_num_nparray_objects_order(
@@ -4496,7 +4504,14 @@ cdef class _PoolBase:
         )
 
     cpdef _set_timestamp(self, timestamp):
-        cdef TVector[ui64] timestamp_vector = py_to_tvector[ui64](timestamp)
+        cdef Py_ssize_t i
+        cdef Py_ssize_t timestamps_len = len(timestamp)
+        cdef TVector[ui64] timestamp_vector
+        timestamp_vector.reserve(timestamps_len)
+
+        for i in xrange(timestamps_len):
+            timestamp_vector.push_back(get_timestamp_value(timestamp[i]))
+
         self.__pool.Get()[0].SetTimestamps(
             TConstArrayRef[ui64](timestamp_vector.data(), timestamp_vector.size())
         )

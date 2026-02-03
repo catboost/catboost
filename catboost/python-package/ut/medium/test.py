@@ -10672,6 +10672,41 @@ def test_pool_set_timestamp(task_type):
     return compare_canonical_models(output_model_path)
 
 
+bad_timestamp_data_desc = [
+    'None',
+    'Bool',
+    'OverflowInt',
+    'NegativeInt',
+    'Float',
+    'String',
+]
+
+
+@pytest.mark.parametrize('desc', bad_timestamp_data_desc)
+def test_pool_bad_timestamp_data(desc):
+    if desc == 'None':
+        timestamp = [None, 0, 3]
+    elif desc == 'Bool':
+        timestamp = [False, True, False]
+    elif desc == 'OverflowInt':
+        timestamp = [0, 2, 2**128]
+    elif desc == 'NegativeInt':
+        timestamp = [0, -2, 13]
+    elif desc == 'Float':
+        timestamp = [0.3, 0.11, 2.0]
+    elif desc == 'String':
+        timestamp = ['x', 'y', '']
+
+    features, labels = generate_random_labeled_dataset(n_samples=len(timestamp), n_features=5, labels=[0, 1])
+
+    with pytest.raises(Exception):
+        Pool(features, label=labels, timestamp=timestamp)
+
+    dataset = Pool(features, label=labels)
+    with pytest.raises(Exception):
+        dataset.set_timestamp(timestamp)
+
+
 @pytest.mark.parametrize('train_final_model', [True, False])
 def test_select_features(task_type, train_final_model):
     learn = Pool(TRAIN_FILE, column_description=CD_FILE)
