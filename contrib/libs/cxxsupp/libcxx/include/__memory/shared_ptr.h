@@ -58,7 +58,7 @@
 #include <new>
 #include <typeinfo>
 #if _LIBCPP_HAS_ATOMIC_HEADER
-#  include <atomic>
+#  include <__atomic/memory_order.h>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -144,12 +144,7 @@ class _LIBCPP_EXPORTED_FROM_ABI __shared_count {
   __shared_count& operator=(const __shared_count&);
 
 protected:
-#if !_LIBCPP_HAS_THREADS
-  typedef long __atomic_count;
-#else
-  typedef atomic<long> __atomic_count;
-#endif
-  __atomic_count __shared_owners_;
+  long __shared_owners_;
   virtual ~__shared_count();
 
 private:
@@ -162,41 +157,20 @@ public:
   void __add_shared() noexcept;
   bool __release_shared() noexcept;
 #else
-  _LIBCPP_HIDE_FROM_ABI void __add_shared() _NOEXCEPT {
-#  if !_LIBCPP_HAS_THREADS
-    __libcpp_atomic_refcount_increment(__shared_owners_);
-#  else
-    __shared_owners_++;
-#  endif
-  }
+  _LIBCPP_HIDE_FROM_ABI void __add_shared() _NOEXCEPT { __libcpp_atomic_refcount_increment(__shared_owners_); }
   _LIBCPP_HIDE_FROM_ABI bool __release_shared() _NOEXCEPT {
-#  if !_LIBCPP_HAS_THREADS
     if (__libcpp_atomic_refcount_decrement(__shared_owners_) == -1) {
-#  else
-    if (--__shared_owners_ == -1) {
-#  endif
       __on_zero_shared();
       return true;
     }
     return false;
   }
 #endif
-  _LIBCPP_HIDE_FROM_ABI long use_count() const _NOEXCEPT {
-#if !_LIBCPP_HAS_THREADS
-    return __libcpp_relaxed_load(&__shared_owners_) + 1;
-#else
-    return __shared_owners_.load(memory_order_relaxed) + 1;
-#endif
-  }
+  _LIBCPP_HIDE_FROM_ABI long use_count() const _NOEXCEPT { return __libcpp_relaxed_load(&__shared_owners_) + 1; }
 };
 
 class _LIBCPP_EXPORTED_FROM_ABI __shared_weak_count : private __shared_count {
-#if !_LIBCPP_HAS_THREADS
-  typedef long __atomic_count;
-#else
-  typedef atomic<long> __atomic_count;
-#endif
-  __atomic_count __shared_weak_owners_;
+  long __shared_weak_owners_;
 
 public:
   _LIBCPP_HIDE_FROM_ABI explicit __shared_weak_count(long __refs = 0) _NOEXCEPT
@@ -213,13 +187,7 @@ public:
   void __release_shared() noexcept;
 #else
   _LIBCPP_HIDE_FROM_ABI void __add_shared() _NOEXCEPT { __shared_count::__add_shared(); }
-  _LIBCPP_HIDE_FROM_ABI void __add_weak() _NOEXCEPT {
-#  if !_LIBCPP_HAS_THREADS
-    __libcpp_atomic_refcount_increment(__shared_weak_owners_);
-#  else
-    __shared_weak_owners_++;
-#  endif
-  }
+  _LIBCPP_HIDE_FROM_ABI void __add_weak() _NOEXCEPT { __libcpp_atomic_refcount_increment(__shared_weak_owners_); }
   _LIBCPP_HIDE_FROM_ABI void __release_shared() _NOEXCEPT {
     if (__shared_count::__release_shared())
       __release_weak();
