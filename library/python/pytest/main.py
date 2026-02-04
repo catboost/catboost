@@ -56,7 +56,7 @@ def main():
 
     test_modules = [
         # fmt: off
-        name[len(prefix) :]
+        name
         for name in sys.extra_modules
         if name.startswith(prefix) and not name.endswith('.conftest')
         # fmt: on
