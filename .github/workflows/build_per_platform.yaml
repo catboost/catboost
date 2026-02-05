@@ -70,9 +70,9 @@ jobs:
         id: get_version
         run: echo "version=$ImageVersion" >> $GITHUB_OUTPUT
 
-      # This step no longer works and not needed for new images:
+      # This step does not work and not needed for image version 20260126.19.1
       # https://github.com/actions/runner-images/issues/13587
-      - if: (inputs.os == 'linux') && (steps.get_version.outputs.version < '20260126.19.1')
+      - if: (inputs.os == 'linux') && (steps.get_version.outputs.version != '20260126.19.1')
         name: 'Maximize build space: stage 2'
         uses: easimon/maximize-build-space@master
         with:
