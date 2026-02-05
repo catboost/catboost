@@ -67,7 +67,6 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/ios.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/ios.instantiations.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/iostream.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/legacy_pointer_safety.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/locale.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/memory.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/memory_resource.cpp
