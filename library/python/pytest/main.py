@@ -2,6 +2,10 @@ import os
 import sys
 import time
 
+import yatest.common
+
+import yatest_lib.ya
+
 import __res
 
 FORCE_EXIT_TESTSFAILED_ENV = 'FORCE_EXIT_TESTSFAILED'
@@ -51,6 +55,8 @@ def main():
     # see https://st.yandex-team.ru/DEVTOOLSSUPPORT-50337
     m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_LINES", 16)
     m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_CHARS", 32 * 80)
+
+    yatest.common.runtime._set_ya_config(ya=yatest_lib.ya.Ya())
 
     prefix = '__tests__.'
 
