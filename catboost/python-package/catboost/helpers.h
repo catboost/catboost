@@ -54,6 +54,8 @@ void SetPythonInterruptHandler();
 void ResetPythonInterruptHandler();
 void ThrowCppExceptionWithMessage(const TString& message);
 
+void WaitAll(TVector<std::future<void>>& futures);
+
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
     const NCB::TDataProvider& srcData,

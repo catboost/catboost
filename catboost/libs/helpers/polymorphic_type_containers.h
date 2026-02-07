@@ -130,18 +130,14 @@ namespace NCB {
     };
 
 
-    template <
-        class TInterfaceValue,
-        class TStoredValue,
-        class TTransformer = TStaticCast<TStoredValue, TInterfaceValue>
-    >
-    class TTypeCastArraySubset final : public ITypedArraySubset<TInterfaceValue> {
+    template <class TInterfaceValue, class TArrayLikeData, class TTransformer>
+    class TTransformingArrayLikeSubset final : public ITypedArraySubset<TInterfaceValue> {
     public:
-        using TData = TMaybeOwningConstArrayHolder<TStoredValue>;
+        using TData = TArrayLikeData;
 
     public:
-        TTypeCastArraySubset(
-            TMaybeOwningConstArrayHolder<TStoredValue> data,
+        TTransformingArrayLikeSubset(
+            TData data,
             const TArraySubsetIndexing<ui32>* subsetIndexing
         )
             : Data(std::move(data))
@@ -166,7 +162,7 @@ namespace NCB {
         TIntrusivePtr<ITypedArraySubset<TInterfaceValue>> CloneWithNewSubsetIndexing(
             const TArraySubsetIndexing<ui32>* newSubsetIndexing
         ) const override {
-            return MakeIntrusive<TTypeCastArraySubset<TInterfaceValue, TStoredValue, TTransformer>>(
+            return MakeIntrusive<TTransformingArrayLikeSubset>(
                 Data,
                 newSubsetIndexing
             );
@@ -312,6 +308,17 @@ namespace NCB {
         TData Data;
         const TArraySubsetIndexing<ui32>* SubsetIndexing;
     };
+
+    template <
+        class TInterfaceValue,
+        class TStoredValue,
+        class TTransformer = TStaticCast<TStoredValue, TInterfaceValue>
+    >
+    using TTypeCastArraySubset = TTransformingArrayLikeSubset<
+        TInterfaceValue,
+        TMaybeOwningConstArrayHolder<TStoredValue>,
+        TTransformer
+    >;
 
 
     template <class T>
