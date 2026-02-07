@@ -2,8 +2,6 @@
 
 # This script has to be run in CI from CatBoost source tree root
 #
-# For python3.12+ it requires 'setuptools' package to be installed (for 'distutils')
-#
 # Environment variables used:
 #
 #  - GITHUB_ACTION: if it is defined it means this script is run inside GitHub action.
@@ -23,11 +21,11 @@
 import argparse
 import concurrent.futures
 import copy
-import distutils
 import hashlib
 import logging
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -73,6 +71,31 @@ else:
     elif sys.platform == 'darwin':
         JAVA_HOME = '/Library/Java/JavaVirtualMachines/jdk-8/Contents/Home/'
         CUDA_ROOT = None
+
+
+def copy_file(src: str, dst: str, verbose: bool = False, dry_run: bool = False):
+    if verbose:
+        logging.info(f'Copying file "{src}" to "{dst}"')
+    if not dry_run:
+        shutil.copy2(src, dst)
+
+
+def copy_tree(src: str, dst: str, verbose: bool = False, dry_run: bool = False):
+    if verbose:
+        logging.info(f'Copying directory "{src}" to "{dst}"')
+
+    if not dry_run:
+        # do not call shutil.copytree even with copy_file_closure because it checks the existence of 'src'
+        def copy_file_closure(src: str, dst: str):
+            copy_file(src, dst, verbose)
+        shutil.copytree(src, dst, copy_function=copy_file_closure, dirs_exist_ok=True)
+
+
+def mkpath(path: str, verbose: bool = False, dry_run: bool = False):
+    if verbose:
+        logging.info(f'Recusively creating a directory "{path}"')
+    if not dry_run:
+        os.makedirs(path, exist_ok=True)
 
 
 def need_to_build_with_cuda_for_main_targets(platform_name: str) -> bool:
@@ -193,7 +216,7 @@ def patch_sources(
     verbose: bool = False):
 
     # TODO(akhropov): Remove when system cuda.cmake is updated for Linux cross-build
-    distutils.file_util.copy_file(
+    copy_file(
         src=os.path.join(src_root_dir, 'ci', 'cmake', 'cuda.cmake'),
         dst=os.path.join(src_root_dir, 'cmake', 'cuda.cmake'),
         verbose=verbose,
@@ -278,9 +301,9 @@ def build_r_package(
     ]
     for entry in entries:
         if os.path.isdir(entry):
-            distutils.dir_util.copy_tree(entry, os.path.join('catboost', entry), verbose=verbose, dry_run=dry_run)
+            copy_tree(entry, os.path.join('catboost', entry), verbose=verbose, dry_run=dry_run)
         else:
-            distutils.file_util.copy_file(entry, os.path.join('catboost', entry), verbose=verbose, dry_run=dry_run)
+            copy_file(entry, os.path.join('catboost', entry), verbose=verbose, dry_run=dry_run)
 
     binary_dst_dir = os.path.join('catboost', 'inst', 'libs')
     if system == 'windows':
@@ -303,7 +326,7 @@ def build_r_package(
     if dry_run:
         logging.info(f'copying {full_src} -> {full_dst}')
     else:
-        distutils.file_util.copy_file(full_src, full_dst, verbose=verbose, dry_run=dry_run)
+        copy_file(full_src, full_dst, verbose=verbose, dry_run=dry_run)
 
     # some R versions on macOS use 'dylib' extension
     if system == 'darwin':
@@ -432,8 +455,8 @@ def copy_built_artifacts_to_canonical_place(
             if dry_run:
                 logging.info(f'copying {src} -> {dst}')
             else:
-                distutils.dir_util.mkpath(os.path.dirname(dst), verbose=verbose, dry_run=dry_run)
-                distutils.file_util.copy_file(src, dst, verbose=verbose, dry_run=dry_run)
+                mkpath(os.path.dirname(dst), verbose=verbose, dry_run=dry_run)
+                copy_file(src, dst, verbose=verbose, dry_run=dry_run)
 
 def get_real_build_root_dir(src_root_dir: str, built_output_root_dir: str) -> str:
     if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
