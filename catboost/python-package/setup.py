@@ -181,7 +181,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         if os.path.isdir(src):
             distutils.dir_util.copy_tree(src, dst, verbose=verbose, dry_run=dry_run)
         else:
-            distutils.dir_util.mkpath(os.path.dirname(dst))
+            distutils.dir_util.mkpath(os.path.dirname(dst), verbose=verbose, dry_run=dry_run)
             distutils.file_util.copy_file(src, dst, update=1, verbose=verbose, dry_run=dry_run)
 
 
