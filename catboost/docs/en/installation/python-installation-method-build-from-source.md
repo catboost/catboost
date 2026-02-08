@@ -34,6 +34,12 @@ For building with earlier versions see these pages:
 
 1. `setuptools` Python package, version 64.0+. Installed by default for Python < 3.12, an explicit installation is needed for Python 3.12+.
 
+    {% cut "Previous requirements" %}
+
+    For revisions before [5c26d15](https://github.com/catboost/catboost/commit/5c26d15fa5f218966a3dafb3f047d7f35650f235) supported 'setuptools' versions were >= 64.0 and < 81.0.
+
+    {% endcut %}
+
 1. Other setup dependencies that can be formulated as python packages are listed in [`pyproject.toml`](https://github.com/catboost/catboost/blob/master/catboost/python-package/pyproject.toml)'s `build-system.requires` and in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `setup_requires` parameter and processed using standard Python tools.
 
     {% note info %}
