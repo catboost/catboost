@@ -68,10 +68,12 @@
 
   Tests will check `catboost` module for the `python` interpreter you run them with, so if you want to test `catboost` python package built from source [build and install it first](../installation/python-installation-method-build-from-source#installation).
 
-  1. Install [pytest](https://pytest.org/), [pandas](https://pypi.org/project/pandas/), [ipywidgets](https://pypi.org/project/ipywidgets/) and [scikit-learn](https://pypi.org/project/scikit-learn/) packages for the python interpreter you intend to use.
+  1. Install [pytest](https://pytest.org/), [pandas](https://pypi.org/project/pandas/), [ipywidgets](https://pypi.org/project/ipywidgets/), [scikit-learn](https://pypi.org/project/scikit-learn/) and [polars](https://pypi.org/project/polars/) packages for the python interpreter you intend to use.
     Optionally install [pytest-xdist](https://pytest-xdist.readthedocs.io/en/stable/) and [pytest-randomly](https://github.com/pytest-dev/pytest-randomly) to run tests in parallel (it will be faster).
 
       {% cut "Previous requirements" %}
+
+      Before revision [9017641](https://github.com/catboost/catboost/commit/9017641d98bf4fc687277926e35c542320405d2f), `polars` package had not been used.
 
       Before revision [34606a6](https://github.com/catboost/catboost/commit/34606a6804dcb6bcd803188a97a0998fc3478a92) the supported `scikit-learn` versions were < 1.8.x.
 
