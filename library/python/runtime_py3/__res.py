@@ -113,15 +113,22 @@ def file_bytes(path, strip=False):
 def _guess_source_root():
     path, tail = _os.getcwd(), 'start'
 
+    root = None
     while tail:
         guidence_file = _path_join(path, '.root.path')
         if _path_isfile(guidence_file):
+            # return immediately when guidence file is found
             return file_bytes(guidence_file, strip=True)
 
-        if _path_isfile(_path_join(path, '.arcadia.root')):
-            return _b(path)
+        if _path_isfile(_path_join(path, '.arcadia.root')) and not root:
+            # save as a fallback but continue searching for a guidence file
+            # NOTE: .arcadia.root may be a symlink if it's set in DATA macros
+            # and it may be a regular file if ya:copydata tag is set
+            # in addition to that. So it's not very reliable.
+            root = _b(path)
 
         path, tail = _path_split(path)
+    return root
 
 
 def _get_source_root():
