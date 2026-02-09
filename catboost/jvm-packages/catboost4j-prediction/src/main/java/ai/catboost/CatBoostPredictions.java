@@ -20,10 +20,10 @@ public class CatBoostPredictions {
     CatBoostPredictions(final int objectCount, final int predictionDimension, final double[] data) {
         if (data.length != objectCount * predictionDimension) {
             final String message = "data size is incorrect, must be objectCount * predictionDimension = "
-                    + String.valueOf(objectCount * predictionDimension)
-                    + "(objectCount=" + String.valueOf(objectCount) + ", "
-                    + " predictionDimension=" + String.valueOf(predictionDimension) + ")"
-                    + " but got " + String.valueOf(data.length);
+                    + objectCount * predictionDimension
+                    + "(objectCount=" + objectCount + ", "
+                    + " predictionDimension=" + predictionDimension + ")"
+                    + " but got " + data.length;
             throw new IllegalArgumentException(message);
         }
 
@@ -77,7 +77,8 @@ public class CatBoostPredictions {
      */
     public void copyObjectPredictions(final int objectIndex, final double[] predictions) {
         if (predictions.length < getPredictionDimension()) {
-            throw new IllegalArgumentException("`predictions` size is insufficient, got " + String.valueOf(predictions.length) + "but must be at least " + String.valueOf(getPredictionDimension()));
+            throw new IllegalArgumentException("`predictions` size is insufficient, got " + predictions.length + "but must be at least " +
+                getPredictionDimension());
         }
 
         System.arraycopy(data, objectIndex * getPredictionDimension(), predictions, 0, getPredictionDimension());

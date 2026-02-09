@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandleProxies;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -12,16 +16,20 @@ import java.util.Map;
 import java.util.HashMap;
 
 import ai.catboost.common.NativeLib;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * CatBoost model, supports basic model application.
  */
 public class CatBoostModel implements AutoCloseable {
     private static final CatBoostJNI implLibrary;
+    private static final Logger log = LoggerFactory.getLogger(CatBoostModel.class);
 
     // handle to native C++ model
-    private long handle;
+    private final Handle handle;
     private final int predictionDimension;
     private final int treeCount;
     private final int usedNumericFeatureCount;
@@ -121,7 +129,7 @@ public class CatBoostModel implements AutoCloseable {
 
 
     private CatBoostModel(long handle) throws CatBoostError {
-        this.handle = handle;
+        this.handle = new Handle(handle);
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
@@ -349,7 +357,7 @@ public class CatBoostModel implements AutoCloseable {
 
     public FormulaEvaluatorType[] getSupportedEvaluatorTypes() throws CatBoostError {
         final String[][] evaluatorTypesAsStrings = new String[1][];
-        implLibrary.catBoostModelGetSupportedEvaluatorTypes(handle, evaluatorTypesAsStrings);
+        implLibrary.catBoostModelGetSupportedEvaluatorTypes(handle.get(), evaluatorTypesAsStrings);
         int evaluatorTypesSize = evaluatorTypesAsStrings[0].length;
         final FormulaEvaluatorType[] evaluatorTypes = new FormulaEvaluatorType[evaluatorTypesSize];
         for (int i = 0; i < evaluatorTypesSize; ++i) {
@@ -359,12 +367,12 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     public void setEvaluatorType(FormulaEvaluatorType evaluatorType) throws CatBoostError {
-        implLibrary.catBoostModelSetEvaluatorType(handle, evaluatorType.toString());
+        implLibrary.catBoostModelSetEvaluatorType(handle.get(), evaluatorType.toString());
     }
 
     public FormulaEvaluatorType getEvaluatorType() throws CatBoostError, IllegalArgumentException {
         final String[] evaluatorTypeAsString = new String[1];
-        implLibrary.catBoostModelGetEvaluatorType(handle, evaluatorTypeAsString);
+        implLibrary.catBoostModelGetEvaluatorType(handle.get(), evaluatorTypeAsString);
         return FormulaEvaluatorType.valueOf(evaluatorTypeAsString[0]);
     }
 
@@ -442,7 +450,7 @@ public class CatBoostModel implements AutoCloseable {
             final String @Nullable [] catFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatures,
                 /*textFeatures*/ null,
@@ -467,7 +475,7 @@ public class CatBoostModel implements AutoCloseable {
             final float @Nullable [][] embeddingFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatures,
                 textFeatures,
@@ -527,7 +535,7 @@ public class CatBoostModel implements AutoCloseable {
             final int @Nullable [] catFeatureHashes,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatureHashes,
                 /*textFeatures*/ null,
@@ -553,7 +561,7 @@ public class CatBoostModel implements AutoCloseable {
             final float @Nullable [][] embeddingFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatureHashes,
                 textFeatures,
@@ -612,7 +620,7 @@ public class CatBoostModel implements AutoCloseable {
             final String @Nullable [][] catFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatures,
                 /*textFeatures*/ null,
@@ -637,7 +645,7 @@ public class CatBoostModel implements AutoCloseable {
             final float @Nullable [][][] embeddingFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-                handle,
+                handle.get(),
                 numericFeatures,
                 catFeatures,
                 textFeatures,
@@ -670,7 +678,7 @@ public class CatBoostModel implements AutoCloseable {
         int resultSize = numericFeatures[0].length;
         final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
         implLibrary.catBoostModelPredictTransposed(
-            handle,
+            handle.get(),
             numericFeatures,
             prediction.getRawData()
         );
@@ -726,7 +734,7 @@ public class CatBoostModel implements AutoCloseable {
             final int @Nullable [][] catFeatureHashes,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-            handle,
+            handle.get(),
             numericFeatures,
             catFeatureHashes,
             /*textFeatures*/ null,
@@ -752,7 +760,7 @@ public class CatBoostModel implements AutoCloseable {
             final float @Nullable [][][] embeddingFeatures,
             final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
-            handle,
+            handle.get(),
             numericFeatures,
             catFeatureHashes,
             textFeatures,
@@ -819,21 +827,66 @@ public class CatBoostModel implements AutoCloseable {
     @Override
     protected void finalize() throws Throwable {
         try {
-            dispose();
+            handle.close();
         } finally {
             super.finalize();
         }
     }
 
-    private synchronized void dispose() throws CatBoostError {
-        if (handle != 0) {
-            implLibrary.catBoostFreeModel(handle);
-            handle = 0;
+    @Override
+    public void close() throws CatBoostError {
+        handle.close();
+    }
+
+    private static final class Handle implements AutoCloseable {
+        private final long initialHandle;
+        private final AtomicLong handle;
+
+        public Handle(final long handle) {
+            initialHandle = handle;
+            this.handle = new AtomicLong(handle);
+        }
+
+        public long get() {
+            return GetOpaqueShim.getOpaque(handle);
+        }
+
+        @Override
+        public void close() {
+            final long actualHandle = initialHandle;
+            if (handle.compareAndSet(actualHandle, 0)) {
+                try {
+                    implLibrary.catBoostFreeModel(actualHandle);
+                } catch (CatBoostError e) {
+                    log.error("Failed to close handle {}", actualHandle);
+                }
+            }
         }
     }
 
-    @Override
-    public void close() throws CatBoostError {
-        dispose();
+    private static final class GetOpaqueShim {
+        private static final Invoker INVOKER;
+        static {
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
+            final MethodType methodType = MethodType.methodType(long.class);
+
+            Invoker invoker;
+            try {
+                final MethodHandle methodHandle = lookup.findVirtual(AtomicLong.class, "getOpaque", methodType);
+                invoker = MethodHandleProxies.asInterfaceInstance(Invoker.class, methodHandle);
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                invoker = AtomicLong::get;
+            }
+            INVOKER = invoker;
+        }
+
+        public static long getOpaque(AtomicLong atomicLong) {
+            return INVOKER.getOpaque(atomicLong);
+        }
+
+        @FunctionalInterface
+        public interface Invoker {
+            long getOpaque(AtomicLong atomicLong);
+        }
     }
 }
