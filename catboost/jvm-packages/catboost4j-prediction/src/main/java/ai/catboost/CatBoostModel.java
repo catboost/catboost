@@ -1,13 +1,10 @@
 package ai.catboost;
 
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -15,23 +12,25 @@ import java.util.Map;
 import java.util.HashMap;
 
 import ai.catboost.common.NativeLib;
+import org.jspecify.annotations.Nullable;
 
 /**
  * CatBoost model, supports basic model application.
  */
 public class CatBoostModel implements AutoCloseable {
+    private static final CatBoostJNI implLibrary;
+
     // handle to native C++ model
-    private long handle = 0;
-    private int predictionDimension = 0;
-    private int treeCount = 0;
-    private int usedNumericFeatureCount = 0;
-    private int usedCategoricFeatureCount = 0;
-    private int usedTextFeatureCount = 0;
-    private int usedEmbeddingFeatureCount = 0;
-    private String[] featureNames;
-    private Map<String, String> metadata = new HashMap<String, String>();
-    private List<Feature> features = new ArrayList<Feature>();
-    private static CatBoostJNI implLibrary = null;
+    private long handle;
+    private final int predictionDimension;
+    private final int treeCount;
+    private final int usedNumericFeatureCount;
+    private final int usedCategoricFeatureCount;
+    private final int usedTextFeatureCount;
+    private final int usedEmbeddingFeatureCount;
+    private final String[] featureNames;
+    private final Map<String, String> metadata = new HashMap<>();
+    private final List<Feature> features = new ArrayList<>();
 
     public enum FormulaEvaluatorType {
         CPU,
@@ -69,7 +68,7 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     public static final class TextFeature extends Feature {
-        protected TextFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+        private TextFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
@@ -81,10 +80,10 @@ public class CatBoostModel implements AutoCloseable {
             AsFalse,
         }
 
-        private NanValueTreatment nanValueTreatment;
-        private boolean hasNans;
+        private final NanValueTreatment nanValueTreatment;
+        private final boolean hasNans;
 
-        protected FloatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel, int hasNans, String nanValueTreatment) {
+        private FloatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel, int hasNans, String nanValueTreatment) {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
             this.hasNans = hasNans > 0;
             this.nanValueTreatment = NanValueTreatment.valueOf(nanValueTreatment);
@@ -100,13 +99,13 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     public static final class CatFeature extends Feature {
-        protected CatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+        private CatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
 
     public static final class EmbeddingFeature extends Feature {
-        protected EmbeddingFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+        private EmbeddingFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
@@ -213,11 +212,7 @@ public class CatBoostModel implements AutoCloseable {
                                                    embeddingFlatFeatureIndex[0][i],
                                                    usedFeatureIndices.contains(embeddingFlatFeatureIndex[0][i])));
         }
-        Collections.sort(this.features, new Comparator<Feature>() {
-            public int compare(Feature v1, Feature v2) {
-                return v1.getFlatFeatureIndex() - v2.getFlatFeatureIndex();
-            }
-        });
+        this.features.sort(Comparator.comparingInt(Feature::getFlatFeatureIndex));
         this.featureNames = new String[this.features.size()];
         for (Feature f : this.features) {
             this.featureNames[f.getFlatFeatureIndex()] = f.getName();
@@ -231,8 +226,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return          CatBoost model.
      * @throws CatBoostError When failed to load model.
      */
-    @NotNull
-    public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
+    public static CatBoostModel loadModel(final String modelPath) throws CatBoostError {
         return loadModel(modelPath, "bin");
     }
 
@@ -244,8 +238,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return            CatBoost model.
      * @throws CatBoostError When failed to load model.
      */
-    @NotNull
-    public static CatBoostModel loadModel(final @NotNull String modelPath, @NotNull String modelFormat) throws CatBoostError {
+    public static CatBoostModel loadModel(final String modelPath, String modelFormat) throws CatBoostError {
         final long[] handles = new long[1];
 
         implLibrary.catBoostLoadModelFromFile(modelPath, handles, modelFormat);
@@ -259,8 +252,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  CatBoost model.
      * @throws CatBoostError When failed to load model.
      */
-    @NotNull
-    public static CatBoostModel loadModel(final @NotNull byte[] serializedModel) throws CatBoostError {
+    public static CatBoostModel loadModel(final byte[] serializedModel) throws CatBoostError {
         return loadModel(serializedModel, "bin");
     }
 
@@ -272,8 +264,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  CatBoost model.
      * @throws CatBoostError When failed to load model.
      */
-    @NotNull
-    public static CatBoostModel loadModel(final @NotNull byte[] serializedModel, @NotNull String modelFormat) throws CatBoostError {
+    public static CatBoostModel loadModel(final byte[] serializedModel, String modelFormat) throws CatBoostError {
         final long[] handles = new long[1];
 
         implLibrary.catBoostLoadModelFromArray(serializedModel, handles, modelFormat);
@@ -288,7 +279,6 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError When failed to load model.
      * @throws IOException When failed to read model from file.
      */
-    @NotNull
     public static CatBoostModel loadModel(final InputStream in) throws CatBoostError, IOException {
         return loadModel(in, "bin");
     }
@@ -302,8 +292,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError When failed to load model.
      * @throws IOException When failed to read model from file.
      */
-    @NotNull
-    public static CatBoostModel loadModel(final InputStream in, @NotNull String modelFormat) throws CatBoostError, IOException {
+    public static CatBoostModel loadModel(final InputStream in, String modelFormat) throws CatBoostError, IOException {
         final byte[] copyBuffer = new byte[4 * 1024];
 
         int bytesRead;
@@ -323,25 +312,25 @@ public class CatBoostModel implements AutoCloseable {
      * @return           Hash for categorical feature.
      * @throws CatBoostError In case of error within native library.
      */
-    public static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
-        int hash[] = new int[1];
+    public static int hashCategoricalFeature(final String catFeature) throws CatBoostError {
+        int[] hash = new int[1];
         implLibrary.catBoostHashCatFeature(catFeature, hash);
         return hash[0];
     }
 
     /**
-     * Hash array of categorical features.
+     * <p>Hash array of categorical features.</p>
      *
-     * May be cheaper to call this function once instead of calling {@link #hashCategoricalFeature(String)} for each
-     * categorical feature in array.
+     * <p>May be cheaper to call this function once instead of calling {@link #hashCategoricalFeature(String)} for each
+     * categorical feature in array.</p>
      *
      * @param catFeatures Array of categorical features.
      * @param hashes      Array of hashes of categorical features.
      * @throws CatBoostError In case of error within native library.
      */
     public static void hashCategoricalFeatures(
-            final @NotNull String[] catFeatures,
-            final @NotNull int[] hashes) throws CatBoostError {
+            final String[] catFeatures,
+            final int[] hashes) throws CatBoostError {
         implLibrary.catBoostHashCatFeatures(catFeatures, hashes);
     }
 
@@ -352,8 +341,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return            Array of hashes of categorical features.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
-    public static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
+    public static int[] hashCategoricalFeatures(final String[] catFeatures) throws CatBoostError {
         final int[] hashes = new int[catFeatures.length];
         hashCategoricalFeatures(catFeatures, hashes);
         return hashes;
@@ -450,9 +438,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable String[] catFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final String @Nullable [] catFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -473,11 +461,11 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable String[] catFeatures,
-            final @Nullable String[] textFeatures,
-            final @Nullable float[][] embeddingFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final String @Nullable [] catFeatures,
+            final String @Nullable [] textFeatures,
+            final float @Nullable [][] embeddingFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -496,10 +484,9 @@ public class CatBoostModel implements AutoCloseable {
      * @return                Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable String[] catFeatures) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final String @Nullable [] catFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatures, prediction);
         return prediction;
@@ -516,12 +503,11 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable String[] catFeatures,
-            final @Nullable String[] textFeatures,
-            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final String @Nullable [] catFeatures,
+            final String @Nullable [] textFeatures,
+            final float @Nullable [][] embeddingFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatures, textFeatures, embeddingFeatures, prediction);
         return prediction;
@@ -537,9 +523,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable int[] catFeatureHashes,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final int @Nullable [] catFeatureHashes,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -561,11 +547,11 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable int[] catFeatureHashes,
-            final @Nullable String[] textFeatures,
-            final @Nullable float[][] embeddingFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final int @Nullable [] catFeatureHashes,
+            final String @Nullable [] textFeatures,
+            final float @Nullable [][] embeddingFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -584,10 +570,9 @@ public class CatBoostModel implements AutoCloseable {
      * @return                 Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable int[] catFeatureHashes) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final int @Nullable [] catFeatureHashes) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, prediction);
         return prediction;
@@ -604,12 +589,11 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[] numericFeatures,
-            final @Nullable int[] catFeatureHashes,
-            final @Nullable String[] textFeatures,
-            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+            final float @Nullable [] numericFeatures,
+            final int @Nullable [] catFeatureHashes,
+            final String @Nullable [] textFeatures,
+            final float @Nullable [][] embeddingFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, prediction);
         return prediction;
@@ -624,9 +608,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable String[][] catFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final String @Nullable [][] catFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -647,11 +631,11 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable String[][] catFeatures,
-            final @Nullable String[][] textFeatures,
-            final @Nullable float[][][] embeddingFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final String @Nullable [][] catFeatures,
+            final String @Nullable [][] textFeatures,
+            final float @Nullable [][][] embeddingFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -670,10 +654,9 @@ public class CatBoostModel implements AutoCloseable {
      * @return                Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable String[][] catFeatures) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final String @Nullable [][] catFeatures) throws CatBoostError {
         return predict(numericFeatures, catFeatures, /*textFeatures*/ null, /*embeddingFeatures*/ null);
     }
 
@@ -683,8 +666,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return                Model predictions.
      * @throws CatBoostError  In case of error within native library.
      */
-    @NotNull
-    public CatBoostPredictions predictTransposed(final @NotNull float[][] numericFeatures) throws CatBoostError {
+    public CatBoostPredictions predictTransposed(final float[][] numericFeatures) throws CatBoostError {
         int resultSize = numericFeatures[0].length;
         final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
         implLibrary.catBoostModelPredictTransposed(
@@ -707,13 +689,12 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable String[][] catFeatures,
-            final @Nullable String[][] textFeatures,
-            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
-        int resultSize = 0;
+            final float @Nullable [][] numericFeatures,
+            final String @Nullable [][] catFeatures,
+            final String @Nullable [][] textFeatures,
+            final float @Nullable [][][] embeddingFeatures) throws CatBoostError {
+        int resultSize;
         if (numericFeatures != null) {
             resultSize = numericFeatures.length;
         } else if (catFeatures != null) {
@@ -741,9 +722,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable int[][] catFeatureHashes,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final int @Nullable [][] catFeatureHashes,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
             handle,
             numericFeatures,
@@ -765,11 +746,11 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable int[][] catFeatureHashes,
-            final @Nullable String[][] textFeatures,
-            final @Nullable float[][][] embeddingFeatures,
-            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final int @Nullable [][] catFeatureHashes,
+            final String @Nullable [][] textFeatures,
+            final float @Nullable [][][] embeddingFeatures,
+            final CatBoostPredictions prediction) throws CatBoostError {
         implLibrary.catBoostModelPredict(
             handle,
             numericFeatures,
@@ -788,10 +769,9 @@ public class CatBoostModel implements AutoCloseable {
      * @return                 Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable int[][] catFeatureHashes) throws CatBoostError {
+            final float @Nullable [][] numericFeatures,
+            final int @Nullable [][] catFeatureHashes) throws CatBoostError {
         if (numericFeatures == null && catFeatureHashes == null) {
             throw new CatBoostError("both arguments are null");
         }
@@ -814,13 +794,12 @@ public class CatBoostModel implements AutoCloseable {
      * @return                  Model predictions.
      * @throws CatBoostError In case of error within native library.
      */
-    @NotNull
     public CatBoostPredictions predict(
-            final @Nullable float[][] numericFeatures,
-            final @Nullable int[][] catFeatureHashes,
-            final @Nullable String[][] textFeatures,
-            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
-        int resultSize = 0;
+            final float @Nullable [][] numericFeatures,
+            final int @Nullable [][] catFeatureHashes,
+            final String @Nullable [][] textFeatures,
+            final float @Nullable [][][] embeddingFeatures) throws CatBoostError {
+        int resultSize;
         if (numericFeatures != null) {
             resultSize = numericFeatures.length;
         } else if (catFeatureHashes != null) {
