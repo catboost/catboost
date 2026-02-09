@@ -5,6 +5,8 @@
 #include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/hook/hook.h>
 #include <library/cpp/testing/hook/yt_initialize_hook.h>
+#include <library/cpp/json/json_value.h>
+#include <library/cpp/json/json_writer.h>
 #include <util/generic/scope.h>
 #include <util/string/join.h>
 #include <util/system/src_root.h>
@@ -406,7 +408,23 @@ void NGTest::ListTests(int listLevel, const std::string& listPath) {
             if (listLevel > 1) {
                 for (int j = 0; j < suite->total_test_count(); ++j) {
                     auto test = suite->GetTestInfo(j);
-                    (*listOut) << suite->name() << "::" << test->name() << "\n";
+                    if (false) {
+                        // TODO: YA-3943 будет открыто в следующем PR, активироввать функционал нужно в два шага
+                        NJson::TJsonValue testObj(NJson::JSON_MAP);
+
+                        testObj["test_suite_name"] = test->test_suite_name();
+                        testObj["name"] = test->name();
+                        testObj["file"] = test->file() ? test->file() : "";
+                        testObj["line"] = test->line();
+                        testObj["nodeid"] = std::string(test->test_suite_name()) + "::" + test->name();
+                        if (test->value_param()) {
+                            testObj["params"] = test->value_param();
+                        }
+
+                        (*listOut) << NJson::WriteJson(&testObj) << "\n";
+                    } else {
+                        (*listOut) << suite->name() << "::" << test->name() << "\n";
+                    }
                 }
             } else {
                 (*listOut) << suite->name() << "\n";
