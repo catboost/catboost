@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,22 +27,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 class CatBoostModelTest {
-    private static boolean testOnGPU = false;
+    private static boolean testOnGPU;
 
     @BeforeAll
-    static void Init() {
+    static void setUp() {
         System.setProperty("java.util.logging.config.file", ClassLoader.getSystemResource("logging.properties").getPath());
         final String testOnGPUProperty = System.getProperty("testOnGPU");
         final String[] trueValues = {"y", "yes", "true", "1"};
         testOnGPU = Arrays.asList(trueValues).contains(testOnGPUProperty);
     }
 
-    private static FormulaEvaluatorType[] getFormulaEvaluatorTypes() {
-        if (testOnGPU) {
-            return new FormulaEvaluatorType[]{FormulaEvaluatorType.CPU, FormulaEvaluatorType.GPU};
-        } else {
-            return new FormulaEvaluatorType[]{FormulaEvaluatorType.CPU};
-        }
+    private static Stream<FormulaEvaluatorType> getFormulaEvaluatorTypes() {
+        return Stream.concat(
+            Stream.of(FormulaEvaluatorType.CPU),
+            testOnGPU ? Stream.of(FormulaEvaluatorType.GPU) : Stream.empty()
+        );
     }
 
     static void assertEqualArrays(int[] expected, int[] actual) {
@@ -75,7 +76,7 @@ class CatBoostModelTest {
         try {
             return CatBoostModel.loadModel(loadResource("models/numeric_only_model.cbm"));
         } catch (IOException ioe) {
-            return Assertions.fail("failed to load numeric only model from resource, can't run tests without it");
+            return Assertions.fail("failed to load numeric only model from resource, can't run tests without it", ioe);
         }
     }
 
@@ -83,7 +84,7 @@ class CatBoostModelTest {
         try {
             return CatBoostModel.loadModel(loadResource("models/categoric_only_model.cbm"));
         } catch (IOException ioe) {
-            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it");
+            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it", ioe);
         }
     }
 
@@ -91,7 +92,7 @@ class CatBoostModelTest {
         try {
             return CatBoostModel.loadModel(loadResource("models/model.cbm"));
         } catch (IOException ioe) {
-            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it");
+            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it", ioe);
         }
     }
 
@@ -99,7 +100,7 @@ class CatBoostModelTest {
         try {
             return CatBoostModel.loadModel(loadResource("models/iris_model.cbm"));
         } catch (IOException ioe) {
-            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it");
+            return Assertions.fail("failed to load categoric only model from resource, can't run tests without it", ioe);
         }
     }
 
@@ -107,7 +108,7 @@ class CatBoostModelTest {
         try {
             return CatBoostModel.loadModel(loadResource("models/model_with_num_cat_and_text_features.cbm"));
         } catch (IOException ioe) {
-            return Assertions.fail("failed to load model with numerical, categorical and text features from resource, can't run tests without it");
+            return Assertions.fail("failed to load model with numerical, categorical and text features from resource, can't run tests without it", ioe);
         }
     }
 
@@ -236,12 +237,12 @@ class CatBoostModelTest {
 
     @Test
     void testGetSupportedEvaluatorTypes() throws CatBoostError {
-        final FormulaEvaluatorType[] expectedFormulaEvaluatorTypes = getFormulaEvaluatorTypes();
+        final FormulaEvaluatorType[] expectedFormulaEvaluatorTypes
+            = getFormulaEvaluatorTypes().toArray(FormulaEvaluatorType[]::new);
 
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             final FormulaEvaluatorType[] formulaEvaluatorTypes = model.getSupportedEvaluatorTypes();
-            Set<FormulaEvaluatorType> formulaEvaluatorTypesSet
-                = new HashSet<FormulaEvaluatorType>(Arrays.asList(formulaEvaluatorTypes));
+            Set<FormulaEvaluatorType> formulaEvaluatorTypesSet = new HashSet<>(Arrays.asList(formulaEvaluatorTypes));
 
             for (FormulaEvaluatorType formulaEvaluatorType : expectedFormulaEvaluatorTypes) {
                 assertTrue(formulaEvaluatorTypesSet.contains(formulaEvaluatorType));
