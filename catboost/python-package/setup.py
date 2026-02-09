@@ -474,7 +474,10 @@ class build_ext(_build_ext):
         sys.path = [os.path.join(topsrc_dir, 'build')] + sys.path
         import build_native
 
-        python3_root_dir = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
+        if sys.platform == 'win32':
+            python3_root_dir = os.path.abspath(os.path.dirname(sys.executable))
+        else:
+            python3_root_dir = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
         if self.with_cuda:
             cuda_support_msg = 'with CUDA support'
         else:
