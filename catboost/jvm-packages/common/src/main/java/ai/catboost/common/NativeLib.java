@@ -1,9 +1,9 @@
 package ai.catboost.common;
 
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,12 +16,12 @@ public class NativeLib {
     private static final String LOCK_EXT = ".lck";
 
     /**
-     * Load libName, first will try try to load libName from default location then will try to load library from JAR.
+     * Load libName, first will try to load libName from default location then will try to load library from JAR.
      *
-     * @param libName
-     * @throws IOException
+     * @param libName library name
+     * @throws IOException if the library fails ot load
      */
-    public static synchronized void smartLoad(final @NotNull String libName) throws IOException {
+    public static synchronized void smartLoad(final String libName) throws IOException {
         cleanup(libName);
         try {
             loadNativeLibraryFromJar(libName);
@@ -31,20 +31,19 @@ public class NativeLib {
         }
     }
 
-    @NotNull
     private static String[] getCurrentMachineResourcesDirs() {
         // Returns list of '<osName>-<osArch>' subdirs (like 'linux-aarch64', 'win32-x86_64')
         // On macOS this function returns paths for both arch-specific and universal binaries paths:
         // ('darwin-<osArch>', 'darwin-universal2').
 
-        String osArch = System.getProperty("os.arch").toLowerCase();
+        String osArch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
         // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
         // returns `x86_64`, so we'll have to fix this
         if (osArch.equals("amd64")) {
             osArch = "x86_64";
         }
 
-        String osName = System.getProperty("os.name").toLowerCase();
+        String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
 
         // Java doesn't seem to have analog for python's `sys.platform` or `platform.platform`, so we have to do it by
         // hand.
@@ -64,7 +63,7 @@ public class NativeLib {
         }
     }
 
-    private static void loadNativeLibraryFromJar(final @NotNull String libName) throws IOException {
+    private static void loadNativeLibraryFromJar(final String libName) throws IOException {
         for (String machineResourcesDir : getCurrentMachineResourcesDirs()) {
             final String pathWithinJar = "/" + machineResourcesDir + "/lib/" + System.mapLibraryName(libName);
             if (NativeLib.class.getResource(pathWithinJar) != null) {
@@ -76,11 +75,11 @@ public class NativeLib {
         throw new IOException("Native library '" + libName + "' not found");
     }
 
-    private static void copyFileFromJar(final @NotNull String pathWithinJar, final @NotNull String pathOnDisk) throws IOException {
+    private static void copyFileFromJar(final String pathWithinJar, final String pathOnDisk) throws IOException {
         byte[] copyBuffer = new byte[4 * 1024];
         int bytesRead;
 
-        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(pathOnDisk));
+        try(OutputStream out = new BufferedOutputStream(Files.newOutputStream(Paths.get(pathOnDisk)));
             InputStream in = NativeLib.class.getResourceAsStream(pathWithinJar)) {
 
             if (in == null) {
@@ -93,8 +92,7 @@ public class NativeLib {
         }
     }
 
-    @NotNull
-    private static String createTemporaryFileFromJar(final @NotNull String pathWithinJar) throws IOException, IllegalArgumentException {
+    private static String createTemporaryFileFromJar(final String pathWithinJar) throws IOException, IllegalArgumentException {
         if (!pathWithinJar.startsWith("/")) {
             throw new IllegalArgumentException("Path must be absolute (start with '/')");
         }
@@ -125,7 +123,7 @@ public class NativeLib {
     /**
      * Delete old native libraries
      */
-    private static void cleanup(final @NotNull String libName) {
+    private static void cleanup(final String libName) {
         final String searchPattern = libName + "-";
 
         try (Stream<Path> dirList = Files.list(new File(System.getProperty("java.io.tmpdir")).toPath())) {
