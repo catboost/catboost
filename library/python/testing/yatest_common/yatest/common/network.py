@@ -170,9 +170,9 @@ class PortManager(object):
 
     def is_port_free(self, port, sock_type=socket.SOCK_STREAM):
         sock = socket.socket(socket.AF_INET6, sock_type)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind(('::', port))
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         except socket.error as e:
             if e.errno == errno.EADDRINUSE:
                 return False
