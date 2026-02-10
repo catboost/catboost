@@ -1062,11 +1062,8 @@ namespace NCB {
                 TConstArrayRef<T> values,
                 TFeaturesStorage* storage
             ) {
-                Y_POD_STATIC_THREAD(int) threadId(-1);
-                if (Y_UNLIKELY(threadId == -1)) {
-                    threadId = storage->LocalExecutor->GetWorkerThreadId();
-                    TRawObjectsOrderDataProviderBuilder::CheckThreadId(threadId);
-                }
+                int threadId = storage->LocalExecutor->GetWorkerThreadId();
+                TRawObjectsOrderDataProviderBuilder::CheckThreadId(threadId);
                 auto& sparseDataPart = storage->SparseDataParts[threadId];
                 for (auto idx : indices) {
                     sparseDataPart.Indices.emplace_back(TSparseIndex2d{idx, objectIdx});
