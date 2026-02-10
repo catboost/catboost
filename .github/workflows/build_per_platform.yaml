@@ -128,11 +128,11 @@ jobs:
             python_versions_macos_x86_64
 
       - if: inputs.os == 'macos'
-        name: Setup JDK 8 on macOS
-        uses: actions/setup-java@v4
+        name: Setup JDK 25 on macOS
+        uses: actions/setup-java@v5.2.0
         with:
           distribution: 'zulu'
-          java-version: '8'
+          java-version: '25'
           java-package: jdk
           cache: 'maven'
           cache-dependency-path: |
