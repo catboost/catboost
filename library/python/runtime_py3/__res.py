@@ -503,24 +503,6 @@ class ResourceImporter(SourceFileLoader):
 
         raise ImportError(fullname)
 
-    # Extension for contrib/python/coverage.
-    def file_source(self, filename):
-        """
-        Return the key of the module source by its resource path.
-        """
-        if not self.source_map:
-            for key, mod in iter_py_modules(with_keys=True):
-                path = self.get_filename(mod)
-                self.source_map[path] = key
-
-        if filename in self.source_map:
-            return self.source_map[filename]
-
-        if resfs_has(filename):
-            return b'resfs/file/' + _b(filename)
-
-        return b''
-
     # Extension for pkgutil.iter_modules.
     def iter_modules(self, prefix=''):
         import re
