@@ -107,6 +107,7 @@ class CUDAManager:
             SECTIONS {
                 .nv_fatbin : { *(.nv_fatbin) }
                 .ldata : { *(.ldata) }
+                .lrodata : { *(.lrodata .lrodata.*) }
             } INSERT AFTER .bss
         """).strip()
 
