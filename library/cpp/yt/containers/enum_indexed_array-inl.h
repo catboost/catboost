@@ -12,7 +12,7 @@ namespace NYT {
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class E, class T, E Min, E Max>
-TEnumIndexedArray<E, T, Min, Max>::TEnumIndexedArray(std::initializer_list<std::pair<E, T>> elements)
+constexpr TEnumIndexedArray<E, T, Min, Max>::TEnumIndexedArray(std::initializer_list<std::pair<E, T>> elements)
 {
     for (const auto& [index, value] : elements) {
         (*this)[index] = value;
@@ -20,38 +20,38 @@ TEnumIndexedArray<E, T, Min, Max>::TEnumIndexedArray(std::initializer_list<std::
 }
 
 template <class E, class T, E Min, E Max>
-T& TEnumIndexedArray<E, T, Min, Max>::operator[] (E index)
+constexpr T& TEnumIndexedArray<E, T, Min, Max>::operator[] (E index)
 {
     YT_ASSERT(IsValidIndex(index));
     return Items_[ToUnderlying(index) - ToUnderlying(Min)];
 }
 
 template <class E, class T, E Min, E Max>
-const T& TEnumIndexedArray<E, T, Min, Max>::operator[] (E index) const
+constexpr const T& TEnumIndexedArray<E, T, Min, Max>::operator[] (E index) const
 {
     return const_cast<TEnumIndexedArray&>(*this)[index];
 }
 
 template <class E, class T, E Min, E Max>
-T* TEnumIndexedArray<E, T, Min, Max>::begin()
+constexpr T* TEnumIndexedArray<E, T, Min, Max>::begin()
 {
     return Items_.data();
 }
 
 template <class E, class T, E Min, E Max>
-const T* TEnumIndexedArray<E, T, Min, Max>::begin() const
+constexpr const T* TEnumIndexedArray<E, T, Min, Max>::begin() const
 {
     return Items_.data();
 }
 
 template <class E, class T, E Min, E Max>
-T* TEnumIndexedArray<E, T, Min, Max>::end()
+constexpr T* TEnumIndexedArray<E, T, Min, Max>::end()
 {
     return begin() + Size;
 }
 
 template <class E, class T, E Min, E Max>
-const T* TEnumIndexedArray<E, T, Min, Max>::end() const
+constexpr const T* TEnumIndexedArray<E, T, Min, Max>::end() const
 {
     return begin() + Size;
 }
@@ -63,7 +63,7 @@ constexpr size_t TEnumIndexedArray<E, T, Min, Max>::size() const
 }
 
 template <class E, class T, E Min, E Max>
-bool TEnumIndexedArray<E, T, Min, Max>::IsValidIndex(E index)
+constexpr bool TEnumIndexedArray<E, T, Min, Max>::IsValidIndex(E index)
 {
     return index >= Min && index <= Max;
 }
