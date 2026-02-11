@@ -18,13 +18,7 @@
 // The code below is copied as-is into libc++abi's libcxxabi/src/stdlib_new_delete.cpp
 // file. The version in this file is the canonical one.
 
-inline void __throw_bad_alloc_shim() {
-# ifdef __EMSCRIPTEN__
-  abort();
-#else
-  std::__throw_bad_alloc();
-#endif
-}
+inline void __throw_bad_alloc_shim() { std::__throw_bad_alloc(); }
 
 #  define _LIBCPP_ASSERT_SHIM(expr, str) _LIBCPP_ASSERT(expr, str)
 
