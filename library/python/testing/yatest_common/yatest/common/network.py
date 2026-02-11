@@ -170,7 +170,10 @@ class PortManager(object):
 
     def is_port_free(self, port, sock_type=socket.SOCK_STREAM):
         sock = socket.socket(socket.AF_INET6, sock_type)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if os.name == 'nt' and hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        else:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind(('::', port))
         except socket.error as e:
