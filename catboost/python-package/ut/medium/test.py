@@ -8315,7 +8315,7 @@ def test_tweedie_loss_on_gpu(task_type, variance_power):
             'loss_function': 'Tweedie:variance_power=' + str(variance_power),
             'task_type': task_type,
             'gpu_ram_part': TEST_GPU_RAM_PART,
-            'devices': '0-3'
+            'devices': '0'
         }
     )
 
@@ -8334,7 +8334,7 @@ def test_huber_loss_on_gpu(task_type, delta):
             'loss_function': 'Huber:delta=' + str(delta),
             'task_type': task_type,
             'gpu_ram_part': TEST_GPU_RAM_PART,
-            'devices': '0-3'
+            'devices': '0'
         }
     )
 
