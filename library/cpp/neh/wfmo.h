@@ -2,14 +2,14 @@
 
 #include "lfqueue.h"
 
-#include <library/cpp/deprecated/atomic_bool/bool.h>
-
 #include <util/generic/vector.h>
 #include <util/generic/scope.h>
 #include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
+
+#include <atomic>
 
 namespace NNeh {
     template <class T>
@@ -73,7 +73,7 @@ namespace NNeh {
                 return TIntrusivePtr<TWaitQueue>(AtomicSwap(&WaitQueue_, newQueue), TIntrusivePtr<TWaitQueue>::TNoIncrement());
             }
         private:
-            NAtomic::TBool Signalled_ = false;
+            std::atomic<bool> Signalled_ = false;
             TWaitQueue* WaitQueue_ = nullptr;
         };
 

@@ -1,7 +1,6 @@
 #include "rq.h"
 #include "lfqueue.h"
 
-#include <library/cpp/deprecated/atomic_bool/bool.h>
 
 #include <util/system/tls.h>
 #include <util/system/pipe.h>
@@ -11,6 +10,8 @@
 #include <util/system/guard.h>
 #include <util/network/socket.h>
 #include <util/generic/deque.h>
+
+#include <atomic>
 
 using namespace NNeh;
 
@@ -231,7 +232,7 @@ namespace {
         }
 
         TAutoEvent Ev;
-        NAtomic::TBool InWait;
+        std::atomic<bool> InWait;
     };
 
     template <class TEvent>
