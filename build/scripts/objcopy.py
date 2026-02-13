@@ -183,7 +183,7 @@ def parse_args():
     parser.add_argument('--keys', nargs='+', required=False, default=[])
     parser.add_argument('--kvs', nargs='+', required=False, default=[])
     parser.add_argument('--target', required=True)
-    parser.add_argument('--arch_32_bits', required=False, action='store_true', default=True)
+    parser.add_argument('--arch_32_bits', required=False, action='store_true', default=False)
 
     help_msg = 'The threshold for large resources in megabytes (Mb). '
     help_msg += 'If the compressed resource exceeds X Mb, it will be stored in the .lrodata '
