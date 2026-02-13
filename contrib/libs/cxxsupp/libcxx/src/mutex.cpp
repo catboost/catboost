@@ -12,9 +12,7 @@
 #include <limits>
 #include <mutex>
 
-#if !defined(_LIBCPP_ABI_MICROSOFT)
-#  include "include/atomic_support.h"
-#endif
+#include "include/atomic_support.h"
 
 #if defined(__ELF__) && defined(_LIBCPP_LINK_PTHREAD_LIB)
 #  pragma comment(lib, "pthread")

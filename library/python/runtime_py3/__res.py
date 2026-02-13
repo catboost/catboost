@@ -295,7 +295,6 @@ class ResourceImporter(SourceFileLoader):
     def __init__(self, fullname, path):
         super().__init__(fullname, path)
         self.memory = set(iter_py_modules())  # Set of importable module names.
-        self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
 
@@ -502,24 +501,6 @@ class ResourceImporter(SourceFileLoader):
             return self.arcadia_source_finder.is_package(fullname)
 
         raise ImportError(fullname)
-
-    # Extension for contrib/python/coverage.
-    def file_source(self, filename):
-        """
-        Return the key of the module source by its resource path.
-        """
-        if not self.source_map:
-            for key, mod in iter_py_modules(with_keys=True):
-                path = self.get_filename(mod)
-                self.source_map[path] = key
-
-        if filename in self.source_map:
-            return self.source_map[filename]
-
-        if resfs_has(filename):
-            return b'resfs/file/' + _b(filename)
-
-        return b''
 
     # Extension for pkgutil.iter_modules.
     def iter_modules(self, prefix=''):

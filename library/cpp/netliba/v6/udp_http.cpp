@@ -4,8 +4,6 @@
 #include "udp_socket.h"
 #include "cpu_affinity.h"
 
-#include <library/cpp/deprecated/atomic_bool/bool.h>
-
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/thread.h>
@@ -23,9 +21,9 @@ namespace NNetliba {
     const float HTTP_TIMEOUT = 15.0f;
     const int MIN_SHARED_MEM_PACKET = 1000;
 
-    static ::NAtomic::TBool PanicAttack;
+    static std::atomic<bool> PanicAttack = false;
     static std::atomic<NHPTimer::STime> LastHeartbeat;
-    static std::atomic<double> HeartbeatTimeout;
+    static std::atomic<double> HeartbeatTimeout = 0.0;
 
     static int GetPacketSize(TRequest* req) {
         if (req && req->Data.Get())

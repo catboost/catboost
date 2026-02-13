@@ -29,13 +29,24 @@ class LLVMResourceInserter:
 
         self.tmpdir = tempfile.mkdtemp()
 
+        self.LARGE_RESOURCE_SIZE_THRESHOLD = args.large_resource_thr
         self.SECTION_NAME = '__DATA,__res_holder' if 'apple' in args.target else '.rodata.__res_holder'
+        self.LARGE_SECTION_NAME = '__DATA,__res_holder' if 'apple' in args.target else '.lrodata.__res_holder'
+
+        # Actually there is no large sections on 32-bit arch
+        if args.arch_32_bits:
+            self.LARGE_SECTION_NAME = self.SECTION_NAME
 
     def __enter__(self):
         return self
 
     def __exit__(self, *_):
         shutil.rmtree(self.tmpdir)
+
+    def _get_section_name(self, size: int) -> str:
+        # If the inserted resource is larger (or equal) than X Mb, we will put it in the lrodata section.
+        LARGE_RESOURCE_SIZE_MB = self.LARGE_RESOURCE_SIZE_THRESHOLD
+        return self.LARGE_SECTION_NAME if (size >> 20) >= LARGE_RESOURCE_SIZE_MB else self.SECTION_NAME
 
     PackedArgs = namedtuple("PackedArgs", ["infile_path", "comressed_file_path", "symbol_name"])
 
@@ -63,7 +74,8 @@ class LLVMResourceInserter:
                     shutil.copyfileobj(fin, fout)
         return
 
-    def _insert_files(self, infos: list[PackedArgs], output_obj: str) -> None:
+    def _insert_files(self, infos: list[PackedArgs], f_sizes: list[int], output_obj: str) -> None:
+        TOTAL_SIZE = sum(f_sizes)
         if len(infos) == 0:
             return
 
@@ -73,7 +85,8 @@ class LLVMResourceInserter:
         self.flat_merge_obj(compressed_files, merged_output)
 
         # Update section content
-        cmd = [self.objcopy, f'--update-section={self.SECTION_NAME}={merged_output}', output_obj]
+        SEC = self._get_section_name(TOTAL_SIZE)
+        cmd = [self.objcopy, f'--update-section={SEC}={merged_output}', output_obj]
         call(cmd)
 
     def _gen_prefix(self, infos: list[PackedArgs], f_sizes: list[int]) -> str:
@@ -90,7 +103,8 @@ class LLVMResourceInserter:
             cumulative_pos[i + 1] = cumulative_pos[i] + sz
         cumulative_pos.pop()
 
-        SECTION_ATTR = f'__attribute__((section("{self.SECTION_NAME}")))'
+        SEC = self._get_section_name(TOTAL_SIZE)
+        SECTION_ATTR = f'__attribute__((section("{SEC}")))'
         HOLDER_VARIABLE = 'resource_holder'
         generated_return = f'static {SECTION_ATTR} const char {HOLDER_VARIABLE}[{TOTAL_SIZE}] = {{0}};\n'
         template = '#define {sym}      ({var} + {begin_offset})\n'
@@ -153,7 +167,7 @@ class LLVMResourceInserter:
 
         # Step 3: Put files into object
         if sum(file_sizes) > 0:
-            self._insert_files(packed_args, self.obj_out)
+            self._insert_files(packed_args, file_sizes, self.obj_out)
 
         return self.obj_out
 
@@ -169,6 +183,13 @@ def parse_args():
     parser.add_argument('--keys', nargs='+', required=False, default=[])
     parser.add_argument('--kvs', nargs='+', required=False, default=[])
     parser.add_argument('--target', required=True)
+    parser.add_argument('--arch_32_bits', required=False, action='store_true', default=False)
+
+    help_msg = 'The threshold for large resources in megabytes (Mb). '
+    help_msg += 'If the compressed resource exceeds X Mb, it will be stored in the .lrodata '
+    help_msg += 'section instead of the .rodata section. This feature only works on 64-bit Linux systems. '
+    help_msg += 'This options can be changed via YMAKE_OBJCOPY_LARGE_RESOURCE_THR.'
+    parser.add_argument('--large_resource_thr', required=False, type=int, default=64, help=help_msg)
 
     args = parser.parse_args()
 

@@ -1,11 +1,10 @@
 #pragma once
 
-#include <library/cpp/deprecated/atomic_bool/bool.h>
-
 #include <util/network/address.h>
 #include <util/system/thread.h>
 #include <util/generic/cast.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
+
+#include <atomic>
 
 namespace NNeh {
     typedef TAutoPtr<TThread> TThreadRef;
@@ -35,5 +34,5 @@ namespace NNeh {
 
     NAddr::IRemoteAddrPtr GetPeerAddr(SOCKET s);
 
-    using TAtomicBool = NAtomic::TBool;
+    using TAtomicBool = std::atomic<bool>;
 }

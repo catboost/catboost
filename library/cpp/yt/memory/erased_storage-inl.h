@@ -5,6 +5,7 @@
 #endif
 
 #include <algorithm>
+#include <new>
 
 namespace NYT {
 

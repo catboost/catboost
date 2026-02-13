@@ -107,6 +107,7 @@ class CUDAManager:
             SECTIONS {
                 .nv_fatbin : { *(.nv_fatbin) }
                 .ldata : { *(.ldata) }
+                .lrodata : { *(.lrodata .lrodata.*) }
             } INSERT AFTER .bss
         """).strip()
 
@@ -195,13 +196,19 @@ def add_custom_linker_script(cmd, cuda_manager, build_root):
     return list(cmd) + [script_path]
 
 
-def fix_cmd_for_dynamic_cuda(cmd):
+def fix_cmd_for_dynamic_cuda(cmd, coverage_enabled):
     flags = []
     for flag in cmd:
         if flag in CUDA_LIBRARIES:
             flags.append(CUDA_LIBRARIES[flag])
         else:
             flags.append(flag)
+
+    if coverage_enabled:
+        # might get undefined symbol for libm symbols when coverage is enabled
+        # even though the program will be run with newer OS_SDK
+        flags.append('-Wl,--allow-shlib-undefined')
+
     return flags
 
 
@@ -230,6 +237,10 @@ if __name__ == '__main__':
     nv = kv['NVPRUNE']
     oc = kv['OBJCOPY']
 
+    coverage_enabled = False
+    if 'CLANG_COVERAGE' in kv and kv['CLANG_COVERAGE'] == 'True':
+        coverage_enabled = True
+
     cuda_manager = CUDAManager(ca, nv)
 
     try:
@@ -240,7 +251,7 @@ if __name__ == '__main__':
     cmd = add_custom_linker_script(cmd, cuda_manager, br)
 
     if '--dynamic-cuda' in cmd:
-        cmd = fix_cmd_for_dynamic_cuda(cmd)
+        cmd = fix_cmd_for_dynamic_cuda(cmd, coverage_enabled)
     else:
         cmd = process_cuda_libraries_by_nvprune(cmd, cuda_manager, br)
         cmd = process_cuda_libraries_by_objcopy(cmd, br, oc)
