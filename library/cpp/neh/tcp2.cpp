@@ -8,7 +8,6 @@
 
 #include <library/cpp/dns/cache.h>
 #include <library/cpp/neh/asio/executor.h>
-#include <library/cpp/deprecated/atomic_bool/bool.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
@@ -292,7 +291,7 @@ namespace {
             }
 
             bool HasData() const noexcept {
-                return Parts_.size();
+                return !Parts_.empty();
             }
 
             TContIOVector* GetIOvec() noexcept {
@@ -568,7 +567,7 @@ namespace {
                 const TParsedLocation Loc_;
                 const TResolvedHost* Addr_;
                 TConnectionRef Conn_;
-                NAtomic::TBool Canceled_;
+                std::atomic<bool> Canceled_;
                 TSpinLock IdLock_;
                 std::atomic<TRequestId> Id_;
             };
@@ -1119,12 +1118,7 @@ namespace {
 
             struct TRequest: public IRequest {
                 struct TState: public TThrRefBase {
-                    TState()
-                        : Canceled(false)
-                    {
-                    }
-
-                    TAtomicBool Canceled;
+                    TAtomicBool Canceled = false;
                 };
                 typedef TIntrusivePtr<TState> TStateRef;
 
@@ -1479,7 +1473,7 @@ namespace {
             private:
                 TServer& Srv_;
                 TTcpSocketRef AS_;
-                NAtomic::TBool Canceled_;
+                std::atomic<bool> Canceled_;
                 TString RemoteHost_;
 
                 //input

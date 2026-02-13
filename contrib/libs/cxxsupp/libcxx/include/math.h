@@ -291,9 +291,11 @@ long double    truncl(long double x);
 
 */
 
-#  if defined(__CUDACC__)
+#  if defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#error  include <__cxx03/math.h>
+# elif defined(__CUDACC__)
 #    include <math_cuda.h>
-#  else // 0
+#  else
 #    include <__config>
 
 #    if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -505,7 +507,7 @@ using std::__math::trunc;
 } // extern "C++"
 
 #    endif // __cplusplus
-#  endif // __CUDACC__
+#  endif   // defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
 
 #else // _LIBCPP_MATH_H
 

@@ -295,7 +295,6 @@ class ResourceImporter(SourceFileLoader):
     def __init__(self, fullname, path):
         super().__init__(fullname, path)
         self.memory = set(iter_py_modules())  # Set of importable module names.
-        self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
 

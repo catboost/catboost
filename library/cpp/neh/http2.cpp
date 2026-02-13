@@ -1856,7 +1856,7 @@ namespace {
             TLockFreeQueue<TResponseDataRef> ResponsesDataQueue_;
             THashMap<TAtomicBase, TResponseDataRef> ResponsesData_;
 
-            TAtomicBool Canceled_;
+            TAtomicBool Canceled_ = false;
             TAtomicBool SeenMessageWithoutKeepalive_ = false;
 
             i32 LeftRequestsToDisconnect_ = -1;

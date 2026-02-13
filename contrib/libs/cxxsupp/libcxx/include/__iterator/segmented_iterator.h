@@ -74,7 +74,7 @@ struct __has_specialization<_Tp, sizeof(_Tp) * 0> : true_type {};
 #endif
 
 template <class _Iterator>
-using __is_segmented_iterator = __has_specialization<__segmented_iterator_traits<_Iterator> >;
+using __is_segmented_iterator _LIBCPP_NODEBUG = __has_specialization<__segmented_iterator_traits<_Iterator> >;
 
 _LIBCPP_END_NAMESPACE_STD
 
