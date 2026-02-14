@@ -137,10 +137,10 @@ namespace NKernel {
             case EOperatorType::Sum: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                 thrust::plus<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2006000
                                                  cuda::std::plus<T>(),
+#else
+                                                 thrust::plus<T>(),
 #endif
                                                  T(),
                                                  stream);
@@ -148,10 +148,10 @@ namespace NKernel {
             case EOperatorType::Max: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                 thrust::maximum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                  cuda::maximum<T>(),
+#else
+                                                 thrust::maximum<T>(),
 #endif
                                                  -std::numeric_limits<T>::infinity(),
                                                  stream);
@@ -159,10 +159,10 @@ namespace NKernel {
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                 thrust::minimum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                  cuda::minimum<T>(),
+#else
+                                                 thrust::minimum<T>(),
 #endif
                                                  std::numeric_limits<T>::infinity(),
                                                  stream);
@@ -195,10 +195,10 @@ namespace NKernel {
                                                      keys, outKeys,
                                                      input, output,
                                                      outputSize,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                     thrust::plus<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2006000
                                                      cuda::std::plus<T>(),
+#else
+                                                     thrust::plus<T>(),
 #endif
                                                      size,
                                                      stream);
@@ -208,10 +208,10 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                      thrust::maximum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                       cuda::maximum<T>(),
+#else
+                                                      thrust::maximum<T>(),
 #endif
                                                       size,
                                                       stream);
@@ -221,10 +221,10 @@ namespace NKernel {
                                                       keys, outKeys,
                                                       input, output,
                                                       outputSize,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                      thrust::minimum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                       cuda::minimum<T>(),
+#else
+                                                      thrust::minimum<T>(),
 #endif
                                                       size,
                                                       stream);
@@ -324,10 +324,10 @@ namespace NKernel {
                     return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                               input, output, numSegments,
                                                               beginOffsets, endOffsets,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                              thrust::plus<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2006000
                                                               cuda::std::plus<T>(),
+#else
+                                                              thrust::plus<T>(),
 #endif
                                                               T(),
                                                               stream);
@@ -337,10 +337,10 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                              thrust::maximum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                               cuda::maximum<T>(),
+#else
+                                                              thrust::maximum<T>(),
 #endif
                                                               T(),
                                                               stream);
@@ -350,10 +350,10 @@ namespace NKernel {
                                                               input, output,
                                                               numSegments,
                                                               beginOffsets, endOffsets,
-#if __CUDACC_VER_MAJOR__ < 12
-                                                              thrust::minimum<T>(),
-#else
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
                                                               cuda::minimum<T>(),
+#else
+                                                              thrust::minimum<T>(),
 #endif
                                                               T(),
                                                               stream);
