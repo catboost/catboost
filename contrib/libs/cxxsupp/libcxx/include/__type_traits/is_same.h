@@ -49,7 +49,7 @@ inline constexpr bool is_same_v = is_same<_Tp, _Up>::value;
 // (such as in a dependent return type).
 
 template <class _Tp, class _Up>
-using _IsSame = _BoolConstant<
+using _IsSame _LIBCPP_NODEBUG = _BoolConstant<
 #if defined(__clang__) && !defined(__CUDACC__)
     __is_same(_Tp, _Up)
 #else
@@ -58,7 +58,7 @@ using _IsSame = _BoolConstant<
     >;
 
 template <class _Tp, class _Up>
-using _IsNotSame = _BoolConstant<
+using _IsNotSame _LIBCPP_NODEBUG = _BoolConstant<
 #if defined(__clang__) && !defined(__CUDACC__)
     !__is_same(_Tp, _Up)
 #else

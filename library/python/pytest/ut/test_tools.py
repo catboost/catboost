@@ -48,10 +48,11 @@ def test_split_node_id_without_path(parameters, node_id, expected_class_name, ex
         ),
     ),
 )
-def test_split_node_id_with_path(mocker, parameters, node_id, expected_class_name, expected_test_name):
-    mocker.patch.object(sys, 'extra_modules', sys.extra_modules | {'__tests__.package.test_script'})
-    got = yatest_tools.split_node_id(node_id + parameters)
-    assert (expected_class_name, expected_test_name + parameters) == got
+def test_split_node_id_with_path(monkeypatch, parameters, node_id, expected_class_name, expected_test_name):
+    with monkeypatch.context() as context:
+        context.setattr(sys, 'extra_modules', sys.extra_modules | {'__tests__.package.test_script'})
+        got = yatest_tools.split_node_id(node_id + parameters)
+        assert (expected_class_name, expected_test_name + parameters) == got
 
 
 def test_missing_module(parameters):
@@ -84,7 +85,7 @@ def test_split_node_id_with_test_suffix(parameters, node_id, expected_class_name
     ],
 )
 def test_path_resolving_for_local_conftest_load_policy(
-    mocker, parameters, node_id, expected_class_name, expected_test_name
+    monkeypatch, parameters, node_id, expected_class_name, expected_test_name
 ):
     # Order matters
     extra_modules = [
@@ -92,9 +93,10 @@ def test_path_resolving_for_local_conftest_load_policy(
         '__tests__.test',
         '__tests__.a.test',
     ]
-    mocker.patch.object(sys, 'extra_modules', extra_modules)
-    got = yatest_tools.split_node_id(node_id + parameters)
-    assert (expected_class_name, expected_test_name + parameters) == got
+    with monkeypatch.context() as context:
+        context.setattr(sys, 'extra_modules', extra_modules)
+        got = yatest_tools.split_node_id(node_id + parameters)
+        assert (expected_class_name, expected_test_name + parameters) == got
 
 
 DATA = [

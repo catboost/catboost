@@ -44,8 +44,8 @@ from catboost.carry import carry, uplift
 import os.path
 import os
 import pandas as pd
-from pandas import read_csv, DataFrame, Series, Categorical
-from pandas.arrays import SparseArray
+import pandas.arrays
+
 import scipy.sparse
 import scipy.special
 
@@ -637,7 +637,7 @@ def test_load_df_vs_load_from_file(dataset):
     text_features = pool1.get_text_feature_indices()
     embedding_features = pool1.get_embedding_feature_indices()
 
-    data = read_csv(train_file, header=None, delimiter='\t', na_filter=False)
+    data = pd.read_csv(train_file, header=None, delimiter='\t', na_filter=False)
 
     labels = data.iloc[:, target_idx]
     group_ids = None
@@ -686,7 +686,7 @@ def test_load_df_vs_load_from_file_multitarget():
     target_idx = [0, 1]
 
     pool1 = Pool(train_file, column_description=cd_file)
-    data = read_csv(train_file, header=None, delimiter='\t')
+    data = pd.read_csv(train_file, header=None, delimiter='\t')
 
     labels = data.iloc[:, target_idx]
 
@@ -707,10 +707,10 @@ def test_load_df_vs_load_from_file_multitarget():
 
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    data = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    labels = Series(data.iloc[:, TARGET_IDX])
+    data = pd.read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    labels = pd.Series(data.iloc[:, TARGET_IDX])
     data.drop([TARGET_IDX], axis=1, inplace=True)
-    data = Series(list(data.values))
+    data = pd.Series(list(data.values))
     cat_features = pool.get_cat_feature_indices()
     pool2 = Pool(data, labels, cat_features)
     assert _have_equal_features(pool, pool2)
@@ -723,7 +723,7 @@ def test_pool_cat_features():
 
 
 def test_pool_cat_features_as_strings():
-    df = DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
+    df = pd.DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
     pool = Pool(df, cat_features=['col2'])
     assert np.all(pool.get_cat_feature_indices() == [1])
 
@@ -786,7 +786,7 @@ def test_pool_from_slices(features_type):
         if features_type == 'numpy.ndarray':
             pool = Pool(subset_features_data, subset_label)
         else:
-            pool = Pool(DataFrame(subset_features_data), subset_label)
+            pool = Pool(pd.DataFrame(subset_features_data), subset_label)
         assert _check_data(pool.get_features(), subset_features_data)
         assert _check_data([float(value) for value in pool.get_label()], subset_label)
 
@@ -797,12 +797,12 @@ def test_pool_from_slices(features_type):
     ids=['cat_features_specified=False', 'cat_features_specified=True']
 )
 def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
-    df = DataFrame()
+    df = pd.DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
     df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
-    df['cat_feat_2'] = Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
-    df['cat_feat_3'] = Series(['x', 'x', 'y', 'y', 'y', 'x', 'x'])
-    df['cat_feat_4'] = Categorical(
+    df['cat_feat_2'] = pd.Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
+    df['cat_feat_3'] = pd.Series(['x', 'x', 'y', 'y', 'y', 'x', 'x'])
+    df['cat_feat_4'] = pd.Categorical(
         ['large', 'small', 'medium', 'large', 'small', 'small', 'medium'],
         categories=['small', 'medium', 'large'],
         ordered=True
@@ -825,7 +825,7 @@ def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
 
 
 def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_column_types():
-    df = DataFrame()
+    df = pd.DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
     df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
     df['cat_feat_2'] = ['A', 'B', 'A', 'C', 'A', 'A', 'A']
@@ -846,7 +846,7 @@ def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_
                 column_data = column_data.astype(cat_features_dtype)
             columns_for_new_df.setdefault(column_name, column_data)
 
-        new_df = DataFrame(columns_for_new_df)
+        new_df = pd.DataFrame(columns_for_new_df)
 
         pool_from_new_df = Pool(new_df, labels, cat_features=cat_features)
 
@@ -923,7 +923,7 @@ def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'
 
 
 def get_features_data_from_file(data_file, drop_columns, cat_feature_indices, order='C'):
-    data_matrix_from_file = read_csv(data_file, header=None, dtype=str, delimiter='\t')
+    data_matrix_from_file = pd.read_csv(data_file, header=None, dtype=str, delimiter='\t')
     data_matrix_from_file.drop(drop_columns, axis=1, inplace=True)
     return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices, order)
 
@@ -1206,7 +1206,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
+    test_data = pd.read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     pred = model.predict(test_data)
@@ -1438,8 +1438,8 @@ def test_fit_from_empty_features_data(task_type):
 
 
 def fit_from_df(params, learn_file, test_file, cd_file, dummy_multi_target=False):
-    learn_df = read_csv(learn_file, header=None, sep='\t', na_filter=False)
-    test_df = read_csv(test_file, header=None, sep='\t', na_filter=False)
+    learn_df = pd.read_csv(learn_file, header=None, sep='\t', na_filter=False)
+    test_df = pd.read_csv(test_file, header=None, sep='\t', na_filter=False)
     columns_metadata = read_cd(cd_file, data_file=learn_file)
 
     target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
@@ -1619,7 +1619,7 @@ def test_export_to_python_with_cat_features(task_type, iterations):
 
 def test_export_to_python_with_cat_features_from_pandas(task_type):
     model = CatBoost({'iterations': 5, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
-    X = DataFrame([[1, 2], [3, 4]], columns=['Num', 'Categ'])
+    X = pd.DataFrame([[1, 2], [3, 4]], columns=['Num', 'Categ'])
     y = [1, 0]
     cat_features = [1]
     model.fit(X, y, cat_features)
@@ -2242,12 +2242,12 @@ def test_querywise(features_dtype, task_type):
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
     model.fit(train_data, train_target, group_id=train_query_id)
@@ -2262,13 +2262,13 @@ def test_group_weight(task_type):
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_weight = df.loc[:, 0]
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_query_weight = df.loc[:, 0]
     test_query_id = df.loc[:, 1]
     test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32), group_id=test_query_id, group_weight=test_query_weight)
@@ -2335,12 +2335,12 @@ def test_py_data_group_id(task_type):
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = train_df.loc[:, 2]
     raw_train_group_id = train_df.loc[:, 1]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for group_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -2357,13 +2357,13 @@ def test_py_data_subgroup_id(task_type):
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_group_id = train_df.loc[:, 1]
     raw_train_subgroup_id = train_df.loc[:, 4]
     train_target = train_df.loc[:, 2]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for subgroup_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -2472,7 +2472,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
+    test_data = pd.read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     preds = []
@@ -5744,7 +5744,7 @@ def test_feature_names_from_model():
 
 @pytest.mark.parametrize('format', ['cbm', 'json'])
 def test_feature_names_from_loaded_model(format):
-    df = DataFrame({
+    df = pd.DataFrame({
         'a': np.random.choice(['X', 'Y', 'Z'], 100),
         'b': np.random.randint(0, 10, 100),
         'c': np.random.randint(0, 10, 100),
@@ -5800,7 +5800,7 @@ class TestMissingValues(object):
         assert str(pool.get_features()) == str(np.array([[1.0], [float('nan')]]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', [(None, True)] + Value_AcceptableAsEmpty)
-    @pytest.mark.parametrize('object', [list, np.array, DataFrame, Series])
+    @pytest.mark.parametrize('object', [list, np.array, pd.DataFrame, pd.Series])
     def test_create_pool_from_object(self, value, value_acceptable_as_empty, object):
         if value_acceptable_as_empty:
             self.assert_expected(Pool(object([[1], [value]])))
@@ -6048,12 +6048,12 @@ def test_pairs_generation(task_type):
 def test_pairs_generation_generated(task_type):
     model = CatBoostRanker(loss_function='PairLogit', iterations=10, thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     prng = np.random.RandomState(seed=20181219)
@@ -8235,8 +8235,8 @@ SAMPLES_AND_FEATURES_FOR_CONTINUATION = [
     ]
 )
 def test_continue_learning_with_changing_dataset(samples, features):
-    all_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    all_labels = Series(all_df.iloc[:, TARGET_IDX])
+    all_df = pd.read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    all_labels = pd.Series(all_df.iloc[:, TARGET_IDX])
     all_df.drop([TARGET_IDX], axis=1, inplace=True)
     all_features_df = all_df
 
@@ -8296,10 +8296,10 @@ def test_equal_feature_names():
 
 @pytest.mark.parametrize('feature_names', [0, 'text'])
 def test_not_sequence_feature_names(feature_names):
-    train_data = DataFrame({'text_f': ['у попа была собака',
-                                       'он ее любил',
-                                       'she ate a piece of meat',
-                                       'he killed her...']})
+    train_data = pd.DataFrame({'text_f': ['у попа была собака',
+                                          'он ее любил',
+                                          'she ate a piece of meat',
+                                          'he killed her...']})
     with pytest.raises(CatBoostError):
         Pool(train_data, feature_names=feature_names)
 
@@ -8315,7 +8315,7 @@ def test_tweedie_loss_on_gpu(task_type, variance_power):
             'loss_function': 'Tweedie:variance_power=' + str(variance_power),
             'task_type': task_type,
             'gpu_ram_part': TEST_GPU_RAM_PART,
-            'devices': '0-3'
+            'devices': '0'
         }
     )
 
@@ -8334,7 +8334,7 @@ def test_huber_loss_on_gpu(task_type, delta):
             'loss_function': 'Huber:delta=' + str(delta),
             'task_type': task_type,
             'gpu_ram_part': TEST_GPU_RAM_PART,
-            'devices': '0-3'
+            'devices': '0'
         }
     )
 
@@ -8478,7 +8478,7 @@ def test_prediction_border_in_eval_metric(metric_name, proba_border):
 
 def test_dataframe_with_custom_index():
     np.random.seed(0)
-    X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
+    X = pd.DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
     X[0] = X[0].astype('category')
     y = X[1]
 
@@ -8503,7 +8503,7 @@ def test_load_model_from_snapshot(features_type):
                           [5, 6, 7, 8]],
                     label=[1, 1, -1])
     else:
-        df = DataFrame(data={'col1': ['a', 'b', 'c', 'd'], 'col2': [1, 1, 1, 1], 'col3': [2, 3, 4, 5]})
+        df = pd.DataFrame(data={'col1': ['a', 'b', 'c', 'd'], 'col2': [1, 1, 1, 1], 'col3': [2, 3, 4, 5]})
         pool = Pool(data=df,
                     label=[1, 1, -1, -1],
                     cat_features=['col1'])
@@ -8540,8 +8540,8 @@ def test_regress_with_per_float_feature_binarization_param(task_type):
 
 def test_pairs_without_groupid():
     model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8})
-    pairs = read_csv(QUERYWISE_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    pairs = pd.read_csv(QUERYWISE_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
     model.fit(train_data, train_target, pairs=pairs)
@@ -8966,7 +8966,7 @@ def convert_cat_columns_to_hashed(src_features_dataframe):
         else:
             new_columns_data[column_name] = column_data
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
 @pytest.mark.skip(reason="Known int conversion issues, investigation in progress")
@@ -9084,7 +9084,7 @@ def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
 
         new_columns_data[column_name] = column_data
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
 def convert_to_sparse(src_features_dataframe, indexing_kind):
@@ -9095,9 +9095,9 @@ def convert_to_sparse(src_features_dataframe, indexing_kind):
         else:
             fill_value = 0.0
 
-        new_columns_data[column_name] = SparseArray(column_data, fill_value=fill_value, kind=indexing_kind)
+        new_columns_data[column_name] = pandas.arrays.SparseArray(column_data, fill_value=fill_value, kind=indexing_kind)
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
 @pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
@@ -9381,7 +9381,7 @@ def test_same_values_with_different_types(task_type):
     canon_features = np.random.randint(0, 127, size=(n_objects, n_features), dtype=np.int8)
 
     for data_type in numpy_num_data_types:
-        features_df = DataFrame()
+        features_df = pd.DataFrame()
 
         for feature_idx in range(n_features):
             features_df['feature_%i' % feature_idx] = canon_features[:, feature_idx].astype(data_type)
@@ -10615,7 +10615,7 @@ def test_callbacks_metrics():
 
 
 def test_fit_cat_features_type():
-    X = DataFrame(
+    X = pd.DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
         columns=['feature{}'.format(i) for i in range(5)]
     )
@@ -10670,6 +10670,41 @@ def test_pool_set_timestamp(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+bad_timestamp_data_desc = [
+    'None',
+    'Bool',
+    'OverflowInt',
+    'NegativeInt',
+    'Float',
+    'String',
+]
+
+
+@pytest.mark.parametrize('desc', bad_timestamp_data_desc)
+def test_pool_bad_timestamp_data(desc):
+    if desc == 'None':
+        timestamp = [None, 0, 3]
+    elif desc == 'Bool':
+        timestamp = [False, True, False]
+    elif desc == 'OverflowInt':
+        timestamp = [0, 2, 2**128]
+    elif desc == 'NegativeInt':
+        timestamp = [0, -2, 13]
+    elif desc == 'Float':
+        timestamp = [0.3, 0.11, 2.0]
+    elif desc == 'String':
+        timestamp = ['x', 'y', '']
+
+    features, labels = generate_random_labeled_dataset(n_samples=len(timestamp), n_features=5, labels=[0, 1])
+
+    with pytest.raises(Exception):
+        Pool(features, label=labels, timestamp=timestamp)
+
+    dataset = Pool(features, label=labels)
+    with pytest.raises(Exception):
+        dataset.set_timestamp(timestamp)
 
 
 @pytest.mark.parametrize('train_final_model', [True, False])
@@ -10901,7 +10936,7 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
 
 def test_embedding_features_data_list_with_data_with_features_order():
     pool1 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5],
@@ -10912,7 +10947,7 @@ def test_embedding_features_data_list_with_data_with_features_order():
         embedding_features=[2, 3]
     )
     pool2 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5]
@@ -10929,7 +10964,7 @@ def test_embedding_features_data_list_with_data_with_features_order():
 
 def test_embedding_features_data_dict_with_data_with_features_order():
     pool1 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5],
@@ -10940,7 +10975,7 @@ def test_embedding_features_data_dict_with_data_with_features_order():
         embedding_features=['f2', 'f3']
     )
     pool2 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5]
@@ -11006,7 +11041,7 @@ def test_embedding_features_data_dict_with_data_with_objects_order():
 
 
 def test_pandas_integer_array():
-    X = DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
+    X = pd.DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
     y = list(range(10))
     cb = CatBoostRegressor(iterations=1)
     cb.fit(X, y)
@@ -11835,7 +11870,7 @@ def test_graph_features_quantization(task_type):
 
 
 def test_fit_fit_quantized_cat_features_type():
-    Xy = DataFrame(
+    Xy = pd.DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
         columns=['t', 'f0', 'f1', 'f2', 'f3']
     )

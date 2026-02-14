@@ -19,9 +19,11 @@ from copy import deepcopy
 from collections import defaultdict
 import functools
 import inspect
+import numbers
 import os
 import traceback
 import types
+from typing import Optional
 
 import sys
 if sys.version_info >= (3, 3):
@@ -36,15 +38,29 @@ cimport numpy as np  # noqa
 import pandas as pd
 import scipy.sparse
 
+try:
+    import polars as pl
+    _polars_version = tuple(map(int, pl.__version__.split('.')[:2]))
+except ImportError:
+    # just to avoid checking (pl is not None) everywhere
+    class polars:
+        class DataFrame(object):
+            pass
+    pl = polars
+    _polars_version = (0, 0)
+
+_polars_is_series_of_list_to_numpy_correct = _polars_version >= (1, 9)
+
 np.import_array()
 
 cimport cython
 from cpython cimport PyList_GET_ITEM, PyTuple_GET_ITEM, PyFloat_AsDouble
 from cython.operator cimport dereference, preincrement
+from cpython.pycapsule cimport PyCapsule_GetPointer, PyCapsule_IsValid
 from cpython cimport bool as py_bool
 
 from libc.math cimport isnan, modf
-from libc.stdint cimport uint32_t, uint64_t
+from libc.stdint cimport uint32_t, uint64_t, uintptr_t
 from libc.string cimport memcpy
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
@@ -1031,6 +1047,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
     cdef void ThrowCppExceptionWithMessage(const TString&) nogil
+    cdef void WaitAll(TVector[future[void]]& futures) except +ProcessException
     cdef void AsyncSetDataFromCythonMemoryViewCOrder[TFloatOrInteger](
         ui32 objCount,
         TFloatOrInteger* data,
@@ -1122,6 +1139,51 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef cppclass TPythonStreamWrapper(IInputStream):
         ctypedef size_t (*TReadCallback)(char* target, size_t len, PyObject* stream, TString*)
         TPythonStreamWrapper(TReadCallback readCallback, PyObject* stream) except +ProcessException
+
+
+cdef extern from "contrib/libs/apache/arrow_next/cpp/src/arrow/c/abi.h" namespace "NCB":
+    struct ArrowSchema:
+        pass
+    struct ArrowArray:
+        pass
+    struct ArrowArrayStream:
+        int (*get_next)(ArrowArrayStream*, ArrowArray*)
+
+
+cdef extern from "catboost/python-package/catboost/arrow.h" namespace "NCB":
+    cdef cppclass TArrowDataTypeIdMapping:
+        @staticmethod
+        TArrowDataTypeIdMapping& Instance()
+        void Add(const TString& arrowIdName, ui32 arrowIdVal) except +ProcessException
+
+    cdef void AsyncAddArrowNumColumn(
+        ui32 flatFeatureIdx,
+        PyObject* capsule,
+        IRawFeaturesOrderDataVisitor* builderVisitor,
+        TVector[future[void]]* result
+    ) except *
+
+    cdef void AsyncAddArrowCategoricalColumnOfStrings(
+        ui32 flatFeatureIdx,
+        PyObject* capsule,
+        IRawFeaturesOrderDataVisitor* builderVisitor,
+        TVector[future[void]]* result
+    ) except *
+
+    cdef void AsyncAddArrowCategoricalColumnOfIntOrBoolean(
+        ui32 flatFeatureIdx,
+        PyObject* capsule,
+        IRawFeaturesOrderDataVisitor* builderVisitor,
+        TVector[future[void]]* result
+    ) except *
+
+    cdef void AsyncAddArrowTextColumn(
+        ui32 flatFeatureIdx,
+        PyObject* capsule,
+        IRawFeaturesOrderDataVisitor* builderVisitor,
+        TVector[future[void]]* result
+    ) except *
+
 
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
@@ -2126,6 +2188,13 @@ cdef inline get_id_object_bytes_string_representation(
                 raise CatBoostError("bad object for id: {}".format(id_object))
             bytes_string_buf_representation[0] = ToString[i64](int(id_object))
 
+
+cdef inline ui64 get_timestamp_value(object obj) except *:
+    if isinstance(obj, numbers.Integral) and not isinstance(obj, bool):
+        return <ui64>obj
+    raise CatBoostError(f"bad type of value for timestamp: '{type(obj)}'")
+
+
 cdef UpdateThreadCount(thread_count):
     if thread_count == -1:
         thread_count = CachedNumberOfCpus()
@@ -2480,12 +2549,12 @@ cdef object _set_features_order_embedding_features_data(
 
     new_data_holders = []
     for flat_feature_idx in flat_feature_indices:
-        new_data_holders += create_embedding_factor_data(
+        create_embedding_factor_data(
             flat_feature_idx,
             embedding_features_data[feature_names[flat_feature_idx] if src_is_dict else embedding_feature_idx],
-            &embedding_factor_data
+            builder_visitor,
+            new_data_holders
         )
-        builder_visitor[0].AddEmbeddingFeature(flat_feature_idx, embedding_factor_data)
         embedding_feature_idx += 1
 
     return new_data_holders
@@ -2545,18 +2614,45 @@ cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_
             )
         )
 
+cdef _set_features_order_data_frame_generic_num_column(
+    ui32 flat_feature_idx,
+    column_values,
+    ITypedSequencePtr[np.float32_t]* result
+):
+    cdef ui32 doc_count = len(column_values)
+    cdef ui32 doc_idx
+
+    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data = new TVectorHolder[float]()
+    num_factor_data.Get()[0].Data.resize(doc_count)
+
+    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+    num_factor_data_holder.Reset(num_factor_data.Get())
+
+    cdef TArrayRef[float] data_buffer = TArrayRef[float](num_factor_data.Get()[0].Data.data(), doc_count)
+
+    for doc_idx in xrange(doc_count):
+        data_buffer[doc_idx] = get_float_feature(
+            doc_idx,
+            flat_feature_idx,
+            column_values[doc_idx]
+        )
+
+    result[0] = MakeTypeCastArrayHolder[np.float32_t, np.float32_t](
+        TMaybeOwningConstArrayHolder[np.float32_t].CreateOwning(
+            <TConstArrayRef[np.float32_t]>num_factor_data.Get()[0].Data,
+            num_factor_data_holder
+        )
+    )
+
+
 # returns new data holders array
 cdef create_num_factor_data(
     ui32 flat_feature_idx,
     np.ndarray column_values,
     ITypedSequencePtr[np.float32_t]* result
 ):
-    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
-    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
-    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
-
     cdef Py_FloatSequencePtr py_num_factor_data
-    cdef TArrayRef[float] data_buffer
 
     cdef ui32 doc_count = len(column_values)
     cdef ui32 doc_idx
@@ -2574,23 +2670,11 @@ cdef create_num_factor_data(
         py_num_factor_data.get_result(result)
         return [column_values]
     else:
-        num_factor_data = new TVectorHolder[float]()
-        num_factor_data.Get()[0].Data.resize(doc_count)
-        data_buffer = TArrayRef[float](num_factor_data.Get()[0].Data.data(), doc_count)
-        for doc_idx in xrange(doc_count):
-            data_buffer[doc_idx] = get_float_feature(
-                doc_idx,
-                flat_feature_idx,
-                column_values[doc_idx]
-            )
-        num_factor_data_holder.Reset(num_factor_data.Get())
-        result[0] = MakeTypeCastArrayHolder[np.float32_t, np.float32_t](
-            TMaybeOwningConstArrayHolder[np.float32_t].CreateOwning(
-                <TConstArrayRef[np.float32_t]>num_factor_data.Get()[0].Data,
-                num_factor_data_holder
-            )
+        _set_features_order_data_frame_generic_num_column(
+            flat_feature_idx,
+            column_values,
+            result
         )
-
         return []
 
 cdef inline get_cat_factor_bytes_representation(
@@ -2720,11 +2804,13 @@ cdef inline get_embedding_array_data(
 cdef create_embedding_factor_data(
     ui32 flat_feature_idx,
     np.ndarray column_values,
-    ITypedSequencePtr[TEmbeddingData]* result
+    IRawFeaturesOrderDataVisitor* builder_visitor,
+    list[object] dst_new_data_holders, # to be modified
 ):
     cdef TVector[TEmbeddingData] data
     cdef TVector[np.float32_t] object_embedding_data
 
+    cdef ITypedSequencePtr[TEmbeddingData] embedding_factor_data
     cdef Py_EmbeddingSequencePtr py_embedding_factor_data
 
     cdef size_t object_idx
@@ -2732,19 +2818,18 @@ cdef create_embedding_factor_data(
     cdef size_t embedding_dimension = len(column_values[0])
 
     if object_count == 0:
-        result[0] = MakeNonOwningTypeCastArrayHolder[TEmbeddingData, TEmbeddingData](
+        embedding_factor_data = MakeNonOwningTypeCastArrayHolder[TEmbeddingData, TEmbeddingData](
             <const TEmbeddingData*>nullptr,
             <const TEmbeddingData*>nullptr
         )
-        return []
     elif isinstance(column_values[0], np.ndarray) and (column_values[0].dtype in numpy_num_or_bool_dtype_list):
         py_embedding_factor_data, data_holders = make_embedding_type_cast_array_holder(
             flat_feature_idx,
             column_values[0],
             column_values
         )
-        py_embedding_factor_data.get_result(result)
-        return data_holders
+        py_embedding_factor_data.get_result(&embedding_factor_data)
+        dst_new_data_holders += data_holders
     else:
         data.reserve(object_count)
         for object_idx in xrange(object_count):
@@ -2758,8 +2843,9 @@ cdef create_embedding_factor_data(
                 TMaybeOwningConstArrayHolder[np.float32_t].CreateOwningMovedFrom(object_embedding_data)
             )
 
-        result[0] = MakeTypeCastArrayHolderFromVector[TEmbeddingData, TEmbeddingData](data)
-        return []
+        embedding_factor_data = MakeTypeCastArrayHolderFromVector[TEmbeddingData, TEmbeddingData](data)
+
+    builder_visitor[0].AddEmbeddingFeature(flat_feature_idx, embedding_factor_data)
 
 
 # returns new data holders array
@@ -2909,114 +2995,57 @@ cdef _set_hashed_cat_values(
         hashed_cat_values_ref[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
 
 
-cdef _set_features_order_data_pd_data_frame_categorical_column(
+def _set_features_order_data_frame_categorical_column(
     ui32 flat_feature_idx,
-    object column_values, # pd.Categorical, but Cython requires cimport to provide type here
-    TString* factor_string,
-
-    # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
-    TVector[ui32]* categories_as_hashed_cat_values,
-
-    IRawFeaturesOrderDataVisitor* builder_visitor
+    object categories, # pandas.Index or polars.Series or list[str]
+    const categories_codes_dtype[:] categories_codes,
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
-    cdef ui32 categories_size = len(column_values.categories)
-    cdef ui32 doc_count = len(column_values.codes)
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
+    cdef ui32 categories_size = len(categories)
+    cdef ui32 doc_count = len(categories_codes)
 
     # access through TArrayRef is faster
+    cdef TVector[ui32] categories_as_hashed_cat_values
     cdef TArrayRef[ui32] categories_as_hashed_cat_values_ref
 
     cdef TVector[ui32] hashed_cat_values
     cdef TArrayRef[ui32] hashed_cat_values_ref
 
+    cdef TString factor_string
+
     cdef ui32 category_idx
 
     # TODO(akhropov): make yresize accessible in Cython
-    categories_as_hashed_cat_values[0].resize(categories_size)
-    categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
+    categories_as_hashed_cat_values.resize(categories_size)
+    categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values
     for category_idx in xrange(categories_size):
         try:
-            get_id_object_bytes_string_representation(column_values.categories[category_idx], factor_string)
+            get_id_object_bytes_string_representation(categories[category_idx], &factor_string)
         except CatBoostError:
             raise CatBoostError(
                 'Invalid type for cat_feature category for [feature_idx={}]={} :'
                 ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(flat_feature_idx, column_values.categories[category_idx])
+                ' should be converted to string.'.format(flat_feature_idx, categories[category_idx])
             )
 
         categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
             flat_feature_idx,
-            factor_string[0]
+            factor_string
         )
 
     # TODO(akhropov): make yresize accessible in Cython
     hashed_cat_values.resize(doc_count)
     hashed_cat_values_ref = <TArrayRef[ui32]>hashed_cat_values
 
-    categories_codes_dtype = column_values.codes.dtype
-
-    if categories_codes_dtype == np.int8:
-        _set_hashed_cat_values[np.int8_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.int16:
-        _set_hashed_cat_values[np.int16_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.int32:
-        _set_hashed_cat_values[np.int32_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.int64:
-        _set_hashed_cat_values[np.int64_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.uint8:
-        _set_hashed_cat_values[np.uint8_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.uint16:
-        _set_hashed_cat_values[np.uint16_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.uint32:
-        _set_hashed_cat_values[np.uint32_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    elif categories_codes_dtype == np.uint64:
-        _set_hashed_cat_values[np.uint64_t](
-            flat_feature_idx,
-            column_values.codes,
-            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
-        )
-    else:
-        raise TypeError(
-            "Unexpected dtype of pandas.Categorical.codes for feature_idx={}: {} ".format(
-                flat_feature_idx,
-                categories_codes_dtype
-            )
-        )
+    _set_hashed_cat_values(
+        flat_feature_idx,
+        categories_codes,
+        <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+        hashed_cat_values_ref
+    )
 
     builder_visitor[0].AddCatFeature(
         flat_feature_idx,
@@ -3024,13 +3053,64 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
     )
 
 
+cdef _set_features_order_data_frame_generic_categorical_column(
+    ui32 flat_feature_idx,
+    object column_values,
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    cdef Py_ssize_t obj_idx
+    cdef Py_ssize_t obj_count = len(column_values)
+
+    cdef TVector[TString] string_feature_data
+    string_feature_data.reserve(obj_count)
+
+    cdef TString feature_string
+
+    for obj_idx in xrange(obj_count):
+        get_cat_factor_bytes_representation(
+            obj_idx,
+            flat_feature_idx,
+            column_values[obj_idx],
+            &feature_string
+        )
+        string_feature_data.push_back(feature_string)
+    builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_feature_data)
+
+
+cdef _set_features_order_data_frame_generic_text_column(
+    ui32 flat_feature_idx,
+    object column_values,
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    cdef Py_ssize_t obj_idx
+    cdef Py_ssize_t obj_count = len(column_values)
+
+    cdef TVector[TString] string_feature_data
+    string_feature_data.reserve(obj_count)
+
+    cdef TString feature_string
+
+    for obj_idx in xrange(obj_count):
+        get_text_factor_bytes_representation(
+            obj_idx,
+            flat_feature_idx,
+            column_values[obj_idx],
+            &feature_string
+        )
+        string_feature_data.push_back(feature_string)
+    builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_feature_data)
+
+
 # returns new data holders array
 cdef object _set_features_order_data_pd_data_frame(
     data_frame,
     bool_t has_separate_embedding_features_data,
     const TFeaturesLayout* features_layout,
-    IRawFeaturesOrderDataVisitor* builder_visitor
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
@@ -3078,44 +3158,33 @@ cdef object _set_features_order_data_pd_data_frame(
                     + " cat_features list") % column_name
                 )
 
-            _set_features_order_data_pd_data_frame_categorical_column(
+            _set_features_order_data_frame_categorical_column(
                 flat_feature_idx,
-                column_data.values,
-                &factor_string,
-                &categories_as_hashed_cat_values,
-                builder_visitor
+                column_data.values.categories,
+                column_data.values.codes,
+                py_builder_visitor
             )
         else:
             column_values = column_data.to_numpy()
             if is_cat_feature_mask[flat_feature_idx]:
-                string_factor_data.clear()
-                for doc_idx in xrange(doc_count):
-                    get_cat_factor_bytes_representation(
-                        doc_idx,
-                        flat_feature_idx,
-                        column_values[doc_idx],
-                        &factor_string
-                    )
-                    string_factor_data.push_back(factor_string)
-                builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
-            elif is_text_feature_mask[flat_feature_idx]:
-                string_factor_data.clear()
-                for doc_idx in xrange(doc_count):
-                    get_text_factor_bytes_representation(
-                        doc_idx,
-                        flat_feature_idx,
-                        column_values[doc_idx],
-                        &factor_string
-                    )
-                    string_factor_data.push_back(factor_string)
-                builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
-            elif is_embedding_feature_mask[flat_feature_idx]:
-                new_data_holders += create_embedding_factor_data(
+                _set_features_order_data_frame_generic_categorical_column(
                     flat_feature_idx,
                     column_values,
-                    &embedding_factor_data
+                    builder_visitor
                 )
-                builder_visitor[0].AddEmbeddingFeature(flat_feature_idx, embedding_factor_data)
+            elif is_text_feature_mask[flat_feature_idx]:
+                _set_features_order_data_frame_generic_text_column(
+                    flat_feature_idx,
+                    column_values,
+                    builder_visitor
+                )
+            elif is_embedding_feature_mask[flat_feature_idx]:
+                create_embedding_factor_data(
+                    flat_feature_idx,
+                    column_values,
+                    builder_visitor,
+                    new_data_holders
+                )
             else:
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
@@ -3125,6 +3194,242 @@ cdef object _set_features_order_data_pd_data_frame(
                 builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
 
     return new_data_holders
+
+
+cdef get_capsule_to_non_chunked(column_data: pl.Series):
+    # TODO: support chunked data w/o copying ?
+    rechunked_data = column_data.rechunk()
+    return rechunked_data.__arrow_c_stream__()
+
+
+cdef print_warning_if_decimal(column: pl.Series):
+    if column.dtype == pl.Decimal:
+        warnings.warn(
+            f"Column for feature '{column.name}': data is stored in the polars.Decimal format, support for this format is "
+            "currently non-optimal performance-wise.\n"
+            "    Consider storing data in another format (likely some floating-point)"
+        )
+
+def get_polars_xint128_types():
+    result = []
+    for name in ['Int128', 'UInt128']:
+        if hasattr(pl, name):
+            result.append(getattr(pl, name))
+    return result
+
+
+cdef print_warning_if_xint128(column: pl.Series):
+    if column.dtype in get_polars_xint128_types():
+        warnings.warn(
+            f"Column for feature '{column.name}': data is stored in the {column.dtype} format, support for this format is "
+            "currently non-optimal performance-wise.\n"
+            "    Consider storing data with a lower precision"
+        )
+
+cdef print_warning_if_object(column: pl.Series):
+    if column.dtype == pl.Object:
+        warnings.warn(
+            f"Column for feature '{column.name}': data is stored as generic Python objects, this format is "
+            "non-optimal performance-wise.\n"
+            "    Consider storing data in one of the native data types"
+        )
+
+cdef _set_features_order_data_polars_num_column(
+    ui32 flat_feature_idx,
+    column_data: pl.Series,
+    IRawFeaturesOrderDataVisitor* builder_visitor,
+    list[object] dst_callbacks, # to be modified
+    TVector[future[void]]* async_calc_futures   # to be modified
+):
+    dtype = column_data.dtype
+
+    num_types_wo_native_support = get_polars_xint128_types() + [pl.Decimal]
+    if (dtype.is_numeric() and (dtype not in num_types_wo_native_support)) or (dtype == pl.Boolean):
+        # TODO: support zero-copy pl.Decimal transformation
+        # using just to_numpy() might be non-optimal because of possible copies
+
+        capsule = get_capsule_to_non_chunked(column_data)
+        AsyncAddArrowNumColumn(
+            flat_feature_idx,
+            <PyObject*>capsule,
+            builder_visitor,
+            async_calc_futures
+        )
+    elif dtype in (num_types_wo_native_support + [pl.Object]):
+        print_warning_if_xint128(column_data)
+        print_warning_if_decimal(column_data)
+        print_warning_if_object(column_data)
+
+        # TODO: should only pl.Object be allowed ?
+        def process():
+            cdef ITypedSequencePtr[np.float32_t] num_factor_data
+            _set_features_order_data_frame_generic_num_column(
+                flat_feature_idx,
+                column_data,
+                &num_factor_data
+            )
+            builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
+        dst_callbacks.append(process)
+    else:
+        raise CatBoostError(f"Unsupported data type {column_data.dtype} for a numerical feature column")
+
+
+cdef _set_features_order_data_polars_categorical_column(
+    ui32 flat_feature_idx,
+    column_data: pl.Series,
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor,
+    list[object] dst_callbacks, # to be modified
+    TVector[future[void]]* async_calc_futures   # to be modified
+):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
+    dtype = column_data.dtype
+    if dtype == pl.Categorical:
+        def process():
+            _set_features_order_data_frame_categorical_column(
+                flat_feature_idx,
+                column_data.cat.get_categories(),
+                column_data.to_physical().to_numpy(),
+                py_builder_visitor
+            )
+        dst_callbacks.append(process)
+    elif isinstance(dtype, pl.Enum):
+        def process():
+            _set_features_order_data_frame_categorical_column(
+                flat_feature_idx,
+                dtype.categories,
+                column_data.to_physical().to_numpy(),
+                py_builder_visitor
+            )
+        dst_callbacks.append(process)
+    elif dtype == pl.String:
+        capsule = get_capsule_to_non_chunked(column_data)
+        AsyncAddArrowCategoricalColumnOfStrings(
+            flat_feature_idx,
+            <PyObject*>capsule,
+            builder_visitor,
+            async_calc_futures
+        )
+    elif (dtype.is_integer() and (dtype not in get_polars_xint128_types())) or (dtype == pl.Boolean):
+        capsule = get_capsule_to_non_chunked(column_data)
+        AsyncAddArrowCategoricalColumnOfIntOrBoolean(
+            flat_feature_idx,
+            <PyObject*>capsule,
+            builder_visitor,
+            async_calc_futures
+        )
+    elif dtype in (get_polars_xint128_types() + [pl.Object]):
+        print_warning_if_xint128(column_data)
+        print_warning_if_object(column_data)
+
+        def process():
+            _set_features_order_data_frame_generic_categorical_column(
+                flat_feature_idx,
+                column_data,
+                builder_visitor
+            )
+        dst_callbacks.append(process)
+    else:
+        raise CatBoostError(f"Unsupported data type {column_data.dtype} for a numerical feature column")
+
+
+cdef _set_features_order_data_polars_text_column(
+    ui32 flat_feature_idx,
+    column_data: pl.Series,
+    IRawFeaturesOrderDataVisitor* builder_visitor,
+    list[object] dst_callbacks, # to be modified
+    TVector[future[void]]* async_calc_futures   # to be modified
+):
+    dtype = column_data.dtype
+    if dtype == pl.String:
+        capsule = get_capsule_to_non_chunked(column_data)
+        AsyncAddArrowTextColumn(
+            flat_feature_idx,
+            <PyObject*>capsule,
+            builder_visitor,
+            async_calc_futures
+        )
+    elif dtype == pl.Object:
+        def process():
+            _set_features_order_data_frame_generic_text_column(
+                flat_feature_idx,
+                column_data,
+                builder_visitor
+            )
+        dst_callbacks.append(process)
+    else:
+        raise CatBoostError(f"Unsupported data type {column_data.dtype} for a text feature column")
+
+
+cdef _set_features_order_data_polars_data_frame(
+    data_frame: pl.DataFrame,
+    bool_t has_separate_embedding_features_data,
+    const TFeaturesLayout* features_layout,
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor,
+    list[object] dst_new_data_holders, # to be modified
+    list[object] dst_callbacks, # to be modified
+    TVector[future[void]]* async_calc_futures   # to be modified
+):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
+    cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+    cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
+    cdef ui32 doc_count = data_frame.height
+
+    cdef Py_ssize_t src_flat_feature_idx
+    cdef ui32 flat_feature_idx
+    cdef TString column_name
+
+    for src_flat_feature_idx, column_data in enumerate(data_frame.iter_columns()):
+        try:
+            flat_feature_idx = main_data_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
+            dtype = column_data.dtype
+
+            if is_cat_feature_mask[flat_feature_idx]:
+                _set_features_order_data_polars_categorical_column(
+                    flat_feature_idx,
+                    column_data,
+                    py_builder_visitor,
+                    dst_callbacks,
+                    async_calc_futures,
+                )
+            elif is_text_feature_mask[flat_feature_idx]:
+                _set_features_order_data_polars_text_column(
+                    flat_feature_idx,
+                    column_data,
+                    builder_visitor,
+                    dst_callbacks,
+                    async_calc_futures,
+                )
+            elif is_embedding_feature_mask[flat_feature_idx]:
+                if column_data.null_count() > 0:
+                    raise ValueError('Embedding feature columns cannot contain null')
+
+                if _polars_is_series_of_list_to_numpy_correct:
+                    column_values_as_ndarray = column_data.to_numpy()
+                else:
+                    column_values_as_ndarray = np.array(column_data.to_list(), np.float32)
+
+                create_embedding_factor_data(
+                    flat_feature_idx,
+                    column_values_as_ndarray,
+                    builder_visitor,
+                    dst_new_data_holders,
+                )
+            else:
+                _set_features_order_data_polars_num_column(
+                    flat_feature_idx,
+                    column_data,
+                    builder_visitor,
+                    dst_callbacks,
+                    async_calc_futures,
+                )
+        except Exception as e:
+            raise CatBoostError(f"Error while processing column for feature '{column_data.name}'") from e
 
 
 def _set_data_np(
@@ -3916,29 +4221,41 @@ cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
         builder_visitor[0].AddSubgroupId(i, _calc_subgroup_id_for(i, subgroup_id))
 
 cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
-    cdef ui32 baseline_len = len(baseline)
+    cdef ui32 object_count = len(baseline)
     cdef ui32 i, j
-    for i in xrange(baseline_len):
-        for j, value in enumerate(baseline[i]):
-            builder_visitor[0].AddBaseline(i, j, float(value))
+
+    if isinstance(baseline, pl.DataFrame):
+        for j, one_dim_baseline_series in enumerate(baseline.iter_columns()):
+            for i in xrange(object_count):
+                builder_visitor[0].AddBaseline(i, j, float(one_dim_baseline_series[i]))
+    else:
+        for i in xrange(object_count):
+            for j, value in enumerate(baseline[i]):
+                builder_visitor[0].AddBaseline(i, j, float(value))
 
 cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builder_visitor):
-    cdef ui32 baseline_count = len(baseline[0])
+    cdef ui32 object_count = len(baseline)
+    cdef ui32 baseline_count = baseline.width if isinstance(baseline, pl.DataFrame) else len(baseline[0])
     cdef TVector[float] one_dim_baseline
     cdef ui32 baseline_idx
-    cdef int i
+    cdef ui32 i
     for baseline_idx in xrange(baseline_count):
         one_dim_baseline.clear()
-        one_dim_baseline.reserve(len(baseline))
-        for i in xrange(len(baseline)):
-            one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
+        one_dim_baseline.reserve(object_count)
+        if isinstance(baseline, pl.DataFrame):
+            one_dim_baseline_series = baseline.to_series(baseline_idx)
+            for i in xrange(object_count):
+                one_dim_baseline.push_back(float(one_dim_baseline_series[i]))
+        else:
+            for i in xrange(object_count):
+                one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
 cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
     cdef int i
     cdef int timestamps_len = len(timestamp)
     for i in xrange(timestamps_len):
-        builder_visitor[0].AddTimestamp(i, <ui64>timestamp[i])
+        builder_visitor[0].AddTimestamp(i, get_timestamp_value(timestamp[i]))
 
 
 def _set_label_from_num_nparray_objects_order(
@@ -4001,15 +4318,24 @@ cdef class _PoolBase:
     def _set_label_objects_order(self, label, Py_ObjectsOrderBuilderVisitor py_builder_visitor):
         cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
         cdef ui32 object_count = len(label)
-        cdef ui32 target_count = len(label[0])
+        cdef ui32 target_count = label.width if isinstance(label, pl.DataFrame) else len(label[0])
         cdef ui32 target_idx
         cdef ui32 object_idx
 
-        self.target_type = type(label[0][0])
+        self.target_type = type(label[0, 0] if isinstance(label, pl.DataFrame) else label[0][0])
         raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
         if raw_target_type in (ERawTargetType_Boolean, ERawTargetType_Integer, ERawTargetType_Float):
             if isinstance(label, np.ndarray) and (self.target_type in numpy_num_or_bool_dtype_list):
                 _set_label_from_num_nparray_objects_order(label, py_builder_visitor)
+            elif isinstance(label, pl.DataFrame):
+                for target_idx in xrange(target_count):
+                    target_series = label.to_series(target_idx)
+                    for object_idx in xrange(object_count):
+                        builder_visitor[0].AddTarget(
+                            target_idx,
+                            object_idx,
+                            <float>(target_series[object_idx])
+                        )
             else:
                 for target_idx in xrange(target_count):
                     for object_idx in xrange(object_count):
@@ -4019,13 +4345,23 @@ cdef class _PoolBase:
                             <float>(label[object_idx][target_idx])
                         )
         else:
-            for target_idx in xrange(target_count):
-                for object_idx in xrange(object_count):
-                    builder_visitor[0].AddTarget(
-                        target_idx,
-                        object_idx,
-                        obj_to_arcadia_string(label[object_idx][target_idx])
-                    )
+            if isinstance(label, pl.DataFrame):
+                for target_idx in xrange(target_count):
+                    target_series = label.to_series(target_idx)
+                    for object_idx in xrange(object_count):
+                        builder_visitor[0].AddTarget(
+                            target_idx,
+                            object_idx,
+                            obj_to_arcadia_string(target_series[object_idx])
+                        )
+            else:
+                for target_idx in xrange(target_count):
+                    for object_idx in xrange(object_count):
+                        builder_visitor[0].AddTarget(
+                            target_idx,
+                            object_idx,
+                            obj_to_arcadia_string(label[object_idx][target_idx])
+                        )
 
     cdef _set_label_features_order(self, label, IRawFeaturesOrderDataVisitor* builder_visitor):
         cdef Py_FloatSequencePtr py_num_target_data
@@ -4033,17 +4369,24 @@ cdef class _PoolBase:
         cdef np.ndarray target_array
         cdef TVector[TString] string_target_data
         cdef ui32 object_count = len(label)
-        cdef ui32 target_count = len(label[0])
+        cdef ui32 target_count = label.width if isinstance(label, pl.DataFrame) else len(label[0])
         cdef ui32 target_idx
         cdef ui32 object_idx
 
-        self.target_type = type(label[0][0])
+        self.target_type = type(label[0, 0] if isinstance(label, pl.DataFrame) else label[0][0])
         raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
         if raw_target_type in (ERawTargetType_Boolean, ERawTargetType_Integer, ERawTargetType_Float):
             self.__target_data_holders = []
             for target_idx in xrange(target_count):
                 if isinstance(label, np.ndarray) and (self.target_type in numpy_num_or_bool_dtype_list):
                     target_array = np.ascontiguousarray(label[:, target_idx])
+                elif isinstance(label, pl.DataFrame):
+                    if self.target_type in numpy_num_or_bool_dtype_list:
+                        target_array = label.to_series(target_idx).to_numpy()
+                    else:
+                        target_array = np.empty(object_count, dtype=np.float32)
+                        for object_idx in xrange(object_count):
+                            target_array[object_idx] = label[object_idx, target_idx]
                 else:
                     target_array = np.empty(object_count, dtype=np.float32)
                     for object_idx in xrange(object_count):
@@ -4057,8 +4400,12 @@ cdef class _PoolBase:
             string_target_data.reserve(object_count)
             for target_idx in xrange(target_count):
                 string_target_data.clear()
-                for object_idx in xrange(object_count):
-                    string_target_data.push_back(obj_to_arcadia_string(label[object_idx][target_idx]))
+                if isinstance(label, pl.DataFrame):
+                    for object_idx in xrange(object_count):
+                        string_target_data.push_back(obj_to_arcadia_string(label[object_idx, target_idx]))
+                else:
+                    for object_idx in xrange(object_count):
+                        string_target_data.push_back(obj_to_arcadia_string(label[object_idx][target_idx]))
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
@@ -4173,7 +4520,10 @@ cdef class _PoolBase:
             resource_holders
         )
 
-        new_data_holders = None
+        new_data_holders = []
+        callbacks = []
+        cdef TVector[future[void]] futures
+
         if isinstance(data, FeaturesData):
             new_data_holders = data
 
@@ -4192,7 +4542,17 @@ cdef class _PoolBase:
                 data,
                 embedding_features_data is not None,
                 features_layout,
-                builder_visitor
+                py_builder_visitor
+            )
+        elif isinstance(data, pl.DataFrame):
+            _set_features_order_data_polars_data_frame(
+                data,
+                embedding_features_data is not None,
+                features_layout,
+                py_builder_visitor,
+                new_data_holders,
+                callbacks,
+                &futures
             )
         elif isinstance(data, scipy.sparse.spmatrix):
             new_data_holders = _set_features_order_data_scipy_sparse_matrix(
@@ -4230,6 +4590,11 @@ cdef class _PoolBase:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
             )
+
+        for callback in callbacks:
+            callback()
+
+        WaitAll(futures)
 
         if embedding_features_data is not None:
             embedding_data_holders = _set_features_order_embedding_features_data(embedding_features_data, feature_names, features_layout, builder_visitor)
@@ -4337,11 +4702,15 @@ cdef class _PoolBase:
 
         cdef TDataMetaInfo data_meta_info
         if label is not None:
-            data_meta_info.TargetCount = <ui32>len(label[0])
+            data_meta_info.TargetCount = <ui32>(label.width if isinstance(label, pl.DataFrame) else len(label[0]))
             if data_meta_info.TargetCount:
-                data_meta_info.TargetType = _py_target_type_to_raw_target_data(type(label[0][0]))
+                data_meta_info.TargetType = _py_target_type_to_raw_target_data(
+                    type(label[0, 0] if isinstance(label, pl.DataFrame) else label[0][0])
+                )
 
-        data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
+        data_meta_info.BaselineCount = (
+            baseline.width if isinstance(baseline, pl.DataFrame) else (len(baseline[0]) if baseline is not None else 0)
+        )
         data_meta_info.HasGroupId = group_id is not None
         data_meta_info.HasGroupWeight = group_weight is not None
         data_meta_info.HasSubgroupIds = subgroup_id is not None
@@ -4370,6 +4739,8 @@ cdef class _PoolBase:
                ):
                 do_use_raw_data_in_features_order = True
         elif isinstance(data, pd.DataFrame):
+            do_use_raw_data_in_features_order = True
+        elif isinstance(data, pl.DataFrame):
             do_use_raw_data_in_features_order = True
         elif isinstance(data, scipy.sparse.csc_matrix):
             do_use_raw_data_in_features_order = True
@@ -4472,7 +4843,7 @@ cdef class _PoolBase:
 
     cpdef _set_baseline(self, baseline):
         cdef ui32 rows = self.num_row()
-        cdef size_t approx_dimension = len(baseline[0])
+        cdef size_t approx_dimension = baseline.width if isinstance(baseline, pl.DataFrame) else len(baseline[0])
         cdef size_t j
 
         cdef TVector[TVector[float]] baseline_matrix # [approxIdx][objectIdx]
@@ -4487,16 +4858,32 @@ cdef class _PoolBase:
             )
 
         cdef ui32 i
-        for i in xrange(rows):
-            for j, value in enumerate(baseline[i]):
-                baseline_matrix[j][i] = float(value)
+        cdef TArrayRef[float] baseline_column_view # [objectIdx]
+
+        if isinstance(baseline, pl.DataFrame):
+            for j in xrange(approx_dimension):
+                baseline_column_view = TArrayRef[float](baseline_matrix[j])
+                one_dim_baseline_series = baseline.to_series(j)
+                for i in xrange(rows):
+                    baseline_column_view[i] = float(one_dim_baseline_series[i])
+        else:
+            for i in xrange(rows):
+                for j, value in enumerate(baseline[i]):
+                    baseline_matrix[j][i] = float(value)
 
         self.__pool.Get()[0].SetBaseline(
             TBaselineArrayRef(baseline_matrix_view.data(), baseline_matrix_view.size())
         )
 
     cpdef _set_timestamp(self, timestamp):
-        cdef TVector[ui64] timestamp_vector = py_to_tvector[ui64](timestamp)
+        cdef Py_ssize_t i
+        cdef Py_ssize_t timestamps_len = len(timestamp)
+        cdef TVector[ui64] timestamp_vector
+        timestamp_vector.reserve(timestamps_len)
+
+        for i in xrange(timestamps_len):
+            timestamp_vector.push_back(get_timestamp_value(timestamp[i]))
+
         self.__pool.Get()[0].SetTimestamps(
             TConstArrayRef[ui64](timestamp_vector.data(), timestamp_vector.size())
         )
@@ -4676,7 +5063,10 @@ cdef class _PoolBase:
                     self.__pool.Get()[0].RawTargetData.GetNumericTarget(
                         <TArrayRef[TArrayRef[float]]>num_target_references
                     )
-                    return num_target_1d.astype(self.target_type)
+                    if self.target_type == int:
+                        return [int(e) for e in num_target_1d]
+                    else:
+                        return num_target_1d.astype(self.target_type)
                 else:
                     num_target_2d = np.empty((object_count, target_count), dtype=np.float32, order='F')
                     for target_idx in xrange(target_count):
@@ -4687,7 +5077,10 @@ cdef class _PoolBase:
                     self.__pool.Get()[0].RawTargetData.GetNumericTarget(
                         <TArrayRef[TArrayRef[float]]>num_target_references
                     )
-                    return num_target_2d.astype(self.target_type)
+                    if self.target_type == int:
+                        return [[int(e) for e in row] for row in num_target_2d]
+                    else:
+                        return num_target_2d.astype(self.target_type)
             elif raw_target_type == ERawTargetType_String:
                 string_target_references.resize(target_count)
                 self.__pool.Get()[0].RawTargetData.GetStringTargetRef(&string_target_references)
@@ -4883,14 +5276,22 @@ cdef class _PoolBase:
         return self.num_row() == 0
 
 
-cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_sparsity=False):
+cpdef _have_equal_features(
+    _PoolBase pool1,
+    _PoolBase pool2,
+    bool_t ignore_sparsity=False,
+    bool_t ignore_cat_features_hash_to_string=False
+):
     """
         ignoreSparsity means don't take into account whether columns are marked as either sparse or dense
           - only compare values
+        ignore_cat_features_hash_to_string means don't compare CatFeaturesHashToString fields.
+            They can be different while both containing the necessary hashed values present in the dataset
     """
     return pool1.__pool.Get()[0].ObjectsData.Get()[0].EqualTo(
         pool2.__pool.Get()[0].ObjectsData.Get()[0],
-        ignore_sparsity
+        ignore_sparsity,
+        ignore_cat_features_hash_to_string,
     )
 
 
@@ -6250,15 +6651,21 @@ cpdef _eval_metric_util(
     label_param, approx_param, metric, weight_param, group_id_param,
     group_weight_param, subgroup_id_param, pairs_param, int thread_count
 ):
-    if (len(label_param[0]) != len(approx_param[0])):
-        raise CatBoostError('Label and approx should have same sizes.')
-    cdef size_t doc_count = len(label_param[0]);
     cdef size_t i
+    cdef size_t doc_count = len(label_param) if isinstance(label_param, pl.DataFrame) else len(label_param[0]);
+    if doc_count != len(approx_param[0]):
+        raise CatBoostError('Label and approx should have same sizes.')
+
+    cdef size_t nLabels = label_param.width if isinstance(label_param, pl.DataFrame) else len(label_param)
 
     cdef TVector[TVector[float]] label
     cdef size_t labelIdx
-    for labelIdx in xrange(len(label_param)):
-        label.push_back(to_tvector_float(np.array(label_param[labelIdx], dtype=np.float32).ravel()))
+    for labelIdx in xrange(nLabels):
+        if isinstance(label_param, pl.DataFrame):
+            label_column_data = label_param.to_series(labelIdx)
+        else:
+            label_column_data = label_param[labelIdx]
+        label.push_back(to_tvector_float(np.array(label_column_data, dtype=np.float32).ravel()))
 
     cdef TVector[TVector[double]] approx
     for i in xrange(len(approx_param)):
@@ -6301,8 +6708,12 @@ cpdef _eval_metric_util(
     cdef TVector[TPair] pairs;
     if pairs_param is not None:
         pairs.resize(len(pairs_param))
-        for i in xrange(len(pairs_param)):
-            pairs[i] = TPair(pairs_param[i][0], pairs_param[i][1], 1)
+        if isinstance(pairs_param, pl.DataFrame):
+            for i, (winner, loser) in enumerate(zip(pairs_param.to_series(0), pairs_param.to_series(1))):
+                pairs[i] = TPair(winner, loser, 1)
+        else:
+            for i in xrange(len(pairs_param)):
+                pairs[i] = TPair(pairs_param[i][0], pairs_param[i][1], 1)
 
     thread_count = UpdateThreadCount(thread_count);
 

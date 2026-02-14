@@ -403,6 +403,16 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(calcExpression("cyr =~ \"к.р[и]л*ица\""), 1);
     }
 
+    Y_UNIT_TEST(TestNumberValueAsString) {
+        THashMap<TString, TString> m;
+        m["feature"] = "10";
+        UNIT_ASSERT_EQUAL(CalcExpression("feature + 1", m), 11);
+        UNIT_ASSERT_EQUAL(CalcExpression("feature > 5", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("feature > 20", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("feature != 10", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("feature != \"10\"", m), 0);
+    }
+
     Y_UNIT_TEST(TestEmptyExpression) {
         // На самом деле должно бросать исключение тут https://a.yandex-team.ru/arcadia/library/cpp/expression/expression.cpp?rev=r15660625#L547
         // Но т.к. в Trim очень давно баг в удалении пробелов с начала, индекс перебегает индекс конца, то исключения не происходит

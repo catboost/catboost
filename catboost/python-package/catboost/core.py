@@ -24,13 +24,28 @@ import threading
 from typing import Dict, Optional
 
 try:
-    from pandas import DataFrame, Series
+    import pandas as pd
 except ImportError:
-    class DataFrame(object):
-        pass
+    # just to avoid checking (pd is not None) everywhere
+    class pandas:
+        class DataFrame(object):
+            pass
 
-    class Series(object):
-        pass
+        class Series(object):
+            pass
+    pd = pandas
+
+try:
+    import polars as pl
+except ImportError:
+    # just to avoid checking (pl is not None) everywhere
+    class polars:
+        class DataFrame(object):
+            pass
+
+        class Series(object):
+            pass
+    pl = polars
 
 import scipy.sparse
 
@@ -86,7 +101,7 @@ _catboost._library_init()
 INTEGER_TYPES = (integer_types, np.integer)
 FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
-ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
+ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series)
 
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
@@ -624,15 +639,16 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or FeaturesData or string or os.PathLike
+        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or FeaturesData or string or os.PathLike
             Data source of Pool.
-            If list or numpy.ndarrays or pandas.DataFrame or pandas.Series, giving 2 dimensional array like data.
+            If list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.DataFrame,
+              giving 2 dimensional array like data.
             If FeaturesData - see FeaturesData description for details, 'cat_features' and 'feature_names'
               parameters must be equal to None in this case
             If string or os.PathLike, giving the path to the file with data in catboost format.
               If string starts with "quantized://", the file has to contain quantized dataset saved with Pool.save().
 
-        label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series, optional (default=None)
+        label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
@@ -672,15 +688,15 @@ class Pool(_PoolBase):
             If None, Label column is 0 (zero) as default, all data columns are Num as default.
             If string or os.PathLike, giving the path to the file with ColumnsDescription in column_description format.
 
-        pairs : list or numpy.ndarray or pandas.DataFrame or string or os.PathLike
+        pairs : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame or string or os.PathLike
             The pairs description.
-            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
+            If list or numpy.ndarrays or pandas.DataFrame or polars.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of winner object in the training set. The second element of the pair is
             the index of loser object in the training set.
             If string or os.PathLike, giving the path to the file with pairs description.
 
-        graph: list or numpy.ndarray or pandas.DataFrame or string or os.PathLike
+        graph: list or numpy.ndarray or pandas.DataFrame or polars.DataFrame or string or os.PathLike
             The graph description.
             ...
 
@@ -694,31 +710,31 @@ class Pool(_PoolBase):
         ignore_csv_quoting : bool optional (default=False)
             If True ignore quoting '"'.
 
-        weight : list or numpy.ndarray, optional (default=None)
+        weight : list or numpy.ndarray or polars.Series, optional (default=None)
             Weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        group_id : list or numpy.ndarray, optional (default=None)
+        group_id : list or numpy.ndarray or polars.Series, optional (default=None)
             group id for each instance.
             If not None, giving 1 dimensional array like data.
 
-        group_weight : list or numpy.ndarray, optional (default=None)
+        group_weight : list or numpy.ndarray or polars.Series, optional (default=None)
             Group weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        subgroup_id : list or numpy.ndarray, optional (default=None)
+        subgroup_id : list or numpy.ndarray or polars.Series, optional (default=None)
             subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
 
-        pairs_weight : list or numpy.ndarray, optional (default=None)
+        pairs_weight : list or numpy.ndarray or polars.Series, optional (default=None)
             Weight for each pair.
             If not None, giving 1 dimensional array like pairs.
 
-        baseline : list or numpy.ndarray, optional (default=None)
+        baseline : list or numpy.ndarray or polars.DataFrame or polars.Series, optional (default=None)
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
 
-        timestamp: list or numpy.ndarray, optional (default=None)
+        timestamp: list or numpy.ndarray or polars.Series, optional (default=None)
             Timestamp for each instance.
             Should be a non-negative integer.
             Useful for sorting a learning dataset by this field during training.
@@ -895,8 +911,8 @@ class Pool(_PoolBase):
         """
         Check type of pairs or graph parameter.
         """
-        if not isinstance(data, (list, np.ndarray, DataFrame)):
-            raise CatBoostError(f"Invalid {data_name} type={type(data)}: must be list, numpy.ndarray or pandas.DataFrame.")
+        if not isinstance(data, (list, np.ndarray, pd.DataFrame, pl.DataFrame)):
+            raise CatBoostError(f"Invalid {data_name} type={type(data)}: must be list, numpy.ndarray, pandas.DataFrame or polars.DataFrame.")
 
     def _check_pairs_or_graph_value(self, data, data_name: str):
         """
@@ -915,7 +931,7 @@ class Pool(_PoolBase):
         """
         if not isinstance(data, (PATH_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
             raise CatBoostError(
-                ("Invalid data type={}: must be list, numpy.ndarray, pandas.DataFrame, pandas.Series, catboost.FeaturesData, " +
+                ("Invalid data type={}: must be list, numpy.ndarray, pandas.DataFrame, pandas.Series, polars.DataFrame, catboost.FeaturesData, " +
                  "scipy.sparse matrix or a path to a file (str or os.PathLike)").format(type(data))
             )
 
@@ -979,11 +995,24 @@ class Pool(_PoolBase):
             raise CatBoostError("Length of baseline={} and length of data={} are different.".format(len(baseline), samples_count))
         if not isinstance(baseline[0], Iterable) or isinstance(baseline[0], STRING_TYPES):
             raise CatBoostError("Baseline must be 2 dimensional data, 1 column for each class.")
-        try:
-            if np.array(baseline).dtype not in (np.dtype('float'), np.dtype('float32'), np.dtype('int')):
-                raise CatBoostError()
-        except CatBoostError:
-            raise CatBoostError("Invalid baseline value type={}: must be float or int.".format(np.array(baseline).dtype))
+
+        if isinstance(baseline, pl.DataFrame):
+            for i, column in enumerate(baseline.iter_columns()):
+                try:
+                    if column.has_nulls():
+                        raise CatBoostError("Baseline must not contain null values.")
+                    dtype = column.dtype
+                    if (not dtype.is_numeric()) and (dtype != pl.Object):
+                        raise CatBoostError(f'Non-numeric dtype: {dtype}')
+                except Exception as e:
+                    raise CatBoostError(f"Invalid baseline column {i}") from e
+        else:
+            dtype = np.array(baseline).dtype
+            try:
+                if not (np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating) or (dtype == np.dtype('object'))):
+                    raise CatBoostError()
+            except CatBoostError:
+                raise CatBoostError("Invalid baseline value type={}: must be float or int.".format(dtype))
 
     def _check_weight_type(self, weight):
         """
@@ -1118,8 +1147,10 @@ class Pool(_PoolBase):
 
     def _check_and_prepare_pairs_or_graph(self, data, data_name: str):
         self._check_pairs_or_graph_type(data, data_name)
-        if isinstance(data, DataFrame):
+        if isinstance(data, pd.DataFrame):
             data = data.values
+        elif isinstance(data, pl.DataFrame):
+            data = data.to_numpy()
         self._check_pairs_or_graph_value(data, data_name)
         return data
 
@@ -1134,8 +1165,11 @@ class Pool(_PoolBase):
 
     def _check_and_prepare_baseline(self, baseline, samples_count: int):
         self._check_baseline_type(baseline)
-        baseline = self._if_pandas_to_numpy(baseline)
-        baseline = np.reshape(baseline, (samples_count, -1))
+        if isinstance(baseline, pl.Series):
+            baseline = pl.DataFrame([baseline])
+        elif not isinstance(baseline, pl.DataFrame):
+            baseline = self._if_pandas_to_numpy(baseline)
+            baseline = np.reshape(baseline, (samples_count, -1))
         self._check_baseline_shape(baseline, samples_count)
         return baseline
 
@@ -1289,16 +1323,16 @@ class Pool(_PoolBase):
         self._quantize(params)
 
     def _if_pandas_to_numpy(self, array):
-        if isinstance(array, Series):
+        if isinstance(array, pd.Series):
             array = array.values
-        if isinstance(array, DataFrame):
+        if isinstance(array, pd.DataFrame):
             array = np.transpose(array.values)[0]
         return array
 
     def _label_if_pandas_to_numpy(self, label):
-        if isinstance(label, Series):
+        if isinstance(label, pd.Series):
             label = label.values
-        if isinstance(label, DataFrame):
+        if isinstance(label, pd.DataFrame):
             label = label.values
         return label
 
@@ -1398,10 +1432,10 @@ class Pool(_PoolBase):
         """
         Initialize Pool from array like data.
         """
-        if isinstance(data, DataFrame):
+        if isinstance(data, (pd.DataFrame, pl.DataFrame)):
             if feature_names is None:
                 feature_names = self._infer_feature_names(data, embedding_features_data, embedding_features)
-        if isinstance(data, Series):
+        if isinstance(data, pd.Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
             samples_count = data.get_object_count()
@@ -1427,9 +1461,12 @@ class Pool(_PoolBase):
         if label is not None:
             self._check_label_type(label)
             self._check_label_empty(label)
-            label = self._label_if_pandas_to_numpy(label)
-            if len(np.shape(label)) == 1:
-                label = np.expand_dims(label, 1)
+            if isinstance(label, pl.Series):
+                label = pl.DataFrame([label])
+            elif not isinstance(label, pl.DataFrame):
+                label = self._label_if_pandas_to_numpy(label)
+                if len(np.shape(label)) == 1:
+                    label = np.expand_dims(label, 1)
             self._check_label_shape(label, samples_count)
         if feature_names is not None:
             self._check_feature_names(feature_names, features_count)
@@ -2441,11 +2478,11 @@ def _params_type_cast(params):
 
 
 def _is_data_single_object(data):
-    if isinstance(data, (Pool, FeaturesData, DataFrame) + SPARSE_MATRIX_TYPES):
+    if isinstance(data, (Pool, FeaturesData, pd.DataFrame) + SPARSE_MATRIX_TYPES):
         return False
     if not isinstance(data, ARRAY_TYPES):
         raise CatBoostError(
-            "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame,"
+            "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame, polars.Series, polars.DataFrame"
             " scipy.sparse matrix, catboost.FeaturesData or catboost.Pool".format(type(data))
         )
     return len(np.shape(data)) == 1
@@ -2729,14 +2766,14 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
              or string.
             If not catboost.Pool or catboost.FeaturesData it must be 2 dimensional Feature matrix
              or string - file with dataset.
 
              Must be non-empty (contain > 0 objects)
 
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
@@ -2755,39 +2792,39 @@ class CatBoost(_CatBoostBase):
             If not none, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool and not catboost.FeaturesData
 
-        pairs : list or numpy.ndarray or pandas.DataFrame
+        pairs : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame
             The pairs description.
-            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
+            If list or numpy.ndarrays or pandas.DataFrame or polars.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of the winner object in the training set. The second element of the pair is
             the index of the loser object in the training set.
 
-        graph : list or numpy.ndarray or pandas.DataFrame
+        graph : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame
             The graph edges list description.
             If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
 
-        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        group_id : list or numpy.ndarray, optional (default=None)
+        group_id : list or numpy.ndarray or polars.Series, optional (default=None)
             group id for each instance.
             If not None, giving 1 dimensional array like data.
             Use only if X is not catboost.Pool.
 
-        group_weight : list or numpy.ndarray, optional (default=None)
+        group_weight : list or numpy.ndarray or polars.Series, optional (default=None)
             Group weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        subgroup_id : list or numpy.ndarray, optional (default=None)
+        subgroup_id : list or numpy.ndarray or polars.Series, optional (default=None)
             subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
             Use only if X is not catboost.Pool.
 
-        pairs_weight : list or numpy.ndarray, optional (default=None)
+        pairs_weight : list or numpy.ndarray or polars.Series, optional (default=None)
             Weight for each pair.
             If not None, giving 1 dimensional array like pairs.
 
-        baseline : list or numpy.ndarray, optional (default=None)
+        baseline : list or numpy.ndarray or polars.Series or polars.DataFrame, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -2899,7 +2936,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -2972,7 +3009,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                 or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -3038,7 +3075,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -3099,7 +3136,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -3130,7 +3167,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -3363,7 +3400,7 @@ class CatBoost(_CatBoostBase):
                 Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
             If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
                 Possible types are catboost.Pool or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse.spmatrix
+                or polars.DataFrame or catboost.FeaturesData or pandas.SparseDataFrame or scipy.sparse.spmatrix
             If type == 'FeatureImportance'
                 See 'PredictionValuesChange' for non-ranking metrics and 'LossFunctionChange' for ranking metrics.
             If type == 'Interaction'
@@ -3535,7 +3572,7 @@ class CatBoost(_CatBoostBase):
                 if prettified:
                     feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
                     columns = ['Feature Id', 'Importances']
-                    return DataFrame(feature_importances, columns=columns)
+                    return pd.DataFrame(feature_importances, columns=columns)
                 else:
                     return np.array(feature_importances)
             elif type == EFstrType.ShapValues:
@@ -3545,7 +3582,7 @@ class CatBoost(_CatBoostBase):
                 else:
                     result = [[value for value in doc] for doc in fstr]
                     if prettified:
-                        return DataFrame(result)
+                        return pd.DataFrame(result)
                     else:
                         return np.array(result)
             elif type == EFstrType.ShapInteractionValues:
@@ -3559,7 +3596,7 @@ class CatBoost(_CatBoostBase):
                 result = [[int(row[0]), int(row[1]), row[2]] for row in fstr]
                 if prettified:
                     columns = ['First Feature Index', 'Second Feature Index', 'Interaction']
-                    return DataFrame(result, columns=columns)
+                    return pd.DataFrame(result, columns=columns)
                 else:
                     return np.array(result)
 
@@ -3689,7 +3726,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_copyright : string
                 * pmml_description : string
                 * pmml_model_version : string
-        pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+        pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
             Training pool.
         """
         if not self.is_fitted():
@@ -3811,7 +3848,7 @@ class CatBoost(_CatBoostBase):
         """
         To use this function, you should install plotly.
 
-        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        data: numpy.ndarray or pandas.DataFrame or polars.DataFrame or catboost.Pool
         features_to_change: list-like with int (for indices) or str (for names) elements
             Numerical features indices or names in `data` for which you want to vary prediction value.
         plot: bool
@@ -3916,7 +3953,7 @@ class CatBoost(_CatBoostBase):
     def plot_partial_dependence(self, data, features, plot=True, plot_file=None, thread_count=-1):
         """
         To use this function, you should install plotly.
-        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        data: numpy.ndarray or pandas.DataFrame or polars.DataFrame or catboost.Pool
         features: int, str, list<int>, tuple<int>, list<string>, tuple<string>
             Float features to calculate partial dependence for. Number of features should be 1 or 2.
         plot: bool
@@ -4040,9 +4077,9 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data: numpy.ndarray or pandas.DataFrame or catboost. Pool or dict {'pool_name': pool} if you want several pools
+        data: numpy.ndarray or pandas.DataFrame or polars.DataFrame or catboost. Pool or dict {'pool_name': pool} if you want several pools
             Data to compute statistics on
-        target: numpy.ndarray or pandas.Series or dict {'pool_name': target} if you want several pools or None
+        target: numpy.ndarray or pandas.Series or polars.Series or dict {'pool_name': target} if you want several pools or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
         feature: None, int, string, or list of int or strings
@@ -4391,10 +4428,10 @@ class CatBoost(_CatBoostBase):
             dictionary in the list are explored.
             This enables searching over any sequence of parameter settings.
 
-        X: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        X: numpy.ndarray or pandas.DataFrame or polars.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
@@ -4501,10 +4538,10 @@ class CatBoost(_CatBoostBase):
             Distributions must provide a rvs method for sampling (such as those from scipy.stats.distributions).
             If a list is given, it is sampled uniformly.
 
-        X: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        X: numpy.ndarray or pandas.DataFrame or polars.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
@@ -4604,10 +4641,10 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
@@ -5405,10 +5442,10 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for binary classification problems
@@ -5427,14 +5464,14 @@ class CatBoostClassifier(CatBoost):
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
 
-        graph : list or numpy.ndarray or pandas.DataFrame
+        graph : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame
             The graph edges list description.
             If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
 
-        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        baseline : list or numpy.ndarray, optional (default=None)
+        baseline : list or numpy.ndarray or polars.DataFrame or polars.Series, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -5519,7 +5556,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5578,7 +5615,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If X is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5622,7 +5659,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5666,7 +5703,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5722,7 +5759,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5763,7 +5800,7 @@ class CatBoostClassifier(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -5803,9 +5840,9 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             Data to apply model on.
-        y : list or numpy.ndarray
+        y : list or numpy.ndarray or polars.Series
             True labels.
 
         Returns
@@ -5818,10 +5855,14 @@ class CatBoostClassifier(CatBoost):
             y = X.get_label()
             if y is None:
                 raise CatBoostError("Label in X has not initialized.")
-        if isinstance(y, DataFrame):
+        if isinstance(y, pd.DataFrame):
             if len(y.columns) != 1:
-                raise CatBoostError("y is DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
+                raise CatBoostError("y is pandas.DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
             y = y[y.columns[0]]
+        elif isinstance(y, pl.DataFrame):
+            if y.width != 1:
+                raise CatBoostError("y is polars.DataFrame and has {} columns, but must have exactly one.".format(y.width))
+            y = y.to_series(0)
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y)
@@ -6035,10 +6076,10 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with numerical values.
             Use only if X is not catboost.Pool and does not point to a file.
@@ -6055,14 +6096,14 @@ class CatBoostRegressor(CatBoost):
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
 
-        graph : list or numpy.ndarray or pandas.DataFrame
+        graph : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame
             The graph edges list description.
-            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
+            If list or numpy.ndarrays or pandas.DataFrame or polars.DataFrame, giving 2 dimensional.
 
-        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        baseline : list or numpy.ndarray, optional (default=None)
+        baseline : list or numpy.ndarray or polars.DataFrame or polars.Series, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -6146,7 +6187,7 @@ class CatBoostRegressor(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -6194,7 +6235,7 @@ class CatBoostRegressor(CatBoost):
         Parameters
         ----------
         data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -6231,9 +6272,9 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             Data to apply model on.
-        y : list or numpy.ndarray
+        y : list or numpy.ndarray or polars.Series
             True labels.
 
         Returns
@@ -6443,13 +6484,13 @@ class CatBoostRanker(CatBoost):
         Fit the CatBoostRanker model.
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
-        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single-dimensional array with numerical values.
             Use only if X is not catboost.Pool and does not point to a file.
-        group_id : numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        group_id : numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Ranking groups, 1 dimensional array like.
             Use only if X is not catboost.Pool.
         cat_features : list or numpy.ndarray, optional (default=None)
@@ -6461,30 +6502,30 @@ class CatBoostRanker(CatBoost):
         embedding_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
-        pairs : list or numpy.ndarray or pandas.DataFrame, optional (default=None)
+        pairs : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame, optional (default=None)
             The pairs description in the form of a two-dimensional matrix of shape N by 2:
             N is the number of pairs.
             The first element of the pair is the zero-based index of the winner object from the input dataset for pairwise comparison.
             The second element of the pair is the zero-based index of the loser object from the input dataset for pairwise comparison.
-        graph : list or numpy.ndarray or pandas.DataFrame
+        graph : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame
             The graph edges list description.
             If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
-        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
-        group_weight : list or numpy.ndarray (default=None)
+        group_weight : list or numpy.ndarray or polars.Series (default=None)
             The weights of all objects within the defined groups from the input data in the form of one-dimensional array-like data.
             Used for calculating the final values of trees. By default, it is set to 1 for all objects in all groups.
             Only a weight or group_weight parameter can be used at a time
-        subgroup_id : list or numpy.ndarray (default=None)
+        subgroup_id : list or numpy.ndarray or polars.Series (default=None)
             Subgroup identifiers for all input objects. Supported identifier types are:
             int
             string types (string or unicode for Python 2 and bytes or string for Python 3).
-        pairs_weight : list or numpy.ndarray (default=None)
+        pairs_weight : list or numpy.ndarray or polars.Series (default=None)
             The weight of each input pair of objects in the form of one-dimensional array-like pairs.
             The number of given values must match the number of specified pairs.
             This information is used for calculation and optimization of Pairwise metrics .
             By default, it is set to 1 for all pairs.
-        baseline : list or numpy.ndarray, optional (default=None)
+        baseline : list or numpy.ndarray or polars.DataFrame or polars.Series, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
         use_best_model : bool, optional (default=None)
@@ -6554,7 +6595,7 @@ class CatBoostRanker(CatBoost):
         Parameters
         ----------
         X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -6583,7 +6624,7 @@ class CatBoostRanker(CatBoost):
         Parameters
         ----------
         X : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or polars.DataFrame or polars.Series or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
@@ -6613,9 +6654,9 @@ class CatBoostRanker(CatBoost):
         Calculate NDCG@top
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame
             Data to apply model on.
-        y : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
+        y : list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.Series
             True labels.
         group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series
             Ranking groups. If X is a Pool, group_id must be defined into X
@@ -6823,7 +6864,7 @@ def sample_gaussian_process(X, y, eval_set=None,
 
     Parameters
     ----------
-    X : list or numpy.ndarray or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+    X : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
         If catboost.FeaturesData it must be 2 dimensional Feature matrix
         Must be non-empty (contain > 0 objects)
     y : list or numpy.ndarray or pandas.DataFrame or pandas.Series

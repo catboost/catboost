@@ -8,6 +8,15 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Finalization function that makes each bit of the output depend on each bit of the input.
+//! Needed to achieve unbiased distribution for bit-sensitive application like HLL,
+//! as opposed to raw collision minimization.
+//! This is also SplitMix64 PRNG.
+//! Cf. |http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html|, |boost::random::splitmix64|.
+size_t SplitMix64(size_t value);
+
+////////////////////////////////////////////////////////////////////////////////
+
 //! Updates #h with #k.
 //! Cf. |boost::hash_combine|.
 void HashCombine(size_t& h, size_t k);

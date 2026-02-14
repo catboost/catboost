@@ -277,7 +277,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          python -m pip install pytest numpy pandas ipywidgets scikit-learn
+          python -m pip install pytest numpy pandas ipywidgets scikit-learn polars
           python -m pip uninstall -y catboost
           python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost

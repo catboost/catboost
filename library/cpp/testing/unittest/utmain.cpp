@@ -5,6 +5,7 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <library/cpp/json/json_writer.h>
 #include <library/cpp/json/writer/json.h>
 #include <library/cpp/json/writer/json_value.h>
 #include <library/cpp/testing/common/env.h>
@@ -622,6 +623,25 @@ public:
 
     bool CheckAccessTest(TString suite, const char* name) override {
         Stream_ << suite << "::" << name << "\n";
+        return false;
+    }
+
+    bool CheckAccessTest(TString suite, const char* name, const char* file, int line) override {
+        if (false) {
+            // TODO: YA-3943 будет открыто в следующем PR, активироввать функционал нужно в два шага
+            // if (Verbose_) {
+            NJson::TJsonValue testObj;
+            testObj["test_suite_name"] = suite;
+            testObj["name"] = name;
+            testObj["file"] = file ? file : "";
+            testObj["line"] = line;
+            testObj["nodeid"] = suite + "::" + name;
+
+            NJson::WriteJson(&Stream_, &testObj);
+            Stream_.Write("\n");
+        } else {
+            Stream_ << suite << "::" << name << "\n";
+        }
         return false;
     }
 

@@ -5,7 +5,7 @@ from typing import Dict
 import pytest
 
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 
 import sklearn
 import sklearn.base
@@ -60,7 +60,7 @@ CD_FILE = data_file('adult', 'train.cd')
 def test_sklearn_calibrated_classifier_cv_with_frozen_catboost():
     from sklearn.frozen import FrozenEstimator
 
-    X_train = DataFrame(
+    X_train = pd.DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
         columns=['feature{}'.format(i) for i in range(5)]
     )

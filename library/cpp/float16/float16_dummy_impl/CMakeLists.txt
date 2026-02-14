@@ -12,16 +12,15 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(cpp-float16-float16_dummy_impl)
-
-
-target_link_libraries(cpp-float16-float16_dummy_impl PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-)
-
-target_sources(cpp-float16-float16_dummy_impl PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16_dummy_impl/float16_dummy.cpp
-)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND NOT HAVE_CUDA)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND HAVE_CUDA)
+  include(CMakeLists.linux-aarch64-cuda.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
+  include(CMakeLists.linux-ppc64le.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
+  include(CMakeLists.linux-ppc64le-cuda.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+  include(CMakeLists.darwin-arm64.txt)
+endif()
 

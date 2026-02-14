@@ -1,67 +1,78 @@
+import json
 import os
 import sys
-from six import reraise
 import logging
 
 import py
-
-import pytest  # noqa
-import _pytest.python
+import pytest
 import _pytest.doctest
-import json
+import six
+from six import reraise
+
+if six.PY3:
+    import pathlib
+
+from library.python.pytest import module_utils
 import library.python.testing.filter.filter as test_filter
 
-if sys.version_info > (3,):
-    import _pytest.stash
 
+class LoadedModule(pytest.Module):
+    def __init__(self, parent, name, namespace=True, **kwargs):
+        self.module_name = name
+        if namespace:
+            assert name.startswith('__tests__.')
+            self.display_module_name = name[len('__tests__.'):]
+        else:
+            self.display_module_name = name
+        self.is_fake_module = False
+        # Always passed to `super().__init__` explicitly.
+        kwargs.pop('nodeid', None)
 
-class LoadedModule(_pytest.python.Module):
-    def __init__(self, parent, name, **kwargs):
-        self.name = name + '.py'
-        self.session = parent
-        self.parent = parent
-        self.config = parent.config
-        self.keywords = {}
-        self.own_markers = []
-        self.extra_keyword_matches = set()
-        self.fspath = py.path.local()
-        if sys.version_info > (3,):
-            self.stash = _pytest.stash.Stash()
+        if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
+            nodeid = module_utils.get_proper_module_path(self.module_name)
+            if nodeid is None:
+                self.is_fake_module = True
+                return
+
+            name = nodeid
+            if six.PY3:
+                kwargs['path'] = kwargs.get('path') or pathlib.Path(nodeid)
+            else:
+                raw_module_path = module_utils.get_module_file_path(self.module_name)
+                kwargs['fspath'] = kwargs.get('fspath') or py.path.local(raw_module_path)
+        else:
+            nodeid = self.display_module_name + '.py'
+            name = nodeid
+            if six.PY3:
+                kwargs['path'] = kwargs.get('path') or pathlib.Path(py.path.local())
+            else:
+                kwargs['fspath'] = kwargs.get('fspath') or py.path.local()
+
+        if six.PY3:
+            super().__init__(parent=parent, name=name, nodeid=nodeid, **kwargs)
+        else:
+            super(LoadedModule, self).__init__(parent=parent, nodeid=nodeid, **kwargs)
+            self.name = name
 
     @classmethod
     def from_parent(cls, **kwargs):
-        namespace = kwargs.pop('namespace', True)
-        kwargs.setdefault('fspath', py.path.local())
-
-        loaded_module = getattr(super(LoadedModule, cls), 'from_parent', cls)(**kwargs)
-        loaded_module.namespace = namespace
-
-        return loaded_module
-
-    @property
-    def _nodeid(self):
-        if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
-            return self._getobj().__file__
-        else:
-            return self.name
-
-    @property
-    def nodeid(self):
-        return self._nodeid
+        return getattr(super(LoadedModule, cls), 'from_parent', cls)(**kwargs)
 
     def _getobj(self):
-        module_name = self.name[:-len('.py')]
-        if self.namespace:
-            module_name = '__tests__.' + module_name
+        # A simplified version of pytest `importtestmodule` that works with resfs.
         try:
-            __import__(module_name)
+            __import__(self.module_name)
+        except pytest.skip.Exception as e:
+            if not e.allow_module_level:
+                raise RuntimeError("Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`.")
+            raise
         except Exception as e:
-            msg = 'Failed to load module "{}" and obtain list of tests due to an error'.format(module_name)
+            msg = 'Failed to load module "{}" and obtain list of tests due to an error'.format(self.module_name)
             logging.exception('%s: %s', msg, e)
             etype, exc, tb = sys.exc_info()
             reraise(etype, type(exc)('{}\n{}'.format(exc, msg)), tb)
 
-        return sys.modules[module_name]
+        return sys.modules[self.module_name]
 
 
 class DoctestModule(LoadedModule):
@@ -72,14 +83,14 @@ class DoctestModule(LoadedModule):
         module = self._getobj()
         # uses internal doctest module parsing mechanism
         finder = doctest.DocTestFinder()
-        if sys.version_info > (3,):
+        if six.PY3:
             optionflags = _pytest.doctest.get_optionflags(self.config)
         else:
             optionflags = _pytest.doctest.get_optionflags(self)
         runner = doctest.DebugRunner(verbose=0, optionflags=optionflags)
 
         try:
-            for test in finder.find(module, self.name[:-len('.py')]):
+            for test in finder.find(module, self.display_module_name):
                 if test.examples:  # skip empty doctests
                     yield getattr(_pytest.doctest.DoctestItem, 'from_parent', _pytest.doctest.DoctestItem)(
                         name=test.name,
@@ -93,34 +104,45 @@ class DoctestModule(LoadedModule):
             reraise(etype, type(exc)('{}\n{}'.format(exc, msg)), tb)
 
 
-def _is_skipped_module_level(module):
-    # since we import module by ourselves when CONFTEST_LOAD_POLICY is set to LOCAL we have to handle
-    # pytest.skip.Exception https://docs.pytest.org/en/stable/reference/reference.html#pytest-skip
-    try:
-        module.obj
-    except pytest.skip.Exception as e:
-        if not e.allow_module_level:
-            raise RuntimeError("Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`.")
+# NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
+# This function is only used in CollectionPlugin below, this is not an implementation of a pytest hook.
+def _pytest_ignore_collect(module, config, filenames_from_full_filters, accept_filename_predicate):
+    if module.is_fake_module:
         return True
-    except Exception:
-        # letting other exceptions such as ImportError slip through
-        pass
+
+    # TODO refactor to use meaningful attributes like `path` instead?
+    #  test_file_filter would need to be relative to repository root.
+    legacy_name = module.display_module_name + '.py'
+
+    if config.option.mode == 'list':
+        return not accept_filename_predicate(legacy_name)
+
+    if filenames_from_full_filters is not None and legacy_name not in filenames_from_full_filters:
+        return True
+
+    test_file_filter = getattr(config.option, 'test_file_filter', None)
+    if test_file_filter and legacy_name != test_file_filter.replace('/', '.'):
+        return True
+
     return False
 
 
-# NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
-def pytest_ignore_collect(module, session, filenames_from_full_filters, accept_filename_predicate):
-    if session.config.option.mode == 'list':
-        return not accept_filename_predicate(module.name) or _is_skipped_module_level(module)
+def _patch_set_initial_conftests(pluginmanager):
+    """
+    Avoids attempts to access filesystem directly in built-in `pytest_load_initial_conftests` hook impl.
+    """
+    if six.PY3:
+        def _set_initial_conftests_py3(pyargs, noconftest, *args, **kwargs):
+            pluginmanager._noconftest = noconftest
+            pluginmanager._using_pyargs = pyargs
 
-    if filenames_from_full_filters is not None and module.name not in filenames_from_full_filters:
-        return True
+        pluginmanager._set_initial_conftests = _set_initial_conftests_py3
+    else:
+        def _set_initial_conftests_py2(namespace):
+            pluginmanager._noconftest = namespace.noconftest
+            pluginmanager._using_pyargs = namespace.pyargs
 
-    test_file_filter = getattr(session.config.option, 'test_file_filter', None)
-    if test_file_filter and module.name != test_file_filter.replace('/', '.'):
-        return True
-
-    return _is_skipped_module_level(module)
+        pluginmanager._set_initial_conftests = _set_initial_conftests_py2
 
 
 class CollectionPlugin(object):
@@ -128,27 +150,37 @@ class CollectionPlugin(object):
         self._test_modules = test_modules
         self._doctest_modules = doctest_modules
 
+    @pytest.hookimpl(tryfirst=True)
+    def pytest_load_initial_conftests(self, early_config):
+        _patch_set_initial_conftests(early_config.pluginmanager)
+
     def pytest_sessionstart(self, session):
 
         def collect(*args, **kwargs):
-            accept_filename_predicate = test_filter.make_py_file_filter(session.config.option.test_filter)
-            full_test_names_file_path = session.config.option.test_list_path
+            config = session.config
+
+            if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
+                # A custom function that is set in conftests.py.
+                config._ya_register_non_initial_conftests()
+
+            accept_filename_predicate = test_filter.make_py_file_filter(config.option.test_filter)
+            full_test_names_file_path = config.option.test_list_path
             filenames_filter = None
 
             if full_test_names_file_path and os.path.exists(full_test_names_file_path):
                 with open(full_test_names_file_path, 'r') as afile:
                     # in afile stored 2 dimensional array such that array[modulo_index] contains tests which should be run in this test suite
-                    full_names_filter = set(json.load(afile)[int(session.config.option.modulo_index)])
+                    full_names_filter = set(json.load(afile)[int(config.option.modulo_index)])
                     filenames_filter = set(map(lambda x: x.split('::')[0], full_names_filter))
 
             for test_module in self._test_modules:
                 module = LoadedModule.from_parent(name=test_module, parent=session)
-                if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
+                if not _pytest_ignore_collect(module, config, filenames_filter, accept_filename_predicate):
                     yield module
 
                 if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':
                     module = DoctestModule.from_parent(name=test_module, parent=session)
-                    if not pytest_ignore_collect(module, session, filenames_filter, accept_filename_predicate):
+                    if not _pytest_ignore_collect(module, config, filenames_filter, accept_filename_predicate):
                         yield module
 
             if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':

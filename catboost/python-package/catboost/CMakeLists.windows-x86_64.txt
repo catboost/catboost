@@ -72,6 +72,7 @@ target_link_libraries(_catboost PUBLIC
   private-libs-options
   private-libs-quantized_pool_analysis
   private-libs-target
+  library-cpp-float16
   library-cpp-grid_creator
   cpp-json-writer
   cpp-text_processing-tokenizer
@@ -90,6 +91,7 @@ target_cython_sources(_catboost PRIVATE
 target_sources(_catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/arrow.cpp
 )
 
 

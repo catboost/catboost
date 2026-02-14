@@ -30,10 +30,10 @@ struct remove_cv {
 
 #if defined(_LIBCPP_COMPILER_GCC) || !__has_builtin(__remove_cv)
 template <class _Tp>
-using __remove_cv_t = typename remove_cv<_Tp>::type;
+using __remove_cv_t _LIBCPP_NODEBUG = typename remove_cv<_Tp>::type;
 #else
 template <class _Tp>
-using __remove_cv_t = __remove_cv(_Tp);
+using __remove_cv_t _LIBCPP_NODEBUG = __remove_cv(_Tp);
 #endif
 
 #if _LIBCPP_STD_VER >= 14

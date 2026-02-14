@@ -21,11 +21,7 @@
 #  endif
 #endif
 
-#if _LIBCPP_HAS_THREADS
-#  include <atomic>
-#else
-#  include "include/atomic_support.h"
-#endif
+#include "include/atomic_support.h"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -38,21 +34,10 @@ __shared_count::~__shared_count() {}
 __shared_weak_count::~__shared_weak_count() {}
 
 #if defined(_LIBCPP_SHARED_PTR_DEFINE_LEGACY_INLINE_FUNCTIONS)
-void __shared_count::__add_shared() noexcept {
-#  if !_LIBCPP_HAS_THREADS
-  __libcpp_atomic_refcount_increment(__shared_owners_);
-#  else
-  ++__shared_owners_;
-#  endif
-}
+void __shared_count::__add_shared() noexcept { __libcpp_atomic_refcount_increment(__shared_owners_); }
 
 bool __shared_count::__release_shared() noexcept {
-#  if !_LIBCPP_HAS_THREADS
-  if (__libcpp_atomic_refcount_decrement(__shared_owners_) == -1)
-#  else
-  if (--__shared_owners_ == -1)
-#  endif
-  {
+  if (__libcpp_atomic_refcount_decrement(__shared_owners_) == -1) {
     __on_zero_shared();
     return true;
   }
@@ -61,13 +46,7 @@ bool __shared_count::__release_shared() noexcept {
 
 void __shared_weak_count::__add_shared() noexcept { __shared_count::__add_shared(); }
 
-void __shared_weak_count::__add_weak() noexcept {
-#  if !_LIBCPP_HAS_THREADS
-  __libcpp_atomic_refcount_increment(__shared_weak_owners_);
-#  else
-  ++__shared_weak_owners_;
-#  endif
-}
+void __shared_weak_count::__add_weak() noexcept { __libcpp_atomic_refcount_increment(__shared_weak_owners_); }
 
 void __shared_weak_count::__release_shared() noexcept {
   if (__shared_count::__release_shared())
@@ -97,37 +76,19 @@ void __shared_weak_count::__release_weak() noexcept {
   // threads, and have them all get copied at once.  The argument
   // also doesn't apply for __release_shared, because an outstanding
   // weak_ptr::lock() could read / modify the shared count.
-#if !_LIBCPP_HAS_THREADS
-  if (__libcpp_atomic_load(&__shared_weak_owners_, _AO_Acquire) == 0)
-#else
-  if (__shared_weak_owners_.load(memory_order_acquire) == 0)
-#endif
-  {
+  if (__libcpp_atomic_load(&__shared_weak_owners_, _AO_Acquire) == 0) {
     // no need to do this store, because we are about
     // to destroy everything.
     //__libcpp_atomic_store(&__shared_weak_owners_, -1, _AO_Release);
     __on_zero_shared_weak();
-  }
-#if !_LIBCPP_HAS_THREADS
-  else if (__libcpp_atomic_refcount_decrement(__shared_weak_owners_) == -1)
-#else
-  else if (--__shared_weak_owners_ == -1)
-#endif
+  } else if (__libcpp_atomic_refcount_decrement(__shared_weak_owners_) == -1)
     __on_zero_shared_weak();
 }
 
 __shared_weak_count* __shared_weak_count::lock() noexcept {
-#if !_LIBCPP_HAS_THREADS
   long object_owners = __libcpp_atomic_load(&__shared_owners_);
-#else
-  long object_owners = __shared_owners_.load();
-#endif
   while (object_owners != -1) {
-#if !_LIBCPP_HAS_THREADS
     if (__libcpp_atomic_compare_exchange(&__shared_owners_, &object_owners, object_owners + 1))
-#else
-    if (__shared_owners_.compare_exchange_weak(object_owners, object_owners + 1))
-#endif
       return this;
   }
   return nullptr;

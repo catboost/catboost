@@ -113,15 +113,22 @@ def file_bytes(path, strip=False):
 def _guess_source_root():
     path, tail = _os.getcwd(), 'start'
 
+    root = None
     while tail:
         guidence_file = _path_join(path, '.root.path')
         if _path_isfile(guidence_file):
+            # return immediately when guidence file is found
             return file_bytes(guidence_file, strip=True)
 
-        if _path_isfile(_path_join(path, '.arcadia.root')):
-            return _b(path)
+        if _path_isfile(_path_join(path, '.arcadia.root')) and not root:
+            # save as a fallback but continue searching for a guidence file
+            # NOTE: .arcadia.root may be a symlink if it's set in DATA macros
+            # and it may be a regular file if ya:copydata tag is set
+            # in addition to that. So it's not very reliable.
+            root = _b(path)
 
         path, tail = _path_split(path)
+    return root
 
 
 def _get_source_root():
@@ -288,7 +295,6 @@ class ResourceImporter(SourceFileLoader):
     def __init__(self, fullname, path):
         super().__init__(fullname, path)
         self.memory = set(iter_py_modules())  # Set of importable module names.
-        self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
 
@@ -495,24 +501,6 @@ class ResourceImporter(SourceFileLoader):
             return self.arcadia_source_finder.is_package(fullname)
 
         raise ImportError(fullname)
-
-    # Extension for contrib/python/coverage.
-    def file_source(self, filename):
-        """
-        Return the key of the module source by its resource path.
-        """
-        if not self.source_map:
-            for key, mod in iter_py_modules(with_keys=True):
-                path = self.get_filename(mod)
-                self.source_map[path] = key
-
-        if filename in self.source_map:
-            return self.source_map[filename]
-
-        if resfs_has(filename):
-            return b'resfs/file/' + _b(filename)
-
-        return b''
 
     # Extension for pkgutil.iter_modules.
     def iter_modules(self, prefix=''):
