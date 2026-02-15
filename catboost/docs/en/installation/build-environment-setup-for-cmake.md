@@ -63,7 +63,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 
-      For Linux target the default CMake toolchain assumes that `clang` and `clang++` are available from the command line and will use them to compile {{ product }} components. If the default version of `clang` and `clang++` is not what is intended to be used for building then modify the toolchain file `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain` - replace all occurences of `clang` and `clang++` with `clang-$CLANG_VERSION` and `clang++-$CLANG_VERSION` respectively where `$CLANG_VERSION` is the version of `clang` you want to use like, for example, `16` or `17` (must be already installed).
+      For Linux target the default CMake toolchain assumes that `clang`, `clang++` and `ld.lld` are available from the command line and will use them to compile and link {{ product }} components. If the default versions of `clang`, `clang++`, `ld.lld` are not what is intended to be used for building then modify the toolchain file `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain` - replace all occurences of `clang`, `clang++` and `ld.lld` with `clang-$LLVM_VERSION`, `clang++-$LLVM_VERSION` and `ld.lld-$LLVM_VERSION` respectively where `$LLVM_VERSION` is the version of `clang` or `lld` you want to use like, for example, `16` or `17` (must be already installed).
 
       For compilation with CUDA support the default CMake toolchain assumes that `clang-14` is available from the command line.
 
