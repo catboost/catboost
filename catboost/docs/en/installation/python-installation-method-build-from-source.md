@@ -46,7 +46,7 @@ For building with earlier versions see these pages:
 
       For some reason Python 3.12 fails to automatically resolve build/setup dependencies in a way that they are buildable so it is recommended to install the following packages using pip explicitly:
         - setuptools
-        -  wheel
+        - wheel (if using setuptools < 70.1.0, ['wheel' functionality has been integrated into setuptools since 70.1.0](https://github.com/pypa/setuptools/issues/1386) )
         - jupyterlab (3.x, 4.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2533))
         - conan (2.4.1+, for revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) only conan 1.x with versions 1.62.0+ is supported)
 
