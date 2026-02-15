@@ -21,12 +21,12 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 #if __has_keyword(__is_same) && !defined(__CUDACC__)
 
 template <class _Tp, class _Up>
-struct _LIBCPP_TEMPLATE_VIS is_same : _BoolConstant<__is_same(_Tp, _Up)> {};
+struct _LIBCPP_TEMPLATE_VIS _LIBCPP_NO_SPECIALIZATIONS is_same : _BoolConstant<__is_same(_Tp, _Up)> {};
 
-#  if _LIBCPP_STD_VER >= 17
+#if _LIBCPP_STD_VER >= 17
 template <class _Tp, class _Up>
-inline constexpr bool is_same_v = __is_same(_Tp, _Up);
-#  endif
+_LIBCPP_NO_SPECIALIZATIONS inline constexpr bool is_same_v = __is_same(_Tp, _Up);
+#endif
 
 #else
 
@@ -41,6 +41,7 @@ inline constexpr bool is_same_v = is_same<_Tp, _Up>::value;
 #  endif
 
 #endif // __is_same
+
 // _IsSame<T,U> has the same effect as is_same<T,U> but instantiates fewer types:
 // is_same<A,B> and is_same<C,D> are guaranteed to be different types, but
 // _IsSame<A,B> and _IsSame<C,D> are the same type (namely, false_type).
