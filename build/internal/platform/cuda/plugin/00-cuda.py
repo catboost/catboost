@@ -71,11 +71,11 @@ CUDA_NO_FATBIN_LIBRARIES = {
 
 
 class CUDAManager:
-    def __init__(self, known_arches, nvprune_exe):
+    def __init__(self, known_arches, nvprune_exe, prune):
         self.fatbin_libs = self._known_fatbin_libs(set(CUDA_LIBRARIES))
 
         self.prune_args = []
-        if known_arches:
+        if known_arches and prune:
             for arch in known_arches.split(':'):
                 self.prune_args.append('-gencode')
                 self.prune_args.append(self._arch_flag(arch))
@@ -249,7 +249,9 @@ if __name__ == '__main__':
     if 'CLANG_COVERAGE' in kv and kv['CLANG_COVERAGE'] == 'True':
         coverage_enabled = True
 
-    cuda_manager = CUDAManager(ca, nv)
+    prune = (kv.get('PRUNE', 'True') == 'True')
+
+    cuda_manager = CUDAManager(ca, nv, prune)
 
     try:
         br = get_flag('--build-root')
