@@ -56,6 +56,19 @@ CUDA_LIBRARIES = {
     '-lnvJitLink_static': '-lnvJitLink',
 }
 
+CUDA_NO_FATBIN_LIBRARIES = {
+    '-lcudart_static',
+    '-lcudnn_graph_static',
+    '-lcudnn_heuristic_static',
+    '-lcufft_static_nocallback',
+    '-lcupti_static',
+    '-lnppc_static',
+    '-lnvonnxparser_static',
+    '-lnvptxcompiler_static',
+    '-lnvrtc-builtins_static',
+    '-lnvrtc_static',
+}
+
 
 class CUDAManager:
     def __init__(self, known_arches, nvprune_exe):
@@ -77,12 +90,7 @@ class CUDAManager:
         return self.prune_args and self.nvprune_exe
 
     def _known_fatbin_libs(self, libs):
-        libs_wo_device_code = {
-            '-lcudart_static',
-            '-lcupti_static',
-            '-lnppc_static',
-        }
-        return set(libs) - libs_wo_device_code
+        return set(libs) - CUDA_NO_FATBIN_LIBRARIES
 
     def _arch_flag(self, arch):
         _, ver = arch.split('_', 1)
