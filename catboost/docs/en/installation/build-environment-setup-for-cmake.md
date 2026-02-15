@@ -28,19 +28,21 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [CMake](https://cmake.org/)
 
-  Version 3.24+
+  Version >= 3.24, < 4.0.
+
+  [Issue about support for CMake 4.x](https://github.com/catboost/catboost/issues/3031)
 
   {% cut "Previous requirements" %}
 
   Before commit [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e):
 
-  |Condition|Minimum version|
+  |Condition|Supported versions|
   |---------|---------|
-  | Target OS is Windows, build without CUDA support | 3.24 |
-  | Target OS is Windows, build with CUDA support | 3.21 |
-  | Target OS is Android | 3.21 |
-  | CUDA support, target OS is not Windows | 3.18 |
-  | None of the above | 3.15 |
+  | Target OS is Windows, build without CUDA support | >= 3.24, < 4.0 |
+  | Target OS is Windows, build with CUDA support | >= 3.21, < 4.0 |
+  | Target OS is Android | >= 3.21, < 4.0 |
+  | CUDA support, target OS is not Windows | >= 3.18, < 4.0 |
+  | None of the above | >= 3.15, < 4.0 |
 
   {% endcut %}
 
