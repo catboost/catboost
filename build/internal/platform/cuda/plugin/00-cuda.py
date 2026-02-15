@@ -116,6 +116,7 @@ class CUDAManager:
                 .nv_fatbin : { *(.nv_fatbin) }
                 .ldata : { *(.ldata) }
                 .lrodata : { *(.lrodata .lrodata.*) }
+                .cask_resource : { *(.cask_resource) }
             } INSERT AFTER .bss
         """).strip()
 
