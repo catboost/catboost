@@ -42,6 +42,11 @@ def main():
     except ValueError:
         skip_nocxxinc = False
 
+    sanitize = False
+    if '--y_sanitize' in sys.argv:
+        sanitize = True
+        sys.argv.remove('--y_sanitize')
+
     spl = sys.argv.index('--cflags')
     cmd = 1
     mtime0 = None
@@ -106,11 +111,10 @@ def main():
     cflags = [x for x in cflags if x not in skip_list]
 
     skip_prefix_list = [
-        '-fsanitize=',
-        '-fsanitize-coverage=',
-        '-fsanitize-blacklist=',
         '--system-header-prefix',
     ]
+    if not sanitize:
+        skip_prefix_list.extend(['-fsanitize=', '-fsanitize-coverage=', '-fsanitize-blacklist='])
     new_cflags = []
     for flag in cflags:
         if all(not flag.startswith(skip_prefix) for skip_prefix in skip_prefix_list):
