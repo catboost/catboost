@@ -10,7 +10,6 @@
 #include <util/system/types.h>
 
 namespace NHnsw {
-    constexpr ui32 EMPTY_MARKER = Max<ui32>();
     using TNeighborsView = TArrayRef<const ui32>;
 
     class INeighborsGetter {
@@ -18,25 +17,21 @@ namespace NHnsw {
         virtual ~INeighborsGetter() = default;
 
         virtual TNeighborsView GetLayerNeighbors(const ui32 id) = 0;
-        virtual void MarkVisited(ui32 id) = 0;
     };
 
+    template <typename TSearchContext>
     class TNeighborsGetterBase: public INeighborsGetter {
     public:
-        TNeighborsGetterBase(const ui32* level, const ui32 numNeighbors)
+        TNeighborsGetterBase(const ui32* level, const ui32 numNeighbors, TSearchContext& context)
             : Level(level)
             , NumNeighbors(numNeighbors)
-            , Visited(EMPTY_MARKER)
+            , Context(context)
         {
             NeighborsBuffer.reserve(NumNeighbors);
         }
 
         TNeighborsView GetLayerNeighbors(const ui32 id) override {
             return PrefilterVisited(TNeighborsView{GetNeighbors(id), NumNeighbors});
-        }
-
-        void MarkVisited(ui32 id) override {
-            Visited.Insert(id);
         }
 
     protected:
@@ -51,7 +46,7 @@ namespace NHnsw {
         TNeighborsView PrefilterVisited(TNeighborsView neighbors) {
             NeighborsBuffer.clear();
             for (ui32 id: neighbors) {
-                if (Visited.Insert(id)) {
+                if (Context.TryMarkVisited(id)) {
                     NeighborsBuffer.push_back(id);
                 }
             }
@@ -61,14 +56,15 @@ namespace NHnsw {
     private:
         const ui32* Level;
         const size_t NumNeighbors;
+        TSearchContext& Context;
         TVector<ui32> NeighborsBuffer;
-        TDenseHashSet<ui32> Visited;
     };
 
-    class TAcornNeighborsGetter: public TNeighborsGetterBase {
+    template <typename TSearchContext>
+    class TAcornNeighborsGetter: public TNeighborsGetterBase<TSearchContext> {
     public:
-        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, const TFilterWithLimit& filter)
-            : TNeighborsGetterBase(level, numNeighbors)
+        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, TSearchContext& context, const TFilterWithLimit& filter)
+            : TNeighborsGetterBase<TSearchContext>(level, numNeighbors, context)
             , Filter(filter)
         {
             AcornNeighbors.resize(numNeighbors * numNeighbors, 0);
@@ -79,19 +75,19 @@ namespace NHnsw {
             ui32 acornCount = 0;
             ScanNeighbors(id, acornCount, /*isFirstHop*/ true);
 
-            const size_t numSecondHops = GetNumNeighbors() - acornCount;
+            const size_t numSecondHops = this->GetNumNeighbors() - acornCount;
 
             for (size_t i = 0; i < numSecondHops; ++i) {
                 ScanNeighbors(SecondHopStorage[i], acornCount, /*isFirstHop*/ false);
             }
 
-            return PrefilterVisited(TNeighborsView{AcornNeighbors.data(), acornCount});
+            return this->PrefilterVisited(TNeighborsView{AcornNeighbors.data(), acornCount});
         }
 
     private:
         void ScanNeighbors(const ui32 id, ui32& acornCount, bool isFirstHop) {
-            auto neighbors = GetNeighbors(id);
-            for (size_t i = 0; i < GetNumNeighbors() && !Filter.IsLimitReached(); ++i) {
+            auto neighbors = this->GetNeighbors(id);
+            for (size_t i = 0; i < this->GetNumNeighbors() && !Filter.IsLimitReached(); ++i) {
                 ui32 neighbor = neighbors[i];
 
                 if (isFirstHop && !SeenInFirstHop.Insert(neighbor)) {
