@@ -1,3 +1,60 @@
+# Release 1.2.9
+
+## Major changes
+* \[Python-package\] Add [`polars`](https://docs.pola.rs/api/python/stable/reference/index.html) input data support. #2524.
+
+  `Polars` data structures are supported for features, labels and auxiliary data like `weight`, `timestamp` etc.
+
+## New features
+* \[R-package\] Make 'predict' an S3 method #1657. Thanks to @david-cortes.
+* Add `RMSPE` metric and loss (both as are CPU-only for now) #1767. Thanks to @ivan339339.
+* \[C/C++ applier\] New function `LoadFullModelZeroCopy` for mmap #2893. Thanks to @gakoshin.
+* \[JVM applier\] Add `predictTransposed` method #2927. Thanks to @levs2001.
+* \[Spark\]: Support Spark 4.0.x and 4.1.x #2946. Thanks to @jdries.
+
+## Improvements
+* Remove the limit of 128 threads when loading data. #3027
+
+## Speedups
+* Optimize `Lossguide` grow policy on CPU #2883. Thanks to @Levachev.
+* \[Python-package\] Support non-float32 `numpy` numeric types in multithreaded native features data initialization. #1558, #2847
+* \[Python-package\] Avoid possible repeated reparsing of estimator parameters to canonical forms
+
+## Python package
+* Support Python 3.14 #2943
+* `pyproject.toml` is now PEP-517 compliant.
+* Estimators: Add `__sklearn_tags__` method to be compatible with `scikit-learn` >= 1.8.x. #2955
+* Estimators: Add `__repr__` method with a meaningful description expected by `scikit-learn` #2307. Thanks to @besteady.
+* Adapt to the removal of `dry_run` parameters in setuptools 81.0. [pypa/setuptools#4872](https://github.com/pypa/setuptools/pull/4872)
+* Set upper version bounds for important dependencies to avoid breaking changes
+
+## Rust package
+* Implement Sync for rust Model struct #2689. Thanks to @alexeysofin.
+* Support Windows #2842
+* Fix build on Linux aarch64 #2890. Thanks to @joelchen.
+
+## Build & testing
+* \[Windows\] Support building with MSVC toolsets 14.4*. #2302
+* \[GPU\] Switch from hardcoded gencode specifications in multiple `CMakeLists.txt` files to [the standard `CMake` variable `CMAKE_CUDA_ARCHITECTURES`](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard and [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). #2540
+* \[macOS\] Support Apple Clang 17. #2860
+* \[Python-package\]\[Windows\] Fix python package installation from a source distribution. #3024
+* \[Python-package\] `wheel` build dependency no longer required
+
+## Bugfixes
+* \[Performance\]\[Windows\] `__SSE__` compiler flag was not enabled for Windows builds with MSVC compiler. This affected code that relied on this flag including some operations used during training and quantization during model inference. It is important to note that the compiler itself was configured for SSE support and could still apply automatic SSE optimizations.
+* \[Python-package\] carry.py: fix _uplift_by_name. #2861
+* \[Python-package\] `CatBoostError` was missing from `__all__` in `catboost` package. #2862
+* \[Python-package\] `log_cout` was used instead of `log_cerr` by mistake. #2863
+* \[Python-package\] Don't fail when all features are embeddings with the same dimension. #2875
+* \[Python-package\] `get_params`: `deep` parameter meaning was inconsistent with `scikit-learn` expectations. #2991
+* \[Python-package\] Estimators' `_get_tags`: Add missing tags. #3008
+* \[Python-package\] Estimators' `_get_tags` returned incorrect values for several tags. #3009
+* \[Python-package\] Incorrect values were silently accepted in `timestamp` parameters. #3019
+* \[CLI\] fix eval result output for `MultiRMSE`
+* \[GPU\] Fix `devices` parameter parsing. Parsing was non-robust: in case of non-numbers specified it defaulted to `0` and device ids outside of the available range were silently ignored.
+* \[C/C++ applier\] Fix a race condition in error messages reported by `GetErrorString` in multithreaded programs. It is now thread-local.
+
+
 # Release 1.2.8
 
 ## Python package
