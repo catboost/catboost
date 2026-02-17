@@ -22,6 +22,10 @@ on:
         required: false
         type: boolean
         default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
       make_latest:
         required: False
         type: boolean
@@ -51,6 +55,10 @@ on:
         required: false
         type: boolean
         default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
       make_latest:
         required: False
         type: boolean
@@ -164,7 +172,7 @@ jobs:
         run: |
           export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/common
-          mvn --batch-mode clean deploy
+          mvn --batch-mode clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
@@ -229,7 +237,7 @@ jobs:
           export GPG_TTY=$(tty)
           ls -lR ${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
-          mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy
+          mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
@@ -315,7 +323,7 @@ jobs:
         run: |
           export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
-          python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests
+          python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}

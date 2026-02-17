@@ -142,7 +142,6 @@
                 <configuration>
                     <serverId>central</serverId>
                     <nexusUrl>https://ossrh-staging-api.central.sonatype.com/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>
