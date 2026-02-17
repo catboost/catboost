@@ -170,7 +170,6 @@ jobs:
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/common
           mvn --batch-mode clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
@@ -234,7 +233,6 @@ jobs:
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           ls -lR ${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
           mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
@@ -321,7 +319,6 @@ jobs:
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
           python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
