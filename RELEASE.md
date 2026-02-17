@@ -1,5 +1,7 @@
 # Release 1.2.9
 
+> :warning: **There are no JVM artifacts for this release due to issues with publishing.**: They will be updated in the next release soon.
+
 ## Major changes
 * \[Python-package\] Add [`polars`](https://docs.pola.rs/api/python/stable/reference/index.html) input data support. #2524.
 
@@ -9,8 +11,6 @@
 * \[R-package\] Make 'predict' an S3 method #1657. Thanks to @david-cortes.
 * Add `RMSPE` metric and loss (both as are CPU-only for now) #1767. Thanks to @ivan339339.
 * \[C/C++ applier\] New function `LoadFullModelZeroCopy` for mmap #2893. Thanks to @gakoshin.
-* \[JVM applier\] Add `predictTransposed` method #2927. Thanks to @levs2001.
-* \[Spark\]: Support Spark 4.0.x and 4.1.x #2946. Thanks to @jdries.
 
 ## Improvements
 * Remove the limit of 128 threads when loading data. #3027
