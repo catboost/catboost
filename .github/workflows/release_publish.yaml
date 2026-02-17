@@ -122,12 +122,15 @@ jobs:
       - if: ${{ ! inputs.is_test_env }}
         name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
 
       - if: ${{ inputs.is_test_env }}
         name: Publish distribution to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          verbose: true
 
   publish_jvm_catboost_common:
     if: contains(inputs.components, 'jvm_catboost_common')
