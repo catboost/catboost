@@ -1,3 +1,10 @@
+# Release 1.2.10
+
+## New features
+* \[JVM applier\] Add `predictTransposed` method #2927. Thanks to @levs2001.
+* \[Spark\]: Support Spark 4.0.x and 4.1.x #2946. Thanks to @jdries.
+
+
 # Release 1.2.9
 
 > :warning: **There are no JVM artifacts for this release due to issues with publishing.**: They will be updated in the next release soon.
