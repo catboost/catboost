@@ -23,7 +23,7 @@
 * Remove the limit of 128 threads when loading data. #3027
 
 ## Speedups
-* Optimize `Lossguide` grow policy on CPU #2883. Thanks to @Levachev.
+* Optimize `Lossguide` grow policy on CPU #2883. Approximate speedup is 1.4x. Thanks to @Levachev.
 * \[Python-package\] Support non-float32 `numpy` numeric types in multithreaded native features data initialization. #1558, #2847
 * \[Python-package\] Avoid possible repeated reparsing of estimator parameters to canonical forms
 
