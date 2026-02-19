@@ -4,6 +4,7 @@
 #include "custom_objective_descriptor.h"
 #include "ders_holder.h"
 #include "hessian.h"
+#include "quantile_selection.h"
 #include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
@@ -493,6 +494,65 @@ private:
     }
 
     double CalcDer3(double /*approx*/, float /*target*/) const override {
+        return QUANTILE_DER2_AND_DER3;
+    }
+};
+
+class TTargetDependentQuantileError final : public IDerCalcer
+{
+public:
+    static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
+
+public:
+    const TVector<double> Boundaries;
+    const TVector<double> Quantiles;
+    const double Delta;
+
+public:
+    explicit TTargetDependentQuantileError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Boundaries({3.5, 14.5})
+        , Quantiles({0.73, 0.83, 0.86})
+        , Delta(1e-6)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    TTargetDependentQuantileError(TVector<double> boundaries, TVector<double> quantiles, double delta, bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Boundaries(std::move(boundaries))
+        , Quantiles(std::move(quantiles))
+        , Delta(delta)
+    {
+        CB_ENSURE(Quantiles.size() == Boundaries.size() + 1,
+            "quantiles count must equal boundaries count + 1");
+        for (size_t i = 1; i < Boundaries.size(); ++i) {
+            Y_ASSERT(Boundaries[i - 1] < Boundaries[i]);
+        }
+        for (const auto& q : Quantiles) {
+            Y_ASSERT(q > -1e-6 && q < 1.0 + 1e-6);
+        }
+        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override
+    {
+        const double alpha = select_quantile(Boundaries, Quantiles, target);
+        const double val = target - approx;
+        if (abs(val) < Delta)
+            return 0;
+        return (target - approx > 0) ? alpha : -(1 - alpha);
+    }
+
+    double CalcDer2(double /*approx*/, float /*target*/) const override
+    {
+        return QUANTILE_DER2_AND_DER3;
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const override
+    {
         return QUANTILE_DER2_AND_DER3;
     }
 };

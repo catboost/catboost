@@ -114,6 +114,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         case ELossFunction::MAPE:
         case ELossFunction::RMSPE:
         case ELossFunction::Quantile:
+        case ELossFunction::TargetDependentQuantile:
         case ELossFunction::GroupQuantile:
         case ELossFunction::MultiQuantile:
         case ELossFunction::LogLinQuantile: {
@@ -286,7 +287,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::UserQuerywiseMetric) {
         treeConfig.PairwiseNonDiagReg.SetDefault(0);
     }
-    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MultiQuantile)
+    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE, ELossFunction::Quantile, ELossFunction::TargetDependentQuantile, ELossFunction::GroupQuantile, ELossFunction::MultiQuantile)
             && SystemOptions->IsSingleHost()
             && (
                 (TaskType == ETaskType::GPU && BoostingOptions->BoostingType == EBoostingType::Plain)
@@ -342,8 +343,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
-            "Exact method is only available for Quantile, GroupQuantile, MultiQuantile, MAE, MAPE, RMSPE and LogCosh loss functions.");
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::TargetDependentQuantile, ELossFunction::GroupQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
+            "Exact method is only available for Quantile, TargetDependentQuantile, GroupQuantile, MultiQuantile, MAE, MAPE, RMSPE and LogCosh loss functions.");
         CB_ENSURE(
             BoostingOptions->BoostingType == EBoostingType::Plain || TaskType == ETaskType::CPU,
             "Exact leaf estimation method don't work with ordered boosting on GPU"
@@ -483,7 +484,7 @@ static void ValidateCtrTargetBinarization(
 {
     if (ctrTargetBinarization->BorderCount > 1) {
         CB_ENSURE(EqualToOneOf(lossFunction,
-                      ELossFunction::RMSE, ELossFunction::LogCosh, ELossFunction::Quantile, ELossFunction::MultiQuantile,
+                      ELossFunction::RMSE, ELossFunction::LogCosh, ELossFunction::Quantile, ELossFunction::TargetDependentQuantile, ELossFunction::MultiQuantile,
                       ELossFunction::LogLinQuantile, ELossFunction::Poisson,
                       ELossFunction::MAPE, ELossFunction::MAE, ELossFunction::MultiClass,
                       ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues, ELossFunction::SurvivalAft, ELossFunction::RMSPE),
@@ -591,6 +592,7 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
         ELossFunction::StochasticFilter,
         ELossFunction::StochasticRank,
         ELossFunction::Quantile,
+        ELossFunction::TargetDependentQuantile,
         ELossFunction::MultiQuantile,
         ELossFunction::MAE,
         ELossFunction::LogLinQuantile,
@@ -703,10 +705,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (BoostingOptions->BoostFromAverage.Get()) {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
-            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MultiQuantile, ELossFunction::MAE, ELossFunction::MAPE,
+            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::TargetDependentQuantile, ELossFunction::MultiQuantile, ELossFunction::MAE, ELossFunction::MAPE,
             ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues, ELossFunction::RMSPE),
             "You can use boost_from_average only for these loss functions now: " <<
-            "RMSE, Logloss, CrossEntropy, Quantile, MultiQuantile, MAE, MAPE, MultiRMSE, MultiRMSEWithMissingValues or RMSPE.");
+            "RMSE, Logloss, CrossEntropy, Quantile, TargetDependentQuantile, MultiQuantile, MAE, MAPE, MultiRMSE, MultiRMSEWithMissingValues or RMSPE.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 

@@ -10,3 +10,13 @@ double CalcSampleQuantile(
     TConstArrayRef<float> weights,
     double alpha
 );
+
+// Finds the optimum of the target dependent loss function through binary search.
+// boundaries: N-1 sorted boundary values; quantiles: N quantile levels.
+double CalcTargetDependentMinimum(
+    TConstArrayRef<float> sampleRef,
+    TConstArrayRef<float> weightsRef,
+    TConstArrayRef<float> origTarget,
+    TConstArrayRef<double> boundaries,
+    TConstArrayRef<double> quantiles
+);

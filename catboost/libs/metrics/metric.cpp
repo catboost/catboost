@@ -19,6 +19,7 @@
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/private/libs/algo_helpers/quantile_selection.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/enum_helpers.h>
@@ -1035,6 +1036,141 @@ void TLqMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) cons
     if (bestValue) {
         *bestValue = 0;
     }
+}
+
+/* TargetDependentQuantile */
+
+namespace
+{
+    class TTargetDependentQuantileMetric final : public TAdditiveSingleTargetMetric
+    {
+    public:
+        explicit TTargetDependentQuantileMetric(ELossFunction lossFunction,
+                                                const TLossParams &params,
+                                                TVector<double> boundaries,
+                                                TVector<double> quantiles,
+                                                double delta);
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig &config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+
+    private:
+        TVector<double> Boundaries;
+        TVector<double> Quantiles;
+        double Delta;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TTargetDependentQuantileMetric::Create(const TMetricConfig &config)
+{
+    CB_ENSURE(config.Metric == ELossFunction::TargetDependentQuantile, "Unreachable.");
+
+    const auto& lossParams = config.GetParamsMap();
+    auto boundaries = NCatboostOptions::GetBoundariesTargetDependentQuantile(lossParams);
+    auto quantiles = NCatboostOptions::GetQuantilesTargetDependentQuantile(lossParams);
+    CB_ENSURE(quantiles.size() == boundaries.size() + 1,
+        "quantiles count (" << quantiles.size() << ") must equal boundaries count + 1 (" << boundaries.size() + 1 << ")");
+    double delta = NCatboostOptions::GetParamOrDefault(lossParams, "delta", 1e-6);
+
+    config.ValidParams->insert("boundaries");
+    config.ValidParams->insert("quantiles");
+    config.ValidParams->insert("delta");
+    return AsVector(MakeHolder<TTargetDependentQuantileMetric>(
+        config.Metric, config.Params, std::move(boundaries), std::move(quantiles), delta));
+}
+
+TTargetDependentQuantileMetric::TTargetDependentQuantileMetric(
+    ELossFunction lossFunction, const TLossParams &params,
+    TVector<double> boundaries, TVector<double> quantiles, double delta)
+    : TAdditiveSingleTargetMetric(lossFunction, params)
+    , Boundaries(std::move(boundaries))
+    , Quantiles(std::move(quantiles))
+    , Delta(delta)
+{
+    Y_ASSERT(lossFunction == ELossFunction::TargetDependentQuantile);
+    CB_ENSURE(Quantiles.size() == Boundaries.size() + 1,
+        "quantiles count must equal boundaries count + 1");
+    for (size_t i = 1; i < Boundaries.size(); ++i) {
+        CB_ENSURE(Boundaries[i - 1] < Boundaries[i], "Boundaries must be in ascending order");
+    }
+    CB_ENSURE(AllOf(Quantiles, [] (double q) { return q > -1e-6 && q < 1.0 + 1e-6; }),
+        "Quantiles should be in interval [0, 1]");
+}
+
+TMetricHolder TTargetDependentQuantileMetric::EvalSingleThread(
+    TConstArrayRef<TConstArrayRef<double>> approx,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end) const
+{
+    CB_ENSURE(approx.size() == 1, "Metric quantile supports only single-dimensional data");
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=, this](auto hasDelta, auto hasWeight) {
+        TConstArrayRef<double> approxVec = approx[0];
+        TConstArrayRef<double> approxDeltaVec = GetRowRef(approxDelta, /*rowIdx*/ 0);
+        TMetricHolder error(2);
+        for (int i : xrange(begin, end)) {
+            double val = target[i] - approxVec[i];
+            if (hasDelta) {
+                val -= approxDeltaVec[i];
+            }
+            const double alpha = select_quantile(Boundaries, Quantiles, target[i]);
+            const double multiplier = (abs(val) < Delta) ? 0 : ((val > 0) ? alpha : -(1 - alpha));
+            if (val < -Delta) {
+                val += Delta;
+            } else if (val > Delta) {
+                val -= Delta;
+            }
+            const float w = hasWeight ? weight[i] : 1;
+            error.Stats[0] += (multiplier * val) * w;
+            error.Stats[1] += w;
+        }
+        return error;
+    };
+    return DispatchGenericLambda(impl, !approxDelta.empty(), !weight.empty());
+}
+
+TString TTargetDependentQuantileMetric::GetDescription() const
+{
+    const TMetricParam<TVector<double>> boundaries("boundaries", Boundaries, /*userDefined*/ true);
+    const TMetricParam<TVector<double>> quantiles("quantiles", Quantiles, /*userDefined*/ true);
+    if (Delta == 1e-6) {
+        return BuildDescription(ELossFunction::TargetDependentQuantile, UseWeights, "%.3g", boundaries, "%.3g", quantiles);
+    }
+    const TMetricParam<double> delta("delta", Delta, /*userDefined*/ true);
+    return BuildDescription(ELossFunction::TargetDependentQuantile, UseWeights, "%.3g", boundaries, "%.3g", quantiles, "%g", delta);
+}
+void TTargetDependentQuantileMetric::GetBestValue(EMetricBestValue *valueType, float *) const
+{
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TTargetDependentQuantileMetric::ValidParamSets()
+{
+    return {
+        TParamSet{
+            {TParamInfo{"use_weights", false, true},
+             TParamInfo{"boundaries", false, TString("3.5,14.5")},
+             TParamInfo{"quantiles", false, TString("0.73,0.83,0.86")},
+             TParamInfo{"delta", false, 1e-6}},
+            ""}};
 }
 
 /* Quantile */
@@ -6369,6 +6505,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::Quantile:
             AppendTemporaryMetricsVector(TQuantileMetric::Create(config), &result);
             break;
+        case ELossFunction::TargetDependentQuantile:
+            AppendTemporaryMetricsVector(TTargetDependentQuantileMetric::Create(config), &result);
+            break;
         case ELossFunction::MultiQuantile:
             AppendTemporaryMetricsVector(TMultiQuantileMetric::Create(config), &result);
             break;
@@ -6629,6 +6768,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             return TQuantileMetric::ValidParamSets();
+        case ELossFunction::TargetDependentQuantile:
+            return TTargetDependentQuantileMetric::ValidParamSets();
         case ELossFunction::MultiQuantile:
             return TMultiQuantileMetric::ValidParamSets();
         case ELossFunction::Expectile:
@@ -7051,7 +7192,7 @@ bool IsMinOptimal(TStringBuf lossFunction) {
 }
 
 bool IsQuantileLoss(const ELossFunction& loss) {
-    return loss == ELossFunction::Quantile || loss == ELossFunction::MultiQuantile || loss == ELossFunction::MAE;
+    return loss == ELossFunction::Quantile || loss == ELossFunction::TargetDependentQuantile || loss == ELossFunction::MultiQuantile || loss == ELossFunction::MAE;
 }
 
 namespace NCB {

@@ -62,6 +62,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::MultiRMSE:
         case ELossFunction::SurvivalAft:
         case ELossFunction::RMSEWithUncertainty:
+        case ELossFunction::TargetDependentQuantile:
         case ELossFunction::Quantile:
         case ELossFunction::MultiQuantile:
         case ELossFunction::Expectile:

@@ -689,17 +689,19 @@ static void CalcExactLeafDeltas(
     TVector<double>* leafDeltas) {
     TVector<TVector<float>> leafSamples(leafCount);
     TVector<TVector<float>> leafWeights(leafCount);
+    TVector<TVector<float>> leafOrigTargets(leafCount);
 
     for (size_t i = 0; i < sampleCount; i++) {
         Y_ASSERT(indices[i] < leafSamples.size());
         leafSamples[indices[i]].emplace_back(targets[i] - approxes[i]);
         leafWeights[indices[i]].emplace_back(weights[i]);
+        leafOrigTargets[indices[i]].emplace_back(targets[i]);
     }
 
     Y_ASSERT(leafCount == leafDeltas->size());
     for (size_t i = 0; i < leafCount; i++) {
         double& leafDelta = (*leafDeltas)[i];
-        leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
+        leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i], leafOrigTargets[i]);
     }
 }
 

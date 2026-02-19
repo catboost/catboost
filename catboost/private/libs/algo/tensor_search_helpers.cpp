@@ -7,6 +7,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/helpers/distribution_helpers.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
@@ -183,6 +184,19 @@ THolder<IDerCalcer> BuildError(
             double alpha = lossParams.contains("alpha") ? FromString<float>(lossParams.at("alpha")) : 0.5;
             double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
             return MakeHolder<TQuantileError>(alpha, delta, isStoreExpApprox);
+        }
+        case ELossFunction::TargetDependentQuantile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            const auto badParam = FindIf(lossParams, [] (const auto& param) {
+                return !EqualToOneOf(param.first, "boundaries", "quantiles", "delta");
+            });
+            CB_ENSURE(badParam == lossParams.end(), "Invalid loss description " << ToString(badParam->first));
+            auto boundaries = NCatboostOptions::GetBoundariesTargetDependentQuantile(lossParams);
+            auto quantiles = NCatboostOptions::GetQuantilesTargetDependentQuantile(lossParams);
+            CB_ENSURE(quantiles.size() == boundaries.size() + 1,
+                "quantiles count (" << quantiles.size() << ") must equal boundaries count + 1 (" << boundaries.size() + 1 << ")");
+            double delta = NCatboostOptions::GetParamOrDefault(lossParams, "delta", 1e-6);
+            return MakeHolder<TTargetDependentQuantileError>(std::move(boundaries), std::move(quantiles), delta, isStoreExpApprox);
         }
         case ELossFunction::GroupQuantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
