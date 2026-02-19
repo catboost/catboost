@@ -579,8 +579,11 @@ static void UpdateLeavesExact(
 
     Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::TargetDependentQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE));
     averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
-    // TargetDependentQuantile falls back to alpha=0.5/delta=0.0 (MAE) in this distributed path
-    // because per-sample alpha selection requires origTarget which is not available on workers.
+    // TargetDependentQuantile falls back to alpha=0.5/delta=0.0 (MAE) in this distributed
+    // exact-leaves path because per-sample alpha selection requires origTarget which is not
+    // available on workers. This path is only reached when leaf_estimation_method=Exact is
+    // explicitly forced in a multi-host setup; the default Gradient estimation works correctly
+    // in distributed mode since each worker computes derivatives locally with its own origTarget.
     double alpha = 0.5;
     double delta = 0.0;
     if (const auto quantileError = dynamic_cast<const TQuantileError*>(&error)) {
