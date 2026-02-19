@@ -511,8 +511,8 @@ public:
 public:
     explicit TTargetDependentQuantileError(bool isExpApprox)
         : IDerCalcer(isExpApprox)
-        , Boundaries({3.5, 14.5})
-        , Quantiles({0.73, 0.83, 0.86})
+        , Boundaries({0})
+        , Quantiles({1, 0.5})
         , Delta(1e-6)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");

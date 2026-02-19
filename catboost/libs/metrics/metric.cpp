@@ -1167,8 +1167,8 @@ TVector<TParamSet> TTargetDependentQuantileMetric::ValidParamSets()
     return {
         TParamSet{
             {TParamInfo{"use_weights", false, true},
-             TParamInfo{"boundaries", false, TString("3.5,14.5")},
-             TParamInfo{"quantiles", false, TString("0.73,0.83,0.86")},
+             TParamInfo{"boundaries", false, TString("0")},
+             TParamInfo{"quantiles", false, TString("1,0.5")},
              TParamInfo{"delta", false, 1e-6}},
             ""}};
 }

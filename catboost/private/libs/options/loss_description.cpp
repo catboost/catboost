@@ -112,7 +112,7 @@ TVector<double> NCatboostOptions::GetAlphaMultiQuantile(const TMap<TString, TStr
 }
 
 TVector<double> NCatboostOptions::GetBoundariesTargetDependentQuantile(const TMap<TString, TString>& lossParams) {
-    const TString defaultBoundaries("3.5,14.5");
+    const TString defaultBoundaries("0");
     const TStringBuf param(lossParams.contains("boundaries") ? lossParams.at("boundaries") : defaultBoundaries);
     TVector<double> boundaries;
     for (const auto& value : StringSplitter(param).Split(',').SkipEmpty()) {
@@ -122,7 +122,7 @@ TVector<double> NCatboostOptions::GetBoundariesTargetDependentQuantile(const TMa
 }
 
 TVector<double> NCatboostOptions::GetQuantilesTargetDependentQuantile(const TMap<TString, TString>& lossParams) {
-    const TString defaultQuantiles("0.73,0.83,0.86");
+    const TString defaultQuantiles("1,0.5");
     const TStringBuf param(lossParams.contains("quantiles") ? lossParams.at("quantiles") : defaultQuantiles);
     TVector<double> quantiles;
     for (const auto& value : StringSplitter(param).Split(',').SkipEmpty()) {
