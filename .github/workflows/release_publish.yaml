@@ -260,7 +260,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: catboost
-          ref: v${{ inputs.version }}
+          ref: v1.2.10_fix_spark_deploy
           sparse-checkout: |
             .github/actions
             catboost/jvm-packages/tools
