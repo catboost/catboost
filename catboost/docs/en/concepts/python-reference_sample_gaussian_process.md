@@ -40,7 +40,7 @@ Must be non-empty (contain > 0 objects)
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 Two-dimensional feature matrix.
 
