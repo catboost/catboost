@@ -3206,6 +3206,50 @@ def test_multilabel_custom_objective(task_type, n=10):
         assert (abs(p1 - p2) < EPS).all()
 
 
+def test_default_loss_function_column_vector_label_no_crash():
+    rng = np.random.RandomState(0)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30) > 0.5).astype(np.int32).reshape(-1, 1) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "Logloss"
+
+
+def test_default_loss_function_multilabel_binary_int_targets():
+    rng = np.random.RandomState(1)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.int32) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_binary_float_targets():
+    rng = np.random.RandomState(2)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.float32) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_soft_targets():
+    rng = np.random.RandomState(3)
+    X = rng.rand(30, 5)
+    y = rng.rand(30, 3).astype(np.float32)  
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiCrossEntropy"
+
+
 def test_pool_after_fit(task_type):
     pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool2 = Pool(TRAIN_FILE, column_description=CD_FILE)

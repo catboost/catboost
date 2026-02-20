@@ -1692,11 +1692,37 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
         if label is None:
             raise CatBoostError('loss function has not been specified and cannot be deduced')
 
+        label_arr = np.asarray(label)
+
+        if label_arr.ndim == 2:
+            if 1 in label_arr.shape:
+                label_arr = label_arr.reshape(-1)
+            else:
+                try:
+                    y = label_arr.astype(np.float64, copy=False)
+                except (TypeError, ValueError):
+                    raise CatBoostError("Can't infer loss for 2D label: non-numeric")
+
+                mn = y.min()
+                mx = y.max()
+                if not (np.isfinite(mn) and np.isfinite(mx)):
+                    raise CatBoostError("Can't infer loss for 2D label: NaN/inf")
+
+                if 0.0 <= mn and mx <= 1.0:
+                    if np.all((y == 0.0) | (y == 1.0)):
+                        return 'MultiLogloss'
+                    return 'MultiCrossEntropy'
+
+                raise CatBoostError("Can't infer loss for 2D label: values not in [0,1]")
+
+        elif label_arr.ndim > 2:
+            raise CatBoostError("Can't infer loss: label must be 1D or 2D")
+
         """
             len(set) is faster than np.unique on Python lists:
              https://bbengfort.github.io/observations/2017/05/02/python-unique-benchmark.html
         """
-        is_multiclass_task = len(set(label)) > 2 and 'target_border' not in params
+        is_multiclass_task = len(set(label_arr)) > 2 and 'target_border' not in params
         return 'MultiClass' if is_multiclass_task else 'Logloss'
     elif estimator_type == 'ranker':
         return 'YetiRank'
