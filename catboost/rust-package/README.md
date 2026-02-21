@@ -10,6 +10,24 @@ In order to build it some environment setup is necessary. Modern versions of Cat
 
 2. This package uses [bindgen](https://rust-lang.github.io/rust-bindgen/introduction.html) to generate bindings that has [its own requirements](https://rust-lang.github.io/rust-bindgen/requirements.html).
 
+3. If you run into issues on Windows like `stdbool.h not found` you should set up the environment for the appropriate version of Microsoft Visual Studio C++ toolset before running `cargo` so `bindgen` can find this header.
+
+    It can be done with these commands (in PowerShell):
+
+    ```
+    Import-Module "<VSDiskDrive>:\Program Files\Microsoft Visual Studio\<VSVersion>\<Edition>\Common7\Tools\Microsoft.VisualStudio.DevShell.dll
+    Enter-VsDevShell -VsInstallPath "<VSDiskDrive>:\Program Files\Microsoft Visual Studio\<VSVersion>\<Edition>" -DevCmdArguments "-vcvars_ver=<VCVars>"
+    ```
+
+    where
+     - `<VSDiskDrive>` is the disk drive where Visual Studio is installed, e.g. `C`
+     - `<VSVersion>` is the version of Visual Studio, e.g. `2022`
+     - `<Edition>` is the edition of Visual Studio, e.g. `Community`, `Enterprise`
+     - `<VCVars>` is the version of Visual C++ toolset, e.g. `14.40`.
+
+     Using the same toolset that has been used for building `libcatboostmodel` library mentioned above is recommended for consistency.
+    
+
 ### Basic usage example
 
 1. Add a dependency to your Cargo.toml:
