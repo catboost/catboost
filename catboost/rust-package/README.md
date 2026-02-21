@@ -5,8 +5,10 @@ CatBoost Rust Package
 
 The minimal supported Rust version is 1.64.0 .
 
-CatBoost Rust package uses `catboost-sys` crate inside that is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
+1. CatBoost Rust package uses `catboost-sys` crate inside that is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
 In order to build it some environment setup is necessary. Modern versions of CatBoost use CMake build system, build environment setup for CMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-cmake), CatBoost versions before 1.2 used Ya Make build system, build environment setup for YaMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-ya-make).
+
+2. This package uses [bindgen](https://rust-lang.github.io/rust-bindgen/introduction.html) to generate bindings that has [its own requirements](https://rust-lang.github.io/rust-bindgen/requirements.html).
 
 ### Basic usage example
 
