@@ -181,7 +181,12 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 ### JDK (only for components with JVM API)
 
   You have to install JDK to build components with JVM API (JVM applier and CatBoost for Apache Spark).
-  JDK version has to be 8+ for JVM applier or strictly 8 for CatBoost for Apache Spark.
+
+  JDK version has to be 8+ for JVM applier.
+
+  JDK version for CatBoost package for Apache Spark depends on Apache Spark version:
+  * Use JDK 8 for Apache Spark 3.x
+  * Use JDK 17 for Apache Spark 4.x.
 
   Set `JAVA_HOME` environment variable to point to the path of JDK installation to be used during build.
 
