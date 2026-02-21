@@ -41,7 +41,7 @@ npm run compile_build_scripts
         to build package from source.
    3. Run
         ```
-        npm run test --have-cuda
+        npm run test -- --have-cuda
         ```
         to verify that the tests are passing.
 1. Run
