@@ -27,6 +27,27 @@ In order to build it some environment setup is necessary. Modern versions of Cat
 
      Using the same toolset that has been used for building `libcatboostmodel` library mentioned above is recommended for consistency.
     
+### Building
+
+```
+cargo build
+```
+
+#### GPU support
+
+[CUDA](https://developer.nvidia.com/cuda) support is available for Linux and Windows target platforms.
+
+Inference on CUDA GPUs is currently supported only for models with exclusively numerical features.
+
+It is disabled by default and can be enabled by adding `gpu` to cargo's features list, for example:
+
+```
+cargo build --features "gpu"
+```
+
+CUDA architectures to generate device code for are specified using [`CMAKE_CUDA_ARCHITECTURES` variable](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard, [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). The default value is intended to provide broad GPU compatibility and supported only when building with CUDA 11.8.
+The most convenient way to override the default value is to use [`CUDAARCHS` environment variable](https://cmake.org/cmake/help/v3.24/envvar/CUDAARCHS.html).
+
 
 ### Basic usage example
 
