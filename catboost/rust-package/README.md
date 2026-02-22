@@ -94,3 +94,9 @@ Run `cargo doc --open` in `catboost/rust-package` directory.
 ### Tests
 
 Run `cargo test` in `catboost/rust-package` directory.
+
+Tests with GPU can be enabled by adding `gpu` to cargo's features list, for example:
+
+```
+cargo test --features "gpu"
+```
