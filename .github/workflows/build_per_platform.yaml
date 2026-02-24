@@ -143,7 +143,7 @@ jobs:
         name: Env setup on macOS
         run: |
           python3 -m venv python_main_build_env
-          python_main_build_env/bin/python -m pip install -U conan==2.15.1 setuptools wheel jupyterlab==3.0.6 build
+          python_main_build_env/bin/python -m pip install -U conan==2.15.1 setuptools jupyterlab==3.0.6 build
 
           brew update
           brew install ninja
@@ -171,7 +171,7 @@ jobs:
 
               # the venv name is just ${PY_VER}
               ${PYTHON_BIN_PATH} -m venv ${PY_VER}
-              ./${PY_VER}/bin/python -m pip install --upgrade pip setuptools build wheel numpy cython==3.0.12 conan==2.15.1 jupyterlab==3.0.6 cmake==3.24.0
+              ./${PY_VER}/bin/python -m pip install --upgrade pip setuptools build numpy cython==3.0.12 conan==2.15.1 jupyterlab==3.0.6 cmake==3.24.0
           done
 
           mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
@@ -210,7 +210,7 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
 
-          python -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
+          python -m pip install -U conan==2.4.1 setuptools jupyterlab==3.0.6 build
 
           # version 1.13.0 is broken: https://github.com/ninja-build/ninja/issues/2616
           choco install ninja --version 1.12.1 --allow-downgrade
@@ -238,7 +238,7 @@ jobs:
           New-Item -Path .\3.14 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.14.*\x64"
 
           foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13','3.14') {
-            & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel numpy cython==3.0.12
+            & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools numpy cython==3.0.12
           }
 
           # CUDA

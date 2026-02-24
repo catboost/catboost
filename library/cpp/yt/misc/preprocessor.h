@@ -50,6 +50,7 @@
 #define PP_RIGHT_PARENTHESIS )
 #define PP_COMMA() ,
 #define PP_EMPTY()
+#define PP_EMPTINESS
 //! \endcond
 
 //! Removes the enclosing parens, if any.
@@ -122,6 +123,13 @@
 //! Insert prefix based on presence of additional arguments.
 #define PP_ONE_OR_NONE(a, ...) PP_THIRD(a, ## __VA_ARGS__, a)
 #define PP_THIRD(a, b, ...) __VA_ARGS__
+
+//! Checks whether emptiness was passed.
+#define PP_IS_EMPTY(...) PP_IS_EMPTY_A(__VA_ARGS__)
+//! \cond Implementation
+#define PP_IS_EMPTY_A(...) PP_FIRST(__VA_OPT__(PP_FALSE,) PP_TRUE)
+#define PP_FIRST(a, ...) a
+//! \endcond
 
 //! \cond Implementation
 #define PREPROCESSOR_GEN_H_

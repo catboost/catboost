@@ -38,6 +38,7 @@ For multiple objects:
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - [{{ python-type__FeaturesData }}](../concepts/python-features-data__desc.md)
 
 

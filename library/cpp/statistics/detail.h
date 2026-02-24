@@ -45,10 +45,16 @@ namespace NStatistics {
         }
 
         template <typename T>
-        T Normalize(T mean, T stdDeviation, T x) {
+        T Normalize(T mean, T stdDeviation, T x, bool continuity) {
             static_assert(std::is_floating_point<T>::value, "expect std::is_floating_point<T>::value");
 
-            return (x - mean) / stdDeviation;
+            auto numerator = x - mean;
+            if (continuity) {
+                // Continuity correction +0.5 because X is already passed with negative deviation
+                numerator += 0.5;
+            }
+
+            return numerator / stdDeviation;
         }
 
         template <typename T>
@@ -59,10 +65,10 @@ namespace NStatistics {
         }
 
         template <typename T>
-        double Phi(T mean, T stdDeviation, T x) {
+        double Phi(T mean, T stdDeviation, T x, bool continuity) {
             static_assert(std::is_floating_point<T>::value, "expect std::is_floating_point<ValueType>::value");
 
-            return Phi(Normalize(mean, stdDeviation, x));
+            return Phi(Normalize(mean, stdDeviation, x, continuity));
         }
 
         // Probit(...) implementation details BEGIN
@@ -84,7 +90,7 @@ namespace NStatistics {
                 std::is_floating_point<ValueType>::value,
                 "expect std::is_floating_point<ValueType>::value");
 
-            return DerivativeOfPhi(Normalize(mean, stdDeviation, x));
+            return DerivativeOfPhi(Normalize(mean, stdDeviation, x, false));
         }
 
         // Probit(...) implementation details END
@@ -197,7 +203,7 @@ namespace NStatistics {
             denominator = sqrt(denominator / 24.0);
 
             const ValueType x = (w - size * (size + 1) / 4.0) / denominator;
-            double res = Phi(static_cast<ValueType>(0.0), static_cast<ValueType>(1.0), std::abs(x));
+            double res = Phi(static_cast<ValueType>(0.0), static_cast<ValueType>(1.0), std::abs(x), false);
 
             return TStatTestResult((1 - res) * 2, (x > 0) - (x < 0));
         }
