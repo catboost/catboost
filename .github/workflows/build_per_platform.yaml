@@ -126,11 +126,11 @@ jobs:
             python_versions_macos_x86_64
 
       - if: inputs.os == 'macos'
-        name: Setup JDK 25 on macOS
+        name: Setup JDK 21 on macOS
         uses: actions/setup-java@v5.2.0
         with:
           distribution: 'zulu'
-          java-version: '25'
+          java-version: '21'
           java-package: jdk
           cache: 'maven'
           cache-dependency-path: |

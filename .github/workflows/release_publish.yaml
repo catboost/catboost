@@ -157,7 +157,7 @@ jobs:
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
           cache-dependency-path: |
@@ -199,7 +199,7 @@ jobs:
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
           cache-dependency-path: |
@@ -276,7 +276,7 @@ jobs:
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '8'
+          java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
           cache-dependency-path: |

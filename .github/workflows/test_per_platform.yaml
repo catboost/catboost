@@ -60,11 +60,11 @@ jobs:
 
       # TODO: maybe test on other Java versions as well
 
-      - name: Setup JDK 25 for running tests
+      - name: Setup JDK 21 for running tests
         uses: actions/setup-java@v5.2.0
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: '21'
           java-package: jdk
           cache: 'maven'
           cache-dependency-path: |
