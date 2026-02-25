@@ -38,7 +38,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -88,6 +88,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -149,6 +150,7 @@ Only a `weight` or `group_weight` parameter can be used at the time.
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 

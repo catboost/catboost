@@ -46,7 +46,7 @@ For building with earlier versions see these pages:
 
       For some reason Python 3.12 fails to automatically resolve build/setup dependencies in a way that they are buildable so it is recommended to install the following packages using pip explicitly:
         - setuptools
-        -  wheel
+        - wheel (if using setuptools < 70.1.0, ['wheel' functionality has been integrated into setuptools since 70.1.0](https://github.com/pypa/setuptools/issues/1386) )
         - jupyterlab (3.x, 4.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2533))
         - conan (2.4.1+, for revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) only conan 1.x with versions 1.62.0+ is supported)
 
@@ -75,6 +75,8 @@ Open the `$CATBOOST_SRC_ROOT/catboost/python-package` directory from the local c
 Use Python's standard procedures:
 
 ### Build the wheel distribution {#build-wheel}
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
 
 {% note warning %}
 
@@ -133,6 +135,8 @@ The resulting source distribution will be created in `dist/catboost-<version>.ta
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
 
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
+
 ```
 python -m pip install . <options>
 ```
@@ -146,6 +150,8 @@ python -m pip install . --install-option=--with-hnsw --install-option=--with-cud
 ### Create [editable install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs)
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
 
 ```
 python -m pip install --editable . <options>
@@ -167,13 +173,15 @@ python -m pip install <path-to-wheel>
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
 
-```
-python -m pip install <path-to-sdist-tar.gz>
-```
-
 {% note info %}
 
 If `CUDA_PATH` or `CUDA_ROOT` environment variable is defined and contains a path to a valid `CUDA` installation, then CatBoost python package will be built with this `CUDA` version.
 Otherwise `CUDA` support will be disabled in the package.
 
 {% endnote %}
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
+
+```
+python -m pip install <path-to-sdist-tar.gz>
+```

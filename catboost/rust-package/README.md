@@ -5,8 +5,49 @@ CatBoost Rust Package
 
 The minimal supported Rust version is 1.64.0 .
 
-CatBoost Rust package uses `catboost-sys` crate inside that is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
+1. CatBoost Rust package uses `catboost-sys` crate inside that is a wrapper around [`libcatboostmodel` library](https://catboost.ai/docs/en/concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper) with an exposed C API.
 In order to build it some environment setup is necessary. Modern versions of CatBoost use CMake build system, build environment setup for CMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-cmake), CatBoost versions before 1.2 used Ya Make build system, build environment setup for YaMake is described [here](https://catboost.ai/docs/en/installation/build-environment-setup-for-ya-make).
+
+2. This package uses [bindgen](https://rust-lang.github.io/rust-bindgen/introduction.html) to generate bindings that has [its own requirements](https://rust-lang.github.io/rust-bindgen/requirements.html).
+
+3. If you run into issues on Windows like `stdbool.h not found` you should set up the environment for the appropriate version of Microsoft Visual Studio C++ toolset before running `cargo` so `bindgen` can find this header.
+
+    It can be done with these commands (in PowerShell):
+
+    ```
+    Import-Module "<VSDiskDrive>:\Program Files\Microsoft Visual Studio\<VSVersion>\<Edition>\Common7\Tools\Microsoft.VisualStudio.DevShell.dll
+    Enter-VsDevShell -VsInstallPath "<VSDiskDrive>:\Program Files\Microsoft Visual Studio\<VSVersion>\<Edition>" -DevCmdArguments "-vcvars_ver=<VCVars>"
+    ```
+
+    where
+     - `<VSDiskDrive>` is the disk drive where Visual Studio is installed, e.g. `C`
+     - `<VSVersion>` is the version of Visual Studio, e.g. `2022`
+     - `<Edition>` is the edition of Visual Studio, e.g. `Community`, `Enterprise`
+     - `<VCVars>` is the version of Visual C++ toolset, e.g. `14.40`.
+
+     Using the same toolset that has been used for building `libcatboostmodel` library mentioned above is recommended for consistency.
+    
+### Building
+
+```
+cargo build
+```
+
+#### GPU support
+
+[CUDA](https://developer.nvidia.com/cuda) support is available for Linux and Windows target platforms.
+
+Inference on CUDA GPUs is currently supported only for models with exclusively numerical features.
+
+It is disabled by default and can be enabled by adding `gpu` to cargo's features list, for example:
+
+```
+cargo build --features "gpu"
+```
+
+CUDA architectures to generate device code for are specified using [`CMAKE_CUDA_ARCHITECTURES` variable](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard, [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). The default value is intended to provide broad GPU compatibility and supported only when building with CUDA 11.8.
+The most convenient way to override the default value is to use [`CUDAARCHS` environment variable](https://cmake.org/cmake/help/v3.24/envvar/CUDAARCHS.html).
+
 
 ### Basic usage example
 
@@ -60,3 +101,9 @@ Run `cargo doc --open` in `catboost/rust-package` directory.
 ### Tests
 
 Run `cargo test` in `catboost/rust-package` directory.
+
+Tests with GPU can be enabled by adding `gpu` to cargo's features list, for example:
+
+```
+cargo test --features "gpu"
+```

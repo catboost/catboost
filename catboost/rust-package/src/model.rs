@@ -12,6 +12,7 @@ pub struct Model {
 }
 
 unsafe impl Send for Model {}
+unsafe impl Sync for Model {}
 
 impl Model {
     fn new() -> Self {

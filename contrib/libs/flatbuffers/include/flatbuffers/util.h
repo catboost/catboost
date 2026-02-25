@@ -225,8 +225,13 @@ inline std::string IntToStringHex(int i, int xdigits) {
     #define __strtod_impl(s, pe) _strtod_l(s, pe, ClassicLocale::Get())
     #define __strtof_impl(s, pe) _strtof_l(s, pe, ClassicLocale::Get())
   #else
-    #define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())
-    #define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())
+    #ifdef _musl_
+      #define __strtoull_impl(s, pe, b) strtoull(s, pe, b)
+      #define __strtoll_impl(s, pe, b) strtoll(s, pe, b)
+    #else
+      #define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())
+      #define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())
+    #endif
     #define __strtod_impl(s, pe) strtod_l(s, pe, ClassicLocale::Get())
     #define __strtof_impl(s, pe) strtof_l(s, pe, ClassicLocale::Get())
   #endif

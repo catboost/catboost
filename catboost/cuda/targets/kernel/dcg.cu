@@ -53,7 +53,7 @@ __global__ void MakeDcgExponentialDecaysImpl(
 {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        decays[i] = pow(base, i - __ldg(offsets + i));
+        decays[i] = pow(static_cast<double>(base), static_cast<double>(i - __ldg(offsets + i)));
         i += gridDim.x * blockDim.x;
     }
 }

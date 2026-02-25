@@ -18,7 +18,11 @@ Select the appropriate build environment setup below accordingly.
 
 * Python. 3.6+
 * Maven 3.3.9+
-* JDK 8. Newer versions of JDK are not supported yet.
+* JDK
+
+  JDK version depends on Apache Spark version:
+  * Use JDK 8 for Apache Spark 3.x
+  * Use JDK 17 for Apache Spark 4.x.
 
   Set `JAVA_HOME` environment variable to point to the path of JDK installation
 * [Only for Ya Make] SWIG 4.0.2+

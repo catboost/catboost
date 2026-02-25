@@ -18,6 +18,10 @@ on:
         required: false
         type: boolean
         default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
       make_latest:
         required: False
         type: boolean
@@ -40,6 +44,7 @@ jobs:
       version: ${{ inputs.version }}
       catboost_package_name: ${{ inputs.catboost_package_name }}
       is_test_env: ${{ inputs.is_test_env }}
+      maven_central_auto_release: ${{ inputs.maven_central_auto_release }}
       make_latest: ${{ inputs.make_latest }}
     uses: ./.github/workflows/release_publish.yaml
     secrets: inherit

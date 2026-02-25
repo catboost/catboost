@@ -56,13 +56,26 @@ CUDA_LIBRARIES = {
     '-lnvJitLink_static': '-lnvJitLink',
 }
 
+CUDA_NO_FATBIN_LIBRARIES = {
+    '-lcudart_static',
+    '-lcudnn_graph_static',
+    '-lcudnn_heuristic_static',
+    '-lcufft_static_nocallback',
+    '-lcupti_static',
+    '-lnppc_static',
+    '-lnvonnxparser_static',
+    '-lnvptxcompiler_static',
+    '-lnvrtc-builtins_static',
+    '-lnvrtc_static',
+}
+
 
 class CUDAManager:
-    def __init__(self, known_arches, nvprune_exe):
+    def __init__(self, known_arches, nvprune_exe, prune):
         self.fatbin_libs = self._known_fatbin_libs(set(CUDA_LIBRARIES))
 
         self.prune_args = []
-        if known_arches:
+        if known_arches and prune:
             for arch in known_arches.split(':'):
                 self.prune_args.append('-gencode')
                 self.prune_args.append(self._arch_flag(arch))
@@ -77,12 +90,7 @@ class CUDAManager:
         return self.prune_args and self.nvprune_exe
 
     def _known_fatbin_libs(self, libs):
-        libs_wo_device_code = {
-            '-lcudart_static',
-            '-lcupti_static',
-            '-lnppc_static',
-        }
-        return set(libs) - libs_wo_device_code
+        return set(libs) - CUDA_NO_FATBIN_LIBRARIES
 
     def _arch_flag(self, arch):
         _, ver = arch.split('_', 1)
@@ -108,6 +116,7 @@ class CUDAManager:
                 .nv_fatbin : { *(.nv_fatbin) }
                 .ldata : { *(.ldata) }
                 .lrodata : { *(.lrodata .lrodata.*) }
+                .cask_resource : { *(.cask_resource) }
             } INSERT AFTER .bss
         """).strip()
 
@@ -241,7 +250,9 @@ if __name__ == '__main__':
     if 'CLANG_COVERAGE' in kv and kv['CLANG_COVERAGE'] == 'True':
         coverage_enabled = True
 
-    cuda_manager = CUDAManager(ca, nv)
+    prune = (kv.get('PRUNE', 'True') == 'True')
+
+    cuda_manager = CUDAManager(ca, nv, prune)
 
     try:
         br = get_flag('--build-root')

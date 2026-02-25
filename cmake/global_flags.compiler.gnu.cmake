@@ -6,6 +6,7 @@ set(_GNU_COMMON_C_CXX_FLAGS "\
   -fdebug-default-version=4 \
   -ffunction-sections \
   -fdata-sections \
+  -fsized-deallocation \
   -Wall \
   -Wextra \
   -Wno-parentheses \

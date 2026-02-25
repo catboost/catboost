@@ -38,8 +38,8 @@ namespace NStatistics {
     }
 
     template <typename ValueType>
-    double Phi(ValueType mean, ValueType stdDeviation, ValueType x) {
-        return NDetail::Phi(mean, stdDeviation, x);
+    double Phi(ValueType mean, ValueType stdDeviation, ValueType x, bool continuity) {
+        return NDetail::Phi(mean, stdDeviation, x, continuity);
     }
 
     //! The inverse function phi. Also known as the normal quantile function.
@@ -66,8 +66,15 @@ namespace NStatistics {
 
     //! Mann-Whitney test.
     /*! More details on: http://en.wikipedia.org/wiki/Mann–Whitney_U */
+    /*
+        bool useContinuity - controls whether a continuity correction is applied
+        when calculating the p-value using the normal approximation for large samples.
+        Continuity correction is a mathematical adjustment used when approximating a discrete distribution with a continuous distribution.
+        Since the U statistic can only take integer values, but the normal distribution is continuous,
+        this correction helps improve the accuracy of the approximation.
+    */
     template <typename InputIterator1, typename InputIterator2>
-    TStatTestResult MannWhitneyWithSign(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd) {
+    TStatTestResult MannWhitneyWithSign(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd, bool useContinuity) {
         const size_t MINIMUM_NUMBER_ELEMENTS_NORMAL_APPROXIMATION = 20;
 
         typedef typename std::iterator_traits<InputIterator1>::value_type ValueType;
@@ -106,7 +113,7 @@ namespace NStatistics {
 
         const ValueType mean = xSize * ySize / 2.0;
         const ValueType stdDeviation = sqrt(xSize * ySize * (xSize + ySize + 1) / 12);
-        double res = Phi(mean, stdDeviation * statistics.modifier, u);
+        double res = Phi(mean, stdDeviation * statistics.modifier, u, useContinuity);
         if (res < 0.5) {
             res = 1 - res;
         }
@@ -119,8 +126,8 @@ namespace NStatistics {
     //! Mann-Whitney test.
     /*! More details on: http://en.wikipedia.org/wiki/Mann–Whitney_U */
     template <typename InputIterator1, typename InputIterator2>
-    double MannWhitney(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd) {
-        return MannWhitneyWithSign(xBegin, xEnd, yBegin, yEnd).PValue;
+    double MannWhitney(InputIterator1 xBegin, InputIterator1 xEnd, InputIterator2 yBegin, InputIterator2 yEnd, bool useContinuity) {
+        return MannWhitneyWithSign(xBegin, xEnd, yBegin, yEnd, useContinuity).PValue;
     }
 
     //! Wilcoxon test for two samples.
@@ -366,10 +373,10 @@ namespace NStatistics {
         }
 
         if (isTailed) {
-            const double res = Phi(static_cast<ValueType>(0.0), diffPrecision, diffValue);
+            const double res = Phi(static_cast<ValueType>(0.0), diffPrecision, diffValue, false);
             return isLeftTailed ? res : (1 - res);
         } else {
-            const double res = Phi(static_cast<ValueType>(0.0), diffPrecision, std::abs(diffValue));
+            const double res = Phi(static_cast<ValueType>(0.0), diffPrecision, std::abs(diffValue), false);
             return (1 - res) * 2;
         }
     }

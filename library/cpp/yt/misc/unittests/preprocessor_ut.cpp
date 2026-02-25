@@ -104,6 +104,19 @@ TEST(TPreprocessorTest, Deparen)
     EXPECT_STREQ("( a, b)", PP_STRINGIZE((PP_DEPAREN((a, b)))));
 }
 
+TEST(TPreprocessorTest, IsEmpty)
+{
+    EXPECT_EQ(1, PP_IF(PP_IS_EMPTY(), 1, 2));
+    EXPECT_EQ(1, PP_IF(PP_IS_EMPTY(PP_EMPTINESS), 1, 2));
+    EXPECT_EQ(1, PP_IF(PP_IS_EMPTY(PP_EMPTY()), 1, 2));
+    EXPECT_EQ(1, PP_IF(PP_IS_EMPTY(PP_EMPTY PP_LEFT_PARENTHESIS PP_RIGHT_PARENTHESIS), 1, 2));
+
+    EXPECT_EQ(2, PP_IF(PP_IS_EMPTY(()), 1, 2));
+    EXPECT_EQ(2, PP_IF(PP_IS_EMPTY(PP_EMPTY), 1, 2));
+    EXPECT_EQ(2, PP_IF(PP_IS_EMPTY(0), 1, 2));
+    EXPECT_EQ(2, PP_IF(PP_IS_EMPTY(hello), 1, 2));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

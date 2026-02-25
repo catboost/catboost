@@ -352,6 +352,7 @@ void TCMallocPreFork() {
     Static::cpu_cache().AcquireInternalLocks();
   }
   Static::transfer_cache().AcquireInternalLocks();
+  Static::sharded_transfer_cache().AcquireInternalLocks();
   Static::guardedpage_allocator().AcquireInternalLocks();
   release_lock.Lock();
   pageheap_lock.Lock();
@@ -385,6 +386,7 @@ void TCMallocPostFork() {
   Static::guardedpage_allocator().ReleaseInternalLocks();
   release_lock.Unlock();
   Static::transfer_cache().ReleaseInternalLocks();
+  Static::sharded_transfer_cache().ReleaseInternalLocks();
   if (Static::CpuCacheActive()) {
     Static::cpu_cache().ReleaseInternalLocks();
   }

@@ -145,7 +145,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
             char Ch;                                                                      \
         };                                                                                \
         struct TYes {                                                                     \
-            char Arr[2];                                                                  \
+            char Arr[2]; /* NOLINT(modernize-avoid-c-arrays) */                           \
         };                                                                                \
         template <class T1>                                                               \
         static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr); \

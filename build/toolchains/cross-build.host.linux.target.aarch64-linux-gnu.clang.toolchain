@@ -28,6 +28,7 @@ endif()
 
 set(ENV{CC} clang)
 set(ENV{CXX} clang++)
+set(ENV{NVCC_PREPEND_FLAGS} "--allow-unsupported-compiler -std=c++17")
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)

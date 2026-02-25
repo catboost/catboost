@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import types
 import logging
 
 import py
@@ -14,6 +15,24 @@ if six.PY3:
 
 from library.python.pytest import module_utils
 import library.python.testing.filter.filter as test_filter
+
+
+def _make_module_with_single_skipped_test(module_name, file_name, exc):
+    if exc.msg is not None:
+        mark = pytest.mark.skip(reason=exc.msg)
+    else:
+        mark = pytest.mark.skip()
+
+    module = types.ModuleType(module_name)
+    module.__file__ = file_name
+
+    @mark
+    def module_level_skip():
+        pass
+
+    module_level_skip.__test__ = True
+    setattr(module, 'pytest.skip', module_level_skip)
+    return module
 
 
 class LoadedModule(pytest.Module):
@@ -65,9 +84,11 @@ class LoadedModule(pytest.Module):
         except pytest.skip.Exception as e:
             if not e.allow_module_level:
                 raise RuntimeError("Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`.")
-            raise
+            # DEVTOOLSSUPPORT-79470: reraising pytest.skip.Exception from here seems to break reporting in ya plugin.
+            # Instead, pretend to be a module with a single skipped test.
+            return _make_module_with_single_skipped_test(self.module_name, self.nodeid, e)
         except Exception as e:
-            msg = 'Failed to load module "{}" and obtain list of tests due to an error'.format(self.module_name)
+            msg = 'Failed to load module "{}" and obtain list of tests due to an error'.format(self.display_module_name)
             logging.exception('%s: %s', msg, e)
             etype, exc, tb = sys.exc_info()
             reraise(etype, type(exc)('{}\n{}'.format(exc, msg)), tb)

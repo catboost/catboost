@@ -65,7 +65,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -108,7 +108,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 
 A one-dimensional array of categorical columns indices.
 
-Use it only if the `X` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}).
+Use it only if the `X` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}), polars.DataFrame.
 
 {% note info %}
 
@@ -198,6 +198,7 @@ The pairs description in the form of a two-dimensional matrix of shape `N` by 2
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 
 **Default value**
@@ -231,6 +232,7 @@ The graph description in the form of a two-dimensional matrix of shape `N` by 2
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 
 **Default value**
@@ -259,6 +261,7 @@ None
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -283,6 +286,7 @@ Group identifiers for all input objects. Supported identifier types are:
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -311,6 +315,7 @@ Used for calculating the final values of trees. By default, it is set to 1 for a
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -334,6 +339,7 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -364,6 +370,7 @@ By default, it is set to 1 for all pairs.
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -393,6 +400,8 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
