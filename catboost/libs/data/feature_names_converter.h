@@ -67,9 +67,14 @@ namespace {
                 CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
                 indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
             } else {
+                if (IndicesFromNames.contains(str)) {
+                    indices->push_back(IndicesFromNames.at(str));
+                    return;
+                }
                 auto left = str;
                 auto right = str;
-                StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                const bool isRange = StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                CB_ENSURE(isRange, "String '" + str + "' is not a feature name");
                 for (ui32 idx : xrange(ConvertToIndex(left, IndicesFromNames), ConvertToIndex(right, IndicesFromNames) + 1)) {
                     indices->push_back(idx);
                 }
