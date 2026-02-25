@@ -3619,10 +3619,10 @@ class CatBoost(_CatBoostBase):
                 title='Bins',
                 tickmode='array',
                 tickvals=list(range(len(borders) + 1)),
-                ticktext=['(-inf, {:.4f}]'.format(borders[0])] +
-                         ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                ticktext=['(-inf, {:.9g}]'.format(borders[0])] +
+                         ['({:.9g}, {:.9g}]'.format(val_1, val_2)
                           for val_1, val_2 in zip(borders[:-1], borders[1:])] +
-                         ['({:.4f}, +inf)'.format(borders[-1])],
+                         ['({:.9g}, +inf)'.format(borders[-1])],
                 showticklabels=False
             )
 
@@ -3696,10 +3696,10 @@ class CatBoost(_CatBoostBase):
                 'title': 'Bins' if feature_name is None else 'Bins of feature \'{}\''.format(feature_name),
                 'tickmode': 'array',
                 'tickvals': list(range(len(borders) + 1)),
-                'ticktext': ['(-inf, {:.4f}]'.format(borders[0])] +
-                            ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                'ticktext': ['(-inf, {:.9g}]'.format(borders[0])] +
+                            ['({:.9g}, {:.9g}]'.format(val_1, val_2)
                              for val_1, val_2 in zip(borders[:-1], borders[1:])] +
-                            ['({:.4f}, +inf)'.format(borders[-1])],
+                            ['({:.9g}, +inf)'.format(borders[-1])],
                 'showticklabels': False}
 
         def plot2d(feature_names, borders, predictions):
@@ -7073,10 +7073,10 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             title='Bins',
             tickmode='array',
             tickvals=list(range(len(statistics['borders']) + 1)),
-            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] +
-                     ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+            ticktext=['(-inf, {:.9g}]'.format(statistics['borders'][0])] +
+                     ['({:.9g}, {:.9g}]'.format(val_1, val_2)
                       for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] +
-                     ['({:.4f}, +inf)'.format(statistics['borders'][-1])],
+                     ['({:.9g}, +inf)'.format(statistics['borders'][-1])],
             showticklabels=False
         )
     elif 'cat_values' in statistics.keys():

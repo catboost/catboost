@@ -90,7 +90,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeat
             featuresLayout,
             feature.FloatFeature,
             EFeatureType::Float);
-        result << featureDescription << " border=" << feature.Split;
+        result << featureDescription << " border=" << FloatToString(feature.Split, PREC_POINT_DIGITS, 9);
     }
 
     for (const TOneHotSplit& feature : proj.OneHotFeatures) {
@@ -164,11 +164,11 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     }
 
     if (feature.Type == ESplitType::OnlineCtr) {
-        result << ", border=" << feature.OnlineCtr.Border;
+        result << ", border=" << FloatToString(feature.OnlineCtr.Border, PREC_POINT_DIGITS, 9);
     } else if (feature.Type == ESplitType::FloatFeature) {
-        result << ", bin=" << feature.FloatFeature.Split;
+        result << ", bin=" << FloatToString(feature.FloatFeature.Split, PREC_POINT_DIGITS, 9);
     } else if (feature.Type == ESplitType::EstimatedFeature) {
-        result << ", bin=" << feature.EstimatedFeature.Split;
+        result << ", bin=" << FloatToString(feature.EstimatedFeature.Split, PREC_POINT_DIGITS, 9);
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << ", value=";
