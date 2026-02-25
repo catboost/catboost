@@ -852,6 +852,29 @@ class Pool(_PoolBase):
                             "python objects."
                         )
 
+                    # Auto-detect categorical features from DataFrame dtypes
+                    if isinstance(data, DataFrame) and cat_features is None:
+                        text_feature_set = set(text_features) if text_features is not None else set()
+                        embedding_feature_set = set(embedding_features) if embedding_features is not None else set()
+                        auto_cat_features = []
+                        for i, (col_name, dtype) in enumerate(zip(data.columns, data.dtypes)):
+                            if i in text_feature_set or col_name in text_feature_set:
+                                continue
+                            if i in embedding_feature_set or col_name in embedding_feature_set:
+                                continue
+                            if dtype.name == 'category' or dtype == np.dtype('O'):
+                                auto_cat_features.append(i)
+                        if auto_cat_features:
+                            auto_cat_names = [str(data.columns[i]) for i in auto_cat_features]
+                            warnings.warn(
+                                "Auto-detected cat_features from DataFrame columns with "
+                                "object or category dtype: {}. "
+                                "Pass cat_features explicitly to silence this warning.".format(auto_cat_names),
+                                UserWarning,
+                                stacklevel=2
+                            )
+                            cat_features = auto_cat_features
+
                     self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
                                group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
             elif not data_can_be_none:
