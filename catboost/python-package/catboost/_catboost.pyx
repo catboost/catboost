@@ -2528,14 +2528,16 @@ cdef object _set_objects_order_embedding_features_data(
     return new_data_holders
 
 
-cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
+cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value, feature_name=None) except*:
     try:
         return _FloatOrNan(src_value)
     except TypeError as e:
+        feature_name_str = ",feature_name='{}'".format(feature_name) if feature_name is not None else ""
         raise CatBoostError(
-            'Bad value for num_feature[non_default_doc_idx={},feature_idx={}]="{}": {}'.format(
+            'Bad value for num_feature[non_default_doc_idx={},feature_idx={}{}]="{}": {}'.format(
                 non_default_doc_idx,
                 flat_feature_idx,
+                feature_name_str,
                 src_value,
                 e
             )
@@ -2545,7 +2547,8 @@ cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_
 cdef create_num_factor_data(
     ui32 flat_feature_idx,
     np.ndarray column_values,
-    ITypedSequencePtr[np.float32_t]* result
+    ITypedSequencePtr[np.float32_t]* result,
+    object feature_name=None
 ):
     # two pointers are needed as a workaround for Cython assignment of derived types restrictions
     cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
@@ -2577,7 +2580,8 @@ cdef create_num_factor_data(
             data_buffer[doc_idx] = get_float_feature(
                 doc_idx,
                 flat_feature_idx,
-                column_values[doc_idx]
+                column_values[doc_idx],
+                feature_name=feature_name
             )
         num_factor_data_holder.Reset(num_factor_data.Get())
         result[0] = MakeTypeCastArrayHolder[np.float32_t, np.float32_t](
@@ -2593,7 +2597,8 @@ cdef inline get_cat_factor_bytes_representation(
     int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
-    TString* factor_strbuf
+    TString* factor_strbuf,
+    object feature_name=None
 ):
     try:
         get_id_object_bytes_string_representation(factor, factor_strbuf)
@@ -2603,10 +2608,11 @@ cdef inline get_cat_factor_bytes_representation(
         else:
             doc_description = 'non-default value idx={}'.format(non_default_doc_idx)
 
+        feature_name_str = ",feature_name='{}'".format(feature_name) if feature_name is not None else ""
         raise CatBoostError(
-            'Invalid type for cat_feature[{},feature_idx={}]={} :'
+            'Invalid type for cat_feature[{},feature_idx={}{}]={} :'
             ' cat_features must be integer or string, real number values and NaN values'
-            ' should be converted to string.'.format(doc_description, feature_idx, factor)
+            ' should be converted to string.'.format(doc_description, feature_idx, feature_name_str, factor)
         )
 
 cdef inline get_text_factor_bytes_representation(
@@ -2885,7 +2891,8 @@ cdef _set_hashed_cat_values(
     ui32 flat_feature_idx,
     const categories_codes_dtype[:] categories_codes,
     TConstArrayRef[ui32] categories_as_hashed_cat_values_ref,
-    TArrayRef[ui32] hashed_cat_values_ref
+    TArrayRef[ui32] hashed_cat_values_ref,
+    object feature_name=None
 ):
     cdef ui32 doc_count = categories_codes.shape[0]
 
@@ -2896,10 +2903,11 @@ cdef _set_hashed_cat_values(
     for doc_idx in xrange(doc_count):
         category_code = categories_codes[doc_idx]
         if category_code == -1:
+            feature_name_str = ",feature_name='{}'".format(feature_name) if feature_name is not None else ""
             raise CatBoostError(
-                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
+                'Invalid type for cat_feature[object_idx={},feature_idx={}{}]=NaN :'
                 ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
+                ' should be converted to string.'.format(doc_idx, flat_feature_idx, feature_name_str)
             )
 
         hashed_cat_values_ref[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
@@ -2913,7 +2921,8 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
     # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
     TVector[ui32]* categories_as_hashed_cat_values,
 
-    IRawFeaturesOrderDataVisitor* builder_visitor
+    IRawFeaturesOrderDataVisitor* builder_visitor,
+    object feature_name=None
 ):
     cdef ui32 categories_size = len(column_values.categories)
     cdef ui32 doc_count = len(column_values.codes)
@@ -2933,10 +2942,11 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
         try:
             get_id_object_bytes_string_representation(column_values.categories[category_idx], factor_string)
         except CatBoostError:
+            feature_name_str = ",feature_name='{}'".format(feature_name) if feature_name is not None else ""
             raise CatBoostError(
-                'Invalid type for cat_feature category for [feature_idx={}]={} :'
+                'Invalid type for cat_feature category for [feature_idx={}{}]={} :'
                 ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(flat_feature_idx, column_values.categories[category_idx])
+                ' should be converted to string.'.format(flat_feature_idx, feature_name_str, column_values.categories[category_idx])
             )
 
         categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
@@ -2955,56 +2965,64 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.int16:
         _set_hashed_cat_values[np.int16_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.int32:
         _set_hashed_cat_values[np.int32_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.int64:
         _set_hashed_cat_values[np.int64_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.uint8:
         _set_hashed_cat_values[np.uint8_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.uint16:
         _set_hashed_cat_values[np.uint16_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.uint32:
         _set_hashed_cat_values[np.uint32_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     elif categories_codes_dtype == np.uint64:
         _set_hashed_cat_values[np.uint64_t](
             flat_feature_idx,
             column_values.codes,
             <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
-            hashed_cat_values_ref
+            hashed_cat_values_ref,
+            feature_name
         )
     else:
         raise TypeError(
@@ -3078,7 +3096,8 @@ cdef object _set_features_order_data_pd_data_frame(
                 column_data.values,
                 &factor_string,
                 &categories_as_hashed_cat_values,
-                builder_visitor
+                builder_visitor,
+                feature_name=column_name
             )
         else:
             column_values = column_data.to_numpy()
@@ -3089,7 +3108,8 @@ cdef object _set_features_order_data_pd_data_frame(
                         doc_idx,
                         flat_feature_idx,
                         column_values[doc_idx],
-                        &factor_string
+                        &factor_string,
+                        feature_name=column_name
                     )
                     string_factor_data.push_back(factor_string)
                 builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
@@ -3115,7 +3135,8 @@ cdef object _set_features_order_data_pd_data_frame(
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
                     column_values,
-                    &num_factor_data
+                    &num_factor_data,
+                    feature_name=column_name
                 )
                 builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
 
