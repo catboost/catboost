@@ -2,7 +2,7 @@ import os
 try:
     import catboost_dev as catboost
     from catboost_dev import CatBoost, CatBoostRegressor, Pool
-except:
+except Exception:
     import catboost
     from catboost import CatBoost, CatBoostRegressor, Pool
 ## CatBoost tutorial: Categorical features parameters

@@ -242,7 +242,7 @@ def _get_resource_info_from_file(resource_file):
             resource_info = json.load(j)
         resource_info['file_name']  # check consistency
         return resource_info
-    except:
+    except Exception:
         logging.debug('Invalid %s in %s', RESOURCE_INFO_JSON, resource_dir)
 
     return None

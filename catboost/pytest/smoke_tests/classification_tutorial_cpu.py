@@ -14,7 +14,7 @@ try:
     from catboost_dev import CatBoost
     from catboost_dev.eval.catboost_evaluation import *
     from catboost_dev.eval.evaluation_result import *
-except:
+except Exception:
     import catboost
     from catboost import *
     from catboost import datasets

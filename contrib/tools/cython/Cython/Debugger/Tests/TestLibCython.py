@@ -154,7 +154,7 @@ class DebuggerTestCase(unittest.TestCase):
                 # cmdclass=dict(build_ext=Cython.Distutils.build_ext)
             # )
 
-        except:
+        except Exception:
             os.chdir(self.cwd)
             raise
 

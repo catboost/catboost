@@ -39,7 +39,7 @@ def main(argv):
     for file in argv_rest:
         try:
             os.utime(file, times)
-        except:
+        except Exception:
             open(file, 'w').close()
             if times is not None:
                 os.utime(file, times)

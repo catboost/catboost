@@ -97,10 +97,10 @@ def get_json(file_name):
             if num_var in out and _Formatting.is_str(out[num_var]):
                 try:
                     out[num_var] = int(out[num_var])
-                except:
+                except Exception:
                     out[num_var] = -1
         return out
-    except:
+    except Exception:
         return get_default_json()
 
 
