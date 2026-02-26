@@ -1174,7 +1174,7 @@ typedef __char32_t char32_t;
 #    define _LIBCPP_NOESCAPE
 #  endif
 
-#  if __has_cpp_attribute(_Clang::__no_specializations__) && 0
+#  if __has_cpp_attribute(_Clang::__no_specializations__)
 #    define _LIBCPP_NO_SPECIALIZATIONS                                                                                 \
       [[_Clang::__no_specializations__("Users are not allowed to specialize this standard library entity")]]
 #  else
