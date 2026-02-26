@@ -25,6 +25,7 @@ Useful for sorting a learning dataset by this field during training.
 - {{ python-type__np_ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 

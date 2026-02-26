@@ -95,6 +95,7 @@ The model can be saved to the {{ cli__metadata__dump_format__json }} format wit
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - {{ python-type__FeaturesData }}
 
 **Default value**

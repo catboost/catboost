@@ -52,7 +52,7 @@ namespace NKernel {
 
         __forceinline__ __host__ __device__ void AddLeaf(double sum, double weight) {
             double leafScore = (weight > 1e-20f ? (-sum * sum) / (weight + Lambda) : 0);
-            Score += (MetaExponent == 1.0f || leafScore == 0.0f) ? leafScore : std::copysign(pow(std::abs(leafScore) / weight, MetaExponent), leafScore) * weight;
+            Score += (MetaExponent == 1.0f || leafScore == 0.0f) ? leafScore : std::copysign(pow(std::abs(leafScore) / weight, static_cast<double>(MetaExponent)), leafScore) * weight;
         }
 
         __forceinline__ __host__ __device__ double GetScore() {

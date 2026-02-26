@@ -1,3 +1,18 @@
+# Node package Release 1.27.0
+(uses `catboostmodel` native libraries from the main CatBoost release v1.2.10)
+* Fix prediction of type `Probability` on CPUs that do not have SSE4 instruction set (that includes all ARM CPUs).
+  Values with probability 0 have been erroneously computed as `nan`.
+* Fix a race condition in error messages in exceptions in multithreaded programs.
+* \[Performance\]\[Windows\] `__SSE__` compiler flag was not enabled for Windows builds with MSVC compiler. This affected code that relied on this flag including quantization during model inference. It is important to note that the compiler itself was configured for SSE support and could still apply automatic SSE optimizations.
+* \[Build\] Switch to Conan 2.x. #2582
+* \[Build\] Use 'spawn' instead of 'exec' to avoid issues with maxBuffer overflow.
+* \[Build\]\[CUDA\] Do not output detailed ptxas statistics by default.
+* \[Build\]\[CUDA\] Switch from hardcoded gencode specifications in multiple `CMakeLists.txt` files to [the standard `CMake` variable `CMAKE_CUDA_ARCHITECTURES`](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard and [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). #2540
+* \[Build\]\[CUDA\] Remove excessive CUDA compilation parallelism that could lead to RAM exhaustion during build. #3034
+* \[Build\]\[macOS\] Support Apple Clang 17. #2860
+* \[Build\]\[Windows\] Support building with MSVC toolsets 14.4*. #2302
+
+
 # Release 1.2.10
 
 ## New features

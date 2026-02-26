@@ -129,7 +129,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   CUDA version 11.8 is supported by default (because it contains the biggest set of supported target CUDA compute architectures).
 
-  Other CUDA versions (11.4 - 12.2) can also be used but require changing target compute architecture options in affected CMake targets.
+  CUDA versions 11.4 - 12.2 are also supported, but require changing the default list of CUDA architectures for which device code is generated. See the sections on building from source for details.
 
   CUDA 12.3+ support is in progress: [GitHub issue #2755](https://github.com/catboost/catboost/issues/2755).
 
@@ -181,7 +181,12 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 ### JDK (only for components with JVM API)
 
   You have to install JDK to build components with JVM API (JVM applier and CatBoost for Apache Spark).
-  JDK version has to be 8+ for JVM applier or strictly 8 for CatBoost for Apache Spark.
+
+  JDK version has to be 8+ for JVM applier.
+
+  JDK version for CatBoost package for Apache Spark depends on Apache Spark version:
+  * Use JDK 8 for Apache Spark 3.x
+  * Use JDK 17 for Apache Spark 4.x.
 
   Set `JAVA_HOME` environment variable to point to the path of JDK installation to be used during build.
 

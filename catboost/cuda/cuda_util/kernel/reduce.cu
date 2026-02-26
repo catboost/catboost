@@ -6,6 +6,12 @@
 #include <cub/device/device_reduce.cuh>
 #include <cub/device/device_segmented_reduce.cuh>
 
+#include <cuda/std/version>
+
+#if defined(_LIBCUDACXX_CUDA_API_VERSION) && _LIBCUDACXX_CUDA_API_VERSION >= 2008000
+#include <cuda/functional>
+#endif
+
 #include <thrust/functional.h>
 
 namespace NKernel {

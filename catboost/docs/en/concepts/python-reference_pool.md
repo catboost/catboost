@@ -40,7 +40,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 Dataset in the form of a two-dimensional feature matrix.
 
@@ -95,6 +95,8 @@ If `data` parameter points to a file, label data is loaded from it as well. This
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 - {{ python-type--pandasDataFrame }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
@@ -106,7 +108,7 @@ None
 
 A one-dimensional array of categorical columns indices (specified as integers) or names (specified as strings).
 
-Use only if the `data` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}).
+Use only if the `data` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}), polars.DataFrame.
 
 If any elements in this array are specified as names instead of indices, names for all columns must be provided. To do this, either use the `feature_names` parameter of this constructor to explicitly specify them or pass a {{ python-type--pandasDataFrame }} with column names specified in the `data` parameter.
 
@@ -181,7 +183,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, polars.DataFrame" %}
 
 The pairs description in the form of a two-dimensional matrix of shape `N` by 2:
 
@@ -212,7 +214,7 @@ The description is different for each group of possible types.
 **Possible types**
 
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, polars.DataFrame" %}
 
 The graph description in the form of a two-dimensional matrix of shape `N` by 2:
 
@@ -285,6 +287,7 @@ By default, it is set to 1 for all objects.
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -304,6 +307,7 @@ Used for calculating the final values of trees. By default, it is set to 1 for a
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -338,6 +342,7 @@ $\begin{pmatrix} d_{1}&g_{1}&f_{1}\\ d_{3}&g_{3}&f_{3}\\ d_{2}&g_{2}&f_{2}\\ d_{
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -355,6 +360,7 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -375,6 +381,7 @@ By default, it is set to 1 for all pairs.
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -390,6 +397,8 @@ Array of formula values for all input objects. The training starts from these va
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
@@ -407,6 +416,7 @@ Useful for sorting a learning dataset by this field during training.
 
 - {{ python-type--list }}
 - {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 

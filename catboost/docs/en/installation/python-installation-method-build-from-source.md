@@ -76,6 +76,8 @@ Use Python's standard procedures:
 
 ### Build the wheel distribution {#build-wheel}
 
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
+
 {% note warning %}
 
 Note that built Python wheels will be compatible only with:
@@ -133,6 +135,8 @@ The resulting source distribution will be created in `dist/catboost-<version>.ta
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
 
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
+
 ```
 python -m pip install . <options>
 ```
@@ -146,6 +150,8 @@ python -m pip install . --install-option=--with-hnsw --install-option=--with-cud
 ### Create [editable install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs)
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
 
 ```
 python -m pip install --editable . <options>
@@ -167,13 +173,15 @@ python -m pip install <path-to-wheel>
 
 Builds in the process. So [build environment setup for CMake](build-environment-setup-for-cmake.md) is required.
 
-```
-python -m pip install <path-to-sdist-tar.gz>
-```
-
 {% note info %}
 
 If `CUDA_PATH` or `CUDA_ROOT` environment variable is defined and contains a path to a valid `CUDA` installation, then CatBoost python package will be built with this `CUDA` version.
 Otherwise `CUDA` support will be disabled in the package.
 
 {% endnote %}
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures-note.md) %}
+
+```
+python -m pip install <path-to-sdist-tar.gz>
+```

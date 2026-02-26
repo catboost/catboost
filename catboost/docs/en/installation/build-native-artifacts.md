@@ -26,6 +26,14 @@ We define **native artifacts** as build system artifacts that contain native cod
 
 ## [Dependencies and requirements](build-environment-setup-for-cmake.md)
 
+## CUDA support
+
+[CUDA](https://developer.nvidia.com/cuda) support is available for Linux and Windows target platforms.
+
+It is disabled by default and can be enabled by adding `--have-cuda` flag when calling `build_native.py` or setting `-DHAVE_CUDA=yes` when calling `cmake`. See below for details.
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures.md) %}
+
 ## Targets {#targets}
 
 CMakeFiles for {{ product }} CMake projects contain different targets that correspond to native artifacts.

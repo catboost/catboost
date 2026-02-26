@@ -17,6 +17,7 @@ For example, use a two-document slice of the original dataset (refer to the exam
 - numpy.ndarray
 - pandas.DataFrame
 - {{ python_type__pandas-SparseDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - scipy.sparse.spmatrix (all subclasses except dia_matrix)
 - catboost.Pool
 
