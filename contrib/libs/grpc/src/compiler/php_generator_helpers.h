@@ -60,10 +60,8 @@ inline TString GetPHPServiceFilename(
           << grpc_generator::CapitalizeFirstLetter(tokens[i]);
     }
   }
-  TString path = oss.str();
-  if (!path.empty()) path += "/";
-  path += GetPHPServiceClassname(service, class_suffix, is_server) + ".php";
-  return path;
+  return oss.str() + "/" +
+         GetPHPServiceClassname(service, class_suffix, is_server) + ".php";
 }
 
 // Get leading or trailing comments in a string. Comment lines start with "// ".
