@@ -30,6 +30,7 @@ cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) except +ProcessException nogil
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) except +ProcessException nogil
     cdef bool_t IsRegressionObjective(const TString& lossFunction) except +ProcessException nogil
+    cdef bool_t IsRankingObjective(const TString& lossFunction) except +ProcessException nogil
     cdef bool_t IsMultiRegressionObjective(const TString& lossFunction) except +ProcessException nogil
     cdef bool_t IsMultiTargetObjective(const TString& lossFunction) except +ProcessException nogil
     cdef bool_t IsMultiLabelObjective(const TString& lossFunction) except +ProcessException nogil
