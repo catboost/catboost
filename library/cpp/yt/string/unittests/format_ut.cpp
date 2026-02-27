@@ -2,6 +2,7 @@
 
 #include <library/cpp/yt/string/format.h>
 
+#include <library/cpp/yt/compact_containers/compact_flat_map.h>
 #include <library/cpp/yt/compact_containers/compact_vector.h>
 
 #include <util/generic/hash_set.h>

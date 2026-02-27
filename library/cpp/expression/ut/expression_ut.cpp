@@ -408,11 +408,16 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
     Y_UNIT_TEST(TestNumberValueAsString) {
         THashMap<TString, TString> m;
         m["feature"] = "10";
+        m["analysts.have_puids_freeze_2026-01-01_2026-02-08"] = "1";
+        m["analysts.have_puids_freeze_2026_01_01_2026_02_08"] = "1";
         UNIT_ASSERT_EQUAL(CalcExpression("feature + 1", m), 11);
         UNIT_ASSERT_EQUAL(CalcExpression("feature > 5", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("feature > 20", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("feature != 10", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("feature != \"10\"", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("feature == 10", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("analysts.have_puids_freeze_2026-01-01_2026-02-08 == 1", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("analysts.have_puids_freeze_2026_01_01_2026_02_08 == 1", m), 1);
     }
 
     Y_UNIT_TEST(TestEmptyExpression) {

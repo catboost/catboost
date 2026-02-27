@@ -30,8 +30,6 @@ using std::transform;
 
 namespace grpc_ruby_generator {
 
-TString RubifyConstant(const TString& name);
-
 // Split splits a string using char into elems.
 inline std::vector<TString>& Split(const TString& s, char delim,
                                        std::vector<TString>* elems) {
@@ -139,7 +137,7 @@ inline TString RubyTypeOf(const grpc::protobuf::Descriptor* descriptor) {
       if (i < prefixes_and_type.size() - 1) {
         res += Modularize(prefixes_and_type[i]);  // capitalize pkgs
       } else {
-        res += RubifyConstant(prefixes_and_type[i]);
+        res += prefixes_and_type[i];
       }
     }
     return res;

@@ -10,10 +10,6 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
-#include <library/cpp/yt/compact_containers/compact_vector.h>
-#include <library/cpp/yt/compact_containers/compact_flat_map.h>
-#include <library/cpp/yt/compact_containers/compact_flat_set.h>
-
 #include <library/cpp/yt/containers/enum_indexed_array.h>
 
 #include <library/cpp/yt/misc/concepts.h>
@@ -82,6 +78,17 @@ TString ToStringIgnoringFormatValue(const T& t)
     o << t;
     return s;
 }
+
+// Forward declarations to avoid dependencies, that are not needed by all clients.
+
+template <class T, size_t N>
+class TCompactVector;
+
+template <class TValue, size_t N>
+class TCompactFlatSet;
+
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+class TCompactFlatMap;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -167,8 +174,8 @@ template <class... Ts>
 constexpr bool CKnownKVRange<THashMultiMap<Ts...>> = true;
 template <class... Ts>
 constexpr bool CKnownKVRange<TCompactFlatMap<Ts...>> = true;
-template <class K, class V, size_t N>
-constexpr bool CKnownKVRange<TCompactFlatMap<K, V, N>> = true;
+template <class K, class V, size_t N, class C>
+constexpr bool CKnownKVRange<TCompactFlatMap<K, V, N, C>> = true;
 template <class T, size_t N>
 constexpr bool CKnownRange<TCompactFlatSet<T, N>> = true;
 
