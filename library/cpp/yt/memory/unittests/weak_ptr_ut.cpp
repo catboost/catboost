@@ -308,7 +308,8 @@ TEST_F(TWeakPtrTest, IsEmpty)
 {
     TIntricateObjectWkPtr ptr;
 
-    EXPECT_TRUE(ptr == nullptr);
+    EXPECT_EQ(ptr.Get(), nullptr);
+    EXPECT_TRUE(ptr.IsExpired());
 }
 
 TEST_F(TWeakPtrTest, UpCast)
