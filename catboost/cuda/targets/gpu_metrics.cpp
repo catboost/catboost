@@ -300,6 +300,19 @@ namespace NCatboostCuda {
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
+                case ELossFunction::MultiRMSEWithMissingValues: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    MultiRMSEWithMissingValuesValueAndDer(
+                        target,
+                        weights,
+                        cursor,
+                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                        &tmp,
+                        (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    // TODO: check if totalWeight should be masked too
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
                 case ELossFunction::MCC: {
                     return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                 }
@@ -580,7 +593,8 @@ namespace NCatboostCuda {
         const bool isMultiLabel = IsMultiLabelObjective(targetObjective);
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
         const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
-        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE) {
+        const bool isMultiRMSEWithMissingValues = targetObjective == ELossFunction::MultiRMSEWithMissingValues;
+        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE || isMultiRMSEWithMissingValues) {
             CB_ENSURE(approxDim > 1, "Error: Approx dimension equal to 1 for multidimensional output");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multidimensional output dim should be equal to 1");
@@ -603,6 +617,7 @@ namespace NCatboostCuda {
             case ELossFunction::MultiCrossEntropy:
             case ELossFunction::MultiLogloss:
             case ELossFunction::MultiRMSE:
+            case ELossFunction::MultiRMSEWithMissingValues:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:

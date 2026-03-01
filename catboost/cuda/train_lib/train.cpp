@@ -342,6 +342,14 @@ namespace NCatboostCuda {
                     trainingData.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData().end()
                 );
             }
+
+            // if loss is MultiRMSEWithMissingValues, set target binarization options
+            // TODO: why having BorderCount == 1 is ok for CPU but not for GPU?
+            if (lossFunction == ELossFunction::MultiRMSEWithMissingValues) {
+                updatedCatboostOptions.CatFeatureParams->TargetBinarization->NanMode = ENanMode::Min;
+                updatedCatboostOptions.CatFeatureParams->TargetBinarization->BorderCount = 128;
+            }
+
             ui32 objectsCount = trainingData.Learn->GetObjectCount();
             if (!trainingData.Test.empty()) {
                 objectsCount += trainingData.Test[0]->GetObjectCount();
