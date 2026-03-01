@@ -99,8 +99,6 @@ private:
 
     template <class U>
     friend class TWeakPtr;
-    template <class U>
-    friend struct ::THash;
 
     T* T_ = nullptr;
 #if defined(_tsan_enabled_)
@@ -115,6 +113,18 @@ private:
 
 template <class T1, class T2>
 bool operator==(const TWeakPtr<T1>& lhs, const TWeakPtr<T2>& rhs);
+
+template <class T1, class T2>
+bool operator==(const TIntrusivePtr<T1>& lhs, const TWeakPtr<T2>& rhs);
+
+template <class T1, class T2>
+bool operator==(const TWeakPtr<T1>& lhs, const TIntrusivePtr<T2>& rhs);
+
+template <class T1, class T2>
+bool operator==(T1* lhs, const TWeakPtr<T2>& rhs);
+
+template <class T1, class T2>
+bool operator==(const TWeakPtr<T1>& lhs, T2* rhs);
 
 template <class T2>
 bool operator==(std::nullptr_t, const TWeakPtr<T2>& rhs);
@@ -145,16 +155,28 @@ int ResetAndGetResidualRefCount(TIntrusivePtr<T>& pointer);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct TTransparentWeakPtrHasher
+{
+    using is_transparent = void;
+
+    template <class T>
+    std::size_t operator()(const TWeakPtr<T>& ptr) const;
+
+    template <class T>
+    std::size_t operator()(const TIntrusivePtr<T>& ptr) const;
+
+    template <class T>
+    std::size_t operator()(T* ptr) const;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
-//! A hasher for TWeakPtr.
 template <class T>
 struct THash<NYT::TWeakPtr<T>>
 {
-    size_t operator () (const NYT::TWeakPtr<T>& ptr) const
-    {
-        return THash<const NYT::TRefCountedBase*>()(ptr.T_);
-    }
+    size_t operator()(const NYT::TWeakPtr<T>& ptr) const;
 };
 
 #define WEAK_PTR_INL_H_

@@ -235,6 +235,30 @@ bool operator==(const TWeakPtr<T1>& lhs, const TWeakPtr<T2>& rhs)
     return lhs.Get() == rhs.Get();
 }
 
+template <class T1, class T2>
+bool operator==(const TIntrusivePtr<T1>& lhs, const TWeakPtr<T2>& rhs)
+{
+    return lhs.Get() == rhs.Get();
+}
+
+template <class T1, class T2>
+bool operator==(const TWeakPtr<T1>& lhs, const TIntrusivePtr<T2>& rhs)
+{
+    return lhs.Get() == rhs.Get();
+}
+
+template <class T1, class T2>
+bool operator==(T1* lhs, const TWeakPtr<T2>& rhs)
+{
+    return lhs == rhs.Get();
+}
+
+template <class T1, class T2>
+bool operator==(const TWeakPtr<T1>& lhs, T2* rhs)
+{
+    return lhs.Get() == rhs;
+}
+
 template <class T2>
 bool operator==(std::nullptr_t, const TWeakPtr<T2>& rhs)
 {
@@ -277,4 +301,35 @@ int ResetAndGetResidualRefCount(TIntrusivePtr<T>& pointer)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+std::size_t TTransparentWeakPtrHasher::operator()(const TWeakPtr<T>& ptr) const
+{
+    return THash<const NYT::TRefCountedBase*>()(ptr.Get());
+}
+
+template <class T>
+std::size_t TTransparentWeakPtrHasher::operator()(const TIntrusivePtr<T>& ptr) const
+{
+    return THash<const NYT::TRefCountedBase*>()(ptr.Get());
+}
+
+template <class T>
+std::size_t TTransparentWeakPtrHasher::operator()(T* ptr) const
+{
+    return THash<const NYT::TRefCountedBase*>()(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! A hasher for TWeakPtr.
+template <class T>
+size_t THash<NYT::TWeakPtr<T>>::operator()(const NYT::TWeakPtr<T>& ptr) const
+{
+    return THash<const NYT::TRefCountedBase*>()(ptr.Get());
+}
+
+////////////////////////////////////////////////////////////////////////////////
