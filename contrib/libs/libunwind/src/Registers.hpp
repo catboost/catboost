@@ -1943,6 +1943,12 @@ private:
 
   static bool checkHasSME() {
 #if defined(HAVE_SYS_AUXV_H)
+
+// compatibility with glibc 2.17
+#ifndef AT_HWCAP2
+#define AT_HWCAP2 26
+#endif
+
     constexpr int hwcap2_sme = (1 << 23);
     unsigned long hwcap2 = getauxval(AT_HWCAP2);
     return (hwcap2 & hwcap2_sme) != 0;
