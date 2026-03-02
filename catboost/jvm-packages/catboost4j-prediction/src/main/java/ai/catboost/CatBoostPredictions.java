@@ -1,14 +1,11 @@
 package ai.catboost;
 
-import javax.validation.constraints.NotNull;
-
 // TODO(yazevnul): add CatBoostClassificationPrediction
 
 /**
  * CatBoost model prediction.
  */
 public class CatBoostPredictions {
-    @NotNull
     final private double[] data;
     final private int objectCount;
     final private int predictionDimension;
@@ -20,13 +17,13 @@ public class CatBoostPredictions {
      * @param predictionDimension CatBoost model prediction dimension.
      * @param data                Array containing flattened prediction matrix.
      */
-    CatBoostPredictions(final int objectCount, final int predictionDimension, final @NotNull double[] data) {
+    CatBoostPredictions(final int objectCount, final int predictionDimension, final double[] data) {
         if (data.length != objectCount * predictionDimension) {
             final String message = "data size is incorrect, must be objectCount * predictionDimension = "
-                    + String.valueOf(objectCount * predictionDimension)
-                    + "(objectCount=" + String.valueOf(objectCount) + ", "
-                    + " predictionDimension=" + String.valueOf(predictionDimension) + ")"
-                    + " but got " + String.valueOf(data.length);
+                    + objectCount * predictionDimension
+                    + "(objectCount=" + objectCount + ", "
+                    + " predictionDimension=" + predictionDimension + ")"
+                    + " but got " + data.length;
             throw new IllegalArgumentException(message);
         }
 
@@ -78,9 +75,10 @@ public class CatBoostPredictions {
      * @param objectIndex Object index.
      * @param predictions Array to copy predictions to.
      */
-    public void copyObjectPredictions(final int objectIndex, final @NotNull double[] predictions) {
+    public void copyObjectPredictions(final int objectIndex, final double[] predictions) {
         if (predictions.length < getPredictionDimension()) {
-            throw new IllegalArgumentException("`predictions` size is insufficient, got " + String.valueOf(predictions.length) + "but must be at least " + String.valueOf(getPredictionDimension()));
+            throw new IllegalArgumentException("`predictions` size is insufficient, got " + predictions.length + "but must be at least " +
+                getPredictionDimension());
         }
 
         System.arraycopy(data, objectIndex * getPredictionDimension(), predictions, 0, getPredictionDimension());
@@ -94,7 +92,6 @@ public class CatBoostPredictions {
      * @param objectIndex Object index.
      * @return            Array with object predictions.
      */
-    @NotNull
     public double[] copyObjectPredictions(final int objectIndex) {
         final double[] predictions = new double[getPredictionDimension()];
         copyObjectPredictions(objectIndex, predictions);
@@ -107,12 +104,10 @@ public class CatBoostPredictions {
      *
      * @return Row-major copy of prediction matrix.
      */
-    @NotNull
     public double[] copyRowMajorPredictions() {
         return data;
     }
 
-    @NotNull
     double[] getRawData() {
         return data;
     }

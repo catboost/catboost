@@ -2,9 +2,10 @@ package ai.catboost.common;
 
 import java.util.Iterator;
 import java.util.function.BiPredicate;
+import org.jspecify.annotations.Nullable;
 
 public class IteratorUtils {
-    public static <T, S> boolean elementsEqual(
+    public static <T extends @Nullable Object, S extends @Nullable Object> boolean elementsEqual(
         Iterator<T> lhs,
         Iterator<S> rhs,
         BiPredicate<T, S> equalFunction
