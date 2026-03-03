@@ -63,7 +63,7 @@ TRefTracked<T>::TRefTracked(const TRefTracked&)
 }
 
 template <class T>
-TRefTracked<T>::TRefTracked(TRefTracked&&)
+TRefTracked<T>::TRefTracked(TRefTracked&&) noexcept
 {
     auto cookie = GetRefCountedTypeCookie<T>();
     TRefCountedTrackerFacade::AllocateInstance(cookie);

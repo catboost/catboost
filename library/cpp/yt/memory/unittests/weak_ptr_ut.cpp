@@ -62,9 +62,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObject(const TIntricateObject&);
-    TIntricateObject(TIntricateObject&&);
+    TIntricateObject(TIntricateObject&&) noexcept;
     TIntricateObject& operator=(const TIntricateObject&);
-    TIntricateObject& operator=(TIntricateObject&&);
+    TIntricateObject& operator=(TIntricateObject&&) noexcept;
 };
 
 using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;

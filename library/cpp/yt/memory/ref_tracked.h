@@ -79,7 +79,7 @@ public:
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
     TRefTracked();
     TRefTracked(const TRefTracked&);
-    TRefTracked(TRefTracked&&);
+    TRefTracked(TRefTracked&&) noexcept;
     ~TRefTracked();
 #endif
 };

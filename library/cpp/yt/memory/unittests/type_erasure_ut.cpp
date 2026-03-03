@@ -88,10 +88,10 @@ struct TNoCopy
 
     TNoCopy(const TNoCopy&) = delete;
 
-    TNoCopy(TNoCopy&&)
+    TNoCopy(TNoCopy&&) noexcept
     { }
 
-    TNoCopy& operator=(TNoCopy&&)
+    TNoCopy& operator=(TNoCopy&&) noexcept
     {
         return *this;
     }
@@ -116,13 +116,13 @@ struct TCustomized2
         return *this;
     }
 
-    TCustomized2(TCustomized2&& other)
+    TCustomized2(TCustomized2&& other) noexcept
         : Value(other.Value)
     {
         other.Value = -1;
     }
 
-    TCustomized2& operator=(TCustomized2&& other)
+    TCustomized2& operator=(TCustomized2&& other) noexcept
     {
         if (this == &other) {
             return *this;
