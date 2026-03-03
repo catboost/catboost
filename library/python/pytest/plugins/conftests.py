@@ -80,7 +80,8 @@ _conftest_modules = []
 def pytest_load_initial_conftests(early_config):
     pluginmanager = early_config.pluginmanager
 
-    conftests = filter(lambda name: name.endswith('.conftest'), getattr(sys, 'extra_modules', []))
+    extra_modules = getattr(sys, 'extra_modules', [])
+    conftests = filter(lambda name: name == 'conftest' or name.endswith('.conftest'), extra_modules)
 
     if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
         test_dir = str(yatest.common.context.project_path)
