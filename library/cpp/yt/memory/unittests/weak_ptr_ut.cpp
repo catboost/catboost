@@ -351,9 +351,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObjectVirtual(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual(TIntricateObjectVirtual&&) noexcept;
     TIntricateObjectVirtual& operator=(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&) noexcept;
 };
 
 TEST_F(TWeakPtrTest, VirtualBase)
