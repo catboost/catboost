@@ -27,7 +27,7 @@ public:
     TAtomicIntrusivePtr(std::nullptr_t);
 
     explicit TAtomicIntrusivePtr(TIntrusivePtr<T> other);
-    TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other);
+    TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept;
 
     ~TAtomicIntrusivePtr();
 

@@ -43,7 +43,7 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
 { }
 
 template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
     : Ptr_(std::move(other))
 { }
 
@@ -113,7 +113,7 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
 { }
 
 template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
     : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
 {
     other.Ptr_.store(uintptr_t(0), std::memory_order::relaxed);

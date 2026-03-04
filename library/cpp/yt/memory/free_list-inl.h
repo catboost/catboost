@@ -109,7 +109,7 @@ TFreeList<TItem>::TFreeList()
 { }
 
 template <class TItem>
-TFreeList<TItem>::TFreeList(TFreeList<TItem>&& other)
+TFreeList<TItem>::TFreeList(TFreeList<TItem>&& other) noexcept
     : Head_(other.ExtractAll())
 { }
 

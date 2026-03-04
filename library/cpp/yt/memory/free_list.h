@@ -43,7 +43,7 @@ private:
 public:
     TFreeList();
 
-    TFreeList(TFreeList&& other);
+    TFreeList(TFreeList&& other) noexcept;
 
     ~TFreeList();
 
