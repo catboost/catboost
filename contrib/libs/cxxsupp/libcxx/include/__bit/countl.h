@@ -6,9 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: __builtin_clzg is available since Clang 19 and GCC 14. When support for older versions is dropped, we can
-//  refactor this code to exclusively use __builtin_clzg.
-
 #ifndef _LIBCPP___BIT_COUNTL_H
 #define _LIBCPP___BIT_COUNTL_H
 
@@ -30,34 +27,12 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned __x) _NOEXCEPT {
   return __builtin_clz(__x);
 }
-
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned long __x) _NOEXCEPT {
   return __builtin_clzl(__x);
 }
-
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned long long __x) _NOEXCEPT {
   return __builtin_clzll(__x);
 }
-
-#if _LIBCPP_HAS_INT128
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(__uint128_t __x) _NOEXCEPT {
-#  if __has_builtin(__builtin_clzg) && !defined(__CUDACC__)
-  return __builtin_clzg(__x);
-#  else
-  // The function is written in this form due to C++ constexpr limitations.
-  // The algorithm:
-  // - Test whether any bit in the high 64-bits is set
-  // - No bits set:
-  //   - The high 64-bits contain 64 leading zeros,
-  //   - Add the result of the low 64-bits.
-  // - Any bits set:
-  //   - The number of leading zeros of the input is the number of leading
-  //     zeros in the high 64-bits.
-  return ((__x >> 64) == 0) ? (64 + __builtin_clzll(static_cast<unsigned long long>(__x)))
-                            : __builtin_clzll(static_cast<unsigned long long>(__x >> 64));
-#  endif
-}
-#endif // _LIBCPP_HAS_INT128
 
 template <class _Tp>
 _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 int __countl_zero(_Tp __t) _NOEXCEPT {
@@ -67,7 +42,6 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 int __countl_zero(_Tp __t) _
 #else  // __has_builtin(__builtin_clzg)
   if (__t == 0)
     return numeric_limits<_Tp>::digits;
-
   if (sizeof(_Tp) <= sizeof(unsigned int))
     return std::__libcpp_clz(static_cast<unsigned int>(__t)) -
            (numeric_limits<unsigned int>::digits - numeric_limits<_Tp>::digits);

@@ -6,15 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: __builtin_popcountg is available since Clang 19 and GCC 14. When support for older versions is dropped, we can
-//  refactor this code to exclusively use __builtin_popcountg.
-
 #ifndef _LIBCPP___BIT_POPCOUNT_H
 #define _LIBCPP___BIT_POPCOUNT_H
 
 #include <__bit/rotate.h>
 #include <__concepts/arithmetic.h>
 #include <__config>
+#include <__type_traits/is_unsigned.h>
 #include <limits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -29,20 +27,17 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_popcount(unsigned __x) _NOEXCEPT {
   return __builtin_popcount(__x);
 }
-
 inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_popcount(unsigned long __x) _NOEXCEPT {
   return __builtin_popcountl(__x);
 }
-
 inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_popcount(unsigned long long __x) _NOEXCEPT {
   return __builtin_popcountll(__x);
 }
 
-#if _LIBCPP_STD_VER >= 20
-
-template <__libcpp_unsigned_integer _Tp>
-[[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int popcount(_Tp __t) noexcept {
-#  if __has_builtin(__builtin_popcountg)
+template <class _Tp>
+[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __popcount(_Tp __t) _NOEXCEPT {
+  static_assert(is_unsigned<_Tp>::value, "__popcount only works with unsigned types");
+#  if __has_builtin(__builtin_popcountg) && !defined(__CUDACC__)
   return __builtin_popcountg(__t);
 #  else  // __has_builtin(__builtin_popcountg)
   if (sizeof(_Tp) <= sizeof(unsigned int))
@@ -62,7 +57,14 @@ template <__libcpp_unsigned_integer _Tp>
 #  endif // __has_builtin(__builtin_popcountg)
 }
 
-#endif // _LIBCPP_STD_VER >= 20
+#if _LIBCPP_STD_VER >= 20
+
+template <__libcpp_unsigned_integer _Tp>
+[[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int popcount(_Tp __t) noexcept {
+  return std::__popcount(__t);
+}
+
+#endif
 
 _LIBCPP_END_NAMESPACE_STD
 

@@ -77,7 +77,7 @@ struct __has_storage_type<vector<bool, _Allocator> > {
 };
 
 template <class _Allocator>
-class _LIBCPP_TEMPLATE_VIS vector<bool, _Allocator> {
+class vector<bool, _Allocator> {
 public:
   typedef vector __self;
   typedef bool value_type;
@@ -523,7 +523,7 @@ private:
   friend class __bit_iterator<vector, false>;
   friend class __bit_iterator<vector, true>;
   friend struct __bit_array<vector>;
-  friend struct _LIBCPP_TEMPLATE_VIS hash<vector>;
+  friend struct hash<vector>;
 };
 
 template <class _Allocator>
@@ -553,7 +553,7 @@ vector<bool, _Allocator>::__recommend(size_type __new_size) const {
   const size_type __cap = capacity();
   if (__cap >= __ms / 2)
     return __ms;
-  return std::max(2 * __cap, __align_it(__new_size));
+  return std::max<size_type>(2 * __cap, __align_it(__new_size));
 }
 
 //  Default constructs __n objects starting at __end_
@@ -1113,8 +1113,7 @@ _LIBCPP_CONSTEXPR_SINCE_CXX20 size_t vector<bool, _Allocator>::__hash_code() con
 }
 
 template <class _Allocator>
-struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
-    : public __unary_function<vector<bool, _Allocator>, size_t> {
+struct hash<vector<bool, _Allocator> > : public __unary_function<vector<bool, _Allocator>, size_t> {
   _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 size_t
   operator()(const vector<bool, _Allocator>& __vec) const _NOEXCEPT {
     return __vec.__hash_code();
@@ -1123,7 +1122,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
 #else  // _YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION
 // Hash function implementation for uncompressed std::vector<bool> which returns the same result.
 template <class _Allocator>
-struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> > : public unary_function<vector<bool, _Allocator>, size_t> {
+struct hash<vector<bool, _Allocator> > : public unary_function<vector<bool, _Allocator>, size_t> {
   _LIBCPP_HIDE_FROM_ABI
   size_t operator()(const vector<bool, _Allocator>& __vec) const _NOEXCEPT {
     size_t __h                       = 0;
