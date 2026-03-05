@@ -94,6 +94,14 @@ namespace NCB {
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
         );
+        CB_ENSURE(
+            !model.HasTextFeatures(),
+            "ONNX-ML format export does not support text features"
+        );
+        CB_ENSURE(
+            !model.HasEmbeddingFeatures(),
+            "ONNX-ML format export does not support embedding features"
+        );
 
         onnx::ModelProto outModel;
 

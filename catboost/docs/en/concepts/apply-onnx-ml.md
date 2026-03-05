@@ -10,7 +10,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 ## Specifics {#specifics}
 
-- Only models trained on datasets without categorical features are currently supported.
+- Only numerical features are supported. [Issue for categorical features support](https://github.com/catboost/catboost/issues/863). Text and embedding features will likely never be supported.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
