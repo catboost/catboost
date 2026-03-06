@@ -10934,6 +10934,30 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
     return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
 
 
+def test_select_features_with_hyphenated_feature_names():
+    features, labels = generate_random_labeled_dataset(
+        n_samples=500,
+        n_features=4,
+        labels=[0, 1],
+        seed=42
+    )
+    feature_names = ['non-TB', 'feat-b', 'plain', 'other-feat']
+    learn = Pool(features, labels, feature_names=feature_names)
+    test = Pool(features, labels, feature_names=feature_names)
+    model = CatBoostClassifier(iterations=10, logging_level='Silent')
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=False,
+        features_for_select=['non-TB', 'feat-b'],
+        num_features_to_select=1
+    )
+    assert len(summary['selected_features']) == 1
+    assert len(summary['eliminated_features']) == 1
+    assert set(summary['selected_features_names'] + summary['eliminated_features_names']) == {'non-TB', 'feat-b'}
+
+
 def test_embedding_features_data_list_with_data_with_features_order():
     pool1 = Pool(
         data=pd.DataFrame(
