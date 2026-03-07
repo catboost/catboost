@@ -59,7 +59,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
       - [`gcc` compiler](https://gcc.gnu.org/), not used to compile {{ product }} code itself but used to build dependencies as Conan packages.
       - [`clang` compiler](https://clang.llvm.org/):
 
-        For `aarch64` CPU archirecture the minimum version is 18.1
+        For `aarch64` CPU architecture the minimum version is 18.1
 
         For other CPU architectures the minimum version is 16
 
