@@ -10,7 +10,6 @@ import sys
 from . import config
 import yatest_lib.tools
 
-
 SEP = '/'
 TEST_MOD_PREFIX = '__tests__.'
 

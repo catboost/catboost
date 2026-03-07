@@ -4,7 +4,6 @@ import sys
 from library.python.pytest import config
 from library.python.pytest import yatest_tools
 
-
 config.set_test_mode()
 
 
