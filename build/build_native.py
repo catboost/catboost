@@ -384,20 +384,18 @@ def get_require_pic(targets : Iterable[str]) -> bool:
     return False
 
 def get_msvs_dir(msvs_installation_path: Optional[str], msvs_version: str) -> str:
-    if msvs_installation_path is None:
-        program_files = 'Program Files' if msvs_version == '2022' else 'Program Files (x86)'
-        msvs_base_dir = f'c:\\{program_files}\\Microsoft Visual Studio\\{msvs_version}'
-    else:
-        msvs_base_dir = os.path.join(msvs_installation_path, msvs_version)
 
-    if os.path.exists(f'{msvs_base_dir}\\Community'):
-        msvs_dir = f'{msvs_base_dir}\\Community'
-    elif os.path.exists(f'{msvs_base_dir}\\Enterprise'):
-        msvs_dir = f'{msvs_base_dir}\\Enterprise'
-    else:
-        raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found')
+    msvs_base_dir_candidates = ['c:\\Program Files\\Microsoft Visual Studio', 'c:\\Program Files (x86)\\Microsoft Visual Studio']
+    if msvs_installation_path is not None:
+        msvs_base_dir_candidates = [msvs_installation_path] + msvs_base_dir_candidates
 
-    return msvs_dir
+    for base_dir in msvs_base_dir_candidates:
+        for subfolder in ['Community', 'Enterprise', 'BuildTools']:
+            msvs_dir = os.path.join(base_dir, msvs_version, subfolder)
+            if os.path.exists(msvs_dir):
+                return msvs_dir
+
+    raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found in {msvs_base_dir_candidates}')
 
 def get_msvc_toolset(msvs_version: str, msvc_toolset: Optional[str]) -> str:
     if msvc_toolset:
