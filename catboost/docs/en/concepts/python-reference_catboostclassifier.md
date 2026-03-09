@@ -108,7 +108,9 @@ class CatBoostClassifier(iterations=None,
 
 ## {{ dl--purpose }} {#purpose}
 
-Training and applying models for the classification problems. Provides compatibility with the scikit-learn tools.
+Implementation of [the scikit-learn estimator API](https://scikit-learn.org/stable/developers/develop.html) for CatBoost classification.
+
+Supports model training, inference and auxiliary calculations like feature importance.
 
 {% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
 

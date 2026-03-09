@@ -4838,7 +4838,9 @@ class CatBoost(_CatBoostBase):
 
 class CatBoostClassifier(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost classification.
+    Implementation of the scikit-learn estimator API for CatBoost classification.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -5923,7 +5925,9 @@ class CatBoostClassifier(CatBoost):
 
 class CatBoostRegressor(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost regression.
+    Implementation of the scikit-learn estimator API for CatBoost regression.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -6331,7 +6335,10 @@ class CatBoostRegressor(CatBoost):
 
 class CatBoostRanker(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost ranking.
+    Implementation of the scikit-learn estimator API for CatBoost ranking.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
+
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
