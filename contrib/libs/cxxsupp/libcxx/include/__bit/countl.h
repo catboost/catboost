@@ -9,7 +9,6 @@
 #ifndef _LIBCPP___BIT_COUNTL_H
 #define _LIBCPP___BIT_COUNTL_H
 
-#include <__bit/rotate.h>
 #include <__concepts/arithmetic.h>
 #include <__config>
 #include <__type_traits/is_unsigned_integer.h>
@@ -17,6 +16,10 @@
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
+#endif
+
+#if !__has_builtin(__builtin_clzg) || defined(__CUDACC__)
+  #include <__bit/rotate.h>
 #endif
 
 _LIBCPP_PUSH_MACROS
