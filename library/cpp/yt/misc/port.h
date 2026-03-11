@@ -2,11 +2,6 @@
 
 #include <util/system/platform.h>
 
-// Check platform bitness.
-#if !defined(_64_)
-    #error YT requires 64-bit platform
-#endif
-
 #ifndef YT_DISABLE_REF_COUNTED_TRACKING
     // This define enables tracking of reference-counted objects to provide
     // various insightful information on memory usage and object creation patterns.
