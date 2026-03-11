@@ -5325,7 +5325,7 @@ def test_output_columns_format():
     )
     yatest.common.execute(calc_cmd)
 
-    return local_canonical_file(output_eval_path, formula_predict_path)
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 def test_output_auxiliary_columns_format():
