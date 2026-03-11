@@ -15,7 +15,10 @@ namespace NYT {
 ////////////////////////////////////////////////////////////////////////////////
 
 // TODO(babenko): move to hazard pointers
-void RetireHazardPointer(TPackedPtr packedPtr, void (*reclaimer)(TPackedPtr));
+void RetireHazardPointer(
+    void* protectedPtr,
+    void* reclaimPtr,
+    void (*reclaimer)(void* reclaimPtr));
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -62,12 +65,11 @@ struct TMemoryReleaser<T, std::enable_if_t<T::EnableHazard>>
 {
     static void Do(void* ptr, ui16 offset)
     {
-        // Base pointer is used in HazardPtr as the identity of object.
-        auto packedPtr = TTaggedPtr<char>{static_cast<char*>(ptr) + offset, offset}.Pack();
-        RetireHazardPointer(packedPtr, [] (TPackedPtr packedPtr) {
-            // Base ptr and the beginning of allocated memory region may differ.
-            auto [ptr, offset] = TTaggedPtr<char>::Unpack(packedPtr);
-            TFreeMemory<T>::Do(ptr - offset);
+        RetireHazardPointer(
+            static_cast<char*>(ptr) + offset,
+            ptr,
+            [] (void* reclaimPtr) {
+                TFreeMemory<T>::Do(reclaimPtr);
         });
     }
 };
