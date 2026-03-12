@@ -329,6 +329,11 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < 1", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < 0", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("unknown < (-1)", m), 0);
+
+        // check if a feature is in the dictionary "m"
+        UNIT_ASSERT_EQUAL(CalcExpression("!unknown", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("unknown != \"unknown\"", m), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("small != \"small\"", m), 1);
     }
 
     Y_UNIT_TEST(TestDivZero) {
