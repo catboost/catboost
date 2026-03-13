@@ -15,17 +15,19 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TEST(TFreeListTest, CompareAndSet)
+TEST(TFreeListDetailsTest, CasFreeListPackedPair)
 {
-    TAtomicUint128 v = 0;
-    ui64 p1 = 0;
-    ui64 p2 = 0;
-    EXPECT_TRUE(CompareAndSet(&v, p1, p2, ui64{13}, ui64{9}));
-    EXPECT_FALSE(CompareAndSet(&v, p1, p2, ui64{100}, ui64{500}));
-    EXPECT_EQ(13u, p1);
-    EXPECT_EQ(9u, p2);
-    EXPECT_TRUE(CompareAndSet(&v, p1, p2, ui64{100}, ui64{500}));
-    EXPECT_EQ(TAtomicUint128{500} << 64 | 100, v);
+    using P = NDetail::TFreeListPackedPair;
+    using C = NDetail::TFreeListPackedPairComponent;
+    P v = 0;
+    C p1 = 0;
+    C p2 = 0;
+    EXPECT_TRUE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(13), C(9)));
+    EXPECT_FALSE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(100), C(500)));
+    EXPECT_EQ(C(13), p1);
+    EXPECT_EQ(C(9), p2);
+    EXPECT_TRUE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(100), C(500)));
+    EXPECT_EQ((P(500) << (sizeof(C) * 8)) | 100, v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,8 +92,7 @@ private:
     std::stack<size_t> AcquiredItemIndices_;
 };
 
-
-TEST_P(TFreeListStressTest, Stress)
+TEST_P(TFreeListStressTest, Do)
 {
     TTestItemSet::Reset();
     SetRandomSeed(0x424242);
@@ -145,7 +146,7 @@ TEST_P(TFreeListStressTest, Stress)
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    TFreeListTest,
+    TFreeListStressTest,
     TFreeListStressTest,
     testing::Values(
         TTestConfig{4, 1, 15s},

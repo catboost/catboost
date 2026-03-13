@@ -1,10 +1,31 @@
 #pragma once
 
 #include "public.h"
+#include "tagged_ptr.h"
 
 #include <atomic>
 
 namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace NDetail {
+
+#if defined(_64_)
+
+using TFreeListPackedPairComponent = ui64;
+using TFreeListPackedPair = volatile unsigned __int128  __attribute__((aligned(16)));
+
+#elif defined(_32_)
+
+using TFreeListPackedPairComponent = ui32;
+using TFreeListPackedPair = std::atomic<ui64>;
+
+#else
+    #error Unsupported platform
+#endif
+
+} // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -14,53 +35,50 @@ struct TFreeListItemBase
     std::atomic<T*> Next = nullptr;
 };
 
-using TAtomicUint128 = volatile unsigned __int128  __attribute__((aligned(16)));
-
 template <class TItem>
 class TFreeList
 {
 private:
+    using TEpoch = NDetail::TFreeListPackedPairComponent;
+
     struct THead
     {
         std::atomic<TItem*> Pointer = nullptr;
-        std::atomic<size_t> Epoch = 0;
+        std::atomic<TEpoch> Epoch = 0;
 
         THead() = default;
 
         explicit THead(TItem* pointer);
-
     };
+
+    static_assert(sizeof(THead) == sizeof(NDetail::TFreeListPackedPair));
 
     union
     {
         THead Head_;
-        TAtomicUint128 AtomicHead_;
+        NDetail::TFreeListPackedPair PackedHead_;
     };
 
     // Avoid false sharing.
-    char Padding[CacheLineSize - sizeof(TAtomicUint128)];
+    [[maybe_unused]] char Padding_[CacheLineSize - sizeof(THead)];
 
 public:
     TFreeList();
-
     TFreeList(TFreeList&& other) noexcept;
 
     ~TFreeList();
 
     template <class TPredicate>
     bool PutIf(TItem* head, TItem* tail, TPredicate predicate);
-
     void Put(TItem* head, TItem* tail);
-
     void Put(TItem* item);
 
     TItem* Extract();
-
     TItem* ExtractAll();
 
-    bool IsEmpty() const;
-
     void Append(TFreeList& other);
+
+    bool IsEmpty() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
