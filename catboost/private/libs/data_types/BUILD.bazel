@@ -1,0 +1,11 @@
+cc_library(
+    name = "data_types",
+    srcs = [
+        "pair.cpp",
+        "query.cpp",
+        "text.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

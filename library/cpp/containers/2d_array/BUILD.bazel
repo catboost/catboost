@@ -1,0 +1,7 @@
+cc_library(
+    name = "2d_array",
+    srcs = ["2d_array.cpp"],
+    hdrs = ["2d_array.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

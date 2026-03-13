@@ -1,0 +1,80 @@
+# yutil — Yandex core utility library.
+#
+# This is a large monolithic library covering: string/stream I/O, containers,
+# memory allocators, threading primitives, platform abstractions, datetime,
+# digests, random number generation, and network utilities.
+#
+# Note: util/datetime/parser.rl6 must be processed by Ragel to produce
+# parser.cpp.  If parser.cpp is not pre-generated in the source tree, install
+# Ragel and uncomment the genrule below.
+
+# --------------------------------------------------------------------------
+# Ragel code generation (uncomment if parser.cpp is not pre-generated)
+# --------------------------------------------------------------------------
+# genrule(
+#     name = "datetime_parser_gen",
+#     srcs = ["datetime/parser.rl6"],
+#     outs = ["datetime/parser.cpp"],
+#     cmd = "ragel -CG2 -o $@ $(SRCS)",
+# )
+# --------------------------------------------------------------------------
+
+cc_library(
+    name = "yutil",
+    srcs = glob(
+        [
+            "charset/*.cpp",
+            "datetime/*.cpp",
+            "digest/*.cpp",
+            "folder/*.cpp",
+            "generic/*.cpp",
+            "memory/*.cpp",
+            "network/*.cpp",
+            "random/*.cpp",
+            "stream/*.cpp",
+            "string/*.cpp",
+            "system/*.cpp",
+            "thread/*.cpp",
+        ],
+        exclude = [
+            "**/*_ut*.cpp",
+            "**/*_ut_*.cpp",
+            "**/ut/**",
+            "**/benchmark/**",
+        ],
+    ),
+    hdrs = glob([
+        "*.h",
+        "charset/*.h",
+        "datetime/*.h",
+        "digest/*.h",
+        "folder/*.h",
+        "generic/*.h",
+        "memory/*.h",
+        "network/*.h",
+        "random/*.h",
+        "stream/*.h",
+        "string/*.h",
+        "system/*.h",
+        "thread/*.h",
+    ]),
+    copts = [
+        "-Wno-narrowing",
+        "-Wno-deprecated-declarations",
+    ],
+    linkopts = select({
+        "@platforms//os:windows": [],
+        "@platforms//os:macos": [],
+        "//conditions:default": [
+            "-lpthread",
+            "-ldl",
+            "-lrt",
+        ],
+    }),
+    deps = [
+        "//contrib/libs/double-conversion",
+        "//contrib/libs/libc_compat",
+        "//contrib/libs/zlib",
+    ],
+    visibility = ["//visibility:public"],
+)

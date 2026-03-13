@@ -1,0 +1,54 @@
+load("//bazel:flatbuffers.bzl", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "text_features_flatbuffers",
+    srcs = [
+        "flatbuffers/feature_calcers.fbs",
+        "flatbuffers/text_processing_collection.fbs",
+    ],
+    include_paths = [
+        "catboost/private/libs/text_features/flatbuffers",
+        ".",
+    ],
+    deps = [
+        "//contrib/libs/flatbuffers",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "text_features",
+    srcs = [
+        "feature_calcer.cpp",
+        "text_feature_calcers.cpp",
+        "text_processing_collection.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":text_features_flatbuffers",
+        "//catboost/libs/helpers",
+        "//catboost/private/libs/data_types",
+        "//catboost/private/libs/options",
+        "//catboost/private/libs/text_processing",
+        "//contrib/libs/clapack",
+        "//contrib/libs/flatbuffers",
+        "//library/cpp/threading/local_executor",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Global library variant with additional text feature calcer implementations
+cc_library(
+    name = "text_features_global",
+    srcs = [
+        "bm25.cpp",
+        "bow.cpp",
+        "naive_bayesian.cpp",
+    ],
+    deps = [
+        ":text_features",
+    ],
+    alwayslink = True,
+    visibility = ["//visibility:public"],
+)

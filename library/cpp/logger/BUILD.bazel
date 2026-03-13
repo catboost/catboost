@@ -1,0 +1,36 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "logger_priority_enum_serialization",
+    src = "priority.h",
+    includes = ["library/cpp/logger/priority.h"],
+)
+
+cc_library(
+    name = "logger",
+    srcs = [
+        "backend.cpp",
+        "backend_creator.cpp",
+        "composite.cpp",
+        "element.cpp",
+        "file.cpp",
+        "filter.cpp",
+        "filter_creator.cpp",
+        "log.cpp",
+        "null.cpp",
+        "rotating_file.cpp",
+        "stream.cpp",
+        "sync_page_cache_file.cpp",
+        "system.cpp",
+        "thread.cpp",
+        "thread_creator.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":logger_priority_enum_serialization",
+        "//library/cpp/json",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

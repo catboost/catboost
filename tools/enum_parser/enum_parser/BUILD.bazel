@@ -1,0 +1,16 @@
+# enum_parser — host binary that generates enum serialization .cpp files.
+# This tool is used at build time via the generate_enum_serialization() macro.
+
+cc_binary(
+    name = "enum_parser",
+    srcs = [
+        "main.cpp",
+        "stdlib_deps.h",
+    ],
+    deps = [
+        "//library/cpp/getopt/small:getopt_small",
+        "//tools/enum_parser/parse_enum",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

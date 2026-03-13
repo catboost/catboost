@@ -1,0 +1,9 @@
+# Deprecated: the static library target has been consolidated into
+# //catboost/libs/model_interface:catboostmodel_static_impl.
+# This package kept for directory structure parity with CMake.
+
+alias(
+    name = "catboostmodel_static_lib",
+    actual = "//catboost/libs/model_interface:catboostmodel_static_impl",
+    visibility = ["//visibility:public"],
+)

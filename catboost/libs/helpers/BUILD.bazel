@@ -1,0 +1,50 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "helpers_sparse_array_enum_serialization",
+    src = "sparse_array.h",
+    includes = ["catboost/libs/helpers/sparse_array.h"],
+)
+
+generate_enum_serialization(
+    name = "helpers_distribution_enum_serialization",
+    src = "distribution_helpers.h",
+    includes = ["catboost/libs/helpers/distribution_helpers.h"],
+)
+
+cc_library(
+    name = "helpers",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = [
+            "**/*_ut*.cpp",
+            "**/ut/**",
+        ],
+    ),
+    hdrs = glob(
+        ["*.h"],
+        exclude = ["**/ut/**"],
+    ),
+    deps = [
+        ":helpers_distribution_enum_serialization",
+        ":helpers_sparse_array_enum_serialization",
+        "//catboost/libs/helpers/flatbuffers:helpers_flatbuffers",
+        "//catboost/libs/logging",
+        "//catboost/private/libs/data_types",
+        "//catboost/private/libs/data_util",
+        "//catboost/private/libs/index_range",
+        "//contrib/libs/flatbuffers",
+        "//library/cpp/binsaver",
+        "//library/cpp/dbg_output",
+        "//library/cpp/deprecated/atomic",
+        "//library/cpp/digest/crc32c",
+        "//library/cpp/digest/md5",
+        "//library/cpp/fast_exp",
+        "//library/cpp/json",
+        "//library/cpp/malloc/api",
+        "//library/cpp/threading/local_executor",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

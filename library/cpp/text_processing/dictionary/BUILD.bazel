@@ -1,0 +1,26 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "dictionary_types_enum_serialization",
+    src = "types.h",
+    includes = ["library/cpp/text_processing/dictionary/types.h"],
+)
+
+cc_library(
+    name = "text_processing_dictionary",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":dictionary_types_enum_serialization",
+        "//library/cpp/containers/flat_hash",
+        "//library/cpp/json",
+        "//library/cpp/text_processing/dictionary/idl:dictionary_idl",
+        "//library/cpp/threading/local_executor",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

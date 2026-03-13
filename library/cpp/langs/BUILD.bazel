@@ -1,0 +1,14 @@
+cc_library(
+    name = "langs",
+    srcs = [
+        "generated/uniscripts.cpp",
+        "langs.cpp",
+        "scripts.cpp",
+    ],
+    hdrs = [
+        "langs.h",
+        "scripts.h",
+    ],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

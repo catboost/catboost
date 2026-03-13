@@ -1,0 +1,13 @@
+# Nayuki MD5 implementation.
+
+cc_library(
+    name = "nayuki_md5",
+    srcs = ["md5.c"] + select({
+        "@platforms//cpu:x86_64": ["md5-fast-x8664.S"],
+        "//conditions:default": [],
+    }),
+    hdrs = ["md5.h"],
+    includes = ["."],
+    copts = ["-Wno-everything"],
+    visibility = ["//visibility:public"],
+)

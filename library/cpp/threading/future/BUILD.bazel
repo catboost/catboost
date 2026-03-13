@@ -1,0 +1,18 @@
+cc_library(
+    name = "future",
+    srcs = glob(
+        [
+            "*.cpp",
+            "core/*.cpp",
+            "wait/*.cpp",
+        ],
+        exclude = ["**/*_ut*.cpp", "**/ut/**", "**/benchmark/**", "**/perf/**"],
+    ),
+    hdrs = glob([
+        "*.h",
+        "core/*.h",
+        "wait/*.h",
+    ]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

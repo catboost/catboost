@@ -1,0 +1,16 @@
+# FlatBuffers C++ runtime library (vendored).
+
+cc_library(
+    name = "flatbuffers",
+    srcs = [
+        "src/idl_gen_text.cpp",
+        "src/idl_parser.cpp",
+        "src/reflection.cpp",
+        "src/util.cpp",
+    ],
+    hdrs = glob(["include/flatbuffers/*.h"]),
+    includes = ["include"],
+    defines = ["FLATBUFFERS_LOCALE_INDEPENDENT=1"],
+    copts = ["-Wno-sign-compare"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,13 @@
+cc_library(
+    name = "logger_global",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//library/cpp/logger",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

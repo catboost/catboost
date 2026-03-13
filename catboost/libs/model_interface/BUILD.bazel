@@ -1,0 +1,49 @@
+# catboostmodel — shared library and C API for model inference.
+#
+# Exported symbols are controlled by calcer.exports.
+
+cc_library(
+    name = "catboostmodel_impl",
+    srcs = ["c_api.cpp"],
+    hdrs = ["c_api.h"],
+    defines = ["CATBOOST_API_EXPORTS"],
+    deps = [
+        "//catboost/libs/cat_feature",
+        "//catboost/libs/model",
+        "//catboost/libs/model:model_global",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_shared_library(
+    name = "catboostmodel",
+    roots = [":catboostmodel_impl"],
+    exports_filter = ["//catboost/libs/..."],
+    user_link_flags = select({
+        "@platforms//os:macos": [
+            "-Wl,-undefined,dynamic_lookup",
+            "-framework CoreFoundation",
+        ],
+        "//conditions:default": [
+            "-Wl,--version-script,$(location calcer.exports)",
+        ],
+    }),
+    additional_linker_inputs = ["calcer.exports"],
+    visibility = ["//visibility:public"],
+)
+
+# Static variant: same C API, compiled with CATBOOST_API_STATIC_LIB define.
+cc_library(
+    name = "catboostmodel_static_impl",
+    srcs = ["c_api.cpp"],
+    hdrs = ["c_api.h"],
+    defines = ["CATBOOST_API_STATIC_LIB"],
+    deps = [
+        "//catboost/libs/cat_feature",
+        "//catboost/libs/model",
+        "//catboost/libs/model:model_global",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

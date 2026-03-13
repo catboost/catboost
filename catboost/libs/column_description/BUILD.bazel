@@ -1,0 +1,28 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "column_enum_serialization",
+    src = "column.h",
+    includes = ["catboost/libs/column_description/column.h"],
+)
+
+cc_library(
+    name = "column_description",
+    srcs = [
+        "cd_parser.cpp",
+        "column.cpp",
+        "feature_tag.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":column_enum_serialization",
+        "//catboost/libs/helpers",
+        "//catboost/libs/logging",
+        "//catboost/private/libs/data_util",
+        "//library/cpp/binsaver",
+        "//library/cpp/json",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

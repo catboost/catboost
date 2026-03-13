@@ -1,0 +1,21 @@
+cc_library(
+    name = "text_processing",
+    srcs = [
+        "dictionary.cpp",
+        "text_column_builder.cpp",
+        "text_dataset.cpp",
+        "text_digitizers.cpp",
+        "tokenizer.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//catboost/libs/helpers",
+        "//catboost/private/libs/data_types",
+        "//catboost/private/libs/options",
+        "//library/cpp/text_processing/dictionary:text_processing_dictionary",
+        "//library/cpp/text_processing/tokenizer:text_processing_tokenizer",
+        "//library/cpp/threading/local_executor",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

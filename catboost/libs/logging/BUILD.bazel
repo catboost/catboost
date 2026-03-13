@@ -1,0 +1,25 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "logging_level_enum_serialization",
+    src = "logging_level.h",
+    includes = ["catboost/libs/logging/logging_level.h"],
+)
+
+cc_library(
+    name = "logging",
+    srcs = ["logging.cpp"],
+    hdrs = [
+        "logging.h",
+        "logging_level.h",
+        "profile_info.h",
+    ],
+    deps = [
+        ":logging_level_enum_serialization",
+        "//library/cpp/logger",
+        "//library/cpp/logger/global:logger_global",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

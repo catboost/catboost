@@ -1,0 +1,32 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "options_enums_serialization",
+    src = "enums.h",
+    includes = ["catboost/private/libs/options/enums.h"],
+)
+
+cc_library(
+    name = "options",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp", "**/ut/**"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":options_enums_serialization",
+        "//catboost/libs/column_description",
+        "//catboost/libs/helpers",
+        "//catboost/libs/logging",
+        "//catboost/private/libs/ctr_description",
+        "//catboost/private/libs/data_util",
+        "//library/cpp/getopt/small:getopt_small",
+        "//library/cpp/grid_creator",
+        "//library/cpp/json",
+        "//library/cpp/text_processing/dictionary:text_processing_dictionary",
+        "//library/cpp/text_processing/tokenizer:text_processing_tokenizer",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

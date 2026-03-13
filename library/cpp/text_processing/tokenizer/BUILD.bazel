@@ -1,0 +1,27 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "tokenizer_options_enum_serialization",
+    src = "options.h",
+    includes = ["library/cpp/text_processing/tokenizer/options.h"],
+)
+
+cc_library(
+    name = "text_processing_tokenizer",
+    srcs = [
+        "options.cpp",
+        "tokenizer.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":tokenizer_options_enum_serialization",
+        "//library/cpp/cache",
+        "//library/cpp/json",
+        "//library/cpp/langs",
+        "//library/cpp/object_factory",
+        "//library/cpp/tokenizer",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

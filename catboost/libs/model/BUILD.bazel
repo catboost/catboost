@@ -1,0 +1,61 @@
+# catboost-libs-model: Core CatBoost model representation and CPU evaluation.
+#
+# Provides TFullModel — the main model container — together with CPU-based
+# tree evaluation, CTR handling, FlatBuffers serialization/deserialization,
+# and model export functionality.
+
+cc_library(
+    name = "model",
+    srcs = glob(
+        [
+            "*.cpp",
+            "cpu/*.cpp",
+            "model_export/*.cpp",
+        ],
+        exclude = [
+            "**/*_ut*.cpp",
+            "**/ut/**",
+            # CUDA evaluation is built separately
+            "cuda/**",
+        ],
+    ),
+    hdrs = glob(
+        [
+            "*.h",
+            "cpu/*.h",
+            "model_export/*.h",
+        ],
+        exclude = ["**/ut/**"],
+    ),
+    deps = [
+        "//catboost/libs/cat_feature",
+        "//catboost/libs/helpers",
+        "//catboost/libs/logging",
+        "//catboost/libs/model/flatbuffers:model_flatbuffers",
+        "//catboost/private/libs/ctr_description",
+        "//catboost/private/libs/embedding_features",
+        "//catboost/private/libs/options",
+        "//catboost/private/libs/text_features",
+        "//contrib/libs/flatbuffers",
+        "//library/cpp/binsaver",
+        "//library/cpp/containers/dense_hash",
+        "//library/cpp/dbg_output",
+        "//library/cpp/json",
+        "//library/cpp/object_factory",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Global variant: registers model importers / exporters via static initializers.
+cc_library(
+    name = "model_global",
+    srcs = [
+        "formula_evaluator.cpp",
+        "model_import_interface.cpp",
+    ],
+    deps = [":model"],
+    alwayslink = True,
+    visibility = ["//visibility:public"],
+)

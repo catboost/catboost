@@ -1,0 +1,13 @@
+# Runtime support library for enum serialization (ToString/FromString/Out).
+
+cc_library(
+    name = "enum_serialization_runtime",
+    srcs = [
+        "dispatch_methods.cpp",
+        "enum_runtime.cpp",
+        "ordered_pairs.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,8 @@
+# Header-only shim for deprecated atomic APIs (wraps std::atomic).
+
+cc_library(
+    name = "atomic",
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

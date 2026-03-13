@@ -1,0 +1,10 @@
+# contrib/libs/cxxsupp — Vendored C++ standard library override.
+#
+# In Yandex builds this provides a hermetic libc++/libc++abi. In a standard
+# Bazel build the system C++ toolchain already supplies the stdlib, so this
+# target is an empty interface library that just propagates compile flags.
+
+cc_library(
+    name = "cxxsupp",
+    visibility = ["//visibility:public"],
+)
