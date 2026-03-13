@@ -96,6 +96,7 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
 
     YT_ASSERT(offset < (1ULL << PackedPtrTagBits));
 
+    static_assert(sizeof(TRefCountedBase) >= sizeof(TPackedPtr));
     auto* vTablePtr = reinterpret_cast<TPackedPtr*>(basePtr);
     *vTablePtr = TTaggedPtr<void(void*, ui16)>(&NYT::NDetail::TMemoryReleaser<T>::Do, offset).Pack();
 
@@ -169,6 +170,7 @@ struct TRefCountedTraits<T, true>
 
     Y_FORCE_INLINE static void Deallocate(const TRefCountedBase* obj)
     {
+        static_assert(sizeof(TRefCountedBase) >= sizeof(TPackedPtr));
         auto* ptr = reinterpret_cast<TPackedPtr*>(const_cast<TRefCountedBase*>(obj));
         auto [ptrToDeleter, offset] = TTaggedPtr<void(void*, ui16)>::Unpack(*ptr);
 

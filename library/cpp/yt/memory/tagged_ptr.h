@@ -6,10 +6,15 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-using TPackedPtr = uintptr_t;
-static_assert(sizeof(TPackedPtr) == 8);
+using TPackedPtr = ui64;
 
-constexpr size_t PackedPtrAddressBits = 48;
+#if defined(_64_)
+    constexpr size_t PackedPtrAddressBits = 48;
+#elif defined(_32_)
+    constexpr size_t PackedPtrAddressBits = 32;
+#else
+    #error Unsupported platform
+#endif
 constexpr size_t PackedPtrTagBits = 16;
 constexpr TPackedPtr PackedPtrAddressMask = (1ULL << PackedPtrAddressBits) - 1;
 constexpr TPackedPtr PackedPtrTagMask = ~PackedPtrAddressMask;
