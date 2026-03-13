@@ -25,7 +25,7 @@ struct TCustomized
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// 2 Cpos won't trigger static vtable
+// 2 CPOs won't trigger static vtable.
 static_assert(
     sizeof(
         TAnyRef<
@@ -35,9 +35,9 @@ static_assert(
             TOverload<
                 TestCpo,
                 void(TErasedThis&&)>>)
-    == 8 + 2 * 8);
+    == 3 * sizeof(intptr_t));
 
-// 3 Cpos trigger static vtable
+// 3 CPOs trigger static vtable.
 static_assert(
     sizeof(
         TAnyRef<
@@ -50,7 +50,7 @@ static_assert(
             TOverload<
                 TestCpo,
                 void(TErasedThis, int)>>)
-    == 8 + 8);
+    == 2 * sizeof(intptr_t));
 
 ////////////////////////////////////////////////////////////////////////////////
 
