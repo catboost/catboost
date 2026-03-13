@@ -155,5 +155,90 @@ INSTANTIATE_TEST_SUITE_P(
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct TFreeListItem
+    : public TFreeListItemBase<TFreeListItem>
+{
+    explicit TFreeListItem(i64 value)
+        : Value(value)
+    { }
+    i64 Value;
+};
+
+static std::chrono::steady_clock::time_point Now()
+{
+    return std::chrono::steady_clock::now();
+}
+
+void ProducerThread(TFreeList<TFreeListItem>* freeList, i64 startValue, std::chrono::steady_clock::time_point until)
+{
+    i64 v = startValue;
+    while (Now() < until) {
+        freeList->Put(new TFreeListItem(v));
+        v += 2;
+    }
+}
+
+void ConsumerThread(TFreeList<TFreeListItem>* freeList, std::chrono::steady_clock::time_point until)
+{
+    i64 latestEven = -2;
+    i64 latestOdd = -1;
+    std::vector<i64> buffer;
+    while (Now() < until) {
+        buffer.clear();
+        auto* extractedList = freeList->ExtractAll();
+        while (extractedList) {
+            buffer.push_back(extractedList->Value);
+            auto* next = extractedList->Next.load(std::memory_order::acquire);
+            delete extractedList;
+            extractedList = next;
+        }
+
+        for (auto it = buffer.rbegin(); it != buffer.rend(); ++it) {
+            auto value = *it;
+            if (value % 2 == 0) {
+                ASSERT_GT(value, latestEven);
+                latestEven = value;
+            } else {
+                ASSERT_GT(value, latestOdd);
+                latestOdd = value;
+            }
+        }
+    }
+}
+
+void Cleanup(TFreeList<TFreeListItem>* freeList)
+{
+    auto* node = freeList->ExtractAll();
+    while (node) {
+        auto* next = node->Next.load(std::memory_order::acquire);
+        delete node;
+        node = next;
+    }
+}
+
+TEST(TFreeListTest, ProducerConsumer)
+{
+    auto now = Now();
+    auto until = now + std::chrono::seconds(15);
+
+    auto freeList = TFreeList<TFreeListItem>();
+
+    std::vector<std::thread> threads;
+
+    threads.emplace_back(ProducerThread, &freeList, 0, until);
+    threads.emplace_back(ProducerThread, &freeList, 1, until);
+
+    threads.emplace_back(ConsumerThread, &freeList, until);
+    threads.emplace_back(ConsumerThread, &freeList, until);
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    Cleanup(&freeList);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace
 } // namespace NYT

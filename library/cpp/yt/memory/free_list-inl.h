@@ -4,6 +4,8 @@
 #include "free_list.h"
 #endif
 
+#include <util/system/sanitizers.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,6 +25,16 @@ Y_FORCE_INLINE bool CasFreeListPackedPair(
     T1 new1,
     T2 new2)
 {
+#if defined(_tsan_enabled_)
+    __tsan_acquire(const_cast<unsigned __int128*>(atomic));
+    __tsan_release(const_cast<unsigned __int128*>(atomic));
+    // NB(sabdenovch): release must happen before cmpxchg to avoid the situation
+    // where producer writes to non-atomic memory does CAS,
+    // sleeps without letting thread sanitizer know about release,
+    // then consumer does CAS, informs thread sanitizer about acquire and reads non-atomic memory.
+    // No real race exists anyway, this is a workaround for TSAN false positives.
+#endif
+
 #if defined(__x86_64__)
     bool success;
     __asm__ __volatile__
@@ -153,7 +165,6 @@ TFreeList<TItem>::~TFreeList()
 
 template <class TItem>
 template <class TPredicate>
-Y_NO_SANITIZE("thread")
 bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
@@ -172,7 +183,6 @@ bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
 }
 
 template <class TItem>
-Y_NO_SANITIZE("thread")
 void TFreeList<TItem>::Put(TItem* head, TItem* tail)
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
@@ -190,7 +200,6 @@ void TFreeList<TItem>::Put(TItem* item)
 }
 
 template <class TItem>
-Y_NO_SANITIZE("thread")
 TItem* TFreeList<TItem>::Extract()
 {
     auto* current = Head_.Pointer.load(std::memory_order::relaxed);
