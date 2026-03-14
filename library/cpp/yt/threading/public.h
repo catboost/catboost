@@ -14,6 +14,8 @@ namespace NYT::NThreading {
 using TThreadId = size_t;
 constexpr size_t InvalidThreadId = 0;
 
+class TExecutionStack;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT::NThreading
