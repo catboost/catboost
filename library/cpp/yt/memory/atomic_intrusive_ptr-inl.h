@@ -116,7 +116,7 @@ template <class T>
 TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
     : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
 {
-    other.Ptr_.store(uintptr_t(0), std::memory_order::relaxed);
+    other.Ptr_.store(TPackedPtr(), std::memory_order::relaxed);
 }
 
 template <class T>
@@ -192,7 +192,7 @@ void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
 template <class T>
 void TAtomicIntrusivePtr<T>::Reset()
 {
-    ReleaseObject(Ptr_.exchange(0));
+    ReleaseObject(Ptr_.exchange(TPackedPtr()));
 }
 
 template <class T>

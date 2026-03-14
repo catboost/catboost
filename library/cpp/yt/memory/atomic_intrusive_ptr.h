@@ -75,7 +75,8 @@ private:
     // LocalRefCount is incremented in Acquire method.
     // When localRefCount exceeds ReservedRefCount / 2 a new portion of refs are required globally.
     // This field is marked mutable in order to make Acquire const-qualified in accordance to its semantics.
-    mutable std::atomic<TPackedPtr> Ptr_ = 0;
+    static_assert(std::atomic<TPackedPtr>::is_always_lock_free);
+    mutable std::atomic<TPackedPtr> Ptr_;
 
     constexpr static int CounterBits = PackedPtrTagBits;
     constexpr static int ReservedRefCount = (1 << CounterBits) - 1;
