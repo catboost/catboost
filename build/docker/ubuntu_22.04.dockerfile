@@ -53,7 +53,7 @@ RUN pip3 install conan==2.4.1
 
 RUN pip3 install cython==3.0.12
 
-RUN pip3 install numpy
+RUN pip3 install 'numpy<3.0'
 
 # Install Ninja
 RUN pip3 install ninja
