@@ -25,12 +25,12 @@ RUN apt-get install -y gcc-12 g++-12 && \
 # Install GDB
 RUN apt-get install -y gdb
 
-# Install Clang 16, make it the default version
+# Install Clang 18, make it the default version
 RUN wget https://apt.llvm.org/llvm.sh && \
     chmod +x llvm.sh && \
-    ./llvm.sh 16 && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100 && \
+    ./llvm.sh 18 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100 && \
     rm llvm.sh
 
 # Some code uses 'python' command so we need it to be available
