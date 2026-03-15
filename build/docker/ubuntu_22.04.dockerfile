@@ -54,10 +54,10 @@ RUN pip3 install 'numpy<3.0'
 RUN pip3 install ninja
 
 # Install Node, npm, rimraf and yarn (needed for CatBoost python package visualization widget and Node package)
-ENV NODE_VERSION 18
+ENV NODE_VERSION 24
 
 SHELL ["/bin/bash", "--login", "-i", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 RUN source /root/.bashrc && \
     nvm install $NODE_VERSION && \
     nvm alias default $NODE_VERSION && \
