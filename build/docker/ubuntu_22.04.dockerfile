@@ -40,7 +40,7 @@ RUN apt-get install -y python-is-python3
 RUN pip3 install --upgrade pip
 
 # Update setuptools, wheel and build
-RUN pip3 install --upgrade 'setuptools>=64.0' wheel build
+RUN pip3 install --upgrade 'setuptools>=70.1.0' build
 
 # Install jupyterlab for catboost-widget
 RUN pip3 install jupyterlab==3.0.6
