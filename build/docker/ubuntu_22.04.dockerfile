@@ -22,7 +22,6 @@ RUN apt-get install -y gcc-12 g++-12 && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
 
-# Install GDB
 RUN apt-get install -y gdb
 
 # Install Clang 18, make it the default version
@@ -36,19 +35,15 @@ RUN wget https://apt.llvm.org/llvm.sh && \
 # Some code uses 'python' command so we need it to be available
 RUN apt-get install -y python-is-python3
 
-# Update pip
 RUN pip3 install --upgrade pip
 
-# Update setuptools, wheel and build
 RUN pip3 install --upgrade 'setuptools>=70.1.0,<83.0' build
 
 # Install jupyterlab for catboost-widget
 RUN pip3 install jupyterlab==3.0.6
 
-# Install CMake
 RUN pip3 install 'cmake>=3.24.0,<4.0'
 
-# Install Conan 2.4.1
 RUN pip3 install conan==2.4.1
 
 RUN pip3 install cython==3.0.12
