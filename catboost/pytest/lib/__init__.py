@@ -180,11 +180,16 @@ def execute_catboost_dist(mode, cmd):
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        execute_catboost(
-            mode,
-            'CPU',
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
-        )
+        try:
+            execute_catboost(
+                mode,
+                'CPU',
+                cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
+            )
+        except BaseException:
+            worker0.terminate()
+            worker1.terminate()
+
         worker0.wait()
         worker1.wait()
 
