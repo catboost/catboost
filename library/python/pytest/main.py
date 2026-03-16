@@ -44,6 +44,7 @@ def main():
     import library.python.pytest.plugins.collection as collection
     import library.python.pytest.plugins.ya as ya
     import library.python.pytest.plugins.conftests as conftests
+    import library.python.pytest.plugins.fixtures as fixtures
 
     import _pytest.assertion
     from _pytest.monkeypatch import MonkeyPatch
@@ -109,6 +110,7 @@ def main():
             collection.CollectionPlugin(test_modules, doctest_modules),
             ya,
             conftests,
+            fixtures,
         ]
     )
 

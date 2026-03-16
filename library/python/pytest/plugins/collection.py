@@ -15,6 +15,7 @@ if six.PY3:
 
 from library.python.pytest import module_utils
 import library.python.testing.filter.filter as test_filter
+import yatest.common
 
 
 def _make_module_with_single_skipped_test(module_name, file_name, exc):
@@ -40,36 +41,30 @@ class LoadedModule(pytest.Module):
         self.module_name = name
         if namespace:
             assert name.startswith('__tests__.')
-            self.display_module_name = name[len('__tests__.'):]
+            self.display_module_name = name[len('__tests__.') :]
         else:
             self.display_module_name = name
         self.is_fake_module = False
         # Always passed to `super().__init__` explicitly.
         kwargs.pop('nodeid', None)
 
-        if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
-            nodeid = module_utils.get_proper_module_path(self.module_name)
-            if nodeid is None:
-                self.is_fake_module = True
-                return
+        nodeid = module_utils.get_proper_module_path(self.module_name)
+        if nodeid is None:
+            self.is_fake_module = True
+            return
 
-            name = nodeid
-            if six.PY3:
-                kwargs['path'] = kwargs.get('path') or pathlib.Path(nodeid)
-            else:
-                raw_module_path = module_utils.get_module_file_path(self.module_name)
-                kwargs['fspath'] = kwargs.get('fspath') or py.path.local(raw_module_path)
-        else:
-            nodeid = self.display_module_name + '.py'
-            name = nodeid
-            if six.PY3:
-                kwargs['path'] = kwargs.get('path') or pathlib.Path(py.path.local())
-            else:
-                kwargs['fspath'] = kwargs.get('fspath') or py.path.local()
+        # Avoid specializing on `name`. It may change in the future if we add virtual collection nodes for directories.
+        name = nodeid
+        # `path` and `fspath` are required to be absolute paths.
+        # The original source or build directory may be unavailable (at least in CI) and is irrelevant at this point.
+        # Meanwhile, `source_path` is useful, because it allows to find nearby test data, like with vanilla pytest.
+        path = yatest.common.source_path(nodeid)
 
         if six.PY3:
+            kwargs['path'] = kwargs.get('path') or pathlib.Path(path)
             super().__init__(parent=parent, name=name, nodeid=nodeid, **kwargs)
         else:
+            kwargs['fspath'] = kwargs.get('fspath') or py.path.local(path)
             super(LoadedModule, self).__init__(parent=parent, nodeid=nodeid, **kwargs)
             self.name = name
 
@@ -83,7 +78,9 @@ class LoadedModule(pytest.Module):
             __import__(self.module_name)
         except pytest.skip.Exception as e:
             if not e.allow_module_level:
-                raise RuntimeError("Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`.")
+                raise RuntimeError(
+                    "Using pytest.skip outside of a test will skip the entire module. If that's your intention, pass `allow_module_level=True`."
+                )
             # DEVTOOLSSUPPORT-79470: reraising pytest.skip.Exception from here seems to break reporting in ya plugin.
             # Instead, pretend to be a module with a single skipped test.
             return _make_module_with_single_skipped_test(self.module_name, self.nodeid, e)
@@ -114,10 +111,8 @@ class DoctestModule(LoadedModule):
             for test in finder.find(module, self.display_module_name):
                 if test.examples:  # skip empty doctests
                     yield getattr(_pytest.doctest.DoctestItem, 'from_parent', _pytest.doctest.DoctestItem)(
-                        name=test.name,
-                        parent=self,
-                        runner=runner,
-                        dtest=test)
+                        name=test.name, parent=self, runner=runner, dtest=test
+                    )
         except Exception:
             logging.exception('DoctestModule failed, probably you can add NO_DOCTESTS() macro to ya.make')
             etype, exc, tb = sys.exc_info()
@@ -153,12 +148,14 @@ def _patch_set_initial_conftests(pluginmanager):
     Avoids attempts to access filesystem directly in built-in `pytest_load_initial_conftests` hook impl.
     """
     if six.PY3:
+
         def _set_initial_conftests_py3(pyargs, noconftest, *args, **kwargs):
             pluginmanager._noconftest = noconftest
             pluginmanager._using_pyargs = pyargs
 
         pluginmanager._set_initial_conftests = _set_initial_conftests_py3
     else:
+
         def _set_initial_conftests_py2(namespace):
             pluginmanager._noconftest = namespace.noconftest
             pluginmanager._using_pyargs = namespace.pyargs
@@ -180,9 +177,8 @@ class CollectionPlugin(object):
         def collect(*args, **kwargs):
             config = session.config
 
-            if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
-                # A custom function that is set in conftests.py.
-                config._ya_register_non_initial_conftests()
+            # A custom function that is set in conftests.py.
+            config._ya_register_non_initial_conftests()
 
             accept_filename_predicate = test_filter.make_py_file_filter(config.option.test_filter)
             full_test_names_file_path = config.option.test_list_path
@@ -206,6 +202,8 @@ class CollectionPlugin(object):
 
             if os.environ.get('YA_PYTEST_DISABLE_DOCTEST', 'no') == 'no':
                 for doctest_module in self._doctest_modules:
-                    yield DoctestModule.from_parent(name=doctest_module, parent=session, namespace=False)
+                    module = DoctestModule.from_parent(name=doctest_module, parent=session, namespace=False)
+                    if not module.is_fake_module:
+                        yield module
 
         session.collect = collect

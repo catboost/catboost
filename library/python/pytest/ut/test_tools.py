@@ -48,8 +48,12 @@ def test_split_node_id_without_path(parameters, node_id, expected_class_name, ex
     ),
 )
 def test_split_node_id_with_path(monkeypatch, parameters, node_id, expected_class_name, expected_test_name):
+    mapping = {
+        '/arcadia/root/package/test_script.py': 'package.test_script',
+    }
     with monkeypatch.context() as context:
         context.setattr(sys, 'extra_modules', sys.extra_modules | {'__tests__.package.test_script'})
+        context.setattr(yatest_tools, '_nodeid_to_display_module_name_mapping', lambda: mapping)
         got = yatest_tools.split_node_id(node_id + parameters)
         assert (expected_class_name, expected_test_name + parameters) == got
 
@@ -80,20 +84,24 @@ def test_split_node_id_with_test_suffix(parameters, node_id, expected_class_name
         ("/arcadia/data/b/a/test.py::test_b_a", "b.a.test.py", "test_b_a"),
         ("/arcadia/data/a/test.py::test_a", "a.test.py", "test_a"),
         ("/arcadia/data/test.py::test", "test.py", "test"),
-        ("b/a/test.py::test_b_a", "b.a.test.py", "test_b_a"),
     ],
 )
 def test_path_resolving_for_local_conftest_load_policy(
     monkeypatch, parameters, node_id, expected_class_name, expected_test_name
 ):
-    # Order matters
     extra_modules = [
         '__tests__.b.a.test',
         '__tests__.test',
         '__tests__.a.test',
     ]
+    mapping = {
+        '/arcadia/data/b/a/test.py': 'b.a.test',
+        '/arcadia/data/test.py': 'test',
+        '/arcadia/data/a/test.py': 'a.test',
+    }
     with monkeypatch.context() as context:
         context.setattr(sys, 'extra_modules', extra_modules)
+        context.setattr(yatest_tools, '_nodeid_to_display_module_name_mapping', lambda: mapping)
         got = yatest_tools.split_node_id(node_id + parameters)
         assert (expected_class_name, expected_test_name + parameters) == got
 
