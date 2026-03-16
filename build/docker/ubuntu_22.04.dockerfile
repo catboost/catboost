@@ -67,7 +67,7 @@ RUN source /root/.bashrc && \
 # Install R and 'devtools' package
 RUN apt-get update && \
     # these packages are needed for 'devtools' package with dependencies
-    apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev && \
+    apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libwebp-dev && \
     apt-get -y install r-base r-base-dev && \
     Rscript -e "install.packages('devtools')"
 
