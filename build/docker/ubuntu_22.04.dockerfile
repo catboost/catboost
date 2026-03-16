@@ -92,8 +92,10 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 # Verify installations
 RUN gcc --version && \
+    g++ --version && \
     gdb --version && \
     clang --version && \
+    clang++ --version && \
     jupyter --version && \
     cmake --version && \
     conan --version && \
