@@ -99,6 +99,10 @@ def pytest_load_initial_conftests(early_config):
     extra_modules = getattr(sys, 'extra_modules', [])
     conftests = filter(lambda name: name == 'conftest' or name.endswith('.conftest'), extra_modules)
 
+    # CONFTEST_LOAD_POLICY is set by ya.make macros:
+    # * CONFTEST_LOAD_POLICY_LOCAL()
+    # * CONFTEST_LOAD_POLICY_LEGACY_GLOBAL()
+    # Current default is LEGACY_GLOBAL.
     if os.getenv('CONFTEST_LOAD_POLICY') == 'LOCAL':
         test_dir = str(yatest.common.context.project_path)
 
