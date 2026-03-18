@@ -64,8 +64,8 @@ if __name__ == '__main__':
     if '--start-plugins' in args:
         ib = args.index('--start-plugins')
         ie = args.index('--end-plugins')
-        plugins = list(sorted(args[ib + 1:ie]))
-        args = args[:ib] + args[ie + 1:]
+        plugins = list(sorted(args[ib + 1 : ie]))
+        args = args[:ib] + args[ie + 1 :]
 
     for p in plugins:
         res = subprocess.check_output([sys.executable, p, sys.argv[0]] + args).decode().strip()

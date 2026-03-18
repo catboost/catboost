@@ -15,17 +15,19 @@ using namespace std::chrono_literals;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TEST(TFreeListTest, CompareAndSet)
+TEST(TFreeListDetailsTest, CasFreeListPackedPair)
 {
-    TAtomicUint128 v = 0;
-    ui64 p1 = 0;
-    ui64 p2 = 0;
-    EXPECT_TRUE(CompareAndSet(&v, p1, p2, ui64{13}, ui64{9}));
-    EXPECT_FALSE(CompareAndSet(&v, p1, p2, ui64{100}, ui64{500}));
-    EXPECT_EQ(13u, p1);
-    EXPECT_EQ(9u, p2);
-    EXPECT_TRUE(CompareAndSet(&v, p1, p2, ui64{100}, ui64{500}));
-    EXPECT_EQ(TAtomicUint128{500} << 64 | 100, v);
+    using P = NDetail::TFreeListPackedPair;
+    using C = NDetail::TFreeListPackedPairComponent;
+    P v = 0;
+    C p1 = 0;
+    C p2 = 0;
+    EXPECT_TRUE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(13), C(9)));
+    EXPECT_FALSE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(100), C(500)));
+    EXPECT_EQ(C(13), p1);
+    EXPECT_EQ(C(9), p2);
+    EXPECT_TRUE(NDetail::CasFreeListPackedPair(&v, p1, p2, C(100), C(500)));
+    EXPECT_EQ((P(500) << (sizeof(C) * 8)) | 100, v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,8 +92,7 @@ private:
     std::stack<size_t> AcquiredItemIndices_;
 };
 
-
-TEST_P(TFreeListStressTest, Stress)
+TEST_P(TFreeListStressTest, Do)
 {
     TTestItemSet::Reset();
     SetRandomSeed(0x424242);
@@ -145,12 +146,97 @@ TEST_P(TFreeListStressTest, Stress)
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    TFreeListTest,
+    TFreeListStressTest,
     TFreeListStressTest,
     testing::Values(
         TTestConfig{4, 1, 15s},
         TTestConfig{4, 3, 15s},
         TTestConfig{4, 5, 15s}));
+
+////////////////////////////////////////////////////////////////////////////////
+
+struct TFreeListItem
+    : public TFreeListItemBase<TFreeListItem>
+{
+    explicit TFreeListItem(i64 value)
+        : Value(value)
+    { }
+    i64 Value;
+};
+
+static std::chrono::steady_clock::time_point Now()
+{
+    return std::chrono::steady_clock::now();
+}
+
+void ProducerThread(TFreeList<TFreeListItem>* freeList, i64 startValue, std::chrono::steady_clock::time_point until)
+{
+    i64 v = startValue;
+    while (Now() < until) {
+        freeList->Put(new TFreeListItem(v));
+        v += 2;
+    }
+}
+
+void ConsumerThread(TFreeList<TFreeListItem>* freeList, std::chrono::steady_clock::time_point until)
+{
+    i64 latestEven = -2;
+    i64 latestOdd = -1;
+    std::vector<i64> buffer;
+    while (Now() < until) {
+        buffer.clear();
+        auto* extractedList = freeList->ExtractAll();
+        while (extractedList) {
+            buffer.push_back(extractedList->Value);
+            auto* next = extractedList->Next.load(std::memory_order::acquire);
+            delete extractedList;
+            extractedList = next;
+        }
+
+        for (auto it = buffer.rbegin(); it != buffer.rend(); ++it) {
+            auto value = *it;
+            if (value % 2 == 0) {
+                ASSERT_GT(value, latestEven);
+                latestEven = value;
+            } else {
+                ASSERT_GT(value, latestOdd);
+                latestOdd = value;
+            }
+        }
+    }
+}
+
+void Cleanup(TFreeList<TFreeListItem>* freeList)
+{
+    auto* node = freeList->ExtractAll();
+    while (node) {
+        auto* next = node->Next.load(std::memory_order::acquire);
+        delete node;
+        node = next;
+    }
+}
+
+TEST(TFreeListTest, ProducerConsumer)
+{
+    auto now = Now();
+    auto until = now + std::chrono::seconds(15);
+
+    auto freeList = TFreeList<TFreeListItem>();
+
+    std::vector<std::thread> threads;
+
+    threads.emplace_back(ProducerThread, &freeList, 0, until);
+    threads.emplace_back(ProducerThread, &freeList, 1, until);
+
+    threads.emplace_back(ConsumerThread, &freeList, until);
+    threads.emplace_back(ConsumerThread, &freeList, until);
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    Cleanup(&freeList);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

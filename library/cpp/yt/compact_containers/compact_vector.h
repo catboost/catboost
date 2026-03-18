@@ -132,7 +132,7 @@ public:
     TCompactVector& operator=(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector& operator=(const TCompactVector<T, OtherN>& other);
-    TCompactVector& operator=(TCompactVector&& other);
+    TCompactVector& operator=(TCompactVector&& other) noexcept;
     template <size_t OtherN>
     TCompactVector& operator=(TCompactVector<T, OtherN>&& other);
     TCompactVector& operator=(std::initializer_list<T> list);

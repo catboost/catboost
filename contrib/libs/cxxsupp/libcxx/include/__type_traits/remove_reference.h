@@ -35,9 +35,9 @@ template <class _Tp>
 using __libcpp_remove_reference_t = typename remove_reference<_Tp>::type;
 #else
 // clang-format off
-template <class _Tp> struct _LIBCPP_TEMPLATE_VIS remove_reference        {typedef _LIBCPP_NODEBUG _Tp type;};
-template <class _Tp> struct _LIBCPP_TEMPLATE_VIS remove_reference<_Tp&>  {typedef _LIBCPP_NODEBUG _Tp type;};
-template <class _Tp> struct _LIBCPP_TEMPLATE_VIS remove_reference<_Tp&&> {typedef _LIBCPP_NODEBUG _Tp type;};
+template <class _Tp> struct remove_reference        {typedef _LIBCPP_NODEBUG _Tp type;};
+template <class _Tp> struct remove_reference<_Tp&>  {typedef _LIBCPP_NODEBUG _Tp type;};
+template <class _Tp> struct remove_reference<_Tp&&> {typedef _LIBCPP_NODEBUG _Tp type;};
 // clang-format on
 template <class _Tp>
 using __libcpp_remove_reference_t = typename remove_reference<_Tp>::type;

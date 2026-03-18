@@ -21,9 +21,9 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp>
 #if __has_builtin(__remove_cv)
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv(_Tp), void)> {};
+struct _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv(_Tp), void)> {};
 #else
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv_t<_Tp>, void)> {};
+struct _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv_t<_Tp>, void)> {};
 #endif
 
 #if _LIBCPP_STD_VER >= 17

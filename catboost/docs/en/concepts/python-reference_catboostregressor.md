@@ -102,9 +102,10 @@ class CatBoostRegressor(iterations=None,
 
 ## {{ dl--purpose }} {#purpose}
 
-{% include [catboost-regressor-purpose](../_includes/work_src/reusage-python/purpose.md) %}
+Implementation of [the scikit-learn estimator API](https://scikit-learn.org/stable/developers/develop.html) for CatBoost regression.
 
-{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
+Supports model training, inference and auxiliary calculations like feature importance.
+
 
 ## {{ dl--parameters }} {#parameters}
 

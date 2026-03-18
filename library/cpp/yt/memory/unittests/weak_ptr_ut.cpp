@@ -62,9 +62,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObject(const TIntricateObject&);
-    TIntricateObject(TIntricateObject&&);
+    TIntricateObject(TIntricateObject&&) noexcept;
     TIntricateObject& operator=(const TIntricateObject&);
-    TIntricateObject& operator=(TIntricateObject&&);
+    TIntricateObject& operator=(TIntricateObject&&) noexcept;
 };
 
 using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;
@@ -308,7 +308,8 @@ TEST_F(TWeakPtrTest, IsEmpty)
 {
     TIntricateObjectWkPtr ptr;
 
-    EXPECT_TRUE(ptr == nullptr);
+    EXPECT_EQ(ptr.Get(), nullptr);
+    EXPECT_TRUE(ptr.IsExpired());
 }
 
 TEST_F(TWeakPtrTest, UpCast)
@@ -350,9 +351,9 @@ public:
 private:
     // Explicitly non-copyable.
     TIntricateObjectVirtual(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual(TIntricateObjectVirtual&&) noexcept;
     TIntricateObjectVirtual& operator=(const TIntricateObjectVirtual&);
-    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&);
+    TIntricateObjectVirtual& operator=(TIntricateObjectVirtual&&) noexcept;
 };
 
 TEST_F(TWeakPtrTest, VirtualBase)

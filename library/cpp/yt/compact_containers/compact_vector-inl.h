@@ -596,7 +596,7 @@ auto TCompactVector<T, N>::operator=(const TCompactVector<T, OtherN>& other) -> 
 }
 
 template <class T, size_t N>
-auto TCompactVector<T, N>::operator=(TCompactVector&& other) -> TCompactVector&
+auto TCompactVector<T, N>::operator=(TCompactVector&& other) noexcept -> TCompactVector&
 {
     assign(std::move(other));
     return *this;

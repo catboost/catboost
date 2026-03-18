@@ -320,6 +320,13 @@ extern "C++" {
 #include <limits>
 #include <stdlib.h>
 
+_LIBCPP_BEGIN_NAMESPACE_STD
+template <class... _Args>
+struct __promote {
+  using type = __promote_t<_Args...>;
+};
+_LIBCPP_END_NAMESPACE_STD
+
 
 #    ifdef fpclassify
 #      undef fpclassify
