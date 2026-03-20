@@ -579,7 +579,7 @@ public:
   }
 
   _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 __add_lvalue_reference_t<_Tp> operator[](size_t __i) const {
-    _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS(_LIBCPP_HAS_ASAN || __checker_.__in_bounds<deleter_type>(std::__to_address(__ptr_), __i),
+    _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS(__has_feature(address_sanitizer) || __checker_.__in_bounds<deleter_type>(std::__to_address(__ptr_), __i),
                                         "unique_ptr<T[]>::operator[](index): index out of range");
     return __ptr_[__i];
   }

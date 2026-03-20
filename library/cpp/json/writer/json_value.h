@@ -125,6 +125,7 @@ namespace NJson {
         unsigned long long GetUIntegerSafe() const;
         double GetDoubleSafe() const;
         const TString& GetStringSafe() const Y_LIFETIME_BOUND;
+        TString& GetStringSafe() Y_LIFETIME_BOUND;
         const TMapType& GetMapSafe() const Y_LIFETIME_BOUND;
         TMapType& GetMapSafe() Y_LIFETIME_BOUND;
         const TArray& GetArraySafe() const Y_LIFETIME_BOUND;
