@@ -13,7 +13,7 @@
 #include <util/ysaveload.h>
 
 namespace NBitMapPrivate {
-    // Returns number of bits set; result is in most significatnt byte
+    // Returns the number of bits set; result is in the most significant byte
     inline ui64 ByteSums(ui64 x) {
         ui64 byteSums = x - ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
 
@@ -199,7 +199,7 @@ namespace NBitMapPrivate {
     };
 
     // Dynamically expanded storage.
-    // It uses "on stack" realization with no allocation for one chunk spaces
+    // It uses the "on stack" implementation with no allocation for one chunk spaces
     template <typename TChunkType>
     struct TDynamicStorage {
         using TChunk = TChunkType;
@@ -327,7 +327,7 @@ private:
 
     using TStorage = typename TTraits::TStorage;
 
-    // The smallest unsigned type, which can be used in bit ops
+    // The smallest unsigned type that can be used in bit ops
     using TIntType = std::conditional_t<sizeof(TChunk) < sizeof(unsigned int), unsigned int, TChunk>;
 
     TStorage Mask;
@@ -607,7 +607,7 @@ public:
         return RShift(1), val;
     }
 
-    // Clear entire bitmap. Current capacity is kept unchanged
+    // Clear the entire bitmap. Current capacity is kept unchanged
     Y_FORCE_INLINE TThis& Clear() {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
@@ -685,12 +685,12 @@ public:
     }
 
     TThis& And(const TThis& bitmap) {
-        // Don't expand capacity here, because resulting bits in positions,
-        // which are greater then size of one of these bitmaps, will be zero
+        // Don't expand capacity here, because resulting bits in positions
+        // that are greater than the size of one of these bitmaps will be zero
         for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
             Mask.Data[i] &= bitmap.Mask.Data[i];
         }
-        // Clear bits if current bitmap size is greater than AND-ed one
+        // Clear bits if the current bitmap size is greater than AND-ed one
         for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
         }
@@ -780,13 +780,13 @@ public:
     TThis& LShift(size_t shift) {
         if (shift != 0) {
             const size_t valueBitCount = ValueBitCount();
-            // Do nothing for empty bitmap
+            // Do nothing for the empty bitmap
             if (valueBitCount != 0) {
                 const size_t eshift = shift / BitsPerChunk;
                 const size_t offset = shift % BitsPerChunk;
                 const size_t subOffset = BitsPerChunk - offset;
 
-                // Don't verify expand result, so l-shift of fixed bitmap will work in the same way as for unsigned integer.
+                // Don't verify expand result, so l-shift of a fixed bitmap will work in the same way as for an unsigned integer.
                 Mask.ExpandBitSize(valueBitCount + shift);
 
                 if (offset == 0) {
@@ -843,7 +843,7 @@ public:
     }
 
     // Applies bitmap at the specified offset using OR operator.
-    // This method is optimized combination of Or() and LShift(), which allows reducing memory allocation
+    // This method is an optimized combination of Or() and LShift(), which allows reducing memory allocation
     // when combining long dynamic bitmaps.
     TThis& Or(const TThis& bitmap, size_t offset) {
         if (0 == offset) {

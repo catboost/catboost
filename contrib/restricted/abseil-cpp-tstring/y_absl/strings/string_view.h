@@ -159,7 +159,7 @@ Y_ABSL_NAMESPACE_BEGIN
 //
 //   y_absl::string_view() == y_absl::string_view("", 0)
 //   y_absl::string_view(nullptr, 0) == y_absl::string_view("abcdef"+6, 0)
-class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
+class Y_ABSL_ATTRIBUTE_VIEW string_view {
  public:
   using traits_type = std::char_traits<char>;
   using value_type = char;
@@ -200,13 +200,12 @@ class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
       y_absl::Nonnull<const char*> str)
       : ptr_(str), length_(str ? StrlenInternal(str) : 0) {}
 
-  // Implicit constructor of a `string_view` from a `const char*` and length.
+  // Constructor of a `string_view` from a `const char*` and length.
   constexpr string_view(y_absl::Nullable<const char*> data, size_type len)
       : ptr_(data), length_(CheckLengthInternal(len)) {}
 
-  // NOTE: Harmlessly omitted to work around gdb bug.
-  //   constexpr string_view(const string_view&) noexcept = default;
-  //   string_view& operator=(const string_view&) noexcept = default;
+  constexpr string_view(const string_view&) noexcept = default;
+  string_view& operator=(const string_view&) noexcept = default;
 
   // Iterators
 
@@ -293,7 +292,8 @@ class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
   // Returns the ith element of the `string_view` using the array operator.
   // Note that this operator does not perform any bounds checking.
   constexpr const_reference operator[](size_type i) const {
-    return Y_ABSL_HARDENING_ASSERT(i < size()), ptr_[i];
+    Y_ABSL_HARDENING_ASSERT(i < size());
+    return ptr_[i];
   }
 
   // string_view::at()
@@ -302,25 +302,26 @@ class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
   // and an exception of type `std::out_of_range` will be thrown on invalid
   // access.
   constexpr const_reference at(size_type i) const {
-    return Y_ABSL_PREDICT_TRUE(i < size())
-               ? ptr_[i]
-               : ((void)base_internal::ThrowStdOutOfRange(
-                      "y_absl::string_view::at"),
-                  ptr_[i]);
+    if (Y_ABSL_PREDICT_FALSE(i >= size())) {
+      base_internal::ThrowStdOutOfRange("y_absl::string_view::at");
+    }
+    return ptr_[i];
   }
 
   // string_view::front()
   //
   // Returns the first element of a `string_view`.
   constexpr const_reference front() const {
-    return Y_ABSL_HARDENING_ASSERT(!empty()), ptr_[0];
+    Y_ABSL_HARDENING_ASSERT(!empty());
+    return ptr_[0];
   }
 
   // string_view::back()
   //
   // Returns the last element of a `string_view`.
   constexpr const_reference back() const {
-    return Y_ABSL_HARDENING_ASSERT(!empty()), ptr_[size() - 1];
+    Y_ABSL_HARDENING_ASSERT(!empty());
+    return ptr_[size() - 1];
   }
 
   // string_view::data()
@@ -394,11 +395,10 @@ class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
   // `pos > size`.
   // Use y_absl::ClippedSubstr if you need a truncating substr operation.
   constexpr string_view substr(size_type pos = 0, size_type n = npos) const {
-    return Y_ABSL_PREDICT_FALSE(pos > length_)
-               ? (base_internal::ThrowStdOutOfRange(
-                      "y_absl::string_view::substr"),
-                  string_view())
-               : string_view(ptr_ + pos, Min(n, length_ - pos));
+    if (Y_ABSL_PREDICT_FALSE(pos > length_)) {
+      base_internal::ThrowStdOutOfRange("y_absl::string_view::substr");
+    }
+    return string_view(ptr_ + pos, Min(n, length_ - pos));
   }
 
   // string_view::compare()
@@ -667,7 +667,8 @@ class Y_ABSL_INTERNAL_ATTRIBUTE_VIEW string_view {
       (std::numeric_limits<difference_type>::max)();
 
   static constexpr size_type CheckLengthInternal(size_type len) {
-    return Y_ABSL_HARDENING_ASSERT(len <= kMaxSize), len;
+    Y_ABSL_HARDENING_ASSERT(len <= kMaxSize);
+    return len;
   }
 
   static constexpr size_type StrlenInternal(y_absl::Nonnull<const char*> str) {

@@ -913,9 +913,11 @@ class PROTOBUF_EXPORT FieldDescriptor : private internal::SymbolBase {
   // types of CPPTYPE_STRING will be surrounded by quotes and CEscaped.
   TProtoStringType DefaultValueAsString(bool quote_string_type) const;
 
+public:
   // Helper function that returns the field type name for DebugString.
   TProtoStringType FieldTypeNameDebugString() const;
 
+private:
   // Walks up the descriptor tree to generate the source location path
   // to this descriptor from the file root.
   void GetLocationPath(std::vector<int>* output) const;

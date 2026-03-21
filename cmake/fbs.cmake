@@ -6,11 +6,16 @@ function(target_fbs_source Tgt Key Src)
     file(RELATIVE_PATH fbsRel ${PROJECT_SOURCE_DIR} ${Src})
     get_filename_component(OutputBase ${fbsRel} NAME_WLE)
     get_filename_component(OutputDir ${PROJECT_BINARY_DIR}/${fbsRel} DIRECTORY)
+    set(MAIN_OUTPUT_FILES
+      ${PROJECT_BINARY_DIR}/${fbsRel}.h
+      ${PROJECT_BINARY_DIR}/${fbsRel}.cpp
+    )
+    if (FBS_CPP_FLAGS MATCHES "--yandex-maps-iter")
+      list(APPEND MAIN_OUTPUT_FILES ${OutputDir}/${OutputBase}.iter.fbs.h)
+    endif()
     add_custom_command(
       OUTPUT
-        ${PROJECT_BINARY_DIR}/${fbsRel}.h
-        ${PROJECT_BINARY_DIR}/${fbsRel}.cpp
-        ${OutputDir}/${OutputBase}.iter.fbs.h
+        ${MAIN_OUTPUT_FILES}
         ${OutputDir}/${OutputBase}.bfbs
       COMMAND Python3::Interpreter
         ${PROJECT_SOURCE_DIR}/build/scripts/cpp_flatc_wrapper.py
@@ -21,9 +26,5 @@ function(target_fbs_source Tgt Key Src)
       DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/cpp_flatc_wrapper.py ${Src} ${flatc_dependency}
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     )
-    target_sources(${Tgt} ${Key}
-      ${PROJECT_BINARY_DIR}/${fbsRel}.cpp
-      ${PROJECT_BINARY_DIR}/${fbsRel}.h
-      ${OutputDir}/${OutputBase}.iter.fbs.h
-    )
+    target_sources(${Tgt} ${Key} ${MAIN_OUTPUT_FILES})
 endfunction()

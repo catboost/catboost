@@ -40,7 +40,6 @@ PEERDIR(
     library/cpp/jni
     library/cpp/json
     library/cpp/par
-    library/cpp/threading/atomic
     library/cpp/threading/local_executor
     catboost/libs/cat_feature
     catboost/libs/column_description

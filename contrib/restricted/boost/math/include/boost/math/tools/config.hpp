@@ -702,14 +702,10 @@ namespace boost{ namespace math{
 #  undef BOOST_MATH_FORCEINLINE
 #  define BOOST_MATH_FORCEINLINE __forceinline__
 
-#elif defined(SYCL_LANGUAGE_VERSION)
+#elif defined(BOOST_MATH_ENABLE_SYCL)
 
 #  define BOOST_MATH_SYCL_ENABLED SYCL_EXTERNAL
 #  define BOOST_MATH_HAS_GPU_SUPPORT
-
-#  ifndef BOOST_MATH_ENABLE_SYCL
-#    define BOOST_MATH_ENABLE_SYCL
-#  endif
 
 #  ifndef BOOST_MATH_NO_EXCEPTIONS
 #    define BOOST_MATH_NO_EXCEPTIONS

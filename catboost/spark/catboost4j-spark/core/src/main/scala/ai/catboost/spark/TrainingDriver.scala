@@ -9,7 +9,7 @@ import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CancellationException,Executors,FutureTask}
 
-import sun.net.util.IPAddressUtil
+import org.apache.commons.validator.routines.InetAddressValidator
 
 import org.apache.spark.internal.Logging
 
@@ -318,7 +318,7 @@ private[spark] object TrainingDriver extends Logging {
     try {
       for (workerInfo <- workersInfo) {
         if (workerInfo.partitionSize > 0) {
-          if (IPAddressUtil.isIPv6LiteralAddress(workerInfo.host)) {
+          if (InetAddressValidator.getInstance().isValidInet6Address(workerInfo.host)) {
             pw.println(s"[${workerInfo.host}]:${workerInfo.port}")
           } else {
             pw.println(s"${workerInfo.host}:${workerInfo.port}")

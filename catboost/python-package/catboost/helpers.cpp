@@ -16,6 +16,7 @@
 
 #include <library/cpp/json/json_reader.h>
 
+#include <util/string/vector.h>
 #include <util/system/guard.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
@@ -56,6 +57,19 @@ void ResetPythonInterruptHandler() {
 void ThrowCppExceptionWithMessage(const TString& message) {
     ythrow TCatBoostException() << message;
 }
+
+void WaitAll(TVector<std::future<void>>& futures) {
+    TVector<TString> errors;
+    for (auto& future : futures) {
+        try {
+            future.get();
+        } catch (...) {
+            errors.push_back(CurrentExceptionMessage());
+        }
+    }
+    CB_ENSURE(errors.empty(), "Errors:\n" << JoinStrings(errors, "\n"));
+}
+
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,

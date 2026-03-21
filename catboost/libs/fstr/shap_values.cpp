@@ -832,7 +832,7 @@ static TVector<bool> GetDocumentIsGoRightMapperForNodesInNonObliviousTree(
     const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
     size_t documentIdx
 ) {
-    const NModelEvaluation::TCPUEvaluatorQuantizedData* dataPtr = reinterpret_cast<const NModelEvaluation::TCPUEvaluatorQuantizedData*>(binarizedFeaturesForBlock);
+    const NModelEvaluation::TCPUEvaluatorQuantizedData* dataPtr = static_cast<const NModelEvaluation::TCPUEvaluatorQuantizedData*>(binarizedFeaturesForBlock);
     Y_ASSERT(dataPtr);
     auto blockId = documentIdx / NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE;
     auto subBlock = dataPtr->ExtractBlock(blockId);

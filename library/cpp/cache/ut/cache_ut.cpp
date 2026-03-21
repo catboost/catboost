@@ -2,6 +2,10 @@
 #include <library/cpp/cache/thread_safe_cache.h>
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/thread/pool.h>
+#include <util/string/cast.h>
+#include <util/random/random.h>
+
 struct TStrokaWeighter {
     static size_t Weight(const TString& s) {
         return s.size();
@@ -533,6 +537,53 @@ Y_UNIT_TEST_SUITE(TThreadSafeCacheTest) {
         UNIT_ASSERT(*item == "abcd");
         UNIT_ASSERT(callbacks.Creations == expectedCreations);
         UNIT_ASSERT(cache.TotalSize() == 1);
+    }
+}
+
+Y_UNIT_TEST_SUITE(TThreadSafeLRUCacheMultiThreadTest) {
+    typedef TThreadSafeLRUCache<ui32, TString, ui32> TCache;
+
+    class TSimpleCallbacks: public TCache::ICallbacks {
+    public:
+        TKey GetKey(ui32 i) const override {
+            return i;
+        }
+        TValue* CreateObject(ui32 i) const override {
+            Y_UNUSED(i);
+            return nullptr;
+        }
+    };
+
+    Y_UNIT_TEST(GetOrNullMultiThreadTest) {
+        const size_t poolSize = 8;
+        const size_t passCnt = 128;
+        const size_t tasksCnt = 128;
+
+        TRWMutex lock;
+        TThreadPool pool;
+        TSimpleCallbacks callbacks;
+        TCache cache(callbacks, poolSize);
+
+        for (size_t i = 0; i < poolSize; ++i) {
+            cache.Insert(i, MakeAtomicShared<TString>(ToString(i)));
+        }
+
+        pool.Start(poolSize);
+        {
+            TWriteGuard wGruard(lock);
+            for (size_t i = 0; i < tasksCnt; ++i) {
+                pool.SafeAddFunc([&lock, &cache]() {
+                    TReadGuard rGuard(lock);
+                    for (size_t j = 0; j < passCnt; ++j) {
+                        UNIT_ASSERT(cache.GetOrNull(RandomNumber<size_t>(poolSize)) != nullptr);
+                    }
+                });
+            }
+        } // start race
+        pool.Stop();
+        for (size_t i = 0; i < cache.Size(); ++i) {
+            UNIT_ASSERT(cache.GetOrNull(i) != nullptr);
+        }
     }
 }
 

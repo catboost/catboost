@@ -1,0 +1,178 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_CSTDINT
+#define _CUDA_STD_CSTDINT
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/version>
+
+#if !_CCCL_COMPILER(NVRTC)
+#  include <cstdint>
+#else // ^^^ !_CCCL_COMPILER(NVRTC) ^^^ / vvv _CCCL_COMPILER(NVRTC) vvv
+#  include <cuda/std/climits>
+
+using int8_t   = signed char;
+using int16_t  = signed short;
+using int32_t  = signed int;
+using int64_t  = signed long long;
+using uint8_t  = unsigned char;
+using uint16_t = unsigned short;
+using uint32_t = unsigned int;
+using uint64_t = unsigned long long;
+
+using int_fast8_t   = int8_t;
+using int_fast16_t  = int16_t;
+using int_fast32_t  = int32_t;
+using int_fast64_t  = int64_t;
+using uint_fast8_t  = uint8_t;
+using uint_fast16_t = uint16_t;
+using uint_fast32_t = uint32_t;
+using uint_fast64_t = uint64_t;
+
+using int_least8_t   = int8_t;
+using int_least16_t  = int16_t;
+using int_least32_t  = int32_t;
+using int_least64_t  = int64_t;
+using uint_least8_t  = uint8_t;
+using uint_least16_t = uint16_t;
+using uint_least32_t = uint32_t;
+using uint_least64_t = uint64_t;
+
+using intptr_t  = int64_t;
+using uintptr_t = uint64_t;
+
+using intmax_t  = int64_t;
+using uintmax_t = uint64_t;
+
+#  define INT8_MIN   SCHAR_MIN
+#  define INT16_MIN  SHRT_MIN
+#  define INT32_MIN  INT_MIN
+#  define INT64_MIN  LLONG_MIN
+#  define INT8_MAX   SCHAR_MAX
+#  define INT16_MAX  SHRT_MAX
+#  define INT32_MAX  INT_MAX
+#  define INT64_MAX  LLONG_MAX
+#  define UINT8_MAX  UCHAR_MAX
+#  define UINT16_MAX USHRT_MAX
+#  define UINT32_MAX UINT_MAX
+#  define UINT64_MAX ULLONG_MAX
+
+#  define INT_FAST8_MIN   INT8_MIN
+#  define INT_FAST16_MIN  INT16_MIN
+#  define INT_FAST32_MIN  INT32_MIN
+#  define INT_FAST64_MIN  INT64_MIN
+#  define INT_FAST8_MAX   INT8_MAX
+#  define INT_FAST16_MAX  INT16_MAX
+#  define INT_FAST32_MAX  INT32_MAX
+#  define INT_FAST64_MAX  INT64_MAX
+#  define UINT_FAST8_MAX  UINT8_MAX
+#  define UINT_FAST16_MAX UINT16_MAX
+#  define UINT_FAST32_MAX UINT32_MAX
+#  define UINT_FAST64_MAX UINT64_MAX
+
+#  define INT_LEAST8_MIN   INT8_MIN
+#  define INT_LEAST16_MIN  INT16_MIN
+#  define INT_LEAST32_MIN  INT32_MIN
+#  define INT_LEAST64_MIN  INT64_MIN
+#  define INT_LEAST8_MAX   INT8_MAX
+#  define INT_LEAST16_MAX  INT16_MAX
+#  define INT_LEAST32_MAX  INT32_MAX
+#  define INT_LEAST64_MAX  INT64_MAX
+#  define UINT_LEAST8_MAX  UINT8_MAX
+#  define UINT_LEAST16_MAX UINT16_MAX
+#  define UINT_LEAST32_MAX UINT32_MAX
+#  define UINT_LEAST64_MAX UINT64_MAX
+
+#  define INTPTR_MIN  INT64_MIN
+#  define INTPTR_MAX  INT64_MAX
+#  define UINTPTR_MAX UINT64_MAX
+
+#  define INTMAX_MIN  INT64_MIN
+#  define INTMAX_MAX  INT64_MAX
+#  define UINTMAX_MAX UINT64_MAX
+
+#  define PTRDIFF_MIN INT64_MIN
+#  define PTRDIFF_MAX INT64_MAX
+
+#  define SIZE_MAX UINT64_MAX
+
+#  define INT8_C(X)   ((::int_least8_t) (X))
+#  define INT16_C(X)  ((::int_least16_t) (X))
+#  define INT32_C(X)  ((::int_least32_t) (X))
+#  define INT64_C(X)  ((::int_least64_t) (X))
+#  define UINT8_C(X)  ((::uint_least8_t) (X))
+#  define UINT16_C(X) ((::uint_least16_t) (X))
+#  define UINT32_C(X) ((::uint_least32_t) (X))
+#  define UINT64_C(X) ((::uint_least64_t) (X))
+
+#  define INTMAX_C(X)  ((::intmax_t) (X))
+#  define UINTMAX_C(X) ((::uintmax_t) (X))
+#endif // ^^^ _CCCL_COMPILER(NVRTC)
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+using ::int16_t;
+using ::int32_t;
+using ::int64_t;
+using ::int8_t;
+using ::uint16_t;
+using ::uint32_t;
+using ::uint64_t;
+using ::uint8_t;
+
+using ::int_fast16_t;
+using ::int_fast32_t;
+using ::int_fast64_t;
+using ::int_fast8_t;
+using ::uint_fast16_t;
+using ::uint_fast32_t;
+using ::uint_fast64_t;
+using ::uint_fast8_t;
+
+using ::int_least16_t;
+using ::int_least32_t;
+using ::int_least64_t;
+using ::int_least8_t;
+using ::uint_least16_t;
+using ::uint_least32_t;
+using ::uint_least64_t;
+using ::uint_least8_t;
+
+using ::intptr_t;
+using ::uintptr_t;
+
+using ::intmax_t;
+using ::uintmax_t;
+
+#if _CCCL_HAS_INT128()
+using __cccl_intmax_t  = __int128_t;
+using __cccl_uintmax_t = __uint128_t;
+#else // ^^^ _CCCL_HAS_INT128() ^^^ / vvv !_CCCL_HAS_INT128() vvv
+using __cccl_intmax_t  = long long;
+using __cccl_uintmax_t = unsigned long long;
+#endif // !_CCCL_HAS_INT128()
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_CSTDINT

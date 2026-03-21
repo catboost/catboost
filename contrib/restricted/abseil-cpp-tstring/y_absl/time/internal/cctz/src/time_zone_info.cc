@@ -30,7 +30,7 @@
 // Note that we assume the proleptic Gregorian calendar and 60-second
 // minutes throughout.
 
-#include "time_zone_info.h"
+#include "y_absl/time/internal/cctz/src/time_zone_info.h"
 
 #include <algorithm>
 #include <cassert>
@@ -49,8 +49,8 @@
 
 #include "y_absl/base/config.h"
 #include "y_absl/time/internal/cctz/include/cctz/civil_time.h"
-#include "time_zone_fixed.h"
-#include "time_zone_posix.h"
+#include "y_absl/time/internal/cctz/src/time_zone_fixed.h"
+#include "y_absl/time/internal/cctz/src/time_zone_posix.h"
 
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN

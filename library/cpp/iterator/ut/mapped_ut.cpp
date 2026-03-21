@@ -7,12 +7,29 @@
 
 using namespace testing;
 
+namespace {
+    struct TSelectFirst {
+        const auto& operator()(const auto& pair) const {
+            return pair.first;
+        }
+    };
+}
+
 TEST(TIterator, TMappedIteratorTest) {
     TVector<int> x = {1, 2, 3, 4, 5};
     auto it = MakeMappedIterator(x.begin(), [](int x) { return x + 7; });
 
     EXPECT_EQ(*it, 8);
     EXPECT_EQ(it[2], 10);
+
+    TVector<std::pair<int, int>> pairs = {{1, 2}, {3, 4}, {5, 6}};
+    auto firstIt = MakeMappedIterator(pairs.begin(), TSelectFirst{});
+    EXPECT_EQ(*std::next(firstIt, 0), 1);
+    EXPECT_EQ(*std::next(firstIt, 1), 3);
+    EXPECT_EQ(*std::next(firstIt, 2), 5);
+#if defined(_compiler_clang_) && defined(_linux_)
+    static_assert(sizeof(pairs.begin()) == sizeof(firstIt), "empty mapper should not add size overhead");  // this check expected to hold, but not guaranteed to
+#endif
 }
 
 TEST(TIterator, TMappedRangeTest) {

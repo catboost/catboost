@@ -343,7 +343,8 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
             const TEnum& e = enums[0];
             UNIT_ASSERT_VALUES_EQUAL(e.CppName, "ELiterals");
             static constexpr TNameValuePair ref[]{
-                {"Char", "sizeof(u8'.')"},
+                {"Char1", "sizeof(u8'.')"},
+                {"Char2", "sizeof(u8'0')"},
                 {"Int", "123'456'789"},
                 {"Float1", "int(456'789.123'456)"},
                 {"Float2", "int(1'2e0'1)"},

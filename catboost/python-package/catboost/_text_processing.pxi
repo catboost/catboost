@@ -27,10 +27,13 @@ from library.cpp.text_processing.dictionary.dictionary cimport (
 import numpy as np
 
 try:
-    from pandas import Series
+    import pandas as pd
 except ImportError:
-    class Series(object):
-        pass
+    # just to avoid checking (pd is not None) everywhere
+    class pandas:
+        class Series(object):
+            pass
+    pd = pandas
 
 include "library/cpp/text_processing/tokenizer/tokenizer.pxi"
 
@@ -203,7 +206,7 @@ cdef class Dictionary:
                     dereference(tokenizer.Get()).Tokenize(to_arcadia_string(line), &tokens, <TVector[ETokenType]*>nullptr)
                 else:
                     tokens.push_back(to_arcadia_string(line))
-            elif isinstance(line, (list, np.ndarray, Series)):
+            elif isinstance(line, (list, np.ndarray, pd.Series)):
                 [_ensure(isinstance(token, string_types), msg.format(type(token))) for token in line]
                 tokens = py_to_tvector[TString](line)
             dereference(dictionaryBuilder.Get()).Add(<TConstArrayRef[TString]>tokens);
@@ -219,7 +222,7 @@ cdef class Dictionary:
                 useTokenizer,
                 verbose
             ).Release())
-        elif isinstance(data, (list, np.ndarray, Series)):
+        elif isinstance(data, (list, np.ndarray, pd.Series)):
             self.__fit_fb_from_array(data, tokenizerOptions, useTokenizer)
         else:
             raise Exception('Unsupported data format.')

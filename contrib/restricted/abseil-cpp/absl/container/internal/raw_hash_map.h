@@ -31,8 +31,20 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace container_internal {
 
-template <class Policy, class Hash, class Eq, class Alloc>
-class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
+template <class Policy, class... Params>
+class raw_hash_map;
+
+template <typename Policy, typename Hash, typename Eq, typename Alloc>
+struct InstantiateRawHashMap {
+  using type = typename ApplyWithoutDefaultSuffix<
+      raw_hash_map,
+      TypeList<int, typename Policy::DefaultHash, typename Policy::DefaultEq,
+               typename Policy::DefaultAlloc>,
+      TypeList<Policy, Hash, Eq, Alloc>>::type;
+};
+
+template <class Policy, class... Params>
+class raw_hash_map : public raw_hash_set<Policy, Params...> {
   // P is Policy. It's passed as a template argument to support maps that have
   // incomplete types as values, as in unordered_map<K, IncompleteType>.
   // MappedReference<> may be a non-reference type.
@@ -44,6 +56,10 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
   template <class P>
   using MappedConstReference = decltype(P::value(
       std::addressof(std::declval<typename raw_hash_map::const_reference>())));
+
+  using Hash = typename raw_hash_map::raw_hash_set::hasher;
+  using Eq = typename raw_hash_map::raw_hash_set::key_equal;
+  using Alloc = typename raw_hash_map::raw_hash_set::allocator_type;
 
   template <class K>
   using key_arg =
@@ -205,7 +221,8 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
                 !std::is_convertible<K, const_iterator>::value, int>::type = 0>
   std::pair<iterator, bool> try_emplace(key_arg<K> &&k, Args &&...args)
       ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return try_emplace_impl(std::forward<K>(k), std::forward<Args>(args)...);
+    return try_emplace_impl(std::forward<key_arg<K>>(k),
+                            std::forward<Args>(args)...);
   }
 
   template <class K = key_type, class... Args,
@@ -215,7 +232,7 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
   std::pair<iterator, bool> try_emplace(
       key_arg<K> &&k ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
       Args &&...args) ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return this->template try_emplace<K, 0>(std::forward<K>(k),
+    return this->template try_emplace<K, 0>(std::forward<key_arg<K>>(k),
                                             std::forward<Args>(args)...);
   }
 
@@ -241,14 +258,15 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
             class... Args>
   iterator try_emplace(const_iterator, key_arg<K> &&k,
                        Args &&...args) ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return try_emplace(std::forward<K>(k), std::forward<Args>(args)...).first;
+    return try_emplace(std::forward<key_arg<K>>(k), std::forward<Args>(args)...)
+        .first;
   }
   template <class K = key_type, class... Args,
             EnableIf<LifetimeBoundK<K, true, K *>> = 0>
   iterator try_emplace(const_iterator hint,
                        key_arg<K> &&k ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
                        Args &&...args) ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return this->template try_emplace<K, 0>(hint, std::forward<K>(k),
+    return this->template try_emplace<K, 0>(hint, std::forward<key_arg<K>>(k),
                                             std::forward<Args>(args)...);
   }
 
@@ -264,7 +282,7 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
                        const key_arg<K> &k
                            ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this),
                        Args &&...args) ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return this->template try_emplace<K, 0>(hint, std::forward<K>(k),
+    return this->template try_emplace<K, 0>(hint, k,
                                             std::forward<Args>(args)...);
   }
 
@@ -296,15 +314,15 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
     // It is safe to use unchecked_deref here because try_emplace
     // will always return an iterator pointing to a valid item in the table,
     // since it inserts if nothing is found for the given key.
-    return Policy::value(
-        &this->unchecked_deref(try_emplace(std::forward<K>(key)).first));
+    return Policy::value(&this->unchecked_deref(
+        try_emplace(std::forward<key_arg<K>>(key)).first));
   }
   template <class K = key_type, class P = Policy, int &...,
             EnableIf<LifetimeBoundK<K, true, K *>> = 0>
   MappedReference<P> operator[](
       key_arg<K> &&key ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(this))
       ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return this->template operator[]<K, P, 0>(std::forward<K>(key));
+    return this->template operator[]<K, P, 0>(std::forward<key_arg<K>>(key));
   }
 
   template <class K = key_type, class P = Policy,
@@ -325,6 +343,13 @@ class raw_hash_map : public raw_hash_set<Policy, Hash, Eq, Alloc> {
   }
 
  private:
+  static_assert(
+      std::is_same_v<
+          typename InstantiateRawHashMap<Policy, Hash, Eq, Alloc>::type,
+          raw_hash_map>,
+      "Redundant template parameters were passed. Use InstantiateRawHashMap<> "
+      "instead");
+
   template <class K, class V>
   std::pair<iterator, bool> insert_or_assign_impl(K&& k, V&& v)
       ABSL_ATTRIBUTE_LIFETIME_BOUND {

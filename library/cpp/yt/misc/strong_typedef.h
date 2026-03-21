@@ -1,5 +1,7 @@
 #pragma once
 
+#include "strong_typedef-fwd.h"
+
 #include <utility>
 
 #include <util/generic/string.h>
@@ -10,7 +12,7 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag>
+template <class T, class TTag, TStrongTypedefOptions Options>
 class TStrongTypedef
 {
 public:
@@ -34,18 +36,18 @@ public:
     constexpr explicit operator const T&() const;
     constexpr explicit operator T&();
 
-    #define XX(op) \
-        constexpr auto operator op(const TStrongTypedef& rhs) const \
+    #define XX(returnType, op) \
+        constexpr returnType operator op(const TStrongTypedef& rhs) const \
             noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
-                requires requires(T lhs, T rhs) {lhs op rhs; };
+            requires requires(T lhs, T rhs) { lhs op rhs; } && (Options.IsComparable);
 
-    XX(<)
-    XX(>)
-    XX(<=)
-    XX(>=)
-    XX(==)
-    XX(!=)
-    XX(<=>)
+    XX(bool, <)
+    XX(bool, >)
+    XX(bool, <=)
+    XX(bool, >=)
+    XX(bool, ==)
+    XX(bool, !=)
+    XX(auto, <=>)
 
     #undef XX
 
@@ -63,10 +65,10 @@ private:
     T Underlying_;
 };
 
-#define YT_DEFINE_STRONG_TYPEDEF(T, TUnderlying) \
+#define YT_DEFINE_STRONG_TYPEDEF(T, TUnderlying, ...) \
     struct T ## Tag \
     { }; \
-    using T = ::NYT::TStrongTypedef<TUnderlying, T##Tag>; \
+    using T = ::NYT::TStrongTypedef<TUnderlying, T##Tag __VA_OPT__(, ) __VA_ARGS__>; \
     static_assert(true)
 
 template <class T>

@@ -12,11 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include "time_zone_if.h"
+#include "y_absl/time/internal/cctz/src/time_zone_if.h"
 
 #include "y_absl/base/config.h"
-#include "time_zone_info.h"
-#include "time_zone_libc.h"
+#include "y_absl/time/internal/cctz/src/time_zone_info.h"
+#include "y_absl/time/internal/cctz/src/time_zone_libc.h"
 
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN

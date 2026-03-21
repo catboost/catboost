@@ -26,7 +26,7 @@ namespace NJson {
         }
     };
 
-    struct TInputStreamWrapper : TReadOnlyStreamBase {
+    struct TInputStreamWrapper: TReadOnlyStreamBase {
         Ch Peek() const {
             if (!Eof) {
                 if (Pos >= Sz) {
@@ -77,7 +77,7 @@ namespace NJson {
         size_t Count;
     };
 
-    struct TStringBufStreamWrapper : TReadOnlyStreamBase {
+    struct TStringBufStreamWrapper: TReadOnlyStreamBase {
         Ch Peek() const {
             return Pos < Data.size() ? Data[Pos] : 0;
         }
@@ -101,4 +101,4 @@ namespace NJson {
         TStringBuf Data;
         size_t Pos;
     };
-}
+} // namespace NJson

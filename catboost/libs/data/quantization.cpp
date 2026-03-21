@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/sample.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
@@ -185,7 +186,7 @@ namespace NCB {
             ui32 nonDefaultSampleSize;
             TMaybe<TDefaultValue<float>> defaultValue;
 
-            if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
+            if (/* const auto* denseData = */ dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
                 nonDefaultSampleSize = sampleSize;
             } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&srcFeature)) {
                 const auto& sparseArray = sparseData->GetData();
@@ -946,9 +947,7 @@ namespace NCB {
         using TSparseSrcData = TSparsePolymorphicArrayValuesHolder<TSrc>;
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
-            if (const auto* nontrivialIncrementalIndexing
-                = std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
-            {
+            if (std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing)) {
                 TConstArrayRef<ui32> dstIndices
                     = std::get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
 

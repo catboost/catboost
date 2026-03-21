@@ -179,6 +179,37 @@ namespace NMaybe {
             return *this;
         }
     };
+
+    template <bool CanCopy, bool CanMove>
+    struct TMaybeSFINAEConstructorBaseImpl {};
+
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<false, false> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = delete;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = delete;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<true, false> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = delete;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<false, true> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = delete;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+
+    template <class T>
+    using TMaybeSFINAEConstructorBase = TMaybeSFINAEConstructorBaseImpl<std::is_copy_constructible<T>::value, std::is_move_constructible<T>::value>;
 } // namespace NMaybe
 
 template <class T>

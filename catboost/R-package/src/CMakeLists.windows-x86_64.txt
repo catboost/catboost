@@ -52,4 +52,12 @@ target_sources(catboostr PRIVATE
 )
 
 
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
 vcs_info(catboostr)

@@ -3,7 +3,14 @@
 #include "last_getopt_opts.h"
 #include "last_getopt_parser.h"
 
+#include <util/generic/hash.h>
+
 namespace NLastGetopt {
+    struct TTaggedArg {
+        TString Value;
+        ui32 Tag = 0;
+    };
+
     /**
      * NLastGetopt::TOptParseResult contains all arguments for exactly one TOpt,
      * that have been fetched during parsing
@@ -73,6 +80,8 @@ namespace NLastGetopt {
 
         TdVec Opts_;    //Parsing result for all options, that have been explicitly defined in argc/argv
         TdVec OptsDef_; //Parsing result for options, that have been defined by default values only
+        TVector<TString> ProgramSubcommandPath_;
+        TVector<TTaggedArg> TaggedFreeArgs_;
 
     private:
         TOptParseResult& OptParseResult();
@@ -86,6 +95,8 @@ namespace NLastGetopt {
          * @retunr        ptr on corresponding TOptParseResult
          */
         static const TOptParseResult* FindParseResult(const TdVec& vec, const TOpt* opt);
+
+        void BuildTaggedFreeArgs(const TOpts* options);
 
     protected:
         /**
@@ -161,6 +172,8 @@ namespace NLastGetopt {
          * @return argv[0]
          */
         TString GetProgramName() const;
+        void SetProgramSubcommandPath(const TVector<TString>& parts);
+        const TVector<TString>& GetProgramSubcommandPath() const;
 
         /**
          * Print usage string.
@@ -181,6 +194,22 @@ namespace NLastGetopt {
          * @return all fetched free arguments
          */
         TVector<TString> GetFreeArgs() const;
+
+        template <ArgTagConcept E>
+        TVector<TString> GetFreeArgs(E tag) const {
+            TVector<TString> args;
+            ui32 ui32Tag = static_cast<ui32>(tag);
+            for (const auto& arg : TaggedFreeArgs_) {
+                if (arg.Tag == ui32Tag) {
+                    args.push_back(arg.Value);
+                }
+            }
+            return args;
+        }
+
+        const TVector<TTaggedArg>& GetTaggedFreeArgs() const {
+            return TaggedFreeArgs_;
+        }
 
         /**
          * @return true if given option exist in results of parsing

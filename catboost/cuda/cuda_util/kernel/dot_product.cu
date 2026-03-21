@@ -1,5 +1,5 @@
 #include "dot_product.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 namespace NKernel {
 

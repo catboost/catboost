@@ -2,7 +2,7 @@
 #include "linear_solver.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 

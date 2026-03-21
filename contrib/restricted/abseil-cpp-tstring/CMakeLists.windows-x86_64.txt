@@ -41,6 +41,7 @@ target_sources(contrib-restricted-abseil-cpp-tstring PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/internal/sysinfo.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/internal/thread_identity.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/internal/throw_delegate.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/internal/tracing.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/internal/unscaledcycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/base/log_severity.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/container/internal/hashtablez_sampler.cc
@@ -93,6 +94,7 @@ target_sources(contrib-restricted-abseil-cpp-tstring PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/internal/log_sink_set.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/internal/nullguard.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/internal/proto.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/internal/structured_proto.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/internal/vlog_config.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/log_entry.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp-tstring/y_absl/log/log_sink.cc

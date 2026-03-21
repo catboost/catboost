@@ -9,9 +9,6 @@
 #include <contrib/libs/tbb/include/tbb/task_arena.h>
 #include <contrib/libs/tbb/include/tbb/task_group.h>
 
-#include <atomic>
-
-
 namespace NPar {
     template <bool RespectTls = false>
     class TTbbLocalExecutor final: public ILocalExecutor  {
@@ -19,9 +16,7 @@ namespace NPar {
         TTbbLocalExecutor(int nThreads)
             : ILocalExecutor()
             , TbbArena(nThreads)
-            , NumberOfTbbThreads(nThreads)
-            , RegisteredThreadCounter(0)
-        {}
+            , NumberOfTbbThreads(nThreads) {}
         ~TTbbLocalExecutor() noexcept override {}
 
         virtual int GetWorkerThreadId() const noexcept override;
@@ -49,7 +44,5 @@ namespace NPar {
         mutable tbb::task_arena TbbArena;
         tbb::task_group Group;
         int NumberOfTbbThreads;
-
-        mutable std::atomic_int RegisteredThreadCounter;
     };
 }

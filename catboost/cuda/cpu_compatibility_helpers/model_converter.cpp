@@ -281,9 +281,9 @@ TFullModel TModelConverter::Convert(
         auto remapId = FeaturesLayout.GetInternalFeatureIdx<EFeatureType::Categorical>(dataProviderId);
 
         CB_ENSURE(CatFeatureBinToHashIndex[*remapId].size(),
-                  TStringBuilder() << "Error: no catFeature perfect hash for feature " << dataProviderId);
+                  "Error: no catFeature perfect hash for feature " << dataProviderId);
         CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[*remapId].size(),
-                  TStringBuilder() << "Error: no hash for feature " << split.FeatureId << " " << split.BinIdx);
+                  "Error: no hash for feature " << split.FeatureId << " " << split.BinIdx);
         const int hash = CatFeatureBinToHashIndex[*remapId][split.BinIdx];
         modelSplit.OneHotFeature = TOneHotSplit(*remapId,
                                                 hash);

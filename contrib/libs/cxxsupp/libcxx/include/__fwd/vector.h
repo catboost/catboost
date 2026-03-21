@@ -19,7 +19,12 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp, class _Alloc = allocator<_Tp> >
-class _LIBCPP_TEMPLATE_VIS vector;
+class vector;
+
+#if _YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION == 1
+template <class _Allocator>
+class vector<bool, _Allocator>;
+#endif
 
 _LIBCPP_END_NAMESPACE_STD
 

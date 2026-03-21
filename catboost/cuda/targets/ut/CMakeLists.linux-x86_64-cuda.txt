@@ -87,7 +87,7 @@ set_yunittest_property(
   catboost-cuda-targets-ut
   PROPERTY
   LABELS
-  MEDIUM
+  LARGE
 )
 
 set_yunittest_property(

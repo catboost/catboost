@@ -3,9 +3,19 @@
 Execute the following steps to support the data visualization feature in Jupyter Notebook:
 1. Install the `ipywidgets`{{ python-package }} (version 7.x or higher is required):
 
-    ```no-highlight
-    pip install ipywidgets
-    ```
+    {% list tabs %}
+
+    - Using pip
+        ```no-highlight
+        pip install ipywidgets
+        ```
+
+    - Using conda
+        ```no-highlight
+        conda install -c conda-forge ipywidgets
+        ```
+
+    {% endlist %}
 
     {% note warning %}
 

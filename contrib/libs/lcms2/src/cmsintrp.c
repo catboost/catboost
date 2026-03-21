@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------
 //
 //  Little Color Management System
-//  Copyright (c) 1998-2024 Marti Maria Saguer
+//  Copyright (c) 1998-2026 Marti Maria Saguer
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -955,9 +955,9 @@ void Eval4Inputs(CMSREGISTER const cmsUInt16Number Input[],
                                 c1 = c2 = c3 = 0;
                             }
 
-        Rest = c1 * rx + c2 * ry + c3 * rz;
+        Rest = c1 * rx + c2 * ry + c3 * rz + 0x8001;
 
-        Tmp1[OutChan] = (cmsUInt16Number)(c0 + ROUND_FIXED_TO_INT(_cmsToFixedDomain(Rest)));
+        Tmp1[OutChan] = (cmsUInt16Number)c0 + ((Rest + (Rest >> 16)) >> 16);
     }
 
 
@@ -1019,9 +1019,9 @@ void Eval4Inputs(CMSREGISTER const cmsUInt16Number Input[],
                                 c1 = c2 = c3 = 0;
                             }
 
-        Rest = c1 * rx + c2 * ry + c3 * rz;
+        Rest = c1 * rx + c2 * ry + c3 * rz + 0x8001;
 
-        Tmp2[OutChan] = (cmsUInt16Number) (c0 + ROUND_FIXED_TO_INT(_cmsToFixedDomain(Rest)));
+        Tmp2[OutChan] = (cmsUInt16Number) c0 + ((Rest + (Rest >> 16)) >> 16);
     }
 
 

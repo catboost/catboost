@@ -1218,12 +1218,12 @@ int boost_cont_multialloc_nodes
    return ret;
 }
 
-size_t boost_cont_footprint()
+size_t boost_cont_footprint(void)
 {
    return ((mstate)gm)->footprint;
 }
 
-size_t boost_cont_allocated_memory()
+size_t boost_cont_allocated_memory(void)
 {
    size_t alloc_mem = 0;
    mstate m = (mstate)gm;
@@ -1269,10 +1269,10 @@ size_t boost_cont_allocated_memory()
 size_t boost_cont_chunksize(const void *p)
 {  return chunksize(mem2chunk(p));   }
 
-int boost_cont_all_deallocated()
+int boost_cont_all_deallocated(void)
 {  return !s_allocated_memory;  }
 
-boost_cont_malloc_stats_t boost_cont_malloc_stats()
+boost_cont_malloc_stats_t boost_cont_malloc_stats(void)
 {
   mstate ms = (mstate)gm;
   if (ok_magic(ms)) {
@@ -1285,7 +1285,7 @@ boost_cont_malloc_stats_t boost_cont_malloc_stats()
   }
 }
 
-size_t boost_cont_in_use_memory()
+size_t boost_cont_in_use_memory(void)
 {  return s_allocated_memory;   }
 
 int boost_cont_trim(size_t pad)
@@ -1354,7 +1354,7 @@ void boost_cont_multidealloc(boost_cont_memchain *pchain)
    internal_multialloc_free(ms, pchain);
 }
 
-int boost_cont_malloc_check()
+int boost_cont_malloc_check(void)
 {
 #ifdef DEBUG
    mstate ms = (mstate)gm;
@@ -1452,7 +1452,7 @@ int boost_cont_mallopt(int param_number, int value)
   return change_mparam(param_number, value);
 }
 
-void *boost_cont_sync_create()
+void *boost_cont_sync_create(void)
 {
    void *p = boost_cont_malloc(sizeof(MLOCK_T));
    if(p){
@@ -1478,7 +1478,7 @@ int boost_cont_sync_lock(void *sync)
 void boost_cont_sync_unlock(void *sync)
 {  RELEASE_LOCK((MLOCK_T*)sync);  }
 
-int boost_cont_global_sync_lock()
+int boost_cont_global_sync_lock(void)
 {
    int ret;
    ensure_initialization();
@@ -1486,7 +1486,7 @@ int boost_cont_global_sync_lock()
    return 0 == ret;
 }
 
-void boost_cont_global_sync_unlock()
+void boost_cont_global_sync_unlock(void)
 {
    RELEASE_MALLOC_GLOBAL_LOCK()
 }

@@ -224,7 +224,12 @@ namespace NPrivate {
                     while (file.ReadLine(ljson) > 0) {
                         NJson::ReadJsonTree(ljson, &envVar);
                         for (const auto& entry : envVar.GetMap()) {
-                            SetEnv(entry.first, entry.second.GetStringSafe(""));
+                            auto value = entry.second;
+                            if (value.GetType() == NJson::JSON_NULL) {
+                                UnsetEnv(entry.first);
+                            } else {
+                                SetEnv(entry.first, value.GetStringSafe(""));
+                            }
                         }
                     }
                 }

@@ -62,8 +62,8 @@ Y_UNIT_TEST_SUITE(Neh) {
             Canceled = false;
         }
 
-        TAtomicBool ReceiveTestCancel;
-        TAtomicBool Canceled;
+        TAtomicBool ReceiveTestCancel = false;
+        TAtomicBool Canceled = false;
 
     private:
         TString R_;

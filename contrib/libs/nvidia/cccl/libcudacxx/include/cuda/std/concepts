@@ -1,0 +1,48 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the CUDA Toolkit, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_CONCEPTS
+#define _CUDA_STD_CONCEPTS
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__concepts/arithmetic.h>
+#include <cuda/std/__concepts/assignable.h>
+#include <cuda/std/__concepts/boolean_testable.h>
+#include <cuda/std/__concepts/class_or_enum.h>
+#include <cuda/std/__concepts/common_reference_with.h>
+#include <cuda/std/__concepts/common_with.h>
+#include <cuda/std/__concepts/concept_macros.h>
+#include <cuda/std/__concepts/constructible.h>
+#include <cuda/std/__concepts/convertible_to.h>
+#include <cuda/std/__concepts/copyable.h>
+#include <cuda/std/__concepts/derived_from.h>
+#include <cuda/std/__concepts/destructible.h>
+#include <cuda/std/__concepts/different_from.h>
+#include <cuda/std/__concepts/equality_comparable.h>
+#include <cuda/std/__concepts/invocable.h>
+#include <cuda/std/__concepts/movable.h>
+#include <cuda/std/__concepts/predicate.h>
+#include <cuda/std/__concepts/regular.h>
+#include <cuda/std/__concepts/relation.h>
+#include <cuda/std/__concepts/same_as.h>
+#include <cuda/std/__concepts/semiregular.h>
+#include <cuda/std/__concepts/swappable.h>
+#include <cuda/std/__concepts/totally_ordered.h>
+#include <cuda/std/version>
+
+#endif // _CUDA_STD_CONCEPTS

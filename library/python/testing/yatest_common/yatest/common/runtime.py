@@ -53,7 +53,7 @@ def _norm_path(path):
         return None
     assert isinstance(path, six.string_types)
     if "\\" in path:
-        raise AssertionError("path {} contains Windows seprators \\ - replace them with '/'".format(path))
+        raise AssertionError("path {} contains Windows separators \\ - replace them with '/'".format(path))
     return os.path.normpath(path)
 
 
@@ -62,7 +62,6 @@ def _is_binary():
 
 
 def _is_relaxed_runtime_allowed():
-    global _relaxed_runtime_allowed
     if _relaxed_runtime_allowed:
         return True
     return not _is_binary()
@@ -465,14 +464,15 @@ class Context(object):
         return _get_ya_plugin_instance().get_context("retry_index")
 
     @property
-    @default_value(False)
+    @default_value(None)
     def sanitize(self):
         """
         Detect if current test run is under sanitizer
 
         :return: one of `None`, 'address', 'memory', 'thread', 'undefined'
         """
-        return _get_ya_plugin_instance().get_context("sanitize")
+        value = _get_ya_plugin_instance().get_context("sanitize")
+        return value if value else None
 
     @property
     @default_value(lambda _: {})

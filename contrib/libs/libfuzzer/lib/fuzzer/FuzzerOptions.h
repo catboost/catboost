@@ -83,6 +83,7 @@ struct FuzzingOptions {
   bool HandleInt = false;
   bool HandleSegv = false;
   bool HandleTerm = false;
+  bool HandleTrap = false;
   bool HandleXfsz = false;
   bool HandleUsr1 = false;
   bool HandleUsr2 = false;

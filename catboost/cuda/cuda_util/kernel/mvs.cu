@@ -3,7 +3,7 @@
 #include "random_gen.cuh"
 #include "reduce.cuh"
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 #include <cub/cub.cuh>
 #include <cub/block/block_radix_sort.cuh>

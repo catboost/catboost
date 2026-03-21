@@ -36,6 +36,11 @@ Install the package. You have two options:
         npm run install -- --have-cuda
         ```
 
+        Inference on CUDA GPUs is currently supported only for models with exclusively numerical features.
+
+        CUDA architectures to generate device code for are specified using [`CMAKE_CUDA_ARCHITECTURES` variable](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard, [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). The default value is intended to provide broad GPU compatibility and supported only when building with CUDA 11.8.
+        The most convenient way to override the default value is to use [`CUDAARCHS` environment variable](https://cmake.org/cmake/help/v3.24/envvar/CUDAARCHS.html).
+
         Now you can link this package in your project via:
 
         ```sh

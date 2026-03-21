@@ -136,16 +136,16 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
         class THelper: public std::remove_const_t<T>, public TBase {                      \
         public:                                                                           \
             template <class T1>                                                           \
-            inline THelper(const T1& = T1()) {                                            \
+            inline explicit THelper(const T1& = T1()) {                                   \
             }                                                                             \
         };                                                                                \
         template <class T1, T1 val>                                                       \
         class TChecker {};                                                                \
         struct TNo {                                                                      \
-            char ch;                                                                      \
+            char Ch;                                                                      \
         };                                                                                \
         struct TYes {                                                                     \
-            char arr[2];                                                                  \
+            char Arr[2]; /* NOLINT(modernize-avoid-c-arrays) */                           \
         };                                                                                \
         template <class T1>                                                               \
         static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr); \

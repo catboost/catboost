@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <initializer_list>
 #include <iterator>
+#include <type_traits>
 
 /**
  * `TArrayRef` works pretty much like `std::span` with dynamic extent, presenting
@@ -48,9 +49,24 @@ public:
     {
     }
 
+    template <class TT, typename = std::enable_if_t<std::is_convertible_v<TT*, T*>>>
+    constexpr inline TArrayRef(TT* data Y_LIFETIME_BOUND, size_t len) noexcept
+        : TArrayRef(static_cast<T*>(data), len)
+    {
+        static_assert(
+            sizeof(TT) == sizeof(T),
+            "Attempt to create TArrayRef from an array of elements of a derived class with a different size");
+    }
+
     constexpr inline TArrayRef(T* begin Y_LIFETIME_BOUND, T* end Y_LIFETIME_BOUND) noexcept
         : T_(begin)
         , S_(NonNegativeDistance(begin, end))
+    {
+    }
+
+    template <class TT, typename = std::enable_if_t<std::is_convertible_v<TT*, T*>>>
+    constexpr inline TArrayRef(TT* begin Y_LIFETIME_BOUND, TT* end Y_LIFETIME_BOUND) noexcept
+        : TArrayRef(begin, NonNegativeDistance(begin, end))
     {
     }
 
@@ -60,14 +76,10 @@ public:
     {
     }
 
-    template <class Container>
-    constexpr inline TArrayRef(Container&& container, decltype(std::declval<T*&>() = container.data(), nullptr) = nullptr) noexcept
-        : T_(container.data())
-        , S_(container.size())
+    template <class Container, typename = std::enable_if_t<std::is_convertible_v<decltype(std::declval<Container>().data()), T*>>>
+    constexpr inline TArrayRef(Container&& container) noexcept
+        : TArrayRef(container.data(), container.size())
     {
-        static_assert(
-            sizeof(decltype(*container.data())) == sizeof(T),
-            "Attempt to create TArrayRef from a container of elements with a different size");
     }
 
     template <size_t N>
@@ -222,6 +234,7 @@ public:
         return TArrayRef(T_ + offset, size);
     }
 
+    // DEPRECATED. DO NOT USE.
     constexpr inline yssize_t ysize() const noexcept {
         return static_cast<yssize_t>(this->size());
     }

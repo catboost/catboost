@@ -62,10 +62,6 @@ namespace {
     };
 }
 
-static inline char d2x(unsigned x) {
-    return (char)((x < 10) ? ('0' + x) : ('A' + x - 10));
-}
-
 static inline const char* FixZero(const char* s) noexcept {
     return s ? s : "";
 }
@@ -101,22 +97,65 @@ static const bool chars_to_url_escape[256] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //F
 };
 
+static const char d2x[16] = {
+    '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+};
+
+template <class It1>
+static inline void EscapeHelper(It1& to, unsigned char c, const bool* escape_map) {
+    if (!escape_map[c]) {
+        *to++ = (c == ' ') ? '+' : c;
+    } else {
+        *to++ = '%';
+        *to++ = d2x[c >> 4];
+        *to++ = d2x[c & 0xF];
+    }
+}
+
 template <class It1, class It2, class It3>
 static inline It1 Escape(It1 to, It2 from, It3 end, const bool* escape_map = chars_to_url_escape) {
     while (from != end) {
-        if (escape_map[(unsigned char)*from]) {
-            *to++ = '%';
-            *to++ = d2x((unsigned char)*from >> 4);
-            *to++ = d2x((unsigned char)*from & 0xF);
-        } else {
-            *to++ = (*from == ' ' ? '+' : *from);
-        }
-
-        ++from;
+        EscapeHelper(to, *from++, escape_map);
     }
 
     *to = 0;
 
+    return to;
+}
+
+static inline char* Escape(char* to, const char* from, const char* end, const bool* escape_map = chars_to_url_escape) {
+    constexpr size_t BLOCK = 16;
+
+    while (from + BLOCK <= end) {
+        uint32_t escape_count = 0;
+        for (size_t i = 0; i < BLOCK; ++i) {
+            escape_count |= escape_map[(unsigned char)from[i]];
+        }
+
+        if (escape_count == 0) {
+            unsigned char src[BLOCK];
+            for (size_t i = 0; i < BLOCK; ++i) {
+                src[i] = from[i];
+            }
+            for (size_t i = 0; i < BLOCK; ++i) {
+                unsigned char c = src[i];
+                to[i] = (c == ' ') ? '+' : c;
+            }
+            to += BLOCK;
+        } else {
+            for (size_t i = 0; i < BLOCK; ++i) {
+                unsigned char c = from[i];
+                EscapeHelper(to, c, escape_map);
+            }
+        }
+        from += BLOCK;
+    }
+
+    while (from != end) {
+        EscapeHelper(to, *from++, escape_map);
+    }
+
+    *to = 0;
     return to;
 }
 
@@ -274,20 +313,18 @@ TString UrlUnescapeRet(const TStringBuf from) {
     return to;
 }
 
-char* UrlEscape(char* to, const char* from, bool forceEscape) {
-    from = FixZero(from);
-
-    while (*from) {
+char* UrlEscape(char* to, TStringBuf src, bool forceEscape) {
+    for (auto from = src.begin(); from != src.end(); ++from) {
         const bool escapePercent = (*from == '%') &&
-                                   (forceEscape || !((*(from + 1) && IsAsciiHex(*(from + 1)) && *(from + 2) && IsAsciiHex(*(from + 2)))));
+                                   (forceEscape || !((std::next(from) != src.end() && IsAsciiHex(*(std::next(from)))
+                                   && std::next(from, 2) != src.end() && IsAsciiHex(*(std::next(from, 2))))));
 
         if (escapePercent || (unsigned char)*from <= ' ' || (unsigned char)*from > '~') {
             *to++ = '%';
-            *to++ = d2x((unsigned char)*from >> 4);
-            *to++ = d2x((unsigned char)*from & 0xF);
+            *to++ = d2x[(unsigned char)*from >> 4];
+            *to++ = d2x[(unsigned char)*from & 0xF];
         } else
             *to++ = *from;
-        ++from;
     }
 
     *to = 0;
@@ -298,12 +335,12 @@ char* UrlEscape(char* to, const char* from, bool forceEscape) {
 void UrlEscape(TString& url, bool forceEscape) {
     TTempBuf tempBuf(CgiEscapeBufLen(url.size()));
     char* to = tempBuf.Data();
-    url.AssignNoAlias(to, UrlEscape(to, url.data(), forceEscape));
+    url.AssignNoAlias(to, UrlEscape(to, url, forceEscape));
 }
 
 TString UrlEscapeRet(const TStringBuf from, bool forceEscape) {
     TString to;
     to.ReserveAndResize(CgiEscapeBufLen(from.size()));
-    to.resize(UrlEscape(to.begin(), from.begin(), forceEscape) - to.data());
+    to.resize(UrlEscape(to.begin(), from, forceEscape) - to.data());
     return to;
 }

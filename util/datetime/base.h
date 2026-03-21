@@ -93,6 +93,50 @@ TString DateToString(time_t when, long* sec = nullptr);
 TString YearToString(const struct tm& theTm);
 TString YearToString(time_t when);
 
+namespace NDateTimeHelpers {
+    template <typename T>
+    struct TPrecisionHelper {
+        using THighPrecision = ui64;
+    };
+
+    template <>
+    struct TPrecisionHelper<float> {
+        using THighPrecision = double;
+    };
+
+    template <>
+    struct TPrecisionHelper<double> {
+        using THighPrecision = double;
+    };
+
+    template <ui64 b, typename T>
+    static constexpr ui64 MulWithSaturation(T a) = delete;
+
+    template <ui64 b>
+    constexpr ui64 MulWithSaturation(ui64 a) {
+        constexpr ui64 maxMultiplicand = Max<ui64>() / b;
+#if defined(__GNUC__) && defined(__cpp_lib_is_constant_evaluated)
+        if (!std::is_constant_evaluated()) {
+            if constexpr (std::is_same<ui64, unsigned long>::value) {
+                unsigned long r = 0;
+                return __builtin_umull_overflow(a, b, &r) ? Max<ui64>() : r;
+            }
+            if constexpr (std::is_same<ui64, unsigned long long>::value) {
+                unsigned long long r = 0;
+                return __builtin_umulll_overflow(a, b, &r) ? Max<ui64>() : r;
+            }
+        }
+#endif
+        return a <= maxMultiplicand ? a * b : Max<ui64>();
+    }
+
+    template <ui64 b>
+    constexpr ui64 MulWithSaturation(double a) {
+        double r = a * b;
+        return r < 0 ? 0 : (r <= MaxFloor<ui64>() ? static_cast<ui64>(r) : Max<ui64>());
+    }
+} // namespace NDateTimeHelpers
+
 template <class S>
 class TTimeBase {
 public:
@@ -172,25 +216,32 @@ public:
     }
 
 protected:
+    /* noexcept(false) as conversion from T might throw, for example FromString("abc") */
+    template <typename T>
+    static constexpr S MilliSecondsConvertFrom(T milliseconds) noexcept(false) {
+        auto ms = typename NDateTimeHelpers::TPrecisionHelper<T>::THighPrecision(milliseconds);
+        return S::MicroSeconds(NDateTimeHelpers::MulWithSaturation<ui64(1'000)>(ms));
+    }
+
+    /* noexcept(false) as conversion from T might throw, for example FromString("abc") */
+    template <typename T>
+    static constexpr S SecondsConvertFrom(T seconds) noexcept(false) {
+        auto s = typename NDateTimeHelpers::TPrecisionHelper<T>::THighPrecision(seconds);
+        if constexpr (std::is_same_v<decltype(s), double>) {
+            return MilliSecondsConvertFrom(s * 1000);
+        }
+        return S::MicroSeconds(NDateTimeHelpers::MulWithSaturation<ui64(1'000'000)>(s));
+    }
+
+    static constexpr S Minutes(ui64 m) noexcept;
+
+    static constexpr S Hours(ui64 h) noexcept;
+
+    static constexpr S Days(ui64 d) noexcept;
+
+protected:
     TValue Value_; // microseconds count
 };
-
-namespace NDateTimeHelpers {
-    template <typename T>
-    struct TPrecisionHelper {
-        using THighPrecision = ui64;
-    };
-
-    template <>
-    struct TPrecisionHelper<float> {
-        using THighPrecision = double;
-    };
-
-    template <>
-    struct TPrecisionHelper<double> {
-        using THighPrecision = double;
-    };
-} // namespace NDateTimeHelpers
 
 class TDuration: public TTimeBase<TDuration> {
     using TBase = TTimeBase<TDuration>;
@@ -217,14 +268,14 @@ public:
      * TDuration is compatible with std::chrono::duration:
      *   it can be constructed and compared with std::chrono::duration.
      * But there are two significant and dangerous differences between them:
-     *   1) TDuration is never negative and use saturation between 0 and maximum value.
+     *   1) TDuration is never negative and uses saturation between 0 and the maximum value.
      *      std::chrono::duration can be negative and can overflow.
-     *   2) TDuration uses integer number of microseconds.
-     *      std::chrono::duration is flexible, can be integer of floating point,
+     *   2) TDuration uses an integer number of microseconds.
+     *      std::chrono::duration is flexible, can be an integer of a floating point,
      *      can have different precisions.
-     * So when casted from std::chrono::duration to TDuration value is clamped and rounded.
+     * So when casted from std::chrono::duration to TDuration its value is clamped and rounded.
      * In arithmetic operations std::chrono::duration argument is only rounded,
-     *   result is TDuration and it clamped and rounded.
+     *   result is TDuration and it is clamped and rounded.
      * In comparisons std::chrono::duration argument is rounded.
      */
     template <typename T, typename TRatio>
@@ -232,8 +283,8 @@ public:
         static_assert(
             std::ratio_greater_equal<TRatio, std::micro>::value &&
                 (!std::is_floating_point<T>::value || std::ratio_greater<TRatio, std::micro>::value),
-            "Extremely likely it is loss of precision, because TDuration stores microseconds. "
-            "Cast you duration explicitly to microseconds if you really need it.");
+            "Extremely likely it is a loss of precision, because TDuration stores microseconds. "
+            "Cast 'duration' explicitly to microseconds if you really need it.");
 
         if (duration.count() < 0) {
             *this = TDuration::Zero(); // clamp from the bottom
@@ -267,7 +318,7 @@ public:
     /* noexcept(false) as conversion from T might throw, for example FromString("abc") */
     template <typename T>
     static constexpr TDuration MilliSeconds(T ms) noexcept(false) {
-        return MicroSeconds((ui64)(typename NDateTimeHelpers::TPrecisionHelper<T>::THighPrecision(ms) * 1000));
+        return TBase::MilliSecondsConvertFrom(std::move(ms));
     }
 
     using TBase::Days;
@@ -276,6 +327,12 @@ public:
     using TBase::MilliSeconds;
     using TBase::Minutes;
     using TBase::Seconds;
+
+    /// Base class static methods:
+    ///
+    /// static constexpr TDuration Minutes(ui64 m) noexcept;
+    /// static constexpr TDuration Hours(ui64 h) noexcept;
+    /// static constexpr TDuration Days(ui64 d) noexcept;
 
     /// DeadLineFromTimeOut
     inline TInstant ToDeadLine() const;
@@ -292,19 +349,7 @@ public:
     /* noexcept(false) as conversion from T might throw, for example FromString("abc") */
     template <typename T>
     static constexpr TDuration Seconds(T s) noexcept(false) {
-        return MilliSeconds(typename NDateTimeHelpers::TPrecisionHelper<T>::THighPrecision(s) * 1000);
-    }
-
-    static constexpr TDuration Minutes(ui64 m) noexcept {
-        return Seconds(m * 60);
-    }
-
-    static constexpr TDuration Hours(ui64 h) noexcept {
-        return Minutes(h * 60);
-    }
-
-    static constexpr TDuration Days(ui64 d) noexcept {
-        return Hours(d * 24);
+        return TBase::SecondsConvertFrom(std::move(s));
     }
 
     /// parses strings like 10s, 15ms, 15.05s, 20us, or just 25 (s). See parser_ut.cpp for details
@@ -346,7 +391,7 @@ struct THash<TDuration> {
     }
 };
 
-/// TInstant and TDuration are guaranteed to have same precision
+/// TInstant and TDuration are guaranteed to have the same precision
 class TInstant: public TTimeBase<TInstant> {
     using TBase = TTimeBase<TInstant>;
 
@@ -396,30 +441,26 @@ public:
         return TInstant(us);
     }
 
-    /// ms since epoch
+    /// milliseconds since epoch
     static constexpr TInstant MilliSeconds(ui64 ms) noexcept {
-        return MicroSeconds(ms * 1000);
+        return TBase::MilliSecondsConvertFrom(ms);
     }
 
     /// seconds since epoch
     static constexpr TInstant Seconds(ui64 s) noexcept {
-        return MilliSeconds(s * 1000);
+        return TBase::SecondsConvertFrom(s);
     }
 
+    /// Base class static methods:
+    ///
     /// minutes since epoch
-    static constexpr TInstant Minutes(ui64 m) noexcept {
-        return Seconds(m * 60);
-    }
-
+    /// static constexpr TInstant Minutes(ui64 m) noexcept;
+    ///
     /// hours since epoch
-    static constexpr TInstant Hours(ui64 h) noexcept {
-        return Minutes(h * 60);
-    }
-
+    /// static constexpr TInstant Hours(ui64 h) noexcept;
+    ///
     /// days since epoch
-    static constexpr TInstant Days(ui64 d) noexcept {
-        return Hours(d * 24);
-    }
+    /// static constexpr TInstant Days(ui64 d) noexcept;
 
     constexpr time_t TimeT() const noexcept {
         return (time_t)Seconds();
@@ -476,7 +517,7 @@ public:
     /**
      * Formats the instant using the system time zone, with microsecond precision.
      *
-     * @returns A semi-ISO 8601 formatted string with timezone without colon,
+     * @returns A semi-ISO 8601 formatted string with a timezone without a colon,
      * e.g. '2015-11-22T04:30:27.991669+0500'.
      */
     TString ToStringLocal() const;
@@ -499,7 +540,7 @@ public:
     /**
      * Formats the instant using the system time zone, with second precision.
      *
-     * @returns A semi-ISO 8601 formatted string with timezone without colon,
+     * @returns A semi-ISO 8601 formatted string with a timezone without a colon,
      * e.g. '2015-11-22T04:30:27+0500'.
      */
     TString ToStringLocalUpToSeconds() const;
@@ -518,22 +559,22 @@ public:
 
     /// ISO 8601 Representation of Dates and Times
     ///
-    /// @link https://www.iso.org/standard/40874.html Description of format.
+    /// @link https://www.iso.org/standard/40874.html Description of the format.
     static bool TryParseIso8601(TStringBuf input, TInstant& instant);
 
     /// RFC 822 Date and Time specification
     ///
-    /// @link https://tools.ietf.org/html/rfc822#section-5 Description of format.
+    /// @link https://tools.ietf.org/html/rfc822#section-5 Description of the format.
     static bool TryParseRfc822(TStringBuf input, TInstant& instant);
 
     /// RFC 2616 3.3.1 Full Date
     ///
-    /// @link https://tools.ietf.org/html/rfc2616#section-3.3.1 Description of format.
+    /// @link https://tools.ietf.org/html/rfc2616#section-3.3.1 Description of the format.
     static bool TryParseHttp(TStringBuf input, TInstant& instant);
 
     /// X.509 certificate validity time (see rfc5280 4.1.2.5.*)
     ///
-    /// @link https://tools.ietf.org/html/rfc5280#section-4.1.2.5 Description of format.
+    /// @link https://tools.ietf.org/html/rfc5280#section-4.1.2.5 Description of the format.
     static bool TryParseX509(TStringBuf input, TInstant& instant);
 
     static TInstant ParseIso8601Deprecated(TStringBuf);
@@ -816,6 +857,21 @@ void SleepUntil(TInstant instant);
 
 static inline TInstant Now() noexcept {
     return TInstant::Now();
+}
+
+template <class S>
+constexpr S TTimeBase<S>::Minutes(ui64 m) noexcept {
+    return S::MicroSeconds(NDateTimeHelpers::MulWithSaturation<ui64(1'000'000) * 60>(m));
+}
+
+template <class S>
+constexpr S TTimeBase<S>::Hours(ui64 h) noexcept {
+    return S::MicroSeconds(NDateTimeHelpers::MulWithSaturation<ui64(1'000'000) * 60 * 60>(h));
+}
+
+template <class S>
+constexpr S TTimeBase<S>::Days(ui64 d) noexcept {
+    return S::MicroSeconds(NDateTimeHelpers::MulWithSaturation<ui64(1'000'000) * 60 * 60 * 24>(d));
 }
 
 #ifdef _MSC_VER

@@ -43,3 +43,35 @@ target_sources(contrib-libs-libunwind PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/libunwind.cpp
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-sjlj.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-wasm.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1-gcc-ext.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

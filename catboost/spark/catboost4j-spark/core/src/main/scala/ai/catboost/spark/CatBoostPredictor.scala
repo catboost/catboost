@@ -118,7 +118,7 @@ trait CatBoostPredictorTrait[
    * @param trainPool The input training dataset.
    * @param evalPools The validation datasets used for the following processes:
    *  - overfitting detector
-   *  - best iteration selection
+   *  - the best iteration selection
    *  - monitoring metrics' changes
    * @return trained model
    */

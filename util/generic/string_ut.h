@@ -728,6 +728,13 @@ public:
         UNIT_ASSERT(s.Contains('1'));
         UNIT_ASSERT(!s.Contains('*'));
 
+        // std-compatible "contains".
+        UNIT_ASSERT(s.contains(Data._345()));
+        UNIT_ASSERT(!s2.contains(Data._345()));
+
+        UNIT_ASSERT(s.contains('1'));
+        UNIT_ASSERT(!s.contains('*'));
+
         TStringType empty;
         UNIT_ASSERT(s.Contains(empty));
         UNIT_ASSERT(!empty.Contains(s));

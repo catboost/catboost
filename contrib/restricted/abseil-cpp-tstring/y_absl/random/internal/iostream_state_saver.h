@@ -16,10 +16,14 @@
 #define Y_ABSL_RANDOM_INTERNAL_IOSTREAM_STATE_SAVER_H_
 
 #include <cmath>
-#include <iostream>
+#include <cstdint>
+#include <ios>
+#include <istream>
 #include <limits>
+#include <ostream>
 #include <type_traits>
 
+#include "y_absl/base/config.h"
 #include "y_absl/meta/type_traits.h"
 #include "y_absl/numeric/int128.h"
 
@@ -95,7 +99,6 @@ typename y_absl::enable_if_t<!std::is_base_of<std::ios_base, T>::value,
                            null_state_saver<T>>
 make_ostream_state_saver(T& is,  // NOLINT(runtime/references)
                          std::ios_base::fmtflags flags = std::ios_base::dec) {
-  std::cerr << "null_state_saver";
   using result_type = null_state_saver<T>;
   return result_type(is, flags);
 }

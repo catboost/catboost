@@ -19,6 +19,7 @@
 #include <util/system/event.h>
 #include <util/generic/queue.h>
 #include <thread>
+#include <atomic>
 
 namespace NCudaLib {
 #define MPI_SAFE_CALL(cmd)                                                   \
@@ -63,7 +64,7 @@ namespace NCudaLib {
             }
 
             void Abort() {
-                AtomicSet(CancelFlag, 1);
+                CancelFlag = true;
             }
 
         private:
@@ -75,30 +76,11 @@ namespace NCudaLib {
             };
 
             EState GetState() const {
-                int state = State;
-                if (state == 0) {
-                    return EState::Created;
-                } else if (state == 1) {
-                    return EState::Running;
-                } else if (state == 2) {
-                    return EState::Completed;
-                } else {
-                    CB_ENSURE(state == 3, "Unexpected request state");
-                    return EState::Canceled;
-                }
+                return State;
             }
 
             void SetState(EState state) {
-                if (state == EState::Created) {
-                    AtomicSet(State, 0);
-                } else if (state == EState::Running) {
-                    AtomicSet(State, 1);
-                } else if (state == EState::Completed) {
-                    AtomicSet(State, 2);
-                } else {
-                    CB_ENSURE(state == EState::Canceled, "Unexpected request state");
-                    AtomicSet(State, 3);
-                }
+                State = state;
             }
 
         private:
@@ -109,11 +91,11 @@ namespace NCudaLib {
 
         private:
             mutable TManualEvent WaitEvent;
-            mutable TAtomic CancelFlag = 0;
-            mutable TAtomic State = 0;
+            mutable std::atomic<bool> CancelFlag = false;
+            mutable std::atomic<EState> State = EState::Created;
             mutable MPI_Status Status;
             mutable MPI_Request Request;
-            mutable TAtomic ReceivedBytesCount;
+            mutable std::atomic<ui64> ReceivedBytesCount;
         };
 
         using TMpiRequestPtr = TIntrusivePtr<TMpiRequest>;
@@ -222,7 +204,7 @@ namespace NCudaLib {
         int NextCommunicationTag() {
             Y_ASSERT(IsMaster());
             const int cycleLen = (1 << 16) - 1;
-            int tag = static_cast<int>(AtomicIncrement(Counter));
+            int tag = ++Counter;
             tag = tag < 0 ? -tag : tag;
             tag %= cycleLen;
             tag = (tag << 10) | 1023;
@@ -282,7 +264,7 @@ namespace NCudaLib {
         TVector<NCudaLib::TDeviceId> Devices;
         TVector<NCudaLib::TCudaDeviceProperties> DeviceProps;
 
-        TAtomic Counter = 0;
+        std::atomic<int> Counter = 0;
         bool UseBSendForTasks = false;
         static const ui64 BufferSize = 32 * 1024 * 1024; //32MB should be enough for simple kernels
 
@@ -292,7 +274,7 @@ namespace NCudaLib {
         TVector<char> CommandsBuffer;
 
         TManualEvent HasWorkEvent;
-        TAtomic StopFlag = 0;
+        std::atomic<bool> StopFlag = false;
 
         THolder<std::thread> MpiProxyThread;
 

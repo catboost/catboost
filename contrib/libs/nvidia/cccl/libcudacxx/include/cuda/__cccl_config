@@ -1,0 +1,36 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023-24 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA__CCCL_CONFIG
+#define _CUDA__CCCL_CONFIG
+
+#include <cuda/std/__cccl/architecture.h> // IWYU pragma: export
+#include <cuda/std/__cccl/assert.h> // IWYU pragma: export
+#include <cuda/std/__cccl/attributes.h> // IWYU pragma: export
+#include <cuda/std/__cccl/builtin.h> // IWYU pragma: export
+#include <cuda/std/__cccl/compiler.h> // IWYU pragma: export
+#include <cuda/std/__cccl/cuda_toolkit.h> // IWYU pragma: export
+#include <cuda/std/__cccl/deprecated.h> // IWYU pragma: export
+#include <cuda/std/__cccl/diagnostic.h> // IWYU pragma: export
+#include <cuda/std/__cccl/dialect.h> // IWYU pragma: export
+#include <cuda/std/__cccl/exceptions.h> // IWYU pragma: export
+#include <cuda/std/__cccl/execution_space.h> // IWYU pragma: export
+#include <cuda/std/__cccl/extended_data_types.h> // IWYU pragma: export
+#include <cuda/std/__cccl/os.h> // IWYU pragma: export
+#include <cuda/std/__cccl/preprocessor.h> // IWYU pragma: export
+#include <cuda/std/__cccl/ptx_isa.h> // IWYU pragma: export
+#include <cuda/std/__cccl/rtti.h> // IWYU pragma: export
+#include <cuda/std/__cccl/sequence_access.h> // IWYU pragma: export
+#include <cuda/std/__cccl/system_header.h> // IWYU pragma: export
+#include <cuda/std/__cccl/unreachable.h> // IWYU pragma: export
+#include <cuda/std/__cccl/version.h> // IWYU pragma: export
+#include <cuda/std/__cccl/visibility.h> // IWYU pragma: export
+
+#endif // _CUDA__CCCL_CONFIG

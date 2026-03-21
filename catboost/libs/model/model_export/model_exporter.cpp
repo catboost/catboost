@@ -65,7 +65,7 @@ namespace NCB {
             NCB::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
             NCB::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD pipelineModel.SerializeToString(&data);
+            data = pipelineModel.SerializeAsStringOrThrow();
         } else {
             auto description = treeModel.mutable_description();
             NCB::NCoreML::ConfigureMetadata(model, userParameters, description);
@@ -73,7 +73,7 @@ namespace NCB {
 
             NCB::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD treeModel.SerializeToString(&data);
+            data = treeModel.SerializeAsStringOrThrow();
         }
 
         TOFStream out(modelFile);
@@ -94,6 +94,14 @@ namespace NCB {
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
         );
+        CB_ENSURE(
+            !model.HasTextFeatures(),
+            "ONNX-ML format export does not support text features"
+        );
+        CB_ENSURE(
+            !model.HasEmbeddingFeatures(),
+            "ONNX-ML format export does not support embedding features"
+        );
 
         onnx::ModelProto outModel;
 
@@ -106,8 +114,7 @@ namespace NCB {
 
         NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
 
-        TString data;
-        Y_PROTOBUF_SUPPRESS_NODISCARD outModel.SerializeToString(&data);
+        TString data = outModel.SerializeAsStringOrThrow();
         oStream->Write(data);
     }
 

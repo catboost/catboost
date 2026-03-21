@@ -1,0 +1,54 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STREAM_REF
+#define _CUDA_STREAM_REF
+
+/*
+    stream_ref synopsis
+namespace cuda {
+class stream_ref {
+    using value_type = cudaStream_t;
+
+    stream_ref() = default;
+    stream_ref(cudaStream_t stream_) noexcept : stream(stream_) {}
+
+    stream_ref(int) = delete;
+    stream_ref(nullptr_t) = delete;
+
+    [[nodiscard]] value_type get() const noexcept;
+
+    void wait() const;
+
+    [[nodiscard]] bool ready() const;
+
+    [[nodiscard]] friend bool operator==(stream_ref, stream_ref);
+    [[nodiscard]] friend bool operator!=(stream_ref, stream_ref);
+
+private:
+  cudaStream_t stream = 0; // exposition only
+};
+}  // cuda
+*/
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/__stream/get_stream.h>
+#include <cuda/__stream/stream_ref.h>
+
+#endif //_CUDA_STREAM_REF

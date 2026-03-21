@@ -18,7 +18,7 @@ set(KOSHER_SVN_VERSION )
 
 set(SANDBOX_TASK_ID 0)
 
-set(BUILD_TYPE RELEASE)
+set(BUILD_TYPE $<CONFIGURATION>)
 
 add_library(library-cpp-build_info)
 

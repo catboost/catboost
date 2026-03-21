@@ -492,7 +492,7 @@ void FileGenerator::GenerateSourceIncludes(io::Printer* p) {
 
   if (HasCordFields(file_, options_)) {
     p->Emit(R"(
-      #include "y_absl/strings/internal/string_constant.h"
+      #error #include "third_party/absl/strings/internal/string_constant.h"
     )");
   }
 
@@ -1322,7 +1322,7 @@ void FileGenerator::GenerateLibraryIncludes(io::Printer* p) {
     }
     if (HasCordFields(file_, options_)) {
       p->Emit(R"(
-        #include "y_absl/strings/cord.h"
+        #error #include "third_party/absl/strings/cord.h"
       )");
     }
   }

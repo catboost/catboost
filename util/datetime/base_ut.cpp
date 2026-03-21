@@ -413,6 +413,11 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
         }
     }
 
+    Y_UNIT_TEST(TestFromConverableType) {
+        std::atomic<ui64> timestamp{42};
+        UNIT_ASSERT_EQUAL(TInstant::Seconds(42), TInstant::Seconds(timestamp));
+    }
+
     Y_UNIT_TEST(TestSleep) {
         // check does not throw
         Sleep(TDuration::Seconds(0));
@@ -580,6 +585,45 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
                                                        static_cast<double>(::Max<ui64>()) / 1000 + 0.1}));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Max(), TDuration(std::chrono::duration<float, std::milli>{
                                                        static_cast<float>(::Max<ui64>()) / 1000 + 0.1}));
+    }
+
+    template <class T>
+    void TestDurationCurationConstructorFunctionSaturation() {
+        const ui64 maxMilliseconds = ::Max<ui64>() / T::MilliSeconds(1).GetValue();
+        const ui64 maxSeconds = ::Max<ui64>() / T::Seconds(1).GetValue();
+        const ui64 maxMinutes = ::Max<ui64>() / T::Minutes(1).GetValue();
+        const ui64 maxHours = ::Max<ui64>() / T::Hours(1).GetValue();
+        const ui64 maxDays = ::Max<ui64>() / T::Days(1).GetValue();
+
+        auto test = [](ui64 maxValue, T (*constructor)(ui64), TStringBuf name) {
+            UNIT_ASSERT_VALUES_UNEQUAL_C(constructor(maxValue), T::Max(), LabeledOutput(name));
+            UNIT_ASSERT_VALUES_EQUAL_C(constructor(Max<ui64>()), T::Max(), LabeledOutput(name));
+            for (ui64 v = maxValue + 1; v != Max<ui64>(); v = std::midpoint(Max<ui64>(), v)) {
+                UNIT_ASSERT_VALUES_EQUAL_C(constructor(v), T::Max(), LabeledOutput(name, v));
+            }
+            for (ui64 v = maxValue; v != 0; v = std::midpoint(ui64(0), v)) {
+                UNIT_ASSERT_VALUES_UNEQUAL_C(constructor(v), T::Max(), LabeledOutput(name, v));
+            }
+        };
+        test(maxMilliseconds, &T::MilliSeconds, "MilliSeconds");
+        test(maxSeconds, &T::Seconds, "Seconds");
+        test(maxMinutes, &T::Minutes, "Minutes");
+        test(maxHours, &T::Hours, "Hours");
+        test(maxDays, &T::Days, "Days");
+    }
+
+    Y_UNIT_TEST(TestDurationCurationConstructorFunctionSaturation) {
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(-5.f), TDuration::Zero());
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(-5.f), TDuration::Zero());
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::MilliSeconds(0x1p63), TDuration::Max());
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(0x1p45), TDuration::Max());
+        UNIT_ASSERT_VALUES_UNEQUAL(TDuration::Seconds(0x1p44), TDuration::Max());
+
+        TestDurationCurationConstructorFunctionSaturation<TDuration>();
+    }
+
+    Y_UNIT_TEST(TestInstantCurationConstructorFunctionSaturation) {
+        TestDurationCurationConstructorFunctionSaturation<TInstant>();
     }
 
     Y_UNIT_TEST(TestTDurationCompareWithStdChronoDuration) {

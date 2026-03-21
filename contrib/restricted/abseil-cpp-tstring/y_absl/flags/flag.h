@@ -204,12 +204,14 @@ Y_ABSL_NAMESPACE_END
 
 #if Y_ABSL_FLAGS_STRIP_NAMES
 #define Y_ABSL_FLAG_IMPL_FLAGNAME(txt) ""
+#define Y_ABSL_FLAG_IMPL_TYPENAME(txt) ""
 #define Y_ABSL_FLAG_IMPL_FILENAME() ""
 #define Y_ABSL_FLAG_IMPL_REGISTRAR(T, flag)                                      \
   y_absl::flags_internal::FlagRegistrar<T, false>(Y_ABSL_FLAG_IMPL_FLAG_PTR(flag), \
                                                 nullptr)
 #else
 #define Y_ABSL_FLAG_IMPL_FLAGNAME(txt) txt
+#define Y_ABSL_FLAG_IMPL_TYPENAME(txt) txt
 #define Y_ABSL_FLAG_IMPL_FILENAME() __FILE__
 #define Y_ABSL_FLAG_IMPL_REGISTRAR(T, flag)                                     \
   y_absl::flags_internal::FlagRegistrar<T, true>(Y_ABSL_FLAG_IMPL_FLAG_PTR(flag), \
@@ -261,16 +263,17 @@ Y_ABSL_NAMESPACE_END
 // Note: Name of registrar object is not arbitrary. It is used to "grab"
 // global name for FLAGS_no<flag_name> symbol, thus preventing the possibility
 // of defining two flags with names foo and nofoo.
-#define Y_ABSL_FLAG_IMPL(Type, name, default_value, help)                       \
-  extern ::y_absl::Flag<Type> FLAGS_##name;                                     \
-  namespace y_absl /* block flags in namespaces */ {}                           \
-  Y_ABSL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value)           \
-  Y_ABSL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help)                             \
-  Y_ABSL_CONST_INIT y_absl::Flag<Type> FLAGS_##name{                              \
-      Y_ABSL_FLAG_IMPL_FLAGNAME(#name), Y_ABSL_FLAG_IMPL_FILENAME(),              \
-      Y_ABSL_FLAG_IMPL_HELP_ARG(name), Y_ABSL_FLAG_IMPL_DEFAULT_ARG(Type, name)}; \
-  extern y_absl::flags_internal::FlagRegistrarEmpty FLAGS_no##name;             \
-  y_absl::flags_internal::FlagRegistrarEmpty FLAGS_no##name =                   \
+#define Y_ABSL_FLAG_IMPL(Type, name, default_value, help)               \
+  extern ::y_absl::Flag<Type> FLAGS_##name;                             \
+  namespace y_absl /* block flags in namespaces */ {}                   \
+  Y_ABSL_FLAG_IMPL_DECLARE_DEF_VAL_WRAPPER(name, Type, default_value)   \
+  Y_ABSL_FLAG_IMPL_DECLARE_HELP_WRAPPER(name, help)                     \
+  Y_ABSL_CONST_INIT y_absl::Flag<Type> FLAGS_##name{                      \
+      Y_ABSL_FLAG_IMPL_FLAGNAME(#name), Y_ABSL_FLAG_IMPL_TYPENAME(#Type), \
+      Y_ABSL_FLAG_IMPL_FILENAME(), Y_ABSL_FLAG_IMPL_HELP_ARG(name),       \
+      Y_ABSL_FLAG_IMPL_DEFAULT_ARG(Type, name)};                        \
+  extern y_absl::flags_internal::FlagRegistrarEmpty FLAGS_no##name;     \
+  y_absl::flags_internal::FlagRegistrarEmpty FLAGS_no##name =           \
       Y_ABSL_FLAG_IMPL_REGISTRAR(Type, FLAGS_##name)
 
 // Y_ABSL_RETIRED_FLAG
@@ -290,8 +293,7 @@ Y_ABSL_NAMESPACE_END
 // arguments unchanged (unless of course you actually want to retire the flag
 // type at this time as well).
 //
-// `default_value` is only used as a double check on the type. `explanation` is
-// unused.
+// `default_value` and `explanation` are unused.
 // TODO(rogeeff): replace RETIRED_FLAGS with FLAGS once forward declarations of
 // retired flags are cleaned up.
 #define Y_ABSL_RETIRED_FLAG(type, name, default_value, explanation)      \

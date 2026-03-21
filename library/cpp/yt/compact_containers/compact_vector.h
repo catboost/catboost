@@ -56,7 +56,7 @@ public:
     using pointer = T*;
     using const_pointer = const T*;
 
-    TCompactVector() noexcept;
+    constexpr TCompactVector() noexcept;
     TCompactVector(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector(const TCompactVector<T, OtherN>& other);
@@ -132,7 +132,7 @@ public:
     TCompactVector& operator=(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector& operator=(const TCompactVector<T, OtherN>& other);
-    TCompactVector& operator=(TCompactVector&& other);
+    TCompactVector& operator=(TCompactVector&& other) noexcept;
     template <size_t OtherN>
     TCompactVector& operator=(TCompactVector<T, OtherN>&& other);
     TCompactVector& operator=(std::initializer_list<T> list);

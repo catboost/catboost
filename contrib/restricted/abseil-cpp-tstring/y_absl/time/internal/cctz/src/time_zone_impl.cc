@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-#include "time_zone_impl.h"
+#include "y_absl/time/internal/cctz/src/time_zone_impl.h"
 
 #include <deque>
 #include <memory>
@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "y_absl/base/config.h"
-#include "time_zone_fixed.h"
+#include "y_absl/time/internal/cctz/src/time_zone_fixed.h"
 
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN

@@ -6,7 +6,7 @@ A one-dimensional array of categorical columns indices (specified as integers) o
 
 This array can contain both indices and names for different elements.
 
-If any features in the `cat_features` parameter are specified as names instead of indices, feature names must be provided for the training dataset. Therefore, the type of the `X` parameter in the future calls of the `fit` function must be either [catboost.Pool](../../../concepts/python-reference_pool.md) with defined feature names data or pandas.DataFrame with defined column names.
+If any features in the `cat_features` parameter are specified as names instead of indices, feature names must be provided for the training dataset. Therefore, the type of the `X` parameter in the future calls of the `fit` function must be either [catboost.Pool](../../../concepts/python-reference_pool.md) with defined feature names data or pandas.DataFrame or [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html).
 
 {% note info %}
 

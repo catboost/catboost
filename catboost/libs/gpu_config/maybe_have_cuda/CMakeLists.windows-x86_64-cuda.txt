@@ -20,7 +20,7 @@ target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
   yutil
   catboost-libs-logging
   libs-gpu_config-interface
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(libs-gpu_config-maybe_have_cuda PRIVATE

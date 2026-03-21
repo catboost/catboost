@@ -21,7 +21,7 @@ namespace NCudaLib {
     public:
         void Call(const TString& message) override {
             CATBOOST_ERROR_LOG << "Exception on device #" << Device->GetDeviceId() << " Error: " << message << Endl;
-            AtomicIncrement(Device->ExceptionsCount);
+            ++(Device->ExceptionsCount);
         }
 
     private:

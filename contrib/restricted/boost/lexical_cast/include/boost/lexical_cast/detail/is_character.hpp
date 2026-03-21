@@ -18,32 +18,31 @@
 #ifndef BOOST_LEXICAL_CAST_DETAIL_IS_CHARACTER_HPP
 #define BOOST_LEXICAL_CAST_DETAIL_IS_CHARACTER_HPP
 
+#include <type_traits>
+
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
 #endif
 
-#include <boost/type_traits/integral_constant.hpp>
-#include <boost/type_traits/is_same.hpp>
-
 namespace boost { namespace detail {
 
 // returns true, if T is one of the character types
 template < typename T >
-using is_character = boost::integral_constant<
+using is_character = std::integral_constant<
     bool,
-    boost::is_same< T, char >::value ||
+    std::is_same< T, char >::value ||
 #if !defined(BOOST_NO_STRINGSTREAM) && !defined(BOOST_NO_STD_WSTRING)
-    boost::is_same< T, wchar_t >::value ||
+    std::is_same< T, wchar_t >::value ||
 #endif
 #ifndef BOOST_NO_CXX11_CHAR16_T
-    boost::is_same< T, char16_t >::value ||
+    std::is_same< T, char16_t >::value ||
 #endif
 #ifndef BOOST_NO_CXX11_CHAR32_T
-    boost::is_same< T, char32_t >::value ||
+    std::is_same< T, char32_t >::value ||
 #endif
-    boost::is_same< T, unsigned char >::value ||
-    boost::is_same< T, signed char >::value
+    std::is_same< T, unsigned char >::value ||
+    std::is_same< T, signed char >::value
 >;
 
 }}

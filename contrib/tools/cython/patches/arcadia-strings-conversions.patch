@@ -1,0 +1,31 @@
+--- contrib/tools/cython/Cython/Utility/StringTools.c	(index)
++++ contrib/tools/cython/Cython/Utility/StringTools.c	(working tree)
+@@ -460,6 +460,28 @@ static CYTHON_INLINE PyObject* __Pyx_decode_cpp_string_view(
+         cppstring.data(), (Py_ssize_t) cppstring.size(), start, stop, encoding, errors, decode_func);
+ }
+ 
++/////////////// decode_cpp_TString.proto ///////////////
++//@requires: IncludeCppStringH
++//@requires: decode_c_bytes
++static CYTHON_INLINE PyObject* __Pyx_decode_cpp_TString(
++         std::string_view cppstring, Py_ssize_t start, Py_ssize_t stop,
++         const char* encoding, const char* errors,
++         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
++    return __Pyx_decode_c_bytes(
++        cppstring.data(), (Py_ssize_t) cppstring.size(), start, stop, encoding, errors, decode_func);
++}
++
++/////////////// decode_cpp_TStringBuf.proto ///////////////
++//@requires: IncludeCppStringH
++//@requires: decode_c_bytes
++static CYTHON_INLINE PyObject* __Pyx_decode_cpp_TStringBuf(
++         std::string_view cppstring, Py_ssize_t start, Py_ssize_t stop,
++         const char* encoding, const char* errors,
++         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
++    return __Pyx_decode_c_bytes(
++        cppstring.data(), (Py_ssize_t) cppstring.size(), start, stop, encoding, errors, decode_func);
++}
++
+ /////////////// decode_c_string.proto ///////////////
+ 
+ static CYTHON_INLINE PyObject* __Pyx_decode_c_string(

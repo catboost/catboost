@@ -22,6 +22,7 @@
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
 #include "y_absl/base/const_init.h"
+#include "y_absl/base/no_destructor.h"
 #include "y_absl/base/thread_annotations.h"
 #include "y_absl/flags/internal/path_util.h"
 #include "y_absl/flags/internal/program_name.h"
@@ -104,14 +105,18 @@ TString NormalizeFilename(y_absl::string_view filename) {
 
 // --------------------------------------------------------------------
 
-Y_ABSL_CONST_INIT y_absl::Mutex custom_usage_config_guard(y_absl::kConstInit);
+y_absl::Mutex* CustomUsageConfigMutex() {
+  static y_absl::NoDestructor<y_absl::Mutex> mutex;
+  return mutex.get();
+}
 Y_ABSL_CONST_INIT FlagsUsageConfig* custom_usage_config
-    Y_ABSL_GUARDED_BY(custom_usage_config_guard) = nullptr;
+    Y_ABSL_GUARDED_BY(CustomUsageConfigMutex())
+        Y_ABSL_PT_GUARDED_BY(CustomUsageConfigMutex()) = nullptr;
 
 }  // namespace
 
 FlagsUsageConfig GetUsageConfig() {
-  y_absl::MutexLock l(&custom_usage_config_guard);
+  y_absl::MutexLock l(CustomUsageConfigMutex());
 
   if (custom_usage_config) return *custom_usage_config;
 
@@ -136,7 +141,7 @@ void ReportUsageError(y_absl::string_view msg, bool is_fatal) {
 }  // namespace flags_internal
 
 void SetFlagsUsageConfig(FlagsUsageConfig usage_config) {
-  y_absl::MutexLock l(&flags_internal::custom_usage_config_guard);
+  y_absl::MutexLock l(flags_internal::CustomUsageConfigMutex());
 
   if (!usage_config.contains_helpshort_flags)
     usage_config.contains_helpshort_flags =

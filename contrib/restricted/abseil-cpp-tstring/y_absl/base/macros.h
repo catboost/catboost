@@ -34,6 +34,7 @@
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
 #include "y_absl/base/optimization.h"
+#include "y_absl/base/options.h"
 #include "y_absl/base/port.h"
 
 // Y_ABSL_ARRAYSIZE()
@@ -81,8 +82,9 @@ Y_ABSL_NAMESPACE_END
 // Y_ABSL_ASSERT()
 //
 // In C++11, `assert` can't be used portably within constexpr functions.
+// `assert` also generates spurious unused-symbol warnings.
 // Y_ABSL_ASSERT functions as a runtime assert but works in C++11 constexpr
-// functions.  Example:
+// functions, and maintains references to symbols.  Example:
 //
 // constexpr double Divide(double a, double b) {
 //   return Y_ABSL_ASSERT(b != 0), a / b;
@@ -91,8 +93,18 @@ Y_ABSL_NAMESPACE_END
 // This macro is inspired by
 // https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
 #if defined(NDEBUG)
-#define Y_ABSL_ASSERT(expr) \
-  (false ? static_cast<void>(expr) : static_cast<void>(0))
+#if Y_ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+// We use `decltype` here to avoid generating unnecessary code that the
+// optimizer then has to optimize away.
+// This not only improves compilation performance by reducing codegen bloat
+// and optimization work, but also guarantees fast run-time performance without
+// having to rely on the optimizer.
+#define Y_ABSL_ASSERT(expr) (decltype((expr) ? void() : void())())
+#else
+// Pre-C++20, lambdas can't be inside unevaluated operands, so we're forced to
+// rely on the optimizer.
+#define Y_ABSL_ASSERT(expr) (false ? ((expr) ? void() : void()) : void())
+#endif
 #else
 #define Y_ABSL_ASSERT(expr)                           \
   (Y_ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
@@ -120,12 +132,31 @@ Y_ABSL_NAMESPACE_END
 //
 // See `Y_ABSL_OPTION_HARDENED` in `y_absl/base/options.h` for more information on
 // hardened mode.
-#if Y_ABSL_OPTION_HARDENED == 1 && defined(NDEBUG)
+#if (Y_ABSL_OPTION_HARDENED == 1 || Y_ABSL_OPTION_HARDENED == 2) && defined(NDEBUG)
 #define Y_ABSL_HARDENING_ASSERT(expr)                 \
   (Y_ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
                              : [] { Y_ABSL_INTERNAL_HARDENING_ABORT(); }())
 #else
 #define Y_ABSL_HARDENING_ASSERT(expr) Y_ABSL_ASSERT(expr)
+#endif
+
+// Y_ABSL_HARDENING_ASSERT_SLOW()
+//
+// `Y_ABSL_HARDENING_ASSERT()` is like `Y_ABSL_HARDENING_ASSERT()`,
+//  but specifically for assertions whose predicates are too slow
+//  to be enabled in many applications.
+//
+// When `NDEBUG` is not defined, `Y_ABSL_HARDENING_ASSERT_SLOW()` is identical to
+// `Y_ABSL_ASSERT()`.
+//
+// See `Y_ABSL_OPTION_HARDENED` in `y_absl/base/options.h` for more information on
+// hardened mode.
+#if Y_ABSL_OPTION_HARDENED == 1 && defined(NDEBUG)
+#define Y_ABSL_HARDENING_ASSERT_SLOW(expr)            \
+  (Y_ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
+                             : [] { Y_ABSL_INTERNAL_HARDENING_ABORT(); }())
+#else
+#define Y_ABSL_HARDENING_ASSERT_SLOW(expr) Y_ABSL_ASSERT(expr)
 #endif
 
 #ifdef Y_ABSL_HAVE_EXCEPTIONS

@@ -20,6 +20,19 @@ DataMetaInfo = _catboost.DataMetaInfo
 compute_training_options = _catboost.compute_training_options
 
 
+try:
+    import polars as pl
+except ImportError:
+    # just to avoid checking (pl is not None) everywhere
+    class polars:
+        class DataFrame(object):
+            pass
+
+        class Series(object):
+            pass
+    pl = polars
+
+
 @contextmanager
 def _import_matplotlib():
     try:
@@ -261,7 +274,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
 
     Parameters
     ----------
-    label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
+    label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series
         Object labels with shape (n_objects,) or (n_object, n_target_dimension)
 
     approx : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
@@ -270,22 +283,22 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     metric : string
         Metric name.
 
-    weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Object weights.
 
-    group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Object group ids.
 
-    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Group weights.
 
-    subgroup_id : list or numpy.ndarray, optional (default=None)
+    subgroup_id : list or numpy.ndarray or polars.Series, optional (default=None)
         subgroup id for each instance.
         If not None, giving 1 dimensional array like data.
 
-    pairs : list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+    pairs : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame or string or pathlib.Path
         The pairs description.
-        If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
+        If list or numpy.ndarrays or pandas.DataFrame or polars.DataFrame, giving 2 dimensional.
         The shape should be Nx2, where N is the pairs' count. The first element of the pair is
         the index of winner object in the training set. The second element of the pair is
         the index of loser object in the training set.
@@ -300,7 +313,10 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     metric results : list with metric values.
     """
     if len(label) > 0:
-        label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
+        if isinstance(label, pl.Series):
+            label = pl.DataFrame(label)
+        elif not isinstance(label, pl.DataFrame):
+            label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
     if len(approx) == 0:
         approx = [[]]
     approx = np.transpose(approx) if isinstance(approx[0], ARRAY_TYPES) else [approx]

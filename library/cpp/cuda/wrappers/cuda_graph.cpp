@@ -1,5 +1,8 @@
 #include "cuda_graph.h"
 
+#include <library/cpp/cuda/exception/exception.h>
+
+
 TCudaGraph::TInner::~TInner() {
     CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaGraphDestroy(Graph_));
 }

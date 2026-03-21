@@ -54,7 +54,7 @@ void FromJson(const NJson::TJsonValue& value, T* result) {
             *result = FromString<T>(value.GetString());
             break;
         default:
-            CB_ENSURE("Incorrect format");
+            CB_ENSURE(false, "Incorrect format");
     }
 }
 

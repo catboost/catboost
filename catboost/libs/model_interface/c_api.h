@@ -6,7 +6,7 @@
 
 #define CATBOOST_APPLIER_MAJOR 1
 #define CATBOOST_APPLIER_MINOR 2
-#define CATBOOST_APPLIER_FIX 8
+#define CATBOOST_APPLIER_FIX 10
 
 #if defined(__cplusplus)
 extern "C" {
@@ -76,6 +76,9 @@ CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 /**
  * If error occured will return stored exception message.
  * If no error occured, will return invalid pointer
+ * The underlying variable is thread-local so:
+ *  - it is thread-safe to get it
+ *  - indicates only errors that happened in the current thread
  * @return Error message string. Uses UTF-8 encoding
  */
 CATBOOST_API const char* GetErrorString();

@@ -994,7 +994,7 @@ doublereal snrm2_(integer *n, real *x, integer *incx);
 	 complex *z__, integer *ldz, complex *work, integer *lwork, real *
 	rwork, integer *info);
 
-/* Character */ VOID chla_transtype__(char *ret_val, ftnlen ret_val_len, 
+/* Character */ VOID chla_transtype_(char *ret_val, ftnlen ret_val_len, 
 	integer *trans);
 
 /* Subroutine */ int chpcon_(char *uplo, integer *n, complex *ap, integer *

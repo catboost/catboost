@@ -30,3 +30,35 @@ target_sources(contrib-libs-lz4 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4hc.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4file.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4frame.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4hc.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

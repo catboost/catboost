@@ -3,6 +3,10 @@ if (HAVE_CUDA)
       message(FATAL_ERROR "Build with CUDA requires at least cmake 3.17.0")
   endif()
 
+  if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    set(CMAKE_CUDA_ARCHITECTURES "35-virtual;50-virtual;60-virtual;61-real;70-virtual;75-real;80-real;86-real;89-real;90")
+  endif()
+
   enable_language(CUDA)
 
   include(global_flags)
@@ -103,7 +107,7 @@ if (HAVE_CUDA)
       # things from .h files as if they they were defined in a .cpp file.
       list(APPEND localCudaCommonFlags -Wno-unused-function -Wno-unused-parameter)
       if (CMAKE_CXX_COMPILER_TARGET)
-        list(APPEND localCudaCompilerOptions "--target=${CMAKE_CXX_COMPILER_TARGET}") 
+        list(APPEND localCudaCompilerOptions "--target=${CMAKE_CXX_COMPILER_TARGET}")
       endif()
     endif()
 
@@ -126,6 +130,8 @@ if (HAVE_CUDA)
     " --expt-relaxed-constexpr"
     # Allow to use newer compilers than CUDA Toolkit officially supports
     " --allow-unsupported-compiler"
+    # Allow to use libc++ with CUDA 12.3+
+    " -D_ALLOW_UNSUPPORTED_LIBCPP"
   )
 
   set(NVCC_STD_VER 17)
@@ -148,14 +154,14 @@ if (HAVE_CUDA)
 
   # use versions from contrib, standard libraries from CUDA distibution are incompatible with MSVC and libcxx
   set(CUDA_EXTRA_INCLUDE_DIRECTORIES
-    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/thrust
-    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/cub
+    ${PROJECT_SOURCE_DIR}/contrib/deprecated/nvidia/thrust
+    ${PROJECT_SOURCE_DIR}/contrib/deprecated/nvidia/cub
   )
 
   find_package(CUDAToolkit REQUIRED)
 
   if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.2")
-    string(APPEND CMAKE_CUDA_FLAGS " --threads 0")
+    string(APPEND CMAKE_CUDA_FLAGS " --threads 2")
   endif()
 
   message(VERBOSE "CMAKE_CUDA_FLAGS = \"${CMAKE_CUDA_FLAGS}\"")

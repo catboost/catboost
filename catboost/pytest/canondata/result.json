@@ -1,14 +1,4 @@
 {
-    "large_dist_test.test_dist_train_many_trees[calc_block=5000000]": [
-        {
-            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=5000000_/test.eval"
-        }
-    ],
-    "large_dist_test.test_dist_train_many_trees[calc_block=60]": [
-        {
-            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=60_/test.eval"
-        }
-    ],
     "test.test_all_targets[calc_block=5000000-Ordered-SymmetricTree-CrossEntropy]": [
         {
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-SymmetricTree-CrossEntropy_/test.eval"
@@ -7611,9 +7601,14 @@
             "uri": "file://test.test_only_categorical_features_calc_block=60-Plain_/test.eval"
         }
     ],
-    "test.test_output_columns_format": {
-        "uri": "file://test.test_output_columns_format/test.eval"
-    },
+    "test.test_output_columns_format": [
+        {
+            "uri": "file://test.test_output_columns_format/test.eval"
+        },
+        {
+            "uri": "file://test.test_output_columns_format/predict_test.eval"
+        }
+    ],
     "test.test_output_options": {
         "uri": "file://test.test_output_options/training_options.json"
     },

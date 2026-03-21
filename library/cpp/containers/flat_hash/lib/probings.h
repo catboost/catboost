@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <type_traits>
 
 namespace NFlatHash {

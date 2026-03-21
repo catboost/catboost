@@ -21,6 +21,7 @@
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -214,7 +215,7 @@ static void InitializeAndCheckMetricData(
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
-    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    // Use only (last_test, first_metric) for the best iteration and overfitting detection
     // In case of changing the order it should be changed in GPU mode also.
     metricsData->ErrorTrackerMetricIdx = 0;
 

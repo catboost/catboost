@@ -75,7 +75,7 @@
  *
  * void Foo(const int argumentUsedOnlyForDebugPurposes Y_DECLARE_UNUSED) {
  *     assert(argumentUsedOnlyForDebugPurposes == 42);
- *     // however you may as well omit `Y_DECLARE_UNUSED` and use `UNUSED` macro instead
+ *     // however you may as well omit `Y_DECLARE_UNUSED` and use `Y_UNUSED` macro instead
  *     Y_UNUSED(argumentUsedOnlyForDebugPurposes);
  * }
  * @endcode
@@ -129,6 +129,19 @@
         #define Y_NO_INLINE __attribute__((__noinline__))
     #else
         #define Y_NO_INLINE
+    #endif
+#endif
+
+/**
+ * @def Y_EMPTY_BASES
+ *
+ * Macro to enable EBO (empty base optimization).
+ */
+#if !defined(Y_EMPTY_BASES)
+    #if defined(_MSC_VER)
+        #define Y_EMPTY_BASES __declspec(empty_bases)
+    #else
+        #define Y_EMPTY_BASES
     #endif
 #endif
 
@@ -698,15 +711,25 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 /**
  * @def Y_LIFETIME_BOUND
  *
- * The attribute on a function parameter can be used to tell the compiler
- * that function return value may refer that parameter.
+ * This attribute on a function parameter can be used to tell the compiler
+ * that the function return value may refer that parameter.
+ * When applied to a parameter of a constructor it means that the constructed object
+ * may refer that parameter.
+ * This attribute can also be used to annotate non-static member functions meaning that the
+ * return value of this function may refer to the object on which the member function is invoked.
+ *
  * The compiler may produce a compile-time warning if it is able to detect that
  * an object or a reference refers to another object with a shorter lifetime.
+ *
+ * @see
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#lifetimebound
  */
 #if defined(__CUDACC__) && (!Y_CUDA_AT_LEAST(11, 0) || (__clang_major__ < 13))
     #define Y_LIFETIME_BOUND
 #elif Y_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
     #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::lifetimebound)
+    #define Y_LIFETIME_BOUND [[msvc::lifetimebound]]
 #else
     #define Y_LIFETIME_BOUND
 #endif
@@ -785,6 +808,54 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  */
 #if Y_HAS_CPP_ATTRIBUTE(no_unique_address)
     #define Y_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#elif Y_HAS_CPP_ATTRIBUTE(msvc::no_unique_address)
+    #define Y_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #else
     #define Y_NO_UNIQUE_ADDRESS
+#endif
+
+/**
+ * @def Y_CORO_AWAIT_ELIDABLE
+ *
+ * A class attribute which can be applied to a coroutine return type.
+ *
+ * Allows the compiler to apply heap allocation elision when the coroutine with such return type
+ * is immediately awaited or passed as an argument to a Y_CORO_AWAIT_ELIDABLE_ARGUMENT parameter.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-await-elidable
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_await_elidable)
+    #define Y_CORO_AWAIT_ELIDABLE [[clang::coro_await_elidable]]
+#else
+    #define Y_CORO_AWAIT_ELIDABLE
+#endif
+
+/**
+ * @def Y_CORO_AWAIT_ELIDABLE_ARGUMENT
+ *
+ * A function parameter attribute which allows the compiler to apply heap allocation elision for
+ * a coroutine with Y_CORO_AWAIT_ELIDABLE return type passed as argument to the annotated parameter.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-await-elidable-argument
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_await_elidable_argument)
+    #define Y_CORO_AWAIT_ELIDABLE_ARGUMENT [[clang::coro_await_elidable_argument]]
+#else
+    #define Y_CORO_AWAIT_ELIDABLE_ARGUMENT
+#endif
+
+/**
+ * @def Y_CORO_ONLY_DESTROY_WHEN_COMPLETE
+ *
+ * A class attribute which can be applied to a coroutine return type.
+ *
+ * Allows the compiler to skip generation of destructors for intermediate suspension points
+ * and reduce code size.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-only-destroy-when-complete
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_only_destroy_when_complete)
+    #define Y_CORO_ONLY_DESTROY_WHEN_COMPLETE [[clang::coro_only_destroy_when_complete]]
+#else
+    #define Y_CORO_ONLY_DESTROY_WHEN_COMPLETE
 #endif

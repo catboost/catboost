@@ -24,22 +24,22 @@ class TSimpleMemoryUsageTrackerGuard
 public:
     TSimpleMemoryUsageTrackerGuard() = default;
     TSimpleMemoryUsageTrackerGuard(const TSimpleMemoryUsageTrackerGuard& other) = delete;
-    TSimpleMemoryUsageTrackerGuard(TSimpleMemoryUsageTrackerGuard&& other);
+    TSimpleMemoryUsageTrackerGuard(TSimpleMemoryUsageTrackerGuard&& other) noexcept;
     ~TSimpleMemoryUsageTrackerGuard();
 
     TSimpleMemoryUsageTrackerGuard& operator=(const TSimpleMemoryUsageTrackerGuard& other) = delete;
-    TSimpleMemoryUsageTrackerGuard& operator=(TSimpleMemoryUsageTrackerGuard&& other);
+    TSimpleMemoryUsageTrackerGuard& operator=(TSimpleMemoryUsageTrackerGuard&& other) noexcept;
 
     static TSimpleMemoryUsageTrackerGuard Build(ISimpleMemoryUsageTrackerPtr tracker);
 
     void SetSize(i64 size);
 
-    void Release();
+    void Release() noexcept;
 
 private:
     ISimpleMemoryUsageTrackerPtr Tracker_;
     i64 AcquiredSize_ = 0;
-    void MoveFrom(TSimpleMemoryUsageTrackerGuard&& other);
+    void MoveFrom(TSimpleMemoryUsageTrackerGuard&& other) noexcept;
 
 };
 

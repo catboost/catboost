@@ -8,10 +8,10 @@ using namespace NJson::NOrderedJson;
 
 Y_UNIT_TEST_SUITE(TJsonValueTest) {
     Y_UNIT_TEST(Equal) {
-         UNIT_ASSERT(1 == TJsonValue(1));
-         UNIT_ASSERT(TJsonValue(1) == 1);
-         UNIT_ASSERT(2 != TJsonValue(1));
-         UNIT_ASSERT(TJsonValue(1) != 2);
+        UNIT_ASSERT(1 == TJsonValue(1));
+        UNIT_ASSERT(TJsonValue(1) == 1);
+        UNIT_ASSERT(2 != TJsonValue(1));
+        UNIT_ASSERT(TJsonValue(1) != 2);
     }
 
     Y_UNIT_TEST(UndefTest) {
@@ -175,14 +175,17 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             const int NUM_KEYS = 1000;
 
             TJsonValue lhs;
-            for (int i = 0; i < NUM_KEYS; ++i)
+            for (int i = 0; i < NUM_KEYS; ++i) {
                 lhs.InsertValue(ToString(i), i);
+            }
 
             TJsonValue rhs;
-            for (int i = 0; i < NUM_KEYS; i += 2)
+            for (int i = 0; i < NUM_KEYS; i += 2) {
                 rhs.InsertValue(ToString(i), i);
-            for (int i = 1; i < NUM_KEYS; i += 2)
+            }
+            for (int i = 1; i < NUM_KEYS; i += 2) {
                 rhs.InsertValue(ToString(i), i);
+            }
 
             UNIT_ASSERT(lhs == rhs);
             UNIT_ASSERT(rhs == lhs);
@@ -289,6 +292,33 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             UNIT_ASSERT(lhs.SetValueByPath("l/a/c/se", "h", '/'));
             UNIT_ASSERT(lhs.GetValueByPath("l/a/c/se", result, '/'));
             UNIT_ASSERT(result.GetStringRobust() == "h");
+
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[]", "new_array_elem1", '/'));
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[]", "new_array_elem2", '/'));
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[0]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-2]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(!lhs.GetValueByPath("l/b/[-5]", result, '/'));
+
+            UNIT_ASSERT(lhs.SetValueByPath("l/b/[-5]", "new_array_elem_min5", '/'));
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-1]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem2");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-2]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem1");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-5]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "new_array_elem_min5");
+
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-4]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "null");
+            UNIT_ASSERT(lhs.GetValueByPath("l/b/[-3]", result, '/'));
+            UNIT_ASSERT(result.GetStringRobust() == "null");
         }
     }
 
@@ -701,8 +731,7 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             NJson::TJsonValue(NJson::JSON_ARRAY),
             NJson::TJsonValue(NJson::JSON_MAP),
             nonEmptyArray,
-            nonEmptyMap
-        };
+            nonEmptyMap};
 
         for (const auto& val : values) {
             TJsonValue ordered(val);
@@ -850,8 +879,7 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             TJsonValue(3.14),
             TJsonValue("test string"),
             TJsonValue(JSON_ARRAY),
-            TJsonValue(JSON_MAP)
-        };
+            TJsonValue(JSON_MAP)};
 
         for (auto& original : values) {
             TStringStream ss;
@@ -864,8 +892,7 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
                 original.IsBoolean() || original.IsInteger() ||
                 original.IsUInteger() || original.IsDouble() ||
                 original.IsString() || original.IsNull() ||
-                !original.IsDefined()
-            ) {
+                !original.IsDefined()) {
                 UNIT_ASSERT(loaded == original);
             } else if (original.IsMap()) {
                 UNIT_ASSERT(loaded.IsMap());
@@ -917,4 +944,4 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             UNIT_ASSERT_VALUES_EQUAL(it->second.GetIntegerRobust(), i);
         }
     }
-} // TJsonValueTest
+} // Y_UNIT_TEST_SUITE(TJsonValueTest)

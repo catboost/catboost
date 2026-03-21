@@ -69,8 +69,9 @@ namespace NJson {
     }
 
     void TJsonWriter::Write(const TStringBuf& value) {
-        if (ValidateUtf8 && !IsUtf(value))
+        if (ValidateUtf8 && !IsUtf(value)) {
             throw yexception() << "JSON writer: invalid UTF-8";
+        }
         if (Buf.KeyExpected()) {
             Buf.WriteKey(value);
         } else {
@@ -106,14 +107,6 @@ namespace NJson {
         Buf.WriteBool(value);
     }
 
-    namespace {
-        struct TLessStrPtr {
-            bool operator()(const TString* a, const TString* b) const {
-                return *a < *b;
-            }
-        };
-    }
-
     void TJsonWriter::Write(const TJsonValue* v) {
         Buf.WriteJsonValue(v, SortKeys, FloatToStringMode, DoubleNDigits);
     }
@@ -125,13 +118,11 @@ namespace NJson {
     TString WriteJson(const TJsonValue* value, bool formatOutput, bool sortkeys, bool validateUtf8) {
         TStringStream ss;
         WriteJson(&ss, value, formatOutput, sortkeys, validateUtf8);
-        return ss.Str();
+        return std::move(ss).Str();
     }
 
     TString WriteJson(const TJsonValue& value, bool formatOutput, bool sortkeys, bool validateUtf8) {
-        TStringStream ss;
-        WriteJson(&ss, &value, formatOutput, sortkeys, validateUtf8);
-        return ss.Str();
+        return WriteJson(&value, formatOutput, sortkeys, validateUtf8);
     }
 
     void WriteJson(IOutputStream* out, const TJsonValue* val, bool formatOutput, bool sortkeys, bool validateUtf8) {
@@ -146,4 +137,4 @@ namespace NJson {
         w.Flush();
     }
 
-}
+} // namespace NJson

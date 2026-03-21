@@ -1,8 +1,8 @@
 #pragma once
 #include <cuda_runtime.h>
-#include <util/system/types.h>
 #include <util/generic/array_ref.h>
 
+#include <type_traits>
 
 namespace NKernel {
 
@@ -12,7 +12,12 @@ namespace NKernel {
 
     template <class T>
     __host__ __device__ inline T CeilDivide(T x, T y) {
-        return (x + y - 1) / y;
+        if constexpr (std::is_signed_v<T>) {
+            // negative values are not supported for now
+            assert(x >= T(0));
+        }
+        assert(y > T(0));
+        return (x / y) + (x % y != T(0));
     }
 
     template <class T>

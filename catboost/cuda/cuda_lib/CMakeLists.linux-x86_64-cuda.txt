@@ -24,16 +24,18 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   catboost-libs-helpers
   catboost-libs-logging
   library-cpp-blockcodecs
+  cpp-cuda-exception
   cpp-cuda-wrappers
   cpp-threading-future
   cpp-threading-local_executor
   cpp-threading-name_guard
-  cpp-deprecated-atomic
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cache.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/column_aligment_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cpu_reducers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_base.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.cpp
@@ -42,7 +44,7 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_manager.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_profiler.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_id.cpp
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_subtasks_helper.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_provider.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_list.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/local_promise_future.cpp
@@ -50,14 +52,21 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/promise_factory.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/fwd.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/gpu_single_worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/hwloc_wrapper.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/inter_device_stream_section.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mapping.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_copy_performance.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_provider_trait.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_pool/stack_like_memory_pool.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mpi/mpi_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/peer_devices.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/read_and_write_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/remote_objects.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/serialization/task_factory.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/single_device.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/slice.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/stream_section_tasks_launcher.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/cpu_func.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/stream_section_task.cpp
@@ -74,25 +83,6 @@ target_cuda_sources(catboost-cuda-cuda_lib PRIVATE
 
 target_cuda_flags(catboost-cuda-cuda_lib
   -Wno-deprecated-gpu-targets
-  -gencode=arch=compute_35,code=sm_35
-  -gencode
-  arch=compute_50,code=compute_50
-  -gencode
-  arch=compute_52,code=sm_52
-  -gencode
-  arch=compute_60,code=compute_60
-  -gencode
-  arch=compute_61,code=compute_61
-  -gencode
-  arch=compute_61,code=sm_61
-  -gencode
-  arch=compute_70,code=sm_70
-  -gencode
-  arch=compute_70,code=compute_70
-  -gencode=arch=compute_80,code=sm_80
-  -gencode=arch=compute_86,code=sm_86
-  -gencode=arch=compute_89,code=sm_89
-  -gencode=arch=compute_90,code=sm_90
 )
 
 add_global_library_for(catboost-cuda-cuda_lib.global
@@ -106,12 +96,12 @@ target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC
   catboost-libs-helpers
   catboost-libs-logging
   library-cpp-blockcodecs
+  cpp-cuda-exception
   cpp-cuda-wrappers
   cpp-threading-future
   cpp-threading-local_executor
   cpp-threading-name_guard
-  cpp-deprecated-atomic
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(catboost-cuda-cuda_lib.global PRIVATE

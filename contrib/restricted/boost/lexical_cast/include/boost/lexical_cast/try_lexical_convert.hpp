@@ -18,13 +18,12 @@
 #ifndef BOOST_LEXICAL_CAST_TRY_LEXICAL_CONVERT_HPP
 #define BOOST_LEXICAL_CAST_TRY_LEXICAL_CONVERT_HPP
 
+#include <type_traits>
+
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
 #endif
-
-#include <boost/type_traits/conditional.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
 
 #include <boost/lexical_cast/detail/buffer_view.hpp>
 #include <boost/lexical_cast/detail/is_character.hpp>
@@ -35,12 +34,12 @@ namespace boost {
     namespace detail
     {
         template<typename Target, typename Source>
-        using is_arithmetic_and_not_xchars = boost::integral_constant<
+        using is_arithmetic_and_not_xchars = std::integral_constant<
             bool,
             !(boost::detail::is_character<Target>::value) &&
                 !(boost::detail::is_character<Source>::value) &&
-                boost::is_arithmetic<Source>::value &&
-                boost::is_arithmetic<Target>::value
+                std::is_arithmetic<Source>::value &&
+                std::is_arithmetic<Target>::value
         >;
     }
 
@@ -50,7 +49,7 @@ namespace boost {
         inline bool try_lexical_convert(const Source& arg, Target& result)
         {
             static_assert(
-                !boost::is_volatile<Source>::value,
+                !std::is_volatile<Source>::value,
                 "Boost.LexicalCast does not support volatile input");
 
             typedef typename boost::detail::array_to_pointer_decay<Source>::type src;
@@ -58,7 +57,7 @@ namespace boost {
             typedef boost::detail::is_arithmetic_and_not_xchars<Target, src >
                 shall_we_copy_with_dynamic_check_t;
 
-            typedef typename boost::conditional<
+            typedef typename std::conditional<
                  shall_we_copy_with_dynamic_check_t::value,
                  boost::detail::dynamic_num_converter_impl<Target, src >,
                  boost::detail::lexical_converter_impl<Target, src >

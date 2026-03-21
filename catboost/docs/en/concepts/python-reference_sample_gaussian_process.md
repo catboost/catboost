@@ -40,7 +40,7 @@ Must be non-empty (contain > 0 objects)
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 Two-dimensional feature matrix.
 
@@ -154,13 +154,15 @@ A one-dimensional array of embedding features columns indices.
 
 The random seed used for training.
 
+Possible range is [0, +inf)
+
 **Possible types**
 
 - {{ python-type--int }}
 
 **Default value**
 
-{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+None. 0 is used in this case.
 
 
 ### samples

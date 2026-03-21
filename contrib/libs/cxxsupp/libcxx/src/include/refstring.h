@@ -9,17 +9,11 @@
 #ifndef _LIBCPP_REFSTRING_H
 #define _LIBCPP_REFSTRING_H
 
+#include "atomic_support.h"
 #include <__config>
 #include <cstddef>
 #include <cstring>
 #include <stdexcept>
-
-#if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG) && !defined(_LIBCPP_USE_ATOMIC)
-#  define _LIBCPP_USE_ATOMIC
-#  include <atomic>
-#else
-#  include "atomic_support.h"
-#endif
 
 // MacOS and iOS used to ship with libstdc++, and still support old applications
 // linking against libstdc++. The libc++ and libstdc++ exceptions are supposed
@@ -46,11 +40,7 @@ typedef int count_t;
 struct _Rep_base {
   std::size_t len;
   std::size_t cap;
-#ifdef _LIBCPP_USE_ATOMIC
-  std::atomic<count_t> count;
-#else
   count_t count;
-#endif
 };
 
 inline _Rep_base* rep_from_data(const char* data_) noexcept {
@@ -98,11 +88,7 @@ inline __libcpp_refstring::__libcpp_refstring(const char* msg) {
 
 inline __libcpp_refstring::__libcpp_refstring(const __libcpp_refstring& s) noexcept : __imp_(s.__imp_) {
   if (__uses_refcount())
-#ifdef _LIBCPP_USE_ATOMIC
-    rep_from_data(__imp_)->count.fetch_add(1);
-#else
     __libcpp_atomic_add(&rep_from_data(__imp_)->count, 1);
-#endif
 }
 
 inline __libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring const& s) noexcept {
@@ -110,19 +96,9 @@ inline __libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring cons
   struct _Rep_base* old_rep = rep_from_data(__imp_);
   __imp_                    = s.__imp_;
   if (__uses_refcount())
-#ifdef _LIBCPP_USE_ATOMIC
-    rep_from_data(__imp_)->count.fetch_add(1);
-#else
     __libcpp_atomic_add(&rep_from_data(__imp_)->count, 1);
-#endif
-
   if (adjust_old_count) {
-#ifdef _LIBCPP_USE_ATOMIC
-    if (old_rep->count.fetch_sub(1) == 0)
-#else
-    if (__libcpp_atomic_add(&old_rep->count, count_t(-1)) < 0)
-#endif
-    {
+    if (__libcpp_atomic_add(&old_rep->count, count_t(-1)) < 0) {
       ::operator delete(old_rep);
     }
   }
@@ -132,11 +108,7 @@ inline __libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring cons
 inline __libcpp_refstring::~__libcpp_refstring() {
   if (__uses_refcount()) {
     _Rep_base* rep = rep_from_data(__imp_);
-#ifdef _LIBCPP_USE_ATOMIC
-    if (rep->count.fetch_sub(1) == 0) {
-#else
     if (__libcpp_atomic_add(&rep->count, count_t(-1)) < 0) {
-#endif
       ::operator delete(rep);
     }
   }

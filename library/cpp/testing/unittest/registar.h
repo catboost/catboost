@@ -135,6 +135,14 @@ namespace NUnitTest {
         // Should execute a test whitin suite?
         virtual bool CheckAccessTest(TString /*suite*/, const char* /*name*/);
 
+        // Should execute a test within suite? (with file and line info)
+        virtual bool CheckAccessTest(TString suite, const char* name, const char* file, int line) {
+            // Default implementation ignores file and line, calls the old version
+            Y_UNUSED(file);
+            Y_UNUSED(line);
+            return CheckAccessTest(suite, name);
+        }
+
         virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, bool /*forceFork*/);
 
         // This process is forked for current test
@@ -218,6 +226,8 @@ namespace NUnitTest {
 
     protected:
         bool CheckAccessTest(const char* test);
+
+        bool CheckAccessTest(const char* test, const char* file, int line);
 
         void BeforeTest(const char* func);
 
@@ -482,6 +492,7 @@ public:                       \
 //bool
 #define UNIT_ASSERT_C(A, C)                                                                             \
     do {                                                                                                \
+        static_assert(!std::is_array_v<std::remove_cvref_t<decltype(A)>>, "An array type always evaluates to true in a condition; this is likely an error in the condition expression."); \
         if (!(A)) {                                                                                     \
             UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (::TStringBuilder() << C).data())); \
         }                                                                                               \
@@ -714,6 +725,7 @@ public:                       \
 //values
 #define UNIT_ASSERT_VALUES_EQUAL_IMPL(A, B, C, EQflag, EQstr, NEQstr)                                                                  \
     do {                                                                                                                               \
+        /* NOLINTBEGIN(bugprone-reserved-identifier, readability-identifier-naming) */                                                 \
         TString _as;                                                                                                                   \
         TString _bs;                                                                                                                   \
         TString _asInd;                                                                                                                \
@@ -727,6 +739,7 @@ public:                       \
             }                                                                                                                          \
             UNIT_FAIL_IMPL("assertion failed", failMsg);                                                                               \
         }                                                                                                                              \
+        /* NOLINTEND(bugprone-reserved-identifier, readability-identifier-naming) */                                                   \
     } while (false)
 
 #define UNIT_ASSERT_VALUES_EQUAL_C(A, B, C) \
@@ -817,8 +830,20 @@ public:                       \
             : Name_(name)
             , Body_(std::move(body))
             , ForceFork_(forceFork)
+            , File_(nullptr)
+            , Line_(0)
         {
         }
+
+        // TODO: YA-3943 будет открыто в следующем PR, активироввать функционал нужно в два шага
+        // inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork, const char* file, int line)
+        //     : Name_(name)
+        //     , Body_(std::move(body))
+        //     , ForceFork_(forceFork)
+        //     , File_(file)
+        //     , Line_(line)
+        // {
+        // }
 
         virtual ~TBaseTestCase() = default;
 
@@ -844,6 +869,8 @@ public:                       \
         const char* Name_;
         std::function<void(TTestContext&)> Body_;
         bool ForceFork_;
+        const char* File_;
+        int Line_;
     };
 
     using TBaseFixture = TBaseTestCase;
@@ -959,7 +986,7 @@ public:                       \
                 this->GlobalSuiteSetUp();                                                                               \
                 for (TTests::iterator it = Tests().begin(), ie = Tests().end(); it != ie; ++it) {                       \
                     const auto i = (*it)();                                                                             \
-                    if (!this->CheckAccessTest(i->Name_)) {                                                             \
+                    if (!this->CheckAccessTest(i->Name_, i->File_, i->Line_)) {                                         \
                         continue;                                                                                       \
                     }                                                                                                   \
                     NUnitTest::TTestContext context(this->TTestBase::Processor());                                      \
@@ -1014,6 +1041,8 @@ public:                       \
         {                                                   \
             Name_ = #N;                                     \
             ForceFork_ = FF;                                \
+            File_ = nullptr;                                \
+            Line_ = 0;                                      \
         }                                                   \
         static THolder<NUnitTest::TBaseTestCase> Create() { \
             return ::MakeHolder<TTestCase##N>();            \

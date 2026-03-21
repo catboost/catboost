@@ -2,7 +2,7 @@
 
 {% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
 
-To install {{ product }} from pip:
+To install {{ product }} from PyPI with pip:
 
 1. Run the following command:
 

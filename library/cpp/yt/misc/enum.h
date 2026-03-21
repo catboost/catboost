@@ -94,7 +94,7 @@ struct TEnumTraits<T, true>
         requires (!TEnumTraitsImpl<T>::IsBitEnum);
     static constexpr bool IsValidValue(T value);
 
-    static TString ToString(T value);
+    static std::string ToString(T value);
     static constexpr T FromString(TStringBuf literal);
 };
 

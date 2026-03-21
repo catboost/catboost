@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cuda_base.h"
+#include <library/cpp/cuda/exception/exception.h>
 #include <util/system/spinlock.h>
 #include <util/generic/vector.h>
 

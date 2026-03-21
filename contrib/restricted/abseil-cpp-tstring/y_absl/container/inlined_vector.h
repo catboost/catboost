@@ -46,6 +46,7 @@
 #include <utility>
 
 #include "y_absl/algorithm/algorithm.h"
+#include "y_absl/base/attributes.h"
 #include "y_absl/base/internal/throw_delegate.h"
 #include "y_absl/base/macros.h"
 #include "y_absl/base/optimization.h"
@@ -67,7 +68,7 @@ Y_ABSL_NAMESPACE_BEGIN
 // as a `std::vector`. The API of the `y_absl::InlinedVector` within this file is
 // designed to cover the same API footprint as covered by `std::vector`.
 template <typename T, size_t N, typename A = std::allocator<T>>
-class InlinedVector {
+class Y_ABSL_ATTRIBUTE_WARN_UNUSED InlinedVector {
   static_assert(N > 0, "`y_absl::InlinedVector` requires an inlined capacity.");
 
   using Storage = inlined_vector_internal::Storage<T, N, A>;

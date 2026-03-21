@@ -262,7 +262,11 @@ cdef extern from "catboost/libs/data/objects.h":
 cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount() noexcept
-        bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity) except +ProcessException
+        bool_t EqualTo(
+            const TObjectsDataProvider& rhs,
+            bool_t ignoreSparsity,
+            bool_t ignoreCatFeaturesHashToString
+        ) except +ProcessException
         TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds() except +ProcessException
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds() except +ProcessException
         TMaybeData[TConstArrayRef[ui64]] GetTimestamp() noexcept

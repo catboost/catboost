@@ -122,7 +122,7 @@ namespace NCB {
                         case (EColumn::Weight):
                             CB_ENSURE(
                                 pool.MetaInfo.HasWeights,
-                                "bad output column name " << name << " (No WeightId info in pool)"
+                                "bad output column name " << name << " (No Weight info in pool)"
                             );
                             break;
                         case (EColumn::GroupId):

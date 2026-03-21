@@ -61,18 +61,16 @@
 #include <atomic>
 #include <cstdint>
 #include <cstring>
-#include <iterator>
-#include <string>
 
 #include "absl/base/attributes.h"
+#include "absl/base/config.h"
 #include "absl/base/const_init.h"
-#include "absl/base/internal/identity.h"
-#include "absl/base/internal/low_level_alloc.h"
 #include "absl/base/internal/thread_identity.h"
 #include "absl/base/internal/tsan_mutex_interface.h"
+#include "absl/base/macros.h"
 #include "absl/base/nullability.h"
-#include "absl/base/port.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/meta/type_traits.h"
 #include "absl/synchronization/internal/kernel_timeout.h"
 #include "absl/synchronization/internal/per_thread_sem.h"
 #include "absl/time/time.h"
@@ -180,6 +178,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // then acquires it exclusively. (This lock is also known as a "write lock.")
   void lock() ABSL_EXCLUSIVE_LOCK_FUNCTION();
 
+  ABSL_DEPRECATE_AND_INLINE()
   inline void Lock() ABSL_EXCLUSIVE_LOCK_FUNCTION() { lock(); }
 
   // Mutex::unlock()
@@ -188,6 +187,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // free state. Calling thread must hold the `Mutex` exclusively.
   void unlock() ABSL_UNLOCK_FUNCTION();
 
+  ABSL_DEPRECATE_AND_INLINE()
   inline void Unlock() ABSL_UNLOCK_FUNCTION() { unlock(); }
 
   // Mutex::try_lock()
@@ -197,6 +197,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // probability if the `Mutex` was free.
   [[nodiscard]] bool try_lock() ABSL_EXCLUSIVE_TRYLOCK_FUNCTION(true);
 
+  ABSL_DEPRECATE_AND_INLINE()
   [[nodiscard]] bool TryLock() ABSL_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
     return try_lock();
   }
@@ -251,6 +252,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // lock on the mutex.
   void lock_shared() ABSL_SHARED_LOCK_FUNCTION();
 
+  ABSL_DEPRECATE_AND_INLINE()
   void ReaderLock() ABSL_SHARED_LOCK_FUNCTION() { lock_shared(); }
 
   // Mutex::unlock_shared()
@@ -260,6 +262,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // Note that you cannot call `unlock_shared()` on a mutex held in write mode.
   void unlock_shared() ABSL_UNLOCK_FUNCTION();
 
+  ABSL_DEPRECATE_AND_INLINE()
   void ReaderUnlock() ABSL_UNLOCK_FUNCTION() { unlock_shared(); }
 
   // Mutex::try_lock_shared()
@@ -269,6 +272,7 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // `true` with high probability if the `Mutex` was free or shared.
   [[nodiscard]] bool try_lock_shared() ABSL_SHARED_TRYLOCK_FUNCTION(true);
 
+  ABSL_DEPRECATE_AND_INLINE()
   [[nodiscard]] bool ReaderTryLock() ABSL_SHARED_TRYLOCK_FUNCTION(true) {
     return try_lock_shared();
   }
@@ -293,10 +297,13 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
   // These methods may be used (along with the complementary `Reader*()`
   // methods) to distinguish simple exclusive `Mutex` usage (`Lock()`,
   // etc.) from reader/writer lock usage.
+  ABSL_DEPRECATE_AND_INLINE()
   void WriterLock() ABSL_EXCLUSIVE_LOCK_FUNCTION() { lock(); }
 
+  ABSL_DEPRECATE_AND_INLINE()
   void WriterUnlock() ABSL_UNLOCK_FUNCTION() { unlock(); }
 
+  ABSL_DEPRECATE_AND_INLINE()
   [[nodiscard]] bool WriterTryLock() ABSL_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
     return try_lock();
   }
@@ -561,10 +568,10 @@ class ABSL_LOCKABLE ABSL_ATTRIBUTE_WARN_UNUSED Mutex {
       base_internal::PerThreadSynch* absl_nonnull w);
   void Dtor();
 
-  friend class CondVar;   // for access to Trans()/Fer().
+  friend class CondVar;                // for access to Trans()/Fer().
   void Trans(MuHow absl_nonnull how);  // used for CondVar->Mutex transfer
   void Fer(base_internal::PerThreadSynch* absl_nonnull
-           w);  // used for CondVar->Mutex transfer
+               w);  // used for CondVar->Mutex transfer
 
   // Catch the error of writing Mutex when intending MutexLock.
   explicit Mutex(const volatile Mutex* absl_nullable /*ignored*/) {}
@@ -610,6 +617,8 @@ class ABSL_SCOPED_LOCKABLE MutexLock {
   // Calls `mu->lock()` and returns when that call returns. That is, `*mu` is
   // guaranteed to be locked when this object is constructed. Requires that
   // `mu` be dereferenceable.
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit MutexLock(Mutex* absl_nonnull mu) ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : MutexLock(*mu) {}
 
@@ -622,6 +631,8 @@ class ABSL_SCOPED_LOCKABLE MutexLock {
     this->mu_.LockWhen(cond);
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit MutexLock(Mutex* absl_nonnull mu, const Condition& cond)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : MutexLock(*mu, cond) {}
@@ -649,6 +660,8 @@ class ABSL_SCOPED_LOCKABLE ReaderMutexLock {
     mu.lock_shared();
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit ReaderMutexLock(Mutex* absl_nonnull mu) ABSL_SHARED_LOCK_FUNCTION(mu)
       : ReaderMutexLock(*mu) {}
 
@@ -658,6 +671,8 @@ class ABSL_SCOPED_LOCKABLE ReaderMutexLock {
     mu.ReaderLockWhen(cond);
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit ReaderMutexLock(Mutex* absl_nonnull mu, const Condition& cond)
       ABSL_SHARED_LOCK_FUNCTION(mu)
       : ReaderMutexLock(*mu, cond) {}
@@ -685,6 +700,8 @@ class ABSL_SCOPED_LOCKABLE WriterMutexLock {
     mu.lock();
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit WriterMutexLock(Mutex* absl_nonnull mu)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : WriterMutexLock(*mu) {}
@@ -696,6 +713,8 @@ class ABSL_SCOPED_LOCKABLE WriterMutexLock {
     mu.WriterLockWhen(cond);
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit WriterMutexLock(Mutex* absl_nonnull mu, const Condition& cond)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : WriterMutexLock(*mu, cond) {}
@@ -796,27 +815,27 @@ class Condition {
   template <typename T, typename = void>
   Condition(
       bool (*absl_nonnull func)(T* absl_nullability_unknown),
-      typename absl::internal::type_identity<T>::type* absl_nullability_unknown
-      arg);
+      typename absl::type_identity<T>::type* absl_nullability_unknown
+          arg);
 
   // Templated version for invoking a method that returns a `bool`.
   //
   // `Condition(object, &Class::Method)` constructs a `Condition` that evaluates
   // `object->Method()`.
   //
-  // Implementation Note: `absl::internal::type_identity` is used to allow
+  // Implementation Note: `absl::type_identity` is used to allow
   // methods to come from base classes. A simpler signature like
   // `Condition(T*, bool (T::*)())` does not suffice.
   template <typename T>
   Condition(
       T* absl_nonnull object,
-      bool (absl::internal::type_identity<T>::type::* absl_nonnull method)());
+      bool (absl::type_identity<T>::type::* absl_nonnull method)());
 
   // Same as above, for const members
   template <typename T>
   Condition(
       const T* absl_nonnull object,
-      bool (absl::internal::type_identity<T>::type::* absl_nonnull method)()
+      bool (absl::type_identity<T>::type::* absl_nonnull method)()
           const);
 
   // A Condition that returns the value of `*cond`
@@ -1099,6 +1118,8 @@ class ABSL_SCOPED_LOCKABLE ReleasableMutexLock {
     this->mu_->lock();
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit ReleasableMutexLock(Mutex* absl_nonnull mu)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : ReleasableMutexLock(*mu) {}
@@ -1110,6 +1131,8 @@ class ABSL_SCOPED_LOCKABLE ReleasableMutexLock {
     this->mu_->LockWhen(cond);
   }
 
+  [[deprecated("Use the constructor that takes a reference instead")]]
+  ABSL_REFACTOR_INLINE
   explicit ReleasableMutexLock(Mutex* absl_nonnull mu, const Condition& cond)
       ABSL_EXCLUSIVE_LOCK_FUNCTION(mu)
       : ReleasableMutexLock(*mu, cond) {}
@@ -1123,7 +1146,7 @@ class ABSL_SCOPED_LOCKABLE ReleasableMutexLock {
   void Release() ABSL_UNLOCK_FUNCTION();
 
  private:
-  Mutex* absl_nonnull mu_;
+  Mutex* absl_nullable mu_;
   ReleasableMutexLock(const ReleasableMutexLock&) = delete;
   ReleasableMutexLock(ReleasableMutexLock&&) = delete;
   ReleasableMutexLock& operator=(const ReleasableMutexLock&) = delete;
@@ -1141,12 +1164,13 @@ ABSL_ATTRIBUTE_ALWAYS_INLINE
 inline Mutex::~Mutex() { Dtor(); }
 #endif
 
-#if defined(NDEBUG) && !defined(ABSL_HAVE_THREAD_SANITIZER)
-// Use default (empty) destructor in release build for performance reasons.
-// We need to mark both Dtor and ~Mutex as always inline for inconsistent
-// builds that use both NDEBUG and !NDEBUG with dynamic libraries. In these
-// cases we want the empty functions to dissolve entirely rather than being
-// exported from dynamic libraries and potentially override the non-empty ones.
+#if defined(NDEBUG) && !defined(ABSL_HAVE_THREAD_SANITIZER) && \
+    !defined(ABSL_BUILD_DLL)
+// Under NDEBUG and without TSAN, Dtor is normally fully inlined for
+// performance. However, when building Abseil as a shared library
+// (ABSL_BUILD_DLL), we must provide an out-of-line definition. This ensures the
+// Mutex::Dtor symbol is exported from the DLL, maintaining ABI compatibility
+// with clients that might be built in debug mode and thus expect the symbol.
 ABSL_ATTRIBUTE_ALWAYS_INLINE
 inline void Mutex::Dtor() {}
 #endif
@@ -1185,15 +1209,15 @@ inline Condition::Condition(
 template <typename T, typename>
 inline Condition::Condition(
     bool (*absl_nonnull func)(T* absl_nullability_unknown),
-    typename absl::internal::type_identity<T>::type* absl_nullability_unknown
-    arg)
+    typename absl::type_identity<T>::type* absl_nullability_unknown
+        arg)
     // Just delegate to the overload above.
     : Condition(func, arg) {}
 
 template <typename T>
 inline Condition::Condition(
     T* absl_nonnull object,
-    bool (absl::internal::type_identity<T>::type::* absl_nonnull method)())
+    bool (absl::type_identity<T>::type::* absl_nonnull method)())
     : eval_(&CastAndCallMethod<T, decltype(method)>), arg_(object) {
   static_assert(sizeof(&method) <= sizeof(callback_),
                 "An overlarge method pointer was passed to Condition.");
@@ -1203,7 +1227,7 @@ inline Condition::Condition(
 template <typename T>
 inline Condition::Condition(
     const T* absl_nonnull object,
-    bool (absl::internal::type_identity<T>::type::* absl_nonnull method)()
+    bool (absl::type_identity<T>::type::* absl_nonnull method)()
         const)
     : eval_(&CastAndCallMethod<const T, decltype(method)>),
       arg_(reinterpret_cast<void*>(const_cast<T*>(object))) {

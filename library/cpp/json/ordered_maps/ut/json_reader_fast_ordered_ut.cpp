@@ -86,7 +86,7 @@ namespace NJson::NOrderedJson {
 
         using TEvents = TVector<TEvent>;
 
-        struct TTestHandler : TJsonCallbacks {
+        struct TTestHandler: TJsonCallbacks {
             TEvents Events;
 
             bool OnOpenMap() override {
@@ -167,8 +167,8 @@ namespace NJson::NOrderedJson {
                 }
             }
         };
-    }
-}
+    } // namespace NTest
+} // namespace NJson::NOrderedJson
 
 class TFastJsonTest: public TTestBase {
     UNIT_TEST_SUITE(TFastJsonTest)
@@ -263,14 +263,14 @@ public:
         DoTestParse<true>("{}", 2, E_DICT_OPEN, E_DICT_CLOSE);
         DoTestParse<true>("{ a : x, b : [ c, d, ] }", 9, E_DICT_OPEN, E_KEY, "a", E_STR, "x", E_KEY, "b", E_ARR_OPEN, E_STR, "c", E_STR, "d", E_ARR_CLOSE, E_DICT_CLOSE);
         DoTestParse<false>("{ a : x, b : [ c, d,, ] }", 8, E_DICT_OPEN, E_KEY, "a", E_STR, "x", E_KEY, "b", E_ARR_OPEN, E_STR, "c", E_STR, "d", E_ERROR, "invalid syntax at token: ','");
-        //        DoTestParse<false>("{ a : x : y }", 4, E_DICT_OPEN
-        //                    , E_KEY, "a", E_STR, "x"
-        //                    , E_ERROR
-        //                    , ":");
-        //        DoTestParse<false>("{queries:{ref:[]},{nonref:[]}}", 8, E_DICT_OPEN
-        //                           , E_KEY, "queries", E_DICT_OPEN
-        //                               , E_KEY, "ref", E_ARR_OPEN, E_ARR_CLOSE
-        //                               , E_DICT_CLOSE, E_ERROR, "");
+        // DoTestParse<false>("{ a : x : y }", 4, E_DICT_OPEN
+        //             , E_KEY, "a", E_STR, "x"
+        //             , E_ERROR
+        //             , ":");
+        // DoTestParse<false>("{queries:{ref:[]},{nonref:[]}}", 8, E_DICT_OPEN
+        //                    , E_KEY, "queries", E_DICT_OPEN
+        //                        , E_KEY, "ref", E_ARR_OPEN, E_ARR_CLOSE
+        //                        , E_DICT_CLOSE, E_ERROR, "");
         DoTestParse<true>("'100x00'", 1, E_STR, "100x00");
         DoTestParse<true>("-1", 1, E_INT, -1);
         DoTestParse<true>("-9223372036854775808", 1, E_LONG_LONG, (long long)Min<i64>());

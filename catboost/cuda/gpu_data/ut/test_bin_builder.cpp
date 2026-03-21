@@ -212,8 +212,8 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         NCB::TFeatureEstimators estimators;
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
-                         NCatboostOptions::TBinarizationOptions(),
-                         NCatboostOptions::TCatFeatureParams(ETaskType::GPU),
+                         floatBinarization,
+                         catFeatureParams,
                          estimators,
                          &dataProvider,
                          &featuresManager);

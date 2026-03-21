@@ -1429,9 +1429,6 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 
 /*------------------------------ internal #includes ---------------------- */
 
-#ifdef _MSC_VER
-#pragma warning( disable : 4146 ) /* no "unsigned" warnings */
-#endif /* _MSC_VER */
 #if !NO_MALLOC_STATS
 #include <stdio.h>       /* for printing in malloc_stats */
 #endif /* NO_MALLOC_STATS */
@@ -2219,7 +2216,7 @@ typedef unsigned int flag_t;           /* The type of various bit flag sets */
 #define align_as_chunk(A)   (mchunkptr)((A) + align_offset(chunk2mem(A)))
 
 /* Bounds on request (not chunk) sizes. */
-#define MAX_REQUEST         ((-MIN_CHUNK_SIZE) << 2)
+#define MAX_REQUEST         ((0 - MIN_CHUNK_SIZE) << 2)
 #define MIN_REQUEST         (MIN_CHUNK_SIZE - CHUNK_OVERHEAD - SIZE_T_ONE)
 
 /* pad request bytes into a usable size */
@@ -2922,13 +2919,13 @@ static size_t traverse_and_check(mstate m);
 #define treemap_is_marked(M,i)  ((M)->treemap  &   idx2bit(i))
 
 /* isolate the least set bit of a bitmap */
-#define least_bit(x)         ((x) & -(x))
+#define least_bit(x)         ((x) & (0 - (x)))
 
 /* mask with all bits to left of least bit of x on */
-#define left_bits(x)         ((x<<1) | -(x<<1))
+#define left_bits(x)         (((x)<<1) | (0 - ((x)<<1)))
 
 /* mask with all bits to left of or equal to least bit of x on */
-#define same_or_left_bits(x) ((x) | -(x))
+#define same_or_left_bits(x) ((x) | (0 - (x)))
 
 /* index corresponding to given bit. Use x86 asm if possible */
 
@@ -4429,7 +4426,7 @@ static void dispose_chunk(mstate m, mchunkptr p, size_t psize) {
 /* allocate a large request from the best fitting chunk in a treebin */
 static void* tmalloc_large(mstate m, size_t nb) {
   tchunkptr v = 0;
-  size_t rsize = -nb; /* Unsigned negation */
+  size_t rsize = 0 - nb; /* Unsigned negation */
   tchunkptr t;
   bindex_t idx;
   compute_tree_index(nb, idx);
@@ -4916,7 +4913,7 @@ static void* internal_memalign(mstate m, size_t alignment, size_t bytes) {
         */
         char* br = (char*)mem2chunk((size_t)(((size_t)((char*)mem + alignment -
                                                        SIZE_T_ONE)) &
-                                             -alignment));
+                                             (0 - alignment)));
         char* pos = ((size_t)(br - (char*)(p)) >= MIN_CHUNK_SIZE)?
           br : br+alignment;
         mchunkptr newp = (mchunkptr)pos;
@@ -5420,7 +5417,7 @@ mspace create_mspace(size_t capacity, int locked) {
   size_t msize;
   ensure_initialization();
   msize = pad_request(sizeof(struct malloc_state));
-  if (capacity < (size_t) -(msize + TOP_FOOT_SIZE + mparams.page_size)) {
+  if (capacity < (size_t) (0 - (msize + TOP_FOOT_SIZE + mparams.page_size))) {
     size_t rs = ((capacity == 0)? mparams.granularity :
                  (capacity + TOP_FOOT_SIZE + msize));
     size_t tsize = granularity_align(rs);
@@ -5440,7 +5437,7 @@ mspace create_mspace_with_base(void* base, size_t capacity, int locked) {
   ensure_initialization();
   msize = pad_request(sizeof(struct malloc_state));
   if (capacity > msize + TOP_FOOT_SIZE &&
-      capacity < (size_t) -(msize + TOP_FOOT_SIZE + mparams.page_size)) {
+      capacity < (size_t) (0 - (msize + TOP_FOOT_SIZE + mparams.page_size))) {
     m = init_user_mstate((char*)base, capacity);
     m->seg.sflags = EXTERN_BIT;
     set_lock(m, locked);

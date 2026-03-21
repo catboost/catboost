@@ -19,7 +19,6 @@ target_link_libraries(cpp-threading-hot_swap PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-deprecated-atomic
 )
 
 target_sources(cpp-threading-hot_swap PRIVATE

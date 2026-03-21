@@ -211,7 +211,7 @@ public:
         Set<TConcrete>(std::forward<TArgs>(args)...);
     }
 
-    TAnyObject(TAnyObject&& other)
+    TAnyObject(TAnyObject&& other) noexcept
         : Holder_(other.Holder_)
     {
         if (IsValid()) {
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    TAnyObject& operator=(TAnyObject&& other)
+    TAnyObject& operator=(TAnyObject&& other) noexcept
     {
         if (this == &other) {
             return *this;

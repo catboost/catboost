@@ -54,10 +54,14 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [CatBoost PredictionDiff Feature Importance Tutorial](./prediction_diff_feature_importance_tutorial.ipynb)
     * This tutorials shows how to use PredictionDiff feature importances.
 
-## Custom loss
+## Custom metrics and losses
 
-* [Custom Metrics Tutorial](custom_loss/custom_metric_tutorial.md)
-    * This tutorial shows how to add custom per-object metrics.
+* [Custom Metrics and Losses in C++ Tutorial](custom_loss/custom_metric_tutorial.md)
+    * This tutorial shows how to add custom per-object metrics and objective functions in C++ native code.
+
+* [Custom Metrics and Losses in Python Tutorial](custom_loss/custom_loss_and_metric_tutorial.ipynb)
+    * This tutorial shows how to add custom per-object metrics and objective functions in Python.
+
 
 ## Apply model
 

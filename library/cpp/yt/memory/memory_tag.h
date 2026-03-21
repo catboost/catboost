@@ -39,7 +39,7 @@ public:
     explicit TMemoryTagGuard(TMemoryTag tag);
 
     TMemoryTagGuard(const TMemoryTagGuard& other) = delete;
-    TMemoryTagGuard(TMemoryTagGuard&& other);
+    TMemoryTagGuard(TMemoryTagGuard&& other) noexcept;
 
     ~TMemoryTagGuard();
 

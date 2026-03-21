@@ -334,6 +334,11 @@ bool NUnitTest::TTestBase::CheckAccessTest(const char* test) {
     return Processor()->CheckAccessTest(Name(), test);
 }
 
+bool NUnitTest::TTestBase::CheckAccessTest(const char* test, const char* file, int line) {
+    return Processor()->CheckAccessTest(Name(), test, file, line);
+
+}
+
 void NUnitTest::TTestBase::BeforeTest(const char* func) {
     const NUnitTest::ITestSuiteProcessor::TUnit unit = {Name()};
     const NUnitTest::ITestSuiteProcessor::TTest test = {&unit, func};

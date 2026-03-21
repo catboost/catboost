@@ -3,7 +3,7 @@
 
 namespace NCudaLib {
     TSerializedCommand::TSerializedCommand(TBuffer&& data)
-        : ICommand(EComandType::SerializedCommand)
+        : ICommand(ECommandType::SerializedCommand)
     {
         Data.Swap(data);
     }

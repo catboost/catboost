@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------
 //
 //  Little Color Management System
-//  Copyright (c) 1998-2024 Marti Maria Saguer
+//  Copyright (c) 1998-2026 Marti Maria Saguer
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -668,12 +668,17 @@ cmsBool OptimizeByResampling(cmsPipeline** Lut, cmsUInt32Number Intent, cmsUInt3
     // Color space must be specified
     if (ColorSpace == (cmsColorSpaceSignature)0 ||
         OutputColorSpace == (cmsColorSpaceSignature)0) return FALSE;
-
-    nGridPoints = _cmsReasonableGridpointsByColorspace(ColorSpace, *dwFlags);
-
+       
     // For empty LUTs, 2 points are enough
     if (cmsPipelineStageCount(*Lut) == 0)
         nGridPoints = 2;
+    else
+    {
+        nGridPoints = _cmsReasonableGridpointsByColorspace(ColorSpace, *dwFlags);
+
+        // Lab16 as input cannot be optimized by a CLUT due to centering issues, thanks to Mike Chaney for discovering this.
+        if (!(*dwFlags & cmsFLAGS_FORCE_CLUT) && (ColorSpace == cmsSigLabData) && (T_BYTES(*InputFormat) == 2)) return FALSE;
+    }
 
     Src = *Lut;
 
@@ -783,6 +788,11 @@ Error:
             DataSetIn,
             Dest ->OutputChannels,
             DataSetOut);
+
+        if (p16 == NULL) {
+            cmsPipelineFree(Dest);
+            return FALSE;
+        }
 
         _cmsPipelineSetOptimizationParameters(Dest, PrelinEval16, (void*) p16, PrelinOpt16free, Prelin16dup);
     }

@@ -102,7 +102,7 @@ namespace NCatboostCuda {
         }
 
         void Regularize(TVector<float>* point) final {
-            RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(BinWeightsSum.begin(), BinWeightsSum.begin() + PointDim()), point);
+            RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(BinWeightsSum.data(), BinWeightsSum.data() + PointDim()), point);
         }
 
         void WriteValueAndFirstDerivatives(double* value,

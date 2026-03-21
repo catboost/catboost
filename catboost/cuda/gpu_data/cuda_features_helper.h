@@ -69,7 +69,7 @@ namespace NCatboostCuda {
                 const ui32 shift = THelper::Shift(i);
                 const ui64 cindexOffset = loadOffset + (i / featuresPerInt) * docCount;
                 const ui32 foldCount = Grid.AllFolds[feature];
-                CB_ENSURE(foldCount <= maxFolds, TStringBuilder() << "Fold count " << foldCount << " max folds " << maxFolds << " (" << Policy << ")");
+                CB_ENSURE(foldCount <= maxFolds, "Fold count " << foldCount << " max folds " << maxFolds << " (" << Policy << ")");
                 TCFeature cudaFeature{cindexOffset,
                                       mask,
                                       shift,

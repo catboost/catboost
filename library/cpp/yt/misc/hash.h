@@ -8,6 +8,15 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Finalization function that makes each bit of the output depend on each bit of the input.
+//! Needed to achieve unbiased distribution for bit-sensitive application like HLL,
+//! as opposed to raw collision minimization.
+//! This is also SplitMix64 PRNG.
+//! Cf. |http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html|, |boost::random::splitmix64|.
+size_t SplitMix(size_t value);
+
+////////////////////////////////////////////////////////////////////////////////
+
 //! Updates #h with #k.
 //! Cf. |boost::hash_combine|.
 void HashCombine(size_t& h, size_t k);
@@ -26,11 +35,14 @@ size_t NaNSafeHash(const T& value);
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Provides a hasher that randomizes the results of another one.
+//! \note In case seed value is 0, the hash is just the underlying hash.
 template <class TElement, class TUnderlying = ::THash<TElement>>
 class TRandomizedHash
 {
 public:
     TRandomizedHash();
+    explicit TRandomizedHash(size_t seed);
+
     size_t operator()(const TElement& element) const;
 
 private:

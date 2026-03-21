@@ -13,4 +13,4 @@
 # changes in this file.
 
 add_subdirectory(cow)
-add_subdirectory(platform)
+add_subdirectory(internal)

@@ -2,6 +2,78 @@
 XZ Utils Release Notes
 ======================
 
+5.8.2 (2025-12-17)
+
+    * liblzma:
+
+        - Fix the build on ARM64 on glibc versions older than
+          2.24 (2016). They don't have HWCAP_CRC32 in <sys/auxv.h>.
+
+        - Disable CLMUL CRC code when building for 32-bit x86 with
+          old MSVC versions. This avoids a compiler bug. The exact
+          compiler version in which the issue was fixed is unknown,
+          but VS 2022 17.13 (MSVC 19.43.34808) is known to work, so
+          CLMUL CRC on 32-bit x86 is disabled with MSVC versions
+          older than that.
+
+    * xz:
+
+        - Add a workaround for Red Hat Enterprise Linux 9 kernel bug
+          which made xz fail with "xz: Failed to enable the sandbox".
+          It only occurs with xz 5.8.0 and 5.8.1 binaries built for
+          other distros. For example, running Debian 13 in a container
+          on RHEL/CentOS 9 would trigger the issue.
+
+          The bug was introduced in RHEL 9 kernel 5.14.0-603.el9
+          (2025-07-30) and fixed in 5.14.0-648.el9 (2025-12-05).
+          However, as of writing, the fixed kernel isn't available
+          to RHEL 9 users yet, so including the workaround in this
+          xz release seems reasonable. The workaround will be removed
+          when it's no longer needed.
+
+          xzdec was also affected by this issue.
+
+        - On AIX, don't use fsync() on directories because it fails.
+
+        - Fix the build on Emscripten.
+
+        - Fix the build on clang-cl on Windows.
+
+        - Take resource limits (RLIMIT_DATA, RLIMIT_AS, and RLIMIT_VMEM)
+          into account when determining the default memory usage limit
+          for multithreaded mode. This should prevent xz from failing
+          when a resource limit has been set to a value that is less
+          than 1/4 of total RAM. Other memory limits can still trigger
+          the same issue, for example, Linux cgroup v2 memory.max.
+
+    * Build systems:
+
+        - When symbol versioning is enabled, pass --undefined-version
+          to the linker if the option is supported. This fixes the
+          build when using LLVM's lld and some liblzma features have
+          been disabled at build time.
+
+        - ARM64: Fix autodetection of fast unaligned memory access when
+          using GCC and -mstrict-align is in effect. Previously the
+          build systems would incorrectly guess that unaligned access
+          is fast, which would result in much slower binaries than
+          needed. The fix is a workaround for GCC bug 111555;
+          autodetection already worked with Clang.
+
+        - LoongArch: Autodetect if fast unaligned memory access is
+          supported. This can improve compression speed by 15 % (but
+          not decompression speed).
+
+    * Translations:
+
+        - Update the Spanish translation.
+
+        - Add Swedish man page translations.
+
+        - Update Italian, Korean, Romanian, Serbian, and Ukrainian
+          man page translations.
+
+
 5.8.1 (2025-04-03)
 
     IMPORTANT: This includes a security fix for CVE-2025-31115 which

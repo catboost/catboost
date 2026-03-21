@@ -2293,7 +2293,7 @@ template <typename F, typename Impl>
 #define GMOCK_ACTION_INIT_PARAMS_(params) \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_INIT_PARAM, , params))
 
-#define GMOCK_INTERNAL_FIELD_PARAM(i, data, param) param##_type param;
+#define GMOCK_INTERNAL_FIELD_PARAM(i, data, param) param##_type param; // NOLINT(readability-identifier-naming)
 #define GMOCK_ACTION_FIELD_PARAMS_(params) \
   GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_FIELD_PARAM, , params)
 
@@ -2324,10 +2324,10 @@ template <typename F, typename Impl>
     std::shared_ptr<const gmock_Impl> impl_;                                   \
   };                                                                           \
   template <GMOCK_ACTION_TYPENAME_PARAMS_(params)>                             \
-  [[nodiscard]] inline full_name<GMOCK_ACTION_TYPE_PARAMS_(params)> name(      \
+  [[nodiscard]] inline full_name<GMOCK_ACTION_TYPE_PARAMS_(params)> name(      /* NOLINT */\
       GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params));                               \
   template <GMOCK_ACTION_TYPENAME_PARAMS_(params)>                             \
-  inline full_name<GMOCK_ACTION_TYPE_PARAMS_(params)> name(                    \
+  inline full_name<GMOCK_ACTION_TYPE_PARAMS_(params)> name(                    /* NOLINT */\
       GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params)) {                              \
     return full_name<GMOCK_ACTION_TYPE_PARAMS_(params)>(                       \
         GMOCK_ACTION_GVALUE_PARAMS_(params));                                  \

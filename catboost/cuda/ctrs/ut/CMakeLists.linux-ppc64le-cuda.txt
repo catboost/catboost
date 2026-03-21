@@ -76,7 +76,7 @@ set_yunittest_property(
   catboost-cuda-ctrs-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

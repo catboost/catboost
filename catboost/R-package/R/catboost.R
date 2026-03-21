@@ -1,4 +1,5 @@
 #' @import jsonlite
+#' @importFrom stats predict
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @importFrom utils write.table
@@ -169,7 +170,7 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
   if (!all(cat_features_indices == as.integer(cat_features_indices)) && !is.null(cat_features_indices))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features_indices))
+      stop("Unsupported cat_features_indices type, expecting integer, got: ", typeof(cat_features_indices))
 
   if (!is.null(text_features_data) && !is.matrix(text_features_data))
      stop("Unsupported text data type, expecting matrix, got: ", class(text_features_data))
@@ -1818,18 +1819,13 @@ catboost.save_model <- function(model, model_path,
 
 
 #' @name catboost.predict
-#' @title Apply the model
+#' @title Get predictions from a CatBoost model
 #'
-#' @description Apply the model to the given dataset.
+#' @description Get predictions from a CatBoost model on new data.
 #'
-#'              Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-#'              Each line of this matrix contains the predictions for one object of the input dataset.
-#' @param model The model obtained as the result of training.
+#' In case of multiclassification the prediction is returned in the form of a matrix.
+#' Each row of this matrix contains the predictions for one row of the input dataset.
 #'
-#' Default value: Required argument
-#' @param pool The input dataset.
-#'
-#' Default value: Required argument
 #' @param verbose Verbose output to stdout.
 #'
 #' Default value: FALSE (not used)
@@ -1859,23 +1855,62 @@ catboost.save_model <- function(model, model_path,
 #'
 #' Default value: 1
 #' @return Vector of predictions (matrix for multi-class classification).
-#' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
-catboost.predict <- function(model, pool,
-                             verbose = FALSE, prediction_type = "RawFormulaVal",
-                             ntree_start = 0, ntree_end = 0, thread_count = -1) {
-    if (!inherits(pool, "catboost.Pool"))
-        stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
+
+
+#' @rdname catboost.predict
+#' @param object The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param newdata The input data on which to make predictions. Should be a `catboost.Pool`
+#' object.
+#'
+#' Default value: Required argument
+#' @export
+predict.catboost.Model <- function(object, newdata,
+                                   verbose = FALSE, prediction_type = "RawFormulaVal",
+                                   ntree_start = 0, ntree_end = 0, thread_count = -1) {
+    if (!inherits(object, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(object))
+    if (!inherits(newdata, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(newdata))
+    if (is.null.handle(newdata))
         stop("Pool object is invalid.")
 
-    catboost.restore_handle(model)
-    prediction <- .Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
+    catboost.restore_handle(object)
+    prediction <- .Call("CatBoostPredictMulti_R", object$cpp_obj$handle, newdata,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
-    if (length(prediction) != nrow(pool)) {
-        prediction <- matrix(prediction, nrow = nrow(pool), byrow = TRUE)
+    if (length(prediction) != nrow(newdata)) {
+        prediction <- matrix(prediction, nrow = nrow(newdata), byrow = TRUE)
     }
     return(prediction)
+}
+
+#' @rdname catboost.predict
+#'
+#' @details The function `catboost.predict` is a synonym for `predict.catboost.Model`,
+#' which is an S3 method (i.e. called like `predict(model, newdata)`).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The input data on which to make predictions. Should be a `catboost.Pool`
+#' object.
+#'
+#' Default value: Required argument
+#'
+#' @export
+#' @usage catboost.predict(
+#'   model,
+#'   pool,
+#'   verbose = FALSE,
+#'   prediction_type = "RawFormulaVal",
+#'   ntree_start = 0,
+#'   ntree_end = 0,
+#'   thread_count = -1
+#' )
+catboost.predict <- function(model, pool, ...) {
+    return(predict.catboost.Model(model, pool, ...))
 }
 
 

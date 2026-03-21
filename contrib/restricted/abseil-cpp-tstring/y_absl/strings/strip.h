@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <util/generic/string.h>
 
+#include "y_absl/base/attributes.h"
 #include "y_absl/base/macros.h"
 #include "y_absl/base/nullability.h"
 #include "y_absl/strings/ascii.h"
@@ -44,8 +45,8 @@ Y_ABSL_NAMESPACE_BEGIN
 //   y_absl::string_view input("abc");
 //   EXPECT_TRUE(y_absl::ConsumePrefix(&input, "a"));
 //   EXPECT_EQ(input, "bc");
-inline bool ConsumePrefix(y_absl::Nonnull<y_absl::string_view*> str,
-                          y_absl::string_view expected) {
+inline constexpr bool ConsumePrefix(y_absl::Nonnull<y_absl::string_view*> str,
+                                    y_absl::string_view expected) {
   if (!y_absl::StartsWith(*str, expected)) return false;
   str->remove_prefix(expected.size());
   return true;
@@ -61,8 +62,8 @@ inline bool ConsumePrefix(y_absl::Nonnull<y_absl::string_view*> str,
 //   y_absl::string_view input("abcdef");
 //   EXPECT_TRUE(y_absl::ConsumeSuffix(&input, "def"));
 //   EXPECT_EQ(input, "abc");
-inline bool ConsumeSuffix(y_absl::Nonnull<y_absl::string_view*> str,
-                          y_absl::string_view expected) {
+inline constexpr bool ConsumeSuffix(y_absl::Nonnull<y_absl::string_view*> str,
+                                    y_absl::string_view expected) {
   if (!y_absl::EndsWith(*str, expected)) return false;
   str->remove_suffix(expected.size());
   return true;
@@ -73,8 +74,9 @@ inline bool ConsumeSuffix(y_absl::Nonnull<y_absl::string_view*> str,
 // Returns a view into the input string `str` with the given `prefix` removed,
 // but leaving the original string intact. If the prefix does not match at the
 // start of the string, returns the original string instead.
-Y_ABSL_MUST_USE_RESULT inline y_absl::string_view StripPrefix(
-    y_absl::string_view str, y_absl::string_view prefix) {
+Y_ABSL_MUST_USE_RESULT inline constexpr y_absl::string_view StripPrefix(
+    y_absl::string_view str Y_ABSL_ATTRIBUTE_LIFETIME_BOUND,
+    y_absl::string_view prefix) {
   if (y_absl::StartsWith(str, prefix)) str.remove_prefix(prefix.size());
   return str;
 }
@@ -84,8 +86,9 @@ Y_ABSL_MUST_USE_RESULT inline y_absl::string_view StripPrefix(
 // Returns a view into the input string `str` with the given `suffix` removed,
 // but leaving the original string intact. If the suffix does not match at the
 // end of the string, returns the original string instead.
-Y_ABSL_MUST_USE_RESULT inline y_absl::string_view StripSuffix(
-    y_absl::string_view str, y_absl::string_view suffix) {
+Y_ABSL_MUST_USE_RESULT inline constexpr y_absl::string_view StripSuffix(
+    y_absl::string_view str Y_ABSL_ATTRIBUTE_LIFETIME_BOUND,
+    y_absl::string_view suffix) {
   if (y_absl::EndsWith(str, suffix)) str.remove_suffix(suffix.size());
   return str;
 }

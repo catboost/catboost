@@ -2,10 +2,10 @@
 #include "pointwise_hist2.cuh"
 #include "split_properties_helpers.cuh"
 #include "compute_point_hist2_loop.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 
 namespace NKernel {

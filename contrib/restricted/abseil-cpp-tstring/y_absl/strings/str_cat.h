@@ -101,6 +101,7 @@
 #include <vector>
 
 #include "y_absl/base/attributes.h"
+#include "y_absl/base/config.h"
 #include "y_absl/base/nullability.h"
 #include "y_absl/base/port.h"
 #include "y_absl/meta/type_traits.h"
@@ -109,6 +110,10 @@
 #include "y_absl/strings/internal/stringify_sink.h"
 #include "y_absl/strings/numbers.h"
 #include "y_absl/strings/string_view.h"
+
+#if defined(Y_ABSL_HAVE_STD_STRING_VIEW) && !defined(Y_ABSL_USES_STD_STRING_VIEW)
+#include <string_view>
+#endif
 
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
@@ -360,6 +365,12 @@ class AlphaNum {
   AlphaNum(y_absl::string_view pc  // NOLINT(runtime/explicit)
                Y_ABSL_ATTRIBUTE_LIFETIME_BOUND)
       : piece_(pc) {}
+
+#if defined(Y_ABSL_HAVE_STD_STRING_VIEW) && !defined(Y_ABSL_USES_STD_STRING_VIEW)
+  AlphaNum(std::string_view pc  // NOLINT(runtime/explicit)
+               Y_ABSL_ATTRIBUTE_LIFETIME_BOUND)
+      : piece_(pc.data(), pc.size()) {}
+#endif  // !Y_ABSL_USES_STD_STRING_VIEW
 
   template <typename T, typename = typename std::enable_if<
                             HasAbslStringify<T>::value>::type>

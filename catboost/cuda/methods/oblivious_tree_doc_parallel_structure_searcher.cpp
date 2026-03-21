@@ -121,8 +121,7 @@ namespace NCatboostCuda {
             scoreBeforeSplit = bestSplitProp.Score;
 
             CB_ENSURE(bestSplitProp.FeatureId != static_cast<ui32>(-1),
-                      TStringBuilder() << "Error: something went wrong, best split is NaN with score"
-                                       << bestSplitProp.Score);
+                      "Error: something went wrong, best split is NaN with score" << bestSplitProp.Score);
 
             bestSplit = ToSplit(FeaturesManager, bestSplitProp);
             PrintBestScore(FeaturesManager, bestSplit, bestSplitProp.Score, depth);

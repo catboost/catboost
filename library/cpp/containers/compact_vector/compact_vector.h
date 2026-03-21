@@ -4,6 +4,9 @@
 #include <util/generic/yexception.h>
 #include <util/system/sys_alloc.h>
 
+#include <algorithm>
+#include <type_traits>
+
 // vector that is 8 bytes when empty (TVector is 24 bytes)
 
 template <typename T>
@@ -202,8 +205,13 @@ public:
         } else {
             TThis copy;
             copy.Reserve(newCapacity);
-            for (TConstIterator it = Begin(); it != End(); ++it) {
-                copy.PushBack(*it);
+            if constexpr (std::is_trivially_copyable_v<T>) {
+                std::copy_n(Ptr, Size(), copy.Ptr);
+                copy.Header()->Size = Size();
+            } else {
+                for (auto& val : *this) {
+                    copy.EmplaceBack(std::move(val));
+                }
             }
             Swap(copy);
         }
@@ -213,23 +221,23 @@ public:
         Reserve(newCapacity);
     }
 
-    size_t Size() const {
+    [[nodiscard]] size_t Size() const {
         return Ptr ? Header()->Size : 0;
     }
 
-    size_t size() const {
+    [[nodiscard]] size_t size() const {
         return Size();
     }
 
-    bool Empty() const {
+    [[nodiscard]] bool Empty() const {
         return Size() == 0;
     }
 
-    bool empty() const {
+    [[nodiscard]] bool empty() const {
         return Empty();
     }
 
-    size_t Capacity() const {
+    [[nodiscard]] size_t Capacity() const {
         return Ptr ? Header()->Capacity : 0;
     }
 

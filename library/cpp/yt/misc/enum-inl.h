@@ -227,7 +227,7 @@ constexpr bool CheckDomainNames(const TNames& names)
     } \
     \
     using ::ToString; \
-    [[maybe_unused]] inline TString ToString(enumType value) \
+    [[maybe_unused]] inline std::string ToString(enumType value) \
     { \
         return ::NYT::TEnumTraits<enumType>::ToString(value); \
     }
@@ -335,13 +335,13 @@ constexpr bool TEnumTraits<T, true>::IsValidValue(T value)
 }
 
 template <class T>
-TString TEnumTraits<T, true>::ToString(T value)
+std::string TEnumTraits<T, true>::ToString(T value)
 {
     using ::ToString;
     if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
         return ToString(*optionalLiteral);
     }
-    TString result;
+    std::string result;
     result = TEnumTraits<T>::GetTypeName();
     result += "(";
     result += ToString(ToUnderlying(value));

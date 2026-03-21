@@ -163,7 +163,8 @@ private:
 };
 
 template <typename TCharType, typename TTraits>
-class TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
+class Y_EMPTY_BASES TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits>,
+                                  public TStdStringCompatibilityBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
 public:
     // TODO: Move to private section
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;
@@ -902,10 +903,12 @@ public:
         return this->ConstRef();
     }
 
-    template <typename T, typename = std::enable_if_t<std::is_same_v<T, TStringType>>>
-        operator T&() & Y_LIFETIME_BOUND {
-        return this->MutRef();
-    }
+    /*
+     * We have operator casting TString to `const std::string&` but we explicitly don't support
+     * casting TString to `std::string&` since such casting requires detaching TString and therefore
+     * modifies TString object. Sometimes compiler might call `operator std::string&`
+     * implicitly and it might lead to problems. Check IGNIETFERRO-2155 for details.
+     */
 
     /*
      * Following overloads of "operator+" aim to choose the cheapest implementation depending on

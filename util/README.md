@@ -5,9 +5,6 @@ Style guide for the util folder is a stricter version of
 (mostly in terms of ambiguity resolution).
 
  * all {} must be in K&R style
- * &, * tied closer to a type, not to variable
- * always use `using` not `typedef`
- * _ at the end of private data member of a class - `First_`, `Second_`
  * every .h file must be accompanied with corresponding .cpp to avoid a leakage and check that it is self contained
  * prohibited to use `printf`-like functions
 
@@ -40,13 +37,13 @@ Don't forget to run tests from folder `tests`: `ya make -t tests`
 In order to make a commit, you have to get approval from one of
 [util](https://arcanum.yandex-team.ru/arc/trunk/arcadia/groups/util) members.
 
-If no comments have been received withing 1–2 days, it is OK
+If no comments have been received within 1–2 working (for the reviewers) days, it is OK
 to send a graceful ping into [Igni et ferro](https://wiki.yandex-team.ru/ignietferro/) chat.
 
 Certain exceptions apply. The following trivial changes do not need to be reviewed:
 
 * grammar and misspelling fixes,
-* renaming of an internal variable to match the styleguide.
+* making the code compliant with the style guide.
 
 Whenever a breaking change happens to accidentally land into trunk, reverting it does not need to be reviewed.
 

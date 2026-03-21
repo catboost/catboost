@@ -119,4 +119,6 @@ namespace NNeh {
     ///   - min, if reached hard limit
     ///   - approx. linear changed[max..min], while conn. count in range [soft..hard]
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds);
+
+    bool IsNotError(unsigned httpCode);
 }

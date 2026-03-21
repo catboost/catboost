@@ -1,6 +1,6 @@
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 #include <util/generic/cast.h>

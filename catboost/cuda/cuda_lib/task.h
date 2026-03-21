@@ -9,7 +9,7 @@
 #include <util/generic/buffer.h>
 
 namespace NCudaLib {
-    enum class EComandType {
+    enum class ECommandType {
         StreamKernel,       //async tasks, will be launch in stream
         HostTask,           //sync task, ensure every task in stream was completed
         MemoryAllocation,   // usually async, but could sync or memory defragmentation
@@ -24,10 +24,10 @@ namespace NCudaLib {
 
     class ICommand {
     private:
-        EComandType Type;
+        ECommandType Type;
 
     public:
-        explicit ICommand(EComandType type)
+        explicit ICommand(ECommandType type)
             : Type(type)
         {
         }
@@ -35,7 +35,7 @@ namespace NCudaLib {
         virtual ~ICommand() {
         }
 
-        EComandType GetCommandType() const {
+        ECommandType GetCommandType() const {
             return Type;
         }
 
@@ -89,14 +89,14 @@ namespace NCudaLib {
     public:
         TResetCommand(double gpuMemoryPart,
                       ui64 pinnedMemorySize)
-            : ICommand(EComandType::Reset)
+            : ICommand(ECommandType::Reset)
             , GpuMemoryPart(gpuMemoryPart)
             , PinnedMemorySize(pinnedMemorySize)
         {
         }
 
         TResetCommand()
-            : ICommand(EComandType::Reset)
+            : ICommand(ECommandType::Reset)
         {
         }
 
@@ -109,7 +109,7 @@ namespace NCudaLib {
     class IAllocateMemoryTask: public ICommand {
     public:
         IAllocateMemoryTask()
-            : ICommand(EComandType::MemoryAllocation)
+            : ICommand(ECommandType::MemoryAllocation)
         {
         }
 
@@ -123,7 +123,7 @@ namespace NCudaLib {
     class IFreeMemoryTask: public ICommand {
     public:
         IFreeMemoryTask()
-            : ICommand(EComandType::MemoryDeallocation)
+            : ICommand(ECommandType::MemoryDeallocation)
         {
         }
 
@@ -142,7 +142,7 @@ namespace NCudaLib {
     class IHostTask: public ICommand {
     public:
         IHostTask()
-            : ICommand(EComandType::HostTask)
+            : ICommand(ECommandType::HostTask)
         {
         }
 
@@ -155,7 +155,7 @@ namespace NCudaLib {
     class TStopWorkerCommand: public ICommand {
     public:
         explicit TStopWorkerCommand()
-            : ICommand(EComandType::StopWorker)
+            : ICommand(ECommandType::StopWorker)
         {
         }
 

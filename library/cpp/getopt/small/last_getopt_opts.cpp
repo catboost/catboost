@@ -213,7 +213,7 @@ namespace NLastGetopt {
         if (FreeArgsMax_ < FreeArgsMin_) {
             ythrow TConfException() << "FreeArgsMax must be >= FreeArgsMin";
         }
-        if (!FreeArgSpecs_.empty() && FreeArgSpecs_.rbegin()->first >= FreeArgsMax_) {
+        if (!FreeArgSpecs_.empty() && GetTrailingArgsIndex() > FreeArgsMax_) {
             ythrow TConfException() << "Described args count is greater than FreeArgsMax. Either increase FreeArgsMax or remove unreachable descriptions";
         }
     }
@@ -335,7 +335,7 @@ namespace NLastGetopt {
         }
         os << "[OPTIONS]";
 
-        ui32 numDescribedFlags = FreeArgSpecs_.empty() ? 0 : FreeArgSpecs_.rbegin()->first + 1;
+        ui32 numDescribedFlags = GetTrailingArgsIndex();
         ui32 numArgsToShow = Max(FreeArgsMin_, FreeArgsMax_ == UNLIMITED_ARGS ? numDescribedFlags : FreeArgsMax_);
 
         for (ui32 i = 0, nonOptionalFlagsPrinted = 0; i < numArgsToShow; ++i) {
@@ -513,8 +513,8 @@ namespace NLastGetopt {
         }
         os << colors.OldColor() << Endl;
 
-        const size_t limit = FreeArgSpecs_.empty() ? 0 : FreeArgSpecs_.rbegin()->first;
-        for (size_t i = 0; i <= limit; ++i) {
+        const size_t limit = GetTrailingArgsIndex();
+        for (size_t i = 0; i < limit; ++i) {
             if (!FreeArgSpecs_.contains(i)) {
                 continue;
             }

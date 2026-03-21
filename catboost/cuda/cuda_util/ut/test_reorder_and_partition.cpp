@@ -20,7 +20,7 @@ Y_UNIT_TEST_SUITE(TReorderTest) {
     void RunReorderTest(ui32 bits = 2) {
         TRandom rand(42);
         const ui32 expCount = 4;
-        const ui32 devCount = GetDeviceCount();
+        const ui32 devCount = NCudaLib::GetDeviceCount();
         const ui32 binCount = 1 << bits;
         for (ui32 i = 0; i < expCount; ++i) {
             auto binsMapping = TStripeMapping::SplitBetweenDevices(devCount * (rand.NextUniformL() % 1000000));

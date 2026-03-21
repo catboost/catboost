@@ -22,6 +22,13 @@ Select the appropriate build environment setup below accordingly.
 
   Set `JAVA_HOME` environment variable to point to the path of JDK installation
 
+## CUDA support
+
+[CUDA](https://developer.nvidia.com/cuda) support is available for Linux and Windows target platforms.
+It is disabled by default and can be enabled by adding `--have-cuda` flag to `buildNative.extraArgs` definition. See below for details.
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures.md) %}
+
 ## Building steps
 
 1. Clone the repository:

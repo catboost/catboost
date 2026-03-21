@@ -964,7 +964,7 @@ static Y_FORCE_INLINE int TakeBlocksFromGlobalFreeList(int nSizeIdx, char** buf)
     TFreeListGroup* g = (TFreeListGroup*)fl.Alloc();
     if (g) {
         int resCount = 0;
-        for (auto& ptr : g->Ptrs) {
+        for (auto ptr : g->Ptrs) {
             if (ptr)
                 buf[resCount++] = ptr;
             else
@@ -1745,7 +1745,7 @@ static void DumpMemoryBlockUtilizationLocked() {
         int nEntriesTotal = N_CHUNK_SIZE / nSize;
         memset(entries, 0, nEntriesTotal);
         for (TFreeListGroup* g = wholeLists[nSizeIdx]; g; g = g->Next) {
-            for (auto& ptr : g->Ptrs)
+            for (auto ptr : g->Ptrs)
                 cs.CheckBlock(ptr);
         }
         TChunkStats csGB(k, nSize, entries);

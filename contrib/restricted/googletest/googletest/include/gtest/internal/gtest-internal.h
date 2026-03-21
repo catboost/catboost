@@ -1361,8 +1361,8 @@ class NeverThrown {
 
 #define GTEST_TEST_THROW_(statement, expected_exception, fail)              \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_                                             \
-  if (::testing::internal::TrueWithString gtest_msg{}) {                    \
-    bool gtest_caught_expected = false;                                     \
+  if (::testing::internal::TrueWithString gtest_msg{}) {                    /* NOLINT */\
+    bool gtest_caught_expected = false;                                     /* NOLINT */\
     try {                                                                   \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement);            \
     } catch (expected_exception const&) {                                   \
@@ -1408,7 +1408,7 @@ class NeverThrown {
 
 #define GTEST_TEST_NO_THROW_(statement, fail)                            \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_                                          \
-  if (::testing::internal::TrueWithString gtest_msg{}) {                 \
+  if (::testing::internal::TrueWithString gtest_msg{}) {                 /*NOLINT*/\
     try {                                                                \
       GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement);         \
     }                                                                    \
@@ -1449,7 +1449,7 @@ class NeverThrown {
 // representation of expression as it was passed into the EXPECT_TRUE.
 #define GTEST_TEST_BOOLEAN_(expression, text, actual, expected, fail) \
   GTEST_AMBIGUOUS_ELSE_BLOCKER_                                       \
-  if (const ::testing::AssertionResult gtest_ar_ =                    \
+  if (const ::testing::AssertionResult gtest_ar_ =                    /* NOLINT */\
           ::testing::AssertionResult(expression))                     \
     ;                                                                 \
   else                                                                \

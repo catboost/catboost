@@ -2,7 +2,7 @@
 
 #ifdef _LIBCPP_ENABLE_REMOVED_ALLOCATOR_CONST
 template <class _Tp>
-class _LIBCPP_TEMPLATE_VIS allocator<const _Tp>
+class allocator<const _Tp>
     : private __non_trivial_if<!is_void<_Tp>::value, allocator<const _Tp> > {
   static_assert(!is_volatile<_Tp>::value, "std::allocator does not support volatile types");
 
@@ -26,7 +26,7 @@ public:
     if (__libcpp_is_constant_evaluated()) {
       return static_cast<const _Tp*>(::operator new(__n * sizeof(_Tp)));
     } else {
-      return static_cast<const _Tp*>(std::__libcpp_allocate(__n * sizeof(_Tp), _LIBCPP_ALIGNOF(_Tp)));
+      return static_cast<const _Tp*>(std::__libcpp_allocate<_Tp>(__element_count(__n)));
     }
   }
 
@@ -40,7 +40,7 @@ public:
     if (__libcpp_is_constant_evaluated()) {
       ::operator delete(const_cast<_Tp*>(__p));
     } else {
-      std::__libcpp_deallocate((void*)const_cast<_Tp*>(__p), __n * sizeof(_Tp), _LIBCPP_ALIGNOF(_Tp));
+      std::__libcpp_deallocate<_Tp>(const_cast<_Tp*>(__p), __element_count(__n));
     }
   }
 

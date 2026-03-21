@@ -561,5 +561,11 @@
     },
     "test.test_zero_baseline[GPU]": {
         "uri": "file://test.test_zero_baseline_GPU_/model.bin"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[GPU-isotonic]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_GPU-isotonic_/calib_classifier_predictions.tsv"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[GPU-sigmoid]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_GPU-sigmoid_/calib_classifier_predictions.tsv"
     }
 }

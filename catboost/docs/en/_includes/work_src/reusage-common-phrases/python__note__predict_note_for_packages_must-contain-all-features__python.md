@@ -2,3 +2,4 @@ The model prediction results will be correct only if the `data` parameter with f
 - [FeaturesData](../../../concepts/python-features-data__desc.md)
 - [{{ python-type--pool }}](../../../concepts/python-reference_pool.md)
 - [{{ python-type--pandasDataFrame }}](https://pandas.pydata.org/pandas-docs/stable/reference/frame.html) (in this case, feature names are taken from column names)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html) (in this case, feature names are taken from column names)

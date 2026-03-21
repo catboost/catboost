@@ -1,9 +1,8 @@
-# cython: infer_types=True, language_level=3, auto_pickle=False
+# cython: infer_types=True
 #
 #   Cython Scanner
 #
 
-from __future__ import absolute_import
 
 import cython
 cython.declare(make_lexicon=object, lexicon=object,
@@ -55,7 +54,7 @@ pyx_reserved_words = py_reserved_words + [
 
 #------------------------------------------------------------------
 
-class CompileTimeScope(object):
+class CompileTimeScope:
 
     def __init__(self, outer=None):
         self.entries = {}
@@ -89,10 +88,7 @@ def initial_compile_time_env():
     names = ('UNAME_SYSNAME', 'UNAME_NODENAME', 'UNAME_RELEASE', 'UNAME_VERSION', 'UNAME_MACHINE')
     for name, value in zip(names, platform.uname()):
         benv.declare(name, value)
-    try:
-        import __builtin__ as builtins
-    except ImportError:
-        import builtins
+    import builtins
 
     names = (
         'False', 'True',
@@ -116,7 +112,7 @@ def initial_compile_time_env():
     # Py2/3 adaptations
     from functools import reduce
     benv.declare('reduce', reduce)
-    benv.declare('unicode', getattr(builtins, 'unicode', getattr(builtins, 'str')))
+    benv.declare('unicode', str)
     benv.declare('long', getattr(builtins, 'long', getattr(builtins, 'int')))
     benv.declare('xrange', getattr(builtins, 'xrange', getattr(builtins, 'range')))
 
@@ -126,7 +122,7 @@ def initial_compile_time_env():
 
 #------------------------------------------------------------------
 
-class SourceDescriptor(object):
+class SourceDescriptor:
     """
     A SourceDescriptor should be considered immutable.
     """
@@ -152,11 +148,9 @@ class SourceDescriptor(object):
 
     def get_escaped_description(self):
         if self._escaped_description is None:
-            esc_desc = \
-                self.get_description().encode('ASCII', 'replace').decode("ASCII")
             # Use forward slashes on Windows since these paths
             # will be used in the #line directives in the C/C++ files.
-            self._escaped_description = esc_desc.replace('\\', '/')
+            self._escaped_description = self.get_description().replace('\\', '/')
         return self._escaped_description
 
     def __gt__(self, other):
@@ -197,8 +191,10 @@ class FileSourceDescriptor(SourceDescriptor):
     """
     def __init__(self, filename, path_description=None):
         filename = Utils.decode_filename(filename)
-        self.path_description = path_description or filename
         self.filename = filename
+        self.path_description = path_description or filename
+        # Dump path_description, it's already arcadia root relative (required for proper file matching in coverage)
+        self._short_path_description = self.path_description
         # Prefer relative paths to current directory (which is most likely the project root) over absolute paths.
         workdir = os.path.abspath('.') + os.sep
         self.file_path = filename[len(workdir):] if filename.startswith(workdir) else filename
@@ -210,32 +206,22 @@ class FileSourceDescriptor(SourceDescriptor):
         # we cache the lines only the second time this is called, in
         # order to save memory when they are only used once
         key = (encoding, error_handling)
-        try:
-            lines = self._lines[key]
-            if lines is not None:
-                return lines
-        except KeyError:
-            pass
+        lines = self._lines.get(key)
+        if lines is not None:
+            return lines
 
-        with Utils.open_source_file(self.filename, encoding=encoding, error_handling=error_handling) as f:
-            lines = list(f)
+        with self.get_file_object(encoding=encoding, error_handling=error_handling) as f:
+            lines = f.readlines()
 
-        if key in self._lines:
-            self._lines[key] = lines
-        else:
-            # do not cache the first access, but remember that we
-            # already read it once
-            self._lines[key] = None
+        # Do not cache the first access, but add the key to remember that we already read it once.
+        self._lines[key] = lines if key in self._lines else None
         return lines
 
+    def get_file_object(self, encoding=None, error_handling=None):
+        return Utils.open_source_file(self.filename, encoding, error_handling)
+
     def get_description(self):
-        # Dump path_description, it's already arcadia root relative (required for proper file matching in coverage)
-        return self.path_description
-        try:
-            return os.path.relpath(self.path_description)
-        except ValueError:
-            # path not under current directory => use complete file path
-            return self.path_description
+        return self._short_path_description
 
     def get_error_description(self):
         path = self.filename
@@ -342,7 +328,7 @@ class PyrexScanner(Scanner):
         self.source_encoding = source_encoding
         self.trace = trace_scanner
         self.indentation_stack = [0]
-        self.indentation_char = None
+        self.indentation_char = '\0'
         self.bracket_nesting_level = 0
 
         self.put_back_on_failure = None
@@ -352,9 +338,7 @@ class PyrexScanner(Scanner):
         self.next()
 
     def normalize_ident(self, text):
-        try:
-            text.encode('ascii')  # really just name.isascii but supports Python 2 and 3
-        except UnicodeEncodeError:
+        if not text.isascii():
             text = normalize('NFKC', text)
         self.produce(IDENT, text)
 
@@ -388,8 +372,8 @@ class PyrexScanner(Scanner):
         '"""': 'TDQ_STRING'
     }
 
-    def begin_string_action(self, text):
-        while text[:1] in any_string_prefix:
+    def begin_string_action(self, text: str):
+        while text and text[0] in any_string_prefix:
             text = text[1:]
         self.begin(self.string_states[text])
         self.produce('BEGIN_STRING')
@@ -402,7 +386,7 @@ class PyrexScanner(Scanner):
         self.end_string_action(text)
         self.error_at_scanpos("Unclosed string literal")
 
-    def indentation_action(self, text):
+    def indentation_action(self, text: str):
         self.begin('')
         # Indentation within brackets should be ignored.
         #if self.bracket_nesting_level > 0:
@@ -411,7 +395,7 @@ class PyrexScanner(Scanner):
         if text:
             c = text[0]
             #print "Scanner.indentation_action: indent with", repr(c) ###
-            if self.indentation_char is None:
+            if self.indentation_char == '\0':
                 self.indentation_char = c
                 #print "Scanner.indentation_action: setting indent_char to", repr(c)
             else:
@@ -420,8 +404,8 @@ class PyrexScanner(Scanner):
             if text.replace(c, "") != "":
                 self.error_at_scanpos("Mixed use of tabs and spaces")
         # Figure out how many indents/dedents to do
-        current_level = self.current_level()
-        new_level = len(text)
+        current_level: cython.Py_ssize_t = self.current_level()
+        new_level: cython.Py_ssize_t = len(text)
         #print "Changing indent level from", current_level, "to", new_level ###
         if new_level == current_level:
             return
@@ -452,9 +436,9 @@ class PyrexScanner(Scanner):
             return  # just a marker, error() always raises
         if sy == IDENT:
             if systring in self.keywords:
-                if systring == u'print' and print_function in self.context.future_directives:
+                if systring == 'print' and print_function in self.context.future_directives:
                     self.keywords.pop('print', None)
-                elif systring == u'exec' and self.context.language_level >= 3:
+                elif systring == 'exec' and self.context.language_level >= 3:
                     self.keywords.pop('exec', None)
                 else:
                     sy = self.keywords[systring]  # intern
@@ -530,7 +514,7 @@ class PyrexScanner(Scanner):
     def expect_dedent(self):
         self.expect('DEDENT', "Expected a decrease in indentation level")
 
-    def expect_newline(self, message="Expected a newline", ignore_semicolon=False):
+    def expect_newline(self, message="Expected a newline", ignore_semicolon: cython.bint = False):
         # Expect either a newline or end of file
         useless_trailing_semicolon = None
         if ignore_semicolon and self.sy == ';':
@@ -557,8 +541,7 @@ class PyrexScanner(Scanner):
                 self.sy, self.systring = IDENT, self.context.intern_ustring(self.sy)
 
 @contextmanager
-@cython.locals(scanner=Scanner)
-def tentatively_scan(scanner):
+def tentatively_scan(scanner: PyrexScanner):
     errors = hold_errors()
     try:
         put_back_on_failure = scanner.put_back_on_failure

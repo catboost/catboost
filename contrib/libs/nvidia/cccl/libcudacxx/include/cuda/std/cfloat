@@ -1,0 +1,59 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_CFLOAT
+#define _CUDA_STD_CFLOAT
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#if !_CCCL_COMPILER(NVRTC)
+#  include <cfloat>
+#else // ^^^ !_CCCL_COMPILER(NVRTC) ^^^ / vvv _CCCL_COMPILER(NVRTC) vvv
+#  define FLT_RADIX       2
+#  define DECIMAL_DIG     DBL_DECIMAL_DIG
+#  define FLT_ROUNDS      1
+#  define FLT_EVAL_METHOD 0
+
+#  define FLT_DECIMAL_DIG 9
+#  define FLT_MIN         1.17549435082228750796873653722224568e-38f
+#  define FLT_TRUE_MIN    1.40129846432481707092372958328991613e-45f
+#  define FLT_MAX         3.40282346638528859811704183484516925e+38f
+#  define FLT_EPSILON     1.19209289550781250000000000000000000e-7f
+#  define FLT_DIG         6
+#  define FLT_MANT_DIG    24
+#  define FLT_MIN_EXP     (-125)
+#  define FLT_MIN_10_EXP  (-37)
+#  define FLT_MAX_EXP     128
+#  define FLT_MAX_10_EXP  38
+#  define FLT_HAS_SUBNORM 1
+
+#  define DBL_DECIMAL_DIG 17
+#  define DBL_MIN         2.22507385850720138309023271733240406e-308
+#  define DBL_TRUE_MIN    4.94065645841246544176568792868221372e-324
+#  define DBL_MAX         1.79769313486231570814527423731704357e+308
+#  define DBL_EPSILON     2.22044604925031308084726333618164062e-16
+#  define DBL_DIG         15
+#  define DBL_MANT_DIG    53
+#  define DBL_MIN_EXP     (-1021)
+#  define DBL_MIN_10_EXP  (-307)
+#  define DBL_MAX_EXP     1024
+#  define DBL_MAX_10_EXP  308
+#  define DBL_HAS_SUBNORM 1
+#endif // ^^^ _CCCL_COMPILER(NVRTC) ^^^
+
+#endif // _CUDA_STD_CFLOAT

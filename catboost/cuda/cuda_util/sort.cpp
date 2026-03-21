@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <util/generic/cast.h>
 #include <util/stream/labeled.h>
 

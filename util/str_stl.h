@@ -213,6 +213,11 @@ struct TEqualTo<TUtf32String>: public TEqualTo<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
+template <>
+struct TEqualTo<std::string>: public TEqualTo<TStringBuf> {
+    using is_transparent = void;
+};
+
 template <class TFirst, class TSecond>
 struct TEqualTo<std::pair<TFirst, TSecond>> {
     template <class TOther>
@@ -257,6 +262,11 @@ struct TLess<TString>: public TLess<TStringBuf> {
 };
 
 template <>
+struct TLess<std::string>: public TLess<TStringBuf> {
+    using is_transparent = void;
+};
+
+template <>
 struct TLess<TUtf16String>: public TLess<TWtringBuf> {
     using is_transparent = void;
 };
@@ -272,6 +282,11 @@ struct TGreater: public std::greater<T> {
 
 template <>
 struct TGreater<TString>: public TGreater<TStringBuf> {
+    using is_transparent = void;
+};
+
+template <>
+struct TGreater<std::string>: public TGreater<TStringBuf> {
     using is_transparent = void;
 };
 

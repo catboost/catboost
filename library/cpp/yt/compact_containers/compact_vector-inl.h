@@ -73,7 +73,8 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, size_t N>
-TCompactVector<T, N>::TCompactVector() noexcept
+constexpr TCompactVector<T, N>::TCompactVector() noexcept
+    : InlineMeta_{}
 {
     InlineMeta_.SizePlusOne = 1;
 }
@@ -595,7 +596,7 @@ auto TCompactVector<T, N>::operator=(const TCompactVector<T, OtherN>& other) -> 
 }
 
 template <class T, size_t N>
-auto TCompactVector<T, N>::operator=(TCompactVector&& other) -> TCompactVector&
+auto TCompactVector<T, N>::operator=(TCompactVector&& other) noexcept -> TCompactVector&
 {
     assign(std::move(other));
     return *this;

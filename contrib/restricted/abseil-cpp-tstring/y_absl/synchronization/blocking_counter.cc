@@ -17,6 +17,7 @@
 #include <atomic>
 
 #include "y_absl/base/internal/raw_logging.h"
+#include "y_absl/base/internal/tracing.h"
 
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
@@ -40,6 +41,7 @@ bool BlockingCounter::DecrementCount() {
   Y_ABSL_RAW_CHECK(count >= 0,
                  "BlockingCounter::DecrementCount() called too many times");
   if (count == 0) {
+    base_internal::TraceSignal(this, TraceObjectKind());
     MutexLock l(&lock_);
     done_ = true;
     return true;
@@ -48,19 +50,23 @@ bool BlockingCounter::DecrementCount() {
 }
 
 void BlockingCounter::Wait() {
-  MutexLock l(&this->lock_);
+  base_internal::TraceWait(this, TraceObjectKind());
+  {
+    MutexLock l(&this->lock_);
 
-  // only one thread may call Wait(). To support more than one thread,
-  // implement a counter num_to_exit, like in the Barrier class.
-  Y_ABSL_RAW_CHECK(num_waiting_ == 0, "multiple threads called Wait()");
-  num_waiting_++;
+    // only one thread may call Wait(). To support more than one thread,
+    // implement a counter num_to_exit, like in the Barrier class.
+    Y_ABSL_RAW_CHECK(num_waiting_ == 0, "multiple threads called Wait()");
+    num_waiting_++;
 
-  this->lock_.Await(Condition(IsDone, &this->done_));
+    this->lock_.Await(Condition(IsDone, &this->done_));
 
-  // At this point, we know that all threads executing DecrementCount
-  // will not touch this object again.
-  // Therefore, the thread calling this method is free to delete the object
-  // after we return from this method.
+    // At this point, we know that all threads executing DecrementCount
+    // will not touch this object again.
+    // Therefore, the thread calling this method is free to delete the object
+    // after we return from this method.
+  }
+  base_internal::TraceContinue(this, TraceObjectKind());
 }
 
 Y_ABSL_NAMESPACE_END

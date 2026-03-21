@@ -13,3 +13,4 @@
 # changes in this file.
 
 add_subdirectory(benchmark)
+add_subdirectory(utf8_range)

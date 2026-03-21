@@ -14,21 +14,9 @@ int NPar::TTbbLocalExecutor<RespectTls>::GetThreadCount() const noexcept {
 
 template <bool RespectTls>
 int NPar::TTbbLocalExecutor<RespectTls>::GetWorkerThreadId() const noexcept {
-    static thread_local int WorkerThreadId = -1;
-    if (WorkerThreadId == -1) {
-        // Can't rely on return value except checking that it is 'not_initialized' because of
-        //  "Since a thread may exit the arena at any time if it does not execute a task, the index of
-        //   a thread may change between any two tasks"
-        //  (https://oneapi-spec.uxlfoundation.org/specifications/oneapi/latest/elements/onetbb/source/task_scheduler/task_arena/this_task_arena_ns#_CPPv4N3tbb15this_task_arena20current_thread_indexEv)
-        const auto tbbThreadIndex = tbb::this_task_arena::current_thread_index();
-        if (tbbThreadIndex == tbb::task_arena::not_initialized) {
-            // This thread does not belong to TBB worker threads
-            WorkerThreadId = 0;
-        } else {
-            WorkerThreadId = ++RegisteredThreadCounter;
-        }
-    }
-    return WorkerThreadId;
+    return TbbArena.execute([] {
+        return tbb::this_task_arena::current_thread_index();
+    });
 }
 
 template <bool RespectTls>

@@ -18,6 +18,7 @@
 #include <catboost/libs/data/feature_index.h>
 #include <catboost/libs/data/packed_binary_features.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/profile_info.h>

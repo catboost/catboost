@@ -80,8 +80,8 @@ namespace NCatboostCuda {
             constexpr ui32 FeatureBlockSize = 16;
             const auto featureCount = floatFeatureIds.size();
             for (auto featureIdx : xrange<ui32>(0, featureCount, FeatureBlockSize)) {
-                const auto begin = floatFeatureIds.begin() + featureIdx;
-                const auto end = floatFeatureIds.begin() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
+                const auto begin = floatFeatureIds.data() + featureIdx;
+                const auto end = floatFeatureIds.data() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
                 WriteFloatFeatures(MakeArrayRef(begin, end), DataProvider);
                 CheckInterrupted(); // check after long-lasting operation
             }
@@ -93,10 +93,8 @@ namespace NCatboostCuda {
             for (auto feature : features) {
                 const auto featureId = FeaturesManager.GetDataProviderId(feature);
                 const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
-                CB_ENSURE(featureMetaInfo.IsAvailable,
-                        TStringBuilder() << "Feature #" << featureId << " is empty");
-                CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
-                        TStringBuilder() << "Feature #" << featureId << " is not float");
+                CB_ENSURE(featureMetaInfo.IsAvailable, "Feature #" << featureId << " is empty");
+                CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float, "Feature #" << featureId << " is not float");
             }
             const auto& objectsData = *dataProvider.ObjectsData;
             const auto featureCount = features.size();
@@ -135,10 +133,8 @@ namespace NCatboostCuda {
                                 const NCB::TTrainingDataProvider& dataProvider) {
             const auto featureId = FeaturesManager.GetDataProviderId(feature);
             const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
-            CB_ENSURE(featureMetaInfo.IsAvailable,
-                      TStringBuilder() << "Feature #" << featureId << " is empty");
-            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Categorical,
-                      TStringBuilder() << "Feature #" << featureId << " is not categorical");
+            CB_ENSURE(featureMetaInfo.IsAvailable, "Feature #" << featureId << " is empty");
+            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Categorical, "Feature #" << featureId << " is not categorical");
 
             auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
 

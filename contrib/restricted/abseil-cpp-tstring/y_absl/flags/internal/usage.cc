@@ -29,7 +29,7 @@
 
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
-#include "y_absl/base/const_init.h"
+#include "y_absl/base/no_destructor.h"
 #include "y_absl/base/thread_annotations.h"
 #include "y_absl/flags/commandlineflag.h"
 #include "y_absl/flags/flag.h"
@@ -434,45 +434,48 @@ HelpMode HandleUsageFlags(std::ostream& out,
 
 namespace {
 
-Y_ABSL_CONST_INIT y_absl::Mutex help_attributes_guard(y_absl::kConstInit);
-Y_ABSL_CONST_INIT TString* match_substr
-    Y_ABSL_GUARDED_BY(help_attributes_guard) = nullptr;
-Y_ABSL_CONST_INIT HelpMode help_mode Y_ABSL_GUARDED_BY(help_attributes_guard) =
+y_absl::Mutex* HelpAttributesMutex() {
+  static y_absl::NoDestructor<y_absl::Mutex> mutex;
+  return mutex.get();
+}
+Y_ABSL_CONST_INIT TString* match_substr Y_ABSL_GUARDED_BY(HelpAttributesMutex())
+    Y_ABSL_PT_GUARDED_BY(HelpAttributesMutex()) = nullptr;
+Y_ABSL_CONST_INIT HelpMode help_mode Y_ABSL_GUARDED_BY(HelpAttributesMutex()) =
     HelpMode::kNone;
-Y_ABSL_CONST_INIT HelpFormat help_format Y_ABSL_GUARDED_BY(help_attributes_guard) =
+Y_ABSL_CONST_INIT HelpFormat help_format Y_ABSL_GUARDED_BY(HelpAttributesMutex()) =
     HelpFormat::kHumanReadable;
 
 }  // namespace
 
 TString GetFlagsHelpMatchSubstr() {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   if (match_substr == nullptr) return "";
   return *match_substr;
 }
 
 void SetFlagsHelpMatchSubstr(y_absl::string_view substr) {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   if (match_substr == nullptr) match_substr = new TString;
   match_substr->assign(substr.data(), substr.size());
 }
 
 HelpMode GetFlagsHelpMode() {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   return help_mode;
 }
 
 void SetFlagsHelpMode(HelpMode mode) {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   help_mode = mode;
 }
 
 HelpFormat GetFlagsHelpFormat() {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   return help_format;
 }
 
 void SetFlagsHelpFormat(HelpFormat format) {
-  y_absl::MutexLock l(&help_attributes_guard);
+  y_absl::MutexLock l(HelpAttributesMutex());
   help_format = format;
 }
 

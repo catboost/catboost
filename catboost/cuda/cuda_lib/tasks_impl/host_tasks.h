@@ -6,7 +6,7 @@ namespace NCudaLib {
     class TWaitSubmitCommand: public ICommand {
     public:
         TWaitSubmitCommand()
-            : ICommand(EComandType::WaitSubmit)
+            : ICommand(ECommandType::WaitSubmit)
         {
         }
 

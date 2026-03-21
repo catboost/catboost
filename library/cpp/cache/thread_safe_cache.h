@@ -52,12 +52,19 @@ namespace NPrivate {
 
         const TPtr GetOrNull(TArgs... args) {
             Key key = Callbacks.GetKey(args...);
-            TReadGuard r(Mutex);
-            auto iter = Cache.Find(key);
-            if (iter == Cache.End()) {
-                return nullptr;
+            switch (GettersPromotionPolicy) {
+                case EGettersPromotionPolicy::Promoted: {
+                    TWriteGuard r(Mutex);
+                    if (auto iter = Cache.Find(key); iter != Cache.End())
+                        return iter.Value();
+                }
+                case EGettersPromotionPolicy::Unpromoted: {
+                    TReadGuard r(Mutex);
+                    if (auto iter = Cache.Find(key); iter != Cache.End())
+                        return iter.Value();
+                }
             }
-            return iter.Value();
+            return nullptr;
         }
 
         const TPtr Get(TArgs... args) const {

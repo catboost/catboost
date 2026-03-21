@@ -155,7 +155,7 @@ namespace NCB {
                 token = GetStringColumnToken(docId, columnType);
                 break;
             default:
-                CB_ENSURE("Unsupported output columnType for Quantized pool.");
+                CB_ENSURE(false, "Unsupported output columnType for Quantized pool");
         }
 
         *outStream << token;

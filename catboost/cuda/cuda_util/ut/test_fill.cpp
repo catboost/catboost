@@ -17,7 +17,7 @@ Y_UNIT_TEST_SUITE(TFillTest) {
             TRandom rand(0);
             for (ui32 k = 0; k < tries; ++k) {
                 ui64 size = 2 + rand.NextUniformL() % 1000000;
-                ui32 dev = rand.NextUniformL() % GetDeviceCount();
+                ui32 dev = rand.NextUniformL() % NCudaLib::GetDeviceCount();
                 TSingleMapping mapping(dev, size);
                 auto cVec = TCudaBuffer<ui32, TSingleMapping>::Create(mapping);
                 MakeSequence(cVec);

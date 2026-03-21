@@ -516,7 +516,7 @@ namespace NCB::NModelEvaluation {
                 size_t treeEnd,
                 TArrayRef<double> results
             ) const override {
-                const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = reinterpret_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
+                const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = static_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cpuQuantizedFeatures != nullptr, "Expected pointer to TCPUEvaluatorQuantizedData");
                 if (ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() != 0) {
                     CB_ENSURE(
@@ -560,7 +560,7 @@ namespace NCB::NModelEvaluation {
                 size_t treeEnd,
                 TArrayRef<ui32> indexes
             ) const override {
-                const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = reinterpret_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
+                const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = static_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cpuQuantizedFeatures != nullptr, "Expected pointer to TCPUEvaluatorQuantizedData");
                 if (ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() != 0) {
                     CB_ENSURE(

@@ -182,6 +182,22 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         TOptsParseResultTestWrapper r22(&opts, {"cp", "/etc", "/var/tmp"});
     }
 
+    Y_UNIT_TEST(TestProgramSubcommandPathSetter) {
+        TOptsNoDefault opts;
+        TOptsParseResultTestWrapper r(&opts, {"tool"});
+        const TVector<TString> parts = {"tool", "sub", "command"};
+        r.SetProgramSubcommandPath(parts);
+        UNIT_ASSERT_VALUES_EQUAL(parts, r.GetProgramSubcommandPath());
+    }
+
+    Y_UNIT_TEST(TestProgramCanonicalNameCompat) {
+        TOptsNoDefault opts;
+        TOptsParseResultTestWrapper r(&opts, {"tool"});
+        r.SetProgramSubcommandPath({"tool", "outer", "inner"});
+        const TVector<TString> expected = {"tool", "outer", "inner"};
+        UNIT_ASSERT_VALUES_EQUAL(expected, r.GetProgramSubcommandPath());
+    }
+
     Y_UNIT_TEST(TestCharOptionsRequiredOptional) {
         TOptsNoDefault opts;
         opts.AddCharOption('d', REQUIRED_ARGUMENT);
@@ -592,6 +608,7 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
             *Flag = true;
         }
     };
+
     Y_UNIT_TEST(TestHandlers) {
         {
             TOptsNoDefault opts;
@@ -841,6 +858,75 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT_VALUES_EQUAL("hello", data);
         UNIT_ASSERT_VALUES_EQUAL(25, number);
         UNIT_ASSERT_VALUES_EQUAL(2, r.GetFreeArgCount());
+    }
+
+    Y_UNIT_TEST(TestFreeArgsTaggedAccess) {
+        enum class EFreeArgTag {
+            Unknown,
+            Src,
+            Dst,
+        };
+
+        TOptsNoDefault opts;
+        opts.SetFreeArgsNum(2);
+        opts.GetFreeArgSpec(0).SetTag(EFreeArgTag::Src);
+        opts.GetFreeArgSpec(1).SetTag(EFreeArgTag::Dst);
+
+        TOptsParseResultTestWrapper r(&opts, {"cmd", "input.txt", "output.txt"});
+
+        const auto allArgs = r.GetFreeArgs();
+        UNIT_ASSERT_VALUES_EQUAL(2u, allArgs.size());
+
+        const auto srcArgs = r.GetFreeArgs(EFreeArgTag::Src);
+        UNIT_ASSERT_VALUES_EQUAL(1u, srcArgs.size());
+        UNIT_ASSERT_VALUES_EQUAL("input.txt", srcArgs.front());
+
+        const auto dstArgs = r.GetFreeArgs(EFreeArgTag::Dst);
+        UNIT_ASSERT_VALUES_EQUAL(1u, dstArgs.size());
+        UNIT_ASSERT_VALUES_EQUAL("output.txt", dstArgs.front());
+
+        UNIT_ASSERT(r.GetFreeArgs(EFreeArgTag::Unknown).empty());
+    }
+
+    Y_UNIT_TEST(TestTrailingFreeArgsTagger) {
+        enum class EFreeArgTag {
+            Unknown,
+            Primary,
+            Logs,
+            Temp,
+        };
+
+        TOptsNoDefault opts;
+        opts.SetFreeArgsMin(1);
+        opts.SetFreeArgsMax(TOpts::UNLIMITED_ARGS);
+
+        opts.GetFreeArgSpec(0).SetTag(EFreeArgTag::Primary);
+        opts.GetTrailingArgSpec().SetTag<EFreeArgTag>([](const TString& value) {
+            if (value.EndsWith(".log")) {
+                return EFreeArgTag::Logs;
+            }
+            if (value.EndsWith(".tmp")) {
+                return EFreeArgTag::Temp;
+            }
+            return EFreeArgTag::Unknown;
+        });
+
+        TOptsParseResultTestWrapper r(&opts, {"cmd", "config.yaml", "db.log", "cache.tmp", "service.log"});
+
+        const auto primary = r.GetFreeArgs(EFreeArgTag::Primary);
+        UNIT_ASSERT_VALUES_EQUAL(1u, primary.size());
+        UNIT_ASSERT_VALUES_EQUAL("config.yaml", primary.front());
+
+        const auto logs = r.GetFreeArgs(EFreeArgTag::Logs);
+        UNIT_ASSERT_VALUES_EQUAL(2u, logs.size());
+        UNIT_ASSERT_VALUES_EQUAL("db.log", logs[0]);
+        UNIT_ASSERT_VALUES_EQUAL("service.log", logs[1]);
+
+        const auto temp = r.GetFreeArgs(EFreeArgTag::Temp);
+        UNIT_ASSERT_VALUES_EQUAL(1u, temp.size());
+        UNIT_ASSERT_VALUES_EQUAL("cache.tmp", temp.front());
+
+        UNIT_ASSERT_VALUES_EQUAL(4u, r.GetFreeArgCount());
     }
 
     Y_UNIT_TEST(TestCheckUserTypos) {

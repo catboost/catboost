@@ -13,7 +13,7 @@
 import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
-from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
+from _frozen_importlib import _call_with_frames_removed, spec_from_loader
 from _frozen_importlib_external import (
     _os,
     _path_isfile,
@@ -113,15 +113,22 @@ def file_bytes(path, strip=False):
 def _guess_source_root():
     path, tail = _os.getcwd(), 'start'
 
+    root = None
     while tail:
         guidence_file = _path_join(path, '.root.path')
         if _path_isfile(guidence_file):
+            # return immediately when guidence file is found
             return file_bytes(guidence_file, strip=True)
 
-        if _path_isfile(_path_join(path, '.arcadia.root')):
-            return _b(path)
+        if _path_isfile(_path_join(path, '.arcadia.root')) and not root:
+            # save as a fallback but continue searching for a guidence file
+            # NOTE: .arcadia.root may be a symlink if it's set in DATA macros
+            # and it may be a regular file if ya:copydata tag is set
+            # in addition to that. So it's not very reliable.
+            root = _b(path)
 
         path, tail = _path_split(path)
+    return root
 
 
 def _get_source_root():
@@ -288,7 +295,6 @@ class ResourceImporter(SourceFileLoader):
     def __init__(self, fullname, path):
         super().__init__(fullname, path)
         self.memory = set(iter_py_modules())  # Set of importable module names.
-        self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
 
@@ -496,24 +502,6 @@ class ResourceImporter(SourceFileLoader):
 
         raise ImportError(fullname)
 
-    # Extension for contrib/python/coverage.
-    def file_source(self, filename):
-        """
-        Return the key of the module source by its resource path.
-        """
-        if not self.source_map:
-            for key, mod in iter_py_modules(with_keys=True):
-                path = self.get_filename(mod)
-                self.source_map[path] = key
-
-        if filename in self.source_map:
-            return self.source_map[filename]
-
-        if resfs_has(filename):
-            return b'resfs/file/' + _b(filename)
-
-        return b''
-
     # Extension for pkgutil.iter_modules.
     def iter_modules(self, prefix=''):
         import re
@@ -527,9 +515,10 @@ class ResourceImporter(SourceFileLoader):
                 yield m
 
     def get_resource_reader(self, fullname):
-        import os
-        path = os.path.dirname(self.get_filename(fullname))
-        return _ResfsResourceReader(self, path)
+        """Return the ResourceReader for a module in a binary file."""
+        from sitecustomize import ResfsTraversableResources
+
+        return ResfsTraversableResources(self, fullname)
 
     @staticmethod
     def find_distributions(*args, **kwargs):
@@ -542,61 +531,8 @@ class ResourceImporter(SourceFileLoader):
         of directories ``context.path``.
         """
         from sitecustomize import MetadataArcadiaFinder
+
         return MetadataArcadiaFinder.find_distributions(*args, **kwargs)
-
-
-class _ResfsResourceReader:
-
-    def __init__(self, importer, path):
-        self.importer = importer
-        self.path = path
-
-    def open_resource(self, resource):
-        path = f'{self.path}/{resource}'
-        from io import BytesIO
-        try:
-            return BytesIO(self.importer.get_data(path))
-        except OSError:
-            raise FileNotFoundError(path)
-
-    def resource_path(self, resource):
-        # All resources are in the binary file, so there is no path to the file.
-        # Raising FileNotFoundError tells the higher level API to extract the
-        # binary data and create a temporary file.
-        raise FileNotFoundError
-
-    def is_resource(self, name):
-        path = f'{self.path}/{name}'
-        try:
-            self.importer.get_data(path)
-        except OSError:
-            return False
-        return True
-
-    def contents(self):
-        subdirs_seen = set()
-        len_path = len(self.path) + 1  # path + /
-        for key in resfs_files(f"{self.path}/"):
-            relative = key[len_path:]
-            res_or_subdir, *other = relative.split(b'/')
-            if not other:
-                yield _s(res_or_subdir)
-            elif res_or_subdir not in subdirs_seen:
-                subdirs_seen.add(res_or_subdir)
-                yield _s(res_or_subdir)
-
-    def files(self):
-        import sitecustomize
-        return sitecustomize.ArcadiaResourceContainer(f"resfs/file/{self.path}/")
-
-
-class BuiltinSubmoduleImporter(BuiltinImporter):
-    @classmethod
-    def find_spec(cls, fullname, path=None, target=None):
-        if path is not None:
-            return super().find_spec(fullname, None, target)
-        else:
-            return None
 
 
 class ArcadiaSourceFinder:
@@ -780,7 +716,6 @@ def get_path0():
 
 if YA_IDE_VENV:
     sys.meta_path.append(importer)
-    sys.meta_path.append(BuiltinSubmoduleImporter)
     if executable not in sys.path:
         sys.path.append(executable)
     path0 = get_path0()
@@ -789,7 +724,6 @@ if YA_IDE_VENV:
 
     sys.path_hooks.append(executable_path_hook)
 else:
-    sys.meta_path.insert(0, BuiltinSubmoduleImporter)
     sys.meta_path.insert(0, importer)
     if executable not in sys.path:
         sys.path.insert(0, executable)

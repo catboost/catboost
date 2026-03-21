@@ -55,10 +55,12 @@
 #include <algorithm>
 #include <cstddef>
 #include <util/generic/string.h>
+#include <utility>
 
 #include "y_absl/base/attributes.h"
 #include "y_absl/base/config.h"
 #include "y_absl/base/nullability.h"
+#include "y_absl/strings/internal/resize_uninitialized.h"
 #include "y_absl/strings/string_view.h"
 
 namespace y_absl {
@@ -73,6 +75,12 @@ Y_ABSL_DLL extern const char kToUpper[256];
 
 // Declaration for the array of characters to lower-case characters.
 Y_ABSL_DLL extern const char kToLower[256];
+
+void AsciiStrToLower(y_absl::Nonnull<char*> dst, y_absl::Nullable<const char*> src,
+                     size_t n);
+
+void AsciiStrToUpper(y_absl::Nonnull<char*> dst, y_absl::Nullable<const char*> src,
+                     size_t n);
 
 }  // namespace ascii_internal
 
@@ -131,32 +139,42 @@ inline bool ascii_isxdigit(unsigned char c) {
 //
 // Determines whether the given character can be represented as a decimal
 // digit character (i.e. {0-9}).
-inline bool ascii_isdigit(unsigned char c) { return c >= '0' && c <= '9'; }
+inline constexpr bool ascii_isdigit(unsigned char c) {
+  return c >= '0' && c <= '9';
+}
 
 // ascii_isprint()
 //
 // Determines whether the given character is printable, including spaces.
-inline bool ascii_isprint(unsigned char c) { return c >= 32 && c < 127; }
+inline constexpr bool ascii_isprint(unsigned char c) {
+  return c >= 32 && c < 127;
+}
 
 // ascii_isgraph()
 //
 // Determines whether the given character has a graphical representation.
-inline bool ascii_isgraph(unsigned char c) { return c > 32 && c < 127; }
+inline constexpr bool ascii_isgraph(unsigned char c) {
+  return c > 32 && c < 127;
+}
 
 // ascii_isupper()
 //
 // Determines whether the given character is uppercase.
-inline bool ascii_isupper(unsigned char c) { return c >= 'A' && c <= 'Z'; }
+inline constexpr bool ascii_isupper(unsigned char c) {
+  return c >= 'A' && c <= 'Z';
+}
 
 // ascii_islower()
 //
 // Determines whether the given character is lowercase.
-inline bool ascii_islower(unsigned char c) { return c >= 'a' && c <= 'z'; }
+inline constexpr bool ascii_islower(unsigned char c) {
+  return c >= 'a' && c <= 'z';
+}
 
 // ascii_isascii()
 //
 // Determines whether the given character is ASCII.
-inline bool ascii_isascii(unsigned char c) { return c < 128; }
+inline constexpr bool ascii_isascii(unsigned char c) { return c < 128; }
 
 // ascii_tolower()
 //
@@ -171,7 +189,18 @@ void AsciiStrToLower(y_absl::Nonnull<TString*> s);
 
 // Creates a lowercase string from a given y_absl::string_view.
 Y_ABSL_MUST_USE_RESULT inline TString AsciiStrToLower(y_absl::string_view s) {
-  TString result(s);
+  TString result;
+  strings_internal::STLStringResizeUninitialized(&result, s.size());
+  ascii_internal::AsciiStrToLower(&result[0], s.data(), s.size());
+  return result;
+}
+
+// Creates a lowercase string from a given TString&&.
+//
+// (Template is used to lower priority of this overload.)
+template <int&... DoNotSpecify>
+Y_ABSL_MUST_USE_RESULT inline TString AsciiStrToLower(TString&& s) {
+  TString result = std::move(s);
   y_absl::AsciiStrToLower(&result);
   return result;
 }
@@ -189,7 +218,18 @@ void AsciiStrToUpper(y_absl::Nonnull<TString*> s);
 
 // Creates an uppercase string from a given y_absl::string_view.
 Y_ABSL_MUST_USE_RESULT inline TString AsciiStrToUpper(y_absl::string_view s) {
-  TString result(s);
+  TString result;
+  strings_internal::STLStringResizeUninitialized(&result, s.size());
+  ascii_internal::AsciiStrToUpper(&result[0], s.data(), s.size());
+  return result;
+}
+
+// Creates an uppercase string from a given TString&&.
+//
+// (Template is used to lower priority of this overload.)
+template <int&... DoNotSpecify>
+Y_ABSL_MUST_USE_RESULT inline TString AsciiStrToUpper(TString&& s) {
+  TString result = std::move(s);
   y_absl::AsciiStrToUpper(&result);
   return result;
 }

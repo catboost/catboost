@@ -78,10 +78,18 @@ namespace NPrivate {
         } else {
             o << "  " << function << "() failed" << Endl;
         }
-        Cerr << r << Flush;
+
+        TString backTrace;
 #ifndef WITH_VALGRIND
-        PrintBackTrace();
+        try {
+            TStringOutput backTraceOutput(backTrace);
+            FormatBackTrace(&backTraceOutput);
+        } catch (...) {
+            backTrace = "Failed to print backtrace due: " + CurrentExceptionMessage() + "\n";
+        }
 #endif
+        o << backTrace;
+        Cerr << r << Flush;
 #ifdef CLANG_COVERAGE
         if (__llvm_profile_write_file()) {
             Cerr << "Failed to dump clang coverage" << Endl;

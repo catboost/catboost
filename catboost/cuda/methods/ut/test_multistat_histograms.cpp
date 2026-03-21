@@ -69,7 +69,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
         TAdaptiveLock refStatLock;
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             TSlice docSlice = stats.GetMapping().DeviceSlice(dev);
             const TVector<ui32>& compressedIndex = cindexCpu[dev];
 

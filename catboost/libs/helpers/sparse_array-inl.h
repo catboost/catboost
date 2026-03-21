@@ -101,9 +101,9 @@ namespace NCB {
     TSparseSubsetBlocksIterator<TSize>::TSparseSubsetBlocksIterator(
         const TSparseSubsetBlocks<TSize>& sparseSubsetBlocks)
         : Data{
-            (*sparseSubsetBlocks.BlockStarts).begin(),
-            (*sparseSubsetBlocks.BlockStarts).end(),
-            (*sparseSubsetBlocks.BlockLengths).begin(),
+            (*sparseSubsetBlocks.BlockStarts).data(),
+            (*sparseSubsetBlocks.BlockStarts).data() + (*sparseSubsetBlocks.BlockStarts).size(),
+            (*sparseSubsetBlocks.BlockLengths).data(),
             TSize(0)
         }
     {}
@@ -229,8 +229,8 @@ namespace NCB {
     TSparseSubsetHybridIndexIterator<TSize>::TSparseSubsetHybridIndexIterator(
         const TSparseSubsetHybridIndex<TSize>& sparseSubsetHybridIndex)
         : Data{
-            sparseSubsetHybridIndex.BlockIndices.begin(),
-            sparseSubsetHybridIndex.BlockIndices.end(),
+            sparseSubsetHybridIndex.BlockIndices.data(),
+            sparseSubsetHybridIndex.BlockIndices.data() + sparseSubsetHybridIndex.BlockIndices.size(),
             sparseSubsetHybridIndex.BlockBitmaps.begin(),
             ui32(0)
         }
@@ -1268,8 +1268,8 @@ namespace NCB {
         }
 
         if (!ordered) {
-            TDoubleArrayIterator<TSize, TSrcValue> dstBegin{indexing.begin(), nonDefaultValues.begin()};
-            TDoubleArrayIterator<TSize, TSrcValue> dstEnd{indexing.end(), nonDefaultValues.end()};
+            TDoubleArrayIterator<TSize, TSrcValue> dstBegin{indexing.data(), nonDefaultValues.data()};
+            TDoubleArrayIterator<TSize, TSrcValue> dstEnd{indexing.data() + indexing.size(), nonDefaultValues.data() + nonDefaultValues.size()};
 
             Sort(dstBegin, dstEnd, [](auto lhs, auto rhs) { return lhs.first < rhs.first; });
         }

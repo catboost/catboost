@@ -1,4 +1,4 @@
-#include "query_rmse.cuh"
+#include "query_softmax.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>

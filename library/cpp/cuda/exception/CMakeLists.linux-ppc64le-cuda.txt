@@ -19,7 +19,7 @@ target_link_libraries(cpp-cuda-exception PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  build-platform-cuda
+  internal-platform-cuda
 )
 
 target_sources(cpp-cuda-exception PRIVATE

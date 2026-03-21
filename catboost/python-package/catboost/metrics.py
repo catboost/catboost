@@ -2,19 +2,22 @@ from functools import partial
 
 import numpy as np
 try:
-    from pandas import DataFrame, Series
+    import pandas as pd
 except ImportError:
-    class DataFrame(object):
-        pass
+    # just to avoid checking (pd is not None) everywhere
+    class pandas:
+        class DataFrame(object):
+            pass
 
-    class Series(object):
-        pass
+        class Series(object):
+            pass
+    pd = pandas
 
 from . import _catboost
 
 
 # copied from core.py to avoid circular import
-_ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
+_ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series)
 
 __all__ = []
 

@@ -1,0 +1,238 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCUDACXX_CONFIG
+#define _LIBCUDACXX_CONFIG
+
+#include <cuda/__cccl_config> // IWYU pragma: export
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__internal/cpp_dialect.h>
+#include <cuda/std/__internal/features.h>
+#include <cuda/std/__internal/namespaces.h>
+
+#ifdef __cplusplus
+
+// __config may be included in `extern "C"` contexts, switch back to include <nv/target>
+extern "C++" {
+#  include <nv/target>
+}
+
+#  define _LIBCUDACXX_VERSION 10000
+
+#  ifndef __has_extension
+#    define __has_extension(__x) 0
+#  endif
+
+#  if !_CCCL_COMPILER(NVRTC)
+#    define _LIBCUDACXX_PREFERRED_ALIGNOF(_T) __alignof(_T)
+#  else // ^^^ !_CCCL_COMPILER(NVRTC) ^^^ / vvv _CCCL_COMPILER(NVRTC) vvv
+#    define _LIBCUDACXX_PREFERRED_ALIGNOF(_T) alignof(_T)
+#  endif // ^^^^ _CCCL_COMPILER(NVRTC) ^^^
+
+#  if _CCCL_COMPILER(MSVC)
+#    define _CCCL_ALIGNAS_TYPE(x) alignas(x)
+#    define _CCCL_ALIGNAS(x)      __declspec(align(x))
+#  elif _CCCL_HAS_FEATURE(cxx_alignas)
+#    define _CCCL_ALIGNAS_TYPE(x) alignas(x)
+#    define _CCCL_ALIGNAS(x)      alignas(x)
+#  else
+#    define _CCCL_ALIGNAS_TYPE(x) __attribute__((__aligned__(alignof(x))))
+#    define _CCCL_ALIGNAS(x)      __attribute__((__aligned__(x)))
+#  endif // !_CCCL_COMPILER(MSVC) && !_CCCL_HAS_FEATURE(cxx_alignas)
+
+#  if _CCCL_HAS_CUDA_COMPILER()
+#    define _LIBCUDACXX_ATOMIC_ALWAYS_LOCK_FREE(size, ptr) (size <= 8)
+#  elif _CCCL_COMPILER(CLANG) || _CCCL_COMPILER(GCC)
+#    define _LIBCUDACXX_ATOMIC_ALWAYS_LOCK_FREE(...) __atomic_always_lock_free(__VA_ARGS__)
+#  endif // _CCCL_CUDA_COMPILER
+
+#  ifdef _LIBCUDACXX_DEBUG
+#    if _LIBCUDACXX_DEBUG == 0
+#      define _LIBCUDACXX_DEBUG_LEVEL 1
+#    elif _LIBCUDACXX_DEBUG == 1
+#      define _LIBCUDACXX_DEBUG_LEVEL 2
+#    else
+#      error Supported values for _LIBCUDACXX_DEBUG are 0 and 1
+#    endif
+#  endif
+
+// Deprecation macros.
+//
+// Deprecations warnings are always enabled, except when users explicitly opt-out
+// by defining _LIBCUDACXX_DISABLE_DEPRECATION_WARNINGS.
+// NVCC 11.1 and 11.2 are broken with the deprecated attribute, so disable it
+#  if !defined(_LIBCUDACXX_DISABLE_DEPRECATION_WARNINGS)
+#    if _CCCL_HAS_ATTRIBUTE(deprecated)
+#      define _LIBCUDACXX_DEPRECATED __attribute__((deprecated))
+#    else // ^^^ _CCCL_HAS_ATTRIBUTE(deprecated) ^^^ / vvv !_CCCL_HAS_ATTRIBUTE(deprecated) vvv
+#      define _LIBCUDACXX_DEPRECATED [[deprecated]]
+#    endif // !_CCCL_HAS_ATTRIBUTE(deprecated)
+#  else // ^^^ !_LIBCUDACXX_DISABLE_DEPRECATION_WARNINGS ^^^ / vvv _LIBCUDACXX_DISABLE_DEPRECATION_WARNINGS vvv
+#    define _LIBCUDACXX_DEPRECATED
+#  endif // ^^^ _LIBCUDACXX_DISABLE_DEPRECATION_WARNINGS ^^^
+
+#  if _CCCL_STD_VER >= 2020
+#    define _LIBCUDACXX_DEPRECATED_IN_CXX20 _LIBCUDACXX_DEPRECATED
+#  else // ^^^ _CCCL_STD_VER >= 2020 ^^^ / vvv _CCCL_STD_VER < 2020 vvv
+#    define _LIBCUDACXX_DEPRECATED_IN_CXX20
+#  endif // ^^^ _CCCL_STD_VER < 2020 ^^^
+
+#  if _CCCL_STD_VER >= 2023
+#    define _LIBCUDACXX_DEPRECATED_IN_CXX23 _LIBCUDACXX_DEPRECATED
+#  else // ^^^ _CCCL_STD_VER >= 2023 ^^^ / vvv _CCCL_STD_VER < 2023 vvv
+#    define _LIBCUDACXX_DEPRECATED_IN_CXX23
+#  endif // ^^^ _CCCL_STD_VER < 2023 ^^^
+
+// Thread API
+#  ifndef _LIBCUDACXX_HAS_THREAD_API_EXTERNAL
+#    if _CCCL_COMPILER(NVRTC) || defined(__EMSCRIPTEN__)
+#      define _LIBCUDACXX_HAS_THREAD_API_EXTERNAL
+#    endif
+#  endif // _LIBCUDACXX_HAS_THREAD_API_EXTERNAL
+
+#  ifndef _LIBCUDACXX_HAS_THREAD_API_CUDA
+#    if ((_CCCL_DEVICE_COMPILATION() && !_CCCL_CUDA_COMPILER(NVHPC)) || defined(__EMSCRIPTEN__))
+#      define _LIBCUDACXX_HAS_THREAD_API_CUDA
+#    endif // __cuda_std__
+#  endif // _LIBCUDACXX_HAS_THREAD_API_CUDA
+
+#  ifndef _LIBCUDACXX_HAS_THREAD_API_WIN32
+#    if _CCCL_COMPILER(MSVC) && !defined(_LIBCUDACXX_HAS_THREAD_API_CUDA)
+#      define _LIBCUDACXX_HAS_THREAD_API_WIN32
+#    endif
+#  endif // _LIBCUDACXX_HAS_THREAD_API_WIN32
+
+#  if !defined(_LIBCUDACXX_HAS_THREAD_API_PTHREAD) && !defined(_LIBCUDACXX_HAS_THREAD_API_WIN32) \
+    && !defined(_LIBCUDACXX_HAS_THREAD_API_EXTERNAL)
+#    if defined(__linux__) || defined(__GNU__) || defined(__APPLE__) || _CCCL_OS(QNX) \
+      || (defined(__MINGW32__) && _CCCL_HAS_INCLUDE(<pthread.h>))
+#      define _LIBCUDACXX_HAS_THREAD_API_PTHREAD
+#    elif defined(_WIN32)
+#      define _LIBCUDACXX_HAS_THREAD_API_WIN32
+#    else
+#      define _LIBCUDACXX_UNSUPPORTED_THREAD_API
+#    endif // _LIBCUDACXX_HAS_THREAD_API
+#  endif
+
+#  if !defined(__STDCPP_THREADS__)
+#    define __STDCPP_THREADS__ 1
+#  endif
+
+// TODO: Support C11 Atomics?
+// #if _CCCL_HAS_FEATURE(cxx_atomic) || __has_extension(c_atomic) || _CCCL_HAS_KEYWORD(_Atomic)
+// #  define _LIBCUDACXX_HAS_C_ATOMIC_IMP
+#  if _CCCL_COMPILER(CLANG)
+#    define _LIBCUDACXX_HAS_GCC_ATOMIC_IMP
+#  elif _CCCL_COMPILER(GCC)
+#    define _LIBCUDACXX_HAS_GCC_ATOMIC_IMP
+#  elif _CCCL_COMPILER(NVHPC)
+#    define _LIBCUDACXX_HAS_GCC_ATOMIC_IMP
+#  elif _CCCL_COMPILER(MSVC)
+#    define _LIBCUDACXX_HAS_MSVC_ATOMIC_IMPL
+#  endif
+
+#  define _LIBCUDACXX_ATOMIC_UNSAFE_AUTOMATIC_STORAGE
+// Enable bypassing automatic storage checks in atomics when using CTK 12.2 and below and if NDEBUG is defined.
+// #  if _CCCL_CUDACC_BELOW(12, 2) && !defined(NDEBUG)
+// #    define _LIBCUDACXX_ATOMIC_UNSAFE_AUTOMATIC_STORAGE
+// #  endif // _CCCL_CUDACC_BELOW(12, 2)
+
+// CUDA Atomics supersede host atomics in order to insert the host/device dispatch layer
+#  if _CCCL_HAS_CUDA_COMPILER() || _CCCL_COMPILER(NVHPC)
+#    define _LIBCUDACXX_HAS_CUDA_ATOMIC_IMPL
+#  endif // _CCCL_HAS_CUDA_COMPILER() || _CCCL_COMPILER(NVHPC)
+
+#  if (!defined(_LIBCUDACXX_HAS_C_ATOMIC_IMP) && !defined(_LIBCUDACXX_HAS_GCC_ATOMIC_IMP) \
+       && !_LIBCUDACXX_HAS_EXTERNAL_ATOMIC_IMP())
+#    define _LIBCUDACXX_HAS_NO_ATOMIC_HEADER
+#  else
+#    ifdef __cuda_std__
+#      undef _LIBCUDACXX_ATOMIC_FLAG_TYPE
+#      define _LIBCUDACXX_ATOMIC_FLAG_TYPE int
+#    endif
+#    ifndef _LIBCUDACXX_ATOMIC_FLAG_TYPE
+#      define _LIBCUDACXX_ATOMIC_FLAG_TYPE bool
+#    endif
+#  endif
+
+#  if !defined(_LIBCUDACXX_DISABLE_ADDITIONAL_DIAGNOSTICS)
+#    define _LIBCUDACXX_DIAGNOSE_WARNING(_COND, _MSG) _CCCL_DIAGNOSE_IF(_COND, _MSG, "warning")
+#    define _LIBCUDACXX_DIAGNOSE_ERROR(_COND, _MSG)   _CCCL_DIAGNOSE_IF(_COND, _MSG, "error")
+#  else
+#    define _LIBCUDACXX_DIAGNOSE_WARNING(_COND, _MSG)
+#    define _LIBCUDACXX_DIAGNOSE_ERROR(_COND, _MSG)
+#  endif
+
+#  if defined(_LIBCUDACXX_ENABLE_CXX17_REMOVED_FEATURES)
+#    define _LIBCUDACXX_ENABLE_CXX17_REMOVED_AUTO_PTR
+#    define _LIBCUDACXX_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS
+#    define _LIBCUDACXX_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE
+#    define _LIBCUDACXX_ENABLE_CXX17_REMOVED_BINDERS
+#  endif // _LIBCUDACXX_ENABLE_CXX17_REMOVED_FEATURES
+
+#  ifndef _LIBCUDACXX_SYS_CLOCK_DURATION
+#    define _LIBCUDACXX_SYS_CLOCK_DURATION nanoseconds
+#  endif // _LIBCUDACXX_SYS_CLOCK_DURATION
+
+// There are a handful of public standard library types that are intended to
+// support CTAD but don't need any explicit deduction guides to do so. This
+// macro is used to mark them as such, which suppresses the
+// '-Wctad-maybe-unsupported' compiler warning when CTAD is used in user code
+// with these classes.
+#  if (!_CCCL_COMPILER(GCC) || _CCCL_COMPILER(GCC, >, 6))
+#    define _LIBCUDACXX_CTAD_SUPPORTED_FOR_TYPE(_ClassName) \
+      template <class... _Tag>                              \
+      _ClassName(typename _Tag::__allow_ctad...)->_ClassName<_Tag...>
+#  else
+#    define _LIBCUDACXX_CTAD_SUPPORTED_FOR_TYPE(_ClassName) static_assert(true, "")
+#  endif
+
+// We can only expose constexpr allocations if the compiler supports it
+// For now disable constexpr allocation support until we can actually use
+#  if 0 && defined(__cpp_constexpr_dynamic_alloc) && defined(__cpp_lib_constexpr_dynamic_alloc) \
+    && _CCCL_STD_VER >= 2020 && !_CCCL_COMPILER(NVRTC)
+#    define _CCCL_HAS_CONSTEXPR_ALLOCATION
+#    define _CCCL_CONSTEXPR_CXX20_ALLOCATION constexpr
+#  else // ^^^ __cpp_constexpr_dynamic_alloc ^^^ / vvv !__cpp_constexpr_dynamic_alloc vvv
+#    define _CCCL_CONSTEXPR_CXX20_ALLOCATION
+#  endif
+
+// NVRTC has a bug that prevented the use of delegated constructors, as it did not accept execution space annotations.
+// This creates a whole lot of boilerplate that we can avoid through a macro (see nvbug3961621)
+#  if _CCCL_COMPILER(NVRTC, <, 12, 6)
+#    define _LIBCUDACXX_DELEGATE_CONSTRUCTORS(__class, __baseclass, ...)                                          \
+      using __base = __baseclass<__VA_ARGS__>;                                                                    \
+      _CCCL_TEMPLATE(class... _Args)                                                                              \
+      _CCCL_REQUIRES(::cuda::std::is_constructible_v<__base, _Args...>)                                           \
+      _CCCL_API constexpr __class(_Args&&... __args) noexcept(                                                    \
+        ::cuda::std::is_nothrow_constructible_v<__base, _Args...>)                                                \
+          : __base(::cuda::std::forward<_Args>(__args)...)                                                        \
+      {}                                                                                                          \
+      _CCCL_HIDE_FROM_ABI constexpr __class() noexcept(::cuda::std::is_nothrow_default_constructible_v<__base>) = \
+        default;
+#  else // ^^^ workaround ^^^ / vvv no workaround vvv
+#    define _LIBCUDACXX_DELEGATE_CONSTRUCTORS(__class, __baseclass, ...)                                          \
+      using __base = __baseclass<__VA_ARGS__>;                                                                    \
+      using __base::__base;                                                                                       \
+      _CCCL_HIDE_FROM_ABI constexpr __class() noexcept(::cuda::std::is_nothrow_default_constructible_v<__base>) = \
+        default;
+#  endif // ^^^ no workaround ^^^
+
+#endif // __cplusplus
+
+#endif // _LIBCUDACXX_CONFIG

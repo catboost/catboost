@@ -9,6 +9,8 @@
 #include <util/thread/factory.h>
 #include <util/system/spinlock.h>
 
+#include <atomic>
+
 using namespace NNeh;
 
 namespace {
@@ -69,7 +71,7 @@ namespace {
             TGuard<TSpinLock> guard(L_);
 
             push_back(std::make_pair(service, srv));
-            AtomicIncrement(SelfVersion_);
+            ++SelfVersion_;
         }
 
         inline void Listen() {
@@ -213,7 +215,7 @@ namespace {
         }
 
         inline bool UpdateServices(TSrvs& srvs, i64& version) const {
-            if (AtomicGet(SelfVersion_) == version) {
+            if (SelfVersion_.load() == version) {
                 return false;
             }
 
@@ -224,7 +226,7 @@ namespace {
             for (const auto& it : *this) {
                 srvs[TParsedLocation(it.first).Service] = it.second;
             }
-            version = AtomicGet(SelfVersion_);
+            version = SelfVersion_.load();
 
             return true;
         }
@@ -246,7 +248,7 @@ namespace {
         TSpinLock L_;
         IRequestQueueRef RQ_;
         THolder<TLoopFunc> LF_;
-        TAtomic SelfVersion_ = 1;
+        std::atomic<i64> SelfVersion_ = 1;
         TCheck C_;
 
         NThreading::TThreadLocalValue<TVersionedServiceMap> LocalMap_;

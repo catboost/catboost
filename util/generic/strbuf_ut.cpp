@@ -362,6 +362,22 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         static_assert(std::is_same_v<decltype(s), TStringBuf>);
         UNIT_ASSERT_VALUES_EQUAL(s, TStringBuf("123"));
     }
+
+    // Test TStringBuf::contains only if std::string_view::contains exists.
+    // TStringBuf must be template parameter otherwise compilation of assertions fails.
+    template <typename TStringBuf = TStringBuf, typename T = std::string_view, decltype(T().contains(T())) = false>
+    void TestContainsImpl(int) {
+        UNIT_ASSERT(TStringBuf("123").contains("12"));
+        UNIT_ASSERT(!TStringBuf("123").contains("21"));
+    }
+
+    void TestContainsImpl(...) {
+        // Do nothing.
+    }
+
+    Y_UNIT_TEST(TestContains) {
+        TestContainsImpl(0);
+    }
 } // Y_UNIT_TEST_SUITE(TStrBufTest)
 
 Y_UNIT_TEST_SUITE(TWtrBufTest) {

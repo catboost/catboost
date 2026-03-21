@@ -19,3 +19,11 @@ target_sources(build-cow-on PRIVATE
   ${PROJECT_SOURCE_DIR}/build/cow/on/lib.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/build/cow/on/lib.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

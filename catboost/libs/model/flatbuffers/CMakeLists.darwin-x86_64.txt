@@ -34,11 +34,8 @@ target_sources(libs-model-flatbuffers PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.bfbs
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.bfbs
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.bfbs

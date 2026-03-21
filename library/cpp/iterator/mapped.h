@@ -2,6 +2,7 @@
 
 #include <util/generic/iterator_range.h>
 #include <util/generic/store_policy.h>
+#include <util/system/compiler.h>
 
 #include <iterator>
 
@@ -91,7 +92,7 @@ public:
 
 private:
     TIterator Iter;
-    TMapper Mapper;
+    Y_NO_UNIQUE_ADDRESS TMapper Mapper;
 };
 
 
@@ -130,7 +131,7 @@ public:
 
 protected:
     mutable TContainerStorage Container;
-    mutable TMapperStorage Mapper;
+    Y_NO_UNIQUE_ADDRESS mutable TMapperStorage Mapper;
 };
 
 

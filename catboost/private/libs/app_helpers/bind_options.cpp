@@ -337,7 +337,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
-    parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
+    parser.AddLongOption("use-best-model", "If true - save all trees until the best iteration on test.")
         .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
@@ -1195,7 +1195,11 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .RequiredArgument("{...}")
         .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
-            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+            try {
+                NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"], /*throwOnError*/true);
+            } catch (const NJson::TJsonException& error) {
+                CB_ENSURE(false, "Can't parse text processing JSON: " << error.what());
+            }
         });
 }
 

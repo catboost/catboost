@@ -291,7 +291,7 @@ long double    truncl(long double x);
 
 */
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ > 12
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ > 13
 // Try to rewrite the connection condition of this file in math.h, if this warning worked
 #  warning "This header can lead to problems with CUDA 12+ due to the transfer of mathematical functions to its namespace."
 #endif
@@ -319,6 +319,13 @@ extern "C++" {
 #include <__type_traits/promote.h>
 #include <limits>
 #include <stdlib.h>
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+template <class... _Args>
+struct __promote {
+  using type = __promote_t<_Args...>;
+};
+_LIBCPP_END_NAMESPACE_STD
 
 
 #    ifdef fpclassify

@@ -25,3 +25,11 @@ target_sources(contrib-libs-nayuki_md5 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/nayuki_md5/md5.c
 )
 
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/nayuki_md5/md5.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)

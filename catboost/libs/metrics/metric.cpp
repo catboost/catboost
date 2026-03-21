@@ -6842,7 +6842,7 @@ TVector<THolder<IMetric>> CreateMetrics(
         CB_ENSURE(metrics.size() == 1, "Eval metric should have a single value. Metric " <<
             ToString(evalMetricDescription.GetLossFunction()) <<
             " provides a value for each class, thus it cannot be used as " <<
-            "a single value to select best iteration or to detect overfitting. " <<
+            "a single value to select the best iteration or to detect overfitting. " <<
             "If you just want to look on the values of this metric use custom_metric parameter.");
         if (hasWeights && !metrics.back()->UseWeights.IsIgnored() && ShouldConsiderWeightsByDefault(metrics.back())) {
             metrics.back()->UseWeights.SetDefaultValue(true);
@@ -7029,7 +7029,7 @@ void CheckPreprocessedTarget(
 
     if (lossFunction != ELossFunction::MultiRMSEWithMissingValues) {
         for (auto objectIdx : xrange(target.size())){
-            CB_ENSURE(!IsNan(target[objectIdx]), "metric/loss-function " << lossFunction << " do not allows nan value on target");
+            CB_ENSURE(!IsNan(target[objectIdx]), "metric/loss-function " << lossFunction << " does not allow nan values in target data");
         }
     }
 }

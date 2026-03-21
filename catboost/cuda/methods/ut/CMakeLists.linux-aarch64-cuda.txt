@@ -82,7 +82,7 @@ set_yunittest_property(
   catboost-cuda-methods-ut
   PROPERTY
   LABELS
-  SMALL
+  LARGE
 )
 
 set_yunittest_property(

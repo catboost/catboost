@@ -7,6 +7,7 @@ import tempfile
 import time
 from .common_helpers import *  # noqa
 import zipfile
+from library.python import port_manager
 
 
 _use_cmake_paths = False
@@ -19,8 +20,6 @@ except ImportError:
         os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
     ]
     import yatest.common
-
-import yatest.common.network  # noqa
 
 
 def is_open_source():
@@ -168,7 +167,7 @@ def local_canonical_file(*args, **kwargs):
 
 def execute_catboost_dist(mode, cmd):
     hosts_path = yatest.common.test_output_path('hosts.txt')
-    with yatest.common.network.PortManager() as pm:
+    with port_manager.PortManager() as pm:
         port0 = pm.get_port()
         port1 = pm.get_port()
         with open(hosts_path, 'w') as hosts:
@@ -181,11 +180,16 @@ def execute_catboost_dist(mode, cmd):
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        execute_catboost(
-            mode,
-            'CPU',
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
-        )
+        try:
+            execute_catboost(
+                mode,
+                'CPU',
+                cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
+            )
+        except BaseException:
+            worker0.terminate()
+            worker1.terminate()
+
         worker0.wait()
         worker1.wait()
 

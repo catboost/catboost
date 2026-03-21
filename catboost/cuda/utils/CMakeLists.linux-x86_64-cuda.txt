@@ -20,7 +20,6 @@ target_link_libraries(catboost-cuda-utils PUBLIC
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
-  cpp-deprecated-atomic
 )
 
 target_sources(catboost-cuda-utils PRIVATE

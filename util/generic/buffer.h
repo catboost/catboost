@@ -205,6 +205,7 @@ public:
      * after this call buffer becomes empty
      */
     void AsString(TString& s);
+    void AsString(std::string& s);
 
     /*
      * iterator-like interface

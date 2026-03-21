@@ -176,4 +176,4 @@ namespace NJson2Yson {
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result);
     TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue);
-}
+} // namespace NJson2Yson

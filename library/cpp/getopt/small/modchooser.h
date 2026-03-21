@@ -28,6 +28,13 @@ class TMainClass {
 public:
     virtual int operator()(int argc, const char** argv) = 0;
     virtual ~TMainClass() = default;
+
+    void SetSubcommandPath(TVector<TString> parts);
+
+    const TVector<TString>& GetSubcommandPath() const;
+
+protected:
+    TVector<TString> SubcommandPath_;
 };
 
 //! Function to handle '--version' parameter
@@ -88,6 +95,9 @@ public:
     void DisableSvnRevisionOption();
 
     void AddCompletions(TString progName, const TString& name = "completion", bool hidden = false, bool noCompletion = false);
+
+    void SetSubcommandPath(const TVector<TString>& subcommandPath) const;
+    const TVector<TString>& GetSubcommandPath() const;
 
     /*! Run appropriate mode.
      *
@@ -184,6 +194,8 @@ private:
      * then help message will be printed to stdout
     */
     bool HelpAlwaysToStdErr{true};
+
+    mutable TVector<TString> SubcommandPath_;
 };
 
 //! Mode class that allows introspecting its console arguments.
@@ -219,7 +231,8 @@ public:
     int Run(int argc, const char** argv);
 
     //! Get sub-modes for this mode.
-    const TModChooser& GetSubModes();
+    TModChooser& GetSubModes();
+    const TModChooser& GetSubModes() const;
 
 protected:
     //! Fill given modchooser with sub-modes.

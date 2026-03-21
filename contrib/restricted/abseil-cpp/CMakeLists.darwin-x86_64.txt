@@ -29,6 +29,7 @@ target_link_libraries(contrib-restricted-abseil-cpp PUBLIC
 )
 
 target_sources(contrib-restricted-abseil-cpp PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/casts.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/poison.cc
@@ -56,6 +57,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_x86_arm_combined.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/address_is_readable.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/borrowed_fixup_buffer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/decode_rust_punycode.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/demangle.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/demangle_rust.cc
@@ -137,6 +139,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cordz_sample_token.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/damerau_levenshtein_distance.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/escaping.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/generic_printer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/memutil.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/ostringstream.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/str_format/arg.cc
@@ -152,7 +155,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/str_cat.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/str_replace.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/str_split.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/string_view.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/substitute.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/barrier.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/blocking_counter.cc

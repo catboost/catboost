@@ -36,7 +36,6 @@
 #include <util/system/yassert.h>
 
 #include <algorithm>
-#include <array>
 
 
 namespace NCB {
@@ -52,6 +51,8 @@ namespace NCB {
             : InBlock(false)
             , ObjectCount(0)
             , CatFeatureCount(0)
+            // extra +1 until issues with TTbbLocalExecutor::GetWorkerThreadId are resolved
+            , HashMapParts(localExecutor->GetThreadCount() + 2)
             , Cursor(NotSet)
             , NextCursor(0)
             , Options(options)
@@ -245,8 +246,8 @@ namespace NCB {
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
             ui32 hashVal = CalcCatFeatureHash(feature);
-            int hashPartIdx = LocalExecutor->GetWorkerThreadId();
-            CheckThreadId(hashPartIdx);
+            size_t hashPartIdx = (size_t)LocalExecutor->GetWorkerThreadId();
+            CheckThreadId(hashPartIdx, HashMapParts.size());
             auto& catFeatureHashes = HashMapParts[hashPartIdx].CatFeatureHashes;
             catFeatureHashes.resize(CatFeatureCount);
             auto& catFeatureHash = catFeatureHashes[*catFeatureIdx];
@@ -624,11 +625,12 @@ namespace NCB {
             return Data.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx);
         }
 
-        static void CheckThreadId(int threadId) {
-            CB_ENSURE(
-                threadId < CB_THREAD_LIMIT,
-                "thread ID exceeds an internal thread limit (" << CB_THREAD_LIMIT << "),"
-                "try decreasing the specified number of threads"
+        static void CheckThreadId(size_t threadId, size_t limit) {
+            CB_ENSURE_INTERNAL(
+                threadId < limit,
+                "LocalExecutor current thread ID " << threadId << " exceeds the limit set in "
+                "TRawObjectsOrderDataProviderBuilder (" << limit << "). Perhaps additional threads were "
+                " added to LocalExecutor after initialization of TRawObjectsOrderDataProviderBuilder."
             );
         }
 
@@ -692,7 +694,7 @@ namespace NCB {
 
             TVector<TPerFeatureData> GraphAggregatedFeaturesData; // [perTypeFeatureIdx * kFloatAggregationFeaturesCount]
 
-            std::array<TSparsePart, CB_THREAD_LIMIT> SparseDataParts; // [threadId]
+            TVector<TSparsePart> SparseDataParts; // [threadId] in LocalExecutor
 
             // [perTypeFeaturesIdx] + extra element for adding new features
             TVector<TSetCallback> PerFeatureCallbacks;
@@ -738,6 +740,9 @@ namespace NCB {
             }
 
             void PrepareForInitializationSparseParts(ui32 prevObjectCount, ui32 prevTailSize) {
+                // extra +1 until issues with TTbbLocalExecutor::GetWorkerThreadId are resolved
+                SparseDataParts.resize(LocalExecutor->GetThreadCount() + 2);
+
                 ui32 objectIdxShift = prevObjectCount - prevTailSize;
 
                 LocalExecutor->ExecRangeWithThrow(
@@ -1062,11 +1067,11 @@ namespace NCB {
                 TConstArrayRef<T> values,
                 TFeaturesStorage* storage
             ) {
-                Y_POD_STATIC_THREAD(int) threadId(-1);
-                if (Y_UNLIKELY(threadId == -1)) {
-                    threadId = storage->LocalExecutor->GetWorkerThreadId();
-                    TRawObjectsOrderDataProviderBuilder::CheckThreadId(threadId);
-                }
+                int threadId = storage->LocalExecutor->GetWorkerThreadId();
+                TRawObjectsOrderDataProviderBuilder::CheckThreadId(
+                    threadId,
+                    storage->SparseDataParts.size()
+                );
                 auto& sparseDataPart = storage->SparseDataParts[threadId];
                 for (auto idx : indices) {
                     sparseDataPart.Indices.emplace_back(TSparseIndex2d{idx, objectIdx});
@@ -1194,7 +1199,7 @@ namespace NCB {
         TArrayRef<TSubgroupId> NumSubgroupIdsRef;
         TArrayRef<TString> StringSubgroupIdsRef;
 
-        std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
+        TVector<THashPart> HashMapParts; // [threadId] in LocalExecutor
 
 
         static constexpr const ui32 NotSet = Max<ui32>();

@@ -23,15 +23,10 @@
 #   pragma once
 #endif
 
+#include <type_traits>
 #include <boost/core/cmath.hpp>
-#include <boost/core/enable_if.hpp>
 #include <boost/limits.hpp>
-#include <boost/type_traits/type_identity.hpp>
-#include <boost/type_traits/conditional.hpp>
-#include <boost/type_traits/make_unsigned.hpp>
-#include <boost/type_traits/is_signed.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
-#include <boost/type_traits/is_float.hpp>
+#include <boost/lexical_cast/detail/type_traits.hpp>
 
 namespace boost { namespace detail {
 
@@ -46,14 +41,15 @@ bool ios_numeric_comparer_float(Source x, Source y) noexcept {
 template <class RangeType, class T>
 constexpr bool is_out_of_range_for(T value) noexcept {
     return value > static_cast<T>((std::numeric_limits<RangeType>::max)())
-        || value < static_cast<T>((std::numeric_limits<RangeType>::min)());
+        || value < static_cast<T>((std::numeric_limits<RangeType>::min)())
+        || boost::core::isnan(value);
 }
 
 
 // integral -> integral
 template <typename Target, typename Source>
-typename boost::enable_if_c<
-    !boost::is_floating_point<Source>::value && !boost::is_floating_point<Target>::value, bool
+typename std::enable_if<
+    !std::is_floating_point<Source>::value && !std::is_floating_point<Target>::value, bool
 >::type noexcept_numeric_convert(Source arg, Target& result) noexcept {
     const Target target_tmp = static_cast<Target>(arg);
     const Source arg_restored = static_cast<Source>(target_tmp);
@@ -66,8 +62,8 @@ typename boost::enable_if_c<
 
 // integral -> floating point
 template <typename Target, typename Source>
-typename boost::enable_if_c<
-    !boost::is_floating_point<Source>::value && boost::is_floating_point<Target>::value, bool
+typename std::enable_if<
+    !std::is_floating_point<Source>::value && std::is_floating_point<Target>::value, bool
 >::type noexcept_numeric_convert(Source arg, Target& result) noexcept {
     const Target target_tmp = static_cast<Target>(arg);
     result = target_tmp;
@@ -77,8 +73,8 @@ typename boost::enable_if_c<
 
 // floating point -> floating point
 template <typename Target, typename Source>
-typename boost::enable_if_c<
-    boost::is_floating_point<Source>::value && boost::is_floating_point<Target>::value, bool
+typename std::enable_if<
+    std::is_floating_point<Source>::value && std::is_floating_point<Target>::value, bool
 >::type noexcept_numeric_convert(Source arg, Target& result) noexcept {
     const Target target_tmp = static_cast<Target>(arg);
     const Source arg_restored = static_cast<Source>(target_tmp);
@@ -92,8 +88,8 @@ typename boost::enable_if_c<
 
 // floating point -> integral
 template <typename Target, typename Source>
-typename boost::enable_if_c<
-    boost::is_floating_point<Source>::value && !boost::is_floating_point<Target>::value, bool
+typename std::enable_if<
+    std::is_floating_point<Source>::value && !std::is_floating_point<Target>::value, bool
 >::type noexcept_numeric_convert(Source arg, Target& result) noexcept {
     if (detail::is_out_of_range_for<Target>(arg)) {
         return false;
@@ -101,7 +97,7 @@ typename boost::enable_if_c<
 
     const Target target_tmp = static_cast<Target>(arg);
     const Source arg_restored = static_cast<Source>(target_tmp);
-    if (detail::ios_numeric_comparer_float<Source, Target>(arg, arg_restored)) {
+    if (arg == arg_restored /* special values are handled in detail::is_out_of_range_for */) {
         result = target_tmp;
         return true;
     }
@@ -124,10 +120,10 @@ struct lexical_cast_dynamic_num_ignoring_minus
     __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
     static inline bool try_convert(Source arg, Target& result) noexcept {
-        typedef typename boost::conditional<
-                boost::is_float<Source>::value,
-                boost::type_identity<Source>,
-                boost::make_unsigned<Source>
+        typedef typename std::conditional<
+                std::is_floating_point<Source>::value,
+                std::conditional<true, Source, Source>,  // std::type_identity emulation
+                boost::detail::lcast::make_unsigned<Source>
         >::type usource_lazy_t;
         typedef typename usource_lazy_t::type usource_t;
 
@@ -165,11 +161,11 @@ template <typename Target, typename Source>
 struct dynamic_num_converter_impl
 {
     static inline bool try_convert(Source arg, Target& result) noexcept {
-        typedef typename boost::conditional<
-            boost::is_unsigned<Target>::value &&
-            (boost::is_signed<Source>::value || boost::is_float<Source>::value) &&
-            !(boost::is_same<Source, bool>::value) &&
-            !(boost::is_same<Target, bool>::value),
+        typedef typename std::conditional<
+            boost::detail::lcast::is_unsigned<Target>::value &&
+            (boost::detail::lcast::is_signed<Source>::value || std::is_floating_point<Source>::value) &&
+            !(std::is_same<Source, bool>::value) &&
+            !(std::is_same<Target, bool>::value),
             lexical_cast_dynamic_num_ignoring_minus,
             lexical_cast_dynamic_num_not_ignoring_minus
         >::type caster_type;

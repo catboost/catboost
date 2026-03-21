@@ -151,7 +151,7 @@ consteval __arg_t __determine_arg_t() {
 // The overload for not formattable types allows triggering the static
 // assertion below.
 template <class _Context, class _Tp>
-  requires(!__formattable<_Tp, typename _Context::char_type>)
+  requires(!__formattable_with<_Tp, _Context>)
 consteval __arg_t __determine_arg_t() {
   return __arg_t::__none;
 }

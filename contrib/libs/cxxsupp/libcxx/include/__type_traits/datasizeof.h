@@ -11,8 +11,6 @@
 
 #include <__config>
 #include <__cstddef/size_t.h>
-#include <__type_traits/is_class.h>
-#include <__type_traits/is_final.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -33,7 +31,10 @@ inline const size_t __datasizeof_v = __datasizeof(_Tp);
 #else
 template <class _Tp>
 struct _FirstPaddingByte {
-  _LIBCPP_NO_UNIQUE_ADDRESS _Tp __v_;
+#if !defined(__CUDACC__) || __CUDACC_VER_MAJOR__ != 12 || __CUDACC_VER_MINOR__ != 2
+  _LIBCPP_NO_UNIQUE_ADDRESS
+#endif
+  _Tp __v_;
   char __first_padding_byte_;
 };
 

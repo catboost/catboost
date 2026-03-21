@@ -38,7 +38,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .Handler1T<TString>([&](const TString& param) {
             ConvertStringTargets = !FromString<bool>(param);
         });
-    parser.AddLongOption("custom-feature-limits", "comma separated list of feature limits description in format <feature_id>:<min>:<max>,"
+    parser.AddLongOption("custom-feature-limits", "A comma-separated list of feature limits descriptions in the format <feature_id>:<min>:<max>,"
                                                   "for example: 0:0:1,10:-2.1:-1")
         .RequiredArgument("string")
         .Handler1T<TString>([&](const TString& limitsDescription) {
@@ -59,7 +59,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
                 }
                 CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(ignoredFeature));
                 CB_ENSURE(FeatureLimits.find(featureId) == FeatureLimits.end(),
-                          "Duplicate feature " << featureId << "in custom-feature-limits");
+                          "Duplicate feature " << featureId << " in custom-feature-limits");
                 FeatureLimits[featureId] = {minValue, maxValue};
             }
         });

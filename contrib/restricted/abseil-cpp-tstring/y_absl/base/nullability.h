@@ -135,17 +135,9 @@
 //   ...
 // };
 //
-// Note: For the time being, nullability-compatible classes should additionally
-// be marked with an `absl_nullability_compatible` nested type (this will soon
-// be deprecated). The actual definition of this inner type is not relevant as
-// it is used merely as a marker. It is common to use a using declaration of
-// `absl_nullability_compatible` set to void.
-//
-// // Example:
-// struct MyPtr {
-//   using absl_nullability_compatible = void;
-//   ...
-// };
+// Note: Compilers that don't support the `nullability_on_classes` feature will
+// allow nullability annotations to be applied to any type, not just ones
+// marked with `Y_ABSL_NULLABILITY_COMPATIBLE`.
 //
 // DISCLAIMER:
 // ===========================================================================
@@ -161,10 +153,47 @@
 #include "y_absl/base/config.h"
 #include "y_absl/base/internal/nullability_impl.h"
 
+// Y_ABSL_POINTERS_DEFAULT_NONNULL
+//
+// This macro specifies that all unannotated pointer types within the given
+// file are designated as nonnull (instead of the default "unknown"). This macro
+// exists as a standalone statement and applies default nonnull behavior to all
+// subsequent pointers; as a result, place this macro as the first non-comment,
+// non-`#include` line in a file.
+//
+// Example:
+//
+//     #include "y_absl/base/nullability.h"
+//
+//     Y_ABSL_POINTERS_DEFAULT_NONNULL
+//
+//     void FillMessage(Message *m);                  // implicitly non-null
+//     y_absl::Nullable<T*> GetNullablePtr();           // explicitly nullable
+//     y_absl::NullabilityUnknown<T*> GetUnknownPtr();  // explicitly unknown
+//
+// The macro can be safely used in header files -- it will not affect any files
+// that include it.
+//
+// In files with the macro, plain `T*` syntax means `y_absl::Nonnull<T*>`, and the
+// exceptions (`Nullable` and `NullabilityUnknown`) must be marked
+// explicitly. The same holds, correspondingly, for smart pointer types.
+//
+// For comparison, without the macro, all unannotated pointers would default to
+// unknown, and otherwise require explicit annotations to change this behavior:
+//
+//     #include "y_absl/base/nullability.h"
+//
+//     void FillMessage(y_absl::Nonnull<Message*> m);  // explicitly non-null
+//     y_absl::Nullable<T*> GetNullablePtr();          // explicitly nullable
+//     T* GetUnknownPtr();                           // implicitly unknown
+//
+// No-op except for being a human readable signal.
+#define Y_ABSL_POINTERS_DEFAULT_NONNULL
+
 namespace y_absl {
 Y_ABSL_NAMESPACE_BEGIN
 
-// y_absl::Nonnull
+// y_absl::Nonnull (default with `Y_ABSL_POINTERS_DEFAULT_NONNULL`)
 //
 // The indicated pointer is never null. It is the responsibility of the provider
 // of this pointer across an API boundary to ensure that the pointer is never
@@ -197,7 +226,7 @@ using Nonnull = nullability_internal::NonnullImpl<T>;
 template <typename T>
 using Nullable = nullability_internal::NullableImpl<T>;
 
-// y_absl::NullabilityUnknown (default)
+// y_absl::NullabilityUnknown (default without `Y_ABSL_POINTERS_DEFAULT_NONNULL`)
 //
 // The indicated pointer has not yet been determined to be definitively
 // "non-null" or "nullable." Providers of such pointers across API boundaries
@@ -208,9 +237,10 @@ using Nullable = nullability_internal::NullableImpl<T>;
 // migrated into one of the above two nullability states: `Nonnull<T>` or
 //  `Nullable<T>`.
 //
-// NOTE: Because this annotation is the global default state, unannotated
-// pointers are assumed to have "unknown" semantics. This assumption is designed
-// to minimize churn and reduce clutter within the codebase.
+// NOTE: For files that do not specify `Y_ABSL_POINTERS_DEFAULT_NONNULL`,
+// because this annotation is the global default state, unannotated pointers are
+// are assumed to have "unknown" semantics. This assumption is designed to
+// minimize churn and reduce clutter within the codebase.
 //
 // Example:
 //
@@ -241,10 +271,36 @@ Y_ABSL_NAMESPACE_END
 // struct Y_ABSL_NULLABILITY_COMPATIBLE MyPtr {
 //   ...
 // };
+//
+// Note: Compilers that don't support the `nullability_on_classes` feature will
+// allow nullability annotations to be applied to any type, not just ones marked
+// with `Y_ABSL_NULLABILITY_COMPATIBLE`.
 #if Y_ABSL_HAVE_FEATURE(nullability_on_classes)
 #define Y_ABSL_NULLABILITY_COMPATIBLE _Nullable
 #else
 #define Y_ABSL_NULLABILITY_COMPATIBLE
+#endif
+
+// Y_ABSL_NONNULL
+// Y_ABSL_NULLABLE
+// Y_ABSL_NULLABILITY_UNKNOWN
+//
+// These macros are analogues of the alias template nullability annotations
+// above.
+//
+// Example:
+// int* Y_ABSL_NULLABLE foo;
+// Is equivalent to:
+// y_absl::Nullable<int*> foo;
+#if defined(__clang__) && !defined(__OBJC__) && \
+    Y_ABSL_HAVE_FEATURE(nullability_on_classes)
+#define Y_ABSL_NONNULL _Nonnull
+#define Y_ABSL_NULLABLE _Nullable
+#define Y_ABSL_NULLABILITY_UNKNOWN _Null_unspecified
+#else
+#define Y_ABSL_NONNULL
+#define Y_ABSL_NULLABLE
+#define Y_ABSL_NULLABILITY_UNKNOWN
 #endif
 
 #endif  // Y_ABSL_BASE_NULLABILITY_H_

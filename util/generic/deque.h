@@ -15,6 +15,7 @@ class TDeque: public std::deque<T, TReboundAllocator<A, T>> {
 public:
     using TBase::TBase;
 
+    // DEPRECATED. DO NOT USE.
     inline yssize_t ysize() const noexcept {
         return (yssize_t)this->size();
     }

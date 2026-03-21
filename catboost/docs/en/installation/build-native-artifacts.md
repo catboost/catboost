@@ -26,6 +26,14 @@ We define **native artifacts** as build system artifacts that contain native cod
 
 ## [Dependencies and requirements](build-environment-setup-for-cmake.md)
 
+## CUDA support
+
+[CUDA](https://developer.nvidia.com/cuda) support is available for Linux and Windows target platforms.
+
+It is disabled by default and can be enabled by adding `--have-cuda` flag when calling `build_native.py` or setting `-DHAVE_CUDA=yes` when calling `cmake`. See below for details.
+
+{% include [build-cuda-architectures](../_includes/work_src/reusage-installation/build-cuda-architectures.md) %}
+
 ## Targets {#targets}
 
 CMakeFiles for {{ product }} CMake projects contain different targets that correspond to native artifacts.
@@ -64,6 +72,8 @@ python $CATBOOST_SRC_ROOT/build/build_native.py --help
 The required options are:
 - `--targets` - List of CMake targets to build (,-separated). See [the list of supported targets](#targets)
 - `--build-root-dir` - CMake build dir (forwarded to `cmake`'s `-B`  option)
+
+{% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
 
 Importantly, `build_native.py` has `--dry-run` and `--verbose` options so you can examine the commands it is going to run without actually running them.
 
@@ -105,6 +115,8 @@ For most common scenarios it is easier to run [`build_native.py` descibed above]
 
 1. Choose some directory as a build root. Prefer short paths on Windows to avoid hitting the path length limit of 260 characters for files in this directory. This directory is referred to as `$CMAKE_BINARY_DIR` later.
 
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
+
 1. If you build on Linux for `aarch64` architecture set special compilation flags (will be used in `conan` packages builds):
     ```
     export CFLAGS="-mno-outline-atomics"
@@ -140,6 +152,8 @@ Other important options and definitions for this call are [described below](#cma
     ```
 
 1. Choose some directory as a target platform build root. This directory is referred to as `$CMAKE_TARGET_PLATFORM_BINARY_DIR` later.
+
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
 
 1. Build needed conan packages.
 
@@ -195,6 +209,8 @@ Other important options and definitions for this call are [described below](#cma
 ### CMake - important options and definitions {#cmake-options-and-definitions}
 
 - [`-B <path-to-build>`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-B) - path to directory which CMake will use as the root of build directory.
+
+    {% include [cmake-src-dir-equal-build-dir-warning](../_includes/work_src/reusage-installation/cmake-src-dir-equal-build-dir-warning.md) %}
 
 - [`-G <generator-name>`](https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-G) - generator name. The recommended generator is ["Ninja"](https://ninja-build.org/).
 

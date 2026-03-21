@@ -1,4 +1,4 @@
-import {exec} from 'child_process';
+import {spawn} from 'child_process';
 
 export interface ExecutionResult {
     code?: number;
@@ -7,7 +7,7 @@ export interface ExecutionResult {
 };
 
 export function execProcess(command: string): Promise<ExecutionResult> {   
-    const child = exec(command);
+    const child = spawn(command, [], { shell: true });
     return new Promise(resolve => {
         child.stdout.on('data', chunk => {
             console.log(chunk.toString());

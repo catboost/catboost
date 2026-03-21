@@ -339,31 +339,31 @@ public:
     }
 
     TConstArrayRef<TCatFeature> GetCatFeatures() const noexcept {
-        return TConstArrayRef<TCatFeature>(CatFeatures.begin(), CatFeatures.end());
+        return TConstArrayRef<TCatFeature>(CatFeatures.data(), CatFeatures.data() + CatFeatures.size());
     }
 
     TConstArrayRef<TFloatFeature> GetFloatFeatures() const noexcept {
-        return TConstArrayRef<TFloatFeature>(FloatFeatures.begin(), FloatFeatures.end());
+        return TConstArrayRef<TFloatFeature>(FloatFeatures.data(), FloatFeatures.data() + FloatFeatures.size());
     }
 
     TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const noexcept {
-        return TConstArrayRef<TOneHotFeature>(OneHotFeatures.begin(), OneHotFeatures.end());
+        return TConstArrayRef<TOneHotFeature>(OneHotFeatures.data(), OneHotFeatures.data() + OneHotFeatures.size());
     }
 
     TConstArrayRef<TCtrFeature> GetCtrFeatures() const noexcept {
-        return TConstArrayRef<TCtrFeature>(CtrFeatures.begin(), CtrFeatures.end());
+        return TConstArrayRef<TCtrFeature>(CtrFeatures.data(), CtrFeatures.data() + CtrFeatures.size());
     }
 
     TConstArrayRef<TTextFeature> GetTextFeatures() const noexcept {
-        return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
+        return TConstArrayRef<TTextFeature>(TextFeatures.data(), TextFeatures.data() + TextFeatures.size());
     }
 
     TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const noexcept {
-        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.begin(), EmbeddingFeatures.end());
+        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.data(), EmbeddingFeatures.data() + EmbeddingFeatures.size());
     }
 
     TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const noexcept {
-        return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
+        return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.data(), EstimatedFeatures.data() + EstimatedFeatures.size());
     }
 
     void SetApproxDimension(int approxDimension) {
@@ -406,8 +406,8 @@ public:
             size_t flatIndex = static_cast<size_t>(feature.Position.FlatIndex);
             CB_ENSURE(
                 flatIndex < featureNames.size(),
-                "Model has a feature with index " << flatIndex << " but provided features names size "
-                << featureNames.size() << "is too small for it"
+                "Model has a feature with index " << flatIndex << " but the length of the provided features names array ("
+                << featureNames.size() << ") is too small for it"
             );
             feature.FeatureId = featureNames[flatIndex];
         };

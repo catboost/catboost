@@ -1,6 +1,6 @@
 #include "dcg.cuh"
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
@@ -53,7 +53,7 @@ __global__ void MakeDcgExponentialDecaysImpl(
 {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        decays[i] = pow(base, i - __ldg(offsets + i));
+        decays[i] = pow(static_cast<double>(base), static_cast<double>(i - __ldg(offsets + i)));
         i += gridDim.x * blockDim.x;
     }
 }

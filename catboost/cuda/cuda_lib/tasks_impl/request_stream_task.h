@@ -7,7 +7,7 @@ namespace NCudaLib {
     class IRequestStreamCommand: public ICommand {
     public:
         IRequestStreamCommand()
-            : ICommand(EComandType::RequestStream)
+            : ICommand(ECommandType::RequestStream)
         {
         }
 
@@ -51,13 +51,13 @@ namespace NCudaLib {
 
     public:
         explicit TFreeStreamCommand(TVector<ui32>&& streams)
-            : ICommand(EComandType::FreeStream)
+            : ICommand(ECommandType::FreeStream)
             , Streams(std::move(streams))
         {
         }
 
         TFreeStreamCommand()
-            : ICommand(EComandType::FreeStream)
+            : ICommand(ECommandType::FreeStream)
         {
         }
 

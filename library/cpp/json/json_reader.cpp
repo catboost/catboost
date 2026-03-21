@@ -18,7 +18,7 @@ namespace NJson {
                                     << TStringBuf(", Code: ") << (int)result.Code()
                                     << TStringBuf(", Error: ") << GetParseError_En(result.Code());
         }
-    }
+    } // namespace
 
     static const size_t DEFAULT_BUFFER_LEN = 65536;
 
@@ -101,8 +101,9 @@ namespace NJson {
 
     bool TParserCallbacks::OnOpenArray() {
         bool res = OpenComplexValue(JSON_ARRAY);
-        if (res)
+        if (res) {
             CurrentState = IN_ARRAY;
+        }
         return res;
     }
 
@@ -112,8 +113,9 @@ namespace NJson {
 
     bool TParserCallbacks::OnOpenMap() {
         bool res = OpenComplexValue(JSON_MAP);
-        if (res)
+        if (res) {
             CurrentState = IN_MAP;
+        }
         return res;
     }
 
@@ -134,7 +136,7 @@ namespace NJson {
     }
 
     bool TParserCallbacks::OnEnd() {
-        if (NotClosedBracketIsError){
+        if (NotClosedBracketIsError) {
             return ValuesStack.empty();
         }
         return true;
@@ -367,11 +369,10 @@ namespace NJson {
                 return reader.Parse<ConvertToRapidJsonFlags(currentFlags)>(is, handler);
             }
 
-#define TRY_EXTRACT_FLAG(flag) \
-    if (runtimeFlags & flag) { \
+#define TRY_EXTRACT_FLAG(flag)                                                                      \
+    if (runtimeFlags & flag) {                                                                      \
         return ReadWithRuntimeFlags<TRapidJsonCompliantInputStream, THandler, currentFlags | flag>( \
-            runtimeFlags ^ flag, reader, is, handler \
-        ); \
+            runtimeFlags ^ flag, reader, is, handler);                                              \
     }
 
             TRY_EXTRACT_FLAG(ReaderConfigFlags::NANINF);
@@ -390,7 +391,6 @@ namespace NJson {
                   rapidjson::Reader& reader,
                   TRapidJsonCompliantInputStream& is,
                   THandler& handler) {
-
             // validate by default
             ui8 flags = ReaderConfigFlags::VALIDATE;
 
@@ -437,7 +437,7 @@ namespace NJson {
         bool ReadJsonTree(TRapidJsonCompliantInputStream& is, const TJsonReaderConfig* config, TJsonValue* out, bool throwOnError) {
             out->SetType(NJson::JSON_NULL);
 
-            TJsonValueBuilder handler(*out, { .MaxDepth = config->MaxDepth });
+            TJsonValueBuilder handler(*out, {.MaxDepth = config->MaxDepth});
 
             return ReadJson(is, config, handler, throwOnError);
         }
@@ -459,7 +459,7 @@ namespace NJson {
         bool ReadJsonTreeImpl(TData* in, TJsonValue* out, bool throwOnError) {
             return ReadJsonTreeImpl(in, false, out, throwOnError);
         }
-    } //namespace
+    } // namespace
 
     bool ReadJsonTree(TStringBuf in, TJsonValue* out, bool throwOnError) {
         return ReadJsonTreeImpl(&in, out, throwOnError);
@@ -580,7 +580,7 @@ namespace NJson {
                 return Impl.OnCloseArray();
             }
         };
-    }
+    } // namespace
 
     bool ReadJson(IInputStream* in, TJsonCallbacks* cbs) {
         return ReadJson(in, false, cbs);
@@ -633,4 +633,4 @@ namespace NJson {
         return out;
     }
 
-}
+} // namespace NJson

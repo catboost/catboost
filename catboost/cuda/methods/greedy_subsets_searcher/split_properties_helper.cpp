@@ -13,6 +13,8 @@
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/hist_single_leaf.cuh>
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/gather_bins.cuh>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 namespace NKernelHost {
     template <class T>
     class TZeroBuffer: public TStatelessKernel {
