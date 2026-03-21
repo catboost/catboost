@@ -1244,9 +1244,6 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        pool : catboost.Pool
-            Dataset to quantize.
-
         ignored_features : list, [default=None]
             Indices or names of features that should be excluded when training.
 
