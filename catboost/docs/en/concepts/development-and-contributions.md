@@ -224,7 +224,7 @@ The required steps for running these tests depend on the implementation.
 
 Ready Microsoft Visual Studio solution had been provided until [this commit](https://github.com/catboost/catboost/commit/cd63b6c7313a28bcb40cd0674d73e356ad633de4).
 
-For versions after this commit it is recommended [to generate Microsoft Visual Studio 2019 solution using the corresponding CMake generator](../installation/build-native-artifacts.md#build-cmake-conan-ninja).
+For versions after this commit it is recommended [to generate Microsoft Visual Studio solution using the corresponding CMake generator](../installation/build-native-artifacts.md#build-cmake-conan-ninja).
 
 {% endnote %}
 
