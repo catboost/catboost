@@ -10,7 +10,7 @@ size_t TElasticQueue::ObjectCount() const {
 }
 
 bool TElasticQueue::TryIncCounter() {
-    if (++GuardCount_ > MaxQueueSize_) {
+    if (++GuardCount_ > CurrentMaxQueueSize_) {
         --GuardCount_;
         return false;
     }
@@ -68,6 +68,7 @@ bool TElasticQueue::Add(IObjectInQueue* obj) {
 
 void TElasticQueue::Start(size_t threadCount, size_t maxQueueSize) {
     MaxQueueSize_ = maxQueueSize;
+    CurrentMaxQueueSize_ = maxQueueSize;
     SlaveQueue_->Start(threadCount, maxQueueSize);
 }
 
