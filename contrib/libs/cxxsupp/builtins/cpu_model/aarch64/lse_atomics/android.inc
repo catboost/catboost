@@ -1,4 +1,5 @@
 #include <string.h>
+#include <sys/auxv.h>
 #include <sys/system_properties.h>
 
 static bool __isExynos9810(void) {
