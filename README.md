@@ -21,7 +21,7 @@ Main advantages of CatBoost:
   - Best-in-class [prediction](https://catboost.ai/docs/concepts/c-plus-plus-api.html) speed.
   - Support for both [numerical and categorical](https://catboost.ai/docs/concepts/algorithm-main-stages.html) features.
   - Fast GPU and multi-GPU support for out-of-the box training.
-  - Build-in [visualization tools](https://catboost.ai/docs/features/visualization.html).
+  - Built-in [visualization tools](https://catboost.ai/docs/features/visualization.html).
   - Fast and reproducible distributed training with [Apache Spark](https://catboost.ai/en/docs/concepts/spark-overview) and [CLI](https://catboost.ai/en/docs/concepts/cli-distributed-learning).
 
 Get Started and Documentation
