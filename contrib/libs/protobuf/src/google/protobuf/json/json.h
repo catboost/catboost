@@ -30,8 +30,12 @@
 
 // Utility functions to convert between protobuf binary format and proto3 JSON
 // format.
-#ifndef GOOGLE_PROTOBUF_JSON_JSON_H__
+#if (!defined(USE_DEPRECATED_NAMESPACE) && !defined(GOOGLE_PROTOBUF_JSON_JSON_H__)) || (defined(USE_DEPRECATED_NAMESPACE) && !defined(GOOGLE_PROTOBUF_UTIL_JSON_UTIL_H__))
+#if defined(USE_DEPRECATED_NAMESPACE)
+#define GOOGLE_PROTOBUF_UTIL_JSON_UTIL_H__
+#else
 #define GOOGLE_PROTOBUF_JSON_JSON_H__
+#endif
 
 #include <string>
 
