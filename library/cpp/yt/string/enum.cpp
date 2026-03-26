@@ -8,11 +8,39 @@ namespace NYT {
 
 namespace NDetail {
 
-void ThrowMalformedEnumValueException(TStringBuf typeName, TStringBuf value)
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER)
+
+extern "C" TEnumSuggestionsCalculator TryGetEnumSuggestionsCalculatorWeak()
 {
-    throw TSimpleException(Format("Error parsing %v value %Qv",
-        typeName,
-        value));
+    return nullptr;
+}
+
+__pragma(comment(linker, "/alternatename:TryGetEnumSuggestionsCalculator=TryGetEnumSuggestionsCalculatorWeak"))
+
+#else
+
+extern "C" Y_WEAK TEnumSuggestionsCalculator TryGetEnumSuggestionsCalculator()
+{
+    return nullptr;
+}
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+
+void ThrowMalformedEnumValueException(
+    TStringBuf typeName,
+    TStringBuf value,
+    const std::span<const TStringBuf>& domainNames)
+{
+    auto errorMessage = Format("Error parsing %v value %Qv", typeName, value);
+    auto suggestionsCalculator = TryGetEnumSuggestionsCalculator();
+    if (!domainNames.empty() && suggestionsCalculator) {
+        errorMessage += Format("; closest possible values are %v", suggestionsCalculator(value, domainNames));
+    }
+    throw TSimpleException(errorMessage);
 }
 
 template <bool ThrowOnError>
@@ -32,7 +60,11 @@ std::optional<std::string> DecodeEnumValueImpl(TStringBuf value)
     return camelValue;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NDetail
+
+////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::string> TryDecodeEnumValue(TStringBuf value)
 {
