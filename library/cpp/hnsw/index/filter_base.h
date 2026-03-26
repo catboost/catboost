@@ -1,15 +1,27 @@
 #pragma once
 
+#include <util/system/compiler.h>
 #include <util/system/types.h>
 
 #include <stddef.h>
 
 namespace NHnsw {
-
     enum class EFilterMode: ui32 {
         NO_FILTER = 0,
         FILTER_NEAREST = 1,
         ACORN = 2,
+    };
+
+    enum class EFilterVerdict {
+        Reject,
+        Explore,
+        Accept,
+    };
+
+    template <typename TState>
+    struct TFilterResult {
+        EFilterVerdict Verdict = EFilterVerdict::Accept;
+        Y_NO_UNIQUE_ADDRESS TState State = {};
     };
 
     class TFilterBase {
@@ -45,5 +57,4 @@ namespace NHnsw {
         const TFilterBase& Filter;
         mutable size_t FilterCheckLimit;
     };
-
 } // namespace NHnsw

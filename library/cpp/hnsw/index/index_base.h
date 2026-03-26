@@ -1,7 +1,7 @@
 #pragma once
 
 #include "index_reader.h"
-#include "filter_base.h"
+#include "filter.h"
 #include "neighbors_getter.h"
 
 #include <library/cpp/hnsw/helpers/distance.h>
@@ -13,6 +13,9 @@
 #include <util/generic/vector.h>
 #include <util/generic/queue.h>
 #include <util/memory/blob.h>
+#include <util/system/compiler.h>
+
+#include <type_traits>
 
 namespace NHnsw {
     /**
@@ -24,16 +27,12 @@ namespace NHnsw {
      * @param DistanceCalcLimit       Limit on the number of distance computations.
      * @param StopSearchSize          Minimum number of nearest neighbors found
      *                                before termination conditions are evaluated.
-     * @param FilterMode              Filtering mode in HNSW, no filtration by default.
-     * @param FilterCheckLimit        Limit on the number of times the filter Check() method is called.
      */
     struct TSearchParameters {
         size_t TopSize;
         size_t SearchNeighborhoodSize;
         size_t DistanceCalcLimit = Max<size_t>();
         size_t StopSearchSize = 1;
-        EFilterMode FilterMode = EFilterMode::NO_FILTER;
-        size_t FilterCheckLimit = Max<size_t>();
     };
 
     /**
@@ -68,15 +67,15 @@ namespace NHnsw {
          * @param itemStorage       Storage providing GetItem(ui32 id) for the index.
          * @param distance          Distance metric implementation
          * @param distanceLess      Comparator for distance results
-         * @param filter            Optional class for item-level filtering.
-         * @param externalContext   Optional pointer to a reusable TSearchContext.
-         *                          Allows reusing internal buffers across queries to eliminate allocation overhead
+         * @param filter            Optional filter for controlling item acceptance and graph exploration
+         * @param context           Optional search context for reusing internal buffers across queries
          */
         template <class TItemStorage,
                   class TDistance,
                   class TDistanceResult = typename TDistance::TResult,
                   class TDistanceLess = typename TDistance::TLess,
                   class TItem,
+                  class TFilter = TDefaultFilter,
                   class TSearchContext = TDefaultSearchContext>
         TVector<TNeighbor<TDistanceResult>> GetNearestNeighbors(
             const TItem& query,
@@ -84,15 +83,12 @@ namespace NHnsw {
             const TItemStorage& itemStorage,
             const TDistance& distance = {},
             const TDistanceLess& distanceLess = {},
-            const TFilterBase& filter = {},
-            TSearchContext* externalContext = nullptr) const
+            TFilter&& filter = {},
+            TSearchContext&& context = {}) const
         {
             if (Levels.empty() || params.SearchNeighborhoodSize == 0 || params.StopSearchSize == 0) {
                 return {};
             }
-
-            TMaybe<TSearchContext> localContextStorage;
-            TSearchContext& context = externalContext ? *externalContext : localContextStorage.ConstructInPlace();
 
             ui32 entryId = 0;
             NPrivate::TDistanceAdapter<TDistance, TDistanceResult, TItemStorage, TItem> distanceAdapter(
@@ -121,54 +117,56 @@ namespace NHnsw {
             auto neighborLess = [&distanceLess](const TResultItem& a, const TResultItem& b) {
                 return distanceLess(a.Dist, b.Dist);
             };
-            auto neighborGreater = [&neighborLess](const TResultItem& a, const TResultItem& b) {
-                return neighborLess(b, a);
-            };
-
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborLess)> nearest(neighborLess);
             nearest.Container().reserve(params.SearchNeighborhoodSize + 1);
-            TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborGreater)> candidates(neighborGreater);
 
-            TFilterWithLimit filterWithLimit(filter, params.FilterCheckLimit);
-            auto neighborsGetter = CreateNeighborsGetter(params.FilterMode, filterWithLimit, context);
+            using TFilterState = typename std::decay_t<TFilter>::TState;
+            struct TCandidate {
+                TResultItem ResultItem;
+                Y_NO_UNIQUE_ADDRESS TFilterState FilterState;
+            };
+            auto candidateGreater = [&neighborLess](const TCandidate& a, const TCandidate& b) {
+                return neighborLess(b.ResultItem, a.ResultItem);
+            };
+            TPriorityQueue<TCandidate, TVector<TCandidate>, decltype(candidateGreater)> candidates(candidateGreater);
 
-            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId) && (params.FilterMode == EFilterMode::NO_FILTER || filterWithLimit.Check(entryId))) {
-                nearest.push({entryDist, entryId});
-            }
+            using TFilterResult = typename std::decay_t<TFilter>::TResult;
+            auto addResultItem = [&](const TResultItem& resultItem, const TFilterResult& filterResult) {
+                switch (filterResult.Verdict) {
+                    case EFilterVerdict::Accept:
+                        if (!NPrivate::IsItemMarkedDeleted(itemStorage, resultItem.Id)) {
+                            nearest.push(resultItem);
+                        }
+                        [[fallthrough]];
+                    case EFilterVerdict::Explore:
+                        candidates.push({resultItem, filterResult.State});
+                        break;
+                    case EFilterVerdict::Reject:
+                        break;
+                };
+            };
 
-            candidates.push({entryDist, entryId});
             context.TryMarkVisited(entryId);
+            addResultItem({entryDist, entryId}, filter.Check(entryId));
 
-            while (!candidates.empty() && !distanceAdapter.IsLimitReached() && (params.FilterMode == EFilterMode::NO_FILTER || !filterWithLimit.IsLimitReached())) {
+            auto neighborsGetter = CreateNeighborsGetter(filter, context);
+            const bool neighborsPrefiltered = neighborsGetter->IsPrefiltered();
+            while (!candidates.empty() && !distanceAdapter.IsLimitReached() && !filter.IsLimitReached()) {
                 auto cur = candidates.top();
                 candidates.pop();
-                if (nearest.size() >= params.StopSearchSize && distanceLess(nearest.top().Dist, cur.Dist)) {
+                if (nearest.size() >= params.StopSearchSize && distanceLess(nearest.top().Dist, cur.ResultItem.Dist)) {
                     break;
                 }
-                const auto neighbors = neighborsGetter->GetLayerNeighbors(cur.Id);
+                const auto neighbors = neighborsGetter->GetLayerNeighbors(cur.ResultItem.Id);
                 distanceAdapter.Prefetch(neighbors);
                 for (ui32 id: neighbors) {
-                    if (distanceAdapter.IsLimitReached()) {
+                    if (distanceAdapter.IsLimitReached() || (!neighborsPrefiltered && filter.IsLimitReached())) {
                         break;
                     }
                     const auto distToQuery = distanceAdapter.Calc(query, id);
                     if (nearest.size() < params.SearchNeighborhoodSize || distanceLess(distToQuery, nearest.top().Dist)) {
-                        candidates.push({distToQuery, id});
-
-                        if (NPrivate::IsItemMarkedDeleted(itemStorage, id)) {
-                            continue;
-                        }
-
-                        if (params.FilterMode == EFilterMode::FILTER_NEAREST) {
-                            if (filterWithLimit.IsLimitReached()) {
-                                break;
-                            }
-                            if (!filterWithLimit.Check(id)) {
-                                continue;
-                            }
-                        }
-
-                        nearest.push({distToQuery, id});
+                        const auto filterResult = neighborsPrefiltered ? TFilterResult{} : filter.Check(id, cur.FilterState);
+                        addResultItem({distToQuery, id}, filterResult);
                         if (nearest.size() > params.SearchNeighborhoodSize) {
                             nearest.pop();
                         }
@@ -234,11 +232,10 @@ namespace NHnsw {
                 .SearchNeighborhoodSize = searchNeighborhoodSize,
                 .DistanceCalcLimit = distanceCalcLimit,
                 .StopSearchSize = stopSearchSize,
-                .FilterMode = filterMode,
-                .FilterCheckLimit = filterCheckLimit,
             };
+            TFilterAdapter filterAdapter(filter, filterMode, filterCheckLimit);
             return GetNearestNeighbors<TItemStorage, TDistance, TDistanceResult, TDistanceLess, TItem>(
-                query, params, itemStorage, distance, distanceLess, filter);
+                query, params, itemStorage, distance, distanceLess, filterAdapter);
         }
 
         /**
@@ -299,17 +296,12 @@ namespace NHnsw {
             return NumNeighborsInLevels[level];
         }
 
-        template <typename TSearchContext>
-        THolder<INeighborsGetter> CreateNeighborsGetter(
-            const EFilterMode filterMode, const TFilterWithLimit& filter, TSearchContext& context) const
-        {
-            switch (filterMode) {
-                case EFilterMode::ACORN:
-                    return MakeHolder<TAcornNeighborsGetter<TSearchContext>>(
-                        Levels[0], GetNumNeighbors(0), context, filter);
-                default:
-                    return MakeHolder<TNeighborsGetterBase<TSearchContext>>(Levels[0], GetNumNeighbors(0), context);
+        template <typename TFilter, typename TSearchContext>
+        THolder<INeighborsGetter> CreateNeighborsGetter(TFilter& filter, TSearchContext& context) const {
+            if constexpr (requires { filter.CreateNeighborsGetter(Levels[0], GetNumNeighbors(0), context); }) {
+                return filter.CreateNeighborsGetter(Levels[0], GetNumNeighbors(0), context);
             }
+            return MakeHolder<TNeighborsGetterBase<TSearchContext>>(Levels[0], GetNumNeighbors(0), context);
         }
 
     private:

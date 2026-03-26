@@ -16,6 +16,10 @@ namespace NHnsw {
     public:
         virtual ~INeighborsGetter() = default;
 
+        virtual bool IsPrefiltered() const {
+            return false;
+        }
+
         virtual TNeighborsView GetLayerNeighbors(const ui32 id) = 0;
     };
 
@@ -60,15 +64,19 @@ namespace NHnsw {
         TVector<ui32> NeighborsBuffer;
     };
 
-    template <typename TSearchContext>
+    template <typename TSearchContext, typename TFilter>
     class TAcornNeighborsGetter: public TNeighborsGetterBase<TSearchContext> {
     public:
-        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, TSearchContext& context, const TFilterWithLimit& filter)
+        TAcornNeighborsGetter(const ui32* level, const ui32 numNeighbors, TSearchContext& context, TFilter& filter)
             : TNeighborsGetterBase<TSearchContext>(level, numNeighbors, context)
             , Filter(filter)
         {
             AcornNeighbors.resize(numNeighbors * numNeighbors, 0);
             SecondHopStorage.resize(numNeighbors, 0);
+        }
+
+        bool IsPrefiltered() const override {
+            return true;
         }
 
         TNeighborsView GetLayerNeighbors(const ui32 id) override {
@@ -105,7 +113,7 @@ namespace NHnsw {
                         continue;
                     }
                 } else {
-                    passesFilter = Filter.Check(neighbor);
+                    passesFilter = (Filter.Check(neighbor).Verdict == EFilterVerdict::Accept);
                     FilterResult[neighbor] = passesFilter;
                 }
 
@@ -118,7 +126,7 @@ namespace NHnsw {
         }
 
     private:
-        const TFilterWithLimit& Filter;
+        TFilter& Filter;
         TVector<ui32> AcornNeighbors;
 
         TDenseHash<ui32, bool> FilterResult;
