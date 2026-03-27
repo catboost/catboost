@@ -24,7 +24,7 @@ Load the {{ product }} model.
 #### [getPredictionDimension](java-reference_catboostmodel__getpredictiondimension.md)
 
 
-{% include [reusage-java-java__getpredictiondimenstion__desc](../_includes/work_src/reusage-java/java__getpredictiondimension__desc.md) %}
+{% include [reusage-java-java__getpredictiondimension__desc](../_includes/work_src/reusage-java/java__getpredictiondimension__desc.md) %}
 
 
 {{ java__ref-table-header__modifier-and-type }}: {{ java__modifier-and-type__int }}
