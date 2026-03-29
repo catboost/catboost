@@ -12,8 +12,8 @@ class Opts(object):
     def __init__(self, args):
         kvs = args.index('--')
         kve = args.index('--', kvs + 1)
-        kv = args[kvs + 1:kve]
-        args = args[:kvs] + args[kve + 1:]
+        kv = args[kvs + 1 : kve]
+        args = args[:kvs] + args[kve + 1 :]
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--plugin')

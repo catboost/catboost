@@ -10,6 +10,7 @@ import optparse
 
 try:
     import shlex
+
     shlex_join = shlex.join
 except AttributeError:
     import pipes
@@ -18,6 +19,7 @@ except AttributeError:
         # equivalent to shlex.join() in python 3
         return ' '.join(pipes.quote(part) for part in cmd)
 
+
 # Explicitly enable local imports
 # Don't forget to add imported scripts to inputs of the calling command!
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +27,6 @@ import thinlto_cache
 import link_exe
 
 from process_whole_archive_option import ProcessWholeArchiveOption
-
 
 
 def parse_export_file(p):
@@ -187,8 +188,8 @@ if __name__ == '__main__':
     if '--start-plugins' in args:
         ib = args.index('--start-plugins')
         ie = args.index('--end-plugins')
-        plugins = list(sorted(args[ib + 1:ie]))
-        args = args[:ib] + args[ie + 1:]
+        plugins = list(sorted(args[ib + 1 : ie]))
+        args = args[:ib] + args[ie + 1 :]
 
     for p in plugins:
         res = subprocess.check_output([sys.executable, p] + args).decode().strip()
@@ -287,9 +288,7 @@ def test_fix_gnu_param():
 C++ geobase5::details::lookup_impl::*
 C   getFactoryMap
 """
-    assert (
-        run_fix_gnu_param(export_file_content)
-        == """{
+    assert run_fix_gnu_param(export_file_content) == """{
 global:
     extern "C" {
         _ZN8geobase57details11lookup_impl*;
@@ -303,7 +302,6 @@ global:
 local: *;
 };
 """
-    )
 
 
 def test_fix_gnu_param_with_linux_version():
@@ -312,9 +310,7 @@ C++ geobase5::details::lookup_impl::*
 linux_version ver1.0
 C   getFactoryMap
 """
-    assert (
-        run_fix_gnu_param(export_file_content)
-        == """ver1.0 {
+    assert run_fix_gnu_param(export_file_content) == """ver1.0 {
 global:
     extern "C" {
         _ZN8geobase57details11lookup_impl*;
@@ -328,4 +324,3 @@ global:
 local: *;
 };
 """
-    )

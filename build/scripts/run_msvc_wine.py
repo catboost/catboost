@@ -15,7 +15,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import process_command_files as pcf  # noqa: E402
 import process_whole_archive_option as pwa  # noqa: E402
 
-
 procs = []
 build_kekeke = 45
 

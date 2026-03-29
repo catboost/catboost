@@ -1,8 +1,9 @@
 #pragma once
 
 #include <util/thread/pool.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/generic/ptr.h>
+
+#include <atomic>
 
 //actual queue limit will be (maxQueueSize - numBusyThreads) or 0
 class TElasticQueue: public IThreadPool {
@@ -16,13 +17,20 @@ public:
     void Stop() noexcept override;
 
     size_t ObjectCount() const;
+
+    void SetCurrentMaxQueueSize(size_t v) {
+        Y_ENSURE(v <= MaxQueueSize_);
+        CurrentMaxQueueSize_ = v;
+    }
 private:
     class TDecrementingWrapper;
 
     bool TryIncCounter();
 private:
     THolder<IThreadPool> SlaveQueue_;
+
     size_t MaxQueueSize_ = 0;
-    TAtomic ObjectCount_ = 0;
-    TAtomic GuardCount_ = 0;
+    std::atomic<size_t> CurrentMaxQueueSize_ = 0;
+    std::atomic<size_t> ObjectCount_ = 0;
+    std::atomic<size_t> GuardCount_ = 0;
 };

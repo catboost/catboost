@@ -10,24 +10,50 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline size_t SplitMix64(size_t value)
+inline size_t SplitMix(size_t value)
 {
-    static_assert(sizeof(size_t) == 8, "size_t must be 64 bit.");
+    // GOLDEN_GAMMA is the odd integer closest to (2 ^ {bit_depth}) / phi,
+    // where phi = (1 + sqrt(5))/2 is the golden ratio.
+    // Defined in https://gee.cs.oswego.edu/dl/papers/oopsla14.pdf
+    //
+    // The second part of algorithm is finalization mix and uses some magic constants
+    // For 32bit platforms it taken from https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp#L70-L74
+    // For 64bit from http://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
+#ifdef _64_
+    constexpr size_t GOLDEN_GAMMA = 0x9e3779b97f4a7c15ULL;
+    constexpr size_t C1 = 0xbf58476d1ce4e5b9ULL;
+    constexpr size_t C2 = 0x94d049bb133111ebULL;
+    constexpr size_t S0 = 30;
+    constexpr size_t S1 = 27;
+    constexpr size_t S2 = 31;
+#else
+    constexpr size_t GOLDEN_GAMMA = 0x9e3779b9UL;
+    constexpr size_t C1 = 0x85ebca6bUL;
+    constexpr size_t C2 = 0xc2b2ae35UL;
+    constexpr size_t S0 = 16;
+    constexpr size_t S1 = 13;
+    constexpr size_t S2 = 16;
+#endif
 
-    value += 0x9e3779b97f4a7c15ULL;
-    value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9ULL;
-    value = (value ^ (value >> 27)) * 0x94d049bb133111ebULL;
-    return value ^ (value >> 31);
+    value += GOLDEN_GAMMA;
+    value = (value ^ (value >> S0)) * C1;
+    value = (value ^ (value >> S1)) * C2;
+    return value ^ (value >> S2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 inline void HashCombine(size_t& h, size_t k)
 {
-    static_assert(sizeof(size_t) == 8, "size_t must be 64 bit.");
-
-    const size_t m = 0xc6a4a7935bd1e995ULL;
-    const int r = 47;
+    // Combine step from MurmurHash https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
+    // 64bit constants are taken from MurmurHash64A, 32bit — MurmurHash2
+#ifdef _64_
+    constexpr size_t m = 0xc6a4a7935bd1e995ULL;
+    constexpr size_t r = 47;
+#else
+    constexpr size_t m = 0x5bd1e995;
+    constexpr size_t r = 24;
+#endif
 
     k *= m;
     k ^= k >> r;

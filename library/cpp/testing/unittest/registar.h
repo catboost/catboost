@@ -822,28 +822,23 @@ public:                       \
         // Consider using SetUp()/TearDown() methods instead
 
         inline TBaseTestCase()
-            : TBaseTestCase(nullptr, nullptr, false)
+            : TBaseTestCase(nullptr, nullptr, false, nullptr, 0)
         {
         }
 
         inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
-            : Name_(name)
-            , Body_(std::move(body))
-            , ForceFork_(forceFork)
-            , File_(nullptr)
-            , Line_(0)
+            : TBaseTestCase(name, std::move(body), forceFork, nullptr, 0)
         {
         }
 
-        // TODO: YA-3943 будет открыто в следующем PR, активироввать функционал нужно в два шага
-        // inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork, const char* file, int line)
-        //     : Name_(name)
-        //     , Body_(std::move(body))
-        //     , ForceFork_(forceFork)
-        //     , File_(file)
-        //     , Line_(line)
-        // {
-        // }
+        inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork, const char* file, int line)
+            : Name_(name)
+            , Body_(std::move(body))
+            , ForceFork_(forceFork)
+            , File_(file)
+            , Line_(line)
+        {
+        }
 
         virtual ~TBaseTestCase() = default;
 
@@ -972,9 +967,10 @@ public:                       \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(const char* name,                                                                       \
-                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork)                              \
+                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork,                              \
+                const char* file = nullptr, int line = 0)                                                               \
             {                                                                                                           \
-                Tests().emplace_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork); });       \
+                Tests().emplace_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork, file, line); }); \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(TTestCaseFactory testCaseFactory) {                                                     \
@@ -1041,8 +1037,8 @@ public:                       \
         {                                                   \
             Name_ = #N;                                     \
             ForceFork_ = FF;                                \
-            File_ = nullptr;                                \
-            Line_ = 0;                                      \
+            File_ = __FILE__;                               \
+            Line_ = __LINE__;                               \
         }                                                   \
         static THolder<NUnitTest::TBaseTestCase> Create() { \
             return ::MakeHolder<TTestCase##N>();            \

@@ -22,6 +22,10 @@ on:
         required: false
         type: boolean
         default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
       make_latest:
         required: False
         type: boolean
@@ -51,6 +55,10 @@ on:
         required: false
         type: boolean
         default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
       make_latest:
         required: False
         type: boolean
@@ -122,12 +130,17 @@ jobs:
       - if: ${{ ! inputs.is_test_env }}
         name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
 
       - if: ${{ inputs.is_test_env }}
         name: Publish distribution to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+          verbose: true
 
   publish_jvm_catboost_common:
     if: contains(inputs.components, 'jvm_catboost_common')
@@ -149,21 +162,21 @@ jobs:
           cache: 'maven'
           cache-dependency-path: |
             catboost/catboost/jvm-packages/common/pom.xml
-          server-id: ossrh
+          server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/common
-          mvn --batch-mode clean deploy
+          mvn --batch-mode clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
 
   publish_jvm_catboost_prediction:
     # https://github.com/actions/runner/issues/491#issuecomment-850884422
@@ -191,10 +204,10 @@ jobs:
           cache: 'maven'
           cache-dependency-path: |
             catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
-          server-id: ossrh
+          server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
       - name: Env setup
@@ -221,14 +234,14 @@ jobs:
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           ls -lR ${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/
           cd ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
-          mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy
+          mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
 
   publish_jvm_catboost_spark:
     # https://github.com/actions/runner/issues/491#issuecomment-850884422
@@ -268,10 +281,10 @@ jobs:
           cache: 'maven'
           cache-dependency-path: |
             catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
-          server-id: ossrh
+          server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
       - name: Env setup
@@ -308,13 +321,13 @@ jobs:
 
       - name: Publish package
         run: |
-          export GPG_TTY=$(tty)
           cd ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
-          python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests
+          python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
 
   publish_on_github:
     # https://github.com/actions/runner/issues/491#issuecomment-850884422

@@ -8,4 +8,12 @@ Please use library.python.port_manager instead:
 This module will be removed in future versions.
 """
 
+import warnings
+
+warnings.warn(
+    "yatest.common.network is deprecated, use library.python.port_manager instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 from library.python.port_manager import *  # noqa

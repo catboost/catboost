@@ -25,6 +25,13 @@ public:
     virtual ~TRefCountedBase() noexcept = default;
 
     virtual void DestroyRefCounted() = 0;
+
+#ifdef _32_
+private:
+    // We need TRefCountedBase to fit TPackedPtr.
+    // See TRefCountedTraits for details.
+    [[maybe_unused]] ui32 Padding_;
+#endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////

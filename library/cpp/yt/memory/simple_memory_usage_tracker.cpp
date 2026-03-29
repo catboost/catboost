@@ -26,7 +26,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TSimpleMemoryUsageTrackerGuard::TSimpleMemoryUsageTrackerGuard(TSimpleMemoryUsageTrackerGuard&& other)
+TSimpleMemoryUsageTrackerGuard::TSimpleMemoryUsageTrackerGuard(TSimpleMemoryUsageTrackerGuard&& other) noexcept
 {
     MoveFrom(std::move(other));
 }
@@ -36,7 +36,7 @@ TSimpleMemoryUsageTrackerGuard::~TSimpleMemoryUsageTrackerGuard()
     Release();
 }
 
-TSimpleMemoryUsageTrackerGuard& TSimpleMemoryUsageTrackerGuard::operator=(TSimpleMemoryUsageTrackerGuard&& other)
+TSimpleMemoryUsageTrackerGuard& TSimpleMemoryUsageTrackerGuard::operator=(TSimpleMemoryUsageTrackerGuard&& other) noexcept
 {
     if (this != &other) {
         Release();
@@ -45,7 +45,7 @@ TSimpleMemoryUsageTrackerGuard& TSimpleMemoryUsageTrackerGuard::operator=(TSimpl
     return *this;
 }
 
-void TSimpleMemoryUsageTrackerGuard::MoveFrom(TSimpleMemoryUsageTrackerGuard&& other)
+void TSimpleMemoryUsageTrackerGuard::MoveFrom(TSimpleMemoryUsageTrackerGuard&& other) noexcept
 {
     Tracker_ = other.Tracker_;
     AcquiredSize_ = other.AcquiredSize_;
@@ -65,7 +65,7 @@ TSimpleMemoryUsageTrackerGuard TSimpleMemoryUsageTrackerGuard::Build(ISimpleMemo
     return guard;
 }
 
-void TSimpleMemoryUsageTrackerGuard::Release()
+void TSimpleMemoryUsageTrackerGuard::Release() noexcept
 {
     if (Tracker_) {
         if (AcquiredSize_) {

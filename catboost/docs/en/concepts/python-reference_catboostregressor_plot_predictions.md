@@ -18,6 +18,7 @@ For example, use a two-document slice of the original dataset (refer to the exam
 - {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - {{ python_type__scipy-sparse-spmatrix }} (all subclasses except `dia_matrix`)
 - {{ python-type--pool }}
 

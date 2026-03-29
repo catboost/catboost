@@ -82,8 +82,14 @@
 /* 8/12 bit libjpeg dual mode enabled */
 /* #undef JPEG_DUAL_MODE_8_12 */
 
+/* 8/12 bit dual mode JPEG built into libjpeg-turbo 3.0+ */
+#define HAVE_JPEGTURBO_DUAL_MODE_8_12 1
+
 /* Support LERC compression */
 /* #undef LERC_SUPPORT */
+
+/* Define to 1 when building a static libtiff with LERC enabled. */
+/* #undef LERC_STATIC */
 
 /* 12bit libjpeg primary include file with path */
 #define LIBJPEG_12_PATH ""
@@ -133,7 +139,7 @@
 # endif
 #else
 # ifndef WORDS_BIGENDIAN
-#  undef WORDS_BIGENDIAN
+/* #undef WORDS_BIGENDIAN */
 # endif
 #endif
 

@@ -682,4 +682,12 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT_VALUES_EQUAL(filled["4"].GetMapSafe().size(), 1);
         UNIT_ASSERT_VALUES_EQUAL(filled["4"]["5"], TJsonValue{5});
     }
+
+    Y_UNIT_TEST(GetStringSafeTest) {
+        TJsonValue json;
+        json["key"] = "value";
+        TString& valueRef = json["key"].GetStringSafe();
+        valueRef = "new_value";
+        UNIT_ASSERT_VALUES_EQUAL(json["key"].GetString(), "new_value");
+    }
 } // Y_UNIT_TEST_SUITE(TJsonValueTest)

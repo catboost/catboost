@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <string_view>
 #include <optional>
+#include <complex>
 
 #if defined(_win_)
     #include <io.h>
@@ -251,6 +252,24 @@ void Out<const void*>(IOutputStream& o, const void* t) {
 template <>
 void Out<void*>(IOutputStream& o, void* t) {
     Out<const void*>(o, t);
+}
+
+namespace {
+    template <typename T>
+    void ComplexOutImpl(IOutputStream& o, const T& t) {
+        // similar to operator<<(std::basic_ostream<...>&, const std::complex<...>&)
+        o << "(" << t.real() << "," << t.imag() << ")";
+    }
+} // namespace
+
+template <>
+void Out<std::complex<float>>(IOutputStream& o, const std::complex<float>& t) {
+    ComplexOutImpl(o, t);
+}
+
+template <>
+void Out<std::complex<double>>(IOutputStream& o, const std::complex<double>& t) {
+    ComplexOutImpl(o, t);
 }
 
 using TNullPtr = decltype(nullptr);

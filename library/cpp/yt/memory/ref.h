@@ -313,7 +313,7 @@ public:
     TSharedRefArray(TParts&& parts, TMoveParts);
 
     TSharedRefArray& operator = (const TSharedRefArray& other);
-    TSharedRefArray& operator = (TSharedRefArray&& other);
+    TSharedRefArray& operator = (TSharedRefArray&& other) noexcept;
 
     explicit operator bool() const;
 

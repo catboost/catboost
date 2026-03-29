@@ -286,6 +286,9 @@ namespace NOrderedMap {
 
     template <class TKey, class TValue>
     class TOrderedMap : public TOrderedMapImpl<TKey, TPairTraits<TKey, TValue>> {
+    public:
+        using key_type = TKey;
+        using mapped_type = TValue;
     };
 
     template <class TKey>

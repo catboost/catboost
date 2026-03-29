@@ -22,6 +22,7 @@ target_compile_options(cpp-yt-string PRIVATE
   -Wno-logical-op-parentheses
   -Wno-bitwise-op-parentheses
   -Wswitch
+  -Wreturn-type
 )
 
 target_link_libraries(cpp-yt-string PUBLIC
@@ -31,7 +32,6 @@ target_link_libraries(cpp-yt-string PUBLIC
   cpp-yt-assert
   cpp-yt-exception
   cpp-yt-misc
-  cpp-yt-compact_containers
 )
 
 target_sources(cpp-yt-string PRIVATE

@@ -18,8 +18,10 @@ namespace NMalloc {
     extern volatile bool IsAllocatorCorrupted;
     void AbortFromCorruptedAllocator(const char* errorMessage = nullptr);
 
-    // this function should be implemented by malloc implementations
+    // these function should be implemented by malloc implementations
     TMallocInfo MallocInfo();
+    // clear ALL caches of the allocator. Each implementation clears as much as possible.
+    void ClearCaches();
 
     struct TAllocHeader {
         void* Block;

@@ -113,6 +113,8 @@ class BackingTransferCache {
   void InsertRange(absl::Span<void *> batch) const;
   [[nodiscard]] int RemoveRange(absl::Span<void *> batch) const;
   int size_class() const { return size_class_; }
+  void AcquireInternalLocks() {}
+  void ReleaseInternalLocks() {}
 
  private:
   int size_class_ = -1;
@@ -161,6 +163,23 @@ class ShardedTransferCacheManagerBase {
           (UseGenericCache() && (num_shards_ >= kMinShardsAllowed));
       active_for_class_[size_class] =
           use_sharded_cache && size_per_object >= min_size;
+    }
+  }
+
+  void AcquireInternalLocks() {
+    for (int shard = 0; shard < num_shards_; ++shard) {
+      // We can't lock or unlock uninitialized shards, so we ensure they all exist.
+      // We do it the exact same way get_cache does.
+      Shard& sh = shards_[shard];
+      absl::base_internal::LowLevelCallOnce(
+        &sh.once_flag, [this, &sh]() { InitShard(sh); });
+      sh.AcquireInternalLocks();
+    }
+  }
+
+  void ReleaseInternalLocks() {
+    for (int shard = 0; shard < num_shards_; ++shard) {
+      shards_[shard].ReleaseInternalLocks();
     }
   }
 
@@ -331,6 +350,19 @@ class ShardedTransferCacheManagerBase {
       // explicitly and atomically here.
       initialized.store(false, std::memory_order_release);
     }
+
+    void AcquireInternalLocks() {
+      for (int size_class = 0; size_class < kNumClasses; ++size_class) {
+        transfer_caches[size_class].AcquireInternalLocks();
+      }
+    }
+
+    void ReleaseInternalLocks() {
+      for (int size_class = 0; size_class < kNumClasses; ++size_class) {
+        transfer_caches[size_class].ReleaseInternalLocks();
+      }
+    }
+
     TransferCache *transfer_caches = nullptr;
     absl::once_flag once_flag;
     // We need to be able to tell whether a given shard is initialized, which
@@ -605,6 +637,8 @@ class TransferCacheManager {
 struct ShardedTransferCacheManager {
   constexpr ShardedTransferCacheManager(std::nullptr_t, std::nullptr_t) {}
   static constexpr void Init() {}
+  void AcquireInternalLocks() {}
+  void ReleaseInternalLocks() {}
   static constexpr bool should_use(int size_class) { return false; }
   [[nodiscard]] static constexpr void* Pop(int size_class) { return nullptr; }
   static constexpr void Push(int size_class, void* ptr) {}

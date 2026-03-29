@@ -1331,7 +1331,7 @@ y_absl::Status JsonStringToMessage(y_absl::string_view input, Message* message,
         "extraneous characters after end of JSON object");
   }
   if (s.ok() && !message->IsInitialized()) {
-    s = y_absl::InvalidArgumentError("Not all fileds are sets");
+    s = y_absl::InvalidArgumentError("Not all fields are set");
   }
 
   PROTOBUF_DLOG(INFO) << "json2/status: " << s;

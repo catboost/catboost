@@ -498,7 +498,7 @@ Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(const TSharedRefArray
     return *this;
 }
 
-Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(TSharedRefArray&& other)
+Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(TSharedRefArray&& other) noexcept
 {
     Impl_ = std::move(other.Impl_);
     return *this;

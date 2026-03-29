@@ -115,9 +115,9 @@ class CatBoostRanker(iterations=None,
 
 ## {{ dl--purpose }} {#purpose}
 
-Implementation of the scikit-learn API for CatBoost ranking.
+Implementation of [the scikit-learn estimator API](https://scikit-learn.org/stable/developers/develop.html) for CatBoost ranking.
 
-{% include [scikit-learn-compatibility](../_includes/work_src/reusage-python/scikit-learn-compatibility.md) %}
+Supports model training, inference and auxiliary calculations like feature importance.
 
 ## {{ dl--parameters }} {#parameters}
 

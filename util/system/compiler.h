@@ -813,3 +813,49 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #else
     #define Y_NO_UNIQUE_ADDRESS
 #endif
+
+/**
+ * @def Y_CORO_AWAIT_ELIDABLE
+ *
+ * A class attribute which can be applied to a coroutine return type.
+ *
+ * Allows the compiler to apply heap allocation elision when the coroutine with such return type
+ * is immediately awaited or passed as an argument to a Y_CORO_AWAIT_ELIDABLE_ARGUMENT parameter.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-await-elidable
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_await_elidable)
+    #define Y_CORO_AWAIT_ELIDABLE [[clang::coro_await_elidable]]
+#else
+    #define Y_CORO_AWAIT_ELIDABLE
+#endif
+
+/**
+ * @def Y_CORO_AWAIT_ELIDABLE_ARGUMENT
+ *
+ * A function parameter attribute which allows the compiler to apply heap allocation elision for
+ * a coroutine with Y_CORO_AWAIT_ELIDABLE return type passed as argument to the annotated parameter.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-await-elidable-argument
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_await_elidable_argument)
+    #define Y_CORO_AWAIT_ELIDABLE_ARGUMENT [[clang::coro_await_elidable_argument]]
+#else
+    #define Y_CORO_AWAIT_ELIDABLE_ARGUMENT
+#endif
+
+/**
+ * @def Y_CORO_ONLY_DESTROY_WHEN_COMPLETE
+ *
+ * A class attribute which can be applied to a coroutine return type.
+ *
+ * Allows the compiler to skip generation of destructors for intermediate suspension points
+ * and reduce code size.
+ *
+ * See https://clang.llvm.org/docs/AttributeReference.html#coro-only-destroy-when-complete
+ */
+#if defined(__clang__) && Y_HAS_CPP_ATTRIBUTE(clang::coro_only_destroy_when_complete)
+    #define Y_CORO_ONLY_DESTROY_WHEN_COMPLETE [[clang::coro_only_destroy_when_complete]]
+#else
+    #define Y_CORO_ONLY_DESTROY_WHEN_COMPLETE
+#endif

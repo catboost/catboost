@@ -5,6 +5,8 @@
 #include <library/cpp/yt/memory/serialize.h>
 
 #include <util/generic/buffer.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/set.h>
 
 #include <util/stream/buffer.h>
 
@@ -649,6 +651,42 @@ TEST(TIntrusivePtrTest, TestConstCast)
     TIntrusivePtr<const TUi64Pair> constPtr = ptr;
     EXPECT_EQ(ptr.Get(), constPtr.Get());
     EXPECT_EQ(*ptr, *constPtr);
+}
+
+TEST(TIntrusivePtrTest, TestHeterogeneousLookup)
+{
+    TIntricateObject object;
+    TIntricateObject object2;
+    auto ptr = TIntricateObjectPtr(&object);
+    auto ptr2 = TIntricateObjectPtr(&object2);
+    EXPECT_EQ(ptr->Increments, 1);
+    EXPECT_EQ(ptr2->Increments, 1);
+
+    {
+        THashSet<TIntricateObjectPtr> set;
+        set.insert(ptr);
+
+        EXPECT_TRUE(set.contains(ptr.Get()));
+        EXPECT_FALSE(set.contains(ptr2.Get()));
+
+        EXPECT_EQ(ptr->Increments, 2);
+        EXPECT_EQ(ptr2->Increments, 1);
+
+        EXPECT_FALSE(set.contains((TIntricateObject*)0xDEADBEEF));
+    }
+
+    {
+        TSet<TIntricateObjectPtr> set;
+        set.insert(ptr);
+
+        EXPECT_TRUE(set.contains(ptr.Get()));
+        EXPECT_FALSE(set.contains(ptr2.Get()));
+
+        EXPECT_EQ(ptr->Increments, 3);
+        EXPECT_EQ(ptr2->Increments, 1);
+
+        EXPECT_FALSE(set.contains((TIntricateObject*)0xDEADBEEF));
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

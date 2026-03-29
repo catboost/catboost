@@ -5325,7 +5325,7 @@ def test_output_columns_format():
     )
     yatest.common.execute(calc_cmd)
 
-    return local_canonical_file(output_eval_path, formula_predict_path)
+    return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
 
 
 def test_output_auxiliary_columns_format():
@@ -10011,7 +10011,7 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert filecmp.cmp(test_eval_path, calc_eval_path)
 
-    epsilon = 1e-18 if is_canonical_test_run() else 1e9
+    epsilon = 1e-7
     return [
         local_canonical_file(learn_error_path, diff_tool=get_limited_precision_dsv_diff_tool(epsilon, False)),
         local_canonical_file(test_error_path, diff_tool=get_limited_precision_dsv_diff_tool(epsilon, False)),

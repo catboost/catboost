@@ -9,7 +9,6 @@ from build.plugins.lib.test_const import RUFF_RESOURCE
 from library.python.testing.custom_linter_util import linter_params, reporter
 from library.python.testing.style import rules
 
-
 logger = logging.getLogger(__name__)
 
 FORMAT_SNIPPET_LINES_LIMIT = 100

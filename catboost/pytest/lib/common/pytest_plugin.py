@@ -1,17 +1,22 @@
 from collections import defaultdict
 
 import os
+import pathlib
 import sys
-
 import tempfile
 import shutil
 
 import pytest
 
+
+if not (_git_repo_root := next((p for p in pathlib.Path(__file__).parents if (p / '.git').exists()), None)):
+    raise RuntimeError("Git repository root not found")
+
+_git_repo_root_dir = str(_git_repo_root.absolute())
 sys.path += [
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'pytest'),
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing'),
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'pytest'),
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'testing'),
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'testing', 'yatest_common')
 ]
 
 import yatest.common
@@ -64,32 +69,32 @@ class CanonicalProcessor(object):
         item.obj = get_wrapper(item.obj)
         yield
 
-class WorkdirProcessor(object):
+class MainProcessor(object):
     @pytest.hookimpl(hookwrapper=True)
-    def pytest_runtest_call(self, item):  # noqa
-        def get_wrapper(obj):
-            def wrapper(*args, **kwargs):
-                test_output_path = yatest.common.test_output_path()
-                # TODO: have to create in standard tmp dir because of max path length issues on Windows
-                work_dir = tempfile.mkdtemp(prefix='work_dir_')
-                prev_cwd = None
-                try:
-                    prev_cwd = os.getcwd()
-                except Exception:
-                    pass
-                os.chdir(work_dir)
-                try:
-                    obj(*args, **kwargs)
-                finally:
-                    os.chdir(prev_cwd if prev_cwd else test_output_path)
+    def pytest_runtest_protocol(self, item, nextitem):  # noqa
+        global pytest_config
 
-                # delete only if test succeeded, otherwise leave for debugging
-                shutil.rmtree(work_dir)
+        pytest_config.current_item_nodeid = item.nodeid
+        class_name, test_name = tools.split_node_id(item.nodeid)
+        test_log_path = tools.get_test_log_file_path(pytest_config.ya.output_dir, class_name, test_name)
+        pytest_config.current_test_log_path = test_log_path
 
-            return wrapper
+        test_output_path = yatest.common.test_output_path()
+        # TODO: have to create in standard tmp dir because of max path length issues on Windows
+        work_dir = tempfile.mkdtemp(prefix='work_dir_')
+        prev_cwd = None
+        try:
+            prev_cwd = os.getcwd()
+        except Exception:
+            pass
+        os.chdir(work_dir)
+        try:
+            yield
+        finally:
+            os.chdir(prev_cwd if prev_cwd else test_output_path)
 
-        item.obj = get_wrapper(item.obj)
-        yield
+        # delete only if test succeeded, otherwise leave for debugging
+        shutil.rmtree(work_dir)
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -97,7 +102,7 @@ def pytest_configure(config):
     global pytest_config
     pytest_config = config
     config.ya = yatest_lib.ya.Ya(
-        source_root=os.environ['CMAKE_SOURCE_DIR'],
+        source_root=_git_repo_root_dir,
         build_root=os.environ['CMAKE_BINARY_DIR'],
         output_dir=os.environ['TEST_OUTPUT_DIR']
     )
@@ -105,15 +110,8 @@ def pytest_configure(config):
     yatest.common.runtime._set_ya_config(config=config)
 
     config.pluginmanager.register(
-        WorkdirProcessor()
+        MainProcessor()
     )
     config.pluginmanager.register(
         CanonicalProcessor()
     )
-
-
-def pytest_runtest_setup(item):
-    pytest_config.current_item_nodeid = item.nodeid
-    class_name, test_name = tools.split_node_id(item.nodeid)
-    test_log_path = tools.get_test_log_file_path(pytest_config.ya.output_dir, class_name, test_name)
-    pytest_config.current_test_log_path = test_log_path

@@ -6,19 +6,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: __builtin_ctzg is available since Clang 19 and GCC 14. When support for older versions is dropped, we can
-//  refactor this code to exclusively use __builtin_ctzg.
-
 #ifndef _LIBCPP___BIT_COUNTR_H
 #define _LIBCPP___BIT_COUNTR_H
 
-#include <__bit/rotate.h>
-#include <__concepts/arithmetic.h>
 #include <__config>
+#include <__type_traits/integer_traits.h>
 #include <limits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
+#endif
+
+#if !__has_builtin(__builtin_clzg) || defined(__CUDACC__)
+  #include <__bit/rotate.h>
 #endif
 
 _LIBCPP_PUSH_MACROS
@@ -29,17 +29,16 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_ctz(unsigned __x) _NOEXCEPT {
   return __builtin_ctz(__x);
 }
-
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_ctz(unsigned long __x) _NOEXCEPT {
   return __builtin_ctzl(__x);
 }
-
 [[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_ctz(unsigned long long __x) _NOEXCEPT {
   return __builtin_ctzll(__x);
 }
 
 template <class _Tp>
-[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 int __countr_zero(_Tp __t) _NOEXCEPT {
+[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __countr_zero(_Tp __t) _NOEXCEPT {
+  static_assert(__is_unsigned_integer_v<_Tp>, "__countr_zero only works with unsigned types");
 #if __has_builtin(__builtin_ctzg) && !defined(__CUDACC__)
   return __builtin_ctzg(__t, numeric_limits<_Tp>::digits);
 #else  // __has_builtin(__builtin_ctzg)
@@ -65,12 +64,12 @@ template <class _Tp>
 
 #if _LIBCPP_STD_VER >= 20
 
-template <__libcpp_unsigned_integer _Tp>
+template <__unsigned_integer _Tp>
 [[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int countr_zero(_Tp __t) noexcept {
   return std::__countr_zero(__t);
 }
 
-template <__libcpp_unsigned_integer _Tp>
+template <__unsigned_integer _Tp>
 [[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int countr_one(_Tp __t) noexcept {
   return __t != numeric_limits<_Tp>::max() ? std::countr_zero(static_cast<_Tp>(~__t)) : numeric_limits<_Tp>::digits;
 }

@@ -6,7 +6,7 @@
 
 #define CATBOOST_APPLIER_MAJOR 1
 #define CATBOOST_APPLIER_MINOR 2
-#define CATBOOST_APPLIER_FIX 8
+#define CATBOOST_APPLIER_FIX 10
 
 #if defined(__cplusplus)
 extern "C" {

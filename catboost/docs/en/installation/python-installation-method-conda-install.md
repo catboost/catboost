@@ -28,7 +28,7 @@ All necessary CUDA libraries are statically linked in the released Linux and Win
     1. {% include [visualization-tools-install-apywidgets-short](../_includes/work_src/reusage-installation/install-apywidgets-short.md) %}
 
     ```no-highlight
-    pip install ipywidgets
+    conda install ipywidgets
     ```
 
     1. {% include [visualization-tools-turn-on-the-widgets-extension-intro](../_includes/work_src/reusage-installation/turn-on-the-widgets-extension-intro.md) %}

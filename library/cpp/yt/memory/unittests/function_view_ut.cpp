@@ -18,7 +18,7 @@ struct TNoCopy
 
     TNoCopy(const TNoCopy&) = delete;
 
-    TNoCopy(TNoCopy&&)
+    TNoCopy(TNoCopy&&) noexcept
     { }
 };
 

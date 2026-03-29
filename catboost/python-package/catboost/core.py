@@ -786,11 +786,11 @@ class Pool(_PoolBase):
                                                    subgroup_id, pairs_weight, baseline, label]):
                         raise CatBoostError(
                             "cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight, subgroup_id, pairs_weight, "
-                            "baseline, label should have the None type when the pool is read from the file."
+                            "baseline, label should have the None type when the dataset is read from the file."
                         )
                     if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
                         raise CatBoostError(
-                            "feature_names should have None or string or os.PathLike type when the pool is read from the file."
+                            "feature_names should have None or string or os.PathLike type when the dataset is read from the file."
                         )
                     self._read(data, column_description, pairs, graph, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
                 else:
@@ -856,7 +856,7 @@ class Pool(_PoolBase):
 
                     if isinstance(feature_names, PATH_TYPES):
                         raise CatBoostError(
-                            "feature_names must be None or have non-string type when the pool is created from "
+                            "feature_names must be None or have non-string type when the dataset is created from "
                             "python objects."
                         )
 
@@ -1221,7 +1221,7 @@ class Pool(_PoolBase):
 
     def save(self, fname):
         """
-        Save the quantized pool to a file.
+        Save the quantized dataset to a file.
 
         Parameters
         ----------
@@ -1240,13 +1240,10 @@ class Pool(_PoolBase):
                  max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None,
                  nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None, random_seed=None, **kwargs):
         """
-        Quantize this pool
+        Quantize this dataset
 
         Parameters
         ----------
-        pool : catboost.Pool
-            Dataset to quantize.
-
         ignored_features : list, [default=None]
             Indices or names of features that should be excluded when training.
 
@@ -2157,7 +2154,7 @@ class _CatBoostBase(object):
 
         Parameters
         ----------
-        feature_names: 1-d array of strings with new feature names in the same order as in pool
+        feature_names: 1-d array of strings with new feature names in the same order as in the training dataset
         '''
         self._object._set_feature_names(feature_names)
 
@@ -3611,10 +3608,10 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         pool : Pool
-            The pool for which you want to evaluate the object importances.
+            The dataset for which you want to evaluate the object importances.
 
         train_pool : Pool
-            The pool on which the model has been trained.
+            The dataset on which the model has been trained.
 
         top_size : int (default=-1)
             Method returns the result of the top_size most important train objects.
@@ -3727,7 +3724,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_description : string
                 * pmml_model_version : string
         pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or catboost.FeaturesData
-            Training pool.
+            Training dataset.
         """
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
@@ -4637,7 +4634,7 @@ class CatBoost(_CatBoostBase):
                         logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None,
                         grouping=None, features_tags_for_select=None, num_features_tags_to_select=None):
         """
-        Select best features from pool according to loss value.
+        Select best features from the dataset according to loss value.
 
         Parameters
         ----------
@@ -4838,7 +4835,9 @@ class CatBoost(_CatBoostBase):
 
 class CatBoostClassifier(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost classification.
+    Implementation of the scikit-learn estimator API for CatBoost classification.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -5019,7 +5018,7 @@ class CatBoostClassifier(CatBoost):
         the numbers of classes specified by each of them must be equal.
     auto_class_weights : string [default=None]
         Enables automatic class weights calculation. Possible values:
-            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from train pool
+            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from the train dataset
             - SqrtBalanced  # weight = sqrt(maxSummaryClassWeight / summaryClassWeight)
     class_names: list of strings, [default=None]
         Class names. Allows to redefine the default values for class labels (integer numbers).
@@ -5073,7 +5072,7 @@ class CatBoostClassifier(CatBoost):
         work, because visualisation uses files that are created and updated during training.
     final_ctr_computation_mode : string, [default='Default']
         Possible values:
-            - 'Default' - Compute final ctrs for all pools.
+            - 'Default' - Compute final ctrs for all datasets.
             - 'Skip' - Skip final ctr computation. WARNING: model without ctrs can't be applied.
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
@@ -5923,7 +5922,9 @@ class CatBoostClassifier(CatBoost):
 
 class CatBoostRegressor(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost regression.
+    Implementation of the scikit-learn estimator API for CatBoost regression.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
 
     Parameters
     ----------
@@ -6331,7 +6332,10 @@ class CatBoostRegressor(CatBoost):
 
 class CatBoostRanker(CatBoost):
     """
-    Implementation of the scikit-learn API for CatBoost ranking.
+    Implementation of the scikit-learn estimator API for CatBoost ranking.
+
+    Supports model training, inference and auxiliary calculations like feature importance.
+
     Parameters
     ----------
     Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
@@ -7249,7 +7253,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'cat_features' in params:
         cat_feature_indices_from_params = _get_features_indices(params['cat_features'], pool.get_feature_names())
         if set(pool.get_cat_feature_indices()) != set(cat_feature_indices_from_params):
-            raise CatBoostError("categorical features indices in params are different from ones in pool "
+            raise CatBoostError("categorical features indices in params are different from ones in the dataset "
                                 + str(cat_feature_indices_from_params) +
                                 " vs " + str(pool.get_cat_feature_indices()))
         del params['cat_features']
@@ -7257,7 +7261,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'text_features' in params:
         text_feature_indices_from_params = _get_features_indices(params['text_features'], pool.get_feature_names())
         if set(pool.get_text_feature_indices()) != set(text_feature_indices_from_params):
-            raise CatBoostError("text features indices in params are different from ones in pool "
+            raise CatBoostError("text features indices in params are different from ones in the dataset "
                                 + str(text_feature_indices_from_params) +
                                 " vs " + str(pool.get_text_feature_indices()))
         del params['text_features']
@@ -7265,7 +7269,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'embedding_features' in params:
         embedding_feature_indices_from_params = _get_features_indices(params['embedding_features'], pool.get_feature_names())
         if set(pool.get_embedding_feature_indices()) != set(embedding_feature_indices_from_params):
-            raise CatBoostError("embedding features indices in params are different from ones in pool "
+            raise CatBoostError("embedding features indices in params are different from ones in the dataset "
                                 + str(embedding_feature_indices_from_params) +
                                 " vs " + str(pool.get_embedding_feature_indices()))
         del params['embedding_features']
@@ -7343,7 +7347,7 @@ def _calc_feature_statistics_layout(go, xaxis, single_pool):
             'overlaying': 'y2'
         },
         yaxis2={
-            'title': 'Objects per bin' if single_pool else '% pool objects in bin',
+            'title': 'Objects per bin' if single_pool else '% dataset objects in bin',
             'side': 'right',
             'position': 1.0
         },
@@ -7399,7 +7403,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
         if pools_count == 1:
             name_suffix = ''
         else:
-            name_suffix = ', {} pool'.format(pool_names[i])
+            name_suffix = ', {} dataset'.format(pool_names[i])
         trace_1 = go.Scatter(
             y=statistics['mean_target'][order],
             mode='lines+markers',
@@ -7435,7 +7439,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             trace_4 = go.Bar(
                 y=statistics['objects_per_bin'][order] / float(objects_in_pool),
                 width=bar_width / pools_count,
-                name='% pool objects in bin (total {})'.format(objects_in_pool) + name_suffix,
+                name='% dataset objects in bin (total {})'.format(objects_in_pool) + name_suffix,
                 yaxis='y2',
                 xaxis='x',
                 marker={
