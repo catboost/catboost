@@ -387,7 +387,7 @@ def get_msvs_dir(msvs_installation_path: Optional[str], msvs_version: str) -> st
 
     msvs_base_dir_candidates = ['c:\\Program Files\\Microsoft Visual Studio', 'c:\\Program Files (x86)\\Microsoft Visual Studio']
     if msvs_installation_path is not None:
-        msvs_base_dir_candidates = [msvs_installation_path] + msvs_base_dir_candidates
+        msvs_base_dir_candidates = [msvs_installation_path]
 
     for base_dir in msvs_base_dir_candidates:
         for subfolder in ['Community', 'Enterprise', 'BuildTools']:
