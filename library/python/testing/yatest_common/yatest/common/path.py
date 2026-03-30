@@ -11,6 +11,7 @@ import library.python.fs as lpf
 def replace_in_file(path, old, new):
     """
     Replace text occurrences in a file
+
     :param path: path to the file
     :param old: text to replace
     :param new: replacement
