@@ -512,12 +512,12 @@ def execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
-    :param close_fds:  subrpocess.Popen close_fds args
+    :param close_fds:  subprocess.Popen close_fds args
     :param collect_cores: recover core dump files if shell == False
     :param check_sanitizer: raise ExecutionError if stderr contains sanitize errors
-    :param preexec_fn: subrpocess.Popen preexec_fn arg
+    :param preexec_fn: subprocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
-    :param popen_kwargs: subrpocess.Popen args dictionary. Useful for python3-only arguments
+    :param popen_kwargs: subprocess.Popen args dictionary. Useful for python3-only arguments
 
     :return _Execution: Execution object
     """
