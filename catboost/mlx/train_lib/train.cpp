@@ -10,6 +10,9 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/system_options.h>
 
+#include <catboost/mlx/methods/mlx_boosting.h>
+#include <catboost/mlx/targets/pointwise_target.h>
+
 #include <mlx/mlx.h>
 
 namespace mx = mlx::core;
@@ -41,12 +44,9 @@ namespace NCatboostMlx {
         Y_UNUSED(outputOptions);
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
-        Y_UNUSED(trainingCallbacks);
         Y_UNUSED(customCallbacks);
         Y_UNUSED(rand);
-        Y_UNUSED(dstModel);
         Y_UNUSED(evalResultPtrs);
-        Y_UNUSED(metricsAndTimeHistory);
 
         CB_ENSURE(trainingData.Test.size() <= 1,
             "Multiple eval sets not yet supported for MLX backend");
@@ -80,25 +80,47 @@ namespace NCatboostMlx {
         ui32 numFeatures = static_cast<ui32>(dataset.GetCompressedIndex().GetFeatures().size());
         CATBOOST_INFO_LOG << "CatBoost-MLX: Dataset built with " << numFeatures << " features" << Endl;
 
-        // TODO(Phase 6): Metal kernel dispatch via mx::fast::metal_kernel()
-        // Example (once ready):
-        //   auto histKernel = mx::fast::metal_kernel(
-        //       "histogram_one_byte_features",
-        //       {"compressedIndex", "stats", "partOffsets", ...},
-        //       {"histogram"},
-        //       metalSource,
-        //       /*header=*/"",
-        //       /*ensure_row_contiguous=*/true,
-        //       /*atomic_outputs=*/true);
-        //   auto results = histKernel({...}, {outputShape}, {mx::float32},
-        //       grid_dims, threadgroup_dims, ...);
+        // Phase 2: Extract boosting configuration from catboostOptions
+        TBoostingConfig config;
+        config.NumIterations = updatedOptions.BoostingOptions->IterationCount.Get();
+        config.LearningRate = updatedOptions.BoostingOptions->LearningRate.Get();
+        config.MaxDepth = updatedOptions.ObliviousTreeOptions->MaxDepth.Get();
+        config.L2RegLambda = updatedOptions.ObliviousTreeOptions->L2Reg.Get();
+        config.UseWeights = dataset.HasWeights();
 
-        // TODO(Phase 2-5): Initialize histogram, scoring, leaf, and target kernels
-        // TODO(Phase 6): Run boosting loop
+        CATBOOST_INFO_LOG << "CatBoost-MLX: Config: iterations=" << config.NumIterations
+            << " lr=" << config.LearningRate
+            << " depth=" << config.MaxDepth
+            << " l2=" << config.L2RegLambda << Endl;
 
-        CB_ENSURE(false,
-            "CatBoost-MLX training loop not yet implemented. "
-            "Backend skeleton registered successfully — Metal kernel implementation in progress.");
+        // Phase 3: Create target function
+        auto lossFunction = updatedOptions.LossFunctionDescription->GetLossFunction();
+        CB_ENSURE(lossFunction == ELossFunction::RMSE,
+            "CatBoost-MLX currently only supports RMSE loss. Got: " << lossFunction);
+        TRMSETarget target;
+
+        // Phase 4: Run boosting
+        auto result = RunBoosting(
+            dataset,
+            target,
+            config,
+            trainingCallbacks,
+            metricsAndTimeHistory
+        );
+
+        CATBOOST_INFO_LOG << "CatBoost-MLX: Training completed with "
+            << result.NumIterations << " trees" << Endl;
+
+        // Phase 5: Convert result to TFullModel
+        // TODO(Phase 7): Serialize tree structures and leaf values into TFullModel format
+        // For now, the training loop runs end-to-end and reports loss metrics.
+        // Model export requires mapping TObliviousTreeStructure + leaf values
+        // into CatBoost's TModelTrees serialization format.
+        if (dstModel) {
+            CATBOOST_WARNING_LOG << "CatBoost-MLX: Model export to TFullModel not yet implemented. "
+                << "Training completed successfully — loss metrics are reported above." << Endl;
+        }
+        Y_UNUSED(dstModel);
     }
 
     void TMLXModelTrainer::ModelBasedEval(
@@ -114,6 +136,4 @@ namespace NCatboostMlx {
 }  // namespace NCatboostMlx
 
 // Register the MLX trainer as the GPU backend on darwin-arm64.
-// This is safe because the CUDA TGPUModelTrainer registration (in catboost/cuda/train_lib/train.cpp)
-// only compiles on CUDA-enabled builds, which never target macOS ARM.
 TTrainerFactory::TRegistrator<NCatboostMlx::TMLXModelTrainer> MLXGPURegistrator(ETaskType::GPU);

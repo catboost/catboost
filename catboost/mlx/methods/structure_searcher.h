@@ -10,6 +10,21 @@
 
 namespace NCatboostMlx {
 
+    // Partition layout: sorted doc indices + partition offsets/sizes.
+    // Used to feed the histogram kernel which expects docs grouped by partition.
+    struct TPartitionLayout {
+        mx::array DocIndices;       // [numDocs] uint32 — doc indices sorted by partition
+        mx::array PartOffsets;      // [numPartitions] uint32 — start offset per partition
+        mx::array PartSizes;        // [numPartitions] uint32 — doc count per partition
+        TVector<ui32> PartSizesHost;   // CPU-side copy for scoring
+        TVector<ui32> PartOffsetsHost; // CPU-side copy
+    };
+
+    // Compute partition layout from the current partition assignments.
+    // Sorts doc indices by partition on CPU and returns GPU arrays for kernel dispatch.
+    TPartitionLayout ComputePartitionLayout(
+        const mx::array& partitions, ui32 numDocs, ui32 numPartitions);
+
     // Result of tree structure search: the splits that define the tree.
     struct TObliviousTreeStructure {
         TVector<TObliviousSplitLevel> Splits;  // [depth] — one split per level

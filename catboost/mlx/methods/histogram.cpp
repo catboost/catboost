@@ -1,17 +1,19 @@
 #include "histogram.h"
 
+#include <catboost/mlx/kernels/kernel_sources.h>
 #include <catboost/libs/logging/logging.h>
 #include <mlx/mlx.h>
+#include <mlx/fast.h>
 
 namespace NCatboostMlx {
 
     namespace {
         // Dispatch histogram computation for one feature group (4 packed features).
-        // This is a placeholder — the actual Metal kernel will be dispatched here.
-        // TODO(Phase 7): Replace with direct Metal kernel dispatch via mx::fast::metal_kernel()
-        void DispatchHistogramGroup(
+        // Returns a fresh histogram array with this group's contributions.
+        mx::array DispatchHistogramGroup(
             const mx::array& compressedData,
             const mx::array& stats,
+            const mx::array& docIndices,
             const mx::array& partOffsets,
             const mx::array& partSizes,
             ui32 featureColumnIdx,
@@ -22,31 +24,67 @@ namespace NCatboostMlx {
             ui32 totalBinFeatures,
             ui32 numStats,
             ui32 numPartitions,
-            mx::array& histogram
+            ui32 totalNumDocs,
+            const mx::Shape& histShape
         ) {
-            // The actual Metal kernel (hist.metal) will be dispatched here using:
-            //   mlx::core::fast::metal_kernel("histogram_one_byte_features", ...)
-            //
-            // The kernel source is already written in catboost/mlx/kernels/hist.metal.
-            // Integration requires:
-            //   1. Loading the .metal source
-            //   2. Calling metal_kernel() to register it
-            //   3. Invoking the returned function with proper grid/threadgroup dims
-            //   4. Binding all buffer arguments
+            // Create scalar mx::array inputs for constant uint& parameters.
+            // 0-dim arrays become `const constant T&` in the generated Metal signature.
+            auto featureColArr = mx::array(static_cast<uint32_t>(featureColumnIdx), mx::uint32);
+            auto lineSizeArr   = mx::array(static_cast<uint32_t>(lineSize), mx::uint32);
+            auto maxBlocksArr  = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
+            auto totalBinsArr  = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
+            auto numStatsArr   = mx::array(static_cast<uint32_t>(numStats), mx::uint32);
+            auto totalDocsArr  = mx::array(static_cast<uint32_t>(totalNumDocs), mx::uint32);
 
-            Y_UNUSED(compressedData);
-            Y_UNUSED(stats);
-            Y_UNUSED(partOffsets);
-            Y_UNUSED(partSizes);
-            Y_UNUSED(featureColumnIdx);
-            Y_UNUSED(lineSize);
-            Y_UNUSED(maxBlocksPerPart);
-            Y_UNUSED(foldCounts);
-            Y_UNUSED(firstFoldIndices);
-            Y_UNUSED(totalBinFeatures);
-            Y_UNUSED(numStats);
-            Y_UNUSED(numPartitions);
-            Y_UNUSED(histogram);
+            // Flatten compressed data to 1D for linear doc*lineSize indexing in kernel
+            auto flatCompressed = mx::reshape(compressedData, {-1});
+
+            // Register kernel (MLX caches compiled kernels internally by name)
+            auto kernel = mx::fast::metal_kernel(
+                "histogram_one_byte_features",
+                /*input_names=*/{
+                    "compressedIndex", "stats", "docIndices",
+                    "partOffsets", "partSizes",
+                    "featureColumnIdx", "lineSize", "maxBlocksPerPart",
+                    "foldCounts", "firstFoldIndices",
+                    "totalBinFeatures", "numStats", "totalNumDocs"
+                },
+                /*output_names=*/{"histogram"},
+                /*source=*/KernelSources::kHistOneByteSource,
+                /*header=*/KernelSources::kHistHeader,
+                /*ensure_row_contiguous=*/true,
+                /*atomic_outputs=*/false
+            );
+
+            // Grid: total threads to launch (MLX divides by threadgroup to get threadgroup count)
+            // (256 * maxBlocksPerPart, numPartitions, numStats) gives
+            // (maxBlocksPerPart, numPartitions, numStats) threadgroups of 256 threads each.
+            auto grid = std::make_tuple(
+                static_cast<int>(256 * maxBlocksPerPart),
+                static_cast<int>(numPartitions),
+                static_cast<int>(numStats)
+            );
+            auto threadgroup = std::make_tuple(256, 1, 1);
+
+            auto results = kernel(
+                /*inputs=*/{
+                    flatCompressed, stats, docIndices,
+                    partOffsets, partSizes,
+                    featureColArr, lineSizeArr, maxBlocksArr,
+                    foldCounts, firstFoldIndices,
+                    totalBinsArr, numStatsArr, totalDocsArr
+                },
+                /*output_shapes=*/{histShape},
+                /*output_dtypes=*/{mx::float32},
+                grid,
+                threadgroup,
+                /*template_args=*/{},
+                /*init_value=*/0.0f,
+                /*verbose=*/false,
+                /*stream=*/mx::Device::gpu
+            );
+
+            return results[0];
         }
     }  // anonymous namespace
 
@@ -61,6 +99,7 @@ namespace NCatboostMlx {
 
     THistogramResult ComputeHistograms(
         const TMLXDataSet& dataset,
+        const mx::array& docIndices,
         const mx::array& partitionOffsets,
         const mx::array& partitionSizes,
         ui32 numPartitions,
@@ -82,55 +121,64 @@ namespace NCatboostMlx {
             << features.size() << " features, " << totalBinFeatures << " bin-features, "
             << numPartitions << " partitions, " << numStats << " stats" << Endl;
 
-        // Allocate output histogram
-        auto histogram = CreateZeroHistogram(numPartitions, numStats, totalBinFeatures);
+        if (totalBinFeatures == 0) {
+            return THistogramResult{
+                .Histograms = mx::zeros({1}, mx::float32),
+                .NumPartitions = numPartitions,
+                .NumStats = numStats,
+                .TotalBinFeatures = 0
+            };
+        }
+
+        // Output histogram shape (flat)
+        mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
 
         // For now, use a conservative single block per partition
-        // (Phase 7 optimization: dynamic block count based on partition size)
         const ui32 maxBlocksPerPart = 1;
+
+        // Build the stats array: gradient only, or gradient + hessian stacked
+        auto statsArr = dataset.GetGradients();
+        if (useWeights) {
+            statsArr = mx::concatenate({
+                mx::reshape(dataset.GetGradients(), {1, static_cast<int>(numDocs)}),
+                mx::reshape(dataset.GetHessians(), {1, static_cast<int>(numDocs)})
+            }, 0);
+            statsArr = mx::reshape(statsArr, {static_cast<int>(numStats * numDocs)});
+        } else {
+            statsArr = mx::reshape(statsArr, {static_cast<int>(numDocs)});
+        }
 
         // Process features in groups of 4 (one-byte packing)
         const ui32 numFeatures = features.size();
         const ui32 numFeatureGroups = (numFeatures + 3) / 4;
+
+        mx::array histogram;
 
         for (ui32 groupIdx = 0; groupIdx < numFeatureGroups; ++groupIdx) {
             const ui32 featureStart = groupIdx * 4;
             const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
 
             // Build per-feature fold counts and first fold indices for this group
-            TVector<ui32> foldCounts(4, 0);
-            TVector<ui32> firstFoldIndices(4, 0);
+            TVector<ui32> foldCountsVec(4, 0);
+            TVector<ui32> firstFoldIndicesVec(4, 0);
             for (ui32 f = 0; f < featuresInGroup; ++f) {
-                foldCounts[f] = features[featureStart + f].Folds;
-                firstFoldIndices[f] = features[featureStart + f].FirstFoldIndex;
+                foldCountsVec[f] = features[featureStart + f].Folds;
+                firstFoldIndicesVec[f] = features[featureStart + f].FirstFoldIndex;
             }
 
-            // Create MLX arrays for kernel parameters
             auto foldCountsArr = mx::array(
-                reinterpret_cast<const int32_t*>(foldCounts.data()),
+                reinterpret_cast<const int32_t*>(foldCountsVec.data()),
                 {4}, mx::uint32
             );
             auto firstFoldArr = mx::array(
-                reinterpret_cast<const int32_t*>(firstFoldIndices.data()),
+                reinterpret_cast<const int32_t*>(firstFoldIndicesVec.data()),
                 {4}, mx::uint32
             );
 
-            // Build the stats array: for gradient-only, just pass gradients
-            // For gradient+weight, stack as [numStats, numDocs]
-            auto statsArr = dataset.GetGradients();
-            if (useWeights) {
-                statsArr = mx::concatenate({
-                    mx::reshape(dataset.GetGradients(), {1, static_cast<int>(numDocs)}),
-                    mx::reshape(dataset.GetWeights(), {1, static_cast<int>(numDocs)})
-                }, 0);
-                statsArr = mx::reshape(statsArr, {static_cast<int>(numStats * numDocs)});
-            } else {
-                statsArr = mx::reshape(statsArr, {static_cast<int>(numDocs)});
-            }
-
-            DispatchHistogramGroup(
+            auto groupResult = DispatchHistogramGroup(
                 compressedIndex.GetCompressedData(),
                 statsArr,
+                docIndices,
                 partitionOffsets,
                 partitionSizes,
                 groupIdx,       // feature column index
@@ -141,8 +189,17 @@ namespace NCatboostMlx {
                 totalBinFeatures,
                 numStats,
                 numPartitions,
-                histogram
+                numDocs,
+                histShape
             );
+
+            // Accumulate: feature groups write to non-overlapping regions,
+            // but metal_kernel returns a fresh array each time.
+            if (groupIdx == 0) {
+                histogram = groupResult;
+            } else {
+                histogram = mx::add(histogram, groupResult);
+            }
         }
 
         TMLXDevice::EvalNow(histogram);

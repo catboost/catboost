@@ -27,9 +27,6 @@ namespace NCatboostMlx {
         auto startTime = std::chrono::steady_clock::now();
 
         // Currently only single-dimensional approx is supported (e.g. RMSE).
-        // Cursor/gradients/hessians have shape [approxDim, numDocs].
-        // For approxDim=1, we reshape to [numDocs] for the target functions.
-        // TODO(Phase 7): Support multi-dimensional approx (e.g. multiclass)
         CB_ENSURE(trainData.GetCursor().shape(0) == 1 || trainData.GetCursor().ndim() == 1,
             "CatBoost-MLX: Only single-dimensional approx is currently supported (approxDim=1)");
 
@@ -37,7 +34,6 @@ namespace NCatboostMlx {
             auto iterStart = std::chrono::steady_clock::now();
 
             // ----- Step 1: Compute gradients and hessians -----
-            // Flatten from [1, numDocs] to [numDocs] for target functions
             auto cursor = mx::reshape(trainData.GetCursor(), {static_cast<int>(numDocs)});
             target.ComputeDerivatives(
                 cursor,
@@ -64,16 +60,32 @@ namespace NCatboostMlx {
             }
 
             // ----- Step 3: Estimate leaf values -----
+            // After SearchTreeStructure, partitions hold the final leaf assignments.
             const ui32 numLeaves = 1u << treeStructure.Splits.size();
 
-            // Compute gradient and hessian sums per leaf from histograms
-            // For RMSE: gradSum per leaf comes from the histogram
-            // HessSum per leaf = count of docs in leaf (since RMSE hessian = 1)
-            // TODO: Extract actual sums from histogram result
-            // For now, use uniform estimates (will be corrected in integration)
-            auto gradSums = mx::zeros({static_cast<int>(numLeaves)}, mx::float32);
-            auto hessSums = mx::ones({static_cast<int>(numLeaves)}, mx::float32);
-            hessSums = mx::multiply(hessSums, mx::array(static_cast<float>(numDocs) / numLeaves));
+            // Compute per-leaf gradient and hessian sums from partition assignments
+            TMLXDevice::EvalNow({trainData.GetGradients(), trainData.GetHessians(), trainData.GetPartitions()});
+
+            auto flatGrads = mx::reshape(trainData.GetGradients(), {static_cast<int>(numDocs)});
+            auto flatHess = mx::reshape(trainData.GetHessians(), {static_cast<int>(numDocs)});
+            TMLXDevice::EvalNow({flatGrads, flatHess});
+
+            const float* gradsPtr = flatGrads.data<float>();
+            const float* hessPtr = flatHess.data<float>();
+            const uint32_t* partsPtr = trainData.GetPartitions().data<uint32_t>();
+
+            TVector<float> gradSumsHost(numLeaves, 0.0f);
+            TVector<float> hessSumsHost(numLeaves, 0.0f);
+            for (ui32 d = 0; d < numDocs; ++d) {
+                ui32 leaf = partsPtr[d];
+                if (leaf < numLeaves) {
+                    gradSumsHost[leaf] += gradsPtr[d];
+                    hessSumsHost[leaf] += hessPtr[d];
+                }
+            }
+
+            auto gradSums = mx::array(gradSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
+            auto hessSums = mx::array(hessSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
 
             auto leafValues = ComputeLeafValues(
                 gradSums,

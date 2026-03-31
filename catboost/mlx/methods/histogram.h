@@ -34,6 +34,7 @@ namespace NCatboostMlx {
     //   - Binary: histogram_binary_features
     THistogramResult ComputeHistograms(
         const TMLXDataSet& dataset,
+        const mx::array& docIndices,         // [numDocs] uint32 — sorted doc indices by partition
         const mx::array& partitionOffsets,   // [numPartitions] uint32 — doc offset per leaf
         const mx::array& partitionSizes,     // [numPartitions] uint32 — doc count per leaf
         ui32 numPartitions,
