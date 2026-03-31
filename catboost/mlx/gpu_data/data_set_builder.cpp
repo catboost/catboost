@@ -86,7 +86,7 @@ namespace NCatboostMlx {
 
         // Transfer to GPU
         TMLXCompressedIndex index;
-        index.Build(packedData.data(), numDocs, numUi32PerDoc, features);
+        index.Build(packedData.data(), numDocs, numUi32PerDoc, features, featureIndices);
         return index;
     }
 

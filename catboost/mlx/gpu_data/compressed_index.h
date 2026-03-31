@@ -28,10 +28,12 @@ namespace NCatboostMlx {
         void Build(const ui32* compressedData,
                    ui32 numDocs,
                    ui32 numUi32PerDoc,
-                   const TVector<TCFeature>& features) {
+                   const TVector<TCFeature>& features,
+                   const TVector<ui32>& externalFeatureIndices = {}) {
             NumDocs_ = numDocs;
             NumUi32PerDoc_ = numUi32PerDoc;
             Features_ = features;
+            ExternalFeatureIndices_ = externalFeatureIndices;
 
             // Transfer packed feature data to GPU
             CompressedData_ = mx::array(
@@ -50,12 +52,19 @@ namespace NCatboostMlx {
             return Features_;
         }
 
+        // Maps GPU local feature index → CatBoost external feature index.
+        // Needed for model export (to look up quantization borders).
+        const TVector<ui32>& GetExternalFeatureIndices() const {
+            return ExternalFeatureIndices_;
+        }
+
         ui32 GetNumDocs() const { return NumDocs_; }
         ui32 GetNumUi32PerDoc() const { return NumUi32PerDoc_; }
 
     private:
         mx::array CompressedData_;          // [numDocs, numUi32PerDoc] uint32
         TVector<TCFeature> Features_;       // feature metadata (CPU-side, passed to kernels)
+        TVector<ui32> ExternalFeatureIndices_; // GPU local idx → external feature idx
         ui32 NumDocs_ = 0;
         ui32 NumUi32PerDoc_ = 0;
     };

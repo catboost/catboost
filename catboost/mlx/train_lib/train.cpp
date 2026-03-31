@@ -12,6 +12,7 @@
 
 #include <catboost/mlx/methods/mlx_boosting.h>
 #include <catboost/mlx/targets/pointwise_target.h>
+#include <catboost/mlx/train_lib/model_exporter.h>
 
 #include <mlx/mlx.h>
 
@@ -112,13 +113,21 @@ namespace NCatboostMlx {
             << result.NumIterations << " trees" << Endl;
 
         // Phase 5: Convert result to TFullModel
-        // TODO(Phase 7): Serialize tree structures and leaf values into TFullModel format
-        // For now, the training loop runs end-to-end and reports loss metrics.
-        // Model export requires mapping TObliviousTreeStructure + leaf values
-        // into CatBoost's TModelTrees serialization format.
-        if (dstModel) {
-            CATBOOST_WARNING_LOG << "CatBoost-MLX: Model export to TFullModel not yet implemented. "
-                << "Training completed successfully — loss metrics are reported above." << Endl;
+        if (dstModel && result.NumIterations > 0) {
+            const auto& objectsData = *trainingData.Learn->ObjectsData;
+            *dstModel = ConvertToFullModel(
+                result,
+                *objectsData.GetQuantizedFeaturesInfo(),
+                *objectsData.GetFeaturesLayout(),
+                dataset.GetCompressedIndex().GetFeatures(),
+                dataset.GetCompressedIndex().GetExternalFeatureIndices(),
+                approxDimension,
+                updatedOptions
+            );
+            CATBOOST_INFO_LOG << "CatBoost-MLX: Model exported to TFullModel with "
+                << result.NumIterations << " trees" << Endl;
+        } else if (dstModel) {
+            CATBOOST_WARNING_LOG << "CatBoost-MLX: No trees produced, model is empty" << Endl;
         }
         Y_UNUSED(dstModel);
     }

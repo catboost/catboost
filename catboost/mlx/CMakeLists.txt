@@ -42,6 +42,7 @@ find_library(ACCELERATE_FRAMEWORK Accelerate REQUIRED)
 
 add_library(catboost-mlx-train-lib STATIC
     train_lib/train.cpp
+    train_lib/model_exporter.cpp
     gpu_data/data_set_builder.cpp
     methods/histogram.cpp
     methods/score_calcer.cpp
