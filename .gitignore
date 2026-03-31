@@ -72,3 +72,11 @@ node_modules/
 catboost/spark/catboost4j-spark/core/src/main/resources/
 catboost/spark/catboost4j-spark/core/target/
 catboost/spark/catboost4j-spark/projects/
+
+# CatBoost-MLX development
+build/
+.cache/
+CLAUDE.md
+harness/
+decisions.md
+implementation_plan.md

@@ -13,6 +13,13 @@
 # changes in this file.
 
 cmake_minimum_required(VERSION 3.15)
+
+# ---- Disable optional Python/Cython components for MLX-only build ----
+set(CMAKE_DISABLE_FIND_PACKAGE_Cython ON)
+option(ENABLE_PYTHON "Build optional Python modules" OFF)
+if(NOT ENABLE_PYTHON)
+    set(SKIP_PYTHON_SUBPROJECT ON)
+endif()
 if (POLICY CMP0132)
   cmake_policy(SET CMP0132 NEW)
 endif()
