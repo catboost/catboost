@@ -20,9 +20,8 @@ namespace NCatboostMlx {
         ui32 approxDimension,
         const NCatboostOptions::TCatBoostOptions& catboostOptions
     ) {
-        CB_ENSURE(approxDimension == 1,
-            "CatBoost-MLX: Model export only supports approxDimension=1 (RMSE). Got: "
-            << approxDimension);
+        CB_ENSURE(approxDimension >= 1,
+            "CatBoost-MLX: approxDimension must be >= 1. Got: " << approxDimension);
         CB_ENSURE(boostingResult.NumIterations > 0,
             "CatBoost-MLX: No trees to export");
         CB_ENSURE(externalFeatureIndices.size() == gpuFeatures.size(),
@@ -92,20 +91,43 @@ namespace NCatboostMlx {
                 }));
             }
 
-            // Convert leaf values: mx::array (float32) → TConstArrayRef<double>
+            // Convert leaf values: mx::array → TVector<double> or TVector<TVector<double>>
             mx::eval(leafValuesArr);
             const ui32 numLeaves = 1u << depth;
-            CB_ENSURE(static_cast<ui32>(leafValuesArr.size()) == numLeaves,
-                "CatBoost-MLX: Tree " << treeIdx << " leaf count mismatch: "
-                << leafValuesArr.size() << " vs expected " << numLeaves);
 
-            const float* leafPtr = leafValuesArr.data<float>();
-            TVector<double> leafValues(numLeaves);
-            for (ui32 i = 0; i < numLeaves; ++i) {
-                leafValues[i] = static_cast<double>(leafPtr[i]);
+            if (approxDimension == 1) {
+                // Single-dim: leafValuesArr is [numLeaves]
+                CB_ENSURE(static_cast<ui32>(leafValuesArr.size()) == numLeaves,
+                    "CatBoost-MLX: Tree " << treeIdx << " leaf count mismatch: "
+                    << leafValuesArr.size() << " vs expected " << numLeaves);
+
+                const float* leafPtr = leafValuesArr.data<float>();
+                TVector<double> leafValues(numLeaves);
+                for (ui32 i = 0; i < numLeaves; ++i) {
+                    leafValues[i] = static_cast<double>(leafPtr[i]);
+                }
+
+                builder.AddTree(modelSplits, leafValues, TConstArrayRef<double>{});
+            } else {
+                // Multi-dim: leafValuesArr is [numLeaves, approxDimension]
+                CB_ENSURE(static_cast<ui32>(leafValuesArr.size()) == numLeaves * approxDimension,
+                    "CatBoost-MLX: Tree " << treeIdx << " leaf count mismatch: "
+                    << leafValuesArr.size() << " vs expected " << numLeaves * approxDimension);
+
+                const float* leafPtr = leafValuesArr.data<float>();
+
+                // Deinterleave [numLeaves * approxDim] (leaf-major) → [approxDim][numLeaves]
+                TVector<TVector<double>> multiDimLeafValues(approxDimension);
+                for (ui32 dim = 0; dim < approxDimension; ++dim) {
+                    multiDimLeafValues[dim].resize(numLeaves);
+                    for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {
+                        multiDimLeafValues[dim][leaf] = static_cast<double>(
+                            leafPtr[leaf * approxDimension + dim]);
+                    }
+                }
+
+                builder.AddTree(modelSplits, multiDimLeafValues, TConstArrayRef<double>{});
             }
-
-            builder.AddTree(modelSplits, leafValues, TConstArrayRef<double>{});
         }
 
         // Step 4: Build the model

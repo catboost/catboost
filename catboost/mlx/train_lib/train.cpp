@@ -16,6 +16,8 @@
 
 #include <mlx/mlx.h>
 
+#include <memory>
+
 namespace mx = mlx::core;
 
 namespace NCatboostMlx {
@@ -88,6 +90,7 @@ namespace NCatboostMlx {
         config.MaxDepth = updatedOptions.ObliviousTreeOptions->MaxDepth.Get();
         config.L2RegLambda = updatedOptions.ObliviousTreeOptions->L2Reg.Get();
         config.UseWeights = dataset.HasWeights();
+        config.ApproxDimension = approxDimension;
 
         CATBOOST_INFO_LOG << "CatBoost-MLX: Config: iterations=" << config.NumIterations
             << " lr=" << config.LearningRate
@@ -96,14 +99,38 @@ namespace NCatboostMlx {
 
         // Phase 3: Create target function
         auto lossFunction = updatedOptions.LossFunctionDescription->GetLossFunction();
-        CB_ENSURE(lossFunction == ELossFunction::RMSE,
-            "CatBoost-MLX currently only supports RMSE loss. Got: " << lossFunction);
-        TRMSETarget target;
+
+        std::unique_ptr<IMLXTargetFunc> targetPtr;
+        switch (lossFunction) {
+            case ELossFunction::RMSE:
+                targetPtr = std::make_unique<TRMSETarget>();
+                break;
+            case ELossFunction::Logloss:
+            case ELossFunction::CrossEntropy:
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: Logloss/CrossEntropy requires approxDimension=1. Got: "
+                    << approxDimension);
+                targetPtr = std::make_unique<TLoglossTarget>();
+                break;
+            case ELossFunction::MultiClass:
+                CB_ENSURE(approxDimension > 1,
+                    "CatBoost-MLX: MultiClass requires approxDimension > 1. Got: "
+                    << approxDimension);
+                targetPtr = std::make_unique<TMultiClassTarget>(approxDimension + 1);
+                break;
+            default:
+                CB_ENSURE(false,
+                    "CatBoost-MLX currently supports RMSE, Logloss, CrossEntropy, and MultiClass. Got: "
+                    << lossFunction);
+        }
+
+        CATBOOST_INFO_LOG << "CatBoost-MLX: Loss function: " << lossFunction
+            << " (approxDim=" << approxDimension << ")" << Endl;
 
         // Phase 4: Run boosting
         auto result = RunBoosting(
             dataset,
-            target,
+            *targetPtr,
             config,
             trainingCallbacks,
             metricsAndTimeHistory

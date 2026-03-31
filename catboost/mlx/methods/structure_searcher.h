@@ -39,11 +39,15 @@ namespace NCatboostMlx {
     //   3. Pick the single best split (same split applied to all leaves at this level)
     //   4. Update partition assignments
     //
+    // For approxDimension > 1 (multi-class), runs histograms per-dimension
+    // and sums gains across all dimensions to find the shared best split.
+    //
     // Returns the tree structure (splits) — leaf values are computed separately.
     TObliviousTreeStructure SearchTreeStructure(
         TMLXDataSet& dataset,
         ui32 maxDepth,
-        float l2RegLambda
+        float l2RegLambda,
+        ui32 approxDimension = 1
     );
 
 }  // namespace NCatboostMlx

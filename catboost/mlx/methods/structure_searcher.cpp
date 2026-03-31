@@ -59,7 +59,8 @@ namespace NCatboostMlx {
     TObliviousTreeStructure SearchTreeStructure(
         TMLXDataSet& dataset,
         ui32 maxDepth,
-        float l2RegLambda
+        float l2RegLambda,
+        ui32 approxDimension
     ) {
         TObliviousTreeStructure result;
         result.Splits.reserve(maxDepth);
@@ -78,39 +79,59 @@ namespace NCatboostMlx {
             auto layout = ComputePartitionLayout(
                 dataset.GetPartitions(), numDocs, numPartitions);
 
-            // Step 1: Compute histograms (with hessian/weight as 2nd stat channel)
-            auto histResult = ComputeHistograms(
-                dataset,
-                layout.DocIndices,
-                layout.PartOffsets,
-                layout.PartSizes,
-                numPartitions,
-                /*useWeights=*/true
-            );
+            // Step 1-2: Compute histograms and partition stats per dimension
+            TVector<THistogramResult> perDimHistograms;
+            TVector<TVector<TPartitionStatistics>> perDimPartStats;
+            perDimHistograms.reserve(approxDimension);
+            perDimPartStats.reserve(approxDimension);
 
-            // Step 2: Compute partition statistics from gradient data + partition sizes
-            TVector<TPartitionStatistics> partStats(numPartitions);
-            {
-                TMLXDevice::EvalNow({dataset.GetGradients(), dataset.GetPartitions()});
-                auto flatGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
-                TMLXDevice::EvalNow(flatGrads);
-                const float* grads = flatGrads.data<float>();
-                const uint32_t* parts = dataset.GetPartitions().data<uint32_t>();
+            TMLXDevice::EvalNow({dataset.GetGradients(), dataset.GetHessians(), dataset.GetPartitions()});
+            const uint32_t* parts = dataset.GetPartitions().data<uint32_t>();
 
+            for (ui32 k = 0; k < approxDimension; ++k) {
+                // Slice gradients and hessians for dimension k
+                mx::array dimGrads, dimHess;
+                if (approxDimension == 1) {
+                    dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
+                    dimHess = mx::reshape(dataset.GetHessians(), {static_cast<int>(numDocs)});
+                } else {
+                    dimGrads = mx::slice(dataset.GetGradients(),
+                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
+                    dimHess = mx::slice(dataset.GetHessians(),
+                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                    dimHess = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                }
+
+                auto histResult = ComputeHistograms(
+                    dataset, dimGrads, dimHess,
+                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                    numPartitions
+                );
+                perDimHistograms.push_back(std::move(histResult));
+
+                // Compute partition statistics for this dimension
+                TMLXDevice::EvalNow(dimGrads);
+                const float* grads = dimGrads.data<float>();
+                TMLXDevice::EvalNow(dimHess);
+                const float* hess = dimHess.data<float>();
+
+                TVector<TPartitionStatistics> dimPartStats(numPartitions);
                 for (ui32 d = 0; d < numDocs; ++d) {
                     ui32 p = parts[d];
                     if (p < numPartitions) {
-                        partStats[p].Sum += grads[d];
-                        partStats[p].Weight += 1.0;
-                        partStats[p].Count += 1.0;
+                        dimPartStats[p].Sum += grads[d];
+                        dimPartStats[p].Weight += hess[d];
+                        dimPartStats[p].Count += 1.0;
                     }
                 }
+                perDimPartStats.push_back(std::move(dimPartStats));
             }
 
-            // Step 3: Find best split across all features
-            auto bestSplit = FindBestSplit(
-                histResult,
-                partStats,
+            // Step 3: Find best split across all features, summing gain across dims
+            auto bestSplit = FindBestSplitMultiDim(
+                perDimHistograms,
+                perDimPartStats,
                 features,
                 l2RegLambda,
                 numPartitions

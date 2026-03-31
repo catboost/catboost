@@ -18,8 +18,9 @@ namespace NCatboostMlx {
     // Result of the boosting process.
     struct TBoostingResult {
         TVector<TObliviousTreeStructure> TreeStructures;
-        TVector<mx::array> TreeLeafValues;   // [numTrees] each [2^depth]
+        TVector<mx::array> TreeLeafValues;   // [numTrees] each [2^depth] for dim=1, [2^depth, K] for multi
         ui32 NumIterations;
+        ui32 ApproxDimension = 1;
     };
 
     // Configuration for the boosting loop.
@@ -29,6 +30,7 @@ namespace NCatboostMlx {
         ui32 MaxDepth = 6;
         float L2RegLambda = 3.0f;
         bool UseWeights = false;
+        ui32 ApproxDimension = 1;
     };
 
     // Run the gradient boosting loop.

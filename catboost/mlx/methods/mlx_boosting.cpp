@@ -16,25 +16,29 @@ namespace NCatboostMlx {
         TBoostingResult result;
         result.TreeStructures.reserve(config.NumIterations);
         result.TreeLeafValues.reserve(config.NumIterations);
+        result.ApproxDimension = config.ApproxDimension;
 
         const ui32 numDocs = trainData.GetNumDocs();
+        const ui32 approxDim = config.ApproxDimension;
 
         CATBOOST_INFO_LOG << "CatBoost-MLX: Starting boosting with "
             << config.NumIterations << " iterations, lr=" << config.LearningRate
             << ", depth=" << config.MaxDepth << ", l2=" << config.L2RegLambda
-            << ", docs=" << numDocs << Endl;
+            << ", docs=" << numDocs << ", approxDim=" << approxDim << Endl;
 
         auto startTime = std::chrono::steady_clock::now();
-
-        // Currently only single-dimensional approx is supported (e.g. RMSE).
-        CB_ENSURE(trainData.GetCursor().shape(0) == 1 || trainData.GetCursor().ndim() == 1,
-            "CatBoost-MLX: Only single-dimensional approx is currently supported (approxDim=1)");
 
         for (ui32 iter = 0; iter < config.NumIterations; ++iter) {
             auto iterStart = std::chrono::steady_clock::now();
 
             // ----- Step 1: Compute gradients and hessians -----
-            auto cursor = mx::reshape(trainData.GetCursor(), {static_cast<int>(numDocs)});
+            mx::array cursor;
+            if (approxDim == 1) {
+                cursor = mx::reshape(trainData.GetCursor(), {static_cast<int>(numDocs)});
+            } else {
+                cursor = mx::reshape(trainData.GetCursor(),
+                    {static_cast<int>(approxDim), static_cast<int>(numDocs)});
+            }
             target.ComputeDerivatives(
                 cursor,
                 trainData.GetTargets(),
@@ -44,13 +48,13 @@ namespace NCatboostMlx {
             );
 
             // ----- Step 2: Search for best tree structure -----
-            // Reset partitions to single leaf for new tree
             trainData.InitPartitions(numDocs);
 
             auto treeStructure = SearchTreeStructure(
                 trainData,
                 config.MaxDepth,
-                config.L2RegLambda
+                config.L2RegLambda,
+                approxDim
             );
 
             if (treeStructure.Splits.empty()) {
@@ -60,42 +64,82 @@ namespace NCatboostMlx {
             }
 
             // ----- Step 3: Estimate leaf values -----
-            // After SearchTreeStructure, partitions hold the final leaf assignments.
             const ui32 numLeaves = 1u << treeStructure.Splits.size();
 
-            // Compute per-leaf gradient and hessian sums from partition assignments
             TMLXDevice::EvalNow({trainData.GetGradients(), trainData.GetHessians(), trainData.GetPartitions()});
-
-            auto flatGrads = mx::reshape(trainData.GetGradients(), {static_cast<int>(numDocs)});
-            auto flatHess = mx::reshape(trainData.GetHessians(), {static_cast<int>(numDocs)});
-            TMLXDevice::EvalNow({flatGrads, flatHess});
-
-            const float* gradsPtr = flatGrads.data<float>();
-            const float* hessPtr = flatHess.data<float>();
             const uint32_t* partsPtr = trainData.GetPartitions().data<uint32_t>();
 
-            TVector<float> gradSumsHost(numLeaves, 0.0f);
-            TVector<float> hessSumsHost(numLeaves, 0.0f);
-            for (ui32 d = 0; d < numDocs; ++d) {
-                ui32 leaf = partsPtr[d];
-                if (leaf < numLeaves) {
-                    gradSumsHost[leaf] += gradsPtr[d];
-                    hessSumsHost[leaf] += hessPtr[d];
+            mx::array leafValues;
+
+            if (approxDim == 1) {
+                // Single-dim: accumulate scalar grad/hess sums per leaf
+                auto flatGrads = mx::reshape(trainData.GetGradients(), {static_cast<int>(numDocs)});
+                auto flatHess = mx::reshape(trainData.GetHessians(), {static_cast<int>(numDocs)});
+                TMLXDevice::EvalNow({flatGrads, flatHess});
+
+                const float* gradsPtr = flatGrads.data<float>();
+                const float* hessPtr = flatHess.data<float>();
+
+                TVector<float> gradSumsHost(numLeaves, 0.0f);
+                TVector<float> hessSumsHost(numLeaves, 0.0f);
+                for (ui32 d = 0; d < numDocs; ++d) {
+                    ui32 leaf = partsPtr[d];
+                    if (leaf < numLeaves) {
+                        gradSumsHost[leaf] += gradsPtr[d];
+                        hessSumsHost[leaf] += hessPtr[d];
+                    }
                 }
+
+                auto gradSums = mx::array(gradSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
+                auto hessSums = mx::array(hessSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
+
+                leafValues = ComputeLeafValues(gradSums, hessSums, config.L2RegLambda, config.LearningRate);
+                // leafValues shape: [numLeaves]
+            } else {
+                // Multi-dim: accumulate [K, numLeaves] grad/hess sums
+                TVector<TVector<float>> gradSumsPerDim(approxDim, TVector<float>(numLeaves, 0.0f));
+                TVector<TVector<float>> hessSumsPerDim(approxDim, TVector<float>(numLeaves, 0.0f));
+
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    auto dimGrads = mx::slice(trainData.GetGradients(),
+                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
+                    auto dimHess = mx::slice(trainData.GetHessians(),
+                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                    dimHess = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                    TMLXDevice::EvalNow({dimGrads, dimHess});
+
+                    const float* gPtr = dimGrads.data<float>();
+                    const float* hPtr = dimHess.data<float>();
+
+                    for (ui32 d = 0; d < numDocs; ++d) {
+                        ui32 leaf = partsPtr[d];
+                        if (leaf < numLeaves) {
+                            gradSumsPerDim[k][leaf] += gPtr[d];
+                            hessSumsPerDim[k][leaf] += hPtr[d];
+                        }
+                    }
+                }
+
+                // Compute leaf values per dimension, build [numLeaves, K]
+                TVector<float> interleavedLeaves(numLeaves * approxDim, 0.0f);
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    auto gradSums = mx::array(gradSumsPerDim[k].data(), {static_cast<int>(numLeaves)}, mx::float32);
+                    auto hessSums = mx::array(hessSumsPerDim[k].data(), {static_cast<int>(numLeaves)}, mx::float32);
+                    auto dimLeafValues = ComputeLeafValues(gradSums, hessSums, config.L2RegLambda, config.LearningRate);
+                    TMLXDevice::EvalNow(dimLeafValues);
+                    const float* lvPtr = dimLeafValues.data<float>();
+                    for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {
+                        interleavedLeaves[leaf * approxDim + k] = lvPtr[leaf];
+                    }
+                }
+                leafValues = mx::array(interleavedLeaves.data(),
+                    {static_cast<int>(numLeaves), static_cast<int>(approxDim)}, mx::float32);
+                // leafValues shape: [numLeaves, K]
             }
 
-            auto gradSums = mx::array(gradSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
-            auto hessSums = mx::array(hessSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
-
-            auto leafValues = ComputeLeafValues(
-                gradSums,
-                hessSums,
-                config.L2RegLambda,
-                config.LearningRate
-            );
-
             // ----- Step 4: Apply tree to predictions -----
-            ApplyObliviousTree(trainData, treeStructure.Splits, leafValues);
+            ApplyObliviousTree(trainData, treeStructure.Splits, leafValues, approxDim);
 
             // ----- Step 5: Report metrics -----
             result.TreeStructures.push_back(std::move(treeStructure));
@@ -105,8 +149,15 @@ namespace NCatboostMlx {
             auto iterMs = std::chrono::duration_cast<std::chrono::milliseconds>(iterEnd - iterStart).count();
 
             if (iter % 100 == 0 || iter == config.NumIterations - 1) {
+                mx::array lossCursor;
+                if (approxDim == 1) {
+                    lossCursor = mx::reshape(trainData.GetCursor(), {static_cast<int>(numDocs)});
+                } else {
+                    lossCursor = mx::reshape(trainData.GetCursor(),
+                        {static_cast<int>(approxDim), static_cast<int>(numDocs)});
+                }
                 auto loss = target.ComputeLoss(
-                    mx::reshape(trainData.GetCursor(), {static_cast<int>(numDocs)}),
+                    lossCursor,
                     trainData.GetTargets(),
                     trainData.GetWeights()
                 );

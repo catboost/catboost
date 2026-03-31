@@ -20,10 +20,14 @@ namespace NCatboostMlx {
     //   1. For each document, compute leaf index from split conditions
     //   2. Add leafValues[leafIdx] to cursor[doc]
     //   3. Update partition (leaf) assignments
+    //
+    // For approxDimension > 1, leafValues shape is [numLeaves, K].
+    // For approxDimension == 1, leafValues shape is [numLeaves].
     void ApplyObliviousTree(
         TMLXDataSet& dataset,
         const TVector<TObliviousSplitLevel>& splits,  // [depth] — one split per level
-        const mx::array& leafValues                    // [2^depth]
+        const mx::array& leafValues,                    // [2^depth] or [2^depth, K]
+        ui32 approxDimension = 1
     );
 
 }  // namespace NCatboostMlx

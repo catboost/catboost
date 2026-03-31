@@ -28,4 +28,15 @@ namespace NCatboostMlx {
         ui32 numPartitions
     );
 
+    // Multi-dimensional variant: sums gain across all K dimensions.
+    // Each dimension has its own histogram and partition statistics.
+    // For approxDim == 1, delegates to FindBestSplit.
+    TBestSplitProperties FindBestSplitMultiDim(
+        const TVector<THistogramResult>& perDimHistograms,
+        const TVector<TVector<TPartitionStatistics>>& perDimPartStats,
+        const TVector<TCFeature>& features,
+        float l2RegLambda,
+        ui32 numPartitions
+    );
+
 }  // namespace NCatboostMlx

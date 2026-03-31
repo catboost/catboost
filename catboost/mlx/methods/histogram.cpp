@@ -86,6 +86,83 @@ namespace NCatboostMlx {
 
             return results[0];
         }
+
+        // Common histogram dispatch logic shared by both ComputeHistograms overloads.
+        THistogramResult ComputeHistogramsImpl(
+            const TMLXCompressedIndex& compressedIndex,
+            const TVector<TCFeature>& features,
+            const mx::array& statsArr,
+            const mx::array& docIndices,
+            const mx::array& partitionOffsets,
+            const mx::array& partitionSizes,
+            ui32 numDocs,
+            ui32 lineSize,
+            ui32 numStats,
+            ui32 totalBinFeatures,
+            ui32 numPartitions
+        ) {
+            mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
+            const ui32 maxBlocksPerPart = 1;
+
+            const ui32 numFeatures = features.size();
+            const ui32 numFeatureGroups = (numFeatures + 3) / 4;
+
+            mx::array histogram;
+
+            for (ui32 groupIdx = 0; groupIdx < numFeatureGroups; ++groupIdx) {
+                const ui32 featureStart = groupIdx * 4;
+                const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
+
+                TVector<ui32> foldCountsVec(4, 0);
+                TVector<ui32> firstFoldIndicesVec(4, 0);
+                for (ui32 f = 0; f < featuresInGroup; ++f) {
+                    foldCountsVec[f] = features[featureStart + f].Folds;
+                    firstFoldIndicesVec[f] = features[featureStart + f].FirstFoldIndex;
+                }
+
+                auto foldCountsArr = mx::array(
+                    reinterpret_cast<const int32_t*>(foldCountsVec.data()),
+                    {4}, mx::uint32
+                );
+                auto firstFoldArr = mx::array(
+                    reinterpret_cast<const int32_t*>(firstFoldIndicesVec.data()),
+                    {4}, mx::uint32
+                );
+
+                auto groupResult = DispatchHistogramGroup(
+                    compressedIndex.GetCompressedData(),
+                    statsArr,
+                    docIndices,
+                    partitionOffsets,
+                    partitionSizes,
+                    groupIdx,
+                    lineSize,
+                    maxBlocksPerPart,
+                    foldCountsArr,
+                    firstFoldArr,
+                    totalBinFeatures,
+                    numStats,
+                    numPartitions,
+                    numDocs,
+                    histShape
+                );
+
+                if (groupIdx == 0) {
+                    histogram = groupResult;
+                } else {
+                    histogram = mx::add(histogram, groupResult);
+                }
+            }
+
+            TMLXDevice::EvalNow(histogram);
+
+            return THistogramResult{
+                .Histograms = histogram,
+                .NumPartitions = numPartitions,
+                .NumStats = numStats,
+                .TotalBinFeatures = totalBinFeatures
+            };
+        }
     }  // anonymous namespace
 
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures) {
@@ -130,12 +207,6 @@ namespace NCatboostMlx {
             };
         }
 
-        // Output histogram shape (flat)
-        mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
-
-        // For now, use a conservative single block per partition
-        const ui32 maxBlocksPerPart = 1;
-
         // Build the stats array: gradient only, or gradient + hessian stacked
         auto statsArr = dataset.GetGradients();
         if (useWeights) {
@@ -148,68 +219,54 @@ namespace NCatboostMlx {
             statsArr = mx::reshape(statsArr, {static_cast<int>(numDocs)});
         }
 
-        // Process features in groups of 4 (one-byte packing)
-        const ui32 numFeatures = features.size();
-        const ui32 numFeatureGroups = (numFeatures + 3) / 4;
+        return ComputeHistogramsImpl(
+            compressedIndex, features, statsArr,
+            docIndices, partitionOffsets, partitionSizes,
+            numDocs, lineSize, numStats, totalBinFeatures, numPartitions
+        );
+    }
 
-        mx::array histogram;
+    THistogramResult ComputeHistograms(
+        const TMLXDataSet& dataset,
+        const mx::array& gradients,
+        const mx::array& hessians,
+        const mx::array& docIndices,
+        const mx::array& partitionOffsets,
+        const mx::array& partitionSizes,
+        ui32 numPartitions
+    ) {
+        const auto& compressedIndex = dataset.GetCompressedIndex();
+        const auto& features = compressedIndex.GetFeatures();
+        const ui32 numDocs = compressedIndex.GetNumDocs();
+        const ui32 lineSize = compressedIndex.GetNumUi32PerDoc();
+        const ui32 numStats = 2;  // always grad + hess
 
-        for (ui32 groupIdx = 0; groupIdx < numFeatureGroups; ++groupIdx) {
-            const ui32 featureStart = groupIdx * 4;
-            const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
-
-            // Build per-feature fold counts and first fold indices for this group
-            TVector<ui32> foldCountsVec(4, 0);
-            TVector<ui32> firstFoldIndicesVec(4, 0);
-            for (ui32 f = 0; f < featuresInGroup; ++f) {
-                foldCountsVec[f] = features[featureStart + f].Folds;
-                firstFoldIndicesVec[f] = features[featureStart + f].FirstFoldIndex;
-            }
-
-            auto foldCountsArr = mx::array(
-                reinterpret_cast<const int32_t*>(foldCountsVec.data()),
-                {4}, mx::uint32
-            );
-            auto firstFoldArr = mx::array(
-                reinterpret_cast<const int32_t*>(firstFoldIndicesVec.data()),
-                {4}, mx::uint32
-            );
-
-            auto groupResult = DispatchHistogramGroup(
-                compressedIndex.GetCompressedData(),
-                statsArr,
-                docIndices,
-                partitionOffsets,
-                partitionSizes,
-                groupIdx,       // feature column index
-                lineSize,
-                maxBlocksPerPart,
-                foldCountsArr,
-                firstFoldArr,
-                totalBinFeatures,
-                numStats,
-                numPartitions,
-                numDocs,
-                histShape
-            );
-
-            // Accumulate: feature groups write to non-overlapping regions,
-            // but metal_kernel returns a fresh array each time.
-            if (groupIdx == 0) {
-                histogram = groupResult;
-            } else {
-                histogram = mx::add(histogram, groupResult);
-            }
+        ui32 totalBinFeatures = 0;
+        for (const auto& feat : features) {
+            totalBinFeatures += feat.Folds;
         }
 
-        TMLXDevice::EvalNow(histogram);
+        if (totalBinFeatures == 0) {
+            return THistogramResult{
+                .Histograms = mx::zeros({1}, mx::float32),
+                .NumPartitions = numPartitions,
+                .NumStats = numStats,
+                .TotalBinFeatures = 0
+            };
+        }
 
-        return THistogramResult{
-            .Histograms = histogram,
-            .NumPartitions = numPartitions,
-            .NumStats = numStats,
-            .TotalBinFeatures = totalBinFeatures
-        };
+        // Build stats array from provided gradient + hessian
+        auto statsArr = mx::concatenate({
+            mx::reshape(gradients, {1, static_cast<int>(numDocs)}),
+            mx::reshape(hessians, {1, static_cast<int>(numDocs)})
+        }, 0);
+        statsArr = mx::reshape(statsArr, {static_cast<int>(numStats * numDocs)});
+
+        return ComputeHistogramsImpl(
+            compressedIndex, features, statsArr,
+            docIndices, partitionOffsets, partitionSizes,
+            numDocs, lineSize, numStats, totalBinFeatures, numPartitions
+        );
     }
 
 }  // namespace NCatboostMlx

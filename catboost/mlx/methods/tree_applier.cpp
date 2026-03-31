@@ -7,7 +7,8 @@ namespace NCatboostMlx {
     void ApplyObliviousTree(
         TMLXDataSet& dataset,
         const TVector<TObliviousSplitLevel>& splits,
-        const mx::array& leafValues
+        const mx::array& leafValues,
+        ui32 approxDimension
     ) {
         const ui32 numDocs = dataset.GetNumDocs();
         const ui32 depth = splits.size();
@@ -57,14 +58,21 @@ namespace NCatboostMlx {
         auto docLeafValues = mx::take(leafValues, leafIndices, 0);
 
         // Update cursor: cursor += leafValues[leafIdx]
-        // Cursor may be [1, numDocs] or [numDocs] — flatten, add, then restore shape.
         auto& cursor = dataset.GetCursor();
-        auto cursorShape = cursor.shape();
-        cursor = mx::add(
-            mx::reshape(cursor, {static_cast<int>(numDocs)}),
-            docLeafValues
-        );
-        cursor = mx::reshape(cursor, cursorShape);
+        if (approxDimension > 1) {
+            // leafValues: [numLeaves, K], docLeafValues: [numDocs, K]
+            // Transpose to [K, numDocs] to match cursor shape [K, numDocs]
+            docLeafValues = mx::transpose(docLeafValues);
+            cursor = mx::add(cursor, docLeafValues);
+        } else {
+            // Cursor may be [1, numDocs] or [numDocs] — flatten, add, then restore shape.
+            auto cursorShape = cursor.shape();
+            cursor = mx::add(
+                mx::reshape(cursor, {static_cast<int>(numDocs)}),
+                docLeafValues
+            );
+            cursor = mx::reshape(cursor, cursorShape);
+        }
 
         // Update partition assignments
         dataset.GetPartitions() = leafIndices;

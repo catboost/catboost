@@ -13,17 +13,23 @@ namespace NCatboostMlx {
     public:
         virtual ~IMLXTargetFunc() = default;
 
-        // Compute first-order gradient (derivative of loss w.r.t. prediction)
-        // and second-order hessian for each document.
+        // Number of approximation dimensions.
+        // 1 for RMSE and Logloss; numClasses-1 for MultiClass.
+        virtual ui32 GetApproxDimension() const = 0;
+
+        // Compute first-order gradient and second-order hessian.
+        // For single-dim (RMSE, Logloss): cursor/gradients/hessians are [numDocs].
+        // For multi-dim  (MultiClass):    cursor/gradients/hessians are [K, numDocs].
+        // Targets are always [numDocs] (class index for classification).
         virtual void ComputeDerivatives(
-            const mx::array& cursor,   // [numDocs] current predictions
-            const mx::array& targets,  // [numDocs] true values
+            const mx::array& cursor,
+            const mx::array& targets,
             const mx::array& weights,  // [numDocs] sample weights
-            mx::array& gradients,      // [numDocs] output: d(loss)/d(pred)
-            mx::array& hessians        // [numDocs] output: d²(loss)/d(pred)²
+            mx::array& gradients,
+            mx::array& hessians
         ) const = 0;
 
-        // Compute the loss value (for metric reporting)
+        // Compute scalar loss value (for metric reporting).
         virtual mx::array ComputeLoss(
             const mx::array& cursor,
             const mx::array& targets,

@@ -41,6 +41,19 @@ namespace NCatboostMlx {
         bool useWeights = false               // if true, compute weight histograms too (numStats=2)
     );
 
+    // Overload accepting explicit gradient/hessian arrays (for multi-dimensional approx).
+    // Allows the caller to pass a single dimension's gradient+hessian slice
+    // without modifying the dataset's internal buffers.
+    THistogramResult ComputeHistograms(
+        const TMLXDataSet& dataset,
+        const mx::array& gradients,          // [numDocs] single dimension gradient
+        const mx::array& hessians,           // [numDocs] single dimension hessian
+        const mx::array& docIndices,
+        const mx::array& partitionOffsets,
+        const mx::array& partitionSizes,
+        ui32 numPartitions
+    );
+
     // Zero-initialize a histogram buffer
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures);
 
