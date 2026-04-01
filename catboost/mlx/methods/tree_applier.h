@@ -13,7 +13,8 @@ namespace NCatboostMlx {
         ui32 FeatureColumnIdx;  // which ui32 column in compressed index
         ui32 Shift;             // bit shift to extract feature value
         ui32 Mask;              // bit mask after shift
-        ui32 BinThreshold;      // threshold: value > threshold goes right
+        ui32 BinThreshold;      // threshold: value > threshold goes right (ordinal), value == threshold goes right (OneHot)
+        bool IsOneHot = false;  // true for categorical OneHot splits (equality), false for ordinal (threshold)
     };
 
     // Apply an oblivious tree to the dataset:

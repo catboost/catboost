@@ -9,6 +9,7 @@
 //   --loss TYPE        Loss function: rmse, logloss, multiclass, auto (default: auto)
 //   --bins B           Max quantization bins per feature (default: 255)
 //   --target-col N     0-based column index for target (default: last column)
+//   --cat-features L    Comma-separated 0-based column indices for categorical features
 //   --verbose          Print per-iteration loss
 //
 // Compile:
@@ -38,6 +39,8 @@
 #include <sstream>
 #include <chrono>
 #include <cstring>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -69,6 +72,7 @@ struct TObliviousSplitLevel {
     ui32 Shift;
     ui32 Mask;
     ui32 BinThreshold;
+    bool IsOneHot = false;
 };
 
 struct TPartitionStatistics {
@@ -91,13 +95,14 @@ struct TConfig {
     int TargetCol = -1;  // -1 = last column
     std::string LossType = "auto";
     bool Verbose = false;
+    std::unordered_set<int> CatFeatureCols;  // 0-based column indices for categorical features
 };
 
 TConfig ParseArgs(int argc, char** argv) {
     TConfig config;
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <file.csv> [--iterations N] [--depth D] [--lr RATE] "
-                "[--l2 LAMBDA] [--loss TYPE] [--bins B] [--target-col N] [--verbose]\n", argv[0]);
+                "[--l2 LAMBDA] [--loss TYPE] [--bins B] [--target-col N] [--cat-features L] [--verbose]\n", argv[0]);
         exit(1);
     }
     config.CsvPath = argv[1];
@@ -109,6 +114,13 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--loss") == 0 && i + 1 < argc) config.LossType = argv[++i];
         else if (strcmp(argv[i], "--bins") == 0 && i + 1 < argc) config.MaxBins = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--target-col") == 0 && i + 1 < argc) config.TargetCol = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--cat-features") == 0 && i + 1 < argc) {
+            std::stringstream ss(argv[++i]);
+            std::string token;
+            while (std::getline(ss, token, ',')) {
+                config.CatFeatureCols.insert(std::atoi(token.c_str()));
+            }
+        }
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
@@ -120,11 +132,13 @@ TConfig ParseArgs(int argc, char** argv) {
 // ============================================================================
 
 struct TDataset {
-    std::vector<std::vector<float>> Features;  // [numFeatures][numDocs]
+    std::vector<std::vector<float>> Features;  // [numFeatures][numDocs] — float values (or hash indices for categorical)
     std::vector<float> Targets;                 // [numDocs]
     ui32 NumDocs = 0;
     ui32 NumFeatures = 0;
     std::vector<std::string> FeatureNames;
+    std::vector<bool> IsCategorical;            // [numFeatures] — true for categorical columns
+    std::vector<std::unordered_map<std::string, uint32_t>> CatHashMaps;  // [numFeatures] — string → bin index (empty for numeric)
 };
 
 bool IsNumber(const std::string& s) {
@@ -133,7 +147,7 @@ bool IsNumber(const std::string& s) {
     return end != s.c_str() && *end == '\0';
 }
 
-TDataset LoadCSV(const std::string& path, int targetCol) {
+TDataset LoadCSV(const std::string& path, int targetCol, const std::unordered_set<int>& catFeatureCols) {
     TDataset ds;
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -142,13 +156,12 @@ TDataset LoadCSV(const std::string& path, int targetCol) {
     }
 
     std::string line;
-    std::vector<std::vector<float>> rows;
+    std::vector<std::vector<std::string>> rawRows;  // store all cells as strings first
     bool hasHeader = false;
     int numCols = 0;
 
     while (std::getline(file, line)) {
         if (line.empty()) continue;
-        // Trim trailing carriage return
         if (!line.empty() && line.back() == '\r') line.pop_back();
         if (line.empty()) continue;
 
@@ -156,16 +169,15 @@ TDataset LoadCSV(const std::string& path, int targetCol) {
         std::string cell;
         std::vector<std::string> cells;
         while (std::getline(ss, cell, ',')) {
-            // Trim whitespace
             size_t start = cell.find_first_not_of(" \t");
             size_t end = cell.find_last_not_of(" \t");
             if (start != std::string::npos) cell = cell.substr(start, end - start + 1);
+            else cell = "";
             cells.push_back(cell);
         }
 
         if (numCols == 0) {
             numCols = cells.size();
-            // Check if first row is a header
             if (!cells.empty() && !IsNumber(cells[0])) {
                 hasHeader = true;
                 ds.FeatureNames = cells;
@@ -173,49 +185,98 @@ TDataset LoadCSV(const std::string& path, int targetCol) {
             }
         }
 
-        if (static_cast<int>(cells.size()) != numCols) continue;  // skip malformed rows
-
-        std::vector<float> row(numCols);
-        bool valid = true;
-        for (int i = 0; i < numCols; ++i) {
-            try {
-                row[i] = std::stof(cells[i]);
-            } catch (...) {
-                valid = false;
-                break;
-            }
-        }
-        if (valid) rows.push_back(row);
+        if (static_cast<int>(cells.size()) != numCols) continue;
+        rawRows.push_back(cells);
     }
 
-    if (rows.empty()) {
+    if (rawRows.empty()) {
         fprintf(stderr, "Error: No valid data rows in %s\n", path.c_str());
         exit(1);
     }
 
-    ds.NumDocs = rows.size();
-
-    // Determine target column
+    ds.NumDocs = rawRows.size();
     int tgtCol = (targetCol >= 0) ? targetCol : (numCols - 1);
     if (tgtCol < 0 || tgtCol >= numCols) {
         fprintf(stderr, "Error: Invalid target column %d (data has %d columns)\n", tgtCol, numCols);
         exit(1);
     }
 
-    // Split into features and targets
+    // Determine which feature columns are categorical
+    // Either explicitly specified via --cat-features, or auto-detected
     ds.NumFeatures = numCols - 1;
+    ds.IsCategorical.resize(ds.NumFeatures, false);
+
+    // Map from original column index (excluding target) to feature index
+    std::vector<int> colToFeatIdx(numCols, -1);
+    {
+        ui32 fIdx = 0;
+        for (int c = 0; c < numCols; ++c) {
+            if (c == tgtCol) continue;
+            colToFeatIdx[c] = fIdx;
+
+            // Check if this column was explicitly marked as categorical
+            if (catFeatureCols.count(c)) {
+                ds.IsCategorical[fIdx] = true;
+            }
+            fIdx++;
+        }
+    }
+
+    // Auto-detect: if not explicitly specified, check if any cell in a non-target column is non-numeric
+    if (catFeatureCols.empty()) {
+        for (int c = 0; c < numCols; ++c) {
+            if (c == tgtCol) continue;
+            int fIdx = colToFeatIdx[c];
+            for (ui32 d = 0; d < ds.NumDocs; ++d) {
+                if (!IsNumber(rawRows[d][c])) {
+                    ds.IsCategorical[fIdx] = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Build hash maps for categorical features, parse numeric features
     ds.Features.resize(ds.NumFeatures);
+    ds.CatHashMaps.resize(ds.NumFeatures);
     for (ui32 f = 0; f < ds.NumFeatures; ++f) {
         ds.Features[f].resize(ds.NumDocs);
     }
     ds.Targets.resize(ds.NumDocs);
 
     for (ui32 d = 0; d < ds.NumDocs; ++d) {
-        ds.Targets[d] = rows[d][tgtCol];
+        // Parse target (must be numeric)
+        try {
+            ds.Targets[d] = std::stof(rawRows[d][tgtCol]);
+        } catch (...) {
+            fprintf(stderr, "Error: Non-numeric target at row %u: '%s'\n", d, rawRows[d][tgtCol].c_str());
+            exit(1);
+        }
+
         ui32 fIdx = 0;
         for (int c = 0; c < numCols; ++c) {
             if (c == tgtCol) continue;
-            ds.Features[fIdx++][d] = rows[d][c];
+            if (ds.IsCategorical[fIdx]) {
+                // Categorical: hash string → sequential integer
+                const std::string& val = rawRows[d][c];
+                auto& hashMap = ds.CatHashMaps[fIdx];
+                auto it = hashMap.find(val);
+                if (it == hashMap.end()) {
+                    uint32_t newIdx = hashMap.size();
+                    hashMap[val] = newIdx;
+                    ds.Features[fIdx][d] = static_cast<float>(newIdx);
+                } else {
+                    ds.Features[fIdx][d] = static_cast<float>(it->second);
+                }
+            } else {
+                // Numeric
+                try {
+                    ds.Features[fIdx][d] = std::stof(rawRows[d][c]);
+                } catch (...) {
+                    ds.Features[fIdx][d] = 0.0f;
+                }
+            }
+            fIdx++;
         }
     }
 
@@ -237,6 +298,17 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
     q.BinnedFeatures.resize(ds.NumFeatures);
 
     for (ui32 f = 0; f < ds.NumFeatures; ++f) {
+        if (ds.IsCategorical[f]) {
+            // Categorical: no borders, bin index = hash map index directly
+            q.Borders[f].clear();
+            q.BinnedFeatures[f].resize(ds.NumDocs);
+            for (ui32 d = 0; d < ds.NumDocs; ++d) {
+                q.BinnedFeatures[f][d] = static_cast<uint8_t>(ds.Features[f][d]);
+            }
+            continue;
+        }
+
+        // Numeric: equal-frequency quantization
         // Sort feature values to compute equal-frequency borders
         std::vector<float> sorted = ds.Features[f];
         std::sort(sorted.begin(), sorted.end());
@@ -289,7 +361,9 @@ struct TPackedData {
     ui32 TotalBinFeatures;
 };
 
-TPackedData PackFeatures(const TQuantization& q, ui32 numDocs, ui32 numFeatures) {
+TPackedData PackFeatures(const TQuantization& q, const TDataset& ds) {
+    const ui32 numDocs = ds.NumDocs;
+    const ui32 numFeatures = ds.NumFeatures;
     TPackedData packed;
     packed.NumUi32PerDoc = (numFeatures + 3) / 4;
     packed.Data.resize(numDocs * packed.NumUi32PerDoc, 0);
@@ -300,7 +374,12 @@ TPackedData PackFeatures(const TQuantization& q, ui32 numDocs, ui32 numFeatures)
         ui32 posInWord = f % 4;
         ui32 shift = (3 - posInWord) * 8;
         ui32 mask = 0xFF << shift;
-        ui32 folds = q.Borders[f].size();
+
+        // For categorical features, folds = number of unique categories
+        // For numeric features, folds = number of borders
+        ui32 folds = ds.IsCategorical[f]
+            ? static_cast<ui32>(ds.CatHashMaps[f].size())
+            : static_cast<ui32>(q.Borders[f].size());
 
         TCFeature feat;
         feat.Offset = wordIdx;
@@ -308,7 +387,7 @@ TPackedData PackFeatures(const TQuantization& q, ui32 numDocs, ui32 numFeatures)
         feat.Shift = shift;
         feat.FirstFoldIndex = packed.TotalBinFeatures;
         feat.Folds = folds;
-        feat.OneHotFeature = false;
+        feat.OneHotFeature = ds.IsCategorical[f];
         feat.SkipFirstBinInScoreCount = false;
         packed.Features.push_back(feat);
         packed.TotalBinFeatures += folds;
@@ -495,12 +574,13 @@ TBestSplitProperties FindBestSplit(
     // The Metal histogram kernel produces per-bin sums with a +1 offset:
     //   hist[firstFold + b] = sum of docs where featureValue == b+1
     //
-    // For a split at threshold b (featureValue > b → right):
-    //   Left side = featureValue ∈ {0, 1, ..., b}
-    //   Right side = featureValue ∈ {b+1, b+2, ..., folds}
+    // For OneHot features: each bin represents one category.
+    //   Split "go right if value == bin": sumRight = hist[bin], sumLeft = total - sumRight
     //
-    // We compute sumRight as the suffix sum of hist[b..folds-1],
-    // and sumLeft = totalSum - sumRight.
+    // For ordinal features: suffix-sum to compute left/right.
+    //   Split threshold b (value > b → right):
+    //     sumRight = sum(hist[b..folds-1]) = docs with value ∈ {b+1,...,folds}
+    //     sumLeft = total - sumRight
 
     for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
         const auto& feat = features[featIdx];
@@ -512,17 +592,24 @@ TBestSplitProperties FindBestSplit(
                 for (ui32 k = 0; k < K; ++k) {
                     const float* histData = perDimHist[k].data() + p * 2 * totalBinFeatures;
 
-                    // Suffix sum: sum of hist[bin..folds-1] = sum(featureValue ∈ {bin+1,...,folds})
-                    // This is the RIGHT side for threshold = bin
-                    float sumRight = 0.0f;
-                    float weightRight = 0.0f;
-                    for (ui32 b = bin; b < feat.Folds; ++b) {
-                        sumRight += histData[feat.FirstFoldIndex + b];
-                        weightRight += histData[totalBinFeatures + feat.FirstFoldIndex + b];
-                    }
-
                     float totalSum = static_cast<float>(perDimPartStats[k][p].Sum);
                     float totalWeight = static_cast<float>(perDimPartStats[k][p].Weight);
+
+                    float sumRight, weightRight;
+                    if (feat.OneHotFeature) {
+                        // OneHot: hist[bin] = docs where featureValue == bin+1
+                        sumRight = histData[feat.FirstFoldIndex + bin];
+                        weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
+                    } else {
+                        // Ordinal: suffix sum over hist[bin..folds-1]
+                        sumRight = 0.0f;
+                        weightRight = 0.0f;
+                        for (ui32 b = bin; b < feat.Folds; ++b) {
+                            sumRight += histData[feat.FirstFoldIndex + b];
+                            weightRight += histData[totalBinFeatures + feat.FirstFoldIndex + b];
+                        }
+                    }
+
                     float sumLeft = totalSum - sumRight;
                     float weightLeft = totalWeight - weightRight;
 
@@ -575,8 +662,24 @@ int main(int argc, char** argv) {
     printf("==============================\n");
 
     // Load data
-    auto ds = LoadCSV(config.CsvPath, config.TargetCol);
+    auto ds = LoadCSV(config.CsvPath, config.TargetCol, config.CatFeatureCols);
     printf("Loaded: %u rows, %u features from %s\n", ds.NumDocs, ds.NumFeatures, config.CsvPath.c_str());
+
+    // Report categorical features
+    ui32 numCat = 0;
+    for (ui32 f = 0; f < ds.NumFeatures; ++f) if (ds.IsCategorical[f]) numCat++;
+    if (numCat > 0) {
+        printf("Categorical features: %u (", numCat);
+        bool first = true;
+        for (ui32 f = 0; f < ds.NumFeatures; ++f) {
+            if (ds.IsCategorical[f]) {
+                if (!first) printf(", ");
+                printf("f%u:%zu cats", f, ds.CatHashMaps[f].size());
+                first = false;
+            }
+        }
+        printf(")\n");
+    }
 
     // Detect or validate loss type
     std::string lossType = config.LossType;
@@ -601,7 +704,7 @@ int main(int argc, char** argv) {
     for (ui32 f = 0; f < ds.NumFeatures; ++f) totalBorders += quant.Borders[f].size();
     printf("Quantized: %u total borders across %u features\n", totalBorders, ds.NumFeatures);
     // Pack features
-    auto packed = PackFeatures(quant, ds.NumDocs, ds.NumFeatures);
+    auto packed = PackFeatures(quant, ds);
     printf("Packed: %u uint32 words per doc, %u total bin-features\n",
            packed.NumUi32PerDoc, packed.TotalBinFeatures);
 
@@ -741,6 +844,7 @@ int main(int argc, char** argv) {
             split.Shift = feat.Shift;
             split.Mask = feat.Mask >> feat.Shift;
             split.BinThreshold = bestSplit.BinId;
+            split.IsOneHot = feat.OneHotFeature;
             splits.push_back(split);
             splitProps.push_back(bestSplit);
 
@@ -752,7 +856,10 @@ int main(int argc, char** argv) {
             auto featureValues = mx::bitwise_and(
                 mx::right_shift(column, mx::array(static_cast<uint32_t>(split.Shift), mx::uint32)),
                 mx::array(static_cast<uint32_t>(split.Mask), mx::uint32));
-            auto goRight = mx::greater(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32));
+            // Compare: OneHot uses equality, ordinal uses greater-than
+            auto goRight = feat.OneHotFeature
+                ? mx::equal(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32))
+                : mx::greater(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32));
             auto bits = mx::left_shift(mx::astype(goRight, mx::uint32), mx::array(static_cast<uint32_t>(depth), mx::uint32));
             partitions = mx::bitwise_or(partitions, bits);
             mx::eval(partitions);

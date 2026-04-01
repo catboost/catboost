@@ -42,9 +42,15 @@ namespace NCatboostMlx {
                 mx::array(static_cast<int>(split.Mask))
             );
 
-            // Compare to threshold: value > threshold
-            auto goRight = mx::greater(featureValues,
-                mx::array(static_cast<int>(split.BinThreshold)));
+            // Compare to threshold: OneHot uses equality, ordinal uses greater-than
+            mx::array goRight;
+            if (split.IsOneHot) {
+                goRight = mx::equal(featureValues,
+                    mx::array(static_cast<int>(split.BinThreshold)));
+            } else {
+                goRight = mx::greater(featureValues,
+                    mx::array(static_cast<int>(split.BinThreshold)));
+            }
 
             // Cast bool to uint32 and shift to correct bit position
             auto bits = mx::astype(goRight, mx::uint32);

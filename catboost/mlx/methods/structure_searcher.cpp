@@ -154,6 +154,7 @@ namespace NCatboostMlx {
             split.Shift = feat.Shift;
             split.Mask = feat.Mask >> feat.Shift;
             split.BinThreshold = bestSplit.BinId;
+            split.IsOneHot = feat.OneHotFeature;
 
             result.Splits.push_back(split);
             result.SplitProperties.push_back(bestSplit);
@@ -175,8 +176,15 @@ namespace NCatboostMlx {
                     mx::array(static_cast<int>(split.Mask))
                 );
 
-                auto goRight = mx::greater(featureValues,
-                    mx::array(static_cast<int>(split.BinThreshold)));
+                // Compare: OneHot uses equality, ordinal uses greater-than
+                mx::array goRight;
+                if (feat.OneHotFeature) {
+                    goRight = mx::equal(featureValues,
+                        mx::array(static_cast<int>(split.BinThreshold)));
+                } else {
+                    goRight = mx::greater(featureValues,
+                        mx::array(static_cast<int>(split.BinThreshold)));
+                }
                 auto bits = mx::astype(goRight, mx::uint32);
                 bits = mx::left_shift(bits, mx::array(static_cast<int>(depth)));
 
