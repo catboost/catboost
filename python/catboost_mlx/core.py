@@ -1,7 +1,44 @@
-"""Core CatBoostMLX classes wrapping the csv_train/csv_predict CLI binaries."""
+"""
+core.py -- The heart of CatBoost-MLX: model classes that train, predict, and export.
+
+What this file does:
+    Imagine you want to teach a computer to predict things (like house prices
+    or whether an email is spam). This file has the "brain" classes that do that.
+    They don't do the heavy math themselves -- instead, they write your data to
+    CSV files, call fast C++ programs (csv_train and csv_predict) that run on
+    your Mac's GPU, then read back the results. Think of it like a translator
+    between Python and the GPU engine.
+
+How it fits into the project:
+    This is the main module. Imported by __init__.py and is the primary module
+    users interact with. It imports:
+    - pool.py (data container)
+    - _predict_utils.py (Python-side tree evaluation for staged predictions)
+    - _tree_utils.py (tree structure conversion for get_trees)
+    - export_coreml.py and export_onnx.py (model export)
+
+Key concepts:
+    - Gradient Boosted Decision Trees (GBDT): Build many small decision trees,
+      each one fixing the mistakes of the previous ones, until you have a
+      strong predictor.
+    - Oblivious trees: A special kind of decision tree where every node at the
+      same level uses the same split rule. Fast on GPUs.
+    - Loss function: Measures how wrong predictions are. Different tasks use
+      different loss functions (RMSE for regression, Logloss for classification).
+    - sklearn compatibility: Mimics scikit-learn's interface (fit/predict/score,
+      get_params/set_params) so it plugs into sklearn pipelines and cross-val.
+    - PTY (pseudo-terminal): A trick to capture real-time output from the C++
+      binary, which otherwise buffers everything when piped to a subprocess.
+
+Public API:
+    - CatBoostMLX: Base class with all functionality (27 hyperparameters).
+    - CatBoostMLXRegressor: Regression specialization (default loss='rmse').
+    - CatBoostMLXClassifier: Classification specialization (default loss='auto').
+"""
 
 import csv
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -12,7 +49,14 @@ from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
-# sklearn is an optional dependency
+from ._utils import _to_numpy
+
+logger = logging.getLogger(__name__)
+
+# ── sklearn optional dependency ──────────────────────────────────────────────
+# When sklearn IS installed, we use its real BaseEstimator/RegressorMixin/
+# ClassifierMixin. When it's NOT installed, we provide minimal fallbacks below
+# so the core classes still work without sklearn as a dependency.
 try:
     from sklearn.base import BaseEstimator, RegressorMixin, ClassifierMixin
     _HAS_SKLEARN = True
@@ -24,7 +68,12 @@ except ImportError:
 
         @classmethod
         def _get_param_names(cls):
-            """Get parameter names from __init__ signature."""
+            """Get parameter names from __init__ signature.
+
+            Walks the MRO (method resolution order) to find the first __init__
+            that doesn't use **kwargs, so we get the real parameter list from
+            the base class rather than a subclass that just passes through.
+            """
             import inspect
             for klass in cls.__mro__:
                 sig = inspect.signature(klass.__init__)
@@ -49,21 +98,29 @@ except ImportError:
             return self
 
     class RegressorMixin:
-        """Minimal fallback — provides score() using R²."""
+        """Minimal fallback -- provides score() returning R-squared (R²).
+
+        R² = 1 means perfect predictions; R² = 0 means no better than
+        predicting the mean; R² < 0 means worse than the mean.
+        """
         _estimator_type = "regressor"
 
         def score(self, X, y, sample_weight=None):
             """Return R² score on test data."""
             y_pred = self.predict(X)
             y_true = np.asarray(y, dtype=float)
-            ss_res = np.sum((y_true - y_pred) ** 2)
-            ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+            ss_res = np.sum((y_true - y_pred) ** 2)  # residual sum of squares
+            ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)  # total sum of squares
             if ss_tot == 0:
                 return 0.0
             return float(1.0 - ss_res / ss_tot)
 
     class ClassifierMixin:
-        """Minimal fallback — provides score() using accuracy."""
+        """Minimal fallback -- provides score() returning accuracy.
+
+        Accuracy = fraction of predictions that match the true labels.
+        Supports optional sample_weight for weighted accuracy.
+        """
         _estimator_type = "classifier"
 
         def score(self, X, y, sample_weight=None):
@@ -77,7 +134,16 @@ except ImportError:
 
 
 def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
-    """Locate a compiled binary (csv_train or csv_predict)."""
+    """Locate a compiled binary (csv_train or csv_predict).
+
+    Search order (first match wins):
+      1. User-specified binary_path (explicit override)
+      2. System PATH (e.g. /usr/local/bin)
+      3. Bundled in package: catboost_mlx/bin/ (built by build_binaries.py)
+      4. Current working directory
+      5. Package directory and parent directories
+    """
+    # Priority 1: Explicit path from user
     if binary_path:
         p = Path(binary_path)
         if p.is_dir():
@@ -88,23 +154,23 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
             return str(candidate)
         raise FileNotFoundError(f"Binary not found at {candidate}")
 
-    # Check PATH
+    # Priority 2: Check system PATH
     found = shutil.which(name)
     if found:
         return found
 
-    # Check bundled binaries in package
+    # Priority 3: Check bundled binaries in package (catboost_mlx/bin/)
     bin_dir = Path(__file__).parent / "bin"
     candidate = bin_dir / name
     if candidate.is_file():
         return str(candidate)
 
-    # Check current directory
+    # Priority 4: Check current working directory
     local = Path(name)
     if local.is_file():
         return str(local.resolve())
 
-    # Check package directory (if binaries are co-located)
+    # Priority 5: Check package directory and ancestors (for dev installs)
     pkg_dir = Path(__file__).parent
     for search_dir in [pkg_dir, pkg_dir.parent, pkg_dir.parent.parent]:
         candidate = search_dir / name
@@ -124,8 +190,17 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                    cat_features: Optional[List[int]] = None,
                    group_id: Optional[np.ndarray] = None,
                    sample_weight: Optional[np.ndarray] = None) -> tuple:
-    """Write numpy arrays to CSV. Returns (target_col_index, group_col_index, weight_col_index).
-    target_col is -1 if no y, group_col is -1 if no group_id, weight_col is -1 if no sample_weight."""
+    """Write numpy arrays to CSV for the C++ binaries.
+
+    The C++ binaries (csv_train / csv_predict) read CSV files as input.
+    This function converts numpy arrays into that CSV format.
+
+    Column layout (when training): [group_id?] [weight?] features... target
+    Column layout (when predicting): features...
+
+    Returns (target_col_index, group_col_index, weight_col_index).
+    Index is -1 if the column is absent.
+    """
     n_samples, n_features = X.shape
     if feature_names is None:
         feature_names = [f"f{i}" for i in range(n_features)]
@@ -155,12 +230,15 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                 if group_id is not None:
                     row.append(str(group_id[i]))
                 if sample_weight is not None:
+                    # 10 significant digits avoids precision loss while keeping files compact
                     row.append(f"{sample_weight[i]:.10g}")
                 for j in range(n_features):
                     val = X[i, j]
                     if cat_features and j in cat_features:
+                        # Categorical: write as string (e.g. "red"); empty for NaN
                         row.append(str(val) if not (isinstance(val, float) and np.isnan(val)) else "")
                     else:
+                        # Numeric: 10 significant digits; empty string for NaN
                         row.append(f"{val:.10g}" if not np.isnan(val) else "")
                 row.append(f"{y[i]:.10g}")
                 writer.writerow(row)
@@ -177,19 +255,6 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                         row.append(f"{val:.10g}" if not np.isnan(val) else "")
                 writer.writerow(row)
             return -1, -1, -1
-
-
-def _to_numpy(data) -> np.ndarray:
-    """Convert input data to numpy array, handling pandas DataFrames/Series."""
-    if isinstance(data, np.ndarray):
-        return data
-    try:
-        import pandas as pd
-        if isinstance(data, (pd.DataFrame, pd.Series)):
-            return data.values
-    except ImportError:
-        pass
-    return np.asarray(data)
 
 
 class CatBoostMLX(BaseEstimator):
@@ -328,8 +393,8 @@ class CatBoostMLX(BaseEstimator):
 
     def _validate_params(self) -> None:
         """Validate hyperparameters before training."""
-        if not isinstance(self.iterations, int) or self.iterations < 1:
-            raise ValueError(f"iterations must be an integer >= 1, got {self.iterations!r}")
+        if not isinstance(self.iterations, int) or not (1 <= self.iterations <= 100000):
+            raise ValueError(f"iterations must be an integer in [1, 100000], got {self.iterations!r}")
         if not isinstance(self.depth, int) or not (1 <= self.depth <= 16):
             raise ValueError(f"depth must be an integer in [1, 16], got {self.depth!r}")
         if not isinstance(self.learning_rate, (int, float)) or self.learning_rate <= 0:
@@ -374,6 +439,13 @@ class CatBoostMLX(BaseEstimator):
                     )
         if not isinstance(self.snapshot_interval, int) or self.snapshot_interval < 1:
             raise ValueError(f"snapshot_interval must be >= 1, got {self.snapshot_interval!r}")
+        # Sanitize paths that get passed to subprocess to prevent injection
+        if self.snapshot_path is not None:
+            if not isinstance(self.snapshot_path, str) or "\x00" in self.snapshot_path:
+                raise ValueError(f"snapshot_path must be a valid path string, got {self.snapshot_path!r}")
+        if self.binary_path is not None:
+            if not isinstance(self.binary_path, str) or "\x00" in self.binary_path:
+                raise ValueError(f"binary_path must be a valid path string, got {self.binary_path!r}")
         if self.auto_class_weights is not None:
             if self.auto_class_weights.lower() not in ("balanced", "sqrtbalanced"):
                 raise ValueError(
@@ -404,8 +476,16 @@ class CatBoostMLX(BaseEstimator):
             )
 
     def _build_train_args(self, csv_path: str, model_path: str, target_col: int,
-                          eval_file: Optional[str] = None) -> List[str]:
-        """Build CLI arguments for csv_train."""
+                          eval_file: Optional[str] = None,
+                          cv_folds: Optional[int] = None) -> List[str]:
+        """Build the command-line argument list for the csv_train binary.
+
+        Always includes --verbose and --feature-importance so we can parse
+        training progress and importance from stdout. Only includes non-default
+        values for optional parameters to keep the command short.
+
+        When cv_folds is set, adds --cv N instead of --output model_path.
+        """
         binary = _find_binary("csv_train", self.binary_path)
         args = [
             binary, csv_path,
@@ -418,12 +498,16 @@ class CatBoostMLX(BaseEstimator):
             "--target-col", str(target_col),
             "--seed", str(self.random_seed),
             "--nan-mode", self.nan_mode,
-            "--output", model_path,
-            "--feature-importance",
-            "--verbose",
         ]
+        if cv_folds is not None:
+            args.extend(["--cv", str(cv_folds)])
+        else:
+            args.extend(["--output", model_path])
+        args.extend(["--feature-importance", "--verbose"])
+        # Categorical features
         if self.cat_features:
             args.extend(["--cat-features", ",".join(str(c) for c in self.cat_features)])
+        # Validation data: eval_file (external) takes priority over eval_fraction (auto-split)
         if eval_file is not None:
             args.extend(["--eval-file", eval_file])
         elif self.eval_fraction > 0:
@@ -434,10 +518,12 @@ class CatBoostMLX(BaseEstimator):
             args.extend(["--subsample", str(self.subsample)])
         if self.colsample_bytree < 1.0:
             args.extend(["--colsample-bytree", str(self.colsample_bytree)])
+        # CTR (target encoding) configuration
         if self.ctr:
             args.append("--ctr")
             args.extend(["--ctr-prior", str(self.ctr_prior)])
             args.extend(["--max-onehot-size", str(self.max_onehot_size)])
+        # Bootstrap configuration (only sent if non-default)
         if self.bootstrap_type != "no":
             args.extend(["--bootstrap-type", self.bootstrap_type])
             if self.bootstrap_type == "bayesian":
@@ -459,9 +545,11 @@ class CatBoostMLX(BaseEstimator):
     def _run_train_subprocess(self, args: List[str]) -> str:
         """Run csv_train with real-time stdout streaming when verbose=True.
 
-        Uses pty to force line-buffered stdout from the C++ binary (which
-        uses fully-buffered printf when piped). Falls back to subprocess.run
-        if pty is unavailable.
+        Why PTY? The C++ binary uses printf(), which is fully-buffered when
+        its stdout is a pipe (i.e. subprocess). This means you'd see nothing
+        until training finishes. A PTY (pseudo-terminal) tricks the binary
+        into thinking it's writing to a real terminal, forcing line-buffered
+        output so we can print progress in real time.
         """
         if self.verbose:
             try:
@@ -486,14 +574,17 @@ class CatBoostMLX(BaseEstimator):
         import pty
         import select
 
+        # Create a pseudo-terminal pair: child writes to slave, we read from master
         master_fd, slave_fd = pty.openpty()
+        # Launch the C++ binary with its stdout connected to the PTY slave
         proc = subprocess.Popen(args, stdout=slave_fd, stderr=subprocess.PIPE)
-        os.close(slave_fd)
+        os.close(slave_fd)  # parent doesn't need the slave side
 
         stdout_lines = []
         buf = b""
         try:
             while True:
+                # Poll the master fd with 100ms timeout (avoids busy-waiting)
                 r, _, _ = select.select([master_fd], [], [], 0.1)
                 if r:
                     try:
@@ -502,18 +593,21 @@ class CatBoostMLX(BaseEstimator):
                         break
                     if not chunk:
                         break
+                    # Accumulate bytes and split on newlines for clean output
                     buf += chunk
                     while b"\n" in buf:
                         line, buf = buf.split(b"\n", 1)
                         text = line.decode("utf-8", errors="replace").rstrip("\r")
                         stdout_lines.append(text)
+                        logger.debug(text)
                         print(text, flush=True)
                 elif proc.poll() is not None:
-                    # Process done, drain remaining buffer
+                    # Process exited -- drain any remaining buffered output
                     if buf:
                         text = buf.decode("utf-8", errors="replace").rstrip("\r\n")
                         if text:
                             stdout_lines.append(text)
+                            logger.debug(text)
                             print(text, flush=True)
                     break
         finally:
@@ -531,7 +625,12 @@ class CatBoostMLX(BaseEstimator):
         return "\n".join(stdout_lines)
 
     def _parse_train_output(self, stdout: str) -> None:
-        """Parse csv_train stdout for loss history and feature importance."""
+        """Parse csv_train stdout for loss history and feature importance.
+
+        The C++ binary prints structured lines we can regex-match:
+        - Iteration lines: 'iter=0  trees=1  depth=6  loss=0.123 [val_loss=0.456]'
+        - Feature importance: '  1     feature_name        45.23   52.3%'
+        """
         self._train_loss_history = []
         self._eval_loss_history = []
         self._feature_importance = {}
@@ -578,7 +677,7 @@ class CatBoostMLX(BaseEstimator):
         """
         from .pool import Pool, _is_dataframe, _resolve_cat_features
 
-        # Unpack Pool if provided
+        # ── Phase 1: Unpack input (Pool object or raw arrays) ──
         if isinstance(X_or_pool, Pool):
             pool = X_or_pool
             X = pool.X
@@ -598,6 +697,7 @@ class CatBoostMLX(BaseEstimator):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
+        # ── Phase 2: Resolve categorical features ──
         # Resolve string cat_features to indices
         if self.cat_features and any(isinstance(c, str) for c in self.cat_features):
             self.cat_features = _resolve_cat_features(self.cat_features, feature_names)
@@ -610,11 +710,12 @@ class CatBoostMLX(BaseEstimator):
         gid = np.asarray(group_id) if group_id is not None else None
         sw = np.asarray(sample_weight, dtype=float) if sample_weight is not None else None
 
-        # Validate parameters and inputs
+        # ── Phase 3: Validation ──
         self._validate_params()
         self._validate_fit_inputs(X, y, sw, gid, feature_names)
 
-        # Auto class weights: compute balanced sample weights from class distribution
+        # ── Phase 4: Auto class weights ──
+        # Compute balanced sample weights from class distribution if requested
         if self.auto_class_weights and sw is None:
             classes, counts = np.unique(y, return_counts=True)
             n_samples = len(y)
@@ -627,63 +728,80 @@ class CatBoostMLX(BaseEstimator):
                     class_weight[cls] = np.sqrt(n_samples / (n_classes * cnt))
             sw = np.array([class_weight[yi] for yi in y], dtype=float)
 
-        # sklearn-required attributes
+        # ── Phase 5: Set sklearn-required attributes and write training CSV ──
         self.n_features_in_ = X.shape[1]
         self.n_outputs_ = 1
         names = feature_names or [f"f{i}" for i in range(X.shape[1])]
         self.feature_names_in_ = np.array(names, dtype=object)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_")
-        csv_path = os.path.join(tmpdir, "train.csv")
-        model_path = os.path.join(tmpdir, "model.json")
+        try:
+            csv_path = os.path.join(tmpdir, "train.csv")
+            model_path = os.path.join(tmpdir, "model.json")
 
-        target_col, group_col_idx, weight_col_idx = _array_to_csv(
-            csv_path, X, y, feature_names, self.cat_features, group_id=gid,
-            sample_weight=sw
-        )
+            target_col, group_col_idx, weight_col_idx = _array_to_csv(
+                csv_path, X, y, feature_names, self.cat_features, group_id=gid,
+                sample_weight=sw
+            )
 
-        # Handle eval_set: write validation data to separate CSV
-        eval_file_path = None
-        if eval_set is not None:
-            if not (isinstance(eval_set, (tuple, list)) and len(eval_set) == 2):
-                raise ValueError("eval_set must be a tuple of (X_val, y_val)")
-            if self.eval_fraction > 0:
-                raise ValueError(
-                    "eval_set and eval_fraction are mutually exclusive"
-                )
-            X_val = _to_numpy(eval_set[0])
-            y_val = _to_numpy(eval_set[1])
-            if X_val.ndim == 1:
-                X_val = X_val.reshape(-1, 1)
-            if X_val.shape[1] != X.shape[1]:
-                raise ValueError(
-                    f"eval_set X has {X_val.shape[1]} features, "
-                    f"training X has {X.shape[1]} features"
-                )
-            eval_file_path = os.path.join(tmpdir, "eval.csv")
-            _array_to_csv(eval_file_path, X_val, y_val, feature_names,
-                          self.cat_features)
+            # ── Phase 6: Handle eval_set (external validation data) ──
+            eval_file_path = None
+            if eval_set is not None:
+                if not (isinstance(eval_set, (tuple, list)) and len(eval_set) == 2):
+                    raise ValueError("eval_set must be a tuple of (X_val, y_val)")
+                if self.eval_fraction > 0:
+                    raise ValueError(
+                        "eval_set and eval_fraction are mutually exclusive"
+                    )
+                # Warn if eval_set DataFrame columns don't match training names
+                if feature_names and hasattr(eval_set[0], "columns"):
+                    eval_cols = list(eval_set[0].columns)
+                    if eval_cols != feature_names:
+                        import warnings
+                        warnings.warn(
+                            f"eval_set feature names {eval_cols} differ from "
+                            f"training feature names {feature_names}. "
+                            "Column order will follow training names.",
+                            UserWarning,
+                            stacklevel=2,
+                        )
+                X_val = _to_numpy(eval_set[0])
+                y_val = _to_numpy(eval_set[1])
+                if X_val.ndim == 1:
+                    X_val = X_val.reshape(-1, 1)
+                if X_val.shape[1] != X.shape[1]:
+                    raise ValueError(
+                        f"eval_set X has {X_val.shape[1]} features, "
+                        f"training X has {X.shape[1]} features"
+                    )
+                eval_file_path = os.path.join(tmpdir, "eval.csv")
+                _array_to_csv(eval_file_path, X_val, y_val, feature_names,
+                              self.cat_features)
 
-        # Temporarily override group_col and weight_col if provided
-        orig_group_col = self.group_col
-        if gid is not None and self.group_col < 0:
-            self.group_col = group_col_idx
-        args = self._build_train_args(csv_path, model_path, target_col,
-                                      eval_file=eval_file_path)
-        self.group_col = orig_group_col
+            # ── Phase 7: Build CLI command and run the C++ training binary ──
+            # Temporarily override group_col and weight_col if provided
+            orig_group_col = self.group_col
+            if gid is not None and self.group_col < 0:
+                self.group_col = group_col_idx
+            args = self._build_train_args(csv_path, model_path, target_col,
+                                          eval_file=eval_file_path)
+            self.group_col = orig_group_col
 
-        # Add weight-col if sample_weight was provided
-        if weight_col_idx >= 0:
-            args.extend(["--weight-col", str(weight_col_idx)])
+            # Add weight-col if sample_weight was provided
+            if weight_col_idx >= 0:
+                args.extend(["--weight-col", str(weight_col_idx)])
 
-        stdout_text = self._run_train_subprocess(args)
-        self._parse_train_output(stdout_text)
+            # ── Phase 8: Parse output and load the trained model ──
+            stdout_text = self._run_train_subprocess(args)
+            self._parse_train_output(stdout_text)
 
-        # Load model JSON
-        with open(model_path, "r") as f:
-            self._model_data = json.load(f)
-        self._model_path = model_path
-        self._is_fitted = True
+            # Load model JSON before cleanup — tmpdir is about to be deleted
+            with open(model_path, "r") as f:
+                self._model_data = json.load(f)
+            self._model_path = None
+            self._is_fitted = True
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
         return self
 
@@ -709,6 +827,14 @@ class CatBoostMLX(BaseEstimator):
                 stacklevel=3,
             )
 
+    def _unpack_predict_input(self, X, feature_names=None):
+        """Unpack predict input, handling Pool objects transparently."""
+        from .pool import Pool
+        if isinstance(X, Pool):
+            feature_names = feature_names or X.feature_names
+            X = X.X
+        return X, feature_names
+
     def predict(self, X, feature_names: Optional[List[str]] = None) -> np.ndarray:
         """Predict raw values / class labels.
 
@@ -719,6 +845,7 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        X, feature_names = self._unpack_predict_input(X, feature_names)
         self._validate_feature_names(X)
         output = self._run_predict(X, feature_names)
         loss_type = self._get_loss_type()
@@ -739,6 +866,7 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        X, feature_names = self._unpack_predict_input(X, feature_names)
         self._validate_feature_names(X)
 
         output = self._run_predict(X, feature_names)
@@ -776,6 +904,8 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        X, feature_names = self._unpack_predict_input(X, feature_names)
+
         from ._predict_utils import quantize_features, compute_leaf_indices, apply_link
 
         X = _to_numpy(X)
@@ -793,6 +923,8 @@ class CatBoostMLX(BaseEstimator):
 
         binned = quantize_features(X, features, self.cat_features)
 
+        # Initialize a running sum (cursor) that accumulates leaf values tree
+        # by tree. This mimics what the C++ binary does during training.
         if approx_dim == 1:
             cursor = np.zeros(n_samples, dtype=float)
         else:
@@ -807,6 +939,8 @@ class CatBoostMLX(BaseEstimator):
             else:
                 cursor += leaf_vals.reshape(-1, approx_dim)[leaf_idx]
 
+            # Yield predictions at regular intervals (eval_period=10 means
+            # yield after trees 10, 20, 30, ... plus always the final tree)
             if (t + 1) % eval_period == 0 or t == n_trees - 1:
                 result = apply_link(cursor.copy(), loss_type, num_classes)
                 if loss_type in ("logloss", "multiclass"):
@@ -832,6 +966,8 @@ class CatBoostMLX(BaseEstimator):
         """
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
+
+        X, feature_names = self._unpack_predict_input(X, feature_names)
 
         loss_type = self._get_loss_type()
         if loss_type not in ("logloss", "multiclass"):
@@ -895,6 +1031,8 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        X, feature_names = self._unpack_predict_input(X, feature_names)
+
         from ._predict_utils import quantize_features, compute_leaf_indices
 
         X = _to_numpy(X)
@@ -913,44 +1051,51 @@ class CatBoostMLX(BaseEstimator):
         return result
 
     def _run_predict(self, X, feature_names: Optional[List[str]] = None) -> Dict[str, np.ndarray]:
-        """Run csv_predict and parse its output CSV."""
+        """Run csv_predict and parse its output CSV.
+
+        Prediction uses the C++ binary via subprocess. We write the model and
+        data to temp files, run csv_predict, and parse the output CSV.
+        """
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_pred_")
-        csv_path = os.path.join(tmpdir, "data.csv")
-        out_path = os.path.join(tmpdir, "predictions.csv")
-        model_path = os.path.join(tmpdir, "model.json")
+        try:
+            csv_path = os.path.join(tmpdir, "data.csv")
+            out_path = os.path.join(tmpdir, "predictions.csv")
+            model_path = os.path.join(tmpdir, "model.json")
 
-        # Write model JSON
-        with open(model_path, "w") as f:
-            json.dump(self._model_data, f)
+            # Write model JSON
+            with open(model_path, "w") as f:
+                json.dump(self._model_data, f)
 
-        _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
+            _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
 
-        binary = _find_binary("csv_predict", self.binary_path)
-        args = [binary, model_path, csv_path, "--output", out_path]
+            binary = _find_binary("csv_predict", self.binary_path)
+            args = [binary, model_path, csv_path, "--output", out_path]
 
-        result = subprocess.run(args, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"csv_predict failed (exit code {result.returncode}):\n"
-                f"stdout: {result.stdout}\n"
-                f"stderr: {result.stderr}"
-            )
+            result = subprocess.run(args, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"csv_predict failed (exit code {result.returncode}):\n"
+                    f"stdout: {result.stdout}\n"
+                    f"stderr: {result.stderr}"
+                )
 
-        # Parse output CSV
-        columns: Dict[str, List[float]] = {}
-        with open(out_path, "r") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                for key, val in row.items():
-                    if key not in columns:
-                        columns[key] = []
-                    columns[key].append(float(val))
+            # Parse output CSV
+            columns: Dict[str, List[float]] = {}
+            with open(out_path, "r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    for key, val in row.items():
+                        if key not in columns:
+                            columns[key] = []
+                        columns[key].append(float(val))
 
-        return {k: np.array(v) for k, v in columns.items()}
+            return {k: np.array(v) for k, v in columns.items()}
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
     def save_model(self, path: str) -> None:
         """Save the trained model to a JSON file."""
@@ -986,6 +1131,26 @@ class CatBoostMLX(BaseEstimator):
         self._model_path = path
         self._is_fitted = True
         return self
+
+    @classmethod
+    def load(cls, path: str, binary_path: Optional[str] = None) -> "CatBoostMLX":
+        """Load a model from a JSON file, returning a new instance.
+
+        Parameters
+        ----------
+        path : str
+            Path to the model JSON file.
+        binary_path : str, optional
+            Path to directory containing csv_train/csv_predict binaries.
+
+        Returns
+        -------
+        CatBoostMLX
+            A new fitted model instance.
+        """
+        instance = cls(binary_path=binary_path)
+        instance.load_model(path)
+        return instance
 
     def get_feature_importance(self) -> Dict[str, float]:
         """Return gain-based feature importance as {name: gain_value}."""
@@ -1100,90 +1265,95 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        X, feature_names = self._unpack_predict_input(X, feature_names)
+
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_shap_")
-        csv_path = os.path.join(tmpdir, "data.csv")
-        out_path = os.path.join(tmpdir, "predictions.csv")
-        model_path = os.path.join(tmpdir, "model.json")
+        try:
+            csv_path = os.path.join(tmpdir, "data.csv")
+            out_path = os.path.join(tmpdir, "predictions.csv")
+            model_path = os.path.join(tmpdir, "model.json")
 
-        with open(model_path, "w") as f:
-            json.dump(self._model_data, f)
+            with open(model_path, "w") as f:
+                json.dump(self._model_data, f)
 
-        _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
+            _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
 
-        binary = _find_binary("csv_predict", self.binary_path)
-        args = [binary, model_path, csv_path, "--output", out_path, "--shap"]
+            binary = _find_binary("csv_predict", self.binary_path)
+            args = [binary, model_path, csv_path, "--output", out_path, "--shap"]
 
-        result = subprocess.run(args, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"csv_predict --shap failed (exit code {result.returncode}):\n"
-                f"stdout: {result.stdout}\n"
-                f"stderr: {result.stderr}"
-            )
+            result = subprocess.run(args, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"csv_predict --shap failed (exit code {result.returncode}):\n"
+                    f"stdout: {result.stdout}\n"
+                    f"stderr: {result.stderr}"
+                )
 
-        # Parse the SHAP output CSV (_shap.csv)
-        shap_path = out_path.replace(".csv", "_shap.csv")
-        columns: Dict[str, List[float]] = {}
-        with open(shap_path, "r") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                for key, val in row.items():
-                    if key not in columns:
-                        columns[key] = []
-                    columns[key].append(float(val))
+            # Parse the SHAP output CSV (_shap.csv)
+            shap_path = out_path.replace(".csv", "_shap.csv")
+            columns: Dict[str, List[float]] = {}
+            with open(shap_path, "r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    for key, val in row.items():
+                        if key not in columns:
+                            columns[key] = []
+                        columns[key].append(float(val))
 
-        # Separate SHAP columns from metadata
-        # Check for multiclass format: feature_shap_classN
-        multiclass_cols = [k for k in columns if re.search(r'_shap_class\d+$', k)]
+            # Separate SHAP columns from metadata
+            # Check for multiclass format: feature_shap_classN
+            multiclass_cols = [k for k in columns if re.search(r'_shap_class\d+$', k)]
 
-        if multiclass_cols:
-            # Multiclass: columns like feat_shap_class0, feat_shap_class1, ...
-            # Group by feature name and approx dimension
-            feat_dim_map: Dict[str, Dict[int, str]] = {}
-            for col in multiclass_cols:
-                m = re.match(r'(.+)_shap_class(\d+)$', col)
-                if m:
-                    feat_name = m.group(1)
-                    dim_idx = int(m.group(2))
-                    if feat_name not in feat_dim_map:
-                        feat_dim_map[feat_name] = {}
-                    feat_dim_map[feat_name][dim_idx] = col
+            if multiclass_cols:
+                # Multiclass: columns like feat_shap_class0, feat_shap_class1, ...
+                # Group by feature name and approx dimension
+                feat_dim_map: Dict[str, Dict[int, str]] = {}
+                for col in multiclass_cols:
+                    m = re.match(r'(.+)_shap_class(\d+)$', col)
+                    if m:
+                        feat_name = m.group(1)
+                        dim_idx = int(m.group(2))
+                        if feat_name not in feat_dim_map:
+                            feat_dim_map[feat_name] = {}
+                        feat_dim_map[feat_name][dim_idx] = col
 
-            feat_names = list(feat_dim_map.keys())
-            n_dims = max(max(dims.keys()) for dims in feat_dim_map.values()) + 1
-            n_samples = len(next(iter(columns.values())))
+                feat_names = list(feat_dim_map.keys())
+                n_dims = max(max(dims.keys()) for dims in feat_dim_map.values()) + 1
+                n_samples = len(next(iter(columns.values())))
 
-            shap_3d = np.zeros((n_samples, len(feat_names), n_dims))
-            for fi, fname in enumerate(feat_names):
-                for k in range(n_dims):
-                    col_key = feat_dim_map[fname].get(k)
-                    if col_key and col_key in columns:
-                        shap_3d[:, fi, k] = np.array(columns[col_key])
+                shap_3d = np.zeros((n_samples, len(feat_names), n_dims))
+                for fi, fname in enumerate(feat_names):
+                    for k in range(n_dims):
+                        col_key = feat_dim_map[fname].get(k)
+                        if col_key and col_key in columns:
+                            shap_3d[:, fi, k] = np.array(columns[col_key])
 
-            # Expected value is per-dimension
-            ev = np.array([columns.get(f"expected_value_class{k}", [0.0])[0] for k in range(n_dims)])
+                # Expected value is per-dimension
+                ev = np.array([columns.get(f"expected_value_class{k}", [0.0])[0] for k in range(n_dims)])
 
-            return {
-                "shap_values": shap_3d,
-                "expected_value": ev,
-                "feature_names": feat_names,
-            }
-        else:
-            # Single-output: columns like feat_shap
-            shap_cols = [k for k in columns if k.endswith("_shap")]
-            expected_value = columns.get("expected_value", [0.0])[0]
-            feat_names = [k.replace("_shap", "") for k in shap_cols]
-            shap_matrix = np.column_stack([np.array(columns[c]) for c in shap_cols])
+                return {
+                    "shap_values": shap_3d,
+                    "expected_value": ev,
+                    "feature_names": feat_names,
+                }
+            else:
+                # Single-output: columns like feat_shap
+                shap_cols = [k for k in columns if k.endswith("_shap")]
+                expected_value = columns.get("expected_value", [0.0])[0]
+                feat_names = [k.replace("_shap", "") for k in shap_cols]
+                shap_matrix = np.column_stack([np.array(columns[c]) for c in shap_cols])
 
-            return {
-                "shap_values": shap_matrix,
-                "expected_value": expected_value,
-                "feature_names": feat_names,
-            }
+                return {
+                    "shap_values": shap_matrix,
+                    "expected_value": expected_value,
+                    "feature_names": feat_names,
+                }
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
     def cross_validate(
         self,
@@ -1207,69 +1377,50 @@ class CatBoostMLX(BaseEstimator):
             X = X.reshape(-1, 1)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_cv_")
-        csv_path = os.path.join(tmpdir, "data.csv")
-        target_col, _, _ = _array_to_csv(csv_path, X, y, feature_names, self.cat_features)
+        try:
+            csv_path = os.path.join(tmpdir, "data.csv")
+            target_col, _, _ = _array_to_csv(csv_path, X, y, feature_names, self.cat_features)
 
-        binary = _find_binary("csv_train", self.binary_path)
-        args = [
-            binary, csv_path,
-            "--iterations", str(self.iterations),
-            "--depth", str(self.depth),
-            "--lr", str(self.learning_rate),
-            "--l2", str(self.l2_reg_lambda),
-            "--loss", self.loss,
-            "--bins", str(self.bins),
-            "--target-col", str(target_col),
-            "--seed", str(self.random_seed),
-            "--nan-mode", self.nan_mode,
-            "--cv", str(n_folds),
-        ]
-        if self.cat_features:
-            args.extend(["--cat-features", ",".join(str(c) for c in self.cat_features)])
-        if self.subsample < 1.0:
-            args.extend(["--subsample", str(self.subsample)])
-        if self.colsample_bytree < 1.0:
-            args.extend(["--colsample-bytree", str(self.colsample_bytree)])
-        if self.ctr:
-            args.append("--ctr")
-            args.extend(["--ctr-prior", str(self.ctr_prior)])
-            args.extend(["--max-onehot-size", str(self.max_onehot_size)])
+            args = self._build_train_args(csv_path, "", target_col,
+                                          cv_folds=n_folds)
 
-        result = subprocess.run(args, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"csv_train CV failed (exit code {result.returncode}):\n"
-                f"stdout: {result.stdout}\n"
-                f"stderr: {result.stderr}"
-            )
+            result = subprocess.run(args, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"csv_train CV failed (exit code {result.returncode}):\n"
+                    f"stdout: {result.stdout}\n"
+                    f"stderr: {result.stderr}"
+                )
 
-        if self.verbose:
-            print(result.stdout)
+            if self.verbose:
+                logger.info(result.stdout)
 
-        # Parse CV output
-        fold_metrics = []
-        mean_val = None
-        std_val = None
-        for line in result.stdout.split("\n"):
-            # "Fold 1/5: RMSE=1.234"
-            m = re.search(r"Fold\s+\d+/\d+:\s+\w+=([\-\d.]+)", line)
-            if m:
-                fold_metrics.append(float(m.group(1)))
-            # "CV result: RMSE = 1.234 +/- 0.123"
-            m = re.search(r"CV result:.*?=\s*([\-\d.]+)\s*\+/-\s*([\-\d.]+)", line)
-            if m:
-                mean_val = float(m.group(1))
-                std_val = float(m.group(2))
+            # Parse CV output
+            fold_metrics = []
+            mean_val = None
+            std_val = None
+            for line in result.stdout.split("\n"):
+                # "Fold 1/5: RMSE=1.234"
+                m = re.search(r"Fold\s+\d+/\d+:\s+\w+=([\-\d.]+)", line)
+                if m:
+                    fold_metrics.append(float(m.group(1)))
+                # "CV result: RMSE = 1.234 +/- 0.123"
+                m = re.search(r"CV result:.*?=\s*([\-\d.]+)\s*\+/-\s*([\-\d.]+)", line)
+                if m:
+                    mean_val = float(m.group(1))
+                    std_val = float(m.group(2))
 
-        if mean_val is None and fold_metrics:
-            mean_val = np.mean(fold_metrics)
-            std_val = np.std(fold_metrics)
+            if mean_val is None and fold_metrics:
+                mean_val = np.mean(fold_metrics)
+                std_val = np.std(fold_metrics)
 
-        return {
-            "fold_metrics": fold_metrics,
-            "mean": mean_val if mean_val is not None else 0.0,
-            "std": std_val if std_val is not None else 0.0,
-        }
+            return {
+                "fold_metrics": fold_metrics,
+                "mean": mean_val if mean_val is not None else 0.0,
+                "std": std_val if std_val is not None else 0.0,
+            }
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
     @property
     def train_loss_history(self) -> List[float]:
@@ -1288,6 +1439,22 @@ class CatBoostMLX(BaseEstimator):
             f"depth={self.depth}, lr={self.learning_rate}, [{status}])"
         )
 
+    def __getstate__(self):
+        """Return state for pickling. Excludes _model_path (temp file reference)."""
+        state = self.__dict__.copy()
+        state.pop("_model_path", None)
+        return state
+
+    def __setstate__(self, state):
+        """Restore state from pickle."""
+        self.__dict__.update(state)
+        self._model_path = None
+
+
+# ── Subclasses ───────────────────────────────────────────────────────────────
+# These override the default loss and add sklearn mixin behavior. They delegate
+# all parameter handling to CatBoostMLX to avoid parameter duplication issues
+# with sklearn's clone() and get_params().
 
 class CatBoostMLXRegressor(RegressorMixin, CatBoostMLX):
     """CatBoostMLX with default loss='rmse' for regression tasks."""
@@ -1299,7 +1466,12 @@ class CatBoostMLXRegressor(RegressorMixin, CatBoostMLX):
 
     @classmethod
     def _get_param_names(cls):
-        """Return parameter names from CatBoostMLX.__init__ (not subclass)."""
+        """Return parameter names from CatBoostMLX.__init__ (not subclass).
+
+        Without this override, sklearn would inspect CatBoostMLXRegressor.__init__
+        and only see 'loss' (since the rest are in **kwargs). By delegating to
+        CatBoostMLX, sklearn sees all 27 parameters for clone/get_params/set_params.
+        """
         return CatBoostMLX._get_param_names()
 
     def get_params(self, deep=True):

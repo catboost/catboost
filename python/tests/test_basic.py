@@ -1,4 +1,32 @@
-"""Test suite for catboost_mlx Python bindings."""
+"""
+test_basic.py -- Comprehensive test suite for the CatBoost-MLX Python package.
+
+What this file does:
+    This is the quality checker. It creates small synthetic datasets, trains
+    models with various settings, and verifies everything works: predictions
+    are reasonable, errors are raised when expected, saved models load correctly,
+    exports produce valid files, sklearn integration works, etc.
+
+How it fits into the project:
+    Standalone test file. Run with ``pytest python/tests/``. Imports catboost_mlx
+    and expects compiled binaries (csv_train, csv_predict) at the repo root.
+    Tests that need binaries are automatically skipped if binaries are missing.
+
+Key concepts:
+    - pytest: Python's standard test framework. Each ``test_*`` method is a test.
+    - setup_method: Called before each test to create fresh data, preventing
+      tests from interfering with each other.
+    - _check_binaries(): Skips tests if C++ binaries are not compiled yet.
+      This lets pure-Python tests (Pool, validation) run without binaries.
+
+Test classes (26 total, 111 tests):
+    TestRegression, TestBinaryClassification, TestMulticlass, TestSaveLoad,
+    TestCrossValidation, TestMisc, TestNewLosses, TestShap, TestBootstrap,
+    TestRanking, TestSampleWeights, TestMinDataInLeaf, TestMonotoneConstraints,
+    TestSnapshot, TestSklearn, TestValidation, TestEvalSet, TestExport,
+    TestPool, TestAutoClassWeights, TestModelInspection, TestCTR,
+    TestFeatureImportancesArray, TestVerbose, TestStagedPredict, TestApply
+"""
 
 import json
 import os
@@ -7,7 +35,8 @@ import tempfile
 import numpy as np
 import pytest
 
-# Adjust path so tests can find compiled binaries in repo root
+# REPO_ROOT: Go two directories up from this file (tests/ -> python/ -> repo root)
+# to find the compiled binaries (csv_train, csv_predict) at the repo root.
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT  # csv_train / csv_predict expected at repo root
 
@@ -16,7 +45,12 @@ from catboost_mlx import Pool
 
 
 def _check_binaries():
-    """Skip tests if compiled binaries are not available."""
+    """Skip the entire test if C++ binaries are not compiled.
+
+    This allows pure-Python tests (Pool, validation, etc.) to run even
+    without the compiled binaries. Tests that need actual training call
+    this at the start of their setup_method.
+    """
     csv_train = os.path.join(BINARY_PATH, "csv_train")
     csv_predict = os.path.join(BINARY_PATH, "csv_predict")
     if not (os.path.isfile(csv_train) and os.path.isfile(csv_predict)):
@@ -1514,3 +1548,133 @@ class TestApply:
         model = CatBoostMLXRegressor(binary_path=BINARY_PATH)
         with pytest.raises(RuntimeError, match="not fitted"):
             model.apply(self.X)
+
+
+# ── Edge Cases and Robustness ────────────────────────────────────────────────
+
+class TestEdgeCases:
+    """Tests for validation edge cases, temp file cleanup, and roundtrip fidelity."""
+
+    def _dummy_data(self):
+        return np.zeros((5, 2)), np.zeros(5)
+
+    def test_iterations_upper_bound(self):
+        X, y = self._dummy_data()
+        with pytest.raises(ValueError, match="iterations"):
+            CatBoostMLX(iterations=200000).fit(X, y)
+
+    def test_snapshot_path_null_byte(self):
+        X, y = self._dummy_data()
+        with pytest.raises(ValueError, match="snapshot_path"):
+            CatBoostMLX(iterations=1, snapshot_path="/tmp/foo\x00bar").fit(X, y)
+
+    def test_binary_path_null_byte(self):
+        X, y = self._dummy_data()
+        with pytest.raises(ValueError, match="binary_path"):
+            CatBoostMLX(iterations=1, binary_path="/tmp/\x00inject").fit(X, y)
+
+    def test_temp_files_cleaned_after_fit(self):
+        _check_binaries()
+        import glob
+        rng = np.random.RandomState(42)
+        X = rng.rand(20, 3)
+        y = X[:, 0] + rng.normal(0, 0.1, 20)
+        # Count catboost_mlx temp dirs before
+        before = set(glob.glob(os.path.join(tempfile.gettempdir(), "catboost_mlx_*")))
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        model.predict(X)
+        after = set(glob.glob(os.path.join(tempfile.gettempdir(), "catboost_mlx_*")))
+        # No new temp dirs should remain
+        new_dirs = after - before
+        assert len(new_dirs) == 0, f"Leaked temp dirs: {new_dirs}"
+
+    def test_temp_files_cleaned_on_error(self):
+        import glob
+        before = set(glob.glob(os.path.join(tempfile.gettempdir(), "catboost_mlx_*")))
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, binary_path="/nonexistent/path"
+        )
+        rng = np.random.RandomState(42)
+        X = rng.rand(10, 2)
+        y = rng.rand(10)
+        try:
+            model.fit(X, y)
+        except Exception:
+            pass
+        after = set(glob.glob(os.path.join(tempfile.gettempdir(), "catboost_mlx_*")))
+        new_dirs = after - before
+        assert len(new_dirs) == 0, f"Leaked temp dirs on error: {new_dirs}"
+
+    def test_save_load_roundtrip_regression(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(30, 3)
+        y = X[:, 0] * 10 + rng.normal(0, 0.1, 30)
+        model = CatBoostMLXRegressor(
+            iterations=10, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        pred_before = model.predict(X)
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            model.save_model(path)
+            model2 = CatBoostMLXRegressor(binary_path=BINARY_PATH)
+            model2.load_model(path)
+            pred_after = model2.predict(X)
+            np.testing.assert_allclose(pred_before, pred_after, atol=1e-6)
+        finally:
+            os.unlink(path)
+
+    def test_save_load_roundtrip_classifier(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = (X[:, 0] + X[:, 1] > 1).astype(float)
+        model = CatBoostMLXClassifier(
+            iterations=10, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        pred_before = model.predict(X)
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            model.save_model(path)
+            model2 = CatBoostMLXClassifier(binary_path=BINARY_PATH)
+            model2.load_model(path)
+            pred_after = model2.predict(X)
+            np.testing.assert_array_equal(pred_before, pred_after)
+        finally:
+            os.unlink(path)
+
+    def test_pool_sorted_cat_features(self):
+        """Pool auto-detected cat_features should be sorted by index."""
+        try:
+            import pandas as pd
+        except ImportError:
+            pytest.skip("pandas not installed")
+        # Create DataFrame where categorical columns are NOT in column order
+        df = pd.DataFrame({
+            "num1": [1.0, 2.0, 3.0],
+            "cat_b": ["x", "y", "z"],
+            "num2": [4.0, 5.0, 6.0],
+            "cat_a": ["a", "b", "c"],
+        })
+        pool = Pool(df)
+        assert pool.cat_features == [1, 3]
+        assert pool.cat_features == sorted(pool.cat_features)
+
+    def test_1d_input_reshaped(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(20)  # 1D
+        y = X * 2
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        pred = model.predict(X)
+        assert pred.shape == (20,)

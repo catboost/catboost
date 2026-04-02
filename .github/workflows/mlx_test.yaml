@@ -14,6 +14,10 @@ on:
 jobs:
   build-and-test:
     runs-on: macos-14  # Apple M1, Metal GPU
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12', '3.13']
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
@@ -54,10 +58,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Python package
         run: pip install -e "python/[dev]"
 
       - name: Run tests
-        run: pytest python/tests/test_basic.py -v --tb=short
+        run: pytest python/tests/ -v --tb=short

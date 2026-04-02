@@ -1,11 +1,9 @@
 name: Add macOS extra python environments to cache
 
+# Disabled: Only needed by the full CatBoost build pipeline (check.yaml).
+# Not used by the MLX fork.  See mlx_test.yaml for CI.
 on:
-  push:
-    branches:
-      - master
-
-  workflow_dispatch:
+  workflow_dispatch:  # manual-only — never triggers automatically
 
 jobs:
   add_macos_arm64_extra_env_to_cache:

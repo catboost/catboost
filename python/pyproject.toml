@@ -9,9 +9,36 @@ description = "CatBoost gradient boosted decision trees on Apple Silicon via Met
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "Apache-2.0"}
+authors = [{name = "RR-AMATOK"}]
+keywords = [
+    "catboost",
+    "gradient-boosting",
+    "apple-silicon",
+    "mlx",
+    "metal",
+    "gpu",
+    "machine-learning",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy>=1.21",
 ]
+
+[project.urls]
+Homepage = "https://github.com/RR-AMATOK/catboost-mlx"
+Repository = "https://github.com/RR-AMATOK/catboost-mlx"
+Issues = "https://github.com/RR-AMATOK/catboost-mlx/issues"
 
 [project.optional-dependencies]
 sklearn = ["scikit-learn>=1.0"]
@@ -27,4 +54,16 @@ dev = [
 include = ["catboost_mlx*"]
 
 [tool.setuptools.package-data]
-catboost_mlx = ["bin/*"]
+catboost_mlx = ["bin/*", "py.typed"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

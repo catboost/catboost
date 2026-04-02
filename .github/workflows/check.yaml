@@ -1,11 +1,10 @@
 name: Check build and tests
 
+# Disabled: This workflow is inherited from the upstream CatBoost project and
+# requires the full build infrastructure (CMake, Docker, CUDA, JDK, etc.)
+# which is not present in this MLX-only fork.  See mlx_test.yaml for CI.
 on:
-  push:
-    branches:
-      - master
-
-  pull_request:
+  workflow_dispatch:  # manual-only — never triggers automatically
 
 jobs:
   check:

@@ -1,24 +1,40 @@
-"""Pool: unified data container for CatBoost-MLX training and prediction."""
+"""
+pool.py -- Unified data container that bundles training data with metadata.
+
+What this file does:
+    When you train a model, you need your data plus extra info -- like which
+    columns are categories (e.g. "red", "blue") vs numbers, or which rows
+    belong to the same search query. Pool is like a labeled box: you put
+    everything in once, and the model knows exactly what each piece is.
+    It also automatically figures out column names and category columns
+    if you pass a pandas DataFrame.
+
+How it fits into the project:
+    Imported by core.py (which unpacks Pool objects inside fit()) and by
+    __init__.py (re-exported to users). Has no dependencies on other
+    catboost_mlx modules.
+
+Key concepts:
+    - Categorical features: Columns with text labels (like colors or countries)
+      instead of numbers. These are treated differently during training.
+    - Feature names: Human-readable labels for each column (e.g. "age", "income").
+    - Sample weights: Numbers that tell the model some rows matter more than others.
+    - DataFrame auto-detection: If you pass a pandas DataFrame, Pool reads its
+      column names and dtype info automatically.
+"""
 
 from typing import List, Optional, Union
 import numpy as np
 
-
-def _to_numpy(data) -> np.ndarray:
-    """Convert input data to numpy array, handling pandas DataFrames/Series."""
-    if isinstance(data, np.ndarray):
-        return data
-    try:
-        import pandas as pd
-        if isinstance(data, (pd.DataFrame, pd.Series)):
-            return data.values
-    except ImportError:
-        pass
-    return np.asarray(data)
+from ._utils import _to_numpy
 
 
 def _is_dataframe(X) -> bool:
-    """Check if X is a pandas DataFrame without importing pandas."""
+    """Check if X is a pandas DataFrame without importing pandas.
+
+    Uses duck-typing (check the class name + columns attribute) to avoid
+    the cost of importing pandas when it's not needed.
+    """
     return type(X).__name__ == "DataFrame" and hasattr(X, "columns")
 
 
@@ -95,7 +111,8 @@ class Pool:
         group_id=None,
         sample_weight=None,
     ):
-        # Extract info from DataFrame before converting
+        # When X is a DataFrame, extract column names and detect categoricals
+        # BEFORE converting to numpy, because numpy loses dtype information.
         if _is_dataframe(X):
             if feature_names is None:
                 feature_names = list(X.columns)
@@ -106,9 +123,9 @@ class Pool:
                     include=["object", "category", "string"]
                 ).columns
                 if len(cat_cols) > 0:
-                    cat_features = [
+                    cat_features = sorted(
                         feature_names.index(c) for c in cat_cols
-                    ]
+                    )
 
         # Convert to numpy
         self.X = _to_numpy(X).copy()
