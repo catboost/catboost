@@ -92,6 +92,12 @@ class Pool:
     sample_weight : array-like, optional
         Per-sample weights.
 
+    Notes
+    -----
+    Data is stored as C-contiguous numpy arrays. If the input is already a
+    C-contiguous ndarray, no copy is made (zero-copy). Non-contiguous or
+    non-numpy inputs are converted automatically.
+
     Examples
     --------
     >>> import pandas as pd
