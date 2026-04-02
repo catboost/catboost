@@ -148,6 +148,8 @@ struct TConfig {
     // Snapshot save/resume
     std::string SnapshotPath;              // "" = disabled
     ui32 SnapshotInterval = 1;             // save snapshot every N iterations
+    // External eval file
+    std::string EvalFile;                  // "" = disabled; path to separate validation CSV
 };
 
 TConfig ParseArgs(int argc, char** argv) {
@@ -159,7 +161,7 @@ TConfig ParseArgs(int argc, char** argv) {
                 "[--seed N] [--nan-mode MODE] [--output PATH] [--feature-importance] "
                 "[--cv N] [--ctr] [--ctr-prior F] [--max-onehot-size N] [--group-col N] "
                 "[--weight-col N] [--min-data-in-leaf N] [--monotone-constraints L] "
-                "[--snapshot-path PATH] [--snapshot-interval N] [--verbose]\n", argv[0]);
+                "[--snapshot-path PATH] [--snapshot-interval N] [--eval-file PATH] [--verbose]\n", argv[0]);
         exit(1);
     }
     config.CsvPath = argv[1];
@@ -205,6 +207,7 @@ TConfig ParseArgs(int argc, char** argv) {
         }
         else if (strcmp(argv[i], "--snapshot-path") == 0 && i + 1 < argc) config.SnapshotPath = argv[++i];
         else if (strcmp(argv[i], "--snapshot-interval") == 0 && i + 1 < argc) config.SnapshotInterval = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--eval-file") == 0 && i + 1 < argc) config.EvalFile = argv[++i];
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
@@ -568,6 +571,35 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
         }
     }
 
+    return q;
+}
+
+// Quantize a new dataset using pre-computed borders from training data
+TQuantization QuantizeWithBorders(const TDataset& ds, const TQuantization& trainQuant,
+                                  const TDataset& trainDs) {
+    TQuantization q;
+    q.Borders = trainQuant.Borders;
+    q.BinnedFeatures.resize(ds.NumFeatures);
+
+    for (ui32 f = 0; f < ds.NumFeatures; ++f) {
+        q.BinnedFeatures[f].resize(ds.NumDocs);
+        if (ds.IsCategorical[f]) {
+            for (ui32 d = 0; d < ds.NumDocs; ++d) {
+                q.BinnedFeatures[f][d] = static_cast<uint8_t>(ds.Features[f][d]);
+            }
+        } else {
+            bool hasNaN = trainDs.HasNaN[f];  // use training NaN status for consistent bin offsets
+            ui32 binOffset = hasNaN ? 1 : 0;
+            for (ui32 d = 0; d < ds.NumDocs; ++d) {
+                if (std::isnan(ds.Features[f][d])) {
+                    q.BinnedFeatures[f][d] = 0;
+                } else {
+                    auto it = std::upper_bound(q.Borders[f].begin(), q.Borders[f].end(), ds.Features[f][d]);
+                    q.BinnedFeatures[f][d] = static_cast<uint8_t>((it - q.Borders[f].begin()) + binOffset);
+                }
+            }
+        }
+    }
     return q;
 }
 
@@ -2843,6 +2875,32 @@ int main(int argc, char** argv) {
     std::vector<ui32> valGroupOffsetsForRanking;
     ui32 valNumGroupsForRanking = 0;
 
+    // Mutual exclusivity check
+    if (!config.EvalFile.empty() && config.EvalFraction > 0.0f) {
+        fprintf(stderr, "Error: --eval-file and --eval-fraction are mutually exclusive\n");
+        return 1;
+    }
+
+    // External eval file: load, quantize with training borders, pack
+    TDataset evalDs;
+    TPackedData evalPacked;
+    if (!config.EvalFile.empty()) {
+        evalDs = LoadCSV(config.EvalFile, config.TargetCol, config.CatFeatureCols,
+                         config.NanMode, config.GroupCol, config.WeightCol);
+        printf("Loaded eval data: %u rows, %u features from %s\n",
+               evalDs.NumDocs, evalDs.NumFeatures, config.EvalFile.c_str());
+        if (evalDs.NumFeatures != ds.NumFeatures) {
+            fprintf(stderr, "Error: Eval data has %u features, training data has %u\n",
+                    evalDs.NumFeatures, ds.NumFeatures);
+            return 1;
+        }
+        auto evalQuant = QuantizeWithBorders(evalDs, quant, ds);
+        evalPacked = PackFeatures(evalQuant, evalDs);
+        valDocs = evalDs.NumDocs;
+        // trainDocs stays as ds.NumDocs (use all training data)
+        printf("Using external eval file: %u train, %u val\n", trainDocs, valDocs);
+    }
+
     if (config.EvalFraction > 0.0f && config.EvalFraction < 1.0f) {
         if (isRankingLoss && ds.NumGroups > 0) {
             // Group-aware split: snap to group boundaries
@@ -2874,14 +2932,24 @@ int main(int argc, char** argv) {
 
     // Build target vectors for ranking
     if (isRankingLoss) {
-        trainTargetsVecForRanking.assign(ds.Targets.begin(), ds.Targets.begin() + trainDocs);
-        if (valDocs > 0) {
-            valTargetsVecForRanking.assign(ds.Targets.begin() + trainDocs, ds.Targets.end());
-        }
-        // If no eval split, use full group offsets
-        if (valDocs == 0) {
+        if (!config.EvalFile.empty()) {
+            // External eval file: use all training data for train, evalDs for val
+            trainTargetsVecForRanking.assign(ds.Targets.begin(), ds.Targets.end());
             trainGroupOffsetsForRanking = ds.GroupOffsets;
             trainNumGroupsForRanking = ds.NumGroups;
+            valTargetsVecForRanking.assign(evalDs.Targets.begin(), evalDs.Targets.end());
+            valGroupOffsetsForRanking = evalDs.GroupOffsets;
+            valNumGroupsForRanking = evalDs.NumGroups;
+        } else {
+            trainTargetsVecForRanking.assign(ds.Targets.begin(), ds.Targets.begin() + trainDocs);
+            if (valDocs > 0) {
+                valTargetsVecForRanking.assign(ds.Targets.begin() + trainDocs, ds.Targets.end());
+            }
+            // If no eval split, use full group offsets
+            if (valDocs == 0) {
+                trainGroupOffsetsForRanking = ds.GroupOffsets;
+                trainNumGroupsForRanking = ds.NumGroups;
+            }
         }
     }
 
@@ -2891,7 +2959,20 @@ int main(int argc, char** argv) {
     mx::array valCompressedData = mx::array(0);
     mx::array valTargetsArr = mx::array(0.0f);
 
-    if (valDocs > 0) {
+    if (!config.EvalFile.empty()) {
+        // External eval file: training data = all of ds, val data = evalDs (separately packed)
+        compressedData = mx::array(
+            reinterpret_cast<const int32_t*>(packed.Data.data()),
+            {static_cast<int>(trainDocs), static_cast<int>(packed.NumUi32PerDoc)}, mx::uint32);
+        targetsArr = mx::array(ds.Targets.data(), {static_cast<int>(trainDocs)}, mx::float32);
+
+        valCompressedData = mx::array(
+            reinterpret_cast<const int32_t*>(evalPacked.Data.data()),
+            {static_cast<int>(valDocs), static_cast<int>(evalPacked.NumUi32PerDoc)}, mx::uint32);
+        std::vector<float> evalTargetsVec(evalDs.Targets.begin(), evalDs.Targets.end());
+        valTargetsArr = mx::array(evalTargetsVec.data(), {static_cast<int>(valDocs)}, mx::float32);
+        mx::eval({compressedData, targetsArr, valCompressedData, valTargetsArr});
+    } else if (valDocs > 0) {
         std::vector<uint32_t> trainData(trainDocs * packed.NumUi32PerDoc);
         std::vector<uint32_t> valData(valDocs * packed.NumUi32PerDoc);
         std::vector<float> trainTargetsVec(trainDocs);

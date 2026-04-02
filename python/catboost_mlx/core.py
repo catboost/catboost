@@ -12,6 +12,69 @@ from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
+# sklearn is an optional dependency
+try:
+    from sklearn.base import BaseEstimator, RegressorMixin, ClassifierMixin
+    _HAS_SKLEARN = True
+except ImportError:
+    _HAS_SKLEARN = False
+
+    class BaseEstimator:
+        """Minimal fallback when sklearn is not installed."""
+
+        @classmethod
+        def _get_param_names(cls):
+            """Get parameter names from __init__ signature."""
+            import inspect
+            for klass in cls.__mro__:
+                sig = inspect.signature(klass.__init__)
+                if "kwargs" not in sig.parameters and klass is not object:
+                    break
+            else:
+                sig = inspect.signature(cls.__init__)
+            return sorted([
+                p.name for p in sig.parameters.values()
+                if p.name != "self"
+            ])
+
+        def get_params(self, deep=True):
+            params = {}
+            for name in self._get_param_names():
+                params[name] = getattr(self, name, None)
+            return params
+
+        def set_params(self, **params):
+            for key, value in params.items():
+                setattr(self, key, value)
+            return self
+
+    class RegressorMixin:
+        """Minimal fallback — provides score() using R²."""
+        _estimator_type = "regressor"
+
+        def score(self, X, y, sample_weight=None):
+            """Return R² score on test data."""
+            y_pred = self.predict(X)
+            y_true = np.asarray(y, dtype=float)
+            ss_res = np.sum((y_true - y_pred) ** 2)
+            ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+            if ss_tot == 0:
+                return 0.0
+            return float(1.0 - ss_res / ss_tot)
+
+    class ClassifierMixin:
+        """Minimal fallback — provides score() using accuracy."""
+        _estimator_type = "classifier"
+
+        def score(self, X, y, sample_weight=None):
+            """Return accuracy score on test data."""
+            y_pred = self.predict(X)
+            y_true = np.asarray(y)
+            if sample_weight is not None:
+                w = np.asarray(sample_weight, dtype=float)
+                return float(np.sum((y_pred == y_true) * w) / np.sum(w))
+            return float(np.mean(y_pred == y_true))
+
 
 def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
     """Locate a compiled binary (csv_train or csv_predict)."""
@@ -29,6 +92,12 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
     found = shutil.which(name)
     if found:
         return found
+
+    # Check bundled binaries in package
+    bin_dir = Path(__file__).parent / "bin"
+    candidate = bin_dir / name
+    if candidate.is_file():
+        return str(candidate)
 
     # Check current directory
     local = Path(name)
@@ -123,7 +192,7 @@ def _to_numpy(data) -> np.ndarray:
     return np.asarray(data)
 
 
-class CatBoostMLX:
+class CatBoostMLX(BaseEstimator):
     """CatBoost-style gradient boosted decision trees using Apple Silicon Metal GPU.
 
     Wraps the compiled csv_train/csv_predict binaries via subprocess.
@@ -199,6 +268,7 @@ class CatBoostMLX:
         monotone_constraints: Optional[List[int]] = None,
         snapshot_path: Optional[str] = None,
         snapshot_interval: int = 1,
+        auto_class_weights: Optional[str] = None,
         verbose: bool = False,
         binary_path: Optional[str] = None,
     ):
@@ -226,6 +296,7 @@ class CatBoostMLX:
         self.monotone_constraints = monotone_constraints
         self.snapshot_path = snapshot_path
         self.snapshot_interval = snapshot_interval
+        self.auto_class_weights = auto_class_weights
         self.verbose = verbose
         self.binary_path = binary_path
 
@@ -237,6 +308,10 @@ class CatBoostMLX:
         self._eval_loss_history: List[float] = []
         self._is_fitted = False
 
+    def __sklearn_is_fitted__(self) -> bool:
+        """Check fitted status for sklearn compatibility (sklearn 1.3+)."""
+        return self._is_fitted
+
     def _get_loss_type(self) -> str:
         """Extract loss type from model data."""
         if self._model_data:
@@ -246,7 +321,90 @@ class CatBoostMLX:
                 return lt.split(":")[0].lower()
         return self.loss.split(":")[0].lower()
 
-    def _build_train_args(self, csv_path: str, model_path: str, target_col: int) -> List[str]:
+    _KNOWN_LOSSES = frozenset({
+        "auto", "rmse", "mae", "quantile", "huber", "poisson",
+        "tweedie", "mape", "logloss", "multiclass", "pairlogit", "yetirank",
+    })
+
+    def _validate_params(self) -> None:
+        """Validate hyperparameters before training."""
+        if not isinstance(self.iterations, int) or self.iterations < 1:
+            raise ValueError(f"iterations must be an integer >= 1, got {self.iterations!r}")
+        if not isinstance(self.depth, int) or not (1 <= self.depth <= 16):
+            raise ValueError(f"depth must be an integer in [1, 16], got {self.depth!r}")
+        if not isinstance(self.learning_rate, (int, float)) or self.learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {self.learning_rate!r}")
+        if not isinstance(self.l2_reg_lambda, (int, float)) or self.l2_reg_lambda < 0:
+            raise ValueError(f"l2_reg_lambda must be >= 0, got {self.l2_reg_lambda!r}")
+
+        loss_base = self.loss.split(":")[0].lower()
+        if loss_base not in self._KNOWN_LOSSES:
+            raise ValueError(
+                f"Unknown loss '{self.loss}'. Known losses: {sorted(self._KNOWN_LOSSES)}"
+            )
+        if ":" in self.loss:
+            try:
+                float(self.loss.split(":", 1)[1])
+            except ValueError:
+                raise ValueError(f"Loss parameter must be numeric, got '{self.loss}'")
+
+        if not isinstance(self.bins, int) or not (2 <= self.bins <= 255):
+            raise ValueError(f"bins must be an integer in [2, 255], got {self.bins!r}")
+        if not isinstance(self.eval_fraction, (int, float)) or not (0 <= self.eval_fraction < 1):
+            raise ValueError(f"eval_fraction must be in [0, 1), got {self.eval_fraction!r}")
+        if not isinstance(self.early_stopping_rounds, int) or self.early_stopping_rounds < 0:
+            raise ValueError(f"early_stopping_rounds must be >= 0, got {self.early_stopping_rounds!r}")
+        if not isinstance(self.subsample, (int, float)) or not (0 < self.subsample <= 1):
+            raise ValueError(f"subsample must be in (0, 1], got {self.subsample!r}")
+        if not isinstance(self.colsample_bytree, (int, float)) or not (0 < self.colsample_bytree <= 1):
+            raise ValueError(f"colsample_bytree must be in (0, 1], got {self.colsample_bytree!r}")
+        if self.nan_mode not in ("min", "forbidden"):
+            raise ValueError(f"nan_mode must be 'min' or 'forbidden', got {self.nan_mode!r}")
+        if self.bootstrap_type not in ("no", "bayesian", "bernoulli", "mvs"):
+            raise ValueError(
+                f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
+            )
+        if not isinstance(self.min_data_in_leaf, int) or self.min_data_in_leaf < 1:
+            raise ValueError(f"min_data_in_leaf must be >= 1, got {self.min_data_in_leaf!r}")
+        if self.monotone_constraints is not None:
+            for c in self.monotone_constraints:
+                if c not in (-1, 0, 1):
+                    raise ValueError(
+                        f"monotone_constraints values must be -1, 0, or 1, got {c!r}"
+                    )
+        if not isinstance(self.snapshot_interval, int) or self.snapshot_interval < 1:
+            raise ValueError(f"snapshot_interval must be >= 1, got {self.snapshot_interval!r}")
+        if self.auto_class_weights is not None:
+            if self.auto_class_weights.lower() not in ("balanced", "sqrtbalanced"):
+                raise ValueError(
+                    f"auto_class_weights must be 'Balanced' or 'SqrtBalanced', "
+                    f"got {self.auto_class_weights!r}"
+                )
+
+    def _validate_fit_inputs(self, X, y, sample_weight=None, group_id=None,
+                             feature_names=None) -> None:
+        """Validate fit() input arrays."""
+        if X.ndim != 2:
+            raise ValueError(f"X must be 2-dimensional, got shape {X.shape}")
+        if y.shape[0] != X.shape[0]:
+            raise ValueError(
+                f"X has {X.shape[0]} samples but y has {y.shape[0]} samples"
+            )
+        if sample_weight is not None and len(sample_weight) != X.shape[0]:
+            raise ValueError(
+                f"sample_weight has {len(sample_weight)} elements but X has {X.shape[0]} samples"
+            )
+        if group_id is not None and len(group_id) != X.shape[0]:
+            raise ValueError(
+                f"group_id has {len(group_id)} elements but X has {X.shape[0]} samples"
+            )
+        if feature_names is not None and len(feature_names) != X.shape[1]:
+            raise ValueError(
+                f"feature_names has {len(feature_names)} names but X has {X.shape[1]} features"
+            )
+
+    def _build_train_args(self, csv_path: str, model_path: str, target_col: int,
+                          eval_file: Optional[str] = None) -> List[str]:
         """Build CLI arguments for csv_train."""
         binary = _find_binary("csv_train", self.binary_path)
         args = [
@@ -266,7 +424,9 @@ class CatBoostMLX:
         ]
         if self.cat_features:
             args.extend(["--cat-features", ",".join(str(c) for c in self.cat_features)])
-        if self.eval_fraction > 0:
+        if eval_file is not None:
+            args.extend(["--eval-file", eval_file])
+        elif self.eval_fraction > 0:
             args.extend(["--eval-fraction", str(self.eval_fraction)])
         if self.early_stopping_rounds > 0:
             args.extend(["--early-stopping", str(self.early_stopping_rounds)])
@@ -296,6 +456,80 @@ class CatBoostMLX:
                 args.extend(["--snapshot-interval", str(self.snapshot_interval)])
         return args
 
+    def _run_train_subprocess(self, args: List[str]) -> str:
+        """Run csv_train with real-time stdout streaming when verbose=True.
+
+        Uses pty to force line-buffered stdout from the C++ binary (which
+        uses fully-buffered printf when piped). Falls back to subprocess.run
+        if pty is unavailable.
+        """
+        if self.verbose:
+            try:
+                import pty
+                import select
+                return self._run_with_pty(args)
+            except (ImportError, OSError):
+                pass
+
+        # Non-verbose or pty fallback: standard subprocess.run
+        result = subprocess.run(args, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"csv_train failed (exit code {result.returncode}):\n"
+                f"stdout: {result.stdout}\n"
+                f"stderr: {result.stderr}"
+            )
+        return result.stdout
+
+    def _run_with_pty(self, args: List[str]) -> str:
+        """Run subprocess with a PTY for real-time line output."""
+        import pty
+        import select
+
+        master_fd, slave_fd = pty.openpty()
+        proc = subprocess.Popen(args, stdout=slave_fd, stderr=subprocess.PIPE)
+        os.close(slave_fd)
+
+        stdout_lines = []
+        buf = b""
+        try:
+            while True:
+                r, _, _ = select.select([master_fd], [], [], 0.1)
+                if r:
+                    try:
+                        chunk = os.read(master_fd, 4096)
+                    except OSError:
+                        break
+                    if not chunk:
+                        break
+                    buf += chunk
+                    while b"\n" in buf:
+                        line, buf = buf.split(b"\n", 1)
+                        text = line.decode("utf-8", errors="replace").rstrip("\r")
+                        stdout_lines.append(text)
+                        print(text, flush=True)
+                elif proc.poll() is not None:
+                    # Process done, drain remaining buffer
+                    if buf:
+                        text = buf.decode("utf-8", errors="replace").rstrip("\r\n")
+                        if text:
+                            stdout_lines.append(text)
+                            print(text, flush=True)
+                    break
+        finally:
+            os.close(master_fd)
+
+        proc.wait()
+        stderr = proc.stderr.read().decode() if proc.stderr else ""
+
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"csv_train failed (exit code {proc.returncode}):\n"
+                f"stdout: {chr(10).join(stdout_lines)}\n"
+                f"stderr: {stderr}"
+            )
+        return "\n".join(stdout_lines)
+
     def _parse_train_output(self, stdout: str) -> None:
         """Parse csv_train stdout for loss history and feature importance."""
         self._train_loss_history = []
@@ -318,16 +552,18 @@ class CatBoostMLX:
             if m:
                 self._feature_importance[m.group(1)] = float(m.group(2))
 
-    def fit(self, X, y, eval_set=None, feature_names: Optional[List[str]] = None,
+    def fit(self, X_or_pool, y=None, eval_set=None, feature_names: Optional[List[str]] = None,
             group_id=None, sample_weight=None) -> "CatBoostMLX":
         """Train a model on the given data.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
-        y : array-like of shape (n_samples,)
-        eval_set : tuple of (X_eval, y_eval), optional
-            Ignored (use eval_fraction instead for now).
+        X_or_pool : array-like, DataFrame, or Pool
+            Feature matrix of shape (n_samples, n_features), or a Pool object.
+        y : array-like of shape (n_samples,), optional
+            Target values. Required unless X_or_pool is a Pool with labels.
+        eval_set : tuple of (X_eval, y_eval) or Pool, optional
+            External validation data. Mutually exclusive with eval_fraction.
         feature_names : list of str, optional
             Names for each feature column.
         group_id : array-like of shape (n_samples,), optional
@@ -340,53 +576,108 @@ class CatBoostMLX:
         -------
         self
         """
-        X = _to_numpy(X)
-        y = _to_numpy(y)
+        from .pool import Pool, _is_dataframe, _resolve_cat_features
+
+        # Unpack Pool if provided
+        if isinstance(X_or_pool, Pool):
+            pool = X_or_pool
+            X = pool.X
+            y = pool.y if y is None else _to_numpy(y)
+            feature_names = feature_names or pool.feature_names
+            group_id = group_id if group_id is not None else pool.group_id
+            sample_weight = sample_weight if sample_weight is not None else pool.sample_weight
+            if self.cat_features is None and pool.cat_features:
+                self.cat_features = pool.cat_features
+        else:
+            # Auto-extract feature names from DataFrame before conversion
+            if _is_dataframe(X_or_pool) and feature_names is None:
+                feature_names = list(X_or_pool.columns)
+            X = _to_numpy(X_or_pool)
+            y = _to_numpy(y)
+
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+
+        # Resolve string cat_features to indices
+        if self.cat_features and any(isinstance(c, str) for c in self.cat_features):
+            self.cat_features = _resolve_cat_features(self.cat_features, feature_names)
+
+        # Unpack eval_set Pool
+        if isinstance(eval_set, Pool):
+            eval_set = (eval_set.X, eval_set.y)
+
+        # Convert group_id and sample_weight to numpy if provided
+        gid = np.asarray(group_id) if group_id is not None else None
+        sw = np.asarray(sample_weight, dtype=float) if sample_weight is not None else None
+
+        # Validate parameters and inputs
+        self._validate_params()
+        self._validate_fit_inputs(X, y, sw, gid, feature_names)
+
+        # Auto class weights: compute balanced sample weights from class distribution
+        if self.auto_class_weights and sw is None:
+            classes, counts = np.unique(y, return_counts=True)
+            n_samples = len(y)
+            n_classes = len(classes)
+            class_weight = {}
+            for cls, cnt in zip(classes, counts):
+                if self.auto_class_weights.lower() == "balanced":
+                    class_weight[cls] = n_samples / (n_classes * cnt)
+                else:  # sqrtbalanced
+                    class_weight[cls] = np.sqrt(n_samples / (n_classes * cnt))
+            sw = np.array([class_weight[yi] for yi in y], dtype=float)
+
+        # sklearn-required attributes
+        self.n_features_in_ = X.shape[1]
+        self.n_outputs_ = 1
+        names = feature_names or [f"f{i}" for i in range(X.shape[1])]
+        self.feature_names_in_ = np.array(names, dtype=object)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_")
         csv_path = os.path.join(tmpdir, "train.csv")
         model_path = os.path.join(tmpdir, "model.json")
-
-        # Convert group_id to numpy if provided
-        gid = None
-        if group_id is not None:
-            gid = np.asarray(group_id)
-
-        # Convert sample_weight to numpy if provided
-        sw = None
-        if sample_weight is not None:
-            sw = np.asarray(sample_weight, dtype=float)
 
         target_col, group_col_idx, weight_col_idx = _array_to_csv(
             csv_path, X, y, feature_names, self.cat_features, group_id=gid,
             sample_weight=sw
         )
 
+        # Handle eval_set: write validation data to separate CSV
+        eval_file_path = None
+        if eval_set is not None:
+            if not (isinstance(eval_set, (tuple, list)) and len(eval_set) == 2):
+                raise ValueError("eval_set must be a tuple of (X_val, y_val)")
+            if self.eval_fraction > 0:
+                raise ValueError(
+                    "eval_set and eval_fraction are mutually exclusive"
+                )
+            X_val = _to_numpy(eval_set[0])
+            y_val = _to_numpy(eval_set[1])
+            if X_val.ndim == 1:
+                X_val = X_val.reshape(-1, 1)
+            if X_val.shape[1] != X.shape[1]:
+                raise ValueError(
+                    f"eval_set X has {X_val.shape[1]} features, "
+                    f"training X has {X.shape[1]} features"
+                )
+            eval_file_path = os.path.join(tmpdir, "eval.csv")
+            _array_to_csv(eval_file_path, X_val, y_val, feature_names,
+                          self.cat_features)
+
         # Temporarily override group_col and weight_col if provided
         orig_group_col = self.group_col
         if gid is not None and self.group_col < 0:
             self.group_col = group_col_idx
-        args = self._build_train_args(csv_path, model_path, target_col)
+        args = self._build_train_args(csv_path, model_path, target_col,
+                                      eval_file=eval_file_path)
         self.group_col = orig_group_col
 
         # Add weight-col if sample_weight was provided
         if weight_col_idx >= 0:
             args.extend(["--weight-col", str(weight_col_idx)])
 
-        result = subprocess.run(args, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"csv_train failed (exit code {result.returncode}):\n"
-                f"stdout: {result.stdout}\n"
-                f"stderr: {result.stderr}"
-            )
-
-        self._parse_train_output(result.stdout)
-
-        if self.verbose:
-            print(result.stdout)
+        stdout_text = self._run_train_subprocess(args)
+        self._parse_train_output(stdout_text)
 
         # Load model JSON
         with open(model_path, "r") as f:
@@ -395,6 +686,28 @@ class CatBoostMLX:
         self._is_fitted = True
 
         return self
+
+    def _validate_feature_names(self, X) -> None:
+        """Warn if DataFrame column names don't match training names (sklearn 1.2+)."""
+        if not hasattr(self, "feature_names_in_"):
+            return
+        try:
+            import pandas as pd
+            if not isinstance(X, pd.DataFrame):
+                return
+        except ImportError:
+            return
+        import warnings
+        train_names = list(self.feature_names_in_)
+        input_names = list(X.columns)
+        if train_names != input_names:
+            warnings.warn(
+                "X has feature names that differ from the feature names seen "
+                f"in `fit`. Feature names seen in `fit`: {train_names}. "
+                f"Feature names in input: {input_names}.",
+                UserWarning,
+                stacklevel=3,
+            )
 
     def predict(self, X, feature_names: Optional[List[str]] = None) -> np.ndarray:
         """Predict raw values / class labels.
@@ -406,6 +719,7 @@ class CatBoostMLX:
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        self._validate_feature_names(X)
         output = self._run_predict(X, feature_names)
         loss_type = self._get_loss_type()
 
@@ -425,6 +739,8 @@ class CatBoostMLX:
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        self._validate_feature_names(X)
+
         output = self._run_predict(X, feature_names)
         loss_type = self._get_loss_type()
 
@@ -440,6 +756,161 @@ class CatBoostMLX:
             return np.column_stack([output[c] for c in prob_cols])
         else:
             raise ValueError(f"predict_proba is not supported for loss '{loss_type}'")
+
+    def staged_predict(self, X, feature_names: Optional[List[str]] = None,
+                       eval_period: int = 1):
+        """Yield predictions at every eval_period boosting iterations.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+        feature_names : list of str, optional
+        eval_period : int
+            Yield every eval_period trees (default 1).
+
+        Yields
+        ------
+        np.ndarray
+            Predictions at each checkpoint.
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+
+        from ._predict_utils import quantize_features, compute_leaf_indices, apply_link
+
+        X = _to_numpy(X)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        features = self._model_data["features"]
+        trees = self._model_data["trees"]
+        info = self._model_data.get("model_info", {})
+        approx_dim = info.get("approx_dimension", 1)
+        loss_type = info.get("loss_type", "rmse")
+        num_classes = info.get("num_classes", 0)
+        n_trees = len(trees)
+        n_samples = X.shape[0]
+
+        binned = quantize_features(X, features, self.cat_features)
+
+        if approx_dim == 1:
+            cursor = np.zeros(n_samples, dtype=float)
+        else:
+            cursor = np.zeros((n_samples, approx_dim), dtype=float)
+
+        for t in range(n_trees):
+            tree = trees[t]
+            leaf_idx = compute_leaf_indices(binned, tree)
+            leaf_vals = np.array(tree["leaf_values"], dtype=float)
+            if approx_dim == 1:
+                cursor += leaf_vals[leaf_idx]
+            else:
+                cursor += leaf_vals.reshape(-1, approx_dim)[leaf_idx]
+
+            if (t + 1) % eval_period == 0 or t == n_trees - 1:
+                result = apply_link(cursor.copy(), loss_type, num_classes)
+                if loss_type in ("logloss", "multiclass"):
+                    yield result["predicted_class"]
+                else:
+                    yield result["prediction"]
+
+    def staged_predict_proba(self, X, feature_names: Optional[List[str]] = None,
+                             eval_period: int = 1):
+        """Yield class probabilities at every eval_period boosting iterations.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+        feature_names : list of str, optional
+        eval_period : int
+            Yield every eval_period trees (default 1).
+
+        Yields
+        ------
+        np.ndarray
+            Probability array at each checkpoint.
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+
+        loss_type = self._get_loss_type()
+        if loss_type not in ("logloss", "multiclass"):
+            raise ValueError(f"staged_predict_proba not supported for loss '{loss_type}'")
+
+        from ._predict_utils import quantize_features, compute_leaf_indices, apply_link
+
+        X = _to_numpy(X)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        features = self._model_data["features"]
+        trees = self._model_data["trees"]
+        info = self._model_data.get("model_info", {})
+        approx_dim = info.get("approx_dimension", 1)
+        num_classes = info.get("num_classes", 0)
+        n_trees = len(trees)
+        n_samples = X.shape[0]
+
+        binned = quantize_features(X, features, self.cat_features)
+
+        if approx_dim == 1:
+            cursor = np.zeros(n_samples, dtype=float)
+        else:
+            cursor = np.zeros((n_samples, approx_dim), dtype=float)
+
+        for t in range(n_trees):
+            tree = trees[t]
+            leaf_idx = compute_leaf_indices(binned, tree)
+            leaf_vals = np.array(tree["leaf_values"], dtype=float)
+            if approx_dim == 1:
+                cursor += leaf_vals[leaf_idx]
+            else:
+                cursor += leaf_vals.reshape(-1, approx_dim)[leaf_idx]
+
+            if (t + 1) % eval_period == 0 or t == n_trees - 1:
+                result = apply_link(cursor.copy(), loss_type, num_classes)
+                if loss_type == "logloss":
+                    prob = result["probability"]
+                    yield np.column_stack([1.0 - prob, prob])
+                else:
+                    prob_cols = sorted(
+                        [k for k in result if k.startswith("prob_class_")],
+                        key=lambda k: int(k.split("_")[-1])
+                    )
+                    yield np.column_stack([result[c] for c in prob_cols])
+
+    def apply(self, X, feature_names: Optional[List[str]] = None) -> np.ndarray:
+        """Return leaf indices for each sample in each tree.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+        feature_names : list of str, optional
+
+        Returns
+        -------
+        np.ndarray of shape (n_samples, n_trees), dtype int32
+            Leaf index for each sample in each tree. Values in [0, 2^depth).
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+
+        from ._predict_utils import quantize_features, compute_leaf_indices
+
+        X = _to_numpy(X)
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        features = self._model_data["features"]
+        trees = self._model_data["trees"]
+
+        binned = quantize_features(X, features, self.cat_features)
+
+        result = np.empty((X.shape[0], len(trees)), dtype=np.int32)
+        for t, tree in enumerate(trees):
+            result[:, t] = compute_leaf_indices(binned, tree)
+
+        return result
 
     def _run_predict(self, X, feature_names: Optional[List[str]] = None) -> Dict[str, np.ndarray]:
         """Run csv_predict and parse its output CSV."""
@@ -488,6 +959,26 @@ class CatBoostMLX:
         with open(path, "w") as f:
             json.dump(self._model_data, f, indent=2)
 
+    def export_coreml(self, path: str) -> None:
+        """Export model to CoreML format (.mlmodel).
+
+        Requires coremltools: pip install coremltools>=7.0
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        from .export_coreml import export_coreml
+        export_coreml(self._model_data, path)
+
+    def export_onnx(self, path: str) -> None:
+        """Export model to ONNX format (.onnx).
+
+        Requires onnx: pip install onnx>=1.14
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        from .export_onnx import export_onnx
+        export_onnx(self._model_data, path)
+
     def load_model(self, path: str) -> "CatBoostMLX":
         """Load a model from a JSON file."""
         with open(path, "r") as f:
@@ -506,6 +997,90 @@ class CatBoostMLX:
                 for fi in self._model_data["feature_importance"]
             }
         return {}
+
+    @property
+    def tree_count_(self) -> int:
+        """Number of trees in the fitted model."""
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        return len(self._model_data.get("trees", []))
+
+    @property
+    def feature_names_(self) -> List[str]:
+        """Feature names used during training."""
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        if hasattr(self, "feature_names_in_"):
+            return list(self.feature_names_in_)
+        # Fallback: extract from model data
+        features = self._model_data.get("features", [])
+        return [f.get("name", f"f{f['index']}") for f in features]
+
+    @property
+    def feature_importances_(self) -> np.ndarray:
+        """Normalized feature importance array (sklearn-compatible).
+
+        Returns array of shape (n_features,) summing to 1.0.
+        Features never split on get importance 0.0.
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        fi = self.get_feature_importance()
+        n = self.n_features_in_
+        names = (list(self.feature_names_in_) if hasattr(self, "feature_names_in_")
+                 else [f"f{i}" for i in range(n)])
+        arr = np.zeros(n, dtype=float)
+        for i, name in enumerate(names):
+            arr[i] = fi.get(name, 0.0)
+        total = arr.sum()
+        if total > 0:
+            arr /= total
+        return arr
+
+    def get_trees(self) -> List[dict]:
+        """Return list of tree dicts with real-valued thresholds.
+
+        Each tree dict contains:
+        - depth: int
+        - nodes: list of branch/leaf node dicts (from unfold_oblivious_tree)
+        - leaf_values: flat list of leaf values
+        - split_gains: list of gains per split level
+        """
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        from ._tree_utils import unfold_oblivious_tree
+        features = self._model_data["features"]
+        approx_dim = self._model_data["model_info"].get("approx_dimension", 1)
+        return [
+            {
+                "depth": t["depth"],
+                "nodes": unfold_oblivious_tree(t, features, approx_dim),
+                "leaf_values": t["leaf_values"],
+                "split_gains": t.get("split_gains", []),
+            }
+            for t in self._model_data["trees"]
+        ]
+
+    def get_model_info(self) -> dict:
+        """Return model metadata (loss, dimensions, feature count, tree count)."""
+        if not self._is_fitted:
+            raise RuntimeError("Model is not fitted. Call fit() first.")
+        info = dict(self._model_data.get("model_info", {}))
+        info["num_features"] = len(self._model_data.get("features", []))
+        return info
+
+    def plot_feature_importance(self, max_features: int = 20) -> None:
+        """Print text bar chart of feature importance to terminal."""
+        fi = self.get_feature_importance()
+        if not fi:
+            print("No feature importance available.")
+            return
+        sorted_fi = sorted(fi.items(), key=lambda x: x[1], reverse=True)[:max_features]
+        max_gain = sorted_fi[0][1] if sorted_fi else 1.0
+        max_name_len = max(len(name) for name, _ in sorted_fi)
+        for name, gain in sorted_fi:
+            bar_len = int(40 * gain / max_gain) if max_gain > 0 else 0
+            print(f"  {name:<{max_name_len}}  {'#' * bar_len}  {gain:.4f}")
 
     def get_shap_values(self, X, feature_names: Optional[List[str]] = None) -> Dict[str, np.ndarray]:
         """Compute TreeSHAP values for each prediction.
@@ -714,18 +1289,43 @@ class CatBoostMLX:
         )
 
 
-class CatBoostMLXRegressor(CatBoostMLX):
+class CatBoostMLXRegressor(RegressorMixin, CatBoostMLX):
     """CatBoostMLX with default loss='rmse' for regression tasks."""
+
+    _estimator_type = "regressor"
 
     def __init__(self, loss: str = "rmse", **kwargs):
         super().__init__(loss=loss, **kwargs)
 
+    @classmethod
+    def _get_param_names(cls):
+        """Return parameter names from CatBoostMLX.__init__ (not subclass)."""
+        return CatBoostMLX._get_param_names()
 
-class CatBoostMLXClassifier(CatBoostMLX):
+    def get_params(self, deep=True):
+        return CatBoostMLX.get_params(self, deep=deep)
+
+
+class CatBoostMLXClassifier(ClassifierMixin, CatBoostMLX):
     """CatBoostMLX with default loss='auto' for classification tasks.
 
     Auto-detection selects logloss for binary and multiclass for multi-class targets.
     """
 
+    _estimator_type = "classifier"
+
     def __init__(self, loss: str = "auto", **kwargs):
         super().__init__(loss=loss, **kwargs)
+
+    def fit(self, X, y, **kwargs):
+        result = super().fit(X, y, **kwargs)
+        self.classes_ = np.unique(np.asarray(y))
+        return result
+
+    @classmethod
+    def _get_param_names(cls):
+        """Return parameter names from CatBoostMLX.__init__ (not subclass)."""
+        return CatBoostMLX._get_param_names()
+
+    def get_params(self, deep=True):
+        return CatBoostMLX.get_params(self, deep=deep)

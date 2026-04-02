@@ -40,8 +40,8 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | **Model I/O** | Export to CatBoost native TFullModel | Done |
 | | JSON model save/load | Done |
 | | Standalone csv_predict CLI tool | Done |
-| | ONNX export | Not started |
-| | CoreML export | Not started |
+| | ONNX export | Done |
+| | CoreML export | Done |
 | **Explainability** | Feature importance (gain-based) | Done |
 | | SHAP values (TreeSHAP) | Done |
 | **Infrastructure** | Metal GPU histogram kernel | Done |
@@ -50,8 +50,20 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | Cross-validation | Done |
 | | Snapshot save/resume | Done |
 | | CI (GitHub Actions) | Done |
+| | Full sklearn 1.8+ compatibility | Done |
+| | Parameter validation | Done |
+| | Explicit eval_set | Done |
+| | Pool data container + Pandas integration | Done |
+| | Auto class weights (Balanced/SqrtBalanced) | Done |
+| | Model inspection API (tree_count_, get_trees, etc.) | Done |
+| | feature_importances_ (sklearn ndarray) | Done |
+| | Real-time verbose training progress | Done |
+| | staged_predict / staged_predict_proba | Done |
+| | apply() leaf index extraction | Done |
+| | Build script for binary compilation | Done |
+| | Benchmark suite | Done |
 
-**Estimated CUDA parity: ~70%**
+**Estimated CUDA parity: ~90%**
 
 ## Prerequisites
 
@@ -153,6 +165,7 @@ Options:
   --target-col N         0-based column index for target (default: last column)
   --cat-features L       Comma-separated 0-based column indices for categorical features
   --eval-fraction F      Fraction of data for validation (default: 0 = no split)
+  --eval-file PATH       External validation CSV file (mutually exclusive with --eval-fraction)
   --early-stopping N     Stop after N iters with no validation improvement (default: 0)
   --subsample F          Row subsampling fraction per iteration (default: 1.0)
   --colsample-bytree F   Feature subsampling fraction per tree (default: 1.0)
@@ -608,14 +621,107 @@ model = CatBoostMLXRegressor(iterations=200, min_data_in_leaf=10)
 model = CatBoostMLXRegressor(
     iterations=500, snapshot_path="snap.json", snapshot_interval=50
 )
+
+# Explicit eval_set (external validation data)
+model = CatBoostMLXRegressor(iterations=200)
+model.fit(X_train, y_train, eval_set=(X_val, y_val))
+
+# Export to ONNX (pip install onnx)
+model.export_onnx("model.onnx")
+
+# Export to CoreML (pip install coremltools)
+model.export_coreml("model.mlmodel")
+
+# sklearn compatibility (pip install scikit-learn)
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(model, X, y, cv=5)
+print(model.get_params())
+
+# Full sklearn 1.8+ support
+from sklearn.utils.validation import check_is_fitted
+check_is_fitted(model)                    # uses __sklearn_is_fitted__()
+print(model.feature_names_in_)            # numpy array of feature names
+print(model.n_features_in_)               # number of features at fit time
+print(model.n_outputs_)                   # always 1 (single-output)
+
+# Feature name validation (warns on mismatch)
+import pandas as pd
+df_test = pd.DataFrame(np.random.randn(5, 3), columns=["a", "b", "c"])
+model.predict(df_test)  # warns if training used different feature names
+
+# sklearn clone / pipeline integration
+from sklearn.base import clone
+model2 = clone(model)  # preserves all 27+ parameters correctly
+
+# Pool data container
+from catboost_mlx import Pool
+import pandas as pd
+df = pd.DataFrame({"color": ["red", "blue", ...], "size": [1.0, 2.0, ...]})
+pool = Pool(df, y=labels)  # auto-detects categorical columns and feature names
+model.fit(pool)
+
+# Auto class weights for imbalanced classification
+clf = CatBoostMLXClassifier(iterations=200, auto_class_weights="Balanced")
+clf.fit(X_train, y_train)  # automatically computes balanced sample weights
+
+# Model inspection
+print(model.tree_count_)         # number of trees
+print(model.feature_names_)      # feature names from training
+print(model.get_model_info())    # loss, dimensions, tree count
+trees = model.get_trees()        # structured tree dicts with real thresholds
+model.plot_feature_importance()  # text bar chart to terminal
+
+# sklearn-compatible feature importances (normalized array)
+fi_array = model.feature_importances_  # shape (n_features,), sums to 1.0
+
+# Staged predictions (learning curve analysis)
+for preds in model.staged_predict(X_test, eval_period=10):
+    rmse = np.sqrt(np.mean((preds - y_test) ** 2))
+    print(f"RMSE: {rmse:.4f}")
+
+# Staged probabilities (classification)
+for probs in clf.staged_predict_proba(X_test, eval_period=10):
+    print(f"Mean P(class=1): {probs[:, 1].mean():.4f}")
+
+# Leaf index extraction (for stacking / embeddings)
+leaf_indices = model.apply(X_test)  # shape (n_samples, n_trees)
+
+# Verbose real-time training progress
+model = CatBoostMLXRegressor(iterations=200, verbose=True)
+model.fit(X_train, y_train)  # prints per-iteration loss in real-time
+```
+
+### Build script
+
+Automate compilation of the binaries:
+
+```bash
+# Check prerequisites
+python python/build_binaries.py --check
+
+# Build and install binaries into the package
+python python/build_binaries.py
+
+# Build to custom directory
+python python/build_binaries.py --output /usr/local/bin
+```
+
+### Benchmarks
+
+Compare CatBoost-MLX against other GBDT frameworks:
+
+```bash
+python python/benchmarks/benchmark.py
+python python/benchmarks/benchmark.py --sizes 1000 10000 50000 --output results.json
 ```
 
 ### Binary path
 
 The Python bindings need to find the compiled `csv_train` and `csv_predict` binaries. They are located automatically if:
 1. They are on your `PATH`
-2. They are in the current working directory
-3. They are in the package directory
+2. They are bundled in the package (`python/catboost_mlx/bin/`, built via `build_binaries.py`)
+3. They are in the current working directory
+4. They are in the package directory
 
 Otherwise, specify explicitly:
 ```python
