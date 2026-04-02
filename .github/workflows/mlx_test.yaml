@@ -63,5 +63,8 @@ jobs:
       - name: Install Python package
         run: pip install -e "python/[dev]"
 
-      - name: Run tests
-        run: pytest python/tests/ -v --tb=short
+      - name: Lint with ruff
+        run: ruff check python/catboost_mlx/ python/tests/
+
+      - name: Run tests with coverage
+        run: pytest python/tests/ -v --tb=short --cov=catboost_mlx --cov-report=term-missing

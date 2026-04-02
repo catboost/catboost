@@ -5,6 +5,7 @@ Tests: load classmethod, Pool in predict methods, pickle/joblib support,
 metadata (__version__, __all__), and _utils.py deduplication.
 """
 
+import json
 import os
 import pickle
 import tempfile
@@ -12,7 +13,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXRegressor, CatBoostMLXClassifier, Pool
+from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT
@@ -223,3 +224,77 @@ class TestUtils:
         arr = np.array([1.0, 2.0])
         result = _to_numpy(arr)
         assert result is arr
+
+
+# ── Error Paths ─────────────────────────────────────────────────────────────
+
+class TestErrorPaths:
+    """Tests for error conditions and edge cases."""
+
+    def test_corrupted_model_json(self):
+        """Loading a corrupted model JSON should raise a meaningful error."""
+        with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
+            f.write("{corrupted json content!!")
+            path = f.name
+        try:
+            model = CatBoostMLX()
+            with pytest.raises(json.JSONDecodeError):
+                model.load_model(path)
+        finally:
+            os.unlink(path)
+
+    def test_load_nonexistent_file(self):
+        """Loading from a nonexistent file should raise FileNotFoundError."""
+        model = CatBoostMLX()
+        with pytest.raises(FileNotFoundError):
+            model.load_model("/tmp/catboost_mlx_nonexistent_model_xyz.json")
+
+    def test_predict_not_fitted(self):
+        """Predict before fit should raise RuntimeError."""
+        model = CatBoostMLXRegressor()
+        with pytest.raises(RuntimeError, match="not fitted"):
+            model.predict(np.zeros((5, 2)))
+
+    def test_save_model_not_fitted(self):
+        """Saving an unfitted model should raise RuntimeError."""
+        model = CatBoostMLXRegressor()
+        with pytest.raises(RuntimeError, match="not fitted"):
+            model.save_model("/tmp/catboost_mlx_test_save.json")
+
+    def test_save_model_unwritable_path(self):
+        """Saving to an unwritable path should raise an OS error."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(20, 2)
+        y = rng.rand(20)
+        model = CatBoostMLXRegressor(iterations=5, depth=3, binary_path=BINARY_PATH)
+        model.fit(X, y)
+        with pytest.raises((OSError, PermissionError)):
+            model.save_model("/nonexistent_dir_xyz/model.json")
+
+    def test_empty_dataset(self):
+        """Training with an empty dataset should raise an error."""
+        _check_binaries()
+        X = np.zeros((0, 3))
+        y = np.zeros(0)
+        model = CatBoostMLXRegressor(iterations=5, binary_path=BINARY_PATH)
+        with pytest.raises((ValueError, RuntimeError)):
+            model.fit(X, y)
+
+    def test_train_timeout_validation(self):
+        """Invalid train_timeout should raise ValueError."""
+        with pytest.raises(ValueError, match="train_timeout"):
+            model = CatBoostMLX(iterations=1, train_timeout=-1)
+            model._validate_params()
+
+    def test_predict_timeout_validation(self):
+        """Invalid predict_timeout should raise ValueError."""
+        with pytest.raises(ValueError, match="predict_timeout"):
+            model = CatBoostMLX(iterations=1, predict_timeout=0)
+            model._validate_params()
+
+    def test_pool_no_unnecessary_copy(self):
+        """Pool should not copy data when input is already a C-contiguous numpy array."""
+        arr = np.random.rand(10, 3)
+        pool = Pool(arr)
+        assert pool.X is arr or pool.X.base is arr

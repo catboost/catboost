@@ -28,7 +28,6 @@ Test classes (26 total, 111 tests):
     TestFeatureImportancesArray, TestVerbose, TestStagedPredict, TestApply
 """
 
-import json
 import os
 import tempfile
 
@@ -40,8 +39,7 @@ import pytest
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT  # csv_train / csv_predict expected at repo root
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXRegressor, CatBoostMLXClassifier
-from catboost_mlx import Pool
+from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
 
 
 def _check_binaries():
@@ -671,8 +669,8 @@ class TestSklearn:
     def test_sklearn_is_fitted(self):
         _check_binaries()
         pytest.importorskip("sklearn")
-        from sklearn.utils.validation import check_is_fitted
         from sklearn.exceptions import NotFittedError
+        from sklearn.utils.validation import check_is_fitted
         model = CatBoostMLXRegressor(iterations=10, binary_path=BINARY_PATH)
         with pytest.raises(NotFittedError):
             check_is_fitted(model)
@@ -705,6 +703,7 @@ class TestSklearn:
     def test_feature_names_validation_warning(self):
         _check_binaries()
         import warnings
+
         import pandas as pd
         rng = np.random.RandomState(42)
         X_train = pd.DataFrame(rng.rand(30, 2), columns=["feat_a", "feat_b"])
@@ -722,6 +721,7 @@ class TestSklearn:
     def test_feature_names_no_warning_when_matching(self):
         _check_binaries()
         import warnings
+
         import pandas as pd
         rng = np.random.RandomState(42)
         X = pd.DataFrame(rng.rand(30, 2), columns=["a", "b"])
@@ -1119,8 +1119,6 @@ class TestAutoClassWeights:
     def test_balanced_weights_computed(self):
         """Balanced class weights should be inversely proportional to frequency."""
         # 90 class-0, 10 class-1 → weight_0 = 100/(2*90), weight_1 = 100/(2*10)
-        y = np.array([0]*90 + [1]*10)
-        X = np.random.RandomState(42).rand(100, 2)
         model = CatBoostMLX(iterations=1, auto_class_weights="Balanced",
                             binary_path=BINARY_PATH)
         # We can't directly inspect weights, but verify it doesn't crash

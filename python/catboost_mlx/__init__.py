@@ -18,7 +18,7 @@ Key concepts:
 """
 
 # Model classes (the main API users interact with)
-from .core import CatBoostMLX, CatBoostMLXRegressor, CatBoostMLXClassifier
+from .core import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor
 
 # Data container for bundling features + labels + metadata
 from .pool import Pool

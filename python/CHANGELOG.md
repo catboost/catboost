@@ -16,12 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `logging` module usage for non-user-facing output
 - Ruff and pytest configuration in `pyproject.toml`
 - CI test matrix expanded to Python 3.10, 3.12, 3.13
+- `train_timeout` / `predict_timeout` parameters to prevent subprocess hangs
+- CI ruff linting and pytest-cov coverage reporting
+- Error path tests (corrupted JSON, missing files, empty datasets, timeout validation)
+- Makefile with `test`, `lint`, `coverage`, `build-binaries`, `install` targets
+- `.pre-commit-config.yaml` for ruff hooks
+- `MANIFEST.in` for proper sdist packaging
 
 ### Changed
 - `_HAS_SKLEARN` removed from `__all__` (still accessible via `catboost_mlx.core._HAS_SKLEARN`)
 - `__version__` now reads from package metadata instead of hardcoded duplication
 - `cross_validate()` reuses `_build_train_args()` to reduce code duplication
 - `_to_numpy()` consolidated into `_utils.py` (imported by both `core.py` and `pool.py`)
+- `Pool` no longer copies data unnecessarily (uses `np.ascontiguousarray` instead of `.copy()`)
+- `cross_validate()` docstring expanded with full parameter and return value documentation
+- Fixed 36 ruff lint violations across all Python modules
+- Disabled inherited upstream CatBoost CI workflows that always fail in this fork
 
 ### Known Limitations
 - Binary bundling: `pip install` does not include pre-compiled csv_train/csv_predict.

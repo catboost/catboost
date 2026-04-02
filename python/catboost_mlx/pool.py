@@ -24,6 +24,7 @@ Key concepts:
 """
 
 from typing import List, Optional, Union
+
 import numpy as np
 
 from ._utils import _to_numpy
@@ -118,7 +119,6 @@ class Pool:
                 feature_names = list(X.columns)
             if cat_features is None:
                 # Auto-detect object/category/string dtype columns
-                import pandas as pd
                 cat_cols = X.select_dtypes(
                     include=["object", "category", "string"]
                 ).columns
@@ -127,12 +127,12 @@ class Pool:
                         feature_names.index(c) for c in cat_cols
                     )
 
-        # Convert to numpy
-        self.X = _to_numpy(X).copy()
+        # Convert to numpy (ascontiguousarray is a no-op for C-contiguous ndarrays)
+        self.X = np.ascontiguousarray(_to_numpy(X))
         if self.X.ndim == 1:
             self.X = self.X.reshape(-1, 1)
 
-        self.y = _to_numpy(y).copy() if y is not None else None
+        self.y = np.ascontiguousarray(_to_numpy(y)) if y is not None else None
 
         # Resolve string cat_features to indices
         self.cat_features = _resolve_cat_features(cat_features, feature_names)

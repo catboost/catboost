@@ -40,12 +40,13 @@ import csv
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
-import re
+import time
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -58,7 +59,7 @@ logger = logging.getLogger(__name__)
 # ClassifierMixin. When it's NOT installed, we provide minimal fallbacks below
 # so the core classes still work without sklearn as a dependency.
 try:
-    from sklearn.base import BaseEstimator, RegressorMixin, ClassifierMixin
+    from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
     _HAS_SKLEARN = True
 except ImportError:
     _HAS_SKLEARN = False
@@ -305,6 +306,10 @@ class CatBoostMLX(BaseEstimator):
         Print per-iteration training loss.
     binary_path : str, optional
         Path to directory containing csv_train/csv_predict, or path to csv_train directly.
+    train_timeout : float or None
+        Maximum seconds for a training subprocess (default: 600). None disables timeout.
+    predict_timeout : float or None
+        Maximum seconds for a prediction subprocess (default: 60). None disables timeout.
     """
 
     def __init__(
@@ -336,6 +341,8 @@ class CatBoostMLX(BaseEstimator):
         auto_class_weights: Optional[str] = None,
         verbose: bool = False,
         binary_path: Optional[str] = None,
+        train_timeout: Optional[float] = 600.0,
+        predict_timeout: Optional[float] = 60.0,
     ):
         self.iterations = iterations
         self.depth = depth
@@ -364,6 +371,8 @@ class CatBoostMLX(BaseEstimator):
         self.auto_class_weights = auto_class_weights
         self.verbose = verbose
         self.binary_path = binary_path
+        self.train_timeout = train_timeout
+        self.predict_timeout = predict_timeout
 
         # Set after fit()
         self._model_path: Optional[str] = None
@@ -446,6 +455,16 @@ class CatBoostMLX(BaseEstimator):
         if self.binary_path is not None:
             if not isinstance(self.binary_path, str) or "\x00" in self.binary_path:
                 raise ValueError(f"binary_path must be a valid path string, got {self.binary_path!r}")
+        if self.train_timeout is not None:
+            if not isinstance(self.train_timeout, (int, float)) or self.train_timeout <= 0:
+                raise ValueError(
+                    f"train_timeout must be a positive number or None, got {self.train_timeout!r}"
+                )
+        if self.predict_timeout is not None:
+            if not isinstance(self.predict_timeout, (int, float)) or self.predict_timeout <= 0:
+                raise ValueError(
+                    f"predict_timeout must be a positive number or None, got {self.predict_timeout!r}"
+                )
         if self.auto_class_weights is not None:
             if self.auto_class_weights.lower() not in ("balanced", "sqrtbalanced"):
                 raise ValueError(
@@ -553,14 +572,22 @@ class CatBoostMLX(BaseEstimator):
         """
         if self.verbose:
             try:
-                import pty
-                import select
+                import pty  # noqa: F401
+                import select  # noqa: F401
                 return self._run_with_pty(args)
             except (ImportError, OSError):
                 pass
 
         # Non-verbose or pty fallback: standard subprocess.run
-        result = subprocess.run(args, capture_output=True, text=True)
+        try:
+            result = subprocess.run(
+                args, capture_output=True, text=True, timeout=self.train_timeout
+            )
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError(
+                f"csv_train timed out after {self.train_timeout}s. "
+                "Increase train_timeout or reduce dataset size/iterations."
+            ) from e
         if result.returncode != 0:
             raise RuntimeError(
                 f"csv_train failed (exit code {result.returncode}):\n"
@@ -574,6 +601,8 @@ class CatBoostMLX(BaseEstimator):
         import pty
         import select
 
+        deadline = (time.monotonic() + self.train_timeout) if self.train_timeout else None
+
         # Create a pseudo-terminal pair: child writes to slave, we read from master
         master_fd, slave_fd = pty.openpty()
         # Launch the C++ binary with its stdout connected to the PTY slave
@@ -584,6 +613,13 @@ class CatBoostMLX(BaseEstimator):
         buf = b""
         try:
             while True:
+                if deadline and time.monotonic() > deadline:
+                    proc.kill()
+                    proc.wait()
+                    raise RuntimeError(
+                        f"csv_train timed out after {self.train_timeout}s. "
+                        "Increase train_timeout or reduce dataset size/iterations."
+                    )
                 # Poll the master fd with 100ms timeout (avoids busy-waiting)
                 r, _, _ = select.select([master_fd], [], [], 0.1)
                 if r:
@@ -906,7 +942,7 @@ class CatBoostMLX(BaseEstimator):
 
         X, feature_names = self._unpack_predict_input(X, feature_names)
 
-        from ._predict_utils import quantize_features, compute_leaf_indices, apply_link
+        from ._predict_utils import apply_link, compute_leaf_indices, quantize_features
 
         X = _to_numpy(X)
         if X.ndim == 1:
@@ -973,7 +1009,7 @@ class CatBoostMLX(BaseEstimator):
         if loss_type not in ("logloss", "multiclass"):
             raise ValueError(f"staged_predict_proba not supported for loss '{loss_type}'")
 
-        from ._predict_utils import quantize_features, compute_leaf_indices, apply_link
+        from ._predict_utils import apply_link, compute_leaf_indices, quantize_features
 
         X = _to_numpy(X)
         if X.ndim == 1:
@@ -1033,7 +1069,7 @@ class CatBoostMLX(BaseEstimator):
 
         X, feature_names = self._unpack_predict_input(X, feature_names)
 
-        from ._predict_utils import quantize_features, compute_leaf_indices
+        from ._predict_utils import compute_leaf_indices, quantize_features
 
         X = _to_numpy(X)
         if X.ndim == 1:
@@ -1075,7 +1111,15 @@ class CatBoostMLX(BaseEstimator):
             binary = _find_binary("csv_predict", self.binary_path)
             args = [binary, model_path, csv_path, "--output", out_path]
 
-            result = subprocess.run(args, capture_output=True, text=True)
+            try:
+                result = subprocess.run(
+                    args, capture_output=True, text=True, timeout=self.predict_timeout
+                )
+            except subprocess.TimeoutExpired as e:
+                raise RuntimeError(
+                    f"csv_predict timed out after {self.predict_timeout}s. "
+                    "Increase predict_timeout or reduce dataset size."
+                ) from e
             if result.returncode != 0:
                 raise RuntimeError(
                     f"csv_predict failed (exit code {result.returncode}):\n"
@@ -1285,7 +1329,15 @@ class CatBoostMLX(BaseEstimator):
             binary = _find_binary("csv_predict", self.binary_path)
             args = [binary, model_path, csv_path, "--output", out_path, "--shap"]
 
-            result = subprocess.run(args, capture_output=True, text=True)
+            try:
+                result = subprocess.run(
+                    args, capture_output=True, text=True, timeout=self.predict_timeout
+                )
+            except subprocess.TimeoutExpired as e:
+                raise RuntimeError(
+                    f"csv_predict --shap timed out after {self.predict_timeout}s. "
+                    "Increase predict_timeout or reduce dataset size."
+                ) from e
             if result.returncode != 0:
                 raise RuntimeError(
                     f"csv_predict --shap failed (exit code {result.returncode}):\n"
@@ -1362,14 +1414,29 @@ class CatBoostMLX(BaseEstimator):
         n_folds: int = 5,
         feature_names: Optional[List[str]] = None,
     ) -> Dict[str, Union[List[float], float]]:
-        """Run N-fold cross-validation.
+        """Run N-fold cross-validation using the C++ binary's built-in CV mode.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Feature matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+        n_folds : int
+            Number of cross-validation folds (default: 5).
+        feature_names : list of str, optional
+            Names for each feature column.
 
         Returns
         -------
-        dict with keys:
-            fold_metrics: list of per-fold metric values
-            mean: mean metric across folds
-            std: standard deviation across folds
+        dict
+            fold_metrics : list of float
+                Per-fold loss values in fold order. The metric type matches
+                the model's loss function (e.g. RMSE for regression).
+            mean : float
+                Arithmetic mean of fold_metrics.
+            std : float
+                Standard deviation of fold_metrics.
         """
         X = _to_numpy(X)
         y = _to_numpy(y)
@@ -1384,7 +1451,18 @@ class CatBoostMLX(BaseEstimator):
             args = self._build_train_args(csv_path, "", target_col,
                                           cv_folds=n_folds)
 
-            result = subprocess.run(args, capture_output=True, text=True)
+            cv_timeout = (
+                self.train_timeout * n_folds if self.train_timeout is not None else None
+            )
+            try:
+                result = subprocess.run(
+                    args, capture_output=True, text=True, timeout=cv_timeout
+                )
+            except subprocess.TimeoutExpired as e:
+                raise RuntimeError(
+                    f"csv_train CV timed out after {cv_timeout}s. "
+                    "Increase train_timeout or reduce dataset size/iterations/folds."
+                ) from e
             if result.returncode != 0:
                 raise RuntimeError(
                     f"csv_train CV failed (exit code {result.returncode}):\n"

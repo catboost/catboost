@@ -1,0 +1,4 @@
+include CHANGELOG.md
+include README.md
+include catboost_mlx/py.typed
+recursive-include catboost_mlx/bin *

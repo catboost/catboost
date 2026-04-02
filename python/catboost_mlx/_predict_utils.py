@@ -1,7 +1,32 @@
-"""Python-side tree evaluation for staged_predict and apply."""
+"""
+_predict_utils.py -- Pure-Python tree evaluation engine (no C++ binary needed).
+
+What this file does:
+    Normally, predictions call a compiled C++ program on the GPU. But sometimes
+    you want predictions at every step of the training process (like watching
+    a student improve answer by answer). This file re-implements the tree
+    evaluation in Python/NumPy so you can accumulate predictions tree-by-tree
+    without launching a subprocess each time.
+
+How it fits into the project:
+    Imported by core.py for staged_predict(), staged_predict_proba(), and
+    apply(). This is a private module (underscore prefix) -- users never
+    import it directly.
+
+Key concepts:
+    - Quantization: Converting raw feature values into bin numbers (like rounding
+      temperatures to the nearest 5 degrees) so the tree can compare quickly.
+    - Leaf index: Each tree assigns every data point to a "leaf" (the bottom
+      node of the tree). The leaf index tells you which leaf it landed in.
+    - Link function: The final math transformation on raw predictions (e.g.
+      sigmoid converts log-odds to a 0-1 probability).
+    - Oblivious tree bit-indexing: In a tree of depth D, each leaf is identified
+      by a D-bit number. Bit i = 1 means "went right at level i."
+"""
+
+from typing import List, Optional
 
 import numpy as np
-from typing import List, Optional
 
 
 def quantize_features(X: np.ndarray, features: List[dict],
@@ -26,21 +51,24 @@ def quantize_features(X: np.ndarray, features: List[dict],
     binned = np.zeros((n_samples, n_features), dtype=np.uint8)
     cat_set = set(cat_features) if cat_features else set()
 
+    # Quantize each feature column independently
     for f in range(n_features):
         feat = features[f]
         if feat.get("is_categorical", False) or f in cat_set:
-            # Categorical: look up cat_hash_map
+            # Categorical: look up the hash map for each unique value
             cat_map = feat.get("cat_hash_map", {})
             for d in range(n_samples):
                 val = str(X[d, f])
                 if val in cat_map:
                     binned[d, f] = cat_map[val]
                 else:
-                    binned[d, f] = 0  # unknown → bin 0
+                    binned[d, f] = 0  # unknown category -> bin 0
         else:
-            # Numeric: upper_bound on borders + nan offset
+            # Numeric: binary-search on quantization borders
             borders = feat.get("borders", [])
             has_nan = feat.get("has_nan", False)
+            # NaN offset: if this feature has NaN values, bin 0 is reserved
+            # for NaN, so all border-based bins shift up by 1
             bin_offset = 1 if has_nan else 0
 
             col = X[:, f].astype(float)
@@ -48,6 +76,8 @@ def quantize_features(X: np.ndarray, features: List[dict],
 
             if len(borders) > 0:
                 border_arr = np.array(borders, dtype=float)
+                # searchsorted with side='right' gives the count of borders
+                # strictly less than the value, matching C++ quantization
                 bins = np.searchsorted(border_arr, col, side="right") + bin_offset
             else:
                 bins = np.full(n_samples, bin_offset, dtype=np.uint8)
@@ -73,6 +103,8 @@ def compute_leaf_indices(binned_X: np.ndarray, tree: dict) -> np.ndarray:
     n_samples = binned_X.shape[0]
     leaf_idx = np.zeros(n_samples, dtype=np.uint32)
 
+    # Build the leaf index bit by bit. For an oblivious tree of depth D,
+    # the leaf index is a D-bit integer. Bit i = 1 means "went right at level i."
     for level, split in enumerate(tree["splits"]):
         feat_idx = split["feature_idx"]
         bin_threshold = split["bin_threshold"]
@@ -152,9 +184,10 @@ def apply_link(cursor: np.ndarray, loss_type: str,
         return {"prediction": cursor, "probability": prob,
                 "predicted_class": predicted_class}
     elif loss_type == "multiclass":
-        # cursor shape: (n_samples, K-1) where K = num_classes
-        # Implicit last class: log-prob = 0 (i.e. exp=1)
-        n_samples = cursor.shape[0]
+        # Multiclass softmax with an implicit last class.
+        # The model outputs K-1 raw values; the K-th class has implicit value 0.
+        # We use the max-subtraction trick (max_c) for numerical stability:
+        # subtracting the max from exponents prevents overflow.
         max_c = np.maximum(cursor.max(axis=1), 0.0)
         exp_c = np.exp(cursor - max_c[:, None])
         exp_implicit = np.exp(-max_c)

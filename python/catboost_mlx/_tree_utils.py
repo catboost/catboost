@@ -1,6 +1,28 @@
-"""Shared tree unfolding logic for CoreML and ONNX export."""
+"""
+_tree_utils.py -- Converts compact oblivious trees into standard binary trees.
 
-from typing import Dict, List, Any
+What this file does:
+    Our model stores trees in a compressed "oblivious" format where each level
+    has exactly one split rule (this is what makes them fast on GPUs). But
+    export tools like CoreML and ONNX expect standard binary trees where every
+    node can have its own rule. This file "unfolds" the compact representation
+    into the standard one -- like expanding a folded paper map into a full
+    picture.
+
+How it fits into the project:
+    Imported by export_coreml.py and export_onnx.py for model export, and
+    by core.py for get_trees(). Private module (underscore prefix).
+
+Key concepts:
+    - Oblivious (symmetric) tree: A tree where all nodes at the same depth
+      share the same split feature and threshold. Depth D gives 2^D leaves.
+    - BFS (breadth-first search): Visiting tree nodes level by level, left to
+      right. Used here to construct the unfolded tree in a predictable order.
+    - Bin threshold: Splits are stored as integer bin indices, not raw values.
+      This function converts them back to real numbers for export.
+"""
+
+from typing import List
 
 
 def unfold_oblivious_tree(tree: dict, features: List[dict], approx_dim: int = 1
@@ -41,6 +63,8 @@ def unfold_oblivious_tree(tree: dict, features: List[dict], approx_dim: int = 1
     # level determines which oblivious split to use.  The "path" to a node
     # is encoded as a partial leaf index (bits for levels already decided).
 
+    # BFS: we use a queue to visit nodes level by level. Each queue item
+    # tracks: node ID, tree level, and partial leaf index (bits decided so far).
     nodes: List[dict] = []
     # Queue items: (node_id, level, partial_leaf_index)
     node_id_counter = [0]
@@ -67,8 +91,8 @@ def unfold_oblivious_tree(tree: dict, features: List[dict], approx_dim: int = 1
 
             threshold = _bin_to_threshold(feat_idx, bin_threshold, is_one_hot, features)
 
-            left_id = _alloc_id()   # go left (bit=0, condition NOT met)
-            right_id = _alloc_id()  # go right (bit=1, condition met)
+            left_id = _alloc_id()   # Left child: split condition NOT met, bit stays 0
+            right_id = _alloc_id()  # Right child: split condition met, bit set to 1
 
             nodes.append({
                 "type": "branch",
@@ -104,6 +128,8 @@ def _bin_to_threshold(feat_idx: int, bin_threshold: int, is_one_hot: bool,
         return float(bin_threshold)
 
     feat = features[feat_idx]
+    # The NaN offset accounts for bin 0 being reserved for NaN values.
+    # border_idx = bin_threshold - offset gives the actual index into borders.
     nan_offset = 1 if feat.get("has_nan", False) else 0
     border_idx = bin_threshold - nan_offset
     borders = feat.get("borders", [])

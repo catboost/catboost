@@ -1,6 +1,24 @@
-"""CoreML export for CatBoost-MLX models."""
+"""
+export_coreml.py -- Exports trained models to Apple's CoreML format.
 
-from typing import Dict, Any, List
+What this file does:
+    CoreML is Apple's way of running ML models on iPhones, iPads, and Macs.
+    This file translates our trained tree model into a CoreML TreeEnsemble
+    using the coremltools library. Each tree is added node by node, specifying
+    branch conditions (numeric threshold or categorical equality) and leaf values.
+
+How it fits into the project:
+    Called by core.py when users run model.export_coreml(). Imports _tree_utils.py
+    to convert oblivious trees to standard binary trees. Requires the optional
+    ``coremltools`` pip package.
+
+Key concepts:
+    - CoreML: Apple's framework for on-device ML inference (iOS/macOS/watchOS).
+    - BranchOnValueGreaterThan: CoreML's way of saying "go right if value > threshold."
+    - BranchOnValueEqual: CoreML's way of handling categorical splits (equality check).
+    - Classification_SoftMax: CoreML's post-evaluation transform for probabilities.
+"""
+
 from ._tree_utils import unfold_oblivious_tree
 
 
@@ -16,7 +34,6 @@ def export_coreml(model_data: dict, path: str) -> None:
     """
     try:
         import coremltools as ct
-        from coremltools.models import MLModel
         from coremltools.proto import Model_pb2
     except ImportError:
         raise ImportError(
@@ -34,6 +51,7 @@ def export_coreml(model_data: dict, path: str) -> None:
 
     is_classifier = loss_type in ("logloss", "multiclass")
 
+    # CoreML uses a builder pattern: create the ensemble type, then add nodes one by one
     feature_spec = [("features", ct.models.datatypes.Array(num_features))]
 
     # Build coremltools model spec
@@ -49,7 +67,7 @@ def export_coreml(model_data: dict, path: str) -> None:
             output_features="predicted_class",
         )
 
-        # Set post-evaluation transform for probability
+        # SoftMax post-evaluation transform converts raw tree outputs to probabilities
         builder.spec.treeEnsembleClassifier.postEvaluationTransform = (
             Model_pb2.TreeEnsemblePostEvaluationTransform.Value(
                 "Classification_SoftMax"

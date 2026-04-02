@@ -1,6 +1,27 @@
-"""ONNX export for CatBoost-MLX models."""
+"""
+export_onnx.py -- Exports trained models to the ONNX format for cross-platform inference.
 
-from typing import Dict, Any, List
+What this file does:
+    ONNX is like a universal file format for ML models -- think of it as PDF
+    for documents. Any platform that reads ONNX (Windows, Linux, mobile, cloud)
+    can run your model. This file translates our trained tree model into ONNX's
+    TreeEnsembleRegressor or TreeEnsembleClassifier operators.
+
+How it fits into the project:
+    Called by core.py when users run model.export_onnx(). Imports _tree_utils.py
+    to convert oblivious trees to standard binary trees. Requires the optional
+    ``onnx`` pip package.
+
+Key concepts:
+    - ONNX: Open Neural Network Exchange -- an open standard for ML model files.
+    - TreeEnsembleRegressor / TreeEnsembleClassifier: ONNX operators specifically
+      designed to represent decision-tree-based models as flat node arrays.
+    - Post-transform: ONNX's built-in final function (SOFTMAX for multiclass,
+      LOGISTIC for binary). Poisson/Tweedie need a separate Exp node.
+"""
+
+from typing import List
+
 from ._tree_utils import unfold_oblivious_tree
 
 
@@ -16,7 +37,7 @@ def export_onnx(model_data: dict, path: str) -> None:
     """
     try:
         import onnx
-        from onnx import helper, TensorProto, numpy_helper
+        from onnx import TensorProto, helper
     except ImportError:
         raise ImportError(
             "onnx is required for ONNX export. "
@@ -33,7 +54,8 @@ def export_onnx(model_data: dict, path: str) -> None:
 
     is_classifier = loss_type in ("logloss", "multiclass")
 
-    # Build flat arrays for TreeEnsemble operator attributes
+    # ONNX TreeEnsemble operators require all tree data as flat parallel arrays
+    # (one entry per node across ALL trees). We build these as we iterate.
     nodes_treeids: List[int] = []
     nodes_nodeids: List[int] = []
     nodes_featureids: List[int] = []
@@ -99,6 +121,7 @@ def export_onnx(model_data: dict, path: str) -> None:
     # Input
     X = helper.make_tensor_value_info("X", TensorProto.FLOAT, [None, num_features])
 
+    # ONNX uses different operators for classifiers vs regressors
     if is_classifier:
         n_targets = num_classes if loss_type == "multiclass" else 2
         class_labels = list(range(n_targets))
@@ -145,7 +168,9 @@ def export_onnx(model_data: dict, path: str) -> None:
         )
 
     else:
-        # Determine post_transform
+        # Regressor: poisson/tweedie need Exp transform after tree evaluation,
+        # but ONNX's TreeEnsembleRegressor has no built-in Exp. So we add a
+        # separate Exp node in the ONNX graph.
         if loss_type in ("poisson", "tweedie"):
             # No built-in exp in TreeEnsembleRegressor, add Exp node
             post_transform = "NONE"
