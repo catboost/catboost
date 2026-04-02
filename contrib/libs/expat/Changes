@@ -10,30 +10,71 @@
 !!                 ~~~~~~~~~~~~                                              !!
 !! The following topics need *additional skilled C developers* to progress   !!
 !! in a timely manner or at all (loosely ordered by descending priority):    !!
+!!                            _______________________                        !!
+!! - teaming up on fixing the UNFIXED SECURITY ISSUES listed at:             !!
+!!                            """""""""""""""""""""""                        !!
+!!   https://github.com/libexpat/libexpat/issues/1160                        !!
 !!                                                                           !!
 !! - teaming up on researching and fixing future security reports and        !!
 !!   ClusterFuzz findings with few-days-max response times in communication  !!
 !!   in order to (1) have a sound fix ready before the end of a 90 days      !!
 !!   grace period and (2) in a sustainable manner,                           !!
-!! - helping Perl's XML::Parser Expat bindings with supporting Expat's       !!
-!!   security API (https://github.com/cpan-authors/XML-Parser/issues/102):   !!
-!!   - XML_SetAllocTrackerActivationThreshold                                !!
-!!   - XML_SetAllocTrackerMaximumAmplification                               !!
-!!   - XML_SetBillionLaughsAttackProtectionActivationThreshold               !!
-!!   - XML_SetBillionLaughsAttackProtectionMaximumAmplification              !!
-!!   - XML_SetReparseDeferralEnabled                                         !!
+!!                                                                           !!
 !! - implementing and auto-testing XML 1.0r5 support                         !!
 !!   (needs discussion before pull requests),                                !!
-!! - smart ideas on fixing the Autotools CMake files generation issue        !!
-!!   without breaking CI (needs discussion before pull requests),            !!
-!! - pushing migration from `int` to `size_t` further                        !!
-!!   including edge-cases test coverage (needs discussion before anything).  !!
 !!                                                                           !!
 !! For details, please reach out via e-mail to sebastian@pipping.org so we   !!
 !! can schedule a voice call on the topic, in English or German.             !!
 !!                                                                           !!
-!! THANK YOU!                        Sebastian Pipping -- Berlin, 2024-03-09 !!
+!! THANK YOU!                        Sebastian Pipping -- Berlin, 2026-03-17 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Release 2.7.5 Tue March 17 2026
+        Security fixes:
+           #1158  CVE-2026-32776 -- Fix NULL function pointer dereference for
+                    empty external parameter entities; it takes use of both
+                    functions XML_ExternalEntityParserCreate and
+                    XML_SetParamEntityParsing for an application to be
+                    vulnerable.
+     #1161 #1162  CVE-2026-32777 -- Protect from XML_TOK_INSTANCE_START
+                    infinite loop in function entityValueProcessor; it takes
+                    use of both functions XML_ExternalEntityParserCreate and
+                    XML_SetParamEntityParsing for an application to be
+                    vulnerable.
+           #1163  CVE-2026-32778 -- Fix NULL dereference in function setContext
+                    on retry after an earlier ouf-of-memory condition; it takes
+                    use of function XML_ParserCreateNS or XML_ParserCreate_MM
+                    for an application to be vulnerable.
+           #1160  Three more unfixed vulnerabilities left
+
+        Other changes:
+     #1146 #1147  Autotools: Fix condition for symbol versioning check, in
+                    particular when compiling with slibtool (not libtool)
+           #1156  Address Cppcheck >=2.20.0 warnings
+           #1153  tests: Make test_buffer_can_grow_to_max work for MinGW on
+                    Ubuntu 24.04
+     #1157 #1159  Version info bumped from 12:2:11 (libexpat*.so.1.11.2)
+                    to 12:3:11 (libexpat*.so.1.11.3); see https://verbump.de/
+                    for what these numbers do
+
+        Infrastructure:
+           #1148  CI: Fix FreeBSD and Solaris CI
+           #1149  CI: Bump to WASI SDK 30
+           #1153  CI: Adapt to breaking changes with Ubuntu 22.04
+           #1156  CI: Adapt to breaking changes in Cppcheck
+
+        Special thanks to:
+            Berkay Eren Ürün
+            Christian Ng
+            Fabio Scaccabarozzi
+            Francesco Bertolaccini
+            Mark Brand
+            Rhodri James
+                 and
+            AddressSanitizer
+            Buttercup
+            OSS-Fuzz / ClusterFuzz
+            Trail of Bits
 
 Release 2.7.4 Sat January 31 2026
         Security fixes:
