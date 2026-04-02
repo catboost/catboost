@@ -21,6 +21,7 @@ namespace NCatboostMlx {
         TVector<mx::array> TreeLeafValues;   // [numTrees] each [2^depth] for dim=1, [2^depth, K] for multi
         ui32 NumIterations;
         ui32 ApproxDimension = 1;
+        ui32 BestIteration = 0;              // iteration with best validation loss (if early stopping used)
     };
 
     // Configuration for the boosting loop.
@@ -31,6 +32,15 @@ namespace NCatboostMlx {
         float L2RegLambda = 3.0f;
         bool UseWeights = false;
         ui32 ApproxDimension = 1;
+        // Early stopping
+        ui32 EarlyStoppingPatience = 0;     // 0 = disabled
+        ui32 MetricPeriod = 1;              // compute metrics every N iterations
+        // Validation dataset (optional, not owned)
+        TMLXDataSet* ValidationData = nullptr;
+        // Subsampling
+        float SubsampleRatio = 1.0f;       // row subsampling fraction per iteration
+        float ColsampleByTree = 1.0f;      // feature subsampling fraction per tree
+        ui64 RandomSeed = 42;
     };
 
     // Run the gradient boosting loop.

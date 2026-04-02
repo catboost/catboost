@@ -239,4 +239,133 @@ namespace NCatboostMlx {
         }
     };
 
+    // MAE (Mean Absolute Error) / L1 loss.
+    // Loss = mean(|pred - target|)
+    // Gradient = sign(pred - target) (subgradient)
+    // Hessian = 1.0 (constant — needed for Newton step denominator)
+    class TMAETarget : public IMLXTargetFunc {
+    public:
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            gradients = mx::sign(mx::subtract(cursor, targets));
+            gradients = mx::multiply(gradients, weights);
+            hessians = mx::copy(weights);
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            auto loss = mx::mean(mx::multiply(
+                mx::abs(mx::subtract(cursor, targets)), weights));
+            TMLXDevice::EvalNow(loss);
+            return loss;
+        }
+    };
+
+    // Quantile regression loss.
+    // Asymmetric L1 loss parameterized by alpha ∈ (0, 1).
+    // alpha = 0.5 reduces to MAE/median regression.
+    // Gradient = (1 - alpha) if pred > target, else -alpha
+    // Hessian = 1.0 (constant)
+    class TQuantileTarget : public IMLXTargetFunc {
+    public:
+        explicit TQuantileTarget(float alpha = 0.5f) : Alpha_(alpha) {}
+
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            auto diff = mx::subtract(cursor, targets);
+            auto isPositive = mx::greater(diff, mx::array(0.0f));
+            gradients = mx::where(isPositive,
+                mx::array(1.0f - Alpha_), mx::array(-Alpha_));
+            gradients = mx::multiply(gradients, weights);
+            hessians = mx::copy(weights);
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            auto diff = mx::subtract(targets, cursor);
+            auto isPositive = mx::greater(diff, mx::array(0.0f));
+            auto loss = mx::where(isPositive,
+                mx::multiply(mx::array(Alpha_), diff),
+                mx::multiply(mx::array(Alpha_ - 1.0f), diff));
+            auto result = mx::mean(mx::multiply(loss, weights));
+            TMLXDevice::EvalNow(result);
+            return result;
+        }
+
+    private:
+        float Alpha_;
+    };
+
+    // Huber loss (smooth approximation of L1).
+    // Quadratic for |diff| <= delta, linear for |diff| > delta.
+    // Gradient = diff if |diff| <= delta, else delta * sign(diff)
+    // Hessian = weight if |diff| <= delta, else small epsilon * weight
+    class THuberTarget : public IMLXTargetFunc {
+    public:
+        explicit THuberTarget(float delta = 1.0f) : Delta_(delta) {}
+
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            auto diff = mx::subtract(cursor, targets);
+            auto absDiff = mx::abs(diff);
+            auto isSmall = mx::less_equal(absDiff, mx::array(Delta_));
+            gradients = mx::where(isSmall, diff,
+                mx::multiply(mx::array(Delta_), mx::sign(diff)));
+            gradients = mx::multiply(gradients, weights);
+            hessians = mx::where(isSmall, mx::copy(weights),
+                mx::multiply(mx::array(1e-6f), weights));
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            auto diff = mx::subtract(cursor, targets);
+            auto absDiff = mx::abs(diff);
+            auto isSmall = mx::less_equal(absDiff, mx::array(Delta_));
+            auto loss = mx::where(isSmall,
+                mx::multiply(mx::array(0.5f), mx::multiply(diff, diff)),
+                mx::subtract(
+                    mx::multiply(mx::array(Delta_), absDiff),
+                    mx::array(0.5f * Delta_ * Delta_)));
+            auto result = mx::mean(mx::multiply(loss, weights));
+            TMLXDevice::EvalNow(result);
+            return result;
+        }
+
+    private:
+        float Delta_;
+    };
+
 }  // namespace NCatboostMlx
