@@ -197,6 +197,26 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
     )
 
 
+def _format_numeric_col(col: np.ndarray) -> List[str]:
+    """Format a numeric column to strings with 10 significant digits, empty for NaN."""
+    mask = np.isnan(col)
+    out = [f"{v:.10g}" for v in col]
+    for i in np.flatnonzero(mask):
+        out[i] = ""
+    return out
+
+
+def _format_cat_col(col: np.ndarray) -> List[str]:
+    """Format a categorical column to strings, empty for NaN."""
+    out = []
+    for val in col:
+        if isinstance(val, (float, np.floating)) and np.isnan(val):
+            out.append("")
+        else:
+            out.append(str(val))
+    return out
+
+
 def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                    feature_names: Optional[List[str]] = None,
                    cat_features: Optional[List[int]] = None,
@@ -224,8 +244,18 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                     "(comma, newline, or null byte) that would corrupt the CSV."
                 )
 
+    cat_set = frozenset(cat_features) if cat_features else frozenset()
     group_col_idx = -1
     weight_col_idx = -1
+
+    # Pre-format all feature columns (vectorized per-column instead of per-cell)
+    formatted_cols: List[List[str]] = []
+    for j in range(n_features):
+        col = X[:, j]
+        if j in cat_set:
+            formatted_cols.append(_format_cat_col(col))
+        else:
+            formatted_cols.append(_format_numeric_col(col.astype(float)))
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -244,23 +274,21 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
             header.append("target")
             writer.writerow(header)
             target_col_idx = len(header) - 1
+
+            # Pre-format prefix and target columns
+            gid_strs = [str(g) for g in group_id] if group_id is not None else None
+            sw_strs = [f"{w:.10g}" for w in sample_weight] if sample_weight is not None else None
+            y_strs = [f"{v:.10g}" for v in y]
+
             for i in range(n_samples):
                 row = []
-                if group_id is not None:
-                    row.append(str(group_id[i]))
-                if sample_weight is not None:
-                    # 10 significant digits avoids precision loss while keeping files compact
-                    row.append(f"{sample_weight[i]:.10g}")
+                if gid_strs is not None:
+                    row.append(gid_strs[i])
+                if sw_strs is not None:
+                    row.append(sw_strs[i])
                 for j in range(n_features):
-                    val = X[i, j]
-                    if cat_features and j in cat_features:
-                        # Categorical: write as string (e.g. "red"); empty for NaN
-                        row.append(str(val) if not (isinstance(val, (float, np.floating)) and np.isnan(val)) else "")
-                    else:
-                        # Numeric: 10 significant digits; empty string for NaN
-                        fval = float(val)
-                        row.append(f"{fval:.10g}" if not np.isnan(fval) else "")
-                row.append(f"{y[i]:.10g}")
+                    row.append(formatted_cols[j][i])
+                row.append(y_strs[i])
                 writer.writerow(row)
             return target_col_idx, group_col_idx, weight_col_idx
         else:
@@ -268,12 +296,7 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
             for i in range(n_samples):
                 row = []
                 for j in range(n_features):
-                    val = X[i, j]
-                    if cat_features and j in cat_features:
-                        row.append(str(val) if not (isinstance(val, (float, np.floating)) and np.isnan(val)) else "")
-                    else:
-                        fval = float(val)
-                        row.append(f"{fval:.10g}" if not np.isnan(fval) else "")
+                    row.append(formatted_cols[j][i])
                 writer.writerow(row)
             return -1, -1, -1
 
@@ -538,7 +561,8 @@ class CatBoostMLX(BaseEstimator):
 
     def _build_train_args(self, csv_path: str, model_path: str, target_col: int,
                           eval_file: Optional[str] = None,
-                          cv_folds: Optional[int] = None) -> List[str]:
+                          cv_folds: Optional[int] = None,
+                          cat_col_offset: int = 0) -> List[str]:
         """Build the command-line argument list for the csv_train binary.
 
         Always includes --verbose and --feature-importance so we can parse
@@ -565,9 +589,11 @@ class CatBoostMLX(BaseEstimator):
         else:
             args.extend(["--output", model_path])
         args.extend(["--feature-importance", "--verbose"])
-        # Categorical features
+        # Categorical features — offset indices to account for prepended
+        # group/weight columns so they map to CSV column positions
         if self.cat_features:
-            args.extend(["--cat-features", ",".join(str(c) for c in self.cat_features)])
+            csv_cat_cols = [c + cat_col_offset for c in self.cat_features]
+            args.extend(["--cat-features", ",".join(str(c) for c in csv_cat_cols)])
         # Validation data: eval_file (external) takes priority over eval_fraction (auto-split)
         if eval_file is not None:
             args.extend(["--eval-file", eval_file])
@@ -862,12 +888,16 @@ class CatBoostMLX(BaseEstimator):
 
             # ── Phase 7: Build CLI command and run the C++ training binary ──
             # Temporarily override group_col and weight_col if provided
+            # Compute column offset for cat_features: group and weight columns
+            # are prepended before feature columns in the CSV
+            cat_col_offset = (1 if gid is not None else 0) + (1 if sw is not None else 0)
             orig_group_col = self.group_col
             try:
                 if gid is not None and self.group_col < 0:
                     self.group_col = group_col_idx
                 args = self._build_train_args(csv_path, model_path, target_col,
-                                              eval_file=eval_file_path)
+                                              eval_file=eval_file_path,
+                                              cat_col_offset=cat_col_offset)
             finally:
                 self.group_col = orig_group_col
 
@@ -937,12 +967,9 @@ class CatBoostMLX(BaseEstimator):
         output = self._run_predict(X, feature_names)
         loss_type = self._get_loss_type()
 
-        if loss_type == "logloss":
+        if loss_type in ("logloss", "multiclass"):
             return output["predicted_class"].astype(int)
-        elif loss_type == "multiclass":
-            return output["predicted_class"].astype(int)
-        else:
-            return output["prediction"]
+        return output["prediction"]
 
     def predict_proba(self, X, feature_names: Optional[List[str]] = None) -> np.ndarray:
         """Predict class probabilities (classification only).
