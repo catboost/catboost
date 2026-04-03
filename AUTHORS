@@ -43,3 +43,6 @@ Evgeny Eltyshev
 
 CoreML support:
 Alexander Baranov
+
+MLX (Apple Silicon GPU) implementation:
+RR-AMATOK

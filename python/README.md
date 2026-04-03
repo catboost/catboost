@@ -352,8 +352,8 @@ Standalone (not imported by the package):
 | `auto_class_weights` | None | "Balanced" or "SqrtBalanced" for imbalanced data |
 | `verbose` | False | Print per-iteration progress during training |
 | `binary_path` | None | Custom path to compiled binaries |
-| `train_timeout` | 600.0 | Max seconds for training subprocess (None = no limit) |
-| `predict_timeout` | 60.0 | Max seconds for prediction subprocess (None = no limit) |
+| `train_timeout` | None | Max seconds for training subprocess (None = no limit) |
+| `predict_timeout` | None | Max seconds for prediction subprocess (None = no limit) |
 
 ### CLI to Python Parameter Mapping
 
