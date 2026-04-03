@@ -327,9 +327,9 @@ class CatBoostMLX(BaseEstimator):
     binary_path : str, optional
         Path to directory containing csv_train/csv_predict, or path to csv_train directly.
     train_timeout : float or None
-        Maximum seconds for a training subprocess (default: 600). None disables timeout.
+        Maximum seconds for a training subprocess (default: None = no limit).
     predict_timeout : float or None
-        Maximum seconds for a prediction subprocess (default: 60). None disables timeout.
+        Maximum seconds for a prediction subprocess (default: None = no limit).
     """
 
     def __init__(
@@ -361,8 +361,8 @@ class CatBoostMLX(BaseEstimator):
         auto_class_weights: Optional[str] = None,
         verbose: bool = False,
         binary_path: Optional[str] = None,
-        train_timeout: Optional[float] = 600.0,
-        predict_timeout: Optional[float] = 60.0,
+        train_timeout: Optional[float] = None,
+        predict_timeout: Optional[float] = None,
     ):
         self.iterations = iterations
         self.depth = depth
