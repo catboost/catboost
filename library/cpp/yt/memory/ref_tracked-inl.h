@@ -29,8 +29,8 @@ Y_FORCE_INLINE TRefCountedTypeCookie GetRefCountedTypeCookie()
     return cookieValue;
 }
 
-template <class T, class TTag, int Counter>
-Y_FORCE_INLINE TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation(const TSourceLocation& location)
+template <class T, auto LocationLite>
+Y_FORCE_INLINE TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation()
 {
     static std::atomic<TRefCountedTypeCookie> cookie{NullRefCountedTypeCookie};
     auto cookieValue = cookie.load(std::memory_order::relaxed);
@@ -38,7 +38,7 @@ Y_FORCE_INLINE TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation(const T
         cookieValue = TRefCountedTrackerFacade::GetCookie(
             GetRefCountedTypeKey<T>(),
             sizeof(T),
-            location);
+            TSourceLocation::FromLite<LocationLite>());
         cookie.store(cookieValue, std::memory_order::relaxed);
     }
     return cookieValue;

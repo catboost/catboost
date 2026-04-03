@@ -45,23 +45,14 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-
-//! A per-translation unit tag type.
-struct TCurrentTranslationUnitTag
-{ };
-
-} // namespace
-
 template <class T>
 TRefCountedTypeKey GetRefCountedTypeKey();
 
 template <class T>
 TRefCountedTypeCookie GetRefCountedTypeCookie();
 
-template <class T, class TTag, int Counter>
-TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation(
-    const TSourceLocation& location);
+template <class T, auto LocationLite>
+TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation();
 
 ////////////////////////////////////////////////////////////////////////////////
 
