@@ -1,0 +1,10 @@
+cc_library(
+    name = "crc32c",
+    srcs = ["crc32c.cpp"],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//contrib/libs/crcutil",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

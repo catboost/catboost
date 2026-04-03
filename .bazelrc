@@ -1,0 +1,18 @@
+# CatBoost Bazel build configuration
+
+# Add workspace root to include path so workspace-relative includes work:
+#   e.g. #include "util/generic/string.h" from any compilation unit
+build --copt=-I.
+
+# C++20 standard (matches CMakeLists.txt)
+build --cxxopt=-std=c++20
+build --host_cxxopt=-std=c++20
+
+# Use C17 for C sources
+build --conlyopt=-std=c17
+
+# Silence warnings from vendored third-party libraries when building catboost targets
+build --per_file_copt=contrib/.*@-Wno-everything
+
+# Disable default Abseil / proto rules that may be auto-loaded
+common --incompatible_enable_cc_toolchain_resolution=false

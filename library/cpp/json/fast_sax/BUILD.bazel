@@ -1,0 +1,24 @@
+# Note: parser.rl6 must be compiled with Ragel to produce parser.cpp.
+# If parser.cpp is not pre-generated, install Ragel and uncomment the
+# genrule below.
+#
+# genrule(
+#     name = "fast_sax_parser_gen",
+#     srcs = ["parser.rl6"],
+#     outs = ["parser.cpp"],
+#     cmd = "ragel -CG2 -o $@ $(SRCS)",
+# )
+
+cc_library(
+    name = "json_fast_sax",
+    srcs = [
+        "parser.cpp",  # generated from parser.rl6 by Ragel
+        "unescape.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//library/cpp/json/common:json_common",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

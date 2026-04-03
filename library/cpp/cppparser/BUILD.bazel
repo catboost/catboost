@@ -1,0 +1,12 @@
+# Simple C++ declaration parser used by the enum_parser tool.
+
+cc_library(
+    name = "cppparser",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

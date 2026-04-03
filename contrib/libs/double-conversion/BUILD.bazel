@@ -1,0 +1,11 @@
+# Grisu3 double-to-string / string-to-double conversion library.
+
+cc_library(
+    name = "double-conversion",
+    srcs = glob(["double-conversion/*.cc"]),
+    hdrs = glob(["double-conversion/*.h"]),
+    # Expose headers as "double-conversion/<header>.h"
+    includes = ["."],
+    copts = ["-Wno-sign-compare"],
+    visibility = ["//visibility:public"],
+)

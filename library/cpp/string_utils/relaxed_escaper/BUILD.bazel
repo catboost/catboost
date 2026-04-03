@@ -1,0 +1,7 @@
+cc_library(
+    name = "relaxed_escaper",
+    srcs = ["relaxed_escaper.cpp"],
+    hdrs = ["relaxed_escaper.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

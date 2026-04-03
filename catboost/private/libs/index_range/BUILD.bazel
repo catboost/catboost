@@ -1,0 +1,7 @@
+cc_library(
+    name = "index_range",
+    srcs = ["index_range.cpp"],
+    hdrs = ["index_range.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,14 @@
+# zlib compression library (vendored).
+
+cc_library(
+    name = "zlib",
+    srcs = glob(["*.c"]),
+    hdrs = glob(["*.h", "include/*.h"]),
+    includes = ["include", "."],
+    defines = ["HAVE_HIDDEN"],
+    copts = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["-Wno-implicit-function-declaration"],
+    }),
+    visibility = ["//visibility:public"],
+)

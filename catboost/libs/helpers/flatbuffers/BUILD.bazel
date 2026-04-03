@@ -1,0 +1,15 @@
+load("//bazel:flatbuffers.bzl", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "helpers_flatbuffers",
+    srcs = ["guid.fbs"],
+    include_paths = [
+        "catboost/libs/helpers/flatbuffers",
+        ".",
+    ],
+    deps = [
+        "//contrib/libs/flatbuffers",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

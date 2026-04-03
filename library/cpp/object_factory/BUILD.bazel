@@ -1,0 +1,7 @@
+cc_library(
+    name = "object_factory",
+    srcs = ["object_factory.cpp"],
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

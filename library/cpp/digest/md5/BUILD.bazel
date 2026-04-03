@@ -1,0 +1,11 @@
+cc_library(
+    name = "md5",
+    srcs = ["md5.cpp"],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//contrib/libs/nayuki_md5",
+        "//library/cpp/string_utils/base64",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)
