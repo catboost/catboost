@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `cross_validate()`: CV output parser now matches actual binary output format (`Fold N: test_loss=...` and `Test  loss: ... +/- ...`)
 - `CatBoostMLXClassifier.fit()`: `y` parameter now defaults to `None` so `fit(pool)` works without passing `y` explicitly
+- `load_model()`: restores `self.loss` from model JSON so the instance reflects the trained loss, not the constructor default
+- `_array_to_csv`: return type annotation tightened from `tuple` to `Tuple[int, int, int]`
+
+### Changed
+- Added `Tuple` to typing imports; added return type hint on `_unpack_predict_input`
+- `MANIFEST.in`: added `include LICENSE` for proper sdist packaging
 
 ## [0.2.0] - 2026-04-02
 

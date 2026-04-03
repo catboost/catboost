@@ -615,6 +615,29 @@ class TestLoadModelAttributes:
         finally:
             os.unlink(path)
 
+    def test_load_model_restores_loss(self):
+        """load_model() should sync self.loss from the model's trained loss."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(30, 3)
+        y = X[:, 0] * 2 + rng.normal(0, 0.1, 30)
+        model = CatBoostMLXRegressor(
+            iterations=10, depth=3, loss="mae", binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            model.save_model(path)
+            # Load into a model with default loss (rmse)
+            loaded = CatBoostMLXRegressor(binary_path=BINARY_PATH)
+            assert loaded.loss == "rmse"  # default before load
+            loaded.load_model(path)
+            assert loaded.loss == "mae"  # synced from model JSON
+        finally:
+            os.unlink(path)
+
 
 # ── Staged Predict Link Function ────────────────────────────────────────────
 

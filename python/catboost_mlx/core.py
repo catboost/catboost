@@ -46,7 +46,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -201,7 +201,7 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                    feature_names: Optional[List[str]] = None,
                    cat_features: Optional[List[int]] = None,
                    group_id: Optional[np.ndarray] = None,
-                   sample_weight: Optional[np.ndarray] = None) -> tuple:
+                   sample_weight: Optional[np.ndarray] = None) -> Tuple[int, int, int]:
     """Write numpy arrays to CSV for the C++ binaries.
 
     The C++ binaries (csv_train / csv_predict) read CSV files as input.
@@ -912,7 +912,9 @@ class CatBoostMLX(BaseEstimator):
                 stacklevel=3,
             )
 
-    def _unpack_predict_input(self, X, feature_names=None):
+    def _unpack_predict_input(
+        self, X, feature_names=None
+    ) -> Tuple[np.ndarray, Optional[List[str]]]:
         """Unpack predict input, handling Pool objects transparently."""
         from .pool import Pool
         if isinstance(X, Pool):
@@ -1243,6 +1245,10 @@ class CatBoostMLX(BaseEstimator):
         self.n_features_in_ = len(features)
         names = [f.get("name", f"f{f.get('index', i)}") for i, f in enumerate(features)]
         self.feature_names_in_ = np.array(names, dtype=object)
+        # Sync loss parameter so the instance reflects the trained model's loss
+        model_loss = self._model_data.get("model_info", {}).get("loss_type")
+        if model_loss:
+            self.loss = model_loss.split(":")[0].lower()
         return self
 
     @classmethod

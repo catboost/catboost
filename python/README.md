@@ -417,7 +417,7 @@ cp python/catboost_mlx/bin/csv_predict .
 ## Running Tests
 
 ```bash
-# All tests (173 tests)
+# All tests (174 tests)
 python3 -m pytest python/tests/ -v
 
 # A specific test class
