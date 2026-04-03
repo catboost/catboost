@@ -298,3 +298,367 @@ class TestErrorPaths:
         arr = np.random.rand(10, 3)
         pool = Pool(arr)
         assert pool.X is arr or pool.X.base is arr
+
+    def test_load_model_invalid_keys(self):
+        """Loading valid JSON without required model keys should raise ValueError."""
+        with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
+            json.dump({"hello": "world"}, f)
+            path = f.name
+        try:
+            model = CatBoostMLX()
+            with pytest.raises(ValueError, match="missing required keys"):
+                model.load_model(path)
+        finally:
+            os.unlink(path)
+
+    def test_fit_y_none_raises(self):
+        """fit() with y=None on raw arrays should raise ValueError."""
+        model = CatBoostMLXRegressor(iterations=5)
+        with pytest.raises(ValueError, match="y is required"):
+            model.fit(np.random.rand(10, 3))
+
+
+# ── NaN Handling ────────────────────────────────────────────────────────────
+
+class TestNaNHandling:
+    def test_nan_in_numeric_features(self):
+        """Training with NaN in numeric features should work with nan_mode='min'."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = rng.rand(50)
+        X[0, 0] = np.nan
+        X[5, 1] = np.nan
+        X[10, 2] = np.nan
+        model = CatBoostMLXRegressor(
+            iterations=10, depth=3, nan_mode="min", binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        # Predict on clean data to verify model works
+        X_clean = rng.rand(20, 3)
+        preds = model.predict(X_clean)
+        assert preds.shape == (20,)
+        assert not np.any(np.isnan(preds))
+
+    def test_nan_mode_forbidden_raises(self):
+        """nan_mode='forbidden' should cause an error when NaN values exist."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(20, 2)
+        X[0, 0] = np.nan
+        y = rng.rand(20)
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, nan_mode="forbidden", binary_path=BINARY_PATH
+        )
+        with pytest.raises(RuntimeError):
+            model.fit(X, y)
+
+    def test_nan_predict(self):
+        """Predicting on data with NaN should work when model was trained with nan_mode='min'."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X_train = rng.rand(50, 3)
+        y_train = X_train[:, 0] + rng.normal(0, 0.1, 50)
+        model = CatBoostMLXRegressor(
+            iterations=10, depth=3, nan_mode="min", binary_path=BINARY_PATH
+        )
+        model.fit(X_train, y_train)
+        X_test = rng.rand(10, 3)
+        X_test[0, 0] = np.nan
+        preds = model.predict(X_test)
+        assert preds.shape == (10,)
+        assert not np.any(np.isnan(preds))
+
+
+# ── Additional Losses ───────────────────────────────────────────────────────
+
+class TestAdditionalLosses:
+    def test_mae_loss(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = X[:, 0] * 2 + rng.normal(0, 0.1, 50)
+        model = CatBoostMLXRegressor(
+            loss="mae", iterations=20, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        preds = model.predict(X)
+        assert preds.shape == (50,)
+
+    def test_huber_loss(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = X[:, 0] * 2 + rng.normal(0, 0.1, 50)
+        model = CatBoostMLXRegressor(
+            loss="huber:1.5", iterations=20, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        preds = model.predict(X)
+        assert preds.shape == (50,)
+
+    def test_quantile_loss(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = X[:, 0] * 2 + rng.normal(0, 0.1, 50)
+        model = CatBoostMLXRegressor(
+            loss="quantile:0.5", iterations=20, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        preds = model.predict(X)
+        assert preds.shape == (50,)
+
+
+# ── Sklearn Integration ─────────────────────────────────────────────────────
+
+class TestSklearnIntegration:
+    def test_cross_val_score(self):
+        _check_binaries()
+        sklearn = pytest.importorskip("sklearn")  # noqa: F841
+        from sklearn.model_selection import cross_val_score
+        rng = np.random.RandomState(42)
+        X = rng.rand(60, 3)
+        y = X[:, 0] + rng.normal(0, 0.1, 60)
+        model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
+        scores = cross_val_score(model, X, y, cv=3)
+        assert len(scores) == 3
+        assert all(isinstance(s, float) for s in scores)
+
+    def test_pipeline(self):
+        _check_binaries()
+        sklearn = pytest.importorskip("sklearn")  # noqa: F841
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler
+        rng = np.random.RandomState(42)
+        X = rng.rand(60, 3)
+        y = X[:, 0] + rng.normal(0, 0.1, 60)
+        pipe = Pipeline([
+            ("scaler", StandardScaler()),
+            ("model", CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)),
+        ])
+        pipe.fit(X, y)
+        preds = pipe.predict(X)
+        assert preds.shape == (60,)
+
+
+# ── Multiclass Extended ─────────────────────────────────────────────────────
+
+class TestMulticlassExtended:
+    def test_staged_predict_multiclass(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(60, 3)
+        y = (X[:, 0] * 3).astype(int).astype(float)  # classes 0, 1, 2
+        model = CatBoostMLXClassifier(
+            iterations=10, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        stages = list(model.staged_predict(X))
+        assert len(stages) == 10
+        assert stages[-1].shape == (60,)
+        assert set(stages[-1]).issubset({0.0, 1.0, 2.0})
+
+    def test_multiclass_classifier_classes(self):
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(60, 3)
+        y = (X[:, 0] * 3).astype(int).astype(float)
+        model = CatBoostMLXClassifier(
+            iterations=10, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        assert hasattr(model, "classes_")
+        np.testing.assert_array_equal(np.sort(model.classes_), [0.0, 1.0, 2.0])
+
+
+# ── Input Validation ────────────────────────────────────────────────────────
+
+class TestValidation:
+    def test_cat_features_out_of_bounds(self):
+        """cat_features index beyond feature count should raise ValueError."""
+        _check_binaries()
+        X = np.random.rand(20, 3)
+        y = np.random.rand(20)
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, cat_features=[999], binary_path=BINARY_PATH
+        )
+        with pytest.raises(ValueError, match="out of bounds"):
+            model.fit(X, y)
+
+    def test_monotone_constraints_wrong_length(self):
+        """monotone_constraints with wrong length should raise ValueError."""
+        _check_binaries()
+        X = np.random.rand(20, 3)
+        y = np.random.rand(20)
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=3, monotone_constraints=[1, -1],
+            binary_path=BINARY_PATH
+        )
+        with pytest.raises(ValueError, match="monotone_constraints"):
+            model.fit(X, y)
+
+    def test_eval_period_zero(self):
+        """eval_period=0 should raise ValueError."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(30, 3)
+        y = rng.rand(30)
+        model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
+        model.fit(X, y)
+        with pytest.raises(ValueError, match="eval_period"):
+            list(model.staged_predict(X, eval_period=0))
+
+    def test_cross_validate_validates_params(self):
+        """cross_validate should validate params before running."""
+        X = np.random.rand(20, 3)
+        y = np.random.rand(20)
+        model = CatBoostMLXRegressor(
+            iterations=5, depth=0, binary_path=BINARY_PATH
+        )
+        with pytest.raises(ValueError, match="depth"):
+            model.cross_validate(X, y, n_folds=3)
+
+    def test_feature_name_with_comma(self):
+        """Feature names with commas should raise ValueError."""
+        _check_binaries()
+        X = np.random.rand(20, 3)
+        y = np.random.rand(20)
+        model = CatBoostMLXRegressor(iterations=5, depth=3, binary_path=BINARY_PATH)
+        with pytest.raises(ValueError, match="invalid characters"):
+            model.fit(X, y, feature_names=["price,usd", "size", "age"])
+
+    def test_invalid_bagging_temperature(self):
+        """Negative bagging_temperature should raise ValueError."""
+        with pytest.raises(ValueError, match="bagging_temperature"):
+            model = CatBoostMLX(iterations=1, bagging_temperature=-1)
+            model._validate_params()
+
+    def test_invalid_ctr_prior(self):
+        """Non-positive ctr_prior should raise ValueError."""
+        with pytest.raises(ValueError, match="ctr_prior"):
+            model = CatBoostMLX(iterations=1, ctr_prior=0)
+            model._validate_params()
+
+
+# ── Classifier + Pool ───────────────────────────────────────────────────────
+
+class TestClassifierPool:
+    def test_classifier_fit_pool_classes(self):
+        """Classifier.fit(pool) should correctly set classes_ from Pool labels."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(40, 2)
+        y = (X[:, 0] > 0.5).astype(float)
+        pool = Pool(X, y=y)
+        model = CatBoostMLXClassifier(iterations=10, depth=3, binary_path=BINARY_PATH)
+        model.fit(pool)
+        assert hasattr(model, "classes_")
+        np.testing.assert_array_equal(np.sort(model.classes_), [0.0, 1.0])
+
+    def test_classifier_fit_pool_predict_proba(self):
+        """Classifier.fit(pool) then predict_proba should work."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(40, 2)
+        y = (X[:, 0] > 0.5).astype(float)
+        pool = Pool(X, y=y)
+        model = CatBoostMLXClassifier(iterations=10, depth=3, binary_path=BINARY_PATH)
+        model.fit(pool)
+        proba = model.predict_proba(X)
+        assert proba.shape == (40, 2)
+
+
+# ── Load Model Attributes ──────────────────────────────────────────────────
+
+class TestLoadModelAttributes:
+    def test_feature_importances_after_load(self):
+        """feature_importances_ should work after load_model()."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(30, 3)
+        y = X[:, 0] * 2 + rng.normal(0, 0.1, 30)
+        model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
+        model.fit(X, y)
+        fi_before = model.feature_importances_
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            model.save_model(path)
+            loaded = CatBoostMLXRegressor(binary_path=BINARY_PATH)
+            loaded.load_model(path)
+            assert hasattr(loaded, "n_features_in_")
+            assert loaded.n_features_in_ == 3
+            fi_after = loaded.feature_importances_
+            np.testing.assert_allclose(fi_before, fi_after, atol=1e-6)
+        finally:
+            os.unlink(path)
+
+    def test_feature_names_in_after_load(self):
+        """feature_names_in_ should be populated after load_model()."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(20, 2)
+        y = rng.rand(20)
+        model = CatBoostMLXRegressor(iterations=5, depth=3, binary_path=BINARY_PATH)
+        model.fit(X, y, feature_names=["a", "b"])
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+            path = f.name
+        try:
+            model.save_model(path)
+            loaded = CatBoostMLXRegressor(binary_path=BINARY_PATH)
+            loaded.load_model(path)
+            assert hasattr(loaded, "feature_names_in_")
+            assert list(loaded.feature_names_in_) == ["a", "b"]
+        finally:
+            os.unlink(path)
+
+
+# ── Staged Predict Link Function ────────────────────────────────────────────
+
+class TestStagedPredictLink:
+    def test_staged_predict_poisson_matches_predict(self):
+        """staged_predict final output should match predict for Poisson loss."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = np.abs(rng.rand(50) * 10) + 0.1  # positive targets for Poisson
+        model = CatBoostMLXRegressor(
+            loss="poisson", iterations=20, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        preds = model.predict(X)
+        staged = list(model.staged_predict(X))
+        np.testing.assert_allclose(staged[-1], preds, atol=1e-4)
+
+    def test_staged_predict_tweedie_matches_predict(self):
+        """staged_predict final output should match predict for Tweedie loss."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(50, 3)
+        y = np.abs(rng.rand(50) * 10) + 0.1
+        model = CatBoostMLXRegressor(
+            loss="tweedie:1.5", iterations=20, depth=3, binary_path=BINARY_PATH
+        )
+        model.fit(X, y)
+        preds = model.predict(X)
+        staged = list(model.staged_predict(X))
+        np.testing.assert_allclose(staged[-1], preds, atol=1e-4)
+
+
+# ── Cross-Validate Robustness ──────────────────────────────────────────────
+
+class TestCrossValidateRobust:
+    def test_cv_returns_correct_fold_count(self):
+        """cross_validate should return exactly n_folds fold metrics."""
+        _check_binaries()
+        rng = np.random.RandomState(42)
+        X = rng.rand(60, 3)
+        y = X[:, 0] + rng.normal(0, 0.1, 60)
+        model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
+        result = model.cross_validate(X, y, n_folds=3)
+        assert len(result["fold_metrics"]) == 3
+        assert result["mean"] > 0
+        assert result["std"] >= 0

@@ -144,6 +144,16 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
       4. Current working directory
       5. Package directory and parent directories
     """
+    def _check_executable(candidate: Path) -> str:
+        if candidate.is_file():
+            if not os.access(str(candidate), os.X_OK):
+                raise PermissionError(
+                    f"Binary '{candidate}' exists but is not executable. "
+                    f"Try: chmod +x {candidate}"
+                )
+            return str(candidate)
+        return ""
+
     # Priority 1: Explicit path from user
     if binary_path:
         p = Path(binary_path)
@@ -151,8 +161,9 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
             candidate = p / name
         else:
             candidate = p
-        if candidate.is_file():
-            return str(candidate)
+        result = _check_executable(candidate)
+        if result:
+            return result
         raise FileNotFoundError(f"Binary not found at {candidate}")
 
     # Priority 2: Check system PATH
@@ -162,21 +173,21 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
 
     # Priority 3: Check bundled binaries in package (catboost_mlx/bin/)
     bin_dir = Path(__file__).parent / "bin"
-    candidate = bin_dir / name
-    if candidate.is_file():
-        return str(candidate)
+    result = _check_executable(bin_dir / name)
+    if result:
+        return result
 
     # Priority 4: Check current working directory
-    local = Path(name)
-    if local.is_file():
-        return str(local.resolve())
+    result = _check_executable(Path(name).resolve())
+    if result:
+        return result
 
     # Priority 5: Check package directory and ancestors (for dev installs)
     pkg_dir = Path(__file__).parent
     for search_dir in [pkg_dir, pkg_dir.parent, pkg_dir.parent.parent]:
-        candidate = search_dir / name
-        if candidate.is_file():
-            return str(candidate)
+        result = _check_executable(search_dir / name)
+        if result:
+            return result
 
     raise FileNotFoundError(
         f"Cannot find '{name}' binary. Either:\n"
@@ -205,6 +216,13 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
     n_samples, n_features = X.shape
     if feature_names is None:
         feature_names = [f"f{i}" for i in range(n_features)]
+    else:
+        for fname in feature_names:
+            if "," in fname or "\n" in fname or "\x00" in fname:
+                raise ValueError(
+                    f"Feature name {fname!r} contains invalid characters "
+                    "(comma, newline, or null byte) that would corrupt the CSV."
+                )
 
     group_col_idx = -1
     weight_col_idx = -1
@@ -237,10 +255,11 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                     val = X[i, j]
                     if cat_features and j in cat_features:
                         # Categorical: write as string (e.g. "red"); empty for NaN
-                        row.append(str(val) if not (isinstance(val, float) and np.isnan(val)) else "")
+                        row.append(str(val) if not (isinstance(val, (float, np.floating)) and np.isnan(val)) else "")
                     else:
                         # Numeric: 10 significant digits; empty string for NaN
-                        row.append(f"{val:.10g}" if not np.isnan(val) else "")
+                        fval = float(val)
+                        row.append(f"{fval:.10g}" if not np.isnan(fval) else "")
                 row.append(f"{y[i]:.10g}")
                 writer.writerow(row)
             return target_col_idx, group_col_idx, weight_col_idx
@@ -251,9 +270,10 @@ def _array_to_csv(path: str, X: np.ndarray, y: Optional[np.ndarray] = None,
                 for j in range(n_features):
                     val = X[i, j]
                     if cat_features and j in cat_features:
-                        row.append(str(val) if not (isinstance(val, float) and np.isnan(val)) else "")
+                        row.append(str(val) if not (isinstance(val, (float, np.floating)) and np.isnan(val)) else "")
                     else:
-                        row.append(f"{val:.10g}" if not np.isnan(val) else "")
+                        fval = float(val)
+                        row.append(f"{fval:.10g}" if not np.isnan(fval) else "")
                 writer.writerow(row)
             return -1, -1, -1
 
@@ -381,6 +401,7 @@ class CatBoostMLX(BaseEstimator):
         self._train_loss_history: List[float] = []
         self._eval_loss_history: List[float] = []
         self._is_fitted = False
+        self._model_json_cache: Optional[str] = None
 
     def __sklearn_is_fitted__(self) -> bool:
         """Check fitted status for sklearn compatibility (sklearn 1.3+)."""
@@ -438,6 +459,14 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
             )
+        if not isinstance(self.bagging_temperature, (int, float)) or self.bagging_temperature < 0:
+            raise ValueError(f"bagging_temperature must be >= 0, got {self.bagging_temperature!r}")
+        if not isinstance(self.mvs_reg, (int, float)) or self.mvs_reg < 0:
+            raise ValueError(f"mvs_reg must be >= 0, got {self.mvs_reg!r}")
+        if not isinstance(self.max_onehot_size, int) or self.max_onehot_size < 0:
+            raise ValueError(f"max_onehot_size must be a non-negative integer, got {self.max_onehot_size!r}")
+        if not isinstance(self.ctr_prior, (int, float)) or self.ctr_prior <= 0:
+            raise ValueError(f"ctr_prior must be > 0, got {self.ctr_prior!r}")
         if not isinstance(self.min_data_in_leaf, int) or self.min_data_in_leaf < 1:
             raise ValueError(f"min_data_in_leaf must be >= 1, got {self.min_data_in_leaf!r}")
         if self.monotone_constraints is not None:
@@ -493,6 +522,19 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"feature_names has {len(feature_names)} names but X has {X.shape[1]} features"
             )
+        if self.cat_features:
+            for idx in self.cat_features:
+                if idx < 0 or idx >= X.shape[1]:
+                    raise ValueError(
+                        f"cat_features index {idx} is out of bounds "
+                        f"for X with {X.shape[1]} features"
+                    )
+        if self.monotone_constraints is not None:
+            if len(self.monotone_constraints) != X.shape[1]:
+                raise ValueError(
+                    f"monotone_constraints has {len(self.monotone_constraints)} values "
+                    f"but X has {X.shape[1]} features"
+                )
 
     def _build_train_args(self, csv_path: str, model_path: str, target_col: int,
                           eval_file: Optional[str] = None,
@@ -649,8 +691,9 @@ class CatBoostMLX(BaseEstimator):
         finally:
             os.close(master_fd)
 
-        proc.wait()
+        # Read stderr BEFORE wait to prevent deadlock if buffer fills
         stderr = proc.stderr.read().decode() if proc.stderr else ""
+        proc.wait()
 
         if proc.returncode != 0:
             raise RuntimeError(
@@ -729,6 +772,9 @@ class CatBoostMLX(BaseEstimator):
                 feature_names = list(X_or_pool.columns)
             X = _to_numpy(X_or_pool)
             y = _to_numpy(y)
+
+        if y is None or (isinstance(y, np.ndarray) and y.ndim == 0):
+            raise ValueError("y is required when X is not a Pool with labels.")
 
         if X.ndim == 1:
             X = X.reshape(-1, 1)
@@ -817,11 +863,13 @@ class CatBoostMLX(BaseEstimator):
             # ── Phase 7: Build CLI command and run the C++ training binary ──
             # Temporarily override group_col and weight_col if provided
             orig_group_col = self.group_col
-            if gid is not None and self.group_col < 0:
-                self.group_col = group_col_idx
-            args = self._build_train_args(csv_path, model_path, target_col,
-                                          eval_file=eval_file_path)
-            self.group_col = orig_group_col
+            try:
+                if gid is not None and self.group_col < 0:
+                    self.group_col = group_col_idx
+                args = self._build_train_args(csv_path, model_path, target_col,
+                                              eval_file=eval_file_path)
+            finally:
+                self.group_col = orig_group_col
 
             # Add weight-col if sample_weight was provided
             if weight_col_idx >= 0:
@@ -836,6 +884,7 @@ class CatBoostMLX(BaseEstimator):
                 self._model_data = json.load(f)
             self._model_path = None
             self._is_fitted = True
+            self._model_json_cache = None  # invalidate cached serialization
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -940,6 +989,9 @@ class CatBoostMLX(BaseEstimator):
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
 
+        if eval_period < 1:
+            raise ValueError(f"eval_period must be >= 1, got {eval_period}")
+
         X, feature_names = self._unpack_predict_input(X, feature_names)
 
         from ._predict_utils import apply_link, compute_leaf_indices, quantize_features
@@ -952,7 +1004,7 @@ class CatBoostMLX(BaseEstimator):
         trees = self._model_data["trees"]
         info = self._model_data.get("model_info", {})
         approx_dim = info.get("approx_dimension", 1)
-        loss_type = info.get("loss_type", "rmse")
+        loss_type = self._get_loss_type()
         num_classes = info.get("num_classes", 0)
         n_trees = len(trees)
         n_samples = X.shape[0]
@@ -1002,6 +1054,9 @@ class CatBoostMLX(BaseEstimator):
         """
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
+
+        if eval_period < 1:
+            raise ValueError(f"eval_period must be >= 1, got {eval_period}")
 
         X, feature_names = self._unpack_predict_input(X, feature_names)
 
@@ -1102,9 +1157,11 @@ class CatBoostMLX(BaseEstimator):
             out_path = os.path.join(tmpdir, "predictions.csv")
             model_path = os.path.join(tmpdir, "model.json")
 
-            # Write model JSON
+            # Write model JSON (use cached serialization if available)
+            if self._model_json_cache is None:
+                self._model_json_cache = json.dumps(self._model_data)
             with open(model_path, "w") as f:
-                json.dump(self._model_data, f)
+                f.write(self._model_json_cache)
 
             _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
 
@@ -1172,8 +1229,20 @@ class CatBoostMLX(BaseEstimator):
         """Load a model from a JSON file."""
         with open(path, "r") as f:
             self._model_data = json.load(f)
+        required = {"model_info", "trees", "features"}
+        missing = required - set(self._model_data.keys())
+        if missing:
+            raise ValueError(
+                f"Invalid model JSON: missing required keys {missing}"
+            )
         self._model_path = path
         self._is_fitted = True
+        self._model_json_cache = None  # invalidate cached serialization
+        # Restore sklearn-compatible attributes from model data
+        features = self._model_data.get("features", [])
+        self.n_features_in_ = len(features)
+        names = [f.get("name", f"f{f.get('index', i)}") for i, f in enumerate(features)]
+        self.feature_names_in_ = np.array(names, dtype=object)
         return self
 
     @classmethod
@@ -1322,7 +1391,9 @@ class CatBoostMLX(BaseEstimator):
             model_path = os.path.join(tmpdir, "model.json")
 
             with open(model_path, "w") as f:
-                json.dump(self._model_data, f)
+                if self._model_json_cache is None:
+                    self._model_json_cache = json.dumps(self._model_data)
+                f.write(self._model_json_cache)
 
             _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
 
@@ -1347,6 +1418,11 @@ class CatBoostMLX(BaseEstimator):
 
             # Parse the SHAP output CSV (_shap.csv)
             shap_path = out_path.replace(".csv", "_shap.csv")
+            if not os.path.exists(shap_path):
+                raise RuntimeError(
+                    f"SHAP output file not found at {shap_path}. "
+                    "The C++ binary may not support SHAP for this model configuration."
+                )
             columns: Dict[str, List[float]] = {}
             with open(shap_path, "r") as f:
                 reader = csv.DictReader(f)
@@ -1438,10 +1514,12 @@ class CatBoostMLX(BaseEstimator):
             std : float
                 Standard deviation of fold_metrics.
         """
+        self._validate_params()
         X = _to_numpy(X)
         y = _to_numpy(y)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        self._validate_fit_inputs(X, y)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_cv_")
         try:
@@ -1478,12 +1556,12 @@ class CatBoostMLX(BaseEstimator):
             mean_val = None
             std_val = None
             for line in result.stdout.split("\n"):
-                # "Fold 1/5: RMSE=1.234"
-                m = re.search(r"Fold\s+\d+/\d+:\s+\w+=([\-\d.]+)", line)
+                # "Fold 1: train_loss=0.251  test_loss=0.200  trees=10"
+                m = re.search(r"Fold\s+\d+.*?test_loss=([\-\d.]+)", line)
                 if m:
                     fold_metrics.append(float(m.group(1)))
-                # "CV result: RMSE = 1.234 +/- 0.123"
-                m = re.search(r"CV result:.*?=\s*([\-\d.]+)\s*\+/-\s*([\-\d.]+)", line)
+                # "Test  loss: 0.240926 +/- 0.028575"
+                m = re.search(r"(?:Test\s+loss|CV result).*?(?::\s*|=\s*)([\-\d.]+)\s*\+/-\s*([\-\d.]+)", line)
                 if m:
                     mean_val = float(m.group(1))
                     std_val = float(m.group(2))
@@ -1518,15 +1596,17 @@ class CatBoostMLX(BaseEstimator):
         )
 
     def __getstate__(self):
-        """Return state for pickling. Excludes _model_path (temp file reference)."""
+        """Return state for pickling. Excludes _model_path and _model_json_cache."""
         state = self.__dict__.copy()
         state.pop("_model_path", None)
+        state.pop("_model_json_cache", None)
         return state
 
     def __setstate__(self, state):
         """Restore state from pickle."""
         self.__dict__.update(state)
         self._model_path = None
+        self._model_json_cache = None
 
 
 # ── Subclasses ───────────────────────────────────────────────────────────────
@@ -1567,9 +1647,17 @@ class CatBoostMLXClassifier(ClassifierMixin, CatBoostMLX):
     def __init__(self, loss: str = "auto", **kwargs):
         super().__init__(loss=loss, **kwargs)
 
-    def fit(self, X, y, **kwargs):
+    def fit(self, X, y=None, **kwargs):
+        from .pool import Pool
+        # Extract y from Pool before super().fit() consumes it, so classes_
+        # is computed from the actual labels (not None when Pool is passed).
+        if isinstance(X, Pool) and y is None:
+            y_for_classes = X.y
+        else:
+            y_for_classes = y
         result = super().fit(X, y, **kwargs)
-        self.classes_ = np.unique(np.asarray(y))
+        if y_for_classes is not None:
+            self.classes_ = np.unique(np.asarray(y_for_classes))
         return result
 
     @classmethod

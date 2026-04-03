@@ -549,6 +549,10 @@ Supports regression, binary classification (approxDim=1), and multiclass (approx
 
 ## Python Bindings
 
+> **For full Python documentation, see [python/README.md](../../python/README.md).**
+> It includes beginner-friendly explanations, installation steps, file structure maps,
+> API reference, troubleshooting, and more.
+
 The `catboost_mlx` Python package wraps the compiled CLI binaries.
 
 ### Installation
@@ -558,6 +562,9 @@ The `catboost_mlx` Python package wraps the compiled CLI binaries.
 # Then install the Python package
 cd catboost-mlx
 pip install -e python/
+
+# With all optional dependencies (sklearn, ONNX, CoreML)
+pip install -e "python/[all]"
 ```
 
 ### Quick start
@@ -779,6 +786,38 @@ catboost/mlx/
     ├── standalone_kernel_test.cpp
     └── build_verify_test.cpp
 ```
+
+### Python Package Structure
+
+For full details, see [python/README.md](../../python/README.md).
+
+```
+python/
+├── catboost_mlx/               # Python package
+│   ├── __init__.py             # Entry point -- re-exports main classes
+│   ├── core.py                 # CatBoostMLX, Regressor, Classifier
+│   ├── pool.py                 # Pool data container
+│   ├── _predict_utils.py       # Python-side tree evaluation
+│   ├── _tree_utils.py          # Tree format conversion
+│   ├── export_onnx.py          # ONNX export
+│   ├── export_coreml.py        # CoreML export
+│   └── bin/                    # Compiled binaries (csv_train, csv_predict)
+├── build_binaries.py           # Build script
+├── tests/test_basic.py         # Test suite (111 tests)
+└── benchmarks/benchmark.py     # Performance comparison
+```
+
+### CLI to Python Parameter Mapping
+
+| CLI Flag | Python Parameter |
+|----------|-----------------|
+| `--lr` | `learning_rate` |
+| `--l2` | `l2_reg_lambda` |
+| `--early-stopping` | `early_stopping_rounds` |
+| `--target-col` | (auto-detected from data) |
+| `--cat-features` | `cat_features` |
+| `--weight-col` | `sample_weight` (in fit()) |
+| `--group-col` | `group_id` (in fit()) |
 
 ## Troubleshooting
 

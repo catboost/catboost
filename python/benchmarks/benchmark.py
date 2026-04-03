@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
-"""CatBoost-MLX benchmark suite.
+"""
+benchmark.py -- Speed and accuracy comparison against other GBDT frameworks.
 
-Compares training time, prediction time, and accuracy against other GBDT
-frameworks (XGBoost, LightGBM, CatBoost) on synthetic datasets.
+What this file does:
+    Runs a fair competition between CatBoost-MLX and other popular gradient
+    boosting libraries (XGBoost, LightGBM, CatBoost-official). It generates
+    synthetic datasets at various sizes, trains each framework with comparable
+    hyperparameters, and reports training time, prediction time, and accuracy.
+    Frameworks not installed are automatically skipped.
+
+How it fits into the project:
+    Standalone script. Imports catboost_mlx and optionally xgboost, lightgbm,
+    catboost. Run directly: ``python benchmark.py``.
+
+Key concepts:
+    - RMSE: Root Mean Squared Error -- measures prediction error for regression.
+    - Accuracy: Fraction of correct predictions for classification.
+    - Synthetic data: Randomly generated datasets so benchmarks are reproducible
+      without needing external data files.
 
 Usage:
   python benchmark.py                    # run all benchmarks

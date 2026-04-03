@@ -83,7 +83,7 @@ def quantize_features(X: np.ndarray, features: List[dict],
                 bins = np.full(n_samples, bin_offset, dtype=np.uint8)
 
             bins[nan_mask] = 0  # NaN → bin 0
-            binned[:, f] = bins.astype(np.uint8)
+            binned[:, f] = np.clip(bins, 0, 255).astype(np.uint8)
 
     return binned
 

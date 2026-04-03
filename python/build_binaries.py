@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
-"""Build CatBoost-MLX binaries (csv_train and csv_predict) from source.
+"""
+build_binaries.py -- Compiles the C++ GPU binaries that power CatBoost-MLX.
+
+What this file does:
+    The Python package needs two compiled C++ programs (csv_train and csv_predict)
+    to do the actual GPU training and prediction. This script is the "build button":
+    it finds your compiler, finds the MLX library, and runs the compile commands
+    that produce those two binaries.
+
+How it fits into the project:
+    Standalone utility -- not imported by the package. Run directly with
+    ``python build_binaries.py``. Outputs binaries to python/catboost_mlx/bin/
+    by default, where the package auto-discovers them.
+
+Key concepts:
+    - clang++: The C++ compiler included with Xcode on macOS.
+    - MLX: Apple's C++ library for Metal GPU computation. The binaries link
+      against it to use the GPU for histogram building and tree scoring.
+    - Metal framework: Apple's low-level GPU programming API.
 
 Requires:
   - macOS 14+ with Apple Silicon
@@ -121,6 +139,13 @@ def build_binary(name: str, source: str, compiler: str, mlx_prefix: str,
     """Compile a single binary. Returns True on success."""
     output = os.path.join(output_dir, name)
 
+    # Compiler flags:
+    #   -std=c++17    : Required by MLX headers
+    #   -O2           : Optimization level 2 (good balance of speed vs compile time)
+    #   -I            : Include paths for MLX headers and project root
+    #   -L -lmlx      : Link against the MLX shared library
+    #   -framework    : macOS frameworks (Metal for GPU, Foundation for ObjC runtime)
+    #   -Wno-c++20    : Suppress warnings for C++20 features used in MLX headers
     args = [
         compiler, "-std=c++17", "-O2",
         f"-I{repo_root}",

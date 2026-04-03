@@ -6,11 +6,11 @@ GPU-accelerated gradient boosted decision trees on Apple Silicon, with a scikit-
 
 Imagine you want to teach a computer to predict things -- like house prices, or whether an email is spam.
 
-**Decision trees** are like flowcharts of yes/no questions: "Is the house bigger than 1500 sqft? Yes -> Is it in a good neighborhood? Yes -> Predict $500K." One tree is okay, but not great.
+**Decision trees** are like flowcharts of yes/no questions: "Is the house bigger than 1500 sqft? Yes -> Is it in a good neighborhood? Yes -> Predict $500K." One tree is okay, but not great. As Sheldon would say, it's the "Leonard" of machine learning -- functional, but not exactly impressive on its own.
 
 **Gradient boosting** builds *many* small trees (typically 100-1000), where each tree focuses on fixing the mistakes of the ones before it. The final prediction combines all the trees together. This technique consistently wins machine learning competitions.
 
-**The GPU part**: Building all those trees involves a LOT of math. Your Mac has a powerful GPU (Graphics Processing Unit) that can do this math much faster than the CPU alone. CatBoost-MLX uses Apple's **Metal** GPU framework (via the **MLX** library) to speed up training.
+**The GPU part**: Building all those trees involves a LOT of math. Your Mac has a powerful GPU (Graphics Processing Unit) that can do this math much faster than the CPU alone. CatBoost-MLX uses Apple's **Metal** GPU framework (via the **MLX** library) to speed up training. It's like upgrading from Sheldon taking the bus to Sheldon getting his own car -- except the GPU actually knows how to drive.
 
 **In short**: CatBoost-MLX lets you train powerful prediction models on your Mac's GPU with just a few lines of Python code.
 
@@ -83,7 +83,7 @@ pip install -e python/
 
 ```python
 python3 -c "import catboost_mlx; print(catboost_mlx.__version__)"
-# Should print: 0.1.0
+# Should print: 0.2.0
 ```
 
 ### Optional dependencies
@@ -170,7 +170,7 @@ clf.fit(pool)
 
 ## How It Works
 
-CatBoost-MLX has a simple architecture: Python handles the user-facing API, while compiled C++ binaries do the heavy computation on the GPU.
+CatBoost-MLX has a simple architecture: Python handles the user-facing API, while compiled C++ binaries do the heavy computation on the GPU. As Howard would put it: "Python is the astronaut, but C++ is the rocket."
 
 ```
      Your Python Code
@@ -205,11 +205,13 @@ python/
 ├── README.md                       # You are here!
 ├── pyproject.toml                  # Package config (name, version, dependencies)
 ├── build_binaries.py               # Compiles the C++ GPU binaries
+├── Makefile                        # Dev targets: test, lint, coverage
 │
 ├── catboost_mlx/                   # The Python package
 │   ├── __init__.py                 # Entry point -- re-exports main classes
 │   ├── core.py                     # Main classes: CatBoostMLX, Regressor, Classifier
 │   ├── pool.py                     # Pool data container (bundles features + metadata)
+│   ├── _utils.py                   # Shared utilities (_to_numpy)
 │   ├── _predict_utils.py           # Python tree evaluation (for staged_predict/apply)
 │   ├── _tree_utils.py              # Tree format conversion (for export)
 │   ├── export_onnx.py              # Export to ONNX format
@@ -219,7 +221,9 @@ python/
 │       └── csv_predict             #   GPU prediction binary
 │
 ├── tests/
-│   └── test_basic.py               # 111 tests covering all functionality
+│   ├── conftest.py                 # Shared test fixtures
+│   ├── test_basic.py               # Core functionality tests
+│   └── test_new_features.py        # Extended feature and regression tests
 │
 └── benchmarks/
     ├── benchmark.py                # Speed/accuracy comparison tool
@@ -301,6 +305,8 @@ Standalone (not imported by the package):
 
 ### Supported Loss Functions
 
+> "You know what's fun about loss functions? Absolutely nothing. That's why I automate them." -- Raj, probably
+
 | Loss | Task | When to use |
 |------|------|-------------|
 | `rmse` | Regression | Predicting continuous numbers (default) |
@@ -365,6 +371,9 @@ Some CLI flags use different names than the Python parameters:
 
 ## Troubleshooting
 
+> Penny: "What's wrong with your model?"
+> Sheldon: "What ISN'T wrong with it? Let me get my whiteboard."
+
 ### "Cannot find 'csv_train' binary"
 **Cause**: The compiled C++ binaries are not on your system PATH or in the package.
 **Fix**:
@@ -395,7 +404,7 @@ brew install mlx
 
 ### Slow first iteration
 **Cause**: Metal shader compilation happens on the first GPU kernel dispatch.
-**Not a bug** -- subsequent iterations will be much faster.
+**Not a bug** -- subsequent iterations will be much faster. Think of it like Sheldon's bathroom schedule: the first time takes forever to set up, but after that it runs like clockwork.
 
 ### Tests skip with "Compiled csv_train/csv_predict binaries not found"
 **Cause**: Binaries are not compiled or not at the expected location.
@@ -408,7 +417,7 @@ cp python/catboost_mlx/bin/csv_predict .
 ## Running Tests
 
 ```bash
-# All tests (146 tests)
+# All tests (173 tests)
 python3 -m pytest python/tests/ -v
 
 # A specific test class
@@ -443,7 +452,7 @@ Frameworks not installed are automatically skipped. See [benchmarks/README.md](b
 
 ## sklearn Integration
 
-CatBoost-MLX is fully compatible with scikit-learn 1.8+:
+CatBoost-MLX is fully compatible with scikit-learn 1.0+:
 
 ```python
 from sklearn.model_selection import cross_val_score
@@ -493,6 +502,8 @@ model.export_coreml("model.mlmodel")  # pip install coremltools>=7.0
 ```
 
 ## Contributing
+
+We welcome contributions! Unlike Sheldon's Roommate Agreement, our contributing guidelines are actually reasonable.
 
 ### Development setup
 
