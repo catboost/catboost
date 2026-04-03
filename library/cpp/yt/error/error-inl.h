@@ -474,6 +474,27 @@ const T& TErrorOr<T>::Value() const & Y_LIFETIME_BOUND
 }
 
 template <class T>
+T&& TErrorOr<T>::ValueOrCrash() && Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return std::move(*Value_);
+}
+
+template <class T>
+T& TErrorOr<T>::ValueOrCrash() & Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return *Value_;
+}
+
+template <class T>
+const T& TErrorOr<T>::ValueOrCrash() const & Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return *Value_;
+}
+
+template <class T>
 const T& TErrorOr<T>::ValueOrDefault(const T& defaultValue Y_LIFETIME_BOUND) const & Y_LIFETIME_BOUND
 {
     return IsOK() ? *Value_ : defaultValue;
