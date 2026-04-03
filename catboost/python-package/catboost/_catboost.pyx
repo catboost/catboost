@@ -6842,6 +6842,8 @@ cpdef is_cv_stratified_objective(loss_name):
 cpdef is_regression_objective(loss_name):
     return IsRegressionObjective(to_arcadia_string(loss_name))
 
+cpdef is_ranking_objective(metric_name):
+    return IsRankingObjective(to_arcadia_string(metric_name))
 
 cpdef is_multiregression_objective(loss_name):
     return IsMultiRegressionObjective(to_arcadia_string(loss_name))
