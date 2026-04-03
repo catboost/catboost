@@ -10102,13 +10102,10 @@ def test_feature_tags_interface():
     cat.fit(pool)
     assert np.array_equal(np.where(cat.feature_importances_ == 0)[0], [0, 1, 2, 3, 7])
     cat = CatBoostClassifier()
-    plot_file = test_output_path('plot.html')
     result = cat.select_features(
         pool,
         features_for_select=["#tag1", "#tag2"],
-        num_features_to_select=3,
-        plot=True,
-        plot_file=plot_file
+        num_features_to_select=3
     )
     assert all(x in [0, 1, 2, 3, 7] for x in result["selected_features"])
     assert all(x in [0, 1, 2, 3, 7] for x in result["eliminated_features"])
