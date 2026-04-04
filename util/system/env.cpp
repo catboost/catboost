@@ -63,19 +63,12 @@ TString GetEnv(const TString& key, const TString& def) {
 
 void SetEnv(const TString& key, const TString& value) {
     bool isOk = false;
-    int errorCode = 0;
 #ifdef _win_
     isOk = SetEnvironmentVariable(key.data(), value.data());
-    if (!isOk) {
-        errorCode = GetLastError();
-    }
 #else
     isOk = (0 == setenv(key.data(), value.data(), true /*replace*/));
-    if (!isOk) {
-        errorCode = errno;
-    }
 #endif
-    Y_ENSURE_EX(isOk, TSystemError() << "failed to SetEnv with error-code " << errorCode);
+    Y_ENSURE_EX(isOk, TSystemError() << "failed to SetEnv");
 }
 
 void UnsetEnv(const TString& key) {
