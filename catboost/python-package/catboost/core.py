@@ -6948,79 +6948,82 @@ def sample_gaussian_process(X, y, eval_set=None,
     model_shrink_rate = (random_strength / sigma) ** 2 / N
 
     output_models = []
-    tmp_file = tempfile.NamedTemporaryFile()
-    prior_model_tmp_file = tmp_file.name
+    try:
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        prior_model_tmp_file = tmp_file.name
+        tmp_file.close()
+        for sample in range(samples):
+            prior_y = random_generator.normal(scale=eps, size=N)
+            prior = CatBoostRegressor(
+                random_seed=prior_seeds[sample],
+                iterations=prior_iterations,
+                learning_rate=eps,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=False,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=1/eps,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            prior.fit(
+                X,
+                prior_y,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-    for sample in range(samples):
-        prior_y = random_generator.normal(scale=eps, size=N)
-        prior = CatBoostRegressor(
-            random_seed=prior_seeds[sample],
-            iterations=prior_iterations,
-            learning_rate=eps,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=False,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=1/eps,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        prior.fit(
-            X,
-            prior_y,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
+            prior.save_model(prior_model_tmp_file, format="json", pool=X)
+            with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
+                prior_json = json.load(prior_file)
+            for tree in prior_json["oblivious_trees"]:
+                for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
+                    tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
+            with open(prior_model_tmp_file, "w") as prior_file:
+                json.dump(prior_json, prior_file)
+            prior.load_model(prior_model_tmp_file, format="json")
 
-        prior.save_model(prior_model_tmp_file, format="json", pool=X)
-        with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
-            prior_json = json.load(prior_file)
-        for tree in prior_json["oblivious_trees"]:
-            for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
-                tree["leaf_values"][ind] = random_generator.normal(scale=np.sqrt(N / np.sqrt(max(1, weight))))
-        with open(prior_model_tmp_file, "w") as prior_file:
-            json.dump(prior_json, prior_file)
-        prior.load_model(prior_model_tmp_file, format="json")
+            scale, bias = prior.get_scale_and_bias()
+            prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
 
-        scale, bias = prior.get_scale_and_bias()
-        prior.set_scale_and_bias(scale * sigma / np.sqrt(prior_iterations),  bias * sigma / np.sqrt(prior_iterations))
+            posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
+            posterior = CatBoostRegressor(
+                random_seed=posterior_seeds[sample],
+                iterations=posterior_iterations,
+                learning_rate=learning_rate,
+                model_shrink_rate=model_shrink_rate,
+                loss_function='RMSE',
+                bootstrap_type='No',
+                depth=depth,
+                verbose=verbose,
+                leaf_estimation_backtracking="No",
+                boost_from_average=False,
+                random_strength=random_strength,
+                random_score_type=random_score_type,
+                l2_leaf_reg=0,
+                score_function="L2",
+                boosting_type='Plain'
+            )
+            posterior.fit(
+                X,
+                posterior_y,
+                eval_set=eval_set,
+                cat_features=cat_features,
+                text_features=text_features,
+                embedding_features=embedding_features,
+                use_best_model=False
+            )
 
-        posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
-        posterior = CatBoostRegressor(
-            random_seed=posterior_seeds[sample],
-            iterations=posterior_iterations,
-            learning_rate=learning_rate,
-            model_shrink_rate=model_shrink_rate,
-            loss_function='RMSE',
-            bootstrap_type='No',
-            depth=depth,
-            verbose=verbose,
-            leaf_estimation_backtracking="No",
-            boost_from_average=False,
-            random_strength=random_strength,
-            random_score_type=random_score_type,
-            l2_leaf_reg=0,
-            score_function="L2",
-            boosting_type='Plain'
-        )
-        posterior.fit(
-            X,
-            posterior_y,
-            eval_set=eval_set,
-            cat_features=cat_features,
-            text_features=text_features,
-            embedding_features=embedding_features,
-            use_best_model=False
-        )
-
-        output_models.append(sum_models([prior, posterior], weights=[1, 1]))
-
+            output_models.append(sum_models([prior, posterior], weights=[1, 1]))
+    finally:
+        if os.path.exists(prior_model_tmp_file):
+            os.remove(prior_model_tmp_file)
     return output_models
 
 
