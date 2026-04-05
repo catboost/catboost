@@ -48,7 +48,7 @@ namespace NMemIoInternals {
 
     template <class T>
     inline void SerializeMem(bool bRead, TVector<char>* data, T& c, bool stableOutput = false) {
-        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+        if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
             TMemoryStream f(data);
             {
                 IBinSaver bs(f, bRead, stableOutput);
@@ -177,7 +177,7 @@ namespace NMemIoInternals {
 
 template <class T>
 inline void SerializeMem(const TVector<char>& data, T& c) {
-    if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+    if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
         TVector<char> tmp(data);
         SerializeFromMem(&tmp, c);
     } else {

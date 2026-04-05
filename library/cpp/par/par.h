@@ -77,7 +77,7 @@ namespace NPar {
         template <class T>
         inline int AddParam(T* param) {
             CHROMIUM_TRACE_FUNCTION();
-            if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+            if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
                 TVector<char> tmp;
                 SerializeToMem(&tmp, *param);
                 return AddParamData(&tmp);
