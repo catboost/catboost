@@ -839,9 +839,9 @@ TBestSplitProperties FindBestSplit(
     // For OneHot features: each bin represents one category.
     //   Split "go right if value == bin": sumRight = hist[bin], sumLeft = total - sumRight
     //
-    // For ordinal features: suffix-sum to compute left/right.
+    // For ordinal features: precompute suffix sums then use O(1) lookups.
     //   Split threshold b (value > b → right):
-    //     sumRight = sum(hist[b..folds-1]) = docs with value ∈ {b+1,...,folds}
+    //     sumRight = suffixSum[b] = sum(hist[b..folds-1])
     //     sumLeft = total - sumRight
 
     for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
@@ -849,102 +849,159 @@ TBestSplitProperties FindBestSplit(
         if (!featureMask.empty() && !featureMask[featIdx]) continue;
         const auto& feat = features[featIdx];
 
-        for (ui32 bin = 0; bin < feat.Folds; ++bin) {
-            float totalGain = 0.0f;
-            bool violatesConstraint = false;
+        if (feat.OneHotFeature) {
+            // ── OneHot: each bin is independent, no suffix sums needed ──
+            for (ui32 bin = 0; bin < feat.Folds; ++bin) {
+                float totalGain = 0.0f;
 
-            // Min-data-in-leaf check: verify doc counts per partition
-            if (minDataInLeaf > 1 && !countHist.empty()) {
-                bool anyPartitionViolates = false;
+                if (minDataInLeaf > 1 && !countHist.empty()) {
+                    bool anyViolates = false;
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        ui32 countRight = countHist[p][feat.FirstFoldIndex + bin];
+                        ui32 countLeft = partDocCounts[p] - countRight;
+                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
+                            anyViolates = true;
+                            break;
+                        }
+                    }
+                    if (anyViolates) continue;
+                }
+
                 for (ui32 p = 0; p < numPartitions; ++p) {
-                    ui32 countRight = 0;
-                    if (feat.OneHotFeature) {
-                        countRight = countHist[p][feat.FirstFoldIndex + bin];
-                    } else {
-                        for (ui32 b = bin; b < feat.Folds; ++b)
-                            countRight += countHist[p][feat.FirstFoldIndex + b];
-                    }
-                    ui32 countLeft = partDocCounts[p] - countRight;
-                    if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
-                        anyPartitionViolates = true;
-                        break;
+                    for (ui32 k = 0; k < K; ++k) {
+                        const float* histData = perDimHist[k].data() + p * 2 * totalBinFeatures;
+                        float totalSum = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+
+                        float sumRight = histData[feat.FirstFoldIndex + bin];
+                        float weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        float sumLeft = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                     }
                 }
-                if (anyPartitionViolates) continue;
+
+                if (totalGain > bestGain) {
+                    bestGain = totalGain;
+                    bestSplit.FeatureId = featIdx;
+                    bestSplit.BinId = bin;
+                    bestSplit.Gain = totalGain;
+                    bestSplit.Score = -totalGain;
+                }
             }
+        } else {
+            // ── Ordinal: precompute suffix sums for O(1) lookup per bin ──
+            ui32 folds = feat.Folds;
+            if (folds == 0) continue;
 
-            for (ui32 p = 0; p < numPartitions; ++p) {
-                // Monotone constraint check: use first dimension (k=0) for leaf value direction
-                if (!monotoneConstraints.empty() && featIdx < monotoneConstraints.size()
-                    && monotoneConstraints[featIdx] != 0 && !feat.OneHotFeature) {
-                    const float* histData0 = perDimHist[0].data() + p * 2 * totalBinFeatures;
-                    float tSum = static_cast<float>(perDimPartStats[0][p].Sum);
-                    float tWeight = static_cast<float>(perDimPartStats[0][p].Weight);
-                    float sR, wR;
-                    sR = 0.0f; wR = 0.0f;
-                    for (ui32 b = bin; b < feat.Folds; ++b) {
-                        sR += histData0[feat.FirstFoldIndex + b];
-                        wR += histData0[totalBinFeatures + feat.FirstFoldIndex + b];
+            // Suffix sums of gradient/hessian histograms: suffGrad[k][p][b] =
+            // sum over i=b..folds-1 of hist[firstFold + i].
+            // Layout: [K * numPartitions * (folds+1)], sentinel at [folds] = 0.
+            size_t stride = static_cast<size_t>(folds) + 1;
+            std::vector<float> suffGrad(K * numPartitions * stride, 0.0f);
+            std::vector<float> suffHess(K * numPartitions * stride, 0.0f);
+
+            for (ui32 k = 0; k < K; ++k) {
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    const float* hd = perDimHist[k].data() + p * 2 * totalBinFeatures;
+                    size_t base = (k * numPartitions + p) * stride;
+                    // Build suffix sums from right to left
+                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
+                        suffGrad[base + b] = suffGrad[base + b + 1] + hd[feat.FirstFoldIndex + b];
+                        suffHess[base + b] = suffHess[base + b + 1] + hd[totalBinFeatures + feat.FirstFoldIndex + b];
                     }
-                    float sL = tSum - sR;
-                    float wL = tWeight - wR;
-                    if (wL > 1e-15f && wR > 1e-15f) {
-                        // Leaf values: v = -lr * G/(H+λ). For +1 constraint, v_right >= v_left.
-                        // Since leaf = -lr * G/(H+λ), right >= left iff G_L/(H_L+λ) >= G_R/(H_R+λ)
-                        float vL = sL / (wL + l2RegLambda);
-                        float vR = sR / (wR + l2RegLambda);
-                        if (monotoneConstraints[featIdx] == 1 && vL < vR) {
-                            violatesConstraint = true;
-                            break;
-                        }
-                        if (monotoneConstraints[featIdx] == -1 && vL > vR) {
-                            violatesConstraint = true;
-                            break;
-                        }
-                    }
-                }
-
-                for (ui32 k = 0; k < K; ++k) {
-                    const float* histData = perDimHist[k].data() + p * 2 * totalBinFeatures;
-
-                    float totalSum = static_cast<float>(perDimPartStats[k][p].Sum);
-                    float totalWeight = static_cast<float>(perDimPartStats[k][p].Weight);
-
-                    float sumRight, weightRight;
-                    if (feat.OneHotFeature) {
-                        // OneHot: hist[bin] = docs where featureValue == bin+1
-                        sumRight = histData[feat.FirstFoldIndex + bin];
-                        weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
-                    } else {
-                        // Ordinal: suffix sum over hist[bin..folds-1]
-                        sumRight = 0.0f;
-                        weightRight = 0.0f;
-                        for (ui32 b = bin; b < feat.Folds; ++b) {
-                            sumRight += histData[feat.FirstFoldIndex + b];
-                            weightRight += histData[totalBinFeatures + feat.FirstFoldIndex + b];
-                        }
-                    }
-
-                    float sumLeft = totalSum - sumRight;
-                    float weightLeft = totalWeight - weightRight;
-
-                    // Skip partitions where one side is empty — zero gain contribution
-                    if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
-
-                    totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                               + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                               - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                 }
             }
 
-            if (violatesConstraint) continue;
+            // Suffix sums for doc-count histogram (min-data-in-leaf)
+            std::vector<ui32> suffCount;
+            if (minDataInLeaf > 1 && !countHist.empty()) {
+                suffCount.resize(numPartitions * stride, 0);
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    size_t base = p * stride;
+                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
+                        suffCount[base + b] = suffCount[base + b + 1]
+                                            + countHist[p][feat.FirstFoldIndex + b];
+                    }
+                }
+            }
 
-            if (totalGain > bestGain) {
-                bestGain = totalGain;
-                bestSplit.FeatureId = featIdx;
-                bestSplit.BinId = bin;
-                bestSplit.Gain = totalGain;
-                bestSplit.Score = -totalGain;
+            bool hasMonotone = !monotoneConstraints.empty()
+                            && featIdx < monotoneConstraints.size()
+                            && monotoneConstraints[featIdx] != 0;
+
+            for (ui32 bin = 0; bin < folds; ++bin) {
+                float totalGain = 0.0f;
+                bool violatesConstraint = false;
+
+                // Min-data-in-leaf check using precomputed suffix sums
+                if (minDataInLeaf > 1 && !suffCount.empty()) {
+                    bool anyViolates = false;
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        ui32 countRight = suffCount[p * stride + bin];
+                        ui32 countLeft = partDocCounts[p] - countRight;
+                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
+                            anyViolates = true;
+                            break;
+                        }
+                    }
+                    if (anyViolates) continue;
+                }
+
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    // Monotone constraint check using precomputed suffix sums (dim 0)
+                    if (hasMonotone) {
+                        size_t base0 = static_cast<size_t>(p) * stride;
+                        float sR = suffGrad[base0 + bin];
+                        float wR = suffHess[base0 + bin];
+                        float sL = perDimPartStats[0][p].Sum - sR;
+                        float wL = perDimPartStats[0][p].Weight - wR;
+                        if (wL > 1e-15f && wR > 1e-15f) {
+                            float vL = sL / (wL + l2RegLambda);
+                            float vR = sR / (wR + l2RegLambda);
+                            if (monotoneConstraints[featIdx] == 1 && vL < vR) {
+                                violatesConstraint = true;
+                                break;
+                            }
+                            if (monotoneConstraints[featIdx] == -1 && vL > vR) {
+                                violatesConstraint = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    for (ui32 k = 0; k < K; ++k) {
+                        float totalSum = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+
+                        size_t base = (k * numPartitions + p) * stride;
+                        float sumRight = suffGrad[base + bin];
+                        float weightRight = suffHess[base + bin];
+                        float sumLeft = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                    }
+                }
+
+                if (violatesConstraint) continue;
+
+                if (totalGain > bestGain) {
+                    bestGain = totalGain;
+                    bestSplit.FeatureId = featIdx;
+                    bestSplit.BinId = bin;
+                    bestSplit.Gain = totalGain;
+                    bestSplit.Score = -totalGain;
+                }
             }
         }
     }
@@ -1451,6 +1508,54 @@ std::vector<TCtrFeature> ComputeCtrFeatures(
     }
 
     return ctrFeatures;
+}
+
+// Apply training CTR features to an eval dataset.
+// Uses FinalCtrValues (computed from all training data) to transform
+// high-cardinality categoricals in the eval set to match the training layout.
+void ApplyCtrToEvalData(
+    TDataset& evalDs,
+    const std::vector<TCtrFeature>& ctrFeatures,
+    const TDataset& trainDs  // post-CTR training dataset (for NumFeatures reference)
+) {
+    if (ctrFeatures.empty()) return;
+
+    // Track which original features get their first CTR placed in-place
+    std::unordered_set<ui32> firstPlaced;
+
+    for (const auto& ctr : ctrFeatures) {
+        ui32 f = ctr.OrigFeatureIdx;
+
+        // Transform eval feature values using FinalCtrValues
+        std::vector<float> evalCtrValues(evalDs.NumDocs);
+        for (ui32 d = 0; d < evalDs.NumDocs; ++d) {
+            uint32_t catBin = static_cast<uint32_t>(evalDs.Features[f][d]);
+            auto it = ctr.FinalCtrValues.find(catBin);
+            if (it != ctr.FinalCtrValues.end()) {
+                evalCtrValues[d] = it->second;
+            } else {
+                evalCtrValues[d] = ctr.DefaultCtr;  // unseen category
+            }
+        }
+
+        if (!firstPlaced.count(f)) {
+            // Replace the original categorical feature in-place (first CTR for this feature)
+            evalDs.Features[f] = std::move(evalCtrValues);
+            evalDs.IsCategorical[f] = false;
+            evalDs.HasNaN[f] = false;
+            evalDs.CatHashMaps[f].clear();
+            evalDs.FeatureNames[f] = ctr.Name;
+            firstPlaced.insert(f);
+        } else {
+            // Append additional CTR features (e.g. multiclass class 1, 2, ...)
+            evalDs.Features.push_back(std::move(evalCtrValues));
+            evalDs.IsCategorical.push_back(false);
+            evalDs.HasNaN.push_back(false);
+            evalDs.FeatureNames.push_back(ctr.Name);
+            evalDs.CatHashMaps.push_back({});
+            evalDs.NumFeatures++;
+        }
+    }
 }
 
 // ============================================================================
@@ -2689,6 +2794,7 @@ int main(int argc, char** argv) {
     }
 
     // CTR target encoding for high-cardinality categoricals
+    ui32 preCtrNumFeatures = ds.NumFeatures;  // save for eval file validation
     std::vector<TCtrFeature> ctrFeatures;
     if (config.UseCtr) {
         ctrFeatures = ComputeCtrFeatures(ds, lossType, numClasses,
@@ -2889,8 +2995,20 @@ int main(int argc, char** argv) {
                          config.NanMode, config.GroupCol, config.WeightCol);
         printf("Loaded eval data: %u rows, %u features from %s\n",
                evalDs.NumDocs, evalDs.NumFeatures, config.EvalFile.c_str());
-        if (evalDs.NumFeatures != ds.NumFeatures) {
+        // Check against pre-CTR feature count (CTR may have added extra features to ds)
+        if (evalDs.NumFeatures != preCtrNumFeatures) {
             fprintf(stderr, "Error: Eval data has %u features, training data has %u\n",
+                    evalDs.NumFeatures, preCtrNumFeatures);
+            return 1;
+        }
+        // Apply CTR transformation to eval data using training statistics
+        if (!ctrFeatures.empty()) {
+            ApplyCtrToEvalData(evalDs, ctrFeatures, ds);
+            printf("Applied %zu CTR features to eval data (eval now has %u features)\n",
+                   ctrFeatures.size(), evalDs.NumFeatures);
+        }
+        if (evalDs.NumFeatures != ds.NumFeatures) {
+            fprintf(stderr, "Error: After CTR, eval has %u features but training has %u\n",
                     evalDs.NumFeatures, ds.NumFeatures);
             return 1;
         }
@@ -3054,6 +3172,16 @@ int main(int argc, char** argv) {
 
     printf("---\n");
     printf("Training complete: %u trees in %.2fs\n", trainResult.TreesBuilt, totalTime / 1000.0);
+
+    // Truncate trees to best iteration when early stopping fired
+    if (config.EarlyStoppingPatience > 0 && trainResult.BestIteration > 0 &&
+        trainResult.BestIteration + 1 < trainResult.Trees.size()) {
+        ui32 keepTrees = trainResult.BestIteration + 1;
+        printf("Early stopping: keeping %u/%zu trees (best at iter %u)\n",
+               keepTrees, trainResult.Trees.size(), trainResult.BestIteration);
+        trainResult.Trees.resize(keepTrees);
+        trainResult.TreesBuilt = keepTrees;
+    }
 
     // Feature importance
     if (config.ShowFeatureImportance && !trainResult.Trees.empty()) {

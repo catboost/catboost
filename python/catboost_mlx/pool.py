@@ -61,6 +61,9 @@ def _resolve_cat_features(cat_features, feature_names):
             resolved.append(idx)
         else:
             resolved.append(int(cf))
+    if len(resolved) != len(set(resolved)):
+        dupes = sorted({i for i in resolved if resolved.count(i) > 1})
+        raise ValueError(f"Duplicate cat_features indices: {dupes}")
     return resolved
 
 
@@ -143,6 +146,15 @@ class Pool:
         # Resolve string cat_features to indices
         self.cat_features = _resolve_cat_features(cat_features, feature_names)
 
+        # Validate cat_features bounds
+        if self.cat_features:
+            for idx in self.cat_features:
+                if idx < 0 or idx >= self.X.shape[1]:
+                    raise ValueError(
+                        f"cat_features index {idx} is out of bounds "
+                        f"for data with {self.X.shape[1]} features"
+                    )
+
         self.feature_names = feature_names
         self.group_id = (
             np.asarray(group_id) if group_id is not None else None
@@ -173,6 +185,9 @@ class Pool:
                 f"feature_names has {len(self.feature_names)} entries but "
                 f"X has {self.X.shape[1]} features"
             )
+        if self.feature_names is not None and len(self.feature_names) != len(set(self.feature_names)):
+            dupes = sorted({n for n in self.feature_names if self.feature_names.count(n) > 1})
+            raise ValueError(f"Duplicate feature names: {dupes}")
 
     @property
     def num_samples(self) -> int:

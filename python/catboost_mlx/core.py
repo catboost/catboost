@@ -39,6 +39,7 @@ Public API:
 import csv
 import json
 import logging
+import math
 import os
 import re
 import shutil
@@ -450,10 +451,10 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(f"iterations must be an integer in [1, 100000], got {self.iterations!r}")
         if not isinstance(self.depth, int) or not (1 <= self.depth <= 16):
             raise ValueError(f"depth must be an integer in [1, 16], got {self.depth!r}")
-        if not isinstance(self.learning_rate, (int, float)) or self.learning_rate <= 0:
-            raise ValueError(f"learning_rate must be > 0, got {self.learning_rate!r}")
-        if not isinstance(self.l2_reg_lambda, (int, float)) or self.l2_reg_lambda < 0:
-            raise ValueError(f"l2_reg_lambda must be >= 0, got {self.l2_reg_lambda!r}")
+        if not isinstance(self.learning_rate, (int, float)) or not math.isfinite(self.learning_rate) or self.learning_rate <= 0:
+            raise ValueError(f"learning_rate must be a finite number > 0, got {self.learning_rate!r}")
+        if not isinstance(self.l2_reg_lambda, (int, float)) or not math.isfinite(self.l2_reg_lambda) or self.l2_reg_lambda < 0:
+            raise ValueError(f"l2_reg_lambda must be a finite number >= 0, got {self.l2_reg_lambda!r}")
 
         loss_base = self.loss.split(":")[0].lower()
         if loss_base not in self._KNOWN_LOSSES:
@@ -482,14 +483,14 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
             )
-        if not isinstance(self.bagging_temperature, (int, float)) or self.bagging_temperature < 0:
-            raise ValueError(f"bagging_temperature must be >= 0, got {self.bagging_temperature!r}")
-        if not isinstance(self.mvs_reg, (int, float)) or self.mvs_reg < 0:
-            raise ValueError(f"mvs_reg must be >= 0, got {self.mvs_reg!r}")
+        if not isinstance(self.bagging_temperature, (int, float)) or not math.isfinite(self.bagging_temperature) or self.bagging_temperature < 0:
+            raise ValueError(f"bagging_temperature must be a finite number >= 0, got {self.bagging_temperature!r}")
+        if not isinstance(self.mvs_reg, (int, float)) or not math.isfinite(self.mvs_reg) or self.mvs_reg < 0:
+            raise ValueError(f"mvs_reg must be a finite number >= 0, got {self.mvs_reg!r}")
         if not isinstance(self.max_onehot_size, int) or self.max_onehot_size < 0:
             raise ValueError(f"max_onehot_size must be a non-negative integer, got {self.max_onehot_size!r}")
-        if not isinstance(self.ctr_prior, (int, float)) or self.ctr_prior <= 0:
-            raise ValueError(f"ctr_prior must be > 0, got {self.ctr_prior!r}")
+        if not isinstance(self.ctr_prior, (int, float)) or not math.isfinite(self.ctr_prior) or self.ctr_prior <= 0:
+            raise ValueError(f"ctr_prior must be a finite number > 0, got {self.ctr_prior!r}")
         if not isinstance(self.min_data_in_leaf, int) or self.min_data_in_leaf < 1:
             raise ValueError(f"min_data_in_leaf must be >= 1, got {self.min_data_in_leaf!r}")
         if self.monotone_constraints is not None:
@@ -529,6 +530,13 @@ class CatBoostMLX(BaseEstimator):
         """Validate fit() input arrays."""
         if X.ndim != 2:
             raise ValueError(f"X must be 2-dimensional, got shape {X.shape}")
+        if y.ndim != 1:
+            raise ValueError(f"y must be 1-dimensional, got shape {y.shape}")
+        if not np.issubdtype(y.dtype, np.number) and not np.issubdtype(y.dtype, np.bool_):
+            raise ValueError(
+                f"y must contain numeric values, got dtype '{y.dtype}'. "
+                "For classification, use numeric labels (0, 1, 2, ...)."
+            )
         if y.shape[0] != X.shape[0]:
             raise ValueError(
                 f"X has {X.shape[0]} samples but y has {y.shape[0]} samples"
@@ -558,6 +566,18 @@ class CatBoostMLX(BaseEstimator):
                     f"monotone_constraints has {len(self.monotone_constraints)} values "
                     f"but X has {X.shape[1]} features"
                 )
+        # Check for all-constant numeric features (would fail in C++ quantization)
+        cat_set = set(self.cat_features) if self.cat_features else set()
+        numeric_cols = [j for j in range(X.shape[1]) if j not in cat_set]
+        if numeric_cols:
+            num_data = X[:, numeric_cols]
+            if np.issubdtype(num_data.dtype, np.number):
+                variances = np.var(num_data.astype(float), axis=0)
+                if np.all(variances == 0):
+                    raise ValueError(
+                        "All numeric features are constant (zero variance). "
+                        "The model cannot learn from constant features."
+                    )
 
     def _build_train_args(self, csv_path: str, model_path: str, target_col: int,
                           eval_file: Optional[str] = None,
@@ -836,6 +856,15 @@ class CatBoostMLX(BaseEstimator):
                     class_weight[cls] = np.sqrt(n_samples / (n_classes * cnt))
             sw = np.array([class_weight[yi] for yi in y], dtype=float)
 
+        # Warn on constant target (GBDT converges slowly)
+        if np.std(y) == 0:
+            import warnings
+            warnings.warn(
+                "Target has zero variance (constant). Predictions may not converge "
+                f"with only {self.iterations} iterations at lr={self.learning_rate}.",
+                UserWarning, stacklevel=2,
+            )
+
         # ── Phase 5: Set sklearn-required attributes and write training CSV ──
         self.n_features_in_ = X.shape[1]
         self.n_outputs_ = 1
@@ -883,8 +912,13 @@ class CatBoostMLX(BaseEstimator):
                         f"training X has {X.shape[1]} features"
                     )
                 eval_file_path = os.path.join(tmpdir, "eval.csv")
+                # Write eval CSV with same column layout as training CSV
+                # (include dummy group_id/weight columns so target_col aligns)
+                eval_gid = np.zeros(len(y_val), dtype=int) if gid is not None else None
+                eval_sw = np.ones(len(y_val), dtype=float) if sw is not None else None
                 _array_to_csv(eval_file_path, X_val, y_val, feature_names,
-                              self.cat_features)
+                              self.cat_features, group_id=eval_gid,
+                              sample_weight=eval_sw)
 
             # ── Phase 7: Build CLI command and run the C++ training binary ──
             # Temporarily override group_col and weight_col if provided
@@ -1179,6 +1213,11 @@ class CatBoostMLX(BaseEstimator):
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if hasattr(self, "n_features_in_") and X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was trained on "
+                f"{self.n_features_in_} features."
+            )
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_pred_")
         try:
@@ -1186,11 +1225,11 @@ class CatBoostMLX(BaseEstimator):
             out_path = os.path.join(tmpdir, "predictions.csv")
             model_path = os.path.join(tmpdir, "model.json")
 
-            # Write model JSON (use cached serialization if available)
-            if self._model_json_cache is None:
-                self._model_json_cache = json.dumps(self._model_data)
+            # Write model JSON (regenerate to avoid stale cache)
+            model_json = json.dumps(self._model_data)
+            self._model_json_cache = model_json
             with open(model_path, "w") as f:
-                f.write(self._model_json_cache)
+                f.write(model_json)
 
             _array_to_csv(csv_path, X, feature_names=feature_names, cat_features=self.cat_features)
 
@@ -1450,7 +1489,7 @@ class CatBoostMLX(BaseEstimator):
                 )
 
             # Parse the SHAP output CSV (_shap.csv)
-            shap_path = out_path.replace(".csv", "_shap.csv")
+            shap_path = out_path.rsplit(".csv", 1)[0] + "_shap.csv"
             if not os.path.exists(shap_path):
                 raise RuntimeError(
                     f"SHAP output file not found at {shap_path}. "
