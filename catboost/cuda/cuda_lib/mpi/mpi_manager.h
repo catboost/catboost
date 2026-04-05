@@ -155,7 +155,7 @@ namespace NCudaLib {
 
         template <class T>
         TMpiRequestPtr ReceivePodAsync(int rank, int tag, T* dst) {
-            CB_ENSURE(std::is_pod<T>::value, "Not a pod type");
+            static_assert(std::is_pod<T>::value, "Not a pod type");
             return ReadAsync(reinterpret_cast<char*>(dst), sizeof(T), rank, tag);
         }
 
@@ -175,7 +175,7 @@ namespace NCudaLib {
 
         template <class T>
         void Send(const T& value, int rank, int tag) {
-            if (std::is_pod<T>::value) {
+            if constexpr (std::is_pod<T>::value) {
                 return SendPod(value, rank, tag);
             } else {
                 TBuffer buffer;
@@ -189,7 +189,7 @@ namespace NCudaLib {
 
         template <class T>
         void SendPod(const T& value, int rank, int tag) {
-            CB_ENSURE(std::is_pod<T>::value, "Not a pod type");
+            static_assert(std::is_pod<T>::value, "Not a pod type");
             Write(reinterpret_cast<const char*>(&value), sizeof(value), rank, tag);
         }
 
