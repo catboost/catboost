@@ -1595,7 +1595,8 @@ void SaveModelJSON(
     const TConfig& config,
     ui32 approxDim,
     ui32 numClasses,
-    const std::vector<TCtrFeature>& ctrFeatures = {}
+    const std::vector<TCtrFeature>& ctrFeatures = {},
+    const std::vector<float>& basePrediction = {}
 ) {
     FILE* f = fopen(path.c_str(), "w");
     if (!f) {
@@ -1617,7 +1618,14 @@ void SaveModelJSON(
     fprintf(f, "    \"num_classes\": %u,\n", numClasses);
     fprintf(f, "    \"num_trees\": %u,\n", static_cast<ui32>(allTrees.size()));
     fprintf(f, "    \"max_depth\": %u,\n", config.MaxDepth);
-    fprintf(f, "    \"nan_mode\": \"%s\"\n", config.NanMode.c_str());
+    fprintf(f, "    \"nan_mode\": \"%s\",\n", config.NanMode.c_str());
+    // Base prediction (optimal starting constant for the loss function)
+    fprintf(f, "    \"base_prediction\": [");
+    for (size_t i = 0; i < basePrediction.size(); ++i) {
+        if (i > 0) fprintf(f, ", ");
+        fprintf(f, "%.10g", basePrediction[i]);
+    }
+    fprintf(f, "]\n");
     fprintf(f, "  },\n");
 
     // features
@@ -1775,6 +1783,7 @@ struct TTrainResult {
     float FinalTestLoss = 0.0f;
     ui32 BestIteration = 0;
     ui32 TreesBuilt = 0;
+    std::vector<float> BasePrediction;  // optimal starting constant per dimension
 };
 
 // ============================================================================
@@ -2055,6 +2064,92 @@ TSnapshot LoadSnapshot(const std::string& path) {
     return snap;
 }
 
+// ============================================================================
+// Compute optimal starting prediction (boost from average)
+// ============================================================================
+
+std::vector<float> CalcBasePrediction(
+    const std::vector<float>& targets, ui32 numDocs,
+    const std::string& lossType, ui32 approxDim, ui32 numClasses,
+    const std::vector<float>& sampleWeights = {}
+) {
+    std::vector<float> basePred(approxDim, 0.0f);
+    if (numDocs == 0) return basePred;
+
+    bool hasWeights = !sampleWeights.empty();
+
+    if (lossType == "rmse" || lossType == "mae" || lossType == "huber" || lossType == "mape") {
+        // Weighted mean of targets
+        double sumW = 0.0, sumWT = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            sumW += w;
+            sumWT += w * targets[d];
+        }
+        basePred[0] = (sumW > 0) ? static_cast<float>(sumWT / sumW) : 0.0f;
+    } else if (lossType == "quantile") {
+        // Weighted median (alpha=0.5 default) — use simple mean as approximation
+        double sumW = 0.0, sumWT = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            sumW += w;
+            sumWT += w * targets[d];
+        }
+        basePred[0] = (sumW > 0) ? static_cast<float>(sumWT / sumW) : 0.0f;
+    } else if (lossType == "logloss") {
+        // Logit of weighted average probability: log(p / (1-p))
+        double sumW = 0.0, sumWT = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            sumW += w;
+            sumWT += w * targets[d];
+        }
+        double avgP = (sumW > 0) ? sumWT / sumW : 0.5;
+        avgP = std::max(1e-6, std::min(1.0 - 1e-6, avgP));
+        basePred[0] = static_cast<float>(std::log(avgP / (1.0 - avgP)));
+    } else if (lossType == "poisson") {
+        // Log of weighted mean (Poisson link is exp)
+        double sumW = 0.0, sumWT = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            sumW += w;
+            sumWT += w * targets[d];
+        }
+        double avgT = (sumW > 0) ? sumWT / sumW : 1.0;
+        basePred[0] = static_cast<float>(std::log(std::max(avgT, 1e-6)));
+    } else if (lossType == "tweedie") {
+        // Log of weighted mean
+        double sumW = 0.0, sumWT = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            sumW += w;
+            sumWT += w * targets[d];
+        }
+        double avgT = (sumW > 0) ? sumWT / sumW : 1.0;
+        basePred[0] = static_cast<float>(std::log(std::max(avgT, 1e-6)));
+    } else if (lossType == "multiclass") {
+        // Per-class log-odds: log(p_k / p_ref) where p_ref is implicit last class
+        // For K-1 parametrization: basePred[k] = log(count_k / count_ref)
+        std::vector<double> classCounts(numClasses, 0.0);
+        double totalW = 0.0;
+        for (ui32 d = 0; d < numDocs; ++d) {
+            double w = hasWeights ? sampleWeights[d] : 1.0;
+            ui32 cls = static_cast<ui32>(targets[d]);
+            if (cls < numClasses) classCounts[cls] += w;
+            totalW += w;
+        }
+        // Reference class is the last one (index numClasses-1)
+        double refCount = std::max(classCounts[numClasses - 1], 1e-6);
+        for (ui32 k = 0; k < approxDim; ++k) {
+            double clsCount = std::max(classCounts[k], 1e-6);
+            basePred[k] = static_cast<float>(std::log(clsCount / refCount));
+        }
+    }
+    // pairlogit, yetirank: no meaningful base prediction (relative ranking), keep 0
+
+    return basePred;
+}
+
 TTrainResult RunTraining(
     const TConfig& config,
     const mx::array& compressedData, ui32 trainDocs,
@@ -2077,12 +2172,53 @@ TTrainResult RunTraining(
 ) {
     TTrainResult result;
 
-    // Initialize cursor
-    mx::array cursor = (approxDim == 1)
-        ? mx::zeros({static_cast<int>(trainDocs)}, mx::float32)
-        : mx::zeros({static_cast<int>(approxDim), static_cast<int>(trainDocs)}, mx::float32);
+    // Compute base prediction (boost from average)
+    mx::eval(targetsArr);
+    const float* targetsPtr = targetsArr.data<float>();
+    std::vector<float> targetsVecLocal(targetsPtr, targetsPtr + trainDocs);
+    auto basePred = CalcBasePrediction(targetsVecLocal, trainDocs, lossType,
+                                        approxDim, numClasses, sampleWeights);
+    result.BasePrediction = basePred;
+
+    bool hasBasePred = false;
+    for (float v : basePred) { if (std::fabs(v) > 1e-10f) hasBasePred = true; }
+
+    // Initialize cursor with base prediction
+    mx::array cursor = mx::array(0.0f);
     mx::array valCursor = mx::array(0.0f);
-    if (valDocs > 0) {
+    if (hasBasePred) {
+        if (approxDim == 1) {
+            cursor = mx::full({static_cast<int>(trainDocs)}, basePred[0], mx::float32);
+            if (valDocs > 0)
+                valCursor = mx::full({static_cast<int>(valDocs)}, basePred[0], mx::float32);
+        } else {
+            // Shape [K, trainDocs]: each row k filled with basePred[k]
+            std::vector<float> initData(approxDim * trainDocs);
+            for (ui32 k = 0; k < approxDim; ++k)
+                for (ui32 d = 0; d < trainDocs; ++d)
+                    initData[k * trainDocs + d] = basePred[k];
+            cursor = mx::array(initData.data(),
+                {static_cast<int>(approxDim), static_cast<int>(trainDocs)}, mx::float32);
+            if (valDocs > 0) {
+                std::vector<float> valInitData(approxDim * valDocs);
+                for (ui32 k = 0; k < approxDim; ++k)
+                    for (ui32 d = 0; d < valDocs; ++d)
+                        valInitData[k * valDocs + d] = basePred[k];
+                valCursor = mx::array(valInitData.data(),
+                    {static_cast<int>(approxDim), static_cast<int>(valDocs)}, mx::float32);
+            }
+        }
+        if (printProgress) {
+            printf("Base prediction (boost from average):");
+            for (ui32 k = 0; k < approxDim; ++k) printf(" %.6f", basePred[k]);
+            printf("\n");
+        }
+    } else {
+        cursor = (approxDim == 1)
+            ? mx::zeros({static_cast<int>(trainDocs)}, mx::float32)
+            : mx::zeros({static_cast<int>(approxDim), static_cast<int>(trainDocs)}, mx::float32);
+    }
+    if (valDocs > 0 && !hasBasePred) {
         valCursor = (approxDim == 1)
             ? mx::zeros({static_cast<int>(valDocs)}, mx::float32)
             : mx::zeros({static_cast<int>(approxDim), static_cast<int>(valDocs)}, mx::float32);
@@ -2335,10 +2471,14 @@ TTrainResult RunTraining(
                 }
 
                 // Find threshold: include top fraction by gradient magnitude
+                // Use nth_element (O(n)) instead of sort (O(n log n))
                 std::vector<float> sortedMag = gradMag;
-                std::sort(sortedMag.begin(), sortedMag.end(), std::greater<float>());
                 ui32 topCount = static_cast<ui32>(std::ceil(config.SubsampleRatio * trainDocs));
                 topCount = std::min(topCount, trainDocs);
+                if (topCount > 0 && topCount < trainDocs) {
+                    std::nth_element(sortedMag.begin(), sortedMag.begin() + topCount - 1,
+                                     sortedMag.end(), std::greater<float>());
+                }
                 float threshold = (topCount < trainDocs) ? sortedMag[topCount - 1] : 0.0f;
 
                 for (ui32 d = 0; d < trainDocs; ++d) {
@@ -3218,7 +3358,7 @@ int main(int argc, char** argv) {
     // Save model
     if (!config.OutputModelPath.empty() && !trainResult.Trees.empty()) {
         SaveModelJSON(config.OutputModelPath, trainResult.Trees, ds, quant, lossType, lossParam,
-                      config, approxDim, numClasses, ctrFeatures);
+                      config, approxDim, numClasses, ctrFeatures, trainResult.BasePrediction);
         printf("Model saved to: %s (%u trees, %u features)\n",
                config.OutputModelPath.c_str(), static_cast<ui32>(trainResult.Trees.size()), ds.NumFeatures);
     }

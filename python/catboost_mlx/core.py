@@ -1074,12 +1074,15 @@ class CatBoostMLX(BaseEstimator):
 
         binned = quantize_features(X, features, self.cat_features)
 
-        # Initialize a running sum (cursor) that accumulates leaf values tree
-        # by tree. This mimics what the C++ binary does during training.
+        # Initialize cursor with base prediction (boost from average)
+        base_pred = info.get("base_prediction", [])
         if approx_dim == 1:
-            cursor = np.zeros(n_samples, dtype=float)
+            bp = base_pred[0] if base_pred else 0.0
+            cursor = np.full(n_samples, bp, dtype=float)
         else:
             cursor = np.zeros((n_samples, approx_dim), dtype=float)
+            if base_pred and len(base_pred) >= approx_dim:
+                cursor += np.array(base_pred[:approx_dim], dtype=float)
 
         for t in range(n_trees):
             tree = trees[t]
@@ -1143,10 +1146,14 @@ class CatBoostMLX(BaseEstimator):
 
         binned = quantize_features(X, features, self.cat_features)
 
+        base_pred = info.get("base_prediction", [])
         if approx_dim == 1:
-            cursor = np.zeros(n_samples, dtype=float)
+            bp = base_pred[0] if base_pred else 0.0
+            cursor = np.full(n_samples, bp, dtype=float)
         else:
             cursor = np.zeros((n_samples, approx_dim), dtype=float)
+            if base_pred and len(base_pred) >= approx_dim:
+                cursor += np.array(base_pred[:approx_dim], dtype=float)
 
         for t in range(n_trees):
             tree = trees[t]

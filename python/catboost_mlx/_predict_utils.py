@@ -122,7 +122,8 @@ def compute_leaf_indices(binned_X: np.ndarray, tree: dict) -> np.ndarray:
 
 
 def evaluate_trees(binned_X: np.ndarray, trees: List[dict],
-                   approx_dim: int, n_trees: Optional[int] = None) -> np.ndarray:
+                   approx_dim: int, n_trees: Optional[int] = None,
+                   base_prediction: Optional[List[float]] = None) -> np.ndarray:
     """Accumulate leaf values across trees.
 
     Parameters
@@ -133,6 +134,8 @@ def evaluate_trees(binned_X: np.ndarray, trees: List[dict],
         Output dimensions per leaf (1 for regression/binary, K-1 for K-class).
     n_trees : int, optional
         Only use the first n_trees. Defaults to all.
+    base_prediction : list of float, optional
+        Starting constant per dimension (from model_info). Added before tree sums.
 
     Returns
     -------
@@ -144,7 +147,8 @@ def evaluate_trees(binned_X: np.ndarray, trees: List[dict],
         n_trees = len(trees)
 
     if approx_dim == 1:
-        cursor = np.zeros(n_samples, dtype=float)
+        bp = base_prediction[0] if base_prediction else 0.0
+        cursor = np.full(n_samples, bp, dtype=float)
         for t in range(n_trees):
             tree = trees[t]
             leaf_idx = compute_leaf_indices(binned_X, tree)
@@ -152,6 +156,8 @@ def evaluate_trees(binned_X: np.ndarray, trees: List[dict],
             cursor += leaf_vals[leaf_idx]
     else:
         cursor = np.zeros((n_samples, approx_dim), dtype=float)
+        if base_prediction and len(base_prediction) >= approx_dim:
+            cursor += np.array(base_prediction[:approx_dim], dtype=float)
         for t in range(n_trees):
             tree = trees[t]
             leaf_idx = compute_leaf_indices(binned_X, tree)

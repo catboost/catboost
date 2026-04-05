@@ -121,6 +121,7 @@ struct TModelInfo {
     ui32 NumTrees;
     ui32 MaxDepth;
     std::string NanMode;
+    std::vector<float> BasePrediction;  // optimal starting constant per dimension
 };
 
 struct TModel {
@@ -274,6 +275,14 @@ TModel LoadModelJSON(const std::string& path) {
                 else if (k == "num_trees") model.Info.NumTrees = static_cast<ui32>(p.ParseNumber());
                 else if (k == "max_depth") model.Info.MaxDepth = static_cast<ui32>(p.ParseNumber());
                 else if (k == "nan_mode") model.Info.NanMode = p.ParseString();
+                else if (k == "base_prediction") {
+                    p.Expect('[');
+                    while (p.Peek() != ']') {
+                        model.Info.BasePrediction.push_back(static_cast<float>(p.ParseNumber()));
+                        if (p.Peek() == ',') p.Next();
+                    }
+                    p.Expect(']');
+                }
                 else p.SkipValue();
                 if (p.Peek() == ',') p.Next();
             }
@@ -876,6 +885,11 @@ static void ComputeAllShapValues(
             std::vector<float>(approxDim, 0.0f)));
     expectedValue.assign(approxDim, 0.0f);
 
+    // Include base prediction in expected value
+    for (ui32 k = 0; k < approxDim && k < model.Info.BasePrediction.size(); ++k) {
+        expectedValue[k] += model.Info.BasePrediction[k];
+    }
+
     for (ui32 ti = 0; ti < model.Trees.size(); ++ti) {
         const auto& tree = model.Trees[ti];
         ui32 depth = tree.Depth;
@@ -1021,11 +1035,29 @@ int main(int argc, char** argv) {
         mx::uint32
     );
 
-    // Initialize cursor
+    // Initialize cursor with base prediction
     ui32 approxDim = model.Info.ApproxDimension;
-    mx::array cursor = (approxDim == 1)
-        ? mx::zeros({static_cast<int>(ds.NumDocs)}, mx::float32)
-        : mx::zeros({static_cast<int>(approxDim), static_cast<int>(ds.NumDocs)}, mx::float32);
+    ui32 numDocs = ds.NumDocs;
+    mx::array cursor = mx::array(0.0f);
+    const auto& basePred = model.Info.BasePrediction;
+    bool hasBasePred = !basePred.empty();
+    if (hasBasePred) {
+        for (float v : basePred) { if (std::fabs(v) <= 1e-10f) { /* check at least one non-zero */ } }
+    }
+    if (hasBasePred && approxDim == 1 && basePred.size() >= 1) {
+        cursor = mx::full({static_cast<int>(numDocs)}, basePred[0], mx::float32);
+    } else if (hasBasePred && approxDim > 1 && basePred.size() >= approxDim) {
+        std::vector<float> initData(approxDim * numDocs);
+        for (ui32 k = 0; k < approxDim; ++k)
+            for (ui32 d = 0; d < numDocs; ++d)
+                initData[k * numDocs + d] = basePred[k];
+        cursor = mx::array(initData.data(),
+            {static_cast<int>(approxDim), static_cast<int>(numDocs)}, mx::float32);
+    } else {
+        cursor = (approxDim == 1)
+            ? mx::zeros({static_cast<int>(numDocs)}, mx::float32)
+            : mx::zeros({static_cast<int>(approxDim), static_cast<int>(numDocs)}, mx::float32);
+    }
 
     // Apply all trees
     for (ui32 ti = 0; ti < model.Trees.size(); ++ti) {
@@ -1056,7 +1088,6 @@ int main(int argc, char** argv) {
 
     // Transform predictions based on loss type
     const std::string& lossType = model.Info.LossType;
-    ui32 numDocs = ds.NumDocs;
 
     // Prepare output
     FILE* outFile = stdout;
