@@ -431,6 +431,7 @@ bool IsNaNString(const std::string& s) {
 
 struct TPredictDataset {
     std::vector<std::vector<std::string>> RawFeatures;  // [numFeatures][numDocs] raw strings
+    std::vector<std::vector<float>> FloatFeatures;       // [numFeatures][numDocs] (binary format only)
     std::vector<float> Targets;                          // [numDocs] (empty if no target col)
     ui32 NumDocs = 0;
     ui32 NumFeatures = 0;
@@ -529,6 +530,61 @@ TPredictDataset LoadPredictCSV(const std::string& path, int targetCol, int group
     return ds;
 }
 
+bool IsBinaryFormat(const std::string& path) {
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) return false;
+    char magic[4] = {0};
+    size_t rd = fread(magic, 1, 4, f);
+    fclose(f);
+    return rd == 4 && memcmp(magic, "CBMX", 4) == 0;
+}
+
+TPredictDataset LoadPredictBinary(const std::string& path) {
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) {
+        fprintf(stderr, "Error: Cannot open file: %s\n", path.c_str());
+        exit(1);
+    }
+
+    char magic[4];
+    uint32_t version, n, nf, flags;
+    fread(magic, 1, 4, f);
+    fread(&version, 4, 1, f);
+    fread(&n, 4, 1, f);
+    fread(&nf, 4, 1, f);
+    fread(&flags, 4, 1, f);
+
+    bool hasTarget = flags & 1;
+    bool hasWeight = flags & 4;
+
+    TPredictDataset ds;
+    ds.NumDocs = n;
+    ds.NumFeatures = nf;
+    ds.FloatFeatures.resize(nf);
+
+    for (uint32_t fi = 0; fi < nf; fi++) {
+        ds.FloatFeatures[fi].resize(n);
+        fread(ds.FloatFeatures[fi].data(), sizeof(float), n, f);
+    }
+
+    if (hasTarget) {
+        ds.Targets.resize(n);
+        fread(ds.Targets.data(), sizeof(float), n, f);
+        ds.HasTargets = true;
+    }
+
+    // Skip weight data if present (not used for prediction)
+    if (hasWeight) fseek(f, n * sizeof(float), SEEK_CUR);
+
+    fclose(f);
+
+    ds.FeatureNames.resize(nf);
+    for (uint32_t fi = 0; fi < nf; fi++)
+        ds.FeatureNames[fi] = "f" + std::to_string(fi);
+
+    return ds;
+}
+
 // ============================================================================
 // Quantize prediction data using model's borders and hash maps
 // ============================================================================
@@ -575,19 +631,25 @@ TPackedData QuantizeAndPack(
             // Numeric: apply borders with NaN handling
             bool hasNaN = mf.HasNaN;
             ui32 binOffset = hasNaN ? 1 : 0;
+            bool hasFloats = !ds.FloatFeatures.empty();
 
             for (ui32 d = 0; d < numDocs; ++d) {
-                const auto& val = ds.RawFeatures[f][d];
-                if (IsNaNString(val)) {
-                    binnedFeatures[f][d] = 0;  // NaN → bin 0
+                float fval;
+                if (hasFloats) {
+                    fval = ds.FloatFeatures[f][d];
                 } else {
-                    float fval = std::stof(val);
-                    if (std::isnan(fval)) {
+                    const auto& val = ds.RawFeatures[f][d];
+                    if (IsNaNString(val)) {
                         binnedFeatures[f][d] = 0;
-                    } else {
-                        auto it = std::upper_bound(mf.Borders.begin(), mf.Borders.end(), fval);
-                        binnedFeatures[f][d] = static_cast<uint8_t>((it - mf.Borders.begin()) + binOffset);
+                        continue;
                     }
+                    fval = std::stof(val);
+                }
+                if (std::isnan(fval)) {
+                    binnedFeatures[f][d] = 0;
+                } else {
+                    auto it = std::upper_bound(mf.Borders.begin(), mf.Borders.end(), fval);
+                    binnedFeatures[f][d] = static_cast<uint8_t>((it - mf.Borders.begin()) + binOffset);
                 }
             }
         }
@@ -962,8 +1024,10 @@ int main(int argc, char** argv) {
            model.Trees.size(), model.Features.size(),
            model.Info.LossType.c_str(), model.Info.ApproxDimension);
 
-    // Load CSV data
-    auto ds = LoadPredictCSV(config.CsvPath, config.TargetCol, config.GroupCol);
+    // Load data (auto-detect binary vs CSV format)
+    auto ds = IsBinaryFormat(config.CsvPath)
+        ? LoadPredictBinary(config.CsvPath)
+        : LoadPredictCSV(config.CsvPath, config.TargetCol, config.GroupCol);
     printf("Loaded data: %u rows, %u features from %s\n", ds.NumDocs, ds.NumFeatures, config.CsvPath.c_str());
 
     // Apply CTR transformations if the model has CTR features

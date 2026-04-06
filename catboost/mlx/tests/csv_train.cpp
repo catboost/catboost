@@ -491,6 +491,123 @@ TDataset LoadCSV(const std::string& path, int targetCol, const std::unordered_se
 }
 
 // ============================================================================
+// Binary format loader (CBMX)
+// ============================================================================
+// Header: "CBMX"(4) version(4) n_samples(4) n_features(4) flags(4) = 20 bytes
+// Data:   float32[n_features][n_samples] (column-major)
+//         float32[n_samples] target (if flag bit 0)
+//         float32[n_samples] weight (if flag bit 2)
+//         uint32[n_samples]  group_id (if flag bit 1)
+
+bool IsBinaryFormat(const std::string& path) {
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) return false;
+    char magic[4] = {0};
+    size_t rd = fread(magic, 1, 4, f);
+    fclose(f);
+    return rd == 4 && memcmp(magic, "CBMX", 4) == 0;
+}
+
+TDataset LoadBinary(const std::string& path, const std::string& nanMode) {
+    FILE* f = fopen(path.c_str(), "rb");
+    if (!f) {
+        fprintf(stderr, "Error: Cannot open file: %s\n", path.c_str());
+        exit(1);
+    }
+
+    char magic[4];
+    uint32_t version, n, nf, flags;
+    fread(magic, 1, 4, f);
+    fread(&version, 4, 1, f);
+    fread(&n, 4, 1, f);
+    fread(&nf, 4, 1, f);
+    fread(&flags, 4, 1, f);
+
+    if (version != 1) {
+        fprintf(stderr, "Error: Unsupported CBMX version %u\n", version);
+        fclose(f); exit(1);
+    }
+
+    bool hasTarget = flags & 1;
+    bool hasGroup = flags & 2;
+    bool hasWeight = flags & 4;
+
+    TDataset ds;
+    ds.NumDocs = n;
+    ds.NumFeatures = nf;
+    ds.Features.resize(nf);
+    ds.HasNaN.resize(nf, false);
+    ds.IsCategorical.resize(nf, false);
+    ds.CatHashMaps.resize(nf);
+
+    // Read features (column-major: each feature column contiguous)
+    for (uint32_t fi = 0; fi < nf; fi++) {
+        ds.Features[fi].resize(n);
+        size_t rd = fread(ds.Features[fi].data(), sizeof(float), n, f);
+        if (rd != n) {
+            fprintf(stderr, "Error: Truncated binary file at feature %u\n", fi);
+            fclose(f); exit(1);
+        }
+        for (uint32_t d = 0; d < n; d++) {
+            if (std::isnan(ds.Features[fi][d])) {
+                if (nanMode == "forbidden") {
+                    fprintf(stderr, "Error: NaN at feature %u, row %u (--nan-mode=forbidden)\n", fi, d);
+                    fclose(f); exit(1);
+                }
+                ds.HasNaN[fi] = true;
+            }
+        }
+    }
+
+    if (hasTarget) {
+        ds.Targets.resize(n);
+        fread(ds.Targets.data(), sizeof(float), n, f);
+    }
+    if (hasWeight) {
+        ds.Weights.resize(n);
+        fread(ds.Weights.data(), sizeof(float), n, f);
+    }
+    if (hasGroup) {
+        ds.GroupIds.resize(n);
+        fread(ds.GroupIds.data(), sizeof(uint32_t), n, f);
+
+        // Sort by group and build GroupOffsets (same as LoadCSV)
+        std::vector<ui32> perm(n);
+        std::iota(perm.begin(), perm.end(), 0);
+        std::stable_sort(perm.begin(), perm.end(),
+            [&](ui32 a, ui32 b) { return ds.GroupIds[a] < ds.GroupIds[b]; });
+        auto permute = [&](auto& vec) {
+            auto tmp = vec;
+            for (ui32 i = 0; i < n; ++i) vec[i] = tmp[perm[i]];
+        };
+        permute(ds.Targets);
+        permute(ds.GroupIds);
+        if (!ds.Weights.empty()) permute(ds.Weights);
+        for (uint32_t fi = 0; fi < nf; fi++) permute(ds.Features[fi]);
+
+        ds.NumGroups = 0;
+        ds.GroupOffsets.push_back(0);
+        for (uint32_t d = 1; d < n; ++d) {
+            if (ds.GroupIds[d] != ds.GroupIds[d - 1]) {
+                ds.GroupOffsets.push_back(d);
+                ds.NumGroups++;
+            }
+        }
+        ds.GroupOffsets.push_back(n);
+        ds.NumGroups++;
+    }
+
+    fclose(f);
+
+    // Generate feature names
+    ds.FeatureNames.resize(nf);
+    for (uint32_t fi = 0; fi < nf; fi++)
+        ds.FeatureNames[fi] = "f" + std::to_string(fi);
+
+    return ds;
+}
+
+// ============================================================================
 // Quantization
 // ============================================================================
 
@@ -2855,7 +2972,9 @@ int main(int argc, char** argv) {
     auto lossConfig = ParseLossType(config.LossType);
 
     // Load data
-    auto ds = LoadCSV(config.CsvPath, config.TargetCol, config.CatFeatureCols, config.NanMode, config.GroupCol, config.WeightCol);
+    auto ds = IsBinaryFormat(config.CsvPath)
+        ? LoadBinary(config.CsvPath, config.NanMode)
+        : LoadCSV(config.CsvPath, config.TargetCol, config.CatFeatureCols, config.NanMode, config.GroupCol, config.WeightCol);
     printf("Loaded: %u rows, %u features from %s\n", ds.NumDocs, ds.NumFeatures, config.CsvPath.c_str());
 
     // Report categorical features
@@ -3106,8 +3225,10 @@ int main(int argc, char** argv) {
     TDataset evalDs;
     TPackedData evalPacked;
     if (!config.EvalFile.empty()) {
-        evalDs = LoadCSV(config.EvalFile, config.TargetCol, config.CatFeatureCols,
-                         config.NanMode, config.GroupCol, config.WeightCol);
+        evalDs = IsBinaryFormat(config.EvalFile)
+            ? LoadBinary(config.EvalFile, config.NanMode)
+            : LoadCSV(config.EvalFile, config.TargetCol, config.CatFeatureCols,
+                      config.NanMode, config.GroupCol, config.WeightCol);
         printf("Loaded eval data: %u rows, %u features from %s\n",
                evalDs.NumDocs, evalDs.NumFeatures, config.EvalFile.c_str());
         // Check against pre-CTR feature count (CTR may have added extra features to ds)
