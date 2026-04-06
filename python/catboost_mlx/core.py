@@ -410,6 +410,7 @@ class CatBoostMLX(BaseEstimator):
         mvs_reg: float = 0.0,
         group_col: int = -1,
         min_data_in_leaf: int = 1,
+        random_strength: float = 1.0,
         monotone_constraints: Optional[List[int]] = None,
         snapshot_path: Optional[str] = None,
         snapshot_interval: int = 1,
@@ -440,6 +441,7 @@ class CatBoostMLX(BaseEstimator):
         self.mvs_reg = mvs_reg
         self.group_col = group_col
         self.min_data_in_leaf = min_data_in_leaf
+        self.random_strength = random_strength
         self.monotone_constraints = monotone_constraints
         self.snapshot_path = snapshot_path
         self.snapshot_interval = snapshot_interval
@@ -478,6 +480,23 @@ class CatBoostMLX(BaseEstimator):
 
     def _validate_params(self) -> None:
         """Validate hyperparameters before training."""
+        # Guard against bool values -- bool is a subclass of int in Python,
+        # so isinstance(True, int) is True. Check bool first for all numeric params.
+        _bool_params = [
+            ("iterations", self.iterations), ("depth", self.depth),
+            ("learning_rate", self.learning_rate), ("l2_reg_lambda", self.l2_reg_lambda),
+            ("bins", self.bins), ("eval_fraction", self.eval_fraction),
+            ("early_stopping_rounds", self.early_stopping_rounds),
+            ("subsample", self.subsample), ("colsample_bytree", self.colsample_bytree),
+            ("bagging_temperature", self.bagging_temperature), ("mvs_reg", self.mvs_reg),
+            ("max_onehot_size", self.max_onehot_size), ("ctr_prior", self.ctr_prior),
+            ("random_strength", self.random_strength),
+            ("min_data_in_leaf", self.min_data_in_leaf),
+            ("snapshot_interval", self.snapshot_interval),
+        ]
+        for name, val in _bool_params:
+            if isinstance(val, bool):
+                raise ValueError(f"{name} must be a number, got {val!r} (bool)")
         if not isinstance(self.iterations, int) or not (1 <= self.iterations <= 100000):
             raise ValueError(f"iterations must be an integer in [1, 100000], got {self.iterations!r}")
         if not isinstance(self.depth, int) or not (1 <= self.depth <= 16):
@@ -522,6 +541,8 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(f"max_onehot_size must be a non-negative integer, got {self.max_onehot_size!r}")
         if not isinstance(self.ctr_prior, (int, float)) or not math.isfinite(self.ctr_prior) or self.ctr_prior <= 0:
             raise ValueError(f"ctr_prior must be a finite number > 0, got {self.ctr_prior!r}")
+        if not isinstance(self.random_strength, (int, float)) or not math.isfinite(self.random_strength) or self.random_strength < 0:
+            raise ValueError(f"random_strength must be a finite number >= 0, got {self.random_strength!r}")
         if not isinstance(self.min_data_in_leaf, int) or self.min_data_in_leaf < 1:
             raise ValueError(f"min_data_in_leaf must be >= 1, got {self.min_data_in_leaf!r}")
         if self.monotone_constraints is not None:
@@ -584,6 +605,18 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"feature_names has {len(feature_names)} names but X has {X.shape[1]} features"
             )
+        if feature_names is not None:
+            for i, fname in enumerate(feature_names):
+                if not isinstance(fname, str):
+                    raise ValueError(
+                        f"feature_names[{i}] must be a string, got "
+                        f"{type(fname).__name__}: {fname!r}"
+                    )
+                if "," in fname or "\n" in fname or "\r" in fname or "\x00" in fname:
+                    raise ValueError(
+                        f"feature_names contain invalid characters (comma, "
+                        f"newline, carriage return, or null byte): {fname!r}"
+                    )
         if self.cat_features:
             for idx in self.cat_features:
                 if idx < 0 or idx >= X.shape[1]:
@@ -601,9 +634,12 @@ class CatBoostMLX(BaseEstimator):
         cat_set = set(self.cat_features) if self.cat_features else set()
         numeric_cols = [j for j in range(X.shape[1]) if j not in cat_set]
         if numeric_cols:
-            num_data = X[:, numeric_cols]
-            if np.issubdtype(num_data.dtype, np.number):
-                variances = np.var(num_data.astype(float), axis=0)
+            try:
+                num_data = X[:, numeric_cols].astype(float)
+            except (ValueError, TypeError):
+                pass  # can't convert to float (e.g. mixed categorical), skip check
+            else:
+                variances = np.var(num_data, axis=0)
                 if np.all(variances == 0):
                     raise ValueError(
                         "All numeric features are constant (zero variance). "
@@ -678,6 +714,8 @@ class CatBoostMLX(BaseEstimator):
             args.extend(["--snapshot-path", self.snapshot_path])
             if self.snapshot_interval > 1:
                 args.extend(["--snapshot-interval", str(self.snapshot_interval)])
+        if self.random_strength != 1.0:
+            args.extend(["--random-strength", str(self.random_strength)])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:
@@ -999,6 +1037,12 @@ class CatBoostMLX(BaseEstimator):
             self._model_path = None
             self._is_fitted = True
             self._model_json_cache = None  # invalidate cached serialization
+            # Inject real feature names into model data (C++ binary uses
+            # generic f0/f1/... for binary format)
+            if hasattr(self, "feature_names_in_"):
+                for i, feat in enumerate(self._model_data.get("features", [])):
+                    if i < len(self.feature_names_in_):
+                        feat["name"] = str(self.feature_names_in_[i])
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -1112,6 +1156,11 @@ class CatBoostMLX(BaseEstimator):
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if hasattr(self, "n_features_in_") and X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was trained on "
+                f"{self.n_features_in_} features."
+            )
 
         features = self._model_data["features"]
         trees = self._model_data["trees"]
@@ -1185,6 +1234,11 @@ class CatBoostMLX(BaseEstimator):
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if hasattr(self, "n_features_in_") and X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was trained on "
+                f"{self.n_features_in_} features."
+            )
 
         features = self._model_data["features"]
         trees = self._model_data["trees"]
@@ -1249,6 +1303,11 @@ class CatBoostMLX(BaseEstimator):
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if hasattr(self, "n_features_in_") and X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was trained on "
+                f"{self.n_features_in_} features."
+            )
 
         features = self._model_data["features"]
         trees = self._model_data["trees"]
@@ -1523,6 +1582,11 @@ class CatBoostMLX(BaseEstimator):
         X = _to_numpy(X)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if hasattr(self, "n_features_in_") and X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was trained on "
+                f"{self.n_features_in_} features."
+            )
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_shap_")
         try:
@@ -1530,8 +1594,7 @@ class CatBoostMLX(BaseEstimator):
             model_path = os.path.join(tmpdir, "model.json")
 
             with open(model_path, "w") as f:
-                if self._model_json_cache is None:
-                    self._model_json_cache = json.dumps(self._model_data)
+                self._model_json_cache = json.dumps(self._model_data)
                 f.write(self._model_json_cache)
 
             if not self.cat_features:

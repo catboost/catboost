@@ -351,10 +351,11 @@ class TestParamValidationEdges:
             CatBoostMLX(iterations=None)._validate_params()
 
     def test_bool_iterations(self):
-        """bool is subclass of int in Python. True=1 should pass, False=0 should fail."""
-        CatBoostMLX(iterations=True)._validate_params()  # True == 1
+        """bool values should be rejected -- str(True)='True' causes C++ atoi=0."""
+        with pytest.raises(ValueError, match="bool"):
+            CatBoostMLX(iterations=True)._validate_params()
         with pytest.raises(ValueError):
-            CatBoostMLX(iterations=False)._validate_params()  # False == 0
+            CatBoostMLX(iterations=False)._validate_params()
 
 
 # ════════════════════════════════════════════════════════════════════════════

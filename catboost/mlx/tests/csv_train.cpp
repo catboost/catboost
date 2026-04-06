@@ -143,6 +143,7 @@ struct TConfig {
     ui32 MaxOneHotSize = 10;           // categoricals with > this many values use CTR instead of OneHot
     // Regularization
     ui32 MinDataInLeaf = 1;            // minimum documents per leaf (1 = no restriction)
+    float RandomStrength = 1.0f;       // random score perturbation strength (0 = disabled)
     // Monotone constraints
     std::vector<int> MonotoneConstraints;  // per-feature: 0=none, 1=increasing, -1=decreasing
     // Snapshot save/resume
@@ -198,6 +199,7 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--group-col") == 0 && i + 1 < argc) config.GroupCol = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--weight-col") == 0 && i + 1 < argc) config.WeightCol = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--min-data-in-leaf") == 0 && i + 1 < argc) config.MinDataInLeaf = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--random-strength") == 0 && i + 1 < argc) config.RandomStrength = std::atof(argv[++i]);
         else if (strcmp(argv[i], "--monotone-constraints") == 0 && i + 1 < argc) {
             std::stringstream ss(argv[++i]);
             std::string token;
@@ -935,11 +937,27 @@ TBestSplitProperties FindBestSplit(
     ui32 minDataInLeaf = 1,                     // minimum docs per child (1 = no restriction)
     const std::vector<std::vector<ui32>>& countHist = {},  // [numPartitions][totalBinFeatures] doc counts per bin
     const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
-    const std::vector<int>& monotoneConstraints = {}       // per-feature: 0=none, 1=inc, -1=dec
+    const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
+    float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
+    std::mt19937* rng = nullptr                            // RNG for perturbation
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
     float bestGain = -std::numeric_limits<float>::infinity();
+
+    // Random score perturbation: scale based on average partition statistics
+    // This matches CatBoost's approach of scaling noise by the magnitude of the data
+    float noiseScale = 0.0f;
+    if (randomStrength > 0.0f && rng) {
+        double totalWeight = 0.0;
+        for (ui32 p = 0; p < numPartitions; ++p) {
+            for (ui32 k = 0; k < K; ++k) {
+                totalWeight += std::abs(perDimPartStats[k][p].Weight);
+            }
+        }
+        noiseScale = randomStrength * static_cast<float>(totalWeight / (numPartitions * K + 1e-10));
+    }
+    std::normal_distribution<float> noiseDist(0.0f, 1.0f);
 
     // The Metal histogram kernel produces per-bin sums with a +1 offset:
     //   hist[firstFold + b] = sum of docs where featureValue == b+1
@@ -994,11 +1012,16 @@ TBestSplitProperties FindBestSplit(
                     }
                 }
 
-                if (totalGain > bestGain) {
-                    bestGain = totalGain;
+                // Add random perturbation to prevent overfitting
+                float perturbedGain = totalGain;
+                if (noiseScale > 0.0f) {
+                    perturbedGain += noiseScale * noiseDist(*rng);
+                }
+                if (perturbedGain > bestGain) {
+                    bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
-                    bestSplit.Gain = totalGain;
+                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
             }
@@ -1103,11 +1126,16 @@ TBestSplitProperties FindBestSplit(
 
                 if (violatesConstraint) continue;
 
-                if (totalGain > bestGain) {
-                    bestGain = totalGain;
+                // Add random perturbation to prevent overfitting
+                float perturbedGain = totalGain;
+                if (noiseScale > 0.0f) {
+                    perturbedGain += noiseScale * noiseDist(*rng);
+                }
+                if (perturbedGain > bestGain) {
+                    bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
-                    bestSplit.Gain = totalGain;
+                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
             }
@@ -1837,7 +1865,7 @@ void SaveModelJSON(
             std::string name = (fi < ds.FeatureNames.size() && !ds.FeatureNames[fi].empty())
                 ? ds.FeatureNames[fi] : ("f" + std::to_string(fi));
             double pct = (totalGain > 0) ? 100.0 * featureGain[fi] / totalGain : 0.0;
-            fprintf(f, "    {\"index\": %u, \"name\": \"%s\", \"gain\": %.6f, \"percent\": %.2f}",
+            fprintf(f, "    {\"index\": %u, \"name\": \"%s\", \"gain\": %.10f, \"percent\": %.2f}",
                     fi, EscapeJsonString(name).c_str(), featureGain[fi], pct);
             first = false;
         }
@@ -1892,6 +1920,8 @@ struct TTrainResult {
     ui32 BestIteration = 0;
     ui32 TreesBuilt = 0;
     std::vector<float> BasePrediction;  // optimal starting constant per dimension
+    // Phase timing (ms, accumulated across all iterations)
+    double GradMs = 0, TreeSearchMs = 0, LeafMs = 0, ApplyMs = 0;
 };
 
 // ============================================================================
@@ -1969,7 +1999,7 @@ void SaveSnapshot(
         for (ui32 s = 0; s < tree.Splits.size(); ++s) {
             const auto& sp = tree.Splits[s];
             if (s > 0) fprintf(f, ",");
-            fprintf(f, "{\"col\":%llu,\"shift\":%u,\"mask\":%u,\"bin\":%u,\"onehot\":%s}",
+            fprintf(f, "{\"col\":%u,\"shift\":%u,\"mask\":%u,\"bin\":%u,\"onehot\":%s}",
                     sp.FeatureColumnIdx, sp.Shift, sp.Mask, sp.BinThreshold,
                     sp.IsOneHot ? "true" : "false");
         }
@@ -2398,6 +2428,7 @@ TTrainResult RunTraining(
         valPairLogitPairs = GeneratePairLogitPairs(valTargetsVec, valGroupOffsets, valNumGroups);
     }
 
+
     for (ui32 iter = startIteration; iter < config.NumIterations; ++iter) {
         auto iterStart = std::chrono::steady_clock::now();
 
@@ -2608,14 +2639,21 @@ TTrainResult RunTraining(
             for (ui32 k = 0; k < approxDim; ++k) mx::eval({dimGrads[k], dimHess[k]});
         }
 
+        auto tGradEnd = std::chrono::steady_clock::now();
+        result.GradMs += std::chrono::duration<double, std::milli>(tGradEnd - iterStart).count();
+
         // Step 2: Greedy tree structure search
         auto partitions = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
         std::vector<TObliviousSplitLevel> splits;
         std::vector<TBestSplitProperties> splitProps;
 
+        double dbgHistMs = 0, dbgSplitMs = 0, dbgLayoutMs = 0, dbgPartMs = 0;
         for (ui32 depth = 0; depth < config.MaxDepth; ++depth) {
+            auto tD0 = std::chrono::steady_clock::now();
             ui32 numPartitions = 1u << depth;
             auto layout = ComputePartitionLayout(partitions, trainDocs, numPartitions);
+            auto tD1 = std::chrono::steady_clock::now();
+            dbgLayoutMs += std::chrono::duration<double, std::milli>(tD1 - tD0).count();
 
             // Compute per-dim histograms and partition stats
             std::vector<std::vector<float>> perDimHistData(approxDim);
@@ -2683,13 +2721,19 @@ TTrainResult RunTraining(
                 partDocCounts.assign(psPtr, psPtr + numPartitions);
             }
 
+            auto tD2 = std::chrono::steady_clock::now();
+            dbgHistMs += std::chrono::duration<double, std::milli>(tD2 - tD1).count();
+
             auto bestSplit = FindBestSplit(
                 perDimHistData, perDimPartStats,
                 packed.Features, packed.TotalBinFeatures,
                 config.L2RegLambda, numPartitions, featureMask,
                 config.MinDataInLeaf, countHist, partDocCounts,
-                config.MonotoneConstraints
+                config.MonotoneConstraints,
+                config.RandomStrength, &rng
             );
+            auto tD3 = std::chrono::steady_clock::now();
+            dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 
             if (!bestSplit.Defined()) break;
 
@@ -2718,12 +2762,22 @@ TTrainResult RunTraining(
             auto bits = mx::left_shift(mx::astype(goRight, mx::uint32), mx::array(static_cast<uint32_t>(depth), mx::uint32));
             partitions = mx::bitwise_or(partitions, bits);
             mx::eval(partitions);
+            auto tD4 = std::chrono::steady_clock::now();
+            dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
+        }
+        if (iter == 0 && printProgress) {
+            printf("  [profile iter0] layout=%.1fms hist=%.1fms split=%.1fms part=%.1fms\n",
+                   dbgLayoutMs, dbgHistMs, dbgSplitMs, dbgPartMs);
+            fflush(stdout);
         }
 
         if (splits.empty()) {
             if (printProgress) printf("iter=%u: no valid split, stopping\n", iter);
             break;
         }
+
+        auto tTreeEnd = std::chrono::steady_clock::now();
+        result.TreeSearchMs += std::chrono::duration<double, std::milli>(tTreeEnd - tGradEnd).count();
 
         // Step 3: Estimate leaf values (GPU scatter_add_axis)
         ui32 numLeaves = 1u << splits.size();
@@ -2790,6 +2844,9 @@ TTrainResult RunTraining(
             result.Trees.push_back(std::move(record));
         }
 
+        auto tLeafEnd = std::chrono::steady_clock::now();
+        result.LeafMs += std::chrono::duration<double, std::milli>(tLeafEnd - tTreeEnd).count();
+
         // Step 4: Apply tree to training data
         auto docLeafValues = mx::take(leafValues, mx::astype(partitions, mx::int32), 0);
         if (approxDim > 1) {
@@ -2813,6 +2870,9 @@ TTrainResult RunTraining(
             }
             mx::eval(valCursor);
         }
+
+        auto tApplyEnd = std::chrono::steady_clock::now();
+        result.ApplyMs += std::chrono::duration<double, std::milli>(tApplyEnd - tLeafEnd).count();
 
         // Step 5: Report loss
         auto iterEnd = std::chrono::steady_clock::now();
@@ -3408,6 +3468,11 @@ int main(int argc, char** argv) {
 
     printf("---\n");
     printf("Training complete: %u trees in %.2fs\n", trainResult.TreesBuilt, totalTime / 1000.0);
+    if (trainResult.TreesBuilt > 0) {
+        double n = trainResult.TreesBuilt;
+        printf("Phase breakdown (avg per iter): grad=%.1fms tree=%.1fms leaf=%.1fms apply=%.1fms\n",
+               trainResult.GradMs/n, trainResult.TreeSearchMs/n, trainResult.LeafMs/n, trainResult.ApplyMs/n);
+    }
 
     // Truncate trees to best iteration when early stopping fired
     if (config.EarlyStoppingPatience > 0 && trainResult.BestIteration > 0 &&
@@ -3439,15 +3504,15 @@ int main(int argc, char** argv) {
                   [&](ui32 a, ui32 b) { return featureGain[a] > featureGain[b]; });
 
         printf("\nFeature Importance (Gain-based):\n");
-        printf("%-4s  %-20s  %10s  %6s\n", "Rank", "Feature", "Gain", "%");
-        printf("----  --------------------  ----------  ------\n");
+        printf("%-4s  %-20s  %14s  %6s\n", "Rank", "Feature", "Gain", "%");
+        printf("----  --------------------  --------------  ------\n");
         for (ui32 rank = 0; rank < ds.NumFeatures; ++rank) {
             ui32 fi = sortedIndices[rank];
             if (featureGain[fi] <= 0.0) continue;
             std::string name = (fi < ds.FeatureNames.size() && !ds.FeatureNames[fi].empty())
                 ? ds.FeatureNames[fi] : ("f" + std::to_string(fi));
             double pct = (totalGain > 0) ? 100.0 * featureGain[fi] / totalGain : 0.0;
-            printf("%-4u  %-20s  %10.4f  %5.1f%%\n", rank + 1, name.c_str(), featureGain[fi], pct);
+            printf("%-4u  %-20s  %14.10f  %5.1f%%\n", rank + 1, name.c_str(), featureGain[fi], pct);
         }
     }
 
