@@ -710,31 +710,22 @@ struct TPartitionLayout {
 };
 
 TPartitionLayout ComputePartitionLayout(const mx::array& partitions, ui32 numDocs, ui32 numPartitions) {
-    mx::eval(partitions);
-    const uint32_t* partsPtr = partitions.data<uint32_t>();
+    // GPU: argsort partitions to get doc indices grouped by partition
+    auto docIndices = mx::astype(mx::argsort(partitions), mx::uint32);
 
-    std::vector<ui32> partSizes(numPartitions, 0);
-    for (ui32 d = 0; d < numDocs; ++d) {
-        ui32 p = partsPtr[d];
-        if (p < numPartitions) partSizes[p]++;
-    }
+    // GPU: count docs per partition via scatter_add_axis
+    auto onesF = mx::ones({static_cast<int>(numDocs)}, mx::float32);
+    auto partSizesF = mx::scatter_add_axis(
+        mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
+        partitions, onesF, 0);
 
-    std::vector<ui32> partOffsets(numPartitions, 0);
-    for (ui32 i = 1; i < numPartitions; ++i)
-        partOffsets[i] = partOffsets[i-1] + partSizes[i-1];
+    // GPU: exclusive prefix sum for partition offsets
+    auto partOffsetsF = mx::subtract(mx::cumsum(partSizesF), partSizesF);
 
-    std::vector<ui32> docIndices(numDocs);
-    std::vector<ui32> writePos = partOffsets;
-    for (ui32 d = 0; d < numDocs; ++d) {
-        ui32 p = partsPtr[d];
-        if (p < numPartitions) docIndices[writePos[p]++] = d;
-    }
+    auto partSizes = mx::astype(partSizesF, mx::uint32);
+    auto partOffsets = mx::astype(partOffsetsF, mx::uint32);
 
-    return {
-        mx::array(reinterpret_cast<const int32_t*>(docIndices.data()), {static_cast<int>(numDocs)}, mx::uint32),
-        mx::array(reinterpret_cast<const int32_t*>(partOffsets.data()), {static_cast<int>(numPartitions)}, mx::uint32),
-        mx::array(reinterpret_cast<const int32_t*>(partSizes.data()), {static_cast<int>(numPartitions)}, mx::uint32)
-    };
+    return {docIndices, partOffsets, partSizes};
 }
 
 // ============================================================================
@@ -2513,9 +2504,6 @@ TTrainResult RunTraining(
             std::vector<std::vector<float>> perDimHistData(approxDim);
             std::vector<std::vector<TPartitionStatistics>> perDimPartStats(approxDim);
 
-            mx::eval(partitions);
-            const uint32_t* partsPtr = partitions.data<uint32_t>();
-
             for (ui32 k = 0; k < approxDim; ++k) {
                 auto statsK = mx::concatenate({
                     mx::reshape(dimGrads[k], {1, static_cast<int>(trainDocs)}),
@@ -2533,47 +2521,49 @@ TTrainResult RunTraining(
                 const float* hData = hist.data<float>();
                 perDimHistData[k].assign(hData, hData + numPartitions * 2 * packed.TotalBinFeatures);
 
-                mx::eval(dimGrads[k]);
-                mx::eval(dimHess[k]);
-                const float* gPtr = dimGrads[k].data<float>();
-                const float* hPtr = dimHess[k].data<float>();
-
+                // GPU partition stats via scatter_add_axis
                 perDimPartStats[k].resize(numPartitions);
-                for (ui32 d = 0; d < trainDocs; ++d) {
-                    ui32 p = partsPtr[d];
-                    if (p < numPartitions) {
-                        perDimPartStats[k][p].Sum += gPtr[d];
-                        perDimPartStats[k][p].Weight += hPtr[d];
-                    }
+                auto partGradSums = mx::scatter_add_axis(
+                    mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
+                    partitions, dimGrads[k], 0);
+                auto partHessSums = mx::scatter_add_axis(
+                    mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
+                    partitions, dimHess[k], 0);
+                mx::eval({partGradSums, partHessSums});
+                const float* gsPtr = partGradSums.data<float>();
+                const float* hsPtr = partHessSums.data<float>();
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    perDimPartStats[k][p].Sum = gsPtr[p];
+                    perDimPartStats[k][p].Weight = hsPtr[p];
                 }
             }
 
-            // Build count histogram for min-data-in-leaf
+            // Build count histogram for min-data-in-leaf (GPU via histogram kernel with all-ones stats)
             std::vector<std::vector<ui32>> countHist;
             std::vector<ui32> partDocCounts;
             if (config.MinDataInLeaf > 1) {
+                auto onesStats = mx::ones({static_cast<int>(2 * trainDocs)}, mx::float32);
+                auto countHistArr = DispatchHistogram(
+                    compressedData, onesStats,
+                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                    packed.Features, packed.NumUi32PerDoc,
+                    packed.TotalBinFeatures, numPartitions, trainDocs
+                );
+                mx::eval({countHistArr, layout.PartSizes});
+                const float* chData = countHistArr.data<float>();
+
+                // Extract per-partition per-bin counts from the "gradient" slot
                 countHist.assign(numPartitions, std::vector<ui32>(packed.TotalBinFeatures, 0));
-                partDocCounts.assign(numPartitions, 0);
-
-                mx::eval(compressedData);
-                const uint32_t* cdPtr = compressedData.data<uint32_t>();
-
-                for (ui32 d = 0; d < trainDocs; ++d) {
-                    ui32 p = partsPtr[d];
-                    if (p >= numPartitions) continue;
-                    partDocCounts[p]++;
-                    const uint32_t* docData = cdPtr + d * packed.NumUi32PerDoc;
-                    for (ui32 fi = 0; fi < packed.Features.size(); ++fi) {
-                        const auto& f = packed.Features[fi];
-                        uint32_t word = docData[f.Offset];
-                        uint32_t binVal = (word >> f.Shift) & (f.Mask >> f.Shift);
-                        // binVal is 0-based: bin 0 = "below first border" (or NaN bin)
-                        // The histogram bins correspond to binVal 1..Folds (the kernel uses +1 offset)
-                        if (binVal > 0 && binVal <= f.Folds) {
-                            countHist[p][f.FirstFoldIndex + binVal - 1]++;
-                        }
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    const float* partData = chData + p * 2 * packed.TotalBinFeatures;
+                    for (ui32 b = 0; b < packed.TotalBinFeatures; ++b) {
+                        countHist[p][b] = static_cast<ui32>(partData[b] + 0.5f);
                     }
                 }
+
+                // partDocCounts from partition layout (already computed on GPU)
+                const uint32_t* psPtr = layout.PartSizes.data<uint32_t>();
+                partDocCounts.assign(psPtr, psPtr + numPartitions);
             }
 
             auto bestSplit = FindBestSplit(
@@ -2618,44 +2608,29 @@ TTrainResult RunTraining(
             break;
         }
 
-        // Step 3: Estimate leaf values
+        // Step 3: Estimate leaf values (GPU scatter_add_axis)
         ui32 numLeaves = 1u << splits.size();
-        mx::eval(partitions);
-        const uint32_t* leafAssign = partitions.data<uint32_t>();
+
+        auto lrArr = mx::array(config.LearningRate, mx::float32);
+        auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
+        auto leafTarget = mx::zeros({static_cast<int>(numLeaves)}, mx::float32);
 
         mx::array leafValues = mx::zeros({1}, mx::float32); // placeholder, overwritten below
         if (approxDim == 1) {
-            mx::eval(dimGrads[0]); mx::eval(dimHess[0]);
-            const float* gp = dimGrads[0].data<float>();
-            const float* hp = dimHess[0].data<float>();
-
-            std::vector<float> gSums(numLeaves, 0.0f), hSums(numLeaves, 0.0f);
-            for (ui32 d = 0; d < trainDocs; ++d) {
-                ui32 leaf = leafAssign[d];
-                if (leaf < numLeaves) { gSums[leaf] += gp[d]; hSums[leaf] += hp[d]; }
-            }
-            std::vector<float> lv(numLeaves);
-            for (ui32 i = 0; i < numLeaves; ++i)
-                lv[i] = -config.LearningRate * gSums[i] / (hSums[i] + config.L2RegLambda);
-
-            leafValues = mx::array(lv.data(), {static_cast<int>(numLeaves)}, mx::float32);
+            auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[0], 0);
+            auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[0], 0);
+            leafValues = mx::negative(mx::multiply(lrArr,
+                mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
         } else {
-            std::vector<float> interleaved(numLeaves * approxDim, 0.0f);
+            std::vector<mx::array> dimLeafVals;
+            dimLeafVals.reserve(approxDim);
             for (ui32 k = 0; k < approxDim; ++k) {
-                mx::eval(dimGrads[k]); mx::eval(dimHess[k]);
-                const float* gp = dimGrads[k].data<float>();
-                const float* hp = dimHess[k].data<float>();
-
-                std::vector<float> gSums(numLeaves, 0.0f), hSums(numLeaves, 0.0f);
-                for (ui32 d = 0; d < trainDocs; ++d) {
-                    ui32 leaf = leafAssign[d];
-                    if (leaf < numLeaves) { gSums[leaf] += gp[d]; hSums[leaf] += hp[d]; }
-                }
-                for (ui32 i = 0; i < numLeaves; ++i)
-                    interleaved[i * approxDim + k] = -config.LearningRate * gSums[i] / (hSums[i] + config.L2RegLambda);
+                auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[k], 0);
+                auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[k], 0);
+                dimLeafVals.push_back(mx::negative(mx::multiply(lrArr,
+                    mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr)))));
             }
-            leafValues = mx::array(interleaved.data(),
-                {static_cast<int>(numLeaves), static_cast<int>(approxDim)}, mx::float32);
+            leafValues = mx::stack(dimLeafVals, 1);  // [numLeaves, approxDim]
         }
 
         // Post-tree monotone constraint adjustment
