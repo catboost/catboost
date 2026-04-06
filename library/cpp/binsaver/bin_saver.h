@@ -12,6 +12,7 @@
 #include <util/generic/bitmap.h>
 #include <util/generic/variant.h>
 #include <util/generic/ylimits.h>
+#include <util/generic/ptr.h>
 #include <util/memory/blob.h>
 #include <util/digest/murmur.h>
 #include <util/system/compiler.h>
@@ -278,10 +279,10 @@ private:
     bool StableOutput;
 
     typedef THashMap<void*, ui32> PtrIdHash;
-    TAutoPtr<PtrIdHash> PtrIds;
+    THolder<PtrIdHash> PtrIds;
 
     typedef THashMap<ui64, TPtr<IObjectBase>> CObjectsHash;
-    TAutoPtr<CObjectsHash> Objects;
+    THolder<CObjectsHash> Objects;
 
     TVector<IObjectBase*> ObjectQueue;
 
