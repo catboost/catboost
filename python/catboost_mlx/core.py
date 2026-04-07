@@ -1355,7 +1355,7 @@ class CatBoostMLX(BaseEstimator):
         trees = self._model_data["trees"]
         info = self._model_data.get("model_info", {})
         approx_dim = info.get("approx_dimension", 1)
-        loss_type = info.get("loss_type", "rmse").split(":")[0].lower()
+        loss_type = self._get_loss_type()
         num_classes = info.get("num_classes", 0)
         base_pred = info.get("base_prediction")
 
@@ -1379,13 +1379,9 @@ class CatBoostMLX(BaseEstimator):
             with open(model_path, "w") as f:
                 f.write(model_json)
 
-            if not self.cat_features:
-                data_path = os.path.join(tmpdir, "data.cbmx")
-                _array_to_binary(data_path, X)
-            else:
-                data_path = os.path.join(tmpdir, "data.csv")
-                _array_to_csv(data_path, X, feature_names=feature_names,
-                              cat_features=self.cat_features)
+            data_path = os.path.join(tmpdir, "data.csv")
+            _array_to_csv(data_path, X, feature_names=feature_names,
+                          cat_features=self.cat_features)
 
             binary = _find_binary("csv_predict", self.binary_path)
             args = [binary, model_path, data_path, "--output", out_path]
@@ -1463,8 +1459,17 @@ class CatBoostMLX(BaseEstimator):
         # Restore sklearn-compatible attributes from model data
         features = self._model_data.get("features", [])
         self.n_features_in_ = len(features)
+        self.n_outputs_ = 1
         names = [f.get("name", f"f{f.get('index', i)}") for i, f in enumerate(features)]
         self.feature_names_in_ = np.array(names, dtype=object)
+        # Reconstruct cat_features from is_categorical flags in model JSON.
+        # Only overwrite if the JSON has categorical features; otherwise
+        # preserve the value from __init__ (needed for CTR models where
+        # categoricals are transformed during training and not flagged).
+        cat_indices = [i for i, f in enumerate(features)
+                       if f.get("is_categorical", False)]
+        if cat_indices:
+            self.cat_features = cat_indices
         # Sync loss parameter so the instance reflects the trained model's loss
         model_loss = self._model_data.get("model_info", {}).get("loss_type")
         if model_loss:
@@ -1750,10 +1755,18 @@ class CatBoostMLX(BaseEstimator):
                 Standard deviation of fold_metrics.
         """
         self._validate_params()
+        if isinstance(n_folds, bool) or not isinstance(n_folds, int) or n_folds < 2:
+            raise ValueError(
+                f"n_folds must be an integer >= 2, got {n_folds!r}"
+            )
         X = _to_numpy(X)
         y = _to_numpy(y)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        if n_folds > X.shape[0]:
+            raise ValueError(
+                f"n_folds ({n_folds}) cannot exceed number of samples ({X.shape[0]})"
+            )
         self._validate_fit_inputs(X, y)
 
         tmpdir = tempfile.mkdtemp(prefix="catboost_mlx_cv_")
@@ -1900,6 +1913,17 @@ class CatBoostMLXClassifier(ClassifierMixin, CatBoostMLX):
         if y_for_classes is not None:
             self.classes_ = np.unique(np.asarray(y_for_classes))
         return result
+
+    def load_model(self, path: str) -> "CatBoostMLXClassifier":
+        """Load model and restore classifier-specific state."""
+        super().load_model(path)
+        info = self._model_data.get("model_info", {})
+        num_classes = info.get("num_classes", 0)
+        if num_classes > 0:
+            self.classes_ = np.arange(num_classes, dtype=int)
+        elif info.get("loss_type", "").startswith("logloss"):
+            self.classes_ = np.array([0, 1], dtype=int)
+        return self
 
     @classmethod
     def _get_param_names(cls):
