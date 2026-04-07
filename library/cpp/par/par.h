@@ -3,12 +3,13 @@
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/chromium_trace/interface.h>
 
+#include <util/generic/guid.h>
 #include <util/generic/vector.h>
 #include <util/generic/ptr.h>
 #include <util/generic/hash.h>
 #include <util/ysafeptr.h>
 
-struct TGUID;
+
 namespace NPar {
     struct IUserContext;
     struct IDCResultNotify : virtual public TThrRefBase {
