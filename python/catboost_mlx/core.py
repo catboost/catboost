@@ -1043,6 +1043,10 @@ class CatBoostMLX(BaseEstimator):
                 for i, feat in enumerate(self._model_data.get("features", [])):
                     if i < len(self.feature_names_in_):
                         feat["name"] = str(self.feature_names_in_[i])
+            # Persist cat_features in model_info so save/load roundtrips
+            # correctly (CTR models don't set is_categorical on features)
+            info = self._model_data.get("model_info", {})
+            info["cat_features"] = self.cat_features
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -1462,14 +1466,16 @@ class CatBoostMLX(BaseEstimator):
         self.n_outputs_ = 1
         names = [f.get("name", f"f{f.get('index', i)}") for i, f in enumerate(features)]
         self.feature_names_in_ = np.array(names, dtype=object)
-        # Reconstruct cat_features from is_categorical flags in model JSON.
-        # Only overwrite if the JSON has categorical features; otherwise
-        # preserve the value from __init__ (needed for CTR models where
-        # categoricals are transformed during training and not flagged).
-        cat_indices = [i for i, f in enumerate(features)
-                       if f.get("is_categorical", False)]
-        if cat_indices:
-            self.cat_features = cat_indices
+        # Restore cat_features: prefer explicit list from model_info (set by
+        # fit()), fall back to is_categorical flags for older model files.
+        info = self._model_data.get("model_info", {})
+        saved_cat = info.get("cat_features")
+        if saved_cat is not None:
+            self.cat_features = saved_cat if saved_cat else None
+        else:
+            cat_indices = [i for i, f in enumerate(features)
+                           if f.get("is_categorical", False)]
+            self.cat_features = cat_indices if cat_indices else None
         # Sync loss parameter so the instance reflects the trained model's loss
         model_loss = self._model_data.get("model_info", {}).get("loss_type")
         if model_loss:
@@ -1919,9 +1925,14 @@ class CatBoostMLXClassifier(ClassifierMixin, CatBoostMLX):
         super().load_model(path)
         info = self._model_data.get("model_info", {})
         num_classes = info.get("num_classes", 0)
+        approx_dim = info.get("approx_dimension", 1)
         if num_classes > 0:
             self.classes_ = np.arange(num_classes, dtype=int)
-        elif info.get("loss_type", "").startswith("logloss"):
+        elif approx_dim > 1:
+            # Multiclass: approx_dimension = number of output dimensions
+            self.classes_ = np.arange(approx_dim, dtype=int)
+        elif self.loss and self.loss.startswith("logloss"):
+            # Binary: self.loss is already lowercased by base load_model
             self.classes_ = np.array([0, 1], dtype=int)
         return self
 
