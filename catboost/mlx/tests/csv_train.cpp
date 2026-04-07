@@ -867,6 +867,17 @@ mx::array DispatchHistogram(
     const ui32 numFeatures = features.size();
     const ui32 numFeatureGroups = (numFeatures + 3) / 4;
 
+    // Compute maxBlocksPerPart: use multiple threadgroups per partition so
+    // the GPU can process large partitions in parallel. Each block of 256
+    // threads handles a slice of docs; results are combined via device atomics.
+    // Scale blocks by average partition size. Smaller blocks (4K docs each)
+    // give better GPU occupancy at early depths where 1-2 large partitions
+    // dominate. The cap of 8 blocks limits atomic contention.
+    const ui32 docsPerBlock = 4096;
+    ui32 avgDocsPerPart = numDocs / std::max(1u, numPartitions);
+    ui32 maxBlocksPerPart = std::max(1u, (avgDocsPerPart + docsPerBlock - 1) / docsPerBlock);
+    maxBlocksPerPart = std::min(maxBlocksPerPart, 8u);
+
     mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
     mx::array histogram = mx::zeros(histShape, mx::float32);
 
@@ -903,13 +914,13 @@ mx::array DispatchHistogram(
              partOffsets, partSizes,
              mx::array(static_cast<uint32_t>(groupIdx), mx::uint32),
              mx::array(static_cast<uint32_t>(lineSize), mx::uint32),
-             mx::array(static_cast<uint32_t>(1), mx::uint32),
+             mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32),
              foldCountsArr, firstFoldArr,
              mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32),
              mx::array(static_cast<uint32_t>(numStats), mx::uint32),
              mx::array(static_cast<uint32_t>(numDocs), mx::uint32)},
             {histShape}, {mx::float32},
-            std::make_tuple(256, static_cast<int>(numPartitions), 2),
+            std::make_tuple(static_cast<int>(256 * maxBlocksPerPart), static_cast<int>(numPartitions), 2),
             std::make_tuple(256, 1, 1),
             {}, 0.0f, false, mx::Device::gpu
         );

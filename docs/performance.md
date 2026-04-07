@@ -147,25 +147,38 @@ over actual tree evaluation.
 
 Ordered by expected impact and implementation complexity.
 
-### Phase A: In-process prediction (no subprocess)
+### Phase A: In-process prediction (no subprocess) — DONE
 
-**Impact**: 31x prediction speedup
+**Impact**: 31x prediction speedup → **measured: subprocess eliminated**
 **Risk**: Low — `_predict_utils.py` already exists and is tested
 **Effort**: Small
+**Status**: Implemented in commit `7c21087bc1`
 
 Route `predict()` and `predict_proba()` through the Python-side tree evaluator
 for numeric-only models. Fall back to subprocess for categorical features (which
 need C++ CTR encoding).
 
-### Phase B: Increase histogram parallelism
+### Phase B: Increase histogram parallelism — DONE
 
-**Impact**: ~3-5x histogram speedup (estimated)
+**Impact**: ~3-5x histogram speedup (estimated) → **measured: 1.18x training speedup**
 **Risk**: Medium — requires kernel output reduction across blocks
 **Effort**: Medium
+**Status**: Implemented. Multi-block dispatch with partition-aware scaling.
 
-Change `maxBlocksPerPart` from 1 to `ceil(docsInPartition / blockSize)`. Each
-block computes a partial histogram; a second reduction kernel sums them. This is
-the standard GPU histogram pattern used by CatBoost CUDA and XGBoost.
+Changed `maxBlocksPerPart` from hardcoded 1 to `ceil(avgDocsPerPart / 4096)`,
+capped at 8. Each block computes a partial histogram in threadgroup memory then
+atomically adds to the device-memory output. The existing Metal kernel already
+supported this via `atomic_fetch_add_explicit`.
+
+**Tuning results** (50K docs, depth=6, 200 iterations, interleaved A/B test):
+- 4K docs/block (up to 8 blocks): 1.18x training speedup
+- 16K docs/block (up to 4 blocks): measured 1.16-1.97x (high variance)
+- 4K docs/block (up to 13 blocks): 1.27x (more atomic contention)
+
+The speedup is limited because multi-block only helps at early tree depths (0-2)
+where partitions are large. At deeper depths, partitions are small enough that
+1 block per partition already covers them. Further gains require reducing
+per-dispatch overhead (Phase C) or sync points (Phase D).
 
 ### Phase C: Batch feature groups into single dispatch
 
@@ -202,8 +215,8 @@ so this is low priority until Phases A-D are done.
 | Phase | Training speedup | Prediction speedup | Cumulative training |
 |-------|------------------|--------------------|---------------------|
 | Baseline | 1.0x          | 1.0x               | ~10s (50K reg)      |
-| A     | —                | 31x                | ~10s                |
-| B     | 3-5x             | —                  | ~2-3s               |
+| A     | —                | 31x (measured)      | ~10s                |
+| B     | 1.18x (measured)  | —                  | ~8.5s               |
 | C     | 1.5-2x           | —                  | ~1.5-2s             |
 | D     | 1.2-1.3x         | —                  | ~1.2-1.5s           |
 
