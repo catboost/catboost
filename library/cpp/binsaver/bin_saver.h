@@ -12,6 +12,7 @@
 #include <util/generic/bitmap.h>
 #include <util/generic/variant.h>
 #include <util/generic/ylimits.h>
+#include <util/generic/ptr.h>
 #include <util/memory/blob.h>
 #include <util/digest/murmur.h>
 #include <util/system/compiler.h>
@@ -278,10 +279,10 @@ private:
     bool StableOutput;
 
     typedef THashMap<void*, ui32> PtrIdHash;
-    TAutoPtr<PtrIdHash> PtrIds;
+    THolder<PtrIdHash> PtrIds;
 
     typedef THashMap<ui64, TPtr<IObjectBase>> CObjectsHash;
-    TAutoPtr<CObjectsHash> Objects;
+    THolder<CObjectsHash> Objects;
 
     TVector<IObjectBase*> ObjectQueue;
 
@@ -329,7 +330,7 @@ public:
     }
     template <class T1, class TA>
     int Add(const chunk_id, TVector<T1, TA>* pVec) {
-        if (HasNonTrivialSerializer<T1>(0u))
+        if constexpr (HasNonTrivialSerializer<T1>(0u))
             DoVector(*pVec);
         else
             DoDataVector(*pVec);
@@ -338,7 +339,7 @@ public:
 
     template <class T, int N>
     int Add(const chunk_id, T (*pVec)[N]) {
-        if (HasNonTrivialSerializer<T>(0u))
+        if constexpr (HasNonTrivialSerializer<T>(0u))
             DoArray(*pVec);
         else
             DataChunk(pVec, sizeof(*pVec));
@@ -373,7 +374,7 @@ public:
 
     template <class T1>
     int Add(const chunk_id, TArray2D<T1>* pArr) {
-        if (HasNonTrivialSerializer<T1>(0u))
+        if constexpr (HasNonTrivialSerializer<T1>(0u))
             Do2DArray(*pArr);
         else
             Do2DArrayData(*pArr);
@@ -405,7 +406,7 @@ public:
 
     template <class T1, size_t N>
     int Add(const chunk_id, std::array<T1, N>* pData) {
-        if (HasNonTrivialSerializer<T1>(0u)) {
+        if constexpr (HasNonTrivialSerializer<T1>(0u)) {
             for (size_t i = 0; i < N; ++i)
                 Add(1, &(*pData)[i]);
         } else {
@@ -538,12 +539,12 @@ public:
     }
 
     template <class T, typename = decltype(std::declval<T&>() & std::declval<IBinSaver&>())>
-    static bool HasNonTrivialSerializer(ui32) {
+    constexpr static bool HasNonTrivialSerializer(ui32) {
         return true;
     }
 
     template <class T>
-    static bool HasNonTrivialSerializer(...) {
+    constexpr static bool HasNonTrivialSerializer(...) {
         return sizeof(std::declval<IBinSaver*>()->Add(0, std::declval<T*>())) != 1;
     }
 

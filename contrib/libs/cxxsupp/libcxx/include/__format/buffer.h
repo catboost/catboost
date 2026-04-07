@@ -496,7 +496,7 @@ private:
 // Selects the type of the buffer used for the output iterator.
 template <class _OutIt, __fmt_char_type _CharT>
 class __buffer_selector {
-  using _Container _LIBCPP_NODEBUG = typename __back_insert_iterator_container<_OutIt>::type;
+  using _Container _LIBCPP_NODEBUG = __back_insert_iterator_container<_OutIt>::type;
 
 public:
   using type _LIBCPP_NODEBUG =
@@ -511,7 +511,7 @@ public:
 template <class _OutIt, __fmt_char_type _CharT>
 class __format_to_n_buffer : private __buffer_selector<_OutIt, _CharT>::type {
 public:
-  using _Base _LIBCPP_NODEBUG = typename __buffer_selector<_OutIt, _CharT>::type;
+  using _Base _LIBCPP_NODEBUG = __buffer_selector<_OutIt, _CharT>::type;
 
   [[nodiscard]] _LIBCPP_HIDE_FROM_ABI __format_to_n_buffer(_OutIt __out_it, iter_difference_t<_OutIt> __n)
       : _Base{std::move(__out_it), std::addressof(__max_output_size_)},

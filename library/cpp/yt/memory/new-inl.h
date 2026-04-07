@@ -309,18 +309,15 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithDeleter(TDeleter deleter, As&&... args)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class TTag, int Counter, class... As>
+template <class T, auto LocationLite, class... As>
 Y_FORCE_INLINE TIntrusivePtr<T> NewWithLocation(
-    const TSourceLocation& location,
     As&&... args)
 {
     using TWrapper = TRefCountedWrapperWithCookie<T>;
     void* ptr = NYT::NDetail::AllocateConstSizeAlignedOrCrash<sizeof(TWrapper), alignof(TWrapper)>();
     auto* instance = NYT::NDetail::NewEpilogue<TWrapper>(ptr, std::forward<As>(args)...);
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
-    instance->InitializeTracking(GetRefCountedTypeCookieWithLocation<T, TTag, Counter>(location));
-#else
-    Y_UNUSED(location);
+    instance->InitializeTracking(GetRefCountedTypeCookieWithLocation<T, LocationLite>());
 #endif
     return TIntrusivePtr<T>(instance, /*addReference*/ false);
 }

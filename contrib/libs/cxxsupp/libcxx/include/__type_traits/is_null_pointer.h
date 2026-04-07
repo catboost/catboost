@@ -12,7 +12,6 @@
 #include <__config>
 #include <__cstddef/nullptr_t.h>
 #include <__type_traits/integral_constant.h>
-#include <__type_traits/remove_cv.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -21,11 +20,7 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp>
-#if __has_builtin(__remove_cv)
 inline const bool __is_null_pointer_v = __is_same(__remove_cv(_Tp), nullptr_t);
-#else
-inline const bool __is_null_pointer_v = __is_same(__remove_cv_t<_Tp>, nullptr_t);
-#endif
 
 #if _LIBCPP_STD_VER >= 14
 template <class _Tp>

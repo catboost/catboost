@@ -427,6 +427,10 @@ public:
     T& Value() & Y_LIFETIME_BOUND;
     T&& Value() && Y_LIFETIME_BOUND;
 
+    const T& ValueOrCrash() const & Y_LIFETIME_BOUND;
+    T& ValueOrCrash() & Y_LIFETIME_BOUND;
+    T&& ValueOrCrash() && Y_LIFETIME_BOUND;
+
     template <class U>
         requires (!CStringLiteral<std::remove_cvref_t<U>>)
     const T& ValueOrThrow(U&& u) const & Y_LIFETIME_BOUND;

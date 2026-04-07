@@ -5,11 +5,19 @@
 #include <util/generic/yexception.h>
 
 #ifdef _win_
+    #include <util/generic/scope.h>
     #include <util/generic/vector.h>
+    #include <util/system/yassert.h>
     #include "winint.h"
 #else
+    #ifndef _linux_
+        #include <util/generic/vector.h> // ClearEnv impl
+    #endif
+
     #include <cerrno>
     #include <cstdlib>
+
+extern char** environ;
 #endif
 
 /**
@@ -63,19 +71,12 @@ TString GetEnv(const TString& key, const TString& def) {
 
 void SetEnv(const TString& key, const TString& value) {
     bool isOk = false;
-    int errorCode = 0;
 #ifdef _win_
     isOk = SetEnvironmentVariable(key.data(), value.data());
-    if (!isOk) {
-        errorCode = GetLastError();
-    }
 #else
     isOk = (0 == setenv(key.data(), value.data(), true /*replace*/));
-    if (!isOk) {
-        errorCode = errno;
-    }
 #endif
-    Y_ENSURE_EX(isOk, TSystemError() << "failed to SetEnv with error-code " << errorCode);
+    Y_ENSURE_EX(isOk, TSystemError() << "failed to SetEnv");
 }
 
 void UnsetEnv(const TString& key) {
@@ -90,4 +91,74 @@ void UnsetEnv(const TString& key) {
     #endif
 #endif
     Y_ENSURE_EX(ok || notFound, TSystemError() << "failed to unset environment variable " << key.Quote());
+}
+
+void IterateEnv(const std::function<void(TStringBuf, TStringBuf)>& f, bool ignoreMalformedStrings) {
+#ifdef _win_
+    // Env block format:
+    // Var1=Value1\0
+    // Var2=Value2\0
+    // ...
+    // VarN=ValueN\0\0
+    // Or "\0" if empty
+
+    auto envBlock = GetEnvironmentStringsA();
+    if (!envBlock) {
+        ythrow TSystemError() << "failed to get environment variables";
+    }
+    Y_DEFER {
+        bool ok = FreeEnvironmentStringsA(envBlock);
+        Y_ABORT_UNLESS(ok, "failed to free env block"); // ¯\_(ツ)_/¯
+    };
+    const char* charEnv = envBlock;
+    while (*charEnv) {
+        TStringBuf varStr(charEnv);
+        TStringBuf name, value;
+        if (varStr.TrySplit('=', name, value)) { // Not optimal (we could scan for null byte and '=' in one pass), but less bugprone
+            f(name, value);
+        } else {
+            Y_ENSURE(ignoreMalformedStrings, "Environment contains a string without '=': \"" << varStr << '"');
+        }
+        charEnv = varStr.data() + varStr.size() + 1;
+    }
+#else
+    if (!environ) { // may be null after clearenv
+        return;
+    }
+    for (char** var = environ; *var; ++var) {
+        TStringBuf varStr(*var);
+        TStringBuf name, value;
+        if (varStr.TrySplit('=', name, value)) {
+            f(name, value);
+        } else {
+            Y_ENSURE(ignoreMalformedStrings, "Environment contains a string without '=': \"" << varStr << '"');
+        }
+    }
+#endif
+}
+
+void ClearEnv() {
+#if defined(_win_)
+    wchar_t emptyEnv[] = {L'\0'};
+    // At least on Wine, SetEnvironmentStringsA expects a multi-byte string that is internally converted to UTF-16.
+    // So it's easier to use SetEnvironmentStringsW directly.
+    bool ok = SetEnvironmentStringsW(emptyEnv);
+    Y_ENSURE_EX(ok, TSystemError() << "failed to clear environment");
+#elif defined(_linux_)
+    bool ok = !clearenv();
+    Y_ENSURE_EX(ok, TSystemError() << "failed to clear environment");
+#else
+    // Darwin or other unix platform that may not have clearenv
+    TVector<TString> keys;
+    IterateEnv(
+        [&keys](TStringBuf name, TStringBuf) {
+            keys.emplace_back(name);
+        },
+        true // Ignore malformed strings - they don't seem to be accessible anyway.
+             // IterateEnv won't expose these strings, and GetEnv/SetEnv/UnsetEnv ignore them (at least in glibc).
+    );
+    for (const auto& key : keys) {
+        UnsetEnv(key); // duplicate UnsetEnv is ok.
+    }
+#endif
 }
