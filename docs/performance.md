@@ -180,15 +180,21 @@ where partitions are large. At deeper depths, partitions are small enough that
 1 block per partition already covers them. Further gains require reducing
 per-dispatch overhead (Phase C) or sync points (Phase D).
 
-### Phase C: Batch feature groups into single dispatch
+### Phase C: Batch feature groups into single dispatch — DONE
 
-**Impact**: ~2x histogram speedup from reduced dispatch overhead
+**Impact**: ~2x histogram speedup (estimated) → **measured: 1.59x training speedup**
 **Risk**: Low — kernel logic stays the same, just wider grid
 **Effort**: Medium
+**Status**: Implemented. All feature groups dispatched in one kernel call.
 
-Dispatch all feature groups in a single kernel invocation using a 3D grid
-`(threads, numPartitions * maxBlocks, numFeatureGroups)`. Eliminates 12x
-per-depth dispatch overhead.
+Changed the Metal kernel to accept flat arrays for all feature group metadata
+(`featureColumnIndices`, `foldCountsFlat`, `firstFoldIndicesFlat`). Each
+threadgroup extracts its `groupIdx` from `threadgroup_position_in_grid.x`.
+Grid X dimension = `256 * maxBlocksPerPart * numFeatureGroups`.
+
+Reduced kernel dispatches from `numFeatureGroups × depth` (78 for 50 features,
+depth=6) to just `depth` (6). Also eliminated 12 `mx::add()` operations per
+depth level that previously chained per-group results.
 
 ### Phase D: Reduce GPU-CPU sync points
 
@@ -217,7 +223,7 @@ so this is low priority until Phases A-D are done.
 | Baseline | 1.0x          | 1.0x               | ~10s (50K reg)      |
 | A     | —                | 31x (measured)      | ~10s                |
 | B     | 1.18x (measured)  | —                  | ~8.5s               |
-| C     | 1.5-2x           | —                  | ~1.5-2s             |
+| C     | 1.59x (measured)  | —                  | ~5.3s               |
 | D     | 1.2-1.3x         | —                  | ~1.2-1.5s           |
 
 **Target**: After phases A-D, CatBoost-MLX should be within 1-2x of CatBoost-CPU

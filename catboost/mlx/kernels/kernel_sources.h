@@ -36,24 +36,35 @@ constant constexpr uint TOTAL_HIST_SIZE = NUM_SIMD_GROUPS * HIST_PER_SIMD;
 
 // ============================================================================
 // Histogram kernel for one-byte features (4 features packed per uint32)
+// Batched: processes all feature groups in a single dispatch.
 //
 // Input names (in order):
 //   compressedIndex, stats, docIndices, partOffsets, partSizes,
-//   featureColumnIdx, lineSize, maxBlocksPerPart,
-//   foldCounts, firstFoldIndices,
+//   featureColumnIndices, lineSize, maxBlocksPerPart, numGroups,
+//   foldCountsFlat, firstFoldIndicesFlat,
 //   totalBinFeatures, numStats, totalNumDocs
 //
 // Output names: histogram
 //
-// Grid:   (maxBlocksPerPart, numPartitions, numStats)
+// Grid:   (256 * maxBlocksPerPart * numGroups, numPartitions, numStats)
 // Thread: (256, 1, 1)
+//
+// Each threadgroup processes ONE feature group (4 packed features).
+// groupIdx and blockInPart are extracted from the X grid position.
+// Groups write to non-overlapping firstFoldIndices offsets, so no
+// cross-group atomics are needed.
 // ============================================================================
 
 static const std::string kHistOneByteSource = R"metal(
-    // Map grid to work
+    // Map grid to work — extract groupIdx and blockInPart from X dimension
+    const uint tgX       = threadgroup_position_in_grid.x;
     const uint partIdx   = threadgroup_position_in_grid.y;
     const uint statIdx   = threadgroup_position_in_grid.z;
-    const uint blockInPart = threadgroup_position_in_grid.x;
+    const uint blockInPart = tgX % maxBlocksPerPart;
+    const uint groupIdx    = tgX / maxBlocksPerPart;
+
+    // Bounds check for feature groups
+    if (groupIdx >= numGroups) return;
 
     // Load partition bounds
     const uint partOffset = partOffsets[partIdx];
@@ -68,9 +79,13 @@ static const std::string kHistOneByteSource = R"metal(
     const uint myDocEnd = min(myDocStart + docsPerBlock, partSize);
     const uint myDocCount = myDocEnd - myDocStart;
 
+    // Which compressed column to read for this group
+    const uint featureColumnIdx = featureColumnIndices[groupIdx];
+
+    // Per-group fold metadata (4 entries per group)
+    const uint foldBase = groupIdx * FEATURES_PER_PACK;
+
     // Threadgroup histogram using atomic_uint with CAS-based float add.
-    // Metal supports atomic_uint in threadgroup but NOT atomic_float.
-    // We use as_type<uint/float> bit-casting with compare_exchange for safe float accumulation.
     // Layout: [FEATURES_PER_PACK][BINS_PER_BYTE]
     threadgroup atomic_uint sharedHist[HIST_PER_SIMD];
 
@@ -82,7 +97,6 @@ static const std::string kHistOneByteSource = R"metal(
 
     // Process documents — all threads accumulate via CAS-based float atomic add
     for (uint d = thread_index_in_threadgroup; d < myDocCount; d += BLOCK_SIZE) {
-        // Use doc-index indirection for partition-sorted access
         const uint sortedPos = partOffset + myDocStart + d;
         const uint docIdx = docIndices[sortedPos];
 
@@ -95,9 +109,8 @@ static const std::string kHistOneByteSource = R"metal(
         // Accumulate into histogram for each of the 4 features
         for (uint f = 0; f < FEATURES_PER_PACK; f++) {
             const uint bin = (packed >> (24 - 8 * f)) & 0xFF;
-            if (bin < foldCounts[f] + 1) {
+            if (bin < foldCountsFlat[foldBase + f] + 1) {
                 const uint histIdx = f * BINS_PER_BYTE + bin;
-                // CAS-based float atomic add on threadgroup atomic_uint
                 uint old_val = atomic_load_explicit(&sharedHist[histIdx], memory_order_relaxed);
                 uint new_val;
                 do {
@@ -115,18 +128,17 @@ static const std::string kHistOneByteSource = R"metal(
     const uint histBase = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
 
     for (uint f = 0; f < FEATURES_PER_PACK; f++) {
-        const uint folds = foldCounts[f];
-        const uint firstFold = firstFoldIndices[f];
+        const uint folds = foldCountsFlat[foldBase + f];
+        const uint firstFold = firstFoldIndicesFlat[foldBase + f];
 
         for (uint bin = thread_index_in_threadgroup; bin < folds; bin += BLOCK_SIZE) {
             const float val = as_type<float>(atomic_load_explicit(&sharedHist[f * BINS_PER_BYTE + bin + 1], memory_order_relaxed));
             if (abs(val) > 1e-20f) {
-                if (maxBlocksPerPart > 1) {
-                    device atomic_float* dst = (device atomic_float*)(histogram + histBase + firstFold + bin);
-                    atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
-                } else {
-                    histogram[histBase + firstFold + bin] = val;
-                }
+                // Always use atomics: multiple blocks per partition OR multiple
+                // groups share the same output buffer (different offsets, but
+                // the buffer was initialized to zero so atomics are safe).
+                device atomic_float* dst = (device atomic_float*)(histogram + histBase + firstFold + bin);
+                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
             }
         }
     }

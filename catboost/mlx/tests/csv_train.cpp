@@ -881,54 +881,60 @@ mx::array DispatchHistogram(
     mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
     mx::array histogram = mx::zeros(histShape, mx::float32);
 
-    for (ui32 groupIdx = 0; groupIdx < numFeatureGroups; ++groupIdx) {
-        const ui32 featureStart = groupIdx * 4;
+    // Build flat arrays for all feature groups (single dispatch)
+    std::vector<ui32> colIndices(numFeatureGroups);
+    std::vector<ui32> foldCountsFlat(numFeatureGroups * 4, 0);
+    std::vector<ui32> firstFoldFlat(numFeatureGroups * 4, 0);
+    for (ui32 g = 0; g < numFeatureGroups; ++g) {
+        colIndices[g] = g;
+        const ui32 featureStart = g * 4;
         const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
-
-        std::vector<ui32> foldCountsVec(4, 0);
-        std::vector<ui32> firstFoldVec(4, 0);
         for (ui32 f = 0; f < featuresInGroup; ++f) {
-            foldCountsVec[f] = features[featureStart + f].Folds;
-            firstFoldVec[f] = features[featureStart + f].FirstFoldIndex;
+            foldCountsFlat[g * 4 + f] = features[featureStart + f].Folds;
+            firstFoldFlat[g * 4 + f] = features[featureStart + f].FirstFoldIndex;
         }
-
-        auto foldCountsArr = mx::array(reinterpret_cast<const int32_t*>(foldCountsVec.data()), {4}, mx::uint32);
-        auto firstFoldArr = mx::array(reinterpret_cast<const int32_t*>(firstFoldVec.data()), {4}, mx::uint32);
-
-        using namespace NCatboostMlx;
-        auto kernel = mx::fast::metal_kernel(
-            "histogram_one_byte_features",
-            {"compressedIndex", "stats", "docIndices",
-             "partOffsets", "partSizes",
-             "featureColumnIdx", "lineSize", "maxBlocksPerPart",
-             "foldCounts", "firstFoldIndices",
-             "totalBinFeatures", "numStats", "totalNumDocs"},
-            {"histogram"},
-            KernelSources::kHistOneByteSource,
-            KernelSources::kHistHeader,
-            true, false
-        );
-
-        auto result = kernel(
-            {mx::reshape(compressedData, {-1}), stats, docIndices,
-             partOffsets, partSizes,
-             mx::array(static_cast<uint32_t>(groupIdx), mx::uint32),
-             mx::array(static_cast<uint32_t>(lineSize), mx::uint32),
-             mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32),
-             foldCountsArr, firstFoldArr,
-             mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32),
-             mx::array(static_cast<uint32_t>(numStats), mx::uint32),
-             mx::array(static_cast<uint32_t>(numDocs), mx::uint32)},
-            {histShape}, {mx::float32},
-            std::make_tuple(static_cast<int>(256 * maxBlocksPerPart), static_cast<int>(numPartitions), 2),
-            std::make_tuple(256, 1, 1),
-            {}, 0.0f, false, mx::Device::gpu
-        );
-
-        if (groupIdx == 0) histogram = result[0];
-        else histogram = mx::add(histogram, result[0]);
     }
 
+    auto colIndicesArr = mx::array(reinterpret_cast<const int32_t*>(colIndices.data()),
+                                   {static_cast<int>(numFeatureGroups)}, mx::uint32);
+    auto foldCountsArr = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlat.data()),
+                                   {static_cast<int>(numFeatureGroups * 4)}, mx::uint32);
+    auto firstFoldArr = mx::array(reinterpret_cast<const int32_t*>(firstFoldFlat.data()),
+                                  {static_cast<int>(numFeatureGroups * 4)}, mx::uint32);
+
+    using namespace NCatboostMlx;
+    auto kernel = mx::fast::metal_kernel(
+        "histogram_one_byte_features",
+        {"compressedIndex", "stats", "docIndices",
+         "partOffsets", "partSizes",
+         "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
+         "foldCountsFlat", "firstFoldIndicesFlat",
+         "totalBinFeatures", "numStats", "totalNumDocs"},
+        {"histogram"},
+        KernelSources::kHistOneByteSource,
+        KernelSources::kHistHeader,
+        true, false
+    );
+
+    auto result = kernel(
+        {mx::reshape(compressedData, {-1}), stats, docIndices,
+         partOffsets, partSizes,
+         colIndicesArr,
+         mx::array(static_cast<uint32_t>(lineSize), mx::uint32),
+         mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32),
+         mx::array(static_cast<uint32_t>(numFeatureGroups), mx::uint32),
+         foldCountsArr, firstFoldArr,
+         mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32),
+         mx::array(static_cast<uint32_t>(numStats), mx::uint32),
+         mx::array(static_cast<uint32_t>(numDocs), mx::uint32)},
+        {histShape}, {mx::float32},
+        std::make_tuple(static_cast<int>(256 * maxBlocksPerPart * numFeatureGroups),
+                        static_cast<int>(numPartitions), 2),
+        std::make_tuple(256, 1, 1),
+        {}, 0.0f, false, mx::Device::gpu
+    );
+
+    histogram = result[0];
     mx::eval(histogram);
     return histogram;
 }
