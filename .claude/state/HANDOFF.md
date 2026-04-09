@@ -41,7 +41,7 @@ Sprint 4 candidates (ranked by expected impact — see TODOS.md for full accepta
 5. Additional loss functions: Poisson, Tweedie, MAPE
 6. Grow policies: Lossguide and Depthwise
 
-**STANDING RULE — Sprint branches (effective Sprint 4):** All sprint work must land on a dedicated branch `mlx/sprint-<N>-<short-topic>`, not directly on master. Merge to master only after QA and MLOps sign-off. See DEC-002.
+**STANDING RULE — Sprint branches (effective Sprint 4):** Create a branch `mlx/sprint-<N>-<short-topic>` at the start of each sprint. All sprint commits go there — no direct commits to master during the sprint. Push to `origin` (`RR-AMATOK/catboost-mlx`) only — never to `upstream` (`catboost/catboost`). Merge to master via PR after QA and MLOps sign-off. See DEC-002.
 
 ## Notes
 

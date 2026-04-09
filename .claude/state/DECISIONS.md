@@ -14,11 +14,16 @@
 
 ---
 
-## DEC-002 — Sprint branch policy: dedicated branches per sprint, merge to master after QA/MLOps sign-off
+## DEC-002 — Sprint branch policy: dedicated branches per sprint, push to origin (RR-AMATOK) only
 - **Date:** 2026-04-09
 - **Status:** Active
-- **Decided by:** ml-product-owner (process decision, Sprint 3 retrospective)
-- **Context:** Sprints 1–3 committed directly to master, which meant QA-found bugs (BUG-001, BUG-002) had to be fixed with follow-up commits on master rather than before merge. This creates noisy master history and risks shipping untested states.
-- **Decision:** Starting Sprint 4, all sprint work lands on a dedicated branch `mlx/sprint-<N>-<short-topic>` on `RR-AMATOK/catboost-mlx`. Merging to master requires QA sign-off (test suite green) and MLOps sign-off (no new unbounded sync regression). Sprints 1–3 are already on master and will not be rewritten.
+- **Decided by:** ml-product-owner (process decision, Sprint 3 retrospective); push-target constraint added 2026-04-09
+- **Context:** Sprints 1–3 committed directly to master, which meant QA-found bugs (BUG-001, BUG-002) had to be fixed with follow-up commits on master rather than before merge. This creates noisy master history and risks shipping untested states. Two remotes exist: `origin` = `RR-AMATOK/catboost-mlx` (our fork), `upstream` = `catboost/catboost` (upstream). Sprint branches must never be pushed to `upstream`.
+- **Decision:** Starting Sprint 4:
+  1. Each sprint opens a branch named `mlx/sprint-<N>-<short-topic>` (e.g., `mlx/sprint-4-gpu-partition`).
+  2. All sprint commits land on that branch. No direct commits to master during the sprint.
+  3. Push target is `origin` (`RR-AMATOK/catboost-mlx`) exclusively. Never push sprint branches or force-push to `upstream`.
+  4. Merge to `origin/master` happens only after QA sign-off (test suite green) and MLOps sign-off (no new unbounded sync regression), via a PR on `RR-AMATOK/catboost-mlx`.
+  5. Sprints 1–3 are already on master and will not be rewritten.
 - **Alternatives:** Keep committing directly to master with required CI passing. Rejected: CI does not currently include the full MLOps sync audit, so bugs like BUG-001/BUG-002 can still reach master before QA review.
-- **Trade-offs:** Slightly more branch management overhead; master history is cleaner and every merged state is verified. PRs will also give a natural review checkpoint for the agent team.
+- **Trade-offs:** Slightly more branch management overhead; master history is cleaner and every merged state is verified. PRs provide a natural review checkpoint for the agent team. The `origin`-only push rule prevents accidental pollution of the upstream CatBoost repo.
