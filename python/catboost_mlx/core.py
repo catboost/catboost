@@ -1930,7 +1930,7 @@ class CatBoostMLXClassifier(ClassifierMixin, CatBoostMLX):
             self.classes_ = np.arange(num_classes, dtype=int)
         elif approx_dim > 1:
             # Multiclass: approx_dimension = number of output dimensions
-            self.classes_ = np.arange(approx_dim, dtype=int)
+            self.classes_ = np.arange(approx_dim + 1, dtype=int)
         elif self.loss and self.loss.startswith("logloss"):
             # Binary: self.loss is already lowercased by base load_model
             self.classes_ = np.array([0, 1], dtype=int)

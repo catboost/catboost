@@ -136,8 +136,6 @@ class TestStaleCatFeatures:
     If __init__ set cat_features=[0] and the loaded model has zero
     categoricals, the stale [0] persists → wrong predict dispatch."""
 
-    @pytest.mark.xfail(reason="load_model doesn't clear stale cat_features "
-                               "when model has no categoricals")
     def test_stale_cat_features_cleared_on_load(self):
         """Instance cat_features=[0] must be cleared after loading numeric-only model."""
         path = _make_model_json(
@@ -153,7 +151,6 @@ class TestStaleCatFeatures:
             f"numeric-only model"
         )
 
-    @pytest.mark.xfail(reason="stale cat_features causes wrong predict dispatch")
     def test_stale_cat_features_wrong_dispatch(self):
         """Stale cat_features routes to subprocess instead of inprocess."""
         path = _make_model_json(
@@ -168,8 +165,6 @@ class TestStaleCatFeatures:
             f"cat_features={m.cat_features} forces subprocess for numeric model"
         )
 
-    @pytest.mark.xfail(reason="stale cat_features causes wrong dispatch "
-                               "after sequential loads")
     def test_stale_cat_features_sequential_loads(self):
         """Load model with cats, then load model without cats — stale persists."""
         tmpdir = tempfile.mkdtemp()
@@ -214,8 +209,6 @@ class TestClassifierLoglossCase:
     But CatBoost C++ writes "Logloss" (capital L).
     So the fallback path for binary classifiers NEVER triggers."""
 
-    @pytest.mark.xfail(reason="Case-sensitive 'logloss' check doesn't match "
-                               "C++ 'Logloss'")
     def test_classes_set_for_capital_logloss(self):
         """Binary model with loss_type='Logloss' (C++ casing) must set classes_."""
         path = _make_model_json(
@@ -242,8 +235,6 @@ class TestClassifierLoglossCase:
         assert hasattr(clf, "classes_")
         assert list(clf.classes_) == [0, 1]
 
-    @pytest.mark.xfail(reason="Stale classes_ not overwritten for binary model "
-                               "due to case sensitivity")
     def test_stale_classes_not_overwritten_binary(self):
         """Stale classes_ from prior fit persists after loading binary model."""
         path = _make_model_json(
@@ -271,7 +262,6 @@ class TestClassesMissingNumClassesZero:
     neither branch in classifier.load_model triggers, so classes_ is never set.
     approx_dimension could serve as a fallback but isn't used."""
 
-    @pytest.mark.xfail(reason="num_classes=0 + MultiClass loss → classes_ never set")
     def test_multiclass_num_classes_zero(self):
         """Multiclass model with num_classes=0 but approx_dimension=3."""
         path = _make_model_json(
@@ -286,7 +276,6 @@ class TestClassesMissingNumClassesZero:
             "classes_ not set: num_classes=0 and loss_type is not 'logloss'"
         )
 
-    @pytest.mark.xfail(reason="num_classes=0 + MultiClass loss → classes_ never set")
     def test_approx_dimension_as_fallback(self):
         """approx_dimension should be used as fallback when num_classes=0."""
         path = _make_model_json(
@@ -298,8 +287,8 @@ class TestClassesMissingNumClassesZero:
         clf = CatBoostMLXClassifier()
         clf.load_model(path)
         assert hasattr(clf, "classes_")
-        # From approx_dimension=4, should infer 4 classes
-        assert len(clf.classes_) == 4
+        # CatBoost approx_dimension = num_classes - 1, so approx_dim=4 → 5 classes
+        assert len(clf.classes_) == 5
 
     def test_nonstandard_labels_roundtrip_lossy(self):
         """Non-standard labels like [10,20,30] cannot survive JSON roundtrip.

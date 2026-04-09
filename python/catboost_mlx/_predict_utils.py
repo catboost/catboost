@@ -194,6 +194,8 @@ def apply_link(cursor: np.ndarray, loss_type: str,
         # The model outputs K-1 raw values; the K-th class has implicit value 0.
         # We use the max-subtraction trick (max_c) for numerical stability:
         # subtracting the max from exponents prevents overflow.
+        if cursor.ndim == 1:
+            cursor = cursor[:, None]  # (n,) -> (n, 1) for 2-class multiclass
         max_c = np.maximum(cursor.max(axis=1), 0.0)
         exp_c = np.exp(cursor - max_c[:, None])
         exp_implicit = np.exp(-max_c)
