@@ -1,6 +1,7 @@
 #include "leaf_estimator.h"
 
 #include <catboost/mlx/kernels/kernel_sources.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <mlx/mlx.h>
 #include <mlx/fast.h>
@@ -33,6 +34,14 @@ namespace NCatboostMlx {
         mx::array& outGradSums,
         mx::array& outHessSums
     ) {
+        // Safety: kLeafAccumSource uses MAX_LEAVES=64 for shared memory allocation.
+        // Exceeding this silently discards documents assigned to leaves >= 64,
+        // corrupting leaf statistics. Fail fast with a clear error.
+        CB_ENSURE(numLeaves <= 64,
+            "CatBoost-MLX: ComputeLeafSumsGPU supports at most 64 leaves (max_depth=6). "
+            "Got " << numLeaves << " leaves (max_depth=" << (ui32)__builtin_ctz(numLeaves) << "). "
+            "Reduce max_depth to 6 or below.");
+
         // Flatten gradients/hessians to 1D: [approxDim * numDocs]
         auto flatGrads = mx::reshape(gradients, {static_cast<int>(approxDim * numDocs)});
         auto flatHess = mx::reshape(hessians, {static_cast<int>(approxDim * numDocs)});
