@@ -1,5 +1,6 @@
 #include "structure_searcher.h"
 #include <catboost/mlx/methods/score_calcer.h>
+#include <catboost/mlx/methods/leaves/leaf_estimator.h>
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostMlx {
@@ -85,9 +86,6 @@ namespace NCatboostMlx {
             perDimHistograms.reserve(approxDimension);
             perDimPartStats.reserve(approxDimension);
 
-            TMLXDevice::EvalNow({dataset.GetGradients(), dataset.GetHessians(), dataset.GetPartitions()});
-            const uint32_t* parts = dataset.GetPartitions().data<uint32_t>();
-
             for (ui32 k = 0; k < approxDimension; ++k) {
                 // Slice gradients and hessians for dimension k
                 mx::array dimGrads, dimHess;
@@ -110,26 +108,27 @@ namespace NCatboostMlx {
                 );
                 perDimHistograms.push_back(std::move(histResult));
 
-                // Compute partition statistics for this dimension
-                TMLXDevice::EvalNow(dimGrads);
-                const float* grads = dimGrads.data<float>();
-                TMLXDevice::EvalNow(dimHess);
-                const float* hess = dimHess.data<float>();
+                // Compute partition statistics using GPU leaf sum accumulation
+                mx::array dimGradSums, dimHessSums;
+                ComputeLeafSumsGPU(
+                    dimGrads, dimHess, dataset.GetPartitions(),
+                    numDocs, numPartitions, 1,
+                    dimGradSums, dimHessSums
+                );
+                TMLXDevice::EvalNow({dimGradSums, dimHessSums});
+                const float* gradSumsPtr = dimGradSums.data<float>();
+                const float* hessSumsPtr = dimHessSums.data<float>();
 
                 TVector<TPartitionStatistics> dimPartStats(numPartitions);
-                for (ui32 d = 0; d < numDocs; ++d) {
-                    ui32 p = parts[d];
-                    if (p < numPartitions) {
-                        dimPartStats[p].Sum += grads[d];
-                        dimPartStats[p].Weight += hess[d];
-                        dimPartStats[p].Count += 1.0;
-                    }
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    dimPartStats[p].Sum = gradSumsPtr[p];
+                    dimPartStats[p].Weight = hessSumsPtr[p];
                 }
                 perDimPartStats.push_back(std::move(dimPartStats));
             }
 
-            // Step 3: Find best split across all features, summing gain across dims
-            auto bestSplit = FindBestSplitMultiDim(
+            // Step 3: Find best split on GPU (suffix-sum + score reduction)
+            auto bestSplit = FindBestSplitGPU(
                 perDimHistograms,
                 perDimPartStats,
                 features,

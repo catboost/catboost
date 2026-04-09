@@ -1,5 +1,10 @@
 #include "leaf_estimator.h"
 
+#include <catboost/mlx/kernels/kernel_sources.h>
+#include <catboost/libs/logging/logging.h>
+#include <mlx/mlx.h>
+#include <mlx/fast.h>
+
 namespace NCatboostMlx {
 
     mx::array ComputeLeafValues(
@@ -16,6 +21,61 @@ namespace NCatboostMlx {
 
         TMLXDevice::EvalNow(leafValues);
         return leafValues;
+    }
+
+    void ComputeLeafSumsGPU(
+        const mx::array& gradients,
+        const mx::array& hessians,
+        const mx::array& partitions,
+        ui32 numDocs,
+        ui32 numLeaves,
+        ui32 approxDim,
+        mx::array& outGradSums,
+        mx::array& outHessSums
+    ) {
+        // Flatten gradients/hessians to 1D: [approxDim * numDocs]
+        auto flatGrads = mx::reshape(gradients, {static_cast<int>(approxDim * numDocs)});
+        auto flatHess = mx::reshape(hessians, {static_cast<int>(approxDim * numDocs)});
+        auto flatParts = mx::reshape(partitions, {static_cast<int>(numDocs)});
+
+        auto numDocsArr = mx::array(static_cast<uint32_t>(numDocs), mx::uint32);
+        auto numLeavesArr = mx::array(static_cast<uint32_t>(numLeaves), mx::uint32);
+        auto approxDimArr = mx::array(static_cast<uint32_t>(approxDim), mx::uint32);
+
+        auto kernel = mx::fast::metal_kernel(
+            "leaf_accumulate",
+            /*input_names=*/{"gradients", "hessians", "partitions",
+                "numDocs", "numLeaves", "approxDim"},
+            /*output_names=*/{"gradSums", "hessSums"},
+            /*source=*/KernelSources::kLeafAccumSource,
+            /*header=*/KernelSources::kLeafAccumHeader,
+            /*ensure_row_contiguous=*/true,
+            /*atomic_outputs=*/true
+        );
+
+        const ui32 numBlocks = (numDocs + 255) / 256;
+        auto grid = std::make_tuple(static_cast<int>(256 * numBlocks), 1, 1);
+        auto tg = std::make_tuple(256, 1, 1);
+
+        auto results = kernel(
+            /*inputs=*/{flatGrads, flatHess, flatParts,
+                numDocsArr, numLeavesArr, approxDimArr},
+            /*output_shapes=*/{{static_cast<int>(approxDim * numLeaves)},
+                               {static_cast<int>(approxDim * numLeaves)}},
+            /*output_dtypes=*/{mx::float32, mx::float32},
+            grid, tg,
+            /*template_args=*/{},
+            /*init_value=*/0.0f,
+            /*verbose=*/false,
+            /*stream=*/mx::Device::gpu
+        );
+
+        outGradSums = results[0];
+        outHessSums = results[1];
+
+        CATBOOST_DEBUG_LOG << "CatBoost-MLX: ComputeLeafSumsGPU: "
+            << numDocs << " docs, " << numLeaves << " leaves, "
+            << approxDim << " dims" << Endl;
     }
 
 }  // namespace NCatboostMlx

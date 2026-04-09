@@ -144,5 +144,245 @@ static const std::string kHistOneByteSource = R"metal(
     }
 )metal";
 
+// ============================================================================
+// Shared header for scoring kernels
+// ============================================================================
+
+static const std::string kScoreHeader = R"metal(
+#include <metal_stdlib>
+using namespace metal;
+
+constant constexpr uint SCORE_BLOCK_SIZE = 256;
+)metal";
+
+// ============================================================================
+// Suffix-sum transform kernel
+//
+// Converts raw per-bin histogram counts into suffix sums (in-place) so that
+// ordinal split scoring becomes O(1) per bin instead of O(bins).
+//
+// For ordinal feature with bins h[0..F-1]:
+//   h'[b] = sum(h[b..F-1])  (reverse inclusive scan)
+//
+// OneHot features are skipped (their bins are independent categories).
+//
+// Grid:   (numFeatures, numPartitions_times_approxDim, numStats)
+// Thread: (1, 1, 1)
+// ============================================================================
+
+static const std::string kSuffixSumSource = R"metal(
+    const uint featIdx = threadgroup_position_in_grid.x;
+    const uint partIdx = threadgroup_position_in_grid.y;
+    const uint statIdx = threadgroup_position_in_grid.z;
+
+    if (featIdx >= numFeatures) return;
+
+    // Skip one-hot features -- their histogram entries are direct lookups
+    if (featureIsOneHot[featIdx] != 0u) return;
+
+    const uint folds = featureFolds[featIdx];
+    if (folds <= 1u) return;
+
+    const uint firstFold = featureFirstFold[featIdx];
+    const uint base = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
+
+    // Reverse inclusive scan: h'[b] = sum(h[b..folds-1])
+    float runningSum = histogram[base + firstFold + folds - 1u];
+    for (uint b = folds - 1u; b > 0u; b--) {
+        float val = histogram[base + firstFold + b - 1u];
+        runningSum += val;
+        histogram_out[base + firstFold + b - 1u] = runningSum;
+    }
+)metal";
+
+// ============================================================================
+// Split scoring + threadgroup reduction kernel
+//
+// Each thread evaluates one bin-feature candidate, summing gain across all
+// partitions and approxDim dimensions. Threadgroup-level argmax reduction
+// produces one best split per block. CPU does final reduction over blocks.
+//
+// Grid:   (SCORE_BLOCK_SIZE * numBlocks, 1, 1)
+// Thread: (SCORE_BLOCK_SIZE, 1, 1)
+// ============================================================================
+
+static const std::string kScoreSplitsSource = R"metal(
+    const uint globalIdx = threadgroup_position_in_grid.x * SCORE_BLOCK_SIZE
+                         + thread_index_in_threadgroup;
+
+    threadgroup float  sharedGain[SCORE_BLOCK_SIZE];
+    threadgroup uint   sharedFeat[SCORE_BLOCK_SIZE];
+    threadgroup uint   sharedBin[SCORE_BLOCK_SIZE];
+
+    float myGain = -INFINITY;
+    uint myFeatIdx = 0xFFFFFFFF;
+    uint myBinIdx = 0;
+
+    if (globalIdx < totalBinFeatures) {
+        // Find which feature this bin-feature belongs to
+        uint featIdx = 0;
+        uint binInFeature = globalIdx;
+        for (uint f = 0; f < numFeatures; f++) {
+            uint folds = featureFolds[f];
+            if (binInFeature < folds) {
+                featIdx = f;
+                break;
+            }
+            binInFeature -= folds;
+        }
+
+        const uint firstFold = featureFirstFold[featIdx];
+
+        // Sum gain across all partitions and all approx dimensions
+        float totalGain = 0.0f;
+
+        for (uint k = 0; k < approxDim; k++) {
+            const uint dimHistBase = k * numPartitions * numStats * totalBinFeatures;
+            const uint dimStatsBase = k * numPartitions;
+
+            for (uint p = 0; p < numPartitions; p++) {
+                const float totalSum = partTotalSum[dimStatsBase + p];
+                const float totalWeight = partTotalWeight[dimStatsBase + p];
+
+                const uint histBase = dimHistBase + p * numStats * totalBinFeatures;
+
+                // After suffix-sum transform, this gives right-side sum directly
+                float sumRight = histogram[histBase + firstFold + binInFeature];
+                float weightRight = 0.0f;
+                if (numStats > 1u) {
+                    weightRight = histogram[histBase + totalBinFeatures + firstFold + binInFeature];
+                }
+
+                float sumLeft = totalSum - sumRight;
+                float weightLeft = totalWeight - weightRight;
+
+                if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+            }
+        }
+
+        myGain = totalGain;
+        myFeatIdx = featIdx;
+        myBinIdx = binInFeature;
+    }
+
+    // Threadgroup argmax reduction
+    sharedGain[thread_index_in_threadgroup] = myGain;
+    sharedFeat[thread_index_in_threadgroup] = myFeatIdx;
+    sharedBin[thread_index_in_threadgroup] = myBinIdx;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    for (uint stride = SCORE_BLOCK_SIZE / 2; stride > 0; stride >>= 1) {
+        if (thread_index_in_threadgroup < stride) {
+            uint other = thread_index_in_threadgroup + stride;
+            if (sharedGain[other] > sharedGain[thread_index_in_threadgroup]) {
+                sharedGain[thread_index_in_threadgroup] = sharedGain[other];
+                sharedFeat[thread_index_in_threadgroup] = sharedFeat[other];
+                sharedBin[thread_index_in_threadgroup] = sharedBin[other];
+            }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    // Thread 0 writes per-block result
+    if (thread_index_in_threadgroup == 0) {
+        const uint blockIdx = threadgroup_position_in_grid.x;
+        bestScores[blockIdx] = sharedGain[0];
+        bestFeatureIds[blockIdx] = sharedFeat[0];
+        bestBinIds[blockIdx] = sharedBin[0];
+    }
+)metal";
+
+// ============================================================================
+// Leaf accumulation kernel header and source
+//
+// Accumulates per-leaf gradient/hessian sums from all documents using
+// threadgroup-local CAS-based atomic float add, then atomic writeback
+// to global output.
+//
+// Grid:   (LEAF_BLOCK_SIZE * ceil(numDocs / LEAF_BLOCK_SIZE), 1, 1)
+// Thread: (LEAF_BLOCK_SIZE, 1, 1)
+// ============================================================================
+
+static const std::string kLeafAccumHeader = R"metal(
+#include <metal_stdlib>
+using namespace metal;
+
+constant constexpr uint LEAF_BLOCK_SIZE = 256;
+constant constexpr uint MAX_LEAVES = 64;
+constant constexpr uint MAX_APPROX_DIM = 10;
+)metal";
+
+static const std::string kLeafAccumSource = R"metal(
+    // Shared accumulators: [approxDim][numLeaves][2] (grad, hess)
+    // Max: 10 * 64 * 2 = 1280 entries = 5 KB
+    threadgroup atomic_uint sharedSums[MAX_APPROX_DIM * MAX_LEAVES * 2];
+
+    const uint totalShared = approxDim * numLeaves * 2;
+    for (uint i = thread_index_in_threadgroup; i < totalShared; i += LEAF_BLOCK_SIZE) {
+        atomic_store_explicit(&sharedSums[i], as_type<uint>(0.0f), memory_order_relaxed);
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    const uint globalIdx = threadgroup_position_in_grid.x * LEAF_BLOCK_SIZE
+                         + thread_index_in_threadgroup;
+
+    if (globalIdx < numDocs) {
+        const uint docIdx = globalIdx;
+        const uint leaf = partitions[docIdx];
+
+        if (leaf < numLeaves) {
+            for (uint k = 0; k < approxDim; k++) {
+                const float grad = gradients[k * numDocs + docIdx];
+                const float hess = hessians[k * numDocs + docIdx];
+
+                const uint gradIdx = k * numLeaves * 2 + leaf * 2;
+                const uint hessIdx = gradIdx + 1;
+
+                // CAS-based float atomic add for gradient
+                uint old_val = atomic_load_explicit(&sharedSums[gradIdx], memory_order_relaxed);
+                uint new_val;
+                do {
+                    new_val = as_type<uint>(as_type<float>(old_val) + grad);
+                } while (!atomic_compare_exchange_weak_explicit(
+                    &sharedSums[gradIdx], &old_val, new_val,
+                    memory_order_relaxed, memory_order_relaxed));
+
+                // CAS-based float atomic add for hessian
+                old_val = atomic_load_explicit(&sharedSums[hessIdx], memory_order_relaxed);
+                do {
+                    new_val = as_type<uint>(as_type<float>(old_val) + hess);
+                } while (!atomic_compare_exchange_weak_explicit(
+                    &sharedSums[hessIdx], &old_val, new_val,
+                    memory_order_relaxed, memory_order_relaxed));
+            }
+        }
+    }
+
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // Write threadgroup partial sums to global output using atomics
+    for (uint i = thread_index_in_threadgroup; i < totalShared; i += LEAF_BLOCK_SIZE) {
+        float val = as_type<float>(atomic_load_explicit(&sharedSums[i], memory_order_relaxed));
+        if (abs(val) > 1e-20f) {
+            uint remainder = i % (numLeaves * 2);
+            uint k = i / (numLeaves * 2);
+            uint leaf = remainder / 2;
+            uint is_hess = remainder % 2;
+
+            if (is_hess == 0) {
+                device atomic_float* dst = (device atomic_float*)(gradSums + k * numLeaves + leaf);
+                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
+            } else {
+                device atomic_float* dst = (device atomic_float*)(hessSums + k * numLeaves + leaf);
+                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
+            }
+        }
+    }
+)metal";
+
 }  // namespace KernelSources
 }  // namespace NCatboostMlx

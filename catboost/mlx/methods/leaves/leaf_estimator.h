@@ -22,4 +22,18 @@ namespace NCatboostMlx {
         float learningRate
     );
 
+    // GPU-accelerated leaf sum accumulation via Metal kernel.
+    // Replaces the CPU for-loop over documents with a parallel segmented reduction.
+    // Output arrays are [approxDim * numLeaves] float32, zero-initialized.
+    void ComputeLeafSumsGPU(
+        const mx::array& gradients,    // [approxDim, numDocs] or [numDocs]
+        const mx::array& hessians,     // [approxDim, numDocs] or [numDocs]
+        const mx::array& partitions,   // [numDocs] uint32
+        ui32 numDocs,
+        ui32 numLeaves,
+        ui32 approxDim,
+        mx::array& outGradSums,        // [approxDim * numLeaves]
+        mx::array& outHessSums         // [approxDim * numLeaves]
+    );
+
 }  // namespace NCatboostMlx

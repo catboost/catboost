@@ -84,70 +84,35 @@ namespace NCatboostMlx {
                 break;
             }
 
-            // ----- Step 3: Estimate leaf values -----
+            // ----- Step 3: Estimate leaf values (GPU-accelerated) -----
             const ui32 numLeaves = 1u << treeStructure.Splits.size();
 
-            TMLXDevice::EvalNow({trainData.GetGradients(), trainData.GetHessians(), trainData.GetPartitions()});
-            const uint32_t* partsPtr = trainData.GetPartitions().data<uint32_t>();
+            mx::array gradSumsGPU, hessSumsGPU;
+            ComputeLeafSumsGPU(
+                trainData.GetGradients(),
+                trainData.GetHessians(),
+                trainData.GetPartitions(),
+                numDocs, numLeaves, approxDim,
+                gradSumsGPU, hessSumsGPU
+            );
 
             mx::array leafValues;
 
             if (approxDim == 1) {
-                // Single-dim: accumulate scalar grad/hess sums per leaf
-                auto flatGrads = mx::reshape(trainData.GetGradients(), {static_cast<int>(numDocs)});
-                auto flatHess = mx::reshape(trainData.GetHessians(), {static_cast<int>(numDocs)});
-                TMLXDevice::EvalNow({flatGrads, flatHess});
-
-                const float* gradsPtr = flatGrads.data<float>();
-                const float* hessPtr = flatHess.data<float>();
-
-                TVector<float> gradSumsHost(numLeaves, 0.0f);
-                TVector<float> hessSumsHost(numLeaves, 0.0f);
-                for (ui32 d = 0; d < numDocs; ++d) {
-                    ui32 leaf = partsPtr[d];
-                    if (leaf < numLeaves) {
-                        gradSumsHost[leaf] += gradsPtr[d];
-                        hessSumsHost[leaf] += hessPtr[d];
-                    }
-                }
-
-                auto gradSums = mx::array(gradSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
-                auto hessSums = mx::array(hessSumsHost.data(), {static_cast<int>(numLeaves)}, mx::float32);
-
-                leafValues = ComputeLeafValues(gradSums, hessSums, config.L2RegLambda, config.LearningRate);
+                leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU, config.L2RegLambda, config.LearningRate);
                 // leafValues shape: [numLeaves]
             } else {
-                // Multi-dim: accumulate [K, numLeaves] grad/hess sums
-                TVector<TVector<float>> gradSumsPerDim(approxDim, TVector<float>(numLeaves, 0.0f));
-                TVector<TVector<float>> hessSumsPerDim(approxDim, TVector<float>(numLeaves, 0.0f));
-
-                for (ui32 k = 0; k < approxDim; ++k) {
-                    auto dimGrads = mx::slice(trainData.GetGradients(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
-                    auto dimHess = mx::slice(trainData.GetHessians(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimHess = mx::reshape(dimHess, {static_cast<int>(numDocs)});
-                    TMLXDevice::EvalNow({dimGrads, dimHess});
-
-                    const float* gPtr = dimGrads.data<float>();
-                    const float* hPtr = dimHess.data<float>();
-
-                    for (ui32 d = 0; d < numDocs; ++d) {
-                        ui32 leaf = partsPtr[d];
-                        if (leaf < numLeaves) {
-                            gradSumsPerDim[k][leaf] += gPtr[d];
-                            hessSumsPerDim[k][leaf] += hPtr[d];
-                        }
-                    }
-                }
-
                 // Compute leaf values per dimension, build [numLeaves, K]
                 TVector<float> interleavedLeaves(numLeaves * approxDim, 0.0f);
                 for (ui32 k = 0; k < approxDim; ++k) {
-                    auto gradSums = mx::array(gradSumsPerDim[k].data(), {static_cast<int>(numLeaves)}, mx::float32);
-                    auto hessSums = mx::array(hessSumsPerDim[k].data(), {static_cast<int>(numLeaves)}, mx::float32);
-                    auto dimLeafValues = ComputeLeafValues(gradSums, hessSums, config.L2RegLambda, config.LearningRate);
+                    auto dimGradSums = mx::slice(gradSumsGPU,
+                        {static_cast<int>(k * numLeaves)},
+                        {static_cast<int>((k + 1) * numLeaves)});
+                    auto dimHessSums = mx::slice(hessSumsGPU,
+                        {static_cast<int>(k * numLeaves)},
+                        {static_cast<int>((k + 1) * numLeaves)});
+                    auto dimLeafValues = ComputeLeafValues(dimGradSums, dimHessSums,
+                        config.L2RegLambda, config.LearningRate);
                     TMLXDevice::EvalNow(dimLeafValues);
                     const float* lvPtr = dimLeafValues.data<float>();
                     for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {

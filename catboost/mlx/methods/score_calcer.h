@@ -39,4 +39,14 @@ namespace NCatboostMlx {
         ui32 numPartitions
     );
 
+    // GPU-accelerated split scoring: two-phase suffix-sum + score reduction.
+    // Keeps histogram data on GPU, eliminating the CPU readback sync point.
+    TBestSplitProperties FindBestSplitGPU(
+        const TVector<THistogramResult>& perDimHistograms,
+        const TVector<TVector<TPartitionStatistics>>& perDimPartStats,
+        const TVector<TCFeature>& features,
+        float l2RegLambda,
+        ui32 numPartitions
+    );
+
 }  // namespace NCatboostMlx
