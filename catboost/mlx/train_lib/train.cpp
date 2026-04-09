@@ -99,6 +99,7 @@ namespace NCatboostMlx {
 
         // Phase 3: Create target function
         auto lossFunction = updatedOptions.LossFunctionDescription->GetLossFunction();
+        const auto& lossParamsMap = updatedOptions.LossFunctionDescription->GetLossParamsMap();
 
         std::unique_ptr<IMLXTargetFunc> targetPtr;
         switch (lossFunction) {
@@ -118,9 +119,36 @@ namespace NCatboostMlx {
                     << approxDimension);
                 targetPtr = std::make_unique<TMultiClassTarget>(approxDimension + 1);
                 break;
+            case ELossFunction::MAE:
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: MAE requires approxDimension=1. Got: "
+                    << approxDimension);
+                targetPtr = std::make_unique<TMAETarget>();
+                break;
+            case ELossFunction::Quantile: {
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: Quantile requires approxDimension=1. Got: "
+                    << approxDimension);
+                float alpha = NCatboostOptions::GetParamOrDefault(lossParamsMap, TString("alpha"), 0.5f);
+                CATBOOST_INFO_LOG << "CatBoost-MLX: Quantile alpha=" << alpha << Endl;
+                targetPtr = std::make_unique<TQuantileTarget>(alpha);
+                break;
+            }
+            case ELossFunction::Huber: {
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: Huber requires approxDimension=1. Got: "
+                    << approxDimension);
+                CB_ENSURE(lossParamsMap.contains("delta"),
+                    "CatBoost-MLX: For " << ELossFunction::Huber << " delta parameter is mandatory");
+                float delta = FromString<float>(lossParamsMap.at("delta"));
+                CATBOOST_INFO_LOG << "CatBoost-MLX: Huber delta=" << delta << Endl;
+                targetPtr = std::make_unique<THuberTarget>(delta);
+                break;
+            }
             default:
                 CB_ENSURE(false,
-                    "CatBoost-MLX currently supports RMSE, Logloss, CrossEntropy, and MultiClass. Got: "
+                    "CatBoost-MLX currently supports RMSE, Logloss, CrossEntropy, MultiClass, "
+                    "MAE, Quantile, and Huber. Got: "
                     << lossFunction);
         }
 
