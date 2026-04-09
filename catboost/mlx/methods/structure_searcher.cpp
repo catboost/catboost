@@ -80,25 +80,25 @@ namespace NCatboostMlx {
             auto layout = ComputePartitionLayout(
                 dataset.GetPartitions(), numDocs, numPartitions);
 
-            // Step 1-2: Compute histograms and partition stats per dimension
+            // Step 1-2: Compute histograms per dimension; compute partition stats
+            // once for all dims in a single GPU dispatch (OPT-1: eliminates
+            // approxDim CPU-GPU round trips per depth level).
             TVector<THistogramResult> perDimHistograms;
-            TVector<TVector<TPartitionStatistics>> perDimPartStats;
             perDimHistograms.reserve(approxDimension);
-            perDimPartStats.reserve(approxDimension);
 
             for (ui32 k = 0; k < approxDimension; ++k) {
-                // Slice gradients and hessians for dimension k
+                // Slice gradients and hessians for dimension k (histogram only)
                 mx::array dimGrads, dimHess;
                 if (approxDimension == 1) {
                     dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
-                    dimHess = mx::reshape(dataset.GetHessians(), {static_cast<int>(numDocs)});
+                    dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
                 } else {
                     dimGrads = mx::slice(dataset.GetGradients(),
                         {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
                     dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
-                    dimHess = mx::slice(dataset.GetHessians(),
+                    dimHess  = mx::slice(dataset.GetHessians(),
                         {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimHess = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                    dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
                 }
 
                 auto histResult = ComputeHistograms(
@@ -107,33 +107,30 @@ namespace NCatboostMlx {
                     numPartitions
                 );
                 perDimHistograms.push_back(std::move(histResult));
-
-                // Compute partition statistics using GPU leaf sum accumulation
-                mx::array dimGradSums, dimHessSums;
-                ComputeLeafSumsGPU(
-                    dimGrads, dimHess, dataset.GetPartitions(),
-                    numDocs, numPartitions, 1,
-                    dimGradSums, dimHessSums
-                );
-                TMLXDevice::EvalNow({dimGradSums, dimHessSums});
-                const float* gradSumsPtr = dimGradSums.data<float>();
-                const float* hessSumsPtr = dimHessSums.data<float>();
-
-                TVector<TPartitionStatistics> dimPartStats(numPartitions);
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    dimPartStats[p].Sum = gradSumsPtr[p];
-                    dimPartStats[p].Weight = hessSumsPtr[p];
-                }
-                perDimPartStats.push_back(std::move(dimPartStats));
             }
 
-            // Step 3: Find best split on GPU (suffix-sum + score reduction)
+            // Single GPU dispatch for all-dimension partition stats (OPT-1).
+            // ComputeLeafSumsGPU handles approxDim internally via the [approxDim,numDocs]
+            // layout — no CPU readback needed here; GPU arrays passed directly to
+            // FindBestSplitGPU overload that accepts mx::array partition totals.
+            mx::array allGradSums, allHessSums;
+            ComputeLeafSumsGPU(
+                dataset.GetGradients(), dataset.GetHessians(),
+                dataset.GetPartitions(),
+                numDocs, numPartitions, approxDimension,
+                allGradSums, allHessSums
+            );
+            // allGradSums / allHessSums: [approxDim * numPartitions] float32 — stays on GPU
+
+            // Step 3: Find best split on GPU using pre-computed GPU partition sums
+            // and binToFeature lookup table (OPT-1 + OPT-2 combined path).
             auto bestSplit = FindBestSplitGPU(
                 perDimHistograms,
-                perDimPartStats,
+                allGradSums, allHessSums,
                 features,
                 l2RegLambda,
-                numPartitions
+                numPartitions,
+                approxDimension
             );
 
             if (!bestSplit.Defined()) {

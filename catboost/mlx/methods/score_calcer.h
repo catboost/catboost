@@ -49,4 +49,18 @@ namespace NCatboostMlx {
         ui32 numPartitions
     );
 
+    // GPU-accelerated overload accepting partition totals already on GPU.
+    // partGradSums and partHessSums are [approxDim * numPartitions] float32 arrays
+    // produced by ComputeLeafSumsGPU. Avoids the CPU readback round trip that the
+    // TVector overload requires.
+    TBestSplitProperties FindBestSplitGPU(
+        const TVector<THistogramResult>& perDimHistograms,
+        const mx::array& partGradSums,   // [approxDim * numPartitions]
+        const mx::array& partHessSums,   // [approxDim * numPartitions]
+        const TVector<TCFeature>& features,
+        float l2RegLambda,
+        ui32 numPartitions,
+        ui32 approxDim
+    );
+
 }  // namespace NCatboostMlx
