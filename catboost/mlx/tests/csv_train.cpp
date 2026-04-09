@@ -60,6 +60,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <random>
+#include <optional>
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -2672,10 +2673,18 @@ TTrainResult RunTraining(
             auto tD1 = std::chrono::steady_clock::now();
             dbgLayoutMs += std::chrono::duration<double, std::milli>(tD1 - tD0).count();
 
-            // Compute per-dim histograms and partition stats
+            // Compute per-dim histograms and partition stats.
+            // Build all GPU work lazily, then eval in a single sync point.
             std::vector<std::vector<float>> perDimHistData(approxDim);
             std::vector<std::vector<TPartitionStatistics>> perDimPartStats(approxDim);
 
+            // Phase 1: build lazy computation graph (no GPU sync)
+            std::vector<mx::array> histArrays;
+            std::vector<mx::array> gradSumArrays;
+            std::vector<mx::array> hessSumArrays;
+            histArrays.reserve(approxDim);
+            gradSumArrays.reserve(approxDim);
+            hessSumArrays.reserve(approxDim);
             for (ui32 k = 0; k < approxDim; ++k) {
                 auto statsK = mx::concatenate({
                     mx::reshape(dimGrads[k], {1, static_cast<int>(trainDocs)}),
@@ -2683,48 +2692,66 @@ TTrainResult RunTraining(
                 }, 0);
                 statsK = mx::reshape(statsK, {static_cast<int>(2 * trainDocs)});
 
-                auto hist = DispatchHistogram(
+                histArrays.push_back(DispatchHistogram(
                     compressedData, statsK,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     packed.Features, packed.NumUi32PerDoc,
                     packed.TotalBinFeatures, numPartitions, trainDocs
-                );
-                mx::eval(hist);
-                const float* hData = hist.data<float>();
-                perDimHistData[k].assign(hData, hData + numPartitions * 2 * packed.TotalBinFeatures);
-
-                // GPU partition stats via scatter_add_axis
-                perDimPartStats[k].resize(numPartitions);
-                auto partGradSums = mx::scatter_add_axis(
+                ));
+                gradSumArrays.push_back(mx::scatter_add_axis(
                     mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
-                    partitions, dimGrads[k], 0);
-                auto partHessSums = mx::scatter_add_axis(
+                    partitions, dimGrads[k], 0));
+                hessSumArrays.push_back(mx::scatter_add_axis(
                     mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
-                    partitions, dimHess[k], 0);
-                mx::eval({partGradSums, partHessSums});
-                const float* gsPtr = partGradSums.data<float>();
-                const float* hsPtr = partHessSums.data<float>();
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    perDimPartStats[k][p].Sum = gsPtr[p];
-                    perDimPartStats[k][p].Weight = hsPtr[p];
-                }
+                    partitions, dimHess[k], 0));
             }
 
-            // Build count histogram for min-data-in-leaf (GPU via histogram kernel with all-ones stats)
+            // Count histogram for min-data-in-leaf (lazy)
             std::vector<std::vector<ui32>> countHist;
             std::vector<ui32> partDocCounts;
-            if (config.MinDataInLeaf > 1) {
+            std::optional<mx::array> countHistArr;
+            bool needCountHist = config.MinDataInLeaf > 1;
+            if (needCountHist) {
                 auto onesStats = mx::ones({static_cast<int>(2 * trainDocs)}, mx::float32);
-                auto countHistArr = DispatchHistogram(
+                countHistArr = DispatchHistogram(
                     compressedData, onesStats,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     packed.Features, packed.NumUi32PerDoc,
                     packed.TotalBinFeatures, numPartitions, trainDocs
                 );
-                mx::eval({countHistArr, layout.PartSizes});
-                const float* chData = countHistArr.data<float>();
+            }
 
-                // Extract per-partition per-bin counts from the "gradient" slot
+            // Phase 2: single GPU-CPU sync for all histograms + partition stats
+            {
+                std::vector<mx::array> toEval;
+                toEval.reserve(approxDim * 3 + 2);
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    toEval.push_back(histArrays[k]);
+                    toEval.push_back(gradSumArrays[k]);
+                    toEval.push_back(hessSumArrays[k]);
+                }
+                if (needCountHist) {
+                    toEval.push_back(*countHistArr);
+                    toEval.push_back(layout.PartSizes);
+                }
+                mx::eval(toEval);
+            }
+
+            // Phase 3: read results to CPU
+            for (ui32 k = 0; k < approxDim; ++k) {
+                const float* hData = histArrays[k].data<float>();
+                perDimHistData[k].assign(hData, hData + numPartitions * 2 * packed.TotalBinFeatures);
+
+                perDimPartStats[k].resize(numPartitions);
+                const float* gsPtr = gradSumArrays[k].data<float>();
+                const float* hsPtr = hessSumArrays[k].data<float>();
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    perDimPartStats[k][p].Sum = gsPtr[p];
+                    perDimPartStats[k][p].Weight = hsPtr[p];
+                }
+            }
+            if (needCountHist) {
+                const float* chData = countHistArr->data<float>();
                 countHist.assign(numPartitions, std::vector<ui32>(packed.TotalBinFeatures, 0));
                 for (ui32 p = 0; p < numPartitions; ++p) {
                     const float* partData = chData + p * 2 * packed.TotalBinFeatures;
@@ -2732,8 +2759,6 @@ TTrainResult RunTraining(
                         countHist[p][b] = static_cast<ui32>(partData[b] + 0.5f);
                     }
                 }
-
-                // partDocCounts from partition layout (already computed on GPU)
                 const uint32_t* psPtr = layout.PartSizes.data<uint32_t>();
                 partDocCounts.assign(psPtr, psPtr + numPartitions);
             }
