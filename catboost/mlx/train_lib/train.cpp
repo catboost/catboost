@@ -139,7 +139,10 @@ namespace NCatboostMlx {
                     "CatBoost-MLX: Huber requires approxDimension=1. Got: "
                     << approxDimension);
                 CB_ENSURE(lossParamsMap.contains("delta"),
-                    "CatBoost-MLX: For " << ELossFunction::Huber << " delta parameter is mandatory");
+                    "CatBoost-MLX: For " << ELossFunction::Huber
+                    << " the delta parameter is mandatory. "
+                    << "Specify it as 'Huber:delta=1.0' in CatBoost params "
+                    << "or 'huber:1.0' in the csv_train --loss flag.");
                 float delta = FromString<float>(lossParamsMap.at("delta"));
                 CATBOOST_INFO_LOG << "CatBoost-MLX: Huber delta=" << delta << Endl;
                 targetPtr = std::make_unique<THuberTarget>(delta);

@@ -136,6 +136,26 @@ except ImportError:
             return float(np.mean(y_pred == y_true))
 
 
+def _normalize_loss_str(loss: str) -> str:
+    """Normalize a loss string for the csv_train binary.
+
+    Handles:
+    - Case: 'MAE' -> 'mae', 'Quantile:alpha=0.7' -> 'quantile:0.7'
+    - Named params: 'quantile:alpha=0.7' -> 'quantile:0.7',
+                    'huber:delta=1.0'     -> 'huber:1.0'
+    - Preserves positional: 'quantile:0.7' -> 'quantile:0.7'
+    """
+    if ":" in loss:
+        base, suffix = loss.split(":", 1)
+        base = base.lower()
+        for prefix in ("alpha=", "delta="):
+            if suffix.lower().startswith(prefix):
+                suffix = suffix[len(prefix):]
+                break
+        return f"{base}:{suffix}"
+    return loss.lower()
+
+
 def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
     """Locate a compiled binary (csv_train or csv_predict).
 
@@ -512,10 +532,19 @@ class CatBoostMLX(BaseEstimator):
                 f"Unknown loss '{self.loss}'. Known losses: {sorted(self._KNOWN_LOSSES)}"
             )
         if ":" in self.loss:
+            suffix = self.loss.split(":", 1)[1]
+            # Strip named-parameter prefix if present (e.g. 'alpha=0.7' -> '0.7')
+            for prefix in ("alpha=", "delta="):
+                if suffix.lower().startswith(prefix):
+                    suffix = suffix[len(prefix):]
+                    break
             try:
-                float(self.loss.split(":", 1)[1])
+                float(suffix)
             except ValueError:
-                raise ValueError(f"Loss parameter must be numeric, got '{self.loss}'")
+                raise ValueError(
+                    f"Loss parameter must be numeric, got '{self.loss}'. "
+                    f"Use positional syntax, e.g. 'quantile:0.7' or 'huber:1.0'."
+                )
 
         if not isinstance(self.bins, int) or not (2 <= self.bins <= 255):
             raise ValueError(f"bins must be an integer in [2, 255], got {self.bins!r}")
@@ -665,7 +694,7 @@ class CatBoostMLX(BaseEstimator):
             "--depth", str(self.depth),
             "--lr", str(self.learning_rate),
             "--l2", str(self.l2_reg_lambda),
-            "--loss", self.loss,
+            "--loss", _normalize_loss_str(self.loss),
             "--bins", str(self.bins),
             "--target-col", str(target_col),
             "--seed", str(self.random_seed),

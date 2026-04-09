@@ -1173,12 +1173,32 @@ struct TLossConfig {
 
 TLossConfig ParseLossType(const std::string& lossStr) {
     TLossConfig lc;
-    auto colonPos = lossStr.find(':');
+
+    // Belt-and-suspenders: normalize to lowercase so callers passing 'MAE',
+    // 'Quantile:0.7', etc. work even if the Python layer didn't normalize first.
+    std::string normalized = lossStr;
+    auto colonPos = normalized.find(':');
+    // Lowercase only the base type (before the colon)
+    std::string baseType = (colonPos != std::string::npos)
+        ? normalized.substr(0, colonPos)
+        : normalized;
+    for (auto& c : baseType) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
     if (colonPos != std::string::npos) {
-        lc.Type = lossStr.substr(0, colonPos);
-        lc.Param = std::stof(lossStr.substr(colonPos + 1));
+        lc.Type = baseType;
+        std::string suffix = normalized.substr(colonPos + 1);
+        // Also accept named-param syntax: 'alpha=0.7', 'delta=1.0'
+        for (const auto* prefix : {"alpha=", "delta="}) {
+            std::string lcSuffix = suffix;
+            for (auto& c : lcSuffix) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            if (lcSuffix.find(prefix) == 0) {
+                suffix = suffix.substr(std::string(prefix).size());
+                break;
+            }
+        }
+        lc.Param = std::stof(suffix);
     } else {
-        lc.Type = lossStr;
+        lc.Type = baseType;
         if (lc.Type == "quantile") lc.Param = 0.5f;
         if (lc.Type == "huber") lc.Param = 1.0f;
         if (lc.Type == "tweedie") lc.Param = 1.5f;  // variance power p

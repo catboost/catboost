@@ -375,69 +375,60 @@ class TestPythonLossSurface:
         assert m._is_fitted
 
     def test_mae_uppercase_crashes_binary__bug001(self):
-        """BUG-001: loss='MAE' (uppercase) passes Python validation but crashes csv_train.
+        """BUG-001 (FIXED): loss='MAE' (uppercase) now trains successfully.
 
-        The Python layer normalizes to lowercase for VALIDATION only (loss_base check),
-        but passes the original self.loss string unchanged to the binary via --loss.
-        The csv_train C++ binary does no lowercasing in ParseLossType(), so 'MAE'
-        falls through all if/else branches and hits an MLX reshape exception.
+        Fix: python/_normalize_loss_str() lowercases the base before passing
+        to the binary. csv_train ParseLossType() also lowercases as
+        belt-and-suspenders. Both surfaces now handle any case variation.
 
-        Expected (correct) behaviour: either normalize before passing to binary,
-        or reject uppercase at Python validation time with a clear ValueError.
-        Actual behaviour: binary crashes with exit code -6 (SIGABRT / uncaught exception).
-
-        File: python/catboost_mlx/core.py line ~668 (_build_train_args) — passes self.loss raw.
-              catboost/mlx/tests/csv_train.cpp ParseLossType() — no case normalization.
+        This test was originally written to document the crash; it is now a
+        regression test confirming the fix is in place.
         """
         X, y, _ = _make_regression_dataset()
         m = CatBoostMLXRegressor(
             iterations=10, loss="MAE", random_seed=42, binary_path=BINARY_PATH
         )
-        with pytest.raises((RuntimeError, ValueError)) as exc_info:
-            m.fit(X, y)
-        # Should fail with a clear error, not a Metal reshape crash.
-        # The current failure IS a RuntimeError from csv_train returncode != 0,
-        # but the message contains an MLX internal exception rather than a
-        # user-friendly "unknown loss" message.
-        err_str = str(exc_info.value)
-        assert "MAE" in err_str or "loss" in err_str.lower() or "unknown" in err_str.lower(), (
-            f"Expected a descriptive error about the loss type, got: {err_str[:300]}"
-        )
+        # Must succeed after fix
+        m.fit(X, y)
+        assert m._is_fitted, "loss='MAE' should fit without error after BUG-001 fix"
+        preds = m.predict(X)
+        assert np.all(np.isfinite(preds)), "loss='MAE' (uppercase) returned non-finite predictions"
 
     def test_quantile_catboost_param_name_syntax__bug002(self):
-        """BUG-002: loss='Quantile:alpha=0.7' raises ValueError before reaching binary.
+        """BUG-002 (FIXED): loss='Quantile:alpha=0.7' now trains successfully.
 
-        CatBoost's canonical format uses named parameters: 'Quantile:alpha=0.7'.
-        The Python layer's colon-suffix validator calls float('alpha=0.7') which raises
-        ValueError. Users copying CatBoost docs will hit this immediately.
+        Fix: _validate_params() strips 'alpha=' prefix before float() call.
+        _build_train_args() normalizes to 'quantile:0.7' for the binary via
+        _normalize_loss_str().
 
-        Expected: either accept and parse named syntax, or raise a helpful error
-                  that says 'use quantile:0.7 not Quantile:alpha=0.7'.
-        Actual: raises ValueError with message 'Loss parameter must be numeric,
-                got Quantile:alpha=0.7' — unhelpful.
-
-        File: python/catboost_mlx/core.py _validate_params() ~line 514-518.
+        This test was originally written to document the ValueError; it is now
+        a regression test confirming named-param syntax is accepted.
         """
         X, y, _ = _make_regression_dataset()
         m = CatBoostMLXRegressor(
             iterations=10, loss="Quantile:alpha=0.7", random_seed=42,
             binary_path=BINARY_PATH
         )
-        with pytest.raises(ValueError) as exc_info:
-            m.fit(X, y)
-        # Document the error message for the developer fix
-        assert "Quantile:alpha=0.7" in str(exc_info.value) or "numeric" in str(exc_info.value).lower()
+        m.fit(X, y)
+        assert m._is_fitted, "loss='Quantile:alpha=0.7' should fit after BUG-002 fix"
+        preds = m.predict(X)
+        assert np.all(np.isfinite(preds))
 
     def test_huber_catboost_param_name_syntax__bug002(self):
-        """BUG-002 (Huber variant): 'Huber:delta=1.0' also fails the numeric suffix check."""
+        """BUG-002 (FIXED): loss='Huber:delta=1.0' now trains successfully.
+
+        Fix: same as BUG-002 Quantile variant — 'delta=' prefix is stripped
+        before float() validation and before forwarding to binary.
+        """
         X, y, _ = _make_regression_dataset()
         m = CatBoostMLXRegressor(
             iterations=10, loss="Huber:delta=1.0", random_seed=42,
             binary_path=BINARY_PATH
         )
-        with pytest.raises(ValueError) as exc_info:
-            m.fit(X, y)
-        assert "Huber:delta=1.0" in str(exc_info.value) or "numeric" in str(exc_info.value).lower()
+        m.fit(X, y)
+        assert m._is_fitted, "loss='Huber:delta=1.0' should fit after BUG-002 fix"
+        preds = m.predict(X)
+        assert np.all(np.isfinite(preds))
 
     def test_huber_no_param_csv_train_defaults__known_divergence(self):
         """Known divergence: csv_train silently defaults 'huber' to delta=1.0.
@@ -713,3 +704,163 @@ class TestSprintRegression:
             assert n_increases == 0, (
                 f"Huber:1.0 training loss increased {n_increases} times"
             )
+
+
+# ============================================================================
+# SECTION 6: BUG-001/BUG-002 fix verification
+#   These tests verify that the Sprint 3 follow-up fixes are in place.
+#   They are the mirror of the "documents the bug" tests in Section 3 —
+#   those tests assert the broken behaviour; these assert the fixed behaviour.
+# ============================================================================
+
+
+class TestBugFixVerification:
+    """Confirm BUG-001 (uppercase crash) and BUG-002 (named params) are fixed."""
+
+    # ------------------------------------------------------------------
+    # BUG-001 fixes: uppercase loss strings must be accepted
+    # ------------------------------------------------------------------
+
+    def test_bug001_mae_uppercase_accepted(self):
+        """BUG-001 fix: loss='MAE' (uppercase) must train successfully.
+
+        Python _build_train_args normalizes to 'mae' before passing to binary.
+        csv_train ParseLossType also lowercases as belt-and-suspenders.
+        """
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="MAE", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        preds = m.predict(X)
+        assert m._is_fitted, "loss='MAE' should fit without error after BUG-001 fix"
+        assert preds.shape == (500,)
+        assert np.all(np.isfinite(preds)), "loss='MAE' (uppercase) returned non-finite predictions"
+
+    def test_bug001_mae_upper_matches_lower(self):
+        """BUG-001 fix: 'MAE' normalizes to the same args as 'mae'.
+
+        Verifies the normalization contract rather than comparing cross-invocation
+        predictions (Metal GPU non-determinism can produce sub-1e-4 variance).
+        """
+        from catboost_mlx.core import _normalize_loss_str
+        assert _normalize_loss_str("MAE") == "mae", (
+            "_normalize_loss_str('MAE') should produce 'mae'"
+        )
+        assert _normalize_loss_str("mae") == "mae"
+        assert _normalize_loss_str("RMSE") == "rmse"
+        assert _normalize_loss_str("Quantile:0.7") == "quantile:0.7"
+
+    def test_bug001_quantile_mixed_case_accepted(self):
+        """BUG-001 fix: loss='Quantile:0.7' (mixed case) must train successfully."""
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="Quantile:0.7", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        assert m._is_fitted
+
+    def test_bug001_huber_mixed_case_accepted(self):
+        """BUG-001 fix: loss='Huber:1.0' (mixed case) must train successfully."""
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="Huber:1.0", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        assert m._is_fitted
+
+    # ------------------------------------------------------------------
+    # BUG-002 fixes: named-parameter syntax must be accepted
+    # ------------------------------------------------------------------
+
+    def test_bug002_quantile_named_alpha_accepted(self):
+        """BUG-002 fix: loss='Quantile:alpha=0.7' (named param) must train successfully.
+
+        Python _validate_params strips 'alpha=' before float(), so no ValueError.
+        Python _build_train_args normalizes to 'quantile:0.7' for the binary.
+        """
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="Quantile:alpha=0.7", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        preds = m.predict(X)
+        assert m._is_fitted, "loss='Quantile:alpha=0.7' should fit after BUG-002 fix"
+        assert preds.shape == (500,)
+        assert np.all(np.isfinite(preds))
+
+    def test_bug002_huber_named_delta_accepted(self):
+        """BUG-002 fix: loss='Huber:delta=1.0' (named param) must train successfully."""
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="Huber:delta=1.0", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        preds = m.predict(X)
+        assert m._is_fitted
+        assert preds.shape == (500,)
+        assert np.all(np.isfinite(preds))
+
+    def test_bug002_named_matches_positional_quantile(self):
+        """BUG-002 fix: 'Quantile:alpha=0.7' normalizes to the same args as 'quantile:0.7'.
+
+        Verifies the normalization contract rather than comparing cross-invocation
+        predictions (which can diverge due to Metal GPU non-determinism).
+        """
+        from catboost_mlx.core import _normalize_loss_str
+        assert _normalize_loss_str("Quantile:alpha=0.7") == "quantile:0.7", (
+            "_normalize_loss_str('Quantile:alpha=0.7') should produce 'quantile:0.7'"
+        )
+        assert _normalize_loss_str("quantile:0.7") == "quantile:0.7", (
+            "_normalize_loss_str('quantile:0.7') should be unchanged"
+        )
+        # Both forms must also train successfully without error
+        X, y, _ = _make_regression_dataset()
+        for loss_str in ["Quantile:alpha=0.7", "quantile:0.7"]:
+            m = CatBoostMLXRegressor(
+                iterations=5, loss=loss_str, random_seed=42, binary_path=BINARY_PATH
+            )
+            m.fit(X, y)
+            assert m._is_fitted, f"loss='{loss_str}' should fit after BUG-002 fix"
+
+    def test_bug002_named_matches_positional_huber(self):
+        """BUG-002 fix: 'Huber:delta=1.0' normalizes to the same args as 'huber:1.0'.
+
+        Rather than comparing predictions across two separate binary invocations
+        (which can diverge due to Metal GPU non-determinism), we verify the
+        normalization contract: _normalize_loss_str transforms both forms to
+        the same canonical string that csv_train receives.
+        """
+        from catboost_mlx.core import _normalize_loss_str
+        assert _normalize_loss_str("Huber:delta=1.0") == "huber:1.0", (
+            "_normalize_loss_str('Huber:delta=1.0') should produce 'huber:1.0'"
+        )
+        assert _normalize_loss_str("huber:1.0") == "huber:1.0", (
+            "_normalize_loss_str('huber:1.0') should be unchanged"
+        )
+        # Both forms must also train successfully without error
+        X, y, _ = _make_regression_dataset()
+        for loss_str in ["Huber:delta=1.0", "huber:1.0"]:
+            m = CatBoostMLXRegressor(
+                iterations=5, loss=loss_str, random_seed=42, binary_path=BINARY_PATH
+            )
+            m.fit(X, y)
+            assert m._is_fitted, f"loss='{loss_str}' should fit after BUG-002 fix"
+
+    def test_bug002_lowercase_named_alpha_accepted(self):
+        """BUG-002 fix: lowercase 'quantile:alpha=0.3' is also valid."""
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="quantile:alpha=0.3", random_seed=42, binary_path=BINARY_PATH
+        )
+        m.fit(X, y)
+        assert m._is_fitted
+
+    def test_bug002_invalid_param_name_still_rejected(self):
+        """Non-numeric, non-named suffix must still raise ValueError."""
+        X, y, _ = _make_regression_dataset()
+        m = CatBoostMLXRegressor(
+            iterations=10, loss="quantile:q=0.7", random_seed=42, binary_path=BINARY_PATH
+        )
+        with pytest.raises(ValueError, match="numeric"):
+            m.fit(X, y)
