@@ -297,6 +297,101 @@ static const std::string kScoreSplitsSource = R"metal(
 )metal";
 
 // ============================================================================
+// Score splits kernel with precomputed bin-to-feature lookup table (OPT-2)
+//
+// Identical algorithm to kScoreSplitsSource but replaces the serial
+// feature-search loop with a single indexed load from binToFeature[].
+//
+// Inputs differ from kScoreSplitsSource by the extra `binToFeature` buffer
+// inserted after featureIsOneHot.
+//
+// Grid:   (SCORE_BLOCK_SIZE * numBlocks, 1, 1)
+// Thread: (SCORE_BLOCK_SIZE, 1, 1)
+// ============================================================================
+
+static const std::string kScoreSplitsLookupSource = R"metal(
+    const uint globalIdx = threadgroup_position_in_grid.x * SCORE_BLOCK_SIZE
+                         + thread_index_in_threadgroup;
+
+    threadgroup float  sharedGain[SCORE_BLOCK_SIZE];
+    threadgroup uint   sharedFeat[SCORE_BLOCK_SIZE];
+    threadgroup uint   sharedBin[SCORE_BLOCK_SIZE];
+
+    float myGain = -INFINITY;
+    uint myFeatIdx = 0xFFFFFFFF;
+    uint myBinIdx = 0;
+
+    if (globalIdx < totalBinFeatures) {
+        // O(1) feature lookup — replaces serial loop over features
+        const uint featIdx = binToFeature[globalIdx];
+        const uint firstFold = featureFirstFold[featIdx];
+        // binInFeature = globalIdx - firstFold (relative bin index within feature)
+        const uint binInFeature = globalIdx - firstFold;
+
+        // Sum gain across all partitions and all approx dimensions
+        float totalGain = 0.0f;
+
+        for (uint k = 0; k < approxDim; k++) {
+            const uint dimHistBase  = k * numPartitions * numStats * totalBinFeatures;
+            const uint dimStatsBase = k * numPartitions;
+
+            for (uint p = 0; p < numPartitions; p++) {
+                const float totalSum    = partTotalSum[dimStatsBase + p];
+                const float totalWeight = partTotalWeight[dimStatsBase + p];
+
+                const uint histBase = dimHistBase + p * numStats * totalBinFeatures;
+
+                // After suffix-sum transform, gives right-side sum directly
+                float sumRight    = histogram[histBase + firstFold + binInFeature];
+                float weightRight = 0.0f;
+                if (numStats > 1u) {
+                    weightRight = histogram[histBase + totalBinFeatures + firstFold + binInFeature];
+                }
+
+                float sumLeft    = totalSum    - sumRight;
+                float weightLeft = totalWeight - weightRight;
+
+                if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                totalGain += (sumLeft * sumLeft)   / (weightLeft  + l2RegLambda)
+                           + (sumRight * sumRight)  / (weightRight + l2RegLambda)
+                           - (totalSum * totalSum)  / (totalWeight + l2RegLambda);
+            }
+        }
+
+        myGain    = totalGain;
+        myFeatIdx = featIdx;
+        myBinIdx  = binInFeature;
+    }
+
+    // Threadgroup argmax reduction
+    sharedGain[thread_index_in_threadgroup] = myGain;
+    sharedFeat[thread_index_in_threadgroup] = myFeatIdx;
+    sharedBin[thread_index_in_threadgroup]  = myBinIdx;
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    for (uint stride = SCORE_BLOCK_SIZE / 2; stride > 0; stride >>= 1) {
+        if (thread_index_in_threadgroup < stride) {
+            uint other = thread_index_in_threadgroup + stride;
+            if (sharedGain[other] > sharedGain[thread_index_in_threadgroup]) {
+                sharedGain[thread_index_in_threadgroup] = sharedGain[other];
+                sharedFeat[thread_index_in_threadgroup] = sharedFeat[other];
+                sharedBin[thread_index_in_threadgroup]  = sharedBin[other];
+            }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    // Thread 0 writes per-block result
+    if (thread_index_in_threadgroup == 0) {
+        const uint blockIdx = threadgroup_position_in_grid.x;
+        bestScores[blockIdx]     = sharedGain[0];
+        bestFeatureIds[blockIdx] = sharedFeat[0];
+        bestBinIds[blockIdx]     = sharedBin[0];
+    }
+)metal";
+
+// ============================================================================
 // Leaf accumulation kernel header and source
 //
 // Accumulates per-leaf gradient/hessian sums from all documents using
