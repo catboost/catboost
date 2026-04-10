@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-04-09 — Sprint 5: Parallel scan, benchmark harness, dead-code cleanup
+
+**Agent:** ml-engineer
+**Branch:** `mlx/sprint-5-parallel-scan-benchmark-harness`
+
+### TODO-014: bench_boosting library-path benchmark harness
+- New standalone C++ binary `catboost/mlx/tests/bench_boosting.cpp` that synthesizes in-memory data and exercises the production Metal kernels (histogram, suffix-sum, split scoring, leaf accumulation, tree application) directly — no subprocess, no CatBoost headers.
+- CLI: `--rows`, `--features`, `--classes`, `--depth`, `--iters`, `--bins`, `--lr`, `--l2`, `--seed`.
+- Supports regression (classes=1), binary (classes=2), multiclass (classes>=3).
+- Prints iter-0 cold-start vs warm average, final loss for regression testing.
+- Commit: `3e764cc` `[mlx] tests: add bench_boosting library-path benchmark harness (TODO-014)`
+
+### TODO-008: Parallel SIMD scan for suffix_sum_histogram
+- Replaced serial 1-thread-per-feature scan with 32-lane SIMD group per (feature, partition, stat) triple using `simd_prefix_inclusive_sum`.
+- Single-pass for folds <= 32 (common case); right-to-left chunked with carry for folds > 32 (up to 255 bins).
+- Serial skip of h'[folds-1] preserved.
+- Threadgroup updated from (1,1,1) → (32,1,1) in score_calcer.cpp (both FindBestSplitGPU overloads).
+- Determinism: BENCH_FINAL_LOSS=0.69314516 (bins=32) and 0.69313669 (bins=255) identical before/after.
+- Cold-start kernel compile time dropped 344 ms → 109 ms.
+- Commit: `f8be378` `[mlx] kernels: parallel SIMD scan for suffix_sum_histogram (TODO-008)`
+
+### TODO-009: Delete dead CPU FindBestSplit paths
+- Removed `FindBestSplit` and `FindBestSplitMultiDim` from `score_calcer.cpp` and `score_calcer.h`.
+- Only `FindBestSplitGPU` remains. `csv_train.cpp`'s own standalone reimplementation is unrelated.
+- Commit: `1232f98` `[mlx] score_calcer: delete dead CPU FindBestSplit paths (TODO-009)`
+
+### TODO-013: Fix build_verify_test kernel param names
+- Fixed three mismatches vs kHistOneByteSource: `featureColumnIdx` (scalar) → `featureColumnIndices` (1-element array), `foldCounts` → `foldCountsFlat`, `firstFoldIndices` → `firstFoldIndicesFlat`, added missing `numGroups=1`.
+- build_verify_test: ALL TESTS PASSED.
+- Commit: `3ca05c3` `[mlx] tests: fix build_verify_test kernel param names (TODO-013)`
+
+### TODO-015: Document 16M-row float32 limit in DECISIONS.md
+- Added DEC-003 entry explaining float32 scatter_add ceiling (2^24) and CB_ENSURE guard.
+- Commit: `dbfcf07` `[mlx] state: document 16M-row float32 limit in DECISIONS.md (TODO-015)`
+
+### Verification
+- Python test suite: 622/622 passing.
+- bench_boosting: binary 100k×50×depth6×100iters, 38.5 ms/iter warm mean; multiclass K=3 20k×30×depth5×50iters, 11.4 ms/iter warm mean.
+- grep FindBestSplit catboost/mlx/ → only FindBestSplitGPU and csv_train internal.
+
+---
+
 ## 2026-04-09 — Sprint 4: GPU Partition Layout (TODO-007)
 
 **Agent:** ml-engineer

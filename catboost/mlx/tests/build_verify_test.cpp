@@ -78,21 +78,31 @@ mx::array DispatchHistogramGroup(
     ui32 totalNumDocs,
     const mx::Shape& histShape
 ) {
-    auto featureColArr = mx::array(static_cast<uint32_t>(featureColumnIdx), mx::uint32);
+    // Wrap featureColumnIdx as a 1-element array — matches production kernel signature
+    // which reads featureColumnIndices[groupIdx] (groupIdx=0 for single-group dispatch).
+    uint32_t featureColVec[1] = { static_cast<uint32_t>(featureColumnIdx) };
+    auto featureColArr = mx::array(reinterpret_cast<const int32_t*>(featureColVec),
+                                   {1}, mx::uint32);
     auto lineSizeArr   = mx::array(static_cast<uint32_t>(lineSize), mx::uint32);
     auto maxBlocksArr  = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
+    // numGroups = 1 for this single-group dispatch (production batched path uses >1)
+    auto numGroupsArr  = mx::array(static_cast<uint32_t>(1u), mx::uint32);
     auto totalBinsArr  = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
     auto numStatsArr   = mx::array(static_cast<uint32_t>(numStats), mx::uint32);
     auto totalDocsArr  = mx::array(static_cast<uint32_t>(totalNumDocs), mx::uint32);
 
     auto flatCompressed = mx::reshape(compressedData, {-1});
 
+    // Input names match kHistOneByteSource variable names exactly:
+    //   featureColumnIndices (array), numGroups, foldCountsFlat, firstFoldIndicesFlat
+    // Previously used: featureColumnIdx (scalar), missing numGroups,
+    //   foldCounts, firstFoldIndices — fixed in TODO-013.
     auto kernel = mx::fast::metal_kernel(
         "histogram_one_byte_features",
         {"compressedIndex", "stats", "docIndices",
          "partOffsets", "partSizes",
-         "featureColumnIdx", "lineSize", "maxBlocksPerPart",
-         "foldCounts", "firstFoldIndices",
+         "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
+         "foldCountsFlat", "firstFoldIndicesFlat",
          "totalBinFeatures", "numStats", "totalNumDocs"},
         {"histogram"},
         KernelSources::kHistOneByteSource,
@@ -111,7 +121,7 @@ mx::array DispatchHistogramGroup(
     auto results = kernel(
         {flatCompressed, stats, docIndices,
          partOffsets, partSizes,
-         featureColArr, lineSizeArr, maxBlocksArr,
+         featureColArr, lineSizeArr, maxBlocksArr, numGroupsArr,
          foldCounts, firstFoldIndices,
          totalBinsArr, numStatsArr, totalDocsArr},
         {histShape}, {mx::float32},

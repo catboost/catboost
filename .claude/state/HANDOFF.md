@@ -5,22 +5,25 @@
 <!-- The first agent in the next session reads this first. -->
 
 **Last Updated:** 2026-04-09
-**Last Active Agent:** ml-engineer (Sprint 4, TODO-007)
+**Last Active Agent:** ml-engineer (Sprint 5, TODO-008/009/013/014/015)
 
 ## Completed This Session
 
-TODO-007: GPU partition layout ported. Single commit on sprint branch:
+Sprint 5 (TODO-008/009/013/014/015). All 5 items complete on branch `mlx/sprint-5-parallel-scan-benchmark-harness`.
 
-| SHA | Branch | Description |
-|-----|--------|-------------|
-| `19d24ec` | `mlx/sprint-4-gpu-partition-layout` | `[mlx] methods: port ComputePartitionLayout to GPU (TODO-007)` |
+| SHA | Description |
+|-----|-------------|
+| `3e764cc` | bench_boosting library-path benchmark harness (TODO-014) |
+| `f8be378` | Parallel SIMD scan for suffix_sum_histogram (TODO-008) |
+| `1232f98` | Delete dead CPU FindBestSplit paths (TODO-009) |
+| `3ca05c3` | Fix build_verify_test kernel param names (TODO-013) |
+| `dbfcf07` | Document 16M-row float32 limit in DECISIONS.md (TODO-015) |
 
-EvalNow calls in `structure_searcher.cpp` reduced: 3 → 1 (2 eliminated per depth level).
-Test suite: 604/604. csv_train regression: 0.481507 (exact match, no regression).
+Test suite: 622/622. bench_boosting final loss identical before/after parallel scan change.
 
 ## In Progress
 
-TODO-007 is in review on branch `mlx/sprint-4-gpu-partition-layout`. Awaiting QA and MLOps sign-off before merging to master.
+Sprint 5 branch awaiting QA + MLOps sign-off before merge to master.
 
 ## Blocked
 
@@ -28,17 +31,15 @@ Nothing blocked.
 
 ## Next Steps
 
-Sprint 4 remaining work (see TODOS.md for full acceptance criteria):
-
-1. **QA sign-off on TODO-007** — Reviewer should note that Python benchmark is not a valid measure of structure_searcher.cpp changes (see Architecture note in CHANGELOG-DEV.md). C++ library path (mlx_boosting → SearchTreeStructure) is the beneficiary.
-2. **TODO-008** — Parallel SIMD scan for `suffix_sum_histogram` (MLOps #3, high priority)
-3. **TODO-009** — Dead code removal: CPU FindBestSplit paths
-4. **TODO-010** — MLflow integration via ITrainingCallbacks
-5. **TODO-011** — Additional loss functions: Poisson, Tweedie, MAPE
-6. **TODO-012** — Grow policies (depends on TODO-007 being merged)
+1. **QA/MLOps sign-off on Sprint 5 branch** — Key things to verify:
+   - bench_boosting: BENCH_FINAL_LOSS=0.69314516 (binary 100k×50 bins=32) and 0.69313669 (bins=255) stable
+   - The parallel scan uses SIMD hardware tree-reduction so addition order differs from serial; mathematically equivalent but not bit-for-bit identical at individual bin level. Test by checking final loss rather than individual histogram bins.
+2. **TODO-010** — MLflow integration via ITrainingCallbacks
+3. **TODO-011** — Additional loss functions: Poisson, Tweedie, MAPE
+4. **TODO-012** — Grow policies: Lossguide and Depthwise (depends on TODO-007 merged)
 
 ## Notes
 
-- **CRITICAL architecture clarification (discovered this sprint):** Python bindings call `csv_train` C++ binary via subprocess (not a shared library). Changes to `structure_searcher.cpp` / `mlx_boosting.cpp` are NOT exercised by the Python benchmark — they affect only the C++ library API. Keep this in mind for all future performance claims.
-- `csv_train.cpp` has a parallel, independently written `ComputePartitionLayout` that was already GPU-resident (using `argsort`) before Sprint 4. The two implementations are now aligned algorithmically.
+- **CRITICAL architecture clarification:** Python bindings call `csv_train` C++ binary via subprocess. Changes to `structure_searcher.cpp` / `mlx_boosting.cpp` / `kernel_sources.h` are NOT exercised by the Python benchmark — they affect only the C++ library API (tested via bench_boosting).
+- `build_verify_test.cpp` now correctly matches all production kernel input names. Previous mismatch caused numGroups guard to receive garbage from wrong buffer slot.
 - Sprint branch rule (DEC-002): push to `origin` (RR-AMATOK) only; never to `upstream` (catboost/catboost).

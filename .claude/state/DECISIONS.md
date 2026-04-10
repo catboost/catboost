@@ -14,6 +14,26 @@
 
 ---
 
+## DEC-003 — float32 bucket-count limit in GPU partition layout
+- **Date:** 2026-04-09
+- **Status:** Active
+- **Decided by:** ml-engineer (Sprint 4 follow-up, Sprint 5 documented)
+
+`ComputePartitionLayout` uses `mx::scatter_add_axis` with float32 accumulators
+to count docs per partition. float32 represents integers exactly only up to
+2^24 = 16,777,216. A runtime `CB_ENSURE` in `structure_searcher.cpp` guards
+`numDocs` against this limit. Datasets above 16M rows will need int32
+accumulation — filed as a future enhancement, not blocking current targets.
+
+**Alternatives:** Use int32 scatter_add throughout. Deferred because MLX's
+`scatter_add_axis` on int32 requires casting around the API; float32 is
+currently simpler and covers all realistic training sizes on Apple Silicon
+(M-series unified memory caps out well below the 16M row limit in practice).
+
+**Commits:** `8717ddd` (guard added), `fff9f02` (Sprint 4 merge)
+
+---
+
 ## DEC-002 — Sprint branch policy: dedicated branches per sprint, push to origin (RR-AMATOK) only
 - **Date:** 2026-04-09
 - **Status:** Active
