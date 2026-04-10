@@ -35,44 +35,28 @@ struct TCFeature {
 };
 
 // ---- Partition layout (mirrors structure_searcher.h) ----
+// GPU-resident: all arrays are mx::array, no CPU mirrors.
 struct TPartitionLayout {
     mx::array DocIndices;
     mx::array PartOffsets;
     mx::array PartSizes;
-    std::vector<ui32> PartOffsetsHost;
-    std::vector<ui32> PartSizesHost;
 };
 
 TPartitionLayout ComputePartitionLayout(const mx::array& partitions, ui32 numDocs, ui32 numPartitions) {
-    mx::eval(partitions);
-    const uint32_t* partsPtr = partitions.data<uint32_t>();
+    // GPU bucket sort — same algorithm as structure_searcher.cpp.
+    auto docIndices = mx::astype(mx::argsort(partitions, 0), mx::uint32);
 
-    std::vector<ui32> partSizes(numPartitions, 0);
-    for (ui32 d = 0; d < numDocs; ++d) {
-        ui32 p = partsPtr[d];
-        if (p < numPartitions) partSizes[p]++;
-    }
+    auto onesF = mx::ones({static_cast<int>(numDocs)}, mx::float32);
+    auto partSizesF = mx::scatter_add_axis(
+        mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
+        partitions, onesF, 0);
 
-    std::vector<ui32> partOffsets(numPartitions, 0);
-    for (ui32 i = 1; i < numPartitions; ++i) {
-        partOffsets[i] = partOffsets[i-1] + partSizes[i-1];
-    }
-
-    std::vector<ui32> docIndices(numDocs);
-    std::vector<ui32> writePos = partOffsets;
-    for (ui32 d = 0; d < numDocs; ++d) {
-        ui32 p = partsPtr[d];
-        if (p < numPartitions) {
-            docIndices[writePos[p]++] = d;
-        }
-    }
+    auto partOffsetsF = mx::subtract(mx::cumsum(partSizesF, 0), partSizesF);
 
     return TPartitionLayout{
-        .DocIndices = mx::array(reinterpret_cast<const int32_t*>(docIndices.data()), {static_cast<int>(numDocs)}, mx::uint32),
-        .PartOffsets = mx::array(reinterpret_cast<const int32_t*>(partOffsets.data()), {static_cast<int>(numPartitions)}, mx::uint32),
-        .PartSizes = mx::array(reinterpret_cast<const int32_t*>(partSizes.data()), {static_cast<int>(numPartitions)}, mx::uint32),
-        .PartOffsetsHost = partOffsets,
-        .PartSizesHost = partSizes
+        .DocIndices  = docIndices,
+        .PartOffsets = mx::astype(partOffsetsF, mx::uint32),
+        .PartSizes   = mx::astype(partSizesF, mx::uint32)
     };
 }
 

@@ -12,16 +12,22 @@ namespace NCatboostMlx {
 
     // Partition layout: sorted doc indices + partition offsets/sizes.
     // Used to feed the histogram kernel which expects docs grouped by partition.
+    // All arrays are GPU-resident (mx::array); no CPU mirrors are maintained.
     struct TPartitionLayout {
-        mx::array DocIndices;       // [numDocs] uint32 — doc indices sorted by partition
-        mx::array PartOffsets;      // [numPartitions] uint32 — start offset per partition
-        mx::array PartSizes;        // [numPartitions] uint32 — doc count per partition
-        TVector<ui32> PartSizesHost;   // CPU-side copy for scoring
-        TVector<ui32> PartOffsetsHost; // CPU-side copy
+        mx::array DocIndices;   // [numDocs] uint32 — doc indices sorted by partition
+        mx::array PartOffsets;  // [numPartitions] uint32 — start offset per partition
+        mx::array PartSizes;    // [numPartitions] uint32 — doc count per partition
     };
 
-    // Compute partition layout from the current partition assignments.
-    // Sorts doc indices by partition on CPU and returns GPU arrays for kernel dispatch.
+    // Compute partition layout entirely on GPU — no CPU-GPU sync.
+    //
+    // Algorithm:
+    //   DocIndices  = argsort(partitions)              — stable sort by partition ID
+    //   PartSizes   = scatter_add(ones, partitions)    — count docs per partition
+    //   PartOffsets = exclusive_cumsum(PartSizes)      — prefix-sum offsets
+    //
+    // No EvalNow is issued; arrays are returned as lazy MLX expressions
+    // and are materialized when first consumed by the histogram kernel.
     TPartitionLayout ComputePartitionLayout(
         const mx::array& partitions, ui32 numDocs, ui32 numPartitions);
 

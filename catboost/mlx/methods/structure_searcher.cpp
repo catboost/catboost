@@ -8,52 +8,40 @@ namespace NCatboostMlx {
     TPartitionLayout ComputePartitionLayout(
         const mx::array& partitions, ui32 numDocs, ui32 numPartitions
     ) {
+        // GPU-resident bucket sort — zero CPU-GPU syncs.
+        //
+        // Step 1: stable sort doc indices by their partition assignment.
+        //   MLX argsort on uint32 uses a stable merge sort.
+        //   Docs within the same partition appear in ascending docIdx order,
+        //   matching the original CPU scatter-sort behaviour.
+        auto docIndices = mx::astype(
+            mx::argsort(partitions, /*axis=*/0), mx::uint32
+        );
+
+        // Step 2: count docs per partition via scatter-add of ones.
+        //   Reuse the float32 scatter pattern from ComputeLeafSumsGPU.
+        //   float32 is exact for integer values up to 2^24 (~16M docs).
+        CB_ENSURE(numDocs < (1u << 24),
+            "ComputePartitionLayout: numDocs (" << numDocs
+            << ") exceeds float32 exact integer range (2^24 = 16777216). "
+            "Bucket counts via scatter_add_axis would incur rounding errors.");
+        auto onesF = mx::ones({static_cast<int>(numDocs)}, mx::float32);
+        auto partSizesF = mx::scatter_add_axis(
+            mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
+            partitions, onesF, 0
+        );
+
+        // Step 3: exclusive prefix sum for partition start offsets.
+        //   MLX cumsum(a, axis, reverse=false, inclusive=false) gives exclusive form directly.
+        auto partOffsetsF = mx::cumsum(partSizesF, /*axis=*/0, /*reverse=*/false, /*inclusive=*/false);
+
         TPartitionLayout layout;
-        layout.PartSizesHost.resize(numPartitions, 0);
-        layout.PartOffsetsHost.resize(numPartitions, 0);
+        layout.DocIndices  = docIndices;
+        layout.PartSizes   = mx::astype(partSizesF, mx::uint32);
+        layout.PartOffsets = mx::astype(partOffsetsF, mx::uint32);
 
-        // Read partition assignments to CPU
-        TMLXDevice::EvalNow(partitions);
-        const uint32_t* partData = partitions.data<uint32_t>();
-
-        // Count docs per partition
-        for (ui32 d = 0; d < numDocs; ++d) {
-            ui32 p = partData[d];
-            if (p < numPartitions) {
-                layout.PartSizesHost[p]++;
-            }
-        }
-
-        // Compute prefix-sum offsets
-        for (ui32 p = 1; p < numPartitions; ++p) {
-            layout.PartOffsetsHost[p] = layout.PartOffsetsHost[p - 1] + layout.PartSizesHost[p - 1];
-        }
-
-        // Build sorted doc indices: scatter each doc to its partition's slot
-        TVector<ui32> sortedDocIndices(numDocs);
-        TVector<ui32> writePos(layout.PartOffsetsHost);  // copy offsets as write cursors
-        for (ui32 d = 0; d < numDocs; ++d) {
-            ui32 p = partData[d];
-            if (p < numPartitions) {
-                sortedDocIndices[writePos[p]++] = d;
-            }
-        }
-
-        // Transfer to GPU
-        layout.DocIndices = mx::array(
-            reinterpret_cast<const int32_t*>(sortedDocIndices.data()),
-            {static_cast<int>(numDocs)}, mx::uint32
-        );
-        layout.PartOffsets = mx::array(
-            reinterpret_cast<const int32_t*>(layout.PartOffsetsHost.data()),
-            {static_cast<int>(numPartitions)}, mx::uint32
-        );
-        layout.PartSizes = mx::array(
-            reinterpret_cast<const int32_t*>(layout.PartSizesHost.data()),
-            {static_cast<int>(numPartitions)}, mx::uint32
-        );
-        TMLXDevice::EvalNow({layout.DocIndices, layout.PartOffsets, layout.PartSizes});
-
+        // No EvalNow here — arrays are consumed lazily by the histogram kernel
+        // in the same MLX graph, avoiding an unnecessary CPU-GPU sync point.
         return layout;
     }
 

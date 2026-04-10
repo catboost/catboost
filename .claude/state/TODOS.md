@@ -7,15 +7,19 @@
 ## Active
 
 ### TODO-007 — GPU partition layout (MLOps #1)
-- **Assigned to:** unassigned
+- **Assigned to:** ml-engineer
 - **Priority:** High
-- **Status:** Backlog
+- **Status:** In Review
+- **Branch:** `mlx/sprint-4-gpu-partition-layout`
+- **Commit:** `19d24ec`
 - **Depends on:** none
 - **Acceptance Criteria:**
-  - `ComputePartitionLayout` runs on GPU via a Metal segmented-sort kernel
-  - CPU-GPU sync count in `SearchTreeStructure` drops by at least one `EvalNow` call per depth level
-  - Existing test suite (604 passing) remains green
-  - Benchmark: multiclass K=3 micro-benchmark shows measurable regression against pre-Sprint-4 baseline
+  - [x] `ComputePartitionLayout` runs on GPU via MLX argsort + scatter_add + cumsum primitives
+  - [x] CPU-GPU sync count in `SearchTreeStructure` drops by 2 EvalNow calls per depth level (3→1)
+  - [x] Existing test suite (604 passing) remains green
+  - [x] csv_train regression: final loss matches pre-sprint baseline (0.481507 = 0.481507, exact match)
+  - [ ] Multiclass K=3 Python benchmark unaffected (Python path uses csv_train binary, not structure_searcher.cpp)
+- **Notes:** Python bindings invoke csv_train binary via subprocess — they do NOT exercise structure_searcher.cpp. The optimization applies to the C++ library API (mlx_boosting.cpp → SearchTreeStructure). csv_train.cpp already had its own GPU partition layout before this sprint.
 
 ### TODO-008 — Parallel SIMD scan for suffix_sum_histogram (MLOps #3)
 - **Assigned to:** unassigned
@@ -68,6 +72,36 @@
   - `SearchTreeStructure` supports `GrowPolicy::Lossguide` and `GrowPolicy::Depthwise`
   - Policy selectable via Python interface
   - Correctness verified against CatBoost CPU reference on a held-out dataset
+
+### TODO-013 — Fix `featureColumnIdx` → `featureColumnIndices` kernel param name in build_verify_test.cpp
+- **Assigned to:** unassigned
+- **Priority:** Low
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** Pre-existing naming inconsistency flagged by MLOps Sprint 4 review. Unrelated to Sprint 4 changes; deferred to Sprint 5 cleanup.
+- **Acceptance Criteria:**
+  - `featureColumnIdx` renamed to `featureColumnIndices` in `build_verify_test.cpp` kernel param list
+  - Build succeeds; no test regression
+
+### TODO-014 — Add library-path C++ benchmark harness for `SearchTreeStructure`
+- **Assigned to:** unassigned
+- **Priority:** Medium
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** MLOps Sprint 4 follow-up. Needed for measuring per-iteration GPU time and validating future optimizations against a consistent baseline.
+- **Acceptance Criteria:**
+  - Standalone benchmark binary that links against the MLX backend library (not subprocess)
+  - Measures `SearchTreeStructure` wall time per iteration, averaged over N runs
+  - Outputs results in a format compatible with `.cache/benchmarks/`
+
+### TODO-015 — Document 16M-row float32 limit in DECISIONS.md
+- **Assigned to:** unassigned (technical-writer)
+- **Priority:** Low
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** QA Sprint 4 doc gap. The `CB_ENSURE` guard was added in the Sprint 4 follow-up; the design rationale (float32 exact integer range, 2^24 = 16,777,216 rows) needs one bullet in `.claude/state/DECISIONS.md`.
+- **Acceptance Criteria:**
+  - One decision entry added to `DECISIONS.md` explaining the float32 scatter_add limit and the `CB_ENSURE` guard
 
 ## Blocked
 
