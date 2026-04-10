@@ -10,8 +10,6 @@ Focus areas:
 6. Test interactions between new and old code
 """
 
-import json
-import math
 import os
 import struct
 import tempfile
@@ -20,8 +18,7 @@ import numpy as np
 import pytest
 
 from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
-from catboost_mlx._predict_utils import quantize_features
-from catboost_mlx.core import _array_to_binary, _array_to_csv
+from catboost_mlx.core import _array_to_binary
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT
@@ -336,7 +333,7 @@ class TestArrayToBinary:
         try:
             _array_to_binary(path, X, y=y, sample_weight=sw, group_id=gid)
             with open(path, "rb") as f:
-                magic = f.read(4)
+                f.read(4)  # magic
                 ver, n, feat, flags = struct.unpack("<IIII", f.read(16))
                 assert flags == 7  # 1|2|4
         finally:
@@ -398,7 +395,7 @@ class TestArrayToBinary:
         try:
             _array_to_binary(path, X)
             with open(path, "rb") as f:
-                magic = f.read(4)
+                f.read(4)  # magic
                 ver, n, feat, flags = struct.unpack("<IIII", f.read(16))
                 assert n == 0
                 assert feat == 3
@@ -472,10 +469,6 @@ class TestBasePrediction:
         y = rng.rand(30)
         model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
         model.fit(X, y)
-
-        # Check if base_prediction is in model_info
-        info = model._model_data.get("model_info", {})
-        bp = info.get("base_prediction", [])
 
         staged = list(model.staged_predict(X))
         preds = model.predict(X)
@@ -634,8 +627,8 @@ class TestNewValidationEdges:
 
     def test_complex_y_rejected(self):
         """Complex dtype y should be rejected."""
-        m = CatBoostMLXRegressor(binary_path=BINARY_PATH)
-        X = np.random.rand(5, 2)
+        _ = CatBoostMLXRegressor(binary_path=BINARY_PATH)
+        _ = np.random.rand(5, 2)
         y = np.array([1 + 2j, 3 + 4j, 5 + 6j, 7 + 8j, 9 + 0j])
         # complex is a subtype of np.number! Let's check...
         if np.issubdtype(y.dtype, np.number):

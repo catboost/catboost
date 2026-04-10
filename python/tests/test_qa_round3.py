@@ -10,17 +10,12 @@ Focus areas:
 6. Constant features check edge cases (NaN bypass, single-row false positive)
 """
 
-import json
-import math
 import os
-import struct
-import tempfile
 
 import numpy as np
 import pytest
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
-from catboost_mlx.core import _array_to_binary, _array_to_csv
+from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT
@@ -504,7 +499,6 @@ class TestShapStaleCache:
 
         # Set cache via predict
         model.predict(X[:5])
-        cache_after_predict = model._model_json_cache
 
         # Mutate model_data (simulates any internal modification)
         model._model_data["model_info"]["_test_marker"] = "stale_test"

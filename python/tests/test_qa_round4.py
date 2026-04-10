@@ -15,17 +15,14 @@ Focus areas:
 """
 
 import json
-import math
 import os
 import pickle
-import struct
 import tempfile
 
 import numpy as np
 import pytest
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
-from catboost_mlx.core import _array_to_binary, _array_to_csv
+from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT

@@ -1403,7 +1403,7 @@ class TestCrossValidateEdges:
         model = CatBoostMLXRegressor(iterations=5, depth=2, binary_path=BINARY_PATH)
         # 1 fold = use all data for both train and test? Or error?
         try:
-            result = model.cross_validate(X, y, n_folds=1)
+            model.cross_validate(X, y, n_folds=1)
         except (RuntimeError, ValueError):
             pass  # Acceptable to reject
 
@@ -1414,7 +1414,7 @@ class TestCrossValidateEdges:
         y = np.random.rand(3)
         model = CatBoostMLXRegressor(iterations=5, depth=2, binary_path=BINARY_PATH)
         try:
-            result = model.cross_validate(X, y, n_folds=10)
+            model.cross_validate(X, y, n_folds=10)
         except (RuntimeError, ValueError):
             pass  # Acceptable to reject
 
@@ -1425,7 +1425,7 @@ class TestCrossValidateEdges:
         y = np.random.rand(20)
         model = CatBoostMLXRegressor(iterations=5, depth=2, binary_path=BINARY_PATH)
         try:
-            result = model.cross_validate(X, y, n_folds=0)
+            model.cross_validate(X, y, n_folds=0)
             # Should probably fail
         except (RuntimeError, ValueError):
             pass

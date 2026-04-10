@@ -417,14 +417,18 @@ TBestSplitProperties FindBestSplitGPU(
         static_cast<int>(approxDim * numPartitions),
         static_cast<int>(numStats)
     );
-    auto suffixTG = std::make_tuple(32, 1, 1);  // one SIMD group per (feature, part, stat)
+    // BUG-001 FIX: 256 threads — one per bin (max 255 bins + 1 guard lane).
+    // Changed from (32,1,1) to match the new Hillis-Steele 256-thread scan kernel.
+    // init_value=0.0f: zero-initialise histogram_out so that one-hot feature bins
+    // (not written by the kernel) and the skipped last ordinal bin read as 0.
+    auto suffixTG = std::make_tuple(256, 1, 1);
 
     auto suffixResult = suffixKernel(
         {histogram, firstFoldArr, foldsArr, isOneHotArr,
          numFeatArr, totalBinsArr, numStatsArr},
         {histogram.shape()}, {mx::float32},
         suffixGrid, suffixTG,
-        {}, std::nullopt, false, mx::Device::gpu
+        {}, 0.0f, false, mx::Device::gpu
     );
     auto transformedHist = suffixResult[0];
 
@@ -503,11 +507,19 @@ void ComputeLeafSumsGPU(
         KernelSources::kLeafAccumSource,
         KernelSources::kLeafAccumHeader,
         /*ensure_row_contiguous=*/true,
-        /*atomic_outputs=*/true
+        // BUG-001 FIX: atomic_outputs=false — the new single-threadgroup kernel
+        // writes directly (non-atomically) since no other threadgroup touches the
+        // same output slot.  The init_value=0.0f zeros the output before the kernel.
+        /*atomic_outputs=*/false
     );
 
-    const ui32 numBlocks = (numDocs + 255) / 256;
-    auto grid = std::make_tuple(static_cast<int>(256 * numBlocks), 1, 1);
+    // BUG-001 FIX: Single-threadgroup dispatch (grid = LEAF_BLOCK_SIZE).
+    // The kernel now iterates over all numDocs internally with stride LEAF_BLOCK_SIZE.
+    // This eliminates cross-threadgroup atomic_fetch_add races on the leaf sum slots.
+    // Performance: serialised over numDocs within one threadgroup. For typical
+    // numDocs <= 10k this is fast enough; for production workloads leaf estimation
+    // is not the critical path (histogram is ~50x larger).
+    auto grid = std::make_tuple(256, 1, 1);
     auto tg   = std::make_tuple(256, 1, 1);
 
     auto results = leafKernel(
@@ -864,7 +876,13 @@ int main(int argc, char** argv) {
     mx::array partitions = mx::zeros({static_cast<int>(cfg.NumRows)}, mx::uint32);
     mx::eval(partitions);
 
-    const ui32 maxBlocksPerPart = 4;  // same as production default
+    // BUG-001 FIX: Use maxBlocksPerPart=1 (matches production histogram.cpp default).
+    // maxBlocksPerPart=4 caused multiple threadgroups to write to the same histogram
+    // slot via atomic_fetch_add_explicit, producing non-deterministic float addition
+    // ordering across dispatches. With maxBlocksPerPart=1, each partition-feature-group
+    // combination is handled by exactly one threadgroup, eliminating cross-threadgroup
+    // float-add races in the global histogram buffer.
+    const ui32 maxBlocksPerPart = 1;
 
     printf("Dataset: %u rows x %u features (%u uint32 cols), %u total bin-features\n",
            cfg.NumRows, cfg.NumFeatures, ds.NumUi32PerDoc, ds.TotalBinFeatures);

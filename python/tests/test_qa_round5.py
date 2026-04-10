@@ -21,7 +21,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
+from catboost_mlx import CatBoostMLXClassifier, CatBoostMLXRegressor
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT
@@ -46,6 +46,7 @@ class TestRound4FixVerification:
         """_predict_inprocess should use self._get_loss_type() not
         info.get('loss_type', 'rmse')."""
         import inspect
+
         from catboost_mlx.core import CatBoostMLX
 
         src = inspect.getsource(CatBoostMLX._predict_inprocess)
@@ -55,6 +56,7 @@ class TestRound4FixVerification:
     def test_subprocess_no_dead_code(self):
         """_predict_subprocess should not have the unreachable binary branch."""
         import inspect
+
         from catboost_mlx.core import CatBoostMLX
 
         src = inspect.getsource(CatBoostMLX._predict_subprocess)
