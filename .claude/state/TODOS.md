@@ -73,6 +73,36 @@
   - Policy selectable via Python interface
   - Correctness verified against CatBoost CPU reference on a held-out dataset
 
+### TODO-013 — Fix `featureColumnIdx` → `featureColumnIndices` kernel param name in build_verify_test.cpp
+- **Assigned to:** unassigned
+- **Priority:** Low
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** Pre-existing naming inconsistency flagged by MLOps Sprint 4 review. Unrelated to Sprint 4 changes; deferred to Sprint 5 cleanup.
+- **Acceptance Criteria:**
+  - `featureColumnIdx` renamed to `featureColumnIndices` in `build_verify_test.cpp` kernel param list
+  - Build succeeds; no test regression
+
+### TODO-014 — Add library-path C++ benchmark harness for `SearchTreeStructure`
+- **Assigned to:** unassigned
+- **Priority:** Medium
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** MLOps Sprint 4 follow-up. Needed for measuring per-iteration GPU time and validating future optimizations against a consistent baseline.
+- **Acceptance Criteria:**
+  - Standalone benchmark binary that links against the MLX backend library (not subprocess)
+  - Measures `SearchTreeStructure` wall time per iteration, averaged over N runs
+  - Outputs results in a format compatible with `.cache/benchmarks/`
+
+### TODO-015 — Document 16M-row float32 limit in DECISIONS.md
+- **Assigned to:** unassigned (technical-writer)
+- **Priority:** Low
+- **Status:** Backlog
+- **Depends on:** none
+- **Notes:** QA Sprint 4 doc gap. The `CB_ENSURE` guard was added in the Sprint 4 follow-up; the design rationale (float32 exact integer range, 2^24 = 16,777,216 rows) needs one bullet in `.claude/state/DECISIONS.md`.
+- **Acceptance Criteria:**
+  - One decision entry added to `DECISIONS.md` explaining the float32 scatter_add limit and the `CB_ENSURE` guard
+
 ## Blocked
 
 ## Done (Sprint 1–3)
