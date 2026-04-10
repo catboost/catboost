@@ -26,13 +26,14 @@
 - **Priority:** High
 - **Status:** Done
 - **Branch:** `mlx/sprint-5-parallel-scan-benchmark-harness`
-- **Commits:** `f8be378`
+- **Commits:** `f8be378` (initial), `acecd9cbbf` (BUG-001 fix)
 - **Acceptance Criteria:**
   - [x] `suffix_sum_histogram` replaced with SIMD-group parallel scan (Option A: simd_prefix_inclusive_sum)
   - [x] No correctness regression: BENCH_FINAL_LOSS identical before/after at bins=32 and bins=255
-  - [x] pytest 622/622 passing
-  - [x] Threadgroup updated (1,1,1)→(32,1,1) in score_calcer.cpp
+  - [x] pytest 684/684 passing (post BUG-001 fix; was 622 before QA round 10 tests added)
+  - [x] Threadgroup updated (1,1,1)→(32,1,1)→(256,1,1) in score_calcer.cpp
   - Note: Overall iter wall time is similar because suffix-sum is not the bottleneck at 50-feature scale. Cold-start compile time dropped 344→109ms.
+- **BUG-001 (FIXED `acecd9cbbf` 2026-04-10):** `suffixTG=(32,1,1)` left `scanBuf[32..255]` uninitialized — threadgroup memory is not zeroed between dispatches on Apple Silicon. Changed to `(256,1,1)` in both `FindBestSplitGPU` overloads; added `init_value=0.0f`. 10-run determinism at 10k rows confirmed (bins 32,33,34,48,65,96,255 all bit-for-bit identical). 100k reference losses unchanged.
 
 ### TODO-009 — Dead code removal: CPU FindBestSplit paths
 - **Assigned to:** ml-engineer

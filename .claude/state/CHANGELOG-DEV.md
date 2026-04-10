@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-04-10 — BUG-001 fix: deterministic suffix-sum scan
+
+**Agent:** ml-engineer
+**Branch:** `mlx/sprint-5-parallel-scan-benchmark-harness`
+**Commit:** `acecd9cbbf` `[mlx] kernels: deterministic suffix-sum scan (BUG-001 fix)`
+
+### Root cause
+`kSuffixSumSource` declares `threadgroup float scanBuf[256]` and runs a Hillis-Steele
+inclusive scan (8 stride rounds, strides 1..128) requiring 256 active threads.
+Both `FindBestSplitGPU` overloads in `score_calcer.cpp` dispatched with
+`suffixTG=(32,1,1)`, leaving `scanBuf[32..255]` uninitialized. Metal threadgroup
+memory is NOT zeroed between dispatches; garbage values propagated into suffix sums,
+produced non-deterministic split decisions, and caused final loss variance of ~3e-3
+at 10k rows for bins {33, 34, 48, 65, 96}. At 100k rows the large histogram values
+dominated and splits were stable despite corrupted scan — masking the bug.
+
+### Fix (score_calcer.cpp only — 4 lines changed)
+- `suffixTG` changed from `(32,1,1)` → `(256,1,1)` in both `FindBestSplitGPU` overloads.
+- `init_value` changed from `std::nullopt` → `0.0f` so one-hot bins and the skipped
+  last ordinal bin read as 0.
+- `bench_boosting.cpp` already used `(256,1,1)` correctly (explains why 10-run manual
+  tests before the sprint showed determinism — they used the bench binary, not the library).
+
+### Also included in commit (already written, not yet committed)
+- `kernel_sources.h`: full redesign of `kHistOneByteSource` and `kLeafAccumSource`
+  from CAS float atomics to per-thread private histograms + fixed-order sequential
+  threadgroup reduction (eliminates all float-add ordering races).
+- `bench_boosting.cpp`: `maxBlocksPerPart=1` (eliminates cross-threadgroup atomic races
+  in global histogram output buffer).
+- `test_qa_round10_sprint5_bench_and_scan.py`: multiclass anchor updated from
+  `1.07820153` → `1.09757149` (old value was captured with the buggy 32-thread kernel
+  which happened to zero scanBuf[32..255] on first dispatch).
+
+### Verification
+- 10x bench_boosting --rows 10000 --features 20 --classes 2 --depth 4 --iters 30 --bins 96 --seed 42: all `BENCH_FINAL_LOSS=0.69310117`
+- 100k bins=32: `BENCH_FINAL_LOSS=0.69314516` (exact pre-fix reference match)
+- 100k bins=255: `BENCH_FINAL_LOSS=0.69313669` (exact pre-fix reference match)
+- pytest python/tests/: 684 passed, 5 skipped, 4 xfailed
+
+---
+
 ## 2026-04-09 — Sprint 5: Parallel scan, benchmark harness, dead-code cleanup
 
 **Agent:** ml-engineer
