@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-04-09 — Sprint 4: GPU Partition Layout (TODO-007)
+
+**Agent:** ml-engineer
+**Branch:** `mlx/sprint-4-gpu-partition-layout`
+
+### GPU partition layout (ml-engineer)
+- Rewrote `ComputePartitionLayout` in `catboost/mlx/methods/structure_searcher.cpp` to run entirely on GPU using MLX primitives: `argsort` (O(n) radix sort) + `scatter_add_axis` + `cumsum`. No CPU-GPU sync inside the function.
+- Removed `PartSizesHost` and `PartOffsetsHost` CPU-mirror vectors from `TPartitionLayout` struct. No downstream consumers in production code.
+- Updated `build_verify_test.cpp` to match new struct layout.
+- EvalNow calls in `structure_searcher.cpp`: 3 → 1 (reduction of 2 per depth level).
+
+### Verification
+- Python test suite: 604/604 passing.
+- csv_train regression: final loss on smoke test = 0.481507 (identical to pre-sprint baseline).
+- Build: clean with clang++ on Apple Silicon.
+- Commit: `19d24ec` `[mlx] methods: port ComputePartitionLayout to GPU (TODO-007)`
+
+### Architecture note
+- Python bindings invoke `csv_train` C++ binary via subprocess. `csv_train.cpp` has its own `ComputePartitionLayout` (already GPU-resident via argsort, written independently). The Sprint 4 change applies to the C++ library path: `mlx_boosting.cpp → SearchTreeStructure → ComputePartitionLayout`.
+- Python benchmark timings (K=3 50-iter) are unaffected because they route through csv_train, not structure_searcher.cpp.
+
+---
+
 ## 2026-04-09 — Sprint 3 close + follow-up cycle
 
 **Agents:** ml-engineer, qa-engineer, mlops-engineer, technical-writer

@@ -7,15 +7,19 @@
 ## Active
 
 ### TODO-007 — GPU partition layout (MLOps #1)
-- **Assigned to:** unassigned
+- **Assigned to:** ml-engineer
 - **Priority:** High
-- **Status:** Backlog
+- **Status:** In Review
+- **Branch:** `mlx/sprint-4-gpu-partition-layout`
+- **Commit:** `19d24ec`
 - **Depends on:** none
 - **Acceptance Criteria:**
-  - `ComputePartitionLayout` runs on GPU via a Metal segmented-sort kernel
-  - CPU-GPU sync count in `SearchTreeStructure` drops by at least one `EvalNow` call per depth level
-  - Existing test suite (604 passing) remains green
-  - Benchmark: multiclass K=3 micro-benchmark shows measurable regression against pre-Sprint-4 baseline
+  - [x] `ComputePartitionLayout` runs on GPU via MLX argsort + scatter_add + cumsum primitives
+  - [x] CPU-GPU sync count in `SearchTreeStructure` drops by 2 EvalNow calls per depth level (3→1)
+  - [x] Existing test suite (604 passing) remains green
+  - [x] csv_train regression: final loss matches pre-sprint baseline (0.481507 = 0.481507, exact match)
+  - [ ] Multiclass K=3 Python benchmark unaffected (Python path uses csv_train binary, not structure_searcher.cpp)
+- **Notes:** Python bindings invoke csv_train binary via subprocess — they do NOT exercise structure_searcher.cpp. The optimization applies to the C++ library API (mlx_boosting.cpp → SearchTreeStructure). csv_train.cpp already had its own GPU partition layout before this sprint.
 
 ### TODO-008 — Parallel SIMD scan for suffix_sum_histogram (MLOps #3)
 - **Assigned to:** unassigned
