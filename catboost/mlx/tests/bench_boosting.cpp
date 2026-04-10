@@ -21,6 +21,7 @@
 //     --lr F            Learning rate (default: 0.1)
 //     --l2 F            L2 regularization lambda (default: 3.0)
 //     --seed N          Random seed for data synthesis (default: 42)
+//     --onehot N        Mark the first N features as one-hot encoded (default: 0)
 //
 // OUTPUT
 //   Prints per-iteration timings, a summary table (iter-0 cold-start vs warm
@@ -42,6 +43,10 @@
 //
 //   # Regression baseline
 //   ./bench_boosting --rows 100000 --features 50 --classes 1 --depth 6 --iters 100
+//
+//   # Exercise the one-hot skip branch in kSuffixSumSource (5 one-hot features)
+//   ./bench_boosting --rows 10000 --features 20 --classes 2 --depth 4 --iters 30 \
+//                    --bins 32 --seed 42 --onehot 5
 //
 // WHAT THIS MEASURES
 //   - Per-iteration wall time: histogram build + suffix-sum + split scoring +
@@ -118,6 +123,7 @@ struct TBenchConfig {
     float LearningRate = 0.1f;
     float L2RegLambda  = 3.0f;
     ui64 Seed          = 42;
+    ui32 NumOneHot     = 0;   // first N features treated as one-hot encoded
 };
 
 TBenchConfig ParseArgs(int argc, char** argv) {
@@ -132,12 +138,13 @@ TBenchConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--lr")       == 0 && i+1 < argc) cfg.LearningRate= std::atof(argv[++i]);
         else if (strcmp(argv[i], "--l2")       == 0 && i+1 < argc) cfg.L2RegLambda = std::atof(argv[++i]);
         else if (strcmp(argv[i], "--seed")     == 0 && i+1 < argc) cfg.Seed        = std::atoll(argv[++i]);
+        else if (strcmp(argv[i], "--onehot")   == 0 && i+1 < argc) cfg.NumOneHot   = std::atoi(argv[++i]);
         else {
             fprintf(stderr, "Unknown argument: %s\n", argv[i]);
             fprintf(stderr,
                 "Usage: bench_boosting [--rows N] [--features N] [--classes N]\n"
                 "                      [--depth D] [--iters N] [--bins B]\n"
-                "                      [--lr F] [--l2 F] [--seed N]\n");
+                "                      [--lr F] [--l2 F] [--seed N] [--onehot N]\n");
             exit(1);
         }
     }
@@ -175,30 +182,43 @@ TSynthDataset GenerateSynthDataset(const TBenchConfig& cfg) {
     // Pack 4 features per uint32
     ds.NumUi32PerDoc = (cfg.NumFeatures + 3) / 4;
 
-    std::mt19937_64 rng(cfg.Seed);
-    std::uniform_int_distribution<int> binDist(0, (int)cfg.NumBins - 1);
+    // Clamp NumOneHot to the actual feature count
+    const ui32 numOneHot = std::min(cfg.NumOneHot, cfg.NumFeatures);
 
-    // Build feature metadata: all ordinal, uniform folds = NumBins
+    std::mt19937_64 rng(cfg.Seed);
+
+    // Build feature metadata.
+    // One-hot features (first numOneHot): small bin count in [2, 10], OneHotFeature=true.
+    // Ordinal features (remainder):       bin count = cfg.NumBins, OneHotFeature=false.
     ui32 totalBinFeatures = 0;
     ds.Features.resize(cfg.NumFeatures);
     for (ui32 f = 0; f < cfg.NumFeatures; ++f) {
+        const bool isOneHot = (f < numOneHot);
+        // One-hot bin count: derive a small value (2–10) deterministically from f and seed
+        // so different features get different sizes, and the result is reproducible.
+        const ui32 folds = isOneHot
+            ? static_cast<ui32>(2 + ((cfg.Seed + f) % 9))  // 2..10
+            : cfg.NumBins;
+
         ds.Features[f].Offset         = f / 4;
         ds.Features[f].Shift          = 24 - 8 * (f % 4);
         ds.Features[f].Mask           = 0xFF;
         ds.Features[f].FirstFoldIndex = totalBinFeatures;
-        ds.Features[f].Folds          = cfg.NumBins;
-        ds.Features[f].OneHotFeature  = false;
+        ds.Features[f].Folds          = folds;
+        ds.Features[f].OneHotFeature  = isOneHot;
         ds.Features[f].SkipFirstBinInScoreCount = false;
-        totalBinFeatures += cfg.NumBins;
+        totalBinFeatures += folds;
     }
     ds.TotalBinFeatures = totalBinFeatures;
 
     // Allocate compressed data
     ds.CompressedData.assign(cfg.NumRows * ds.NumUi32PerDoc, 0u);
 
-    // Generate random bin values
+    // Generate random bin values; respect each feature's actual bin count
     for (ui32 d = 0; d < cfg.NumRows; ++d) {
         for (ui32 f = 0; f < cfg.NumFeatures; ++f) {
+            const ui32 folds = ds.Features[f].Folds;
+            std::uniform_int_distribution<int> binDist(0, static_cast<int>(folds) - 1);
             uint8_t bin = static_cast<uint8_t>(binDist(rng));
             ui32 wordIdx = f / 4;
             ui32 shift   = 24 - 8 * (f % 4);
@@ -847,8 +867,9 @@ int main(int argc, char** argv) {
     printf("rows=%u  features=%u  classes=%u  depth=%u  iters=%u  bins=%u\n",
            cfg.NumRows, cfg.NumFeatures, cfg.NumClasses,
            cfg.MaxDepth, cfg.NumIters, cfg.NumBins);
-    printf("lr=%.4f  l2=%.4f  seed=%llu  approxDim=%u\n",
-           cfg.LearningRate, cfg.L2RegLambda, (unsigned long long)cfg.Seed, approxDim);
+    printf("lr=%.4f  l2=%.4f  seed=%llu  approxDim=%u  onehot=%u\n",
+           cfg.LearningRate, cfg.L2RegLambda, (unsigned long long)cfg.Seed, approxDim,
+           std::min(cfg.NumOneHot, cfg.NumFeatures));
     printf("----------------------------------------------------------------\n");
 
     // Generate synthetic dataset
