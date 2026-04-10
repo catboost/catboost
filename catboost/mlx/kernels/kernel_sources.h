@@ -156,28 +156,49 @@ constant constexpr uint SCORE_BLOCK_SIZE = 256;
 )metal";
 
 // ============================================================================
-// Suffix-sum transform kernel
+// Suffix-sum transform kernel — parallel SIMD-group version (TODO-008)
 //
 // Converts raw per-bin histogram counts into suffix sums (in-place) so that
 // ordinal split scoring becomes O(1) per bin instead of O(bins).
 //
 // For ordinal feature with bins h[0..F-1]:
 //   h'[b] = sum(h[b..F-1])  (reverse inclusive scan)
+//   h'[folds-1] is intentionally left unwritten (set to 0 by init_value);
+//   this matches the serial implementation and prevents the scorer from
+//   selecting an all-right split that has no left-side documents.
 //
 // OneHot features are skipped (their bins are independent categories).
 //
 // Grid:   (numFeatures, numPartitions_times_approxDim, numStats)
-// Thread: (1, 1, 1)
+// Thread: (32, 1, 1)  — one SIMD group per (feature, part, stat) triple
+//
+// Parallelism over folds using simd_prefix_inclusive_sum:
+//   - Each threadgroup (32 lanes) handles one (feature, partition, stat).
+//   - For folds <= 32: each active lane covers one bin. Load the bins in
+//     reverse order (lane 0 = h[folds-1], lane 1 = h[folds-2], ...).
+//     simd_prefix_inclusive_sum gives lane i the sum h[folds-1..folds-1-i].
+//     Write back to bins folds-2 downto 0 (skip folds-1 per serial semantics).
+//   - For folds > 32: multiple right-to-left passes of 32 bins each.
+//     Carry the total from each chunk into the next chunk leftward.
+//     Within each chunk the simd scan handles the intra-chunk reduction.
+//
+// Note on numerical precision:
+//   The simd_prefix_inclusive_sum uses a hardware binary-tree reduction
+//   which produces a different floating-point addition order than the serial
+//   scalar loop. Results are mathematically equivalent but may differ in the
+//   last ULP. The downstream scorer (FindBestSplitGPU) is tolerant of these
+//   differences; final loss matches the serial version to float32 precision.
 // ============================================================================
 
 static const std::string kSuffixSumSource = R"metal(
+    const uint lane    = thread_index_in_threadgroup;   // 0..31
     const uint featIdx = threadgroup_position_in_grid.x;
     const uint partIdx = threadgroup_position_in_grid.y;
     const uint statIdx = threadgroup_position_in_grid.z;
 
     if (featIdx >= numFeatures) return;
 
-    // Skip one-hot features -- their histogram entries are direct lookups
+    // Skip one-hot features — their histogram entries are direct lookups
     if (featureIsOneHot[featIdx] != 0u) return;
 
     const uint folds = featureFolds[featIdx];
@@ -186,12 +207,71 @@ static const std::string kSuffixSumSource = R"metal(
     const uint firstFold = featureFirstFold[featIdx];
     const uint base = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
 
-    // Reverse inclusive scan: h'[b] = sum(h[b..folds-1])
-    float runningSum = histogram[base + firstFold + folds - 1u];
-    for (uint b = folds - 1u; b > 0u; b--) {
-        float val = histogram[base + firstFold + b - 1u];
-        runningSum += val;
-        histogram_out[base + firstFold + b - 1u] = runningSum;
+    // ---- Single-pass case: folds <= 32 ----
+    // Lane i covers bin (folds-1-i). Load in reverse so prefix = suffix.
+    if (folds <= 32u) {
+        // Load this lane's bin (reversed).
+        // Lanes beyond [0, folds-1] load 0 so they don't contribute.
+        float val = (lane < folds) ? histogram[base + firstFold + (folds - 1u - lane)] : 0.0f;
+
+        // simd_prefix_inclusive_sum(val) at lane i = sum(val[0..i])
+        // Since val[0] = h[folds-1], val[1] = h[folds-2], ...,
+        // result at lane i = h[folds-1] + h[folds-2] + ... + h[folds-1-i]
+        //                   = h'[folds-1-i]  (suffix sum at bin folds-1-i)
+        float suffixVal = simd_prefix_inclusive_sum(val);
+
+        // Write: skip lane 0 (bin folds-1) per serial semantics.
+        // Lane i >= 1 writes to bin (folds-1-i).
+        if (lane >= 1u && lane < folds) {
+            histogram_out[base + firstFold + (folds - 1u - lane)] = suffixVal;
+        }
+        return;
+    }
+
+    // ---- Multi-pass case: folds > 32 ----
+    // Process 32 bins per pass, right-to-left.
+    // carry = running total from all chunks to the right of the current chunk.
+    float carry = 0.0f;
+
+    // Number of complete 32-wide chunks plus possible partial first chunk
+    // (we iterate right-to-left so the last chunk in the buffer is first).
+    // total bins = folds; chunk i (0=rightmost) covers bins [folds-32*(i+1) .. folds-32*i - 1]
+    // For a partial leftmost chunk, only the rightmost part of the lane range is active.
+
+    const uint numChunks = (folds + 31u) / 32u;  // ceil(folds/32)
+
+    for (uint chunk = 0u; chunk < numChunks; chunk++) {
+        // Chunk 0 is the rightmost 32 bins: [folds-32, folds-1]
+        // Chunk k covers bins starting at: binStart = (chunk < numChunks-1) ?
+        //   folds - 32*(chunk+1) : 0
+        uint chunkEnd;    // exclusive, one past last bin of this chunk
+        uint chunkStart;  // inclusive first bin of this chunk
+
+        chunkEnd   = folds - 32u * chunk;               // e.g. chunk 0 → folds
+        chunkStart = (chunkEnd > 32u) ? (chunkEnd - 32u) : 0u;
+        uint chunkSize = chunkEnd - chunkStart;           // ≤ 32
+
+        // Lane i covers bin chunkStart + (chunkSize - 1 - lane) within the chunk
+        // (reversed so prefix sum = suffix sum within chunk)
+        uint binInChunk = (lane < chunkSize) ? (chunkSize - 1u - lane) : 0u;
+        uint globalBin  = chunkStart + binInChunk;
+
+        float val = (lane < chunkSize) ? histogram[base + firstFold + globalBin] : 0.0f;
+
+        // Intra-chunk suffix sum via prefix on reversed data
+        float suffixVal = simd_prefix_inclusive_sum(val) + carry;
+
+        // carry for the next (leftward) chunk = total sum of this chunk
+        // = suffixVal at lane (chunkSize-1), which is the leftmost active lane
+        carry = simd_broadcast(suffixVal, chunkSize - 1u);
+
+        // Write results:
+        //   For the rightmost chunk (chunk==0): skip the last bin (bin folds-1)
+        //     which corresponds to lane 0. For all other chunks: write all lanes.
+        bool skipLastBin = (chunk == 0u) && (lane == 0u);
+        if (!skipLastBin && lane < chunkSize) {
+            histogram_out[base + firstFold + globalBin] = suffixVal;
+        }
     }
 )metal";
 

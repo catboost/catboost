@@ -283,7 +283,7 @@ namespace NCatboostMlx {
             static_cast<int>(approxDim * numPartitions),
             static_cast<int>(numStats)
         );
-        auto suffixTG = std::make_tuple(1, 1, 1);
+        auto suffixTG = std::make_tuple(32, 1, 1);  // one SIMD group per (feature, part, stat)
 
         auto suffixResult = suffixKernel(
             /*inputs=*/{stackedHist, firstFoldArr, foldsArr, isOneHotArr,
@@ -451,7 +451,7 @@ namespace NCatboostMlx {
             static_cast<int>(approxDim * numPartitions),
             static_cast<int>(numStats)
         );
-        auto suffixTG = std::make_tuple(1, 1, 1);
+        auto suffixTG = std::make_tuple(32, 1, 1);  // one SIMD group per (feature, part, stat)
 
         auto suffixResult = suffixKernel(
             /*inputs=*/{stackedHist, firstFoldArr, foldsArr, isOneHotArr,
