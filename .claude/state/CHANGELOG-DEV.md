@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-04-10 — Sprint 6: CI infra, bench_boosting --onehot, tree applier Metal kernel
+
+**Agents:** mlops-engineer, qa-engineer, ml-engineer
+**Branch:** `mlx/sprint-6-ci-and-infra`
+
+### TODO-016: CI blind spot fix
+- Added bench_boosting and build_verify_test compile steps to `.github/workflows/mlx_test.yaml`
+- bench_boosting copied to `/tmp/bench_boosting` so 62+ library-path tests (test_qa_round10) actually run in CI instead of silently skipping
+- Verify binaries step now checks all 4 executables
+- Commit: `1a7b9b7`
+
+### TODO-007: Sign-off closed
+- Ran 28 multiclass Python tests — all pass. Last acceptance criterion confirmed.
+- HANDOFF.md updated for Sprint 6 state (684 tests, BUG-001 fixed, Sprint 5 merged).
+- Commit: `89a768d`
+
+### TODO-017: bench_boosting --onehot flag
+- Added `--onehot N` CLI flag: marks first N features as one-hot with small bin counts (2-10)
+- Exercises one-hot skip branch in kSuffixSumSource and equality comparison in tree applier
+- Verified: `--onehot 5` produces finite, deterministic BENCH_FINAL_LOSS
+- Commit: `abdd659`
+
+### TODO-018: Tree applier Metal kernel port
+- Added `kTreeApplySource` Metal kernel to `kernel_sources.h`: one thread per doc, computes leaf index via split loop, updates predictions
+- Replaced CPU MLX op loop in `tree_applier.cpp` with single `mx::fast::metal_kernel()` dispatch
+- Handles binary/regression and multiclass, OneHot equality vs ordinal greater-than
+- BENCH_FINAL_LOSS: 0.69314516 (binary 100k, exact match), 1.09757149 (multiclass 20k, exact match)
+- Performance: ~107ms warm mean (statistically equivalent to pre-port ~104ms — tree apply is not the bottleneck)
+- Commit: `caf4552`
+
+### Ruff lint cleanup (pre-Sprint-6, merged with Sprint 5)
+- Fixed 36 ruff errors across python/catboost_mlx/ and python/tests/ (F401, F541, F841, E741, I001)
+- Commits: `32b5419`, `ee61752`
+
+### Verification
+- pytest: 684 passed, 5 skipped, 4 xfailed
+- ruff: 0 errors
+- bench_boosting reference losses: exact match at binary 100k and multiclass 20k
+
+---
+
 ## 2026-04-10 — BUG-001 fix: deterministic suffix-sum scan
 
 **Agent:** ml-engineer
