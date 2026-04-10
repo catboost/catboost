@@ -616,5 +616,100 @@ static const std::string kLeafAccumSource = R"metal(
     }
 )metal";
 
+// ============================================================================
+// Tree apply kernel — port of ApplyObliviousTree CPU loop to a single
+// Metal dispatch.
+//
+// Replaces O(depth) separate MLX op dispatches (slice/shift/mask/compare/or
+// per depth level) with one kernel invocation that processes all depth levels
+// per thread in a tight inner loop.
+//
+// Input names (in order):
+//   compressedData  — [numDocs * lineSize] uint32: packed feature columns
+//   splitColIdx     — [depth] uint32: which ui32 column per split level
+//   splitShift      — [depth] uint32: right-shift count per level
+//   splitMask       — [depth] uint32: bit mask after shift per level
+//   splitThreshold  — [depth] uint32: bin threshold per level
+//   splitIsOneHot   — [depth] uint32: 1 if OneHot (equality), 0 if ordinal (>)
+//   leafValues      — [numLeaves * approxDim] float32: leaf values (lr already baked in)
+//   cursorIn        — [approxDim * numDocs] float32: existing cursor (read-only)
+//   numDocs         — scalar uint32
+//   depth           — scalar uint32: number of split levels (== log2(numLeaves))
+//   lineSize        — scalar uint32: number of uint32 columns per document
+//   approxDim       — scalar uint32: number of prediction dimensions (1 for binary/regression)
+//
+// Output names:
+//   cursorOut       — [approxDim * numDocs] float32: updated cursor (cursor + leaf delta)
+//
+// NOTE: cursorOut is the mutable output. Each thread reads cursorIn for its own
+//   doc slot, adds the leaf value, and writes cursorOut — no atomics needed.
+//   Binary/regression: cursorOut[d] = cursorIn[d] + leafValues[leafIdx]
+//   Multiclass:        cursorOut[k * numDocs + d] = cursorIn[k * numDocs + d]
+//                                                  + leafValues[leafIdx * approxDim + k]
+//
+// Grid:   (numDocs, 1, 1) rounded up to threadgroup boundary
+// Thread: (TREE_APPLY_BLOCK_SIZE, 1, 1) = (256, 1, 1)
+//
+// Design rationale:
+//   - No shared memory: each thread is fully independent (reads own doc, writes own slots).
+//   - No atomics: each output slot is owned by exactly one thread.
+//   - depth loop is fully unrolled at runtime (depth <= 6 in practice); all reads
+//     are coalesced (consecutive docs access consecutive compressedData rows).
+//   - Learning rate is already baked into leafValues by ComputeLeafValues; no extra
+//     scalar multiply needed.
+//   - Handles depth=0 correctly: leafIdx stays 0, all docs go to leaf 0.
+// ============================================================================
+
+static const std::string kTreeApplyHeader = R"metal(
+#include <metal_stdlib>
+using namespace metal;
+
+constant constexpr uint TREE_APPLY_BLOCK_SIZE = 256;
+)metal";
+
+static const std::string kTreeApplySource = R"metal(
+    // One thread per document.
+    const uint globalDocIdx = threadgroup_position_in_grid.x * TREE_APPLY_BLOCK_SIZE
+                            + thread_index_in_threadgroup;
+
+    if (globalDocIdx >= numDocs) return;
+
+    // Compute leaf index by applying all split levels.
+    // For each level d:
+    //   featureVal = (compressedData[docIdx * lineSize + col] >> shift) & mask
+    //   goRight    = (isOneHot) ? (featureVal == threshold) : (featureVal > threshold)
+    //   leafIdx   |= goRight << d
+    uint leafIdx = 0u;
+    const uint docBase = globalDocIdx * lineSize;
+
+    for (uint d = 0u; d < depth; d++) {
+        const uint col       = splitColIdx[d];
+        const uint shift     = splitShift[d];
+        const uint mask      = splitMask[d];
+        const uint threshold = splitThreshold[d];
+        const uint isOneHot  = splitIsOneHot[d];
+
+        const uint packed     = compressedData[docBase + col];
+        const uint featureVal = (packed >> shift) & mask;
+
+        uint goRight;
+        if (isOneHot != 0u) {
+            goRight = (featureVal == threshold) ? 1u : 0u;
+        } else {
+            goRight = (featureVal > threshold) ? 1u : 0u;
+        }
+        leafIdx |= (goRight << d);
+    }
+
+    // Write updated cursor for all approxDim dimensions.
+    // cursorIn/cursorOut layout: [approxDim, numDocs] row-major = k * numDocs + doc
+    // leafValues layout:         [numLeaves, approxDim] row-major = leafIdx * approxDim + k
+    // Each thread owns slots (k * numDocs + globalDocIdx) for all k — no contention.
+    for (uint k = 0u; k < approxDim; k++) {
+        const uint slot = k * numDocs + globalDocIdx;
+        cursorOut[slot] = cursorIn[slot] + leafValues[leafIdx * approxDim + k];
+    }
+)metal";
+
 }  // namespace KernelSources
 }  // namespace NCatboostMlx
