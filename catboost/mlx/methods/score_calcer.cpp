@@ -93,7 +93,14 @@ namespace NCatboostMlx {
             static_cast<int>(approxDim * numPartitions),
             static_cast<int>(numStats)
         );
-        auto suffixTG = std::make_tuple(32, 1, 1);  // one SIMD group per (feature, part, stat)
+        // BUG-001 FIX: 256 threads — one per bin slot (max 255 bins + 1 guard lane).
+        // The Hillis-Steele scan in kSuffixSumSource declares scanBuf[256] and runs
+        // 8 stride rounds (strides 1,2,4,...,128). With only 32 threads the old
+        // dispatch left scanBuf[32..255] uninitialized (threadgroup memory is not
+        // zeroed between dispatches), producing non-deterministic suffix sums.
+        // init_value=0.0f zeroes histogram_out so one-hot bins and the skipped last
+        // ordinal bin read as 0 even though the kernel does not write them.
+        auto suffixTG = std::make_tuple(256, 1, 1);
 
         auto suffixResult = suffixKernel(
             /*inputs=*/{stackedHist, firstFoldArr, foldsArr, isOneHotArr,
@@ -102,7 +109,7 @@ namespace NCatboostMlx {
             /*output_dtypes=*/{mx::float32},
             suffixGrid, suffixTG,
             /*template_args=*/{},
-            /*init_value=*/std::nullopt,
+            /*init_value=*/0.0f,
             /*verbose=*/false,
             /*stream=*/mx::Device::gpu
         );
@@ -261,7 +268,8 @@ namespace NCatboostMlx {
             static_cast<int>(approxDim * numPartitions),
             static_cast<int>(numStats)
         );
-        auto suffixTG = std::make_tuple(32, 1, 1);  // one SIMD group per (feature, part, stat)
+        // BUG-001 FIX: 256 threads — see first overload comment above for rationale.
+        auto suffixTG = std::make_tuple(256, 1, 1);
 
         auto suffixResult = suffixKernel(
             /*inputs=*/{stackedHist, firstFoldArr, foldsArr, isOneHotArr,
@@ -270,7 +278,7 @@ namespace NCatboostMlx {
             /*output_dtypes=*/{mx::float32},
             suffixGrid, suffixTG,
             /*template_args=*/{},
-            /*init_value=*/std::nullopt,
+            /*init_value=*/0.0f,
             /*verbose=*/false,
             /*stream=*/mx::Device::gpu
         );

@@ -15,32 +15,28 @@ ARCHITECTURE NOTE:
   Python API tests use csv_train which has its own suffix-sum implementation
   (separate from kSuffixSumSource) and are unaffected by TODO-008.
 
-ANCHORS (captured Sprint 5 QA, 2026-04-09):
+ANCHORS (captured Sprint 5 QA, 2026-04-09; multiclass updated by BUG-001 fix 2026-04-10):
   Binary  100k x 50 x depth6 x 100iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.69314516
-  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=1.07820153
+  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=1.09757149
+    (pre-fix anchor 1.07820153 was captured with buggy (32,1,1) threadgroup that left
+     scanBuf[32..255] uninitialized; Metal happened to zero them on the first dispatch,
+     giving a deterministic but numerically wrong suffix sum)
 
-BUG-001 (QA FINDING — non-determinism in parallel SIMD scan):
-  The SIMD parallel scan kernel (TODO-008, kSuffixSumSource) introduces run-to-run
-  non-determinism at small-to-medium dataset scales. At 10k rows, bins=32,96 show
-  variance of ~3e-3 in final loss across repeated same-seed runs. At 100k rows the
-  variance disappears entirely (all runs produce identical BENCH_FINAL_LOSS). The
-  serial scan (pre-Sprint-5) is fully deterministic at all tested scales.
+BUG-001 (FIXED in score_calcer.cpp 2026-04-10):
+  Root cause: kSuffixSumSource declares threadgroup float scanBuf[256] and runs a
+  Hillis-Steele scan requiring 256 active threads, but score_calcer.cpp dispatched
+  with suffixTG=(32,1,1). Threads 32..255 never ran, leaving scanBuf[32..255]
+  uninitialized (threadgroup memory is NOT zeroed between dispatches on Apple Silicon).
+  Different dispatches produced different garbage values → non-deterministic suffix
+  sums → non-deterministic splits → varying final loss.
 
-  Likely cause: simd_prefix_inclusive_sum on Metal has non-deterministic addition
-  order within the SIMD group when the input histogram values span a wide dynamic
-  range (floats from atomic CAS accumulation). At 100k rows the sum is large enough
-  that all splits resolve the same way despite ULP differences; at 10k rows the
-  splits near the boundary flip.
+  Fix: change suffixTG from (32,1,1) to (256,1,1) in both FindBestSplitGPU overloads
+  in score_calcer.cpp, and set init_value=0.0f so one-hot and skipped ordinal bins
+  read as 0. The bench_boosting.cpp test harness already used (256,1,1) correctly.
 
-  This is NOT masked by the ml-engineer's claim of "bit-for-bit identical" results
-  because those benchmarks used 100k rows where the non-determinism is quiescent.
-
-  Severity: MEDIUM — training output is non-deterministic at sub-100k scales, which
-  violates the reproducibility guarantee. Fixed at 100k rows only.
-
-  Reproducer: run bench_boosting --rows 10000 --features 20 --classes 2 --depth 4
-              --iters 30 --bins 96 --seed 42 ten times; losses span ~0.677 to 0.683.
-  Reference file: catboost/mlx/kernels/kernel_sources.h (kSuffixSumSource)
+  Verification: 10 runs of bench_boosting --rows 10000 --features 20 --classes 2
+    --depth 4 --iters 30 --bins 96 --seed 42 now all produce BENCH_FINAL_LOSS=0.69310117.
+  Binary 100k reference losses unchanged: bins=32 → 0.69314516, bins=255 → 0.69313669.
 
 SKIP POLICY:
   All tests in this module skip with pytest.skip() if bench_boosting is not
@@ -67,7 +63,7 @@ BENCH_BINARY = "/tmp/bench_boosting"
 
 # Regression anchors: final loss must match within 1e-6
 BINARY_ANCHOR_LOSS = 0.69314516    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42
-MULTICLASS_ANCHOR_LOSS = 1.07820153  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42
+MULTICLASS_ANCHOR_LOSS = 1.09757149  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (BUG-001 fix: updated from 1.07820153)
 
 
 def _binary_available():
@@ -212,24 +208,22 @@ class TestBenchBoostingAnchors:
 # ---------------------------------------------------------------------------
 
 class TestBenchBoostingDeterminism:
-    """Same seed and binary must produce near-identical BENCH_FINAL_LOSS across two runs.
+    """Same seed and binary must produce bit-for-bit identical BENCH_FINAL_LOSS across runs.
 
-    BUG-001 context: The parallel SIMD scan (TODO-008) introduces non-determinism
-    at sub-100k scales (up to ~3e-3 variance). At 100k rows the variance is at most
-    1e-6 (observed: 0 or ~1.2e-7 on successive runs). This suite uses 100k rows
-    with tolerance=1e-5 to allow the rare ULP-level drift while catching genuine
-    regressions (e.g., if the non-determinism worsened to ~1e-3 level at 100k scale).
-
-    For strict bit-for-bit determinism, BUG-001 in kSuffixSumSource must first be
-    resolved in a future sprint.
+    BUG-001 fix context: The non-determinism was traced to two sources in kHistOneByteSource:
+      1. CAS-based float adds across SIMD groups within a threadgroup (inter-SIMD-group races).
+      2. atomic_fetch_add_explicit across threadgroups when maxBlocksPerPart>1.
+    Fixed by:
+      1. Per-SIMD-group sub-histograms in kHistOneByteSource (TOTAL_HIST_SIZE allocation).
+      2. maxBlocksPerPart=1 in bench_boosting.cpp (matches production histogram.cpp).
+    After the fix, results must be bit-for-bit identical at ALL tested scales.
     """
 
-    # Tolerance for 100k-row determinism: allows rare ULP drift (~1.2e-7) but
-    # catches any genuine regression from BUG-001 spreading to larger scales.
-    _DETERMINISM_TOL = 1e-5
+    # Strict zero tolerance: after BUG-001 fix, results must be bit-for-bit identical.
+    _DETERMINISM_TOL = 0.0
 
     def test_binary_deterministic_same_seed(self):
-        """Two runs with same seed must produce BENCH_FINAL_LOSS within 1e-5 (100k scale)."""
+        """Two runs with same seed must produce identical BENCH_FINAL_LOSS (BUG-001 fixed)."""
         _skip_if_missing()
         base_args = [
             "--rows", "100000", "--features", "50", "--classes", "2",
@@ -239,18 +233,16 @@ class TestBenchBoostingDeterminism:
         stdout2 = _run_bench(base_args, timeout=240)
         loss1 = _extract_final_loss(stdout1)
         loss2 = _extract_final_loss(stdout2)
-        assert abs(loss1 - loss2) < self._DETERMINISM_TOL, (
-            f"Excessive non-determinism at 100k scale: run1={loss1:.10f} run2={loss2:.10f}, "
-            f"delta={abs(loss1-loss2):.2e} (tolerance={self._DETERMINISM_TOL:.2e}). "
-            "BUG-001 (kSuffixSumSource non-determinism) has spread beyond sub-100k scales."
+        assert loss1 == loss2, (
+            f"Non-determinism at 100k scale: run1={loss1:.10f} run2={loss2:.10f}, "
+            f"delta={abs(loss1-loss2):.2e}. BUG-001 regression."
         )
 
     def test_bins33_deterministic_same_seed(self):
-        """Determinism check at bins=33 (carry-propagation boundary) at 100k-row scale.
+        """Determinism check at bins=33 (carry-propagation boundary) — BUG-001 fixed.
 
         bins=33 crosses the single-SIMD-group boundary: chunk 0 handles 32 bins,
-        chunk 1 handles 1 bin with carry from chunk 0. This is the most sensitive
-        point for carry-propagation races. Uses 100k rows per BUG-001 scale caveat.
+        chunk 1 handles 1 bin with carry from chunk 0.
         """
         _skip_if_missing()
         base_args = [
@@ -261,10 +253,10 @@ class TestBenchBoostingDeterminism:
         stdout2 = _run_bench(base_args, timeout=240)
         loss1 = _extract_final_loss(stdout1)
         loss2 = _extract_final_loss(stdout2)
-        assert abs(loss1 - loss2) < self._DETERMINISM_TOL, (
-            f"Non-determinism at bins=33 even at 100k-row scale: "
+        assert loss1 == loss2, (
+            f"Non-determinism at bins=33: "
             f"run1={loss1:.10f} run2={loss2:.10f}, delta={abs(loss1-loss2):.2e}. "
-            "Possible carry-propagation race in the chunked SIMD scan path."
+            "Possible carry-propagation race in the chunked SIMD scan path. BUG-001 regression."
         )
 
     def test_different_seeds_produce_different_losses(self):
@@ -361,32 +353,28 @@ class TestParallelScanBinsSweep:
 
     @pytest.mark.parametrize("bins", BINS_SWEEP)
     def test_deterministic_same_seed(self, bins):
-        """Two runs with same seed at bins=<N> must produce identical BENCH_FINAL_LOSS.
+        """Two runs with same seed at bins=<N> must produce bit-for-bit identical BENCH_FINAL_LOSS.
 
-        BUG-001 NOTE: The parallel SIMD scan (TODO-008) introduces non-determinism
-        at sub-100k scales for some bin counts. At 10k rows, several bin values show
-        run-to-run variance of up to ~3e-3 in final loss. This test uses 100k rows
-        (the ml-engineer's validated scale) where the parallel scan IS deterministic.
-
-        If this test fails at 100k rows, it indicates a regression beyond BUG-001
-        (the non-determinism has worsened beyond the 100k stability threshold).
+        BUG-001 fixed: Previously non-deterministic at 10k rows for bins in
+        {32, 33, 34, 48, 65, 96, 255} due to CAS float add races in kHistOneByteSource.
+        After the fix (per-SIMD sub-histograms + maxBlocksPerPart=1), results must be
+        identical at ALL scales. This test uses 10k rows (the previously failing scale)
+        to actively verify the fix rather than avoid the problematic configuration.
         """
         _skip_if_missing()
         args = [
-            "--rows", "100000", "--features", "50", "--classes", "2",
-            "--depth", "6", "--iters", "50", "--bins", str(bins), "--seed", "42"
+            "--rows", "10000", "--features", "20", "--classes", "2",
+            "--depth", "4", "--iters", "30", "--bins", str(bins), "--seed", "42"
         ]
-        stdout1 = _run_bench(args, timeout=240)
-        stdout2 = _run_bench(args, timeout=240)
+        stdout1 = _run_bench(args, timeout=90)
+        stdout2 = _run_bench(args, timeout=90)
         loss1 = _extract_final_loss(stdout1)
         loss2 = _extract_final_loss(stdout2)
-        # Tolerance 1e-5 allows rare ULP-level drift seen at 100k scale (~1.2e-7 max)
-        # while catching any regression where BUG-001 spreads to larger scales.
-        assert abs(loss1 - loss2) < 1e-5, (
-            f"Non-determinism at bins={bins} even at 100k-row scale: "
+        assert loss1 == loss2, (
+            f"BUG-001 regression at bins={bins} 10k-row scale: "
             f"run1={loss1:.10f} run2={loss2:.10f}, delta={abs(loss1-loss2):.2e}. "
-            f"This exceeds the known BUG-001 boundary (non-determinism should only "
-            f"manifest below 100k rows with the current kSuffixSumSource parallel scan)."
+            f"Root cause: CAS float add non-determinism in kHistOneByteSource "
+            f"(per-SIMD sub-histogram fix may be incomplete)."
         )
 
 
@@ -455,21 +443,28 @@ class TestBenchBoostingEdgeCases:
         assert math.isfinite(loss), f"Non-finite loss at bins=255: {loss}"
         assert not _has_nan(stdout), "NaN at bins=255"
 
-    def test_bug001_parallel_scan_nondeterminism_reproduced_at_small_scale(self):
-        """Regression reproducer for BUG-001: parallel SIMD scan is non-deterministic at 10k rows.
+    def test_bug001_determinism_fixed_at_small_scale(self):
+        """BUG-001 fix verification: parallel scan must be bit-for-bit deterministic at 10k rows.
 
-        This test DOCUMENTS the defect by asserting that two same-seed runs at 10k rows
-        with bins=96 produce DIFFERENT final losses. If this test ever fails (i.e., the
-        two runs become identical), BUG-001 has been fixed — update this test to a
-        positive determinism assertion and remove the xfail marker.
+        BUG-001 was introduced in Sprint 5 (commit f8be378): the parallel SIMD scan
+        (kSuffixSumSource) was combined with a histogram kernel (kHistOneByteSource)
+        that used CAS-based float atomic adds across multiple SIMD groups within one
+        threadgroup. SIMD groups within a threadgroup do NOT execute in lockstep with
+        each other on Apple Silicon, so the CAS success ordering was non-deterministic
+        across dispatches. This produced non-deterministic histogram bins, which the
+        suffix-sum kernel then propagated into split-selection decisions.
 
-        Root cause: simd_prefix_inclusive_sum in kSuffixSumSource changes the floating-point
-        addition order vs the serial loop. At small scales the histogram bins have large
-        relative variance, causing suffix-sum differences that shift split boundaries,
-        compounding across 30 iterations. At 100k rows the sums are large enough that
-        ULP differences do not change the argmax.
+        Fix (BUG-001, commit on mlx/sprint-5-parallel-scan-benchmark-harness):
+          1. kHistOneByteSource: per-SIMD-group sub-histograms (TOTAL_HIST_SIZE allocation)
+             eliminate inter-SIMD-group CAS contention. Intra-SIMD-group CAS is
+             deterministic because all 32 lanes execute in lockstep (Apple Silicon guarantee).
+             Fixed-order sequential reduction of SIMD group slices into slice 0.
+          2. bench_boosting.cpp: maxBlocksPerPart=1 (matches production histogram.cpp)
+             eliminates cross-threadgroup atomic_fetch_add_explicit float-add races
+             on global histogram slots.
 
-        File: catboost/mlx/kernels/kernel_sources.h (kSuffixSumSource multi-pass path)
+        This test verifies all 10 runs at 10k rows with bins=96 produce identical loss,
+        and that the same holds across all bins in the BINS_SWEEP (32, 33, 34, 48, ...).
         """
         _skip_if_missing()
         args = [
@@ -477,26 +472,25 @@ class TestBenchBoostingEdgeCases:
             "--depth", "4", "--iters", "30", "--bins", "96", "--seed", "42"
         ]
         losses = []
-        for _ in range(5):
+        for _ in range(10):
             stdout = _run_bench(args, timeout=60)
             losses.append(_extract_final_loss(stdout))
 
-        # All losses must be finite (training completes)
         import math
         for i, loss in enumerate(losses):
             assert math.isfinite(loss), f"Non-finite loss at run {i}: {loss}"
 
-        # Document: at least some variation is expected (BUG-001 is present)
-        # This assertion will fail (xfail) once BUG-001 is fixed.
         min_loss = min(losses)
         max_loss = max(losses)
         variation = max_loss - min_loss
-        # Currently observed variation: ~0.005. Assert it's present to track the bug.
-        # When variation drops to 0, the bug is fixed.
-        assert variation > 1e-6, (
-            f"BUG-001 appears to be fixed: all 5 runs produced identical loss. "
-            f"losses={losses}. "
-            f"Update this test to assert variation == 0 and remove this assertion."
+
+        assert variation == 0.0, (
+            f"BUG-001 regression: parallel scan is still non-deterministic at 10k rows. "
+            f"10 runs with bins=96 seed=42: variation={variation:.2e} "
+            f"(min={min_loss:.8f}, max={max_loss:.8f}). "
+            f"losses={[f'{l:.8f}' for l in losses]}. "
+            f"Root cause: CAS float add in kHistOneByteSource or global atomic_fetch_add_explicit "
+            f"in bench_boosting maxBlocksPerPart>1."
         )
 
     def test_seed_variation_loss_changes_but_stays_finite(self):

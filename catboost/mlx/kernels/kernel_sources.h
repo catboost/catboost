@@ -53,6 +53,33 @@ constant constexpr uint TOTAL_HIST_SIZE = NUM_SIMD_GROUPS * HIST_PER_SIMD;
 // groupIdx and blockInPart are extracted from the X grid position.
 // Groups write to non-overlapping firstFoldIndices offsets, so no
 // cross-group atomics are needed.
+//
+// BUG-001 FIX (deterministic accumulation):
+//   Root cause: the original implementation used CAS-based float atomic adds into a
+//   shared threadgroup histogram. All BLOCK_SIZE (256) threads raced on the same
+//   HIST_PER_SIMD (1024) slots. SIMD groups within a threadgroup do NOT execute in
+//   lockstep with each other on Apple Silicon, and even within a SIMD group the
+//   hardware's CAS arbitration order for simultaneous accesses to the same address
+//   is not architecturally guaranteed. This produced non-deterministic histogram
+//   values across dispatches.
+//
+//   Fix: replace all shared-memory atomic accumulation with per-thread private
+//   histograms (thread-local stack arrays). Each thread accumulates only its own
+//   documents (loop stride BLOCK_SIZE, starting at thread_index_in_threadgroup)
+//   with no contention — zero atomics during accumulation. After accumulation, a
+//   fixed-order sequential reduction across threads (t=1, 2, ..., BLOCK_SIZE-1)
+//   folds all per-thread contributions into thread-0's histogram using threadgroup
+//   shared memory as a staging area. The reduction order is fixed, making the
+//   final histogram bit-for-bit identical across all dispatches.
+//
+//   Memory: per-thread stack arrays are thread-local (spill to device memory if
+//   register pressure is high, but stay off the shared threadgroup address space).
+//   Threadgroup shared memory is used only during the reduction phase (4 KB for
+//   the HIST_PER_SIMD float staging buffer).
+//
+//   Performance: private histogram accumulation eliminates all stall cycles from
+//   CAS retries. The sequential reduction adds O(BLOCK_SIZE) passes over HIST_PER_SIMD
+//   entries, but each pass is a simple load+add+store without contention.
 // ============================================================================
 
 static const std::string kHistOneByteSource = R"metal(
@@ -85,17 +112,22 @@ static const std::string kHistOneByteSource = R"metal(
     // Per-group fold metadata (4 entries per group)
     const uint foldBase = groupIdx * FEATURES_PER_PACK;
 
-    // Threadgroup histogram using atomic_uint with CAS-based float add.
-    // Layout: [FEATURES_PER_PACK][BINS_PER_BYTE]
-    threadgroup atomic_uint sharedHist[HIST_PER_SIMD];
+    // BUG-001 FIX: Per-thread private histograms — no shared-memory atomics.
+    // Each thread accumulates its own document subset into a private stack array.
+    // Thread d processes documents d, d+BLOCK_SIZE, d+2*BLOCK_SIZE, ...
+    // This is a fixed, deterministic subset for each thread index, giving
+    // identical results for identical inputs across all dispatches.
+    //
+    // Layout: privHist[FEATURES_PER_PACK * BINS_PER_BYTE] = [4][256] = 1024 floats
+    // Size per thread: 4096 bytes (thread-local; spills to device memory if needed).
+    float privHist[HIST_PER_SIMD];
 
-    // Zero the histogram
-    for (uint i = thread_index_in_threadgroup; i < HIST_PER_SIMD; i += BLOCK_SIZE) {
-        atomic_store_explicit(&sharedHist[i], as_type<uint>(0.0f), memory_order_relaxed);
+    // Zero per-thread private histogram
+    for (uint i = 0u; i < HIST_PER_SIMD; i++) {
+        privHist[i] = 0.0f;
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Process documents — all threads accumulate via CAS-based float atomic add
+    // Accumulate documents into private histogram — no atomics, no contention
     for (uint d = thread_index_in_threadgroup; d < myDocCount; d += BLOCK_SIZE) {
         const uint sortedPos = partOffset + myDocStart + d;
         const uint docIdx = docIndices[sortedPos];
@@ -106,33 +138,57 @@ static const std::string kHistOneByteSource = R"metal(
         // Load the statistic for this document
         const float stat = stats[statIdx * totalNumDocs + docIdx];
 
-        // Accumulate into histogram for each of the 4 features
-        for (uint f = 0; f < FEATURES_PER_PACK; f++) {
-            const uint bin = (packed >> (24 - 8 * f)) & 0xFF;
-            if (bin < foldCountsFlat[foldBase + f] + 1) {
-                const uint histIdx = f * BINS_PER_BYTE + bin;
-                uint old_val = atomic_load_explicit(&sharedHist[histIdx], memory_order_relaxed);
-                uint new_val;
-                do {
-                    new_val = as_type<uint>(as_type<float>(old_val) + stat);
-                } while (!atomic_compare_exchange_weak_explicit(
-                    &sharedHist[histIdx], &old_val, new_val,
-                    memory_order_relaxed, memory_order_relaxed));
+        // Accumulate into per-thread private histogram (no contention)
+        for (uint f = 0u; f < FEATURES_PER_PACK; f++) {
+            const uint bin = (packed >> (24u - 8u * f)) & 0xFFu;
+            if (bin < foldCountsFlat[foldBase + f] + 1u) {
+                privHist[f * BINS_PER_BYTE + bin] += stat;
             }
         }
     }
 
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Write results to global histogram buffer
+    // Fixed-order sequential reduction across all BLOCK_SIZE threads.
+    // Thread t (for t = 1 .. BLOCK_SIZE-1) writes its privHist into a shared
+    // staging buffer, then thread 0 accumulates it.  The barrier between each
+    // write-and-read pair ensures thread 0 always sees the complete contribution
+    // from thread t before moving to t+1. The addition order is fixed: thread 1
+    // first, then thread 2, ..., then thread BLOCK_SIZE-1.
+    //
+    // Shared staging buffer: HIST_PER_SIMD floats = 4 KB (non-atomic, no CAS).
+    threadgroup float stagingHist[HIST_PER_SIMD];
+
+    // Thread 0 initialises staging from its own private histogram
+    if (thread_index_in_threadgroup == 0u) {
+        for (uint i = 0u; i < HIST_PER_SIMD; i++) {
+            stagingHist[i] = privHist[i];
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // Threads 1..BLOCK_SIZE-1 contribute in fixed order
+    for (uint t = 1u; t < BLOCK_SIZE; t++) {
+        // Thread t writes its private histogram into the staging area.
+        // All threads execute this loop body, but only thread t does a real write.
+        // After the barrier, thread 0 reads and accumulates.
+        if (thread_index_in_threadgroup == t) {
+            for (uint i = 0u; i < HIST_PER_SIMD; i++) {
+                stagingHist[i] += privHist[i];
+            }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    // Write results from stagingHist (fully reduced into thread 0's pass) to global
     const uint histBase = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
 
-    for (uint f = 0; f < FEATURES_PER_PACK; f++) {
+    for (uint f = 0u; f < FEATURES_PER_PACK; f++) {
         const uint folds = foldCountsFlat[foldBase + f];
         const uint firstFold = firstFoldIndicesFlat[foldBase + f];
 
         for (uint bin = thread_index_in_threadgroup; bin < folds; bin += BLOCK_SIZE) {
-            const float val = as_type<float>(atomic_load_explicit(&sharedHist[f * BINS_PER_BYTE + bin + 1], memory_order_relaxed));
+            const float val = stagingHist[f * BINS_PER_BYTE + bin + 1u];
             if (abs(val) > 1e-20f) {
                 // Always use atomics: multiple blocks per partition OR multiple
                 // groups share the same output buffer (different offsets, but
@@ -156,49 +212,66 @@ constant constexpr uint SCORE_BLOCK_SIZE = 256;
 )metal";
 
 // ============================================================================
-// Suffix-sum transform kernel — parallel SIMD-group version (TODO-008)
+// Suffix-sum transform kernel — deterministic threadgroup scan (BUG-001 fix)
 //
-// Converts raw per-bin histogram counts into suffix sums (in-place) so that
-// ordinal split scoring becomes O(1) per bin instead of O(bins).
+// Converts raw per-bin histogram counts into suffix sums so that ordinal
+// split scoring becomes O(1) per bin instead of O(bins).
 //
 // For ordinal feature with bins h[0..F-1]:
-//   h'[b] = sum(h[b..F-1])  (reverse inclusive scan)
-//   h'[folds-1] is intentionally left unwritten (set to 0 by init_value);
+//   h'[b] = sum(h[b..F-1])  (reverse inclusive prefix scan)
+//   h'[folds-1] is intentionally left unwritten (written as 0 by init_value);
 //   this matches the serial implementation and prevents the scorer from
 //   selecting an all-right split that has no left-side documents.
 //
 // OneHot features are skipped (their bins are independent categories).
 //
 // Grid:   (numFeatures, numPartitions_times_approxDim, numStats)
-// Thread: (32, 1, 1)  — one SIMD group per (feature, part, stat) triple
+// Thread: (256, 1, 1)  — one threadgroup per (feature, partition, stat) triple
+//                        256 threads >= 255 bins max, one thread per bin
 //
-// Parallelism over folds using simd_prefix_inclusive_sum:
-//   - Each threadgroup (32 lanes) handles one (feature, partition, stat).
-//   - For folds <= 32: each active lane covers one bin. Load the bins in
-//     reverse order (lane 0 = h[folds-1], lane 1 = h[folds-2], ...).
-//     simd_prefix_inclusive_sum gives lane i the sum h[folds-1..folds-1-i].
-//     Write back to bins folds-2 downto 0 (skip folds-1 per serial semantics).
-//   - For folds > 32: multiple right-to-left passes of 32 bins each.
-//     Carry the total from each chunk into the next chunk leftward.
-//     Within each chunk the simd scan handles the intra-chunk reduction.
+// BUG-001 FIX — Root cause of non-determinism in the previous implementation:
+//   The previous code used simd_prefix_inclusive_sum + simd_broadcast for the
+//   multi-pass (bins > 32) path.  Empirical testing (10 runs on fixed inputs)
+//   showed alternating values at the first written bin slot, proving that
+//   simd_broadcast reads from an architecturally-undefined lane state across
+//   separate Metal command-buffer submissions.  The simd_broadcast spec says the
+//   source lane must be active (convergent) — this is not guaranteed when the
+//   active-lane mask changes between the conditional read and the broadcast call.
 //
-// Note on numerical precision:
-//   The simd_prefix_inclusive_sum uses a hardware binary-tree reduction
-//   which produces a different floating-point addition order than the serial
-//   scalar loop. Results are mathematically equivalent but may differ in the
-//   last ULP. The downstream scorer (FindBestSplitGPU) is tolerant of these
-//   differences; final loss matches the serial version to float32 precision.
+// Fix — explicit Hillis-Steele inclusive scan in threadgroup shared memory:
+//   1. Each thread t loads h[folds-1-t] into scanBuf[t] (reversed order so
+//      a left-to-right inclusive prefix sum computes right-to-left suffix sums).
+//      Threads with t >= folds load 0.0f.
+//   2. Hillis-Steele up-sweep: log2(256)=8 rounds.  Round r adds scanBuf[t]
+//      to scanBuf[t - 2^r] for t >= 2^r.  A threadgroup_barrier separates each
+//      round — the addition order is fixed by the algorithm, not by hardware
+//      scheduling.  The result is a deterministic inclusive prefix sum.
+//   3. Write-back: thread t (t >= 1, t < folds) writes scanBuf[t] to
+//      histogram_out at bin (folds-1-t).  Thread 0 / bin (folds-1) is skipped
+//      per CatBoost serial semantics.
+//
+// Memory: threadgroup float scanBuf[256] = 1 KB per threadgroup.  Well within
+//   the 32 KB threadgroup memory limit on all Apple Silicon GPUs.
+//
+// Performance: 8 barrier rounds vs the old ceil(bins/32) chunk iterations plus
+//   simd intrinsic calls.  For bins=96 the old path had 3 chunk passes; the
+//   new path always does exactly 8 passes.  At bins=32 the new path also does 8
+//   passes instead of 1, but suffix-sum is not the hot path — it is dominated
+//   by histogram build and split scoring.  Cold-start improvement (344→109 ms)
+//   from TODO-008 is preserved because the kernel-compile cache hit is unchanged.
 // ============================================================================
 
 static const std::string kSuffixSumSource = R"metal(
-    const uint lane    = thread_index_in_threadgroup;   // 0..31
+    // Each threadgroup handles one (feature, partition, stat) triple.
+    // Thread index is the bin index (reversed: thread 0 = bin folds-1).
+    const uint t       = thread_index_in_threadgroup;   // 0..255
     const uint featIdx = threadgroup_position_in_grid.x;
     const uint partIdx = threadgroup_position_in_grid.y;
     const uint statIdx = threadgroup_position_in_grid.z;
 
     if (featIdx >= numFeatures) return;
 
-    // Skip one-hot features — their histogram entries are direct lookups
+    // Skip one-hot features — their histogram entries are direct lookups.
     if (featureIsOneHot[featIdx] != 0u) return;
 
     const uint folds = featureFolds[featIdx];
@@ -207,71 +280,33 @@ static const std::string kSuffixSumSource = R"metal(
     const uint firstFold = featureFirstFold[featIdx];
     const uint base = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
 
-    // ---- Single-pass case: folds <= 32 ----
-    // Lane i covers bin (folds-1-i). Load in reverse so prefix = suffix.
-    if (folds <= 32u) {
-        // Load this lane's bin (reversed).
-        // Lanes beyond [0, folds-1] load 0 so they don't contribute.
-        float val = (lane < folds) ? histogram[base + firstFold + (folds - 1u - lane)] : 0.0f;
+    // Step 1: Load bins into shared buffer in reversed order.
+    // Thread t maps to bin (folds-1-t). Threads t >= folds load 0.
+    // After the scan, scanBuf[t] = h[folds-1] + h[folds-2] + ... + h[folds-1-t]
+    //                             = suffix sum h'[folds-1-t].
+    threadgroup float scanBuf[256];
+    scanBuf[t] = (t < folds) ? histogram[base + firstFold + (folds - 1u - t)] : 0.0f;
 
-        // simd_prefix_inclusive_sum(val) at lane i = sum(val[0..i])
-        // Since val[0] = h[folds-1], val[1] = h[folds-2], ...,
-        // result at lane i = h[folds-1] + h[folds-2] + ... + h[folds-1-i]
-        //                   = h'[folds-1-i]  (suffix sum at bin folds-1-i)
-        float suffixVal = simd_prefix_inclusive_sum(val);
+    threadgroup_barrier(mem_flags::mem_threadgroup);
 
-        // Write: skip lane 0 (bin folds-1) per serial semantics.
-        // Lane i >= 1 writes to bin (folds-1-i).
-        if (lane >= 1u && lane < folds) {
-            histogram_out[base + firstFold + (folds - 1u - lane)] = suffixVal;
-        }
-        return;
+    // Step 2: Hillis-Steele inclusive prefix scan (log2(256) = 8 rounds).
+    // Round r: each thread t adds the value from thread (t - 2^r) if t >= 2^r.
+    // The barrier between rounds guarantees every thread sees the previous
+    // round's writes before reading — the addition order is fixed and identical
+    // across all dispatches.
+    for (uint stride = 1u; stride < 256u; stride <<= 1u) {
+        float addend = (t >= stride) ? scanBuf[t - stride] : 0.0f;
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+        scanBuf[t] += addend;
+        threadgroup_barrier(mem_flags::mem_threadgroup);
     }
 
-    // ---- Multi-pass case: folds > 32 ----
-    // Process 32 bins per pass, right-to-left.
-    // carry = running total from all chunks to the right of the current chunk.
-    float carry = 0.0f;
-
-    // Number of complete 32-wide chunks plus possible partial first chunk
-    // (we iterate right-to-left so the last chunk in the buffer is first).
-    // total bins = folds; chunk i (0=rightmost) covers bins [folds-32*(i+1) .. folds-32*i - 1]
-    // For a partial leftmost chunk, only the rightmost part of the lane range is active.
-
-    const uint numChunks = (folds + 31u) / 32u;  // ceil(folds/32)
-
-    for (uint chunk = 0u; chunk < numChunks; chunk++) {
-        // Chunk 0 is the rightmost 32 bins: [folds-32, folds-1]
-        // Chunk k covers bins starting at: binStart = (chunk < numChunks-1) ?
-        //   folds - 32*(chunk+1) : 0
-        uint chunkEnd;    // exclusive, one past last bin of this chunk
-        uint chunkStart;  // inclusive first bin of this chunk
-
-        chunkEnd   = folds - 32u * chunk;               // e.g. chunk 0 → folds
-        chunkStart = (chunkEnd > 32u) ? (chunkEnd - 32u) : 0u;
-        uint chunkSize = chunkEnd - chunkStart;           // ≤ 32
-
-        // Lane i covers bin chunkStart + (chunkSize - 1 - lane) within the chunk
-        // (reversed so prefix sum = suffix sum within chunk)
-        uint binInChunk = (lane < chunkSize) ? (chunkSize - 1u - lane) : 0u;
-        uint globalBin  = chunkStart + binInChunk;
-
-        float val = (lane < chunkSize) ? histogram[base + firstFold + globalBin] : 0.0f;
-
-        // Intra-chunk suffix sum via prefix on reversed data
-        float suffixVal = simd_prefix_inclusive_sum(val) + carry;
-
-        // carry for the next (leftward) chunk = total sum of this chunk
-        // = suffixVal at lane (chunkSize-1), which is the leftmost active lane
-        carry = simd_broadcast(suffixVal, chunkSize - 1u);
-
-        // Write results:
-        //   For the rightmost chunk (chunk==0): skip the last bin (bin folds-1)
-        //     which corresponds to lane 0. For all other chunks: write all lanes.
-        bool skipLastBin = (chunk == 0u) && (lane == 0u);
-        if (!skipLastBin && lane < chunkSize) {
-            histogram_out[base + firstFold + globalBin] = suffixVal;
-        }
+    // Step 3: Write results back.
+    // Thread t covers bin (folds-1-t).  Thread 0 (= bin folds-1) is skipped:
+    // leaving bin folds-1 as 0 (init_value) matches the serial reference which
+    // does not write the rightmost bin (no documents go to the left of it).
+    if (t >= 1u && t < folds) {
+        histogram_out[base + firstFold + (folds - 1u - t)] = scanBuf[t];
     }
 )metal";
 
@@ -474,12 +509,33 @@ static const std::string kScoreSplitsLookupSource = R"metal(
 // ============================================================================
 // Leaf accumulation kernel header and source
 //
-// Accumulates per-leaf gradient/hessian sums from all documents using
-// threadgroup-local CAS-based atomic float add, then atomic writeback
-// to global output.
+// Accumulates per-leaf gradient/hessian sums from all documents.
 //
-// Grid:   (LEAF_BLOCK_SIZE * ceil(numDocs / LEAF_BLOCK_SIZE), 1, 1)
+// BUG-001 FIX: Complete redesign for deterministic accumulation.
+//
+//   Previous design: one thread per document, multiple threadgroups.
+//   Multiple threadgroups raced on the same leaf slot via atomic_fetch_add
+//   (cross-threadgroup non-determinism) and within each threadgroup threads
+//   raced via CAS on shared memory (intra-threadgroup non-determinism).
+//
+//   New design: one threadgroup total (strided document loop), per-thread
+//   private accumulators, fixed-order sequential reduction.
+//
+//   - Strided loop: each thread i processes docs i, i+LEAF_BLOCK_SIZE, ...
+//     Each thread's document subset is fixed and deterministic.
+//   - Per-thread private array (LEAF_PRIV_SIZE = MAX_APPROX_DIM*MAX_LEAVES*2
+//     = 1280 floats = 5 KB) — zero contention during accumulation.
+//   - Sequential reduction (LEAF_BLOCK_SIZE passes, one per thread) with
+//     threadgroup_barrier between passes — fixed addition order.
+//   - Single threadgroup → no cross-threadgroup global atomics at all.
+//     Final write to global output is non-atomic (exactly one write per slot).
+//
+// Grid:   (LEAF_BLOCK_SIZE, 1, 1)  — always exactly ONE threadgroup
 // Thread: (LEAF_BLOCK_SIZE, 1, 1)
+//
+// NOTE: Callers must use grid = (LEAF_BLOCK_SIZE, 1, 1) NOT the old
+//       (LEAF_BLOCK_SIZE * numBlocks, 1, 1) multi-threadgroup dispatch.
+//       The kernel now iterates internally over all numDocs.
 // ============================================================================
 
 static const std::string kLeafAccumHeader = R"metal(
@@ -489,72 +545,73 @@ using namespace metal;
 constant constexpr uint LEAF_BLOCK_SIZE = 256;
 constant constexpr uint MAX_LEAVES = 64;
 constant constexpr uint MAX_APPROX_DIM = 10;
+// Per-thread private storage: MAX_APPROX_DIM * MAX_LEAVES * 2 = 1280 floats = 5 KB
+constant constexpr uint LEAF_PRIV_SIZE = MAX_APPROX_DIM * MAX_LEAVES * 2;
 )metal";
 
 static const std::string kLeafAccumSource = R"metal(
-    // Shared accumulators: [approxDim][numLeaves][2] (grad, hess)
-    // Max: 10 * 64 * 2 = 1280 entries = 5 KB
-    threadgroup atomic_uint sharedSums[MAX_APPROX_DIM * MAX_LEAVES * 2];
+    // BUG-001 FIX: Per-thread private accumulator — zero contention.
+    // Each thread processes docs [thread_idx, thread_idx+LEAF_BLOCK_SIZE, ...].
+    // All writes go to thread-private stack memory: no atomics, no races.
+    float privSums[LEAF_PRIV_SIZE];
 
-    const uint totalShared = approxDim * numLeaves * 2;
-    for (uint i = thread_index_in_threadgroup; i < totalShared; i += LEAF_BLOCK_SIZE) {
-        atomic_store_explicit(&sharedSums[i], as_type<uint>(0.0f), memory_order_relaxed);
+    const uint totalEntries = approxDim * numLeaves * 2u;
+
+    // Zero per-thread private sums
+    for (uint i = 0u; i < totalEntries; i++) {
+        privSums[i] = 0.0f;
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    const uint globalIdx = threadgroup_position_in_grid.x * LEAF_BLOCK_SIZE
-                         + thread_index_in_threadgroup;
-
-    if (globalIdx < numDocs) {
-        const uint docIdx = globalIdx;
-        const uint leaf = partitions[docIdx];
-
+    // Strided document loop: each thread covers a deterministic non-overlapping
+    // subset of documents — no contention with other threads.
+    for (uint d = thread_index_in_threadgroup; d < numDocs; d += LEAF_BLOCK_SIZE) {
+        const uint leaf = partitions[d];
         if (leaf < numLeaves) {
-            for (uint k = 0; k < approxDim; k++) {
-                const float grad = gradients[k * numDocs + docIdx];
-                const float hess = hessians[k * numDocs + docIdx];
-
-                const uint gradIdx = k * numLeaves * 2 + leaf * 2;
-                const uint hessIdx = gradIdx + 1;
-
-                // CAS-based float atomic add for gradient
-                uint old_val = atomic_load_explicit(&sharedSums[gradIdx], memory_order_relaxed);
-                uint new_val;
-                do {
-                    new_val = as_type<uint>(as_type<float>(old_val) + grad);
-                } while (!atomic_compare_exchange_weak_explicit(
-                    &sharedSums[gradIdx], &old_val, new_val,
-                    memory_order_relaxed, memory_order_relaxed));
-
-                // CAS-based float atomic add for hessian
-                old_val = atomic_load_explicit(&sharedSums[hessIdx], memory_order_relaxed);
-                do {
-                    new_val = as_type<uint>(as_type<float>(old_val) + hess);
-                } while (!atomic_compare_exchange_weak_explicit(
-                    &sharedSums[hessIdx], &old_val, new_val,
-                    memory_order_relaxed, memory_order_relaxed));
+            for (uint k = 0u; k < approxDim; k++) {
+                const float grad = gradients[k * numDocs + d];
+                const float hess = hessians[k * numDocs + d];
+                privSums[k * numLeaves * 2u + leaf * 2u]       += grad;
+                privSums[k * numLeaves * 2u + leaf * 2u + 1u]  += hess;
             }
         }
     }
 
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Write threadgroup partial sums to global output using atomics
-    for (uint i = thread_index_in_threadgroup; i < totalShared; i += LEAF_BLOCK_SIZE) {
-        float val = as_type<float>(atomic_load_explicit(&sharedSums[i], memory_order_relaxed));
-        if (abs(val) > 1e-20f) {
-            uint remainder = i % (numLeaves * 2);
-            uint k = i / (numLeaves * 2);
-            uint leaf = remainder / 2;
-            uint is_hess = remainder % 2;
+    // Fixed-order sequential reduction via shared staging array.
+    // Thread 0 initialises staging; threads 1..LEAF_BLOCK_SIZE-1 add in order.
+    // Addition order is fixed across all dispatches → deterministic result.
+    threadgroup float stagingSums[LEAF_PRIV_SIZE];
 
-            if (is_hess == 0) {
-                device atomic_float* dst = (device atomic_float*)(gradSums + k * numLeaves + leaf);
-                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
-            } else {
-                device atomic_float* dst = (device atomic_float*)(hessSums + k * numLeaves + leaf);
-                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
+    if (thread_index_in_threadgroup == 0u) {
+        for (uint i = 0u; i < totalEntries; i++) {
+            stagingSums[i] = privSums[i];
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    for (uint t = 1u; t < LEAF_BLOCK_SIZE; t++) {
+        if (thread_index_in_threadgroup == t) {
+            for (uint i = 0u; i < totalEntries; i++) {
+                stagingSums[i] += privSums[i];
             }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    // Single-threadgroup design: no other threadgroup writes to the same slots.
+    // Non-atomic global write is correct and deterministic.
+    for (uint i = thread_index_in_threadgroup; i < totalEntries; i += LEAF_BLOCK_SIZE) {
+        const float val = stagingSums[i];
+        const uint k       = i / (numLeaves * 2u);
+        const uint rem     = i % (numLeaves * 2u);
+        const uint leaf    = rem / 2u;
+        const uint is_hess = rem % 2u;
+
+        if (is_hess == 0u) {
+            gradSums[k * numLeaves + leaf] = val;
+        } else {
+            hessSums[k * numLeaves + leaf] = val;
         }
     }
 )metal";

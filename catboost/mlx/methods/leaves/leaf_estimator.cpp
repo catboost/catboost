@@ -59,11 +59,16 @@ namespace NCatboostMlx {
             /*source=*/KernelSources::kLeafAccumSource,
             /*header=*/KernelSources::kLeafAccumHeader,
             /*ensure_row_contiguous=*/true,
-            /*atomic_outputs=*/true
+            // BUG-001 FIX: atomic_outputs=false — the redesigned single-threadgroup
+            // kernel writes directly (non-atomically). No other threadgroup touches the
+            // same output slot so atomic writes are unnecessary.
+            /*atomic_outputs=*/false
         );
 
-        const ui32 numBlocks = (numDocs + 255) / 256;
-        auto grid = std::make_tuple(static_cast<int>(256 * numBlocks), 1, 1);
+        // BUG-001 FIX: Single-threadgroup dispatch.
+        // The kernel iterates over all numDocs with stride LEAF_BLOCK_SIZE internally.
+        // Eliminates cross-threadgroup atomic_fetch_add non-determinism on leaf slots.
+        auto grid = std::make_tuple(256, 1, 1);
         auto tg = std::make_tuple(256, 1, 1);
 
         auto results = kernel(
