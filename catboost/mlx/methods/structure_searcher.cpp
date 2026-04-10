@@ -11,7 +11,7 @@ namespace NCatboostMlx {
         // GPU-resident bucket sort — zero CPU-GPU syncs.
         //
         // Step 1: stable sort doc indices by their partition assignment.
-        //   MLX argsort on uint32 is a radix sort — O(n), stable within ties.
+        //   MLX argsort on uint32 uses a stable merge sort.
         //   Docs within the same partition appear in ascending docIdx order,
         //   matching the original CPU scatter-sort behaviour.
         auto docIndices = mx::astype(
@@ -21,6 +21,10 @@ namespace NCatboostMlx {
         // Step 2: count docs per partition via scatter-add of ones.
         //   Reuse the float32 scatter pattern from ComputeLeafSumsGPU.
         //   float32 is exact for integer values up to 2^24 (~16M docs).
+        CB_ENSURE(numDocs < (1u << 24),
+            "ComputePartitionLayout: numDocs (" << numDocs
+            << ") exceeds float32 exact integer range (2^24 = 16777216). "
+            "Bucket counts via scatter_add_axis would incur rounding errors.");
         auto onesF = mx::ones({static_cast<int>(numDocs)}, mx::float32);
         auto partSizesF = mx::scatter_add_axis(
             mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
@@ -28,8 +32,8 @@ namespace NCatboostMlx {
         );
 
         // Step 3: exclusive prefix sum for partition start offsets.
-        //   MLX cumsum is inclusive; subtract self to get exclusive form.
-        auto partOffsetsF = mx::subtract(mx::cumsum(partSizesF, /*axis=*/0), partSizesF);
+        //   MLX cumsum(a, axis, reverse=false, inclusive=false) gives exclusive form directly.
+        auto partOffsetsF = mx::cumsum(partSizesF, /*axis=*/0, /*reverse=*/false, /*inclusive=*/false);
 
         TPartitionLayout layout;
         layout.DocIndices  = docIndices;
