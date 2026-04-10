@@ -188,7 +188,7 @@ class TestBenchBoostingAnchors:
             "--depth", "6", "--iters", "100", "--bins", "32", "--seed", "42"
         ], timeout=240)
         assert not _has_nan(stdout), (
-            f"NaN/Inf detected in binary standard run output."
+            "NaN/Inf detected in binary standard run output."
         )
 
     def test_multiclass_anchor_no_nan(self):
@@ -199,7 +199,7 @@ class TestBenchBoostingAnchors:
             "--depth", "5", "--iters", "50", "--bins", "32", "--seed", "42"
         ], timeout=120)
         assert not _has_nan(stdout), (
-            f"NaN/Inf detected in multiclass standard run output."
+            "NaN/Inf detected in multiclass standard run output."
         )
 
 
@@ -488,7 +488,7 @@ class TestBenchBoostingEdgeCases:
             f"BUG-001 regression: parallel scan is still non-deterministic at 10k rows. "
             f"10 runs with bins=96 seed=42: variation={variation:.2e} "
             f"(min={min_loss:.8f}, max={max_loss:.8f}). "
-            f"losses={[f'{l:.8f}' for l in losses]}. "
+            f"losses={[f'{v:.8f}' for v in losses]}. "
             f"Root cause: CAS float add in kHistOneByteSource or global atomic_fetch_add_explicit "
             f"in bench_boosting maxBlocksPerPart>1."
         )

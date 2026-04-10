@@ -11,7 +11,6 @@ Focus areas:
 """
 
 import os
-import tempfile
 
 import numpy as np
 import pytest
