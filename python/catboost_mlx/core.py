@@ -213,8 +213,8 @@ def _find_binary(name: str, binary_path: Optional[str] = None) -> str:
 
     raise FileNotFoundError(
         f"Cannot find '{name}' binary. Either:\n"
-        f"  1. Add it to your PATH\n"
-        f"  2. Place it in the current directory\n"
+        "  1. Add it to your PATH\n"
+        "  2. Place it in the current directory\n"
         f"  3. Pass binary_path='<directory containing {name}>'"
     )
 
@@ -543,7 +543,7 @@ class CatBoostMLX(BaseEstimator):
             except ValueError:
                 raise ValueError(
                     f"Loss parameter must be numeric, got '{self.loss}'. "
-                    f"Use positional syntax, e.g. 'quantile:0.7' or 'huber:1.0'."
+                    "Use positional syntax, e.g. 'quantile:0.7' or 'huber:1.0'."
                 )
 
         if not isinstance(self.bins, int) or not (2 <= self.bins <= 255):
@@ -602,7 +602,7 @@ class CatBoostMLX(BaseEstimator):
         if self.auto_class_weights is not None:
             if self.auto_class_weights.lower() not in ("balanced", "sqrtbalanced"):
                 raise ValueError(
-                    f"auto_class_weights must be 'Balanced' or 'SqrtBalanced', "
+                    "auto_class_weights must be 'Balanced' or 'SqrtBalanced', "
                     f"got {self.auto_class_weights!r}"
                 )
 
@@ -643,7 +643,7 @@ class CatBoostMLX(BaseEstimator):
                     )
                 if "," in fname or "\n" in fname or "\r" in fname or "\x00" in fname:
                     raise ValueError(
-                        f"feature_names contain invalid characters (comma, "
+                        "feature_names contain invalid characters (comma, "
                         f"newline, carriage return, or null byte): {fname!r}"
                     )
         if self.cat_features:

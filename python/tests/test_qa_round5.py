@@ -21,7 +21,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
+from catboost_mlx import CatBoostMLXClassifier, CatBoostMLXRegressor
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BINARY_PATH = REPO_ROOT

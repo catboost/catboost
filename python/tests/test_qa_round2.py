@@ -11,7 +11,6 @@ Focus areas:
 """
 
 import json
-import math
 import os
 import struct
 import tempfile
@@ -20,7 +19,6 @@ import numpy as np
 import pytest
 
 from catboost_mlx import CatBoostMLX, CatBoostMLXClassifier, CatBoostMLXRegressor, Pool
-from catboost_mlx._predict_utils import quantize_features
 from catboost_mlx.core import _array_to_binary, _array_to_csv
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -472,10 +470,6 @@ class TestBasePrediction:
         y = rng.rand(30)
         model = CatBoostMLXRegressor(iterations=10, depth=3, binary_path=BINARY_PATH)
         model.fit(X, y)
-
-        # Check if base_prediction is in model_info
-        info = model._model_data.get("model_info", {})
-        bp = info.get("base_prediction", [])
 
         staged = list(model.staged_predict(X))
         preds = model.predict(X)

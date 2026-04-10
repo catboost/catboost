@@ -28,7 +28,6 @@ Focus areas:
 
 import os
 import subprocess
-import tempfile
 
 import numpy as np
 import pytest
