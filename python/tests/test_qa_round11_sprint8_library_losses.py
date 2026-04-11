@@ -271,7 +271,7 @@ class TestTweedieRegression:
         X, y = nonneg_data
         _, preds = _fit_and_predict("tweedie", X, y)
         assert np.all(np.isfinite(preds)), (
-            f"Tweedie(default) produced non-finite predictions"
+            "Tweedie(default) produced non-finite predictions"
         )
 
     def test_tweedie_default_matches_explicit_15(self, nonneg_data):
@@ -405,7 +405,7 @@ class TestMapeRegression:
         X, y = positive_data
         _, preds = _fit_and_predict("mape", X, y)
         assert np.all(np.isfinite(preds)), (
-            f"MAPE produced non-finite predictions on positive data"
+            "MAPE produced non-finite predictions on positive data"
         )
 
     def test_mape_loss_decreases_over_iterations(self, positive_data):
