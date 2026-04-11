@@ -16,25 +16,21 @@
 
 ---
 
-## DEC-003 — float32 bucket-count limit in GPU partition layout
+## DEC-003 — float32 bucket-count limit in GPU partition layout (RESOLVED)
 - **Date:** 2026-04-09
-- **Status:** Active
-- **Decided by:** ml-engineer (Sprint 4 follow-up, Sprint 5 documented)
+- **Status:** Resolved (Sprint 9)
+- **Decided by:** ml-engineer (Sprint 4 follow-up, Sprint 5 documented, Sprint 9 fixed)
 
-`ComputePartitionLayout` uses `mx::scatter_add_axis` with float32 accumulators
-to count docs per partition. float32 represents integers exactly only up to
-2^24 = 16,777,216. A runtime `CB_ENSURE` in `structure_searcher.cpp` guards
-`numDocs` against this limit. Datasets above 16M rows will need int32
-accumulation — filed as a future enhancement, not blocking current targets.
+**Original issue:** `ComputePartitionLayout` used `mx::scatter_add_axis` with
+float32 accumulators to count docs per partition. float32 represents integers
+exactly only up to 2^24 = 16,777,216.
 
-**Alternatives:** Use int32 scatter_add throughout. Deferred because MLX's
-`scatter_add_axis` on int32 requires casting around the API; float32 is
-currently simpler and covers all realistic training sizes on Apple Silicon
-(M-series unified memory caps out well below the 16M row limit in practice).
+**Resolution (Sprint 9):** Switched to int32 scatter_add_axis accumulator.
+Int32 is exact for values up to 2^31 (~2.1B docs) — effectively unlimited
+for any dataset that fits in Apple Silicon unified memory. The `CB_ENSURE`
+guard was removed. MLX's `scatter_add_axis` works correctly with int32.
 
-**Commits:** `8717ddd` (guard added), `fff9f02` (Sprint 4 merge)
-
-**Related**: ADR-005 (`docs/decisions.md`) — the float32 accumulator choice is a direct consequence of ADR-005's decision to use float32 as the primary compute precision throughout the pipeline. Resolving this limit requires changing the accumulator type without touching ADR-005's gradient/hessian precision policy.
+**Commits:** `8717ddd` (original guard), Sprint 9 (int32 fix)
 
 ---
 

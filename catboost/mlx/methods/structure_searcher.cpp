@@ -19,26 +19,21 @@ namespace NCatboostMlx {
         );
 
         // Step 2: count docs per partition via scatter-add of ones.
-        //   Reuse the float32 scatter pattern from ComputeLeafSumsGPU.
-        //   float32 is exact for integer values up to 2^24 (~16M docs).
-        CB_ENSURE(numDocs < (1u << 24),
-            "ComputePartitionLayout: numDocs (" << numDocs
-            << ") exceeds float32 exact integer range (2^24 = 16777216). "
-            "Bucket counts via scatter_add_axis would incur rounding errors.");
-        auto onesF = mx::ones({static_cast<int>(numDocs)}, mx::float32);
-        auto partSizesF = mx::scatter_add_axis(
-            mx::zeros({static_cast<int>(numPartitions)}, mx::float32),
-            partitions, onesF, 0
+        //   Use int32 accumulator — exact for all values up to 2^31 (~2.1B docs),
+        //   removing the previous float32 ceiling of 2^24 (~16M docs).
+        auto onesI = mx::ones({static_cast<int>(numDocs)}, mx::int32);
+        auto partSizesI = mx::scatter_add_axis(
+            mx::zeros({static_cast<int>(numPartitions)}, mx::int32),
+            partitions, onesI, 0
         );
 
         // Step 3: exclusive prefix sum for partition start offsets.
-        //   MLX cumsum(a, axis, reverse=false, inclusive=false) gives exclusive form directly.
-        auto partOffsetsF = mx::cumsum(partSizesF, /*axis=*/0, /*reverse=*/false, /*inclusive=*/false);
+        auto partOffsetsI = mx::cumsum(partSizesI, /*axis=*/0, /*reverse=*/false, /*inclusive=*/false);
 
         TPartitionLayout layout;
         layout.DocIndices  = docIndices;
-        layout.PartSizes   = mx::astype(partSizesF, mx::uint32);
-        layout.PartOffsets = mx::astype(partOffsetsF, mx::uint32);
+        layout.PartSizes   = mx::astype(partSizesI, mx::uint32);
+        layout.PartOffsets = mx::astype(partOffsetsI, mx::uint32);
 
         // No EvalNow here — arrays are consumed lazily by the histogram kernel
         // in the same MLX graph, avoiding an unnecessary CPU-GPU sync point.
