@@ -45,7 +45,11 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | **Explainability** | Feature importance (gain-based) | Done |
 | | SHAP values (TreeSHAP) | Done |
 | **Infrastructure** | Metal GPU histogram kernel | Done |
+| | ComputePartitionLayout on GPU (argsort + scatter_add + cumsum) | Done (Sprint 4) |
+| | Suffix-sum scan: parallel SIMD (simd_prefix_inclusive_sum) | Done (Sprint 5) |
+| | Tree applier Metal kernel (kTreeApplySource) | Done (Sprint 6) |
 | | Standalone csv_train CLI tool | Done |
+| | Library-path benchmark harness (bench_boosting) | Done (Sprint 5) |
 | | Python bindings | Done |
 | | Cross-validation | Done |
 | | Snapshot save/resume | Done |
@@ -778,13 +782,14 @@ catboost/mlx/
 │   ├── train.h/cpp         # Trainer registration
 │   └── model_exporter.h/cpp  # TFullModel export
 └── tests/               # Test files
-    ├── csv_train.cpp       # Standalone CSV training tool (all features)
-    ├── csv_predict.cpp     # Standalone CSV prediction tool
+    ├── csv_train.cpp           # Standalone CSV training tool (all features)
+    ├── csv_predict.cpp         # Standalone CSV prediction tool
     ├── classification_test.cpp
     ├── model_export_test.cpp
     ├── mlx_histogram_test.cpp
     ├── standalone_kernel_test.cpp
-    └── build_verify_test.cpp
+    ├── build_verify_test.cpp   # Kernel parameter smoke test
+    └── bench_boosting.cpp      # Library-path benchmark harness (no subprocess)
 ```
 
 ### Python Package Structure
@@ -803,7 +808,12 @@ python/
 │   ├── export_coreml.py        # CoreML export
 │   └── bin/                    # Compiled binaries (csv_train, csv_predict)
 ├── build_binaries.py           # Build script
-├── tests/test_basic.py         # Test suite (111 tests)
+├── tests/
+│   ├── test_basic.py                                  # Core functionality (684 total across all files)
+│   ├── test_new_features.py
+│   ├── test_qa_adversarial.py
+│   ├── test_qa_round2.py through test_qa_round10_sprint5_bench_and_scan.py
+│   └── conftest.py
 └── benchmarks/benchmark.py     # Performance comparison
 ```
 

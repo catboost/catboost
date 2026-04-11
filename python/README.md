@@ -221,9 +221,19 @@ python/
 │       └── csv_predict             #   GPU prediction binary
 │
 ├── tests/
-│   ├── conftest.py                 # Shared test fixtures
-│   ├── test_basic.py               # Core functionality tests
-│   └── test_new_features.py        # Extended feature and regression tests
+│   ├── conftest.py                                    # Shared test fixtures
+│   ├── test_basic.py                                  # Core functionality tests
+│   ├── test_new_features.py                           # Extended feature and regression tests
+│   ├── test_qa_adversarial.py                         # Adversarial / edge-case tests
+│   ├── test_qa_round2.py                              # QA round 2: regression, classification, sklearn
+│   ├── test_qa_round3.py                              # QA round 3: data handling, categoricals
+│   ├── test_qa_round4.py                              # QA round 4: ranking, sample weights
+│   ├── test_qa_round5.py                              # QA round 5: bootstrap, snapshot, monotone
+│   ├── test_qa_round6.py                              # QA round 6: serialization, export, SHAP
+│   ├── test_qa_round7.py                              # QA round 7: pool, sklearn pipeline, eval_set
+│   ├── test_qa_round8_sprint3_losses.py               # Sprint 3: MAE, Quantile, Huber loss functions
+│   ├── test_qa_round9_sprint4_partition_layout.py     # Sprint 4: GPU partition layout regression
+│   └── test_qa_round10_sprint5_bench_and_scan.py      # Sprint 5: bench harness, deterministic scan
 │
 └── benchmarks/
     ├── benchmark.py                # Speed/accuracy comparison tool
@@ -327,7 +337,7 @@ Standalone (not imported by the package):
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `iterations` | 100 | Number of trees to build |
-| `depth` | 6 | Max depth of each tree (1-16) |
+| `depth` | 6 | Max depth of each tree (1-6; depths above 6 are not supported — see Known Limitations) |
 | `learning_rate` | 0.1 | How much each tree contributes (smaller = more conservative) |
 | `l2_reg_lambda` | 3.0 | Regularization strength (prevents overfitting) |
 | `loss` | "auto" | Loss function (see table above) |
@@ -417,7 +427,7 @@ cp python/catboost_mlx/bin/csv_predict .
 ## Running Tests
 
 ```bash
-# All tests (174 tests)
+# All tests (684 tests)
 python3 -m pytest python/tests/ -v
 
 # A specific test class
