@@ -9,7 +9,7 @@
 ### TODO-007 — GPU partition layout (MLOps #1)
 - **Assigned to:** ml-engineer
 - **Priority:** High
-- **Status:** In Review
+- **Status:** Done
 - **Branch:** `mlx/sprint-4-gpu-partition-layout`
 - **Commit:** `19d24ec`
 - **Depends on:** none
@@ -18,7 +18,7 @@
   - [x] CPU-GPU sync count in `SearchTreeStructure` drops by 2 EvalNow calls per depth level (3→1)
   - [x] Existing test suite (604 passing) remains green
   - [x] csv_train regression: final loss matches pre-sprint baseline (0.481507 = 0.481507, exact match)
-  - [ ] Multiclass K=3 Python benchmark unaffected (Python path uses csv_train binary, not structure_searcher.cpp)
+  - [x] Multiclass K=3 Python benchmark unaffected (Python path uses csv_train binary, not structure_searcher.cpp)
 - **Notes:** Python bindings invoke csv_train binary via subprocess — they do NOT exercise structure_searcher.cpp. The optimization applies to the C++ library API (mlx_boosting.cpp → SearchTreeStructure). csv_train.cpp already had its own GPU partition layout before this sprint.
 
 ### TODO-008 — Parallel SIMD scan for suffix_sum_histogram (MLOps #3)
@@ -45,6 +45,44 @@
   - [x] `FindBestSplit` and `FindBestSplitMultiDim` removed from `score_calcer.cpp` and `score_calcer.h`
   - [x] grep shows only FindBestSplitGPU and csv_train's internal reimplementation
   - [x] Build clean, pytest 622/622
+
+### TODO-016 — Add bench_boosting compile step to CI workflow
+- **Assigned to:** mlops-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-6-ci-and-infra`
+- **Commits:** `1a7b9b7`
+- **Acceptance Criteria:**
+  - [x] `mlx_test.yaml` compiles bench_boosting and build_verify_test alongside csv_train/csv_predict
+  - [x] bench_boosting copied to `/tmp/bench_boosting` so test_qa_round10 tests execute (not silently skip)
+  - [x] Verify binaries step checks all 4 executables
+  - [x] ruff check passes, pytest 684/684
+
+### TODO-017 — Add --onehot flag to bench_boosting
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-6-ci-and-infra`
+- **Commits:** `abdd659`
+- **Acceptance Criteria:**
+  - [x] `--onehot N` CLI flag marks first N features as one-hot with small bin counts (2-10)
+  - [x] `--onehot 0` preserves existing behavior (default)
+  - [x] OneHot features exercise the one-hot skip/equality branches in kSuffixSumSource and tree applier
+  - [x] Verified: `--onehot 5` produces finite BENCH_FINAL_LOSS, deterministic across 3 runs
+
+### TODO-018 — Port tree_applier to Metal kernel dispatch
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-6-ci-and-infra`
+- **Commits:** `caf4552`
+- **Acceptance Criteria:**
+  - [x] `kTreeApplySource` Metal kernel: one thread per doc, computes leaf index, updates predictions
+  - [x] Handles binary/regression (approxDim=1) and multiclass (approxDim>1)
+  - [x] OneHot (equality) vs ordinal (greater-than) split comparison preserved
+  - [x] BENCH_FINAL_LOSS matches pre-change reference: 0.69314516 (binary 100k), 1.09757149 (multiclass 20k)
+  - [x] Deterministic across 3 runs
+  - [x] pytest 684/684 passing
 
 ### TODO-010 — MLflow integration via ITrainingCallbacks
 - **Assigned to:** unassigned

@@ -48,16 +48,39 @@ jobs:
             -Wno-c++20-extensions \
             catboost/mlx/tests/csv_predict.cpp -o csv_predict
 
+      - name: Compile bench_boosting
+        run: |
+          MLX_PREFIX=$(brew --prefix mlx)
+          clang++ -std=c++17 -O2 -I. \
+            -I${MLX_PREFIX}/include \
+            -L${MLX_PREFIX}/lib -lmlx \
+            -framework Metal -framework Foundation \
+            -Wno-c++20-extensions \
+            catboost/mlx/tests/bench_boosting.cpp -o bench_boosting
+
+      - name: Compile build_verify_test
+        run: |
+          MLX_PREFIX=$(brew --prefix mlx)
+          clang++ -std=c++17 -O2 -I. \
+            -I${MLX_PREFIX}/include \
+            -L${MLX_PREFIX}/lib -lmlx \
+            -framework Metal -framework Foundation \
+            -Wno-c++20-extensions \
+            catboost/mlx/tests/build_verify_test.cpp -o build_verify_test
+
       - name: Verify binaries
         run: |
           test -x ./csv_train || (echo "csv_train not executable" && exit 1)
           test -x ./csv_predict || (echo "csv_predict not executable" && exit 1)
+          test -x ./bench_boosting || (echo "bench_boosting not executable" && exit 1)
+          test -x ./build_verify_test || (echo "build_verify_test not executable" && exit 1)
 
       - name: Bundle binaries in package
         run: |
           mkdir -p python/catboost_mlx/bin
           cp csv_train python/catboost_mlx/bin/
           cp csv_predict python/catboost_mlx/bin/
+          cp bench_boosting /tmp/bench_boosting
 
       - name: Setup Python
         uses: actions/setup-python@v5
