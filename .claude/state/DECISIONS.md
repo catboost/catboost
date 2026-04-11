@@ -3,6 +3,8 @@
 <!-- Agents record design decisions here. Append-only — to reverse a decision, add a new entry. -->
 <!-- Format: DEC-NNN sequential IDs. Status: Active / Superseded by DEC-XXX / Deprecated -->
 
+> See also: `docs/decisions.md` for architecture decisions (ADR series).
+
 ## DEC-001 — Loss parameter syntax: normalize to positional form before binary call
 - **Date:** 2026-04-09
 - **Status:** Active
@@ -31,6 +33,8 @@ currently simpler and covers all realistic training sizes on Apple Silicon
 (M-series unified memory caps out well below the 16M row limit in practice).
 
 **Commits:** `8717ddd` (guard added), `fff9f02` (Sprint 4 merge)
+
+**Related**: ADR-005 (`docs/decisions.md`) — the float32 accumulator choice is a direct consequence of ADR-005's decision to use float32 as the primary compute precision throughout the pipeline. Resolving this limit requires changing the accumulator type without touching ADR-005's gradient/hessian precision policy.
 
 ---
 

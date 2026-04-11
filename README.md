@@ -13,6 +13,23 @@
 [![Telegram](https://img.shields.io/badge/chat-on%20Telegram-2ba2d9.svg)](https://t.me/catboost_en)
 [![Twitter](https://img.shields.io/badge/@CatBoostML--_.svg?style=social&logo=twitter)](https://twitter.com/CatBoostML)
 
+---
+
+## CatBoost-MLX: GPU Acceleration on Apple Silicon
+
+This fork adds a native Apple Silicon GPU backend using [MLX](https://github.com/ml-explore/mlx) and Metal compute shaders. Train gradient boosted decision trees directly on your Mac's GPU — no CUDA required.
+
+- **Full Python API**: `CatBoostMLXRegressor`, `CatBoostMLXClassifier` with scikit-learn compatibility
+- **4 Metal compute kernels**: histogram, score splits, leaf estimation, tree application
+- **10 loss functions**: RMSE, Logloss, MultiClass, MAE, Quantile, Huber, Poisson, Tweedie, MAPE, PairLogit
+- **684 tests passing** across Python 3.9–3.13
+
+**Requirements**: Apple Silicon Mac (M1/M2/M3/M4), macOS 14+, MLX (`brew install mlx`)
+
+> [Python quickstart and API reference](python/README.md) | [C++ architecture and CLI](catboost/mlx/README.md) | [Benchmarks](python/benchmarks/README.md)
+
+---
+
 CatBoost is a machine learning method based on [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) over decision trees.
 
 Main advantages of CatBoost:
