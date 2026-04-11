@@ -30,7 +30,7 @@ All 3 Sprint 7 TODOs (019/020/021) complete. Documentation updated.
 
 - **Test suite:** 684 passed, 5 skipped, 4 xfailed (unchanged from Sprint 6 close)
 - **Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
-- **Master:** Sprint 6 merged; Sprint 7 on branch (not yet merged to master)
+- **Master:** Sprint 7 merged (`7b483ad631`)
 
 ## Reference Baselines (bench_boosting, current as of Sprint 7)
 
@@ -38,14 +38,22 @@ All 3 Sprint 7 TODOs (019/020/021) complete. Documentation updated.
 |---------------|-----------------|
 | Binary 100k, 50 features, depth 6, 100 iters | **0.11909308** |
 | Multiclass K=3, 20k docs | **0.63507235** |
-| Multiclass K=10, 20k docs | **2.22267818** |
+| Multiclass K=10, 20k docs | **1.78561831** |
 
 > Previous Sprint 6 binary baseline was 0.69314516 (≈ log(2), i.e. a random classifier). The
 > dramatic improvement to 0.11909308 is correct — BUG-002 (off-by-one in threshold comparison)
 > was preventing gradient boosting from converging in `bench_boosting`. The library path and
 > `csv_train` were never affected by this bug.
 
-## Performance Impact of Sprint 7
+## Performance (Sprint 7 runtime benchmarks)
+
+| Config | Warm mean | Final loss |
+|--------|-----------|------------|
+| Binary 100k×50×d6×100i | 180.9 ms | 0.11909308 |
+| K=3 20k×30×d5×50i | 101.3 ms | 0.63507235 |
+| K=10 20k×30×d5×50i | 115.4 ms | 1.78561831 |
+
+K=10 scales sub-linearly from K=3 (115ms vs 101ms for 3× the dimensions) — fused leaf computation confirmed effective.
 
 - **TODO-019 (multiclass fuse):** For K=10 multiclass, eliminates 10 `EvalNow` CPU-GPU round trips per boosting iteration. No measurable change in binary (K=1) throughput. Lazy evaluation defers all leaf computation to the `ApplyObliviousTree` call.
 - **TODO-020 (partition output):** Eliminates a O(depth) MLX op sequence that reconstructed leaf assignments post-kernel. The partition array is now a direct kernel output — no additional GPU dispatches.

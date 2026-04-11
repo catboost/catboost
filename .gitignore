@@ -77,6 +77,12 @@ catboost/spark/catboost4j-spark/projects/
 build/
 .cache/
 CLAUDE.md
+
+# Compiled C++ binaries (local builds)
+/bench_boosting
+/bench_boosting_*
+/csv_train_phase_c
+/csv_train_phase_c_*
 harness/
 decisions.md
 implementation_plan.md

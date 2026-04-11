@@ -68,7 +68,7 @@ def make_multiclass(n_samples, n_features=50, n_classes=5, seed=42):
 # ── Framework Runners ──────────────────────────────────────────────────────
 
 def run_catboost_mlx(X_train, y_train, X_test, y_test, task, params):
-    from catboost_mlx import CatBoostMLXRegressor, CatBoostMLXClassifier
+    from catboost_mlx import CatBoostMLXClassifier, CatBoostMLXRegressor
 
     if task == "regression":
         model = CatBoostMLXRegressor(**params)

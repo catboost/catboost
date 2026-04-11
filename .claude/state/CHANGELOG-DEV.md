@@ -34,7 +34,7 @@
 - pytest: 684 passed, 5 skipped, 4 xfailed
 - ruff: 0 errors
 - Determinism: 3/3 identical at 10k rows
-- New K=10 baseline: 2.22267818
+- New K=10 baseline: 1.78561831 (20k×30×cls10×d5×50i×bins32×seed42)
 
 ---
 

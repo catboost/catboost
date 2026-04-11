@@ -20,7 +20,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
   New reference baselines for `bench_boosting` regression tests:
   - Binary 100k (50 features, depth 6, 100 iters): **0.11909308**
   - Multiclass K=3, 20k docs: **0.63507235**
-  - Multiclass K=10, 20k docs: **2.22267818**
+  - Multiclass K=10, 20k docs: **1.78561831**
 
 ---
 

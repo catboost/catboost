@@ -94,7 +94,7 @@
   - [x] Single `ComputeLeafValues` call over full `[approxDim * numLeaves]` arrays (no per-k loop)
   - [x] `EvalNow` removed from `ComputeLeafValues` — returns lazy MLX array
   - [x] Multiclass K=3 BENCH_FINAL_LOSS: 0.63507235 (new baseline after BUG-002 fix)
-  - [x] K=10 multiclass: 2.22267818 (finite, deterministic)
+  - [x] K=10 multiclass: 1.78561831 (finite, deterministic; params: 20k×30×cls10×d5×50i×bins32×seed42)
   - [x] Binary BENCH_FINAL_LOSS: 0.11909308 (new baseline after BUG-002 fix)
   - [x] pytest 684/684 passing
 
@@ -133,16 +133,58 @@
   - No C++ changes required
   - Documented in Python docstring with a usage example
 
-### TODO-011 — Additional loss functions: Poisson, Tweedie, MAPE
-- **Assigned to:** unassigned
-- **Priority:** Medium
-- **Status:** Backlog
+### TODO-011 — Additional loss functions: Poisson, Tweedie, MAPE (library path)
+- **Assigned to:** ml-engineer
+- **Priority:** High
+- **Status:** In Progress
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
 - **Depends on:** none
 - **Acceptance Criteria:**
-  - `pointwise_target.h` extended with Poisson, Tweedie (power param), MAPE targets
-  - Wired into `train_lib/train.cpp` dispatch (same pattern as MAE/Quantile/Huber)
-  - Python validator updated to accept new loss names and their named params
-  - QA validation tests added (follow `test_qa_round8_sprint3_losses.py` pattern)
+  - [ ] `pointwise_target.h` extended with `TPoissonTarget`, `TTweedieTarget` (power param), `TMAPETarget`
+  - [ ] Wired into `train_lib/train.cpp` dispatch (same pattern as MAE/Quantile/Huber)
+  - [ ] Python validator already accepts these losses — no Python changes needed
+  - [ ] `csv_train.cpp` already has full implementations — library path must match its behavior
+  - [ ] QA validation tests added (follow `test_qa_round8_sprint3_losses.py` pattern)
+- **Notes:** Python `_KNOWN_LOSSES` already includes poisson/tweedie/mape. csv_train.cpp already implements all three. Only the library path (pointwise_target.h + train.cpp) is missing.
+
+### TODO-022 — Gitignore compiled binaries and fix ruff I001
+- **Assigned to:** mlops-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
+- **Acceptance Criteria:**
+  - [x] `.gitignore` updated: bench_boosting*, csv_train_phase_c* patterns added
+  - [x] Pre-existing ruff I001 in `python/benchmarks/benchmark.py` fixed
+  - [x] `python -m ruff check python/` passes clean
+
+### TODO-023 — Resolve K=10 baseline discrepancy
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
+- **Acceptance Criteria:**
+  - [x] Re-run bench_boosting with exact documented params (20k×30×cls10×d5×50i×bins32×seed42)
+  - [x] Measured: 1.78561831 (not 2.22267818 — old value was from different params)
+  - [x] Updated: TODOS.md, HANDOFF.md, CHANGELOG-DEV.md, CHANGELOG.md
+
+### TODO-024 — Record Sprint 7 runtime benchmarks
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
+- **Acceptance Criteria:**
+  - [x] Binary 100k: 180.9 ms warm mean, loss 0.11909308
+  - [x] K=3 20k: 101.3 ms warm mean, loss 0.63507235
+  - [x] K=10 20k: 115.4 ms warm mean, loss 1.78561831
+  - [x] Recorded in HANDOFF.md performance table
+
+### TODO-025 — Update HANDOFF.md merge status
+- **Assigned to:** technical-writer
+- **Priority:** Low
+- **Status:** Done
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
+- **Acceptance Criteria:**
+  - [x] "Sprint 7 on branch (not yet merged)" corrected to "Sprint 7 merged (7b483ad631)"
 
 ### TODO-012 — Grow policies: Lossguide and Depthwise
 - **Assigned to:** unassigned
