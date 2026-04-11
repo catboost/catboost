@@ -84,6 +84,44 @@
   - [x] Deterministic across 3 runs
   - [x] pytest 684/684 passing
 
+### TODO-019 — Fuse multiclass leaf computation, eliminate K EvalNow calls
+- **Assigned to:** ml-engineer
+- **Priority:** Critical
+- **Status:** Done
+- **Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
+- **Commits:** `2908a84`
+- **Acceptance Criteria:**
+  - [x] Single `ComputeLeafValues` call over full `[approxDim * numLeaves]` arrays (no per-k loop)
+  - [x] `EvalNow` removed from `ComputeLeafValues` — returns lazy MLX array
+  - [x] Multiclass K=3 BENCH_FINAL_LOSS: 0.63507235 (new baseline after BUG-002 fix)
+  - [x] K=10 multiclass: 2.22267818 (finite, deterministic)
+  - [x] Binary BENCH_FINAL_LOSS: 0.11909308 (new baseline after BUG-002 fix)
+  - [x] pytest 684/684 passing
+
+### TODO-020 — Output partition indices from tree_applier Metal kernel
+- **Assigned to:** ml-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
+- **Commits:** `5ef25eb`
+- **Acceptance Criteria:**
+  - [x] `kTreeApplySource` has two outputs: `cursorOut` (float32) and `partitionsOut` (uint32)
+  - [x] O(depth) MLX op loop in `tree_applier.cpp` deleted (−28 lines)
+  - [x] BENCH_FINAL_LOSS unchanged for binary and multiclass configs
+  - [x] Deterministic: 3-run match at 10k rows
+  - [x] pytest 684/684 passing
+
+### TODO-021 — BUG-002 fix: bench_boosting threshold comparison
+- **Assigned to:** ml-engineer
+- **Priority:** Low
+- **Status:** Done
+- **Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
+- **Commits:** `6969280`
+- **Acceptance Criteria:**
+  - [x] `> binThreshold + 1` changed to `> binThreshold` in bench_boosting.cpp
+  - [x] New reference baselines recorded: 0.11909308 (binary 100k), 0.63507235 (multiclass 20k K=3)
+  - [x] pytest 684/684 passing
+
 ### TODO-010 — MLflow integration via ITrainingCallbacks
 - **Assigned to:** unassigned
 - **Priority:** Medium
