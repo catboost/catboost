@@ -11,8 +11,9 @@ A deep-dive for contributors and anyone who wants to understand how the Metal GP
 3. [Metal Kernels](#metal-kernels)
 4. [Data Layout](#data-layout)
 5. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
-6. [Two Code Paths](#two-code-paths)
-7. [Performance Characteristics](#performance-characteristics)
+6. [Loss Functions (Target Functions)](#loss-functions-target-functions)
+7. [Two Code Paths](#two-code-paths)
+8. [Performance Characteristics](#performance-characteristics)
 
 ---
 
@@ -300,6 +301,33 @@ After all feature groups are dispatched and accumulated, `EvalNow` is called onc
 - **BUG-001 fix (Sprint 5):** Removed the CPU-side verification loop that read back and compared histogram values to check for non-determinism. Determinism is now guaranteed by construction.
 - **TODO-019 (Sprint 7):** Eliminated K `EvalNow` calls per iteration that the old per-dimension multiclass leaf loop incurred. `ComputeLeafValues` now returns a lazy MLX array; the Newton step executes over the full `[approxDim * numLeaves]` array in a single element-wise dispatch. For K=10 multiclass, this removes 10 CPU-GPU round trips per boosting iteration.
 - **TODO-020 (Sprint 7):** Eliminated the O(depth) MLX bitwise-op recompute loop for partition assignments. `kTreeApplySource` now produces `partitionsOut` directly as a second kernel output — the leaf index computed inside the kernel is written out without any post-kernel recomputation on the CPU side.
+
+---
+
+## Loss Functions (Target Functions)
+
+Target functions live in `catboost/mlx/targets/pointwise_target.h`. Each class inherits from `IMLXTargetFunc` and implements three methods: `ComputeDerivatives` (gradients and hessians), `ComputeLoss`, and `GetApproxDimension`.
+
+### Supported losses
+
+| Loss | Class | Task | Notes |
+|------|-------|------|-------|
+| RMSE | `TRMSETarget` | Regression | L2, cursor ≈ prediction |
+| Logloss | `TLoglossTarget` | Binary classification | Sigmoid link |
+| CrossEntropy | `TLoglossTarget` | Binary classification | Alias for Logloss |
+| MultiClass | `TMultiClassTarget` | Multi-class | Softmax, `approxDim = K` |
+| MAE | `TMAETarget` | Regression | L1, sign-based gradient |
+| Quantile | `TQuantileTarget(alpha)` | Regression | Asymmetric L1; default alpha=0.5 |
+| Huber | `THuberTarget(delta)` | Regression | Smooth L1; default delta=1.0 |
+| Poisson | `TPoissonTarget` | Count regression | Log-link; cursor is log-space |
+| Tweedie | `TTweedieTarget(p)` | Zero-inflated regression | Log-link, variance power p∈(1,2); default p=1.5 |
+| MAPE | `TMAPETarget` | Regression | Relative error; epsilon-clamped denominator |
+
+As of Sprint 8, the library path (`train.cpp`) supports all 10 losses listed above, matching the `csv_train` standalone binary. The switch statement in `TMLXModelTrainer::Train()` dispatches each loss to its target class; unsupported losses produce a `CB_ENSURE` error listing all 10 supported names.
+
+### Gradient and hessian computation
+
+`ComputeDerivatives` operates on MLX arrays (`cursor`, `targets`, `weights`) and returns lazy MLX expressions. The training loop calls `EvalNow` once per iteration to materialize them — gradient evaluation is not a separate sync point; it is folded into the first downstream kernel that needs the values.
 
 ---
 

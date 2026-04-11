@@ -5,6 +5,35 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
 
 ---
 
+## [Unreleased] — Sprint 8 (2026-04-11)
+
+### Added
+
+- **Poisson, Tweedie, MAPE losses in library path (TODO-011)**: `catboost/mlx/targets/pointwise_target.h` now defines `TPoissonTarget`, `TTweedieTarget(p)`, and `TMAPETarget`. `train.cpp` dispatches these three losses via new switch cases in `TMLXModelTrainer::Train()`. The library path now supports all 10 losses — RMSE, Logloss, CrossEntropy, MultiClass, MAE, Quantile, Huber, Poisson, Tweedie, and MAPE — matching the `csv_train` standalone binary.
+  - **Poisson**: log-link regression for count data; cursor is log-space; gradient = exp(cursor) − target; hessian = exp(cursor).
+  - **Tweedie**: log-link with variance power `p` (default 1.5, configurable via `variance_power` loss param); suited for zero-inflated continuous targets.
+  - **MAPE**: relative error regression; gradient = sign(cursor − target) / max(|target|, ε); denominator clamped to avoid division by zero.
+
+### Fixed
+
+- **K=10 bench_boosting baseline corrected (TODO-022)**: The K=10 multiclass reference baseline was recorded as `2.22267818` (from a mismatched run using different params). The correct value with the canonical `20k docs × 30 features × depth 5 × 50 iters` parameters is **1.78561831**.
+- **Ruff I001 import sort in benchmark.py (TODO-023)**: Pre-existing import ordering violation in `python/benchmarks/benchmark.py` corrected to satisfy `ruff check`.
+
+### Changed
+
+- **`.gitignore` updated (TODO-024)**: Added `bench_boosting*` and `csv_train_phase_c*` glob patterns to prevent compiled benchmark and phase-C test binaries from being tracked.
+- **HANDOFF.md merge status corrected (TODO-025)**: Sprint 7 merge SHA and completion state were misrecorded; corrected to match the actual merged commit.
+
+### Reference baselines (bench_boosting — Sprint 7 runtime benchmarks)
+
+| Configuration | Warm mean | BENCH_FINAL_LOSS |
+|---------------|-----------|-----------------|
+| Binary 100k, 50 features, depth 6, 100 iters | 180.9 ms | 0.11909308 |
+| Multiclass K=3, 20k docs, 30 features, depth 5, 50 iters | 101.3 ms | 0.63507235 |
+| Multiclass K=10, 20k docs, 30 features, depth 5, 50 iters | 115.4 ms | 1.78561831 |
+
+---
+
 ## [Unreleased] — Sprint 7 (2026-04-11)
 
 ### Changed
@@ -20,7 +49,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
   New reference baselines for `bench_boosting` regression tests:
   - Binary 100k (50 features, depth 6, 100 iters): **0.11909308**
   - Multiclass K=3, 20k docs: **0.63507235**
-  - Multiclass K=10, 20k docs: **2.22267818**
+  - Multiclass K=10, 20k docs: **1.78561831**
 
 ---
 

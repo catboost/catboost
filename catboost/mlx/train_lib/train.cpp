@@ -148,10 +148,31 @@ namespace NCatboostMlx {
                 targetPtr = std::make_unique<THuberTarget>(delta);
                 break;
             }
+            case ELossFunction::Poisson:
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: Poisson requires approxDimension=1. Got: "
+                    << approxDimension);
+                targetPtr = std::make_unique<TPoissonTarget>();
+                break;
+            case ELossFunction::Tweedie: {
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: Tweedie requires approxDimension=1. Got: "
+                    << approxDimension);
+                float p = NCatboostOptions::GetParamOrDefault(lossParamsMap, TString("variance_power"), 1.5f);
+                CATBOOST_INFO_LOG << "CatBoost-MLX: Tweedie variance_power=" << p << Endl;
+                targetPtr = std::make_unique<TTweedieTarget>(p);
+                break;
+            }
+            case ELossFunction::MAPE:
+                CB_ENSURE(approxDimension == 1,
+                    "CatBoost-MLX: MAPE requires approxDimension=1. Got: "
+                    << approxDimension);
+                targetPtr = std::make_unique<TMAPETarget>();
+                break;
             default:
                 CB_ENSURE(false,
                     "CatBoost-MLX currently supports RMSE, Logloss, CrossEntropy, MultiClass, "
-                    "MAE, Quantile, and Huber. Got: "
+                    "MAE, Quantile, Huber, Poisson, Tweedie, and MAPE. Got: "
                     << lossFunction);
         }
 

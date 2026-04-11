@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-04-11 — Sprint 8: Housekeeping + Poisson/Tweedie/MAPE library-path losses
+
+**Agents:** ml-engineer, qa-engineer, technical-writer, mlops-engineer
+**Branch:** `mlx/sprint-8-housekeeping-library-losses`
+
+### Housekeeping (TODO-022/023/024/025)
+- `.gitignore`: added `bench_boosting*`, `csv_train_phase_c*` patterns
+- Ruff I001 in `python/benchmarks/benchmark.py` fixed
+- K=10 baseline corrected: 2.22267818 → 1.78561831 (20k×30×cls10×d5×50i×bins32×seed42)
+- Sprint 7 runtime benchmarks recorded in HANDOFF.md: Binary 180.9ms, K=3 101.3ms, K=10 115.4ms
+- HANDOFF.md merge status corrected
+- Commit: `f334e6f08e`
+
+### TODO-011: Poisson, Tweedie, MAPE loss functions (library path)
+- Added `TPoissonTarget`, `TTweedieTarget(p)`, `TMAPETarget` to `pointwise_target.h` (~162 lines)
+- Wired into `train_lib/train.cpp` dispatch — 3 new switch cases
+- Library path now supports all 10 losses (matching csv_train): RMSE, Logloss, CrossEntropy, MultiClass, MAE, Quantile, Huber, Poisson, Tweedie, MAPE
+- Formulas matched to csv_train.cpp implementations (epsilon=1e-6, full Tweedie 2nd derivative)
+- Commit: `a8bdf798e9`
+
+### QA: 39 new tests
+- `test_qa_round11_sprint8_library_losses.py`: 8 Poisson + 11 Tweedie + 9 MAPE + 7 validation + 4 cross-loss
+- Found and fixed BUG-004
+- Commit: `67eb9b42ce`
+
+### BUG-004 fix: Tweedie variance_power= named param
+- `Tweedie:variance_power=1.5` raised ValueError — `_validate_params` and `_normalize_loss_str` only stripped `alpha=` and `delta=` prefixes
+- Added `variance_power=` to both prefix lists in `core.py`
+- Commit: `3d350c7166`
+
+### Verification
+- pytest: 723 passed, 5 skipped, 4 xfailed
+- ruff: 0 errors
+
+---
+
 ## 2026-04-10 — Sprint 7: Multiclass fuse, partition kernel output, BUG-002 fix
 
 **Agents:** ml-engineer
@@ -34,7 +70,7 @@
 - pytest: 684 passed, 5 skipped, 4 xfailed
 - ruff: 0 errors
 - Determinism: 3/3 identical at 10k rows
-- New K=10 baseline: 2.22267818
+- New K=10 baseline: 1.78561831 (20k×30×cls10×d5×50i×bins32×seed42)
 
 ---
 

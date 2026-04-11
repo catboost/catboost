@@ -1,7 +1,8 @@
 #pragma once
 
 // Pointwise target functions for CatBoost-MLX.
-// RMSE (L2), Logloss (binary classification), and MultiClass (softmax).
+// RMSE (L2), Logloss (binary classification), MultiClass (softmax),
+// MAE, Quantile, Huber, Poisson, Tweedie, and MAPE.
 
 #include <catboost/mlx/targets/target_func.h>
 
@@ -366,6 +367,165 @@ namespace NCatboostMlx {
 
     private:
         float Delta_;
+    };
+
+    // Poisson regression (log-link).
+    // pred = exp(cursor), so cursor is the log-space prediction.
+    // Gradient = exp(cursor) - target
+    // Hessian  = exp(cursor)  [always positive; clamped for stability]
+    // Loss     = mean(w * (exp(cursor) - target * cursor))
+    class TPoissonTarget : public IMLXTargetFunc {
+    public:
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            auto expPred = mx::exp(cursor);
+
+            // Gradient = (exp(cursor) - target) * weight
+            gradients = mx::multiply(mx::subtract(expPred, targets), weights);
+
+            // Hessian = exp(cursor) * weight, clamped for numerical stability
+            hessians = mx::maximum(
+                mx::multiply(expPred, weights),
+                mx::array(1e-6f)
+            );
+
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            // NLL: mean(w * (exp(cursor) - target * cursor))
+            auto expPred = mx::exp(cursor);
+            auto loss = mx::mean(mx::multiply(
+                mx::subtract(expPred, mx::multiply(targets, cursor)),
+                weights
+            ));
+            TMLXDevice::EvalNow(loss);
+            return loss;
+        }
+    };
+
+    // Tweedie regression (log-link with power variance p, typically 1 < p < 2).
+    // pred = exp(cursor).
+    // Gradient = exp((2-p)*cursor) - target * exp((1-p)*cursor)
+    // Hessian  = (2-p)*exp((2-p)*cursor) - target*(1-p)*exp((1-p)*cursor)  [clamped]
+    // Loss     = mean(w * (-target*exp((1-p)*cursor)/(1-p) + exp((2-p)*cursor)/(2-p)))
+    class TTweedieTarget : public IMLXTargetFunc {
+    public:
+        explicit TTweedieTarget(float p = 1.5f) : P_(p) {}
+
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            const float p = P_;
+            // exp((2-p)*cursor) and exp((1-p)*cursor)
+            auto exp2mp = mx::exp(mx::multiply(cursor, mx::array(2.0f - p)));
+            auto exp1mp = mx::exp(mx::multiply(cursor, mx::array(1.0f - p)));
+
+            // Gradient = exp((2-p)*cursor) - target * exp((1-p)*cursor)
+            auto rawGrad = mx::subtract(exp2mp, mx::multiply(targets, exp1mp));
+            gradients = mx::multiply(rawGrad, weights);
+
+            // Hessian (full second derivative of Tweedie deviance):
+            //   (2-p)*exp((2-p)*cursor) - target*(1-p)*exp((1-p)*cursor)
+            auto rawHess = mx::subtract(
+                mx::multiply(mx::array(2.0f - p), exp2mp),
+                mx::multiply(mx::multiply(targets, mx::array(1.0f - p)), exp1mp)
+            );
+            hessians = mx::maximum(
+                mx::multiply(rawHess, weights),
+                mx::array(1e-6f)
+            );
+
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            const float p = P_;
+            // Tweedie deviance: -target*exp((1-p)*cursor)/(1-p) + exp((2-p)*cursor)/(2-p)
+            auto term1 = mx::divide(
+                mx::multiply(mx::negative(targets),
+                             mx::exp(mx::multiply(cursor, mx::array(1.0f - p)))),
+                mx::array(1.0f - p)
+            );
+            auto term2 = mx::divide(
+                mx::exp(mx::multiply(cursor, mx::array(2.0f - p))),
+                mx::array(2.0f - p)
+            );
+            auto loss = mx::mean(mx::multiply(mx::add(term1, term2), weights));
+            TMLXDevice::EvalNow(loss);
+            return loss;
+        }
+
+    private:
+        float P_;  // variance power, typically 1 < P < 2
+    };
+
+    // MAPE (Mean Absolute Percentage Error).
+    // Gradient = sign(cursor - target) / max(|target|, epsilon)
+    // Hessian  = 1 / max(|target|, epsilon)   [constant per sample]
+    // Loss     = mean(w * |cursor - target| / max(|target|, epsilon))
+    class TMAPETarget : public IMLXTargetFunc {
+    public:
+        ui32 GetApproxDimension() const override { return 1; }
+
+        void ComputeDerivatives(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights,
+            mx::array& gradients,
+            mx::array& hessians
+        ) const override {
+            auto absTarget = mx::maximum(mx::abs(targets), mx::array(1e-6f));
+
+            // Gradient = sign(cursor - target) / |target| * weight
+            gradients = mx::multiply(
+                mx::divide(mx::sign(mx::subtract(cursor, targets)), absTarget),
+                weights
+            );
+
+            // Hessian = 1 / |target| * weight
+            hessians = mx::multiply(
+                mx::divide(mx::ones_like(targets), absTarget),
+                weights
+            );
+
+            TMLXDevice::EvalNow({gradients, hessians});
+        }
+
+        mx::array ComputeLoss(
+            const mx::array& cursor,
+            const mx::array& targets,
+            const mx::array& weights
+        ) const override {
+            auto absTarget = mx::maximum(mx::abs(targets), mx::array(1e-6f));
+            auto loss = mx::mean(mx::multiply(
+                mx::divide(mx::abs(mx::subtract(cursor, targets)), absTarget),
+                weights
+            ));
+            TMLXDevice::EvalNow(loss);
+            return loss;
+        }
     };
 
 }  // namespace NCatboostMlx

@@ -148,7 +148,7 @@ def _normalize_loss_str(loss: str) -> str:
     if ":" in loss:
         base, suffix = loss.split(":", 1)
         base = base.lower()
-        for prefix in ("alpha=", "delta="):
+        for prefix in ("alpha=", "delta=", "variance_power="):
             if suffix.lower().startswith(prefix):
                 suffix = suffix[len(prefix):]
                 break
@@ -534,7 +534,7 @@ class CatBoostMLX(BaseEstimator):
         if ":" in self.loss:
             suffix = self.loss.split(":", 1)[1]
             # Strip named-parameter prefix if present (e.g. 'alpha=0.7' -> '0.7')
-            for prefix in ("alpha=", "delta="):
+            for prefix in ("alpha=", "delta=", "variance_power="):
                 if suffix.lower().startswith(prefix):
                     suffix = suffix[len(prefix):]
                     break
