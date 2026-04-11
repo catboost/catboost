@@ -136,16 +136,17 @@
 ### TODO-011 — Additional loss functions: Poisson, Tweedie, MAPE (library path)
 - **Assigned to:** ml-engineer
 - **Priority:** High
-- **Status:** In Progress
+- **Status:** Done
 - **Branch:** `mlx/sprint-8-housekeeping-library-losses`
+- **Commits:** `a8bdf798e9` (impl), `67eb9b42ce` (QA tests), `3d350c7166` (BUG-004 fix)
 - **Depends on:** none
 - **Acceptance Criteria:**
-  - [ ] `pointwise_target.h` extended with `TPoissonTarget`, `TTweedieTarget` (power param), `TMAPETarget`
-  - [ ] Wired into `train_lib/train.cpp` dispatch (same pattern as MAE/Quantile/Huber)
-  - [ ] Python validator already accepts these losses — no Python changes needed
-  - [ ] `csv_train.cpp` already has full implementations — library path must match its behavior
-  - [ ] QA validation tests added (follow `test_qa_round8_sprint3_losses.py` pattern)
-- **Notes:** Python `_KNOWN_LOSSES` already includes poisson/tweedie/mape. csv_train.cpp already implements all three. Only the library path (pointwise_target.h + train.cpp) is missing.
+  - [x] `pointwise_target.h` extended with `TPoissonTarget`, `TTweedieTarget` (power param), `TMAPETarget`
+  - [x] Wired into `train_lib/train.cpp` dispatch (same pattern as MAE/Quantile/Huber)
+  - [x] Python validator already accepts these losses — BUG-004 fixed (variance_power= prefix strip)
+  - [x] `csv_train.cpp` already has full implementations — library path formulas matched
+  - [x] QA: 39 tests in `test_qa_round11_sprint8_library_losses.py` (723 total pass)
+- **BUG-004 (FIXED `3d350c7166`):** `Tweedie:variance_power=1.5` raised ValueError because `_validate_params` and `_normalize_loss_str` only stripped `alpha=` and `delta=` prefixes. Fixed by adding `variance_power=` to both prefix lists.
 
 ### TODO-022 — Gitignore compiled binaries and fix ruff I001
 - **Assigned to:** mlops-engineer
