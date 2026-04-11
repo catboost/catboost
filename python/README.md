@@ -221,9 +221,19 @@ python/
 │       └── csv_predict             #   GPU prediction binary
 │
 ├── tests/
-│   ├── conftest.py                 # Shared test fixtures
-│   ├── test_basic.py               # Core functionality tests
-│   └── test_new_features.py        # Extended feature and regression tests
+│   ├── conftest.py                                    # Shared test fixtures
+│   ├── test_basic.py                                  # Core functionality tests
+│   ├── test_new_features.py                           # Extended feature and regression tests
+│   ├── test_qa_adversarial.py                         # Adversarial / edge-case tests
+│   ├── test_qa_round2.py                              # QA round 2: regression, classification, sklearn
+│   ├── test_qa_round3.py                              # QA round 3: data handling, categoricals
+│   ├── test_qa_round4.py                              # QA round 4: ranking, sample weights
+│   ├── test_qa_round5.py                              # QA round 5: bootstrap, snapshot, monotone
+│   ├── test_qa_round6.py                              # QA round 6: serialization, export, SHAP
+│   ├── test_qa_round7.py                              # QA round 7: pool, sklearn pipeline, eval_set
+│   ├── test_qa_round8_sprint3_losses.py               # Sprint 3: MAE, Quantile, Huber loss functions
+│   ├── test_qa_round9_sprint4_partition_layout.py     # Sprint 4: GPU partition layout regression
+│   └── test_qa_round10_sprint5_bench_and_scan.py      # Sprint 5: bench harness, deterministic scan
 │
 └── benchmarks/
     ├── benchmark.py                # Speed/accuracy comparison tool
@@ -327,7 +337,7 @@ Standalone (not imported by the package):
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `iterations` | 100 | Number of trees to build |
-| `depth` | 6 | Max depth of each tree (1-16) |
+| `depth` | 6 | Max depth of each tree (1-6; depths above 6 are not supported — see Known Limitations) |
 | `learning_rate` | 0.1 | How much each tree contributes (smaller = more conservative) |
 | `l2_reg_lambda` | 3.0 | Regularization strength (prevents overfitting) |
 | `loss` | "auto" | Loss function (see table above) |
@@ -417,7 +427,7 @@ cp python/catboost_mlx/bin/csv_predict .
 ## Running Tests
 
 ```bash
-# All tests (174 tests)
+# All tests (684 tests)
 python3 -m pytest python/tests/ -v
 
 # A specific test class
@@ -500,6 +510,35 @@ model2 = joblib.load("model.joblib")
 model.export_onnx("model.onnx")      # pip install onnx>=1.14
 model.export_coreml("model.mlmodel")  # pip install coremltools>=7.0
 ```
+
+## Known Limitations
+
+The following limitations apply to the current MLX backend. CatBoost CPU/CUDA is unaffected.
+
+### max_depth capped at 6
+`kLeafAccumSource` uses a compile-time `MAX_LEAVES=64` constant. `2^7 = 128 > 64`, so any `depth > 6` triggers a runtime error:
+```
+CB_ENSURE failed: max_depth must be <= 6 for the MLX backend
+```
+CatBoost CPU/CUDA supports depths up to 16. Lifting this limit requires a redesigned leaf accumulation kernel.
+
+### 16M row limit
+`ComputePartitionLayout` uses float32 `scatter_add` for bucket counting. float32 represents integers exactly only up to `2^24 = 16,777,216`. Training on datasets with more than 16,777,216 rows will error with a `CB_ENSURE` guard. Most Apple Silicon Macs are memory-constrained well below this limit in practice.
+
+### Apple Silicon only
+Requires a Mac with an Apple Silicon chip (M1, M2, M3, M4 or later) running macOS 14+. Intel Macs, Linux, and Windows are not supported.
+
+### Cold-start compile latency
+The first training iteration compiles Metal shaders. This takes approximately 100–150 ms and is one-time per process. Subsequent iterations are fast. The "Slow first iteration" entry in Troubleshooting covers this.
+
+### Python API uses subprocess
+`fit()` and `predict()` invoke the `csv_train`/`csv_predict` C++ binaries via subprocess, writing temporary CSV files in between. This adds approximately 50 ms of overhead per call and is noticeable for small datasets or tight loops. It does not affect throughput on large datasets.
+
+### Feature combinations (crosses) not implemented
+CatBoost's automatic feature combination search (cartesian product splits) is not yet ported to the MLX backend.
+
+### Grow policies (Lossguide/Depthwise) not implemented
+Only symmetric (oblivious) trees are supported. Lossguide and Depthwise grow policies are in the backlog (TODO-012).
 
 ## Contributing
 

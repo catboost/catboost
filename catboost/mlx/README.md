@@ -45,7 +45,11 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | **Explainability** | Feature importance (gain-based) | Done |
 | | SHAP values (TreeSHAP) | Done |
 | **Infrastructure** | Metal GPU histogram kernel | Done |
+| | ComputePartitionLayout on GPU (argsort + scatter_add + cumsum) | Done (Sprint 4) |
+| | Suffix-sum scan: parallel SIMD (simd_prefix_inclusive_sum) | Done (Sprint 5) |
+| | Tree applier Metal kernel (kTreeApplySource) | Done (Sprint 6) |
 | | Standalone csv_train CLI tool | Done |
+| | Library-path benchmark harness (bench_boosting) | Done (Sprint 5) |
 | | Python bindings | Done |
 | | Cross-validation | Done |
 | | Snapshot save/resume | Done |
@@ -778,13 +782,14 @@ catboost/mlx/
 │   ├── train.h/cpp         # Trainer registration
 │   └── model_exporter.h/cpp  # TFullModel export
 └── tests/               # Test files
-    ├── csv_train.cpp       # Standalone CSV training tool (all features)
-    ├── csv_predict.cpp     # Standalone CSV prediction tool
+    ├── csv_train.cpp           # Standalone CSV training tool (all features)
+    ├── csv_predict.cpp         # Standalone CSV prediction tool
     ├── classification_test.cpp
     ├── model_export_test.cpp
     ├── mlx_histogram_test.cpp
     ├── standalone_kernel_test.cpp
-    └── build_verify_test.cpp
+    ├── build_verify_test.cpp   # Kernel parameter smoke test
+    └── bench_boosting.cpp      # Library-path benchmark harness (no subprocess)
 ```
 
 ### Python Package Structure
@@ -803,7 +808,12 @@ python/
 │   ├── export_coreml.py        # CoreML export
 │   └── bin/                    # Compiled binaries (csv_train, csv_predict)
 ├── build_binaries.py           # Build script
-├── tests/test_basic.py         # Test suite (111 tests)
+├── tests/
+│   ├── test_basic.py                                  # Core functionality (684 total across all files)
+│   ├── test_new_features.py
+│   ├── test_qa_adversarial.py
+│   ├── test_qa_round2.py through test_qa_round10_sprint5_bench_and_scan.py
+│   └── conftest.py
 └── benchmarks/benchmark.py     # Performance comparison
 ```
 
@@ -818,6 +828,31 @@ python/
 | `--cat-features` | `cat_features` |
 | `--weight-col` | `sample_weight` (in fit()) |
 | `--group-col` | `group_id` (in fit()) |
+
+## Known Limitations
+
+The following constraints apply to the MLX/Metal backend. They do not affect CatBoost's CPU or CUDA backends.
+
+### max_depth capped at 6
+`kLeafAccumSource` uses a compile-time `MAX_LEAVES=64` constant (5 KB per-thread private storage). `2^7 = 128 > 64`, so `max_depth > 6` triggers a runtime `CB_ENSURE` failure. CatBoost CPU/CUDA supports depths up to 16. Removing this limit requires a redesigned leaf accumulation kernel with dynamic or larger private storage.
+
+### 16M row limit (DEC-003)
+`ComputePartitionLayout` accumulates per-partition document counts using `mx::scatter_add_axis` with float32 accumulators. float32 represents integers exactly only up to `2^24 = 16,777,216`. A `CB_ENSURE` guard in `structure_searcher.cpp` rejects datasets above this size. Lifting this requires switching to int32 accumulation throughout the partition-layout path.
+
+### Apple Silicon only
+Requires a Mac with Apple Silicon (M1/M2/M3/M4) and macOS 14+. Metal compute shaders do not run on Intel Macs, Linux, or Windows.
+
+### Cold-start compile latency
+The first Metal kernel dispatch per process triggers JIT shader compilation. Expect approximately 100–150 ms on the first iteration; subsequent iterations are fast.
+
+### Python API uses subprocess
+`CatBoostMLXRegressor`/`CatBoostMLXClassifier` invoke `csv_train` and `csv_predict` via subprocess, passing data through temporary CSV files. This adds roughly 50 ms per `fit()`/`predict()` call. The C++ library path (`mlx_boosting.h/cpp`) is not affected.
+
+### Feature combinations (crosses) not implemented
+CatBoost's automatic feature cross search is not yet ported.
+
+### Grow policies (Lossguide/Depthwise) not implemented
+Only symmetric (oblivious) trees are supported. Non-symmetric policies are in the backlog (TODO-012).
 
 ## Troubleshooting
 

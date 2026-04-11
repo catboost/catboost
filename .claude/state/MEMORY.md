@@ -15,7 +15,7 @@
 
 - [2026-04-09] IDE clang-language-server reports hundreds of false positive diagnostics for CatBoost includes. This is an IDE path configuration issue — the actual build works. Do not react to these diagnostics.
 - [2026-04-09] CatBoost canonical loss param syntax `LossName:param=value` (e.g., `Quantile:alpha=0.7`) causes Python `float()` to fail if the `param=` prefix is not stripped first. Always strip before parsing numeric params.
-- [2026-04-09] `ComputePartitionLayout` is still on CPU as of Sprint 3 close. This is the #1 identified sync bottleneck (MLOps audit). Do not attempt GPU tree search optimizations without addressing this first — it dominates the per-iteration CPU-GPU round trip cost.
+- [2026-04-10] `ComputePartitionLayout` was ported to GPU in Sprint 4 (commit `19d24ec`): uses MLX `argsort` + `scatter_add_axis` + `cumsum`, no CPU-GPU sync inside the function. EvalNow calls in `structure_searcher.cpp` reduced from 3→1 per depth level. The 16M-row float32 limit (DEC-003) is the current constraint — see Known Limitations in both READMEs.
 
 ## Dependencies & Tools
 
