@@ -12,9 +12,9 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | Huber (robust) | Done |
 | | Logloss (binary classification) | Done |
 | | MultiClass (softmax cross-entropy) | Done |
-| | Poisson (count regression) | Done |
-| | Tweedie (zero-inflated continuous) | Done |
-| | MAPE (relative error) | Done |
+| | Poisson (count regression) | Done (Sprint 8) |
+| | Tweedie (zero-inflated continuous) | Done (Sprint 8) |
+| | MAPE (relative error) | Done (Sprint 8) |
 | | Ranking losses (YetiRank, PairLogit, NDCG) | Done |
 | **Tree Building** | Oblivious (symmetric) tree search | Done |
 | | Histogram-based split scoring | Done |
@@ -50,6 +50,7 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | Tree applier Metal kernel (kTreeApplySource) | Done (Sprint 6) |
 | | Fused multiclass leaf computation (single vectorized Newton step) | Done (Sprint 7) |
 | | Partition output from tree_applier kernel (dual-output dispatch) | Done (Sprint 7) |
+| | Library-path loss parity: Poisson, Tweedie, MAPE in train.cpp (TODO-011) | Done (Sprint 8) |
 | | Standalone csv_train CLI tool | Done |
 | | Library-path benchmark harness (bench_boosting) | Done (Sprint 5) |
 | | Python bindings | Done |

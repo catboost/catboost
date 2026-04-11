@@ -230,7 +230,7 @@ python/
 │   ├── test_qa_round4.py                              # QA round 4: ranking, sample weights
 │   ├── test_qa_round5.py                              # QA round 5: bootstrap, snapshot, monotone
 │   ├── test_qa_round6.py                              # QA round 6: serialization, export, SHAP
-│   ├── test_qa_round7.py                              # QA round 7: pool, sklearn pipeline, eval_set
+│   ├── test_qa_round7.py                              # QA round 7: load_model state, classes_, serialization fixes
 │   ├── test_qa_round8_sprint3_losses.py               # Sprint 3: MAE, Quantile, Huber loss functions
 │   ├── test_qa_round9_sprint4_partition_layout.py     # Sprint 4: GPU partition layout regression
 │   └── test_qa_round10_sprint5_bench_and_scan.py      # Sprint 5: bench harness, deterministic scan
@@ -427,7 +427,7 @@ cp python/catboost_mlx/bin/csv_predict .
 ## Running Tests
 
 ```bash
-# All tests (684 tests)
+# All tests (693 tests)
 python3 -m pytest python/tests/ -v
 
 # A specific test class

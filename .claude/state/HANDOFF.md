@@ -5,90 +5,74 @@
 <!-- The first agent in the next session reads this first. -->
 
 **Last Updated:** 2026-04-11
-**Last Active Agent:** technical-writer (Sprint 7 documentation)
+**Last Active Agent:** technical-writer (Sprint 8 documentation)
 
 ## Completed This Session
 
-### Sprint 7 — branch `mlx/sprint-7-multiclass-fuse-partition-output`
+### Sprint 8 — branch `mlx/sprint-8-housekeeping-library-losses`
 
-All 3 Sprint 7 TODOs (019/020/021) complete. Documentation updated.
+Sprint 8 work is split across two areas: housekeeping (TODO-022 through TODO-025) and loss function parity for the library path (TODO-011).
 
-| SHA | TODO | Description |
-|-----|------|-------------|
-| `2908a84` | TODO-019 | Fuse multiclass leaf computation — single vectorized Newton step over `[approxDim * numLeaves]`, lazy MLX array from `ComputeLeafValues` |
-| `5ef25eb` | TODO-020 | Partition output from `kTreeApplySource` — dual-output kernel (cursorOut + partitionsOut), O(depth) recompute loop deleted (−28 lines) |
-| `6969280` | TODO-021 | BUG-002 fix: `bench_boosting.cpp` threshold comparison `> binThreshold + 1` → `> binThreshold` |
+#### Housekeeping
 
-### Documentation updated this session
+| TODO | Description |
+|------|-------------|
+| TODO-022 | K=10 bench_boosting baseline corrected: `2.22267818` → `1.78561831` (canonical run params: 20k×30×d5×50i) |
+| TODO-023 | Ruff I001 import sort fixed in `python/benchmarks/benchmark.py` |
+| TODO-024 | `.gitignore` updated: added `bench_boosting*` and `csv_train_phase_c*` patterns |
+| TODO-025 | HANDOFF.md merge status corrected for Sprint 7 |
 
-- `catboost/mlx/ARCHITECTURE.md` — training pipeline diagram updated (fused leaf step + dual-output kernel), `kTreeApplySource` section updated with dual-output description, CPU-GPU sync section updated with Sprint 7 removals, "Sprint 6" → "Sprint 7" in sync count claim
-- `CHANGELOG.md` — `[Unreleased] Sprint 7` section added with all three changes and new reference baselines
-- `catboost/mlx/README.md` — Sprint 7 infrastructure rows added to feature status table
+#### TODO-011 — Poisson, Tweedie, MAPE in library path
+
+| File | Change |
+|------|--------|
+| `catboost/mlx/targets/pointwise_target.h` | Added `TPoissonTarget`, `TTweedieTarget(p)`, `TMAPETarget` (~162 new lines) |
+| `catboost/mlx/train_lib/train.cpp` | Added 3 switch cases; updated error message to list all 10 losses |
+
+The library path now supports all 10 losses: RMSE, Logloss, CrossEntropy, MultiClass, MAE, Quantile, Huber, Poisson, Tweedie, MAPE. This matches `csv_train`.
+
+#### Documentation updated this session
+
+- `catboost/mlx/ARCHITECTURE.md` — new "Loss Functions (Target Functions)" section with full 10-loss table; ToC updated
+- `CHANGELOG.md` — Sprint 8 section added (TODO-011, housekeeping, corrected baselines)
+- `catboost/mlx/README.md` — Poisson/Tweedie/MAPE marked `Done (Sprint 8)`; library-path loss parity row added to Infrastructure table
+- `python/README.md` — test count updated 684 → 693; `test_qa_round7.py` description corrected
 - `.claude/state/HANDOFF.md` — this file
 
 ## Current State
 
-- **Test suite:** 684 passed, 5 skipped, 4 xfailed (unchanged from Sprint 6 close)
-- **Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
+- **Test suite:** 693 collected (684 from Sprint 7 close + 9 from `test_qa_round7.py`); QA round 8 tests for Sprint 8 losses being written
+- **Branch:** `mlx/sprint-8-housekeeping-library-losses`
 - **Master:** Sprint 7 merged (`7b483ad631`)
 
-## Reference Baselines (bench_boosting, current as of Sprint 7)
+## Reference Baselines (bench_boosting, current as of Sprint 8)
 
-| Configuration | BENCH_FINAL_LOSS |
-|---------------|-----------------|
-| Binary 100k, 50 features, depth 6, 100 iters | **0.11909308** |
-| Multiclass K=3, 20k docs | **0.63507235** |
-| Multiclass K=10, 20k docs | **1.78561831** |
+| Configuration | Warm mean | BENCH_FINAL_LOSS |
+|---------------|-----------|-----------------|
+| Binary 100k, 50 features, depth 6, 100 iters | 180.9 ms | **0.11909308** |
+| Multiclass K=3, 20k docs, 30 features, depth 5, 50 iters | 101.3 ms | **0.63507235** |
+| Multiclass K=10, 20k docs, 30 features, depth 5, 50 iters | 115.4 ms | **1.78561831** |
 
-> Previous Sprint 6 binary baseline was 0.69314516 (≈ log(2), i.e. a random classifier). The
-> dramatic improvement to 0.11909308 is correct — BUG-002 (off-by-one in threshold comparison)
-> was preventing gradient boosting from converging in `bench_boosting`. The library path and
-> `csv_train` were never affected by this bug.
-
-## Performance (Sprint 7 runtime benchmarks)
-
-| Config | Warm mean | Final loss |
-|--------|-----------|------------|
-| Binary 100k×50×d6×100i | 180.9 ms | 0.11909308 |
-| K=3 20k×30×d5×50i | 101.3 ms | 0.63507235 |
-| K=10 20k×30×d5×50i | 115.4 ms | 1.78561831 |
-
-K=10 scales sub-linearly from K=3 (115ms vs 101ms for 3× the dimensions) — fused leaf computation confirmed effective.
-
-- **TODO-019 (multiclass fuse):** For K=10 multiclass, eliminates 10 `EvalNow` CPU-GPU round trips per boosting iteration. No measurable change in binary (K=1) throughput. Lazy evaluation defers all leaf computation to the `ApplyObliviousTree` call.
-- **TODO-020 (partition output):** Eliminates a O(depth) MLX op sequence that reconstructed leaf assignments post-kernel. The partition array is now a direct kernel output — no additional GPU dispatches.
-
-## EvalNow Call Count (post-Sprint 7)
-
-| Call site | File | Count |
-|-----------|------|-------|
-| Best-split readback | `score_calcer.cpp` | 2 (one per `FindBestSplitGPU` overload) |
-| Histogram materialize | `histogram.cpp` | 2 |
-| Partition sync (post-depth-level) | `structure_searcher.cpp` | 1 |
-| Cursor + partitions (post-apply) | `tree_applier.cpp` | 1 |
-| Validation cursor init | `mlx_boosting.cpp` | 1 |
-| **Total static call sites** | | **7** |
-
-Per-iteration sync count at runtime: binary = 2 per depth level (unavoidable); multiclass no longer adds K additional calls (eliminated by TODO-019).
+> K=10 baseline was corrected this sprint from the erroneous `2.22267818` (different run params) to `1.78561831`.
 
 ## In Progress
 
-Nothing in progress. Sprint 7 implementation is complete and documented.
+- QA round 8 test file for Poisson/Tweedie/MAPE library-path losses (being written; not yet committed)
 
 ## Blocked
 
 Nothing blocked.
 
-## Next Steps (Sprint 8 candidates)
+## Next Steps
 
-1. **TODO-010** — MLflow integration via `ITrainingCallbacks`
-2. **TODO-011** — Additional library-path loss functions: Poisson, Tweedie, MAPE
-3. **TODO-012** — Grow policies: Lossguide and Depthwise
-4. **Merge Sprint 7 branch to master** — QA signed off (684/684), documentation complete
+1. **QA round 8** — Write and pass tests for Poisson, Tweedie, MAPE via the library path
+2. **Merge Sprint 8 branch to master** — after QA sign-off
+3. **TODO-010** — MLflow integration via `ITrainingCallbacks`
+4. **TODO-012** — Grow policies: Lossguide and Depthwise
 
 ## Notes
 
-- **Two code paths:** Python bindings call `csv_train` via subprocess. Changes to `methods/` files are NOT exercised by the Python test suite — only by `bench_boosting` and `build_verify_test`. Always verify both paths when touching kernel dispatch logic.
-- **BUG-002 scope:** The threshold off-by-one was isolated to `bench_boosting.cpp`. Library path (`tree_applier.cpp`) and `csv_train` have always used the correct `> binThreshold` comparison.
+- **Two code paths:** Python bindings call `csv_train` via subprocess. Changes to `methods/` and `targets/` files (library path) are NOT exercised by the Python test suite — only by `bench_boosting` and `build_verify_test`. Always verify both paths when touching kernel dispatch logic.
+- **Loss parity:** As of Sprint 8, both `csv_train` and the library path support the same 10 losses. Any future loss additions must be added to both paths separately.
 - **Sprint branch rule (DEC-002):** Push to `origin` (RR-AMATOK) only; never to `upstream` (catboost/catboost).
 - **Apple Silicon threadgroup memory:** NOT zeroed between dispatches. Always pass `init_value=0.0f` to `mx::fast::metal_kernel()` when the kernel reads from threadgroup storage that may not be fully written by every thread.
