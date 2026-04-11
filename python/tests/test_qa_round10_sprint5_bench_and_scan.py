@@ -15,12 +15,13 @@ ARCHITECTURE NOTE:
   Python API tests use csv_train which has its own suffix-sum implementation
   (separate from kSuffixSumSource) and are unaffected by TODO-008.
 
-ANCHORS (captured Sprint 5 QA, 2026-04-09; multiclass updated by BUG-001 fix 2026-04-10):
-  Binary  100k x 50 x depth6 x 100iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.69314516
-  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=1.09757149
-    (pre-fix anchor 1.07820153 was captured with buggy (32,1,1) threadgroup that left
-     scanBuf[32..255] uninitialized; Metal happened to zero them on the first dispatch,
-     giving a deterministic but numerically wrong suffix sum)
+ANCHORS (captured Sprint 5 QA, 2026-04-09; multiclass updated by BUG-001 fix 2026-04-10;
+         both updated by BUG-002 fix 2026-04-11 in bench_boosting ApplySplitToPartitions):
+  Binary  100k x 50 x depth6 x 100iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.11909308
+  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.63507235
+    (BUG-001 pre-fix anchor 1.07820153 was captured with buggy (32,1,1) threadgroup;
+     BUG-002 pre-fix anchor 1.09757149 was captured with wrong `> threshold+1`
+     partition routing in bench_boosting ApplySplitToPartitions)
 
 BUG-001 (FIXED in score_calcer.cpp 2026-04-10):
   Root cause: kSuffixSumSource declares threadgroup float scanBuf[256] and runs a
@@ -62,8 +63,8 @@ import pytest
 BENCH_BINARY = "/tmp/bench_boosting"
 
 # Regression anchors: final loss must match within 1e-6
-BINARY_ANCHOR_LOSS = 0.69314516    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42
-MULTICLASS_ANCHOR_LOSS = 1.09757149  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (BUG-001 fix: updated from 1.07820153)
+BINARY_ANCHOR_LOSS = 0.11909308    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42 (BUG-002 fix: updated from 0.69314516)
+MULTICLASS_ANCHOR_LOSS = 0.63507235  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (BUG-002 fix: updated from 1.09757149)
 
 
 def _binary_available():
@@ -152,8 +153,9 @@ def _loss_monotonically_decreases(stdout):
 class TestBenchBoostingAnchors:
     """Pin BENCH_FINAL_LOSS values so future sprints cannot silently regress them.
 
-    Anchors were captured on Sprint 5 QA (2026-04-09) after confirming
-    equivalence with the serial suffix-sum baseline.
+    Anchors were captured on Sprint 5 QA (2026-04-09) and updated on Sprint 7 QA
+    (2026-04-11) after BUG-002 fix corrected the `> threshold+1` partition routing
+    in bench_boosting ApplySplitToPartitions.
     """
 
     def test_binary_100k_anchor(self):
