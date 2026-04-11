@@ -48,6 +48,8 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | ComputePartitionLayout on GPU (argsort + scatter_add + cumsum) | Done (Sprint 4) |
 | | Suffix-sum scan: parallel SIMD (simd_prefix_inclusive_sum) | Done (Sprint 5) |
 | | Tree applier Metal kernel (kTreeApplySource) | Done (Sprint 6) |
+| | Fused multiclass leaf computation (single vectorized Newton step) | Done (Sprint 7) |
+| | Partition output from tree_applier kernel (dual-output dispatch) | Done (Sprint 7) |
 | | Standalone csv_train CLI tool | Done |
 | | Library-path benchmark harness (bench_boosting) | Done (Sprint 5) |
 | | Python bindings | Done |
