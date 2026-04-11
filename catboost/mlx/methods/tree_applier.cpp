@@ -83,7 +83,7 @@ namespace NCatboostMlx {
                 "splitThreshold", "splitIsOneHot", "leafValues", "cursorIn",
                 "numDocs", "depth", "lineSize", "approxDim"
             },
-            /*output_names=*/{"cursorOut"},
+            /*output_names=*/{"cursorOut", "partitionsOut"},
             /*source=*/KernelSources::kTreeApplySource,
             /*header=*/KernelSources::kTreeApplyHeader,
             /*ensure_row_contiguous=*/true,
@@ -101,8 +101,8 @@ namespace NCatboostMlx {
                 splitThreshArr, splitOneHotArr, flatLeafValues, flatCursor,
                 numDocsArr, depthArr, lineSizeArr, approxDimArr
             },
-            /*output_shapes=*/{{static_cast<int>(approxDimension * numDocs)}},
-            /*output_dtypes=*/{mx::float32},
+            /*output_shapes=*/{{static_cast<int>(approxDimension * numDocs)}, {static_cast<int>(numDocs)}},
+            /*output_dtypes=*/{mx::float32, mx::uint32},
             grid, tg,
             /*template_args=*/{},
             /*init_value=*/std::nullopt,
@@ -113,36 +113,9 @@ namespace NCatboostMlx {
         // Restore the original cursor shape and write back to the dataset.
         cursor = mx::reshape(results[0], cursorShape);
 
-        // Update partition assignments: each document's leaf index.
-        // Computed via MLX ops (O(depth) dispatches over a small depth <= 6).
-        // This mirrors the old implementation's approach and keeps the partition
-        // logic identical to structure_searcher.cpp's incremental bit-OR pattern.
-        auto leafIndices = mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
-        for (ui32 level = 0; level < depth; ++level) {
-            const auto& split = splits[level];
-
-            auto column = mx::slice(compressedData,
-                {0, static_cast<int>(split.FeatureColumnIdx)},
-                {static_cast<int>(numDocs), static_cast<int>(split.FeatureColumnIdx + 1)});
-            column = mx::reshape(column, {static_cast<int>(numDocs)});
-
-            auto featureValues = mx::bitwise_and(
-                mx::right_shift(column, mx::array(static_cast<int>(split.Shift))),
-                mx::array(static_cast<int>(split.Mask)));
-
-            mx::array goRight;
-            if (split.IsOneHot) {
-                goRight = mx::equal(featureValues,
-                    mx::array(static_cast<int>(split.BinThreshold)));
-            } else {
-                goRight = mx::greater(featureValues,
-                    mx::array(static_cast<int>(split.BinThreshold)));
-            }
-            auto bits   = mx::astype(goRight, mx::uint32);
-            bits        = mx::left_shift(bits, mx::array(static_cast<int>(level)));
-            leafIndices = mx::bitwise_or(leafIndices, bits);
-        }
-        dataset.GetPartitions() = leafIndices;
+        // Partition assignments come directly from the kernel's second output —
+        // leafIdx was already computed per-thread; no O(depth) MLX recompute needed.
+        dataset.GetPartitions() = results[1];
 
         TMLXDevice::EvalNow({cursor, dataset.GetPartitions()});
 
