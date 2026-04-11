@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-04-10 — Sprint 7: Multiclass fuse, partition kernel output, BUG-002 fix
+
+**Agents:** ml-engineer
+**Branch:** `mlx/sprint-7-multiclass-fuse-partition-output`
+
+### TODO-019: Fuse multiclass leaf computation
+- Removed `EvalNow` from `ComputeLeafValues` in `leaf_estimator.cpp` — now returns lazy MLX array
+- Replaced per-dimension loop in `mlx_boosting.cpp` with single vectorized Newton step over `[approxDim * numLeaves]`
+- Eliminates K CPU-GPU round trips per iteration for multiclass (K=10 → 10 EvalNow calls removed)
+- Result reshaped to `[numLeaves, approxDim]` interleaved layout via GPU-only `reshape + transpose`
+- Commit: `2908a84`
+
+### TODO-020: Partition output from tree_applier kernel
+- Added `partitionsOut` as second output in `kTreeApplySource` Metal kernel (one line: `partitionsOut[globalDocIdx] = leafIdx`)
+- Deleted O(depth) MLX bitwise-op recompute loop in `tree_applier.cpp` (−28 lines)
+- Kernel now produces both cursor update and partition assignments in a single dispatch
+- Commit: `5ef25eb`
+
+### TODO-021: BUG-002 fix
+- Fixed `bench_boosting.cpp` line 599: `> binThreshold + 1` → `> binThreshold`
+- Pre-existing bug caused CPU reference partitioner to disagree with Metal kernel split logic
+- New reference baselines: 0.11909308 (binary 100k), 0.63507235 (multiclass 20k K=3)
+- The dramatic loss improvement (0.693→0.119) is correct — boosting now converges properly in bench_boosting
+- Commit: `6969280`
+
+### Verification
+- pytest: 684 passed, 5 skipped, 4 xfailed
+- ruff: 0 errors
+- Determinism: 3/3 identical at 10k rows
+- New K=10 baseline: 2.22267818
+
+---
+
 ## 2026-04-10 — Sprint 6: CI infra, bench_boosting --onehot, tree applier Metal kernel
 
 **Agents:** mlops-engineer, qa-engineer, ml-engineer

@@ -596,7 +596,7 @@ void ApplySplitToPartitions(
     for (ui32 d = 0; d < numDocs; ++d) {
         uint32_t featureVal = (dataPtr[d * numUi32PerDoc + col] >> shift) & mask;
         // Right child if value > threshold (CatBoost ordinal convention)
-        bool goRight = (featureVal > binThreshold + 1);
+        bool goRight = (featureVal > binThreshold);
         newParts[d] = partsPtr[d] | (goRight ? (1u << depth) : 0u);
     }
     partitions = mx::array(reinterpret_cast<const int32_t*>(newParts.data()),

@@ -66,13 +66,17 @@ InitPartitions              (reset all doc leaf assignments to 0)
 ComputeLeafSumsGPU          (Metal kernel: kLeafAccumSource — single threadgroup accumulation)
         |
         v
-ComputeLeafValues            (MLX ops: Newton step -gradSum / (hessSum + lambda) * lr)
+ComputeLeafValues            (MLX ops: single vectorized Newton step over [approxDim * numLeaves] — lazy, no EvalNow)
+        |
+        v
+  [multiclass only: reshape [approxDim * numLeaves] → transpose → [numLeaves, approxDim] on GPU]
         |
         v
 ApplyObliviousTree           (Metal kernel: kTreeApplySource — one thread per document)
+                             (dual output: cursorOut + partitionsOut — single dispatch)
         |
         v
-UpdateCursor                 (cursor already updated in place by tree apply kernel)
+UpdateCursor + UpdatePartitions  (both outputs written back from kernel results — no recompute)
 ```
 
 ### Key per-iteration state in `TMLXDataSet`
@@ -181,7 +185,7 @@ The scorer reads from the suffix-sum-transformed histogram. Calling this kernel 
 ### `kTreeApplySource` — Tree application
 
 **What it computes.**
-For each document, applies all split levels of a trained oblivious tree to compute the leaf index, then adds the corresponding leaf value to the prediction cursor:
+For each document, applies all split levels of a trained oblivious tree to compute the leaf index, then adds the corresponding leaf value to the prediction cursor. The kernel produces two outputs in a single dispatch:
 
 ```
 leafIdx = 0
@@ -191,7 +195,10 @@ for level d in [0, depth):
     leafIdx   |= goRight << d
 
 cursorOut[k * numDocs + doc] = cursorIn[k * numDocs + doc] + leafValues[leafIdx * approxDim + k]
+partitionsOut[doc] = leafIdx
 ```
+
+The second output, `partitionsOut`, captures the per-document leaf assignment directly from the already-computed `leafIdx` inside the kernel. This replaces the O(depth) MLX bitwise-op recompute loop that previously recalculated `leafIdx` from the split arrays on the CPU side after the kernel returned (Sprint 7, TODO-020, −28 lines in `tree_applier.cpp`).
 
 **Parallelization strategy.**
 One thread per document:
@@ -266,7 +273,7 @@ At depth `d`, valid leaf indices are in the range `[0, 2^d)`. After all `maxDept
 
 ## CPU-GPU Synchronization
 
-`TMLXDevice::EvalNow()` forces MLX to flush the pending computation graph and synchronize (blocking CPU until all queued Metal commands have completed). Every call is a CPU-GPU round-trip and adds latency. As of Sprint 6, two `EvalNow` calls per depth level are unavoidable; no unnecessary syncs remain.
+`TMLXDevice::EvalNow()` forces MLX to flush the pending computation graph and synchronize (blocking CPU until all queued Metal commands have completed). Every call is a CPU-GPU round-trip and adds latency. As of Sprint 7, two `EvalNow` calls per depth level remain unavoidable (best-split readback and partition update); all other unnecessary syncs have been removed.
 
 ### Unavoidable syncs
 
@@ -289,8 +296,10 @@ After all feature groups are dispatched and accumulated, `EvalNow` is called onc
 
 ### Removed syncs (Sprint optimizations)
 
-- **OPT-1:** Eliminated `approxDim` CPU-GPU round trips per depth level by computing all-dimension partition statistics in a single GPU dispatch (`ComputeLeafSumsGPU` with `approxDim` handled internally).
-- **BUG-001 fix:** Removed the CPU-side verification loop that read back and compared histogram values to check for non-determinism. Determinism is now guaranteed by construction.
+- **OPT-1 (Sprint 3):** Eliminated `approxDim` CPU-GPU round trips per depth level by computing all-dimension partition statistics in a single GPU dispatch (`ComputeLeafSumsGPU` with `approxDim` handled internally).
+- **BUG-001 fix (Sprint 5):** Removed the CPU-side verification loop that read back and compared histogram values to check for non-determinism. Determinism is now guaranteed by construction.
+- **TODO-019 (Sprint 7):** Eliminated K `EvalNow` calls per iteration that the old per-dimension multiclass leaf loop incurred. `ComputeLeafValues` now returns a lazy MLX array; the Newton step executes over the full `[approxDim * numLeaves]` array in a single element-wise dispatch. For K=10 multiclass, this removes 10 CPU-GPU round trips per boosting iteration.
+- **TODO-020 (Sprint 7):** Eliminated the O(depth) MLX bitwise-op recompute loop for partition assignments. `kTreeApplySource` now produces `partitionsOut` directly as a second kernel output — the leaf index computed inside the kernel is written out without any post-kernel recomputation on the CPU side.
 
 ---
 

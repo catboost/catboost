@@ -640,6 +640,7 @@ static const std::string kLeafAccumSource = R"metal(
 //
 // Output names:
 //   cursorOut       — [approxDim * numDocs] float32: updated cursor (cursor + leaf delta)
+//   partitionsOut   — [numDocs] uint32: leaf index per document (eliminates O(depth) recompute)
 //
 // NOTE: cursorOut is the mutable output. Each thread reads cursorIn for its own
 //   doc slot, adds the leaf value, and writes cursorOut — no atomics needed.
@@ -709,6 +710,11 @@ static const std::string kTreeApplySource = R"metal(
         const uint slot = k * numDocs + globalDocIdx;
         cursorOut[slot] = cursorIn[slot] + leafValues[leafIdx * approxDim + k];
     }
+
+    // Write partition (leaf) assignment directly from the computed leafIdx.
+    // Eliminates the redundant O(depth) MLX bitwise-op recompute in tree_applier.cpp.
+    // depth=0 edge case: leafIdx=0 for all docs (loop above never executes), correct.
+    partitionsOut[globalDocIdx] = leafIdx;
 )metal";
 
 }  // namespace KernelSources

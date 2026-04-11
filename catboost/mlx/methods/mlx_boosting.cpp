@@ -99,29 +99,35 @@ namespace NCatboostMlx {
             mx::array leafValues;
 
             if (approxDim == 1) {
-                leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU, config.L2RegLambda, config.LearningRate);
+                // Scalar path: gradSumsGPU / hessSumsGPU are [numLeaves].
+                // Returns a lazy array; materialised by ApplyObliviousTree or the
+                // result store below.
+                leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
+                    config.L2RegLambda, config.LearningRate);
                 // leafValues shape: [numLeaves]
             } else {
-                // Compute leaf values per dimension, build [numLeaves, K]
-                TVector<float> interleavedLeaves(numLeaves * approxDim, 0.0f);
-                for (ui32 k = 0; k < approxDim; ++k) {
-                    auto dimGradSums = mx::slice(gradSumsGPU,
-                        {static_cast<int>(k * numLeaves)},
-                        {static_cast<int>((k + 1) * numLeaves)});
-                    auto dimHessSums = mx::slice(hessSumsGPU,
-                        {static_cast<int>(k * numLeaves)},
-                        {static_cast<int>((k + 1) * numLeaves)});
-                    auto dimLeafValues = ComputeLeafValues(dimGradSums, dimHessSums,
-                        config.L2RegLambda, config.LearningRate);
-                    TMLXDevice::EvalNow(dimLeafValues);
-                    const float* lvPtr = dimLeafValues.data<float>();
-                    for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {
-                        interleavedLeaves[leaf * approxDim + k] = lvPtr[leaf];
-                    }
-                }
-                leafValues = mx::array(interleavedLeaves.data(),
-                    {static_cast<int>(numLeaves), static_cast<int>(approxDim)}, mx::float32);
-                // leafValues shape: [numLeaves, K]
+                // Fused multiclass path — eliminates K EvalNow CPU-GPU round trips.
+                //
+                // gradSumsGPU / hessSumsGPU are [approxDim * numLeaves] laid out as:
+                //   [dim0_leaf0, dim0_leaf1, ..., dim0_leafN, dim1_leaf0, ...]
+                //   i.e. row-major [approxDim, numLeaves]
+                //
+                // ComputeLeafValues is element-wise so it applies identically over
+                // the entire flat [approxDim * numLeaves] array in a single dispatch.
+                // The result is then reshaped to [approxDim, numLeaves] and transposed
+                // to [numLeaves, approxDim] — the interleaved layout that
+                // ApplyObliviousTree / kTreeApplySource expect:
+                //   leafValues[leafIdx * approxDim + k]
+                auto flatLeafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
+                    config.L2RegLambda, config.LearningRate);
+                // flatLeafValues shape: [approxDim * numLeaves]
+                auto dimByLeaf = mx::reshape(flatLeafValues,
+                    {static_cast<int>(approxDim), static_cast<int>(numLeaves)});
+                // dimByLeaf shape: [approxDim, numLeaves]
+                leafValues = mx::transpose(dimByLeaf);
+                // leafValues shape: [numLeaves, approxDim]
+                // No EvalNow here — let the GPU graph continue lazily until
+                // ApplyObliviousTree materialises it alongside the cursor update.
             }
 
             // ----- Step 4: Apply tree to predictions -----

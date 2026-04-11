@@ -5,6 +5,25 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
 
 ---
 
+## [Unreleased] — Sprint 7 (2026-04-11)
+
+### Changed
+
+- **Fused multiclass leaf computation (TODO-019)**: `ComputeLeafValues` now returns a lazy MLX array instead of an immediately-evaluated result. The old per-class loop (K calls to `EvalNow`) is replaced by a single vectorized Newton step over the full `[approxDim × numLeaves]` array. For K=10 multiclass this eliminates 10 CPU-GPU round trips per boosting iteration. The result is reshaped to `[numLeaves, approxDim]` (interleaved layout) on the GPU before `kTreeApplySource` consumes it.
+
+- **Partition output from tree_applier kernel (TODO-020)**: `kTreeApplySource` now writes two outputs — `cursorOut` (float32) and `partitionsOut` (uint32) — in a single kernel dispatch. The O(depth) MLX bitwise-op recompute loop that previously reconstructed per-document leaf assignments after the kernel returned has been deleted (−28 lines in `tree_applier.cpp`).
+
+### Fixed
+
+- **BUG-002 (TODO-021)**: `bench_boosting.cpp` partition update used `featureVal > binThreshold + 1` instead of `featureVal > binThreshold`. The off-by-one caused the CPU reference partitioner in the benchmark harness to disagree with the Metal kernel's split logic, producing incorrect leaf assignments and preventing gradient boosting from converging. The benchmark now converges correctly: binary 100k final loss drops from ~0.693 (near log(2), equivalent to a random classifier) to **0.11909308**. This fix applies only to `bench_boosting.cpp`; the library-path Metal kernel (`kTreeApplySource`) and `csv_train` were not affected.
+
+  New reference baselines for `bench_boosting` regression tests:
+  - Binary 100k (50 features, depth 6, 100 iters): **0.11909308**
+  - Multiclass K=3, 20k docs: **0.63507235**
+  - Multiclass K=10, 20k docs: **2.22267818**
+
+---
+
 ## [0.2.0] - 2026-04-10
 
 ### Added
