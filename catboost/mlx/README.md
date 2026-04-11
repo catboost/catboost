@@ -829,6 +829,31 @@ python/
 | `--weight-col` | `sample_weight` (in fit()) |
 | `--group-col` | `group_id` (in fit()) |
 
+## Known Limitations
+
+The following constraints apply to the MLX/Metal backend. They do not affect CatBoost's CPU or CUDA backends.
+
+### max_depth capped at 6
+`kLeafAccumSource` uses a compile-time `MAX_LEAVES=64` constant (5 KB per-thread private storage). `2^7 = 128 > 64`, so `max_depth > 6` triggers a runtime `CB_ENSURE` failure. CatBoost CPU/CUDA supports depths up to 16. Removing this limit requires a redesigned leaf accumulation kernel with dynamic or larger private storage.
+
+### 16M row limit (DEC-003)
+`ComputePartitionLayout` accumulates per-partition document counts using `mx::scatter_add_axis` with float32 accumulators. float32 represents integers exactly only up to `2^24 = 16,777,216`. A `CB_ENSURE` guard in `structure_searcher.cpp` rejects datasets above this size. Lifting this requires switching to int32 accumulation throughout the partition-layout path.
+
+### Apple Silicon only
+Requires a Mac with Apple Silicon (M1/M2/M3/M4) and macOS 14+. Metal compute shaders do not run on Intel Macs, Linux, or Windows.
+
+### Cold-start compile latency
+The first Metal kernel dispatch per process triggers JIT shader compilation. Expect approximately 100–150 ms on the first iteration; subsequent iterations are fast.
+
+### Python API uses subprocess
+`CatBoostMLXRegressor`/`CatBoostMLXClassifier` invoke `csv_train` and `csv_predict` via subprocess, passing data through temporary CSV files. This adds roughly 50 ms per `fit()`/`predict()` call. The C++ library path (`mlx_boosting.h/cpp`) is not affected.
+
+### Feature combinations (crosses) not implemented
+CatBoost's automatic feature cross search is not yet ported.
+
+### Grow policies (Lossguide/Depthwise) not implemented
+Only symmetric (oblivious) trees are supported. Non-symmetric policies are in the backlog (TODO-012).
+
 ## Troubleshooting
 
 ### "Cannot find mlx/mlx.h"

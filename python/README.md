@@ -511,6 +511,35 @@ model.export_onnx("model.onnx")      # pip install onnx>=1.14
 model.export_coreml("model.mlmodel")  # pip install coremltools>=7.0
 ```
 
+## Known Limitations
+
+The following limitations apply to the current MLX backend. CatBoost CPU/CUDA is unaffected.
+
+### max_depth capped at 6
+`kLeafAccumSource` uses a compile-time `MAX_LEAVES=64` constant. `2^7 = 128 > 64`, so any `depth > 6` triggers a runtime error:
+```
+CB_ENSURE failed: max_depth must be <= 6 for the MLX backend
+```
+CatBoost CPU/CUDA supports depths up to 16. Lifting this limit requires a redesigned leaf accumulation kernel.
+
+### 16M row limit
+`ComputePartitionLayout` uses float32 `scatter_add` for bucket counting. float32 represents integers exactly only up to `2^24 = 16,777,216`. Training on datasets with more than 16,777,216 rows will error with a `CB_ENSURE` guard. Most Apple Silicon Macs are memory-constrained well below this limit in practice.
+
+### Apple Silicon only
+Requires a Mac with an Apple Silicon chip (M1, M2, M3, M4 or later) running macOS 14+. Intel Macs, Linux, and Windows are not supported.
+
+### Cold-start compile latency
+The first training iteration compiles Metal shaders. This takes approximately 100–150 ms and is one-time per process. Subsequent iterations are fast. The "Slow first iteration" entry in Troubleshooting covers this.
+
+### Python API uses subprocess
+`fit()` and `predict()` invoke the `csv_train`/`csv_predict` C++ binaries via subprocess, writing temporary CSV files in between. This adds approximately 50 ms of overhead per call and is noticeable for small datasets or tight loops. It does not affect throughput on large datasets.
+
+### Feature combinations (crosses) not implemented
+CatBoost's automatic feature combination search (cartesian product splits) is not yet ported to the MLX backend.
+
+### Grow policies (Lossguide/Depthwise) not implemented
+Only symmetric (oblivious) trees are supported. Lossguide and Depthwise grow policies are in the backlog (TODO-012).
+
 ## Contributing
 
 We welcome contributions! Unlike Sheldon's Roommate Agreement, our contributing guidelines are actually reasonable.
