@@ -15,13 +15,20 @@ namespace NCatboostMlx {
         float learningRate
     ) {
         // Newton step: -gradSum / (hessSum + lambda) * lr
-        // Using MLX ops (no custom kernel needed — numLeaves is small, typically 2-256)
+        // Using MLX ops (no custom kernel needed — numLeaves is small, typically 2-256).
+        //
+        // This function accepts any flat input shape — [numLeaves] for the scalar
+        // (approxDim==1) path, or [approxDim * numLeaves] for the fused multiclass
+        // path.  Either way the Newton step is element-wise so the same formula
+        // applies regardless of how the caller has laid out the data.
+        //
+        // Returns a *lazy* MLX array — EvalNow is intentionally absent here.
+        // The caller decides when to materialise (either at the next read site or
+        // by batching the eval with other work).  This eliminates the K EvalNow
+        // CPU-GPU round trips that the old per-dimension loop incurred.
         auto denominator = mx::add(hessianSums, mx::array(l2RegLambda));
         auto rawValues = mx::negative(mx::divide(gradientSums, denominator));
-        auto leafValues = mx::multiply(rawValues, mx::array(learningRate));
-
-        TMLXDevice::EvalNow(leafValues);
-        return leafValues;
+        return mx::multiply(rawValues, mx::array(learningRate));
     }
 
     void ComputeLeafSumsGPU(
