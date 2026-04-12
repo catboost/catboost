@@ -590,10 +590,11 @@ class CatBoostMLX(BaseEstimator):
                 f"grow_policy must be 'SymmetricTree', 'Depthwise', or 'Lossguide', "
                 f"got {self.grow_policy!r}"
             )
-        if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
-            raise ValueError(
-                f"max_leaves must be an integer >= 2, got {self.max_leaves!r}"
-            )
+        if self.grow_policy == "Lossguide":
+            if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
+                raise ValueError(
+                    f"max_leaves must be an integer >= 2, got {self.max_leaves!r}"
+                )
         if self.bootstrap_type not in ("no", "bayesian", "bernoulli", "mvs"):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
