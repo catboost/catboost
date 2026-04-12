@@ -8,6 +8,8 @@
 #include <catboost/mlx/methods/histogram.h>
 #include <catboost/mlx/methods/tree_applier.h>
 
+#include <unordered_map>
+
 namespace NCatboostMlx {
 
     // Partition layout: sorted doc indices + partition offsets/sizes.
@@ -83,6 +85,52 @@ namespace NCatboostMlx {
         ui32 maxDepth,
         float l2RegLambda,
         ui32 approxDimension = 1
+    );
+
+    // Result of a lossguide (best-first leaf-wise) tree structure search.
+    //
+    // Lossguide grows the tree one leaf at a time, always splitting the leaf with
+    // the highest loss reduction gain.  The resulting tree is unbalanced — leaves
+    // at different depths.  Complexity is controlled by maxLeaves (not maxDepth).
+    //
+    // Internal representation:
+    //   NodeSplitMap   — sparse map: BFS node index → split descriptor.
+    //                    Contains only internal (split) nodes; leaf nodes are absent.
+    //                    Using a hash map avoids O(2^depth) allocation for unbalanced trees.
+    //   NumLeaves      — number of terminal leaves (= number of splits + 1).
+    //   LeafBfsIds     — BFS node index for each dense leaf (size = NumLeaves).
+    //                    Dense leaf index k corresponds to BFS node LeafBfsIds[k].
+    //   LeafDocIds     — per-document dense leaf assignment [numDocs] uint32.
+    //                    Updated incrementally during search; consumed by leaf estimator.
+    struct TLossguideTreeStructure {
+        // Sparse map from BFS node index → split descriptor (only internal nodes).
+        // Using an unordered_map avoids allocating O(2^depth) entries for unbalanced trees.
+        std::unordered_map<ui32, TObliviousSplitLevel> NodeSplitMap;  // bfsIdx → split
+        TVector<ui32>                 LeafBfsIds;    // [NumLeaves] BFS indices of leaf nodes
+        ui32                          NumLeaves = 1; // always >= 1 (root starts as one leaf)
+        mx::array                     LeafDocIds;    // [numDocs] uint32 — dense leaf per doc
+    };
+
+    // Search for the best lossguide tree structure (best-first / leaf-wise).
+    //
+    // Algorithm:
+    //   1. Start with the root as the single leaf (leaf 0).
+    //   2. Maintain a priority queue of (gain, leafId) — pops the highest-gain leaf.
+    //   3. Compute histograms for the chosen leaf, find its best split.
+    //   4. Create two children; update LeafDocIds for docs in this leaf.
+    //   5. Repeat until maxLeaves reached or no valid split remains.
+    //
+    // maxLeaves controls tree complexity (analogous to LightGBM's num_leaves).
+    // maxDepth is an optional secondary limit (0 = no depth limit).
+    //
+    // Returns the tree structure.  Leaf values are computed by the caller using
+    // LeafDocIds as the partition array.
+    TLossguideTreeStructure SearchLossguideTreeStructure(
+        TMLXDataSet& dataset,
+        ui32 maxLeaves,
+        float l2RegLambda,
+        ui32 approxDimension = 1,
+        ui32 maxDepth = 0
     );
 
 }  // namespace NCatboostMlx

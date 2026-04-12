@@ -19,6 +19,7 @@ namespace NCatboostMlx {
     enum class EGrowPolicy {
         SymmetricTree,  // Oblivious (default): one split per depth level, shared across all leaves.
         Depthwise,      // XGBoost-style: best split per leaf at each depth level.
+        Lossguide,      // LightGBM-style: best-first leaf-wise growth; maxLeaves controls complexity.
     };
 
     // Result of the boosting process.
@@ -27,7 +28,9 @@ namespace NCatboostMlx {
         TVector<TObliviousTreeStructure> TreeStructures;
         // Depthwise trees (GrowPolicy == Depthwise).
         TVector<TDepthwiseTreeStructure> DepthwiseTreeStructures;
-        TVector<mx::array> TreeLeafValues;   // [numTrees] each [2^depth] for dim=1, [2^depth, K] for multi
+        // Lossguide trees (GrowPolicy == Lossguide).
+        TVector<TLossguideTreeStructure> LossguideTreeStructures;
+        TVector<mx::array> TreeLeafValues;   // [numTrees] each [numLeaves] for dim=1, [numLeaves, K] for multi
         ui32 NumIterations;
         ui32 ApproxDimension = 1;
         ui32 BestIteration = 0;              // iteration with best validation loss (if early stopping used)
@@ -44,6 +47,7 @@ namespace NCatboostMlx {
         ui32 ApproxDimension = 1;
         // Grow policy
         EGrowPolicy GrowPolicy = EGrowPolicy::SymmetricTree;
+        ui32 MaxLeaves = 31;                // used only when GrowPolicy == Lossguide
         // Early stopping
         ui32 EarlyStoppingPatience = 0;     // 0 = disabled
         ui32 MetricPeriod = 1;              // compute metrics every N iterations
