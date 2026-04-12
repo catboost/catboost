@@ -506,19 +506,16 @@ TBestSplitProperties FindBestSplitGPU(
 // Leaf accumulation (mirrors leaf_estimator.cpp ComputeLeafSumsGPU)
 // ============================================================================
 
-void ComputeLeafSumsGPU(
-    const mx::array& gradients,   // [approxDim * numDocs]
-    const mx::array& hessians,    // [approxDim * numDocs]
-    const mx::array& partitions,  // [numDocs] uint32
+// Single-pass: numLeaves <= 64 (depth <= 6)
+static void ComputeLeafSumsGPUSinglePass(
+    const mx::array& gradients, const mx::array& hessians,
+    const mx::array& partitions,
     ui32 numDocs, ui32 numLeaves, ui32 approxDim,
     mx::array& gradSumsOut, mx::array& hessSumsOut
 ) {
-    gradSumsOut = mx::zeros({static_cast<int>(approxDim * numLeaves)}, mx::float32);
-    hessSumsOut = mx::zeros({static_cast<int>(approxDim * numLeaves)}, mx::float32);
-
-    auto numDocsArr    = mx::array(static_cast<uint32_t>(numDocs),    mx::uint32);
-    auto numLeavesArr  = mx::array(static_cast<uint32_t>(numLeaves),  mx::uint32);
-    auto approxDimArr  = mx::array(static_cast<uint32_t>(approxDim),  mx::uint32);
+    auto numDocsArr   = mx::array(static_cast<uint32_t>(numDocs),   mx::uint32);
+    auto numLeavesArr = mx::array(static_cast<uint32_t>(numLeaves), mx::uint32);
+    auto approxDimArr = mx::array(static_cast<uint32_t>(approxDim), mx::uint32);
 
     auto leafKernel = mx::fast::metal_kernel(
         "leaf_accum",
@@ -527,18 +524,9 @@ void ComputeLeafSumsGPU(
         KernelSources::kLeafAccumSource,
         KernelSources::kLeafAccumHeader,
         /*ensure_row_contiguous=*/true,
-        // BUG-001 FIX: atomic_outputs=false — the new single-threadgroup kernel
-        // writes directly (non-atomically) since no other threadgroup touches the
-        // same output slot.  The init_value=0.0f zeros the output before the kernel.
         /*atomic_outputs=*/false
     );
 
-    // BUG-001 FIX: Single-threadgroup dispatch (grid = LEAF_BLOCK_SIZE).
-    // The kernel now iterates over all numDocs internally with stride LEAF_BLOCK_SIZE.
-    // This eliminates cross-threadgroup atomic_fetch_add races on the leaf sum slots.
-    // Performance: serialised over numDocs within one threadgroup. For typical
-    // numDocs <= 10k this is fast enough; for production workloads leaf estimation
-    // is not the critical path (histogram is ~50x larger).
     auto grid = std::make_tuple(256, 1, 1);
     auto tg   = std::make_tuple(256, 1, 1);
 
@@ -551,6 +539,92 @@ void ComputeLeafSumsGPU(
     );
     gradSumsOut = results[0];
     hessSumsOut = results[1];
+}
+
+// Multi-pass: numLeaves > 64 (depth 7-10)
+// Dispatches ceil(numLeaves/64) passes of the chunked kernel; each pass processes
+// a 64-leaf window. The private array stays 5 KB regardless of total numLeaves.
+static void ComputeLeafSumsGPUMultiPass(
+    const mx::array& gradients, const mx::array& hessians,
+    const mx::array& partitions,
+    ui32 numDocs, ui32 numLeaves, ui32 approxDim,
+    mx::array& gradSumsOut, mx::array& hessSumsOut
+) {
+    constexpr ui32 kChunkSize = 64;
+
+    auto chunkedKernel = mx::fast::metal_kernel(
+        "leaf_accum_chunked",
+        {"gradients", "hessians", "partitions",
+         "numDocs", "chunkBase", "chunkSize", "approxDim"},
+        {"gradSums", "hessSums"},
+        KernelSources::kLeafAccumChunkedSource,
+        KernelSources::kLeafAccumHeader,
+        /*ensure_row_contiguous=*/true,
+        /*atomic_outputs=*/false
+    );
+
+    auto grid = std::make_tuple(256, 1, 1);
+    auto tg   = std::make_tuple(256, 1, 1);
+
+    auto numDocsArr   = mx::array(static_cast<uint32_t>(numDocs),   mx::uint32);
+    auto approxDimArr = mx::array(static_cast<uint32_t>(approxDim), mx::uint32);
+
+    std::vector<float> gradBuf(approxDim * numLeaves, 0.0f);
+    std::vector<float> hessBuf(approxDim * numLeaves, 0.0f);
+
+    for (ui32 chunkBase = 0; chunkBase < numLeaves; chunkBase += kChunkSize) {
+        const ui32 chunkSize = std::min(kChunkSize, numLeaves - chunkBase);
+
+        auto chunkBaseArr = mx::array(static_cast<uint32_t>(chunkBase), mx::uint32);
+        auto chunkSizeArr = mx::array(static_cast<uint32_t>(chunkSize), mx::uint32);
+
+        auto results = chunkedKernel(
+            {gradients, hessians, partitions,
+             numDocsArr, chunkBaseArr, chunkSizeArr, approxDimArr},
+            {{static_cast<int>(approxDim * chunkSize)},
+             {static_cast<int>(approxDim * chunkSize)}},
+            {mx::float32, mx::float32},
+            grid, tg,
+            {}, 0.0f, false, mx::Device::gpu
+        );
+
+        mx::eval({results[0], results[1]});
+
+        const float* gp = results[0].data<float>();
+        const float* hp = results[1].data<float>();
+
+        for (ui32 k = 0; k < approxDim; ++k) {
+            for (ui32 li = 0; li < chunkSize; ++li) {
+                gradBuf[k * numLeaves + chunkBase + li] = gp[k * chunkSize + li];
+                hessBuf[k * numLeaves + chunkBase + li] = hp[k * chunkSize + li];
+            }
+        }
+    }
+
+    gradSumsOut = mx::array(gradBuf.data(),
+        {static_cast<int>(approxDim * numLeaves)}, mx::float32);
+    hessSumsOut = mx::array(hessBuf.data(),
+        {static_cast<int>(approxDim * numLeaves)}, mx::float32);
+}
+
+void ComputeLeafSumsGPU(
+    const mx::array& gradients,   // [approxDim * numDocs]
+    const mx::array& hessians,    // [approxDim * numDocs]
+    const mx::array& partitions,  // [numDocs] uint32
+    ui32 numDocs, ui32 numLeaves, ui32 approxDim,
+    mx::array& gradSumsOut, mx::array& hessSumsOut
+) {
+    if (numLeaves <= 64) {
+        ComputeLeafSumsGPUSinglePass(
+            gradients, hessians, partitions,
+            numDocs, numLeaves, approxDim,
+            gradSumsOut, hessSumsOut);
+    } else {
+        ComputeLeafSumsGPUMultiPass(
+            gradients, hessians, partitions,
+            numDocs, numLeaves, approxDim,
+            gradSumsOut, hessSumsOut);
+    }
 }
 
 // ============================================================================

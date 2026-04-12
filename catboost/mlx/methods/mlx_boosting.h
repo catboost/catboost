@@ -15,13 +15,23 @@
 
 namespace NCatboostMlx {
 
+    // How the tree is grown at each boosting iteration.
+    enum class EGrowPolicy {
+        SymmetricTree,  // Oblivious (default): one split per depth level, shared across all leaves.
+        Depthwise,      // XGBoost-style: best split per leaf at each depth level.
+    };
+
     // Result of the boosting process.
     struct TBoostingResult {
+        // Oblivious trees (GrowPolicy == SymmetricTree).
         TVector<TObliviousTreeStructure> TreeStructures;
+        // Depthwise trees (GrowPolicy == Depthwise).
+        TVector<TDepthwiseTreeStructure> DepthwiseTreeStructures;
         TVector<mx::array> TreeLeafValues;   // [numTrees] each [2^depth] for dim=1, [2^depth, K] for multi
         ui32 NumIterations;
         ui32 ApproxDimension = 1;
         ui32 BestIteration = 0;              // iteration with best validation loss (if early stopping used)
+        EGrowPolicy GrowPolicy = EGrowPolicy::SymmetricTree;
     };
 
     // Configuration for the boosting loop.
@@ -32,6 +42,8 @@ namespace NCatboostMlx {
         float L2RegLambda = 3.0f;
         bool UseWeights = false;
         ui32 ApproxDimension = 1;
+        // Grow policy
+        EGrowPolicy GrowPolicy = EGrowPolicy::SymmetricTree;
         // Early stopping
         ui32 EarlyStoppingPatience = 0;     // 0 = disabled
         ui32 MetricPeriod = 1;              // compute metrics every N iterations

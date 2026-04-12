@@ -122,16 +122,17 @@
   - [x] New reference baselines recorded: 0.11909308 (binary 100k), 0.63507235 (multiclass 20k K=3)
   - [x] pytest 684/684 passing
 
-### TODO-010 — MLflow integration via ITrainingCallbacks
-- **Assigned to:** unassigned
+### TODO-010 — MLflow integration
+- **Assigned to:** ml-engineer
 - **Priority:** Medium
-- **Status:** Backlog
-- **Depends on:** none
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
 - **Acceptance Criteria:**
-  - Python `CatBoostMLXRegressor`/`CatBoostMLXClassifier` accept an `mlflow_run_name` parameter (or similar)
-  - Loss and iteration metrics logged to MLflow on each iteration via `ITrainingCallbacks`
-  - No C++ changes required
-  - Documented in Python docstring with a usage example
+  - [x] `mlflow_logging` bool param and `mlflow_run_name` str param added to `fit()` (Python only — no C++ changes)
+  - [x] Lazy `import mlflow` inside `_log_to_mlflow()` — remains optional dependency
+  - [x] Respects active runs: logs into existing run if open; otherwise starts and ends its own
+  - [x] Hyperparameters, per-iteration loss, and final metrics logged
+  - [x] Documented in Python docstring with usage example
 
 ### TODO-011 — Additional loss functions: Poisson, Tweedie, MAPE (library path)
 - **Assigned to:** ml-engineer
@@ -187,15 +188,91 @@
 - **Acceptance Criteria:**
   - [x] "Sprint 7 on branch (not yet merged)" corrected to "Sprint 7 merged (7b483ad631)"
 
-### TODO-012 — Grow policies: Lossguide and Depthwise
-- **Assigned to:** unassigned
-- **Priority:** Low
-- **Status:** Backlog
-- **Depends on:** TODO-007 (GPU partition layout helps here too)
+### TODO-026 — Item E: 16M row fix — int32 scatter_add in ComputePartitionLayout
+- **Assigned to:** ml-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **Resolves:** DEC-003
 - **Acceptance Criteria:**
-  - `SearchTreeStructure` supports `GrowPolicy::Lossguide` and `GrowPolicy::Depthwise`
-  - Policy selectable via Python interface
-  - Correctness verified against CatBoost CPU reference on a held-out dataset
+  - [x] `scatter_add_axis` accumulator in `ComputePartitionLayout` switched from float32 to int32
+  - [x] `CB_ENSURE(numDocs < 2^24)` guard removed — int32 exact up to ~2.1B docs
+  - [x] DEC-003 status updated to Resolved in DECISIONS.md
+  - [x] Existing test suite green; binary/multiclass regression losses unchanged
+
+### TODO-027 — Item H: CI bench regression check
+- **Assigned to:** mlops-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **Acceptance Criteria:**
+  - [x] `mlx_test.yaml` gains "Bench regression check (binary)" step: 1k×10×cls2×d4×20i×bins32×seed42, expected `0.59795737`, tolerance 1e-4
+  - [x] `mlx_test.yaml` gains "Bench regression check (multiclass K=3)" step: 1k×10×cls3×d4×20i×bins32×seed42, expected `0.95248461`, tolerance 1e-4
+  - [x] CI will fail if a kernel change silently shifts final loss
+
+### TODO-028 — Item F: MLflow integration (Python fit())
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **See:** TODO-010 (same feature — merged into this entry)
+- **Acceptance Criteria:**
+  - [x] `mlflow_logging` bool param and `mlflow_run_name` str param in `__init__` and `fit()`
+  - [x] Lazy `import mlflow` inside `_log_to_mlflow()` — mlflow remains optional
+  - [x] Run scoping: logs into active run if present; starts/ends its own run otherwise
+  - [x] Documented in Python docstring
+
+### TODO-029 — Item G: Histogram EvalNow deferral
+- **Assigned to:** ml-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **Acceptance Criteria:**
+  - [x] `EvalNow` removed from `ComputeHistogramsImpl` after group-dispatch accumulation — histogram returned as lazy MLX array
+  - [x] `EvalNow` removed from `CreateZeroHistogram`
+  - [x] `FindBestSplitGPU` in `score_calcer.cpp` consumes lazy histogram directly; MLX folds group graph into same command buffer as suffix-sum dispatch
+  - [x] Net: removes 2 CPU-GPU syncs per depth level from histogram.cpp
+  - [x] Regression losses and determinism unaffected
+
+### TODO-030 — Item B: max_depth > 6 — chunked multi-pass leaf accumulation
+- **Assigned to:** ml-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **Acceptance Criteria:**
+  - [x] `kLeafAccumChunkedSource` Metal kernel added to `kernel_sources.h`: same private-accumulator + fixed-order-reduction design as `kLeafAccumSource`, but processes leaf slice `[chunkBase, chunkBase+chunkSize)` per dispatch
+  - [x] `ComputeLeafSumsGPUMultiPass` in `leaf_estimator.cpp`: issues `ceil(numLeaves/64)` dispatches, each with `chunkBase` stepped by 64; concatenates chunk outputs into full `[approxDim * numLeaves]` arrays
+  - [x] `LEAF_PRIV_SIZE = MAX_APPROX_DIM * LEAF_CHUNK_SIZE * 2 = 1280 floats = 5 KB` — no register spill at any supported depth
+  - [x] Old `CB_ENSURE(numLeaves <= 64)` guard replaced by `CB_ENSURE(numLeaves >= 2 && numLeaves <= 1024)` (depth 1-10)
+  - [x] Depth 8 bench_boosting baseline: `0.54883069` (1k×10×cls2×d8×20i×bins32×seed42)
+  - [x] See DEC-005
+
+### TODO-031 — Item D: Depthwise grow policy
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+- **Acceptance Criteria:**
+  - [x] `EGrowPolicy` enum in `mlx_boosting.h`: `SymmetricTree`, `Depthwise`
+  - [x] `TDepthwiseTreeStructure` struct: `TVector<TObliviousSplitLevel> NodeSplits` in BFS order, `ui32 Depth`
+  - [x] `SearchDepthwiseTreeStructure` in `structure_searcher.cpp`: iterates depth levels; at each level calls `FindBestSplitGPU` per live node (2^d calls at level d)
+  - [x] `kTreeApplyDepthwiseSource` Metal kernel in `kernel_sources.h`: BFS traversal (left child = 2n+1, right child = 2n+2); produces `cursorOut` + `partitionsOut`
+  - [x] `ApplyDepthwiseTree` in `tree_applier.cpp`: dispatches `kTreeApplyDepthwiseSource`
+  - [x] `--grow-policy` CLI flag in `csv_train.cpp`; `grow_policy` Python param in `core.py`
+  - [x] See DEC-004
+
+### TODO-012 — Grow policies: Lossguide and Depthwise
+- **Assigned to:** ml-engineer (Depthwise done Sprint 9; Lossguide backlog)
+- **Priority:** Low
+- **Status:** Partially Done
+- **Depends on:** TODO-007 (GPU partition layout)
+- **Acceptance Criteria:**
+  - [x] `EGrowPolicy` enum: `SymmetricTree`, `Depthwise` (Lossguide not yet implemented)
+  - [x] `SearchDepthwiseTreeStructure` in `structure_searcher.cpp` — per-leaf `FindBestSplitGPU` at each depth level, BFS node ordering
+  - [x] `ApplyDepthwiseTree` in `tree_applier.cpp` — `kTreeApplyDepthwiseSource` Metal kernel traverses BFS node array
+  - [x] `--grow-policy` CLI flag in `csv_train.cpp`; `grow_policy` Python param in `core.py`
+  - [ ] `GrowPolicy::Lossguide` — leaf-priority (best-leaf-first) BFS expansion (Backlog)
+  - [x] `grow_policy` documented in Python docstring with description of SymmetricTree vs Depthwise semantics
 
 ### TODO-013 — Fix kernel param names in build_verify_test.cpp
 - **Assigned to:** ml-engineer

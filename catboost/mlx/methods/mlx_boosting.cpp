@@ -24,9 +24,13 @@ namespace NCatboostMlx {
         const ui32 numDocs = trainData.GetNumDocs();
         const ui32 approxDim = config.ApproxDimension;
 
+        const bool isDepthwise = (config.GrowPolicy == EGrowPolicy::Depthwise);
+        result.GrowPolicy = config.GrowPolicy;
+
         CATBOOST_INFO_LOG << "CatBoost-MLX: Starting boosting with "
             << config.NumIterations << " iterations, lr=" << config.LearningRate
             << ", depth=" << config.MaxDepth << ", l2=" << config.L2RegLambda
+            << ", grow_policy=" << (isDepthwise ? "Depthwise" : "SymmetricTree")
             << ", docs=" << numDocs << ", approxDim=" << approxDim << Endl;
 
         auto startTime = std::chrono::steady_clock::now();
@@ -71,21 +75,42 @@ namespace NCatboostMlx {
             // ----- Step 2: Search for best tree structure -----
             trainData.InitPartitions(numDocs);
 
-            auto treeStructure = SearchTreeStructure(
-                trainData,
-                config.MaxDepth,
-                config.L2RegLambda,
-                approxDim
-            );
+            // Depthwise path: grow per-leaf splits.
+            // Oblivious (SymmetricTree) path: one split shared across all leaves per level.
+            TDepthwiseTreeStructure depthwiseStructure;
+            TObliviousTreeStructure obliviousStructure;
+            ui32 actualDepth = 0;
 
-            if (treeStructure.Splits.empty()) {
-                CATBOOST_WARNING_LOG << "CatBoost-MLX: No valid splits at iteration " << iter
-                    << ", stopping early" << Endl;
-                break;
+            if (isDepthwise) {
+                depthwiseStructure = SearchDepthwiseTreeStructure(
+                    trainData,
+                    config.MaxDepth,
+                    config.L2RegLambda,
+                    approxDim
+                );
+                actualDepth = depthwiseStructure.Depth;
+                if (actualDepth == 0) {
+                    CATBOOST_WARNING_LOG << "CatBoost-MLX: No valid depthwise splits at iteration "
+                        << iter << ", stopping early" << Endl;
+                    break;
+                }
+            } else {
+                obliviousStructure = SearchTreeStructure(
+                    trainData,
+                    config.MaxDepth,
+                    config.L2RegLambda,
+                    approxDim
+                );
+                actualDepth = static_cast<ui32>(obliviousStructure.Splits.size());
+                if (actualDepth == 0) {
+                    CATBOOST_WARNING_LOG << "CatBoost-MLX: No valid splits at iteration " << iter
+                        << ", stopping early" << Endl;
+                    break;
+                }
             }
 
             // ----- Step 3: Estimate leaf values (GPU-accelerated) -----
-            const ui32 numLeaves = 1u << treeStructure.Splits.size();
+            const ui32 numLeaves = 1u << actualDepth;
 
             mx::array gradSumsGPU, hessSumsGPU;
             ComputeLeafSumsGPU(
@@ -131,15 +156,27 @@ namespace NCatboostMlx {
             }
 
             // ----- Step 4: Apply tree to predictions -----
-            ApplyObliviousTree(trainData, treeStructure.Splits, leafValues, approxDim);
-
-            // Apply tree to validation data if present
-            if (hasValidation) {
-                ApplyObliviousTree(*config.ValidationData, treeStructure.Splits, leafValues, approxDim);
+            if (isDepthwise) {
+                ApplyDepthwiseTree(trainData, depthwiseStructure.NodeSplits,
+                    leafValues, actualDepth, approxDim);
+                if (hasValidation) {
+                    ApplyDepthwiseTree(*config.ValidationData, depthwiseStructure.NodeSplits,
+                        leafValues, actualDepth, approxDim);
+                }
+            } else {
+                ApplyObliviousTree(trainData, obliviousStructure.Splits, leafValues, approxDim);
+                if (hasValidation) {
+                    ApplyObliviousTree(*config.ValidationData, obliviousStructure.Splits,
+                        leafValues, approxDim);
+                }
             }
 
             // ----- Step 5: Report metrics -----
-            result.TreeStructures.push_back(std::move(treeStructure));
+            if (isDepthwise) {
+                result.DepthwiseTreeStructures.push_back(std::move(depthwiseStructure));
+            } else {
+                result.TreeStructures.push_back(std::move(obliviousStructure));
+            }
             result.TreeLeafValues.push_back(leafValues);
 
             auto iterEnd = std::chrono::steady_clock::now();
@@ -219,7 +256,9 @@ namespace NCatboostMlx {
             }
         }
 
-        result.NumIterations = result.TreeStructures.size();
+        result.NumIterations = isDepthwise
+            ? static_cast<ui32>(result.DepthwiseTreeStructures.size())
+            : static_cast<ui32>(result.TreeStructures.size());
         result.BestIteration = bestIteration;
 
         auto totalTime = std::chrono::duration_cast<std::chrono::seconds>(

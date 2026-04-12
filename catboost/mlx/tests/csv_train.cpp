@@ -28,6 +28,7 @@
 //   --monotone-constraints 0,1,-1,...  Per-feature monotone constraints (0=none, 1=inc, -1=dec)
 //   --snapshot-path PATH   Save/restore training snapshot for resume (default: disabled)
 //   --snapshot-interval N  Save snapshot every N iterations (default: 1)
+//   --grow-policy POLICY   Tree grow policy: SymmetricTree (default, oblivious) or Depthwise (per-leaf splits)
 //   --verbose              Print per-iteration loss
 //
 // Compile:
@@ -152,6 +153,8 @@ struct TConfig {
     ui32 SnapshotInterval = 1;             // save snapshot every N iterations
     // External eval file
     std::string EvalFile;                  // "" = disabled; path to separate validation CSV
+    // Grow policy
+    std::string GrowPolicy = "SymmetricTree";  // "SymmetricTree" (default) or "Depthwise"
 };
 
 TConfig ParseArgs(int argc, char** argv) {
@@ -211,6 +214,7 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--snapshot-path") == 0 && i + 1 < argc) config.SnapshotPath = argv[++i];
         else if (strcmp(argv[i], "--snapshot-interval") == 0 && i + 1 < argc) config.SnapshotInterval = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--eval-file") == 0 && i + 1 < argc) config.EvalFile = argv[++i];
+        else if (strcmp(argv[i], "--grow-policy") == 0 && i + 1 < argc) config.GrowPolicy = argv[++i];
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
@@ -1163,6 +1167,111 @@ TBestSplitProperties FindBestSplit(
 }
 
 // ============================================================================
+// Depthwise: find best split per partition.
+//
+// Returns a vector of size numPartitions, each element being the best split
+// for that partition.  Partitions with no valid split get FeatureId == -1.
+// The outer loop mirrors FindBestSplit but restricts the gain sum to one
+// partition at a time.
+// ============================================================================
+
+std::vector<TBestSplitProperties> FindBestSplitPerPartition(
+    const std::vector<std::vector<float>>& perDimHist,  // [K][numPartitions * 2 * totalBinFeatures]
+    const std::vector<std::vector<TPartitionStatistics>>& perDimPartStats,  // [K][numPartitions]
+    const std::vector<TCFeature>& features,
+    ui32 totalBinFeatures,
+    float l2RegLambda,
+    ui32 numPartitions,
+    const std::vector<bool>& featureMask = {}
+) {
+    const ui32 K = static_cast<ui32>(perDimHist.size());
+    std::vector<TBestSplitProperties> results(numPartitions);
+    std::vector<float> bestGains(numPartitions, -std::numeric_limits<float>::infinity());
+
+    for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
+        if (!featureMask.empty() && !featureMask[featIdx]) continue;
+        const auto& feat = features[featIdx];
+
+        if (feat.OneHotFeature) {
+            for (ui32 bin = 0; bin < feat.Folds; ++bin) {
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    float gain = 0.0f;
+                    for (ui32 k = 0; k < K; ++k) {
+                        const float* histData = perDimHist[k].data()
+                            + static_cast<size_t>(p) * 2 * totalBinFeatures;
+                        float totalSum    = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+                        float sumRight    = histData[feat.FirstFoldIndex + bin];
+                        float weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        float sumLeft    = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+                        gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                              + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                              - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                    }
+                    if (gain > bestGains[p]) {
+                        bestGains[p] = gain;
+                        results[p].FeatureId = featIdx;
+                        results[p].BinId     = bin;
+                        results[p].Gain      = gain;
+                        results[p].Score     = -gain;
+                    }
+                }
+            }
+        } else {
+            // Ordinal: precompute suffix sums per partition per dim
+            const ui32 stride = totalBinFeatures;
+            std::vector<float> suffGrad(K * numPartitions * stride, 0.0f);
+            std::vector<float> suffHess(K * numPartitions * stride, 0.0f);
+            for (ui32 k = 0; k < K; ++k) {
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    const float* histData = perDimHist[k].data()
+                        + static_cast<size_t>(p) * 2 * totalBinFeatures;
+                    size_t base = (k * numPartitions + p) * stride;
+                    float runG = 0.0f, runH = 0.0f;
+                    for (int b = static_cast<int>(feat.FirstFoldIndex + feat.Folds) - 1;
+                         b >= static_cast<int>(feat.FirstFoldIndex); --b) {
+                        runG += histData[b];
+                        runH += histData[totalBinFeatures + b];
+                        suffGrad[base + b] = runG;
+                        suffHess[base + b] = runH;
+                    }
+                }
+            }
+
+            for (ui32 bin = 0; bin + 1 < feat.Folds; ++bin) {
+                ui32 binOffset = feat.FirstFoldIndex + bin;
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    float gain = 0.0f;
+                    for (ui32 k = 0; k < K; ++k) {
+                        float totalSum    = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+                        size_t base = (k * numPartitions + p) * stride;
+                        float sumRight    = suffGrad[base + binOffset];
+                        float weightRight = suffHess[base + binOffset];
+                        float sumLeft    = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+                        gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                              + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                              - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                    }
+                    if (gain > bestGains[p]) {
+                        bestGains[p] = gain;
+                        results[p].FeatureId = featIdx;
+                        results[p].BinId     = bin;
+                        results[p].Gain      = gain;
+                        results[p].Score     = -gain;
+                    }
+                }
+            }
+        }
+    }
+    return results;
+}
+
+// ============================================================================
 // Loss function helpers: parse loss type with optional parameter
 // ============================================================================
 
@@ -1510,6 +1619,56 @@ mx::array ComputeLeafIndices(
     return leafIndices;
 }
 
+// Compute leaf indices for a depthwise (non-symmetric) tree.
+// nodeSplits: BFS-ordered splits for all internal nodes (size = 2^depth - 1).
+// Traverses from root (node 0), following left (2n+1) or right (2n+2) children.
+mx::array ComputeLeafIndicesDepthwise(
+    const mx::array& compressedData,
+    const std::vector<TObliviousSplitLevel>& nodeSplits,
+    ui32 numDocs,
+    ui32 depth
+) {
+    if (depth == 0) {
+        return mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
+    }
+
+    // CPU fallback: traverse each doc through the tree node-by-node.
+    // This is correct for any tree shape and is only used for validation/
+    // inference (not the hot training path).
+    // For numDocs up to tens of thousands this is fast enough.
+    const ui32 numNodes = (1u << depth) - 1u;
+    mx::eval(compressedData);
+
+    // Extract all needed feature columns CPU-side.
+    // We compute per-doc leaf index by sequential tree traversal.
+    // Direct: use MLX scatter to build leafIndices from partition array
+    // which was already computed on GPU — just return the GPU partitions.
+    // (The caller already has partitions from the training path.)
+    // Here we recompute from scratch for validation data.
+
+    // Materialise compressedData on CPU for the column reads.
+    auto flatData = mx::reshape(compressedData, {static_cast<int>(numDocs), -1});
+    mx::eval(flatData);
+    const uint32_t* dataPtr = flatData.data<uint32_t>();
+    const ui32 lineSize = static_cast<ui32>(flatData.shape(1));
+
+    std::vector<uint32_t> leafVec(numDocs);
+    for (ui32 d = 0; d < numDocs; ++d) {
+        ui32 nodeIdx = 0u;
+        for (ui32 lvl = 0; lvl < depth; ++lvl) {
+            const auto& ns = nodeSplits[nodeIdx];
+            uint32_t packed = dataPtr[d * lineSize + ns.FeatureColumnIdx];
+            uint32_t fv = (packed >> ns.Shift) & ns.Mask;
+            uint32_t goRight = ns.IsOneHot ? (fv == ns.BinThreshold ? 1u : 0u)
+                                           : (fv > ns.BinThreshold ? 1u : 0u);
+            nodeIdx = 2u * nodeIdx + 1u + goRight;
+        }
+        leafVec[d] = nodeIdx - numNodes;
+    }
+    return mx::array(reinterpret_cast<const int32_t*>(leafVec.data()),
+        {static_cast<int>(numDocs)}, mx::uint32);
+}
+
 // ============================================================================
 // CTR (target encoding) for high-cardinality categorical features
 // ============================================================================
@@ -1737,10 +1896,11 @@ void ApplyCtrToEvalData(
 // ============================================================================
 
 struct TTreeRecord {
-    std::vector<TObliviousSplitLevel> Splits;
+    std::vector<TObliviousSplitLevel> Splits;        // oblivious: [depth]; depthwise: [numNodes] BFS
     std::vector<TBestSplitProperties> SplitProps;
     std::vector<float> LeafValues;  // flat: numLeaves for dim=1, numLeaves*approxDim for multi
     ui32 Depth;
+    bool IsDepthwise = false;  // true → Splits holds BFS node splits, not oblivious levels
 };
 
 static std::string EscapeJsonString(const std::string& s) {
@@ -2684,6 +2844,7 @@ TTrainResult RunTraining(
         auto partitions = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
         std::vector<TObliviousSplitLevel> splits;
         std::vector<TBestSplitProperties> splitProps;
+        ui32 actualTreeDepth = 0;  // number of depth levels actually searched (needed for depthwise)
 
         double dbgHistMs = 0, dbgSplitMs = 0, dbgLayoutMs = 0, dbgPartMs = 0;
         for (ui32 depth = 0; depth < config.MaxDepth; ++depth) {
@@ -2786,46 +2947,114 @@ TTrainResult RunTraining(
             auto tD2 = std::chrono::steady_clock::now();
             dbgHistMs += std::chrono::duration<double, std::milli>(tD2 - tD1).count();
 
-            auto bestSplit = FindBestSplit(
-                perDimHistData, perDimPartStats,
-                packed.Features, packed.TotalBinFeatures,
-                config.L2RegLambda, numPartitions, featureMask,
-                config.MinDataInLeaf, countHist, partDocCounts,
-                config.MonotoneConstraints,
-                config.RandomStrength, &rng
-            );
-            auto tD3 = std::chrono::steady_clock::now();
-            dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
+            const bool isDepthwise = (config.GrowPolicy == "Depthwise" || config.GrowPolicy == "depthwise");
 
-            if (!bestSplit.Defined()) break;
+            if (isDepthwise) {
+                // Depthwise: find best split per partition.
+                auto perPartSplits = FindBestSplitPerPartition(
+                    perDimHistData, perDimPartStats,
+                    packed.Features, packed.TotalBinFeatures,
+                    config.L2RegLambda, numPartitions, featureMask
+                );
+                auto tD3 = std::chrono::steady_clock::now();
+                dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 
-            // Record split
-            const auto& feat = packed.Features[bestSplit.FeatureId];
-            TObliviousSplitLevel split;
-            split.FeatureColumnIdx = static_cast<ui32>(feat.Offset);
-            split.Shift = feat.Shift;
-            split.Mask = feat.Mask >> feat.Shift;
-            split.BinThreshold = bestSplit.BinId;
-            split.IsOneHot = feat.OneHotFeature;
-            splits.push_back(split);
-            splitProps.push_back(bestSplit);
+                bool anyValid = false;
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    if (perPartSplits[p].Defined()) anyValid = true;
+                    // Build node split descriptor (valid or no-op placeholder).
+                    TObliviousSplitLevel nodeSplit;
+                    if (perPartSplits[p].Defined()) {
+                        const auto& feat = packed.Features[perPartSplits[p].FeatureId];
+                        nodeSplit.FeatureColumnIdx = static_cast<ui32>(feat.Offset);
+                        nodeSplit.Shift      = feat.Shift;
+                        nodeSplit.Mask       = feat.Mask >> feat.Shift;
+                        nodeSplit.BinThreshold = perPartSplits[p].BinId;
+                        nodeSplit.IsOneHot   = feat.OneHotFeature;
+                    } else {
+                        // No-op: mask==0 means all docs stay left (bit never set).
+                        nodeSplit.FeatureColumnIdx = 0;
+                        nodeSplit.Shift = 0; nodeSplit.Mask = 0; nodeSplit.BinThreshold = 0;
+                        nodeSplit.IsOneHot = false;
+                    }
+                    splits.push_back(nodeSplit);
+                }
 
-            // Update partitions
-            auto column = mx::slice(compressedData,
-                {0, static_cast<int>(split.FeatureColumnIdx)},
-                {static_cast<int>(trainDocs), static_cast<int>(split.FeatureColumnIdx + 1)});
-            column = mx::reshape(column, {static_cast<int>(trainDocs)});
-            auto featureValues = mx::bitwise_and(
-                mx::right_shift(column, mx::array(static_cast<uint32_t>(split.Shift), mx::uint32)),
-                mx::array(static_cast<uint32_t>(split.Mask), mx::uint32));
-            auto goRight = feat.OneHotFeature
-                ? mx::equal(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32))
-                : mx::greater(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32));
-            auto bits = mx::left_shift(mx::astype(goRight, mx::uint32), mx::array(static_cast<uint32_t>(depth), mx::uint32));
-            partitions = mx::bitwise_or(partitions, bits);
-            mx::eval(partitions);
-            auto tD4 = std::chrono::steady_clock::now();
-            dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
+                if (!anyValid) break;
+                actualTreeDepth = depth + 1;
+
+                // Update partitions for all partitions in one vectorised pass.
+                mx::array updateBits = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    const auto& ns = splits[splits.size() - numPartitions + p];
+                    if (ns.Mask == 0) continue;
+                    auto inPart = mx::astype(
+                        mx::equal(partitions, mx::array(static_cast<uint32_t>(p), mx::uint32)),
+                        mx::uint32);
+                    auto col = mx::reshape(
+                        mx::slice(compressedData,
+                            {0, static_cast<int>(ns.FeatureColumnIdx)},
+                            {static_cast<int>(trainDocs), static_cast<int>(ns.FeatureColumnIdx + 1)}),
+                        {static_cast<int>(trainDocs)});
+                    auto fv = mx::bitwise_and(
+                        mx::right_shift(col, mx::array(static_cast<uint32_t>(ns.Shift), mx::uint32)),
+                        mx::array(static_cast<uint32_t>(ns.Mask), mx::uint32));
+                    auto gr = ns.IsOneHot
+                        ? mx::equal(fv, mx::array(static_cast<uint32_t>(ns.BinThreshold), mx::uint32))
+                        : mx::greater(fv, mx::array(static_cast<uint32_t>(ns.BinThreshold), mx::uint32));
+                    updateBits = mx::add(updateBits, mx::multiply(mx::astype(gr, mx::uint32), inPart));
+                }
+                auto bits = mx::left_shift(updateBits,
+                    mx::array(static_cast<uint32_t>(depth), mx::uint32));
+                partitions = mx::bitwise_or(partitions, bits);
+                mx::eval(partitions);
+                auto tD4 = std::chrono::steady_clock::now();
+                dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
+
+            } else {
+                // Oblivious (SymmetricTree): one split for all partitions at this depth level.
+                auto bestSplit = FindBestSplit(
+                    perDimHistData, perDimPartStats,
+                    packed.Features, packed.TotalBinFeatures,
+                    config.L2RegLambda, numPartitions, featureMask,
+                    config.MinDataInLeaf, countHist, partDocCounts,
+                    config.MonotoneConstraints,
+                    config.RandomStrength, &rng
+                );
+                auto tD3 = std::chrono::steady_clock::now();
+                dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
+
+                if (!bestSplit.Defined()) break;
+
+                // Record split
+                const auto& feat = packed.Features[bestSplit.FeatureId];
+                TObliviousSplitLevel split;
+                split.FeatureColumnIdx = static_cast<ui32>(feat.Offset);
+                split.Shift = feat.Shift;
+                split.Mask = feat.Mask >> feat.Shift;
+                split.BinThreshold = bestSplit.BinId;
+                split.IsOneHot = feat.OneHotFeature;
+                splits.push_back(split);
+                splitProps.push_back(bestSplit);
+                actualTreeDepth = depth + 1;
+
+                // Update partitions
+                auto column = mx::slice(compressedData,
+                    {0, static_cast<int>(split.FeatureColumnIdx)},
+                    {static_cast<int>(trainDocs), static_cast<int>(split.FeatureColumnIdx + 1)});
+                column = mx::reshape(column, {static_cast<int>(trainDocs)});
+                auto featureValues = mx::bitwise_and(
+                    mx::right_shift(column, mx::array(static_cast<uint32_t>(split.Shift), mx::uint32)),
+                    mx::array(static_cast<uint32_t>(split.Mask), mx::uint32));
+                auto goRight = feat.OneHotFeature
+                    ? mx::equal(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32))
+                    : mx::greater(featureValues, mx::array(static_cast<uint32_t>(split.BinThreshold), mx::uint32));
+                auto bits = mx::left_shift(mx::astype(goRight, mx::uint32), mx::array(static_cast<uint32_t>(depth), mx::uint32));
+                partitions = mx::bitwise_or(partitions, bits);
+                mx::eval(partitions);
+                auto tD4 = std::chrono::steady_clock::now();
+                dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
+            }
         }
         if (iter == 0 && printProgress) {
             printf("  [profile iter0] layout=%.1fms hist=%.1fms split=%.1fms part=%.1fms\n",
@@ -2842,7 +3071,10 @@ TTrainResult RunTraining(
         result.TreeSearchMs += std::chrono::duration<double, std::milli>(tTreeEnd - tGradEnd).count();
 
         // Step 3: Estimate leaf values (GPU scatter_add_axis)
-        ui32 numLeaves = 1u << splits.size();
+        // For oblivious trees: numLeaves = 2^splits.size() (splits.size() == depth).
+        // For depthwise trees:  numLeaves = 2^actualTreeDepth (splits.size() == 2^depth - 1 nodes).
+        const bool isDepthwiseTree = (config.GrowPolicy == "Depthwise" || config.GrowPolicy == "depthwise");
+        ui32 numLeaves = isDepthwiseTree ? (1u << actualTreeDepth) : (1u << splits.size());
 
         auto lrArr = mx::array(config.LearningRate, mx::float32);
         auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
@@ -2898,7 +3130,8 @@ TTrainResult RunTraining(
             TTreeRecord record;
             record.Splits = splits;
             record.SplitProps = splitProps;
-            record.Depth = static_cast<ui32>(splits.size());
+            record.IsDepthwise = isDepthwiseTree;
+            record.Depth = isDepthwiseTree ? actualTreeDepth : static_cast<ui32>(splits.size());
             mx::eval(leafValues);
             const float* lvPtr = leafValues.data<float>();
             ui32 totalFloats = (approxDim == 1) ? numLeaves : numLeaves * approxDim;
@@ -2910,6 +3143,8 @@ TTrainResult RunTraining(
         result.LeafMs += std::chrono::duration<double, std::milli>(tLeafEnd - tTreeEnd).count();
 
         // Step 4: Apply tree to training data
+        // For depthwise trees, partitions is already the correct leaf index (same bit-encoding
+        // as oblivious trees — the partition update loop sets bit `depth` based on per-node splits).
         auto docLeafValues = mx::take(leafValues, mx::astype(partitions, mx::int32), 0);
         if (approxDim > 1) {
             docLeafValues = mx::transpose(docLeafValues);  // [K, numDocs]
@@ -2922,7 +3157,12 @@ TTrainResult RunTraining(
 
         // Apply tree to validation data
         if (valDocs > 0) {
-            auto valLeafIndices = ComputeLeafIndices(valCompressedData, splits, valDocs);
+            mx::array valLeafIndices = mx::array(0, mx::uint32);
+            if (isDepthwiseTree) {
+                valLeafIndices = ComputeLeafIndicesDepthwise(valCompressedData, splits, valDocs, actualTreeDepth);
+            } else {
+                valLeafIndices = ComputeLeafIndices(valCompressedData, splits, valDocs);
+            }
             auto valDocLeafValues = mx::take(leafValues, mx::astype(valLeafIndices, mx::int32), 0);
             if (approxDim > 1) {
                 valDocLeafValues = mx::transpose(valDocLeafValues);
@@ -2956,6 +3196,8 @@ TTrainResult RunTraining(
             }
             result.FinalTrainLoss = trainLoss;
 
+            const ui32 displayDepth = isDepthwiseTree ? actualTreeDepth : static_cast<ui32>(splits.size());
+
             if (valDocs > 0) {
                 float valLoss;
                 float valNDCG = 0.0f;
@@ -2972,11 +3214,11 @@ TTrainResult RunTraining(
                 }
                 result.FinalTestLoss = valLoss;
                 if (isRanking) {
-                    printf("iter=%u  trees=%u  depth=%zu  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, splits.size(), trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
+                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
+                           iter, result.TreesBuilt, displayDepth, trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
                 } else {
-                    printf("iter=%u  trees=%u  depth=%zu  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, splits.size(), trainLoss, valLoss, iterMs);
+                    printf("iter=%u  trees=%u  depth=%u  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
+                           iter, result.TreesBuilt, displayDepth, trainLoss, valLoss, iterMs);
                 }
 
                 // Early stopping check
@@ -2996,11 +3238,11 @@ TTrainResult RunTraining(
                 }
             } else {
                 if (isRanking) {
-                    printf("iter=%u  trees=%u  depth=%zu  loss=%.6f  NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, splits.size(), trainLoss, trainNDCG, iterMs);
+                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  NDCG=%.4f  time=%lldms\n",
+                           iter, result.TreesBuilt, displayDepth, trainLoss, trainNDCG, iterMs);
                 } else {
-                    printf("iter=%u  trees=%u  depth=%zu  loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, splits.size(), trainLoss, iterMs);
+                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  time=%lldms\n",
+                           iter, result.TreesBuilt, displayDepth, trainLoss, iterMs);
                 }
             }
         }

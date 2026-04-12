@@ -547,6 +547,8 @@ constant constexpr uint MAX_LEAVES = 64;
 constant constexpr uint MAX_APPROX_DIM = 10;
 // Per-thread private storage: MAX_APPROX_DIM * MAX_LEAVES * 2 = 1280 floats = 5 KB
 constant constexpr uint LEAF_PRIV_SIZE = MAX_APPROX_DIM * MAX_LEAVES * 2;
+// Chunk size for multi-pass accumulation (depth > 6): always MAX_LEAVES
+constant constexpr uint LEAF_CHUNK_SIZE = MAX_LEAVES;
 )metal";
 
 static const std::string kLeafAccumSource = R"metal(
@@ -612,6 +614,92 @@ static const std::string kLeafAccumSource = R"metal(
             gradSums[k * numLeaves + leaf] = val;
         } else {
             hessSums[k * numLeaves + leaf] = val;
+        }
+    }
+)metal";
+
+// ============================================================================
+// Chunked leaf accumulation kernel — multi-pass variant for depth > 6
+//
+// Identical algorithm to kLeafAccumSource but processes only the leaf slice
+// [chunkBase, chunkBase + chunkSize) per dispatch.  The caller issues
+// ceil(numLeaves / LEAF_CHUNK_SIZE) dispatches, each with a different chunkBase,
+// and concatenates the per-chunk grad/hess sums into the final output arrays.
+//
+// This avoids allocating a per-thread private array proportional to numLeaves:
+// LEAF_PRIV_SIZE is fixed at MAX_APPROX_DIM * LEAF_CHUNK_SIZE * 2 = 1280 floats
+// (5 KB) regardless of total numLeaves — identical to the single-pass kernel.
+//
+// Extra inputs vs kLeafAccumSource:
+//   chunkBase  — uint32: first leaf index handled by this pass
+//   chunkSize  — uint32: number of leaves in this pass (<= LEAF_CHUNK_SIZE)
+//
+// Output shapes: [approxDim * chunkSize] each (caller slices into full output)
+//
+// Grid/Thread: same as kLeafAccumSource — (256, 1, 1) single threadgroup.
+// ============================================================================
+
+static const std::string kLeafAccumChunkedSource = R"metal(
+    // BUG-001 FIX pattern: per-thread private accumulator, fixed-order reduction.
+    // This pass handles leaves [chunkBase, chunkBase + chunkSize).
+    // Private array is always LEAF_PRIV_SIZE regardless of total numLeaves.
+    float privSums[LEAF_PRIV_SIZE];
+
+    const uint totalEntries = approxDim * chunkSize * 2u;
+
+    // Zero per-thread private sums
+    for (uint i = 0u; i < totalEntries; i++) {
+        privSums[i] = 0.0f;
+    }
+
+    // Strided document loop: only accumulate docs whose leaf falls in this chunk.
+    for (uint d = thread_index_in_threadgroup; d < numDocs; d += LEAF_BLOCK_SIZE) {
+        const uint leaf = partitions[d];
+        if (leaf >= chunkBase && leaf < chunkBase + chunkSize) {
+            const uint localLeaf = leaf - chunkBase;  // index within this chunk
+            for (uint k = 0u; k < approxDim; k++) {
+                const float grad = gradients[k * numDocs + d];
+                const float hess = hessians[k * numDocs + d];
+                privSums[k * chunkSize * 2u + localLeaf * 2u]      += grad;
+                privSums[k * chunkSize * 2u + localLeaf * 2u + 1u] += hess;
+            }
+        }
+    }
+
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // Fixed-order sequential reduction (identical to kLeafAccumSource).
+    threadgroup float stagingSums[LEAF_PRIV_SIZE];
+
+    if (thread_index_in_threadgroup == 0u) {
+        for (uint i = 0u; i < totalEntries; i++) {
+            stagingSums[i] = privSums[i];
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    for (uint t = 1u; t < LEAF_BLOCK_SIZE; t++) {
+        if (thread_index_in_threadgroup == t) {
+            for (uint i = 0u; i < totalEntries; i++) {
+                stagingSums[i] += privSums[i];
+            }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    // Write chunk results to output arrays (caller offsets into full-size output).
+    // Output layout: [approxDim * chunkSize] — grad and hess in separate buffers.
+    for (uint i = thread_index_in_threadgroup; i < totalEntries; i += LEAF_BLOCK_SIZE) {
+        const float val    = stagingSums[i];
+        const uint k       = i / (chunkSize * 2u);
+        const uint rem     = i % (chunkSize * 2u);
+        const uint localLeaf = rem / 2u;
+        const uint is_hess = rem % 2u;
+
+        if (is_hess == 0u) {
+            gradSums[k * chunkSize + localLeaf] = val;
+        } else {
+            hessSums[k * chunkSize + localLeaf] = val;
         }
     }
 )metal";
@@ -714,6 +802,95 @@ static const std::string kTreeApplySource = R"metal(
     // Write partition (leaf) assignment directly from the computed leafIdx.
     // Eliminates the redundant O(depth) MLX bitwise-op recompute in tree_applier.cpp.
     // depth=0 edge case: leafIdx=0 for all docs (loop above never executes), correct.
+    partitionsOut[globalDocIdx] = leafIdx;
+)metal";
+
+// ============================================================================
+// Depthwise tree apply kernel.
+//
+// For depthwise (non-symmetric) trees, each internal node at depth d has its
+// own (feature, bin, isOneHot) split — unlike oblivious trees where all leaves
+// at depth d share one split.
+//
+// Node indexing: nodes are numbered 0..numNodes-1 in BFS order.
+//   depth 0: node 0            (the root)
+//   depth 1: nodes 1, 2
+//   depth 2: nodes 3, 4, 5, 6
+//   depth d: nodes [2^d - 1 .. 2^(d+1) - 2]    (numNodes = 2^maxDepth - 1 total)
+//
+// Tree traversal per document:
+//   nodeIdx = 0   (root)
+//   for d in [0, depth):
+//     extract featureVal from nodeIdx's split descriptor
+//     goRight = (isOneHot ? featureVal==thresh : featureVal>thresh)
+//     nodeIdx = 2*nodeIdx + 1 + goRight    (left child = 2n+1, right child = 2n+2)
+//   leafIdx = nodeIdx - (numNodes)         (leaves are at nodeIdx in [numNodes..numNodes+numLeaves-1])
+//
+// Input names (in order):
+//   compressedData  — [numDocs * lineSize] uint32
+//   nodeColIdx      — [numNodes] uint32: feature column per internal node
+//   nodeShift       — [numNodes] uint32: right-shift per node
+//   nodeMask        — [numNodes] uint32: bit mask per node
+//   nodeThreshold   — [numNodes] uint32: bin threshold per node
+//   nodeIsOneHot    — [numNodes] uint32: 1=OneHot, 0=ordinal
+//   leafValues      — [numLeaves * approxDim] float32
+//   cursorIn        — [approxDim * numDocs] float32
+//   numDocs         — scalar uint32
+//   depth           — scalar uint32 (actual depth of tree, not maxDepth)
+//   lineSize        — scalar uint32
+//   approxDim       — scalar uint32
+//
+// Output names:
+//   cursorOut       — [approxDim * numDocs] float32
+//   partitionsOut   — [numDocs] uint32 (leaf index per doc)
+//
+// Grid:   (numDocs, 1, 1) rounded up to threadgroup boundary
+// Thread: (TREE_APPLY_BLOCK_SIZE, 1, 1) = (256, 1, 1)
+// ============================================================================
+
+static const std::string kTreeApplyDepthwiseSource = R"metal(
+    // One thread per document.
+    const uint globalDocIdx = threadgroup_position_in_grid.x * TREE_APPLY_BLOCK_SIZE
+                            + thread_index_in_threadgroup;
+
+    if (globalDocIdx >= numDocs) return;
+
+    const uint docBase = globalDocIdx * lineSize;
+
+    // Traverse the binary tree from root (nodeIdx=0) down `depth` levels.
+    // BFS layout: left child of node n = 2n+1, right child = 2n+2.
+    uint nodeIdx = 0u;
+    for (uint d = 0u; d < depth; d++) {
+        const uint col       = nodeColIdx[nodeIdx];
+        const uint shift     = nodeShift[nodeIdx];
+        const uint mask      = nodeMask[nodeIdx];
+        const uint threshold = nodeThreshold[nodeIdx];
+        const uint isOneHot  = nodeIsOneHot[nodeIdx];
+
+        const uint packed     = compressedData[docBase + col];
+        const uint featureVal = (packed >> shift) & mask;
+
+        uint goRight;
+        if (isOneHot != 0u) {
+            goRight = (featureVal == threshold) ? 1u : 0u;
+        } else {
+            goRight = (featureVal > threshold) ? 1u : 0u;
+        }
+        nodeIdx = 2u * nodeIdx + 1u + goRight;
+    }
+
+    // numNodes = 2^depth - 1; leaves start at nodeIdx == numNodes.
+    // leafIdx = nodeIdx - numNodes.
+    const uint numNodes = (1u << depth) - 1u;
+    const uint leafIdx  = nodeIdx - numNodes;
+
+    // Update cursor: add leaf value for each approxDim slot.
+    for (uint k = 0u; k < approxDim; k++) {
+        const uint slot = k * numDocs + globalDocIdx;
+        cursorOut[slot] = cursorIn[slot] + leafValues[leafIdx * approxDim + k];
+    }
+
+    // Write partition (leaf) assignment.
     partitionsOut[globalDocIdx] = leafIdx;
 )metal";
 

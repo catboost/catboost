@@ -82,6 +82,20 @@ jobs:
           cp csv_predict python/catboost_mlx/bin/
           cp bench_boosting /tmp/bench_boosting
 
+      - name: Bench regression check (binary)
+        run: |
+          LOSS=$(./bench_boosting --rows 1000 --features 10 --classes 2 --depth 4 --iters 20 --bins 32 --seed 42 2>&1 | grep -oP 'BENCH_FINAL_LOSS=\K[0-9.]+')
+          EXPECTED="0.59795737"
+          echo "Binary loss: $LOSS (expected: $EXPECTED)"
+          python3 -c "assert abs(float('$LOSS') - float('$EXPECTED')) < 1e-4, f'Regression: {$LOSS} vs {$EXPECTED}'"
+
+      - name: Bench regression check (multiclass K=3)
+        run: |
+          LOSS=$(./bench_boosting --rows 1000 --features 10 --classes 3 --depth 4 --iters 20 --bins 32 --seed 42 2>&1 | grep -oP 'BENCH_FINAL_LOSS=\K[0-9.]+')
+          EXPECTED="0.95248461"
+          echo "Multiclass K=3 loss: $LOSS (expected: $EXPECTED)"
+          python3 -c "assert abs(float('$LOSS') - float('$EXPECTED')) < 1e-4, f'Regression: {$LOSS} vs {$EXPECTED}'"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

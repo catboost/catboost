@@ -31,30 +31,20 @@ namespace NCatboostMlx {
         return mx::multiply(rawValues, mx::array(learningRate));
     }
 
-    void ComputeLeafSumsGPU(
-        const mx::array& gradients,
-        const mx::array& hessians,
-        const mx::array& partitions,
+    // ---------------------------------------------------------------------------
+    // Single-pass leaf accumulation (numLeaves <= 64, depth <= 6)
+    // ---------------------------------------------------------------------------
+    static void ComputeLeafSumsGPUSinglePass(
+        const mx::array& flatGrads,
+        const mx::array& flatHess,
+        const mx::array& flatParts,
         ui32 numDocs,
         ui32 numLeaves,
         ui32 approxDim,
         mx::array& outGradSums,
         mx::array& outHessSums
     ) {
-        // Safety: kLeafAccumSource uses MAX_LEAVES=64 for shared memory allocation.
-        // Exceeding this silently discards documents assigned to leaves >= 64,
-        // corrupting leaf statistics. Fail fast with a clear error.
-        CB_ENSURE(numLeaves <= 64,
-            "CatBoost-MLX: ComputeLeafSumsGPU supports at most 64 leaves (max_depth=6). "
-            "Got " << numLeaves << " leaves (max_depth=" << (ui32)__builtin_ctz(numLeaves) << "). "
-            "Reduce max_depth to 6 or below.");
-
-        // Flatten gradients/hessians to 1D: [approxDim * numDocs]
-        auto flatGrads = mx::reshape(gradients, {static_cast<int>(approxDim * numDocs)});
-        auto flatHess = mx::reshape(hessians, {static_cast<int>(approxDim * numDocs)});
-        auto flatParts = mx::reshape(partitions, {static_cast<int>(numDocs)});
-
-        auto numDocsArr = mx::array(static_cast<uint32_t>(numDocs), mx::uint32);
+        auto numDocsArr   = mx::array(static_cast<uint32_t>(numDocs),   mx::uint32);
         auto numLeavesArr = mx::array(static_cast<uint32_t>(numLeaves), mx::uint32);
         auto approxDimArr = mx::array(static_cast<uint32_t>(approxDim), mx::uint32);
 
@@ -66,17 +56,11 @@ namespace NCatboostMlx {
             /*source=*/KernelSources::kLeafAccumSource,
             /*header=*/KernelSources::kLeafAccumHeader,
             /*ensure_row_contiguous=*/true,
-            // BUG-001 FIX: atomic_outputs=false — the redesigned single-threadgroup
-            // kernel writes directly (non-atomically). No other threadgroup touches the
-            // same output slot so atomic writes are unnecessary.
             /*atomic_outputs=*/false
         );
 
-        // BUG-001 FIX: Single-threadgroup dispatch.
-        // The kernel iterates over all numDocs with stride LEAF_BLOCK_SIZE internally.
-        // Eliminates cross-threadgroup atomic_fetch_add non-determinism on leaf slots.
         auto grid = std::make_tuple(256, 1, 1);
-        auto tg = std::make_tuple(256, 1, 1);
+        auto tg   = std::make_tuple(256, 1, 1);
 
         auto results = kernel(
             /*inputs=*/{flatGrads, flatHess, flatParts,
@@ -93,6 +77,125 @@ namespace NCatboostMlx {
 
         outGradSums = results[0];
         outHessSums = results[1];
+    }
+
+    // ---------------------------------------------------------------------------
+    // Multi-pass leaf accumulation (numLeaves > 64, depth 7-10)
+    //
+    // Each pass handles a chunk of LEAF_CHUNK_SIZE=64 leaves.  The chunked kernel
+    // keeps the private per-thread array at LEAF_PRIV_SIZE (5 KB) by limiting the
+    // working set to 64 leaves per pass — no register spill at any depth.
+    //
+    // numPasses = ceil(numLeaves / 64).  At depth=10 that is 16 passes (cheap
+    // relative to the histogram build which dominates iteration time).
+    // ---------------------------------------------------------------------------
+    static void ComputeLeafSumsGPUMultiPass(
+        const mx::array& flatGrads,
+        const mx::array& flatHess,
+        const mx::array& flatParts,
+        ui32 numDocs,
+        ui32 numLeaves,
+        ui32 approxDim,
+        mx::array& outGradSums,
+        mx::array& outHessSums
+    ) {
+        constexpr ui32 kChunkSize = 64;
+
+        auto chunkedKernel = mx::fast::metal_kernel(
+            "leaf_accumulate_chunked",
+            /*input_names=*/{"gradients", "hessians", "partitions",
+                "numDocs", "chunkBase", "chunkSize", "approxDim"},
+            /*output_names=*/{"gradSums", "hessSums"},
+            /*source=*/KernelSources::kLeafAccumChunkedSource,
+            /*header=*/KernelSources::kLeafAccumHeader,
+            /*ensure_row_contiguous=*/true,
+            /*atomic_outputs=*/false
+        );
+
+        auto grid = std::make_tuple(256, 1, 1);
+        auto tg   = std::make_tuple(256, 1, 1);
+
+        auto numDocsArr   = mx::array(static_cast<uint32_t>(numDocs),   mx::uint32);
+        auto approxDimArr = mx::array(static_cast<uint32_t>(approxDim), mx::uint32);
+
+        // Allocate full output arrays (zero-initialised); fill chunk-by-chunk.
+        std::vector<float> gradBuf(approxDim * numLeaves, 0.0f);
+        std::vector<float> hessBuf(approxDim * numLeaves, 0.0f);
+
+        for (ui32 chunkBase = 0; chunkBase < numLeaves; chunkBase += kChunkSize) {
+            const ui32 chunkSize = std::min(kChunkSize, numLeaves - chunkBase);
+
+            auto chunkBaseArr = mx::array(static_cast<uint32_t>(chunkBase), mx::uint32);
+            auto chunkSizeArr = mx::array(static_cast<uint32_t>(chunkSize), mx::uint32);
+
+            auto results = chunkedKernel(
+                /*inputs=*/{flatGrads, flatHess, flatParts,
+                    numDocsArr, chunkBaseArr, chunkSizeArr, approxDimArr},
+                /*output_shapes=*/{{static_cast<int>(approxDim * chunkSize)},
+                                   {static_cast<int>(approxDim * chunkSize)}},
+                /*output_dtypes=*/{mx::float32, mx::float32},
+                grid, tg,
+                /*template_args=*/{},
+                /*init_value=*/0.0f,
+                /*verbose=*/false,
+                /*stream=*/mx::Device::gpu
+            );
+
+            // Materialise before reading back to host.
+            mx::eval({results[0], results[1]});
+
+            const float* gp = results[0].data<float>();
+            const float* hp = results[1].data<float>();
+
+            // Copy chunk slice into the full output buffers.
+            // Layout: [approxDim * numLeaves], dim-major.
+            for (ui32 k = 0; k < approxDim; ++k) {
+                for (ui32 li = 0; li < chunkSize; ++li) {
+                    gradBuf[k * numLeaves + chunkBase + li] = gp[k * chunkSize + li];
+                    hessBuf[k * numLeaves + chunkBase + li] = hp[k * chunkSize + li];
+                }
+            }
+        }
+
+        outGradSums = mx::array(gradBuf.data(),
+            {static_cast<int>(approxDim * numLeaves)}, mx::float32);
+        outHessSums = mx::array(hessBuf.data(),
+            {static_cast<int>(approxDim * numLeaves)}, mx::float32);
+    }
+
+    void ComputeLeafSumsGPU(
+        const mx::array& gradients,
+        const mx::array& hessians,
+        const mx::array& partitions,
+        ui32 numDocs,
+        ui32 numLeaves,
+        ui32 approxDim,
+        mx::array& outGradSums,
+        mx::array& outHessSums
+    ) {
+        // Support depth 1-10 (2-1024 leaves).  The old CB_ENSURE(numLeaves <= 64)
+        // guard is removed: single-pass handles depth <= 6 (64 leaves); multi-pass
+        // handles depth 7-10 (128-1024 leaves) via chunked kernel dispatches.
+        CB_ENSURE(numLeaves >= 2 && numLeaves <= 1024,
+            "CatBoost-MLX: ComputeLeafSumsGPU supports depth 1-10 (2-1024 leaves). "
+            "Got " << numLeaves << " leaves.");
+
+        // Flatten to 1D: [approxDim * numDocs]
+        auto flatGrads = mx::reshape(gradients, {static_cast<int>(approxDim * numDocs)});
+        auto flatHess  = mx::reshape(hessians,  {static_cast<int>(approxDim * numDocs)});
+        auto flatParts = mx::reshape(partitions, {static_cast<int>(numDocs)});
+
+        if (numLeaves <= 64) {
+            ComputeLeafSumsGPUSinglePass(
+                flatGrads, flatHess, flatParts,
+                numDocs, numLeaves, approxDim,
+                outGradSums, outHessSums);
+        } else {
+            ComputeLeafSumsGPUMultiPass(
+                flatGrads, flatHess, flatParts,
+                numDocs, numLeaves, approxDim,
+                outGradSums, outHessSums);
+        }
 
         CATBOOST_DEBUG_LOG << "CatBoost-MLX: ComputeLeafSumsGPU: "
             << numDocs << " docs, " << numLeaves << " leaves, "

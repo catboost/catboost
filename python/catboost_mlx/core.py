@@ -397,6 +397,19 @@ class CatBoostMLX(BaseEstimator):
         Minimum number of documents per leaf (default: 1 = no restriction).
     monotone_constraints : list of int, optional
         Per-feature monotone constraints: 0=none, 1=increasing, -1=decreasing.
+    grow_policy : str
+        Tree grow policy. "SymmetricTree" (default) grows oblivious trees where
+        all leaves at the same depth share one split rule. "Depthwise" grows
+        non-symmetric trees where each leaf at a given depth gets its own best
+        split (XGBoost-style), allowing more expressive trees at the same depth.
+    mlflow_logging : bool
+        If True, log hyperparameters, per-iteration loss, and final metrics to
+        MLflow after training. Requires ``mlflow`` to be installed
+        (``pip install mlflow``). Uses the active run if one is already open,
+        otherwise starts and ends a new run automatically.
+    mlflow_run_name : str, optional
+        Custom run name for the MLflow run. Only used when ``mlflow_logging``
+        starts a new run (ignored if a run is already active).
     verbose : bool
         Print per-iteration training loss.
     binary_path : str, optional
@@ -435,10 +448,13 @@ class CatBoostMLX(BaseEstimator):
         snapshot_path: Optional[str] = None,
         snapshot_interval: int = 1,
         auto_class_weights: Optional[str] = None,
+        grow_policy: str = "SymmetricTree",
         verbose: bool = False,
         binary_path: Optional[str] = None,
         train_timeout: Optional[float] = None,
         predict_timeout: Optional[float] = None,
+        mlflow_logging: bool = False,
+        mlflow_run_name: Optional[str] = None,
     ):
         self.iterations = iterations
         self.depth = depth
@@ -466,10 +482,13 @@ class CatBoostMLX(BaseEstimator):
         self.snapshot_path = snapshot_path
         self.snapshot_interval = snapshot_interval
         self.auto_class_weights = auto_class_weights
+        self.grow_policy = grow_policy
         self.verbose = verbose
         self.binary_path = binary_path
         self.train_timeout = train_timeout
         self.predict_timeout = predict_timeout
+        self.mlflow_logging = mlflow_logging
+        self.mlflow_run_name = mlflow_run_name
 
         # Set after fit()
         self._model_path: Optional[str] = None
@@ -558,6 +577,10 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(f"colsample_bytree must be in (0, 1], got {self.colsample_bytree!r}")
         if self.nan_mode not in ("min", "forbidden"):
             raise ValueError(f"nan_mode must be 'min' or 'forbidden', got {self.nan_mode!r}")
+        if self.grow_policy not in (None, "", "SymmetricTree", "Depthwise"):
+            raise ValueError(
+                f"grow_policy must be 'SymmetricTree' or 'Depthwise', got {self.grow_policy!r}"
+            )
         if self.bootstrap_type not in ("no", "bayesian", "bernoulli", "mvs"):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
@@ -745,6 +768,8 @@ class CatBoostMLX(BaseEstimator):
                 args.extend(["--snapshot-interval", str(self.snapshot_interval)])
         if self.random_strength != 1.0:
             args.extend(["--random-strength", str(self.random_strength)])
+        if self.grow_policy and self.grow_policy != "SymmetricTree":
+            args.extend(["--grow-policy", self.grow_policy])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:
@@ -873,6 +898,88 @@ class CatBoostMLX(BaseEstimator):
             m = re.match(r"\s*\d+\s+(\S+)\s+([\d.]+)\s+([\d.]+)%", line)
             if m:
                 self._feature_importance[m.group(1)] = float(m.group(2))
+
+    def _log_to_mlflow(self) -> None:
+        """Log hyperparameters, per-iteration loss, and final metrics to MLflow.
+
+        Called at the end of fit() when mlflow_logging=True. Imports mlflow
+        lazily so it remains an optional dependency.
+
+        Run scoping rules:
+        - If a run is already active (user started one externally), log into it
+          and leave it open when we exit -- we don't own it.
+        - If no run is active, start a new one with mlflow_run_name (or a
+          default name), log everything, then end it before returning.
+        """
+        try:
+            import mlflow
+        except ImportError:
+            raise ImportError(
+                "mlflow is required for mlflow_logging=True. "
+                "Install it with: pip install mlflow"
+            )
+
+        # Detect whether a run is already active so we know who owns it.
+        active_run = mlflow.active_run()
+        we_started_run = active_run is None
+
+        if we_started_run:
+            run_name = self.mlflow_run_name or (
+                f"catboost_mlx_{self.__class__.__name__.lower()}"
+            )
+            active_run = mlflow.start_run(run_name=run_name)
+
+        try:
+            # ── Hyperparameters ───────────────────────────────────────────────
+            params = {
+                "iterations": self.iterations,
+                "depth": self.depth,
+                "learning_rate": self.learning_rate,
+                "l2_reg_lambda": self.l2_reg_lambda,
+                "loss": self.loss,
+                "bins": self.bins,
+                "subsample": self.subsample,
+                "colsample_bytree": self.colsample_bytree,
+                "eval_fraction": self.eval_fraction,
+                "early_stopping_rounds": self.early_stopping_rounds,
+                "random_seed": self.random_seed,
+                "nan_mode": self.nan_mode,
+                "min_data_in_leaf": self.min_data_in_leaf,
+                "bootstrap_type": self.bootstrap_type,
+                "random_strength": self.random_strength,
+            }
+            mlflow.log_params(params)
+
+            # ── Per-iteration train loss ──────────────────────────────────────
+            for step, loss_val in enumerate(self._train_loss_history):
+                mlflow.log_metric("train_loss", loss_val, step=step)
+
+            # ── Per-iteration eval loss (when validation data was used) ───────
+            for step, loss_val in enumerate(self._eval_loss_history):
+                mlflow.log_metric("eval_loss", loss_val, step=step)
+
+            # ── Final summary metrics ─────────────────────────────────────────
+            final_metrics: Dict[str, float] = {}
+            if self._train_loss_history:
+                final_metrics["final_train_loss"] = self._train_loss_history[-1]
+            if self._eval_loss_history:
+                final_metrics["final_eval_loss"] = self._eval_loss_history[-1]
+            # Trees actually built (may be fewer than iterations with early stopping)
+            if self._model_data:
+                info = self._model_data.get("model_info", {})
+                trees_built = len(self._model_data.get("trees", []))
+                final_metrics["trees_built"] = float(trees_built)
+                if "approx_dimension" in info:
+                    final_metrics["approx_dimension"] = float(
+                        info["approx_dimension"]
+                    )
+            if final_metrics:
+                mlflow.log_metrics(final_metrics)
+
+        finally:
+            # Only end the run if we were the one who opened it.
+            if we_started_run:
+                mlflow.end_run()
 
     def fit(self, X_or_pool, y=None, eval_set=None, feature_names: Optional[List[str]] = None,
             group_id=None, sample_weight=None) -> "CatBoostMLX":
@@ -1078,6 +1185,10 @@ class CatBoostMLX(BaseEstimator):
             info["cat_features"] = self.cat_features
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
+
+        # ── MLflow logging (optional) ──────────────────────────────────────────
+        if self.mlflow_logging:
+            self._log_to_mlflow()
 
         return self
 

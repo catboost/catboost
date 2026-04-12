@@ -154,7 +154,10 @@ namespace NCatboostMlx {
                 }
             }
 
-            TMLXDevice::EvalNow(histogram);
+            // No EvalNow here — histogram is consumed lazily as an input to the
+            // suffix_sum_histogram Metal kernel in FindBestSplitGPU.  MLX will
+            // materialise the full group-accumulation graph in that same command
+            // buffer, avoiding an unnecessary CPU-GPU sync point.
 
             return THistogramResult{
                 .Histograms = histogram,
@@ -166,12 +169,13 @@ namespace NCatboostMlx {
     }  // anonymous namespace
 
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures) {
-        auto hist = mx::zeros(
+        // Return a lazy zero array — no EvalNow needed.
+        // mx::zeros() produces a trivially lazy expression; any downstream consumer
+        // (e.g. scatter-add) will materialise it as part of that operation's graph.
+        return mx::zeros(
             {static_cast<int>(numPartitions * numStats * totalBinFeatures)},
             mx::float32
         );
-        TMLXDevice::EvalNow(hist);
-        return hist;
     }
 
     THistogramResult ComputeHistograms(
