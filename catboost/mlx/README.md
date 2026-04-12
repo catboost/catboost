@@ -21,7 +21,8 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | OneHot categorical splits (equality) | Done |
 | | Ordinal splits (threshold) | Done |
 | | Newton leaf estimation | Done |
-| | Non-symmetric / Lossguide grow policies | Not started |
+| | Non-symmetric (Depthwise) grow policy | Done (Sprint 4) |
+| | Lossguide (best-first) grow policy | Done (Sprint 10) |
 | **Regularization** | L2 regularization (lambda) | Done |
 | | Row subsampling (bagging) | Done |
 | | Feature subsampling per tree | Done |
@@ -53,7 +54,8 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | Library-path loss parity: Poisson, Tweedie, MAPE in train.cpp (TODO-011) | Done (Sprint 8) |
 | | Standalone csv_train CLI tool | Done |
 | | Library-path benchmark harness (bench_boosting) | Done (Sprint 5) |
-| | Python bindings | Done |
+| | Python bindings (subprocess backend) | Done |
+| | nanobind in-process extension (`_core`) | Done (Sprint 11) |
 | | Cross-validation | Done |
 | | Snapshot save/resume | Done |
 | | CI (GitHub Actions) | Done |

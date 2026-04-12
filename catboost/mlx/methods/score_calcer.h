@@ -9,6 +9,7 @@
 
 namespace NCatboostMlx {
 
+    /// Best-split result for a specific partition (used in depthwise/lossguide per-leaf search).
     struct TSplitCandidate {
         TBestSplitProperties Properties;
         ui32 PartitionIdx;

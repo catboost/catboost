@@ -1118,6 +1118,24 @@ class CatBoostMLX(BaseEstimator):
                 X_encoded[:, f] = encoded
                 cat_hash_maps[f] = mapping
 
+        # Validate ranking losses require group_ids
+        loss_base = self.loss.split(":")[0].lower()
+        if loss_base in ("pairlogit", "yetirank") and group_ids is None:
+            raise ValueError(
+                f"loss='{self.loss}' requires group_id parameter for ranking"
+            )
+
+        # Sort by group_ids — the C++ subprocess path sorts internally, but
+        # BuildDatasetFromArrays uses consecutive-equal detection for group
+        # offsets, so unsorted group_ids produce wrong results.
+        if group_ids is not None:
+            perm = np.argsort(group_ids, kind="stable")
+            X_encoded = X_encoded[perm] if not cat_set else X_encoded[perm]
+            y = y[perm]
+            group_ids = group_ids[perm]
+            if weights is not None:
+                weights = weights[perm]
+
         # Ensure correct dtypes and C-contiguous layout (nanobind enforces this)
         X_f32 = np.ascontiguousarray(X_encoded, dtype=np.float32)
         y_f32 = np.ascontiguousarray(y, dtype=np.float32)

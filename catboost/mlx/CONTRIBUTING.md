@@ -29,6 +29,11 @@ This document covers everything you need to build, test, and contribute to the M
   Verify the install path with `brew --prefix mlx`. The CI uses whatever version Homebrew pins; check `.github/workflows/mlx_test.yaml` for the current pinned version.
 - **Python**: 3.9 or later (3.9, 3.10, 3.11, 3.12, and 3.13 are all tested in CI).
 - **Compiler**: `clang++` from Xcode Command Line Tools. The `-std=c++17` flag is required; some headers use C++20 extensions that are tolerated with `-Wno-c++20-extensions`.
+- **CMake 3.27+** and **nanobind** (for the in-process `_core` extension):
+  ```bash
+  brew install cmake
+  pip install nanobind
+  ```
 
 ---
 
@@ -96,6 +101,32 @@ cp csv_train python/catboost_mlx/bin/
 cp csv_predict python/catboost_mlx/bin/
 ```
 
+### _core — nanobind in-process extension (primary Python backend)
+
+The nanobind extension compiles the C++ training engine directly into a Python extension module (`_core.cpython-*.so`). When present, the Python package calls it in-process instead of spawning `csv_train` as a subprocess. This is the recommended path for development.
+
+Build via `pip` (which invokes CMake through `mlx.extension.CMakeBuild`):
+
+```bash
+cd python && pip install -e . --no-build-isolation
+```
+
+The `--no-build-isolation` flag is required so CMake can locate the MLX installation in the active environment. If `mlx.extension` is unavailable, the install falls back to the pure-Python subprocess backend with no error.
+
+To build the extension directly with CMake (useful for debugging the build):
+
+```bash
+cd python/catboost_mlx/_core
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+Verify the extension loaded:
+
+```bash
+python3 -c "from catboost_mlx.core import _HAS_NANOBIND; print('nanobind:', _HAS_NANOBIND)"
+```
+
 ---
 
 ## Running Tests
@@ -105,7 +136,9 @@ cp csv_predict python/catboost_mlx/bin/
 Install the package in development mode first:
 
 ```bash
-pip install -e "python/[dev]"
+cd python && pip install -e . --no-build-isolation
+# or, without the nanobind extension:
+# pip install -e "python/[dev]"
 ```
 
 Run the full test suite:
@@ -125,6 +158,16 @@ Lint (the CI gate uses `ruff`):
 ```bash
 ruff check python/catboost_mlx/ python/tests/
 ```
+
+Notable test files:
+
+| File | What it covers |
+|---|---|
+| `test_basic.py` | Core fit/predict smoke tests |
+| `test_nanobind_parity.py` | Verifies subprocess and nanobind paths produce identical results |
+| `test_qa_round14_sprint11_nanobind.py` | Sprint 11 nanobind-specific QA |
+| `test_qa_round13_sprint10.py` | Lossguide grow policy correctness |
+| `test_qa_round11_sprint8_library_losses.py` | Poisson, Tweedie, MAPE on library path |
 
 ### Build verification
 
