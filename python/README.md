@@ -13,8 +13,8 @@ CatBoost-MLX is a gradient boosted decision tree (GBDT) library that runs native
 
 ## Features
 
-- **10 loss functions** — RMSE, MAE, Logloss, CrossEntropy, MultiClass, Quantile, Huber, Poisson, Tweedie, MAPE
-- **3 grow policies** — SymmetricTree (default, oblivious), Depthwise (node-level splits), Lossguide (leaf-priority, coming soon)
+- **12 loss functions** — RMSE, MAE, Logloss, CrossEntropy, MultiClass, Quantile, Huber, Poisson, Tweedie, MAPE, PairLogit, YetiRank
+- **3 grow policies** — SymmetricTree (default, oblivious), Depthwise (node-level splits), Lossguide (best-first leaf expansion)
 - **Tree depth 1-10** — GPU-accelerated at all depths via multi-pass leaf accumulation
 - **Categorical feature support** — one-hot encoding and CTR (target encoding) for high-cardinality categories
 - **Early stopping** — automatic halt on validation plateau
@@ -38,6 +38,11 @@ CatBoost-MLX is a gradient boosted decision tree (GBDT) library that runs native
   ```bash
   xcode-select --install
   ```
+- **CMake 3.27+** and **nanobind** (for the in-process nanobind extension):
+  ```bash
+  brew install cmake
+  pip install nanobind
+  ```
 
 > **Not supported:** Intel Macs, Linux, Windows.
 
@@ -49,11 +54,24 @@ CatBoost-MLX is a gradient boosted decision tree (GBDT) library that runs native
 git clone https://github.com/RR-AMATOK/catboost-mlx.git
 cd catboost-mlx
 
-# Build the GPU training and prediction binaries
-python3 python/build_binaries.py
+# Install the Python package with the nanobind in-process extension (recommended)
+# This compiles the _core nanobind module and links it against MLX directly —
+# no subprocess spawning, no temp files, faster startup.
+cd python && pip install -e . --no-build-isolation
 
-# Install the Python package
-pip install -e python/
+# Alternative: subprocess-only install (no CMake/nanobind required)
+# pip install -e python/
+```
+
+The `--no-build-isolation` flag is required so CMake can locate the MLX installation provided by the active environment. If `mlx.extension` is not available, the install falls back to the pure-Python subprocess backend automatically.
+
+### Build the standalone CLI binaries (optional)
+
+The Python package can also drive training via standalone `csv_train` / `csv_predict` binaries. Build them if you want the CLI tools or if you skip the nanobind extension:
+
+```bash
+# From repo root
+python3 python/build_binaries.py
 ```
 
 ### Optional extras
@@ -69,6 +87,8 @@ pip install -e "python/[all]"       # All of the above
 
 ```bash
 python3 -c "import catboost_mlx; print(catboost_mlx.__version__)"
+# Check whether the nanobind in-process extension is active:
+python3 -c "from catboost_mlx.core import _HAS_NANOBIND; print('nanobind:', _HAS_NANOBIND)"
 ```
 
 ---
@@ -191,6 +211,7 @@ All parameters are set in the constructor and apply to `CatBoostMLX`, `CatBoostM
 | `snapshot_interval` | int | `1` | Save a snapshot every N iterations. Requires `snapshot_path`. |
 | `auto_class_weights` | str | `None` | Automatic class weight balancing: `"Balanced"` or `"SqrtBalanced"`. Classification only. |
 | `grow_policy` | str | `"SymmetricTree"` | Tree grow policy. See [Grow Policies](#grow-policies) below. |
+| `max_leaves` | int | `31` | Maximum number of leaves for Lossguide grow policy. Only used when `grow_policy="Lossguide"`. |
 | `mlflow_logging` | bool | `False` | Log hyperparameters and per-iteration loss to MLflow after training. Requires `pip install mlflow`. |
 | `mlflow_run_name` | str | `None` | Run name for MLflow. Only used when `mlflow_logging=True` starts a new run. |
 | `verbose` | bool | `False` | Print per-iteration training loss to stdout. |
@@ -206,7 +227,7 @@ All parameters are set in the constructor and apply to `CatBoostMLX`, `CatBoostM
 |--------|--------------------|--------------|----|
 | SymmetricTree | `"SymmetricTree"` (default) | Oblivious trees: every node at the same depth uses the same split condition. All `2^depth` leaves are grown simultaneously. Highly regular, fast on GPU. | Default choice. Best throughput, strong regularization. |
 | Depthwise | `"Depthwise"` | Non-symmetric trees: each node at a given depth level gets its own best split independently (equivalent to XGBoost `grow_policy=depthwise`). More expressive than SymmetricTree at the same depth. | More complex decision boundaries at the cost of slightly higher per-iteration time. |
-| Lossguide | N/A | Leaf-priority BFS expansion: grow the leaf with the highest gain first, regardless of depth level. | Not yet implemented (backlog). |
+| Lossguide | `"Lossguide"` | Best-first BFS expansion: grow the leaf with the highest gain first, regardless of depth level. Produces unbalanced trees; depth is not a meaningful parameter. Use `max_leaves` to control tree size. | Best accuracy per leaf for high-variance targets; use when SymmetricTree and Depthwise underfit. |
 
 ---
 
@@ -224,9 +245,13 @@ All parameters are set in the constructor and apply to `CatBoostMLX`, `CatBoostM
 | Logloss | `"logloss"` | Binary classification | Sigmoid link. Default for `CatBoostMLXClassifier` on binary targets. |
 | CrossEntropy | `"crossentropy"` | Binary classification | Alias for Logloss. |
 | MultiClass | `"multiclass"` | Multi-class classification | Softmax. Auto-selected by `"auto"` on targets with 3+ classes. |
+| PairLogit | `"pairlogit"` | Pairwise ranking | Logistic loss over all (winner, loser) pairs within each group. Requires `group_id` in `fit()`. |
+| YetiRank | `"yetirank"` | Pairwise ranking (stochastic) | Position-weighted pairwise loss with random permutations. Requires `group_id` in `fit()`. |
 | Auto | `"auto"` | Any | Selects Logloss (binary) or MultiClass (multi-class) based on target. Default for `CatBoostMLXClassifier`. |
 
 Parameterized losses use colon syntax: `"quantile:0.75"`, `"huber:2.0"`, `"tweedie:1.8"`. Named-parameter syntax is also accepted: `"quantile:alpha=0.75"`.
+
+Ranking losses (`pairlogit`, `yetirank`) require group IDs passed via the `group_id` parameter of `fit()`. Predictions are raw ranking scores — higher score means higher predicted relevance.
 
 ---
 
@@ -359,8 +384,8 @@ CatBoost-MLX is **not** a drop-in replacement for the `catboost` Python package.
 | Platform | Linux, Windows, macOS | macOS (Apple Silicon) only |
 | API | CatBoostRegressor, CatBoostClassifier | CatBoostMLXRegressor, CatBoostMLXClassifier |
 | Feature combinations | Yes | No |
-| Lossguide grow policy | Yes | Backlog |
-| Ranking losses (PairLogit, YetiRank) | Yes | No |
+| Lossguide grow policy | Yes | Yes |
+| Ranking losses (PairLogit, YetiRank) | Yes | Yes (PairLogit, YetiRank) |
 | Full CatBoost model format | Yes | JSON only |
 | MLX/Metal | No | Yes |
 

@@ -1,5 +1,9 @@
 #pragma once
 
+// Top-level CatBoost-MLX trainer.
+// Registered into CatBoost's TTrainerFactory as ETaskType::GPU on darwin-arm64 builds
+// (where CUDA is unavailable). Bridges CatBoost's training framework to the MLX backend.
+
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/private/libs/options/catboost_options.h>
@@ -18,6 +22,9 @@ namespace NCatboostMlx {
     // on darwin-arm64 builds (where CUDA is unavailable).
     class TMLXModelTrainer : public IModelTrainer {
     public:
+        /// Run GBDT training using the MLX Metal backend.
+        /// Builds TMLXDataSet from trainingData, runs RunBoosting(), and writes the result
+        /// to dstModel as a TFullModel via ConvertToFullModel.
         void TrainModel(
             const TTrainModelInternalOptions& internalOptions,
             const NCatboostOptions::TCatBoostOptions& catboostOptions,
@@ -40,6 +47,7 @@ namespace NCatboostMlx {
             THolder<TLearnProgress>* dstLearnProgress
         ) const override;
 
+        /// Not implemented for the MLX backend; always throws CB_ENSURE.
         void ModelBasedEval(
             const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,

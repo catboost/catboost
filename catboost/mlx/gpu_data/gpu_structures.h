@@ -9,8 +9,11 @@
 
 #include <limits>
 
-// How to extract a quantized feature value from the compressed index.
-// Corresponds to one logical feature packed inside a ui32 word.
+/// Descriptor for one quantized feature packed into the compressed index.
+/// Each TCFeature describes how to extract one logical feature's bin value
+/// from a ui32 word: apply a right-shift of Shift bits, then mask with Mask.
+/// FirstFoldIndex is the starting offset in the global histogram buffer for
+/// this feature's bins; Folds is the number of quantization bins.
 struct TCFeature {
     ui64 Offset = static_cast<ui64>(-1);    // byte offset into compressed index buffer
     ui32 Mask = 0;                           // bitmask to extract this feature's bits
@@ -39,7 +42,7 @@ struct TCFeature {
     }
 };
 
-// Identifies a specific (feature, bin) pair for split evaluation.
+/// Identifies a specific (feature, bin) pair as a split candidate.
 struct TCBinFeature {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = static_cast<ui32>(-1);
@@ -50,7 +53,8 @@ struct TCBinFeature {
     }
 };
 
-// Result of finding the best split across all features and bins.
+/// Result of the best-split search: the winning (feature, bin) pair and its gain.
+/// Score < 0 indicates a valid split; Score == infinity means no split was found.
 struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
@@ -90,6 +94,7 @@ struct TBestSplitProperties {
     }
 };
 
+/// TBestSplitProperties augmented with a block index for GPU block-level argmax reductions.
 struct TBestSplitPropertiesWithIndex : public TBestSplitProperties {
     ui32 Index = 0;
 
@@ -98,7 +103,8 @@ struct TBestSplitPropertiesWithIndex : public TBestSplitProperties {
     }
 };
 
-// Per-partition (leaf) accumulated statistics for gradient/weight.
+/// Accumulated gradient/weight statistics for one leaf partition.
+/// Weight is the sum of hessians (or sample weights); Sum is the gradient sum; Count is the document count.
 struct TPartitionStatistics {
     double Weight;
     double Sum;
@@ -123,8 +129,8 @@ struct TPartitionStatistics {
     }
 };
 
-// Describes how a feature group maps into the histogram output buffer.
-// Used by kernels to know where to write histogram bins.
+/// Maps one feature group into the histogram output buffer.
+/// Passed to the histogram Metal kernel to locate where each group's bins are written.
 struct TFeatureInBlock {
     ui64 CompressedIndexOffset = 0;
     int Folds = 0;
@@ -133,7 +139,8 @@ struct TFeatureInBlock {
     int GroupSize = 0;      // total bin-features in this group across devices
 };
 
-// Split decision at a tree node (for oblivious trees, one per depth level).
+/// Split decision at one tree node, stored in CatBoost's native packed format.
+/// For oblivious trees, one TTreeNode per depth level; for depthwise trees, one per internal node.
 struct TTreeNode {
     ui16 FeatureId = 0;
     ui16 Bin = 0;

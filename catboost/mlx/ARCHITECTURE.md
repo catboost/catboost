@@ -15,9 +15,11 @@ A deep-dive for contributors and anyone who wants to understand how the Metal GP
 7. [Data Layout](#data-layout)
 8. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
 9. [Loss Functions (Target Functions)](#loss-functions-target-functions)
-10. [Model Format and Versioning](#model-format-and-versioning)
-11. [Two Code Paths](#two-code-paths)
-12. [Performance Characteristics](#performance-characteristics)
+10. [Ranking Losses](#ranking-losses)
+11. [Model Format and Versioning](#model-format-and-versioning)
+12. [Two Code Paths](#two-code-paths)
+13. [Nanobind Binding Architecture](#nanobind-binding-architecture)
+14. [Performance Characteristics](#performance-characteristics)
 
 ---
 
@@ -502,12 +504,61 @@ Target functions live in `catboost/mlx/targets/pointwise_target.h`. Each class i
 | Poisson | `TPoissonTarget` | Count regression | Log-link; cursor is log-space |
 | Tweedie | `TTweedieTarget(p)` | Zero-inflated regression | Log-link, variance power p∈(1,2); default p=1.5 |
 | MAPE | `TMAPETarget` | Regression | Relative error; epsilon-clamped denominator |
+| PairLogit | CPU pairwise (csv_train.cpp) | Ranking | Pairwise logistic; pairs generated from group_ids |
+| YetiRank | CPU pairwise (csv_train.cpp) | Ranking | Stochastic pairs with position-dependent weights |
 
-As of Sprint 8, the library path (`train.cpp`) supports all 10 losses listed above, matching the `csv_train` standalone binary. The switch statement in `TMLXModelTrainer::Train()` dispatches each loss to its target class; unsupported losses produce a `CB_ENSURE` error listing all 10 supported names.
+All 12 losses are supported in `csv_train.cpp` and are exposed through the nanobind `TrainFromArrays` path. The pointwise losses (`TRMSETarget` through `TMAPETarget`) are implemented as `IMLXTargetFunc` subclasses and compute gradients on-GPU via MLX array ops. The ranking losses (PairLogit and YetiRank) use CPU-side pair generation followed by gradient scatter onto document arrays; see the [Ranking Losses](#ranking-losses) section for details. The library path (`train.cpp`) supports the pointwise losses only.
 
 ### Gradient and hessian computation
 
 `ComputeDerivatives` operates on MLX arrays (`cursor`, `targets`, `weights`) and returns lazy MLX expressions. The training loop calls `EvalNow` once per iteration to materialize them — gradient evaluation is not a separate sync point; it is folded into the first downstream kernel that needs the values.
+
+---
+
+## Ranking Losses
+
+PairLogit and YetiRank are the two ranking losses. Both are CPU-side implementations in `csv_train.cpp` and are accessible from Python through the nanobind `TrainFromArrays` path. They require `group_ids` — documents must be pre-sorted by group.
+
+### Pair representation
+
+Both losses operate on document pairs `(winner, loser, weight)`. The `TPair` struct holds these three fields. After pair generation, gradients are scattered to per-document arrays via `ScatterPairwiseGradients`, which computes the sigmoid of the score difference and assigns opposing gradient signs to winner and loser.
+
+```
+p = sigmoid(pred[winner] - pred[loser])
+grad[winner] += weight * (p - 1)
+grad[loser]  += weight * (1 - p)
+hess[winner] += weight * p * (1 - p)
+hess[loser]  += weight * p * (1 - p)
+```
+
+Once document-level gradients and hessians are populated, the remaining boosting steps (histogram build, split search, leaf estimation) are identical to pointwise losses.
+
+### PairLogit
+
+PairLogit generates all ordered pairs `(i, j)` within each group where `target[i] > target[j]`. Pair generation happens once before training (`GeneratePairLogitPairs`) and the same pair set is reused for every iteration. All pairs have weight 1.0.
+
+Loss function:
+```
+sum over pairs: weight * log(1 + exp(-(pred[winner] - pred[loser])))
+```
+
+### YetiRank
+
+YetiRank generates a fresh pair set each iteration (`GenerateYetiRankPairs`). Within each group, documents are randomly permuted; adjacent pairs in the permutation are formed, weighted by relevance difference divided by a logarithmic position discount:
+
+```
+weight = |target[i] - target[j]| / log2(2 + position)
+```
+
+The position discount penalizes errors at higher ranks more heavily, approximating NDCG optimization. Pairs with near-zero relevance difference (`|diff| < 1e-8`) are skipped.
+
+### group_ids requirement
+
+Both ranking losses require document-level group IDs passed as `group_ids` to `TrainFromArrays` (or via `--group-col` on the CLI). Documents must be **pre-sorted by group** before being passed to the API — the group offset computation in `BuildDatasetFromArrays` assumes contiguous group membership. Training will error if `group_ids` is absent when a ranking loss is selected.
+
+### Metric: NDCG
+
+The evaluation metric for both ranking losses is NDCG (Normalized Discounted Cumulative Gain), computed per-group and averaged. The `ComputeNDCG` function in `csv_train.cpp` handles this; the loss column in training output labeled as "NDCG" is `1 - mean_NDCG` so that lower is better (consistent with other losses).
 
 ---
 
@@ -547,16 +598,22 @@ The `format_version` key is consumed and removed during `load_model` before the 
 
 There are two independent implementations of the GBDT training algorithm in this repository. **This is a known architectural tension, not an accident.**
 
-### Path 1 — Library path
+### Path 1 — csv_train path (nanobind primary, subprocess fallback)
 
 ```
-python/catboost_mlx/      (Python bindings)
-    └─> subprocess: csv_train binary
+python/catboost_mlx/core.py
+    └─> nanobind _core.train()              (primary — compiled extension)
+        └─> train_api.cpp (TrainFromArrays)
+            └─> #define CATBOOST_MLX_NO_MAIN
+                #include "csv_train.cpp"    (all internal functions included)
+
+    └─> subprocess: csv_train binary        (fallback — when _core not compiled)
         └─> csv_train.cpp (standalone, no CatBoost headers)
-            └─> all kernels inline
 ```
 
-Wait — the Python layer actually calls `csv_train` as a subprocess. The `csv_train.cpp` binary is a **self-contained reimplementation** of the full GBDT pipeline that duplicates the kernel dispatch logic from the library path. It mirrors `gpu_structures.h` types (`TCFeature`, `TBestSplitProperties`, etc.) locally and does not link against any CatBoost library code.
+`csv_train.cpp` is a **self-contained reimplementation** of the full GBDT pipeline. It mirrors `gpu_structures.h` types (`TCFeature`, `TBestSplitProperties`, etc.) locally and does not link against any CatBoost library code. When compiled for the nanobind extension, `train_api.cpp` includes `csv_train.cpp` with `CATBOOST_MLX_NO_MAIN` defined, which suppresses `main()` and exposes all internal functions and types for use by `TrainFromArrays`. When the compiled extension is unavailable, `core.py` falls back to spawning the `csv_train` binary as a subprocess.
+
+This path supports all 12 losses (including PairLogit and YetiRank), all three grow policies, and the full hyperparameter surface exposed by `TTrainConfig`.
 
 ### Path 2 — Library path (via CatBoost training framework)
 
@@ -570,15 +627,65 @@ catboost/mlx/train_lib/train.cpp   (TMLXModelTrainer — registered as GPU backe
         └─> methods/tree_applier.cpp        (ApplyObliviousTree)
 ```
 
-This path uses the full CatBoost library, integrates with `TTrainingDataProviders`, and produces a `TFullModel` compatible with CatBoost's native format.
+This path uses the full CatBoost library, integrates with `TTrainingDataProviders`, and produces a `TFullModel` compatible with CatBoost's native format. It currently supports the 10 pointwise losses only.
 
 ### Why this matters
 
 BUG-001 (non-deterministic histogram accumulation) was discovered in the `csv_train` path during QA testing. Because `csv_train.cpp` duplicates kernel dispatch logic independently, fixes must be applied to **both paths separately** — the fix in `csv_train.cpp` does not propagate to `histogram.cpp`, `score_calcer.cpp`, or `leaf_estimator.cpp`, and vice versa.
 
-Before touching any kernel source or dispatch pattern, check whether the change applies to both paths. If `csv_train.cpp` and the library path diverge in kernel behavior, the Python layer will produce different results from what `bench_boosting` measures, and integration tests will fail in non-obvious ways.
+Before touching any kernel source or dispatch pattern, check whether the change applies to both paths. If `csv_train.cpp` and the library path diverge in kernel behavior, integration tests will fail in non-obvious ways.
 
 The authoritative kernel source strings are in `catboost/mlx/kernels/kernel_sources.h`. Both paths include this header. However, the dispatch wrappers (grid dimensions, input arrays, threadgroup sizes) are separate in each path.
+
+---
+
+## Nanobind Binding Architecture
+
+The compiled Python extension is the primary interface between Python and the Metal GPU engine. It lives in `python/catboost_mlx/_core/`.
+
+### Key files
+
+| File | Role |
+|---|---|
+| `catboost/mlx/train_api.h` | Public API types: `TTrainConfig`, `TTrainResultAPI`, `TrainFromArrays()` |
+| `catboost/mlx/train_api.cpp` | `TrainFromArrays()` implementation; includes `csv_train.cpp` via the include trick |
+| `python/catboost_mlx/_core/bindings.cpp` | Nanobind module `_core`; exposes `TrainConfig`, `TrainResult`, and `train()` to Python |
+
+### The include trick
+
+`train_api.cpp` includes the entire `csv_train.cpp` translation unit with a preprocessor guard:
+
+```cpp
+#define CATBOOST_MLX_NO_MAIN
+#include "catboost/mlx/tests/csv_train.cpp"
+```
+
+When `CATBOOST_MLX_NO_MAIN` is defined, `csv_train.cpp` omits its `main()` function but exposes all internal functions and types (`TConfig`, `TDataset`, `RunTraining`, etc.) into `train_api.cpp`'s scope. `TrainFromArrays` then converts the public `TTrainConfig` to the internal `TConfig`, builds a `TDataset` from the flat numpy arrays, and calls `RunTraining` directly. The CLI binary is compiled separately from `csv_train.cpp` without the define, producing a standalone executable with `main()`.
+
+### `TTrainConfig` and `TConfig`
+
+`TTrainConfig` (in `train_api.h`) is the public API struct. It mirrors `TConfig` exactly except for five CLI-specific fields that have no meaning in the in-process path: `CsvPath`, `TargetCol`, `OutputModelPath`, `CVFolds`, and `EvalFile`. The `TrainConfigToInternal` function in `train_api.cpp` converts between them; all defaults must be kept in sync.
+
+### GIL release
+
+The nanobind `train()` wrapper releases the GIL for the entire duration of Metal GPU training:
+
+```cpp
+{
+    nb::gil_scoped_release release;
+    result = TrainFromArrays(...);
+}
+```
+
+All Metal and MLX calls are thread-safe. Python objects are not accessed inside `TrainFromArrays`. Releasing the GIL allows other Python threads to run during training (relevant for multi-threaded experiment harnesses).
+
+### Zero-copy numpy array access
+
+Numpy arrays are passed as `nb::ndarray<const float, nb::ndim<2>, nb::c_contig, nb::device::cpu>`. Nanobind checks that the array is C-contiguous and on CPU, then provides a raw pointer via `.data()` with no copy. The pointer is valid only for the duration of the GIL-release block; `TrainFromArrays` must not retain it after return.
+
+### Subprocess fallback
+
+`core.py` tries `from . import _core as _nb_core` at import time. If the extension is absent (e.g., an editable install without a build step), `_nb_core` is set to `None` and `core.py` routes all training calls through the subprocess path instead. The subprocess path writes data to disk, invokes the `csv_train` binary, and parses JSON output — functionally equivalent but higher latency.
 
 ---
 
