@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = [
+    "setuptools>=64",
+    "wheel",
+    "cmake>=3.27",
+    "nanobind>=2.10",
+    "mlx>=0.18",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -62,7 +68,7 @@ dev = [
 include = ["catboost_mlx*"]
 
 [tool.setuptools.package-data]
-catboost_mlx = ["bin/*", "py.typed"]
+catboost_mlx = ["bin/*", "py.typed", "_core/*.so", "_core/*.pyd"]
 
 [tool.ruff]
 target-version = "py39"

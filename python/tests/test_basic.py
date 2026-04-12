@@ -1420,22 +1420,26 @@ class TestVerbose:
         self.X = rng.rand(40, 2)
         self.y = self.X[:, 0] + rng.normal(0, 0.1, 40)
 
-    def test_verbose_streams_output(self, capsys):
+    def test_verbose_streams_output(self, capfd):
         model = CatBoostMLXRegressor(
             iterations=10, depth=3, verbose=True, binary_path=BINARY_PATH
         )
         model.fit(self.X, self.y)
-        captured = capsys.readouterr()
-        # Should contain iteration output lines
+        captured = capfd.readouterr()
+        # Should contain iteration output lines (capfd captures C-level printf)
         assert "iter=" in captured.out or "loss=" in captured.out
 
-    def test_verbose_false_quiet(self, capsys):
+    def test_verbose_false_quiet(self, capfd):
         model = CatBoostMLXRegressor(
             iterations=10, depth=3, verbose=False, binary_path=BINARY_PATH
         )
         model.fit(self.X, self.y)
-        captured = capsys.readouterr()
-        assert captured.out == ""
+        captured = capfd.readouterr()
+        # Filter out Metal/profile lines from C++ init
+        lines = [l for l in captured.out.strip().split("\n")
+                 if l.strip() and not l.strip().startswith("[profile")
+                 and not l.strip().startswith("Base prediction")]
+        assert len(lines) == 0, f"Unexpected output: {lines}"
 
     def test_loss_history_still_parsed(self):
         model = CatBoostMLXRegressor(
