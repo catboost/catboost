@@ -83,6 +83,10 @@ CLAUDE.md
 /bench_boosting_*
 /csv_train_phase_c
 /csv_train_phase_c_*
+/csv_train_gpu_test
+/csv_train_old
+/csv_train_sprint3_followup
+/catboost_info/
 harness/
 decisions.md
 implementation_plan.md
