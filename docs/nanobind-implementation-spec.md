@@ -5,6 +5,17 @@
 **Authors:** Technical Writer (based on reading csv_train.cpp, core.py, and MLX python/src/)  
 **Target agents:** ml-engineer (Phases 1, 2, 4), devops-engineer (Phase 3), qa-engineer (Phase 5)
 
+> **IMPORTANT — CUDA coexistence rule:** The MLX backend is an *addition* to CatBoost's
+> existing CUDA GPU backend, not a replacement. If any task touches shared config files
+> (CMakeLists.txt at repo root, build flags, CI workflows), **do not modify or remove
+> CUDA/HAVE_CUDA configuration**. The two backends are mutually exclusive at build time
+> (`-DUSE_MLX=ON` vs `-DHAVE_CUDA=ON`) but must coexist in the source tree. See
+> `catboost/mlx/CMakeLists.txt` lines 14-16 for the guard.
+>
+> **Reference:** If you have questions about design decisions, data flow, or binding
+> patterns during implementation, consult this document first:
+> `docs/nanobind-implementation-spec.md`
+
 ---
 
 ## Table of Contents
