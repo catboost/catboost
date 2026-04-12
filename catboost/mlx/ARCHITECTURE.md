@@ -9,11 +9,13 @@ A deep-dive for contributors and anyone who wants to understand how the Metal GP
 1. [Overview](#overview)
 2. [Training Pipeline](#training-pipeline)
 3. [Metal Kernels](#metal-kernels)
-4. [Data Layout](#data-layout)
-5. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
-6. [Loss Functions (Target Functions)](#loss-functions-target-functions)
-7. [Two Code Paths](#two-code-paths)
-8. [Performance Characteristics](#performance-characteristics)
+4. [Depthwise Grow Policy](#depthwise-grow-policy)
+5. [Multi-Pass Leaf Accumulation (depth > 6)](#multi-pass-leaf-accumulation-depth--6)
+6. [Data Layout](#data-layout)
+7. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
+8. [Loss Functions (Target Functions)](#loss-functions-target-functions)
+9. [Two Code Paths](#two-code-paths)
+10. [Performance Characteristics](#performance-characteristics)
 
 ---
 
@@ -215,6 +217,121 @@ The learning rate is baked into `leafValues` by `ComputeLeafValues()` before the
 
 ---
 
+### `kTreeApplyDepthwiseSource` — Depthwise tree application
+
+**What it computes.**
+Applies a non-symmetric (depthwise) tree where each internal node has its own split condition. The tree is stored in BFS order: node 0 is the root, children of node n are at indices 2n+1 (left) and 2n+2 (right). After traversing `depth` levels, the leaf index is `nodeIdx − numNodes` where `numNodes = 2^depth − 1`.
+
+```
+nodeIdx = 0
+for level d in [0, depth):
+    featureVal = (compressedData[doc * lineSize + nodeColIdx[nodeIdx]] >> nodeShift[nodeIdx]) & nodeMask[nodeIdx]
+    goRight    = (nodeIsOneHot[nodeIdx]) ? (featureVal == threshold) : (featureVal > threshold)
+    nodeIdx    = 2 * nodeIdx + 1 + goRight
+
+leafIdx       = nodeIdx - numNodes
+cursorOut[k * numDocs + doc] = cursorIn[k * numDocs + doc] + leafValues[leafIdx * approxDim + k]
+partitionsOut[doc] = leafIdx
+```
+
+Like `kTreeApplySource`, the kernel produces two outputs in a single dispatch: updated predictions and per-document leaf assignments.
+
+**Parallelization strategy.**
+Identical to `kTreeApplySource`: one thread per document, grid and threadgroup size `(256, 1, 1)`.
+
+**BFS node array.**
+The `nodeColIdx`, `nodeShift`, `nodeMask`, `nodeThreshold`, `nodeIsOneHot` arrays each have `numNodes = 2^depth − 1` entries. At depth 0 a 1-element placeholder is allocated so the Metal kernel always receives a non-empty buffer (the traversal loop does not execute when `depth == 0`).
+
+**Key correctness invariant.**
+The BFS index arithmetic `2n+1` / `2n+2` is exact for `depth ≤ 10` (max nodeIdx = 2047). The leaf index range `[0, 2^depth)` matches the output of `kLeafAccumSource` and `kLeafAccumChunkedSource`, so leaf values produced by `ComputeLeafValues` are compatible between the symmetric and depthwise paths.
+
+---
+
+## Depthwise Grow Policy
+
+The default "SymmetricTree" (oblivious tree) applies one split condition shared across all nodes at the same depth level. "Depthwise" gives each node its own best split, producing more expressive trees at the same depth — this is equivalent to XGBoost's `grow_policy=depthwise`.
+
+### `EGrowPolicy` enum (`mlx_boosting.h`)
+
+| Value | Meaning |
+|---|---|
+| `SymmetricTree` | Default. One `FindBestSplitGPU` call per depth level, shared split. |
+| `Depthwise` | 2^d `FindBestSplitGPU` calls at depth level d; each node gets the best split for its document subset. |
+
+### `SearchDepthwiseTreeStructure` (`structure_searcher.cpp`)
+
+The depthwise search loop proceeds depth-first, level by level:
+
+```
+for d in [0, maxDepth):
+    for each live node n in [0, 2^d):
+        FindBestSplitGPU(documents in node n)
+        NodeSplits[n] = best split
+    UpdatePartitions()    (EvalNow — partition update is unavoidable)
+```
+
+The node-to-document mapping is derived from the running `Partitions_` array. Documents with `partitions[doc] == n` belong to node n at depth level d. This reuses `ComputePartitionLayout` and the existing split-search pipeline without structural change.
+
+### Tree structure storage
+
+`TDepthwiseTreeStructure` holds:
+- `NodeSplits`: `TVector<TObliviousSplitLevel>` in BFS order, length `2^depth − 1`
+- `Depth`: the actual tree depth
+
+Leaf estimation and tree application read the same `Partitions_` array that SymmetricTree uses, so `ComputeLeafSumsGPU` and `ComputeLeafValues` require no changes.
+
+### Python and CLI interface
+
+Select grow policy via:
+- **Python:** `CatBoostMLX(grow_policy="Depthwise")` — "SymmetricTree" is the default
+- **CLI:** `csv_train --grow-policy Depthwise`
+
+See DEC-004 in `.claude/state/DECISIONS.md` for the full design rationale.
+
+---
+
+## Multi-Pass Leaf Accumulation (depth > 6)
+
+### Background
+
+`kLeafAccumSource` pre-allocates a per-thread private array of `LEAF_PRIV_SIZE = MAX_APPROX_DIM * MAX_LEAVES * 2 = 1280 floats = 5 KB`. This is the maximum that fits in GPU registers without spilling to threadgroup memory on Apple Silicon. With `MAX_LEAVES = 64`, the kernel is limited to depth ≤ 6 (2^6 = 64 leaves). Sprint 9 removes this ceiling.
+
+### `kLeafAccumChunkedSource` kernel
+
+The chunked kernel is identical to `kLeafAccumSource` in algorithm (private accumulation + fixed-order sequential reduction) but processes only the leaf slice `[chunkBase, chunkBase + chunkSize)` per dispatch:
+
+- `chunkBase` and `chunkSize` are passed as scalar inputs.
+- `LEAF_PRIV_SIZE` remains 1280 floats — `chunkSize ≤ LEAF_CHUNK_SIZE = 64`, so the private array size is constant regardless of total tree depth.
+- A thread accumulates a document only if `partitions[doc] ∈ [chunkBase, chunkBase + chunkSize)`.
+- Output shape per dispatch: `[approxDim * chunkSize]` for gradients and hessians separately.
+
+### `ComputeLeafSumsGPUMultiPass` (`leaf_estimator.cpp`)
+
+```
+numPasses = ceil(numLeaves / 64)
+for chunkBase in [0, numLeaves) step 64:
+    chunkSize = min(64, numLeaves - chunkBase)
+    dispatch kLeafAccumChunkedSource(chunkBase, chunkSize)
+    copy chunk output into gradBuf[k * numLeaves + chunkBase .. + chunkBase + chunkSize)
+```
+
+The caller (`ComputeLeafSumsGPU`) selects single-pass or multi-pass automatically:
+
+```
+if numLeaves <= 64:
+    ComputeLeafSumsGPUSinglePass(...)   // kLeafAccumSource — depth 1-6
+else:
+    ComputeLeafSumsGPUMultiPass(...)    // kLeafAccumChunkedSource — depth 7-10
+```
+
+### Depth range
+
+`CB_ENSURE(numLeaves >= 2 && numLeaves <= 1024)` enforces depth 1–10. The old `CB_ENSURE(numLeaves <= 64)` guard is removed. At depth 10 (1024 leaves), 16 passes are required — negligible relative to histogram build time, which dominates per-iteration cost.
+
+See DEC-005 in `.claude/state/DECISIONS.md` for the full design rationale.
+
+---
+
 ## Data Layout
 
 ### Compressed feature index
@@ -393,8 +510,10 @@ The histogram kernel's final write pass uses `atomic_fetch_add_explicit` on the 
 
 ### Memory constraints
 
-Apple Silicon's unified memory architecture means GPU and CPU share physical memory. Large histogram buffers (`numPartitions * numStats * totalBinFeatures * 4 bytes`) and the compressed feature matrix (`numDocs * numColumns * 4 bytes`) both live in this shared space. For 16M rows (the current `float32` accumulator limit, see DEC-003 in `.claude/state/DECISIONS.md` and ADR-005 in `docs/decisions.md`), the compressed feature matrix alone can exceed 1 GB. Monitor memory allocation with Metal's GPU counters when benchmarking large datasets.
+Apple Silicon's unified memory architecture means GPU and CPU share physical memory. Large histogram buffers (`numPartitions * numStats * totalBinFeatures * 4 bytes`) and the compressed feature matrix (`numDocs * numColumns * 4 bytes`) both live in this shared space. At very large row counts the compressed feature matrix can exceed 1 GB — monitor memory allocation with Metal's GPU counters when benchmarking large datasets.
 
-### Relationship between ADR-005 and DEC-003
+### DEC-003 resolved (Sprint 9)
 
-ADR-005 chose `float32` as the primary compute precision. DEC-003 documents the consequence: `ComputePartitionLayout` uses `float32` accumulators for counting documents per partition, which limits exact integer representation to `numDocs < 2^24 = 16,777,216`. These two decisions are coupled — switching to `int32` accumulators (DEC-003 future work) would remove the 16M row ceiling without changing the `float32` gradient accumulation policy (ADR-005).
+As of Sprint 9, `ComputePartitionLayout` uses int32 accumulators in `scatter_add_axis`, which are exact for values up to 2^31 (~2.1B docs). The previous float32 accumulator limited exact integer representation to 2^24 = 16,777,216 rows; that ceiling has been removed. See DEC-003 in `.claude/state/DECISIONS.md` for the full history.
+
+ADR-005's choice of float32 for gradient accumulation is unaffected — that policy applies to gradient and hessian sums, not to partition document counts.

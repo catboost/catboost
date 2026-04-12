@@ -5,6 +5,69 @@
 
 ---
 
+## 2026-04-11 — Sprint 9: Pybind depth, grow policies, infra
+
+**Agents:** ml-engineer, mlops-engineer, technical-writer
+**Branch:** `mlx/sprint-9-pybind-depth-policies-infra`
+
+### TODO-026 / Item E: 16M row fix — int32 scatter_add (resolves DEC-003)
+- `ComputePartitionLayout` in `structure_searcher.cpp`: `scatter_add_axis` accumulator switched from float32 to int32
+- Removes the 2^24 = 16,777,216 row ceiling imposed by float32 integer precision
+- `CB_ENSURE(numDocs < 2^24)` guard removed — int32 exact for counts up to ~2.1B docs
+- DEC-003 status updated to Resolved
+
+### TODO-029 / Item G: Histogram EvalNow deferral
+- Removed `EvalNow` from `ComputeHistogramsImpl` after group-dispatch accumulation; histogram now returned as lazy MLX array
+- Removed `EvalNow` from `CreateZeroHistogram`
+- `FindBestSplitGPU` in `score_calcer.cpp` consumes lazy histogram directly; MLX folds the group-accumulation graph into the same command buffer as the suffix-sum dispatch
+- Net removal: 2 CPU-GPU syncs per depth level (one after histogram accumulation, one in zero-init)
+
+### TODO-030 / Item B: max_depth > 6 — chunked multi-pass leaf accumulation (DEC-005)
+- Added `kLeafAccumChunkedSource` Metal kernel to `kernel_sources.h`
+  - Same private-accumulator + fixed-order-reduction design as `kLeafAccumSource`
+  - Processes leaf slice `[chunkBase, chunkBase+chunkSize)` — LEAF_CHUNK_SIZE = 64
+  - `LEAF_PRIV_SIZE` constant = `MAX_APPROX_DIM * LEAF_CHUNK_SIZE * 2 = 1280 floats = 5 KB` — no register spill regardless of total depth
+- Added `ComputeLeafSumsGPUMultiPass` in `leaf_estimator.cpp`
+  - Issues `ceil(numLeaves / 64)` dispatches, stepping `chunkBase` by 64 each pass
+  - Concatenates per-chunk `[approxDim * chunkSize]` outputs into full `[approxDim * numLeaves]` arrays
+- Old `CB_ENSURE(numLeaves <= 64)` guard replaced by `CB_ENSURE(numLeaves >= 2 && numLeaves <= 1024)` — depth 1-10 supported
+- Depth 8 baseline (1k×10×cls2×d8×20i×bins32×seed42): `BENCH_FINAL_LOSS = 0.54883069`
+- At depth 10: 16 passes (cheap relative to histogram build, which dominates iteration time)
+
+### TODO-031 / Item D: Depthwise grow policy (DEC-004)
+- Added `EGrowPolicy` enum in `mlx_boosting.h`: `SymmetricTree` (default), `Depthwise`
+- Added `TDepthwiseTreeStructure` struct: `TVector<TObliviousSplitLevel> NodeSplits` in BFS order, `ui32 Depth`
+- Added `SearchDepthwiseTreeStructure` in `structure_searcher.cpp`
+  - At each depth level d, calls `FindBestSplitGPU` once per live node (2^d calls at level d)
+  - Each call partitions only the documents in that node
+  - Node splits stored in BFS order: left child of node n = 2n+1, right child = 2n+2
+- Added `kTreeApplyDepthwiseSource` Metal kernel in `kernel_sources.h`
+  - One thread per document; traverses BFS node array from root down `depth` levels
+  - Produces `cursorOut` (updated predictions) + `partitionsOut` (leaf assignments) in single dispatch
+- Added `ApplyDepthwiseTree` in `tree_applier.cpp` dispatching `kTreeApplyDepthwiseSource`
+- Added `--grow-policy` CLI flag to `csv_train.cpp`
+- Added `grow_policy` Python param to `core.py` `__init__`/`fit()` with docstring
+
+### TODO-028 / Item F: MLflow integration (TODO-010 done)
+- Added `mlflow_logging: bool` and `mlflow_run_name: Optional[str]` to `CatBoostMLX.__init__` and `fit()`
+- `_log_to_mlflow()` method: lazy `import mlflow` — mlflow remains an optional dependency
+- Run scoping: logs into active run if one is already open; starts and ends its own run otherwise
+- Hyperparameters, per-iteration loss, and final metrics logged
+- Documented in Python docstring with usage example
+
+### TODO-027 / Item H: CI bench regression check
+- Added two new steps to `.github/workflows/mlx_test.yaml`:
+  - "Bench regression check (binary)": 1k×10×cls2×d4×20i×bins32×seed42, expected `0.59795737`, tolerance 1e-4
+  - "Bench regression check (multiclass K=3)": 1k×10×cls3×d4×20i×bins32×seed42, expected `0.95248461`, tolerance 1e-4
+- CI now fails if a kernel change silently shifts final loss
+
+### Verification
+- pytest: (Sprint 9 QA count — pending final QA run before merge)
+- ruff: clean
+- New CI baselines: binary `0.59795737`, multiclass K=3 `0.95248461`, depth8 `0.54883069`
+
+---
+
 ## 2026-04-11 — Sprint 8: Housekeeping + Poisson/Tweedie/MAPE library-path losses
 
 **Agents:** ml-engineer, qa-engineer, technical-writer, mlops-engineer
