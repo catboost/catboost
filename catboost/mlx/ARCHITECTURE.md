@@ -274,7 +274,7 @@ At depth `d`, valid leaf indices are in the range `[0, 2^d)`. After all `maxDept
 
 ## CPU-GPU Synchronization
 
-`TMLXDevice::EvalNow()` forces MLX to flush the pending computation graph and synchronize (blocking CPU until all queued Metal commands have completed). Every call is a CPU-GPU round-trip and adds latency. As of Sprint 7, two `EvalNow` calls per depth level remain unavoidable (best-split readback and partition update); all other unnecessary syncs have been removed.
+`TMLXDevice::EvalNow()` forces MLX to flush the pending computation graph and synchronize (blocking CPU until all queued Metal commands have completed). Every call is a CPU-GPU round-trip and adds latency. As of Sprint 9, two `EvalNow` calls per depth level remain unavoidable (best-split readback and partition update); all other unnecessary syncs have been removed.
 
 ### Unavoidable syncs
 
@@ -293,7 +293,7 @@ TMLXDevice::EvalNow(partitions);
 ```
 
 **Histogram result** (`histogram.cpp`):
-After all feature groups are dispatched and accumulated, `EvalNow` is called once per histogram to materialize it before passing to the suffix-sum kernel. This could be eliminated if MLX supported chaining all group dispatches and the suffix-sum into a single command buffer — a future optimization.
+After all feature groups are dispatched and accumulated, the histogram is returned as a lazy MLX expression — no `EvalNow` is issued. The suffix-sum kernel in `FindBestSplitGPU` consumes the histogram as a kernel input, so MLX materialises the full group-accumulation graph in the same command buffer as the suffix-sum dispatch. This eliminates one CPU-GPU sync point per histogram per depth level (removed in Sprint 9).
 
 ### Removed syncs (Sprint optimizations)
 
@@ -301,6 +301,7 @@ After all feature groups are dispatched and accumulated, `EvalNow` is called onc
 - **BUG-001 fix (Sprint 5):** Removed the CPU-side verification loop that read back and compared histogram values to check for non-determinism. Determinism is now guaranteed by construction.
 - **TODO-019 (Sprint 7):** Eliminated K `EvalNow` calls per iteration that the old per-dimension multiclass leaf loop incurred. `ComputeLeafValues` now returns a lazy MLX array; the Newton step executes over the full `[approxDim * numLeaves]` array in a single element-wise dispatch. For K=10 multiclass, this removes 10 CPU-GPU round trips per boosting iteration.
 - **TODO-020 (Sprint 7):** Eliminated the O(depth) MLX bitwise-op recompute loop for partition assignments. `kTreeApplySource` now produces `partitionsOut` directly as a second kernel output — the leaf index computed inside the kernel is written out without any post-kernel recomputation on the CPU side.
+- **Item-G (Sprint 9):** Eliminated `EvalNow` after histogram group accumulation in `ComputeHistogramsImpl`. The suffix-sum Metal kernel in `FindBestSplitGPU` consumes the histogram as a lazy input, so MLX folds the group-dispatch graph into the same command buffer. Also removed the unnecessary `EvalNow` in `CreateZeroHistogram`. This saves one CPU-GPU sync per histogram per depth level (i.e. `approxDim` syncs per iteration at each depth).
 
 ---
 
