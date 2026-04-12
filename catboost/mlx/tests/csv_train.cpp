@@ -1972,8 +1972,10 @@ static std::string EscapeJsonString(const std::string& s) {
     return out;
 }
 
-void SaveModelJSON(
-    const std::string& path,
+// Internal helper: write model JSON to a FILE* stream.
+// Used by both SaveModelJSON (file) and BuildModelJSONString (in-memory).
+static void WriteModelJSON(
+    FILE* f,
     const std::vector<TTreeRecord>& allTrees,
     const TDataset& ds,
     const TQuantization& quant,
@@ -1982,15 +1984,9 @@ void SaveModelJSON(
     const TConfig& config,
     ui32 approxDim,
     ui32 numClasses,
-    const std::vector<TCtrFeature>& ctrFeatures = {},
-    const std::vector<float>& basePrediction = {}
+    const std::vector<TCtrFeature>& ctrFeatures,
+    const std::vector<float>& basePrediction
 ) {
-    FILE* f = fopen(path.c_str(), "w");
-    if (!f) {
-        fprintf(stderr, "Error: Cannot open output file: %s\n", path.c_str());
-        return;
-    }
-
     fprintf(f, "{\n");
     fprintf(f, "  \"format\": \"catboost-mlx-json\",\n");
     fprintf(f, "  \"version\": 1,\n");
@@ -2157,6 +2153,53 @@ void SaveModelJSON(
     }
 
     fprintf(f, "}\n");
+}
+
+// Build the model JSON as an in-memory string (for nanobind API path).
+std::string BuildModelJSONString(
+    const std::vector<TTreeRecord>& allTrees,
+    const TDataset& ds,
+    const TQuantization& quant,
+    const std::string& lossType,
+    float lossParam,
+    const TConfig& config,
+    ui32 approxDim,
+    ui32 numClasses,
+    const std::vector<TCtrFeature>& ctrFeatures = {},
+    const std::vector<float>& basePrediction = {}
+) {
+    char* buf = nullptr;
+    size_t len = 0;
+    FILE* f = open_memstream(&buf, &len);
+    WriteModelJSON(f, allTrees, ds, quant, lossType, lossParam,
+                   config, approxDim, numClasses, ctrFeatures, basePrediction);
+    fclose(f);
+    std::string result(buf, len);
+    free(buf);
+    return result;
+}
+
+// Save model JSON to a file (CLI path).
+void SaveModelJSON(
+    const std::string& path,
+    const std::vector<TTreeRecord>& allTrees,
+    const TDataset& ds,
+    const TQuantization& quant,
+    const std::string& lossType,
+    float lossParam,
+    const TConfig& config,
+    ui32 approxDim,
+    ui32 numClasses,
+    const std::vector<TCtrFeature>& ctrFeatures = {},
+    const std::vector<float>& basePrediction = {}
+) {
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) {
+        fprintf(stderr, "Error: Cannot open output file: %s\n", path.c_str());
+        return;
+    }
+    WriteModelJSON(f, allTrees, ds, quant, lossType, lossParam,
+                   config, approxDim, numClasses, ctrFeatures, basePrediction);
     fclose(f);
 }
 
@@ -2173,6 +2216,9 @@ struct TTrainResult {
     std::vector<float> BasePrediction;  // optimal starting constant per dimension
     // Phase timing (ms, accumulated across all iterations)
     double GradMs = 0, TreeSearchMs = 0, LeafMs = 0, ApplyMs = 0;
+    // Per-iteration loss history (populated for nanobind API consumers)
+    std::vector<float> TrainLossHistory;
+    std::vector<float> EvalLossHistory;
 };
 
 // ============================================================================
@@ -3427,7 +3473,8 @@ TTrainResult RunTraining(
         auto iterEnd = std::chrono::steady_clock::now();
         auto iterMs = std::chrono::duration_cast<std::chrono::milliseconds>(iterEnd - iterStart).count();
 
-        if (printProgress && (config.Verbose || iter % 10 == 0 || iter == config.NumIterations - 1)) {
+        // Compute train loss every iteration (for loss history + final loss tracking)
+        {
             float trainLoss;
             float trainNDCG = 0.0f;
             if (isRanking) {
@@ -3442,6 +3489,7 @@ TTrainResult RunTraining(
                 trainLoss = ComputeLossValue(cursor, targetsArr, lossType, lossParam, approxDim, trainDocs);
             }
             result.FinalTrainLoss = trainLoss;
+            result.TrainLossHistory.push_back(trainLoss);
 
             // For lossguide, display the number of leaves; for others, display depth.
             const ui32 displayVal = isLossguide ? lossguideNumLeaves
@@ -3449,9 +3497,9 @@ TTrainResult RunTraining(
                                   : static_cast<ui32>(splits.size());
             const char* sizeLabel = isLossguide ? "leaves" : "depth";
 
+            float valLoss = 0.0f;
+            float valNDCG = 0.0f;
             if (valDocs > 0) {
-                float valLoss;
-                float valNDCG = 0.0f;
                 if (isRanking) {
                     auto flatVal = mx::reshape(valCursor, {static_cast<int>(valDocs)});
                     mx::eval(flatVal);
@@ -3464,63 +3512,43 @@ TTrainResult RunTraining(
                     valLoss = ComputeLossValue(valCursor, valTargetsArr, lossType, lossParam, approxDim, valDocs);
                 }
                 result.FinalTestLoss = valLoss;
-                if (isRanking) {
-                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
-                } else {
-                    printf("iter=%u  trees=%u  %s=%u  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, valLoss, iterMs);
-                }
-
-                // Early stopping check
-                if (config.EarlyStoppingPatience > 0) {
-                    if (valLoss < bestValLoss - 1e-7f) {
-                        bestValLoss = valLoss;
-                        bestIteration = iter;
-                        noImprovementCount = 0;
-                    } else {
-                        noImprovementCount++;
-                        if (noImprovementCount >= config.EarlyStoppingPatience) {
-                            printf("Early stopping at iter=%u (best val_loss=%.6f at iter=%u)\n",
-                                   iter, bestValLoss, bestIteration);
-                            break;
-                        }
-                    }
-                }
-            } else {
-                if (isRanking) {
-                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, iterMs);
-                } else {
-                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, iterMs);
-                }
+                result.EvalLossHistory.push_back(valLoss);
             }
-        }
 
-        // Track final loss even when not printing
-        if (!printProgress || !(config.Verbose || iter % 10 == 0 || iter == config.NumIterations - 1)) {
-            if (iter == config.NumIterations - 1 || (valDocs > 0 && noImprovementCount >= config.EarlyStoppingPatience)) {
-                if (isRanking) {
-                    auto flatCursor = mx::reshape(cursor, {static_cast<int>(trainDocs)});
-                    mx::eval(flatCursor);
-                    const float* predsPtr = flatCursor.data<float>();
-                    const auto& pairs = (lossType == "pairlogit") ? pairLogitPairs
-                        : GenerateYetiRankPairs(trainTargetsVec, trainGroupOffsets, trainNumGroups, rng);
-                    result.FinalTrainLoss = ComputePairLogitLoss(pairs, predsPtr, trainDocs);
-                } else {
-                    result.FinalTrainLoss = ComputeLossValue(cursor, targetsArr, lossType, lossParam, approxDim, trainDocs);
-                }
+            // Print progress (conditional on verbose/interval)
+            if (printProgress && (config.Verbose || iter % 10 == 0 || iter == config.NumIterations - 1)) {
                 if (valDocs > 0) {
                     if (isRanking) {
-                        auto flatVal = mx::reshape(valCursor, {static_cast<int>(valDocs)});
-                        mx::eval(flatVal);
-                        const float* valPredsPtr = flatVal.data<float>();
-                        const auto& vPairs = (lossType == "pairlogit") ? valPairLogitPairs
-                            : GenerateYetiRankPairs(valTargetsVec, valGroupOffsets, valNumGroups, rng);
-                        result.FinalTestLoss = ComputePairLogitLoss(vPairs, valPredsPtr, valDocs);
+                        printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
+                               iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
                     } else {
-                        result.FinalTestLoss = ComputeLossValue(valCursor, valTargetsArr, lossType, lossParam, approxDim, valDocs);
+                        printf("iter=%u  trees=%u  %s=%u  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
+                               iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, valLoss, iterMs);
+                    }
+                } else {
+                    if (isRanking) {
+                        printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  time=%lldms\n",
+                               iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, iterMs);
+                    } else {
+                        printf("iter=%u  trees=%u  %s=%u  loss=%.6f  time=%lldms\n",
+                               iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, iterMs);
+                    }
+                }
+            }
+
+            // Early stopping check
+            if (valDocs > 0 && config.EarlyStoppingPatience > 0) {
+                if (valLoss < bestValLoss - 1e-7f) {
+                    bestValLoss = valLoss;
+                    bestIteration = iter;
+                    noImprovementCount = 0;
+                } else {
+                    noImprovementCount++;
+                    if (noImprovementCount >= config.EarlyStoppingPatience) {
+                        if (printProgress)
+                            printf("Early stopping at iter=%u (best val_loss=%.6f at iter=%u)\n",
+                                   iter, bestValLoss, bestIteration);
+                        break;
                     }
                 }
             }
@@ -3574,9 +3602,10 @@ std::vector<ui32> CreateStratifiedFolds(
 }
 
 // ============================================================================
-// Main training loop
+// Main training loop (excluded when building as library via train_api.cpp)
 // ============================================================================
 
+#ifndef CATBOOST_MLX_NO_MAIN
 int main(int argc, char** argv) {
     auto config = ParseArgs(argc, argv);
 
@@ -4081,3 +4110,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+#endif // CATBOOST_MLX_NO_MAIN

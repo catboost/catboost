@@ -105,12 +105,8 @@ python/build/
 python/dist/
 .pytest_cache/
 
-# Claude Code agent state (committed for team sharing)
-!.claude/state/
-!.claude/state/*.md
-
-# But ignore local agent memory (personal, not shared)
-.claude/agent-memory-local/
+# Claude Code agent state (tracked locally only)
+.claude/
 
 # ML artifacts (large files, not committed)
 checkpoints/

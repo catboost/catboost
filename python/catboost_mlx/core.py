@@ -4,10 +4,17 @@ core.py -- The heart of CatBoost-MLX: model classes that train, predict, and exp
 What this file does:
     Imagine you want to teach a computer to predict things (like house prices
     or whether an email is spam). This file has the "brain" classes that do that.
-    They don't do the heavy math themselves -- instead, they write your data to
-    CSV files, call fast C++ programs (csv_train and csv_predict) that run on
-    your Mac's GPU, then read back the results. Think of it like a translator
-    between Python and the GPU engine.
+    Training uses Apple Silicon GPU via Metal compute shaders for histogram
+    computation, tree construction, and leaf estimation.
+
+    Two training backends are available:
+    - **Nanobind (in-process)**: When the compiled _core extension is available,
+      training runs directly in the Python process via nanobind bindings to the
+      C++ GPU engine. This avoids subprocess overhead and enables zero-copy
+      numpy array transfer. The GIL is released during Metal GPU training.
+    - **Subprocess (fallback)**: If nanobind is unavailable, data is serialized
+      to disk and the csv_train binary is invoked as a subprocess. This path
+      is functionally equivalent but slower due to I/O and process overhead.
 
 How it fits into the project:
     This is the main module. Imported by __init__.py and is the primary module
@@ -27,8 +34,6 @@ Key concepts:
       different loss functions (RMSE for regression, Logloss for classification).
     - sklearn compatibility: Mimics scikit-learn's interface (fit/predict/score,
       get_params/set_params) so it plugs into sklearn pipelines and cross-val.
-    - PTY (pseudo-terminal): A trick to capture real-time output from the C++
-      binary, which otherwise buffers everything when piped to a subprocess.
 
 Public API:
     - CatBoostMLX: Base class with all functionality (27 hyperparameters).
@@ -37,6 +42,7 @@ Public API:
 """
 
 import csv
+import ctypes
 import json
 import logging
 import math
@@ -45,6 +51,7 @@ import re
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -55,6 +62,16 @@ import numpy as np
 from ._utils import _to_numpy
 
 logger = logging.getLogger(__name__)
+
+# ── nanobind in-process extension (optional) ────────────────────────────────
+# When the compiled _core extension is available, training calls C++ directly
+# instead of spawning a subprocess. Falls back gracefully if not compiled.
+try:
+    from . import _core as _nb_core
+    _HAS_NANOBIND = True
+except ImportError:
+    _nb_core = None
+    _HAS_NANOBIND = False
 
 # ── sklearn optional dependency ──────────────────────────────────────────────
 # When sklearn IS installed, we use its real BaseEstimator/RegressorMixin/
@@ -997,6 +1014,177 @@ class CatBoostMLX(BaseEstimator):
             if we_started_run:
                 mlflow.end_run()
 
+    def _build_train_config(self) -> "_nb_core.TrainConfig":
+        """Map Python hyperparameters to a TTrainConfig for the nanobind path."""
+        cfg = _nb_core.TrainConfig()
+        cfg.num_iterations = self.iterations
+        cfg.max_depth = self.depth
+        cfg.learning_rate = self.learning_rate
+        cfg.l2_reg_lambda = self.l2_reg_lambda
+        cfg.max_bins = self.bins
+        cfg.loss_type = _normalize_loss_str(self.loss)
+        cfg.eval_fraction = self.eval_fraction
+        cfg.early_stopping_patience = self.early_stopping_rounds
+        cfg.subsample_ratio = self.subsample
+        cfg.colsample_by_tree = self.colsample_bytree
+        cfg.random_seed = self.random_seed
+        cfg.random_strength = self.random_strength
+        cfg.bootstrap_type = self.bootstrap_type
+        cfg.bagging_temperature = self.bagging_temperature
+        cfg.mvs_reg = self.mvs_reg
+        cfg.nan_mode = self.nan_mode
+        cfg.use_ctr = self.ctr
+        cfg.ctr_prior = self.ctr_prior
+        cfg.max_onehot_size = self.max_onehot_size
+        cfg.min_data_in_leaf = self.min_data_in_leaf
+        cfg.monotone_constraints = list(self.monotone_constraints or [])
+        cfg.grow_policy = self.grow_policy or "SymmetricTree"
+        cfg.max_leaves = self.max_leaves
+        cfg.snapshot_path = self.snapshot_path or ""
+        cfg.snapshot_interval = self.snapshot_interval
+        cfg.verbose = self.verbose
+        cfg.compute_feature_importance = True  # always compute; Python filters display
+        return cfg
+
+    def _fit_nanobind(
+        self, X: np.ndarray, y: np.ndarray,
+        feature_names: List[str],
+        cat_features: Optional[List[int]],
+        weights: Optional[np.ndarray],
+        group_ids: Optional[np.ndarray],
+        eval_set: Optional[tuple],
+    ) -> None:
+        """Run training via the nanobind in-process path (no subprocess).
+
+        Converts numpy arrays to float32, encodes string categoricals to integer
+        indices, builds TTrainConfig, and calls the C++ TrainFromArrays() via
+        nanobind. The GIL is released during Metal GPU training. Results are
+        parsed back into the same model state as the subprocess path.
+        """
+        n_docs, n_features = X.shape
+
+        # Validate inputs before GPU dispatch — C++ uses exit()/produces
+        # unparseable JSON for these cases, so catch them in Python.
+        if self.nan_mode == "forbidden" and np.isnan(X.astype(float, copy=False)).any():
+            raise RuntimeError(
+                "NaN values found in training data with nan_mode='forbidden'"
+            )
+        if np.isnan(y.astype(float, copy=False)).any():
+            raise ValueError("y contains NaN values")
+        # Check for inf in numeric columns (categoricals may be strings at this point)
+        cat_set_pre = set(cat_features) if cat_features else set()
+        for f in range(n_features):
+            if f not in cat_set_pre:
+                col = X[:, f]
+                try:
+                    col_f = np.asarray(col, dtype=float)
+                except (ValueError, TypeError):
+                    continue  # non-numeric column handled later by categorical encoding
+                if np.any(np.isinf(col_f)):
+                    raise ValueError(
+                        f"Feature column {f} contains inf values"
+                    )
+        if weights is not None:
+            w = np.asarray(weights, dtype=float)
+            if np.any(w < 0):
+                raise ValueError("sample_weight must be non-negative")
+
+        # Build is_categorical mask and encode string categoricals → integers
+        cat_set = set(cat_features) if cat_features else set()
+        is_categorical = [bool(f in cat_set) for f in range(n_features)]
+        cat_hash_maps: List[dict] = [{} for _ in range(n_features)]
+
+        # Encode string categorical columns to integer indices.
+        # The C++ binary does this internally from CSV; for the nanobind path
+        # we must do it here so X can be converted to float32.
+        X_encoded = X.copy() if cat_set else X
+        if cat_set:
+            # Work on object array to preserve strings before encoding
+            if X_encoded.dtype.kind not in ("f", "i", "u"):
+                X_encoded = np.array(X_encoded, dtype=object)
+            for f in cat_set:
+                col = X_encoded[:, f]
+                mapping: dict = {}
+                encoded = np.empty(n_docs, dtype=np.float32)
+                for d in range(n_docs):
+                    val = col[d]
+                    if isinstance(val, (float, np.floating)) and np.isnan(val):
+                        encoded[d] = np.nan
+                    else:
+                        s = str(val)
+                        if s not in mapping:
+                            mapping[s] = len(mapping)
+                        encoded[d] = float(mapping[s])
+                X_encoded[:, f] = encoded
+                cat_hash_maps[f] = mapping
+
+        # Ensure correct dtypes and C-contiguous layout (nanobind enforces this)
+        X_f32 = np.ascontiguousarray(X_encoded, dtype=np.float32)
+        y_f32 = np.ascontiguousarray(y, dtype=np.float32)
+
+        # Build TTrainConfig
+        cfg = self._build_train_config()
+
+        # Optional arrays
+        w_arr = np.ascontiguousarray(weights, dtype=np.float32) if weights is not None else None
+        g_arr = np.ascontiguousarray(group_ids, dtype=np.uint32) if group_ids is not None else None
+
+        # Encode eval_set categoricals with the same mappings
+        val_X_f32 = None
+        val_y_f32 = None
+        if eval_set is not None:
+            X_val = _to_numpy(eval_set[0])
+            if cat_set and X_val.dtype.kind not in ("f", "i", "u"):
+                X_val = np.array(X_val, dtype=object)
+                for f in cat_set:
+                    col = X_val[:, f]
+                    mapping = cat_hash_maps[f]
+                    encoded = np.empty(len(col), dtype=np.float32)
+                    for d in range(len(col)):
+                        val = col[d]
+                        if isinstance(val, (float, np.floating)) and np.isnan(val):
+                            encoded[d] = np.nan
+                        else:
+                            s = str(val)
+                            if s not in mapping:
+                                mapping[s] = len(mapping)
+                            encoded[d] = float(mapping[s])
+                    X_val[:, f] = encoded
+            val_X_f32 = np.ascontiguousarray(X_val, dtype=np.float32)
+            val_y_f32 = np.ascontiguousarray(_to_numpy(eval_set[1]), dtype=np.float32)
+
+        result = _nb_core.train(
+            features=X_f32,
+            targets=y_f32,
+            feature_names=feature_names,
+            is_categorical=is_categorical,
+            weights=w_arr,
+            group_ids=g_arr,
+            cat_hash_maps=cat_hash_maps,
+            val_features=val_X_f32,
+            val_targets=val_y_f32,
+            config=cfg,
+        )
+        # Flush C-level stdout so progress output is visible to Python capture
+        ctypes.CDLL(None).fflush(None)
+
+        # Parse result back into self state (same fields as subprocess path)
+        self._model_data = json.loads(result.model_json)
+        self._train_loss_history = list(result.train_loss_history)
+        self._eval_loss_history = list(result.eval_loss_history)
+        self._feature_importance = dict(result.feature_importance)
+        self._is_fitted = True
+        self._model_json_cache = None
+
+        # Inject real feature names into model data
+        for i, feat in enumerate(self._model_data.get("features", [])):
+            if i < len(feature_names):
+                feat["name"] = feature_names[i]
+
+        # Persist cat_features in model_info for save/load roundtrips
+        info = self._model_data.get("model_info", {})
+        info["cat_features"] = self.cat_features
+
     def fit(self, X_or_pool, y=None, eval_set=None, feature_names: Optional[List[str]] = None,
             group_id=None, sample_weight=None) -> "CatBoostMLX":
         """Train a model on the given data.
@@ -1046,6 +1234,9 @@ class CatBoostMLX(BaseEstimator):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
+        if X.shape[0] == 0:
+            raise ValueError("Cannot train on an empty dataset (0 samples).")
+
         # ── Phase 2: Resolve categorical features ──
         # Resolve string cat_features to indices
         if self.cat_features and any(isinstance(c, str) for c in self.cat_features):
@@ -1086,12 +1277,39 @@ class CatBoostMLX(BaseEstimator):
                 UserWarning, stacklevel=2,
             )
 
-        # ── Phase 5: Set sklearn-required attributes and write training data ──
+        # ── Phase 5: Set sklearn-required attributes ──
         self.n_features_in_ = X.shape[1]
         self.n_outputs_ = 1
         names = feature_names or [f"f{i}" for i in range(X.shape[1])]
         self.feature_names_in_ = np.array(names, dtype=object)
 
+        # ── Phase 6: Validate eval_set ──
+        if eval_set is not None:
+            if not (isinstance(eval_set, (tuple, list)) and len(eval_set) == 2):
+                raise ValueError("eval_set must be a tuple of (X_val, y_val)")
+            if self.eval_fraction > 0:
+                raise ValueError(
+                    "eval_set and eval_fraction are mutually exclusive"
+                )
+            X_val = _to_numpy(eval_set[0])
+            if X_val.ndim == 1:
+                X_val = X_val.reshape(-1, 1)
+            if X_val.shape[1] != X.shape[1]:
+                raise ValueError(
+                    f"eval_set has {X_val.shape[1]} features, "
+                    f"expected {X.shape[1]}"
+                )
+
+        # ── Phase 7: Route to nanobind (in-process) or subprocess ──
+        if _HAS_NANOBIND:
+            self._fit_nanobind(X, y, list(names), self.cat_features,
+                               sw, gid, eval_set)
+            # ── MLflow logging (optional) ──
+            if self.mlflow_logging:
+                self._log_to_mlflow()
+            return self
+
+        # ── Phase 7 (subprocess fallback): Write training data ──
         # Use binary format for numeric-only data (1000x faster than CSV)
         use_binary = not self.cat_features
 
