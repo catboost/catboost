@@ -262,17 +262,21 @@
   - [x] See DEC-004
 
 ### TODO-012 — Grow policies: Lossguide and Depthwise
-- **Assigned to:** ml-engineer (Depthwise done Sprint 9; Lossguide backlog)
+- **Assigned to:** ml-engineer (Depthwise done Sprint 9; Lossguide done Sprint 10)
 - **Priority:** Low
-- **Status:** Partially Done
+- **Status:** Done
+- **Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
 - **Depends on:** TODO-007 (GPU partition layout)
 - **Acceptance Criteria:**
-  - [x] `EGrowPolicy` enum: `SymmetricTree`, `Depthwise` (Lossguide not yet implemented)
+  - [x] `EGrowPolicy` enum: `SymmetricTree`, `Depthwise`, `Lossguide`
   - [x] `SearchDepthwiseTreeStructure` in `structure_searcher.cpp` — per-leaf `FindBestSplitGPU` at each depth level, BFS node ordering
   - [x] `ApplyDepthwiseTree` in `tree_applier.cpp` — `kTreeApplyDepthwiseSource` Metal kernel traverses BFS node array
   - [x] `--grow-policy` CLI flag in `csv_train.cpp`; `grow_policy` Python param in `core.py`
-  - [ ] `GrowPolicy::Lossguide` — leaf-priority (best-leaf-first) BFS expansion (Backlog)
-  - [x] `grow_policy` documented in Python docstring with description of SymmetricTree vs Depthwise semantics
+  - [x] `SearchLossguideTreeStructure` in `structure_searcher.cpp` — priority-queue best-first leaf expansion, sparse `unordered_map` node storage
+  - [x] `ApplyLossguideTree` in `tree_applier.cpp` — reuses Depthwise Metal kernel dispatch; `ComputeLeafIndicesLossguide` for inference path
+  - [x] `max_leaves` Python param (default 31) and `--max-leaves` CLI flag
+  - [x] `grow_policy` and `max_leaves` documented in Python docstring; all 3 policies described in `python/README.md`
+- **Notes:** See DEC-006 for full design rationale. Lossguide reuses the Depthwise leaf-application kernel; the sparse node map avoids O(2^depth) allocation for unbalanced trees.
 
 ### TODO-013 — Fix kernel param names in build_verify_test.cpp
 - **Assigned to:** ml-engineer
@@ -305,6 +309,51 @@
 - **Commits:** `dbfcf07`
 - **Acceptance Criteria:**
   - [x] DEC-003 added to DECISIONS.md with rationale, alternatives, and commit references
+
+### TODO-032 — Model format versioning (format_version=2)
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
+- **Acceptance Criteria:**
+  - [x] `save_model` writes `{"format_version": 2, ...}` at top level of JSON payload
+  - [x] `load_model` pops `format_version` (defaults to 1 for pre-versioning files); raises `ValueError` with upgrade hint if `fmt_version > 2`
+  - [x] Forward-compatibility guard: models saved by future versions fail with a clear message
+
+### TODO-033 — Benchmark script: CatBoost-MLX vs CatBoost CPU
+- **Assigned to:** ml-engineer
+- **Priority:** Medium
+- **Status:** Done
+- **Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
+- **Acceptance Criteria:**
+  - [x] `python/benchmarks/benchmark_vs_catboost.py` — standalone script, no external files required
+  - [x] CLI: `--rows` (multi-value), `--features`, `--iterations`, `--depth`
+  - [x] Trains both CatBoost-MLX and official CatBoost CPU on identical synthetic regression data
+  - [x] Omits CPU comparison column gracefully when `catboost` package is not installed
+  - [x] Prints formatted table: train time, predict time, train loss (RMSE), test RMSE, and speedup ratio
+  - [x] ruff-clean
+
+### TODO-034 — PyPI packaging: v0.3.0
+- **Assigned to:** mlops-engineer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
+- **Acceptance Criteria:**
+  - [x] `python/pyproject.toml` bumped to `version = "0.3.0"`
+  - [x] `--cov-fail-under=70` added to pytest step in `mlx_test.yaml`
+  - [x] Depthwise grow-policy CI regression step added to `mlx_test.yaml` — generates a smoke CSV, trains with `--grow-policy Depthwise`, asserts finite loss in output
+
+### TODO-035 — python/README.md user-facing documentation
+- **Assigned to:** technical-writer
+- **Priority:** High
+- **Status:** Done
+- **Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
+- **Acceptance Criteria:**
+  - [x] All 3 grow policies documented in Grow Policies table (SymmetricTree, Depthwise, Lossguide as "coming soon")
+  - [x] `max_leaves` parameter in Parameters Reference table
+  - [x] Depth range corrected to 1-10 (was incorrectly capped at 6 in earlier draft)
+  - [x] `mlflow_logging`, `grow_policy`, `random_strength` parameters present in reference table
+  - [x] Comparison table with official `catboost` package accurate (Lossguide listed as Backlog)
 
 ## Blocked
 
