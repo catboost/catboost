@@ -1564,8 +1564,9 @@ class CatBoostMLX(BaseEstimator):
         """Save the trained model to a JSON file."""
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
+        payload = {"format_version": 2, **self._model_data}
         with open(path, "w") as f:
-            json.dump(self._model_data, f, indent=2)
+            json.dump(payload, f, indent=2)
 
     def export_coreml(self, path: str) -> None:
         """Export model to CoreML format (.mlmodel).
@@ -1591,6 +1592,13 @@ class CatBoostMLX(BaseEstimator):
         """Load a model from a JSON file."""
         with open(path, "r") as f:
             self._model_data = json.load(f)
+        # Format version check — default to 1 for files saved before versioning.
+        fmt_version = self._model_data.pop("format_version", 1)
+        if fmt_version > 2:
+            raise ValueError(
+                f"Model was saved with a newer version of catboost-mlx "
+                f"(format_version={fmt_version}). Upgrade catboost-mlx to load it."
+            )
         required = {"model_info", "trees", "features"}
         missing = required - set(self._model_data.keys())
         if missing:
