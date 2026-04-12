@@ -1,582 +1,424 @@
-# CatBoost-MLX Python Package
+# CatBoost-MLX
 
-GPU-accelerated gradient boosted decision trees on Apple Silicon, with a scikit-learn-compatible Python API.
+**GPU-accelerated gradient boosted decision trees on Apple Silicon**
 
-## What is CatBoost-MLX? (The Simple Version)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
+[![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)](https://www.apple.com/macos/)
+[![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3%2FM4-black)](https://www.apple.com/mac/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](../LICENSE)
 
-Imagine you want to teach a computer to predict things -- like house prices, or whether an email is spam.
+CatBoost-MLX is a gradient boosted decision tree (GBDT) library that runs natively on Apple Silicon GPU via Apple's Metal framework. It provides a scikit-learn-compatible Python API for training, predicting, and exporting models — with no CUDA dependency, no cloud required, and no Intel fallback. If you have a Mac with an M-series chip, the GPU is your training device.
 
-**Decision trees** are like flowcharts of yes/no questions: "Is the house bigger than 1500 sqft? Yes -> Is it in a good neighborhood? Yes -> Predict $500K." One tree is okay, but not great. As Sheldon would say, it's the "Leonard" of machine learning -- functional, but not exactly impressive on its own.
+---
 
-**Gradient boosting** builds *many* small trees (typically 100-1000), where each tree focuses on fixing the mistakes of the ones before it. The final prediction combines all the trees together. This technique consistently wins machine learning competitions.
+## Features
 
-**The GPU part**: Building all those trees involves a LOT of math. Your Mac has a powerful GPU (Graphics Processing Unit) that can do this math much faster than the CPU alone. CatBoost-MLX uses Apple's **Metal** GPU framework (via the **MLX** library) to speed up training. It's like upgrading from Sheldon taking the bus to Sheldon getting his own car -- except the GPU actually knows how to drive.
+- **10 loss functions** — RMSE, MAE, Logloss, CrossEntropy, MultiClass, Quantile, Huber, Poisson, Tweedie, MAPE
+- **3 grow policies** — SymmetricTree (default, oblivious), Depthwise (node-level splits), Lossguide (leaf-priority, coming soon)
+- **Tree depth 1-10** — GPU-accelerated at all depths via multi-pass leaf accumulation
+- **Categorical feature support** — one-hot encoding and CTR (target encoding) for high-cardinality categories
+- **Early stopping** — automatic halt on validation plateau
+- **Feature importance** — gain-based, plus TreeSHAP values
+- **Model export** — JSON (portable), ONNX, CoreML
+- **MLflow integration** — log hyperparameters, per-iteration loss, and final metrics automatically
+- **scikit-learn compatible** — works in `Pipeline`, `cross_val_score`, `clone`, `GridSearchCV`
 
-**In short**: CatBoost-MLX lets you train powerful prediction models on your Mac's GPU with just a few lines of Python code.
-
-## Who Is This For?
-
-- **Data scientists on Macs** who want GPU-accelerated gradient boosting
-- **Anyone familiar with scikit-learn** -- CatBoost-MLX is a drop-in replacement
-- **ML engineers** who want to export models to CoreML (iOS/macOS apps) or ONNX (cross-platform)
-- **Researchers** exploring gradient boosting on Apple Silicon hardware
+---
 
 ## Prerequisites
 
-### Hardware
-- **Apple Silicon Mac** (M1, M2, M3, M4 -- any variant)
-- **macOS 14+** (Sonoma or later)
+- **macOS 13+** (Ventura or later)
+- **Apple Silicon Mac** (M1, M2, M3, M4, or any variant)
+- **Python 3.9+**
+- **MLX C++ library:**
+  ```bash
+  brew install mlx
+  ```
+- **Xcode Command Line Tools** (for building the C++ binaries):
+  ```bash
+  xcode-select --install
+  ```
 
-### Software (Step by Step)
+> **Not supported:** Intel Macs, Linux, Windows.
 
-**1. Python 3.9 or later**
-```bash
-python3 --version   # Check your version
-```
-If you don't have Python 3.9+, download it from [python.org](https://www.python.org/downloads/).
+---
 
-**2. Xcode Command Line Tools** (provides the C++ compiler)
-```bash
-xcode-select --install
-```
-
-**3. MLX C++ library** (Apple's GPU computation framework)
-```bash
-brew install mlx
-brew info mlx   # Verify: should show version and install path
-```
-
-**4. numpy** (installed automatically with the package)
-
-## Installation (Step by Step)
-
-### Step 1: Clone the repository
+## Installation
 
 ```bash
 git clone https://github.com/RR-AMATOK/catboost-mlx.git
 cd catboost-mlx
-```
 
-### Step 2: Build the C++ binaries
-
-The Python package delegates the heavy GPU computation to two compiled C++ programs. Build them with:
-
-```bash
-# Check that all prerequisites are installed
-python3 python/build_binaries.py --check
-
-# Compile the binaries (takes ~30 seconds)
+# Build the GPU training and prediction binaries
 python3 python/build_binaries.py
-```
 
-This creates two binaries in `python/catboost_mlx/bin/`:
-- **csv_train** -- trains a model from CSV data using the Metal GPU
-- **csv_predict** -- loads a trained model and makes predictions
-
-### Step 3: Install the Python package
-
-```bash
+# Install the Python package
 pip install -e python/
 ```
 
-### Step 4: Verify the installation
-
-```python
-python3 -c "import catboost_mlx; print(catboost_mlx.__version__)"
-# Should print: 0.2.0
-```
-
-### Optional dependencies
-
-Install extras for additional features:
+### Optional extras
 
 ```bash
-pip install -e "python/[sklearn]"   # scikit-learn integration (pipelines, cross_val_score)
-pip install -e "python/[onnx]"      # Export models to ONNX format
-pip install -e "python/[coreml]"    # Export models to CoreML format
+pip install -e "python/[sklearn]"   # scikit-learn integration
+pip install -e "python/[onnx]"      # ONNX export
+pip install -e "python/[coreml]"    # CoreML export
 pip install -e "python/[all]"       # All of the above
-pip install -e "python/[dev]"       # Development tools (pytest, pandas)
 ```
+
+### Verify
+
+```bash
+python3 -c "import catboost_mlx; print(catboost_mlx.__version__)"
+```
+
+---
 
 ## Quick Start
 
-### Example 1: Predict house prices (Regression)
+### Regression
 
 ```python
 import numpy as np
 from catboost_mlx import CatBoostMLXRegressor
 
-# Create some example data (100 houses, 3 features each)
-np.random.seed(42)
-X_train = np.random.rand(100, 3)           # features: size, bedrooms, age
-y_train = X_train @ [50, 10, -5] + 100     # prices: linear combination + offset
+X_train = np.random.rand(1000, 10)
+y_train = X_train[:, 0] * 3 + X_train[:, 1] * -1.5 + np.random.randn(1000) * 0.1
 
-X_test = np.random.rand(20, 3)
-y_test = X_test @ [50, 10, -5] + 100
+model = CatBoostMLXRegressor(iterations=200, depth=6, learning_rate=0.1)
+model.fit(X_train, y_train, feature_names=[f"feat_{i}" for i in range(10)])
 
-# Train a model
-model = CatBoostMLXRegressor(iterations=100, depth=4, learning_rate=0.1)
-model.fit(X_train, y_train, feature_names=["size", "bedrooms", "age"])
+predictions = model.predict(X_train)
+print(f"R2: {model.score(X_train, y_train):.4f}")
 
-# Make predictions
-predictions = model.predict(X_test)
-print(f"RMSE: {np.sqrt(np.mean((predictions - y_test) ** 2)):.4f}")
-
-# Check feature importance
-print(model.get_feature_importance())
+# Feature importance
+model.plot_feature_importance()
 ```
 
-### Example 2: Classify spam vs not-spam (Binary Classification)
+### Binary Classification
 
 ```python
 from catboost_mlx import CatBoostMLXClassifier
 
-# Synthetic binary data
-X_train = np.random.rand(200, 5)
-y_train = (X_train[:, 0] + X_train[:, 1] > 1).astype(float)  # 0 or 1
+X_train = np.random.rand(1000, 8)
+y_train = (X_train[:, 0] + X_train[:, 1] > 1.0).astype(float)
 
-clf = CatBoostMLXClassifier(iterations=100, depth=4)
+clf = CatBoostMLXClassifier(
+    iterations=100,
+    depth=5,
+    eval_fraction=0.2,
+    early_stopping_rounds=20,
+)
 clf.fit(X_train, y_train)
 
-# Class labels (0 or 1)
-predictions = clf.predict(X_test)
-
-# Probabilities (shape: n_samples x 2)
-probabilities = clf.predict_proba(X_test)
-print(f"P(spam) for first sample: {probabilities[0, 1]:.3f}")
+labels = clf.predict(X_train)          # array of 0 or 1
+probs  = clf.predict_proba(X_train)    # shape (n_samples, 2)
 ```
 
-### Example 3: Using pandas DataFrames with Pool
+### With early stopping and validation
 
 ```python
-import pandas as pd
-from catboost_mlx import Pool, CatBoostMLXClassifier
+from catboost_mlx import CatBoostMLXRegressor
 
-# DataFrame with mixed types
-df = pd.DataFrame({
-    "color": ["red", "blue", "red", "green", "blue"] * 20,
-    "size": np.random.rand(100),
-    "weight": np.random.rand(100),
-})
-labels = (df["size"] > 0.5).astype(float)
-
-# Pool auto-detects "color" as categorical and extracts feature names
-pool = Pool(df, y=labels)
-print(pool)  # Pool(100 samples, 3 features, 1 categorical, with labels)
-
-clf = CatBoostMLXClassifier(iterations=50, depth=4)
-clf.fit(pool)
+model = CatBoostMLXRegressor(
+    iterations=500,
+    depth=6,
+    learning_rate=0.05,
+    eval_fraction=0.15,       # reserve 15% for validation
+    early_stopping_rounds=30, # stop after 30 rounds with no improvement
+    verbose=True,
+)
+model.fit(X_train, y_train)
+print(model.train_loss_history[-1])
+print(model.eval_loss_history[-1])
 ```
 
-## How It Works
+### Save and load
 
-CatBoost-MLX has a simple architecture: Python handles the user-facing API, while compiled C++ binaries do the heavy computation on the GPU. As Howard would put it: "Python is the astronaut, but C++ is the rocket."
+```python
+# Save to JSON
+model.save_model("model.json")
 
-```
-     Your Python Code
-           |
-           v
-  ┌─────────────────┐
-  │   catboost_mlx   │  <-- Python package (this code)
-  │  (core.py, etc.) │
-  └────────┬─────────┘
-           |  writes CSV + reads JSON
-           v
-  ┌─────────────────┐
-  │   csv_train /    │  <-- Compiled C++ binaries
-  │   csv_predict    │
-  └────────┬─────────┘
-           |  Metal GPU kernels
-           v
-  ┌─────────────────┐
-  │   Apple Silicon  │  <-- Your Mac's GPU
-  │   Metal GPU      │
-  └─────────────────┘
+# Load into a new instance
+from catboost_mlx import CatBoostMLXRegressor
+loaded = CatBoostMLXRegressor.load("model.json")
+predictions = loaded.predict(X_test)
 ```
 
-**Training flow**: Python writes your data to a temporary CSV file, calls the `csv_train` binary (which trains on the GPU using Metal), then reads back the resulting model from a JSON file.
+### scikit-learn pipeline
 
-**Prediction flow**: Python writes the model JSON and data CSV to temp files, calls `csv_predict`, and parses the output CSV of predictions.
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-## File Structure
-
-```
-python/
-├── README.md                       # You are here!
-├── pyproject.toml                  # Package config (name, version, dependencies)
-├── build_binaries.py               # Compiles the C++ GPU binaries
-├── Makefile                        # Dev targets: test, lint, coverage
-│
-├── catboost_mlx/                   # The Python package
-│   ├── __init__.py                 # Entry point -- re-exports main classes
-│   ├── core.py                     # Main classes: CatBoostMLX, Regressor, Classifier
-│   ├── pool.py                     # Pool data container (bundles features + metadata)
-│   ├── _utils.py                   # Shared utilities (_to_numpy)
-│   ├── _predict_utils.py           # Python tree evaluation (for staged_predict/apply)
-│   ├── _tree_utils.py              # Tree format conversion (for export)
-│   ├── export_onnx.py              # Export to ONNX format
-│   ├── export_coreml.py            # Export to CoreML format
-│   └── bin/                        # Compiled C++ binaries (created by build_binaries.py)
-│       ├── csv_train               #   GPU training binary
-│       └── csv_predict             #   GPU prediction binary
-│
-├── tests/
-│   ├── conftest.py                                    # Shared test fixtures
-│   ├── test_basic.py                                  # Core functionality tests
-│   ├── test_new_features.py                           # Extended feature and regression tests
-│   ├── test_qa_adversarial.py                         # Adversarial / edge-case tests
-│   ├── test_qa_round2.py                              # QA round 2: regression, classification, sklearn
-│   ├── test_qa_round3.py                              # QA round 3: data handling, categoricals
-│   ├── test_qa_round4.py                              # QA round 4: ranking, sample weights
-│   ├── test_qa_round5.py                              # QA round 5: bootstrap, snapshot, monotone
-│   ├── test_qa_round6.py                              # QA round 6: serialization, export, SHAP
-│   ├── test_qa_round7.py                              # QA round 7: load_model state, classes_, serialization fixes
-│   ├── test_qa_round8_sprint3_losses.py               # Sprint 3: MAE, Quantile, Huber loss functions
-│   ├── test_qa_round9_sprint4_partition_layout.py     # Sprint 4: GPU partition layout regression
-│   └── test_qa_round10_sprint5_bench_and_scan.py      # Sprint 5: bench harness, deterministic scan
-│
-└── benchmarks/
-    ├── benchmark.py                # Speed/accuracy comparison tool
-    └── README.md                   # How to run benchmarks
+pipe = Pipeline([
+    ("scaler", StandardScaler()),
+    ("model", CatBoostMLXRegressor(iterations=100)),
+])
+pipe.fit(X_train, y_train)
 ```
 
-### How the files relate
+---
 
-```
-Users import from:
-  __init__.py ──────── re-exports classes from ──► core.py
-                       re-exports Pool from ────► pool.py
+## Parameters Reference
 
-core.py (main logic):
-  ├── Uses pool.py .............. to unpack Pool objects in fit()
-  ├── Uses _predict_utils.py .... for staged_predict() and apply()
-  ├── Uses _tree_utils.py ....... for get_trees()
-  ├── Uses export_coreml.py ..... for export_coreml()
-  └── Uses export_onnx.py ...... for export_onnx()
+All parameters are set in the constructor and apply to `CatBoostMLX`, `CatBoostMLXRegressor`, and `CatBoostMLXClassifier`.
 
-export_coreml.py ─── uses ──► _tree_utils.py (unfold oblivious trees)
-export_onnx.py ───── uses ──► _tree_utils.py (unfold oblivious trees)
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `iterations` | int | `100` | Number of boosting iterations (trees). Range: 1–100000. |
+| `depth` | int | `6` | Maximum tree depth. Range: 1–10. Depths 7–10 use multi-pass leaf accumulation. |
+| `learning_rate` | float | `0.1` | Step-size shrinkage applied to each tree's leaf values. |
+| `l2_reg_lambda` | float | `3.0` | L2 regularization on leaf values. Higher values reduce overfitting. |
+| `loss` | str | `"auto"` | Loss function. See [Loss Functions](#loss-functions) table below. |
+| `bins` | int | `255` | Maximum quantization bins per feature. Range: 2–255. |
+| `cat_features` | list[int] | `None` | Column indices of categorical features. |
+| `eval_fraction` | float | `0.0` | Fraction of training data reserved for validation. Range: [0, 1). |
+| `early_stopping_rounds` | int | `0` | Stop training if validation loss does not improve for this many rounds. 0 = disabled. |
+| `subsample` | float | `1.0` | Row subsampling fraction per iteration. Range: (0, 1]. |
+| `colsample_bytree` | float | `1.0` | Feature subsampling fraction per tree. Range: (0, 1]. |
+| `random_seed` | int | `42` | Random seed for reproducibility. |
+| `nan_mode` | str | `"min"` | Missing value handling. `"min"` assigns NaN to the smallest bin; `"forbidden"` raises an error. |
+| `ctr` | bool | `False` | Enable CTR (target encoding) for high-cardinality categorical features. |
+| `ctr_prior` | float | `0.5` | Bayesian smoothing prior for CTR encoding. Must be > 0. |
+| `max_onehot_size` | int | `10` | Features with at most this many categories use one-hot; larger cardinality uses CTR. |
+| `bootstrap_type` | str | `"no"` | Sampling scheme: `"no"`, `"bayesian"`, `"bernoulli"`, `"mvs"`. |
+| `bagging_temperature` | float | `1.0` | Temperature for Bayesian bootstrap. Only used when `bootstrap_type="bayesian"`. |
+| `mvs_reg` | float | `0.0` | Regularization for MVS bootstrap. Only used when `bootstrap_type="mvs"`. |
+| `min_data_in_leaf` | int | `1` | Minimum number of training samples required in a leaf node. |
+| `random_strength` | float | `1.0` | Score perturbation magnitude for tree structure randomization. |
+| `monotone_constraints` | list[int] | `None` | Per-feature monotonicity constraints. Each value must be `0` (none), `1` (increasing), or `-1` (decreasing). Length must equal number of features. |
+| `snapshot_path` | str | `None` | File path for training snapshots (resume interrupted training). |
+| `snapshot_interval` | int | `1` | Save a snapshot every N iterations. Requires `snapshot_path`. |
+| `auto_class_weights` | str | `None` | Automatic class weight balancing: `"Balanced"` or `"SqrtBalanced"`. Classification only. |
+| `grow_policy` | str | `"SymmetricTree"` | Tree grow policy. See [Grow Policies](#grow-policies) below. |
+| `mlflow_logging` | bool | `False` | Log hyperparameters and per-iteration loss to MLflow after training. Requires `pip install mlflow`. |
+| `mlflow_run_name` | str | `None` | Run name for MLflow. Only used when `mlflow_logging=True` starts a new run. |
+| `verbose` | bool | `False` | Print per-iteration training loss to stdout. |
+| `binary_path` | str | `None` | Path to directory containing `csv_train`/`csv_predict`, or the path to `csv_train` directly. |
+| `train_timeout` | float | `None` | Maximum wall-clock seconds allowed for training. `None` = no limit. |
+| `predict_timeout` | float | `None` | Maximum wall-clock seconds allowed for prediction. `None` = no limit. |
 
-Standalone (not imported by the package):
-  build_binaries.py ............. compiles C++ binaries
-  benchmarks/benchmark.py ....... performance comparison
-  tests/test_basic.py ........... test suite
-```
+---
+
+## Grow Policies
+
+| Policy | `grow_policy` value | Description | When to use |
+|--------|--------------------|--------------|----|
+| SymmetricTree | `"SymmetricTree"` (default) | Oblivious trees: every node at the same depth uses the same split condition. All `2^depth` leaves are grown simultaneously. Highly regular, fast on GPU. | Default choice. Best throughput, strong regularization. |
+| Depthwise | `"Depthwise"` | Non-symmetric trees: each node at a given depth level gets its own best split independently (equivalent to XGBoost `grow_policy=depthwise`). More expressive than SymmetricTree at the same depth. | More complex decision boundaries at the cost of slightly higher per-iteration time. |
+| Lossguide | N/A | Leaf-priority BFS expansion: grow the leaf with the highest gain first, regardless of depth level. | Not yet implemented (backlog). |
+
+---
+
+## Loss Functions
+
+| Loss | `loss` syntax | Task | Notes |
+|------|--------------|------|-------|
+| RMSE | `"rmse"` | Regression | Default for `CatBoostMLXRegressor`. L2 loss. |
+| MAE | `"mae"` | Regression | L1 loss; less sensitive to outliers than RMSE. |
+| Quantile | `"quantile"` or `"quantile:0.9"` | Regression | Asymmetric L1. Predicts the alpha-th quantile. Default alpha=0.5 (median). |
+| Huber | `"huber"` or `"huber:1.5"` | Regression | Smooth L1; combines MAE and RMSE. Default delta=1.0. |
+| Poisson | `"poisson"` | Regression | For non-negative count data. Uses log link. |
+| Tweedie | `"tweedie"` or `"tweedie:1.5"` | Regression | For zero-inflated non-negative data. Variance power p in (1, 2). Default p=1.5. |
+| MAPE | `"mape"` | Regression | Mean absolute percentage error. For relative error. |
+| Logloss | `"logloss"` | Binary classification | Sigmoid link. Default for `CatBoostMLXClassifier` on binary targets. |
+| CrossEntropy | `"crossentropy"` | Binary classification | Alias for Logloss. |
+| MultiClass | `"multiclass"` | Multi-class classification | Softmax. Auto-selected by `"auto"` on targets with 3+ classes. |
+| Auto | `"auto"` | Any | Selects Logloss (binary) or MultiClass (multi-class) based on target. Default for `CatBoostMLXClassifier`. |
+
+Parameterized losses use colon syntax: `"quantile:0.75"`, `"huber:2.0"`, `"tweedie:1.8"`. Named-parameter syntax is also accepted: `"quantile:alpha=0.75"`.
+
+---
 
 ## API Reference
 
 ### Classes
 
-| Class | Use Case | Default Loss |
-|-------|----------|-------------|
-| `CatBoostMLX` | General-purpose (any loss) | `auto` |
-| `CatBoostMLXRegressor` | Predicting numbers | `rmse` |
-| `CatBoostMLXClassifier` | Predicting categories | `auto` (detects binary vs multiclass) |
-| `Pool` | Bundling data + metadata | -- |
+| Class | Default loss | Use case |
+|-------|-------------|---------|
+| `CatBoostMLX` | `"auto"` | Base class. Use directly when you need full control over the loss. |
+| `CatBoostMLXRegressor` | `"rmse"` | Regression tasks. Provides `score()` returning R². |
+| `CatBoostMLXClassifier` | `"auto"` | Classification tasks. Provides `predict_proba()` and `classes_` attribute. |
+| `Pool` | — | Data container. Bundles feature matrix, labels, feature names, and categorical feature indices. |
 
-### Key Methods
+### fit()
 
-| Method | What it does | Returns |
-|--------|-------------|---------|
-| `fit(X, y)` | Train the model on data | `self` |
-| `predict(X)` | Get predictions (values or class labels) | numpy array |
-| `predict_proba(X)` | Get class probabilities | numpy array (n, k) |
-| `staged_predict(X)` | Predictions at each boosting step | generator |
-| `staged_predict_proba(X)` | Probabilities at each boosting step | generator |
-| `apply(X)` | Get leaf indices for each tree | numpy array (n, n_trees) |
-| `save_model(path)` | Save model to JSON file | None |
-| `load_model(path)` | Load model from JSON file | self |
-| `load(path)` | **Classmethod**: create + load in one step | new instance |
-| `export_onnx(path)` | Export to ONNX format | None |
-| `export_coreml(path)` | Export to CoreML format | None |
-| `get_feature_importance()` | Feature importance (dict) | dict |
-| `get_shap_values(X)` | TreeSHAP explanations | dict |
-| `cross_validate(X, y)` | N-fold cross-validation | dict |
-| `score(X, y)` | R² (regression) or accuracy (classification) | float |
-| `get_params()` | Get all hyperparameters (sklearn) | dict |
-| `set_params(**kw)` | Set hyperparameters (sklearn) | self |
-| `get_trees()` | Structured tree details | list of dicts |
-| `get_model_info()` | Model metadata | dict |
-| `plot_feature_importance()` | Print bar chart to terminal | None |
+```python
+model.fit(
+    X_or_pool,           # array-like (n_samples, n_features), DataFrame, or Pool
+    y=None,              # array-like (n_samples,); omit when passing a Pool with labels
+    eval_set=None,       # (X_val, y_val) tuple or Pool; mutually exclusive with eval_fraction
+    feature_names=None,  # list of str; auto-extracted from DataFrame columns
+    group_id=None,       # array-like (n_samples,); for ranking losses
+    sample_weight=None,  # array-like (n_samples,); per-sample weights
+)
+```
+
+### predict()
+
+```python
+predictions = model.predict(X)
+# Regression: array of float
+# Binary classification: array of int (0 or 1)
+# Multi-class classification: array of int (class index)
+```
+
+### predict_proba()
+
+```python
+probs = clf.predict_proba(X)
+# Binary: shape (n_samples, 2) — columns are P(class=0), P(class=1)
+# Multiclass: shape (n_samples, n_classes)
+```
+
+### Other methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `save_model(path)` | None | Save model to JSON. |
+| `load_model(path)` | self | Load model from JSON (in-place). |
+| `load(path)` | new instance | Classmethod: create and load in one step. |
+| `export_onnx(path)` | None | Export to ONNX. Requires `pip install onnx>=1.14`. |
+| `export_coreml(path)` | None | Export to CoreML. Requires `pip install coremltools>=7.0`. |
+| `get_feature_importance()` | dict | Gain-based importance as `{name: gain}`. |
+| `get_shap_values(X)` | dict | TreeSHAP values, expected value, and feature names. |
+| `cross_validate(X, y, n_folds=5)` | dict | N-fold CV using the C++ binary's built-in CV mode. Returns `fold_metrics`, `mean`, `std`. |
+| `staged_predict(X, eval_period=1)` | generator | Predictions at each boosting checkpoint. |
+| `staged_predict_proba(X, eval_period=1)` | generator | Probabilities at each boosting checkpoint. |
+| `apply(X)` | ndarray (n, n_trees) | Leaf indices for each sample in each tree. |
+| `plot_feature_importance(max_features=20)` | None | Print text bar chart to stdout. |
+| `get_trees()` | list[dict] | Tree structure with real-valued split thresholds. |
+| `get_model_info()` | dict | Model metadata: loss, tree count, feature count, approx dimension. |
+| `score(X, y)` | float | R² (regressor) or accuracy (classifier). |
+| `get_params()` | dict | All hyperparameter values (scikit-learn compatible). |
+| `set_params(**kw)` | self | Set hyperparameters (scikit-learn compatible). |
 
 ### Properties
 
-| Property | Description |
-|----------|-------------|
-| `tree_count_` | Number of trees in the model |
-| `feature_names_` | Feature names used during training |
-| `feature_importances_` | Normalized importance array (sums to 1.0, sklearn-compatible) |
-| `train_loss_history` | Training loss at each iteration |
-| `eval_loss_history` | Validation loss at each iteration |
-| `n_features_in_` | Number of features at training time (sklearn) |
-| `feature_names_in_` | Feature names as numpy array (sklearn 1.2+) |
-| `n_outputs_` | Number of outputs (always 1) |
-| `classes_` | Unique class labels (classifier only) |
+| Property | Type | Description |
+|----------|------|-------------|
+| `tree_count_` | int | Number of trees in the fitted model. |
+| `feature_names_` | list[str] | Feature names used at training time. |
+| `feature_importances_` | ndarray | Normalized gain importance, shape `(n_features,)`, sums to 1.0. |
+| `train_loss_history` | list[float] | Per-iteration training loss. |
+| `eval_loss_history` | list[float] | Per-iteration validation loss (empty if no validation data). |
+| `n_features_in_` | int | Feature count at training time (scikit-learn). |
+| `feature_names_in_` | ndarray | Feature names as object array (scikit-learn 1.2+). |
+| `classes_` | ndarray | Unique class labels (classifier only). |
 
-### Supported Loss Functions
+---
 
-> "You know what's fun about loss functions? Absolutely nothing. That's why I automate them." -- Raj, probably
+## MLflow Integration
 
-| Loss | Task | When to use |
-|------|------|-------------|
-| `rmse` | Regression | Predicting continuous numbers (default) |
-| `mae` | Regression | When outliers are common (less sensitive) |
-| `quantile` or `quantile:0.9` | Regression | Predict a specific percentile |
-| `huber` or `huber:1.5` | Regression | Balanced between RMSE and MAE |
-| `poisson` | Regression | Count data (always positive) |
-| `tweedie` or `tweedie:1.5` | Regression | Zero-inflated continuous data |
-| `mape` | Regression | When relative error matters |
-| `logloss` | Classification | Binary (spam/not-spam, yes/no) |
-| `multiclass` | Classification | Multiple categories (cat/dog/bird) |
-| `pairlogit` | Ranking | Order items by relevance |
-| `yetirank` | Ranking | Order items (stochastic, better quality) |
-| `auto` | Any | Auto-detects from your target values |
+```python
+import mlflow
 
-### Hyperparameters
+with mlflow.start_run(run_name="my-experiment"):
+    model = CatBoostMLXRegressor(
+        iterations=300,
+        depth=6,
+        learning_rate=0.05,
+        eval_fraction=0.2,
+        mlflow_logging=True,    # log into the active run
+    )
+    model.fit(X_train, y_train)
+    # hyperparameters, train_loss, eval_loss, and trees_built are logged automatically
+```
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `iterations` | 100 | Number of trees to build |
-| `depth` | 6 | Max depth of each tree (1-6; depths above 6 are not supported — see Known Limitations) |
-| `learning_rate` | 0.1 | How much each tree contributes (smaller = more conservative) |
-| `l2_reg_lambda` | 3.0 | Regularization strength (prevents overfitting) |
-| `loss` | "auto" | Loss function (see table above) |
-| `bins` | 255 | Max quantization bins per feature (2-255) |
-| `cat_features` | None | Which columns are categorical (list of indices) |
-| `eval_fraction` | 0.0 | Fraction of data for validation (0 = no split) |
-| `early_stopping_rounds` | 0 | Stop if no improvement for N rounds |
-| `subsample` | 1.0 | Row sampling fraction (regularization) |
-| `colsample_bytree` | 1.0 | Feature sampling fraction per tree |
-| `random_seed` | 42 | Random seed for reproducibility |
-| `nan_mode` | "min" | How to handle missing values ("min" or "forbidden") |
-| `ctr` | False | Enable target encoding for high-cardinality categoricals |
-| `ctr_prior` | 0.5 | Bayesian prior for CTR encoding |
-| `max_onehot_size` | 10 | Categories with <= N values use OneHot; > N use CTR |
-| `bootstrap_type` | "no" | Bootstrap method: "no", "bayesian", "bernoulli", "mvs" |
-| `bagging_temperature` | 1.0 | Temperature for Bayesian bootstrap |
-| `mvs_reg` | 0.0 | Regularization for MVS bootstrap |
-| `min_data_in_leaf` | 1 | Min samples per leaf (prevents tiny leaves) |
-| `monotone_constraints` | None | Per-feature monotone constraints (0, 1, -1) |
-| `snapshot_path` | None | Save/resume training checkpoints |
-| `snapshot_interval` | 1 | Save snapshot every N iterations |
-| `auto_class_weights` | None | "Balanced" or "SqrtBalanced" for imbalanced data |
-| `verbose` | False | Print per-iteration progress during training |
-| `binary_path` | None | Custom path to compiled binaries |
-| `train_timeout` | None | Max seconds for training subprocess (None = no limit) |
-| `predict_timeout` | None | Max seconds for prediction subprocess (None = no limit) |
+Without an active run, `mlflow_logging=True` opens and closes its own run. Set `mlflow_run_name` to name it.
 
-### CLI to Python Parameter Mapping
+---
 
-Some CLI flags use different names than the Python parameters:
+## Model Export
 
-| CLI Flag | Python Parameter |
-|----------|-----------------|
-| `--lr` | `learning_rate` |
-| `--l2` | `l2_reg_lambda` |
-| `--early-stopping` | `early_stopping_rounds` |
-| `--target-col` | (auto-detected from data) |
-| `--cat-features` | `cat_features` |
-| `--weight-col` | `sample_weight` (in fit()) |
-| `--group-col` | `group_id` (in fit()) |
+```python
+# JSON — portable, human-readable
+model.save_model("model.json")
+
+# ONNX — for cross-platform inference
+model.export_onnx("model.onnx")       # pip install onnx>=1.14
+
+# CoreML — for iOS/macOS on-device inference
+model.export_coreml("model.mlmodel")  # pip install coremltools>=7.0
+
+# Pickle / joblib — for Python-only workflows
+import joblib
+joblib.dump(model, "model.joblib")
+model2 = joblib.load("model.joblib")
+```
+
+---
+
+## Comparison with catboost
+
+CatBoost-MLX is **not** a drop-in replacement for the `catboost` Python package. Key differences:
+
+| | catboost | catboost-mlx |
+|--|---------|-------------|
+| Hardware | CPU + CUDA GPU | Apple Silicon GPU only |
+| Platform | Linux, Windows, macOS | macOS (Apple Silicon) only |
+| API | CatBoostRegressor, CatBoostClassifier | CatBoostMLXRegressor, CatBoostMLXClassifier |
+| Feature combinations | Yes | No |
+| Lossguide grow policy | Yes | Backlog |
+| Ranking losses (PairLogit, YetiRank) | Yes | No |
+| Full CatBoost model format | Yes | JSON only |
+| MLX/Metal | No | Yes |
+
+If you need full CatBoost feature parity or need to run on Linux/CUDA, use the official `catboost` package.
+
+---
 
 ## Troubleshooting
 
-> Penny: "What's wrong with your model?"
-> Sheldon: "What ISN'T wrong with it? Let me get my whiteboard."
-
-### "Cannot find 'csv_train' binary"
-**Cause**: The compiled C++ binaries are not on your system PATH or in the package.
-**Fix**:
+**"Cannot find 'csv_train' binary"**
+The GPU training binary is not built or not on PATH.
 ```bash
-python3 python/build_binaries.py   # Compile them
-# OR
-model = CatBoostMLXRegressor(binary_path="/path/to/directory")  # Point to them
+python3 python/build_binaries.py
+# or
+model = CatBoostMLXRegressor(binary_path="/path/to/directory")
 ```
 
-### "MLX not found"
-**Cause**: The MLX C++ library is not installed.
-**Fix**:
+**"MLX not found" during build**
 ```bash
 brew install mlx
 ```
 
-### "predict_proba is not supported for loss 'rmse'"
-**Cause**: You called `predict_proba()` on a regression model.
-**Fix**: Use `predict()` for regression, or switch to `CatBoostMLXClassifier` for classification.
+**"predict_proba is not supported for loss 'rmse'"**
+`predict_proba` is only valid for classification losses (`logloss`, `multiclass`). Use `predict()` for regression.
 
-### "Model is not fitted. Call fit() first."
-**Cause**: You tried to predict or export before training.
-**Fix**: Call `model.fit(X, y)` first.
+**"eval_set and eval_fraction are mutually exclusive"**
+Pass either `eval_set` to `fit()` or set `eval_fraction > 0` in the constructor, not both.
 
-### "eval_set and eval_fraction are mutually exclusive"
-**Cause**: You set both `eval_fraction > 0` in the constructor and passed `eval_set` to `fit()`.
-**Fix**: Use one or the other.
+**Slow first iteration**
+Metal shaders compile on first use (~100–150 ms). This is a one-time cost per process; subsequent iterations are fast.
 
-### Slow first iteration
-**Cause**: Metal shader compilation happens on the first GPU kernel dispatch.
-**Not a bug** -- subsequent iterations will be much faster. Think of it like Sheldon's bathroom schedule: the first time takes forever to set up, but after that it runs like clockwork.
-
-### Tests skip with "Compiled csv_train/csv_predict binaries not found"
-**Cause**: Binaries are not compiled or not at the expected location.
-**Fix**: Run `python3 python/build_binaries.py` first, then copy binaries to repo root:
+**Tests skip with "Compiled csv_train/csv_predict binaries not found"**
 ```bash
+python3 python/build_binaries.py
 cp python/catboost_mlx/bin/csv_train .
 cp python/catboost_mlx/bin/csv_predict .
 ```
 
+---
+
 ## Running Tests
 
 ```bash
-# All tests (693 tests)
+# From repo root
 python3 -m pytest python/tests/ -v
 
-# A specific test class
-python3 -m pytest python/tests/test_basic.py::TestRegression -v
+# With coverage
+python3 -m pytest python/tests/ -v --cov=catboost_mlx --cov-report=term-missing
 
-# With short tracebacks on failure
-python3 -m pytest python/tests/ -v --tb=short
-
-# With coverage report
-python3 -m pytest python/tests/ -v --tb=short --cov=catboost_mlx --cov-report=term-missing
-```
-
-Or from the `python/` directory using the Makefile:
-
-```bash
+# From python/ directory
 cd python
-make test        # Run tests
-make lint        # Run ruff linter
-make coverage    # Tests with coverage report
+make test
+make lint
+make coverage
 ```
 
-## Benchmarks
-
-Compare CatBoost-MLX against XGBoost, LightGBM, and CatBoost:
-
-```bash
-python3 python/benchmarks/benchmark.py
-python3 python/benchmarks/benchmark.py --sizes 1000 10000 50000 --output results.json
-```
-
-Frameworks not installed are automatically skipped. See [benchmarks/README.md](benchmarks/README.md) for details.
-
-## sklearn Integration
-
-CatBoost-MLX is fully compatible with scikit-learn 1.0+:
-
-```python
-from sklearn.model_selection import cross_val_score
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.base import clone
-
-# Cross-validation
-scores = cross_val_score(model, X, y, cv=5)
-
-# Pipelines
-pipe = Pipeline([("scaler", StandardScaler()), ("model", model)])
-pipe.fit(X_train, y_train)
-
-# Clone (preserves all parameters)
-model2 = clone(model)
-
-# check_is_fitted
-from sklearn.utils.validation import check_is_fitted
-check_is_fitted(model)  # raises if not fitted
-```
-
-## Serialization
-
-Models can be saved and loaded in multiple ways:
-
-```python
-# JSON (human-readable, portable)
-model.save_model("model.json")
-model.load_model("model.json")
-
-# Classmethod (create + load in one step)
-loaded = CatBoostMLXRegressor.load("model.json", binary_path="/path/to/binaries")
-
-# Pickle / joblib (includes all state: model, loss history, parameters)
-import pickle
-data = pickle.dumps(model)
-model2 = pickle.loads(data)
-
-import joblib
-joblib.dump(model, "model.joblib")
-model2 = joblib.load("model.joblib")
-
-# Export to ONNX or CoreML for cross-platform inference
-model.export_onnx("model.onnx")      # pip install onnx>=1.14
-model.export_coreml("model.mlmodel")  # pip install coremltools>=7.0
-```
-
-## Known Limitations
-
-The following limitations apply to the current MLX backend. CatBoost CPU/CUDA is unaffected.
-
-### max_depth capped at 6
-`kLeafAccumSource` uses a compile-time `MAX_LEAVES=64` constant. `2^7 = 128 > 64`, so any `depth > 6` triggers a runtime error:
-```
-CB_ENSURE failed: max_depth must be <= 6 for the MLX backend
-```
-CatBoost CPU/CUDA supports depths up to 16. Lifting this limit requires a redesigned leaf accumulation kernel.
-
-### 16M row limit
-`ComputePartitionLayout` uses float32 `scatter_add` for bucket counting. float32 represents integers exactly only up to `2^24 = 16,777,216`. Training on datasets with more than 16,777,216 rows will error with a `CB_ENSURE` guard. Most Apple Silicon Macs are memory-constrained well below this limit in practice.
-
-### Apple Silicon only
-Requires a Mac with an Apple Silicon chip (M1, M2, M3, M4 or later) running macOS 14+. Intel Macs, Linux, and Windows are not supported.
-
-### Cold-start compile latency
-The first training iteration compiles Metal shaders. This takes approximately 100–150 ms and is one-time per process. Subsequent iterations are fast. The "Slow first iteration" entry in Troubleshooting covers this.
-
-### Python API uses subprocess
-`fit()` and `predict()` invoke the `csv_train`/`csv_predict` C++ binaries via subprocess, writing temporary CSV files in between. This adds approximately 50 ms of overhead per call and is noticeable for small datasets or tight loops. It does not affect throughput on large datasets.
-
-### Feature combinations (crosses) not implemented
-CatBoost's automatic feature combination search (cartesian product splits) is not yet ported to the MLX backend.
-
-### Grow policies (Lossguide/Depthwise) not implemented
-Only symmetric (oblivious) trees are supported. Lossguide and Depthwise grow policies are in the backlog (TODO-012).
-
-## Contributing
-
-We welcome contributions! Unlike Sheldon's Roommate Agreement, our contributing guidelines are actually reasonable.
-
-### Development setup
-
-```bash
-git clone https://github.com/RR-AMATOK/catboost-mlx.git
-cd catboost-mlx
-python3 python/build_binaries.py       # Compile C++ binaries
-cp python/catboost_mlx/bin/* .         # Copy to repo root for tests
-pip install -e "python/[dev]"          # Install in editable mode with dev deps
-python3 -m pytest python/tests/ -v     # Run tests
-```
-
-Optional: set up pre-commit hooks to auto-lint on each commit:
-
-```bash
-pip install pre-commit
-cd python && pre-commit install
-```
-
-### Code style
-- Python 3.9+ compatible
-- Type hints on public API methods
-- Every file has a header comment explaining what it does
-- Tests for every new feature
-- Linted with [ruff](https://docs.astral.sh/ruff/) (`ruff check catboost_mlx/ tests/`)
-
-### Making changes
-1. Create a branch: `git checkout -b feature/my-feature`
-2. Make your changes
-3. Run lint: `cd python && make lint`
-4. Add or update tests in `python/tests/`
-5. Run tests: `cd python && make test`
-6. Submit a pull request
+---
 
 ## License
 
-Apache 2.0 (see LICENSE in the repo root)
+Apache 2.0 — see [LICENSE](../LICENSE) at the repo root.

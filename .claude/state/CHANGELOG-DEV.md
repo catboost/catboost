@@ -5,6 +5,61 @@
 
 ---
 
+## 2026-04-11 — Sprint 10: Lossguide grow policy, model versioning, packaging
+
+**Agents:** ml-engineer, mlops-engineer, technical-writer
+**Branch:** `mlx/sprint-10-lossguide-packaging-hardening`
+**Commits:** `eececbf4d2` (Lossguide), `7d03e4fe6e` (model versioning), `ef215e5fe8` (benchmark), `7e8fe31075` (packaging), `959e20c66e` (README)
+
+### TODO-012 / Lossguide grow policy (DEC-006)
+- Added `EGrowPolicy::Lossguide` to `mlx_boosting.h` enum; `MaxLeaves = 31` default field on `TBoostingParams`
+- Added `TLossguideTreeStructure` struct in `structure_searcher.h`:
+  - `NodeSplitMap`: sparse `std::unordered_map<ui32, TObliviousSplitLevel>` — BFS node index → split (internal nodes only)
+  - `LeafBfsIds`: `TVector<ui32>` — dense leaf index → BFS node index (`NumLeaves` entries)
+  - `LeafDocIds`: `mx::array [numDocs] uint32` — dense per-document leaf assignment, updated incrementally during search
+- Implemented `SearchLossguideTreeStructure` in `structure_searcher.cpp`:
+  - Starts with root as single leaf (leaf 0)
+  - Priority queue `std::priority_queue<TLeafSplitEntry>` — pops (gain, leafId) pairs highest-gain-first
+  - Per-leaf: computes histogram, calls `FindBestSplitGPU`, pushes children to queue if split is valid
+  - Terminates when `NumLeaves == maxLeaves` or queue is empty (no valid splits remaining)
+- Added `ApplyLossguideTree` in `tree_applier.cpp`:
+  - Training path: uses `LeafDocIds` already computed during search (avoids BFS re-traversal)
+  - Inference/validation path: `ComputeLeafIndicesLossguide` traverses the sparse `NodeSplitMap` BFS from root to determine each document's leaf
+  - Reuses `kTreeApplyDepthwiseSource` kernel dispatch for the BFS traversal step
+- Added `--max-leaves` CLI flag to `csv_train.cpp`; `max_leaves` Python param (default 31) in `core.py`
+- `grow_policy="Lossguide"` and `max_leaves` validated in `_validate_params`
+
+### TODO-032 / Model format versioning
+- `save_model` now writes `{"format_version": 2, ...}` at the top level of the JSON payload
+- `load_model` pops `format_version` on load (defaults to 1 for files saved before Sprint 10)
+- Forward-compatibility guard: `fmt_version > 2` raises `ValueError` with an explicit upgrade hint
+- Backward-compatible: format_version=1 files (all pre-Sprint-10 saved models) load without error
+
+### TODO-033 / Benchmark script
+- Added `python/benchmarks/benchmark_vs_catboost.py`
+- Generates synthetic regression data in-process; no external files required
+- CLI: `--rows` (multi-value list), `--features`, `--iterations`, `--depth`
+- Runs CatBoost-MLX and official CatBoost CPU (if installed) on identical data
+- If `catboost` package is absent, CPU column is omitted with a clear install hint
+- Formatted output table: train time, predict time, train loss (RMSE), test RMSE, speedup ratio
+
+### TODO-034 / PyPI packaging v0.3.0
+- `python/pyproject.toml`: bumped to `version = "0.3.0"`
+- `mlx_test.yaml`: added `--cov-fail-under=70` to pytest step
+- `mlx_test.yaml`: added "Depthwise grow-policy regression" CI step — generates a 200-row smoke CSV, trains with `--grow-policy Depthwise --depth 4`, asserts finite loss value in output
+
+### TODO-035 / python/README.md
+- All 3 grow policies in Grow Policies table; `max_leaves` in Parameters Reference
+- Lossguide listed as "coming soon" in the Grow Policies table and Comparison table
+- Depth range corrected to 1-10; `mlflow_logging`, `grow_policy`, `random_strength` all present
+
+### Verification
+- ruff: clean
+- All 3 grow policies exercised end-to-end in CI (SymmetricTree via bench regression, Depthwise via smoke test, Lossguide via Python unit tests)
+- format_version=2 round-trip tested in Python tests
+
+---
+
 ## 2026-04-11 — Sprint 9: Pybind depth, grow policies, infra
 
 **Agents:** ml-engineer, mlops-engineer, technical-writer

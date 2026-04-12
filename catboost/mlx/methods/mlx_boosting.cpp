@@ -6,6 +6,7 @@
 #include <random>
 #include <numeric>
 #include <algorithm>
+#include <string>
 
 namespace NCatboostMlx {
 
@@ -24,13 +25,19 @@ namespace NCatboostMlx {
         const ui32 numDocs = trainData.GetNumDocs();
         const ui32 approxDim = config.ApproxDimension;
 
-        const bool isDepthwise = (config.GrowPolicy == EGrowPolicy::Depthwise);
+        const bool isDepthwise   = (config.GrowPolicy == EGrowPolicy::Depthwise);
+        const bool isLossguide   = (config.GrowPolicy == EGrowPolicy::Lossguide);
         result.GrowPolicy = config.GrowPolicy;
+
+        const char* policyName = isDepthwise ? "Depthwise"
+                               : isLossguide ? "Lossguide"
+                               : "SymmetricTree";
 
         CATBOOST_INFO_LOG << "CatBoost-MLX: Starting boosting with "
             << config.NumIterations << " iterations, lr=" << config.LearningRate
             << ", depth=" << config.MaxDepth << ", l2=" << config.L2RegLambda
-            << ", grow_policy=" << (isDepthwise ? "Depthwise" : "SymmetricTree")
+            << ", grow_policy=" << policyName
+            << (isLossguide ? (", max_leaves=" + std::to_string(config.MaxLeaves)) : "")
             << ", docs=" << numDocs << ", approxDim=" << approxDim << Endl;
 
         auto startTime = std::chrono::steady_clock::now();
@@ -75,13 +82,31 @@ namespace NCatboostMlx {
             // ----- Step 2: Search for best tree structure -----
             trainData.InitPartitions(numDocs);
 
-            // Depthwise path: grow per-leaf splits.
+            // Depthwise path: grow per-leaf splits (level-wise, per-leaf best split).
             // Oblivious (SymmetricTree) path: one split shared across all leaves per level.
-            TDepthwiseTreeStructure depthwiseStructure;
-            TObliviousTreeStructure obliviousStructure;
-            ui32 actualDepth = 0;
+            // Lossguide path: best-first leaf-wise growth with max_leaves budget.
+            TDepthwiseTreeStructure  depthwiseStructure;
+            TObliviousTreeStructure  obliviousStructure;
+            TLossguideTreeStructure  lossguideStructure;
+            ui32 actualDepth  = 0;
+            ui32 actualLeaves = 0;
 
-            if (isDepthwise) {
+            if (isLossguide) {
+                lossguideStructure = SearchLossguideTreeStructure(
+                    trainData,
+                    config.MaxLeaves,
+                    config.L2RegLambda,
+                    approxDim,
+                    /*maxDepth=*/config.MaxDepth
+                );
+                actualLeaves = lossguideStructure.NumLeaves;
+                if (actualLeaves <= 1u) {
+                    // No splits were made (no valid split for the root).
+                    CATBOOST_WARNING_LOG << "CatBoost-MLX: No valid lossguide splits at iteration "
+                        << iter << ", stopping early" << Endl;
+                    break;
+                }
+            } else if (isDepthwise) {
                 depthwiseStructure = SearchDepthwiseTreeStructure(
                     trainData,
                     config.MaxDepth,
@@ -94,6 +119,7 @@ namespace NCatboostMlx {
                         << iter << ", stopping early" << Endl;
                     break;
                 }
+                actualLeaves = 1u << actualDepth;
             } else {
                 obliviousStructure = SearchTreeStructure(
                     trainData,
@@ -107,16 +133,23 @@ namespace NCatboostMlx {
                         << ", stopping early" << Endl;
                     break;
                 }
+                actualLeaves = 1u << actualDepth;
             }
 
             // ----- Step 3: Estimate leaf values (GPU-accelerated) -----
-            const ui32 numLeaves = 1u << actualDepth;
+            const ui32 numLeaves = actualLeaves;
+
+            // For lossguide: use LeafDocIds (dense leaf assignment) as the partition array.
+            // For depthwise/oblivious: use the bit-encoded GetPartitions() array.
+            const mx::array& partitionArray = isLossguide
+                ? lossguideStructure.LeafDocIds
+                : trainData.GetPartitions();
 
             mx::array gradSumsGPU, hessSumsGPU;
             ComputeLeafSumsGPU(
                 trainData.GetGradients(),
                 trainData.GetHessians(),
-                trainData.GetPartitions(),
+                partitionArray,
                 numDocs, numLeaves, approxDim,
                 gradSumsGPU, hessSumsGPU
             );
@@ -125,8 +158,7 @@ namespace NCatboostMlx {
 
             if (approxDim == 1) {
                 // Scalar path: gradSumsGPU / hessSumsGPU are [numLeaves].
-                // Returns a lazy array; materialised by ApplyObliviousTree or the
-                // result store below.
+                // Returns a lazy array; materialised by Apply* or the result store below.
                 leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
                     config.L2RegLambda, config.LearningRate);
                 // leafValues shape: [numLeaves]
@@ -141,7 +173,7 @@ namespace NCatboostMlx {
                 // the entire flat [approxDim * numLeaves] array in a single dispatch.
                 // The result is then reshaped to [approxDim, numLeaves] and transposed
                 // to [numLeaves, approxDim] — the interleaved layout that
-                // ApplyObliviousTree / kTreeApplySource expect:
+                // Apply* functions expect:
                 //   leafValues[leafIdx * approxDim + k]
                 auto flatLeafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
                     config.L2RegLambda, config.LearningRate);
@@ -151,12 +183,28 @@ namespace NCatboostMlx {
                 // dimByLeaf shape: [approxDim, numLeaves]
                 leafValues = mx::transpose(dimByLeaf);
                 // leafValues shape: [numLeaves, approxDim]
-                // No EvalNow here — let the GPU graph continue lazily until
-                // ApplyObliviousTree materialises it alongside the cursor update.
             }
 
             // ----- Step 4: Apply tree to predictions -----
-            if (isDepthwise) {
+            if (isLossguide) {
+                ApplyLossguideTree(trainData,
+                    lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
+                    lossguideStructure.LeafDocIds,
+                    leafValues, numLeaves, approxDim);
+                if (hasValidation) {
+                    // Recompute leaf assignments for validation data via BFS traversal.
+                    auto valLeafIds = ComputeLeafIndicesLossguide(
+                        config.ValidationData->GetCompressedIndex().GetCompressedData(),
+                        lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
+                        config.ValidationData->GetNumDocs(),
+                        numLeaves
+                    );
+                    ApplyLossguideTree(*config.ValidationData,
+                        lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
+                        valLeafIds,
+                        leafValues, numLeaves, approxDim);
+                }
+            } else if (isDepthwise) {
                 ApplyDepthwiseTree(trainData, depthwiseStructure.NodeSplits,
                     leafValues, actualDepth, approxDim);
                 if (hasValidation) {
@@ -172,7 +220,9 @@ namespace NCatboostMlx {
             }
 
             // ----- Step 5: Report metrics -----
-            if (isDepthwise) {
+            if (isLossguide) {
+                result.LossguideTreeStructures.push_back(std::move(lossguideStructure));
+            } else if (isDepthwise) {
                 result.DepthwiseTreeStructures.push_back(std::move(depthwiseStructure));
             } else {
                 result.TreeStructures.push_back(std::move(obliviousStructure));
@@ -256,9 +306,11 @@ namespace NCatboostMlx {
             }
         }
 
-        result.NumIterations = isDepthwise
-            ? static_cast<ui32>(result.DepthwiseTreeStructures.size())
-            : static_cast<ui32>(result.TreeStructures.size());
+        result.NumIterations = isLossguide
+            ? static_cast<ui32>(result.LossguideTreeStructures.size())
+            : isDepthwise
+                ? static_cast<ui32>(result.DepthwiseTreeStructures.size())
+                : static_cast<ui32>(result.TreeStructures.size());
         result.BestIteration = bestIteration;
 
         auto totalTime = std::chrono::duration_cast<std::chrono::seconds>(

@@ -401,7 +401,13 @@ class CatBoostMLX(BaseEstimator):
         Tree grow policy. "SymmetricTree" (default) grows oblivious trees where
         all leaves at the same depth share one split rule. "Depthwise" grows
         non-symmetric trees where each leaf at a given depth gets its own best
-        split (XGBoost-style), allowing more expressive trees at the same depth.
+        split (XGBoost-style). "Lossguide" grows best-first leaf-wise trees
+        (LightGBM-style): at each step the leaf with the highest gain is split,
+        producing unbalanced trees controlled by ``max_leaves`` instead of
+        ``depth``.
+    max_leaves : int
+        Maximum number of terminal leaves for the "Lossguide" grow policy
+        (default: 31). Ignored for other grow policies. Must be >= 2.
     mlflow_logging : bool
         If True, log hyperparameters, per-iteration loss, and final metrics to
         MLflow after training. Requires ``mlflow`` to be installed
@@ -449,6 +455,7 @@ class CatBoostMLX(BaseEstimator):
         snapshot_interval: int = 1,
         auto_class_weights: Optional[str] = None,
         grow_policy: str = "SymmetricTree",
+        max_leaves: int = 31,
         verbose: bool = False,
         binary_path: Optional[str] = None,
         train_timeout: Optional[float] = None,
@@ -483,6 +490,7 @@ class CatBoostMLX(BaseEstimator):
         self.snapshot_interval = snapshot_interval
         self.auto_class_weights = auto_class_weights
         self.grow_policy = grow_policy
+        self.max_leaves = max_leaves
         self.verbose = verbose
         self.binary_path = binary_path
         self.train_timeout = train_timeout
@@ -577,10 +585,16 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(f"colsample_bytree must be in (0, 1], got {self.colsample_bytree!r}")
         if self.nan_mode not in ("min", "forbidden"):
             raise ValueError(f"nan_mode must be 'min' or 'forbidden', got {self.nan_mode!r}")
-        if self.grow_policy not in (None, "", "SymmetricTree", "Depthwise"):
+        if self.grow_policy not in (None, "", "SymmetricTree", "Depthwise", "Lossguide"):
             raise ValueError(
-                f"grow_policy must be 'SymmetricTree' or 'Depthwise', got {self.grow_policy!r}"
+                f"grow_policy must be 'SymmetricTree', 'Depthwise', or 'Lossguide', "
+                f"got {self.grow_policy!r}"
             )
+        if self.grow_policy == "Lossguide":
+            if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
+                raise ValueError(
+                    f"max_leaves must be an integer >= 2, got {self.max_leaves!r}"
+                )
         if self.bootstrap_type not in ("no", "bayesian", "bernoulli", "mvs"):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
@@ -770,6 +784,8 @@ class CatBoostMLX(BaseEstimator):
             args.extend(["--random-strength", str(self.random_strength)])
         if self.grow_policy and self.grow_policy != "SymmetricTree":
             args.extend(["--grow-policy", self.grow_policy])
+        if self.grow_policy == "Lossguide":
+            args.extend(["--max-leaves", str(self.max_leaves)])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:
@@ -1564,8 +1580,9 @@ class CatBoostMLX(BaseEstimator):
         """Save the trained model to a JSON file."""
         if not self._is_fitted:
             raise RuntimeError("Model is not fitted. Call fit() first.")
+        payload = {"format_version": 2, **self._model_data}
         with open(path, "w") as f:
-            json.dump(self._model_data, f, indent=2)
+            json.dump(payload, f, indent=2)
 
     def export_coreml(self, path: str) -> None:
         """Export model to CoreML format (.mlmodel).
@@ -1591,6 +1608,13 @@ class CatBoostMLX(BaseEstimator):
         """Load a model from a JSON file."""
         with open(path, "r") as f:
             self._model_data = json.load(f)
+        # Format version check — default to 1 for files saved before versioning.
+        fmt_version = self._model_data.pop("format_version", 1)
+        if fmt_version > 2:
+            raise ValueError(
+                f"Model was saved with a newer version of catboost-mlx "
+                f"(format_version={fmt_version}). Upgrade catboost-mlx to load it."
+            )
         required = {"model_info", "trees", "features"}
         missing = required - set(self._model_data.keys())
         if missing:

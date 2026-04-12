@@ -64,6 +64,27 @@ guard was removed. MLX's `scatter_add_axis` works correctly with int32.
 
 ---
 
+## DEC-006 — Lossguide grow policy: sparse BFS node map, priority queue, reuse Depthwise kernel
+- **Date:** 2026-04-11
+- **Status:** Active
+- **Decided by:** ml-engineer (Sprint 10, TODO-012)
+- **Context:** The third grow policy for CatBoost-MLX is "Lossguide" (equivalent to LightGBM's `num_leaves`-controlled best-first leaf expansion). Unlike SymmetricTree (one split per depth level, 2^d leaves) or Depthwise (per-node splits, balanced tree), Lossguide grows the leaf with the highest loss reduction gain first, producing unbalanced trees of arbitrary shape. Complexity is controlled by `max_leaves` rather than `max_depth`. The key design challenge is representing an unbalanced tree efficiently — a fully-allocated BFS array at maximum depth would waste O(2^depth) entries for leaves never reached.
+- **Decision:** Implement Lossguide with the following design choices:
+  1. **Sparse node map.** `NodeSplitMap` is a `std::unordered_map<ui32, TObliviousSplitLevel>` keyed on BFS node index. Only internal (split) nodes are stored; leaf nodes have no entry. This avoids O(2^depth) allocation for unbalanced trees. At `max_leaves=31`, there are at most 30 internal nodes regardless of how deep any individual leaf grows.
+  2. **Priority queue expansion.** `SearchLossguideTreeStructure` maintains a `std::priority_queue<TLeafSplitEntry>` of `(gain, leafId)` pairs. Each iteration pops the highest-gain leaf, computes its best split via `FindBestSplitGPU`, and pushes its two children (if the split is valid) back onto the queue. This guarantees the globally best split is always chosen next, matching LightGBM's semantics.
+  3. **Incremental `LeafDocIds` update.** During search, `LeafDocIds[doc]` is updated in-place each time a leaf is split: documents in the split leaf are reassigned to either the left child (new leaf index) or the right child (another new leaf index). At the end of search, `LeafDocIds` is ready for immediate consumption by `ComputeLeafSumsGPU` — no separate partition scan is needed for the training path.
+  4. **Reuse Depthwise Metal kernel for apply.** The Depthwise BFS traversal kernel (`kTreeApplyDepthwiseSource`) naturally handles non-symmetric trees when given the correct node array. `ApplyLossguideTree` calls `ComputeLeafIndicesLossguide` to reconstruct per-document leaf assignments for inference (where `LeafDocIds` from training is unavailable), then dispatches the same kernel.
+  5. **`max_leaves` parameter, not `max_depth`.** `max_leaves` (default 31, minimum 2) is the primary complexity control. An optional secondary `maxDepth` limit (0 = no depth limit) prevents any single branch from growing arbitrarily deep when `max_leaves` is large.
+- **Alternatives:**
+  - *Dense BFS array.* Allocate a `2^maxDepth − 1` entry array and use the same BFS indexing as Depthwise. Rejected: for `max_leaves=31` with unconstrained depth, the dense array could require millions of entries and most would be unused.
+  - *Per-split histogram rebuild.* Recompute histograms from scratch for each leaf candidate. Rejected: the existing `FindBestSplitGPU` already scopes histograms to the documents in a given partition, so no structural change was needed.
+  - *Separate Lossguide Metal kernel.* Implement a new kernel that traverses the sparse map directly on GPU. Rejected for Sprint 10: the sparse map is a CPU data structure and traversal is already O(depth) per document — implementing it in Metal would require either materializing the map as a GPU buffer or adding a separate BFS-flattening step. The existing Depthwise kernel covers the same logic once `ComputeLeafIndicesLossguide` has resolved dense leaf indices.
+- **Trade-offs:**
+  - Up to `max_leaves − 1` `FindBestSplitGPU` calls per tree (vs 1 for SymmetricTree, 2^depth − 1 for Depthwise). At `max_leaves=31`, that is at most 30 calls, which is less than Depthwise at depth 5 (31 calls).
+  - `ComputeLeafIndicesLossguide` for inference does a CPU-side BFS traversal document-by-document. For the training path this is skipped (uses `LeafDocIds` directly). Acceptable for Sprint 10; a GPU kernel can replace it later if inference latency becomes a bottleneck.
+
+---
+
 ## DEC-002 — Sprint branch policy: dedicated branches per sprint, push to origin (RR-AMATOK) only
 - **Date:** 2026-04-09
 - **Status:** Active

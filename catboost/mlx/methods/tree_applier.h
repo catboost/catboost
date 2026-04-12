@@ -6,6 +6,8 @@
 #include <catboost/mlx/gpu_data/mlx_data_set.h>
 #include <catboost/mlx/gpu_data/gpu_structures.h>
 
+#include <unordered_map>
+
 namespace NCatboostMlx {
 
     // Description of one level of an oblivious tree split (or one internal node for depthwise).
@@ -45,6 +47,34 @@ namespace NCatboostMlx {
         const mx::array& leafValues,                        // [2^depth] or [2^depth, K]
         ui32 depth,
         ui32 approxDimension = 1
+    );
+
+    // Apply a lossguide (best-first leaf-wise) tree to the dataset.
+    //
+    // nodeSplitMap: sparse map from BFS node index → split descriptor (only internal nodes).
+    // leafBfsIds:   BFS node index for each dense leaf index (size = numLeaves).
+    // leafDocIds:   pre-computed per-document dense leaf assignment [numDocs] uint32.
+    //               For training data this is already available from the search.
+    //               For validation/inference data it is recomputed via BFS traversal.
+    // leafValues:   [numLeaves] or [numLeaves, K].
+    void ApplyLossguideTree(
+        TMLXDataSet& dataset,
+        const std::unordered_map<ui32, TObliviousSplitLevel>& nodeSplitMap,
+        const TVector<ui32>& leafBfsIds,                   // [numLeaves]
+        const mx::array& leafDocIds,                       // [numDocs] uint32
+        const mx::array& leafValues,                       // [numLeaves] or [numLeaves, K]
+        ui32 numLeaves,
+        ui32 approxDimension = 1
+    );
+
+    // Compute per-document dense leaf indices for a lossguide tree.
+    // Used for validation/inference when leafDocIds from training is unavailable.
+    mx::array ComputeLeafIndicesLossguide(
+        const mx::array& compressedData,
+        const std::unordered_map<ui32, TObliviousSplitLevel>& nodeSplitMap,
+        const TVector<ui32>& leafBfsIds,
+        ui32 numDocs,
+        ui32 numLeaves
     );
 
 }  // namespace NCatboostMlx

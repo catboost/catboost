@@ -10,12 +10,14 @@ A deep-dive for contributors and anyone who wants to understand how the Metal GP
 2. [Training Pipeline](#training-pipeline)
 3. [Metal Kernels](#metal-kernels)
 4. [Depthwise Grow Policy](#depthwise-grow-policy)
-5. [Multi-Pass Leaf Accumulation (depth > 6)](#multi-pass-leaf-accumulation-depth--6)
-6. [Data Layout](#data-layout)
-7. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
-8. [Loss Functions (Target Functions)](#loss-functions-target-functions)
-9. [Two Code Paths](#two-code-paths)
-10. [Performance Characteristics](#performance-characteristics)
+5. [Lossguide Grow Policy](#lossguide-grow-policy)
+6. [Multi-Pass Leaf Accumulation (depth > 6)](#multi-pass-leaf-accumulation-depth--6)
+7. [Data Layout](#data-layout)
+8. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
+9. [Loss Functions (Target Functions)](#loss-functions-target-functions)
+10. [Model Format and Versioning](#model-format-and-versioning)
+11. [Two Code Paths](#two-code-paths)
+12. [Performance Characteristics](#performance-characteristics)
 
 ---
 
@@ -290,6 +292,66 @@ See DEC-004 in `.claude/state/DECISIONS.md` for the full design rationale.
 
 ---
 
+## Lossguide Grow Policy
+
+Lossguide (added Sprint 10) is the third grow policy alongside SymmetricTree and Depthwise. It grows the tree one leaf at a time, always splitting the leaf with the highest loss-reduction gain — equivalent to LightGBM's `num_leaves`-controlled best-first expansion. The resulting tree is unbalanced: different branches may reach different depths. Complexity is controlled by `max_leaves` (default 31) rather than `max_depth`.
+
+### `TLossguideTreeStructure` (`structure_searcher.h`)
+
+| Field | Type | Description |
+|---|---|---|
+| `NodeSplitMap` | `std::unordered_map<ui32, TObliviousSplitLevel>` | BFS node index → split descriptor, internal nodes only |
+| `LeafBfsIds` | `TVector<ui32>` | Dense leaf index k → BFS node index (length = `NumLeaves`) |
+| `NumLeaves` | `ui32` | Current leaf count; starts at 1, increments on each split |
+| `LeafDocIds` | `mx::array [numDocs] uint32` | Dense per-document leaf assignment; updated incrementally during search |
+
+The sparse `unordered_map` avoids the O(2^depth) allocation that a full BFS array would require for unbalanced trees. At `max_leaves=31`, there are at most 30 internal nodes regardless of individual branch depth.
+
+### `SearchLossguideTreeStructure` (`structure_searcher.cpp`)
+
+```
+Start: root = leaf 0, LeafDocIds[:] = 0
+
+Initialize pq: for each initial leaf, compute histograms + FindBestSplitGPU
+               push (gain, leafId, bestSplit) onto priority_queue
+
+while NumLeaves < maxLeaves and pq not empty:
+    (gain, leafId, split) = pq.pop()          // highest-gain leaf
+    if gain <= 0: break                        // no further improvement possible
+
+    Add split to NodeSplitMap[bfsIdx]
+    Assign two new dense leaf indices (leftLeaf, rightLeaf)
+    Update LeafDocIds: docs in leafId → leftLeaf or rightLeaf based on split
+    Update LeafBfsIds
+
+    Compute histograms for leftLeaf and rightLeaf
+    FindBestSplitGPU for each; push valid results onto pq
+```
+
+The priority queue ensures the globally best split is always chosen next — this matches LightGBM's behaviour and produces the lowest training loss for a given `max_leaves` budget.
+
+`LeafDocIds` is updated in-place after each split, so at the end of search it is immediately ready for `ComputeLeafSumsGPU` without a separate partition scan.
+
+### `ApplyLossguideTree` (`tree_applier.cpp`)
+
+**Training path:** `LeafDocIds` from the search is used directly as the partition array. No BFS re-traversal is needed.
+
+**Inference/validation path:** `ComputeLeafIndicesLossguide` performs a CPU-side BFS traversal of `NodeSplitMap` for each document. Starting from BFS node 0 (root), at each node it looks up the split in `NodeSplitMap` and follows left or right until it reaches a node absent from the map (a leaf). The dense leaf index is then looked up from `LeafBfsIds`.
+
+Both paths produce the same `LeafDocIds` format consumed by `ComputeLeafSumsGPU` and `ComputeLeafValues`, which require no changes.
+
+### Python and CLI interface
+
+Select lossguide policy via:
+- **Python:** `CatBoostMLX(grow_policy="Lossguide", max_leaves=31)`
+- **CLI:** `csv_train --grow-policy Lossguide --max-leaves 31`
+
+`max_leaves` (minimum 2) controls tree complexity; `max_depth` (optional, 0 = no limit) prevents any single branch from growing arbitrarily deep.
+
+See DEC-006 in `.claude/state/DECISIONS.md` for the full design rationale including the rejected alternatives.
+
+---
+
 ## Multi-Pass Leaf Accumulation (depth > 6)
 
 ### Background
@@ -446,6 +508,38 @@ As of Sprint 8, the library path (`train.cpp`) supports all 10 losses listed abo
 ### Gradient and hessian computation
 
 `ComputeDerivatives` operates on MLX arrays (`cursor`, `targets`, `weights`) and returns lazy MLX expressions. The training loop calls `EvalNow` once per iteration to materialize them — gradient evaluation is not a separate sync point; it is folded into the first downstream kernel that needs the values.
+
+---
+
+## Model Format and Versioning
+
+Models are saved as JSON via `save_model` and loaded via `load_model` / `CatBoostMLX.load`. As of Sprint 10, saved files carry a `format_version` field at the top level.
+
+### Version history
+
+| `format_version` | Introduced | Changes |
+|---|---|---|
+| 1 (implicit) | Sprint 1 | Initial JSON format. No version field — `format_version` absent means 1. |
+| 2 | Sprint 10 | `format_version` key explicitly written. Backward-compatible: all v1 fields unchanged. |
+
+### Compatibility rules
+
+- **Older files (no `format_version` key):** `load_model` treats them as version 1. No error.
+- **Version 2 files on version 2 code:** Normal load path.
+- **Version > 2 files on version 2 code:** `load_model` raises `ValueError` with a message instructing the user to upgrade `catboost-mlx`. This ensures future format additions do not silently produce incorrect models.
+
+### JSON structure (`format_version=2`)
+
+```json
+{
+  "format_version": 2,
+  "model_info": { "loss": "...", "num_trees": N, ... },
+  "trees": [ ... ],
+  "features": { ... }
+}
+```
+
+The `format_version` key is consumed and removed during `load_model` before the rest of the payload is processed. It does not appear in `_model_data` after loading.
 
 ---
 

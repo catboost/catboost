@@ -28,7 +28,8 @@
 //   --monotone-constraints 0,1,-1,...  Per-feature monotone constraints (0=none, 1=inc, -1=dec)
 //   --snapshot-path PATH   Save/restore training snapshot for resume (default: disabled)
 //   --snapshot-interval N  Save snapshot every N iterations (default: 1)
-//   --grow-policy POLICY   Tree grow policy: SymmetricTree (default, oblivious) or Depthwise (per-leaf splits)
+//   --grow-policy POLICY   Tree grow policy: SymmetricTree (default), Depthwise (per-leaf), Lossguide (best-first)
+//   --max-leaves N         Maximum leaves for Lossguide grow policy (default: 31)
 //   --verbose              Print per-iteration loss
 //
 // Compile:
@@ -154,7 +155,8 @@ struct TConfig {
     // External eval file
     std::string EvalFile;                  // "" = disabled; path to separate validation CSV
     // Grow policy
-    std::string GrowPolicy = "SymmetricTree";  // "SymmetricTree" (default) or "Depthwise"
+    std::string GrowPolicy = "SymmetricTree";  // "SymmetricTree" (default), "Depthwise", or "Lossguide"
+    ui32 MaxLeaves = 31;                        // used only when GrowPolicy=="Lossguide"
 };
 
 TConfig ParseArgs(int argc, char** argv) {
@@ -215,6 +217,7 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--snapshot-interval") == 0 && i + 1 < argc) config.SnapshotInterval = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--eval-file") == 0 && i + 1 < argc) config.EvalFile = argv[++i];
         else if (strcmp(argv[i], "--grow-policy") == 0 && i + 1 < argc) config.GrowPolicy = argv[++i];
+        else if (strcmp(argv[i], "--max-leaves") == 0 && i + 1 < argc) config.MaxLeaves = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
@@ -1669,6 +1672,52 @@ mx::array ComputeLeafIndicesDepthwise(
         {static_cast<int>(numDocs)}, mx::uint32);
 }
 
+// Compute per-document dense leaf indices for a lossguide (unbalanced) tree.
+// nodeSplitMap: sparse map: BFS node index → split descriptor (only internal nodes).
+// leafBfsIds: BFS node index for each dense leaf (size = numLeaves).
+// Uses BFS traversal: for each doc, descend from root until hitting a leaf node.
+mx::array ComputeLeafIndicesLossguide(
+    const mx::array& compressedData,
+    const std::unordered_map<ui32, TObliviousSplitLevel>& nodeSplitMap,
+    const std::vector<ui32>& leafBfsIds,
+    ui32 numDocs,
+    ui32 numLeaves
+) {
+    if (numLeaves <= 1u || nodeSplitMap.empty()) {
+        return mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
+    }
+
+    // Build inverse map: BFS node index → dense leaf id.
+    std::unordered_map<ui32, ui32> bfsToLeafId;
+    bfsToLeafId.reserve(leafBfsIds.size());
+    for (ui32 k = 0; k < static_cast<ui32>(leafBfsIds.size()); ++k) {
+        bfsToLeafId[leafBfsIds[k]] = k;
+    }
+
+    auto flatData = mx::reshape(compressedData, {static_cast<int>(numDocs), -1});
+    mx::eval(flatData);
+    const uint32_t* dataPtr = flatData.data<uint32_t>();
+    const ui32 lineSize = static_cast<ui32>(flatData.shape(1));
+
+    std::vector<uint32_t> leafVec(numDocs);
+    for (ui32 d = 0; d < numDocs; ++d) {
+        ui32 nodeIdx = 0u;
+        while (nodeSplitMap.count(nodeIdx) > 0) {
+            const auto& ns = nodeSplitMap.at(nodeIdx);
+            uint32_t packed = dataPtr[d * lineSize + ns.FeatureColumnIdx];
+            uint32_t fv = (packed >> ns.Shift) & ns.Mask;
+            uint32_t goRight = ns.IsOneHot
+                ? (fv == ns.BinThreshold ? 1u : 0u)
+                : (fv >  ns.BinThreshold ? 1u : 0u);
+            nodeIdx = 2u * nodeIdx + 1u + goRight;
+        }
+        auto it = bfsToLeafId.find(nodeIdx);
+        leafVec[d] = (it != bfsToLeafId.end()) ? it->second : 0u;
+    }
+    return mx::array(reinterpret_cast<const int32_t*>(leafVec.data()),
+        {static_cast<int>(numDocs)}, mx::uint32);
+}
+
 // ============================================================================
 // CTR (target encoding) for high-cardinality categorical features
 // ============================================================================
@@ -1896,11 +1945,15 @@ void ApplyCtrToEvalData(
 // ============================================================================
 
 struct TTreeRecord {
-    std::vector<TObliviousSplitLevel> Splits;        // oblivious: [depth]; depthwise: [numNodes] BFS
+    std::vector<TObliviousSplitLevel> Splits;        // oblivious: [depth]; depthwise/lossguide: [numNodes] BFS
     std::vector<TBestSplitProperties> SplitProps;
     std::vector<float> LeafValues;  // flat: numLeaves for dim=1, numLeaves*approxDim for multi
     ui32 Depth;
-    bool IsDepthwise = false;  // true → Splits holds BFS node splits, not oblivious levels
+    bool IsDepthwise  = false;  // true → Splits holds BFS node splits, not oblivious levels
+    bool IsLossguide  = false;  // true → Splits holds BFS node splits for unbalanced lossguide tree
+    // Lossguide-only metadata
+    std::vector<ui32> LeafBfsIds;  // [numLeaves] BFS node index per dense leaf
+    ui32 NumLeaves = 0;            // number of terminal leaves
 };
 
 static std::string EscapeJsonString(const std::string& s) {
@@ -2846,6 +2899,175 @@ TTrainResult RunTraining(
         std::vector<TBestSplitProperties> splitProps;
         ui32 actualTreeDepth = 0;  // number of depth levels actually searched (needed for depthwise)
 
+        // Lossguide-specific state (only populated when GrowPolicy=="Lossguide")
+        std::vector<ui32> lossguideLeafBfsIds;     // [numLeaves] BFS node index per dense leaf
+        std::vector<uint32_t> lossguideLeafDocVec; // [numDocs] dense leaf id per doc
+        std::unordered_map<ui32, TObliviousSplitLevel> lossguideNodeSplitMap;  // bfsIdx → split
+        ui32 lossguideNumLeaves = 1;
+
+        const bool isLossguide = (config.GrowPolicy == "Lossguide" || config.GrowPolicy == "lossguide");
+
+        // ---- Lossguide path: best-first leaf-wise tree growth ----
+        if (isLossguide) {
+            // Priority queue entry: (gain, leafId, bestSplit descriptor)
+            struct TLeafCandidate {
+                float Gain;
+                ui32  LeafId;
+                TBestSplitProperties Split;
+                bool operator<(const TLeafCandidate& o) const { return Gain < o.Gain; }
+            };
+
+            // Per-leaf state
+            lossguideLeafDocVec.assign(trainDocs, 0u);   // all docs start in leaf 0
+            lossguideLeafBfsIds = {0u};                   // leaf 0 is BFS node 0 (root)
+            std::vector<ui32> leafDepth = {0u};
+
+            // Node-split map: sparse BFS index → split descriptor.
+            // Using a hash map avoids O(2^depth) allocation for unbalanced trees.
+            lossguideNodeSplitMap.clear();
+
+            // Priority queue
+            std::priority_queue<TLeafCandidate> pq;
+
+            // Materialise compressedData on CPU once for the partition update loop.
+            mx::eval(compressedData);
+            const uint32_t* dataPtr = compressedData.data<uint32_t>();
+            const ui32 lineSize = packed.NumUi32PerDoc;
+
+            // Helper: compute the best split for a single leaf by building histograms
+            // for that leaf's docs and calling FindBestSplitPerPartition.
+            auto evalLeafLossguide = [&](ui32 leafId) {
+                // Build partition array: 0 for docs in this leaf, 1 for others.
+                // Then compute histograms for 2 partitions; use only partition 0.
+                std::vector<uint32_t> leafPartVec(trainDocs);
+                for (ui32 d = 0; d < trainDocs; ++d) {
+                    leafPartVec[d] = (lossguideLeafDocVec[d] == leafId) ? 0u : 1u;
+                }
+                auto leafPartArr = mx::array(
+                    reinterpret_cast<const int32_t*>(leafPartVec.data()),
+                    {static_cast<int>(trainDocs)}, mx::uint32);
+
+                auto layout2 = ComputePartitionLayout(leafPartArr, trainDocs, 2u);
+
+                // Build histogram arrays lazily then eval in one sync.
+                std::vector<mx::array> histArrays2, gradSumArr2, hessSumArr2;
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    auto statsK = mx::concatenate({
+                        mx::reshape(dimGrads[k], {1, static_cast<int>(trainDocs)}),
+                        mx::reshape(dimHess[k],  {1, static_cast<int>(trainDocs)})
+                    }, 0);
+                    statsK = mx::reshape(statsK, {static_cast<int>(2 * trainDocs)});
+                    histArrays2.push_back(DispatchHistogram(
+                        compressedData, statsK,
+                        layout2.DocIndices, layout2.PartOffsets, layout2.PartSizes,
+                        packed.Features, packed.NumUi32PerDoc,
+                        packed.TotalBinFeatures, 2u, trainDocs));
+                    gradSumArr2.push_back(mx::scatter_add_axis(
+                        mx::zeros({2}, mx::float32), leafPartArr, dimGrads[k], 0));
+                    hessSumArr2.push_back(mx::scatter_add_axis(
+                        mx::zeros({2}, mx::float32), leafPartArr, dimHess[k],  0));
+                }
+
+                std::vector<mx::array> toEval2;
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    toEval2.push_back(histArrays2[k]);
+                    toEval2.push_back(gradSumArr2[k]);
+                    toEval2.push_back(hessSumArr2[k]);
+                }
+                mx::eval(toEval2);
+
+                // Read to CPU
+                std::vector<std::vector<float>> histData2(approxDim);
+                std::vector<std::vector<TPartitionStatistics>> partStats2(approxDim);
+                for (ui32 k = 0; k < approxDim; ++k) {
+                    const float* hPtr = histArrays2[k].data<float>();
+                    histData2[k].assign(hPtr, hPtr + 2u * 2u * packed.TotalBinFeatures);
+                    partStats2[k].resize(2u);
+                    const float* gPtr = gradSumArr2[k].data<float>();
+                    const float* hSPtr = hessSumArr2[k].data<float>();
+                    partStats2[k][0].Sum    = gPtr[0];
+                    partStats2[k][0].Weight = hSPtr[0];
+                    partStats2[k][1].Sum    = gPtr[1];
+                    partStats2[k][1].Weight = hSPtr[1];
+                }
+
+                // Find best split for partition 0 (the leaf's docs).
+                auto perPartSplits = FindBestSplitPerPartition(
+                    histData2, partStats2,
+                    packed.Features, packed.TotalBinFeatures,
+                    config.L2RegLambda, 2u, featureMask);
+
+                if (perPartSplits[0].Defined()) {
+                    // Enforce optional max-depth limit
+                    if (config.MaxDepth > 0 && leafDepth[leafId] >= config.MaxDepth) {
+                        return;  // depth limit reached for this leaf
+                    }
+                    pq.push({perPartSplits[0].Gain, leafId, perPartSplits[0]});
+                }
+            };
+
+            // Bootstrap: evaluate the root leaf.
+            evalLeafLossguide(0u);
+
+            const ui32 maxLeaves = std::max(config.MaxLeaves, 2u);
+            while (lossguideNumLeaves < maxLeaves && !pq.empty()) {
+                auto top = pq.top();
+                pq.pop();
+
+                const ui32 leafId    = top.LeafId;
+                const auto& bestSp   = top.Split;
+                const ui32 bfsNode   = lossguideLeafBfsIds[leafId];
+                const ui32 myDepth   = leafDepth[leafId];
+                const ui32 leftBfs   = 2u * bfsNode + 1u;
+                const ui32 rightBfs  = 2u * bfsNode + 2u;
+                const ui32 rightLeafId = static_cast<ui32>(lossguideLeafBfsIds.size());
+
+                // Record the node split in the sparse map.
+                const auto& feat = packed.Features[bestSp.FeatureId];
+                TObliviousSplitLevel ns;
+                ns.FeatureColumnIdx = static_cast<ui32>(feat.Offset);
+                ns.Shift      = feat.Shift;
+                ns.Mask       = feat.Mask >> feat.Shift;
+                ns.BinThreshold = bestSp.BinId;
+                ns.IsOneHot   = feat.OneHotFeature;
+                lossguideNodeSplitMap[bfsNode] = ns;
+                splits.push_back(ns);  // also append to splits for SaveModelJSON / feature importance
+
+                // Register children
+                lossguideLeafBfsIds.push_back(rightBfs);
+                lossguideLeafBfsIds[leafId] = leftBfs;
+                leafDepth.push_back(myDepth + 1u);
+                leafDepth[leafId] = myDepth + 1u;
+                lossguideNumLeaves++;
+
+                // Update leaf doc assignments
+                for (ui32 d = 0; d < trainDocs; ++d) {
+                    if (lossguideLeafDocVec[d] != leafId) continue;
+                    uint32_t packed_val = dataPtr[d * lineSize + ns.FeatureColumnIdx];
+                    uint32_t fv = (packed_val >> ns.Shift) & ns.Mask;
+                    uint32_t goRight = ns.IsOneHot
+                        ? (fv == ns.BinThreshold ? 1u : 0u)
+                        : (fv >  ns.BinThreshold ? 1u : 0u);
+                    if (goRight) lossguideLeafDocVec[d] = rightLeafId;
+                }
+
+                // Evaluate the two new children
+                evalLeafLossguide(leafId);
+                evalLeafLossguide(rightLeafId);
+            }
+
+            // splits already contains all node splits (appended during the while loop)
+
+            // Build partitions as dense leaf ids for leaf value computation
+            partitions = mx::array(
+                reinterpret_cast<const int32_t*>(lossguideLeafDocVec.data()),
+                {static_cast<int>(trainDocs)}, mx::uint32);
+            mx::eval(partitions);
+
+        } else {
+
+        // ---- Depthwise / SymmetricTree path ----
+
         double dbgHistMs = 0, dbgSplitMs = 0, dbgLayoutMs = 0, dbgPartMs = 0;
         for (ui32 depth = 0; depth < config.MaxDepth; ++depth) {
             auto tD0 = std::chrono::steady_clock::now();
@@ -3062,9 +3284,19 @@ TTrainResult RunTraining(
             fflush(stdout);
         }
 
-        if (splits.empty()) {
-            if (printProgress) printf("iter=%u: no valid split, stopping\n", iter);
-            break;
+        }  // end else (Depthwise / SymmetricTree path)
+
+        // Stop if no splits were found (SymmetricTree/Depthwise) or no leaves were added (Lossguide).
+        if (isLossguide) {
+            if (lossguideNumLeaves <= 1u) {
+                if (printProgress) printf("iter=%u: no valid lossguide split, stopping\n", iter);
+                break;
+            }
+        } else {
+            if (splits.empty()) {
+                if (printProgress) printf("iter=%u: no valid split, stopping\n", iter);
+                break;
+            }
         }
 
         auto tTreeEnd = std::chrono::steady_clock::now();
@@ -3073,8 +3305,11 @@ TTrainResult RunTraining(
         // Step 3: Estimate leaf values (GPU scatter_add_axis)
         // For oblivious trees: numLeaves = 2^splits.size() (splits.size() == depth).
         // For depthwise trees:  numLeaves = 2^actualTreeDepth (splits.size() == 2^depth - 1 nodes).
+        // For lossguide trees:  numLeaves = lossguideNumLeaves.
         const bool isDepthwiseTree = (config.GrowPolicy == "Depthwise" || config.GrowPolicy == "depthwise");
-        ui32 numLeaves = isDepthwiseTree ? (1u << actualTreeDepth) : (1u << splits.size());
+        ui32 numLeaves = isLossguide ? lossguideNumLeaves
+                       : isDepthwiseTree ? (1u << actualTreeDepth)
+                       : (1u << splits.size());
 
         auto lrArr = mx::array(config.LearningRate, mx::float32);
         auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
@@ -3131,7 +3366,15 @@ TTrainResult RunTraining(
             record.Splits = splits;
             record.SplitProps = splitProps;
             record.IsDepthwise = isDepthwiseTree;
-            record.Depth = isDepthwiseTree ? actualTreeDepth : static_cast<ui32>(splits.size());
+            record.IsLossguide = isLossguide;
+            if (isLossguide) {
+                record.Depth = 0;  // unbalanced tree; depth is not a single number
+                record.NumLeaves = lossguideNumLeaves;
+                record.LeafBfsIds = lossguideLeafBfsIds;
+            } else {
+                record.Depth = isDepthwiseTree ? actualTreeDepth : static_cast<ui32>(splits.size());
+                record.NumLeaves = numLeaves;
+            }
             mx::eval(leafValues);
             const float* lvPtr = leafValues.data<float>();
             ui32 totalFloats = (approxDim == 1) ? numLeaves : numLeaves * approxDim;
@@ -3158,7 +3401,11 @@ TTrainResult RunTraining(
         // Apply tree to validation data
         if (valDocs > 0) {
             mx::array valLeafIndices = mx::array(0, mx::uint32);
-            if (isDepthwiseTree) {
+            if (isLossguide) {
+                valLeafIndices = ComputeLeafIndicesLossguide(
+                    valCompressedData, lossguideNodeSplitMap, lossguideLeafBfsIds,
+                    valDocs, lossguideNumLeaves);
+            } else if (isDepthwiseTree) {
                 valLeafIndices = ComputeLeafIndicesDepthwise(valCompressedData, splits, valDocs, actualTreeDepth);
             } else {
                 valLeafIndices = ComputeLeafIndices(valCompressedData, splits, valDocs);
@@ -3196,7 +3443,11 @@ TTrainResult RunTraining(
             }
             result.FinalTrainLoss = trainLoss;
 
-            const ui32 displayDepth = isDepthwiseTree ? actualTreeDepth : static_cast<ui32>(splits.size());
+            // For lossguide, display the number of leaves; for others, display depth.
+            const ui32 displayVal = isLossguide ? lossguideNumLeaves
+                                  : isDepthwiseTree ? actualTreeDepth
+                                  : static_cast<ui32>(splits.size());
+            const char* sizeLabel = isLossguide ? "leaves" : "depth";
 
             if (valDocs > 0) {
                 float valLoss;
@@ -3214,11 +3465,11 @@ TTrainResult RunTraining(
                 }
                 result.FinalTestLoss = valLoss;
                 if (isRanking) {
-                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, displayDepth, trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
+                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  val_loss=%.6f  val_NDCG=%.4f  time=%lldms\n",
+                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, valLoss, valNDCG, iterMs);
                 } else {
-                    printf("iter=%u  trees=%u  depth=%u  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, displayDepth, trainLoss, valLoss, iterMs);
+                    printf("iter=%u  trees=%u  %s=%u  train_loss=%.6f  val_loss=%.6f  time=%lldms\n",
+                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, valLoss, iterMs);
                 }
 
                 // Early stopping check
@@ -3238,11 +3489,11 @@ TTrainResult RunTraining(
                 }
             } else {
                 if (isRanking) {
-                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  NDCG=%.4f  time=%lldms\n",
-                           iter, result.TreesBuilt, displayDepth, trainLoss, trainNDCG, iterMs);
+                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  NDCG=%.4f  time=%lldms\n",
+                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, trainNDCG, iterMs);
                 } else {
-                    printf("iter=%u  trees=%u  depth=%u  loss=%.6f  time=%lldms\n",
-                           iter, result.TreesBuilt, displayDepth, trainLoss, iterMs);
+                    printf("iter=%u  trees=%u  %s=%u  loss=%.6f  time=%lldms\n",
+                           iter, result.TreesBuilt, sizeLabel, displayVal, trainLoss, iterMs);
                 }
             }
         }

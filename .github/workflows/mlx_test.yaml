@@ -107,5 +107,31 @@ jobs:
       - name: Lint with ruff
         run: ruff check python/catboost_mlx/ python/tests/
 
+      - name: Depthwise grow-policy regression
+        run: |
+          python3 -c "
+          import csv, random
+          random.seed(0)
+          rows = 200
+          with open('/tmp/dw_smoke.csv', 'w', newline='') as f:
+              w = csv.writer(f)
+              w.writerow(['f0', 'f1', 'f2', 'f3', 'f4', 'label'])
+              for _ in range(rows):
+                  feats = [round(random.gauss(0, 1), 4) for _ in range(5)]
+                  label = 1 if feats[0] + feats[1] > 0 else 0
+                  w.writerow(feats + [label])
+          "
+          OUTPUT=$(./csv_train /tmp/dw_smoke.csv \
+            --target-col 5 \
+            --loss Logloss \
+            --grow-policy Depthwise \
+            --depth 4 \
+            --iterations 10 \
+            --bins 32 \
+            --verbose 2>&1)
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -qP 'loss=[0-9]+\.[0-9]+' || (echo "ERROR: no finite loss value in output" && exit 1)
+          echo "Depthwise smoke test passed"
+
       - name: Run tests with coverage
-        run: pytest python/tests/ -v --tb=short --cov=catboost_mlx --cov-report=term-missing
+        run: pytest python/tests/ -v --tb=short --cov=catboost_mlx --cov-report=term-missing --cov-fail-under=70

@@ -223,4 +223,103 @@ namespace NCatboostMlx {
             << " to " << numDocs << " documents (Metal kernel)" << Endl;
     }
 
+    // -------------------------------------------------------------------------
+    // Lossguide tree apply + inference helpers
+    // -------------------------------------------------------------------------
+
+    mx::array ComputeLeafIndicesLossguide(
+        const mx::array& compressedData,
+        const std::unordered_map<ui32, TObliviousSplitLevel>& nodeSplitMap,
+        const TVector<ui32>& leafBfsIds,
+        ui32 numDocs,
+        ui32 numLeaves
+    ) {
+        if (numLeaves <= 1u || nodeSplitMap.empty()) {
+            // Degenerate tree: all docs in leaf 0.
+            return mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
+        }
+
+        // Build an inverse set: BFS node indices that are leaf nodes.
+        std::unordered_map<ui32, ui32> bfsToLeafId;  // bfsIdx → dense leaf id
+        bfsToLeafId.reserve(leafBfsIds.size());
+        for (ui32 k = 0; k < static_cast<ui32>(leafBfsIds.size()); ++k) {
+            bfsToLeafId[leafBfsIds[k]] = k;
+        }
+
+        // CPU traversal: for each doc, walk the BFS tree from root until we reach a leaf.
+        auto flatData = mx::reshape(compressedData, {static_cast<int>(numDocs), -1});
+        TMLXDevice::EvalNow(flatData);
+        const uint32_t* dataPtr = flatData.data<uint32_t>();
+        const ui32 lineSize = static_cast<ui32>(flatData.shape(1));
+
+        std::vector<uint32_t> leafVec(numDocs);
+        for (ui32 d = 0; d < numDocs; ++d) {
+            ui32 nodeIdx = 0u;
+            // Traverse until nodeIdx is a leaf (found in bfsToLeafId, not in nodeSplitMap).
+            while (nodeSplitMap.count(nodeIdx) > 0) {
+                const auto& ns = nodeSplitMap.at(nodeIdx);
+                uint32_t packed = dataPtr[d * lineSize + ns.FeatureColumnIdx];
+                uint32_t fv = (packed >> ns.Shift) & ns.Mask;
+                uint32_t goRight = ns.IsOneHot
+                    ? (fv == ns.BinThreshold ? 1u : 0u)
+                    : (fv >  ns.BinThreshold ? 1u : 0u);
+                nodeIdx = 2u * nodeIdx + 1u + goRight;
+            }
+            Y_VERIFY(bfsToLeafId.count(nodeIdx) > 0,
+                "ComputeLeafIndicesLossguide: BFS traversal ended at unknown node");
+            leafVec[d] = bfsToLeafId.at(nodeIdx);
+        }
+
+        return mx::array(
+            reinterpret_cast<const int32_t*>(leafVec.data()),
+            {static_cast<int>(numDocs)}, mx::uint32
+        );
+    }
+
+    void ApplyLossguideTree(
+        TMLXDataSet& dataset,
+        const std::unordered_map<ui32, TObliviousSplitLevel>& /*nodeSplitMap*/,
+        const TVector<ui32>& /*leafBfsIds*/,
+        const mx::array& leafDocIds,
+        const mx::array& leafValues,
+        ui32 numLeaves,
+        ui32 approxDimension
+    ) {
+        const ui32 numDocs = dataset.GetNumDocs();
+
+        // leafDocIds is the per-document dense leaf assignment computed during search.
+        // For training data this comes directly from TLossguideTreeStructure::LeafDocIds.
+        // nodeSplitMap and leafBfsIds are not needed here — they are used by
+        // ComputeLeafIndicesLossguide for validation/inference data inference.
+
+        auto& cursor     = dataset.GetCursor();
+        auto cursorShape = cursor.shape();
+
+        if (approxDimension == 1) {
+            // Scalar path: gather leafValues[leafDocIds[d]] for each doc.
+            auto docLeafVals = mx::take(leafValues, mx::astype(leafDocIds, mx::int32), 0);
+            auto flatCursor  = mx::reshape(cursor, {static_cast<int>(numDocs)});
+            cursor = mx::reshape(mx::add(flatCursor, docLeafVals), cursorShape);
+        } else {
+            // Multi-class path: leafValues is [numLeaves, K].
+            // docLeafVals = leafValues[leafDocIds[d]] → [numDocs, K]
+            auto docLeafVals = mx::take(leafValues, mx::astype(leafDocIds, mx::int32), 0);
+            // Transpose to [K, numDocs] and add to cursor [K, numDocs].
+            auto transposed = mx::transpose(docLeafVals);  // [K, numDocs]
+            cursor = mx::reshape(mx::add(
+                mx::reshape(cursor, {static_cast<int>(approxDimension), static_cast<int>(numDocs)}),
+                transposed),
+                cursorShape
+            );
+        }
+
+        // Update partitions: for lossguide trees the partition is just the dense leaf id.
+        dataset.GetPartitions() = leafDocIds;
+
+        TMLXDevice::EvalNow({cursor, dataset.GetPartitions()});
+
+        CATBOOST_DEBUG_LOG << "CatBoost-MLX: Applied lossguide tree with "
+            << numLeaves << " leaves to " << numDocs << " documents" << Endl;
+    }
+
 }  // namespace NCatboostMlx
