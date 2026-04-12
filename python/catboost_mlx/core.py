@@ -577,6 +577,10 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(f"colsample_bytree must be in (0, 1], got {self.colsample_bytree!r}")
         if self.nan_mode not in ("min", "forbidden"):
             raise ValueError(f"nan_mode must be 'min' or 'forbidden', got {self.nan_mode!r}")
+        if self.grow_policy not in (None, "", "SymmetricTree", "Depthwise"):
+            raise ValueError(
+                f"grow_policy must be 'SymmetricTree' or 'Depthwise', got {self.grow_policy!r}"
+            )
         if self.bootstrap_type not in ("no", "bayesian", "bernoulli", "mvs"):
             raise ValueError(
                 f"bootstrap_type must be one of 'no','bayesian','bernoulli','mvs', got {self.bootstrap_type!r}"
