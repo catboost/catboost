@@ -5,9 +5,17 @@
 <!-- The first agent in the next session reads this first. -->
 
 **Last Updated:** 2026-04-11
-**Last Active Agent:** technical-writer (Sprint 9 documentation)
+**Last Active Agent:** technical-writer (Sprint 10 user documentation)
 
 ## Completed This Session
+
+### Sprint 10 — branch `mlx/sprint-10-lossguide-packaging-hardening`
+
+#### Documentation updated this session
+
+- `python/README.md` — Complete rewrite of the user-facing Python package README. Now accurate to Sprint 9 state: depth 1-10 (was incorrectly capped at 6), Depthwise grow policy documented, 16M row limit removed (int32 fix), `mlflow_logging`/`grow_policy`/`random_strength` parameters added to reference table, Known Limitations corrected. Informal tone and Big Bang Theory references removed. Lossguide listed as "backlog" per TODOS.md TODO-012.
+
+---
 
 ### Sprint 9 — branch `mlx/sprint-9-pybind-depth-policies-infra`
 
