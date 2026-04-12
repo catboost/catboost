@@ -397,6 +397,11 @@ class CatBoostMLX(BaseEstimator):
         Minimum number of documents per leaf (default: 1 = no restriction).
     monotone_constraints : list of int, optional
         Per-feature monotone constraints: 0=none, 1=increasing, -1=decreasing.
+    grow_policy : str
+        Tree grow policy. "SymmetricTree" (default) grows oblivious trees where
+        all leaves at the same depth share one split rule. "Depthwise" grows
+        non-symmetric trees where each leaf at a given depth gets its own best
+        split (XGBoost-style), allowing more expressive trees at the same depth.
     mlflow_logging : bool
         If True, log hyperparameters, per-iteration loss, and final metrics to
         MLflow after training. Requires ``mlflow`` to be installed
@@ -443,6 +448,7 @@ class CatBoostMLX(BaseEstimator):
         snapshot_path: Optional[str] = None,
         snapshot_interval: int = 1,
         auto_class_weights: Optional[str] = None,
+        grow_policy: str = "SymmetricTree",
         verbose: bool = False,
         binary_path: Optional[str] = None,
         train_timeout: Optional[float] = None,
@@ -476,6 +482,7 @@ class CatBoostMLX(BaseEstimator):
         self.snapshot_path = snapshot_path
         self.snapshot_interval = snapshot_interval
         self.auto_class_weights = auto_class_weights
+        self.grow_policy = grow_policy
         self.verbose = verbose
         self.binary_path = binary_path
         self.train_timeout = train_timeout
@@ -757,6 +764,8 @@ class CatBoostMLX(BaseEstimator):
                 args.extend(["--snapshot-interval", str(self.snapshot_interval)])
         if self.random_strength != 1.0:
             args.extend(["--random-strength", str(self.random_strength)])
+        if self.grow_policy and self.grow_policy != "SymmetricTree":
+            args.extend(["--grow-policy", self.grow_policy])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:

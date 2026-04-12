@@ -56,4 +56,33 @@ namespace NCatboostMlx {
         ui32 approxDimension = 1
     );
 
+    // Result of a depthwise (non-symmetric) tree structure search.
+    // NodeSplits[i] is the split for internal node i in BFS order:
+    //   depth 0: node 0 (root)
+    //   depth 1: nodes 1, 2
+    //   depth d: nodes [2^d-1 .. 2^(d+1)-2]
+    // NumNodes = 2^depth - 1  (total internal nodes for a full tree of depth `depth`).
+    // NumLeaves = 2^depth.
+    struct TDepthwiseTreeStructure {
+        TVector<TObliviousSplitLevel> NodeSplits;  // [numNodes] — one split per internal node (BFS order)
+        ui32 Depth = 0;
+    };
+
+    // Search for the best depthwise tree structure.
+    //
+    // At each depth level, picks the best split **per leaf** (per partition).
+    // Each partition gets its own (feature, bin) split — different from the
+    // oblivious case where all partitions at a depth level share one split.
+    //
+    // The resulting tree is non-symmetric: nodes at the same depth can have
+    // different split rules.  This matches XGBoost's `grow_policy=depthwise`.
+    //
+    // Returns the tree structure with NodeSplits in BFS order.
+    TDepthwiseTreeStructure SearchDepthwiseTreeStructure(
+        TMLXDataSet& dataset,
+        ui32 maxDepth,
+        float l2RegLambda,
+        ui32 approxDimension = 1
+    );
+
 }  // namespace NCatboostMlx
