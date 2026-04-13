@@ -27,6 +27,6 @@ try:
     from importlib.metadata import version as _get_version
     __version__ = _get_version("catboost-mlx")
 except Exception:
-    __version__ = "0.3.0"  # fallback for editable installs / development
+    __version__ = "0.4.0"  # fallback for editable installs / development
 
 __all__ = ["CatBoostMLX", "CatBoostMLXRegressor", "CatBoostMLXClassifier", "Pool"]
