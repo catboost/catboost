@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "catboost-mlx"
-version = "0.3.0"
+version = "0.4.0"
 description = "CatBoost gradient boosted decision trees on Apple Silicon via Metal/MLX"
 readme = "README.md"
 requires-python = ">=3.9"

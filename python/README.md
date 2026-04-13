@@ -6,6 +6,8 @@
 [![macOS 13+](https://img.shields.io/badge/macOS-13%2B-lightgrey)](https://www.apple.com/macos/)
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3%2FM4-black)](https://www.apple.com/mac/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](../LICENSE)
+[![C++ Build](https://github.com/RR-AMATOK/catboost-mlx/actions/workflows/mlx-build.yaml/badge.svg)](https://github.com/RR-AMATOK/catboost-mlx/actions/workflows/mlx-build.yaml)
+[![Python Tests](https://github.com/RR-AMATOK/catboost-mlx/actions/workflows/mlx-test.yaml/badge.svg)](https://github.com/RR-AMATOK/catboost-mlx/actions/workflows/mlx-test.yaml)
 
 CatBoost-MLX is a gradient boosted decision tree (GBDT) library that runs natively on Apple Silicon GPU via Apple's Metal framework. It provides a scikit-learn-compatible Python API for training, predicting, and exporting models — with no CUDA dependency, no cloud required, and no Intel fallback. If you have a Mac with an M-series chip, the GPU is your training device.
 
@@ -390,6 +392,28 @@ CatBoost-MLX is **not** a drop-in replacement for the `catboost` Python package.
 | MLX/Metal | No | Yes |
 
 If you need full CatBoost feature parity or need to run on Linux/CUDA, use the official `catboost` package.
+
+---
+
+## Performance
+
+Benchmarks on MacBook Pro M3 Max (128 GB unified memory), 100 iterations, depth=6, learning_rate=0.1:
+
+| Dataset   | Loss    | CatBoost CPU | CatBoost-MLX | CPU iter/s | MLX iter/s |
+|-----------|---------|-------------|-------------|------------|------------|
+| 10k × 50  | RMSE    |       0.20s |      32.73s |      506.8 |        3.1 |
+| 100k × 50 | RMSE    |       0.41s |      70.43s |      244.3 |        1.4 |
+| 500k × 50 | RMSE    |       1.18s |     175.97s |       84.5 |        0.6 |
+| 10k × 50  | Logloss |       0.30s |      32.08s |      332.5 |        3.1 |
+| 100k × 50 | Logloss |       0.70s |      69.55s |      142.7 |        1.4 |
+| 500k × 50 | Logloss |       1.73s |     173.38s |       57.9 |        0.6 |
+
+CatBoost CPU is extremely SIMD-optimized. The MLX backend is currently slower on small/medium datasets due to per-iteration Metal kernel dispatch overhead. This is consistent with GPU GBDT in general — the CUDA backend similarly requires large datasets to outperform CPU. Performance optimization (kernel fusion, batched dispatch, async overlap) is the next development phase.
+
+Run benchmarks yourself:
+```bash
+python benchmarks/bench_mlx_vs_cpu.py --hardware "Your Mac" --output benchmarks/results/your_mac.md
+```
 
 ---
 

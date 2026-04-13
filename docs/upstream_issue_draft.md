@@ -27,7 +27,10 @@ We have developed an MLX-based GPU training backend for CatBoost that runs nativ
 - Categorical features with CTR target encoding
 - Early stopping, subsampling, monotone constraints, snapshot save/resume
 - Python bindings via nanobind (zero-copy numpy arrays, GIL released during training)
-- 1000+ tests passing
+- All 3 grow policies on GPU (SymmetricTree, Depthwise, Lossguide) — the CUDA backend only supports SymmetricTree
+- Non-symmetric tree export via `TNonSymmetricTreeModelBuilder`
+- CI on GitHub Actions macos-14 (Apple Silicon M1): C++ build gate + full pytest suite
+- 1010 tests passing, 5 xfail (known edge cases)
 
 ### Platform constraints
 
@@ -58,26 +61,53 @@ The backend already follows CatBoost's patterns:
 
 2. **CMake-only or ya.make required?** We can provide CMake integration following the CUDA pattern. We do not have access to YaTool -- would the team handle ya.make porting?
 
-3. **Library path feature gap**: Our `IModelTrainer` implementation currently supports 10 pointwise losses. Our standalone engine supports all 12 losses + ranking + Lossguide + all features listed above. We would close this gap before submitting a PR. Is the `IModelTrainer` interface the right integration point?
+3. **`IModelTrainer` integration**: Our `IModelTrainer` implementation supports all 12 loss functions, all 3 grow policies (including Depthwise and Lossguide on GPU — which the CUDA backend does not offer), and non-symmetric tree export via `TNonSymmetricTreeModelBuilder`. Is the `IModelTrainer` interface the right integration point, or would the team prefer a different registration pattern?
 
 4. **MLX dependency management**: MLX is available via pip and Homebrew. Should it be resolved via `find_package`, vendored, or handled differently?
 
 ### Performance
 
-On a MacBook Pro M3 Max (128GB unified memory), training 100k rows x 50 features x 100 iterations:
-- CatBoost-MLX (Metal GPU): competitive with CatBoost CPU on the same hardware
-- Primary advantage: GPU acceleration without CUDA, native to Apple Silicon
+Current benchmarks on MacBook Pro M3 Max (128GB unified memory), 100 iterations, depth=6:
+
+| Dataset   | Loss    | CPU (s) | MLX (s) | CPU iter/s | MLX iter/s |
+|-----------|---------|---------|---------|------------|------------|
+| 10k × 50  | RMSE    |    0.20 |   32.73 |      506.8 |        3.1 |
+| 100k × 50 | RMSE    |    0.41 |   70.43 |      244.3 |        1.4 |
+| 500k × 50 | RMSE    |    1.18 |  175.97 |       84.5 |        0.6 |
+| 10k × 50  | Logloss |    0.30 |   32.08 |      332.5 |        3.1 |
+| 100k × 50 | Logloss |    0.70 |   69.55 |      142.7 |        1.4 |
+| 500k × 50 | Logloss |    1.73 |  173.38 |       57.9 |        0.6 |
+
+**Honest assessment:** The MLX backend is currently **~100× slower** than CatBoost CPU on these small-to-medium datasets. This is expected — CatBoost CPU is extremely SIMD-optimized, and per-iteration Metal kernel dispatch overhead dominates at these scales. The same pattern exists with CUDA CatBoost, where GPU only wins at large scale.
+
+**Where we see the path to competitive performance:**
+- Kernel fusion (histogram + scoring in a single dispatch)
+- Batched iteration dispatch (amortize Metal command buffer overhead across multiple iterations)
+- Async CPU-GPU overlap (gradient computation pipelining)
+- Larger datasets (1M+ rows, 200+ features) where Metal's parallel bandwidth dominates
+
+This submission is about **correctness and architecture** — proving the full CatBoost algorithm works end-to-end on Metal. Performance optimization is the next phase, and we would welcome guidance from the CatBoost team on where the CUDA backend's key optimizations live.
 
 ### Files involved
 
 ```
 catboost/mlx/
-  kernels/          # Metal compute shaders (.metal)
-  gpu_data/         # GPU data layout and transfer
+  kernels/          # Metal compute shaders (.metal) + kernel_sources.h
+  gpu_data/         # GPU data layout, transfer, and dataset builder
   methods/          # Tree search (histogram, scoring, boosting)
-  targets/          # Loss functions (pointwise)
-  train_lib/        # IModelTrainer implementation + model export
-  tests/            # Standalone test binary (csv_train.cpp)
+  targets/          # Loss functions: pointwise (10) + pairwise (PairLogit, YetiRank)
+  train_lib/        # IModelTrainer + model export (symmetric + non-symmetric trees)
+  tests/            # csv_train.cpp, csv_predict.cpp, model_export_test.cpp
+
+python/
+  catboost_mlx/     # Python package with nanobind bindings (zero-copy, GIL-free)
+  tests/            # 1010+ pytest tests
+
+.github/workflows/
+  mlx-build.yaml    # C++ compile gate (macos-14)
+  mlx-test.yaml     # Full Python test suite (macos-14, Metal GPU)
+
+benchmarks/         # MLX vs CPU benchmark script + results
 ```
 
 All code is Apache 2.0 licensed. No modifications to existing CatBoost source files.

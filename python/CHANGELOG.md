@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-12
+
+### Added
+- **CI/CD on GitHub Actions** (macos-14 Apple Silicon M1 runners)
+  - `mlx-build.yaml`: C++ compile gate — verifies csv_train.cpp links against MLX
+  - `mlx-test.yaml`: Full Python test suite (1010 tests) with Metal GPU and nanobind extension build
+- **Performance benchmarks**: `bench_mlx_vs_cpu.py` comparing MLX (Metal GPU) vs CatBoost CPU across 3 dataset scales × 3 loss functions
+- Benchmark results for M3 Max 128GB published in `benchmarks/results/`
+- **Library path feature parity** (Sprint 13): `IModelTrainer` implementation now supports all 12 loss functions, all 3 grow policies on GPU
+  - Depthwise and Lossguide grow policies on GPU — a feature the CUDA backend does not offer
+  - Non-symmetric tree export via `TNonSymmetricTreeModelBuilder`
+  - Full parameter wiring: GrowPolicy, MaxLeaves, RandomSeed, SubsampleRatio, ColsampleByTree, EarlyStoppingPatience, MetricPeriod
+  - PairLogit and YetiRank ranking losses in the library path via `pairwise_target.h`
+- **Documentation refresh** (Sprint 12): ARCHITECTURE.md rewrite with nanobind architecture section, ranking losses, two-code-paths explanation
+- **Ranking hardening** (Sprint 12): BUG-007 `group_id` sorting fix, 52 ranking-specific tests
+- Upstream issue draft for `catboost/catboost` with honest performance data
+
+### Fixed
+- BUG-007: `group_id` sorting now uses `np.argsort` to ensure rows are grouped correctly before training
+- Ranking without `group_id` now raises a clear `ValueError` instead of producing silent garbage
+
+### Changed
+- Upstream issue draft performance section replaced with real M3 Max benchmark data (previously said "competitive with CPU")
+- `mlx_test.yaml` renamed from `mlx_test.yaml` (underscore) for consistent naming
+
+## [0.3.0] - 2026-04-11
+
+### Added
+- **Nanobind in-process GPU training** (Sprint 11): zero-copy numpy→C++ via `nb::ndarray`, GIL released during training
+- `_core` nanobind extension module with `train()` and `predict()` C++ bindings
+- CMake-based extension build via `mlx.extension.CMakeBuild`
+- Automatic fallback to subprocess path when nanobind extension is not available
+- `_HAS_NANOBIND` flag for runtime detection of in-process vs subprocess mode
+
 ### Fixed
 - `cross_validate()`: CV output parser now matches actual binary output format (`Fold N: test_loss=...` and `Test  loss: ... +/- ...`)
 - `CatBoostMLXClassifier.fit()`: `y` parameter now defaults to `None` so `fit(pool)` works without passing `y` explicitly
