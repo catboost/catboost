@@ -1,0 +1,90 @@
+name: MLX C++ Build
+
+# Verify that the standalone C++ components of CatBoost-MLX compile cleanly
+# against a pip-installed MLX on Apple Silicon.
+#
+# This workflow does NOT run the binary — csv_train requires training data.
+# It is a compile-and-link gate: if the binary is produced and executable,
+# the build is considered passing.
+
+on:
+  push:
+    branches:
+      - 'mlx/**'
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-cpp:
+    name: Compile csv_train (Apple Silicon)
+    runs-on: macos-14
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Cache the MLX wheel download. The cache key encodes the Python version
+      # so the cached site-packages are never shared across interpreter ABIs.
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-mlx-py3.12-${{ runner.os }}
+          restore-keys: |
+            pip-mlx-py3.12-
+
+      - name: Install MLX
+        run: pip install mlx
+
+      # Resolve the MLX include and library directories from the installed
+      # Python package. The pip wheel ships:
+      #   <site-packages>/mlx/include/   — C++ headers
+      #   <site-packages>/mlx/lib/       — libmlx.dylib
+      # The `python -m mlx` CLI flags expose these paths reliably without
+      # hard-coding version strings or Cellar paths.
+      - name: Locate MLX include/lib paths
+        run: |
+          MLX_INCLUDE=$(python3 -m mlx --includes | sed 's/-I//')
+          MLX_LIB=$(python3 -m mlx --libs | sed 's/-L//' | awk '{print $1}')
+          echo "MLX_INCLUDE=${MLX_INCLUDE}" >> "$GITHUB_ENV"
+          echo "MLX_LIB=${MLX_LIB}"     >> "$GITHUB_ENV"
+          echo "MLX include: ${MLX_INCLUDE}"
+          echo "MLX lib:     ${MLX_LIB}"
+
+      # csv_train.cpp is self-contained — it redeclares all internal structs
+      # and only needs the MLX public headers plus Metal + Foundation.
+      # The -I. makes <catboost/mlx/kernels/kernel_sources.h> resolvable from
+      # the repo root (that header is included at line 49 of csv_train.cpp).
+      - name: Compile csv_train
+        run: |
+          clang++ \
+            -std=c++17 \
+            -O2 \
+            -I. \
+            -I"${MLX_INCLUDE}" \
+            -L"${MLX_LIB}" \
+            -lmlx \
+            -framework Metal \
+            -framework Foundation \
+            -Wno-c++20-extensions \
+            -Wno-unused-function \
+            catboost/mlx/tests/csv_train.cpp \
+            -o csv_train_build_check
+
+      - name: Verify binary is executable
+        run: |
+          test -x ./csv_train_build_check \
+            || { echo "ERROR: csv_train_build_check is not executable"; exit 1; }
+          echo "Build successful: csv_train_build_check is present and executable"
+          file ./csv_train_build_check
