@@ -114,6 +114,28 @@ Each decision follows the format: **Context** (why we faced this choice), **Deci
 
 ---
 
+## ADR-006: All 3 Grow Policies in Library Path (GPU)
+
+**Date**: 2026-04-12
+**Status**: Accepted
+
+**Context**: CatBoost's CUDA GPU backend only supports SymmetricTree. Depthwise and Lossguide are CPU-only grow policies upstream. For the MLX library path (`train_lib/train.cpp`), we must decide whether to match CUDA's scope (SymmetricTree only) or support all 3 grow policies on GPU.
+
+**Decision**: Support all 3 grow policies (SymmetricTree, Depthwise, Lossguide) in the MLX library path. This requires implementing `TNonSymmetricTreeModelBuilder` for model export of non-oblivious trees from the GPU backend.
+
+**Rationale**:
+- The csv_train standalone path already supports all 3 — this is proven, working code
+- All 3 grow policies on GPU is a feature improvement over CUDA, not a conflict with CatBoost's design (the CPU backend already supports all 3)
+- Stronger upstream pitch: "MLX does everything CUDA does, plus Depthwise and Lossguide on GPU"
+- `TFullModel` and `TNonSymmetricTreeModelBuilder` already exist in CatBoost for CPU-trained non-oblivious trees — no model format changes needed
+
+**Risks**:
+- `TNonSymmetricTreeModelBuilder` usage from a GPU backend is unprecedented — may hit undocumented API edge cases
+- Larger review surface for upstream PR
+- If CatBoost maintainers prefer GPU backends to match CUDA's scope, we may need to gate behind a flag
+
+---
+
 ## Decision Template
 
 ```

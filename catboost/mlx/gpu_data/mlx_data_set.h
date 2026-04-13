@@ -9,6 +9,8 @@
 
 #include <util/generic/vector.h>
 
+#include <vector>
+
 namespace NCatboostMlx {
 
     class TMLXDataSet {
@@ -52,6 +54,22 @@ namespace NCatboostMlx {
         ui32 GetNumUi32PerDoc() const { return CompressedIndex_.GetNumUi32PerDoc(); }
         const mx::array& GetWeights() const { return Weights_; }
         bool HasWeights() const { return HasWeights_; }
+
+        // --- Group data (for ranking losses: PairLogit, YetiRank) ---
+
+        /// Set query/group offsets for ranking losses.
+        /// groupOffsets has size numGroups + 1; groupOffsets[g] is the first doc index
+        /// of group g, groupOffsets[numGroups] == numDocs (sentinel).
+        void SetGroupData(const std::vector<ui32>& groupOffsets, ui32 numGroups) {
+            GroupOffsets_ = groupOffsets;
+            NumGroups_ = numGroups;
+        }
+
+        const std::vector<ui32>& GetGroupOffsets() const { return GroupOffsets_; }
+        ui32 GetNumGroups() const { return NumGroups_; }
+
+        /// Returns true when group data has been populated (required for ranking losses).
+        bool HasGroups() const { return NumGroups_ > 0; }
 
         // --- Training state (mutable cursor) ---
 
@@ -108,6 +126,9 @@ namespace NCatboostMlx {
         mx::array Partitions_;    // [numDocs] uint32 — leaf index per document
 
         bool HasWeights_ = false;
+
+        std::vector<ui32> GroupOffsets_;  // size = NumGroups_ + 1
+        ui32 NumGroups_ = 0;
     };
 
 }  // namespace NCatboostMlx
