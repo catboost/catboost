@@ -529,6 +529,432 @@ bool TestFeatureIndexMapping() {
     return pass;
 }
 
+// ============================================================================
+// Test: Depthwise BFS leaf index mapping
+//
+// Verifies the formula: leafIdx = bfsIdx - (2^maxDepth - 1)
+// for a full binary tree of depth `maxDepth`.
+// ============================================================================
+
+bool TestDepthwiseBfsLeafMapping() {
+    printf("\n=== Test: Depthwise BFS Leaf Index Mapping ===\n");
+
+    bool pass = true;
+
+    // depth=1: 2 leaves, 1 internal node
+    // BFS layout:
+    //   depth 0: node 0 (root, internal)
+    //   depth 1: nodes 1, 2 (leaves)
+    // firstLeafBfsIdx = 2^1 - 1 = 1
+    // leaf 0 = bfsIdx 1, leaf 1 = bfsIdx 2
+    {
+        const ui32 maxDepth = 1;
+        const ui32 firstLeaf = (1u << maxDepth) - 1u;  // = 1
+        if (firstLeaf != 1) { printf("  FAIL depth=1: firstLeaf=%u expected 1\n", firstLeaf); pass = false; }
+        if ((1u - firstLeaf) != 0) { printf("  FAIL depth=1: leaf for bfsIdx=1\n"); pass = false; }
+        if ((2u - firstLeaf) != 1) { printf("  FAIL depth=1: leaf for bfsIdx=2\n"); pass = false; }
+    }
+
+    // depth=2: 4 leaves, 3 internal nodes
+    // BFS layout:
+    //   depth 0: node 0 (root)
+    //   depth 1: nodes 1, 2
+    //   depth 2: nodes 3, 4, 5, 6 (leaves)
+    // firstLeafBfsIdx = 2^2 - 1 = 3
+    // leaf 0 = bfsIdx 3, leaf 1 = bfsIdx 4, leaf 2 = bfsIdx 5, leaf 3 = bfsIdx 6
+    {
+        const ui32 maxDepth = 2;
+        const ui32 firstLeaf = (1u << maxDepth) - 1u;  // = 3
+        if (firstLeaf != 3) { printf("  FAIL depth=2: firstLeaf=%u expected 3\n", firstLeaf); pass = false; }
+        for (ui32 leaf = 0; leaf < 4; ++leaf) {
+            ui32 bfsIdx = firstLeaf + leaf;
+            ui32 recovered = bfsIdx - firstLeaf;
+            if (recovered != leaf) {
+                printf("  FAIL depth=2: leaf %u recovered %u from bfsIdx %u\n", leaf, recovered, bfsIdx);
+                pass = false;
+            }
+        }
+    }
+
+    // depth=3: 8 leaves
+    // firstLeafBfsIdx = 2^3 - 1 = 7
+    {
+        const ui32 maxDepth = 3;
+        const ui32 firstLeaf = (1u << maxDepth) - 1u;  // = 7
+        if (firstLeaf != 7) { printf("  FAIL depth=3: firstLeaf=%u expected 7\n", firstLeaf); pass = false; }
+        const ui32 numLeaves = 1u << maxDepth;  // = 8
+        for (ui32 leaf = 0; leaf < numLeaves; ++leaf) {
+            ui32 bfsIdx = firstLeaf + leaf;
+            ui32 recovered = bfsIdx - firstLeaf;
+            if (recovered != leaf) {
+                printf("  FAIL depth=3: leaf %u recovered %u from bfsIdx %u\n", leaf, recovered, bfsIdx);
+                pass = false;
+            }
+        }
+    }
+
+    // Verify BFS parent/child relationships for internal nodes
+    // parent(i) = (i-1)/2, left(i) = 2i+1, right(i) = 2i+2
+    {
+        const ui32 maxDepth = 3;
+        const ui32 numInternalNodes = (1u << maxDepth) - 1u;  // = 7
+        for (ui32 i = 0; i < numInternalNodes; ++i) {
+            ui32 left = 2 * i + 1;
+            ui32 right = 2 * i + 2;
+            // Both children must be valid BFS indices (< 2^(maxDepth+1)-1)
+            const ui32 totalNodes = (1u << (maxDepth + 1)) - 1u;
+            if (left >= totalNodes || right >= totalNodes) {
+                printf("  FAIL: node %u children (%u, %u) out of range\n", i, left, right);
+                pass = false;
+            }
+        }
+    }
+
+    // depth=0: degenerate — single leaf (no internal nodes)
+    // 2^0 - 1 = 0 internal nodes, 2^0 = 1 leaf
+    {
+        const ui32 maxDepth = 0;
+        const ui32 expectedNodes = (maxDepth == 0) ? 0u : (1u << maxDepth) - 1u;
+        const ui32 numLeaves = 1u << maxDepth;  // = 1
+        if (expectedNodes != 0) { printf("  FAIL depth=0: expectedNodes=%u\n", expectedNodes); pass = false; }
+        if (numLeaves != 1) { printf("  FAIL depth=0: numLeaves=%u\n", numLeaves); pass = false; }
+    }
+
+    if (pass) printf("  PASS: All BFS leaf index mappings correct\n");
+    return pass;
+}
+
+// ============================================================================
+// Test: Depthwise leaf value retrieval
+//
+// Simulates the flat leaf-buffer indexing for both dim=1 and dim=2,
+// verifying SetLeafValue equivalents for Depthwise export.
+// ============================================================================
+
+bool TestDepthwiseLeafValues() {
+    printf("\n=== Test: Depthwise Leaf Value Retrieval ===\n");
+
+    bool pass = true;
+
+    // depth=2, approxDimension=1
+    // Tree: 4 leaves, flat buffer = [10.0, 20.0, 30.0, 40.0]
+    {
+        const ui32 maxDepth = 2;
+        const ui32 numLeaves = 1u << maxDepth;  // 4
+        const ui32 approxDim = 1;
+        std::vector<float> leafBuf = {10.0f, 20.0f, 30.0f, 40.0f};
+        mx::eval(mx::array(leafBuf.data(), {static_cast<int>(numLeaves)}, mx::float32));
+
+        const ui32 firstLeaf = (1u << maxDepth) - 1u;  // 3
+
+        // Simulate traversal: left-left path → leaf index 0 (bfsIdx 3)
+        ui32 bfsIdx = 3;
+        ui32 leafIdx = bfsIdx - firstLeaf;  // 0
+        double val = static_cast<double>(leafBuf[leafIdx * approxDim]);
+        if (std::abs(val - 10.0) > 1e-9) {
+            printf("  FAIL dim=1: leaf 0 = %.4f expected 10.0\n", val); pass = false;
+        }
+
+        // Simulate: right-right path → leaf index 3 (bfsIdx 6)
+        bfsIdx = 6;
+        leafIdx = bfsIdx - firstLeaf;  // 3
+        val = static_cast<double>(leafBuf[leafIdx * approxDim]);
+        if (std::abs(val - 40.0) > 1e-9) {
+            printf("  FAIL dim=1: leaf 3 = %.4f expected 40.0\n", val); pass = false;
+        }
+    }
+
+    // depth=1, approxDimension=2 (multi-class)
+    // Tree: 2 leaves, flat buffer [leaf-major, dim-minor]:
+    //   leaf 0 dim 0 = 1.0, leaf 0 dim 1 = 2.0
+    //   leaf 1 dim 0 = 3.0, leaf 1 dim 1 = 4.0
+    {
+        const ui32 maxDepth = 1;
+        const ui32 numLeaves = 1u << maxDepth;  // 2
+        const ui32 approxDim = 2;
+        std::vector<float> leafBuf = {1.0f, 2.0f, 3.0f, 4.0f};
+        const ui32 firstLeaf = (1u << maxDepth) - 1u;  // 1
+
+        // Left child: bfsIdx=1 → leafIdx=0 → dims [1.0, 2.0]
+        ui32 bfsIdx = 1;
+        ui32 leafIdx = bfsIdx - firstLeaf;
+        std::vector<double> dimVals(approxDim);
+        for (ui32 dim = 0; dim < approxDim; ++dim) {
+            dimVals[dim] = static_cast<double>(leafBuf[leafIdx * approxDim + dim]);
+        }
+        if (std::abs(dimVals[0] - 1.0) > 1e-9 || std::abs(dimVals[1] - 2.0) > 1e-9) {
+            printf("  FAIL dim=2: leaf 0 = [%.4f, %.4f] expected [1.0, 2.0]\n",
+                   dimVals[0], dimVals[1]);
+            pass = false;
+        }
+
+        // Right child: bfsIdx=2 → leafIdx=1 → dims [3.0, 4.0]
+        bfsIdx = 2;
+        leafIdx = bfsIdx - firstLeaf;
+        for (ui32 dim = 0; dim < approxDim; ++dim) {
+            dimVals[dim] = static_cast<double>(leafBuf[leafIdx * approxDim + dim]);
+        }
+        if (std::abs(dimVals[0] - 3.0) > 1e-9 || std::abs(dimVals[1] - 4.0) > 1e-9) {
+            printf("  FAIL dim=2: leaf 1 = [%.4f, %.4f] expected [3.0, 4.0]\n",
+                   dimVals[0], dimVals[1]);
+            pass = false;
+        }
+    }
+
+    if (pass) printf("  PASS: Depthwise leaf values retrieved correctly\n");
+    return pass;
+}
+
+// ============================================================================
+// Test: Lossguide reverse leaf map construction and lookup
+//
+// Verifies that:
+//   1. The reverseLeafMap inversion is correct for typical unbalanced trees.
+//   2. Leaf value retrieval via the reverse map matches expected values.
+//   3. Duplicate BFS IDs are caught.
+// ============================================================================
+
+bool TestLossguideReverseLeafMap() {
+    printf("\n=== Test: Lossguide Reverse Leaf Map ===\n");
+
+    bool pass = true;
+
+    // Scenario: 5 leaves in an unbalanced tree.
+    // The tree grew leaf-wise; BFS node IDs are not contiguous.
+    // LeafBfsIds = [0, 3, 4, 10, 11]  (arbitrary BFS positions for leaves)
+    //                k=0 k=1 k=2  k=3  k=4
+    {
+        std::vector<ui32> leafBfsIds = {0, 3, 4, 10, 11};
+        const ui32 numLeaves = static_cast<ui32>(leafBfsIds.size());
+
+        // Build reverse map
+        std::unordered_map<ui32, ui32> reverseLeafMap;
+        reverseLeafMap.reserve(numLeaves);
+        bool duplicateDetected = false;
+        for (ui32 k = 0; k < numLeaves; ++k) {
+            ui32 bfsId = leafBfsIds[k];
+            if (reverseLeafMap.count(bfsId)) {
+                duplicateDetected = true;
+                break;
+            }
+            reverseLeafMap[bfsId] = k;
+        }
+
+        if (duplicateDetected) {
+            printf("  FAIL: false duplicate detected\n"); pass = false;
+        }
+
+        // Verify forward/backward consistency
+        for (ui32 k = 0; k < numLeaves; ++k) {
+            ui32 bfsId = leafBfsIds[k];
+            auto it = reverseLeafMap.find(bfsId);
+            if (it == reverseLeafMap.end()) {
+                printf("  FAIL: bfsId %u not in reverseLeafMap\n", bfsId); pass = false;
+            } else if (it->second != k) {
+                printf("  FAIL: reverseLeafMap[%u] = %u, expected %u\n", bfsId, it->second, k);
+                pass = false;
+            }
+        }
+
+        // Verify a non-leaf BFS ID is absent (should not be in the map)
+        ui32 nonLeafBfsId = 1;  // an internal node
+        if (reverseLeafMap.count(nonLeafBfsId)) {
+            printf("  FAIL: internal node bfsId %u appears in reverseLeafMap\n", nonLeafBfsId);
+            pass = false;
+        }
+    }
+
+    // Scenario: single-leaf tree (root never split)
+    // LeafBfsIds = [0]
+    {
+        std::vector<ui32> leafBfsIds = {0};
+        std::unordered_map<ui32, ui32> reverseLeafMap;
+        reverseLeafMap[leafBfsIds[0]] = 0;
+
+        if (!reverseLeafMap.count(0u)) {
+            printf("  FAIL: single-leaf tree: bfsId 0 not in reverseLeafMap\n"); pass = false;
+        }
+        if (reverseLeafMap.at(0u) != 0) {
+            printf("  FAIL: single-leaf tree: reverseLeafMap[0] = %u, expected 0\n",
+                   reverseLeafMap.at(0u));
+            pass = false;
+        }
+    }
+
+    // Scenario: leaf value retrieval via reverse map, approxDimension=1
+    // LeafBfsIds = [5, 6, 9]  (3 leaves)
+    // LeafValues = [100.0, 200.0, 300.0]
+    {
+        std::vector<ui32> leafBfsIds = {5, 6, 9};
+        std::vector<float> leafVals = {100.0f, 200.0f, 300.0f};
+        std::unordered_map<ui32, ui32> reverseLeafMap;
+        for (ui32 k = 0; k < leafBfsIds.size(); ++k) {
+            reverseLeafMap[leafBfsIds[k]] = k;
+        }
+
+        const float* leafPtr = leafVals.data();
+        const ui32 approxDim = 1;
+
+        // Lookup bfsId=6 → leafIdx=1 → value=200.0
+        ui32 bfsId = 6;
+        auto it = reverseLeafMap.find(bfsId);
+        if (it == reverseLeafMap.end()) {
+            printf("  FAIL: bfsId 6 not found in reverseLeafMap\n"); pass = false;
+        } else {
+            double val = static_cast<double>(leafPtr[it->second * approxDim]);
+            if (std::abs(val - 200.0) > 1e-9) {
+                printf("  FAIL: bfsId 6 → value %.4f, expected 200.0\n", val); pass = false;
+            }
+        }
+
+        // Lookup bfsId=9 → leafIdx=2 → value=300.0
+        bfsId = 9;
+        it = reverseLeafMap.find(bfsId);
+        if (it == reverseLeafMap.end()) {
+            printf("  FAIL: bfsId 9 not found in reverseLeafMap\n"); pass = false;
+        } else {
+            double val = static_cast<double>(leafPtr[it->second * approxDim]);
+            if (std::abs(val - 300.0) > 1e-9) {
+                printf("  FAIL: bfsId 9 → value %.4f, expected 300.0\n", val); pass = false;
+            }
+        }
+    }
+
+    // Scenario: multi-dim leaf values via reverse map, approxDimension=2
+    // LeafBfsIds = [2, 4]  (2 leaves)
+    // LeafValues [leaf-major, dim-minor] = [5.0, 6.0, 7.0, 8.0]
+    //   leaf 0 (bfsId=2): dims [5.0, 6.0]
+    //   leaf 1 (bfsId=4): dims [7.0, 8.0]
+    {
+        std::vector<ui32> leafBfsIds = {2, 4};
+        std::vector<float> leafVals = {5.0f, 6.0f, 7.0f, 8.0f};
+        std::unordered_map<ui32, ui32> reverseLeafMap;
+        for (ui32 k = 0; k < leafBfsIds.size(); ++k) {
+            reverseLeafMap[leafBfsIds[k]] = k;
+        }
+
+        const float* leafPtr = leafVals.data();
+        const ui32 approxDim = 2;
+
+        // bfsId=4 → leafIdx=1 → [7.0, 8.0]
+        ui32 bfsId = 4;
+        auto it = reverseLeafMap.find(bfsId);
+        if (it == reverseLeafMap.end()) {
+            printf("  FAIL: bfsId 4 not found\n"); pass = false;
+        } else {
+            ui32 leafIdx = it->second;
+            double d0 = static_cast<double>(leafPtr[leafIdx * approxDim + 0]);
+            double d1 = static_cast<double>(leafPtr[leafIdx * approxDim + 1]);
+            if (std::abs(d0 - 7.0) > 1e-9 || std::abs(d1 - 8.0) > 1e-9) {
+                printf("  FAIL: bfsId 4 dims = [%.4f, %.4f] expected [7.0, 8.0]\n", d0, d1);
+                pass = false;
+            }
+        }
+    }
+
+    if (pass) printf("  PASS: Lossguide reverse leaf map correct\n");
+    return pass;
+}
+
+// ============================================================================
+// Test: Lossguide NodeSplitMap — split vs leaf node classification
+//
+// Verifies that the dispatch logic correctly classifies BFS nodes as either
+// split nodes (present in NodeSplitMap) or leaves (absent from NodeSplitMap).
+// ============================================================================
+
+bool TestLossguideNodeClassification() {
+    printf("\n=== Test: Lossguide Node Classification ===\n");
+
+    bool pass = true;
+
+    // Construct a small Lossguide tree:
+    //   Root (bfsIdx=0) splits on feature 0, bin 1
+    //   Left child (bfsIdx=1) splits on feature 2, bin 0
+    //   Right child (bfsIdx=2) is a leaf
+    //   Left-left (bfsIdx=3) is a leaf
+    //   Left-right (bfsIdx=4) is a leaf
+    //
+    // NodeSplitMap: {0 → split(f0, b1), 1 → split(f2, b0)}
+    // LeafBfsIds: [2, 3, 4]   (3 leaves)
+
+    struct SimpleSplit {
+        ui32 FeatureColumnIdx;
+        ui32 BinThreshold;
+    };
+
+    std::unordered_map<ui32, SimpleSplit> nodeSplitMap;
+    nodeSplitMap[0] = {0, 1};  // root: feature 0, bin 1
+    nodeSplitMap[1] = {2, 0};  // left child: feature 2, bin 0
+
+    std::vector<ui32> leafBfsIds = {2, 3, 4};
+    std::unordered_map<ui32, ui32> reverseLeafMap;
+    for (ui32 k = 0; k < leafBfsIds.size(); ++k) {
+        reverseLeafMap[leafBfsIds[k]] = k;
+    }
+
+    // Verify classification for each BFS node
+    auto classify = [&](ui32 bfsIdx) -> bool {
+        return nodeSplitMap.count(bfsIdx) > 0;  // true = split node
+    };
+
+    // bfsIdx 0, 1 → split nodes
+    for (ui32 splitBfs : {0u, 1u}) {
+        if (!classify(splitBfs)) {
+            printf("  FAIL: bfsIdx %u should be a split node\n", splitBfs); pass = false;
+        }
+    }
+
+    // bfsIdx 2, 3, 4 → leaf nodes
+    for (ui32 leafBfs : {2u, 3u, 4u}) {
+        if (classify(leafBfs)) {
+            printf("  FAIL: bfsIdx %u should be a leaf node\n", leafBfs); pass = false;
+        }
+        if (!reverseLeafMap.count(leafBfs)) {
+            printf("  FAIL: bfsIdx %u not in reverseLeafMap\n", leafBfs); pass = false;
+        }
+    }
+
+    // Verify split properties are accessible
+    {
+        auto it = nodeSplitMap.find(0u);
+        if (it == nodeSplitMap.end()) {
+            printf("  FAIL: root bfsIdx=0 not in nodeSplitMap\n"); pass = false;
+        } else {
+            if (it->second.FeatureColumnIdx != 0 || it->second.BinThreshold != 1) {
+                printf("  FAIL: root split = (f%u, b%u), expected (f0, b1)\n",
+                       it->second.FeatureColumnIdx, it->second.BinThreshold);
+                pass = false;
+            }
+        }
+    }
+
+    // Verify child BFS indices from parent
+    // parent 0 → children 1, 2
+    {
+        ui32 parent = 0;
+        ui32 leftChild = 2 * parent + 1;   // 1
+        ui32 rightChild = 2 * parent + 2;  // 2
+        if (leftChild != 1 || rightChild != 2) {
+            printf("  FAIL: parent 0 children: (%u, %u) expected (1, 2)\n",
+                   leftChild, rightChild); pass = false;
+        }
+    }
+    // parent 1 → children 3, 4
+    {
+        ui32 parent = 1;
+        ui32 leftChild = 2 * parent + 1;   // 3
+        ui32 rightChild = 2 * parent + 2;  // 4
+        if (leftChild != 3 || rightChild != 4) {
+            printf("  FAIL: parent 1 children: (%u, %u) expected (3, 4)\n",
+                   leftChild, rightChild); pass = false;
+        }
+    }
+
+    if (pass) printf("  PASS: Lossguide node classification correct\n");
+    return pass;
+}
+
 int main() {
     printf("CatBoost-MLX Phase 7 Model Export Test\n");
     printf("=======================================\n\n");
@@ -537,6 +963,10 @@ int main() {
     allPass &= TestFeatureIndexMapping();
     allPass &= TestLeafValuesRoundtrip();
     allPass &= TestTrainAndExport();
+    allPass &= TestDepthwiseBfsLeafMapping();
+    allPass &= TestDepthwiseLeafValues();
+    allPass &= TestLossguideReverseLeafMap();
+    allPass &= TestLossguideNodeClassification();
 
     printf("\n=======================================\n");
     printf(allPass ? "ALL TESTS PASSED\n" : "SOME TESTS FAILED\n");

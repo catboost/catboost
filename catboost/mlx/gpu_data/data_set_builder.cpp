@@ -2,11 +2,14 @@
 
 #include <catboost/libs/data/columns.h>
 #include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/vector.h>
+
+#include <vector>
 
 namespace NCatboostMlx {
 
@@ -128,6 +131,26 @@ namespace NCatboostMlx {
             dataset.SetWeights(weightValues.data(), numDocs);
         } else {
             dataset.SetUniformWeights(numDocs);
+        }
+
+        // Extract group/query data for ranking losses (PairLogit, YetiRank).
+        // ObjectsData->GetObjectsGrouping() returns TObjectsGroupingPtr.
+        // If the grouping is non-trivial (real groups), populate group offsets.
+        {
+            const auto groupingPtr = dataProvider.ObjectsData->GetObjectsGrouping();
+            if (groupingPtr && !groupingPtr->IsTrivial()) {
+                const ui32 numGroups = groupingPtr->GetGroupCount();
+                std::vector<ui32> groupOffsets(numGroups + 1);
+                const auto& groupBounds = groupingPtr->GetNonTrivialGroups();
+                for (ui32 g = 0; g < numGroups; ++g) {
+                    groupOffsets[g] = groupBounds[g].Begin;
+                }
+                groupOffsets[numGroups] = numDocs;  // sentinel
+                dataset.SetGroupData(groupOffsets, numGroups);
+
+                CATBOOST_INFO_LOG << "CatBoost-MLX: Extracted group data: "
+                    << numGroups << " groups" << Endl;
+            }
         }
 
         // Initialize training state buffers
