@@ -1,0 +1,94 @@
+name: MLX Python Test Suite
+
+on:
+  push:
+    branches:
+      - 'mlx/**'
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-tests:
+    name: Python tests (macos-14, py3.13)
+    runs-on: macos-14  # Apple M1 — Metal GPU available
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Python ─────────────────────────────────────────────────────────────
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # ── Pip cache ──────────────────────────────────────────────────────────
+      # Keyed on pyproject.toml + setup.py so a dep change invalidates the cache.
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/pip
+          key: pip-macos14-py313-${{ hashFiles('python/pyproject.toml', 'python/setup.py') }}
+          restore-keys: |
+            pip-macos14-py313-
+
+      # ── Python dependencies ────────────────────────────────────────────────
+      # Install mlx first: setup.py imports mlx.extension at build time.
+      # nanobind must also be present before the CMake extension build runs.
+      # catboost is installed last — it's large and only needed for benchmarks.
+      - name: Install MLX and nanobind
+        run: pip install 'mlx>=0.18' 'nanobind>=2.10'
+
+      - name: Install CatBoost (CPU, benchmark comparison)
+        run: pip install catboost
+
+      # ── C++ binary build ───────────────────────────────────────────────────
+      # csv_train and csv_predict are standalone binaries that some tests invoke
+      # as subprocesses. They link against the system MLX installed by Homebrew
+      # (which ships the shared lib); pip-installed mlx provides Python bindings
+      # and CMake config but not a linkable dylib for standalone clang++ builds.
+      # macos-14 runners have Homebrew pre-installed; `brew install mlx` is
+      # idempotent and fast when already cached by the runner image.
+      - name: Install MLX via Homebrew (for C++ binary linking)
+        run: brew install mlx
+
+      - name: Compile C++ binaries
+        run: |
+          set -euo pipefail
+          MLX_PREFIX="$(brew --prefix mlx)"
+          CFLAGS="-std=c++17 -O2 -I. -I${MLX_PREFIX}/include -L${MLX_PREFIX}/lib -lmlx -framework Metal -framework Foundation -Wno-c++20-extensions"
+          clang++ ${CFLAGS} catboost/mlx/tests/csv_train.cpp   -o csv_train
+          clang++ ${CFLAGS} catboost/mlx/tests/csv_predict.cpp -o csv_predict
+
+      - name: Verify C++ binaries
+        run: |
+          set -euo pipefail
+          test -x ./csv_train   || { echo "csv_train not executable";   exit 1; }
+          test -x ./csv_predict || { echo "csv_predict not executable"; exit 1; }
+
+      - name: Bundle binaries into Python package
+        run: |
+          set -euo pipefail
+          mkdir -p python/catboost_mlx/bin
+          cp csv_train   python/catboost_mlx/bin/
+          cp csv_predict python/catboost_mlx/bin/
+
+      # ── Nanobind extension build + package install ─────────────────────────
+      # setup.py uses mlx.extension.CMakeBuild which sets MLX_DIR in the
+      # environment before invoking CMake. CMake then finds nanobind via
+      # `python -m nanobind --cmake_dir`. Both mlx and nanobind must be on
+      # PATH before this step runs.
+      - name: Build nanobind extension and install package
+        working-directory: python
+        run: pip install -e ".[dev]"
+
+      # ── Test suite ─────────────────────────────────────────────────────────
+      - name: Run pytest
+        working-directory: python
+        run: python -m pytest tests/ -v --tb=short -x
