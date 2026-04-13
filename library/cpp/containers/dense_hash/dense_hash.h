@@ -137,8 +137,8 @@ public:
     using iterator = TIteratorBase<TDenseHash, value_type>;
     using const_iterator = TIteratorBase<const TDenseHash, const value_type>;
 
-   static_assert(std::forward_iterator<iterator>);
-   static_assert(std::forward_iterator<const_iterator>);
+    static_assert(std::forward_iterator<iterator>);
+    static_assert(std::forward_iterator<const_iterator>);
 
 public:
     TDenseHash(const key_type& emptyMarker = key_type{}, size_type initSize = 0)
@@ -618,7 +618,7 @@ private:
 public:
     typedef TIteratorBase<const TDenseHashSet> TConstIterator;
 
-   static_assert(std::forward_iterator<TConstIterator>);
+    static_assert(std::forward_iterator<TConstIterator>);
 
     TConstIterator begin() const {
         return TConstIterator(*this);
