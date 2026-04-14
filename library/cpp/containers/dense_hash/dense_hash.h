@@ -137,8 +137,10 @@ public:
     using iterator = TIteratorBase<TDenseHash, value_type>;
     using const_iterator = TIteratorBase<const TDenseHash, const value_type>;
 
+#if defined(__cpp_lib_concepts) and (__cpp_lib_concepts >= 202002L)
     static_assert(std::forward_iterator<iterator>);
     static_assert(std::forward_iterator<const_iterator>);
+#endif
 
 public:
     TDenseHash(const key_type& emptyMarker = key_type{}, size_type initSize = 0)
@@ -618,7 +620,9 @@ private:
 public:
     typedef TIteratorBase<const TDenseHashSet> TConstIterator;
 
+#if defined(__cpp_lib_concepts) and (__cpp_lib_concepts >= 202002L)
     static_assert(std::forward_iterator<TConstIterator>);
+#endif
 
     TConstIterator begin() const {
         return TConstIterator(*this);
