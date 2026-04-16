@@ -17,7 +17,7 @@ Sprint 15 shipped upstream submission prep and release packaging. Benchmarks rev
 | Agent | Task | Status |
 |-------|------|--------|
 | @performance-engineer | S16-01/02/03/04: stage profiler + baseline capture + MST + sync inventory | Pending dispatch |
-| @mlops-engineer | S16-05/06: bench harness extension + CI perf gate | Pending dispatch |
+| @mlops-engineer | S16-05/06: bench harness extension + CI perf gate | DONE — committed to sprint-16 branch |
 | @ml-engineer | S16-07: pointwise_target.h sync-storm elimination | Pending dispatch (merge blocked on baseline profile) |
 | @devops-engineer | CMake `CATBOOST_MLX_STAGE_PROFILE` option | Pending dispatch |
 | @technical-writer | S16-11: docs/sprint16/ skeleton + ARCHITECTURE.md update | Pending dispatch |

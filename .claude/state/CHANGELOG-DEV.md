@@ -7,6 +7,9 @@
 **Branch**: `mlx/sprint-16-perf-diagnosis`
 **Campaign**: Operation Verstappen — performance domination push
 - Restored `.claude/state/` files (HANDOFF, TODOS, MEMORY, DECISIONS, CHANGELOG-DEV)
+- S16-05: Extended `benchmarks/bench_mlx_vs_cpu.py` with `--bins`, `--mlx-stage-profile`, `--save-baseline` flags; CPU-parity runner with side-by-side JSON; new `ParityResult` data class; JSON schema with `meta`+`runs[]` including `bins`, `stage_timings`, `cpu_baseline`, `mlx_baseline`
+- S16-06: Created `.github/workflows/mlx-perf-regression.yaml` — CI gate on 50k RMSE 128-bin benchmark, 5% threshold, step summary table, `macos-14` only
+- S16-02 (baseline support): Created `.cache/benchmarks/sprint16_baseline.json` — 9 runs (RMSE/Logloss/MultiClass × 1k/10k/50k at 128 bins), sourced from phase_a_results.json
 - Profiling infrastructure and sync-storm fix in progress
 
 ---
