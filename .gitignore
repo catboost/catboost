@@ -105,8 +105,10 @@ python/build/
 python/dist/
 .pytest_cache/
 
-# Claude Code agent state (tracked locally only)
-.claude/
+# Claude Code agent state (agent-memory tracked locally, state/ committed)
+.claude/*
+!.claude/state/
+!.claude/state/*
 
 # ML artifacts (large files, not committed)
 checkpoints/
