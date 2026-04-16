@@ -32,7 +32,9 @@ namespace NCatboostMlx {
             // Hessian is constant = weight (for weighted case) or 1.0
             hessians = mx::copy(weights);
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — gradients/hessians are consumed lazily by the histogram
+            // kernel in structure_searcher.cpp. Eval happens at the iteration
+            // boundary in mlx_boosting.cpp via EvalAtBoundary(cursor).
         }
 
         mx::array ComputeLoss(
@@ -45,7 +47,7 @@ namespace NCatboostMlx {
             auto sqDiff = mx::multiply(diff, diff);
             auto weightedSqDiff = mx::multiply(sqDiff, weights);
             auto loss = mx::sqrt(mx::mean(weightedSqDiff));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
     };
@@ -81,7 +83,7 @@ namespace NCatboostMlx {
             // Clamp hessian to avoid numerical issues
             hessians = mx::maximum(hessians, mx::array(1e-16f));
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -102,7 +104,7 @@ namespace NCatboostMlx {
                     mx::multiply(mx::subtract(mx::array(1.0f), targets), log1mSig)
                 )
             )));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
     };
@@ -164,7 +166,7 @@ namespace NCatboostMlx {
             );
             hessians = mx::maximum(hessians, mx::array(1e-16f));
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -209,7 +211,7 @@ namespace NCatboostMlx {
             auto loss = mx::negative(mx::mean(
                 mx::multiply(weights, mx::log(mx::add(probTarget, eps)))
             ));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
 
@@ -258,7 +260,7 @@ namespace NCatboostMlx {
             gradients = mx::sign(mx::subtract(cursor, targets));
             gradients = mx::multiply(gradients, weights);
             hessians = mx::copy(weights);
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -268,7 +270,7 @@ namespace NCatboostMlx {
         ) const override {
             auto loss = mx::mean(mx::multiply(
                 mx::abs(mx::subtract(cursor, targets)), weights));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
     };
@@ -297,7 +299,7 @@ namespace NCatboostMlx {
                 mx::array(1.0f - Alpha_), mx::array(-Alpha_));
             gradients = mx::multiply(gradients, weights);
             hessians = mx::copy(weights);
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -311,7 +313,7 @@ namespace NCatboostMlx {
                 mx::multiply(mx::array(Alpha_), diff),
                 mx::multiply(mx::array(Alpha_ - 1.0f), diff));
             auto result = mx::mean(mx::multiply(loss, weights));
-            TMLXDevice::EvalNow(result);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return result;
         }
 
@@ -344,7 +346,7 @@ namespace NCatboostMlx {
             gradients = mx::multiply(gradients, weights);
             hessians = mx::where(isSmall, mx::copy(weights),
                 mx::multiply(mx::array(1e-6f), weights));
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -361,7 +363,7 @@ namespace NCatboostMlx {
                     mx::multiply(mx::array(Delta_), absDiff),
                     mx::array(0.5f * Delta_ * Delta_)));
             auto result = mx::mean(mx::multiply(loss, weights));
-            TMLXDevice::EvalNow(result);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return result;
         }
 
@@ -396,7 +398,7 @@ namespace NCatboostMlx {
                 mx::array(1e-6f)
             );
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -410,7 +412,7 @@ namespace NCatboostMlx {
                 mx::subtract(expPred, mx::multiply(targets, cursor)),
                 weights
             ));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
     };
@@ -453,7 +455,7 @@ namespace NCatboostMlx {
                 mx::array(1e-6f)
             );
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -473,7 +475,7 @@ namespace NCatboostMlx {
                 mx::array(2.0f - p)
             );
             auto loss = mx::mean(mx::multiply(mx::add(term1, term2), weights));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
 
@@ -510,7 +512,7 @@ namespace NCatboostMlx {
                 weights
             );
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // No EvalNow — consumed lazily by histogram kernel.
         }
 
         mx::array ComputeLoss(
@@ -523,7 +525,7 @@ namespace NCatboostMlx {
                 mx::divide(mx::abs(mx::subtract(cursor, targets)), absTarget),
                 weights
             ));
-            TMLXDevice::EvalNow(loss);
+            // No EvalNow — caller uses .item<float>() which forces evaluation.
             return loss;
         }
     };

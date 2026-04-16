@@ -53,7 +53,7 @@ namespace NCatboostMlx {
             ui32 valDocs = config.ValidationData->GetNumDocs();
             valCursor = mx::zeros(
                 {static_cast<int>(approxDim), static_cast<int>(valDocs)}, mx::float32);
-            TMLXDevice::EvalNow(valCursor);
+            TMLXDevice::EvalAtBoundary(valCursor);
             CATBOOST_INFO_LOG << "CatBoost-MLX: Validation set: " << valDocs << " docs" << Endl;
         }
 
@@ -62,6 +62,14 @@ namespace NCatboostMlx {
 
         for (ui32 iter = 0; iter < config.NumIterations; ++iter) {
             auto iterStart = std::chrono::steady_clock::now();
+
+            // Single sync per iteration: materialise the cursor updated by the
+            // previous iteration's Apply* call.  This bounds the lazy MLX graph
+            // depth to O(1 iteration), preventing unbounded memory accumulation
+            // across iterations and capping Metal command-buffer compilation time.
+            // All downstream ops in this iteration (ComputeDerivatives, histograms,
+            // leaf estimation, Apply*) run without additional syncs until next iter.
+            TMLXDevice::EvalAtBoundary({trainData.GetCursor()});
 
             // ----- Step 1: Compute gradients and hessians -----
             mx::array cursor;

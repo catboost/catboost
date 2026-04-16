@@ -170,7 +170,9 @@ namespace NCatboostMlx {
                 bits = mx::left_shift(bits, mx::array(static_cast<int>(depth)));
 
                 partitions = mx::bitwise_or(partitions, bits);
-                TMLXDevice::EvalNow(partitions);
+                // No EvalNow — partitions consumed lazily by ComputePartitionLayout
+                // at the next depth level via mx::argsort, which materialises the
+                // full chain in the same Metal command buffer as the histogram kernel.
             }
         }
 
@@ -248,8 +250,9 @@ namespace NCatboostMlx {
             // Strategy: run FindBestSplitGPU once per partition, slicing the
             // histogram and partition sums arrays to isolate that partition.
 
-            // Materialise partition sums once before the per-partition loop.
-            TMLXDevice::EvalNow({allGradSums, allHessSums});
+            // Materialise partition sums before CPU pointer readback.
+            // EvalAtBoundary is required here — .data<float>() follows immediately.
+            TMLXDevice::EvalAtBoundary({allGradSums, allHessSums});
             const float* gsPtr = allGradSums.data<float>();
             const float* hsPtr = allHessSums.data<float>();
 
@@ -350,7 +353,10 @@ namespace NCatboostMlx {
             {
                 const auto& compressedData = dataset.GetCompressedIndex().GetCompressedData();
                 auto& partitions = dataset.GetPartitions();
-                TMLXDevice::EvalNow(partitions);
+                // No EvalNow — partitions is read below only to build MLX expressions
+                // (mx::equal, mx::add), not via raw CPU pointer. The lazy chain is
+                // materialised when ComputePartitionLayout calls mx::argsort at the
+                // next depth level.
 
                 // Accumulate the bit update across all partitions in one MLX expression:
                 // goRightBits = sum over p of: ((featureVals[p] > thresh[p]) AND (part == p)) << depth
@@ -400,11 +406,11 @@ namespace NCatboostMlx {
                     updateBits = mx::add(updateBits, bits);
                 }
 
-                // Shift accumulated go-right bits to depth position and OR into partitions
+                // Shift accumulated go-right bits to depth position and OR into partitions.
+                // No EvalNow — consumed lazily by ComputePartitionLayout at next depth.
                 auto shiftedBits = mx::left_shift(updateBits,
                     mx::array(static_cast<int>(depth)));
                 partitions = mx::bitwise_or(partitions, shiftedBits);
-                TMLXDevice::EvalNow(partitions);
             }
         }
 
@@ -547,7 +553,8 @@ namespace NCatboostMlx {
                 numDocs, 2u, approxDimension,
                 allGradSums, allHessSums
             );
-            TMLXDevice::EvalNow({allGradSums, allHessSums});
+            // EvalAtBoundary required — .data<float>() CPU pointer reads follow immediately.
+            TMLXDevice::EvalAtBoundary({allGradSums, allHessSums});
 
             const float* gsPtr = allGradSums.data<float>();
             const float* hsPtr = allHessSums.data<float>();
@@ -642,7 +649,8 @@ namespace NCatboostMlx {
             // Update leafDocVec: docs in leafId that go right now get rightLeafId.
             // Extract feature values for docs in this leaf.
             const auto& compressedData = dataset.GetCompressedIndex().GetCompressedData();
-            TMLXDevice::EvalNow(compressedData);
+            // EvalAtBoundary required — raw CPU pointer read follows immediately.
+            TMLXDevice::EvalAtBoundary(compressedData);
             const uint32_t* dataPtr = compressedData.data<uint32_t>();
             const ui32 lineSize = dataset.GetCompressedIndex().GetNumUi32PerDoc();
 
@@ -673,7 +681,9 @@ namespace NCatboostMlx {
             reinterpret_cast<const int32_t*>(leafDocVec.data()),
             {static_cast<int>(numDocs)}, mx::uint32
         );
-        TMLXDevice::EvalNow(result.LeafDocIds);
+        // EvalAtBoundary: materialise LeafDocIds at lossguide tree exit so that
+        // ApplyLossguideTree receives a fully-evaluated GPU array for mx::take.
+        TMLXDevice::EvalAtBoundary(result.LeafDocIds);
 
         CATBOOST_INFO_LOG << "CatBoost-MLX Lossguide: tree built with "
             << result.NumLeaves << " leaves, "

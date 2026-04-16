@@ -117,7 +117,9 @@ namespace NCatboostMlx {
         // leafIdx was already computed per-thread; no O(depth) MLX recompute needed.
         dataset.GetPartitions() = results[1];
 
-        TMLXDevice::EvalNow({cursor, dataset.GetPartitions()});
+        // EvalAtBoundary: materialise cursor and partitions written by this kernel
+        // before any downstream code reads them (e.g. ComputeDerivatives next iter).
+        TMLXDevice::EvalAtBoundary({cursor, dataset.GetPartitions()});
 
         CATBOOST_DEBUG_LOG << "CatBoost-MLX: Applied tree depth=" << depth
             << " to " << numDocs << " documents (Metal kernel)" << Endl;
@@ -217,7 +219,9 @@ namespace NCatboostMlx {
         cursor = mx::reshape(results[0], cursorShape);
         dataset.GetPartitions() = results[1];
 
-        TMLXDevice::EvalNow({cursor, dataset.GetPartitions()});
+        // EvalAtBoundary: materialise cursor and partitions written by this kernel
+        // before any downstream code reads them (e.g. ComputeDerivatives next iter).
+        TMLXDevice::EvalAtBoundary({cursor, dataset.GetPartitions()});
 
         CATBOOST_DEBUG_LOG << "CatBoost-MLX: Applied depthwise tree depth=" << depth
             << " to " << numDocs << " documents (Metal kernel)" << Endl;
@@ -248,7 +252,8 @@ namespace NCatboostMlx {
 
         // CPU traversal: for each doc, walk the BFS tree from root until we reach a leaf.
         auto flatData = mx::reshape(compressedData, {static_cast<int>(numDocs), -1});
-        TMLXDevice::EvalNow(flatData);
+        // EvalAtBoundary required — raw CPU pointer read follows immediately.
+        TMLXDevice::EvalAtBoundary(flatData);
         const uint32_t* dataPtr = flatData.data<uint32_t>();
         const ui32 lineSize = static_cast<ui32>(flatData.shape(1));
 
@@ -316,7 +321,9 @@ namespace NCatboostMlx {
         // Update partitions: for lossguide trees the partition is just the dense leaf id.
         dataset.GetPartitions() = leafDocIds;
 
-        TMLXDevice::EvalNow({cursor, dataset.GetPartitions()});
+        // EvalAtBoundary: materialise cursor and partitions written by this kernel
+        // before any downstream code reads them (e.g. ComputeDerivatives next iter).
+        TMLXDevice::EvalAtBoundary({cursor, dataset.GetPartitions()});
 
         CATBOOST_DEBUG_LOG << "CatBoost-MLX: Applied lossguide tree with "
             << numLeaves << " leaves to " << numDocs << " documents" << Endl;
