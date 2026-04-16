@@ -7,6 +7,16 @@ cmake_minimum_required(VERSION 3.20)
 
 option(USE_MLX "Build the MLX Metal GPU backend for Apple Silicon" OFF)
 
+# Per-stage profiling instrumentation (S16-01).
+# When ON, compiles the CATBOOST_MLX_STAGE_PROFILE preprocessor macro into all
+# training translation units.  The macro gates TStageProfiler scoped timers in
+# mlx_boosting.cpp and structure_searcher.cpp — zero overhead when OFF because
+# the macro expands to nothing and the dead-code path is eliminated by the compiler.
+#
+# Activate with: cmake -DUSE_MLX=ON -DCATBOOST_MLX_STAGE_PROFILE=ON ...
+option(CATBOOST_MLX_STAGE_PROFILE
+    "Enable per-stage pipeline profiling in the MLX training loop (default OFF)" OFF)
+
 if (NOT USE_MLX)
     return()
 endif()
@@ -66,6 +76,13 @@ target_link_libraries(catboost-mlx-train-lib PUBLIC
 
 # Ensure C++17 minimum (matching CatBoost)
 target_compile_features(catboost-mlx-train-lib PUBLIC cxx_std_17)
+
+# Propagate the profiling macro to all translation units that include stage_profiler.h.
+# The macro is guarded with #ifdef in the header, so non-profiling builds see no overhead.
+if (CATBOOST_MLX_STAGE_PROFILE)
+    message(STATUS "CatBoost-MLX: Stage profiling ENABLED (CATBOOST_MLX_STAGE_PROFILE=ON)")
+    target_compile_definitions(catboost-mlx-train-lib PUBLIC CATBOOST_MLX_STAGE_PROFILE)
+endif()
 
 # Add Objective-C++ support for Metal API calls
 set_source_files_properties(
