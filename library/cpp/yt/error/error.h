@@ -133,13 +133,15 @@ public:
     TOriginAttributes* MutableOriginAttributes() const noexcept;
     void UpdateOriginAttributes();
 
+    static constexpr i64 DefaultTruncateStringLimit = 32_KBs;
+
     TError Truncate(
         int maxInnerErrorCount = 2,
-        i64 stringLimit = 16_KB,
+        i64 stringLimit = DefaultTruncateStringLimit,
         const THashSet<TStringBuf>& attributeWhitelist = {}) const &;
     TError Truncate(
         int maxInnerErrorCount = 2,
-        i64 stringLimit = 16_KB,
+        i64 stringLimit = DefaultTruncateStringLimit,
         const THashSet<TStringBuf>& attributeWhitelist = {}) &&;
 
     bool IsOK() const;
