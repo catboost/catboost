@@ -226,6 +226,52 @@ jobs:
           print(f"OK: regression {regression:+.1%} is within the {THRESHOLD:.0%} limit.")
           PYEOF
 
+      # ── Histogram-stage gate (S17-05) ─────────────────────────────────────────
+      # Capture a fresh stage-profile run for the 18 Sprint 16 baseline configs
+      # and check that no config regresses histogram_ms by more than 5%.
+      #
+      # This gate is deliberately separate from the wall-clock gate above:
+      #   - Wall-clock noise at N=50k is ~2-3%, so a 10% kernel regression
+      #     can hide behind run-to-run variance.
+      #   - histogram_ms is a synchronous, eval()-fenced measurement and is
+      #     substantially less noisy than end-to-end wall-clock.
+      #
+      # The before-snapshots are the committed Sprint 16 baselines at
+      #   .cache/profiling/sprint17/baseline_<N>_<loss>_d6_<bins>bins.json
+      # The after-snapshots are produced fresh on every PR run.
+      #
+      # continue-on-error: false ensures this is a hard merge gate.
+      - name: Capture stage-profile run (18-config, histogram gate)
+        id: stage_profile_run
+        continue-on-error: false
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/hist_gate_after
+          for SCALE in 1000 10000 50000; do
+            for LOSS in rmse logloss multiclass; do
+              for BINS in 32 128; do
+                OUTFILE="/tmp/hist_gate_after/baseline_${SCALE}_${LOSS}_d6_${BINS}bins.json"
+                python benchmarks/bench_mlx_vs_cpu.py \
+                  --scales "${SCALE}" \
+                  --iterations 50 \
+                  --bins "${BINS}" \
+                  --mlx-stage-profile \
+                  --hardware "macos-14-ci" \
+                  --output "${OUTFILE}"
+              done
+            done
+          done
+
+      - name: Check histogram_ms regression (18 configs, 5% limit)
+        id: histogram_gate
+        continue-on-error: false
+        run: |
+          python benchmarks/check_histogram_gate.py \
+            --18config \
+            --before-dir .cache/profiling/sprint17 \
+            --after-dir  /tmp/hist_gate_after \
+            --max-regression 0.05
+
       # ── Step summary ───────────────────────────────────────────────────────
       # Write a compact summary to the GitHub Actions step summary so reviewers
       # can read the numbers without opening the full log.
