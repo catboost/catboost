@@ -723,6 +723,60 @@ void TRawTargetDataProvider::AssignWeights(TConstArrayRef<float> src, TWeights<f
     );
 }
 
+static void ValidateSetNumericTargetPreconditions(
+    size_t targetSize,
+    ui32 objectCount,
+    size_t existingTargetDim,
+    ERawTargetType existingTargetType
+) {
+    CB_ENSURE(
+        targetSize == objectCount,
+        "Target length " << targetSize << " != object count " << objectCount
+    );
+    if (existingTargetDim > 0) {
+        CB_ENSURE(
+            existingTargetDim == 1,
+            "SetNumericTarget requires 1 target dimension, got " << existingTargetDim
+        );
+        CB_ENSURE(
+            existingTargetType == ERawTargetType::Float || existingTargetType == ERawTargetType::None,
+            "SetNumericTarget requires numeric or unset target type, got " << existingTargetType
+        );
+    }
+}
+
+void TRawTargetDataProvider::SetNumericTarget(TConstArrayRef<float> target) {
+    ValidateSetNumericTargetPreconditions(
+        target.size(), GetObjectCount(), Data.Target.size(), Data.TargetType
+    );
+    // Construct holder before mutating Data to preserve strong exception guarantee.
+    TVector<float> storage(target.begin(), target.end());
+    ITypedSequencePtr<float> holder = static_cast<ITypedSequencePtr<float>>(
+        MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(storage))
+    );
+    if (Data.Target.empty()) {
+        Data.Target.push_back(std::move(holder));
+    } else {
+        Data.Target[0] = std::move(holder);
+    }
+    Data.TargetType = ERawTargetType::Float;
+}
+
+void TRawTargetDataProvider::SetNumericTarget(TVector<float>&& target) {
+    ValidateSetNumericTargetPreconditions(
+        target.size(), GetObjectCount(), Data.Target.size(), Data.TargetType
+    );
+    ITypedSequencePtr<float> holder = static_cast<ITypedSequencePtr<float>>(
+        MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(target))
+    );
+    if (Data.Target.empty()) {
+        Data.Target.push_back(std::move(holder));
+    } else {
+        Data.Target[0] = std::move(holder);
+    }
+    Data.TargetType = ERawTargetType::Float;
+}
+
 
 template <class TKey, class TSharedDataPtr>
 using TTargetSingleTypeDataCache = THashMap<TKey, TSharedDataPtr>;

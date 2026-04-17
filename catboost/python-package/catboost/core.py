@@ -1177,6 +1177,40 @@ class Pool(_PoolBase):
         self._set_baseline(self._check_and_prepare_baseline(baseline, self.num_row()))
         return self
 
+    def set_label(self, label):
+        self._check_label_type(label)
+        num_row = self.num_row()
+        if num_row == 0:
+            # Empty-Pool symmetry with Pool(data=[], label=[]).
+            if len(label) != 0:
+                raise CatBoostError(
+                    "Length of label={} and length of data=0 is different.".format(len(label))
+                )
+            return self
+        self._check_label_empty(label)
+        if isinstance(label, pl.Series):
+            label = label.to_numpy()
+        elif isinstance(label, pl.DataFrame):
+            label = label.to_numpy()
+        else:
+            label = self._label_if_pandas_to_numpy(label)
+        if isinstance(label, np.ndarray):
+            if label.ndim > 1 and not (label.ndim == 2 and label.shape[1] == 1):
+                raise CatBoostError(
+                    "set_label requires a 1-D label array (or (N, 1) column); got shape {}.".format(label.shape)
+                )
+            if label.dtype.kind in ('O', 'U', 'S', 'V'):
+                raise CatBoostError(
+                    "set_label does not accept arrays of dtype kind '{}' "
+                    "(strings, bytes, or object). Convert to a numeric dtype "
+                    "explicitly via label.astype(float) if you need the coercion.".format(label.dtype.kind)
+                )
+            if label.ndim == 2:
+                label = label.ravel()
+        self._check_label_shape(label, num_row)
+        self._set_label(label)
+        return self
+
     def set_weight(self, weight):
         self._check_weight_type(weight)
         weight = self._if_pandas_to_numpy(weight)
@@ -1516,7 +1550,41 @@ class Pool(_PoolBase):
                         group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
 
 
-def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
+def _set_pool_label_with_overwrite_warning(pool, y, caller, stacklevel=3):
+    # Validate before warning so a bad y never leaves a warning + exception pair.
+    # stacklevel: 6 for fit() (fit -> _fit -> _prepare_train_params -> _build_train_pool
+    # -> helper -> warn), 3 for direct score() -> helper.
+    pool._check_label_type(y)
+    pool._check_label_empty(y)
+    pool._check_label_shape(y, pool.num_row())
+    if pool.has_label():
+        warnings.warn(
+            "{}() received a Pool with existing labels AND y; y overrides the Pool's "
+            "labels in-place via Pool.set_label(y). This mutates the caller's Pool.".format(caller),
+            UserWarning, stacklevel=stacklevel
+        )
+    pool.set_label(y)
+
+
+def _eval_set_aliases_train_pool(eval_set, train_pool):
+    # True when eval_set shares a Pool object with train_pool. Walks Pool / (X, y) tuple /
+    # list of either, matching by `is` (not `==`) so only true aliasing is caught.
+    if eval_set is None:
+        return False
+    if eval_set is train_pool:
+        return True
+    if isinstance(eval_set, tuple):
+        return len(eval_set) > 0 and eval_set[0] is train_pool
+    if isinstance(eval_set, list):
+        for entry in eval_set:
+            if entry is train_pool:
+                return True
+            if isinstance(entry, tuple) and len(entry) > 0 and entry[0] is train_pool:
+                return True
+    return False
+
+
+def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description, eval_set=None):
     train_pool = None
     if isinstance(X, Pool):
         train_pool = X
@@ -1525,10 +1593,20 @@ def _build_train_pool(X, y, cat_features, text_features, embedding_features, pai
                 "cat_features, text_features, embedding_features, sample_weight, group_id, group_weight, subgroup_id,"
                 " pairs_weight, baseline should have the None type when X has catboost.Pool type."
             )
-        if (not X.has_label()) and X.num_pairs() == 0:
-            raise CatBoostError("Label in X has not been initialized.")
         if y is not None:
-            raise CatBoostError("Incorrect value of y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+            # Catch the silent train/eval mutation footgun: if the caller passed the same
+            # Pool as both X and (a member of) eval_set, overwriting X's labels via y
+            # would also mutate the eval pool, silently producing invalid validation.
+            if _eval_set_aliases_train_pool(eval_set, X):
+                raise CatBoostError(
+                    "fit() received the same Pool object as both X and eval_set, and y is not None. "
+                    "Overwriting X's labels via set_label(y) would also mutate eval_set's labels, "
+                    "silently producing invalid validation. Pass a separate Pool for eval_set, or "
+                    "set the label on X before fit() and omit y."
+                )
+            _set_pool_label_with_overwrite_warning(train_pool, y, "fit", stacklevel=6)
+        elif (not X.has_label()) and X.num_pairs() == 0:
+            raise CatBoostError("Label in X has not been initialized.")
     elif isinstance(X, PATH_TYPES):
         train_pool = Pool(data=X, pairs=pairs, graph=graph, column_description=column_description)
     else:
@@ -2577,7 +2655,7 @@ class CatBoost(_CatBoostBase):
 
         train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, graph,
                                        sample_weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                       baseline, column_description)
+                                       baseline, column_description, eval_set=eval_set)
         if train_pool.is_empty_:
             raise CatBoostError("X is empty.")
 
@@ -2775,7 +2853,7 @@ class CatBoost(_CatBoostBase):
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for regression (including multiregression), ranking and binary classification problems
               - class labels (boolean, integer or string) - for classification (including multiclassification) problems
-            Use only if X is not catboost.Pool and does not point to a file.
+            If X is catboost.Pool, passing y overrides the Pool's labels via set_label(y).
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -5449,7 +5527,7 @@ class CatBoostClassifier(CatBoost):
             If not None, can be a single- or two- dimensional array with either:
               - numerical values - for binary classification problems
               - class labels (boolean, integer or string)
-            Use only if X is not catboost.Pool and does not point to a file.
+            If X is catboost.Pool, passing y overrides the Pool's labels via set_label(y).
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -5850,7 +5928,7 @@ class CatBoostClassifier(CatBoost):
         """
         if isinstance(X, Pool):
             if y is not None:
-                raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+                _set_pool_label_with_overwrite_warning(X, y, "score")
             y = X.get_label()
             if y is None:
                 raise CatBoostError("Label in X has not initialized.")
@@ -6083,7 +6161,7 @@ class CatBoostRegressor(CatBoost):
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single- or two- dimensional array with numerical values.
-            Use only if X is not catboost.Pool and does not point to a file.
+            If X is catboost.Pool, passing y overrides the Pool's labels via set_label(y).
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -6284,7 +6362,7 @@ class CatBoostRegressor(CatBoost):
         """
         if isinstance(X, Pool):
             if y is not None:
-                raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+                _set_pool_label_with_overwrite_warning(X, y, "score")
             y = X.get_label()
             if y is None:
                 raise CatBoostError("Label in X has not initialized.")
@@ -6493,7 +6571,7 @@ class CatBoostRanker(CatBoost):
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series, optional (default=None)
             Labels of the training data.
             If not None, can be a single-dimensional array with numerical values.
-            Use only if X is not catboost.Pool and does not point to a file.
+            If X is catboost.Pool, passing y overrides the Pool's labels via set_label(y).
         group_id : numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
             Ranking groups, 1 dimensional array like.
             Use only if X is not catboost.Pool.
@@ -6686,7 +6764,7 @@ class CatBoostRanker(CatBoost):
 
         if isinstance(X, Pool):
             if y is not None:
-                raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+                _set_pool_label_with_overwrite_warning(X, y, "score")
             y = X.get_label()
             if group_id is not None:
                 raise CatBoostError("Wrong initializing group_id: X is catboost.Pool object, group_id must be initialized inside catboost.Pool.")

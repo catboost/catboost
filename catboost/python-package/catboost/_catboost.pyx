@@ -4801,6 +4801,14 @@ cdef class _PoolBase:
             TConstArrayRef[float](weight_vector.data(), weight_vector.size())
         )
 
+    cpdef _set_label(self, label):
+        cdef TVector[float] label_vector = py_to_tvector[float](label)
+        self.__pool.Get()[0].SetNumericTarget(move(label_vector))
+        self.__target_data_holders = []
+        # Mirror constructor (4325/4376) -- set_label receives 1-D label;
+        # Python set_label ravel()s (N,1) shapes before this call.
+        self.target_type = type(label[0]) if len(label) > 0 else float
+
     cpdef _set_group_id(self, group_id):
         cdef ui32 rows = self.num_row()
         cdef TVector[TGroupId] group_id_vector
