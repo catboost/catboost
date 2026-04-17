@@ -351,7 +351,7 @@ TFormatterWrapper<TFormatter> MakeFormatterWrapper(
     TFormatter&& formatter)
 {
     return TFormatterWrapper<TFormatter>{
-        .Formatter = std::move(formatter)
+        .Formatter = std::forward<TFormatter>(formatter)
     };
 }
 

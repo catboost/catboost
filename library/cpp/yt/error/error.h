@@ -336,6 +336,7 @@ struct TErrorAdaptor
 };
 
 // Make these to correctly forward TError to Wrap call.
+// NB(pavook): TErrorLike is intentionally always stolen (even if the caller passes it as an lvalue).
 template <class TErrorLike, class U>
     requires
         std::derived_from<std::remove_cvref_t<TErrorLike>, TError> &&
