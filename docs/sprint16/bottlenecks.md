@@ -1,5 +1,49 @@
 # Sprint 16 Bottleneck Inventory
 
+## Post-measurement revision (2026-04-17)
+
+After the full 18-config per-stage baseline (see
+[`baseline_results.md`](baseline_results.md)) and the MST scout
+([`mst_findings.md`](mst_findings.md)), the pre-measurement rankings below
+need to be updated. Summary of how each original item holds up under
+measurement:
+
+- **B1 (sync storm in `pointwise_target.h`)** — **FIXED in Sprint 16.**
+  `cpu_readback_ms` is 0.13 ms / 0.04% of iter time. Done.
+- **B2 (`maxBlocksPerPart = 1`)** — **FALSIFIED for the production path.**
+  `csv_train.cpp:891-894` now computes `maxBlocksPerPart = clamp(ceil(avg
+  docs per part / 4096), 1, 8)`. The original `histogram.cpp:105` still
+  hardcodes `maxBlocksPerPart = 1` but that path is dead code for csv_train
+  (see "Divergence" section in `mst_findings.md`). Sprint 17 MUST NOT target
+  this; it will do nothing.
+- **B3 (multiclass per-dim dispatch loop)** — **CONFIRMED but RE-RANKED.**
+  Multiclass is 2× binary in baseline (matches prediction). But the root
+  cause of multiclass-ness-being-slow turns out to be the per-dim loop
+  calling the same slow histogram kernel three times. Fixing the kernel
+  itself (new lever D1 in `mst_findings.md`) is higher-leverage than
+  fusing the per-dim calls. B3 deferred to Sprint 18.
+- **B4 (per-feature-group serial dispatch)** — **FALSIFIED for the production
+  path.** `csv_train.cpp:883-944` batches all feature groups into a single
+  kernel call via the `numGroups` parameter (extracted from grid.x). Still
+  present in `histogram.cpp:112-155` but that's dead code.
+- **B5 (per-depth CPU readback syncs in `structure_searcher.cpp`)** —
+  **FALSIFIED for the production path.** `cpu_readback_ms` is 0.13 ms
+  (0.04%). Even if all six depth readbacks were removed the gain would be
+  0.78 ms out of 318 ms. Not worth a sprint. Dead code in the library path
+  only.
+- **B6 (Lossguide CPU doc walker)** — **UNMEASURED, deferred.** Baseline ran
+  only SymmetricTree / Depthwise. Lossguide performance remains uninstrumented
+  — deserves its own diagnosis sprint before we optimise it.
+
+**New top bottleneck (not in the original inventory): the histogram
+kernel's serial 255-step threadgroup reduction.** See `mst_findings.md`
+section B.3 and lever D1. It dominates the kernel's wall-clock cost and
+was not visible to static code analysis because it lives in an embedded
+string constant (`kernel_sources.h:161-181`) rather than in a .metal
+file. Sprint 17 headline target.
+
+---
+
 Six bottlenecks identified by static code analysis before profiling began. Ranking by actual wall-clock impact will be determined from Sprint 16 diagnosis data and filled into [`docs/sprint16/diagnosis.md`](diagnosis.md) section 4.
 
 Each entry includes: description, evidence (file and line), estimated impact, and the fix planned for Sprint 17+. Impact estimates are pre-measurement heuristics and will be revised once profiling data arrives.
