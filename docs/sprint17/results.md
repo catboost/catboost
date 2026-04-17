@@ -75,13 +75,13 @@ S17-G3 gate was validated separately by @qa-engineer and documented in `parity_r
 
 (*Final-iteration ulp is 0 for all 18 configs. One transient 17-ulp spike at iter=10 in the 10k/MultiClass/32 config healed to bit-exact by iter=20 — see `parity_results.md` §Drift analysis.)
 
-35/36 checkpoints bit-exact across the 3×3×2 grid — a much stronger result than the loosened DEC-005 bounds required.
+35/36 checkpoints bit-exact across the 3×3×2 grid — a much stronger result than the loosened DEC-005 bounds required. *Scope caveat:* this finding is bound to the tested grid (`approxDim ∈ {1, 3}`, `N ≤ 50k`). Larger `approxDim` compounds the per-dim fold depth; larger `N` inflates the Σ|xᵢ| term in the Higham γ_8 bound. We do **not** generalize bit-exactness beyond the tested envelope — DEC-005 tolerances (RMSE/Logloss ulp≤4, MultiClass ulp≤8) remain the contractual gate.
 
 ## Surprises and analysis
 
 **1. Bigger than projected.** The D1c ablation projected 30–60% histogram_ms reduction based on reducing 255 barriers to 8. Actual: 89.4–93.0%. The gap means the serial kernel's bottleneck was not just barrier overhead but the 255 sequential read-modify-write passes through `stagingHist[HIST_PER_SIMD]` threadgroup memory — each pass created serialization pressure far exceeding the raw barrier cost. The SIMD-shuffle variant keeps all 32-thread intermediate values in registers, eliminating that serialization entirely.
 
-**2. Uniform across all 18 configs.** The reduction holds at 89.4–93.0% regardless of N (1k/10k/50k), loss (RMSE/Logloss/MultiClass), or bin count (32/128). This is a flat structural improvement, not a lucky-case optimization — the 255-barrier cost was proportional to nothing else in the problem, so removing it lifts every config equally.
+**2. Uniform across all 18 configs.** The reduction holds at 89.4–93.0% regardless of N (1k/10k/50k), loss (RMSE/Logloss/MultiClass), or bin count (32/128). This is a flat structural improvement, not a lucky-case optimization — the 255-barrier cost was proportional to nothing else in the problem, so removing it lifts every config equally. *Scope caveat:* the uniform-improvement result is validated across the tested grid (`approxDim ∈ {1, 3}`, `N ≤ 50k`). At larger `approxDim` or `N`, `privHist[1024]` register spill becomes the dominant cost (see Surprise 4 and `docs/sprint18/plan_prior.md` L1) and the reduction savings will shrink in absolute terms even though the kernel remains faster than the serial baseline.
 
 **3. Secondary-stage wins (pipeline unblocking).** `suffix_scoring_ms` improves 26% without any code change to that stage. The likely mechanism is dispatch queue contention: while the serial histogram kernel was live, subsequent dispatches queued behind it; now those dispatches issue back-to-back. Same mechanism explains the 20–30% wins across all secondary stages on the gate config.
 

@@ -177,7 +177,7 @@ static const std::string kHistOneByteSource = R"metal(
     //
     // Zero-skip fast-path (abs(val) > 1e-20f): kept in the global-atomic writeback
     // (lines 192–198 below) where it guards device-memory traffic. Fusing it into
-    // the cross-SIMD fold is an open micro-optimisation left for S17-06 code review.
+    // the cross-SIMD fold is an open micro-optimisation deferred to Sprint 18.
     threadgroup float simdHist[NUM_SIMD_GROUPS][BINS_PER_BYTE]; // 8 KB
     threadgroup float stagingHist[HIST_PER_SIMD];               // 4 KB (downstream interface unchanged)
 

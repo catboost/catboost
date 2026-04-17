@@ -52,6 +52,10 @@ Configs with any non-zero ulp_diff at any reported iteration:
 
 None. All 36 runs completed successfully.
 
+## Scope
+
+The bit-exact result above holds across the **tested grid**: `approxDim ∈ {1, 3}`, `N ∈ {1k, 10k, 50k}`, bins ∈ {32, 128}, 50 iterations, depth 6. We do **not** claim bit-exactness beyond this envelope. At larger `approxDim` the per-dim fold depth compounds error accumulation; at larger `N` the Σ|xᵢ| term in the Higham γ_8 bound grows. DEC-005 tolerances (RMSE/Logloss ulp≤4, MultiClass ulp≤8) are the durable contract — the 0-ulp result is a lucky-within-contract outcome on this grid, not a generalizable guarantee.
+
 ## Gate summary
 
 - S17-G3 (RMSE ulp≤4, Logloss ulp≤4, MultiClass ulp≤8): **PASS**
