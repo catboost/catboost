@@ -1,6 +1,7 @@
 #include "structure_searcher.h"
 #include <catboost/mlx/methods/score_calcer.h>
 #include <catboost/mlx/methods/leaves/leaf_estimator.h>
+#include <catboost/mlx/methods/stage_profiler.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <queue>
@@ -46,7 +47,8 @@ namespace NCatboostMlx {
         TMLXDataSet& dataset,
         ui32 maxDepth,
         float l2RegLambda,
-        ui32 approxDimension
+        ui32 approxDimension,
+        TStageProfiler* profiler
     ) {
         TObliviousTreeStructure result;
         result.Splits.reserve(maxDepth);
@@ -61,62 +63,79 @@ namespace NCatboostMlx {
             CATBOOST_DEBUG_LOG << "CatBoost-MLX: Searching depth " << depth
                 << " (" << numPartitions << " partitions)" << Endl;
 
-            // Compute partition layout from current assignments
-            auto layout = ComputePartitionLayout(
-                dataset.GetPartitions(), numDocs, numPartitions);
+            // Stage 3: Partition layout — GPU bucket sort.
+            TPartitionLayout layout;
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::PartitionLayout,
+                    static_cast<int>(depth),
+                    {dataset.GetPartitions()});
+                layout = ComputePartitionLayout(
+                    dataset.GetPartitions(), numDocs, numPartitions);
+            }
 
+            // Stage 4: Histogram build — Metal kernel per approxDim pass.
             // Step 1-2: Compute histograms per dimension; compute partition stats
             // once for all dims in a single GPU dispatch (OPT-1: eliminates
             // approxDim CPU-GPU round trips per depth level).
             TVector<THistogramResult> perDimHistograms;
             perDimHistograms.reserve(approxDimension);
 
-            for (ui32 k = 0; k < approxDimension; ++k) {
-                // Slice gradients and hessians for dimension k (histogram only)
-                mx::array dimGrads, dimHess;
-                if (approxDimension == 1) {
-                    dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
-                } else {
-                    dimGrads = mx::slice(dataset.GetGradients(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
-                    dimHess  = mx::slice(dataset.GetHessians(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
-                }
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::HistogramBuild,
+                    static_cast<int>(depth), {});
+                for (ui32 k = 0; k < approxDimension; ++k) {
+                    // Slice gradients and hessians for dimension k (histogram only)
+                    mx::array dimGrads, dimHess;
+                    if (approxDimension == 1) {
+                        dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
+                    } else {
+                        dimGrads = mx::slice(dataset.GetGradients(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
+                        dimHess  = mx::slice(dataset.GetHessians(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                    }
 
-                auto histResult = ComputeHistograms(
-                    dataset, dimGrads, dimHess,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    numPartitions
-                );
-                perDimHistograms.push_back(std::move(histResult));
+                    auto histResult = ComputeHistograms(
+                        dataset, dimGrads, dimHess,
+                        layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                        numPartitions
+                    );
+                    perDimHistograms.push_back(std::move(histResult));
+                }
             }
 
+            // Stage 5: Suffix-sum + split scoring.
             // Single GPU dispatch for all-dimension partition stats (OPT-1).
             // ComputeLeafSumsGPU handles approxDim internally via the [approxDim,numDocs]
             // layout — no CPU readback needed here; GPU arrays passed directly to
             // FindBestSplitGPU overload that accepts mx::array partition totals.
             mx::array allGradSums, allHessSums;
-            ComputeLeafSumsGPU(
-                dataset.GetGradients(), dataset.GetHessians(),
-                dataset.GetPartitions(),
-                numDocs, numPartitions, approxDimension,
-                allGradSums, allHessSums
-            );
-            // allGradSums / allHessSums: [approxDim * numPartitions] float32 — stays on GPU
+            TBestSplitProperties bestSplit;
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::SuffixScoring,
+                    static_cast<int>(depth), {});
+                ComputeLeafSumsGPU(
+                    dataset.GetGradients(), dataset.GetHessians(),
+                    dataset.GetPartitions(),
+                    numDocs, numPartitions, approxDimension,
+                    allGradSums, allHessSums
+                );
+                // allGradSums / allHessSums: [approxDim * numPartitions] float32 — stays on GPU
 
-            // Step 3: Find best split on GPU using pre-computed GPU partition sums
-            // and binToFeature lookup table (OPT-1 + OPT-2 combined path).
-            auto bestSplit = FindBestSplitGPU(
-                perDimHistograms,
-                allGradSums, allHessSums,
-                features,
-                l2RegLambda,
-                numPartitions,
-                approxDimension
-            );
+                // Step 3: Find best split on GPU using pre-computed GPU partition sums
+                // and binToFeature lookup table (OPT-1 + OPT-2 combined path).
+                bestSplit = FindBestSplitGPU(
+                    perDimHistograms,
+                    allGradSums, allHessSums,
+                    features,
+                    l2RegLambda,
+                    numPartitions,
+                    approxDimension
+                );
+            }
 
             if (!bestSplit.Defined()) {
                 CATBOOST_INFO_LOG << "CatBoost-MLX: No valid split found at depth " << depth
@@ -183,7 +202,8 @@ namespace NCatboostMlx {
         TMLXDataSet& dataset,
         ui32 maxDepth,
         float l2RegLambda,
-        ui32 approxDimension
+        ui32 approxDimension,
+        TStageProfiler* profiler
     ) {
         TDepthwiseTreeStructure result;
         const auto& features = dataset.GetCompressedIndex().GetFeatures();
@@ -200,44 +220,59 @@ namespace NCatboostMlx {
             CATBOOST_DEBUG_LOG << "CatBoost-MLX Depthwise: Searching depth " << depth
                 << " (" << numPartitions << " partitions)" << Endl;
 
-            // Compute partition layout from current assignments
-            auto layout = ComputePartitionLayout(
-                dataset.GetPartitions(), numDocs, numPartitions);
+            // Stage 3: Partition layout — GPU bucket sort.
+            TPartitionLayout layout;
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::PartitionLayout,
+                    static_cast<int>(depth),
+                    {dataset.GetPartitions()});
+                layout = ComputePartitionLayout(
+                    dataset.GetPartitions(), numDocs, numPartitions);
+            }
 
-            // Compute histograms per approxDim dimension
+            // Stage 4: Histogram build — Metal kernel per approxDim pass.
             TVector<THistogramResult> perDimHistograms;
             perDimHistograms.reserve(approxDimension);
 
-            for (ui32 k = 0; k < approxDimension; ++k) {
-                mx::array dimGrads, dimHess;
-                if (approxDimension == 1) {
-                    dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
-                } else {
-                    dimGrads = mx::slice(dataset.GetGradients(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
-                    dimHess  = mx::slice(dataset.GetHessians(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
-                }
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::HistogramBuild,
+                    static_cast<int>(depth), {});
+                for (ui32 k = 0; k < approxDimension; ++k) {
+                    mx::array dimGrads, dimHess;
+                    if (approxDimension == 1) {
+                        dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
+                    } else {
+                        dimGrads = mx::slice(dataset.GetGradients(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
+                        dimHess  = mx::slice(dataset.GetHessians(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                    }
 
-                auto histResult = ComputeHistograms(
-                    dataset, dimGrads, dimHess,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    numPartitions
-                );
-                perDimHistograms.push_back(std::move(histResult));
+                    auto histResult = ComputeHistograms(
+                        dataset, dimGrads, dimHess,
+                        layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                        numPartitions
+                    );
+                    perDimHistograms.push_back(std::move(histResult));
+                }
             }
 
+            // Stage 5: Suffix-sum + scoring — ComputeLeafSumsGPU + FindBestSplitGPU.
             // Compute GPU partition sums for all partitions.
             mx::array allGradSums, allHessSums;
-            ComputeLeafSumsGPU(
-                dataset.GetGradients(), dataset.GetHessians(),
-                dataset.GetPartitions(),
-                numDocs, numPartitions, approxDimension,
-                allGradSums, allHessSums
-            );
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::SuffixScoring,
+                    static_cast<int>(depth), {});
+                ComputeLeafSumsGPU(
+                    dataset.GetGradients(), dataset.GetHessians(),
+                    dataset.GetPartitions(),
+                    numDocs, numPartitions, approxDimension,
+                    allGradSums, allHessSums
+                );
+            }
 
             // --- Depthwise: find the best split per partition ---
             // Each partition (leaf at current depth) gets its own best split.
@@ -422,7 +457,8 @@ namespace NCatboostMlx {
         ui32 maxLeaves,
         float l2RegLambda,
         ui32 approxDimension,
-        ui32 maxDepth
+        ui32 maxDepth,
+        TStageProfiler* profiler
     ) {
         const auto& features = dataset.GetCompressedIndex().GetFeatures();
         const ui32 numDocs = dataset.GetNumDocs();
@@ -504,55 +540,71 @@ namespace NCatboostMlx {
                 mx::uint32
             );  // 0 for in-leaf, 1 for out-of-leaf
 
-            auto layout = ComputePartitionLayout(leafPart, numDocs, 2u);
+            // Stage 3: Partition layout for this leaf.
+            // Use leafId as the "depth" index for lossguide (one entry per leaf expansion).
+            TPartitionLayout layout;
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::PartitionLayout,
+                    static_cast<int>(leafId), {leafPart});
+                layout = ComputePartitionLayout(leafPart, numDocs, 2u);
+            }
 
-            // Compute histograms for 2 partitions; slice partition 0.
+            // Stage 4: Histogram build for this leaf.
             TVector<THistogramResult> perDimHistograms;
             perDimHistograms.reserve(approxDimension);
 
-            for (ui32 k = 0; k < approxDimension; ++k) {
-                mx::array dimGrads, dimHess;
-                if (approxDimension == 1) {
-                    dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
-                } else {
-                    dimGrads = mx::slice(dataset.GetGradients(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
-                    dimHess  = mx::slice(dataset.GetHessians(),
-                        {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
-                    dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::HistogramBuild,
+                    static_cast<int>(leafId), {});
+                for (ui32 k = 0; k < approxDimension; ++k) {
+                    mx::array dimGrads, dimHess;
+                    if (approxDimension == 1) {
+                        dimGrads = mx::reshape(dataset.GetGradients(), {static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dataset.GetHessians(),  {static_cast<int>(numDocs)});
+                    } else {
+                        dimGrads = mx::slice(dataset.GetGradients(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimGrads = mx::reshape(dimGrads, {static_cast<int>(numDocs)});
+                        dimHess  = mx::slice(dataset.GetHessians(),
+                            {static_cast<int>(k), 0}, {static_cast<int>(k + 1), static_cast<int>(numDocs)});
+                        dimHess  = mx::reshape(dimHess, {static_cast<int>(numDocs)});
+                    }
+
+                    auto fullHist = ComputeHistograms(
+                        dataset, dimGrads, dimHess,
+                        layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                        2u  // 2 partitions
+                    );
+
+                    // Slice partition 0 (in-leaf docs) from the full histogram.
+                    const ui32 totalBins = fullHist.TotalBinFeatures;
+                    const ui32 numStats  = fullHist.NumStats;
+                    auto flatHist = mx::reshape(fullHist.Histograms,
+                        {static_cast<int>(2u * numStats * totalBins)});
+                    auto sliced = mx::slice(flatHist,
+                        {0}, {static_cast<int>(numStats * totalBins)});
+                    THistogramResult singleHist;
+                    singleHist.Histograms       = mx::reshape(sliced,
+                        {static_cast<int>(numStats * totalBins)});
+                    singleHist.TotalBinFeatures = totalBins;
+                    singleHist.NumStats         = numStats;
+                    perDimHistograms.push_back(std::move(singleHist));
                 }
-
-                auto fullHist = ComputeHistograms(
-                    dataset, dimGrads, dimHess,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    2u  // 2 partitions
-                );
-
-                // Slice partition 0 (in-leaf docs) from the full histogram.
-                const ui32 totalBins = fullHist.TotalBinFeatures;
-                const ui32 numStats  = fullHist.NumStats;
-                auto flatHist = mx::reshape(fullHist.Histograms,
-                    {static_cast<int>(2u * numStats * totalBins)});
-                auto sliced = mx::slice(flatHist,
-                    {0}, {static_cast<int>(numStats * totalBins)});
-                THistogramResult singleHist;
-                singleHist.Histograms       = mx::reshape(sliced,
-                    {static_cast<int>(numStats * totalBins)});
-                singleHist.TotalBinFeatures = totalBins;
-                singleHist.NumStats         = numStats;
-                perDimHistograms.push_back(std::move(singleHist));
             }
 
+            // Stage 5: Suffix-sum + scoring for this leaf.
             // Compute partition sums for this leaf.
             mx::array allGradSums, allHessSums;
-            ComputeLeafSumsGPU(
-                dataset.GetGradients(), dataset.GetHessians(),
-                leafPart,
-                numDocs, 2u, approxDimension,
-                allGradSums, allHessSums
-            );
+            {
+                STAGE_TIMER_DEPTH(profiler, EStageId::SuffixScoring,
+                    static_cast<int>(leafId), {});
+                ComputeLeafSumsGPU(
+                    dataset.GetGradients(), dataset.GetHessians(),
+                    leafPart,
+                    numDocs, 2u, approxDimension,
+                    allGradSums, allHessSums
+                );
+            }
             // EvalAtBoundary required — .data<float>() CPU pointer reads follow immediately.
             TMLXDevice::EvalAtBoundary({allGradSums, allHessSums});
 

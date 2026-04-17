@@ -76,6 +76,12 @@
 #include <string>
 #include <cassert>
 #include <limits>
+#include <fstream>
+#include <sstream>
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+#include <filesystem>
+#endif
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -124,6 +130,7 @@ struct TBenchConfig {
     float L2RegLambda  = 3.0f;
     ui64 Seed          = 42;
     ui32 NumOneHot     = 0;   // first N features treated as one-hot encoded
+    bool StageProfile  = false; // --stage-profile: emit per-iter stage JSON
 };
 
 TBenchConfig ParseArgs(int argc, char** argv) {
@@ -138,13 +145,15 @@ TBenchConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--lr")       == 0 && i+1 < argc) cfg.LearningRate= std::atof(argv[++i]);
         else if (strcmp(argv[i], "--l2")       == 0 && i+1 < argc) cfg.L2RegLambda = std::atof(argv[++i]);
         else if (strcmp(argv[i], "--seed")     == 0 && i+1 < argc) cfg.Seed        = std::atoll(argv[++i]);
-        else if (strcmp(argv[i], "--onehot")   == 0 && i+1 < argc) cfg.NumOneHot   = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--onehot")       == 0 && i+1 < argc) cfg.NumOneHot   = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--stage-profile") == 0) cfg.StageProfile = true;
         else {
             fprintf(stderr, "Unknown argument: %s\n", argv[i]);
             fprintf(stderr,
                 "Usage: bench_boosting [--rows N] [--features N] [--classes N]\n"
                 "                      [--depth D] [--iters N] [--bins B]\n"
-                "                      [--lr F] [--l2 F] [--seed N] [--onehot N]\n");
+                "                      [--lr F] [--l2 F] [--seed N] [--onehot N]\n"
+                "                      [--stage-profile]\n");
             exit(1);
         }
     }
@@ -736,6 +745,53 @@ float ComputeLoss(
 }
 
 // ============================================================================
+// Stage profile record (bench_boosting coarse stages — 3 buckets)
+// ============================================================================
+//
+// bench_boosting uses its own standalone pipeline, not RunBoosting/structure_searcher.
+// Fine-grained depth-level stages 3/4/5 are only available via the real RunBoosting
+// path (csv_train compiled with -DCATBOOST_MLX_STAGE_PROFILE).
+// This provides a coarser 3-bucket view sufficient for high-level attribution.
+
+struct TBenchStageRecord {
+    int    Iter            = 0;
+    double DerivativesMs   = 0.0;  // Stage 1+2: gradients, hessians, partitions
+    double TreeSearchMs    = 0.0;  // Stages 3+4+5: layout + histogram + scoring
+    double LeafEstimMs     = 0.0;  // Stages 6+7+8: leaf sums + Newton step + apply
+    double IterTotalMs     = 0.0;
+};
+
+static bool WriteBenchStageJson(
+    const std::vector<TBenchStageRecord>& records,
+    const std::string& path,
+    const std::string& meta
+) {
+    std::ofstream f(path);
+    if (!f.is_open()) {
+        fprintf(stderr, "[bench_boosting] Cannot open profile output: %s\n", path.c_str());
+        return false;
+    }
+    f << "{\n  \"meta\": " << meta << ",\n";
+    f << "  \"note\": \"bench_boosting coarse 3-stage profile; compile with -DCATBOOST_MLX_STAGE_PROFILE for fine-grained 9-stage+depth breakdown\",\n";
+    f << "  \"stage_names\": [\"derivatives_ms\", \"tree_search_ms\", \"leaf_estimation_ms\"],\n";
+    f << "  \"iterations\": [\n";
+    for (size_t i = 0; i < records.size(); ++i) {
+        const auto& r = records[i];
+        f << "    {\"iter\": " << r.Iter
+          << ", \"derivatives_ms\": " << r.DerivativesMs
+          << ", \"tree_search_ms\": " << r.TreeSearchMs
+          << ", \"leaf_estimation_ms\": " << r.LeafEstimMs
+          << ", \"iter_total_ms\": " << r.IterTotalMs
+          << "}";
+        if (i + 1 < records.size()) f << ",";
+        f << "\n";
+    }
+    f << "  ]\n}\n";
+    f.flush();
+    return f.good();
+}
+
+// ============================================================================
 // Single boosting iteration
 //   Returns wall time in microseconds (excluding GPU graph construction overhead)
 // ============================================================================
@@ -756,11 +812,13 @@ long long RunIteration(
     ui32 maxDepth,
     float l2RegLambda,
     float learningRate,
-    ui32 maxBlocksPerPart
+    ui32 maxBlocksPerPart,
+    TBenchStageRecord* stageOut = nullptr  // optional per-iter stage record
 ) {
     auto wallStart = std::chrono::steady_clock::now();
 
     // --- Compute gradients and hessians ---
+    auto t0 = std::chrono::steady_clock::now();
     mx::array gradients = mx::zeros({1}, mx::float32);
     mx::array hessians  = mx::zeros({1}, mx::float32);
     if (numClasses == 1) {
@@ -833,6 +891,7 @@ long long RunIteration(
         statArr = mx::reshape(statArr, {static_cast<int>(2 * numDocs)});
     }
     mx::eval(statArr);
+    auto t1 = std::chrono::steady_clock::now();  // end of derivatives/init stage
 
     // --- Greedy tree structure search: one split per depth level ---
     for (ui32 depth = 0; depth < maxDepth; ++depth) {
@@ -875,6 +934,8 @@ long long RunIteration(
             best.BinId, depth, numDocs, numUi32PerDoc
         );
     }
+
+    auto t2 = std::chrono::steady_clock::now();  // end of tree search stage
 
     // --- Estimate leaf values and apply tree ---
     const ui32 numLeaves = 1u << maxDepth;
@@ -922,6 +983,13 @@ long long RunIteration(
     }
 
     auto wallEnd = std::chrono::steady_clock::now();
+    using ms_d = std::chrono::duration<double, std::milli>;
+    if (stageOut) {
+        stageOut->DerivativesMs  = ms_d(t1 - t0).count();
+        stageOut->TreeSearchMs   = ms_d(t2 - t1).count();
+        stageOut->LeafEstimMs    = ms_d(wallEnd - t2).count();
+        stageOut->IterTotalMs    = ms_d(wallEnd - wallStart).count();
+    }
     return std::chrono::duration_cast<std::chrono::microseconds>(wallEnd - wallStart).count();
 }
 
@@ -986,7 +1054,22 @@ int main(int argc, char** argv) {
     std::vector<long long> iterTimesUs;
     iterTimesUs.reserve(cfg.NumIters);
 
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+    const bool doStageProfile = cfg.StageProfile;
+#else
+    const bool doStageProfile = false;
+    if (cfg.StageProfile) {
+        printf("[bench_boosting] WARNING: --stage-profile requires recompiling with -DCATBOOST_MLX_STAGE_PROFILE.\n");
+        printf("  JSON output disabled for this build.\n");
+    }
+#endif
+    std::vector<TBenchStageRecord> stageRecords;
+    if (doStageProfile) stageRecords.reserve(cfg.NumIters);
+
     for (ui32 iter = 0; iter < cfg.NumIters; ++iter) {
+        TBenchStageRecord stageRec;
+        stageRec.Iter = static_cast<int>(iter);
+
         long long us = RunIteration(
             cursor, partitions,
             compressedData, targets,
@@ -995,9 +1078,11 @@ int main(int argc, char** argv) {
             1u,                    // single partition at start of each iter
             ds.TotalBinFeatures, numStats, approxDim, cfg.NumClasses,
             cfg.MaxDepth, cfg.L2RegLambda, cfg.LearningRate,
-            maxBlocksPerPart
+            maxBlocksPerPart,
+            doStageProfile ? &stageRec : nullptr
         );
         iterTimesUs.push_back(us);
+        if (doStageProfile) stageRecords.push_back(stageRec);
 
         if (iter == 0 || (iter + 1) % 10 == 0 || iter == cfg.NumIters - 1) {
             // Compute current loss
@@ -1039,6 +1124,38 @@ int main(int argc, char** argv) {
     printf("  BENCH_FINAL_LOSS=%.8f\n", finalLoss);  // grep-friendly line
 
     printf("================================================================\n");
+
+    // Stage profile JSON dump
+    if (doStageProfile && !stageRecords.empty()) {
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        const char* baseDir = ".cache/profiling/sprint16";
+        try { std::filesystem::create_directories(baseDir); } catch (...) {}
+        auto ts = static_cast<long long>(
+            std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count()
+        );
+        std::string outPath = std::string(baseDir) + "/stage_times_bench_" +
+                              std::to_string(ts) + ".json";
+        std::ostringstream metaOs;
+        metaOs << "{"
+               << "\"source\":\"bench_boosting\","
+               << "\"build\":\"CATBOOST_MLX_STAGE_PROFILE=ON\","
+               << "\"rows\":" << cfg.NumRows
+               << ",\"features\":" << cfg.NumFeatures
+               << ",\"classes\":" << cfg.NumClasses
+               << ",\"depth\":" << cfg.MaxDepth
+               << ",\"iters\":" << cfg.NumIters
+               << ",\"bins\":" << cfg.NumBins
+               << "}";
+        if (WriteBenchStageJson(stageRecords, outPath, metaOs.str())) {
+            printf("Stage profile written to: %s\n", outPath.c_str());
+        }
+#else
+        printf("[stage-profile] Rebuild with -DCATBOOST_MLX_STAGE_PROFILE for JSON output.\n");
+        printf("  --stage-profile flag is present but CATBOOST_MLX_STAGE_PROFILE is not defined.\n");
+#endif
+    }
 
     return 0;
 }

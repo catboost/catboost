@@ -1,5 +1,6 @@
 #include "mlx_boosting.h"
 #include <catboost/mlx/methods/leaves/leaf_estimator.h>
+#include <catboost/mlx/methods/stage_profiler.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <chrono>
@@ -7,6 +8,12 @@
 #include <numeric>
 #include <algorithm>
 #include <string>
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+#include <ctime>
+#include <filesystem>
+#include <sstream>
+#endif
 
 namespace NCatboostMlx {
 
@@ -32,6 +39,15 @@ namespace NCatboostMlx {
         const char* policyName = isDepthwise ? "Depthwise"
                                : isLossguide ? "Lossguide"
                                : "SymmetricTree";
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        // Instantiate profiler for this run. Passed by pointer to structure searcher
+        // functions so they can record depth-level stage timings.
+        TStageProfiler stageProfiler(static_cast<int>(config.NumIterations));
+        TStageProfiler* profiler = &stageProfiler;
+#else
+        TStageProfiler* profiler = nullptr;
+#endif
 
         CATBOOST_INFO_LOG << "CatBoost-MLX: Starting boosting with "
             << config.NumIterations << " iterations, lr=" << config.LearningRate
@@ -63,6 +79,10 @@ namespace NCatboostMlx {
         for (ui32 iter = 0; iter < config.NumIterations; ++iter) {
             auto iterStart = std::chrono::steady_clock::now();
 
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            profiler->BeginIter(static_cast<int>(iter));
+#endif
+
             // Single sync per iteration: materialise the cursor updated by the
             // previous iteration's Apply* call.  This bounds the lazy MLX graph
             // depth to O(1 iteration), preventing unbounded memory accumulation
@@ -79,16 +99,23 @@ namespace NCatboostMlx {
                 cursor = mx::reshape(trainData.GetCursor(),
                     {static_cast<int>(approxDim), static_cast<int>(numDocs)});
             }
-            target.ComputeDerivatives(
-                cursor,
-                trainData.GetTargets(),
-                trainData.GetWeights(),
-                trainData.GetGradients(),
-                trainData.GetHessians()
-            );
+            {
+                STAGE_TIMER(profiler, EStageId::Derivatives,
+                    {trainData.GetGradients(), trainData.GetHessians()});
+                target.ComputeDerivatives(
+                    cursor,
+                    trainData.GetTargets(),
+                    trainData.GetWeights(),
+                    trainData.GetGradients(),
+                    trainData.GetHessians()
+                );
+            }
 
             // ----- Step 2: Search for best tree structure -----
-            trainData.InitPartitions(numDocs);
+            {
+                STAGE_TIMER(profiler, EStageId::InitPartitions, {});
+                trainData.InitPartitions(numDocs);
+            }
 
             // Depthwise path: grow per-leaf splits (level-wise, per-leaf best split).
             // Oblivious (SymmetricTree) path: one split shared across all leaves per level.
@@ -105,7 +132,8 @@ namespace NCatboostMlx {
                     config.MaxLeaves,
                     config.L2RegLambda,
                     approxDim,
-                    /*maxDepth=*/config.MaxDepth
+                    /*maxDepth=*/config.MaxDepth,
+                    profiler
                 );
                 actualLeaves = lossguideStructure.NumLeaves;
                 if (actualLeaves <= 1u) {
@@ -119,7 +147,8 @@ namespace NCatboostMlx {
                     trainData,
                     config.MaxDepth,
                     config.L2RegLambda,
-                    approxDim
+                    approxDim,
+                    profiler
                 );
                 actualDepth = depthwiseStructure.Depth;
                 if (actualDepth == 0) {
@@ -133,7 +162,8 @@ namespace NCatboostMlx {
                     trainData,
                     config.MaxDepth,
                     config.L2RegLambda,
-                    approxDim
+                    approxDim,
+                    profiler
                 );
                 actualDepth = static_cast<ui32>(obliviousStructure.Splits.size());
                 if (actualDepth == 0) {
@@ -153,77 +183,90 @@ namespace NCatboostMlx {
                 ? lossguideStructure.LeafDocIds
                 : trainData.GetPartitions();
 
+            // Stage 6: Leaf sums.
             mx::array gradSumsGPU, hessSumsGPU;
-            ComputeLeafSumsGPU(
-                trainData.GetGradients(),
-                trainData.GetHessians(),
-                partitionArray,
-                numDocs, numLeaves, approxDim,
-                gradSumsGPU, hessSumsGPU
-            );
+            {
+                STAGE_TIMER(profiler, EStageId::LeafSums,
+                    {trainData.GetGradients(), trainData.GetHessians()});
+                ComputeLeafSumsGPU(
+                    trainData.GetGradients(),
+                    trainData.GetHessians(),
+                    partitionArray,
+                    numDocs, numLeaves, approxDim,
+                    gradSumsGPU, hessSumsGPU
+                );
+            }
 
+            // Stage 7: Leaf values (Newton step).
             mx::array leafValues;
-
-            if (approxDim == 1) {
-                // Scalar path: gradSumsGPU / hessSumsGPU are [numLeaves].
-                // Returns a lazy array; materialised by Apply* or the result store below.
-                leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
-                    config.L2RegLambda, config.LearningRate);
-                // leafValues shape: [numLeaves]
-            } else {
-                // Fused multiclass path — eliminates K EvalNow CPU-GPU round trips.
-                //
-                // gradSumsGPU / hessSumsGPU are [approxDim * numLeaves] laid out as:
-                //   [dim0_leaf0, dim0_leaf1, ..., dim0_leafN, dim1_leaf0, ...]
-                //   i.e. row-major [approxDim, numLeaves]
-                //
-                // ComputeLeafValues is element-wise so it applies identically over
-                // the entire flat [approxDim * numLeaves] array in a single dispatch.
-                // The result is then reshaped to [approxDim, numLeaves] and transposed
-                // to [numLeaves, approxDim] — the interleaved layout that
-                // Apply* functions expect:
-                //   leafValues[leafIdx * approxDim + k]
-                auto flatLeafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
-                    config.L2RegLambda, config.LearningRate);
-                // flatLeafValues shape: [approxDim * numLeaves]
-                auto dimByLeaf = mx::reshape(flatLeafValues,
-                    {static_cast<int>(approxDim), static_cast<int>(numLeaves)});
-                // dimByLeaf shape: [approxDim, numLeaves]
-                leafValues = mx::transpose(dimByLeaf);
-                // leafValues shape: [numLeaves, approxDim]
+            {
+                STAGE_TIMER(profiler, EStageId::LeafValues, {gradSumsGPU, hessSumsGPU});
+                if (approxDim == 1) {
+                    // Scalar path: gradSumsGPU / hessSumsGPU are [numLeaves].
+                    // Returns a lazy array; materialised by Apply* or the result store below.
+                    leafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
+                        config.L2RegLambda, config.LearningRate);
+                    // leafValues shape: [numLeaves]
+                } else {
+                    // Fused multiclass path — eliminates K EvalNow CPU-GPU round trips.
+                    //
+                    // gradSumsGPU / hessSumsGPU are [approxDim * numLeaves] laid out as:
+                    //   [dim0_leaf0, dim0_leaf1, ..., dim0_leafN, dim1_leaf0, ...]
+                    //   i.e. row-major [approxDim, numLeaves]
+                    //
+                    // ComputeLeafValues is element-wise so it applies identically over
+                    // the entire flat [approxDim * numLeaves] array in a single dispatch.
+                    // The result is then reshaped to [approxDim, numLeaves] and transposed
+                    // to [numLeaves, approxDim] — the interleaved layout that
+                    // Apply* functions expect:
+                    //   leafValues[leafIdx * approxDim + k]
+                    auto flatLeafValues = ComputeLeafValues(gradSumsGPU, hessSumsGPU,
+                        config.L2RegLambda, config.LearningRate);
+                    // flatLeafValues shape: [approxDim * numLeaves]
+                    auto dimByLeaf = mx::reshape(flatLeafValues,
+                        {static_cast<int>(approxDim), static_cast<int>(numLeaves)});
+                    // dimByLeaf shape: [approxDim, numLeaves]
+                    leafValues = mx::transpose(dimByLeaf);
+                    // leafValues shape: [numLeaves, approxDim]
+                }
             }
 
             // ----- Step 4: Apply tree to predictions -----
-            if (isLossguide) {
-                ApplyLossguideTree(trainData,
-                    lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
-                    lossguideStructure.LeafDocIds,
-                    leafValues, numLeaves, approxDim);
-                if (hasValidation) {
-                    // Recompute leaf assignments for validation data via BFS traversal.
-                    auto valLeafIds = ComputeLeafIndicesLossguide(
-                        config.ValidationData->GetCompressedIndex().GetCompressedData(),
+            // Stage 8: Tree apply.
+            {
+                STAGE_TIMER(profiler, EStageId::TreeApply,
+                    {trainData.GetCursor()});
+                if (isLossguide) {
+                    ApplyLossguideTree(trainData,
                         lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
-                        config.ValidationData->GetNumDocs(),
-                        numLeaves
-                    );
-                    ApplyLossguideTree(*config.ValidationData,
-                        lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
-                        valLeafIds,
+                        lossguideStructure.LeafDocIds,
                         leafValues, numLeaves, approxDim);
-                }
-            } else if (isDepthwise) {
-                ApplyDepthwiseTree(trainData, depthwiseStructure.NodeSplits,
-                    leafValues, actualDepth, approxDim);
-                if (hasValidation) {
-                    ApplyDepthwiseTree(*config.ValidationData, depthwiseStructure.NodeSplits,
+                    if (hasValidation) {
+                        // Recompute leaf assignments for validation data via BFS traversal.
+                        auto valLeafIds = ComputeLeafIndicesLossguide(
+                            config.ValidationData->GetCompressedIndex().GetCompressedData(),
+                            lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
+                            config.ValidationData->GetNumDocs(),
+                            numLeaves
+                        );
+                        ApplyLossguideTree(*config.ValidationData,
+                            lossguideStructure.NodeSplitMap, lossguideStructure.LeafBfsIds,
+                            valLeafIds,
+                            leafValues, numLeaves, approxDim);
+                    }
+                } else if (isDepthwise) {
+                    ApplyDepthwiseTree(trainData, depthwiseStructure.NodeSplits,
                         leafValues, actualDepth, approxDim);
-                }
-            } else {
-                ApplyObliviousTree(trainData, obliviousStructure.Splits, leafValues, approxDim);
-                if (hasValidation) {
-                    ApplyObliviousTree(*config.ValidationData, obliviousStructure.Splits,
-                        leafValues, approxDim);
+                    if (hasValidation) {
+                        ApplyDepthwiseTree(*config.ValidationData, depthwiseStructure.NodeSplits,
+                            leafValues, actualDepth, approxDim);
+                    }
+                } else {
+                    ApplyObliviousTree(trainData, obliviousStructure.Splits, leafValues, approxDim);
+                    if (hasValidation) {
+                        ApplyObliviousTree(*config.ValidationData, obliviousStructure.Splits,
+                            leafValues, approxDim);
+                    }
                 }
             }
 
@@ -249,12 +292,18 @@ namespace NCatboostMlx {
                     lossCursor = mx::reshape(trainData.GetCursor(),
                         {static_cast<int>(approxDim), static_cast<int>(numDocs)});
                 }
-                auto loss = target.ComputeLoss(
-                    lossCursor,
-                    trainData.GetTargets(),
-                    trainData.GetWeights()
-                );
-                float lossVal = loss.item<float>();
+
+                // Stage 9: Loss eval — ComputeLoss + item<float>() readback.
+                float lossVal = 0.0f;
+                {
+                    STAGE_TIMER(profiler, EStageId::LossEval, {});
+                    auto loss = target.ComputeLoss(
+                        lossCursor,
+                        trainData.GetTargets(),
+                        trainData.GetWeights()
+                    );
+                    lossVal = loss.item<float>();
+                }
 
                 auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                     iterEnd - startTime).count();
@@ -268,12 +317,16 @@ namespace NCatboostMlx {
                         valLossCursor = mx::reshape(config.ValidationData->GetCursor(),
                             {static_cast<int>(approxDim), static_cast<int>(valDocs)});
                     }
-                    auto valLoss = target.ComputeLoss(
-                        valLossCursor,
-                        config.ValidationData->GetTargets(),
-                        config.ValidationData->GetWeights()
-                    );
-                    float valLossVal = valLoss.item<float>();
+                    float valLossVal = 0.0f;
+                    {
+                        STAGE_TIMER(profiler, EStageId::LossEval, {});
+                        auto valLoss = target.ComputeLoss(
+                            valLossCursor,
+                            config.ValidationData->GetTargets(),
+                            config.ValidationData->GetWeights()
+                        );
+                        valLossVal = valLoss.item<float>();
+                    }
 
                     CATBOOST_INFO_LOG << "CatBoost-MLX: iter=" << iter
                         << " train_loss=" << lossVal
@@ -305,6 +358,10 @@ namespace NCatboostMlx {
                 }
             }
 
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            profiler->EndIter();
+#endif
+
             // Check for early stopping via callbacks
             if (callbacks && metricsHistory) {
                 if (!callbacks->IsContinueTraining(*metricsHistory)) {
@@ -325,6 +382,50 @@ namespace NCatboostMlx {
             std::chrono::steady_clock::now() - startTime).count();
         CATBOOST_INFO_LOG << "CatBoost-MLX: Training complete. "
             << result.NumIterations << " trees in " << totalTime << "s" << Endl;
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        // Dump stage profile JSON if a path was configured.
+        // Output path: CATBOOST_MLX_PROFILE_PATH env var, or
+        //              .cache/profiling/sprint16/stage_times_<unix_timestamp>.json by default.
+        {
+            // Build output path.
+            const char* envPath = std::getenv("CATBOOST_MLX_PROFILE_PATH");
+            std::string outPath;
+            if (envPath && *envPath) {
+                outPath = envPath;
+            } else {
+                // Default: .cache/profiling/sprint16/stage_times_<timestamp>.json
+                // The directory must exist; we create it if possible.
+                const char* baseDir = ".cache/profiling/sprint16";
+                try {
+                    std::filesystem::create_directories(baseDir);
+                } catch (...) { /* ignore */ }
+
+                auto ts = static_cast<long long>(
+                    std::chrono::duration_cast<std::chrono::seconds>(
+                        std::chrono::steady_clock::now().time_since_epoch()
+                    ).count()
+                );
+                outPath = std::string(baseDir) + "/stage_times_" +
+                          std::to_string(ts) + ".json";
+            }
+
+            // Build meta JSON object.
+            std::ostringstream metaOs;
+            metaOs << "{"
+                   << "\"build\":\"CATBOOST_MLX_STAGE_PROFILE=ON\","
+                   << "\"num_iterations\":" << result.NumIterations << ","
+                   << "\"grow_policy\":\"" << policyName << "\","
+                   << "\"max_depth\":" << config.MaxDepth << ","
+                   << "\"approx_dim\":" << approxDim << ","
+                   << "\"num_docs\":" << numDocs
+                   << "}";
+
+            if (stageProfiler.WriteJson(outPath, metaOs.str())) {
+                CATBOOST_INFO_LOG << "CatBoost-MLX: Stage profile written to " << outPath << Endl;
+            }
+        }
+#endif
 
         return result;
     }

@@ -96,7 +96,11 @@ QA_FIXES_TODO.md
 # Compiled MLX binaries (built via build_binaries.py)
 /csv_train
 /csv_predict
+/csv_train_profiled
+/csv_train_noprofile
+/csv_train_sprint16
 python/catboost_mlx/bin/
+python/.claude/
 
 # Python build/packaging artifacts
 __pycache__/
