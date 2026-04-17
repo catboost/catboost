@@ -6,6 +6,7 @@
 #include <catboost/mlx/gpu_data/mlx_data_set.h>
 #include <catboost/mlx/gpu_data/gpu_structures.h>
 #include <catboost/mlx/methods/histogram.h>
+#include <catboost/mlx/methods/stage_profiler.h>
 #include <catboost/mlx/methods/tree_applier.h>
 
 #include <unordered_map>
@@ -55,7 +56,8 @@ namespace NCatboostMlx {
         TMLXDataSet& dataset,
         ui32 maxDepth,
         float l2RegLambda,
-        ui32 approxDimension = 1
+        ui32 approxDimension = 1,
+        TStageProfiler* profiler = nullptr
     );
 
     // Result of a depthwise (non-symmetric) tree structure search.
@@ -84,7 +86,8 @@ namespace NCatboostMlx {
         TMLXDataSet& dataset,
         ui32 maxDepth,
         float l2RegLambda,
-        ui32 approxDimension = 1
+        ui32 approxDimension = 1,
+        TStageProfiler* profiler = nullptr
     );
 
     // Result of a lossguide (best-first leaf-wise) tree structure search.
@@ -130,7 +133,8 @@ namespace NCatboostMlx {
         ui32 maxLeaves,
         float l2RegLambda,
         ui32 approxDimension = 1,
-        ui32 maxDepth = 0
+        ui32 maxDepth = 0,
+        TStageProfiler* profiler = nullptr
     );
 
 }  // namespace NCatboostMlx

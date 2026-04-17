@@ -47,6 +47,9 @@
 #include <mlx/mlx.h>
 #include <mlx/fast.h>
 #include <catboost/mlx/kernels/kernel_sources.h>
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+#include <catboost/mlx/methods/stage_profiler.h>
+#endif
 
 #include <cstdint>
 #include <cstdio>
@@ -63,6 +66,10 @@
 #include <unordered_set>
 #include <random>
 #include <optional>
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+#include <filesystem>
+#include <sstream>
+#endif
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -2726,8 +2733,16 @@ TTrainResult RunTraining(
     }
 
 
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+    NCatboostMlx::TStageProfiler stageProfiler(static_cast<int>(config.NumIterations));
+#endif
+
     for (ui32 iter = startIteration; iter < config.NumIterations; ++iter) {
         auto iterStart = std::chrono::steady_clock::now();
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        stageProfiler.BeginIter(static_cast<int>(iter));
+#endif
 
         // --- Bootstrap weights ---
         // Determine effective bootstrap type
@@ -2753,6 +2768,9 @@ TTrainResult RunTraining(
         }
 
         // Step 1: Compute gradients per dimension
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        auto _prof_deriv_start = std::chrono::steady_clock::now();
+#endif
         std::vector<mx::array> dimGrads, dimHess;
         dimGrads.reserve(approxDim);
         dimHess.reserve(approxDim);
@@ -2936,11 +2954,28 @@ TTrainResult RunTraining(
             for (ui32 k = 0; k < approxDim; ++k) mx::eval({dimGrads[k], dimHess[k]});
         }
 
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        {
+            // Drain GPU so the timestamp is attribution-faithful.
+            for (ui32 k = 0; k < approxDim; ++k) mx::eval({dimGrads[k], dimHess[k]});
+            auto _prof_deriv_end = std::chrono::steady_clock::now();
+            double _prof_deriv_ms = std::chrono::duration<double, std::milli>(
+                _prof_deriv_end - _prof_deriv_start).count();
+            stageProfiler.AccumStage(NCatboostMlx::EStageId::Derivatives, _prof_deriv_ms);
+        }
+#endif
         auto tGradEnd = std::chrono::steady_clock::now();
         result.GradMs += std::chrono::duration<double, std::milli>(tGradEnd - iterStart).count();
 
         // Step 2: Greedy tree structure search
         auto partitions = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        {
+            mx::eval(partitions);
+            // InitPartitions is a single zeros() kernel — time is negligible but we record it.
+            stageProfiler.AccumStage(NCatboostMlx::EStageId::InitPartitions, 0.0);
+        }
+#endif
         std::vector<TObliviousSplitLevel> splits;
         std::vector<TBestSplitProperties> splitProps;
         ui32 actualTreeDepth = 0;  // number of depth levels actually searched (needed for depthwise)
@@ -3118,9 +3153,22 @@ TTrainResult RunTraining(
         for (ui32 depth = 0; depth < config.MaxDepth; ++depth) {
             auto tD0 = std::chrono::steady_clock::now();
             ui32 numPartitions = 1u << depth;
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            auto _prof_layout_start = std::chrono::steady_clock::now();
+#endif
             auto layout = ComputePartitionLayout(partitions, trainDocs, numPartitions);
             auto tD1 = std::chrono::steady_clock::now();
             dbgLayoutMs += std::chrono::duration<double, std::milli>(tD1 - tD0).count();
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            {
+                mx::eval(layout.DocIndices);
+                auto _prof_layout_end = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _prof_layout_end - _prof_layout_start).count();
+                stageProfiler.AccumDepth(NCatboostMlx::EStageId::PartitionLayout,
+                                         static_cast<int>(depth), _ms);
+            }
+#endif
 
             // Compute per-dim histograms and partition stats.
             // Build all GPU work lazily, then eval in a single sync point.
@@ -3128,6 +3176,11 @@ TTrainResult RunTraining(
             std::vector<std::vector<TPartitionStatistics>> perDimPartStats(approxDim);
 
             // Phase 1: build lazy computation graph (no GPU sync)
+            // NOTE (Sprint 16): "no GPU sync" is wrong — DispatchHistogram has
+            // mx::eval(histogram) at csv_train.cpp:953 that drains every call.
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            auto _phase1_start = std::chrono::steady_clock::now();
+#endif
             std::vector<mx::array> histArrays;
             std::vector<mx::array> gradSumArrays;
             std::vector<mx::array> hessSumArrays;
@@ -3171,6 +3224,13 @@ TTrainResult RunTraining(
             }
 
             // Phase 2: single GPU-CPU sync for all histograms + partition stats
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            // The Phase 1 loop above ALSO blocks: each DispatchHistogram() call
+            // ends with mx::eval(histogram) (csv_train.cpp:953). The "lazy graph"
+            // comment is misleading — every iteration of the per-dim loop drains
+            // the GPU. Stage 4 measures the full Phase 1+2 wall time.
+            auto _prof_hist_start = _phase1_start;  // see below — set before for loop
+#endif
             {
                 std::vector<mx::array> toEval;
                 toEval.reserve(approxDim * 3 + 2);
@@ -3185,8 +3245,20 @@ TTrainResult RunTraining(
                 }
                 mx::eval(toEval);
             }
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            {
+                auto _prof_hist_end = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _prof_hist_end - _prof_hist_start).count();
+                stageProfiler.AccumDepth(NCatboostMlx::EStageId::HistogramBuild,
+                                         static_cast<int>(depth), _ms);
+            }
+#endif
 
             // Phase 3: read results to CPU
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            auto _prof_readback_start = std::chrono::steady_clock::now();
+#endif
             for (ui32 k = 0; k < approxDim; ++k) {
                 const float* hData = histArrays[k].data<float>();
                 perDimHistData[k].assign(hData, hData + numPartitions * 2 * packed.TotalBinFeatures);
@@ -3211,6 +3283,15 @@ TTrainResult RunTraining(
                 const uint32_t* psPtr = layout.PartSizes.data<uint32_t>();
                 partDocCounts.assign(psPtr, psPtr + numPartitions);
             }
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            {
+                auto _prof_readback_end = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _prof_readback_end - _prof_readback_start).count();
+                stageProfiler.AccumDepth(NCatboostMlx::EStageId::CpuReadback,
+                                         static_cast<int>(depth), _ms);
+            }
+#endif
 
             auto tD2 = std::chrono::steady_clock::now();
             dbgHistMs += std::chrono::duration<double, std::milli>(tD2 - tD1).count();
@@ -3219,6 +3300,9 @@ TTrainResult RunTraining(
 
             if (isDepthwise) {
                 // Depthwise: find best split per partition.
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+                auto _prof_split_start = std::chrono::steady_clock::now();
+#endif
                 auto perPartSplits = FindBestSplitPerPartition(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
@@ -3226,6 +3310,15 @@ TTrainResult RunTraining(
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+                {
+                    auto _prof_split_end = std::chrono::steady_clock::now();
+                    double _ms = std::chrono::duration<double, std::milli>(
+                        _prof_split_end - _prof_split_start).count();
+                    stageProfiler.AccumDepth(NCatboostMlx::EStageId::SuffixScoring,
+                                             static_cast<int>(depth), _ms);
+                }
+#endif
 
                 bool anyValid = false;
                 for (ui32 p = 0; p < numPartitions; ++p) {
@@ -3281,6 +3374,9 @@ TTrainResult RunTraining(
 
             } else {
                 // Oblivious (SymmetricTree): one split for all partitions at this depth level.
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+                auto _prof_split_start = std::chrono::steady_clock::now();
+#endif
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
@@ -3291,6 +3387,15 @@ TTrainResult RunTraining(
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+                {
+                    auto _prof_split_end = std::chrono::steady_clock::now();
+                    double _ms = std::chrono::duration<double, std::milli>(
+                        _prof_split_end - _prof_split_start).count();
+                    stageProfiler.AccumDepth(NCatboostMlx::EStageId::SuffixScoring,
+                                             static_cast<int>(depth), _ms);
+                }
+#endif
 
                 if (!bestSplit.Defined()) break;
 
@@ -3361,23 +3466,64 @@ TTrainResult RunTraining(
         auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
         auto leafTarget = mx::zeros({static_cast<int>(numLeaves)}, mx::float32);
 
+        // Stage 6 (LeafSums) + Stage 7 (LeafValues): scatter_add + Newton step are fused here.
+        // We time the whole leaf-value computation block as LeafValues (stage 7);
+        // LeafSums (stage 6) is attributed separately as the scatter_add portion.
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        auto _prof_leafsums_start = std::chrono::steady_clock::now();
+        // _prof_leafvals_start is set after the scatter_add sync, inside each branch below.
+        // We declare it here so it is in scope when we compute LeafValues timing after the if/else.
+        std::chrono::steady_clock::time_point _prof_leafvals_start{};
+#endif
         mx::array leafValues = mx::zeros({1}, mx::float32); // placeholder, overwritten below
         if (approxDim == 1) {
             auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[0], 0);
             auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[0], 0);
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            mx::eval(gSumsArr, hSumsArr);
+            {
+                auto _t = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _t - _prof_leafsums_start).count();
+                stageProfiler.AccumStage(NCatboostMlx::EStageId::LeafSums, _ms);
+                _prof_leafvals_start = _t;
+            }
+#endif
             leafValues = mx::negative(mx::multiply(lrArr,
                 mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
         } else {
             std::vector<mx::array> dimLeafVals;
             dimLeafVals.reserve(approxDim);
+            std::vector<mx::array> allSums;
             for (ui32 k = 0; k < approxDim; ++k) {
                 auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[k], 0);
                 auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[k], 0);
+                allSums.push_back(gSumsArr);
+                allSums.push_back(hSumsArr);
                 dimLeafVals.push_back(mx::negative(mx::multiply(lrArr,
                     mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr)))));
             }
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            mx::eval(allSums);
+            {
+                auto _t = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _t - _prof_leafsums_start).count();
+                stageProfiler.AccumStage(NCatboostMlx::EStageId::LeafSums, _ms);
+                _prof_leafvals_start = _t;
+            }
+#endif
             leafValues = mx::stack(dimLeafVals, 1);  // [numLeaves, approxDim]
         }
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        mx::eval(leafValues);
+        {
+            auto _prof_leafvals_end = std::chrono::steady_clock::now();
+            double _ms = std::chrono::duration<double, std::milli>(
+                _prof_leafvals_end - _prof_leafvals_start).count();
+            stageProfiler.AccumStage(NCatboostMlx::EStageId::LeafValues, _ms);
+        }
+#endif
 
         // Post-tree monotone constraint adjustment
         if (!config.MonotoneConstraints.empty() && approxDim == 1) {
@@ -3434,6 +3580,9 @@ TTrainResult RunTraining(
         // Step 4: Apply tree to training data
         // For depthwise trees, partitions is already the correct leaf index (same bit-encoding
         // as oblivious trees — the partition update loop sets bit `depth` based on per-node splits).
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        auto _prof_apply_start = std::chrono::steady_clock::now();
+#endif
         auto docLeafValues = mx::take(leafValues, mx::astype(partitions, mx::int32), 0);
         if (approxDim > 1) {
             docLeafValues = mx::transpose(docLeafValues);  // [K, numDocs]
@@ -3443,6 +3592,14 @@ TTrainResult RunTraining(
         }
         mx::eval(cursor);
         result.TreesBuilt++;
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        {
+            auto _prof_apply_end = std::chrono::steady_clock::now();
+            double _ms = std::chrono::duration<double, std::milli>(
+                _prof_apply_end - _prof_apply_start).count();
+            stageProfiler.AccumStage(NCatboostMlx::EStageId::TreeApply, _ms);
+        }
+#endif
 
         // Apply tree to validation data
         if (valDocs > 0) {
@@ -3475,6 +3632,9 @@ TTrainResult RunTraining(
 
         // Compute train loss every iteration (for loss history + final loss tracking)
         {
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            auto _prof_loss_start = std::chrono::steady_clock::now();
+#endif
             float trainLoss;
             float trainNDCG = 0.0f;
             if (isRanking) {
@@ -3488,6 +3648,14 @@ TTrainResult RunTraining(
             } else {
                 trainLoss = ComputeLossValue(cursor, targetsArr, lossType, lossParam, approxDim, trainDocs);
             }
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+            {
+                auto _prof_loss_end = std::chrono::steady_clock::now();
+                double _ms = std::chrono::duration<double, std::milli>(
+                    _prof_loss_end - _prof_loss_start).count();
+                stageProfiler.AccumStage(NCatboostMlx::EStageId::LossEval, _ms);
+            }
+#endif
             result.FinalTrainLoss = trainLoss;
             result.TrainLossHistory.push_back(trainLoss);
 
@@ -3560,7 +3728,46 @@ TTrainResult RunTraining(
                          valCursor, valDocs, approxDim,
                          bestValLoss, bestIteration, noImprovementCount, rng);
         }
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+        stageProfiler.EndIter();
+#endif
     }
+
+#ifdef CATBOOST_MLX_STAGE_PROFILE
+    // Dump stage profile JSON.
+    // Output path: CATBOOST_MLX_PROFILE_PATH env var, or
+    //              .cache/profiling/sprint16/stage_times_<unix_timestamp>.json by default.
+    {
+        const char* envPath = std::getenv("CATBOOST_MLX_PROFILE_PATH");
+        std::string outPath;
+        if (envPath && *envPath) {
+            outPath = envPath;
+        } else {
+            const char* baseDir = ".cache/profiling/sprint16";
+            try { std::filesystem::create_directories(baseDir); } catch (...) {}
+            auto ts = static_cast<long long>(
+                std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count());
+            outPath = std::string(baseDir) + "/stage_times_" + std::to_string(ts) + ".json";
+        }
+
+        std::ostringstream metaOs;
+        metaOs << "{"
+               << "\"build\":\"CATBOOST_MLX_STAGE_PROFILE=ON\","
+               << "\"source\":\"csv_train\","
+               << "\"num_iterations\":" << config.NumIterations << ","
+               << "\"grow_policy\":\"" << config.GrowPolicy << "\","
+               << "\"max_depth\":" << config.MaxDepth << ","
+               << "\"approx_dim\":" << approxDim << ","
+               << "\"num_docs\":" << trainDocs
+               << "}";
+
+        if (stageProfiler.WriteJson(outPath, metaOs.str())) {
+            fprintf(stderr, "[stage_profiler] Stage profile written to %s\n", outPath.c_str());
+        }
+    }
+#endif
 
     result.BestIteration = bestIteration;
     return result;

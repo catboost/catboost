@@ -1,0 +1,295 @@
+name: MLX Performance Regression Gate
+
+# Guard against wall-clock regressions in the MLX training path.
+#
+# Strategy
+# --------
+# Run the bench_mlx_vs_cpu.py harness on a single (scale=50k, bins=128,
+# RMSE) configuration — enough to catch major regressions without spending
+# 10+ minutes on every PR.  Compare the result against the committed baseline
+# at .cache/benchmarks/sprint16_baseline.json.  Fail if MLX time regresses
+# more than 5% relative to that baseline.
+#
+# Gate criteria
+# -------------
+#   regression = (measured_mlx_time - baseline_mlx_time) / baseline_mlx_time
+#   FAIL if regression > 0.05  (i.e. > 5% slower)
+#
+# Hardware dependency
+# -------------------
+# This job MUST run on an Apple Silicon macOS runner (macos-14 or macos-15).
+# It is skipped automatically on any other OS.  The GitHub-hosted macos-14
+# runner uses an Apple M1 chip and has Metal GPU access, matching the
+# environment in which the baseline was measured.
+#
+# Updating the baseline
+# ---------------------
+# When a deliberate perf improvement lands, regenerate the baseline:
+#   python benchmarks/bench_mlx_vs_cpu.py \
+#       --scales 50000 --iterations 100 --bins 128 \
+#       --hardware "$(sysctl -n machdep.cpu.brand_string)" \
+#       --save-baseline
+# Commit the updated .cache/benchmarks/sprint16_baseline.json alongside the
+# change.  The CI job will use the new baseline on the next run.
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      # Only trigger when MLX source, kernels, or the benchmark harness change.
+      # Pure documentation or test-data changes do not need a perf gate run.
+      - 'catboost/mlx/**'
+      - 'benchmarks/bench_mlx_vs_cpu.py'
+      - 'python/catboost_mlx/**'
+  push:
+    branches:
+      - 'mlx/**'
+    paths:
+      - 'catboost/mlx/**'
+      - 'benchmarks/bench_mlx_vs_cpu.py'
+      - 'python/catboost_mlx/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf-regression-check:
+    name: MLX perf regression check (50k RMSE, 128 bins)
+    # Apple Silicon only — Metal GPU required.  This condition is belt-and-
+    # suspenders; the runner image already constrains the platform.
+    if: runner.os == 'macOS'
+    runs-on: macos-14        # Apple M1, Metal GPU available
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # ── Pip cache ──────────────────────────────────────────────────────────
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/pip
+          key: pip-macos14-py313-perf-${{ hashFiles('python/pyproject.toml', 'python/setup.py') }}
+          restore-keys: |
+            pip-macos14-py313-perf-
+            pip-macos14-py313-
+
+      # ── Python dependencies ────────────────────────────────────────────────
+      - name: Install MLX and nanobind
+        run: pip install 'mlx>=0.18' 'nanobind>=2.10'
+
+      - name: Install CatBoost CPU (parity comparison)
+        run: pip install catboost
+
+      - name: Install numpy
+        run: pip install 'numpy>=1.26'
+
+      # ── C++ binary build ───────────────────────────────────────────────────
+      - name: Install MLX via Homebrew (for C++ binary linking)
+        run: brew install mlx
+
+      - name: Compile C++ binaries
+        run: |
+          set -euo pipefail
+          MLX_PREFIX="$(brew --prefix mlx)"
+          CFLAGS="-std=c++17 -O2 -I. -I${MLX_PREFIX}/include -L${MLX_PREFIX}/lib -lmlx -framework Metal -framework Foundation -Wno-c++20-extensions"
+          clang++ ${CFLAGS} catboost/mlx/tests/csv_train.cpp   -o csv_train
+          clang++ ${CFLAGS} catboost/mlx/tests/csv_predict.cpp -o csv_predict
+
+      # ── Package install ────────────────────────────────────────────────────
+      - name: Bundle binaries and install catboost_mlx package
+        run: |
+          set -euo pipefail
+          mkdir -p python/catboost_mlx/bin
+          cp csv_train   python/catboost_mlx/bin/
+          cp csv_predict python/catboost_mlx/bin/
+
+      - name: Build nanobind extension and install package
+        working-directory: python
+        run: pip install -e ".[dev]"
+
+      # ── Benchmark run ──────────────────────────────────────────────────────
+      # Run a focused benchmark: 50k rows, 128 bins, RMSE only, 100 iterations.
+      # This is the primary regression signal for the Metal histogram path.
+      # Full sweep (all scales × tasks × bins) would take 10+ minutes per PR.
+      - name: Run benchmark
+        run: |
+          python benchmarks/bench_mlx_vs_cpu.py \
+            --scales 50000 \
+            --iterations 100 \
+            --bins 128 \
+            --hardware "macos-14-ci" \
+            --output /tmp/ci_bench.json
+
+      # ── Regression check ───────────────────────────────────────────────────
+      # Compare the measured MLX time against the committed baseline.
+      # Exit code 1 triggers a workflow failure with a descriptive message.
+      - name: Check for performance regression
+        id: regression_check
+        run: |
+          python - <<'PYEOF'
+          import json
+          import sys
+
+          THRESHOLD = 0.05          # 5% regression limit
+          TASK      = "RMSE"
+          SCALE     = 50000
+          BINS      = 128
+
+          # ── Load CI result ──────────────────────────────────────────────
+          with open("/tmp/ci_bench.json") as f:
+              ci = json.load(f)
+
+          ci_run = next(
+              (r for r in ci["runs"]
+               if r["task"] == TASK and r["scale"] == SCALE and r["bins"] == BINS),
+              None,
+          )
+          if ci_run is None:
+              print(
+                  f"ERROR: No result found for task={TASK} scale={SCALE} bins={BINS} "
+                  "in /tmp/ci_bench.json",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          measured = ci_run.get("mlx_time_s")
+          if measured is None:
+              print(
+                  "ERROR: mlx_time_s is null in CI result — MLX backend may not have run.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          # ── Load baseline ───────────────────────────────────────────────
+          baseline_path = ".cache/benchmarks/sprint16_baseline.json"
+          try:
+              with open(baseline_path) as f:
+                  baseline = json.load(f)
+          except FileNotFoundError:
+              print(
+                  f"ERROR: Baseline file not found at {baseline_path}. "
+                  "Regenerate it with: python benchmarks/bench_mlx_vs_cpu.py --save-baseline",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          baseline_run = next(
+              (r for r in baseline["runs"]
+               if r["task"] == TASK and r["scale"] == SCALE and r["bins"] == BINS),
+              None,
+          )
+          if baseline_run is None:
+              print(
+                  f"ERROR: No baseline entry for task={TASK} scale={SCALE} bins={BINS}.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          reference = baseline_run.get("mlx_time_s")
+          if reference is None or reference <= 0:
+              print(
+                  "ERROR: Baseline mlx_time_s is null or zero — baseline is corrupt.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          # ── Compute regression ──────────────────────────────────────────
+          regression = (measured - reference) / reference
+
+          print(f"Baseline: {reference:.3f}s  |  Measured: {measured:.3f}s  |  Delta: {regression:+.1%}")
+
+          if regression > THRESHOLD:
+              print(
+                  f"\nPERFORMANCE REGRESSION DETECTED\n"
+                  f"  Task      : {TASK} @ {SCALE:,} rows, {BINS} bins\n"
+                  f"  Baseline  : {reference:.3f}s  ({baseline.get('meta', {}).get('date', 'unknown date')})\n"
+                  f"  Measured  : {measured:.3f}s\n"
+                  f"  Regression: {regression:+.1%}  (limit: +{THRESHOLD:.0%})\n"
+                  f"\n"
+                  f"To investigate: compare stage timings with --mlx-stage-profile.\n"
+                  f"If this is an intentional perf change, update the baseline:\n"
+                  f"  python benchmarks/bench_mlx_vs_cpu.py --save-baseline\n"
+                  f"  git add .cache/benchmarks/sprint16_baseline.json && git commit",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          print(f"OK: regression {regression:+.1%} is within the {THRESHOLD:.0%} limit.")
+          PYEOF
+
+      # ── Step summary ───────────────────────────────────────────────────────
+      # Write a compact summary to the GitHub Actions step summary so reviewers
+      # can read the numbers without opening the full log.
+      - name: Write step summary
+        if: always()
+        run: |
+          python - <<'PYEOF'
+          import json, os, sys
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout")
+
+          try:
+              with open("/tmp/ci_bench.json") as f:
+                  ci = json.load(f)
+          except Exception:
+              with open(summary_path, "a") as s:
+                  s.write("## MLX Perf Regression Check\n\nBenchmark output not available.\n")
+              sys.exit(0)
+
+          try:
+              with open(".cache/benchmarks/sprint16_baseline.json") as f:
+                  baseline = json.load(f)
+          except Exception:
+              baseline = {"runs": []}
+
+          lines = [
+              "## MLX Perf Regression Check",
+              "",
+              "| Task | Scale | Bins | Baseline (s) | Measured (s) | Delta |",
+              "|------|-------|------|-------------|-------------|-------|",
+          ]
+
+          for r in ci["runs"]:
+              task  = r["task"]
+              scale = r["scale"]
+              bins  = r["bins"]
+              meas  = r.get("mlx_time_s")
+
+              bl_run = next(
+                  (b for b in baseline.get("runs", [])
+                   if b["task"] == task and b["scale"] == scale and b["bins"] == bins),
+                  None,
+              )
+              bl_val = bl_run.get("mlx_time_s") if bl_run else None
+
+              meas_str = f"{meas:.3f}" if meas is not None else "n/a"
+              bl_str   = f"{bl_val:.3f}" if bl_val is not None else "n/a"
+
+              if meas is not None and bl_val is not None and bl_val > 0:
+                  delta = (meas - bl_val) / bl_val
+                  flag  = " :warning:" if delta > 0.05 else ""
+                  delta_str = f"{delta:+.1%}{flag}"
+              else:
+                  delta_str = "n/a"
+
+              lines.append(
+                  f"| {task} | {scale:,} | {bins} | {bl_str} | {meas_str} | {delta_str} |"
+              )
+
+          lines += [
+              "",
+              f"Threshold: +5% regression triggers failure.",
+          ]
+
+          with open(summary_path, "a") as s:
+              s.write("\n".join(lines) + "\n")
+          PYEOF

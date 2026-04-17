@@ -184,7 +184,10 @@ namespace NCatboostMlx {
             gradients = mx::reshape(g1d, {1, static_cast<int>(NumDocs_)});
             hessians  = mx::reshape(h1d, {1, static_cast<int>(NumDocs_)});
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // EvalAtBoundary: gradients/hessians were computed on CPU and wrapped
+            // into fresh mx::arrays above — materialise them before returning so
+            // the caller receives fully-resident GPU arrays.
+            TMLXDevice::EvalAtBoundary({gradients, hessians});
         }
 
         mx::array ComputeLoss(
@@ -270,7 +273,10 @@ namespace NCatboostMlx {
             gradients = mx::reshape(g1d, {1, static_cast<int>(NumDocs_)});
             hessians  = mx::reshape(h1d, {1, static_cast<int>(NumDocs_)});
 
-            TMLXDevice::EvalNow({gradients, hessians});
+            // EvalAtBoundary: gradients/hessians were computed on CPU and wrapped
+            // into fresh mx::arrays above — materialise them before returning so
+            // the caller receives fully-resident GPU arrays.
+            TMLXDevice::EvalAtBoundary({gradients, hessians});
         }
 
         mx::array ComputeLoss(

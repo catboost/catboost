@@ -14,12 +14,13 @@ A deep-dive for contributors and anyone who wants to understand how the Metal GP
 6. [Multi-Pass Leaf Accumulation (depth > 6)](#multi-pass-leaf-accumulation-depth--6)
 7. [Data Layout](#data-layout)
 8. [CPU-GPU Synchronization](#cpu-gpu-synchronization)
-9. [Loss Functions (Target Functions)](#loss-functions-target-functions)
-10. [Ranking Losses](#ranking-losses)
-11. [Model Format and Versioning](#model-format-and-versioning)
-12. [Two Code Paths](#two-code-paths)
-13. [Nanobind Binding Architecture](#nanobind-binding-architecture)
-14. [Performance Characteristics](#performance-characteristics)
+9. [Sync Boundaries (Sprint 16+)](#sync-boundaries-sprint-16)
+10. [Loss Functions (Target Functions)](#loss-functions-target-functions)
+11. [Ranking Losses](#ranking-losses)
+12. [Model Format and Versioning](#model-format-and-versioning)
+13. [Two Code Paths](#two-code-paths)
+14. [Nanobind Binding Architecture](#nanobind-binding-architecture)
+15. [Performance Characteristics](#performance-characteristics)
 
 ---
 
@@ -486,6 +487,63 @@ After all feature groups are dispatched and accumulated, the histogram is return
 
 ---
 
+## Sync Boundaries (Sprint 16+)
+
+This section documents the sync boundary policy introduced in Sprint 16 as part of Operation Verstappen. It supersedes the ad-hoc sync placement that existed through Sprint 15.
+
+### Naming: `EvalNow` vs `EvalAtBoundary`
+
+Before Sprint 16, all forced GPU synchronizations used `TMLXDevice::EvalNow`. This name gives no information about whether a call is a legitimate architectural boundary or a stale placeholder left over from exploratory code.
+
+Sprint 16 introduces a naming distinction:
+
+- **`EvalNow`** — a sync that is required for correctness at this exact point. The CPU must read GPU-produced data before it can continue. These calls should never be removed without a correctness argument.
+- **`EvalAtBoundary`** — a sync at a deliberate pipeline boundary. The CPU does not read any GPU data here; the call exists to flush the accumulated lazy graph and allow Metal to begin executing the iteration's work early, avoiding tail latency on the first downstream kernel that would otherwise trigger a late flush. There is exactly one per boosting iteration.
+
+The rename is a code clarity change, not a behavioral change. Both call the same underlying `mx::eval()`. The distinction is meaningful to the reader.
+
+### Policy: one sync per iteration (plus legitimate readbacks)
+
+After the Sprint 16 sync-storm fix, the sync budget for a complete boosting iteration is:
+
+**One `EvalAtBoundary` per iteration:**
+- Location: `mlx_boosting.cpp::RunBoosting`, at the top of the iteration loop, after `ComputeDerivatives` returns.
+- Purpose: flush the gradient/hessian computation graph (which is lazy through `pointwise_target.h`) so that the histogram kernel dispatches into a fresh command buffer. This avoids a single large command buffer accumulating an entire iteration's worth of work and stalling Metal's command processor.
+
+**Unavoidable `EvalNow` readbacks (per depth level):**
+- `score_calcer.cpp`: one `EvalNow({bestScoresArr, bestFeatArr, bestBinArr})` — the CPU must read per-block best-split candidates to select the global winner. This cannot be pushed to GPU without a separate reduction kernel whose launch overhead exceeds the readback cost at typical block counts (1–4 blocks for realistic feature counts).
+- `structure_searcher.cpp` line 173 / 407: one `EvalNow(partitions)` after the bitwise-OR leaf assignment update — the CPU-side `ComputePartitionLayout` (which calls `mx::argsort`) must see the post-update partition array. This is unavoidable until the partition layout computation is fully fused with the leaf update (Sprint 19 target).
+
+**Remaining `EvalNow` calls after Sprint 16 fix:**
+
+| File | Line(s) | Frequency | Reason | Sprint target for removal |
+|------|---------|-----------|--------|--------------------------|
+| `score_calcer.cpp` | 159, 326 | 1–2 per depth level | CPU best-split reduction | Sprint 17+ (GPU reduction) |
+| `structure_searcher.cpp` | 173, 407 | 1 per depth level | Partition array readback for `ComputePartitionLayout` | Sprint 19 |
+| `structure_searcher.cpp` | 252, 550 | 1 per depth level | Grad/hess sum readback for complement computation | Sprint 19 |
+| `structure_searcher.cpp` | 645 | Up to 30× per Lossguide tree | `compressedData` readback for CPU BFS walker | Sprint 17 or later |
+| `structure_searcher.cpp` | 676 | Up to 30× per Lossguide tree | `LeafDocIds` flush after per-leaf assignment | Sprint 17 or later |
+| `tree_applier.cpp` | 120, 220, 319 | 1 per tree apply | Cursor + partitions flush at iteration end | Deliberate: feeds next iteration's `EvalAtBoundary` |
+| `tree_applier.cpp` | 251 | 1 per Lossguide inference call | `flatData` readback for CPU traversal | Sprint 17 or later |
+| `mlx_data_set.h` | 37, 43, 49 | Once at dataset load | Transfer targets/weights to device | Not a training-loop sync |
+| `mlx_boosting.cpp` | 56 | Once per validation set init | Initialize validation cursor to zero | Not a training-loop sync |
+
+### Why `pointwise_target.h` no longer syncs
+
+Before Sprint 16, every loss function's `ComputeDerivatives` and `ComputeLoss` called `EvalNow` before returning. The original reasoning was that callers might read the gradient values immediately.
+
+That assumption is wrong. The callers (`RunBoosting` in `mlx_boosting.cpp` and `ScatterPairwiseGradients` in the ranking path) pass the gradient arrays directly into Metal kernel inputs without accessing CPU-side values. MLX's lazy evaluation model means the gradient computation graph does not execute until a downstream kernel forces materialization — which happens at the histogram dispatch, inside the same command buffer. No CPU-side read occurs between `ComputeDerivatives` and histogram dispatch.
+
+The single `EvalAtBoundary` at the iteration top achieves two things: it flushes the previous iteration's tail (tree apply) and ensures the lazy gradient graph executes before the new histogram dispatch. This is equivalent to the 18 `EvalNow` calls in behavior, but adds zero round-trips because `EvalAtBoundary` is already present for the tree-apply flush.
+
+### Two-sync minimum per iteration
+
+The theoretical minimum for a correct boosting iteration is two `EvalNow` calls per depth level: one for best-split readback and one for partition update. At depth 6 with 100 iterations, the absolute floor is 1,200 GPU syncs. Any sync count above this is implementation overhead.
+
+Sprint 16 removes the ~18 per-iteration overhead calls from `pointwise_target.h`. Sprint 17–19 targets reduce the per-depth overhead from the remaining `structure_searcher.cpp` readbacks.
+
+---
+
 ## Loss Functions (Target Functions)
 
 Target functions live in `catboost/mlx/targets/pointwise_target.h`. Each class inherits from `IMLXTargetFunc` and implements three methods: `ComputeDerivatives` (gradients and hessians), `ComputeLoss`, and `GetApproxDimension`.
@@ -511,7 +569,7 @@ All 12 losses are supported in `csv_train.cpp` and are exposed through the nanob
 
 ### Gradient and hessian computation
 
-`ComputeDerivatives` operates on MLX arrays (`cursor`, `targets`, `weights`) and returns lazy MLX expressions. The training loop calls `EvalNow` once per iteration to materialize them — gradient evaluation is not a separate sync point; it is folded into the first downstream kernel that needs the values.
+`ComputeDerivatives` operates on MLX arrays (`cursor`, `targets`, `weights`) and returns lazy MLX expressions. As of Sprint 16, the training loop issues a single `EvalAtBoundary` per iteration (not per loss function) to materialize gradients — gradient evaluation is folded into the first downstream kernel that needs the values, not a separate sync point. See the [Sync Boundaries](#sync-boundaries-sprint-16) section.
 
 ---
 

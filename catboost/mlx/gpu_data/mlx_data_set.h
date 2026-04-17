@@ -34,19 +34,19 @@ namespace NCatboostMlx {
 
         void SetTargets(const float* targets, ui32 numDocs) {
             Targets_ = mx::array(targets, {static_cast<int>(numDocs)}, mx::float32);
-            TMLXDevice::EvalNow(Targets_);
+            TMLXDevice::EvalAtBoundary(Targets_);
         }
 
         void SetWeights(const float* weights, ui32 numDocs) {
             Weights_ = mx::array(weights, {static_cast<int>(numDocs)}, mx::float32);
             HasWeights_ = true;
-            TMLXDevice::EvalNow(Weights_);
+            TMLXDevice::EvalAtBoundary(Weights_);
         }
 
         void SetUniformWeights(ui32 numDocs) {
             Weights_ = mx::ones({static_cast<int>(numDocs)}, mx::float32);
             HasWeights_ = false;
-            TMLXDevice::EvalNow(Weights_);
+            TMLXDevice::EvalAtBoundary(Weights_);
         }
 
         const mx::array& GetTargets() const { return Targets_; }
@@ -79,7 +79,7 @@ namespace NCatboostMlx {
                 {static_cast<int>(approxDimension), static_cast<int>(numDocs)},
                 mx::float32
             );
-            TMLXDevice::EvalNow(Cursor_);
+            TMLXDevice::EvalAtBoundary(Cursor_);
         }
 
         mx::array& GetCursor() { return Cursor_; }
@@ -96,7 +96,7 @@ namespace NCatboostMlx {
                 {static_cast<int>(approxDimension), static_cast<int>(numDocs)},
                 mx::float32
             );
-            TMLXDevice::EvalNow({Gradients_, Hessians_});
+            TMLXDevice::EvalAtBoundary({Gradients_, Hessians_});
         }
 
         mx::array& GetGradients() { return Gradients_; }
@@ -109,7 +109,7 @@ namespace NCatboostMlx {
         // Initialize all docs to leaf 0
         void InitPartitions(ui32 numDocs) {
             Partitions_ = mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
-            TMLXDevice::EvalNow(Partitions_);
+            TMLXDevice::EvalAtBoundary(Partitions_);
         }
 
         mx::array& GetPartitions() { return Partitions_; }

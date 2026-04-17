@@ -41,7 +41,9 @@ namespace NCatboostMlx {
                 {static_cast<int>(numDocs), static_cast<int>(numUi32PerDoc)},
                 mx::uint32
             );
-            TMLXDevice::EvalNow(CompressedData_);
+            // EvalAtBoundary: materialise compressed feature data on GPU at load time
+            // so it is ready for any downstream Metal kernel without lazy overhead.
+            TMLXDevice::EvalAtBoundary(CompressedData_);
         }
 
         const mx::array& GetCompressedData() const {

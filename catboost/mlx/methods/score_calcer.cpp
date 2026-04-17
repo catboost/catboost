@@ -153,10 +153,11 @@ namespace NCatboostMlx {
         );
 
         // ===== CPU final reduction over blocks =====
+        // EvalAtBoundary required — .data<float>() CPU pointer reads follow immediately.
         auto bestScoresArr = scoreResult[0];
         auto bestFeatArr = scoreResult[1];
         auto bestBinArr = scoreResult[2];
-        TMLXDevice::EvalNow({bestScoresArr, bestFeatArr, bestBinArr});
+        TMLXDevice::EvalAtBoundary({bestScoresArr, bestFeatArr, bestBinArr});
 
         const float* scores = bestScoresArr.data<float>();
         const uint32_t* featIds = bestFeatArr.data<uint32_t>();
@@ -320,10 +321,11 @@ namespace NCatboostMlx {
         );
 
         // ===== CPU final reduction over blocks =====
+        // EvalAtBoundary required — .data<float>() CPU pointer reads follow immediately.
         auto bestScoresArr = scoreResult[0];
         auto bestFeatArr   = scoreResult[1];
         auto bestBinArr    = scoreResult[2];
-        TMLXDevice::EvalNow({bestScoresArr, bestFeatArr, bestBinArr});
+        TMLXDevice::EvalAtBoundary({bestScoresArr, bestFeatArr, bestBinArr});
 
         const float*    scores  = bestScoresArr.data<float>();
         const uint32_t* featIds = bestFeatArr.data<uint32_t>();

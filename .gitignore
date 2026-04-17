@@ -96,7 +96,11 @@ QA_FIXES_TODO.md
 # Compiled MLX binaries (built via build_binaries.py)
 /csv_train
 /csv_predict
+/csv_train_profiled
+/csv_train_noprofile
+/csv_train_sprint16
 python/catboost_mlx/bin/
+python/.claude/
 
 # Python build/packaging artifacts
 __pycache__/
@@ -105,8 +109,10 @@ python/build/
 python/dist/
 .pytest_cache/
 
-# Claude Code agent state (tracked locally only)
-.claude/
+# Claude Code agent state (agent-memory tracked locally, state/ committed)
+.claude/*
+!.claude/state/
+!.claude/state/*
 
 # ML artifacts (large files, not committed)
 checkpoints/

@@ -26,12 +26,27 @@ namespace NCatboostMlx {
             return mx::default_stream(Device_);
         }
 
-        // Force evaluation of all pending lazy operations.
-        // Call this at iteration boundaries to ensure results are materialized.
+        // Explicit sync at well-defined compute boundaries.
+        // Use at points where a CPU readback (e.g. .data<T>()) follows immediately,
+        // or at iteration loop boundaries to bound lazy-graph depth.
+        // Use sparingly — each call blocks until the GPU drains the command buffer.
+        static void EvalAtBoundary(const mx::array& arr) {
+            mx::eval(arr);
+        }
+
+        static void EvalAtBoundary(const std::vector<mx::array>& arrays) {
+            mx::eval(arrays);
+        }
+
+        // DEPRECATED: use EvalAtBoundary at explicit sync boundaries.
+        // EvalNow was historically called mid-computation, creating unnecessary
+        // CPU-GPU sync barriers. All new code must use EvalAtBoundary instead.
+        [[deprecated("Use EvalAtBoundary at explicit sync boundaries")]]
         static void EvalNow(const mx::array& arr) {
             mx::eval(arr);
         }
 
+        [[deprecated("Use EvalAtBoundary at explicit sync boundaries")]]
         static void EvalNow(const std::vector<mx::array>& arrays) {
             mx::eval(arrays);
         }
