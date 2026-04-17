@@ -319,7 +319,7 @@ def _run_one(
         mlx_loss = {"RMSE": "rmse", "Logloss": "logloss", "MultiClass": "multiclass"}[loss]
         mlx_kwargs = dict(
             **common,
-            n_bins=bins,
+            bins=bins,
             l2_reg_lambda=3.0,
             random_seed=42,
             verbose=False,

@@ -11,17 +11,25 @@
 - **Metal threadgroup memory limit**: 32KB per threadgroup on M-series. Histogram bins × stats × sizeof(float) must fit. Large bin counts may need tiling.
 - **Float32 for accumulation, always.** Metal half-precision introduces unacceptable drift in histogram gradient sums. [from CLAUDE.md convention]
 
-## Performance baseline (2026-04-06)
+## Performance baseline (2026-04-16, Sprint 16 accurate measurement)
 
 | Task | N | CPU CatBoost | CatBoost-MLX | Gap |
 |------|---|-------------:|-------------:|----:|
-| regression | 50k | 0.42s | 8.56s | 20.4x slower |
-| binary | 50k | 0.74s | 8.61s | 11.6x slower |
-| multiclass | 50k | 1.33s | 31.84s | 23.9x slower |
+| regression | 1k | 0.09s | 30.1s | 334x slower |
+| regression | 10k | 0.16s | 32.3s | 202x slower |
+| regression | 50k | 0.26s | 48.8s | 188x slower |
+| multiclass | 1k | 0.16s | 59.0s | 369x slower |
+| multiclass | 10k | 0.27s | 63.7s | 236x slower |
+| multiclass | 50k | 0.48s | 95.9s | 200x slower |
 
-Source: `.cache/benchmarks/baseline_results.json`, `.cache/benchmarks/phase_a_results.json`
+Source: `.cache/benchmarks/sprint16_baseline.json` (regenerated 2026-04-16 with `bench_mlx_vs_cpu.py --save-baseline`)
 
-Gap widens with N — per-iteration fixed cost, not data-parallel.
+**STALE DATA WARNING**: Previous baseline from `phase_a_results.json` (2026-04-06) showed 10–24x gaps — those numbers came from an early-sprint codebase and are not representative of Sprint 15+ performance.
+
+Gap narrows slightly with N — per-iteration fixed cost dominates:
+- RMSE per-iter: 300ms (1k) → 323ms (10k) → 487ms (50k) with 50 features
+- Tree search is 99%+ of per-iteration time
+- Confirms `maxBlocksPerPart=1` as #1 bottleneck
 
 ## CatBoost-MLX conventions
 
