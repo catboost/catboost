@@ -236,8 +236,9 @@ jobs:
       #   - histogram_ms is a synchronous, eval()-fenced measurement and is
       #     substantially less noisy than end-to-end wall-clock.
       #
-      # The before-snapshots are the committed Sprint 16 baselines at
-      #   .cache/profiling/sprint17/baseline_<N>_<loss>_d6_<bins>bins.json
+      # The before-snapshots are the committed Sprint 18 baselines at
+      #   .cache/profiling/sprint18/baseline/<N>_<loss>_d6_<bins>bins.json
+      #   (seeded from Sprint 17 after-JSONs; bare names, no prefix).
       # The after-snapshots are produced fresh on every PR run.
       #
       # continue-on-error: false ensures this is a hard merge gate.
@@ -250,7 +251,7 @@ jobs:
           for SCALE in 1000 10000 50000; do
             for LOSS in rmse logloss multiclass; do
               for BINS in 32 128; do
-                OUTFILE="/tmp/hist_gate_after/baseline_${SCALE}_${LOSS}_d6_${BINS}bins.json"
+                OUTFILE="/tmp/hist_gate_after/${SCALE}_${LOSS}_d6_${BINS}bins.json"
                 python benchmarks/bench_mlx_vs_cpu.py \
                   --scales "${SCALE}" \
                   --iterations 50 \
@@ -268,9 +269,10 @@ jobs:
         run: |
           python benchmarks/check_histogram_gate.py \
             --18config \
-            --before-dir .cache/profiling/sprint17 \
+            --before-dir .cache/profiling/sprint18/baseline \
             --after-dir  /tmp/hist_gate_after \
-            --max-regression 0.05
+            --max-regression 0.05 \
+            --min-reduction 0.35
 
       # ── Step summary ───────────────────────────────────────────────────────
       # Write a compact summary to the GitHub Actions step summary so reviewers

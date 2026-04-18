@@ -188,7 +188,7 @@ def _check_pair(
             f"  After  : {after_ms:.3f} ms\n"
             f"  Delta  : {delta_rel:+.1%}\n"
             f"  Required reduction: {min_reduction:.0%}  (actual: {reduction:.1%})\n"
-            f"  Action : Sprint 17 acceptance criterion S17-G1 not met."
+            f"  Action : Sprint 18 acceptance criterion S18-G1 not met."
         )
 
     return None
@@ -382,7 +382,7 @@ def _parse_args() -> argparse.Namespace:
         help=(
             "Minimum required fractional reduction in histogram_ms "
             "((before - after) / before). Default: 0.00 (no minimum). "
-            "Use 0.30 to enforce the Sprint 17 S17-G1 acceptance criterion."
+            "Use 0.35 to enforce the Sprint 18 S18-G1 acceptance criterion."
         ),
     )
     parser.add_argument(
