@@ -57,6 +57,7 @@ target_sources(model_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_serialization_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_summ_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/shrink_model_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/onnx_export_ut.cpp
 )
 
 
