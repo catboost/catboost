@@ -1,81 +1,71 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-17 by @technical-writer (Sprint 18 S18-10 docs complete, PR pending)
+> Last updated: 2026-04-17 by @technical-writer (Sprint 19 S19-00 kickoff scaffold)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-18-hist-privhist-tile`
-- **Last commit**: `01366aee95` (current tip — S18-10 docs commit pending)
-- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24)
+- **Branch**: `mlx/sprint-19-hist-writeback`
+- **Last commit**: S19-00 kickoff (branch cut + baselines + state files + README scaffold)
+- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), battle 4 of 9
 
-## What just happened — Sprint 18 L1a histogram accumulator re-architecture
+## Sprint 18 — CLOSED (PR #10 OPEN, awaiting merge)
 
-**All gates PASS:**
+Sprint 18 delivered the L1a `simdHist` accumulator re-architecture. All gates passed. The sprint included a significant pivot (BUG-S18-001) — the initial kernel failed all parity configs by 6 orders of magnitude before the fixed kernel landed at commit `19fa5ce6cc`.
 
-| Gate | Criterion | Result |
-|------|-----------|--------|
-| S18-G1 | histogram_ms reduction ≥35% on gate config (≤18.7 ms) | **PASS — -66.8%** (28.75 → 9.56 ms; 9.1 ms margin) |
-| S18-G2 | No config regresses >5% (18-config sweep) | **PASS — all 18 improved -56.6% to -85.5%** |
-| S18-G3 | RMSE/Logloss ulp≤4, MultiClass ulp≤8; 100-run determinism | **PASS — 108/108 checkpoints ulp=0; 100/100 determinism bit-exact** |
-| S18-G4 | No non-histogram stage regresses >10% on gate config | **PASS — all secondary stages improved** |
-| S18-G5 | CI gate continuity | **PASS** |
-| S18-07 | Code review | **PASS** |
-| S18-08 | Security audit | **PASS** |
+**Final result**: `histogram_ms` -56.6% to -85.5% across all 18 configs. Gate config (N=10k, RMSE, 128b): 28.75 → 9.56 ms (-66.8%). Parity 108/108 bit-exact (ULP=0). Barriers reduced 9 → 6. Reduction depth γ_12 → γ_7.
 
-**Kernel change** (`catboost/mlx/kernels/kernel_sources.h`, commit `19fa5ce6cc`):
-- `float privHist[HIST_PER_SIMD]` (4 KB/thread, 1 MB/threadgroup device-memory spill) → `threadgroup float simdHist[8][1024]` (32 KB on-chip, at Apple Silicon limit).
-- Zero-init loop eliminated. Per-thread stride accumulation → cooperative 32-doc batch loop.
-- D1c intra-SIMD butterfly removed (DEC-012). Cross-SIMD 8-term fold (DEC-009) unchanged.
-- Barriers: 9 → 6 per dispatch. Reduction depth γ_12 → γ_7.
+**PR #10**: `mlx/sprint-18-hist-privhist-tile` → `master` on `RR-AMATOK/catboost-mlx`. OPEN. No blockers.
 
-**The pivot (BUG-S18-001):**
-Initial L1a kernel (commit `abc4c229f9`) failed all 18 parity configs by 6 orders of magnitude (4–20M ULP). Determinism PASS throughout (consistent wrong answer). Two compounding structural flaws: 1/32 doc-inclusion rate (stride/ownership mismatch) + 32× butterfly amplification (butterfly over shared slots). Root cause: D1c's reduction was ported without re-deriving the algebraic role of the butterfly under the new `simdHist` shared layout. Fixed at commit `19fa5ce6cc`. Full post-mortem: `docs/sprint18/bug_s18_001.md`.
+**Sprint 18 carry-forward (now Sprint 19 starting point)**: N=50k configs converge to ~15 ms `histogram_ms` in steady state. The writeback (global-atomic) phase is the plurality cost at large N — the S18-05b profile identified this as the floor that L1a could not eliminate. Sprint 19 targets this floor directly.
 
-**Perf result (18 configs, DEC-008 envelope: `approxDim ∈ {1,3}`, `N ≤ 50k`, depth 6, 50 iter):**
-- Gate config: 28.75 → 9.56 ms (-66.8%). Beats nominal ablation projection by 5.94 ms.
-- Range: -56.6% (50k/MultiClass/32b) to -85.5% (1k/Logloss/128b).
-- The second-order win beyond spill elimination: removing the butterfly reduced dispatch barriers from 9 to 6.
+## Sprint 19 — ACTIVE
 
-**Parity result:**
-- 108/108 checkpoints bit-exact across DEC-008 grid (18 configs × 6 checkpoints).
-- All ULPs = 0 — cleaner than Sprint 17's 35/36 outcome.
-- Higham bound tightened: γ_12 → γ_7 (~7.2e-7 → ~4.2e-7).
+**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`)  
+**Lever**: Two-phase histogram writeback reduction (L_writeback)  
+**Gate config shift**: S18 used 10k/RMSE/128b (where accumulation dominated). S19 shifts to **50k/RMSE/128b** — the config where the writeback lever has force.
 
-## Active Sprint 18 tasks
+**Projection (aggressive, Ramos-approved)**:
+- `histogram_ms`: 1.7–2.2× improvement on gate config (15.52 ms baseline → ~7–9 ms target)
+- `iter_total_ms`: 1.5–1.8× improvement on gate config (21.12 ms baseline → ~12–14 ms target)
+- Championship 50k exit: revised from 0.75–0.85 s conservative to **0.55–0.70 s**
+- **R8 constraint**: if S19-01 attribution doesn't justify 1.5×+, projection revises DOWN before S19-03 commits
 
-| Agent | Task | Status |
-|-------|------|--------|
-| @ml-product-owner | S18-00 branch cut + baseline refresh | DONE |
-| @performance-engineer | S18-01 attribution | DONE — `docs/sprint18/attribution.md` |
-| @research-scientist | S18-02 ablation, L1a choice | DONE — `docs/sprint18/ablation.md` |
-| @ml-engineer | S18-03 kernel implementation | DONE — `19fa5ce6cc` (after BUG-S18-001 fix) |
-| @qa-engineer | S18-04b parity re-run | DONE — `7ab4e8e804` |
-| @performance-engineer | S18-05b perf delta + S18-09 MST | DONE — `da303866ef` |
-| @mlops-engineer | S18-06 CI gate update | DONE |
-| @code-reviewer | S18-07 code review | DONE — PASS |
-| @security-auditor | S18-08 security pass | DONE — PASS |
-| @technical-writer | S18-10 docs | DONE — this commit |
+**Baselines**: S18 after-JSONs copied to `.cache/profiling/sprint19/baseline/` (18 configs). Gate config steady-state: `histogram_ms` 15.52 ms (mean), `iter_total_ms` 21.12 ms.
+
+**DEC-013**: PLACEHOLDER — Two-phase writeback reduction over batched-atomic. Status: DRAFT, locks at S19-02 ablation close.
+
+## Sprint 19 task table
+
+| ID | Task | Owner | Day/Phase | Status |
+|----|------|-------|-----------|--------|
+| S19-00 | Branch cut from S18 tip; baseline JSON copy; state file scaffold; docs/sprint19/README scaffold | @ml-product-owner / @technical-writer | Day 0 | **DONE** |
+| S19-01 | Ground-truth writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); output: `docs/sprint19/attribution.md` with ±1 ms error bars; R8 trigger check | @performance-engineer | Day 1 | PENDING |
+| S19-02 | Ablation sweep: (a) two-phase reduction, (b) batched-atomic, (c) CHOSEN two-phase + prefix-scan × {BLOCK_SIZE 128,256} × {bins 32,128} at N=50k RMSE d6; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; output: `docs/sprint19/ablation.md` | @research-scientist | Day 1–2 | PENDING |
+| S19-03 | Implement chosen variant at `kernel_sources.h`; preserve DEC-011 32 KB ceiling; reuse `simdHist[0..1023]` as on-chip staging post-barrier-6 | @ml-engineer | Day 2 | PENDING |
+| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 2–3 | PENDING |
+| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 3 | PENDING |
+| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 3 | PENDING |
+| S19-07 | Code review: writeback phase correctness, two-phase reduction ordering, DEC-011 ceiling, barrier count | @code-reviewer | Day 3–4 | PENDING |
+| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 3–4 | PENDING |
+| S19-09 | Metal System Trace re-capture on gate config; confirm writeback phase <5 ms; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 4 | PENDING |
+| S19-10 | `docs/sprint19/` full population, `CHANGELOG-DEV.md` entry, `ARCHITECTURE.md` update, DEC-013 (lock from DRAFT), `docs/sprint19/` subdocs | @technical-writer | Day 4–5 | IN PROGRESS (Day 0 scaffold done) |
+| S19-11 | In-sprint cleanup: 6 EvalAtBoundary CPU readbacks in `structure_searcher.cpp` — "fix properly always" (carry-forward from S18 non-goals) | @ml-engineer | Day 1–3 | PENDING |
+| S19-12 | In-sprint cleanup: VGPR confirmation + S18 deferred code-review items | @performance-engineer / @code-reviewer | Day 1–2 | PENDING |
 
 ## Blockers
 
-None.
+None at kickoff.
 
-## Next action
+## Next actions
 
-1. Commit S18-10 docs: `[mlx] sprint-18: S18-10 docs — results + BUG-S18-001 post-mortem + DEC-011/012`.
-2. Push `mlx/sprint-18-hist-privhist-tile` to `RR-AMATOK/catboost-mlx`.
-3. Open Sprint 18 PR vs `master` (RR-AMATOK fork only — never upstream per DEC-004).
-4. **Sprint 19 kickoff** — @ml-product-owner to rank levers using S18-05b profiles.
+1. Parent dispatches **@performance-engineer** (S19-01 — writeback attribution on gate config, R8 trigger check).
+2. Parent dispatches **@research-scientist** (S19-02 — ablation sweep, variant selection).
+3. S19-11 and S19-12 can begin in parallel once S19-03 branch point is stable.
+4. PR #10 (Sprint 18) merge is independent — unblock with Ramos review.
 
-## Carry-forward to Sprint 19
+## Carry-forward to Sprint 20+
 
-**Primary lever (L_writeback):** The writeback (global-atomic) phase floors N=50k configs at ~15 ms (observed in S18-05b). It is now the plurality cost at large N. Batched-atomic writeback or shared-memory prefix-scan reduction of the per-SIMD histograms before global writeback is the likely Sprint 19 L1.
-
-**Secondary levers (deferred from Sprint 18 non-goals):**
-- **L2**: Pre-permute stats + compressedIndex gather removal — 2–4 ms standalone headroom; pairs cleanly with L3's grid geometry change.
-- **L3**: MultiClass per-dim dispatch fusion — 15–25 ms on MultiClass configs; zero effect on RMSE gate config. Sprint 19 headline candidate for MultiClass.
-- `maxBlocksPerPart` retuning — library-path dead code for csv_train; Sprint 19 cleanup candidate.
-
-**Constraint**: Sprint 19 results must continue to bound to DEC-008 envelope (`approxDim ∈ {1,3}`, `N ≤ 50k`, depth 6) unless the envelope is explicitly re-validated.
-
-**Threadgroup memory note**: L1a occupies the full 32 KB Apple Silicon ceiling (DEC-011). Sprint 19 kernel changes that require additional threadgroup memory must redesign the buffer layout or tile more aggressively.
+- L2 (pre-permute stats + compressedIndex gather removal — 2–4 ms headroom) deferred from S18, still valid.
+- L3 (MultiClass per-dim dispatch fusion — 15–25 ms on MultiClass configs) deferred from S18; zero effect on RMSE gate config; Sprint 20 candidate.
+- `maxBlocksPerPart` retuning (library-path dead code for csv_train) — Sprint cleanup candidate.
+- DEC-011 occupancy constraint (1 tg/SM from 32 KB ceiling): Sprint 19 writeback phase reuses `simdHist` post-barrier-6 as on-chip staging; if this forces 2-pass structure at large N, Sprint 20 must re-negotiate buffer geometry.

@@ -56,11 +56,61 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 17–24 Backlog (one-line each, expanded per sprint)
+## Sprint 19 — Two-Phase Histogram Writeback Reduction
 
-- Sprint 17: Histogram occupancy fix — `maxBlocksPerPart` tuning, kernel rewrite (4–8x expected at N≥100k)
-- Sprint 18: Multiclass per-dim fusion — fuse approxDim loop into one histogram dispatch (2–4x multiclass)
-- Sprint 19: Depth pipelining — eliminate per-depth CPU readbacks at structure_searcher.cpp:252,550
+**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`)  
+**Gate config**: 50k/RMSE/128b (shifted from S18's 10k/RMSE/128b — writeback lever has force at large N)  
+**Baseline** (S18 after, steady-state iters 5–49): `histogram_ms` = 15.52 ms (mean), `iter_total_ms` = 21.12 ms  
+**Projection**: `histogram_ms` 1.7–2.2×, `iter_total_ms` 1.5–1.8× (R8 downgrade trigger if S19-01 attribution doesn't support 1.5×+)
+
+### Day 0
+
+- [x] S19-00 — Branch cut from S18 tip (`463de74efa`); 18 baseline JSONs copied to `.cache/profiling/sprint19/baseline/`; state files scaffolded; `docs/sprint19/README.md` scaffold created — @ml-product-owner / @technical-writer **DONE**
+
+### Day 1
+
+- [ ] S19-01 — Writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); quantify writeback phase share with ±1 ms error bars; R8 trigger: if writeback < 40% of `histogram_ms`, projection revises DOWN before S19-03; output: `docs/sprint19/attribution.md` — @performance-engineer
+- [ ] S19-02 — Ablation sweep: (a) two-phase reduction, (b) batched-atomic, (c) CHOSEN two-phase + prefix-scan × {BLOCK_SIZE 128,256} × {bins 32,128} at N=50k RMSE d6; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; output: `docs/sprint19/ablation.md` — @research-scientist
+- [ ] S19-11 — In-sprint cleanup: 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` ("fix properly always" carry-forward from S18) — @ml-engineer
+- [ ] S19-12 — In-sprint cleanup: VGPR confirmation + S18 deferred code-review items — @performance-engineer / @code-reviewer
+
+### Day 2
+
+- [ ] S19-03 — Implement chosen variant at `kernel_sources.h`; reuse `simdHist[0..1023]` post-barrier-6 as on-chip staging; preserve DEC-011 32 KB TG memory ceiling; PROPOSE → CRITIQUE → IMPLEMENT → VERIFY → REFLECT — @ml-engineer
+- [ ] S19-04 — Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b — @qa-engineer
+
+### Day 3+
+
+- [ ] S19-05 — Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table — @performance-engineer
+- [ ] S19-06 — Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run — @mlops-engineer
+- [ ] S19-07 — Code review: writeback phase correctness, two-phase reduction ordering, DEC-011 ceiling, barrier count — @code-reviewer
+- [ ] S19-08 — Security pass: kernel string injection surface; no new externally-controlled buffer sizes — @security-auditor
+- [ ] S19-09 — Metal System Trace re-capture on gate config; confirm writeback phase <5 ms; output: appendix in `docs/sprint19/results.md` — @performance-engineer
+
+### In-sprint cleanup
+
+- [ ] S19-11 — 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (see Day 1 above)
+- [ ] S19-12 — VGPR confirmation + S18 deferred code-review items (see Day 1 above)
+
+### Docs
+
+- [ ] S19-10 — `docs/sprint19/` full population: README (scaffold DONE), attribution, ablation, results, non_goals; `CHANGELOG-DEV.md` S19 entry; `ARCHITECTURE.md` writeback section update; DEC-013 lock (DRAFT → ACCEPTED at S19-02 close); same-PR docs standing order fulfilled — @technical-writer
+
+### Sprint 19 merge gates
+
+| Gate | Criterion |
+|------|-----------|
+| G1 | `histogram_ms` −40% min on 50k/RMSE/128b |
+| G2 | No 18-config regression >5% |
+| G3 | Parity 108/108 bit-exact across DEC-008 envelope |
+| G4 | `iter_total_ms` −30% min on 50k/RMSE/128b |
+| G5 | No non-histogram stage regresses >10% |
+| G6 | CI green |
+
+---
+
+## Sprint 20–24 Backlog (one-line each, expanded per sprint)
+
 - Sprint 20: Quantization fastpath — GPU quantization on ingest, persistent device-resident datasets
 - Sprint 21: Leaf + apply fusion — one command buffer for leaf estimation + tree apply
 - Sprint 22: Kernel specialization — dtype/depth-specialized kernels via MLX JIT template system
