@@ -22,7 +22,8 @@ namespace NCB {
         void ConvertTreeToOnnxGraph(
             const TFullModel& model,
             const TMaybe<TString>& onnxGraphName, // "CatBoostModel" if not defined
-            onnx::GraphProto* onnxGraph);
+            onnx::GraphProto* onnxGraph,
+            const THashMap<ui32, TString>* catFeaturesHashToString = nullptr);
 
         struct TOnnxNode {
             enum class EType {
