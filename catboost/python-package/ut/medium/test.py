@@ -11904,3 +11904,44 @@ def test_repr():
     assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
     assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
     assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")
+
+
+def test_deepcopy_fit_predict_with_cat_features():
+    """Regression test for https://github.com/catboost/catboost/issues/2905
+
+    Deepcopying a model trained with categorical features and then calling fit
+    on the copy could lead to a hang during subsequent predict calls because
+    _deserialize_model used ReadZeroCopyModel. After fit _train resets
+    model_blob, leaving the zero-copy model pointing to freed memory.
+    """
+    from copy import deepcopy
+    import time
+
+    n_samples = 5000
+    df = pd.DataFrame({
+        'num_1': np.random.randn(n_samples),
+        'num_2': np.random.rand(n_samples) * 100,
+        'cat_1': np.random.choice(['A', 'B', 'C'], n_samples),
+        'cat_2': np.random.choice(['X', 'Y'], n_samples),
+    })
+    target = (df['num_1'] + (df['cat_1'] == 'B').astype(int) > 0).astype(int)
+
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.25,
+        depth=4,
+        verbose=False,
+        random_seed=42,
+        thread_count=2,
+    )
+    model.fit(df, target, cat_features=['cat_1', 'cat_2'])
+
+    model_copy = deepcopy(model)
+    model_copy.fit(df, target, cat_features=['cat_1', 'cat_2'])
+
+    # Predict should not hang
+    for _ in range(20):
+        start = time.time()
+        model_copy.predict(df)
+        elapsed = time.time() - start
+        assert elapsed < 5, "predict hung or was too slow"

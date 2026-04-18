@@ -574,6 +574,7 @@ ctypedef const TFullModel* TFullModel_const_ptr
 
 cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel SumModels(TVector[TFullModel_const_ptr], const TVector[double]&, const TVector[TString]&, ECtrTableMergePolicy) except +ProcessException nogil
+    cdef TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) except +ProcessException nogil
 
 cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "NCB":
     cdef void ExportModel(
@@ -5830,8 +5831,12 @@ cdef class _CatBoost:
         return py_serialized_model_str
 
     cpdef _deserialize_model(self, serialized_model_str):
-        self.model_blob = serialized_model_str
-        cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
+        # Use ReadModel instead of ReadZeroCopyModel to avoid use-after-free
+        # when model_blob is cleared during subsequent fit() calls.
+        # See https://github.com/catboost/catboost/issues/2905
+        cdef EModelType modelType = string_to_model_type('cbm')
+        cdef TFullModel tmp_model = ReadModel(<char*>serialized_model_str, len(serialized_model_str), modelType)
+        self.model_blob = None
         self.__model.Swap(tmp_model)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
