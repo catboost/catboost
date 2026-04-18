@@ -1,6 +1,6 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-17 by @technical-writer (Sprint 19 S19-00 kickoff scaffold)
+> Last updated: 2026-04-17 by @technical-writer (Sprint 19 pivot — accumulation redesign, DEC-013 superseded, DEC-014 placeholder)
 
 ## Current state
 
@@ -18,50 +18,71 @@ Sprint 18 delivered the L1a `simdHist` accumulator re-architecture. All gates pa
 
 **Sprint 18 carry-forward (now Sprint 19 starting point)**: N=50k configs converge to ~15 ms `histogram_ms` in steady state. The writeback (global-atomic) phase is the plurality cost at large N — the S18-05b profile identified this as the floor that L1a could not eliminate. Sprint 19 targets this floor directly.
 
-## Sprint 19 — ACTIVE
+## Sprint 19 — ACTIVE (PIVOTED: accumulation redesign)
 
-**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`)  
-**Lever**: Two-phase histogram writeback reduction (L_writeback)  
-**Gate config shift**: S18 used 10k/RMSE/128b (where accumulation dominated). S19 shifts to **50k/RMSE/128b** — the config where the writeback lever has force.
+**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`; name reflects original scope — history over cosmetics)  
+**Lever**: Accumulation redesign (L_accum) — **pivot from L_writeback after S19-01 ground-truth falsified writeback-as-plurality**  
+**Gate config**: 50k/RMSE/128b (unchanged)
 
-**Projection (aggressive, Ramos-approved)**:
-- `histogram_ms`: 1.7–2.2× improvement on gate config (15.52 ms baseline → ~7–9 ms target)
-- `iter_total_ms`: 1.5–1.8× improvement on gate config (21.12 ms baseline → ~12–14 ms target)
-- Championship 50k exit: revised from 0.75–0.85 s conservative to **0.55–0.70 s**
-- **R8 constraint**: if S19-01 attribution doesn't justify 1.5×+, projection revises DOWN before S19-03 commits
+**Pivot summary**: S19-01 attribution (commit `d7ea14e28c`) showed writeback = 0.79 ms (5%), accumulation = 14.30 ms (93%). The S18 "~15 ms writeback floor" was a mis-scaling from N=10k. R8 fired at 1.02–1.04× e2e. Ramos chose Option 2: pivot to accumulation redesign. DEC-013 SUPERSEDED. DEC-014 DRAFT.
 
-**Baselines**: S18 after-JSONs copied to `.cache/profiling/sprint19/baseline/` (18 configs). Gate config steady-state: `histogram_ms` 15.52 ms (mean), `iter_total_ms` 21.12 ms.
+**Projection (pending S19-01b/S19-02b; aggressive target still live)**:
+- `histogram_ms`: **−30% min** on 50k/RMSE/128b (32% accumulation reduction = ~30% histogram_ms, since accumulation = 93%; target range 8–11 ms from 15.46 ms baseline)
+- `iter_total_ms`: −30% min target (1.5× aggressive still live; baseline 21.12 ms → target 14–17 ms)
+- Championship 50k exit: pending S19-02b numbers
 
-**DEC-013**: PLACEHOLDER — Two-phase writeback reduction over batched-atomic. Status: DRAFT, locks at S19-02 ablation close.
+**Baselines**: S18 after-JSONs copied to `.cache/profiling/sprint19/baseline/` (18 configs). Gate config steady-state: `histogram_ms` 15.46 ms (ground-truth, S19-01), `iter_total_ms` 21.12 ms.
+
+**DEC-014**: DRAFT — accumulation redesign. 4 candidate variants under ablation (S19-02b). Locks at S19-02b close (end of Day 2).
+
+**Accumulation variants under ablation (S19-02b)**:
+- (A) Wider batch accumulation — under ablation
+- (B) Coalesced threadgroup staging — under ablation
+- (C) Per-feature specialization — under ablation
+- (D) Different ownership granularity — under ablation
 
 ## Sprint 19 task table
 
 | ID | Task | Owner | Day/Phase | Status |
 |----|------|-------|-----------|--------|
 | S19-00 | Branch cut from S18 tip; baseline JSON copy; state file scaffold; docs/sprint19/README scaffold | @ml-product-owner / @technical-writer | Day 0 | **DONE** |
-| S19-01 | Ground-truth writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); output: `docs/sprint19/attribution.md` with ±1 ms error bars; R8 trigger check | @performance-engineer | Day 1 | PENDING |
-| S19-02 | Ablation sweep: (a) two-phase reduction, (b) batched-atomic, (c) CHOSEN two-phase + prefix-scan × {BLOCK_SIZE 128,256} × {bins 32,128} at N=50k RMSE d6; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; output: `docs/sprint19/ablation.md` | @research-scientist | Day 1–2 | PENDING |
-| S19-03 | Implement chosen variant at `kernel_sources.h`; preserve DEC-011 32 KB ceiling; reuse `simdHist[0..1023]` as on-chip staging post-barrier-6 | @ml-engineer | Day 2 | PENDING |
-| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 2–3 | PENDING |
-| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 3 | PENDING |
-| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 3 | PENDING |
-| S19-07 | Code review: writeback phase correctness, two-phase reduction ordering, DEC-011 ceiling, barrier count | @code-reviewer | Day 3–4 | PENDING |
-| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 3–4 | PENDING |
-| S19-09 | Metal System Trace re-capture on gate config; confirm writeback phase <5 ms; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 4 | PENDING |
-| S19-10 | `docs/sprint19/` full population, `CHANGELOG-DEV.md` entry, `ARCHITECTURE.md` update, DEC-013 (lock from DRAFT), `docs/sprint19/` subdocs | @technical-writer | Day 4–5 | IN PROGRESS (Day 0 scaffold done) |
+| S19-01 | Ground-truth writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); output: `docs/sprint19/attribution.md` with ±1 ms error bars; R8 trigger check | @performance-engineer | Day 1 | **COMPLETE-BUT-SUPERSEDED** (evidence correct, premise falsified — see DEC-014) |
+| S19-02 | Ablation sweep (writeback variants a/b/c); DEC-013 draft written; premise invalidated by S19-01; output: `docs/sprint19/ablation.md` | @research-scientist | Day 1–2 | **COMPLETE-BUT-SUPERSEDED** (variant (c) 3.0 ms projection not supported by ground truth) |
+| S19-01b | Accumulation sub-phase attribution: re-attribute 14.30 ms accumulation across sub-phases; ±1 ms error bars; output appended to `docs/sprint19/attribution.md` | @performance-engineer | Day 2 | IN PROGRESS |
+| S19-02b | Accumulation redesign ablation: variants A/B/C/D × {bins 32,128} × {N 10k,50k}; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; DEC-014 lock; output appended to `docs/sprint19/ablation.md` | @research-scientist | Day 2 | IN PROGRESS |
+| S19-03 | Implement winning accumulation redesign from DEC-014 at `kernel_sources.h`; preserve DEC-011 32 KB ceiling | @ml-engineer | Day 3 | PENDING |
+| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 3–4 | PENDING |
+| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 4 | PENDING |
+| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 4 | PENDING |
+| S19-07 | Code review: accumulation phase correctness, DEC-011 ceiling, barrier count | @code-reviewer | Day 4–5 | PENDING |
+| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 4–5 | PENDING |
+| S19-09 | Metal System Trace re-capture on gate config; confirm accumulation improvement; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 5 | PENDING |
+| S19-10 | `docs/sprint19/` full population, `CHANGELOG-DEV.md` entry, `ARCHITECTURE.md` update, DEC-013 (SUPERSEDED) + DEC-014 (lock from DRAFT), `docs/sprint19/` subdocs | @technical-writer | Day 5–6 | IN PROGRESS (Day 0 scaffold done; pivot updates applied) |
 | S19-11 | In-sprint cleanup: 6 EvalAtBoundary CPU readbacks in `structure_searcher.cpp` — "fix properly always" (carry-forward from S18 non-goals) | @ml-engineer | Day 1–3 | PENDING |
 | S19-12 | In-sprint cleanup: VGPR confirmation + S18 deferred code-review items | @performance-engineer / @code-reviewer | Day 1–2 | PENDING |
 
+## Acceptance gates (revised)
+
+| Gate | Criterion |
+|------|-----------|
+| G1 | **`histogram_ms` −30% min** on 50k/RMSE/128b (accumulation phase = 93%; 32% accumulation reduction ≈ 30% histogram_ms) |
+| G2 | No 18-config regression >5% |
+| G3 | Parity 108/108 bit-exact across DEC-008 envelope |
+| G4 | `iter_total_ms` −30% min on 50k/RMSE/128b (aggressive 1.5× target still live pending S19-01b/S19-02b) |
+| G5 | No non-histogram stage regresses >10% |
+| G6 | CI green |
+
 ## Blockers
 
-None at kickoff.
+None. S19-01b and S19-02b running in parallel (Day 2).
 
 ## Next actions
 
-1. Parent dispatches **@performance-engineer** (S19-01 — writeback attribution on gate config, R8 trigger check).
-2. Parent dispatches **@research-scientist** (S19-02 — ablation sweep, variant selection).
-3. S19-11 and S19-12 can begin in parallel once S19-03 branch point is stable.
-4. PR #10 (Sprint 18) merge is independent — unblock with Ramos review.
+1. **@performance-engineer** running S19-01b (accumulation sub-phase attribution) — Day 2, in progress.
+2. **@research-scientist** running S19-02b (accumulation redesign ablation + DEC-014 lock) — Day 2, in progress.
+3. Day 3 go/no-go on DEC-014 lock before @ml-engineer starts S19-03.
+4. S19-11 and S19-12 can proceed in parallel — independent of pivot.
+5. PR #10 (Sprint 18) merge is independent — unblock with Ramos review.
 
 ## Carry-forward to Sprint 20+
 

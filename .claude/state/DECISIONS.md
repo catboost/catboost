@@ -113,9 +113,11 @@
 
 ## DEC-013: Two-phase writeback reduction over batched-atomic
 
+> **STATUS: SUPERSEDED by DEC-014 on 2026-04-17.** Rationale: S19-01 ground-truth attribution (commit `d7ea14e28c`) falsified the premise — writeback is 0.79 ms / 5%, not 15 ms / plurality. R8 failed at 1.02–1.04× e2e. Pivoted to accumulation redesign.
+
 **Sprint**: 19
 **Date**: 2026-04-17
-**Status**: DRAFT — locks at S19-02 ablation close with full numbers
+**Status**: SUPERSEDED by DEC-014
 **Problem**: Under L1a (`simdHist[8][1024]`, 32 KB on-chip), the writeback phase — copying per-SIMD-group histograms from threadgroup memory to the global accumulation buffer via atomic adds — floors N=50k `histogram_ms` at ~15 ms regardless of accumulation improvements. This is the Sprint 19 headline bottleneck (identified in S18-05b). Two candidate reduction strategies exist: (a) two-phase on-chip reduction before global writeback, (b) batched-atomic writeback with reduced atomic conflict window.
 **Considered**:
 - (a) Two-phase reduction — after barrier-6 (end of accumulation), fold the 8 per-SIMD histograms into a single threadgroup-scope sum using `simdHist[0..1023]` as on-chip staging, then write the result to global memory with one atomic-free store per bin; eliminates all cross-threadgroup atomic contention during writeback.
@@ -124,7 +126,32 @@
 **Rationale**: Two-phase eliminates cross-threadgroup atomic contention entirely, gives deterministic reduction order (parity-friendly — consistent with DEC-009's linear fold preference), and removes the ~15 ms writeback floor rather than shaving it. Reuses `simdHist[0..1023]` post-barrier-6 as on-chip staging — no additional threadgroup memory required, preserves DEC-011's 32 KB ceiling. The one-atomic-free-store-per-bin write is optimal for both latency and parity guarantees.
 **Trade-off**: Requires an additional intra-threadgroup reduction pass (folds 8 simd histograms to 1) before the global write; adds ~1 barrier vs the current single writeback. If the 8-fold intra-TG reduction is itself memory-bound (unlikely at 32 KB on-chip), gain may be partial — S19-01 attribution will confirm.
 **Parity note**: Deterministic reduction order means results are bit-reproducible across runs — a stronger guarantee than batched-atomic, which can vary in accumulation order depending on Metal scheduler behavior.
-**Scope**: DEC-008 envelope (`approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations). Projection gate config: 50k/RMSE/128b. Full ablation in `docs/sprint19/ablation.md` (pending S19-02).
+**Scope**: DEC-008 envelope (`approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations). Projection gate config: 50k/RMSE/128b. Full ablation in `docs/sprint19/ablation.md` (S19-02 complete; see SUPERSEDED note above).
+
+## DEC-014: Accumulation redesign — wider batch (BATCH_DOCS=64)
+
+**Sprint**: 19
+**Date**: 2026-04-17
+**Branch**: `mlx/sprint-19-hist-writeback`
+**Status**: DRAFT (S19-02b locked) — pending S19-03 implementation; lock to ACTIVE at S19-04 parity sweep close. Re-anchor on S19-01b sub-phase ranking when it lands (Day 2 EOD).
+**Supersedes**: DEC-013 (writeback two-phase reduction; falsified premise).
+**Problem**: S19-01 ground-truth attribution (`docs/sprint19/attribution.md`) falsified the writeback-as-plurality hypothesis. At the 50k/RMSE/128b gate, writeback = 0.79 ms (5%) and accumulation = 14.30 ms (93%) of `histogram_ms` 15.43 ms. The DEC-013 writeback rewrite addresses a 5%-share lever and cannot clear R8 (≥1.5× e2e). The accumulation phase — the 32-doc cooperative scatter loop in `kernel_sources.h:175–209` — is the bottleneck.
+**Considered** (full ablation in `docs/sprint19/ablation_accumulation.md`, S19-02b):
+- (A1) BATCH_DOCS=64 wider batch — each lane holds 2 docs in registers across the inner shuffle loop; outer batch stride doubles. Halves outer-loop iter count (3 → 2 at gate); enables load-shuffle latency overlap via two-slab issue. TG memory unchanged 32 KB. Higham γ_7 unchanged.
+- (B)  TG-memory doc staging — coalesce-load 32-doc tile into TG memory; all SIMD groups read from tile. **BLOCKED**: 35–58 KB TG memory exceeds DEC-011 32 KB ceiling. Sprint 20+ candidate iff DEC-011 renegotiated.
+- (C)  Per-feature kernel specialization — 4 dispatches per feature group instead of 1. **KILLED**: 75 extra dispatches/iter × ~30 µs = +2.25 ms overhead, eats 2.8× the per-TG kernel-work saving. Net +1.45 ms (regression).
+- (D)  16-lane stride-partition — 2 lanes own each bin, joined by 1-level XOR shuffle reduction. **DEFERRED**: algebraic-risk pattern (BUG-S18-001 lesson). Higham γ_7 → γ_8 at boundary of DEC-008 RMSE/Logloss ulp ≤ 4. Sprint 20 candidate (A1)+(D) iff (A1) alone misses R8.
+**Chosen**: **(A1) BATCH_DOCS=64 standalone.** Sprint 20 stacking pathway: (A1) + (D) if S19-03/04 measurement shows (A1) alone misses R8 midpoint.
+**Rationale**:
+- **Lowest-risk, highest-confidence single variant.** No layout change, no new TG memory, no new dispatches, no XOR reduction proof obligation. Bit-exact reduction order preserved.
+- **Projected `histogram_ms` 9.5 ms ± 1.2 ms (−38% vs 15.43 ms baseline).** Outer-loop iter count halved (3 → 2 at gate) + load-shuffle latency overlap from two-slab issue (6 in-flight loads, AGX max ~4). Worst-case sub-phase ranking (shuffle ALU bound): 11.5 ms (−26%); best-case (load-latency bound): 9.0 ms (−42%). Robust across all four sub-phase rankings.
+- **R8 verdict: MARGINAL.** Projects e2e 1.39× midpoint (15.10 ms `iter_total_ms`), 1.51× lower bound, 1.29× upper bound. Reaches 1.5× target only at the lower-bound projection (~16% probability under symmetric error model). Path to clear R8: ship (A1) Sprint 19; if measured ≥1.5× → cleared; if measured 1.3–1.5× → Sprint 20 ships (D) on top, projected (A1)+(D) midpoint = 1.49×, lower bound = 1.67×; if measured <1.3× → escalate.
+- **DEC-011 32 KB ceiling preserved.** `simdHist[8][1024]` unchanged. Net new threadgroup memory: 0 KB.
+- **DEC-008 envelope preserved.** γ_7 unchanged → ≈4.2e-7 FP32, well within RMSE/Logloss ulp ≤ 4 (≈4.77e-7) and MultiClass ulp ≤ 8 (3× factor for K=3 → ≈1.3e-6).
+- **Register pressure delta: +6 VGPR/lane** (3 → 9 VGPR for doc state). Within typical AGX VGPR budget (~256/thread); S19-03 must verify no spill via Metal compiler register-allocation report.
+**Trade-off**: ~+30 LOC in `kernel_sources.h` for slab-pair register state and 64-iter inner loop. Outer-loop iter count halved at gate. Bit-exact semantics preserved.
+**Stacking pathway (Sprint 20+)**: (A1) + (D) projected to clear R8 at midpoint (1.49×) and lower bound (1.67×). DEC-015 (forthcoming if needed) would lock (D) with full algebraic re-derivation under (A1) composition + parity sweep at γ_8.
+**Scope**: DEC-008 envelope (`approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations). Gate config: 50k/RMSE/128b. Full ablation: `docs/sprint19/ablation_accumulation.md`.
 
 ## DEC-012: Intra-SIMD butterfly removed under L1a layout
 

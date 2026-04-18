@@ -2,11 +2,25 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
-## Sprint 19 — Two-Phase Histogram Writeback Reduction (2026-04-17, in progress)
+## Sprint 19 — Accumulation Redesign (PIVOTED from Two-Phase Writeback) (2026-04-17, in progress)
 
-**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`)  
-**Campaign**: Operation Verstappen — battle 4 of 9 — L_writeback lever  
+**Branch**: `mlx/sprint-19-hist-writeback` (name reflects original scope — history over cosmetics)  
+**Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)  
 **Verdict**: IN PROGRESS
+
+### Day 1 (2026-04-17) — Ground-truth falsifies writeback hypothesis; pivot to accumulation redesign
+
+- **S19-01** (commit `d7ea14e28c`, `docs/sprint19/attribution.md`): Ground-truth Metal System Trace attribution on 50k/RMSE/d6/128b gate config. **Writeback = 0.79 ms (5%)** of steady-state `histogram_ms`. **Accumulation = 14.30 ms (93%)**. The "~15 ms writeback floor" from S18 was a mis-scaling of N=10k numbers to N=50k. R8 fired: writeback elimination projects 1.02–1.04× e2e (below the 1.5× aggressive target). Evidence correct; premise (writeback as plurality) falsified.
+- **S19-02** (commit `fb05205ec0`, `docs/sprint19/ablation.md`): @research-scientist wrote a clean DEC-013 draft for two-phase writeback reduction. Variant (c) projected 3.0 ms reduction. Premise immediately invalidated by S19-01 — secondary effects ground truth does not support the projection. DEC-013 draft stands as historical artifact; not implemented.
+- **R8 result**: writeback elimination → 1.02–1.04× e2e. Does not meet the 1.5× aggressive gate.
+- **Ramos decision**: Option 2 — pivot Sprint 19 to accumulation redesign. Option 1 (ship weak writeback) and Option 3 (cleanup-only demote) rejected.
+- **DEC-013 SUPERSEDED** by DEC-014 (see `.claude/state/DECISIONS.md`). DEC-013 entry preserved as audit trail.
+- **DEC-014 DRAFT added**: accumulation redesign over writeback rewrite. 4 candidate variants (A: wider batch, B: coalesced TG staging, C: per-feature specialization, D: different ownership granularity). Projection: 30–50% `histogram_ms` reduction → 1.25–1.50× e2e. Locks at S19-02b close.
+- **Day 2 kickoff**: @performance-engineer running S19-01b (accumulation sub-phase attribution); @research-scientist running S19-02b (accumulation redesign ablation + DEC-014 lock). Both in parallel.
+- Sprint length bumped Day 5 → **Day 6** (pivot cost one day).
+- G1 gate revised: `histogram_ms` −40% → **−30% min** (accumulation = 93%; 32% accumulation reduction ≈ 30% histogram_ms).
+
+### Day 0 (2026-04-17) — Branch cut and scaffold
 
 - S19-00: Branch cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`. Sprint 18 after-profiles copied to `.cache/profiling/sprint19/baseline/` (18 JSONs, identical to S18 after). Gate config shift: 10k/RMSE/128b → **50k/RMSE/128b** (writeback lever has force at large N). Steady-state baselines — gate config: `histogram_ms` 15.52 ms (mean), `iter_total_ms` 21.12 ms. State files scaffolded (HANDOFF S19 rewrite, TODOS S19 section, DECISIONS DEC-013 placeholder, CHANGELOG S19 header). `docs/sprint19/README.md` scaffold created with campaign context, lever description, gates table, and projection table. DEC-013 DRAFT: two-phase on-chip reduction over batched-atomic (Ramos: "whatever is more robust"). PR #10 (Sprint 18) remains OPEN, unblocked.
 
