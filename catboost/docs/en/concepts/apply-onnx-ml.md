@@ -10,7 +10,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 ## Specifics {#specifics}
 
-- Only numerical features are supported. [Issue for categorical features support](https://github.com/catboost/catboost/issues/863). Text and embedding features will likely never be supported.
+- Numerical and categorical features are supported. Text and embedding features will likely never be supported.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
@@ -22,9 +22,23 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 #### features
 
-The input features.
+The numerical input features.
 
-Possible types: Tensor of shape [N_examples] and type {{ python-type--int }} or {{ python-type--string }}
+Possible types: Tensor of shape [N_examples] and type {{ python-type--float }}
+
+#### Categorical features
+
+Each categorical feature is exported as a separate input with the name derived from the feature's identifier:
+- If the feature has a custom `feature_id`, the input name matches that identifier.
+- Otherwise, the input name is `cat_feature_<flat_index>`.
+
+Possible types: Tensor of shape [N_examples] and type {{ python-type--string }}
+
+{% note info %}
+
+When exporting a model with categorical features, the `pool` parameter must be passed to `save_model` so that CatBoost can provide the mapping from categorical hash values to string representations required by ONNX.
+
+{% endnote %}
 
 
 
@@ -211,3 +225,60 @@ predictions = sess.run(['predictions'],
                        {'features': boston.data.astype(np.float32)})
 ```
 
+
+### Regression with categorical features
+
+Train the model with categorical features:
+
+```python
+import catboost
+import numpy as np
+
+
+# Dataset with mixed numerical and categorical features
+X = np.array([
+    ['a', 'x', 1.0],
+    ['b', 'y', 2.0],
+    ['a', 'y', 3.0],
+    ['b', 'x', 4.0],
+], dtype=object)
+y = np.array([1.0, 2.0, 1.5, 2.5])
+
+train_pool = catboost.Pool(X, y, cat_features=[0, 1])
+
+model = catboost.CatBoostRegressor(iterations=5, depth=3, verbose=False)
+model.fit(train_pool)
+
+# Save model to ONNX-ML format (pool is required for categorical features)
+model.save_model(
+    "regression_with_cat.onnx",
+    format="onnx",
+    pool=train_pool,
+    export_parameters={
+        'onnx_domain': 'ai.catboost',
+        'onnx_model_version': 1,
+        'onnx_doc_string': 'regression model with categorical features',
+        'onnx_graph_name': 'CatBoostModel_regression_cat'
+    }
+)
+```
+
+Apply the model with onnxruntime:
+
+```python
+import numpy as np
+import onnxruntime as rt
+
+
+sess = rt.InferenceSession('regression_with_cat.onnx')
+
+# Pass categorical features as separate string inputs
+predictions = sess.run(
+    ['predictions'],
+    {
+        'features': np.array([[1.0], [2.0], [3.0], [4.0]], dtype=np.float32),
+        'cat_feature_0': np.array([['a'], ['b'], ['a'], ['b']]),
+        'cat_feature_1': np.array([['x'], ['y'], ['y'], ['x']])
+    }
+)
+```

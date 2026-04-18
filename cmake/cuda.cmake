@@ -4,7 +4,7 @@ if (HAVE_CUDA)
   endif()
 
   if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-    set(CMAKE_CUDA_ARCHITECTURES "35-virtual;50-virtual;60-virtual;61-real;70-virtual;75-real;80-real;86-real;89-real;90")
+    set(CMAKE_CUDA_ARCHITECTURES "50-virtual;60-virtual;61-real;70-virtual;75-real;80-real;86-real;89-real;90-virtual")
   endif()
 
   enable_language(CUDA)
@@ -34,6 +34,11 @@ if (HAVE_CUDA)
       -flto
       -faligned-allocation
       -fsized-deallocation
+      # clang-specific flags not supported by GCC as CUDA host compiler
+      -fcolor-diagnostics
+      -fdebug-default-version=4
+      -fuse-init-array
+      -Wimport-preprocessor-directive-pedantic
       # While it might be reasonable to compile host part of .cu sources with these optimizations enabled,
       # nvcc passes these options down towards cicc which lacks x86_64 extensions support.
       -msse2
