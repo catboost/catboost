@@ -1,0 +1,218 @@
+{
+  "meta": {
+    "date": "2026-04-16T01:03:09.417001",
+    "hardware": "unknown",
+    "python": "3.13.2",
+    "catboost_version": "1.2.10",
+    "catboost_mlx_version": "0.4.0",
+    "iterations": 100,
+    "n_features": 50,
+    "depth": 6,
+    "learning_rate": 0.1,
+    "l2_leaf_reg": 3.0,
+    "random_seed": 42,
+    "bin_counts": [
+      128
+    ]
+  },
+  "runs": [
+    {
+      "task": "RMSE",
+      "scale": 1000,
+      "bins": 128,
+      "cpu_time_s": 0.09329737490043044,
+      "mlx_time_s": 30.063336374936625,
+      "speedup": 0.003103360642906259,
+      "cpu_loss": 2.2094161436469193,
+      "mlx_loss": 2.1218948364257812,
+      "loss_delta": 0.08752130722113804,
+      "cpu_baseline": {
+        "elapsed_s": 0.09329737490043044,
+        "iter_per_s": 1071.8415186571197,
+        "train_loss": 2.2094161436469193
+      },
+      "mlx_baseline": {
+        "elapsed_s": 30.063336374936625,
+        "iter_per_s": 3.3263107844333795,
+        "train_loss": 2.1218948364257812
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "Logloss",
+      "scale": 1000,
+      "bins": 128,
+      "cpu_time_s": 0.1056421659886837,
+      "mlx_time_s": 29.160731624811888,
+      "speedup": 0.003622754303557882,
+      "cpu_loss": 0.11993203431274742,
+      "mlx_loss": 0.33224621415138245,
+      "loss_delta": 0.21231417983863504,
+      "cpu_baseline": {
+        "elapsed_s": 0.1056421659886837,
+        "iter_per_s": 946.5917237129719,
+        "train_loss": 0.11993203431274742
+      },
+      "mlx_baseline": {
+        "elapsed_s": 29.160731624811888,
+        "iter_per_s": 3.4292692407934426,
+        "train_loss": 0.33224621415138245
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "MultiClass",
+      "scale": 1000,
+      "bins": 128,
+      "cpu_time_s": 0.1605056249536574,
+      "mlx_time_s": 59.03545983298682,
+      "speedup": 0.002718800283892645,
+      "cpu_loss": 0.3936127180825889,
+      "mlx_loss": 0.4886389374732971,
+      "loss_delta": 0.09502621939070821,
+      "cpu_baseline": {
+        "elapsed_s": 0.1605056249536574,
+        "iter_per_s": 623.0311244784904,
+        "train_loss": 0.3936127180825889
+      },
+      "mlx_baseline": {
+        "elapsed_s": 59.03545983298682,
+        "iter_per_s": 1.6938971981060733,
+        "train_loss": 0.4886389374732971
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "RMSE",
+      "scale": 10000,
+      "bins": 128,
+      "cpu_time_s": 0.16492229187861085,
+      "mlx_time_s": 32.32396449986845,
+      "speedup": 0.0051021678321445385,
+      "cpu_loss": 2.3375182644941885,
+      "mlx_loss": 2.474152088165283,
+      "loss_delta": 0.13663382367109467,
+      "cpu_baseline": {
+        "elapsed_s": 0.16492229187861085,
+        "iter_per_s": 606.3461698289025,
+        "train_loss": 2.3375182644941885
+      },
+      "mlx_baseline": {
+        "elapsed_s": 32.32396449986845,
+        "iter_per_s": 3.0936799228450758,
+        "train_loss": 2.474152088165283
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "Logloss",
+      "scale": 10000,
+      "bins": 128,
+      "cpu_time_s": 0.25650133308954537,
+      "mlx_time_s": 31.756797208916396,
+      "speedup": 0.008077052966082082,
+      "cpu_loss": 0.3307049458872061,
+      "mlx_loss": 0.42166873812675476,
+      "loss_delta": 0.09096379223954865,
+      "cpu_baseline": {
+        "elapsed_s": 0.25650133308954537,
+        "iter_per_s": 389.86152155821236,
+        "train_loss": 0.3307049458872061
+      },
+      "mlx_baseline": {
+        "elapsed_s": 31.756797208916396,
+        "iter_per_s": 3.148932159063033,
+        "train_loss": 0.42166873812675476
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "MultiClass",
+      "scale": 10000,
+      "bins": 128,
+      "cpu_time_s": 0.2657655419316143,
+      "mlx_time_s": 63.66127762501128,
+      "speedup": 0.0041746812481061515,
+      "cpu_loss": 0.5379528049776878,
+      "mlx_loss": 0.6215999722480774,
+      "loss_delta": 0.08364716727038957,
+      "cpu_baseline": {
+        "elapsed_s": 0.2657655419316143,
+        "iter_per_s": 376.2715033453494,
+        "train_loss": 0.5379528049776878
+      },
+      "mlx_baseline": {
+        "elapsed_s": 63.66127762501128,
+        "iter_per_s": 1.570813589212541,
+        "train_loss": 0.6215999722480774
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "RMSE",
+      "scale": 50000,
+      "bins": 128,
+      "cpu_time_s": 0.25741187506355345,
+      "mlx_time_s": 48.75030674994923,
+      "speedup": 0.005280210366344444,
+      "cpu_loss": 2.6917720536290677,
+      "mlx_loss": 2.8387413024902344,
+      "loss_delta": 0.1469692488611667,
+      "cpu_baseline": {
+        "elapsed_s": 0.25741187506355345,
+        "iter_per_s": 388.4824659907807,
+        "train_loss": 2.6917720536290677
+      },
+      "mlx_baseline": {
+        "elapsed_s": 48.75030674994923,
+        "iter_per_s": 2.0512691440675734,
+        "train_loss": 2.8387413024902344
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "Logloss",
+      "scale": 50000,
+      "bins": 128,
+      "cpu_time_s": 0.4147332089487463,
+      "mlx_time_s": 48.310792916920036,
+      "speedup": 0.00858469058170836,
+      "cpu_loss": 0.36695934884263787,
+      "mlx_loss": 0.4213374853134155,
+      "loss_delta": 0.05437813647077766,
+      "cpu_baseline": {
+        "elapsed_s": 0.4147332089487463,
+        "iter_per_s": 241.11886350619739,
+        "train_loss": 0.36695934884263787
+      },
+      "mlx_baseline": {
+        "elapsed_s": 48.310792916920036,
+        "iter_per_s": 2.069930836613876,
+        "train_loss": 0.4213374853134155
+      },
+      "stage_timings": null
+    },
+    {
+      "task": "MultiClass",
+      "scale": 50000,
+      "bins": 128,
+      "cpu_time_s": 0.476658167084679,
+      "mlx_time_s": 95.91228883317672,
+      "speedup": 0.004969729873861583,
+      "cpu_loss": 0.5713621457770804,
+      "mlx_loss": 0.6401593685150146,
+      "loss_delta": 0.0687972227379342,
+      "cpu_baseline": {
+        "elapsed_s": 0.476658167084679,
+        "iter_per_s": 209.79395068717002,
+        "train_loss": 0.5713621457770804
+      },
+      "mlx_baseline": {
+        "elapsed_s": 95.91228883317672,
+        "iter_per_s": 1.0426192640854726,
+        "train_loss": 0.6401593685150146
+      },
+      "stage_timings": null
+    }
+  ]
+}

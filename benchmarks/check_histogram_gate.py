@@ -292,19 +292,17 @@ def _run_18config(args: argparse.Namespace) -> int:
 
     failures = []
     for name, before_ms, after_ms, delta_rel in rows:
-        status = "OK"
-        if delta_rel > args.max_regression:
-            status = "FAIL"
-        delta_str = f"{delta_rel:+.1%}"
-        print(
-            f"{name:<{col_w}}  {before_ms:>12.3f}  {after_ms:>10.3f}  {delta_str:>8}  {status}"
-        )
         failure = _check_pair(
             before_ms=before_ms,
             after_ms=after_ms,
             min_reduction=args.min_reduction,
             max_regression=args.max_regression,
             label=name,
+        )
+        status = "FAIL" if failure else "OK"
+        delta_str = f"{delta_rel:+.1%}"
+        print(
+            f"{name:<{col_w}}  {before_ms:>12.3f}  {after_ms:>10.3f}  {delta_str:>8}  {status}"
         )
         if failure:
             failures.append(failure)

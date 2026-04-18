@@ -8,6 +8,25 @@
 namespace NCatboostMlx {
 
     namespace {
+        // Threadgroup-memory budget guard for the L1a histogram kernel (Sprint 18).
+        // The kernel declares `threadgroup float simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD]`
+        // in kernel_sources.h; its byte size must stay within Apple Silicon's 32 KB
+        // threadgroup-memory limit. MSL does not support static_assert in shader source,
+        // so we mirror the constants here and assert on the host side. Any future bump
+        // to the SIMD-group count or per-SIMD histogram size must re-tile the layout
+        // (e.g. split the 4-tile reduction into more tiles) before tripping this assert.
+        constexpr unsigned kHistSimdSize         = 32;
+        constexpr unsigned kHistBlockSize        = 256;
+        constexpr unsigned kHistFeaturesPerPack  = 4;
+        constexpr unsigned kHistBinsPerByte      = 256;
+        constexpr unsigned kHistNumSimdGroups    = kHistBlockSize / kHistSimdSize;            // 8
+        constexpr unsigned kHistPerSimd          = kHistFeaturesPerPack * kHistBinsPerByte;    // 1024
+        constexpr unsigned kHistThreadgroupBytes = kHistNumSimdGroups * kHistPerSimd * sizeof(float); // 32768
+        constexpr unsigned kAppleSiliconTgLimit  = 32768;
+        static_assert(kHistThreadgroupBytes <= kAppleSiliconTgLimit,
+                      "L1a histogram kernel exceeds Apple Silicon's 32 KB threadgroup limit; "
+                      "bumping NUM_SIMD_GROUPS or HIST_PER_SIMD requires re-tiling the reduction.");
+
         // Dispatch histogram computation for one feature group (4 packed features).
         // Returns a fresh histogram array with this group's contributions.
         mx::array DispatchHistogramGroup(

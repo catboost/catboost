@@ -76,6 +76,9 @@ catboost/spark/catboost4j-spark/projects/
 # CatBoost-MLX development
 build/
 .cache/*
+!.cache/benchmarks/
+.cache/benchmarks/*
+!.cache/benchmarks/sprint16_baseline.json
 !.cache/profiling/
 .cache/profiling/*
 !.cache/profiling/sprint18/

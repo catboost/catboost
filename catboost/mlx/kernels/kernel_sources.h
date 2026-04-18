@@ -77,12 +77,18 @@ constant constexpr uint TOTAL_HIST_SIZE = NUM_SIMD_GROUPS * HIST_PER_SIMD;
 //   The Sprint 18 buffer is 2.67× larger but eliminates the per-thread device-
 //   memory spill (256 threads × 4 KB = 1 MB per threadgroup spill eliminated).
 //
-//   Reduction phase (D1c, unchanged from Sprint 17): the D1c intra-SIMD
-//   simd_shuffle_xor butterfly + fixed-order 8-term cross-SIMD fold still runs
-//   after accumulation. The only change is the source (simdHist[g][bin] instead
-//   of privHist[bin]) and the output target (simdHist[0][bin] acts as stagingHist,
-//   reusing the first 1024 slots of the 32 KB buffer). Peak threadgroup memory:
-//   32 KB during accumulation and reduction — never exceeds the Apple Silicon limit.
+//   Reduction phase (Sprint 18, BUG-S18-001 fix): single 8-term cross-SIMD
+//   linear fold (DEC-009, fixed g=0..7 order, 7 addition levels → γ_7 ≈ 4.2e-7
+//   FP32). The D1c intra-SIMD simd_shuffle_xor butterfly was REMOVED when the
+//   layout changed — stride-partition accumulation already produces the full
+//   per-SIMD-group per-bin sum in simdHist[g][bin], so the intra-SIMD butterfly
+//   was redundant AND incorrect (all 32 lanes would read the same address and
+//   amplify by 32×; see BUG-S18-001 root-cause comment below). Output target:
+//   simdHist[0][bin] acts as stagingHist, reusing the first 1024 slots of the
+//   32 KB buffer. Peak threadgroup memory: 32 KB during accumulation and
+//   reduction — at the Apple Silicon threadgroup limit, any bump to
+//   NUM_SIMD_GROUPS or HIST_PER_SIMD requires re-tiling (see host-side
+//   static_assert in kernel_sources.cpp).
 //
 //   Performance: eliminates (a) 1 MB/tg device-memory spill traffic during
 //   accumulation (RMW now goes to on-chip threadgroup SRAM), (b) 256 × 1024-entry
