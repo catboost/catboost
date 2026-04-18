@@ -11,6 +11,9 @@
     #define _win32_
 #elif defined(__WIN32__) || defined(_WIN32) // _WIN32 is also defined by the 64-bit compiler for backward compatibility
     #define _win32_
+#elif defined(__FREERTOS__)
+    #define _freertos_
+    #define _rtos_
 #else
     #define _unix_
 
