@@ -173,9 +173,12 @@ static const std::string kHistOneByteSource = R"metal(
     // No intra-SIMD butterfly needed here: simdHist[g][bin] accumulates the full
     // per-SIMD-group per-bin sum directly — each bin slot has one writer per group.
     // DEC-016 T1 fuse-valid: pack the valid flag into the MSB of `packed` so
-    // the per-src loop needs only 2 simd_shuffles instead of 3. Safe at ≤128
-    // bins because packed holds four 8-bit values in bits [0..31] — the top
-    // bit is always zero on load. Cleared via p_clean before bin extraction.
+    // the per-src loop needs only 2 simd_shuffles instead of 3. Each feature
+    // slot is 8 bits wide (packer: csv_train.cpp PackFeatures), so slot-0 uses
+    // bits [24..31] — bit 31 aliases bin value 128. Safe ONLY when every
+    // feature's fold count ≤ 127 (equivalently, all bin values ≤ 127).
+    // Host-side CB_ENSURE in DispatchHistogramBatched enforces this; callers
+    // beyond the envelope are rejected loudly. See S19-07 code review.
     const uint VALID_BIT = 0x80000000u;
 
     for (uint batch_start = simd_id * SIMD_SIZE;

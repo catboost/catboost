@@ -1,6 +1,7 @@
 #include "histogram.h"
 
 #include <catboost/mlx/kernels/kernel_sources.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <mlx/mlx.h>
 #include <mlx/fast.h>
@@ -133,15 +134,31 @@ namespace NCatboostMlx {
             TVector<ui32> firstFoldIndicesFlatVec(numGroups * 4, 0u);
             TVector<ui32> featureColumnIndicesVec(numGroups, 0u);
 
+            ui32 maxFoldCount = 0;
             for (ui32 g = 0; g < numGroups; ++g) {
                 featureColumnIndicesVec[g] = g;
                 const ui32 featureStart    = g * 4;
                 const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
                 for (ui32 slot = 0; slot < featuresInGroup; ++slot) {
-                    foldCountsFlatVec[g * 4 + slot]      = features[featureStart + slot].Folds;
+                    const ui32 folds = features[featureStart + slot].Folds;
+                    foldCountsFlatVec[g * 4 + slot]       = folds;
                     firstFoldIndicesFlatVec[g * 4 + slot] = features[featureStart + slot].FirstFoldIndex;
+                    if (folds > maxFoldCount) maxFoldCount = folds;
                 }
             }
+
+            // DEC-016 T1 invariant: the kernel uses bit 31 of the packed uint32 as a
+            // per-lane valid sentinel. Each feature occupies 8 bits, so the MSB of
+            // slot-0 aliases with bin values ≥ 128. The kernel masks this bit before
+            // bin extraction, which would silently rewrite bin 128..255 → 0..127.
+            // Fail loudly if a caller attempts to dispatch outside the supported
+            // envelope (bin ≤ 127 ⇔ Folds ≤ 127).
+            CB_ENSURE(maxFoldCount <= 127u,
+                      "CatBoost-MLX histogram kernel: max fold count " << maxFoldCount
+                      << " exceeds DEC-016 T1 envelope (≤ 127). The MSB-sentinel "
+                         "collides with bin values ≥ 128. Reduce MaxBins to ≤ 128 "
+                         "(and ensure no NaN offset pushes a bin to 128) or wait for "
+                         "Sprint 20's wider-envelope kernel (DEC-017).");
 
             auto foldCountsArr = mx::array(
                 reinterpret_cast<const int32_t*>(foldCountsFlatVec.data()),
