@@ -1,13 +1,39 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-18 by @ml-engineer (S19-03 DEC-015 implementation — BLOCKED: performance gate not met)
+> Last updated: 2026-04-19 (Sprint 19 CLOSE-OUT — three DEC-012 commits landed; A1 dropped per empirical measurement; R8 deferred to Sprint 20)
 
 ## Current state
 
 - **Branch**: `mlx/sprint-19-hist-writeback`
-- **Last commit**: `dccb7ec0a2` (S16 sync-storm fix — unchanged; S19-03 work is uncommitted)
-- **Working tree**: DIRTY — 5 files modified (DEC-015 implementation, NOT committed — gate blocker)
+- **Last commit**: `92f3832169` — `[mlx] sprint-19: DEC-016 T1 fuse-valid simd_shuffle reduction`
+- **Working tree**: clean on code; scratch docs (`docs/sprint19/algorithmic_ablation.md`, `docs/sprint19/scratch/algorithmic/`, `docs/sprint20/`) not committed yet
 - **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), battle 4 of 9
+
+## Sprint 19 — CLOSING
+
+**Shipped kernel commits** (in order):
+1. `77db8b5631` — Commit 1: extract DEC-015 side-fix (`featureColumnIndices`+`numGroups` per-group variable correction in `DispatchHistogramBatched`; col-major portions reverted)
+2. `7387814dd6` — S19-06 CI gate widened from 10k/sprint17 to 50k/RMSE/d6/128b baseline
+3. `020eacfb4c` — S19-11 remove one EvalAtBoundary readback at `structure_searcher.cpp:738` (bit-exact; other 3 `EvalAtBoundary` calls on that path are legitimate guard-syncs before `.data<T>()` CPU reads)
+4. `92f3832169` — Commit 2: DEC-016 T1 fuse-valid simd_shuffle (3→2 shuffles/src). Parity bit-exact at 50k/RMSE, 10k/RMSE, 50k/MultiClass. Warm-mean e2e **−2.3%** at gate config (32.47 → 31.73 ms, 3-run mean).
+5. **A1 (Commit 3 candidate) DROPPED.** Toy micro-bench showed A1 vs T1 = −1.9% (noise-marginal). Production port measured **+9.4% regression** (34.7 vs 31.7 ms) — register spill dominates outer-loop saving. See `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md` and DEC-014 status update (REJECTED).
+
+**Four analytical models falsified this sprint** — pattern consistent with S19-01c finding that AGX cache hierarchy + out-of-order behavior resists first-principles modeling:
+- DEC-013 (writeback-as-plurality) — SUPERSEDED Day 0
+- DEC-014 original (gather sub-phase) — INVALIDATED Day 2
+- DEC-015 (col-major layout) — REJECTED Day 3
+- DEC-014 (A1 BATCH_DOCS=64) — REJECTED Day 4 (this session)
+
+## R8 status — honest accounting
+
+**R8 revised mid-sprint from aggressive 1.5–1.8× e2e to ≥1.07× e2e exit gate.** Rationale: the real bottleneck (simd_shuffle serial chain = 86% of accumulation per S19-01c probe A) is structurally invariant to layout-level changes. Sprint 19 is a bit-exact bridge; the structural replacement (T3b atomic-CAS) is a Sprint 20 flagship gated on full DEC-008 parity sweep.
+
+**Actual delivered on gate config (50k/RMSE/d6/128b)**:
+- Pre-Sprint-19 baseline (post-Commit 1, pre-T1): 32.47 ms warm mean
+- Post-T1 (current HEAD): 31.73 ms warm mean
+- **Delivered: 1.023× e2e** (vs revised gate 1.07×)
+
+**R8 NOT met on this config. Deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).** Per Ramos's "honest R8 — do not soften" standing order: this sprint's shipping lever (T1) is +2.3% e2e and bit-exact. The 1.07× gate requires T3b's 84% accumulation reduction to close — which cannot ship without the full parity sweep scheduled for Sprint 20 D1.
 
 ## Sprint 18 — CLOSED (PR #10 OPEN, awaiting merge)
 
@@ -49,66 +75,56 @@ Sprint 18 delivered the L1a `simdHist` accumulator re-architecture. All gates pa
 | S19-00 | Branch cut from S18 tip; baseline JSON copy; state file scaffold; docs/sprint19/README scaffold | @ml-product-owner / @technical-writer | Day 0 | **DONE** |
 | S19-01 | Ground-truth writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); output: `docs/sprint19/attribution.md` with ±1 ms error bars; R8 trigger check | @performance-engineer | Day 1 | **COMPLETE-BUT-SUPERSEDED** (evidence correct, premise falsified — see DEC-014) |
 | S19-02 | Ablation sweep (writeback variants a/b/c); DEC-013 draft written; premise invalidated by S19-01; output: `docs/sprint19/ablation.md` | @research-scientist | Day 1–2 | **COMPLETE-BUT-SUPERSEDED** (variant (c) 3.0 ms projection not supported by ground truth) |
-| S19-01b | Accumulation sub-phase attribution: re-attribute 14.30 ms accumulation across sub-phases; ±1 ms error bars; output appended to `docs/sprint19/attribution.md` | @performance-engineer | Day 2 | IN PROGRESS |
-| S19-02b | Accumulation redesign ablation: variants A/B/C/D × {bins 32,128} × {N 10k,50k}; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; DEC-014 lock; output appended to `docs/sprint19/ablation.md` | @research-scientist | Day 2 | IN PROGRESS |
-| S19-03 | Implement winning accumulation redesign from DEC-014 at `kernel_sources.h`; preserve DEC-011 32 KB ceiling | @ml-engineer | Day 3 | PENDING |
-| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 3–4 | PENDING |
-| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 4 | PENDING |
-| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 4 | PENDING |
-| S19-07 | Code review: accumulation phase correctness, DEC-011 ceiling, barrier count | @code-reviewer | Day 4–5 | PENDING |
-| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 4–5 | PENDING |
-| S19-09 | Metal System Trace re-capture on gate config; confirm accumulation improvement; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 5 | PENDING |
-| S19-10 | `docs/sprint19/` full population, `CHANGELOG-DEV.md` entry, `ARCHITECTURE.md` update, DEC-013 (SUPERSEDED) + DEC-014 (lock from DRAFT), `docs/sprint19/` subdocs | @technical-writer | Day 5–6 | IN PROGRESS (Day 0 scaffold done; pivot updates applied) |
+| S19-01b | Accumulation sub-phase attribution: re-attribute 14.30 ms accumulation across sub-phases; ±1 ms error bars; output appended to `docs/sprint19/attribution.md` | @performance-engineer | Day 2 | **DONE** (S19-01b gather model → falsified by S19-01c) |
+| S19-01c | Micro-bench re-attribution: simd_shuffle serial chain = 86% of accumulation; AGX hides compressedIndex gather | @ml-engineer / @research-scientist | Day 3 | **DONE** (commit `b0c853a6f6`) |
+| S19-02b | Accumulation redesign ablation: variants A/B/C/D × {bins 32,128} × {N 10k,50k}; DEC-014 DRAFT | @research-scientist | Day 2 | **DONE** — DRAFT ablation at `docs/sprint19/ablation_accumulation.md` |
+| S19-02c | Algorithmic variant ablation (T0/T1/T2/T3/T3b): measured toy-kernel at 1 TG × 256 threads × N=50k | @research-scientist | Day 3–4 | **DONE** — see `docs/sprint19/algorithmic_ablation.md` and `docs/sprint19/scratch/algorithmic/microbench_algorithmic.cpp` |
+| S19-03a | Commit 1: extract DEC-015 side-fix (per-group variable correction, col-major reverted) | main | Day 4 | **DONE** — commit `77db8b5631` |
+| S19-03b | Commit 2: DEC-016 T1 fuse-valid simd_shuffle reduction (3→2 shuffles/src) | main | Day 4 | **DONE** — commit `92f3832169`; −2.3% e2e at 50k/RMSE, bit-exact 3 configs |
+| S19-03c | Commit 3: DEC-014 (A1) BATCH_DOCS=64 | main | Day 4 | **DROPPED** — toy −1.9% but production +9.4% regression (register spill). A1 kept in scratch. See DEC-014 status (REJECTED) + `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md` |
+| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 5 | PENDING (post-commit) |
+| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 5 | PENDING (post-commit) |
+| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to 50k/RMSE/128b; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 4 | **DONE** — commit `7387814dd6`; dry-run triggers at +6.1% |
+| S19-07 | Code review: T1 MSB-sentinel correctness, DEC-011 ceiling, barrier count | @code-reviewer | Day 5 | PENDING (post-commit) |
+| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 5 | PENDING (post-commit) |
+| S19-09 | Metal System Trace re-capture on gate config; confirm T1 accumulation improvement; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 5 | PENDING (post-commit) |
+| S19-10 | `docs/sprint19/` population, DECISIONS.md (DEC-013 SUPERSEDED, DEC-014 REJECTED, DEC-015 REJECTED, DEC-016 ACTIVE, DEC-017 DRAFT-S20), HANDOFF + CHANGELOG, Sprint 20 skeleton | @technical-writer + main | Day 4 | **DONE** — `docs/sprint19/algorithmic_ablation.md`, `docs/sprint20/README.md`, DECISIONS.md DEC-014/015/016/017, HANDOFF updated (this) |
+| S19-11 | Kill EvalAtBoundary CPU readbacks in `structure_searcher.cpp` | @ml-engineer + main | Day 4 | **DONE** — commit `020eacfb4c` (1 of 6 candidates removed at line 738; other 3 `EvalAtBoundary` calls are legitimate pre-CPU-read guards; pragmatic scope reduction) |
+| S19-12 | S18 deferred cleanup + VGPR confirmation | @performance-engineer / @code-reviewer | Day 4 | **DONE — no-op** (no S18 deferred items per CHANGELOG-DEV.md) |
 | S19-11 | In-sprint cleanup: 6 EvalAtBoundary CPU readbacks in `structure_searcher.cpp` — "fix properly always" (carry-forward from S18 non-goals) | @ml-engineer | Day 1–3 | PENDING |
 | S19-12 | In-sprint cleanup: VGPR confirmation + S18 deferred code-review items | @performance-engineer / @code-reviewer | Day 1–2 | PENDING |
 
 ## Acceptance gates (revised)
 
-| Gate | Criterion |
-|------|-----------|
-| G1 | **`histogram_ms` −30% min** on 50k/RMSE/128b (accumulation phase = 93%; 32% accumulation reduction ≈ 30% histogram_ms) |
-| G2 | No 18-config regression >5% |
-| G3 | Parity 108/108 bit-exact across DEC-008 envelope |
-| G4 | `iter_total_ms` −30% min on 50k/RMSE/128b (aggressive 1.5× target still live pending S19-01b/S19-02b) |
-| G5 | No non-histogram stage regresses >10% |
-| G6 | CI green |
+| Gate | Criterion | Status |
+|------|-----------|--------|
+| G1 | `histogram_ms` improvement at gate config | TBD — S19-09 Metal System Trace to decompose the −2.3% e2e into kernel-phase delta |
+| G2 | No 18-config regression >5% | TBD — S19-05 pending |
+| G3 | Parity bit-exact across DEC-008 envelope | TBD — S19-04 pending; spot-checked bit-exact at 3 configs (50k/RMSE, 10k/RMSE, 50k/MultiClass) for Commit 2 |
+| G4 | R8 revised to ≥1.07× e2e | **NOT MET** at 1.023× on 50k/RMSE/d6/128b — deferred to Sprint 20 via DEC-017 T3b |
+| G5 | No non-histogram stage regresses >10% | TBD — S19-05 pending |
+| G6 | CI green | TBD — post-commit CI run |
 
 ## Blockers
 
-**ACTIVE BLOCKER — S19-03 DEC-015 performance gate not met.**
+**None active.** Prior DEC-015 blocker resolved: rejected empirically in S19-03a revert + S19-01c probe D confirmation. A1 regression confirmed and dropped per plan clause.
 
-DEC-015 (column-major compressedIndex transposed view) implementation is complete, builds clean, passes parity and determinism. The S19-01b attribution model predicted 2.13× e2e speedup. Direct measurement shows ~0.98× (essentially no improvement).
+## Next actions (Sprint 19 exit gates — parallel)
 
-**Measured gate results (50k/RMSE/d6/128b, 5 runs each):**
+1. **S19-04** — @qa-engineer: 18-config parity grid + 100-run determinism on 50k/RMSE/d6/128b. T1 is the only active kernel change; expected bit-exact by construction (MSB-sentinel does not alter reduction order).
+2. **S19-05** — @performance-engineer: 18-config warm-mean delta + 50k MST capture. Expected: T1 at −2.3% e2e on 50k/RMSE; other configs likely similar or smaller (MultiClass already showed −2.0%).
+3. **S19-07** — @code-reviewer: review the 3 Sprint 19 commits (`77db8b5631`, `92f3832169`, `020eacfb4c`) plus the S19-06 CI gate commit (`7387814dd6`).
+4. **S19-08** — @security-auditor: kernel source string injection surface unchanged; T1 adds only a constant and a bitmask. Spot-check and sign-off.
+5. **S19-09** — @performance-engineer: post-fix MST; confirm simd_shuffle chain cost dropped proportionally to the shuffle-count reduction.
+6. **PR**: stage the Sprint 19 PR (target `master` on `RR-AMATOK/catboost-mlx`); keep uncommitted scratch docs and bench binary out of the PR surface.
 
-| Binary | warm mean | warm mean runs | Result |
-|--------|-----------|----------------|--------|
-| `bench_boosting_ref` (pre-DEC-015) | 33.7–34.2 ms | 5× | baseline |
-| `bench_boosting` (DEC-015) | 34.3–35.7 ms | 5× | ~0.98× |
+## Carry-forward to Sprint 20
 
-**Parity:** 18/18 PASS, 0 ULP vs current production reference (bit-exact). BENCH_FINAL_LOSS=0.48042428 identical across all configs.
-
-**Determinism:** 100/100 runs identical.
-
-**Why the S19-01b prediction failed:** The analytical model assumed AGX processes the row-major `compressedIndex[docIdx * lineSize + col]` gather as 25 sequential L2 requests with 4 stall-rounds per batch. The measured speedup near 1.0× implies one or more of these is true:
-- AGX hardware prefetcher / L2 hardware coalescer handles the strided gather better than the model assumed (effectively reducing 25-CL cost toward 1–2 rounds)
-- `docIdx` values within a sorted partition are clustered in a small physical address range, causing L2 cache re-use between SIMD groups
-- The transposed layout introduces a new bottleneck: with `totalNumDocs = 50,000`, adjacent feature columns are 200 KB apart in `CompressedDataTransposed_`, potentially causing increased L2 thrashing when multiple groups dispatch simultaneously
-- The actual bottleneck is not compressedIndex gather latency — the S19-01b latency model needs re-attribution with a more controlled micro-benchmark
-
-**The DEC-015 5-file change set is NOT committed.** Per the task spec: "do not commit broken work."
-
-## Next actions
-
-1. **REQUIRED — Re-attribution micro-benchmark:** Build an isolated Metal kernel that sweeps row-major vs col-major `compressedIndex` access patterns at N = {10k, 50k} with varying lineSize. Measure wall time per kernel call. This will confirm whether AGX hardware is hiding the scatter cost or whether the bottleneck is elsewhere entirely.
-2. **REQUIRED — Decide on DEC-015 disposition:** If micro-benchmark confirms ~0 speedup from layout change, DEC-015 should be marked REJECTED (layout change has no cost but also no benefit; no reason to keep the extra 5 MB buffer). If micro-benchmark shows speedup at a different N or lineSize, narrow the scope.
-3. **S19-03 re-spec needed from @ml-product-owner:** The S19-01b model is falsified by measurement. A new sub-phase attribution pass (instrumented micro-benchmarks, not analytical model) is needed before choosing the next kernel intervention.
-4. S19-11 and S19-12 are independent — can proceed now.
-5. PR #10 (Sprint 18) merge is independent — unblock with Ramos review.
-
-## Carry-forward to Sprint 20+
-
-- L2 (pre-permute stats + compressedIndex gather removal — 2–4 ms headroom) deferred from S18, still valid.
-- L3 (MultiClass per-dim dispatch fusion — 15–25 ms on MultiClass configs) deferred from S18; zero effect on RMSE gate config; Sprint 20 candidate.
-- `maxBlocksPerPart` retuning (library-path dead code for csv_train) — Sprint cleanup candidate.
-- DEC-011 occupancy constraint (1 tg/SM from 32 KB ceiling): Sprint 19 writeback phase reuses `simdHist` post-barrier-6 as on-chip staging; if this forces 2-pass structure at large N, Sprint 20 must re-negotiate buffer geometry.
+- **D1 FLAGSHIP — DEC-017 T3b atomic-CAS parity sweep.** Full DEC-008 envelope parity sweep (18 configs × 100 runs) against toy-kernel-equivalent before any integration. If parity holds → D2 integration. If parity fails → Kahan/Higham compensated summation and re-sweep. Detailed plan: `docs/sprint20/README.md`.
+- **D2 — T3b production integration** (contingent on D1 parity).
+- **D3 — Full-grid scaling validation.** Toy measured 1 TG × 256 threads; production dispatches 1575 TGs concurrently at depth 5–6.
+- **D4 — MultiClass approxDim=3 parity.** T3b's atomic-CAS reduction order may compound drift across three independent dim reductions.
+- L2 (pre-permute stats + compressedIndex gather removal — 2–4 ms headroom) deferred from S18, still valid post-S19-01c (confirmed AGX hides gather).
+- L3 (MultiClass per-dim dispatch fusion — 15–25 ms on MultiClass configs) still valid.
+- `maxBlocksPerPart` retuning — sprint cleanup candidate.
+- DEC-011 32 KB ceiling — T3b requires amendment to 4 KB (atomic simdHistU[1024]).

@@ -2,6 +2,44 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 19 — T1 fuse-valid (DEC-016) shipped; DEC-014/015 REJECTED empirically (2026-04-17 → 2026-04-19, CLOSING)
+
+**Branch**: `mlx/sprint-19-hist-writeback`
+**Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)
+**Verdict**: T1 (DEC-016) shipped at −2.3% e2e on gate config, bit-exact. R8 ≥1.07× NOT met (1.023× actual) — deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).
+
+### Day 4 (2026-04-19) — Path 3 close-out: Commits 1+2 shipped, A1 empirically dropped, parallel tracks
+
+**Three DEC-012 kernel commits landed** on `mlx/sprint-19-hist-writeback`:
+
+1. **`77db8b5631`** — Commit 1: extract DEC-015 side-fix. Reverted col-major layout changes in `compressed_index.h`, `kernel_sources.h`, `bench_boosting.cpp`, `csv_train.cpp`. Kept the `DispatchHistogramBatched` per-group variable correction (`featureColumnIndices`+`numGroups` replacing scalar `featureColumnIdx`) in `histogram.cpp` — a pre-existing correctness fix that would have shipped regardless.
+2. **`7387814dd6`** — S19-06 CI gate widening. `benchmarks/check_histogram_gate.py` updated from `sprint17/10k` to `sprint19/baseline/50000_rmse_d6_128bins.json`. Dropped min-reduction flag; sprint-neutral messages. Dry-run triggers at +6.1% delta.
+3. **`020eacfb4c`** — S19-11 scope-reduced. Removed `TMLXDevice::EvalAtBoundary(result.LeafDocIds)` at `structure_searcher.cpp:738` — a no-op flush since MLX constructor copies data into the GPU buffer synchronously. Other 3 `EvalAtBoundary` calls on that path (lines 290, 609, 705) are legitimate pre-`.data<T>()` guard-syncs, left intact. Bit-exact pre/post at 50k/RMSE/d6/128b = 0.48047778 (3 runs each).
+4. **`92f3832169`** — Commit 2: DEC-016 T1 fuse-valid simd_shuffle reduction. Pack the valid flag into the MSB of `packed` at load time (`packed |= VALID_BIT` where `VALID_BIT = 0x80000000u`); derive validity from `(p_s & VALID_BIT)` inside the src broadcast loop; mask via `p_clean = p_s & 0x7FFFFFFFu` before bin extraction. Drops one `simd_shuffle` per src iteration (3 → 2). **Measurements (50k/RMSE/d6/128b, 3-run warm mean):** pre-edit 32.47 ms, post-edit 31.73 ms → **−2.3% e2e**. **Parity bit-exact at 3 configs** (50k/RMSE=0.48047778, 10k/RMSE=0.48016092, 50k/MultiClass=0.94424933). Safe at ≤128 bins (packed holds four 8-bit values in bits [0..30]; bit 31 always zero on load).
+
+**Commit 3 (DEC-014 A1 BATCH_DOCS=64) DROPPED** per plan clause "if not reproducible, drop":
+- A1 variant added to `docs/sprint19/scratch/algorithmic/microbench_algorithmic.cpp` as `kA1Source`. Toy measurement (3 runs, post-T1): A1 vs T1 mean = **−1.9%** (noise-marginal; stdev ~1%).
+- Production port (lo/hi slab state in lane registers, outer stride doubled, 2-slab inner shuffle loop). Parity bit-exact (0.48047778) but **warm-mean e2e +9.4% REGRESSION** (T1-only 31.7 ms vs T1+A1 34.7 ms, 3 runs each). Register pressure from lo/hi slab state dominates the halved outer-loop saving — AGX VGPR spill hypothesis.
+- A1 reverted in `kernel_sources.h`; A1 variant kept in `microbench_algorithmic.cpp` for future reference.
+- Full disposition: `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md`.
+
+**Pattern note: fourth analytical model falsified this sprint.** DEC-013 writeback plurality → SUPERSEDED. DEC-014 original gather sub-phase → INVALIDATED. DEC-015 col-major layout → REJECTED (measured 0.98× vs projected 2.13×). DEC-014 (A1 BATCH_DOCS=64) → REJECTED (measured +9.4% regression vs projected −4%). Sprint 19 lesson, locked: analytical reasoning about AGX cache/register behavior is unreliable — empirical micro-bench backing is required before committing any production kernel change, and toy-kernel signal must be validated against production integration before shipping.
+
+**R8 accounting (honest per "do not soften" standing order):**
+- R8 revised mid-sprint from aggressive 1.5–1.8× e2e to **≥1.07× e2e** after S19-01 ground-truth falsified the writeback plurality model.
+- Delivered: **1.023× e2e** on 50k/RMSE/d6/128b via T1 alone.
+- R8 NOT met. Deferred to Sprint 20 via DEC-017 T3b atomic-CAS (toy measured −84.4% accumulation; full DEC-008 parity sweep is the Sprint 20 D1 gate).
+
+**Documentation landed (S19-10 technical-writer pass):**
+- `docs/sprint19/algorithmic_ablation.md` — T0/T1/T2/T3/T3b ablation with measured toy-kernel deltas.
+- `docs/sprint20/README.md` — Sprint 20 D1–D4 plan (T3b parity sweep, production integration, full-grid scaling, MultiClass drift analysis).
+- DECISIONS.md updated: DEC-014 REJECTED, DEC-015 REJECTED, DEC-016 ACTIVE, DEC-017 DRAFT-S20.
+- HANDOFF.md updated with close-out status and R8 deferral.
+
+**Exit gates PENDING (parallel tracks, unblocked):** S19-04 parity grid + 100-run determinism, S19-05 18-config perf delta + 50k MST, S19-07 code review, S19-08 security pass, S19-09 post-fix MST.
+
+---
+
 ## Sprint 19 — Accumulation Redesign (PIVOTED from Two-Phase Writeback) (2026-04-17, in progress)
 
 **Branch**: `mlx/sprint-19-hist-writeback` (name reflects original scope — history over cosmetics)  
