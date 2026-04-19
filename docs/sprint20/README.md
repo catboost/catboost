@@ -16,7 +16,7 @@ Sprint 19 closed with three analytical model falsifications:
 - **DEC-014 original gather hypothesis** — falsified by S19-01c probe D (global loads hidden by AGX, kernel is shuffle-bound)
 - **DEC-015 col-major layout** — measured 0.98× vs 2.13× projected; AGX hides scatter cost behind shuffle inner loop
 
-The correct bottleneck is the `simd_shuffle` serial broadcast chain at 86.2% of single-TG accumulation time (`docs/sprint19/reattribution.md`). Sprint 19 ships T1 (DEC-016, −3.6% accumulation, ~1.03× e2e) and DEC-014 (A1) BATCH_DOCS=64 (~1.04× e2e), stacked to ~1.07× e2e (honest). The gate for genuine shuffle elimination is Sprint 20.
+The correct bottleneck is the `simd_shuffle` serial broadcast chain at 86.2% of single-TG accumulation time (`docs/sprint19/reattribution.md`). Sprint 19 shipped T1 (DEC-016) alone: gate config −1.76% (1.018×), best config −3.23% (1.033×); DEC-014 (A1) BATCH_DOCS=64 was dropped empirically (did not stack). **R8 ≥1.07× was NOT met** — see `docs/sprint19/results.md`. The gate for genuine shuffle elimination is Sprint 20. See also S19-13 envelope guard: T1's MSB-sentinel requires `maxFoldCount ≤ 127`; T3b lifts that constraint since it does not pack valid flags into bin values.
 
 T3b (threadgroup atomic-CAS no-shuffle accumulator) measured −84.4% single-TG accumulation at gate config in toy-kernel isolation (`docs/sprint19/algorithmic_ablation.md`). It eliminates the shuffle chain entirely. The single remaining unknown is whether FP32 reduction-order non-determinism causes drift outside the DEC-008 parity envelope — a cheap question to answer before any integration work begins.
 
@@ -94,6 +94,6 @@ If D1 fails and Kahan mitigation is applied, re-run D3 with Kahan T3b and reasse
 
 ## Carry-forward from Sprint 19
 
-- DEC-014 (A1) BATCH_DOCS=64 ships Sprint 19 (~1.04× e2e). T3b replaces (not stacks on) the accumulation loop — (A1)'s wider-batch register state must be removed when T3b lands, or the two are composed (T3b with BATCH_DOCS=64 would give the same T3b speedup since T3b is independent of batch size, but the BATCH_DOCS=64 register doubling adds complexity for no gain in a CAS accumulator). Recommendation: T3b Sprint 20 ships without (A1) stacking — the shuffle chain is eliminated entirely so BATCH_DOCS has no effect on the dominant cost.
-- DEC-016 (T1 fuse-valid) ships Sprint 19 and is orthogonal to T3b. T3b does not use `simd_shuffle` at all, so T1's MSB-sentinel fusion is irrelevant once T3b integrates. T1 can be removed in the T3b commit to reduce LOC, or retained as dead code that the compiler eliminates. Either approach is acceptable; document the choice.
+- **DEC-014 (A1) BATCH_DOCS=64 did NOT ship Sprint 19** — dropped empirically during S19-03c ablation. T3b is independent of batch size; BATCH_DOCS stays at current value in Sprint 20.
+- DEC-016 (T1 fuse-valid) ships Sprint 19 (−1.76% gate / −3.23% best) and is orthogonal to T3b. T3b does not use `simd_shuffle` at all, so T1's MSB-sentinel fusion is irrelevant once T3b integrates. T1 can be removed in the T3b commit to reduce LOC, or retained as dead code that the compiler eliminates. Either approach is acceptable; document the choice. **Removing T1 also removes the S19-13 `maxFoldCount ≤ 127` envelope constraint** — if T3b ships without T1, amend the CB_ENSURE accordingly in the D2 commit.
 - S19-11 (EvalAtBoundary readback removals in `structure_searcher.cpp`) carries forward if not completed in Sprint 19. Independent of the histogram kernel changes.
