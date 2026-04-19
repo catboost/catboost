@@ -172,6 +172,12 @@ static const std::string kHistOneByteSource = R"metal(
     //
     // No intra-SIMD butterfly needed here: simdHist[g][bin] accumulates the full
     // per-SIMD-group per-bin sum directly — each bin slot has one writer per group.
+    // DEC-016 T1 fuse-valid: pack the valid flag into the MSB of `packed` so
+    // the per-src loop needs only 2 simd_shuffles instead of 3. Safe at ≤128
+    // bins because packed holds four 8-bit values in bits [0..31] — the top
+    // bit is always zero on load. Cleared via p_clean before bin extraction.
+    const uint VALID_BIT = 0x80000000u;
+
     for (uint batch_start = simd_id * SIMD_SIZE;
          batch_start < myDocCount;
          batch_start += NUM_SIMD_GROUPS * SIMD_SIZE) {
@@ -184,22 +190,22 @@ static const std::string kHistOneByteSource = R"metal(
         if (valid) {
             const uint sortedPos = partOffset + myDocStart + d;
             const uint docIdx    = docIndices[sortedPos];
-            packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
+            packed = compressedIndex[docIdx * lineSize + featureColumnIdx] | VALID_BIT;
             stat   = stats[statIdx * totalNumDocs + docIdx];
         }
 
         // Broadcast each of the 32 docs in this batch to all 32 lanes.
         // simd_shuffle(x, src): all lanes receive lane src's value of x.
         for (uint src = 0u; src < SIMD_SIZE; ++src) {
-            const uint  p_s     = simd_shuffle(packed, src);
-            const float s_s     = simd_shuffle(stat,   src);
-            const bool  valid_s = simd_shuffle(valid,  src);
-            if (!valid_s) continue;   // uniform branch across the SIMD group
+            const uint  p_s = simd_shuffle(packed, src);
+            const float s_s = simd_shuffle(stat,   src);
+            if ((p_s & VALID_BIT) == 0u) continue;   // uniform branch across the SIMD group
+            const uint p_clean = p_s & 0x7FFFFFFFu;
 
             // Per-feature accumulation: only the bin-owner lane writes.
             // (bin & 31) == lane ensures each slot has exactly one writer → no RMW races.
             for (uint f = 0u; f < FEATURES_PER_PACK; ++f) {
-                const uint bin = (p_s >> (24u - 8u * f)) & 0xFFu;
+                const uint bin = (p_clean >> (24u - 8u * f)) & 0xFFu;
                 if (bin < foldCountsFlat[foldBase + f] + 1u &&
                     (bin & (SIMD_SIZE - 1u)) == lane) {
                     simdHist[simd_id][f * BINS_PER_BYTE + bin] += s_s;
