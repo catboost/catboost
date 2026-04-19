@@ -28,20 +28,8 @@ namespace NCatboostMlx {
                       "bumping NUM_SIMD_GROUPS or HIST_PER_SIMD requires re-tiling the reduction.");
 
         // Batched histogram dispatch — one Metal dispatch covers ALL feature groups.
-        //
-        // DEC-015 (Sprint 19): `compressedData` is the col-major transposed view
-        // [numUi32PerDoc * numDocs] from TMLXCompressedIndex::GetCompressedDataTransposed().
-        // The kernel load address uses `featureColumnIdx * totalNumDocs + docIdx`
-        // (col-major) instead of `docIdx * lineSize + featureColumnIdx` (row-major).
-        // This collapses 32-doc batch reads from ~25 cache lines (row-major) to
-        // 1 cache line per 32-doc batch, eliminating the 12.78 ms gather-latency
-        // bottleneck measured in S19-01b.
-        //
-        // Blast-radius note: only the L1a histogram kernel reads from the transposed
-        // view.  All other consumers (leaves.metal, tree_applier.cpp, etc.) continue
-        // to read from GetCompressedData() (row-major). CompressedData_ is unchanged.
         mx::array DispatchHistogramBatched(
-            const mx::array& compressedDataTransposed, // [numUi32PerDoc * numDocs], col-major (DEC-015)
+            const mx::array& compressedData,
             const mx::array& stats,
             const mx::array& docIndices,
             const mx::array& partOffsets,
@@ -59,6 +47,8 @@ namespace NCatboostMlx {
             const mx::Shape& histShape
         ) {
             // Scalar uniforms → 0-dim arrays → `const constant T&` in Metal signature.
+            // Flatten compressed data to 1D for linear doc*lineSize indexing in kernel.
+            auto flatCompressed = mx::reshape(compressedData, {-1});
             auto lineSizeArr   = mx::array(static_cast<uint32_t>(lineSize), mx::uint32);
             auto maxBlocksArr  = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
             auto numGroupsArr  = mx::array(static_cast<uint32_t>(numGroups), mx::uint32);
@@ -98,7 +88,7 @@ namespace NCatboostMlx {
 
             auto results = kernel(
                 /*inputs=*/{
-                    compressedDataTransposed, stats, docIndices,
+                    flatCompressed, stats, docIndices,
                     partOffsets, partSizes,
                     featureColumnIndices, lineSizeArr, maxBlocksArr, numGroupsArr,
                     foldCountsFlat, firstFoldIndicesFlat,
@@ -166,11 +156,8 @@ namespace NCatboostMlx {
                 {static_cast<int>(numGroups)}, mx::uint32
             );
 
-            // DEC-015: col-major view — 1 cache line per 32-doc batch vs 25 row-major.
-            const mx::array& compressedTransposed = compressedIndex.GetCompressedDataTransposed();
-
             auto histogram = DispatchHistogramBatched(
-                compressedTransposed,
+                compressedIndex.GetCompressedData(),
                 statsArr,
                 docIndices,
                 partitionOffsets,

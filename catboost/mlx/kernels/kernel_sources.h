@@ -184,11 +184,7 @@ static const std::string kHistOneByteSource = R"metal(
         if (valid) {
             const uint sortedPos = partOffset + myDocStart + d;
             const uint docIdx    = docIndices[sortedPos];
-            // DEC-015: col-major layout — featureColumnIdx * totalNumDocs + docIdx.
-            // CompressedDataTransposed_ is [numUi32PerDoc * numDocs] row-contiguous,
-            // so docs 0..numDocs-1 for a given feature column are sequential in memory.
-            // This reduces 32-doc batch reads from ~25 cache lines (row-major) to 1.
-            packed = compressedIndex[featureColumnIdx * totalNumDocs + docIdx];
+            packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
             stat   = stats[statIdx * totalNumDocs + docIdx];
         }
 

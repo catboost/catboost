@@ -334,11 +334,7 @@ mx::array DispatchHistogram(
     auto featureColsArr    = mx::array(reinterpret_cast<const int32_t*>(featureColumnIndicesVec.data()),
                                        {static_cast<int>(numGroups)}, mx::uint32);
 
-    // DEC-015: compressedData here is already the col-major transposed view
-    // [numUi32PerDoc * numDocs], pre-computed once before the training loop.
-    // Address in kernel: featureColumnIdx * totalNumDocs + docIdx.
-    // No per-call copy needed.
-    auto flatCompressed = compressedData;   // already [numUi32PerDoc * numDocs] col-major
+    auto flatCompressed    = mx::reshape(compressedData, {-1});
     auto lineSizeArr       = mx::array(static_cast<uint32_t>(numUi32PerDoc), mx::uint32);
     auto maxBlocksArr      = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
     auto totalBinsArr      = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
@@ -804,7 +800,6 @@ long long RunIteration(
     mx::array& cursor,           // updated in place
     mx::array& partitions,       // reset each iter
     const mx::array& compressedData,
-    const mx::array& compressedDataTransposed,  // DEC-015: pre-computed col-major [numUi32PerDoc * numDocs]
     const mx::array& targets,
     const std::vector<TCFeature>& features,
     ui32 numDocs,
@@ -905,9 +900,9 @@ long long RunIteration(
         // Compute partition layout
         auto layout = ComputePartitionLayout(partitions, numDocs, numActiveParts);
 
-        // DEC-015: use pre-computed col-major transposed view for histogram dispatch
+        // Dispatch histogram
         auto histogram = DispatchHistogram(
-            compressedDataTransposed, statArr,
+            compressedData, statArr,
             layout.DocIndices, layout.PartOffsets, layout.PartSizes,
             features, numUi32PerDoc, numActiveParts,
             totalBinFeatures, numStats, numDocs, maxBlocksPerPart
@@ -1032,17 +1027,6 @@ int main(int argc, char** argv) {
     auto targets = mx::array(ds.Targets.data(), {static_cast<int>(cfg.NumRows)}, mx::float32);
     mx::eval({compressedData, targets});
 
-    // DEC-015: pre-compute col-major transposed compressed data ONCE before training loop.
-    // compressedData is [numDocs, numUi32PerDoc] row-major.
-    // compressedDataTransposed is [numUi32PerDoc * numDocs] flattened col-major.
-    // All DispatchHistogram calls (6 per iter at depth=6) read from this view.
-    // Address in kernel: featureColumnIdx * totalNumDocs + docIdx (1 cache line per 32-doc batch).
-    auto compressedDataTransposed = mx::reshape(
-        mx::copy(mx::transpose(compressedData, {1, 0})),
-        {-1}
-    );
-    mx::eval(compressedDataTransposed);  // materialise once before training
-
     // Initialize cursor
     mx::array cursor = mx::zeros({1}, mx::float32);
     if (approxDim == 1) {
@@ -1088,7 +1072,7 @@ int main(int argc, char** argv) {
 
         long long us = RunIteration(
             cursor, partitions,
-            compressedData, compressedDataTransposed, targets,
+            compressedData, targets,
             ds.Features,
             cfg.NumRows, ds.NumUi32PerDoc,
             1u,                    // single partition at start of each iter
