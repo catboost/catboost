@@ -83,8 +83,9 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ### Day 3
 
-- [ ] S19-03 — Implement winning accumulation redesign from DEC-014 at `kernel_sources.h`; preserve DEC-011 32 KB TG memory ceiling; PROPOSE → CRITIQUE → IMPLEMENT → VERIFY → REFLECT — @ml-engineer
-- [ ] S19-04 — Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b — @qa-engineer
+- [x] S19-03 (Commit 1 — DEC-015) — **BLOCKED: performance gate not met** — DEC-015 col-major compressedIndex transposed view implemented, parity 18/18 PASS (0 ULP), determinism 100/100 PASS, builds clean. Gate: `histogram_ms ~4.2 ms, e2e ~2.13×`. Measured: warm mean ref=33.7–34.2 ms, DEC-015=34.3–35.7 ms → **~0.98× e2e**. S19-01b prediction falsified. 5 modified files NOT committed. Working tree dirty. See HANDOFF.md BLOCKERS. — @ml-engineer
+- [ ] S19-03 (re-spec) — **NEW: micro-benchmark re-attribution** — Build isolated Metal kernel sweeping row-major vs col-major `compressedIndex` access at N∈{10k,50k} × lineSize∈{13,25,50}. Confirm whether AGX hardware hides scatter cost or bottleneck is elsewhere. Required before next kernel intervention. — @performance-engineer
+- [ ] S19-04 — Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b — @qa-engineer (HOLD: S19-03 gate must resolve first)
 
 ### Day 4+
 

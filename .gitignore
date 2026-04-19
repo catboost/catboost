@@ -85,6 +85,10 @@ build/
 .cache/profiling/sprint18/*
 !.cache/profiling/sprint18/baseline/
 !.cache/profiling/sprint18/baseline/*.json
+!.cache/profiling/sprint19/
+.cache/profiling/sprint19/*
+!.cache/profiling/sprint19/baseline/
+!.cache/profiling/sprint19/baseline/*.json
 CLAUDE.md
 
 # Compiled C++ binaries (local builds)
@@ -111,6 +115,8 @@ QA_FIXES_TODO.md
 /csv_train_s18
 /csv_train_s18_fixed
 /csv_train_s18_profiled
+/csv_train_ref
+/csv_train_sprint19a
 python/catboost_mlx/bin/
 python/.claude/
 

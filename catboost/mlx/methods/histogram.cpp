@@ -27,59 +27,70 @@ namespace NCatboostMlx {
                       "L1a histogram kernel exceeds Apple Silicon's 32 KB threadgroup limit; "
                       "bumping NUM_SIMD_GROUPS or HIST_PER_SIMD requires re-tiling the reduction.");
 
-        // Dispatch histogram computation for one feature group (4 packed features).
-        // Returns a fresh histogram array with this group's contributions.
-        mx::array DispatchHistogramGroup(
-            const mx::array& compressedData,
+        // Batched histogram dispatch — one Metal dispatch covers ALL feature groups.
+        //
+        // DEC-015 (Sprint 19): `compressedData` is the col-major transposed view
+        // [numUi32PerDoc * numDocs] from TMLXCompressedIndex::GetCompressedDataTransposed().
+        // The kernel load address uses `featureColumnIdx * totalNumDocs + docIdx`
+        // (col-major) instead of `docIdx * lineSize + featureColumnIdx` (row-major).
+        // This collapses 32-doc batch reads from ~25 cache lines (row-major) to
+        // 1 cache line per 32-doc batch, eliminating the 12.78 ms gather-latency
+        // bottleneck measured in S19-01b.
+        //
+        // Blast-radius note: only the L1a histogram kernel reads from the transposed
+        // view.  All other consumers (leaves.metal, tree_applier.cpp, etc.) continue
+        // to read from GetCompressedData() (row-major). CompressedData_ is unchanged.
+        mx::array DispatchHistogramBatched(
+            const mx::array& compressedDataTransposed, // [numUi32PerDoc * numDocs], col-major (DEC-015)
             const mx::array& stats,
             const mx::array& docIndices,
             const mx::array& partOffsets,
             const mx::array& partSizes,
-            ui32 featureColumnIdx,
+            const mx::array& featureColumnIndices,     // [numGroups] — group g reads column g
             ui32 lineSize,
             ui32 maxBlocksPerPart,
-            const mx::array& foldCounts,
-            const mx::array& firstFoldIndices,
+            ui32 numGroups,
+            const mx::array& foldCountsFlat,           // [numGroups * 4]
+            const mx::array& firstFoldIndicesFlat,     // [numGroups * 4]
             ui32 totalBinFeatures,
             ui32 numStats,
             ui32 numPartitions,
             ui32 totalNumDocs,
             const mx::Shape& histShape
         ) {
-            // Create scalar mx::array inputs for constant uint& parameters.
-            // 0-dim arrays become `const constant T&` in the generated Metal signature.
-            auto featureColArr = mx::array(static_cast<uint32_t>(featureColumnIdx), mx::uint32);
+            // Scalar uniforms → 0-dim arrays → `const constant T&` in Metal signature.
             auto lineSizeArr   = mx::array(static_cast<uint32_t>(lineSize), mx::uint32);
             auto maxBlocksArr  = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
+            auto numGroupsArr  = mx::array(static_cast<uint32_t>(numGroups), mx::uint32);
             auto totalBinsArr  = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
             auto numStatsArr   = mx::array(static_cast<uint32_t>(numStats), mx::uint32);
             auto totalDocsArr  = mx::array(static_cast<uint32_t>(totalNumDocs), mx::uint32);
 
-            // Flatten compressed data to 1D for linear doc*lineSize indexing in kernel
-            auto flatCompressed = mx::reshape(compressedData, {-1});
-
-            // Register kernel (MLX caches compiled kernels internally by name)
+            // Input names match kHistOneByteSource variable names exactly.
+            // The kernel body reads `featureColumnIndices[groupIdx]` (array) and
+            // `numGroups` (scalar) — both must be present in input_names.
             auto kernel = mx::fast::metal_kernel(
                 "histogram_one_byte_features",
                 /*input_names=*/{
                     "compressedIndex", "stats", "docIndices",
                     "partOffsets", "partSizes",
-                    "featureColumnIdx", "lineSize", "maxBlocksPerPart",
-                    "foldCounts", "firstFoldIndices",
+                    "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
+                    "foldCountsFlat", "firstFoldIndicesFlat",
                     "totalBinFeatures", "numStats", "totalNumDocs"
                 },
                 /*output_names=*/{"histogram"},
                 /*source=*/KernelSources::kHistOneByteSource,
                 /*header=*/KernelSources::kHistHeader,
                 /*ensure_row_contiguous=*/true,
-                /*atomic_outputs=*/false
+                /*atomic_outputs=*/true   // writeback uses atomic_fetch_add_explicit
             );
 
-            // Grid: total threads to launch (MLX divides by threadgroup to get threadgroup count)
-            // (256 * maxBlocksPerPart, numPartitions, numStats) gives
-            // (maxBlocksPerPart, numPartitions, numStats) threadgroups of 256 threads each.
+            // Grid: (256 * maxBlocksPerPart * numGroups, numPartitions, numStats).
+            // Dividing by threadgroup (256,1,1) gives
+            // (maxBlocksPerPart * numGroups, numPartitions, numStats) threadgroups.
+            // Each threadgroup handles one (group, block, partition, stat) tuple.
             auto grid = std::make_tuple(
-                static_cast<int>(256 * maxBlocksPerPart),
+                static_cast<int>(256 * maxBlocksPerPart * numGroups),
                 static_cast<int>(numPartitions),
                 static_cast<int>(numStats)
             );
@@ -87,10 +98,10 @@ namespace NCatboostMlx {
 
             auto results = kernel(
                 /*inputs=*/{
-                    flatCompressed, stats, docIndices,
+                    compressedDataTransposed, stats, docIndices,
                     partOffsets, partSizes,
-                    featureColArr, lineSizeArr, maxBlocksArr,
-                    foldCounts, firstFoldIndices,
+                    featureColumnIndices, lineSizeArr, maxBlocksArr, numGroupsArr,
+                    foldCountsFlat, firstFoldIndicesFlat,
                     totalBinsArr, numStatsArr, totalDocsArr
                 },
                 /*output_shapes=*/{histShape},
@@ -124,59 +135,63 @@ namespace NCatboostMlx {
             const ui32 maxBlocksPerPart = 1;
 
             const ui32 numFeatures = features.size();
-            const ui32 numFeatureGroups = (numFeatures + 3) / 4;
+            const ui32 numGroups   = (numFeatures + 3) / 4;
 
-            mx::array histogram;
+            // Build flat fold metadata for all groups (4 slots per group).
+            // featureColumnIndices[g] = g (group g reads the g-th ui32 column).
+            TVector<ui32> foldCountsFlatVec(numGroups * 4, 0u);
+            TVector<ui32> firstFoldIndicesFlatVec(numGroups * 4, 0u);
+            TVector<ui32> featureColumnIndicesVec(numGroups, 0u);
 
-            for (ui32 groupIdx = 0; groupIdx < numFeatureGroups; ++groupIdx) {
-                const ui32 featureStart = groupIdx * 4;
+            for (ui32 g = 0; g < numGroups; ++g) {
+                featureColumnIndicesVec[g] = g;
+                const ui32 featureStart    = g * 4;
                 const ui32 featuresInGroup = std::min(4u, numFeatures - featureStart);
-
-                TVector<ui32> foldCountsVec(4, 0);
-                TVector<ui32> firstFoldIndicesVec(4, 0);
-                for (ui32 f = 0; f < featuresInGroup; ++f) {
-                    foldCountsVec[f] = features[featureStart + f].Folds;
-                    firstFoldIndicesVec[f] = features[featureStart + f].FirstFoldIndex;
-                }
-
-                auto foldCountsArr = mx::array(
-                    reinterpret_cast<const int32_t*>(foldCountsVec.data()),
-                    {4}, mx::uint32
-                );
-                auto firstFoldArr = mx::array(
-                    reinterpret_cast<const int32_t*>(firstFoldIndicesVec.data()),
-                    {4}, mx::uint32
-                );
-
-                auto groupResult = DispatchHistogramGroup(
-                    compressedIndex.GetCompressedData(),
-                    statsArr,
-                    docIndices,
-                    partitionOffsets,
-                    partitionSizes,
-                    groupIdx,
-                    lineSize,
-                    maxBlocksPerPart,
-                    foldCountsArr,
-                    firstFoldArr,
-                    totalBinFeatures,
-                    numStats,
-                    numPartitions,
-                    numDocs,
-                    histShape
-                );
-
-                if (groupIdx == 0) {
-                    histogram = groupResult;
-                } else {
-                    histogram = mx::add(histogram, groupResult);
+                for (ui32 slot = 0; slot < featuresInGroup; ++slot) {
+                    foldCountsFlatVec[g * 4 + slot]      = features[featureStart + slot].Folds;
+                    firstFoldIndicesFlatVec[g * 4 + slot] = features[featureStart + slot].FirstFoldIndex;
                 }
             }
 
+            auto foldCountsArr = mx::array(
+                reinterpret_cast<const int32_t*>(foldCountsFlatVec.data()),
+                {static_cast<int>(numGroups * 4)}, mx::uint32
+            );
+            auto firstFoldArr = mx::array(
+                reinterpret_cast<const int32_t*>(firstFoldIndicesFlatVec.data()),
+                {static_cast<int>(numGroups * 4)}, mx::uint32
+            );
+            auto featureColsArr = mx::array(
+                reinterpret_cast<const int32_t*>(featureColumnIndicesVec.data()),
+                {static_cast<int>(numGroups)}, mx::uint32
+            );
+
+            // DEC-015: col-major view — 1 cache line per 32-doc batch vs 25 row-major.
+            const mx::array& compressedTransposed = compressedIndex.GetCompressedDataTransposed();
+
+            auto histogram = DispatchHistogramBatched(
+                compressedTransposed,
+                statsArr,
+                docIndices,
+                partitionOffsets,
+                partitionSizes,
+                featureColsArr,
+                lineSize,
+                maxBlocksPerPart,
+                numGroups,
+                foldCountsArr,
+                firstFoldArr,
+                totalBinFeatures,
+                numStats,
+                numPartitions,
+                numDocs,
+                histShape
+            );
+
             // No EvalNow here — histogram is consumed lazily as an input to the
             // suffix_sum_histogram Metal kernel in FindBestSplitGPU.  MLX will
-            // materialise the full group-accumulation graph in that same command
-            // buffer, avoiding an unnecessary CPU-GPU sync point.
+            // materialise the full graph in that same command buffer, avoiding an
+            // unnecessary CPU-GPU sync point.
 
             return THistogramResult{
                 .Histograms = histogram,

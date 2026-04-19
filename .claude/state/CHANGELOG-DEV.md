@@ -8,7 +8,34 @@
 **Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)  
 **Verdict**: IN PROGRESS
 
-### Day 1 (2026-04-17) — Ground-truth falsifies writeback hypothesis; pivot to accumulation redesign
+### Day 3 (2026-04-18) — DEC-015 col-major layout: correct, but performance gate not met (BLOCKER)
+
+**S19-03 Commit 1 (DEC-015) — BLOCKED, NOT COMMITTED**
+
+Implementation completed across 5 files. Status: parity-clean, determinism-clean, performance gate not met.
+
+**Changes in working tree (not committed):**
+- `catboost/mlx/gpu_data/compressed_index.h` — Added `CompressedDataTransposed_` member (`[numUi32PerDoc * numDocs]` uint32, col-major). Built in `Build()` via `mx::copy(mx::transpose(CompressedData_, {1,0}))` → `mx::reshape(..., {-1})` → `EvalAtBoundary`. One-time materialisation at load time. Added `GetCompressedDataTransposed()` accessor.
+- `catboost/mlx/kernels/kernel_sources.h` — Changed compressedIndex load address from row-major `compressedIndex[docIdx * lineSize + featureColumnIdx]` to col-major `compressedIndex[featureColumnIdx * totalNumDocs + docIdx]`.
+- `catboost/mlx/methods/histogram.cpp` — Rewrote `DispatchHistogramGroup()` (scalar per-group dispatch with broken variable name mismatch) to `DispatchHistogramBatched()` (correct batched dispatch matching `bench_boosting.cpp`/`build_verify_test.cpp`). Input names now match kernel body: `featureColumnIndices` (array) + `numGroups` (scalar). Passes `compressedDataTransposed` from `GetCompressedDataTransposed()`.
+- `catboost/mlx/tests/bench_boosting.cpp` — Pre-computes `compressedDataTransposed` once before training loop; passes as parameter to `RunIteration()` → `DispatchHistogram()`.
+- `catboost/mlx/tests/csv_train.cpp` — Pre-computes `compressedDataTransposed` once in `RunBoosting()` before training loop; passes to all 3 `DispatchHistogram()` call sites.
+
+**Bugs fixed along the way (would have shipped regardless):**
+- Pre-existing `histogram.cpp` kernel variable name mismatch: old code used `featureColumnIdx` (scalar 0-dim) but kernel body referenced `featureColumnIndices[groupIdx]` (array). Metal compile would have errored. Fixed as part of DEC-015 rewrite.
+- Stale S18 parity reference (8/18 FAIL on first run): S18 parity table was from older D1c binary. Rebuilt reference binary from pre-DEC-015 stash. Result: 18/18 PASS, 0 ULP.
+- Per-call transpose overhead: initial attempt placed `mx::copy(mx::transpose(...))` inside `DispatchHistogram()`, causing 6× GPU copies per iteration. Moved to pre-training-loop.
+
+**Gate measurements (50k/RMSE/d6/128b, 5 warm runs each):**
+- `bench_boosting_ref` warm mean: 33.7–34.2 ms (5 runs, σ ≈ 0.3 ms)
+- `bench_boosting` (DEC-015) warm mean: 34.3–35.7 ms (5 runs, σ ≈ 0.5 ms)
+- Speedup: **~0.98× e2e** (effectively 0, within noise)
+- Expected from S19-01b model: 2.13× e2e (`histogram_ms` 15.43 → 4.17 ms)
+- **Gate: NOT MET. BLOCKER.**
+
+**Implication for S19-01b:** The analytical model (25 CL per 32-doc batch → 4 L2 stall rounds → 12.78 ms CI gather latency) is not validated by direct measurement. The DEC-015 layout change is the most direct test of that model's core prediction. The 0.98× result implies the model's latency estimate or access-pattern description is incorrect for this hardware. A hardware-controlled micro-benchmark (isolated kernel, swept N/lineSize, both layouts) is needed before the next intervention.
+
+### Day 2 (2026-04-17) — Ground-truth falsifies writeback hypothesis; pivot to accumulation redesign
 
 - **S19-01** (commit `d7ea14e28c`, `docs/sprint19/attribution.md`): Ground-truth Metal System Trace attribution on 50k/RMSE/d6/128b gate config. **Writeback = 0.79 ms (5%)** of steady-state `histogram_ms`. **Accumulation = 14.30 ms (93%)**. The "~15 ms writeback floor" from S18 was a mis-scaling of N=10k numbers to N=50k. R8 fired: writeback elimination projects 1.02–1.04× e2e (below the 1.5× aggressive target). Evidence correct; premise (writeback as plurality) falsified.
 - **S19-02** (commit `fb05205ec0`, `docs/sprint19/ablation.md`): @research-scientist wrote a clean DEC-013 draft for two-phase writeback reduction. Variant (c) projected 3.0 ms reduction. Premise immediately invalidated by S19-01 — secondary effects ground truth does not support the projection. DEC-013 draft stands as historical artifact; not implemented.

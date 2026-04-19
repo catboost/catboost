@@ -866,8 +866,12 @@ TPartitionLayout ComputePartitionLayout(const mx::array& partitions, ui32 numDoc
 // Histogram dispatch
 // ============================================================================
 
+// DEC-015: compressedDataTransposed is [lineSize * numDocs] col-major, pre-computed once
+// at dataset load time. The histogram kernel reads featureColumnIdx * totalNumDocs + docIdx
+// instead of docIdx * lineSize + featureColumnIdx, reducing 32-doc batch cache lines
+// from ~lineSize (≈25 at gate) to 1.
 mx::array DispatchHistogram(
-    const mx::array& compressedData,
+    const mx::array& compressedDataTransposed, // [lineSize * numDocs] col-major (DEC-015)
     const mx::array& stats,
     const mx::array& docIndices,
     const mx::array& partOffsets,
@@ -932,7 +936,7 @@ mx::array DispatchHistogram(
     );
 
     auto result = kernel(
-        {mx::reshape(compressedData, {-1}), stats, docIndices,
+        {compressedDataTransposed, stats, docIndices,
          partOffsets, partSizes,
          colIndicesArr,
          mx::array(static_cast<uint32_t>(lineSize), mx::uint32),
@@ -2614,6 +2618,18 @@ TTrainResult RunTraining(
 ) {
     TTrainResult result;
 
+    // DEC-015: pre-compute col-major transposed compressed data ONCE for the entire
+    // training run. compressedData is [trainDocs, lineSize] row-major.
+    // compressedDataTransposed is [lineSize * trainDocs] flattened col-major:
+    //   address = featureColumnIdx * trainDocs + docIdx (1 cache line per 32-doc batch).
+    // DispatchHistogram reads from this view instead of the row-major buffer.
+    const ui32 lineSize_ = packed.NumUi32PerDoc;
+    auto compressedDataTransposed = mx::reshape(
+        mx::copy(mx::transpose(compressedData, {1, 0})),
+        {-1}
+    );
+    mx::eval(compressedDataTransposed);  // materialise once before training loop
+
     // Compute base prediction (boost from average)
     mx::eval(targetsArr);
     const float* targetsPtr = targetsArr.data<float>();
@@ -3039,7 +3055,7 @@ TTrainResult RunTraining(
                     }, 0);
                     statsK = mx::reshape(statsK, {static_cast<int>(2 * trainDocs)});
                     histArrays2.push_back(DispatchHistogram(
-                        compressedData, statsK,
+                        compressedDataTransposed, statsK,
                         layout2.DocIndices, layout2.PartOffsets, layout2.PartSizes,
                         packed.Features, packed.NumUi32PerDoc,
                         packed.TotalBinFeatures, 2u, trainDocs));
@@ -3195,7 +3211,7 @@ TTrainResult RunTraining(
                 statsK = mx::reshape(statsK, {static_cast<int>(2 * trainDocs)});
 
                 histArrays.push_back(DispatchHistogram(
-                    compressedData, statsK,
+                    compressedDataTransposed, statsK,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     packed.Features, packed.NumUi32PerDoc,
                     packed.TotalBinFeatures, numPartitions, trainDocs
@@ -3216,7 +3232,7 @@ TTrainResult RunTraining(
             if (needCountHist) {
                 auto onesStats = mx::ones({static_cast<int>(2 * trainDocs)}, mx::float32);
                 countHistArr = DispatchHistogram(
-                    compressedData, onesStats,
+                    compressedDataTransposed, onesStats,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     packed.Features, packed.NumUi32PerDoc,
                     packed.TotalBinFeatures, numPartitions, trainDocs

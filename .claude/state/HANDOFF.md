@@ -1,11 +1,12 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-17 by @technical-writer (Sprint 19 pivot — accumulation redesign, DEC-013 superseded, DEC-014 placeholder)
+> Last updated: 2026-04-18 by @ml-engineer (S19-03 DEC-015 implementation — BLOCKED: performance gate not met)
 
 ## Current state
 
 - **Branch**: `mlx/sprint-19-hist-writeback`
-- **Last commit**: S19-00 kickoff (branch cut + baselines + state files + README scaffold)
+- **Last commit**: `dccb7ec0a2` (S16 sync-storm fix — unchanged; S19-03 work is uncommitted)
+- **Working tree**: DIRTY — 5 files modified (DEC-015 implementation, NOT committed — gate blocker)
 - **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), battle 4 of 9
 
 ## Sprint 18 — CLOSED (PR #10 OPEN, awaiting merge)
@@ -74,14 +75,35 @@ Sprint 18 delivered the L1a `simdHist` accumulator re-architecture. All gates pa
 
 ## Blockers
 
-None. S19-01b and S19-02b running in parallel (Day 2).
+**ACTIVE BLOCKER — S19-03 DEC-015 performance gate not met.**
+
+DEC-015 (column-major compressedIndex transposed view) implementation is complete, builds clean, passes parity and determinism. The S19-01b attribution model predicted 2.13× e2e speedup. Direct measurement shows ~0.98× (essentially no improvement).
+
+**Measured gate results (50k/RMSE/d6/128b, 5 runs each):**
+
+| Binary | warm mean | warm mean runs | Result |
+|--------|-----------|----------------|--------|
+| `bench_boosting_ref` (pre-DEC-015) | 33.7–34.2 ms | 5× | baseline |
+| `bench_boosting` (DEC-015) | 34.3–35.7 ms | 5× | ~0.98× |
+
+**Parity:** 18/18 PASS, 0 ULP vs current production reference (bit-exact). BENCH_FINAL_LOSS=0.48042428 identical across all configs.
+
+**Determinism:** 100/100 runs identical.
+
+**Why the S19-01b prediction failed:** The analytical model assumed AGX processes the row-major `compressedIndex[docIdx * lineSize + col]` gather as 25 sequential L2 requests with 4 stall-rounds per batch. The measured speedup near 1.0× implies one or more of these is true:
+- AGX hardware prefetcher / L2 hardware coalescer handles the strided gather better than the model assumed (effectively reducing 25-CL cost toward 1–2 rounds)
+- `docIdx` values within a sorted partition are clustered in a small physical address range, causing L2 cache re-use between SIMD groups
+- The transposed layout introduces a new bottleneck: with `totalNumDocs = 50,000`, adjacent feature columns are 200 KB apart in `CompressedDataTransposed_`, potentially causing increased L2 thrashing when multiple groups dispatch simultaneously
+- The actual bottleneck is not compressedIndex gather latency — the S19-01b latency model needs re-attribution with a more controlled micro-benchmark
+
+**The DEC-015 5-file change set is NOT committed.** Per the task spec: "do not commit broken work."
 
 ## Next actions
 
-1. **@performance-engineer** running S19-01b (accumulation sub-phase attribution) — Day 2, in progress.
-2. **@research-scientist** running S19-02b (accumulation redesign ablation + DEC-014 lock) — Day 2, in progress.
-3. Day 3 go/no-go on DEC-014 lock before @ml-engineer starts S19-03.
-4. S19-11 and S19-12 can proceed in parallel — independent of pivot.
+1. **REQUIRED — Re-attribution micro-benchmark:** Build an isolated Metal kernel that sweeps row-major vs col-major `compressedIndex` access patterns at N = {10k, 50k} with varying lineSize. Measure wall time per kernel call. This will confirm whether AGX hardware is hiding the scatter cost or whether the bottleneck is elsewhere entirely.
+2. **REQUIRED — Decide on DEC-015 disposition:** If micro-benchmark confirms ~0 speedup from layout change, DEC-015 should be marked REJECTED (layout change has no cost but also no benefit; no reason to keep the extra 5 MB buffer). If micro-benchmark shows speedup at a different N or lineSize, narrow the scope.
+3. **S19-03 re-spec needed from @ml-product-owner:** The S19-01b model is falsified by measurement. A new sub-phase attribution pass (instrumented micro-benchmarks, not analytical model) is needed before choosing the next kernel intervention.
+4. S19-11 and S19-12 are independent — can proceed now.
 5. PR #10 (Sprint 18) merge is independent — unblock with Ramos review.
 
 ## Carry-forward to Sprint 20+
