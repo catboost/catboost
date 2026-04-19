@@ -2,11 +2,36 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
-## Sprint 19 — T1 fuse-valid (DEC-016) shipped; DEC-014/015 REJECTED empirically (2026-04-17 → 2026-04-19, CLOSING)
+## Sprint 19 — T1 fuse-valid (DEC-016) shipped; DEC-014/015 REJECTED empirically; S19-13 envelope guard + exit gates (2026-04-17 → 2026-04-19, EXIT-GATES PASSED)
 
 **Branch**: `mlx/sprint-19-hist-writeback`
 **Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)
-**Verdict**: T1 (DEC-016) shipped at −2.3% e2e on gate config, bit-exact. R8 ≥1.07× NOT met (1.023× actual) — deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).
+**Verdict**: T1 (DEC-016) shipped at −1.76% e2e on gate config, bit-exact, deterministic, guarded. R8 ≥1.07× NOT met (1.018× actual on gate / 1.033× best) — deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).
+
+### Day 4 evening (2026-04-19) — Exit gates + S19-13 envelope guard
+
+Five exit-gate agents launched after commit `0f992cf863`. Two completed with empirically-backed sign-offs; two returned plan-only outputs (sandbox constraints); one flagged a BLOCKER on the T1 MSB-sentinel that was then fixed in S19-13.
+
+**S19-07 code review — BLOCKER then resolved via S19-13.** Reviewer found that `compressedIndex[...] | VALID_BIT` in `kernel_sources.h` is unsafe whenever slot-0 holds a bin value ≥ 128. The packer (`csv_train.cpp::PackFeatures`) uses 8-bit slots, so slot-0 occupies bits [24..31] — bit 31 aliases bin 128. With default `MaxBins = 255` or the `bins = 128 + NaN offset` case, the path is reachable and `p_clean = p_s & 0x7FFFFFFFu` silently rewrites bins 128..255 → 0..127. The DECISIONS.md rationale claim "Safe at ≤128 bins because packed holds four 8-bit values in bits 24–30" was off by one.
+
+**S19-13 fix** (landed in this session, single commit):
+- `catboost/mlx/methods/histogram.cpp::ComputeHistogramsImpl` — computes `maxFoldCount` during foldCountsFlatVec construction and enforces `CB_ENSURE(maxFoldCount ≤ 127u, …)` before dispatch, with diagnostic message naming DEC-016 envelope and Sprint 20 DEC-017 as the wider-envelope follow-up. Include of `<catboost/libs/helpers/exception.h>` added.
+- `catboost/mlx/tests/bench_boosting.cpp::DispatchHistogram` — mirror of the host-side guard via `std::fprintf(stderr, …)` + `std::exit(1)` (CB_ENSURE header is not available in the standalone bench build path).
+- `catboost/mlx/tests/bench_boosting.cpp::GenerateSyntheticDataset` — `folds = isOneHot ? (…) : cfg.NumBins − 1` for ordinals. Aligns bench's Folds with real-quantize (`csv_train.cpp::Quantize` sets `folds = numBorders` for no-NaN features). Previously bench stored `Folds = cfg.NumBins` which over-reported by 1 and caused the guard to false-trip on `--bins 128` despite actual bin values staying in [0, 126].
+- `catboost/mlx/kernels/kernel_sources.h:175–182` — inline comment rewritten to state the true invariant ("Safe ONLY when every feature's fold count ≤ 127") and cross-reference the host-side guard.
+- `.claude/state/DECISIONS.md::DEC-016` — rationale + scope-limit corrected, S19-07 cross-reference added.
+
+**S19-04 parity + determinism — PASS.** 18 configs × 3 runs each on `bench_boosting_ref` (kernel `020eacfb4c` pre-T1, HEAD elsewhere) vs `bench_boosting_t1` (HEAD + S19-13). All 18 produce bit-exact `BENCH_FINAL_LOSS` across ref and t1 (ulp = 0 in all cases, DEC-008 envelope satisfied at the strictest level). 100-run determinism on 50k/RMSE/d6/128b/seed42 returns a single unique loss (0.47740927 post-S19-13) — BUG-001 structural guard holds.
+
+**S19-05 perf delta — PASS G2.** 3-run warm-mean deltas: best −3.23% (50k/Logloss/128); gate config (50k/RMSE/128) −1.76%; worst regression +1.39% at 1k/RMSE/128 (within 3-run noise floor ±2%). No config regresses > 5%. Delivered R8 factor on gate: **1.018×**. Honest accounting preserved. Per-config JSONs written to `.cache/profiling/sprint19/after_t1/*.json` (18 files).
+
+**S19-08 security — PASS (APPROVED).** 5-commit diff audit: no kernel-source injection surfaces, no new buffer-size surfaces, no TOCTOU from EvalAtBoundary removal (MLX host-pointer ctor copies synchronously), no subprocess/eval/pickle in `check_histogram_gate.py`, no secrets, no dependency drift. One defense-in-depth suggestion ("add bins ≤ 128 assertion") — absorbed into S19-13.
+
+**S19-09 post-fix MST — DEFERRED.** `xcrun xctrace` remains sandbox-blocked (same condition as S18-09). Analytical stage decomposition appended to `docs/sprint19/results.md §S19-09`: first-principles probe-A projection (−19.5% e2e) vs measured (−1.76%) is an ~11× over-projection, consistent with probe-A's 86.2% being a depth-0 single-TG attribution that does not multiply cleanly across 1575 TGs × 6 depths. Pattern: fifth analytical model under-predicts the projection-to-production gap. MST capture carried to Sprint 20 under Instruments availability.
+
+**Docs landed:** `docs/sprint19/results.md` (executive summary + per-gate detail + honest R8 accounting).
+
+### Day 4 (2026-04-19) — Path 3 close-out: Commits 1+2 shipped, A1 empirically dropped, parallel tracks
 
 ### Day 4 (2026-04-19) — Path 3 close-out: Commits 1+2 shipped, A1 empirically dropped, parallel tracks
 

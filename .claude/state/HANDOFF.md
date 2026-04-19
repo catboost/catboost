@@ -1,22 +1,34 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-19 (Sprint 19 CLOSE-OUT — three DEC-012 commits landed; A1 dropped per empirical measurement; R8 deferred to Sprint 20)
+> Last updated: 2026-04-19 (Sprint 19 EXIT-GATES PASSED — S19-07 BLOCKER resolved via S19-13 envelope guard; 18/18 parity bit-exact; 100/100 deterministic; R8 deferred to Sprint 20)
 
 ## Current state
 
 - **Branch**: `mlx/sprint-19-hist-writeback`
-- **Last commit**: `92f3832169` — `[mlx] sprint-19: DEC-016 T1 fuse-valid simd_shuffle reduction`
-- **Working tree**: clean on code; scratch docs (`docs/sprint19/algorithmic_ablation.md`, `docs/sprint19/scratch/algorithmic/`, `docs/sprint20/`) not committed yet
+- **Tip commit**: pending (S19-13 guard + exit-gate results to commit next)
+- **Prior kernel tip**: `92f3832169` — DEC-016 T1 fuse-valid (pre-S19-13)
+- **Working tree**: S19-13 changes staged locally (histogram.cpp guard, bench_boosting.cpp guard + Folds alignment, kernel_sources.h comment, DECISIONS.md, docs/sprint19/results.md)
 - **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), battle 4 of 9
 
-## Sprint 19 — CLOSING
+## Sprint 19 — EXIT-GATES PASSED, READY FOR PR
 
 **Shipped kernel commits** (in order):
 1. `77db8b5631` — Commit 1: extract DEC-015 side-fix (`featureColumnIndices`+`numGroups` per-group variable correction in `DispatchHistogramBatched`; col-major portions reverted)
 2. `7387814dd6` — S19-06 CI gate widened from 10k/sprint17 to 50k/RMSE/d6/128b baseline
 3. `020eacfb4c` — S19-11 remove one EvalAtBoundary readback at `structure_searcher.cpp:738` (bit-exact; other 3 `EvalAtBoundary` calls on that path are legitimate guard-syncs before `.data<T>()` CPU reads)
-4. `92f3832169` — Commit 2: DEC-016 T1 fuse-valid simd_shuffle (3→2 shuffles/src). Parity bit-exact at 50k/RMSE, 10k/RMSE, 50k/MultiClass. Warm-mean e2e **−2.3%** at gate config (32.47 → 31.73 ms, 3-run mean).
+4. `92f3832169` — Commit 2: DEC-016 T1 fuse-valid simd_shuffle (3→2 shuffles/src). Parity bit-exact at 50k/RMSE, 10k/RMSE, 50k/MultiClass. Warm-mean e2e **−2.3%** at gate config (32.47 → 31.73 ms, 3-run mean, pre-S19-13 Folds semantics).
 5. **A1 (Commit 3 candidate) DROPPED.** Toy micro-bench showed A1 vs T1 = −1.9% (noise-marginal). Production port measured **+9.4% regression** (34.7 vs 31.7 ms) — register spill dominates outer-loop saving. See `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md` and DEC-014 status update (REJECTED).
+6. **S19-13 (pending commit)** — T1 MSB-sentinel envelope guard. Addresses S19-07 BLOCKER: pre-guard T1 silently corrupted slot-0 bins 128..255 because the packer lays each feature in 8 bits and the sentinel reused bit 31 of slot-0. Adds host-side `CB_ENSURE(maxFoldCount ≤ 127)` in `histogram.cpp::ComputeHistogramsImpl`, mirror in `bench_boosting.cpp::DispatchHistogram`, aligns bench synth `folds = NumBins − 1` with real-quantize (Folds = numBorders) semantics, corrects kernel comment + DEC-016 rationale.
+
+## Sprint 19 exit-gate results (see docs/sprint19/results.md)
+
+| Gate | Owner | Status | Notes |
+|---|---|---|---|
+| S19-04 parity + determinism | main-thread | **PASS** | 18/18 configs bit-exact ref vs t1; 100/100 runs on 50k/RMSE/d6/128b → 1 unique loss |
+| S19-05 perf delta | main-thread | **PASS G2** | Best −3.23% (50k/Logloss/128); gate −1.76%; worst regression +1.39% (within 3-run noise) |
+| S19-07 code review | @code-reviewer (bg) | **PASS after S19-13 fix** | Original report flagged T1 MSB BLOCKER; resolved by envelope guard |
+| S19-08 security | @security-auditor (bg) | **PASS** | No injection surfaces, no buffer changes, no secrets, no deps drift |
+| S19-09 MST | @performance-engineer (bg) | **DEFERRED** | `xctrace` sandbox-blocked (same condition as S18-09); analytical stage decomposition fallback in results.md §S19-09 |
 
 **Four analytical models falsified this sprint** — pattern consistent with S19-01c finding that AGX cache hierarchy + out-of-order behavior resists first-principles modeling:
 - DEC-013 (writeback-as-plurality) — SUPERSEDED Day 0
