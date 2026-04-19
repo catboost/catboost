@@ -2,9 +2,23 @@
 
 **Branch**: `mlx/sprint-21-hist-tg-reduction` (cut from Sprint 20 tip `85b6362b6e`)
 **Campaign**: Operation Verstappen — battle 6 of 9
-**Lever**: TG-count reduction, variant A (per-feature-group single-pass accumulator) — DEC-018 DRAFT-S21
+**Lever (as-planned)**: TG-count reduction, variant A (per-feature-group single-pass accumulator) — DEC-018 DRAFT-S21
 **Gate config**: 50k/RMSE/d6/128b (unchanged from Sprint 19/20)
-**R8 target**: **≥1.08× e2e** at gate config (midpoint; 1.05× floor, 1.18× upper bound)
+**R8 target (as-planned)**: ≥1.08× e2e at gate config
+
+---
+
+## STATUS BANNER (2026-04-19)
+
+**D0 COMPLETE — KILL-SWITCH FIRED.** Measured fixed-per-TG overhead at depth 6 = **2.5% ± 1.3% of histogram_ms**, far below the ≥10% threshold. Details: `docs/sprint21/d0_attribution.md`.
+
+**Specification error discovered during D0 (captured for campaign-level learning):** The kill-switch as written in §D0 below tested whether reducing TG count would amortize T1's fixed overhead. That premise did not apply to variant A's actual mechanism, which is **T3b-accumulator-swap at the restored 195-docs/thread shape** — TG-count reduction is the shape-restoration enabler, not the savings source. T1's fixed overhead is already low (2.5%) because Sprint 18 L1a eliminated the dominant DRAM costs. The 40% "fixed overhead" figure in `docs/sprint20/d2b_design.md §2` referred to T3b's per-thread work ratio at production shape, not T1's. See `d0_attribution.md §6.2` for the full analysis. The feedback memory at `~/.claude/projects/.../memory/feedback_ultrathink_task_planning.md` captures the generalizable lesson: write gates as direct tests of the lever's mechanism, not proxies.
+
+**Ramos decision (2026-04-19): honor the kill-switch as written (option a).** D1 BLOCKED. Variant A will not proceed under current Sprint 21 framing. Lever re-pick pending — see §Pivot options below.
+
+**R8 Sprint 21 target: ACKNOWLEDGED at 1.0× (no perf change to ship this sprint).** Revised to reflect kill-switch fire. Sprint 21 pivots to a data-producing scope that de-risks Sprint 22 lever selection.
+
+---
 
 ---
 
@@ -18,9 +32,134 @@ Sprint 21's lever — TG-count reduction, variant A — inverts the dispatch-sha
 
 ---
 
-## Tasks
+## Pivot options (post-D0, awaiting Ramos direction)
 
-### D0 — Production-shape attribution (zero-risk measurement)
+All three honor the kill-switch fire — variant A does NOT proceed in any option. The question is what Sprint 21 ships in its place.
+
+### A1 — Measurement sprint (recommended)
+
+Scope retargets Sprint 21 to production-shape data that makes Sprint 22 lever selection a bet with known odds. Six analytical/toy-kernel models falsified in the current campaign; the pattern says the next perf attempt should rest on production-shape evidence, not single-TG toy.
+
+Tasks (revised D1–D4):
+
+- **D1-R1** L2 production-shape re-attribution. S19-01c probe D showed global-memory loads at 0% of kernel cost at single-TG shape. Measure the same at multi-TG depth 6. AGX cache behavior at small-partition (3 docs/thread) lookups may differ from single-TG shape. Kill-switch: if L2 gather fraction ≥ 10% of histogram_ms, L2 enters Sprint 22 viable set; if < 10%, L2 FALSIFIED at production too. Cost 1–2 days.
+- **D1-R2** T2 sort-by-bin production-shape micro-bench. T2 measured −80.6% accumulation at single-TG toy (S19-10). Build T2 toy kernel dispatched at production shape (1638 TGs × ~3 docs/thread OR 26 TGs × ~195 docs/thread) and measure accumulation reduction. Kill-switch: if ≥ −50% accumulation at production shape, T2 enters Sprint 22 as candidate; if < −50%, T2 FALSIFIED. Cost 2–3 days.
+- **D1-R3** Host-side eval() sync instrumentation in `bench_boosting`. Infrastructure for tight per-kernel-phase attribution; documented as upper-bound timing (sync removes overlap). Benefits every future sprint. Cost 0.5–1 day. Per `d0_attribution.md §8.2`.
+- **D1-R4** Sprint 22 kickoff plan with data-backed lever ranking. Single doc synthesizing D1-R1/D1-R2 results, ranking L2/T2/tree-search-restructure by measured production-shape evidence. Cost 0.5 day.
+
+**R8 Sprint 21**: 1.0× (explicit, no perf delivered). **Value delivered**: production-shape evidence for two levers + instrumentation tool.
+**R8 Sprint 22**: TBD from A1 outcome; a greenlit lever (L2 or T2) carries concrete production-shape backing into integration, not toy-kernel speculation.
+
+### A2 — T2 production-shape attempt (aggressive, higher variance)
+
+Skip the measurement-only frame. Pick T2 as the highest-potential lever, build at production shape, integrate if micro-bench clears. Similar risk profile to Sprint 20 (toy kernel → production integration), but T2's failure mode is different from T3b's (per-partition sort cost, not per-TG fixed overhead), so the DEC-017 failure pattern does not automatically repeat. Cost 5–8 days. Upside 1.3–1.5× if successful. Falsification risk ~30–50% per campaign pattern. R8 Sprint 21: 1.3–1.5× if successful, 1.0× if falsified.
+
+### A3 — Campaign re-scope
+
+Formally close Sprint 21 at 0×. Sprint 22 entry point: @research-scientist designs tree-search restructure (per `docs/sprint20/d2b_design.md §3`, speculative 1.5–2×) or identifies a new lever class. Verstappen ≥1.5× target acknowledged as requiring research-level intervention, not further kernel-level levers. R8 Sprint 21: 0× by design.
+
+**Recommendation**: **A1.** At this campaign state (six falsifications, R8 gap to close, two consecutive 0× sprints risked), production-shape evidence is the single most valuable non-perf deliverable. A2 is the same class of evidence that just failed with T3b (toy kernel → integration hope). A3 is premature — A1 produces the inputs A3 would need anyway. A1 also directly applies the new ultrathink-task-planning discipline: Sprint 22's gates will be written against measured production-shape mechanisms, not proxies.
+
+**Ramos decision (2026-04-19): A1 CHOSEN.** Sprint 21 retargets as a measurement + instrumentation sprint. R8 acknowledged at 1.0×. See revised tasks §A1 Execution below.
+
+---
+
+## A1 Execution — task specs with ultrathink-written gates
+
+Each gate is written as a **direct empirical test of the lever's mechanism**, not a proxy — per the new ultrathink-task-planning discipline. Gates that rely on proxies explicitly flag the correlation assumed and how it could break.
+
+### D1-R3 — Host eval() sync instrumentation (run first, infrastructure)
+
+**Lever mechanism**: n/a — this is infrastructure that makes subsequent D1-R1 and D1-R2 measurements tight. Adds `mx::eval(array)` sync points in `bench_boosting.cpp::RunIteration` to capture per-dispatch timing (histogram, suffix-sum, split-score, leaf-estimation) instead of only the 3-bucket `--stage-profile` coarse bucket.
+
+**Success criterion** (not a kill-switch — no lever to gate): per-dispatch timing stable across 3 independent runs with stdev < 5% of mean at gate config depth 6. Sync-induced measurement distortion (no kernel overlap) documented explicitly; resulting numbers reported as UPPER BOUNDS on per-kernel cost.
+
+**Owner**: @ml-engineer (small bench_boosting.cpp edit).
+**Cost**: 0.5–1 day.
+**Dependency for**: D1-R1, D1-R2 (both use this infrastructure for tighter attribution).
+
+### D1-R1 — L2 production-shape re-attribution (direct mechanism test)
+
+**Lever mechanism (one sentence)**: L2 pre-permutes the `stats` (gradients/hessians) arrays so the histogram kernel reads contiguous memory instead of gather-by-`partitions[doc]`.
+
+**What a proxy gate would measure**: "stats-load fraction of histogram_ms" via sub-stage profiling. Proxy correlates with L2's savings via "if stats-load is X% of hist_ms, L2 saves up to X%". Correlation breaks if stats-load overlaps with other work (so the X% is padded with overlapped cost) — makes the proxy a loose upper bound.
+
+**Direct mechanism test (GATE)**: build a kernel variant of the L1a accumulator with stats loads replaced by constants (`g = 1.0f, h = 1.0f` instead of `g = gradients[compressedIndex[doc]]`). Run this modified kernel at production shape (50k/RMSE/d6/128b). Measure `histogram_ms` reduction vs baseline T1.
+
+**Kill-switch**: if modified-kernel `histogram_ms` reduction is **≥ 10%** at production shape, L2 enters Sprint 22 viable-set with measured upper-bound savings. If **< 10%**, L2 FALSIFIED at production shape (consistent with S19-01c probe D's single-TG finding generalizing).
+
+**Methodological note**: this is the **maximum** L2 could ever save (zero gather cost). Real L2 integration costs a per-iteration O(N) permute kernel which consumes a fraction of the savings. If the upper bound is < 10%, the real lever is weaker — so the 10% gate is conservative.
+
+**Owner**: @ml-engineer (kernel source variant) + @performance-engineer (measurement).
+**Cost**: 1–2 days.
+**Output**: `docs/sprint21/d1r1_l2_attribution.md`.
+
+### D1-R2 — T2 sort-by-bin production-shape micro-bench (direct mechanism test)
+
+**Lever mechanism (one sentence)**: T2 pre-sorts `compressedIndex` per partition by bin so the accumulation loop reads monotone-bin data, eliminating the simd_shuffle broadcast chain.
+
+**What a proxy gate would measure**: accumulation-time alone (post-sort), as S19-10 toy-kernel reportedly did. Proxy fails to count the **per-partition sort cost**, which scales with partition count and may dominate at depth 6 (1638 partitions vs 1 in the toy).
+
+**Direct mechanism test (GATE)**: T2 toy kernel at production dispatch shape, timing **sort + accumulation together** (total `histogram_ms`-equivalent, not accumulation alone). Dispatch shape: 1638 TGs × ~3 docs/thread (production T1 shape). Optionally also at 26 TGs × 195 docs/thread (variant A shape, in case T2 + variant A stacks as a Sprint 22 candidate).
+
+**Kill-switch**: at 1638-TG production shape, if total T2 `histogram_ms` is **≤ 50% of T1 baseline** (i.e., −50% reduction), T2 standalone enters Sprint 22 viable-set. If **> 50%** (less improvement), T2 FALSIFIED at production shape.
+
+**Methodological verification step**: before running, verify whether S19-10's −80.6% figure included sort cost. If not, that number overstated T2's benefit. Record the finding in the doc.
+
+**Pre-kickoff sanity check**: S19-10 dropped T2 for "per-partition pre-pass cost substantial and unmeasured at production shape" per agent's d0 §6.3 footnote. This is exactly the gap D1-R2 closes.
+
+**Owner**: @ml-engineer (T2 toy kernel + sort impl) + @performance-engineer (measurement).
+**Cost**: 2–3 days.
+**Output**: `docs/sprint21/d1r2_t2_microbench.md`.
+
+### D1-R4 — Sprint 22 kickoff plan (synthesis)
+
+**Purpose**: synthesize D1-R1 + D1-R2 + D1-R3 results into Sprint 22 lever ranking with ultrathink-discipline gates.
+
+**Content requirements**:
+- Lever ranking by measured production-shape evidence: L2, T2, tree-search restructure, (others as data permits)
+- For each viable lever, a Sprint 22 D1-style gate written as a direct mechanism test (not a proxy)
+- Explicit Sprint 22 R8 projection range based on A1's evidence
+- Campaign cumulative R8 projection update through Sprint 22-23
+
+**Owner**: @technical-writer (or main thread if @technical-writer unavailable).
+**Cost**: 0.5 day.
+**Output**: `docs/sprint22/README.md` scaffold.
+
+### Execution order
+
+Sequential (each enables the next):
+1. D1-R3 (instrumentation) — enables tighter measurements for D1-R1 and D1-R2
+2. D1-R1 (L2 direct test) — cheaper, binary-verdict result
+3. D1-R2 (T2 direct test) — larger effort, informs Sprint 22 lever selection
+4. D1-R4 (Sprint 22 planning synthesis) — after D1-R1/R2 land
+
+Total: 4–6.5 days. **R8 Sprint 21: acknowledged 1.0× (no perf ship).** R8 Sprint 22: TBD from A1 outcome, with evidence backing.
+
+### Sprint 21 exit gates (revised under A1)
+
+| Gate | Criterion | Status |
+|------|-----------|--------|
+| A1-G1 | D0 kill-switch executed with production-shape evidence | **PASS** (d0_attribution.md) |
+| A1-G2 | D1-R3 instrumentation produces stable per-dispatch timings | PENDING |
+| A1-G3 | D1-R1 gives a binary L2 verdict at production shape | PENDING |
+| A1-G4 | D1-R2 gives a binary T2 verdict at production shape (sort-inclusive) | PENDING |
+| A1-G5 | D1-R4 Sprint 22 plan has mechanism-direct gates | PENDING |
+| A1-G6 | No kernel source committed on Sprint 21 branch (all variants = local/scratch) | PENDING |
+
+A1-G6 is a discipline gate: the measurement kernel variants built for D1-R1 and D1-R2 are **scratch/local-only**, not committed as production code. Sprint 21 ships docs + instrumentation tool (D1-R3) only.
+
+---
+
+---
+
+## Tasks (as-planned, D0 executed, D1–D5 BLOCKED pending pivot decision)
+
+### D0 — Production-shape attribution (COMPLETE; kill-switch FIRED — see `d0_attribution.md`)
+
+*(original D0 scope below — preserved as institutional memory)*
+
+
 
 Stage-decompose `histogram_ms` at gate config (50k/RMSE/d6/128b) into:
 - Fixed per-TG overhead fraction (zero-init + writeback + dispatch)

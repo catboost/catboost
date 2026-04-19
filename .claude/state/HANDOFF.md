@@ -1,15 +1,47 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-19 (Sprint 20 CLOSED via empirical falsification — T3b +42% regression vs toy −84.4%; DEC-017 RETIRED; PR #12 OPEN stacked on PR #11; Sprint 21 lever scoped to TG-count reduction)
+> Last updated: 2026-04-19 (Sprint 21 D0 COMPLETE — kill-switch FIRED; Ramos greenlit option (a) strict + pivot A1 measurement sprint; R8 acknowledged 1.0×; D1-R3/R1/R2/R4 execution pending kickoff greenlight)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-20-hist-atomic-cas`
-- **Tip commit**: `78697fff79` — D2b design + DEC-017 retirement — ABANDON verdict
-- **Prior tip (Sprint 19)**: `4113200529` — S19-13 T1 MSB-sentinel envelope guard
-- **Working tree**: clean; branch pushed to origin
-- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), **battle 5 of 9 CLOSED AT 0× NET**
-- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → **#12**
+- **Branch**: `mlx/sprint-21-hist-tg-reduction` (cut from Sprint 20 tip `85b6362b6e`)
+- **Tip commit**: `8cc45a0486` — S21-00 kickoff README
+- **Working tree**: `docs/sprint21/d0_attribution.md` NEW (unstaged); `docs/sprint21/README.md` modified (unstaged — kill-switch-fired banner + pivot section); `.claude/state/HANDOFF.md` modified (this edit)
+- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), **battle 6 of 9 — D0 attribution landed, perf lever pending**
+- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 (Sprint 20 empirical record)
+
+## Sprint 21 — D0 complete, kill-switch FIRED, lever re-pick pending
+
+**D0 result** (`docs/sprint21/d0_attribution.md`, performance-engineer delivered):
+- Fixed-per-TG overhead at depth 6 = **2.5% ± 1.3%** of histogram_ms (R²=0.9989 on depth sweep, stdev < 0.21 ms)
+- Kill-switch threshold: ≥ 10% to PASS; actual 2.5% → **FIRES**
+- Methodology: depth-sweep regression on `bench_boosting`, 3 independent warm runs × 6 depths, no kernel source changes, no measurement-induced distortion (no eval() sync points)
+- Critical finding (agent catch): kill-switch spec measured T1 fixed-overhead amortization, but variant A's actual mechanism was T3b-accumulator-swap at restored docs/thread shape. Specification error captured as feedback memory `feedback_ultrathink_task_planning.md` and as §6.2 of d0_attribution.md. Generalizable lesson: write gates as direct tests of the lever's mechanism, not proxies.
+
+**Ramos decision (2026-04-19)**: option (a) honor kill-switch strictly. D1 BLOCKED under current Sprint 21 framing. Lever re-pick in progress.
+
+**Durable process instruction (from Ramos, 2026-04-19)**: for each task and plan going forward, invoke ultrathink-level deliberation. Verify gates test the lever's mechanism, not a proxy. See `feedback_ultrathink_task_planning.md`.
+
+**R8 Sprint 21**: revised from ≥1.08× to **acknowledged 1.0×** (no perf change shipped). Sprint 22 R8 depends on A1/A2/A3 pivot choice.
+
+## Sprint 21 pivot — A1 CHOSEN (2026-04-19)
+
+A1 measurement sprint execution plan (see `docs/sprint21/README.md §A1 Execution` for mechanism-direct gates):
+
+| Task | Gate type | Owner | Cost | Kill-switch / success |
+|------|-----------|-------|------|-----------------------|
+| **D1-R3** (first) | Infrastructure | @ml-engineer | 0.5–1 d | per-dispatch stdev < 5% of mean |
+| **D1-R1** L2 direct test | Binary verdict | @ml-engineer + @performance-engineer | 1–2 d | hist_ms reduction ≥10% with stats-loads→constants → L2 viable; <10% → FALSIFIED |
+| **D1-R2** T2 direct test | Binary verdict | @ml-engineer + @performance-engineer | 2–3 d | total hist_ms ≤50% of T1 at prod shape (sort-inclusive) → T2 viable; >50% → FALSIFIED |
+| **D1-R4** Sprint 22 plan | Synthesis | @technical-writer or main | 0.5 d | mechanism-direct gates for S22 |
+
+Sequential execution (each enables next). No kernel source commits on Sprint 21 branch — all variants scratch/local only (A1-G6 discipline gate). Sprint 21 ships: D0 + D1-R{1,2,3,4} docs + D1-R3 instrumentation tool only.
+
+## Sprint 20 — CLOSED, empirical falsification, 0× ship (prior context)
+
+**Verdict**: T3b threadgroup-atomic-CAS accumulator **FALSIFIED at D2 integration**. Toy-kernel −84.4% did not translate to production partition-fragmented dispatch; +42.3% regression at gate config. DEC-017 retired. No kernel change shipped. Sprint shipped the empirical record and Sprint 21 redesign plan.
+
+**Shipped commits (Sprint 20)**: `9216f4941c` D1 parity, `9079ad3873` D2 falsification, `78697fff79` D2b design + DEC-017 retirement, `85b6362b6e` state closure. PR #12 OPEN stacked on PR #11.
 
 ## Sprint 20 — CLOSED, empirical falsification, 0× ship
 
