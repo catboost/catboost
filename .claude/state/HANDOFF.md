@@ -1,142 +1,129 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-19 (Sprint 19 EXIT-GATES PASSED — S19-07 BLOCKER resolved via S19-13 envelope guard; 18/18 parity bit-exact; 100/100 deterministic; R8 deferred to Sprint 20)
+> Last updated: 2026-04-19 (Sprint 20 CLOSED via empirical falsification — T3b +42% regression vs toy −84.4%; DEC-017 RETIRED; PR #12 OPEN stacked on PR #11; Sprint 21 lever scoped to TG-count reduction)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-19-hist-writeback`
-- **Tip commit**: pending (S19-13 guard + exit-gate results to commit next)
-- **Prior kernel tip**: `92f3832169` — DEC-016 T1 fuse-valid (pre-S19-13)
-- **Working tree**: S19-13 changes staged locally (histogram.cpp guard, bench_boosting.cpp guard + Folds alignment, kernel_sources.h comment, DECISIONS.md, docs/sprint19/results.md)
-- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), battle 4 of 9
+- **Branch**: `mlx/sprint-20-hist-atomic-cas`
+- **Tip commit**: `78697fff79` — D2b design + DEC-017 retirement — ABANDON verdict
+- **Prior tip (Sprint 19)**: `4113200529` — S19-13 T1 MSB-sentinel envelope guard
+- **Working tree**: clean; branch pushed to origin
+- **Campaign**: Operation Verstappen — multi-sprint performance domination push (Sprints 16–24), **battle 5 of 9 CLOSED AT 0× NET**
+- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → **#12**
 
-## Sprint 19 — EXIT-GATES PASSED, READY FOR PR
+## Sprint 20 — CLOSED, empirical falsification, 0× ship
 
-**Shipped kernel commits** (in order):
-1. `77db8b5631` — Commit 1: extract DEC-015 side-fix (`featureColumnIndices`+`numGroups` per-group variable correction in `DispatchHistogramBatched`; col-major portions reverted)
-2. `7387814dd6` — S19-06 CI gate widened from 10k/sprint17 to 50k/RMSE/d6/128b baseline
-3. `020eacfb4c` — S19-11 remove one EvalAtBoundary readback at `structure_searcher.cpp:738` (bit-exact; other 3 `EvalAtBoundary` calls on that path are legitimate guard-syncs before `.data<T>()` CPU reads)
-4. `92f3832169` — Commit 2: DEC-016 T1 fuse-valid simd_shuffle (3→2 shuffles/src). Parity bit-exact at 50k/RMSE, 10k/RMSE, 50k/MultiClass. Warm-mean e2e **−2.3%** at gate config (32.47 → 31.73 ms, 3-run mean, pre-S19-13 Folds semantics).
-5. **A1 (Commit 3 candidate) DROPPED.** Toy micro-bench showed A1 vs T1 = −1.9% (noise-marginal). Production port measured **+9.4% regression** (34.7 vs 31.7 ms) — register spill dominates outer-loop saving. See `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md` and DEC-014 status update (REJECTED).
-6. **S19-13 (pending commit)** — T1 MSB-sentinel envelope guard. Addresses S19-07 BLOCKER: pre-guard T1 silently corrupted slot-0 bins 128..255 because the packer lays each feature in 8 bits and the sentinel reused bit 31 of slot-0. Adds host-side `CB_ENSURE(maxFoldCount ≤ 127)` in `histogram.cpp::ComputeHistogramsImpl`, mirror in `bench_boosting.cpp::DispatchHistogram`, aligns bench synth `folds = NumBins − 1` with real-quantize (Folds = numBorders) semantics, corrects kernel comment + DEC-016 rationale.
+**Verdict**: T3b threadgroup-atomic-CAS accumulator **FALSIFIED at D2 integration**. Toy-kernel −84.4% accumulation did not translate to production partition-fragmented dispatch; +42.3% regression at gate config (50k/RMSE/d6/128b). DEC-017 retired. No kernel change shipped. Sprint ships the empirical record and Sprint 21 redesign plan.
 
-## Sprint 19 exit-gate results (see docs/sprint19/results.md)
+### Shipped commits (3, all docs/state — no kernel changes)
 
-| Gate | Owner | Status | Notes |
+| Commit | Content |
+|---|---|
+| `9216f4941c` | D1 parity sweep — T3b 18/18 bit-exact PASS, 100/100 determinism PASS |
+| `9079ad3873` | D2 falsification record — +42% regression with stage attribution |
+| `78697fff79` | D2b design + DEC-017 retirement — ABANDON verdict, Sprint 21 lever scoped |
+
+### D1 result — parity held (see `docs/sprint20/d1_parity.md`)
+
+- 18/18 configs bit-exact vs T0 production kernel (ULP = 0 everywhere, stronger than DEC-008 requires)
+- 100/100 determinism at gate config (single unique BENCH_FINAL_LOSS)
+- **Critical CRITIQUE catch during D1**: T0 baseline in `microbench_algorithmic.cpp` originally omitted the DEC-009 cross-SIMD fold; corrected before parity comparison. Without that correction the T3b vs T0 ULP would have been spuriously non-zero and masked a real integration green-light.
+
+### D2 result — STOP-BOUND FIRED (see `docs/sprint20/d2_results.md`)
+
+Gate config (50k/RMSE/d6/128b), 50 iters, 3 independent warm runs:
+
+| Kernel | warm_mean_ms | vs S19-tip |
+|---|---|---|
+| S19-tip (T1) baseline | 31.87 ms | 1.00× |
+| D2 T3b | **45.3 ms** | **1.42× SLOWER** |
+
+Stop-bound required [9.0 ms, 21.1 ms] (1.5×–3.5× improvement). D2 measured +42% **regression** — far outside. Per standing orders: STOP, do not commit. Kernel + host changes reverted; only empirical record committed.
+
+### Stage attribution of the regression
+
+| Stage | D2 | S19-tip | Δ |
 |---|---|---|---|
-| S19-04 parity + determinism | main-thread | **PASS** | 18/18 configs bit-exact ref vs t1; 100/100 runs on 50k/RMSE/d6/128b → 1 unique loss |
-| S19-05 perf delta | main-thread | **PASS G2** | Best −3.23% (50k/Logloss/128); gate −1.76%; worst regression +1.39% (within 3-run noise) |
-| S19-07 code review | @code-reviewer (bg) | **PASS after S19-13 fix** | Original report flagged T1 MSB BLOCKER; resolved by envelope guard |
-| S19-08 security | @security-auditor (bg) | **PASS** | No injection surfaces, no buffer changes, no secrets, no deps drift |
-| S19-09 MST | @performance-engineer (bg) | **DEFERRED** | `xctrace` sandbox-blocked (same condition as S18-09); analytical stage decomposition fallback in results.md §S19-09 |
+| Derivatives | 0.5 ms | 0.5 ms | 0% |
+| **Tree search (histogram + suffix + split)** | **41.7 ms** | **29.4 ms** | **+42%** |
+| Leaf estimation | 2.5 ms | 2.5 ms | 0% |
 
-**Four analytical models falsified this sprint** — pattern consistent with S19-01c finding that AGX cache hierarchy + out-of-order behavior resists first-principles modeling:
-- DEC-013 (writeback-as-plurality) — SUPERSEDED Day 0
-- DEC-014 original (gather sub-phase) — INVALIDATED Day 2
-- DEC-015 (col-major layout) — REJECTED Day 3
-- DEC-014 (A1 BATCH_DOCS=64) — REJECTED Day 4 (this session)
+100% of the regression lives in `tree_search_ms`. Derivatives and leaf estimation untouched.
+
+### Root cause — dispatch-shape mismatch
+
+T3b's accumulation speedup (−84.4%) was measured in toy-kernel isolation at **1 TG × 256 threads × 50k docs (depth-0 single partition)**, ~195 docs/thread. Production depth-6 dispatches **1638 TGs × 256 threads** (13 feature groups × 63 partitions × 2 stats), ~3 docs/thread. T3b's **fixed per-TG overhead** — zeroing 1024 `atomic_uint` slots at entry and reading them back at writeback (8 memory ops per thread) — amortizes well at 195 docs/thread (≤1% of work), but **dominates at 3 docs/thread (67% of per-TG work)**. CAS atomics also cannot pipeline like simd_shuffle chains can, so the accumulation gain itself compresses. Net: the fixed-cost structure of T3b is incompatible with the production partition count.
+
+### Standing warning (campaign-level, locked)
+
+**Toy-kernel ablations at single-TG root shape do not predict production partition-fragmented dispatch.** Any future lever whose benefit comes from amortization across many docs/thread must be validated against the production TG × docs-per-thread shape *before* integration commit. DEC-017 retirement post-mortem in `.claude/state/DECISIONS.md` encodes this as Sprint 21+ gating criterion.
+
+## Sprint 20 exit gates
+
+| Gate | Criterion | Status |
+|---|---|---|
+| G1 | `histogram_ms` ≤ 4 ms on gate config | **FAIL** — measured +42% regression (D2) |
+| G2 | No 18-config regression > 5% | N/A — no kernel change shipped |
+| G3 | Parity 108/108 bit-exact | **PASS** — 18/18 at D1, 100/100 deterministic |
+| G4 | `iter_total_ms` ≤ 10.5 ms | **FAIL** — tied to G1 |
+| G5 | Non-histogram stages ≤ 10% regression | **PASS** — derivatives & leaf unchanged |
+| G6 | CI green | **PASS** — no kernel change; CI can't regress by construction |
+
+**Sprint 20 exits via honest falsification, not a perf gate.** PR #12 body records the gate table unchanged.
+
+## Model-falsification count — fifth this campaign
+
+- DEC-013 (writeback-as-plurality) — falsified Sprint 19 Day 1
+- DEC-014 original (gather sub-phase) — falsified Sprint 19 Day 2
+- DEC-015 (col-major layout) — falsified Sprint 19 Day 3
+- DEC-014 (A1 BATCH_DOCS=64) — falsified Sprint 19 Day 4
+- **DEC-017 (T3b atomic-CAS) — falsified Sprint 20 D2 (this sprint)**
+
+All five share the same failure mode: analytical or toy-kernel prediction does not survive production dispatch shape. The standing warning now sits in DECISIONS.md as a campaign-level gate.
 
 ## R8 status — honest accounting
 
-**R8 revised mid-sprint from aggressive 1.5–1.8× e2e to ≥1.07× e2e exit gate.** Rationale: the real bottleneck (simd_shuffle serial chain = 86% of accumulation per S19-01c probe A) is structurally invariant to layout-level changes. Sprint 19 is a bit-exact bridge; the structural replacement (T3b atomic-CAS) is a Sprint 20 flagship gated on full DEC-008 parity sweep.
+| Sprint | R8 target | R8 delivered | Verdict |
+|---|---|---|---|
+| 19 | ≥1.07× e2e | 1.018× gate / 1.033× best | NOT MET |
+| 20 | ≥2.0× e2e (projected) | 0.704× gate (i.e. +42% regression) | NOT MET — sprint abandoned pre-commit |
+| **21** (forward) | **≥1.08× e2e** (Sprint 21 only) | TBD | — |
 
-**Actual delivered on gate config (50k/RMSE/d6/128b)**:
-- Pre-Sprint-19 baseline (post-Commit 1, pre-T1): 32.47 ms warm mean
-- Post-T1 (current HEAD): 31.73 ms warm mean
-- **Delivered: 1.023× e2e** (vs revised gate 1.07×)
+**Campaign ≥1.5× e2e target kept.** Sprint 21 lever is TG-count reduction (see §Sprint 21 below). Pipeline projection midpoint 1.27×, upper bound 1.46×. **1.5× not credibly reachable on current kernel structure and is flagged honestly** per Ramos's "do not soften" standing order. Sprint 22–24 delta vs 1.5× is a live open question for later Verstappen planning.
 
-**R8 NOT met on this config. Deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).** Per Ramos's "honest R8 — do not soften" standing order: this sprint's shipping lever (T1) is +2.3% e2e and bit-exact. The 1.07× gate requires T3b's 84% accumulation reduction to close — which cannot ship without the full parity sweep scheduled for Sprint 20 D1.
+## Sprint 21 — scoped, not yet cut (see `docs/sprint20/d2b_design.md`)
 
-## Sprint 18 — CLOSED (PR #10 OPEN, awaiting merge)
+**Lever**: TG-count reduction via partition-batching at histogram dispatch. Reduce 1638 TGs (13 groups × 63 partitions × 2 stats) to ≤ 26 TGs (13 groups × 2 stats) by aggregating all partitions into a single per-group TG that scans all docs once and accumulates into `hist[part][bin]` via global-atomic or TG-local per-partition slots. This directly inverts the D2 failure mode (small docs/thread) by restoring large docs/thread even at depth 6.
 
-Sprint 18 delivered the L1a `simdHist` accumulator re-architecture. All gates passed. The sprint included a significant pivot (BUG-S18-001) — the initial kernel failed all parity configs by 6 orders of magnitude before the fixed kernel landed at commit `19fa5ce6cc`.
+**Projected ceiling**: R8 ≥ 1.08× on gate, ≥ 1.10× on best-case (Logloss 128b). Honest upper bound from current kernel structure. Detailed section breakdown in `docs/sprint20/d2b_design.md §3–6`.
 
-**Final result**: `histogram_ms` -56.6% to -85.5% across all 18 configs. Gate config (N=10k, RMSE, 128b): 28.75 → 9.56 ms (-66.8%). Parity 108/108 bit-exact (ULP=0). Barriers reduced 9 → 6. Reduction depth γ_12 → γ_7.
-
-**PR #10**: `mlx/sprint-18-hist-privhist-tile` → `master` on `RR-AMATOK/catboost-mlx`. OPEN. No blockers.
-
-**Sprint 18 carry-forward (now Sprint 19 starting point)**: N=50k configs converge to ~15 ms `histogram_ms` in steady state. The writeback (global-atomic) phase is the plurality cost at large N — the S18-05b profile identified this as the floor that L1a could not eliminate. Sprint 19 targets this floor directly.
-
-## Sprint 19 — ACTIVE (PIVOTED: accumulation redesign)
-
-**Branch**: `mlx/sprint-19-hist-writeback` (cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`; name reflects original scope — history over cosmetics)  
-**Lever**: Accumulation redesign (L_accum) — **pivot from L_writeback after S19-01 ground-truth falsified writeback-as-plurality**  
-**Gate config**: 50k/RMSE/128b (unchanged)
-
-**Pivot summary**: S19-01 attribution (commit `d7ea14e28c`) showed writeback = 0.79 ms (5%), accumulation = 14.30 ms (93%). The S18 "~15 ms writeback floor" was a mis-scaling from N=10k. R8 fired at 1.02–1.04× e2e. Ramos chose Option 2: pivot to accumulation redesign. DEC-013 SUPERSEDED. DEC-014 DRAFT.
-
-**Projection (pending S19-01b/S19-02b; aggressive target still live)**:
-- `histogram_ms`: **−30% min** on 50k/RMSE/128b (32% accumulation reduction = ~30% histogram_ms, since accumulation = 93%; target range 8–11 ms from 15.46 ms baseline)
-- `iter_total_ms`: −30% min target (1.5× aggressive still live; baseline 21.12 ms → target 14–17 ms)
-- Championship 50k exit: pending S19-02b numbers
-
-**Baselines**: S18 after-JSONs copied to `.cache/profiling/sprint19/baseline/` (18 configs). Gate config steady-state: `histogram_ms` 15.46 ms (ground-truth, S19-01), `iter_total_ms` 21.12 ms.
-
-**DEC-014**: DRAFT — accumulation redesign. 4 candidate variants under ablation (S19-02b). Locks at S19-02b close (end of Day 2).
-
-**Accumulation variants under ablation (S19-02b)**:
-- (A) Wider batch accumulation — under ablation
-- (B) Coalesced threadgroup staging — under ablation
-- (C) Per-feature specialization — under ablation
-- (D) Different ownership granularity — under ablation
-
-## Sprint 19 task table
-
-| ID | Task | Owner | Day/Phase | Status |
-|----|------|-------|-----------|--------|
-| S19-00 | Branch cut from S18 tip; baseline JSON copy; state file scaffold; docs/sprint19/README scaffold | @ml-product-owner / @technical-writer | Day 0 | **DONE** |
-| S19-01 | Ground-truth writeback attribution via Metal System Trace on gate config (50k/RMSE/128b); output: `docs/sprint19/attribution.md` with ±1 ms error bars; R8 trigger check | @performance-engineer | Day 1 | **COMPLETE-BUT-SUPERSEDED** (evidence correct, premise falsified — see DEC-014) |
-| S19-02 | Ablation sweep (writeback variants a/b/c); DEC-013 draft written; premise invalidated by S19-01; output: `docs/sprint19/ablation.md` | @research-scientist | Day 1–2 | **COMPLETE-BUT-SUPERSEDED** (variant (c) 3.0 ms projection not supported by ground truth) |
-| S19-01b | Accumulation sub-phase attribution: re-attribute 14.30 ms accumulation across sub-phases; ±1 ms error bars; output appended to `docs/sprint19/attribution.md` | @performance-engineer | Day 2 | **DONE** (S19-01b gather model → falsified by S19-01c) |
-| S19-01c | Micro-bench re-attribution: simd_shuffle serial chain = 86% of accumulation; AGX hides compressedIndex gather | @ml-engineer / @research-scientist | Day 3 | **DONE** (commit `b0c853a6f6`) |
-| S19-02b | Accumulation redesign ablation: variants A/B/C/D × {bins 32,128} × {N 10k,50k}; DEC-014 DRAFT | @research-scientist | Day 2 | **DONE** — DRAFT ablation at `docs/sprint19/ablation_accumulation.md` |
-| S19-02c | Algorithmic variant ablation (T0/T1/T2/T3/T3b): measured toy-kernel at 1 TG × 256 threads × N=50k | @research-scientist | Day 3–4 | **DONE** — see `docs/sprint19/algorithmic_ablation.md` and `docs/sprint19/scratch/algorithmic/microbench_algorithmic.cpp` |
-| S19-03a | Commit 1: extract DEC-015 side-fix (per-group variable correction, col-major reverted) | main | Day 4 | **DONE** — commit `77db8b5631` |
-| S19-03b | Commit 2: DEC-016 T1 fuse-valid simd_shuffle reduction (3→2 shuffles/src) | main | Day 4 | **DONE** — commit `92f3832169`; −2.3% e2e at 50k/RMSE, bit-exact 3 configs |
-| S19-03c | Commit 3: DEC-014 (A1) BATCH_DOCS=64 | main | Day 4 | **DROPPED** — toy −1.9% but production +9.4% regression (register spill). A1 kept in scratch. See DEC-014 status (REJECTED) + `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md` |
-| S19-04 | Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b | @qa-engineer | Day 5 | PENDING (post-commit) |
-| S19-05 | Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table | @performance-engineer | Day 5 | PENDING (post-commit) |
-| S19-06 | Update `benchmarks/check_histogram_gate.py` reference baseline to 50k/RMSE/128b; verify CI gate continuity; intentional-regression dry-run | @mlops-engineer | Day 4 | **DONE** — commit `7387814dd6`; dry-run triggers at +6.1% |
-| S19-07 | Code review: T1 MSB-sentinel correctness, DEC-011 ceiling, barrier count | @code-reviewer | Day 5 | PENDING (post-commit) |
-| S19-08 | Security pass: kernel string injection surface; no new externally-controlled buffer sizes | @security-auditor | Day 5 | PENDING (post-commit) |
-| S19-09 | Metal System Trace re-capture on gate config; confirm T1 accumulation improvement; output: appendix in `docs/sprint19/results.md` | @performance-engineer | Day 5 | PENDING (post-commit) |
-| S19-10 | `docs/sprint19/` population, DECISIONS.md (DEC-013 SUPERSEDED, DEC-014 REJECTED, DEC-015 REJECTED, DEC-016 ACTIVE, DEC-017 DRAFT-S20), HANDOFF + CHANGELOG, Sprint 20 skeleton | @technical-writer + main | Day 4 | **DONE** — `docs/sprint19/algorithmic_ablation.md`, `docs/sprint20/README.md`, DECISIONS.md DEC-014/015/016/017, HANDOFF updated (this) |
-| S19-11 | Kill EvalAtBoundary CPU readbacks in `structure_searcher.cpp` | @ml-engineer + main | Day 4 | **DONE** — commit `020eacfb4c` (1 of 6 candidates removed at line 738; other 3 `EvalAtBoundary` calls are legitimate pre-CPU-read guards; pragmatic scope reduction) |
-| S19-12 | S18 deferred cleanup + VGPR confirmation | @performance-engineer / @code-reviewer | Day 4 | **DONE — no-op** (no S18 deferred items per CHANGELOG-DEV.md) |
-| S19-11 | In-sprint cleanup: 6 EvalAtBoundary CPU readbacks in `structure_searcher.cpp` — "fix properly always" (carry-forward from S18 non-goals) | @ml-engineer | Day 1–3 | PENDING |
-| S19-12 | In-sprint cleanup: VGPR confirmation + S18 deferred code-review items | @performance-engineer / @code-reviewer | Day 1–2 | PENDING |
-
-## Acceptance gates (revised)
-
-| Gate | Criterion | Status |
-|------|-----------|--------|
-| G1 | `histogram_ms` improvement at gate config | TBD — S19-09 Metal System Trace to decompose the −2.3% e2e into kernel-phase delta |
-| G2 | No 18-config regression >5% | TBD — S19-05 pending |
-| G3 | Parity bit-exact across DEC-008 envelope | TBD — S19-04 pending; spot-checked bit-exact at 3 configs (50k/RMSE, 10k/RMSE, 50k/MultiClass) for Commit 2 |
-| G4 | R8 revised to ≥1.07× e2e | **NOT MET** at 1.023× on 50k/RMSE/d6/128b — deferred to Sprint 20 via DEC-017 T3b |
-| G5 | No non-histogram stage regresses >10% | TBD — S19-05 pending |
-| G6 | CI green | TBD — post-commit CI run |
+**Not started**: branch `mlx/sprint-21-hist-tg-reduction` is not yet cut. Cut point = Sprint 20 tip (`78697fff79`) once user greenlights.
 
 ## Blockers
 
-**None active.** Prior DEC-015 blocker resolved: rejected empirically in S19-03a revert + S19-01c probe D confirmation. A1 regression confirmed and dropped per plan clause.
+**None active.** Sprint 20 exits cleanly. PR #12 open for review.
 
-## Next actions (Sprint 19 exit gates — parallel)
+## Next actions (awaiting user direction)
 
-1. **S19-04** — @qa-engineer: 18-config parity grid + 100-run determinism on 50k/RMSE/d6/128b. T1 is the only active kernel change; expected bit-exact by construction (MSB-sentinel does not alter reduction order).
-2. **S19-05** — @performance-engineer: 18-config warm-mean delta + 50k MST capture. Expected: T1 at −2.3% e2e on 50k/RMSE; other configs likely similar or smaller (MultiClass already showed −2.0%).
-3. **S19-07** — @code-reviewer: review the 3 Sprint 19 commits (`77db8b5631`, `92f3832169`, `020eacfb4c`) plus the S19-06 CI gate commit (`7387814dd6`).
-4. **S19-08** — @security-auditor: kernel source string injection surface unchanged; T1 adds only a constant and a bitmask. Spot-check and sign-off.
-5. **S19-09** — @performance-engineer: post-fix MST; confirm simd_shuffle chain cost dropped proportionally to the shuffle-count reduction.
-6. **PR**: stage the Sprint 19 PR (target `master` on `RR-AMATOK/catboost-mlx`); keep uncommitted scratch docs and bench binary out of the PR surface.
+1. Merge PR #9 → master (Sprint 17, long-standing OPEN)
+2. Merge PR #10 → its base (Sprint 18)
+3. Merge PR #11 → its base (Sprint 19)
+4. Merge PR #12 → its base (Sprint 20) — record-only, no kernel change
+5. Cut `mlx/sprint-21-hist-tg-reduction` from `78697fff79`; scaffold `docs/sprint21/README.md` mirroring d2b_design.md §3
+6. Sprint 21 kickoff — @research-scientist to validate partition-batching kernel shape in toy-kernel at production docs/thread ratio (≈3 docs/thread) **before** any production integration, per Sprint 20 standing warning.
 
-## Carry-forward to Sprint 20
+## Carry-forward to Sprint 21
 
-- **D1 FLAGSHIP — DEC-017 T3b atomic-CAS parity sweep.** Full DEC-008 envelope parity sweep (18 configs × 100 runs) against toy-kernel-equivalent before any integration. If parity holds → D2 integration. If parity fails → Kahan/Higham compensated summation and re-sweep. Detailed plan: `docs/sprint20/README.md`.
-- **D2 — T3b production integration** (contingent on D1 parity).
-- **D3 — Full-grid scaling validation.** Toy measured 1 TG × 256 threads; production dispatches 1575 TGs concurrently at depth 5–6.
-- **D4 — MultiClass approxDim=3 parity.** T3b's atomic-CAS reduction order may compound drift across three independent dim reductions.
-- L2 (pre-permute stats + compressedIndex gather removal — 2–4 ms headroom) deferred from S18, still valid post-S19-01c (confirmed AGX hides gather).
-- L3 (MultiClass per-dim dispatch fusion — 15–25 ms on MultiClass configs) still valid.
-- `maxBlocksPerPart` retuning — sprint cleanup candidate.
-- DEC-011 32 KB ceiling — T3b requires amendment to 4 KB (atomic simdHistU[1024]).
+- **L_TG-reduction** (DEC-018 DRAFT-S21, to be drafted): partition-batched histogram dispatch. See `docs/sprint20/d2b_design.md §3`.
+- **Validation gate before D2-equivalent integration**: toy-kernel must be measured at production TG × docs/thread shape (not single-TG root shape). This is the campaign-level gate derived from DEC-017 post-mortem.
+- **L2** (pre-permute stats + compressedIndex gather removal, 2–4 ms headroom) — still valid, Sprint 22 candidate.
+- **L3** (MultiClass per-dim dispatch fusion, 15–25 ms on MC configs) — Sprint 23 candidate.
+- **DEC-011 32 KB ceiling** — no amendment needed; T3b's 4 KB relaxation was retired with DEC-017. Ceiling stands as originally written.
+- **S19-13 envelope guard** (`CB_ENSURE(maxFoldCount ≤ 127)`) — still active; ships with T1 in Sprint 19 PR.
+
+## Prior sprints — status unchanged
+
+- **Sprint 19** — CLOSED. PR #11 OPEN. Exit gates PASSED. T1 fuse-valid shipped (−1.76% gate / −3.23% best, bit-exact, envelope-guarded).
+- **Sprint 18** — CLOSED. PR #10 OPEN. Exit gates PASSED. L1a privHist spill fix shipped (−66.8% gate, 108/108 bit-exact).
+- **Sprint 17** — CLOSED. PR #9 OPEN. D1c tree reduction shipped (−89 to −93% histogram_ms, 35/36 bit-exact).
+- **Sprints 0–16** — merged upstream (this fork's master).

@@ -2,6 +2,52 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 20 — T3b atomic-CAS FALSIFIED at D2; DEC-017 RETIRED; 0× ship, empirical record + Sprint 21 redesign (2026-04-19, CLOSED via falsification)
+
+**Branch**: `mlx/sprint-20-hist-atomic-cas` (cut from Sprint 19 tip `4113200529`)
+**Campaign**: Operation Verstappen — battle 5 of 9 — L_accum lever (T3b variant)
+**Verdict**: **FALSIFIED.** Toy-kernel −84.4% single-TG accumulation did not translate to production partition-fragmented dispatch. D2 integration measured +42.3% regression at gate config (50k/RMSE/d6/128b), far outside the stop-bound of [9.0 ms, 21.1 ms]. Kernel + host changes reverted pre-commit per standing orders. DEC-017 RETIRED. **0× net perf delta shipped this sprint.** PR #12 ships the empirical record and Sprint 21 redesign plan.
+
+### Commits landed (3, all docs/state)
+
+1. **`9216f4941c`** — D1 parity sweep. T3b 18/18 configs bit-exact vs T0 production kernel (ULP = 0 everywhere, stronger than DEC-008 envelope). 100-run determinism at gate config produced a single unique BENCH_FINAL_LOSS. **Critical CRITIQUE catch during implementation**: the T0 baseline in `docs/sprint19/scratch/algorithmic/microbench_algorithmic.cpp` originally omitted the DEC-009 cross-SIMD fold — without that correction the T3b vs T0 ULP would have been spuriously non-zero and masked a real D2 green-light. Harness in `docs/sprint20/scratch/microbench_parity.cpp` (905 lines); results in `docs/sprint20/d1_parity.md`.
+2. **`9079ad3873`** — D2 falsification record. Three independent warm runs at gate config: D2 = 45.3 ms, S19-tip = 31.87 ms → +42.3% regression. Stage attribution via `bench_boosting --stage-profile`: derivatives 0.5 ms (0%), **tree search 41.7 ms vs 29.4 ms (+42%)**, leaf estimation 2.5 ms (0%). 100% of regression lives in the histogram kernel. Root-cause analysis in `docs/sprint20/d2_results.md`.
+3. **`78697fff79`** — D2b design + DEC-017 retirement (single commit per user option A). `docs/sprint20/d2b_design.md` (229 lines, 7 sections): abandon verdict for Sprint 20, Sprint 21 lever scoping (TG-count reduction via partition-batching), R8 projection ≥1.08× gate / ≥1.10× best, Sprint 21–22–23 pipeline (midpoint 1.27×, upper bound 1.46×; 1.5× not credibly reachable and flagged honestly). DECISIONS.md DEC-017 flipped from `ACTIVE-PENDING-D3` to `RETIRED — SUPERSEDED BY EMPIRICAL FALSIFICATION` with post-mortem banner and dispatch-shape root cause math. Original DRAFT-S20 text preserved below banner per DEC-013/14/15 pattern.
+
+### Root cause — dispatch-shape mismatch (locked as campaign-level standing warning)
+
+Toy kernel (Sprint 19 ablation): 1 TG × 256 threads × 50k docs single partition, ≈195 docs/thread. T3b's fixed per-TG overhead (1024-slot `atomic_uint` zero-init + writeback read = 8 memory ops per thread) amortizes to ≤1% of per-TG work; accumulation gain dominates; −84.4% valid for this shape only.
+
+Production depth-6 dispatch: 13 feature groups × 63 partitions × 2 stats = **1638 TGs**. Per TG: ~50000 / 64 partitions ≈ 781 docs → 781 / 256 ≈ **3 docs/thread**. Fixed overhead now 8 memory ops vs 12 CAS ops = **67% of per-TG work**. CAS atomics cannot pipeline like simd_shuffle chains (each CAS is a read-modify-write with conditional retry that must see the result before the next iteration). Net: the fixed-cost structure of T3b is incompatible with the production partition count.
+
+**Standing warning (campaign-level, encoded in DECISIONS.md DEC-017 post-mortem)**: toy-kernel ablations at single-TG root shape do not predict production partition-fragmented dispatch. Any future lever whose benefit comes from amortization across many docs/thread must be validated against the production TG × docs/thread shape *before* integration commit. This is the fifth analytical/toy-kernel model falsified this campaign — the pattern is now locked and the validation gate is mandatory for Sprint 21+.
+
+### Sprint 20 exit gates
+
+| Gate | Criterion | Status |
+|---|---|---|
+| G1 | `histogram_ms` ≤ 4 ms on gate | **FAIL** (measured +42%) |
+| G2 | No 18-config regression > 5% | N/A (no kernel change shipped) |
+| G3 | Parity 108/108 | **PASS** (D1 18/18 + 100/100 determinism) |
+| G4 | `iter_total_ms` ≤ 10.5 ms | **FAIL** (tied to G1) |
+| G5 | Non-histogram stages ≤ 10% | **PASS** (derivatives & leaf unchanged) |
+| G6 | CI green | **PASS** (no kernel change) |
+
+Sprint exits via empirical falsification, not a perf gate. PR #12 body records the gate table unchanged.
+
+### R8 status — honest
+
+- Sprint 20 target: ≥2.0× e2e (projected from toy −84.4%).
+- Sprint 20 delivered: **0.704× gate** (+42% regression) — falsified before commit.
+- **Sprint 21 target reset: ≥1.08× e2e** (TG-count reduction lever, scoped in d2b_design.md §3).
+- **Campaign ≥1.5× e2e kept** per user's explicit decision. Sprint 21–22–23 pipeline midpoint 1.27×, upper bound 1.46×. **1.5× not credibly reachable on current kernel structure and is flagged honestly.**
+
+### PR #12 — opened
+
+`https://github.com/RR-AMATOK/catboost-mlx/pull/12` — stacked on PR #11 (Sprint 19). Ships the empirical record, not performance. Merge order: #9 → #10 → #11 → #12.
+
+---
+
 ## Sprint 19 — T1 fuse-valid (DEC-016) shipped; DEC-014/015 REJECTED empirically; S19-13 envelope guard + exit gates (2026-04-17 → 2026-04-19, EXIT-GATES PASSED)
 
 **Branch**: `mlx/sprint-19-hist-writeback`
