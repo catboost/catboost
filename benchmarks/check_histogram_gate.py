@@ -4,12 +4,18 @@ check_histogram_gate.py — CI gate: assert histogram_ms does not regress betwee
 two stage-profile JSON snapshots produced by csv_train (built with
 -DCATBOOST_MLX_STAGE_PROFILE=ON).
 
+Gate config (Sprint 19, updated from Sprint 17 S16-06): N=50000, RMSE, depth=6,
+128 bins, 50 iterations.  Reference baseline:
+  .cache/profiling/sprint19/baseline/50000_rmse_d6_128bins.json
+  (Sprint 18 after-JSON; mean histogram_ms ≈ 15.46 ms; Sprint 18 simdHist kernel)
+Regression threshold: >5% wall-clock increase fails the gate (S16-06 standing rule).
+
 Single-config mode
 ------------------
     python benchmarks/check_histogram_gate.py \
-        --before .cache/profiling/sprint17/baseline_10000_rmse_d6_128bins.json \
-        --after  .cache/profiling/sprint17/after_10000_rmse_d6_128bins.json \
-        --min-reduction 0.30
+        --before .cache/profiling/sprint19/baseline/50000_rmse_d6_128bins.json \
+        --after  .cache/profiling/sprint19/after/50000_rmse_d6_128bins.json \
+        --max-regression 0.05
 
     Exit 0  if:
         (after_mean - before_mean) / before_mean <= --max-regression
@@ -23,8 +29,8 @@ Single-config mode
 --------------
     python benchmarks/check_histogram_gate.py \
         --18config \
-        --before-dir .cache/profiling/sprint17/before/ \
-        --after-dir  .cache/profiling/sprint17/after/ \
+        --before-dir .cache/profiling/sprint19/baseline/ \
+        --after-dir  .cache/profiling/sprint19/after/ \
         --max-regression 0.05
 
     Matches JSONs by filename across --before-dir and --after-dir.
@@ -188,7 +194,7 @@ def _check_pair(
             f"  After  : {after_ms:.3f} ms\n"
             f"  Delta  : {delta_rel:+.1%}\n"
             f"  Required reduction: {min_reduction:.0%}  (actual: {reduction:.1%})\n"
-            f"  Action : Sprint 18 acceptance criterion S18-G1 not met."
+            f"  Action : Sprint acceptance criterion not met (see sprint HANDOFF.md for G1)."
         )
 
     return None
