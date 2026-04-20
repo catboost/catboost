@@ -2,6 +2,65 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 22 — T2 sort-by-bin SHIPPED; Option III fix; Verstappen ≥1.5× gate CLEARED; R8 1.90× (2026-04-20, CLOSED)
+
+**Branch**: `mlx/sprint-22-t2-integration` (cut from Sprint 21 tip `a7a206b90d`)
+**Campaign**: Operation Verstappen — battle 7 of 9
+**Verdict**: **CLOSED. 4/4 exit gates PASS. T2 sort-by-bin validated. Cumulative R8 = 1.90×. Verstappen ≥1.5× gate CLEARED by 40 pp.**
+
+### Sprint arc: D0 PASS → D1 parity failure → four-phase diagnostic → Option III fix → 4/4 gates PASS
+
+Sprint 22 began with an in-situ T2 integration probe (D0) that passed its kill-switch at 0.328× ratio — inside the optimistic band. D1 parity sweep then failed 18/18 configs (ULP 1,327–2,583,206), triggering a four-phase diagnostic arc:
+
+- **D1a**: blit-ordering hypothesis (fill_gpu pool reuse) — REFUTED (fill_gpu is compute; eval barriers did not fix parity)
+- **D1b**: depth-parity indexing hypothesis — REFUTED (even-depth pattern explained by split-distribution artifact)
+- **D1c**: root cause identified — `bench_boosting.cpp:526` `maxPartDocs = ceil(numDocs / numActiveParts)` uniform-partition assumption. Under real argsort-permuted splits at depth 1 on 50k docs, partitions are [442, 49558] vs `maxPartDocs=25000`; 24558-doc overflow into the neighboring TG's `sortedDocs` slot corrupted histograms. `iters=1` always passed (depth=0 → single partition, no overflow possible).
+- **D2**: Option III fix (slab-by-partOffsets). `sortedDocs` reorganized to per-(groupIdx, statIdx) slabs of size `numDocs` indexed by `partOffsets[partIdx]`. Overflow structurally impossible since `sum(partSizes) == numDocs`. Buffer 5.2 MB at gate config vs 333 MB worst-case for Option I one-line fix.
+
+Side-finding: bug β (atomic-scatter float drift, S21 D1-R4 §3 risk) does not exist. 10/10 and 100/100 determinism confirmed post-fix. Kahan compensation concern retired (DEC-022).
+
+### Commits landed (2 kernel/state commits)
+
+| Commit | Content | Verdict |
+|--------|---------|---------|
+| `4333c82a7e` | D0 in-situ T2 probe at production shape | PASS — ratio 0.328× (optimistic band) |
+| `73baadf445` | D1+D1a+D1b+D1c+D2 Option III fix + D3/D4/D5/D6 gate reports | 4/4 GATES PASS |
+
+### Exit gates
+
+| Gate | Criterion | Verdict |
+|------|-----------|---------|
+| D3 parity | 18/18 DEC-008 ULP=0; 100/100 determinism; EC-1–EC-5 all ULP=0 | **PASS** |
+| D4 perf | Ratio 0.317× cross-session; cumulative R8 = 1.90×; gate cleared +40 pp | **PASS** |
+| D5 code review | 0 blockers, 6 nits deferred to S23 | **PASS** |
+| D6 security audit | 0 CRITICAL/HIGH; overflow class structurally eliminated; max-safe-N 14.3M | **PASS** |
+
+### Final numbers
+
+| Metric | Value |
+|--------|-------|
+| T2/T1 hist_ms ratio (gate config) | 0.317× cross-session (band 0.315–0.319×) |
+| S22 e2e multiplier | 1.778× (33.958 ms → 19.098 ms iter_total) |
+| Cumulative R8 post-S22 | **1.07 × 1.778 = 1.90×** |
+| Verstappen gate (≥1.5×) | **CLEARED +40 pp** |
+| Parity | 18/18 ULP=0; 100/100 determinism; BENCH_FINAL_LOSS T1=T2=0.47740927 |
+
+### Decisions recorded
+
+- **DEC-020**: status advanced from VIABLE → **SHIPPED / VALIDATED**
+- **DEC-021**: Option III slab-by-partOffsets layout chosen over Option I (5.2 MB vs 333 MB; overflow structurally eliminated; 1.6 pp perf headroom vs D0)
+- **DEC-022**: Kahan/compensated-summation concern RETIRED — bug β does not exist (10/10 + 100/100 determinism post-fix)
+
+### PR #14 target
+
+`RR-AMATOK/catboost-mlx` — stacked on PR #13 (Sprint 21). Ramos opens. Title: `[mlx] sprint-22: T2 sort-by-bin — Option III fix, 4/4 gates PASS, R8 1.90×`.
+
+### Sprint 23 backlog (from S22 closeout)
+
+D0 task: T2 scratch→production promotion (move `kernel_sources_t2_scratch.h` → `kernel_sources.h`, `DispatchHistogramT2` → `histogram.cpp`). 6 deferred NIT catalog items. Tree-search restructure research track (S23-R1 EvalAtBoundary readback, S23-R2 dispatch inversion spike).
+
+---
+
 ## Sprint 21 — A1 measurement sprint; L2 FALSIFIED; T2 VIABLE; variant A RETIRED; 0× perf shipped (2026-04-20, CLOSED)
 
 **Branch**: `mlx/sprint-21-hist-tg-reduction` (cut from Sprint 20 tip `85b6362b6e`)

@@ -282,13 +282,25 @@ The S19-01c probe D finding (global-memory loads = 0% of kernel cost at single-T
 
 ---
 
-## DEC-020: T2 sort-by-bin — VIABLE (pending Sprint 22 D0 in-situ validation)
+## DEC-020: T2 sort-by-bin — SHIPPED / VALIDATED
 
-**Sprint**: 21 (D1-R2 production-shape micro-bench)
+**Sprint**: 21 (D1-R2 production-shape micro-bench) → **22 (Option III fix + full gate suite)**
 **Date**: 2026-04-20
-**Branch**: `mlx/sprint-21-hist-tg-reduction`
-**Commit**: `13322feaca`
-**Status**: **VIABLE — enters Sprint 22 viable-set rank #1. Kill-switch threshold: in-situ T2/T1 > 0.60.**
+**Branch**: `mlx/sprint-21-hist-tg-reduction` → `mlx/sprint-22-t2-integration`
+**Commits**: `13322feaca` (D1-R2 VIABLE) → `4333c82a7e` (D0 in-situ PASS) → `73baadf445` (D1–D6 gates PASS)
+**Status**: **SHIPPED — VALIDATED. 4/4 exit gates PASS. Cumulative R8 = 1.90×. Verstappen ≥1.5× gate CLEARED by 40 pp.**
+
+### Final numbers (commit `73baadf445`)
+
+| Metric | Value |
+|--------|-------|
+| Gate config ratio (T2/T1 hist_ms) | **0.317×** cross-session (band 0.315–0.319×) |
+| S22 e2e multiplier (T1/T2 iter_total_ms) | **1.778×** (33.958 ms → 19.098 ms) |
+| Cumulative R8 (post-S22) | **1.07 × 1.778 = 1.90×** |
+| Verstappen gate (≥1.5×) | **CLEARED +40 pp** |
+| Parity | 18/18 ULP=0 bit-exact; 100/100 determinism runs |
+| Code review | 0 blockers, 6 deferred nits (NIT-6 removed at audit) |
+| Security audit | 0 CRITICAL, 0 HIGH; overflow structurally eliminated |
 
 ### Mechanism
 
@@ -338,6 +350,68 @@ Measure `ratio = hist_ms(T2) / hist_ms(T1)` at gate config via in-situ `Dispatch
 The 0.60 threshold is the point where cumulative e2e falls below the Verstappen 1.5× gate — below 0.60 there is no single-sprint stacking path.
 
 **Pointer**: `docs/sprint21/d1r2_t2_microbench.md`; `docs/sprint21/d1r4_synthesis.md §3/§4`.
+
+---
+
+## DEC-021: Option III slab-by-partOffsets layout over Option I uniform-ceiling
+
+**Sprint**: 22 (D1c root-cause + D2 implementation)
+**Date**: 2026-04-20
+**Branch**: `mlx/sprint-22-t2-integration`
+**Commit**: `73baadf445`
+**Status**: **ACTIVE (SHIPPED).**
+
+### Problem
+
+D0 T2 scratch kernel used `maxPartDocs = ceil(N/K)` as the per-TG `sortedDocs` slab stride. Under real argsort-permuted training-loop splits, partitions are heavily skewed — depth-1 on 50k yields sizes [442, 49558] vs `maxPartDocs = 25000`. The 49558-doc partition's counting-sort scatter overflowed 24558 docs into the neighboring TG's slot, corrupting histograms. This was the root cause of the 18/18 DEC-008 parity failure in D1 (`docs/sprint22/d1c_t2_troubleshoot.md`).
+
+### Candidates
+
+- **Option I** (one-line): `maxPartDocs = numDocs`. Structurally safe — `ceil(N/1)` always ≥ any partition size. Buffer at gate config: **333 MB** (`numTGs × numDocs × 4 B = 13 × 2 × 50000 × 50000 × 4 B`). Unacceptable worst-case.
+- **Option II** (dynamic ceiling): `maxPartDocs = max(partSizes)` per dispatch. Safe. Buffer ≈ `numTGs × max(partSizes) × 4 B`. Requires an O(K) scan per dispatch on the CPU. Workable but fragile — depends on `max(partSizes)` being accurate before every dispatch; any future code path that skips the scan would reintroduce overflow.
+- **Option III** (structural): Replace per-TG `maxPartDocs`-sized slots with per-(groupIdx, statIdx) slabs of size `numDocs` addressed by `partOffsets[partIdx]`. `sortedDocs` is `numGroups × numStats × numDocs`. Overflow is **structurally impossible** since `sum(partSizes) == numDocs` and `partOffsets` are prefix sums of `partSizes`.
+
+### Chosen: Option III
+
+**Rationale**: Option III makes overflow structurally impossible, not just unlikely for the current code path. Buffer at gate config = **5.2 MB** (`numGroups × numStats × numDocs × 4 B = 13 × 2 × 50000 × 4 B`), vs 333 MB worst-case for Option I. The `slotBase` formula is simpler than the old `partIdx * maxPartDocs` stride. No new correctness assumption is added — the slot-disjointness invariant follows trivially from `sum(partSizes) == totalNumDocs`.
+
+**Trade-off**: Buffer size is now proportional to `numGroups × numStats × numDocs` regardless of tree depth (shallower depths no longer benefit from smaller `maxPartDocs`). At the gate config this is 5.2 MB. Beyond DEC-008 scope (e.g. N=500k / 200 features / K=4 MultiClass), the buffer would be ~300 MB — still fine on unified memory but warranting re-evaluation. See D5 NOTE-1.
+
+**Perf impact**: Option III marginally improved ratio vs D0 (0.317× vs 0.328× cross-session). The slotBase formula simplification appears to reduce index-arithmetic overhead. 1.6 pp perf headroom preserved over D0.
+
+**Pointer**: `docs/sprint22/d1c_t2_troubleshoot.md §6.1`; `docs/sprint22/d2_t2_fix_verified.md §2`; `docs/sprint22/d6_security_audit.md §3 Check 1`.
+
+---
+
+## DEC-022: Kahan/compensated-summation concern RETIRED (S21 D1-R4 §5 bug β does not exist)
+
+**Sprint**: 22 (D1c determinism probe)
+**Date**: 2026-04-20
+**Branch**: `mlx/sprint-22-t2-integration`
+**Commit**: `73baadf445`
+**Status**: **CLOSED — concern FALSIFIED by evidence.**
+
+### Background
+
+`docs/sprint21/d1r4_synthesis.md §3` (Sprint 22 risks section) documented a parity risk:
+
+> "Bug β atomic-scatter float drift — if end-to-end loss ULP > 4, Kahan-compensated summation on the per-doc scatter path is the fallback (+2–3 days)."
+
+The concern was that per-doc global atomic scatter in T2-accum (features 1–3) could produce non-deterministic float accumulation across runs, requiring Kahan compensation to stay within DEC-008 ULP ≤ 4.
+
+### Evidence retiring the concern
+
+The D1c diagnostic arc, as a side-effect of Option III fix verification, produced:
+
+- **10/10 determinism runs pre-Option-III fix** (at features=1/iters=2 minimum-reproducer): identical float outputs across all 10 runs on both T1 and (once fix applied) T2.
+- **100/100 determinism runs post-Option-III fix** at gate config (50k/RMSE/d6/128b): single unique BENCH_FINAL_LOSS = 0.47740927 across all 100 runs.
+- **D3 QA independent verification**: 18/18 ULP=0, 100/100 determinism, 5 edge-case configs all ULP=0.
+
+The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPartDocs` buffer overflow (the 24558-doc neighbor-slot corruption). Once the overflow was removed by Option III, T2's per-doc atomic scatter is deterministic at the gate config — the Metal atomic scheduler resolves float scatter in a consistent order for this dispatch shape and data. No Kahan compensation is needed or appropriate.
+
+**Lesson**: The anticipated "bug β" was a misidentified symptom of the structural overflow bug; it does not exist as an independent failure mode. S21 D1-R4 §3 fallback budget (+2–3 days for Kahan) is retired.
+
+**Pointer**: `docs/sprint22/d1c_t2_troubleshoot.md §1` (false-positive retirement); `docs/sprint22/d3_parity_gate.md §1` (100/100 determinism table).
 
 ---
 

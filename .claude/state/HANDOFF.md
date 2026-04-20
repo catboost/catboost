@@ -1,13 +1,32 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-20 (Sprint 21 CLOSED — 6/6 A1 exit gates PASS, 0× perf shipped; Sprint 22 kickoff)
+> Last updated: 2026-04-20 (Sprint 22 CLOSED — 4/4 exit gates PASS, R8 1.90×; Sprint 23 kickoff)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-21-hist-tg-reduction` (Sprint 21 — state files committed, no production source modified)
-- **Tip commit**: `a7a206b90d` — Sprint 21 D1-R4 synthesis + Sprint 22 kickoff plan
-- **Campaign**: Operation Verstappen — battle 6 of 9 CLOSED. Battle 7 of 9 (Sprint 22) ready to cut.
-- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 (Sprint 20 empirical record); #13 = Sprint 21 pending Ramos open
+- **Branch**: `mlx/sprint-22-t2-integration` (Sprint 22 — closeout commit pending)
+- **Tip commit**: `73baadf445` — D1+D1a+D1b+D1c+D2 Option III fix + D3/D4/D5/D6 gate reports
+- **Campaign**: Operation Verstappen — battle 7 of 9 CLOSED. **Verstappen ≥1.5× gate CLEARED.** Battle 8 of 9 (Sprint 23) ready to cut.
+- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → **#14 pending Ramos open** (Sprint 22)
+
+## Sprint 22 — CLOSED
+
+### Verdict: 4/4 exit gates PASS, R8 1.90×, Verstappen gate CLEARED
+
+Sprint 22 integrated T2 sort-by-bin (DEC-020 VIABLE from S21). D0 in-situ probe passed kill-switch at 0.328×. D1 parity sweep failed 18/18, triggering a four-phase diagnostic arc that isolated a uniform-partition ceiling overflow bug (`bench_boosting.cpp:526 maxPartDocs = ceil(N/K)`). Option III structural fix (slab-by-partOffsets, 5.2 MB vs 333 MB worst-case for Option I) passed all four exit gates.
+
+| Deliverable | Commit | Verdict |
+|---|---|---|
+| D0 in-situ T2 probe | `4333c82a7e` | PASS — ratio 0.328× optimistic |
+| D1+D1a+D1b+D1c+D2 Option III fix + D3/D4/D5/D6 | `73baadf445` | 4/4 GATES PASS |
+
+**R8 final**: cumulative = 1.07 × 1.778 = **1.90×**. Verstappen ≥1.5× gate cleared by 40 pp.
+
+**Key side-finding**: bug β (atomic-scatter float drift, S21 D1-R4 §3) does not exist. 100/100 determinism confirmed. DEC-022 retires the Kahan concern.
+
+**Scratch discipline maintained**: `kernel_sources.h` unmodified. T2 ships in `kernel_sources_t2_scratch.h` under `CATBOOST_MLX_HISTOGRAM_T2=1` guard. Promotion to `kernel_sources.h` is Sprint 23 D0.
+
+---
 
 ## Sprint 21 — CLOSED
 
@@ -38,61 +57,55 @@ Sprint 21 was declared a measurement-only sprint after the D0 kill-switch fired 
   - Gate B parity: max ULP 64, mass conservation 0 ULP across 812,800 bins
   - Ratio-transfer risk (synthetic identity-permuted harness → production argsort-permuted data) is **unproven** — Sprint 22 D0 must establish this before any integration commit
 
-## Sprint 22 — KICKOFF
+## Sprint 23 — KICKOFF
 
-### Charter: T2 sort-by-bin integration (single-lever sprint)
+### Charter: T2 scratch→production promotion + NIT cleanup + tree-search research
 
-**Authority**: `docs/sprint21/d1r4_synthesis.md` is the authoritative lever-ranking and D0 specification input.
-**Sprint scaffold**: `docs/sprint22/README.md`
+**Authority**: `docs/sprint22/d5_code_review.md §4` (NIT catalog, 6 items deferred); `docs/sprint21/d1r4_synthesis.md §3` (tree-search rank #2)
+**Sprint scaffold**: `docs/sprint23/README.md`
 
-### Gate dependency — campaign viability
+### R8 honest position (post-S22)
 
-The entire Verstappen ≥1.5× campaign gate depends on Sprint 22 D0:
+- **Cumulative**: **1.90×** over Sprint 16-class baseline (1.07 × 1.778×)
+- **Verstappen gate** (≥1.5×): **CLEARED** by 40 pp — campaign goal met
+- Sprint 23 does not need to deliver additional R8 to satisfy the gate. Remaining work is production-quality promotion and the next research-track investment.
 
-| S22-D0 ratio | T2 verdict | Projected cumulative e2e | Verstappen gate |
-|---|---|---|---|
-| ≤ 0.45 | PASS (optimistic) | ~1.96× | CLEARED +46 pp |
-| ≤ 0.60 | PASS (conservative) | ~1.62–1.88× | CLEARED |
-| > 0.60 | FALSIFIED | ~1.07× (current) | FAIL — pivot required |
+### Sprint 23 task set
 
-**Kill-switch**: `hist_ms(T2) / hist_ms(T1) > 0.60` at gate config measured in-situ under real argsort-permuted training-loop partitions → T2 drops to RESEARCH; Sprint 22 pivots to tree-search restructure scoping with 0× in-sprint perf deliverable.
+| Task | Type | Owner |
+|------|------|-------|
+| S23-D0 — T2 scratch→production promotion | Blocking | @ml-engineer |
+| S23-NIT1–NIT5,NIT7 — 6 deferred nit cleanup | Housekeeping | @ml-engineer |
+| S23-R1 — EvalAtBoundary readback elimination | Compound perf | @ml-engineer |
+| S23-R2 — Dispatch inversion research spike | Research | @research-scientist |
 
-### R8 honest position
+**D0 is blocking**: `kernel_sources_t2_scratch.h` contents must be promoted into `kernel_sources.h` and `DispatchHistogramT2` promoted into `catboost/mlx/methods/histogram.cpp` with production-quality API (CB_ENSURE, factored registration, clean public interface) before any championship benchmark run. The `CATBOOST_MLX_HISTOGRAM_T2=1` flag is removed; T2 becomes the default dispatch.
 
-- Cumulative through Sprint 21 close: **~1.07× over Sprint 16-class baseline** (entirely from S17 D1c, S18 L1a, S19 T1 contributions)
-- Gap to 1.5× Verstappen gate: **40% residual speedup required from Sprint 22 onward**
-- Sprint 22 projected contribution (if T2 D0 PASS): +1.37× to +1.83× at gate config (midpoint 1.76×)
-- Sprint 22 conservative (ratio 0.50): +1.51× — clears gate by 12 pp; stacks with S19-11 readback elimination
+**NIT bundle**: address all 6 deferred nits (NIT1–NIT5, NIT7) in a single pass alongside the D0 promotion. See `docs/sprint22/d5_code_review.md §4`.
 
-**No soft path exists.** L2 falsified. Variant A falsified. T3b falsified. T2 is the single mechanism-backed lever. If T2 is falsified at D0, the campaign gate is not reachable within a single additional sprint on the current kernel structure. Honest accounting — do not soften in downstream handoffs.
+**S23-R1** (EvalAtBoundary): six `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (`:275`, `:593`, `:653`, `:686`) — ~0.3 ms/iter standalone. Carried from S19-11. Scoping reference: `docs/sprint16/sync_inventory.md`. Bounded 0.5–1 day.
 
-### Current viable-set
-
-| Lever | Status | Sprint |
-|---|---|---|
-| **T2 sort-by-bin** | VIABLE rank #1 — pending S22-D0 in-situ | Sprint 22 integration |
-| **S19-11 EvalAtBoundary readback** | CARRY-FORWARD — compound with T2 | Sprint 22 in-sprint (0.5–1 day) |
-| **Tree-search restructure / dispatch inversion** | RESEARCH — speculative 1.5–2×, weeks of cost | Sprint 23 research spike (if T2 PASS) or Sprint 22 pivot (if T2 FAIL) |
-| All other levers | FALSIFIED or SHIPPED | — |
+**S23-R2** (Dispatch inversion): if no concrete design surfaces within 2 days, declare unreachable for the Verstappen campaign window and defer to Sprint 24+.
 
 ### Next actions
 
-1. **@ml-engineer**: S22-D0 — implement `DispatchHistogramT2` scratch variant guarded by `CATBOOST_MLX_HISTOGRAM_T2=1`; measure `ratio = hist_ms(T2) / hist_ms(T1)` at gate config via `bench_boosting --per-kernel-profile`, 3 independent runs × 49 warm iters; document in `docs/sprint22/d0_t2_production_shape.md`. A1-G6 discipline: scratch-only, no kernel_sources.h commit until D0 PASS verdict.
-2. Ramos opens PR #13 for Sprint 21 (this branch).
-3. If S22-D0 PASS: @qa-engineer proceeds to S22-D1 parity sweep.
-4. If S22-D0 FAIL: Ramos re-decides campaign direction (tree-search restructure research spike vs gate re-scope).
+1. Ramos opens PR #14 for Sprint 22 (this branch, stacked on #13).
+2. **@ml-engineer**: S23-D0 — T2 scratch→production promotion; NIT bundle pass.
+3. **@ml-engineer / @research-scientist**: S23-R1 EvalAtBoundary scope + fix.
+4. **@research-scientist**: S23-R2 dispatch inversion spike (2-day timebox).
+5. Cut branch `mlx/sprint-23-t2-promotion` from Sprint 22 tip.
 
-## Standing orders (carried forward to Sprint 22)
+## Standing orders (carried forward to Sprint 23)
 
 - **No `Co-Authored-By: Claude` trailer** in any commit message — global policy.
 - **RR-AMATOK fork only** — do not push or PR to `catboost/catboost` upstream.
-- **DEC-012 one-structural-change-per-commit** — Sprint 22 D2 integration will require 4–5 atomic commits.
-- **A1-G6 discipline applies to S22-D0 scratch** — no production source committed until D0 kill-switch clears.
-- **Do not soften R8** — the gap-to-1.5× arithmetic in `docs/sprint21/d1r4_synthesis.md §5` is the honest view and propagates unchanged.
-- **Do not skip S22-D0 kill-switch** — ratio-transfer from D1-R2 synthetic harness is unproven. Shipping T2 on in-harness evidence alone repeats the DEC-017 Sprint 20 failure mode.
+- **DEC-012 one-structural-change-per-commit** — S23-D0 promotion will require 3–4 atomic commits.
+- **Do not soften R8** — cumulative 1.90× is the honest post-S22 position; do not round to 2×.
+- **Scratch discipline**: `kernel_sources.h` is the production file; modifications require a DEC-012 atomic commit with parity re-verify.
 
 ## Prior sprints — status unchanged
 
+- **Sprint 22** — CLOSED. PR #14 pending (Ramos opens). T2 SHIPPED, R8 1.90×. Verstappen gate cleared.
 - **Sprint 21** — CLOSED. PR #13 pending (Ramos opens). 0× perf, A1 measurement record.
 - **Sprint 20** — CLOSED. PR #12 OPEN stacked on #11. T3b DEC-017 RETIRED.
 - **Sprint 19** — CLOSED. PR #11 OPEN stacked on #10. T1 DEC-016 SHIPPED (−2.3% e2e).
