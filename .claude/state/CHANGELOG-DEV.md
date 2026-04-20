@@ -2,6 +2,58 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 21 — A1 measurement sprint; L2 FALSIFIED; T2 VIABLE; variant A RETIRED; 0× perf shipped (2026-04-20, CLOSED)
+
+**Branch**: `mlx/sprint-21-hist-tg-reduction` (cut from Sprint 20 tip `85b6362b6e`)
+**Campaign**: Operation Verstappen — battle 6 of 9
+**Verdict**: **CLOSED via A1 measurement sprint.** 6/6 A1 exit gates PASS. 0× net perf delta shipped (A1-G6 discipline — no production source modified). Two levers retired; one promoted to viable-set.
+
+### A1 pivot rationale
+
+Sprint 21 was planned as a TG-count reduction (variant A) integration sprint. D0 kill-switch fired on day 1: fixed per-TG overhead at depth 6 = 2.5% ± 1.3% (R²=0.9989 depth regression), far below the ≥10% gate. A specification error was discovered: the D0 gate tested T1 fixed-overhead amortization as a proxy for variant A's actual mechanism (T3b shape restoration at 195 docs/thread). Ramos chose option (a): honor the kill-switch strictly. Sprint 21 retargeted to A1 — a measurement-only sprint producing production-shape evidence for two lever candidates. Generalizable lesson encoded in `feedback_ultrathink_task_planning.md`.
+
+### Commits landed (5, all docs/instrumentation — zero kernel changes)
+
+| Commit | Content | Verdict |
+|---|---|---|
+| `a0c473e3b7` | D0 kill-switch: depth-sweep regression, fixed overhead = 2.5% ± 1.3% | FIRED — variant A RETIRED (DEC-018) |
+| `ac378d8de6` | D1-R3 per-kernel-profile instrumentation in `bench_boosting.cpp` | DONE — stable, stdev < 5% of mean |
+| `fedf9d5348` | D1-R1 L2 direct mechanism test (`stat = 1.0f` zero-gather at 1664-TG depth-6) | FALSIFIED — +2.61% slower (DEC-019) |
+| `13322feaca` | D1-R2 T2 sort-by-bin production-shape micro-bench (sort+accum, 1664-TG shape) | VIABLE — −64.8% (DEC-020) |
+| `a7a206b90d` | D1-R4 synthesis + Sprint 22 kickoff plan (`docs/sprint21/d1r4_synthesis.md`) | DONE — mechanism-direct gates; R8 ledger |
+
+### Two decisions retired
+
+- **DEC-018 TG-count reduction variant A — RETIRED** (was DRAFT-S21, never activated). D0 kill-switch fired (2.5% << 10% gate). Specification error captured: gate tested T1 amortization proxy, not the T3b shape-restoration mechanism that was the actual savings source. `docs/sprint21/d0_attribution.md §6.2`.
+- **DEC-019 L2 stats pre-permute — FALSIFIED**. Zero-gather upper bound (stat=1.0f): +2.61% slower at 1664-TG depth-6 production shape. 12.6 pp below 10% gate. AGX out-of-order execution + hardware L2 prefetcher fully hide the stats gather. Generalizes S19-01c probe D single-TG finding to multi-TG depth-6. `docs/sprint21/d1r1_l2_attribution.md`.
+
+### One decision promoted
+
+- **DEC-020 T2 sort-by-bin — VIABLE (pending Sprint 22 D0 in-situ)**. D1-R2 at 1664-TG production shape: −64.8% histogram_ms (band 63.6–66.7%, 2σ ±2.7–4.4%), clearing 50% gate by 28–34 pp. Gate B parity: max ULP 64, mass conservation 0 ULP across 812,800 bins. Enters Sprint 22 viable-set rank #1. Ratio-transfer risk (synthetic identity-permuted → production argsort-permuted) unproven; Sprint 22 D0 tests directly with kill-switch at ratio > 0.60. `docs/sprint21/d1r2_t2_microbench.md`.
+
+### R8 — honest
+
+- Sprint 21 contribution: **0× by design** (A1 measurement sprint; no perf change intended or shipped)
+- Cumulative through Sprint 21: **~1.07× over Sprint 16-class baseline** (from S17/S18/S19 kernel improvements only)
+- Gap to Verstappen 1.5× gate: **40% residual** — reachable iff T2 clears Sprint 22 D0 at ratio ≤ 0.60
+
+### Sprint 21 exit gates
+
+| Gate | Criterion | Status |
+|---|---|---|
+| A1-G1 | D0 kill-switch executed with production-shape evidence | PASS (`a0c473e3b7`) |
+| A1-G2 | D1-R3 per-dispatch timings stable (stdev < 5% of mean) | PASS (`ac378d8de6`) |
+| A1-G3 | D1-R1 binary L2 verdict at production shape | PASS — FALSIFIED (`fedf9d5348`) |
+| A1-G4 | D1-R2 binary T2 verdict at production shape (sort-inclusive) | PASS — VIABLE (`13322feaca`) |
+| A1-G5 | D1-R4 Sprint 22 plan has mechanism-direct gates | PASS (`a7a206b90d`) |
+| A1-G6 | No kernel source committed on Sprint 21 branch | PASS (zero production source diffs) |
+
+### PR #13 target
+
+`RR-AMATOK/catboost-mlx` — stacked on PR #12 (Sprint 20). Ramos opens. Title: `[mlx] sprint-21: A1 measurement sprint — L2 falsified, T2 viable, variant A retired`.
+
+---
+
 ## Sprint 20 — T3b atomic-CAS FALSIFIED at D2; DEC-017 RETIRED; 0× ship, empirical record + Sprint 21 redesign (2026-04-19, CLOSED via falsification)
 
 **Branch**: `mlx/sprint-20-hist-atomic-cas` (cut from Sprint 19 tip `4113200529`)

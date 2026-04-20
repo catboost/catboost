@@ -227,6 +227,120 @@
 
 ---
 
+## DEC-018: TG-count reduction variant A — RETIRED (never activated)
+
+**Sprint**: 21 (DRAFT-S21; never progressed past D0)
+**Date**: 2026-04-20
+**Branch**: `mlx/sprint-21-hist-tg-reduction`
+**Status**: **RETIRED — D0 kill-switch fired; decision never activated.**
+
+### Post-mortem
+
+**Projected mechanism**: Dispatch 26 TGs (13 feature groups × 2 stats) × 195 docs/thread instead of the production 1638 TGs × ~3 docs/thread, restoring a T3b-compatible docs/thread ratio at every depth by amortizing per-partition work across a single feature-group TG.
+
+**D0 kill-switch result** (`docs/sprint21/d0_attribution.md`): Fixed per-TG overhead at depth 6 = **2.5% ± 1.3%** of `histogram_ms` (R²=0.9989 depth-sweep regression, 3 independent warm runs × 6 depths). Kill-switch threshold: ≥10%. Measured: **2.5% → FIRES**.
+
+**Specification error (captured for campaign learning)**: The D0 kill-switch as written tested whether T1's fixed per-TG overhead was large enough to amortize via TG-count reduction. But variant A's actual savings mechanism was **T3b-accumulator-swap at the restored 195-docs/thread shape** — TG-count reduction is the shape-restoration *enabler*, not the savings source. T1's fixed overhead was already low (2.5%) because Sprint 18 L1a eliminated the dominant DRAM costs. The 40% "fixed overhead" figure in `docs/sprint20/d2b_design.md §2` referred to T3b's per-thread work ratio at production shape, not T1's. The gate tested a proxy (T1 amortization), not the lever's direct mechanism (T3b shape-restoration). See `docs/sprint21/d0_attribution.md §6.2`.
+
+**Generalizable lesson (encoded in `feedback_ultrathink_task_planning.md`)**: Kill-switch gates must be direct tests of the lever's mechanism, not proxies. A proxy gate can fire or pass for reasons orthogonal to the lever's actual savings path.
+
+**Decision**: Variant A is RETIRED without implementation. It never reached D1, D2, or any kernel commit. No production source was modified.
+
+**Pointer**: `docs/sprint21/d0_attribution.md §6.2`; `docs/sprint21/README.md §Pivot`.
+
+---
+
+## DEC-019: L2 stats pre-permute — FALSIFIED
+
+**Sprint**: 21 (D1-R1 direct mechanism test)
+**Date**: 2026-04-20
+**Branch**: `mlx/sprint-21-hist-tg-reduction`
+**Commit**: `fedf9d5348`
+**Status**: **FALSIFIED — zero-gather upper bound shows no gain at production shape.**
+
+### Mechanism tested
+
+Pre-permute `gradients` and `hessians` arrays so the histogram kernel reads contiguous memory instead of scatter-gathering via `compressedIndex[doc]`. Hypothesis: the per-doc stats gather is a measurable fraction of `histogram_ms` at production multi-TG depth-6 shape, and eliminating it would save ≥10% of `histogram_ms`.
+
+### Direct mechanism test
+
+Built a kernel variant of the L1a accumulator with stats loads replaced by constants (`g = 1.0f`, `h = 1.0f` instead of `g = gradients[compressedIndex[doc]]`). This is the **maximum possible saving** L2 could ever deliver — zero gather cost, zero permutation cost. Measured `histogram_ms` reduction vs T1 baseline at production shape (50k/RMSE/d6/128b, 1664 TGs × ~3 docs/thread).
+
+### Result
+
+Zero-gather variant: **+2.61% slower** than T1 baseline (not ≥10% faster). Gate miss: **12.6 percentage points below the 10% floor**.
+
+The upper bound is negative — real L2 integration (which costs an additional O(N) permute kernel per iteration) would be yet more expensive. L2 is falsified at production shape.
+
+### Interpretation
+
+The S19-01c probe D finding (global-memory loads = 0% of kernel cost at single-TG root depth) generalizes to multi-TG depth-6 shape. AGX out-of-order execution and the L2 hardware prefetcher fully hide the stats gather latency behind the simd_shuffle serial chain — confirming the pattern established in DEC-015 (col-major compressedIndex, Sprint 19): AGX memory subsystem hides more latency than first-principles reasoning predicts.
+
+**This also rules out any future L2 variant** absent new evidence that the memory subsystem behavior changes (e.g., much larger N, different partition depth structure, or different kernel structure that changes the overlap).
+
+**Pointer**: `docs/sprint21/d1r1_l2_attribution.md`; S19-01c probe D in `docs/sprint19/reattribution.md`.
+
+---
+
+## DEC-020: T2 sort-by-bin — VIABLE (pending Sprint 22 D0 in-situ validation)
+
+**Sprint**: 21 (D1-R2 production-shape micro-bench)
+**Date**: 2026-04-20
+**Branch**: `mlx/sprint-21-hist-tg-reduction`
+**Commit**: `13322feaca`
+**Status**: **VIABLE — enters Sprint 22 viable-set rank #1. Kill-switch threshold: in-situ T2/T1 > 0.60.**
+
+### Mechanism
+
+T2 replaces the production T1 kernel's 32-iteration simd_shuffle broadcast chain with a two-kernel dispatch:
+1. A counting-sort pre-pass that bin-partitions each partition's docs by feature-0 bin and emits `binOffsets[]`.
+2. An accumulator that for feature-0 does a pure bin-range scan (no shuffle, single writer per bin → no contention) and for features 1–3 does a per-doc sorted scatter via global atomics.
+
+The simd_shuffle serial chain — the measured plurality cost at production dispatch shape (~80% of `histogram_ms`) — is structurally eliminated for feature-0.
+
+### D1-R2 measurement (production dispatch shape)
+
+Harness measured sort+accumulation together (total `histogram_ms`-equivalent, not accumulation alone) at 1664-TG production shape (50k/RMSE/d6/128b, gate config).
+
+| Metric | Value |
+|---|---|
+| T1 baseline | 1.479 ms (per-dispatch mean) |
+| T2 sort+accum | 0.520 ms (cross-session mean) |
+| Reduction | **64.8%** (band 63.6–66.7%, 2σ ±2.7–4.4%) |
+| Gate threshold (≥50%) | **CLEARED by 28–34 pp** |
+
+Gate B parity: max ULP 64 (well below 1024 accumulation-order bound); mass conservation 0 ULP across 812,800 bins.
+
+### Projected e2e (from d1r4_synthesis.md §3)
+
+Starting point: `iter_total_ms = 31.93 ms`, `histogram_ms = 21.57 ms`, non-hist = 10.36 ms.
+
+| Scenario | T2/T1 ratio | New iter_total | e2e speedup |
+|---|---|---|---|
+| Optimistic | 0.33× | 17.48 ms | 1.83× |
+| Midpoint | 0.36× | 18.13 ms | 1.76× |
+| Conservative (in-harness gate) | 0.50× | 21.15 ms | 1.51× |
+| Kill-switch boundary | 0.60× | 23.30 ms | 1.37× |
+
+### Risks
+
+- **Ratio-transfer (primary)**: D1-R2 used identity-permuted docs (synthetic). Production uses argsort-permuted docs from `structure_searcher.cpp`. The T2/T1 ratio should cancel locality artifacts to first order, but if the sort pre-pass is cache-sensitive under argsort-permuted access, the ratio could widen. Sprint 22 D0 tests this directly.
+- **Parity at integration**: Per-bin D1-R2 ULP ≤ 64, but DEC-008 envelope requires end-to-end loss ULP ≤ 4. Sprint 22 D1 parity sweep (18-config DEC-008 envelope) must validate end-to-end. Kahan-compensated summation is the fallback if any config fails.
+- **Multi-feature sort scope**: D1-R2 sorts on feature-0 bin only; features 1–3 use atomic scatter. Sprint 22 ships as-measured; multi-feature optimization deferred.
+
+### Sprint 22 D0 kill-switch
+
+Measure `ratio = hist_ms(T2) / hist_ms(T1)` at gate config via in-situ `DispatchHistogramT2` variant under real training-loop conditions (argsort-permuted `docIndices`).
+- `ratio ≤ 0.45` — optimistic band holds; proceed to D1 parity.
+- `0.45 < ratio ≤ 0.60` — conservative band; proceed to D1, but R8 projection drops to 1.37–1.51×; Ramos re-decides.
+- `ratio > 0.60` — **T2 FALSIFIED at production shape**. Drop to RESEARCH. Sprint 22 pivots to tree-search restructure.
+
+The 0.60 threshold is the point where cumulative e2e falls below the Verstappen 1.5× gate — below 0.60 there is no single-sprint stacking path.
+
+**Pointer**: `docs/sprint21/d1r2_t2_microbench.md`; `docs/sprint21/d1r4_synthesis.md §3/§4`.
+
+---
+
 ### Preserved for history (original DRAFT content below)
 
 **Sprint**: 20 (flagship)

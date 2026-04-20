@@ -117,12 +117,50 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
+## Sprint 21 — A1 Measurement Sprint (CLOSED — 6/6 exit gates PASS, 0× perf shipped)
+
+**Branch**: `mlx/sprint-21-hist-tg-reduction`
+**Campaign**: Operation Verstappen — battle 6 of 9 — A1 measurement sprint (pivot from TG-count reduction after D0 kill-switch fired)
+**Verdict**: All 6 A1 exit gates PASS. Zero production source modified (A1-G6 discipline). Two levers retired, one promoted to viable-set.
+
+### Closed
+
+- [x] S21-D0 — D0 kill-switch: fixed per-TG overhead = 2.5% ± 1.3% at depth 6 (R²=0.9989). Kill-switch threshold 10% NOT met → FIRED. Variant A never activated. DEC-018 RETIRED. — @performance-engineer **DONE** (`a0c473e3b7`)
+- [x] S21-D1-R3 — Host-side `eval()` sync instrumentation in `bench_boosting` (`--per-kernel-profile`). Per-dispatch stdev < 5% of mean at gate config. — @ml-engineer **DONE** (`ac378d8de6`)
+- [x] S21-D1-R1 — L2 stats pre-permute direct mechanism test. Zero-gather upper bound (`stat = 1.0f`) at 1664-TG production shape: +2.61% slower (12.6 pp below 10% gate). **FALSIFIED.** DEC-019. — @ml-engineer + @performance-engineer **DONE** (`fedf9d5348`)
+- [x] S21-D1-R2 — T2 sort-by-bin production-shape micro-bench. Sort+accum at 1664-TG shape: −64.8% (band 63.6–66.7%), clearing 50% gate by 28–34 pp. Parity gate B: max ULP 64, mass conservation 0 ULP. **VIABLE.** DEC-020. — @ml-engineer + @performance-engineer **DONE** (`13322feaca`)
+- [x] S21-D1-R4 — Sprint 22 kickoff synthesis. Lever ranking with mechanism-direct gates; D0 kill-switch spec at ratio > 0.60; R8 honest ledger. — @technical-writer **DONE** (`a7a206b90d`)
+
+---
+
+## Sprint 22 — T2 Sort-by-Bin Integration (OPEN)
+
+**Branch**: `mlx/sprint-22-hist-t2-sort` (to be cut)
+**Campaign**: Operation Verstappen — battle 7 of 9 — single-lever integration sprint
+**Gate config**: 50k/RMSE/d6/128b (unchanged)
+**Lever**: T2 sort-by-bin (DEC-020 VIABLE, rank #1)
+**R8 target**: ≥1.51× e2e at gate config (conservative band); 1.5× gate clears iff T2 D0 ratio ≤ 0.60
+**Authority**: `docs/sprint21/d1r4_synthesis.md` §3/§4/§5/§6
+
+### Open
+
+- [ ] S22-D0 — In-situ T2 integration probe at production shape. Implement `DispatchHistogramT2` as a scratch variant in `catboost/mlx/methods/histogram.cpp` or locally in `bench_boosting.cpp`, guarded by env-var or compile-time flag (`CATBOOST_MLX_HISTOGRAM_T2=1`). Parity NOT required for D0 (perf-only mechanism test). Measure `histogram_ms` via `--per-kernel-profile` at gate config (3 independent runs × 49 warm iters). Compute `ratio = hist_ms(T2) / hist_ms(T1)` in same session. Kill-switch: ratio > 0.60 → T2 FALSIFIED at production shape, Sprint 22 pivots to tree-search restructure scoping. Acceptance: ratio ≤ 0.60 at gate config with ±2σ band documented. Output: `docs/sprint22/d0_t2_production_shape.md`. — @ml-engineer **OPEN** (est. 1 day; A1-G6 scratch-only discipline applies)
+- [ ] S22-D1 — 18-config parity sweep against DEC-008 envelope. RMSE bit-exact (ULP = 0); Logloss ULP ≤ 4; MultiClass ULP ≤ 8. 100-run determinism at gate config. Kahan fallback budget if any config fails. Blocked on S22-D0 PASS (ratio ≤ 0.60). — @qa-engineer **BLOCKED** (est. 1 day)
+- [ ] S22-D2 — T2 production integration + default-flip per DEC-012 one-structural-change-per-commit. Estimated 4–5 atomic commits: (1) T2 kernel in `kernel_sources.h`, (2) `DispatchHistogramT2` dispatch variant in `histogram.cpp`, (3) runtime/compile-time selection guard, (4) host-side guard and buffer allocation (`sortedDocs`, `binOffsets`), (5) default flip after parity clears. Blocked on S22-D1 PASS. — @ml-engineer **BLOCKED** (est. 3 days)
+- [ ] S22-D3 — 18-config perf sweep at gate config + R8 honest commitment. Measure `iter_total_ms` and `histogram_ms` across 18 configs. Document cumulative e2e at gate config (no softening of R8 ledger per `docs/sprint21/d1r4_synthesis.md §5`). Blocked on S22-D2 PASS. — @performance-engineer **BLOCKED** (est. 1 day)
+
+### Carry-forward
+
+- [ ] S19-11 — 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (`:275`, `:593`, `:653`, `:686`). Scheduled as compound with T2 integration in Sprint 22 per `docs/sprint21/d1r4_synthesis.md §3 rank #2`. Bounded 0.5–1 day fix (~0.3 ms / 31.93 ms standalone contribution). — @ml-engineer **CARRY-FORWARD**
+
+---
+
 ## Sprint 20–24 Backlog (one-line each, expanded per sprint)
 
-- Sprint 20: Quantization fastpath — GPU quantization on ingest, persistent device-resident datasets
-- Sprint 21: Leaf + apply fusion — one command buffer for leaf estimation + tree apply
-- Sprint 22: Kernel specialization — dtype/depth-specialized kernels via MLX JIT template system
-- Sprint 23: Large-scale tiling — datasets exceeding Metal buffer limits, async CPU→GPU streaming
+- Sprint 20: T3b atomic-CAS — CLOSED, FALSIFIED (DEC-017 RETIRED). PR #12 OPEN.
+- Sprint 21: A1 measurement — CLOSED, 0× perf, T2 promoted to viable-set. PR #13 pending.
+- Sprint 22: T2 sort-by-bin integration — OPEN (single-lever sprint; campaign 1.5× gate depends on S22-D0 ratio)
+- Sprint 23: Tree-search restructure / dispatch inversion research spike (if T2 clears Sprint 22; otherwise campaign re-scope)
 - Sprint 24: Championship benchmark — final tuning, dominance suite vs CPU + CUDA, release polish
 
 ---
