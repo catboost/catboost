@@ -193,6 +193,19 @@ inline constexpr TStringBuf DefaultTruncatedMessage = "...<truncated>";
 void TruncateStringInplace(std::string* string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
 std::string TruncateString(std::string string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
 
+class TTruncatedStringView
+{
+public:
+    TTruncatedStringView(const std::string& value, int limit);
+    void WriteToBuilder(TStringBuilderBase* builder, TStringBuf spec) const;
+
+private:
+    const std::string& Value_;
+    const int Limit_;
+};
+
+void FormatValue(TStringBuilderBase* builder, TTruncatedStringView value, TStringBuf spec);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
