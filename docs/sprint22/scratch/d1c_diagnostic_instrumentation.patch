@@ -1,0 +1,48 @@
+diff --git a/catboost/mlx/tests/bench_boosting.cpp b/catboost/mlx/tests/bench_boosting.cpp
+index 78dc5b567b..f36344c8d6 100644
+--- a/catboost/mlx/tests/bench_boosting.cpp
++++ b/catboost/mlx/tests/bench_boosting.cpp
+@@ -523,7 +523,42 @@ mx::array DispatchHistogramT2(
+     // numTGs = numGroups × numActiveParts × numStats
+     // maxPartDocs = ceil(numDocs / numActiveParts)  — pessimistic upper bound per TG slot
+     const ui32 numTGs      = numGroups * numActiveParts * numStats;
+-    const ui32 maxPartDocs = (numDocs + numActiveParts - 1) / numActiveParts;
++    // [D1c DIAG ONLY] env T2_DIAG_FIX_MAXPARTDOCS=1 -> use numDocs as safe upper bound (overallocates).
++    const ui32 maxPartDocs = std::getenv("T2_DIAG_FIX_MAXPARTDOCS")
++                             ? numDocs
++                             : ((numDocs + numActiveParts - 1) / numActiveParts);
++
++    // =====================================================================
++    // D1c TROUBLESHOOTER DIAGNOSTIC (scratch-only, env-gated):
++    //   T2_DIAG_PARTSIZES=1 -> dump partSizes vs maxPartDocs each dispatch.
++    //   T2_DIAG_SAMPLE_SORTED=1 -> dump first sortedDocs / binOffsets slot
++    //                              AFTER accum eval completes, to verify
++    //                              the sort kernel actually wrote them.
++    // =====================================================================
++    if (std::getenv("T2_DIAG_PARTSIZES")) {
++        mx::array psCopy = partSizes;
++        mx::eval(psCopy);
++        const uint32_t* ps = psCopy.data<uint32_t>();
++        uint32_t maxActual = 0;
++        uint32_t overflows = 0;
++        uint32_t sum = 0;
++        for (ui32 p = 0; p < numActiveParts; ++p) {
++            if (ps[p] > maxActual) maxActual = ps[p];
++            if (ps[p] > maxPartDocs) overflows++;
++            sum += ps[p];
++        }
++        std::fprintf(stderr,
++            "[T2DIAG] numDocs=%u nParts=%u maxPartDocs=%u max(ps)=%u sum(ps)=%u overflows=%u/%u%s\n",
++            numDocs, numActiveParts, maxPartDocs, maxActual, sum,
++            overflows, numActiveParts,
++            (maxActual > maxPartDocs) ? "  <<<< OVERFLOW" : "");
++        if (numActiveParts <= 16u) {
++            std::fprintf(stderr, "[T2DIAG]   sizes:");
++            for (ui32 p = 0; p < numActiveParts; ++p) std::fprintf(stderr, " %u", ps[p]);
++            std::fprintf(stderr, "\n");
++        }
++    }
++
+ 
+     auto flatCompressed  = mx::reshape(compressedData, {-1});
+     auto foldCountsArr   = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlat.data()),

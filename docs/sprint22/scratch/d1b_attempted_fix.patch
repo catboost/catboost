@@ -1,0 +1,41 @@
+diff --git a/catboost/mlx/tests/bench_boosting.cpp b/catboost/mlx/tests/bench_boosting.cpp
+index 78dc5b567b..c77a8e5c8d 100644
+--- a/catboost/mlx/tests/bench_boosting.cpp
++++ b/catboost/mlx/tests/bench_boosting.cpp
+@@ -574,9 +574,18 @@ mx::array DispatchHistogramT2(
+         /*stream=*/mx::Device::gpu
+     );
+ 
++    // D1b fix (Option 1 fallback): explicit eval barrier between sort and accum.
++    // Option 2 (eval-at-return) was tried first and failed test (a): the catastrophic
++    // iters=2 divergence persisted. The root cause is that the blit-ordering ambiguity
++    // affects the sortedDocs/binOffsets buffers themselves, not just the histogram buffer.
++    // Even with the histogram fill+accum forced into one scheduling pass, the SORT's output
++    // buffers (sortedDocs, binOffsets) can be pool-reused from the prior iteration before the
++    // new sort's fill_gpu completes. Forcing mx::eval on sort outputs here ensures the sort
++    // kernel and its preceding fill blits fully commit before accum is even dispatched.
++    // Expected perf cost: ~2-3 ms/iter (one extra command-buffer round-trip). Spec: D1a §3.
++    mx::eval({sortOut[0], sortOut[1]});
++
+     // --- T2-accum dispatch ---
+-    // sortOut[0] and sortOut[1] are inputs → MLX graph ensures sort runs before accum.
+-    // No explicit mx::eval() between sort and accum needed.
+     auto accumOut = GetT2AccumKernel()(
+         /*inputs=*/{
+             sortOut[0], sortOut[1], flatCompressed, stats,
+@@ -594,6 +603,15 @@ mx::array DispatchHistogramT2(
+         /*stream=*/mx::Device::gpu
+     );
+ 
++    // D1b fix (Option 2): force immediate evaluation of the full sort+fill+accum graph
++    // before returning. This mirrors the D1-R2 reference (microbench_t2.cpp:722) and
++    // ensures the fill_gpu blit and T2-accum dispatch share a single Metal command-buffer
++    // scheduling pass, preventing the blit-ordering ambiguity that arises when the caller
++    // defers evaluation across other GPU work (ComputePartitionLayout, ComputeLeafSumsGPU,
++    // etc.). The caller's mx::eval(histogram) at bench_boosting.cpp:1214 becomes a no-op.
++    // Expected perf cost: zero (caller already evaluates immediately; we move the eval,
++    // not add one). Spec: docs/sprint22/d1a_t2_diagnostic.md §3 Option 2 (preferred fix).
++    mx::eval(accumOut[0]);
+     return accumOut[0];
+ }
+ 

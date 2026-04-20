@@ -443,12 +443,13 @@ mx::array DispatchHistogram(
 // MLX's metal_kernel() is idempotent — calling it with the same name+source returns the
 // same cached kernel, but we avoid re-registering for clarity.
 static mx::fast::CustomKernelFunction& GetT2SortKernel() {
+    // D2 — Option III: maxPartDocs removed; totalNumDocs used for slab sizing in kernel.
     static auto k = mx::fast::metal_kernel(
-        "t2_sort_s22d0",
+        "t2_sort_s22d2",
         /*input_names=*/{
             "compressedIndex", "docIndices", "partOffsets", "partSizes",
             "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
-            "numPartitions", "numStats", "numTGs", "maxPartDocs", "totalNumDocs"
+            "numPartitions", "numStats", "numTGs", "totalNumDocs"
         },
         /*output_names=*/{"sortedDocs", "binOffsets"},
         /*source=*/NCatboostMlx::KernelSources::kT2SortSource,
@@ -460,13 +461,15 @@ static mx::fast::CustomKernelFunction& GetT2SortKernel() {
 }
 
 static mx::fast::CustomKernelFunction& GetT2AccumKernel() {
+    // D2 — Option III: partOffsets added; maxPartDocs removed.
     static auto k = mx::fast::metal_kernel(
-        "t2_accum_s22d0",
+        "t2_accum_s22d2",
         /*input_names=*/{
             "sortedDocs", "binOffsets", "compressedIndex", "stats",
             "featureColumnIndices", "foldCountsFlat", "firstFoldIndicesFlat",
+            "partOffsets",
             "lineSize", "maxBlocksPerPart", "numGroups",
-            "numPartitions", "numStats", "numTGs", "maxPartDocs",
+            "numPartitions", "numStats", "numTGs",
             "totalBinFeatures", "totalNumDocs"
         },
         /*output_names=*/{"histogram"},
@@ -521,9 +524,11 @@ mx::array DispatchHistogramT2(
     }
 
     // numTGs = numGroups × numActiveParts × numStats
-    // maxPartDocs = ceil(numDocs / numActiveParts)  — pessimistic upper bound per TG slot
-    const ui32 numTGs      = numGroups * numActiveParts * numStats;
-    const ui32 maxPartDocs = (numDocs + numActiveParts - 1) / numActiveParts;
+    // D2 — Option III: maxPartDocs removed.
+    // sortedDocs buffer = numGroups × numStats × numDocs (slab-by-partOffsets layout).
+    // Overflow is impossible: sum(partSizes) == numDocs and slots are prefix-sum disjoint.
+    const ui32 numTGs = numGroups * numActiveParts * numStats;
+
 
     auto flatCompressed  = mx::reshape(compressedData, {-1});
     auto foldCountsArr   = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlat.data()),
@@ -534,13 +539,13 @@ mx::array DispatchHistogramT2(
                                      {static_cast<int>(numGroups)}, mx::uint32);
 
     // Scalar uniforms
+    // D2: maxPartDocsArr removed (Option III slab layout needs no maxPartDocs uniform).
     auto lineSizeArr      = mx::array(static_cast<uint32_t>(numUi32PerDoc),    mx::uint32);
     auto maxBlocksArr     = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
     auto numGroupsArr     = mx::array(static_cast<uint32_t>(numGroups),        mx::uint32);
     auto numPartsArr      = mx::array(static_cast<uint32_t>(numActiveParts),   mx::uint32);
     auto numStatsArr      = mx::array(static_cast<uint32_t>(numStats),         mx::uint32);
     auto numTGsArr        = mx::array(static_cast<uint32_t>(numTGs),           mx::uint32);
-    auto maxPartDocsArr   = mx::array(static_cast<uint32_t>(maxPartDocs),      mx::uint32);
     auto totalBinsArr     = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
     auto totalDocsArr     = mx::array(static_cast<uint32_t>(numDocs),          mx::uint32);
 
@@ -552,18 +557,21 @@ mx::array DispatchHistogramT2(
     );
     auto tg = std::make_tuple(256, 1, 1);
 
-    // Output shapes
-    mx::Shape sortedDocsShape = {static_cast<int>(numTGs * maxPartDocs)};
+    // Output shapes (D2 — Option III)
+    // sortedDocs: one slab per (groupIdx, statIdx) of size numDocs.
+    // Total = numGroups * numStats * numDocs  (5.2 MB at gate config).
+    mx::Shape sortedDocsShape = {static_cast<int>(numGroups * numStats * numDocs)};
     mx::Shape binOffsetsShape  = {static_cast<int>(numTGs * 129u)};
     mx::Shape histShape        = {static_cast<int>(numActiveParts * numStats * totalBinFeatures)};
 
-    // --- T2-sort dispatch ---
+    // --- T2-sort dispatch (D2 — Option III) ---
     // MLX lazy: sortOut is a lazy expression; not evaluated until consumed.
+    // maxPartDocs removed; totalNumDocs drives the slab size in the kernel.
     auto sortOut = GetT2SortKernel()(
         /*inputs=*/{
             flatCompressed, docIndices, partOffsets, partSizes,
             featureColsArr, lineSizeArr, maxBlocksArr, numGroupsArr,
-            numPartsArr, numStatsArr, numTGsArr, maxPartDocsArr, totalDocsArr
+            numPartsArr, numStatsArr, numTGsArr, totalDocsArr
         },
         /*output_shapes=*/{sortedDocsShape, binOffsetsShape},
         /*output_dtypes=*/{mx::uint32, mx::uint32},
@@ -574,15 +582,17 @@ mx::array DispatchHistogramT2(
         /*stream=*/mx::Device::gpu
     );
 
-    // --- T2-accum dispatch ---
+    // --- T2-accum dispatch (D2 — Option III) ---
     // sortOut[0] and sortOut[1] are inputs → MLX graph ensures sort runs before accum.
-    // No explicit mx::eval() between sort and accum needed.
+    // partOffsets added so accum can compute slotBase via Option III slab formula.
+    // maxPartDocs removed.
     auto accumOut = GetT2AccumKernel()(
         /*inputs=*/{
             sortOut[0], sortOut[1], flatCompressed, stats,
             featureColsArr, foldCountsArr, firstFoldArr,
+            partOffsets,
             lineSizeArr, maxBlocksArr, numGroupsArr,
-            numPartsArr, numStatsArr, numTGsArr, maxPartDocsArr,
+            numPartsArr, numStatsArr, numTGsArr,
             totalBinsArr, totalDocsArr
         },
         /*output_shapes=*/{histShape},

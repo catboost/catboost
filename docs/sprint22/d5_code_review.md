@@ -1,0 +1,282 @@
+# Sprint 22 D5 — Code Review Exit Gate (Gate #3 of 5)
+
+**Branch**: `mlx/sprint-22-t2-integration`
+**Date**: 2026-04-20
+**Task**: D5 — Senior-staff code review of T2 Option III implementation (scratch + dispatch integration).
+**Prior docs**: `d1c_t2_troubleshoot.md` (root cause + Option III spec), `d2_t2_fix_verified.md` (ml-engineer self-report), `d3_parity_gate.md` (QA PASS), `d4_perf_gate.md` (perf PASS)
+**Reviewer**: @code-reviewer (promotion-to-production review in everything but name)
+**Scope**: The atomic D1+D1a+D1b+D1c+D2 commit that will follow after all five gates
+**Status**: **PASS — 0 BLOCKERS, 7 NITS. Promotion readiness: YES_WITH_NITS.**
+
+---
+
+## §1 TL;DR
+
+All six required checks clear the blocker threshold. The Option III slab-by-partOffsets rewrite is correct, style-consistent with `kernel_sources.h`, and structurally clean. No code defects that would corrupt data, leak memory, race, or break T1. Seven nits enumerated — each deferrable to Sprint 23, none blocking the D1-bundle commit. Proceed to @security-auditor.
+
+---
+
+## §2 Files Reviewed
+
+| File | Lines | Diff | Role |
+|------|------:|:----:|------|
+| `catboost/mlx/kernels/kernel_sources_t2_scratch.h` | 231 | +43/-15 | T2-sort + T2-accum Metal kernel sources (scratch) |
+| `catboost/mlx/tests/bench_boosting.cpp` | 1820 | +55/-28 (whole file), ~20 relevant to D2 | Host-side dispatch (`DispatchHistogramT2`) under `#ifdef CATBOOST_MLX_HISTOGRAM_T2` |
+| `catboost/mlx/kernels/kernel_sources.h` (reference) | 973 | unchanged | Production kernel file — style/consistency baseline |
+
+Also cross-referenced: `CLAUDE.md`, `.claude/state/DECISIONS.md` (DEC-008, DEC-012, DEC-016, DEC-020), full dispatch-call sites at `bench_boosting.cpp:1207-1223` and `:1252-1267`.
+
+Full file reads performed (not just diffs) for kernel_sources_t2_scratch.h, plus full context reads of dispatch (bench_boosting.cpp:420-610 and :1180-1300) and comparison read of production T1 kernel (kernel_sources.h:20-275).
+
+---
+
+## §3 Required Check Findings
+
+Ordering follows the eight required checks in the task spec.
+
+### (1) Correctness vs D1c Option III spec
+
+**Verdict: PASS.**
+
+- T2-sort `slotBase`: `(groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx]` at `kernel_sources_t2_scratch.h:108`. Matches D1c §6.1 Option III formula exactly.
+- T2-accum `slotBase`: identical formula at `kernel_sources_t2_scratch.h:172`. Symmetric.
+- All prior `maxPartDocs * partIdx` sites rewritten:
+  - Pre-fix T2-sort line (`kernel_sources_t2_scratch.h:94-95` pre-diff): replaced.
+  - Pre-fix T2-accum line (`kernel_sources_t2_scratch.h:162-163` pre-diff): replaced.
+  - Host-side `maxPartDocs` formula at `bench_boosting.cpp:526` (pre-diff): removed.
+  - Host-side `maxPartDocsArr` scalar uniform (pre-diff): removed.
+  - `sortedDocsShape` host formula at `bench_boosting.cpp:563`: changed from `numTGs * maxPartDocs` to `numGroups * numStats * numDocs` — matches slab layout.
+- Host passes `partOffsets` to both kernels:
+  - T2-sort: passed pre-D2 (still present at line 572). OK.
+  - T2-accum: added at `bench_boosting.cpp:593` and in `input_names` at `:470`. OK.
+- Kernel registration names bumped `s22d0 → s22d2` at both kernels — defeats MLX's kernel cache on signature change. Correct.
+
+Parity evidence is airtight (18/18 ULP=0 in D2 and D3, 100/100 determinism, edge-case EC-1 through EC-5 all ULP=0). The algorithmic correctness of the slab formula is also trivially verifiable: `sum(partSizes) == totalNumDocs` and `partOffsets` is the prefix-sum of `partSizes`, therefore per-(groupIdx, statIdx) slots are non-overlapping and exactly sized.
+
+### (2) Buffer sizing — worst case in 18-matrix
+
+**Verdict: PASS.**
+
+Buffer size at (features=50, numStats=2, N=50000) = 13 × 2 × 50000 × 4 = **5.2 MB**. Matches D1-R2 empirical and D2 documentation.
+
+For the 18-config DEC-008 matrix, N_max = 50000, features = 50 fixed → numGroups = 13 fixed, numStats_max = 2 (MultiClass K=3 uses approxDim=2 → numStats=2). Worst case = **5.2 MB for every MultiClass config at N=50k**, less for smaller N / smaller numStats. All well below any practical buffer limit. No overflow in the uint32 index arithmetic at 50k × 13 × 2 = 1.3M < 2^31. Safe.
+
+Spot-check beyond the 18-matrix: at N=500k / features=200 / K=4 (approxDim=3 → numStats=3) the buffer would be 50 × 3 × 500000 × 4 = 300 MB. Still fine on unified memory, but anyone extending beyond DEC-008 scope should re-evaluate. **NOTE only — not a blocker for current sprint.**
+
+### (3) Style consistency vs `kernel_sources.h`
+
+**Verdict: PASS with minor style deviations (NIT-1, NIT-2 below).**
+
+Comparison dimensions checked:
+- Indentation: T2 uses 4-space, matches T1. OK.
+- Naming: PascalCase types, camelCase locals, ALL_CAPS constants in T1 header. T2 uses inline literals (`256u`, `128u`, `0x7Fu`) instead of named constants from `kHistHeader`. **NIT-1 below.**
+- `[[kernel]]` attribute: auto-generated by MLX metal_kernel(); neither T1 nor T2 declares it explicitly. Consistent.
+- Threadgroup memory: T1 uses `threadgroup float simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD];`. T2-sort uses `threadgroup atomic_uint tgCounts[128];` and `threadgroup uint tgOffsets[129];` — same declaration style. OK.
+- Atomic usage: T1 uses `device atomic_float*` cast with `atomic_fetch_add_explicit`. T2-accum uses identical pattern at `kernel_sources_t2_scratch.h:207-209, :220-222`. Consistent.
+- Comment blocks: T1 headers use `// ============================================================================` banners with detailed rationale. T2 matches this style — both sort and accum kernels have clear header comments with Option III rationale. Good.
+- `namespace NCatboostMlx { namespace KernelSources { ... }}` wrapping: identical to T1. OK.
+
+**NIT-1 / NIT-2 captured in §4.**
+
+### (4) Error handling / boundary correctness
+
+**Verdict: PASS, with one subtle consistency concern called out as NIT-3.**
+
+Edge-case analysis (enumerated in D3 EC-1 through EC-5, independently re-verified by analyzing the code path):
+- **depth=0 / single partition**: `partOffsets=[0]`, `partSizes=[numDocs]`, `numActiveParts=1`. slotBase = `(g*numStats + s) * numDocs + 0` — first slot of the slab. Sort writes `[0, numDocs)`, accum reads same range. Correct. Verified by D3 EC-1.
+- **Empty partition (partSize=0)**: T2-sort has `if (partSize == 0) return;` at line 65 — early-returns before writing binOffsets. T2-accum has NO explicit check, but reads `totalDocsInPart = binOffsets[offBase + 128u]`. The `init_value=0.0f` kernel argument initializes the binOffsets buffer — since uint32 and FP32 both share bit-pattern 0 for zero, `binOffsets[...] = 0`, so `totalDocsInPart = 0`, and both inner loops in T2-accum iterate zero times. **Behavior is correct but relies on float-to-uint zero-bit-aliasing in the MLX init_value path** — fragile if anyone ever changes init_value or MLX's init path semantics. Captured as **NIT-3**.
+- **Smallest-bin edges (bins=2..16)**: Pre-fix these "self-healed" by accident. Post-fix (D3 EC-5): all ULP=0 deterministic. The bin=0 "missing" convention is consistently skipped in both sort (bin 0 docs land in `sortedDocs[slotBase + 0..tgOffsets[1])` block but are never read) and accum (feature 0 loop starts at `b=1`, features 1-3 require `b >= 1u`). Correct.
+- **maxBlocksPerPart=1 assumption**: T2-sort at line 58 `if (blockInPart != 0) return;` assumes 1 block per partition. Host at `bench_boosting.cpp:1423` hardcodes `const ui32 maxBlocksPerPart = 1;`. Internally consistent. Any future code that tries to set maxBlocksPerPart > 1 would silently waste TGs (they'd all early-return). **NIT-4 below.**
+- **maxFoldCount > 127 guard**: host-side CB_ENSURE at `bench_boosting.cpp:519-524` mirrors the T1 guard. OK.
+- **Out-of-bounds reads/writes in the slab**: slotBase + i < slotBase + totalNumDocs by construction (i ∈ [0, partSize), partSize ≤ sum(partSizes) = totalNumDocs − partOffsets[partIdx]). No overflow. No access beyond slab end.
+
+### (5) `#ifdef CATBOOST_MLX_HISTOGRAM_T2` cleanliness
+
+**Verdict: PASS.**
+
+Ten `CATBOOST_MLX_HISTOGRAM_T2` guards in `bench_boosting.cpp`:
+- `:89-91` — file-level declaration comment
+- `:92-94`, `:1470-1475` — header include + FATAL guard for --t2 without macro
+- `:440-610` — `DispatchHistogramT2` entire function body
+- `:1209-1217`, `:1253-1261`, `:1580` — dispatch-site conditional and T2 config print
+- Function body at :610 properly closed with `#endif  // CATBOOST_MLX_HISTOGRAM_T2` comment
+
+When the macro is NOT defined:
+- `DispatchHistogramT2` does not exist → no symbol → no T1 impact.
+- Ternary `useT2 ? DispatchHistogramT2(...) : DispatchHistogram(...)` collapses to just `DispatchHistogram(...)` at the `#ifdef`'s `:` side — T1 path structurally untouched.
+- `useT2` flag is still parsed but the FATAL guard at `:1470-1475` kills the process if the flag is set without the macro. Correct.
+
+The T1 path produces byte-identical BENCH_FINAL_LOSS pre-D2 vs post-D2 per D3 §6 and D4 §9. **T1 compile path is clean; zero leakage risk.**
+
+### (6) Scratch→production readiness
+
+**Verdict: YES_WITH_NITS.**
+
+If promoting `kT2SortSource` and `kT2AccumSource` to `kernel_sources.h`, the kernels are structurally sound. No blockers to promotion. Nits NIT-1 through NIT-7 should be addressed in or alongside promotion for long-term maintainability, but none block the atomic D1-bundle commit.
+
+The dispatch-side code in `bench_boosting.cpp` is scratch-style (inline kernel registration via static locals, hardcoded grid geometry, raw `std::fprintf(stderr, ...); std::exit(1)` error handling). For a production-quality dispatch in `catboost/mlx/methods/histogram.cpp` a future pass would factor registration out, use CB_ENSURE-style errors, and expose a clean public API. **This is a NOTE, not a blocker** — the scratch discipline is explicit in the file header comment and compatible with the Sprint 22 closeout plan.
+
+### (7) Classification (blockers vs nits)
+
+0 BLOCKERS. 7 NITS. 3 NOTES.
+
+### (8) CLAUDE.md adherence
+
+**Verdict: PASS.**
+
+- Naming: T prefix on types (TCFeature, TPartitionLayout, TBestSplitProperties) — matches. camelCase for locals, PascalCase for types — matches. OK.
+- No premature optimization: T2 is a targeted Metal-kernel redesign backed by a quantified perf campaign; not speculative. OK.
+- No unnecessary comments: the comments in `kT2SortSource`/`kT2AccumSource` are load-bearing (explain the Option III layout rationale and slot-disjointness invariant). OK.
+- No Co-Authored-By trailer: none present in D2/D3/D4/D5 docs. Git author configured as AMATOK per CLAUDE.md. No trailer in any scratch file.
+- File organization: T2 scratch lives in `catboost/mlx/kernels/` alongside production kernel; matches the CLAUDE.md mapping. OK.
+
+---
+
+## §4 NIT Catalog (fix before commit OR defer to Sprint 23)
+
+### NIT-1 — Hardcoded `256u` / `128u` / `0x7Fu` literals in T2 kernels
+
+**File/lines**: `kernel_sources_t2_scratch.h:71, 75, 78, 88, 103, 110, 115, 122, 160, 187, 198, 214`
+
+**What's wrong**: T1 (`kHistOneByteSource`) references named constants from `kHistHeader` (`BLOCK_SIZE`, `SIMD_SIZE`, `NUM_SIMD_GROUPS`, `HIST_PER_SIMD`, `FEATURES_PER_PACK`, `BINS_PER_BYTE`). T2 inlines `256u`, `128u`, `0x7Fu`, `4u`. Since T2 uses the same `kHistHeader`, it could (and arguably should) use the same named constants.
+
+**What it should be**: Replace `256u` → `BLOCK_SIZE`, `128u` → `BINS_PER_BYTE / 2` (or a new `HIST_FOLDS_CAP`), `4u` (feature count) → `FEATURES_PER_PACK`.
+
+**Recommendation**: **Defer to Sprint 23** — consistency nit; no correctness risk. Fits naturally into the scratch→production promotion pass.
+
+### NIT-2 — Duplicate `offBase` arithmetic in T2-sort vs T2-accum
+
+**File/lines**: `kernel_sources_t2_scratch.h:120-121` and `:173-174`
+
+**What's wrong**: `offBase = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx) * 129u` is computed in both kernels with identical formula. Also the `129u` magic number (128 bins + 1 total-count entry) is inlined twice without a named constant.
+
+**What it should be**: Pull into a named constant (e.g. `BIN_OFFSETS_STRIDE = 129u`) in `kHistHeader` or a new `kT2Header`. Consider a shared inline helper comment clarifying that this is `128 + 1` (bins + total).
+
+**Recommendation**: **Defer to Sprint 23.** Stylistic; no functional risk. Accept in-place for the D1 bundle.
+
+### NIT-3 — T2-accum reliance on implicit uint32-zero init from `init_value=0.0f`
+
+**File/lines**: `kernel_sources_t2_scratch.h:180` (read); `bench_boosting.cpp:580, :602` (init_value argument)
+
+**What's wrong**: When `partSize == 0`, T2-sort returns at line 65 without writing `binOffsets[offBase..offBase+129]`. T2-accum then reads `totalDocsInPart = binOffsets[offBase + 128u]` — relies on MLX's `init_value=0.0f` being stored as FP32 0.0 (bit pattern `0x00000000`), which reinterpreted as uint32 is 0u. Behavior is correct today, but cross-dtype init aliasing is not a documented MLX contract. If MLX ever changes init semantics to dtype-aware (e.g. `init_value=0.0f` casts to float, uint32 buffers get left uninitialized), T2-accum would read garbage for empty partitions.
+
+**What it should be**: Either (a) add an explicit `if (partSize == 0) return;` at the start of T2-accum mirroring T2-sort, or (b) have T2-sort always write `binOffsets[offBase..offBase+129] = 0` before the `partSize == 0` early-return.
+
+**Fix suggestion (spec only)**: Option (a) is one line; copy the sort kernel's early-return pattern. Option (a) is preferred because it also skips the `offBase`/`slotBase` arithmetic and the 4-feature loop setup for empty partitions — small perf win.
+
+**Recommendation**: **Fix before commit** is defensible; **defer to Sprint 23** is also defensible because D3 EC-3 and EC-4 explicitly exercise zero-size partitions (`partSizes=[442, 0, 0, 49558]` at depth 2) and 18/18 pass ULP=0. The latent fragility is real but unexercised at the DEC-008 envelope. **My recommendation: defer to Sprint 23.** Document in TODOS.md as a hardening task.
+
+### NIT-4 — `maxBlocksPerPart > 1` silently wastes TGs in T2
+
+**File/lines**: `kernel_sources_t2_scratch.h:58, :164`
+
+**What's wrong**: Both T2-sort and T2-accum do `if (blockInPart != 0) return;` — silently discard any TG with blockInPart > 0. At `bench_boosting.cpp:1423` the host hardcodes `maxBlocksPerPart = 1`, so no TGs are wasted today. But if a future change sets maxBlocksPerPart > 1 (e.g. to parallelize T1 better for small partitions), T2 would dispatch `256 × maxBlocksPerPart × numGroups × numParts × numStats` threads but only use `1/maxBlocksPerPart` of them.
+
+**What it should be**: Either (a) add a static_assert/host-side CB_ENSURE that maxBlocksPerPart == 1 when T2 is active, or (b) document the constraint inside the kernel header comment explicitly.
+
+**Recommendation**: **Defer to Sprint 23** — not currently reachable. Add to TODOS.md as a documentation-plus-guard hardening task during scratch→production promotion.
+
+### NIT-5 — Unused uniform `numTGs` passed to both T2 kernels
+
+**File/lines**: `bench_boosting.cpp:452` (sort inputs), `:472` (accum inputs); `kernel_sources_t2_scratch.h:41, :151` (header docs claim it's an input)
+
+**What's wrong**: `numTGs` is declared as an input uniform for both T2-sort and T2-accum (as noted in the kernel header comments at lines 41 and 151), and passed via `numTGsArr` on the host at lines 573 and 595. The kernel bodies never reference `numTGs`. It's dead weight — wastes an argument buffer slot, adds to cache/dispatch overhead, clutters the signature.
+
+**What it should be**: Remove `numTGs` from both kernels' `input_names`, remove `numTGsArr` from the host-side uniforms, remove mention from the kernel-header comments.
+
+**Recommendation**: **Defer to Sprint 23.** The cost is trivial; cleanup belongs to the scratch→production promotion pass. If NIT-1/NIT-2 are also done then, bundle all three.
+
+### NIT-6 — Stray blank line in dispatch
+
+**File/line**: `bench_boosting.cpp:531`
+
+**What's wrong**: After removing `maxPartDocs` formula lines, two blank lines remain between `const ui32 numTGs = ...;` and the next `auto flatCompressed = ...`. The T1 `DispatchHistogram` function at `:320-419` is consistently single-blank-line between logical blocks. Trivial.
+
+**What it should be**: Remove one of the two blank lines.
+
+**Recommendation**: **Fix before commit** — 1 keystroke. Trivial cleanliness before the atomic commit.
+
+### NIT-7 — Feature 1-3 bin mask is 8-bit (`0xFFu`); sort uses 7-bit (`0x7Fu`)
+
+**File/lines**: `kernel_sources_t2_scratch.h:78` (sort, `& 0x7Fu`) vs `:218` (accum feat 1-3, `& 0xFFu`)
+
+**What's wrong**: T2-sort masks feature-0 bin with `0x7Fu` (7 bits, max 127), consistent with DEC-016 envelope MSB-as-valid-flag. T2-accum for features 1-3 masks with `0xFFu` (8 bits, max 255). The host-side guard at `bench_boosting.cpp:519-524` enforces `maxFoldCount <= 127` for all features, so the extra MSB for features 1-3 would never be set in practice, and the `b <= foldCount` check bounds writes correctly. But the inconsistency between sort (7-bit for feat 0) and accum (8-bit for feat 1-3) reads as sloppy. T1's `kHistOneByteSource:211` uses `& 0xFFu` for all 4 features, which is the reference.
+
+**What it should be**: Harmonize — either use `& 0x7Fu` for all features (exploiting DEC-016 envelope) or `& 0xFFu` for all features (matching T1). T1 pattern is the safer long-term choice.
+
+**Recommendation**: **Defer to Sprint 23.** No correctness impact given the host-side guard. Consistency fix during promotion.
+
+---
+
+## §5 NOTE catalog (no action required)
+
+### NOTE-1 — Buffer scaling beyond DEC-008 scope
+
+Slab-buffer size is `numGroups × numStats × numDocs × 4 bytes`. At N=500k / 200 features / K=4 MultiClass (numStats=3), the buffer grows to 300 MB per dispatch. Still fine on unified memory, but anyone extending CatBoost-MLX beyond the DEC-008 envelope should re-evaluate memory headroom. Not an issue for the 18-matrix or the gate config.
+
+### NOTE-2 — Dispatch-side code is scratch-style
+
+`DispatchHistogramT2` uses inline static-local kernel registration, raw `std::fprintf(stderr, ...); std::exit(1)`, and hardcoded grid/thread tuples. Production-quality would extract a `class THistogramKernel` that caches registration, factor uniforms into a builder, and use CB_ENSURE. Explicitly scoped as "scratch" in the file header comment and called out in d2 §10 for the Sprint 22 closeout plan. OK for commit; refactor during graduation to `catboost/mlx/methods/histogram.cpp`.
+
+### NOTE-3 — Scratch→production promotion path
+
+The `kernel_sources_t2_scratch.h` name / guard (`CATBOOST_MLX_HISTOGRAM_T2=1`) makes the current setup unambiguously scratch. At graduation time the scratch header will be merged into `kernel_sources.h`, the `#ifdef` guards removed, and `DispatchHistogramT2` promoted into `histogram.cpp`. The nits in §4 should be addressed during that pass.
+
+---
+
+## §6 Style Consistency Assessment
+
+| Dimension | T1 (kernel_sources.h) | T2 (kernel_sources_t2_scratch.h) | Consistent? |
+|-----------|----------------------|----------------------------------|:-----------:|
+| Indentation | 4-space | 4-space | YES |
+| Variable naming | camelCase locals, ALL_CAPS constants | camelCase locals, inline literals | PARTIAL (NIT-1) |
+| Kernel attribute | Auto-generated by MLX | Auto-generated by MLX | YES |
+| Threadgroup decl | `threadgroup float simdHist[...]` | `threadgroup atomic_uint tgCounts[...]`, `threadgroup uint tgOffsets[...]` | YES |
+| Atomic pattern | `device atomic_float* dst = ...; atomic_fetch_add_explicit(dst, val, memory_order_relaxed);` | Same | YES |
+| Banner comments | `// ============================...` block per kernel | Same | YES |
+| Namespace | `NCatboostMlx::KernelSources` | Same | YES |
+| CLAUDE.md compliance | Full | Full | YES |
+
+**Overall: consistent enough for production promotion.** NIT-1 (named constants) is the only real deviation and is cosmetic.
+
+---
+
+## §7 Scratch→Production Promotion Readiness
+
+**Verdict: YES_WITH_NITS.**
+
+The T2 kernels are structurally correct and algorithmically sound. Promotion to `kernel_sources.h` and `catboost/mlx/methods/histogram.cpp` is supported, contingent on:
+
+**Recommended before promotion (not before the D1 bundle commit):**
+- Address NIT-1 (named constants from `kHistHeader`).
+- Address NIT-2 (deduplicate `offBase` formula, name the `129` magic).
+- Address NIT-3 (explicit `partSize == 0` early-return in T2-accum).
+- Address NIT-5 (remove unused `numTGs` uniform).
+- Address NIT-7 (harmonize bin mask width).
+- Address NOTE-2 (factor dispatch for production-quality API).
+
+**Acceptable in-place for the current D1-bundle commit:**
+- NIT-4 (maxBlocksPerPart guard) — deferred; document constraint in TODOS.md.
+- NIT-6 (stray blank line) — trivial; fix before commit.
+
+**Explicitly not required before commit:**
+- NIT-1, 2, 3, 5, 7 — all defensible deferrals to Sprint 23.
+
+---
+
+## §8 Final Verdict
+
+**PASS.**
+
+- **Blocker count**: 0
+- **Nit count**: 7 (6 defer-to-Sprint-23, 1 trivial-fix-before-commit)
+- **Note count**: 3 (informational, no action)
+- **Promotion readiness**: YES_WITH_NITS
+- **CLAUDE.md adherence**: PASS
+- **Style consistency vs kernel_sources.h**: PASS with minor deviations (NIT-1, NIT-2)
+- **T1 path untouched**: PASS (verified by D3 §6 and D4 §9)
+- **D1c Option III spec compliance**: PASS (verified line-by-line in §3.1)
+
+**Proceed to @security-auditor for gate #4.** Per DEC-012 and standing orders: **no commit made**. Tree remains dirty.
+
+Recommended action on NIT-6 before the D1 bundle commit (1 keystroke): delete the extra blank line at `bench_boosting.cpp:531`. All other nits logged for Sprint 23 followup.

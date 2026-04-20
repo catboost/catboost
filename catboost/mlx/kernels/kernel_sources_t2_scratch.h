@@ -23,15 +23,22 @@ namespace NCatboostMlx {
 namespace KernelSources {
 
 // ============================================================================
-// T2-sort kernel source
+// T2-sort kernel source  (D2 — Option III: slab-by-partOffsets)
 //
 // Counting sort of each partition's docs by feature-0 (top-byte) bin.
 // Produces sortedDocs[] and binOffsets[] for T2-accum.
 //
+// sortedDocs layout (Option III):
+//   Slab per (groupIdx, statIdx) of size totalNumDocs.
+//   This TG's slot within the slab starts at partOffsets[partIdx].
+//   Total buffer: numGroups × numStats × totalNumDocs  (5.2 MB at gate config).
+//   No maxPartDocs uniform needed; slot overflow is impossible because
+//   sum(partSizes) == totalNumDocs and offsets are prefix sums of partSizes.
+//
 // Input names (must match exactly in metal_kernel() call):
 //   compressedIndex, docIndices, partOffsets, partSizes,
 //   featureColumnIndices, lineSize, maxBlocksPerPart, numGroups,
-//   numPartitions, numStats, numTGs, maxPartDocs, totalNumDocs
+//   numPartitions, numStats, numTGs, totalNumDocs
 //
 // Output names: sortedDocs, binOffsets
 // atomic_outputs = false (each TG writes to its own disjoint slot)
@@ -73,7 +80,7 @@ static const std::string kT2SortSource = R"metal(
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Step 2: exclusive prefix scan → tgOffsets (thread 0 only; partSize ≤ maxPartDocs)
+    // Step 2: exclusive prefix scan → tgOffsets (thread 0 only)
     threadgroup uint tgOffsets[129];
     if (tid == 0) {
         uint acc = 0;
@@ -85,15 +92,20 @@ static const std::string kT2SortSource = R"metal(
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Step 3: scatter docs into per-slot sortedDocs[] using per-bin atomic cursors
+    // Step 3: scatter docs into per-slot sortedDocs[] using per-bin atomic cursors.
+    //
+    // Option III slab layout: buffer = [numGroups × numStats × totalNumDocs].
+    // This TG's slot = slab[(groupIdx * numStats + statIdx)] starting at partOffsets[partIdx].
+    // Slot length = partSize = tgOffsets[128].  No maxPartDocs uniform needed.
+    // Since sum(partSizes) == totalNumDocs and slots are prefix-sum disjoint,
+    // writes CANNOT overflow into a neighbour's slot regardless of skew.
     threadgroup atomic_uint tgCursors[128];
     for (uint b = tid; b < 128u; b += 256u)
         atomic_store_explicit(&tgCursors[b], tgOffsets[b], memory_order_relaxed);
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Per-(groupIdx, partIdx, statIdx) slot in sortedDocs[]
-    const uint slotBase = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx)
-                        * maxPartDocs;
+    // slotBase: start of this TG's slot in sortedDocs[]
+    const uint slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx];
 
     for (uint i = tid; i < partSize; i += 256u) {
         const uint docIdx = docIndices[partOffset + i];
@@ -104,7 +116,7 @@ static const std::string kT2SortSource = R"metal(
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Write binOffsets for this TG
+    // Write binOffsets for this TG (layout unchanged: 129 entries per TG)
     const uint offBase = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx)
                        * 129u;
     for (uint b = tid; b <= 128u; b += 256u)
@@ -112,13 +124,17 @@ static const std::string kT2SortSource = R"metal(
 )metal";
 
 // ============================================================================
-// T2-accum kernel source
+// T2-accum kernel source  (D2 — Option III: slab-by-partOffsets)
 //
 // Reads sorted docs from T2-sort, accumulates histogram using the same output
 // layout as kHistOneByteSource (T1).
 //
 // Feature 0: pure bin-range scan (T2's core benefit — no simd_shuffle)
 // Features 1–3: per-doc stride over sorted docs, atomic_fetch_add per bin
+//
+// sortedDocs layout (Option III, matching T2-sort):
+//   slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx]
+//   Reads [slotBase .. slotBase + totalDocsInPart) — always within the slab.
 //
 // BIN CONVENTION matches T1 exactly:
 //   T1 output[histBase + firstFold + k] = sum for docs with raw bin = k + 1.
@@ -130,8 +146,9 @@ static const std::string kT2SortSource = R"metal(
 // Input names:
 //   sortedDocs, binOffsets, compressedIndex, stats,
 //   featureColumnIndices, foldCountsFlat, firstFoldIndicesFlat,
+//   partOffsets,
 //   lineSize, maxBlocksPerPart, numGroups,
-//   numPartitions, numStats, numTGs, maxPartDocs, totalBinFeatures, totalNumDocs
+//   numPartitions, numStats, numTGs, totalBinFeatures, totalNumDocs
 //
 // Output names: histogram
 // Grid/Thread: same as T2-sort
@@ -150,9 +167,9 @@ static const std::string kT2AccumSource = R"metal(
     const uint foldBase         = groupIdx * 4u;
     const uint tid              = thread_index_in_threadgroup;
 
-    // Locate this TG's sorted docs and bin offsets
-    const uint slotBase = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx)
-                        * maxPartDocs;
+    // Locate this TG's sorted docs (Option III slab layout) and bin offsets.
+    // slotBase indexes into the flat sortedDocs slab; binOffsets layout is unchanged.
+    const uint slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx];
     const uint offBase  = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx)
                         * 129u;
 
