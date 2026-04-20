@@ -3,7 +3,6 @@
 #include "blob.h"
 
 #include <library/cpp/yt/malloc/malloc.h>
-#include <library/cpp/yt/memory/poison.h>
 
 #include <library/cpp/yt/misc/port.h>
 
@@ -100,7 +99,6 @@ class TAllocationHolderBase
 public:
     ~TAllocationHolderBase()
     {
-        PoisonFreedMemory(GetRef());
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::FreeTagInstance(Cookie_);
         TRefCountedTrackerFacade::FreeSpace(Cookie_, Size_);
@@ -131,8 +129,6 @@ protected:
 #endif
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
-        } else {
-            PoisonUninitializedMemory(GetRef());
         }
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
