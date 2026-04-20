@@ -404,6 +404,19 @@ public:
         return Buckets[p.first].second;
     }
 
+    bool empty() const {
+        return Empty();
+    }
+
+    size_type size() const {
+        return Size();
+    }
+
+    template <class K>
+    bool contains(const K& key) const {
+        return Has(key);
+    }
+
 private:
     key_type EmptyMarker;
     size_type NumFilled;
