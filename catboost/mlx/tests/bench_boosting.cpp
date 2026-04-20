@@ -85,11 +85,9 @@
 #include <filesystem>
 #endif
 
-// Sprint 23 D0: T2 sort-by-bin histogram dispatch promoted to production.
-// DispatchHistogramT2 implementation lives in catboost/mlx/methods/histogram.cpp.
-// It is declared below (forward declaration) to avoid including histogram.h,
-// which has CatBoost-type dependencies incompatible with this standalone bench.
-// The #ifdef CATBOOST_MLX_HISTOGRAM_T2 call-site guards are removed in Commit 3.
+// Sprint 23 D0 (Commit 3): T2 is the default production histogram path.
+// CATBOOST_MLX_HISTOGRAM_T2 compile flag removed. DispatchHistogramT2 is called
+// unconditionally (implemented in histogram_t2_impl.cpp, linked alongside bench).
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -98,9 +96,9 @@ using ui64 = uint64_t;
 namespace NCatboostMlx {
 namespace KernelSources {}  // from kernel_sources.h include above
 
-// Forward declaration of the production T2 dispatch (implemented in histogram.cpp).
+// Forward declaration of the production T2 dispatch (implemented in histogram_t2_impl.cpp).
 // Takes pre-built fold-metadata arrays; fold construction is done by the
-// bench-local BuildFoldArraysForT2() helper below.
+// bench-local DispatchHistogramT2Bench() helper below.
 mx::array DispatchHistogramT2(
     const mx::array& compressedData,
     const mx::array& stats,
@@ -162,8 +160,8 @@ struct TBenchConfig {
     ui32 NumOneHot        = 0;     // first N features treated as one-hot encoded
     bool StageProfile     = false; // --stage-profile: emit per-iter stage JSON
     bool PerKernelProfile = false; // --per-kernel-profile: per-dispatch timing (upper bounds)
-    bool UseT2            = false; // --t2: Sprint 22 D0 probe — use T2 sort-by-bin histogram
-                                   //       Requires -DCATBOOST_MLX_HISTOGRAM_T2=1 at compile time
+    // Sprint 23 D0: T2 sort-by-bin is the default production histogram path.
+    // --t2 flag and CATBOOST_MLX_HISTOGRAM_T2 compile guard removed.
 };
 
 TBenchConfig ParseArgs(int argc, char** argv) {
@@ -181,15 +179,13 @@ TBenchConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--onehot")              == 0 && i+1 < argc) cfg.NumOneHot      = std::atoi(argv[++i]);
         else if (strcmp(argv[i], "--stage-profile")       == 0) cfg.StageProfile      = true;
         else if (strcmp(argv[i], "--per-kernel-profile")  == 0) cfg.PerKernelProfile  = true;
-        else if (strcmp(argv[i], "--t2")                  == 0) cfg.UseT2             = true;
         else {
             fprintf(stderr, "Unknown argument: %s\n", argv[i]);
             fprintf(stderr,
                 "Usage: bench_boosting [--rows N] [--features N] [--classes N]\n"
                 "                      [--depth D] [--iters N] [--bins B]\n"
                 "                      [--lr F] [--l2 F] [--seed N] [--onehot N]\n"
-                "                      [--stage-profile] [--per-kernel-profile]\n"
-                "                      [--t2]  (Sprint 22 D0 probe; needs -DCATBOOST_MLX_HISTOGRAM_T2=1)\n");
+                "                      [--stage-profile] [--per-kernel-profile]\n");
             exit(1);
         }
     }
@@ -441,20 +437,15 @@ mx::array DispatchHistogram(
 }
 
 // ============================================================================
-// Sprint 23 D0 — bench-local T2 call helper (Commit 2).
+// Sprint 23 D0 (Commit 3) — bench-local T2 dispatch wrapper.
 //
 // Bridges the bench's local TCFeature vector to the production DispatchHistogramT2
-// signature (which takes pre-built mx::array fold metadata).  This wrapper replaces
-// the inline scratch implementation removed from bench_boosting.cpp in Commit 2.
-//
-// The #ifdef CATBOOST_MLX_HISTOGRAM_T2 guards at the call sites remain here;
-// they are removed globally in Commit 3 when the flag is retired.
+// signature (pre-built mx::array fold metadata). T2 is now the unconditional
+// default histogram path; CATBOOST_MLX_HISTOGRAM_T2 flag fully retired.
 // ============================================================================
 
-#ifdef CATBOOST_MLX_HISTOGRAM_T2
-
-// Thin wrapper: builds fold arrays from features, then calls the production dispatch.
-static mx::array CallDispatchHistogramT2(
+// Builds fold arrays from TCFeature vector, then calls production DispatchHistogramT2.
+static mx::array DispatchHistogramT2Bench(
     const mx::array& compressedData,
     const mx::array& stats,
     const mx::array& docIndices,
@@ -488,9 +479,10 @@ static mx::array CallDispatchHistogramT2(
         }
     }
 
+    // DEC-016 T1 envelope guard (mirrors the CB_ENSURE in production histogram.cpp).
     if (maxFoldCount > 127u) {
         std::fprintf(stderr,
-            "FATAL: CallDispatchHistogramT2: max fold count %u exceeds DEC-016 envelope (<=127).\n",
+            "FATAL: DispatchHistogramT2Bench: max fold count %u exceeds DEC-016 envelope (<=127).\n",
             maxFoldCount);
         std::exit(1);
     }
@@ -514,8 +506,6 @@ static mx::array CallDispatchHistogramT2(
         histShape
     );
 }
-
-#endif  // CATBOOST_MLX_HISTOGRAM_T2
 
 // ============================================================================
 // Suffix-sum + split scoring (mirrors score_calcer.cpp FindBestSplitGPU)
@@ -992,8 +982,7 @@ long long RunIteration(
     float learningRate,
     ui32 maxBlocksPerPart,
     TBenchStageRecord*   stageOut = nullptr,  // optional per-iter stage record
-    TPerKernelTimings*   pkOut    = nullptr,  // optional per-kernel timing record
-    bool                 useT2   = false      // Sprint 22 D0: use T2 sort-by-bin histogram
+    TPerKernelTimings*   pkOut    = nullptr   // optional per-kernel timing record
 ) {
     auto wallStart = std::chrono::steady_clock::now();
 
@@ -1110,25 +1099,14 @@ long long RunIteration(
             pk_treeSupportAccum += ms_d(layout_t1 - layout_t0).count()
                                  + ms_d(leafscr_t1 - leafscr_t0).count();
 
-            // Dispatch histogram (using the eval'd layout from above)
-            // Sprint 22 D0: useT2=true routes to DispatchHistogramT2 (scratch).
+            // Dispatch histogram — T2 sort-by-bin is the default production path.
             auto hist_t0 = hrc::now();
-            mx::array histogram =
-#ifdef CATBOOST_MLX_HISTOGRAM_T2
-                useT2
-                ? CallDispatchHistogramT2(
-                    compressedData, statArr,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    features, numUi32PerDoc, numActiveParts,
-                    totalBinFeatures, numStats, numDocs, maxBlocksPerPart)
-                :
-#endif
-                DispatchHistogram(
-                    compressedData, statArr,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    features, numUi32PerDoc, numActiveParts,
-                    totalBinFeatures, numStats, numDocs, maxBlocksPerPart
-                );
+            mx::array histogram = DispatchHistogramT2Bench(
+                compressedData, statArr,
+                layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                features, numUi32PerDoc, numActiveParts,
+                totalBinFeatures, numStats, numDocs, maxBlocksPerPart
+            );
             mx::eval(histogram);
             auto hist_t1 = hrc::now();
             pk_histAccum += ms_d(hist_t1 - hist_t0).count();
@@ -1155,24 +1133,13 @@ long long RunIteration(
             // Normal (non-profiling) path — identical to original code
             auto layout = ComputePartitionLayout(partitions, numDocs, numActiveParts);
 
-            // Dispatch histogram
-            // Sprint 22 D0: useT2=true routes to DispatchHistogramT2 (scratch).
-            mx::array histogram =
-#ifdef CATBOOST_MLX_HISTOGRAM_T2
-                useT2
-                ? CallDispatchHistogramT2(
-                    compressedData, statArr,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    features, numUi32PerDoc, numActiveParts,
-                    totalBinFeatures, numStats, numDocs, maxBlocksPerPart)
-                :
-#endif
-                DispatchHistogram(
-                    compressedData, statArr,
-                    layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-                    features, numUi32PerDoc, numActiveParts,
-                    totalBinFeatures, numStats, numDocs, maxBlocksPerPart
-                );
+            // Dispatch histogram — T2 sort-by-bin is the default production path.
+            mx::array histogram = DispatchHistogramT2Bench(
+                compressedData, statArr,
+                layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                features, numUi32PerDoc, numActiveParts,
+                totalBinFeatures, numStats, numDocs, maxBlocksPerPart
+            );
             mx::eval(histogram);
 
             // Compute partition totals (grad sum, hess sum) per partition
@@ -1365,28 +1332,13 @@ int main(int argc, char** argv) {
     }
 
     // =========================================================================
-    // Sprint 22 D0: dual-run mode
-    //
-    // When cfg.UseT2=true AND compiled with -DCATBOOST_MLX_HISTOGRAM_T2=1:
-    //   Run T1 first (useT2=false) then T2 (useT2=true) in the same process.
-    //   This cancels Metal scheduler drift (no binary re-invocation).
-    //   T1 run resets cursor/partitions; T2 run resets again from the same state.
-    //
-    // When cfg.UseT2=false (or macro not defined): single T1 run, original behavior.
+    // Sprint 23 D0 (Commit 3): single production run — T2 is the default path.
+    // Dual-run mode and CATBOOST_MLX_HISTOGRAM_T2 flag retired.
     // =========================================================================
-
-#ifndef CATBOOST_MLX_HISTOGRAM_T2
-    if (cfg.UseT2) {
-        fprintf(stderr,
-            "\n[FATAL] --t2 flag set but binary was NOT compiled with -DCATBOOST_MLX_HISTOGRAM_T2=1.\n"
-            "  Rebuild with: clang++ ... -DCATBOOST_MLX_HISTOGRAM_T2=1 ...\n");
-        return 1;
-    }
-#endif
 
     // Helper lambda to run one full pass of the boosting loop.
     // Resets cursor and partitions before the run.
-    auto runBench = [&](bool useT2Variant, TPerKernelTimings& timingsOut) -> float {
+    auto runBench = [&](TPerKernelTimings& timingsOut) -> float {
         // Reset model state
         if (approxDim == 1) {
             cursor = mx::zeros({static_cast<int>(cfg.NumRows)}, mx::float32);
@@ -1425,25 +1377,21 @@ int main(int argc, char** argv) {
                 cfg.MaxDepth, cfg.L2RegLambda, cfg.LearningRate,
                 maxBlocksPerPart,
                 doStageProfile ? &stageRec : nullptr,
-                doPerKernelProfile ? &timingsOut : nullptr,
-                useT2Variant
+                doPerKernelProfile ? &timingsOut : nullptr
             );
             timesUs.push_back(us);
             if (doStageProfile) stageRecords.push_back(stageRec);
 
             if (iter == 0 || (iter + 1) % 10 == 0 || iter == cfg.NumIters - 1) {
                 float loss = ComputeLoss(cursor, targets, cfg.NumClasses);
-                printf("  [%s] iter %4u  time=%7.1f ms  loss=%.6f\n",
-                       useT2Variant ? "T2" : "T1", iter, us / 1000.0f, loss);
+                printf("  iter %4u  time=%7.1f ms  loss=%.6f\n", iter, us / 1000.0f, loss);
             }
         }
 
         float finalLoss = ComputeLoss(cursor, targets, cfg.NumClasses);
 
-        // Print summary for this variant
-        const char* variantLabel = useT2Variant ? "T2 sort-by-bin" : "T1 (production)";
         printf("\n================================================================\n");
-        printf("Timing Summary — %s\n", variantLabel);
+        printf("Timing Summary\n");
         printf("----------------------------------------------------------------\n");
 
         long long iter0Us = timesUs[0];
@@ -1465,136 +1413,20 @@ int main(int argc, char** argv) {
             printf("  warm max:             %8.1f ms\n", warmMax / 1000.0f);
         }
         printf("\n  Final loss: %.8f\n", finalLoss);
-        if (useT2Variant) {
-            printf("  BENCH_FINAL_LOSS_T2=%.8f\n", finalLoss);
-        } else {
-            printf("  BENCH_FINAL_LOSS=%.8f\n", finalLoss);
-        }
+        printf("  BENCH_FINAL_LOSS=%.8f\n", finalLoss);
         printf("================================================================\n");
 
-        // Store timings for per-kernel report (used after both runs finish)
+        // Store timings for per-kernel report
         iterTimesUs = timesUs;
         return finalLoss;
     };
 
-    // --- Run T1 (baseline, always first) ---
-    printf("\n--- Running T1 (production histogram, baseline) ---\n");
-    float finalLossT1 = runBench(false, pkTimings);
+    // --- Single production run (T2 default) ---
+    printf("\n--- Running (T2 sort-by-bin, production default) ---\n");
+    float finalLossT1 = runBench(pkTimings);
 
-    // --- Run T2 (Sprint 22 D0 probe, only when --t2 is set) ---
-    float finalLossT2 = finalLossT1;
-    TPerKernelTimings pkTimingsT2;
-    if (cfg.UseT2) {
-#ifdef CATBOOST_MLX_HISTOGRAM_T2
-        printf("\n--- Running T2 (sort-by-bin probe) ---\n");
-        finalLossT2 = runBench(true, pkTimingsT2);
-#endif
-    }
-
-    // Final per-kernel comparison (T2 D0 verdict)
-    float finalLoss = finalLossT1;  // keep for compatibility with reporting below
-
-    // Sprint 22 D0 verdict (only when T2 was also run with --per-kernel-profile)
-    if (cfg.UseT2 && doPerKernelProfile &&
-        !pkTimings.HistogramMs.empty() && !pkTimingsT2.HistogramMs.empty()) {
-
-        // pkTimings = T1 run timings (set last by runBench(false,...) since T1 ran first)
-        // pkTimingsT2 = T2 run timings
-        // Compute 10%-trimmed means of histogram_ms for each
-        auto trimMean = [](const std::vector<double>& v) -> double {
-            const size_t N = v.size();
-            if (N == 0) return 0.0;
-            std::vector<double> warm;
-            for (size_t i = 1; i < N; ++i) warm.push_back(v[i]);
-            if (warm.empty()) return v[0];
-            std::sort(warm.begin(), warm.end());
-            size_t lo = 0, hi = warm.size();
-            if (warm.size() >= 10) {
-                size_t trim = warm.size() / 10;
-                lo = trim; hi = warm.size() - trim;
-            }
-            double sum = 0.0;
-            for (size_t i = lo; i < hi; ++i) sum += warm[i];
-            return sum / (hi - lo);
-        };
-
-        double t1HistMs = trimMean(pkTimings.HistogramMs);
-        double t2HistMs = trimMean(pkTimingsT2.HistogramMs);
-        double t1IterMs = trimMean(pkTimings.IterTotalMs);
-        double t2IterMs = trimMean(pkTimingsT2.IterTotalMs);
-        double ratio    = (t1HistMs > 0.0) ? t2HistMs / t1HistMs : 999.0;
-
-        // 2σ propagation: stdev of ratio = ratio × sqrt((σT2/μT2)² + (σT1/μT1)²)
-        auto trimStdev = [](const std::vector<double>& v, double mean) -> double {
-            const size_t N = v.size();
-            std::vector<double> warm;
-            for (size_t i = 1; i < N; ++i) warm.push_back(v[i]);
-            if (warm.empty()) return 0.0;
-            std::sort(warm.begin(), warm.end());
-            size_t lo = 0, hi = warm.size();
-            if (warm.size() >= 10) {
-                size_t trim = warm.size() / 10;
-                lo = trim; hi = warm.size() - trim;
-            }
-            double var = 0.0;
-            for (size_t i = lo; i < hi; ++i) {
-                double d = warm[i] - mean;
-                var += d * d;
-            }
-            size_t trimN = hi - lo;
-            return trimN > 1 ? std::sqrt(var / (trimN - 1)) : 0.0;
-        };
-        double t1HistSd = trimStdev(pkTimings.HistogramMs, t1HistMs);
-        double t2HistSd = trimStdev(pkTimingsT2.HistogramMs, t2HistMs);
-        double cv1 = (t1HistMs > 0.0) ? t1HistSd / t1HistMs : 0.0;
-        double cv2 = (t2HistMs > 0.0) ? t2HistSd / t2HistMs : 0.0;
-        double ratioSigma = ratio * std::sqrt(cv1 * cv1 + cv2 * cv2);
-        double ratio2sigma = 2.0 * ratioSigma;
-
-        // Loss sanity check
-        float lossDelta = std::abs(finalLossT2 - finalLossT1);
-        float lossRelDelta = (finalLossT1 > 0.0f) ? lossDelta / finalLossT1 : 0.0f;
-        bool lossSane = (lossRelDelta < 0.10f);
-
-        // Verdict
-        const char* verdict;
-        const char* band;
-        if (ratio <= 0.45) {
-            verdict = "PASS — optimistic band";
-            band    = "proceed to D1 parity";
-        } else if (ratio <= 0.60) {
-            verdict = "PASS — conservative band";
-            band    = "proceed to D1 parity; R8 projection drops to 1.37–1.51x midpoint";
-        } else {
-            verdict = "FAIL — T2 FALSIFIED at production shape";
-            band    = "Sprint 22 pivots to tree-search restructure";
-        }
-
-        printf("\n");
-        printf("╔══════════════════════════════════════════════════════════════╗\n");
-        printf("║         Sprint 22 D0 — T2 Production Shape Verdict          ║\n");
-        printf("╚══════════════════════════════════════════════════════════════╝\n");
-        printf("  T1 histogram_ms   : %.3f ms  (stdev %.3f ms)\n", t1HistMs, t1HistSd);
-        printf("  T2 histogram_ms   : %.3f ms  (stdev %.3f ms)\n", t2HistMs, t2HistSd);
-        printf("  T2/T1 ratio       : %.4f x  (±%.4f x, 2σ)\n", ratio, ratio2sigma);
-        printf("  Kill-switch bands : ≤0.45 PASS-opt | 0.45–0.60 PASS-cons | >0.60 FAIL\n");
-        printf("  VERDICT           : %s\n", verdict);
-        printf("  Action            : %s\n", band);
-        printf("\n");
-        printf("  T1 iter_total_ms  : %.3f ms\n", t1IterMs);
-        printf("  T2 iter_total_ms  : %.3f ms\n", t2IterMs);
-        printf("  T1 BENCH_FINAL_LOSS = %.8f\n", finalLossT1);
-        printf("  T2 BENCH_FINAL_LOSS = %.8f\n", finalLossT2);
-        printf("  Loss sanity       : |ΔL/L1| = %.4f%%  %s\n",
-               lossRelDelta * 100.0f, lossSane ? "OK (<10%)" : "WARN (>10% — T2 correctness suspect)");
-        if (!lossSane) {
-            printf("  [WARN] T2 final loss differs >10%% from T1. Timing measurement may be unreliable.\n");
-            printf("         Investigate T2 histogram correctness before trusting the ratio.\n");
-        }
-        printf("\n  S22-D0-RATIO=%.6f\n", ratio);
-        printf("  S22-D0-VERDICT=%s\n", ratio <= 0.60 ? "PASS" : "FAIL");
-        printf("================================================================\n");
-    }
+    // Alias for compatibility with per-kernel report below
+    float finalLoss = finalLossT1;
 
     // Per-kernel profile report
     if (doPerKernelProfile && !pkTimings.IterTotalMs.empty()) {

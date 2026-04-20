@@ -997,6 +997,7 @@ static const std::string kTreeApplyDepthwiseSource = R"metal(
 //   compressedIndex, docIndices, partOffsets, partSizes,
 //   featureColumnIndices, lineSize, maxBlocksPerPart, numGroups,
 //   numPartitions, numStats, totalNumDocs
+//   (numTGs removed in Sprint 23 D0 Commit 3 — NIT-5, was never read by the kernel body)
 //
 // Output names: sortedDocs, binOffsets
 // atomic_outputs = false (each TG writes to its own disjoint slot)
@@ -1116,6 +1117,7 @@ static const std::string kT2SortSource = R"metal(
 //   partOffsets,
 //   lineSize, maxBlocksPerPart, numGroups,
 //   numPartitions, numStats, totalBinFeatures, totalNumDocs
+//   (numTGs removed in Sprint 23 D0 Commit 3 — NIT-5, was never read by the kernel body)
 //
 // Output names: histogram
 // Grid/Thread: same as kT2SortSource

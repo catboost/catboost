@@ -23,22 +23,20 @@ namespace mx = mlx::core;
     // =========================================================================
     // T2 kernel registration — module-scope statics, initialized once per process.
     //
-    // Kernel names use the s22d2 suffix (same as S22 scratch) to avoid
-    // invalidating the MLX kernel cache on binaries that ran the scratch version.
-    //
-    // NIT-5: numTGs is passed as an input but never referenced by the kernel body.
-    //   Retained in Commit 2 to match the s22d2 kernel signature.
-    //   Removed in Commit 3 together with the CATBOOST_MLX_HISTOGRAM_T2 flag.
+    // Kernel names bumped to s23d0 (Commit 3) after numTGs removal (NIT-5).
+    // The name change invalidates MLX's kernel cache vs the s22d2 registration,
+    // ensuring the updated input list is used (not a stale compiled version).
     // =========================================================================
 
     namespace {
         mx::fast::CustomKernelFunction& GetT2SortKernel() {
+            // NIT-5 applied: numTGs removed (it was never read by the kernel body).
             static auto k = mx::fast::metal_kernel(
-                "t2_sort_s22d2",
+                "t2_sort_s23d0",
                 /*input_names=*/{
                     "compressedIndex", "docIndices", "partOffsets", "partSizes",
                     "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
-                    "numPartitions", "numStats", "numTGs", "totalNumDocs"
+                    "numPartitions", "numStats", "totalNumDocs"
                 },
                 /*output_names=*/{"sortedDocs", "binOffsets"},
                 /*source=*/KernelSources::kT2SortSource,
@@ -50,14 +48,15 @@ namespace mx = mlx::core;
         }
 
         mx::fast::CustomKernelFunction& GetT2AccumKernel() {
+            // NIT-5 applied: numTGs removed (it was never read by the kernel body).
             static auto k = mx::fast::metal_kernel(
-                "t2_accum_s22d2",
+                "t2_accum_s23d0",
                 /*input_names=*/{
                     "sortedDocs", "binOffsets", "compressedIndex", "stats",
                     "featureColumnIndices", "foldCountsFlat", "firstFoldIndicesFlat",
                     "partOffsets",
                     "lineSize", "maxBlocksPerPart", "numGroups",
-                    "numPartitions", "numStats", "numTGs",  // NIT-5: unused; removed in Commit 3
+                    "numPartitions", "numStats",
                     "totalBinFeatures", "totalNumDocs"
                 },
                 /*output_names=*/{"histogram"},
@@ -106,18 +105,17 @@ namespace mx = mlx::core;
         const mx::Shape& histShape
     ) {
         // Scalar uniforms — 0-dim arrays become `const constant T&` in Metal signature.
+        // NIT-5: numTGs removed (was never read by the kernel body; s23d0 kernel registration
+        //   does not include it in input_names).
         auto flatCompressed = mx::reshape(compressedData, {-1});
         auto lineSizeArr    = mx::array(static_cast<uint32_t>(lineSize),         mx::uint32);
         auto maxBlocksArr   = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
         auto numGroupsArr   = mx::array(static_cast<uint32_t>(numGroups),        mx::uint32);
         auto numPartsArr    = mx::array(static_cast<uint32_t>(numPartitions),    mx::uint32);
         auto numStatsArr    = mx::array(static_cast<uint32_t>(numStats),         mx::uint32);
-        // NIT-5: numTGs is dead weight (never read by the kernel body).
-        //   Retained in Commit 2 to match the s22d2 kernel signature; removed in Commit 3.
-        const ui32 numTGsVal = numGroups * numPartitions * numStats;
-        auto numTGsArr      = mx::array(static_cast<uint32_t>(numTGsVal),        mx::uint32);
         auto totalBinsArr   = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
         auto totalDocsArr   = mx::array(static_cast<uint32_t>(totalNumDocs),     mx::uint32);
+        const ui32 numTGsVal = numGroups * numPartitions * numStats;  // used for buffer size only
 
         // Grid: same geometry as DispatchHistogramBatched (T1).
         // T2 maxBlocksPerPart is always 1, so X = 256 * numGroups.
@@ -139,7 +137,7 @@ namespace mx = mlx::core;
             /*inputs=*/{
                 flatCompressed, docIndices, partOffsets, partSizes,
                 featureColIndices, lineSizeArr, maxBlocksArr, numGroupsArr,
-                numPartsArr, numStatsArr, numTGsArr, totalDocsArr
+                numPartsArr, numStatsArr, totalDocsArr
             },
             /*output_shapes=*/{sortedDocsShape, binOffsetsShape},
             /*output_dtypes=*/{mx::uint32, mx::uint32},
@@ -158,7 +156,7 @@ namespace mx = mlx::core;
                 featureColIndices, foldCountsFlat, firstFoldFlat,
                 partOffsets,
                 lineSizeArr, maxBlocksArr, numGroupsArr,
-                numPartsArr, numStatsArr, numTGsArr,
+                numPartsArr, numStatsArr,
                 totalBinsArr, totalDocsArr
             },
             /*output_shapes=*/{histShape},
