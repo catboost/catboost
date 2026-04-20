@@ -206,6 +206,10 @@ namespace NCatboostMlx {
         }
     }  // anonymous namespace
 
+    // DispatchHistogramT2 implementation is in histogram_t2_impl.cpp (minimal deps).
+    // The CB_ENSURE for maxBlocksPerPart == 1 (NIT-4) is enforced at the
+    // ComputeHistogramsImpl call site below before forwarding to DispatchHistogramT2.
+
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures) {
         // Return a lazy zero array — no EvalNow needed.
         // mx::zeros() produces a trivially lazy expression; any downstream consumer

@@ -85,21 +85,41 @@
 #include <filesystem>
 #endif
 
-// Sprint 22 D0 scratch: T2 sort-by-bin integration probe.
-// Compiled in ONLY when -DCATBOOST_MLX_HISTOGRAM_T2=1 is passed at build time.
-// Production code path (DispatchHistogram / kHistOneByteSource) is unchanged
-// and is always the default when UseT2=false.
-#ifdef CATBOOST_MLX_HISTOGRAM_T2
-#include <catboost/mlx/kernels/kernel_sources_t2_scratch.h>
-#endif
+// Sprint 23 D0: T2 sort-by-bin histogram dispatch promoted to production.
+// DispatchHistogramT2 implementation lives in catboost/mlx/methods/histogram.cpp.
+// It is declared below (forward declaration) to avoid including histogram.h,
+// which has CatBoost-type dependencies incompatible with this standalone bench.
+// The #ifdef CATBOOST_MLX_HISTOGRAM_T2 call-site guards are removed in Commit 3.
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 using ui64 = uint64_t;
 
 namespace NCatboostMlx {
-namespace KernelSources {}  // sourced via #include above
-}
+namespace KernelSources {}  // from kernel_sources.h include above
+
+// Forward declaration of the production T2 dispatch (implemented in histogram.cpp).
+// Takes pre-built fold-metadata arrays; fold construction is done by the
+// bench-local BuildFoldArraysForT2() helper below.
+mx::array DispatchHistogramT2(
+    const mx::array& compressedData,
+    const mx::array& stats,
+    const mx::array& docIndices,
+    const mx::array& partOffsets,
+    const mx::array& partSizes,
+    const mx::array& featureColIndices,
+    const mx::array& foldCountsFlat,
+    const mx::array& firstFoldFlat,
+    ui32 lineSize,
+    ui32 maxBlocksPerPart,
+    ui32 numGroups,
+    ui32 numPartitions,
+    ui32 numStats,
+    ui32 totalBinFeatures,
+    ui32 totalNumDocs,
+    const mx::Shape& histShape
+);
+}  // namespace NCatboostMlx
 
 using namespace NCatboostMlx;
 
@@ -421,67 +441,20 @@ mx::array DispatchHistogram(
 }
 
 // ============================================================================
-// Sprint 22 D0 scratch: T2 sort-by-bin histogram dispatch
+// Sprint 23 D0 — bench-local T2 call helper (Commit 2).
 //
-// Compiled in ONLY when -DCATBOOST_MLX_HISTOGRAM_T2=1.
-// Replaces DispatchHistogram in RunIteration when cfg.UseT2=true.
-// Does NOT modify DispatchHistogram or any production source.
+// Bridges the bench's local TCFeature vector to the production DispatchHistogramT2
+// signature (which takes pre-built mx::array fold metadata).  This wrapper replaces
+// the inline scratch implementation removed from bench_boosting.cpp in Commit 2.
 //
-// Two-kernel dispatch: T2-sort (counting sort by feature-0 bin) →
-// T2-accum (bin-range scan for feat-0 + atomic scatter for feats 1-3).
-//
-// Grid geometry is identical to T1: (256*maxBlocksPerPart*numGroups, numParts, numStats).
-// New buffers:
-//   sortedDocs : [numGroups × numParts × numStats × maxPartDocs] uint32
-//   binOffsets : [numGroups × numParts × numStats × 129]          uint32
-// Both are MLX temporaries — allocated by the lazy graph, released after eval.
+// The #ifdef CATBOOST_MLX_HISTOGRAM_T2 guards at the call sites remain here;
+// they are removed globally in Commit 3 when the flag is retired.
 // ============================================================================
 
 #ifdef CATBOOST_MLX_HISTOGRAM_T2
 
-// Kernel objects registered once per process (static locals, initialized on first call).
-// MLX's metal_kernel() is idempotent — calling it with the same name+source returns the
-// same cached kernel, but we avoid re-registering for clarity.
-static mx::fast::CustomKernelFunction& GetT2SortKernel() {
-    // D2 — Option III: maxPartDocs removed; totalNumDocs used for slab sizing in kernel.
-    static auto k = mx::fast::metal_kernel(
-        "t2_sort_s22d2",
-        /*input_names=*/{
-            "compressedIndex", "docIndices", "partOffsets", "partSizes",
-            "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
-            "numPartitions", "numStats", "numTGs", "totalNumDocs"
-        },
-        /*output_names=*/{"sortedDocs", "binOffsets"},
-        /*source=*/NCatboostMlx::KernelSources::kT2SortSource,
-        /*header=*/NCatboostMlx::KernelSources::kHistHeader,
-        /*ensure_row_contiguous=*/true,
-        /*atomic_outputs=*/false
-    );
-    return k;
-}
-
-static mx::fast::CustomKernelFunction& GetT2AccumKernel() {
-    // D2 — Option III: partOffsets added; maxPartDocs removed.
-    static auto k = mx::fast::metal_kernel(
-        "t2_accum_s22d2",
-        /*input_names=*/{
-            "sortedDocs", "binOffsets", "compressedIndex", "stats",
-            "featureColumnIndices", "foldCountsFlat", "firstFoldIndicesFlat",
-            "partOffsets",
-            "lineSize", "maxBlocksPerPart", "numGroups",
-            "numPartitions", "numStats", "numTGs",
-            "totalBinFeatures", "totalNumDocs"
-        },
-        /*output_names=*/{"histogram"},
-        /*source=*/NCatboostMlx::KernelSources::kT2AccumSource,
-        /*header=*/NCatboostMlx::KernelSources::kHistHeader,
-        /*ensure_row_contiguous=*/true,
-        /*atomic_outputs=*/true
-    );
-    return k;
-}
-
-mx::array DispatchHistogramT2(
+// Thin wrapper: builds fold arrays from features, then calls the production dispatch.
+static mx::array CallDispatchHistogramT2(
     const mx::array& compressedData,
     const mx::array& stats,
     const mx::array& docIndices,
@@ -498,19 +471,18 @@ mx::array DispatchHistogramT2(
     const ui32 numFeatures = static_cast<ui32>(features.size());
     const ui32 numGroups   = (numFeatures + 3) / 4;
 
-    // Build fold metadata (same as DispatchHistogram)
-    std::vector<uint32_t> foldCountsFlat(numGroups * 4, 0u);
-    std::vector<uint32_t> firstFoldIndicesFlat(numGroups * 4, 0u);
-    std::vector<uint32_t> featureColIndices(numGroups, 0u);
+    std::vector<uint32_t> foldCountsFlatVec(numGroups * 4, 0u);
+    std::vector<uint32_t> firstFoldIndicesFlatVec(numGroups * 4, 0u);
+    std::vector<uint32_t> featureColIndicesVec(numGroups, 0u);
     ui32 maxFoldCount = 0;
     for (ui32 g = 0; g < numGroups; ++g) {
-        featureColIndices[g] = g;
+        featureColIndicesVec[g] = g;
         for (ui32 slot = 0; slot < 4; ++slot) {
             ui32 f = g * 4 + slot;
             if (f < numFeatures) {
                 const ui32 folds = features[f].Folds;
-                foldCountsFlat[g * 4 + slot]       = folds;
-                firstFoldIndicesFlat[g * 4 + slot]  = features[f].FirstFoldIndex;
+                foldCountsFlatVec[g * 4 + slot]      = folds;
+                firstFoldIndicesFlatVec[g * 4 + slot] = features[f].FirstFoldIndex;
                 if (folds > maxFoldCount) maxFoldCount = folds;
             }
         }
@@ -518,93 +490,29 @@ mx::array DispatchHistogramT2(
 
     if (maxFoldCount > 127u) {
         std::fprintf(stderr,
-            "FATAL: DispatchHistogramT2: max fold count %u exceeds DEC-016 envelope (<=127).\n",
+            "FATAL: CallDispatchHistogramT2: max fold count %u exceeds DEC-016 envelope (<=127).\n",
             maxFoldCount);
         std::exit(1);
     }
 
-    // numTGs = numGroups × numActiveParts × numStats
-    // D2 — Option III: maxPartDocs removed.
-    // sortedDocs buffer = numGroups × numStats × numDocs (slab-by-partOffsets layout).
-    // Overflow is impossible: sum(partSizes) == numDocs and slots are prefix-sum disjoint.
-    const ui32 numTGs = numGroups * numActiveParts * numStats;
+    auto foldCountsArr  = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlatVec.data()),
+                                    {static_cast<int>(numGroups * 4)}, mx::uint32);
+    auto firstFoldArr   = mx::array(reinterpret_cast<const int32_t*>(firstFoldIndicesFlatVec.data()),
+                                    {static_cast<int>(numGroups * 4)}, mx::uint32);
+    auto featureColsArr = mx::array(reinterpret_cast<const int32_t*>(featureColIndicesVec.data()),
+                                    {static_cast<int>(numGroups)}, mx::uint32);
 
+    mx::Shape histShape = {static_cast<int>(numActiveParts * numStats * totalBinFeatures)};
 
-    auto flatCompressed  = mx::reshape(compressedData, {-1});
-    auto foldCountsArr   = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlat.data()),
-                                     {static_cast<int>(numGroups * 4)}, mx::uint32);
-    auto firstFoldArr    = mx::array(reinterpret_cast<const int32_t*>(firstFoldIndicesFlat.data()),
-                                     {static_cast<int>(numGroups * 4)}, mx::uint32);
-    auto featureColsArr  = mx::array(reinterpret_cast<const int32_t*>(featureColIndices.data()),
-                                     {static_cast<int>(numGroups)}, mx::uint32);
-
-    // Scalar uniforms
-    // D2: maxPartDocsArr removed (Option III slab layout needs no maxPartDocs uniform).
-    auto lineSizeArr      = mx::array(static_cast<uint32_t>(numUi32PerDoc),    mx::uint32);
-    auto maxBlocksArr     = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
-    auto numGroupsArr     = mx::array(static_cast<uint32_t>(numGroups),        mx::uint32);
-    auto numPartsArr      = mx::array(static_cast<uint32_t>(numActiveParts),   mx::uint32);
-    auto numStatsArr      = mx::array(static_cast<uint32_t>(numStats),         mx::uint32);
-    auto numTGsArr        = mx::array(static_cast<uint32_t>(numTGs),           mx::uint32);
-    auto totalBinsArr     = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
-    auto totalDocsArr     = mx::array(static_cast<uint32_t>(numDocs),          mx::uint32);
-
-    // Grid: same geometry as T1 (only X dim varies with numGroups)
-    auto grid   = std::make_tuple(
-        static_cast<int>(256 * maxBlocksPerPart * numGroups),
-        static_cast<int>(numActiveParts),
-        static_cast<int>(numStats)
+    return NCatboostMlx::DispatchHistogramT2(
+        compressedData, stats,
+        docIndices, partOffsets, partSizes,
+        featureColsArr, foldCountsArr, firstFoldArr,
+        numUi32PerDoc, maxBlocksPerPart,
+        numGroups, numActiveParts, numStats,
+        totalBinFeatures, numDocs,
+        histShape
     );
-    auto tg = std::make_tuple(256, 1, 1);
-
-    // Output shapes (D2 — Option III)
-    // sortedDocs: one slab per (groupIdx, statIdx) of size numDocs.
-    // Total = numGroups * numStats * numDocs  (5.2 MB at gate config).
-    mx::Shape sortedDocsShape = {static_cast<int>(numGroups * numStats * numDocs)};
-    mx::Shape binOffsetsShape  = {static_cast<int>(numTGs * 129u)};
-    mx::Shape histShape        = {static_cast<int>(numActiveParts * numStats * totalBinFeatures)};
-
-    // --- T2-sort dispatch (D2 — Option III) ---
-    // MLX lazy: sortOut is a lazy expression; not evaluated until consumed.
-    // maxPartDocs removed; totalNumDocs drives the slab size in the kernel.
-    auto sortOut = GetT2SortKernel()(
-        /*inputs=*/{
-            flatCompressed, docIndices, partOffsets, partSizes,
-            featureColsArr, lineSizeArr, maxBlocksArr, numGroupsArr,
-            numPartsArr, numStatsArr, numTGsArr, totalDocsArr
-        },
-        /*output_shapes=*/{sortedDocsShape, binOffsetsShape},
-        /*output_dtypes=*/{mx::uint32, mx::uint32},
-        grid, tg,
-        /*template_args=*/{},
-        /*init_value=*/0.0f,
-        /*verbose=*/false,
-        /*stream=*/mx::Device::gpu
-    );
-
-    // --- T2-accum dispatch (D2 — Option III) ---
-    // sortOut[0] and sortOut[1] are inputs → MLX graph ensures sort runs before accum.
-    // partOffsets added so accum can compute slotBase via Option III slab formula.
-    // maxPartDocs removed.
-    auto accumOut = GetT2AccumKernel()(
-        /*inputs=*/{
-            sortOut[0], sortOut[1], flatCompressed, stats,
-            featureColsArr, foldCountsArr, firstFoldArr,
-            partOffsets,
-            lineSizeArr, maxBlocksArr, numGroupsArr,
-            numPartsArr, numStatsArr, numTGsArr,
-            totalBinsArr, totalDocsArr
-        },
-        /*output_shapes=*/{histShape},
-        /*output_dtypes=*/{mx::float32},
-        grid, tg,
-        /*template_args=*/{},
-        /*init_value=*/0.0f,
-        /*verbose=*/false,
-        /*stream=*/mx::Device::gpu
-    );
-
-    return accumOut[0];
 }
 
 #endif  // CATBOOST_MLX_HISTOGRAM_T2
@@ -1208,7 +1116,7 @@ long long RunIteration(
             mx::array histogram =
 #ifdef CATBOOST_MLX_HISTOGRAM_T2
                 useT2
-                ? DispatchHistogramT2(
+                ? CallDispatchHistogramT2(
                     compressedData, statArr,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     features, numUi32PerDoc, numActiveParts,
@@ -1252,7 +1160,7 @@ long long RunIteration(
             mx::array histogram =
 #ifdef CATBOOST_MLX_HISTOGRAM_T2
                 useT2
-                ? DispatchHistogramT2(
+                ? CallDispatchHistogramT2(
                     compressedData, statArr,
                     layout.DocIndices, layout.PartOffsets, layout.PartSizes,
                     features, numUi32PerDoc, numActiveParts,
