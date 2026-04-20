@@ -1132,8 +1132,6 @@ static const std::string kT2AccumSource = R"metal(
     if (groupIdx >= numGroups) return;
     if (blockInPart != 0) return;
 
-    if (partSizes[partIdx] == 0) return;  // NIT-3: explicit empty-partition guard
-
     const uint featureColumnIdx = featureColumnIndices[groupIdx];
     const uint foldBase         = groupIdx * FEATURES_PER_PACK;
     const uint tid              = thread_index_in_threadgroup;
@@ -1150,6 +1148,12 @@ static const std::string kT2AccumSource = R"metal(
                         + statIdx * totalBinFeatures;
 
     const uint totalDocsInPart = binOffsets[offBase + T2_BIN_CAP];
+    // NIT-3: explicit empty-partition guard.
+    // T2-sort returns early without writing binOffsets for empty partitions.
+    // binOffsets[offBase + T2_BIN_CAP] == 0 iff partSize == 0 (init_value=0).
+    // Explicitly checking here avoids reliance on float-to-uint zero aliasing
+    // and also skips all inner-loop setup for empty partitions (small perf win).
+    if (totalDocsInPart == 0) return;
 
     // All FEATURES_PER_PACK features: accumulate over sorted doc list.
     //
