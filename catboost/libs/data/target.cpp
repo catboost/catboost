@@ -738,9 +738,13 @@ static void ValidateSetNumericTargetPreconditions(
             existingTargetDim == 1,
             "SetNumericTarget requires 1 target dimension, got " << existingTargetDim
         );
+        // Accept any non-String existing type. Storage is rewritten to Float by the
+        // caller after this validator returns, so Boolean/Integer/Float all
+        // transition cleanly. String requires Pool reconstruction.
         CB_ENSURE(
-            existingTargetType == ERawTargetType::Float || existingTargetType == ERawTargetType::None,
-            "SetNumericTarget requires numeric or unset target type, got " << existingTargetType
+            existingTargetType != ERawTargetType::String,
+            "SetNumericTarget does not support string target type; "
+            "reconstruct the Pool to change from string labels to numeric"
         );
     }
 }

@@ -63,8 +63,47 @@ Raises `CatBoostError` when:
 ## Restrictions
 
 - **Single-target only.** Multi-target labels must be set at construction time.
-- **Not thread-safe during training.** Do **not** call `set_label()` concurrently with `model.fit()`, `model.score()`, or `model.eval_metrics()` on the same Pool — those release the GIL and read labels without synchronization. This restriction is shared by every existing `Pool.set_*` method.
+- **Not thread-safe during training or with `joblib.Parallel(n_jobs>1)`.** Do **not** call `set_label()` concurrently with `model.fit()`, `model.score()`, or `model.eval_metrics()` on the same Pool — those release the GIL and read labels without synchronization. If you need parallel trials, each worker should own its own Pool (construct inside the worker, or split with `Pool.slice(indices)`).
 - **NaN / Inf values are accepted** (mirroring the Pool constructor). Some loss functions reject them at training time.
+
+## Pitfalls
+
+{% note warning %}
+
+**Forgetting to sync `eval_set` labels.** If you call `set_label` on your training Pool between `fit()` calls, remember to also `set_label` on any eval Pool that should reflect the new targets. CatBoost validates against whatever labels are on the eval Pool at fit time. As a defence-in-depth, `fit()` emits a `UserWarning` when the training Pool and a Pool-typed `eval_set` have different target dtypes (a common symptom of this desync); the check does not apply to `eval_set` passed as `(X, y)` tuples or filenames, and it cannot catch the case where both Pools have matching dtype yet stale eval values.
+
+{% endnote %}
+
+{% note warning %}
+
+**Post-fit `set_label` + model introspection.** Functions that re-read labels from a Pool *after* the model was fitted on that Pool will silently use the *current* (possibly mutated) labels, not the labels the model was actually trained on. Affected APIs:
+
+- `model.get_object_importance(test_pool, train_pool)`
+- `model.get_feature_importance(type='LossFunctionChange')` (also runs implicitly for groupwise losses like `YetiRank`, `PairLogit`, `QueryRMSE`)
+- `model.eval_metrics(data=pool, metrics=[...])`
+- `model.calc_feature_statistics(data=pool, ...)`
+
+If you called `set_label` on a Pool after training on it, construct a separate fresh Pool holding the training labels before passing it to these APIs.
+
+{% endnote %}
+
+## Recommended patterns
+
+**Multi-target training.** Build the Pool once from features, then loop over outputs:
+
+```python
+pool = Pool(X, cat_features=cat_features)
+models = []
+for i in range(Y.shape[1]):
+    pool.set_label(Y[:, i])
+    m = CatBoostRegressor(iterations=200, verbose=0)
+    m.fit(pool)
+    models.append(m)
+```
+
+Saves one Pool construction per output. **Note:** sklearn's `MultiOutputRegressor(CatBoostRegressor())` is *not* a drop-in here — it routes `X` through `check_X_y` which coerces to a plain array and drops Pool metadata (`cat_features`, `group_id`, `baseline`, etc.). Use the explicit loop instead.
+
+**Hyperparameter search** (Optuna, hyperopt, etc.): build the Pool once outside the objective function, call `pool.set_label(y_trial)` inside the objective, then `fit(pool)`. Keeps feature preparation out of the search loop.
 
 ## {{ input_data__title__example }} {#example}
 

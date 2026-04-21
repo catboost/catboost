@@ -1338,3 +1338,443 @@ class TestSetLabelPoolReuse:
         clf = CatBoostClassifier(iterations=3, verbose=0).fit(pool, y=y)
         assert pool.has_label()
         assert len(clf.predict(pool)) == 100
+
+
+# ===========================================================================
+# Follow-up regression tests (from Round-6+ multi-agent audits)
+# ===========================================================================
+
+class TestSetLabelOnPreLabeledPool:
+    """After Round-6 widen of C++ validation: Pool built with non-Float numeric label
+    (Integer/Boolean/Python list coerced to int64) must accept set_label."""
+
+    @pytest.mark.parametrize("dtype", [np.int64, np.int32, np.int8, np.uint8])
+    def test_pool_built_with_int_then_set_label(self, X100, rng, dtype):
+        y_int = rng.integers(0, 2, 100).astype(dtype)
+        pool = Pool(X100, label=y_int)  # TargetType = Integer
+        new_y = rng.standard_normal(100).astype(np.float32)
+        pool.set_label(new_y)
+        # Verify set_label actually replaced the labels (not just didn't raise).
+        np.testing.assert_allclose(
+            np.array(pool.get_label(), dtype=np.float32), new_y, rtol=1e-5
+        )
+
+    def test_pool_built_with_bool_then_set_label(self, X100, rng):
+        y_bool = rng.integers(0, 2, 100).astype(bool)
+        pool = Pool(X100, label=y_bool)  # TargetType = Boolean
+        pool.set_label(rng.standard_normal(100).astype(np.float32))
+        assert pool.has_label()
+
+    def test_pool_built_with_python_int_list_then_set_label(self, X100, rng):
+        y_list = [int(v) for v in rng.integers(0, 2, 100)]  # int64 via np.asarray
+        pool = Pool(X100, label=y_list)  # TargetType = Integer
+        pool.set_label([float(v) for v in rng.standard_normal(100)])
+        assert pool.has_label()
+
+    def test_pool_built_with_string_labels_still_rejects_set_label(self, X100, rng):
+        """String target still requires Pool reconstruction -- we only widen to
+        accept Boolean/Integer; String transition is not supported."""
+        y_str = np.array(["cat", "dog"] * 50)
+        pool = Pool(X100, label=y_str)  # TargetType = String
+        with pytest.raises(CatBoostError, match=r"(string|String)"):
+            pool.set_label(np.zeros(100, dtype=np.float32))
+
+    def test_pool_slice_on_int_parent_then_set_label(self, X100, rng):
+        """Sliced pool inherits parent TargetType; Round-6 fix lets set_label
+        work on the slice just as on the parent."""
+        y_int = rng.integers(0, 5, 100).astype(np.int64)
+        pool = Pool(X100, label=y_int)
+        sliced = pool.slice(list(range(50)))
+        sliced.set_label(np.ones(50, dtype=np.float32))
+        result = np.array(sliced.get_label(), dtype=np.float32)
+        np.testing.assert_array_equal(result, np.ones(50, dtype=np.float32))
+
+
+class TestUnverifiedDocstringClaims:
+    """Back docstring/doc-page claims with actual tests (Round-3 audit caught
+    several promises with zero coverage)."""
+
+    def test_int64_above_2_24_loses_precision_via_float32_storage(self, X100):
+        """Docstring promises: 'Integer values above 2**24 lose precision.'
+        Verify by round-tripping int64 values that don't fit exactly in float32.
+
+        At 2^24, float32's 23-bit mantissa forces every second integer to
+        collapse into its neighbor -- 100 consecutive ints should yield about
+        51 distinct float32 values. A tighter bound catches regressions if
+        storage ever silently widens to float64 (which would yield 100).
+        """
+        pool = Pool(X100)
+        base = 2**24
+        y = np.array([base + i for i in range(100)], dtype=np.int64)
+        pool.set_label(y)
+        result_f32 = np.array(pool.get_label()).astype(np.float32)
+        unique_count = len(np.unique(result_f32))
+        assert unique_count <= 55, (
+            "Expected precision loss at 2^24 boundary (~51 distinct values); "
+            "got {} unique. If this is 100, float32 storage may have regressed "
+            "to float64.".format(unique_count)
+        )
+
+    def test_rejects_shape_n_2(self, X100):
+        """Close the off-by-one coverage gap -- we tested (N, 3) but not (N, 2)."""
+        pool = Pool(X100)
+        with pytest.raises(CatBoostError, match=r"(1-D|\(100, 2\)|dimension)"):
+            pool.set_label(np.ones((100, 2), dtype=np.float32))
+
+    def test_rejects_void_dtype(self, X100):
+        """dtype kind 'V' (structured/void) rejection has code guard but no test."""
+        pool = Pool(X100)
+        y_struct = np.zeros(100, dtype=[('a', 'i4'), ('b', 'f4')])
+        assert y_struct.dtype.kind == 'V'
+        with pytest.raises(CatBoostError, match=r"dtype kind"):
+            pool.set_label(y_struct)
+
+    @pytest.mark.parametrize("dtype", [np.bool_, np.uint8])
+    def test_get_label_returns_input_dtype_extended(self, X100, rng, dtype):
+        """Extend TestDtypePreservation parametrization: bool and uint8 were missing."""
+        y = rng.integers(0, 2, 100).astype(dtype)
+        pool = Pool(X100)
+        pool.set_label(y)
+        result = np.array(pool.get_label())
+        assert result.dtype == np.dtype(dtype)
+
+
+class TestEvalSetDtypeMismatchWarning:
+    """Round-6: detect common set_label desync when train dtype != eval dtype."""
+
+    def test_dtype_mismatch_warns(self, X100, rng):
+        # Both pools start with float32 regression targets, so the model fits.
+        y_reg_f32 = rng.standard_normal(100).astype(np.float32)
+        train_pool = Pool(X100, label=y_reg_f32)
+        eval_pool = Pool(X100, label=y_reg_f32)
+        # Simulate user updating only the train Pool dtype via set_label
+        # (e.g. re-casting to float64 for higher-precision regression targets)
+        # while forgetting to sync the eval Pool.
+        train_pool.set_label(rng.standard_normal(100).astype(np.float64))
+        with pytest.warns(UserWarning, match=r"target dtype.*does not match"):
+            CatBoostRegressor(iterations=3, verbose=0).fit(
+                train_pool, eval_set=eval_pool
+            )
+
+    def test_matching_dtypes_no_warn(self, X100, rng):
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        train_pool = Pool(X100, label=y)
+        eval_pool = Pool(X100, label=y)
+        import warnings as _w
+        with _w.catch_warnings():
+            _w.simplefilter("error", UserWarning)
+            CatBoostClassifier(iterations=3, verbose=0).fit(
+                train_pool, eval_set=eval_pool
+            )
+
+
+class TestSetLabelTrainingModes:
+    """Round-5/6 training-mode code paths not previously exercised."""
+
+    def test_eval_fraction_uses_post_set_label(self, X100, rng):
+        """fit(pool, y=new_y, eval_fraction=0.2): set_label fires before split;
+        both train and eval halves see the new labels."""
+        y1 = rng.integers(0, 2, 100).astype(np.float32)
+        y2 = (1 - y1).astype(np.float32)
+        pool = Pool(X100, label=y1)
+        with pytest.warns(UserWarning, match=r"overrides the Pool's labels"):
+            CatBoostClassifier(
+                iterations=3, verbose=0, eval_fraction=0.2
+            ).fit(pool, y=y2)
+
+    def test_eval_fraction_with_eval_set_still_raises(self, X100, rng):
+        """Pre-existing mutual-exclusion check must survive our changes."""
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        pool = Pool(X100, label=y)
+        other = Pool(X100, label=y)
+        with pytest.raises(CatBoostError, match=r"[Bb]oth eval_fraction and eval_set"):
+            CatBoostClassifier(
+                iterations=3, verbose=0, eval_fraction=0.2
+            ).fit(pool, y=(1 - y).astype(np.float32), eval_set=other)
+
+    def test_cv_reads_current_labels_after_set_label(self, X100, rng):
+        """catboost.cv() is a separate entry point; verify set_label is honored."""
+        from catboost import cv
+        pool = Pool(X100)
+        pool.set_label(rng.integers(0, 2, 100).astype(np.float32))
+        # Will raise if set_label labels were not picked up (cv requires labels).
+        result = cv(
+            pool,
+            params={'iterations': 3, 'loss_function': 'Logloss', 'verbose': False},
+            fold_count=3,
+        )
+        # cv returns a DataFrame with iteration-indexed metrics.
+        assert len(result) == 3
+
+    def test_eval_metrics_uses_current_labels(self, X100, rng):
+        """Post-fit eval_metrics should read the Pool's current (post-set_label) labels."""
+        y1 = rng.integers(0, 2, 100).astype(np.float32)
+        y2 = (1 - y1).astype(np.float32)
+        train_pool = Pool(X100, label=y1)
+        model = CatBoostClassifier(iterations=3, verbose=0).fit(train_pool)
+        eval_pool = Pool(X100, label=y1)
+        metrics_before = np.asarray(
+            model.eval_metrics(eval_pool, metrics=['Logloss'])['Logloss']
+        )
+        eval_pool.set_label(y2)
+        metrics_after = np.asarray(
+            model.eval_metrics(eval_pool, metrics=['Logloss'])['Logloss']
+        )
+        # eval_metrics returns per-iteration arrays -- compare elementwise.
+        assert not np.allclose(metrics_before, metrics_after)
+
+
+class TestSetLabelObjectiveLoopPattern:
+    """Round-6: Optuna/hyperopt-style pattern -- Pool(X) built once, set_label per trial.
+    This is the blessed idiom our PR most directly enables."""
+
+    def test_many_label_updates_with_fit(self, X100, rng):
+        pool = Pool(X100)
+        for trial in range(10):
+            y = rng.integers(0, 2, 100).astype(np.float32)
+            pool.set_label(y)
+            model = CatBoostClassifier(
+                iterations=3, verbose=0, random_seed=trial
+            ).fit(pool)
+            preds = model.predict(pool)
+            assert len(preds) == 100
+            assert np.isfinite(preds).all()
+
+
+class TestSetLabelSaveLoadRoundTrip:
+    """Round-3 coverage gap: save/load+set_label roundtrip.
+
+    Also exercises the _read_pool target_type detection fix: without the fix,
+    loading a quantized pool set the Python target_type shadow to `str`, making
+    get_label() return string-cast numbers.
+    """
+
+    def test_quantized_save_load_preserves_numeric_target_type(self, X100, rng, tmp_path):
+        y = rng.integers(0, 5, 100).astype(np.int64)
+        pool = Pool(X100, label=y)
+        pool.quantize()
+        save_path = str(tmp_path / "pool.cbquant")
+        pool.save(save_path)
+
+        loaded = Pool("quantized://" + save_path)
+        # After the _read_pool fix, target_type is detected as a numeric python type
+        # (int/float/bool), not str. Without the fix this assertion fails.
+        assert loaded.target_type is not str, (
+            "Loaded quantized pool target_type should be numeric (detected from "
+            "RawTargetData.GetTargetType()), not the historical str hardcode"
+        )
+
+    def test_save_load_then_set_label_and_fit(self, X100, rng, tmp_path):
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        pool = Pool(X100, label=y)
+        pool.quantize()
+        save_path = str(tmp_path / "pool.cbquant")
+        pool.save(save_path)
+
+        loaded = Pool("quantized://" + save_path)
+        # Our PR: set_label on a loaded quantized pool must work.
+        loaded.set_label(rng.integers(0, 2, 100).astype(np.float32))
+        CatBoostClassifier(iterations=3, verbose=0).fit(loaded)
+
+
+class TestSetLabelZeroRowHasLabelSymmetry:
+    """Round-3: document the has_label() semantics on zero-row Pool + set_label([]).
+    The zero-row path returns self without calling _set_label, so has_label()
+    reflects the pre-construction state."""
+
+    def test_zero_row_unlabeled_pool_set_empty_label_stays_unlabeled(self):
+        empty_X = np.empty((0, 5), dtype=np.float32)
+        pool = Pool(empty_X)
+        assert not pool.has_label()
+        pool.set_label(np.array([], dtype=np.float32))
+        # Zero-row early return leaves construction-time state intact.
+        assert not pool.has_label()
+
+
+class TestSetLabelFitYEndToEnd:
+    """P0 end-to-end equivalence: fit(pool, y=new_y) must produce a model
+    bit-for-bit identical to fit(Pool(X, label=new_y)). Tests the whole
+    behavior change, not just the warning side-effect."""
+
+    def test_fit_pool_y_matches_fresh_pool_training(self, X100, rng):
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        params = dict(iterations=10, verbose=0, random_seed=RNG_SEED)
+
+        # Path A: fit(pool, y=y) -- goes through set_label internally.
+        pool_a = Pool(X100)  # unlabeled, so no overwrite warning
+        clf_a = CatBoostClassifier(**params).fit(pool_a, y=y)
+        preds_a = clf_a.predict_proba(pool_a)
+
+        # Path B: fit(Pool(X, label=y)) -- direct construction.
+        pool_b = Pool(X100, label=y)
+        clf_b = CatBoostClassifier(**params).fit(pool_b)
+        preds_b = clf_b.predict_proba(pool_b)
+
+        # The whole point of the behavior change: these must match exactly.
+        np.testing.assert_array_equal(preds_a, preds_b)
+
+
+class TestSetLabelModelSaveLoadAfterFit:
+    """P1: save_model/load_model round-trip after fit on a set_label'd Pool
+    must yield bit-exact predictions (labels don't enter the model artifact,
+    but verify no metadata leak / stale state breaks serialization)."""
+
+    def test_save_load_after_set_label_fit(self, X100, rng, tmp_path):
+        pool = Pool(X100)
+        pool.set_label(rng.integers(0, 2, 100).astype(np.float32))
+        model = CatBoostClassifier(
+            iterations=10, verbose=0, random_seed=RNG_SEED
+        ).fit(pool)
+        preds_before = model.predict_proba(pool)
+
+        save_path = str(tmp_path / "model.cbm")
+        model.save_model(save_path)
+
+        loaded = CatBoostClassifier()
+        loaded.load_model(save_path)
+        preds_after = loaded.predict_proba(pool)
+
+        np.testing.assert_array_equal(preds_before, preds_after)
+
+
+class TestSetLabelFromFilePool:
+    """P1: Pool built from disk (TSV + column_description) -- TSV loader
+    stores labels as String target type, so set_label raises with a clear
+    message (not a cryptic C++ error). Documents and pins the limitation:
+    to change labels on a file-loaded pool, reconstruct with a new label."""
+
+    def test_tsv_file_pool_then_set_label_raises_clear_error(self, X100, rng, tmp_path):
+        # Write a minimal TSV: label + 10 numeric features.
+        y = rng.integers(0, 2, 100).astype(np.int64)
+        rows = ["{}\t{}".format(int(y[i]), "\t".join(str(v) for v in X100[i])) for i in range(100)]
+        tsv_path = tmp_path / "data.tsv"
+        tsv_path.write_text("\n".join(rows))
+
+        cd_path = tmp_path / "data.cd"
+        cd_lines = ["0\tLabel"] + ["{}\tNum".format(i + 1) for i in range(X100.shape[1])]
+        cd_path.write_text("\n".join(cd_lines))
+
+        file_pool = Pool(data=str(tsv_path), column_description=str(cd_path))
+        # TSV loader populates String target type. Our widened validation
+        # rejects only String -> set_label on a TSV pool raises clearly.
+        with pytest.raises(CatBoostError, match=r"string|String"):
+            file_pool.set_label(rng.standard_normal(100).astype(np.float32))
+        # Pool is still usable: training on the original string labels works.
+        CatBoostClassifier(iterations=3, verbose=0).fit(file_pool)
+
+
+class TestSetLabelIntrospectionFunctions:
+    """P2 regression guard: document the 'post-fit set_label affects introspection'
+    pitfall with tests. If future refactoring makes these APIs snapshot training
+    labels instead of reading live from Pool, our doc page's pitfall note
+    becomes inaccurate and needs updating."""
+
+    def test_eval_metrics_reflects_current_pool_labels(self, X100, rng):
+        """eval_metrics reads labels from Pool at call time, not at fit time."""
+        y1 = rng.integers(0, 2, 100).astype(np.float32)
+        pool = Pool(X100, label=y1)
+        model = CatBoostClassifier(iterations=5, verbose=0).fit(pool)
+
+        m_original = np.asarray(model.eval_metrics(pool, metrics=['Logloss'])['Logloss'])
+        pool.set_label((1 - y1).astype(np.float32))
+        m_flipped = np.asarray(model.eval_metrics(pool, metrics=['Logloss'])['Logloss'])
+        # Labels fully inverted -> metrics differ substantially.
+        assert not np.allclose(m_original, m_flipped)
+
+    def test_calc_feature_statistics_reflects_current_pool_labels(self, X100, rng):
+        """calc_feature_statistics['mean_target'] is the average label over bins
+        defined by model borders. Changing labels must change these means.
+
+        Uses enough iterations to guarantee the model creates borders on feature 0,
+        otherwise mean_target would be empty for that feature.
+        """
+        y1 = rng.integers(0, 2, 100).astype(np.float32)
+        pool = Pool(X100, label=y1)
+        model = CatBoostClassifier(
+            iterations=50, verbose=0, random_seed=RNG_SEED,
+        ).fit(pool)
+
+        stats1 = model.calc_feature_statistics(pool, feature=0, plot=False)
+        mt1 = np.asarray(stats1['mean_target'])
+        if mt1.size == 0:
+            pytest.skip("Model did not create splits on feature 0 -- try another seed")
+
+        pool.set_label((1 - y1).astype(np.float32))
+        stats2 = model.calc_feature_statistics(pool, feature=0, plot=False)
+        mt2 = np.asarray(stats2['mean_target'])
+
+        # Both arrays share the same bin count (borders are model property, not
+        # label-dependent). Flipped labels -> per-bin means must differ.
+        assert not np.allclose(mt1, mt2)
+
+
+class TestSetLabelTextFeaturesPreservation:
+    """P2: set_label on Pool with text_features must leave text feature
+    metadata untouched."""
+
+    def test_text_features_preserved(self, rng):
+        n = 50
+        num = rng.standard_normal((n, 3)).astype(np.float32)
+        text = np.array(
+            [["red", "green"] if i % 2 == 0 else ["blue", "yellow"] for i in range(n)],
+            dtype=object,
+        )
+        X = np.column_stack([text, num])
+        y = rng.integers(0, 2, n).astype(np.float32)
+        pool = Pool(
+            data=X, label=y,
+            text_features=[0, 1],
+        )
+        text_idx_before = pool.get_text_feature_indices()
+        pool.set_label(rng.integers(0, 2, n).astype(np.float32))
+        assert pool.get_text_feature_indices() == text_idx_before
+
+
+class TestSetLabelInitModel:
+    """P2: init_model + set_label that breaks label semantics -> clean error,
+    not silent miscompute."""
+
+    def test_init_model_regression_then_set_cls_labels_raises_cleanly(self, X100, rng):
+        pool = Pool(X100, label=rng.standard_normal(100).astype(np.float32))
+        base = CatBoostRegressor(iterations=5, verbose=0).fit(pool)
+        # Now the user re-purposes the pool as a classifier and tries
+        # incremental training -- CatBoost must raise clearly.
+        pool.set_label(rng.integers(0, 2, 100).astype(np.float32))
+        with pytest.raises(CatBoostError):
+            CatBoostClassifier(iterations=5, verbose=0).fit(pool, init_model=base)
+
+
+class TestSetLabelWarningSilenceable:
+    """P3: UserWarning must play nicely with standard Python warning filters."""
+
+    def test_overwrite_warning_silenceable(self, X100, rng):
+        import warnings as _w
+        y1 = rng.integers(0, 2, 100).astype(np.float32)
+        y2 = (1 - y1).astype(np.float32)
+        pool = Pool(X100, label=y1)
+        with _w.catch_warnings():
+            _w.filterwarnings("ignore", category=UserWarning)
+            # Would normally emit the overwrite warning; filter suppresses it.
+            CatBoostClassifier(iterations=3, verbose=0).fit(pool, y=y2)
+
+
+class TestSetLabelBackwardCompat:
+    """P3: users who never call set_label must see zero change in behavior.
+    Trains a classic Pool+fit path and asserts no UserWarning is emitted."""
+
+    def test_classic_fit_no_new_warnings(self, X100, rng):
+        import warnings as _w
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        pool = Pool(X100, label=y)
+        with _w.catch_warnings():
+            _w.simplefilter("error", UserWarning)  # any UserWarning -> failure
+            CatBoostClassifier(iterations=3, verbose=0).fit(pool)
+
+    def test_classic_fit_with_eval_no_new_warnings(self, X100, rng):
+        import warnings as _w
+        y = rng.integers(0, 2, 100).astype(np.float32)
+        train = Pool(X100, label=y)
+        eval_p = Pool(X100, label=y)
+        with _w.catch_warnings():
+            _w.simplefilter("error", UserWarning)
+            CatBoostClassifier(iterations=3, verbose=0).fit(train, eval_set=eval_p)

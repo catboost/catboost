@@ -2744,6 +2744,23 @@ class CatBoost(_CatBoostBase):
             else:
                 raise CatBoostError("Invalid type of 'eval_set': {}, while expected Pool or (X, y) or a filename, or list thereof.".format(type(eval_set)))
 
+        # Detect a common set_label desync: train Pool had its label dtype changed via
+        # set_label (e.g. cls -> reg transition) but eval Pool still holds the original
+        # dtype. Doesn't catch all desyncs, but high-signal and cheap.
+        if isinstance(X, Pool):
+            train_tt = getattr(X, 'target_type', None)
+            for i, es in enumerate(eval_sets):
+                eval_tt = getattr(es, 'target_type', None)
+                if train_tt is not None and eval_tt is not None and train_tt != eval_tt:
+                    warnings.warn(
+                        "Train Pool target dtype ({}) does not match eval_set[{}] target "
+                        "dtype ({}). This may indicate a forgotten set_label() on the eval "
+                        "Pool: if you updated the training Pool's labels, remember to update "
+                        "the eval Pool too -- CatBoost validates against whatever labels are "
+                        "on the eval Pool at fit time.".format(train_tt.__name__, i, eval_tt.__name__),
+                        UserWarning, stacklevel=4
+                    )
+
         if self.get_param('use_best_model') and eval_total_row_count == 0:
             raise CatBoostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
