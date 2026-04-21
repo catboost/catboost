@@ -120,16 +120,35 @@ One threadgroup per feature group. Features are packed four per `uint32` column,
 - Grid Z dimension: `numStats` (grad-only = 1, grad+hess = 2)
 - Threadgroup size: `(256, 1, 1)`
 
-Each thread processes a strided subset of the partition's documents (`thread_index_in_threadgroup`, `thread_index + 256`, ...).
+**Memory hierarchy (Sprint 18 L1a, commit `19fa5ce6cc`).**
+Each threadgroup holds one `threadgroup float simdHist[8][1024]` (8 SIMD groups × 1024 bins × 4 B = 32 KB) in threadgroup memory — on-chip, at the Apple Silicon hard ceiling. This replaces the pre-Sprint-18 layout where each thread allocated `float privHist[1024]` as a private register array (4 KB/thread × 256 threads = 1 MB/threadgroup device-memory spill).
 
-**Memory access pattern.**
-Private per-thread histogram arrays (`float privHist[1024]`) accumulate without any shared memory contention during the document loop. After accumulation, a fixed-order sequential reduction (threads 1 through 255 add into a `threadgroup float stagingHist[1024]` one at a time, separated by `threadgroup_barrier`) produces a fully deterministic result. The final write to the global output buffer uses `atomic_fetch_add_explicit` with `memory_order_relaxed` because multiple blocks may write to the same partition slot.
+**Accumulation phase.**
+Stride-partition assigns ownership of bin `b` within SIMD group `g` to exactly one lane: `b & 31`. The accumulation loop processes documents in cooperative 32-doc batches: lane `src`'s (packed feature value, stat) pair is broadcast to all 32 lanes via `simd_shuffle`; only the bin-owner lane writes into `simdHist[simd_id][bin]`. Every document contributes exactly once with zero atomics. Zero-init is implicit (threadgroup memory).
+
+**Reduction phase (Sprint 17 D1c, DEC-009 + DEC-012).**
+After a `threadgroup_barrier`, the kernel folds the 8 per-SIMD histograms into final per-bin sums via an 8-term linear cross-SIMD sum (SIMD groups 0 through 7 added sequentially). The intra-SIMD `simd_shuffle_xor` butterfly used in Sprint 17's D1c kernel is removed under the L1a layout: `simdHist[g][bin]` already holds the full per-SIMD-group sum, so there are no per-lane partials to reduce (DEC-012). Total barriers per dispatch: 6.
+
+**Writeback.**
+The final write to the global output buffer uses `atomic_fetch_add_explicit` with `memory_order_relaxed` because multiple blocks may write to the same partition slot.
+
+**Memory footprint summary (Sprint 18).**
+
+| Layout | Threadgroup memory | Device-memory spill | Barriers/dispatch |
+|---|---:|---:|---:|
+| Sprint 17 D1c (`privHist` + `simdHist` + `stagingHist`) | 12 KB | ~1 MB/tg/iter | 9 |
+| Sprint 18 L1a (`simdHist[8][1024]`) | **32 KB** (at limit) | 0 | **6** |
 
 **Threadgroup size rationale.**
-256 threads = 8 SIMD groups (32 threads each) on Apple Silicon. This is the canonical occupancy-maximizing size for a compute kernel with modest register pressure. It also matches `BLOCK_SIZE = 256` in `kHistHeader`, which sets the private histogram accumulation stride.
+256 threads = 8 SIMD groups (32 threads each) on Apple Silicon. The 8 SIMD groups match the `simdHist[8]` first dimension exactly. At 32 KB threadgroup memory, exactly 1 threadgroup fits per SM (Apple Silicon limit). Lower occupancy is accepted in exchange for on-chip accumulation (DEC-011).
 
-**Key correctness invariant.**
-The addition order of per-thread private histograms into the staging buffer is fixed (thread 1, then thread 2, ..., thread 255). This is the BUG-001 fix: the original CAS-based shared-memory approach produced non-deterministic results because Apple Silicon does not guarantee CAS arbitration order across SIMD groups. Per-thread private accumulation eliminates the race entirely; the sequential reduction makes the final float sum bit-for-bit identical across all dispatches.
+**Key correctness invariants.**
+Two independent properties guarantee determinism:
+
+1. **Stride-partition ownership**: bin `b` has exactly one writer per SIMD group per batch pass. No atomics in the accumulation phase.
+2. **Fixed cross-SIMD reduction order**: the 8-term linear fold runs in fixed `simd_id = 0..7` sequence. This is the DEC-009 policy (linear 8-term sum chosen over balanced butterfly for determinism and simplicity). D1c's intra-SIMD butterfly is removed under L1a (DEC-012) — it was designed for per-lane private partials, not shared per-group slots.
+
+Both properties originate from the BUG-001 / BUG-S18-001 lineage: the original CAS-based shared-memory approach (Sprint 3) was non-deterministic because Apple Silicon does not guarantee CAS arbitration order across SIMD groups. Stride-partition eliminates the race structurally. See `docs/sprint18/bug_s18_001.md` for the Sprint 18 post-mortem on why a naively ported butterfly produces a 32× amplification error under the shared-slot layout.
 
 ---
 
@@ -763,9 +782,17 @@ Numpy arrays are passed as `nb::ndarray<const float, nb::ndim<2>, nb::c_contig, 
 
 MLX JIT-compiles Metal kernels the first time they run. This is a one-time cost per process lifetime; subsequent iterations reuse the compiled pipeline state. TODO-008 introduced a kernel compile cache that reduces cold-start from ~344 ms to ~109 ms by reusing cached `.metallib` artefacts across process restarts.
 
-### Histogram bottleneck
+### Histogram performance (Sprint 18)
 
-The histogram kernel's final write pass uses `atomic_fetch_add_explicit` on the global output buffer (multiple blocks and groups write to the same partition slots). On Apple Silicon, atomic writes to device memory are serialized at the memory subsystem level — this is the primary throughput bottleneck for large feature counts or many partitions. The private accumulation phase (no atomics) is fast; the global atomic write is the limiting factor.
+As of Sprint 18, the histogram kernel's accumulation phase is on-chip (threadgroup memory) with zero atomics. The primary throughput bottleneck has shifted to the global-atomic writeback phase — the final `atomic_fetch_add_explicit` pass that accumulates per-SIMD histograms into the global output buffer. At N=50k, this writeback floor is approximately 15 ms. Representative Sprint 18 numbers (50-feature datasets, depth 6, 50 iterations, DEC-008 envelope):
+
+| Config | S17 histogram_ms | S18 histogram_ms | Reduction |
+|---|---:|---:|---:|
+| N=10k, RMSE, 128 bins (gate config) | 28.75 ms | 9.56 ms | -66.8% |
+| N=1k, Logloss, 128 bins | 29.42 ms | 4.26 ms | -85.5% |
+| N=50k, MultiClass, 32 bins | 62.74 ms | 27.24 ms | -56.6% |
+
+Scope: `approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations (DEC-008 envelope). Full 18-config table: `docs/sprint18/results.md`.
 
 ### Memory constraints
 

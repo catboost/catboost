@@ -5,6 +5,14 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
 
 ---
 
+## [Unreleased] — Sprint 18 (2026-04-17)
+
+### Performance
+
+- **Histogram kernel: -56.6% to -85.5% across all configs (Sprint 18 L1a)**: replaced per-thread 4 KB device-memory-spilled accumulator with a 32 KB per-SIMD-group shared threadgroup histogram, eliminating the register spill and cooperative reduction bottleneck. Gate config (N=10k, RMSE, depth 6, 128 bins): 28.75 → 9.56 ms (-66.8%). All results bounded to `approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations. Full table in `docs/sprint18/results.md`. Parity: 108/108 checkpoints bit-exact against Sprint 17 reference.
+
+---
+
 ## [Unreleased] — Sprint 8 (2026-04-11)
 
 ### Added

@@ -2,6 +2,37 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 18 — Histogram Accumulator Re-architecture (L1a) (2026-04-17)
+
+**Branch**: `mlx/sprint-18-hist-privhist-tile`  
+**Campaign**: Operation Verstappen — second structural kernel rewrite  
+**Verdict**: **All gates PASS.** Cleared for merge.
+
+- S18-00: Branch cut from `mlx/sprint-17-hist-tree-reduce`; Sprint 17 after-profiles copied to `.cache/profiling/sprint18/` as baselines.
+- S18-01 (`attribution.md`): Ground-truth post-S17 attribution by linear regression on steady-state per-depth `histogram_ms` breakdown. Accumulation = 6.4 ms (27% of SS), zero-init = 4.0 ms (17%), D1c reduction = 3.0 ms (13%), writeback = 5.0 ms (21%), JIT = 5.3 ms. Plan's 52–59% accumulation estimate refuted (actual 27%); D1c had already eliminated the device-memory re-read cost conflated in the Sprint 16 baseline. Gate revised from ≥50% to ≥35% (≤18.7 ms) with Ramos Day-1 approval.
+- S18-02: Ablation sweep L1a / L1b / L1c / L1d. L1a is the only variant with error-envelope gate clearance (worst case 17.3 ms vs 18.7 ms gate; L1b/c miss upper bounds). Ramos approved L1a Day 2. See `docs/sprint18/ablation.md`.
+- S18-03 (`abc4c229f9` → `19fa5ce6cc`): L1a implementation. **Pivot**: initial kernel (commit `abc4c229f9`) failed all 18 parity configs by 6 orders of magnitude (BUG-S18-001). Two compounding structural flaws: (1) 1/32 doc-inclusion rate from stride/ownership mismatch; (2) 32× butterfly amplification from applying D1c's intra-SIMD `simd_shuffle_xor` butterfly to shared `simdHist` slots. Fixed at commit `19fa5ce6cc`: replaced accumulation with cooperative 32-doc batch loop using `simd_shuffle` broadcast (every doc contributes exactly once, no atomics); removed intra-SIMD butterfly entirely (`simdHist[g][bin]` is already the full per-SIMD-group sum). See `docs/sprint18/bug_s18_001.md` for post-mortem.
+- S18-04a (initial, commit `abc4c229f9`): Parity FAIL — 4–20M ULP all 18 configs. Determinism PASS (consistent wrong answer).
+- S18-04b (`7ab4e8e804`): Parity re-run on fixed kernel. **108/108 checkpoints bit-exact (ULP = 0 all loss types). 100/100 determinism runs bit-exact.** Cleaner than Sprint 17's 35/36 outcome. S18-G3 hard merge gate CLEARED.
+- S18-05b (`da303866ef`): 18-config stage-profiler delta. Gate config (N=10k, RMSE, d6, 128b): **28.75 → 9.56 ms (-66.8%)**. S18-G1 (≥35%) **PASS** — 9.1 ms margin above target. Full range: -56.6% to -85.5%. All 18 configs improved, no regressions. Non-histogram stages all improved or unchanged. S18-G2, S18-G4 PASS. Sprint 19 floor visible: N=50k configs converge to ~15 ms (writeback-dominated). See `docs/sprint18/results.md`.
+- S18-06: CI gate `benchmarks/check_histogram_gate.py` baseline updated to Sprint 17 after-JSON. S18-G5 PASS.
+- S18-07: Code review PASS — barrier correctness, threadgroup-memory bound, stride-partition ownership.
+- S18-08: Security audit PASS — no new exploitable surfaces.
+- S18-09: Metal System Trace re-capture confirms `simdHist` on-chip residency; accumulation phase below 5 ms target. Appendix in `docs/sprint18/results.md`.
+- S18-10: Docs — `bug_s18_001.md` post-mortem, `design.md` updated with final kernel structure and BUG-S18-001 root cause diagram, `ablation.md` post-ship actual vs projected section, `README.md` verdict banner, DEC-011 + DEC-012 in `DECISIONS.md`, `ARCHITECTURE.md` histogram section refreshed, `CHANGELOG.md` user-facing entry.
+
+**Kernel change summary** (`catboost/mlx/kernels/kernel_sources.h`, commit `19fa5ce6cc`):
+- `float privHist[HIST_PER_SIMD]` (4 KB/thread, 1 MB/threadgroup device-memory spill) → `threadgroup float simdHist[8][1024]` (32 KB, on-chip, at Apple Silicon limit).
+- Zero-init loop eliminated (implicit for threadgroup memory).
+- Per-thread stride accumulation → cooperative 32-doc batch loop with `simd_shuffle` broadcast and stride-partition ownership.
+- D1c intra-SIMD butterfly removed (DEC-012). Cross-SIMD 8-term linear fold (DEC-009) unchanged.
+- Barriers: 9 → 6 per dispatch.
+- Reduction depth: γ_12 (S17) → γ_7 (S18). Higham bound improves ~7.2e-7 → ~4.2e-7.
+
+**Sprint 19 carry-forward lever**: writeback (global-atomic) phase at ~15 ms for N=50k configs is now the floor. Batched-atomic writeback or shared-memory prefix-scan reduction of per-SIMD histograms before global writeback is the likely S19 L1. Scope constraint: results bounded to DEC-008 envelope (`approxDim ∈ {1, 3}`, `N ≤ 50k`, depth 6, 50 iterations).
+
+---
+
 ## Sprint 17 — Histogram Tree Reduction (D1c) (2026-04-17)
 
 **Branch**: `mlx/sprint-17-hist-tree-reduce`

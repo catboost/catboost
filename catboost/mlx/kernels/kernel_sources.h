@@ -63,23 +63,38 @@ constant constexpr uint TOTAL_HIST_SIZE = NUM_SIMD_GROUPS * HIST_PER_SIMD;
 //   is not architecturally guaranteed. This produced non-deterministic histogram
 //   values across dispatches.
 //
-//   Fix: replace all shared-memory atomic accumulation with per-thread private
-//   histograms (thread-local stack arrays). Each thread accumulates only its own
-//   documents (loop stride BLOCK_SIZE, starting at thread_index_in_threadgroup)
-//   with no contention — zero atomics during accumulation. After accumulation, a
-//   fixed-order sequential reduction across threads (t=1, 2, ..., BLOCK_SIZE-1)
-//   folds all per-thread contributions into thread-0's histogram using threadgroup
-//   shared memory as a staging area. The reduction order is fixed, making the
-//   final histogram bit-for-bit identical across all dispatches.
+//   Fix (L1a, Sprint 18): replace per-thread private 4 KB arrays (privHist[1024],
+//   spilled to device memory) with a per-SIMD-group shared histogram in threadgroup
+//   memory (simdHist[8][1024] = 32 KB total, fully on-chip). Stride-partition
+//   ownership: lane l of SIMD group g owns bins {l, l+32, l+64, ..., l+992}.
+//   Each bin has exactly one writer per SIMD group → zero atomics in accumulation,
+//   BUG-001 structurally prevented by construction (no CAS, no races).
 //
-//   Memory: per-thread stack arrays are thread-local (spill to device memory if
-//   register pressure is high, but stay off the shared threadgroup address space).
-//   Threadgroup shared memory is used only during the reduction phase (4 KB for
-//   the HIST_PER_SIMD float staging buffer).
+//   Threadgroup memory (L1a):
+//     simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD] = 8 × 1024 × 4 B = 32 KB (at limit)
+//   This replaces the Sprint 17 layout:
+//     simdHist[8][256] = 8 KB  +  stagingHist[1024] = 4 KB  = 12 KB
+//   The Sprint 18 buffer is 2.67× larger but eliminates the per-thread device-
+//   memory spill (256 threads × 4 KB = 1 MB per threadgroup spill eliminated).
 //
-//   Performance: private histogram accumulation eliminates all stall cycles from
-//   CAS retries. The sequential reduction adds O(BLOCK_SIZE) passes over HIST_PER_SIMD
-//   entries, but each pass is a simple load+add+store without contention.
+//   Reduction phase (Sprint 18, BUG-S18-001 fix): single 8-term cross-SIMD
+//   linear fold (DEC-009, fixed g=0..7 order, 7 addition levels → γ_7 ≈ 4.2e-7
+//   FP32). The D1c intra-SIMD simd_shuffle_xor butterfly was REMOVED when the
+//   layout changed — stride-partition accumulation already produces the full
+//   per-SIMD-group per-bin sum in simdHist[g][bin], so the intra-SIMD butterfly
+//   was redundant AND incorrect (all 32 lanes would read the same address and
+//   amplify by 32×; see BUG-S18-001 root-cause comment below). Output target:
+//   simdHist[0][bin] acts as stagingHist, reusing the first 1024 slots of the
+//   32 KB buffer. Peak threadgroup memory: 32 KB during accumulation and
+//   reduction — at the Apple Silicon threadgroup limit, any bump to
+//   NUM_SIMD_GROUPS or HIST_PER_SIMD requires re-tiling (see host-side
+//   static_assert in kernel_sources.cpp).
+//
+//   Performance: eliminates (a) 1 MB/tg device-memory spill traffic during
+//   accumulation (RMW now goes to on-chip threadgroup SRAM), (b) 256 × 1024-entry
+//   zero-init loops per threadgroup (threadgroup memory init is single-owner
+//   strided, replacing the per-thread broadcast). Expected savings: 6.4–8.9 ms/iter
+//   (27–38% of histogram_ms) per S18-01 attribution.
 // ============================================================================
 
 static const std::string kHistOneByteSource = R"metal(
@@ -112,127 +127,132 @@ static const std::string kHistOneByteSource = R"metal(
     // Per-group fold metadata (4 entries per group)
     const uint foldBase = groupIdx * FEATURES_PER_PACK;
 
-    // BUG-001 FIX: Per-thread private histograms — no shared-memory atomics.
-    // Each thread accumulates its own document subset into a private stack array.
-    // Thread d processes documents d, d+BLOCK_SIZE, d+2*BLOCK_SIZE, ...
-    // This is a fixed, deterministic subset for each thread index, giving
-    // identical results for identical inputs across all dispatches.
+    // L1a (BUG-S18-001 fix): Per-SIMD-group shared histogram in threadgroup memory.
     //
-    // Layout: privHist[FEATURES_PER_PACK * BINS_PER_BYTE] = [4][256] = 1024 floats
-    // Size per thread: 4096 bytes (thread-local; spills to device memory if needed).
-    float privHist[HIST_PER_SIMD];
-
-    // Zero per-thread private histogram
-    for (uint i = 0u; i < HIST_PER_SIMD; i++) {
-        privHist[i] = 0.0f;
-    }
-
-    // Accumulate documents into private histogram — no atomics, no contention
-    for (uint d = thread_index_in_threadgroup; d < myDocCount; d += BLOCK_SIZE) {
-        const uint sortedPos = partOffset + myDocStart + d;
-        const uint docIdx = docIndices[sortedPos];
-
-        // Load packed features (4 one-byte features in one uint32)
-        const uint packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
-
-        // Load the statistic for this document
-        const float stat = stats[statIdx * totalNumDocs + docIdx];
-
-        // Accumulate into per-thread private histogram (no contention)
-        for (uint f = 0u; f < FEATURES_PER_PACK; f++) {
-            const uint bin = (packed >> (24u - 8u * f)) & 0xFFu;
-            if (bin < foldCountsFlat[foldBase + f] + 1u) {
-                privHist[f * BINS_PER_BYTE + bin] += stat;
-            }
-        }
-    }
-
-    threadgroup_barrier(mem_flags::mem_threadgroup);
-
-    // D1c: SIMD-shuffle intra-SIMD reduction + fixed-order cross-SIMD fold.
+    // Layout: simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD]
+    //         = simdHist[8][1024] = 32 KB (exactly at Apple Silicon threadgroup limit)
     //
-    // Replaces the serial 255-step reduction (one barrier per thread) with:
-    //   - 5 simd_shuffle_xor rounds per bin (zero threadgroup barriers, register-only)
-    //   - 2 threadgroup barriers per tile (SIMD-leader write, then cross-SIMD read)
-    //   - 4 tiles cover all HIST_PER_SIMD = 1024 bins → 8 barriers total (down from 255)
+    // Stride-partition ownership (BUG-001 structural guard):
+    //   lane l of SIMD group g owns bins {l, l+32, l+64, ..., l+992}
+    //   (32 bins per lane × 32 lanes = 1024 bins per SIMD group)
+    //   Each bin has exactly one writer per SIMD group → no atomics, no contention.
     //
-    // Threadgroup memory:
-    //   simdHist[NUM_SIMD_GROUPS][BINS_PER_BYTE] = 8 × 256 × 4 B = 8 KB
-    //   stagingHist[HIST_PER_SIMD]               = 1024 × 4 B    = 4 KB
-    //   Peak                                                       = 12 KB (37% of 32 KB limit)
+    // After accumulation the cross-SIMD fold (DEC-009) reads simdHist[g][bin]
+    // and writes the final sum into simdHist[0][bin], which serves as stagingHist.
     //
-    // Correctness: for each bin b, all 32 threads in a SIMD group load privHist[b]
-    // (same bin index, different threads' private histograms), then butterfly-sum
-    // across the 32 lanes. After 5 XOR rounds all lanes hold the same value: the
-    // per-SIMD-group sum for bin b. Lane 0 stores to simdHist[simd_id][b].
-    // The cross-SIMD fold (8-term sequential, fixed simd_id order 0..7) produces
-    // the final all-thread sum in stagingHist — deterministic because the simd_id
-    // order is compile-time fixed.
-    //
-    // Determinism: simd_shuffle_xor is bit-deterministic within a SIMD group
-    // (Apple Metal Shading Language Spec §6.9 — lanes execute in lockstep).
-    // The 8-term cross-SIMD sum runs in fixed simd_id order → also bit-deterministic.
-    // The reduction order differs from the serial fold, so absolute values will
-    // differ by a few ULP (within the DEC-005 ≤ 4 ULP RMSE parity gate).
-    //
-    // Zero-skip fast-path (abs(val) > 1e-20f): kept in the global-atomic writeback
-    // (lines 192–198 below) where it guards device-memory traffic. Fusing it into
-    // the cross-SIMD fold is an open micro-optimisation deferred to Sprint 18.
-    threadgroup float simdHist[NUM_SIMD_GROUPS][BINS_PER_BYTE]; // 8 KB
-    threadgroup float stagingHist[HIST_PER_SIMD];               // 4 KB (downstream interface unchanged)
+    // BUG-S18-001 root cause (L1a broken): The original accumulation loop assigned
+    // one doc per thread (d = tid, stride BLOCK_SIZE), meaning all 32 lanes in a
+    // SIMD group processed 32 DIFFERENT docs with 32 different bins. The predicate
+    // (bin & 31) == lane fired with probability 1/32 → only 1/32 of docs contributed.
+    // Separately, the intra-SIMD D1c butterfly then multiplied each already-full
+    // simdHist[g][bin] slot by 32 (all lanes read the same shared address, butterfly
+    // summed it 32 times). Net effect: 1/32 × 32 = correct magnitude but wrong bin
+    // geometry → 6-orders-of-magnitude parity failure. Both flaws removed here.
+    threadgroup float simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD]; // 32 KB
 
     const uint tid     = thread_index_in_threadgroup;
     const uint lane    = tid & (SIMD_SIZE - 1u);   // 0..31 within SIMD group
     const uint simd_id = tid >> 5u;                // 0..7 SIMD group index
 
+    // Zero-init: each lane zeros its owned stride for its SIMD group.
+    // Lane l zeros simdHist[simd_id][l], simdHist[simd_id][l+32], ...
+    // Total writes per thread: 32 (1024 bins / 32 lanes). Barrier 1.
+    for (uint b = lane; b < HIST_PER_SIMD; b += SIMD_SIZE) {
+        simdHist[simd_id][b] = 0.0f;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 1: zero-init complete
+
+    // Cooperative 32-doc batch accumulation — no atomics, no contention.
+    //
+    // Each SIMD group strides through its own disjoint batch window:
+    //   batch_start = simd_id * SIMD_SIZE, then += NUM_SIMD_GROUPS * SIMD_SIZE
+    // Within each batch of 32 docs, lane `src` loaded packed/stat; all 32 lanes
+    // in the group receive them via simd_shuffle, and only the bin-owner lane
+    // (bin & 31 == lane) writes. Every doc contributes exactly once.
+    //
+    // No intra-SIMD butterfly needed here: simdHist[g][bin] accumulates the full
+    // per-SIMD-group per-bin sum directly — each bin slot has one writer per group.
+    for (uint batch_start = simd_id * SIMD_SIZE;
+         batch_start < myDocCount;
+         batch_start += NUM_SIMD_GROUPS * SIMD_SIZE) {
+
+        const uint d     = batch_start + lane;
+        const bool valid = (d < myDocCount);
+
+        uint  packed = 0u;
+        float stat   = 0.0f;
+        if (valid) {
+            const uint sortedPos = partOffset + myDocStart + d;
+            const uint docIdx    = docIndices[sortedPos];
+            packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
+            stat   = stats[statIdx * totalNumDocs + docIdx];
+        }
+
+        // Broadcast each of the 32 docs in this batch to all 32 lanes.
+        // simd_shuffle(x, src): all lanes receive lane src's value of x.
+        for (uint src = 0u; src < SIMD_SIZE; ++src) {
+            const uint  p_s     = simd_shuffle(packed, src);
+            const float s_s     = simd_shuffle(stat,   src);
+            const bool  valid_s = simd_shuffle(valid,  src);
+            if (!valid_s) continue;   // uniform branch across the SIMD group
+
+            // Per-feature accumulation: only the bin-owner lane writes.
+            // (bin & 31) == lane ensures each slot has exactly one writer → no RMW races.
+            for (uint f = 0u; f < FEATURES_PER_PACK; ++f) {
+                const uint bin = (p_s >> (24u - 8u * f)) & 0xFFu;
+                if (bin < foldCountsFlat[foldBase + f] + 1u &&
+                    (bin & (SIMD_SIZE - 1u)) == lane) {
+                    simdHist[simd_id][f * BINS_PER_BYTE + bin] += s_s;
+                }
+            }
+        }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 2: accumulation complete
+
+    // Reduction (DEC-009, cross-SIMD linear fold only — intra-SIMD butterfly removed).
+    //
+    // After correct stride-partition accumulation, simdHist[g][bin] already holds
+    // the full per-SIMD-group per-bin sum. No per-lane partials exist to fold via
+    // butterfly. Only the 8-term cross-SIMD linear fold (DEC-009) is needed.
+    //
+    // Barrier count: 1 (zero-init) + 1 (accumulation) + 4 (one barrier per tile × 4)
+    //   = 6 total. Down from broken-L1a's 10, down from Sprint 17's 9.
+    //
+    // Reduction depth: 7-term linear fold → γ_7 ≈ 4.2e-7 FP32. Tighter than S17
+    //   (which had 5-xor + 7-linear = 12 levels → γ_12 ≈ 7.2e-7). DEC-008 compliant.
+
     for (uint tile = 0u; tile < FEATURES_PER_PACK; tile++) {   // 4 tiles × 256 bins = 1024 bins
         const uint tile_base = tile * BINS_PER_BYTE;
 
-        // --- Intra-SIMD reduction: 5 shuffle rounds, zero threadgroup barriers ---
-        // Every thread loads privHist[tile_base + bin] for the same bin index
-        // across all 32 lanes in the SIMD group, then butterfly-sums across lanes.
-        // Each bin in [0, BINS_PER_BYTE) is handled by exactly one iteration of
-        // this loop; the 32 threads in the SIMD group cover 32 different document
-        // subsets but the same bin.
-        for (uint bin = 0u; bin < BINS_PER_BYTE; bin++) {
-            float val = privHist[tile_base + bin];
-
-            // Butterfly XOR reduction: after 5 rounds all 32 lanes hold
-            // the same value — the sum of this SIMD group's 32 threads for bin.
-            val += simd_shuffle_xor(val, 16u);
-            val += simd_shuffle_xor(val,  8u);
-            val += simd_shuffle_xor(val,  4u);
-            val += simd_shuffle_xor(val,  2u);
-            val += simd_shuffle_xor(val,  1u);
-
-            if (lane == 0u) {
-                simdHist[simd_id][bin] = val;   // SIMD-leader stores per-group sum
-            }
-        }
-        threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 1 of 2 per tile
-
-        // --- Cross-SIMD fold: 256 threads each accumulate 8 SIMD-group values ---
+        // --- Cross-SIMD fold (DEC-009): 256 threads each accumulate 8 SIMD-group values ---
         // Thread tid handles bin tid (256 threads map exactly to 256 bins per tile).
         // The 8-term sum runs in fixed simd_id order 0..7 → deterministic result.
+        // Final sum written to simdHist[0][tile_base + tid] — stagingHist alias below.
         if (tid < BINS_PER_BYTE) {
             float sum = 0.0f;
             for (uint g = 0u; g < NUM_SIMD_GROUPS; g++) {
-                sum += simdHist[g][tid];
+                sum += simdHist[g][tile_base + tid];
             }
-            stagingHist[tile_base + tid] = sum;
+            simdHist[0][tile_base + tid] = sum;   // simdHist[0] acts as stagingHist
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 2 of 2 per tile
+        threadgroup_barrier(mem_flags::mem_threadgroup); // 1 barrier per tile (4 total)
     }
-    // Total barriers: 2 per tile × 4 tiles = 8 (down from 255 in the serial fold).
+    // Total barriers in histogram kernel body:
+    //   barrier 1 (zero-init) + barrier 2 (accumulation) + 4 (cross-SIMD, 1/tile × 4) = 6
 
-    // Write results from stagingHist (fully reduced into thread 0's pass) to global
+    // Writeback: read fully-reduced histogram from simdHist[0] (our in-place stagingHist).
+    // Contract: stagingHist[f * BINS_PER_BYTE + bin + 1u] — preserved exactly.
+    // simdHist[0][f * BINS_PER_BYTE + bin + 1u] holds the same value stagingHist
+    // held in Sprint 17: the all-thread sum for feature f, bin+1 (1-indexed CatBoost bins).
+    threadgroup float* stagingHist = simdHist[0];   // alias, no copy
+
     const uint histBase = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
 
     for (uint f = 0u; f < FEATURES_PER_PACK; f++) {
         const uint folds = foldCountsFlat[foldBase + f];
         const uint firstFold = firstFoldIndicesFlat[foldBase + f];
 
-        for (uint bin = thread_index_in_threadgroup; bin < folds; bin += BLOCK_SIZE) {
+        for (uint bin = tid; bin < folds; bin += BLOCK_SIZE) {
             const float val = stagingHist[f * BINS_PER_BYTE + bin + 1u];
             if (abs(val) > 1e-20f) {
                 // Always use atomics: multiple blocks per partition OR multiple
