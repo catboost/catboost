@@ -472,3 +472,63 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
 3. MultiClass approxDim=3 parity (3 independent reductions compound drift).
 **Fallback**: If parity fails, implement Kahan/Higham compensated summation (+1 uint32 per bin as running compensation term) and re-sweep. If Kahan still fails → T3b is structurally incompatible with DEC-008; alternative exploration.
 **Commits placeholder**: `<TBD-sprint-20>`.
+
+---
+
+## DEC-024: S23-R1 EvalAtBoundary readback elimination — DEFERRED (harness gap, not falsified)
+
+**Status**: DEFERRED pending harness extension (not falsified; not retired)
+**Date**: 2026-04-20 (Sprint 23 R1)
+**Author**: @ml-engineer
+**Authority**: `docs/sprint23/r1_evalatboundary.md` (R1 scope report)
+
+**Finding**: The three live `EvalAtBoundary` readback sites in `structure_searcher.cpp` (lines 290, 609, 705) are architecturally unreachable from the gate config (50k/RMSE/d6/128b).
+
+- Site A (line 290): `SearchDepthwiseTreeStructure` only — requires `EGrowPolicy::Depthwise`.
+- Site B (line 609): `SearchLossguideTreeStructure` evalLeaf — requires `EGrowPolicy::Lossguide`.
+- Site C (line 705): `SearchLossguideTreeStructure` split-apply — requires `EGrowPolicy::Lossguide`.
+
+Gate config runs `EGrowPolicy::SymmetricTree` (oblivious). `bench_boosting.cpp` uses its own inline oblivious-tree loop (`RunIteration`, lines 967–1243) and does not call `structure_searcher.cpp` at all. Production `mlx_boosting.cpp` at gate config dispatches to `SearchTreeStructure` which has no EvalAtBoundary calls.
+
+**Site fate per kill-switch**: A=SKIP, B=SKIP, C=SKIP (all 3 sites; 0/3 replaceable at gate).
+
+**Cost-estimate provenance**: S16 `sync_inventory.md` ~0.3 ms/iter was a theoretical cost-class-A projection, not a measured gate-config value. There is no measurable gate-config iter_total_ms reduction available via Sites A–C.
+
+**Lever disposition**: DEFERRED, not RETIRED. The lever may still be valid for production workloads using `Depthwise` or `Lossguide` grow policies. It cannot be ranked or executed until one of:
+  1. `bench_boosting` adds `--grow-policy {depthwise|lossguide}` flags, or
+  2. A separate benchmark harness wraps `mlx_boosting.cpp` with non-default grow policy and timing instrumentation.
+
+**Relation to prior decisions**: Complements DEC-017/DEC-018 (retired T3b/variant A — levers retired on evidence). DEC-024 is NOT a retirement; it is a gap diagnosis. If the harness extension lands, the lever re-enters the Verstappen candidate pool under standard gate criteria.
+
+**R8 position unchanged**: Gate config `iter_total_ms = 19.098 ms` (S22 D4). Cumulative 1.90×.
+
+**Commits**: None (no production changes in R1).
+
+---
+
+## DEC-025: S23-R2 dispatch inversion — FALSIFIED (structural algebraic blocker)
+
+**Status**: FALSIFIED — do not re-enter without new mask-mechanism evidence
+**Date**: 2026-04-20 (Sprint 23 R2)
+**Author**: @research-scientist
+**Authority**: `docs/sprint23/r2_dispatch_inversion_spike.md` (NO-GO verdict, 2-day timebox Day 1 closed)
+
+**Finding**: The proposal (replace partition-fragmented 1664-TG dispatch with a single all-docs histogram over `(feature × stat × bin)`, recovering per-partition bin sums at scoring time via masks) cannot yield per-partition bin-sums `h_p[f][b]` from the collapsed global `H[f][b]`. The algebra `H[f][b] = Σ_p h_p[f][b]` is not invertible without a second per-doc pass equivalent to the work the inversion was meant to eliminate.
+
+**Three mask mechanisms considered** (all fail):
+  1. **Per-partition mask at scoring time**: equivalent to a second histogram pass; no net win.
+  2. **Doc-level bin×partition tensor**: memory footprint 2–3× current histogram (50k docs × 64 parts × bins-worth ≥ 3× the current 3.2 MB).
+  3. **Bit-packed doc→partition with per-bin gather at scoring**: gather-count `numParts × numFeatures × numBins = 64 × 50 × 128 = 409,600 gathers/iter` adds ≥4–6 ms at AGX bandwidth, consuming the entire optimistic 5.05 ms headroom.
+
+**Parity regression risk**: Merging 64 partition atomic writers into a single contended per-bin slot raises atomic contention 64× over current T2. At the DEC-023 race footprint (N=10k config #8 already bimodal with 1664 TGs fragmentation), inversion strictly worsens the race — 26 TGs × 195 docs/thread contending on 128 bins × 4 features = 512 slots each receiving 64× more writers. Cannot ship within DEC-008 envelope without Kahan/fixed-point compensation (which itself has independent risks — see DEC-023 fix-option analysis).
+
+**Relation to prior falsifications**:
+  - DEC-017 (T3b retired): failed at production shape (+42.3%) because single-TG toy timing did not survive partition-fragmentation atomic contention.
+  - DEC-018 (variant A retired): failed the 10% fixed-overhead kill-switch because gate tested T1 amortization proxy, not T3b shape-restoration mechanism.
+  - **R2 is the non-atomic-CAS cousin of DEC-017**: both restore 195 docs/thread at gate by reducing TG count; R2 trades dispatch fragmentation for per-bin atomic fragmentation at scoring time — the same contention surface, relocated, plus a new reconstruction cost.
+
+**Re-entry policy**: Do not re-enter this design space in S24+ without new evidence of a structurally different reconstruction mechanism (e.g., hardware segment-sum primitives unique to a future GPU, or a hybrid per-partition sparse overlay pattern not considered in Day 1). Timeboxed spike closed at end of Day 1 — Day 2 not exercised.
+
+**R8 position unchanged**: Gate config `iter_total_ms = 19.098 ms` (S22 D4). Cumulative 1.90×.
+
+**Commits**: None (research spike only, no production changes).
