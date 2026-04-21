@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-21 (Sprint 24 CLOSED — DEC-023 RESOLVED via v5; R8 1.90× → 1.01× retroactive; Verstappen ≥1.5× gate failed; PR #16 pending Ramos open)
+> Last updated: 2026-04-21 (Sprint 25 OPEN — DEC-026 cascade-robust GAIN research; stacked on S24; G1 ε-calibration in progress)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-24-dec023-fix`
-- **Tip commit**: `784f82a891` — v5 cherry-picked; off-by-one diagnostic preserved
-- **Campaign**: Operation Verstappen — battle 9 CLOSED. ≥1.5× gate failed retroactively at S24 D0. R8 post-fix: 1.01×.
-- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → #14 → #15 → **#16 pending Ramos open** (Sprint 24)
+- **Branch**: `mlx/sprint-25-dec026-cascade` (stacked on `mlx/sprint-24-dec023-fix`)
+- **Tip commit**: S25 kickoff (post-scaffold); S24 tip at `3f4fff8a2d` (closeout) over `784f82a891` (v5)
+- **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research: DEC-026 cascade-robust GAIN (S25) investigates R8 recovery 1.01× → ~1.85–1.90× via lexicographic ε-tiebreak. No guaranteed delivery.
+- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → #14 → #15 → **#16 OPEN** (Sprint 24) — S25 branch stacked on top; PR #17 deferred until S25 verdict
 - **Known bugs**: BUG-T2-001 RESOLVED (`784f82a891`). Sibling S-1 (`kHistOneByte` writeback race) still latent, still guarded by NIT-4 CB_ENSURE `maxBlocksPerPart == 1`. BUG-007 and bench_boosting K=10 anchor mismatch still OPEN/unscheduled.
 
 ## Sprint 24 — CLOSED

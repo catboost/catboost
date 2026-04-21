@@ -1,6 +1,6 @@
 # Sprint 25 — DEC-026 Cascade-Robust GAIN Research
 
-**Branch**: TBD (cut from Sprint 24 tip `784f82a891`)
+**Branch**: `mlx/sprint-25-dec026-cascade` (cut from Sprint 24 branch tip `3f4fff8a2d`, stacked on `mlx/sprint-24-dec023-fix`)
 **Campaign**: Post-Verstappen research — R8 recovery investigation
 **Gate config**: 50k/RMSE/d6/128b (unchanged from S19–S24)
 **Authority**: `DECISIONS.md DEC-026`
