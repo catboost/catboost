@@ -1,1 +1,1 @@
-Replace the label (target variable) values for the dataset in place, without rebuilding the Pool. Useful for reusing large feature data across different targets.
+Replace the label (target variable) values for the dataset in place, without rebuilding the Pool. Useful for reusing large feature data across different targets or weighting schemes. Not safe to call concurrently with `fit()`, `score()`, or `eval_metrics()` on the same Pool.
