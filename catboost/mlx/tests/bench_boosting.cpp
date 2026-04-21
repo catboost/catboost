@@ -199,6 +199,14 @@ TSynthDataset GenerateSynthDataset(const TBenchConfig& cfg) {
     // Build feature metadata.
     // One-hot features (first numOneHot): small bin count in [2, 10], OneHotFeature=true.
     // Ordinal features (remainder):       bin count = cfg.NumBins, OneHotFeature=false.
+    //
+    // Semantics note (S19-13): real-quantize (csv_train.cpp) stores Folds = numBorders
+    // (for no-NaN features), where numBorders = cfg.NumBins - 1, and the actual bin
+    // values land in [0, numBorders]. Bench's synth path mirrors that: ordinal
+    // Folds = cfg.NumBins - 1, and `binDist` below draws from [0, folds]. Previously
+    // bench stored Folds = cfg.NumBins, which over-reported by one vs real-quantize.
+    // Alignment matters for the DEC-016 T1 MSB-sentinel envelope guard
+    // (DispatchHistogram in this file + DispatchHistogramBatched in histogram.cpp).
     ui32 totalBinFeatures = 0;
     ds.Features.resize(cfg.NumFeatures);
     for (ui32 f = 0; f < cfg.NumFeatures; ++f) {
@@ -207,7 +215,7 @@ TSynthDataset GenerateSynthDataset(const TBenchConfig& cfg) {
         // so different features get different sizes, and the result is reproducible.
         const ui32 folds = isOneHot
             ? static_cast<ui32>(2 + ((cfg.Seed + f) % 9))  // 2..10
-            : cfg.NumBins;
+            : (cfg.NumBins > 0u ? cfg.NumBins - 1u : 0u);
 
         ds.Features[f].Offset         = f / 4;
         ds.Features[f].Shift          = 24 - 8 * (f % 4);
@@ -316,15 +324,28 @@ mx::array DispatchHistogram(
     std::vector<uint32_t> firstFoldIndicesFlat(numGroups * 4, 0u);
     std::vector<uint32_t> featureColumnIndicesVec(numGroups, 0u);
 
+    ui32 maxFoldCount = 0;
     for (ui32 g = 0; g < numGroups; ++g) {
         featureColumnIndicesVec[g] = g;  // each group maps to column g
         for (ui32 slot = 0; slot < 4; ++slot) {
             ui32 f = g * 4 + slot;
             if (f < numFeatures) {
-                foldCountsFlat[g * 4 + slot]       = features[f].Folds;
+                const ui32 folds = features[f].Folds;
+                foldCountsFlat[g * 4 + slot]        = folds;
                 firstFoldIndicesFlat[g * 4 + slot]  = features[f].FirstFoldIndex;
+                if (folds > maxFoldCount) maxFoldCount = folds;
             }
         }
+    }
+
+    // DEC-016 T1 envelope guard — see histogram.cpp for full rationale.
+    if (maxFoldCount > 127u) {
+        std::fprintf(stderr,
+                     "FATAL: bench_boosting histogram kernel: max fold count %u "
+                     "exceeds DEC-016 T1 envelope (<= 127). The MSB-sentinel "
+                     "collides with bin values >= 128.\n",
+                     maxFoldCount);
+        std::exit(1);
     }
 
     auto foldCountsArr     = mx::array(reinterpret_cast<const int32_t*>(foldCountsFlat.data()),

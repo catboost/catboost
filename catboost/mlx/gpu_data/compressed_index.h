@@ -9,6 +9,7 @@
 //   - Binary features: 32 features per ui32 (1 bit each)
 //
 // Layout: compressedIndex[docIdx * numUi32PerDoc + wordIdx]
+//
 // Feature extraction: (compressedIndex[offset] >> shift) & mask
 
 #include <catboost/mlx/gpu_data/gpu_structures.h>

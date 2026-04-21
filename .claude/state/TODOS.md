@@ -56,11 +56,69 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 17–24 Backlog (one-line each, expanded per sprint)
+## Sprint 19 — Accumulation Redesign (PIVOTED from Two-Phase Writeback)
 
-- Sprint 17: Histogram occupancy fix — `maxBlocksPerPart` tuning, kernel rewrite (4–8x expected at N≥100k)
-- Sprint 18: Multiclass per-dim fusion — fuse approxDim loop into one histogram dispatch (2–4x multiclass)
-- Sprint 19: Depth pipelining — eliminate per-depth CPU readbacks at structure_searcher.cpp:252,550
+**Branch**: `mlx/sprint-19-hist-writeback` (name reflects original scope — history over cosmetics)  
+**Gate config**: 50k/RMSE/128b  
+**Baseline** (S18 after / S19-01 ground-truth, steady-state iters 5–49): `histogram_ms` = 15.46 ms (ground-truth), `iter_total_ms` = 21.12 ms  
+**Pivot**: S19-01 showed writeback = 0.79 ms (5%), accumulation = 14.30 ms (93%). R8 fired at 1.02–1.04× e2e. Ramos chose accumulation redesign. See DECISIONS.md for DEC-013 (SUPERSEDED) and DEC-014 (DRAFT).  
+**Projection**: `histogram_ms` −30% min (accumulation redesign; 1.25–1.50× e2e aggressive target still live pending S19-02b)  
+**Sprint length**: **Day 6** (pivot cost one day; was Day 5)
+
+### Day 0
+
+- [x] S19-00 — Branch cut from S18 tip (`463de74efa`); 18 baseline JSONs copied to `.cache/profiling/sprint19/baseline/`; state files scaffolded; `docs/sprint19/README.md` scaffold created — @ml-product-owner / @technical-writer **DONE**
+
+### Day 1
+
+- [x] ~~S19-01~~ — **COMPLETE-BUT-SUPERSEDED** — Writeback attribution (commit `d7ea14e28c`): writeback = 0.79 ms (5%), accumulation = 14.30 ms (93%). R8 fired. Evidence correct; premise (writeback as plurality) falsified. See `docs/sprint19/attribution.md` and DECISIONS.md DEC-014. — @performance-engineer
+- [x] ~~S19-02~~ — **COMPLETE-BUT-SUPERSEDED** — DEC-013 draft written (two-phase writeback); DEC-013 premise invalidated by S19-01. Variant (c) 3.0 ms projection not supported by ground truth. See `docs/sprint19/ablation.md` and DECISIONS.md DEC-013 SUPERSEDED note. — @research-scientist
+- [ ] S19-11 — In-sprint cleanup: 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` ("fix properly always" carry-forward from S18) — @ml-engineer
+- [ ] S19-12 — In-sprint cleanup: VGPR confirmation + S18 deferred code-review items — @performance-engineer / @code-reviewer
+
+### Day 2
+
+- [ ] S19-01b — Accumulation sub-phase attribution: re-attribute 14.30 ms accumulation across sub-phases; ±1 ms error bars; output appended to `docs/sprint19/attribution.md` — @performance-engineer **IN PROGRESS**
+- [ ] S19-02b — Accumulation redesign ablation: variants A (wider batch), B (coalesced TG staging), C (per-feature specialization), D (different ownership granularity) × {bins 32,128} × {N 10k,50k}; PROPOSE → CRITIQUE → IMPLEMENT-draft → VERIFY-project → REFLECT; DEC-014 lock; output appended to `docs/sprint19/ablation.md` — @research-scientist **IN PROGRESS**
+
+### Day 3
+
+- [x] S19-03 (Commit 1 — DEC-015) — **BLOCKED: performance gate not met** — DEC-015 col-major compressedIndex transposed view implemented, parity 18/18 PASS (0 ULP), determinism 100/100 PASS, builds clean. Gate: `histogram_ms ~4.2 ms, e2e ~2.13×`. Measured: warm mean ref=33.7–34.2 ms, DEC-015=34.3–35.7 ms → **~0.98× e2e**. S19-01b prediction falsified. 5 modified files NOT committed. Working tree dirty. See HANDOFF.md BLOCKERS. — @ml-engineer
+- [ ] S19-03 (re-spec) — **NEW: micro-benchmark re-attribution** — Build isolated Metal kernel sweeping row-major vs col-major `compressedIndex` access at N∈{10k,50k} × lineSize∈{13,25,50}. Confirm whether AGX hardware hides scatter cost or bottleneck is elsewhere. Required before next kernel intervention. — @performance-engineer
+- [ ] S19-04 — Parity sweep: DEC-008 envelope (approxDim ∈ {1,3}, N ≤ 50k, all losses, 32/128 bins, 50 iter, d6); 100-run determinism on 50k/RMSE/d6/128b — @qa-engineer (HOLD: S19-03 gate must resolve first)
+
+### Day 4+
+
+- [ ] S19-05 — Stage-profiler delta on 18-config grid; output: `.cache/profiling/sprint19/{before,after}_*.json` + `docs/sprint19/results.md` delta table — @performance-engineer
+- [ ] S19-06 — Update `benchmarks/check_histogram_gate.py` reference baseline to S18 after-JSON; verify CI gate continuity; intentional-regression dry-run — @mlops-engineer
+- [ ] S19-07 — Code review: accumulation phase correctness, DEC-014 design, DEC-011 ceiling, barrier count — @code-reviewer
+- [ ] S19-08 — Security pass: kernel string injection surface; no new externally-controlled buffer sizes — @security-auditor
+- [ ] S19-09 — Metal System Trace re-capture on gate config; confirm accumulation improvement; output: appendix in `docs/sprint19/results.md` — @performance-engineer
+
+### In-sprint cleanup
+
+- [ ] S19-11 — 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (see Day 1 above)
+- [ ] S19-12 — VGPR confirmation + S18 deferred code-review items (see Day 1 above)
+
+### Docs
+
+- [ ] S19-10 — `docs/sprint19/` full population: README (scaffold DONE; pivot update DONE), attribution, ablation, results, non_goals; `CHANGELOG-DEV.md` S19 entry; `ARCHITECTURE.md` accumulation section update; DEC-013 SUPERSEDED + DEC-014 lock (DRAFT → ACCEPTED at S19-02b close); same-PR docs standing order fulfilled — @technical-writer
+
+### Sprint 19 merge gates
+
+| Gate | Criterion |
+|------|-----------|
+| G1 | **`histogram_ms` −30% min** on 50k/RMSE/128b (accumulation = 93%; 32% accum reduction ≈ 30% histogram_ms) |
+| G2 | No 18-config regression >5% |
+| G3 | Parity 108/108 bit-exact across DEC-008 envelope |
+| G4 | `iter_total_ms` −30% min on 50k/RMSE/128b (aggressive 1.5× target pending S19-01b/S19-02b) |
+| G5 | No non-histogram stage regresses >10% |
+| G6 | CI green |
+
+---
+
+## Sprint 20–24 Backlog (one-line each, expanded per sprint)
+
 - Sprint 20: Quantization fastpath — GPU quantization on ingest, persistent device-resident datasets
 - Sprint 21: Leaf + apply fusion — one command buffer for leaf estimation + tree apply
 - Sprint 22: Kernel specialization — dtype/depth-specialized kernels via MLX JIT template system

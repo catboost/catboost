@@ -728,14 +728,16 @@ namespace NCatboostMlx {
         result.NodeSplitMap = std::move(nodeSplitMap);
         result.LeafBfsIds.assign(leafBfsId.begin(), leafBfsId.end());
 
-        // Build the LeafDocIds MLX array from leafDocVec
+        // Build the LeafDocIds MLX array from leafDocVec.
+        // Data is copied into the MLX buffer at construction (no pending GPU
+        // ops), so the prior EvalAtBoundary was a no-op flush. Downstream
+        // consumers (ComputeLeafSumsGPU, ApplyLossguideTree via mx::take)
+        // chain lazily; the per-iteration boundary sync in mlx_boosting.cpp
+        // flushes the graph before next use.
         result.LeafDocIds = mx::array(
             reinterpret_cast<const int32_t*>(leafDocVec.data()),
             {static_cast<int>(numDocs)}, mx::uint32
         );
-        // EvalAtBoundary: materialise LeafDocIds at lossguide tree exit so that
-        // ApplyLossguideTree receives a fully-evaluated GPU array for mx::take.
-        TMLXDevice::EvalAtBoundary(result.LeafDocIds);
 
         CATBOOST_INFO_LOG << "CatBoost-MLX Lossguide: tree built with "
             << result.NumLeaves << " leaves, "

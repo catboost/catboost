@@ -2,6 +2,120 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 19 — T1 fuse-valid (DEC-016) shipped; DEC-014/015 REJECTED empirically; S19-13 envelope guard + exit gates (2026-04-17 → 2026-04-19, EXIT-GATES PASSED)
+
+**Branch**: `mlx/sprint-19-hist-writeback`
+**Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)
+**Verdict**: T1 (DEC-016) shipped at −1.76% e2e on gate config, bit-exact, deterministic, guarded. R8 ≥1.07× NOT met (1.018× actual on gate / 1.033× best) — deferred to Sprint 20 via DEC-017 (T3b atomic-CAS).
+
+### Day 4 evening (2026-04-19) — Exit gates + S19-13 envelope guard
+
+Five exit-gate agents launched after commit `0f992cf863`. Two completed with empirically-backed sign-offs; two returned plan-only outputs (sandbox constraints); one flagged a BLOCKER on the T1 MSB-sentinel that was then fixed in S19-13.
+
+**S19-07 code review — BLOCKER then resolved via S19-13.** Reviewer found that `compressedIndex[...] | VALID_BIT` in `kernel_sources.h` is unsafe whenever slot-0 holds a bin value ≥ 128. The packer (`csv_train.cpp::PackFeatures`) uses 8-bit slots, so slot-0 occupies bits [24..31] — bit 31 aliases bin 128. With default `MaxBins = 255` or the `bins = 128 + NaN offset` case, the path is reachable and `p_clean = p_s & 0x7FFFFFFFu` silently rewrites bins 128..255 → 0..127. The DECISIONS.md rationale claim "Safe at ≤128 bins because packed holds four 8-bit values in bits 24–30" was off by one.
+
+**S19-13 fix** (landed in this session, single commit):
+- `catboost/mlx/methods/histogram.cpp::ComputeHistogramsImpl` — computes `maxFoldCount` during foldCountsFlatVec construction and enforces `CB_ENSURE(maxFoldCount ≤ 127u, …)` before dispatch, with diagnostic message naming DEC-016 envelope and Sprint 20 DEC-017 as the wider-envelope follow-up. Include of `<catboost/libs/helpers/exception.h>` added.
+- `catboost/mlx/tests/bench_boosting.cpp::DispatchHistogram` — mirror of the host-side guard via `std::fprintf(stderr, …)` + `std::exit(1)` (CB_ENSURE header is not available in the standalone bench build path).
+- `catboost/mlx/tests/bench_boosting.cpp::GenerateSyntheticDataset` — `folds = isOneHot ? (…) : cfg.NumBins − 1` for ordinals. Aligns bench's Folds with real-quantize (`csv_train.cpp::Quantize` sets `folds = numBorders` for no-NaN features). Previously bench stored `Folds = cfg.NumBins` which over-reported by 1 and caused the guard to false-trip on `--bins 128` despite actual bin values staying in [0, 126].
+- `catboost/mlx/kernels/kernel_sources.h:175–182` — inline comment rewritten to state the true invariant ("Safe ONLY when every feature's fold count ≤ 127") and cross-reference the host-side guard.
+- `.claude/state/DECISIONS.md::DEC-016` — rationale + scope-limit corrected, S19-07 cross-reference added.
+
+**S19-04 parity + determinism — PASS.** 18 configs × 3 runs each on `bench_boosting_ref` (kernel `020eacfb4c` pre-T1, HEAD elsewhere) vs `bench_boosting_t1` (HEAD + S19-13). All 18 produce bit-exact `BENCH_FINAL_LOSS` across ref and t1 (ulp = 0 in all cases, DEC-008 envelope satisfied at the strictest level). 100-run determinism on 50k/RMSE/d6/128b/seed42 returns a single unique loss (0.47740927 post-S19-13) — BUG-001 structural guard holds.
+
+**S19-05 perf delta — PASS G2.** 3-run warm-mean deltas: best −3.23% (50k/Logloss/128); gate config (50k/RMSE/128) −1.76%; worst regression +1.39% at 1k/RMSE/128 (within 3-run noise floor ±2%). No config regresses > 5%. Delivered R8 factor on gate: **1.018×**. Honest accounting preserved. Per-config JSONs written to `.cache/profiling/sprint19/after_t1/*.json` (18 files).
+
+**S19-08 security — PASS (APPROVED).** 5-commit diff audit: no kernel-source injection surfaces, no new buffer-size surfaces, no TOCTOU from EvalAtBoundary removal (MLX host-pointer ctor copies synchronously), no subprocess/eval/pickle in `check_histogram_gate.py`, no secrets, no dependency drift. One defense-in-depth suggestion ("add bins ≤ 128 assertion") — absorbed into S19-13.
+
+**S19-09 post-fix MST — DEFERRED.** `xcrun xctrace` remains sandbox-blocked (same condition as S18-09). Analytical stage decomposition appended to `docs/sprint19/results.md §S19-09`: first-principles probe-A projection (−19.5% e2e) vs measured (−1.76%) is an ~11× over-projection, consistent with probe-A's 86.2% being a depth-0 single-TG attribution that does not multiply cleanly across 1575 TGs × 6 depths. Pattern: fifth analytical model under-predicts the projection-to-production gap. MST capture carried to Sprint 20 under Instruments availability.
+
+**Docs landed:** `docs/sprint19/results.md` (executive summary + per-gate detail + honest R8 accounting).
+
+### Day 4 (2026-04-19) — Path 3 close-out: Commits 1+2 shipped, A1 empirically dropped, parallel tracks
+
+### Day 4 (2026-04-19) — Path 3 close-out: Commits 1+2 shipped, A1 empirically dropped, parallel tracks
+
+**Three DEC-012 kernel commits landed** on `mlx/sprint-19-hist-writeback`:
+
+1. **`77db8b5631`** — Commit 1: extract DEC-015 side-fix. Reverted col-major layout changes in `compressed_index.h`, `kernel_sources.h`, `bench_boosting.cpp`, `csv_train.cpp`. Kept the `DispatchHistogramBatched` per-group variable correction (`featureColumnIndices`+`numGroups` replacing scalar `featureColumnIdx`) in `histogram.cpp` — a pre-existing correctness fix that would have shipped regardless.
+2. **`7387814dd6`** — S19-06 CI gate widening. `benchmarks/check_histogram_gate.py` updated from `sprint17/10k` to `sprint19/baseline/50000_rmse_d6_128bins.json`. Dropped min-reduction flag; sprint-neutral messages. Dry-run triggers at +6.1% delta.
+3. **`020eacfb4c`** — S19-11 scope-reduced. Removed `TMLXDevice::EvalAtBoundary(result.LeafDocIds)` at `structure_searcher.cpp:738` — a no-op flush since MLX constructor copies data into the GPU buffer synchronously. Other 3 `EvalAtBoundary` calls on that path (lines 290, 609, 705) are legitimate pre-`.data<T>()` guard-syncs, left intact. Bit-exact pre/post at 50k/RMSE/d6/128b = 0.48047778 (3 runs each).
+4. **`92f3832169`** — Commit 2: DEC-016 T1 fuse-valid simd_shuffle reduction. Pack the valid flag into the MSB of `packed` at load time (`packed |= VALID_BIT` where `VALID_BIT = 0x80000000u`); derive validity from `(p_s & VALID_BIT)` inside the src broadcast loop; mask via `p_clean = p_s & 0x7FFFFFFFu` before bin extraction. Drops one `simd_shuffle` per src iteration (3 → 2). **Measurements (50k/RMSE/d6/128b, 3-run warm mean):** pre-edit 32.47 ms, post-edit 31.73 ms → **−2.3% e2e**. **Parity bit-exact at 3 configs** (50k/RMSE=0.48047778, 10k/RMSE=0.48016092, 50k/MultiClass=0.94424933). Safe at ≤128 bins (packed holds four 8-bit values in bits [0..30]; bit 31 always zero on load).
+
+**Commit 3 (DEC-014 A1 BATCH_DOCS=64) DROPPED** per plan clause "if not reproducible, drop":
+- A1 variant added to `docs/sprint19/scratch/algorithmic/microbench_algorithmic.cpp` as `kA1Source`. Toy measurement (3 runs, post-T1): A1 vs T1 mean = **−1.9%** (noise-marginal; stdev ~1%).
+- Production port (lo/hi slab state in lane registers, outer stride doubled, 2-slab inner shuffle loop). Parity bit-exact (0.48047778) but **warm-mean e2e +9.4% REGRESSION** (T1-only 31.7 ms vs T1+A1 34.7 ms, 3 runs each). Register pressure from lo/hi slab state dominates the halved outer-loop saving — AGX VGPR spill hypothesis.
+- A1 reverted in `kernel_sources.h`; A1 variant kept in `microbench_algorithmic.cpp` for future reference.
+- Full disposition: `docs/sprint19/scratch/algorithmic/a1_empirical_drop.md`.
+
+**Pattern note: fourth analytical model falsified this sprint.** DEC-013 writeback plurality → SUPERSEDED. DEC-014 original gather sub-phase → INVALIDATED. DEC-015 col-major layout → REJECTED (measured 0.98× vs projected 2.13×). DEC-014 (A1 BATCH_DOCS=64) → REJECTED (measured +9.4% regression vs projected −4%). Sprint 19 lesson, locked: analytical reasoning about AGX cache/register behavior is unreliable — empirical micro-bench backing is required before committing any production kernel change, and toy-kernel signal must be validated against production integration before shipping.
+
+**R8 accounting (honest per "do not soften" standing order):**
+- R8 revised mid-sprint from aggressive 1.5–1.8× e2e to **≥1.07× e2e** after S19-01 ground-truth falsified the writeback plurality model.
+- Delivered: **1.023× e2e** on 50k/RMSE/d6/128b via T1 alone.
+- R8 NOT met. Deferred to Sprint 20 via DEC-017 T3b atomic-CAS (toy measured −84.4% accumulation; full DEC-008 parity sweep is the Sprint 20 D1 gate).
+
+**Documentation landed (S19-10 technical-writer pass):**
+- `docs/sprint19/algorithmic_ablation.md` — T0/T1/T2/T3/T3b ablation with measured toy-kernel deltas.
+- `docs/sprint20/README.md` — Sprint 20 D1–D4 plan (T3b parity sweep, production integration, full-grid scaling, MultiClass drift analysis).
+- DECISIONS.md updated: DEC-014 REJECTED, DEC-015 REJECTED, DEC-016 ACTIVE, DEC-017 DRAFT-S20.
+- HANDOFF.md updated with close-out status and R8 deferral.
+
+**Exit gates PENDING (parallel tracks, unblocked):** S19-04 parity grid + 100-run determinism, S19-05 18-config perf delta + 50k MST, S19-07 code review, S19-08 security pass, S19-09 post-fix MST.
+
+---
+
+## Sprint 19 — Accumulation Redesign (PIVOTED from Two-Phase Writeback) (2026-04-17, in progress)
+
+**Branch**: `mlx/sprint-19-hist-writeback` (name reflects original scope — history over cosmetics)  
+**Campaign**: Operation Verstappen — battle 4 of 9 — L_accum lever (pivoted from L_writeback)  
+**Verdict**: IN PROGRESS
+
+### Day 3 (2026-04-18) — DEC-015 col-major layout: correct, but performance gate not met (BLOCKER)
+
+**S19-03 Commit 1 (DEC-015) — BLOCKED, NOT COMMITTED**
+
+Implementation completed across 5 files. Status: parity-clean, determinism-clean, performance gate not met.
+
+**Changes in working tree (not committed):**
+- `catboost/mlx/gpu_data/compressed_index.h` — Added `CompressedDataTransposed_` member (`[numUi32PerDoc * numDocs]` uint32, col-major). Built in `Build()` via `mx::copy(mx::transpose(CompressedData_, {1,0}))` → `mx::reshape(..., {-1})` → `EvalAtBoundary`. One-time materialisation at load time. Added `GetCompressedDataTransposed()` accessor.
+- `catboost/mlx/kernels/kernel_sources.h` — Changed compressedIndex load address from row-major `compressedIndex[docIdx * lineSize + featureColumnIdx]` to col-major `compressedIndex[featureColumnIdx * totalNumDocs + docIdx]`.
+- `catboost/mlx/methods/histogram.cpp` — Rewrote `DispatchHistogramGroup()` (scalar per-group dispatch with broken variable name mismatch) to `DispatchHistogramBatched()` (correct batched dispatch matching `bench_boosting.cpp`/`build_verify_test.cpp`). Input names now match kernel body: `featureColumnIndices` (array) + `numGroups` (scalar). Passes `compressedDataTransposed` from `GetCompressedDataTransposed()`.
+- `catboost/mlx/tests/bench_boosting.cpp` — Pre-computes `compressedDataTransposed` once before training loop; passes as parameter to `RunIteration()` → `DispatchHistogram()`.
+- `catboost/mlx/tests/csv_train.cpp` — Pre-computes `compressedDataTransposed` once in `RunBoosting()` before training loop; passes to all 3 `DispatchHistogram()` call sites.
+
+**Bugs fixed along the way (would have shipped regardless):**
+- Pre-existing `histogram.cpp` kernel variable name mismatch: old code used `featureColumnIdx` (scalar 0-dim) but kernel body referenced `featureColumnIndices[groupIdx]` (array). Metal compile would have errored. Fixed as part of DEC-015 rewrite.
+- Stale S18 parity reference (8/18 FAIL on first run): S18 parity table was from older D1c binary. Rebuilt reference binary from pre-DEC-015 stash. Result: 18/18 PASS, 0 ULP.
+- Per-call transpose overhead: initial attempt placed `mx::copy(mx::transpose(...))` inside `DispatchHistogram()`, causing 6× GPU copies per iteration. Moved to pre-training-loop.
+
+**Gate measurements (50k/RMSE/d6/128b, 5 warm runs each):**
+- `bench_boosting_ref` warm mean: 33.7–34.2 ms (5 runs, σ ≈ 0.3 ms)
+- `bench_boosting` (DEC-015) warm mean: 34.3–35.7 ms (5 runs, σ ≈ 0.5 ms)
+- Speedup: **~0.98× e2e** (effectively 0, within noise)
+- Expected from S19-01b model: 2.13× e2e (`histogram_ms` 15.43 → 4.17 ms)
+- **Gate: NOT MET. BLOCKER.**
+
+**Implication for S19-01b:** The analytical model (25 CL per 32-doc batch → 4 L2 stall rounds → 12.78 ms CI gather latency) is not validated by direct measurement. The DEC-015 layout change is the most direct test of that model's core prediction. The 0.98× result implies the model's latency estimate or access-pattern description is incorrect for this hardware. A hardware-controlled micro-benchmark (isolated kernel, swept N/lineSize, both layouts) is needed before the next intervention.
+
+### Day 2 (2026-04-17) — Ground-truth falsifies writeback hypothesis; pivot to accumulation redesign
+
+- **S19-01** (commit `d7ea14e28c`, `docs/sprint19/attribution.md`): Ground-truth Metal System Trace attribution on 50k/RMSE/d6/128b gate config. **Writeback = 0.79 ms (5%)** of steady-state `histogram_ms`. **Accumulation = 14.30 ms (93%)**. The "~15 ms writeback floor" from S18 was a mis-scaling of N=10k numbers to N=50k. R8 fired: writeback elimination projects 1.02–1.04× e2e (below the 1.5× aggressive target). Evidence correct; premise (writeback as plurality) falsified.
+- **S19-02** (commit `fb05205ec0`, `docs/sprint19/ablation.md`): @research-scientist wrote a clean DEC-013 draft for two-phase writeback reduction. Variant (c) projected 3.0 ms reduction. Premise immediately invalidated by S19-01 — secondary effects ground truth does not support the projection. DEC-013 draft stands as historical artifact; not implemented.
+- **R8 result**: writeback elimination → 1.02–1.04× e2e. Does not meet the 1.5× aggressive gate.
+- **Ramos decision**: Option 2 — pivot Sprint 19 to accumulation redesign. Option 1 (ship weak writeback) and Option 3 (cleanup-only demote) rejected.
+- **DEC-013 SUPERSEDED** by DEC-014 (see `.claude/state/DECISIONS.md`). DEC-013 entry preserved as audit trail.
+- **DEC-014 DRAFT added**: accumulation redesign over writeback rewrite. 4 candidate variants (A: wider batch, B: coalesced TG staging, C: per-feature specialization, D: different ownership granularity). Projection: 30–50% `histogram_ms` reduction → 1.25–1.50× e2e. Locks at S19-02b close.
+- **Day 2 kickoff**: @performance-engineer running S19-01b (accumulation sub-phase attribution); @research-scientist running S19-02b (accumulation redesign ablation + DEC-014 lock). Both in parallel.
+- Sprint length bumped Day 5 → **Day 6** (pivot cost one day).
+- G1 gate revised: `histogram_ms` −40% → **−30% min** (accumulation = 93%; 32% accumulation reduction ≈ 30% histogram_ms).
+
+### Day 0 (2026-04-17) — Branch cut and scaffold
+
+- S19-00: Branch cut from `mlx/sprint-18-hist-privhist-tile@463de74efa`. Sprint 18 after-profiles copied to `.cache/profiling/sprint19/baseline/` (18 JSONs, identical to S18 after). Gate config shift: 10k/RMSE/128b → **50k/RMSE/128b** (writeback lever has force at large N). Steady-state baselines — gate config: `histogram_ms` 15.52 ms (mean), `iter_total_ms` 21.12 ms. State files scaffolded (HANDOFF S19 rewrite, TODOS S19 section, DECISIONS DEC-013 placeholder, CHANGELOG S19 header). `docs/sprint19/README.md` scaffold created with campaign context, lever description, gates table, and projection table. DEC-013 DRAFT: two-phase on-chip reduction over batched-atomic (Ramos: "whatever is more robust"). PR #10 (Sprint 18) remains OPEN, unblocked.
+
+---
+
 ## Sprint 18 — Histogram Accumulator Re-architecture (L1a) (2026-04-17)
 
 **Branch**: `mlx/sprint-18-hist-privhist-tile`  
