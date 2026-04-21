@@ -205,29 +205,37 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 25 — DEC-026 Cascade-Robust GAIN Research (OPEN)
+## Sprint 25 — DEC-026 Cascade-Robust GAIN Research (CLOSED — FALSIFIED)
 
-**Branch**: TBD (cut from Sprint 24 tip `784f82a891`)
+**Branch**: `mlx/sprint-25-dec026-cascade` (stacked on S24)
 **Campaign**: Post-Verstappen research — R8 recovery investigation
 **R8 entry position**: 1.01× (honest post-S24)
-**Research target**: Recover T2 Path 5 speedup (R8 ≈ 1.85–1.90×) via cascade-robust GAIN comparison
-**Authority**: `DECISIONS.md DEC-026`
+**R8 exit position**: 1.01× (unchanged — research FALSIFIED at G1)
+**Verdict**: FALSIFIED at G1. Kill-switch fired cleanly on day 1. G2–G5 not attempted.
+**Authority**: `DECISIONS.md DEC-026` (FALSIFIED 2026-04-21); `docs/sprint25/g1_epsilon_calibration.md` (verdict doc)
 
 ### Research track — DEC-026 (owner: @research-scientist)
 
-- [ ] S25-G1 — Epsilon calibration study. Measure GAIN near-tie frequency at config #8 across training iterations. Determine: (a) at which iterations does a near-tie GAIN flip occur when T2 (Value B inputs) vs T1 (Value A inputs) disagree; (b) what ε would catch these flips without false-positive tiebreaks at legitimate GAIN gaps across the other 17 configs. Output: quantitative ε range or FALSIFIED verdict if no viable ε exists. Kill-switch: if no viable ε → DEC-026 FALSIFIED, halt. — @research-scientist **OPEN**
+- [x] S25-G1 — Epsilon calibration study. **FALSIFIED** 2026-04-21. 180-run empirical sweep (18 configs × 5 runs × 2 kernels) established ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07 → safety ratio 4.74e-05 (target ≥ 2.0). Path 5 flip gaps span the full range of legitimate top-2 separations; no ε threads the needle. Kill-switch fired. — @research-scientist **DONE (FALSIFIED)**
 
-- [ ] S25-G2 — Tiebreak implementation in scoring kernel. Implement lexicographic tiebreak (featureIdx, binIdx) when `|GAIN_A - GAIN_B| < ε` in the scoring kernel. Calibrated to S25-G1 ε. Kill-switch: if tiebreak fires at ≥2 of 18 configs on legitimate GAIN gaps → ε miscalibrated, halt and revisit G1. — @ml-engineer **OPEN** (blocked on G1)
+- [x] S25-G2 — Tiebreak implementation in scoring kernel. **CANCELLED** — blocked on G1, never attempted. — @ml-engineer **DONE (CANCELLED)**
 
-- [ ] S25-G3 — T2 Path 5 rebuild. Rebuild T2 with T2-sort + int-atomic fixed-point accumulation (features 1-3) on top of the tiebreak. Compile, measure hist_ms ratio at gate config. Target: ratio ≤ 0.45× (Path 5 design historically measured 0.317×). Kill-switch: if ratio > 0.45× → T2 Path 5 structurally misses the performance target, halt. — @ml-engineer **OPEN** (blocked on G2)
+- [x] S25-G3 — T2 Path 5 rebuild. **CANCELLED** — blocked on G2. — @ml-engineer **DONE (CANCELLED)**
 
-- [ ] S25-G4 — 18-config parity sweep + determinism. 18/18 DEC-008 ULP ≤ 4; ≥5 runs per non-gate config; config #8 10/10 deterministic; gate config 100/100. Kill-switch: any config fails ULP ≤ 4 or bimodality detected → halt. — @qa-engineer **OPEN** (blocked on G3)
+- [x] S25-G4 — 18-config parity sweep + determinism. **CANCELLED** — blocked on G3. — @qa-engineer **DONE (CANCELLED)**
 
-- [ ] S25-G5 — Model-quality validation. AUC/RMSE drop ≤ 0.5% at any of the 18 DEC-008 configs relative to T1 baseline. Kill-switch: quality drop > 0.5% at any config → abandon DEC-026 at this ε; consider whether a different ε survives or declare FALSIFIED. — @qa-engineer **OPEN** (blocked on G4)
+- [x] S25-G5 — Model-quality validation. **CANCELLED** — blocked on G4. — @qa-engineer **DONE (CANCELLED)**
 
 ### Sprint 25 merge gate
 
-All 5 gates above pass → re-ship T2 Path 5 at R8 ≈ 1.85–1.90×. Any kill-switch fires → DEC-026 FALSIFIED; R8 stays at 1.01×. No guaranteed delivery.
+FALSIFIED. R8 stays at 1.01×. Verstappen ≥1.5× gate remains retroactively failed from S24 D0.
+v5 (`catboost/mlx/kernels/kernel_sources.h` at `784f82a891`) is the final production kernel.
+S25 closeout ships the G1 empirical artifacts + verdict doc as falsification evidence; no
+production code changes.
+
+**DEC-027 (deferred)**: alternative accumulation paths (e.g., XGBoost-style per-feature
+deterministic radix-sum) are acknowledged as a possible future research direction but are
+NOT opened at S25 close. Ramos to dedicate time later.
 
 ---
 
@@ -238,7 +246,7 @@ All 5 gates above pass → re-ship T2 Path 5 at R8 ≈ 1.85–1.90×. Any kill-s
 - Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90× (superseded by S24). Verstappen gate cleared at S22. PR #14 pending. Note: S22 D3 parity corrected to 17/18 (DEC-020 footnote + DEC-023).
 - Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025. PR #15 pending.
 - Sprint 24: DEC-023 v5 fix — CLOSED. DEC-023 RESOLVED. R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× failed. DEC-026 opened. PR #16 pending.
-- Sprint 25: DEC-026 cascade-robust GAIN research (OPEN)
+- Sprint 25: DEC-026 cascade-robust GAIN research — CLOSED, FALSIFIED at G1 (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. PR #17 pending. DEC-027 deferred for future dedicated research.
 
 ---
 

@@ -188,11 +188,70 @@ Research sprint. 1-2 weeks with kill-switches at each gate.
 
 ---
 
-## §7 D-Document Placeholders
+## §7 D-Document Status
 
 | Doc | Status | Description |
 |-----|--------|-------------|
-| `g1_epsilon_calibration.md` | PENDING | GAIN gap distribution tables; ε range or FALSIFIED verdict |
-| `g3_t2_path5_rebuild.md` | PENDING | Path 5 rebuild implementation + ratio measurement |
-| `g4_parity_sweep.md` | PENDING | 18-config parity sweep results |
-| `g5_quality_validation.md` | PENDING | Model-quality AUC/RMSE comparison table |
+| `g1_epsilon_calibration.md` | COMPLETE | 180-run sweep + GAIN gap distribution tables + ε-threading verdict (FALSIFIED) |
+| `g3_t2_path5_rebuild.md` | NOT STARTED | G2 cancelled (blocked on G1); Path 5 rebuild not attempted |
+| `g4_parity_sweep.md` | NOT STARTED | G4 cancelled (blocked on G3) |
+| `g5_quality_validation.md` | NOT STARTED | G5 cancelled (blocked on G4) |
+
+---
+
+## §8 Exit Gates
+
+| Gate | Criterion | Result | Verdict |
+|------|-----------|--------|---------|
+| S25-G1 | Viable ε range identified (safety ratio ≥ 2.0) | ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07; safety ratio 4.74e-05 | **FALSIFIED** |
+| S25-G2 | Tiebreak implemented in scoring kernel | CANCELLED (blocked on G1) | **NOT RUN** |
+| S25-G3 | T2 Path 5 rebuild + hist_ms ratio ≤ 0.45× | CANCELLED (blocked on G2) | **NOT RUN** |
+| S25-G4 | 18-config parity sweep + determinism | CANCELLED (blocked on G3) | **NOT RUN** |
+| S25-G5 | Model-quality AUC/RMSE drop ≤ 0.5% | CANCELLED (blocked on G4) | **NOT RUN** |
+
+G1 falsification is the intended outcome when the hypothesis proves structurally infeasible —
+the falsification-first sprint design succeeded in killing DEC-026 empirically on day 1.
+
+---
+
+## §9 Final Verdict
+
+### DEC-026 research
+
+**FALSIFIED.** 180-run empirical sweep (18 configs × 5 runs × 2 kernels, 5 min 4 s wall)
+established that ε-threading is impossible by four orders of magnitude. Path 5's flip gaps
+span **5.96e-08 to 2.2e-03** — the full range of legitimate top-2 separations observed at
+non-#8 configs. No ε can simultaneously:
+
+1. be large enough to gate the 2.2e-03 flip (config #8 iter 45 depth 0), AND
+2. be small enough to not spuriously gate the 1.04e-07 legitimate separation (config #1
+   iter 40 depth 3).
+
+These constraints are irreducibly in conflict. The iter-43 near-tie (5.96e-08) is itself a
+legitimate rank-0/rank-1 gap, so ε-gating cannot discriminate "ambiguous split, fall back"
+from "clear split, no gate needed" when the two share the same gain separation.
+
+### R8 position
+
+**1.01× unchanged.** DEC-026 cannot recover the pre-S24 1.90× record under DEC-008 ULP=0
+parity discipline. Verstappen ≥1.5× gate remains retroactively failed from S24 D0. v5
+(`784f82a891`) is the final production kernel.
+
+### Forward (deferred)
+
+DEC-027 — alternative accumulation paths (e.g., XGBoost-style per-feature deterministic
+radix-sum) — is acknowledged in `g1_epsilon_calibration.md §9 option 4` as a possible future
+research direction but is **not opened** as part of S25 closure. A future dedicated sprint
+would formulate the hypothesis, define falsification checkpoints, and set its own budget.
+
+### Summary table
+
+| Criterion | Result |
+|-----------|--------|
+| DEC-026 verdict | FALSIFIED at G1 |
+| Safety ratio (positive reading) | 4.74e-05 vs target 2.0 |
+| Killer config/node | config #1 run 1 iter 40 depth 3 (legit gap 1.043e-07) |
+| Production code changes | None — v5 (`784f82a891`) untouched |
+| R8 post-S25 | 1.01× unchanged |
+| PR #17 | Pending (Ramos opens) |
+| DEC-027 | Deferred; not opened at S25 close |

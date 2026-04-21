@@ -1,0 +1,182 @@
+[2026-04-21T13:56:23-05:00] sweep start: 18 configs x 5 runs x 2 kernels = 180 runs
+[2026-04-21T13:56:24-05:00] cid= 1 run=1 kernel=t1       N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:25-05:00] cid= 1 run=1 kernel=t2_path5 N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:26-05:00] cid= 1 run=2 kernel=t1       N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:27-05:00] cid= 1 run=2 kernel=t2_path5 N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:27-05:00] cid= 1 run=3 kernel=t1       N=1000  bins=32  classes=1  loss=0.40689126     0s
+[2026-04-21T13:56:28-05:00] cid= 1 run=3 kernel=t2_path5 N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:29-05:00] cid= 1 run=4 kernel=t1       N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:30-05:00] cid= 1 run=4 kernel=t2_path5 N=1000  bins=32  classes=1  loss=0.40689126     1s
+[2026-04-21T13:56:31-05:00] cid= 1 run=5 kernel=t1       N=1000  bins=32  classes=1  loss=0.40689126     0s
+[2026-04-21T13:56:31-05:00] cid= 1 run=5 kernel=t2_path5 N=1000  bins=32  classes=1  loss=0.40689126     0s
+[2026-04-21T13:56:32-05:00] cid= 2 run=1 kernel=t1       N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:33-05:00] cid= 2 run=1 kernel=t2_path5 N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:34-05:00] cid= 2 run=2 kernel=t1       N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:35-05:00] cid= 2 run=2 kernel=t2_path5 N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:35-05:00] cid= 2 run=3 kernel=t1       N=1000  bins=128 classes=1  loss=0.46936080     0s
+[2026-04-21T13:56:36-05:00] cid= 2 run=3 kernel=t2_path5 N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:37-05:00] cid= 2 run=4 kernel=t1       N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:38-05:00] cid= 2 run=4 kernel=t2_path5 N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:39-05:00] cid= 2 run=5 kernel=t1       N=1000  bins=128 classes=1  loss=0.46936080     1s
+[2026-04-21T13:56:39-05:00] cid= 2 run=5 kernel=t2_path5 N=1000  bins=128 classes=1  loss=0.46936080     0s
+[2026-04-21T13:56:40-05:00] cid= 3 run=1 kernel=t1       N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:41-05:00] cid= 3 run=1 kernel=t2_path5 N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:42-05:00] cid= 3 run=2 kernel=t1       N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:43-05:00] cid= 3 run=2 kernel=t2_path5 N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:44-05:00] cid= 3 run=3 kernel=t1       N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:45-05:00] cid= 3 run=3 kernel=t2_path5 N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:45-05:00] cid= 3 run=4 kernel=t1       N=1000  bins=32  classes=2  loss=0.34161490     0s
+[2026-04-21T13:56:46-05:00] cid= 3 run=4 kernel=t2_path5 N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:47-05:00] cid= 3 run=5 kernel=t1       N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:48-05:00] cid= 3 run=5 kernel=t2_path5 N=1000  bins=32  classes=2  loss=0.34161490     1s
+[2026-04-21T13:56:49-05:00] cid= 4 run=1 kernel=t1       N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:49-05:00] cid= 4 run=1 kernel=t2_path5 N=1000  bins=128 classes=2  loss=0.61407095     0s
+[2026-04-21T13:56:50-05:00] cid= 4 run=2 kernel=t1       N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:51-05:00] cid= 4 run=2 kernel=t2_path5 N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:52-05:00] cid= 4 run=3 kernel=t1       N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:53-05:00] cid= 4 run=3 kernel=t2_path5 N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:53-05:00] cid= 4 run=4 kernel=t1       N=1000  bins=128 classes=2  loss=0.61407095     0s
+[2026-04-21T13:56:54-05:00] cid= 4 run=4 kernel=t2_path5 N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:55-05:00] cid= 4 run=5 kernel=t1       N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:56-05:00] cid= 4 run=5 kernel=t2_path5 N=1000  bins=128 classes=2  loss=0.61407095     1s
+[2026-04-21T13:56:57-05:00] cid= 5 run=1 kernel=t1       N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:56:58-05:00] cid= 5 run=1 kernel=t2_path5 N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:56:59-05:00] cid= 5 run=2 kernel=t1       N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:00-05:00] cid= 5 run=2 kernel=t2_path5 N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:01-05:00] cid= 5 run=3 kernel=t1       N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:02-05:00] cid= 5 run=3 kernel=t2_path5 N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:02-05:00] cid= 5 run=4 kernel=t1       N=1000  bins=32  classes=3  loss=0.61065382     0s
+[2026-04-21T13:57:03-05:00] cid= 5 run=4 kernel=t2_path5 N=1000  bins=32  classes=3  loss=0.61065382     0s
+[2026-04-21T13:57:04-05:00] cid= 5 run=5 kernel=t1       N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:05-05:00] cid= 5 run=5 kernel=t2_path5 N=1000  bins=32  classes=3  loss=0.61065382     1s
+[2026-04-21T13:57:06-05:00] cid= 6 run=1 kernel=t1       N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:07-05:00] cid= 6 run=1 kernel=t2_path5 N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:08-05:00] cid= 6 run=2 kernel=t1       N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:09-05:00] cid= 6 run=2 kernel=t2_path5 N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:10-05:00] cid= 6 run=3 kernel=t1       N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:11-05:00] cid= 6 run=3 kernel=t2_path5 N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:12-05:00] cid= 6 run=4 kernel=t1       N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:13-05:00] cid= 6 run=4 kernel=t2_path5 N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:14-05:00] cid= 6 run=5 kernel=t1       N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:15-05:00] cid= 6 run=5 kernel=t2_path5 N=1000  bins=128 classes=3  loss=0.99084771     1s
+[2026-04-21T13:57:16-05:00] cid= 7 run=1 kernel=t1       N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:17-05:00] cid= 7 run=1 kernel=t2_path5 N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:18-05:00] cid= 7 run=2 kernel=t1       N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:19-05:00] cid= 7 run=2 kernel=t2_path5 N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:20-05:00] cid= 7 run=3 kernel=t1       N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:21-05:00] cid= 7 run=3 kernel=t2_path5 N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:22-05:00] cid= 7 run=4 kernel=t1       N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:23-05:00] cid= 7 run=4 kernel=t2_path5 N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:24-05:00] cid= 7 run=5 kernel=t1       N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:25-05:00] cid= 7 run=5 kernel=t2_path5 N=10000 bins=32  classes=1  loss=0.44631991     1s
+[2026-04-21T13:57:26-05:00] cid= 8 run=1 kernel=t1       N=10000 bins=128 classes=1  loss=0.48231599     1s
+[2026-04-21T13:57:27-05:00] cid= 8 run=1 kernel=t2_path5 N=10000 bins=128 classes=1  loss=0.48231912     1s
+[2026-04-21T13:57:28-05:00] cid= 8 run=2 kernel=t1       N=10000 bins=128 classes=1  loss=0.48231599     1s
+[2026-04-21T13:57:30-05:00] cid= 8 run=2 kernel=t2_path5 N=10000 bins=128 classes=1  loss=0.48231912     2s
+[2026-04-21T13:57:31-05:00] cid= 8 run=3 kernel=t1       N=10000 bins=128 classes=1  loss=0.48231599     1s
+[2026-04-21T13:57:32-05:00] cid= 8 run=3 kernel=t2_path5 N=10000 bins=128 classes=1  loss=0.48231912     1s
+[2026-04-21T13:57:33-05:00] cid= 8 run=4 kernel=t1       N=10000 bins=128 classes=1  loss=0.48231599     1s
+[2026-04-21T13:57:34-05:00] cid= 8 run=4 kernel=t2_path5 N=10000 bins=128 classes=1  loss=0.48231912     1s
+[2026-04-21T13:57:35-05:00] cid= 8 run=5 kernel=t1       N=10000 bins=128 classes=1  loss=0.48231599     1s
+[2026-04-21T13:57:36-05:00] cid= 8 run=5 kernel=t2_path5 N=10000 bins=128 classes=1  loss=0.48231912     1s
+[2026-04-21T13:57:37-05:00] cid= 9 run=1 kernel=t1       N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:39-05:00] cid= 9 run=1 kernel=t2_path5 N=10000 bins=32  classes=2  loss=0.30072498     2s
+[2026-04-21T13:57:40-05:00] cid= 9 run=2 kernel=t1       N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:41-05:00] cid= 9 run=2 kernel=t2_path5 N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:42-05:00] cid= 9 run=3 kernel=t1       N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:44-05:00] cid= 9 run=3 kernel=t2_path5 N=10000 bins=32  classes=2  loss=0.30072498     2s
+[2026-04-21T13:57:45-05:00] cid= 9 run=4 kernel=t1       N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:46-05:00] cid= 9 run=4 kernel=t2_path5 N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:47-05:00] cid= 9 run=5 kernel=t1       N=10000 bins=32  classes=2  loss=0.30072498     1s
+[2026-04-21T13:57:49-05:00] cid= 9 run=5 kernel=t2_path5 N=10000 bins=32  classes=2  loss=0.30072498     2s
+[2026-04-21T13:57:50-05:00] cid=10 run=1 kernel=t1       N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:51-05:00] cid=10 run=1 kernel=t2_path5 N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:52-05:00] cid=10 run=2 kernel=t1       N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:54-05:00] cid=10 run=2 kernel=t2_path5 N=10000 bins=128 classes=2  loss=0.60412812     2s
+[2026-04-21T13:57:55-05:00] cid=10 run=3 kernel=t1       N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:56-05:00] cid=10 run=3 kernel=t2_path5 N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:57-05:00] cid=10 run=4 kernel=t1       N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:57:59-05:00] cid=10 run=4 kernel=t2_path5 N=10000 bins=128 classes=2  loss=0.60412812     2s
+[2026-04-21T13:58:00-05:00] cid=10 run=5 kernel=t1       N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:58:01-05:00] cid=10 run=5 kernel=t2_path5 N=10000 bins=128 classes=2  loss=0.60412812     1s
+[2026-04-21T13:58:02-05:00] cid=11 run=1 kernel=t1       N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:04-05:00] cid=11 run=1 kernel=t2_path5 N=10000 bins=32  classes=3  loss=0.57359385     2s
+[2026-04-21T13:58:05-05:00] cid=11 run=2 kernel=t1       N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:07-05:00] cid=11 run=2 kernel=t2_path5 N=10000 bins=32  classes=3  loss=0.57359385     2s
+[2026-04-21T13:58:08-05:00] cid=11 run=3 kernel=t1       N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:09-05:00] cid=11 run=3 kernel=t2_path5 N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:10-05:00] cid=11 run=4 kernel=t1       N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:12-05:00] cid=11 run=4 kernel=t2_path5 N=10000 bins=32  classes=3  loss=0.57359385     2s
+[2026-04-21T13:58:13-05:00] cid=11 run=5 kernel=t1       N=10000 bins=32  classes=3  loss=0.57359385     1s
+[2026-04-21T13:58:15-05:00] cid=11 run=5 kernel=t2_path5 N=10000 bins=32  classes=3  loss=0.57359385     2s
+[2026-04-21T13:58:16-05:00] cid=12 run=1 kernel=t1       N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:18-05:00] cid=12 run=1 kernel=t2_path5 N=10000 bins=128 classes=3  loss=0.95665115     2s
+[2026-04-21T13:58:19-05:00] cid=12 run=2 kernel=t1       N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:20-05:00] cid=12 run=2 kernel=t2_path5 N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:22-05:00] cid=12 run=3 kernel=t1       N=10000 bins=128 classes=3  loss=0.95665115     2s
+[2026-04-21T13:58:23-05:00] cid=12 run=3 kernel=t2_path5 N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:24-05:00] cid=12 run=4 kernel=t1       N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:26-05:00] cid=12 run=4 kernel=t2_path5 N=10000 bins=128 classes=3  loss=0.95665115     2s
+[2026-04-21T13:58:27-05:00] cid=12 run=5 kernel=t1       N=10000 bins=128 classes=3  loss=0.95665115     1s
+[2026-04-21T13:58:29-05:00] cid=12 run=5 kernel=t2_path5 N=10000 bins=128 classes=3  loss=0.95665115     2s
+[2026-04-21T13:58:30-05:00] cid=13 run=1 kernel=t1       N=50000 bins=32  classes=1  loss=0.44676545     1s
+[2026-04-21T13:58:33-05:00] cid=13 run=1 kernel=t2_path5 N=50000 bins=32  classes=1  loss=0.44676545     3s
+[2026-04-21T13:58:35-05:00] cid=13 run=2 kernel=t1       N=50000 bins=32  classes=1  loss=0.44676545     2s
+[2026-04-21T13:58:38-05:00] cid=13 run=2 kernel=t2_path5 N=50000 bins=32  classes=1  loss=0.44676545     3s
+[2026-04-21T13:58:39-05:00] cid=13 run=3 kernel=t1       N=50000 bins=32  classes=1  loss=0.44676545     1s
+[2026-04-21T13:58:42-05:00] cid=13 run=3 kernel=t2_path5 N=50000 bins=32  classes=1  loss=0.44676545     3s
+[2026-04-21T13:58:44-05:00] cid=13 run=4 kernel=t1       N=50000 bins=32  classes=1  loss=0.44676545     2s
+[2026-04-21T13:58:47-05:00] cid=13 run=4 kernel=t2_path5 N=50000 bins=32  classes=1  loss=0.44676545     3s
+[2026-04-21T13:58:48-05:00] cid=13 run=5 kernel=t1       N=50000 bins=32  classes=1  loss=0.44676545     1s
+[2026-04-21T13:58:51-05:00] cid=13 run=5 kernel=t2_path5 N=50000 bins=32  classes=1  loss=0.44676545     3s
+[2026-04-21T13:58:53-05:00] cid=14 run=1 kernel=t1       N=50000 bins=128 classes=1  loss=0.47740927     2s
+[2026-04-21T13:58:56-05:00] cid=14 run=1 kernel=t2_path5 N=50000 bins=128 classes=1  loss=0.47740927     3s
+[2026-04-21T13:58:58-05:00] cid=14 run=2 kernel=t1       N=50000 bins=128 classes=1  loss=0.47740927     2s
+[2026-04-21T13:59:02-05:00] cid=14 run=2 kernel=t2_path5 N=50000 bins=128 classes=1  loss=0.47740927     4s
+[2026-04-21T13:59:04-05:00] cid=14 run=3 kernel=t1       N=50000 bins=128 classes=1  loss=0.47740927     2s
+[2026-04-21T13:59:07-05:00] cid=14 run=3 kernel=t2_path5 N=50000 bins=128 classes=1  loss=0.47740927     3s
+[2026-04-21T13:59:09-05:00] cid=14 run=4 kernel=t1       N=50000 bins=128 classes=1  loss=0.47740927     2s
+[2026-04-21T13:59:12-05:00] cid=14 run=4 kernel=t2_path5 N=50000 bins=128 classes=1  loss=0.47740927     3s
+[2026-04-21T13:59:14-05:00] cid=14 run=5 kernel=t1       N=50000 bins=128 classes=1  loss=0.47740927     2s
+[2026-04-21T13:59:18-05:00] cid=14 run=5 kernel=t2_path5 N=50000 bins=128 classes=1  loss=0.47740927     4s
+[2026-04-21T13:59:20-05:00] cid=15 run=1 kernel=t1       N=50000 bins=32  classes=2  loss=0.30282399     2s
+[2026-04-21T13:59:24-05:00] cid=15 run=1 kernel=t2_path5 N=50000 bins=32  classes=2  loss=0.30282399     4s
+[2026-04-21T13:59:26-05:00] cid=15 run=2 kernel=t1       N=50000 bins=32  classes=2  loss=0.30282399     2s
+[2026-04-21T13:59:30-05:00] cid=15 run=2 kernel=t2_path5 N=50000 bins=32  classes=2  loss=0.30282399     4s
+[2026-04-21T13:59:32-05:00] cid=15 run=3 kernel=t1       N=50000 bins=32  classes=2  loss=0.30282399     2s
+[2026-04-21T13:59:37-05:00] cid=15 run=3 kernel=t2_path5 N=50000 bins=32  classes=2  loss=0.30282399     5s
+[2026-04-21T13:59:38-05:00] cid=15 run=4 kernel=t1       N=50000 bins=32  classes=2  loss=0.30282399     1s
+[2026-04-21T13:59:43-05:00] cid=15 run=4 kernel=t2_path5 N=50000 bins=32  classes=2  loss=0.30282399     5s
+[2026-04-21T13:59:45-05:00] cid=15 run=5 kernel=t1       N=50000 bins=32  classes=2  loss=0.30282399     2s
+[2026-04-21T13:59:49-05:00] cid=15 run=5 kernel=t2_path5 N=50000 bins=32  classes=2  loss=0.30282399     4s
+[2026-04-21T13:59:51-05:00] cid=16 run=1 kernel=t1       N=50000 bins=128 classes=2  loss=0.60559267     2s
+[2026-04-21T13:59:56-05:00] cid=16 run=1 kernel=t2_path5 N=50000 bins=128 classes=2  loss=0.60559267     5s
+[2026-04-21T13:59:58-05:00] cid=16 run=2 kernel=t1       N=50000 bins=128 classes=2  loss=0.60559267     2s
+[2026-04-21T14:00:02-05:00] cid=16 run=2 kernel=t2_path5 N=50000 bins=128 classes=2  loss=0.60559267     4s
+[2026-04-21T14:00:05-05:00] cid=16 run=3 kernel=t1       N=50000 bins=128 classes=2  loss=0.60559267     3s
+[2026-04-21T14:00:09-05:00] cid=16 run=3 kernel=t2_path5 N=50000 bins=128 classes=2  loss=0.60559267     4s
+[2026-04-21T14:00:11-05:00] cid=16 run=4 kernel=t1       N=50000 bins=128 classes=2  loss=0.60559267     2s
+[2026-04-21T14:00:16-05:00] cid=16 run=4 kernel=t2_path5 N=50000 bins=128 classes=2  loss=0.60559267     5s
+[2026-04-21T14:00:18-05:00] cid=16 run=5 kernel=t1       N=50000 bins=128 classes=2  loss=0.60559267     2s
+[2026-04-21T14:00:22-05:00] cid=16 run=5 kernel=t2_path5 N=50000 bins=128 classes=2  loss=0.60559267     4s
+[2026-04-21T14:00:24-05:00] cid=17 run=1 kernel=t1       N=50000 bins=32  classes=3  loss=0.56538904     2s
+[2026-04-21T14:00:29-05:00] cid=17 run=1 kernel=t2_path5 N=50000 bins=32  classes=3  loss=0.56538904     5s
+[2026-04-21T14:00:31-05:00] cid=17 run=2 kernel=t1       N=50000 bins=32  classes=3  loss=0.56538904     2s
+[2026-04-21T14:00:35-05:00] cid=17 run=2 kernel=t2_path5 N=50000 bins=32  classes=3  loss=0.56538904     4s
+[2026-04-21T14:00:37-05:00] cid=17 run=3 kernel=t1       N=50000 bins=32  classes=3  loss=0.56538904     2s
+[2026-04-21T14:00:42-05:00] cid=17 run=3 kernel=t2_path5 N=50000 bins=32  classes=3  loss=0.56538904     5s
+[2026-04-21T14:00:44-05:00] cid=17 run=4 kernel=t1       N=50000 bins=32  classes=3  loss=0.56538904     2s
+[2026-04-21T14:00:48-05:00] cid=17 run=4 kernel=t2_path5 N=50000 bins=32  classes=3  loss=0.56538904     4s
+[2026-04-21T14:00:50-05:00] cid=17 run=5 kernel=t1       N=50000 bins=32  classes=3  loss=0.56538904     2s
+[2026-04-21T14:00:54-05:00] cid=17 run=5 kernel=t2_path5 N=50000 bins=32  classes=3  loss=0.56538904     4s
+[2026-04-21T14:00:56-05:00] cid=18 run=1 kernel=t1       N=50000 bins=128 classes=3  loss=0.94917130     2s
+[2026-04-21T14:01:01-05:00] cid=18 run=1 kernel=t2_path5 N=50000 bins=128 classes=3  loss=0.94917130     5s
+[2026-04-21T14:01:03-05:00] cid=18 run=2 kernel=t1       N=50000 bins=128 classes=3  loss=0.94917130     2s
+[2026-04-21T14:01:08-05:00] cid=18 run=2 kernel=t2_path5 N=50000 bins=128 classes=3  loss=0.94917130     4s
+[2026-04-21T14:01:10-05:00] cid=18 run=3 kernel=t1       N=50000 bins=128 classes=3  loss=0.94917130     2s
+[2026-04-21T14:01:14-05:00] cid=18 run=3 kernel=t2_path5 N=50000 bins=128 classes=3  loss=0.94917130     4s
+[2026-04-21T14:01:16-05:00] cid=18 run=4 kernel=t1       N=50000 bins=128 classes=3  loss=0.94917130     2s
+[2026-04-21T14:01:21-05:00] cid=18 run=4 kernel=t2_path5 N=50000 bins=128 classes=3  loss=0.94917130     5s
+[2026-04-21T14:01:23-05:00] cid=18 run=5 kernel=t1       N=50000 bins=128 classes=3  loss=0.94917130     2s
+[2026-04-21T14:01:27-05:00] cid=18 run=5 kernel=t2_path5 N=50000 bins=128 classes=3  loss=0.94917130     4s
+[2026-04-21T14:01:28-05:00] sweep done: total 5 min 4 s
