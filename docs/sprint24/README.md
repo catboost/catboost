@@ -1,6 +1,6 @@
 # Sprint 24 — DEC-023 Atomic-Float Race Fix + Championship Benchmark
 
-**Branch**: TBD (cut from Sprint 23 tip)
+**Branch**: `mlx/sprint-24-dec023-fix` (cut from master `9f3b99c7d2` after S17–S23 PR chain merge)
 **Campaign**: Operation Verstappen — battle 9 of 9
 **Gate config**: 50k/RMSE/d6/128b (unchanged from S19–S23)
 **Authority**: `DECISIONS.md DEC-023` (OPEN); `docs/sprint23/d0_bimodality_verification.md` (footprint + mechanism)
@@ -71,12 +71,12 @@ Use the post-S23 production binary (tip `84529b47ed` + DEC-023 fix commit).
 
 ---
 
-## §4 Carry-forward from Sprint 23
+## §4 Closed from Sprint 23 (not carry-forward)
 
-If S23-R1 (EvalAtBoundary readback elimination) or S23-R2 (dispatch inversion spike) are not completed in Sprint 23, they carry into Sprint 24 as secondary tasks after the DEC-023 fix:
+Both S23 research tracks closed in S23; neither carries into S24:
 
-- **S23-R1 carry**: Six `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (~0.3 ms/iter compound gain). Bounded 0.5–1 day.
-- **S23-R2 carry**: Dispatch inversion research spike (2-day timebox). If no concrete design surfaces, declare unreachable and close the campaign.
+- **S23-R1 — DEFERRED** (DEC-024, not falsified). 0/3 EvalAtBoundary sites at gate — `structure_searcher.cpp` sites are Depthwise/Lossguide only; gate config runs SymmetricTree via `bench_boosting` inline oblivious loop. Re-entry gated on `--grow-policy` flag addition or separate Depthwise/Lossguide harness. See `docs/sprint23/r1_evalatboundary.md`.
+- **S23-R2 — FALSIFIED** (DEC-025). Dispatch inversion has a structural algebraic blocker (`H[f][b] = Σ_p h_p[f][b]` not invertible); no mask mechanism reconstructs per-partition bin sums below equivalent or worse cost. Do not re-enter without new mask-mechanism evidence. See `docs/sprint23/r2_dispatch_inversion_spike.md`.
 
 ---
 
@@ -110,5 +110,3 @@ Sprint 24 DEC-023 fix is not expected to contribute additional R8 (the fix repla
 |-----|--------|-------------|
 | `d0_dec023_fix.md` | PENDING | DEC-023 kernel fix implementation + parity sweep results |
 | `championship_benchmark.md` | PENDING | Full dominance suite results post-fix |
-| `r1_evalatboundary.md` | PENDING (carry from S23 if not done) | EvalAtBoundary readback elimination |
-| `r2_dispatch_inversion_spike.md` | PENDING (carry from S23 if not done) | Dispatch inversion research spike |
