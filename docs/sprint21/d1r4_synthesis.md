@@ -68,6 +68,8 @@ Projected band (before Sprint 22 D0): **e2e 1.37× to 1.83×**, midpoint 1.76× 
 
 **Sprint 22 kill-switch**. If Sprint 22 D0 measures T2/T1 > 0.60 at production shape, T2 is falsified (ratio transfer failed). If parity D1 fails ULP ≤ 4 on any config AND Kahan falls below 0.60 ratio after compensation, T2 is also abandoned. Both kill-switches are direct mechanism tests, not proxies.
 
+**Scope qualifier on bug β and Kahan concern (added 2026-04-20 during S23 D0)**: Sprint 22 D2/D3 retired the Kahan concern (DEC-022) based on 10/10 and 100/100 determinism — measured at gate config only (N=50000/RMSE/128b). Bug β is partially real at smaller N. Features 1-3 `atomic_fetch_add` race fires at N=10000/bins=128 (config #8): bimodal ~50/50 between 0.48231599 (ULP=0) and 0.48231912 (ULP=105). DEC-023 (OPEN, S24 scope) is the attack plan. Kahan is NOT the primary fix path — see DEC-023 Options 1-2 (threadgroup-local reduce or int-atomic fixed-point). DEC-022 remains valid at gate config and for the H-B-overflow-as-root-cause framing. The 1.90× R8 record is unaffected (gate config is 100/100 deterministic).
+
 ---
 
 ### Rank #2 (research track) — Tree-search restructure / EvalAtBoundary readback elimination

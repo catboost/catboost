@@ -1,13 +1,28 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-20 (Sprint 22 CLOSED — 4/4 exit gates PASS, R8 1.90×; Sprint 23 kickoff)
+> Last updated: 2026-04-20 (Sprint 23 IN PROGRESS — D0 bimodality verification complete; records corrected; DEC-023 opened)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-22-t2-integration` (Sprint 22 — closeout commit pending)
-- **Tip commit**: `73baadf445` — D1+D1a+D1b+D1c+D2 Option III fix + D3/D4/D5/D6 gate reports
-- **Campaign**: Operation Verstappen — battle 7 of 9 CLOSED. **Verstappen ≥1.5× gate CLEARED.** Battle 8 of 9 (Sprint 23) ready to cut.
+- **Branch**: `mlx/sprint-23-t2-promotion`
+- **Tip commit**: `84529b47ed` — T2 promoted to production; kill-switch tripped at config #8 (pre-existing bimodal)
+- **Campaign**: Operation Verstappen — battle 8 of 9 IN PROGRESS. Sprint 23 D0 complete with PRE-EXISTING verdict.
 - **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → **#14 pending Ramos open** (Sprint 22)
+
+## Sprint 23 D0 — Verdict: PASS (kill-switch tripped on pre-existing bug)
+
+**Date**: 2026-04-20
+**Branch tip**: `84529b47ed` (4 commits: kernel promotion, dispatch promotion, flag removal, parity re-verify)
+**Parity sweep**: 17/18 ULP=0 deterministic + 1 latent bimodal at config #8 (N=10000/RMSE/128b)
+**Gate config #14**: 100/100 deterministic at 0.47740927 — unaffected
+**Kill-switch status**: TRIPPED at config #8 — bimodality pre-existing (present in S22 D2/D3 tip `73baadf445`); promotion is innocent; verified by @qa-engineer in `docs/sprint23/d0_bimodality_verification.md`
+
+**Records corrected**:
+- S22 D3 "18/18 ULP=0" → corrected to 17/18 ULP=0 + 1 latent bimodal (1-run-per-config protocol was insufficient for ~50/50 race; miss probability was 50%)
+- DEC-022 scope qualifier added: "bug β does not exist" was scoped to gate config only; the race fires at N=10000
+- R8 1.90× record intact: perf measurement was at gate config (config #14), which is deterministic
+
+**Forward action**: DEC-023 OPEN — S24 D0 to fix features 1-3 atomic_fetch_add race. Three fix options documented. Proceed to S23-R1 and S23-R2 after Ramos review.
 
 ## Sprint 22 — CLOSED
 
@@ -57,7 +72,7 @@ Sprint 21 was declared a measurement-only sprint after the D0 kill-switch fired 
   - Gate B parity: max ULP 64, mass conservation 0 ULP across 812,800 bins
   - Ratio-transfer risk (synthetic identity-permuted harness → production argsort-permuted data) is **unproven** — Sprint 22 D0 must establish this before any integration commit
 
-## Sprint 23 — KICKOFF
+## Sprint 23 — IN PROGRESS
 
 ### Charter: T2 scratch→production promotion + NIT cleanup + tree-search research
 
@@ -89,11 +104,11 @@ Sprint 21 was declared a measurement-only sprint after the D0 kill-switch fired 
 
 ### Next actions
 
-1. Ramos opens PR #14 for Sprint 22 (this branch, stacked on #13).
-2. **@ml-engineer**: S23-D0 — T2 scratch→production promotion; NIT bundle pass.
-3. **@ml-engineer / @research-scientist**: S23-R1 EvalAtBoundary scope + fix.
+1. Ramos opens PR #14 for Sprint 22 (stacked on #13).
+2. Ramos reviews S23 D0 verdict (kill-switch: pre-existing bug confirmed).
+3. **@ml-engineer / @research-scientist**: S23-R1 EvalAtBoundary scope + fix (unblocked by D0 verdict).
 4. **@research-scientist**: S23-R2 dispatch inversion spike (2-day timebox).
-5. Cut branch `mlx/sprint-23-t2-promotion` from Sprint 22 tip.
+5. **S24 D0**: DEC-023 atomic-float race fix (features 1-3 threadgroup-local reduce or int-atomic fixed-point). See `.claude/state/DECISIONS.md DEC-023` for fix-option matrix and kill-switch.
 
 ## Standing orders (carried forward to Sprint 23)
 
@@ -105,7 +120,8 @@ Sprint 21 was declared a measurement-only sprint after the D0 kill-switch fired 
 
 ## Prior sprints — status unchanged
 
-- **Sprint 22** — CLOSED. PR #14 pending (Ramos opens). T2 SHIPPED, R8 1.90×. Verstappen gate cleared.
+- **Sprint 23** — IN PROGRESS. D0 complete: 4 commits landed, parity 17/18 (config #8 bimodal pre-existing, kill-switch tripped). Records corrected. DEC-023 opened. R1/R2 next.
+- **Sprint 22** — CLOSED. PR #14 pending (Ramos opens). T2 SHIPPED, R8 1.90× (record stands). Verstappen gate cleared. S22 D3 verdict corrected to 17/18 (see DEC-020 footnote + DEC-023).
 - **Sprint 21** — CLOSED. PR #13 pending (Ramos opens). 0× perf, A1 measurement record.
 - **Sprint 20** — CLOSED. PR #12 OPEN stacked on #11. T3b DEC-017 RETIRED.
 - **Sprint 19** — CLOSED. PR #11 OPEN stacked on #10. T1 DEC-016 SHIPPED (−2.3% e2e).

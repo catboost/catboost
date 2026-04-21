@@ -2,6 +2,48 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 23 D0 — T2 scratch→production promotion; kill-switch tripped (pre-existing bimodal at config #8); S22 records corrected; DEC-023 opened (2026-04-20, D0 COMPLETE)
+
+**Branch**: `mlx/sprint-23-t2-promotion` (cut from Sprint 22 tip `73baadf445`)
+**Campaign**: Operation Verstappen — battle 8 of 9
+**D0 verdict**: PASS (kill-switch tripped on pre-existing bug; proceed to R1/R2)
+
+### 4 commits landed (D0 promotion arc)
+
+| Commit | Content |
+|--------|---------|
+| (Commit 1) | Kernel sources promotion: `kT2SortSource` + `kT2AccumSource` into `kernel_sources.h`; NIT-1/NIT-2/NIT-7 applied |
+| (Commit 2) | Dispatch promotion: `DispatchHistogramT2` into `histogram.cpp`; production API with CB_ENSURE |
+| (Commit 3) | Flag removal + default flip: `CATBOOST_MLX_HISTOGRAM_T2` removed; T2 is default; NIT-3/NIT-4/NIT-5 applied |
+| `84529b47ed` | Parity re-verify post-promotion (tip commit) |
+
+### Kill-switch trip: config #8 bimodal
+
+Parity sweep result: **17/18 ULP=0 deterministic + 1 latent bimodal** (config #8: N=10000/RMSE/128b, 105 ULP gap, ~50/50 between 0.48231599 and 0.48231912). Kill-switch tripped.
+
+**Verdict: PRE-EXISTING.** The bimodality is present in S22 D2/D3 tip `73baadf445` and was not introduced by promotion. Root cause: features 1-3 `atomic_fetch_add_explicit(memory_order_relaxed)` on float is non-associative; non-deterministic Metal thread scheduling produces 1-2 ULP bin drift that cascades to 105 ULP over 50 iterations at this config's dispatch shape. See `docs/sprint23/d0_bimodality_verification.md`.
+
+S22 D3's 1-run-per-config parity sweep had a 50% probability of missing a 50/50 bimodal race per config; the miss was statistically expected, not unlucky.
+
+Gate config #14 (N=50000/RMSE/128b): **100/100 deterministic** at 0.47740927. R8 1.90× record unaffected.
+
+### Records corrected
+
+- **S22 D3 parity verdict**: "18/18 ULP=0 bit-exact" → corrected to **17/18 ULP=0 + 1 latent bimodal** (config #8). Errata prepended to `docs/sprint22/d3_parity_gate.md`.
+- **S22 D2 determinism claim**: "10/10 determinism" was at gate config only; config #8 not tested. Errata prepended to `docs/sprint22/d2_t2_fix_verified.md`.
+- **DEC-022**: Scope qualifier added — "bug β does not exist" scoped to gate config; race fires at N=10000.
+- **DEC-020**: Footnote added correcting the 18/18 claim and pointing to DEC-023.
+
+### DEC-023 opened
+
+Features 1-3 atomic-float race documented in `DECISIONS.md DEC-023` as OPEN (S24 scope). Three fix options enumerated. Fix budget: S24 D0, 1-2 days.
+
+### Parity sweep protocol standing order
+
+Minimum 5 runs per non-gate config (97% detection probability for 50/50 race); 100 runs at gate config unconditionally. Documented in `docs/sprint23/README.md §5`.
+
+---
+
 ## Sprint 22 — T2 sort-by-bin SHIPPED; Option III fix; Verstappen ≥1.5× gate CLEARED; R8 1.90× (2026-04-20, CLOSED)
 
 **Branch**: `mlx/sprint-22-t2-integration` (cut from Sprint 21 tip `a7a206b90d`)

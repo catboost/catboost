@@ -351,6 +351,8 @@ The 0.60 threshold is the point where cumulative e2e falls below the Verstappen 
 
 **Pointer**: `docs/sprint21/d1r2_t2_microbench.md`; `docs/sprint21/d1r4_synthesis.md §3/§4`.
 
+**Footnote (added 2026-04-20 during S23 D0)**: The S22 D3 parity sweep ran 1-run-per-config, which missed a bimodal ~50/50 distribution at config #8 (N=10000) — see DEC-023. S22 D3's "18/18 ULP=0" record is corrected to 17/18 ULP=0 + 1 latent bimodal; discovered during S23 D0 scratch→production promotion. 1.90× perf record at gate config (config #14) is unaffected — gate config is 100/100 deterministic. The bimodality is a features 1-3 atomic-float race, not a T2 structural bug; T2 itself ships as designed.
+
 ---
 
 ## DEC-021: Option III slab-by-partOffsets layout over Option I uniform-ceiling
@@ -412,6 +414,44 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
 **Lesson**: The anticipated "bug β" was a misidentified symptom of the structural overflow bug; it does not exist as an independent failure mode. S21 D1-R4 §3 fallback budget (+2–3 days for Kahan) is retired.
 
 **Pointer**: `docs/sprint22/d1c_t2_troubleshoot.md §1` (false-positive retirement); `docs/sprint22/d3_parity_gate.md §1` (100/100 determinism table).
+
+**Scope qualifier (added 2026-04-20 during S23 D0)**: Original evidence base (10/10 and 100/100 determinism) was AT GATE CONFIG ONLY (N=50000/RMSE/128b). Bug β is partially real at smaller N — see DEC-023. Features 1-3 atomic_fetch_add race fires at N=10000 (config #8). DEC-022 remains valid at gate config and for the S21 D1-R4 §5 framing (the D1 root cause was maxPartDocs, not atomic drift). Kahan concern is NOT fully re-opened; Options 1-2 in DEC-023 are the primary fix path.
+
+---
+
+---
+
+## DEC-023: Features 1-3 atomic-float race in T2-accum — deterministic reduction required
+
+**Status**: OPEN (S24 scope)
+**Discovered**: Sprint 23 D0 during scratch→production promotion parity sweep
+**Scope**: T2-accum features 1-3 use atomic_fetch_add on float; FP non-associativity + non-deterministic thread scheduling produces 1-2 ULP drift in histogram bins, which can flip near-tie split decisions early in training and cascade to 105+ ULP in final loss
+
+**Footprint** (S23 D0 measured, N=100 per config):
+  Config #8 (N=10000/RMSE/128b/depth=6/iters=50): BIMODAL 50/50 at 0.48231599 vs 0.48231912 (105 ULP gap)
+  Config #14 gate (N=50000/RMSE/128b/depth=6/iters=50): DETERMINISTIC 100/100 at 0.47740927
+  Configs #1–#7, #9–#13, #15–#18: DETERMINISTIC (100/100 each)
+  **Singleton footprint**: exactly 1 of 18 configs fires. All N=1000, all N=50000, and the other five N=10000 configs (varying loss / bins) are clean. Race is narrowly conditioned on (N=10000, RMSE, bins=128).
+
+**Cascade mechanism**: 1-2 ULP bin drift → near-tie GAIN flip at iteration k → different tree at k → all subsequent iters diverge. **Cascade onset** between iters=40 (30/30 deterministic) and iters=45 (bimodal). At iters=50 spread is 105 ULP; at iters=100 spread narrows to 39 ULP (non-monotone — branches converge toward a common limit). Cascade-factor table: docs/sprint23/d0_bimodality_verification.md §D.
+
+**Why it hides at gate — H1 SUPPORTED**: Gate-config seed-sweep (500 runs × 5 seeds at config #14) returned 100/100 deterministic on every seed. H2 (seed-coincidental determinism) refuted. H1 (structural: larger bin counts resolve additions in consistent order) is the operative explanation. The 1.90× R8 record at gate config is structurally robust across seed space. See docs/sprint23/d0_bimodality_verification.md §B.
+
+**Sibling race — S-1 latent** (found during S23 D0 site inventory): `kHistOneByte` writeback in kernel_sources.h uses atomic-float and is RACY when `maxBlocksPerPart > 1`. Currently DEAD CODE PATH — NIT-4 enforces `maxBlocksPerPart == 1` via CB_ENSURE. Any future optimization that relaxes this constraint (e.g., per-partition multi-block dispatch) reactivates the race. Fix options for S-1 mirror the T2-accum options below; address alongside DEC-023 if multi-block dispatch is needed, or leave guarded by the CB_ENSURE otherwise.
+
+**Feature-0 is clean**: bin-range scan over counting-sorted docs is ordered by sort order, no atomics; 100/100 deterministic. Only features 1-3 (atomic scatter path) are affected.
+
+**Fix options for S24**:
+  1. Threadgroup-local reduce + single-thread commit (mirrors feat-0 design; known-clean mechanism, preserves T2 perf envelope)
+  2. Int-atomic fixed-point accumulation (CatBoost CPU uses uint64 fixed-point for exactly this reason; deterministic by construction; accuracy calibration required)
+  3. Kahan/Neumaier compensated summation per bin (mitigates but does NOT eliminate non-determinism; probably not sufficient standalone)
+
+**Budget**: S24 D0, 1-2 days. Kill-switch: if fix degrades gate-config ratio below 0.45× (optimistic band), escalate to structural redesign.
+
+**Relation to prior work**:
+  - Partially re-validates S21 D1-R4 §5 bug β concern (retired too broadly under DEC-022; see DEC-022 scope qualifier)
+  - Kahan concern (DEC-022 body) is not resurrected as a standalone fix but may complement Options 1-2
+  - R8 1.90× record at gate config is unaffected (gate is deterministic)
 
 ---
 

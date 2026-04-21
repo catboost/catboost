@@ -86,6 +86,16 @@ Sprint 23 has three tracks:
 | S23-D0-G3 | `kernel_sources.h` contains T2; `bench_boosting.cpp` no longer has inline T2; `CATBOOST_MLX_HISTOGRAM_T2` flag removed | D0 Commit 3 |
 | S23-NIT-G | Code review confirms all 6 nits addressed | D0 Commit 3 |
 
+**Note (added 2026-04-20 post-D0 completion)**: S23 D0 parity sweep result was 17/18 ULP=0 + 1 latent bimodal (config #8). The S23-D0-G1 criterion "≥ S22 D3 standard" inherited the S22 D3 under-sampling error. See errata in `docs/sprint22/d3_parity_gate.md`. DEC-023 is the forward fix; gate S23-D0-G1 is satisfied pending DEC-023 resolution at S24 D0.
+
+### Parity-sweep protocol standing order (effective S23 D0 forward)
+
+All future sprint parity sweeps MUST use:
+- **≥5 runs per non-gate config**: catches ~50/50 bimodality at 97% per-config probability (P(all-5-Value-A | p=0.5) = 3.125%)
+- **100 runs at gate config unconditionally**: was already the S22 D3/D4 standard for the gate config; now formalized for all sprints
+
+Rationale: S22 D3's 1-run-per-config protocol had a 50% miss probability for any ~50/50 bimodal race. The S23 D0 5-run protocol reduced this to 3.1%, which detected the config #8 defect. All future sprint gates inherit this floor.
+
 ---
 
 ## §6 R8 Position
