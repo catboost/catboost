@@ -2,6 +2,98 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 24 closed — DEC-023 resolved via v5; R8 retroactive retreat 1.90× → 1.01× (2026-04-21, CLOSED)
+
+**Branch**: `mlx/sprint-24-dec023-fix` (cut from Sprint 23 tip `5b9827ad93` after S17–S23 PR chain merge)
+**Campaign**: Operation Verstappen — battle 9 of 9
+**Sprint verdict**: D0 PASS (DEC-023 RESOLVED, all 4 acceptance criteria pass). FAIL on R8
+preservation (Verstappen ≥1.5× gate failed retroactively at 1.01× post-fix). PR #16 pending.
+
+### Commits landed
+
+| Commit | Role | Verdict |
+|--------|------|---------|
+| (prior S24 work) | Path 5 diagnostic attempts (T2-sort prefix-sum + int-fixed-point) | FALSIFIED — all pin Value B |
+| (prior S24 work) | Path X CPU anchor measurement | INCONCLUSIVE — bench_boosting not a conformance harness |
+| (prior S24 work) | Off-by-one cascade retest | FALSE POSITIVE — both paths encode raw_bin > splitIdx |
+| `784f82a891` | v5 cherry-picked — T2-accum all-feature T1-style accumulation; T2-sort removed | SHIPPED |
+
+### D0 — DEC-023 fix (RESOLVED)
+
+**Bug**: Features 1-3 `atomic_fetch_add_explicit(memory_order_relaxed)` on float in T2-accum
+produced bimodal output at config #8 (105 ULP gap, ~50/50 between 0.48231599 and 0.48231912).
+Carried from Sprint 23 D0 as DEC-023 OPEN.
+
+**Diagnostic arc**:
+
+*Path 5 (falsified)*: T2-sort deterministic prefix-sum scatter + int64 fixed-point for features 1-3.
+All variants retaining feature-0's bin-range scan over `sortedDocs` pinned to Value B (105 ULP
+off T1). Root cause: reduction topology difference between sort-based scan and T1's SIMD fold.
+Integer accumulation eliminated S-5 non-associativity but did not change the topology. A
+deterministic result at the wrong value is not a fix.
+
+*Path X CPU anchor (inconclusive)*: CPU CatBoost at config #8 = 0.068, ~24M ULP from both A and
+B. bench_boosting is not a CatBoost conformance harness (no boost_from_average, simplified split
+loop). T1 Value A (0.48231599) remains the declared parity anchor by construction, not because
+it matches CPU CatBoost.
+
+*Off-by-one retest (false positive)*: Proposed mismatch between scoring kernel ("bin ≥ b") and
+apply path ("bin > b") was a coordinate-system labeling artifact. Code audit confirmed both
+paths encode `raw_bin > splitIdx` consistently with CatBoost's `IsTrueHistogram`. No bug.
+Diagnostic preserved at `docs/sprint24/d0_offby1_cascade_retest.md`.
+
+*v5 (correct fix)*: All four features (0-3) in T2-accum rewritten to T1-style SIMD-shuffle
+accumulation reading from `docIndices`. T2-sort removed from dispatch. ULP=0 is structural —
+v5 executes the identical FP computation as T1. Commit `784f82a891`.
+
+**Acceptance-criteria results**:
+
+| Gate | Criterion | Measured | Verdict |
+|------|-----------|----------|---------|
+| S24-D0-G1 | Config #8: 10/10 deterministic | 10/10 at 0.48231599, ULP=0 | PASS |
+| S24-D0-G2 | 18/18 ULP=0, ≥5 runs per config | 18/18 ULP=0, all 5/5 det. | PASS |
+| S24-D0-G3 | Gate config: 100/100 deterministic | 100/100 at 0.47740927 | PASS |
+| S24-D0-G4 | hist_ms ratio ≥ 0.45× (kill-switch) | 0.959× | PASS |
+
+### R8 collapse: 1.90× → 1.01×
+
+| Metric | S23 D0 (T2 v4, non-det.) | S24 D0 (T2 v5, det.) |
+|--------|:------------------------:|:--------------------:|
+| hist_ms (gate config) | ~6.85 ms (0.317× T1) | ~20.75 ms (0.959× T1) |
+| e2e speedup vs S16 baseline | **1.90×** | **~1.01×** |
+| Verstappen ≥1.5× | cleared by 40 pp | **FAILED retroactively** |
+
+T2's speed advantage was contingent on its sort-based accumulation having a different reduction
+topology from T1. The topology difference is also the root cause of DEC-023. These are not
+separable: fixing the topology eliminates the speed. The 1.90× record is superseded. Honest
+post-S24 position: 1.01×.
+
+### Decisions updated
+
+| Decision | Change |
+|----------|--------|
+| DEC-023 | RESOLVED 2026-04-21. Close-commit `784f82a891`. 4/4 gates PASS. R8 consequence appended. |
+| DEC-026 | NEW — OPEN (S25 research). Cascade-robust GAIN comparison research track. |
+
+### KNOWN_BUGS.md updated
+
+BUG-T2-001: marked RESOLVED 2026-04-21. Fix summary and forward pointer to DEC-026 prepended.
+Sibling S-1 (`kHistOneByte` writeback race) still latent, still guarded by NIT-4 CB_ENSURE —
+no change to S-1 status.
+
+### Championship benchmark
+
+Not run. Campaign retreated before suite started. S24-BENCH-G1 NOT RUN.
+
+### Sprint 25
+
+DEC-026 cascade-robust GAIN research opens. @research-scientist leads epsilon calibration study
+(DEC-026-G1). If viable ε identified, research proceeds through T2 Path 5 rebuild and 5-gate
+acceptance suite. If no viable ε, DEC-026 is falsified and R8 stays at 1.01×. Not a guaranteed
+delivery. See `docs/sprint25/README.md` and `DECISIONS.md DEC-026`.
+
+---
+
 ## Sprint 23 closed — T2 scratch→production promotion + NIT cleanup + tree-search research (2026-04-21, CLOSED)
 
 **Branch**: `mlx/sprint-23-t2-promotion` (cut from Sprint 22 tip `73baadf445`)
