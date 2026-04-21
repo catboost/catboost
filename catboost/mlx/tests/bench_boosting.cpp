@@ -12,16 +12,18 @@
 //
 // USAGE
 //   ./bench_boosting [options]
-//     --rows N          Number of training documents (default: 100000)
-//     --features N      Number of features (default: 50)
-//     --classes N       Number of classes: 1 = regression, 2 = binary, K >= 3 = multiclass (default: 1)
-//     --depth D         Max tree depth (default: 6)
-//     --iters N         Number of boosting iterations (default: 100)
-//     --bins B          Bins per feature (default: 32; max 255)
-//     --lr F            Learning rate (default: 0.1)
-//     --l2 F            L2 regularization lambda (default: 3.0)
-//     --seed N          Random seed for data synthesis (default: 42)
-//     --onehot N        Mark the first N features as one-hot encoded (default: 0)
+//     --rows N               Number of training documents (default: 100000)
+//     --features N           Number of features (default: 50)
+//     --classes N            Number of classes: 1 = regression, 2 = binary, K >= 3 = multiclass (default: 1)
+//     --depth D              Max tree depth (default: 6)
+//     --iters N              Number of boosting iterations (default: 100)
+//     --bins B               Bins per feature (default: 32; max 255)
+//     --lr F                 Learning rate (default: 0.1)
+//     --l2 F                 L2 regularization lambda (default: 3.0)
+//     --seed N               Random seed for data synthesis (default: 42)
+//     --onehot N             Mark the first N features as one-hot encoded (default: 0)
+//     --per-kernel-profile   Insert mx::eval() sync points between kernel stages and print
+//                            a per-kernel timing table (UPPER BOUNDS — disables kernel overlap)
 //
 // OUTPUT
 //   Prints per-iteration timings, a summary table (iter-0 cold-start vs warm
@@ -129,8 +131,9 @@ struct TBenchConfig {
     float LearningRate = 0.1f;
     float L2RegLambda  = 3.0f;
     ui64 Seed          = 42;
-    ui32 NumOneHot     = 0;   // first N features treated as one-hot encoded
-    bool StageProfile  = false; // --stage-profile: emit per-iter stage JSON
+    ui32 NumOneHot       = 0;     // first N features treated as one-hot encoded
+    bool StageProfile    = false; // --stage-profile: emit per-iter stage JSON
+    bool PerKernelProfile = false; // --per-kernel-profile: per-dispatch timing (upper bounds)
 };
 
 TBenchConfig ParseArgs(int argc, char** argv) {
@@ -145,15 +148,16 @@ TBenchConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--lr")       == 0 && i+1 < argc) cfg.LearningRate= std::atof(argv[++i]);
         else if (strcmp(argv[i], "--l2")       == 0 && i+1 < argc) cfg.L2RegLambda = std::atof(argv[++i]);
         else if (strcmp(argv[i], "--seed")     == 0 && i+1 < argc) cfg.Seed        = std::atoll(argv[++i]);
-        else if (strcmp(argv[i], "--onehot")       == 0 && i+1 < argc) cfg.NumOneHot   = std::atoi(argv[++i]);
-        else if (strcmp(argv[i], "--stage-profile") == 0) cfg.StageProfile = true;
+        else if (strcmp(argv[i], "--onehot")              == 0 && i+1 < argc) cfg.NumOneHot      = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--stage-profile")       == 0) cfg.StageProfile      = true;
+        else if (strcmp(argv[i], "--per-kernel-profile")  == 0) cfg.PerKernelProfile  = true;
         else {
             fprintf(stderr, "Unknown argument: %s\n", argv[i]);
             fprintf(stderr,
                 "Usage: bench_boosting [--rows N] [--features N] [--classes N]\n"
                 "                      [--depth D] [--iters N] [--bins B]\n"
                 "                      [--lr F] [--l2 F] [--seed N] [--onehot N]\n"
-                "                      [--stage-profile]\n");
+                "                      [--stage-profile] [--per-kernel-profile]\n");
             exit(1);
         }
     }
@@ -417,7 +421,12 @@ TBestSplitProperties FindBestSplitGPU(
     ui32 totalBinFeatures,
     ui32 numStats,
     float l2RegLambda,
-    ui32 approxDim = 1
+    ui32 approxDim = 1,
+    // Per-kernel profile mode: insert eval() sync between suffix and score phases,
+    // capture sub-timings. When false (default), code path is identical to before.
+    bool perKernelProfile = false,
+    double* suffixMsOut   = nullptr,  // out: suffix_sum wall time (only when perKernelProfile)
+    double* scoreMsOut    = nullptr   // out: score_splits wall time (only when perKernelProfile)
 ) {
     const ui32 numFeatures = static_cast<ui32>(features.size());
     if (totalBinFeatures == 0 || numPartitions == 0) return {};
@@ -473,6 +482,10 @@ TBestSplitProperties FindBestSplitGPU(
     // (not written by the kernel) and the skipped last ordinal bin read as 0.
     auto suffixTG = std::make_tuple(256, 1, 1);
 
+    // Per-kernel profile: capture time before suffix dispatch
+    using hrc = std::chrono::high_resolution_clock;
+    auto suf_t0 = perKernelProfile ? hrc::now() : hrc::time_point{};
+
     auto suffixResult = suffixKernel(
         {histogram, firstFoldArr, foldsArr, isOneHotArr,
          numFeatArr, totalBinsArr, numStatsArr},
@@ -481,6 +494,15 @@ TBestSplitProperties FindBestSplitGPU(
         {}, 0.0f, false, mx::Device::gpu
     );
     auto transformedHist = suffixResult[0];
+
+    // Per-kernel profile: force suffix sync, record time, start score timer
+    if (perKernelProfile) {
+        mx::eval(transformedHist);
+        auto suf_t1 = hrc::now();
+        if (suffixMsOut)
+            *suffixMsOut = std::chrono::duration<double, std::milli>(suf_t1 - suf_t0).count();
+    }
+    auto sc_t0 = perKernelProfile ? hrc::now() : hrc::time_point{};
 
     // Phase B: Score splits with lookup table
     const ui32 numBlocks = (totalBinFeatures + 255) / 256;
@@ -517,6 +539,12 @@ TBestSplitProperties FindBestSplitGPU(
     const float*    scores  = scoreResult[0].data<float>();
     const uint32_t* featIds = scoreResult[1].data<uint32_t>();
     const uint32_t* binIds  = scoreResult[2].data<uint32_t>();
+
+    // Per-kernel profile: record score phase wall time (GPU dispatch + CPU reduction)
+    if (perKernelProfile && scoreMsOut) {
+        auto sc_t1 = hrc::now();
+        *scoreMsOut = std::chrono::duration<double, std::milli>(sc_t1 - sc_t0).count();
+    }
 
     TBestSplitProperties best;
     float bestGain = -std::numeric_limits<float>::infinity();
@@ -813,6 +841,26 @@ static bool WriteBenchStageJson(
 }
 
 // ============================================================================
+// Per-kernel timing collection (--per-kernel-profile)
+//
+// One entry per boosting iteration (including iter-0 cold start).
+// Reporting skips index-0 (matches warm_mean convention).
+//
+// NOTE: mx::eval() sync points between stages suppress MLX kernel overlap.
+// All values are UPPER BOUNDS on non-sync production timing.
+// ============================================================================
+
+struct TPerKernelTimings {
+    std::vector<double> DerivativesMs;   // grad/hess + partitions + statArr assembly
+    std::vector<double> TreeSupportMs;   // ComputePartitionLayout + scoring leaf accum × depth
+    std::vector<double> HistogramMs;     // DispatchHistogram × depth
+    std::vector<double> SuffixSumMs;     // suffix_sum_histogram × depth
+    std::vector<double> SplitScoreMs;    // score_splits_lookup + CPU reduction × depth
+    std::vector<double> LeafMs;          // final ComputeLeafSumsGPU + ComputeLeafValues + cursor
+    std::vector<double> IterTotalMs;     // wall-clock for the full iteration (per-kernel path)
+};
+
+// ============================================================================
 // Single boosting iteration
 //   Returns wall time in microseconds (excluding GPU graph construction overhead)
 // ============================================================================
@@ -834,7 +882,8 @@ long long RunIteration(
     float l2RegLambda,
     float learningRate,
     ui32 maxBlocksPerPart,
-    TBenchStageRecord* stageOut = nullptr  // optional per-iter stage record
+    TBenchStageRecord*   stageOut = nullptr,  // optional per-iter stage record
+    TPerKernelTimings*   pkOut    = nullptr   // optional per-kernel timing record
 ) {
     auto wallStart = std::chrono::steady_clock::now();
 
@@ -914,51 +963,126 @@ long long RunIteration(
     mx::eval(statArr);
     auto t1 = std::chrono::steady_clock::now();  // end of derivatives/init stage
 
+    // Per-kernel: record derivatives bucket
+    using hrc = std::chrono::high_resolution_clock;
+    using ms_d = std::chrono::duration<double, std::milli>;
+    if (pkOut) {
+        pkOut->DerivativesMs.push_back(ms_d(t1 - t0).count());
+    }
+
+    // Per-kernel: depth-loop accumulators (reset each iteration)
+    double pk_treeSupportAccum = 0.0;
+    double pk_histAccum        = 0.0;
+    double pk_suffixAccum      = 0.0;
+    double pk_scoreAccum       = 0.0;
+
     // --- Greedy tree structure search: one split per depth level ---
     for (ui32 depth = 0; depth < maxDepth; ++depth) {
         const ui32 numActiveParts = 1u << depth;
 
         // Compute partition layout
-        auto layout = ComputePartitionLayout(partitions, numDocs, numActiveParts);
+        if (pkOut) {
+            // Force-eval the layout arrays to isolate partition-layout cost
+            auto layout_t0 = hrc::now();
+            auto layout = ComputePartitionLayout(partitions, numDocs, numActiveParts);
+            mx::eval({layout.DocIndices, layout.PartOffsets, layout.PartSizes});
+            auto layout_t1 = hrc::now();
 
-        // Dispatch histogram
-        auto histogram = DispatchHistogram(
-            compressedData, statArr,
-            layout.DocIndices, layout.PartOffsets, layout.PartSizes,
-            features, numUi32PerDoc, numActiveParts,
-            totalBinFeatures, numStats, numDocs, maxBlocksPerPart
-        );
-        mx::eval(histogram);
+            // Scoring leaf accum (uses already-eval'd layout via partitions)
+            mx::array gradSumsGPU = mx::zeros({1}, mx::float32);
+            mx::array hessSumsGPU = mx::zeros({1}, mx::float32);
+            auto leafscr_t0 = hrc::now();
+            ComputeLeafSumsGPU(flatGrad, flatHess, partitions,
+                               numDocs, numActiveParts, 1 /*approxDim for scoring*/,
+                               gradSumsGPU, hessSumsGPU);
+            mx::eval({gradSumsGPU, hessSumsGPU});
+            auto leafscr_t1 = hrc::now();
+            pk_treeSupportAccum += ms_d(layout_t1 - layout_t0).count()
+                                 + ms_d(leafscr_t1 - leafscr_t0).count();
 
-        // Compute partition totals (grad sum, hess sum) per partition
-        // Use leaf accum kernel with current gradients
-        mx::array gradSumsGPU = mx::zeros({1}, mx::float32);
-        mx::array hessSumsGPU = mx::zeros({1}, mx::float32);
-        ComputeLeafSumsGPU(flatGrad, flatHess, partitions,
-                           numDocs, numActiveParts, 1 /*approxDim for scoring*/,
-                           gradSumsGPU, hessSumsGPU);
-        mx::eval({gradSumsGPU, hessSumsGPU});
+            // Dispatch histogram (using the eval'd layout from above)
+            auto hist_t0 = hrc::now();
+            auto histogram = DispatchHistogram(
+                compressedData, statArr,
+                layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                features, numUi32PerDoc, numActiveParts,
+                totalBinFeatures, numStats, numDocs, maxBlocksPerPart
+            );
+            mx::eval(histogram);
+            auto hist_t1 = hrc::now();
+            pk_histAccum += ms_d(hist_t1 - hist_t0).count();
 
-        // Find best split
-        auto best = FindBestSplitGPU(
-            histogram, gradSumsGPU, hessSumsGPU,
-            features, numActiveParts, totalBinFeatures, numStats,
-            l2RegLambda
-        );
+            // Find best split with sub-timing
+            double suffixMs = 0.0, scoreMs = 0.0;
+            auto best = FindBestSplitGPU(
+                histogram, gradSumsGPU, hessSumsGPU,
+                features, numActiveParts, totalBinFeatures, numStats,
+                l2RegLambda, 1 /*approxDim*/, true, &suffixMs, &scoreMs
+            );
+            pk_suffixAccum += suffixMs;
+            pk_scoreAccum  += scoreMs;
 
-        if (!best.Defined()) break;
+            if (!best.Defined()) break;
 
-        // Apply split to partitions
-        const TCFeature& splitFeat = features[best.FeatureId];
-        ApplySplitToPartitions(
-            partitions, compressedData, splitFeat,
-            best.BinId, depth, numDocs, numUi32PerDoc
-        );
+            // Apply split to partitions
+            const TCFeature& splitFeat = features[best.FeatureId];
+            ApplySplitToPartitions(
+                partitions, compressedData, splitFeat,
+                best.BinId, depth, numDocs, numUi32PerDoc
+            );
+        } else {
+            // Normal (non-profiling) path — identical to original code
+            auto layout = ComputePartitionLayout(partitions, numDocs, numActiveParts);
+
+            // Dispatch histogram
+            auto histogram = DispatchHistogram(
+                compressedData, statArr,
+                layout.DocIndices, layout.PartOffsets, layout.PartSizes,
+                features, numUi32PerDoc, numActiveParts,
+                totalBinFeatures, numStats, numDocs, maxBlocksPerPart
+            );
+            mx::eval(histogram);
+
+            // Compute partition totals (grad sum, hess sum) per partition
+            // Use leaf accum kernel with current gradients
+            mx::array gradSumsGPU = mx::zeros({1}, mx::float32);
+            mx::array hessSumsGPU = mx::zeros({1}, mx::float32);
+            ComputeLeafSumsGPU(flatGrad, flatHess, partitions,
+                               numDocs, numActiveParts, 1 /*approxDim for scoring*/,
+                               gradSumsGPU, hessSumsGPU);
+            mx::eval({gradSumsGPU, hessSumsGPU});
+
+            // Find best split
+            auto best = FindBestSplitGPU(
+                histogram, gradSumsGPU, hessSumsGPU,
+                features, numActiveParts, totalBinFeatures, numStats,
+                l2RegLambda
+            );
+
+            if (!best.Defined()) break;
+
+            // Apply split to partitions
+            const TCFeature& splitFeat = features[best.FeatureId];
+            ApplySplitToPartitions(
+                partitions, compressedData, splitFeat,
+                best.BinId, depth, numDocs, numUi32PerDoc
+            );
+        }
+    }
+
+    // Per-kernel: push depth-loop accumulators
+    if (pkOut) {
+        pkOut->TreeSupportMs.push_back(pk_treeSupportAccum);
+        pkOut->HistogramMs.push_back(pk_histAccum);
+        pkOut->SuffixSumMs.push_back(pk_suffixAccum);
+        pkOut->SplitScoreMs.push_back(pk_scoreAccum);
     }
 
     auto t2 = std::chrono::steady_clock::now();  // end of tree search stage
 
     // --- Estimate leaf values and apply tree ---
+    auto leaf_t0 = pkOut ? hrc::now() : hrc::time_point{};
+
     const ui32 numLeaves = 1u << maxDepth;
     mx::array gradSumsGPU = mx::zeros({1}, mx::float32);
     mx::array hessSumsGPU = mx::zeros({1}, mx::float32);
@@ -1004,7 +1128,13 @@ long long RunIteration(
     }
 
     auto wallEnd = std::chrono::steady_clock::now();
-    using ms_d = std::chrono::duration<double, std::milli>;
+
+    // Per-kernel: record leaf estimation bucket and iter total
+    if (pkOut) {
+        pkOut->LeafMs.push_back(ms_d(wallEnd - leaf_t0).count());
+        pkOut->IterTotalMs.push_back(ms_d(wallEnd - wallStart).count());
+    }
+
     if (stageOut) {
         stageOut->DerivativesMs  = ms_d(t1 - t0).count();
         stageOut->TreeSearchMs   = ms_d(t2 - t1).count();
@@ -1087,6 +1217,21 @@ int main(int argc, char** argv) {
     std::vector<TBenchStageRecord> stageRecords;
     if (doStageProfile) stageRecords.reserve(cfg.NumIters);
 
+    // Per-kernel timing collection (allocated always when flag set; per-iter push inside RunIteration)
+    TPerKernelTimings pkTimings;
+    const bool doPerKernelProfile = cfg.PerKernelProfile;
+    if (doPerKernelProfile) {
+        pkTimings.DerivativesMs.reserve(cfg.NumIters);
+        pkTimings.TreeSupportMs.reserve(cfg.NumIters);
+        pkTimings.HistogramMs.reserve(cfg.NumIters);
+        pkTimings.SuffixSumMs.reserve(cfg.NumIters);
+        pkTimings.SplitScoreMs.reserve(cfg.NumIters);
+        pkTimings.LeafMs.reserve(cfg.NumIters);
+        pkTimings.IterTotalMs.reserve(cfg.NumIters);
+        printf("[per-kernel-profile] Enabled — inserting mx::eval() sync points.\n");
+        printf("  WARNING: reported ms are UPPER BOUNDS (kernel overlap suppressed).\n\n");
+    }
+
     for (ui32 iter = 0; iter < cfg.NumIters; ++iter) {
         TBenchStageRecord stageRec;
         stageRec.Iter = static_cast<int>(iter);
@@ -1100,7 +1245,8 @@ int main(int argc, char** argv) {
             ds.TotalBinFeatures, numStats, approxDim, cfg.NumClasses,
             cfg.MaxDepth, cfg.L2RegLambda, cfg.LearningRate,
             maxBlocksPerPart,
-            doStageProfile ? &stageRec : nullptr
+            doStageProfile ? &stageRec : nullptr,
+            doPerKernelProfile ? &pkTimings : nullptr
         );
         iterTimesUs.push_back(us);
         if (doStageProfile) stageRecords.push_back(stageRec);
@@ -1145,6 +1291,102 @@ int main(int argc, char** argv) {
     printf("  BENCH_FINAL_LOSS=%.8f\n", finalLoss);  // grep-friendly line
 
     printf("================================================================\n");
+
+    // Per-kernel profile report
+    if (doPerKernelProfile && !pkTimings.IterTotalMs.empty()) {
+        // Report warm iters only: skip index 0 (cold start), same as warm_mean convention.
+        // If only 1 iter was run there are no warm samples — skip.
+        const size_t N = pkTimings.IterTotalMs.size();
+        if (N < 2) {
+            printf("\n[per-kernel-profile] Only 1 iter — no warm samples to report.\n");
+        } else {
+            const size_t warmN = N - 1;  // number of warm iters
+
+            // Helper lambda: compute trimmed mean and stdev over warm iters (indices 1..N-1).
+            // Uses 10% trim on each side (drop top and bottom 10% of samples) to suppress
+            // Metal scheduling outliers. Trimming is applied only when warmN >= 10; below
+            // that threshold a full mean is used. This is standard GPU benchmarking practice
+            // for sub-ms kernels measured with wall-clock.
+            auto stats = [&](const std::vector<double>& v) -> std::pair<double,double> {
+                std::vector<double> warm;
+                warm.reserve(warmN);
+                for (size_t i = 1; i < N; ++i) warm.push_back(v[i]);
+                std::sort(warm.begin(), warm.end());
+                // Determine trim window
+                size_t lo = 0, hi = warm.size();
+                if (warm.size() >= 10) {
+                    size_t trim = warm.size() / 10;  // 10% each side
+                    lo = trim;
+                    hi = warm.size() - trim;
+                }
+                const size_t trimN = hi - lo;
+                double sum = 0.0;
+                for (size_t i = lo; i < hi; ++i) sum += warm[i];
+                double mean = sum / trimN;
+                double var  = 0.0;
+                for (size_t i = lo; i < hi; ++i) {
+                    double d = warm[i] - mean;
+                    var += d * d;
+                }
+                double stdev = trimN > 1 ? std::sqrt(var / (trimN - 1)) : 0.0;
+                return {mean, stdev};
+            };
+
+            auto [d_mean,  d_sd]  = stats(pkTimings.DerivativesMs);
+            auto [ts_mean, ts_sd] = stats(pkTimings.TreeSupportMs);
+            auto [h_mean,  h_sd]  = stats(pkTimings.HistogramMs);
+            auto [sf_mean, sf_sd] = stats(pkTimings.SuffixSumMs);
+            auto [sc_mean, sc_sd] = stats(pkTimings.SplitScoreMs);
+            auto [lf_mean, lf_sd] = stats(pkTimings.LeafMs);
+            auto [it_mean, it_sd] = stats(pkTimings.IterTotalMs);
+
+            double sumKernels = d_mean + ts_mean + h_mean + sf_mean + sc_mean + lf_mean;
+            double deltaPct   = it_mean > 0.0 ? 100.0 * (sumKernels - it_mean) / it_mean : 0.0;
+
+            auto pct = [](double mean, double sd) -> double {
+                return mean > 0.0 ? 100.0 * sd / mean : 0.0;
+            };
+
+            printf("\n=== Per-kernel profile (--per-kernel-profile; UPPER BOUNDS due to sync) ===\n");
+            printf("WARNING: mx::eval() sync points disable MLX kernel overlap. Reported\n");
+            printf("         per-kernel ms are UPPER BOUNDS on non-sync production timing.\n");
+            printf("         Stats: 10%%-trimmed mean/stdev (Metal scheduling jitter suppressed)\n");
+            printf("         Warm iters = %zu (iter-0 excluded)\n\n", warmN);
+
+            // Print each bucket.
+            // For sub-millisecond buckets (mean < 2 ms), stdev% > 5% is expected:
+            // Apple Metal command-buffer submit latency jitter is ~20-100 µs,
+            // which dominates a 0.5-1.0 ms measurement regardless of sample count.
+            // We annotate these as [wall-clock floor] rather than a data quality warning.
+            auto printBucket = [&](const char* label, double mean, double sd) {
+                double sdpct = pct(mean, sd);
+                printf("  %-16s mean=%7.3f ms   stdev=%6.3f ms  (%4.1f%%)",
+                       label, mean, sd, sdpct);
+                if (sdpct > 5.0) {
+                    if (mean < 2.0) {
+                        printf("  [wall-clock floor: sub-ms jitter]");
+                    } else {
+                        printf("  [WARN: stdev > 5%%]");
+                    }
+                }
+                printf("\n");
+            };
+
+            printBucket("derivatives",    d_mean,  d_sd);
+            printBucket("tree_support",   ts_mean, ts_sd);
+            printBucket("histogram",      h_mean,  h_sd);
+            printBucket("suffix_sum",     sf_mean, sf_sd);
+            printBucket("split_score",    sc_mean, sc_sd);
+            printBucket("leaf_estimation",lf_mean, lf_sd);
+            printf("  ------ sum-of-per-kernel=%7.3f ms  vs iter_total=%7.3f ms"
+                   "  (delta=%+.3f ms, %+.1f%%)\n",
+                   sumKernels, it_mean, sumKernels - it_mean, deltaPct);
+
+            if (std::abs(deltaPct) > 5.0) {
+                printf("  [WARN: |delta| > 5%% — possible missing dispatch boundary]\n");
+            }
+        }
+    }
 
     // Stage profile JSON dump
     if (doStageProfile && !stageRecords.empty()) {
