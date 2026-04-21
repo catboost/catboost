@@ -119,6 +119,55 @@ Grid geometry unchanged (`(256 × numGroups, numParts, numStats)`). TG memory ne
 
 ---
 
+## §7 Final Verdict (CLOSED)
+
+**Status**: CLOSED. Commit `73baadf445`. 4/4 exit gates PASS. Cumulative R8 = **1.90×**. Verstappen ≥1.5× gate CLEARED by 40 pp.
+
+### Gate summary
+
+| Gate | Doc | Criterion | Verdict |
+|------|-----|-----------|---------|
+| D3 parity | [`d3_parity_gate.md`](d3_parity_gate.md) | 18/18 DEC-008 ULP=0; 100/100 determinism; EC-1–EC-5 ULP=0 | **PASS** |
+| D4 perf | [`d4_perf_gate.md`](d4_perf_gate.md) | Ratio 0.317× cross-session; cumulative R8 = 1.90× | **PASS** |
+| D5 code review | [`d5_code_review.md`](d5_code_review.md) | 0 blockers; 6 nits deferred to S23 | **PASS** |
+| D6 security audit | [`d6_security_audit.md`](d6_security_audit.md) | 0 CRITICAL/HIGH; overflow class structurally eliminated | **PASS** |
+
+### Sprint arc
+
+| Phase | Doc | Outcome |
+|-------|-----|---------|
+| D0 in-situ probe | [`d0_t2_production_shape.md`](d0_t2_production_shape.md) | PASS — ratio 0.328× optimistic band |
+| D1 parity sweep | [`d1_t2_parity_sweep.md`](d1_t2_parity_sweep.md) | FAIL 18/18 (triggered diagnostic arc) |
+| D1a diagnostic | [`d1a_t2_diagnostic.md`](d1a_t2_diagnostic.md) | Blit-ordering hypothesis REFUTED |
+| D1b diagnostic | [`d1b_t2_fix_and_rerun.md`](d1b_t2_fix_and_rerun.md) | Depth-parity hypothesis REFUTED |
+| D1c root cause | [`d1c_t2_troubleshoot.md`](d1c_t2_troubleshoot.md) | `maxPartDocs = ceil(N/K)` overflow identified |
+| D2 Option III fix | [`d2_t2_fix_verified.md`](d2_t2_fix_verified.md) | Slab-by-partOffsets: 5.2 MB, overflow impossible |
+
+### Final numbers
+
+| Metric | Value |
+|--------|-------|
+| T2/T1 hist_ms ratio | 0.317× cross-session (band 0.315–0.319×) |
+| T1 iter_total_ms | 33.958 ms |
+| T2 iter_total_ms | 19.098 ms |
+| S22 e2e multiplier | **1.778×** |
+| Cumulative R8 (post-S22) | **1.07 × 1.778 = 1.90×** |
+| Verstappen gate (≥1.5×) | **CLEARED +40 pp** |
+| BENCH_FINAL_LOSS T1 | 0.47740927 |
+| BENCH_FINAL_LOSS T2 | 0.47740927 (bit-exact) |
+
+### Decisions recorded this sprint
+
+- **DEC-020**: VIABLE → **SHIPPED / VALIDATED**
+- **DEC-021**: Option III slab-by-partOffsets chosen over Option I (5.2 MB vs 333 MB; structurally sound; 1.6 pp headroom)
+- **DEC-022**: Kahan/compensated-summation concern RETIRED — bug β does not exist
+
+### Scratch status
+
+`kernel_sources.h` unmodified. T2 ships in `kernel_sources_t2_scratch.h` under `CATBOOST_MLX_HISTOGRAM_T2=1`. Promotion to `kernel_sources.h` is Sprint 23 D0.
+
+---
+
 ## §6 R8 Honest Commitment
 
 **Current position**: ~1.07× cumulative e2e over Sprint 16-class baseline (from S17/S18/S19 kernel improvements; S20 and S21 contributed 0×).

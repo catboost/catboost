@@ -133,25 +133,57 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 22 — T2 Sort-by-Bin Integration (OPEN)
+## Sprint 22 — T2 Sort-by-Bin Integration (CLOSED — 4/4 gates PASS, R8 1.90×)
 
-**Branch**: `mlx/sprint-22-hist-t2-sort` (to be cut)
+**Branch**: `mlx/sprint-22-t2-integration`
 **Campaign**: Operation Verstappen — battle 7 of 9 — single-lever integration sprint
+**Gate config**: 50k/RMSE/d6/128b
+**Lever**: T2 sort-by-bin (DEC-020)
+**Verdict**: **CLOSED. Verstappen ≥1.5× gate CLEARED. Cumulative R8 = 1.90×. PR #14 pending (Ramos opens).**
+
+### Closed
+
+- [x] S22-D0 — In-situ T2 integration probe. `hist_ms(T2) / hist_ms(T1)` = 0.328× cross-session at gate config (inside optimistic band). Kill-switch (>0.60) NOT triggered. — @ml-engineer **DONE** (`4333c82a7e`)
+- [x] S22-D1 — 18-config DEC-008 parity sweep. **FAILED 18/18** at D0 T2 kernel (ULP 1,327–2,583,206). Triggered four-phase diagnostic arc (D1a→D1b→D1c). Root cause: `maxPartDocs = ceil(N/K)` uniform-partition assumption overflows under real argsort-permuted skewed splits. — @qa-engineer / @ml-engineer **DONE** (`73baadf445` contains full arc)
+- [x] S22-D1a — Blit-ordering hypothesis (fill_gpu pool reuse). **REFUTED**: fill_gpu is compute, not blit; eval barriers did not fix parity. — @ml-engineer **DONE** (bundled in `73baadf445`)
+- [x] S22-D1b — Depth-parity indexing hypothesis. **REFUTED**: even-depth failure pattern explained by split-distribution artifact, not indexing. — @ml-engineer **DONE** (bundled in `73baadf445`)
+- [x] S22-D1c — Root-cause: `bench_boosting.cpp:526` `maxPartDocs = ceil(numDocs / numActiveParts)` overflow. Depth-1 on 50k: sizes [442, 49558] vs maxPartDocs=25000; 24558-doc overflow into neighbor slot. — @ml-engineer **DONE** (`docs/sprint22/d1c_t2_troubleshoot.md`, bundled in `73baadf445`)
+- [x] S22-D2 — Option III slab-by-partOffsets fix. `sortedDocs` reorganized to per-(groupIdx, statIdx) slabs of size `numDocs` indexed by `partOffsets[partIdx]`. Buffer 5.2 MB at gate config (vs 333 MB worst-case for Option I). Overflow structurally impossible. — @ml-engineer **DONE** (`73baadf445`)
+- [x] S22-D3 — Parity exit gate (independent QA). 18/18 ULP=0 bit-exact; 100/100 determinism; edge cases EC-1–EC-5 all ULP=0. Bug β (atomic-scatter float drift) does not exist — retires S21 D1-R4 Kahan concern (DEC-022). — @qa-engineer **GATE PASS** (`docs/sprint22/d3_parity_gate.md`, bundled in `73baadf445`)
+- [x] S22-D4 — Perf exit gate. Ratio 0.317× cross-session (band 0.315–0.319×); S22 multiplier 1.778×; cumulative R8 = **1.07 × 1.778 = 1.90×**; Verstappen gate cleared by 40 pp. N=1000 ratio exceedances (0.651–0.694×) are structural amortization artifact, non-blocking (gate anchored at 50k). — @performance-engineer **GATE PASS** (`docs/sprint22/d4_perf_gate.md`, bundled in `73baadf445`)
+- [x] S22-D5 — Code review exit gate. 0 blockers. 7 nits; NIT-6 (stray blank line) removed by security auditor; 6 nits deferred to Sprint 23. — @code-reviewer **GATE PASS** (`docs/sprint22/d5_code_review.md`, bundled in `73baadf445`)
+- [x] S22-D6 — Security audit exit gate. 0 CRITICAL, 0 HIGH; bounds-proof confirms D1c overflow class structurally eliminated; max-safe-N 14.3M docs (286× headroom over 50k); zero secrets/PII. 2 MEDIUM advisory (DoS/robustness, bench harness scope). — @security-auditor **GATE PASS** (`docs/sprint22/d6_security_audit.md`, bundled in `73baadf445`)
+
+---
+
+## Sprint 23 — T2 Scratch→Production Promotion + NIT Catalog + Tree-Search Research (OPEN)
+
+**Branch**: `mlx/sprint-23-t2-promotion` (to be cut)
+**Campaign**: Operation Verstappen — battle 8 of 9
 **Gate config**: 50k/RMSE/d6/128b (unchanged)
-**Lever**: T2 sort-by-bin (DEC-020 VIABLE, rank #1)
-**R8 target**: ≥1.51× e2e at gate config (conservative band); 1.5× gate clears iff T2 D0 ratio ≤ 0.60
-**Authority**: `docs/sprint21/d1r4_synthesis.md` §3/§4/§5/§6
+**Authority**: `docs/sprint22/d5_code_review.md §4` (NIT catalog); `docs/sprint21/d1r4_synthesis.md §3` (tree-search rank #2)
 
-### Open
+### D0 — T2 scratch→production promotion (blocking)
 
-- [ ] S22-D0 — In-situ T2 integration probe at production shape. Implement `DispatchHistogramT2` as a scratch variant in `catboost/mlx/methods/histogram.cpp` or locally in `bench_boosting.cpp`, guarded by env-var or compile-time flag (`CATBOOST_MLX_HISTOGRAM_T2=1`). Parity NOT required for D0 (perf-only mechanism test). Measure `histogram_ms` via `--per-kernel-profile` at gate config (3 independent runs × 49 warm iters). Compute `ratio = hist_ms(T2) / hist_ms(T1)` in same session. Kill-switch: ratio > 0.60 → T2 FALSIFIED at production shape, Sprint 22 pivots to tree-search restructure scoping. Acceptance: ratio ≤ 0.60 at gate config with ±2σ band documented. Output: `docs/sprint22/d0_t2_production_shape.md`. — @ml-engineer **OPEN** (est. 1 day; A1-G6 scratch-only discipline applies)
-- [ ] S22-D1 — 18-config parity sweep against DEC-008 envelope. RMSE bit-exact (ULP = 0); Logloss ULP ≤ 4; MultiClass ULP ≤ 8. 100-run determinism at gate config. Kahan fallback budget if any config fails. Blocked on S22-D0 PASS (ratio ≤ 0.60). — @qa-engineer **BLOCKED** (est. 1 day)
-- [ ] S22-D2 — T2 production integration + default-flip per DEC-012 one-structural-change-per-commit. Estimated 4–5 atomic commits: (1) T2 kernel in `kernel_sources.h`, (2) `DispatchHistogramT2` dispatch variant in `histogram.cpp`, (3) runtime/compile-time selection guard, (4) host-side guard and buffer allocation (`sortedDocs`, `binOffsets`), (5) default flip after parity clears. Blocked on S22-D1 PASS. — @ml-engineer **BLOCKED** (est. 3 days)
-- [ ] S22-D3 — 18-config perf sweep at gate config + R8 honest commitment. Measure `iter_total_ms` and `histogram_ms` across 18 configs. Document cumulative e2e at gate config (no softening of R8 ledger per `docs/sprint21/d1r4_synthesis.md §5`). Blocked on S22-D2 PASS. — @performance-engineer **BLOCKED** (est. 1 day)
+- [ ] S23-D0 — Promote `kernel_sources_t2_scratch.h` contents into `catboost/mlx/kernels/kernel_sources.h` under `kT2SortSource` and `kT2AccumSource` sections. Move `DispatchHistogramT2` from `bench_boosting.cpp` into `catboost/mlx/methods/histogram.cpp` with production-quality API (CB_ENSURE error handling, factored kernel registration, clean public interface). Remove `CATBOOST_MLX_HISTOGRAM_T2` compile-time flag and make T2 the default dispatch path. Per DEC-012: atomic commits — (1) kernel sources promotion, (2) dispatch promotion, (3) flag removal + default flip, (4) parity re-verify post-promotion. — @ml-engineer **OPEN**
+
+### NIT cleanup batch (from D5 code review, deferred to S23)
+
+- [ ] S23-NIT1 — Replace inline literals (`256u`, `128u`, `0x7Fu`, `4u`) in T2 kernels with named constants from `kHistHeader` (`BLOCK_SIZE`, `BINS_PER_BYTE`, `FEATURES_PER_PACK`). File: `kernel_sources_t2_scratch.h` (or promoted `kernel_sources.h`). — @ml-engineer
+- [ ] S23-NIT2 — Pull duplicate `offBase` arithmetic + `129u` magic number into a named constant (`BIN_OFFSETS_STRIDE = 129u`) in `kHistHeader` or a new `kT2Header`; add clarifying comment (`128 bins + 1 total`). — @ml-engineer
+- [ ] S23-NIT3 — T2-accum empty-partition hardening: add explicit `if (partSize == 0) return;` at start of T2-accum mirroring T2-sort, eliminating reliance on float-to-uint zero-bit-aliasing from `init_value=0.0f`. — @ml-engineer
+- [ ] S23-NIT4 — Add host-side CB_ENSURE that `maxBlocksPerPart == 1` when T2 is active; document the 1-block-per-partition constraint in the T2-sort kernel header comment. — @ml-engineer
+- [ ] S23-NIT5 — Remove unused `numTGs` uniform from both T2-sort and T2-accum `input_names` and from host-side `numTGsArr`; remove mention from kernel header comments. — @ml-engineer
+- [ ] S23-NIT7 — Harmonize feature 1-3 bin mask: change T2-accum feat 1-3 `& 0xFFu` to `& 0x7Fu` (matching T2-sort feat-0 and DEC-016 envelope), or use `& 0xFFu` for all features matching T1. Bundle with NIT1 in one pass. — @ml-engineer
+
+### Tree-search research track (rank #2 post-T2, from d1r4_synthesis.md §3)
+
+- [ ] S23-R1 — EvalAtBoundary readback elimination (S19-11 carry-forward). Six `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (`:275`, `:593`, `:653`, `:686`) force Metal sync barriers at each tree-level. At depth 6: ~0.3 ms/iter standalone. Scope the GPU-resident split-selection replacement per `docs/sprint16/sync_inventory.md`. Bounded 0.5–1 day. — @ml-engineer **CARRY-FORWARD from S19-11**
+- [ ] S23-R2 — Dispatch inversion research spike. Scope: can one histogram over all docs + scoring-time partition masking replace the partition-fragmented 1638-TG dispatch? If no concrete design surfaces within 2 days, declare unreachable for the Verstappen campaign window and defer. — @research-scientist **RESEARCH**
 
 ### Carry-forward
 
-- [ ] S19-11 — 6 `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (`:275`, `:593`, `:653`, `:686`). Scheduled as compound with T2 integration in Sprint 22 per `docs/sprint21/d1r4_synthesis.md §3 rank #2`. Bounded 0.5–1 day fix (~0.3 ms / 31.93 ms standalone contribution). — @ml-engineer **CARRY-FORWARD**
+- [ ] S19-11 — See S23-R1 above (same task, merged).
 
 ---
 
