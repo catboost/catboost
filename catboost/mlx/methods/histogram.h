@@ -57,10 +57,11 @@ namespace NCatboostMlx {
     // Zero-initialize a histogram buffer
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures);
 
-    // T2 sort-by-bin histogram dispatch (Sprint 23 D0 — production path).
+    // T2 histogram dispatch (Sprint 24 D0 v5 — DEC-023 complete fix).
     //
-    // Two-kernel dispatch: kT2SortSource (counting sort by feature-0 bin) →
-    // kT2AccumSource (bin-range scan for feat-0 + atomic scatter for feats 1-3).
+    // Single-kernel dispatch: kT2AccumSource (T1-style SIMD-shuffle accumulation for
+    // ALL features 0-3 reading from docIndices).  The T2-sort kernel (kT2SortSource)
+    // is no longer called; all features produce ULP=0 vs T1 by construction.
     //
     // Pre-conditions (enforced by CB_ENSURE):
     //   - maxBlocksPerPart == 1  (T2 kernels dispatch exactly one block per partition;
