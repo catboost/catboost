@@ -2,6 +2,75 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 23 closed — T2 scratch→production promotion + NIT cleanup + tree-search research (2026-04-21, CLOSED)
+
+**Branch**: `mlx/sprint-23-t2-promotion` (cut from Sprint 22 tip `73baadf445`)
+**Campaign**: Operation Verstappen — battle 8 of 9
+**Sprint verdict**: PASS with pre-existing-bug footnote. R8 = **1.90×** (unchanged through S23). Verstappen ≥1.5× gate remains cleared by 40 pp. PR #15 pending (Ramos opens, stacked on #14).
+
+### 8 commits landed
+
+| Commit | Role | Verdict |
+|--------|------|---------|
+| `4d1eda1f4c` | D0 Commit 1 — `kT2SortSource` + `kT2AccumSource` into `kernel_sources.h`; NIT-1/2/7 applied | PASS |
+| `2df0bb1aed` | D0 Commit 2 — `DispatchHistogramT2` promoted into `histogram.cpp`; CB_ENSURE API | PASS |
+| `eaf05bc21d` | D0 Commit 3 — `CATBOOST_MLX_HISTOGRAM_T2` flag removed; T2 default; NIT-3/4/5 applied | PASS |
+| `84529b47ed` | D0 Commit 4 — parity re-verify post-promotion; 17/18 ULP=0 | PASS (kill-switch tripped) |
+| `dd1c9e0a6e` | D0 close-out — bimodality pre-existing verdict; `d0_bimodality_verification.md` | DONE |
+| `be530059da` | D0 records correction — S22 D3 errata; DEC-022 scope qualifier; DEC-023 opened; KNOWN_BUGS.md; S24 scaffold | DONE |
+| `441f632b10` | R1 doc — `r1_evalatboundary.md`; DEC-024 DEFERRED | DONE (no-op) |
+| `5b9827ad93` | R2 doc — `r2_dispatch_inversion_spike.md`; DEC-025 FALSIFIED | DONE (no-op) |
+
+### D0 — T2 promotion (4 commits + 2 close-out commits)
+
+Kernel sources and host dispatch promoted from scratch form to production. NIT-1 through NIT-7 (minus NIT-6, removed in S22 audit) applied across Commits 1 and 3. `CATBOOST_MLX_HISTOGRAM_T2` compile-time flag removed; T2 is now the unconditional default dispatch path.
+
+**Kill-switch**: TRIPPED at config #8 (N=10000/RMSE/128b, 105 ULP gap, ~50/50 bimodal between 0.48231599 and 0.48231912). **Verdict: PRE-EXISTING.** The bimodality is present in S22 D2/D3 tip `73baadf445`. Root cause: features 1-3 `atomic_fetch_add_explicit(memory_order_relaxed)` on float; non-associative accumulation under non-deterministic Metal scheduling. S22 D3's 1-run-per-config parity sweep had 50% miss probability for a ~50/50 race. The promotion is innocent.
+
+**Gate config #14** (50k/RMSE/128b): 100/100 deterministic at 0.47740927. R8 1.90× record unaffected.
+
+**D0 exit gates**:
+
+| Gate | Criterion | Verdict |
+|------|-----------|---------|
+| S23-D0-G1 | 18/18 ULP=0 post-promotion (≥ S22 D3 standard) | PASS with errata — 17/18 ULP=0; G1 satisfied pending DEC-023 at S24 D0 |
+| S23-D0-G2 | iter_total_ms ≤ 19.5 ms at gate config | PASS — unchanged at 19.098 ms |
+| S23-D0-G3 | T2 in `kernel_sources.h`; inline T2 removed from `bench_boosting.cpp`; flag removed | PASS |
+| S23-NIT-G | All 6 deferred nits addressed | PASS |
+
+### R1 — EvalAtBoundary readback elimination (DEFERRED)
+
+Sites A/B/C in `structure_searcher.cpp` (`:290`, `:609`, `:705`) are on Depthwise/Lossguide paths only. Gate config runs SymmetricTree (oblivious). `bench_boosting` never calls `structure_searcher.cpp`. The ~0.3 ms/iter estimate was a theoretical S16 cost-class projection, not a measured value. 0/3 sites are reachable from the gate path. Zero code changes. R8 = 1.90× unchanged. DEFERRED, not retired — re-entry requires `bench_boosting --grow-policy` flag or a separate Depthwise/Lossguide harness. See DEC-024 and `docs/sprint23/r1_evalatboundary.md`.
+
+### R2 — Dispatch inversion spike (FALSIFIED)
+
+Proposal: replace partition-fragmented 1664-TG dispatch with a single all-docs histogram over `(feature × stat × bin)`, recovering per-partition bin sums at scoring time. Structural algebraic blocker: `H[f][b] = Σ_p h_p[f][b]` is not invertible. All five candidate mask mechanisms (A through E) are algebraically or empirically rejected — each either performs equivalent work to the current per-partition histogram or blows the 5.82 ms headroom budget. Atomic contention under inversion is 64× worse than the DEC-023 trigger. Mechanism E (the only variant retaining the 195 docs/thread shape) is DEC-017 T3b without the CAS — the same +42.3% regression is the predicted outcome. Day-1 kill-switch invoked; Day 2 not exercised. FALSIFIED permanently. See DEC-025 and `docs/sprint23/r2_dispatch_inversion_spike.md`.
+
+### Records corrected
+
+- **S22 D3 parity verdict**: "18/18 ULP=0 bit-exact" corrected to **17/18 ULP=0 + 1 latent bimodal** (config #8). Errata prepended to `docs/sprint22/d3_parity_gate.md` and `docs/sprint22/d2_t2_fix_verified.md`.
+- **S22 D2 determinism claim**: "10/10 determinism" was at gate config only; config #8 was not tested.
+- **DEC-022 scope qualifier**: "bug β does not exist" scoped to gate config; race fires at N=10000. Original retirement of Kahan concern remains valid at gate.
+- **DEC-020 footnote**: corrects the "18/18" claim and points to DEC-023.
+
+### New decisions
+
+| Decision | Status | Summary |
+|----------|--------|---------|
+| DEC-023 | OPEN (S24) | Features 1-3 atomic-float race; fix options: threadgroup-local reduce (preferred), int-atomic fixed-point, Kahan (insufficient standalone) |
+| DEC-024 | DEFERRED | S23-R1 EvalAtBoundary elimination; blocked by harness gap; not retired |
+| DEC-025 | FALSIFIED | S23-R2 dispatch inversion; structural algebraic blocker; do not re-enter |
+
+### KNOWN_BUGS.md
+
+BUG-T2-001 created: features 1-3 atomic-float race, config #8 bimodal, DEC-023 fix target S24 D0. Sibling latent race S-1 (`kHistOneByte` writeback, currently dead code, guarded by NIT-4 CB_ENSURE) documented.
+
+### Parity-sweep protocol standing order (carried forward)
+
+Minimum 5 runs per non-gate config + 100 runs at gate unconditionally. Effective from S23 D0 forward.
+
+---
+
 ## Sprint 23 D0 — T2 scratch→production promotion; kill-switch tripped (pre-existing bimodal at config #8); S22 records corrected; DEC-023 opened (2026-04-20, D0 COMPLETE)
 
 **Branch**: `mlx/sprint-23-t2-promotion` (cut from Sprint 22 tip `73baadf445`)
