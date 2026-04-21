@@ -57,4 +57,36 @@ namespace NCatboostMlx {
     // Zero-initialize a histogram buffer
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures);
 
+    // T2 sort-by-bin histogram dispatch (Sprint 23 D0 — production path).
+    //
+    // Two-kernel dispatch: kT2SortSource (counting sort by feature-0 bin) →
+    // kT2AccumSource (bin-range scan for feat-0 + atomic scatter for feats 1-3).
+    //
+    // Pre-conditions (enforced by CB_ENSURE):
+    //   - maxBlocksPerPart == 1  (T2 kernels dispatch exactly one block per partition;
+    //     any value > 1 would silently waste TGs — NIT-4 guard).
+    //   - maxFoldCount <= 127    (DEC-016 T1 envelope).
+    //
+    // Parameters mirror DispatchHistogramBatched at the raw-array level.
+    // Callers that have feature metadata in CatBoost types should use
+    // ComputeHistograms() which builds the fold arrays and calls this function.
+    mx::array DispatchHistogramT2(
+        const mx::array& compressedData,     // [numDocs * lineSize] uint32, flat
+        const mx::array& stats,              // [numStats * numDocs] float32
+        const mx::array& docIndices,         // [numDocs] uint32
+        const mx::array& partOffsets,        // [numPartitions] uint32
+        const mx::array& partSizes,          // [numPartitions] uint32
+        const mx::array& featureColIndices,  // [numGroups] uint32
+        const mx::array& foldCountsFlat,     // [numGroups * 4] uint32
+        const mx::array& firstFoldFlat,      // [numGroups * 4] uint32
+        ui32 lineSize,
+        ui32 maxBlocksPerPart,
+        ui32 numGroups,
+        ui32 numPartitions,
+        ui32 numStats,
+        ui32 totalBinFeatures,
+        ui32 totalNumDocs,
+        const mx::Shape& histShape
+    );
+
 }  // namespace NCatboostMlx

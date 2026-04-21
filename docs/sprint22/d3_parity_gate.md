@@ -1,3 +1,15 @@
+## ERRATA (added 2026-04-20 during S23 D0)
+
+This gate report's "18/18 ULP=0 bit-exact" verdict is corrected to **17/18 ULP=0 + 1 latent bimodal**. The protocol used was 1-run-per-config, which cannot distinguish a ~50/50 bimodal distribution from a deterministic one. Config #8 (N=10000/RMSE/128b) was subsequently found bimodal via N=100 at S23 D0. The miss probability at 1-run was 50% (coin flip).
+
+Root cause: features 1-3 `atomic_fetch_add` race, pre-existing (present in S22 D2 tip `73baadf445`, not introduced by promotion). Documented in DEC-023.
+
+Standing-order update: parity sweep floor is now ≥5 runs per config (catches 50/50 at 97%); gate config unconditionally 100 runs.
+
+See `docs/sprint23/d0_bimodality_verification.md` for the full verification.
+
+---
+
 # Sprint 22 D3 — Parity Exit Gate (Independent QA Verification)
 
 **Branch**: `mlx/sprint-22-t2-integration`

@@ -351,6 +351,8 @@ The 0.60 threshold is the point where cumulative e2e falls below the Verstappen 
 
 **Pointer**: `docs/sprint21/d1r2_t2_microbench.md`; `docs/sprint21/d1r4_synthesis.md §3/§4`.
 
+**Footnote (added 2026-04-20 during S23 D0)**: The S22 D3 parity sweep ran 1-run-per-config, which missed a bimodal ~50/50 distribution at config #8 (N=10000) — see DEC-023. S22 D3's "18/18 ULP=0" record is corrected to 17/18 ULP=0 + 1 latent bimodal; discovered during S23 D0 scratch→production promotion. 1.90× perf record at gate config (config #14) is unaffected — gate config is 100/100 deterministic. The bimodality is a features 1-3 atomic-float race, not a T2 structural bug; T2 itself ships as designed.
+
 ---
 
 ## DEC-021: Option III slab-by-partOffsets layout over Option I uniform-ceiling
@@ -413,6 +415,44 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
 
 **Pointer**: `docs/sprint22/d1c_t2_troubleshoot.md §1` (false-positive retirement); `docs/sprint22/d3_parity_gate.md §1` (100/100 determinism table).
 
+**Scope qualifier (added 2026-04-20 during S23 D0)**: Original evidence base (10/10 and 100/100 determinism) was AT GATE CONFIG ONLY (N=50000/RMSE/128b). Bug β is partially real at smaller N — see DEC-023. Features 1-3 atomic_fetch_add race fires at N=10000 (config #8). DEC-022 remains valid at gate config and for the S21 D1-R4 §5 framing (the D1 root cause was maxPartDocs, not atomic drift). Kahan concern is NOT fully re-opened; Options 1-2 in DEC-023 are the primary fix path.
+
+---
+
+---
+
+## DEC-023: Features 1-3 atomic-float race in T2-accum — deterministic reduction required
+
+**Status**: OPEN (S24 scope)
+**Discovered**: Sprint 23 D0 during scratch→production promotion parity sweep
+**Scope**: T2-accum features 1-3 use atomic_fetch_add on float; FP non-associativity + non-deterministic thread scheduling produces 1-2 ULP drift in histogram bins, which can flip near-tie split decisions early in training and cascade to 105+ ULP in final loss
+
+**Footprint** (S23 D0 measured, N=100 per config):
+  Config #8 (N=10000/RMSE/128b/depth=6/iters=50): BIMODAL 50/50 at 0.48231599 vs 0.48231912 (105 ULP gap)
+  Config #14 gate (N=50000/RMSE/128b/depth=6/iters=50): DETERMINISTIC 100/100 at 0.47740927
+  Configs #1–#7, #9–#13, #15–#18: DETERMINISTIC (100/100 each)
+  **Singleton footprint**: exactly 1 of 18 configs fires. All N=1000, all N=50000, and the other five N=10000 configs (varying loss / bins) are clean. Race is narrowly conditioned on (N=10000, RMSE, bins=128).
+
+**Cascade mechanism**: 1-2 ULP bin drift → near-tie GAIN flip at iteration k → different tree at k → all subsequent iters diverge. **Cascade onset** between iters=40 (30/30 deterministic) and iters=45 (bimodal). At iters=50 spread is 105 ULP; at iters=100 spread narrows to 39 ULP (non-monotone — branches converge toward a common limit). Cascade-factor table: docs/sprint23/d0_bimodality_verification.md §D.
+
+**Why it hides at gate — H1 SUPPORTED**: Gate-config seed-sweep (500 runs × 5 seeds at config #14) returned 100/100 deterministic on every seed. H2 (seed-coincidental determinism) refuted. H1 (structural: larger bin counts resolve additions in consistent order) is the operative explanation. The 1.90× R8 record at gate config is structurally robust across seed space. See docs/sprint23/d0_bimodality_verification.md §B.
+
+**Sibling race — S-1 latent** (found during S23 D0 site inventory): `kHistOneByte` writeback in kernel_sources.h uses atomic-float and is RACY when `maxBlocksPerPart > 1`. Currently DEAD CODE PATH — NIT-4 enforces `maxBlocksPerPart == 1` via CB_ENSURE. Any future optimization that relaxes this constraint (e.g., per-partition multi-block dispatch) reactivates the race. Fix options for S-1 mirror the T2-accum options below; address alongside DEC-023 if multi-block dispatch is needed, or leave guarded by the CB_ENSURE otherwise.
+
+**Feature-0 is clean**: bin-range scan over counting-sorted docs is ordered by sort order, no atomics; 100/100 deterministic. Only features 1-3 (atomic scatter path) are affected.
+
+**Fix options for S24**:
+  1. Threadgroup-local reduce + single-thread commit (mirrors feat-0 design; known-clean mechanism, preserves T2 perf envelope)
+  2. Int-atomic fixed-point accumulation (CatBoost CPU uses uint64 fixed-point for exactly this reason; deterministic by construction; accuracy calibration required)
+  3. Kahan/Neumaier compensated summation per bin (mitigates but does NOT eliminate non-determinism; probably not sufficient standalone)
+
+**Budget**: S24 D0, 1-2 days. Kill-switch: if fix degrades gate-config ratio below 0.45× (optimistic band), escalate to structural redesign.
+
+**Relation to prior work**:
+  - Partially re-validates S21 D1-R4 §5 bug β concern (retired too broadly under DEC-022; see DEC-022 scope qualifier)
+  - Kahan concern (DEC-022 body) is not resurrected as a standalone fix but may complement Options 1-2
+  - R8 1.90× record at gate config is unaffected (gate is deterministic)
+
 ---
 
 ### Preserved for history (original DRAFT content below)
@@ -432,3 +472,63 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
 3. MultiClass approxDim=3 parity (3 independent reductions compound drift).
 **Fallback**: If parity fails, implement Kahan/Higham compensated summation (+1 uint32 per bin as running compensation term) and re-sweep. If Kahan still fails → T3b is structurally incompatible with DEC-008; alternative exploration.
 **Commits placeholder**: `<TBD-sprint-20>`.
+
+---
+
+## DEC-024: S23-R1 EvalAtBoundary readback elimination — DEFERRED (harness gap, not falsified)
+
+**Status**: DEFERRED pending harness extension (not falsified; not retired)
+**Date**: 2026-04-20 (Sprint 23 R1)
+**Author**: @ml-engineer
+**Authority**: `docs/sprint23/r1_evalatboundary.md` (R1 scope report)
+
+**Finding**: The three live `EvalAtBoundary` readback sites in `structure_searcher.cpp` (lines 290, 609, 705) are architecturally unreachable from the gate config (50k/RMSE/d6/128b).
+
+- Site A (line 290): `SearchDepthwiseTreeStructure` only — requires `EGrowPolicy::Depthwise`.
+- Site B (line 609): `SearchLossguideTreeStructure` evalLeaf — requires `EGrowPolicy::Lossguide`.
+- Site C (line 705): `SearchLossguideTreeStructure` split-apply — requires `EGrowPolicy::Lossguide`.
+
+Gate config runs `EGrowPolicy::SymmetricTree` (oblivious). `bench_boosting.cpp` uses its own inline oblivious-tree loop (`RunIteration`, lines 967–1243) and does not call `structure_searcher.cpp` at all. Production `mlx_boosting.cpp` at gate config dispatches to `SearchTreeStructure` which has no EvalAtBoundary calls.
+
+**Site fate per kill-switch**: A=SKIP, B=SKIP, C=SKIP (all 3 sites; 0/3 replaceable at gate).
+
+**Cost-estimate provenance**: S16 `sync_inventory.md` ~0.3 ms/iter was a theoretical cost-class-A projection, not a measured gate-config value. There is no measurable gate-config iter_total_ms reduction available via Sites A–C.
+
+**Lever disposition**: DEFERRED, not RETIRED. The lever may still be valid for production workloads using `Depthwise` or `Lossguide` grow policies. It cannot be ranked or executed until one of:
+  1. `bench_boosting` adds `--grow-policy {depthwise|lossguide}` flags, or
+  2. A separate benchmark harness wraps `mlx_boosting.cpp` with non-default grow policy and timing instrumentation.
+
+**Relation to prior decisions**: Complements DEC-017/DEC-018 (retired T3b/variant A — levers retired on evidence). DEC-024 is NOT a retirement; it is a gap diagnosis. If the harness extension lands, the lever re-enters the Verstappen candidate pool under standard gate criteria.
+
+**R8 position unchanged**: Gate config `iter_total_ms = 19.098 ms` (S22 D4). Cumulative 1.90×.
+
+**Commits**: None (no production changes in R1).
+
+---
+
+## DEC-025: S23-R2 dispatch inversion — FALSIFIED (structural algebraic blocker)
+
+**Status**: FALSIFIED — do not re-enter without new mask-mechanism evidence
+**Date**: 2026-04-20 (Sprint 23 R2)
+**Author**: @research-scientist
+**Authority**: `docs/sprint23/r2_dispatch_inversion_spike.md` (NO-GO verdict, 2-day timebox Day 1 closed)
+
+**Finding**: The proposal (replace partition-fragmented 1664-TG dispatch with a single all-docs histogram over `(feature × stat × bin)`, recovering per-partition bin sums at scoring time via masks) cannot yield per-partition bin-sums `h_p[f][b]` from the collapsed global `H[f][b]`. The algebra `H[f][b] = Σ_p h_p[f][b]` is not invertible without a second per-doc pass equivalent to the work the inversion was meant to eliminate.
+
+**Three mask mechanisms considered** (all fail):
+  1. **Per-partition mask at scoring time**: equivalent to a second histogram pass; no net win.
+  2. **Doc-level bin×partition tensor**: memory footprint 2–3× current histogram (50k docs × 64 parts × bins-worth ≥ 3× the current 3.2 MB).
+  3. **Bit-packed doc→partition with per-bin gather at scoring**: gather-count `numParts × numFeatures × numBins = 64 × 50 × 128 = 409,600 gathers/iter` adds ≥4–6 ms at AGX bandwidth, consuming the entire optimistic 5.05 ms headroom.
+
+**Parity regression risk**: Merging 64 partition atomic writers into a single contended per-bin slot raises atomic contention 64× over current T2. At the DEC-023 race footprint (N=10k config #8 already bimodal with 1664 TGs fragmentation), inversion strictly worsens the race — 26 TGs × 195 docs/thread contending on 128 bins × 4 features = 512 slots each receiving 64× more writers. Cannot ship within DEC-008 envelope without Kahan/fixed-point compensation (which itself has independent risks — see DEC-023 fix-option analysis).
+
+**Relation to prior falsifications**:
+  - DEC-017 (T3b retired): failed at production shape (+42.3%) because single-TG toy timing did not survive partition-fragmentation atomic contention.
+  - DEC-018 (variant A retired): failed the 10% fixed-overhead kill-switch because gate tested T1 amortization proxy, not T3b shape-restoration mechanism.
+  - **R2 is the non-atomic-CAS cousin of DEC-017**: both restore 195 docs/thread at gate by reducing TG count; R2 trades dispatch fragmentation for per-bin atomic fragmentation at scoring time — the same contention surface, relocated, plus a new reconstruction cost.
+
+**Re-entry policy**: Do not re-enter this design space in S24+ without new evidence of a structurally different reconstruction mechanism (e.g., hardware segment-sum primitives unique to a future GPU, or a hybrid per-partition sparse overlay pattern not considered in Day 1). Timeboxed spike closed at end of Day 1 — Day 2 not exercised.
+
+**R8 position unchanged**: Gate config `iter_total_ms = 19.098 ms` (S22 D4). Cumulative 1.90×.
+
+**Commits**: None (research spike only, no production changes).

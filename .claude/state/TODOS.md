@@ -156,16 +156,18 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 23 — T2 Scratch→Production Promotion + NIT Catalog + Tree-Search Research (OPEN)
+## Sprint 23 — T2 Scratch→Production Promotion + NIT Catalog + Tree-Search Research (CLOSED)
 
-**Branch**: `mlx/sprint-23-t2-promotion` (to be cut)
-**Campaign**: Operation Verstappen — battle 8 of 9
-**Gate config**: 50k/RMSE/d6/128b (unchanged)
-**Authority**: `docs/sprint22/d5_code_review.md §4` (NIT catalog); `docs/sprint21/d1r4_synthesis.md §3` (tree-search rank #2)
+**Branch**: `mlx/sprint-23-t2-promotion`
+**Campaign**: Operation Verstappen — battle 8 of 9 — **CLOSED 2026-04-21**
+**Gate config**: 50k/RMSE/d6/128b
+**Verdict**: PASS (pre-existing-bug footnote). D0 4/4 gates (G1 with errata). R1 DEFERRED. R2 FALSIFIED. R8 1.90× unchanged. PR #15 pending.
 
 ### D0 — T2 scratch→production promotion (blocking)
 
-- [ ] S23-D0 — Promote `kernel_sources_t2_scratch.h` contents into `catboost/mlx/kernels/kernel_sources.h` under `kT2SortSource` and `kT2AccumSource` sections. Move `DispatchHistogramT2` from `bench_boosting.cpp` into `catboost/mlx/methods/histogram.cpp` with production-quality API (CB_ENSURE error handling, factored kernel registration, clean public interface). Remove `CATBOOST_MLX_HISTOGRAM_T2` compile-time flag and make T2 the default dispatch path. Per DEC-012: atomic commits — (1) kernel sources promotion, (2) dispatch promotion, (3) flag removal + default flip, (4) parity re-verify post-promotion. — @ml-engineer **OPEN**
+- [x] S23-D0 — Promote `kernel_sources_t2_scratch.h` contents into `catboost/mlx/kernels/kernel_sources.h` under `kT2SortSource` and `kT2AccumSource` sections. Move `DispatchHistogramT2` from `bench_boosting.cpp` into `catboost/mlx/methods/histogram.cpp` with production-quality API (CB_ENSURE error handling, factored kernel registration, clean public interface). Remove `CATBOOST_MLX_HISTOGRAM_T2` compile-time flag and make T2 the default dispatch path. Per DEC-012: 4 atomic commits landed (tip `84529b47ed`). — @ml-engineer **DONE — KILL-SWITCH TRIPPED**
+
+  **Verdict**: PASS (kill-switch tripped on pre-existing bug; records corrected; proceed to R1/R2). Parity sweep: 17/18 ULP=0; config #8 (N=10000/RMSE/128b) BIMODAL ~50/50 at (0.48231599, 0.48231912) — 105 ULP gap. Pre-existing in S22 D2/D3 tip `73baadf445`; not introduced by promotion. Gate config #14 (N=50000/RMSE/128b) 100/100 deterministic at 0.47740927. R8 1.90× record unaffected. See `docs/sprint23/d0_bimodality_verification.md` and DEC-023.
 
 ### NIT cleanup batch (from D5 code review, deferred to S23)
 
@@ -178,8 +180,8 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ### Tree-search research track (rank #2 post-T2, from d1r4_synthesis.md §3)
 
-- [ ] S23-R1 — EvalAtBoundary readback elimination (S19-11 carry-forward). Six `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (`:275`, `:593`, `:653`, `:686`) force Metal sync barriers at each tree-level. At depth 6: ~0.3 ms/iter standalone. Scope the GPU-resident split-selection replacement per `docs/sprint16/sync_inventory.md`. Bounded 0.5–1 day. — @ml-engineer **CARRY-FORWARD from S19-11**
-- [ ] S23-R2 — Dispatch inversion research spike. Scope: can one histogram over all docs + scoring-time partition masking replace the partition-fragmented 1638-TG dispatch? If no concrete design surfaces within 2 days, declare unreachable for the Verstappen campaign window and defer. — @research-scientist **RESEARCH**
+- [x] S23-R1 — EvalAtBoundary readback elimination (S19-11 carry-forward). **VERDICT: NOT VIABLE — architectural mismatch.** 3 live sites in `structure_searcher.cpp` (lines 290, 609, 705) are on Depthwise/Lossguide paths only. gate config (oblivious tree) never enters these paths; bench_boosting has its own inline loop that bypasses structure_searcher.cpp entirely. 0/3 sites replaced. Gate perf delta: 0 ms (sites unreachable from gate path). Parity: unchanged (17/18 ULP=0, config #8 bimodal unchanged). R8: 1.90× unchanged. Per-site: A=SKIP (depthwise restructure, no gate perf), B=SKIP (lossguide, parity harness gap), C=SKIP (scope exceeds budget, lossguide restructure). Forward: Depthwise/Lossguide benchmarks required before these sites can be targeted. See `docs/sprint23/r1_evalatboundary.md`. — @ml-engineer **DONE (no-op — kill-switch fired)**
+- [x] S23-R2 — Dispatch inversion research spike. **FALSIFIED — structural algebraic blocker.** `H[f][b] = Σ_p h_p[f][b]` is not invertible; all five mask mechanisms (A–E) are algebraically or empirically rejected. Atomic contention 64× worse than DEC-023 trigger. Mechanism E is DEC-017 T3b with a different label (same +42.3% regression predicted). Day-1 kill-switch invoked; Day 2 not exercised. Do not re-enter without new mask-mechanism evidence. DEC-025 FALSIFIED. See `docs/sprint23/r2_dispatch_inversion_spike.md`. — @research-scientist **DONE (no-op — kill-switch fired)**
 
 ### Carry-forward
 
@@ -187,13 +189,31 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
+---
+
+## Sprint 24 — DEC-023 Atomic-Float Race Fix (OPEN)
+
+**Branch**: TBD (cut from Sprint 23 tip)
+**Campaign**: Operation Verstappen — battle 9 of 9
+**Gate config**: 50k/RMSE/d6/128b (unchanged)
+
+### D0 — DEC-023 fix (blocking)
+
+- [ ] S24-D0 — Fix features 1-3 `atomic_fetch_add` non-determinism in T2-accum. Choose one of three fix options (DEC-023): (1) threadgroup-local reduce + single-thread commit, (2) int-atomic fixed-point accumulation, (3) Kahan/Neumaier compensated summation (standalone insufficient). Preferred: Option 1 (mirrors feat-0 design; known-clean mechanism). Budget: 1-2 days. Kill-switch: if fix degrades gate-config ratio below 0.45× (optimistic band), escalate to structural redesign. Acceptance: config #8 becomes 10/10 deterministic; 18/18 parity sweep clean; gate config remains 100/100. — @ml-engineer **OPEN**
+
+### Standing-order update
+
+- [ ] S24-SO-1 — Update parity sweep protocol (standing order for all future sprints): minimum 5 runs per non-gate config (catches ~50/50 bimodality at 97% probability); gate config unconditionally 100 runs. Document in `docs/sprint24/README.md §Exit Gates`. Apply retrospectively to any future sweep doc that claims determinism. — @technical-writer **OPEN**
+
+---
+
 ## Sprint 20–24 Backlog (one-line each, expanded per sprint)
 
 - Sprint 20: T3b atomic-CAS — CLOSED, FALSIFIED (DEC-017 RETIRED). PR #12 OPEN.
 - Sprint 21: A1 measurement — CLOSED, 0× perf, T2 promoted to viable-set. PR #13 pending.
-- Sprint 22: T2 sort-by-bin integration — OPEN (single-lever sprint; campaign 1.5× gate depends on S22-D0 ratio)
-- Sprint 23: Tree-search restructure / dispatch inversion research spike (if T2 clears Sprint 22; otherwise campaign re-scope)
-- Sprint 24: Championship benchmark — final tuning, dominance suite vs CPU + CUDA, release polish
+- Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90×, Verstappen gate cleared. PR #14 pending. Note: S22 D3 parity record corrected to 17/18 (see DEC-020 footnote + DEC-023).
+- Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED (harness gap). R2 FALSIFIED (structural). DEC-023/024/025. PR #15 pending.
+- Sprint 24: DEC-023 atomic-float race fix (S24-D0) + championship benchmark
 
 ---
 

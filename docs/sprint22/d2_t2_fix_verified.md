@@ -1,3 +1,13 @@
+## ERRATA (added 2026-04-20 during S23 D0)
+
+This document's "10/10 deterministic" claim (§6) was measured at gate config only (N=50000/RMSE/128b, config #14). Config #8 (N=10000/RMSE/128b) was not tested beyond a single run in the S22 D3 parity sweep, and was subsequently found bimodal ~50/50 during S23 D0's 5-run-per-config promotion sweep.
+
+The bimodality is a features 1-3 `atomic_fetch_add` race, pre-existing in this commit — not a regression introduced after D2. The Option III slab-by-partOffsets fix correctly eliminated the H-B overflow (the D1c root cause). The atomic-float race is a separate, pre-existing defect that was not exercised by the D2 determinism check because that check ran only at the gate config.
+
+See `docs/sprint23/d0_bimodality_verification.md` and DEC-023 for full analysis and fix plan.
+
+---
+
 # Sprint 22 D2 — T2 Option III: slab-by-partOffsets Fix Verified
 
 **Branch**: `mlx/sprint-22-t2-integration`
