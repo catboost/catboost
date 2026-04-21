@@ -194,7 +194,40 @@
 **Scope limit**: `maxFoldCount > 127` (e.g. default `MaxBins=255`, or `bins=128` with a NaN offset that pushes a feature's Folds to 128) is rejected at dispatch. Gate config (bins=128 synthetic no-NaN → Folds=127) is in-envelope. Wider envelope support is Sprint 20 work (DEC-017 redesign or dedicated valid buffer). Envelope guard added in S19-13 after S19-07 code review found the pre-guard commit (`92f3832169`) silently corrupted slot-0 bins 128..255.
 **Follow-up**: T3b atomic-CAS (DEC-017, Sprint 20) eliminates the shuffle chain entirely; T1 is the bit-exact interim.
 
-## DEC-017: T3b threadgroup-atomic-CAS no-shuffle accumulator (DRAFT — Sprint 20)
+## DEC-017: T3b threadgroup-atomic-CAS no-shuffle accumulator (RETIRED — SUPERSEDED BY EMPIRICAL FALSIFICATION)
+
+**Sprint**: 20 (attempted, abandoned)
+**Date retired**: 2026-04-19
+**Branch**: `mlx/sprint-20-hist-atomic-cas`
+**Status**: **RETIRED — SUPERSEDED BY EMPIRICAL FALSIFICATION.** See `docs/sprint20/d2b_design.md §2` for the full empirical case.
+
+### Post-mortem
+
+**Projected**: −84.4% single-TG accumulation at gate config 50k/RMSE/d6/128b, toy-kernel isolation (Sprint 19 algorithmic ablation, `microbench_algorithmic.cpp`).
+
+**Measured (Sprint 20 D2, commit `9079ad3873`)**: **+42.3% regression** at the same gate config in production dispatch. Parity was 18/18 bit-exact across the full DEC-008 envelope — the failure mode is pure dispatch-shape mismatch.
+
+**Why it failed**: Toy-kernel ablation ran 1 TG × 256 threads × all 50k docs in a single partition (195 docs/thread, root depth). Production at depth 6 runs 1638 TGs × 256 threads × ~781 docs per partition (~3 docs/thread). T3b's fixed per-TG overhead is absolute, not proportional to per-TG work:
+
+- Per TG: 1024-slot `atomic_uint` zero-init + 1024-slot writeback read = ~8 memory ops per thread
+- At 195 docs/thread: 8 / (195 × 4 features) = **1.0%** of per-thread cost → amortized, T3b wins
+- At 3 docs/thread: 8 / (3 × 4 features) = **67%** of per-thread cost → overhead dominates, T3b loses
+- CAS atomics compound the problem: each CAS is a read-modify-write with conditional retry, cannot pipeline like `simd_shuffle` chains
+
+**Standing warning for Sprint 21+**: Toy-kernel ablations at single-TG root dispatch shape **DO NOT predict production partition-fragmented dispatch** in this codebase. Future T* algorithmic campaigns MUST validate at production dispatch shape (multi-TG, depth-appropriate partition granularity) before committing to an R8 projection. This is now a standing rule for all Sprint 21+ lever evaluations.
+
+**Fourth analytical model falsified** in the T3b campaign (DEC-013 writeback, DEC-014 original gather, DEC-015 col-major, DEC-017 T3b-as-drop-in).
+
+**Pointer**: See `docs/sprint20/d2b_design.md §2` for the empirical case and §5 for the Sprint 21+ plan.
+
+**Commits**:
+- `9216f4941c` — Sprint 20 D1 parity sweep (18/18 bit-exact, 100/100 determinism — preserved as the isolated-shape measurement record)
+- `9079ad3873` — Sprint 20 D2 falsification record (+42.3% regression at production shape)
+- Kernel/host integration attempt reverted before commit per DEC-012; only the empirical record is in git history.
+
+---
+
+### Preserved for history (original DRAFT content below)
 
 **Sprint**: 20 (flagship)
 **Date**: 2026-04-19 (draft; will lock at Sprint 20 D1 parity sweep close)
