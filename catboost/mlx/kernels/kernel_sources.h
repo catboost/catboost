@@ -149,36 +149,81 @@ static const std::string kHistOneByteSource = R"metal(
 
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Fixed-order sequential reduction across all BLOCK_SIZE threads.
-    // Thread t (for t = 1 .. BLOCK_SIZE-1) writes its privHist into a shared
-    // staging buffer, then thread 0 accumulates it.  The barrier between each
-    // write-and-read pair ensures thread 0 always sees the complete contribution
-    // from thread t before moving to t+1. The addition order is fixed: thread 1
-    // first, then thread 2, ..., then thread BLOCK_SIZE-1.
+    // D1c: SIMD-shuffle intra-SIMD reduction + fixed-order cross-SIMD fold.
     //
-    // Shared staging buffer: HIST_PER_SIMD floats = 4 KB (non-atomic, no CAS).
-    threadgroup float stagingHist[HIST_PER_SIMD];
+    // Replaces the serial 255-step reduction (one barrier per thread) with:
+    //   - 5 simd_shuffle_xor rounds per bin (zero threadgroup barriers, register-only)
+    //   - 2 threadgroup barriers per tile (SIMD-leader write, then cross-SIMD read)
+    //   - 4 tiles cover all HIST_PER_SIMD = 1024 bins → 8 barriers total (down from 255)
+    //
+    // Threadgroup memory:
+    //   simdHist[NUM_SIMD_GROUPS][BINS_PER_BYTE] = 8 × 256 × 4 B = 8 KB
+    //   stagingHist[HIST_PER_SIMD]               = 1024 × 4 B    = 4 KB
+    //   Peak                                                       = 12 KB (37% of 32 KB limit)
+    //
+    // Correctness: for each bin b, all 32 threads in a SIMD group load privHist[b]
+    // (same bin index, different threads' private histograms), then butterfly-sum
+    // across the 32 lanes. After 5 XOR rounds all lanes hold the same value: the
+    // per-SIMD-group sum for bin b. Lane 0 stores to simdHist[simd_id][b].
+    // The cross-SIMD fold (8-term sequential, fixed simd_id order 0..7) produces
+    // the final all-thread sum in stagingHist — deterministic because the simd_id
+    // order is compile-time fixed.
+    //
+    // Determinism: simd_shuffle_xor is bit-deterministic within a SIMD group
+    // (Apple Metal Shading Language Spec §6.9 — lanes execute in lockstep).
+    // The 8-term cross-SIMD sum runs in fixed simd_id order → also bit-deterministic.
+    // The reduction order differs from the serial fold, so absolute values will
+    // differ by a few ULP (within the DEC-005 ≤ 4 ULP RMSE parity gate).
+    //
+    // Zero-skip fast-path (abs(val) > 1e-20f): kept in the global-atomic writeback
+    // (lines 192–198 below) where it guards device-memory traffic. Fusing it into
+    // the cross-SIMD fold is an open micro-optimisation deferred to Sprint 18.
+    threadgroup float simdHist[NUM_SIMD_GROUPS][BINS_PER_BYTE]; // 8 KB
+    threadgroup float stagingHist[HIST_PER_SIMD];               // 4 KB (downstream interface unchanged)
 
-    // Thread 0 initialises staging from its own private histogram
-    if (thread_index_in_threadgroup == 0u) {
-        for (uint i = 0u; i < HIST_PER_SIMD; i++) {
-            stagingHist[i] = privHist[i];
-        }
-    }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
+    const uint tid     = thread_index_in_threadgroup;
+    const uint lane    = tid & (SIMD_SIZE - 1u);   // 0..31 within SIMD group
+    const uint simd_id = tid >> 5u;                // 0..7 SIMD group index
 
-    // Threads 1..BLOCK_SIZE-1 contribute in fixed order
-    for (uint t = 1u; t < BLOCK_SIZE; t++) {
-        // Thread t writes its private histogram into the staging area.
-        // All threads execute this loop body, but only thread t does a real write.
-        // After the barrier, thread 0 reads and accumulates.
-        if (thread_index_in_threadgroup == t) {
-            for (uint i = 0u; i < HIST_PER_SIMD; i++) {
-                stagingHist[i] += privHist[i];
+    for (uint tile = 0u; tile < FEATURES_PER_PACK; tile++) {   // 4 tiles × 256 bins = 1024 bins
+        const uint tile_base = tile * BINS_PER_BYTE;
+
+        // --- Intra-SIMD reduction: 5 shuffle rounds, zero threadgroup barriers ---
+        // Every thread loads privHist[tile_base + bin] for the same bin index
+        // across all 32 lanes in the SIMD group, then butterfly-sums across lanes.
+        // Each bin in [0, BINS_PER_BYTE) is handled by exactly one iteration of
+        // this loop; the 32 threads in the SIMD group cover 32 different document
+        // subsets but the same bin.
+        for (uint bin = 0u; bin < BINS_PER_BYTE; bin++) {
+            float val = privHist[tile_base + bin];
+
+            // Butterfly XOR reduction: after 5 rounds all 32 lanes hold
+            // the same value — the sum of this SIMD group's 32 threads for bin.
+            val += simd_shuffle_xor(val, 16u);
+            val += simd_shuffle_xor(val,  8u);
+            val += simd_shuffle_xor(val,  4u);
+            val += simd_shuffle_xor(val,  2u);
+            val += simd_shuffle_xor(val,  1u);
+
+            if (lane == 0u) {
+                simdHist[simd_id][bin] = val;   // SIMD-leader stores per-group sum
             }
         }
-        threadgroup_barrier(mem_flags::mem_threadgroup);
+        threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 1 of 2 per tile
+
+        // --- Cross-SIMD fold: 256 threads each accumulate 8 SIMD-group values ---
+        // Thread tid handles bin tid (256 threads map exactly to 256 bins per tile).
+        // The 8-term sum runs in fixed simd_id order 0..7 → deterministic result.
+        if (tid < BINS_PER_BYTE) {
+            float sum = 0.0f;
+            for (uint g = 0u; g < NUM_SIMD_GROUPS; g++) {
+                sum += simdHist[g][tid];
+            }
+            stagingHist[tile_base + tid] = sum;
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 2 of 2 per tile
     }
+    // Total barriers: 2 per tile × 4 tiles = 8 (down from 255 in the serial fold).
 
     // Write results from stagingHist (fully reduced into thread 0's pass) to global
     const uint histBase = partIdx * numStats * totalBinFeatures + statIdx * totalBinFeatures;
