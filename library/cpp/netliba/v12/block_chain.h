@@ -143,7 +143,8 @@ namespace NNetliba_v12 {
 
     class TRopeDataPacket: public TNonCopyable, public TWithCustomAllocator {
         TBlockChain Chain;
-        TVector<char*, TCustomAllocator<char*>> Buf;
+        using TBufEntry = std::pair<char*, int>;
+        TVector<TBufEntry, TCustomAllocator<TBufEntry>> Buf;
         char *Block, *BlockEnd;
         TList<TDataVector, TCustomAllocator<TDataVector>> DataVectors;
         TIntrusivePtr<TPosixSharedMemory> SharedData;
@@ -160,7 +161,7 @@ namespace NNetliba_v12 {
                 char* newBlock = AllocBuf(bufSize);
                 Block = newBlock;
                 BlockEnd = Block + bufSize;
-                Buf.push_back(newBlock);
+                Buf.push_back({newBlock, bufSize});
             }
             res = Block;
             Block += sz;
@@ -171,8 +172,8 @@ namespace NNetliba_v12 {
         static char* AllocBuf(int sz) {
             return TCustomAllocator<char>().allocate(sz);
         }
-        static void FreeBuf(char* buf) {
-            return TCustomAllocator<char>().deallocate(buf, 0U);
+        static void FreeBuf(char* buf, int sz) {
+            TCustomAllocator<char>().deallocate(buf, (size_t)sz);
         }
 
     public:
@@ -183,7 +184,7 @@ namespace NNetliba_v12 {
         }
         ~TRopeDataPacket() {
             for (const auto& buf : Buf) {
-                FreeBuf(buf);
+                FreeBuf(buf.first, buf.second);
             }
             for (const auto& ps : PacketsStorage) {
                 delete ps;

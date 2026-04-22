@@ -193,7 +193,7 @@ template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 std::pair<typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator, typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator>
 TCompactFlatMap<TKey, TValue, N, TKeyCompare>::equal_range(const TOtherKey& k)
 {
-    auto result = std::ranges::equal_range(Storage_, k, {}, &value_type::first);
+    auto result = std::ranges::equal_range(Storage_, k, TKeyCompare{}, &value_type::first);
     YT_ASSERT(result.size() <= 1);
     return result;
 }
@@ -203,7 +203,7 @@ template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 std::pair<typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator, typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator>
 TCompactFlatMap<TKey, TValue, N, TKeyCompare>::equal_range(const TOtherKey& k) const
 {
-    auto result = std::ranges::equal_range(Storage_, k, {}, &value_type::first);
+    auto result = std::ranges::equal_range(Storage_, k, TKeyCompare{}, &value_type::first);
     YT_ASSERT(result.size() <= 1);
     return result;
 }
@@ -212,28 +212,28 @@ template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::lower_bound(const TOtherKey& k) const
 {
-    return std::ranges::lower_bound(Storage_, k, {}, &value_type::first);
+    return std::ranges::lower_bound(Storage_, k, TKeyCompare{}, &value_type::first);
 }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::lower_bound(const TOtherKey& k)
 {
-    return std::ranges::lower_bound(Storage_, k, {}, &value_type::first);
+    return std::ranges::lower_bound(Storage_, k, TKeyCompare{}, &value_type::first);
 }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::upper_bound(const TOtherKey& k) const
 {
-    return std::ranges::upper_bound(Storage_, k, {}, &value_type::first);
+    return std::ranges::upper_bound(Storage_, k, TKeyCompare{}, &value_type::first);
 }
 
 template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
 typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::upper_bound(const TOtherKey& k)
 {
-    return std::ranges::upper_bound(Storage_, k, {}, &value_type::first);
+    return std::ranges::upper_bound(Storage_, k, TKeyCompare{}, &value_type::first);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -72,11 +72,19 @@ namespace NNetliba_v12 {
         float TimePassed, TimeSinceLastPing;
         EState State;
 
+        float XsTimePassed, XsTimeSinceLastPing;
+        EState XsState;
+        bool XsPongReceived;
+
     public:
         TLameMTUDiscovery()
             : TimePassed(0)
             , TimeSinceLastPing(0)
             , State(NEED_PING)
+            , XsTimePassed(0)
+            , XsTimeSinceLastPing(0)
+            , XsState(NEED_PING)
+            , XsPongReceived(false)
         {
         }
         bool CanSend() {
@@ -89,11 +97,28 @@ namespace NNetliba_v12 {
         bool IsTimedOut() const {
             return TimePassed > LAME_MTU_TIMEOUT;
         }
+        bool CanSendXs() {
+            return XsState == NEED_PING && !XsPongReceived;
+        }
+        void XsPingSent() {
+            XsState = WAIT;
+            XsTimeSinceLastPing = 0;
+        }
+        void MarkXsPongReceived() {
+            XsPongReceived = true;
+        }
+        bool HasXsPongReceived() const {
+            return XsPongReceived;
+        }
         void Step(float deltaT) {
             TimePassed += deltaT;
             TimeSinceLastPing += deltaT;
             if (TimeSinceLastPing > LAME_MTU_INTERVAL)
                 State = NEED_PING;
+            XsTimePassed += deltaT;
+            XsTimeSinceLastPing += deltaT;
+            if (XsTimeSinceLastPing > LAME_MTU_INTERVAL)
+                XsState = NEED_PING;
         }
     };
 
@@ -118,6 +143,7 @@ namespace NNetliba_v12 {
         float VirtualPackets;
         int MTU;
         TIntrusivePtr<TLameMTUDiscovery> MTUDiscovery;
+        bool XsPongReceived;
 
         void CalcMaxWindow() {
             if (MTU == 0)
@@ -146,6 +172,7 @@ namespace NNetliba_v12 {
             , TimeWindow(CONG_CTRL_LARGE_TIME_WINDOW)
             , TimeSinceLastFail(0)
             , MTU(0)
+            , XsPongReceived(false)
         {
             VirtualPackets = Max(Window - CONG_CTRL_ALLOWED_BURST_SIZE, 0.f);
         }
@@ -389,6 +416,15 @@ namespace NNetliba_v12 {
             MTU = sz;
             MTUDiscovery = nullptr;
             CalcMaxWindow();
+        }
+        void MarkXsPongReceived() {
+            XsPongReceived = true;
+            if (MTUDiscovery.Get()) {
+                MTUDiscovery->MarkXsPongReceived();
+            }
+        }
+        bool HasXsPongReceived() const {
+            return XsPongReceived;
         }
     };
 

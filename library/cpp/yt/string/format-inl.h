@@ -351,7 +351,7 @@ TFormatterWrapper<TFormatter> MakeFormatterWrapper(
     TFormatter&& formatter)
 {
     return TFormatterWrapper<TFormatter>{
-        .Formatter = std::move(formatter)
+        .Formatter = std::forward<TFormatter>(formatter)
     };
 }
 
@@ -941,7 +941,7 @@ void FormatValue(
 {
     std::apply(
         [&] <class... TInnerArgs> (TInnerArgs&&... args) {
-            builder->AppendFormat(value.Format_, std::forward<TInnerArgs>(args)...);
+            builder->AppendFormat(TRuntimeFormat{value.Format_}, std::forward<TInnerArgs>(args)...);
         },
         value.Args_);
 }
