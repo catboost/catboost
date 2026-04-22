@@ -85,9 +85,11 @@ class TestRegressionAnchor:
         preds = m.predict(X)
 
         rmse = np.sqrt(np.mean((y - preds) ** 2))
-        # Anchor: 0.43203181527620355 — captured at Sprint 4 QA
-        assert abs(rmse - 0.432032) < 1e-3, (
-            f"RMSE anchor mismatch: expected ~0.432032, got {rmse:.6f}"
+        # Anchor: 0.30634809 — updated S26-D0-9 after DEC-028 fixed
+        # RandomStrength noise scale (hessian-sum → gradient-RMS, matching CPU).
+        # Prior value 0.43203182 reflected pre-fix over-scaled noise regime.
+        assert abs(rmse - 0.306348) < 1e-3, (
+            f"RMSE anchor mismatch: expected ~0.306348, got {rmse:.6f}"
         )
 
     def test_specific_predictions_match_anchor(self):
@@ -100,10 +102,11 @@ class TestRegressionAnchor:
         m.fit(X, y)
         preds = m.predict(X)
 
-        # Anchored values (captured Sprint 4 QA, seed=0)
-        assert abs(preds[0] - 0.414606) < 1e-3, f"preds[0] mismatch: {preds[0]}"
-        assert abs(preds[1] - (-0.545893)) < 1e-3, f"preds[1] mismatch: {preds[1]}"
-        assert abs(preds[99] - 1.356884) < 1e-3, f"preds[99] mismatch: {preds[99]}"
+        # Anchored values updated S26-D0-9 post-DEC-028 (seed=0).
+        # Prior values [0.414606, -0.545893, 1.356884] reflected pre-fix noise.
+        assert abs(preds[0] - 0.317253) < 1e-3, f"preds[0] mismatch: {preds[0]}"
+        assert abs(preds[1] - (-0.568259)) < 1e-3, f"preds[1] mismatch: {preds[1]}"
+        assert abs(preds[99] - 1.598960) < 1e-3, f"preds[99] mismatch: {preds[99]}"
 
 
 # ---------------------------------------------------------------------------
@@ -147,8 +150,9 @@ class TestMulticlassPartitionPath:
         m = CatBoostMLXClassifier(iterations=20, random_seed=0, depth=3)
         m.fit(X, y)
         proba = m.predict_proba(X)
-        # Anchor: [0.35687973, 0.36606121, 0.27705906] — Sprint 4 QA
-        expected = np.array([0.35687973, 0.36606121, 0.27705906])
+        # Anchor updated S26-D0-9 post-DEC-028 RandomStrength fix.
+        # Prior: [0.35687973, 0.36606121, 0.27705906] — pre-fix regime.
+        expected = np.array([0.37227302, 0.36382151, 0.26390547])
         assert np.allclose(proba[0], expected, atol=1e-3), (
             f"Multiclass proba[0] anchor mismatch: got {proba[0]}, expected {expected}"
         )

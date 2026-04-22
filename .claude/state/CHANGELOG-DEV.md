@@ -2,6 +2,16 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## S26-D0-9 — Sprint 4 anchor update post-DEC-028 (2026-04-22)
+
+**Branch**: `mlx/sprint-26-python-parity` (follow-up commit on PR #23)
+**Trigger**: CI on PR #23 failed on `test_rmse_final_loss_matches_sprint4_anchor` (got 0.306348, expected ~0.432032).
+**Attribution**: DEC-028 alone. `random_strength` ablation shows smooth monotone RMSE scaling at RS=0/1/2; pre-fix anchor lies off the curve. DEC-029 not exercised (tests use default `grow_policy="SymmetricTree"`).
+**Stability**: determinism ~6e-9 under 1e-3 tolerance; seed=0 at 0.306348 is central in the seed sweep [0.304, 0.309].
+**Scope**: 5 numeric constants in `python/tests/test_qa_round9_sprint4_partition_layout.py` across 3 tests (RMSE anchor, specific-predictions anchor, multiclass proba anchor).
+**Precedent**: same pattern as TODO-022 Sprint 8 bench_boosting K=10 anchor update (`2.22267818 → 1.78561831`).
+**Record**: `docs/sprint26/d0/d0-9-anchor-update.md`
+
 ## Sprint 26 D0 closed — Python-path parity; DEC-028 + DEC-029 shipped (2026-04-22, CLOSED)
 
 **Branch**: `mlx/sprint-26-python-parity` (cut from `6c3953f239`)
