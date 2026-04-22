@@ -2053,6 +2053,12 @@ struct TTreeRecord {
     bool IsLossguide  = false;  // true → Splits holds BFS node splits for unbalanced lossguide tree
     // Lossguide-only metadata
     std::vector<ui32> LeafBfsIds;  // [numLeaves] BFS node index per dense leaf
+    // DEC-029: BFS node index for each split in SplitProps/Splits.
+    // For Depthwise: the BFS node index of partition p at depth d (derived from
+    //   the bit-pattern of p — not a simple 0..numNodes-1 ordering).
+    // For Lossguide: the BFS node that was split at each step (priority-queue order).
+    // Both Depthwise and Lossguide populate this; SymmetricTree leaves it empty.
+    std::vector<ui32> SplitBfsNodeIds;  // [numSplits] BFS node index per split
     ui32 NumLeaves = 0;            // number of terminal leaves
 };
 
@@ -2152,15 +2158,39 @@ static void WriteModelJSON(
         const auto& tree = allTrees[ti];
         fprintf(f, "    {\n");
         fprintf(f, "      \"depth\": %u,\n", tree.Depth);
+        // DEC-029: grow_policy field lets the Python predictor dispatch to the correct
+        // leaf-index algorithm (oblivious bit-packing vs BFS traversal).
+        const char* gp = tree.IsLossguide ? "Lossguide"
+                       : tree.IsDepthwise ? "Depthwise"
+                       : "SymmetricTree";
+        fprintf(f, "      \"grow_policy\": \"%s\",\n", gp);
 
-        // splits
+        // splits: BFS-ordered node split array.
+        // For SymmetricTree: one entry per depth level (oblivious).
+        // For Depthwise: 2^depth - 1 entries (BFS node order, 0-indexed from root).
+        // For Lossguide: numLeaves - 1 entries (BFS insertion order); each entry carries
+        //   a "bfs_node_index" so the Python predictor can reconstruct the BFS map exactly.
+        // Python compute_leaf_indices dispatches based on grow_policy.
         fprintf(f, "      \"splits\": [\n");
         for (ui32 si = 0; si < tree.SplitProps.size(); ++si) {
-            fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s}%s\n",
-                    tree.SplitProps[si].FeatureId,
-                    tree.SplitProps[si].BinId,
-                    tree.Splits[si].IsOneHot ? "true" : "false",
-                    (si + 1 < tree.SplitProps.size()) ? "," : "");
+            if ((tree.IsLossguide || tree.IsDepthwise) && si < tree.SplitBfsNodeIds.size()) {
+                // DEC-029: emit bfs_node_index for Depthwise and Lossguide so the Python
+                // predictor can reconstruct the exact BFS-node → split map without
+                // re-deriving traversal order from partition index arithmetic.
+                // FeatureId==-1 (uint max) means a no-op node (unpruned leaf placeholder).
+                fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s, \"bfs_node_index\": %u}%s\n",
+                        tree.SplitProps[si].FeatureId,
+                        tree.SplitProps[si].BinId,
+                        tree.Splits[si].IsOneHot ? "true" : "false",
+                        tree.SplitBfsNodeIds[si],
+                        (si + 1 < tree.SplitProps.size()) ? "," : "");
+            } else {
+                fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s}%s\n",
+                        tree.SplitProps[si].FeatureId,
+                        tree.SplitProps[si].BinId,
+                        tree.Splits[si].IsOneHot ? "true" : "false",
+                        (si + 1 < tree.SplitProps.size()) ? "," : "");
+            }
         }
         fprintf(f, "      ],\n");
 
@@ -2178,7 +2208,19 @@ static void WriteModelJSON(
             if (si > 0) fprintf(f, ", ");
             fprintf(f, "%.8g", tree.SplitProps[si].Gain);
         }
-        fprintf(f, "]\n");
+        fprintf(f, "]");
+
+        // DEC-029: For Lossguide, serialize leaf_bfs_ids so the Python predictor can
+        // build the inverse BFS-node → dense-leaf-id map for prediction routing.
+        if (tree.IsLossguide && !tree.LeafBfsIds.empty()) {
+            fprintf(f, ",\n      \"leaf_bfs_ids\": [");
+            for (ui32 li = 0; li < tree.LeafBfsIds.size(); ++li) {
+                if (li > 0) fprintf(f, ", ");
+                fprintf(f, "%u", tree.LeafBfsIds[li]);
+            }
+            fprintf(f, "]");
+        }
+        fprintf(f, "\n");
 
         fprintf(f, "    }%s\n", (ti + 1 < allTrees.size()) ? "," : "");
     }
@@ -3181,6 +3223,7 @@ TTrainResult RunTraining(
 #endif
         std::vector<TObliviousSplitLevel> splits;
         std::vector<TBestSplitProperties> splitProps;
+        std::vector<ui32> splitBfsNodeIds;  // DEC-029: BFS node index per split (Depthwise + Lossguide)
         ui32 actualTreeDepth = 0;  // number of depth levels actually searched (needed for depthwise)
 
         // Lossguide-specific state (only populated when GrowPolicy=="Lossguide")
@@ -3316,6 +3359,11 @@ TTrainResult RunTraining(
                 ns.IsOneHot   = feat.OneHotFeature;
                 lossguideNodeSplitMap[bfsNode] = ns;
                 splits.push_back(ns);  // also append to splits for SaveModelJSON / feature importance
+                // DEC-029: populate splitProps so model JSON "splits" is non-empty for Lossguide.
+                // Also record the BFS node index so WriteModelJSON can emit bfs_node_index per split,
+                // allowing the Python predictor to reconstruct the BFS-node → split map exactly.
+                splitProps.push_back(bestSp);
+                splitBfsNodeIds.push_back(bfsNode);
 
                 // Register children
                 lossguideLeafBfsIds.push_back(rightBfs);
@@ -3347,6 +3395,27 @@ TTrainResult RunTraining(
                 reinterpret_cast<const int32_t*>(lossguideLeafDocVec.data()),
                 {static_cast<int>(trainDocs)}, mx::uint32);
             mx::eval(partitions);
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+            // P17 — Lossguide partition trace + node-map size (iter=0 only)
+            if (iter == 0) {
+                printf("[DBG P17] Lossguide iter=0: numLeaves=%u splits.size()=%zu "
+                       "splitProps.size()=%zu splitBfsNodeIds.size()=%zu\n",
+                       lossguideNumLeaves,
+                       splits.size(), splitProps.size(), splitBfsNodeIds.size());
+                printf("[DBG P17]   leaf_bfs_ids (first 8): ");
+                for (ui32 b = 0; b < std::min((ui32)lossguideLeafBfsIds.size(), 8u); ++b)
+                    printf("%u ", lossguideLeafBfsIds[b]);
+                printf("\n");
+                // Verify partitions range
+                const uint32_t* p17Ptr = partitions.data<uint32_t>();
+                uint32_t p17Max = 0;
+                for (ui32 di = 0; di < trainDocs; ++di) p17Max = std::max(p17Max, p17Ptr[di]);
+                printf("[DBG P17]   partitions.max()=%u (expected %u = numLeaves-1)\n",
+                       p17Max, lossguideNumLeaves - 1);
+                fflush(stdout);
+            }
+#endif
 
         } else {
 
@@ -3542,6 +3611,22 @@ TTrainResult RunTraining(
                         nodeSplit.IsOneHot = false;
                     }
                     splits.push_back(nodeSplit);
+                    // DEC-029: populate splitProps for Depthwise so model JSON "splits" is
+                    // non-empty and Python compute_leaf_indices_depthwise can traverse correctly.
+                    // For no-op partitions, FeatureId stays at -1 sentinel so feature-importance
+                    // code skips them (featIdx >= ds.NumFeatures check).
+                    splitProps.push_back(perPartSplits[p]);
+                    // DEC-029: compute BFS node index for partition p at depth `depth`.
+                    // Partition p is a bit-packed right-turn vector: bit k = direction at depth k.
+                    // BFS node is derived by traversing the tree following bits 0..depth-1 of p.
+                    // This mapping is needed so the Python predictor can build nodeSplitMap
+                    // by BFS index (not by position in the splits list, which is partition order).
+                    ui32 bfsNode = 0u;
+                    for (ui32 lvl = 0; lvl < depth; ++lvl) {
+                        ui32 goRight = (p >> lvl) & 1u;
+                        bfsNode = 2u * bfsNode + 1u + goRight;
+                    }
+                    splitBfsNodeIds.push_back(bfsNode);
                 }
 
                 if (!anyValid) break;
@@ -3574,6 +3659,27 @@ TTrainResult RunTraining(
                 mx::eval(partitions);
                 auto tD4 = std::chrono::steady_clock::now();
                 dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                // P14 — Depthwise partition trace: partition distribution after each split level.
+                if (iter == 0) {
+                    const uint32_t* pPtr14 = partitions.data<uint32_t>();
+                    uint32_t p14Max = 0;
+                    std::vector<ui32> p14BinCount(1u << (depth + 1), 0u);
+                    for (ui32 di = 0; di < trainDocs; ++di) {
+                        p14Max = std::max(p14Max, pPtr14[di]);
+                        if (pPtr14[di] < p14BinCount.size()) p14BinCount[pPtr14[di]]++;
+                    }
+                    printf("[DBG P14] Depthwise iter=0 after depth=%u: "
+                           "numPartitions=%u partitions.max=%u\n",
+                           depth, 1u << (depth + 1), p14Max);
+                    printf("[DBG P14]   bincount(first 8): ");
+                    for (ui32 b = 0; b < std::min((ui32)p14BinCount.size(), 8u); ++b)
+                        printf("%u ", p14BinCount[b]);
+                    printf("\n");
+                    fflush(stdout);
+                }
+#endif
 
             } else {
                 // Oblivious (SymmetricTree): one split for all partitions at this depth level.
@@ -3749,6 +3855,24 @@ TTrainResult RunTraining(
                        splits.size(), config.MaxDepth);
                 fflush(stdout);
             }
+
+            // P15 — Depthwise leaf values + partition populations (iter=0 only)
+            if (iter == 0 && isDepthwiseTree) {
+                mx::eval(leafValues);
+                const float* lV15 = leafValues.data<float>();
+                const uint32_t* pP15 = partitions.data<uint32_t>();
+                std::vector<ui32> popCount15(numLeaves, 0u);
+                for (ui32 di = 0; di < trainDocs; ++di) {
+                    if (pP15[di] < numLeaves) popCount15[pP15[di]]++;
+                }
+                printf("[DBG P15] Depthwise iter=0 leaf_values (numLeaves=%u):\n", numLeaves);
+                for (ui32 b = 0; b < numLeaves && b < 16; ++b)
+                    printf("  leaf[%2u] = %+.6f  (pop=%u)\n", b, lV15[b], popCount15[b]);
+                // SplitProps size: should be 2^depth-1 (non-empty after DEC-029 fix)
+                printf("[DBG P15] splitProps.size()=%zu splits.size()=%zu splitBfsNodeIds.size()=%zu\n",
+                       splitProps.size(), splits.size(), splitBfsNodeIds.size());
+                fflush(stdout);
+            }
 #endif
 
         } else {
@@ -3817,6 +3941,7 @@ TTrainResult RunTraining(
             TTreeRecord record;
             record.Splits = splits;
             record.SplitProps = splitProps;
+            record.SplitBfsNodeIds = splitBfsNodeIds;  // DEC-029
             record.IsDepthwise = isDepthwiseTree;
             record.IsLossguide = isLossguide;
             if (isLossguide) {
