@@ -174,6 +174,13 @@ noise ~16,895× larger than CPU at N=10,000.
 - No impact on bench_boosting ULP=0 record (bench_boosting does not exercise `FindBestSplit`).
 - No impact on DEC-008 through DEC-027 code paths.
 
+**S26-FU-2 extension (2026-04-22)**: The same formula and `gradRms` threading were extended to
+`FindBestSplitPerPartition` (Depthwise and Lossguide paths) in Sprint 26 Follow-Up 2. The CPU
+source audit (T1 triage, `docs/sprint26/fu2/d0-triage.md`) confirmed that CPU uses the identical
+global scalar `scoreStDev` — computed once per tree before the depth/partition loop — for all
+three grow policies. No new design content beyond mirroring DEC-028 in the non-oblivious path.
+Gate artifacts at `docs/sprint26/fu2/`; commits `478e8d5c9d` (C++) and `715b15b613` (tests).
+
 ---
 
 ## DEC-029: Non-oblivious tree SplitProps never populated → empty model JSON splits

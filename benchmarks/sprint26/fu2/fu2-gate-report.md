@@ -7,6 +7,14 @@
 
 ---
 
+## Path coverage
+
+**What FU-2 gates cover**: `FindBestSplitPerPartition` gain computation (Depthwise and Lossguide grow policies), including the RandomStrength noise injection path added by FU-2.
+
+**What these gates do NOT cover**: histogram kernel, leaf estimation (`CalcLeafValues` / `UpdateApproximations`), feature quantization / bin border logic, nanobind orchestration, SymmetricTree `FindBestSplit` path (covered by D0 gates, preserved by G2 here).
+
+---
+
 ## 1. G1-DW — Depthwise Parity Sweep
 
 ### Sweep configuration

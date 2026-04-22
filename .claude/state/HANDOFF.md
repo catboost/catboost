@@ -1,20 +1,42 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (Sprint 26 D0 CLOSED — Python-path parity correctness gap resolved; DEC-028 + DEC-029 shipped; R8 unchanged at 1.01×; no open PRs)
+> Last updated: 2026-04-22 (Sprint 26 FU-2 CLOSED — DEC-028 extended to FindBestSplitPerPartition; all gates PASS; S26-FU-3 opened; branches local, awaiting merge order from Ramos)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-26-python-parity` at tip `2680252573` (state close commit added after).
-- **Campaign**: Post-Verstappen correctness sprint. S26 D0 Python-path parity CLOSED — all exit gates PASS. R8 unchanged at 1.01× (S26 is correctness-first, not perf).
-- **Production kernel**: v5 (`784f82a891`) — unchanged. S26 did not touch `catboost/mlx/kernels/kernel_sources.h`; bench_boosting ULP=0 record preserved (G4).
-- **Open PRs**: none. Most recent merges to master: #16 (`1385e056ca`) → #17 (`5caa6e64cf`) → #18 (`9b0c03fec2`) → #19 (`1afd0a35b2`) → #20 (`71aabaa842`). S26 D0 PR pending Ramos open.
+- **Active branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on S26 D0 tip `66a4b5e869`). S26-FU-2 CLOSED. Branch is local — do not push until Ramos confirms merge order.
+- **Merge order pending**: S26 D0 (`mlx/sprint-26-python-parity`) should merge before FU-2 (`mlx/sprint-26-fu2-noise-dwlg`). Confirm with Ramos whether to open these as separate PRs or bundle.
+- **Campaign**: Post-Verstappen correctness. S26 D0 + S26-FU-2 both closed. RandomStrength noise formula now correct in all three grow policies (ST: D0; DW/LG: FU-2).
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched across S26 D0 + FU-2.
+- **Open PRs**: none. S26 D0 + FU-2 PRs pending Ramos open.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
-    - **S26-new follow-up**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes` — affects validation RMSE tracking only, not training correctness or Python predictions. Tracked in DEC-029 Risks section.
-    - **Pre-existing follow-up (not a S26 regression)**: MLX Depthwise/Lossguide have no RandomStrength noise path — at `rs=1` these policies under-fit CPU by ~10–12% at N=10k. `FindBestSplitPerPartition` is where noise threading would need to be added. Scope: separate future sprint.
+    - **S26-FU-1 (open)**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes` — affects validation RMSE tracking only, not training correctness or Python predictions. Tracked in DEC-029 Risks section.
+    - **S26-FU-3 (new, open)**: Depthwise N=1000 parity asymmetry — 5 cells fail gate (MLX consistently *better* than CPU, pred_std_R up to 1.10). Pre-existing; not introduced by FU-2. Triage: compare per-partition gain scores at N=1000 depth-0 between MLX and CPU; check whether ST also shows this at N=1000.
+
+## Sprint 26 FU-2 — RandomStrength in FindBestSplitPerPartition — CLOSED
+
+**Branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on `66a4b5e869`)
+**Date closed**: 2026-04-22
+**Verdict**: ALL GATE PASS. 0 kill-switches fired. APPROVE-WITH-NITS from @code-reviewer.
+
+DEC-028's `gradRms`-based noise formula extended from `FindBestSplit` (SymmetricTree) to
+`FindBestSplitPerPartition` (Depthwise and Lossguide). CPU source audit confirmed identical
+global-scalar mechanism for all three grow policies. Implementation: 47 lines in `csv_train.cpp`.
+
+**Gate summary**: G1-DW 12/12 PASS (N≥10k), G1-LG 18/18 PASS, G2 ST non-regression 18/18 PASS,
+G5 determinism max−min 1.49e-08 (threshold 1e-6). Five DW N=1000 failures are pre-existing
+(verified on pre-FU-2 binary) — tracked as S26-FU-3.
+
+**Nit-1 fixed**: gate report now has path-coverage labels. Nits 2/3/4 recorded as tech-debt.
+**DEC-028**: footnote added (no new DEC-030 — pure extension, no new design content).
+
+**Files of record**: `docs/sprint26/fu2/sprint-close.md`, `benchmarks/sprint26/fu2/fu2-gate-report.md`.
+
+---
 
 ## Sprint 26 — Python-Path Parity — D0 CLOSED
 

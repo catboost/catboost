@@ -2,6 +2,52 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 26 FU-2 closed — DEC-028 extended to FindBestSplitPerPartition (2026-04-22, CLOSED)
+
+**Branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on S26 D0 `66a4b5e869`)
+**Sprint verdict**: ALL GATE PASS. 0 kill-switches fired. APPROVE-WITH-NITS from @code-reviewer (Nit-1 fixed at close; Nits 2/3/4 recorded as tech-debt).
+
+### Root cause and fix
+
+S26 D0 fixed RandomStrength noise in `FindBestSplit` (SymmetricTree). T1 source audit confirmed
+CPU uses one global scalar (`CalcDerivativesStDevFromZeroPlainBoosting` → `scoreStDev`) computed
+once per tree for all three grow policies. FU-2 extended `gradRms` threading into
+`FindBestSplitPerPartition` (Depthwise and Lossguide paths). 47 lines changed in `csv_train.cpp`.
+No kernel sources, leaf estimation, or SymmetricTree path modified.
+
+**DEC decision**: Footnote added to DEC-028 in `docs/decisions.md` and `.claude/state/DECISIONS.md`.
+No new DEC-030 opened — pure mirror of DEC-028's formula in the non-oblivious path; no new design
+content.
+
+### Commits landed
+
+| Commit | Task | Description |
+|--------|------|-------------|
+| `7abd7b3bcf` | T1 | D0 triage doc — CPU global scalar gradRms confirmed |
+| `478e8d5c9d` | T2+T3 | Thread gradRms into FindBestSplitPerPartition + smoke test |
+| `715b15b613` | T4 | Extend test_python_path_parity.py to DW/LG |
+| `ee5a90707b` | T5+T6 | G1 54-cell sweep + G5 Depthwise determinism artifacts |
+| *(T8 commit SHA — set at commit time)* | T8 | Sprint close: Nit-1 fix, DEC-028 footnote, state files |
+
+### Gate results
+
+- **G1-DW** (segmented, N≥10k): 12/12 PASS. N=1000 failures (5 cells) are pre-existing — verified identical on pre-FU-2 binary.
+- **G1-LG** (all cells): 18/18 PASS.
+- **G2** (ST non-regression): 18/18 PASS — DEC-028 D0 fix intact.
+- **G5** (DW determinism 100 runs): max−min 1.49e-08 (threshold 1e-6) — PASS.
+- **KS-2/KS-3/KS-4/KS-5**: all CLEAR.
+
+### What did NOT change
+
+`catboost/mlx/kernels/kernel_sources.h` — untouched. `catboost/mlx/methods/histogram.cpp` — untouched. `catboost/mlx/methods/leaves/` — untouched. `catboost/mlx/gpu_data/` — untouched. v5 ULP=0 bench_boosting record preserved. bench_boosting binary does not exercise `FindBestSplitPerPartition`.
+
+### Carry-forwards
+
+- **S26-FU-1** (open): `ComputeLeafIndicesDepthwise` C++ validation path returns wrong index type.
+- **S26-FU-3** (new): Depthwise N=1000 parity asymmetry — pre-existing, 5 failing cells (MLX better). Triage: per-partition gain comparison at depth-0.
+
+---
+
 ## S26-D0-9 — Sprint 4 anchor update post-DEC-028 (2026-04-22)
 
 **Branch**: `mlx/sprint-26-python-parity` (follow-up commit on PR #23)

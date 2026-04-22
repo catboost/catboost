@@ -708,6 +708,11 @@ split selection → leaf magnitudes shrunk to 0.69× of CPU.
   has no effect there (was true before this fix). Tracked as S26-FU-2 for a separate sprint.
 - `gradRms` computed via CPU readback loop. Minor per-iteration cost (not profiled as hot).
 
+**S26-FU-2 extension (2026-04-22)**: Extended to `FindBestSplitPerPartition` (Depthwise and
+Lossguide). CPU source audit confirmed global scalar `scoreStDev` is shared identically across
+all three grow policies. No new design content — pure mirror of this decision in the
+non-oblivious path. See `docs/sprint26/fu2/`.
+
 **Authority**: `docs/decisions.md §DEC-028`; gate artifacts
 `docs/sprint26/d0/g1-g3-g4-report.md`, `benchmarks/sprint26/d0/g1-results.md`.
 
