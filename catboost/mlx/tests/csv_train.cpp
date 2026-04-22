@@ -971,11 +971,23 @@ TBestSplitProperties FindBestSplit(
     const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
     const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
     float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
-    std::mt19937* rng = nullptr                            // RNG for perturbation
+    std::mt19937* rng = nullptr,                           // RNG for perturbation
+    int debugIter = -1,                                    // P11-P13: print debug for this iter (-1 = off)
+    int debugDepth = -1                                    // P11-P13: print debug for this depth (-1 = off)
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
     float bestGain = -std::numeric_limits<float>::infinity();
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
+    struct TDbgCandidate {
+        ui32 featIdx; ui32 bin; float gain;
+        float sumL; float wL; float sumR; float wR; float sumP; float wP;
+    };
+    const bool p11Active = (debugIter == 0 && debugDepth == 0);
+    std::vector<TDbgCandidate> allCandidates;
+#endif
 
     // Random score perturbation: scale based on average partition statistics
     // This matches CatBoost's approach of scaling noise by the magnitude of the data
@@ -1056,6 +1068,23 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
+                        cand.sumR = hd0[feat.FirstFoldIndex + bin];
+                        cand.wR   = hd0[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
             }
         } else {
             // ── Ordinal: precompute suffix sums for O(1) lookup per bin ──
@@ -1170,9 +1199,77 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        size_t sbase = (0 * numPartitions + 0) * stride;
+                        cand.sumR = suffGrad[sbase + bin];
+                        cand.wR   = suffHess[sbase + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
             }
         }
     }
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    if (p11Active && !allCandidates.empty()) {
+        // P12 — literal gain formula used in this FindBestSplit
+        printf("[DBG P12] gain_formula: "
+               "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
+        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)\n");
+        printf("[DBG P12] noise_formula: noiseScale = rs * totalWeight / (numPartitions*K+eps)\n");
+        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  totalWeight=%.1f  numPartitions=%u  K=%u)\n",
+               noiseScale, randomStrength,
+               (numPartitions > 0 && K > 0) ? perDimPartStats[0][0].Weight : 0.0f,
+               numPartitions, K);
+
+        // Sort by gain descending
+        std::sort(allCandidates.begin(), allCandidates.end(),
+                  [](const TDbgCandidate& a, const TDbgCandidate& b){ return a.gain > b.gain; });
+
+        printf("[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):\n");
+        printf("[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP\n");
+        for (ui32 r = 0; r < std::min((ui32)allCandidates.size(), 10u); ++r) {
+            const auto& c = allCandidates[r];
+            printf("[DBG P11]   %-5u %-8u %-6u %-10.4f %-8.4f %-8.2f %-8.4f %-8.2f %-8.4f %.2f\n",
+                   r, c.featIdx, c.bin, c.gain,
+                   c.sumL, c.wL, c.sumR, c.wR, c.sumP, c.wP);
+        }
+
+        // P13 — cross-check for rank-0 candidate
+        const auto& best = allCandidates[0];
+        float p13_l2 = l2RegLambda;
+        float p13_gain_mlx_formula =
+            (best.wL > 1e-15f && best.wR > 1e-15f)
+            ? (best.sumL * best.sumL) / (best.wL + p13_l2)
+              + (best.sumR * best.sumR) / (best.wR + p13_l2)
+              - (best.sumP * best.sumP) / (best.wP + p13_l2)
+            : 0.0f;
+        // CPU formula is identical: sumL^2/(wL+L2) + sumR^2/(wR+L2) - sumP^2/(wP+L2)
+        // For RMSE unweighted, wL/wR == docCountL/docCountR, so formulas agree exactly.
+        // Any difference would come from histogram inputs, not formula divergence (H3).
+        float p13_gain_cpu_formula = p13_gain_mlx_formula;  // identical formula
+        float p13_gain_reported = best.gain;
+        printf("[DBG P13] cross-check for rank-0 (feat=%u bin=%u):\n", best.featIdx, best.bin);
+        printf("[DBG P13]   sumL=%.6f  wL=%.2f  sumR=%.6f  wR=%.2f\n",
+               best.sumL, best.wL, best.sumR, best.wR);
+        printf("[DBG P13]   gain_by_MLX_formula   = %.6f\n", p13_gain_mlx_formula);
+        printf("[DBG P13]   gain_by_CPU_formula   = %.6f  (same formula for RMSE)\n", p13_gain_cpu_formula);
+        printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
+        printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
+        fflush(stdout);
+    }
+#endif
+
     return bestSplit;
 }
 
@@ -3473,7 +3570,12 @@ TTrainResult RunTraining(
                     config.L2RegLambda, numPartitions, featureMask,
                     config.MinDataInLeaf, countHist, partDocCounts,
                     config.MonotoneConstraints,
-                    config.RandomStrength, &rng
+                    config.RandomStrength, &rng,
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                    static_cast<int>(iter), static_cast<int>(depth)
+#else
+                    -1, -1
+#endif
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
