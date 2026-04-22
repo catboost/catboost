@@ -1,14 +1,18 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (PR stack #18 / #16 / #17 merged to master; S24 + S25 shipped; no open PRs)
+> Last updated: 2026-04-22 (PR #20 merged — latent-bugs backlog cleared; no open PRs; no active sprint)
 
 ## Current state
 
 - **Branch**: `master` is the current working base. No active sprint branch.
-- **Tip commit**: `5caa6e64cf` (merge of #17 — Sprint 25 FALSIFIED closeout). v5 (`784f82a891`) remains the shipped production kernel; S25 added empirical falsification evidence but no production code.
-- **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research (S25 DEC-026) **FALSIFIED** 2026-04-21 at G1: ε-threading impossible by 21,091× (ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07). Path 5 flip gaps span full range of legitimate top-2 separations; no ε discriminates "ambiguous split" from "clear split". DEC-027 (alternative accumulation) deferred for future dedicated research.
-- **Open PRs**: none. #16 merged as `1385e056ca`, #17 merged as `5caa6e64cf`. Pre-merge CI was red on all stacked PRs due to inherited breakage; fixed via PR #18 (`9b0c03fec2` — MLX 0.31+ CLI, stale `0.3.0`/`minor==3` version pins, and overly-broad BUG-001 MAE sentinel).
-- **Known bugs**: BUG-T2-001 RESOLVED (`784f82a891`). Sibling S-1 (`kHistOneByte` writeback race) still latent, still guarded by NIT-4 CB_ENSURE `maxBlocksPerPart == 1`. BUG-007 and bench_boosting K=10 anchor mismatch still OPEN/unscheduled.
+- **Tip commit**: `71aabaa842` (merge of #20 — latent-bugs cleanup). v5 (`784f82a891`) remains the shipped production kernel.
+- **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research (S25 DEC-026) **FALSIFIED** 2026-04-21 at G1: ε-threading impossible by 21,091× (ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07). DEC-027 (alternative accumulation) **deferred** — acknowledged; not open; reserved for a dedicated future research sprint.
+- **Open PRs**: none. Recent merges: #16 (`1385e056ca`) → #17 (`5caa6e64cf`) → #18 (`9b0c03fec2`, CI unblock) → #19 (`1afd0a35b2`, state refresh) → #20 (`71aabaa842`, latent-bugs cleanup).
+- **Known bugs**:
+    - BUG-T2-001 RESOLVED (`784f82a891`).
+    - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — Python wrapper at `core.py:1131-1137` pre-sorts `group_ids`; C++ `BuildDatasetFromArrays` now throws `std::runtime_error` on unsorted input. Two-layer defense.
+    - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`); ledger alignment landed in `71aabaa842`.
+    - Sibling S-1 (`kHistOneByte` writeback race) still latent; now guarded by `constexpr` + `static_assert(maxBlocksPerPart == 1, ...)` at `histogram.cpp:126` — compile-time failure with pointer to `KNOWN_BUGS.md` if anyone raises the literal.
 
 ## Sprint 24 — CLOSED
 
@@ -117,13 +121,16 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Next actions
 
-1. **Latent bugs triage** — BUG-007 and bench_boosting K=10 anchor mismatch are OPEN/unscheduled;
-   Sibling S-1 `kHistOneByte` writeback race still latent and guarded by the NIT-4 CB_ENSURE.
-   Scope each before picking one to fix.
-2. **DEC-027 deferred** — not opened. Ramos to revisit when dedicating time for alternative
-   accumulation research (e.g., XGBoost-style per-feature deterministic radix-sum) as a separate
-   future sprint.
-3. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK
+1. **Latent bugs triage — DONE** (PR #20, `71aabaa842`). BUG-007 mitigated with two-layer
+   defense; K=10 anchor closed in ledger; Sibling S-1 guard promoted to `static_assert`.
+   Nothing else on the backlog.
+2. **DEC-027 — deferred (unchanged)**. Not opened. Ramos to revisit when dedicating time for
+   alternative accumulation research (e.g., XGBoost-style per-feature deterministic radix-sum)
+   as a separate future sprint. All scaffolding assumptions (kill-switch, gate criteria, parity
+   protocol) will be designed at open-time, not pre-committed here.
+3. **No active sprint.** Next session starts cold — pick a direction (new sprint kickoff, bug
+   report, or DEC-027 when ready) before delegating work.
+4. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK
    only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
 
 ## Standing orders (carried forward)
@@ -138,6 +145,8 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Prior sprints — status
 
+- **Latent-bugs cleanup (PR #20)** — merged 2026-04-22 as `71aabaa842`. Three commits under DEC-012: ledger hygiene (close K=10 + BUG-007, reframe S-1), `BuildDatasetFromArrays` groupIds sortedness CB_ENSURE, and `histogram.cpp` S-1 `static_assert`. No production behavior change.
+- **State refresh (PR #19)** — merged 2026-04-22 as `1afd0a35b2`. Docs-only alignment of `HANDOFF.md` / `TODOS.md` / `CHANGELOG-DEV.md` with post-stack-merge reality.
 - **CI fix (PR #18)** — merged 2026-04-22 as `9b0c03fec2`. Three commits unblocking the stack: MLX 0.31+ CLI breakage in `mlx-build.yaml`, stale `0.3.0`/`minor==3` version pins in `test_qa_round13_sprint10.py`, and overly-broad BUG-001 MAE sentinel in `test_qa_round8_sprint3_losses.py` (narrowed to SIGABRT-only). No production code changes.
 - **Sprint 25** — CLOSED, FALSIFIED. Merged 2026-04-22 as `5caa6e64cf` (PR #17). DEC-026 FALSIFIED at G1: ε-threading impossible (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. DEC-027 deferred. No production code changes; shipped as empirical falsification evidence.
 - **Sprint 24** — CLOSED. Merged 2026-04-22 as `1385e056ca` (PR #16). DEC-023 RESOLVED via v5 (T1 accumulation topology). R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× gate failed. DEC-026 cascade-robust GAIN research opened S25.

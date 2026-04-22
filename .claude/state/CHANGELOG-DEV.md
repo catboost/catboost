@@ -2,6 +2,21 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Latent-bugs cleanup (2026-04-22, PR #20)
+
+Triage + close-out of the three items carried forward since Sprint 12 / Sprint 23:
+
+| Commit | Role |
+|--------|------|
+| `668e33ca4d` | state: close K=10 anchor + BUG-007; reframe S-1 as compile-time structural guard |
+| `a9b2a1b757` | train_api: `BuildDatasetFromArrays` throws on unsorted `groupIds` (BUG-007 defense-in-depth) |
+| `50efeb2ade` | histogram: `maxBlocksPerPart` promoted to `constexpr` + `static_assert` (Sibling S-1) |
+| `71aabaa842` | Merge PR #20 to master |
+
+**Scoping surprise**: all three items turned out to be doc-drift or latent-no-repro, not the engineering bugs the ledger implied. K=10 anchor was already fixed in Sprint 8 (TODO-022); BUG-007 was already handled at the Python layer (`core.py:1131-1137`); Sibling S-1's "NIT-4 CB_ENSURE" was in practice a hardcoded `const ui32 = 1` with no runtime guard. One ~80-line commit stack aligned the ledger with reality, added a C++ contract CB_ENSURE as defense-in-depth, and promoted the S-1 literal to a compile-time `static_assert` that fails loudly if anyone raises it.
+
+No production behavior change. CI green (4/4 on PR #20).
+
 ## CI unblock + stack merge (2026-04-22)
 
 PRs #16 (Sprint 24) and #17 (Sprint 25) had been sitting unmerged because their CI was red on two pre-existing breakages inherited from master: `mlx-build.yaml` calling removed `python -m mlx --includes/--libs` flags (dropped in MLX 0.31), and two stale tests (`test_version_is_0_3_0` hard-pinned to an old version, `test_mae_uppercase_fails_cleanly__bug001` asserting an overly-broad regression sentinel that fired when the BUG-001 crash was silently fixed). All three surfaced only after earlier PRs merged.
