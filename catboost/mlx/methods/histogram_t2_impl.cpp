@@ -1,4 +1,8 @@
-// histogram_t2_impl.cpp — Production T2 sort-by-bin histogram dispatch.
+// histogram_t2_impl.cpp — Production T2 histogram dispatch (S24 D0 v5).
+//
+// S24 D0 v5 (DEC-023 complete fix): T2-accum now uses T1-style SIMD-shuffle
+// accumulation for ALL features (0-3) reading from docIndices.  The T2-sort
+// kernel is no longer called.  This produces ULP=0 vs T1 by construction.
 //
 // Intentionally minimal dependencies: only mlx.h + kernel_sources.h.
 // This file is compiled:
@@ -21,38 +25,30 @@ namespace NCatboostMlx {
 namespace mx = mlx::core;
 
     // =========================================================================
-    // T2 kernel registration — module-scope statics, initialized once per process.
+    // T2 kernel registration — module-scope static, initialized once per process.
     //
-    // Kernel names bumped to s23d0 (Commit 3) after numTGs removal (NIT-5).
-    // The name change invalidates MLX's kernel cache vs the s22d2 registration,
-    // ensuring the updated input list is used (not a stale compiled version).
+    // S24 D0 v5: only GetT2AccumKernel() registered.  Kernel name t2_accum_s24d0_v5
+    // invalidates any in-process cache from prior v4/v3/s23d0 registrations.
     // =========================================================================
 
     namespace {
-        mx::fast::CustomKernelFunction& GetT2SortKernel() {
-            // NIT-5 applied: numTGs removed (it was never read by the kernel body).
-            static auto k = mx::fast::metal_kernel(
-                "t2_sort_s23d0",
-                /*input_names=*/{
-                    "compressedIndex", "docIndices", "partOffsets", "partSizes",
-                    "featureColumnIndices", "lineSize", "maxBlocksPerPart", "numGroups",
-                    "numPartitions", "numStats", "totalNumDocs"
-                },
-                /*output_names=*/{"sortedDocs", "binOffsets"},
-                /*source=*/KernelSources::kT2SortSource,
-                /*header=*/KernelSources::kHistHeader,
-                /*ensure_row_contiguous=*/true,
-                /*atomic_outputs=*/false
-            );
-            return k;
-        }
+        // GetT2SortKernel() removed (S24 D0 v5): T2-sort is no longer dispatched.
+        // kT2SortSource is retained in kernel_sources.h for reference; the sort kernel
+        // registration is removed here because the sort outputs (sortedDocs, binOffsets)
+        // are no longer consumed by T2-accum.
 
         mx::fast::CustomKernelFunction& GetT2AccumKernel() {
             // NIT-5 applied: numTGs removed (it was never read by the kernel body).
+            // Kernel name bumped to s24d0_v5 (DEC-023 complete fix): all four features
+            // (0-3) now use T1-style SIMD-shuffle accumulation reading from docIndices.
+            // sortedDocs and binOffsets removed from inputs (T2-accum no longer reads them);
+            // partSizes added to supply totalDocsInPart directly.
+            // This produces ULP=0 vs T1 for all features by construction.
             static auto k = mx::fast::metal_kernel(
-                "t2_accum_s23d0",
+                "t2_accum_s24d0_v5",
                 /*input_names=*/{
-                    "sortedDocs", "binOffsets", "compressedIndex", "stats",
+                    "compressedIndex", "stats",
+                    "docIndices", "partSizes",
                     "featureColumnIndices", "foldCountsFlat", "firstFoldIndicesFlat",
                     "partOffsets",
                     "lineSize", "maxBlocksPerPart", "numGroups",
@@ -70,7 +66,15 @@ namespace mx = mlx::core;
     }  // anonymous namespace
 
     // =========================================================================
-    // DispatchHistogramT2 — production T2 sort-by-bin histogram dispatch.
+    // DispatchHistogramT2 — production T2 histogram dispatch (S24 D0 v5).
+    //
+    // S24 D0 v5: T2-sort is no longer called from this function.  All four
+    // features (0-3) use T1-style SIMD-shuffle accumulation in T2-accum, reading
+    // directly from docIndices.  The sort step served only to populate sortedDocs
+    // for the feature-0 bin-range scan; with that scan removed, the sort is dead.
+    //
+    // GetT2SortKernel() is retained in the anonymous namespace for reference and
+    // potential future use; it is not called here.
     //
     // Preconditions (callers must enforce before calling):
     //   - maxBlocksPerPart == 1  (NIT-4: T2 kernels dispatch one block per partition;
@@ -80,10 +84,6 @@ namespace mx = mlx::core;
     //
     // Grid geometry: identical to DispatchHistogramBatched (T1):
     //   (256 * maxBlocksPerPart * numGroups, numPartitions, numStats)
-    //
-    // Buffer sizes at gate config (50k/RMSE/d6/128b, 50 features, numStats=2):
-    //   sortedDocs: 13 groups × 2 stats × 50000 docs × 4 B = 5.2 MB
-    //   binOffsets: 13 × 64 parts × 2 stats × 129 entries × 4 B ≈ 0.86 MB
     // =========================================================================
 
     mx::array DispatchHistogramT2(
@@ -105,8 +105,6 @@ namespace mx = mlx::core;
         const mx::Shape& histShape
     ) {
         // Scalar uniforms — 0-dim arrays become `const constant T&` in Metal signature.
-        // NIT-5: numTGs removed (was never read by the kernel body; s23d0 kernel registration
-        //   does not include it in input_names).
         auto flatCompressed = mx::reshape(compressedData, {-1});
         auto lineSizeArr    = mx::array(static_cast<uint32_t>(lineSize),         mx::uint32);
         auto maxBlocksArr   = mx::array(static_cast<uint32_t>(maxBlocksPerPart), mx::uint32);
@@ -115,7 +113,6 @@ namespace mx = mlx::core;
         auto numStatsArr    = mx::array(static_cast<uint32_t>(numStats),         mx::uint32);
         auto totalBinsArr   = mx::array(static_cast<uint32_t>(totalBinFeatures), mx::uint32);
         auto totalDocsArr   = mx::array(static_cast<uint32_t>(totalNumDocs),     mx::uint32);
-        const ui32 numTGsVal = numGroups * numPartitions * numStats;  // used for buffer size only
 
         // Grid: same geometry as DispatchHistogramBatched (T1).
         // T2 maxBlocksPerPart is always 1, so X = 256 * numGroups.
@@ -126,33 +123,14 @@ namespace mx = mlx::core;
         );
         auto threadgroup = std::make_tuple(256, 1, 1);
 
-        // sortedDocs: one slab per (groupIdx, statIdx) of size totalNumDocs.
-        // binOffsets: 129 entries per TG (BIN_OFFSETS_STRIDE from kHistHeader).
-        mx::Shape sortedDocsShape = {static_cast<int>(numGroups * numStats * totalNumDocs)};
-        mx::Shape binOffsetsShape  = {static_cast<int>(numTGsVal * 129u)};
-
-        // --- T2-sort dispatch ---
-        // MLX lazy: sortOut is a lazy expression; not evaluated until consumed.
-        auto sortOut = GetT2SortKernel()(
-            /*inputs=*/{
-                flatCompressed, docIndices, partOffsets, partSizes,
-                featureColIndices, lineSizeArr, maxBlocksArr, numGroupsArr,
-                numPartsArr, numStatsArr, totalDocsArr
-            },
-            /*output_shapes=*/{sortedDocsShape, binOffsetsShape},
-            /*output_dtypes=*/{mx::uint32, mx::uint32},
-            grid, threadgroup,
-            /*template_args=*/{},
-            /*init_value=*/0.0f,
-            /*verbose=*/false,
-            /*stream=*/mx::Device::gpu
-        );
-
         // --- T2-accum dispatch ---
-        // sortOut[0] and sortOut[1] as inputs → MLX graph ensures sort runs before accum.
+        // S24 D0 v5: T2-sort removed; all features use T1-style SIMD accumulation.
+        // partSizes supplies totalDocsInPart per partition (previously read from
+        // binOffsets sentinel).  Input order matches GetT2AccumKernel() input_names.
         auto accumOut = GetT2AccumKernel()(
             /*inputs=*/{
-                sortOut[0], sortOut[1], flatCompressed, stats,
+                flatCompressed, stats,
+                docIndices, partSizes,
                 featureColIndices, foldCountsFlat, firstFoldFlat,
                 partOffsets,
                 lineSizeArr, maxBlocksArr, numGroupsArr,

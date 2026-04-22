@@ -191,29 +191,54 @@ N < 5k: CPU fallback acceptable. Championship push focuses on N ≥ 10k.
 
 ---
 
-## Sprint 24 — DEC-023 Atomic-Float Race Fix (OPEN)
+## Sprint 24 — DEC-023 Atomic-Float Race Fix (CLOSED)
 
-**Branch**: TBD (cut from Sprint 23 tip)
-**Campaign**: Operation Verstappen — battle 9 of 9
-**Gate config**: 50k/RMSE/d6/128b (unchanged)
+**Branch**: `mlx/sprint-24-dec023-fix`
+**Campaign**: Operation Verstappen — battle 9 of 9 — **CLOSED 2026-04-21**
+**Verdict**: D0 PASS on parity (DEC-023 RESOLVED). FAIL on R8 preservation (retroactive retreat 1.90× → 1.01×). Verstappen ≥1.5× gate failed. PR #16 pending.
 
-### D0 — DEC-023 fix (blocking)
+### D0 — DEC-023 fix (DONE)
 
-- [ ] S24-D0 — Fix features 1-3 `atomic_fetch_add` non-determinism in T2-accum. Choose one of three fix options (DEC-023): (1) threadgroup-local reduce + single-thread commit, (2) int-atomic fixed-point accumulation, (3) Kahan/Neumaier compensated summation (standalone insufficient). Preferred: Option 1 (mirrors feat-0 design; known-clean mechanism). Budget: 1-2 days. Kill-switch: if fix degrades gate-config ratio below 0.45× (optimistic band), escalate to structural redesign. Acceptance: config #8 becomes 10/10 deterministic; 18/18 parity sweep clean; gate config remains 100/100. — @ml-engineer **OPEN**
+- [x] S24-D0 — v5: all-feature T1-style SIMD-shuffle accumulation. All four features (0-3) in T2-accum read from `docIndices` via T1's SIMD-shuffle + linear fold. T2-sort removed from dispatch. ULP=0 structural. All 4 acceptance criteria PASS. Commit `784f82a891`. R8 consequence: 1.90× → 1.01×. — @ml-engineer **DONE**
 
-### Standing-order update
-
-- [ ] S24-SO-1 — Update parity sweep protocol (standing order for all future sprints): minimum 5 runs per non-gate config (catches ~50/50 bimodality at 97% probability); gate config unconditionally 100 runs. Document in `docs/sprint24/README.md §Exit Gates`. Apply retrospectively to any future sweep doc that claims determinism. — @technical-writer **OPEN**
+- [x] S24-SO-1 — Parity sweep protocol documented in `docs/sprint24/README.md §5`. Standing order effective S23 D0 forward: ≥5 runs per non-gate; 100 runs at gate. — @technical-writer **DONE**
 
 ---
 
-## Sprint 20–24 Backlog (one-line each, expanded per sprint)
+## Sprint 25 — DEC-026 Cascade-Robust GAIN Research (OPEN)
+
+**Branch**: TBD (cut from Sprint 24 tip `784f82a891`)
+**Campaign**: Post-Verstappen research — R8 recovery investigation
+**R8 entry position**: 1.01× (honest post-S24)
+**Research target**: Recover T2 Path 5 speedup (R8 ≈ 1.85–1.90×) via cascade-robust GAIN comparison
+**Authority**: `DECISIONS.md DEC-026`
+
+### Research track — DEC-026 (owner: @research-scientist)
+
+- [ ] S25-G1 — Epsilon calibration study. Measure GAIN near-tie frequency at config #8 across training iterations. Determine: (a) at which iterations does a near-tie GAIN flip occur when T2 (Value B inputs) vs T1 (Value A inputs) disagree; (b) what ε would catch these flips without false-positive tiebreaks at legitimate GAIN gaps across the other 17 configs. Output: quantitative ε range or FALSIFIED verdict if no viable ε exists. Kill-switch: if no viable ε → DEC-026 FALSIFIED, halt. — @research-scientist **OPEN**
+
+- [ ] S25-G2 — Tiebreak implementation in scoring kernel. Implement lexicographic tiebreak (featureIdx, binIdx) when `|GAIN_A - GAIN_B| < ε` in the scoring kernel. Calibrated to S25-G1 ε. Kill-switch: if tiebreak fires at ≥2 of 18 configs on legitimate GAIN gaps → ε miscalibrated, halt and revisit G1. — @ml-engineer **OPEN** (blocked on G1)
+
+- [ ] S25-G3 — T2 Path 5 rebuild. Rebuild T2 with T2-sort + int-atomic fixed-point accumulation (features 1-3) on top of the tiebreak. Compile, measure hist_ms ratio at gate config. Target: ratio ≤ 0.45× (Path 5 design historically measured 0.317×). Kill-switch: if ratio > 0.45× → T2 Path 5 structurally misses the performance target, halt. — @ml-engineer **OPEN** (blocked on G2)
+
+- [ ] S25-G4 — 18-config parity sweep + determinism. 18/18 DEC-008 ULP ≤ 4; ≥5 runs per non-gate config; config #8 10/10 deterministic; gate config 100/100. Kill-switch: any config fails ULP ≤ 4 or bimodality detected → halt. — @qa-engineer **OPEN** (blocked on G3)
+
+- [ ] S25-G5 — Model-quality validation. AUC/RMSE drop ≤ 0.5% at any of the 18 DEC-008 configs relative to T1 baseline. Kill-switch: quality drop > 0.5% at any config → abandon DEC-026 at this ε; consider whether a different ε survives or declare FALSIFIED. — @qa-engineer **OPEN** (blocked on G4)
+
+### Sprint 25 merge gate
+
+All 5 gates above pass → re-ship T2 Path 5 at R8 ≈ 1.85–1.90×. Any kill-switch fires → DEC-026 FALSIFIED; R8 stays at 1.01×. No guaranteed delivery.
+
+---
+
+## Sprint 20–25 Backlog (one-line each, expanded per sprint)
 
 - Sprint 20: T3b atomic-CAS — CLOSED, FALSIFIED (DEC-017 RETIRED). PR #12 OPEN.
 - Sprint 21: A1 measurement — CLOSED, 0× perf, T2 promoted to viable-set. PR #13 pending.
-- Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90×, Verstappen gate cleared. PR #14 pending. Note: S22 D3 parity record corrected to 17/18 (see DEC-020 footnote + DEC-023).
-- Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED (harness gap). R2 FALSIFIED (structural). DEC-023/024/025. PR #15 pending.
-- Sprint 24: DEC-023 atomic-float race fix (S24-D0) + championship benchmark
+- Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90× (superseded by S24). Verstappen gate cleared at S22. PR #14 pending. Note: S22 D3 parity corrected to 17/18 (DEC-020 footnote + DEC-023).
+- Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025. PR #15 pending.
+- Sprint 24: DEC-023 v5 fix — CLOSED. DEC-023 RESOLVED. R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× failed. DEC-026 opened. PR #16 pending.
+- Sprint 25: DEC-026 cascade-robust GAIN research (OPEN)
 
 ---
 

@@ -1,6 +1,6 @@
 # Sprint 24 — DEC-023 Atomic-Float Race Fix + Championship Benchmark
 
-**Branch**: TBD (cut from Sprint 23 tip)
+**Branch**: `mlx/sprint-24-dec023-fix` (cut from master `9f3b99c7d2` after S17–S23 PR chain merge)
 **Campaign**: Operation Verstappen — battle 9 of 9
 **Gate config**: 50k/RMSE/d6/128b (unchanged from S19–S23)
 **Authority**: `DECISIONS.md DEC-023` (OPEN); `docs/sprint23/d0_bimodality_verification.md` (footprint + mechanism)
@@ -71,24 +71,29 @@ Use the post-S23 production binary (tip `84529b47ed` + DEC-023 fix commit).
 
 ---
 
-## §4 Carry-forward from Sprint 23
+## §4 Closed from Sprint 23 (not carry-forward)
 
-If S23-R1 (EvalAtBoundary readback elimination) or S23-R2 (dispatch inversion spike) are not completed in Sprint 23, they carry into Sprint 24 as secondary tasks after the DEC-023 fix:
+Both S23 research tracks closed in S23; neither carries into S24:
 
-- **S23-R1 carry**: Six `EvalAtBoundary` CPU readbacks in `structure_searcher.cpp` (~0.3 ms/iter compound gain). Bounded 0.5–1 day.
-- **S23-R2 carry**: Dispatch inversion research spike (2-day timebox). If no concrete design surfaces, declare unreachable and close the campaign.
+- **S23-R1 — DEFERRED** (DEC-024, not falsified). 0/3 EvalAtBoundary sites at gate — `structure_searcher.cpp` sites are Depthwise/Lossguide only; gate config runs SymmetricTree via `bench_boosting` inline oblivious loop. Re-entry gated on `--grow-policy` flag addition or separate Depthwise/Lossguide harness. See `docs/sprint23/r1_evalatboundary.md`.
+- **S23-R2 — FALSIFIED** (DEC-025). Dispatch inversion has a structural algebraic blocker (`H[f][b] = Σ_p h_p[f][b]` not invertible); no mask mechanism reconstructs per-partition bin sums below equivalent or worse cost. Do not re-enter without new mask-mechanism evidence. See `docs/sprint23/r2_dispatch_inversion_spike.md`.
 
 ---
 
 ## §5 Exit Gates
 
-| Gate | Criterion | Blocked on |
-|------|-----------|-----------|
-| S24-D0-G1 | Config #8: 10/10 deterministic post-fix | D0 fix commit |
-| S24-D0-G2 | 18/18 ULP=0 parity sweep, ≥5 runs per config | D0 parity commit |
-| S24-D0-G3 | Gate config #14: 100/100 deterministic | D0 parity commit |
-| S24-D0-G4 | `hist_ms` ratio ≥ 0.45× (no kill-switch) | D0 parity commit |
-| S24-BENCH-G1 | Championship suite complete; MLX ≤ CPU CatBoost on 50k+ | Post-fix benchmark |
+| Gate | Criterion | Result | Verdict |
+|------|-----------|--------|---------|
+| S24-D0-G1 | Config #8: 10/10 deterministic post-fix | 10/10 at 0.48231599, ULP=0 | **PASS** |
+| S24-D0-G2 | 18/18 ULP=0 parity sweep, ≥5 runs per config | 18/18 ULP=0, all 5/5 det. | **PASS** |
+| S24-D0-G3 | Gate config #14: 100/100 deterministic | 100/100 at 0.47740927 | **PASS** |
+| S24-D0-G4 | `hist_ms` ratio ≥ 0.45× (kill-switch) | 0.959× — T2-at-T1-speed [1] | **PASS** |
+| S24-BENCH-G1 | Championship suite complete; MLX ≤ CPU CatBoost on 50k+ | Not started — campaign retreated | **NOT RUN** |
+
+[1] G4 kill-switch does not fire (0.959× >> 0.45×). However, 0.959× means T2 v5 is running at
+essentially T1 speed — T2's structural histogram advantage is gone. The kill-switch threshold was
+calibrated to detect "fix that degrades performance"; it does not capture "fix that eliminates
+the speedup". See §8 Final Verdict and `d0_dec023_fix.md §7`.
 
 **Parity sweep protocol** (standing order from S23 D0): minimum **5 runs per non-gate config**; gate config unconditionally **100 runs**. This is the new floor for all future sprint parity sweeps.
 
@@ -96,19 +101,51 @@ If S23-R1 (EvalAtBoundary readback elimination) or S23-R2 (dispatch inversion sp
 
 ## §6 R8 Position
 
-**Current (post-S22/S23)**: 1.90× cumulative. Verstappen ≥1.5× gate already cleared by 40 pp.
+**Post-S24**: ~1.01× (honest position after v5 ships). T2-accum v5 runs at T1 speed.
 
-Sprint 24 DEC-023 fix is not expected to contribute additional R8 (the fix replaces non-deterministic atomics with an equivalent-cost deterministic path; Option 1 may be marginally faster due to fewer atomic operations). If Option 2 (int-atomic) is chosen, measure ratio before and after to confirm no regression.
-
-**Do not inflate 1.90×.** This is the honest post-S22 position. Propagate unchanged into S24 closeout unless a new e2e measurement supersedes it.
+**Pre-S24 position (post-S22/S23)**: 1.90× — superseded. That figure was predicated on the
+bimodal T2 kernel (0.317× hist_ms ratio). Making T2 deterministic collapses it to 0.959×, which
+translates to ~1.01× e2e vs the Sprint 16 baseline.
 
 ---
 
-## §7 D-Document Placeholders
+## §7 D-Document Status
 
 | Doc | Status | Description |
 |-----|--------|-------------|
-| `d0_dec023_fix.md` | PENDING | DEC-023 kernel fix implementation + parity sweep results |
-| `championship_benchmark.md` | PENDING | Full dominance suite results post-fix |
-| `r1_evalatboundary.md` | PENDING (carry from S23 if not done) | EvalAtBoundary readback elimination |
-| `r2_dispatch_inversion_spike.md` | PENDING (carry from S23 if not done) | Dispatch inversion research spike |
+| `d0_dec023_fix.md` | COMPLETE | DEC-023 full diagnostic history + v5 ship rationale |
+| `d0_offby1_cascade_retest.md` | COMPLETE | Off-by-one false-positive diagnostic record |
+| `championship_benchmark.md` | NOT STARTED | Campaign retreated before championship suite |
+
+---
+
+## §8 Final Verdict
+
+### DEC-023 fix
+
+**PASS.** v5 resolves DEC-023. All four S24 D0 acceptance criteria PASS. T2-accum v5 is
+bit-exact vs T1 (ULP=0) on all 18 DEC-008 configs, deterministic across all run counts tested.
+Commit `784f82a891`.
+
+### Verstappen ≥1.5× gate
+
+**FAIL — retroactive.** The ≥1.5× gate was cleared at Sprint 22 D4 (cumulative R8 = 1.90×).
+That record was predicated on the non-deterministic T2 kernel. Making T2 deterministic is a
+prerequisite for shipping under DEC-008 discipline (ULP ≤ 4). The fix eliminates T2's structural
+speed advantage. Post-fix R8 at the gate config is **1.01×** — the Verstappen criterion (≥1.5×)
+is not met.
+
+This is an honest retreat. The campaign goal (≥1.5× on gate config, deterministic, ULP=0) has
+not been achieved. Sprint 25 opens DEC-026, a research track investigating whether a
+cascade-robust GAIN comparison mechanism can allow T2's sort-based accumulation to ship without
+introducing the cascade amplification that triggered DEC-023. See `DECISIONS.md DEC-026`.
+
+### Summary table
+
+| Criterion | Result |
+|-----------|--------|
+| DEC-023 resolved (ULP=0 deterministic) | YES — v5, commit `784f82a891` |
+| 18/18 DEC-008 parity | PASS (18/18 ULP=0) |
+| Verstappen ≥1.5× gate | FAIL — R8 post-fix: 1.01× |
+| PR #16 | Pending (Ramos opens) |
+| S25 research track | DEC-026 cascade-robust GAIN comparison |

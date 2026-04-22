@@ -423,7 +423,7 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
 
 ## DEC-023: Features 1-3 atomic-float race in T2-accum — deterministic reduction required
 
-**Status**: OPEN (S24 scope)
+**Status**: RESOLVED 2026-04-21 — close-commit `784f82a891` (v5: T2-accum rewritten to T1 accumulation topology for all features; T2-sort removed from dispatch)
 **Discovered**: Sprint 23 D0 during scratch→production promotion parity sweep
 **Scope**: T2-accum features 1-3 use atomic_fetch_add on float; FP non-associativity + non-deterministic thread scheduling produces 1-2 ULP drift in histogram bins, which can flip near-tie split decisions early in training and cascade to 105+ ULP in final loss
 
@@ -452,6 +452,35 @@ The non-determinism observed in D0/D1 sweeps was entirely caused by the `maxPart
   - Partially re-validates S21 D1-R4 §5 bug β concern (retired too broadly under DEC-022; see DEC-022 scope qualifier)
   - Kahan concern (DEC-022 body) is not resurrected as a standalone fix but may complement Options 1-2
   - R8 1.90× record at gate config is unaffected (gate is deterministic)
+
+### S24 D0 resolution (appended 2026-04-21)
+
+**Fix chosen**: v5 — all-feature T1-style SIMD-shuffle accumulation. All four features (0-3) in
+T2-accum rewritten to use T1-style SIMD-shuffle + linear fold + writeback reading from
+`docIndices`. T2-sort kernel removed from dispatch. Feature-0 no longer scans `sortedDocs`.
+
+**Why Option 1 (TG-local reduce) and int-fixed-point (Option 2) were not sufficient**: All
+Path 5 variants retaining feature-0's bin-range scan over `sortedDocs` pinned to Value B
+(0.48231912, 105 ULP off T1 Value A). Root cause: reduction topology difference between T2's
+sort-based scan and T1's SIMD fold. Determinism (Path 5 int-fixed-point) was achieved but did
+not produce Value A. Only accumulation-topology matching achieves ULP=0 vs T1.
+
+**Acceptance-criteria results** (all 4 gates PASS):
+
+| Gate | Criterion | Measured | Verdict |
+|------|-----------|----------|---------|
+| S24-D0-G1 | Config #8: 10/10 deterministic | 10/10 at 0.48231599 (ULP=0) | PASS |
+| S24-D0-G2 | 18/18 ULP=0, ≥5 runs per config | 18/18 ULP=0, all 5/5 det. | PASS |
+| S24-D0-G3 | Gate config: 100/100 deterministic | 100/100 at 0.47740927 | PASS |
+| S24-D0-G4 | hist_ms ratio ≥ 0.45× (kill-switch) | 0.959× | PASS |
+
+**R8 consequence**: 1.90× → 1.01×. T2 v5 runs at T1 speed (0.959× hist_ms ratio). The 1.90×
+record was predicated on T2's non-deterministic sort-based accumulation providing a 0.317×
+hist_ms ratio. Making T2 deterministic requires matching T1's accumulation topology, which
+eliminates T2's structural speed advantage. Verstappen ≥1.5× gate failed retroactively.
+
+**Forward**: DEC-026 (below) opens the research track for recovering T2's speedup via
+cascade-robust GAIN comparison in S25.
 
 ---
 
@@ -532,3 +561,92 @@ Gate config runs `EGrowPolicy::SymmetricTree` (oblivious). `bench_boosting.cpp` 
 **R8 position unchanged**: Gate config `iter_total_ms = 19.098 ms` (S22 D4). Cumulative 1.90×.
 
 **Commits**: None (research spike only, no production changes).
+
+---
+
+## DEC-026: Cascade-robust GAIN comparison — research track for T2 speedup recovery
+
+**Status**: OPEN (S25 research)
+**Date opened**: 2026-04-21
+**Sprint**: 25 (research)
+**Opened by**: S24 D0 close-out
+
+### Problem statement
+
+DEC-023 v5 resolution established that T2-accum's sort-based feature-0 bin-range scan produces
+Value B (0.48231912) while T1's SIMD accumulation produces Value A (0.48231599) — a 105 ULP gap
+at iters=50 at config #8. The gap originates from 1-2 ULP/bin differences in the accumulation
+topology (sort-based scan vs SIMD fold) and cascades to 105 ULP via a near-tie GAIN flip at
+approximately iteration 20-40 of config #8's training run.
+
+The cascade mechanism: 1-2 ULP bin-histogram difference → GAIN comparison at a near-tie split
+flips to select a different tree node → all subsequent iterations diverge on different trajectories
+→ ~70× ULP amplification by iters=50.
+
+At 17/18 DEC-008 configs, the 1-2 ULP/bin difference does not reach a GAIN near-tie and the
+cascade does not fire — T2's Value B stays within DEC-008 ULP tolerance (RMSE ≤ 4, etc.).
+Config #8 is the sole exception where the near-tie GAIN flip exists at T2's Value B.
+
+### Research question
+
+A deterministic GAIN tiebreak — applied when `|GAIN_A - GAIN_B| < ε` for a calibrated ε —
+could prevent the near-tie flip from selecting a different node. If T2 (with sort-based
+accumulation producing Value B inputs) selects the same split as T1 (producing Value A inputs)
+at every near-tie iteration in config #8's training run, the cascade is blocked and the end-to-end
+loss converges to a value within DEC-008 ULP tolerance of T1's result (possibly Value A itself).
+
+If the research succeeds, T2's structural speedup (Path 5 design: T2-sort + int-atomic
+fixed-point accumulation for features 1-3) becomes shippable at R8 ≈ 1.85–1.90× (the pre-S24
+measured position).
+
+### Research questions (falsification-first order)
+
+1. **Epsilon calibration study**: How often do near-tie GAIN comparisons occur at config #8?
+   What ε separates genuine near-tie flips (where 1-2 ULP histogram difference changes the
+   winner) from legitimate GAIN gaps (where even a 105 ULP histogram difference would not change
+   the winner)? Is there a viable ε range, or is the gap between "too small to catch the flip"
+   and "too large to avoid false-positive tiebreaks" empty?
+
+2. **Model-quality validation**: Does the tiebreak change tree structure at any of the 18
+   DEC-008 configs in a way that degrades AUC/RMSE? Even if the tiebreak blocks the cascade,
+   it may select a different split (the lexicographic tiebreak winner) than T1 would select
+   naturally — this is only acceptable if the quality impact is within the 0.5% tolerance.
+
+3. **T2 rebuild**: Rebuild T2 with the Path 5 design (T2-sort + int-atomic fixed-point
+   accumulation for features 1-3) on top of the tiebreak mechanism in the scoring kernel.
+   Measure the resulting hist_ms ratio and verify 18/18 DEC-008 ULP ≤ 4 across ≥5 runs
+   including config #8.
+
+### Deliverable gates
+
+| Gate | Criterion | Pass condition |
+|------|-----------|----------------|
+| DEC-026-G1 | Epsilon calibration study complete | Viable ε range identified; GAIN near-tie frequency at config #8 quantified |
+| DEC-026-G2 | Tiebreak implemented in scoring kernel | Tiebreak fires only when `\|GAIN_A - GAIN_B\| < ε`; lexicographic (featureIdx, binIdx) ordering |
+| DEC-026-G3 | T2 Path 5 rebuild complete | T2-sort + int-atomic fixed-point + tiebreak; compiles, parity sweep started |
+| DEC-026-G4 | 18-config parity sweep + determinism | 18/18 DEC-008 ULP ≤ 4; ≥5 runs per config; config #8 10/10 deterministic |
+| DEC-026-G5 | Model-quality validation | AUC/RMSE drop ≤ 0.5% at any of the 18 DEC-008 configs relative to T1 baseline |
+
+**Success criterion**: T2 Path 5 design passes all 5 gates AND gate config hist_ms ratio ≤ 0.45×.
+If all 5 gates pass, re-ship T2 at R8 ≈ 1.85–1.90×.
+
+### Kill-switches (abandon DEC-026 if any fires)
+
+- **Epsilon study shows no viable ε**: too small — cascade persists; too large — quality
+  degrades at one or more DEC-008 configs. If no ε threads this needle, the cascade-robust
+  GAIN approach is structurally infeasible. FALSIFY DEC-026.
+- **Model quality degrades > 0.5%** at any DEC-008 config at any ε → abandon.
+- **Tiebreak fires on legitimate GAIN gaps** (not just near-tie flips) at ≥2 of 18 configs
+  → ε calibration failure; abandon or restart from G1.
+
+### Budget and sprint classification
+
+Research sprint. Not a guaranteed delivery. Estimated 1-2 weeks with falsification checkpoints
+at each gate. The epsilon calibration (G1) is the highest-risk step; if it fails, G2–G5 are
+not attempted.
+
+**R8 target if research succeeds**: re-ship T2 Path 5 at R8 ≈ 1.85–1.90× (consistent with
+pre-S24 measured T2 hist_ms ratio of 0.317×). If research fails, R8 stays at 1.01× honest
+position.
+
+**Pointer**: `docs/sprint25/README.md` for the sprint scaffold and detailed research plan.

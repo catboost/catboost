@@ -1054,7 +1054,21 @@ static const std::string kT2SortSource = R"metal(
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
-    // Step 3: scatter docs into per-slot sortedDocs[] using per-bin atomic cursors.
+    // Step 3: scatter docs into per-slot sortedDocs[] — deterministic serial scatter.
+    //
+    // DEC-023 fix (S24 D0): the prior parallel scatter used threadgroup atomic_uint
+    // cursors with 256-thread stride, causing non-deterministic within-bin doc order
+    // in sortedDocs[] (S-3: Metal intra-TG threadgroup-atomic ordering is not
+    // architecturally guaranteed run-to-run even within a single TG).  The non-
+    // deterministic sortedDocs order caused feature-0 bin-range scan sums to vary
+    // by 1-2 ULP, cascading to 105 ULP at iters=50 (config #8).
+    //
+    // Fix: thread 0 scatters all docs serially in input order (i = 0..partSize-1).
+    // This produces a stable sort: docs within each bin appear in the same order as
+    // their original partition input sequence, run-to-run, deterministically.
+    //
+    // Cost: scatter serialised to one thread; negligible at envelope sizes
+    // (≤ 781 docs at gate config, ≤ 156 docs at config #8).
     //
     // Option III slab layout: buffer = [numGroups × numStats × totalNumDocs].
     // This TG's slot = slab[(groupIdx * numStats + statIdx)] starting at partOffsets[partIdx].
@@ -1069,12 +1083,18 @@ static const std::string kT2SortSource = R"metal(
     // slotBase: start of this TG's slot in sortedDocs[]
     const uint slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx];
 
-    for (uint i = tid; i < partSize; i += BLOCK_SIZE) {
-        const uint docIdx = docIndices[partOffset + i];
-        const uint packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
-        const uint bin    = (packed >> 24u) & 0x7Fu;
-        const uint pos    = atomic_fetch_add_explicit(&tgCursors[bin], 1u, memory_order_relaxed);
-        sortedDocs[slotBase + pos] = docIdx;
+    // Serial scatter by thread 0 in input order i = 0..partSize-1.
+    // atomic API used because tgCursors is declared threadgroup atomic_uint;
+    // single-threaded, so no contention and the operation is deterministic.
+    if (tid == 0) {
+        for (uint i = 0; i < partSize; ++i) {
+            const uint docIdx = docIndices[partOffset + i];
+            const uint packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
+            const uint bin    = (packed >> 24u) & 0x7Fu;
+            const uint pos    = atomic_fetch_add_explicit(&tgCursors[bin], 1u,
+                                                          memory_order_relaxed);
+            sortedDocs[slotBase + pos] = docIdx;
+        }
     }
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
@@ -1088,36 +1108,47 @@ static const std::string kT2SortSource = R"metal(
 )metal";
 
 // ============================================================================
-// T2-accum kernel source  (Sprint 23 D0 — promoted from kernel_sources_t2_scratch.h)
+// T2-accum kernel source  (Sprint 24 D0 v5 — DEC-023 complete fix)
 //
-// Reads sorted docs from T2-sort, accumulates histogram using the same output
-// layout as kHistOneByteSource (T1).
+// ALL four features (0-3) use T1-style SIMD-group accumulation reading from
+// docIndices.  The bin-range scan over sortedDocs has been removed from
+// T2-accum entirely.
 //
-// Feature 0: pure bin-range scan (T2's core benefit — no simd_shuffle)
-// Features 1–3: per-doc stride over sorted docs, atomic_fetch_add per bin
+// Background: Attempts v3/v4 fixed features 1-3 (S-5) but left feature 0 reading
+// sortedDocs via bin-range scan.  Although the scatter was serialised (v2 T2-sort
+// fix, S-3), the serial-scatter within-bin order differs from T1's SIMD-group
+// batch order, producing a consistent 105-ULP FP sum offset at config #8 that
+// causes a near-tie split flip after iters=50.  Replacing the bin-range scan with
+// the same SIMD-shuffle pattern as features 1-3 makes all four features bit-exact
+// vs T1 by construction — identical accumulation topology, identical FP order.
 //
-// sortedDocs layout (Option III, matching T2-sort):
-//   slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx]
-//   Reads [slotBase .. slotBase + totalDocsInPart)
+// T2-sort still runs (its sortedDocs/binOffsets outputs are consumed by the graph)
+// but T2-accum no longer reads them.  T2-sort's purpose is now limited to
+// the MLX graph dependency edge (ensures sort completes before accum dispatches).
 //
-// BIN CONVENTION matches T1 exactly:
+// totalDocsInPart: read directly from partSizes[partIdx] (replaces the sentinel
+// binOffsets[offBase + T2_BIN_CAP] which equals partSizes[partIdx] by construction).
+// This removes sortedDocs and binOffsets from T2-accum's input list entirely,
+// but adds partSizes (already available in DispatchHistogramT2).
+//
+// BIN CONVENTION (unchanged):
 //   T1 output[histBase + firstFold + k] = sum for docs with raw bin = k + 1.
 //   T2 writes raw bin b (b >= 1) to histogram[histBase + firstFold + b - 1].
 //
-// Bin mask: all four features use 0x7Fu (7-bit, max 127) consistent with the
-//   DEC-016 T1 envelope and T2-sort feature-0 mask.  The host CB_ENSURE that
-//   maxFoldCount <= 127 ensures the 8th bit is never a valid bin value.
+// Bin masks:
+//   feature 0: (packed >> 24u) & 0x7Fu  — top byte, 7-bit (matching T2-sort step 1)
+//   features 1-3: (packed >> (24u - 8u*f)) & 0xFFu  — unchanged from v4
 //
 // atomic_outputs = true: histogram output is device atomic<float>*
-//   required for atomic_fetch_add_explicit casts.
+//   required for atomic_fetch_add_explicit casts (multi-TG writes to same partition
+//   bins when numGroups > 1).
 //
-// Input names:
-//   sortedDocs, binOffsets, compressedIndex, stats,
+// Input names (S24 D0 v5):
+//   compressedIndex, stats, docIndices, partSizes,
 //   featureColumnIndices, foldCountsFlat, firstFoldIndicesFlat,
 //   partOffsets,
 //   lineSize, maxBlocksPerPart, numGroups,
 //   numPartitions, numStats, totalBinFeatures, totalNumDocs
-//   (numTGs removed in Sprint 23 D0 Commit 3 — NIT-5, was never read by the kernel body)
 //
 // Output names: histogram
 // Grid/Thread: same as kT2SortSource
@@ -1135,71 +1166,113 @@ static const std::string kT2AccumSource = R"metal(
     const uint featureColumnIdx = featureColumnIndices[groupIdx];
     const uint foldBase         = groupIdx * FEATURES_PER_PACK;
     const uint tid              = thread_index_in_threadgroup;
+    const uint lane             = tid & (SIMD_SIZE - 1u);
+    const uint simd_id          = tid >> 5u;
 
-    // Locate this TG's sorted docs (Option III slab layout) and bin offsets.
-    // slotBase indexes into the flat sortedDocs slab.
-    // offBase indexes this TG's BIN_OFFSETS_STRIDE block in the binOffsets buffer.
-    const uint slotBase = (groupIdx * numStats + statIdx) * totalNumDocs + partOffsets[partIdx];
-    const uint offBase  = (groupIdx * numPartitions * numStats + partIdx * numStats + statIdx)
-                        * BIN_OFFSETS_STRIDE;
+    // Partition offset: used by all features via docIndices[partOffset + d].
+    const uint partOffset = partOffsets[partIdx];
 
-    // Output histogram base (same layout as kHistOneByteSource)
+    // Output histogram base (same layout as kHistOneByteSource / T2-accum v4).
     const uint histBase = partIdx * numStats * totalBinFeatures
                         + statIdx * totalBinFeatures;
 
-    const uint totalDocsInPart = binOffsets[offBase + T2_BIN_CAP];
+    // totalDocsInPart from partSizes directly (replaces binOffsets sentinel).
     // NIT-3: explicit empty-partition guard.
-    // T2-sort returns early without writing binOffsets for empty partitions.
-    // binOffsets[offBase + T2_BIN_CAP] == 0 iff partSize == 0 (init_value=0).
-    // Explicitly checking here avoids reliance on float-to-uint zero aliasing
-    // and also skips all inner-loop setup for empty partitions (small perf win).
+    const uint totalDocsInPart = partSizes[partIdx];
     if (totalDocsInPart == 0) return;
 
-    // All FEATURES_PER_PACK features: accumulate over sorted doc list.
+    // =========================================================================
+    // All features (0-3): T1-style SIMD-group accumulation (DEC-023 complete fix).
     //
-    // BIN CONVENTION — must match kHistOneByteSource (T1) exactly:
-    //   T1 output[firstFold + k] = sum of stats for docs with RAW BIN = k + 1.
-    //   T2 writes docs with raw bin b (b >= 1) to histogram[firstFold + b - 1].
-    for (uint f = 0u; f < FEATURES_PER_PACK; ++f) {
-        const uint foldCount  = foldCountsFlat[foldBase + f];
-        const uint firstFold  = firstFoldIndicesFlat[foldBase + f];
-        if (foldCount == 0u) continue;  // padding slot in last group
+    // v5 extends the v4 fix from features 1-3 to include feature 0.  Feature 0's
+    // bin-range scan over sortedDocs produced a consistent 105-ULP offset at
+    // config #8 because the serial-scatter within-bin doc order (T2-sort v2)
+    // differs from T1's SIMD-group batch order, yielding different FP partial sums.
+    // Reading from docIndices in the same order as T1 eliminates this offset.
+    //
+    // simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD] = 8 × 1024 × 4 B = 32 KB.
+    // Layout: feature f, bin b → simdHist[simd_id][f * BINS_PER_BYTE + b].
+    // Stride ownership: lane l owns bins {l, l+32, …} → one writer per (simd_id, bin).
+    // =========================================================================
+    threadgroup float simdHist[NUM_SIMD_GROUPS][HIST_PER_SIMD]; // 32 KB
 
-        if (f == 0u) {
-            // Feature 0: bin-range scan using sorted order — no simd_shuffle.
-            // Sort key = raw bin (0..T2_BIN_CAP-1), indexed by tgOffsets (binOffsets).
-            // Skip bin 0 (missing). For bin b = 1..foldCount:
-            //   sum docs in range [binOffsets[offBase + b], binOffsets[offBase + b + 1])
-            //   write to histogram[histBase + firstFold + b - 1]
-            for (uint b = tid + 1u; b <= foldCount; b += BLOCK_SIZE) {
-                const uint start = binOffsets[offBase + b];
-                const uint end   = binOffsets[offBase + b + 1u];
-                float sum = 0.0f;
-                for (uint i = start; i < end; ++i) {
-                    const uint docIdx = sortedDocs[slotBase + i];
-                    sum += stats[statIdx * totalNumDocs + docIdx];
+    // Zero-init: each lane zeros its owned stride for its SIMD group.
+    for (uint b = lane; b < HIST_PER_SIMD; b += SIMD_SIZE) {
+        simdHist[simd_id][b] = 0.0f;
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 1: zero-init complete
+
+    // SIMD-shuffle accumulation — identical to kHistOneByteSource, ALL features 0-3.
+    // VALID_BIT packed into MSB of compressedIndex entry to mark valid docs (DEC-016 T1 fuse).
+    const uint VALID_BIT = 0x80000000u;
+    for (uint batch_start = simd_id * SIMD_SIZE;
+         batch_start < totalDocsInPart;
+         batch_start += NUM_SIMD_GROUPS * SIMD_SIZE) {
+
+        const uint d     = batch_start + lane;
+        const bool valid = (d < totalDocsInPart);
+        uint  packed = 0u;
+        float stat   = 0.0f;
+        if (valid) {
+            const uint docIdx = docIndices[partOffset + d];
+            packed = compressedIndex[docIdx * lineSize + featureColumnIdx] | VALID_BIT;
+            stat   = stats[statIdx * totalNumDocs + docIdx];
+        }
+
+        for (uint src = 0u; src < SIMD_SIZE; ++src) {
+            const uint  p_s = simd_shuffle(packed, src);
+            const float s_s = simd_shuffle(stat,   src);
+            if ((p_s & VALID_BIT) == 0u) continue;
+            const uint p_clean = p_s & 0x7FFFFFFFu;
+            // Feature 0: top byte, 7-bit mask (matching T2-sort step 1 extraction).
+            {
+                const uint bin = (p_clean >> 24u) & 0x7Fu;
+                if (bin < foldCountsFlat[foldBase + 0u] + 1u &&
+                    (bin & (SIMD_SIZE - 1u)) == lane) {
+                    simdHist[simd_id][0u * BINS_PER_BYTE + bin] += s_s;
                 }
-                // Single-writer per bin (b assigned to this thread via stride)
-                device atomic_float* dst = (device atomic_float*)(
-                    histogram + histBase + firstFold + b - 1u);
-                atomic_fetch_add_explicit(dst, sum, memory_order_relaxed);
             }
-        } else {
-            // Features 1–3: stride over sorted docs (sorted by feature-0 bin).
-            // Per-doc: get feature-f raw bin, skip bin 0 (missing), write to firstFold + b - 1.
-            // Bin mask 0x7Fu (7-bit): consistent with DEC-016 T1 envelope and T2-sort feat-0.
-            for (uint i = tid; i < totalDocsInPart; i += BLOCK_SIZE) {
-                const uint docIdx = sortedDocs[slotBase + i];
-                const uint packed = compressedIndex[docIdx * lineSize + featureColumnIdx];
-                const float s     = stats[statIdx * totalNumDocs + docIdx];
-                const uint b      = (packed >> (24u - 8u * f)) & 0x7Fu;
-                if (b >= 1u && b <= foldCount) {
-                    device atomic_float* dst = (device atomic_float*)(
-                        histogram + histBase + firstFold + b - 1u);
-                    atomic_fetch_add_explicit(dst, s, memory_order_relaxed);
+            // Features 1-3: byte-packed bins, 8-bit mask.
+            for (uint f = 1u; f < FEATURES_PER_PACK; ++f) {
+                const uint bin = (p_clean >> (24u - 8u * f)) & 0xFFu;
+                if (bin < foldCountsFlat[foldBase + f] + 1u &&
+                    (bin & (SIMD_SIZE - 1u)) == lane) {
+                    simdHist[simd_id][f * BINS_PER_BYTE + bin] += s_s;
                 }
             }
         }
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup); // barrier 2: accumulation complete
+
+    // Cross-SIMD linear fold + writeback for ALL features 0-3 (DEC-009, same as T1).
+    // Total barriers: 1 (zero-init) + 1 (accum) + 4×2 (fold+guard, f=0..3) = 10.
+    for (uint f = 0u; f < FEATURES_PER_PACK; ++f) {
+        const uint foldCount = foldCountsFlat[foldBase + f];
+        const uint firstFold = firstFoldIndicesFlat[foldBase + f];
+        if (foldCount == 0u) continue;
+        const uint tile_base = f * BINS_PER_BYTE;
+
+        // Thread tid handles bin tid; 8-term linear fold in fixed g=0..7 order.
+        if (tid < BINS_PER_BYTE) {
+            float sum = 0.0f;
+            for (uint g = 0u; g < NUM_SIMD_GROUPS; g++) {
+                sum += simdHist[g][tile_base + tid];
+            }
+            simdHist[0][tile_base + tid] = sum;
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup); // 1 barrier per feature
+
+        // Writeback: simdHist[0][tile_base + bin + 1u] → histogram[firstFold + bin].
+        // bin+1 because bin=0 is "missing value" (excluded); output is 0-indexed.
+        for (uint bin = tid; bin < foldCount; bin += BLOCK_SIZE) {
+            const float val = simdHist[0][tile_base + bin + 1u];
+            if (abs(val) > 1e-20f) {
+                device atomic_float* dst = (device atomic_float*)(
+                    histogram + histBase + firstFold + bin);
+                atomic_fetch_add_explicit(dst, val, memory_order_relaxed);
+            }
+        }
+        threadgroup_barrier(mem_flags::mem_threadgroup); // guard for next feature fold
     }
 )metal";
 

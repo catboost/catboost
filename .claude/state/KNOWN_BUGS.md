@@ -6,9 +6,26 @@
 
 ## BUG-T2-001: Features 1-3 atomic-float race in T2-accum (non-deterministic training)
 
-**Decision record**: `DECISIONS.md DEC-023` (OPEN, S24 scope)
+**Decision record**: `DECISIONS.md DEC-023` (RESOLVED)
 **Discovered**: 2026-04-20, Sprint 23 D0 parity sweep
-**Status**: OPEN — attack plan in DEC-023; fix targeted for S24 D0
+**Status**: RESOLVED 2026-04-21 — close-commit `784f82a891`
+
+### Fix summary
+
+v5: T2-accum rewritten so all four features (0-3) use T1-style SIMD-shuffle accumulation reading
+from `docIndices`. T2-sort kernel removed from dispatch. Feature-0 no longer scans `sortedDocs`.
+ULP=0 vs T1 across all 18 DEC-008 configs, 5/5 deterministic per config, 100/100 at gate config.
+
+R8 consequence: 1.90× → 1.01×. T2's structural speed advantage was contingent on its
+accumulation topology differing from T1's. Matching the topology for correctness eliminates
+the speedup. Honest post-fix position: ~1.01× e2e vs Sprint 16 baseline.
+
+Forward: `DECISIONS.md DEC-026` opens the research track for recovering T2's speedup via
+cascade-robust GAIN comparison in Sprint 25.
+
+---
+
+### Original bug record (preserved for history)
 
 ### Summary
 
@@ -80,7 +97,12 @@ The gate config (N=50000/RMSE/128b) is 100/100 deterministic despite using the s
 
 ### Fix target
 
-S24 D0, 1-2 days. See `DECISIONS.md DEC-023` and `docs/sprint23/d0_bimodality_verification.md`.
+~~S24 D0, 1-2 days.~~ RESOLVED S24 D0. See `DECISIONS.md DEC-023` and
+`docs/sprint24/d0_dec023_fix.md` for the full diagnostic history.
+
+**Sibling S-1 status (unchanged)**: `kHistOneByte` writeback atomic-float race is still latent.
+Still dead code path — NIT-4 CB_ENSURE enforces `maxBlocksPerPart == 1`. No code change. The
+S-1 note in `docs/sprint23/d0_bimodality_verification.md §C` remains the authoritative record.
 
 ---
 
