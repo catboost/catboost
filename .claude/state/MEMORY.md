@@ -46,6 +46,14 @@ Gap narrows slightly with N — per-iteration fixed cost dominates:
 - **BUG-007** (MITIGATED 2026-04-22): nanobind path — Python wrapper sorts group_ids (`python/catboost_mlx/core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness as defense-in-depth. See `KNOWN_BUGS.md`.
 - **bench_boosting K=10 anchor** (RESOLVED Sprint 8, TODO-022): `1.78561831` is the canonical anchor at `20k × 30 × depth 5 × 50 iters`; the prior `2.22267818` "expected" value was captured from a mismatched-param run. See `CHANGELOG.md:27`.
 
+## Parity-gate methodology (from Sprint 26 D0, 2026-04-22)
+
+- **Kernel-ULP=0 ≠ full-path parity.** v5's `bench_boosting` 18/18 ULP=0 record coexisted with a Python-path 0.69× leaf-magnitude collapse for multiple sprints because `bench_boosting` exercises only the histogram kernel — not `FindBestSplit` (noise), nanobind orchestration, quantization borders, or `methods/leaves/`. **New standing order**: every parity gate must label which path it covers. Python-path / `FindBestSplit` / leaf-estimation parity requires its own harness (`tests/test_python_path_parity.py`).
+- **Segmented parity gate beats strict symmetric** for stochastic branches. CPU and MLX use independent RNGs; at the same seed they draw different noise realizations. Strict `ratio ∈ [0.98, 1.02]` false-fails cells where MLX is better. Use: (a) rs=0 tight symmetric (no PRNG divergence to explain away), (b) rs=1 one-sided `MLX_RMSE ≤ CPU_RMSE × 1.02` AND `pred_std_R ∈ [0.90, 1.10]`.
+- **`pred_std_R = std(MLX_preds) / std(CPU_preds)`** is the primary signal for leaf-magnitude bugs — orthogonal to RMSE (which can be dominated by irreducible noise at small N). DEC-028's signature was `pred_std_R ≈ 0.69`. Keep it in any parity harness touching leaf values.
+- **Gradient RMS, not hessian sum, scales RandomStrength noise.** Dimensional check: noise that scales with `N` (hessian sum for RMSE) grows without bound as dataset size increases; noise that scales with `sqrt(sum(g²)/N)` (gradient RMS) shrinks as residuals shrink over boosting iters. If a parity gap grows with N or grows across iters, suspect the wrong scale.
+- **Non-oblivious tree serialization requires explicit BFS node index.** Depthwise/Lossguide training cursors are keyed by bit-packed `partitions` (bit k = direction at depth k), but model JSON consumers walk trees in BFS order. Emit `bfs_node_index` per split and `leaf_bfs_ids` inverse map for Lossguide. Don't rely on the consumer to re-derive the mapping.
+
 ## CUDA reference targets (from researcher, 2026-04-15)
 
 - **szilard/GBM-perf 2024**: A100 SXM4, Airline 10M, 100 iters, depth 10 → CatBoost CUDA **15s**. CPU (Xeon E5-2686 v4): 70s. Citable: https://github.com/szilard/GBM-perf issue #57.

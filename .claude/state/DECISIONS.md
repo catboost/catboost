@@ -681,3 +681,75 @@ retroactively failed from S24 D0.
 3. Hybrid routing by (N, bins) — not recommended; ongoing maintenance overhead.
 4. DEC-027 alternative accumulation (XGBoost-style per-feature deterministic radix-sum) —
    deferred to a future research sprint. Not opened as part of S25 closure.
+
+---
+
+## DEC-028: RandomStrength noise must scale by gradient RMS, not totalHessian / numPartitions
+
+**Sprint**: 26 (D0)
+**Date**: 2026-04-22
+**Status**: Implemented (`24162e1006`). Full text in `docs/decisions.md §DEC-028`.
+
+**Problem**: MLX `FindBestSplit` (csv_train.cpp) computed per-split-candidate noise scale as
+`randomStrength × totalWeight / (numPartitions × K)`. For RMSE, `totalWeight = N`, producing
+`noiseScale = N` — dimensionally wrong (scales with dataset size instead of gradient magnitude).
+At N=10k the noise was ~16,895× larger than CPU; SNR vs root-split gain ~0.16; noise dominated
+split selection → leaf magnitudes shrunk to 0.69× of CPU.
+
+**Decision**: Replace with CPU's `CalcDerivativesStDevFromZeroPlainBoosting` formula:
+`gradRms = sqrt( sum_{k,i} g_k[i]^2 / N )`, then `noiseScale = randomStrength × gradRms`.
+`gradRms` threaded from `RunTraining` into `FindBestSplit`.
+
+**Result**: Python-path SymmetricTree `pred_std_R` 0.69 → 1.00; G1 18-cell segmented parity
+18/18 PASS; no impact on bench_boosting ULP=0 record.
+
+**Risks carried forward**:
+- Depthwise/Lossguide use `FindBestSplitPerPartition`, which has no noise path. RandomStrength
+  has no effect there (was true before this fix). Tracked as S26-FU-2 for a separate sprint.
+- `gradRms` computed via CPU readback loop. Minor per-iteration cost (not profiled as hot).
+
+**Authority**: `docs/decisions.md §DEC-028`; gate artifacts
+`docs/sprint26/d0/g1-g3-g4-report.md`, `benchmarks/sprint26/d0/g1-results.md`.
+
+---
+
+## DEC-029: Non-oblivious tree SplitProps never populated → empty model JSON splits
+
+**Sprint**: 26 (D0)
+**Date**: 2026-04-22
+**Status**: Implemented (`9bd980a37f` C++ + `06fa2a58ee` Python). Full text in `docs/decisions.md §DEC-029`.
+
+**Problem**: After DEC-028, Depthwise/Lossguide grow policies still showed 561%/598% RMSE
+delta vs CPU. Cause was NOT the noise formula (non-oblivious paths have no noise):
+`TTreeRecord.SplitProps` was populated only in the SymmetricTree `else` branch; Depthwise
+and Lossguide `if` branches pushed `cursor` updates but never pushed split descriptors.
+`WriteModelJSON` serialized from `SplitProps.size() == 0` → `"splits": []` → Python
+`compute_leaf_indices` iterated an empty list → every doc assigned to leaf 0 → constant
+prediction at `leaf_values[0]`.
+
+**Decision**:
+- C++: Add `TTreeRecord.SplitBfsNodeIds`. Populate `SplitProps` and `SplitBfsNodeIds` in both
+  Depthwise and Lossguide tree-build paths. `WriteModelJSON` emits `grow_policy` per tree,
+  `bfs_node_index` per split, and `leaf_bfs_ids` inverse map for Lossguide.
+  BFS node index for partition `p` at depth `d` is computed by walking bits 0..d-1 of `p`
+  (bit k = direction at depth k), producing the correct 2n+1 / 2n+2 walk from root.
+- Python: `compute_leaf_indices` dispatches on `grow_policy`. `_compute_leaf_indices_depthwise`
+  uses `_bfs_traverse_bitpacked` (mirrors the C++ partition update `bits = updateBits << depth;
+  partitions |= bits`). `_compute_leaf_indices_lossguide` uses `leaf_bfs_ids` for the inverse map.
+
+**Result**: Depthwise rs=0 delta 561% → −0.64%; Lossguide rs=0 delta 598% → −1.01%.
+SymmetricTree path unchanged (already BFS-ordered implicitly).
+
+**Risks carried forward**:
+- **S26-FU-1**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns
+  `nodeIdx − numNodes` (BFS leaf order) instead of bit-packed partition order. Affects
+  validation RMSE tracking during Depthwise training only; does not affect training
+  correctness or Python predictions.
+- Model JSON now has a new `bfs_node_index` field. Old SymmetricTree models (which never
+  had this field) still work correctly via dispatch; old broken non-oblivious models continue
+  to produce all-leaf-0 predictions (no worse than pre-fix behavior).
+
+**Authority**: `docs/decisions.md §DEC-029`; verification artifact `docs/sprint26/d0/d0-8-verification.md`;
+diagnostics `docs/sprint26/d0/depthwise-lossguide-root-cause.md`,
+`docs/sprint26/d0/leaf-magnitude-code-diff.md`,
+`benchmarks/sprint26/d0/one_tree_depthwise.py` + `one-tree-depthwise-instrumentation.txt`.

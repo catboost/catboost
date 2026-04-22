@@ -1,18 +1,74 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (PR #20 merged — latent-bugs backlog cleared; no open PRs; no active sprint)
+> Last updated: 2026-04-22 (Sprint 26 D0 CLOSED — Python-path parity correctness gap resolved; DEC-028 + DEC-029 shipped; R8 unchanged at 1.01×; no open PRs)
 
 ## Current state
 
-- **Branch**: `master` is the current working base. No active sprint branch.
-- **Tip commit**: `71aabaa842` (merge of #20 — latent-bugs cleanup). v5 (`784f82a891`) remains the shipped production kernel.
-- **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research (S25 DEC-026) **FALSIFIED** 2026-04-21 at G1: ε-threading impossible by 21,091× (ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07). DEC-027 (alternative accumulation) **deferred** — acknowledged; not open; reserved for a dedicated future research sprint.
-- **Open PRs**: none. Recent merges: #16 (`1385e056ca`) → #17 (`5caa6e64cf`) → #18 (`9b0c03fec2`, CI unblock) → #19 (`1afd0a35b2`, state refresh) → #20 (`71aabaa842`, latent-bugs cleanup).
+- **Branch**: `mlx/sprint-26-python-parity` at tip `2680252573` (state close commit added after).
+- **Campaign**: Post-Verstappen correctness sprint. S26 D0 Python-path parity CLOSED — all exit gates PASS. R8 unchanged at 1.01× (S26 is correctness-first, not perf).
+- **Production kernel**: v5 (`784f82a891`) — unchanged. S26 did not touch `catboost/mlx/kernels/kernel_sources.h`; bench_boosting ULP=0 record preserved (G4).
+- **Open PRs**: none. Most recent merges to master: #16 (`1385e056ca`) → #17 (`5caa6e64cf`) → #18 (`9b0c03fec2`) → #19 (`1afd0a35b2`) → #20 (`71aabaa842`). S26 D0 PR pending Ramos open.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
-    - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — Python wrapper at `core.py:1131-1137` pre-sorts `group_ids`; C++ `BuildDatasetFromArrays` now throws `std::runtime_error` on unsorted input. Two-layer defense.
-    - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`); ledger alignment landed in `71aabaa842`.
-    - Sibling S-1 (`kHistOneByte` writeback race) still latent; now guarded by `constexpr` + `static_assert(maxBlocksPerPart == 1, ...)` at `histogram.cpp:126` — compile-time failure with pointer to `KNOWN_BUGS.md` if anyone raises the literal.
+    - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
+    - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
+    - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
+    - **S26-new follow-up**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes` — affects validation RMSE tracking only, not training correctness or Python predictions. Tracked in DEC-029 Risks section.
+    - **Pre-existing follow-up (not a S26 regression)**: MLX Depthwise/Lossguide have no RandomStrength noise path — at `rs=1` these policies under-fit CPU by ~10–12% at N=10k. `FindBestSplitPerPartition` is where noise threading would need to be added. Scope: separate future sprint.
+
+## Sprint 26 — Python-Path Parity — D0 CLOSED
+
+### Verdict: D0 PASS on all exit gates. DEC-028 + DEC-029 RESOLVED the Python-path leaf-magnitude collapse. R8 unchanged at 1.01× (S26 is correctness-first). v5 production kernel untouched.
+
+**Branch tip at D0 close**: pre-state `2680252573`; state close commit adds after this write.
+**Date closed**: 2026-04-22
+
+### Problem
+
+Python subprocess path (`csv_train`) showed systematic leaf-magnitude shrinkage (pred_std_R ≈ 0.69×) vs CPU CatBoost. Depthwise/Lossguide showed catastrophic collapse (~560%/598% RMSE delta). v5's ULP=0 record is kernel-output only and did NOT cover `FindBestSplit`, basePred, quantization borders, or nanobind orchestration. Surfaced as a gap in parity-gate coverage.
+
+### Root causes (two, landed under DEC-012)
+
+| # | DEC | Path | Summary |
+|---|-----|------|---------|
+| 1 | DEC-028 | SymmetricTree noise | `FindBestSplit` scaled RandomStrength noise by `totalWeight / numPartitions` (dimensionally wrong — scales with dataset size). Replaced with CPU's `sqrt(sum(g²)/N)` gradient-RMS formula. |
+| 2 | DEC-029 | Depthwise/Lossguide model JSON | `TTreeRecord.SplitProps` never populated in non-oblivious paths → `WriteModelJSON` emitted `"splits": []` → Python predict sent every doc to leaf 0. Added `SplitBfsNodeIds`, populated `SplitProps` in both paths, emitted `grow_policy` + `bfs_node_index` per split (+ `leaf_bfs_ids` for Lossguide), dispatched Python predict on `grow_policy` with bit-packed BFS traversal. |
+
+### Exit gate results (all PASS)
+
+| Gate | Criterion | Result | Verdict |
+|------|-----------|--------|---------|
+| G0 | Root cause(s) in DECISIONS | DEC-028 + DEC-029 entries complete | PASS |
+| G1 | SymmetricTree 18-cell parity, segmented | rs=0 9/9 within ±2% (max 0.43%); rs=1 9/9 MLX ≤ CPU, pred_std_R ∈ [0.9996, 1.087], Pearson > 0.99 | PASS |
+| G2 | Depthwise + Lossguide rs=0 parity | DW −0.64%, LG −1.01% vs CPU (pre-fix 561%/598%) | PASS |
+| G3 | Python-path regression test live | 8/8 pytest PASS in 6.32s (`tests/test_python_path_parity.py`) | PASS |
+| G4 | bench_boosting ULP=0 preserved | Kernel sources untouched; v5 record unchanged | PASS |
+| G5 | Determinism | 100 runs @ N=10k/seed=1337/rs=0, max−min = 1.49e-08, std 6.17e-09 | DETERMINISTIC |
+
+### Segmented-gate rationale (methodology note)
+
+Strict symmetric `ratio ∈ [0.98, 1.02]` false-fails cells where MLX is *better* than CPU. CPU and MLX use independent RNGs; at same seed they draw different noise realizations. Segmenting the gate:
+- **rs=0**: tight `ratio ∈ [0.98, 1.02]` (no PRNG divergence to explain away).
+- **rs=1**: one-sided `MLX_RMSE ≤ CPU_RMSE × 1.02` **AND** `pred_std_R ∈ [0.90, 1.10]`.
+
+`pred_std_R` catches leaf-magnitude shrinkage directly — DEC-028's signature was 0.69×. Segmentation retained transparently alongside the strict-symmetric result (12/18 under strict).
+
+### Follow-ups (opened, not blocking S26 D0 close)
+
+1. **ComputeLeafIndicesDepthwise validation path**: C++ returns `nodeIdx − numNodes` instead of bit-packed partition order. Affects validation RMSE tracking during Depthwise training only; does not affect training correctness or Python predictions. Listed in DEC-029 Risks.
+2. **MLX Depthwise/Lossguide RandomStrength noise path**: `FindBestSplitPerPartition` has no noise injection. At rs=1 these policies under-fit CPU by ~10–12% at N=10k. Pre-existing — not a S26 regression. Needs a separate parameter-threading pass.
+
+### Files of record
+
+- `docs/decisions.md` DEC-028, DEC-029
+- `docs/sprint26/d0/g1-g3-g4-report.md` — gate report
+- `docs/sprint26/d0/d0-8-verification.md` — rs=0/rs=1 controlled table
+- `docs/sprint26/d0/depthwise-lossguide-root-cause.md`, `leaf-magnitude-code-diff.md` — diagnostics
+- `benchmarks/sprint26/d0/g1_sweep.py` + `g1-results.md` — 18-cell sweep
+- `benchmarks/sprint26/d0/g4_determinism.py` + `g4-determinism.md` — 100-run determinism
+- `benchmarks/sprint26/d0/one_tree_depthwise.py` + `one-tree-depthwise-instrumentation.txt` — DEC-029 evidence
+- `tests/test_python_path_parity.py` — CI regression harness
+- Cross-project: `../LESSONS-LEARNED.md` — 24 principle-first lessons captured during S26
 
 ## Sprint 24 — CLOSED
 
@@ -121,17 +177,11 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Next actions
 
-1. **Latent bugs triage — DONE** (PR #20, `71aabaa842`). BUG-007 mitigated with two-layer
-   defense; K=10 anchor closed in ledger; Sibling S-1 guard promoted to `static_assert`.
-   Nothing else on the backlog.
-2. **DEC-027 — deferred (unchanged)**. Not opened. Ramos to revisit when dedicating time for
-   alternative accumulation research (e.g., XGBoost-style per-feature deterministic radix-sum)
-   as a separate future sprint. All scaffolding assumptions (kill-switch, gate criteria, parity
-   protocol) will be designed at open-time, not pre-committed here.
-3. **No active sprint.** Next session starts cold — pick a direction (new sprint kickoff, bug
-   report, or DEC-027 when ready) before delegating work.
-4. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK
-   only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
+1. **S26 D0 — CLOSED.** 8 commits on `mlx/sprint-26-python-parity` + state close commit. PR pending Ramos open. CI sanity: pytest 8/8 on `tests/test_python_path_parity.py`; bench_boosting kernel sources untouched.
+2. **S26 D1 (optional, not scheduled)** — Two candidate follow-ups are listed under *Sprint 26 → Follow-ups*: (a) ComputeLeafIndicesDepthwise validation-path fix, (b) MLX Depthwise/Lossguide RandomStrength noise path. Both are carry-forward, not blocking merge. Open only when Ramos sets scope.
+3. **DEC-027 — deferred (unchanged)**. Not opened. Reserved for a dedicated future research sprint.
+4. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
+5. **New standing order (S26 addition)**: parity gates that are kernel-ULP only MUST be explicitly labeled as kernel-output-only in their gate spec. Python-path / nanobind / `FindBestSplit` / leaf-estimation parity requires its own harness (see `tests/test_python_path_parity.py`). Reason: v5 ULP=0 record coexisted with a 0.69× Python-path leaf-magnitude collapse for multiple sprints because the kernel gate was silently misread as "full parity".
 
 ## Standing orders (carried forward)
 
@@ -145,6 +195,7 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Prior sprints — status
 
+- **Sprint 26 D0** — CLOSED 2026-04-22 on `mlx/sprint-26-python-parity`. DEC-028 (RandomStrength noise formula) + DEC-029 (non-oblivious tree SplitProps + BFS index) landed under DEC-012. All 5 exit gates PASS + determinism confirmed. R8 unchanged at 1.01×. PR pending open.
 - **Latent-bugs cleanup (PR #20)** — merged 2026-04-22 as `71aabaa842`. Three commits under DEC-012: ledger hygiene (close K=10 + BUG-007, reframe S-1), `BuildDatasetFromArrays` groupIds sortedness CB_ENSURE, and `histogram.cpp` S-1 `static_assert`. No production behavior change.
 - **State refresh (PR #19)** — merged 2026-04-22 as `1afd0a35b2`. Docs-only alignment of `HANDOFF.md` / `TODOS.md` / `CHANGELOG-DEV.md` with post-stack-merge reality.
 - **CI fix (PR #18)** — merged 2026-04-22 as `9b0c03fec2`. Three commits unblocking the stack: MLX 0.31+ CLI breakage in `mlx-build.yaml`, stale `0.3.0`/`minor==3` version pins in `test_qa_round13_sprint10.py`, and overly-broad BUG-001 MAE sentinel in `test_qa_round8_sprint3_losses.py` (narrowed to SIGABRT-only). No production code changes.

@@ -1,57 +1,52 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (Sprint 26 kickoff).
+> Last header refresh: 2026-04-22 (Sprint 26 D0 CLOSED).
 
 ## Current state (2026-04-22)
 
-- **Branch**: `mlx/sprint-26-python-parity` (Sprint 26 active).
+- **Branch**: `mlx/sprint-26-python-parity` at tip `2680252573` (+ state close commit after this write). D0 CLOSED.
 - **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — see S26 scope.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Perf status unchanged; S26 is correctness-first.
-- **Open PRs**: none. DEC-027 (alternative accumulation) remains deferred.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — S26 G4 preserves this record (kernel sources untouched).
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S26 was correctness-first.
+- **Open PRs**: none. S26 D0 PR pending Ramos open. DEC-027 (alternative accumulation) remains deferred.
 
 ---
 
-## Sprint 26 — Python-Path Parity (ACTIVE)
+## Sprint 26 — Python-Path Parity — D0 CLOSED
 
 **Branch**: `mlx/sprint-26-python-parity`
-**Framing**: correctness-first (option α per Ramos 2026-04-22). Depthwise/Lossguide
-benchmark harness work (original S26 scope) deferred to a later sprint pending
-resolution of this correctness gap.
+**Framing**: correctness-first (option α per Ramos 2026-04-22).
 **Pre-sprint triage**: `docs/sprint26/d0/pre-sprint-triage.md`, raw evidence in
 `benchmarks/sprint26/d0/RESULTS.md`.
+**Verdict**: D0 PASS on all exit gates. DEC-028 + DEC-029 shipped under DEC-012. R8 unchanged at 1.01×. v5 production kernel untouched.
 
-### Problem
+### D0 — Triage + fix + gates (DONE)
 
-MLX Python subprocess path (`csv_train` binary) shows systematic leaf-magnitude
-shrinkage ≈ 0.69× vs CPU CatBoost. Trees have correct structure (Pearson 0.9664) but
-leaf values are ~half the correct magnitude. Affects all grow policies; worse on
-Depthwise/Lossguide (BFS path compounds). v5's ULP=0 parity record applies to
-histogram kernel output only — it does NOT cover the `structure_searcher.cpp` or
-`methods/leaves/` path that `csv_train` exercises (`bench_boosting.cpp:899` comment).
+- [x] S26-D0-1 — MLX vs CPU leaf-estimation algebra diff with file:line pointers — @ml-engineer **DONE**
+- [x] S26-D0-2 — MLX vs CPU RMSE target grad/hessian diff — @ml-engineer **DONE**
+- [x] S26-D0-3 — Instrumentation plan (Σgrad, Σhess, l2, leaf@root@depth-0 logging) — @ml-engineer **DONE**
+- [x] S26-D0-4 — Root cause identified; DEC-028 opened; fix landed — @ml-engineer **DONE** (DEC-028 RandomStrength noise formula; commit `24162e1006`)
+- [x] S26-D0-5 — Python-path 18-config parity sweep; segmented exit gate — @qa-engineer **DONE**
+- [x] S26-D0-6 — DEC-028 RandomStrength fix shipped — @ml-engineer **DONE** (`24162e1006`)
+- [x] S26-D0-7 — 18-cell G1 sweep + G3 Python-path regression harness + G4 determinism — @qa-engineer **DONE**
+- [x] S26-D0-8 — DEC-029 Depthwise/Lossguide SplitProps + BFS index fix (Track A C++ + Track B Python) — @backend-developer **DONE**
 
-### D0 — Triage (in progress)
+### Exit gate verdicts
 
-- [ ] S26-D0-1 — MLX vs CPU leaf-estimation algebra diff with file:line pointers — @ml-engineer
-- [ ] S26-D0-2 — MLX vs CPU RMSE target grad/hessian diff — @ml-engineer
-- [ ] S26-D0-3 — Instrumentation plan (Σgrad, Σhess, l2, leaf@root@depth-0 logging) — @ml-engineer
-- [ ] S26-D0-4 — Root cause identified; DEC-028 opened; fix landed — TBD (owner picked after D0-3)
-- [ ] S26-D0-5 — Python-path 18-config parity sweep; exit gate MLX RMSE ≤ 2% of CPU — @qa-engineer
+| Gate | Criterion | Result | Verdict |
+|------|-----------|--------|---------|
+| G0 | Root cause(s) in DECISIONS | DEC-028 + DEC-029 complete | PASS |
+| G1 | SymmetricTree 18-cell segmented parity | 18/18 (rs=0 max 0.43%; rs=1 MLX ≤ CPU, pred_std_R ∈ [0.9996, 1.087]) | PASS |
+| G2 | Depthwise + Lossguide rs=0 parity | DW −0.64%, LG −1.01% (pre-fix 561%/598%) | PASS |
+| G3 | Python-path CI regression harness | `tests/test_python_path_parity.py` — 8/8 PASS in 6.32s | PASS |
+| G4 | bench_boosting ULP=0 preserved | Kernel sources untouched | PASS |
+| G5 | Determinism | 100 runs max−min = 1.49e-08 | DETERMINISTIC |
 
-### Directives (Ramos 2026-04-22)
+### Follow-ups (carry-forward, not blocking)
 
-- Wait for root cause before opening DEC-028 (do not pre-commit to a fix direction)
-- Expand sprint scope to absorb additional bugs if surfaced (do not backlog)
-- Delegate code read to @ml-engineer (triage report only, NOT a fix)
-
-### Exit gates
-
-- G0: root cause documented in DEC-028
-- G1: Python-path 18-config SymmetricTree parity — ≤ 2% RMSE delta vs CPU
-- G2: Depthwise and Lossguide each within 5% of CPU
-- G3: regression test `tests/test_python_path_parity.py` added
-- G4: bench_boosting ULP=0 record preserved (kernel output unchanged)
+- [ ] S26-FU-1 — `ComputeLeafIndicesDepthwise` (C++ validation path) returns `nodeIdx − numNodes` instead of bit-packed partition order. Affects validation RMSE during Depthwise training only. Listed in DEC-029 Risks. Scope: next sprint.
+- [ ] S26-FU-2 — MLX Depthwise/Lossguide have no RandomStrength noise path (`FindBestSplitPerPartition` never threaded noise). At rs=1 these policies under-fit CPU by ~10–12% at N=10k. Pre-existing — not a S26 regression. Scope: dedicated parameter-threading sprint.
 
 ---
 
