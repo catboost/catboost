@@ -176,6 +176,63 @@ noise ~16,895× larger than CPU at N=10,000.
 
 ---
 
+## DEC-029: Non-oblivious tree SplitProps never populated → empty model JSON splits
+
+**Date**: 2026-04-22
+**Status**: Implemented (S26-D0-8b)
+
+**Context**: Depthwise and Lossguide grow policies showed 560-598% RMSE delta vs CPU
+after DEC-028 fixed SymmetricTree. Post-DEC-028 localize.py: Depthwise MLX RMSE 1.2888
+vs CPU 0.1950; Lossguide MLX RMSE 1.3754 vs CPU 0.1970. Cause was not the RandomStrength
+formula (DEC-028) — Depthwise/Lossguide have no noise path.
+
+**Decision**: Populate `TTreeRecord.SplitProps` and new `TTreeRecord.SplitBfsNodeIds`
+in both the Depthwise and Lossguide tree-build paths (previously only SymmetricTree
+populated `SplitProps`). Update `WriteModelJSON` to emit `grow_policy` and
+`bfs_node_index` per split for non-oblivious trees. Update `_predict_utils.py` to
+dispatch `compute_leaf_indices` on `grow_policy` and perform correct BFS traversal.
+
+**Rationale**: The training-time `cursor` was correct: leaf values were indexed by the
+bit-packed `partitions` array (bit d = direction at depth d). The bug was entirely in
+the model JSON serialization and Python prediction path:
+1. `SplitProps` was only populated in the SymmetricTree `else` branch; Depthwise/Lossguide
+   `if` branches did not push to `splitProps`.
+2. `WriteModelJSON` serialized `splits` from `SplitProps.size()`, which was 0 for
+   non-oblivious trees → `"splits": []`.
+3. `compute_leaf_indices` iterated over the empty splits list → returned all-zeros
+   → all docs assigned to leaf 0 → constant prediction = `leaf_values[0]`.
+
+For Depthwise, the BFS node index for partition `p` at depth `d` is computed
+from the bit-pattern of `p`: traverse bits 0..d-1 of `p`, at each level go left
+(`2n+1`) or right (`2n+2`). This maps partition → BFS node correctly and is
+non-trivial (p=1 at depth 2 → BFS node 5, not node 1). Emitting `bfs_node_index`
+explicitly avoids having the Python side re-derive this mapping.
+
+For the Depthwise Python predict, the bit-packed partition value is reconstructed
+by `_bfs_traverse_bitpacked`: at BFS node `n` of depth `d = floor(log2(n+1))`,
+a right-turn sets bit `d` of the result. This exactly mirrors the C++ partition
+update: `bits = updateBits << depth; partitions |= bits`.
+
+**Risks**:
+- `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx - numNodes`
+  (BFS leaf order), which differs from the bit-packed partition order for depth >= 2.
+  Validation RMSE tracking during Depthwise training may be wrong, but this does not
+  affect (a) training correctness, (b) final model predictions via Python. Follow-up
+  sprint should fix the C++ validation path for completeness.
+- The `bfs_node_index` field is new in the model JSON schema. Old models without this
+  field (SymmetricTree models or pre-DEC-029 non-oblivious models) still work correctly:
+  `compute_leaf_indices` falls back to oblivious for SymmetricTree, and `_build_bfs_node_map`
+  returns an empty map for trees without `bfs_node_index` entries (effectively all-leaf-0,
+  which matches the pre-fix behavior for old models that were already broken anyway).
+
+**Impact**:
+- Depthwise and Lossguide Python predictions expected to go from 560-598% RMSE delta
+  to ≤ 5% delta (S26 G2/G3 gate).
+- SymmetricTree predictions unchanged (DEC-028 fix preserved).
+- No impact on training speed, histogram correctness, or leaf value computation.
+
+---
+
 ## Decision Template
 
 ```
