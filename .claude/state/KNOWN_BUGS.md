@@ -100,22 +100,50 @@ The gate config (N=50000/RMSE/128b) is 100/100 deterministic despite using the s
 ~~S24 D0, 1-2 days.~~ RESOLVED S24 D0. See `DECISIONS.md DEC-023` and
 `docs/sprint24/d0_dec023_fix.md` for the full diagnostic history.
 
-**Sibling S-1 status (unchanged)**: `kHistOneByte` writeback atomic-float race is still latent.
-Still dead code path — NIT-4 CB_ENSURE enforces `maxBlocksPerPart == 1`. No code change. The
-S-1 note in `docs/sprint23/d0_bimodality_verification.md §C` remains the authoritative record.
+**Sibling S-1 status (updated 2026-04-22)**: `kHistOneByte` writeback atomic-float race is
+still latent. The "NIT-4 CB_ENSURE" was in practice a hardcoded `const ui32 maxBlocksPerPart = 1;`
+at `catboost/mlx/methods/histogram.cpp:126` — a compile-time constant baked into the single
+production dispatch site. 2026-04-22 hardens this into a `static_assert(maxBlocksPerPart == 1,
+...)` that fires at compile time with a pointer to this ledger entry if any refactor raises
+the literal without fixing the race. No runtime behavior change; the race remains latent with
+no production reachability. The S-1 note in `docs/sprint23/d0_bimodality_verification.md §C`
+remains the authoritative race record. Fix alongside any future multi-block dispatch work.
 
 ---
 
 ## BUG-007: nanobind path doesn't sort group_ids (silent divergence on unsorted ranking input)
 
 **Discovered**: Sprint 12 review (@qa-engineer)
-**Status**: OPEN — unscheduled
-**Description**: The nanobind in-process path does not sort group_ids before training, causing silent divergence on unsorted ranking inputs compared to the CSV training path.
+**Status**: MITIGATED 2026-04-22 — Python wrapper sorts before every nanobind call; C++ entry now CB_ENSUREs the sortedness contract.
+
+### Fix summary
+
+Two-layer defense as of 2026-04-22:
+
+1. **Python layer (pre-existing)**: `python/catboost_mlx/core.py:1131-1137` — `_fit_nanobind` does a `np.argsort(group_ids, kind="stable")` and permutes `X`, `y`, `weights`, `group_ids` before handing to `_nb_core.train`. Every call originating from `CatBoostMLX.fit(...)` goes through this path.
+2. **C++ contract guard (new)**: `catboost/mlx/train_api.cpp` — `BuildDatasetFromArrays` now throws `std::runtime_error` if `groupIds` is not sorted non-decreasing. Any direct C++ caller (or a Python caller that bypasses `core.py`) fails loudly with a clear message instead of silently computing wrong `GroupOffsets` from consecutive-equal detection.
+
+Known behavioral asymmetry vs subprocess path (`csv_train.cpp` which sorts internally) is now captured by the contract: nanobind requires pre-sorted groupIds, and the contract is enforced. See `python/tests/test_ranking_nanobind.py §8` for the documented no-crash tests.
+
+### Original record (preserved)
+
+**Description**: The nanobind in-process path did not sort group_ids before training, causing silent divergence on unsorted ranking inputs compared to the CSV training path. `BuildDatasetFromArrays` relied on consecutive-equal detection for `GroupOffsets`, producing wrong offsets on shuffled input.
 
 ---
 
 ## bench_boosting K=10 anchor mismatch
 
 **Discovered**: Sprint 7 (@qa-engineer)
-**Status**: OPEN — unscheduled
-**Description**: `bench_boosting` at K=10 produces BENCH_FINAL_LOSS=1.78561831 but expected anchor is 2.22267818. Flagged in Sprint 7, root cause unknown.
+**Status**: RESOLVED Sprint 8 — corrected in `CHANGELOG.md` TODO-022.
+
+### Fix summary
+
+The "2.22267818 expected vs 1.78561831 measured" framing was a stale-anchor artifact: the `2.22267818` value was captured from a different parameter set than the canonical `20k docs × 30 features × depth 5 × 50 iters` benchmark; the correct anchor with canonical params is `1.78561831`, which is what the benchmark actually produces. Fixed in Sprint 8 TODO-022 (`CHANGELOG.md:27`); this ledger entry was retained as "OPEN" by oversight and is now closed.
+
+### Reference baselines (from `CHANGELOG.md` Sprint 8)
+
+| Configuration | BENCH_FINAL_LOSS |
+|---------------|------------------|
+| Binary 100k, 50 features, depth 6, 100 iters | 0.11909308 |
+| Multiclass K=3, 20k docs, 30 features, depth 5, 50 iters | 0.63507235 |
+| Multiclass K=10, 20k docs, 30 features, depth 5, 50 iters | 1.78561831 |
