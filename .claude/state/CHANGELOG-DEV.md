@@ -2,6 +2,23 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## CI unblock + stack merge (2026-04-22)
+
+PRs #16 (Sprint 24) and #17 (Sprint 25) had been sitting unmerged because their CI was red on two pre-existing breakages inherited from master: `mlx-build.yaml` calling removed `python -m mlx --includes/--libs` flags (dropped in MLX 0.31), and two stale tests (`test_version_is_0_3_0` hard-pinned to an old version, `test_mae_uppercase_fails_cleanly__bug001` asserting an overly-broad regression sentinel that fired when the BUG-001 crash was silently fixed). All three surfaced only after earlier PRs merged.
+
+Fix landed in PR #18 (three atomic commits under DEC-012) and unblocked the stack:
+
+| Commit | Role |
+|--------|------|
+| `c28cacabfe` | ci: resolve MLX headers via `python -m mlx --cmake-dir` walk-up (durable across flat + `mlx-metal` split layouts) |
+| `a542856ace` | tests: replace hard-pinned `0.3.0` equality with `importlib.metadata` self-consistency + drop `minor == 3` pin |
+| `b1aad56ec1` | tests: narrow BUG-001 MAE sentinel to SIGABRT-only (accept both clean-error and clean-accept outcomes) |
+| `9b0c03fec2` | Merge PR #18 to master |
+| `1385e056ca` | Merge PR #16 to master (Sprint 24, rebased onto #18 tip) |
+| `5caa6e64cf` | Merge PR #17 to master (Sprint 25, rebased onto #16 tip) |
+
+Stack is now clear. No production code changes in any of the three merges — S24 shipped v5 and S25 shipped falsification evidence, both already reflected in earlier changelog entries. PR #17 briefly closed when its base branch was auto-deleted post-#16-merge; restored via a temporary base-branch push and a base-retarget to master.
+
 ## Sprint 25 closed — DEC-026 FALSIFIED at G1; R8 unchanged at 1.01× (2026-04-21, CLOSED)
 
 **Branch**: `mlx/sprint-25-dec026-cascade` (cut from Sprint 24 branch tip `3f4fff8a2d`, stacked on `mlx/sprint-24-dec023-fix`)

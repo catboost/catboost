@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-21 (Sprint 25 CLOSED — DEC-026 FALSIFIED at G1 on day 1; R8 stays at 1.01×; PR #17 pending Ramos open)
+> Last updated: 2026-04-22 (PR stack #18 / #16 / #17 merged to master; S24 + S25 shipped; no open PRs)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-25-dec026-cascade` (stacked on `mlx/sprint-24-dec023-fix`)
-- **Tip commit**: S25 FALSIFIED closeout; S24 tip at `3f4fff8a2d` (closeout) over `784f82a891` (v5); v5 remains the shipped production kernel
+- **Branch**: `master` is the current working base. No active sprint branch.
+- **Tip commit**: `5caa6e64cf` (merge of #17 — Sprint 25 FALSIFIED closeout). v5 (`784f82a891`) remains the shipped production kernel; S25 added empirical falsification evidence but no production code.
 - **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research (S25 DEC-026) **FALSIFIED** 2026-04-21 at G1: ε-threading impossible by 21,091× (ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07). Path 5 flip gaps span full range of legitimate top-2 separations; no ε discriminates "ambiguous split" from "clear split". DEC-027 (alternative accumulation) deferred for future dedicated research.
-- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → #14 → #15 → **#16 OPEN** (Sprint 24) → **#17 pending Ramos open** (Sprint 25 FALSIFIED closeout)
+- **Open PRs**: none. #16 merged as `1385e056ca`, #17 merged as `5caa6e64cf`. Pre-merge CI was red on all stacked PRs due to inherited breakage; fixed via PR #18 (`9b0c03fec2` — MLX 0.31+ CLI, stale `0.3.0`/`minor==3` version pins, and overly-broad BUG-001 MAE sentinel).
 - **Known bugs**: BUG-T2-001 RESOLVED (`784f82a891`). Sibling S-1 (`kHistOneByte` writeback race) still latent, still guarded by NIT-4 CB_ENSURE `maxBlocksPerPart == 1`. BUG-007 and bench_boosting K=10 anchor mismatch still OPEN/unscheduled.
 
 ## Sprint 24 — CLOSED
@@ -117,11 +117,12 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Next actions
 
-1. **Ramos opens PR #17** for Sprint 25 (stacked on #16, branch `mlx/sprint-25-dec026-cascade`).
-   Contents: G1 empirical scaffold + 180-run sweep results + analyzer + verdict doc + state
-   closeout. No production code changes.
-2. **DEC-027 deferred**: not opened. Ramos to revisit when dedicating time for alternative
-   accumulation research (e.g., XGBoost-style radix-sum) as a separate future sprint.
+1. **Latent bugs triage** — BUG-007 and bench_boosting K=10 anchor mismatch are OPEN/unscheduled;
+   Sibling S-1 `kHistOneByte` writeback race still latent and guarded by the NIT-4 CB_ENSURE.
+   Scope each before picking one to fix.
+2. **DEC-027 deferred** — not opened. Ramos to revisit when dedicating time for alternative
+   accumulation research (e.g., XGBoost-style per-feature deterministic radix-sum) as a separate
+   future sprint.
 3. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK
    only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
 
@@ -137,13 +138,7 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Prior sprints — status
 
-- **Sprint 25** — CLOSED, FALSIFIED. PR #17 pending (Ramos opens). DEC-026 FALSIFIED at G1: ε-threading impossible (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. DEC-027 deferred. No production code changes; ships as empirical falsification evidence.
-- **Sprint 24** — CLOSED. PR #16 pending (Ramos opens). DEC-023 RESOLVED via v5 (T1 accumulation topology). R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× gate failed. DEC-026 cascade-robust GAIN research opens S25.
-- **Sprint 23** — CLOSED. PR #15 pending (Ramos opens). T2 promoted to production (8 commits). R8 1.90× unchanged. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025 opened.
-- **Sprint 22** — CLOSED. PR #14 pending (Ramos opens). T2 SHIPPED, R8 1.90× (record stands at time of close; superseded by S24). Verstappen gate cleared at S22. S22 D3 verdict corrected to 17/18 (see DEC-020 footnote + DEC-023).
-- **Sprint 21** — CLOSED. PR #13 pending (Ramos opens). 0× perf, A1 measurement record.
-- **Sprint 20** — CLOSED. PR #12 OPEN stacked on #11. T3b DEC-017 RETIRED.
-- **Sprint 19** — CLOSED. PR #11 OPEN stacked on #10. T1 DEC-016 SHIPPED (−2.3% e2e).
-- **Sprint 18** — CLOSED. PR #10 OPEN stacked on #9. L1a DEC-011 SHIPPED (−66.8% histogram_ms).
-- **Sprint 17** — CLOSED. PR #9 OPEN. D1c DEC-009 SHIPPED (−89–93% histogram_ms).
-- **Sprints 0–16** — merged to master.
+- **CI fix (PR #18)** — merged 2026-04-22 as `9b0c03fec2`. Three commits unblocking the stack: MLX 0.31+ CLI breakage in `mlx-build.yaml`, stale `0.3.0`/`minor==3` version pins in `test_qa_round13_sprint10.py`, and overly-broad BUG-001 MAE sentinel in `test_qa_round8_sprint3_losses.py` (narrowed to SIGABRT-only). No production code changes.
+- **Sprint 25** — CLOSED, FALSIFIED. Merged 2026-04-22 as `5caa6e64cf` (PR #17). DEC-026 FALSIFIED at G1: ε-threading impossible (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. DEC-027 deferred. No production code changes; shipped as empirical falsification evidence.
+- **Sprint 24** — CLOSED. Merged 2026-04-22 as `1385e056ca` (PR #16). DEC-023 RESOLVED via v5 (T1 accumulation topology). R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× gate failed. DEC-026 cascade-robust GAIN research opened S25.
+- **Sprints 0–23** — merged to master.
