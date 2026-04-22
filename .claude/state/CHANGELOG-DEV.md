@@ -2,6 +2,39 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 25 closed — DEC-026 FALSIFIED at G1; R8 unchanged at 1.01× (2026-04-21, CLOSED)
+
+**Branch**: `mlx/sprint-25-dec026-cascade` (cut from Sprint 24 branch tip `3f4fff8a2d`, stacked on `mlx/sprint-24-dec023-fix`)
+**Campaign**: Post-Verstappen research — R8 recovery investigation
+**Sprint verdict**: FALSIFIED at G1 on day 1. ε-threading impossible by 21,091× under optimistic positive-gap reading. G2–G5 not attempted. No production code changes. PR #17 pending.
+
+### Commits landed
+
+| Commit | Role | Verdict |
+|--------|------|---------|
+| `59cbf1bb5c` | S25 kickoff — branch cut + scaffold corrections | — |
+| (this commit) | S25 closeout — G1 empirical sweep scaffold + 180-run results + analyzer + verdict doc + state closeout | FALSIFIED |
+
+### G1 empirical sweep (falsification evidence)
+
+- **Scaffold** (`benchmarks/sprint25/g1/`): Path 5 reconstruction (T2-sort serial scatter + int-atomic fixed-point SCALE=2³⁰ for feats 1-3; feat-0 bin-range scan over sortedDocs), Option A dump kernel (`kScoreSplitsDumpSource` emits top-5 + rank=255 sentinel per NodePlaceholders eval), bench_boosting fork `g1_gain_dump.cpp` with `--kernel`, `--emit-gain-trace`, `--gain-topk` flags. `catboost/mlx/kernels/kernel_sources.h` UNTOUCHED throughout.
+- **Sweep** (180 runs, 5 min 4 s wall): 18 DEC-008 configs × 5 runs × 2 kernels (T1 + Path 5). All 180 runs deterministic 5/5. T1 reproduces all 18 DEC-008 reference losses. 17/18 configs: T1 ≡ Path 5 bit-exact. Config #8 only: T1 = 0.48231599 (Value A), Path 5 = 0.48231912 (Value B) — 105 ULP.
+- **Flip analysis**: 7 unique (iter, depth_level) flip events × 5 runs = 35 total, all at config #8. Bit-identical across runs. 6/7 at depth 0 (root split flip at iters 44-49); 1/7 at depth 1 (iter 43 near-tie, 5.96e-08 gap). Iter 45 depth 0 sets ε_min = 2.200e-03.
+- **ε threading**: ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07 (configs 1/2/8/14 have zero-gain ties pinning strict ε_max = 0). Safety ratio 4.74e-05 vs required 2.0 — 21,091× below threshold.
+- **Verdict**: Path 5's flip gaps span 5.96e-08 to 2.2e-03 — the full range of legitimate top-2 separations at non-#8 configs. No ε can simultaneously gate the 2.2e-03 flip at config #8 iter 45 and leave the 1.04e-07 legitimate separation at config #1 iter 40 depth 3 untouched. Cascade-robust GAIN approach is structurally infeasible under DEC-008 discipline.
+
+### R8 and forward paths
+
+- **R8**: 1.01× unchanged (post-S24 honest position). DEC-026 cannot recover pre-S24 1.90× under ULP=0 parity. Verstappen ≥1.5× gate remains retroactively failed from S24 D0.
+- **DEC-027 deferred**: alternative accumulation paths (XGBoost-style per-feature deterministic radix-sum) acknowledged in verdict doc §9 option 4 but not opened as part of S25 closure. Ramos to revisit later in a dedicated research sprint.
+
+### State updates
+
+- `DECISIONS.md` DEC-026 → FALSIFIED; falsification result section added with full ε-threading table
+- `HANDOFF.md` current state + prior sprints updated; S25 closed section added
+- `TODOS.md` S25-G1 FALSIFIED; G2–G5 CANCELLED
+- `KNOWN_BUGS.md` — no changes
+
 ## Sprint 24 closed — DEC-023 resolved via v5; R8 retroactive retreat 1.90× → 1.01× (2026-04-21, CLOSED)
 
 **Branch**: `mlx/sprint-24-dec023-fix` (cut from Sprint 23 tip `5b9827ad93` after S17–S23 PR chain merge)

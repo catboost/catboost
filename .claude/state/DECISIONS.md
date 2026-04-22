@@ -566,10 +566,12 @@ Gate config runs `EGrowPolicy::SymmetricTree` (oblivious). `bench_boosting.cpp` 
 
 ## DEC-026: Cascade-robust GAIN comparison — research track for T2 speedup recovery
 
-**Status**: OPEN (S25 research)
+**Status**: FALSIFIED (S25 G1, 2026-04-21)
 **Date opened**: 2026-04-21
+**Date falsified**: 2026-04-21
 **Sprint**: 25 (research)
 **Opened by**: S24 D0 close-out
+**Falsified by**: S25 G1 empirical ε-threading sweep (`docs/sprint25/g1_epsilon_calibration.md`)
 
 ### Problem statement
 
@@ -650,3 +652,32 @@ pre-S24 measured T2 hist_ms ratio of 0.317×). If research fails, R8 stays at 1.
 position.
 
 **Pointer**: `docs/sprint25/README.md` for the sprint scaffold and detailed research plan.
+
+### Falsification result (S25 G1, 2026-04-21)
+
+G1 ε-calibration sweep: 18 configs × 5 runs × 2 kernels = 180 runs, 5 min 4 s wall, 180/180
+deterministic, 35 flip events (all at config #8; zero at 17 non-#8 configs).
+
+| Quantity | Value | Source |
+|---|---|---|
+| ε_min (required to gate all flips) | 2.200e-03 | config #8 iter 45 depth 0 |
+| ε_max (incl. zero-gain ties) | 0.0 | configs 1/2/8/14 pure/terminal nodes |
+| ε_max⁺ (positive-gap floor) | 1.043e-07 | config #1 iter 40 depth 3 |
+| Safety ratio (positive) | 4.742e-05 | target ≥ 2.0 — 21,091× below threshold |
+
+**Structural cause**: Path 5's flip gaps span **5.96e-08 to 2.2e-03** — the full range of
+legitimate top-2 separations observed at non-#8 configs. No ε can simultaneously (a) gate the
+2.2e-03 flip at config #8 iter 45 and (b) leave the 1.04e-07 legitimate separation at config #1
+iter 40 depth 3 untouched. The iter-43 near-tie (5.96e-08) is itself a legitimate rank-0/rank-1
+gap, so ε-gating cannot discriminate "ambiguous split" from "clear split" in that regime.
+
+**Implication**: the cascade-robust GAIN approach is structurally infeasible under
+DEC-008 ULP=0 discipline. R8 stays at 1.01× post-S24 position. Verstappen ≥1.5× gate remains
+retroactively failed from S24 D0.
+
+**Forward paths considered and deferred** (verdict doc §9):
+1. Accept v5 as final, drop Path 5 — **taken** (S25 closes here; no production code changes).
+2. SCALE widening to 2⁴⁰ — won't help; iter-45 flip is structural, not quantization.
+3. Hybrid routing by (N, bins) — not recommended; ongoing maintenance overhead.
+4. DEC-027 alternative accumulation (XGBoost-style per-feature deterministic radix-sum) —
+   deferred to a future research sprint. Not opened as part of S25 closure.

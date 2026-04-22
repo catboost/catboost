@@ -1,0 +1,44 @@
+{
+  "epsilon_min": 0.0021995305999999992,
+  "epsilon_max": 0.0,
+  "epsilon_max_positive": 1.0430000000130613e-07,
+  "safety_ratio": 0.0,
+  "safety_ratio_positive": 4.741920844443181e-05,
+  "verdict": "FALSIFIED",
+  "recommended_epsilon": null,
+  "tolerance": null,
+  "epsilon_min_row": {
+    "config_id": 8,
+    "run_id": 1,
+    "iter": 45,
+    "depth_level": 0,
+    "flip_gap_t1": 0.0021995305999999992,
+    "path5_winner_outside_t1_topk": false
+  },
+  "epsilon_max_row": {
+    "config_id": 1,
+    "run_id": 1,
+    "iter": 0,
+    "depth_level": 3,
+    "legit_gap": 0.0
+  },
+  "epsilon_max_positive_row": {
+    "config_id": 1,
+    "run_id": 1,
+    "iter": 40,
+    "depth_level": 3,
+    "legit_gap": 1.0430000000130613e-07
+  },
+  "killer": {
+    "config_id": 1,
+    "run_id": 1,
+    "iter": 0,
+    "depth_level": 3,
+    "legit_gap": 0.0
+  },
+  "flip_count_total": 35,
+  "flip_count_by_config": {
+    "8": 35
+  },
+  "nonflip_node_count_total": 26795
+}

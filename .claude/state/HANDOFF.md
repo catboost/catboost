@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-21 (Sprint 24 CLOSED — DEC-023 RESOLVED via v5; R8 1.90× → 1.01× retroactive; Verstappen ≥1.5× gate failed; PR #16 pending Ramos open)
+> Last updated: 2026-04-21 (Sprint 25 CLOSED — DEC-026 FALSIFIED at G1 on day 1; R8 stays at 1.01×; PR #17 pending Ramos open)
 
 ## Current state
 
-- **Branch**: `mlx/sprint-24-dec023-fix`
-- **Tip commit**: `784f82a891` — v5 cherry-picked; off-by-one diagnostic preserved
-- **Campaign**: Operation Verstappen — battle 9 CLOSED. ≥1.5× gate failed retroactively at S24 D0. R8 post-fix: 1.01×.
-- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → #14 → #15 → **#16 pending Ramos open** (Sprint 24)
+- **Branch**: `mlx/sprint-25-dec026-cascade` (stacked on `mlx/sprint-24-dec023-fix`)
+- **Tip commit**: S25 FALSIFIED closeout; S24 tip at `3f4fff8a2d` (closeout) over `784f82a891` (v5); v5 remains the shipped production kernel
+- **Campaign**: Operation Verstappen — battle 9 CLOSED (S24). Post-campaign research (S25 DEC-026) **FALSIFIED** 2026-04-21 at G1: ε-threading impossible by 21,091× (ε_min = 2.200e-03 vs ε_max⁺ = 1.043e-07). Path 5 flip gaps span full range of legitimate top-2 separations; no ε discriminates "ambiguous split" from "clear split". DEC-027 (alternative accumulation) deferred for future dedicated research.
+- **Open PRs** (stacked on RR-AMATOK/catboost-mlx): #9 → #10 → #11 → #12 → #13 → #14 → #15 → **#16 OPEN** (Sprint 24) → **#17 pending Ramos open** (Sprint 25 FALSIFIED closeout)
 - **Known bugs**: BUG-T2-001 RESOLVED (`784f82a891`). Sibling S-1 (`kHistOneByte` writeback race) still latent, still guarded by NIT-4 CB_ENSURE `maxBlocksPerPart == 1`. BUG-007 and bench_boosting K=10 anchor mismatch still OPEN/unscheduled.
 
 ## Sprint 24 — CLOSED
@@ -81,12 +81,47 @@ tiebreak succeeds, T2 Path 5 (sort + int-fixed-point) becomes shippable at R8 �
 This is research, not engineering. Falsification checkpoints at each gate. See
 `DECISIONS.md DEC-026`.
 
+## Sprint 25 — CLOSED (FALSIFIED)
+
+### Verdict: FALSIFIED at G1 on day 1. R8 stays at 1.01×. v5 is final production kernel.
+
+**Branch tip at close**: (S25 FALSIFIED closeout commit)
+**Date closed**: 2026-04-21
+
+### G1 empirical result
+
+| Quantity | Value | Source |
+|---|---|---|
+| Sweep runs | 180 (18 configs × 5 runs × 2 kernels) | 5 min 4 s wall |
+| Determinism | 5/5 per (config, kernel) | all 180 bit-identical |
+| T1 vs DEC-008 reference | 18/18 exact | T1 reproduces every reference loss |
+| T1 vs Path 5 agreement | 17/18 bit-exact | only config #8 diverges (T1=A, Path5=B) |
+| Flip events (earliest-per-iter) | 35 total, 7 unique × 5 runs | all at config #8 |
+| ε_min (required to gate flips) | 2.200e-03 | config #8 iter 45 depth 0 |
+| ε_max (incl. zero-gain ties) | 0.0 | configs 1/2/8/14 pure nodes |
+| ε_max⁺ (positive floor) | 1.043e-07 | config #1 iter 40 depth 3 |
+| Safety ratio (positive) | 4.74e-05 (target ≥ 2.0) | **21,091× below threshold** |
+
+**Structural cause**: Path 5's flip gaps span 5.96e-08 to 2.2e-03 — the full range of legitimate
+top-2 separations at non-#8 configs. No ε discriminates "ambiguous split" from "clear split"
+when both share the same gain separation. Kill-switch fired cleanly.
+
+**Implication**: R8 stays at 1.01× (post-S24 honest position, unchanged). Verstappen ≥1.5×
+gate remains retroactively failed from S24 D0. v5 (`784f82a891`) is the final production
+kernel. DEC-027 (alternative accumulation paths such as XGBoost-style per-feature
+deterministic radix-sum) is acknowledged for future research but **not opened** as part of
+S25 closure — Ramos dedicates dedicated time for it later.
+
+See `docs/sprint25/g1_epsilon_calibration.md` for the full verdict doc including §9 forward
+paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
+
 ## Next actions
 
-1. **Ramos opens PR #16** for Sprint 24 (stacked on #15, branch `mlx/sprint-24-dec023-fix`).
-2. **Sprint 25** opens DEC-026 cascade-robust GAIN research. Owner: @research-scientist.
-   Entry point: epsilon calibration study (DEC-026-G1). Kill-switch: if no viable ε is
-   identified, the research track is falsified and R8 stays at 1.01×.
+1. **Ramos opens PR #17** for Sprint 25 (stacked on #16, branch `mlx/sprint-25-dec026-cascade`).
+   Contents: G1 empirical scaffold + 180-run sweep results + analyzer + verdict doc + state
+   closeout. No production code changes.
+2. **DEC-027 deferred**: not opened. Ramos to revisit when dedicating time for alternative
+   accumulation research (e.g., XGBoost-style radix-sum) as a separate future sprint.
 3. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK
    only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
 
@@ -102,6 +137,7 @@ This is research, not engineering. Falsification checkpoints at each gate. See
 
 ## Prior sprints — status
 
+- **Sprint 25** — CLOSED, FALSIFIED. PR #17 pending (Ramos opens). DEC-026 FALSIFIED at G1: ε-threading impossible (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. DEC-027 deferred. No production code changes; ships as empirical falsification evidence.
 - **Sprint 24** — CLOSED. PR #16 pending (Ramos opens). DEC-023 RESOLVED via v5 (T1 accumulation topology). R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× gate failed. DEC-026 cascade-robust GAIN research opens S25.
 - **Sprint 23** — CLOSED. PR #15 pending (Ramos opens). T2 promoted to production (8 commits). R8 1.90× unchanged. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025 opened.
 - **Sprint 22** — CLOSED. PR #14 pending (Ramos opens). T2 SHIPPED, R8 1.90× (record stands at time of close; superseded by S24). Verstappen gate cleared at S22. S22 D3 verdict corrected to 17/18 (see DEC-020 footnote + DEC-023).
