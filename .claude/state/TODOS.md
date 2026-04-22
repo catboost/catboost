@@ -241,12 +241,13 @@ NOT opened at S25 close. Ramos to dedicate time later.
 
 ## Sprint 20–25 Backlog (one-line each, expanded per sprint)
 
-- Sprint 20: T3b atomic-CAS — CLOSED, FALSIFIED (DEC-017 RETIRED). PR #12 OPEN.
-- Sprint 21: A1 measurement — CLOSED, 0× perf, T2 promoted to viable-set. PR #13 pending.
-- Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90× (superseded by S24). Verstappen gate cleared at S22. PR #14 pending. Note: S22 D3 parity corrected to 17/18 (DEC-020 footnote + DEC-023).
-- Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025. PR #15 pending.
-- Sprint 24: DEC-023 v5 fix — CLOSED. DEC-023 RESOLVED. R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× failed. DEC-026 opened. PR #16 pending.
-- Sprint 25: DEC-026 cascade-robust GAIN research — CLOSED, FALSIFIED at G1 (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. PR #17 pending. DEC-027 deferred for future dedicated research.
+- Sprint 20: T3b atomic-CAS — CLOSED, FALSIFIED (DEC-017 RETIRED). PR #12 merged.
+- Sprint 21: A1 measurement — CLOSED, 0× perf, T2 promoted to viable-set. PR #13 merged.
+- Sprint 22: T2 sort-by-bin integration — CLOSED, R8 1.90× (superseded by S24). Verstappen gate cleared at S22. PR #14 merged. Note: S22 D3 parity corrected to 17/18 (DEC-020 footnote + DEC-023).
+- Sprint 23: T2 scratch→production promotion — CLOSED. 8 commits. D0 PASS (pre-existing bug). R1 DEFERRED. R2 FALSIFIED. DEC-023/024/025. PR #15 merged.
+- Sprint 24: DEC-023 v5 fix — CLOSED. DEC-023 RESOLVED. R8 1.90× → 1.01× retroactive. Verstappen ≥1.5× failed. DEC-026 opened. PR #16 **merged 2026-04-22** (`1385e056ca`).
+- Sprint 25: DEC-026 cascade-robust GAIN research — CLOSED, FALSIFIED at G1 (safety ratio 4.74e-05 vs 2.0 target). R8 stays at 1.01×. DEC-027 deferred for future dedicated research. PR #17 **merged 2026-04-22** (`5caa6e64cf`).
+- CI unblock (PR #18): MLX 0.31+ CLI fix + stale version-pin cleanup + BUG-001 MAE sentinel narrowing. **Merged 2026-04-22** (`9b0c03fec2`). No production code changes.
 
 ---
 
