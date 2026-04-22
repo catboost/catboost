@@ -39,8 +39,12 @@ Gap narrows slightly with N — per-iteration fixed cost dominates:
 
 ## Known bugs (unresolved)
 
-- **BUG-007**: nanobind path doesn't sort group_ids — silent divergence on unsorted ranking input [from qa-engineer Sprint 12 review]
-- **bench_boosting K=10 anchor**: expected 2.22267818, measured 1.78561831 — flagged Sprint 7, unresolved [from qa-engineer Sprint 7 review]
+- **Sibling S-1**: `kHistOneByte` cross-TG writeback race on `atomic_float` when `maxBlocksPerPart > 1`. Latent; guarded by compile-time `static_assert` at `catboost/mlx/methods/histogram.cpp:126`. Fix when multi-block dispatch is needed. Authoritative record: `docs/sprint23/d0_bimodality_verification.md §C`.
+
+## Resolved / mitigated (historical)
+
+- **BUG-007** (MITIGATED 2026-04-22): nanobind path — Python wrapper sorts group_ids (`python/catboost_mlx/core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness as defense-in-depth. See `KNOWN_BUGS.md`.
+- **bench_boosting K=10 anchor** (RESOLVED Sprint 8, TODO-022): `1.78561831` is the canonical anchor at `20k × 30 × depth 5 × 50 iters`; the prior `2.22267818` "expected" value was captured from a mismatched-param run. See `CHANGELOG.md:27`.
 
 ## CUDA reference targets (from researcher, 2026-04-15)
 

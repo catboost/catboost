@@ -253,5 +253,6 @@ NOT opened at S25 close. Ramos to dedicate time later.
 
 ## Carry-forward from pre-Sprint 16
 
-- BUG-007: nanobind path doesn't sort group_ids (silent divergence on unsorted input) — from @qa-engineer Sprint 12 review
-- bench_boosting K=10 anchor mismatch: expected 2.22267818, measured 1.78561831 — flagged Sprint 7, unresolved
+- **BUG-007** (MITIGATED 2026-04-22): Python wrapper pre-sorts group_ids (`core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness. See `KNOWN_BUGS.md`.
+- **bench_boosting K=10 anchor mismatch** (RESOLVED Sprint 8, TODO-022): `1.78561831` is canonical; prior `2.22267818` was a stale mismatched-params capture. See `CHANGELOG.md:27`.
+- **Sibling S-1** (latent): `kHistOneByte` writeback race guarded by `static_assert(maxBlocksPerPart == 1, ...)` at `histogram.cpp:126`. Fix only if multi-block dispatch is ever needed.

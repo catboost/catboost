@@ -123,7 +123,18 @@ namespace NCatboostMlx {
             ui32 numPartitions
         ) {
             mx::Shape histShape = {static_cast<int>(numPartitions * numStats * totalBinFeatures)};
-            const ui32 maxBlocksPerPart = 1;
+            // Sibling S-1 race guard: kHistOneByte cross-threadgroup writeback uses
+            // atomic_fetch_add on device atomic_float and is non-deterministic when
+            // maxBlocksPerPart > 1. The in-TG path is clean (per-SIMD sub-histograms),
+            // but the global-merge fallback races on FP non-associativity. Do NOT raise
+            // this literal without first fixing the writeback. Authoritative record:
+            // docs/sprint23/d0_bimodality_verification.md §C and
+            // .claude/state/KNOWN_BUGS.md (Sibling S-1).
+            constexpr ui32 maxBlocksPerPart = 1;
+            static_assert(maxBlocksPerPart == 1,
+                "Sibling S-1 latent race: kHistOneByte writeback is racy when "
+                "maxBlocksPerPart > 1. Fix the cross-TG atomic_float accumulation "
+                "before raising this constant (see KNOWN_BUGS.md).");
 
             const ui32 numFeatures = features.size();
             const ui32 numGroups   = (numFeatures + 3) / 4;
@@ -207,8 +218,10 @@ namespace NCatboostMlx {
     }  // anonymous namespace
 
     // DispatchHistogramT2 implementation is in histogram_t2_impl.cpp (minimal deps).
-    // The CB_ENSURE for maxBlocksPerPart == 1 (NIT-4) is enforced at the
-    // ComputeHistogramsImpl call site below before forwarding to DispatchHistogramT2.
+    // The NIT-4 maxBlocksPerPart == 1 constraint (Sibling S-1 guard) is enforced
+    // as a compile-time `constexpr` + `static_assert` at the ComputeHistogramsImpl
+    // call site below. Any refactor that raises the literal fails to compile with
+    // a pointer to KNOWN_BUGS.md / docs/sprint23/d0_bimodality_verification.md §C.
 
     mx::array CreateZeroHistogram(ui32 numPartitions, ui32 numStats, ui32 totalBinFeatures) {
         // Return a lazy zero array — no EvalNow needed.
