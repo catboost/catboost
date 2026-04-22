@@ -2744,6 +2744,42 @@ TTrainResult RunTraining(
         stageProfiler.BeginIter(static_cast<int>(iter));
 #endif
 
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P1 — cursor stats BEFORE gradient computation
+        // P8 — target stats (only iter 0)
+        if (iter == 0 || iter == 1) {
+            mx::eval(cursor);
+            const float* cPtr = cursor.data<float>();
+            ui32 cLen = static_cast<ui32>(cursor.size());
+            double cMean = 0, cStd = 0;
+            float cMin = cPtr[0], cMax = cPtr[0];
+            for (ui32 i = 0; i < cLen; ++i) {
+                cMean += cPtr[i]; cMin = std::min(cMin, cPtr[i]); cMax = std::max(cMax, cPtr[i]);
+            }
+            cMean /= cLen;
+            for (ui32 i = 0; i < cLen; ++i) cStd += (cPtr[i] - cMean) * (cPtr[i] - cMean);
+            cStd = std::sqrt(cStd / cLen);
+            printf("[DBG iter=%u] P1 cursor BEFORE grad: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                   iter, (float)cMean, (float)cStd, cMin, cMax);
+            if (iter == 0) {
+                printf("[DBG iter=0] P7 basePred[0]=%.6f\n", basePred.empty() ? 0.0f : basePred[0]);
+                // P8 — target sanity
+                mx::eval(targetsArr);
+                const float* tPtr = targetsArr.data<float>();
+                double tMean = 0, tStd = 0; float tMin = tPtr[0], tMax = tPtr[0];
+                for (ui32 i = 0; i < trainDocs; ++i) {
+                    tMean += tPtr[i]; tMin = std::min(tMin, tPtr[i]); tMax = std::max(tMax, tPtr[i]);
+                }
+                tMean /= trainDocs;
+                for (ui32 i = 0; i < trainDocs; ++i) tStd += (tPtr[i]-tMean)*(tPtr[i]-tMean);
+                tStd = std::sqrt(tStd / trainDocs);
+                printf("[DBG iter=0] P8 targets: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                       (float)tMean, (float)tStd, tMin, tMax);
+            }
+            fflush(stdout);
+        }
+#endif
+
         // --- Bootstrap weights ---
         // Determine effective bootstrap type
         std::string bootstrapType = config.BootstrapType;
@@ -2966,6 +3002,34 @@ TTrainResult RunTraining(
 #endif
         auto tGradEnd = std::chrono::steady_clock::now();
         result.GradMs += std::chrono::duration<double, std::milli>(tGradEnd - iterStart).count();
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P2 — gradient stats; P3 — hessian stats (iters 0 and 1)
+        if ((iter == 0 || iter == 1) && approxDim >= 1) {
+            mx::eval(dimGrads[0], dimHess[0]);
+            const float* gPtr = dimGrads[0].data<float>();
+            const float* hPtr = dimHess[0].data<float>();
+            double gMean=0, gStd=0, gSum=0, hMean=0, hStd=0, hSum=0;
+            float gMin=gPtr[0], gMax=gPtr[0], hMin=hPtr[0], hMax=hPtr[0];
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                gSum += gPtr[i]; gMin = std::min(gMin,gPtr[i]); gMax = std::max(gMax,gPtr[i]);
+                hSum += hPtr[i]; hMin = std::min(hMin,hPtr[i]); hMax = std::max(hMax,hPtr[i]);
+            }
+            gMean = gSum / trainDocs; hMean = hSum / trainDocs;
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                gStd += (gPtr[i]-gMean)*(gPtr[i]-gMean);
+                hStd += (hPtr[i]-hMean)*(hPtr[i]-hMean);
+            }
+            gStd = std::sqrt(gStd / trainDocs); hStd = std::sqrt(hStd / trainDocs);
+            printf("[DBG iter=%u] P2 grad: mean=%.6f std=%.6f sum=%.4f min=%.6f max=%.6f\n",
+                   iter, (float)gMean, (float)gStd, (float)gSum, gMin, gMax);
+            printf("[DBG iter=%u] P3 hess: mean=%.6f std=%.6f sum=%.4f min=%.6f max=%.6f "
+                   "(expected sum=%.1f for RMSE)\n",
+                   iter, (float)hMean, (float)hStd, (float)hSum, hMin, hMax,
+                   (float)trainDocs);
+            fflush(stdout);
+        }
+#endif
 
         // Step 2: Greedy tree structure search
         auto partitions = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
@@ -3491,6 +3555,58 @@ TTrainResult RunTraining(
 #endif
             leafValues = mx::negative(mx::multiply(lrArr,
                 mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+            // P4/P5 — per-bin sums and leaf values at iter 0
+            if (iter == 0) {
+                mx::eval(gSumsArr, hSumsArr, leafValues);
+                const float* gS = gSumsArr.data<float>();
+                const float* hS = hSumsArr.data<float>();
+                const float* lV = leafValues.data<float>();
+                double gSumTotal = 0, hSumTotal = 0;
+                for (ui32 b = 0; b < numLeaves; ++b) {
+                    gSumTotal += gS[b]; hSumTotal += hS[b];
+                }
+                printf("[DBG iter=0] P4 gSumsArr (numLeaves=%u): ", numLeaves);
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b)
+                    printf("%.4f ", gS[b]);
+                printf("...\n");
+                printf("[DBG iter=0] P4 hSumsArr: ");
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b)
+                    printf("%.4f ", hS[b]);
+                printf("...\n");
+                printf("[DBG iter=0] P4 gSums.sum()=%.4f hSums.sum()=%.4f "
+                       "(expected hSum=%.1f = trainDocs)\n",
+                       (float)gSumTotal, (float)hSumTotal, (float)trainDocs);
+
+                printf("[DBG iter=0] P5 leafValues: ");
+                float absMaxLV = 0;
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b) {
+                    printf("%.6f ", lV[b]);
+                    absMaxLV = std::max(absMaxLV, std::fabs(lV[b]));
+                }
+                printf("...\n");
+                // Hand-compute first leaf as sanity check
+                if (hS[0] > 0) {
+                    float expected_lv0 = -config.LearningRate * gS[0] / (hS[0] + config.L2RegLambda);
+                    printf("[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=%.6f "
+                           "actual_lv[0]=%.6f diff=%.2e\n",
+                           expected_lv0, lV[0], std::fabs(expected_lv0 - lV[0]));
+                }
+
+                // partitions sanity
+                mx::eval(partitions);
+                const uint32_t* pPtr = partitions.data<uint32_t>();
+                uint32_t pMax = 0;
+                for (ui32 i = 0; i < trainDocs; ++i) pMax = std::max(pMax, pPtr[i]);
+                printf("[DBG iter=0] partitions.max()=%u (expected %u = numLeaves-1)\n",
+                       pMax, numLeaves - 1);
+                printf("[DBG iter=0] splits.size()=%zu (expected depth=%u)\n",
+                       splits.size(), config.MaxDepth);
+                fflush(stdout);
+            }
+#endif
+
         } else {
             std::vector<mx::array> dimLeafVals;
             dimLeafVals.reserve(approxDim);
@@ -3598,6 +3714,24 @@ TTrainResult RunTraining(
             double _ms = std::chrono::duration<double, std::milli>(
                 _prof_apply_end - _prof_apply_start).count();
             stageProfiler.AccumStage(NCatboostMlx::EStageId::TreeApply, _ms);
+        }
+#endif
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P6 — cursor stats AFTER cursor update (iters 0 and 1)
+        if ((iter == 0 || iter == 1) && approxDim == 1) {
+            const float* cPtr2 = cursor.data<float>();
+            double cMean2=0, cStd2=0; float cMin2=cPtr2[0], cMax2=cPtr2[0];
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                cMean2 += cPtr2[i];
+                cMin2 = std::min(cMin2, cPtr2[i]); cMax2 = std::max(cMax2, cPtr2[i]);
+            }
+            cMean2 /= trainDocs;
+            for (ui32 i = 0; i < trainDocs; ++i) cStd2 += (cPtr2[i]-cMean2)*(cPtr2[i]-cMean2);
+            cStd2 = std::sqrt(cStd2 / trainDocs);
+            printf("[DBG iter=%u] P6 cursor AFTER apply: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                   iter, (float)cMean2, (float)cStd2, cMin2, cMax2);
+            fflush(stdout);
         }
 #endif
 

@@ -61,6 +61,13 @@ target_compile_options(_core PRIVATE
   -Wno-unused-function
 )
 
+# Debug leaf instrumentation (set -DCATBOOST_MLX_DEBUG_LEAF=ON to enable)
+option(CATBOOST_MLX_DEBUG_LEAF "Enable leaf-magnitude debug probes (P1-P8)" OFF)
+if(CATBOOST_MLX_DEBUG_LEAF)
+  target_compile_definitions(_core PRIVATE CATBOOST_MLX_DEBUG_LEAF)
+  message(STATUS "CATBOOST_MLX_DEBUG_LEAF probes enabled")
+endif()
+
 # macOS ARM64 deployment target
 if(APPLE)
   set_target_properties(_core PROPERTIES
