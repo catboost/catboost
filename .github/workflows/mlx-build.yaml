@@ -48,17 +48,30 @@ jobs:
         run: pip install mlx
 
       # Resolve the MLX include and library directories from the installed
-      # Python package. The pip wheel ships:
-      #   <site-packages>/mlx/include/   — C++ headers
-      #   <site-packages>/mlx/lib/       — libmlx.dylib
-      # The `python -m mlx` CLI flags expose these paths reliably without
-      # hard-coding version strings or Cellar paths.
+      # Python package. The pip wheel ships `include/` and `lib/` alongside
+      # the Python sources. Older MLX exposed these via
+      # `python -m mlx --includes/--libs`, but 0.31+ removed those flags,
+      # and after the `mlx-metal` split `mlx.__file__` is None (namespace
+      # package). Using `--cmake-dir` + walk-up is durable across both
+      # the flat layout (returns package root) and the split layout
+      # (returns a cmake subdir that we walk up from).
       - name: Locate MLX include/lib paths
         run: |
-          MLX_INCLUDE=$(python3 -m mlx --includes | sed 's/-I//')
-          MLX_LIB=$(python3 -m mlx --libs | sed 's/-L//' | awk '{print $1}')
+          MLX_CMAKE=$(python3 -m mlx --cmake-dir)
+          MLX_ROOT="${MLX_CMAKE}"
+          while [ -n "${MLX_ROOT}" ] && [ "${MLX_ROOT}" != "/" ] && [ ! -d "${MLX_ROOT}/include" ]; do
+            MLX_ROOT=$(dirname "${MLX_ROOT}")
+          done
+          if [ ! -d "${MLX_ROOT}/include" ] || [ ! -d "${MLX_ROOT}/lib" ]; then
+            echo "ERROR: could not locate MLX include/lib under ${MLX_CMAKE}"
+            exit 1
+          fi
+          MLX_INCLUDE="${MLX_ROOT}/include"
+          MLX_LIB="${MLX_ROOT}/lib"
           echo "MLX_INCLUDE=${MLX_INCLUDE}" >> "$GITHUB_ENV"
           echo "MLX_LIB=${MLX_LIB}"     >> "$GITHUB_ENV"
+          echo "MLX cmake:   ${MLX_CMAKE}"
+          echo "MLX root:    ${MLX_ROOT}"
           echo "MLX include: ${MLX_INCLUDE}"
           echo "MLX lib:     ${MLX_LIB}"
 
