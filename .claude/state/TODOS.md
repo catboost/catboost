@@ -1,21 +1,59 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (post-PR #20; no active sprint).
+> Last header refresh: 2026-04-22 (Sprint 26 kickoff).
 
 ## Current state (2026-04-22)
 
-- **Branch**: `master` is the working base. No active sprint.
-- **Tip**: `71aabaa842` (PR #20 merge — latent-bugs cleanup).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Verstappen ≥1.5× gate remains retroactively failed from S24 D0. Do not round or inflate; the 1.90× figure is documented as superseded.
-- **Carry-forward backlog**: ALL CLEARED 2026-04-22 via PR #20 (`71aabaa842`). See bottom of this file.
-- **Open PRs**: none.
-- **DEC-027**: deferred. Not on this backlog. Reserved for a dedicated future research sprint.
+- **Branch**: `mlx/sprint-26-python-parity` (Sprint 26 active).
+- **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — see S26 scope.
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Perf status unchanged; S26 is correctness-first.
+- **Open PRs**: none. DEC-027 (alternative accumulation) remains deferred.
 
-Active-sprint sections for Sprints 16 and 19 and the Operation Verstappen Campaign Scoreboard
-have been removed from this header. Their closeout state is preserved in the per-sprint
-sections below and in `HANDOFF.md` / `DECISIONS.md` / `CHANGELOG-DEV.md`.
+---
+
+## Sprint 26 — Python-Path Parity (ACTIVE)
+
+**Branch**: `mlx/sprint-26-python-parity`
+**Framing**: correctness-first (option α per Ramos 2026-04-22). Depthwise/Lossguide
+benchmark harness work (original S26 scope) deferred to a later sprint pending
+resolution of this correctness gap.
+**Pre-sprint triage**: `docs/sprint26/d0/pre-sprint-triage.md`, raw evidence in
+`benchmarks/sprint26/d0/RESULTS.md`.
+
+### Problem
+
+MLX Python subprocess path (`csv_train` binary) shows systematic leaf-magnitude
+shrinkage ≈ 0.69× vs CPU CatBoost. Trees have correct structure (Pearson 0.9664) but
+leaf values are ~half the correct magnitude. Affects all grow policies; worse on
+Depthwise/Lossguide (BFS path compounds). v5's ULP=0 parity record applies to
+histogram kernel output only — it does NOT cover the `structure_searcher.cpp` or
+`methods/leaves/` path that `csv_train` exercises (`bench_boosting.cpp:899` comment).
+
+### D0 — Triage (in progress)
+
+- [ ] S26-D0-1 — MLX vs CPU leaf-estimation algebra diff with file:line pointers — @ml-engineer
+- [ ] S26-D0-2 — MLX vs CPU RMSE target grad/hessian diff — @ml-engineer
+- [ ] S26-D0-3 — Instrumentation plan (Σgrad, Σhess, l2, leaf@root@depth-0 logging) — @ml-engineer
+- [ ] S26-D0-4 — Root cause identified; DEC-028 opened; fix landed — TBD (owner picked after D0-3)
+- [ ] S26-D0-5 — Python-path 18-config parity sweep; exit gate MLX RMSE ≤ 2% of CPU — @qa-engineer
+
+### Directives (Ramos 2026-04-22)
+
+- Wait for root cause before opening DEC-028 (do not pre-commit to a fix direction)
+- Expand sprint scope to absorb additional bugs if surfaced (do not backlog)
+- Delegate code read to @ml-engineer (triage report only, NOT a fix)
+
+### Exit gates
+
+- G0: root cause documented in DEC-028
+- G1: Python-path 18-config SymmetricTree parity — ≤ 2% RMSE delta vs CPU
+- G2: Depthwise and Lossguide each within 5% of CPU
+- G3: regression test `tests/test_python_path_parity.py` added
+- G4: bench_boosting ULP=0 record preserved (kernel output unchanged)
+
+---
 
 ---
 
