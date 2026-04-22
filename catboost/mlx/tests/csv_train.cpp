@@ -971,6 +971,7 @@ TBestSplitProperties FindBestSplit(
     const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
     const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
     float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
+    float gradRms = 0.0f,                                  // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
     std::mt19937* rng = nullptr,                           // RNG for perturbation
     int debugIter = -1,                                    // P11-P13: print debug for this iter (-1 = off)
     int debugDepth = -1                                    // P11-P13: print debug for this depth (-1 = off)
@@ -989,17 +990,14 @@ TBestSplitProperties FindBestSplit(
     std::vector<TDbgCandidate> allCandidates;
 #endif
 
-    // Random score perturbation: scale based on average partition statistics
-    // This matches CatBoost's approach of scaling noise by the magnitude of the data
+    // Random score perturbation: scale by gradient RMS, matching CPU CatBoost.
+    // CPU reference: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
+    //   returns sqrt( sum_{k,i} g_k[i]^2 / N ), called as:
+    //   scoreStDev = randomStrength * derivativesStDevFromZero   (line 861-866)
+    // gradRms is pre-computed in RunTraining after gradient+weight application and passed here.
     float noiseScale = 0.0f;
-    if (randomStrength > 0.0f && rng) {
-        double totalWeight = 0.0;
-        for (ui32 p = 0; p < numPartitions; ++p) {
-            for (ui32 k = 0; k < K; ++k) {
-                totalWeight += std::abs(perDimPartStats[k][p].Weight);
-            }
-        }
-        noiseScale = randomStrength * static_cast<float>(totalWeight / (numPartitions * K + 1e-10));
+    if (randomStrength > 0.0f && rng && gradRms > 0.0f) {
+        noiseScale = randomStrength * gradRms;
     }
     std::normal_distribution<float> noiseDist(0.0f, 1.0f);
 
@@ -1226,11 +1224,9 @@ TBestSplitProperties FindBestSplit(
         printf("[DBG P12] gain_formula: "
                "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
         printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)\n");
-        printf("[DBG P12] noise_formula: noiseScale = rs * totalWeight / (numPartitions*K+eps)\n");
-        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  totalWeight=%.1f  numPartitions=%u  K=%u)\n",
-               noiseScale, randomStrength,
-               (numPartitions > 0 && K > 0) ? perDimPartStats[0][0].Weight : 0.0f,
-               numPartitions, K);
+        printf("[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)\n");
+        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  gradRms=%.6f)\n",
+               noiseScale, randomStrength, gradRms);
 
         // Sort by gain descending
         std::sort(allCandidates.begin(), allCandidates.end(),
@@ -2886,18 +2882,15 @@ TTrainResult RunTraining(
                 printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
                 printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
                 printf("[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)\n");
-                // Noise scale formula: noiseScale = RandomStrength * totalWeight / numPartitions
-                // At depth=0 (root): numPartitions=1, totalWeight = N (hessian sum for RMSE)
-                float p9_noise_scale = config.RandomStrength * static_cast<float>(trainDocs);
-                // CPU formula: noise_scale = RandomStrength * sqrt(sum(g_i^2) / N)
-                // Approximate using target std (iter 0 residual ≈ -y)
-                double p9_grad_rms = tStd;  // std(y) ≈ gradient RMS at iter 0 for RMSE
-                printf("[DBG iter=0]   noise_scale_MLX    = rs * N         = %.4f  (rs=%.4f N=%u)\n",
-                       p9_noise_scale, config.RandomStrength, trainDocs);
-                printf("[DBG iter=0]   noise_scale_CPU    = rs * grad_rms  = %.6f  (grad_rms≈std(y)=%.6f)\n",
-                       (float)(config.RandomStrength * p9_grad_rms), (float)p9_grad_rms);
-                printf("[DBG iter=0]   noise_scale_ratio  = MLX/CPU        = %.1fx\n",
-                       p9_noise_scale / (float)(config.RandomStrength * p9_grad_rms + 1e-10));
+                // DEC-028 fix: noiseScale = RandomStrength * gradRms
+                // gradRms = sqrt(sum_{k,i} g_k[i]^2 / N), computed post-gradient below.
+                // Approximate at iter=0 using target std (residual ≈ -y for RMSE).
+                double p9_grad_rms_approx = tStd;
+                printf("[DBG iter=0]   noise_formula      = rs * gradRms   (DEC-028 fix; matches CPU greedy_tensor_search.cpp:92)\n");
+                printf("[DBG iter=0]   noise_scale_approx = rs * std(y)    = %.6f  (grad_rms≈std(y)=%.6f at iter=0)\n",
+                       (float)(config.RandomStrength * p9_grad_rms_approx), (float)p9_grad_rms_approx);
+                printf("[DBG iter=0]   noise_scale_old    = rs * N         = %.4f  (OLD formula, 16895x too large — fixed)\n",
+                       config.RandomStrength * static_cast<float>(trainDocs));
             }
             fflush(stdout);
         }
@@ -3113,6 +3106,23 @@ TTrainResult RunTraining(
             for (ui32 k = 0; k < approxDim; ++k) mx::eval({dimGrads[k], dimHess[k]});
         }
 
+        // Compute gradient RMS for RandomStrength noise scaling.
+        // Matches CPU: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
+        //   result = sqrt( sum_{k,i} g_k[i]^2 / N )   where N = number of train docs.
+        // Note: CPU divides by N (not K*N); the per-dim sum is summed then divided once by N.
+        float gradRms = 0.0f;
+        if (config.RandomStrength > 0.0f) {
+            double sumSq = 0.0;
+            for (ui32 k = 0; k < approxDim; ++k) {
+                mx::eval(dimGrads[k]);
+                const float* g = dimGrads[k].data<float>();
+                for (ui32 d = 0; d < trainDocs; ++d) {
+                    sumSq += static_cast<double>(g[d]) * static_cast<double>(g[d]);
+                }
+            }
+            gradRms = static_cast<float>(std::sqrt(sumSq / static_cast<double>(trainDocs)));
+        }
+
 #ifdef CATBOOST_MLX_STAGE_PROFILE
         {
             // Drain GPU so the timestamp is attribution-faithful.
@@ -3150,6 +3160,12 @@ TTrainResult RunTraining(
                    "(expected sum=%.1f for RMSE)\n",
                    iter, (float)hMean, (float)hStd, (float)hSum, hMin, hMax,
                    (float)trainDocs);
+            fflush(stdout);
+        }
+        // P12 — noiseScale that will be used (DEC-028 fix verification)
+        if (iter == 0 && config.RandomStrength > 0.0f) {
+            printf("[DBG iter=0] P12 gradRms=%.6f  noiseScale=%.6f  (rs=%.4f; CPU formula: sqrt(sum g^2 / N))\n",
+                   gradRms, config.RandomStrength * gradRms, config.RandomStrength);
             fflush(stdout);
         }
 #endif
@@ -3570,7 +3586,7 @@ TTrainResult RunTraining(
                     config.L2RegLambda, numPartitions, featureMask,
                     config.MinDataInLeaf, countHist, partDocCounts,
                     config.MonotoneConstraints,
-                    config.RandomStrength, &rng,
+                    config.RandomStrength, gradRms, &rng,
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                     static_cast<int>(iter), static_cast<int>(depth)
 #else

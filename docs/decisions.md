@@ -136,6 +136,46 @@ Each decision follows the format: **Context** (why we faced this choice), **Deci
 
 ---
 
+## DEC-028: RandomStrength noise must scale by gradient RMS, not totalHessian/numPartitions
+
+**Date**: 2026-04-22
+**Status**: Implemented (S26-D0-6)
+
+**Context**: MLX's `FindBestSplit` (csv_train.cpp) computed the per-split-candidate noise scale as
+`randomStrength × totalWeight / (numPartitions × K)`. For RMSE on N=10,000, `totalWeight = N` (the
+hessian sum), producing `noiseScale = 10,000`. The true gain at the root split was ~1,602, giving
+SNR = 0.16 — noise completely dominated split selection. Empirical evidence (D0-5, branch
+`mlx/sprint-26-python-parity`): with `random_strength=1.0`, MLX pred_std_ratio = 0.7218 vs CPU
+0.8930; with `random_strength=0`, both are ≈0.919 — the entire gap is attributable to the noise
+formula.
+
+**Decision**: Replace the hessian-based noise formula with the gradient-RMS formula matching CPU
+CatBoost. Compute `gradRms = sqrt( sum_{k,i} g_k[i]^2 / N )` in `RunTraining` after all gradient
+and sample-weight steps, then pass `gradRms` into `FindBestSplit` as a new parameter. The noise
+scale becomes `noiseScale = randomStrength × gradRms`.
+
+**Rationale**: CPU CatBoost's `CalcDerivativesStDevFromZeroPlainBoosting`
+(greedy_tensor_search.cpp:92–106) returns `sqrt( sum_{k,i} g_k[i]^2 / N )` — the RMS of the
+gradient vector, which shrinks as residuals shrink over boosting iterations. This keeps the
+noise-to-signal ratio approximately constant across iterations. The old formula (hessian sum = N for
+RMSE) is dimensionally wrong: it scales with dataset size rather than gradient magnitude, producing
+noise ~16,895× larger than CPU at N=10,000.
+
+**Risks**:
+- Lossguide and Depthwise grow policies use `FindBestSplitPerPartition`, which has no noise path.
+  RandomStrength has no effect on those policies in the current implementation (this was already
+  true before this fix — it is not a regression). If per-partition noise is desired for
+  Depthwise/Lossguide in a future sprint, a separate parameter-threading pass is needed.
+- `gradRms` is computed via a CPU readback loop over `dimGrads`. For large N this is a minor
+  per-iteration cost (profiling target if ever hot).
+
+**Impact**:
+- Python-path SymmetricTree RMSE expected to drop from ~0.34 to ~0.20 (parity with CPU ~0.20).
+- No impact on bench_boosting ULP=0 record (bench_boosting does not exercise `FindBestSplit`).
+- No impact on DEC-008 through DEC-027 code paths.
+
+---
+
 ## Decision Template
 
 ```
