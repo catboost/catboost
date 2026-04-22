@@ -1285,11 +1285,24 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
     ui32 totalBinFeatures,
     float l2RegLambda,
     ui32 numPartitions,
-    const std::vector<bool>& featureMask = {}
+    const std::vector<bool>& featureMask = {},
+    float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
+    float gradRms = 0.0f,                                  // gradient RMS — noise scale (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
+    std::mt19937* rng = nullptr                            // RNG for perturbation
 ) {
     const ui32 K = static_cast<ui32>(perDimHist.size());
     std::vector<TBestSplitProperties> results(numPartitions);
     std::vector<float> bestGains(numPartitions, -std::numeric_limits<float>::infinity());
+
+    // Random score perturbation: mirrors DEC-028's FindBestSplit pattern.
+    // CPU reference: CalcScoreStDev (greedy_tensor_search.cpp:851) computes one global
+    // scalar per tree and passes it unchanged into every per-partition / per-leaf search.
+    // gradRms is pre-computed in RunTraining (csv_train.cpp:3155-3165) and passed here.
+    float noiseScale = 0.0f;
+    if (randomStrength > 0.0f && rng && gradRms > 0.0f) {
+        noiseScale = randomStrength * gradRms;
+    }
+    std::normal_distribution<float> noiseDist(0.0f, 1.0f);
 
     for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
         if (!featureMask.empty() && !featureMask[featIdx]) continue;
@@ -1313,12 +1326,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                               + (sumRight * sumRight) / (weightRight + l2RegLambda)
                               - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                     }
-                    if (gain > bestGains[p]) {
-                        bestGains[p] = gain;
+                    // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1057-1068)
+                    float perturbedGain = gain;
+                    if (noiseScale > 0.0f) {
+                        perturbedGain += noiseScale * noiseDist(*rng);
+                    }
+                    if (perturbedGain > bestGains[p]) {
+                        bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
-                        results[p].Gain      = gain;
-                        results[p].Score     = -gain;
+                        results[p].Gain      = perturbedGain;
+                        results[p].Score     = -perturbedGain;
                     }
                 }
             }
@@ -1360,12 +1378,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                               + (sumRight * sumRight) / (weightRight + l2RegLambda)
                               - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                     }
-                    if (gain > bestGains[p]) {
-                        bestGains[p] = gain;
+                    // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1188-1198)
+                    float perturbedGain = gain;
+                    if (noiseScale > 0.0f) {
+                        perturbedGain += noiseScale * noiseDist(*rng);
+                    }
+                    if (perturbedGain > bestGains[p]) {
+                        bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
-                        results[p].Gain      = gain;
-                        results[p].Score     = -gain;
+                        results[p].Gain      = perturbedGain;
+                        results[p].Score     = -perturbedGain;
                     }
                 }
             }
@@ -3322,7 +3345,8 @@ TTrainResult RunTraining(
                 auto perPartSplits = FindBestSplitPerPartition(
                     histData2, partStats2,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, 2u, featureMask);
+                    config.L2RegLambda, 2u, featureMask,
+                    config.RandomStrength, gradRms, &rng);
 
                 if (perPartSplits[0].Defined()) {
                     // Enforce optional max-depth limit
@@ -3578,7 +3602,8 @@ TTrainResult RunTraining(
                 auto perPartSplits = FindBestSplitPerPartition(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, numPartitions, featureMask
+                    config.L2RegLambda, numPartitions, featureMask,
+                    config.RandomStrength, gradRms, &rng
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
