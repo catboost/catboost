@@ -33,6 +33,17 @@ void PoisonFreedMemory(TMutableRef ref);
  */
 void RecycleFreedMemory(TMutableRef ref);
 
+//! Poisons an uninitialized or freed slice of memory.
+//! Unlike the functions above, it is intended to be used with system allocator,
+//! for which ASAN and MSAN already wrap malloc and free calls.
+/*
+ * In release builds, does nothing.
+ * In checked builds, clobbers memory with a garbage pattern.
+ * In ASAN builds, does nothing.
+ * In MSAN builds, does nothing.
+ */
+void PoisonUnitializedOrFreedMemory(TMutableRef ref);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT

@@ -1,6 +1,7 @@
 #include "ref.h"
 
 #include "blob.h"
+#include "poison.h"
 
 #include <library/cpp/yt/malloc/malloc.h>
 
@@ -129,11 +130,18 @@ protected:
 #endif
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
+        } else {
+            PoisonUnitializedOrFreedMemory(GetRef());
         }
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, Size_);
 #endif
+    }
+
+    void Finalize()
+    {
+        PoisonUnitializedOrFreedMemory(GetRef());
     }
 };
 
@@ -155,6 +163,11 @@ public:
             }
         }
         Initialize(size, options, cookie);
+    }
+
+    ~TDefaultAllocationHolder()
+    {
+        Finalize();
     }
 
     char* GetBegin()
@@ -188,6 +201,7 @@ public:
 
     ~TCustomAlignedAllocationHolder()
     {
+        Finalize();
         ::free(Begin_);
     }
 
@@ -224,6 +238,7 @@ public:
 
     ~TPageAlignedAllocationHolder()
     {
+        Finalize();
         ::free(Begin_);
     }
 

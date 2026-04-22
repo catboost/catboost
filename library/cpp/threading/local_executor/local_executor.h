@@ -140,7 +140,7 @@ namespace NPar {
         TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
 
         template <typename TBody>
-        static inline auto BlockedLoopBody(const TExecRangeParams& params, const TBody& body) {
+        static auto BlockedLoopBody(const TExecRangeParams& params, const TBody& body) {
             return [=](int blockId) {
                 const int blockFirstId = params.FirstId + blockId * params.GetBlockSize();
                 const int blockLastId = Min(params.LastId, blockFirstId + params.GetBlockSize());
@@ -151,7 +151,7 @@ namespace NPar {
         }
 
         template <typename TBody>
-        inline void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
+        void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
             if (TryExecRangeSequentially(body, params.FirstId, params.LastId, flags)) {
                 return;
             }
@@ -162,7 +162,7 @@ namespace NPar {
         }
 
         template <typename TBody>
-        inline void ExecRangeBlockedWithThrow(TBody&& body, int firstId, int lastId, int batchSizeOrZeroForAutoBatchSize, int flags) {
+        void ExecRangeBlockedWithThrow(TBody&& body, int firstId, int lastId, int batchSizeOrZeroForAutoBatchSize, int flags) {
             if (firstId >= lastId) {
                 return;
             }
@@ -190,7 +190,7 @@ namespace NPar {
         }
 
         template <typename TBody>
-        static inline bool TryExecRangeSequentially(TBody&& body, int firstId, int lastId, int flags) {
+        static bool TryExecRangeSequentially(TBody&& body, int firstId, int lastId, int flags) {
             if (lastId == firstId) {
                 return true;
             }

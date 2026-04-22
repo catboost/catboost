@@ -230,7 +230,7 @@ namespace NNetliba_v12 {
     };
 
     static bool IBDetection = true;
-    static bool XsPingSending = false;
+    static bool XsPingSendingEnabled = false;
 
     typedef std::function<void(TConnection* connection)> TConnectCb;
     typedef std::function<void(const TTransfer& transfer,
@@ -582,9 +582,6 @@ namespace NNetliba_v12 {
 
     void TUdpHost::ConnectLow(TConnection* connection) {
         Connections.Insert(connection->GetGuid(), connection);
-        if (XsPingSending) {
-            SendXsPing(S, connection, S.GetNetworkOrderPort(), 0);
-        }
     }
 
     static ui8 ChooseTos(const int explicit_, const int default_) {
@@ -677,8 +674,18 @@ namespace NNetliba_v12 {
         Y_ASSERT(congestion.Get() != nullptr);
         if (!congestion->IsKnownMTU()) {
             TLameMTUDiscovery* md = congestion->GetMTUDiscovery();
+
+            if (XsPingSendingEnabled && md->CanSendXs()) {
+                ui8 err = FlushPackets();
+                if (!(err & TUdpHost::EFlashPacketResult::FPR_OVERFLOW)) {
+                    SendXsPing(S, connection, S.GetNetworkOrderPort(), xfer.DataTos);
+                    md->XsPingSent();
+                }
+            }
+
             if (md->IsTimedOut()) {
-                congestion->SetMTU(connection->GetSmallMtuUseXs() ? UDP_XSMALL_PACKET_SIZE : UDP_SMALL_PACKET_SIZE);
+                bool useXs = connection->GetSmallMtuUseXs() || congestion->HasXsPongReceived();
+                congestion->SetMTU(useXs ? UDP_XSMALL_PACKET_SIZE : UDP_SMALL_PACKET_SIZE);
 
             } else {
                 if (md->CanSend()) {
@@ -1203,7 +1210,6 @@ namespace NNetliba_v12 {
         const bool isLastPacket = dataSize < xfer.PacketSize;
         if (isLastPacket) {
             if (xfer.HasLastPacket || packetId < xfer.GetPacketCount()) {
-                Y_ASSERT(false);
                 return false;
             }
             xfer.LastPacketSize = dataSize;
@@ -1411,15 +1417,17 @@ namespace NNetliba_v12 {
                 }
 
                 if (IB.Get()) {
-                    // For now just ignore XS pings over IB
                     if (cmd == PING) {
                         SendIBPong(S, connection, IB->GetConnectInfo(), trueFromAddress);
+                    } else {
+                        SendPong(S, connection, trueFromAddress, false);
                     }
                 } else {
                     if (cmd == XS_PING) {
                         connection->SetSmallMtuUseXs(true);
                         TPeerLink& peerInfo = connection->GetAlivePeerLink();
                         auto congestion = peerInfo.GetUdpCongestion();
+                        congestion->MarkXsPongReceived();
                         if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE) {
                             // Cerr <<  GetAddressAsString(connection->GetAddress()) << " dropping MTU to " << int(UDP_XSMALL_PACKET_SIZE) << Endl;
                             congestion->SetMTU(UDP_XSMALL_PACKET_SIZE);
@@ -1440,6 +1448,7 @@ namespace NNetliba_v12 {
                 connection->SetSmallMtuUseXs(true);
                 TPeerLink& peerInfo = connection->GetAlivePeerLink();
                 auto congestion = peerInfo.GetUdpCongestion();
+                congestion->MarkXsPongReceived();
                 if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE) {
                     // Cerr << GetAddressAsString(connection->GetAddress()) << " dropping MTU to " << int(UDP_XSMALL_PACKET_SIZE) << Endl;
                     congestion->SetMTU(UDP_XSMALL_PACKET_SIZE);
@@ -1945,7 +1954,7 @@ namespace NNetliba_v12 {
     }
 
     void EnableXsPing() {
-        XsPingSending = true;
+        XsPingSendingEnabled = true;
     }
 
 }
