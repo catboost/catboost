@@ -2775,6 +2775,32 @@ TTrainResult RunTraining(
                 tStd = std::sqrt(tStd / trainDocs);
                 printf("[DBG iter=0] P8 targets: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
                        (float)tMean, (float)tStd, tMin, tMax);
+
+                // P9 — effective config dump at iter=0 start
+                // Compute the noise scale that FindBestSplit will use so we can
+                // compare it numerically against CPU's gradient-RMS formula.
+                printf("[DBG iter=0] P9 effective_config:\n");
+                printf("[DBG iter=0]   ColsampleByTree    = %.4f\n",  config.ColsampleByTree);
+                printf("[DBG iter=0]   SubsampleRatio     = %.4f\n",  config.SubsampleRatio);
+                printf("[DBG iter=0]   RandomStrength     = %.4f\n",  config.RandomStrength);
+                printf("[DBG iter=0]   MinDataInLeaf      = %u\n",    config.MinDataInLeaf);
+                printf("[DBG iter=0]   L2RegLambda        = %.4f\n",  config.L2RegLambda);
+                printf("[DBG iter=0]   BootstrapType      = %s\n",    config.BootstrapType.c_str());
+                printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
+                printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
+                printf("[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)\n");
+                // Noise scale formula: noiseScale = RandomStrength * totalWeight / numPartitions
+                // At depth=0 (root): numPartitions=1, totalWeight = N (hessian sum for RMSE)
+                float p9_noise_scale = config.RandomStrength * static_cast<float>(trainDocs);
+                // CPU formula: noise_scale = RandomStrength * sqrt(sum(g_i^2) / N)
+                // Approximate using target std (iter 0 residual ≈ -y)
+                double p9_grad_rms = tStd;  // std(y) ≈ gradient RMS at iter 0 for RMSE
+                printf("[DBG iter=0]   noise_scale_MLX    = rs * N         = %.4f  (rs=%.4f N=%u)\n",
+                       p9_noise_scale, config.RandomStrength, trainDocs);
+                printf("[DBG iter=0]   noise_scale_CPU    = rs * grad_rms  = %.6f  (grad_rms≈std(y)=%.6f)\n",
+                       (float)(config.RandomStrength * p9_grad_rms), (float)p9_grad_rms);
+                printf("[DBG iter=0]   noise_scale_ratio  = MLX/CPU        = %.1fx\n",
+                       p9_noise_scale / (float)(config.RandomStrength * p9_grad_rms + 1e-10));
             }
             fflush(stdout);
         }
@@ -4033,6 +4059,23 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Error: No valid features after quantization\n");
         return 1;
     }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P10 (CLI path) — quantization borders for features 0 and 1
+    for (ui32 p10_f = 0; p10_f < std::min(static_cast<ui32>(quant.Borders.size()), 2u); ++p10_f) {
+        const auto& b = quant.Borders[p10_f];
+        printf("[DBG P10] feature_%u borders: count=%zu", p10_f, b.size());
+        if (!b.empty()) {
+            printf("  min=%.6f  max=%.6f", b.front(), b.back());
+            printf("\n[DBG P10] feature_%u first5:", p10_f);
+            for (ui32 i = 0; i < std::min((ui32)b.size(), 5u); ++i) printf(" %.6f", b[i]);
+            printf("\n[DBG P10] feature_%u last5: ", p10_f);
+            ui32 start = b.size() >= 5 ? (ui32)b.size() - 5 : 0;
+            for (ui32 i = start; i < (ui32)b.size(); ++i) printf(" %.6f", b[i]);
+        }
+        printf("\n");
+    }
+    fflush(stdout);
+#endif
 
     // --- Cross-validation mode ---
     if (config.CVFolds > 1) {
