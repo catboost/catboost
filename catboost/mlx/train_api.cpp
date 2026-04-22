@@ -15,6 +15,8 @@
 
 #include "catboost/mlx/train_api.h"
 
+#include <stdexcept>   // std::runtime_error — BUG-007 groupIds sortedness contract
+
 // ============================================================================
 // TTrainConfig → TConfig conversion
 // ============================================================================
@@ -114,13 +116,28 @@ static TDataset BuildDatasetFromArrays(
         ds.Weights = weights;
     }
 
-    // Group IDs → group offsets
+    // Group IDs → group offsets.
+    // BUG-007 contract: groupIds must be sorted non-decreasing. GroupOffsets is
+    // built via consecutive-equal detection below, so shuffled input would produce
+    // wrong offsets and silently diverge from the subprocess (csv_train) path.
+    // The Python wrapper (core.py:_fit_nanobind) sorts before calling; this check
+    // fails loudly for any direct C++ caller that bypasses it. See KNOWN_BUGS.md.
     if (!groupIds.empty()) {
+        for (uint32_t d = 1; d < numDocs; ++d) {
+            if (groupIds[d] < groupIds[d - 1]) {
+                throw std::runtime_error(
+                    "BuildDatasetFromArrays: groupIds must be sorted non-decreasing "
+                    "(BUG-007 contract). GroupOffsets is built from consecutive-equal "
+                    "detection; unsorted input produces wrong offsets and silent "
+                    "ranking-loss divergence. Sort groupIds (and apply the same "
+                    "permutation to features/targets/weights) before calling."
+                );
+            }
+        }
         ds.GroupIds.resize(numDocs);
         for (uint32_t d = 0; d < numDocs; ++d) {
             ds.GroupIds[d] = groupIds[d];
         }
-        // Build group offsets (assumes data is sorted by group)
         ds.GroupOffsets.push_back(0);
         for (uint32_t d = 1; d < numDocs; ++d) {
             if (groupIds[d] != groupIds[d - 1]) {
