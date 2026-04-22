@@ -588,25 +588,23 @@ class TestCsvTrainBinary:
             data = json.load(f)
         assert abs(data["model_info"]["loss_param"] - 1.0) < 1e-5
 
-    def test_mae_uppercase_fails_cleanly__bug001(self, dataset_csv, tmp_path):
-        """BUG-001: csv_train --loss MAE crashes with uncaught exception (exit -6 / SIGABRT).
+    def test_mae_uppercase_does_not_sigabrt__bug001(self, dataset_csv, tmp_path):
+        """BUG-001 regression sentinel: csv_train --loss MAE must not SIGABRT.
 
-        The binary does no lowercasing. 'MAE' falls through all loss dispatch branches
-        and hits an MLX reshape exception:
-          std::invalid_argument: [reshape] Cannot reshape array of size 1 into shape (1,N)
-
-        Expected: exit code non-zero with a user-readable 'unknown loss' error.
-        Actual: SIGABRT (exit -6) with an internal MLX exception message.
+        Historically 'MAE' fell through all loss dispatch branches and hit an
+        uncaught MLX reshape exception ending in SIGABRT (exit -6). The intended
+        fix was either (a) accept MAE as a case-insensitive alias, or (b) emit
+        a clean 'unknown loss' error. Either outcome is fine; only the raw
+        abort is a regression.
         """
         model_path = str(tmp_path / "model_mae_upper.json")
         rc, stdout, stderr = self._run([
             dataset_csv, "--iterations", "10", "--loss", "MAE",
             "--output", model_path, "--seed", "42"
         ])
-        # Binary should fail (non-zero) but the failure mode is a crash, not a
-        # clean error. This test documents the observed bad behaviour.
-        assert rc != 0, (
-            "csv_train with --loss MAE should fail; currently crashes with SIGABRT"
+        assert rc >= 0, (
+            f"csv_train --loss MAE was killed by signal {-rc} "
+            f"(BUG-001 regression — expected clean exit or clean error)"
         )
 
     def test_quantile_three_alphas_produce_different_models(self, dataset_csv, tmp_path):

@@ -526,9 +526,9 @@ class TestModelFormatVersioning:
 
 class TestPackageVersion:
 
-    def test_version_is_0_3_0(self):
-        """catboost_mlx.__version__ must equal '0.3.0'."""
-        assert catboost_mlx.__version__ == "0.3.0"
+    def test_version_matches_pyproject(self):
+        from importlib.metadata import version as _dist_version
+        assert catboost_mlx.__version__ == _dist_version("catboost-mlx")
 
     def test_version_is_a_string(self):
         """catboost_mlx.__version__ must be a str."""
@@ -549,11 +549,6 @@ class TestPackageVersion:
         """Major version is 0 (pre-1.0 alpha)."""
         major = int(catboost_mlx.__version__.split(".")[0])
         assert major == 0
-
-    def test_version_minor_is_3(self):
-        """Minor version is 3 (Sprint 10 bump)."""
-        minor = int(catboost_mlx.__version__.split(".")[1])
-        assert minor == 3
 
 
 # ============================================================================
