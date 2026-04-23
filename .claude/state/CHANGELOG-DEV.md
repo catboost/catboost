@@ -2,6 +2,12 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-22 — S27 Track C (FU-3) closed with scope-split to S28
+
+FU-3 T1 identified the DW N=1000 asymmetry as a **fidelity gap**: MLX hardcodes L2 Newton gain; CPU CatBoost defaults to Cosine (`0931ad6e9c`). Not a parity-gate edge case. DEC-032 captures the honest framing: different algorithms, not parity-equivalent. Gate updated to require `score_function='L2'` on CPU side (NOT widening N scope — would be DEC-031 Rule-3 violation). S28 "Score function fidelity" opened as follow-up sprint to do the real port (audit plumbing → implement Cosine → re-bless aggregate parity claims → optional Newton variants).
+
+---
+
 ## 2026-04-22 — S27 Tracks A + B closed (FU-1 + AA)
 
 **Track A (FU-1 — Depthwise leaf-index fix)**: Two bugs in `ComputeLeafIndicesDepthwise` (encoding + split-lookup, 51.5% mismatch at depth=3). Fix per DEC-030: BFS-keyed split map + bit-packed partition accumulation. Gate G1-FU1 PASS 6/6 cells, ratios 0.9988–1.0027. Validation-only scope (call-site triage `eca086e4dd`). Commits: T1 `34f62b32c9`, audit `eca086e4dd`, DEC-030 `c7c09451e2`, fix `fb7eb59b5f`, gate `88cbe6d067`.

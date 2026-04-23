@@ -36,17 +36,34 @@
 
 ### Track C — S27-FU-3: DW N=1000 parity-asymmetry triage (blocks on FU-1 landing)
 
-- [ ] **S27-FU-3-T1**: Instrument `FindBestSplitPerPartition` on DW N=1000 depth-0: per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds — @qa-engineer
-- [ ] **S27-FU-3-T2**: Control: run ST at N=1000 with matched config to determine if asymmetry is DW-specific or shared small-N issue — @qa-engineer
-- [ ] **S27-FU-3-T3**: Verdict doc: (a) BUG — open fix; (b) NOISE — tighten gate scope to N≥10k; (c) ACCEPTED — widen pred_std_R band with rationale. Ramos decides (b)/(c) — @qa-engineer + @ml-product-owner
-- [ ] **S27-FU-3-T4**: Gate adjustment (b/c) OR fix landing (a) — separate commit — @ml-engineer
-- [ ] **S27-FU-3-T5**: DEC-032 authored: verdict + rationale — @technical-writer
+- [x] **S27-FU-3-T1**: Instrument `FindBestSplitPerPartition` on DW N=1000 depth-0: per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds — @qa-engineer — DONE (`0931ad6e9c`; triage doc `docs/sprint27/scratch/fu3-t1-triage.md`)
+- [x] **S27-FU-3-T2**: Control: run ST at N=1000 with matched config — @qa-engineer — DONE (T1 absorbed: ST at N=1000 confirmed non-divergent; per-partition gain diff is DW-specific at small N. Result in `fu3-t1-triage.md §ST control`)
+- [x] **S27-FU-3-T3**: Verdict doc — @qa-engineer + @ml-product-owner — DONE (verdict: 4th class, fidelity gap / configuration divergence. `score_function='L2'` on CPU reproduces MLX to ±0.11%. Not a/b/c. DEC-032 captures framing. This commit.)
+- [ ] **S27-FU-3-T4**: Gate adjustment — `score_function='L2'` explicit on DW parity harness CPU side. Do NOT widen N scope — @ml-engineer
+- [x] **S27-FU-3-T5**: DEC-032 authored: verdict + rationale — @technical-writer — DONE (this commit)
 
 ### Track D — Quality gates (sequential, end-of-sprint)
 
 - [ ] **S27-CR**: Full code review (all FU-1 + AA + FU-3 diffs) — @code-reviewer
 - [ ] **S27-SA**: Security audit (low-risk — no kernel changes, validation-path data flow only) — @security-auditor
 - [ ] **S27-CLOSE**: Sprint close doc at `docs/sprint27/sprint-close.md` with gate summary, drift inventory, decision links — @technical-writer
+
+---
+
+## Sprint 28 — Score function fidelity (BLOCKED on S27)
+
+**Branch**: `mlx/sprint-28-score-function-fidelity` (off master after S27 merges)
+**Rationale**: DEC-032. MLX hardcodes L2 Newton gain; CPU default is Cosine. Fidelity gap discovered S27-FU-3-T1. S28 closes it properly.
+**Note**: These are placeholder entries. S28 ml-product-owner refines into T1..Tn breakdown at kickoff.
+
+- [ ] **S28-AUDIT**: Audit `score_function` dispatch — Python binding → C++ entry → `FindBestSplitPerPartition`. Confirm whether hyperparameter is plumbed or silently ignored on MLX path — @ml-engineer
+- [ ] **S28-COSINE**: Implement `score_function='Cosine'` gain (CPU default; highest-impact missing function) in `FindBestSplitPerPartition` — @ml-engineer
+- [ ] **S28-L2-EXPLICIT**: Make `score_function='L2'` explicit via enum/dispatch rather than hardcoded (structural hygiene, no algorithmic change) — @ml-engineer
+- [ ] **S28-REBLESS**: Re-label all aggregate-scope parity claims with explicit `score_function` annotation (Python-path harness, S26-FU-2 gate numbers, AN-017, FU-3 gate cells) — @qa-engineer + @technical-writer
+- [ ] **S28-FU3-REVALIDATE**: Re-run FU-3's 5 failing DW N=1000 cells with `score_function='Cosine'` both sides — structural proof of gap closure — @qa-engineer
+- [ ] **S28-CR**: Code review — @code-reviewer
+- [ ] **S28-SA**: Security audit — @security-auditor
+- [ ] **S28-CLOSE**: Sprint close doc + DEC-032 follow-up section + state-file update — @technical-writer
 
 ---
 

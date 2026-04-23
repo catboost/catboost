@@ -976,3 +976,71 @@ If an anchor has had its numeric value updated more than once (i.e., a second st
 - T4 atomic anchor updates: `adce339b56` (AN-006) through `62f17df7a9` (AN-013/014 DEAD markers)
 
 **Next audit due**: Sprint 31 (every 4 sprints), or upon any kernel or accumulation algorithm change, whichever is sooner.
+
+---
+
+## DEC-032: MLX DW gain function scope (L2-only, not parity-equivalent to CPU)
+
+**Sprint**: 27 (S27-FU-3, T5)
+**Date**: 2026-04-22
+**Status**: ADOPTED. Standing constraint until S28 closes.
+**Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
+**Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
+**Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
+
+### Context
+
+S27-FU-3 was opened to triage five DW parity cells failing at N=1000 with `pred_std_R` up to 1.10 (MLX consistently better than CPU at small N, a direction not explained by noise or leaf-magnitude shrinkage). The original Track C framing offered a three-way trichotomy for the verdict: (a) BUG — open a fix; (b) NOISE — tighten gate scope to N≥10k; (c) ACCEPTED — widen pred_std_R band with rationale.
+
+FU-3 T1 instrumented `FindBestSplitPerPartition` at DW N=1000 depth-0, capturing per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds. The resulting evidence shows:
+
+- MLX `FindBestSplitPerPartition` hardcodes **L2 Newton gain** throughout the DW (and LG) code path. There is no `score_function` dispatch, no Cosine implementation, no Newton-Cosine or NewtonL2 variant.
+- CPU CatBoost DW defaults to **Cosine gain**. It accepts a `score_function` hyperparameter selecting among `{Cosine, L2, NewtonL2, NewtonCosine}`.
+- Forcing `score_function='L2'` on the CPU side reproduces MLX per-partition gain decisions within ±0.11% across all 3 seeds. The five failing cells collapse to parity when both sides use L2.
+
+The asymmetry is therefore not algorithmic noise, not a parity gate edge case, and not a bug in either codebase. It is a **configuration divergence where both sides implement correct but different algorithms**. This is a 4th class of finding not represented in the original (a)/(b)/(c) trichotomy.
+
+At small N (≤1000, depth=6, 64 partitions × ~15 docs each), the per-partition gain difference between Cosine and L2 is visible and produces measurable split disagreement (gain ratio 0.82–0.86 across the failing cells). At larger N or in the SymmetricTree path (where the gain is computed once over the full fold and aggregation smooths per-partition variation), the two formulas happen to agree closely — a coincidental numerical agreement, not structural parity.
+
+### Decision
+
+1. **MLX `FindBestSplitPerPartition` implements L2 Newton gain only.** This is the current state and is documented as a deliberate scope boundary pending S28 work.
+
+2. **This is NOT algorithmically equivalent to CPU CatBoost's default (Cosine).** They are different algorithms. "Both are correct implementations of different gain functions" does not make them parity-equivalent. A parity claim requires both sides to compute the same algorithm; they do not.
+
+3. **DW (and LG) parity tests in MLX MUST set CPU `score_function='L2'` explicitly.** Any parity test that compares MLX DW/LG output against CPU CatBoost with default `score_function` (Cosine) is measuring algorithmic divergence, not parity. The test outcome is not interpretable as parity evidence in either direction.
+
+4. **v5 `bench_boosting` ULP=0 record remains valid at kernel scope only.** The ULP=0 record covers histogram kernel output (`bench_boosting.cpp` harness). It does not involve `FindBestSplitPerPartition` gain computation. This finding does not affect the v5 record.
+
+5. **Python-path parity harness and S26-FU-2 gate numbers (aggregate RMSE parity) are coincidental-not-structural.** Those measurements were made with CPU default `score_function` (Cosine). The numbers pass the gate because at N≥10k the Cosine/L2 difference is small enough to fall within the gate's tolerance bands — they are not evidence of structural algorithmic equivalence. Re-labeling and re-blessing required in S28.
+
+6. **FU-3 T4 gate adjustment**: the DW parity harness's CPU side MUST add an explicit `score_function='L2'` argument. This is the correct gate-scope tightening. Do NOT widen N scope to ≥10k to hide the disagreement — that would be the anchor-drift pattern documented in DEC-031 Rule 3 applied to gate scope.
+
+### Rationale
+
+**(a) The evidence shows structural algorithmic difference, not noise.** Per-partition gain ratios of 0.82–0.86 across 3 seeds are consistent and reproducible. Forcing `score_function='L2'` on CPU eliminates the divergence to ±0.11%. This is a signal, not scatter.
+
+**(b) Widening N scope to ≥10k would be the S8/S26 anchor-drift pattern that DEC-031 just codified against.** The DEC-031 anchor hygiene rules exist precisely to prevent "it passes at larger N by coincidence" from masquerading as "it is correct." The same logic applies to gate scope: a gate that passes only because aggregation smooths a structural difference is not a valid parity gate.
+
+**(c) Honest scoping now enables S28 to do the port correctly.** If DEC-032 labeled this ACCEPTED or NOISE, the S28 work would be framed as an "improvement" rather than a "gap closure." The correct framing is: MLX currently implements one gain function (L2); CPU's default is a different function (Cosine); the port is incomplete until MLX implements and dispatches the full `score_function` enum.
+
+### Scope of this DEC
+
+Covers `FindBestSplitPerPartition` (DW and LG code paths) only. Does NOT cover `FindBestSplit` (SymmetricTree path) — that path may have the same scope gap but it is not confirmed by FU-3 instrumentation and is out of scope until S28-AUDIT confirms.
+
+### Supersedes / retires
+
+None. DEC-032 is new framing of a newly-discovered algorithmic scope debt. It does not supersede any prior DEC.
+
+### Test gate action
+
+S27-FU-3-T4 (@ml-engineer, running in parallel with this commit) will add an explicit `score_function='L2'` requirement on the CPU side of the DW parity harness. Gate scope tightening: DW N=1000 cells pass when both sides use L2. Do NOT widen N threshold.
+
+### Follow-up
+
+**S28 "Score function fidelity"** — audit `score_function` dispatch end-to-end for the MLX backend (Python binding → C++ entry → `FindBestSplitPerPartition`); implement Cosine gain (highest-impact missing function); make L2 explicit via enum/dispatch rather than hardcoded; re-bless all aggregate-scope parity claims with explicit score_function labeling; re-run FU-3's 5 failing cells with `score_function='Cosine'` on both sides as structural proof of gap closure.
+
+### Authority
+
+- `0931ad6e9c` — FU-3 T1 triage commit (per-partition instrumentation + CPU score_function forcing)
+- `docs/sprint27/scratch/fu3-t1-triage.md` — evidence document, per-partition gain table, ±0.11% reproduction result
