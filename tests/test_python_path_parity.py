@@ -256,7 +256,7 @@ def test_symmetrictree_monotone_convergence(seed: int):
     )
 
 
-# ── Non-oblivious parity block (S26-FU-2) ───────────────────────────────────
+# ── Non-oblivious parity block (S26-FU-2 / S27-FU-3) ───────────────────────
 #
 # Covers Depthwise and Lossguide grow policies under rs={0.0, 1.0}.
 #
@@ -270,6 +270,15 @@ def test_symmetrictree_monotone_convergence(seed: int):
 #            RMSE delta 560–598%.  Caught by (1) and (2).
 #   FU-2:    FindBestSplitPerPartition had no noise path → rs=1 ~10-12% RMSE
 #            under-fit.  Caught by (1) with the one-sided rs=1 bound.
+#
+# S27-FU-3 / DEC-032 note (Depthwise only):
+#   MLX FindBestSplitPerPartition implements L2 Newton gain.  CPU CatBoost
+#   defaults to Cosine score function for Depthwise, which diverges from L2 by
+#   14-17% at N=1000/depth=6 (per-partition fragmentation ~15 docs amplifies the
+#   difference).  At N≥10k both functions agree within ±1%.
+#   To keep this harness valid at all tested N, _cpu_fit_nonoblivious forces
+#   score_function='L2' for Depthwise — making the CPU side algorithm-equivalent
+#   to the MLX side.  See DEC-032 for full rationale; S28 will port Cosine to MLX.
 # ---------------------------------------------------------------------------
 
 
@@ -277,6 +286,10 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     """Train CPU CatBoost with a non-oblivious grow policy; return fitted model.
 
     Lossguide uses max_leaves=31 (CPU default, matching MLX default).
+
+    Depthwise uses score_function='L2' explicitly.
+    DEC-032: MLX implements L2 Newton gain only; CPU must match explicitly for parity.
+    See S28 for Cosine port.
     """
     from catboost import CatBoostRegressor
 
@@ -295,6 +308,10 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     )
     if grow_policy == "Lossguide":
         kwargs["max_leaves"] = 31
+    if grow_policy == "Depthwise":
+        # DEC-032: MLX implements L2 Newton gain only; CPU must match explicitly for parity.
+        # See S28 for Cosine port.
+        kwargs["score_function"] = "L2"
     m = CatBoostRegressor(**kwargs)
     m.fit(X, y)
     return m
