@@ -894,3 +894,85 @@ Kill-switch: if T3 fix causes any bench_boosting ULP != 0 (v5 kernel-output pari
 - `docs/sprint27/scratch/fu1-t2-audit.md` — CPU source audit + fix specification (this decision's input)
 - `catboost/libs/model/cpu/evaluator_impl.cpp:462–492` — CPU canonical traversal (no `nodeIdx−numNodes`)
 - `catboost/mlx/tests/csv_train.cpp:3644–3683` — MLX canonical encoding (bit-packed partition)
+
+---
+
+## DEC-031: Anchor hygiene protocol
+
+**Sprint**: 27 (Track B, T5)
+**Date**: 2026-04-22
+**Status**: Adopted. Protocol applies to all future `mlx/` commits.
+**Authored by**: S27-AA-T5 (@technical-writer)
+**Source material**: S27-AA-T1 inventory (`d4e2d7cf88`), T2 re-run (`800fdc8fce`), T3 classification (`9be26b91c0`), T4 landings (`adce339b56`–`62f17df7a9`).
+
+### Context
+
+In 22 sprints this project hit the same failure mode twice:
+
+- **Sprint 8, TODO-022**: AN-008 (`2.22267818`) was a CHANGELOG-only "canonical" value captured from a mismatched-param run. No live assertion enforced it. It was discovered stale and corrected to `1.78561831`.
+- **Sprint 26, D0-9**: AN-001–005 (five live test assertions, atol=1e-3) had silently diverged from current output after DEC-028 landed. They were discovered only when CI red-flagged `test_rmse_final_loss_matches_sprint4_anchor`.
+
+The S27 anchor audit (T1–T4) enumerated 18 committed numeric anchors and found:
+
+- 4 had drifted > 1e-4 from current output (AN-006, AN-007, AN-008, AN-018)
+- 3 were structurally dead — no live harness enforces them and no path exists to regenerate them (AN-013, AN-014, AN-015)
+- AN-008 is on its **third numeric lifetime** (`2.22267818` → `1.78561831` → `1.85752499`)
+- 9 of 18 anchors were docs-only (no automated enforcement)
+
+The pattern is not coincidence. Numeric anchors accumulated under a then-correct configuration; when the underlying code path changed legitimately, the anchors did not follow. The root cause is structural: docs-only "canonical" values have no enforcement mechanism and no update trigger.
+
+### The four drift classes
+
+The following classification, established in T3, is the canonical taxonomy for all future anchor triage:
+
+- **class-a** (stale-capture): anchor was captured under a then-correct configuration; the underlying code or config has since legitimately changed; the new value is correct. Standard T4 update applies.
+- **class-b** (regression): anchor value was correct at capture; current code differs from it; **this is a code bug, not an anchor problem.** Do not update the anchor. Escalate to an engineer before any anchor change. T3 confirmed zero class-b anchors in S27.
+- **class-c** (documented-supersession): anchor was superseded by a later committed value (e.g., an intermediate port-tip or reverted branch); update to the post-supersession value with a pointer to the superseding commit. AN-012 and AN-018 are examples.
+- **class-d** (dead anchor): anchor is not asserted by any live test, is behind a broken fixture, or is a docs-only "canonical" value with no enforcement path. Structural debt beyond stale values. AN-013, AN-014, AN-015 are examples.
+
+### The hygiene rules
+
+**Rule 1 — No new docs-only canonical values.**
+Every committed numeric anchor must be wired to at least one live assertion in a pytest (or equivalent automated test). CHANGELOG.md "canonical anchor" entries and bench-report "expected values" tables without matching assertions are prohibited going forward.
+- **Why**: The S8/S26/S27 pattern is driven entirely by docs-only values. A live assertion means CI catches drift at the next run; a docs-only value means drift can age undetected for 17+ sprints (as AN-015 demonstrated).
+- **How to apply**: Before committing a new numeric result as "canonical" or "expected" in any markdown file, first wire it to an assertion in `python/tests/`. Then commit both in the same atomic change.
+
+**Rule 2 — Anchor-change-on-path-change requirement.**
+Any commit that modifies a code path must include anchor re-runs for anchors generated from that path — either updating them atomically in the same commit, or opening a follow-up AA-style audit immediately (not at the next sprint close).
+- **Why**: The AN-006/AN-007 drift accumulated across five distinct shipping commits (S18, S19 ×2, S22/S23, S24) — each individually correct, collectively untracked. No single commit felt responsible for updating the test anchors.
+- **How to apply**: If a commit touches histogram, kernel, accumulation, leaf-update, or gain-score code, grep the anchor inventory for anchors generated from that path and re-run them. The anchor inventory lives in `docs/sprint27/scratch/aa-t1-anchor-inventory.md`; keep it updated.
+
+**Rule 3 — Every sprint close gets an anchor-drift check.**
+At sprint close, re-run the anchors touched by that sprint's code changes and confirm no unexpected drift. This is cheap (minutes for bench_boosting configs) and prevents accumulation of the "code changed, anchor didn't follow" debt class.
+- **Why**: S27's oldest undetected drift was AN-015 (15+ sprint staleness) and AN-008 (S18 to S27 = ~9 sprints). Both would have been caught within one sprint under this rule.
+- **How to apply**: Sprint close QA responsibility. Scope is limited to anchors whose generating harness intersects with that sprint's diffs — not a full 18-anchor sweep every sprint.
+
+**Rule 4 — Dead anchors are removed or wired, not ignored.**
+When an anchor is classified class-d: either wire it to a live automated test (preferred) or remove it from committed documentation. Leaving unreachable "canonical" values in docs is actively misleading — they imply enforcement that does not exist.
+- **Why**: AN-013, AN-014, and AN-015 are examples. AN-015 went further: the test *appeared* to assert CI workflow values but always skipped due to a filename typo (`mlx_test.yaml` vs `mlx-test.yaml`), giving false confidence for 15+ sprints.
+- **How to apply**: T4 landed DEAD markers on AN-013/AN-014 pending this DEC. AN-015 fixture path was corrected in T4; the CI-embed design was retired in favor of standalone assertions. Future class-d identifications should resolve within the sprint they are found.
+
+**Rule 5 — Repeat-offender promotion clause.**
+If an anchor has had its numeric value updated more than once (i.e., a second stale-capture event), the next update must also promote it to a live-asserted test. A value-only change is not sufficient.
+- **Why**: AN-008's three lifetimes (`2.22267818` → `1.78561831` → `1.85752499`) indicate it sits on a code path that is actively re-tuned. Another value-only CHANGELOG update will be stale again at the next kernel change.
+- **How to apply**: Any T4-style anchor-update PR must run `git log -p` on the anchor's source file or the constant definition. If more than one prior value change exists, the PR must also land the test — e.g., add K=10 multiclass to `test_qa_round10_sprint5_bench_and_scan.py` alongside the value update.
+
+### Scope and enforcement
+
+- This protocol applies to **all future commits** on `mlx/` branches from S27 forward. It is not retroactive except where T4 already landed updates (`adce339b56`–`62f17df7a9`).
+- `.claude/state/` narrative files (HANDOFF, CHANGELOG-DEV, TODOS, MEMORY) are exempt — they are prose, not enforced anchors.
+- CI should eventually gain a lint step that detects new numeric literals in CHANGELOG.md or `docs/` bench-report tables without a matching `assert` or `pytest.approx` call. This is out of S27 scope; flagged as a follow-up task.
+
+### Supersedes
+
+- Supersedes the implicit "canonical value in CHANGELOG.md" pattern used for TODO-022 (Sprint 8) and similar.
+- Does not retire any prior DEC.
+
+### Audit references
+
+- 18-anchor T1 inventory: `docs/sprint27/scratch/aa-t1-anchor-inventory.md` (`d4e2d7cf88`)
+- T2 re-run results: `docs/sprint27/scratch/aa-t2-rerun-results.md` (`800fdc8fce`)
+- T3 classification: `docs/sprint27/scratch/aa-t3-classification.md` (`9be26b91c0`)
+- T4 atomic anchor updates: `adce339b56` (AN-006) through `62f17df7a9` (AN-013/014 DEAD markers)
+
+**Next audit due**: Sprint 31 (every 4 sprints), or upon any kernel or accumulation algorithm change, whichever is sooner.

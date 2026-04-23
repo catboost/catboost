@@ -44,7 +44,7 @@ Gap narrows slightly with N — per-iteration fixed cost dominates:
 ## Resolved / mitigated (historical)
 
 - **BUG-007** (MITIGATED 2026-04-22): nanobind path — Python wrapper sorts group_ids (`python/catboost_mlx/core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness as defense-in-depth. See `KNOWN_BUGS.md`.
-- **bench_boosting K=10 anchor** (RESOLVED Sprint 8, TODO-022): `1.78561831` is the canonical anchor at `20k × 30 × depth 5 × 50 iters`; the prior `2.22267818` "expected" value was captured from a mismatched-param run. See `CHANGELOG.md:27`.
+- **bench_boosting K=10 anchor** (3rd lifetime as of S27-AA-T4): value is now `1.85752499` at `20k × 30 × depth5 × 50iters × seed42`. History: `2.22267818` (mismatched-param, S8 TODO-022) → `1.78561831` (corrected S8) → `1.85752499` (S27 T4, after S18/S19/S22/S23/S24 kernel changes). Docs-only in `CHANGELOG.md` — repeat-offender under DEC-031 Rule 5; must be promoted to live pytest on next update.
 
 ## RandomStrength noise is a global scalar shared across all CatBoost grow policies (from S26-FU-2 T1 triage, 2026-04-22)
 
@@ -61,6 +61,18 @@ Source: `catboost/private/libs/algo/greedy_tensor_search.cpp:92–107, :1186, :1
 - **`pred_std_R = std(MLX_preds) / std(CPU_preds)`** is the primary signal for leaf-magnitude bugs — orthogonal to RMSE (which can be dominated by irreducible noise at small N). DEC-028's signature was `pred_std_R ≈ 0.69`. Keep it in any parity harness touching leaf values.
 - **Gradient RMS, not hessian sum, scales RandomStrength noise.** Dimensional check: noise that scales with `N` (hessian sum for RMSE) grows without bound as dataset size increases; noise that scales with `sqrt(sum(g²)/N)` (gradient RMS) shrinks as residuals shrink over boosting iters. If a parity gap grows with N or grows across iters, suspect the wrong scale.
 - **Non-oblivious tree serialization requires explicit BFS node index.** Depthwise/Lossguide training cursors are keyed by bit-packed `partitions` (bit k = direction at depth k), but model JSON consumers walk trees in BFS order. Emit `bfs_node_index` per split and `leaf_bfs_ids` inverse map for Lossguide. Don't rely on the consumer to re-derive the mapping.
+
+## Anchor hygiene (DEC-031, S27-AA-T5, 2026-04-22)
+
+S27 audit found 18 anchors: 4 drifted > 1e-4, 3 structurally dead, 9 docs-only (no live enforcement). AN-008 hit its third numeric lifetime. DEC-031 codifies five standing rules:
+
+1. **No new docs-only canonical values** — every committed anchor needs a live pytest assertion.
+2. **Anchor-change-on-path-change** — any commit touching histogram/kernel/accumulation/leaf/gain must re-run and update affected anchors atomically or open an immediate audit.
+3. **Sprint-close drift check** — re-run anchors touched by that sprint's code changes at close.
+4. **Dead anchors removed or wired** — class-d anchors must resolve within the sprint found; never leave unreachable "canonical" values in docs.
+5. **Repeat-offender promotion** — if an anchor has been value-updated more than once, the next update must also wire it to a live test (AN-008 is the pending case).
+
+Full taxonomy (class-a/b/c/d) and enforcement details: `DECISIONS.md §DEC-031`. Next audit: Sprint 31 or first kernel/accumulation change, whichever is sooner. T4 landing SHAs: `adce339b56`–`62f17df7a9`.
 
 ## CUDA reference targets (from researcher, 2026-04-15)
 

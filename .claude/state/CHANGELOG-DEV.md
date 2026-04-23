@@ -2,6 +2,42 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## Sprint 27 — Track B anchor audit closed; DEC-031 adopted (2026-04-22)
+
+**Branch**: `mlx/sprint-27-correctness-closeout`
+**Task**: S27-AA-T5 (final Track B deliverable)
+
+### What shipped
+
+- **DEC-031 "Anchor hygiene protocol"** added to `.claude/state/DECISIONS.md`. Codifies the five standing rules derived from the S27-AA-T1–T4 audit of 18 committed numeric anchors:
+  1. No new docs-only canonical values — every anchor must have a live pytest assertion.
+  2. Anchor-change-on-path-change — any commit touching histogram/kernel/accumulation/leaf/gain must update or audit affected anchors atomically.
+  3. Sprint-close drift check — re-run affected anchors at every sprint close as part of QA.
+  4. Dead anchors removed or wired — class-d anchors resolve within the sprint they are found; never leave unreachable "canonical" values in docs.
+  5. Repeat-offender promotion clause — AN-008 (3 lifetimes) must be promoted to a live test on its next value update.
+- **MEMORY.md §Anchor hygiene** section added: 5-rule summary for future-agent consumption. AN-008 entry updated to reflect its third lifetime (`1.85752499`) and pending Rule 5 promotion obligation.
+
+### Audit summary (T1–T4 recap for context)
+
+| Class | Count | IDs |
+|-------|-------|-----|
+| a — stale-capture (T4 updated) | 4 | AN-006, AN-007, AN-008, AN-016 |
+| a — already current (no T4 action) | 8 | AN-001–005, AN-009–011 |
+| b — regression (escalate) | 0 | — |
+| c — documented-supersession | 2 | AN-012, AN-018 |
+| d — dead anchor | 3 | AN-013, AN-014, AN-015 |
+| deferred-a (FU-1-dependent) | 1 | AN-017 |
+
+T4 commit range: `adce339b56` (AN-006 P0) through `62f17df7a9` (AN-013/014 DEAD markers).
+
+### Carry-forwards
+
+- AN-017 re-capture deferred until FU-1-T3 merges to master (DW leaf-index fix, DEC-030).
+- AN-008 live-test promotion (DEC-031 Rule 5) deferred to next kernel-touching sprint.
+- CI lint for docs-only numeric values flagged as follow-up (out of S27 scope).
+
+---
+
 ## Sprint 26 FU-2 closed — DEC-028 extended to FindBestSplitPerPartition (2026-04-22, CLOSED)
 
 **Branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on S26 D0 `66a4b5e869`)
