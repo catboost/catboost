@@ -637,7 +637,7 @@ class TestCIBenchWorkflow:
     def workflow_text(self):
         """Read the CI workflow file."""
         yaml_path = os.path.join(
-            REPO_ROOT, ".github", "workflows", "mlx_test.yaml"
+            REPO_ROOT, ".github", "workflows", "mlx-test.yaml"
         )
         if not os.path.isfile(yaml_path):
             pytest.skip("CI workflow file not found")
