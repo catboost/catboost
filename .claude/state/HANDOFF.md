@@ -1,21 +1,106 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (Sprint 26 FU-2 CLOSED — DEC-028 extended to FindBestSplitPerPartition; all gates PASS; S26-FU-3 opened; branches local, awaiting merge order from Ramos)
+> Last updated: 2026-04-22 (Sprint 27 CLOSED — Correctness Closeout complete; S27 PR OPEN-PENDING-RAMOS; S28 next — BLOCKED on S27 PR merge)
 
 ## Current state
 
-- **Active branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on S26 D0 tip `66a4b5e869`). S26-FU-2 CLOSED. Branch is local — do not push until Ramos confirms merge order.
-- **Merge order pending**: S26 D0 (`mlx/sprint-26-python-parity`) should merge before FU-2 (`mlx/sprint-26-fu2-noise-dwlg`). Confirm with Ramos whether to open these as separate PRs or bundle.
-- **Campaign**: Post-Verstappen correctness. S26 D0 + S26-FU-2 both closed. RandomStrength noise formula now correct in all three grow policies (ST: D0; DW/LG: FU-2).
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched across S26 D0 + FU-2.
-- **Open PRs**: none. S26 D0 + FU-2 PRs pending Ramos open.
+- **Active sprint**: Sprint 28 — Score function fidelity. Branch `mlx/sprint-28-score-function-fidelity` to be created off master after S27 PR merges. **BLOCKED on S27 PR merge.** S28 ml-product-owner creates the branch and breaks down T1..Tn at kickoff.
+- **Campaign**: Post-Verstappen correctness. S27 closed zero-kernel-change. S28 implements Cosine score function (DEC-032). R8 stays at 1.01× through S28.
+- **Production kernel**: v5 (`784f82a891`) — unchanged.
+- **Open PRs**: S27 PR on `mlx/sprint-27-correctness-closeout` — OPEN-PENDING-RAMOS (Ramos opens PRs; agents do not). PR #24 (S26-FU-2) status same.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
-    - **S26-FU-1 (open)**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes` — affects validation RMSE tracking only, not training correctness or Python predictions. Tracked in DEC-029 Risks section.
-    - **S26-FU-3 (new, open)**: Depthwise N=1000 parity asymmetry — 5 cells fail gate (MLX consistently *better* than CPU, pred_std_R up to 1.10). Pre-existing; not introduced by FU-2. Triage: compare per-partition gain scores at N=1000 depth-0 between MLX and CPU; check whether ST also shows this at N=1000.
+    - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
+    - **S27-FU-3 SCOPED to S28** (DEC-032): DW N=1000 asymmetry is a score-function fidelity gap (MLX hardcodes L2; CPU defaults Cosine). Conditional gate G3-FU3 PASS 5/5 with `score_function='L2'` on CPU. Cosine port is S28 scope.
+
+## Sprint 27 — Correctness Closeout — CLOSED
+
+**Branch**: `mlx/sprint-27-correctness-closeout` (branches off master after PR #24 S26-FU-2 merges)
+**Scope**: Close three known correctness debts on the non-oblivious / anchor surface before any R8 perf work resumes. Zero kernel changes. Zero perf work. R8 stays at 1.01×.
+
+### Track A — S27-FU-1: Depthwise validation-path index fix (sequential, blocks FU-3)
+
+- **T1** @qa-engineer — Repro harness: instrument `ComputeLeafIndicesDepthwise` at `csv_train.cpp:1751`; capture returned indices vs expected bit-packed BFS on DW N=10k d=3.
+- **T2** @ml-engineer — CPU-source audit: confirm CatBoost BFS encoding (`nodeIdx − numNodes` is wrong decode — should traverse from node 0); draft DEC-030.
+- **T3** @ml-engineer — Implement fix: replace arithmetic decode with root-to-leaf traversal mirroring `ComputeLeafIndicesLossguide`.
+- **T4** @qa-engineer — Gate G1-FU1: DW validation RMSE (`use_best_model=True`) matches within rs=0 tight band across 3 seeds × {N=10k, N=50k}.
+- **T5** @technical-writer — DEC-030 authored; DEC-029 Risks entry retired.
+
+### Track B — S27-AA: Anchor audit (parallel to Track A)
+
+- **T1** @qa-engineer — Enumerate all numeric anchors in committed test/bench files. Produce inventory `{path, line, value, last-touched-sha, captured-context}`.
+- **T2** @qa-engineer — Re-run each anchor's generating harness on current master. Diff ≥1e-2 flags drift.
+- **T3** @qa-engineer — For each drifted anchor: classify (a) stale-capture / (b) real-regression / (c) documented-supersession.
+- **T4** @ml-engineer — Landing commits — ONE commit per anchor update, message cites class. Class-(b) escalates to Ramos before landing.
+- **T5** @technical-writer — DEC-031 authored: "Anchor hygiene protocol."
+
+### Track C — S27-FU-3: DW N=1000 parity-asymmetry triage (blocks on FU-1 landing)
+
+- **T1** @qa-engineer — Instrument `FindBestSplitPerPartition` on DW N=1000 depth-0: per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds.
+- **T2** @qa-engineer — Control: run ST at N=1000 with matched config (DW-specific or shared small-N issue).
+- **T3** @qa-engineer + @ml-product-owner — Verdict doc: (a) BUG — open fix; (b) NOISE — tighten gate scope to N≥10k; (c) ACCEPTED — widen pred_std_R band with rationale. Ramos decides (b)/(c).
+- **T4** @ml-engineer — Gate adjustment (b/c) OR fix landing (a) — separate commit.
+- **T5** @technical-writer — DEC-032 authored: verdict + rationale.
+
+### Track D — Quality gates (end-of-sprint, sequential)
+
+- **S27-CR** @code-reviewer — Full code review (all FU-1 + AA + FU-3 diffs).
+- **S27-SA** @security-auditor — Security audit (low-risk — no kernel changes, validation-path data flow only).
+- **S27-CLOSE** @technical-writer — Sprint close doc at `docs/sprint27/sprint-close.md` with gate summary, drift inventory, decision links.
+
+### Ordering & dependencies
+
+Track A ∥ Track B → Track C (blocks on A) → Track D (sequential).
+
+### Exit gates
+
+| Gate | Criterion | Path coverage |
+|------|-----------|---------------|
+| G0 | Root cause docs complete (DEC-030, DEC-031, DEC-032) | Docs |
+| G1-FU1 | DW validation RMSE rs=0 ratio ∈ [0.98, 1.02], 3 seeds × {N=10k, 50k} | C++ validation path (`use_best_model=True` during DW training) |
+| G2-AA | All committed anchors match harness within 1e-2 OR have class-(a/c) rationale commit. Zero class-(b) uninvestigated. | Anchor-generating harness per row |
+| G3-FU3 | DW N=1000 ratios ∈ [0.98, 1.02] with `score_function='L2'` on both sides (CPU explicit, MLX hardcoded). Path: `FindBestSplitPerPartition` gain-scope equivalence **conditional on L2 matching**. Unconditional algorithm parity (Cosine port) is S28 scope. Evidence: `docs/sprint27/fu3/t4-gate-report.md` — 5/5 PASS, ratios [0.9956, 1.0011]. | DW FindBestSplitPerPartition at small N |
+| G4 | bench_boosting v5 ULP=0 preserved (18-cell sweep, kernels unchanged) | Kernel-output only |
+| G5 | `tests/test_python_path_parity.py` still 8/8 PASS | Python/nanobind orchestration |
+| G6 | R8 bench_boosting e2e ratio drift ≤ 2% vs master baseline | End-to-end bench harness |
+| G7 | Determinism: gate config 100 runs max−min ≤ 1e-6 | End-to-end training determinism |
+
+### Kill-switches
+
+1. FU-1 fix produces train-time parity drift (v5 ULP=0 breaks OR Python-path pytest breaks) → abort Track A, open triage, keep DEC-029 Risks entry.
+2. AA discovers class-(b) regression → halt AA landing, escalate to Ramos.
+3. FU-3 triage reveals DW N=1000 asymmetry caused by FU-1 → revert FU-1, re-plan.
+4. Any commit slips DEC-012 atomicity → revert, resplit.
+5. Wall-clock > 4 working sessions without Track A or B landing → escalate scope.
+
+### Timeline
+
+3–4 working sessions. If all tracks land clean: 3. If FU-3 is class-(a) real bug: 4.
+
+## Sprint 28 — Score function fidelity — OPEN (BLOCKED on S27 close)
+
+**Branch**: `mlx/sprint-28-score-function-fidelity` (branches off master after S27 PR merges)
+**Entry gate**: S27 closed and PR landed.
+**Rationale**: DEC-032 (2026-04-22). FU-3 T1 established that MLX `FindBestSplitPerPartition` hardcodes L2 Newton gain while CPU CatBoost defaults to Cosine. This is a fidelity gap, not a parity edge case. S28 does the real port.
+
+**Scope**: Audit and implement `score_function` dispatch end-to-end for the MLX backend, starting with DW/LG. Zero perf changes. Zero kernel changes.
+
+**5-step arc** (S28 ml-product-owner breaks into T1..Tn at kickoff):
+
+1. **S28-AUDIT** — Audit `score_function` dispatch: Python binding → C++ entry → `FindBestSplitPerPartition`. Does the hyperparameter get plumbed at all, or is it silently ignored on the MLX path?
+2. **S28-COSINE** — Implement `score_function='Cosine'` gain (CPU default; highest-impact missing function). Port the Cosine formula from `catboost/private/libs/algo/score_calcers.cpp` into `FindBestSplitPerPartition`.
+3. **S28-L2-EXPLICIT** — Make `score_function='L2'` explicit via enum/dispatch rather than hardcoded. No algorithmic change; structural hygiene to prevent future silent drift.
+4. **S28-REBLESS** — Re-label every aggregate-scope parity claim with explicit `score_function` annotation: Python-path harness (`test_python_path_parity.py`), S26-FU-2 gate numbers (AN-017), FU-3 gate cells. Claims that passed with CPU default (Cosine) and MLX L2 are coincidental-not-structural per DEC-032; re-bless with `score_function='L2'` explicit on both sides, or move to S28-COSINE baseline.
+5. **S28-FU3-REVALIDATE** — Re-run FU-3's 5 failing DW N=1000 cells with `score_function='Cosine'` on both sides. This is the structural proof that the port closes the gap. Expected: all 5 cells pass within `pred_std_R ∈ [0.98, 1.02]` (rs=0 tight band).
+
+**Optional scope** (decide at kickoff): NewtonL2 / NewtonCosine variants. CPU supports all four `score_function` values; S28 minimum is Cosine + explicit L2 dispatch.
+
+**Standing orders** (unchanged from S27): DEC-012 one-structural-change-per-commit; RR-AMATOK fork only; no Co-Authored-By; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate; parity gates must label which path they cover.
+
+---
 
 ## Sprint 26 FU-2 — RandomStrength in FindBestSplitPerPartition — CLOSED
 
@@ -199,11 +284,11 @@ paths, and `benchmarks/sprint25/g1/results/` for raw artifacts.
 
 ## Next actions
 
-1. **S26 D0 — CLOSED.** 8 commits on `mlx/sprint-26-python-parity` + state close commit. PR pending Ramos open. CI sanity: pytest 8/8 on `tests/test_python_path_parity.py`; bench_boosting kernel sources untouched.
-2. **S26 D1 (optional, not scheduled)** — Two candidate follow-ups are listed under *Sprint 26 → Follow-ups*: (a) ComputeLeafIndicesDepthwise validation-path fix, (b) MLX Depthwise/Lossguide RandomStrength noise path. Both are carry-forward, not blocking merge. Open only when Ramos sets scope.
+1. **S27 — ACTIVE.** Merge PR #24 (S26-FU-2) first, then cut `mlx/sprint-27-correctness-closeout` from master. Start Track A (FU-1 repro harness) and Track B (anchor inventory) in parallel.
+2. **S26 D0 — CLOSED.** PR pending Ramos open if not yet merged. CI sanity: pytest 8/8 on `tests/test_python_path_parity.py`; bench_boosting kernel sources untouched.
 3. **DEC-027 — deferred (unchanged)**. Not opened. Reserved for a dedicated future research sprint.
 4. **Standing orders** (unchanged): DEC-012 one-change-per-commit; no Co-Authored-By; RR-AMATOK only; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate unconditionally.
-5. **New standing order (S26 addition)**: parity gates that are kernel-ULP only MUST be explicitly labeled as kernel-output-only in their gate spec. Python-path / nanobind / `FindBestSplit` / leaf-estimation parity requires its own harness (see `tests/test_python_path_parity.py`). Reason: v5 ULP=0 record coexisted with a 0.69× Python-path leaf-magnitude collapse for multiple sprints because the kernel gate was silently misread as "full parity".
+5. **Standing order (S26 addition, carried forward)**: parity gates that are kernel-ULP only MUST be explicitly labeled as kernel-output-only in their gate spec. Python-path / nanobind / `FindBestSplit` / leaf-estimation parity requires its own harness (see `tests/test_python_path_parity.py`).
 
 ## Standing orders (carried forward)
 

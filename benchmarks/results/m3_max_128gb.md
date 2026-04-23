@@ -28,3 +28,11 @@
 | 500k x 50 | Logloss    | MLX     |   173.38 |     0.6 |     0.4283 |
 | 500k x 50 | MultiClass | CPU     |     3.36 |    29.7 |     0.5930 |
 | 500k x 50 | MultiClass | MLX     |   346.20 |     0.3 |     0.6594 |
+
+---
+
+> **AN-014 (DEAD — see DEC-031):** The MLX Train Loss values in this table (e.g. RMSE
+> 10k = `3.0407`, Logloss 10k = `0.4099`) were captured with catboost_mlx 0.3.0
+> (Sprint 14, commit `7b36f60a82`), 12+ sprints before DEC-028 and DEC-023 v5. No
+> automated test enforces these values; `benchmarks/bench_mlx_vs_cpu.py` is unrunnable
+> at CI budget. These values are preserved for historical throughput reference only.

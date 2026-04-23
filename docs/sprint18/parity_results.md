@@ -80,6 +80,14 @@ The cooperative-broadcast accumulation pattern (stride-partition, single writer 
 
 **S18-G3 hard merge gate: CLEARED. Kernel commit `19fa5ce6cc` is merge-ready.**
 
+> **S27-AA-T4 note (class-c — documented-supersession):** The 18-config numeric values in
+> this table (e.g. 10k/RMSE/128b = `0.48016100`) are anchored to the S18 fixed kernel
+> (`19fa5ce6cc`). They were superseded by the S19 kernel (DEC-016 T1 fuse-valid +
+> EvalAtBoundary removal, commit `92f3832169`) and further by S24 DEC-023 v5
+> (`36e01438a1`). The authoritative post-supersession reference is the S19 18-config
+> sweep (AN-011, `docs/sprint19/results.md`, commit `b04b1efd2c`). Current tip values
+> differ by up to ~2% (max rel); this is expected and not a regression.
+
 ## Methodology note
 
 The Sprint 17 parity report (`docs/sprint17/parity_results.md`) used `csv_train_sprint16` (reference) vs `csv_train_profiled` (subject) on CSV files, producing the reference loss values in that report (e.g. RMSE N=10k: 0.496241). This S18-04b re-run uses `bench_boosting` binaries with synthetic data. The numeric reference values differ because `bench_boosting` uses a different data-synthesis path than `csv_train` + CSV files. The parity comparison remains valid: both reference and subject use the identical `bench_boosting.cpp` data path (same seed, same generator), differing only in `kernel_sources.h`. The 0-ULP result confirms the fixed kernel is numerically identical to the D1c reference on the full 18-config DEC-008 grid.

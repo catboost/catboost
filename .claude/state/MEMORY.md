@@ -44,7 +44,7 @@ Gap narrows slightly with N — per-iteration fixed cost dominates:
 ## Resolved / mitigated (historical)
 
 - **BUG-007** (MITIGATED 2026-04-22): nanobind path — Python wrapper sorts group_ids (`python/catboost_mlx/core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness as defense-in-depth. See `KNOWN_BUGS.md`.
-- **bench_boosting K=10 anchor** (RESOLVED Sprint 8, TODO-022): `1.78561831` is the canonical anchor at `20k × 30 × depth 5 × 50 iters`; the prior `2.22267818` "expected" value was captured from a mismatched-param run. See `CHANGELOG.md:27`.
+- **bench_boosting K=10 anchor** (3rd lifetime as of S27-AA-T4): value is now `1.85752499` at `20k × 30 × depth5 × 50iters × seed42`. History: `2.22267818` (mismatched-param, S8 TODO-022) → `1.78561831` (corrected S8) → `1.85752499` (S27 T4, after S18/S19/S22/S23/S24 kernel changes). Docs-only in `CHANGELOG.md` — repeat-offender under DEC-031 Rule 5; must be promoted to live pytest on next update. **DEC-032 note**: K=10 multiclass runs use CPU default `score_function` (probably Cosine); if MLX only implements L2, this anchor is coincidental-not-structural per DEC-032 and requires explicit `score_function` labeling before it can be re-blessed as a parity claim.
 
 ## RandomStrength noise is a global scalar shared across all CatBoost grow policies (from S26-FU-2 T1 triage, 2026-04-22)
 
@@ -61,6 +61,27 @@ Source: `catboost/private/libs/algo/greedy_tensor_search.cpp:92–107, :1186, :1
 - **`pred_std_R = std(MLX_preds) / std(CPU_preds)`** is the primary signal for leaf-magnitude bugs — orthogonal to RMSE (which can be dominated by irreducible noise at small N). DEC-028's signature was `pred_std_R ≈ 0.69`. Keep it in any parity harness touching leaf values.
 - **Gradient RMS, not hessian sum, scales RandomStrength noise.** Dimensional check: noise that scales with `N` (hessian sum for RMSE) grows without bound as dataset size increases; noise that scales with `sqrt(sum(g²)/N)` (gradient RMS) shrinks as residuals shrink over boosting iters. If a parity gap grows with N or grows across iters, suspect the wrong scale.
 - **Non-oblivious tree serialization requires explicit BFS node index.** Depthwise/Lossguide training cursors are keyed by bit-packed `partitions` (bit k = direction at depth k), but model JSON consumers walk trees in BFS order. Emit `bfs_node_index` per split and `leaf_bfs_ids` inverse map for Lossguide. Don't rely on the consumer to re-derive the mapping.
+
+## Anchor hygiene (DEC-031, S27-AA-T5, 2026-04-22)
+
+S27 audit found 18 anchors: 4 drifted > 1e-4, 3 structurally dead, 9 docs-only (no live enforcement). AN-008 hit its third numeric lifetime. DEC-031 codifies five standing rules:
+
+1. **No new docs-only canonical values** — every committed anchor needs a live pytest assertion.
+2. **Anchor-change-on-path-change** — any commit touching histogram/kernel/accumulation/leaf/gain must re-run and update affected anchors atomically or open an immediate audit.
+3. **Sprint-close drift check** — re-run anchors touched by that sprint's code changes at close.
+4. **Dead anchors removed or wired** — class-d anchors must resolve within the sprint found; never leave unreachable "canonical" values in docs.
+5. **Repeat-offender promotion** — if an anchor has been value-updated more than once, the next update must also wire it to a live test (AN-008 is the pending case).
+
+Full taxonomy (class-a/b/c/d) and enforcement details: `DECISIONS.md §DEC-031`. Next audit: Sprint 31 or first kernel/accumulation change, whichever is sooner. T4 landing SHAs: `adce339b56`–`62f17df7a9`.
+
+## Score function fidelity (DEC-032, S27-FU-3-T1, 2026-04-22)
+
+- **MLX `FindBestSplitPerPartition` implements L2 Newton gain only (hardcoded).** No Cosine, no NewtonCosine, no dispatch on `score_function`.
+- **CPU CatBoost DW default is Cosine.** `score_function` hyperparameter (`{Cosine, L2, NewtonL2, NewtonCosine}`) is likely silently ignored on the MLX path today — unverified until S28-AUDIT confirms.
+- **Any DW (or LG) parity test MUST set CPU `score_function='L2'` explicitly until S28 closes.** Tests that compare MLX against CPU default (Cosine) are measuring algorithmic divergence, not parity. The divergence is not noise: per-partition gain ratios of 0.82–0.86 at N=1000, forced `score_function='L2'` reproduces MLX to ±0.11%.
+- **v5 `bench_boosting` ULP=0 record is unaffected** — covers histogram kernel output only; `FindBestSplitPerPartition` gain computation is not in scope.
+- **Aggregate RMSE parity claims (Python-path harness, S26-FU-2 gate numbers) are coincidental-not-structural** at N≥10k. Both Cosine (CPU default) and L2 (MLX) happen to agree within gate tolerance at larger N; this is aggregation smoothing, not algorithmic equivalence. Re-blessing with explicit `score_function` labeling is S28-REBLESS.
+- Source: S27-FU-3-T1 commit `0931ad6e9c`; triage doc `docs/sprint27/scratch/fu3-t1-triage.md`; DEC-032.
 
 ## CUDA reference targets (from researcher, 2026-04-15)
 

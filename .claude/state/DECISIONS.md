@@ -746,10 +746,10 @@ prediction at `leaf_values[0]`.
 SymmetricTree path unchanged (already BFS-ordered implicitly).
 
 **Risks carried forward**:
-- **S26-FU-1**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns
+- ~~**S26-FU-1**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns
   `nodeIdx − numNodes` (BFS leaf order) instead of bit-packed partition order. Affects
   validation RMSE tracking during Depthwise training only; does not affect training
-  correctness or Python predictions.
+  correctness or Python predictions.~~ — RETIRED by G1-FU1 pass (commit `88cbe6d067`), DEC-030 implements correct encoding. **Superseded-by**: DEC-030.
 - Model JSON now has a new `bfs_node_index` field. Old SymmetricTree models (which never
   had this field) still work correctly via dispatch; old broken non-oblivious models continue
   to produce all-leaf-0 predictions (no worse than pre-fix behavior).
@@ -758,3 +758,289 @@ SymmetricTree path unchanged (already BFS-ordered implicitly).
 diagnostics `docs/sprint26/d0/depthwise-lossguide-root-cause.md`,
 `docs/sprint26/d0/leaf-magnitude-code-diff.md`,
 `benchmarks/sprint26/d0/one_tree_depthwise.py` + `one-tree-depthwise-instrumentation.txt`.
+
+---
+
+## DEC-030: Depthwise leaf-index encoding for validation-path inference
+
+**Sprint**: 27 (S27-FU-1)
+**Date**: 2026-04-22
+**Status**: IMPLEMENTED — T3 `fb7eb59b5f`, G1-FU1 PASS 6/6 `88cbe6d067`
+**Authored by**: S27-FU-1-T2 (@ml-engineer)
+**Commits (T1 repro + call-site evidence)**: `34f62b32c9` (repro harness), `eca086e4dd` (call-site triage)
+**Extends**: DEC-029 (non-oblivious tree serialization) — adds the evaluation-side encoding decision.
+
+### Context
+
+`ComputeLeafIndicesDepthwise` (`csv_train.cpp:1751`) recomputes leaf indices for validation
+documents on each training iteration. It was introduced alongside DEC-029's split-population
+fix but never validated against the training-path encoding. Two independent bugs were confirmed
+by the S27-FU-1-T1 harness (`docs/sprint27/scratch/fu1-t1-repro.md`): 103/200 sample
+mismatches at depth=3; 51.5% mismatch rate. The function is called only inside the
+`if (valDocs > 0)` guard at `csv_train.cpp:4040` (sole call site — confirmed by grep).
+
+### Bug A — Encoding mismatch (fires at depth >= 2)
+
+**Symptom**: `leafVec[d] = nodeIdx − numNodes` returns the BFS-array-leaf-offset (0-based rank
+among depth-`D` leaves in BFS left-to-right order). The `leafValues` array is indexed by the
+bit-packed partition encoding established in the training path: `bit k = goRight at depth k`.
+
+**Mapping mismatch at depth=2** (from T1 evidence table):
+
+| Path | BFS nodeIdx | BFS-offset (buggy) | Bit-packed (correct) | Match? |
+|------|-------------|-------------------|----------------------|--------|
+| LL   | 3           | 0                  | 0b00 = 0             | YES    |
+| LR   | 4           | 1                  | 0b10 = 2             | NO     |
+| RL   | 5           | 2                  | 0b01 = 1             | NO     |
+| RR   | 6           | 3                  | 0b11 = 3             | YES    |
+
+Mixed-direction paths (LR, RL) are routed to the wrong `leafValues` entry.
+
+### Bug B — Split-lookup mismatch (fires at depth >= 3)
+
+**Symptom**: `nodeSplits[nodeIdx]` uses the BFS node index as a flat-array position. But `splits`
+is built in partition order (bit-packed order per depth level): for depth level `d` with
+`2^d` partitions, position `splits[prefix + p]` holds the split for partition `p`, whose
+BFS node is computed as:
+```
+bfsNode = 0; for lvl in 0..d-1: bfsNode = 2*bfsNode + 1 + ((p >> lvl) & 1)
+```
+At depth=3, `splits[4]` holds partition `p=1` (BFS node 5) and `splits[5]` holds partition
+`p=2` (BFS node 4) — the indexing is transposed. Any traversal that reaches BFS nodes 4 or 5
+at depth level 2 evaluates the wrong feature and threshold.
+
+### Decision
+
+Use **bit-packed partition encoding** for leaf-index output and a **BFS-node-keyed map**
+for split lookup, mirroring `ComputeLeafIndicesLossguide`.
+
+**Fix for Bug B**: Build `std::unordered_map<ui32, TObliviousSplitLevel> nodeSplitMap` keyed by
+BFS node index, populated from the parallel `splits` + `splitBfsNodeIds` arrays (the latter
+already built at `csv_train.cpp:3644–3654` as part of DEC-029). Replace `nodeSplits[nodeIdx]`
+with `nodeSplitMap.at(nodeIdx)`.
+
+**Fix for Bug A**: Accumulate `partBits |= (goRight << lvl)` inside the depth-traversal loop.
+Replace `leafVec[d] = nodeIdx − numNodes` with `leafVec[d] = partBits`.
+
+**Pseudo-code for the corrected inner loop**:
+```
+// Pre-traversal: build BFS → split map once per call
+nodeSplitMap = { splitBfsNodeIds[i] → splits[i]  for i in 0..len(splits)-1 }
+
+// Per-doc traversal
+for d in 0..numDocs-1:
+    nodeIdx = 0; partBits = 0
+    for lvl in 0..depth-1:
+        ns = nodeSplitMap.at(nodeIdx)
+        fv = extract_feature(dataPtr, d, ns)
+        goRight = (ns.IsOneHot) ? (fv == ns.BinThreshold ? 1 : 0)
+                                : (fv >  ns.BinThreshold ? 1 : 0)
+        partBits |= (goRight << lvl)
+        nodeIdx = 2 * nodeIdx + 1 + goRight
+    leafVec[d] = partBits
+```
+
+The signature gains one parameter: `const std::vector<ui32>& splitBfsNodeIds`.
+
+### Rationale
+
+**CPU-source authority**: `catboost/libs/model/cpu/evaluator_impl.cpp:462–492`
+(`CalcIndexesNonSymmetric`) confirms that CatBoost CPU **never** uses `nodeIdx − numNodes`
+to resolve a leaf value. The CPU stores `NonSymmetricNodeIdToLeafId[nodeIndex]` — an
+explicit per-node map. The `nodeIdx − numNodes` formula is an MLX-specific invention that
+has no basis in either the CPU evaluator or the training-path partition accumulation.
+
+**MLX canonical encoding**: `csv_train.cpp:3660–3683` establishes bit-packed partition as the
+leaf-index encoding (comment at line 3991: "partitions is already the correct leaf index").
+`csv_train.cpp:3644–3654` defines the partition → BFS node forward map (DEC-029). The inverse
+(BFS node → partition) is needed only at inference time in `ComputeLeafIndicesDepthwise`.
+
+**Structural mirror**: `ComputeLeafIndicesLossguide` already holds the correct pattern —
+BFS-keyed `nodeSplitMap` for lookup, explicit inverse map for final resolution. For Depthwise
+the bit-packed accumulation replaces the `bfsToLeafId` inverse map (the encoding is implicit
+in the traversal itself, not requiring a separate map), but the BFS-keyed split lookup is
+the same mechanism.
+
+### Scope
+
+**Validation path only.** The sole call site is `csv_train.cpp:4040` inside `if (valDocs > 0)`.
+The training hot path (`csv_train.cpp:3990–4003`), approximation update, `CalcLeafValues`, and
+`FindBestSplitPerPartition` are all unaffected — they use the `partitions` bit array directly
+and never call `ComputeLeafIndicesDepthwise`. Confirmed by call-site triage commit `eca086e4dd`
+and `docs/sprint27/scratch/fu1-call-site-triage.md`.
+
+### Retires DEC-029 risk entry
+
+DEC-029 Risks section included:
+> "S26-FU-1: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes`
+> (BFS leaf order) instead of bit-packed partition order."
+
+This entry is retired. T3 landed (`fb7eb59b5f`) and G1-FU1 passed 6/6 cells (`88cbe6d067`). DEC-029 Risks entry struck through (2026-04-22).
+
+### Test gate
+
+**G1-FU1**: Depthwise validation RMSE (with eval set provided, `use_best_model=True`) matches
+CPU CatBoost within `rs=0` tight band `ratio ∈ [0.98, 1.02]`, across 3 seeds × {N=10k, N=50k}.
+Gate must confirm `val_loss` history is now monotone-decreasing (or near-so) across iterations,
+consistent with correct leaf routing.
+
+Kill-switch: if T3 fix causes any bench_boosting ULP != 0 (v5 kernel-output parity) or any
+`tests/test_python_path_parity.py` failure, abort and keep DEC-029 risk entry open.
+
+### Authority
+
+- `docs/sprint27/scratch/fu1-t1-repro.md` — bug evidence, mismatch table, depth-conditional fire analysis
+- `docs/sprint27/scratch/fu1-call-site-triage.md` — scope confirmation (validation-only)
+- `docs/sprint27/scratch/fu1-t2-audit.md` — CPU source audit + fix specification (this decision's input)
+- `catboost/libs/model/cpu/evaluator_impl.cpp:462–492` — CPU canonical traversal (no `nodeIdx−numNodes`)
+- `catboost/mlx/tests/csv_train.cpp:3644–3683` — MLX canonical encoding (bit-packed partition)
+
+---
+
+## DEC-031: Anchor hygiene protocol
+
+**Sprint**: 27 (Track B, T5)
+**Date**: 2026-04-22
+**Status**: Adopted. Protocol applies to all future `mlx/` commits.
+**Authored by**: S27-AA-T5 (@technical-writer)
+**Source material**: S27-AA-T1 inventory (`d4e2d7cf88`), T2 re-run (`800fdc8fce`), T3 classification (`9be26b91c0`), T4 landings (`adce339b56`–`62f17df7a9`).
+
+### Context
+
+In 22 sprints this project hit the same failure mode twice:
+
+- **Sprint 8, TODO-022**: AN-008 (`2.22267818`) was a CHANGELOG-only "canonical" value captured from a mismatched-param run. No live assertion enforced it. It was discovered stale and corrected to `1.78561831`.
+- **Sprint 26, D0-9**: AN-001–005 (five live test assertions, atol=1e-3) had silently diverged from current output after DEC-028 landed. They were discovered only when CI red-flagged `test_rmse_final_loss_matches_sprint4_anchor`.
+
+The S27 anchor audit (T1–T4) enumerated 18 committed numeric anchors and found:
+
+- 4 had drifted > 1e-4 from current output (AN-006, AN-007, AN-008, AN-018)
+- 3 were structurally dead — no live harness enforces them and no path exists to regenerate them (AN-013, AN-014, AN-015)
+- AN-008 is on its **third numeric lifetime** (`2.22267818` → `1.78561831` → `1.85752499`)
+- 9 of 18 anchors were docs-only (no automated enforcement)
+
+The pattern is not coincidence. Numeric anchors accumulated under a then-correct configuration; when the underlying code path changed legitimately, the anchors did not follow. The root cause is structural: docs-only "canonical" values have no enforcement mechanism and no update trigger.
+
+### The four drift classes
+
+The following classification, established in T3, is the canonical taxonomy for all future anchor triage:
+
+- **class-a** (stale-capture): anchor was captured under a then-correct configuration; the underlying code or config has since legitimately changed; the new value is correct. Standard T4 update applies.
+- **class-b** (regression): anchor value was correct at capture; current code differs from it; **this is a code bug, not an anchor problem.** Do not update the anchor. Escalate to an engineer before any anchor change. T3 confirmed zero class-b anchors in S27.
+- **class-c** (documented-supersession): anchor was superseded by a later committed value (e.g., an intermediate port-tip or reverted branch); update to the post-supersession value with a pointer to the superseding commit. AN-012 and AN-018 are examples.
+- **class-d** (dead anchor): anchor is not asserted by any live test, is behind a broken fixture, or is a docs-only "canonical" value with no enforcement path. Structural debt beyond stale values. AN-013, AN-014, AN-015 are examples.
+
+### The hygiene rules
+
+**Rule 1 — No new docs-only canonical values.**
+Every committed numeric anchor must be wired to at least one live assertion in a pytest (or equivalent automated test). CHANGELOG.md "canonical anchor" entries and bench-report "expected values" tables without matching assertions are prohibited going forward.
+- **Why**: The S8/S26/S27 pattern is driven entirely by docs-only values. A live assertion means CI catches drift at the next run; a docs-only value means drift can age undetected for 17+ sprints (as AN-015 demonstrated).
+- **How to apply**: Before committing a new numeric result as "canonical" or "expected" in any markdown file, first wire it to an assertion in `python/tests/`. Then commit both in the same atomic change.
+
+**Rule 2 — Anchor-change-on-path-change requirement.**
+Any commit that modifies a code path must include anchor re-runs for anchors generated from that path — either updating them atomically in the same commit, or opening a follow-up AA-style audit immediately (not at the next sprint close).
+- **Why**: The AN-006/AN-007 drift accumulated across five distinct shipping commits (S18, S19 ×2, S22/S23, S24) — each individually correct, collectively untracked. No single commit felt responsible for updating the test anchors.
+- **How to apply**: If a commit touches histogram, kernel, accumulation, leaf-update, or gain-score code, grep the anchor inventory for anchors generated from that path and re-run them. The anchor inventory lives in `docs/sprint27/scratch/aa-t1-anchor-inventory.md`; keep it updated.
+
+**Rule 3 — Every sprint close gets an anchor-drift check.**
+At sprint close, re-run the anchors touched by that sprint's code changes and confirm no unexpected drift. This is cheap (minutes for bench_boosting configs) and prevents accumulation of the "code changed, anchor didn't follow" debt class.
+- **Why**: S27's oldest undetected drift was AN-015 (15+ sprint staleness) and AN-008 (S18 to S27 = ~9 sprints). Both would have been caught within one sprint under this rule.
+- **How to apply**: Sprint close QA responsibility. Scope is limited to anchors whose generating harness intersects with that sprint's diffs — not a full 18-anchor sweep every sprint.
+
+**Rule 4 — Dead anchors are removed or wired, not ignored.**
+When an anchor is classified class-d: either wire it to a live automated test (preferred) or remove it from committed documentation. Leaving unreachable "canonical" values in docs is actively misleading — they imply enforcement that does not exist.
+- **Why**: AN-013, AN-014, and AN-015 are examples. AN-015 went further: the test *appeared* to assert CI workflow values but always skipped due to a filename typo (`mlx_test.yaml` vs `mlx-test.yaml`), giving false confidence for 15+ sprints.
+- **How to apply**: T4 landed DEAD markers on AN-013/AN-014 pending this DEC. AN-015 fixture path was corrected in T4; the CI-embed design was retired in favor of standalone assertions. Future class-d identifications should resolve within the sprint they are found.
+
+**Rule 5 — Repeat-offender promotion clause.**
+If an anchor has had its numeric value updated more than once (i.e., a second stale-capture event), the next update must also promote it to a live-asserted test. A value-only change is not sufficient.
+- **Why**: AN-008's three lifetimes (`2.22267818` → `1.78561831` → `1.85752499`) indicate it sits on a code path that is actively re-tuned. Another value-only CHANGELOG update will be stale again at the next kernel change.
+- **How to apply**: Any T4-style anchor-update PR must run `git log -p` on the anchor's source file or the constant definition. If more than one prior value change exists, the PR must also land the test — e.g., add K=10 multiclass to `test_qa_round10_sprint5_bench_and_scan.py` alongside the value update.
+
+### Scope and enforcement
+
+- This protocol applies to **all future commits** on `mlx/` branches from S27 forward. It is not retroactive except where T4 already landed updates (`adce339b56`–`62f17df7a9`).
+- `.claude/state/` narrative files (HANDOFF, CHANGELOG-DEV, TODOS, MEMORY) are exempt — they are prose, not enforced anchors.
+- CI should eventually gain a lint step that detects new numeric literals in CHANGELOG.md or `docs/` bench-report tables without a matching `assert` or `pytest.approx` call. This is out of S27 scope; flagged as a follow-up task.
+
+### Supersedes
+
+- Supersedes the implicit "canonical value in CHANGELOG.md" pattern used for TODO-022 (Sprint 8) and similar.
+- Does not retire any prior DEC.
+
+### Audit references
+
+- 18-anchor T1 inventory: `docs/sprint27/scratch/aa-t1-anchor-inventory.md` (`d4e2d7cf88`)
+- T2 re-run results: `docs/sprint27/scratch/aa-t2-rerun-results.md` (`800fdc8fce`)
+- T3 classification: `docs/sprint27/scratch/aa-t3-classification.md` (`9be26b91c0`)
+- T4 atomic anchor updates: `adce339b56` (AN-006) through `62f17df7a9` (AN-013/014 DEAD markers)
+
+**Next audit due**: Sprint 31 (every 4 sprints), or upon any kernel or accumulation algorithm change, whichever is sooner.
+
+---
+
+## DEC-032: MLX DW gain function scope (L2-only, not parity-equivalent to CPU)
+
+**Sprint**: 27 (S27-FU-3, T5)
+**Date**: 2026-04-22
+**Status**: ADOPTED. Standing constraint until S28 closes.
+**Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
+**Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
+**Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
+
+### Context
+
+S27-FU-3 was opened to triage five DW parity cells failing at N=1000 with `pred_std_R` up to 1.10 (MLX consistently better than CPU at small N, a direction not explained by noise or leaf-magnitude shrinkage). The original Track C framing offered a three-way trichotomy for the verdict: (a) BUG — open a fix; (b) NOISE — tighten gate scope to N≥10k; (c) ACCEPTED — widen pred_std_R band with rationale.
+
+FU-3 T1 instrumented `FindBestSplitPerPartition` at DW N=1000 depth-0, capturing per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds. The resulting evidence shows:
+
+- MLX `FindBestSplitPerPartition` hardcodes **L2 Newton gain** throughout the DW (and LG) code path. There is no `score_function` dispatch, no Cosine implementation, no Newton-Cosine or NewtonL2 variant.
+- CPU CatBoost DW defaults to **Cosine gain**. It accepts a `score_function` hyperparameter selecting among `{Cosine, L2, NewtonL2, NewtonCosine}`.
+- Forcing `score_function='L2'` on the CPU side reproduces MLX per-partition gain decisions within ±0.11% across all 3 seeds. The five failing cells collapse to parity when both sides use L2.
+
+The asymmetry is therefore not algorithmic noise, not a parity gate edge case, and not a bug in either codebase. It is a **configuration divergence where both sides implement correct but different algorithms**. This is a 4th class of finding not represented in the original (a)/(b)/(c) trichotomy.
+
+At small N (≤1000, depth=6, 64 partitions × ~15 docs each), the per-partition gain difference between Cosine and L2 is visible and produces measurable split disagreement (gain ratio 0.82–0.86 across the failing cells). At larger N or in the SymmetricTree path (where the gain is computed once over the full fold and aggregation smooths per-partition variation), the two formulas happen to agree closely — a coincidental numerical agreement, not structural parity.
+
+### Decision
+
+1. **MLX `FindBestSplitPerPartition` implements L2 Newton gain only.** This is the current state and is documented as a deliberate scope boundary pending S28 work.
+
+2. **This is NOT algorithmically equivalent to CPU CatBoost's default (Cosine).** They are different algorithms. "Both are correct implementations of different gain functions" does not make them parity-equivalent. A parity claim requires both sides to compute the same algorithm; they do not.
+
+3. **DW (and LG) parity tests in MLX MUST set CPU `score_function='L2'` explicitly.** Any parity test that compares MLX DW/LG output against CPU CatBoost with default `score_function` (Cosine) is measuring algorithmic divergence, not parity. The test outcome is not interpretable as parity evidence in either direction.
+
+4. **v5 `bench_boosting` ULP=0 record remains valid at kernel scope only.** The ULP=0 record covers histogram kernel output (`bench_boosting.cpp` harness). It does not involve `FindBestSplitPerPartition` gain computation. This finding does not affect the v5 record.
+
+5. **Python-path parity harness and S26-FU-2 gate numbers (aggregate RMSE parity) are coincidental-not-structural.** Those measurements were made with CPU default `score_function` (Cosine). The numbers pass the gate because at N≥10k the Cosine/L2 difference is small enough to fall within the gate's tolerance bands — they are not evidence of structural algorithmic equivalence. Re-labeling and re-blessing required in S28.
+
+6. **FU-3 T4 gate adjustment**: the DW parity harness's CPU side MUST add an explicit `score_function='L2'` argument. This is the correct gate-scope tightening. Do NOT widen N scope to ≥10k to hide the disagreement — that would be the anchor-drift pattern documented in DEC-031 Rule 3 applied to gate scope.
+
+### Rationale
+
+**(a) The evidence shows structural algorithmic difference, not noise.** Per-partition gain ratios of 0.82–0.86 across 3 seeds are consistent and reproducible. Forcing `score_function='L2'` on CPU eliminates the divergence to ±0.11%. This is a signal, not scatter.
+
+**(b) Widening N scope to ≥10k would be the S8/S26 anchor-drift pattern that DEC-031 just codified against.** The DEC-031 anchor hygiene rules exist precisely to prevent "it passes at larger N by coincidence" from masquerading as "it is correct." The same logic applies to gate scope: a gate that passes only because aggregation smooths a structural difference is not a valid parity gate.
+
+**(c) Honest scoping now enables S28 to do the port correctly.** If DEC-032 labeled this ACCEPTED or NOISE, the S28 work would be framed as an "improvement" rather than a "gap closure." The correct framing is: MLX currently implements one gain function (L2); CPU's default is a different function (Cosine); the port is incomplete until MLX implements and dispatches the full `score_function` enum.
+
+### Scope of this DEC
+
+Covers `FindBestSplitPerPartition` (DW and LG code paths) only. Does NOT cover `FindBestSplit` (SymmetricTree path) — that path may have the same scope gap but it is not confirmed by FU-3 instrumentation and is out of scope until S28-AUDIT confirms.
+
+### Supersedes / retires
+
+None. DEC-032 is new framing of a newly-discovered algorithmic scope debt. It does not supersede any prior DEC.
+
+### Test gate action
+
+S27-FU-3-T4 (@ml-engineer, running in parallel with this commit) will add an explicit `score_function='L2'` requirement on the CPU side of the DW parity harness. Gate scope tightening: DW N=1000 cells pass when both sides use L2. Do NOT widen N threshold.
+
+### Follow-up
+
+**S28 "Score function fidelity"** — audit `score_function` dispatch end-to-end for the MLX backend (Python binding → C++ entry → `FindBestSplitPerPartition`); implement Cosine gain (highest-impact missing function); make L2 explicit via enum/dispatch rather than hardcoded; re-bless all aggregate-scope parity claims with explicit score_function labeling; re-run FU-3's 5 failing cells with `score_function='Cosine'` on both sides as structural proof of gap closure.
+
+### Authority
+
+- `0931ad6e9c` — FU-3 T1 triage commit (per-partition instrumentation + CPU score_function forcing)
+- `docs/sprint27/scratch/fu3-t1-triage.md` — evidence document, per-partition gain table, ±0.11% reproduction result

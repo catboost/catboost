@@ -60,3 +60,12 @@ The bit-exact result above holds across the **tested grid**: `approxDim ∈ {1, 
 
 - S17-G3 (RMSE ulp≤4, Logloss ulp≤4, MultiClass ulp≤8): **PASS**
 - Hard merge gate, no override. Cleared for Sprint 17 PR.
+
+---
+
+> **AN-013 (DEAD — see DEC-031):** The 18 numeric values in the full config table above
+> (e.g. RMSE 10k/128 = `0.496241`) are captured under the `csv_train_sprint16` /
+> `csv_train_sprint17` binaries, which no longer exist on any current branch. The data
+> path (CSV + subprocess pipeline) predates `bench_boosting` and is unreachable from
+> any live harness. No automated test enforces these values. They document the S17-G3
+> parity sweep result and are preserved for historical reference only.

@@ -98,7 +98,7 @@ source of run-to-run variation is Metal GPU float32 accumulation order.
 
 | Metric | Value |
 |--------|-------|
-| Mean RMSE | 0.19457837 |
+| Mean RMSE | 0.19457838 | <!-- S27-AA-T4: updated from 0.19457837; 1e-8 sub-ULP from single-run proxy vs 100-run mean; no kernel change since cbbfc29257 -->
 | Median RMSE | 0.19457836 |
 | max − min | 1.49e-08 |
 | Std dev | 6.17e-09 |
