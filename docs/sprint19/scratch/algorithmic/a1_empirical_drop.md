@@ -29,6 +29,11 @@ was satisfied — proceeded to production port.
 Edit: `catboost/mlx/kernels/kernel_sources.h` — lane holds lo/hi slab in
 registers, outer loop halved, inner shuffle loop runs 2×32 passes.
 Parity harness: bit-exact at 50k/RMSE/d6/128b/seed42 (0.48047778, 3/3 runs).
+<!-- S27-AA-T4 (class-c — S19 A1 drop supersession): 0.48047778 is the pre-drop A1
+     intermediate value captured at tip 0f992cf863. A1 was reverted in the same sprint.
+     Current tip produces the T1-only canonical value 0.47740927 (= AN-010,
+     docs/sprint19/results.md). The parity reference post-A1-drop is AN-010.
+     See S19 sprint close (0f992cf863) and DEC-013/DEC-014/DEC-015 for the A1 revert. -->
 
 | Build | warm_mean_ms (3-run) | Δ vs T1-only |
 |-------|---------------------:|-------------:|
