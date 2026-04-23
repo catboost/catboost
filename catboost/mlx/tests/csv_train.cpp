@@ -1746,11 +1746,16 @@ mx::array ComputeLeafIndices(
 }
 
 // Compute leaf indices for a depthwise (non-symmetric) tree.
-// nodeSplits: BFS-ordered splits for all internal nodes (size = 2^depth - 1).
-// Traverses from root (node 0), following left (2n+1) or right (2n+2) children.
+// splits: split descriptors in bit-packed partition order (as built by the training loop).
+// splitBfsNodeIds: parallel array — splitBfsNodeIds[i] is the BFS node index for splits[i].
+// Returns bit-packed partition indices matching the training-path encoding (DEC-030):
+//   bit k of the returned value = goRight at depth level k.
+// This matches the `partitions` array maintained by the training path at csv_train.cpp:3660–3683,
+// so mx::take(leafValues, leafIndices) is correct on the returned values.
 mx::array ComputeLeafIndicesDepthwise(
     const mx::array& compressedData,
-    const std::vector<TObliviousSplitLevel>& nodeSplits,
+    const std::vector<TObliviousSplitLevel>& splits,
+    const std::vector<ui32>& splitBfsNodeIds,
     ui32 numDocs,
     ui32 depth
 ) {
@@ -1758,19 +1763,15 @@ mx::array ComputeLeafIndicesDepthwise(
         return mx::zeros({static_cast<int>(numDocs)}, mx::uint32);
     }
 
-    // CPU fallback: traverse each doc through the tree node-by-node.
-    // This is correct for any tree shape and is only used for validation/
-    // inference (not the hot training path).
-    // For numDocs up to tens of thousands this is fast enough.
-    const ui32 numNodes = (1u << depth) - 1u;
-    mx::eval(compressedData);
-
-    // Extract all needed feature columns CPU-side.
-    // We compute per-doc leaf index by sequential tree traversal.
-    // Direct: use MLX scatter to build leafIndices from partition array
-    // which was already computed on GPU — just return the GPU partitions.
-    // (The caller already has partitions from the training path.)
-    // Here we recompute from scratch for validation data.
+    // Build nodeSplitMap: BFS node index → split descriptor.
+    // splits is in partition order; splitBfsNodeIds[i] gives the BFS index for splits[i].
+    // This fixes Bug B: nodeSplits[nodeIdx] was indexing by BFS position into a
+    // partition-ordered array, producing wrong split descriptors at depth >= 3.
+    std::unordered_map<ui32, TObliviousSplitLevel> nodeSplitMap;
+    nodeSplitMap.reserve(splits.size());
+    for (ui32 i = 0; i < static_cast<ui32>(splits.size()); ++i) {
+        nodeSplitMap[splitBfsNodeIds[i]] = splits[i];
+    }
 
     // Materialise compressedData on CPU for the column reads.
     auto flatData = mx::reshape(compressedData, {static_cast<int>(numDocs), -1});
@@ -1781,15 +1782,28 @@ mx::array ComputeLeafIndicesDepthwise(
     std::vector<uint32_t> leafVec(numDocs);
     for (ui32 d = 0; d < numDocs; ++d) {
         ui32 nodeIdx = 0u;
+        ui32 partBits = 0u;
         for (ui32 lvl = 0; lvl < depth; ++lvl) {
-            const auto& ns = nodeSplits[nodeIdx];
+            // Bug B fix: look up split by BFS node index, not flat position.
+            if (!nodeSplitMap.count(nodeIdx)) {
+                fprintf(stderr,
+                    "ComputeLeafIndicesDepthwise: BFS node %u not found in nodeSplitMap "
+                    "(depth=%u, splits.size()=%zu). "
+                    "Training build loop must emit a split descriptor for every internal node.\n",
+                    nodeIdx, depth, splits.size());
+                exit(1);
+            }
+            const auto& ns = nodeSplitMap.at(nodeIdx);
             uint32_t packed = dataPtr[d * lineSize + ns.FeatureColumnIdx];
             uint32_t fv = (packed >> ns.Shift) & ns.Mask;
             uint32_t goRight = ns.IsOneHot ? (fv == ns.BinThreshold ? 1u : 0u)
                                            : (fv > ns.BinThreshold ? 1u : 0u);
+            // Bug A fix: accumulate bit-packed partition index (bit lvl = goRight at depth lvl).
+            // Replaces: leafVec[d] = nodeIdx - numNodes (BFS-array-leaf-offset, wrong encoding).
+            partBits |= (goRight << lvl);
             nodeIdx = 2u * nodeIdx + 1u + goRight;
         }
-        leafVec[d] = nodeIdx - numNodes;
+        leafVec[d] = partBits;
     }
     return mx::array(reinterpret_cast<const int32_t*>(leafVec.data()),
         {static_cast<int>(numDocs)}, mx::uint32);
@@ -4037,7 +4051,7 @@ TTrainResult RunTraining(
                     valCompressedData, lossguideNodeSplitMap, lossguideLeafBfsIds,
                     valDocs, lossguideNumLeaves);
             } else if (isDepthwiseTree) {
-                valLeafIndices = ComputeLeafIndicesDepthwise(valCompressedData, splits, valDocs, actualTreeDepth);
+                valLeafIndices = ComputeLeafIndicesDepthwise(valCompressedData, splits, splitBfsNodeIds, valDocs, actualTreeDepth);
             } else {
                 valLeafIndices = ComputeLeafIndices(valCompressedData, splits, valDocs);
             }
