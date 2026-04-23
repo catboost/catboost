@@ -2,6 +2,12 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-23 — Sprint 28 KICKOFF (Score Function Fidelity)
+
+Branch `mlx/sprint-28-score-function-fidelity` cut from master at `4b3711f82b` (S27 PR #25 merged). Small-sprint shape per Ramos 2026-04-23: stream A only, 8 tasks (S28-AUDIT through S28-CLOSE). Ride-alongs deferred: AN-008 Rule-5 promotion, CR Nit 2, SA Note 2, AA Item H, NewtonL2/NewtonCosine variants. State files updated with fleshed-out acceptance criteria per Ultrathink Task Planning standing order. Next agent: @ml-engineer picks up S28-AUDIT + S28-COSINE.
+
+---
+
 ## 2026-04-22 — Sprint 27 CLOSED
 
 26 commits (+ this close), 3 tracks closed cleanly. FU-1: DW leaf-index fix (DEC-030) — G1-FU1 6/6 PASS at `88cbe6d067`. AA: anchor audit + DEC-031 hygiene protocol — 0 class-b regressions, 4 class-a updates + 2 live-enforced anchors. FU-3: fidelity gap identified, scoped honestly to S28 via DEC-032 — G3-FU3 5/5 PASS at `591f4ce3e6` (conditional on CPU `score_function='L2'`). CR APPROVE `44bb9ee74b`, SA PASS-WITH-NOTES `24e80dde45`. PR pending Ramos. Sprint-close doc at `docs/sprint27/sprint-close.md`. Next: S28 score-function fidelity.

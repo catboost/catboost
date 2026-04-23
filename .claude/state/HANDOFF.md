@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (Sprint 27 CLOSED — Correctness Closeout complete; S27 PR OPEN-PENDING-RAMOS; S28 next — BLOCKED on S27 PR merge)
+> Last updated: 2026-04-23 (Sprint 28 ACTIVE — Score Function Fidelity; branch cut from 4b3711f82b)
 
 ## Current state
 
-- **Active sprint**: Sprint 28 — Score function fidelity. Branch `mlx/sprint-28-score-function-fidelity` to be created off master after S27 PR merges. **BLOCKED on S27 PR merge.** S28 ml-product-owner creates the branch and breaks down T1..Tn at kickoff.
+- **Active sprint**: Sprint 28 — Score function fidelity. Branch `mlx/sprint-28-score-function-fidelity` cut from master at `4b3711f82b` on 2026-04-23.
 - **Campaign**: Post-Verstappen correctness. S27 closed zero-kernel-change. S28 implements Cosine score function (DEC-032). R8 stays at 1.01× through S28.
 - **Production kernel**: v5 (`784f82a891`) — unchanged.
-- **Open PRs**: S27 PR on `mlx/sprint-27-correctness-closeout` — OPEN-PENDING-RAMOS (Ramos opens PRs; agents do not). PR #24 (S26-FU-2) status same.
+- **Open PRs**: S27 PR #25 MERGED (`4b3711f82b`). PR #24 (S26-FU-2) merged earlier.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
@@ -15,6 +15,22 @@
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
     - **S27-FU-3 SCOPED to S28** (DEC-032): DW N=1000 asymmetry is a score-function fidelity gap (MLX hardcodes L2; CPU defaults Cosine). Conditional gate G3-FU3 PASS 5/5 with `score_function='L2'` on CPU. Cosine port is S28 scope.
+
+## Sprint 28 — Score Function Fidelity (ACTIVE)
+
+Branch: mlx/sprint-28-score-function-fidelity (cut from 4b3711f82b, 2026-04-23)
+Previous sprint: S27 closed 2026-04-23 via PR #25 (4b3711f82b)
+Scope (small-sprint shape per @ml-product-owner 2026-04-23):
+  1. S28-AUDIT — formality confirmation (grep verified zero score_function refs in catboost/mlx/)
+  2. S28-COSINE — port Cosine gain from CPU reference into FindBestSplitPerPartition
+  3. S28-L2-EXPLICIT — enum-dispatch {L2, Cosine}; remove hardcode
+  4. S28-REBLESS — explicit score_function labels on all Python-path parity test cells
+  5. S28-FU3-REVALIDATE — 5 DW N=1000 cells pass with Cosine both sides (force-L2 branch removed)
+  6. CR + SA + CLOSE
+
+Ride-alongs deferred (per Ramos decision 2026-04-23): AN-008 Rule-5 promotion, CR Nit 2, SA Note 2, AA Item H, NewtonL2/NewtonCosine variants.
+
+Next agent: @ml-engineer (S28-AUDIT writeup, then S28-COSINE implementation with @research-scientist for Cosine formula derivation if needed).
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 
@@ -79,28 +95,6 @@ Track A ∥ Track B → Track C (blocks on A) → Track D (sequential).
 ### Timeline
 
 3–4 working sessions. If all tracks land clean: 3. If FU-3 is class-(a) real bug: 4.
-
-## Sprint 28 — Score function fidelity — OPEN (BLOCKED on S27 close)
-
-**Branch**: `mlx/sprint-28-score-function-fidelity` (branches off master after S27 PR merges)
-**Entry gate**: S27 closed and PR landed.
-**Rationale**: DEC-032 (2026-04-22). FU-3 T1 established that MLX `FindBestSplitPerPartition` hardcodes L2 Newton gain while CPU CatBoost defaults to Cosine. This is a fidelity gap, not a parity edge case. S28 does the real port.
-
-**Scope**: Audit and implement `score_function` dispatch end-to-end for the MLX backend, starting with DW/LG. Zero perf changes. Zero kernel changes.
-
-**5-step arc** (S28 ml-product-owner breaks into T1..Tn at kickoff):
-
-1. **S28-AUDIT** — Audit `score_function` dispatch: Python binding → C++ entry → `FindBestSplitPerPartition`. Does the hyperparameter get plumbed at all, or is it silently ignored on the MLX path?
-2. **S28-COSINE** — Implement `score_function='Cosine'` gain (CPU default; highest-impact missing function). Port the Cosine formula from `catboost/private/libs/algo/score_calcers.cpp` into `FindBestSplitPerPartition`.
-3. **S28-L2-EXPLICIT** — Make `score_function='L2'` explicit via enum/dispatch rather than hardcoded. No algorithmic change; structural hygiene to prevent future silent drift.
-4. **S28-REBLESS** — Re-label every aggregate-scope parity claim with explicit `score_function` annotation: Python-path harness (`test_python_path_parity.py`), S26-FU-2 gate numbers (AN-017), FU-3 gate cells. Claims that passed with CPU default (Cosine) and MLX L2 are coincidental-not-structural per DEC-032; re-bless with `score_function='L2'` explicit on both sides, or move to S28-COSINE baseline.
-5. **S28-FU3-REVALIDATE** — Re-run FU-3's 5 failing DW N=1000 cells with `score_function='Cosine'` on both sides. This is the structural proof that the port closes the gap. Expected: all 5 cells pass within `pred_std_R ∈ [0.98, 1.02]` (rs=0 tight band).
-
-**Optional scope** (decide at kickoff): NewtonL2 / NewtonCosine variants. CPU supports all four `score_function` values; S28 minimum is Cosine + explicit L2 dispatch.
-
-**Standing orders** (unchanged from S27): DEC-012 one-structural-change-per-commit; RR-AMATOK fork only; no Co-Authored-By; parity sweep protocol ≥5 runs per non-gate + 100 runs at gate; parity gates must label which path they cover.
-
----
 
 ## Sprint 26 FU-2 — RandomStrength in FindBestSplitPerPartition — CLOSED
 
