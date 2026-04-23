@@ -997,7 +997,7 @@ inline EScoreFunction ParseScoreFunction(const std::string& s) {
 }
 
 // ----------------------------------------------------------------------------
-// ComputeCosineGain: per-partition, per-split Cosine score.
+// Cosine gain derivation (used by ComputeCosineGainKDim below).
 //
 // CPU reference: TCosineScoreCalcer::AddLeafPlain + GetScores()
 //   score[0] += leafApprox * SumWeightedDelta  (numerator)
@@ -1013,38 +1013,15 @@ inline EScoreFunction ParseScoreFunction(const std::string& s) {
 // Notes:
 // - No parent-node subtraction (unlike L2). Cosine is an absolute score, not
 //   a differential gain. Higher is better; values are not comparable to L2.
-// - den initialized to 1e-20f to guard against sqrt(0) on empty partitions.
-//   (CPU uses double 1e-100; FP32 smallest positive normal is ~1.175e-38 but
-//   1e-20f is safely above FP32 subnormal range and well above zero.)
-// - K-dim accumulation: sum contributions from all approx dimensions before
-//   computing the final score, matching CPU's multi-dimensional AddLeafPlain
-//   loop in CalcScores (greedy_tensor_search.cpp).
+// - den guard of 1e-20f prevents sqrt(0) on empty partitions.
+//   (CPU uses double 1e-100; 1e-20f is safely above FP32 subnormal range.)
+// - K-dim accumulation: sum num/den contributions across all approx dimensions
+//   before computing the final score, matching CPU's multi-dimensional
+//   AddLeafPlain loop in CalcScores (greedy_tensor_search.cpp).
 // - float32 precision: numerator and denominator each accumulate K terms.
 //   At K≤3, N≤1000, float32 relative error ≤ ~1e-6 (Higham bound). ULP drift
 //   vs CPU double accumulation is measured empirically in t2-gate-report.md.
 // ----------------------------------------------------------------------------
-inline float ComputeCosineGain(
-    float sumLeft, float weightLeft,
-    float sumRight, float weightRight,
-    float l2RegLambda
-) {
-    // Guard: zero-weight leaves have no contribution (matches L2 guard above).
-    if (weightLeft < 1e-15f || weightRight < 1e-15f) return -std::numeric_limits<float>::infinity();
-
-    const float invL = 1.0f / (weightLeft  + l2RegLambda);
-    const float invR = 1.0f / (weightRight + l2RegLambda);
-
-    const float num  = sumLeft  * sumLeft  * invL
-                     + sumRight * sumRight * invR;
-
-    // den = G²·W/(W+λ)²  for each leaf
-    const float den  = sumLeft  * sumLeft  * weightLeft  * invL * invL
-                     + sumRight * sumRight * weightRight * invR * invR
-                     + 1e-20f;  // guard against sqrt(0)
-
-    return num / std::sqrt(den);
-}
-
 // K-dimensional Cosine gain: sum num/den contributions across approx dims,
 // then compute score[0]/sqrt(score[1]).  Mirrors CPU's per-dim AddLeafPlain
 // loop which accumulates into a single Scores[splitIdx] pair.
