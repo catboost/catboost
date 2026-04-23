@@ -62,7 +62,7 @@ Track A ∥ Track B → Track C (blocks on A) → Track D (sequential).
 | G0 | Root cause docs complete (DEC-030, DEC-031, DEC-032) | Docs |
 | G1-FU1 | DW validation RMSE rs=0 ratio ∈ [0.98, 1.02], 3 seeds × {N=10k, 50k} | C++ validation path (`use_best_model=True` during DW training) |
 | G2-AA | All committed anchors match harness within 1e-2 OR have class-(a/c) rationale commit. Zero class-(b) uninvestigated. | Anchor-generating harness per row |
-| G3-FU3 | DW N=1000 divergence classified; gate scope or fix landed with DEC-032 | DW FindBestSplitPerPartition at small N |
+| G3-FU3 | DW N=1000 ratios ∈ [0.98, 1.02] with `score_function='L2'` on both sides (CPU explicit, MLX hardcoded). Path: `FindBestSplitPerPartition` gain-scope equivalence **conditional on L2 matching**. Unconditional algorithm parity (Cosine port) is S28 scope. Evidence: `docs/sprint27/fu3/t4-gate-report.md` — 5/5 PASS, ratios [0.9956, 1.0011]. | DW FindBestSplitPerPartition at small N |
 | G4 | bench_boosting v5 ULP=0 preserved (18-cell sweep, kernels unchanged) | Kernel-output only |
 | G5 | `tests/test_python_path_parity.py` still 8/8 PASS | Python/nanobind orchestration |
 | G6 | R8 bench_boosting e2e ratio drift ≤ 2% vs master baseline | End-to-end bench harness |
