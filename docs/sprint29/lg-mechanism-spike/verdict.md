@@ -13,7 +13,7 @@ shared joint-denominator accumulator is expected to close both paths.
 |--------------------------------|-----------------------------|--------------------------|
 | iter-1 mean drift (%)          | 0.0024 (mean)               | 0.77                     |
 | iter-1 per-seed drift (%)      | 0.0046 / 0.0015 / 0.0010    | —                        |
-| 50-iter drift (%)              | 0.0029 – 0.1970 per seed    | ~47 (aggregate)          |
+| 50-iter drift (%)              | 0.0029 – 0.1970 per seed (max at seed=1) | ~47 (aggregate) |
 | iter=1 tree, seed=0            | root + BFS feature seq      | n/a                      |
 |                                | `[0,0,0,1,1,1,1]` identical |                          |
 |                                | CPU vs MLX                  |                          |
@@ -40,7 +40,10 @@ bootstrap=no, rs=0.0, seeds={0,1,2}`. Sources:
    at iter=1. It did not.
 3. **Curve shape matches compounding, not a structural break.** Per-seed
    drift grows from <0.005% at iter=1 to 0.003–0.197% at iter=50 (see
-   `iter_curve.csv`). ST+Cosine grew from 0.77% to ~47% over the same
+   `iter_curve.csv`). Peak 0.197% at iter=50 seed=1 is three basis
+   points below 0.2% — close enough that a tighter cell could breach
+   it, which is honest for a moderate-confidence verdict.
+   ST+Cosine grew from 0.77% to ~47% over the same
    iteration span on its own cell. Both curves are monotone-ish growth
    in the same direction, which is what a float-accumulator compounding
    mechanism produces. A priority-queue ordering flip would look like a
