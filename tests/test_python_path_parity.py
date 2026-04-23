@@ -298,14 +298,16 @@ def test_symmetrictree_monotone_convergence(seed: int):
 #   FU-2:    FindBestSplitPerPartition had no noise path → rs=1 ~10-12% RMSE
 #            under-fit.  Caught by (1) with the one-sided rs=1 bound.
 #
-# S27-FU-3 / DEC-032 note (Depthwise only):
-#   MLX FindBestSplitPerPartition implements L2 Newton gain.  CPU CatBoost
-#   defaults to Cosine score function for Depthwise, which diverges from L2 by
-#   14-17% at N=1000/depth=6 (per-partition fragmentation ~15 docs amplifies the
-#   difference).  At N≥10k both functions agree within ±1%.
-#   To keep this harness valid at all tested N, _cpu_fit_nonoblivious forces
-#   score_function='L2' for Depthwise — making the CPU side algorithm-equivalent
-#   to the MLX side.  See DEC-032 for full rationale; S28 will port Cosine to MLX.
+# S27-FU-3 / DEC-032 note:
+#   S28-FU3-REVALIDATE (task #74) confirmed 5/5 DW cells pass with
+#   score_function='Cosine' on BOTH sides (ratios [0.9950, 1.0160], seeds 42-46,
+#   N=1000).  The DW force-L2 conditional is removed; DW cells now test Cosine
+#   parity end-to-end, matching CPU's default.
+#
+#   LG with Cosine both sides fails 0/5 at ratios [1.1403, 1.1498] — a gap of
+#   ~14% analogous to the pre-S28 DW gap.  LG cells retain force-L2 pending a
+#   dedicated LG Cosine port (S29-FU-LG candidate).  See t5-gate-report.md for
+#   evidence and proposed followup scope.
 # ---------------------------------------------------------------------------
 
 
@@ -314,10 +316,12 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
 
     Lossguide uses max_leaves=31 (CPU default, matching MLX default).
 
-    Both Depthwise and Lossguide use score_function='L2' explicitly (DEC-031
-    Rule 3).  CPU CatBoost's default for non-oblivious policies is Cosine; this
-    must be overridden to keep both sides algorithm-equivalent to the MLX side
-    (which implements L2 Newton gain only, per DEC-032).
+    Depthwise uses score_function='Cosine' (CPU default, now matched by MLX
+    after S28-L2-EXPLICIT + S28-FU3-REVALIDATE).  DEC-031 Rule 3: explicit.
+
+    Lossguide uses score_function='L2' — CPU LG default is Cosine but MLX LG
+    has a ~14% Cosine/L2 gap at N=1000 (0/5 seeds pass at [0.98, 1.02]).
+    Force-L2 retained pending S29-FU-LG port.  DEC-031 Rule 3: explicit.
     """
     from catboost import CatBoostRegressor
 
@@ -336,18 +340,14 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     )
     if grow_policy == "Lossguide":
         kwargs["max_leaves"] = 31
-        # DEC-031 Rule 3: CPU Lossguide default is Cosine; force L2 to match MLX.
+        # S28-FU3-REVALIDATE: LG Cosine gap confirmed 0/5 seeds in [0.98, 1.02]
+        # (ratios ~1.14); force L2 to match MLX until S29-FU-LG closes the gap.
+        # DEC-031 Rule 3: explicit algorithm label.
         kwargs["score_function"] = "L2"
-    # TODO-S28-FU3-REVALIDATE: The Depthwise force-L2 conditional below was added in
-    # fc44bfc936 (S27-FU-3-T4) to compensate for MLX implementing only L2 gain.
-    # S28-L2-EXPLICIT (0ea86bde21) ported Cosine to MLX and wired the dispatch.
-    # Task #74 (S28-FU3-REVALIDATE) will remove this conditional once 5/5 DW cells
-    # pass with score_function='Cosine' on BOTH sides as structural proof of gap
-    # closure.  Do not remove this block before that evidence exists.
     if grow_policy == "Depthwise":
-        # DEC-032: MLX implements L2 Newton gain only (pre-S28-FU3-REVALIDATE);
-        # CPU must match explicitly for parity.  DEC-031 Rule 3: explicit label.
-        kwargs["score_function"] = "L2"
+        # S28-FU3-REVALIDATE: DW Cosine parity confirmed 5/5 in [0.98, 1.02].
+        # Use CPU's natural default (Cosine) explicitly per DEC-031 Rule 3.
+        kwargs["score_function"] = "Cosine"
     m = CatBoostRegressor(**kwargs)
     m.fit(X, y)
     return m
@@ -360,19 +360,22 @@ def _mlx_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     Both nanobind and subprocess paths populate _train_loss_history for all
     grow policies after DEC-029 + FU-2.
 
-    score_function='L2' is explicit (DEC-031 Rule 3): MLX default is L2.
-    Stated explicitly so the test documents which algorithm is under test
-    and to prevent silent divergence if the MLX default ever changes.
+    Depthwise uses score_function='Cosine' (S28-FU3-REVALIDATE: 5/5 DW cells
+    pass with Cosine both sides; DEC-031 Rule 3: explicit, matching CPU default).
+
+    Lossguide uses score_function='L2' (MLX LG Cosine gap ~14% confirmed in
+    S28-FU3-REVALIDATE; force-L2 retained pending S29-FU-LG; DEC-031 Rule 3).
     """
     from catboost_mlx import CatBoostMLXRegressor
 
+    score_function = "Cosine" if grow_policy == "Depthwise" else "L2"
     m = CatBoostMLXRegressor(
         iterations=50,
         depth=6,
         learning_rate=0.03,
         loss="rmse",
         grow_policy=grow_policy,
-        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
+        score_function=score_function,  # DEC-031 Rule 3: explicit per policy
         bins=128,
         random_seed=seed,
         random_strength=random_strength,
@@ -417,8 +420,9 @@ def _assert_segmented_parity(
     """
     ratio = mlx_rmse / cpu_rmse
     if random_strength == 0.0:
-        # covers: aggregate RMSE, Python-path end-to-end, score_function=L2,
-        #         non-oblivious grow policy, rs=0 deterministic branch
+        # covers: aggregate RMSE, Python-path end-to-end,
+        #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy,
+        #         rs=0 deterministic branch
         assert 0.95 <= ratio <= 1.05, (
             f"Python-path parity regression ({context}): "
             f"MLX/CPU RMSE ratio = {ratio:.4f} "
@@ -429,8 +433,9 @@ def _assert_segmented_parity(
         )
     else:
         # One-sided: MLX may be better; only fail if MLX is much worse than CPU.
-        # covers: aggregate RMSE, Python-path end-to-end, score_function=L2,
-        #         non-oblivious grow policy, rs=1 stochastic branch
+        # covers: aggregate RMSE, Python-path end-to-end,
+        #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy,
+        #         rs=1 stochastic branch
         assert mlx_rmse <= cpu_rmse * 1.05, (
             f"Python-path parity regression ({context}): "
             f"MLX RMSE = {mlx_rmse:.6f} > CPU RMSE × 1.05 = {cpu_rmse * 1.05:.6f} "
@@ -513,7 +518,7 @@ def test_nonoblivious_pred_std_ratio(grow_policy: str, random_strength: float, s
     mlx_std = float(np.std(mlx_preds))
 
     # covers: Python-path end-to-end, sanity — CPU must produce non-constant preds,
-    #         score_function=L2, non-oblivious grow policy
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert cpu_std > 0, (
         f"CPU predictions are constant (std=0) — CPU training failed. "
         f"grow_policy={grow_policy}, seed={seed}, rs={random_strength}"
@@ -521,7 +526,8 @@ def test_nonoblivious_pred_std_ratio(grow_policy: str, random_strength: float, s
 
     std_ratio = mlx_std / cpu_std
 
-    # covers: prediction std ratio, Python-path end-to-end, score_function=L2,
+    # covers: prediction std ratio, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG),
     #         non-oblivious grow policy (leaf-magnitude signal, DEC-029/DEC-028 class)
     assert 0.90 <= std_ratio <= 1.10, (
         f"MLX pred std ratio = {std_ratio:.4f} "
@@ -557,13 +563,15 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     n = 10_000
     X, y = _make_data(n, seed)
 
+    # DW uses Cosine (S28-FU3-REVALIDATE closed gap); LG uses L2 (S29-FU-LG pending).
+    score_function = "Cosine" if grow_policy == "Depthwise" else "L2"
     m = CatBoostMLXRegressor(
         iterations=50,
         depth=6,
         learning_rate=0.03,
         loss="rmse",
         grow_policy=grow_policy,
-        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
+        score_function=score_function,  # DEC-031 Rule 3: explicit per policy
         bins=128,
         random_seed=seed,
         random_strength=1.0,
@@ -573,8 +581,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     m.fit(X, y)
     hist = m._train_loss_history
 
-    # covers: Python-path end-to-end, nanobind history population, score_function=L2,
-    #         non-oblivious grow policy
+    # covers: Python-path end-to-end, nanobind history population,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert len(hist) > 0, (
         f"_train_loss_history is empty — nanobind path did not populate it. "
         f"grow_policy={grow_policy}, seed={seed}"
@@ -582,8 +590,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
 
     first_loss = hist[0]
     last_loss = hist[-1]
-    # covers: convergence direction, Python-path end-to-end, score_function=L2,
-    #         non-oblivious grow policy
+    # covers: convergence direction, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert last_loss < first_loss, (
         f"MLX train loss did not decrease: first={first_loss:.6f}, last={last_loss:.6f}. "
         f"grow_policy={grow_policy}, seed={seed}. "
@@ -596,8 +604,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     total_steps = len(hist_arr) - 1
     non_mono_frac = non_mono / total_steps if total_steps > 0 else 0.0
 
-    # covers: convergence monotonicity, Python-path end-to-end, score_function=L2,
-    #         non-oblivious grow policy
+    # covers: convergence monotonicity, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert non_mono_frac <= 0.05, (
         f"MLX train loss has {non_mono}/{total_steps} non-monotone steps "
         f"({non_mono_frac*100:.1f}% > 5% tolerance). "

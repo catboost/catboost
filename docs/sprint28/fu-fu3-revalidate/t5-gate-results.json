@@ -1,0 +1,112 @@
+{
+  "G5a_DW_Cosine": {
+    "gate": "G5a-DW-NATIVE-COSINE",
+    "bounds": [
+      0.98,
+      1.02
+    ],
+    "N": 1000,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "grow_policy": "Depthwise",
+    "score_function": "Cosine",
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.214025,
+        "cpu_rmse": 0.210677,
+        "ratio": 1.0159,
+        "pass": true
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.212311,
+        "cpu_rmse": 0.208968,
+        "ratio": 1.016,
+        "pass": true
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.210635,
+        "cpu_rmse": 0.210156,
+        "ratio": 1.0023,
+        "pass": true
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.214788,
+        "cpu_rmse": 0.213174,
+        "ratio": 1.0076,
+        "pass": true
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.218467,
+        "cpu_rmse": 0.219571,
+        "ratio": 0.995,
+        "pass": true
+      }
+    ],
+    "verdict": "PASS"
+  },
+  "G5c_LG_Cosine": {
+    "gate": "G5c-LG-OUTCOME",
+    "bounds": [
+      0.98,
+      1.02
+    ],
+    "N": 1000,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "grow_policy": "Lossguide",
+    "score_function": "Cosine",
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.212485,
+        "cpu_rmse": 0.185999,
+        "ratio": 1.1424,
+        "pass": false
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.213166,
+        "cpu_rmse": 0.186804,
+        "ratio": 1.1411,
+        "pass": false
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.215828,
+        "cpu_rmse": 0.188677,
+        "ratio": 1.1439,
+        "pass": false
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.213382,
+        "cpu_rmse": 0.187135,
+        "ratio": 1.1403,
+        "pass": false
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.215872,
+        "cpu_rmse": 0.187741,
+        "ratio": 1.1498,
+        "pass": false
+      }
+    ],
+    "verdict": "FAIL"
+  }
+}
