@@ -38,7 +38,7 @@ This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) co
 |---------------|-----------|-----------------|
 | Binary 100k, 50 features, depth 6, 100 iters | 180.9 ms | 0.11909308 |
 | Multiclass K=3, 20k docs, 30 features, depth 5, 50 iters | 101.3 ms | 0.63507235 |
-| Multiclass K=10, 20k docs, 30 features, depth 5, 50 iters | 115.4 ms | 1.78561831 |
+| Multiclass K=10, 20k docs, 30 features, depth 5, 50 iters | 115.4 ms | 1.85752499 | <!-- S27-AA-T4: updated from 1.78561831 (3rd lifetime: 2.22267818→1.78561831→1.85752499); see DEC-031 -->
 
 ---
 
