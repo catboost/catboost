@@ -76,6 +76,12 @@ struct TTrainConfig {
     std::string GrowPolicy       = "SymmetricTree";  // "SymmetricTree", "Depthwise", "Lossguide"
     uint32_t MaxLeaves           = 31;
 
+    // Score function (DW / LG paths only)
+    // Accepted values: "L2" (default), "Cosine"
+    // "NewtonL2" and "NewtonCosine" throw at training time — not yet implemented.
+    // Default "L2" preserves pre-S28 behaviour for existing callers.
+    std::string ScoreFunction    = "L2";
+
     // Snapshot save/resume
     std::string SnapshotPath;
     uint32_t SnapshotInterval    = 1;

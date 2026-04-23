@@ -49,6 +49,7 @@ static TConfig TrainConfigToInternal(const TTrainConfig& tc) {
     c.MonotoneConstraints  = tc.MonotoneConstraints;
     c.GrowPolicy           = tc.GrowPolicy;
     c.MaxLeaves            = tc.MaxLeaves;
+    c.ScoreFunction        = tc.ScoreFunction;
     c.SnapshotPath         = tc.SnapshotPath;
     c.SnapshotInterval     = tc.SnapshotInterval;
     c.Verbose              = tc.Verbose;

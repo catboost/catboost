@@ -51,6 +51,7 @@ NB_MODULE(_core, m) {
         .def_rw("monotone_constraints",  &TTrainConfig::MonotoneConstraints)
         .def_rw("grow_policy",           &TTrainConfig::GrowPolicy)
         .def_rw("max_leaves",            &TTrainConfig::MaxLeaves)
+        .def_rw("score_function",        &TTrainConfig::ScoreFunction)
         .def_rw("snapshot_path",         &TTrainConfig::SnapshotPath)
         .def_rw("snapshot_interval",     &TTrainConfig::SnapshotInterval)
         .def_rw("verbose",               &TTrainConfig::Verbose)

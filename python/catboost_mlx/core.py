@@ -473,6 +473,7 @@ class CatBoostMLX(BaseEstimator):
         auto_class_weights: Optional[str] = None,
         grow_policy: str = "SymmetricTree",
         max_leaves: int = 31,
+        score_function: str = "L2",
         verbose: bool = False,
         binary_path: Optional[str] = None,
         train_timeout: Optional[float] = None,
@@ -508,6 +509,7 @@ class CatBoostMLX(BaseEstimator):
         self.auto_class_weights = auto_class_weights
         self.grow_policy = grow_policy
         self.max_leaves = max_leaves
+        self.score_function = score_function
         self.verbose = verbose
         self.binary_path = binary_path
         self.train_timeout = train_timeout
@@ -606,6 +608,21 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"grow_policy must be 'SymmetricTree', 'Depthwise', or 'Lossguide', "
                 f"got {self.grow_policy!r}"
+            )
+        # S28-L2-EXPLICIT: validate score_function.  NewtonL2/NewtonCosine are
+        # reserved for a future sprint.  Raise a clear error here (Python side)
+        # rather than letting the C++ layer raise a harder-to-read exception.
+        _VALID_SCORE_FUNCTIONS = ("L2", "Cosine")
+        _RESERVED_SCORE_FUNCTIONS = ("NewtonL2", "NewtonCosine")
+        if self.score_function in _RESERVED_SCORE_FUNCTIONS:
+            raise ValueError(
+                f"score_function='{self.score_function}' is not yet implemented in the "
+                f"MLX backend.  Supported values: {', '.join(_VALID_SCORE_FUNCTIONS)}."
+            )
+        if self.score_function not in _VALID_SCORE_FUNCTIONS:
+            raise ValueError(
+                f"Unknown score_function='{self.score_function}'.  "
+                f"Supported values: {', '.join(_VALID_SCORE_FUNCTIONS)}."
             )
         if self.grow_policy == "Lossguide":
             if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
@@ -803,6 +820,8 @@ class CatBoostMLX(BaseEstimator):
             args.extend(["--grow-policy", self.grow_policy])
         if self.grow_policy == "Lossguide":
             args.extend(["--max-leaves", str(self.max_leaves)])
+        if self.score_function and self.score_function != "L2":
+            args.extend(["--score-function", self.score_function])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:
@@ -1040,6 +1059,7 @@ class CatBoostMLX(BaseEstimator):
         cfg.monotone_constraints = list(self.monotone_constraints or [])
         cfg.grow_policy = self.grow_policy or "SymmetricTree"
         cfg.max_leaves = self.max_leaves
+        cfg.score_function = self.score_function or "L2"
         cfg.snapshot_path = self.snapshot_path or ""
         cfg.snapshot_interval = self.snapshot_interval
         cfg.verbose = self.verbose
