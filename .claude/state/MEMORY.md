@@ -91,6 +91,24 @@ LG+Cosine and ST+Cosine guarded at Python API with `ValueError` pending S29 work
 Full record: `docs/sprint28/sprint-close.md`. DEC-032 PARTIALLY CLOSED by DEC-033.
 S29 carry: S29-CLI-GUARD (SA-H1), S29-LG-COSINE-RCA, S29-ST-COSINE-KAHAN.
 
+## DEC-034 resolved S29 — LG+Cosine shares ST+Cosine compounding mechanism (2026-04-23)
+
+S29 spike classified LG+Cosine drift as outcome A (shared float32 joint-Cosine denominator
+compounding with ST+Cosine), moderate confidence. iter-1 mean drift 0.0024% at shallow cell
+(depth=3, max_leaves=8); iter=1 BFS split sequences bit-identical CPU-vs-MLX. Recommendation:
+merge S29-ST-COSINE-KAHAN + S29-LG-COSINE-RCA into single S30-COSINE-KAHAN task. Both Python
+and C++ guards remain in place until shared Kahan fix lands. Source:
+`docs/sprint29/lg-mechanism-spike/verdict.md`.
+
+**Cell-mismatch note**: t5-gate-report 14% LG figure was PRE-S28 algorithmic divergence
+(hardcoded L2 vs Cosine, closed by `0ea86bde21`), not float precision. The 0.0024% figure
+is the first honest measurement with matching gain functions on both sides.
+
+**CLI-GUARD note (SA-H1 closed)**: S29 ported guards to C++ nanobind entry
+(`train_api.cpp:25-51`) and CLI (`csv_train.cpp:241-267`). `grep -rn 'TODO-S29-(LG|ST)-COSINE'`
+gives the S30 four-site removal checklist. Do NOT remove Python guard without also removing
+C++ guards (removing one would recreate SA-H1). Atomic removal only, in a single commit.
+
 ## CUDA reference targets (from researcher, 2026-04-15)
 
 - **szilard/GBM-perf 2024**: A100 SXM4, Airline 10M, 100 iters, depth 10 → CatBoost CUDA **15s**. CPU (Xeon E5-2686 v4): 70s. Citable: https://github.com/szilard/GBM-perf issue #57.
