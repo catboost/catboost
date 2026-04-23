@@ -164,6 +164,13 @@ struct TConfig {
     // Grow policy
     std::string GrowPolicy = "SymmetricTree";  // "SymmetricTree" (default), "Depthwise", or "Lossguide"
     ui32 MaxLeaves = 31;                        // used only when GrowPolicy=="Lossguide"
+    // Score function (DW / LG paths — FindBestSplitPerPartition only)
+    // Accepted values: "L2" (default), "Cosine"
+    // "NewtonL2" and "NewtonCosine" are reserved for a future sprint and will
+    // throw at startup if passed.  Default "L2" preserves pre-S28 behaviour.
+    // CPU CatBoost DW default is "Cosine"; MLX default remains "L2" to avoid
+    // silently changing results for existing callers who have not set score_function.
+    std::string ScoreFunction = "L2";
 };
 
 TConfig ParseArgs(int argc, char** argv) {
@@ -175,7 +182,8 @@ TConfig ParseArgs(int argc, char** argv) {
                 "[--seed N] [--nan-mode MODE] [--output PATH] [--feature-importance] "
                 "[--cv N] [--ctr] [--ctr-prior F] [--max-onehot-size N] [--group-col N] "
                 "[--weight-col N] [--min-data-in-leaf N] [--monotone-constraints L] "
-                "[--snapshot-path PATH] [--snapshot-interval N] [--eval-file PATH] [--verbose]\n", argv[0]);
+                "[--snapshot-path PATH] [--snapshot-interval N] [--eval-file PATH] "
+                "[--score-function {L2,Cosine}] [--verbose]\n", argv[0]);
         exit(1);
     }
     config.CsvPath = argv[1];
@@ -225,6 +233,7 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--eval-file") == 0 && i + 1 < argc) config.EvalFile = argv[++i];
         else if (strcmp(argv[i], "--grow-policy") == 0 && i + 1 < argc) config.GrowPolicy = argv[++i];
         else if (strcmp(argv[i], "--max-leaves") == 0 && i + 1 < argc) config.MaxLeaves = std::atoi(argv[++i]);
+        else if (strcmp(argv[i], "--score-function") == 0 && i + 1 < argc) config.ScoreFunction = argv[++i];
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
@@ -955,6 +964,75 @@ mx::array DispatchHistogram(
 }
 
 // ============================================================================
+// Score function enum — mirrors CPU CatBoost EScoreFunction.
+// S28-L2-EXPLICIT: dispatch wiring live as of this commit (task #72, DEC-032).
+// S28-OBLIV-DISPATCH: moved before FindBestSplit so both Oblivious and DW
+// paths share a single definition; previously defined after FindBestSplit.
+// Only {L2, Cosine} implemented.  NewtonL2 and NewtonCosine reserved for a
+// future sprint; passing them throws a clear error rather than silently
+// falling back to L2 (silent divergence is the exact bug DEC-032 closed).
+// ============================================================================
+
+enum class EScoreFunction {
+    L2,     // L2 Newton gain: G²/(W+λ) — default, preserves pre-S28 behaviour
+    Cosine, // Cosine gain: Σ(G²/(W+λ)) / sqrt(Σ(G²·W/(W+λ)²))
+            // CPU: TCosineScoreCalcer (catboost/private/libs/algo/score_calcers.h:47)
+};
+
+// Parse score_function string to enum.  Throws std::invalid_argument on
+// unknown values rather than silently falling back to L2.
+inline EScoreFunction ParseScoreFunction(const std::string& s) {
+    if (s == "L2")     return EScoreFunction::L2;
+    if (s == "Cosine") return EScoreFunction::Cosine;
+    // Explicit guard for the two values we know exist in CPU CatBoost but have
+    // not yet implemented.  Throw — do NOT silently fall back to L2.
+    if (s == "NewtonL2" || s == "NewtonCosine") {
+        throw std::invalid_argument(
+            "score_function='" + s + "' is not yet implemented in MLX backend. "
+            "Supported values: L2, Cosine.");
+    }
+    throw std::invalid_argument(
+        "Unknown score_function='" + s + "'. "
+        "Supported values: L2, Cosine.");
+}
+
+// ----------------------------------------------------------------------------
+// Cosine gain derivation (used by ComputeCosineGainKDim below).
+//
+// CPU reference: TCosineScoreCalcer::AddLeafPlain + GetScores()
+//   score[0] += leafApprox * SumWeightedDelta  (numerator)
+//   score[1] += leafApprox² * SumWeight        (denominator accumulator)
+//   final score = score[0] / sqrt(score[1])
+// where leafApprox = sumGrad / (sumHess + lambda).
+//
+// Expanded to avoid redundant division:
+//   num  = sumLeft²/(wLeft+λ) + sumRight²/(wRight+λ)
+//   den  = sumLeft²·wLeft/(wLeft+λ)² + sumRight²·wRight/(wRight+λ)²
+//   score = num / sqrt(den)
+//
+// Notes:
+// - No parent-node subtraction (unlike L2). Cosine is an absolute score, not
+//   a differential gain. Higher is better; values are not comparable to L2.
+// - den guard of 1e-20f prevents sqrt(0) on empty partitions.
+//   (CPU uses double 1e-100; 1e-20f is safely above FP32 subnormal range.)
+// - K-dim accumulation: sum num/den contributions across all approx dimensions
+//   before computing the final score, matching CPU's multi-dimensional
+//   AddLeafPlain loop in CalcScores (greedy_tensor_search.cpp).
+// - float32 precision: numerator and denominator each accumulate K terms.
+//   At K≤3, N≤1000, float32 relative error ≤ ~1e-6 (Higham bound). ULP drift
+//   vs CPU double accumulation is measured empirically in t2-gate-report.md.
+// ----------------------------------------------------------------------------
+// K-dimensional Cosine gain: sum num/den contributions across approx dims,
+// then compute score[0]/sqrt(score[1]).  Mirrors CPU's per-dim AddLeafPlain
+// loop which accumulates into a single Scores[splitIdx] pair.
+inline float ComputeCosineGainKDim(
+    float totalNum,   // Σ_k sumLeft_k²/(wLeft_k+λ) + sumRight_k²/(wRight_k+λ)
+    float totalDen    // Σ_k (sumLeft_k²·wLeft_k/(wLeft_k+λ)² + ...) + guard
+) {
+    return totalNum / std::sqrt(totalDen);
+}
+
+// ============================================================================
 // Split finding (multi-dim aware)
 // ============================================================================
 
@@ -965,16 +1043,17 @@ TBestSplitProperties FindBestSplit(
     ui32 totalBinFeatures,
     float l2RegLambda,
     ui32 numPartitions,
-    const std::vector<bool>& featureMask = {},  // optional: if non-empty, skip features where mask[f]=false
-    ui32 minDataInLeaf = 1,                     // minimum docs per child (1 = no restriction)
-    const std::vector<std::vector<ui32>>& countHist = {},  // [numPartitions][totalBinFeatures] doc counts per bin
-    const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
-    const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
-    float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
-    float gradRms = 0.0f,                                  // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
-    std::mt19937* rng = nullptr,                           // RNG for perturbation
-    int debugIter = -1,                                    // P11-P13: print debug for this iter (-1 = off)
-    int debugDepth = -1                                    // P11-P13: print debug for this depth (-1 = off)
+    const std::vector<bool>& featureMask,       // optional: if non-empty, skip features where mask[f]=false
+    ui32 minDataInLeaf,                          // minimum docs per child (1 = no restriction)
+    const std::vector<std::vector<ui32>>& countHist,   // [numPartitions][totalBinFeatures] doc counts per bin
+    const std::vector<ui32>& partDocCounts,             // [numPartitions] total doc count per partition
+    const std::vector<int>& monotoneConstraints,       // per-feature: 0=none, 1=inc, -1=dec
+    float randomStrength,                              // random score perturbation (0 = disabled)
+    float gradRms,                                     // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
+    std::mt19937* rng,                                 // RNG for perturbation
+    int debugIter,                                     // P11-P13: print debug for this iter (-1 = off)
+    int debugDepth,                                    // P11-P13: print debug for this depth (-1 = off)
+    EScoreFunction scoreFunction                       // S28-OBLIV-DISPATCH: gain formula — no default, every caller must be explicit
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
@@ -1021,6 +1100,10 @@ TBestSplitProperties FindBestSplit(
             // ── OneHot: each bin is independent, no suffix sums needed ──
             for (ui32 bin = 0; bin < feat.Folds; ++bin) {
                 float totalGain = 0.0f;
+                // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims,
+                // then finalize once per bin (matches CPU AddLeafPlain multi-partition loop).
+                float cosNum = 0.0f;
+                float cosDen = 1e-20f;  // guard against sqrt(0)
 
                 if (minDataInLeaf > 1 && !countHist.empty()) {
                     bool anyViolates = false;
@@ -1048,10 +1131,30 @@ TBestSplitProperties FindBestSplit(
 
                         if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
 
-                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                // Accumulate per-(p,k) contributions; finalized after both loops.
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplit (one-hot branch)");
+                        }
                     }
+                }
+                // Finalize Cosine score after all partitions and dims are accumulated.
+                if (scoreFunction == EScoreFunction::Cosine) {
+                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
                 }
 
                 // Add random perturbation to prevent overfitting
@@ -1128,6 +1231,9 @@ TBestSplitProperties FindBestSplit(
             for (ui32 bin = 0; bin < folds; ++bin) {
                 float totalGain = 0.0f;
                 bool violatesConstraint = false;
+                // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
+                float cosNum = 0.0f;
+                float cosDen = 1e-20f;  // guard against sqrt(0)
 
                 // Min-data-in-leaf check using precomputed suffix sums
                 if (minDataInLeaf > 1 && !suffCount.empty()) {
@@ -1177,10 +1283,31 @@ TBestSplitProperties FindBestSplit(
 
                         if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
 
-                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                // Accumulate per-(p,k) contributions; finalized after both loops.
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplit (ordinal branch)");
+                        }
                     }
+                }
+
+                // Finalize Cosine score after all partitions and dims are accumulated.
+                if (scoreFunction == EScoreFunction::Cosine) {
+                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
                 }
 
                 if (violatesConstraint) continue;
@@ -1221,9 +1348,15 @@ TBestSplitProperties FindBestSplit(
 #ifdef CATBOOST_MLX_DEBUG_LEAF
     if (p11Active && !allCandidates.empty()) {
         // P12 — literal gain formula used in this FindBestSplit
-        printf("[DBG P12] gain_formula: "
-               "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
-        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)\n");
+        // S28-OBLIV-DISPATCH: formula depends on scoreFunction (L2 or Cosine).
+        if (scoreFunction == EScoreFunction::L2) {
+            printf("[DBG P12] gain_formula: L2: "
+                   "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
+        } else {
+            printf("[DBG P12] gain_formula: Cosine: "
+                   "score = (Σ_pk sumL^2/(wL+L2) + sumR^2/(wR+L2)) / sqrt(Σ_pk sumL^2*wL/(wL+L2)^2 + ...)\n");
+        }
+        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (S28-OBLIV-DISPATCH)\n");
         printf("[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)\n");
         printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  gradRms=%.6f)\n",
                noiseScale, randomStrength, gradRms);
@@ -1288,7 +1421,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
     const std::vector<bool>& featureMask = {},
     float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
     float gradRms = 0.0f,                                  // gradient RMS — noise scale (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
-    std::mt19937* rng = nullptr                            // RNG for perturbation
+    std::mt19937* rng = nullptr,                           // RNG for perturbation
+    EScoreFunction scoreFunction = EScoreFunction::L2      // gain formula — default L2 preserves pre-S28 behaviour
 ) {
     const ui32 K = static_cast<ui32>(perDimHist.size());
     std::vector<TBestSplitProperties> results(numPartitions);
@@ -1311,7 +1445,12 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
         if (feat.OneHotFeature) {
             for (ui32 bin = 0; bin < feat.Folds; ++bin) {
                 for (ui32 p = 0; p < numPartitions; ++p) {
-                    float gain = 0.0f;
+                    // For Cosine we accumulate num/den separately across K dims then
+                    // compute score at the end (ComputeCosineGainKDim).  For L2 we
+                    // accumulate the scalar gain directly.
+                    float gain = 0.0f;       // L2 accumulator
+                    float cosNum = 0.0f;     // Cosine numerator  Σ_k [G²_L/(W_L+λ) + G²_R/(W_R+λ)]
+                    float cosDen = 1e-20f;   // Cosine denominator Σ_k [...] + guard
                     for (ui32 k = 0; k < K; ++k) {
                         const float* histData = perDimHist[k].data()
                             + static_cast<size_t>(p) * 2 * totalBinFeatures;
@@ -1322,9 +1461,31 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                         float sumLeft    = totalSum - sumRight;
                         float weightLeft = totalWeight - weightRight;
                         if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
-                        gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                              + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                              - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                      + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                      - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                // Accumulate per-dim contributions into shared num/den;
+                                // ComputeCosineGainKDim finalises after the K loop.
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                // Should be unreachable: ParseScoreFunction guards at startup.
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplitPerPartition (one-hot branch)");
+                        }
+                    }
+                    // Finalise score: for Cosine, compute num/sqrt(den) after K loop.
+                    if (scoreFunction == EScoreFunction::Cosine) {
+                        gain = ComputeCosineGainKDim(cosNum, cosDen);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1057-1068)
                     float perturbedGain = gain;
@@ -1365,6 +1526,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                 ui32 binOffset = feat.FirstFoldIndex + bin;
                 for (ui32 p = 0; p < numPartitions; ++p) {
                     float gain = 0.0f;
+                    float cosNum = 0.0f;
+                    float cosDen = 1e-20f;
                     for (ui32 k = 0; k < K; ++k) {
                         float totalSum    = perDimPartStats[k][p].Sum;
                         float totalWeight = perDimPartStats[k][p].Weight;
@@ -1374,9 +1537,27 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                         float sumLeft    = totalSum - sumRight;
                         float weightLeft = totalWeight - weightRight;
                         if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
-                        gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                              + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                              - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                gain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                      + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                      - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplitPerPartition (ordinal branch)");
+                        }
+                    }
+                    if (scoreFunction == EScoreFunction::Cosine) {
+                        gain = ComputeCosineGainKDim(cosNum, cosDen);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1188-1198)
                     float perturbedGain = gain;
@@ -3360,7 +3541,8 @@ TTrainResult RunTraining(
                     histData2, partStats2,
                     packed.Features, packed.TotalBinFeatures,
                     config.L2RegLambda, 2u, featureMask,
-                    config.RandomStrength, gradRms, &rng);
+                    config.RandomStrength, gradRms, &rng,
+                    ParseScoreFunction(config.ScoreFunction));
 
                 if (perPartSplits[0].Defined()) {
                     // Enforce optional max-depth limit
@@ -3617,7 +3799,8 @@ TTrainResult RunTraining(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
                     config.L2RegLambda, numPartitions, featureMask,
-                    config.RandomStrength, gradRms, &rng
+                    config.RandomStrength, gradRms, &rng,
+                    ParseScoreFunction(config.ScoreFunction)
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
@@ -3733,10 +3916,13 @@ TTrainResult RunTraining(
                     config.MonotoneConstraints,
                     config.RandomStrength, gradRms, &rng,
 #ifdef CATBOOST_MLX_DEBUG_LEAF
-                    static_cast<int>(iter), static_cast<int>(depth)
+                    static_cast<int>(iter), static_cast<int>(depth),
 #else
-                    -1, -1
+                    -1, -1,
 #endif
+                    // S28-OBLIV-DISPATCH: thread score_function to Oblivious path.
+                    // Explicit — no default. Mirrors DW dispatch from 0ea86bde21.
+                    ParseScoreFunction(config.ScoreFunction)
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();

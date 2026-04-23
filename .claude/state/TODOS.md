@@ -1,15 +1,15 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (Sprint 27 CLOSED — Correctness Closeout; S28 next, BLOCKED on S27 PR merge).
+> Last header refresh: 2026-04-23 (Sprint 28 CLOSED — Score Function Fidelity; tip e0b0b1b527).
 
-## Current state (2026-04-22)
+## Current state (2026-04-23)
 
-- **Active branch**: `mlx/sprint-27-correctness-closeout` — CLOSED. PR OPEN-PENDING-RAMOS. Next: `mlx/sprint-28-score-function-fidelity` (off master after S27 PR merges).
-- **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same (pending PR #24 merge).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S26 D0 + FU-2.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S27 is correctness-only.
-- **Open PRs**: PR #24 (S26-FU-2) pending merge. DEC-027 (alternative accumulation) remains deferred.
+- **Active branch**: `mlx/sprint-19-hist-writeback` — S28 CLOSED at `e0b0b1b527`. PR ready (human-triggered).
+- **Base**: `4b3711f82b` (post PR #25 S27 merge). `master` tip = same.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S28.
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S28 is correctness-only.
+- **Open PRs**: None (S27 PR #25 merged; S28 PR not yet opened — human-triggered). DEC-027 (alternative accumulation) remains deferred.
 
 ---
 
@@ -50,20 +50,58 @@
 
 ---
 
-## Sprint 28 — Score function fidelity (BLOCKED on S27)
+## Sprint 29 — Score Function Fidelity Follow-Through (PENDING)
 
-**Branch**: `mlx/sprint-28-score-function-fidelity` (off master after S27 merges)
+**Branch**: TBD (cut from master after S28 PR merges)
+**Rationale**: S28 partially closed DEC-032. Three carry items block full closure: C++ / CLI guards (SA-H1), LG+Cosine RCA, and ST+Cosine Kahan port.
+
+- [ ] **S29-CLI-GUARD** — Port `Cosine+{LG,ST}` combination rejection into `catboost/mlx/train_api.cpp:TrainConfigToInternal` and into `catboost/mlx/tests/csv_train.cpp:ParseArgs`. Tracks SA-H1 from S28 security audit.
+  - **Mechanism**: Forbidden combos throw `std::invalid_argument` at C++ entry; CLI returns exit-1 on same combos. Guard is structurally equivalent to the Python `ValueError` guards added in `b9577067ef`.
+  - **Acceptance**: (1) Unit test: `_core.train()` with `Cosine + Lossguide` throws `std::invalid_argument`. (2) Unit test: `_core.train()` with `Cosine + SymmetricTree` throws `std::invalid_argument`. (3) CLI test: `csv_train` with forbidden combo exits non-zero. All three tests wired to CI.
+  - **Owner**: @ml-engineer
+
+- [ ] **S29-LG-COSINE-RCA** — Root-cause the Lossguide × Cosine priority-queue leaf ordering × joint-gain magnitude interaction producing unacceptable per-partition gain drift. Deliverable: triage doc with mechanism identified + fix plan.
+  - **Mechanism**: Instrument `FindBestSplitPerPartition` on the Lossguide path with `score_function='Cosine'` at N=1000; capture per-partition `(gain_MLX, gain_CPU, chosen_split)` across 3 seeds; identify the divergence source.
+  - **Acceptance**: Triage doc at `docs/sprint29/lg-cosine-rca/triage.md` with (a) root cause named, (b) fix plan with risk assessment, (c) quantitative evidence of the drift mechanism. If fix is low-risk, land it in S29; if high-risk, open S30.
+  - **Referenced by**: `python/catboost_mlx/core.py:634`.
+  - **Owner**: @research-scientist + @ml-engineer
+
+- [ ] **S29-ST-COSINE-KAHAN** — Port Kahan/Neumaier compensated summation into the ST joint-Cosine denominator accumulator in `catboost/mlx/tests/csv_train.cpp` (`ComputeCosineGainKDim` callers). Deliverable: 50-iter ST+Cosine drift ≤ 1% at N=50k.
+  - **Mechanism**: Identify the float32 joint-denominator accumulation site in `ComputeCosineGainKDim` (or its callers on the ST path) where compounding produces ~47% 50-iter drift; apply Kahan/Neumaier compensation; measure drift reduction.
+  - **Acceptance**: ST+Cosine 50-iter RMSE drift vs CPU ≤ 1% at N=50k, rs=0, 3 seeds. Gate: 3/3 seeds PASS. Lift `ValueError` guard in `core.py:644` once gate passes.
+  - **Referenced by**: `python/catboost_mlx/core.py:644`.
+  - **Owner**: @ml-engineer
+
+---
+
+## Sprint 28 — Score Function Fidelity (CLOSED 2026-04-23)
+
+**Branch**: `mlx/sprint-19-hist-writeback` (tip `e0b0b1b527`)
 **Rationale**: DEC-032. MLX hardcodes L2 Newton gain; CPU default is Cosine. Fidelity gap discovered S27-FU-3-T1. S28 closes it properly.
-**Note**: These are placeholder entries. S28 ml-product-owner refines into T1..Tn breakdown at kickoff.
+**Scope**: Small-sprint, stream A only. Ride-alongs deferred: AN-008 Rule-5 promotion, CR Nit 2, SA Note 2, AA Item H, NewtonL2/NewtonCosine variants.
+**Authoritative record**: `docs/sprint28/sprint-close.md`
 
-- [ ] **S28-AUDIT**: Audit `score_function` dispatch — Python binding → C++ entry → `FindBestSplitPerPartition`. Confirm whether hyperparameter is plumbed or silently ignored on MLX path — @ml-engineer
-- [ ] **S28-COSINE**: Implement `score_function='Cosine'` gain (CPU default; highest-impact missing function) in `FindBestSplitPerPartition` — @ml-engineer
-- [ ] **S28-L2-EXPLICIT**: Make `score_function='L2'` explicit via enum/dispatch rather than hardcoded (structural hygiene, no algorithmic change) — @ml-engineer
-- [ ] **S28-REBLESS**: Re-label all aggregate-scope parity claims with explicit `score_function` annotation (Python-path harness, S26-FU-2 gate numbers, AN-017, FU-3 gate cells) — @qa-engineer + @technical-writer
-- [ ] **S28-FU3-REVALIDATE**: Re-run FU-3's 5 failing DW N=1000 cells with `score_function='Cosine'` both sides — structural proof of gap closure — @qa-engineer
-- [ ] **S28-CR**: Code review — @code-reviewer
-- [ ] **S28-SA**: Security audit — @security-auditor
-- [ ] **S28-CLOSE**: Sprint close doc + DEC-032 follow-up section + state-file update — @technical-writer
+- [x] **S28-AUDIT**: Grep audit confirming `score_function` is not plumbed anywhere in `catboost/mlx/`. Zero hits confirmed. Hardcoded L2 call site at `csv_train.cpp:~L1281`. — `da02da0259` — @ml-engineer
+
+- [x] **S28-COSINE**: `ComputeCosineGainKDim` helper ported from CPU `TCosineScoreCalcer`. Cosine gain path wired into `FindBestSplitPerPartition`. Gate G2a/G2b PASS: DW N=1000 rs=0 5-seed ratios ∈ [0.98, 1.02]. — `83f30c3677` — @ml-engineer
+
+- [x] **S28-L2-EXPLICIT**: `EScoreFunction` enum + `ParseScoreFunction` added. Dispatch wired into DW/LG paths in `FindBestSplitPerPartition`. Nanobind binding. `_validate_params` rejects `NewtonL2`/`NewtonCosine`. Gate G3a/G3b/G3c PASS. — `0ea86bde21` — @ml-engineer
+
+- [x] **S28-OBLIV-DISPATCH**: Dispatch mirrored into `FindBestSplit` (SymmetricTree). All three grow policies now dispatch on `EScoreFunction`. Gate G7 PASS. — `4083add248` — @ml-engineer
+
+- [x] **S28-REBLESS**: 8 parity cells in `tests/test_python_path_parity.py` relabeled with explicit `score_function`. AN-017 re-captured. Gate G5a–G5d PASS. — `c07e895f7c` — @qa-engineer + @technical-writer
+
+- [x] **S28-FU3-REVALIDATE**: DW force-L2 lifted; DW 5/5 PASS under `score_function='Cosine'` both sides. LG retains force-L2 pending S29-LG-COSINE-RCA. Gate G6a–G6d PASS. — `dca62f0d72` — @qa-engineer
+
+- [x] **S28-{LG,ST}-GUARD**: Two Python `ValueError` guards added for `Cosine+Lossguide` and `Cosine+SymmetricTree`. — `b9577067ef` — @ml-engineer
+
+- [x] **S28-CR**: Code review. PASS-WITH-NITS. CR-S1 resolved; CR-N1/N2/N3 remain nits. — `docs/sprint28/fu-cr/t6-cr-report.md` — @code-reviewer
+
+- [x] **S28-SA**: Security audit. PASS-WITH-FINDINGS. SA-H1 deferred to S29-CLI-GUARD (non-blocking). — `docs/sprint28/fu-sa/t6-sa-report.md` — @security-auditor
+
+- [x] **S28-CR-S1**: Dead `ComputeCosineGain` scalar helper removed. — `e0b0b1b527` — @ml-engineer
+
+- [x] **S28-CLOSE**: Sprint close doc + state files finalized. Parity suite 28/28. — (this commit) — @technical-writer
 
 ---
 

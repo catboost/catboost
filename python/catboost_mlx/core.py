@@ -473,6 +473,7 @@ class CatBoostMLX(BaseEstimator):
         auto_class_weights: Optional[str] = None,
         grow_policy: str = "SymmetricTree",
         max_leaves: int = 31,
+        score_function: str = "L2",
         verbose: bool = False,
         binary_path: Optional[str] = None,
         train_timeout: Optional[float] = None,
@@ -508,6 +509,7 @@ class CatBoostMLX(BaseEstimator):
         self.auto_class_weights = auto_class_weights
         self.grow_policy = grow_policy
         self.max_leaves = max_leaves
+        self.score_function = score_function
         self.verbose = verbose
         self.binary_path = binary_path
         self.train_timeout = train_timeout
@@ -606,6 +608,42 @@ class CatBoostMLX(BaseEstimator):
             raise ValueError(
                 f"grow_policy must be 'SymmetricTree', 'Depthwise', or 'Lossguide', "
                 f"got {self.grow_policy!r}"
+            )
+        # S28-L2-EXPLICIT: validate score_function.  NewtonL2/NewtonCosine are
+        # reserved for a future sprint.  Raise a clear error here (Python side)
+        # rather than letting the C++ layer raise a harder-to-read exception.
+        _VALID_SCORE_FUNCTIONS = ("L2", "Cosine")
+        _RESERVED_SCORE_FUNCTIONS = ("NewtonL2", "NewtonCosine")
+        if self.score_function in _RESERVED_SCORE_FUNCTIONS:
+            raise ValueError(
+                f"score_function='{self.score_function}' is not yet implemented in the "
+                f"MLX backend.  Supported values: {', '.join(_VALID_SCORE_FUNCTIONS)}."
+            )
+        if self.score_function not in _VALID_SCORE_FUNCTIONS:
+            raise ValueError(
+                f"Unknown score_function='{self.score_function}'.  "
+                f"Supported values: {', '.join(_VALID_SCORE_FUNCTIONS)}."
+            )
+        # S28-LG-GUARD: Cosine+Lossguide combination rejected until S29 RCA.
+        if self.score_function == 'Cosine' and self.grow_policy == 'Lossguide':
+            raise ValueError(
+                "score_function='Cosine' with grow_policy='Lossguide' is not supported "
+                "in catboost-mlx: priority-queue leaf ordering interacts with Cosine "
+                "joint-gain magnitude producing unacceptable per-partition gain drift "
+                "vs CPU CatBoost. Root-cause investigation is scheduled for Sprint 29 "
+                "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
+                "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
+            )
+        # S28-ST-GUARD: Cosine+SymmetricTree combination rejected until S29 Kahan fix.
+        if self.score_function == 'Cosine' and self.grow_policy == 'SymmetricTree':
+            raise ValueError(
+                "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
+                "supported in catboost-mlx: float32 joint-Cosine denominator accumulates "
+                "precision drift across partitions (~47% aggregate-metric drift at 50 "
+                "iterations in S28-OBLIV-DISPATCH gate). Compensated-summation port "
+                "(Kahan/Neumaier) is scheduled for Sprint 29 (TODO-S29-ST-COSINE-KAHAN). "
+                "Use score_function='L2' with SymmetricTree, or switch grow_policy to "
+                "'Depthwise' for Cosine."
             )
         if self.grow_policy == "Lossguide":
             if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
@@ -803,6 +841,8 @@ class CatBoostMLX(BaseEstimator):
             args.extend(["--grow-policy", self.grow_policy])
         if self.grow_policy == "Lossguide":
             args.extend(["--max-leaves", str(self.max_leaves)])
+        if self.score_function and self.score_function != "L2":
+            args.extend(["--score-function", self.score_function])
         return args
 
     def _run_train_subprocess(self, args: List[str]) -> str:
@@ -1040,6 +1080,7 @@ class CatBoostMLX(BaseEstimator):
         cfg.monotone_constraints = list(self.monotone_constraints or [])
         cfg.grow_policy = self.grow_policy or "SymmetricTree"
         cfg.max_leaves = self.max_leaves
+        cfg.score_function = self.score_function or "L2"
         cfg.snapshot_path = self.snapshot_path or ""
         cfg.snapshot_interval = self.snapshot_interval
         cfg.verbose = self.verbose

@@ -72,7 +72,12 @@ def _make_data(n: int, seed: int):
 
 
 def _cpu_rmse(X, y, seed: int, random_strength: float) -> float:
-    """Run CPU CatBoost; return final train RMSE from evals_result_."""
+    """Run CPU CatBoost; return final train RMSE from evals_result_.
+
+    score_function='L2' is explicit (DEC-031 Rule 3): CPU SymmetricTree default
+    is L2, matching MLX default.  Stated explicitly so the gate tests the same
+    algorithm on both sides regardless of future CPU default changes.
+    """
     from catboost import CatBoostRegressor
 
     m = CatBoostRegressor(
@@ -81,6 +86,7 @@ def _cpu_rmse(X, y, seed: int, random_strength: float) -> float:
         learning_rate=0.03,
         loss_function="RMSE",
         grow_policy="SymmetricTree",
+        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
         max_bin=128,
         random_seed=seed,
         random_strength=random_strength,
@@ -98,6 +104,9 @@ def _mlx_rmse(X, y, seed: int, random_strength: float) -> float:
     Uses _train_loss_history[-1] when available (nanobind path populates it).
     Falls back to pred-based RMSE if history is empty (subprocess path).
     Both paths exercise the full Python -> C++ -> GPU pipeline.
+
+    score_function='L2' is explicit (DEC-031 Rule 3): MLX default is L2.
+    Stated explicitly so the test documents which algorithm is under test.
     """
     from catboost_mlx import CatBoostMLXRegressor
 
@@ -107,6 +116,7 @@ def _mlx_rmse(X, y, seed: int, random_strength: float) -> float:
         learning_rate=0.03,
         loss="rmse",
         grow_policy="SymmetricTree",
+        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
         bins=128,
         random_seed=seed,
         random_strength=random_strength,
@@ -148,6 +158,8 @@ def test_symmetrictree_python_path_parity(n: int, seed: int, random_strength: fl
     mlx_rmse = _mlx_rmse(X, y, seed, random_strength)
 
     ratio = mlx_rmse / cpu_rmse
+    # covers: aggregate RMSE, Python-path end-to-end, score_function=L2,
+    #         grow_policy=SymmetricTree (DEC-028 regression class)
     assert 0.95 <= ratio <= 1.05, (
         f"Python-path parity regression (DEC-028 class): "
         f"MLX/CPU RMSE ratio = {ratio:.4f} "
@@ -178,7 +190,9 @@ def test_symmetrictree_pred_std_ratio(seed: int):
 
     cpu = CatBoostRegressor(
         iterations=50, depth=6, learning_rate=0.03,
-        loss_function="RMSE", grow_policy="SymmetricTree", max_bin=128,
+        loss_function="RMSE", grow_policy="SymmetricTree",
+        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
+        max_bin=128,
         random_seed=seed, random_strength=1.0,
         bootstrap_type="No", verbose=0, thread_count=1,
     )
@@ -187,7 +201,9 @@ def test_symmetrictree_pred_std_ratio(seed: int):
 
     mlx = CatBoostMLXRegressor(
         iterations=50, depth=6, learning_rate=0.03,
-        loss="rmse", grow_policy="SymmetricTree", bins=128,
+        loss="rmse", grow_policy="SymmetricTree",
+        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
+        bins=128,
         random_seed=seed, random_strength=1.0,
         bootstrap_type="no", verbose=False,
     )
@@ -197,9 +213,12 @@ def test_symmetrictree_pred_std_ratio(seed: int):
     cpu_std = float(np.std(cpu_preds))
     mlx_std = float(np.std(mlx_preds))
 
+    # covers: Python-path end-to-end, sanity — CPU must produce non-constant preds
     assert cpu_std > 0, "CPU predictions are constant — training failed"
     std_ratio = mlx_std / cpu_std
 
+    # covers: prediction std ratio, Python-path end-to-end, score_function=L2,
+    #         grow_policy=SymmetricTree (leaf-magnitude signal, DEC-028 class)
     assert 0.90 <= std_ratio <= 1.10, (
         f"MLX pred std ratio = {std_ratio:.4f} "
         f"(MLX_std={mlx_std:.4f}, CPU_std={cpu_std:.4f}) at seed={seed}. "
@@ -227,17 +246,23 @@ def test_symmetrictree_monotone_convergence(seed: int):
 
     m = CatBoostMLXRegressor(
         iterations=50, depth=6, learning_rate=0.03,
-        loss="rmse", grow_policy="SymmetricTree", bins=128,
+        loss="rmse", grow_policy="SymmetricTree",
+        score_function="L2",  # DEC-031 Rule 3: explicit, not implicit default
+        bins=128,
         random_seed=seed, random_strength=1.0,
         bootstrap_type="no", verbose=False,
     )
     m.fit(X, y)
     hist = m._train_loss_history
 
+    # covers: Python-path end-to-end, nanobind history population, score_function=L2,
+    #         grow_policy=SymmetricTree
     assert len(hist) > 0, "train_loss_history is empty — nanobind path did not populate it"
 
     first_loss = hist[0]
     last_loss = hist[-1]
+    # covers: convergence direction, Python-path end-to-end, score_function=L2,
+    #         grow_policy=SymmetricTree
     assert last_loss < first_loss, (
         f"MLX train loss did not decrease: first={first_loss:.6f}, last={last_loss:.6f}. "
         f"Training is not converging — suggests noise or leaf bug prevents any split gain."
@@ -249,6 +274,8 @@ def test_symmetrictree_monotone_convergence(seed: int):
     total_steps = len(hist_arr) - 1
     non_mono_frac = non_mono / total_steps if total_steps > 0 else 0.0
 
+    # covers: convergence monotonicity, Python-path end-to-end, score_function=L2,
+    #         grow_policy=SymmetricTree
     assert non_mono_frac <= 0.05, (
         f"MLX train loss has {non_mono}/{total_steps} non-monotone steps "
         f"({non_mono_frac*100:.1f}% > 5% tolerance). "
@@ -271,14 +298,16 @@ def test_symmetrictree_monotone_convergence(seed: int):
 #   FU-2:    FindBestSplitPerPartition had no noise path → rs=1 ~10-12% RMSE
 #            under-fit.  Caught by (1) with the one-sided rs=1 bound.
 #
-# S27-FU-3 / DEC-032 note (Depthwise only):
-#   MLX FindBestSplitPerPartition implements L2 Newton gain.  CPU CatBoost
-#   defaults to Cosine score function for Depthwise, which diverges from L2 by
-#   14-17% at N=1000/depth=6 (per-partition fragmentation ~15 docs amplifies the
-#   difference).  At N≥10k both functions agree within ±1%.
-#   To keep this harness valid at all tested N, _cpu_fit_nonoblivious forces
-#   score_function='L2' for Depthwise — making the CPU side algorithm-equivalent
-#   to the MLX side.  See DEC-032 for full rationale; S28 will port Cosine to MLX.
+# S27-FU-3 / DEC-032 note:
+#   S28-FU3-REVALIDATE (task #74) confirmed 5/5 DW cells pass with
+#   score_function='Cosine' on BOTH sides (ratios [0.9950, 1.0160], seeds 42-46,
+#   N=1000).  The DW force-L2 conditional is removed; DW cells now test Cosine
+#   parity end-to-end, matching CPU's default.
+#
+#   LG with Cosine both sides fails 0/5 at ratios [1.1403, 1.1498] — a gap of
+#   ~14% analogous to the pre-S28 DW gap.  LG cells retain force-L2 pending a
+#   dedicated LG Cosine port (S29-FU-LG candidate).  See t5-gate-report.md for
+#   evidence and proposed followup scope.
 # ---------------------------------------------------------------------------
 
 
@@ -287,9 +316,12 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
 
     Lossguide uses max_leaves=31 (CPU default, matching MLX default).
 
-    Depthwise uses score_function='L2' explicitly.
-    DEC-032: MLX implements L2 Newton gain only; CPU must match explicitly for parity.
-    See S28 for Cosine port.
+    Depthwise uses score_function='Cosine' (CPU default, now matched by MLX
+    after S28-L2-EXPLICIT + S28-FU3-REVALIDATE).  DEC-031 Rule 3: explicit.
+
+    Lossguide uses score_function='L2' — CPU LG default is Cosine but MLX LG
+    has a ~14% Cosine/L2 gap at N=1000 (0/5 seeds pass at [0.98, 1.02]).
+    Force-L2 retained pending S29-FU-LG port.  DEC-031 Rule 3: explicit.
     """
     from catboost import CatBoostRegressor
 
@@ -308,10 +340,14 @@ def _cpu_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     )
     if grow_policy == "Lossguide":
         kwargs["max_leaves"] = 31
-    if grow_policy == "Depthwise":
-        # DEC-032: MLX implements L2 Newton gain only; CPU must match explicitly for parity.
-        # See S28 for Cosine port.
+        # S28-FU3-REVALIDATE: LG Cosine gap confirmed 0/5 seeds in [0.98, 1.02]
+        # (ratios ~1.14); force L2 to match MLX until S29-FU-LG closes the gap.
+        # DEC-031 Rule 3: explicit algorithm label.
         kwargs["score_function"] = "L2"
+    if grow_policy == "Depthwise":
+        # S28-FU3-REVALIDATE: DW Cosine parity confirmed 5/5 in [0.98, 1.02].
+        # Use CPU's natural default (Cosine) explicitly per DEC-031 Rule 3.
+        kwargs["score_function"] = "Cosine"
     m = CatBoostRegressor(**kwargs)
     m.fit(X, y)
     return m
@@ -323,15 +359,23 @@ def _mlx_fit_nonoblivious(X, y, seed: int, random_strength: float, grow_policy: 
     Lossguide uses max_leaves=31 (default), matching the CPU setup above.
     Both nanobind and subprocess paths populate _train_loss_history for all
     grow policies after DEC-029 + FU-2.
+
+    Depthwise uses score_function='Cosine' (S28-FU3-REVALIDATE: 5/5 DW cells
+    pass with Cosine both sides; DEC-031 Rule 3: explicit, matching CPU default).
+
+    Lossguide uses score_function='L2' (MLX LG Cosine gap ~14% confirmed in
+    S28-FU3-REVALIDATE; force-L2 retained pending S29-FU-LG; DEC-031 Rule 3).
     """
     from catboost_mlx import CatBoostMLXRegressor
 
+    score_function = "Cosine" if grow_policy == "Depthwise" else "L2"
     m = CatBoostMLXRegressor(
         iterations=50,
         depth=6,
         learning_rate=0.03,
         loss="rmse",
         grow_policy=grow_policy,
+        score_function=score_function,  # DEC-031 Rule 3: explicit per policy
         bins=128,
         random_seed=seed,
         random_strength=random_strength,
@@ -376,6 +420,9 @@ def _assert_segmented_parity(
     """
     ratio = mlx_rmse / cpu_rmse
     if random_strength == 0.0:
+        # covers: aggregate RMSE, Python-path end-to-end,
+        #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy,
+        #         rs=0 deterministic branch
         assert 0.95 <= ratio <= 1.05, (
             f"Python-path parity regression ({context}): "
             f"MLX/CPU RMSE ratio = {ratio:.4f} "
@@ -386,6 +433,9 @@ def _assert_segmented_parity(
         )
     else:
         # One-sided: MLX may be better; only fail if MLX is much worse than CPU.
+        # covers: aggregate RMSE, Python-path end-to-end,
+        #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy,
+        #         rs=1 stochastic branch
         assert mlx_rmse <= cpu_rmse * 1.05, (
             f"Python-path parity regression ({context}): "
             f"MLX RMSE = {mlx_rmse:.6f} > CPU RMSE × 1.05 = {cpu_rmse * 1.05:.6f} "
@@ -467,6 +517,8 @@ def test_nonoblivious_pred_std_ratio(grow_policy: str, random_strength: float, s
     cpu_std = float(np.std(cpu_preds))
     mlx_std = float(np.std(mlx_preds))
 
+    # covers: Python-path end-to-end, sanity — CPU must produce non-constant preds,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert cpu_std > 0, (
         f"CPU predictions are constant (std=0) — CPU training failed. "
         f"grow_policy={grow_policy}, seed={seed}, rs={random_strength}"
@@ -474,6 +526,9 @@ def test_nonoblivious_pred_std_ratio(grow_policy: str, random_strength: float, s
 
     std_ratio = mlx_std / cpu_std
 
+    # covers: prediction std ratio, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG),
+    #         non-oblivious grow policy (leaf-magnitude signal, DEC-029/DEC-028 class)
     assert 0.90 <= std_ratio <= 1.10, (
         f"MLX pred std ratio = {std_ratio:.4f} "
         f"(MLX_std={mlx_std:.4f}, CPU_std={cpu_std:.4f}) "
@@ -508,12 +563,15 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     n = 10_000
     X, y = _make_data(n, seed)
 
+    # DW uses Cosine (S28-FU3-REVALIDATE closed gap); LG uses L2 (S29-FU-LG pending).
+    score_function = "Cosine" if grow_policy == "Depthwise" else "L2"
     m = CatBoostMLXRegressor(
         iterations=50,
         depth=6,
         learning_rate=0.03,
         loss="rmse",
         grow_policy=grow_policy,
+        score_function=score_function,  # DEC-031 Rule 3: explicit per policy
         bins=128,
         random_seed=seed,
         random_strength=1.0,
@@ -523,6 +581,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     m.fit(X, y)
     hist = m._train_loss_history
 
+    # covers: Python-path end-to-end, nanobind history population,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert len(hist) > 0, (
         f"_train_loss_history is empty — nanobind path did not populate it. "
         f"grow_policy={grow_policy}, seed={seed}"
@@ -530,6 +590,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
 
     first_loss = hist[0]
     last_loss = hist[-1]
+    # covers: convergence direction, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert last_loss < first_loss, (
         f"MLX train loss did not decrease: first={first_loss:.6f}, last={last_loss:.6f}. "
         f"grow_policy={grow_policy}, seed={seed}. "
@@ -542,6 +604,8 @@ def test_nonoblivious_monotone_convergence(grow_policy: str, seed: int):
     total_steps = len(hist_arr) - 1
     non_mono_frac = non_mono / total_steps if total_steps > 0 else 0.0
 
+    # covers: convergence monotonicity, Python-path end-to-end,
+    #         score_function=Cosine(DW)/L2(LG), non-oblivious grow policy
     assert non_mono_frac <= 0.05, (
         f"MLX train loss has {non_mono}/{total_steps} non-monotone steps "
         f"({non_mono_frac*100:.1f}% > 5% tolerance). "

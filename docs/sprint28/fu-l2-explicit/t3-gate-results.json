@@ -1,0 +1,123 @@
+{
+  "date": "2026-04-23",
+  "branch": "mlx/sprint-28-score-function-fidelity",
+  "task": "S28-L2-EXPLICIT",
+  "gate": "G3a+G3b+G3c",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "config": {
+    "N": 1000,
+    "depth": 6,
+    "iters": 50,
+    "bins": 128,
+    "lr": 0.03,
+    "lambda": 3.0
+  },
+  "g3a_l2_no_regression": {
+    "pass_count": 5,
+    "total": 5,
+    "pass": true,
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.18159070281788328,
+        "cpu_l2_rmse": 0.18167325325282122,
+        "ratio": 0.9995456104106692,
+        "pass": true
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.18041606611780545,
+        "cpu_l2_rmse": 0.18015551948326594,
+        "ratio": 1.0014462317629058,
+        "pass": true
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.18278567435795598,
+        "cpu_l2_rmse": 0.1828238876666313,
+        "ratio": 0.9997909829554386,
+        "pass": true
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.18251108729350551,
+        "cpu_l2_rmse": 0.18267764745634785,
+        "ratio": 0.9990882291010337,
+        "pass": true
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.182110506700638,
+        "cpu_l2_rmse": 0.1825479108136485,
+        "ratio": 0.9976038941718867,
+        "pass": true
+      }
+    ],
+    "ratios": [
+      0.9995456104106692,
+      1.0014462317629058,
+      0.9997909829554386,
+      0.9990882291010337,
+      0.9976038941718867
+    ]
+  },
+  "g3b_cosine_live_path": {
+    "pass_count": 5,
+    "total": 5,
+    "pass": true,
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.2140252912302744,
+        "cpu_cosine_rmse": 0.21067719079049668,
+        "ratio": 1.0158920879247302,
+        "pass": true
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.21231093615709665,
+        "cpu_cosine_rmse": 0.2089676034007807,
+        "ratio": 1.0159992874584667,
+        "pass": true
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.21063518594448244,
+        "cpu_cosine_rmse": 0.21015601844597923,
+        "ratio": 1.002280056036684,
+        "pass": true
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.21478827717872967,
+        "cpu_cosine_rmse": 0.2131736587102339,
+        "ratio": 1.0075741931637554,
+        "pass": true
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.21846702798989448,
+        "cpu_cosine_rmse": 0.21957083711876269,
+        "ratio": 0.9949728791703282,
+        "pass": true
+      }
+    ],
+    "ratios": [
+      1.0158920879247302,
+      1.0159992874584667,
+      1.002280056036684,
+      1.0075741931637554,
+      0.9949728791703282
+    ]
+  },
+  "g3c_unknown_guard": {
+    "pass": true,
+    "exception_message": "score_function='NewtonCosine' is not yet implemented in the MLX backend.  Supported values: L2, Cosine."
+  }
+}

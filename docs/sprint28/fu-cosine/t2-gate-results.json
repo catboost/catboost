@@ -1,0 +1,226 @@
+{
+  "date": "2026-04-23",
+  "branch": "mlx/sprint-28-score-function-fidelity",
+  "gate": "S28-COSINE G2a+G2b",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "config": {
+    "N": 1000,
+    "depth": 6,
+    "iters": 50,
+    "bins": 128,
+    "lr": 0.03,
+    "lambda": 3.0
+  },
+  "g2a_formula": {
+    "max_ulp": 1,
+    "pass": true,
+    "threshold_ulp": 4,
+    "cases": [
+      {
+        "case": "typical balanced",
+        "sumL": 1.5,
+        "wL": 7.0,
+        "sumR": -0.8,
+        "wR": 8.0,
+        "mlx_f32": 0.6335083246231079,
+        "cpu_f64": 0.6335083667884938,
+        "delta_rel": 6.65585303368771e-08,
+        "ulp": 1
+      },
+      {
+        "case": "unbalanced left-heavy",
+        "sumL": 3.2,
+        "wL": 12.0,
+        "sumR": -0.3,
+        "wR": 3.0,
+        "mlx_f32": 0.9376415610313416,
+        "cpu_f64": 0.9376415808827664,
+        "delta_rel": 2.117165582460838e-08,
+        "ulp": 0
+      },
+      {
+        "case": "tiny left leaf (1 doc)",
+        "sumL": 0.01,
+        "wL": 1.0,
+        "sumR": 2.5,
+        "wR": 14.0,
+        "mlx_f32": 0.66819167137146,
+        "cpu_f64": 0.6681916425354671,
+        "delta_rel": 4.315527309853815e-08,
+        "ulp": 0
+      },
+      {
+        "case": "symmetric opposite signs",
+        "sumL": -1.2,
+        "wL": 6.0,
+        "sumR": 1.2,
+        "wR": 6.0,
+        "mlx_f32": 0.6928203105926514,
+        "cpu_f64": 0.6928203230275509,
+        "delta_rel": 1.7948231512829875e-08,
+        "ulp": 0
+      },
+      {
+        "case": "large symmetric (near max depth)",
+        "sumL": 5.0,
+        "wL": 15.0,
+        "sumR": -5.0,
+        "wR": 15.0,
+        "mlx_f32": 1.8257418870925903,
+        "cpu_f64": 1.8257418583505536,
+        "delta_rel": 1.5742661876961763e-08,
+        "ulp": 0
+      },
+      {
+        "case": "near-zero gradients",
+        "sumL": 0.001,
+        "wL": 0.5,
+        "sumR": 0.001,
+        "wR": 0.5,
+        "mlx_f32": 0.0020000000949949026,
+        "cpu_f64": 0.002,
+        "delta_rel": 4.749745128457272e-08,
+        "ulp": 0
+      },
+      {
+        "case": "micro-leaf high gradient (DW overfit regime)",
+        "sumL": 10.0,
+        "wL": 1.0,
+        "sumR": -0.1,
+        "wR": 14.0,
+        "mlx_f32": 9.999847412109375,
+        "cpu_f64": 9.999847764273927,
+        "delta_rel": 3.521699130266032e-08,
+        "ulp": 0
+      },
+      {
+        "case": "zero left gradient",
+        "sumL": 0.0,
+        "wL": 8.0,
+        "sumR": 1.5,
+        "wR": 7.0,
+        "mlx_f32": 0.5669467449188232,
+        "cpu_f64": 0.5669467095138407,
+        "delta_rel": 6.244851924738943e-08,
+        "ulp": 1
+      },
+      {
+        "case": "negative then positive",
+        "sumL": -2.3,
+        "wL": 10.0,
+        "sumR": 2.3,
+        "wR": 5.0,
+        "mlx_f32": 1.2533832788467407,
+        "cpu_f64": 1.2533833001000516,
+        "delta_rel": 1.6956752884200334e-08,
+        "ulp": 0
+      },
+      {
+        "case": "unbalanced hessian",
+        "sumL": 0.5,
+        "wL": 0.1,
+        "sumR": 3.0,
+        "wR": 14.9,
+        "mlx_f32": 0.8990588188171387,
+        "cpu_f64": 0.8990588858323071,
+        "delta_rel": 7.453924261315112e-08,
+        "ulp": 1
+      }
+    ]
+  },
+  "g2a_e2e_baseline": {
+    "note": "Gap baseline \u2014 Cosine dispatch not yet wired (S28-L2-EXPLICIT will close)",
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.18159070285292378,
+        "cpu_cosine_rmse": 0.21067719079049668,
+        "ratio": 0.8619381252026598
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.1804160675876007,
+        "cpu_cosine_rmse": 0.2089676034007807,
+        "ratio": 0.8633686018860026
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.18278567231212767,
+        "cpu_cosine_rmse": 0.21015601844597923,
+        "ratio": 0.8697617782434001
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.18251108632271631,
+        "cpu_cosine_rmse": 0.2131736587102339,
+        "ratio": 0.8561615324658987
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.18211050903641668,
+        "cpu_cosine_rmse": 0.21957083711876269,
+        "ratio": 0.8293929714259628
+      }
+    ],
+    "ratios": [
+      0.8619381252026598,
+      0.8633686018860026,
+      0.8697617782434001,
+      0.8561615324658987,
+      0.8293929714259628
+    ]
+  },
+  "g2b_l2_regression": {
+    "pass_count": 5,
+    "total": 5,
+    "pass": true,
+    "results": [
+      {
+        "seed": 42,
+        "mlx_rmse": 0.18159070406346792,
+        "cpu_l2_rmse": 0.18167325325282122,
+        "ratio": 0.9995456172668499,
+        "pass": true
+      },
+      {
+        "seed": 43,
+        "mlx_rmse": 0.1804160659164637,
+        "cpu_l2_rmse": 0.18015551948326594,
+        "ratio": 1.0014462306453062,
+        "pass": true
+      },
+      {
+        "seed": 44,
+        "mlx_rmse": 0.18278567238754914,
+        "cpu_l2_rmse": 0.1828238876666313,
+        "ratio": 0.9997909721778161,
+        "pass": true
+      },
+      {
+        "seed": 45,
+        "mlx_rmse": 0.18251108591063947,
+        "cpu_l2_rmse": 0.18267764745634785,
+        "ratio": 0.9990882215310541,
+        "pass": true
+      },
+      {
+        "seed": 46,
+        "mlx_rmse": 0.18211050505800766,
+        "cpu_l2_rmse": 0.1825479108136485,
+        "ratio": 0.9976038851735348,
+        "pass": true
+      }
+    ]
+  },
+  "ranking_divergence": {
+    "trials": 200,
+    "different_best_split": 40,
+    "rate": 0.2
+  }
+}

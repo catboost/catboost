@@ -1,0 +1,97 @@
+{
+  "gates": {
+    "G6a": {
+      "verdict": "PASS",
+      "seeds": [
+        {
+          "seed": 42,
+          "mlx_rmse": 0.5898669725168605,
+          "cpu_cosine_rmse": 0.5854144595733377,
+          "ratio": 1.0076057447347095,
+          "pass": true,
+          "iters": 1
+        },
+        {
+          "seed": 43,
+          "mlx_rmse": 0.5816240794736622,
+          "cpu_cosine_rmse": 0.5772051198706156,
+          "ratio": 1.0076557872598864,
+          "pass": true,
+          "iters": 1
+        },
+        {
+          "seed": 44,
+          "mlx_rmse": 0.5876642588468304,
+          "cpu_cosine_rmse": 0.5835968648500518,
+          "ratio": 1.0069695268116694,
+          "pass": true,
+          "iters": 1
+        },
+        {
+          "seed": 45,
+          "mlx_rmse": 0.58820387400265,
+          "cpu_cosine_rmse": 0.5841483519444403,
+          "ratio": 1.0069426234700658,
+          "pass": true,
+          "iters": 1
+        },
+        {
+          "seed": 46,
+          "mlx_rmse": 0.5800989504901979,
+          "cpu_cosine_rmse": 0.5758924819687569,
+          "ratio": 1.0073042601755464,
+          "pass": true,
+          "iters": 1
+        }
+      ]
+    },
+    "G6b": {
+      "verdict": "PASS",
+      "seeds": [
+        {
+          "seed": 42,
+          "mlx_rmse": 0.20477623083756183,
+          "cpu_l2_rmse": 0.20518740334105579,
+          "ratio": 0.9979961123499842,
+          "pass": true
+        },
+        {
+          "seed": 43,
+          "mlx_rmse": 0.2014386722247463,
+          "cpu_l2_rmse": 0.20115336512129156,
+          "ratio": 1.0014183561049685,
+          "pass": true
+        },
+        {
+          "seed": 44,
+          "mlx_rmse": 0.2048340875498115,
+          "cpu_l2_rmse": 0.2049151380845538,
+          "ratio": 0.9996044678031114,
+          "pass": true
+        },
+        {
+          "seed": 45,
+          "mlx_rmse": 0.20565211982745046,
+          "cpu_l2_rmse": 0.20602568573690477,
+          "ratio": 0.9981867993395185,
+          "pass": true
+        },
+        {
+          "seed": 46,
+          "mlx_rmse": 0.20408743682160857,
+          "cpu_l2_rmse": 0.20425039696855207,
+          "ratio": 0.9992021550539821,
+          "pass": true
+        }
+      ]
+    },
+    "G6c": {
+      "verdict": "PASS",
+      "message": "score_function='NewtonCosine' is not yet implemented in the MLX backend.  Supported values: L2, Cosine."
+    },
+    "G6d": {
+      "verdict": "PASS",
+      "detail": "RMSE_Cosine=0.299158  RMSE_L2=0.204776  max_|diff|=0.388439  mean_|diff|=0.082670"
+    }
+  }
+}
