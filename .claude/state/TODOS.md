@@ -1,15 +1,15 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-23 (Sprint 28 CLOSED — Score Function Fidelity; tip e0b0b1b527).
+> Last header refresh: 2026-04-23 (Sprint 29 OPENED — DEC-032 closeout + LG mechanism spike; branch `mlx/sprint-29-dec032-closeout`).
 
 ## Current state (2026-04-23)
 
-- **Active branch**: `mlx/sprint-19-hist-writeback` — S28 CLOSED at `e0b0b1b527`. PR ready (human-triggered).
-- **Base**: `4b3711f82b` (post PR #25 S27 merge). `master` tip = same.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S28.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S28 is correctness-only.
-- **Open PRs**: None (S27 PR #25 merged; S28 PR not yet opened — human-triggered). DEC-027 (alternative accumulation) remains deferred.
+- **Active branch**: `mlx/sprint-29-dec032-closeout` — cut from master `987da0e7d5` (S28 merge). S29 kickoff commit landed; no production commits yet.
+- **Base**: master `987da0e7d5` (S28 merge commit).
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S28 and S29.
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S29 is correctness-only.
+- **Open PRs**: S28 PR — human-triggered (not yet opened). DEC-027 (alternative accumulation) remains deferred.
 
 ---
 
@@ -50,27 +50,40 @@
 
 ---
 
-## Sprint 29 — Score Function Fidelity Follow-Through (PENDING)
+## Sprint 29 — DEC-032 Closeout + LG Mechanism Spike (ACTIVE)
 
-**Branch**: TBD (cut from master after S28 PR merges)
-**Rationale**: S28 partially closed DEC-032. Three carry items block full closure: C++ / CLI guards (SA-H1), LG+Cosine RCA, and ST+Cosine Kahan port.
+**Branch**: `mlx/sprint-29-dec032-closeout` (cut from master `987da0e7d5`, S28 merge)
+**Tracker**: Tasks #82–#89 are source of truth. This list is a human-readable mirror.
+**Rationale**: S28 partially closed DEC-032. S29 closes it fully via CLI-GUARD and investigates the LG+Cosine coupling hypothesis with a 1-session cap.
 
-- [ ] **S29-CLI-GUARD** — Port `Cosine+{LG,ST}` combination rejection into `catboost/mlx/train_api.cpp:TrainConfigToInternal` and into `catboost/mlx/tests/csv_train.cpp:ParseArgs`. Tracks SA-H1 from S28 security audit.
-  - **Mechanism**: Forbidden combos throw `std::invalid_argument` at C++ entry; CLI returns exit-1 on same combos. Guard is structurally equivalent to the Python `ValueError` guards added in `b9577067ef`.
-  - **Acceptance**: (1) Unit test: `_core.train()` with `Cosine + Lossguide` throws `std::invalid_argument`. (2) Unit test: `_core.train()` with `Cosine + SymmetricTree` throws `std::invalid_argument`. (3) CLI test: `csv_train` with forbidden combo exits non-zero. All three tests wired to CI.
-  - **Owner**: @ml-engineer
+**Scope change note**: The three S28 placeholder carry items (`S29-CLI-GUARD`, `S29-LG-COSINE-RCA`, `S29-ST-COSINE-KAHAN`) have been restructured:
+- `S29-CLI-GUARD` → #82 (T1) + #83 (T2). Unchanged in scope.
+- `S29-LG-COSINE-RCA` → folded into #84 (S29-LG-SPIKE-T1) + #85 (S29-LG-SPIKE-T2). The spike uses iter-1 drift as the discriminator rather than a full RCA, capped at one session.
+- `S29-ST-COSINE-KAHAN` → conditional S29 stretch (outcome A only, requires Ramos approval at #86) OR S30 carry (outcomes B/C). Not a committed S29 task.
 
-- [ ] **S29-LG-COSINE-RCA** — Root-cause the Lossguide × Cosine priority-queue leaf ordering × joint-gain magnitude interaction producing unacceptable per-partition gain drift. Deliverable: triage doc with mechanism identified + fix plan.
-  - **Mechanism**: Instrument `FindBestSplitPerPartition` on the Lossguide path with `score_function='Cosine'` at N=1000; capture per-partition `(gain_MLX, gain_CPU, chosen_split)` across 3 seeds; identify the divergence source.
-  - **Acceptance**: Triage doc at `docs/sprint29/lg-cosine-rca/triage.md` with (a) root cause named, (b) fix plan with risk assessment, (c) quantitative evidence of the drift mechanism. If fix is low-risk, land it in S29; if high-risk, open S30.
-  - **Referenced by**: `python/catboost_mlx/core.py:634`.
-  - **Owner**: @research-scientist + @ml-engineer
+### CLI-GUARD track (unblocked, start here)
 
-- [ ] **S29-ST-COSINE-KAHAN** — Port Kahan/Neumaier compensated summation into the ST joint-Cosine denominator accumulator in `catboost/mlx/tests/csv_train.cpp` (`ComputeCosineGainKDim` callers). Deliverable: 50-iter ST+Cosine drift ≤ 1% at N=50k.
-  - **Mechanism**: Identify the float32 joint-denominator accumulation site in `ComputeCosineGainKDim` (or its callers on the ST path) where compounding produces ~47% 50-iter drift; apply Kahan/Neumaier compensation; measure drift reduction.
-  - **Acceptance**: ST+Cosine 50-iter RMSE drift vs CPU ≤ 1% at N=50k, rs=0, 3 seeds. Gate: 3/3 seeds PASS. Lift `ValueError` guard in `core.py:644` once gate passes.
-  - **Referenced by**: `python/catboost_mlx/core.py:644`.
-  - **Owner**: @ml-engineer
+- [ ] **#82 S29-CLI-GUARD-T1** — Port `Cosine+{LG,ST}` combination rejection into `catboost/mlx/train_api.cpp:TrainConfigToInternal` and `catboost/mlx/tests/csv_train.cpp:ParseArgs`. Forbidden combos throw `std::invalid_argument` at C++ entry; CLI returns exit-1. Structurally equivalent to Python `ValueError` guards added in `b9577067ef`. Owner: @ml-engineer
+
+- [ ] **#83 S29-CLI-GUARD-T2** — Unit tests for C++ guard (`_core.train()` with `Cosine+Lossguide` and `Cosine+SymmetricTree` both throw `std::invalid_argument`) + CLI test (exits non-zero on forbidden combos). All three wired to CI. **Blocked by #82.** Owner: @ml-engineer
+
+### LG mechanism spike (1-session cap, unblocked, parallel to CLI-GUARD)
+
+- [ ] **#84 S29-LG-SPIKE-T1** — Instrument iter-1 drift on the LG+Cosine path. Discriminator: compare LG+Cosine iter-1 drift against ST+Cosine iter-1 anchor (0.77%, from `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md`). Referenced by `python/catboost_mlx/core.py:634`. Owner: @research-scientist
+
+- [ ] **#85 S29-LG-SPIKE-T2** — Verdict doc at `docs/sprint29/lg-spike/verdict.md`. Outcome A (LG iter-1 ≈1% — shared compounding, Kahan candidate), B (LG iter-1 ≥5% — priority-queue ordering divergence, Kahan won't help), or C (ambiguous). **Blocked by #84.** Owner: @research-scientist
+
+### Human checkpoint
+
+- [ ] **#86 S29-BRANCH-DECISION** — Ramos decides: stretch (add Kahan work to S29) vs close (carry LG/ST to S30). No auto-advance. **Blocked by #85.** Owner: Ramos
+
+### Quality gates (sequential)
+
+- [ ] **#87 S29-CR** — Full code review of all S29-CLI-GUARD diffs (and any stretch work if approved). **Blocked by #82, #86.** Owner: @code-reviewer
+
+- [ ] **#88 S29-SA** — Security audit re-check; confirm SA-H1 closure with C++/CLI guards landed. **Blocked by #82, #86.** Owner: @security-auditor
+
+- [ ] **#89 S29-CLOSE** — Sprint close doc + DEC-032 annotation to fully CLOSED + DEC-034 resolution (post-verdict). **Blocked by #87, #88.** Owner: @technical-writer
 
 ---
 

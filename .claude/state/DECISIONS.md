@@ -983,7 +983,7 @@ If an anchor has had its numeric value updated more than once (i.e., a second st
 
 **Sprint**: 27 (S27-FU-3, T5) → **PARTIALLY CLOSED by DEC-033 (S28, 2026-04-23)**
 **Date**: 2026-04-22
-**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. C++ / CLI bypass tracked as S29-CLI-GUARD. Full closure queued for S29-close once S29-CLI-GUARD lands. See DEC-033 below.
+**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. C++ / CLI bypass (SA-H1) is being closed by S29-CLI-GUARD-T1/T2 (#82/#83). Full closure (CLOSED) will be declared at S29-CLOSE (#89) once #82/#83 land and #87/#88 pass. See DEC-033 below.
 **Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
 **Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
 **Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
@@ -1147,3 +1147,83 @@ Gate reports: `docs/sprint28/fu-cosine/t2-gate-report.md`,
 `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md`,
 `docs/sprint28/fu-cr/t6-cr-report.md`,
 `docs/sprint28/fu-sa/t6-sa-report.md`.
+
+---
+
+## DEC-034: LG-Cosine mechanism resolution
+
+**Sprint**: 29 (S29-LG-SPIKE-T1/T2, #84/#85; resolution checkpoint #86)
+**Date**: 2026-04-23
+**Status**: PENDING-SPIKE — resolves at T5 post-verdict (task #86, human-decision checkpoint)
+**Owner**: @research-scientist (spike) → Ramos (T5 resolution at #86)
+**Authored by**: S29-00 kickoff (@technical-writer)
+
+### Context
+
+LG+Cosine (`score_function='Cosine'` × Lossguide grow policy) shows unacceptable per-partition
+gain drift vs CPU CatBoost. It was guarded at the Python API in S28 (`b9577067ef`, `core.py:634`)
+to unblock S28 close. The guard is a `ValueError` on the Python surface; no equivalent guard
+exists at the C++ or CLI entry (SA-H1, being closed by S29-CLI-GUARD #82/#83).
+
+The mechanism driving the drift is unknown. Two hypotheses compete:
+
+### Hypothesis A — Shared float32 compounding (outcome A)
+
+The same `sqrt(Σden)` float32 joint-denominator accumulation that produces ~0.77% ST+Cosine
+iter-1 drift also operates in the LG path. Compounding is a property of the `ComputeCosineGainKDim`
+accumulator shared across grow policies, not of LG's priority-queue structure.
+
+**Prediction**: LG iter-1 drift ≈1% (same order of magnitude as ST+Cosine 0.77%).
+
+**Implication if confirmed**: Kahan/Neumaier compensated summation in `ComputeCosineGainKDim`
+is a candidate fix for both LG and ST in a single pass. Opens S29-KAHAN-JOINT stretch or S30 work.
+
+### Hypothesis B — Priority-queue ordering divergence (outcome B)
+
+LG's priority-queue leaf-selection amplifies sub-ULP gain-ordering sensitivity. At each iteration
+the queue pops the partition with the highest gain; a per-partition gain that is off by even
+fractional ULP can change the queue's ordering, selecting a different partition to expand, which
+in turn changes the data layout fed to subsequent iterations. This is a compounding amplification
+that Kahan summation in the denominator accumulator would not address — the divergence is
+architectural, not numerical.
+
+**Prediction**: LG iter-1 drift ≥5% (substantially larger than ST+Cosine 0.77%).
+
+**Implication if confirmed**: LG+Cosine requires algorithmic work (e.g., lexicographic gain
+tiebreaking on the priority queue, or a separate LG-specific Cosine path) that is LG-specific
+and likely higher-risk than Kahan. Does not generalize to ST.
+
+### Discriminator
+
+**Iter-1 drift measurement** at LG+Cosine vs the ST+Cosine iter-1 anchor (0.77%, from
+`docs/sprint28/fu-obliv-dispatch/t7-gate-report.md`):
+
+| Measured LG iter-1 drift | Outcome | Implication |
+|--------------------------|---------|-------------|
+| ≈1% (same order as ST) | A — shared compounding | Kahan candidate for both guards |
+| ≥5% (substantially larger) | B — priority-queue divergence | Algorithmic work, LG-specific |
+| Ambiguous (between) | C | Close S29 with spike doc; re-scope S30 |
+
+### Decision tree
+
+- **Outcome A**: Open S29-KAHAN-JOINT stretch (Ramos approval required at #86). If approved and
+  landed in S29, both `core.py:634` (LG+Cosine) and `core.py:644` (ST+Cosine) guards may be
+  lifted once the 50-iter drift ≤ 1% gate passes at N=50k.
+- **Outcome B**: Close S29 with CLI-GUARD only. Open dedicated S30 LG-Cosine algorithmic work
+  item. ST+Cosine Kahan work proceeds independently on its own timeline.
+- **Outcome C**: Close S29 with CLI-GUARD + spike verdict doc. Re-scope S30 with additional
+  discriminating measurements.
+
+### Resolution path
+
+1. #84 (S29-LG-SPIKE-T1) — instrument iter-1 drift measurement.
+2. #85 (S29-LG-SPIKE-T2) — verdict doc with outcome A/B/C classification.
+3. #86 (S29-BRANCH-DECISION) — Ramos decides stretch vs close. This DEC updates to RESOLVED
+   at that checkpoint with the chosen outcome recorded.
+
+### Authority
+
+- `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md` — ST+Cosine iter-1 anchor (0.77%)
+- `python/catboost_mlx/core.py:634` — LG+Cosine Python guard (S28 `b9577067ef`)
+- `python/catboost_mlx/core.py:644` — ST+Cosine Python guard (S28 `b9577067ef`)
+- Task #86 carries the resolution; verdict doc at `docs/sprint29/lg-spike/verdict.md` (S29-LG-SPIKE-T2)

@@ -2,6 +2,38 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-23 — Sprint 29 OPENED (DEC-032 Closeout + LG Mechanism Spike)
+
+Branch `mlx/sprint-29-dec032-closeout` cut from master `987da0e7d5` (S28 merge commit). Scope (E)
+per Ramos ultrathink triage. 8 tasks (#82–#89) created by orchestrator. Kickoff commit S29-00
+lands state files only — no production code changes.
+
+### Tasks opened
+
+| ID | Tag | Purpose |
+|----|-----|---------|
+| #82 | S29-CLI-GUARD-T1 | Port Cosine+{LG,ST} guards to `train_api.cpp` + `csv_train.cpp` |
+| #83 | S29-CLI-GUARD-T2 | Unit + CLI tests for C++ guards (blocked #82) |
+| #84 | S29-LG-SPIKE-T1 | Instrument LG+Cosine iter-1 drift (parallel, 1-session cap) |
+| #85 | S29-LG-SPIKE-T2 | Verdict doc: outcome A/B/C (blocked #84) |
+| #86 | S29-BRANCH-DECISION | Human checkpoint: Ramos decides stretch vs close (blocked #85) |
+| #87 | S29-CR | Code review (blocked #82, #86) |
+| #88 | S29-SA | Security audit / SA-H1 closure (blocked #82, #86) |
+| #89 | S29-CLOSE | Sprint close + DEC-032 fully CLOSED (blocked #87, #88) |
+
+### Scope refinements
+
+- Spike capped at 1 session; LG/ST Kahan carries to S30 on outcomes B/C.
+- Iter-1 discriminator: LG ≈1% → outcome A (Kahan viable); LG ≥5% → outcome B (algorithmic); ambiguous → outcome C.
+- T5 (#86) is a human-only decision; no auto-advance.
+
+### New decisions
+
+- DEC-034 (PENDING-SPIKE): LG-Cosine mechanism resolution. Resolves at #86 post-verdict.
+- DEC-032: annotation updated — S29-CLI-GUARD (#82/#83) are the closing work items; #89 promotes to fully CLOSED.
+
+---
+
 ## 2026-04-23 — Sprint 28 CLOSED (Score Function Fidelity, DEC-032 partially)
 
 Branch: `mlx/sprint-19-hist-writeback`, tip `e0b0b1b527`. 9 commits. All exit gates PASS or

@@ -1,20 +1,67 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-23 (Sprint 28 CLOSED — Score Function Fidelity; tip e0b0b1b527)
+> Last updated: 2026-04-23 (Sprint 29 OPENED — DEC-032 closeout + LG mechanism spike; branch `mlx/sprint-29-dec032-closeout`)
 
 ## Current state
 
-- **Active sprint**: None. Sprint 28 CLOSED 2026-04-23. PR ready to open (human-triggered step).
-- **Campaign**: Post-Verstappen correctness. S28 closed DEC-032 score-function fidelity (partially). R8 stays at 1.01× through S28.
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched throughout S28.
-- **Open PRs**: S27 PR #25 MERGED (`4b3711f82b`). S28 PR not yet opened — human-triggered.
+- **Active sprint**: Sprint 29 — DEC-032 closeout + LG mechanism spike. Branch `mlx/sprint-29-dec032-closeout`, cut from master `987da0e7d5` (S28 merge commit). No production commits yet.
+- **Campaign**: Post-Verstappen correctness. S28 partially closed DEC-032. S29 completes it via CLI-GUARD and investigates the LG+Cosine coupling hypothesis. R8 stays at 1.01× through S29 (correctness-only).
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched throughout S28 and S29.
+- **Open PRs**: S28 PR — human-triggered (not yet opened by agents).
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
-    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched across all three grow policies. `{NewtonL2, NewtonCosine}` rejected at Python API. DW+Cosine ships in-envelope (1.6% drift). LG+Cosine and ST+Cosine guarded at Python API with `ValueError`. C++/CLI bypass tracked as S29-CLI-GUARD.
+    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched across all three grow policies. `{NewtonL2, NewtonCosine}` rejected at Python API. DW+Cosine ships in-envelope (1.6% drift). LG+Cosine and ST+Cosine guarded at Python API with `ValueError`. C++/CLI bypass (SA-H1) is the primary S29 deliverable (#82/#83).
+
+## Sprint 29 — DEC-032 Closeout + LG Mechanism Spike (ACTIVE)
+
+**Branch**: `mlx/sprint-29-dec032-closeout`
+**Cut from**: master `987da0e7d5` (S28 merge commit)
+**Date opened**: 2026-04-23
+**Handoff context**: `docs/sprint28/sprint-close.md`
+
+### Mission
+
+Close DEC-032 fully via two parallel tracks:
+
+1. **S29-CLI-GUARD** (#82/#83): Port `Cosine+{LG,ST}` rejection guards into `train_api.cpp:TrainConfigToInternal` and `csv_train.cpp:ParseArgs`. This closes SA-H1 and unblocks DEC-032 → fully CLOSED at S29-CLOSE (#89).
+
+2. **S29-LG-MECHANISM-SPIKE** (#84/#85): 1-session-capped investigation of whether LG+Cosine per-partition gain drift shares the same float32 `sqrt(Σden)` compounding mechanism as ST+Cosine (0.77% iter-1 anchor), or is driven by priority-queue leaf-ordering sensitivity. Outcome A/B/C drives the T5 branch-decision checkpoint (#86).
+
+**One-session cap on spike.** If T3+T4 run past one session, close S29 with CLI-GUARD only. LG/ST Kahan work carries to S30.
+
+### Scope refinements (Ramos, 2026-04-23)
+
+1. **Spike 1-session cap.** If T3+T4 run past one session, close S29 with CLI-GUARD only. LG/ST carry to S30.
+2. **Spike discriminator = iter-1 drift.** ST+Cosine iter-1 is 0.77% (`docs/sprint28/fu-obliv-dispatch/t7-gate-report.md`).
+   - LG iter-1 ≈1% → outcome A (shared compounding mechanism) → Kahan candidate
+   - LG iter-1 ≥5% → outcome B (priority-queue ordering-divergence) → Kahan won't help
+   - Ambiguous → outcome C
+3. **T5 branch-decision is a human call.** No auto-advance. Ramos decides stretch vs close.
+
+### Task list (#82–#89)
+
+| ID | Tag | Purpose | Blocked by |
+|----|-----|---------|-----------|
+| #82 | S29-CLI-GUARD-T1 | Port Cosine+{LG,ST} guards to `train_api.cpp:TrainConfigToInternal` + `csv_train.cpp:ParseArgs` | — |
+| #83 | S29-CLI-GUARD-T2 | Unit tests for C++ and CLI guards | #82 |
+| #84 | S29-LG-SPIKE-T1 | Instrument iter-1 drift on LG+Cosine path | — |
+| #85 | S29-LG-SPIKE-T2 | Verdict doc: outcome A/B/C + mechanism evidence | #84 |
+| #86 | S29-BRANCH-DECISION | Human checkpoint: Ramos decides stretch vs close | #85 |
+| #87 | S29-CR | Code review | #82, #86 |
+| #88 | S29-SA | Security audit re-check / SA-H1 closure | #82, #86 |
+| #89 | S29-CLOSE | Sprint close + DEC-032 full closure | #87, #88 |
+
+**Dependency graph**: #82→#83, #84→#85→#86, {#82,#86}→#87, {#82,#86}→#88, {#87,#88}→#89.
+
+**Entry-point agent**: @ml-engineer picks up #82 (first actionable task, unblocked).
+
+### DEC-034 status
+
+DEC-034 (PENDING-SPIKE): LG-Cosine mechanism resolution. Resolves at T5 post-verdict (#86). Do not pre-decide. See `DECISIONS.md`.
 
 ## Sprint 28 — Score Function Fidelity (CLOSED)
 
@@ -49,26 +96,13 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 
 28/28 PASS at `b9577067ef`. Unchanged at `e0b0b1b527`.
 
-## Sprint 29 — Entry Points
+## Sprint 29 — Entry Points (ACTIVE — see Sprint 29 section above)
 
-S29 must be opened before any further code work. The three carry items from S28:
+S29 is now ACTIVE. The carry items from S28 have been restructured into 8 tracker tasks (#82–#89). See the Sprint 29 section above for full task list and scope refinements.
 
-1. **S29-CLI-GUARD** (SA-H1, non-blocking at S28 close but must ship in S29):
-   Port `Cosine+{LG,ST}` combination rejection into `catboost/mlx/train_api.cpp:TrainConfigToInternal`
-   and `catboost/mlx/tests/csv_train.cpp:ParseArgs`. Verified by: `_core.train()` with forbidden
-   combo throws `std::invalid_argument`; CLI exits non-zero on same combo.
+Note: `S29-LG-COSINE-RCA` from the S28 close is folded into #84/#85 (S29-LG-SPIKE-T1/T2). `S29-ST-COSINE-KAHAN` is a conditional S29 stretch (outcome A only) or S30 carry (outcomes B/C) — see TODOS.md.
 
-2. **S29-LG-COSINE-RCA**:
-   Root-cause the Lossguide × Cosine priority-queue magnitude interaction producing unacceptable
-   per-partition gain drift. Deliverable: triage doc with mechanism + fix plan. Referenced by
-   `python/catboost_mlx/core.py:634`.
-
-3. **S29-ST-COSINE-KAHAN**:
-   Port Kahan/Neumaier compensated summation into the ST joint-Cosine denominator accumulator
-   in `csv_train.cpp`. Deliverable: 50-iter ST+Cosine drift ≤ 1% at N=50k. Referenced by
-   `python/catboost_mlx/core.py:644`.
-
-DEC-032 promotion to fully CLOSED is queued for S29-close, contingent on S29-CLI-GUARD landing.
+DEC-032 promotion to fully CLOSED is queued for #89 (S29-CLOSE), contingent on #82/#83 (S29-CLI-GUARD) landing.
 
 ## PR state
 
