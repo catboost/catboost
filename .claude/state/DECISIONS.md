@@ -758,3 +758,139 @@ SymmetricTree path unchanged (already BFS-ordered implicitly).
 diagnostics `docs/sprint26/d0/depthwise-lossguide-root-cause.md`,
 `docs/sprint26/d0/leaf-magnitude-code-diff.md`,
 `benchmarks/sprint26/d0/one_tree_depthwise.py` + `one-tree-depthwise-instrumentation.txt`.
+
+---
+
+## DEC-030: Depthwise leaf-index encoding for validation-path inference
+
+**Sprint**: 27 (S27-FU-1)
+**Date**: 2026-04-22
+**Status**: DRAFTED — pending T3 implementation and G1-FU1 gate
+**Authored by**: S27-FU-1-T2 (@ml-engineer)
+**Commits (T1 repro + call-site evidence)**: `34f62b32c9` (repro harness), `eca086e4dd` (call-site triage)
+**Extends**: DEC-029 (non-oblivious tree serialization) — adds the evaluation-side encoding decision.
+
+### Context
+
+`ComputeLeafIndicesDepthwise` (`csv_train.cpp:1751`) recomputes leaf indices for validation
+documents on each training iteration. It was introduced alongside DEC-029's split-population
+fix but never validated against the training-path encoding. Two independent bugs were confirmed
+by the S27-FU-1-T1 harness (`docs/sprint27/scratch/fu1-t1-repro.md`): 103/200 sample
+mismatches at depth=3; 51.5% mismatch rate. The function is called only inside the
+`if (valDocs > 0)` guard at `csv_train.cpp:4040` (sole call site — confirmed by grep).
+
+### Bug A — Encoding mismatch (fires at depth >= 2)
+
+**Symptom**: `leafVec[d] = nodeIdx − numNodes` returns the BFS-array-leaf-offset (0-based rank
+among depth-`D` leaves in BFS left-to-right order). The `leafValues` array is indexed by the
+bit-packed partition encoding established in the training path: `bit k = goRight at depth k`.
+
+**Mapping mismatch at depth=2** (from T1 evidence table):
+
+| Path | BFS nodeIdx | BFS-offset (buggy) | Bit-packed (correct) | Match? |
+|------|-------------|-------------------|----------------------|--------|
+| LL   | 3           | 0                  | 0b00 = 0             | YES    |
+| LR   | 4           | 1                  | 0b10 = 2             | NO     |
+| RL   | 5           | 2                  | 0b01 = 1             | NO     |
+| RR   | 6           | 3                  | 0b11 = 3             | YES    |
+
+Mixed-direction paths (LR, RL) are routed to the wrong `leafValues` entry.
+
+### Bug B — Split-lookup mismatch (fires at depth >= 3)
+
+**Symptom**: `nodeSplits[nodeIdx]` uses the BFS node index as a flat-array position. But `splits`
+is built in partition order (bit-packed order per depth level): for depth level `d` with
+`2^d` partitions, position `splits[prefix + p]` holds the split for partition `p`, whose
+BFS node is computed as:
+```
+bfsNode = 0; for lvl in 0..d-1: bfsNode = 2*bfsNode + 1 + ((p >> lvl) & 1)
+```
+At depth=3, `splits[4]` holds partition `p=1` (BFS node 5) and `splits[5]` holds partition
+`p=2` (BFS node 4) — the indexing is transposed. Any traversal that reaches BFS nodes 4 or 5
+at depth level 2 evaluates the wrong feature and threshold.
+
+### Decision
+
+Use **bit-packed partition encoding** for leaf-index output and a **BFS-node-keyed map**
+for split lookup, mirroring `ComputeLeafIndicesLossguide`.
+
+**Fix for Bug B**: Build `std::unordered_map<ui32, TObliviousSplitLevel> nodeSplitMap` keyed by
+BFS node index, populated from the parallel `splits` + `splitBfsNodeIds` arrays (the latter
+already built at `csv_train.cpp:3644–3654` as part of DEC-029). Replace `nodeSplits[nodeIdx]`
+with `nodeSplitMap.at(nodeIdx)`.
+
+**Fix for Bug A**: Accumulate `partBits |= (goRight << lvl)` inside the depth-traversal loop.
+Replace `leafVec[d] = nodeIdx − numNodes` with `leafVec[d] = partBits`.
+
+**Pseudo-code for the corrected inner loop**:
+```
+// Pre-traversal: build BFS → split map once per call
+nodeSplitMap = { splitBfsNodeIds[i] → splits[i]  for i in 0..len(splits)-1 }
+
+// Per-doc traversal
+for d in 0..numDocs-1:
+    nodeIdx = 0; partBits = 0
+    for lvl in 0..depth-1:
+        ns = nodeSplitMap.at(nodeIdx)
+        fv = extract_feature(dataPtr, d, ns)
+        goRight = (ns.IsOneHot) ? (fv == ns.BinThreshold ? 1 : 0)
+                                : (fv >  ns.BinThreshold ? 1 : 0)
+        partBits |= (goRight << lvl)
+        nodeIdx = 2 * nodeIdx + 1 + goRight
+    leafVec[d] = partBits
+```
+
+The signature gains one parameter: `const std::vector<ui32>& splitBfsNodeIds`.
+
+### Rationale
+
+**CPU-source authority**: `catboost/libs/model/cpu/evaluator_impl.cpp:462–492`
+(`CalcIndexesNonSymmetric`) confirms that CatBoost CPU **never** uses `nodeIdx − numNodes`
+to resolve a leaf value. The CPU stores `NonSymmetricNodeIdToLeafId[nodeIndex]` — an
+explicit per-node map. The `nodeIdx − numNodes` formula is an MLX-specific invention that
+has no basis in either the CPU evaluator or the training-path partition accumulation.
+
+**MLX canonical encoding**: `csv_train.cpp:3660–3683` establishes bit-packed partition as the
+leaf-index encoding (comment at line 3991: "partitions is already the correct leaf index").
+`csv_train.cpp:3644–3654` defines the partition → BFS node forward map (DEC-029). The inverse
+(BFS node → partition) is needed only at inference time in `ComputeLeafIndicesDepthwise`.
+
+**Structural mirror**: `ComputeLeafIndicesLossguide` already holds the correct pattern —
+BFS-keyed `nodeSplitMap` for lookup, explicit inverse map for final resolution. For Depthwise
+the bit-packed accumulation replaces the `bfsToLeafId` inverse map (the encoding is implicit
+in the traversal itself, not requiring a separate map), but the BFS-keyed split lookup is
+the same mechanism.
+
+### Scope
+
+**Validation path only.** The sole call site is `csv_train.cpp:4040` inside `if (valDocs > 0)`.
+The training hot path (`csv_train.cpp:3990–4003`), approximation update, `CalcLeafValues`, and
+`FindBestSplitPerPartition` are all unaffected — they use the `partitions` bit array directly
+and never call `ComputeLeafIndicesDepthwise`. Confirmed by call-site triage commit `eca086e4dd`
+and `docs/sprint27/scratch/fu1-call-site-triage.md`.
+
+### Retires DEC-029 risk entry
+
+DEC-029 Risks section included:
+> "S26-FU-1: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes`
+> (BFS leaf order) instead of bit-packed partition order."
+
+This entry is retired upon T3 landing and G1-FU1 gate passage.
+
+### Test gate
+
+**G1-FU1**: Depthwise validation RMSE (with eval set provided, `use_best_model=True`) matches
+CPU CatBoost within `rs=0` tight band `ratio ∈ [0.98, 1.02]`, across 3 seeds × {N=10k, N=50k}.
+Gate must confirm `val_loss` history is now monotone-decreasing (or near-so) across iterations,
+consistent with correct leaf routing.
+
+Kill-switch: if T3 fix causes any bench_boosting ULP != 0 (v5 kernel-output parity) or any
+`tests/test_python_path_parity.py` failure, abort and keep DEC-029 risk entry open.
+
+### Authority
+
+- `docs/sprint27/scratch/fu1-t1-repro.md` — bug evidence, mismatch table, depth-conditional fire analysis
+- `docs/sprint27/scratch/fu1-call-site-triage.md` — scope confirmation (validation-only)
+- `docs/sprint27/scratch/fu1-t2-audit.md` — CPU source audit + fix specification (this decision's input)
+- `catboost/libs/model/cpu/evaluator_impl.cpp:462–492` — CPU canonical traversal (no `nodeIdx−numNodes`)
+- `catboost/mlx/tests/csv_train.cpp:3644–3683` — MLX canonical encoding (bit-packed partition)
