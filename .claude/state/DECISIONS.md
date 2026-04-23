@@ -981,9 +981,9 @@ If an anchor has had its numeric value updated more than once (i.e., a second st
 
 ## DEC-032: MLX DW gain function scope (L2-only, not parity-equivalent to CPU)
 
-**Sprint**: 27 (S27-FU-3, T5)
+**Sprint**: 27 (S27-FU-3, T5) → **PARTIALLY CLOSED by DEC-033 (S28, 2026-04-23)**
 **Date**: 2026-04-22
-**Status**: ADOPTED. Standing constraint until S28 closes.
+**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. C++ / CLI bypass tracked as S29-CLI-GUARD. Full closure queued for S29-close once S29-CLI-GUARD lands. See DEC-033 below.
 **Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
 **Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
 **Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
@@ -1038,9 +1038,112 @@ S27-FU-3-T4 (@ml-engineer, running in parallel with this commit) will add an exp
 
 ### Follow-up
 
-**S28 "Score function fidelity"** — audit `score_function` dispatch end-to-end for the MLX backend (Python binding → C++ entry → `FindBestSplitPerPartition`); implement Cosine gain (highest-impact missing function); make L2 explicit via enum/dispatch rather than hardcoded; re-bless all aggregate-scope parity claims with explicit score_function labeling; re-run FU-3's 5 failing cells with `score_function='Cosine'` on both sides as structural proof of gap closure.
+**S28 "Score function fidelity"** — audit `score_function` dispatch end-to-end for the MLX backend (Python binding → C++ entry → `FindBestSplitPerPartition`); implement Cosine gain (highest-impact missing function); make L2 explicit via enum/dispatch rather than hardcoded; re-bless all aggregate-scope parity claims with explicit score_function labeling; re-run FU-3's 5 failing cells with `score_function='Cosine'` on both sides as structural proof of gap closure. **Closed by S28 (see DEC-033) with partial scope.**
 
 ### Authority
 
 - `0931ad6e9c` — FU-3 T1 triage commit (per-partition instrumentation + CPU score_function forcing)
 - `docs/sprint27/scratch/fu3-t1-triage.md` — evidence document, per-partition gain table, ±0.11% reproduction result
+
+---
+
+## DEC-033: EScoreFunction dispatch across all MLX grow policies (S28 score-function fidelity)
+
+**Sprint**: 28
+**Date**: 2026-04-23
+**Status**: ACTIVE — shipping decision. DEC-032 PARTIALLY CLOSED pending S29-CLI-GUARD.
+**Tip commit**: `e0b0b1b527`
+**Authored by**: S28-CLOSE (@technical-writer + @ml-engineer)
+**Sprint record**: `docs/sprint28/sprint-close.md`
+
+### Problem
+
+DEC-032 established that MLX hardcodes L2 Newton gain throughout all three grow-policy paths
+(`FindBestSplitPerPartition` for Depthwise/Lossguide; `FindBestSplit` for SymmetricTree) while
+CPU CatBoost exposes a `score_function` enum selecting from `{L2, Cosine, NewtonL2, NewtonCosine}`.
+S28 was opened to close this gap: implement the dispatch surface and port the Cosine function.
+
+### Decision
+
+1. **`EScoreFunction` enum** added to the MLX C++ backend (`catboost/mlx/tests/csv_train.cpp`).
+   Values: `L2`, `Cosine`, `NewtonL2`, `NewtonCosine`. `ParseScoreFunction` converts string
+   hyperparameter to enum; `NewtonL2` and `NewtonCosine` throw `std::invalid_argument`
+   (explicit not-implemented rejection, not silent fallback).
+
+2. **Four dispatch sites** — one per grow policy × entry point:
+   - `FindBestSplitPerPartition` (Depthwise path)
+   - `FindBestSplitPerPartition` (Lossguide path)
+   - `FindBestSplit` (SymmetricTree path, commit `4083add248`)
+   The dispatch selects `ComputeCosineGainKDim` (Cosine) or the existing L2 Newton computation
+   based on the enum. All three paths share the same dispatch pattern.
+
+3. **`ComputeCosineGainKDim` helper** — ported from CPU reference
+   `catboost/private/libs/algo/score_calcers.cpp` (`TCosineScoreCalcer`). Implements the
+   numerator `(Σg)² / (Σh + reg)` and joint-denominator Cosine structure. Commit `83f30c3677`.
+   Dead scalar-signature helper `ComputeCosineGain` removed in `e0b0b1b527` (code-review CR-S1).
+
+4. **Nanobind binding** exposes `score_function` string parameter from Python to C++. Commit
+   `0ea86bde21`.
+
+5. **Python-side validation** (`_validate_params` in `python/catboost_mlx/core.py`):
+   - `NewtonL2` and `NewtonCosine` → `ValueError` (mirroring C++ rejection).
+   - `Cosine + Lossguide` → `ValueError` (guarded; pending S29-LG-COSINE-RCA). Line 634.
+   - `Cosine + SymmetricTree` → `ValueError` (guarded; pending S29-ST-COSINE-KAHAN). Line 644.
+
+### Combination status
+
+| `score_function` × grow policy | Status | Evidence |
+|-------------------------------|--------|---------|
+| L2 × any policy | Ships — no regression | 28/28 parity PASS at `b9577067ef` |
+| Cosine × Depthwise | Ships — in-envelope | 1.6% drift at N=1000/50k/50-iter; gate G2a/G2b/G6a–d PASS |
+| Cosine × Lossguide | Guarded — `ValueError` | ~unacceptable drift; LG priority-queue interaction; S29-LG-COSINE-RCA |
+| Cosine × SymmetricTree | Guarded — `ValueError` | 0.77% @ 1 iter → ~47% @ 50 iter (float32 joint-denominator compounding); S29-ST-COSINE-KAHAN |
+| NewtonL2 × any | Rejected — `ValueError` / `std::invalid_argument` | Not implemented; explicit not-implemented guard |
+| NewtonCosine × any | Rejected — `ValueError` / `std::invalid_argument` | Not implemented; explicit not-implemented guard |
+
+### Rationale
+
+- **Enum model mirrors CPU CatBoost**: CPU exposes `EScoreFunction` with four values; the MLX
+  port uses the same model, implementing the two viable variants (L2, Cosine) and explicitly
+  rejecting the two unimplemented Newton variants.
+- **Explicit guard over silent fallback**: `NewtonL2`/`NewtonCosine` raise loudly rather than
+  silently using L2. Consistent with DEC-032's framing: wrong algorithm ≠ acceptable default.
+- **Combination guards are evidence-driven**: LG+Cosine and ST+Cosine guards are not
+  conservative blanket blocks — DW+Cosine ships without a guard because its drift is
+  quantitatively in-envelope. The guards reflect measured drift evidence.
+
+### S29 carry items
+
+- **S29-CLI-GUARD** (SA-H1): Port combination rejections into `TrainConfigToInternal` and
+  `csv_train.cpp:ParseArgs`. Currently only the Python surface enforces them.
+- **S29-LG-COSINE-RCA**: Root-cause LG+Cosine unacceptable drift. Fix plan or defer to S30.
+- **S29-ST-COSINE-KAHAN**: Port Kahan/Neumaier compensated summation to ST+Cosine denominator;
+  gate: 50-iter drift ≤ 1% at N=50k.
+
+### DEC-032 partial closure note
+
+DEC-032's standing constraint ("DW and LG parity tests MUST set `score_function='L2'` explicitly
+until S28 closes") is lifted for DW: DW+Cosine now ships in-envelope and all test cells carry
+explicit `score_function` labels (S28-REBLESS, `c07e895f7c`). LG constraint retained: LG+Cosine
+is guarded at Python API. DEC-032 status updated to PARTIALLY CLOSED by this decision.
+
+### Authority
+
+| Commit | Content |
+|--------|---------|
+| `da02da0259` | S28-AUDIT — zero-plumbing baseline |
+| `83f30c3677` | S28-COSINE — `ComputeCosineGainKDim` helper |
+| `0ea86bde21` | S28-L2-EXPLICIT — enum, dispatch, nanobind, Python validation |
+| `4083add248` | S28-OBLIV-DISPATCH — ST dispatch |
+| `c07e895f7c` | S28-REBLESS — parity cell labels |
+| `dca62f0d72` | S28-FU3-REVALIDATE — DW force-L2 lifted |
+| `b9577067ef` | S28-{LG,ST}-GUARD — combination `ValueError` guards |
+| `e0b0b1b527` | S28-CR-S1 — dead helper removed |
+
+Gate reports: `docs/sprint28/fu-cosine/t2-gate-report.md`,
+`docs/sprint28/fu-l2-explicit/t3-gate-report.md`,
+`docs/sprint28/fu-rebless/t4-rebless-report.md`,
+`docs/sprint28/fu-fu3-revalidate/t5-gate-report.md`,
+`docs/sprint28/fu-obliv-dispatch/t7-gate-report.md`,
+`docs/sprint28/fu-cr/t6-cr-report.md`,
+`docs/sprint28/fu-sa/t6-sa-report.md`.

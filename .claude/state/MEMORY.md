@@ -83,6 +83,14 @@ Full taxonomy (class-a/b/c/d) and enforcement details: `DECISIONS.md §DEC-031`.
 - **Aggregate RMSE parity claims (Python-path harness, S26-FU-2 gate numbers) are coincidental-not-structural** at N≥10k. Both Cosine (CPU default) and L2 (MLX) happen to agree within gate tolerance at larger N; this is aggregation smoothing, not algorithmic equivalence. Re-blessing with explicit `score_function` labeling is S28-REBLESS.
 - Source: S27-FU-3-T1 commit `0931ad6e9c`; triage doc `docs/sprint27/scratch/fu3-t1-triage.md`; DEC-032.
 
+## Score function dispatch shipped S28 (DEC-033, 2026-04-23)
+
+S28 closed DEC-032 partially. `EScoreFunction` enum dispatched across all three grow policies;
+`{NewtonL2, NewtonCosine}` rejected explicitly. DW+Cosine ships in-envelope (1.6% drift).
+LG+Cosine and ST+Cosine guarded at Python API with `ValueError` pending S29 work.
+Full record: `docs/sprint28/sprint-close.md`. DEC-032 PARTIALLY CLOSED by DEC-033.
+S29 carry: S29-CLI-GUARD (SA-H1), S29-LG-COSINE-RCA, S29-ST-COSINE-KAHAN.
+
 ## CUDA reference targets (from researcher, 2026-04-15)
 
 - **szilard/GBM-perf 2024**: A100 SXM4, Airline 10M, 100 iters, depth 10 → CatBoost CUDA **15s**. CPU (Xeon E5-2686 v4): 70s. Citable: https://github.com/szilard/GBM-perf issue #57.

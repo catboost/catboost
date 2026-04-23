@@ -1,36 +1,78 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-23 (Sprint 28 ACTIVE — Score Function Fidelity; branch cut from 4b3711f82b)
+> Last updated: 2026-04-23 (Sprint 28 CLOSED — Score Function Fidelity; tip e0b0b1b527)
 
 ## Current state
 
-- **Active sprint**: Sprint 28 — Score function fidelity. Branch `mlx/sprint-28-score-function-fidelity` cut from master at `4b3711f82b` on 2026-04-23.
-- **Campaign**: Post-Verstappen correctness. S27 closed zero-kernel-change. S28 implements Cosine score function (DEC-032). R8 stays at 1.01× through S28.
-- **Production kernel**: v5 (`784f82a891`) — unchanged.
-- **Open PRs**: S27 PR #25 MERGED (`4b3711f82b`). PR #24 (S26-FU-2) merged earlier.
+- **Active sprint**: None. Sprint 28 CLOSED 2026-04-23. PR ready to open (human-triggered step).
+- **Campaign**: Post-Verstappen correctness. S28 closed DEC-032 score-function fidelity (partially). R8 stays at 1.01× through S28.
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched throughout S28.
+- **Open PRs**: S27 PR #25 MERGED (`4b3711f82b`). S28 PR not yet opened — human-triggered.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
-    - **S27-FU-3 SCOPED to S28** (DEC-032): DW N=1000 asymmetry is a score-function fidelity gap (MLX hardcodes L2; CPU defaults Cosine). Conditional gate G3-FU3 PASS 5/5 with `score_function='L2'` on CPU. Cosine port is S28 scope.
+    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched across all three grow policies. `{NewtonL2, NewtonCosine}` rejected at Python API. DW+Cosine ships in-envelope (1.6% drift). LG+Cosine and ST+Cosine guarded at Python API with `ValueError`. C++/CLI bypass tracked as S29-CLI-GUARD.
 
-## Sprint 28 — Score Function Fidelity (ACTIVE)
+## Sprint 28 — Score Function Fidelity (CLOSED)
 
-Branch: mlx/sprint-28-score-function-fidelity (cut from 4b3711f82b, 2026-04-23)
-Previous sprint: S27 closed 2026-04-23 via PR #25 (4b3711f82b)
-Scope (small-sprint shape per @ml-product-owner 2026-04-23):
-  1. S28-AUDIT — formality confirmation (grep verified zero score_function refs in catboost/mlx/)
-  2. S28-COSINE — port Cosine gain from CPU reference into FindBestSplitPerPartition
-  3. S28-L2-EXPLICIT — enum-dispatch {L2, Cosine}; remove hardcode
-  4. S28-REBLESS — explicit score_function labels on all Python-path parity test cells
-  5. S28-FU3-REVALIDATE — 5 DW N=1000 cells pass with Cosine both sides (force-L2 branch removed)
-  6. CR + SA + CLOSE
+**Branch**: mlx/sprint-19-hist-writeback (working branch carrying S28 commits)
+**Tip**: e0b0b1b527
+**Previous sprint**: S27 closed 2026-04-23 via PR #25 (4b3711f82b)
+**Authoritative record**: `docs/sprint28/sprint-close.md`
 
-Ride-alongs deferred (per Ramos decision 2026-04-23): AN-008 Rule-5 promotion, CR Nit 2, SA Note 2, AA Item H, NewtonL2/NewtonCosine variants.
+### Summary
 
-Next agent: @ml-engineer (S28-AUDIT writeup, then S28-COSINE implementation with @research-scientist for Cosine formula derivation if needed).
+MLX now dispatches on `EScoreFunction` enum across all three grow policies (DepthWise,
+Lossguide, SymmetricTree), matching CPU CatBoost's `{L2, Cosine}` behavior with explicit
+rejection of `{NewtonL2, NewtonCosine}`. DW+Cosine ships in-envelope at 1.6% drift.
+LG+Cosine and ST+Cosine are guarded at the Python API pending S29 root-cause (RCA) and
+Kahan summation work. All 28 parity cells re-blessed with explicit `score_function` labels.
+
+### S28 commits (oldest → newest)
+
+| SHA | Tag | Description |
+|-----|-----|-------------|
+| `0409e632fa` | S28-00 | Branch kickoff, state files updated |
+| `da02da0259` | S28-AUDIT | Formal confirmation: zero score_function plumbing in catboost/mlx/ |
+| `83f30c3677` | S28-COSINE | `ComputeCosineGainKDim` helper from CPU `TCosineScoreCalcer` |
+| `0ea86bde21` | S28-L2-EXPLICIT | `EScoreFunction` enum + `ParseScoreFunction` + DW/LG dispatch + nanobind binding + Python `_validate_params` rejecting `NewtonL2`/`NewtonCosine` |
+| `4083add248` | S28-OBLIV-DISPATCH | Dispatch mirrored into `FindBestSplit` (SymmetricTree) |
+| `c07e895f7c` | S28-REBLESS | 8 parity cells relabeled with explicit `score_function` |
+| `dca62f0d72` | S28-FU3-REVALIDATE | DW force-L2 lifted; LG retains force-L2 pending S29 RCA |
+| `b9577067ef` | S28-{LG,ST}-GUARD | Two Python `ValueError` guards for Cosine+Lossguide and Cosine+SymmetricTree |
+| `e0b0b1b527` | S28-CR-S1 | Dead `ComputeCosineGain` scalar helper removed (code-review cleanup) |
+
+### Parity suite
+
+28/28 PASS at `b9577067ef`. Unchanged at `e0b0b1b527`.
+
+## Sprint 29 — Entry Points
+
+S29 must be opened before any further code work. The three carry items from S28:
+
+1. **S29-CLI-GUARD** (SA-H1, non-blocking at S28 close but must ship in S29):
+   Port `Cosine+{LG,ST}` combination rejection into `catboost/mlx/train_api.cpp:TrainConfigToInternal`
+   and `catboost/mlx/tests/csv_train.cpp:ParseArgs`. Verified by: `_core.train()` with forbidden
+   combo throws `std::invalid_argument`; CLI exits non-zero on same combo.
+
+2. **S29-LG-COSINE-RCA**:
+   Root-cause the Lossguide × Cosine priority-queue magnitude interaction producing unacceptable
+   per-partition gain drift. Deliverable: triage doc with mechanism + fix plan. Referenced by
+   `python/catboost_mlx/core.py:634`.
+
+3. **S29-ST-COSINE-KAHAN**:
+   Port Kahan/Neumaier compensated summation into the ST joint-Cosine denominator accumulator
+   in `csv_train.cpp`. Deliverable: 50-iter ST+Cosine drift ≤ 1% at N=50k. Referenced by
+   `python/catboost_mlx/core.py:644`.
+
+DEC-032 promotion to fully CLOSED is queued for S29-close, contingent on S29-CLI-GUARD landing.
+
+## PR state
+
+S28 PR: **ready to open (human-triggered)**. Do NOT open from agent-side.
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 

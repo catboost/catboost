@@ -2,6 +2,51 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-23 — Sprint 28 CLOSED (Score Function Fidelity, DEC-032 partially)
+
+Branch: `mlx/sprint-19-hist-writeback`, tip `e0b0b1b527`. 9 commits. All exit gates PASS or
+PASS-WITH-NITS/FINDINGS (non-blocking). Parity suite 28/28 at tip. PR ready — human-triggered.
+
+### Commits
+
+| Commit | Tag | Purpose |
+|--------|-----|---------|
+| `0409e632fa` | S28-00 | Branch kickoff; state files updated with acceptance criteria |
+| `da02da0259` | S28-AUDIT | Formal grep audit: zero `score_function` refs in `catboost/mlx/` pre-S28; L2 call site confirmed at `csv_train.cpp:~L1281` |
+| `83f30c3677` | S28-COSINE | `ComputeCosineGainKDim` helper ported from CPU `TCosineScoreCalcer` |
+| `0ea86bde21` | S28-L2-EXPLICIT | `EScoreFunction` enum + `ParseScoreFunction`; dispatch in `FindBestSplitPerPartition` (DW/LG); nanobind binding; Python `_validate_params` rejecting `NewtonL2`/`NewtonCosine` |
+| `4083add248` | S28-OBLIV-DISPATCH | Dispatch mirrored into `FindBestSplit` (SymmetricTree) |
+| `c07e895f7c` | S28-REBLESS | 8 parity cells labeled with explicit `score_function`; AN-017 re-captured |
+| `dca62f0d72` | S28-FU3-REVALIDATE | DW force-L2 lifted (passes Cosine both sides); LG retains force-L2 pending S29-LG-COSINE-RCA |
+| `b9577067ef` | S28-{LG,ST}-GUARD | `ValueError` guards for `Cosine+Lossguide` and `Cosine+SymmetricTree` |
+| `e0b0b1b527` | S28-CR-S1 | Dead `ComputeCosineGain` scalar helper removed (code-review CR-S1) |
+
+### Gate reports
+
+| Report | Path | Verdict |
+|--------|------|---------|
+| G2a/G2b — Cosine gate | `docs/sprint28/fu-cosine/t2-gate-report.md` | PASS |
+| G3a/G3b/G3c — L2-explicit gate | `docs/sprint28/fu-l2-explicit/t3-gate-report.md` | PASS |
+| G5a–G5d — Rebless gate | `docs/sprint28/fu-rebless/t4-rebless-report.md` | PASS |
+| G6a–G6d — FU3-Revalidate gate | `docs/sprint28/fu-fu3-revalidate/t5-gate-report.md` | PASS |
+| G7 — Obliv-dispatch gate | `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md` | PASS |
+| T6-CR — Code review | `docs/sprint28/fu-cr/t6-cr-report.md` | PASS-WITH-NITS |
+| T6-SA — Security audit | `docs/sprint28/fu-sa/t6-sa-report.md` | PASS-WITH-FINDINGS |
+
+### Key numbers
+
+- DW+Cosine drift: 1.6% at N=1000/50k/50-iter — ships in-envelope.
+- LG+Cosine: ~unacceptable drift — guarded at Python API; S29-LG-COSINE-RCA.
+- ST+Cosine: ~0.77% @ 1 iter → ~47% @ 50 iter (float32 joint-denominator compounding) — guarded; S29-ST-COSINE-KAHAN.
+
+### S29 carry items opened
+
+- S29-CLI-GUARD (SA-H1): C++ / CLI bypass guards for forbidden combos.
+- S29-LG-COSINE-RCA: Root-cause LG+Cosine unacceptable drift.
+- S29-ST-COSINE-KAHAN: Kahan/Neumaier port for ST+Cosine denominator.
+
+---
+
 ## 2026-04-23 — Sprint 28 KICKOFF (Score Function Fidelity)
 
 Branch `mlx/sprint-28-score-function-fidelity` cut from master at `4b3711f82b` (S27 PR #25 merged). Small-sprint shape per Ramos 2026-04-23: stream A only, 8 tasks (S28-AUDIT through S28-CLOSE). Ride-alongs deferred: AN-008 Rule-5 promotion, CR Nit 2, SA Note 2, AA Item H, NewtonL2/NewtonCosine variants. State files updated with fleshed-out acceptance criteria per Ultrathink Task Planning standing order. Next agent: @ml-engineer picks up S28-AUDIT + S28-COSINE.
