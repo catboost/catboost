@@ -2,6 +2,108 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-23 — Sprint 29 CLOSED (DEC-032 closeout partial advance; DEC-034 resolved)
+
+Branch: `mlx/sprint-29-dec032-closeout`, base `987da0e7d5`, tip `fa7f9b55fc`. 7 commits
+(`33ce5f1d66..fa7f9b55fc`). All gate criteria met. Parity suite 28/28 at all commits.
+No kernel sources touched.
+
+### Commits
+
+| Commit | Tag | Purpose |
+|--------|-----|---------|
+| `33ce5f1d66` | S29-00 | Branch kickoff; state files updated; scope (E) locked |
+| `73e9460a31` | S29-CLI-GUARD-T1 | Port `Cosine+{LG,ST}` rejection to `train_api.cpp:TrainConfigToInternal` + `csv_train.cpp:ParseArgs` (55 LoC, 2 C++ files) |
+| `c73f5073af` | S29-CLI-GUARD-T2 | pytest coverage: 4 cases covering nanobind + CLI guard paths |
+| `503ebacdb2` | S29-LG-SPIKE-T1 | LG+Cosine iter-1 drift measurement; harness + data artifacts (docs/ only) |
+| `64a8d9076b` | S29-LG-SPIKE-T2 | DEC-034 verdict — outcome A (shared mechanism); moderate confidence |
+| `3f87b85e38` | S29-CR + S29-SA | CR PASS-WITH-NITS (0 must-fix); SA PASS (0 findings); SA-H1 CLOSED |
+| `fa7f9b55fc` | S29-CR SF-1 | Verdict wording tightened ("reaches 0.197%..." vs "<0.2%") |
+
+### CLI-GUARD ports
+
+`train_api.cpp:25-51` and `csv_train.cpp:241-267` now mirror the Python `_validate_params`
+guards byte-for-byte (error text, TODO markers, exception types). Defense-in-depth: Python
+is first line, C++ is second. `grep -rn 'TODO-S29-LG-COSINE-RCA'` returns exactly four sites
+(Python + C++ nanobind + C++ CLI + test) — single-point-of-removal for S30.
+
+### pytest coverage
+
+`tests/test_cli_guards.py` — 4 tests, 2 paths:
+- nanobind `_core.train()`: `pytest.raises(ValueError)` + TODO-marker substring assert
+- `csv_train` CLI subprocess: `returncode != 0` + stderr TODO-marker assert
+
+Forward-compatible assertion (`returncode != 0`, not `== 1`) survives planned S30-CLI-EXIT-WRAP.
+
+### LG spike measurement
+
+Cell: N=1000, depth=3, max_leaves=8, bins=128, lr=0.03, seeds={0,1,2}.
+iter-1 mean drift: 0.0024% (per-seed: 0.0046 / 0.0015 / 0.0010).
+50-iter peak: 0.197% (seed=1).
+iter=1 BFS split sequences bit-identical CPU vs MLX (seed=0).
+
+Cell-mismatch note: t5-gate-report's 14% LG ratio was pre-S28 algorithmic divergence (MLX L2
+vs CPU Cosine, closed by `0ea86bde21`). The 0.0024% figure is the first honest post-S28
+measurement.
+
+### Gate results
+
+| Gate | Report | Verdict |
+|------|--------|---------|
+| T1-CR — Code review | `docs/sprint29/fu-cr/t1-cr-report.md` | PASS-WITH-NITS (0 must-fix, 3 SF, 3 nits) |
+| T1-SA — Security audit | `docs/sprint29/fu-sa/t1-sa-report.md` | PASS (0 findings, 2 info) |
+| SA-H1 closure | `docs/sprint29/fu-sa/t1-sa-report.md` | CLOSED |
+| Parity suite | (prior evidence; 28/28 at all S29 commits) | PASS |
+
+### Decision updates
+
+- **DEC-034**: PENDING-SPIKE → RESOLVED (outcome A). Moderate confidence.
+- **DEC-032**: still PARTIALLY CLOSED. SA-H1 closed; guards remain until S30-COSINE-KAHAN.
+- **DEC-035**: NEW — S30-COSINE-KAHAN planned (Kahan fix for shared joint-Cosine denominator).
+
+### S30 carry items
+
+- **S30-COSINE-KAHAN** (primary): apply Kahan/Neumaier to `ComputeCosineGainKDim` shared
+  joint-denominator; gate both ST+Cosine and LG+Cosine; remove all guards atomically.
+- **S30-CLI-EXIT-WRAP** (secondary, SA-I2-S29): add try/catch in `csv_train.cpp:main()` for
+  graceful `exit(1)` instead of SIGABRT(134).
+- **S31-LG-DEEP-RESIDUAL** (conditional): open only if post-Kahan drift persists on deep LG
+  cells (depth>3, max_leaves>8).
+
+---
+
+## 2026-04-23 — Sprint 29 OPENED (DEC-032 Closeout + LG Mechanism Spike)
+
+Branch `mlx/sprint-29-dec032-closeout` cut from master `987da0e7d5` (S28 merge commit). Scope (E)
+per Ramos ultrathink triage. 8 tasks (#82–#89) created by orchestrator. Kickoff commit S29-00
+lands state files only — no production code changes.
+
+### Tasks opened
+
+| ID | Tag | Purpose |
+|----|-----|---------|
+| #82 | S29-CLI-GUARD-T1 | Port Cosine+{LG,ST} guards to `train_api.cpp` + `csv_train.cpp` |
+| #83 | S29-CLI-GUARD-T2 | Unit + CLI tests for C++ guards (blocked #82) |
+| #84 | S29-LG-SPIKE-T1 | Instrument LG+Cosine iter-1 drift (parallel, 1-session cap) |
+| #85 | S29-LG-SPIKE-T2 | Verdict doc: outcome A/B/C (blocked #84) |
+| #86 | S29-BRANCH-DECISION | Human checkpoint: Ramos decides stretch vs close (blocked #85) |
+| #87 | S29-CR | Code review (blocked #82, #86) |
+| #88 | S29-SA | Security audit / SA-H1 closure (blocked #82, #86) |
+| #89 | S29-CLOSE | Sprint close + DEC-032 fully CLOSED (blocked #87, #88) |
+
+### Scope refinements
+
+- Spike capped at 1 session; LG/ST Kahan carries to S30 on outcomes B/C.
+- Iter-1 discriminator: LG ≈1% → outcome A (Kahan viable); LG ≥5% → outcome B (algorithmic); ambiguous → outcome C.
+- T5 (#86) is a human-only decision; no auto-advance.
+
+### New decisions
+
+- DEC-034 (PENDING-SPIKE): LG-Cosine mechanism resolution. Resolves at #86 post-verdict.
+- DEC-032: annotation updated — S29-CLI-GUARD (#82/#83) are the closing work items; #89 promotes to fully CLOSED.
+
+---
+
 ## 2026-04-23 — Sprint 28 CLOSED (Score Function Fidelity, DEC-032 partially)
 
 Branch: `mlx/sprint-19-hist-writeback`, tip `e0b0b1b527`. 9 commits. All exit gates PASS or

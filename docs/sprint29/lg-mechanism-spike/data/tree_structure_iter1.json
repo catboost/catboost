@@ -1,0 +1,194 @@
+{
+  "seed": 0,
+  "iterations": 1,
+  "cpu_root_feature_idx": 0,
+  "cpu_root_border": 0.04456096887588501,
+  "cpu_first_tree_raw": {
+    "left": {
+      "left": {
+        "left": {
+          "value": -0.032502731670108684,
+          "weight": 44
+        },
+        "right": {
+          "value": -0.019251253883226543,
+          "weight": 53
+        },
+        "split": {
+          "border": -0.15679794549942017,
+          "float_feature_index": 1,
+          "split_index": 3,
+          "split_type": "FloatFeature"
+        }
+      },
+      "right": {
+        "left": {
+          "value": -0.015049805983635225,
+          "weight": 208
+        },
+        "right": {
+          "value": -0.001807294019693796,
+          "weight": 202
+        },
+        "split": {
+          "border": 0.0488937571644783,
+          "float_feature_index": 1,
+          "split_index": 6,
+          "split_type": "FloatFeature"
+        }
+      },
+      "split": {
+        "border": -1.2811778783798218,
+        "float_feature_index": 0,
+        "split_index": 0,
+        "split_type": "FloatFeature"
+      }
+    },
+    "right": {
+      "left": {
+        "left": {
+          "value": 0.0007023164946982706,
+          "weight": 164
+        },
+        "right": {
+          "value": 0.014526067886032033,
+          "weight": 211
+        },
+        "split": {
+          "border": -0.12306445837020874,
+          "float_feature_index": 1,
+          "split_index": 4,
+          "split_type": "FloatFeature"
+        }
+      },
+      "right": {
+        "left": {
+          "value": 0.017346320583820744,
+          "weight": 58
+        },
+        "right": {
+          "value": 0.02964622242368685,
+          "weight": 60
+        },
+        "split": {
+          "border": -0.05015905201435089,
+          "float_feature_index": 1,
+          "split_index": 5,
+          "split_type": "FloatFeature"
+        }
+      },
+      "split": {
+        "border": 1.2059276103973389,
+        "float_feature_index": 0,
+        "split_index": 2,
+        "split_type": "FloatFeature"
+      }
+    },
+    "split": {
+      "border": 0.04456096887588501,
+      "float_feature_index": 0,
+      "split_index": 1,
+      "split_type": "FloatFeature"
+    }
+  },
+  "mlx_tree": {
+    "depth": 0,
+    "grow_policy": "Lossguide",
+    "splits": [
+      {
+        "feature_idx": 0,
+        "bin_threshold": 64,
+        "is_one_hot": false,
+        "bfs_node_index": 0
+      },
+      {
+        "feature_idx": 0,
+        "bin_threshold": 112,
+        "is_one_hot": false,
+        "bfs_node_index": 2
+      },
+      {
+        "feature_idx": 0,
+        "bin_threshold": 9,
+        "is_one_hot": false,
+        "bfs_node_index": 1
+      },
+      {
+        "feature_idx": 1,
+        "bin_threshold": 58,
+        "is_one_hot": false,
+        "bfs_node_index": 6
+      },
+      {
+        "feature_idx": 1,
+        "bin_threshold": 77,
+        "is_one_hot": false,
+        "bfs_node_index": 3
+      },
+      {
+        "feature_idx": 1,
+        "bin_threshold": 63,
+        "is_one_hot": false,
+        "bfs_node_index": 4
+      },
+      {
+        "feature_idx": 1,
+        "bin_threshold": 55,
+        "is_one_hot": false,
+        "bfs_node_index": 5
+      }
+    ],
+    "leaf_values": [
+      -0.032658357,
+      0.00057001784,
+      0.017184278,
+      -0.015547174,
+      0.029605951,
+      -0.018601965,
+      -0.002102724,
+      0.014455838
+    ],
+    "split_gains": [
+      12.949671,
+      10.551152,
+      10.519558,
+      9.2799664,
+      8.7265129,
+      7.8254337,
+      7.1358109
+    ],
+    "leaf_bfs_ids": [
+      7,
+      11,
+      13,
+      9,
+      14,
+      8,
+      10,
+      12
+    ]
+  },
+  "mlx_root_feature_idx": 0,
+  "mlx_root_bin_threshold": 64,
+  "root_feature_match": true,
+  "mlx_splits_bfs_feature_sequence": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+  ],
+  "mlx_num_leaves": 8,
+  "cpu_splits_bfs_feature_sequence": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+  ],
+  "bfs_feature_sequence_match": true
+}

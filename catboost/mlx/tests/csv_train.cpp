@@ -66,6 +66,7 @@
 #include <unordered_set>
 #include <random>
 #include <optional>
+#include <stdexcept>   // std::invalid_argument — S28-LG-GUARD / S28-ST-GUARD
 #ifdef CATBOOST_MLX_STAGE_PROFILE
 #include <filesystem>
 #include <sstream>
@@ -236,6 +237,33 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--score-function") == 0 && i + 1 < argc) config.ScoreFunction = argv[++i];
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
+    }
+    // S28-LG-GUARD (CLI defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
+    // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
+    // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "Lossguide") {
+        throw std::invalid_argument(
+            "score_function='Cosine' with grow_policy='Lossguide' is not supported "
+            "in catboost-mlx: priority-queue leaf ordering interacts with Cosine "
+            "joint-gain magnitude producing unacceptable per-partition gain drift "
+            "vs CPU CatBoost. Root-cause investigation is scheduled for Sprint 29 "
+            "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
+            "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
+        );
+    }
+    // S28-ST-GUARD (CLI defense-in-depth): Cosine+SymmetricTree combination rejected until S29 Kahan fix.
+    // Mirrors python/catboost_mlx/core.py:638-647 verbatim so TODO markers stay greppable
+    // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
+        throw std::invalid_argument(
+            "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
+            "supported in catboost-mlx: float32 joint-Cosine denominator accumulates "
+            "precision drift across partitions (~47% aggregate-metric drift at 50 "
+            "iterations in S28-OBLIV-DISPATCH gate). Compensated-summation port "
+            "(Kahan/Neumaier) is scheduled for Sprint 29 (TODO-S29-ST-COSINE-KAHAN). "
+            "Use score_function='L2' with SymmetricTree, or switch grow_policy to "
+            "'Depthwise' for Cosine."
+        );
     }
     return config;
 }
