@@ -964,323 +964,10 @@ mx::array DispatchHistogram(
 }
 
 // ============================================================================
-// Split finding (multi-dim aware)
-// ============================================================================
-
-TBestSplitProperties FindBestSplit(
-    const std::vector<std::vector<float>>& perDimHist,  // [K][numPartitions * 2 * totalBinFeatures]
-    const std::vector<std::vector<TPartitionStatistics>>& perDimPartStats,  // [K][numPartitions]
-    const std::vector<TCFeature>& features,
-    ui32 totalBinFeatures,
-    float l2RegLambda,
-    ui32 numPartitions,
-    const std::vector<bool>& featureMask = {},  // optional: if non-empty, skip features where mask[f]=false
-    ui32 minDataInLeaf = 1,                     // minimum docs per child (1 = no restriction)
-    const std::vector<std::vector<ui32>>& countHist = {},  // [numPartitions][totalBinFeatures] doc counts per bin
-    const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
-    const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
-    float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
-    float gradRms = 0.0f,                                  // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
-    std::mt19937* rng = nullptr,                           // RNG for perturbation
-    int debugIter = -1,                                    // P11-P13: print debug for this iter (-1 = off)
-    int debugDepth = -1                                    // P11-P13: print debug for this depth (-1 = off)
-) {
-    TBestSplitProperties bestSplit;
-    const ui32 K = perDimHist.size();
-    float bestGain = -std::numeric_limits<float>::infinity();
-
-#ifdef CATBOOST_MLX_DEBUG_LEAF
-    // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
-    struct TDbgCandidate {
-        ui32 featIdx; ui32 bin; float gain;
-        float sumL; float wL; float sumR; float wR; float sumP; float wP;
-    };
-    const bool p11Active = (debugIter == 0 && debugDepth == 0);
-    std::vector<TDbgCandidate> allCandidates;
-#endif
-
-    // Random score perturbation: scale by gradient RMS, matching CPU CatBoost.
-    // CPU reference: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
-    //   returns sqrt( sum_{k,i} g_k[i]^2 / N ), called as:
-    //   scoreStDev = randomStrength * derivativesStDevFromZero   (line 861-866)
-    // gradRms is pre-computed in RunTraining after gradient+weight application and passed here.
-    float noiseScale = 0.0f;
-    if (randomStrength > 0.0f && rng && gradRms > 0.0f) {
-        noiseScale = randomStrength * gradRms;
-    }
-    std::normal_distribution<float> noiseDist(0.0f, 1.0f);
-
-    // The Metal histogram kernel produces per-bin sums with a +1 offset:
-    //   hist[firstFold + b] = sum of docs where featureValue == b+1
-    //
-    // For OneHot features: each bin represents one category.
-    //   Split "go right if value == bin": sumRight = hist[bin], sumLeft = total - sumRight
-    //
-    // For ordinal features: precompute suffix sums then use O(1) lookups.
-    //   Split threshold b (value > b → right):
-    //     sumRight = suffixSum[b] = sum(hist[b..folds-1])
-    //     sumLeft = total - sumRight
-
-    for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
-        // Feature subsampling: skip features not in the selected set
-        if (!featureMask.empty() && !featureMask[featIdx]) continue;
-        const auto& feat = features[featIdx];
-
-        if (feat.OneHotFeature) {
-            // ── OneHot: each bin is independent, no suffix sums needed ──
-            for (ui32 bin = 0; bin < feat.Folds; ++bin) {
-                float totalGain = 0.0f;
-
-                if (minDataInLeaf > 1 && !countHist.empty()) {
-                    bool anyViolates = false;
-                    for (ui32 p = 0; p < numPartitions; ++p) {
-                        ui32 countRight = countHist[p][feat.FirstFoldIndex + bin];
-                        ui32 countLeft = partDocCounts[p] - countRight;
-                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
-                            anyViolates = true;
-                            break;
-                        }
-                    }
-                    if (anyViolates) continue;
-                }
-
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    for (ui32 k = 0; k < K; ++k) {
-                        const float* histData = perDimHist[k].data() + p * 2 * totalBinFeatures;
-                        float totalSum = perDimPartStats[k][p].Sum;
-                        float totalWeight = perDimPartStats[k][p].Weight;
-
-                        float sumRight = histData[feat.FirstFoldIndex + bin];
-                        float weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
-                        float sumLeft = totalSum - sumRight;
-                        float weightLeft = totalWeight - weightRight;
-
-                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
-
-                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
-                    }
-                }
-
-                // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
-                if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
-                }
-                if (perturbedGain > bestGain) {
-                    bestGain = perturbedGain;
-                    bestSplit.FeatureId = featIdx;
-                    bestSplit.BinId = bin;
-                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
-                }
-#ifdef CATBOOST_MLX_DEBUG_LEAF
-                if (p11Active) {
-                    // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
-                    TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
-                    if (numPartitions > 0 && K > 0) {
-                        const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
-                        cand.sumR = hd0[feat.FirstFoldIndex + bin];
-                        cand.wR   = hd0[totalBinFeatures + feat.FirstFoldIndex + bin];
-                        cand.sumP = perDimPartStats[0][0].Sum;
-                        cand.wP   = perDimPartStats[0][0].Weight;
-                        cand.sumL = cand.sumP - cand.sumR;
-                        cand.wL   = cand.wP   - cand.wR;
-                    }
-                    allCandidates.push_back(cand);
-                }
-#endif
-            }
-        } else {
-            // ── Ordinal: precompute suffix sums for O(1) lookup per bin ──
-            ui32 folds = feat.Folds;
-            if (folds == 0) continue;
-
-            // Suffix sums of gradient/hessian histograms: suffGrad[k][p][b] =
-            // sum over i=b..folds-1 of hist[firstFold + i].
-            // Layout: [K * numPartitions * (folds+1)], sentinel at [folds] = 0.
-            size_t stride = static_cast<size_t>(folds) + 1;
-            std::vector<float> suffGrad(K * numPartitions * stride, 0.0f);
-            std::vector<float> suffHess(K * numPartitions * stride, 0.0f);
-
-            for (ui32 k = 0; k < K; ++k) {
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    const float* hd = perDimHist[k].data() + p * 2 * totalBinFeatures;
-                    size_t base = (k * numPartitions + p) * stride;
-                    // Build suffix sums from right to left
-                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
-                        suffGrad[base + b] = suffGrad[base + b + 1] + hd[feat.FirstFoldIndex + b];
-                        suffHess[base + b] = suffHess[base + b + 1] + hd[totalBinFeatures + feat.FirstFoldIndex + b];
-                    }
-                }
-            }
-
-            // Suffix sums for doc-count histogram (min-data-in-leaf)
-            std::vector<ui32> suffCount;
-            if (minDataInLeaf > 1 && !countHist.empty()) {
-                suffCount.resize(numPartitions * stride, 0);
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    size_t base = p * stride;
-                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
-                        suffCount[base + b] = suffCount[base + b + 1]
-                                            + countHist[p][feat.FirstFoldIndex + b];
-                    }
-                }
-            }
-
-            bool hasMonotone = !monotoneConstraints.empty()
-                            && featIdx < monotoneConstraints.size()
-                            && monotoneConstraints[featIdx] != 0;
-
-            for (ui32 bin = 0; bin < folds; ++bin) {
-                float totalGain = 0.0f;
-                bool violatesConstraint = false;
-
-                // Min-data-in-leaf check using precomputed suffix sums
-                if (minDataInLeaf > 1 && !suffCount.empty()) {
-                    bool anyViolates = false;
-                    for (ui32 p = 0; p < numPartitions; ++p) {
-                        ui32 countRight = suffCount[p * stride + bin];
-                        ui32 countLeft = partDocCounts[p] - countRight;
-                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
-                            anyViolates = true;
-                            break;
-                        }
-                    }
-                    if (anyViolates) continue;
-                }
-
-                for (ui32 p = 0; p < numPartitions; ++p) {
-                    // Monotone constraint check using precomputed suffix sums (dim 0)
-                    if (hasMonotone) {
-                        size_t base0 = static_cast<size_t>(p) * stride;
-                        float sR = suffGrad[base0 + bin];
-                        float wR = suffHess[base0 + bin];
-                        float sL = perDimPartStats[0][p].Sum - sR;
-                        float wL = perDimPartStats[0][p].Weight - wR;
-                        if (wL > 1e-15f && wR > 1e-15f) {
-                            float vL = sL / (wL + l2RegLambda);
-                            float vR = sR / (wR + l2RegLambda);
-                            if (monotoneConstraints[featIdx] == 1 && vL < vR) {
-                                violatesConstraint = true;
-                                break;
-                            }
-                            if (monotoneConstraints[featIdx] == -1 && vL > vR) {
-                                violatesConstraint = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    for (ui32 k = 0; k < K; ++k) {
-                        float totalSum = perDimPartStats[k][p].Sum;
-                        float totalWeight = perDimPartStats[k][p].Weight;
-
-                        size_t base = (k * numPartitions + p) * stride;
-                        float sumRight = suffGrad[base + bin];
-                        float weightRight = suffHess[base + bin];
-                        float sumLeft = totalSum - sumRight;
-                        float weightLeft = totalWeight - weightRight;
-
-                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
-
-                        totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                   + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                   - (totalSum * totalSum) / (totalWeight + l2RegLambda);
-                    }
-                }
-
-                if (violatesConstraint) continue;
-
-                // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
-                if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
-                }
-                if (perturbedGain > bestGain) {
-                    bestGain = perturbedGain;
-                    bestSplit.FeatureId = featIdx;
-                    bestSplit.BinId = bin;
-                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
-                }
-#ifdef CATBOOST_MLX_DEBUG_LEAF
-                if (p11Active) {
-                    // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
-                    TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
-                    if (numPartitions > 0 && K > 0) {
-                        size_t sbase = (0 * numPartitions + 0) * stride;
-                        cand.sumR = suffGrad[sbase + bin];
-                        cand.wR   = suffHess[sbase + bin];
-                        cand.sumP = perDimPartStats[0][0].Sum;
-                        cand.wP   = perDimPartStats[0][0].Weight;
-                        cand.sumL = cand.sumP - cand.sumR;
-                        cand.wL   = cand.wP   - cand.wR;
-                    }
-                    allCandidates.push_back(cand);
-                }
-#endif
-            }
-        }
-    }
-
-#ifdef CATBOOST_MLX_DEBUG_LEAF
-    if (p11Active && !allCandidates.empty()) {
-        // P12 — literal gain formula used in this FindBestSplit
-        printf("[DBG P12] gain_formula: "
-               "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
-        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)\n");
-        printf("[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)\n");
-        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  gradRms=%.6f)\n",
-               noiseScale, randomStrength, gradRms);
-
-        // Sort by gain descending
-        std::sort(allCandidates.begin(), allCandidates.end(),
-                  [](const TDbgCandidate& a, const TDbgCandidate& b){ return a.gain > b.gain; });
-
-        printf("[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):\n");
-        printf("[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP\n");
-        for (ui32 r = 0; r < std::min((ui32)allCandidates.size(), 10u); ++r) {
-            const auto& c = allCandidates[r];
-            printf("[DBG P11]   %-5u %-8u %-6u %-10.4f %-8.4f %-8.2f %-8.4f %-8.2f %-8.4f %.2f\n",
-                   r, c.featIdx, c.bin, c.gain,
-                   c.sumL, c.wL, c.sumR, c.wR, c.sumP, c.wP);
-        }
-
-        // P13 — cross-check for rank-0 candidate
-        const auto& best = allCandidates[0];
-        float p13_l2 = l2RegLambda;
-        float p13_gain_mlx_formula =
-            (best.wL > 1e-15f && best.wR > 1e-15f)
-            ? (best.sumL * best.sumL) / (best.wL + p13_l2)
-              + (best.sumR * best.sumR) / (best.wR + p13_l2)
-              - (best.sumP * best.sumP) / (best.wP + p13_l2)
-            : 0.0f;
-        // CPU formula is identical: sumL^2/(wL+L2) + sumR^2/(wR+L2) - sumP^2/(wP+L2)
-        // For RMSE unweighted, wL/wR == docCountL/docCountR, so formulas agree exactly.
-        // Any difference would come from histogram inputs, not formula divergence (H3).
-        float p13_gain_cpu_formula = p13_gain_mlx_formula;  // identical formula
-        float p13_gain_reported = best.gain;
-        printf("[DBG P13] cross-check for rank-0 (feat=%u bin=%u):\n", best.featIdx, best.bin);
-        printf("[DBG P13]   sumL=%.6f  wL=%.2f  sumR=%.6f  wR=%.2f\n",
-               best.sumL, best.wL, best.sumR, best.wR);
-        printf("[DBG P13]   gain_by_MLX_formula   = %.6f\n", p13_gain_mlx_formula);
-        printf("[DBG P13]   gain_by_CPU_formula   = %.6f  (same formula for RMSE)\n", p13_gain_cpu_formula);
-        printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
-        printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
-        fflush(stdout);
-    }
-#endif
-
-    return bestSplit;
-}
-
-// ============================================================================
 // Score function enum — mirrors CPU CatBoost EScoreFunction.
 // S28-L2-EXPLICIT: dispatch wiring live as of this commit (task #72, DEC-032).
+// S28-OBLIV-DISPATCH: moved before FindBestSplit so both Oblivious and DW
+// paths share a single definition; previously defined after FindBestSplit.
 // Only {L2, Cosine} implemented.  NewtonL2 and NewtonCosine reserved for a
 // future sprint; passing them throws a clear error rather than silently
 // falling back to L2 (silent divergence is the exact bug DEC-032 closed).
@@ -1366,6 +1053,376 @@ inline float ComputeCosineGainKDim(
     float totalDen    // Σ_k (sumLeft_k²·wLeft_k/(wLeft_k+λ)² + ...) + guard
 ) {
     return totalNum / std::sqrt(totalDen);
+}
+
+// ============================================================================
+// Split finding (multi-dim aware)
+// ============================================================================
+
+TBestSplitProperties FindBestSplit(
+    const std::vector<std::vector<float>>& perDimHist,  // [K][numPartitions * 2 * totalBinFeatures]
+    const std::vector<std::vector<TPartitionStatistics>>& perDimPartStats,  // [K][numPartitions]
+    const std::vector<TCFeature>& features,
+    ui32 totalBinFeatures,
+    float l2RegLambda,
+    ui32 numPartitions,
+    const std::vector<bool>& featureMask,       // optional: if non-empty, skip features where mask[f]=false
+    ui32 minDataInLeaf,                          // minimum docs per child (1 = no restriction)
+    const std::vector<std::vector<ui32>>& countHist,   // [numPartitions][totalBinFeatures] doc counts per bin
+    const std::vector<ui32>& partDocCounts,             // [numPartitions] total doc count per partition
+    const std::vector<int>& monotoneConstraints,       // per-feature: 0=none, 1=inc, -1=dec
+    float randomStrength,                              // random score perturbation (0 = disabled)
+    float gradRms,                                     // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
+    std::mt19937* rng,                                 // RNG for perturbation
+    int debugIter,                                     // P11-P13: print debug for this iter (-1 = off)
+    int debugDepth,                                    // P11-P13: print debug for this depth (-1 = off)
+    EScoreFunction scoreFunction                       // S28-OBLIV-DISPATCH: gain formula — no default, every caller must be explicit
+) {
+    TBestSplitProperties bestSplit;
+    const ui32 K = perDimHist.size();
+    float bestGain = -std::numeric_limits<float>::infinity();
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
+    struct TDbgCandidate {
+        ui32 featIdx; ui32 bin; float gain;
+        float sumL; float wL; float sumR; float wR; float sumP; float wP;
+    };
+    const bool p11Active = (debugIter == 0 && debugDepth == 0);
+    std::vector<TDbgCandidate> allCandidates;
+#endif
+
+    // Random score perturbation: scale by gradient RMS, matching CPU CatBoost.
+    // CPU reference: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
+    //   returns sqrt( sum_{k,i} g_k[i]^2 / N ), called as:
+    //   scoreStDev = randomStrength * derivativesStDevFromZero   (line 861-866)
+    // gradRms is pre-computed in RunTraining after gradient+weight application and passed here.
+    float noiseScale = 0.0f;
+    if (randomStrength > 0.0f && rng && gradRms > 0.0f) {
+        noiseScale = randomStrength * gradRms;
+    }
+    std::normal_distribution<float> noiseDist(0.0f, 1.0f);
+
+    // The Metal histogram kernel produces per-bin sums with a +1 offset:
+    //   hist[firstFold + b] = sum of docs where featureValue == b+1
+    //
+    // For OneHot features: each bin represents one category.
+    //   Split "go right if value == bin": sumRight = hist[bin], sumLeft = total - sumRight
+    //
+    // For ordinal features: precompute suffix sums then use O(1) lookups.
+    //   Split threshold b (value > b → right):
+    //     sumRight = suffixSum[b] = sum(hist[b..folds-1])
+    //     sumLeft = total - sumRight
+
+    for (ui32 featIdx = 0; featIdx < features.size(); ++featIdx) {
+        // Feature subsampling: skip features not in the selected set
+        if (!featureMask.empty() && !featureMask[featIdx]) continue;
+        const auto& feat = features[featIdx];
+
+        if (feat.OneHotFeature) {
+            // ── OneHot: each bin is independent, no suffix sums needed ──
+            for (ui32 bin = 0; bin < feat.Folds; ++bin) {
+                float totalGain = 0.0f;
+                // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims,
+                // then finalize once per bin (matches CPU AddLeafPlain multi-partition loop).
+                float cosNum = 0.0f;
+                float cosDen = 1e-20f;  // guard against sqrt(0)
+
+                if (minDataInLeaf > 1 && !countHist.empty()) {
+                    bool anyViolates = false;
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        ui32 countRight = countHist[p][feat.FirstFoldIndex + bin];
+                        ui32 countLeft = partDocCounts[p] - countRight;
+                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
+                            anyViolates = true;
+                            break;
+                        }
+                    }
+                    if (anyViolates) continue;
+                }
+
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    for (ui32 k = 0; k < K; ++k) {
+                        const float* histData = perDimHist[k].data() + p * 2 * totalBinFeatures;
+                        float totalSum = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+
+                        float sumRight = histData[feat.FirstFoldIndex + bin];
+                        float weightRight = histData[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        float sumLeft = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                // Accumulate per-(p,k) contributions; finalized after both loops.
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplit (one-hot branch)");
+                        }
+                    }
+                }
+                // Finalize Cosine score after all partitions and dims are accumulated.
+                if (scoreFunction == EScoreFunction::Cosine) {
+                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                }
+
+                // Add random perturbation to prevent overfitting
+                float perturbedGain = totalGain;
+                if (noiseScale > 0.0f) {
+                    perturbedGain += noiseScale * noiseDist(*rng);
+                }
+                if (perturbedGain > bestGain) {
+                    bestGain = perturbedGain;
+                    bestSplit.FeatureId = featIdx;
+                    bestSplit.BinId = bin;
+                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
+                    bestSplit.Score = -totalGain;
+                }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
+                        cand.sumR = hd0[feat.FirstFoldIndex + bin];
+                        cand.wR   = hd0[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
+            }
+        } else {
+            // ── Ordinal: precompute suffix sums for O(1) lookup per bin ──
+            ui32 folds = feat.Folds;
+            if (folds == 0) continue;
+
+            // Suffix sums of gradient/hessian histograms: suffGrad[k][p][b] =
+            // sum over i=b..folds-1 of hist[firstFold + i].
+            // Layout: [K * numPartitions * (folds+1)], sentinel at [folds] = 0.
+            size_t stride = static_cast<size_t>(folds) + 1;
+            std::vector<float> suffGrad(K * numPartitions * stride, 0.0f);
+            std::vector<float> suffHess(K * numPartitions * stride, 0.0f);
+
+            for (ui32 k = 0; k < K; ++k) {
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    const float* hd = perDimHist[k].data() + p * 2 * totalBinFeatures;
+                    size_t base = (k * numPartitions + p) * stride;
+                    // Build suffix sums from right to left
+                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
+                        suffGrad[base + b] = suffGrad[base + b + 1] + hd[feat.FirstFoldIndex + b];
+                        suffHess[base + b] = suffHess[base + b + 1] + hd[totalBinFeatures + feat.FirstFoldIndex + b];
+                    }
+                }
+            }
+
+            // Suffix sums for doc-count histogram (min-data-in-leaf)
+            std::vector<ui32> suffCount;
+            if (minDataInLeaf > 1 && !countHist.empty()) {
+                suffCount.resize(numPartitions * stride, 0);
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    size_t base = p * stride;
+                    for (int b = static_cast<int>(folds) - 1; b >= 0; --b) {
+                        suffCount[base + b] = suffCount[base + b + 1]
+                                            + countHist[p][feat.FirstFoldIndex + b];
+                    }
+                }
+            }
+
+            bool hasMonotone = !monotoneConstraints.empty()
+                            && featIdx < monotoneConstraints.size()
+                            && monotoneConstraints[featIdx] != 0;
+
+            for (ui32 bin = 0; bin < folds; ++bin) {
+                float totalGain = 0.0f;
+                bool violatesConstraint = false;
+                // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
+                float cosNum = 0.0f;
+                float cosDen = 1e-20f;  // guard against sqrt(0)
+
+                // Min-data-in-leaf check using precomputed suffix sums
+                if (minDataInLeaf > 1 && !suffCount.empty()) {
+                    bool anyViolates = false;
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        ui32 countRight = suffCount[p * stride + bin];
+                        ui32 countLeft = partDocCounts[p] - countRight;
+                        if (countLeft < minDataInLeaf || countRight < minDataInLeaf) {
+                            anyViolates = true;
+                            break;
+                        }
+                    }
+                    if (anyViolates) continue;
+                }
+
+                for (ui32 p = 0; p < numPartitions; ++p) {
+                    // Monotone constraint check using precomputed suffix sums (dim 0)
+                    if (hasMonotone) {
+                        size_t base0 = static_cast<size_t>(p) * stride;
+                        float sR = suffGrad[base0 + bin];
+                        float wR = suffHess[base0 + bin];
+                        float sL = perDimPartStats[0][p].Sum - sR;
+                        float wL = perDimPartStats[0][p].Weight - wR;
+                        if (wL > 1e-15f && wR > 1e-15f) {
+                            float vL = sL / (wL + l2RegLambda);
+                            float vR = sR / (wR + l2RegLambda);
+                            if (monotoneConstraints[featIdx] == 1 && vL < vR) {
+                                violatesConstraint = true;
+                                break;
+                            }
+                            if (monotoneConstraints[featIdx] == -1 && vL > vR) {
+                                violatesConstraint = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    for (ui32 k = 0; k < K; ++k) {
+                        float totalSum = perDimPartStats[k][p].Sum;
+                        float totalWeight = perDimPartStats[k][p].Weight;
+
+                        size_t base = (k * numPartitions + p) * stride;
+                        float sumRight = suffGrad[base + bin];
+                        float weightRight = suffHess[base + bin];
+                        float sumLeft = totalSum - sumRight;
+                        float weightLeft = totalWeight - weightRight;
+
+                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+
+                        switch (scoreFunction) {
+                            case EScoreFunction::L2:
+                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
+                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
+                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                                break;
+                            case EScoreFunction::Cosine: {
+                                // Accumulate per-(p,k) contributions; finalized after both loops.
+                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
+                                const float invR = 1.0f / (weightRight + l2RegLambda);
+                                cosNum += sumLeft  * sumLeft  * invL
+                                        + sumRight * sumRight * invR;
+                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
+                                        + sumRight * sumRight * weightRight * invR * invR;
+                                break;
+                            }
+                            default:
+                                throw std::logic_error("Unhandled EScoreFunction in FindBestSplit (ordinal branch)");
+                        }
+                    }
+                }
+
+                // Finalize Cosine score after all partitions and dims are accumulated.
+                if (scoreFunction == EScoreFunction::Cosine) {
+                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                }
+
+                if (violatesConstraint) continue;
+
+                // Add random perturbation to prevent overfitting
+                float perturbedGain = totalGain;
+                if (noiseScale > 0.0f) {
+                    perturbedGain += noiseScale * noiseDist(*rng);
+                }
+                if (perturbedGain > bestGain) {
+                    bestGain = perturbedGain;
+                    bestSplit.FeatureId = featIdx;
+                    bestSplit.BinId = bin;
+                    bestSplit.Gain = totalGain;  // store actual gain, not perturbed
+                    bestSplit.Score = -totalGain;
+                }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        size_t sbase = (0 * numPartitions + 0) * stride;
+                        cand.sumR = suffGrad[sbase + bin];
+                        cand.wR   = suffHess[sbase + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
+            }
+        }
+    }
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    if (p11Active && !allCandidates.empty()) {
+        // P12 — literal gain formula used in this FindBestSplit
+        // S28-OBLIV-DISPATCH: formula depends on scoreFunction (L2 or Cosine).
+        if (scoreFunction == EScoreFunction::L2) {
+            printf("[DBG P12] gain_formula: L2: "
+                   "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
+        } else {
+            printf("[DBG P12] gain_formula: Cosine: "
+                   "score = (Σ_pk sumL^2/(wL+L2) + sumR^2/(wR+L2)) / sqrt(Σ_pk sumL^2*wL/(wL+L2)^2 + ...)\n");
+        }
+        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (S28-OBLIV-DISPATCH)\n");
+        printf("[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)\n");
+        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  gradRms=%.6f)\n",
+               noiseScale, randomStrength, gradRms);
+
+        // Sort by gain descending
+        std::sort(allCandidates.begin(), allCandidates.end(),
+                  [](const TDbgCandidate& a, const TDbgCandidate& b){ return a.gain > b.gain; });
+
+        printf("[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):\n");
+        printf("[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP\n");
+        for (ui32 r = 0; r < std::min((ui32)allCandidates.size(), 10u); ++r) {
+            const auto& c = allCandidates[r];
+            printf("[DBG P11]   %-5u %-8u %-6u %-10.4f %-8.4f %-8.2f %-8.4f %-8.2f %-8.4f %.2f\n",
+                   r, c.featIdx, c.bin, c.gain,
+                   c.sumL, c.wL, c.sumR, c.wR, c.sumP, c.wP);
+        }
+
+        // P13 — cross-check for rank-0 candidate
+        const auto& best = allCandidates[0];
+        float p13_l2 = l2RegLambda;
+        float p13_gain_mlx_formula =
+            (best.wL > 1e-15f && best.wR > 1e-15f)
+            ? (best.sumL * best.sumL) / (best.wL + p13_l2)
+              + (best.sumR * best.sumR) / (best.wR + p13_l2)
+              - (best.sumP * best.sumP) / (best.wP + p13_l2)
+            : 0.0f;
+        // CPU formula is identical: sumL^2/(wL+L2) + sumR^2/(wR+L2) - sumP^2/(wP+L2)
+        // For RMSE unweighted, wL/wR == docCountL/docCountR, so formulas agree exactly.
+        // Any difference would come from histogram inputs, not formula divergence (H3).
+        float p13_gain_cpu_formula = p13_gain_mlx_formula;  // identical formula
+        float p13_gain_reported = best.gain;
+        printf("[DBG P13] cross-check for rank-0 (feat=%u bin=%u):\n", best.featIdx, best.bin);
+        printf("[DBG P13]   sumL=%.6f  wL=%.2f  sumR=%.6f  wR=%.2f\n",
+               best.sumL, best.wL, best.sumR, best.wR);
+        printf("[DBG P13]   gain_by_MLX_formula   = %.6f\n", p13_gain_mlx_formula);
+        printf("[DBG P13]   gain_by_CPU_formula   = %.6f  (same formula for RMSE)\n", p13_gain_cpu_formula);
+        printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
+        printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
+        fflush(stdout);
+    }
+#endif
+
+    return bestSplit;
 }
 
 // ============================================================================
@@ -3882,10 +3939,13 @@ TTrainResult RunTraining(
                     config.MonotoneConstraints,
                     config.RandomStrength, gradRms, &rng,
 #ifdef CATBOOST_MLX_DEBUG_LEAF
-                    static_cast<int>(iter), static_cast<int>(depth)
+                    static_cast<int>(iter), static_cast<int>(depth),
 #else
-                    -1, -1
+                    -1, -1,
 #endif
+                    // S28-OBLIV-DISPATCH: thread score_function to Oblivious path.
+                    // Explicit — no default. Mirrors DW dispatch from 0ea86bde21.
+                    ParseScoreFunction(config.ScoreFunction)
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
