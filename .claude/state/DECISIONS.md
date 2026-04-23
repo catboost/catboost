@@ -983,7 +983,7 @@ If an anchor has had its numeric value updated more than once (i.e., a second st
 
 **Sprint**: 27 (S27-FU-3, T5) → **PARTIALLY CLOSED by DEC-033 (S28, 2026-04-23)**
 **Date**: 2026-04-22
-**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. C++ / CLI bypass (SA-H1) is being closed by S29-CLI-GUARD-T1/T2 (#82/#83). Full closure (CLOSED) will be declared at S29-CLOSE (#89) once #82/#83 land and #87/#88 pass. See DEC-033 below.
+**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. SA-H1 closed in S29: C++ nanobind entry (`train_api.cpp:TrainConfigToInternal`) and CLI entry (`csv_train.cpp:ParseArgs`) now reject forbidden combinations. DEC-034 resolved S29 (outcome A — shared compounding mechanism). `Cosine+Lossguide` and `Cosine+SymmetricTree` guards remain at all three layers until S30-COSINE-KAHAN lands and gates. Full closure (CLOSED) queued for S30-close once Kahan parity gates pass. See DEC-033, DEC-034, DEC-035.
 **Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
 **Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
 **Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
@@ -1154,7 +1154,7 @@ Gate reports: `docs/sprint28/fu-cosine/t2-gate-report.md`,
 
 **Sprint**: 29 (S29-LG-SPIKE-T1/T2, #84/#85; resolution checkpoint #86)
 **Date**: 2026-04-23
-**Status**: PENDING-SPIKE — resolves at T5 post-verdict (task #86, human-decision checkpoint)
+**Status**: RESOLVED — outcome A (shared float32 joint-Cosine denominator compounding), moderate confidence. Verdict commit `64a8d9076b`. See `docs/sprint29/lg-mechanism-spike/verdict.md`.
 **Owner**: @research-scientist (spike) → Ramos (T5 resolution at #86)
 **Authored by**: S29-00 kickoff (@technical-writer)
 
@@ -1226,4 +1226,66 @@ and likely higher-risk than Kahan. Does not generalize to ST.
 - `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md` — ST+Cosine iter-1 anchor (0.77%)
 - `python/catboost_mlx/core.py:634` — LG+Cosine Python guard (S28 `b9577067ef`)
 - `python/catboost_mlx/core.py:644` — ST+Cosine Python guard (S28 `b9577067ef`)
-- Task #86 carries the resolution; verdict doc at `docs/sprint29/lg-spike/verdict.md` (S29-LG-SPIKE-T2)
+- `docs/sprint29/lg-mechanism-spike/verdict.md` — S29 spike verdict (outcome A, `64a8d9076b`)
+- Data artifacts: `docs/sprint29/lg-mechanism-spike/data/iter1_drift.json`, `iter_curve.csv`, `tree_structure_iter1.json`
+
+### Outcome A summary
+
+LG+Cosine iter-1 mean drift 0.0024% (3 seeds) vs ST+Cosine anchor 0.77% — same order of
+magnitude (~300× smaller), same compounding direction. iter=1 BFS split sequences bit-identical
+CPU vs MLX at seed=0. Confidence moderate: shallow cell only (depth=3, max_leaves=8). Deep
+LG cells not exercised. Recommendation: apply Kahan/Neumaier to shared joint-Cosine denominator
+once in S30 (DEC-035); re-open outcome B only if post-Kahan residual drift persists on deep LG.
+
+---
+
+## DEC-035: S30-COSINE-KAHAN — shared Kahan fix for joint-Cosine denominator accumulator
+
+**Sprint**: 30 (planned)
+**Date**: 2026-04-23
+**Status**: DRAFT — basis is DEC-034 outcome A (S29). Task S30-COSINE-KAHAN in TODOS.md.
+**Authored by**: S29-CLOSE (@technical-writer)
+
+### Context
+
+DEC-034 outcome A (2026-04-23) establishes that `LG+Cosine` and `ST+Cosine` drift share the
+same root cause: float32 joint-Cosine denominator compounding in `ComputeCosineGainKDim`. The
+two S28/S29 carry items (`S29-ST-COSINE-KAHAN` and `S29-LG-COSINE-RCA`) are therefore the
+same fix applied to the same code path. Merging them avoids two overlapping PRs on the same
+accumulator and ensures both guards are removed atomically.
+
+### Decision
+
+Apply Kahan/Neumaier compensated summation to the float32 joint-Cosine denominator accumulator
+in `ComputeCosineGainKDim` (all three grow-policy dispatch sites share this helper). Gate both
+`ST+Cosine` and `LG+Cosine` parity behind the same post-fix check. Remove Python, C++ nanobind,
+and C++ CLI guards in a single atomic commit once both parity gates pass.
+
+### Acceptance gates
+
+| Gate | Criterion |
+|------|-----------|
+| ST+Cosine 50-iter drift | ≤ 1% at N=50k |
+| LG+Cosine 50-iter drift | ≤ 1% at spike cell (N=1000, depth=3, max_leaves=8) |
+| Python parity suite | 28/28 PASS |
+| Guard removal grep | `grep -rn 'TODO-S29-(LG|ST)-COSINE'` returns zero matches post-commit |
+
+### Cleanup scope
+
+Four guard sites to remove atomically:
+1. `python/catboost_mlx/core.py:628-647` (`_validate_params` ValueError blocks)
+2. `catboost/mlx/train_api.cpp:25-51` (C++ nanobind entry guards)
+3. `catboost/mlx/tests/csv_train.cpp:241-267` (CLI ParseArgs guards)
+4. `tests/test_cli_guards.py` (4 test cases covering the above)
+
+### Conditional S31 follow-up
+
+If post-Kahan residual drift persists on deep LG cells (`depth>3`, `max_leaves>8`), open S31
+to re-examine outcome B (priority-queue ordering divergence). Do not pre-open S31; only open
+on post-Kahan evidence.
+
+### Authority
+
+- DEC-034 outcome A: `docs/sprint29/lg-mechanism-spike/verdict.md`
+- ST+Cosine anchor: `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md` (0.77% iter-1, ~47% iter-50)
+- LG+Cosine spike: `docs/sprint29/lg-mechanism-spike/data/iter1_drift.json` (0.0024% mean)
