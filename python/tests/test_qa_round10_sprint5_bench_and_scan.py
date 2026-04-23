@@ -66,7 +66,7 @@ BENCH_BINARY = "/tmp/bench_boosting"
 
 # Regression anchors: final loss must match within 1e-6
 BINARY_ANCHOR_LOSS = 0.11097676    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42 (S27-AA-T4: updated from 0.11909308; stale-capture from S7, superseded by S18 BUG-S18-001, S19 DEC-015/016, S22/S23 T2 promotion, S24 DEC-023 v5)
-MULTICLASS_ANCHOR_LOSS = 0.63507235  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (BUG-002 fix: updated from 1.09757149)
+MULTICLASS_ANCHOR_LOSS = 0.61788315  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (S27-AA-T4: updated from 0.63507235; stale-capture from S7, superseded by S18 BUG-S18-001, S19 DEC-015/016, S22/S23 T2 promotion, S24 DEC-023 v5)
 
 
 def _binary_available():
