@@ -46,6 +46,14 @@ Gap narrows slightly with N — per-iteration fixed cost dominates:
 - **BUG-007** (MITIGATED 2026-04-22): nanobind path — Python wrapper sorts group_ids (`python/catboost_mlx/core.py:1131-1137`); C++ `BuildDatasetFromArrays` now CB_ENSUREs sortedness as defense-in-depth. See `KNOWN_BUGS.md`.
 - **bench_boosting K=10 anchor** (RESOLVED Sprint 8, TODO-022): `1.78561831` is the canonical anchor at `20k × 30 × depth 5 × 50 iters`; the prior `2.22267818` "expected" value was captured from a mismatched-param run. See `CHANGELOG.md:27`.
 
+## RandomStrength noise is a global scalar shared across all CatBoost grow policies (from S26-FU-2 T1 triage, 2026-04-22)
+
+CPU `CalcDerivativesStDevFromZeroPlainBoosting` returns a single `double` scalar from the full fold — no partition or leaf subset. It is called exactly once per tree (before any depth or partition loop) in all three grow-policy functions: `GreedyTensorSearchOblivious` (:1186), `GreedyTensorSearchDepthwise` (:1480), `GreedyTensorSearchLossguide` (:1776). The scalar is declared `const` and passed unchanged into every per-partition and per-leaf candidate evaluation.
+
+**MLX implication**: any future code path that touches RandomStrength noise must thread `gradRms` as a single per-tree scalar — not recomputed per partition, per leaf, or per depth. This applies to both `FindBestSplit` (SymmetricTree, fixed S26 D0) and `FindBestSplitPerPartition` (DW/LG, fixed S26-FU-2).
+
+Source: `catboost/private/libs/algo/greedy_tensor_search.cpp:92–107, :1186, :1480, :1776`. Triage: `docs/sprint26/fu2/d0-triage.md`.
+
 ## Parity-gate methodology (from Sprint 26 D0, 2026-04-22)
 
 - **Kernel-ULP=0 ≠ full-path parity.** v5's `bench_boosting` 18/18 ULP=0 record coexisted with a Python-path 0.69× leaf-magnitude collapse for multiple sprints because `bench_boosting` exercises only the histogram kernel — not `FindBestSplit` (noise), nanobind orchestration, quantization borders, or `methods/leaves/`. **New standing order**: every parity gate must label which path it covers. Python-path / `FindBestSplit` / leaf-estimation parity requires its own harness (`tests/test_python_path_parity.py`).

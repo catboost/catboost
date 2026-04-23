@@ -1,15 +1,15 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (Sprint 26 D0 CLOSED).
+> Last header refresh: 2026-04-22 (Sprint 26 FU-2 CLOSED).
 
 ## Current state (2026-04-22)
 
-- **Branch**: `mlx/sprint-26-python-parity` at tip `2680252573` (+ state close commit after this write). D0 CLOSED.
+- **Active branch**: `mlx/sprint-26-fu2-noise-dwlg` (stacked on S26 D0 `66a4b5e869`). S26-FU-2 CLOSED.
 - **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — S26 G4 preserves this record (kernel sources untouched).
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S26 D0 + FU-2.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S26 was correctness-first.
-- **Open PRs**: none. S26 D0 PR pending Ramos open. DEC-027 (alternative accumulation) remains deferred.
+- **Open PRs**: none. S26 D0 + FU-2 PRs pending Ramos open. Merge order: D0 first, then FU-2. DEC-027 (alternative accumulation) remains deferred.
 
 ---
 
@@ -43,10 +43,22 @@
 | G4 | bench_boosting ULP=0 preserved | Kernel sources untouched | PASS |
 | G5 | Determinism | 100 runs max−min = 1.49e-08 | DETERMINISTIC |
 
-### Follow-ups (carry-forward, not blocking)
+### Follow-ups
 
 - [ ] S26-FU-1 — `ComputeLeafIndicesDepthwise` (C++ validation path) returns `nodeIdx − numNodes` instead of bit-packed partition order. Affects validation RMSE during Depthwise training only. Listed in DEC-029 Risks. Scope: next sprint.
-- [ ] S26-FU-2 — MLX Depthwise/Lossguide have no RandomStrength noise path (`FindBestSplitPerPartition` never threaded noise). At rs=1 these policies under-fit CPU by ~10–12% at N=10k. Pre-existing — not a S26 regression. Scope: dedicated parameter-threading sprint.
+- [x] S26-FU-2 — MLX Depthwise/Lossguide RandomStrength noise path (`FindBestSplitPerPartition`). **CLOSED 2026-04-22** — DEC-028 formula extended; all gates PASS; branch `mlx/sprint-26-fu2-noise-dwlg`. See `docs/sprint26/fu2/sprint-close.md`.
+- [ ] S26-FU-3 — Depthwise N=1000 parity asymmetry. Pre-existing (verified on pre-FU-2 binary). MLX consistently better than CPU at N=1000 DW, pred_std_R up to 1.10. 5 cells fail gate scope. Triage: instrument `FindBestSplitPerPartition` at N=1000 depth-0 to compare per-partition gain scores; also test ST at N=1000 to determine if this is DW-specific or shared small-N instability. Evidence: `benchmarks/sprint26/fu2/g1-results.md` DW N=1000 rows.
+
+### S26-FU-2 task history (DONE 2026-04-22)
+
+- [x] T1 — D0 triage: CPU uses global scalar gradRms for all grow policies — `docs/sprint26/fu2/d0-triage.md`
+- [x] T2 — Thread `gradRms` into `FindBestSplitPerPartition` (C++ impl) — `478e8d5c9d`
+- [x] T3 — Manual smoke test DW + LG with rs=1 — bundled `478e8d5c9d`
+- [x] T4 — Extend `test_python_path_parity.py` to DW/LG — `715b15b613`
+- [x] T5 — G1 54-cell sweep (DW + LG + ST) — `ee5a90707b`
+- [x] T6 — G5 Depthwise determinism 100-run — `ee5a90707b`
+- [x] T7 — Code review (@code-reviewer): APPROVE-WITH-NITS, 0 blockers
+- [x] T8 — Sprint close: gate report Nit-1 fix, DEC-028 footnote, state files, close report
 
 ---
 
