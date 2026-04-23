@@ -1,0 +1,54 @@
+{
+  "measurement": "LG+Cosine iter-1 aggregate RMSE drift vs CPU",
+  "config": {
+    "N": 1000,
+    "features": 10,
+    "depth": 3,
+    "max_leaves": 8,
+    "learning_rate": 0.03,
+    "bins": 128,
+    "iterations": 1,
+    "score_function": "Cosine",
+    "grow_policy": "Lossguide",
+    "bootstrap_type": "no",
+    "random_strength": 0.0,
+    "seeds": [
+      0,
+      1,
+      2
+    ]
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "cpu_rmse": 0.572943,
+      "mlx_rmse": 0.572969,
+      "drift_pct": 0.0046
+    },
+    {
+      "seed": 1,
+      "cpu_rmse": 0.570053,
+      "mlx_rmse": 0.570044,
+      "drift_pct": 0.0015
+    },
+    {
+      "seed": 2,
+      "cpu_rmse": 0.596539,
+      "mlx_rmse": 0.596533,
+      "drift_pct": 0.001
+    }
+  ],
+  "mean_drift_pct": 0.0024,
+  "std_drift_pct": 0.0016,
+  "st_cosine_iter1_anchor_pct": 0.77,
+  "outcome_thresholds": {
+    "A_shared_max_pct": 1.5,
+    "B_decoupled_min_pct": 5.0,
+    "C_ambiguous_range": [
+      1.5,
+      5.0
+    ]
+  },
+  "elapsed_sec": 1.18,
+  "notes": "Authoritative verdict lives in task #85 (S29-LG-SPIKE-T2). This harness writes data only; the outcome classification is intentionally not encoded here to keep data and verdict separate artefacts."
+}
