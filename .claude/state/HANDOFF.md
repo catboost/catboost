@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-23 (Sprint 29 CLOSED — DEC-032 SA-H1 closed; DEC-034 resolved outcome A; S30-COSINE-KAHAN queued)
+> Last updated: 2026-04-23 (Sprint 30 ACTIVE — phased T1-T4 COSINE-KAHAN on `mlx/sprint-30-cosine-kahan`)
 
 ## Current state
 
-- **Active sprint**: None. Sprint 29 CLOSED 2026-04-23. Next session opens S30.
-- **Campaign**: Post-Verstappen correctness. DEC-032 still PARTIALLY CLOSED — SA-H1 is closed (guards at all three layers), but LG+Cosine and ST+Cosine remain guarded pending S30-COSINE-KAHAN. R8 stays at 1.01× through S29 (correctness-only).
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched throughout S28 and S29.
-- **Open PRs**: S28 PR + S29 PR — both human-triggered (not yet opened by agents).
+- **Active sprint**: Sprint 30. Branch `mlx/sprint-30-cosine-kahan` cut from master `4d855d47db` (S29 PR #27 merge).
+- **Campaign**: Post-Verstappen correctness. DEC-032 PARTIALLY CLOSED — SA-H1 closed (guards at all three layers), LG+Cosine and ST+Cosine remain guarded pending phased Kahan fix. R8 at 1.01× — S30 is correctness-only.
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
+- **Open PRs**: none. S28 + S29 merged 2026-04-23.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
@@ -75,23 +75,43 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 
 28/28 PASS at `b9577067ef`. Unchanged at `e0b0b1b527`.
 
-## Sprint 30 — Entry Points (NEXT SESSION)
+## Sprint 30 — S30-COSINE-KAHAN (phased T1-T4) — ACTIVE
 
-**Primary task**: S30-COSINE-KAHAN — apply Kahan/Neumaier to shared float32 joint-Cosine
-denominator accumulator in `ComputeCosineGainKDim`; gate both ST+Cosine and LG+Cosine parity;
-remove all guards atomically (`grep -rn 'TODO-S29-(LG|ST)-COSINE'` gives the checklist).
+**Branch**: `mlx/sprint-30-cosine-kahan` cut from master `4d855d47db` (S29 PR #27 merge).
+**Basis**: DEC-034 outcome A (moderate confidence); DEC-035 ACTIVE (ultrathink-elaborated).
+**Scope**: Phased instrumentation → Kahan → 2-tier measurement → atomic per-combo guard removal.
 
-**Secondary task**: S30-CLI-EXIT-WRAP — add top-level try/catch in `csv_train.cpp:main()` to
-normalize guard exits to `exit(1)` instead of SIGABRT(134).
+### Phased plan (see TODOS.md #90–#99, DEC-035)
 
-**Conditional S31**: S31-LG-DEEP-RESIDUAL — open only if post-Kahan drift persists on deep
-LG cells (depth>3, max_leaves>8). Do not pre-open.
+| Phase | Task | Owner | Blocks |
+|-------|------|-------|--------|
+| T1 | #90 INSTRUMENT — finger accumulator with residual >10⁻⁵ at iter-1 on ST anchor | @ml-engineer | T2 |
+| T2 | #91 KAHAN — apply Kahan/Neumaier to T1-fingered accumulator; verify no Metal reassoc | @ml-engineer | T3 |
+| T3 | #92 MEASURE — 2-tier LG: LG-Mid (t5-continuity) + LG-Stress (`max_leaves=64` priority-queue stress) | @qa-engineer | T4a, T4b |
+| T4a | #93 ST-REMOVE — atomic 3-language ST+Cosine guard removal | @ml-engineer | #97, #98 |
+| T4b | #94 LG-REMOVE — atomic 3-language LG+Cosine guard removal (conditional on K2) | @ml-engineer | #97, #98 |
 
-**Basis**: DEC-034 outcome A; DEC-035 DRAFT. See TODOS.md #90–#93.
+Parallel secondary track:
+- #95 T5 — csv_train main() try/catch for graceful exit(1) (SA-I2-S29)
+- #96 T6 — S29 CR residual nits (N-1, N-2, N-3, SF-3)
+
+End-of-sprint: #97 CR, #98 SA, #99 CLOSE.
+
+### Kill-switches (pre-authorized per DEC-035)
+
+- **K1 (mechanism miss)**: T1 fingers source other than cosDen → re-target T2 (swap, not scope expansion)
+- **K2 (LG-Stress fail)**: G3c fails at `max_leaves=64` → T4a ships ST-only, T4b skipped, S31-LG-DEEP-RESIDUAL filed
+- **K3 (perf regression)**: >5% regression on G5 → consult @performance-engineer before merge
+- **K4 (Metal reassociation)**: compiler defeats Kahan compensation → fp64 denominator fallback + DEC-036 (pre-authorized)
+
+### Entry point for next agent session
+
+Spawn @ml-engineer on #90 S30-T1-INSTRUMENT. T1 must deliver triage doc at
+`docs/sprint30/t1-instrument/verdict.md` naming the target accumulator.
 
 ## PR state
 
-S28 PR + S29 PR: **ready to open (human-triggered)**. Do NOT open from agent-side.
+All S28 + S29 PRs merged. S30 PR #28 to be opened at sprint close.
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 

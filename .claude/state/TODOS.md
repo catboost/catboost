@@ -1,15 +1,15 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-23 (Sprint 29 CLOSED — DEC-034 resolved outcome A; S30-COSINE-KAHAN queued; branch `mlx/sprint-29-dec032-closeout` tip `fa7f9b55fc`).
+> Last header refresh: 2026-04-23 (Sprint 30 ACTIVE — S30-COSINE-KAHAN phased T1-T4 kickoff on `mlx/sprint-30-cosine-kahan`).
 
 ## Current state (2026-04-23)
 
-- **Active branch**: none — S29 CLOSED. Next session opens `mlx/sprint-30-cosine-kahan` from master after S29 PR merges.
-- **Base**: master `987da0e7d5` (S28 merge commit). S29 tip `fa7f9b55fc`.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S28 and S29.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S29 is correctness-only.
-- **Open PRs**: S28 PR + S29 PR — human-triggered (not yet opened). DEC-027 (alternative accumulation) remains deferred.
+- **Active branch**: `mlx/sprint-30-cosine-kahan` cut from master `4d855d47db` (S29 PR #27 merge).
+- **Base**: master `4d855d47db` (S29 merge commit).
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S29.
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S30 is correctness-only.
+- **Open PRs**: none. S28 + S29 merged. DEC-027 (alternative accumulation) remains deferred.
 
 ---
 
@@ -50,27 +50,68 @@
 
 ---
 
-## Sprint 30 — S30-COSINE-KAHAN + S30-CLI-EXIT-WRAP (PENDING — next session)
+## Sprint 30 — S30-COSINE-KAHAN (phased T1-T4) — ACTIVE 2026-04-23
 
-**Branch**: `mlx/sprint-30-cosine-kahan` (to be cut from master after S29 PR merges)
-**Basis**: DEC-034 outcome A (shared mechanism); DEC-035 DRAFT.
-**Rationale**: S29 confirmed LG+Cosine and ST+Cosine share the same float32 joint-Cosine
-denominator compounding. A single Kahan/Neumaier fix closes both. Guards removed atomically
-once parity gates pass.
+**Branch**: `mlx/sprint-30-cosine-kahan` (cut from master `4d855d47db`)
+**Basis**: DEC-034 outcome A (moderate confidence); DEC-035 ACTIVE (ultrathink-elaborated, phased plan).
+**Rationale**: DEC-034 fingers `cosDen` accumulator but two signals complicate a direct patch-and-remove:
+(1) ST and LG drift differ by 300×, more than cell geometry alone explains; (2) iter=1 LG trees are
+bit-identical, so drift at that cell originates **downstream of split selection** (leaf values or
+approx update). We instrument first (T1), target mechanism empirically (T2), then measure on a
+two-tier LG schedule (LG-Mid for t5-continuity, LG-Stress at `max_leaves=64` to stress the
+priority-queue divergence surface the S29 spike under-exercised), and remove guards atomically
+per-combo (T4a ST, T4b LG).
 
-### Primary track
+### Primary track — phased T1→T4
 
-- [ ] **#90 S30-COSINE-KAHAN** — Apply Kahan/Neumaier compensated summation to shared float32 joint-Cosine denominator accumulator in `ComputeCosineGainKDim`. Gate both `ST+Cosine` (≤1% 50-iter at N=50k) and `LG+Cosine` (≤1% 50-iter at spike cell). Remove all guards atomically in one commit when both parity gates pass. Cleanup: `grep -rn 'TODO-S29-(LG|ST)-COSINE'` must return zero after commit. Owner: @ml-engineer
+- [ ] **#90 S30-T1-INSTRUMENT** — Add per-stage float32 residual instrumentation at accumulators in `ComputeCosineGainKDim` (cosDen, leaf-value sum, approx update) on ST anchor cell at iter-1. Identify **one** accumulator with residual > 10⁻⁵ dominating drift. Gate: **G1 — mechanism fingered**. Deliverable: triage doc `docs/sprint30/t1-instrument/verdict.md` naming the target accumulator. Owner: @ml-engineer
 
-- [ ] **#91 S30-COSINE-KAHAN-GATE** — Parity verification: 28/28 suite + ST+Cosine 50-iter ≤1% at N=50k + LG+Cosine 50-iter ≤1% at spike cell. **Blocked by #90.** Owner: @qa-engineer
+- [ ] **#91 S30-T2-KAHAN** — Apply Kahan/Neumaier compensated summation to the T1-fingered accumulator. Verify Metal compiler does not auto-reassociate away the compensation term (inspect generated MSL / AIR intermediates). Gate: **G2 — iter-1 drift reduces ≥10× on ST anchor** post-fix. Kill-switch K1 (mechanism miss): re-target if cosDen is not fingered. Kill-switch K4 (Metal reassociation): pre-authorized fallback to fp64 denominator path; file DEC-036 at merge. **Blocked by #90.** Owner: @ml-engineer
 
-### Secondary track
+- [ ] **#92 S30-T3-MEASURE** — Two-tier post-Kahan parity measurement:
+  - **ST anchor** (G3a): ST+Cosine aggregate drift < 2% at 50-iter on S28 anchor cell
+  - **LG-Mid** (G3b): `N=1000, depth=6, max_leaves=31, 50-iter, seeds={42..46}` drift ratio ∈ [0.98, 1.02] (t5-continuity)
+  - **LG-Stress** (G3c): `N=2000, depth=7, max_leaves=64, 100-iter, seeds={0,1,2}` drift ratio ∈ [0.98, 1.02] (priority-queue stress, 8× contested-split density vs S29 spike)
+  Gates G4 (28/28 parity) and G5 (<5% perf regression on Cosine cells) also evaluated here. **Blocked by #91.** Owner: @qa-engineer
 
-- [ ] **#92 S30-CLI-EXIT-WRAP** — Add top-level `try { ... } catch (const std::invalid_argument& e) { fprintf(stderr, "%s\n", e.what()); return 1; }` in `csv_train.cpp:main()`. Replaces SIGABRT(134) with graceful `exit(1)`. Tests already assert `returncode != 0` — no test changes needed. SA-I2-S29 remediation. Owner: @ml-engineer
+- [ ] **#93 S30-T4a-ST-REMOVE** — **Atomic** removal of ST+Cosine guards across all three language layers + tests in ONE commit:
+  1. `python/catboost_mlx/core.py:_validate_params` ST ValueError block
+  2. `catboost/mlx/train_api.cpp:TrainConfigToInternal` ST C++ nanobind guard
+  3. `catboost/mlx/tests/csv_train.cpp:ParseArgs` ST CLI guard
+  4. `tests/test_cli_guards.py` 2 ST test cases
+  Gate G6: `grep -rn 'TODO-S29-ST-COSINE'` returns zero. Atomicity: removing one layer without the others recreates SA-H1. **Blocked by #92 G3a.** Owner: @ml-engineer
+
+- [ ] **#94 S30-T4b-LG-REMOVE** — **Atomic** removal of LG+Cosine guards across all three language layers + tests in ONE commit (structure mirrors T4a). Gate G6: `grep -rn 'TODO-S29-LG-COSINE'` returns zero. **Conditional on K2 not firing** (G3c must pass, not just G3b). If K2 fires: T4b skipped this sprint, S31-LG-DEEP-RESIDUAL filed. **Blocked by #92 G3b AND G3c.** Owner: @ml-engineer
+
+### Secondary track — parallel, independent of Kahan work
+
+- [ ] **#95 S30-T5-CLI-EXIT-WRAP** — Add top-level `try { ... } catch (const std::invalid_argument& e) { fprintf(stderr, "%s\n", e.what()); return 1; }` in `catboost/mlx/tests/csv_train.cpp:main()`. Replaces SIGABRT(134) with graceful `exit(1)`. Tests already assert `returncode != 0` — no test changes needed. SA-I2-S29 remediation. Owner: @ml-engineer
+
+- [ ] **#96 S30-T6-CLEANUP** — S29 CR residual items landed as atomic commits:
+  - **N-1**: Remove stale include comment (CR N-1)
+  - **N-2**: Test binary path env override (CR N-2)
+  - **N-3**: `/dev/null` ordering in `csv_train` ParseArgs (CR N-3)
+  - **SF-3**: Remove dead `run_secondary()` in `tests/harness.py` (CR SF-3)
+  Per DEC-012, one structural change per commit (4 commits). Owner: @ml-engineer
+
+### Quality gates (end-of-sprint)
+
+- [ ] **#97 S30-CR** — Full code review of T1-T6 diffs. **Blocked by #91, #93, #95, #96.** Owner: @code-reviewer
+
+- [ ] **#98 S30-SA** — Security audit: confirm SA-H1 regression surface eliminated post guard-removal (guards either removed atomically or intact in all three layers). **Blocked by #93, #94, #95.** Owner: @security-auditor
+
+- [ ] **#99 S30-CLOSE** — Sprint close doc `docs/sprint30/sprint-close.md` with gate summary + DEC-035 status transition (ACTIVE → PARTIALLY CLOSED or RESOLVED) + DEC-032 transition (PARTIALLY CLOSED → RESOLVED conditional on K2). PR #28 opened (human-triggered). **Blocked by #97, #98.** Owner: @technical-writer
 
 ### Conditional future track
 
-- [ ] **#93 S31-LG-DEEP-RESIDUAL** — **CONDITIONAL, BLOCKED by #91.** Open only if post-Kahan drift persists on deep LG cells (`depth>3`, `max_leaves>8`). Do not pre-open. Re-examine outcome B only on evidence. Owner: TBD
+- [ ] **S31-LG-DEEP-RESIDUAL** — **CONDITIONAL.** Open only if K2 fires (G3c fails post-Kahan at `max_leaves=64`) or if post-merge evidence surfaces LG-specific drift at production-deep configs. Do not pre-open. Owner: TBD
+
+### Kill-switches (pre-authorized per DEC-035)
+
+- **K1**: T1 mechanism miss → re-target T2 on actual source (swap, not scope expansion)
+- **K2**: LG-Stress (G3c) fails → T4a ships (ST closure only), T4b skipped, S31 filed
+- **K3**: Perf regression >5% (G5) → consult @performance-engineer before merge
+- **K4**: Metal auto-reassociation defeats Kahan compensation → fp64 fallback, file DEC-036 at merge (**pre-authorized**, no user checkpoint required)
 
 ---
 
