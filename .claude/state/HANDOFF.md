@@ -1,22 +1,22 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-22 (Sprint 27 OPEN — Correctness Closeout; closes S26-FU-1, anchor hygiene, and S26-FU-3 triage; S26-FU-2 CLOSED; PR #24 must merge before S27 branch cuts)
+> Last updated: 2026-04-22 (Sprint 27 CLOSED — Correctness Closeout complete; S27 PR OPEN-PENDING-RAMOS; S28 next — BLOCKED on S27 PR merge)
 
 ## Current state
 
-- **Active sprint**: Sprint 27 — Correctness Closeout. Branch `mlx/sprint-27-correctness-closeout` cuts from master AFTER PR #24 (S26-FU-2) merges.
-- **Campaign**: Post-Verstappen correctness. Zero kernel changes this sprint. Zero perf work. R8 stays at 1.01×.
+- **Active sprint**: Sprint 28 — Score function fidelity. Branch `mlx/sprint-28-score-function-fidelity` to be created off master after S27 PR merges. **BLOCKED on S27 PR merge.** S28 ml-product-owner creates the branch and breaks down T1..Tn at kickoff.
+- **Campaign**: Post-Verstappen correctness. S27 closed zero-kernel-change. S28 implements Cosine score function (DEC-032). R8 stays at 1.01× through S28.
 - **Production kernel**: v5 (`784f82a891`) — unchanged.
-- **Open PRs**: PR #24 (S26-FU-2, `mlx/sprint-26-fu2-noise-dwlg`) pending merge. S26 D0 PR also pending if not yet merged.
+- **Open PRs**: S27 PR on `mlx/sprint-27-correctness-closeout` — OPEN-PENDING-RAMOS (Ramos opens PRs; agents do not). PR #24 (S26-FU-2) status same.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
-    - **S27-FU-1 (active)**: `ComputeLeafIndicesDepthwise` (C++ validation path) returns `nodeIdx − numNodes` instead of bit-packed partition order — affects validation RMSE tracking only, not training correctness or Python predictions. Fix is Track A of S27. Tracked in DEC-029 Risks.
-    - **S27-FU-3 (active, blocks on FU-1)**: Depthwise N=1000 parity asymmetry — 5 cells fail gate (MLX consistently better than CPU, pred_std_R up to 1.10). Pre-existing; not introduced by FU-2. Triage is Track C of S27.
+    - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
+    - **S27-FU-3 SCOPED to S28** (DEC-032): DW N=1000 asymmetry is a score-function fidelity gap (MLX hardcodes L2; CPU defaults Cosine). Conditional gate G3-FU3 PASS 5/5 with `score_function='L2'` on CPU. Cosine port is S28 scope.
 
-## Sprint 27 — Correctness Closeout — OPEN
+## Sprint 27 — Correctness Closeout — CLOSED
 
 **Branch**: `mlx/sprint-27-correctness-closeout` (branches off master after PR #24 S26-FU-2 merges)
 **Scope**: Close three known correctness debts on the non-oblivious / anchor surface before any R8 perf work resumes. Zero kernel changes. Zero perf work. R8 stays at 1.01×.

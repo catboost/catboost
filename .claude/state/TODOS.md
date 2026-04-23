@@ -1,11 +1,11 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (Sprint 27 OPEN — Correctness Closeout).
+> Last header refresh: 2026-04-22 (Sprint 27 CLOSED — Correctness Closeout; S28 next, BLOCKED on S27 PR merge).
 
 ## Current state (2026-04-22)
 
-- **Active branch**: `mlx/sprint-27-correctness-closeout` (cuts from master after PR #24 S26-FU-2 merges).
+- **Active branch**: `mlx/sprint-27-correctness-closeout` — CLOSED. PR OPEN-PENDING-RAMOS. Next: `mlx/sprint-28-score-function-fidelity` (off master after S27 PR merges).
 - **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same (pending PR #24 merge).
 - **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S26 D0 + FU-2.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S27 is correctness-only.
@@ -39,14 +39,14 @@
 - [x] **S27-FU-3-T1**: Instrument `FindBestSplitPerPartition` on DW N=1000 depth-0: per-partition `(gain_MLX, gain_CPU, chosen_split, gradRms)` across 3 seeds — @qa-engineer — DONE (`0931ad6e9c`; triage doc `docs/sprint27/scratch/fu3-t1-triage.md`)
 - [x] **S27-FU-3-T2**: Control: run ST at N=1000 with matched config — @qa-engineer — DONE (T1 absorbed: ST at N=1000 confirmed non-divergent; per-partition gain diff is DW-specific at small N. Result in `fu3-t1-triage.md §ST control`)
 - [x] **S27-FU-3-T3**: Verdict doc — @qa-engineer + @ml-product-owner — DONE (verdict: 4th class, fidelity gap / configuration divergence. `score_function='L2'` on CPU reproduces MLX to ±0.11%. Not a/b/c. DEC-032 captures framing. This commit.)
-- [ ] **S27-FU-3-T4**: Gate adjustment — `score_function='L2'` explicit on DW parity harness CPU side. Do NOT widen N scope — @ml-engineer
+- [x] **S27-FU-3-T4**: Gate adjustment — `score_function='L2'` explicit on DW parity harness CPU side. Do NOT widen N scope — @ml-engineer — DONE (`fc44bfc936`; gate G3-FU3 5/5 PASS at `591f4ce3e6`)
 - [x] **S27-FU-3-T5**: DEC-032 authored: verdict + rationale — @technical-writer — DONE (this commit)
 
 ### Track D — Quality gates (sequential, end-of-sprint)
 
-- [ ] **S27-CR**: Full code review (all FU-1 + AA + FU-3 diffs) — @code-reviewer
-- [ ] **S27-SA**: Security audit (low-risk — no kernel changes, validation-path data flow only) — @security-auditor
-- [ ] **S27-CLOSE**: Sprint close doc at `docs/sprint27/sprint-close.md` with gate summary, drift inventory, decision links — @technical-writer
+- [x] **S27-CR**: Full code review (all FU-1 + AA + FU-3 diffs) — @code-reviewer — APPROVE (`44bb9ee74b`)
+- [x] **S27-SA**: Security audit (low-risk — no kernel changes, validation-path data flow only) — @security-auditor — PASS-WITH-NOTES (`24e80dde45`)
+- [x] **S27-CLOSE**: Sprint close doc at `docs/sprint27/sprint-close.md` with gate summary, drift inventory, decision links — @technical-writer — DONE (this commit)
 
 ---
 

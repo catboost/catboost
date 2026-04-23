@@ -2,6 +2,12 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-22 — Sprint 27 CLOSED
+
+26 commits (+ this close), 3 tracks closed cleanly. FU-1: DW leaf-index fix (DEC-030) — G1-FU1 6/6 PASS at `88cbe6d067`. AA: anchor audit + DEC-031 hygiene protocol — 0 class-b regressions, 4 class-a updates + 2 live-enforced anchors. FU-3: fidelity gap identified, scoped honestly to S28 via DEC-032 — G3-FU3 5/5 PASS at `591f4ce3e6` (conditional on CPU `score_function='L2'`). CR APPROVE `44bb9ee74b`, SA PASS-WITH-NOTES `24e80dde45`. PR pending Ramos. Sprint-close doc at `docs/sprint27/sprint-close.md`. Next: S28 score-function fidelity.
+
+---
+
 ## 2026-04-22 — S27 Track C (FU-3) closed with scope-split to S28
 
 FU-3 T1 identified the DW N=1000 asymmetry as a **fidelity gap**: MLX hardcodes L2 Newton gain; CPU CatBoost defaults to Cosine (`0931ad6e9c`). Not a parity-gate edge case. DEC-032 captures the honest framing: different algorithms, not parity-equivalent. Gate updated to require `score_function='L2'` on CPU side (NOT widening N scope — would be DEC-031 Rule-3 violation). S28 "Score function fidelity" opened as follow-up sprint to do the real port (audit plumbing → implement Cosine → re-bless aggregate parity claims → optional Newton variants).
