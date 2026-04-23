@@ -20,19 +20,19 @@
 
 ### Track A — S27-FU-1: Depthwise validation-path index fix
 
-- [ ] **S27-FU-1-T1**: Repro harness: instrument `ComputeLeafIndicesDepthwise` at `csv_train.cpp:1751`; capture returned indices vs expected bit-packed BFS on DW N=10k d=3 — @qa-engineer
-- [ ] **S27-FU-1-T2**: CPU-source audit: confirm CatBoost BFS encoding (`nodeIdx − numNodes` wrong decode); draft DEC-030 — @ml-engineer
-- [ ] **S27-FU-1-T3**: Implement fix: replace arithmetic decode with root-to-leaf traversal mirroring `ComputeLeafIndicesLossguide` — @ml-engineer
-- [ ] **S27-FU-1-T4**: Gate G1-FU1: DW validation RMSE (`use_best_model=True`) within rs=0 tight band, 3 seeds × {N=10k, N=50k} — @qa-engineer
-- [ ] **S27-FU-1-T5**: DEC-030 authored; DEC-029 Risks entry retired — @technical-writer
+- [x] **S27-FU-1-T1**: Repro harness: instrument `ComputeLeafIndicesDepthwise` at `csv_train.cpp:1751`; capture returned indices vs expected bit-packed BFS on DW N=10k d=3 — @qa-engineer
+- [x] **S27-FU-1-T2**: CPU-source audit: confirm CatBoost BFS encoding (`nodeIdx − numNodes` wrong decode); draft DEC-030 — @ml-engineer
+- [x] **S27-FU-1-T3**: Implement fix: replace arithmetic decode with root-to-leaf traversal mirroring `ComputeLeafIndicesLossguide` — @ml-engineer
+- [x] **S27-FU-1-T4**: Gate G1-FU1: DW validation RMSE (`use_best_model=True`) within rs=0 tight band, 3 seeds × {N=10k, N=50k} — @qa-engineer
+- [x] **S27-FU-1-T5**: DEC-030 authored; DEC-029 Risks entry retired — @technical-writer
 
 ### Track B — S27-AA: Anchor audit (parallel to Track A)
 
-- [ ] **S27-AA-T1**: Enumerate all numeric anchors in committed test/bench files; produce inventory `{path, line, value, last-touched-sha, captured-context}` — @qa-engineer
-- [ ] **S27-AA-T2**: Re-run each anchor's generating harness on current master; diff ≥1e-2 flags drift — @qa-engineer
-- [ ] **S27-AA-T3**: For each drifted anchor: classify (a) stale-capture / (b) real-regression / (c) documented-supersession — @qa-engineer
-- [ ] **S27-AA-T4**: Landing commits — ONE commit per anchor update, message cites class. Class-(b) escalates to Ramos before landing — @ml-engineer
-- [ ] **S27-AA-T5**: DEC-031 authored: "Anchor hygiene protocol" — @technical-writer
+- [x] **S27-AA-T1**: Enumerate all numeric anchors in committed test/bench files; produce inventory `{path, line, value, last-touched-sha, captured-context}` — @qa-engineer
+- [x] **S27-AA-T2**: Re-run each anchor's generating harness on current master; diff ≥1e-2 flags drift — @qa-engineer
+- [x] **S27-AA-T3**: For each drifted anchor: classify (a) stale-capture / (b) real-regression / (c) documented-supersession — @qa-engineer
+- [x] **S27-AA-T4**: Landing commits — ONE commit per anchor update, message cites class. Class-(b) escalates to Ramos before landing — @ml-engineer
+- [x] **S27-AA-T5**: DEC-031 authored: "Anchor hygiene protocol" — @technical-writer
 
 ### Track C — S27-FU-3: DW N=1000 parity-asymmetry triage (blocks on FU-1 landing)
 

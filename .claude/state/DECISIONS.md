@@ -746,10 +746,10 @@ prediction at `leaf_values[0]`.
 SymmetricTree path unchanged (already BFS-ordered implicitly).
 
 **Risks carried forward**:
-- **S26-FU-1**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns
+- ~~**S26-FU-1**: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns
   `nodeIdx − numNodes` (BFS leaf order) instead of bit-packed partition order. Affects
   validation RMSE tracking during Depthwise training only; does not affect training
-  correctness or Python predictions.
+  correctness or Python predictions.~~ — RETIRED by G1-FU1 pass (commit `88cbe6d067`), DEC-030 implements correct encoding. **Superseded-by**: DEC-030.
 - Model JSON now has a new `bfs_node_index` field. Old SymmetricTree models (which never
   had this field) still work correctly via dispatch; old broken non-oblivious models continue
   to produce all-leaf-0 predictions (no worse than pre-fix behavior).
@@ -765,7 +765,7 @@ diagnostics `docs/sprint26/d0/depthwise-lossguide-root-cause.md`,
 
 **Sprint**: 27 (S27-FU-1)
 **Date**: 2026-04-22
-**Status**: DRAFTED — pending T3 implementation and G1-FU1 gate
+**Status**: IMPLEMENTED — T3 `fb7eb59b5f`, G1-FU1 PASS 6/6 `88cbe6d067`
 **Authored by**: S27-FU-1-T2 (@ml-engineer)
 **Commits (T1 repro + call-site evidence)**: `34f62b32c9` (repro harness), `eca086e4dd` (call-site triage)
 **Extends**: DEC-029 (non-oblivious tree serialization) — adds the evaluation-side encoding decision.
@@ -875,7 +875,7 @@ DEC-029 Risks section included:
 > "S26-FU-1: `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx − numNodes`
 > (BFS leaf order) instead of bit-packed partition order."
 
-This entry is retired upon T3 landing and G1-FU1 gate passage.
+This entry is retired. T3 landed (`fb7eb59b5f`) and G1-FU1 passed 6/6 cells (`88cbe6d067`). DEC-029 Risks entry struck through (2026-04-22).
 
 ### Test gate
 

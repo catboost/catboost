@@ -2,6 +2,16 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-22 — S27 Tracks A + B closed (FU-1 + AA)
+
+**Track A (FU-1 — Depthwise leaf-index fix)**: Two bugs in `ComputeLeafIndicesDepthwise` (encoding + split-lookup, 51.5% mismatch at depth=3). Fix per DEC-030: BFS-keyed split map + bit-packed partition accumulation. Gate G1-FU1 PASS 6/6 cells, ratios 0.9988–1.0027. Validation-only scope (call-site triage `eca086e4dd`). Commits: T1 `34f62b32c9`, audit `eca086e4dd`, DEC-030 `c7c09451e2`, fix `fb7eb59b5f`, gate `88cbe6d067`.
+
+**Track B (AA — Anchor audit)**: 18 anchors inventoried, 0 class-b regressions, 4 class-a updates + 2 class-c + 3 class-d handled across 9 atomic commits. 2 anchors now live-enforced (AN-006, AN-007). DEC-031 codifies 5-rule anchor hygiene protocol. AN-008 flagged for Rule-5 promotion on next update (3rd lifetime).
+
+**Remaining**: Track C (FU-3 DW N=1000 asymmetry triage) running in parallel; Track D (code review + security audit + sprint close) after FU-3 verdict.
+
+---
+
 ## Sprint 27 — Track B anchor audit closed; DEC-031 adopted (2026-04-22)
 
 **Branch**: `mlx/sprint-27-correctness-closeout`
