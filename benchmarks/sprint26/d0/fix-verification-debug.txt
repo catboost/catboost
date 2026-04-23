@@ -1,0 +1,80 @@
+[DBG P10] feature_0 borders: count=127  min=-2.420838  max=2.389623
+[DBG P10] feature_0 first5: -2.420838 -2.144162 -1.976417 -1.860163 -1.752941
+[DBG P10] feature_0 last5:  1.763542 1.865003 1.981176 2.142131 2.389623
+[DBG P10] feature_1 borders: count=127  min=-2.454527  max=2.414308
+[DBG P10] feature_1 first5: -2.454527 -2.164773 -1.963267 -1.840755 -1.725792
+[DBG P10] feature_1 last5:  1.796513 1.898142 2.008305 2.164392 2.414308
+[DBG iter=0] P1 cursor BEFORE grad: mean=0.000056 std=0.000000 min=0.000056 max=0.000056
+[DBG iter=0] P7 basePred[0]=0.000056
+[DBG iter=0] P8 targets: mean=0.000056 std=0.591873 min=-2.817432 max=2.329521
+[DBG iter=0] P9 effective_config:
+[DBG iter=0]   ColsampleByTree    = 1.0000
+[DBG iter=0]   SubsampleRatio     = 1.0000
+[DBG iter=0]   RandomStrength     = 0.0000
+[DBG iter=0]   MinDataInLeaf      = 1
+[DBG iter=0]   L2RegLambda        = 3.0000
+[DBG iter=0]   BootstrapType      = no
+[DBG iter=0]   BaggingTemperature = 1.0000
+[DBG iter=0]   MvsReg             = 0.0000
+[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)
+[DBG iter=0]   noise_formula      = rs * gradRms   (DEC-028 fix; matches CPU greedy_tensor_search.cpp:92)
+[DBG iter=0]   noise_scale_approx = rs * std(y)    = 0.000000  (grad_rms≈std(y)=0.591873 at iter=0)
+[DBG iter=0]   noise_scale_old    = rs * N         = 0.0000  (OLD formula, 16895x too large — fixed)
+[DBG iter=0] P2 grad: mean=0.000000 std=0.591873 sum=0.0000 min=-2.329465 max=2.817487
+[DBG iter=0] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG P12] gain_formula: gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)
+[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)
+[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)
+[DBG P12] noiseScale_used = 0.000000  (rs=0.0000  gradRms=0.000000)
+[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):
+[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP
+[DBG P11]   0     0        60     1602.3220  1999.8600 4766.00  -1999.8600 5234.00  0.0000   10000.00
+[DBG P11]   1     0        62     1602.1082  2001.6742 4922.00  -2001.6742 5078.00  0.0000   10000.00
+[DBG P11]   2     0        63     1601.7699  2001.7061 5000.00  -2001.7061 5000.00  0.0000   10000.00
+[DBG P11]   3     0        59     1601.3093  1997.5227 4688.00  -1997.5227 5312.00  0.0000   10000.00
+[DBG P11]   4     0        56     1597.1791  1986.8525 4453.00  -1986.8525 5547.00  0.0000   10000.00
+[DBG P11]   5     0        61     1596.4790  1997.4257 4844.00  -1997.4257 5156.00  0.0000   10000.00
+[DBG P11]   6     0        64     1595.4336  1997.5002 5078.00  -1997.5002 4922.00  0.0000   10000.00
+[DBG P11]   7     0        57     1594.5719  1988.4084 4531.00  -1988.4084 5469.00  0.0000   10000.00
+[DBG P11]   8     0        58     1593.7860  1990.6040 4609.00  -1990.6040 5391.00  0.0000   10000.00
+[DBG P11]   9     0        68     1593.2001  1990.2380 5391.00  -1990.2380 4609.00  0.0000   10000.00
+[DBG P13] cross-check for rank-0 (feat=0 bin=60):
+[DBG P13]   sumL=1999.859985  wL=4766.00  sumR=-1999.859985  wR=5234.00
+[DBG P13]   gain_by_MLX_formula   = 1602.322021
+[DBG P13]   gain_by_CPU_formula   = 1602.322021  (same formula for RMSE)
+[DBG P13]   gain_reported_by_FindBestSplit = 1602.322021
+[DBG P13]   L2=3  wP=10000.00  sumP=0.000001
+[DBG iter=0] P4 gSumsArr (numLeaves=64): 278.0642 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 ...
+[DBG iter=0] P4 hSumsArr: 219.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 ...
+[DBG iter=0] P4 gSums.sum()=0.0002 hSums.sum()=10000.0000 (expected hSum=10000.0 = trainDocs)
+[DBG iter=0] P5 leafValues: -1.252541 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 ...
+[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=-1.252541 actual_lv[0]=-1.252541 diff=0.00e+00
+[DBG iter=0] partitions.max()=63 (expected 63 = numLeaves-1)
+[DBG iter=0] splits.size()=6 (expected depth=6)
+[DBG iter=0] P6 cursor AFTER apply: mean=0.000251 std=0.543789 min=-1.252486 max=1.164331
+[DBG P10] feature_0 borders: count=127  min=-2.420838  max=2.389623
+[DBG P10] feature_0 first5: -2.420838 -2.144162 -1.976417 -1.860163 -1.752941
+[DBG P10] feature_0 last5:  1.763542 1.865003 1.981176 2.142131 2.389623
+[DBG P10] feature_1 borders: count=127  min=-2.454527  max=2.414308
+[DBG P10] feature_1 first5: -2.454527 -2.164773 -1.963267 -1.840755 -1.725792
+[DBG P10] feature_1 last5:  1.796513 1.898142 2.008305 2.164392 2.414308
+[DBG iter=0] P1 cursor BEFORE grad: mean=0.000056 std=0.000000 min=0.000056 max=0.000056
+[DBG iter=0] P7 basePred[0]=0.000056
+[DBG iter=0] P8 targets: mean=0.000056 std=0.591873 min=-2.817432 max=2.329521
+[DBG iter=0] P9 effective_config:
+[DBG iter=0]   ColsampleByTree    = 1.0000
+[DBG iter=0]   SubsampleRatio     = 1.0000
+[DBG iter=0]   RandomStrength     = 1.0000
+[DBG iter=0]   MinDataInLeaf      = 1
+[DBG iter=0]   L2RegLambda        = 3.0000
+[DBG iter=0]   BootstrapType      = no
+[DBG iter=0]   BaggingTemperature = 1.0000
+[DBG iter=0]   MvsReg             = 0.0000
+[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)
+[DBG iter=0]   noise_formula      = rs * gradRms   (DEC-028 fix; matches CPU greedy_tensor_search.cpp:92)
+[DBG iter=0]   noise_scale_approx = rs * std(y)    = 0.591873  (grad_rms≈std(y)=0.591873 at iter=0)
+[DBG iter=0]   noise_scale_old    = rs * N         = 10000.0000  (OLD formula, 16895x too large — fixed)
+[DBG iter=0] P2 grad: mean=0.000000 std=0.591873 sum=0.0000 min=-2.329465 max=2.817487
+[DBG iter=0] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG iter=0] P12 gradRms=0.591873  noiseScale=0.591873  (rs=1.0000; CPU formula: sqrt(sum g^2 / N))
+[DBG P12] gain_formula: gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)

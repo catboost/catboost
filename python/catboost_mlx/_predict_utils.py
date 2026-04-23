@@ -24,6 +24,7 @@ Key concepts:
       by a D-bit number. Bit i = 1 means "went right at level i."
 """
 
+import math
 from typing import List, Optional
 
 import numpy as np
@@ -89,17 +90,44 @@ def quantize_features(X: np.ndarray, features: List[dict],
 
 
 def compute_leaf_indices(binned_X: np.ndarray, tree: dict) -> np.ndarray:
-    """Compute leaf index for each sample in an oblivious tree.
+    """Compute leaf index for each sample. Dispatches on tree grow_policy.
 
     Parameters
     ----------
     binned_X : ndarray of shape (n_samples, n_features), dtype uint8
-    tree : dict with keys 'depth', 'splits'
+    tree : dict with keys 'depth', 'splits', optionally 'grow_policy'
 
     Returns
     -------
     ndarray of shape (n_samples,), dtype uint32
+
+    Notes
+    -----
+    SymmetricTree (oblivious): leaf index is a D-bit integer where bit i = 1
+    means "went right at depth level i." The splits array has exactly D entries.
+
+    Depthwise: splits holds 2^D - 1 BFS-ordered node splits (or fewer if some
+    nodes were pruned). Leaf assignment uses BFS traversal:
+        nodeIdx = 0 (root)
+        for each level: nodeIdx = 2*nodeIdx + 1 + goRight
+    Final leaf id = nodeIdx - (num_nodes), where num_nodes = len(splits).
+    leaf_values is indexed in BFS leaf order (leaves at depth D, left-to-right).
+
+    Lossguide: same BFS traversal but the tree may be unbalanced. Uses
+    leaf_bfs_ids to map BFS terminal node → dense leaf index.
     """
+    grow_policy = tree.get("grow_policy", "SymmetricTree")
+
+    if grow_policy in ("Depthwise", "depthwise"):
+        return _compute_leaf_indices_depthwise(binned_X, tree)
+    elif grow_policy in ("Lossguide", "lossguide"):
+        return _compute_leaf_indices_lossguide(binned_X, tree)
+    else:
+        return _compute_leaf_indices_oblivious(binned_X, tree)
+
+
+def _compute_leaf_indices_oblivious(binned_X: np.ndarray, tree: dict) -> np.ndarray:
+    """Oblivious (SymmetricTree) leaf index via bit-packing."""
     n_samples = binned_X.shape[0]
     leaf_idx = np.zeros(n_samples, dtype=np.uint32)
 
@@ -118,6 +146,158 @@ def compute_leaf_indices(binned_X: np.ndarray, tree: dict) -> np.ndarray:
 
         leaf_idx |= go_right.astype(np.uint32) << level
 
+    return leaf_idx
+
+
+def _build_bfs_node_map(splits: list) -> dict:
+    """Build {bfs_node_index: split_dict} from a splits list.
+
+    DEC-029: Both Depthwise and Lossguide trees store a 'bfs_node_index' field
+    on each split entry (added by WriteModelJSON). This function extracts that
+    mapping so BFS traversal can find the split for any given node index directly.
+
+    Only valid splits (feature_idx != 0xFFFFFFFF) are included. No-op placeholder
+    entries for empty Depthwise partitions are skipped.
+    """
+    node_map = {}
+    UINT32_MAX = (1 << 32) - 1
+    for split in splits:
+        bfs_idx = split.get("bfs_node_index")
+        feat_idx = split.get("feature_idx", UINT32_MAX)
+        if bfs_idx is not None and feat_idx != UINT32_MAX:
+            node_map[bfs_idx] = split
+    return node_map
+
+
+def _bfs_traverse_bitpacked(binned_X: np.ndarray, node_map: dict) -> np.ndarray:
+    """Vectorised BFS traversal returning a bit-packed leaf index per sample.
+
+    DEC-029: The training-time partition value (used to index leaf_values) is a
+    bit-packed encoding: bit d = 1 means "went right at depth d." This function
+    reconstructs that same encoding during prediction by accumulating right-turn
+    bits as the traversal descends.
+
+    At BFS node n, its depth = floor(log2(n + 1)). Each right-turn at depth d
+    sets bit d of the leaf index. This matches the C++ partition update loop:
+        bits = updateBits << depth;  partitions |= bits;
+
+    Returns ndarray of uint32 with the bit-packed leaf index (0-based) for each
+    sample. This directly indexes into leaf_values[].
+    """
+    n_samples = binned_X.shape[0]
+    node_idx = np.zeros(n_samples, dtype=np.int32)   # current BFS node per sample
+    leaf_idx = np.zeros(n_samples, dtype=np.uint32)  # accumulates right-turn bits
+
+    for _ in range(64):  # depth guard
+        internal_mask = np.array(
+            [int(ni) in node_map for ni in node_idx], dtype=bool
+        )
+        if not np.any(internal_mask):
+            break
+
+        for nid in np.unique(node_idx[internal_mask]):
+            nid_int = int(nid)
+            if nid_int not in node_map:
+                continue
+            # Depth of this BFS node: floor(log2(n+1))
+            depth_of_node = int(math.log2(nid_int + 1))
+
+            mask = (node_idx == nid)
+            split = node_map[nid_int]
+            feat_idx = split["feature_idx"]
+            bin_threshold = split["bin_threshold"]
+            is_one_hot = split.get("is_one_hot", False)
+
+            bval = binned_X[mask, feat_idx].astype(np.uint32)
+            go_right = (
+                (bval == bin_threshold) if is_one_hot
+                else (bval > bin_threshold)
+            ).astype(np.uint32)
+
+            # Accumulate the right-turn bit at the correct depth position
+            leaf_idx[mask] |= go_right << depth_of_node
+            # Descend to child
+            node_idx[mask] = (2 * nid_int + 1 + go_right.astype(np.int32))
+
+    return leaf_idx
+
+
+def _compute_leaf_indices_depthwise(binned_X: np.ndarray, tree: dict) -> np.ndarray:
+    """Depthwise (non-oblivious balanced) leaf index via BFS bit-packed traversal.
+
+    DEC-029: Depthwise trees store internal node splits. Each split carries a
+    'bfs_node_index' field emitted by WriteModelJSON (C++ side), which allows
+    the Python predictor to build the exact BFS-node → split map.
+
+    Returns the bit-packed partition value used during training to index
+    leaf_values[]. Bit d = 1 means the sample went right at depth d.
+
+    Mirrors the training partition update loop in csv_train.cpp (lines ~3569-3573).
+    """
+    splits = tree["splits"]
+    n_samples = binned_X.shape[0]
+    if not splits:
+        return np.zeros(n_samples, dtype=np.uint32)
+
+    node_map = _build_bfs_node_map(splits)
+    if not node_map:
+        return np.zeros(n_samples, dtype=np.uint32)
+
+    return _bfs_traverse_bitpacked(binned_X, node_map)
+
+
+def _compute_leaf_indices_lossguide(binned_X: np.ndarray, tree: dict) -> np.ndarray:
+    """Lossguide (unbalanced best-first) leaf index via BFS traversal.
+
+    DEC-029: Lossguide trees are unbalanced. Each split carries a 'bfs_node_index'
+    field. We build a BFS-node → split map, traverse each sample to a terminal
+    BFS node, then map back to a dense leaf id using leaf_bfs_ids (the inverse).
+
+    Mirrors ComputeLeafIndicesLossguide in csv_train.cpp.
+    """
+    splits = tree["splits"]
+    leaf_bfs_ids = tree.get("leaf_bfs_ids", [])
+    n_samples = binned_X.shape[0]
+
+    if not splits or not leaf_bfs_ids:
+        return np.zeros(n_samples, dtype=np.uint32)
+
+    node_map = _build_bfs_node_map(splits)
+    if not node_map:
+        return np.zeros(n_samples, dtype=np.uint32)
+
+    # Build inverse map: BFS node index → dense leaf id
+    bfs_to_leaf_id = {int(bfs_id): k for k, bfs_id in enumerate(leaf_bfs_ids)}
+
+    # Traverse to terminal BFS nodes (not bit-packed — Lossguide uses dense leaf ids)
+    n_samples = binned_X.shape[0]
+    node_idx = np.zeros(n_samples, dtype=np.int32)  # all start at root (BFS node 0)
+    for _ in range(64):  # depth guard
+        internal_mask = np.array(
+            [int(ni) in node_map for ni in node_idx], dtype=bool
+        )
+        if not np.any(internal_mask):
+            break
+        for nid in np.unique(node_idx[internal_mask]):
+            nid_int = int(nid)
+            if nid_int not in node_map:
+                continue
+            mask = (node_idx == nid)
+            split = node_map[nid_int]
+            feat_idx = split["feature_idx"]
+            bin_threshold = split["bin_threshold"]
+            is_one_hot = split.get("is_one_hot", False)
+            bval = binned_X[mask, feat_idx].astype(np.uint32)
+            go_right = (
+                (bval == bin_threshold) if is_one_hot
+                else (bval > bin_threshold)
+            ).astype(np.int32)
+            node_idx[mask] = 2 * nid_int + 1 + go_right
+
+    leaf_idx = np.array(
+        [bfs_to_leaf_id.get(int(ni), 0) for ni in node_idx],
+        dtype=np.uint32
+    )
     return leaf_idx
 
 

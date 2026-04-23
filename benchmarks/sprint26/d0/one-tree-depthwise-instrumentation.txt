@@ -1,0 +1,20 @@
+# DEC-029 Depthwise/Lossguide Instrumentation Output
+# Branch: mlx/sprint-26-python-parity
+# Status: PENDING — awaiting build + run of one_tree_depthwise.py
+#
+# Pre-fix root cause (established by code inspection, no build needed):
+#
+#   TTreeRecord.SplitProps was never populated for Depthwise or Lossguide trees.
+#   => WriteModelJSON emitted "splits": [] for every non-oblivious tree.
+#   => compute_leaf_indices iterated 0 times => leaf_idx = all zeros.
+#   => predict(X) = constant leaf_values[0] for all docs.
+#
+# Expected post-fix output from one_tree_depthwise.py:
+#
+#   All std_ratio values ≈ 1.0 (doc spread matches CPU)
+#   All RMSE deltas < 5%
+#
+# Note: Run the following to generate actual output:
+#   pip install -e python/ --no-build-isolation
+#   python benchmarks/sprint26/d0/one_tree_depthwise.py \
+#     2>&1 | tee benchmarks/sprint26/d0/one-tree-depthwise-instrumentation.txt

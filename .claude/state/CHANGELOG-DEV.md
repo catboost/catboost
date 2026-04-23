@@ -2,6 +2,69 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## S26-D0-9 — Sprint 4 anchor update post-DEC-028 (2026-04-22)
+
+**Branch**: `mlx/sprint-26-python-parity` (follow-up commit on PR #23)
+**Trigger**: CI on PR #23 failed on `test_rmse_final_loss_matches_sprint4_anchor` (got 0.306348, expected ~0.432032).
+**Attribution**: DEC-028 alone. `random_strength` ablation shows smooth monotone RMSE scaling at RS=0/1/2; pre-fix anchor lies off the curve. DEC-029 not exercised (tests use default `grow_policy="SymmetricTree"`).
+**Stability**: determinism ~6e-9 under 1e-3 tolerance; seed=0 at 0.306348 is central in the seed sweep [0.304, 0.309].
+**Scope**: 5 numeric constants in `python/tests/test_qa_round9_sprint4_partition_layout.py` across 3 tests (RMSE anchor, specific-predictions anchor, multiclass proba anchor).
+**Precedent**: same pattern as TODO-022 Sprint 8 bench_boosting K=10 anchor update (`2.22267818 → 1.78561831`).
+**Record**: `docs/sprint26/d0/d0-9-anchor-update.md`
+
+## Sprint 26 D0 closed — Python-path parity; DEC-028 + DEC-029 shipped (2026-04-22, CLOSED)
+
+**Branch**: `mlx/sprint-26-python-parity` (cut from `6c3953f239`)
+**Framing**: correctness-first sprint. v5 kernel untouched (G4 preserved). R8 stays at 1.01×.
+**Sprint verdict**: all 6 exit gates PASS (G0/G1/G2/G3/G4/G5 determinism).
+
+### Commits landed (DEC-012 one-structural-change-per-commit)
+
+| Commit | Role |
+|--------|------|
+| `24162e1006` | D0-6: DEC-028 RandomStrength noise formula — replace `totalWeight / numPartitions` with `sqrt(sum(g²)/N)` gradient-RMS |
+| `0a2216138f` | D0: `.gitignore` match `catboost_info/` at any depth |
+| `867784825e` | D0-7: G1 18-cell parity sweep + G4 100-run determinism artifacts |
+| `20079cc4a3` | D0-7: G3 Python-path regression harness (`tests/test_python_path_parity.py`) |
+| `cbbfc29257` | D0-7: G1/G3/G4 gate report |
+| `9bd980a37f` | D0-8a: DEC-029 C++ — Depthwise/Lossguide SplitProps + `SplitBfsNodeIds` + `WriteModelJSON` `grow_policy` + `bfs_node_index` |
+| `06fa2a58ee` | D0-8b: DEC-029 Python — `_predict_utils.py` dispatch on `grow_policy` + `_bfs_traverse_bitpacked` |
+| `adb9d32835` | D0-8: DEC-029 decision entry + diagnostic artifacts |
+| `2680252573` | D0-8: post-fix verification artifact (rs=0 algorithmic parity, rs=1 noise-path context) |
+
+### Exit gate results
+
+- **G0**: DEC-028 + DEC-029 entries complete in `docs/decisions.md`.
+- **G1** (SymmetricTree 18-cell segmented): 18/18 PASS. rs=0 max |delta| = 0.43%, max |ratio−1| = 0.0043. rs=1 MLX_RMSE ≤ CPU_RMSE in every cell; pred_std_R ∈ [0.9996, 1.087]; Pearson > 0.99. Strict-symmetric would have been 12/18 (6 failures are MLX *better* than CPU at small N under rs=1 — unavoidable independent-RNG realization divergence).
+- **G2** (Depthwise + Lossguide rs=0): DW −0.64%, LG −1.01% vs CPU. Pre-fix were +561% and +598%.
+- **G3**: `tests/test_python_path_parity.py` — 8 parametrized tests — 8/8 PASS in 6.32s. Three orthogonal checks (RMSE ratio ±5%, pred_std_ratio ±10%, monotone-convergence ≤5% non-monotone).
+- **G4**: `catboost/mlx/kernels/kernel_sources.h` untouched; v5 ULP=0 record intact.
+- **G5** (determinism): 100 runs @ N=10k/seed=1337/rs=0, max−min = 1.49e-08 (std 6.17e-09). DEC-028 fix introduces no new non-determinism.
+
+### Root causes
+
+- **DEC-028**: `FindBestSplit` computed `noiseScale = randomStrength × totalWeight / (numPartitions × K)`; `totalWeight = N` for RMSE. At N=10k, noiseScale = 10,000 against a true root-split gain of ~1,602 → SNR 0.16 → noise dominates split selection → leaf magnitudes shrink. Fix: replace with CPU's `sqrt(sum(g²)/N)` formula. `gradRms` threaded from `RunTraining` into `FindBestSplit`.
+- **DEC-029**: `TTreeRecord.SplitProps` was populated only in the SymmetricTree `else` branch. Depthwise/Lossguide `if` branches pushed `cursor` updates but not split descriptors → `WriteModelJSON` emitted `"splits": []` → `compute_leaf_indices` iterated an empty splits list → every doc assigned to leaf 0 → constant predictions at `leaf_values[0]`. Fix: populate `SplitProps` + new `SplitBfsNodeIds` in both non-oblivious paths, emit `grow_policy` and `bfs_node_index` per split (plus `leaf_bfs_ids` inverse map for Lossguide), dispatch Python predict on `grow_policy` with bit-packed BFS traversal that mirrors the C++ partition update.
+
+### Methodology contributions (also captured in `../LESSONS-LEARNED.md`)
+
+- **Segmented parity gate**: split symmetric `ratio ∈ [0.98, 1.02]` into (a) rs=0 tight (algorithmic parity) and (b) rs=1 one-sided + pred_std dual-check (preserves DEC-028-class regression catching without false-failing MLX-better cells).
+- **`pred_std_R` as primary leaf-magnitude signal**: RMSE can be dominated by irreducible noise at small N; prediction std ratio catches leaf-magnitude shrinkage directly. DEC-028's signature was `pred_std_R ≈ 0.69`.
+- **Parity-gate coverage label**: v5's "18/18 ULP=0" applied to kernel output only, not the `FindBestSplit` / nanobind / Python predict path. New standing order: gates must explicitly label their path coverage.
+
+### Follow-ups
+
+- **S26-FU-1** — `ComputeLeafIndicesDepthwise` validation path still returns `nodeIdx − numNodes` instead of bit-packed partition order. Affects validation RMSE tracking only. Listed in DEC-029 Risks.
+- **S26-FU-2** — MLX Depthwise/Lossguide have no RandomStrength noise path. At rs=1, these policies under-fit CPU by ~10–12% at N=10k. Pre-existing — not a S26 regression. Scope: separate parameter-threading sprint.
+
+### State updates
+
+- `.claude/state/HANDOFF.md` — S26 D0 closed section added; current state + next actions rewritten; new S26 standing order captured (gate-coverage labeling).
+- `.claude/state/TODOS.md` — S26 D0 items checked; follow-ups S26-FU-1 / S26-FU-2 opened.
+- `.claude/state/DECISIONS.md` — DEC-028 + DEC-029 mirrored from `docs/decisions.md`.
+- `.claude/state/MEMORY.md` — segmented-gate methodology, pred_std_R signal, Python-path coverage gap captured as cross-sprint lessons.
+- Cross-project: `../LESSONS-LEARNED.md` (Frameworks-level) — 24 principle-first lessons including the S26 methodology contributions.
+
 ## Latent-bugs cleanup (2026-04-22, PR #20)
 
 Triage + close-out of the three items carried forward since Sprint 12 / Sprint 23:

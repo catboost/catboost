@@ -1,0 +1,199 @@
+[DBG P10] feature_0 borders: count=127  min=-2.420838  max=2.389623
+[DBG P10] feature_0 first5: -2.420838 -2.144162 -1.976417 -1.860163 -1.752941
+[DBG P10] feature_0 last5:  1.763542 1.865003 1.981176 2.142131 2.389623
+[DBG P10] feature_1 borders: count=127  min=-2.454527  max=2.414308
+[DBG P10] feature_1 first5: -2.454527 -2.164773 -1.963267 -1.840755 -1.725792
+[DBG P10] feature_1 last5:  1.796513 1.898142 2.008305 2.164392 2.414308
+[DBG iter=0] P1 cursor BEFORE grad: mean=0.000056 std=0.000000 min=0.000056 max=0.000056
+[DBG iter=0] P7 basePred[0]=0.000056
+[DBG iter=0] P8 targets: mean=0.000056 std=0.591873 min=-2.817432 max=2.329521
+[DBG iter=0] P9 effective_config:
+[DBG iter=0]   ColsampleByTree    = 1.0000
+[DBG iter=0]   SubsampleRatio     = 1.0000
+[DBG iter=0]   RandomStrength     = 0.0000
+[DBG iter=0]   MinDataInLeaf      = 1
+[DBG iter=0]   L2RegLambda        = 3.0000
+[DBG iter=0]   BootstrapType      = no
+[DBG iter=0]   BaggingTemperature = 1.0000
+[DBG iter=0]   MvsReg             = 0.0000
+[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)
+[DBG iter=0]   noise_scale_MLX    = rs * N         = 0.0000  (rs=0.0000 N=10000)
+[DBG iter=0]   noise_scale_CPU    = rs * grad_rms  = 0.000000  (grad_rms≈std(y)=0.591873)
+[DBG iter=0]   noise_scale_ratio  = MLX/CPU        = 0.0x
+[DBG iter=0] P2 grad: mean=0.000000 std=0.591873 sum=0.0000 min=-2.329465 max=2.817487
+[DBG iter=0] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG P12] gain_formula: gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)
+[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1165-1167)
+[DBG P12] noise_formula: noiseScale = rs * totalWeight / (numPartitions*K+eps)
+[DBG P12] noiseScale_used = 0.000000  (rs=0.0000  totalWeight=10000.0  numPartitions=1  K=1)
+[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):
+[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP
+[DBG P11]   0     0        60     1602.3220  1999.8600 4766.00  -1999.8600 5234.00  -0.0000  10000.00
+[DBG P11]   1     0        62     1602.1082  2001.6742 4922.00  -2001.6742 5078.00  -0.0000  10000.00
+[DBG P11]   2     0        63     1601.7699  2001.7061 5000.00  -2001.7061 5000.00  -0.0000  10000.00
+[DBG P11]   3     0        59     1601.3093  1997.5227 4688.00  -1997.5227 5312.00  -0.0000  10000.00
+[DBG P11]   4     0        56     1597.1791  1986.8525 4453.00  -1986.8525 5547.00  -0.0000  10000.00
+[DBG P11]   5     0        61     1596.4790  1997.4257 4844.00  -1997.4257 5156.00  -0.0000  10000.00
+[DBG P11]   6     0        64     1595.4336  1997.5002 5078.00  -1997.5002 4922.00  -0.0000  10000.00
+[DBG P11]   7     0        57     1594.5719  1988.4084 4531.00  -1988.4084 5469.00  -0.0000  10000.00
+[DBG P11]   8     0        58     1593.7860  1990.6040 4609.00  -1990.6040 5391.00  -0.0000  10000.00
+[DBG P11]   9     0        68     1593.2001  1990.2380 5391.00  -1990.2380 4609.00  -0.0000  10000.00
+[DBG P13] cross-check for rank-0 (feat=0 bin=60):
+[DBG P13]   sumL=1999.859985  wL=4766.00  sumR=-1999.859985  wR=5234.00
+[DBG P13]   gain_by_MLX_formula   = 1602.322021
+[DBG P13]   gain_by_CPU_formula   = 1602.322021  (same formula for RMSE)
+[DBG P13]   gain_reported_by_FindBestSplit = 1602.322021
+[DBG P13]   L2=3  wP=10000.00  sumP=-0.000007
+[DBG iter=0] P4 gSumsArr (numLeaves=64): 278.0642 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 ...
+[DBG iter=0] P4 hSumsArr: 219.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 ...
+[DBG iter=0] P4 gSums.sum()=0.0006 hSums.sum()=10000.0000 (expected hSum=10000.0 = trainDocs)
+[DBG iter=0] P5 leafValues: -1.252542 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 -0.000000 ...
+[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=-1.252542 actual_lv[0]=-1.252542 diff=0.00e+00
+[DBG iter=0] partitions.max()=63 (expected 63 = numLeaves-1)
+[DBG iter=0] splits.size()=6 (expected depth=6)
+[DBG iter=0] P6 cursor AFTER apply: mean=0.000251 std=0.543789 min=-1.252486 max=1.164332
+[DBG P10] feature_0 borders: count=127  min=-2.420838  max=2.389623
+[DBG P10] feature_0 first5: -2.420838 -2.144162 -1.976417 -1.860163 -1.752941
+[DBG P10] feature_0 last5:  1.763542 1.865003 1.981176 2.142131 2.389623
+[DBG P10] feature_1 borders: count=127  min=-2.454527  max=2.414308
+[DBG P10] feature_1 first5: -2.454527 -2.164773 -1.963267 -1.840755 -1.725792
+[DBG P10] feature_1 last5:  1.796513 1.898142 2.008305 2.164392 2.414308
+[DBG iter=0] P1 cursor BEFORE grad: mean=0.000056 std=0.000000 min=0.000056 max=0.000056
+[DBG iter=0] P7 basePred[0]=0.000056
+[DBG iter=0] P8 targets: mean=0.000056 std=0.591873 min=-2.817432 max=2.329521
+[DBG iter=0] P9 effective_config:
+[DBG iter=0]   ColsampleByTree    = 1.0000
+[DBG iter=0]   SubsampleRatio     = 1.0000
+[DBG iter=0]   RandomStrength     = 1.0000
+[DBG iter=0]   MinDataInLeaf      = 1
+[DBG iter=0]   L2RegLambda        = 3.0000
+[DBG iter=0]   BootstrapType      = no
+[DBG iter=0]   BaggingTemperature = 1.0000
+[DBG iter=0]   MvsReg             = 0.0000
+[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)
+[DBG iter=0]   noise_scale_MLX    = rs * N         = 10000.0000  (rs=1.0000 N=10000)
+[DBG iter=0]   noise_scale_CPU    = rs * grad_rms  = 0.591873  (grad_rms≈std(y)=0.591873)
+[DBG iter=0]   noise_scale_ratio  = MLX/CPU        = 16895.5x
+[DBG iter=0] P2 grad: mean=0.000000 std=0.591873 sum=0.0000 min=-2.329465 max=2.817487
+[DBG iter=0] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG P12] gain_formula: gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)
+[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1165-1167)
+[DBG P12] noise_formula: noiseScale = rs * totalWeight / (numPartitions*K+eps)
+[DBG P12] noiseScale_used = 10000.000000  (rs=1.0000  totalWeight=10000.0  numPartitions=1  K=1)
+[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):
+[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP
+[DBG P11]   0     0        60     1602.3220  1999.8601 4766.00  -1999.8600 5234.00  0.0001   10000.00
+[DBG P11]   1     0        62     1602.1083  2001.6743 4922.00  -2001.6742 5078.00  0.0001   10000.00
+[DBG P11]   2     0        63     1601.7699  2001.7062 5000.00  -2001.7061 5000.00  0.0001   10000.00
+[DBG P11]   3     0        59     1601.3096  1997.5228 4688.00  -1997.5227 5312.00  0.0001   10000.00
+[DBG P11]   4     0        56     1597.1792  1986.8527 4453.00  -1986.8525 5547.00  0.0001   10000.00
+[DBG P11]   5     0        61     1596.4790  1997.4258 4844.00  -1997.4257 5156.00  0.0001   10000.00
+[DBG P11]   6     0        64     1595.4338  1997.5004 5078.00  -1997.5002 4922.00  0.0001   10000.00
+[DBG P11]   7     0        57     1594.5720  1988.4086 4531.00  -1988.4084 5469.00  0.0001   10000.00
+[DBG P11]   8     0        58     1593.7861  1990.6041 4609.00  -1990.6040 5391.00  0.0001   10000.00
+[DBG P11]   9     0        68     1593.2002  1990.2382 5391.00  -1990.2380 4609.00  0.0001   10000.00
+[DBG P13] cross-check for rank-0 (feat=0 bin=60):
+[DBG P13]   sumL=1999.860107  wL=4766.00  sumR=-1999.859985  wR=5234.00
+[DBG P13]   gain_by_MLX_formula   = 1602.322021
+[DBG P13]   gain_by_CPU_formula   = 1602.322021  (same formula for RMSE)
+[DBG P13]   gain_reported_by_FindBestSplit = 1602.322021
+[DBG P13]   L2=3  wP=10000.00  sumP=0.000074
+[DBG iter=0] P4 gSumsArr (numLeaves=64): 14.3552 2.9116 48.3989 8.0395 172.0605 42.9082 541.6648 126.2845 ...
+[DBG iter=0] P4 hSumsArr: 38.0000 9.0000 142.0000 27.0000 467.0000 103.0000 1492.0000 348.0000 ...
+[DBG iter=0] P4 gSums.sum()=0.0004 hSums.sum()=10000.0000 (expected hSum=10000.0 = trainDocs)
+[DBG iter=0] P5 leafValues: -0.350126 -0.242632 -0.333786 -0.267984 -0.366086 -0.404795 -0.362318 -0.359785 ...
+[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=-0.350126 actual_lv[0]=-0.350126 diff=0.00e+00
+[DBG iter=0] partitions.max()=63 (expected 63 = numLeaves-1)
+[DBG iter=0] splits.size()=6 (expected depth=6)
+[DBG iter=0] P6 cursor AFTER apply: mean=-0.003525 std=0.427224 min=-0.404739 max=1.010075
+y stats: mean=0.000056  std=0.591873  min=-2.817432  max=2.329521
+
+=== CPU CatBoost (1 tree, LR=1.0) ===
+  get_all_params() [key fields]:
+    random_strength: 0
+    rsm: 1
+    bootstrap_type: No
+    subsample: N/A
+    min_data_in_leaf: 1
+    l2_leaf_reg: 3
+    feature_border_type: GreedyLogSum
+    border_count: 128
+  rs=0, no bootstrap:  preds std=0.543454  ratio=0.9182  loss=0.225161
+  rs=1.0, no bootstrap:preds std=0.528561  ratio=0.8930  loss=0.258099
+  default (MVS 80%):   preds std=0.537190  ratio=0.9076  loss=0.240315
+
+=== P9: CPU effective config ===
+  random_strength: 0
+  rsm: 1
+  bootstrap_type: No
+  subsample: N/A
+  bagging_temperature: N/A
+  min_data_in_leaf: 1
+  l2_leaf_reg: 3
+  feature_border_type: GreedyLogSum
+  border_count: 128
+
+=== P10: CPU borders via get_borders() ===
+  Feature 0: count=1  min=-0.0327  max=-0.0327
+  get_borders() failed: min() iterable argument is empty
+  Pool/border introspection failed: cannot import name 'get_feature_importances' from 'catboost.utils' (/opt/homebrew/Caskroom/miniconda/base/lib/python3.13/site-packages/catboost/utils.py)
+
+=== P10: MLX borders (manual replication) ===
+  Feature 0: count=127  min=-2.4208  max=2.3896
+  Feature 0 first 5: [-2.4208384 -2.1441617 -1.9764166 -1.8601635 -1.7529409]
+  Feature 0 last 5:  [1.7635419 1.8650026 1.9811764 2.1421309 2.3896232]
+  Feature 1: count=127  min=-2.4545  max=2.4143
+  Feature 1 first 5: [-2.4545274 -2.1647735 -1.9632674 -1.8407549 -1.7257919]
+  Feature 1 last 5:  [1.796513  1.8981425 2.008305  2.1643915 2.414308 ]
+
+  Borders saved to benchmarks/sprint26/d0/borders-feat01.json
+
+=== MLX CatBoostMLXRegressor (1 tree, LR=1.0) ===
+  MLX rs=0:   preds std=0.543789  ratio=0.9188
+
+  MLX rs=1.0: preds std=0.427224  ratio=0.7218
+
+=== P9: Config diff (MLX vs CPU at equivalent settings) ===
+  Parameter                    MLX                                 CPU (equiv)                        
+  ---------------------------- ----------------------------------- -----------------------------------
+  BaggingTemperature           1.0                                 N/A                                 <-- DIFFERS
+  BootstrapType                no                                  No                                  <-- DIFFERS
+  ColsampleByTree              1.0                                 —                                   <-- DIFFERS
+  ColsampleByTree (rsm)        —                                   1.0                                 <-- DIFFERS
+  FeatureBorderType            EqualFrequency (custom)             GreedyLogSum                        <-- DIFFERS
+  L2RegLambda                  3.0                                 3.0                                
+  MinDataInLeaf                1                                   1                                  
+  MvsReg                       0.0                                 N/A                                 <-- DIFFERS
+  RandomStrength               1.0                                 1.0                                
+  SubsampleRatio               1.0                                 N/A (bootstrap=No)                  <-- DIFFERS
+  noise_scale_formula          randomStrength * totalHessian / numPartitions randomStrength * sqrt(sum(g_i^2) / N) <-- DIFFERS
+
+=== P12/noise quantification ===
+  y.std()                     = 0.591873
+  grad_rms at iter 0 (CPU)    = 0.591873   (= std(y) since base_pred~=mean(y))
+  noise_scale MLX             = 10000.0   (= N = totalHessian)
+  noise_scale CPU             = 0.591873
+  noise_scale ratio MLX/CPU   = 16895.5x
+  root gain score (approx)    = 0.35   (sum_parent^2/(N+L2))
+  noise/gain ratio MLX        = 28554.458  (>> 1 => wipes signal)
+  noise/gain ratio CPU        = 1.690060
+
+=== Summary: 1-tree preds std ratios ===
+  y std = 0.591873
+  Config                         preds_std    ratio    loss0
+  CPU rs=0, no bootstrap         0.543454     0.9182   0.225161
+  CPU rs=1, no bootstrap         0.528561     0.8930   0.258099
+  CPU default (MVS 80%)          0.537190     0.9076   0.240315
+  MLX rs=0 (no noise)            0.543789     0.9188   N/A
+  MLX rs=1.0 (default)           0.427224     0.7218   N/A
+
+=== Key findings ===
+  1. CPU rs=0 ratio 0.9182 ≈ MLX rs=0 ratio 0.9188
+     => identical split quality when noise disabled
+  2. MLX rs=1.0 ratio 0.7218 << CPU rs=1.0 ratio 0.8930
+     => MLX noise formula is 16896x larger than CPU
+  3. Root cause: MLX noiseScale = rs * N = 10000
+                 CPU noiseScale = rs * sqrt(mean(g^2)) = 0.5919
+  4. Fix: replace noiseScale formula in FindBestSplit (csv_train.cpp:990)
+     from: rs * totalWeight / (numPartitions * K)
+     to:   rs * gradRms  where gradRms = sqrt(sum(g^2) / N)

@@ -136,6 +136,103 @@ Each decision follows the format: **Context** (why we faced this choice), **Deci
 
 ---
 
+## DEC-028: RandomStrength noise must scale by gradient RMS, not totalHessian/numPartitions
+
+**Date**: 2026-04-22
+**Status**: Implemented (S26-D0-6)
+
+**Context**: MLX's `FindBestSplit` (csv_train.cpp) computed the per-split-candidate noise scale as
+`randomStrength × totalWeight / (numPartitions × K)`. For RMSE on N=10,000, `totalWeight = N` (the
+hessian sum), producing `noiseScale = 10,000`. The true gain at the root split was ~1,602, giving
+SNR = 0.16 — noise completely dominated split selection. Empirical evidence (D0-5, branch
+`mlx/sprint-26-python-parity`): with `random_strength=1.0`, MLX pred_std_ratio = 0.7218 vs CPU
+0.8930; with `random_strength=0`, both are ≈0.919 — the entire gap is attributable to the noise
+formula.
+
+**Decision**: Replace the hessian-based noise formula with the gradient-RMS formula matching CPU
+CatBoost. Compute `gradRms = sqrt( sum_{k,i} g_k[i]^2 / N )` in `RunTraining` after all gradient
+and sample-weight steps, then pass `gradRms` into `FindBestSplit` as a new parameter. The noise
+scale becomes `noiseScale = randomStrength × gradRms`.
+
+**Rationale**: CPU CatBoost's `CalcDerivativesStDevFromZeroPlainBoosting`
+(greedy_tensor_search.cpp:92–106) returns `sqrt( sum_{k,i} g_k[i]^2 / N )` — the RMS of the
+gradient vector, which shrinks as residuals shrink over boosting iterations. This keeps the
+noise-to-signal ratio approximately constant across iterations. The old formula (hessian sum = N for
+RMSE) is dimensionally wrong: it scales with dataset size rather than gradient magnitude, producing
+noise ~16,895× larger than CPU at N=10,000.
+
+**Risks**:
+- Lossguide and Depthwise grow policies use `FindBestSplitPerPartition`, which has no noise path.
+  RandomStrength has no effect on those policies in the current implementation (this was already
+  true before this fix — it is not a regression). If per-partition noise is desired for
+  Depthwise/Lossguide in a future sprint, a separate parameter-threading pass is needed.
+- `gradRms` is computed via a CPU readback loop over `dimGrads`. For large N this is a minor
+  per-iteration cost (profiling target if ever hot).
+
+**Impact**:
+- Python-path SymmetricTree RMSE expected to drop from ~0.34 to ~0.20 (parity with CPU ~0.20).
+- No impact on bench_boosting ULP=0 record (bench_boosting does not exercise `FindBestSplit`).
+- No impact on DEC-008 through DEC-027 code paths.
+
+---
+
+## DEC-029: Non-oblivious tree SplitProps never populated → empty model JSON splits
+
+**Date**: 2026-04-22
+**Status**: Implemented (S26-D0-8b)
+
+**Context**: Depthwise and Lossguide grow policies showed 560-598% RMSE delta vs CPU
+after DEC-028 fixed SymmetricTree. Post-DEC-028 localize.py: Depthwise MLX RMSE 1.2888
+vs CPU 0.1950; Lossguide MLX RMSE 1.3754 vs CPU 0.1970. Cause was not the RandomStrength
+formula (DEC-028) — Depthwise/Lossguide have no noise path.
+
+**Decision**: Populate `TTreeRecord.SplitProps` and new `TTreeRecord.SplitBfsNodeIds`
+in both the Depthwise and Lossguide tree-build paths (previously only SymmetricTree
+populated `SplitProps`). Update `WriteModelJSON` to emit `grow_policy` and
+`bfs_node_index` per split for non-oblivious trees. Update `_predict_utils.py` to
+dispatch `compute_leaf_indices` on `grow_policy` and perform correct BFS traversal.
+
+**Rationale**: The training-time `cursor` was correct: leaf values were indexed by the
+bit-packed `partitions` array (bit d = direction at depth d). The bug was entirely in
+the model JSON serialization and Python prediction path:
+1. `SplitProps` was only populated in the SymmetricTree `else` branch; Depthwise/Lossguide
+   `if` branches did not push to `splitProps`.
+2. `WriteModelJSON` serialized `splits` from `SplitProps.size()`, which was 0 for
+   non-oblivious trees → `"splits": []`.
+3. `compute_leaf_indices` iterated over the empty splits list → returned all-zeros
+   → all docs assigned to leaf 0 → constant prediction = `leaf_values[0]`.
+
+For Depthwise, the BFS node index for partition `p` at depth `d` is computed
+from the bit-pattern of `p`: traverse bits 0..d-1 of `p`, at each level go left
+(`2n+1`) or right (`2n+2`). This maps partition → BFS node correctly and is
+non-trivial (p=1 at depth 2 → BFS node 5, not node 1). Emitting `bfs_node_index`
+explicitly avoids having the Python side re-derive this mapping.
+
+For the Depthwise Python predict, the bit-packed partition value is reconstructed
+by `_bfs_traverse_bitpacked`: at BFS node `n` of depth `d = floor(log2(n+1))`,
+a right-turn sets bit `d` of the result. This exactly mirrors the C++ partition
+update: `bits = updateBits << depth; partitions |= bits`.
+
+**Risks**:
+- `ComputeLeafIndicesDepthwise` (C++ validation path) still returns `nodeIdx - numNodes`
+  (BFS leaf order), which differs from the bit-packed partition order for depth >= 2.
+  Validation RMSE tracking during Depthwise training may be wrong, but this does not
+  affect (a) training correctness, (b) final model predictions via Python. Follow-up
+  sprint should fix the C++ validation path for completeness.
+- The `bfs_node_index` field is new in the model JSON schema. Old models without this
+  field (SymmetricTree models or pre-DEC-029 non-oblivious models) still work correctly:
+  `compute_leaf_indices` falls back to oblivious for SymmetricTree, and `_build_bfs_node_map`
+  returns an empty map for trees without `bfs_node_index` entries (effectively all-leaf-0,
+  which matches the pre-fix behavior for old models that were already broken anyway).
+
+**Impact**:
+- Depthwise and Lossguide Python predictions expected to go from 560-598% RMSE delta
+  to ≤ 5% delta (S26 G2/G3 gate).
+- SymmetricTree predictions unchanged (DEC-028 fix preserved).
+- No impact on training speed, histogram correctness, or leaf value computation.
+
+---
+
 ## Decision Template
 
 ```

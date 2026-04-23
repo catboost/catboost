@@ -1,21 +1,54 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-22 (post-PR #20; no active sprint).
+> Last header refresh: 2026-04-22 (Sprint 26 D0 CLOSED).
 
 ## Current state (2026-04-22)
 
-- **Branch**: `master` is the working base. No active sprint.
-- **Tip**: `71aabaa842` (PR #20 merge — latent-bugs cleanup).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Verstappen ≥1.5× gate remains retroactively failed from S24 D0. Do not round or inflate; the 1.90× figure is documented as superseded.
-- **Carry-forward backlog**: ALL CLEARED 2026-04-22 via PR #20 (`71aabaa842`). See bottom of this file.
-- **Open PRs**: none.
-- **DEC-027**: deferred. Not on this backlog. Reserved for a dedicated future research sprint.
+- **Branch**: `mlx/sprint-26-python-parity` at tip `2680252573` (+ state close commit after this write). D0 CLOSED.
+- **Base**: `6c3953f239` (post PR #22 upstream sync merge). `master` tip = same.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — S26 G4 preserves this record (kernel sources untouched).
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S26 was correctness-first.
+- **Open PRs**: none. S26 D0 PR pending Ramos open. DEC-027 (alternative accumulation) remains deferred.
 
-Active-sprint sections for Sprints 16 and 19 and the Operation Verstappen Campaign Scoreboard
-have been removed from this header. Their closeout state is preserved in the per-sprint
-sections below and in `HANDOFF.md` / `DECISIONS.md` / `CHANGELOG-DEV.md`.
+---
+
+## Sprint 26 — Python-Path Parity — D0 CLOSED
+
+**Branch**: `mlx/sprint-26-python-parity`
+**Framing**: correctness-first (option α per Ramos 2026-04-22).
+**Pre-sprint triage**: `docs/sprint26/d0/pre-sprint-triage.md`, raw evidence in
+`benchmarks/sprint26/d0/RESULTS.md`.
+**Verdict**: D0 PASS on all exit gates. DEC-028 + DEC-029 shipped under DEC-012. R8 unchanged at 1.01×. v5 production kernel untouched.
+
+### D0 — Triage + fix + gates (DONE)
+
+- [x] S26-D0-1 — MLX vs CPU leaf-estimation algebra diff with file:line pointers — @ml-engineer **DONE**
+- [x] S26-D0-2 — MLX vs CPU RMSE target grad/hessian diff — @ml-engineer **DONE**
+- [x] S26-D0-3 — Instrumentation plan (Σgrad, Σhess, l2, leaf@root@depth-0 logging) — @ml-engineer **DONE**
+- [x] S26-D0-4 — Root cause identified; DEC-028 opened; fix landed — @ml-engineer **DONE** (DEC-028 RandomStrength noise formula; commit `24162e1006`)
+- [x] S26-D0-5 — Python-path 18-config parity sweep; segmented exit gate — @qa-engineer **DONE**
+- [x] S26-D0-6 — DEC-028 RandomStrength fix shipped — @ml-engineer **DONE** (`24162e1006`)
+- [x] S26-D0-7 — 18-cell G1 sweep + G3 Python-path regression harness + G4 determinism — @qa-engineer **DONE**
+- [x] S26-D0-8 — DEC-029 Depthwise/Lossguide SplitProps + BFS index fix (Track A C++ + Track B Python) — @backend-developer **DONE**
+
+### Exit gate verdicts
+
+| Gate | Criterion | Result | Verdict |
+|------|-----------|--------|---------|
+| G0 | Root cause(s) in DECISIONS | DEC-028 + DEC-029 complete | PASS |
+| G1 | SymmetricTree 18-cell segmented parity | 18/18 (rs=0 max 0.43%; rs=1 MLX ≤ CPU, pred_std_R ∈ [0.9996, 1.087]) | PASS |
+| G2 | Depthwise + Lossguide rs=0 parity | DW −0.64%, LG −1.01% (pre-fix 561%/598%) | PASS |
+| G3 | Python-path CI regression harness | `tests/test_python_path_parity.py` — 8/8 PASS in 6.32s | PASS |
+| G4 | bench_boosting ULP=0 preserved | Kernel sources untouched | PASS |
+| G5 | Determinism | 100 runs max−min = 1.49e-08 | DETERMINISTIC |
+
+### Follow-ups (carry-forward, not blocking)
+
+- [ ] S26-FU-1 — `ComputeLeafIndicesDepthwise` (C++ validation path) returns `nodeIdx − numNodes` instead of bit-packed partition order. Affects validation RMSE during Depthwise training only. Listed in DEC-029 Risks. Scope: next sprint.
+- [ ] S26-FU-2 — MLX Depthwise/Lossguide have no RandomStrength noise path (`FindBestSplitPerPartition` never threaded noise). At rs=1 these policies under-fit CPU by ~10–12% at N=10k. Pre-existing — not a S26 regression. Scope: dedicated parameter-threading sprint.
+
+---
 
 ---
 

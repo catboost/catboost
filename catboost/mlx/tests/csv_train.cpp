@@ -971,23 +971,33 @@ TBestSplitProperties FindBestSplit(
     const std::vector<ui32>& partDocCounts = {},            // [numPartitions] total doc count per partition
     const std::vector<int>& monotoneConstraints = {},      // per-feature: 0=none, 1=inc, -1=dec
     float randomStrength = 0.0f,                           // random score perturbation (0 = disabled)
-    std::mt19937* rng = nullptr                            // RNG for perturbation
+    float gradRms = 0.0f,                                  // gradient RMS — noise scale denominator (CPU: CalcDerivativesStDevFromZeroPlainBoosting, greedy_tensor_search.cpp:92)
+    std::mt19937* rng = nullptr,                           // RNG for perturbation
+    int debugIter = -1,                                    // P11-P13: print debug for this iter (-1 = off)
+    int debugDepth = -1                                    // P11-P13: print debug for this depth (-1 = off)
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
     float bestGain = -std::numeric_limits<float>::infinity();
 
-    // Random score perturbation: scale based on average partition statistics
-    // This matches CatBoost's approach of scaling noise by the magnitude of the data
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
+    struct TDbgCandidate {
+        ui32 featIdx; ui32 bin; float gain;
+        float sumL; float wL; float sumR; float wR; float sumP; float wP;
+    };
+    const bool p11Active = (debugIter == 0 && debugDepth == 0);
+    std::vector<TDbgCandidate> allCandidates;
+#endif
+
+    // Random score perturbation: scale by gradient RMS, matching CPU CatBoost.
+    // CPU reference: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
+    //   returns sqrt( sum_{k,i} g_k[i]^2 / N ), called as:
+    //   scoreStDev = randomStrength * derivativesStDevFromZero   (line 861-866)
+    // gradRms is pre-computed in RunTraining after gradient+weight application and passed here.
     float noiseScale = 0.0f;
-    if (randomStrength > 0.0f && rng) {
-        double totalWeight = 0.0;
-        for (ui32 p = 0; p < numPartitions; ++p) {
-            for (ui32 k = 0; k < K; ++k) {
-                totalWeight += std::abs(perDimPartStats[k][p].Weight);
-            }
-        }
-        noiseScale = randomStrength * static_cast<float>(totalWeight / (numPartitions * K + 1e-10));
+    if (randomStrength > 0.0f && rng && gradRms > 0.0f) {
+        noiseScale = randomStrength * gradRms;
     }
     std::normal_distribution<float> noiseDist(0.0f, 1.0f);
 
@@ -1056,6 +1066,23 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
+                        cand.sumR = hd0[feat.FirstFoldIndex + bin];
+                        cand.wR   = hd0[totalBinFeatures + feat.FirstFoldIndex + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
             }
         } else {
             // ── Ordinal: precompute suffix sums for O(1) lookup per bin ──
@@ -1170,9 +1197,75 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = -totalGain;
                 }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                if (p11Active) {
+                    // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
+                    TDbgCandidate cand;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    if (numPartitions > 0 && K > 0) {
+                        size_t sbase = (0 * numPartitions + 0) * stride;
+                        cand.sumR = suffGrad[sbase + bin];
+                        cand.wR   = suffHess[sbase + bin];
+                        cand.sumP = perDimPartStats[0][0].Sum;
+                        cand.wP   = perDimPartStats[0][0].Weight;
+                        cand.sumL = cand.sumP - cand.sumR;
+                        cand.wL   = cand.wP   - cand.wR;
+                    }
+                    allCandidates.push_back(cand);
+                }
+#endif
             }
         }
     }
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    if (p11Active && !allCandidates.empty()) {
+        // P12 — literal gain formula used in this FindBestSplit
+        printf("[DBG P12] gain_formula: "
+               "gain += (sumL^2)/(wL+L2) + (sumR^2)/(wR+L2) - (sumP^2)/(wP+L2)\n");
+        printf("[DBG P12] formula_file: catboost/mlx/tests/csv_train.cpp (ordinal path lines 1182-1184)\n");
+        printf("[DBG P12] noise_formula: noiseScale = rs * gradRms  (DEC-028 fix)\n");
+        printf("[DBG P12] noiseScale_used = %.6f  (rs=%.4f  gradRms=%.6f)\n",
+               noiseScale, randomStrength, gradRms);
+
+        // Sort by gain descending
+        std::sort(allCandidates.begin(), allCandidates.end(),
+                  [](const TDbgCandidate& a, const TDbgCandidate& b){ return a.gain > b.gain; });
+
+        printf("[DBG P11] top-10 candidates at depth=0, iter=0 (before noise):\n");
+        printf("[DBG P11]   rank  featIdx  bin    gain       sumL     wL       sumR     wR       sumP     wP\n");
+        for (ui32 r = 0; r < std::min((ui32)allCandidates.size(), 10u); ++r) {
+            const auto& c = allCandidates[r];
+            printf("[DBG P11]   %-5u %-8u %-6u %-10.4f %-8.4f %-8.2f %-8.4f %-8.2f %-8.4f %.2f\n",
+                   r, c.featIdx, c.bin, c.gain,
+                   c.sumL, c.wL, c.sumR, c.wR, c.sumP, c.wP);
+        }
+
+        // P13 — cross-check for rank-0 candidate
+        const auto& best = allCandidates[0];
+        float p13_l2 = l2RegLambda;
+        float p13_gain_mlx_formula =
+            (best.wL > 1e-15f && best.wR > 1e-15f)
+            ? (best.sumL * best.sumL) / (best.wL + p13_l2)
+              + (best.sumR * best.sumR) / (best.wR + p13_l2)
+              - (best.sumP * best.sumP) / (best.wP + p13_l2)
+            : 0.0f;
+        // CPU formula is identical: sumL^2/(wL+L2) + sumR^2/(wR+L2) - sumP^2/(wP+L2)
+        // For RMSE unweighted, wL/wR == docCountL/docCountR, so formulas agree exactly.
+        // Any difference would come from histogram inputs, not formula divergence (H3).
+        float p13_gain_cpu_formula = p13_gain_mlx_formula;  // identical formula
+        float p13_gain_reported = best.gain;
+        printf("[DBG P13] cross-check for rank-0 (feat=%u bin=%u):\n", best.featIdx, best.bin);
+        printf("[DBG P13]   sumL=%.6f  wL=%.2f  sumR=%.6f  wR=%.2f\n",
+               best.sumL, best.wL, best.sumR, best.wR);
+        printf("[DBG P13]   gain_by_MLX_formula   = %.6f\n", p13_gain_mlx_formula);
+        printf("[DBG P13]   gain_by_CPU_formula   = %.6f  (same formula for RMSE)\n", p13_gain_cpu_formula);
+        printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
+        printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
+        fflush(stdout);
+    }
+#endif
+
     return bestSplit;
 }
 
@@ -1960,6 +2053,12 @@ struct TTreeRecord {
     bool IsLossguide  = false;  // true → Splits holds BFS node splits for unbalanced lossguide tree
     // Lossguide-only metadata
     std::vector<ui32> LeafBfsIds;  // [numLeaves] BFS node index per dense leaf
+    // DEC-029: BFS node index for each split in SplitProps/Splits.
+    // For Depthwise: the BFS node index of partition p at depth d (derived from
+    //   the bit-pattern of p — not a simple 0..numNodes-1 ordering).
+    // For Lossguide: the BFS node that was split at each step (priority-queue order).
+    // Both Depthwise and Lossguide populate this; SymmetricTree leaves it empty.
+    std::vector<ui32> SplitBfsNodeIds;  // [numSplits] BFS node index per split
     ui32 NumLeaves = 0;            // number of terminal leaves
 };
 
@@ -2059,15 +2158,39 @@ static void WriteModelJSON(
         const auto& tree = allTrees[ti];
         fprintf(f, "    {\n");
         fprintf(f, "      \"depth\": %u,\n", tree.Depth);
+        // DEC-029: grow_policy field lets the Python predictor dispatch to the correct
+        // leaf-index algorithm (oblivious bit-packing vs BFS traversal).
+        const char* gp = tree.IsLossguide ? "Lossguide"
+                       : tree.IsDepthwise ? "Depthwise"
+                       : "SymmetricTree";
+        fprintf(f, "      \"grow_policy\": \"%s\",\n", gp);
 
-        // splits
+        // splits: BFS-ordered node split array.
+        // For SymmetricTree: one entry per depth level (oblivious).
+        // For Depthwise: 2^depth - 1 entries (BFS node order, 0-indexed from root).
+        // For Lossguide: numLeaves - 1 entries (BFS insertion order); each entry carries
+        //   a "bfs_node_index" so the Python predictor can reconstruct the BFS map exactly.
+        // Python compute_leaf_indices dispatches based on grow_policy.
         fprintf(f, "      \"splits\": [\n");
         for (ui32 si = 0; si < tree.SplitProps.size(); ++si) {
-            fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s}%s\n",
-                    tree.SplitProps[si].FeatureId,
-                    tree.SplitProps[si].BinId,
-                    tree.Splits[si].IsOneHot ? "true" : "false",
-                    (si + 1 < tree.SplitProps.size()) ? "," : "");
+            if ((tree.IsLossguide || tree.IsDepthwise) && si < tree.SplitBfsNodeIds.size()) {
+                // DEC-029: emit bfs_node_index for Depthwise and Lossguide so the Python
+                // predictor can reconstruct the exact BFS-node → split map without
+                // re-deriving traversal order from partition index arithmetic.
+                // FeatureId==-1 (uint max) means a no-op node (unpruned leaf placeholder).
+                fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s, \"bfs_node_index\": %u}%s\n",
+                        tree.SplitProps[si].FeatureId,
+                        tree.SplitProps[si].BinId,
+                        tree.Splits[si].IsOneHot ? "true" : "false",
+                        tree.SplitBfsNodeIds[si],
+                        (si + 1 < tree.SplitProps.size()) ? "," : "");
+            } else {
+                fprintf(f, "        {\"feature_idx\": %u, \"bin_threshold\": %u, \"is_one_hot\": %s}%s\n",
+                        tree.SplitProps[si].FeatureId,
+                        tree.SplitProps[si].BinId,
+                        tree.Splits[si].IsOneHot ? "true" : "false",
+                        (si + 1 < tree.SplitProps.size()) ? "," : "");
+            }
         }
         fprintf(f, "      ],\n");
 
@@ -2085,7 +2208,19 @@ static void WriteModelJSON(
             if (si > 0) fprintf(f, ", ");
             fprintf(f, "%.8g", tree.SplitProps[si].Gain);
         }
-        fprintf(f, "]\n");
+        fprintf(f, "]");
+
+        // DEC-029: For Lossguide, serialize leaf_bfs_ids so the Python predictor can
+        // build the inverse BFS-node → dense-leaf-id map for prediction routing.
+        if (tree.IsLossguide && !tree.LeafBfsIds.empty()) {
+            fprintf(f, ",\n      \"leaf_bfs_ids\": [");
+            for (ui32 li = 0; li < tree.LeafBfsIds.size(); ++li) {
+                if (li > 0) fprintf(f, ", ");
+                fprintf(f, "%u", tree.LeafBfsIds[li]);
+            }
+            fprintf(f, "]");
+        }
+        fprintf(f, "\n");
 
         fprintf(f, "    }%s\n", (ti + 1 < allTrees.size()) ? "," : "");
     }
@@ -2744,6 +2879,65 @@ TTrainResult RunTraining(
         stageProfiler.BeginIter(static_cast<int>(iter));
 #endif
 
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P1 — cursor stats BEFORE gradient computation
+        // P8 — target stats (only iter 0)
+        if (iter == 0 || iter == 1) {
+            mx::eval(cursor);
+            const float* cPtr = cursor.data<float>();
+            ui32 cLen = static_cast<ui32>(cursor.size());
+            double cMean = 0, cStd = 0;
+            float cMin = cPtr[0], cMax = cPtr[0];
+            for (ui32 i = 0; i < cLen; ++i) {
+                cMean += cPtr[i]; cMin = std::min(cMin, cPtr[i]); cMax = std::max(cMax, cPtr[i]);
+            }
+            cMean /= cLen;
+            for (ui32 i = 0; i < cLen; ++i) cStd += (cPtr[i] - cMean) * (cPtr[i] - cMean);
+            cStd = std::sqrt(cStd / cLen);
+            printf("[DBG iter=%u] P1 cursor BEFORE grad: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                   iter, (float)cMean, (float)cStd, cMin, cMax);
+            if (iter == 0) {
+                printf("[DBG iter=0] P7 basePred[0]=%.6f\n", basePred.empty() ? 0.0f : basePred[0]);
+                // P8 — target sanity
+                mx::eval(targetsArr);
+                const float* tPtr = targetsArr.data<float>();
+                double tMean = 0, tStd = 0; float tMin = tPtr[0], tMax = tPtr[0];
+                for (ui32 i = 0; i < trainDocs; ++i) {
+                    tMean += tPtr[i]; tMin = std::min(tMin, tPtr[i]); tMax = std::max(tMax, tPtr[i]);
+                }
+                tMean /= trainDocs;
+                for (ui32 i = 0; i < trainDocs; ++i) tStd += (tPtr[i]-tMean)*(tPtr[i]-tMean);
+                tStd = std::sqrt(tStd / trainDocs);
+                printf("[DBG iter=0] P8 targets: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                       (float)tMean, (float)tStd, tMin, tMax);
+
+                // P9 — effective config dump at iter=0 start
+                // Compute the noise scale that FindBestSplit will use so we can
+                // compare it numerically against CPU's gradient-RMS formula.
+                printf("[DBG iter=0] P9 effective_config:\n");
+                printf("[DBG iter=0]   ColsampleByTree    = %.4f\n",  config.ColsampleByTree);
+                printf("[DBG iter=0]   SubsampleRatio     = %.4f\n",  config.SubsampleRatio);
+                printf("[DBG iter=0]   RandomStrength     = %.4f\n",  config.RandomStrength);
+                printf("[DBG iter=0]   MinDataInLeaf      = %u\n",    config.MinDataInLeaf);
+                printf("[DBG iter=0]   L2RegLambda        = %.4f\n",  config.L2RegLambda);
+                printf("[DBG iter=0]   BootstrapType      = %s\n",    config.BootstrapType.c_str());
+                printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
+                printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
+                printf("[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)\n");
+                // DEC-028 fix: noiseScale = RandomStrength * gradRms
+                // gradRms = sqrt(sum_{k,i} g_k[i]^2 / N), computed post-gradient below.
+                // Approximate at iter=0 using target std (residual ≈ -y for RMSE).
+                double p9_grad_rms_approx = tStd;
+                printf("[DBG iter=0]   noise_formula      = rs * gradRms   (DEC-028 fix; matches CPU greedy_tensor_search.cpp:92)\n");
+                printf("[DBG iter=0]   noise_scale_approx = rs * std(y)    = %.6f  (grad_rms≈std(y)=%.6f at iter=0)\n",
+                       (float)(config.RandomStrength * p9_grad_rms_approx), (float)p9_grad_rms_approx);
+                printf("[DBG iter=0]   noise_scale_old    = rs * N         = %.4f  (OLD formula, 16895x too large — fixed)\n",
+                       config.RandomStrength * static_cast<float>(trainDocs));
+            }
+            fflush(stdout);
+        }
+#endif
+
         // --- Bootstrap weights ---
         // Determine effective bootstrap type
         std::string bootstrapType = config.BootstrapType;
@@ -2954,6 +3148,23 @@ TTrainResult RunTraining(
             for (ui32 k = 0; k < approxDim; ++k) mx::eval({dimGrads[k], dimHess[k]});
         }
 
+        // Compute gradient RMS for RandomStrength noise scaling.
+        // Matches CPU: CalcDerivativesStDevFromZeroPlainBoosting (greedy_tensor_search.cpp:92–106)
+        //   result = sqrt( sum_{k,i} g_k[i]^2 / N )   where N = number of train docs.
+        // Note: CPU divides by N (not K*N); the per-dim sum is summed then divided once by N.
+        float gradRms = 0.0f;
+        if (config.RandomStrength > 0.0f) {
+            double sumSq = 0.0;
+            for (ui32 k = 0; k < approxDim; ++k) {
+                mx::eval(dimGrads[k]);
+                const float* g = dimGrads[k].data<float>();
+                for (ui32 d = 0; d < trainDocs; ++d) {
+                    sumSq += static_cast<double>(g[d]) * static_cast<double>(g[d]);
+                }
+            }
+            gradRms = static_cast<float>(std::sqrt(sumSq / static_cast<double>(trainDocs)));
+        }
+
 #ifdef CATBOOST_MLX_STAGE_PROFILE
         {
             // Drain GPU so the timestamp is attribution-faithful.
@@ -2967,6 +3178,40 @@ TTrainResult RunTraining(
         auto tGradEnd = std::chrono::steady_clock::now();
         result.GradMs += std::chrono::duration<double, std::milli>(tGradEnd - iterStart).count();
 
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P2 — gradient stats; P3 — hessian stats (iters 0 and 1)
+        if ((iter == 0 || iter == 1) && approxDim >= 1) {
+            mx::eval(dimGrads[0], dimHess[0]);
+            const float* gPtr = dimGrads[0].data<float>();
+            const float* hPtr = dimHess[0].data<float>();
+            double gMean=0, gStd=0, gSum=0, hMean=0, hStd=0, hSum=0;
+            float gMin=gPtr[0], gMax=gPtr[0], hMin=hPtr[0], hMax=hPtr[0];
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                gSum += gPtr[i]; gMin = std::min(gMin,gPtr[i]); gMax = std::max(gMax,gPtr[i]);
+                hSum += hPtr[i]; hMin = std::min(hMin,hPtr[i]); hMax = std::max(hMax,hPtr[i]);
+            }
+            gMean = gSum / trainDocs; hMean = hSum / trainDocs;
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                gStd += (gPtr[i]-gMean)*(gPtr[i]-gMean);
+                hStd += (hPtr[i]-hMean)*(hPtr[i]-hMean);
+            }
+            gStd = std::sqrt(gStd / trainDocs); hStd = std::sqrt(hStd / trainDocs);
+            printf("[DBG iter=%u] P2 grad: mean=%.6f std=%.6f sum=%.4f min=%.6f max=%.6f\n",
+                   iter, (float)gMean, (float)gStd, (float)gSum, gMin, gMax);
+            printf("[DBG iter=%u] P3 hess: mean=%.6f std=%.6f sum=%.4f min=%.6f max=%.6f "
+                   "(expected sum=%.1f for RMSE)\n",
+                   iter, (float)hMean, (float)hStd, (float)hSum, hMin, hMax,
+                   (float)trainDocs);
+            fflush(stdout);
+        }
+        // P12 — noiseScale that will be used (DEC-028 fix verification)
+        if (iter == 0 && config.RandomStrength > 0.0f) {
+            printf("[DBG iter=0] P12 gradRms=%.6f  noiseScale=%.6f  (rs=%.4f; CPU formula: sqrt(sum g^2 / N))\n",
+                   gradRms, config.RandomStrength * gradRms, config.RandomStrength);
+            fflush(stdout);
+        }
+#endif
+
         // Step 2: Greedy tree structure search
         auto partitions = mx::zeros({static_cast<int>(trainDocs)}, mx::uint32);
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -2978,6 +3223,7 @@ TTrainResult RunTraining(
 #endif
         std::vector<TObliviousSplitLevel> splits;
         std::vector<TBestSplitProperties> splitProps;
+        std::vector<ui32> splitBfsNodeIds;  // DEC-029: BFS node index per split (Depthwise + Lossguide)
         ui32 actualTreeDepth = 0;  // number of depth levels actually searched (needed for depthwise)
 
         // Lossguide-specific state (only populated when GrowPolicy=="Lossguide")
@@ -3113,6 +3359,11 @@ TTrainResult RunTraining(
                 ns.IsOneHot   = feat.OneHotFeature;
                 lossguideNodeSplitMap[bfsNode] = ns;
                 splits.push_back(ns);  // also append to splits for SaveModelJSON / feature importance
+                // DEC-029: populate splitProps so model JSON "splits" is non-empty for Lossguide.
+                // Also record the BFS node index so WriteModelJSON can emit bfs_node_index per split,
+                // allowing the Python predictor to reconstruct the BFS-node → split map exactly.
+                splitProps.push_back(bestSp);
+                splitBfsNodeIds.push_back(bfsNode);
 
                 // Register children
                 lossguideLeafBfsIds.push_back(rightBfs);
@@ -3144,6 +3395,27 @@ TTrainResult RunTraining(
                 reinterpret_cast<const int32_t*>(lossguideLeafDocVec.data()),
                 {static_cast<int>(trainDocs)}, mx::uint32);
             mx::eval(partitions);
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+            // P17 — Lossguide partition trace + node-map size (iter=0 only)
+            if (iter == 0) {
+                printf("[DBG P17] Lossguide iter=0: numLeaves=%u splits.size()=%zu "
+                       "splitProps.size()=%zu splitBfsNodeIds.size()=%zu\n",
+                       lossguideNumLeaves,
+                       splits.size(), splitProps.size(), splitBfsNodeIds.size());
+                printf("[DBG P17]   leaf_bfs_ids (first 8): ");
+                for (ui32 b = 0; b < std::min((ui32)lossguideLeafBfsIds.size(), 8u); ++b)
+                    printf("%u ", lossguideLeafBfsIds[b]);
+                printf("\n");
+                // Verify partitions range
+                const uint32_t* p17Ptr = partitions.data<uint32_t>();
+                uint32_t p17Max = 0;
+                for (ui32 di = 0; di < trainDocs; ++di) p17Max = std::max(p17Max, p17Ptr[di]);
+                printf("[DBG P17]   partitions.max()=%u (expected %u = numLeaves-1)\n",
+                       p17Max, lossguideNumLeaves - 1);
+                fflush(stdout);
+            }
+#endif
 
         } else {
 
@@ -3339,6 +3611,22 @@ TTrainResult RunTraining(
                         nodeSplit.IsOneHot = false;
                     }
                     splits.push_back(nodeSplit);
+                    // DEC-029: populate splitProps for Depthwise so model JSON "splits" is
+                    // non-empty and Python compute_leaf_indices_depthwise can traverse correctly.
+                    // For no-op partitions, FeatureId stays at -1 sentinel so feature-importance
+                    // code skips them (featIdx >= ds.NumFeatures check).
+                    splitProps.push_back(perPartSplits[p]);
+                    // DEC-029: compute BFS node index for partition p at depth `depth`.
+                    // Partition p is a bit-packed right-turn vector: bit k = direction at depth k.
+                    // BFS node is derived by traversing the tree following bits 0..depth-1 of p.
+                    // This mapping is needed so the Python predictor can build nodeSplitMap
+                    // by BFS index (not by position in the splits list, which is partition order).
+                    ui32 bfsNode = 0u;
+                    for (ui32 lvl = 0; lvl < depth; ++lvl) {
+                        ui32 goRight = (p >> lvl) & 1u;
+                        bfsNode = 2u * bfsNode + 1u + goRight;
+                    }
+                    splitBfsNodeIds.push_back(bfsNode);
                 }
 
                 if (!anyValid) break;
@@ -3372,6 +3660,27 @@ TTrainResult RunTraining(
                 auto tD4 = std::chrono::steady_clock::now();
                 dbgPartMs += std::chrono::duration<double, std::milli>(tD4 - tD3).count();
 
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                // P14 — Depthwise partition trace: partition distribution after each split level.
+                if (iter == 0) {
+                    const uint32_t* pPtr14 = partitions.data<uint32_t>();
+                    uint32_t p14Max = 0;
+                    std::vector<ui32> p14BinCount(1u << (depth + 1), 0u);
+                    for (ui32 di = 0; di < trainDocs; ++di) {
+                        p14Max = std::max(p14Max, pPtr14[di]);
+                        if (pPtr14[di] < p14BinCount.size()) p14BinCount[pPtr14[di]]++;
+                    }
+                    printf("[DBG P14] Depthwise iter=0 after depth=%u: "
+                           "numPartitions=%u partitions.max=%u\n",
+                           depth, 1u << (depth + 1), p14Max);
+                    printf("[DBG P14]   bincount(first 8): ");
+                    for (ui32 b = 0; b < std::min((ui32)p14BinCount.size(), 8u); ++b)
+                        printf("%u ", p14BinCount[b]);
+                    printf("\n");
+                    fflush(stdout);
+                }
+#endif
+
             } else {
                 // Oblivious (SymmetricTree): one split for all partitions at this depth level.
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -3383,7 +3692,12 @@ TTrainResult RunTraining(
                     config.L2RegLambda, numPartitions, featureMask,
                     config.MinDataInLeaf, countHist, partDocCounts,
                     config.MonotoneConstraints,
-                    config.RandomStrength, &rng
+                    config.RandomStrength, gradRms, &rng,
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+                    static_cast<int>(iter), static_cast<int>(depth)
+#else
+                    -1, -1
+#endif
                 );
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
@@ -3491,6 +3805,76 @@ TTrainResult RunTraining(
 #endif
             leafValues = mx::negative(mx::multiply(lrArr,
                 mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+            // P4/P5 — per-bin sums and leaf values at iter 0
+            if (iter == 0) {
+                mx::eval(gSumsArr, hSumsArr, leafValues);
+                const float* gS = gSumsArr.data<float>();
+                const float* hS = hSumsArr.data<float>();
+                const float* lV = leafValues.data<float>();
+                double gSumTotal = 0, hSumTotal = 0;
+                for (ui32 b = 0; b < numLeaves; ++b) {
+                    gSumTotal += gS[b]; hSumTotal += hS[b];
+                }
+                printf("[DBG iter=0] P4 gSumsArr (numLeaves=%u): ", numLeaves);
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b)
+                    printf("%.4f ", gS[b]);
+                printf("...\n");
+                printf("[DBG iter=0] P4 hSumsArr: ");
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b)
+                    printf("%.4f ", hS[b]);
+                printf("...\n");
+                printf("[DBG iter=0] P4 gSums.sum()=%.4f hSums.sum()=%.4f "
+                       "(expected hSum=%.1f = trainDocs)\n",
+                       (float)gSumTotal, (float)hSumTotal, (float)trainDocs);
+
+                printf("[DBG iter=0] P5 leafValues: ");
+                float absMaxLV = 0;
+                for (ui32 b = 0; b < numLeaves && b < 8; ++b) {
+                    printf("%.6f ", lV[b]);
+                    absMaxLV = std::max(absMaxLV, std::fabs(lV[b]));
+                }
+                printf("...\n");
+                // Hand-compute first leaf as sanity check
+                if (hS[0] > 0) {
+                    float expected_lv0 = -config.LearningRate * gS[0] / (hS[0] + config.L2RegLambda);
+                    printf("[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=%.6f "
+                           "actual_lv[0]=%.6f diff=%.2e\n",
+                           expected_lv0, lV[0], std::fabs(expected_lv0 - lV[0]));
+                }
+
+                // partitions sanity
+                mx::eval(partitions);
+                const uint32_t* pPtr = partitions.data<uint32_t>();
+                uint32_t pMax = 0;
+                for (ui32 i = 0; i < trainDocs; ++i) pMax = std::max(pMax, pPtr[i]);
+                printf("[DBG iter=0] partitions.max()=%u (expected %u = numLeaves-1)\n",
+                       pMax, numLeaves - 1);
+                printf("[DBG iter=0] splits.size()=%zu (expected depth=%u)\n",
+                       splits.size(), config.MaxDepth);
+                fflush(stdout);
+            }
+
+            // P15 — Depthwise leaf values + partition populations (iter=0 only)
+            if (iter == 0 && isDepthwiseTree) {
+                mx::eval(leafValues);
+                const float* lV15 = leafValues.data<float>();
+                const uint32_t* pP15 = partitions.data<uint32_t>();
+                std::vector<ui32> popCount15(numLeaves, 0u);
+                for (ui32 di = 0; di < trainDocs; ++di) {
+                    if (pP15[di] < numLeaves) popCount15[pP15[di]]++;
+                }
+                printf("[DBG P15] Depthwise iter=0 leaf_values (numLeaves=%u):\n", numLeaves);
+                for (ui32 b = 0; b < numLeaves && b < 16; ++b)
+                    printf("  leaf[%2u] = %+.6f  (pop=%u)\n", b, lV15[b], popCount15[b]);
+                // SplitProps size: should be 2^depth-1 (non-empty after DEC-029 fix)
+                printf("[DBG P15] splitProps.size()=%zu splits.size()=%zu splitBfsNodeIds.size()=%zu\n",
+                       splitProps.size(), splits.size(), splitBfsNodeIds.size());
+                fflush(stdout);
+            }
+#endif
+
         } else {
             std::vector<mx::array> dimLeafVals;
             dimLeafVals.reserve(approxDim);
@@ -3557,6 +3941,7 @@ TTrainResult RunTraining(
             TTreeRecord record;
             record.Splits = splits;
             record.SplitProps = splitProps;
+            record.SplitBfsNodeIds = splitBfsNodeIds;  // DEC-029
             record.IsDepthwise = isDepthwiseTree;
             record.IsLossguide = isLossguide;
             if (isLossguide) {
@@ -3598,6 +3983,24 @@ TTrainResult RunTraining(
             double _ms = std::chrono::duration<double, std::milli>(
                 _prof_apply_end - _prof_apply_start).count();
             stageProfiler.AccumStage(NCatboostMlx::EStageId::TreeApply, _ms);
+        }
+#endif
+
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+        // P6 — cursor stats AFTER cursor update (iters 0 and 1)
+        if ((iter == 0 || iter == 1) && approxDim == 1) {
+            const float* cPtr2 = cursor.data<float>();
+            double cMean2=0, cStd2=0; float cMin2=cPtr2[0], cMax2=cPtr2[0];
+            for (ui32 i = 0; i < trainDocs; ++i) {
+                cMean2 += cPtr2[i];
+                cMin2 = std::min(cMin2, cPtr2[i]); cMax2 = std::max(cMax2, cPtr2[i]);
+            }
+            cMean2 /= trainDocs;
+            for (ui32 i = 0; i < trainDocs; ++i) cStd2 += (cPtr2[i]-cMean2)*(cPtr2[i]-cMean2);
+            cStd2 = std::sqrt(cStd2 / trainDocs);
+            printf("[DBG iter=%u] P6 cursor AFTER apply: mean=%.6f std=%.6f min=%.6f max=%.6f\n",
+                   iter, (float)cMean2, (float)cStd2, cMin2, cMax2);
+            fflush(stdout);
         }
 #endif
 
@@ -3899,6 +4302,23 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Error: No valid features after quantization\n");
         return 1;
     }
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P10 (CLI path) — quantization borders for features 0 and 1
+    for (ui32 p10_f = 0; p10_f < std::min(static_cast<ui32>(quant.Borders.size()), 2u); ++p10_f) {
+        const auto& b = quant.Borders[p10_f];
+        printf("[DBG P10] feature_%u borders: count=%zu", p10_f, b.size());
+        if (!b.empty()) {
+            printf("  min=%.6f  max=%.6f", b.front(), b.back());
+            printf("\n[DBG P10] feature_%u first5:", p10_f);
+            for (ui32 i = 0; i < std::min((ui32)b.size(), 5u); ++i) printf(" %.6f", b[i]);
+            printf("\n[DBG P10] feature_%u last5: ", p10_f);
+            ui32 start = b.size() >= 5 ? (ui32)b.size() - 5 : 0;
+            for (ui32 i = start; i < (ui32)b.size(); ++i) printf(" %.6f", b[i]);
+        }
+        printf("\n");
+    }
+    fflush(stdout);
+#endif
 
     // --- Cross-validation mode ---
     if (config.CVFolds > 1) {

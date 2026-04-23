@@ -99,7 +99,7 @@ CLAUDE.md
 /csv_train_gpu_test
 /csv_train_old
 /csv_train_sprint3_followup
-/catboost_info/
+catboost_info/
 harness/
 decisions.md
 implementation_plan.md

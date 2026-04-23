@@ -1,0 +1,48 @@
+# S26-D0-4 Leaf-Magnitude Instrumentation Output
+# Run: benchmarks/sprint26/d0/dissect.py
+# Config: N=10000, depth=6, LR=0.03, L2=3.0, bins=128, iters=50, seed=1337, RMSE, SymmetricTree
+# Built with: CMAKE_ARGS=-DCATBOOST_MLX_DEBUG_LEAF=ON
+# Date: 2026-04-22
+
+--- Debug probe output (P1-P8, iters 0-1) ---
+
+[DBG iter=0] P1 cursor BEFORE grad: mean=0.000056 std=0.000000 min=0.000056 max=0.000056
+[DBG iter=0] P7 basePred[0]=0.000056
+[DBG iter=0] P8 targets: mean=0.000056 std=0.591873 min=-2.817432 max=2.329521
+[DBG iter=0] P2 grad: mean=0.000000 std=0.591873 sum=0.0000 min=-2.329465 max=2.817487
+[DBG iter=0] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG iter=0] P4 gSumsArr (numLeaves=64): 14.3552 2.9116 48.3989 8.0395 172.0605 42.9082 541.6649 126.2845 ...
+[DBG iter=0] P4 hSumsArr: 38.0000 9.0000 142.0000 27.0000 467.0000 103.0000 1492.0000 348.0000 ...
+[DBG iter=0] P4 gSums.sum()=0.0005 hSums.sum()=10000.0000 (expected hSum=10000.0 = trainDocs)
+[DBG iter=0] P5 leafValues: -0.010504 -0.007279 -0.010014 -0.008040 -0.010983 -0.012144 -0.010870 -0.010794 ...
+[DBG iter=0] P5 expected_lv[0]=-LR*gS[0]/(hS[0]+L2)=-0.010504 actual_lv[0]=-0.010504 diff=9.31e-10
+[DBG iter=0] partitions.max()=63 (expected 63 = numLeaves-1)
+[DBG iter=0] splits.size()=6 (expected depth=6)
+[DBG iter=0] P6 cursor AFTER apply: mean=-0.000052 std=0.012817 min=-0.012088 max=0.030356
+[DBG iter=1] P1 cursor BEFORE grad: mean=-0.000052 std=0.012817 min=-0.012088 max=0.030356
+[DBG iter=1] P2 grad: mean=-0.000107 std=0.582500 sum=-1.0741 min=-2.300434 max=2.806694
+[DBG iter=1] P3 hess: mean=1.000000 std=0.000000 sum=10000.0000 min=1.000000 max=1.000000 (expected sum=10000.0 for RMSE)
+[DBG iter=1] P6 cursor AFTER apply: mean=-0.000170 std=0.023847 min=-0.031180 max=0.073120
+
+--- Final prediction statistics ---
+
+y stats: mean=0.0001 std=0.5919 min=-2.8174 max=2.3295
+
+CPU CatBoost:
+  train loss: [0]=0.5772 [10]=0.4525 [25]=0.3208 [-1]=0.2010
+  preds stats: mean=0.0001 std=0.4220
+
+MLX CatBoost:
+  train loss: [0]=0.5825 [10]=0.4915 [25]=0.4067 [-1]=0.3381
+  preds stats: mean=0.0003 std=0.2887
+
+  ratio MLX_std / CPU_std:     0.6841
+  Pearson(CPU_pred, MLX_pred): 0.9664
+
+--- Verdict ---
+All P1-P8 probes clean at iter 0. No smoking gun in leaf-value computation.
+hSums.sum()=10000.0 (not doubled). leafValues match hand-computed algebra.
+Root cause: divergence is in iteration count and/or tree-structure quality
+(train_loss[0]=0.5825 MLX vs 0.5772 CPU, growing gap each iteration).
+The leaf values themselves are algebraically correct given the splits found.
+The bug lives in the histogram-based split selection, not leaf estimation.

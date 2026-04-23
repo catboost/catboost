@@ -240,6 +240,26 @@ TTrainResultAPI TrainFromArrays(
     auto quant = QuantizeFeatures(ds, config.MaxBins);
     auto packed = PackFeatures(quant, ds);
 
+#ifdef CATBOOST_MLX_DEBUG_LEAF
+    // P10 — quantization borders for features 0 and 1 (signal-bearing columns)
+    // Prints border count + min/max + first/last 5 borders so we can diff against
+    // CatBoost CPU's GreedyLogSum borders to confirm or falsify H2 (border divergence).
+    for (ui32 p10_f = 0; p10_f < std::min(static_cast<ui32>(quant.Borders.size()), 2u); ++p10_f) {
+        const auto& b = quant.Borders[p10_f];
+        printf("[DBG P10] feature_%u borders: count=%zu", p10_f, b.size());
+        if (!b.empty()) {
+            printf("  min=%.6f  max=%.6f", b.front(), b.back());
+            printf("\n[DBG P10] feature_%u first5:", p10_f);
+            for (ui32 i = 0; i < std::min((ui32)b.size(), 5u); ++i) printf(" %.6f", b[i]);
+            printf("\n[DBG P10] feature_%u last5: ", p10_f);
+            ui32 start = b.size() >= 5 ? (ui32)b.size() - 5 : 0;
+            for (ui32 i = start; i < (ui32)b.size(); ++i) printf(" %.6f", b[i]);
+        }
+        printf("\n");
+    }
+    fflush(stdout);
+#endif
+
     if (packed.TotalBinFeatures == 0) {
         TTrainResultAPI result;
         result.ModelJSON = "{}";
