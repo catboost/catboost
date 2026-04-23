@@ -1,0 +1,89 @@
+[
+  {
+    "policy": "Depthwise",
+    "score_fn": "Cosine",
+    "seed": 1337,
+    "rs": 0.0,
+    "rmse": 0.21614450881239983
+  },
+  {
+    "policy": "Depthwise",
+    "score_fn": "L2",
+    "seed": 1337,
+    "rs": 0.0,
+    "rmse": 0.17952112451382188,
+    "ratio_vs_cosine": 0.8305606536117704
+  },
+  {
+    "policy": "Depthwise",
+    "score_fn": "Cosine",
+    "seed": 42,
+    "rs": 0.0,
+    "rmse": 0.21067719079049668
+  },
+  {
+    "policy": "Depthwise",
+    "score_fn": "L2",
+    "seed": 42,
+    "rs": 0.0,
+    "rmse": 0.18167325325282122,
+    "ratio_vs_cosine": 0.8623299587921799
+  },
+  {
+    "policy": "Depthwise",
+    "score_fn": "Cosine",
+    "seed": 7,
+    "rs": 0.0,
+    "rmse": 0.20818368025730824
+  },
+  {
+    "policy": "Depthwise",
+    "score_fn": "L2",
+    "seed": 7,
+    "rs": 0.0,
+    "rmse": 0.17943166820695725,
+    "ratio_vs_cosine": 0.8618911337583501
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "Cosine",
+    "seed": 1337,
+    "rs": 0.0,
+    "rmse": 0.20148332288034107
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "L2",
+    "seed": 1337,
+    "rs": 0.0,
+    "rmse": 0.20211586510914098
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "Cosine",
+    "seed": 42,
+    "rs": 0.0,
+    "rmse": 0.20423789220544875
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "L2",
+    "seed": 42,
+    "rs": 0.0,
+    "rmse": 0.20518740334105579
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "Cosine",
+    "seed": 7,
+    "rs": 0.0,
+    "rmse": 0.2016869029714548
+  },
+  {
+    "policy": "SymmetricTree",
+    "score_fn": "L2",
+    "seed": 7,
+    "rs": 0.0,
+    "rmse": 0.2025676895868284
+  }
+]
