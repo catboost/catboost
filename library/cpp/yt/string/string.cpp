@@ -364,13 +364,13 @@ std::string TruncateString(std::string string, int lengthLimit, TStringBuf trunc
 
 TTruncatedStringView::TTruncatedStringView(const std::string& value, int limit)
     : Value_(value)
-    , Limit_(limit)
+    , Limit_(std::max(limit, 0))
 { }
 
 void TTruncatedStringView::WriteToBuilder(TStringBuilderBase* builder, TStringBuf /* spec */) const
 {
-    int valueSize = std::ssize(Value_);
-    int maxSize = Limit_ + std::ssize(DefaultTruncatedMessage);
+    i64 valueSize = std::ssize(Value_);
+    i64 maxSize = Limit_ + std::ssize(DefaultTruncatedMessage);
     if (valueSize <= maxSize) {
         builder->AppendString(Value_);
         return;
