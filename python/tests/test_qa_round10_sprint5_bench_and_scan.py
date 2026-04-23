@@ -16,9 +16,11 @@ ARCHITECTURE NOTE:
   (separate from kSuffixSumSource) and are unaffected by TODO-008.
 
 ANCHORS (captured Sprint 5 QA, 2026-04-09; multiclass updated by BUG-001 fix 2026-04-10;
-         both updated by BUG-002 fix 2026-04-11 in bench_boosting ApplySplitToPartitions):
-  Binary  100k x 50 x depth6 x 100iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.11909308
-  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.63507235
+         both updated by BUG-002 fix 2026-04-11 in bench_boosting ApplySplitToPartitions;
+         both updated again S27-AA-T4 2026-04-22 after S18 BUG-S18-001 / S19 DEC-015/016 /
+         S22/S23 T2 promotion / S24 DEC-023 v5 shifted values):
+  Binary  100k x 50 x depth6 x 100iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.11097676
+  Multiclass 20k x 30 x 3cls x depth5 x 50iters x bins32 x seed42 -> BENCH_FINAL_LOSS=0.61788315
     (BUG-001 pre-fix anchor 1.07820153 was captured with buggy (32,1,1) threadgroup;
      BUG-002 pre-fix anchor 1.09757149 was captured with wrong `> threshold+1`
      partition routing in bench_boosting ApplySplitToPartitions)
@@ -63,7 +65,7 @@ import pytest
 BENCH_BINARY = "/tmp/bench_boosting"
 
 # Regression anchors: final loss must match within 1e-6
-BINARY_ANCHOR_LOSS = 0.11909308    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42 (BUG-002 fix: updated from 0.69314516)
+BINARY_ANCHOR_LOSS = 0.11097676    # 100k x 50 x cls2 x depth6 x 100iters x bins32 seed42 (S27-AA-T4: updated from 0.11909308; stale-capture from S7, superseded by S18 BUG-S18-001, S19 DEC-015/016, S22/S23 T2 promotion, S24 DEC-023 v5)
 MULTICLASS_ANCHOR_LOSS = 0.63507235  # 20k x 30 x cls3 x depth5 x 50iters x bins32 seed42 (BUG-002 fix: updated from 1.09757149)
 
 
