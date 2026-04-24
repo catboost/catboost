@@ -1729,6 +1729,7 @@ def test_onnx_import(problem_type, boost_from_average):
             'loss_function': loss_function,
             'iterations': 5,
             'depth': 4,
+            'ignored_features': train_pool.get_cat_feature_indices(),
             'boost_from_average': boost_from_average
         }
     )
@@ -1801,6 +1802,7 @@ def test_onnx_export_with_categorical_features():
         iterations=5,
         depth=3,
         learning_rate=0.5,
+        one_hot_max_size=255,
         verbose=False,
         task_type='CPU'
     )
@@ -1859,6 +1861,7 @@ def test_onnx_import_with_categorical_features():
         iterations=5,
         depth=3,
         learning_rate=0.5,
+        one_hot_max_size=255,
         verbose=False,
         task_type='CPU'
     )
