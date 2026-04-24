@@ -116,7 +116,7 @@
 
 - [ ] **S31-T3-MEASURE** — Re-run S30 T3 gate matrix (G3a ST, G3b LG-mid, G3c LG-stress) post-T2. **Blocked by T3b (G2b failed; T3b must close ST+Cosine first).** Owner: @qa-engineer.
 
-- [ ] **S31-T3b-T1-AUDIT** — Instrumented iter=1 dump harness. **ACTIVE — reopened by G2b FAIL.** Per-layer parent stats + top-K=5 split candidates + winning tuple for CPU vs MLX at every depth level of iteration 1. Builds on `COSINE_RESIDUAL_INSTRUMENT` infrastructure already in `csv_train.cpp`. Must localize where CPU and MLX first diverge in split selection. DEC-012 atomic commits. Owner: @ml-engineer.
+- [x] **S31-T3b-T1-AUDIT** — G1 PASS. First diverging layer: depth=0. Mechanism: **GAIN-FORMULA** — Cosine score ~5.4% lower in MLX than CPU (ratio 0.946), shifting argmax to wrong bin. Co-fix DEC-037 shipped (border count maxBins, not maxBins-1; greedy unweighted GreedyLogSumBestSplit restored). Build script + run harness + comparison driver + audit JSON + verdict at `docs/sprint31/t3b-audit/`. Commit `746d5090b5`. Owner: @ml-engineer. **Next: S32 cosNum/cosDen per-partition instrumentation at depth=0.**
 
 - [ ] **S31-T4a-ST-REMOVE** — Reopens S30 #93 if S31-T3 G3a passes. Atomic removal across Python + C++ nanobind + CLI + tests. **Blocked by S31-T3 G3a.** Owner: @ml-engineer.
 

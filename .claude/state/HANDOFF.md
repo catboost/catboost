@@ -1,12 +1,12 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 31 T2 complete — G2b FAIL; T3b T1-AUDIT ACTIVE — iter=1 instrumented dump is next)
+> Last updated: 2026-04-24 (Sprint 31 T3b-T1-AUDIT G1 PASS; mechanism = GAIN-FORMULA; DEC-037 border fix shipped; S32 targets cosNum/cosDen instrumentation)
 
 ## Current state
 
-- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit`, tip `dada4f7b26`.
-- **Active task**: S31-T3b-T1-AUDIT (instrumented iter=1 split-selection dump). Owner: @ml-engineer.
-- **Campaign**: Post-Verstappen correctness. T1-PRE fired K4 (border divergence = P6); T2 ported GreedyLogSum and fixed P5 (ScaleL2Reg); G2b FAIL confirmed border divergence is NOT the mechanism. 53% ST+Cosine drift origin still unknown. T3b is the only remaining diagnostic path.
+- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit`, tip `746d5090b5`.
+- **Active task**: S31-T3b-T1-AUDIT **COMPLETE** (G1 PASS). Next: S32 cosNum/cosDen per-partition instrumentation.
+- **Campaign**: Post-Verstappen correctness. T1-PRE fired K4 (border divergence = P6); T2 ported GreedyLogSum and fixed P5 (ScaleL2Reg); G2b FAIL confirmed border divergence is NOT the primary mechanism. T3b-T1-AUDIT: G1 PASS — GAIN-FORMULA (Cosine score ~5.4% lower in MLX). DEC-037 co-fix shipped (border count = maxBins).
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
 - **Open PRs**: none. S28 + S29 merged 2026-04-23. S30 merged 2026-04-24.
 - **Known bugs**:
@@ -145,15 +145,21 @@ Commits `768ee50abd`–`dada4f7b26`. Verdict: `docs/sprint31/t2-port-greedylogsu
 - **G2d PASS**: 18/18 L2 parity cells in [0.98, 1.02].
 - **P5 fix shipped**: `scaledL2 = L2RegLambda * sumAllWeights/docCount` at all three split/leaf call sites.
 
-### Current entry point — @ml-engineer on S31-T3b-T1-AUDIT
+### T3b-T1-AUDIT (DONE) — G1 PASS: GAIN-FORMULA
 
-G2b FAIL triggers the pre-authorized T3b fallback. Next task is the instrumented iter=1 dump:
-- Compare CPU vs MLX on parent stats, top-K=5 split candidates, and winning split tuple at every depth level of iteration 1.
-- Use `COSINE_RESIDUAL_INSTRUMENT` infrastructure already in `csv_train.cpp` as a starting point.
-- Configuration: N=50k, seed=42, RS=0, bins=128, RMSE/SymmetricTree/Cosine, depth=6.
-- Output: per-depth CSV of `(feature_idx, bin_idx, gain_cpu, gain_mlx, winner_cpu, winner_mlx)`.
-- First diverging layer names the mechanism class.
-- DEC-012 atomic commits. No speculative fixes; locate before proposing a fix.
+Commit `746d5090b5`. Verdict: `docs/sprint31/t3b-audit/verdict.md`.
+
+**First diverging layer**: depth=0 (seeds 42, 44), depth=2 (seed 43).  
+**Mechanism**: GAIN-FORMULA — Cosine score ~5.4% lower in MLX than CPU (ratio 0.946).  
+**Evidence**: CPU gain at depth=0 ≈ 89.6; MLX gain ≈ 84.8. Same feature selected (f0), wrong bin. Partition stats (sumH) match at depth=0 — histogram inputs are correct. Score computation is wrong.
+
+**DEC-037 co-fix shipped**: `maxBordersCount = maxBins` (was `maxBins - 1`). This fixes the 1-off border count that caused MLX_bin = CPU_bin - 1 in pre-audit runs.
+
+### Current entry point — S32: cosNum/cosDen term instrumentation
+
+Next task: instrument `FindBestSplit` in `csv_train.cpp` to dump `cosNum`, `cosDen`, `wL`, `wR`, `gL`, `gR` per partition per bin at depth=0 for seed=42. Compare term-by-term against CPU. Identify the exact expression causing the 5.4% deficit. File: `catboost/mlx/tests/csv_train.cpp`, search label `S28-OBLIV-DISPATCH`.
+
+Reference: `catboost/private/libs/algo/score_calcers.cpp`, `CosineScoreCalcer`.
 
 ### Kill-switches (pre-authorized per DEC-036)
 

@@ -137,6 +137,71 @@ of iteration 1. First diverging layer names the mechanism class.
 
 ---
 
+## 2026-04-24 — Sprint 31 T3b-T1-AUDIT COMPLETE + DEC-037 border fix
+
+Branch: `mlx/sprint-31-iter1-audit`, base `17451f4780`, commit `746d5090b5`.
+
+### What happened
+
+S31-T3b-T1-AUDIT built the full instrumented iter=1 comparison pipeline:
+
+1. **`build_mlx_audit.sh`** — compiles `csv_train.cpp` with `-DITER1_AUDIT -DCOSINE_T3_MEASURE`
+2. **`run_mlx_audit.py`** — runs MLX binary on canonical S26 data (N=50k, seeds 42/43/44),
+   writes per-layer JSON: parent stats + top-K=5 + winner
+3. **`compare_splits.py`** — diffs CPU (pip catboost) vs MLX JSONs, classifies first divergence
+   per DEC-036 mechanism table
+
+### DEC-037 co-fix (shipped)
+
+Root cause: `QuantizeFeatures` was calling `GreedyLogSumBestSplit` with
+`maxBordersCount = maxBins - 1 = 127`, while CPU CatBoost uses `border_count = 128`.
+
+Investigation path:
+1. Initial fix attempt: changed `maxBins - 1` → `maxBins` but also rewrote to a DP
+   (document-count weighted), which was incorrect. CatBoost's `TGreedyBinarizer` uses the
+   **unweighted** `TFeatureBin` path (count of unique values, not documents).
+2. Reverted to the original greedy priority-queue approach (correct), with only the
+   border count changed to `maxBins`.
+
+**Files changed**: `catboost/mlx/tests/csv_train.cpp` — `GreedyLogSumBestSplit` restored,
+`maxBordersCount = maxBins`.
+
+### G1 PASS verdict
+
+| Criterion | Result |
+|-----------|--------|
+| First diverging layer | depth=0 (seeds 42, 44); depth=2 (seed 43) |
+| Mechanism class | **GAIN-FORMULA** |
+| Gain ratio (MLX/CPU) | ~0.946 (5.4% deficit, consistent all seeds/depths) |
+| DEC-037 border fix | Shipped — 128 borders now match CPU |
+
+The Cosine gain formula in `FindBestSplit` produces values ~5.4% lower than CPU's
+`CosineScoreCalcer`. This shifts the argmax to a different bin. The partition stats
+(sumH) match at depth=0 confirming the histogram inputs are identical — only the
+score computation is wrong.
+
+Verdict doc: `docs/sprint31/t3b-audit/verdict.md`.
+
+### What ships
+
+- **DEC-037 border count fix** — `maxBordersCount = maxBins` (was `maxBins - 1`)
+- **T3b-T1-AUDIT pipeline** — build script, run harness, compare driver, audit data
+- **G1 PASS** — GAIN-FORMULA mechanism class named at depth=0
+
+### What does NOT close
+
+- **ST+Cosine 53% drift** — unchanged. GAIN-FORMULA identified but not yet fixed.
+- **SA-H1 Cosine guards** — remain active.
+- **T3, T4a, T4b** — still blocked.
+
+### Next step (S32)
+
+Instrument `FindBestSplit` to dump `cosNum`, `cosDen`, `wL`, `wR`, `gL`, `gR`
+per partition per bin at depth=0 for seed=42. Compare term-by-term against CPU's
+`CosineScoreCalcer`. Identify the exact expression causing the 5.4% deficit.
+
+---
+
 ## 2026-04-23 — Sprint 29 CLOSED (DEC-032 closeout partial advance; DEC-034 resolved)
 
 Branch: `mlx/sprint-29-dec032-closeout`, base `987da0e7d5`, tip `fa7f9b55fc`. 7 commits
