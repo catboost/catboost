@@ -1,0 +1,7 @@
+depth,chosen_feat_f32,chosen_bin_f32,chosen_feat_fp64,chosen_bin_fp64,flipped
+0,0,61,0,61,False
+1,1,69,1,69,False
+2,11,68,11,68,False
+3,11,63,11,63,False
+4,2,22,2,22,False
+5,2,21,2,21,False

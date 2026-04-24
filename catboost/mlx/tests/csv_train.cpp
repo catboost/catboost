@@ -132,8 +132,8 @@ struct TCosineResidualInstrument {
         double cosNum_f64;
         float  cosDen_f32;
         double cosDen_f64;
-        float  gain_f32;    // ComputeCosineGainKDim result using f32 inputs
-        double gain_f64;    // ComputeCosineGainKDim result using f64 inputs
+        float  gain_f32;    // D2-redux: true pre-K4 fp32 gain path: float(cosNum_f32_shadow / sqrtf(cosDen_f32_shadow))
+        double gain_f64;    // true fp64 gain path: cosNum_d / sqrt(cosDen_d)
     };
     std::vector<TBinRecord> binRecords;  // populated inside FindBestSplit, flushed after return
 };
@@ -1521,28 +1521,28 @@ TBestSplitProperties FindBestSplit(
                     totalGain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
                 }
 #ifdef COSINE_RESIDUAL_INSTRUMENT
-                // S30-T1/T2: record per-bin residual for cosDen/cosNum/gain.
-                // K4: cosNum_d/cosDen_d are the primary double accumulators.
-                // _f32 fields: cast-to-float (the value used in gain comparison after finalization).
-                // _f64 fields: the double value.  Residual = |f32 - f64|.
-                // Note: for the gain fields, gain_f32 = totalGain (already computed in double then
-                // cast); gain_f64 = the reference gain computed entirely in double.
+                // D2-redux: record per-bin residual for cosDen/cosNum/gain with CORRECTED methodology.
+                // gain_f32 is now computed from the true pre-K4 fp32 shadow accumulators, NEVER
+                // touching cosNum_d/cosDen_d.  This is what V2 audit required: the fp32 path must
+                // use only float arithmetic end-to-end.
+                // gain_f64 is the true fp64 path: cosNum_d / sqrt(cosDen_d).
+                // Residual = |gain_f32 - gain_f64| measures fp32 accumulation path divergence,
+                // NOT the float-cast ULP of a single fp64 value (which was D2's bias).
                 if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine) {
                     double gain_f64_ref = cosNum_d / std::sqrt(cosDen_d);
+                    // D2-redux: true pre-K4 fp32 gain — computed entirely from float32 shadows,
+                    // sqrtf in float, division in float.  This is the path the code took before K4.
+                    float gain_f32_path = static_cast<float>(
+                        cosNum_f32_shadow / std::sqrtf(cosDen_f32_shadow));
                     TCosineResidualInstrument::TBinRecord rec;
                     rec.featIdx    = featIdx;
                     rec.bin        = bin;
-                    // S30-T2 K4: _f32 fields use the float32 shadow accumulator.
-                    // cosNum_abs_residual = |cosNum_f32_shadow - cosNum_d|: shows the pre-K4
-                    // float32 accumulation error that K4 eliminates (should match T1 ~4e-3).
-                    // gain_abs_residual = |totalGain - gain_f64_ref|: shows the residual that
-                    // actually drives split selection (totalGain = float(cosNum_d/sqrt(cosDen_d))).
                     rec.cosNum_f32 = cosNum_f32_shadow;
                     rec.cosNum_f64 = cosNum_d;
                     rec.cosDen_f32 = cosDen_f32_shadow;
                     rec.cosDen_f64 = cosDen_d;
-                    rec.gain_f32   = totalGain;
-                    rec.gain_f64   = gain_f64_ref;
+                    rec.gain_f32   = gain_f32_path;   // true pre-K4 fp32 path
+                    rec.gain_f64   = gain_f64_ref;    // true fp64 path
                     g_cosInstr.binRecords.push_back(rec);
                 }
 #endif
