@@ -1,0 +1,10 @@
+cc_library(
+    name = "dense_vectors",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

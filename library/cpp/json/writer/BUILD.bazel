@@ -1,0 +1,23 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "json_value_enum_serialization",
+    src = "json_value.h",
+    includes = ["library/cpp/json/writer/json_value.h"],
+)
+
+cc_library(
+    name = "json_writer",
+    srcs = [
+        "json.cpp",
+        "json_value.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":json_value_enum_serialization",
+        "//library/cpp/json/common:json_common",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

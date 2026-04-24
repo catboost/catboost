@@ -1,0 +1,13 @@
+# Note: .rl and .rl6 files need to be compiled with Ragel.
+# If the generated .cpp files are not pre-committed, install Ragel to build them.
+
+cc_library(
+    name = "tokenizer",
+    srcs = glob(
+        ["*.cpp"],
+        exclude = ["**/*_ut*.cpp"],
+    ),
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

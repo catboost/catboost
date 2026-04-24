@@ -1,0 +1,14 @@
+cc_library(
+    name = "colorizer",
+    srcs = [
+        "colors.cpp",
+        "output.cpp",
+    ],
+    hdrs = [
+        "colors.h",
+        "fwd.h",
+        "output.h",
+    ],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

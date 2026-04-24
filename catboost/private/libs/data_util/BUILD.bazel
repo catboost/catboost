@@ -1,0 +1,11 @@
+cc_library(
+    name = "data_util",
+    srcs = [
+        "exists_checker.cpp",
+        "line_data_reader.cpp",
+        "path_with_scheme.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

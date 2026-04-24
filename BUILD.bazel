@@ -1,0 +1,15 @@
+# Root BUILD file for CatBoost
+
+# Convenience alias to build the static catboost model inference library
+alias(
+    name = "catboostmodel_static",
+    actual = "//catboost/libs/model_interface/static:catboostmodel_static",
+    visibility = ["//visibility:public"],
+)
+
+# Convenience alias for the shared catboost model library
+alias(
+    name = "catboostmodel",
+    actual = "//catboost/libs/model_interface:catboostmodel",
+    visibility = ["//visibility:public"],
+)

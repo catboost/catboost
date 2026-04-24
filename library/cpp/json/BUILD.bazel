@@ -1,0 +1,19 @@
+cc_library(
+    name = "json",
+    srcs = [
+        "json_prettifier.cpp",
+        "json_reader.cpp",
+        "json_writer.cpp",
+        "rapidjson_helpers.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//contrib/libs/rapidjson",
+        "//library/cpp/json/common:json_common",
+        "//library/cpp/json/fast_sax:json_fast_sax",
+        "//library/cpp/json/writer:json_writer",
+        "//library/cpp/string_utils/relaxed_escaper",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

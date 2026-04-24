@@ -1,0 +1,12 @@
+# parse_enum — library that implements the enum scanning/parsing logic.
+
+cc_library(
+    name = "parse_enum",
+    srcs = ["parse_enum.cpp"],
+    hdrs = ["parse_enum.h"],
+    deps = [
+        "//library/cpp/cppparser",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,13 @@
+cc_library(
+    name = "cache",
+    srcs = [
+        "cache.cpp",
+        "thread_safe_cache.cpp",
+    ],
+    hdrs = [
+        "cache.h",
+        "thread_safe_cache.h",
+    ],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,19 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "grid_creator_enum_serialization",
+    src = "binarization.h",
+    includes = ["library/cpp/grid_creator/binarization.h"],
+)
+
+cc_library(
+    name = "grid_creator",
+    srcs = ["binarization.cpp"],
+    hdrs = ["binarization.h"],
+    deps = [
+        ":grid_creator_enum_serialization",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

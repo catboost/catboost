@@ -1,0 +1,7 @@
+load("//bazel:flatbuffers.bzl", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "dictionary_idl",
+    srcs = ["dictionary_meta_info.fbs"],
+    visibility = ["//visibility:public"],
+)

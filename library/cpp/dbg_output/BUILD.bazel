@@ -1,0 +1,14 @@
+cc_library(
+    name = "dbg_output",
+    srcs = [
+        "dump.cpp",
+        "dumpers.cpp",
+        "engine.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//library/cpp/colorizer",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

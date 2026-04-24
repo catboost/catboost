@@ -1,0 +1,8 @@
+# fmath — fast math library (header-only, SIMD-accelerated exp/log).
+
+cc_library(
+    name = "fmath",
+    hdrs = ["fmath.hpp"],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,33 @@
+# Intel Threading Building Blocks (TBB) — vendored copy.
+
+cc_library(
+    name = "tbb",
+    srcs = glob(
+        [
+            "src/tbb/*.cpp",
+            "src/tbb/*.h",
+        ],
+        exclude = [
+            "src/tbb/*_test*",
+            "src/tbb/test*",
+        ],
+    ),
+    hdrs = glob([
+        "include/oneapi/**/*.h",
+        "include/tbb/**/*.h",
+    ]),
+    includes = ["include"],
+    copts = [
+        "-Wno-everything",
+        "-D__TBB_BUILD",
+        "-DTBB_USE_THREADING_TOOLS",
+        "-D_TBB_CPP0X",
+        "-DTBB_SUPPRESS_DEPRECATED_MESSAGES",
+        "-DTBB_PREVIEW_WAITING_FOR_WORKERS",
+    ],
+    linkopts = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["-lpthread", "-ldl"],
+    }),
+    visibility = ["//visibility:public"],
+)

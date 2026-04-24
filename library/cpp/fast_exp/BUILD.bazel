@@ -1,0 +1,10 @@
+cc_library(
+    name = "fast_exp",
+    srcs = ["fast_exp.cpp"],
+    hdrs = ["fast_exp.h"],
+    deps = [
+        "//contrib/libs/fmath",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

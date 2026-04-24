@@ -1,0 +1,21 @@
+# POSIX/C-library compatibility shims for platforms missing certain functions.
+
+cc_library(
+    name = "libc_compat",
+    srcs = [
+        "explicit_bzero.c",
+        "memrchr.c",
+        "reallocarray/reallocarray.c",
+        "string.c",
+    ],
+    hdrs = glob(
+        ["*.h", "include/*.h"],
+        allow_empty = True,
+    ),
+    includes = [".", "include"],
+    visibility = ["//visibility:public"],
+    copts = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["-Wno-deprecated-declarations"],
+    }),
+)

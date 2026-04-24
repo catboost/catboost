@@ -1,0 +1,7 @@
+cc_library(
+    name = "dense_hash",
+    srcs = ["dense_hash.cpp"],
+    hdrs = ["dense_hash.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

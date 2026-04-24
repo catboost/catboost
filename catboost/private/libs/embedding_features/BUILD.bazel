@@ -1,0 +1,50 @@
+load("//bazel:flatbuffers.bzl", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "embedding_features_flatbuffers",
+    srcs = [
+        "flatbuffers/embedding_feature_calcers.fbs",
+        "flatbuffers/embedding_processing_collection.fbs",
+    ],
+    include_paths = [
+        "catboost/private/libs/embedding_features/flatbuffers",
+        ".",
+    ],
+    deps = [
+        "//contrib/libs/flatbuffers",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "embedding_features",
+    srcs = [
+        "embedding_calcers.cpp",
+        "embedding_feature_calcer.cpp",
+        "embedding_processing_collection.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":embedding_features_flatbuffers",
+        "//catboost/private/libs/text_features",
+        "//catboost/private/libs/text_processing",
+        "//contrib/libs/clapack",
+        "//contrib/libs/flatbuffers",
+        "//library/cpp/hnsw/index:hnsw_index",
+        "//library/cpp/online_hnsw/dense_vectors:dense_vectors",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Global library variant
+cc_library(
+    name = "embedding_features_global",
+    srcs = [
+        "knn.cpp",
+        "lda.cpp",
+    ],
+    deps = [":embedding_features"],
+    alwayslink = True,
+    visibility = ["//visibility:public"],
+)

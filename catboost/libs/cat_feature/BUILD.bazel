@@ -1,0 +1,7 @@
+cc_library(
+    name = "cat_feature",
+    srcs = ["cat_feature.cpp"],
+    hdrs = ["cat_feature.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

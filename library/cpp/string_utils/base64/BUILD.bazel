@@ -1,0 +1,11 @@
+# base64 encoding/decoding (may use SIMD back-ends; stubs provided here).
+# For full SIMD acceleration add the libs-base64-avx2, ssse3, neon32, etc.
+# sub-libraries from contrib/libs/base64 and list them in deps below.
+
+cc_library(
+    name = "base64",
+    srcs = ["base64.cpp"],
+    hdrs = ["base64.h"],
+    deps = ["//util"],
+    visibility = ["//visibility:public"],
+)

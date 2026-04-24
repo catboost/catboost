@@ -1,0 +1,20 @@
+load("//bazel:enum_serialization.bzl", "generate_enum_serialization")
+
+generate_enum_serialization(
+    name = "ctr_type_enum_serialization",
+    src = "ctr_type.h",
+    includes = ["catboost/private/libs/ctr_description/ctr_type.h"],
+)
+
+cc_library(
+    name = "ctr_description",
+    srcs = ["ctr_type.cpp"],
+    hdrs = glob(["*.h"]),
+    deps = [
+        ":ctr_type_enum_serialization",
+        "//catboost/libs/helpers",
+        "//tools/enum_parser/enum_serialization_runtime",
+        "//util",
+    ],
+    visibility = ["//visibility:public"],
+)

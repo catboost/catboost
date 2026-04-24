@@ -1,0 +1,15 @@
+# catboostmodel_static — fully self-contained static archive.
+#
+# Link this into your application to use CatBoost model inference with no
+# external dynamic library dependencies on the CatBoost runtime.
+
+cc_library(
+    name = "catboostmodel_static",
+    deps = [
+        "//catboost/libs/model_interface:catboostmodel_static_impl",
+        "//catboost/libs/model:model_global",
+        "//catboost/private/libs/embedding_features:embedding_features_global",
+        "//catboost/private/libs/text_features:text_features_global",
+    ],
+    visibility = ["//visibility:public"],
+)

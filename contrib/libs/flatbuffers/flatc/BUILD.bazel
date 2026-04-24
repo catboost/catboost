@@ -1,0 +1,61 @@
+# flatc — FlatBuffers schema compiler (host tool).
+# Used as a build-time code generator for .fbs schema files.
+
+cc_binary(
+    name = "flatc",
+    srcs = [
+        # gRPC generator back-ends
+        "../grpc/src/compiler/cpp_generator.cc",
+        "../grpc/src/compiler/go_generator.cc",
+        "../grpc/src/compiler/java_generator.cc",
+        "../grpc/src/compiler/python_generator.cc",
+        "../grpc/src/compiler/swift_generator.cc",
+        "../grpc/src/compiler/ts_generator.cc",
+        # Core flatc sources
+        "annotated_binary_text_gen.cpp",
+        "bfbs_gen_lua.cpp",
+        "bfbs_gen_nim.cpp",
+        "binary_annotator.cpp",
+        "code_generators.cpp",
+        "file_binary_writer.cpp",
+        "file_name_saving_file_manager.cpp",
+        "file_writer.cpp",
+        "flatc.cpp",
+        "flatc_main.cpp",
+        "idl_gen_binary.cpp",
+        "idl_gen_cpp.cpp",
+        "idl_gen_cpp_yandex_maps_iter.cpp",
+        "idl_gen_csharp.cpp",
+        "idl_gen_dart.cpp",
+        "idl_gen_fbs.cpp",
+        "idl_gen_go.cpp",
+        "idl_gen_grpc.cpp",
+        "idl_gen_java.cpp",
+        "idl_gen_json_schema.cpp",
+        "idl_gen_kotlin.cpp",
+        "idl_gen_kotlin_kmp.cpp",
+        "idl_gen_lobster.cpp",
+        "idl_gen_php.cpp",
+        "idl_gen_python.cpp",
+        "idl_gen_rust.cpp",
+        "idl_gen_swift.cpp",
+        "idl_gen_text.cpp",
+        "idl_gen_ts.cpp",
+        "idl_parser.cpp",
+        "reflection.cpp",
+        "util.cpp",
+    ],
+    includes = [
+        "../grpc",
+        "../include",
+    ],
+    copts = [
+        "-DFLATBUFFERS_LOCALE_INDEPENDENT=1",
+        "-Wno-everything",
+    ],
+    linkopts = select({
+        "@platforms//os:macos": ["-framework CoreFoundation"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+)
