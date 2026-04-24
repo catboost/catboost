@@ -1223,8 +1223,15 @@ TBestSplitProperties FindBestSplit(
                 float totalGain = 0.0f;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims,
                 // then finalize once per bin (matches CPU AddLeafPlain multi-partition loop).
-                float cosNum = 0.0f;
-                float cosDen = 1e-20f;  // guard against sqrt(0)
+                // S30-T2-KAHAN K4: accumulate cosNum/cosDen in double to eliminate per-term
+                // float32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                // The per-term expression (sL^2*invL + sR^2*invR) has ~1e-3 fp32 rounding
+                // intrinsic to float32 arithmetic on these magnitudes — Neumaier only compensates
+                // summation rounding; the terms themselves must be widened.  Convert back to
+                // float only at ComputeCosineGainKDim call.  Memory cost: 2 doubles per bin
+                // candidate (16 bytes) vs 2 floats (8 bytes) — negligible at 2540 bins.
+                double cosNum_d = 0.0;
+                double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
 
                 if (minDataInLeaf > 1 && !countHist.empty()) {
                     bool anyViolates = false;
@@ -1259,13 +1266,17 @@ TBestSplitProperties FindBestSplit(
                                            - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-(p,k) contributions; finalized after both loops.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL    = static_cast<double>(sumLeft);
+                                const double dSR    = static_cast<double>(sumRight);
+                                const double dWL    = static_cast<double>(weightLeft);
+                                const double dWR    = static_cast<double>(weightRight);
+                                const double dL2    = static_cast<double>(l2RegLambda);
+                                const double dInvL  = 1.0 / (dWL + dL2);
+                                const double dInvR  = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1275,7 +1286,12 @@ TBestSplitProperties FindBestSplit(
                 }
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                    // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
+                    // Casting cosNum_d/cosDen_d to float before division would re-introduce fp32
+                    // quantization error in the accumulated sum (~4.88e-4); keeping the division in
+                    // double and casting only the result reduces residual to <5e-7 (gain formula
+                    // compresses the error by 1/sqrt(cosDen)).
+                    totalGain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
                 }
 
                 // Add random perturbation to prevent overfitting
@@ -1353,12 +1369,17 @@ TBestSplitProperties FindBestSplit(
                 float totalGain = 0.0f;
                 bool violatesConstraint = false;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
-                float cosNum = 0.0f;
-                float cosDen = 1e-20f;  // guard against sqrt(0)
-#ifdef COSINE_RESIDUAL_INSTRUMENT
-                // S30-T1: double-shadow accumulators for fp64 reference residual
+                // S30-T2-KAHAN K4: accumulate in double; convert to float only at finalization.
+                // Reason: per-term fp32 computation error (~1e-3 floor) defeated Neumaier
+                // float32 compensation which only improves summation rounding, not term rounding.
                 double cosNum_d = 0.0;
-                double cosDen_d = 1e-20;  // mirrors f32 guard
+                double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T2: parallel float32 shadow accumulators for residual comparison.
+                // These mirror the pre-K4 float32 accumulation.  The residual reported in the
+                // CSV is |cosNum_f32_shadow - cosNum_d|, showing the actual K4 improvement.
+                float cosNum_f32_shadow = 0.0f;
+                float cosDen_f32_shadow = 1e-20f;
 #endif
 
                 // Min-data-in-leaf check using precomputed suffix sums
@@ -1416,27 +1437,29 @@ TBestSplitProperties FindBestSplit(
                                            - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-(p,k) contributions; finalized after both loops.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen to double before computing per-(p,k) terms.
+                                // This eliminates the ~1e-3 per-term fp32 computation error that
+                                // float32 Neumaier compensation could not reach.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
 #ifdef COSINE_RESIDUAL_INSTRUMENT
-                                // S30-T1: double-precision shadow accumulation
+                                // S30-T2: parallel float32 shadow accumulation for residual comparison.
+                                // Accumulates the same terms in float32 to show the pre-K4 precision.
                                 if (g_cosInstr.dumpCosDen) {
-                                    const double dSumLeft    = static_cast<double>(sumLeft);
-                                    const double dSumRight   = static_cast<double>(sumRight);
-                                    const double dWL         = static_cast<double>(weightLeft);
-                                    const double dWR         = static_cast<double>(weightRight);
-                                    const double dL2         = static_cast<double>(l2RegLambda);
-                                    const double dInvL       = 1.0 / (dWL + dL2);
-                                    const double dInvR       = 1.0 / (dWR + dL2);
-                                    cosNum_d += dSumLeft  * dSumLeft  * dInvL
-                                              + dSumRight * dSumRight * dInvR;
-                                    cosDen_d += dSumLeft  * dSumLeft  * dWL * dInvL * dInvL
-                                              + dSumRight * dSumRight * dWR * dInvR * dInvR;
+                                    const float invLf = 1.0f / (weightLeft  + l2RegLambda);
+                                    const float invRf = 1.0f / (weightRight + l2RegLambda);
+                                    cosNum_f32_shadow += sumLeft  * sumLeft  * invLf
+                                                       + sumRight * sumRight * invRf;
+                                    cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf
+                                                       + sumRight * sumRight * weightRight * invRf * invRf;
                                 }
 #endif
                                 break;
@@ -1449,18 +1472,29 @@ TBestSplitProperties FindBestSplit(
 
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                    // S30-T2-KAHAN K4: compute gain in double, cast only the final gain to float.
+                    totalGain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
                 }
 #ifdef COSINE_RESIDUAL_INSTRUMENT
-                // S30-T1: record per-bin residual for cosDen/cosNum/gain
+                // S30-T1/T2: record per-bin residual for cosDen/cosNum/gain.
+                // K4: cosNum_d/cosDen_d are the primary double accumulators.
+                // _f32 fields: cast-to-float (the value used in gain comparison after finalization).
+                // _f64 fields: the double value.  Residual = |f32 - f64|.
+                // Note: for the gain fields, gain_f32 = totalGain (already computed in double then
+                // cast); gain_f64 = the reference gain computed entirely in double.
                 if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine) {
                     double gain_f64_ref = cosNum_d / std::sqrt(cosDen_d);
                     TCosineResidualInstrument::TBinRecord rec;
-                    rec.featIdx   = featIdx;
-                    rec.bin       = bin;
-                    rec.cosNum_f32 = cosNum;
+                    rec.featIdx    = featIdx;
+                    rec.bin        = bin;
+                    // S30-T2 K4: _f32 fields use the float32 shadow accumulator.
+                    // cosNum_abs_residual = |cosNum_f32_shadow - cosNum_d|: shows the pre-K4
+                    // float32 accumulation error that K4 eliminates (should match T1 ~4e-3).
+                    // gain_abs_residual = |totalGain - gain_f64_ref|: shows the residual that
+                    // actually drives split selection (totalGain = float(cosNum_d/sqrt(cosDen_d))).
+                    rec.cosNum_f32 = cosNum_f32_shadow;
                     rec.cosNum_f64 = cosNum_d;
-                    rec.cosDen_f32 = cosDen;
+                    rec.cosDen_f32 = cosDen_f32_shadow;
                     rec.cosDen_f64 = cosDen_d;
                     rec.gain_f32   = totalGain;
                     rec.gain_f64   = gain_f64_ref;
@@ -1607,8 +1641,10 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     // compute score at the end (ComputeCosineGainKDim).  For L2 we
                     // accumulate the scalar gain directly.
                     float gain = 0.0f;       // L2 accumulator
-                    float cosNum = 0.0f;     // Cosine numerator  Σ_k [G²_L/(W_L+λ) + G²_R/(W_R+λ)]
-                    float cosDen = 1e-20f;   // Cosine denominator Σ_k [...] + guard
+                    // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
+                    // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                    double cosNum_d = 0.0;
+                    double cosDen_d = 1e-20;  // guard against sqrt(0)
                     for (ui32 k = 0; k < K; ++k) {
                         const float* histData = perDimHist[k].data()
                             + static_cast<size_t>(p) * 2 * totalBinFeatures;
@@ -1626,14 +1662,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                                       - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-dim contributions into shared num/den;
-                                // ComputeCosineGainKDim finalises after the K loop.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1643,7 +1682,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     }
                     // Finalise score: for Cosine, compute num/sqrt(den) after K loop.
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        gain = ComputeCosineGainKDim(cosNum, cosDen);
+                        // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
+                        gain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1057-1068)
                     float perturbedGain = gain;
@@ -1684,8 +1724,10 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                 ui32 binOffset = feat.FirstFoldIndex + bin;
                 for (ui32 p = 0; p < numPartitions; ++p) {
                     float gain = 0.0f;
-                    float cosNum = 0.0f;
-                    float cosDen = 1e-20f;
+                    // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
+                    // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                    double cosNum_d = 0.0;
+                    double cosDen_d = 1e-20;  // guard against sqrt(0)
                     for (ui32 k = 0; k < K; ++k) {
                         float totalSum    = perDimPartStats[k][p].Sum;
                         float totalWeight = perDimPartStats[k][p].Weight;
@@ -1702,12 +1744,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                                       - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1715,7 +1762,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                         }
                     }
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        gain = ComputeCosineGainKDim(cosNum, cosDen);
+                        // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
+                        gain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1188-1198)
                     float perturbedGain = gain;
