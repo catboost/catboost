@@ -221,7 +221,12 @@ struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
     float Score = 1e30f;
-    float Gain = 1e30f;
+    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+    // CPU CatBoost holds bestGain / Gain as double throughout FindBestSplit.
+    // With gain ≈ 104 the fp32 ULP is ~1.2e-5; the top-10 bins cluster within
+    // ~0.006, so the fp32 argmax is underdetermined.  double reduces the ULP
+    // to ~2e-14, making the argmax deterministic and CPU-matching.
+    double Gain = 1e30;
     bool Defined() const { return FeatureId != static_cast<ui32>(-1); }
 };
 
@@ -1223,7 +1228,8 @@ TBestSplitProperties FindBestSplit(
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
-    float bestGain = -std::numeric_limits<float>::infinity();
+    // Fix 2 (S30-COSINE-KAHAN): widen argmax accumulator to double.
+    double bestGain = -std::numeric_limits<double>::infinity();
 
 #ifdef CATBOOST_MLX_DEBUG_LEAF
     // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
@@ -1265,7 +1271,11 @@ TBestSplitProperties FindBestSplit(
         if (feat.OneHotFeature) {
             // ── OneHot: each bin is independent, no suffix sums needed ──
             for (ui32 bin = 0; bin < feat.Folds; ++bin) {
-                float totalGain = 0.0f;
+                // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                // L2 path accumulates directly into totalGain; Cosine path finalizes via
+                // cosNum_d/sqrt(cosDen_d) and stores without cast.  Keeps the argmax in
+                // double throughout, matching CPU CatBoost's double bestGain.
+                double totalGain = 0.0;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims,
                 // then finalize once per bin (matches CPU AddLeafPlain multi-partition loop).
                 // S30-T2-KAHAN K4: accumulate cosNum/cosDen in double to eliminate per-term
@@ -1331,31 +1341,31 @@ TBestSplitProperties FindBestSplit(
                 }
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
-                    // Casting cosNum_d/cosDen_d to float before division would re-introduce fp32
-                    // quantization error in the accumulated sum (~4.88e-4); keeping the division in
-                    // double and casting only the result reduces residual to <5e-7 (gain formula
-                    // compresses the error by 1/sqrt(cosDen)).
-                    totalGain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
+                    // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                    // K4 widened the accumulators (cosNum_d, cosDen_d) to double.  Fix 2 removes
+                    // the static_cast<float> here so that totalGain stays double through the argmax
+                    // comparison, matching CPU CatBoost's double bestGain/totalGain end-to-end.
+                    totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
 
                 // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
+                // Fix 2: perturbedGain is double; noiseScale*noiseDist(*rng) is float → promoted.
+                double perturbedGain = totalGain;
                 if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
+                    perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                 }
                 if (perturbedGain > bestGain) {
                     bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
+                    bestSplit.Score = static_cast<float>(-totalGain);
                 }
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
                     TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = static_cast<float>(totalGain);
                     if (numPartitions > 0 && K > 0) {
                         const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
                         cand.sumR = hd0[feat.FirstFoldIndex + bin];
@@ -1411,12 +1421,11 @@ TBestSplitProperties FindBestSplit(
                             && monotoneConstraints[featIdx] != 0;
 
             for (ui32 bin = 0; bin < folds; ++bin) {
-                float totalGain = 0.0f;
+                // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                double totalGain = 0.0;
                 bool violatesConstraint = false;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
-                // S30-T2-KAHAN K4: accumulate in double; convert to float only at finalization.
-                // Reason: per-term fp32 computation error (~1e-3 floor) defeated Neumaier
-                // float32 compensation which only improves summation rounding, not term rounding.
+                // S30-T2-KAHAN K4: accumulate in double; Fix 2 removes the cast at finalization.
                 double cosNum_d = 0.0;
                 double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
 #ifdef COSINE_RESIDUAL_INSTRUMENT
@@ -1517,8 +1526,8 @@ TBestSplitProperties FindBestSplit(
 
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    // S30-T2-KAHAN K4: compute gain in double, cast only the final gain to float.
-                    totalGain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
+                    // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                    totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // D2-redux: record per-bin residual for cosDen/cosNum/gain with CORRECTED methodology.
@@ -1550,22 +1559,23 @@ TBestSplitProperties FindBestSplit(
                 if (violatesConstraint) continue;
 
                 // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
+                // Fix 2: perturbedGain is double; float noise is promoted to double.
+                double perturbedGain = totalGain;
                 if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
+                    perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                 }
                 if (perturbedGain > bestGain) {
                     bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
+                    bestSplit.Score = static_cast<float>(-totalGain);
                 }
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
                     TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = static_cast<float>(totalGain);
                     if (numPartitions > 0 && K > 0) {
                         size_t sbase = (0 * numPartitions + 0) * stride;
                         cand.sumR = suffGrad[sbase + bin];
@@ -1663,7 +1673,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
 ) {
     const ui32 K = static_cast<ui32>(perDimHist.size());
     std::vector<TBestSplitProperties> results(numPartitions);
-    std::vector<float> bestGains(numPartitions, -std::numeric_limits<float>::infinity());
+    // Fix 2 (S30-COSINE-KAHAN): widen per-partition argmax accumulator to double.
+    std::vector<double> bestGains(numPartitions, -std::numeric_limits<double>::infinity());
 
     // Random score perturbation: mirrors DEC-028's FindBestSplit pattern.
     // CPU reference: CalcScoreStDev (greedy_tensor_search.cpp:851) computes one global
@@ -1685,7 +1696,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     // For Cosine we accumulate num/den separately across K dims then
                     // compute score at the end (ComputeCosineGainKDim).  For L2 we
                     // accumulate the scalar gain directly.
-                    float gain = 0.0f;       // L2 accumulator
+                    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                    double gain = 0.0;
                     // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
                     // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
                     double cosNum_d = 0.0;
@@ -1727,20 +1739,21 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     }
                     // Finalise score: for Cosine, compute num/sqrt(den) after K loop.
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
-                        gain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
+                        // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                        gain = cosNum_d / std::sqrt(cosDen_d);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1057-1068)
-                    float perturbedGain = gain;
+                    // Fix 2: perturbedGain is double; float noise is promoted to double.
+                    double perturbedGain = gain;
                     if (noiseScale > 0.0f) {
-                        perturbedGain += noiseScale * noiseDist(*rng);
+                        perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                     }
                     if (perturbedGain > bestGains[p]) {
                         bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
                         results[p].Gain      = perturbedGain;
-                        results[p].Score     = -perturbedGain;
+                        results[p].Score     = static_cast<float>(-perturbedGain);
                     }
                 }
             }
@@ -1768,7 +1781,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
             for (ui32 bin = 0; bin + 1 < feat.Folds; ++bin) {
                 ui32 binOffset = feat.FirstFoldIndex + bin;
                 for (ui32 p = 0; p < numPartitions; ++p) {
-                    float gain = 0.0f;
+                    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                    double gain = 0.0;
                     // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
                     // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
                     double cosNum_d = 0.0;
@@ -1807,20 +1821,21 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                         }
                     }
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        // S30-T2-KAHAN K4: compute gain in double, cast only the final scalar to float.
-                        gain = static_cast<float>(cosNum_d / std::sqrt(cosDen_d));
+                        // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                        gain = cosNum_d / std::sqrt(cosDen_d);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1188-1198)
-                    float perturbedGain = gain;
+                    // Fix 2: perturbedGain is double; float noise is promoted to double.
+                    double perturbedGain = gain;
                     if (noiseScale > 0.0f) {
-                        perturbedGain += noiseScale * noiseDist(*rng);
+                        perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                     }
                     if (perturbedGain > bestGains[p]) {
                         bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
                         results[p].Gain      = perturbedGain;
-                        results[p].Score     = -perturbedGain;
+                        results[p].Score     = static_cast<float>(-perturbedGain);
                     }
                 }
             }
@@ -3706,8 +3721,9 @@ TTrainResult RunTraining(
         // ---- Lossguide path: best-first leaf-wise tree growth ----
         if (isLossguide) {
             // Priority queue entry: (gain, leafId, bestSplit descriptor)
+            // Fix 2 (S30-COSINE-KAHAN): Gain widened to double to match TBestSplitProperties::Gain.
             struct TLeafCandidate {
-                float Gain;
+                double Gain;
                 ui32  LeafId;
                 TBestSplitProperties Split;
                 bool operator<(const TLeafCandidate& o) const { return Gain < o.Gain; }
