@@ -1239,53 +1239,195 @@ once in S30 (DEC-035); re-open outcome B only if post-Kahan residual drift persi
 
 ---
 
-## DEC-035: S30-COSINE-KAHAN — shared Kahan fix for joint-Cosine denominator accumulator
+## DEC-035: S30-COSINE-KAHAN — phased Kahan fix on Cosine accumulation
 
-**Sprint**: 30 (planned)
-**Date**: 2026-04-23
-**Status**: DRAFT — basis is DEC-034 outcome A (S29). Task S30-COSINE-KAHAN in TODOS.md.
-**Authored by**: S29-CLOSE (@technical-writer)
+**Sprint**: 30 (active as of 2026-04-23; CLOSED 2026-04-24)
+**Date**: 2026-04-23 (draft); elaborated 2026-04-23 after S30 kickoff ultrathink; closed 2026-04-24
+**Status**: PARTIALLY CLOSED — precision fix class exhausted; K4 (fp64 cosDen/cosNum) + Fix 2 (fp64 gain/argmax) shipped but insufficient alone. ST+Cosine and LG+Cosine guards REMAIN in place. Dominant ST mechanism is structural (N-independent) and superseded to DEC-036.
+**Authored by**: S29-CLOSE (@technical-writer); elaborated S30-00 kickoff (orchestrator); closure addendum S30-CLOSE 2026-04-24
 
 ### Context
 
-DEC-034 outcome A (2026-04-23) establishes that `LG+Cosine` and `ST+Cosine` drift share the
-same root cause: float32 joint-Cosine denominator compounding in `ComputeCosineGainKDim`. The
-two S28/S29 carry items (`S29-ST-COSINE-KAHAN` and `S29-LG-COSINE-RCA`) are therefore the
-same fix applied to the same code path. Merging them avoids two overlapping PRs on the same
-accumulator and ensures both guards are removed atomically.
+DEC-034 outcome A (2026-04-23) establishes that `LG+Cosine` and `ST+Cosine` drift plausibly
+share the same float32 joint-Cosine denominator compounding mechanism, with moderate confidence.
+Two observations complicate a direct Kahan-then-remove-guards approach:
+
+1. **300× magnitude gap**: ST anchor is 0.77% iter-1 drift; LG spike is 0.0024%. "Same
+   mechanism, different cell" does not fully explain this — the gap is too large for cell
+   geometry alone.
+2. **iter=1 trees bit-identical** (LG spike): gain ordering is not diverging enough to flip
+   splits. Therefore the observed 0.0024% drift must come from downstream of split selection
+   — leaf values or approximation updates — not the `cosDen` accumulator itself.
+
+If we Kahan-patch `cosDen` alone on the verdict's authority and the actual dominant error
+source lives elsewhere (leaf-value sum, approx update), the fix will move the needle less
+than expected and we'll have landed a "same mechanism" claim that doesn't hold numerically.
 
 ### Decision
 
-Apply Kahan/Neumaier compensated summation to the float32 joint-Cosine denominator accumulator
-in `ComputeCosineGainKDim` (all three grow-policy dispatch sites share this helper). Gate both
-`ST+Cosine` and `LG+Cosine` parity behind the same post-fix check. Remove Python, C++ nanobind,
-and C++ CLI guards in a single atomic commit once both parity gates pass.
+Adopt a **phased T1→T4 approach** that instruments the drift *before* patching, verifying the
+target accumulator is correct before committing to a fix. Each phase has its own gate;
+kill-switches route around expected failure modes without requiring mid-sprint re-planning.
+
+### Phased plan
+
+| Task | Purpose | Primary gate |
+|------|---------|--------------|
+| **T1 — Instrument** (#90) | Per-stage float32 residual dump on ST anchor at iter-1 | Identifies dominant drift source; G1 "mechanism fingered" |
+| **T2 — Kahan** (#91) | Kahan/Neumaier on the accumulator T1 fingers | G2: iter-1 drift reduces ≥10× on ST anchor |
+| **T3 — Measure** (#92) | 2-tier post-Kahan parity (ST anchor + LG-Mid + LG-Stress) | G3a/b/c per cell (see below) |
+| **T4a — ST remove** (#93) | Atomic ST+Cosine guard removal (3 languages + 2 tests) | G3a pass + 28/28 parity |
+| **T4b — LG remove** (#94) | Atomic LG+Cosine guard removal (3 languages + 2 tests) | G3b AND G3c pass + 28/28 parity |
+
+Secondary tracks (parallel):
+
+| Task | Purpose |
+|------|---------|
+| **T5 — CLI exit wrap** (#95) | SA-I2-S29 — `csv_train:main()` try/catch for exit(1) |
+| **T6 — Nits cleanup** (#96) | S29 CR items: N-1, N-2, N-3, SF-3 |
 
 ### Acceptance gates
 
-| Gate | Criterion |
-|------|-----------|
-| ST+Cosine 50-iter drift | ≤ 1% at N=50k |
-| LG+Cosine 50-iter drift | ≤ 1% at spike cell (N=1000, depth=3, max_leaves=8) |
-| Python parity suite | 28/28 PASS |
-| Guard removal grep | `grep -rn 'TODO-S29-(LG|ST)-COSINE'` returns zero matches post-commit |
+| ID | Gate | Criterion | Rationale |
+|----|------|-----------|-----------|
+| G1 | Mechanism fingered | T1 triage identifies one accumulator with residual > 10⁻⁵ at iter-1 | Proves a non-trivial error source exists and is locatable |
+| G2 | Mechanism targeted | iter-1 drift on ST anchor reduces ≥10× after Kahan applied | Tests the **lever's mechanism**, not aggregate drift proxy. Prevents DEC-028-style "kernel-ULP=0 ≠ full-path parity" trap |
+| G3a | ST envelope | ST+Cosine aggregate drift < 2% at 50-iter on S28 anchor cell | API-layer guard rationale dissolves |
+| G3b | LG-Mid envelope | LG+Cosine drift ratio ∈ [0.98, 1.02] at `N=1000, depth=6, max_leaves=31, 50-iter, seeds={42..46}` | t5-continuity for audit trail |
+| G3c | LG-Stress envelope | LG+Cosine drift ratio ∈ [0.98, 1.02] at `N=2000, depth=7, max_leaves=64, 100-iter, seeds={0,1,2}` | **Genuinely stresses priority-queue divergence surface** — 8× the contested-split density of S29 spike. Rules out outcome-B residual for production `max_leaves` regimes |
+| G4 | Parity | 28/28 `test_python_path_parity.py` hold after each Kahan + removal commit | No regression to L2 or DW+Cosine cells |
+| G5 | Perf | < 5% regression on Cosine cells in bench_boosting | Kahan adds ~2 flops per accumulation; acceptable overhead |
+| G6 | Guard-removal grep | `grep -rn 'TODO-S29-ST-COSINE'` → 0 (post T4a); `grep -rn 'TODO-S29-LG-COSINE'` → 0 (post T4b) | Single-point-of-removal invariant confirmed |
 
-### Cleanup scope
+### Kill-switches (pre-authorized)
 
-Four guard sites to remove atomically:
-1. `python/catboost_mlx/core.py:628-647` (`_validate_params` ValueError blocks)
-2. `catboost/mlx/train_api.cpp:25-51` (C++ nanobind entry guards)
-3. `catboost/mlx/tests/csv_train.cpp:241-267` (CLI ParseArgs guards)
-4. `tests/test_cli_guards.py` (4 test cases covering the above)
+- **K1 (T1 mechanism miss)**: if T1 triage shows the dominant error source is NOT `cosDen` (e.g., leaf-value sum or approx update dominates), do not port Kahan to `cosDen` blindly. Update T2 plan to target the actual source; T2 must still pass G2. Branch plan change is expected to be a source-swap, not a sprint-scope expansion.
+
+- **K2 (LG-Stress fails)**: if G3c fails but G3a + G3b pass, T4a lands (ST-only removal). T4b is skipped; LG guard stays; DEC-032 remains PARTIALLY CLOSED (LG side). File S31-LG-DEEP-RESIDUAL to re-examine outcome B. Sprint still ships ST closure as a real win.
+
+- **K3 (perf regression)**: if G5 fails by >5%, consult @performance-engineer before merging. Do not remove guards under perf regression.
+
+- **K4 (Metal auto-reassociation)**: if Metal compiler defeats the Kahan compensation term (auto-reassociation or `fast_math` aggressive optimization), fall back to double-precision for the denominator path. File DEC-036 documenting the CLAUDE.md "float32 for accumulation always" exception with full rationale. **Pre-authorized** — no user checkpoint required; just file DEC-036 at merge time.
+
+### Atomicity policy
+
+DEC-012 "one structural change per commit" interpreted as:
+- T4a = one structural change = "remove ST+Cosine combination guards across all entry points"
+- T4b = one structural change = "remove LG+Cosine combination guards across all entry points"
+
+Within each removal commit, all three language layers (Python + C++ nanobind + CLI) + their
+tests go together. Removing one language's guard without the others would recreate SA-H1
+(the vulnerability S29-CLI-GUARD closed).
+
+### Two-tier LG measurement rationale
+
+S29 spike verdict explicitly flagged: "With only 8 leaves the queue makes few contested
+choices; any latent ordering sensitivity would be more visible at 64+ leaves." LG-Stress
+(`max_leaves=64`) is designed to exercise that surface. Passing LG-Stress is necessary — not
+sufficient — to claim outcome-B residual is absent. Users running production LG with
+`max_leaves > 64` remain on their own warranty; our evidence covers up to 64.
+
+### Cleanup scope (post T4a+T4b)
+
+Four guard sites removed atomically per-combo:
+1. `python/catboost_mlx/core.py:628-647` (`_validate_params` ValueError blocks — 2 blocks, one per combo)
+2. `catboost/mlx/train_api.cpp:25-51` (C++ nanobind entry guards — 2 blocks, one per combo)
+3. `catboost/mlx/tests/csv_train.cpp:241-267` (CLI ParseArgs guards — 2 blocks, one per combo)
+4. `tests/test_cli_guards.py` (4 test cases — 2 per combo; if both T4a+T4b land, file may be deleted entirely)
 
 ### Conditional S31 follow-up
 
-If post-Kahan residual drift persists on deep LG cells (`depth>3`, `max_leaves>8`), open S31
-to re-examine outcome B (priority-queue ordering divergence). Do not pre-open S31; only open
-on post-Kahan evidence.
+Open S31-LG-DEEP-RESIDUAL only if K2 fires (G3c fails on `max_leaves=64` post-Kahan) or if
+post-merge evidence surfaces LG-specific drift at production-deep configs. Do not pre-open.
 
 ### Authority
 
 - DEC-034 outcome A: `docs/sprint29/lg-mechanism-spike/verdict.md`
-- ST+Cosine anchor: `docs/sprint28/fu-obliv-dispatch/t7-gate-report.md` (0.77% iter-1, ~47% iter-50)
-- LG+Cosine spike: `docs/sprint29/lg-mechanism-spike/data/iter1_drift.json` (0.0024% mean)
+- ST+Cosine anchor: `docs/sprint28/sprint-close.md` (0.77% iter-1, ~47% iter-50 aggregate drift)
+- LG+Cosine spike: `docs/sprint29/lg-mechanism-spike/data/iter1_drift.json` (0.0024% mean at shallow cell)
+- Phased-plan rationale: S30-00 kickoff commit (this commit)
+
+### Closure addendum (2026-04-24)
+
+S30 executed the full T1→T4 phased plan plus an extensive verification battery (D1/D2/D2-redux/D3/D4/V1/V2/V5/V6) after T3 failed G3a/G3b/G3c at the measurement layer. Key findings:
+
+| Phase | Gate | Result | Meaning |
+|-------|------|--------|---------|
+| T1 (#90) | G1 — mechanism fingered | PASS | cosDen fingered; residual 4.067e-3 at iter-1 |
+| T2 (#91) | G2 — ≥10× residual reduction | PASS (12.5×) | K4 fp64 widening applied at measurement layer |
+| T3 (#92) | G3a ST < 2% @ 50-iter | **FAIL (53.30%)** | Measurement-layer fix did not reach trajectory layer |
+| T3 (#92) | G3b LG-Mid ratio ∈ [0.98, 1.02] | FAIL (1.27–1.31) | LG did not converge either |
+| T3 (#92) | G3c LG-Stress | FAIL (1.44–1.45) | K2 pre-authorized kill-switch fired |
+| Fix 2 (#108) | Predicted ST drop toward DW floor | **FAIL (53.30% → 53.30%)** | L3/L4 gain cast + fp32 argmax not binding |
+| V6 (#109) | L1 histogram N-scaling | **FALSIFIED (b ≈ 0.0 across 100× N)** | Precision fix class exhausted |
+
+DEC-034 outcome A ("shared float32 joint-denominator compounding") is **partially falsified for ST** by V6's flat N-scaling (b=0.0017 across N ∈ {500, 1k, 5k, 10k, 25k, 50k}). A precision-compounding mechanism would produce scaling exponent b ≈ 1.0; b ≈ 0 indicates an N-independent structural divergence, not fp32 accumulation error.
+
+**Ships from S30:**
+- K4 fp64 widening of cosNum/cosDen accumulators (commits `108c7a59d2`-family)
+- Fix 2 fp64 widening of totalGain/bestGain/TBestSplitProperties::Gain/perturbedGain/TLeafCandidate::Gain (commits `90a0cb4475` + `364d4ee962`)
+- 13 verdict documents under `docs/sprint30/` (T1, T2, T3, D1, D2, D2-redux, D3, D4, V1, V2, V5, V6, Fix 2)
+- Guards unchanged at all three layers (Python `_validate_params`, `train_api.cpp:TrainConfigToInternal`, `csv_train.cpp:ParseArgs`) — both ST+Cosine and LG+Cosine remain rejected.
+
+Both K4 and Fix 2 are logically correct fixes that will become load-bearing once the structural mechanism is resolved; they remove precision floors that would otherwise re-surface. They are not wasted code.
+
+**Status transitions:**
+- DEC-035: ACTIVE → PARTIALLY CLOSED (precision fix class exhausted; atomicity clause and Kahan rationale preserved for reference)
+- DEC-034: RESOLVED (outcome A) → PARTIALLY FALSIFIED for ST (V6 N-scaling rules out pure precision mechanism); LG outcome-B confirmed dominant for LG (D3 verdict)
+- DEC-032: PARTIALLY CLOSED → STATUS UNCHANGED (LG and ST guards still in place)
+
+**Forward pointer:** DEC-036 opens the structural divergence investigation. S31 targets iter=1 split-selection audit as T1.
+
+---
+
+## DEC-036: ST+Cosine structural divergence — iter=1 algorithmic audit
+
+**Sprint**: 31 (kickoff 2026-04-24)
+**Date**: 2026-04-24
+**Status**: OPEN — investigation-phase; no mechanism identified yet
+**Authored by**: S30-CLOSE (orchestrator)
+
+### Context
+
+S30 exhausted the precision fix class for the ST+Cosine 53% aggregate drift:
+
+- **cosNum/cosDen accumulator** (K4): widened to fp64, measurement-layer 12.5× residual reduction, trajectory-layer no movement.
+- **Gain scalar + argmax** (Fix 2): widened `totalGain`, `bestGain`, `TBestSplitProperties::Gain`, `perturbedGain`, `TLeafCandidate::Gain` to `double`. ST drift bit-identical before/after: 53.30% → 53.30%.
+- **L0 histogram N-scaling** (V6): drift is N-independent (b ≈ 0 across 100× N range). Falsifies pure-precision class entirely. See `docs/sprint30/v6-n500-confirmer/verdict.md`.
+
+V6 rules out any fix that would scale drift linearly with N. That forecloses: fp64 histogram accumulation, Kahan/Neumaier on any cross-partition accumulator, widening statistics containers, quantization-border precision fixes, and any other "more precision in accumulators" class of fix.
+
+The remaining hypothesis class is **structural divergence**: CPU CatBoost and MLX compute different algorithms (different gain formula, different split enumeration, different candidate ordering, different argmax tie-break, different quantization borders, different basePred initialization, or different tree-construction nuance) that produce different split decisions regardless of precision.
+
+### Decision
+
+Open S31-ITER1-AUDIT. T1 is an **iter=1 split-selection comparison harness** that dumps, for each of the 6 tree layers on the S28 anchor cell, the winning `(feature_idx, bin_idx, gain)` from both CPU CatBoost and MLX. Compare layer-by-layer. The **first diverging layer names the mechanism class**:
+
+| First divergence at | Implied mechanism class |
+|---------------------|-------------------------|
+| Layer 0 (root split) | Cosine gain formula itself differs between CPU and MLX |
+| Layer 1–5 with same feature, different bin | Split-candidate enumeration or bin-boundary difference |
+| Layer 1–5 with different feature | Tie-break policy or gain ranking difference |
+| Any layer with same (feature, bin) but different gain value | Gain computation scale/normalization difference |
+| No divergence at iter=1, emerges later | Leaf-value estimation or approx update divergence (iter=2+ audit needed) |
+
+### Gates
+
+| ID | Gate | Criterion |
+|----|------|-----------|
+| G1 | Divergence localized | T1 audit identifies first diverging layer with file:line pointers to both CPU and MLX implementations |
+| G2 | Mechanism named | DEC-036 updated with specific mechanism class and CPU-vs-MLX algebraic difference |
+| G3 | Fix proposed | Concrete fix proposal with parity gate and falsifiable prediction |
+
+### Kill-switches (pre-authorized)
+
+- **K1 (no iter=1 divergence)**: if CPU and MLX produce bit-identical iter=1 split sequences, the mechanism emerges at iter≥2 (leaf values or approx update). Expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
+- **K2 (mechanism is an upstream gap)**: if the divergence is a missing MLX feature (e.g., MLX implements a different Cosine variant than CPU default), DEC-036 becomes scope for a **feature-port sprint**, not a precision sprint. Re-plan S31 as port work.
+
+### Authority
+
+- S30 closure addendum above (precision exhaustion rationale)
+- V6 verdict `docs/sprint30/v6-n500-confirmer/verdict.md` (N-scaling falsification)
+- Fix 2 verdict `docs/sprint30/fix2-fp64-gain/verdict.md` (L3/L4 exhaustion)
+- D4 verdict `docs/sprint30/d4-joint-denom/verdict.md` (accumulator exhaustion, 2.42× not 64×)
+- D1 audit `docs/sprint30/d1-cpu-audit/verdict.md` (CPU is fp64 end-to-end — bit-parity in fp32 MLX is unreachable; closest achievable is algorithmic equivalence modulo fp32 ULP)

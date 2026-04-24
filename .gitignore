@@ -117,6 +117,8 @@ QA_FIXES_TODO.md
 /csv_train_s18_profiled
 /csv_train_ref
 /csv_train_sprint19a
+/csv_train_*
+/csv_predict_*
 python/catboost_mlx/bin/
 python/.claude/
 

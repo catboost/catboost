@@ -1,15 +1,16 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-23 (Sprint 29 CLOSED — DEC-034 resolved outcome A; S30-COSINE-KAHAN queued; branch `mlx/sprint-29-dec032-closeout` tip `fa7f9b55fc`).
+> Last header refresh: 2026-04-24 (Sprint 30 CLOSING — precision fix class exhausted; S31 KICKOFF prepped on iter=1 structural audit).
 
-## Current state (2026-04-23)
+## Current state (2026-04-24)
 
-- **Active branch**: none — S29 CLOSED. Next session opens `mlx/sprint-30-cosine-kahan` from master after S29 PR merges.
-- **Base**: master `987da0e7d5` (S28 merge commit). S29 tip `fa7f9b55fc`.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only** — kernel sources untouched through S28 and S29.
-- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged. S29 is correctness-only.
-- **Open PRs**: S28 PR + S29 PR — human-triggered (not yet opened). DEC-027 (alternative accumulation) remains deferred.
+- **Active branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`). Cut from master `4d855d47db` (S29 PR #27 merge).
+- **Base**: master `4d855d47db` (S29 merge commit).
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only**. S30 widened two scalar types (gain + accumulators) outside the v5 kernel; kernel sources untouched.
+- **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
+- **Open PRs**: none. S28 + S29 merged. DEC-027 (alternative accumulation) remains deferred. S30 PR #28 to be opened at close.
+- **New DEC**: DEC-036 OPEN — structural divergence investigation; S31 T1 is an iter=1 algorithmic audit.
 
 ---
 
@@ -50,27 +51,88 @@
 
 ---
 
-## Sprint 30 — S30-COSINE-KAHAN + S30-CLI-EXIT-WRAP (PENDING — next session)
+## Sprint 30 — S30-COSINE-KAHAN — CLOSING 2026-04-24
 
-**Branch**: `mlx/sprint-30-cosine-kahan` (to be cut from master after S29 PR merges)
-**Basis**: DEC-034 outcome A (shared mechanism); DEC-035 DRAFT.
-**Rationale**: S29 confirmed LG+Cosine and ST+Cosine share the same float32 joint-Cosine
-denominator compounding. A single Kahan/Neumaier fix closes both. Guards removed atomically
-once parity gates pass.
+**Branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`)
+**Basis**: DEC-034 outcome A (moderate confidence); DEC-035 executed in full.
+**Outcome**: Precision fix class exhausted across 13 verdict docs. K4 + Fix 2 ship as proper (logically correct) fixes that remove precision floors; both ST and LG guards remain in place. DEC-036 opens structural divergence investigation for S31.
 
-### Primary track
+### Primary track — executed
 
-- [ ] **#90 S30-COSINE-KAHAN** — Apply Kahan/Neumaier compensated summation to shared float32 joint-Cosine denominator accumulator in `ComputeCosineGainKDim`. Gate both `ST+Cosine` (≤1% 50-iter at N=50k) and `LG+Cosine` (≤1% 50-iter at spike cell). Remove all guards atomically in one commit when both parity gates pass. Cleanup: `grep -rn 'TODO-S29-(LG|ST)-COSINE'` must return zero after commit. Owner: @ml-engineer
+- [x] **#90 S30-T1-INSTRUMENT** — cosDen fingered; residual 4.067e-3 at iter-1 on ST anchor. Verdict: `docs/sprint30/t1-instrument/verdict.md`. — @ml-engineer
+- [x] **#91 S30-T2-KAHAN** — Kahan/Neumaier applied; K4 fired → fp64 widening of cosNum/cosDen. 12.5× measurement-layer reduction. Verdict: `docs/sprint30/t2-kahan/verdict.md`. — @ml-engineer
+- [x] **#92 S30-T3-MEASURE** — ALL PRIMARY GATES FAIL: G3a 53.3%, G3b 1.27–1.31, G3c 1.44–1.45, G4 PASS, G5 FAIL. Verdict: `docs/sprint30/t3-measure/verdict.md`. — @qa-engineer
+- [>] **#93 S30-T4a-ST-REMOVE** — **DEFERRED post-S30**. Mechanism not fixed; guard stays. — @ml-engineer
+- [>] **#94 S30-T4b-LG-REMOVE** — **DEFERRED post-S30**. D3 confirmed outcome B mechanism for LG in addition to ST's mechanism. — @ml-engineer
 
-- [ ] **#91 S30-COSINE-KAHAN-GATE** — Parity verification: 28/28 suite + ST+Cosine 50-iter ≤1% at N=50k + LG+Cosine 50-iter ≤1% at spike cell. **Blocked by #90.** Owner: @qa-engineer
+### Diagnostic battery (D1–D4) — executed after T3 failure
 
-### Secondary track
+- [x] **#100 S30-D1-CPU-COSINE-AUDIT** — CPU is fp64 throughout; `__m128d` hardware commit with `static_assert`. Verdict: `docs/sprint30/d1-cpu-audit/verdict.md`. — @research-scientist
+- [x] **#101 S30-D2-FULL-STACK-INSTRUMENT** — Stack instrumentation initially ruled out L3/L4 (0/18 flips). Later invalidated by V2 audit. Verdict: `docs/sprint30/d2-stack-instrument/verdict.md`. — @ml-engineer
+- [x] **#102 S30-D3-LG-OUTCOME-AB** — Outcome B confirmed for LG (priority-queue divergence). Flip rate 0.11 → 0.81 across `max_leaves ∈ {8, 16, 31, 64}`, 0/12 trees bit-identical. Verdict: `docs/sprint30/d3-lg-outcome-ab/verdict.md`. — @research-scientist
 
-- [ ] **#92 S30-CLI-EXIT-WRAP** — Add top-level `try { ... } catch (const std::invalid_argument& e) { fprintf(stderr, "%s\n", e.what()); return 1; }` in `csv_train.cpp:main()`. Replaces SIGABRT(134) with graceful `exit(1)`. Tests already assert `returncode != 0` — no test changes needed. SA-I2-S29 remediation. Owner: @ml-engineer
+### Verification battery (V1, V2, V5, V6, D4, D2-redux, Fix 2) — executed after D1–D3
 
-### Conditional future track
+- [x] **#103 S30-V1-DRIFT-VS-N** — L0-scaling FALSIFIED (b = 0.0017 across N ∈ {1k..50k}). Verdict: `docs/sprint30/v1-drift-vs-n/verdict.md`. — @ml-engineer
+- [x] **#104 S30-V2-D2-METHOD-AUDIT** — D2 L3/L4 methodology BIASED (gain_f32 and gain_f64 both derived from same fp64). Verdict: `docs/sprint30/v2-d2-audit/verdict.md`. — @research-scientist
+- [x] **#105 S30-V5-DW-AT-SCALE** — DW@50k 6.33%, ST@50k 53.30%; 8.4× gap unexplained by L0 alone. Verdict: `docs/sprint30/v5-dw-at-scale/verdict.md`. — @ml-engineer
+- [x] **#106 S30-D2-REDUX** — Honest fp32 shadow at `csv_train.cpp:1523-1548`. L3/L4 RULED OUT (5.03e-5 residual, 0/18 flips). Verdict: `docs/sprint30/d2-redux/verdict.md`. — @ml-engineer
+- [x] **#107 S30-D4-JOINT-DENOM** — V5 64× amplification hypothesis FALSIFIED (measured 2.42×). Verdict: `docs/sprint30/d4-joint-denom/verdict.md`. Commit `7245099659`. — @ml-engineer
+- [x] **#108 S30-FIX2-FP64-GAIN** — Widened `totalGain`, `bestGain`, `TBestSplitProperties::Gain`, `perturbedGain`, `TLeafCandidate::Gain` to `double`. ST drift 53.30% → 53.30% (prediction failed). Verdict: `docs/sprint30/fix2-fp64-gain/verdict.md`. Commits `90a0cb4475` + `364d4ee962`. — @ml-engineer
+- [x] **#109 S30-V6-N500-L1-CONFIRMER** — L1 hypothesis FALSIFIED. Drift flat 50.72% @ N=500 → 53.30% @ N=50k (b ≈ 0 across 100× N range). Verdict: `docs/sprint30/v6-n500-confirmer/verdict.md`. Commit `187a5e661f`. — @ml-engineer
 
-- [ ] **#93 S31-LG-DEEP-RESIDUAL** — **CONDITIONAL, BLOCKED by #91.** Open only if post-Kahan drift persists on deep LG cells (`depth>3`, `max_leaves>8`). Do not pre-open. Re-examine outcome B only on evidence. Owner: TBD
+### Secondary track — carried to close
+
+- [ ] **#95 S30-T5-CLI-EXIT-WRAP** — `try/catch` in `csv_train:main()` for graceful `exit(1)` (SA-I2-S29). Can bundle into S30 close OR defer to S31-T-cleanup. Owner: @ml-engineer
+- [ ] **#96 S30-T6-CLEANUP** — S29 CR residuals (N-1, N-2, N-3, SF-3) landed as atomic commits per DEC-012. Can bundle into S30 close OR defer to S31-T-cleanup. Owner: @ml-engineer
+
+### Quality gates (end-of-sprint)
+
+- [ ] **#97 S30-CR** — Code review of K4 + Fix 2 + instrumentation (commits `108c7a59d2`-family, `90a0cb4475`, `364d4ee962`, and all verdict-only commits). **Blocked by #95, #96 decisions.** Owner: @code-reviewer
+- [ ] **#98 S30-SA** — Security audit: confirm guards intact at all three layers (Python + C++ nanobind + CLI); SA-H1 surface still closed; no secrets; no unsafe casts in K4 fp64 widening. **Blocked by #95 decision.** Owner: @security-auditor
+- [ ] **#99 S30-CLOSE** — Sprint close doc `docs/sprint30/sprint-close.md` with full T1→T4 + D1–D4 + V1–V6 + Fix 2 chain of evidence; DEC-035 PARTIALLY CLOSED; DEC-036 OPEN; DEC-034 partially falsified for ST. PR #28 opened (human-triggered). **Blocked by #97, #98.** Owner: @technical-writer
+
+### Kill-switches (triggered)
+
+- **K1 (T1 mechanism miss)**: not triggered — T1 fingered cosDen correctly.
+- **K2 (LG-Stress fail)**: **FIRED** at T3 G3c (1.44–1.45 vs [0.98, 1.02]). T4b deferred to post-S31.
+- **K3 (perf regression)**: not measured past T3 failure.
+- **K4 (Metal auto-reassociation)**: **FIRED** at T2. Fp64 denominator fallback applied (see DEC-035 closure addendum).
+
+---
+
+## Sprint 31 — ITER1-AUDIT — KICKOFF (pending S30 PR #28 merge)
+
+**Branch**: `mlx/sprint-31-iter1-audit` (to be cut from S30 merge tip)
+**Basis**: DEC-036 — structural divergence investigation; precision class exhausted in S30.
+**Rationale**: V6 ruled out all precision-class fixes via flat N-scaling (b ≈ 0 across 100× N range). ST+Cosine 53% aggregate drift must come from **algorithmic divergence** between CPU and MLX, not fp32 accumulation. T1 iter=1 split-selection audit localizes which layer first disagrees; the first diverging layer names the mechanism class (see DEC-036 table).
+
+### Primary track — T1 audit → mechanism fix
+
+- [ ] **S31-T1-ITER1-AUDIT** — Build iter=1 split-selection comparison harness. For each of the 6 tree layers on S28 anchor cell, dump winning `(feature_idx, bin_idx, gain)` from both CPU CatBoost and MLX (seeds 42–46). Locate first diverging layer. Deliverable: `docs/sprint31/t1-audit/verdict.md` naming the mechanism class per DEC-036 table. Gate: **G1 — divergence localized with file:line pointers on both sides**. Owner: @ml-engineer (or @research-scientist if mechanism class is algebraic/formula)
+
+- [ ] **S31-T2-MECHANISM-FIX** — Design and implement the fix for the identified mechanism class. Concrete fix + parity gate + falsifiable prediction. **Blocked by T1.** Owner: depends on mechanism class
+
+- [ ] **S31-T3-MEASURE** — Re-run T3 gate matrix (G3a, G3b, G3c) post-fix. **Blocked by T2.** Owner: @qa-engineer
+
+- [ ] **S31-T4a-ST-REMOVE** — Reopened from S30 #93 if T3 G3a passes. Atomic removal across Python + C++ nanobind + CLI + tests. **Blocked by S31-T3 G3a.** Owner: @ml-engineer
+
+- [ ] **S31-T4b-LG-REMOVE** — Reopened from S30 #94 if T3 G3b AND G3c pass. **Blocked by S31-T3 G3b + G3c.** Owner: @ml-engineer
+
+### Secondary track — carry-forward if not bundled into S30 close
+
+- [ ] **S31-T-CLEANUP** — S30 #95 CLI exit wrap + S30 #96 S29 CR residuals, if not landed in S30 close. Owner: @ml-engineer
+
+### Quality gates (end-of-sprint)
+
+- [ ] **S31-CR** — Code review. Owner: @code-reviewer
+- [ ] **S31-SA** — Security audit. Owner: @security-auditor
+- [ ] **S31-CLOSE** — Sprint close + DEC-036 status transition + DEC-032 status transition (conditional on guard removal). Owner: @technical-writer
+
+### Kill-switches (pre-authorized per DEC-036)
+
+- **K1 (no iter=1 divergence)**: CPU and MLX produce bit-identical iter=1 split sequences → expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
+- **K2 (feature-port gap)**: divergence is a missing MLX feature (e.g., different Cosine variant) → S31 re-plans as port work, not a precision/structural sprint.
 
 ---
 

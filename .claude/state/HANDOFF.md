@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-23 (Sprint 29 CLOSED — DEC-032 SA-H1 closed; DEC-034 resolved outcome A; S30-COSINE-KAHAN queued)
+> Last updated: 2026-04-24 (Sprint 30 CLOSING — precision fix class exhausted; S31 KICKOFF on iter=1 structural audit)
 
 ## Current state
 
-- **Active sprint**: None. Sprint 29 CLOSED 2026-04-23. Next session opens S30.
-- **Campaign**: Post-Verstappen correctness. DEC-032 still PARTIALLY CLOSED — SA-H1 is closed (guards at all three layers), but LG+Cosine and ST+Cosine remain guarded pending S30-COSINE-KAHAN. R8 stays at 1.01× through S29 (correctness-only).
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched throughout S28 and S29.
-- **Open PRs**: S28 PR + S29 PR — both human-triggered (not yet opened by agents).
+- **Active sprint**: Sprint 30 closing; Sprint 31 kickoff pending after S30 PR lands. Branch `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`).
+- **Campaign**: Post-Verstappen correctness. DEC-032 PARTIALLY CLOSED — SA-H1 closed (guards at all three layers), LG+Cosine and ST+Cosine remain guarded. S30 shipped K4 (fp64 cosNum/cosDen) and Fix 2 (fp64 gain/argmax) but did NOT close ST drift — V6 falsified the entire precision fix class (N-scaling exponent b ≈ 0). DEC-036 opens structural divergence investigation for S31. R8 at 1.01× — correctness-only.
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
+- **Open PRs**: none. S28 + S29 merged 2026-04-23.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
@@ -75,23 +75,72 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 
 28/28 PASS at `b9577067ef`. Unchanged at `e0b0b1b527`.
 
-## Sprint 30 — Entry Points (NEXT SESSION)
+## Sprint 30 — S30-COSINE-KAHAN — CLOSING 2026-04-24
 
-**Primary task**: S30-COSINE-KAHAN — apply Kahan/Neumaier to shared float32 joint-Cosine
-denominator accumulator in `ComputeCosineGainKDim`; gate both ST+Cosine and LG+Cosine parity;
-remove all guards atomically (`grep -rn 'TODO-S29-(LG|ST)-COSINE'` gives the checklist).
+**Branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`). Cut from master `4d855d47db` (S29 PR #27 merge).
+**Basis**: DEC-034 outcome A (moderate confidence); DEC-035 executed in full (phased plan + full verification battery).
+**Outcome**: Precision fix class exhausted. Two proper fixes shipped (K4 + Fix 2); ST/LG guards remain in place. DEC-036 opens structural divergence investigation for S31.
 
-**Secondary task**: S30-CLI-EXIT-WRAP — add top-level try/catch in `csv_train.cpp:main()` to
-normalize guard exits to `exit(1)` instead of SIGABRT(134).
+### Executed phases
 
-**Conditional S31**: S31-LG-DEEP-RESIDUAL — open only if post-Kahan drift persists on deep
-LG cells (depth>3, max_leaves>8). Do not pre-open.
+| Phase | Task | Gate | Result |
+|-------|------|------|--------|
+| T1 | #90 INSTRUMENT | G1 mechanism fingered | PASS (cosDen, residual 4.067e-3) |
+| T2 | #91 KAHAN | G2 ≥10× residual reduction | PASS (12.5×); K4 fired → fp64 widening |
+| T3 | #92 MEASURE | G3a/G3b/G3c 2-tier envelope | **FAIL** (53.30% ST; K2 fired) |
+| D1 | #100 CPU AUDIT | CPU precision baseline | CPU is fp64 throughout (static_assert `__m128d`) |
+| D2 | #101 FULL-STACK | Locate binding layer | Initially ruled out L3/L4; V2 later invalidated the methodology |
+| D2-redux | #106 FIX METHODOLOGY | Honest L3/L4 measurement | L3/L4 RULED OUT (5.03e-5 residual, 0/18 flips) |
+| D3 | #102 LG OUTCOME A/B | Discriminate LG path | Outcome B confirmed for LG (priority-queue divergence) |
+| D4 | #107 JOINT-DENOM 64× | V5 amplification hypothesis | FALSIFIED (measured 2.42×, not 64×) |
+| V1 | #103 N-SCALING | L0 precision-class predictor | FLAT — exponent b = 0.0017 |
+| V5 | #105 DW @ 50k | Isolate ST-specific mechanism | MIXED — L0 real but 8.4× DW/ST gap unexplained |
+| V6 | #109 N=500 CONFIRMER | Cheap L1 falsification | **L1 FALSIFIED** — drift 50.72% at N=500 vs 53.30% at N=50k (b ≈ 0 across 100× N range) |
+| Fix 2 | #108 FP64 GAIN | L3/L4 widening | SHIPPED; ST drift 53.30% → 53.30% (prediction failed cleanly) |
 
-**Basis**: DEC-034 outcome A; DEC-035 DRAFT. See TODOS.md #90–#93.
+### Ships from S30
+
+- **K4** — fp64 cosNum/cosDen accumulator widening (commit-family around `108c7a59d2`)
+- **Fix 2** — fp64 `totalGain`, `bestGain`, `TBestSplitProperties::Gain`, `perturbedGain`, `TLeafCandidate::Gain` (`90a0cb4475`, `364d4ee962`)
+- **13 verdict docs** under `docs/sprint30/` — full chain of evidence for precision-class exhaustion
+- **Instrumentation behind `COSINE_RESIDUAL_INSTRUMENT`** in `catboost/mlx/tests/csv_train.cpp` — retained for S31 audit reuse
+- **Guards unchanged** — Python + C++ nanobind + CLI all still reject `{ST,LG}+Cosine`
+
+### Does NOT ship
+
+- T4a (#93 ST-REMOVE) — deferred; mechanism not fixed
+- T4b (#94 LG-REMOVE) — deferred; additional outcome-B mechanism confirmed by D3
+- T5 (#95 CLI exit wrap) — carried to S30 close or S31 T-cleanup
+- T6 (#96 S29 CR nits) — carried to S30 close or S31 T-cleanup
+
+### Close-out tasks (pending)
+
+- #97 S30-CR — code review of K4 + Fix 2 + instrumentation
+- #98 S30-SA — security audit (guards still in place, no regression surface)
+- #99 S30-CLOSE — sprint close doc + DEC-035 closure + DEC-036 open + PR #28
+
+---
+
+## Sprint 31 — ITER1-AUDIT — KICKOFF (pending S30 close)
+
+**Branch**: `mlx/sprint-31-iter1-audit` (to be cut from S30 merge tip)
+**Basis**: DEC-036 (structural divergence — precision class exhausted in S30)
+
+### Entry point
+
+Spawn @ml-engineer (or @research-scientist) on **S31-T1-ITER1-AUDIT**:
+- Build an iter=1 split-selection comparison harness that dumps `(feature_idx, bin_idx, gain)` per tree layer from BOTH CPU CatBoost and MLX on the S28 anchor cell.
+- Compare layer-by-layer. Locate the first diverging layer.
+- Deliver `docs/sprint31/t1-audit/verdict.md` naming the mechanism class (see DEC-036 table).
+
+### Kill-switches (pre-authorized per DEC-036)
+
+- **K1 (no iter=1 divergence)**: expand to iter=2 leaf-value + approx-update audit.
+- **K2 (feature-port gap)**: MLX implements a different Cosine variant than CPU default → S31 re-plans as port work.
 
 ## PR state
 
-S28 PR + S29 PR: **ready to open (human-triggered)**. Do NOT open from agent-side.
+All S28 + S29 PRs merged. S30 PR #28 to be opened at sprint close.
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 

@@ -72,6 +72,134 @@
 #include <sstream>
 #endif
 
+// ============================================================================
+// S30-T1-INSTRUMENT: per-stage float32 residual instrumentation
+//
+// Compile-time gate: -DCOSINE_RESIDUAL_INSTRUMENT
+// Purpose: compute fp32 and fp64 accumulations in parallel at iter=0 (1-indexed
+//   iter=1) to measure which accumulator site dominates the observed ST+Cosine
+//   drift (DEC-034/DEC-035 T1 gate G1 deliverable).
+//
+// Accumulators measured:
+//   1. cosDen  — float32 joint-Cosine denominator in FindBestSplit (ordinal)
+//   2. cosNum  — float32 joint-Cosine numerator  in FindBestSplit (ordinal)
+//   3. gSums   — float32 per-leaf gradient sums (scatter_add_axis → Newton leaf value)
+//   4. cursorInc — float32 per-doc cursor increment (mx::take(leafValues, partitions))
+//
+// Output: CSV files in docs/sprint30/t1-instrument/data/ one file per site per seed.
+// DO NOT SHIP: instrumentation is evidence, not product code.
+//
+// S30-D2-INSTRUMENT extension: -DCOSINE_D2_INSTRUMENT (implies COSINE_RESIDUAL_INSTRUMENT)
+// Purpose: extend T1 instrumentation with dedicated gain_scalar CSVs for the D2
+//   full-stack residual + argmax-flip diagnostic (DEC-035 #101 task).
+// Additional output schema:
+//   gain_scalar_seedN.csv  — per (feat, bin) gain_f32, gain_f64, gain_abs_residual
+//   leaf_sum_seedN.csv     — same as T1/T2 leaf_sum (reused; written to D2 data dir)
+// Argmax flip CSVs are computed by the Python post-processor run_d2_instrument.py
+//   from the gain_scalar CSVs (no second pass through FindBestSplit needed).
+// Output directory: docs/sprint30/d2-stack-instrument/data/ (overridable via
+//   COSINE_RESIDUAL_OUTDIR env var, same as T1/T2).
+// ============================================================================
+#ifdef COSINE_D2_INSTRUMENT
+// D2 implies T1/T2 instrument paths — enable the base flag automatically
+#  ifndef COSINE_RESIDUAL_INSTRUMENT
+#    define COSINE_RESIDUAL_INSTRUMENT
+#  endif
+#endif
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+#include <filesystem>
+#include <cassert>
+
+struct TCosineResidualInstrument {
+    // Output directory — set at startup from argv[0] parent + relative path
+    std::string outDir;
+
+    // Active flag: dump only at iter==0 (1-indexed iter=1), cleared after first dump
+    bool dumpCosDen = false;   // set true just before FindBestSplit call at iter=0
+    bool dumpLeaf   = false;   // set true just before leaf-value computation at iter=0
+    bool dumpApprox = false;   // set true just before approx-update at iter=0
+
+    // Seed label written into filenames so multi-seed runs produce distinct files
+    int seed = 0;
+
+    // Accumulation vectors for cosDen/cosNum double shadows (per bin candidate across all p*k)
+    // Filled inside FindBestSplit ordinal branch; written to CSV after FindBestSplit returns.
+    struct TBinRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        float  cosNum_f32;
+        double cosNum_f64;
+        float  cosDen_f32;
+        double cosDen_f64;
+        float  gain_f32;    // D2-redux: true pre-K4 fp32 gain path: float(cosNum_f32_shadow / sqrtf(cosDen_f32_shadow))
+        double gain_f64;    // true fp64 gain path: cosNum_d / sqrt(cosDen_d)
+    };
+    std::vector<TBinRecord> binRecords;  // populated inside FindBestSplit, flushed after return
+};
+
+// Global singleton — zero-overhead when not compiled in
+static TCosineResidualInstrument g_cosInstr;
+
+// Write a vector of bin records (cosDen/cosNum) to CSV
+static void WriteCosAccumCSV(const std::string& path,
+                              const std::vector<TCosineResidualInstrument::TBinRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "featIdx,bin,cosNum_f32,cosNum_f64,cosNum_abs_residual,"
+               "cosDen_f32,cosDen_f64,cosDen_abs_residual,"
+               "gain_f32,gain_f64,gain_abs_residual\n");
+    for (const auto& r : rows) {
+        double numRes  = std::fabs(static_cast<double>(r.cosNum_f32) - r.cosNum_f64);
+        double denRes  = std::fabs(static_cast<double>(r.cosDen_f32) - r.cosDen_f64);
+        double gainRes = std::fabs(static_cast<double>(r.gain_f32)   - r.gain_f64);
+        fprintf(f, "%u,%u,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e\n",
+                r.featIdx, r.bin,
+                static_cast<double>(r.cosNum_f32), r.cosNum_f64, numRes,
+                static_cast<double>(r.cosDen_f32), r.cosDen_f64, denRes,
+                static_cast<double>(r.gain_f32),   r.gain_f64,   gainRes);
+    }
+    fclose(f);
+    fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+
+#ifdef COSINE_D2_INSTRUMENT
+// S30-D2-INSTRUMENT: write gain_scalar CSV — subset of cos_accum with only gain columns.
+// Schema matches task #101 spec: feat_idx, bin, gain_f32, gain_f64, gain_abs_residual.
+// This is the M1 (L3) measurement: post-cast gain scalar residual for every split candidate.
+static void WriteGainScalarCSV(const std::string& path,
+                                const std::vector<TCosineResidualInstrument::TBinRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[D2] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "feat_idx,bin,gain_f32,gain_f64,gain_abs_residual\n");
+    for (const auto& r : rows) {
+        double gainRes = std::fabs(static_cast<double>(r.gain_f32) - r.gain_f64);
+        fprintf(f, "%u,%u,%.10g,%.15g,%.6e\n",
+                r.featIdx, r.bin,
+                static_cast<double>(r.gain_f32), r.gain_f64, gainRes);
+    }
+    fclose(f);
+    fprintf(stderr, "[D2] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+#endif  // COSINE_D2_INSTRUMENT
+
+// Summarise residuals to stderr for quick gate evaluation
+static void PrintResidualSummary(const char* label,
+                                  const std::vector<double>& residuals) {
+    if (residuals.empty()) { fprintf(stderr, "[INSTR] %s: (empty)\n", label); return; }
+    double maxR = 0, sumR = 0;
+    for (double r : residuals) { if (r > maxR) maxR = r; sumR += r; }
+    // 99th percentile
+    std::vector<double> sorted = residuals;
+    std::sort(sorted.begin(), sorted.end());
+    double p99 = sorted[static_cast<size_t>(0.99 * (sorted.size() - 1))];
+    fprintf(stderr, "[INSTR] %s: n=%zu  max=%.4e  mean=%.4e  p99=%.4e\n",
+            label, residuals.size(), maxR, sumR / residuals.size(), p99);
+}
+#endif  // COSINE_RESIDUAL_INSTRUMENT
+
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 
@@ -93,7 +221,12 @@ struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
     float Score = 1e30f;
-    float Gain = 1e30f;
+    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+    // CPU CatBoost holds bestGain / Gain as double throughout FindBestSplit.
+    // With gain ≈ 104 the fp32 ULP is ~1.2e-5; the top-10 bins cluster within
+    // ~0.006, so the fp32 argmax is underdetermined.  double reduces the ULP
+    // to ~2e-14, making the argmax deterministic and CPU-matching.
+    double Gain = 1e30;
     bool Defined() const { return FeatureId != static_cast<ui32>(-1); }
 };
 
@@ -241,6 +374,10 @@ TConfig ParseArgs(int argc, char** argv) {
     // S28-LG-GUARD (CLI defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
     // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    // S30-T3-MEASURE: guard bypassed in T3-measure builds so post-Kahan LG parity can be
+    // measured (G3b LG-Mid and G3c LG-Stress).  The TODO-S29-LG-COSINE-RCA marker is preserved
+    // for T4b grep gate.  COSINE_T3_MEASURE MUST NOT be used in production builds.
+#ifndef COSINE_T3_MEASURE
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "Lossguide") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='Lossguide' is not supported "
@@ -251,9 +388,14 @@ TConfig ParseArgs(int argc, char** argv) {
             "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
         );
     }
+#endif  // !COSINE_T3_MEASURE
     // S28-ST-GUARD (CLI defense-in-depth): Cosine+SymmetricTree combination rejected until S29 Kahan fix.
     // Mirrors python/catboost_mlx/core.py:638-647 verbatim so TODO markers stay greppable
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    // S30-T1-INSTRUMENT: guard bypassed in instrumented builds so the drift can be measured.
+    // S30-T3-MEASURE: guard also bypassed in T3-measure builds for G3a post-Kahan parity.
+    // The TODO-S29-ST-COSINE-KAHAN marker is preserved for T4a grep gate.
+#if !defined(COSINE_RESIDUAL_INSTRUMENT) && !defined(COSINE_T3_MEASURE)
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
@@ -265,6 +407,7 @@ TConfig ParseArgs(int argc, char** argv) {
             "'Depthwise' for Cosine."
         );
     }
+#endif  // !COSINE_RESIDUAL_INSTRUMENT && !COSINE_T3_MEASURE
     return config;
 }
 
@@ -1085,7 +1228,8 @@ TBestSplitProperties FindBestSplit(
 ) {
     TBestSplitProperties bestSplit;
     const ui32 K = perDimHist.size();
-    float bestGain = -std::numeric_limits<float>::infinity();
+    // Fix 2 (S30-COSINE-KAHAN): widen argmax accumulator to double.
+    double bestGain = -std::numeric_limits<double>::infinity();
 
 #ifdef CATBOOST_MLX_DEBUG_LEAF
     // P11/P13: accumulate all candidates for top-10 report at depth=0, iter=0
@@ -1127,11 +1271,22 @@ TBestSplitProperties FindBestSplit(
         if (feat.OneHotFeature) {
             // ── OneHot: each bin is independent, no suffix sums needed ──
             for (ui32 bin = 0; bin < feat.Folds; ++bin) {
-                float totalGain = 0.0f;
+                // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                // L2 path accumulates directly into totalGain; Cosine path finalizes via
+                // cosNum_d/sqrt(cosDen_d) and stores without cast.  Keeps the argmax in
+                // double throughout, matching CPU CatBoost's double bestGain.
+                double totalGain = 0.0;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims,
                 // then finalize once per bin (matches CPU AddLeafPlain multi-partition loop).
-                float cosNum = 0.0f;
-                float cosDen = 1e-20f;  // guard against sqrt(0)
+                // S30-T2-KAHAN K4: accumulate cosNum/cosDen in double to eliminate per-term
+                // float32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                // The per-term expression (sL^2*invL + sR^2*invR) has ~1e-3 fp32 rounding
+                // intrinsic to float32 arithmetic on these magnitudes — Neumaier only compensates
+                // summation rounding; the terms themselves must be widened.  Convert back to
+                // float only at ComputeCosineGainKDim call.  Memory cost: 2 doubles per bin
+                // candidate (16 bytes) vs 2 floats (8 bytes) — negligible at 2540 bins.
+                double cosNum_d = 0.0;
+                double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
 
                 if (minDataInLeaf > 1 && !countHist.empty()) {
                     bool anyViolates = false;
@@ -1166,13 +1321,17 @@ TBestSplitProperties FindBestSplit(
                                            - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-(p,k) contributions; finalized after both loops.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL    = static_cast<double>(sumLeft);
+                                const double dSR    = static_cast<double>(sumRight);
+                                const double dWL    = static_cast<double>(weightLeft);
+                                const double dWR    = static_cast<double>(weightRight);
+                                const double dL2    = static_cast<double>(l2RegLambda);
+                                const double dInvL  = 1.0 / (dWL + dL2);
+                                const double dInvR  = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1182,26 +1341,31 @@ TBestSplitProperties FindBestSplit(
                 }
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                    // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                    // K4 widened the accumulators (cosNum_d, cosDen_d) to double.  Fix 2 removes
+                    // the static_cast<float> here so that totalGain stays double through the argmax
+                    // comparison, matching CPU CatBoost's double bestGain/totalGain end-to-end.
+                    totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
 
                 // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
+                // Fix 2: perturbedGain is double; noiseScale*noiseDist(*rng) is float → promoted.
+                double perturbedGain = totalGain;
                 if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
+                    perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                 }
                 if (perturbedGain > bestGain) {
                     bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
+                    bestSplit.Score = static_cast<float>(-totalGain);
                 }
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
                     TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = static_cast<float>(totalGain);
                     if (numPartitions > 0 && K > 0) {
                         const float* hd0 = perDimHist[0].data() + 0 * 2 * totalBinFeatures;
                         cand.sumR = hd0[feat.FirstFoldIndex + bin];
@@ -1257,11 +1421,20 @@ TBestSplitProperties FindBestSplit(
                             && monotoneConstraints[featIdx] != 0;
 
             for (ui32 bin = 0; bin < folds; ++bin) {
-                float totalGain = 0.0f;
+                // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                double totalGain = 0.0;
                 bool violatesConstraint = false;
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
-                float cosNum = 0.0f;
-                float cosDen = 1e-20f;  // guard against sqrt(0)
+                // S30-T2-KAHAN K4: accumulate in double; Fix 2 removes the cast at finalization.
+                double cosNum_d = 0.0;
+                double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T2: parallel float32 shadow accumulators for residual comparison.
+                // These mirror the pre-K4 float32 accumulation.  The residual reported in the
+                // CSV is |cosNum_f32_shadow - cosNum_d|, showing the actual K4 improvement.
+                float cosNum_f32_shadow = 0.0f;
+                float cosDen_f32_shadow = 1e-20f;
+#endif
 
                 // Min-data-in-leaf check using precomputed suffix sums
                 if (minDataInLeaf > 1 && !suffCount.empty()) {
@@ -1318,13 +1491,31 @@ TBestSplitProperties FindBestSplit(
                                            - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-(p,k) contributions; finalized after both loops.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen to double before computing per-(p,k) terms.
+                                // This eliminates the ~1e-3 per-term fp32 computation error that
+                                // float32 Neumaier compensation could not reach.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                                // S30-T2: parallel float32 shadow accumulation for residual comparison.
+                                // Accumulates the same terms in float32 to show the pre-K4 precision.
+                                if (g_cosInstr.dumpCosDen) {
+                                    const float invLf = 1.0f / (weightLeft  + l2RegLambda);
+                                    const float invRf = 1.0f / (weightRight + l2RegLambda);
+                                    cosNum_f32_shadow += sumLeft  * sumLeft  * invLf
+                                                       + sumRight * sumRight * invRf;
+                                    cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf
+                                                       + sumRight * sumRight * weightRight * invRf * invRf;
+                                }
+#endif
                                 break;
                             }
                             default:
@@ -1335,28 +1526,56 @@ TBestSplitProperties FindBestSplit(
 
                 // Finalize Cosine score after all partitions and dims are accumulated.
                 if (scoreFunction == EScoreFunction::Cosine) {
-                    totalGain = ComputeCosineGainKDim(cosNum, cosDen);
+                    // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                    totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // D2-redux: record per-bin residual for cosDen/cosNum/gain with CORRECTED methodology.
+                // gain_f32 is now computed from the true pre-K4 fp32 shadow accumulators, NEVER
+                // touching cosNum_d/cosDen_d.  This is what V2 audit required: the fp32 path must
+                // use only float arithmetic end-to-end.
+                // gain_f64 is the true fp64 path: cosNum_d / sqrt(cosDen_d).
+                // Residual = |gain_f32 - gain_f64| measures fp32 accumulation path divergence,
+                // NOT the float-cast ULP of a single fp64 value (which was D2's bias).
+                if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine) {
+                    double gain_f64_ref = cosNum_d / std::sqrt(cosDen_d);
+                    // D2-redux: true pre-K4 fp32 gain — computed entirely from float32 shadows,
+                    // sqrtf in float, division in float.  This is the path the code took before K4.
+                    float gain_f32_path = static_cast<float>(
+                        cosNum_f32_shadow / std::sqrtf(cosDen_f32_shadow));
+                    TCosineResidualInstrument::TBinRecord rec;
+                    rec.featIdx    = featIdx;
+                    rec.bin        = bin;
+                    rec.cosNum_f32 = cosNum_f32_shadow;
+                    rec.cosNum_f64 = cosNum_d;
+                    rec.cosDen_f32 = cosDen_f32_shadow;
+                    rec.cosDen_f64 = cosDen_d;
+                    rec.gain_f32   = gain_f32_path;   // true pre-K4 fp32 path
+                    rec.gain_f64   = gain_f64_ref;    // true fp64 path
+                    g_cosInstr.binRecords.push_back(rec);
+                }
+#endif
 
                 if (violatesConstraint) continue;
 
                 // Add random perturbation to prevent overfitting
-                float perturbedGain = totalGain;
+                // Fix 2: perturbedGain is double; float noise is promoted to double.
+                double perturbedGain = totalGain;
                 if (noiseScale > 0.0f) {
-                    perturbedGain += noiseScale * noiseDist(*rng);
+                    perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                 }
                 if (perturbedGain > bestGain) {
                     bestGain = perturbedGain;
                     bestSplit.FeatureId = featIdx;
                     bestSplit.BinId = bin;
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
-                    bestSplit.Score = -totalGain;
+                    bestSplit.Score = static_cast<float>(-totalGain);
                 }
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
                     TDbgCandidate cand;
-                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = totalGain;
+                    cand.featIdx = featIdx; cand.bin = bin; cand.gain = static_cast<float>(totalGain);
                     if (numPartitions > 0 && K > 0) {
                         size_t sbase = (0 * numPartitions + 0) * stride;
                         cand.sumR = suffGrad[sbase + bin];
@@ -1454,7 +1673,8 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
 ) {
     const ui32 K = static_cast<ui32>(perDimHist.size());
     std::vector<TBestSplitProperties> results(numPartitions);
-    std::vector<float> bestGains(numPartitions, -std::numeric_limits<float>::infinity());
+    // Fix 2 (S30-COSINE-KAHAN): widen per-partition argmax accumulator to double.
+    std::vector<double> bestGains(numPartitions, -std::numeric_limits<double>::infinity());
 
     // Random score perturbation: mirrors DEC-028's FindBestSplit pattern.
     // CPU reference: CalcScoreStDev (greedy_tensor_search.cpp:851) computes one global
@@ -1476,9 +1696,12 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     // For Cosine we accumulate num/den separately across K dims then
                     // compute score at the end (ComputeCosineGainKDim).  For L2 we
                     // accumulate the scalar gain directly.
-                    float gain = 0.0f;       // L2 accumulator
-                    float cosNum = 0.0f;     // Cosine numerator  Σ_k [G²_L/(W_L+λ) + G²_R/(W_R+λ)]
-                    float cosDen = 1e-20f;   // Cosine denominator Σ_k [...] + guard
+                    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                    double gain = 0.0;
+                    // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
+                    // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                    double cosNum_d = 0.0;
+                    double cosDen_d = 1e-20;  // guard against sqrt(0)
                     for (ui32 k = 0; k < K; ++k) {
                         const float* histData = perDimHist[k].data()
                             + static_cast<size_t>(p) * 2 * totalBinFeatures;
@@ -1496,14 +1719,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                                       - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                // Accumulate per-dim contributions into shared num/den;
-                                // ComputeCosineGainKDim finalises after the K loop.
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1513,19 +1739,21 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                     }
                     // Finalise score: for Cosine, compute num/sqrt(den) after K loop.
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        gain = ComputeCosineGainKDim(cosNum, cosDen);
+                        // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                        gain = cosNum_d / std::sqrt(cosDen_d);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1057-1068)
-                    float perturbedGain = gain;
+                    // Fix 2: perturbedGain is double; float noise is promoted to double.
+                    double perturbedGain = gain;
                     if (noiseScale > 0.0f) {
-                        perturbedGain += noiseScale * noiseDist(*rng);
+                        perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                     }
                     if (perturbedGain > bestGains[p]) {
                         bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
                         results[p].Gain      = perturbedGain;
-                        results[p].Score     = -perturbedGain;
+                        results[p].Score     = static_cast<float>(-perturbedGain);
                     }
                 }
             }
@@ -1553,9 +1781,12 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
             for (ui32 bin = 0; bin + 1 < feat.Folds; ++bin) {
                 ui32 binOffset = feat.FirstFoldIndex + bin;
                 for (ui32 p = 0; p < numPartitions; ++p) {
-                    float gain = 0.0f;
-                    float cosNum = 0.0f;
-                    float cosDen = 1e-20f;
+                    // Fix 2 (S30-COSINE-KAHAN): widened from float to double.
+                    double gain = 0.0;
+                    // S30-T2-KAHAN K4: Cosine accumulators in double — eliminates per-term
+                    // fp32 computation error (~1e-3 floor) that defeated Neumaier compensation.
+                    double cosNum_d = 0.0;
+                    double cosDen_d = 1e-20;  // guard against sqrt(0)
                     for (ui32 k = 0; k < K; ++k) {
                         float totalSum    = perDimPartStats[k][p].Sum;
                         float totalWeight = perDimPartStats[k][p].Weight;
@@ -1572,12 +1803,17 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                                       - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
-                                const float invL = 1.0f / (weightLeft  + l2RegLambda);
-                                const float invR = 1.0f / (weightRight + l2RegLambda);
-                                cosNum += sumLeft  * sumLeft  * invL
-                                        + sumRight * sumRight * invR;
-                                cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
-                                        + sumRight * sumRight * weightRight * invR * invR;
+                                // S30-T2-KAHAN K4: widen inputs to double before computing terms.
+                                const double dSL   = static_cast<double>(sumLeft);
+                                const double dSR   = static_cast<double>(sumRight);
+                                const double dWL   = static_cast<double>(weightLeft);
+                                const double dWR   = static_cast<double>(weightRight);
+                                const double dL2   = static_cast<double>(l2RegLambda);
+                                const double dInvL = 1.0 / (dWL + dL2);
+                                const double dInvR = 1.0 / (dWR + dL2);
+                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
+                                          + dSR * dSR * dWR * dInvR * dInvR;
                                 break;
                             }
                             default:
@@ -1585,19 +1821,21 @@ std::vector<TBestSplitProperties> FindBestSplitPerPartition(
                         }
                     }
                     if (scoreFunction == EScoreFunction::Cosine) {
-                        gain = ComputeCosineGainKDim(cosNum, cosDen);
+                        // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
+                        gain = cosNum_d / std::sqrt(cosDen_d);
                     }
                     // Add random perturbation to prevent overfitting (mirrors DEC-028 FindBestSplit:1188-1198)
-                    float perturbedGain = gain;
+                    // Fix 2: perturbedGain is double; float noise is promoted to double.
+                    double perturbedGain = gain;
                     if (noiseScale > 0.0f) {
-                        perturbedGain += noiseScale * noiseDist(*rng);
+                        perturbedGain += static_cast<double>(noiseScale * noiseDist(*rng));
                     }
                     if (perturbedGain > bestGains[p]) {
                         bestGains[p] = perturbedGain;
                         results[p].FeatureId = featIdx;
                         results[p].BinId     = bin;
                         results[p].Gain      = perturbedGain;
-                        results[p].Score     = -perturbedGain;
+                        results[p].Score     = static_cast<float>(-perturbedGain);
                     }
                 }
             }
@@ -3483,8 +3721,9 @@ TTrainResult RunTraining(
         // ---- Lossguide path: best-first leaf-wise tree growth ----
         if (isLossguide) {
             // Priority queue entry: (gain, leafId, bestSplit descriptor)
+            // Fix 2 (S30-COSINE-KAHAN): Gain widened to double to match TBestSplitProperties::Gain.
             struct TLeafCandidate {
-                float Gain;
+                double Gain;
                 ui32  LeafId;
                 TBestSplitProperties Split;
                 bool operator<(const TLeafCandidate& o) const { return Gain < o.Gain; }
@@ -3936,6 +4175,14 @@ TTrainResult RunTraining(
 #ifdef CATBOOST_MLX_STAGE_PROFILE
                 auto _prof_split_start = std::chrono::steady_clock::now();
 #endif
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: arm the cosDen/cosNum double-shadow for this FindBestSplit call
+                // when iter==0 and grow_policy==SymmetricTree (the ST anchor cell).
+                if (iter == 0 && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                    g_cosInstr.dumpCosDen = true;
+                    g_cosInstr.binRecords.clear();
+                }
+#endif
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
@@ -3952,6 +4199,43 @@ TTrainResult RunTraining(
                     // Explicit — no default. Mirrors DW dispatch from 0ea86bde21.
                     ParseScoreFunction(config.ScoreFunction)
                 );
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: flush cosDen/cosNum bin records after FindBestSplit returns
+                if (!g_cosInstr.binRecords.empty()) {
+                    // Write per-depth CSV
+                    std::string cosPath = g_cosInstr.outDir + "/cos_accum_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteCosAccumCSV(cosPath, g_cosInstr.binRecords);
+
+#ifdef COSINE_D2_INSTRUMENT
+                    // S30-D2: also write gain_scalar CSV (M1 measurement) with trimmed schema
+                    // (feat_idx, bin, gain_f32, gain_f64, gain_abs_residual only).
+                    // One file per depth — Python post-processor merges depths for M1 summary.
+                    std::string gainPath = g_cosInstr.outDir + "/gain_scalar_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteGainScalarCSV(gainPath, g_cosInstr.binRecords);
+#endif  // COSINE_D2_INSTRUMENT
+
+                    // Print per-accumulator summaries for quick gate check
+                    std::vector<double> numRes, denRes, gainRes;
+                    for (const auto& r : g_cosInstr.binRecords) {
+                        numRes.push_back(std::fabs(
+                            static_cast<double>(r.cosNum_f32) - r.cosNum_f64));
+                        denRes.push_back(std::fabs(
+                            static_cast<double>(r.cosDen_f32) - r.cosDen_f64));
+                        gainRes.push_back(std::fabs(
+                            static_cast<double>(r.gain_f32)   - r.gain_f64));
+                    }
+                    fprintf(stderr, "[INSTR] ST depth=%u cosNum/cosDen/gain residuals:\n", depth);
+                    PrintResidualSummary("[INSTR]   cosNum", numRes);
+                    PrintResidualSummary("[INSTR]   cosDen", denRes);
+                    PrintResidualSummary("[INSTR]   gain  ", gainRes);
+                    g_cosInstr.binRecords.clear();
+                    g_cosInstr.dumpCosDen = false;
+                }
+#endif
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -4043,6 +4327,13 @@ TTrainResult RunTraining(
         std::chrono::steady_clock::time_point _prof_leafvals_start{};
 #endif
         mx::array leafValues = mx::zeros({1}, mx::float32); // placeholder, overwritten below
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+        // S30-T1: arm leaf-sum and approx-update dumps at iter=0 for approxDim==1
+        if (iter == 0 && approxDim == 1) {
+            g_cosInstr.dumpLeaf   = true;
+            g_cosInstr.dumpApprox = true;
+        }
+#endif
         if (approxDim == 1) {
             auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[0], 0);
             auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[0], 0);
@@ -4058,6 +4349,76 @@ TTrainResult RunTraining(
 #endif
             leafValues = mx::negative(mx::multiply(lrArr,
                 mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+            // S30-T1: leaf-value sum residual — double-shadow of scatter_add_axis gSums/hSums
+            // Only instrument at iter=0, approxDim=1 (the ST+Cosine anchor config).
+            if (g_cosInstr.dumpLeaf && iter == 0) {
+                // Force evaluation so we can read back float32 values
+                mx::eval(gSumsArr, hSumsArr, leafValues);
+                const float* gF = gSumsArr.data<float>();
+                const float* hF = hSumsArr.data<float>();
+                const float* lvF = leafValues.data<float>();
+
+                // CPU double-precision scatter_add reference
+                mx::eval(partitions, dimGrads[0], dimHess[0]);
+                const uint32_t* pPtr  = partitions.data<uint32_t>();
+                const float*    gPtr  = dimGrads[0].data<float>();
+                const float*    hPtr  = dimHess[0].data<float>();
+
+                std::vector<double> gSums_d(numLeaves, 0.0);
+                std::vector<double> hSums_d(numLeaves, 0.0);
+                for (ui32 i = 0; i < trainDocs; ++i) {
+                    ui32 leaf = pPtr[i];
+                    if (leaf < numLeaves) {
+                        gSums_d[leaf] += static_cast<double>(gPtr[i]);
+                        hSums_d[leaf] += static_cast<double>(hPtr[i]);
+                    }
+                }
+
+                // Compute double leaf values
+                double lr_d = static_cast<double>(config.LearningRate);
+                double l2_d = static_cast<double>(config.L2RegLambda);
+                std::vector<double> lv_d(numLeaves);
+                for (ui32 b = 0; b < numLeaves; ++b) {
+                    lv_d[b] = -lr_d * gSums_d[b] / (hSums_d[b] + l2_d);
+                }
+
+                // Write leaf-sum CSV
+                std::string leafPath = g_cosInstr.outDir + "/leaf_sum_seed"
+                    + std::to_string(g_cosInstr.seed) + ".csv";
+                std::filesystem::create_directories(
+                    std::filesystem::path(leafPath).parent_path());
+                FILE* lf = fopen(leafPath.c_str(), "w");
+                if (lf) {
+                    fprintf(lf, "leaf,gSum_f32,gSum_f64,gSum_residual,"
+                                "hSum_f32,hSum_f64,hSum_residual,"
+                                "leafVal_f32,leafVal_f64,leafVal_residual\n");
+                    std::vector<double> gResiduals, hResiduals, lvResiduals;
+                    for (ui32 b = 0; b < numLeaves; ++b) {
+                        double gRes = std::fabs(static_cast<double>(gF[b]) - gSums_d[b]);
+                        double hRes = std::fabs(static_cast<double>(hF[b]) - hSums_d[b]);
+                        double lvRes = std::fabs(static_cast<double>(lvF[b]) - lv_d[b]);
+                        fprintf(lf, "%u,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e\n",
+                                b,
+                                static_cast<double>(gF[b]),  gSums_d[b],  gRes,
+                                static_cast<double>(hF[b]),  hSums_d[b],  hRes,
+                                static_cast<double>(lvF[b]), lv_d[b],     lvRes);
+                        gResiduals.push_back(gRes);
+                        hResiduals.push_back(hRes);
+                        lvResiduals.push_back(lvRes);
+                    }
+                    fclose(lf);
+                    fprintf(stderr, "[INSTR] wrote %u rows → %s\n", numLeaves, leafPath.c_str());
+                    PrintResidualSummary("[INSTR] gSum_residual", gResiduals);
+                    PrintResidualSummary("[INSTR] hSum_residual", hResiduals);
+                    PrintResidualSummary("[INSTR] leafVal_residual", lvResiduals);
+                } else {
+                    fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", leafPath.c_str());
+                }
+                g_cosInstr.dumpLeaf = false;  // only dump once
+            }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
 
 #ifdef CATBOOST_MLX_DEBUG_LEAF
             // P4/P5 — per-bin sums and leaf values at iter 0
@@ -4229,6 +4590,56 @@ TTrainResult RunTraining(
             cursor = mx::add(mx::reshape(cursor, {static_cast<int>(trainDocs)}), docLeafValues);
         }
         mx::eval(cursor);
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+        // S30-T1: approx-update residual — double-shadow of cursor += docLeafValues (approxDim==1)
+        // Compare per-doc float32 cursor increment vs double reference.
+        if (g_cosInstr.dumpApprox && iter == 0 && approxDim == 1) {
+            // cursor is already evaluated; docLeafValues is the per-doc leaf-value lookup.
+            mx::eval(docLeafValues, leafValues, partitions);
+            const float* dlvF = docLeafValues.data<float>();
+            const float* lvF  = leafValues.data<float>();
+            const uint32_t* pPtr = partitions.data<uint32_t>();
+
+            // Double reference: for each doc, increment = double_leafValues[partition[i]]
+            // Build double leaf values from the scalar Newton step (same as dumpLeaf block above,
+            // but we may be in a separate code path — recompute from available float32 leafValues).
+            // NOTE: If dumpLeaf already computed lv_d, it is out of scope here; recompute
+            // as float64 upcast of the float32 leaf values (this measures the cursor-update
+            // float32 → float64 step, not the full gSums residual).
+            std::vector<double> incResiduals;
+            incResiduals.reserve(trainDocs);
+
+            // Write approx-update CSV
+            std::string approxPath = g_cosInstr.outDir + "/approx_update_seed"
+                + std::to_string(g_cosInstr.seed) + ".csv";
+            std::filesystem::create_directories(
+                std::filesystem::path(approxPath).parent_path());
+            FILE* af = fopen(approxPath.c_str(), "w");
+            if (af) {
+                fprintf(af, "doc,partition,docLeafVal_f32,docLeafVal_f64,inc_residual\n");
+                for (ui32 i = 0; i < trainDocs && i < 10000; ++i) {
+                    // Double reference: upcast float32 leaf value for this doc's partition
+                    uint32_t leaf = pPtr[i];
+                    double dlvRef = (leaf < numLeaves)
+                        ? static_cast<double>(lvF[leaf])
+                        : 0.0;
+                    double res = std::fabs(static_cast<double>(dlvF[i]) - dlvRef);
+                    incResiduals.push_back(res);
+                    fprintf(af, "%u,%u,%.10g,%.15g,%.6e\n",
+                            i, leaf,
+                            static_cast<double>(dlvF[i]), dlvRef, res);
+                }
+                fclose(af);
+                fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", incResiduals.size(), approxPath.c_str());
+                PrintResidualSummary("[INSTR] approx_update_inc_residual", incResiduals);
+            } else {
+                fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", approxPath.c_str());
+            }
+            g_cosInstr.dumpApprox = false;  // only dump once
+        }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
+
         result.TreesBuilt++;
 #ifdef CATBOOST_MLX_STAGE_PROFILE
         {
@@ -4471,6 +4882,40 @@ std::vector<ui32> CreateStratifiedFolds(
 #ifndef CATBOOST_MLX_NO_MAIN
 int main(int argc, char** argv) {
     auto config = ParseArgs(argc, argv);
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+    // S30-T1/D2: initialise instrumentation output directory and seed label.
+    // Default output (T1):  docs/sprint30/t1-instrument/data/
+    // Default output (D2):  docs/sprint30/d2-stack-instrument/data/  (when COSINE_D2_INSTRUMENT)
+    // Both paths are overridable via COSINE_RESIDUAL_OUTDIR env var.
+    {
+        const char* envDir = std::getenv("COSINE_RESIDUAL_OUTDIR");
+        if (envDir && *envDir) {
+            g_cosInstr.outDir = std::string(envDir);
+        } else {
+            // Walk up from binary to find the repo root (contains catboost/mlx/ dir)
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+#ifdef COSINE_D2_INSTRUMENT
+            g_cosInstr.outDir = (repoRoot / "docs" / "sprint30" / "d2-stack-instrument" / "data").string();
+#else
+            g_cosInstr.outDir = (repoRoot / "docs" / "sprint30" / "t1-instrument" / "data").string();
+#endif
+        }
+        g_cosInstr.seed = config.RandomSeed;
+        fprintf(stderr, "[INSTR] COSINE_RESIDUAL_INSTRUMENT active"
+#ifdef COSINE_D2_INSTRUMENT
+                " (+D2)"
+#endif
+                " — outDir=%s seed=%d\n",
+                g_cosInstr.outDir.c_str(), g_cosInstr.seed);
+        std::filesystem::create_directories(g_cosInstr.outDir);
+    }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
 
     printf("CatBoost-MLX CSV Training Tool\n");
     printf("==============================\n");
