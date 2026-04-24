@@ -316,6 +316,87 @@ static void WriteIter1AuditJSON() {
 }
 #endif  // ITER1_AUDIT
 
+// ============================================================================
+// S32-T2-INSTRUMENT: Cosine term-level audit — per-bin (feat, bin) dump
+//
+// Compile-time gate: -DCOSINE_TERM_AUDIT
+// Purpose: at depth=0 iter=0 for SymmetricTree+Cosine, dump per-bin:
+//   (feat, bin, sumLeft, sumRight, weightLeft, weightRight, lambda,
+//    cosNum_d, cosDen_d, gain)
+// This is the term-level dump needed to compare against CPU CatBoost's
+// per-bin gain computation at the same (feat, bin) coordinate and identify
+// the first diverging quantity (gradient, weight, cosNum, cosDen, or gain).
+//
+// Output: CSV at COSINE_TERM_AUDIT_OUTDIR or default docs/sprint32/t2-terms/data/
+// One file per seed: mlx_terms_seed<N>_depth0.csv
+//
+// At depth=0 with N=50k RMSE SymmetricTree: numPartitions=1, K=1.
+// Each row corresponds to one (feat, bin) candidate, capturing the single
+// (p=0, k=0) term that comprises the entire Cosine accumulation.
+//
+// DEC-012 note: diagnostic evidence only; zero product-path behavior change.
+// ============================================================================
+#ifdef COSINE_TERM_AUDIT
+#ifndef COSINE_RESIDUAL_INSTRUMENT
+#  include <filesystem>
+#endif
+
+struct TCosineTermAuditState {
+    std::string outDir;
+    int seed = 0;
+    bool active = false;    // set true at depth=0, iter=0 arm site
+    bool flushed = false;   // prevent double-write
+
+    struct TTermRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        double sumLeft;
+        double sumRight;
+        double weightLeft;
+        double weightRight;
+        double lambda;
+        double cosNumTerm;  // incremental contribution to cosNum_d for this (feat,bin) sum
+        double cosDenTerm;  // incremental contribution to cosDen_d for this (feat,bin) sum
+        double gain;        // finalised cosNum / sqrt(cosDen) after all p,k
+    };
+    std::vector<TTermRecord> records;
+
+    // Per-bin accumulators filled inside the p,k loop then finalised
+    // Only meaningful while active == true
+    uint32_t curFeat  = 0;
+    uint32_t curBin   = 0;
+    double   curCosNum = 0.0;
+    double   curCosDen = 0.0;
+    double   curSumL  = 0.0;
+    double   curSumR  = 0.0;
+    double   curWL    = 0.0;
+    double   curWR    = 0.0;
+    double   curLambda = 0.0;
+};
+
+static TCosineTermAuditState g_termAudit;
+
+static void WriteCosineTermCSV(const std::string& path,
+                                const std::vector<TCosineTermAuditState::TTermRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[TERM_AUDIT] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "feat,bin,sumLeft,sumRight,weightLeft,weightRight,lambda,"
+               "cosNum_term,cosDen_term,gain\n");
+    for (const auto& r : rows) {
+        fprintf(f, "%u,%u,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g\n",
+                r.featIdx, r.bin,
+                r.sumLeft, r.sumRight,
+                r.weightLeft, r.weightRight,
+                r.lambda,
+                r.cosNumTerm, r.cosDenTerm,
+                r.gain);
+    }
+    fclose(f);
+    fprintf(stderr, "[TERM_AUDIT] wrote %zu rows -> %s\n", rows.size(), path.c_str());
+}
+#endif  // COSINE_TERM_AUDIT
+
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 
@@ -1713,6 +1794,20 @@ TBestSplitProperties FindBestSplit(
                 // S30-T2-KAHAN K4: accumulate in double; Fix 2 removes the cast at finalization.
                 double cosNum_d = 0.0;
                 double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: reset per-bin accumulators at the start of each bin candidate.
+                if (g_termAudit.active) {
+                    g_termAudit.curFeat   = featIdx;
+                    g_termAudit.curBin    = bin;
+                    g_termAudit.curCosNum = 0.0;
+                    g_termAudit.curCosDen = 0.0;
+                    g_termAudit.curSumL   = 0.0;
+                    g_termAudit.curSumR   = 0.0;
+                    g_termAudit.curWL     = 0.0;
+                    g_termAudit.curWR     = 0.0;
+                    g_termAudit.curLambda = 0.0;
+                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // S30-T2: parallel float32 shadow accumulators for residual comparison.
                 // These mirror the pre-K4 float32 accumulation.  The residual reported in the
@@ -1786,9 +1881,27 @@ TBestSplitProperties FindBestSplit(
                                 const double dL2   = static_cast<double>(l2RegLambda);
                                 const double dInvL = 1.0 / (dWL + dL2);
                                 const double dInvR = 1.0 / (dWR + dL2);
-                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
-                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
-                                          + dSR * dSR * dWR * dInvR * dInvR;
+                                const double termNum = dSL * dSL * dInvL + dSR * dSR * dInvR;
+                                const double termDen = dSL * dSL * dWL * dInvL * dInvL
+                                                     + dSR * dSR * dWR * dInvR * dInvR;
+                                cosNum_d += termNum;
+                                cosDen_d += termDen;
+#ifdef COSINE_TERM_AUDIT
+                                // S32-T2: accumulate per-bin term contributions for the term audit.
+                                // At depth=0 K=1 numPartitions=1, there is exactly one (p=0,k=0)
+                                // term per (feat,bin) candidate — these are the raw input values.
+                                if (g_termAudit.active) {
+                                    g_termAudit.curCosNum   += termNum;
+                                    g_termAudit.curCosDen   += termDen;
+                                    // Capture the partition stats from the last (p,k) iteration.
+                                    // For depth=0 K=1 these are the only (p,k) values.
+                                    g_termAudit.curSumL   = dSL;
+                                    g_termAudit.curSumR   = dSR;
+                                    g_termAudit.curWL     = dWL;
+                                    g_termAudit.curWR     = dWR;
+                                    g_termAudit.curLambda = dL2;
+                                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                                 // S30-T2: parallel float32 shadow accumulation for residual comparison.
                                 // Accumulates the same terms in float32 to show the pre-K4 precision.
@@ -1814,6 +1927,25 @@ TBestSplitProperties FindBestSplit(
                     // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
                     totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: record finalised per-bin term data.
+                // totalGain is now set for Cosine; for non-Cosine score functions this block
+                // is conditionally disabled by g_termAudit.active (only armed for Cosine).
+                if (g_termAudit.active && scoreFunction == EScoreFunction::Cosine) {
+                    TCosineTermAuditState::TTermRecord rec;
+                    rec.featIdx    = g_termAudit.curFeat;
+                    rec.bin        = g_termAudit.curBin;
+                    rec.sumLeft    = g_termAudit.curSumL;
+                    rec.sumRight   = g_termAudit.curSumR;
+                    rec.weightLeft = g_termAudit.curWL;
+                    rec.weightRight= g_termAudit.curWR;
+                    rec.lambda     = g_termAudit.curLambda;
+                    rec.cosNumTerm = g_termAudit.curCosNum;
+                    rec.cosDenTerm = g_termAudit.curCosDen;
+                    rec.gain       = totalGain;
+                    g_termAudit.records.push_back(rec);
+                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // D2-redux: record per-bin residual for cosDen/cosNum/gain with CORRECTED methodology.
                 // gain_f32 is now computed from the true pre-K4 fp32 shadow accumulators, NEVER
@@ -4547,6 +4679,16 @@ TTrainResult RunTraining(
                     g_iter1Audit.pendingActive = true;
                 }
 #endif
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: arm term audit at iter=0 depth=0 for SymmetricTree+Cosine only.
+                // depth=0 has numPartitions=1, K=1 for RMSE — one (p,k) term per (feat,bin).
+                // Disarm after depth=0 write to avoid multi-depth data mixing.
+                if (iter == 0 && depth == 0 && !g_termAudit.flushed
+                        && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                    g_termAudit.active = true;
+                    g_termAudit.records.clear();
+                }
+#endif  // COSINE_TERM_AUDIT
                 // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
@@ -4621,6 +4763,19 @@ TTrainResult RunTraining(
                     }
                 }
 #endif
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: flush term audit data after depth=0 FindBestSplit.
+                // Write CSV and disarm to prevent writing at deeper depths.
+                if (iter == 0 && depth == 0 && g_termAudit.active && !g_termAudit.flushed) {
+                    g_termAudit.active = false;
+                    g_termAudit.flushed = true;
+                    std::string termPath = g_termAudit.outDir + "/mlx_terms_seed"
+                        + std::to_string(g_termAudit.seed) + "_depth0.csv";
+                    WriteCosineTermCSV(termPath, g_termAudit.records);
+                    fprintf(stderr, "[TERM_AUDIT] depth=0 flushed — %zu candidates\n",
+                            g_termAudit.records.size());
+                }
+#endif  // COSINE_TERM_AUDIT
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -5325,6 +5480,29 @@ int main(int argc, char** argv) {
                 g_iter1Audit.outDir.c_str(), g_iter1Audit.seed);
     }
 #endif  // ITER1_AUDIT
+#ifdef COSINE_TERM_AUDIT
+    // S32-T2-INSTRUMENT: initialise per-bin term audit output directory and seed.
+    // Output directory: COSINE_TERM_AUDIT_OUTDIR env var or default.
+    // Active only at depth=0 iter=0 with SymmetricTree+Cosine — armed at the call site.
+    {
+        const char* envDir = std::getenv("COSINE_TERM_AUDIT_OUTDIR");
+        if (envDir && *envDir) {
+            g_termAudit.outDir = std::string(envDir);
+        } else {
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+            g_termAudit.outDir = (repoRoot / "docs" / "sprint32" / "t2-terms" / "data").string();
+        }
+        g_termAudit.seed = config.RandomSeed;
+        std::filesystem::create_directories(g_termAudit.outDir);
+        fprintf(stderr, "[TERM_AUDIT] COSINE_TERM_AUDIT active — outDir=%s seed=%d\n",
+                g_termAudit.outDir.c_str(), g_termAudit.seed);
+    }
+#endif  // COSINE_TERM_AUDIT
 
     printf("CatBoost-MLX CSV Training Tool\n");
     printf("==============================\n");
