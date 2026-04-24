@@ -201,6 +201,121 @@ static void PrintResidualSummary(const char* label,
 }
 #endif  // COSINE_RESIDUAL_INSTRUMENT
 
+// ============================================================================
+// S31-T3b-T1-AUDIT: iter=1 split-selection comparison harness instrumentation
+//
+// Compile-time gate: -DITER1_AUDIT
+// Purpose: for each depth layer of iter=0 (1-indexed iter=1), dump from MLX:
+//   - Per-partition parent aggregates: (partIdx, sumG, sumH, W, leafCount)
+//   - Top-K=5 split candidates: (featIdx, binIdx, gain) in descending order
+//   - Winning split: (featIdx, binIdx, gain)
+// Output: JSON file per seed in the directory given by ITER1_AUDIT_OUTDIR env var.
+//         Default: docs/sprint31/t3b-audit/data/
+//
+// Hard-stop rule: only instruments iter==0. Deeper iters see stale leaf assignments
+// and their comparisons are not meaningful.
+//
+// DEC-012 note: this block is diagnostic evidence, not product code.
+// ============================================================================
+#ifdef ITER1_AUDIT
+#ifndef COSINE_RESIDUAL_INSTRUMENT
+#  include <filesystem>
+#endif
+#include <algorithm>
+#include <tuple>
+
+struct TIter1AuditState {
+    std::string outDir;
+    int seed = 0;
+    bool active = false;  // true when iter==0, ST, Cosine
+
+    // Written per depth: one entry per depth level
+    struct TLayerRecord {
+        int depth = 0;
+        // Parent aggregates: one entry per active partition
+        struct TPartStat {
+            uint32_t partIdx;
+            double sumG;
+            double sumH;
+            double W;
+            uint64_t leafCount;
+        };
+        std::vector<TPartStat> partStats;
+        // Top-K=5 candidates: sorted descending by gain
+        struct TCandidate {
+            uint32_t featIdx;
+            uint32_t binIdx;
+            double gain;
+        };
+        std::vector<TCandidate> topK;
+        // Winner
+        uint32_t winnerFeat = 0;
+        uint32_t winnerBin  = 0;
+        double   winnerGain = 0.0;
+    };
+    std::vector<TLayerRecord> layers;
+
+    // Pending layer: filled during FindBestSplit, flushed after the call returns
+    TLayerRecord pendingLayer;
+    bool pendingActive = false;
+
+    // Top-K candidate accumulator inside FindBestSplit
+    // Each entry: (gain, featIdx, binIdx) — use gain as primary sort key
+    std::vector<std::tuple<double, uint32_t, uint32_t>> candidateAccum;
+    static constexpr int TOP_K = 5;
+};
+
+static TIter1AuditState g_iter1Audit;
+
+// Serialise all recorded layers to JSON file for the current seed.
+static void WriteIter1AuditJSON() {
+    if (g_iter1Audit.layers.empty()) return;
+    std::string path = g_iter1Audit.outDir
+                     + "/mlx_splits_seed" + std::to_string(g_iter1Audit.seed) + ".json";
+    std::filesystem::create_directories(
+        std::filesystem::path(path).parent_path());
+
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) {
+        fprintf(stderr, "[AUDIT] ERROR: cannot open %s\n", path.c_str());
+        return;
+    }
+    fprintf(f, "{\n  \"seed\": %d,\n  \"layers\": [\n", g_iter1Audit.seed);
+    for (size_t li = 0; li < g_iter1Audit.layers.size(); ++li) {
+        const auto& layer = g_iter1Audit.layers[li];
+        fprintf(f, "    {\n      \"depth\": %d,\n", layer.depth);
+        // partitions
+        fprintf(f, "      \"partitions\": [\n");
+        for (size_t pi = 0; pi < layer.partStats.size(); ++pi) {
+            const auto& ps = layer.partStats[pi];
+            fprintf(f, "        {\"leaf_idx\": %u, \"sumG\": %.15g, "
+                       "\"sumH\": %.15g, \"W\": %.15g, \"leaf_count\": %llu}%s\n",
+                    ps.partIdx, ps.sumG, ps.sumH, ps.W,
+                    (unsigned long long)ps.leafCount,
+                    (pi + 1 < layer.partStats.size()) ? "," : "");
+        }
+        fprintf(f, "      ],\n");
+        // top5
+        fprintf(f, "      \"top5\": [\n");
+        for (size_t ci = 0; ci < layer.topK.size(); ++ci) {
+            const auto& c = layer.topK[ci];
+            fprintf(f, "        {\"feat_idx\": %u, \"bin_idx\": %u, \"gain\": %.15g}%s\n",
+                    c.featIdx, c.binIdx, c.gain,
+                    (ci + 1 < layer.topK.size()) ? "," : "");
+        }
+        fprintf(f, "      ],\n");
+        // winner
+        fprintf(f, "      \"winner\": {\"feat_idx\": %u, \"bin_idx\": %u, \"gain\": %.15g}\n",
+                layer.winnerFeat, layer.winnerBin, layer.winnerGain);
+        fprintf(f, "    }%s\n", (li + 1 < g_iter1Audit.layers.size()) ? "," : "");
+    }
+    fprintf(f, "  ]\n}\n");
+    fclose(f);
+    fprintf(stderr, "[AUDIT] wrote %zu layers → %s\n",
+            g_iter1Audit.layers.size(), path.c_str());
+}
+#endif  // ITER1_AUDIT
+
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 
@@ -813,10 +928,15 @@ TDataset LoadBinary(const std::string& path, const std::string& nanMode) {
 //
 // Algorithm (unweighted path — no DefaultValue):
 //   1. Sort feature values and remove duplicates to get unique-value array.
-//   2. Treat each unique value as a "bin" with count-of-unique-values weight.
+//   2. Treat each unique value as having weight 1 (unweighted path).
 //   3. Greedily split the bin with the highest log-gain in a priority queue.
 //   4. Each split's score = log(total) - log(left) - log(right)  [MaxSumLog penalty].
 //   5. Border = midpoint of the two adjacent unique values at each split boundary.
+//
+// Key fix (DEC-037): the prior implementation used maxBordersCount = maxBins - 1,
+// producing 127 borders when CPU CatBoost uses border_count = 128.
+// This caused a systematic MLX_bin = CPU_bin - 1 offset (confirmed on 3 seeds,
+// S31-T3b-T1-AUDIT). The fix: maxBordersCount = maxBins (not maxBins - 1).
 //
 // Reference: TGreedyBinarizer<EPenaltyType::MaxSumLog>::BestSplit (no DefaultValue branch)
 //            + TFeatureBin<MaxSumLog>::CalcSplitScore / UpdateBestSplitProperties
@@ -986,29 +1106,45 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
         }
 
         // Numeric: GreedyLogSum border selection (CatBoost default EBorderSelectionType).
-        // S31-T2-PORT-GREEDYLOGSUM: replaces previous custom percentile-midpoint
-        // equal-frequency algorithm. Reference: TGreedyBinarizer<MaxSumLog>::BestSplit
-        // (library/cpp/grid_creator/binarization.cpp, no-DefaultValue branch).
+        // Uses greedy MaxSumLog priority-queue approach (TGreedyBinarizer<MaxSumLog>),
+        // unweighted path (TFeatureBin — count of unique values, not documents).
+        // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1; caused MLX_bin = CPU_bin-1).
         //
-        // Step 1: build sorted unique-value array, filtering NaNs.
-        std::vector<float> uniqueVals;
-        uniqueVals.reserve(ds.NumDocs);
+        // Step 1: build sorted raw values (non-NaN only).
+        std::vector<float> allVals;
+        allVals.reserve(ds.NumDocs);
         for (ui32 d = 0; d < ds.NumDocs; ++d) {
             if (!std::isnan(ds.Features[f][d])) {
-                uniqueVals.push_back(ds.Features[f][d]);
+                allVals.push_back(ds.Features[f][d]);
             }
         }
-        if (uniqueVals.empty()) {
+        if (allVals.empty()) {
             // All NaN — single NaN bin, no borders.
             q.BinnedFeatures[f].resize(ds.NumDocs, 0);
             continue;
         }
-        std::sort(uniqueVals.begin(), uniqueVals.end());
-        uniqueVals.erase(std::unique(uniqueVals.begin(), uniqueVals.end()), uniqueVals.end());
+        std::sort(allVals.begin(), allVals.end());
 
-        // Step 2: GreedyLogSum greedy split to produce at most (maxBins-1) borders.
-        // CPU maxBordersCount = maxBins - 1.
-        int maxBordersCount = static_cast<int>(maxBins) - 1;
+        // Build unique-value array and document-count weights.
+        std::vector<float> uniqueVals;
+        uniqueVals.reserve(allVals.size());
+        {
+            // Deduplicate: CatBoost's TGreedyBinarizer uses the unweighted path
+            // (TFeatureBin, not TWeightedFeatureBin) — each unique value has weight 1.
+            float prev = allVals[0];
+            uniqueVals.push_back(prev);
+            for (ui32 i = 1; i < static_cast<ui32>(allVals.size()); ++i) {
+                if (allVals[i] != prev) {
+                    prev = allVals[i];
+                    uniqueVals.push_back(prev);
+                }
+            }
+        }
+
+        // Step 2: Greedy MaxSumLog binarization — produces exactly maxBins borders
+        // matching CatBoost's TGreedyBinarizer<MaxSumLog>::BestSplit (unweighted path).
+        // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1, causing bin offset).
+        int maxBordersCount = static_cast<int>(maxBins);
         std::vector<float> borders = GreedyLogSumBestSplit(uniqueVals, maxBordersCount);
         q.Borders[f] = std::move(borders);
 
@@ -1504,6 +1640,12 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = static_cast<float>(-totalGain);
                 }
+#ifdef ITER1_AUDIT
+                // S31-T3b: collect candidate gain for top-K ranking (OneHot branch)
+                if (g_iter1Audit.pendingActive) {
+                    g_iter1Audit.candidateAccum.emplace_back(totalGain, featIdx, bin);
+                }
+#endif
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
@@ -1714,6 +1856,12 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = static_cast<float>(-totalGain);
                 }
+#ifdef ITER1_AUDIT
+                // S31-T3b: collect candidate gain for top-K ranking (Ordinal branch)
+                if (g_iter1Audit.pendingActive) {
+                    g_iter1Audit.candidateAccum.emplace_back(totalGain, featIdx, bin);
+                }
+#endif
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
@@ -1786,6 +1934,38 @@ TBestSplitProperties FindBestSplit(
         printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
         printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
         fflush(stdout);
+    }
+#endif
+
+#ifdef ITER1_AUDIT
+    // S31-T3b: finalise top-K candidates and record winner into pending layer
+    if (g_iter1Audit.pendingActive) {
+        // Sort descending by gain (first element of tuple)
+        std::sort(g_iter1Audit.candidateAccum.begin(),
+                  g_iter1Audit.candidateAccum.end(),
+                  [](const auto& a, const auto& b){ return std::get<0>(a) > std::get<0>(b); });
+
+        g_iter1Audit.pendingLayer.topK.clear();
+        const int kLimit = std::min(
+            (int)g_iter1Audit.candidateAccum.size(),
+            TIter1AuditState::TOP_K);
+        for (int ki = 0; ki < kLimit; ++ki) {
+            TIter1AuditState::TLayerRecord::TCandidate c;
+            c.gain    = std::get<0>(g_iter1Audit.candidateAccum[ki]);
+            c.featIdx = std::get<1>(g_iter1Audit.candidateAccum[ki]);
+            c.binIdx  = std::get<2>(g_iter1Audit.candidateAccum[ki]);
+            g_iter1Audit.pendingLayer.topK.push_back(c);
+        }
+        g_iter1Audit.candidateAccum.clear();
+
+        // Record winner
+        if (bestSplit.Defined()) {
+            g_iter1Audit.pendingLayer.winnerFeat = bestSplit.FeatureId;
+            g_iter1Audit.pendingLayer.winnerBin  = bestSplit.BinId;
+            g_iter1Audit.pendingLayer.winnerGain = bestSplit.Gain;
+        }
+        // NOTE: pendingActive stays true here — the call-site FLUSH block clears it
+        // after pushing pendingLayer to g_iter1Audit.layers.
     }
 #endif
 
@@ -3567,7 +3747,7 @@ TTrainResult RunTraining(
                 printf("[DBG iter=0]   BootstrapType      = %s\n",    config.BootstrapType.c_str());
                 printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
                 printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
-                printf("[DBG iter=0]   FeatureBorderType  = GreedyLogSum (S31-T2 port from binarization.cpp)\n");
+                printf("[DBG iter=0]   FeatureBorderType  = GreedyLogSum (DEC-037: greedy unweighted, maxBins borders)\n");
                 // DEC-028 fix: noiseScale = RandomStrength * gradRms
                 // gradRms = sqrt(sum_{k,i} g_k[i]^2 / N), computed post-gradient below.
                 // Approximate at iter=0 using target std (residual ≈ -y for RMSE).
@@ -4345,6 +4525,28 @@ TTrainResult RunTraining(
                     g_cosInstr.binRecords.clear();
                 }
 #endif
+#ifdef ITER1_AUDIT
+                // S31-T3b: arm audit at iter=0 for SymmetricTree (all score functions).
+                // Collect parent partition stats and arm candidate accumulation.
+                if (iter == 0 && g_iter1Audit.active) {
+                    g_iter1Audit.pendingLayer = TIter1AuditState::TLayerRecord{};
+                    g_iter1Audit.pendingLayer.depth = static_cast<int>(depth);
+                    g_iter1Audit.pendingLayer.partStats.reserve(numPartitions);
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        TIter1AuditState::TLayerRecord::TPartStat ps;
+                        ps.partIdx   = p;
+                        // Use dim-0 partition stats (K=1 for RMSE; for K>1 we'd need to sum)
+                        ps.sumG      = (approxDim > 0) ? perDimPartStats[0][p].Sum    : 0.0;
+                        ps.sumH      = (approxDim > 0) ? perDimPartStats[0][p].Weight : 0.0;
+                        ps.W         = ps.sumH;  // W = sumH = doc count for unweighted RMSE
+                        // leaf_count: sumH should equal doc count for RMSE (hess=1)
+                        ps.leafCount = static_cast<uint64_t>(std::round(ps.sumH));
+                        g_iter1Audit.pendingLayer.partStats.push_back(ps);
+                    }
+                    g_iter1Audit.candidateAccum.clear();
+                    g_iter1Audit.pendingActive = true;
+                }
+#endif
                 // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
@@ -4397,6 +4599,26 @@ TTrainResult RunTraining(
                     PrintResidualSummary("[INSTR]   gain  ", gainRes);
                     g_cosInstr.binRecords.clear();
                     g_cosInstr.dumpCosDen = false;
+                }
+#endif
+#ifdef ITER1_AUDIT
+                // S31-T3b: flush completed layer record after FindBestSplit returns.
+                // pendingLayer.topK is non-empty iff FindBestSplit fired the finalization
+                // block (meaning at least one valid candidate was found).
+                if (iter == 0 && g_iter1Audit.pendingActive) {
+                    g_iter1Audit.pendingActive = false;
+                    if (!g_iter1Audit.pendingLayer.topK.empty()) {
+                        g_iter1Audit.layers.push_back(g_iter1Audit.pendingLayer);
+                        const auto& lay = g_iter1Audit.layers.back();
+                        fprintf(stderr, "[AUDIT] depth=%d: winner=(feat=%u, bin=%u, gain=%.8f)"
+                                " parts=%zu topK[0]=%.8f\n",
+                                lay.depth,
+                                lay.winnerFeat,
+                                lay.winnerBin,
+                                lay.winnerGain,
+                                lay.partStats.size(),
+                                lay.topK.front().gain);
+                    }
                 }
 #endif
                 auto tD3 = std::chrono::steady_clock::now();
@@ -5079,6 +5301,30 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(g_cosInstr.outDir);
     }
 #endif  // COSINE_RESIDUAL_INSTRUMENT
+#ifdef ITER1_AUDIT
+    // S31-T3b: initialise iter=1 audit state.
+    // The binary is purpose-built; always activate.
+    // Output directory: ITER1_AUDIT_OUTDIR env var or default.
+    {
+        const char* envDir = std::getenv("ITER1_AUDIT_OUTDIR");
+        if (envDir && *envDir) {
+            g_iter1Audit.outDir = std::string(envDir);
+        } else {
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+            g_iter1Audit.outDir = (repoRoot / "docs" / "sprint31" / "t3b-audit" / "data").string();
+        }
+        g_iter1Audit.seed   = config.RandomSeed;
+        g_iter1Audit.active = true;
+        std::filesystem::create_directories(g_iter1Audit.outDir);
+        fprintf(stderr, "[AUDIT] ITER1_AUDIT active — outDir=%s seed=%d\n",
+                g_iter1Audit.outDir.c_str(), g_iter1Audit.seed);
+    }
+#endif  // ITER1_AUDIT
 
     printf("CatBoost-MLX CSV Training Tool\n");
     printf("==============================\n");
@@ -5551,6 +5797,10 @@ int main(int argc, char** argv) {
 
     printf("---\n");
     printf("Training complete: %u trees in %.2fs\n", trainResult.TreesBuilt, totalTime / 1000.0);
+#ifdef ITER1_AUDIT
+    // S31-T3b: flush iter=1 audit JSON after training completes.
+    WriteIter1AuditJSON();
+#endif
     if (trainResult.TreesBuilt > 0) {
         double n = trainResult.TreesBuilt;
         printf("Phase breakdown (avg per iter): grad=%.1fms tree=%.1fms leaf=%.1fms apply=%.1fms\n",
