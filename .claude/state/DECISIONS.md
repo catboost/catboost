@@ -1530,55 +1530,123 @@ With DEC-037 applied, seeds 42 and 43 at depth=0 both select CPU's feature (f0),
 
 ---
 
-## DEC-038: Cosine gain term-level audit — S32 scope
+## DEC-038: GreedyLogSumBestSplit operated on deduplicated values instead of all-docs
 
-**Sprint**: 32 (kickoff 2026-04-24)
+**Sprint**: 32 (identified T2-INSTRUMENT / T3-FIX 2026-04-24; formalized S32-T4-CLOSE 2026-04-24)
 **Date**: 2026-04-24
-**Status**: OPEN — investigation-phase; term-level divergence not yet localized.
-**Authored by**: product-owner (orchestrator)
+**Commit**: `901bc760ac` (bundled with DEC-039 in T3-FIX commit — DEC-012 atomicity violation, see below)
+**Status**: CLOSED — shipped.
+**Authored by**: ml-engineer (T3-FIX); formalized by ml-engineer (T4-CLOSE)
 
-### Context
+### Problem
 
-S31 T3b located the 53% ST+Cosine drift to a GAIN-FORMULA mechanism: MLX Cosine gain is systematically 5.4% lower than CPU (ratio 0.946) at depth=0, stable across 3 seeds. Partition statistics match; only the gain computation diverges.
+`QuantizeFeatures` in `catboost/mlx/tests/csv_train.cpp` was deduplicating the sorted
+feature array before passing it to `GreedyLogSumBestSplit`. CatBoost CPU's
+`TGreedyBinarizer<MaxSumLog>::BestSplit` initializes its `TFeatureBin` over
+`features.Values` — the **full document array with duplicates** (N=50000 entries for
+N=50000 docs). The penalty score function uses `BinEnd - BinStart` as the document count
+in each bin. With the deduplicated input (49983 unique values for feature 0 vs 50000
+total), the score landscape changed, causing a ~2-index border grid offset.
 
-A stable ratio across seeds and depths is algebraically informative:
-- A **compounding precision error** would scale with N or depth. V6 already falsified this (b ≈ 0).
-- A **randomly varying bias** would not produce a stable ratio.
-- A **single missing multiplicative factor** OR a **single extra additive term** in cosNum or cosDen would produce exactly this signature.
+This was confirmed by a direct binary border dump (`CATBOOST_MLX_DUMP_BORDERS` build):
+0 diffs at 1e-6 threshold across all 20 features at 128 borders after the fix.
 
 ### Decision
 
-Open S32-COSINE-GAIN-TERM-AUDIT with a **codepath-first** strategy:
+Pass `allVals` (sorted, with duplicates) to `GreedyLogSumBestSplit`, matching CPU's
+`TFeatureBin` which is built over the full document array.
 
-**T1-CODEPATH (#115)** — Before any instrumentation, verify the code path. T1-PRE §2 mapped `ComputeCosineGainKDim` — if the live path at `FindBestSplit` `S28-OBLIV-DISPATCH` does not call this helper but inlines a different expression, the 11-row algebra check was on dead code and the bug is trivial to spot.
+**File**: `catboost/mlx/tests/csv_train.cpp` — `QuantizeFeatures` function.
 
-**T2-INSTRUMENT (#116, blocks on T1)** — Dump per-bin `(gL, gR, wL, wR, λ, cosNum_term, cosDen_term, gain)` at depth=0 seed=42 from both MLX and CPU CatBoost. Align by `(feature, bin)`. The first diverging quantity names the bug layer.
+### Outcome
 
-**T3-FIX (#117, blocks on T2)** — Implement the fix. DEC-012 atomic commits — one structural change per commit, strictly enforced after DEC-037's atomicity violation.
+With DEC-038 applied: median gain ratio at depth=0 moves from 0.946 to 0.9999
+(measured at seed=42, 127 bins). The residual 0.01% gap is from float32 vs float64
+midpoint arithmetic in the border computation (see DEC-039 residual note).
 
-**T4-VALIDATE (#118, blocks on T3)** — Four hard gates.
+### DEC-012 atomicity violation (flagged)
 
-### Gates
-
-| ID | Gate | Criterion |
-|----|------|-----------|
-| G3-T1 | Codepath resolved | T1 verdict names SAME-PATH or DIFFERENT-PATH with file:line evidence |
-| G3-T2 | First diverging term named | T2 verdict names the first quantity that diverges between CPU and MLX |
-| G3-T3 | Fix lands atomic | DEC-012 atomicity; one structural change per commit |
-| G3a | Depth=0 gain ratio unity | 1.000 ± 1e-4 across 3 seeds at S28 anchor |
-| G3b | S28 drift closes | ST+Cosine aggregate drift ≤ 2% (down from 53%) |
-| G3c | Kernel parity preserved | bench_boosting v5 ULP=0 unchanged |
-| G3d | 18-config non-regression | L2 parity + perf within envelope |
-
-### Kill-switches (pre-authorized)
-
-- **K6 (terms match, composition differs)**: per-bin terms byte-match but gain still diverges → bug in multi-partition composition layer (ST depth≥1 sums across leaves). Expand to T5 composition audit. **Pre-authorized.**
-- **K7 (P11 is primary)**: dumps show `wL_MLX = 2·wL_CPU` or analogous P11 signature → re-scope S32 as P11 fix. Escalate to Ramos before re-scope.
-- **K8 (cross-cutting fix)**: fix spans kernel sources + csv_train + helpers + dispatch → budget warn; escalate before implementation.
+DEC-038 was shipped in the same commit (`901bc760ac`) as DEC-039. DEC-012 requires
+one structural change per commit. Both bugs were discovered and fixed in the same
+T3-FIX session. Flagged for post-hoc transparency — not reverted. S33 will enforce:
+"if you find a second structural issue while fixing the first, STOP and commit the
+first atomically before continuing."
 
 ### Authority
 
-- S31 T3b verdict `docs/sprint31/t3b-audit/verdict.md` (mechanism localization)
-- DEC-036 per-layer mechanism table (GAIN-FORMULA class)
-- DEC-037 (border co-fix; isolates depth=0 divergence to score computation)
-- T1-PRE §2 (per-partition-pair formula check — 11 rows clean, but on possibly-inert helper)
+- T2-INSTRUMENT verdict: `docs/sprint32/t2-terms/verdict.md` (root cause = border grid divergence)
+- T3-FIX verdict: `docs/sprint32/t3-fix/verdict.md` (fix description + verification)
+- T4-VALIDATE G3a: `docs/sprint32/t4-validate/data/g3a_gain_ratio.csv` (3-seed ratio ≈ 1.000000)
+
+---
+
+## DEC-039: Histogram kernel VALID_BIT aliasing at fold_count=128 (T2_BIN_CAP violation)
+
+**Sprint**: 32 (identified T3-FIX 2026-04-24; formalized S32-T4-CLOSE 2026-04-24)
+**Date**: 2026-04-24
+**Commit**: `901bc760ac` (bundled with DEC-038 in T3-FIX commit — DEC-012 atomicity violation, see DEC-038)
+**Status**: CLOSED — shipped.
+**Authored by**: ml-engineer (T3-FIX); formalized by ml-engineer (T4-CLOSE)
+
+### Problem
+
+The MLX histogram kernel uses `VALID_BIT = 0x80000000` (bit 31 of the packed 32-bit word)
+to mark valid documents. Features at `posInWord=0` occupy bits 31..24 (shift=24). When
+`fold_count=128` (i.e., 128 borders), `bin_value=128` (docs above all borders) sets bit 31
+of the packed word at shift=24, which is the same bit as `VALID_BIT`.
+
+The kernel strips bit 31 via `p_clean = p_s & 0x7FFFFFFF`, aliasing `bin_value=128` to
+`bin_value=0`. The writeback loop skips slot 0 (reads `stagingHist[f*256 + bin + 1]`), so
+these 391 documents were silently dropped from the histogram.
+
+**Impact**: `wL = totalWeight - suffHess[b]` inflated by +391 for all bins of features
+0, 4, 8, 12, 16 (the 5 `posInWord=0` features). This caused further split mismatch on
+top of the DEC-038 border grid offset.
+
+**Latent bug**: `kernel_sources.h:38` already documented this constraint as `T2_BIN_CAP`:
+```
+// Safe ONLY when every feature's fold count <= 127.
+```
+`csv_train.cpp` was violating this documented contract when `--bins 128` was passed,
+producing `fold_count=128`. `bench_boosting` already respected the cap via `NumBins-1`.
+
+### Decision
+
+Cap `maxBordersCount = std::min(maxBins, 127u)` in `QuantizeFeatures`. With
+`fold_count <= 127`, `bin_value <= 127` and bit 7 of the `posInWord=0` byte is never
+set (bit 7 at shift=24 = bit 31 of the word = VALID_BIT), eliminating the collision.
+
+**File**: `catboost/mlx/tests/csv_train.cpp` — `QuantizeFeatures` function.
+
+### Outcome
+
+With DEC-039 applied: wL delta for `posInWord=0` features drops from +391 to 25.
+The residual ~25-doc delta is from float32 vs float64 midpoint arithmetic in
+`GreedyLogSumBestSplit` producing 1-5 ULP border differences, reassigning ~25 docs at
+physical split boundaries. This is a known limitation (not a structural bug).
+
+The T2_BIN_CAP contract is now respected by `csv_train.cpp` as well as `bench_boosting`.
+
+### G3c verification
+
+`bench_boosting` was already computing `fold_count = NumBins - 1` (i.e., 127 for 128-bin
+config) before DEC-039. The kernel sources are byte-identical to v5 (`784f82a891`).
+`./bench_boosting_t4 --rows 10000 --features 50 --classes 1 --depth 6 --iters 50
+--bins 128 --seed 42` → `BENCH_FINAL_LOSS=0.48231599` (ULP=0 vs AN-009 anchor).
+
+### Authority
+
+- T3-FIX verdict: `docs/sprint32/t3-fix/verdict.md` (bug description + fix verification)
+- kernel_sources.h T2_BIN_CAP comment (line 38): pre-existing contract
+- T4-VALIDATE G3c: bench_boosting ULP=0 confirmed; kernel sources md5=9edaef45b99b9db3e2717da93800e76f
+
+---
+
+### Note: DEC-038 original investigation scope (for archive)
+
+The original DEC-038 entry described the S32 investigation scope (T1-T4 tasks, gates
+G3a-G3d, kill-switches K6-K8). The investigation ran as planned. T1 confirmed SAME-PATH
+(H1 eliminated). T2 identified gL divergence → border grid root cause. T3 fixed both
+DEC-038 (allVals) and DEC-039 (fold_count cap) in a single commit. T4 validated
+G3a PASS / G3b FAIL (52.6% drift, DEC-036 structural) / G3c PASS / G3d PASS. The
+original kill-switches K6-K8 did not fire. DEC-036 remains OPEN for S33.
