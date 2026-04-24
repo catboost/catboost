@@ -1,4 +1,5 @@
 # S30-V5-DW-AT-SCALE — Verdict
+<!-- commit 2/2: verdict -->
 
 **Top-line verdict: MIXED**
 
