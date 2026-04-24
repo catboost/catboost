@@ -21,7 +21,7 @@
 
 ### Tasks
 
-- [ ] **#119 S33-L0-CONFIG** — Dump CPU vs MLX effective config field-by-field. Falsifies Frame C-config (~45 min). Verdict: `docs/sprint33/l0-config/verdict.md`. Owner: @ml-engineer.
+- [x] **#119 S33-L0-CONFIG** — Dump CPU vs MLX effective config field-by-field. Falsifies Frame C-config (~45 min). Verdict: `docs/sprint33/l0-config/verdict.md`. Owner: @ml-engineer. **COMPLETED 2026-04-24. Overall class: NO-DIFF. Frame C-config FALSIFIED. L0-PASS. Proceed to L1.**
 - [ ] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119.
 - [ ] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B (~3h). Blocked by #120.
 - [ ] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). ~1-2 days. Blocked by #121.

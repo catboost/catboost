@@ -1,0 +1,77 @@
+{
+  "flat_params": {
+    "bootstrap_type": "No",
+    "border_count": 127,
+    "depth": 6,
+    "feature_border_type": "GreedyLogSum",
+    "grow_policy": "SymmetricTree",
+    "iterations": 50,
+    "l2_leaf_reg": 3,
+    "learning_rate": 0.03,
+    "logging_level": "Silent",
+    "loss_function": "RMSE",
+    "random_seed": 42,
+    "random_strength": 0,
+    "score_function": "Cosine"
+  },
+  "boosting_options": {
+    "approx_on_full_history": false,
+    "boost_from_average": true,
+    "boosting_type": "Plain",
+    "fold_len_multiplier": 2,
+    "fold_permutation_block": 0,
+    "iterations": 50,
+    "learning_rate": 0.029999999329447743,
+    "model_shrink_mode": "Constant",
+    "model_shrink_rate": 0,
+    "od_config": {
+      "stop_pvalue": 0,
+      "type": "None",
+      "wait_iterations": 20
+    },
+    "permutation_count": 4,
+    "posterior_sampling": false
+  },
+  "tree_learner_options": {
+    "bayesian_matrix_reg": 0.10000000149011612,
+    "bootstrap": {
+      "type": "No"
+    },
+    "depth": 6,
+    "dev_efb_max_buckets": 1024,
+    "dev_leafwise_approxes": false,
+    "dev_score_calc_obj_block_size": 5000000,
+    "grow_policy": "SymmetricTree",
+    "l2_leaf_reg": 3,
+    "leaf_estimation_backtracking": "AnyImprovement",
+    "leaf_estimation_iterations": 1,
+    "leaf_estimation_method": "Newton",
+    "max_leaves": 64,
+    "min_data_in_leaf": 1,
+    "model_size_reg": 0.5,
+    "monotone_constraints": {},
+    "penalties": {
+      "feature_weights": {},
+      "first_feature_use_penalties": {},
+      "penalties_coefficient": 1,
+      "per_object_feature_penalties": {}
+    },
+    "random_score_type": "NormalWithModelSizeDecrease",
+    "random_strength": 0,
+    "rsm": 1,
+    "sampling_frequency": "PerTree",
+    "score_function": "Cosine",
+    "sparse_features_conflict_fraction": 0
+  },
+  "data_processing_options": {
+    "has_time": false,
+    "float_features_binarization": {
+      "border_count": 127,
+      "border_type": "GreedyLogSum",
+      "dev_max_subset_size_for_build_borders": 200000,
+      "nan_mode": "Min"
+    }
+  },
+  "task_type": "CPU",
+  "random_seed": 42
+}
