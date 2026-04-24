@@ -1401,7 +1401,16 @@ The remaining hypothesis class is **structural divergence**: CPU CatBoost and ML
 
 ### Decision
 
-Open S31-ITER1-AUDIT. T1 is an **iter=1 split-selection comparison harness** that dumps, for each of the 6 tree layers on the S28 anchor cell, the winning `(feature_idx, bin_idx, gain)` from both CPU CatBoost and MLX. Compare layer-by-layer. The **first diverging layer names the mechanism class**:
+Open S31-ITER1-AUDIT with a **preflight-first** strategy:
+
+**T1-PRE (source-level preflight, cheap, runs first)** — @research-scientist diffs CPU `TCosineScoreCalcer::CalcMetric` against MLX `ComputeCosineGainKDim` algebraically (side-by-side symbol mapping, regularization term, parent-gain subtraction, K-dim sum order). Simultaneously verifies that basePred initialization, feature quantization borders, and the iter=1 initial gradient vector match bit-for-bit between CPU and MLX. Three possible verdicts:
+- **(i) FORMULA DIVERGENCE**: DEC-036 mechanism class named; skip to T2 fix design.
+- **(ii) PRE-SPLIT DIVERGENCE**: fires K4 kill-switch; S31 re-scopes to pre-split fix.
+- **(iii) CLEAN**: proceed to T1-AUDIT.
+
+**T1-AUDIT (instrumented runtime comparison, contingent on T1-PRE verdict iii)** — @ml-engineer builds an iter=1 split-selection comparison harness at the S28 anchor cell (N=50k, ST, Cosine, rs=0, seeds 42/43/44). For each layer up to first divergence, dump from both CPU and MLX: parent aggregates `(Σg, Σh, W, leaf_count)`, top-K=5 candidates `(feature_idx, bin_idx, gain)`, and the winning tuple. Stop at the first diverging layer (deeper layers see stale assignment and are not comparable).
+
+The **first diverging layer names the mechanism class**:
 
 | First divergence at | Implied mechanism class |
 |---------------------|-------------------------|
@@ -1409,20 +1418,25 @@ Open S31-ITER1-AUDIT. T1 is an **iter=1 split-selection comparison harness** tha
 | Layer 1–5 with same feature, different bin | Split-candidate enumeration or bin-boundary difference |
 | Layer 1–5 with different feature | Tie-break policy or gain ranking difference |
 | Any layer with same (feature, bin) but different gain value | Gain computation scale/normalization difference |
+| Top-1 matches, top-K=2..5 differ | Tie-break under near-equal gains |
 | No divergence at iter=1, emerges later | Leaf-value estimation or approx update divergence (iter=2+ audit needed) |
 
 ### Gates
 
 | ID | Gate | Criterion |
 |----|------|-----------|
-| G1 | Divergence localized | T1 audit identifies first diverging layer with file:line pointers to both CPU and MLX implementations |
+| G1-PRE | Source aligned | T1-PRE delivers side-by-side algebraic mapping of the two formulas + preflight checks recorded |
+| G1 | Divergence localized | T1-AUDIT identifies first diverging layer with file:line pointers to both CPU and MLX implementations |
 | G2 | Mechanism named | DEC-036 updated with specific mechanism class and CPU-vs-MLX algebraic difference |
 | G3 | Fix proposed | Concrete fix proposal with parity gate and falsifiable prediction |
 
 ### Kill-switches (pre-authorized)
 
-- **K1 (no iter=1 divergence)**: if CPU and MLX produce bit-identical iter=1 split sequences, the mechanism emerges at iter≥2 (leaf values or approx update). Expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
-- **K2 (mechanism is an upstream gap)**: if the divergence is a missing MLX feature (e.g., MLX implements a different Cosine variant than CPU default), DEC-036 becomes scope for a **feature-port sprint**, not a precision sprint. Re-plan S31 as port work.
+- **K1 (no iter=1 divergence)**: if CPU and MLX produce bit-identical iter=1 split sequences at all 3 seeds, the mechanism emerges at iter≥2 (leaf values or approx update). Expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
+- **K2 (mechanism is an upstream gap)**: if the divergence is a missing MLX feature (e.g., MLX implements a different Cosine variant than CPU default), DEC-036 becomes scope for a **feature-port sprint**, not a precision sprint. Re-plan S31 as port work. Escalate to Ramos.
+- **K3 (seed-independent false positive)**: if 0 of 3 seeds diverge at iter=1, the mechanism is not deterministic-structural and the premise of S31 is compromised. Revisit precision hypothesis with the new evidence (e.g., RandomStrength PRNG paths). Escalate to Ramos.
+- **K4 (pre-split divergence)**: if T1-PRE finds basePred, quantization borders, or initial gradients differ between CPU and MLX, the mechanism is upstream of split selection. **Pre-authorized** re-scope S31 to a pre-split fix track; T1-AUDIT deferred. Trivial-class fix expected.
+- **K5 (cross-cutting fix)**: if the mechanism is located but the fix requires changes across histogram kernels + score calcer + node aggregation, the scope exceeds a single structural sprint. Budget warning; escalate to Ramos before committing to implementation.
 
 ### Authority
 

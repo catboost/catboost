@@ -1,13 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 30 CLOSING — precision fix class exhausted; S31 KICKOFF on iter=1 structural audit)
+> Last updated: 2026-04-24 (Sprint 30 CLOSED via PR #28 `17451f4780`; Sprint 31 ACTIVE — iter=1 structural audit, preflight-first)
 
 ## Current state
 
-- **Active sprint**: Sprint 30 closing; Sprint 31 kickoff pending after S30 PR lands. Branch `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`).
+- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit` cut from master `17451f4780` (S30 PR #28 merge).
 - **Campaign**: Post-Verstappen correctness. DEC-032 PARTIALLY CLOSED — SA-H1 closed (guards at all three layers), LG+Cosine and ST+Cosine remain guarded. S30 shipped K4 (fp64 cosNum/cosDen) and Fix 2 (fp64 gain/argmax) but did NOT close ST drift — V6 falsified the entire precision fix class (N-scaling exponent b ≈ 0). DEC-036 opens structural divergence investigation for S31. R8 at 1.01× — correctness-only.
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
-- **Open PRs**: none. S28 + S29 merged 2026-04-23.
+- **Open PRs**: none. S28 + S29 merged 2026-04-23. S30 merged 2026-04-24.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`) — two-layer defense (Python wrapper sorts; C++ throws on unsorted).
@@ -75,11 +75,12 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 
 28/28 PASS at `b9577067ef`. Unchanged at `e0b0b1b527`.
 
-## Sprint 30 — S30-COSINE-KAHAN — CLOSING 2026-04-24
+## Sprint 30 — S30-COSINE-KAHAN — CLOSED 2026-04-24 (PR #28, `17451f4780`)
 
-**Branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`). Cut from master `4d855d47db` (S29 PR #27 merge).
+**Branch**: `mlx/sprint-30-cosine-kahan` merged → master `17451f4780`; branch deleted.
 **Basis**: DEC-034 outcome A (moderate confidence); DEC-035 executed in full (phased plan + full verification battery).
 **Outcome**: Precision fix class exhausted. Two proper fixes shipped (K4 + Fix 2); ST/LG guards remain in place. DEC-036 opens structural divergence investigation for S31.
+**Authoritative record**: `docs/sprint30/sprint-close.md`.
 
 ### Executed phases
 
@@ -113,34 +114,46 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 - T5 (#95 CLI exit wrap) — carried to S30 close or S31 T-cleanup
 - T6 (#96 S29 CR nits) — carried to S30 close or S31 T-cleanup
 
-### Close-out tasks (pending)
+### Close-out tasks — DONE
 
-- #97 S30-CR — code review of K4 + Fix 2 + instrumentation
-- #98 S30-SA — security audit (guards still in place, no regression surface)
-- #99 S30-CLOSE — sprint close doc + DEC-035 closure + DEC-036 open + PR #28
+- #97 S30-CR — APPROVE (0 must-fix, 5 nits). `docs/sprint30/sprint-close/cr-report.md`.
+- #98 S30-SA — PASS-WITH-FINDINGS (0 CRITICAL/HIGH/MEDIUM, 3 LOW, 3 INFO). `docs/sprint30/sprint-close/sa-report.md`.
+- #99 S30-CLOSE — close doc, DEC-035 closure addendum, DEC-036 OPEN, PR #28 merged `17451f4780`.
 
 ---
 
-## Sprint 31 — ITER1-AUDIT — KICKOFF (pending S30 close)
+## Sprint 31 — ITER1-AUDIT — ACTIVE 2026-04-24
 
-**Branch**: `mlx/sprint-31-iter1-audit` (to be cut from S30 merge tip)
-**Basis**: DEC-036 (structural divergence — precision class exhausted in S30)
+**Branch**: `mlx/sprint-31-iter1-audit` (cut from master `17451f4780`, S30 PR #28 merge).
+**Basis**: DEC-036 (structural divergence — precision class exhausted in S30).
+**Strategy**: preflight-first. Cheap source-diff runs before any runtime instrumentation; only build the iter=1 dump harness if the preflight doesn't already finger the mechanism.
 
 ### Entry point
 
-Spawn @ml-engineer (or @research-scientist) on **S31-T1-ITER1-AUDIT**:
-- Build an iter=1 split-selection comparison harness that dumps `(feature_idx, bin_idx, gain)` per tree layer from BOTH CPU CatBoost and MLX on the S28 anchor cell.
-- Compare layer-by-layer. Locate the first diverging layer.
-- Deliver `docs/sprint31/t1-audit/verdict.md` naming the mechanism class (see DEC-036 table).
+**Spawn @research-scientist on S31-T1-PRE-SOURCEDIFF.**
+- Diff CPU `TCosineScoreCalcer::CalcMetric` vs MLX `ComputeCosineGainKDim` algebraically (side-by-side symbol mapping; regularization term; parent-gain subtraction; K-dim sum order).
+- Preflight: basePred init, quantization borders (CPU vs MLX), initial gradient vector at iter=1 first entry — do they match bit-for-bit?
+- Deliver `docs/sprint31/t1-pre/verdict.md` returning one of: **(i) FORMULA DIVERGENCE** → DEC-036 named + jump to T2; **(ii) PRE-SPLIT DIVERGENCE** → K4 fires, re-scope; **(iii) CLEAN** → proceed to T1-AUDIT.
+
+### Next entry point (contingent on T1-PRE verdict iii)
+
+**Spawn @ml-engineer on S31-T1-AUDIT.**
+- Instrumented iter=1 split-selection dump at S28 anchor (N=50k, ST, Cosine, rs=0, seeds 42/43/44).
+- Per layer up to first divergence: parent stats `(Σg, Σh, W, leaf_count)`, top-K=5 candidates `(feature, bin, gain)`, winning tuple.
+- Stop at first diverging layer (no stale-assignment peek).
+- Deliver `docs/sprint31/t1-audit/verdict.md` naming mechanism class with file:line pointers on both sides.
 
 ### Kill-switches (pre-authorized per DEC-036)
 
-- **K1 (no iter=1 divergence)**: expand to iter=2 leaf-value + approx-update audit.
-- **K2 (feature-port gap)**: MLX implements a different Cosine variant than CPU default → S31 re-plans as port work.
+- **K1** (no iter=1 divergence): expand to iter=2 leaf-value + approx-update audit.
+- **K2** (feature-port gap): MLX implements a different Cosine variant → S31 re-plans as port work. Escalate to Ramos.
+- **K3** (seed-independent false positive): 0/3 seeds diverge → revisit precision hypothesis. Escalate to Ramos.
+- **K4** (pre-split divergence): basePred / quant / initial gradients differ → re-scope S31 to pre-split fix. Pre-authorized.
+- **K5** (cross-cutting fix): fix requires kernel + score calcer + aggregator changes → budget warning, escalate to Ramos.
 
 ## PR state
 
-All S28 + S29 PRs merged. S30 PR #28 to be opened at sprint close.
+All S28 + S29 + S30 PRs merged. No open PRs.
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 
