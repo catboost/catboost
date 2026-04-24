@@ -72,6 +72,95 @@
 #include <sstream>
 #endif
 
+// ============================================================================
+// S30-T1-INSTRUMENT: per-stage float32 residual instrumentation
+//
+// Compile-time gate: -DCOSINE_RESIDUAL_INSTRUMENT
+// Purpose: compute fp32 and fp64 accumulations in parallel at iter=0 (1-indexed
+//   iter=1) to measure which accumulator site dominates the observed ST+Cosine
+//   drift (DEC-034/DEC-035 T1 gate G1 deliverable).
+//
+// Accumulators measured:
+//   1. cosDen  — float32 joint-Cosine denominator in FindBestSplit (ordinal)
+//   2. cosNum  — float32 joint-Cosine numerator  in FindBestSplit (ordinal)
+//   3. gSums   — float32 per-leaf gradient sums (scatter_add_axis → Newton leaf value)
+//   4. cursorInc — float32 per-doc cursor increment (mx::take(leafValues, partitions))
+//
+// Output: CSV files in docs/sprint30/t1-instrument/data/ one file per site per seed.
+// DO NOT SHIP: instrumentation is evidence, not product code.
+// ============================================================================
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+#include <filesystem>
+#include <cassert>
+
+struct TCosineResidualInstrument {
+    // Output directory — set at startup from argv[0] parent + relative path
+    std::string outDir;
+
+    // Active flag: dump only at iter==0 (1-indexed iter=1), cleared after first dump
+    bool dumpCosDen = false;   // set true just before FindBestSplit call at iter=0
+    bool dumpLeaf   = false;   // set true just before leaf-value computation at iter=0
+    bool dumpApprox = false;   // set true just before approx-update at iter=0
+
+    // Seed label written into filenames so multi-seed runs produce distinct files
+    int seed = 0;
+
+    // Accumulation vectors for cosDen/cosNum double shadows (per bin candidate across all p*k)
+    // Filled inside FindBestSplit ordinal branch; written to CSV after FindBestSplit returns.
+    struct TBinRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        float  cosNum_f32;
+        double cosNum_f64;
+        float  cosDen_f32;
+        double cosDen_f64;
+        float  gain_f32;    // ComputeCosineGainKDim result using f32 inputs
+        double gain_f64;    // ComputeCosineGainKDim result using f64 inputs
+    };
+    std::vector<TBinRecord> binRecords;  // populated inside FindBestSplit, flushed after return
+};
+
+// Global singleton — zero-overhead when not compiled in
+static TCosineResidualInstrument g_cosInstr;
+
+// Write a vector of bin records (cosDen/cosNum) to CSV
+static void WriteCosAccumCSV(const std::string& path,
+                              const std::vector<TCosineResidualInstrument::TBinRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "featIdx,bin,cosNum_f32,cosNum_f64,cosNum_abs_residual,"
+               "cosDen_f32,cosDen_f64,cosDen_abs_residual,"
+               "gain_f32,gain_f64,gain_abs_residual\n");
+    for (const auto& r : rows) {
+        double numRes  = std::fabs(static_cast<double>(r.cosNum_f32) - r.cosNum_f64);
+        double denRes  = std::fabs(static_cast<double>(r.cosDen_f32) - r.cosDen_f64);
+        double gainRes = std::fabs(static_cast<double>(r.gain_f32)   - r.gain_f64);
+        fprintf(f, "%u,%u,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e\n",
+                r.featIdx, r.bin,
+                static_cast<double>(r.cosNum_f32), r.cosNum_f64, numRes,
+                static_cast<double>(r.cosDen_f32), r.cosDen_f64, denRes,
+                static_cast<double>(r.gain_f32),   r.gain_f64,   gainRes);
+    }
+    fclose(f);
+    fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+
+// Summarise residuals to stderr for quick gate evaluation
+static void PrintResidualSummary(const char* label,
+                                  const std::vector<double>& residuals) {
+    if (residuals.empty()) { fprintf(stderr, "[INSTR] %s: (empty)\n", label); return; }
+    double maxR = 0, sumR = 0;
+    for (double r : residuals) { if (r > maxR) maxR = r; sumR += r; }
+    // 99th percentile
+    std::vector<double> sorted = residuals;
+    std::sort(sorted.begin(), sorted.end());
+    double p99 = sorted[static_cast<size_t>(0.99 * (sorted.size() - 1))];
+    fprintf(stderr, "[INSTR] %s: n=%zu  max=%.4e  mean=%.4e  p99=%.4e\n",
+            label, residuals.size(), maxR, sumR / residuals.size(), p99);
+}
+#endif  // COSINE_RESIDUAL_INSTRUMENT
+
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 
@@ -254,6 +343,9 @@ TConfig ParseArgs(int argc, char** argv) {
     // S28-ST-GUARD (CLI defense-in-depth): Cosine+SymmetricTree combination rejected until S29 Kahan fix.
     // Mirrors python/catboost_mlx/core.py:638-647 verbatim so TODO markers stay greppable
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    // S30-T1-INSTRUMENT: guard bypassed in instrumented builds so the drift can be measured.
+    // The TODO-S29-ST-COSINE-KAHAN marker is preserved for T4a grep gate.
+#ifndef COSINE_RESIDUAL_INSTRUMENT
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
@@ -265,6 +357,7 @@ TConfig ParseArgs(int argc, char** argv) {
             "'Depthwise' for Cosine."
         );
     }
+#endif  // !COSINE_RESIDUAL_INSTRUMENT
     return config;
 }
 
@@ -1262,6 +1355,11 @@ TBestSplitProperties FindBestSplit(
                 // S28-OBLIV-DISPATCH: Cosine accumulators at bin scope — sum across all p*K dims.
                 float cosNum = 0.0f;
                 float cosDen = 1e-20f;  // guard against sqrt(0)
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: double-shadow accumulators for fp64 reference residual
+                double cosNum_d = 0.0;
+                double cosDen_d = 1e-20;  // mirrors f32 guard
+#endif
 
                 // Min-data-in-leaf check using precomputed suffix sums
                 if (minDataInLeaf > 1 && !suffCount.empty()) {
@@ -1325,6 +1423,22 @@ TBestSplitProperties FindBestSplit(
                                         + sumRight * sumRight * invR;
                                 cosDen += sumLeft  * sumLeft  * weightLeft  * invL * invL
                                         + sumRight * sumRight * weightRight * invR * invR;
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                                // S30-T1: double-precision shadow accumulation
+                                if (g_cosInstr.dumpCosDen) {
+                                    const double dSumLeft    = static_cast<double>(sumLeft);
+                                    const double dSumRight   = static_cast<double>(sumRight);
+                                    const double dWL         = static_cast<double>(weightLeft);
+                                    const double dWR         = static_cast<double>(weightRight);
+                                    const double dL2         = static_cast<double>(l2RegLambda);
+                                    const double dInvL       = 1.0 / (dWL + dL2);
+                                    const double dInvR       = 1.0 / (dWR + dL2);
+                                    cosNum_d += dSumLeft  * dSumLeft  * dInvL
+                                              + dSumRight * dSumRight * dInvR;
+                                    cosDen_d += dSumLeft  * dSumLeft  * dWL * dInvL * dInvL
+                                              + dSumRight * dSumRight * dWR * dInvR * dInvR;
+                                }
+#endif
                                 break;
                             }
                             default:
@@ -1337,6 +1451,22 @@ TBestSplitProperties FindBestSplit(
                 if (scoreFunction == EScoreFunction::Cosine) {
                     totalGain = ComputeCosineGainKDim(cosNum, cosDen);
                 }
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: record per-bin residual for cosDen/cosNum/gain
+                if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine) {
+                    double gain_f64_ref = cosNum_d / std::sqrt(cosDen_d);
+                    TCosineResidualInstrument::TBinRecord rec;
+                    rec.featIdx   = featIdx;
+                    rec.bin       = bin;
+                    rec.cosNum_f32 = cosNum;
+                    rec.cosNum_f64 = cosNum_d;
+                    rec.cosDen_f32 = cosDen;
+                    rec.cosDen_f64 = cosDen_d;
+                    rec.gain_f32   = totalGain;
+                    rec.gain_f64   = gain_f64_ref;
+                    g_cosInstr.binRecords.push_back(rec);
+                }
+#endif
 
                 if (violatesConstraint) continue;
 
@@ -3936,6 +4066,14 @@ TTrainResult RunTraining(
 #ifdef CATBOOST_MLX_STAGE_PROFILE
                 auto _prof_split_start = std::chrono::steady_clock::now();
 #endif
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: arm the cosDen/cosNum double-shadow for this FindBestSplit call
+                // when iter==0 and grow_policy==SymmetricTree (the ST anchor cell).
+                if (iter == 0 && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                    g_cosInstr.dumpCosDen = true;
+                    g_cosInstr.binRecords.clear();
+                }
+#endif
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
@@ -3952,6 +4090,33 @@ TTrainResult RunTraining(
                     // Explicit — no default. Mirrors DW dispatch from 0ea86bde21.
                     ParseScoreFunction(config.ScoreFunction)
                 );
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+                // S30-T1: flush cosDen/cosNum bin records after FindBestSplit returns
+                if (!g_cosInstr.binRecords.empty()) {
+                    // Write per-depth CSV
+                    std::string cosPath = g_cosInstr.outDir + "/cos_accum_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteCosAccumCSV(cosPath, g_cosInstr.binRecords);
+
+                    // Print per-accumulator summaries for quick gate check
+                    std::vector<double> numRes, denRes, gainRes;
+                    for (const auto& r : g_cosInstr.binRecords) {
+                        numRes.push_back(std::fabs(
+                            static_cast<double>(r.cosNum_f32) - r.cosNum_f64));
+                        denRes.push_back(std::fabs(
+                            static_cast<double>(r.cosDen_f32) - r.cosDen_f64));
+                        gainRes.push_back(std::fabs(
+                            static_cast<double>(r.gain_f32)   - r.gain_f64));
+                    }
+                    fprintf(stderr, "[INSTR] ST depth=%u cosNum/cosDen/gain residuals:\n", depth);
+                    PrintResidualSummary("[INSTR]   cosNum", numRes);
+                    PrintResidualSummary("[INSTR]   cosDen", denRes);
+                    PrintResidualSummary("[INSTR]   gain  ", gainRes);
+                    g_cosInstr.binRecords.clear();
+                    g_cosInstr.dumpCosDen = false;
+                }
+#endif
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -4043,6 +4208,13 @@ TTrainResult RunTraining(
         std::chrono::steady_clock::time_point _prof_leafvals_start{};
 #endif
         mx::array leafValues = mx::zeros({1}, mx::float32); // placeholder, overwritten below
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+        // S30-T1: arm leaf-sum and approx-update dumps at iter=0 for approxDim==1
+        if (iter == 0 && approxDim == 1) {
+            g_cosInstr.dumpLeaf   = true;
+            g_cosInstr.dumpApprox = true;
+        }
+#endif
         if (approxDim == 1) {
             auto gSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimGrads[0], 0);
             auto hSumsArr = mx::scatter_add_axis(leafTarget, partitions, dimHess[0], 0);
@@ -4058,6 +4230,76 @@ TTrainResult RunTraining(
 #endif
             leafValues = mx::negative(mx::multiply(lrArr,
                 mx::divide(gSumsArr, mx::add(hSumsArr, l2Arr))));
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+            // S30-T1: leaf-value sum residual — double-shadow of scatter_add_axis gSums/hSums
+            // Only instrument at iter=0, approxDim=1 (the ST+Cosine anchor config).
+            if (g_cosInstr.dumpLeaf && iter == 0) {
+                // Force evaluation so we can read back float32 values
+                mx::eval(gSumsArr, hSumsArr, leafValues);
+                const float* gF = gSumsArr.data<float>();
+                const float* hF = hSumsArr.data<float>();
+                const float* lvF = leafValues.data<float>();
+
+                // CPU double-precision scatter_add reference
+                mx::eval(partitions, dimGrads[0], dimHess[0]);
+                const uint32_t* pPtr  = partitions.data<uint32_t>();
+                const float*    gPtr  = dimGrads[0].data<float>();
+                const float*    hPtr  = dimHess[0].data<float>();
+
+                std::vector<double> gSums_d(numLeaves, 0.0);
+                std::vector<double> hSums_d(numLeaves, 0.0);
+                for (ui32 i = 0; i < trainDocs; ++i) {
+                    ui32 leaf = pPtr[i];
+                    if (leaf < numLeaves) {
+                        gSums_d[leaf] += static_cast<double>(gPtr[i]);
+                        hSums_d[leaf] += static_cast<double>(hPtr[i]);
+                    }
+                }
+
+                // Compute double leaf values
+                double lr_d = static_cast<double>(config.LearningRate);
+                double l2_d = static_cast<double>(config.L2RegLambda);
+                std::vector<double> lv_d(numLeaves);
+                for (ui32 b = 0; b < numLeaves; ++b) {
+                    lv_d[b] = -lr_d * gSums_d[b] / (hSums_d[b] + l2_d);
+                }
+
+                // Write leaf-sum CSV
+                std::string leafPath = g_cosInstr.outDir + "/leaf_sum_seed"
+                    + std::to_string(g_cosInstr.seed) + ".csv";
+                std::filesystem::create_directories(
+                    std::filesystem::path(leafPath).parent_path());
+                FILE* lf = fopen(leafPath.c_str(), "w");
+                if (lf) {
+                    fprintf(lf, "leaf,gSum_f32,gSum_f64,gSum_residual,"
+                                "hSum_f32,hSum_f64,hSum_residual,"
+                                "leafVal_f32,leafVal_f64,leafVal_residual\n");
+                    std::vector<double> gResiduals, hResiduals, lvResiduals;
+                    for (ui32 b = 0; b < numLeaves; ++b) {
+                        double gRes = std::fabs(static_cast<double>(gF[b]) - gSums_d[b]);
+                        double hRes = std::fabs(static_cast<double>(hF[b]) - hSums_d[b]);
+                        double lvRes = std::fabs(static_cast<double>(lvF[b]) - lv_d[b]);
+                        fprintf(lf, "%u,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e,%.10g,%.15g,%.6e\n",
+                                b,
+                                static_cast<double>(gF[b]),  gSums_d[b],  gRes,
+                                static_cast<double>(hF[b]),  hSums_d[b],  hRes,
+                                static_cast<double>(lvF[b]), lv_d[b],     lvRes);
+                        gResiduals.push_back(gRes);
+                        hResiduals.push_back(hRes);
+                        lvResiduals.push_back(lvRes);
+                    }
+                    fclose(lf);
+                    fprintf(stderr, "[INSTR] wrote %u rows → %s\n", numLeaves, leafPath.c_str());
+                    PrintResidualSummary("[INSTR] gSum_residual", gResiduals);
+                    PrintResidualSummary("[INSTR] hSum_residual", hResiduals);
+                    PrintResidualSummary("[INSTR] leafVal_residual", lvResiduals);
+                } else {
+                    fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", leafPath.c_str());
+                }
+                g_cosInstr.dumpLeaf = false;  // only dump once
+            }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
 
 #ifdef CATBOOST_MLX_DEBUG_LEAF
             // P4/P5 — per-bin sums and leaf values at iter 0
@@ -4229,6 +4471,56 @@ TTrainResult RunTraining(
             cursor = mx::add(mx::reshape(cursor, {static_cast<int>(trainDocs)}), docLeafValues);
         }
         mx::eval(cursor);
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+        // S30-T1: approx-update residual — double-shadow of cursor += docLeafValues (approxDim==1)
+        // Compare per-doc float32 cursor increment vs double reference.
+        if (g_cosInstr.dumpApprox && iter == 0 && approxDim == 1) {
+            // cursor is already evaluated; docLeafValues is the per-doc leaf-value lookup.
+            mx::eval(docLeafValues, leafValues, partitions);
+            const float* dlvF = docLeafValues.data<float>();
+            const float* lvF  = leafValues.data<float>();
+            const uint32_t* pPtr = partitions.data<uint32_t>();
+
+            // Double reference: for each doc, increment = double_leafValues[partition[i]]
+            // Build double leaf values from the scalar Newton step (same as dumpLeaf block above,
+            // but we may be in a separate code path — recompute from available float32 leafValues).
+            // NOTE: If dumpLeaf already computed lv_d, it is out of scope here; recompute
+            // as float64 upcast of the float32 leaf values (this measures the cursor-update
+            // float32 → float64 step, not the full gSums residual).
+            std::vector<double> incResiduals;
+            incResiduals.reserve(trainDocs);
+
+            // Write approx-update CSV
+            std::string approxPath = g_cosInstr.outDir + "/approx_update_seed"
+                + std::to_string(g_cosInstr.seed) + ".csv";
+            std::filesystem::create_directories(
+                std::filesystem::path(approxPath).parent_path());
+            FILE* af = fopen(approxPath.c_str(), "w");
+            if (af) {
+                fprintf(af, "doc,partition,docLeafVal_f32,docLeafVal_f64,inc_residual\n");
+                for (ui32 i = 0; i < trainDocs && i < 10000; ++i) {
+                    // Double reference: upcast float32 leaf value for this doc's partition
+                    uint32_t leaf = pPtr[i];
+                    double dlvRef = (leaf < numLeaves)
+                        ? static_cast<double>(lvF[leaf])
+                        : 0.0;
+                    double res = std::fabs(static_cast<double>(dlvF[i]) - dlvRef);
+                    incResiduals.push_back(res);
+                    fprintf(af, "%u,%u,%.10g,%.15g,%.6e\n",
+                            i, leaf,
+                            static_cast<double>(dlvF[i]), dlvRef, res);
+                }
+                fclose(af);
+                fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", incResiduals.size(), approxPath.c_str());
+                PrintResidualSummary("[INSTR] approx_update_inc_residual", incResiduals);
+            } else {
+                fprintf(stderr, "[INSTR] ERROR: cannot open %s\n", approxPath.c_str());
+            }
+            g_cosInstr.dumpApprox = false;  // only dump once
+        }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
+
         result.TreesBuilt++;
 #ifdef CATBOOST_MLX_STAGE_PROFILE
         {
@@ -4471,6 +4763,32 @@ std::vector<ui32> CreateStratifiedFolds(
 #ifndef CATBOOST_MLX_NO_MAIN
 int main(int argc, char** argv) {
     auto config = ParseArgs(argc, argv);
+
+#ifdef COSINE_RESIDUAL_INSTRUMENT
+    // S30-T1: initialise instrumentation output directory and seed label.
+    // Default output: docs/sprint30/t1-instrument/data/ relative to repo root.
+    // Repo root is two levels above argv[0] when built as ./csv_train (repo root / csv_train).
+    // Use COSINE_RESIDUAL_OUTDIR env override if set; otherwise auto-detect.
+    {
+        const char* envDir = std::getenv("COSINE_RESIDUAL_OUTDIR");
+        if (envDir && *envDir) {
+            g_cosInstr.outDir = std::string(envDir);
+        } else {
+            // Walk up from binary to find the repo root (contains catboost/mlx/ dir)
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+            g_cosInstr.outDir = (repoRoot / "docs" / "sprint30" / "t1-instrument" / "data").string();
+        }
+        g_cosInstr.seed = config.RandomSeed;
+        fprintf(stderr, "[INSTR] COSINE_RESIDUAL_INSTRUMENT active — outDir=%s seed=%d\n",
+                g_cosInstr.outDir.c_str(), g_cosInstr.seed);
+        std::filesystem::create_directories(g_cosInstr.outDir);
+    }
+#endif  // COSINE_RESIDUAL_INSTRUMENT
 
     printf("CatBoost-MLX CSV Training Tool\n");
     printf("==============================\n");
