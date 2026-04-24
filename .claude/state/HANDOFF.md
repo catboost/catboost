@@ -1,10 +1,13 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 32 CLOSED — DEC-038/DEC-039 shipped; G3b FAIL 52.6%; DEC-036 reframed for S33)
+> Last updated: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD for iter≥2 runaway divergence; entry = task #119 L0-CONFIG)
 
 ## Current state
 
-- **Active sprint**: **NONE** — S32 CLOSED. Next sprint = S33, to be opened by orchestrator.
+- **Active sprint**: **S33** on branch `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
+- **Active entry point**: task **#119 S33-L0-CONFIG** — owner `@ml-engineer`. CPU-vs-MLX effective config field-by-field diff. Verdict to `docs/sprint33/l0-config/verdict.md`. Cheapest falsifier of Frame C-config; ~45 min.
+- **L0 → L1 → L2 → L3 → L4** sequenced via blockedBy. Hard rule: any HARD-DIFF at L0 → re-config and remeasure drift before L1.
+- **Kickoff DEC**: DEC-040 (L0-L4 SCAFFOLD per ultrathink reasoning; three-frame hypothesis ranking; 12× super-amplification rationale).
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
 - **S31 status**: CLOSED jointly with S32. All S31 quality gates subsumed into S32 close.
 - **Campaign**: Post-Verstappen correctness. DEC-036 (ST+Cosine structural divergence) OPEN. Mechanism reframed to iter≥2 runaway divergence (~9%/iter; 70x amplification from 0.75% iter=1 residual). S33 targets L0-L4 scaffold.

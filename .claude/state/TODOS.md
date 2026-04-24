@@ -1,17 +1,38 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-24 (Sprint 30 CLOSED via PR #28 `17451f4780`; Sprint 31 ACTIVE on iter=1 structural audit).
+> Last header refresh: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD for iter≥2 runaway divergence; entry = #119 L0-CONFIG).
 
 ## Current state (2026-04-24)
 
-- **Active branch**: `mlx/sprint-32-cosine-gain-term-audit` (cut from S31 tip `9b3a5238a7`).
-- **S31 branch**: `mlx/sprint-31-iter1-audit` tip `9b3a5238a7` — carrying S31 work until S32 closes jointly.
-- **Base**: master `17451f4780` (S30 merge commit).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only**. S30 widened scalars; S31 DEC-037 corrected border count + greedy algorithm; kernel sources still untouched.
+- **Active branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
+- **Base**: master `17451f4780` (S30 merge commit). S31/S32 carried in-branch.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
-- **Open PRs**: none. S28/S29/S30 merged. DEC-027 (alternative accumulation) remains deferred.
-- **Active DEC**: **DEC-036 OPEN** (structural divergence); **DEC-037 FORMALIZED post-hoc** (S31 T3b border fix); **DEC-038 OPEN** (S32 Cosine gain term-level audit).
+- **Open PRs**: none. S28/S29/S30 merged. S31/S32 carried in-branch.
+- **Active DEC**: **DEC-036 OPEN** (reframed: iter≥2 runaway divergence, ~9%/iter, 12× super-amplification); **DEC-040 OPEN** (S33 L0-L4 SCAFFOLD); DEC-037/038/039 CLOSED.
+
+## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
+
+**Branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
+**Driver**: DEC-040. Closes DEC-036.
+**Strategy**: L0-L4 cost-ordered falsification of three frames (A trajectory lock-in, B per-iter mechanism, C config/RNG).
+**Hard rule**: any second structural change discovered while fixing the first → STOP, commit first atomically, then continue (DEC-012 enforcement after S31/S32 violations).
+
+### Tasks
+
+- [ ] **#119 S33-L0-CONFIG** — Dump CPU vs MLX effective config field-by-field. Falsifies Frame C-config (~45 min). Verdict: `docs/sprint33/l0-config/verdict.md`. Owner: @ml-engineer.
+- [ ] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119.
+- [ ] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B (~3h). Blocked by #120.
+- [ ] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). ~1-2 days. Blocked by #121.
+- [ ] **#123 S33-L4-FIX** — Implement fix; G4a iter=1 ≤0.1%, G4b iter=50 ≤2%, G4c v5 ULP=0, G4d 18-config L2 [0.98, 1.02], G4e DW sanity. Closes DEC-036. Blocked by #122.
+
+### Carry-forwards (still pending)
+
+- **#114 S31-T-CLEANUP** — S30 carry-forwards (CLI exit wrap + S29 CR residuals).
+- **#113 S31-T3-MEASURE** — re-run T3 gate matrix post-fix (will run after L4).
+- **#93 S30-T4a-ST-REMOVE** / **#94 S30-T4b-LG-REMOVE** — guard removals, gated on DEC-036 closure.
+- **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967` (Logloss/Poisson/Tweedie/Multiclass; not blocking RMSE).
 
 ---
 

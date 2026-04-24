@@ -1650,3 +1650,74 @@ G3a-G3d, kill-switches K6-K8). The investigation ran as planned. T1 confirmed SA
 DEC-038 (allVals) and DEC-039 (fold_count cap) in a single commit. T4 validated
 G3a PASS / G3b FAIL (52.6% drift, DEC-036 structural) / G3c PASS / G3d PASS. The
 original kill-switches K6-K8 did not fire. DEC-036 remains OPEN for S33.
+
+---
+
+## DEC-040: S33 scope — L0-L4 SCAFFOLD for iter≥2 runaway divergence
+
+**Sprint**: 33 (kickoff 2026-04-24)
+**Date**: 2026-04-24
+**Branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`)
+**Status**: OPEN — investigation phase; implements DEC-036 closure.
+**Authored by**: ml-product-owner (ultrathink kickoff)
+
+### Problem
+
+After S30 (precision class) and S32 (DEC-038 allVals + DEC-039 fold_count cap):
+- **iter=1 residual**: 0.75% loss-relative drift (depth=0 gain ratio 0.9999, 200× tighter than spec).
+- **iter=50 drift**: 52.6% — **unchanged** by every iter=1 fix.
+- **Implied per-iter compounding**: 0.0075 × (1+r)^49 ≈ 0.526 → r ≈ 9% per-iter divergence growth.
+  This is **runaway**, not gentle compounding. A 12× super-amplification factor between iter=1
+  and iter=50 cannot be explained by float32 noise propagation alone.
+
+DEC-036 is **reframed**: the structural divergence is no longer at iter=1 split selection
+(closed by DEC-038/039). It is in the iter≥2 trajectory itself — leaf value computation,
+approx update, gradient recomputation, fold-permutation/RNG, or trajectory chaos.
+
+### Three-frame hypothesis ranking (priors)
+
+| Frame | Mechanism | Prior | Falsifier |
+|-------|-----------|-------|-----------|
+| A | Trajectory lock-in cascade — chaotic GBDT search; tiny iter=1 ε amplifies via greedy argmax flips | 25% | L2 GRAFT: forcing iter=1 tree identical → iter=50 drift drops dramatically |
+| B | Per-iter persistent mechanism — leaf value, approx update, gradient recomputation has its own bug | 30% | L2 GRAFT: drift unchanged after grafting iter=1 |
+| C | Config/RNG mismatch — bootstrap_type, bagging_temperature, sampling_unit, leaf_estimation_method, langevin, fold_permutation_block, etc. | 30% | L0/L1: field-by-field config diff + deterministic config remeasure |
+
+Remaining 15% = unknown / interaction effects.
+
+### Decision: L0-L4 layered SCAFFOLD (cost-ordered falsification)
+
+Falsify in cost order. Cheapest first. Stop at first frame closed.
+
+| Layer | Task | Owner | Effort | Falsifies | Gate |
+|-------|------|-------|--------|-----------|------|
+| **L0** | CONFIG AUDIT — dump CPU + MLX effective config; field-by-field diff | @ml-engineer | ~45 min | Frame C-config | L0-PASS: no HARD-DIFF, OR drift unchanged after re-config |
+| **L1** | DETERMINISM SHIFT — disable Bayesian bootstrap, set has_time, fix RNG seeds | @ml-engineer | ~2 hours | Frame C-RNG | L1-PASS: drift unchanged under deterministic config |
+| **L2** | GRAFT EXPERIMENT — inject CPU iter=1 tree into MLX, run 49 more MLX iterations | @ml-engineer | ~3 hours | Frame A vs B | L2-DECIDE: drift drops ≥80% → Frame A; drift unchanged → Frame B |
+| **L3** | ITER=2 INSTRUMENTATION (conditional, only if L2 → Frame B) — per-leaf, per-doc dump at iter=2 | @ml-engineer | ~1-2 days | Frame B sub-mechanism | L3-PASS: identify exact term causing per-iter drift |
+| **L4** | FIX + FORMAL GATES — implement fix; ship | @ml-engineer + @qa-engineer | ~1-3 days | (closes DEC-036) | G4a iter=1 ≤0.1%, G4b iter=50 ≤2%, G4c v5 ULP=0, G4d 18-config L2 [0.98, 1.02], G4e DW sanity |
+
+### Kill-switches (carried from DEC-038)
+
+- **K6** — L1 deterministic config closes drift to ≤2% → S33 Frame C, no kernel changes needed.
+- **K7** — L2 GRAFT closes drift via Frame A → revisit at iter=1 ratio target (1.000 ± 1e-6 instead of 1e-4).
+- **K8** — L3 instrumentation surfaces a single per-iter term — fix it; if multi-term, escalate to architect.
+
+### Hard rule (S33-only — DEC-012 reinforcement)
+
+**If you find a second structural change while fixing the first, STOP and commit the first
+atomically before continuing.** S31 (`746d5090b5`) and S32 (`901bc760ac`, `1aaf92497b`) each
+violated DEC-012 atomicity — three sprints in a row. Self-flagging in sprint-close is not
+sufficient deterrent. S33 enforces hard stop.
+
+### Anchor
+
+- **Anchor config**: N=50k, ST grow_policy, Cosine score, RMSE loss, depth=6, bins=128,
+  iter ∈ {1, 50}, seeds 42/43/44, rs=0.
+- **iter=1 floor**: depth=0 gain ratio 0.9999 (G3a-PASS at S32 close).
+- **iter=50 ceiling**: 52.6% drift (G3b-FAIL at S32 close — target).
+- **Production kernel**: v5 (`784f82a891`) — must remain ULP=0 across all S33 commits.
+
+### Authority
+
+- S32 sprint-close: `docs/sprint32/sprint-close.md`
+- S33 ultrathink reasoning: this entry; subsequent verdict docs in `docs/sprint33/{l0,l1,l2,l3,l4}/`
