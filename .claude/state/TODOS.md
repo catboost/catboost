@@ -108,27 +108,21 @@
 **Basis**: DEC-036 — structural divergence investigation; precision class exhausted in S30.
 **Rationale**: V6 ruled out all precision-class fixes via flat N-scaling (b ≈ 0 across 100× N range). ST+Cosine 53% aggregate drift must come from **algorithmic divergence** between CPU and MLX, not fp32 accumulation. T1 (preflight-first) localizes the mechanism: cheap source-diff runs before any instrumentation work.
 
-### Primary track — T1 preflight → T1 audit → mechanism fix
+### Primary track — T1-PRE → T2 port → T3 measure
 
-- [ ] **S31-T1-PRE-SOURCEDIFF** — Source-level diff of Cosine gain formula (CPU `TCosineScoreCalcer::CalcMetric`) vs MLX (`ComputeCosineGainKDim`). Plus preflight on: (a) basePred init order, (b) feature quantization borders, (c) gradient vector at iter=1 first entry. Deliverable: `docs/sprint31/t1-pre/verdict.md` with one of three verdicts:
-    - **(i) FORMULA DIVERGENCE found** → DEC-036 updated with mechanism; jump to T2 fix design (skip instrumentation).
-    - **(ii) PRE-SPLIT DIVERGENCE found** (basePred / quant / gradients differ) → fires K4 kill-switch; S31 re-scopes to pre-split fix.
-    - **(iii) CLEAN** → proceed to T1-AUDIT with confidence the formula and inputs match.
-    Gate: **G1-PRE — source symbols aligned with side-by-side algebraic mapping + preflight checks recorded.** Owner: @research-scientist.
+- [x] **S31-T1-PRE-SOURCEDIFF** — Verdict **(ii) PRE-SPLIT DIVERGENCE — K4 fires**. Formula algebraically equivalent across 11 audited rows (no divergence on numerator / denominator / L2 regularization / parent subtraction / K-dim sum order / sign convention). Pre-split divergence at **P6: feature quantization borders**. MLX's `QuantizeFeatures` (`csv_train.cpp:816–889`) uses a custom percentile-midpoint equal-frequency algorithm; CPU CatBoost default is `GreedyLogSum` (`binarization_options.h:16`). Different candidate-split populations are being argmax'd at every layer. Secondary latent bugs (not firing at S28 anchor): P5 `scaledL2Regularizer` missing, P11 hessian-vs-sampleWeight semantics swap under non-trivial hess losses. Verdict: `docs/sprint31/t1-pre/verdict.md`. Commit `aed81c63d7`. — @research-scientist.
 
-- [ ] **S31-T1-AUDIT** — (Conditional on T1-PRE verdict iii.) Build iter=1 split-selection comparison harness reusing `COSINE_RESIDUAL_INSTRUMENT` gate. For each tree layer up to first divergence, on S28 anchor cell (N=50k, ST, Cosine, rs=0, seeds 42/43/44), dump from BOTH CPU and MLX:
-    - **parent stats**: `(Σg, Σh, W, leaf_count)` per node
-    - **top-K=5 candidates**: `(feature_idx, bin_idx, gain)` sorted
-    - **winning tuple**: `(feature_idx, bin_idx, gain)`
-    Stop at first diverging layer; do NOT audit deeper layers under stale-assignment. Deliverable: `docs/sprint31/t1-audit/verdict.md` naming mechanism class per DEC-036 table. Gate: **G1 — first diverging layer localized with file:line pointers in both CPU and MLX sources.** **Blocked by S31-T1-PRE.** Owner: @ml-engineer.
+- [ ] **S31-T2-PORT-GREEDYLOGSUM** — Port CatBoost `GreedyLogSum` border-selection algorithm into MLX, replacing the custom percentile-midpoint code at `csv_train.cpp:816–889`. Reference impl: `library/cpp/grid_creator/binarization.cpp` (`MakeBinarizer` dispatch). Also fix latent P5 (`ScaleL2Reg` call in MLX config path: `csv_train.cpp:4068, 4189`). Gate: **G2a — borders match CPU byte-for-byte at S28 anchor**; **G2b — S28 anchor ST+Cosine drift closes from 53.30% to ≤ 2% at N=50k (seeds 42/43/44)**; **G2c — bench_boosting v5 ULP=0 preserved (kernels untouched)**; **G2d — 18-config L2 parity non-regression**. DEC-012 atomic commits. Owner: @ml-engineer.
 
-- [ ] **S31-T2-MECHANISM-FIX** — Design and implement the fix for the identified mechanism class. Concrete fix + parity gate + falsifiable prediction. **Blocked by T1-PRE or T1-AUDIT.** Owner: depends on mechanism class.
+- [ ] **S31-T3-MEASURE** — Re-run S30 T3 gate matrix (G3a ST, G3b LG-mid, G3c LG-stress) post-T2. **Blocked by T2.** Owner: @qa-engineer.
 
-- [ ] **S31-T3-MEASURE** — Re-run S30 T3 gate matrix (G3a ST, G3b LG-mid, G3c LG-stress). **Blocked by T2.** Owner: @qa-engineer.
+- [ ] **S31-T1-AUDIT (fallback)** — Original iter=1 instrumented dump harness — **reopens as S31-T3b if T2 fails G2b** (drift does not close to ≤ 2%). Keep warm. Builds on `COSINE_RESIDUAL_INSTRUMENT` gate; per-layer parent stats + top-K=5 candidates + winning tuple for CPU vs MLX. Owner: @ml-engineer. Held pending T2 outcome.
 
 - [ ] **S31-T4a-ST-REMOVE** — Reopens S30 #93 if S31-T3 G3a passes. Atomic removal across Python + C++ nanobind + CLI + tests. **Blocked by S31-T3 G3a.** Owner: @ml-engineer.
 
 - [ ] **S31-T4b-LG-REMOVE** — Reopens S30 #94 if S31-T3 G3b AND G3c pass. **Blocked by S31-T3 G3b + G3c.** Owner: @ml-engineer.
+
+- [ ] **S31-T-LATENT-P11** — Follow-up (not blocking close): document the hessian-vs-sampleWeight semantics swap at MLX `csv_train.cpp:3780, 3967` as a correctness bug that fires under any loss with non-trivial hessian (Logloss, Poisson, Tweedie, Multiclass). File as a tracked risk under DEC-036 umbrella or an ad-hoc DEC-037 depending on S31 close scope. Owner: @technical-writer.
 
 ### Secondary track — carry-forward from S30
 

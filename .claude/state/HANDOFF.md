@@ -128,20 +128,29 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 **Basis**: DEC-036 (structural divergence — precision class exhausted in S30).
 **Strategy**: preflight-first. Cheap source-diff runs before any runtime instrumentation; only build the iter=1 dump harness if the preflight doesn't already finger the mechanism.
 
-### Entry point
+### T1-PRE (DONE) — verdict (ii) PRE-SPLIT DIVERGENCE — K4 fires
 
-**Spawn @research-scientist on S31-T1-PRE-SOURCEDIFF.**
-- Diff CPU `TCosineScoreCalcer::CalcMetric` vs MLX `ComputeCosineGainKDim` algebraically (side-by-side symbol mapping; regularization term; parent-gain subtraction; K-dim sum order).
-- Preflight: basePred init, quantization borders (CPU vs MLX), initial gradient vector at iter=1 first entry — do they match bit-for-bit?
-- Deliver `docs/sprint31/t1-pre/verdict.md` returning one of: **(i) FORMULA DIVERGENCE** → DEC-036 named + jump to T2; **(ii) PRE-SPLIT DIVERGENCE** → K4 fires, re-scope; **(iii) CLEAN** → proceed to T1-AUDIT.
+Commit `aed81c63d7`. Verdict: `docs/sprint31/t1-pre/verdict.md`.
 
-### Next entry point (contingent on T1-PRE verdict iii)
+- **Formula**: algebraically clean across 11 audited rows.
+- **Pre-split divergence (P6)**: MLX `QuantizeFeatures` (`csv_train.cpp:816–889`) uses custom percentile-midpoint equal-frequency borders; CPU CatBoost default is `GreedyLogSum` (`binarization_options.h:16`). Different candidate-split populations → different argmax at every layer. Consistent with V6's N-independent drift.
+- **Latent bugs surfaced** (do not fire at S28 anchor but will fire in production):
+    - P5 — MLX never calls `ScaleL2Reg` (`csv_train.cpp:4068, 4189`); CPU scales by `sumAllWeights/docCount`.
+    - P11 — MLX plugs dimHess where CPU plugs sampleWeight (`csv_train.cpp:3780, 3967`). Equivalent for RMSE only; breaks under non-trivial-hess losses (Logloss, Poisson, Tweedie, Multiclass).
 
-**Spawn @ml-engineer on S31-T1-AUDIT.**
-- Instrumented iter=1 split-selection dump at S28 anchor (N=50k, ST, Cosine, rs=0, seeds 42/43/44).
-- Per layer up to first divergence: parent stats `(Σg, Σh, W, leaf_count)`, top-K=5 candidates `(feature, bin, gain)`, winning tuple.
-- Stop at first diverging layer (no stale-assignment peek).
-- Deliver `docs/sprint31/t1-audit/verdict.md` naming mechanism class with file:line pointers on both sides.
+Qualifier: S26-D0 P10 probe found border divergence causes only 0.06% ratio gap at L2+RS=0+N=10k — suggests the border port is necessary cleanup but may not close the 53% Cosine drift by itself. Held as T3b fallback.
+
+### Current entry point — @ml-engineer on S31-T2-PORT-GREEDYLOGSUM
+
+- Port CPU `GreedyLogSum` into MLX's `QuantizeFeatures`, replacing the custom percentile-midpoint algorithm at `csv_train.cpp:816–889`.
+- Reference: `library/cpp/grid_creator/binarization.cpp` (`MakeBinarizer` + `GreedyLogSum` impl).
+- Also fix P5: wire `ScaleL2Reg` (`L2RegLambda · sumAllWeights / docCount`) at the same config path.
+- Gates: G2a borders byte-match CPU; G2b ST+Cosine drift ≤ 2% at S28 anchor; G2c bench_boosting v5 ULP=0 preserved; G2d 18-config L2 non-regression.
+- DEC-012 atomic commits. Target: 2–3 sessions.
+
+### Fallback — S31-T3b = T1-AUDIT (if T2 fails G2b)
+
+Instrumented iter=1 dump per tightened spec (parent stats + top-K=5 + winning tuple per layer). Keep warm.
 
 ### Kill-switches (pre-authorized per DEC-036)
 

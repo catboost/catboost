@@ -1445,3 +1445,42 @@ The **first diverging layer names the mechanism class**:
 - Fix 2 verdict `docs/sprint30/fix2-fp64-gain/verdict.md` (L3/L4 exhaustion)
 - D4 verdict `docs/sprint30/d4-joint-denom/verdict.md` (accumulator exhaustion, 2.42× not 64×)
 - D1 audit `docs/sprint30/d1-cpu-audit/verdict.md` (CPU is fp64 end-to-end — bit-parity in fp32 MLX is unreachable; closest achievable is algorithmic equivalence modulo fp32 ULP)
+
+### T1-PRE outcome (verdict ii — K4 fires)
+
+**Commit**: `aed81c63d7` — `docs/sprint31/t1-pre/verdict.md`
+**Date**: 2026-04-24
+**Verdict**: (ii) PRE-SPLIT DIVERGENCE — kill-switch **K4 fires** (pre-authorized).
+
+**Formula mapping (§2)** — 11 rows (F1–F11: avg formula, numerator term, denominator term, L2 regularization, parent-gain absence, leaf summation, K-dim aggregation, denominator guard, gain sign, stats container signs, weights) all confirmed ALIGNED between CPU `TCosineScoreCalcer` and MLX `ComputeCosineGainKDim`. The Cosine gain formula is CLEAN. No structural algebraic divergence at the split-scoring layer.
+
+**Pre-split preflight (§3)** — P1–P7 checks:
+- **P6 quantization borders (DIVERGENT by construction)**: CPU default is `GreedyLogSum` (from `library/cpp/grid_creator/binarization_options.h:16`); MLX uses a custom percentile-midpoint equal-frequency algorithm (`csv_train.cpp:816-889`). The two algorithms produce different bin edges for identical input distributions → different per-document bin indices → different per-bin histogram aggregates `(Σg_b, Σh_b, W_b)` → different split candidate enumeration and gain values. This is the primary suspected mechanism for the 53% ST+Cosine drift.
+- **P1–P4, P7**: basePred initialization, iter=1 gradient vector, leaf count, tree topology all match. No upstream-of-quantization divergence.
+- **P5 latent finding (secondary)**: MLX never calls `ScaleL2Reg`; CPU scales `L2RegLambda` by `sumAllWeights / docCount` before passing to score calcer. This is a systemic regularization-scale bug orthogonal to borders. Fix at `csv_train.cpp:4068, 4189`.
+
+**Mechanism class named**: **P6 quantization border algorithm divergence**, with **P5 L2 regularization scaling** as a secondary orthogonal bug.
+
+**Qualifier against trivial-class assumption**: The K4 kill-switch language anticipates a "trivial-class fix." Two pieces of prior evidence argue the border-port may not fully close the 53% drift:
+- **S26-D0 P10 historical probe**: forcing CPU-computed borders into MLX yielded a **0.06% ratio gap at L2+RS=0+N=10k** — non-dominant for L2, but Cosine may amplify border sensitivity.
+- **V6 N-scaling (b ≈ 0.0017)**: flat N-scaling does not cleanly predict a quantization-border mechanism, which would typically scale sub-linearly with N via bin-density convergence.
+
+If the S31-T2 port of `GreedyLogSum` closes the drift to ≤ 2%, mechanism is confirmed. If residual drift remains > 2% after port + P5 fix, T1-AUDIT (now S31-T3b fallback) runs to hunt for a remaining structural layer mechanism.
+
+### S31-T2-PORT-GREEDYLOGSUM (chosen path — "B")
+
+**Decision date**: 2026-04-24
+**Authority**: Ramos explicit "B" — port `GreedyLogSum` from `library/cpp/grid_creator/binarization.cpp` into MLX verbatim, replacing `csv_train.cpp:816-889`. Skip cheap falsification probe (forcing CPU borders into MLX) because the port is necessary cleanup regardless of drift outcome ("fix properly always").
+
+**Scope**:
+1. Port CPU `GreedyLogSum` (plus supporting `MakeBinarizer`) into MLX quantizer path; replace custom percentile-midpoint code at `csv_train.cpp:816-889`.
+2. Fix P5: add `ScaleL2Reg` call at `csv_train.cpp:4068, 4189` → `L2RegLambda = L2RegLambda · (sumAllWeights / docCount)`.
+3. P11 (hessian-vs-sampleWeight at `csv_train.cpp:3780, 3967`) → separate tracked task `S31-T-LATENT-P11`, out of scope for T2.
+
+**Gates** (all hard):
+- **G2a** Borders byte-match CPU — random 10 feature × 10 dataset probe
+- **G2b** ST+Cosine drift ≤ 2% at S28 anchor (N=50k, rs=0, seeds 42/43/44)
+- **G2c** bench_boosting v5 ULP=0 preserved (histogram kernel parity not regressed)
+- **G2d** 18-config L2 non-regression (perf and parity)
+
+**Fallback**: If G2b fails (residual drift > 2%), spawn S31-T3b = T1-AUDIT instrumented iter=1 split-selection harness per the original DEC-036 plan.
