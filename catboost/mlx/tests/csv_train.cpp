@@ -330,6 +330,10 @@ TConfig ParseArgs(int argc, char** argv) {
     // S28-LG-GUARD (CLI defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
     // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
+    // S30-T3-MEASURE: guard bypassed in T3-measure builds so post-Kahan LG parity can be
+    // measured (G3b LG-Mid and G3c LG-Stress).  The TODO-S29-LG-COSINE-RCA marker is preserved
+    // for T4b grep gate.  COSINE_T3_MEASURE MUST NOT be used in production builds.
+#ifndef COSINE_T3_MEASURE
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "Lossguide") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='Lossguide' is not supported "
@@ -340,12 +344,14 @@ TConfig ParseArgs(int argc, char** argv) {
             "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
         );
     }
+#endif  // !COSINE_T3_MEASURE
     // S28-ST-GUARD (CLI defense-in-depth): Cosine+SymmetricTree combination rejected until S29 Kahan fix.
     // Mirrors python/catboost_mlx/core.py:638-647 verbatim so TODO markers stay greppable
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
     // S30-T1-INSTRUMENT: guard bypassed in instrumented builds so the drift can be measured.
+    // S30-T3-MEASURE: guard also bypassed in T3-measure builds for G3a post-Kahan parity.
     // The TODO-S29-ST-COSINE-KAHAN marker is preserved for T4a grep gate.
-#ifndef COSINE_RESIDUAL_INSTRUMENT
+#if !defined(COSINE_RESIDUAL_INSTRUMENT) && !defined(COSINE_T3_MEASURE)
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
@@ -357,7 +363,7 @@ TConfig ParseArgs(int argc, char** argv) {
             "'Depthwise' for Cosine."
         );
     }
-#endif  // !COSINE_RESIDUAL_INSTRUMENT
+#endif  // !COSINE_RESIDUAL_INSTRUMENT && !COSINE_T3_MEASURE
     return config;
 }
 
