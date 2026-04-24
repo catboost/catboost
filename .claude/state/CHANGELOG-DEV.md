@@ -2,6 +2,78 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-24 — Sprint 30 CLOSING (precision fix class exhausted; DEC-036 opens structural investigation)
+
+Branch: `mlx/sprint-30-cosine-kahan`, base `4d855d47db`, tip `187a5e661f`. S30 executed full
+phased T1→T4 plan per DEC-035 plus an extensive verification battery (D1/D2/D2-redux/D3/D4/
+V1/V2/V5/V6/Fix 2) after T3 failed all primary envelope gates. No kernel sources touched
+(v5 `784f82a891` unchanged). Two scalar-type widenings shipped outside the kernel. Both ST
+and LG guards remain in place.
+
+### Executed phases and verdicts
+
+| Phase | Task | Gate | Result |
+|-------|------|------|--------|
+| T1 | #90 INSTRUMENT | G1 mechanism fingered | PASS (cosDen, residual 4.067e-3) |
+| T2 | #91 KAHAN | G2 ≥10× residual reduction | PASS (12.5×); K4 fired → fp64 widening |
+| T3 | #92 MEASURE | G3a/G3b/G3c | **FAIL** (53.30% ST; K2 fired at G3c 1.44–1.45) |
+| D1 | #100 CPU AUDIT | CPU precision baseline | CPU is fp64 throughout (`__m128d`, static_assert) |
+| D2 | #101 FULL-STACK | Locate binding layer | Initially ruled out L3/L4; V2 later invalidated the methodology |
+| D2-redux | #106 METHOD FIX | Honest fp32 shadow | L3/L4 RULED OUT (5.03e-5 residual, 0/18 flips) |
+| D3 | #102 LG OUTCOME A/B | Discriminate LG path | Outcome B confirmed for LG (priority-queue divergence) |
+| D4 | #107 JOINT-DENOM 64× | V5 amplification hypothesis | FALSIFIED (measured 2.42×, not 64×) |
+| V1 | #103 N-SCALING | L0 precision-class predictor | FLAT — exponent b = 0.0017 |
+| V5 | #105 DW @ 50k | Isolate ST-specific mechanism | MIXED — L0 real but 8.4× DW/ST gap unexplained |
+| V6 | #109 N=500 CONFIRMER | Cheap L1 falsification | **L1 FALSIFIED** — drift 50.72% @ N=500 vs 53.30% @ N=50k (b ≈ 0) |
+| Fix 2 | #108 FP64 GAIN | L3/L4 widening | SHIPPED; ST drift 53.30% → 53.30% (prediction failed cleanly) |
+
+### Commits (oldest → newest, S30 branch tip `187a5e661f`)
+
+| SHA | Tag | Purpose |
+|-----|-----|---------|
+| (S30-00 kickoff, state files) | S30-00 | Branch kickoff; DEC-035 ultrathink elaboration |
+| `108c7a59d2`-family | S30-T1/T2/K4 | cosNum/cosDen accumulator instrumented + fp64 widened |
+| (T3 verdict) | S30-T3 | 18-config measurement: all primary envelope gates fail |
+| (D1 verdict) | S30-D1 | CPU precision audit — CPU is fp64 throughout |
+| (D2 verdict + D3 verdict) | S30-D2/D3 | Stack instrumentation; LG outcome B confirmed |
+| `2d03cf8702` | S30-D2-REDUX | Corrected fp32 shadow methodology at `csv_train.cpp:1523-1548`; L3/L4 RULED OUT honestly |
+| `7245099659` | S30-D4 | V5 64× amplification hypothesis FALSIFIED (measured 2.42×) |
+| (V1 + V5 verdicts) | S30-V1/V5 | N-scaling + DW-at-scale falsification |
+| (V2 verdict) | S30-V2 | D2 methodology audit — L3/L4 residual was cast ULP only |
+| `90a0cb4475` | S30-FIX2 | Fp64 widening of totalGain/bestGain/TBestSplitProperties::Gain/perturbedGain/TLeafCandidate::Gain |
+| `364d4ee962` | S30-FIX2-VERDICT | Fix 2 verdict: 53.30% → 53.30% (prediction failed cleanly) |
+| `187a5e661f` | S30-V6 | N=500 L1 confirmer — hypothesis FALSIFIED; b ≈ 0 across 100× N range |
+
+### What ships from S30
+
+- **K4 (fp64 cosNum/cosDen)** — logically correct precision fix; removes a floor that would otherwise re-surface after the structural mechanism is resolved.
+- **Fix 2 (fp64 gain/argmax)** — logically correct precision fix; same rationale as K4.
+- **13 verdict docs** under `docs/sprint30/` — full chain of evidence for precision-class exhaustion.
+- **Instrumentation** behind `COSINE_RESIDUAL_INSTRUMENT` in `catboost/mlx/tests/csv_train.cpp` — retained for S31 audit reuse.
+
+### What does NOT ship
+
+- T4a/T4b guard removal (#93/#94) — deferred; mechanism not fixed.
+- K4 and Fix 2 are correct but **insufficient** alone. Guards remain at Python `_validate_params`, `train_api.cpp:TrainConfigToInternal`, and `csv_train.cpp:ParseArgs`.
+
+### DEC transitions
+
+- **DEC-035**: ACTIVE → **PARTIALLY CLOSED**. Precision fix class exhausted; atomicity clause and phased-plan rationale preserved for audit trail.
+- **DEC-034**: RESOLVED (outcome A) → **PARTIALLY FALSIFIED for ST** (V6 N-scaling rules out pure precision mechanism); **LG outcome B confirmed dominant** for LG (D3 verdict).
+- **DEC-032**: PARTIALLY CLOSED — unchanged. Both `{ST,LG}+Cosine` guards still in place.
+- **DEC-036**: OPEN — structural divergence investigation; S31 T1 is the iter=1 algorithmic audit. See DECISIONS.md.
+
+### S31 kickoff
+
+Spawn @ml-engineer (or @research-scientist) on **S31-T1-ITER1-AUDIT**. Build iter=1 split-selection comparison harness dumping `(feature_idx, bin_idx, gain)` per layer from CPU CatBoost and MLX. First diverging layer names the mechanism class. Deliverable: `docs/sprint31/t1-audit/verdict.md`.
+
+### Lessons captured
+
+1. **Precision-layer hypothesis pattern**: we hypothesized four different precision mechanisms in sequence (cosDen, L3/L4 gain cast, joint-denominator 64× amplification, L0 histogram N-scaling). All four were measurably correct at the measurement layer but failed to move the trajectory layer. Flat N-scaling (b ≈ 0) is the cheap oracle that falsifies the whole class at once.
+2. **Measurement-layer gates can mask trajectory-layer failures**: G2 passed at 12.5× residual reduction but G3a did not move. Gate specs must test the lever's actual mechanism against the target outcome, not a measurement-layer proxy — this is the DEC-028 "kernel-ULP=0 ≠ full-path parity" trap in a different costume.
+3. **Verification audits must audit their own methodology**: V2 discovered D2's L3/L4 rulings were biased (`gain_f32` and `gain_f64` were both derived from the same `double`). Always verify that the measurement actually measures the claimed quantity.
+4. **Two falsified predictions in a row (D4 L3/L4, V6 L1) means stop guessing precision and measure structure directly** — the S31 iter=1 audit.
+
 ## 2026-04-23 — Sprint 29 CLOSED (DEC-032 closeout partial advance; DEC-034 resolved)
 
 Branch: `mlx/sprint-29-dec032-closeout`, base `987da0e7d5`, tip `fa7f9b55fc`. 7 commits

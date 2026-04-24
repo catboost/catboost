@@ -1241,10 +1241,10 @@ once in S30 (DEC-035); re-open outcome B only if post-Kahan residual drift persi
 
 ## DEC-035: S30-COSINE-KAHAN — phased Kahan fix on Cosine accumulation
 
-**Sprint**: 30 (active as of 2026-04-23)
-**Date**: 2026-04-23 (draft); elaborated 2026-04-23 after S30 kickoff ultrathink
-**Status**: ACTIVE — phased plan confirmed; kill-switches pre-authorized.
-**Authored by**: S29-CLOSE (@technical-writer); elaborated S30-00 kickoff (orchestrator)
+**Sprint**: 30 (active as of 2026-04-23; CLOSED 2026-04-24)
+**Date**: 2026-04-23 (draft); elaborated 2026-04-23 after S30 kickoff ultrathink; closed 2026-04-24
+**Status**: PARTIALLY CLOSED — precision fix class exhausted; K4 (fp64 cosDen/cosNum) + Fix 2 (fp64 gain/argmax) shipped but insufficient alone. ST+Cosine and LG+Cosine guards REMAIN in place. Dominant ST mechanism is structural (N-independent) and superseded to DEC-036.
+**Authored by**: S29-CLOSE (@technical-writer); elaborated S30-00 kickoff (orchestrator); closure addendum S30-CLOSE 2026-04-24
 
 ### Context
 
@@ -1346,3 +1346,88 @@ post-merge evidence surfaces LG-specific drift at production-deep configs. Do no
 - ST+Cosine anchor: `docs/sprint28/sprint-close.md` (0.77% iter-1, ~47% iter-50 aggregate drift)
 - LG+Cosine spike: `docs/sprint29/lg-mechanism-spike/data/iter1_drift.json` (0.0024% mean at shallow cell)
 - Phased-plan rationale: S30-00 kickoff commit (this commit)
+
+### Closure addendum (2026-04-24)
+
+S30 executed the full T1→T4 phased plan plus an extensive verification battery (D1/D2/D2-redux/D3/D4/V1/V2/V5/V6) after T3 failed G3a/G3b/G3c at the measurement layer. Key findings:
+
+| Phase | Gate | Result | Meaning |
+|-------|------|--------|---------|
+| T1 (#90) | G1 — mechanism fingered | PASS | cosDen fingered; residual 4.067e-3 at iter-1 |
+| T2 (#91) | G2 — ≥10× residual reduction | PASS (12.5×) | K4 fp64 widening applied at measurement layer |
+| T3 (#92) | G3a ST < 2% @ 50-iter | **FAIL (53.30%)** | Measurement-layer fix did not reach trajectory layer |
+| T3 (#92) | G3b LG-Mid ratio ∈ [0.98, 1.02] | FAIL (1.27–1.31) | LG did not converge either |
+| T3 (#92) | G3c LG-Stress | FAIL (1.44–1.45) | K2 pre-authorized kill-switch fired |
+| Fix 2 (#108) | Predicted ST drop toward DW floor | **FAIL (53.30% → 53.30%)** | L3/L4 gain cast + fp32 argmax not binding |
+| V6 (#109) | L1 histogram N-scaling | **FALSIFIED (b ≈ 0.0 across 100× N)** | Precision fix class exhausted |
+
+DEC-034 outcome A ("shared float32 joint-denominator compounding") is **partially falsified for ST** by V6's flat N-scaling (b=0.0017 across N ∈ {500, 1k, 5k, 10k, 25k, 50k}). A precision-compounding mechanism would produce scaling exponent b ≈ 1.0; b ≈ 0 indicates an N-independent structural divergence, not fp32 accumulation error.
+
+**Ships from S30:**
+- K4 fp64 widening of cosNum/cosDen accumulators (commits `108c7a59d2`-family)
+- Fix 2 fp64 widening of totalGain/bestGain/TBestSplitProperties::Gain/perturbedGain/TLeafCandidate::Gain (commits `90a0cb4475` + `364d4ee962`)
+- 13 verdict documents under `docs/sprint30/` (T1, T2, T3, D1, D2, D2-redux, D3, D4, V1, V2, V5, V6, Fix 2)
+- Guards unchanged at all three layers (Python `_validate_params`, `train_api.cpp:TrainConfigToInternal`, `csv_train.cpp:ParseArgs`) — both ST+Cosine and LG+Cosine remain rejected.
+
+Both K4 and Fix 2 are logically correct fixes that will become load-bearing once the structural mechanism is resolved; they remove precision floors that would otherwise re-surface. They are not wasted code.
+
+**Status transitions:**
+- DEC-035: ACTIVE → PARTIALLY CLOSED (precision fix class exhausted; atomicity clause and Kahan rationale preserved for reference)
+- DEC-034: RESOLVED (outcome A) → PARTIALLY FALSIFIED for ST (V6 N-scaling rules out pure precision mechanism); LG outcome-B confirmed dominant for LG (D3 verdict)
+- DEC-032: PARTIALLY CLOSED → STATUS UNCHANGED (LG and ST guards still in place)
+
+**Forward pointer:** DEC-036 opens the structural divergence investigation. S31 targets iter=1 split-selection audit as T1.
+
+---
+
+## DEC-036: ST+Cosine structural divergence — iter=1 algorithmic audit
+
+**Sprint**: 31 (kickoff 2026-04-24)
+**Date**: 2026-04-24
+**Status**: OPEN — investigation-phase; no mechanism identified yet
+**Authored by**: S30-CLOSE (orchestrator)
+
+### Context
+
+S30 exhausted the precision fix class for the ST+Cosine 53% aggregate drift:
+
+- **cosNum/cosDen accumulator** (K4): widened to fp64, measurement-layer 12.5× residual reduction, trajectory-layer no movement.
+- **Gain scalar + argmax** (Fix 2): widened `totalGain`, `bestGain`, `TBestSplitProperties::Gain`, `perturbedGain`, `TLeafCandidate::Gain` to `double`. ST drift bit-identical before/after: 53.30% → 53.30%.
+- **L0 histogram N-scaling** (V6): drift is N-independent (b ≈ 0 across 100× N range). Falsifies pure-precision class entirely. See `docs/sprint30/v6-n500-confirmer/verdict.md`.
+
+V6 rules out any fix that would scale drift linearly with N. That forecloses: fp64 histogram accumulation, Kahan/Neumaier on any cross-partition accumulator, widening statistics containers, quantization-border precision fixes, and any other "more precision in accumulators" class of fix.
+
+The remaining hypothesis class is **structural divergence**: CPU CatBoost and MLX compute different algorithms (different gain formula, different split enumeration, different candidate ordering, different argmax tie-break, different quantization borders, different basePred initialization, or different tree-construction nuance) that produce different split decisions regardless of precision.
+
+### Decision
+
+Open S31-ITER1-AUDIT. T1 is an **iter=1 split-selection comparison harness** that dumps, for each of the 6 tree layers on the S28 anchor cell, the winning `(feature_idx, bin_idx, gain)` from both CPU CatBoost and MLX. Compare layer-by-layer. The **first diverging layer names the mechanism class**:
+
+| First divergence at | Implied mechanism class |
+|---------------------|-------------------------|
+| Layer 0 (root split) | Cosine gain formula itself differs between CPU and MLX |
+| Layer 1–5 with same feature, different bin | Split-candidate enumeration or bin-boundary difference |
+| Layer 1–5 with different feature | Tie-break policy or gain ranking difference |
+| Any layer with same (feature, bin) but different gain value | Gain computation scale/normalization difference |
+| No divergence at iter=1, emerges later | Leaf-value estimation or approx update divergence (iter=2+ audit needed) |
+
+### Gates
+
+| ID | Gate | Criterion |
+|----|------|-----------|
+| G1 | Divergence localized | T1 audit identifies first diverging layer with file:line pointers to both CPU and MLX implementations |
+| G2 | Mechanism named | DEC-036 updated with specific mechanism class and CPU-vs-MLX algebraic difference |
+| G3 | Fix proposed | Concrete fix proposal with parity gate and falsifiable prediction |
+
+### Kill-switches (pre-authorized)
+
+- **K1 (no iter=1 divergence)**: if CPU and MLX produce bit-identical iter=1 split sequences, the mechanism emerges at iter≥2 (leaf values or approx update). Expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
+- **K2 (mechanism is an upstream gap)**: if the divergence is a missing MLX feature (e.g., MLX implements a different Cosine variant than CPU default), DEC-036 becomes scope for a **feature-port sprint**, not a precision sprint. Re-plan S31 as port work.
+
+### Authority
+
+- S30 closure addendum above (precision exhaustion rationale)
+- V6 verdict `docs/sprint30/v6-n500-confirmer/verdict.md` (N-scaling falsification)
+- Fix 2 verdict `docs/sprint30/fix2-fp64-gain/verdict.md` (L3/L4 exhaustion)
+- D4 verdict `docs/sprint30/d4-joint-denom/verdict.md` (accumulator exhaustion, 2.42× not 64×)
+- D1 audit `docs/sprint30/d1-cpu-audit/verdict.md` (CPU is fp64 end-to-end — bit-parity in fp32 MLX is unreachable; closest achievable is algorithmic equivalence modulo fp32 ULP)
