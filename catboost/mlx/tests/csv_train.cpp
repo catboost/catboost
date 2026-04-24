@@ -88,7 +88,25 @@
 //
 // Output: CSV files in docs/sprint30/t1-instrument/data/ one file per site per seed.
 // DO NOT SHIP: instrumentation is evidence, not product code.
+//
+// S30-D2-INSTRUMENT extension: -DCOSINE_D2_INSTRUMENT (implies COSINE_RESIDUAL_INSTRUMENT)
+// Purpose: extend T1 instrumentation with dedicated gain_scalar CSVs for the D2
+//   full-stack residual + argmax-flip diagnostic (DEC-035 #101 task).
+// Additional output schema:
+//   gain_scalar_seedN.csv  — per (feat, bin) gain_f32, gain_f64, gain_abs_residual
+//   leaf_sum_seedN.csv     — same as T1/T2 leaf_sum (reused; written to D2 data dir)
+// Argmax flip CSVs are computed by the Python post-processor run_d2_instrument.py
+//   from the gain_scalar CSVs (no second pass through FindBestSplit needed).
+// Output directory: docs/sprint30/d2-stack-instrument/data/ (overridable via
+//   COSINE_RESIDUAL_OUTDIR env var, same as T1/T2).
 // ============================================================================
+#ifdef COSINE_D2_INSTRUMENT
+// D2 implies T1/T2 instrument paths — enable the base flag automatically
+#  ifndef COSINE_RESIDUAL_INSTRUMENT
+#    define COSINE_RESIDUAL_INSTRUMENT
+#  endif
+#endif
+
 #ifdef COSINE_RESIDUAL_INSTRUMENT
 #include <filesystem>
 #include <cassert>
@@ -145,6 +163,27 @@ static void WriteCosAccumCSV(const std::string& path,
     fclose(f);
     fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", rows.size(), path.c_str());
 }
+
+#ifdef COSINE_D2_INSTRUMENT
+// S30-D2-INSTRUMENT: write gain_scalar CSV — subset of cos_accum with only gain columns.
+// Schema matches task #101 spec: feat_idx, bin, gain_f32, gain_f64, gain_abs_residual.
+// This is the M1 (L3) measurement: post-cast gain scalar residual for every split candidate.
+static void WriteGainScalarCSV(const std::string& path,
+                                const std::vector<TCosineResidualInstrument::TBinRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[D2] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "feat_idx,bin,gain_f32,gain_f64,gain_abs_residual\n");
+    for (const auto& r : rows) {
+        double gainRes = std::fabs(static_cast<double>(r.gain_f32) - r.gain_f64);
+        fprintf(f, "%u,%u,%.10g,%.15g,%.6e\n",
+                r.featIdx, r.bin,
+                static_cast<double>(r.gain_f32), r.gain_f64, gainRes);
+    }
+    fclose(f);
+    fprintf(stderr, "[D2] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+#endif  // COSINE_D2_INSTRUMENT
 
 // Summarise residuals to stderr for quick gate evaluation
 static void PrintResidualSummary(const char* label,
@@ -4153,6 +4192,16 @@ TTrainResult RunTraining(
                         + "_depth" + std::to_string(depth) + ".csv";
                     WriteCosAccumCSV(cosPath, g_cosInstr.binRecords);
 
+#ifdef COSINE_D2_INSTRUMENT
+                    // S30-D2: also write gain_scalar CSV (M1 measurement) with trimmed schema
+                    // (feat_idx, bin, gain_f32, gain_f64, gain_abs_residual only).
+                    // One file per depth — Python post-processor merges depths for M1 summary.
+                    std::string gainPath = g_cosInstr.outDir + "/gain_scalar_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteGainScalarCSV(gainPath, g_cosInstr.binRecords);
+#endif  // COSINE_D2_INSTRUMENT
+
                     // Print per-accumulator summaries for quick gate check
                     std::vector<double> numRes, denRes, gainRes;
                     for (const auto& r : g_cosInstr.binRecords) {
@@ -4819,10 +4868,10 @@ int main(int argc, char** argv) {
     auto config = ParseArgs(argc, argv);
 
 #ifdef COSINE_RESIDUAL_INSTRUMENT
-    // S30-T1: initialise instrumentation output directory and seed label.
-    // Default output: docs/sprint30/t1-instrument/data/ relative to repo root.
-    // Repo root is two levels above argv[0] when built as ./csv_train (repo root / csv_train).
-    // Use COSINE_RESIDUAL_OUTDIR env override if set; otherwise auto-detect.
+    // S30-T1/D2: initialise instrumentation output directory and seed label.
+    // Default output (T1):  docs/sprint30/t1-instrument/data/
+    // Default output (D2):  docs/sprint30/d2-stack-instrument/data/  (when COSINE_D2_INSTRUMENT)
+    // Both paths are overridable via COSINE_RESIDUAL_OUTDIR env var.
     {
         const char* envDir = std::getenv("COSINE_RESIDUAL_OUTDIR");
         if (envDir && *envDir) {
@@ -4835,10 +4884,18 @@ int main(int argc, char** argv) {
                 if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
                 repoRoot = repoRoot.parent_path();
             }
+#ifdef COSINE_D2_INSTRUMENT
+            g_cosInstr.outDir = (repoRoot / "docs" / "sprint30" / "d2-stack-instrument" / "data").string();
+#else
             g_cosInstr.outDir = (repoRoot / "docs" / "sprint30" / "t1-instrument" / "data").string();
+#endif
         }
         g_cosInstr.seed = config.RandomSeed;
-        fprintf(stderr, "[INSTR] COSINE_RESIDUAL_INSTRUMENT active — outDir=%s seed=%d\n",
+        fprintf(stderr, "[INSTR] COSINE_RESIDUAL_INSTRUMENT active"
+#ifdef COSINE_D2_INSTRUMENT
+                " (+D2)"
+#endif
+                " — outDir=%s seed=%d\n",
                 g_cosInstr.outDir.c_str(), g_cosInstr.seed);
         std::filesystem::create_directories(g_cosInstr.outDir);
     }
