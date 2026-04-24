@@ -1780,7 +1780,7 @@ def test_onnx_import(problem_type, boost_from_average):
 
 
 def test_onnx_export_with_categorical_features():
-    import onnxruntime as ort
+    onnxruntime = pytest.importorskip("onnxruntime")
 
     cat_features = [0, 1]
     X = np.array([
@@ -1821,7 +1821,7 @@ def test_onnx_export_with_categorical_features():
         }
     )
 
-    session = ort.InferenceSession(output_onnx_model_path, providers=['CPUExecutionProvider'])
+    session = onnxruntime.InferenceSession(output_onnx_model_path, providers=['CPUExecutionProvider'])
     input_names = [inp.name for inp in session.get_inputs()]
 
     feed = {}
