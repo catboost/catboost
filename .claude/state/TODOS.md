@@ -103,26 +103,26 @@
 
 ---
 
-## Sprint 32 — COSINE-GAIN-TERM-AUDIT — ACTIVE 2026-04-24
+## Sprint 32 — COSINE-GAIN-TERM-AUDIT — CLOSED 2026-04-24
 
-**Branch**: `mlx/sprint-32-cosine-gain-term-audit` (cut from S31 tip `9b3a5238a7`).
-**Basis**: DEC-038. S31 T3b localized 53% ST+Cosine drift to a **GAIN-FORMULA** mechanism at depth=0 — MLX Cosine gain is ~5.4% lower than CPU (ratio 0.946 stable across 3 seeds and depths; partition sumH matches). 5.4% stability suggests a single algebraic bias (missing normalization scalar or extra denominator term), not a compounding error.
+**Branch**: `mlx/sprint-32-cosine-gain-term-audit` (tip `3e472ac49f`).
+**Outcome**: DEC-038 + DEC-039 shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
+**Authoritative record**: `docs/sprint32/sprint-close.md`.
 
-### Primary track — codepath → terms → fix → validate
+### Primary track — DONE
 
-- [ ] **#115 S32-T1-CODEPATH** — Reconcile `ComputeCosineGainKDim` (helper T1-PRE mapped) against the live code path at `FindBestSplit` `S28-OBLIV-DISPATCH`. If DIFFERENT-PATH, T1-PRE's 11-row check was on dead code; the 5.4% deficit is the inline expression. Deliverable: `docs/sprint32/t1-codepath/verdict.md`. Owner: @ml-engineer.
+- [x] **#115 S32-T1-CODEPATH** — SAME-PATH; H1 eliminated. `docs/sprint32/t1-codepath/verdict.md`. Commit `0e24e7f8b7`.
+- [x] **#116 S32-T2-INSTRUMENT** — FORMULA CORRECT; root cause = border grid divergence (not formula error). `docs/sprint32/t2-terms/verdict.md`. Commits `5d3899090c`, `1762e8d49c`.
+- [x] **#117 S32-T3-FIX** — DEC-038 (allVals) + DEC-039 (fold_count cap 127) shipped. `docs/sprint32/t3-fix/verdict.md`. Commit `901bc760ac`. DEC-012 violation noted (two fixes in one commit).
+- [x] **#118 S32-T4-VALIDATE** — Gates run. G3a PASS / G3b FAIL / G3c PASS / G3d PASS. DEC-038/039 formalized. Sprint-close doc produced. State files updated.
 
-- [ ] **#116 S32-T2-INSTRUMENT** (blocked by #115) — Per-bin dump `(gL, gR, wL, wR, λ, cosNum, cosDen, gain)` at depth=0 seed=42 on both sides; align-by-(feature, bin). First diverging quantity names the bug layer: gradient (P11 hessian bleed?), weight (P11), cosNum (numerator bug), cosDen (denominator bug). Deliverable: `docs/sprint32/t2-terms/verdict.md`. Owner: @ml-engineer.
+### Carry-forward to S33
 
-- [ ] **#117 S32-T3-FIX** (blocked by #116) — Implement per-term fix. DEC-012 atomic commits. Owner: @ml-engineer.
-
-- [ ] **#118 S32-T4-VALIDATE** (blocked by #117) — Four hard gates: G3a depth=0 gain ratio 1.000 ± 1e-4 (3 seeds); G3b ST+Cosine drift ≤ 2% at S28 anchor; G3c bench_boosting v5 ULP=0 preserved; G3d 18-config L2 non-regression. Fallback: if G3a passes but G3b fails, spawn T5 multi-partition composition audit. Owner: @ml-engineer.
-
-### Kill-switches (pre-authorized per DEC-038)
-
-- **K6 (terms match, composition differs)**: per-bin terms byte-match but gain still diverges → bug is in multi-partition composition layer (ST at depth≥1 sums gain across leaves). Expand to T5 composition audit. Pre-authorized.
-- **K7 (P11 is primary)**: dumps show `wL_MLX = 2·wL_CPU` (or similar P11 signature) → re-scope S32 as a P11 fix. Escalate to Ramos before re-scope.
-- **K8 (cross-cutting fix)**: fix spans kernel sources + csv_train + helper + dispatch → budget warn; escalate before implementation.
+- [ ] **S31-T4a-ST-REMOVE** — Blocked by G3b FAIL. Deferred to S33 (gated on drift ≤ 2%).
+- [ ] **S31-T4b-LG-REMOVE** — Blocked by G3b FAIL. Deferred to S33.
+- [ ] **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics; not blocking. Carry to S33.
+- [ ] **S31-T-CLEANUP** — SA-I2 try/catch + S29 CR nits. Carry to S33.
+- [ ] **DEC-036 S33 investigation** — L0-L4 scaffold (config audit → determinism → graft → iter=2 instrument → fix). New DEC-040 to be authored at S33 kickoff by orchestrator.
 
 ---
 

@@ -2,6 +2,62 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-24 — Sprint 32 CLOSED (DEC-038/DEC-039 shipped; DEC-036 reframed for S33)
+
+Branch: `mlx/sprint-32-cosine-gain-term-audit`, base S31 tip `9b3a5238a7`, tip `3e472ac49f`.
+7 commits on branch. No kernel sources touched (v5 `784f82a891` unchanged).
+
+### What shipped
+
+Three correctness fixes in `catboost/mlx/tests/csv_train.cpp`:
+
+**DEC-038** (`901bc760ac`): `GreedyLogSumBestSplit` was receiving deduplicated values instead
+of all-docs array. CPU's `TFeatureBin` uses `features.Values` (N docs with duplicates);
+`BinEnd - BinStart = document count`. Using unique values changed the score landscape,
+causing ~2-index border grid offset and the 5.4% Cosine gain deficit. Fix: pass `allVals`.
+
+**DEC-039** (`901bc760ac`): Histogram kernel T2_BIN_CAP contract violated at `fold_count=128`.
+`bin_value=128` at `posInWord=0` features sets bit 31 (= VALID_BIT), which is stripped by
+`p_clean = p_s & 0x7FFFFFFF`, aliasing 391 docs to bin_value=0 and dropping them from the
+histogram. Fix: `maxBordersCount = std::min(maxBins, 127u)`. Contract was already documented
+in `kernel_sources.h:38` ("Safe ONLY when every feature's fold count <= 127").
+
+**DEC-037** (S31 co-fix, `746d5090b5`): border count off-by-one + DP algorithm wrong; closed S31.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| G3a — depth=0 gain ratio (3 seeds) | PASS: ratios 1.000000/1.000000/1.000000 (delta < 5e-7) |
+| G3b — iter=50 ST+Cosine drift | FAIL: 52.6% (DEC-036 reframed; target was ≤2%) |
+| G3c — bench_boosting v5 ULP=0 | PASS: 0.48231599 = AN-009 anchor; kernel md5 byte-identical |
+| G3d — 18-config L2 non-regression | PASS: 18/18 cells in [0.98, 1.02] envelope |
+
+### DEC-036 reframe
+
+The "GAIN-FORMULA" framing (T3b ratio 0.946) was a surface symptom of the border bugs.
+With borders fixed, depth=0 gain ratio is 1.000000. But iter=50 drift is 52.6% (unchanged
+from 53.30% pre-fix). The 0.75% iter=1 residual compounds to 52.6% at iter=50 at ~9%/iter
+— ~70x amplification (geometric 1.0075^50 = 1.45; observed 1.526). Runaway divergence.
+S33 will audit this with L0-L4 scaffold: config → determinism → graft experiment → iter=2
+instrumentation → fix. DEC-040 opens at S33 kickoff.
+
+### DEC-012 atomicity violations (2 this sprint)
+
+1. DEC-037 bundled with T3b verdict doc in `746d5090b5` (S31).
+2. DEC-038 + DEC-039 bundled in `901bc760ac` (S32 T3).
+
+S33 hard rule: "if you find a second structural issue while fixing the first, STOP and
+commit the first atomically before continuing the investigation."
+
+### Key non-obvious finding
+
+The 52.6% drift at iter=50 from a 0.75% iter=1 residual implies 70x amplification — not
+geometric compounding. This is trajectory lock-in, not a precision floor. The DW/ST gap
+(6.33% vs 52.6%) remains unexplained and may be diagnostic.
+
+---
+
 ## 2026-04-24 — Sprint 30 CLOSING (precision fix class exhausted; DEC-036 opens structural investigation)
 
 Branch: `mlx/sprint-30-cosine-kahan`, base `4d855d47db`, tip `187a5e661f`. S30 executed full
