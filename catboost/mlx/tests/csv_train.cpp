@@ -5143,6 +5143,17 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Error: No valid features after quantization\n");
         return 1;
     }
+#ifdef CATBOOST_MLX_DUMP_BORDERS
+    // S31-T2-G2a: dump all feature borders for byte-match probe.
+    // Output format: "BORDER\t{feature_idx}\t{border_value}" one per line.
+    for (ui32 df = 0; df < static_cast<ui32>(quant.Borders.size()); ++df) {
+        for (float bv : quant.Borders[df]) {
+            printf("BORDER\t%u\t%.9g\n", df, bv);
+        }
+    }
+    fflush(stdout);
+    return 0;
+#endif  // CATBOOST_MLX_DUMP_BORDERS
 #ifdef CATBOOST_MLX_DEBUG_LEAF
     // P10 (CLI path) — quantization borders for features 0 and 1
     for (ui32 p10_f = 0; p10_f < std::min(static_cast<ui32>(quant.Borders.size()), 2u); ++p10_f) {
