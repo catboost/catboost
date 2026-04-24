@@ -120,8 +120,10 @@ def main():
             if first_diverging is None:
                 # first_diverging in COLS_TO_COMPARE order (not sorted by rdiff)
                 pass
+        key_str = (f"(feat={col_max_key[col][0]}, bin={col_max_key[col][1]})"
+                   if col_max_key[col] is not None else "(none)")
         print(f"  {label:12s}: max_rdiff = {col_max_rdiff[col]:.3e}  "
-              f"at (feat={col_max_key[col][0]}, bin={col_max_key[col][1]}){flag}")
+              f"at {key_str}{flag}")
 
     # Identify first diverging column in causal order
     for col, label in COLS_TO_COMPARE:

@@ -1008,16 +1008,20 @@ TDataset LoadBinary(const std::string& path, const std::string& nanMode) {
 // from library/cpp/grid_creator/binarization.cpp (TGreedyBinarizer<MaxSumLog>).
 //
 // Algorithm (unweighted path — no DefaultValue):
-//   1. Sort feature values and remove duplicates to get unique-value array.
-//   2. Treat each unique value as having weight 1 (unweighted path).
+//   1. Sort feature values retaining duplicates (all N docs).
+//   2. Build TFeatureBin over the full sorted array — BinEnd-BinStart = document count.
 //   3. Greedily split the bin with the highest log-gain in a priority queue.
 //   4. Each split's score = log(total) - log(left) - log(right)  [MaxSumLog penalty].
-//   5. Border = midpoint of the two adjacent unique values at each split boundary.
+//   5. Border = midpoint of the two adjacent array elements at each split boundary.
 //
-// Key fix (DEC-037): the prior implementation used maxBordersCount = maxBins - 1,
-// producing 127 borders when CPU CatBoost uses border_count = 128.
-// This caused a systematic MLX_bin = CPU_bin - 1 offset (confirmed on 3 seeds,
-// S31-T3b-T1-AUDIT). The fix: maxBordersCount = maxBins (not maxBins - 1).
+// DEC-038 fix: prior implementation deduplicated before passing to GreedyLogSumBestSplit,
+// making BinEnd-BinStart count unique values instead of documents. This changed the
+// penalty score landscape, producing ~2-index border offsets for features with many
+// duplicate values (N=50k, continuous float32 → ~50k near-unique → small effect; but
+// for features with genuine duplicates it diverged significantly). Fix: pass allVals
+// (sorted, with duplicates) so BinEnd-BinStart = document count, matching CPU.
+//
+// DEC-037 fix: maxBordersCount = maxBins (was maxBins-1; caused MLX_bin = CPU_bin-1).
 //
 // Reference: TGreedyBinarizer<EPenaltyType::MaxSumLog>::BestSplit (no DefaultValue branch)
 //            + TFeatureBin<MaxSumLog>::CalcSplitScore / UpdateBestSplitProperties
@@ -1040,7 +1044,7 @@ inline double GreedyLogSumPenalty(double w) {
 struct TGreedyFeatureBin {
     uint32_t BinStart;
     uint32_t BinEnd;
-    const float* Values;   // pointer into sorted unique-value array
+    const float* Values;   // pointer into sorted all-docs value array (with duplicates)
     uint32_t BestSplit;
     double BestScore;
 
@@ -1188,10 +1192,17 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
 
         // Numeric: GreedyLogSum border selection (CatBoost default EBorderSelectionType).
         // Uses greedy MaxSumLog priority-queue approach (TGreedyBinarizer<MaxSumLog>),
-        // unweighted path (TFeatureBin — count of unique values, not documents).
+        // unweighted path (TFeatureBin — count of ALL documents, not unique values).
+        //
+        // DEC-038 fix: CPU's TFeatureBin is built from features.Values (all docs, with
+        // duplicates), not from a deduplicated unique-value array. The CalcSplitScore
+        // uses BinEnd-BinStart as document counts, so the penalty function receives
+        // document counts. Using uniqueVals caused a different score landscape and
+        // produced ~2-index border offsets for features with many duplicate values.
+        //
         // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1; caused MLX_bin = CPU_bin-1).
         //
-        // Step 1: build sorted raw values (non-NaN only).
+        // Step 1: build sorted raw values (non-NaN only), with duplicates retained.
         std::vector<float> allVals;
         allVals.reserve(ds.NumDocs);
         for (ui32 d = 0; d < ds.NumDocs; ++d) {
@@ -1206,27 +1217,22 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
         }
         std::sort(allVals.begin(), allVals.end());
 
-        // Build unique-value array and document-count weights.
-        std::vector<float> uniqueVals;
-        uniqueVals.reserve(allVals.size());
-        {
-            // Deduplicate: CatBoost's TGreedyBinarizer uses the unweighted path
-            // (TFeatureBin, not TWeightedFeatureBin) — each unique value has weight 1.
-            float prev = allVals[0];
-            uniqueVals.push_back(prev);
-            for (ui32 i = 1; i < static_cast<ui32>(allVals.size()); ++i) {
-                if (allVals[i] != prev) {
-                    prev = allVals[i];
-                    uniqueVals.push_back(prev);
-                }
-            }
-        }
-
-        // Step 2: Greedy MaxSumLog binarization — produces exactly maxBins borders
-        // matching CatBoost's TGreedyBinarizer<MaxSumLog>::BestSplit (unweighted path).
+        // Step 2: Greedy MaxSumLog binarization — pass allVals (with duplicates) to
+        // match CatBoost's TFeatureBin which operates on the full document array.
         // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1, causing bin offset).
-        int maxBordersCount = static_cast<int>(maxBins);
-        std::vector<float> borders = GreedyLogSumBestSplit(uniqueVals, maxBordersCount);
+        //
+        // DEC-039 fix: cap maxBordersCount at 127 to satisfy the histogram kernel's
+        // T2_BIN_CAP = 128 (0..127) contract.  With folds ≤ 127 the maximum bin_value
+        // is 127, so the packed byte for posInWord=0 features never has bit 7 set
+        // (bit 7 at shift=24 = bit 31 of the word = VALID_BIT).  Requesting 128
+        // borders produces fold_count=128 and allows bin_value=128 at posInWord=0
+        // features; the histogram kernel strips the VALID_BIT on p_clean, aliasing
+        // bin_value=128 to bin_value=0 and silently dropping those docs from the
+        // suffix sum.  This caused wL to be offset by ~391 for features 0,4,8,12,16
+        // (every posInWord=0 feature) despite DEC-038-correct borders.
+        // Note: bench_boosting already applies this cap (NumBins-1 for fold count).
+        int maxBordersCount = static_cast<int>(std::min(maxBins, 127u));
+        std::vector<float> borders = GreedyLogSumBestSplit(allVals, maxBordersCount);
         q.Borders[f] = std::move(borders);
 
         // Step 3: bin assignment (same policy as before):
