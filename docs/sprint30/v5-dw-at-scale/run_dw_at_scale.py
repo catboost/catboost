@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# S30-V5-DW-AT-SCALE commit 1/2: harness + raw data
 """
 S30-V5-DW-AT-SCALE: DW+Cosine parity at ST-anchor cell size (N=50000).
 
