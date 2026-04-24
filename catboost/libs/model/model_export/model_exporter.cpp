@@ -104,6 +104,13 @@ namespace NCB {
             "catFeaturesHashToString has to be specified if the model contains one hot features"
         );
 
+        for (const auto& split : model.ModelTrees->GetBinFeatures()) {
+            CB_ENSURE(
+                split.Type == ESplitType::FloatFeature || split.Type == ESplitType::OneHotFeature,
+                "ONNX-ML format export only supports FloatFeature and OneHotFeature splits"
+            );
+        }
+
         onnx::ModelProto outModel;
 
         NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
