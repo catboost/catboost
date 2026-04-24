@@ -3494,6 +3494,23 @@ TTrainResult RunTraining(
         valPairLogitPairs = GeneratePairLogitPairs(valTargetsVec, valGroupOffsets, valNumGroups);
     }
 
+    // S31-T2 P5 fix: ScaleL2Reg — mirrors CPU catboost/private/libs/algo/online_predictor.h
+    // ScaleL2Reg(l2Regularizer, sumAllWeights, allDocCount) = l2Regularizer * sumAllWeights / allDocCount
+    // CPU always scales before passing to split-scoring and leaf-estimation.
+    // MLX was passing config.L2RegLambda raw (= unscaled). For uniform weights (S28 anchor),
+    // sumAllWeights == docCount so scaledL2 == L2RegLambda and this is a no-op.
+    // Becomes load-bearing for any training run with non-uniform sample weights.
+    float scaledL2RegLambda;
+    {
+        double sumAllWeights = 0.0;
+        if (sampleWeights.empty()) {
+            sumAllWeights = static_cast<double>(trainDocs);
+        } else {
+            for (float w : sampleWeights) sumAllWeights += static_cast<double>(w);
+        }
+        scaledL2RegLambda = static_cast<float>(
+            config.L2RegLambda * (sumAllWeights / static_cast<double>(trainDocs)));
+    }
 
 #ifdef CATBOOST_MLX_STAGE_PROFILE
     NCatboostMlx::TStageProfiler stageProfiler(static_cast<int>(config.NumIterations));
@@ -3947,10 +3964,11 @@ TTrainResult RunTraining(
                 }
 
                 // Find best split for partition 0 (the leaf's docs).
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto perPartSplits = FindBestSplitPerPartition(
                     histData2, partStats2,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, 2u, featureMask,
+                    scaledL2RegLambda, 2u, featureMask,
                     config.RandomStrength, gradRms, &rng,
                     ParseScoreFunction(config.ScoreFunction));
 
@@ -4205,10 +4223,11 @@ TTrainResult RunTraining(
 #ifdef CATBOOST_MLX_STAGE_PROFILE
                 auto _prof_split_start = std::chrono::steady_clock::now();
 #endif
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto perPartSplits = FindBestSplitPerPartition(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, numPartitions, featureMask,
+                    scaledL2RegLambda, numPartitions, featureMask,
                     config.RandomStrength, gradRms, &rng,
                     ParseScoreFunction(config.ScoreFunction)
                 );
@@ -4326,10 +4345,11 @@ TTrainResult RunTraining(
                     g_cosInstr.binRecords.clear();
                 }
 #endif
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, numPartitions, featureMask,
+                    scaledL2RegLambda, numPartitions, featureMask,
                     config.MinDataInLeaf, countHist, partDocCounts,
                     config.MonotoneConstraints,
                     config.RandomStrength, gradRms, &rng,
@@ -4457,7 +4477,7 @@ TTrainResult RunTraining(
                        : (1u << splits.size());
 
         auto lrArr = mx::array(config.LearningRate, mx::float32);
-        auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
+        auto l2Arr = mx::array(scaledL2RegLambda, mx::float32);  // P5: scaled by sumAllWeights/docCount
         auto leafTarget = mx::zeros({static_cast<int>(numLeaves)}, mx::float32);
 
         // Stage 6 (LeafSums) + Stage 7 (LeafValues): scatter_add + Newton step are fused here.
