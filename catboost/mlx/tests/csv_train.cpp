@@ -66,6 +66,7 @@
 #include <unordered_set>
 #include <random>
 #include <optional>
+#include <queue>
 #include <stdexcept>   // std::invalid_argument — S28-LG-GUARD / S28-ST-GUARD
 #ifdef CATBOOST_MLX_STAGE_PROFILE
 #include <filesystem>
@@ -805,6 +806,161 @@ TDataset LoadBinary(const std::string& path, const std::string& nanMode) {
 }
 
 // ============================================================================
+// Quantization — GreedyLogSum border selection
+//
+// S31-T2-PORT-GREEDYLOGSUM: Port of CatBoost's GreedyLogSum border algorithm
+// from library/cpp/grid_creator/binarization.cpp (TGreedyBinarizer<MaxSumLog>).
+//
+// Algorithm (unweighted path — no DefaultValue):
+//   1. Sort feature values and remove duplicates to get unique-value array.
+//   2. Treat each unique value as a "bin" with count-of-unique-values weight.
+//   3. Greedily split the bin with the highest log-gain in a priority queue.
+//   4. Each split's score = log(total) - log(left) - log(right)  [MaxSumLog penalty].
+//   5. Border = midpoint of the two adjacent unique values at each split boundary.
+//
+// Reference: TGreedyBinarizer<EPenaltyType::MaxSumLog>::BestSplit (no DefaultValue branch)
+//            + TFeatureBin<MaxSumLog>::CalcSplitScore / UpdateBestSplitProperties
+//            + GreedySplit priority-queue loop
+//            in library/cpp/grid_creator/binarization.cpp.
+//
+// Arcadia dependencies stripped — uses only std:: containers.
+// ============================================================================
+
+namespace {
+
+// MaxSumLog penalty: -log(w + 1e-8).  Gain from splitting [L,R) at s is:
+//   CalcSplitScore(s) = -Penalty(s-L) + -Penalty(R-s) - (-Penalty(R-L))
+//                     = log(R-L+1e-8) - log(s-L+1e-8) - log(R-s+1e-8)
+// Higher is better.
+inline double GreedyLogSumPenalty(double w) {
+    return -std::log(w + 1e-8);
+}
+
+struct TGreedyFeatureBin {
+    uint32_t BinStart;
+    uint32_t BinEnd;
+    const float* Values;   // pointer into sorted unique-value array
+    uint32_t BestSplit;
+    double BestScore;
+
+    TGreedyFeatureBin(uint32_t start, uint32_t end, const float* vals)
+        : BinStart(start), BinEnd(end), Values(vals), BestSplit(start), BestScore(0.0)
+    {
+        UpdateBestSplitProperties();
+    }
+
+    bool operator<(const TGreedyFeatureBin& other) const {
+        return BestScore < other.BestScore;
+    }
+
+    bool CanSplit() const {
+        return (BinStart != BestSplit) && (BinEnd != BestSplit);
+    }
+
+    bool IsFirst() const {
+        return BinStart == 0;
+    }
+
+    // Border value: midpoint between Values[BinStart-1] and Values[BinStart].
+    float LeftBorder() const {
+        if (IsFirst()) return Values[0];
+        float borderValue = 0.5f * Values[BinStart - 1];
+        borderValue += 0.5f * Values[BinStart];
+        return borderValue;
+    }
+
+    uint32_t Size() const { return BinEnd - BinStart; }
+    double Score() const { return BestScore; }
+
+    // Split this bin at BestSplit: returns the left child; this bin becomes right.
+    TGreedyFeatureBin Split() {
+        TGreedyFeatureBin left(BinStart, BestSplit, Values);
+        BinStart = BestSplit;
+        UpdateBestSplitProperties();
+        return left;
+    }
+
+private:
+    double CalcSplitScore(uint32_t splitPos) const {
+        if (splitPos == BinStart || splitPos == BinEnd) {
+            return -std::numeric_limits<double>::infinity();
+        }
+        const double leftScore  = -GreedyLogSumPenalty(static_cast<double>(splitPos - BinStart));
+        const double rightScore = -GreedyLogSumPenalty(static_cast<double>(BinEnd    - splitPos));
+        const double currScore  = -GreedyLogSumPenalty(static_cast<double>(BinEnd    - BinStart));
+        return leftScore + rightScore - currScore;
+    }
+
+    void UpdateBestSplitProperties() {
+        // Mirror TFeatureBin::UpdateBestSplitProperties from binarization.cpp:
+        // Find midValue at midpoint of [BinStart, BinEnd), then locate the first
+        // occurrence (lb) and one-past-last occurrence (ub) of that midValue.
+        // Evaluate score at both positions, pick the better one.
+        const uint32_t mid = BinStart + (BinEnd - BinStart) / 2;
+        const float midValue = Values[mid];
+
+        const uint32_t lb = static_cast<uint32_t>(
+            std::lower_bound(Values + BinStart, Values + mid, midValue) - Values
+        );
+        const uint32_t ub = static_cast<uint32_t>(
+            std::upper_bound(Values + mid, Values + BinEnd, midValue) - Values
+        );
+
+        const double scoreLeft  = CalcSplitScore(lb);
+        const double scoreRight = CalcSplitScore(ub);
+
+        BestSplit = (scoreLeft >= scoreRight) ? lb : ub;
+        BestScore = (BestSplit == lb) ? scoreLeft : scoreRight;
+    }
+};
+
+// GreedySplit: greedy priority-queue splitter (mirrors GreedySplit from binarization.cpp).
+// Takes ownership of initialBin; returns sorted vector of border values.
+static std::vector<float> GreedyLogSumBestSplit(
+    const std::vector<float>& uniqueValues,
+    int maxBordersCount)
+{
+    if (uniqueValues.size() <= 1 || maxBordersCount <= 0) {
+        return {};
+    }
+
+    TGreedyFeatureBin initialBin(
+        0,
+        static_cast<uint32_t>(uniqueValues.size()),
+        uniqueValues.data()
+    );
+
+    std::priority_queue<TGreedyFeatureBin> splits;
+    splits.push(initialBin);
+
+    while (static_cast<int>(splits.size()) <= maxBordersCount && splits.top().CanSplit()) {
+        auto top = splits.top();
+        splits.pop();
+        auto left = top.Split();
+        splits.push(left);
+        splits.push(top);
+    }
+
+    std::vector<float> borders;
+    borders.reserve(splits.size() > 0 ? splits.size() - 1 : 0);
+    while (!splits.empty()) {
+        if (!splits.top().IsFirst()) {
+            borders.push_back(splits.top().LeftBorder());
+        }
+        splits.pop();
+    }
+
+    // Sort borders (priority queue ordering is by score, not position).
+    std::sort(borders.begin(), borders.end());
+    // Remove exact duplicates that can arise when adjacent unique values share a midpoint.
+    borders.erase(std::unique(borders.begin(), borders.end()), borders.end());
+
+    return borders;
+}
+
+}  // namespace
+
+// ============================================================================
 // Quantization
 // ============================================================================
 
@@ -829,49 +985,36 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
             continue;
         }
 
-        // Numeric: equal-frequency quantization
-        // Filter out NaN values before border computation
-        std::vector<float> sorted;
-        sorted.reserve(ds.NumDocs);
+        // Numeric: GreedyLogSum border selection (CatBoost default EBorderSelectionType).
+        // S31-T2-PORT-GREEDYLOGSUM: replaces previous custom percentile-midpoint
+        // equal-frequency algorithm. Reference: TGreedyBinarizer<MaxSumLog>::BestSplit
+        // (library/cpp/grid_creator/binarization.cpp, no-DefaultValue branch).
+        //
+        // Step 1: build sorted unique-value array, filtering NaNs.
+        std::vector<float> uniqueVals;
+        uniqueVals.reserve(ds.NumDocs);
         for (ui32 d = 0; d < ds.NumDocs; ++d) {
             if (!std::isnan(ds.Features[f][d])) {
-                sorted.push_back(ds.Features[f][d]);
+                uniqueVals.push_back(ds.Features[f][d]);
             }
         }
-        if (sorted.empty()) {
-            // All NaN — single NaN bin
+        if (uniqueVals.empty()) {
+            // All NaN — single NaN bin, no borders.
             q.BinnedFeatures[f].resize(ds.NumDocs, 0);
             continue;
         }
-        std::sort(sorted.begin(), sorted.end());
+        std::sort(uniqueVals.begin(), uniqueVals.end());
+        uniqueVals.erase(std::unique(uniqueVals.begin(), uniqueVals.end()), uniqueVals.end());
 
-        // Remove duplicates for border computation
-        sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+        // Step 2: GreedyLogSum greedy split to produce at most (maxBins-1) borders.
+        // CPU maxBordersCount = maxBins - 1.
+        int maxBordersCount = static_cast<int>(maxBins) - 1;
+        std::vector<float> borders = GreedyLogSumBestSplit(uniqueVals, maxBordersCount);
+        q.Borders[f] = std::move(borders);
 
-        ui32 numBorders = std::min(static_cast<ui32>(sorted.size()) - 1, maxBins - 1);
-        q.Borders[f].resize(numBorders);
-
-        for (ui32 b = 0; b < numBorders; ++b) {
-            // Equal-frequency: pick percentile borders
-            float frac = static_cast<float>(b + 1) / static_cast<float>(numBorders + 1);
-            ui32 idx = static_cast<ui32>(frac * (sorted.size() - 1));
-            idx = std::min(idx, static_cast<ui32>(sorted.size()) - 1);
-            // Border = midpoint between sorted[idx] and sorted[idx+1] if possible
-            if (idx + 1 < sorted.size()) {
-                q.Borders[f][b] = 0.5f * (sorted[idx] + sorted[idx + 1]);
-            } else {
-                q.Borders[f][b] = sorted[idx];
-            }
-        }
-
-        // Ensure borders are strictly increasing
-        for (ui32 b = 1; b < numBorders; ++b) {
-            if (q.Borders[f][b] <= q.Borders[f][b - 1]) {
-                q.Borders[f][b] = q.Borders[f][b - 1] + 1e-6f;
-            }
-        }
-
-        // Quantize: NaN → bin 0, real values → bins 1..numBorders+1
+        // Step 3: bin assignment (same policy as before):
+        //   NaN → bin 0 (if the feature has any NaN values in the dataset).
+        //   Real values → upper_bound into borders, offset by 1 if NaN bin is active.
         bool hasNaN = ds.HasNaN[f];
         ui32 binOffset = hasNaN ? 1 : 0;
         q.BinnedFeatures[f].resize(ds.NumDocs);
@@ -3407,7 +3550,7 @@ TTrainResult RunTraining(
                 printf("[DBG iter=0]   BootstrapType      = %s\n",    config.BootstrapType.c_str());
                 printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
                 printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
-                printf("[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)\n");
+                printf("[DBG iter=0]   FeatureBorderType  = GreedyLogSum (S31-T2 port from binarization.cpp)\n");
                 // DEC-028 fix: noiseScale = RandomStrength * gradRms
                 // gradRms = sqrt(sum_{k,i} g_k[i]^2 / N), computed post-gradient below.
                 // Approximate at iter=0 using target std (residual ≈ -y for RMSE).
