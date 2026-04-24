@@ -23,7 +23,7 @@
 
 - [x] **#119 S33-L0-CONFIG** — Dump CPU vs MLX effective config field-by-field. Falsifies Frame C-config (~45 min). Verdict: `docs/sprint33/l0-config/verdict.md`. Owner: @ml-engineer. **COMPLETED 2026-04-24. Overall class: NO-DIFF. Frame C-config FALSIFIED. L0-PASS. Proceed to L1.**
 - [x] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119. **COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (seeds 42/43/44) — statistically identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C (Config/RNG) fully closed. Proceed to #121 L2-GRAFT. Verdict: `docs/sprint33/l1-determinism/verdict.md`.**
-- [ ] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B (~3h). Blocked by #120.
+- [x] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B. **COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% vs ungrafted 52.643% (ratio 0.974). Graft had zero effect — per-iter persistent bug confirmed. Frame A falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`. Proceed to #122 L3-ITER2.**
 - [ ] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). ~1-2 days. Blocked by #121.
 - [ ] **#123 S33-L4-FIX** — Implement fix; G4a iter=1 ≤0.1%, G4b iter=50 ≤2%, G4c v5 ULP=0, G4d 18-config L2 [0.98, 1.02], G4e DW sanity. Closes DEC-036. Blocked by #122.
 

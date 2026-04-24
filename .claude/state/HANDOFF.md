@@ -1,13 +1,14 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD; #119 L0-CONFIG COMPLETE [NO-DIFF]; #120 L1-DETERMINISM COMPLETE [FALSIFIED, 52.643%]; Frame C fully closed; entry = task #121 L2-GRAFT)
+> Last updated: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD; #119 L0-CONFIG COMPLETE [NO-DIFF]; #120 L1-DETERMINISM COMPLETE [FALSIFIED, 52.643%]; #121 L2-GRAFT COMPLETE [FRAME-B, 51.291%]; Frame C fully closed; Frame A falsified; entry = task #122 L3-ITER2)
 
 ## Current state
 
 - **Active sprint**: **S33** on branch `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
-- **Active entry point**: task **#121 S33-L2-GRAFT** — owner `@ml-engineer` (not yet claimed). Inject CPU iter=1 tree into MLX; run 49 more MLX iterations. Discriminates Frame A (trajectory cascade) vs Frame B (per-iter persistent bug). ~3h.
+- **Active entry point**: task **#122 S33-L3-ITER2** — owner `@ml-engineer` (not yet claimed). Per-iteration instrumentation at iter=2. Frame B confirmed by L2-GRAFT — must localize which stage (gradient / split-selection / leaf-estimation / approx-update) re-injects divergence each iteration. ~1-2 days.
 - **#119 S33-L0-CONFIG**: COMPLETED 2026-04-24. Overall class: NO-DIFF. Frame C-config FALSIFIED. L0-PASS. Commit: see S33-L0-CONFIG commit SHA. Verdict: `docs/sprint33/l0-config/verdict.md`.
 - **#120 S33-L1-DETERMINISM**: COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (3 seeds) — identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C fully closed. No K6 fire. Verdict: `docs/sprint33/l1-determinism/verdict.md`.
+- **#121 S33-L2-GRAFT**: COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% (ratio 0.974 vs ungrafted 52.643%). Graft of CPU iter=1 predictions had zero effect — per-iter persistent bug confirmed. Frame A (trajectory cascade) falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`.
 - **L0 → L1 → L2 → L3 → L4** sequenced via blockedBy. Hard rule: any HARD-DIFF at L0 → re-config and remeasure drift before L1.
 - **Kickoff DEC**: DEC-040 (L0-L4 SCAFFOLD per ultrathink reasoning; three-frame hypothesis ranking; 12× super-amplification rationale).
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
