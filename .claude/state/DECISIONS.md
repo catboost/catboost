@@ -1484,3 +1484,101 @@ If the S31-T2 port of `GreedyLogSum` closes the drift to ≤ 2%, mechanism is co
 - **G2d** 18-config L2 non-regression (perf and parity)
 
 **Fallback**: If G2b fails (residual drift > 2%), spawn S31-T3b = T1-AUDIT instrumented iter=1 split-selection harness per the original DEC-036 plan.
+
+### T3b outcome (G1 PASS — GAIN-FORMULA mechanism)
+
+**Commit**: `746d5090b5` — `docs/sprint31/t3b-audit/verdict.md`
+**Date**: 2026-04-24
+**Verdict**: G1 PASS. First diverging layer = depth=0 (seeds 42, 44) or depth=2 (seed 43). Mechanism class = **GAIN-FORMULA** per DEC-036 table.
+
+**Evidence**: MLX Cosine gain ratio vs CPU = **0.946 stable across seeds and depths**.
+- seed=42: CPU f0/b59 gain=89.616; MLX f0/b64 gain=84.777 (rdiff 5.40e-2)
+- seed=44: CPU f0/b62 gain=89.098; MLX f0/b61 gain=84.140 (rdiff 5.56e-2)
+- Partition `sumH` at depth=0 matches byte-exact — histograms are correct; only the score computation is wrong.
+
+**Ultrathink reading of 0.946**: `0.946² ≈ 0.895`; `1/√1.117 ≈ 0.946`. A stable multiplicative ratio points to a single algebraic bias — either (i) missing numerator normalization, (ii) extra denominator term (~11.7%), or (iii) code-path skew (T1-PRE mapped `ComputeCosineGainKDim` but the live path at `S28-OBLIV-DISPATCH` may be inline).
+
+**Forward pointer**: DEC-038 opens Sprint 32 term-level audit.
+
+---
+
+## DEC-037: Border-count off-by-one + greedy GreedyLogSumBestSplit restoration
+
+**Sprint**: 31 (formalized post-hoc during S32 kickoff)
+**Date**: 2026-04-24
+**Commit**: `746d5090b5` (bundled into T3b-T1-AUDIT verdict commit)
+**Status**: CLOSED — shipped.
+
+### Problem
+
+Two bugs in MLX quantization borders found during S31 T3b audit:
+
+1. **Off-by-one**: `maxBordersCount = maxBins - 1 = 127` where CPU CatBoost uses `border_count = 128`. Caused systematic `MLX_bin = CPU_bin - 1` offset.
+2. **DP with document-count weights**: T2 port (`768ee50abd`) replaced the greedy `GreedyLogSumBestSplit` with a dynamic-programming implementation using document-count weights. CPU's `TGreedyBinarizer` uses the unweighted `TFeatureBin` path — each unique value has weight 1, not the document count. Algorithmically wrong.
+
+### Decision
+
+Restore greedy priority-queue `GreedyLogSumBestSplit` (unweighted unique-value counts, per `library/cpp/grid_creator/binarization.cpp` `TGreedyBinarizer`), and fix `maxBordersCount = maxBins`.
+
+### DEC-012 atomicity violation (flagged)
+
+The fix was shipped INSIDE commit `746d5090b5` alongside the T3b verdict doc. DEC-012 requires one structural change per commit; this commit bundles a border-code change + a verdict doc. Flagged for post-hoc transparency. Not reverted — the fix is correct and the audit findings are still valid against the corrected port. Atomicity discipline reinforced for S32.
+
+### Outcome
+
+With DEC-037 applied, seeds 42 and 43 at depth=0 both select CPU's feature (f0), confirming border alignment is correct. The bin index divergence is entirely attributable to the gain formula — hence DEC-038.
+
+---
+
+## DEC-038: Cosine gain term-level audit — S32 scope
+
+**Sprint**: 32 (kickoff 2026-04-24)
+**Date**: 2026-04-24
+**Status**: OPEN — investigation-phase; term-level divergence not yet localized.
+**Authored by**: product-owner (orchestrator)
+
+### Context
+
+S31 T3b located the 53% ST+Cosine drift to a GAIN-FORMULA mechanism: MLX Cosine gain is systematically 5.4% lower than CPU (ratio 0.946) at depth=0, stable across 3 seeds. Partition statistics match; only the gain computation diverges.
+
+A stable ratio across seeds and depths is algebraically informative:
+- A **compounding precision error** would scale with N or depth. V6 already falsified this (b ≈ 0).
+- A **randomly varying bias** would not produce a stable ratio.
+- A **single missing multiplicative factor** OR a **single extra additive term** in cosNum or cosDen would produce exactly this signature.
+
+### Decision
+
+Open S32-COSINE-GAIN-TERM-AUDIT with a **codepath-first** strategy:
+
+**T1-CODEPATH (#115)** — Before any instrumentation, verify the code path. T1-PRE §2 mapped `ComputeCosineGainKDim` — if the live path at `FindBestSplit` `S28-OBLIV-DISPATCH` does not call this helper but inlines a different expression, the 11-row algebra check was on dead code and the bug is trivial to spot.
+
+**T2-INSTRUMENT (#116, blocks on T1)** — Dump per-bin `(gL, gR, wL, wR, λ, cosNum_term, cosDen_term, gain)` at depth=0 seed=42 from both MLX and CPU CatBoost. Align by `(feature, bin)`. The first diverging quantity names the bug layer.
+
+**T3-FIX (#117, blocks on T2)** — Implement the fix. DEC-012 atomic commits — one structural change per commit, strictly enforced after DEC-037's atomicity violation.
+
+**T4-VALIDATE (#118, blocks on T3)** — Four hard gates.
+
+### Gates
+
+| ID | Gate | Criterion |
+|----|------|-----------|
+| G3-T1 | Codepath resolved | T1 verdict names SAME-PATH or DIFFERENT-PATH with file:line evidence |
+| G3-T2 | First diverging term named | T2 verdict names the first quantity that diverges between CPU and MLX |
+| G3-T3 | Fix lands atomic | DEC-012 atomicity; one structural change per commit |
+| G3a | Depth=0 gain ratio unity | 1.000 ± 1e-4 across 3 seeds at S28 anchor |
+| G3b | S28 drift closes | ST+Cosine aggregate drift ≤ 2% (down from 53%) |
+| G3c | Kernel parity preserved | bench_boosting v5 ULP=0 unchanged |
+| G3d | 18-config non-regression | L2 parity + perf within envelope |
+
+### Kill-switches (pre-authorized)
+
+- **K6 (terms match, composition differs)**: per-bin terms byte-match but gain still diverges → bug in multi-partition composition layer (ST depth≥1 sums across leaves). Expand to T5 composition audit. **Pre-authorized.**
+- **K7 (P11 is primary)**: dumps show `wL_MLX = 2·wL_CPU` or analogous P11 signature → re-scope S32 as P11 fix. Escalate to Ramos before re-scope.
+- **K8 (cross-cutting fix)**: fix spans kernel sources + csv_train + helpers + dispatch → budget warn; escalate before implementation.
+
+### Authority
+
+- S31 T3b verdict `docs/sprint31/t3b-audit/verdict.md` (mechanism localization)
+- DEC-036 per-layer mechanism table (GAIN-FORMULA class)
+- DEC-037 (border co-fix; isolates depth=0 divergence to score computation)
+- T1-PRE §2 (per-partition-pair formula check — 11 rows clean, but on possibly-inert helper)

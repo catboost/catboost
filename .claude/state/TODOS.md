@@ -5,12 +5,13 @@
 
 ## Current state (2026-04-24)
 
-- **Active branch**: `mlx/sprint-31-iter1-audit` (cut from master `17451f4780`, S30 PR #28 merge).
+- **Active branch**: `mlx/sprint-32-cosine-gain-term-audit` (cut from S31 tip `9b3a5238a7`).
+- **S31 branch**: `mlx/sprint-31-iter1-audit` tip `9b3a5238a7` — carrying S31 work until S32 closes jointly.
 - **Base**: master `17451f4780` (S30 merge commit).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only**. S30 widened two scalar types (gain + accumulators) outside the v5 kernel; kernel sources untouched.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only**. S30 widened scalars; S31 DEC-037 corrected border count + greedy algorithm; kernel sources still untouched.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
 - **Open PRs**: none. S28/S29/S30 merged. DEC-027 (alternative accumulation) remains deferred.
-- **Active DEC**: DEC-036 OPEN — ST+Cosine structural divergence investigation; S31 T1 is an iter=1 algorithmic audit (preflight-first path).
+- **Active DEC**: **DEC-036 OPEN** (structural divergence); **DEC-037 FORMALIZED post-hoc** (S31 T3b border fix); **DEC-038 OPEN** (S32 Cosine gain term-level audit).
 
 ---
 
@@ -102,7 +103,30 @@
 
 ---
 
-## Sprint 31 — ITER1-AUDIT — ACTIVE 2026-04-24
+## Sprint 32 — COSINE-GAIN-TERM-AUDIT — ACTIVE 2026-04-24
+
+**Branch**: `mlx/sprint-32-cosine-gain-term-audit` (cut from S31 tip `9b3a5238a7`).
+**Basis**: DEC-038. S31 T3b localized 53% ST+Cosine drift to a **GAIN-FORMULA** mechanism at depth=0 — MLX Cosine gain is ~5.4% lower than CPU (ratio 0.946 stable across 3 seeds and depths; partition sumH matches). 5.4% stability suggests a single algebraic bias (missing normalization scalar or extra denominator term), not a compounding error.
+
+### Primary track — codepath → terms → fix → validate
+
+- [ ] **#115 S32-T1-CODEPATH** — Reconcile `ComputeCosineGainKDim` (helper T1-PRE mapped) against the live code path at `FindBestSplit` `S28-OBLIV-DISPATCH`. If DIFFERENT-PATH, T1-PRE's 11-row check was on dead code; the 5.4% deficit is the inline expression. Deliverable: `docs/sprint32/t1-codepath/verdict.md`. Owner: @ml-engineer.
+
+- [ ] **#116 S32-T2-INSTRUMENT** (blocked by #115) — Per-bin dump `(gL, gR, wL, wR, λ, cosNum, cosDen, gain)` at depth=0 seed=42 on both sides; align-by-(feature, bin). First diverging quantity names the bug layer: gradient (P11 hessian bleed?), weight (P11), cosNum (numerator bug), cosDen (denominator bug). Deliverable: `docs/sprint32/t2-terms/verdict.md`. Owner: @ml-engineer.
+
+- [ ] **#117 S32-T3-FIX** (blocked by #116) — Implement per-term fix. DEC-012 atomic commits. Owner: @ml-engineer.
+
+- [ ] **#118 S32-T4-VALIDATE** (blocked by #117) — Four hard gates: G3a depth=0 gain ratio 1.000 ± 1e-4 (3 seeds); G3b ST+Cosine drift ≤ 2% at S28 anchor; G3c bench_boosting v5 ULP=0 preserved; G3d 18-config L2 non-regression. Fallback: if G3a passes but G3b fails, spawn T5 multi-partition composition audit. Owner: @ml-engineer.
+
+### Kill-switches (pre-authorized per DEC-038)
+
+- **K6 (terms match, composition differs)**: per-bin terms byte-match but gain still diverges → bug is in multi-partition composition layer (ST at depth≥1 sums gain across leaves). Expand to T5 composition audit. Pre-authorized.
+- **K7 (P11 is primary)**: dumps show `wL_MLX = 2·wL_CPU` (or similar P11 signature) → re-scope S32 as a P11 fix. Escalate to Ramos before re-scope.
+- **K8 (cross-cutting fix)**: fix spans kernel sources + csv_train + helper + dispatch → budget warn; escalate before implementation.
+
+---
+
+## Sprint 31 — ITER1-AUDIT — CLOSING 2026-04-24
 
 **Branch**: `mlx/sprint-31-iter1-audit` (cut from master `17451f4780`, S30 PR #28 merge).
 **Basis**: DEC-036 — structural divergence investigation; precision class exhausted in S30.

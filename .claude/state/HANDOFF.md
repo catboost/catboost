@@ -1,12 +1,14 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 31 T3b-T1-AUDIT G1 PASS; mechanism = GAIN-FORMULA; DEC-037 border fix shipped; S32 targets cosNum/cosDen instrumentation)
+> Last updated: 2026-04-24 (Sprint 32 KICKOFF — Cosine gain term-level audit; S31 T3b G1 PASS localized mechanism to GAIN-FORMULA; DEC-038 OPEN)
 
 ## Current state
 
-- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit`, tip `746d5090b5`.
-- **Active task**: S31-T3b-T1-AUDIT **COMPLETE** (G1 PASS). Next: S32 cosNum/cosDen per-partition instrumentation.
-- **Campaign**: Post-Verstappen correctness. T1-PRE fired K4 (border divergence = P6); T2 ported GreedyLogSum and fixed P5 (ScaleL2Reg); G2b FAIL confirmed border divergence is NOT the primary mechanism. T3b-T1-AUDIT: G1 PASS — GAIN-FORMULA (Cosine score ~5.4% lower in MLX). DEC-037 co-fix shipped (border count = maxBins).
+- **Active sprint**: Sprint 32 — COSINE-GAIN-TERM-AUDIT. Branch `mlx/sprint-32-cosine-gain-term-audit`, cut from S31 tip `9b3a5238a7`.
+- **Active task**: **S32-T1-CODEPATH** (#115) — reconcile `ComputeCosineGainKDim` vs `FindBestSplit` live path. Owner: @ml-engineer.
+- **S31 status**: T3b G1 PASS. T3b shipped DEC-037 co-fix (border count + greedy algorithm) — formalized post-hoc with DEC-012 atomicity violation noted. S31-T3-MEASURE, T4a/b, CR/SA/CLOSE remain open — S31 closes jointly with S32.
+- **Campaign**: Post-Verstappen correctness. T1-PRE fired K4; T2 ported GreedyLogSum + fixed P5; G2b FAIL confirmed border is NOT mechanism; T3b-T1-AUDIT localized to GAIN-FORMULA at depth=0. S32 takes term-level instrumentation to close the 5.4% deficit (ratio 0.946 stable across seeds/depths).
+- **Ultrathink finding**: 0.946 ≈ 1/√1.117 → likely a single missing numerator factor or extra denominator term (not compounding). H1 codepath-skew is highest priority to rule out before instrumentation.
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
 - **Open PRs**: none. S28 + S29 merged 2026-04-23. S30 merged 2026-04-24.
 - **Known bugs**:
