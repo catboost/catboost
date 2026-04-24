@@ -1,11 +1,12 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 30 CLOSED via PR #28 `17451f4780`; Sprint 31 ACTIVE — iter=1 structural audit, preflight-first)
+> Last updated: 2026-04-24 (Sprint 31 T2 complete — G2b FAIL; T3b T1-AUDIT ACTIVE — iter=1 instrumented dump is next)
 
 ## Current state
 
-- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit` cut from master `17451f4780` (S30 PR #28 merge).
-- **Campaign**: Post-Verstappen correctness. DEC-032 PARTIALLY CLOSED — SA-H1 closed (guards at all three layers), LG+Cosine and ST+Cosine remain guarded. S30 shipped K4 (fp64 cosNum/cosDen) and Fix 2 (fp64 gain/argmax) but did NOT close ST drift — V6 falsified the entire precision fix class (N-scaling exponent b ≈ 0). DEC-036 opens structural divergence investigation for S31. R8 at 1.01× — correctness-only.
+- **Active sprint**: Sprint 31 — ITER1-AUDIT. Branch `mlx/sprint-31-iter1-audit`, tip `dada4f7b26`.
+- **Active task**: S31-T3b-T1-AUDIT (instrumented iter=1 split-selection dump). Owner: @ml-engineer.
+- **Campaign**: Post-Verstappen correctness. T1-PRE fired K4 (border divergence = P6); T2 ported GreedyLogSum and fixed P5 (ScaleL2Reg); G2b FAIL confirmed border divergence is NOT the mechanism. 53% ST+Cosine drift origin still unknown. T3b is the only remaining diagnostic path.
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources untouched.
 - **Open PRs**: none. S28 + S29 merged 2026-04-23. S30 merged 2026-04-24.
 - **Known bugs**:
@@ -125,39 +126,41 @@ Kahan summation work. All 28 parity cells re-blessed with explicit `score_functi
 ## Sprint 31 — ITER1-AUDIT — ACTIVE 2026-04-24
 
 **Branch**: `mlx/sprint-31-iter1-audit` (cut from master `17451f4780`, S30 PR #28 merge).
+**Current tip**: `dada4f7b26` (8 commits on branch).
 **Basis**: DEC-036 (structural divergence — precision class exhausted in S30).
-**Strategy**: preflight-first. Cheap source-diff runs before any runtime instrumentation; only build the iter=1 dump harness if the preflight doesn't already finger the mechanism.
+**Strategy**: preflight-first → K4 fired (T1-PRE found P6 border divergence) → T2 port ran and closed P5/P6 → G2b FAIL → T3b now ACTIVE.
 
 ### T1-PRE (DONE) — verdict (ii) PRE-SPLIT DIVERGENCE — K4 fires
 
 Commit `aed81c63d7`. Verdict: `docs/sprint31/t1-pre/verdict.md`.
+Pre-split divergence at P6 (borders) and latent P5 (ScaleL2Reg) and P11 (hessian-vs-sampleWeight).
 
-- **Formula**: algebraically clean across 11 audited rows.
-- **Pre-split divergence (P6)**: MLX `QuantizeFeatures` (`csv_train.cpp:816–889`) uses custom percentile-midpoint equal-frequency borders; CPU CatBoost default is `GreedyLogSum` (`binarization_options.h:16`). Different candidate-split populations → different argmax at every layer. Consistent with V6's N-independent drift.
-- **Latent bugs surfaced** (do not fire at S28 anchor but will fire in production):
-    - P5 — MLX never calls `ScaleL2Reg` (`csv_train.cpp:4068, 4189`); CPU scales by `sumAllWeights/docCount`.
-    - P11 — MLX plugs dimHess where CPU plugs sampleWeight (`csv_train.cpp:3780, 3967`). Equivalent for RMSE only; breaks under non-trivial-hess losses (Logloss, Poisson, Tweedie, Multiclass).
+### T2-PORT-GREEDYLOGSUM (DONE) — G2b FAIL
 
-Qualifier: S26-D0 P10 probe found border divergence causes only 0.06% ratio gap at L2+RS=0+N=10k — suggests the border port is necessary cleanup but may not close the 53% Cosine drift by itself. Held as T3b fallback.
+Commits `768ee50abd`–`dada4f7b26`. Verdict: `docs/sprint31/t2-port-greedylogsum/verdict.md`.
 
-### Current entry point — @ml-engineer on S31-T2-PORT-GREEDYLOGSUM
+- **G2a PASS (qualified)**: 84/100 border-pairs byte-exact; 16/100 equal-score tie-breaks only.
+- **G2b FAIL**: 53.03% aggregate drift vs 53.30% baseline. Delta = 0.27pp = noise. Border divergence is NOT the mechanism driving the 53% ST+Cosine drift.
+- **G2c PASS**: bench_boosting AN-009 `0.48231599` preserved; kernel sources untouched.
+- **G2d PASS**: 18/18 L2 parity cells in [0.98, 1.02].
+- **P5 fix shipped**: `scaledL2 = L2RegLambda * sumAllWeights/docCount` at all three split/leaf call sites.
 
-- Port CPU `GreedyLogSum` into MLX's `QuantizeFeatures`, replacing the custom percentile-midpoint algorithm at `csv_train.cpp:816–889`.
-- Reference: `library/cpp/grid_creator/binarization.cpp` (`MakeBinarizer` + `GreedyLogSum` impl).
-- Also fix P5: wire `ScaleL2Reg` (`L2RegLambda · sumAllWeights / docCount`) at the same config path.
-- Gates: G2a borders byte-match CPU; G2b ST+Cosine drift ≤ 2% at S28 anchor; G2c bench_boosting v5 ULP=0 preserved; G2d 18-config L2 non-regression.
-- DEC-012 atomic commits. Target: 2–3 sessions.
+### Current entry point — @ml-engineer on S31-T3b-T1-AUDIT
 
-### Fallback — S31-T3b = T1-AUDIT (if T2 fails G2b)
-
-Instrumented iter=1 dump per tightened spec (parent stats + top-K=5 + winning tuple per layer). Keep warm.
+G2b FAIL triggers the pre-authorized T3b fallback. Next task is the instrumented iter=1 dump:
+- Compare CPU vs MLX on parent stats, top-K=5 split candidates, and winning split tuple at every depth level of iteration 1.
+- Use `COSINE_RESIDUAL_INSTRUMENT` infrastructure already in `csv_train.cpp` as a starting point.
+- Configuration: N=50k, seed=42, RS=0, bins=128, RMSE/SymmetricTree/Cosine, depth=6.
+- Output: per-depth CSV of `(feature_idx, bin_idx, gain_cpu, gain_mlx, winner_cpu, winner_mlx)`.
+- First diverging layer names the mechanism class.
+- DEC-012 atomic commits. No speculative fixes; locate before proposing a fix.
 
 ### Kill-switches (pre-authorized per DEC-036)
 
 - **K1** (no iter=1 divergence): expand to iter=2 leaf-value + approx-update audit.
 - **K2** (feature-port gap): MLX implements a different Cosine variant → S31 re-plans as port work. Escalate to Ramos.
 - **K3** (seed-independent false positive): 0/3 seeds diverge → revisit precision hypothesis. Escalate to Ramos.
-- **K4** (pre-split divergence): basePred / quant / initial gradients differ → re-scope S31 to pre-split fix. Pre-authorized.
+- **K4**: FIRED (T1-PRE). P6 fixed (G2b FAIL confirms it was not the primary mechanism). Pre-authorized scope already executed.
 - **K5** (cross-cutting fix): fix requires kernel + score calcer + aggregator changes → budget warning, escalate to Ramos.
 
 ## PR state

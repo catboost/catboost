@@ -74,6 +74,69 @@ Spawn @ml-engineer (or @research-scientist) on **S31-T1-ITER1-AUDIT**. Build ite
 3. **Verification audits must audit their own methodology**: V2 discovered D2's L3/L4 rulings were biased (`gain_f32` and `gain_f64` were both derived from the same `double`). Always verify that the measurement actually measures the claimed quantity.
 4. **Two falsified predictions in a row (D4 L3/L4, V6 L1) means stop guessing precision and measure structure directly** — the S31 iter=1 audit.
 
+## 2026-04-24 — Sprint 31 T2 COMPLETE (G2b FAIL — border divergence ruled out; T3b T1-AUDIT active)
+
+Branch: `mlx/sprint-31-iter1-audit` (continuing). Tip `dada4f7b26`. 5 commits this session
+(`768ee50abd..dada4f7b26`). T2-PORT-GREEDYLOGSUM fully executed and closed. T3b T1-AUDIT
+fallback activated.
+
+### Gate results
+
+| Gate | Criterion | Result |
+|------|-----------|--------|
+| G2a | Borders byte-match CPU CatBoost GreedyLogSum | PASS (qualified) — 84/100 exact; 16 equal-score tie-breaks |
+| G2b | ST+Cosine aggregate drift ≤ 2% at S28 anchor | **FAIL** — 53.03% (baseline 53.30%; delta 0.27pp = noise) |
+| G2c | bench_boosting v5 ULP=0 preserved | PASS — AN-009 anchor `0.48231599`; kernel sources diff = 0 |
+| G2d | 18-config L2 parity non-regression | PASS — 18/18 cells in acceptance envelope |
+
+### Commits (this session)
+
+| SHA | Description |
+|-----|-------------|
+| `768ee50abd` | T2 port GreedyLogSum into QuantizeFeatures |
+| `627b968983` | T2 G2a probe — borders byte-match infrastructure |
+| `bfb20d3241` | T2 P5 fix — ScaleL2Reg at all three split/leaf sites |
+| `661ef0bc2c` | T2 gate probes — G2b ST+Cosine drift + G2d L2 parity |
+| `dada4f7b26` | T2 verdict — G2b FAIL; T3b T1-AUDIT fallback triggered |
+
+### What ships
+
+- **GreedyLogSum border-selection port** — `csv_train.cpp:816–889` now uses CPU-equivalent
+  algorithm. G2a qualified-pass: algorithm is correct; 16/100 tie-breaks differ from pip
+  catboost v1.2.10 but both are valid GreedyLogSum outputs.
+- **P5 ScaleL2Reg fix** — `scaledL2 = L2RegLambda * sumAllWeights / docCount` wired at
+  all three call sites (Lossguide, Depthwise, SymmetricTree FindBest* + l2Arr for leaf Newton).
+  No-op at S28 anchor (uniform weights); load-bearing for non-uniform sample weights.
+- **G2a, G2b, G2d probe harnesses** — `docs/sprint31/t2-port-greedylogsum/`.
+- **Verdict doc** — `docs/sprint31/t2-port-greedylogsum/verdict.md`.
+
+### What does NOT close
+
+- **ST+Cosine 53% drift** — unchanged. Border divergence ruled out as root cause. The only
+  remaining diagnostic path is S31-T3b: instrumented iter=1 side-by-side dump.
+- **SA-H1 Cosine guards** — remain active at all three layers.
+- **T3, T4a, T4b** — all still blocked on T3b.
+
+### Lessons captured
+
+1. **The T1-PRE qualifier pattern works**: pre-announcing that a fix may not close the gap
+   prevents scope creep when the gate fails. The S26-D0 P10 probe (0.06% from borders at
+   L2+RS=0+N=10k) was the correct low-confidence signal that borders were unlikely to be
+   the mechanism at Cosine+ST.
+
+2. **G2b FAIL interpretation**: with 84/100 border byte-matches and G2b only improving
+   0.27pp, the 53% drift does not originate from quantization. Consistent with V6's flat
+   N-scaling (b ≈ 0) — a structural algorithmic difference, not a data-dependent precision floor.
+
+### Next step
+
+**S31-T3b-T1-AUDIT** is now ACTIVE. Owner: @ml-engineer. Instrumented iter=1 dump using
+`COSINE_RESIDUAL_INSTRUMENT` infrastructure already in `csv_train.cpp`. Compare CPU vs MLX
+on parent stats, top-K=5 split candidates, and winning split tuple at every depth level
+of iteration 1. First diverging layer names the mechanism class.
+
+---
+
 ## 2026-04-23 — Sprint 29 CLOSED (DEC-032 closeout partial advance; DEC-034 resolved)
 
 Branch: `mlx/sprint-29-dec032-closeout`, base `987da0e7d5`, tip `fa7f9b55fc`. 7 commits
