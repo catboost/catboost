@@ -1,0 +1,117 @@
+# cmd: /Users/ramos/Library/Mobile Documents/com~apple~CloudDocs/Programming/Frameworks/catboost-mlx/csv_train_p11 /Users/ramos/Library/Mobile Documents/com~apple~CloudDocs/Programming/Frameworks/catboost-mlx/docs/sprint36/p11/data/synthetic-poisson-seed1337.csv --loss poisson --iterations 100 --depth 6 --lr 0.03 --l2 3 --bins 128 --target-col 0 --seed 1337 --score-function L2 --verbose
+# returncode: 0
+# stdout:
+CatBoost-MLX CSV Training Tool
+==============================
+Loaded: 20000 rows, 10 features from /Users/ramos/Library/Mobile Documents/com~apple~CloudDocs/Programming/Frameworks/catboost-mlx/docs/sprint36/p11/data/synthetic-poisson-seed1337.csv
+Quantized: 1270 bin-features, 3 uint32 per doc
+
+Training: 100 iterations, depth=6, lr=0.0300, l2=3.00, loss=poisson
+---
+Base prediction (boost from average): -0.434173
+  [profile iter0] layout=0.1ms hist=10.0ms split=0.5ms part=1.7ms
+iter=0  trees=1  depth=6  loss=0.926820  time=19ms
+iter=1  trees=2  depth=6  loss=0.924727  time=8ms
+iter=2  trees=3  depth=6  loss=0.922766  time=9ms
+iter=3  trees=4  depth=6  loss=0.920928  time=9ms
+iter=4  trees=5  depth=6  loss=0.919189  time=8ms
+iter=5  trees=6  depth=6  loss=0.917558  time=8ms
+iter=6  trees=7  depth=6  loss=0.916021  time=8ms
+iter=7  trees=8  depth=6  loss=0.914539  time=9ms
+iter=8  trees=9  depth=6  loss=0.913149  time=8ms
+iter=9  trees=10  depth=6  loss=0.911838  time=8ms
+iter=10  trees=11  depth=6  loss=0.910606  time=8ms
+iter=11  trees=12  depth=6  loss=0.909446  time=8ms
+iter=12  trees=13  depth=6  loss=0.908353  time=9ms
+iter=13  trees=14  depth=6  loss=0.907301  time=8ms
+iter=14  trees=15  depth=6  loss=0.906297  time=8ms
+iter=15  trees=16  depth=6  loss=0.905339  time=8ms
+iter=16  trees=17  depth=6  loss=0.904435  time=8ms
+iter=17  trees=18  depth=6  loss=0.903591  time=8ms
+iter=18  trees=19  depth=6  loss=0.902789  time=8ms
+iter=19  trees=20  depth=6  loss=0.902021  time=8ms
+iter=20  trees=21  depth=6  loss=0.901301  time=8ms
+iter=21  trees=22  depth=6  loss=0.900603  time=8ms
+iter=22  trees=23  depth=6  loss=0.899950  time=8ms
+iter=23  trees=24  depth=6  loss=0.899329  time=8ms
+iter=24  trees=25  depth=6  loss=0.898736  time=8ms
+iter=25  trees=26  depth=6  loss=0.898165  time=8ms
+iter=26  trees=27  depth=6  loss=0.897626  time=8ms
+iter=27  trees=28  depth=6  loss=0.897117  time=7ms
+iter=28  trees=29  depth=6  loss=0.896630  time=8ms
+iter=29  trees=30  depth=6  loss=0.896165  time=8ms
+iter=30  trees=31  depth=6  loss=0.895725  time=8ms
+iter=31  trees=32  depth=6  loss=0.895296  time=8ms
+iter=32  trees=33  depth=6  loss=0.894895  time=8ms
+iter=33  trees=34  depth=6  loss=0.894516  time=8ms
+iter=34  trees=35  depth=6  loss=0.894150  time=8ms
+iter=35  trees=36  depth=6  loss=0.893804  time=8ms
+iter=36  trees=37  depth=6  loss=0.893461  time=8ms
+iter=37  trees=38  depth=6  loss=0.893109  time=9ms
+iter=38  trees=39  depth=6  loss=0.892790  time=9ms
+iter=39  trees=40  depth=6  loss=0.892447  time=8ms
+iter=40  trees=41  depth=6  loss=0.892123  time=8ms
+iter=41  trees=42  depth=6  loss=0.891836  time=8ms
+iter=42  trees=43  depth=6  loss=0.891569  time=8ms
+iter=43  trees=44  depth=6  loss=0.891303  time=9ms
+iter=44  trees=45  depth=6  loss=0.891015  time=9ms
+iter=45  trees=46  depth=6  loss=0.890753  time=8ms
+iter=46  trees=47  depth=6  loss=0.890507  time=8ms
+iter=47  trees=48  depth=6  loss=0.890289  time=8ms
+iter=48  trees=49  depth=6  loss=0.890066  time=8ms
+iter=49  trees=50  depth=6  loss=0.889853  time=11ms
+iter=50  trees=51  depth=6  loss=0.889616  time=11ms
+iter=51  trees=52  depth=6  loss=0.889409  time=9ms
+iter=52  trees=53  depth=6  loss=0.889167  time=8ms
+iter=53  trees=54  depth=6  loss=0.888974  time=9ms
+iter=54  trees=55  depth=6  loss=0.888782  time=9ms
+iter=55  trees=56  depth=6  loss=0.888584  time=9ms
+iter=56  trees=57  depth=6  loss=0.888405  time=8ms
+iter=57  trees=58  depth=6  loss=0.888225  time=9ms
+iter=58  trees=59  depth=6  loss=0.888041  time=9ms
+iter=59  trees=60  depth=6  loss=0.887852  time=9ms
+iter=60  trees=61  depth=6  loss=0.887658  time=8ms
+iter=61  trees=62  depth=6  loss=0.887493  time=8ms
+iter=62  trees=63  depth=6  loss=0.887295  time=8ms
+iter=63  trees=64  depth=6  loss=0.887132  time=8ms
+iter=64  trees=65  depth=6  loss=0.886983  time=9ms
+iter=65  trees=66  depth=6  loss=0.886824  time=9ms
+iter=66  trees=67  depth=6  loss=0.886680  time=8ms
+iter=67  trees=68  depth=6  loss=0.886510  time=8ms
+iter=68  trees=69  depth=6  loss=0.886338  time=9ms
+iter=69  trees=70  depth=6  loss=0.886204  time=8ms
+iter=70  trees=71  depth=6  loss=0.886037  time=9ms
+iter=71  trees=72  depth=6  loss=0.885883  time=9ms
+iter=72  trees=73  depth=6  loss=0.885711  time=8ms
+iter=73  trees=74  depth=6  loss=0.885555  time=9ms
+iter=74  trees=75  depth=6  loss=0.885427  time=9ms
+iter=75  trees=76  depth=6  loss=0.885226  time=8ms
+iter=76  trees=77  depth=6  loss=0.885094  time=10ms
+iter=77  trees=78  depth=6  loss=0.884949  time=9ms
+iter=78  trees=79  depth=6  loss=0.884756  time=8ms
+iter=79  trees=80  depth=6  loss=0.884612  time=8ms
+iter=80  trees=81  depth=6  loss=0.884498  time=10ms
+iter=81  trees=82  depth=6  loss=0.884373  time=9ms
+iter=82  trees=83  depth=6  loss=0.884238  time=10ms
+iter=83  trees=84  depth=6  loss=0.884098  time=9ms
+iter=84  trees=85  depth=6  loss=0.883960  time=10ms
+iter=85  trees=86  depth=6  loss=0.883860  time=11ms
+iter=86  trees=87  depth=6  loss=0.883725  time=9ms
+iter=87  trees=88  depth=6  loss=0.883600  time=10ms
+iter=88  trees=89  depth=6  loss=0.883461  time=10ms
+iter=89  trees=90  depth=6  loss=0.883344  time=10ms
+iter=90  trees=91  depth=6  loss=0.883227  time=9ms
+iter=91  trees=92  depth=6  loss=0.883089  time=9ms
+iter=92  trees=93  depth=6  loss=0.882997  time=10ms
+iter=93  trees=94  depth=6  loss=0.882896  time=10ms
+iter=94  trees=95  depth=6  loss=0.882739  time=9ms
+iter=95  trees=96  depth=6  loss=0.882600  time=8ms
+iter=96  trees=97  depth=6  loss=0.882509  time=11ms
+iter=97  trees=98  depth=6  loss=0.882425  time=10ms
+iter=98  trees=99  depth=6  loss=0.882310  time=11ms
+iter=99  trees=100  depth=6  loss=0.882189  time=10ms
+---
+Training complete: 100 trees in 0.95s
+Phase breakdown (avg per iter): grad=0.3ms tree=8.6ms leaf=0.2ms apply=0.2ms
+
+# stderr:
