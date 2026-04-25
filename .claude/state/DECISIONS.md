@@ -1731,7 +1731,7 @@ The L0→L3 chain executed cleanly:
 | L0    | NO-DIFF    | yes       | Frame C (config/RNG) falsified — fields identical                |
 | L1    | FALSIFIED  | yes       | 52.643% drift across 3 seeds — seed-independent                  |
 | L2    | FRAME-B    | yes       | Graft ratio 0.974, sanity drift −0.000003% — per-iter mechanism  |
-| L3    | SPLIT (S2) | yes       | S1-grad bit-identical (max_diff 1.5e-8); S2-split divergent      |
+| L3    | SPLIT (S2) | partial   | S1-grad bit-identical (max_diff 1.5e-8). L3 depth-0 verdict RETRACTED by PROBE-C: CPU split_index=3 is CBM stored-coords, MLX bin=64 is upfront-grid coords — both physically 0.014169. Real divergence at iter=2 **depth=2**. |
 | L4    | RETRACTED  | no        | "static vs dynamic quantization" mechanism falsified by probes   |
 
 **L4 retraction**: PROBE-A (`c770ab6630`) showed CatBoost `Pool.quantize` produces
@@ -1746,11 +1746,27 @@ to the CLI harness; Python-path drift = 52.64%, matching csv_train to 4 sig figs
 - DEC-036 reverts to **OPEN** — mechanism unidentified.
 - DEC-040 reverts to **OPEN** — S33 incomplete.
 - DEC-041 **INVALIDATED** (built on falsified premise).
-- L0→L3 narrowing to S2 split selection at iter≥2 **survives** as the strongest
-  surviving constraint: at iter=2 depth=0 with bit-identical iter=1 state and
-  bit-identical iter=2 gradients, CPU picks bin=3 (split_index=3) and MLX picks
-  bin=64 of 127 — same physical border value (~0.014) but different argmax of
-  `cosNum/sqrt(cosDen)` over (feature, bin).
+- L0→L3 narrowing **partially survives, partially superseded** by PROBE-C:
+
+  **PROBE-C Stage 1 + Stage 2 (2026-04-24, in-context, `docs/sprint33/probe-c-borders/`)**:
+  - Stage 1: per-feature border-value comparison. MLX produces 2540 = 20×127 borders;
+    CPU 2560 = 20×128. MLX is a STRICT SUBSET at ULP=1: each feature is missing exactly
+    one CPU border at index 6 (e.g. feat=0 missing −1.65587). The deficit is the cap-127
+    truncation (DEC-039); not a value-divergence.
+  - Stage 2: full tree[1] depth-by-depth comparison. **Depth=0 AGREE** (both pick
+    feat=0, border=0.014169 — ULP-identical). **Depth=1 AGREE** (both pick feat=1 at
+    the equivalent logical position; 4.6e-6 absolute border drift due to MLX's missing
+    border slightly shifting the grid). **Depth=2 DIVERGE**: CPU picks feat=0 again
+    (border=−0.947); MLX picks feat=10 (border=+0.306). Since y = 0.5·X[0] + 0.3·X[1] +
+    0.1·noise, feat=10 is pure noise — CPU stays on signal, MLX prefers noise.
+  - **L3 depth-0 verdict is fully retracted**: it conflated two coordinate systems.
+    CPU's `split_index=3` is the index in the CBM-stored compressed border list (only
+    6 stored thresholds for feat=0 at random_seed=42; stored[3]=0.014169). MLX's bin=64
+    is the index in its 127-bin upfront grid (also 0.014169). They are the SAME
+    physical split; L3 reading them as "different" was the coordinate-system error.
+
+  **Surviving narrowing (corrected)**: mechanism is in the Cosine gain argmax at
+  iter=2 **depth=2**, with depths 0–1 already shared. Not depth=0 as L3 claimed.
 
 **Preserved diagnostic artifacts** (`docs/sprint33/l4-fix/data/`):
 - `mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` — bit-identical to CPU at iter=2
@@ -1764,11 +1780,27 @@ agents shipping plausible-but-wrong verdicts in cold contexts under shipping
 pressure is now a recognized pattern. Successor probe runs in active main
 context with L0-L3 evidence held live, not in fresh subagent contexts.
 
-**Successor scope** (next session, not S33):
-- Direct in-context per-bin (cosNum, cosDen, wL, wR) dump at iter=2 depth=0
-  both sides; identify first feature/bin where they differ.
-- Three candidate loci: (a) cosNum/cosDen formula divergence at iter≥2
-  (l2 reg? sample weights post-iter-1?), (b) partition mask divergence, (c)
-  per-leaf state-vector indexing.
+**Successor scope** (next session, post-PROBE-C):
+- Per-feature gain dump at iter=2 **depth=2** both sides, with the d=0+d=1
+  partitions held identical from the agreed splits. Find the first feature
+  where the gain ranking differs (CPU re-picks feat=0; MLX prefers feat=10).
+- Three candidate loci (revised after PROBE-C):
+  (a) Cosine joint-denominator drift at depth=2 across 4 partitions —
+      precision-class mechanism that compounds with depth, not iter;
+  (b) Per-leaf state-vector accumulation differing across the 4 leaves at d=2 —
+      partition-state class;
+  (c) Histogram bin-edge inclusivity (≤ vs <) at the missing-border seam letting
+      docs migrate between bins, biasing leaf totals at d=2.
 - DEC-042 (or later) opens when mechanism is identified — DEC-041 is a dead
   number; do not reuse.
+
+**PROBE-C artifacts** (`docs/sprint33/probe-c-borders/`):
+- `data/mlx_borders.tsv`, `data/cpu_borders.tsv` — per-feature border values
+- `data/border_count.csv`, `data/border_diff.csv` — count and value deltas
+- `data/find_missing.txt`, `data/set_diff.txt` — strict-subset proof
+- `data/mlx_anchor.json` — full MLX 2-tree model JSON
+- `data/tree1_compare.txt` — depth-by-depth tree[1] comparison (the new finding)
+- `scripts/build_dump_borders.sh` — DUMP_BORDERS variant build
+- `scripts/build_probe_c2.sh` — train+save variant build (used for tree[1])
+- `scripts/run_probe_c.py`, `scripts/set_diff.py`, `scripts/find_missing.py`,
+  `scripts/compare_tree1.py` — analysis pipeline
