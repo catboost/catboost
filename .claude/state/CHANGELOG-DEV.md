@@ -2,6 +2,28 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-25 — S33-L4-FIX Commit 2: DEC-042 four-gate validation PASS — DEC-036 RESOLVED
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+Validated commits `10c72b4e96` (Cosine per-side mask) + `e98c6725cd` (L2 per-side mask)
+against all five DEC-042 formal gates.
+
+Gate results:
+- G4a (iter=1 ST+Cosine drift <=0.1%): PASS — 0.0001% (ratio 0.999999)
+- G4b (iter=50 ST+Cosine drift <=2%): PASS — 0.027% (ratio 1.000271), down from 52.6%
+- G4c (v5 kernel ULP=0): PASS — BENCH_FINAL_LOSS=0.48231599 = AN-009
+- G4d (18-config L2 parity [0.98,1.02]): PASS — 18/18, ratios [0.9991, 1.0008]
+- G4e (DW+Cosine sanity S28 anchor): PASS — 5/5 seeds, deltas from S28 in [-0.006, +0.005]
+
+DEC-036 RESOLVED. DEC-042 RESOLVED. Guard removal (#93/#94, Commit 3) is unblocked.
+Gate report: `docs/sprint33/commit2-gates/REPORT.md`.
+Data: `docs/sprint33/commit2-gates/data/` (g4a_g4b_results.json, g4c_results.json,
+g4d_l2_parity.csv, g4d_results.json, g4e_results.json).
+
+---
+
 ## 2026-04-25 — S33-PROBE-E (#126): partition-state class CONFIRMED — DEC-042 opened
 
 Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged

@@ -1,0 +1,54 @@
+{
+  "gate": "G4e",
+  "description": "DW+Cosine sanity at S28 anchor, post DEC-042 fix",
+  "pass": true,
+  "pass_count": 5,
+  "total": 5,
+  "results": [
+    {
+      "seed": 42,
+      "mlx_rmse": 0.2138204124457293,
+      "cpu_cosine_rmse": 0.21067719079049668,
+      "ratio": 1.0149196106300769,
+      "s28_baseline_ratio": 1.0158920879247302,
+      "delta_from_s28": -0.0009724772946533289,
+      "pass": true
+    },
+    {
+      "seed": 43,
+      "mlx_rmse": 0.2129774916306118,
+      "cpu_cosine_rmse": 0.2089676034007807,
+      "ratio": 1.019189042533739,
+      "s28_baseline_ratio": 1.0159992874584667,
+      "delta_from_s28": 0.0031897550752724158,
+      "pass": true
+    },
+    {
+      "seed": 44,
+      "mlx_rmse": 0.21067909677758076,
+      "cpu_cosine_rmse": 0.21015601844597923,
+      "ratio": 1.0024890000080393,
+      "s28_baseline_ratio": 1.002280056036684,
+      "delta_from_s28": 0.00020894397135529097,
+      "pass": true
+    },
+    {
+      "seed": 45,
+      "mlx_rmse": 0.21359787290983925,
+      "cpu_cosine_rmse": 0.2131736587102339,
+      "ratio": 1.0019899935206442,
+      "s28_baseline_ratio": 1.0075741931637554,
+      "delta_from_s28": -0.005584199643111187,
+      "pass": true
+    },
+    {
+      "seed": 46,
+      "mlx_rmse": 0.2196059908163248,
+      "cpu_cosine_rmse": 0.21957083711876269,
+      "ratio": 1.000160101851518,
+      "s28_baseline_ratio": 0.9949728791703282,
+      "delta_from_s28": 0.005187222681189874,
+      "pass": true
+    }
+  ]
+}

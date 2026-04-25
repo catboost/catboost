@@ -1872,7 +1872,7 @@ Findings:
 
 **Sprint**: 33
 **Date**: 2026-04-25
-**Status**: OPEN — root cause identified; pending S33-L4-FIX (#123) implementation and four-gate validation
+**Status**: RESOLVED 2026-04-25 — fix shipped (commits `10c72b4e96` + `e98c6725cd`); four-gate validation PASS (G4a 0.0001%, G4b 0.027% from 52.6%, G4c ULP=0, G4d 18/18, G4e 5/5). Guard removal (#93/#94) unblocked as Commit 3.
 **Authored by**: ml-engineer (PROBE-E run)
 **Supersedes claim from PROBE-D**: confirms the partition-state class lead
 

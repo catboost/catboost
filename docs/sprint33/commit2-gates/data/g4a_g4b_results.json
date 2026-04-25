@@ -1,0 +1,19 @@
+{
+  "g4a": {
+    "mlx_rmse": 0.578748,
+    "cpu_rmse": 0.578748302222927,
+    "ratio": 0.9999994777990264,
+    "drift_pct": 5.222009735739164e-05,
+    "threshold_pct": 0.1,
+    "pass": true
+  },
+  "g4b": {
+    "mlx_rmse": 0.193679,
+    "cpu_rmse": 0.19362645119735175,
+    "ratio": 1.000271392685882,
+    "drift_pct": 0.027139268588194376,
+    "threshold_pct": 2.0,
+    "pass": true,
+    "prefix_drift_pct": 52.6
+  }
+}
