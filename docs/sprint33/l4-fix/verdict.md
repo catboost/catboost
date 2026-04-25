@@ -222,3 +222,46 @@ verdict doc serves as the correction record.
 - L4: QUANTIZATION DIVERGENCE (static vs dynamic border accumulation)
 
 The mechanism is fully localized and explained. S33 closes.
+
+---
+
+## RETRACTION (2026-04-24)
+
+The "Phase 2: True Root Cause" mechanism (static vs dynamic quantization)
+proposed in this verdict is **falsified**. Two independent probes:
+
+- **PROBE-A** (`c770ab6630`, `docs/sprint33/probe-a-borders/verdict.md`).
+  CatBoost `Pool.quantize` produces 128 borders per feature for all 20
+  features (total 2560). The 95/71/0 numbers cited in this verdict are
+  *stored-in-CBM* borders — CatBoost's serialization prunes to thresholds
+  the trained model references. Available borders are dense and identical
+  between CPU and csv_train.cpp.
+
+- **PROBE-B** (`600238f39f`, `docs/sprint33/probe-b-python/verdict.md`).
+  The nanobind Python path uses the **same** csv_train.cpp QuantizeFeatures
+  (`train_api.cpp:14 #include csv_train.cpp`, `train_api.cpp:268
+  QuantizeFeatures`). Measured Python-path drift at this verdict's anchor:
+  52.64%. The "production path uses CatBoost Pool" claim was unverified
+  and is false.
+
+### Implications
+
+- The L4 mechanism is wrong.
+- DEC-041 is built on a falsified premise → INVALIDATED.
+- DEC-036 is genuinely **OPEN**; mechanism unidentified.
+- The L3 narrowing to S2 (split selection at iter≥2) **survives** —
+  gradients are bit-identical at iter=2 start; divergence is downstream
+  in the histogram/scoring path. CPU bin=3 vs MLX bin=64 at depth=0 of
+  iter=2 with bit-identical iter=1 state is the surviving observation.
+
+### Diagnostic artifacts of value (preserved)
+
+- `data/mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` — bit-identical to CPU
+  at iter=2 start; rules out S1 GRADIENT class.
+- `data/mlx_hist_d0_iter2.bin` — confirmed correct (per-feature histogram
+  total ≈ −739 is right; the L3 verdict's expected formula was wrong).
+- `data/mlx_partstats_d0_iter2.bin` — partition-stats dump that may be
+  useful for the next phase.
+
+This verdict is preserved as historical record. **Do not act on its
+recommendations.**
