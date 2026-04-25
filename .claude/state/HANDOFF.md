@@ -1,10 +1,12 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-25 (S34-PROBE-F-LITE T0 closed on math verdict — branch `mlx/sprint-34-probe-f-lite`. Per-side mask is WRONG for one-hot Cosine; leave `csv_train.cpp:1698` joint-skip. CR-S33-S1 / SA-N1 resolved as no-fix-needed. T1 empirical sweep not run; math-first sufficient. New ticket #128 S35-Q4-L2-PARENT-TERM opened from math-derivation §8.2 Q4. S33 PR #29 open.)
+> Last updated: 2026-04-25 (S33 + S34 + S35 ALL MERGED to master. PRs #29 (S33), #31 (S34/S35) merged. Master tip `a10ebd63e1`. DEC-036 CLOSED, DEC-042 FULLY CLOSED for both ordinal and one-hot branches. Local merged branches cleaned up. Active backlog: #113 S31-T3-MEASURE re-run + #114 S31-T-CLEANUP + S31-T-LATENT-P11 + SA carry-forwards.)
 
 ## Current state
 
-- **Active sprint**: **S34-PROBE-F-LITE** on branch `mlx/sprint-34-probe-f-lite`. T0a (math) + T0b (code) converged: per-side mask is WRONG for one-hot Cosine; recommended fix shape is "leave joint-skip as-is". CR-S33-S1 / SA-N1 resolved as no-fix-needed. T1 (empirical CPU-reference sweep) NOT run — math-first sufficient. Verdict: `docs/sprint34/probe-f-lite/verdict.md`. **S33 ARCHIVED** on branch `mlx/sprint-33-iter2-scaffold` tip `addd09ae0e`, PR #29 open. All S33-L4-FIX commits landed (1, 1.5, 2, 3a, 3b); docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE also landed.
+- **Active branch**: `master` at `a10ebd63e1` (PR #31 merge). All S33/S34/S35 work merged. No active sprint branch.
+- **Sprint 33 SHIPPED**: DEC-036 closed for ordinal `FindBestSplit` (52.6% → 0.027% iter=50 drift, 1941× improvement). Both Cosine guards removed.
+- **Sprint 34/35 SHIPPED**: one-hot branch resolved on math-first verdict. One-hot Cosine retains joint-skip (per-side mask would inject rare-category bias — Cosine is parentless). One-hot L2 gets per-side mask (matches CPU; math no-op-but-correct because parent term cancels). The DEC-042 ordinal-scope footnote can now be retired — both branches are correct.
 - **S33 status**: FULLY CLOSED. L0→L3 chain closed. PROBE-E confirmed partition-state mechanism. S33-L4-FIX landed: per-side mask (Commits 1+1.5), four-gate validation (Commit 2), ST guard removal (Commit 3a), LG guard removal (Commit 3b). DEC-036 CLOSED. DEC-040 CLOSED. DEC-042 FULLY CLOSED (ordinal-branch scope). DEC-032 FULLY CLOSED. #93 + #94 COMPLETED.
 - **#123 S33-L4-FIX**: COMPLETED 2026-04-25. Gate report: `docs/sprint33/commit2-gates/REPORT.md`. Commit 3 closures: `e1d72d64e8` (ST), `d599e5b033` (LG).
 - **Surviving narrowing (PROBE-C corrected, 2026-04-24)**: at iter=2, depth=0 AND depth=1 of tree[1] AGREE between CPU and MLX (depth-0 ULP-identical at border 0.014169; depth-1 borders differ by 4.6e-6 due to MLX's 127-vs-128 grid offset, but both pick feat=1 at the equivalent logical position). **Divergence kicks in at depth=2**: CPU picks feat=0 again (border=−0.947), MLX picks feat=10 (border=+0.306). y = 0.5·X[0] + 0.3·X[1] + 0.1·noise → feat=10 is pure noise; CPU correctly stays on signal, MLX prefers a noise feature. Mechanism is in the Cosine gain argmax at iter=2 depth=2, with depths 0–1 already shared. The L3 "depth-0 divergent" verdict is fully retracted: it conflated CPU CBM stored-coords (split_index=3) with MLX upfront-grid bin=64 — both physically 0.014169.
@@ -15,9 +17,9 @@
 - **Preserved diagnostic artifacts** (`docs/sprint33/l4-fix/data/`): `mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` (bit-identical to CPU at iter=2 start; rules out S1 GRADIENT class); `mlx_hist_d0_iter2.bin` (correct; per-feature histogram total ≈ −739 is right; the L3 verdict's expected formula `20×sum_g=0.228` was wrong); `mlx_partstats_d0_iter2.bin` (partition-stats, may be useful for next phase).
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
 - **S31 status**: CLOSED jointly with S32. All S31 quality gates subsumed into S32 close.
-- **Campaign**: Post-Verstappen correctness. DEC-036 CLOSED (2026-04-25, ordinal-branch). DEC-032 FULLY CLOSED (guards removed via S33-L4-FIX Commits 3a/3b). DEC-042 FULLY CLOSED (ordinal scope; one-hot branch under investigation in S34-PROBE-F-LITE).
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical across all S31+S32+S33 commits.
-- **Open PRs**: none.
+- **Campaign**: Post-Verstappen correctness. DEC-036 CLOSED (2026-04-25, ordinal-branch). DEC-032 FULLY CLOSED (guards removed via S33-L4-FIX Commits 3a/3b). DEC-042 FULLY CLOSED for both ordinal AND one-hot branches (S33 + S34/S35 in master).
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical across S31/S32/S33/S34/S35 — entire correctness arc shipped without touching kernels.
+- **Open PRs**: none. PRs #29 (S33), #31 (S34/S35) merged 2026-04-25.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
     - BUG-007 MITIGATED 2026-04-22 (`71aabaa842`).

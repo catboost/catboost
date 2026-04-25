@@ -1,16 +1,16 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-25 (S33-L4-FIX Commit 3 complete — S28-ST-GUARD removed (`e1d72d64e8`), S28-LG-GUARD removed (`d599e5b033`); LG+Cosine drift iter=50 0.382%; DEC-042 FULLY CLOSED; #93/#94 completed.)
+> Last header refresh: 2026-04-25 (S33 + S34 + S35 ALL MERGED — PRs #29 #31. Master tip `a10ebd63e1`. DEC-036 CLOSED, DEC-042 FULLY CLOSED for both ordinal and one-hot branches. Local merged branches cleaned up.)
 
 ## Current state (2026-04-25)
 
-- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 CLOSED — L4-FIX complete: Commits 1/1.5/2/3a/3b all landed).
-- **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch pending PR.
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
+- **Active branch**: `master` at `a10ebd63e1` (PR #31 merge). No active sprint branch.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical S30 → S35.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
-- **Open PRs**: none. S28/S29/S30 merged. S31/S32/S33 carried in-branch pending PR.
-- **Active DEC**: **DEC-036 RESOLVED** (2026-04-25); **DEC-040 OPEN** (L0-L4 scaffold complete); **DEC-041 INVALIDATED**; **DEC-042 FULLY CLOSED** (2026-04-25; fix + guard removal complete); DEC-037/038/039 CLOSED. #93/#94 COMPLETED.
+- **Open PRs**: none. PRs #29 (S33), #31 (S34/S35) merged 2026-04-25.
+- **Active DEC**: **DEC-036 CLOSED** (2026-04-25, ordinal); **DEC-040 CLOSED** (investigation concluded); **DEC-041 INVALIDATED** (dead number); **DEC-042 FULLY CLOSED** (both ordinal + one-hot branches resolved); DEC-037/038/039 CLOSED. #93/#94/#123/#127/#128/#129 COMPLETED.
+- **Open backlog**: #113 S31-T3-MEASURE re-run, #114 S31-T-CLEANUP, S31-T-LATENT-P11 (Logloss/Poisson/Tweedie), SA carry-forwards (SA-L1-S33 hard-coded paths, SA-L3-S30/SA-N2-S33 instrumentation env-var hardening, SA-I2-S29 #95 CLI exit wrap).
 
 ## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
 
