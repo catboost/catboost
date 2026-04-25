@@ -1,0 +1,22 @@
+====================================================================================
+iter=2 tree[1]: MLX vs CPU — depth-by-depth physical comparison
+====================================================================================
+
+ d  MLX (feat,bin)       MLX phys  CPU feat       CPU phys      phys Δ        verdict
+------------------------------------------------------------------------------------
+ 0  ( 0,  64)         0.0141694       0       0.0141694    4.212e-11           AGREE
+ 1  ( 1,  58)        -0.0924089       1      -0.0924135    4.582e-06           AGREE
+ 2  (10,  79)          0.305683       0       -0.946874          nan         DIVERGE
+ 3  (14, 109)           1.07388       0         1.04273          nan         DIVERGE
+ 4  (12,  10)          -1.36672       1        0.815438          nan         DIVERGE
+ 5  (13, 101)          0.830383       1         -1.0819          nan         DIVERGE
+
+VERDICT: feature-level divergence at depth=2.
+  CPU picks feat=0 (border=-0.946874)
+  MLX picks feat=10 bin=79 (border=0.305683)
+  All depths < 2 agree on feature, with depth-0 ULP-identical and
+  depth-1 differing only by missing-border-induced grid offset.
+
+  This contradicts the L3 'S2 SPLIT divergent at depth=0' verdict
+  (which conflated CPU CBM stored-coords with MLX upfront grid index).
+  The real iter=2 split-class divergence is at DEPTH=2.
