@@ -1,6 +1,8 @@
 #include <Python.h>
 #include <marshal.h>
 
+#include <util/generic/scope.h>
+
 #include <iterator>
 
 namespace {
@@ -17,6 +19,9 @@ int modsitecustomize_exec(PyObject *mod) noexcept {
     if (!bytecode) {
         return -1;
     }
+    Y_DEFER {
+        Py_DECREF(bytecode);
+    };
     PyObject* modns = PyModule_GetDict(mod);
     if (!modns) {
         return -1;
