@@ -981,9 +981,9 @@ If an anchor has had its numeric value updated more than once (i.e., a second st
 
 ## DEC-032: MLX DW gain function scope (L2-only, not parity-equivalent to CPU)
 
-**Sprint**: 27 (S27-FU-3, T5) → **PARTIALLY CLOSED by DEC-033 (S28, 2026-04-23)**
+**Sprint**: 27 (S27-FU-3, T5) → **PARTIALLY CLOSED by DEC-033 (S28, 2026-04-23)** → **FULLY CLOSED 2026-04-25 (S33)**
 **Date**: 2026-04-22
-**Status**: PARTIALLY CLOSED by DEC-033. Python canonical surface fully dispatched and guarded. SA-H1 closed in S29: C++ nanobind entry (`train_api.cpp:TrainConfigToInternal`) and CLI entry (`csv_train.cpp:ParseArgs`) now reject forbidden combinations. DEC-034 resolved S29 (outcome A — shared compounding mechanism). `Cosine+Lossguide` and `Cosine+SymmetricTree` guards remain at all three layers until S30-COSINE-KAHAN lands and gates. Full closure (CLOSED) queued for S30-close once Kahan parity gates pass. See DEC-033, DEC-034, DEC-035.
+**Status**: FULLY CLOSED 2026-04-25. All three grow policies (DepthWise, Lossguide, SymmetricTree) now support Cosine score function. S28-ST-GUARD and S28-LG-GUARD removed in S33-L4-FIX Commits 3a (`e1d72d64e8`) and 3b (`d599e5b033`). The S30-COSINE-KAHAN guard-removal path was superseded by DEC-042's per-side mask fix, which collapsed ST+Cosine drift from 52.6% to 0.027% and LG+Cosine iter=50 drift to 0.382% — both within the 2% gate. See DEC-042 for the closing mechanism.
 **Authored by**: S27-FU-3-T3/T5 (@ml-product-owner + @technical-writer)
 **Source commit**: `0931ad6e9c` (FU-3 T1 triage — per-partition gain instrumentation + score_function=L2 CPU forcing)
 **Triage doc**: `docs/sprint27/scratch/fu3-t1-triage.md`
@@ -1243,7 +1243,7 @@ once in S30 (DEC-035); re-open outcome B only if post-Kahan residual drift persi
 
 **Sprint**: 30 (active as of 2026-04-23; CLOSED 2026-04-24)
 **Date**: 2026-04-23 (draft); elaborated 2026-04-23 after S30 kickoff ultrathink; closed 2026-04-24
-**Status**: PARTIALLY CLOSED — precision fix class exhausted; K4 (fp64 cosDen/cosNum) + Fix 2 (fp64 gain/argmax) shipped but insufficient alone. ST+Cosine and LG+Cosine guards REMAIN in place. Dominant ST mechanism is structural (N-independent) and superseded to DEC-036.
+**Status**: PARTIALLY CLOSED — precision fix class exhausted; K4 (fp64 cosDen/cosNum) + Fix 2 (fp64 gain/argmax) shipped but insufficient alone. ST+Cosine and LG+Cosine guards have been REMOVED (S33-L4-FIX Commits 3a + 3b, 2026-04-25). The guards were removed via DEC-042's per-side mask fix, not via Kahan — the S30-COSINE-KAHAN guard-removal path was superseded. Dominant ST mechanism was structural (N-independent) and resolved by DEC-042.
 **Authored by**: S29-CLOSE (@technical-writer); elaborated S30-00 kickoff (orchestrator); closure addendum S30-CLOSE 2026-04-24
 
 ### Context
@@ -1382,9 +1382,9 @@ Both K4 and Fix 2 are logically correct fixes that will become load-bearing once
 
 ## DEC-036: ST+Cosine structural divergence — iter=1 algorithmic audit
 
-**Sprint**: 31 (kickoff 2026-04-24)
+**Sprint**: 31 (kickoff 2026-04-24) → **CLOSED 2026-04-25 — superseded by DEC-042 (ordinal-branch closure)**
 **Date**: 2026-04-24
-**Status**: OPEN — investigation-phase; no mechanism identified yet
+**Status**: CLOSED 2026-04-25 — superseded by DEC-042 (ordinal-branch closure). The 52.6% ST+Cosine drift was resolved by the per-side mask fix in S33-L4-FIX. See DEC-042.
 **Authored by**: S30-CLOSE (orchestrator)
 
 ### Context
@@ -1653,12 +1653,12 @@ original kill-switches K6-K8 did not fire. DEC-036 remains OPEN for S33.
 
 ---
 
-## DEC-040: S33 scope — L0-L4 SCAFFOLD for iter≥2 runaway divergence
+## DEC-040: S33 scope — L0-L4 SCAFFOLD for iter≥2 runaway divergence (CLOSED)
 
 **Sprint**: 33 (kickoff 2026-04-24)
 **Date**: 2026-04-24
 **Branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`)
-**Status**: OPEN — investigation phase; implements DEC-036 closure.
+**Status**: CLOSED 2026-04-25 — investigation concluded; mechanism captured in DEC-042. L0–L4 scaffold ran to completion: PROBE-E confirmed partition-state class, per-side mask fix collapsed drift from 52.6% to 0.027%, all five gates PASS, guards removed.
 **Authored by**: ml-product-owner (ultrathink kickoff)
 
 ### Problem
@@ -2024,3 +2024,7 @@ Build invariants: `kernel_sources.h` md5 unchanged
 (`9edaef45b99b9db3e2717da93800e76f`). All instrumentation gated under
 `#ifdef PROBE_E_INSTRUMENT`. Production builds compile to bit-identical
 machine code as before.
+
+### Scope footnote (2026-04-25)
+
+Closure scoped to FindBestSplit ordinal branch (`csv_train.cpp:1941/1980`). FindBestSplit one-hot branch (`csv_train.cpp:1698`) carries a structurally similar `continue` rule; whether the per-side mask fix shape applies there is under investigation in S34-PROBE-F-LITE. Empirical smoke (single seed, synthetic 8k 1-cat anchor) showed loss regression 0.479101 → 0.493401 when the same patch was applied at L1698, so the fix shape is not assumed to mirror Commits 1/1.5 until validated against CPU CatBoost reference.

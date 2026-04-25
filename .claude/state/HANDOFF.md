@@ -1,11 +1,11 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-25 (Sprint 33 S33-L4-FIX ALL COMMITS COMPLETE — Commits 3a (`e1d72d64e8`) + 3b (`d599e5b033`) landed. S28-ST-GUARD removed (G4a 0.0001%, G4b 0.027%). S28-LG-GUARD removed (LG+Cosine iter=1 0.0000%, iter=50 0.382%). **DEC-042 FULLY CLOSED.** #93 + #94 COMPLETED. S33 closed.)
+> Last updated: 2026-04-25 (S33 docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE landed. Tip `c15057f126`. DEC-036 CLOSED, DEC-040 CLOSED, DEC-032 FULLY CLOSED, DEC-042 FULLY CLOSED (ordinal-branch scope). S34-PROBE-F-LITE ticket opened. S33 ARCHIVED.)
 
 ## Current state
 
-- **Active sprint**: **S33 FULLY CLOSED** on branch `mlx/sprint-33-iter2-scaffold`. Tip `d599e5b033`. All 5 S33-L4-FIX commits landed (1, 1.5, 2, 3a, 3b).
-- **S33 status**: L0→L3 chain closed. PROBE-E confirmed partition-state mechanism. S33-L4-FIX landed: per-side mask (Commits 1+1.5), four-gate validation (Commit 2), ST guard removal (Commit 3a), LG guard removal (Commit 3b). DEC-036 RESOLVED. DEC-042 FULLY CLOSED. #93 + #94 COMPLETED.
+- **Active sprint**: **S33 ARCHIVED** on branch `mlx/sprint-33-iter2-scaffold`. Tip `c15057f126`. All S33-L4-FIX commits landed (1, 1.5, 2, 3a, 3b); docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE also landed.
+- **S33 status**: FULLY CLOSED. L0→L3 chain closed. PROBE-E confirmed partition-state mechanism. S33-L4-FIX landed: per-side mask (Commits 1+1.5), four-gate validation (Commit 2), ST guard removal (Commit 3a), LG guard removal (Commit 3b). DEC-036 CLOSED. DEC-040 CLOSED. DEC-042 FULLY CLOSED (ordinal-branch scope). DEC-032 FULLY CLOSED. #93 + #94 COMPLETED.
 - **#123 S33-L4-FIX**: COMPLETED 2026-04-25. Gate report: `docs/sprint33/commit2-gates/REPORT.md`. Commit 3 closures: `e1d72d64e8` (ST), `d599e5b033` (LG).
 - **Surviving narrowing (PROBE-C corrected, 2026-04-24)**: at iter=2, depth=0 AND depth=1 of tree[1] AGREE between CPU and MLX (depth-0 ULP-identical at border 0.014169; depth-1 borders differ by 4.6e-6 due to MLX's 127-vs-128 grid offset, but both pick feat=1 at the equivalent logical position). **Divergence kicks in at depth=2**: CPU picks feat=0 again (border=−0.947), MLX picks feat=10 (border=+0.306). y = 0.5·X[0] + 0.3·X[1] + 0.1·noise → feat=10 is pure noise; CPU correctly stays on signal, MLX prefers a noise feature. Mechanism is in the Cosine gain argmax at iter=2 depth=2, with depths 0–1 already shared. The L3 "depth-0 divergent" verdict is fully retracted: it conflated CPU CBM stored-coords (split_index=3) with MLX upfront-grid bin=64 — both physically 0.014169.
 - **PROBE-C side findings** (`docs/sprint33/probe-c-borders/data/`): MLX's 127-border grid is a strict subset of CPU's 128 (ULP=1 tolerance); each feature is missing exactly one border at CPU index 6 (e.g. feat=0 missing −1.65587). This 1-border deficit is real but does not directly explain the depth=2 divergence — the depth=2 split is on feat=0 vs feat=10, not on the missing border. The deficit may compound across depths/iters but is not the primary lever.
@@ -15,7 +15,7 @@
 - **Preserved diagnostic artifacts** (`docs/sprint33/l4-fix/data/`): `mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` (bit-identical to CPU at iter=2 start; rules out S1 GRADIENT class); `mlx_hist_d0_iter2.bin` (correct; per-feature histogram total ≈ −739 is right; the L3 verdict's expected formula `20×sum_g=0.228` was wrong); `mlx_partstats_d0_iter2.bin` (partition-stats, may be useful for next phase).
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
 - **S31 status**: CLOSED jointly with S32. All S31 quality gates subsumed into S32 close.
-- **Campaign**: Post-Verstappen correctness. DEC-036 OPEN (mechanism unidentified after L4 retraction). DEC-032 still PARTIALLY CLOSED pending guard removal (#93/#94).
+- **Campaign**: Post-Verstappen correctness. DEC-036 CLOSED (2026-04-25, ordinal-branch). DEC-032 FULLY CLOSED (guards removed via S33-L4-FIX Commits 3a/3b). DEC-042 FULLY CLOSED (ordinal scope; one-hot branch under investigation in S34-PROBE-F-LITE).
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical across all S31+S32+S33 commits.
 - **Open PRs**: none.
 - **Known bugs**:
@@ -24,9 +24,9 @@
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
-    - **S28-DEC-032 CLOSED** (2026-04-25): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guards removed (S33-L4-FIX Commits 3a/3b). All three grow policies now support Cosine.
+    - **S28-DEC-032 FULLY CLOSED** (2026-04-25): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guards removed (S33-L4-FIX Commits 3a/3b). All three grow policies now support Cosine. See DEC-042 for the closing mechanism.
     - **S29-DEC-034 RESOLVED** (outcome A, `64a8d9076b`): LG+Cosine shares float32 joint-denominator compounding with ST+Cosine. Single Kahan fix addresses both.
-    - **DEC-036 ROOT-CAUSED 2026-04-24** (PROBE-E): mechanism is degenerate-child skip at `csv_train.cpp:1980` — `if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;` drops entire partition contribution; CPU adds the non-empty side. Status remains OPEN until S33-L4-FIX (#123) ships and parity gates pass.
+    - **DEC-036 CLOSED 2026-04-25** (PROBE-E + S33-L4-FIX): mechanism was degenerate-child skip at `csv_train.cpp:1980`; per-side mask fix collapsed drift from 52.6% to 0.027%. See DEC-042. Superseded by DEC-042 (ordinal-branch closure).
     - **DEC-041 INVALIDATED**: premise (static vs dynamic quantization) falsified by probes A/B. Number is dead; do not reuse. Successor will be DEC-042 or later.
     - **Latent P11**: hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967`. Fires under Logloss/Poisson/Tweedie/Multiclass. Not blocking RMSE path.
     - **Meta-pattern (S30→S33)**: agents shipping plausible-but-wrong verdicts in cold subagent contexts under shipping pressure is now a recognized failure mode. Successor probe runs in active main context with L0-L3 evidence held live, not in fresh subagent contexts.
@@ -166,20 +166,12 @@ All S31 deliverables subsumed. T3b G1 PASS (GAIN-FORMULA localized). T3-MEASURE,
 
 ## Entry point for S34
 
-S33 CLOSED. S34 entry depends on a Ramos decision on DEC-041:
+S33 ARCHIVED. DEC-041 is INVALIDATED (premise falsified by PROBE-A). #93/#94 COMPLETED in S33. All Cosine guards removed.
 
-**Option 3 (recommended)**: Accept csv_train.cpp quantization divergence as a known
-harness limitation. S34 scope = guard removal (#93/#94) via Python-path quality test
-(Python API uses CatBoost's own quantization, which is correct). Draft a DEC-042 for
-the Python-path guard-removal gate.
-
-**Option 1 or 2**: Implement dynamic border accumulation or target-correlation filter
-in csv_train.cpp. S34 scope = DEC-041 implementation + G4b gate (drift ≤ 2%).
+**S34 scope**: S34-PROBE-F-LITE — investigate one-hot per-side mask validity at `FindBestSplit:1698`. Scoping document: `docs/sprint33/s33-s1-rescope.md`. Branch: cut `mlx/sprint-34-probe-f-lite` from S33 close. See TODOS.md #127.
 
 **Carry-forwards from S31/S32/S33** (still open):
-- S31-T4a (ST-guard removal): gated on DEC-036 full closure or Python-path gate.
-- S31-T4b (LG-guard removal): gated on same.
-- S31-T-LATENT-P11: low priority; document when convenient.
+- S31-T-LATENT-P11: low priority; hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967`.
 - S31-T-CLEANUP: SA-I2 try/catch + S29 CR nits.
 
 ## PR state
