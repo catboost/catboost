@@ -405,13 +405,20 @@ static void AddTree(
         float splitValue = 0.0f;
 
         if (split.Type == ESplitType::FloatFeature) {
-            splitFlatFeatureIdx = split.FloatFeature.FloatFeature;
-            nodeMode = TModeNode::BRANCH_GT;
             const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
+            nodeMode = TModeNode::BRANCH_GT;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
             splitValue = split.FloatFeature.Split;
+            // When there are no one-hot features, the input tensor uses original flat indices.
+            // When one-hot features are present, float features are concatenated first
+            // and renumbered starting from 0.
+            if (trees.GetOneHotFeatures().empty()) {
+                splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
+            } else {
+                splitFlatFeatureIdx = split.FloatFeature.FloatFeature;
+            }
         } else if (split.Type == ESplitType::OneHotFeature) {
             splitFlatFeatureIdx = numFloatFeatures + split.OneHotFeature.CatFeatureIdx;
             nodeMode = TModeNode::BRANCH_EQ;
