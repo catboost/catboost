@@ -19,6 +19,12 @@ from S28 baseline are noise-level). Guard removal (Commit 3, #93/#94) is unblock
 
 ---
 
+## Coverage scope
+
+**Coverage scope.** All four formal gates exercise the **ordinal-feature branch** of `FindBestSplit` (`csv_train.cpp:1941+`) under csv_train's bin-quantized layout. The **one-hot/categorical-feature branch** at `csv_train.cpp:1690-1722` of the same function carries a structurally similar `continue` rule; whether the per-side mask fix shape applies there is under investigation in S34-PROBE-F-LITE. Closure of DEC-042 in this report is scoped to the ordinal branch. The kernel md5 invariant (`9edaef45b99b9db3e2717da93800e76f`) holds across both branches independent of the open one-hot question.
+
+---
+
 ## Gate Results
 
 | Gate | Criterion | Result | Key Numbers |

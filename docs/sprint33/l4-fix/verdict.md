@@ -1,3 +1,5 @@
+> **RETRACTED 2026-04-25.** This verdict was the L4 sprint-close that asserted DEC-041 (static-vs-dynamic quantization border divergence) as the DEC-036 mechanism. **PROBE-A and PROBE-B (2026-04-25, in-session) falsified DEC-041's premise.** PROBE-E (2026-04-25) identified the actual mechanism as the per-partition degenerate-child skip in `FindBestSplit`'s per-bin update at `csv_train.cpp:1980` (DEC-042). The fix was a host-side per-side mask matching CPU's `UpdateScoreBinKernelPlain`, with kernel md5 unchanged. This file is preserved for audit trail; do not act on its conclusions. See `docs/sprint33/sprint-close.md` and `docs/sprint33/probe-e/FINDING.md` for the corrected closure.
+
 # S33-L4-FIX Verdict
 
 **Date**: 2026-04-24
