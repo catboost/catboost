@@ -37,6 +37,7 @@
 - [x] **#93 S30-T4a-ST-REMOVE** — COMPLETED 2026-04-25. S28-ST-GUARD removed (Commit 3a `e1d72d64e8`). G4a 0.0001%, G4b 0.027% (pre-fix 52.6%). Python path sanity ratio 1.000271. 4/4 tests PASS.
 - [x] **#94 S30-T4b-LG-REMOVE** — COMPLETED 2026-04-25. S28-LG-GUARD removed (Commit 3b `d599e5b033`). LG+Cosine drift measured post-fix: iter=1 0.0000%, iter=50 0.382% (<=2% threshold). 4/4 tests PASS.
 - **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967` (Logloss/Poisson/Tweedie/Multiclass; not blocking RMSE).
+- **#127** [pending] **S34-PROBE-F-LITE**: investigate one-hot per-side mask validity at `FindBestSplit:1698`. Empirical smoke (synthetic 8k 1-cat anchor, ST+Cosine) showed loss regression 0.479101 → 0.493401 when the L1698 patch was applied — syntactic-class argument insufficient. Math-first analysis (parent-term subtraction structure) and CPU CatBoost reference probe required before any fix lands. Scoping document: `docs/sprint33/s33-s1-rescope.md`. Branch: cut `mlx/sprint-34-probe-f-lite` from S33 close. blockedBy: none.
 
 ---
 
