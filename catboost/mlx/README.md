@@ -23,6 +23,8 @@ CatBoost-MLX replaces the CUDA GPU backend with Apple's Metal via the [MLX](http
 | | Newton leaf estimation | Done |
 | | Non-symmetric (Depthwise) grow policy | Done (Sprint 4) |
 | | Lossguide (best-first) grow policy | Done (Sprint 10) |
+| | Score function: L2 (Newton) | Done (Sprint 28) |
+| | Score function: Cosine (all grow policies) | Done (Sprint 33, DEC-042) |
 | **Regularization** | L2 regularization (lambda) | Done |
 | | Row subsampling (bagging) | Done |
 | | Feature subsampling per tree | Done |
@@ -856,8 +858,11 @@ The first Metal kernel dispatch per process triggers JIT shader compilation. Exp
 ### Feature combinations (crosses) not implemented
 CatBoost's automatic feature cross search is not yet ported.
 
-### Grow policies (Lossguide/Depthwise) not implemented
-Only symmetric (oblivious) trees are supported. Non-symmetric policies are in the backlog (TODO-012).
+### NewtonL2 and NewtonCosine score functions not implemented
+`score_function=L2` (standard Newton gain) and `score_function=Cosine` are fully supported
+for all three grow policies (SymmetricTree, Depthwise, Lossguide). The Newton variants
+(`NewtonL2`, `NewtonCosine`) are explicitly rejected at the Python API with `ValueError`
+pending a future implementation sprint. See DEC-032 and DEC-042.
 
 ## Troubleshooting
 

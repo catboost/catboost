@@ -284,6 +284,78 @@ will be numbered DEC-042 or later.
 
 ---
 
+## DEC-042: Degenerate-child skip in FindBestSplit per-partition update — RESOLVED
+
+**Date**: 2026-04-25
+**Status**: FULLY CLOSED 2026-04-25
+**Closes**: DEC-036 (ST+Cosine structural divergence)
+**Commits**: `10c72b4e96` (Cosine fix), `e98c6725cd` (L2 fix), `dd778b0f7d` (validation),
+             `e1d72d64e8` (ST guard removed), `d599e5b033` (LG guard removed)
+**Branch**: `mlx/sprint-33-iter2-scaffold`
+**Gate report**: `docs/sprint33/commit2-gates/REPORT.md`
+
+**Context**:
+
+After five sprints (S30–S33) exhausting the precision-fix class (cosDen accumulator,
+gain cast, fp64 widening, histogram N-scaling), PROBE-E confirmed the partition-state
+class: the 52.6% ST+Cosine iter=50 drift was structural. The mechanism was located at
+`catboost/mlx/tests/csv_train.cpp:1980` in `FindBestSplit`'s per-partition loop.
+
+**Mechanism**:
+
+MLX's per-partition update:
+```cpp
+if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+```
+skips the entire partition contribution — both `cosNum` and `cosDen` go to zero — when
+either child is empty (degenerate split). CPU's reference path
+(`catboost/libs/helpers/short_vector_ops.h:155+`, `UpdateScoreBinKernelPlain`) uses a
+per-side mask: the empty side contributes zero, but the non-empty side's
+`sumX² / (w + λ)` is always added.
+
+For any candidate feature whose tree ancestry creates degenerate children in a subset
+of partitions, MLX under-scores the candidate by the omitted partitions' contribution.
+At iter=2 depth=2 on the anchor, CPU's signal pick (feat=0, bin=21) had 2 of 4
+partitions degenerate (wL=0) after the depth=0 split on feat=0. MLX scored feat=0 at
+81.83; CPU scored it at 108.32 (Δ=26.49 gain units). Noise features had no degenerate
+partitions; their gains were unchanged at ~101.95. The signal/noise ordering was
+inverted at every iter≥2 depth≥2 decision.
+
+Skip rate grows with depth: 0% / 2.5% / 5.0% / 7.6% / 10.6% / 14.6% at depths
+0–5. The compounding divergence across 50 iterations matches the 52.6% observation.
+
+**Decision**:
+
+Replace the whole-partition `continue` with a per-side mask at both the Cosine and L2
+branches of `FindBestSplit`:
+```cpp
+const bool wL_pos = (weightLeft  > 1e-15f);
+const bool wR_pos = (weightRight > 1e-15f);
+if (!wL_pos && !wR_pos) continue;  // truly degenerate on both sides — true no-op
+// Compute contributions with each empty side contributing zero
+```
+Two separate atomic commits per DEC-012: Commit 1 (Cosine path), Commit 1.5 (L2 path).
+
+**Rationale**: Matches CPU's `UpdateScoreBinKernelPlain` reference exactly. The L2 path
+receives the same fix for structural correctness even though no L2 regression was
+measured, because the shared code pattern has the same latent defect.
+
+**Outcome**:
+
+| Metric | Pre-fix | Post-fix |
+|--------|---------|---------|
+| ST+Cosine iter=1 drift | ~0% (depth=0 trivial) | 0.0001% |
+| ST+Cosine iter=50 drift | 52.6% | 0.027% (1941× improvement) |
+| L2 18-config parity | 18/18 [0.9991, 1.0008] | 18/18 [0.9991, 1.0008] |
+| LG+Cosine iter=50 drift | unmeasured | 0.382% |
+| DW+Cosine 5-seed | 5/5 PASS | 5/5 PASS |
+| Kernel md5 | `9edaef45...` | `9edaef45...` (unchanged) |
+
+S28-ST-GUARD and S28-LG-GUARD removed. DEC-032 fully closed: all three grow policies
+(SymmetricTree, Depthwise, Lossguide) now support Cosine.
+
+---
+
 ## Decision Template
 
 ```
