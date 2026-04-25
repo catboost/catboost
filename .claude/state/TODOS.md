@@ -1,16 +1,16 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-25 (Sprint 33 RETRACTED+REOPEN — L4 verdict falsified by probes A/B; PROBE-C narrows to iter=2 d=2; PROBE-D closes precision class; **PROBE-E confirms partition-state class — degenerate-child skip at csv_train.cpp:1980 is the DEC-036 mechanism**. DEC-042 opened.)
+> Last header refresh: 2026-04-25 (S33-L4-FIX Commit 3 complete — S28-ST-GUARD removed (`e1d72d64e8`), S28-LG-GUARD removed (`d599e5b033`); LG+Cosine drift iter=50 0.382%; DEC-042 FULLY CLOSED; #93/#94 completed.)
 
 ## Current state (2026-04-25)
 
-- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 OPEN — sprint did not close after L4 retraction; PROBE-E confirms mechanism; pending S33-L4-FIX implementation).
-- **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch.
+- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 CLOSED — L4-FIX complete: Commits 1/1.5/2/3a/3b all landed).
+- **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch pending PR.
 - **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
 - **Open PRs**: none. S28/S29/S30 merged. S31/S32/S33 carried in-branch pending PR.
-- **Active DEC**: **DEC-036 RESOLVED** (2026-04-25; per-side mask fix, 4-gate PASS); **DEC-040 OPEN** (L0-L4 scaffold complete; chain closed by PROBE-E + L4-FIX); **DEC-041 INVALIDATED** (do not reuse number); **DEC-042 RESOLVED** (2026-04-25; fix shipped + validated); DEC-037/038/039 CLOSED. Guard removal #93/#94 unblocked.
+- **Active DEC**: **DEC-036 RESOLVED** (2026-04-25); **DEC-040 OPEN** (L0-L4 scaffold complete); **DEC-041 INVALIDATED**; **DEC-042 FULLY CLOSED** (2026-04-25; fix + guard removal complete); DEC-037/038/039 CLOSED. #93/#94 COMPLETED.
 
 ## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
 
@@ -34,7 +34,8 @@
 
 - **#114 S31-T-CLEANUP** — S30 carry-forwards (CLI exit wrap + S29 CR residuals).
 - **#113 S31-T3-MEASURE** — re-run T3 gate matrix post-fix (will run after L4).
-- **#93 S30-T4a-ST-REMOVE** / **#94 S30-T4b-LG-REMOVE** — guard removals, gated on DEC-036 closure.
+- [x] **#93 S30-T4a-ST-REMOVE** — COMPLETED 2026-04-25. S28-ST-GUARD removed (Commit 3a `e1d72d64e8`). G4a 0.0001%, G4b 0.027% (pre-fix 52.6%). Python path sanity ratio 1.000271. 4/4 tests PASS.
+- [x] **#94 S30-T4b-LG-REMOVE** — COMPLETED 2026-04-25. S28-LG-GUARD removed (Commit 3b `d599e5b033`). LG+Cosine drift measured post-fix: iter=1 0.0000%, iter=50 0.382% (<=2% threshold). 4/4 tests PASS.
 - **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967` (Logloss/Poisson/Tweedie/Multiclass; not blocking RMSE).
 
 ---

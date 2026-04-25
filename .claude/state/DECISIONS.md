@@ -1872,7 +1872,7 @@ Findings:
 
 **Sprint**: 33
 **Date**: 2026-04-25
-**Status**: RESOLVED 2026-04-25 — fix shipped (commits `10c72b4e96` + `e98c6725cd`); four-gate validation PASS (G4a 0.0001%, G4b 0.027% from 52.6%, G4c ULP=0, G4d 18/18, G4e 5/5). Guard removal (#93/#94) unblocked as Commit 3.
+**Status**: FULLY CLOSED 2026-04-25 — fix shipped (commits `10c72b4e96` + `e98c6725cd`); four-gate validation PASS (G4a 0.0001%, G4b 0.027% from 52.6%, G4c ULP=0, G4d 18/18, G4e 5/5); S28-ST-GUARD removed (Commit 3a `e1d72d64e8`); S28-LG-GUARD removed (Commit 3b `d599e5b033`, LG+Cosine drift iter=1 0.0000% / iter=50 0.382%); all 4 guard tests inverted to acceptance tests. DEC-032 carry-forward #93/#94 both completed.
 **Authored by**: ml-engineer (PROBE-E run)
 **Supersedes claim from PROBE-D**: confirms the partition-state class lead
 

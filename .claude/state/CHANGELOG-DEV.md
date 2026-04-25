@@ -2,6 +2,31 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-25 — S33-L4-FIX Commits 3a+3b: guard removal — DEC-042 FULLY CLOSED
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+**Commit 3a** (`e1d72d64e8`) — S28-ST-GUARD removed:
+- Removed S28-ST-GUARD from train_api.cpp, csv_train.cpp, core.py
+- Inverted ST tests in tests/test_cli_guards.py: rejection → acceptance
+- Python path sanity: iter=50 RMSE 0.19367887, ratio 1.000271 (G4b match)
+- 4/4 guard tests PASS
+
+**Commit 3b** (`d599e5b033`) — S28-LG-GUARD removed:
+- LG+Cosine drift measurement (csv_train_g4_cosine binary, -DCOSINE_T3_MEASURE):
+  - iter=1:  MLX 0.57729800 / CPU 0.57729795 / ratio 1.000000 / drift 0.0000%
+  - iter=50: MLX 0.17027600 / CPU 0.16962773 / ratio 1.003822 / drift 0.382%
+  - Threshold 2%: PASS
+- Removed S28-LG-GUARD from train_api.cpp, csv_train.cpp, core.py
+- Inverted LG tests in tests/test_cli_guards.py: all 4 tests now positive acceptance tests
+- 4/4 guard tests PASS
+
+DEC-042 FULLY CLOSED. DEC-032 CLOSED. #93 + #94 COMPLETED. S33 fully closed.
+All three grow policies (ST, DW, LG) now support score_function='Cosine'.
+
+---
+
 ## 2026-04-25 — S33-L4-FIX Commit 2: DEC-042 four-gate validation PASS — DEC-036 RESOLVED
 
 Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
