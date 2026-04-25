@@ -240,6 +240,49 @@ update: `bits = updateBits << depth; partitions |= bits`.
 
 ---
 
+## DEC-041: Static vs Dynamic Feature Quantization in csv_train.cpp (OPEN)
+
+**Date**: 2026-04-24
+**Status**: Open — S34 scope
+**Closes**: DEC-036 (partial)
+
+**Context**: S33-L4-FIX investigation determined the root cause of the 52.6% ST+Cosine
+RMSE drift (DEC-036). csv_train.cpp calls `QuantizeFeatures` once before training,
+producing 127 borders for all features. CatBoost CPU builds borders dynamically:
+a border is added to a feature's list only when that feature is chosen for a split.
+On the 20-feature anchor dataset (X[:,0], X[:,1] signal; X[:,2]-X[:,19] pure noise),
+CatBoost produces 166 useful bin-features at 50 iterations; csv_train.cpp produces
+2540 bin-features (mostly noise). MLX wastes depth on noise features each iteration,
+compounding over 50 iterations to produce 52.6% RMSE drift.
+
+**Decision (deferred)**: Three options are under consideration:
+  1. Port CatBoost's dynamic border accumulation into csv_train.cpp (correct, complex).
+  2. Pre-filter features by target correlation before quantization (heuristic, simpler).
+  3. Accept the divergence as a known design limitation of csv_train.cpp (the test
+     harness path). The production nanobind Python path uses CatBoost's own Pool +
+     QuantizedPool for data preparation, which handles quantization correctly.
+
+**Recommended option**: Option 3 for the harness (csv_train.cpp is not production code).
+The guards on ST+Cosine remain until G4b (drift ≤ 2%) is met; Option 3 means G4b
+cannot be met via csv_train.cpp alone. To remove guards, the full Python nanobind
+path's model quality must be validated on a dataset where features 0-1 are signal and
+features 2-19 are noise — and that path uses CatBoost's own quantization, so the
+drift would not appear there.
+
+**Rationale**: csv_train.cpp is a diagnostic harness, not a production training path.
+Reimplementing CatBoost's dynamic border accumulation in a test harness (Option 1)
+would be significant engineering work for no production benefit. The production path
+(nanobind Python) uses CatBoost internals for quantization, avoiding the problem.
+
+**Risks**:
+- If csv_train.cpp is used for any benchmark or parity comparison involving many
+  noise features, the 52.6% drift will appear. All such comparisons must be on
+  datasets with all features being informative (or use the Python path).
+- Guard removal for ST+Cosine in the Python path requires a separate quality gate
+  using the Python API, not csv_train.cpp.
+
+---
+
 ## Decision Template
 
 ```

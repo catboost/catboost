@@ -397,81 +397,6 @@ static void WriteCosineTermCSV(const std::string& path,
 }
 #endif  // COSINE_TERM_AUDIT
 
-// ============================================================================
-// S33-L3-ITER2: per-stage binary dump at iter=1 (0-indexed) = 1-indexed iter=2.
-//
-// Compile-time gate: -DL3_ITER2_DUMP
-// Purpose: dump all four pipeline stages at the second boosting iteration to
-//   identify which stage re-injects divergence in every MLX iteration >= 2.
-//   This is the crux of DEC-036 / DEC-040 FRAME-B localisation.
-//
-// Runtime gates (env vars):
-//   CATBOOST_MLX_DUMP_ITER2_GRAD=<dir>    S1: write mlx_grad_iter2.bin + mlx_hess_iter2.bin
-//   CATBOOST_MLX_DUMP_ITER2_HIST=<dir>    S2: write mlx_hist_d0_iter2.bin (depth=0 only)
-//   CATBOOST_MLX_DUMP_ITER2_TREE=<dir>    S2/S3: write mlx_bestsplit_d0_iter2.json
-//   CATBOOST_MLX_DUMP_ITER2_LEAVES=<dir>  S3: write mlx_leafvalues_iter2.json
-//   CATBOOST_MLX_DUMP_ITER2_APPROX=<dir>  S4: write mlx_approx_iter2.bin
-//
-// Binary format (float32, little-endian):
-//   *_grad_iter2.bin   : N float32 values = g_i for all train docs
-//   *_hess_iter2.bin   : N float32 values = h_i for all train docs
-//   *_hist_d0_iter2.bin: numPartitions * 2 * TotalBinFeatures float32 values
-//                        layout: [part][grad/hess interleaved by bin] — same
-//                        as perDimHistData[0] (dim=0, depth=0, numPartitions=1)
-//   *_approx_iter2.bin : N float32 values = per-doc cursor after iter=2 apply
-//
-// JSON formats:
-//   *_bestsplit_d0_iter2.json : {"feat": N, "bin": N, "gain": F}
-//   *_leafvalues_iter2.json   : [{"leaf": N, "leaf_value": F}, ...]
-//
-// DEC-012 note: diagnostic evidence only; zero product-path behavior change.
-// Active only when compile flag is set AND the relevant env var is non-empty.
-// ============================================================================
-#ifdef L3_ITER2_DUMP
-#ifndef COSINE_RESIDUAL_INSTRUMENT
-#  include <filesystem>
-#endif
-
-struct TL3Iter2DumpState {
-    std::string gradDir;    // from CATBOOST_MLX_DUMP_ITER2_GRAD
-    std::string histDir;    // from CATBOOST_MLX_DUMP_ITER2_HIST
-    std::string treeDir;    // from CATBOOST_MLX_DUMP_ITER2_TREE
-    std::string leavesDir;  // from CATBOOST_MLX_DUMP_ITER2_LEAVES
-    std::string approxDir;  // from CATBOOST_MLX_DUMP_ITER2_APPROX
-    bool gradDone    = false;
-    bool histDone    = false;
-    bool treeDone    = false;
-    bool leavesDone  = false;
-    bool approxDone  = false;
-};
-
-static TL3Iter2DumpState g_l3Dump;
-
-static void L3InitFromEnv() {
-    auto getEnv = [](const char* name) -> std::string {
-        const char* val = std::getenv(name);
-        return val ? std::string(val) : std::string{};
-    };
-    g_l3Dump.gradDir    = getEnv("CATBOOST_MLX_DUMP_ITER2_GRAD");
-    g_l3Dump.histDir    = getEnv("CATBOOST_MLX_DUMP_ITER2_HIST");
-    g_l3Dump.treeDir    = getEnv("CATBOOST_MLX_DUMP_ITER2_TREE");
-    g_l3Dump.leavesDir  = getEnv("CATBOOST_MLX_DUMP_ITER2_LEAVES");
-    g_l3Dump.approxDir  = getEnv("CATBOOST_MLX_DUMP_ITER2_APPROX");
-}
-
-// Write a contiguous float32 array to a binary file.
-static void L3WriteBin(const std::string& dir, const std::string& filename,
-                       const float* data, size_t count) {
-    std::filesystem::create_directories(dir);
-    std::string path = dir + "/" + filename;
-    FILE* f = fopen(path.c_str(), "wb");
-    if (!f) { fprintf(stderr, "[L3] ERROR: cannot open %s\n", path.c_str()); return; }
-    fwrite(data, sizeof(float), count, f);
-    fclose(f);
-    fprintf(stderr, "[L3] wrote %zu float32 -> %s\n", count, path.c_str());
-}
-#endif  // L3_ITER2_DUMP
-
 namespace mx = mlx::core;
 using ui32 = uint32_t;
 
@@ -666,9 +591,8 @@ TConfig ParseArgs(int argc, char** argv) {
     // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
     // S30-T1-INSTRUMENT: guard bypassed in instrumented builds so the drift can be measured.
     // S30-T3-MEASURE: guard also bypassed in T3-measure builds for G3a post-Kahan parity.
-    // S33-L3-ITER2: guard bypassed in L3_ITER2_DUMP builds so iter=2 stage diff can be measured.
     // The TODO-S29-ST-COSINE-KAHAN marker is preserved for T4a grep gate.
-#if !defined(COSINE_RESIDUAL_INSTRUMENT) && !defined(COSINE_T3_MEASURE) && !defined(L3_ITER2_DUMP)
+#if !defined(COSINE_RESIDUAL_INSTRUMENT) && !defined(COSINE_T3_MEASURE)
     if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
         throw std::invalid_argument(
             "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
@@ -1553,6 +1477,8 @@ mx::array DispatchHistogram(
         true, false
     );
 
+    bool verbose_this_call = false;
+
     auto result = kernel(
         {mx::reshape(compressedData, {-1}), stats, docIndices,
          partOffsets, partSizes,
@@ -1568,11 +1494,12 @@ mx::array DispatchHistogram(
         std::make_tuple(static_cast<int>(256 * maxBlocksPerPart * numFeatureGroups),
                         static_cast<int>(numPartitions), 2),
         std::make_tuple(256, 1, 1),
-        {}, 0.0f, false, mx::Device::gpu
+        {}, 0.0f, verbose_this_call, mx::Device::gpu
     );
 
     histogram = result[0];
     mx::eval(histogram);
+
     return histogram;
 }
 
@@ -3770,10 +3697,6 @@ TTrainResult RunTraining(
 ) {
     TTrainResult result;
 
-#ifdef L3_ITER2_DUMP
-    L3InitFromEnv();
-#endif
-
     // Compute base prediction (boost from average)
     mx::eval(targetsArr);
     const float* targetsPtr = targetsArr.data<float>();
@@ -4219,31 +4142,6 @@ TTrainResult RunTraining(
 #endif
         auto tGradEnd = std::chrono::steady_clock::now();
         result.GradMs += std::chrono::duration<double, std::milli>(tGradEnd - iterStart).count();
-
-#ifdef L3_ITER2_DUMP
-        // S33-L3: S1 GRADIENT dump at iter=1 (0-indexed) = 1-indexed iter=2.
-        // For RMSE: g_i = cursor_i - target_i (f32). h_i = 1.0 (constant).
-        // Since cursor is bit-identical to CPU at this point (FRAME-B graft sanity),
-        // any nonzero Δg here would indicate gradient computation itself diverges.
-        if (iter == 1 && approxDim == 1 && !g_l3Dump.gradDir.empty() && !g_l3Dump.gradDone) {
-            mx::eval(dimGrads[0], dimHess[0]);
-            const float* gPtr = dimGrads[0].data<float>();
-            const float* hPtr = dimHess[0].data<float>();
-            L3WriteBin(g_l3Dump.gradDir, "mlx_grad_iter2.bin", gPtr, trainDocs);
-            L3WriteBin(g_l3Dump.gradDir, "mlx_hess_iter2.bin", hPtr, trainDocs);
-            // Print summary stats to stderr for quick triage.
-            double gMean = 0.0, gAbsMax = 0.0, hMean = 0.0;
-            for (ui32 i = 0; i < trainDocs; ++i) {
-                gMean += gPtr[i];
-                gAbsMax = std::max(gAbsMax, std::fabs(static_cast<double>(gPtr[i])));
-                hMean  += hPtr[i];
-            }
-            gMean /= trainDocs; hMean /= trainDocs;
-            fprintf(stderr, "[L3-S1] iter=1(0idx) grad: mean=%.8f absmax=%.8f  hess: mean=%.8f\n",
-                    gMean, gAbsMax, hMean);
-            g_l3Dump.gradDone = true;
-        }
-#endif  // L3_ITER2_DUMP
 
 #ifdef CATBOOST_MLX_DEBUG_LEAF
         // P2 — gradient stats; P3 — hessian stats (iters 0 and 1)
@@ -4887,52 +4785,6 @@ TTrainResult RunTraining(
                             g_termAudit.records.size());
                 }
 #endif  // COSINE_TERM_AUDIT
-#ifdef L3_ITER2_DUMP
-                // S33-L3: S2 SPLIT dump at iter=1 (0-indexed) depth=0.
-                // Dumps the raw histogram (perDimHistData[0]) and the best split
-                // so we can diff MLX vs CPU histograms and split selections.
-                if (iter == 1 && depth == 0) {
-                    if (!g_l3Dump.histDir.empty() && !g_l3Dump.histDone) {
-                        // perDimHistData[0]: numPartitions * 2 * TotalBinFeatures floats
-                        // At depth=0: numPartitions=1, so size = 2 * TotalBinFeatures
-                        L3WriteBin(g_l3Dump.histDir, "mlx_hist_d0_iter2.bin",
-                                   perDimHistData[0].data(), perDimHistData[0].size());
-                        fprintf(stderr, "[L3-S2] hist: numPartitions=%u TotalBinFeatures=%u size=%zu\n",
-                                numPartitions, packed.TotalBinFeatures, perDimHistData[0].size());
-                        // Also write partition stats: (sumG, sumH) per partition
-                        std::vector<float> partStatsBuf;
-                        partStatsBuf.reserve(numPartitions * 2);
-                        for (ui32 p = 0; p < numPartitions; ++p) {
-                            partStatsBuf.push_back(static_cast<float>(perDimPartStats[0][p].Sum));
-                            partStatsBuf.push_back(static_cast<float>(perDimPartStats[0][p].Weight));
-                        }
-                        L3WriteBin(g_l3Dump.histDir, "mlx_partstats_d0_iter2.bin",
-                                   partStatsBuf.data(), partStatsBuf.size());
-                        g_l3Dump.histDone = true;
-                    }
-                    if (!g_l3Dump.treeDir.empty() && !g_l3Dump.treeDone) {
-                        // Write best split as JSON
-                        std::filesystem::create_directories(g_l3Dump.treeDir);
-                        std::string treePath = g_l3Dump.treeDir + "/mlx_bestsplit_d0_iter2.json";
-                        FILE* tf = fopen(treePath.c_str(), "w");
-                        if (tf) {
-                            if (bestSplit.Defined()) {
-                                fprintf(tf, "{\n  \"feat\": %u,\n  \"bin\": %u,\n"
-                                            "  \"gain\": %.17g,\n  \"defined\": true\n}\n",
-                                        bestSplit.FeatureId, bestSplit.BinId, bestSplit.Gain);
-                                fprintf(stderr, "[L3-S2] bestsplit: feat=%u bin=%u gain=%.8f -> %s\n",
-                                        bestSplit.FeatureId, bestSplit.BinId, bestSplit.Gain,
-                                        treePath.c_str());
-                            } else {
-                                fprintf(tf, "{\"defined\": false}\n");
-                                fprintf(stderr, "[L3-S2] bestsplit: UNDEFINED\n");
-                            }
-                            fclose(tf);
-                        }
-                        g_l3Dump.treeDone = true;
-                    }
-                }
-#endif  // L3_ITER2_DUMP
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -5269,42 +5121,6 @@ TTrainResult RunTraining(
             record.LeafValues.assign(lvPtr, lvPtr + totalFloats);
             result.Trees.push_back(std::move(record));
 
-#ifdef L3_ITER2_DUMP
-            // S33-L3: S3 LEAF dump at iter=1 (0-indexed) = 1-indexed iter=2.
-            // Writes leaf values as JSON (for easy Python comparison) and
-            // the raw float32 partitions array (leaf indices per doc).
-            if (iter == 1 && approxDim == 1 && !g_l3Dump.leavesDir.empty() && !g_l3Dump.leavesDone) {
-                // Leaf values JSON
-                std::filesystem::create_directories(g_l3Dump.leavesDir);
-                std::string leafJsonPath = g_l3Dump.leavesDir + "/mlx_leafvalues_iter2.json";
-                FILE* lf = fopen(leafJsonPath.c_str(), "w");
-                if (lf) {
-                    fprintf(lf, "[\n");
-                    for (ui32 b = 0; b < numLeaves; ++b) {
-                        fprintf(lf, "  {\"leaf\": %u, \"leaf_value\": %.17g}%s\n",
-                                b, static_cast<double>(lvPtr[b]),
-                                (b + 1 < numLeaves) ? "," : "");
-                    }
-                    fprintf(lf, "]\n");
-                    fclose(lf);
-                    fprintf(stderr, "[L3-S3] leaf_values: %u leaves -> %s\n",
-                            numLeaves, leafJsonPath.c_str());
-                }
-                // Leaf index per doc (partitions array) as binary uint32
-                mx::eval(partitions);
-                const uint32_t* pPtr2 = partitions.data<uint32_t>();
-                std::filesystem::create_directories(g_l3Dump.leavesDir);
-                std::string partPath = g_l3Dump.leavesDir + "/mlx_partitions_iter2.bin";
-                FILE* pf = fopen(partPath.c_str(), "wb");
-                if (pf) {
-                    fwrite(pPtr2, sizeof(uint32_t), trainDocs, pf);
-                    fclose(pf);
-                    fprintf(stderr, "[L3-S3] partitions: %u docs -> %s\n",
-                            trainDocs, partPath.c_str());
-                }
-                g_l3Dump.leavesDone = true;
-            }
-#endif  // L3_ITER2_DUMP
         }
 
         auto tLeafEnd = std::chrono::steady_clock::now();
@@ -5324,25 +5140,6 @@ TTrainResult RunTraining(
             cursor = mx::add(mx::reshape(cursor, {static_cast<int>(trainDocs)}), docLeafValues);
         }
         mx::eval(cursor);
-
-#ifdef L3_ITER2_DUMP
-        // S33-L3: S4 APPROX dump at iter=1 (0-indexed) = 1-indexed iter=2.
-        // Dumps per-doc cursor (accumulated predictions) after applying the second tree.
-        if (iter == 1 && approxDim == 1 && !g_l3Dump.approxDir.empty() && !g_l3Dump.approxDone) {
-            const float* cPtr = cursor.data<float>();
-            L3WriteBin(g_l3Dump.approxDir, "mlx_approx_iter2.bin", cPtr, trainDocs);
-            // Print RMSE-like summary for quick triage
-            double cMean = 0.0, cAbsMax = 0.0;
-            for (ui32 i = 0; i < trainDocs; ++i) {
-                cMean   += cPtr[i];
-                cAbsMax = std::max(cAbsMax, std::fabs(static_cast<double>(cPtr[i])));
-            }
-            cMean /= trainDocs;
-            fprintf(stderr, "[L3-S4] iter=1(0idx) cursor: mean=%.8f absmax=%.8f\n",
-                    cMean, cAbsMax);
-            g_l3Dump.approxDone = true;
-        }
-#endif  // L3_ITER2_DUMP
 
 #ifdef COSINE_RESIDUAL_INSTRUMENT
         // S30-T1: approx-update residual — double-shadow of cursor += docLeafValues (approxDim==1)

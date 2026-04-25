@@ -1,16 +1,16 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD for iter≥2 runaway divergence; entry = #119 L0-CONFIG).
+> Last header refresh: 2026-04-24 (Sprint 33 CLOSED — DEC-036 PARTIAL-CLOSED; DEC-041 OPEN; all L0-L4 tasks complete; S34 entry = DEC-041 quantization redesign decision).
 
 ## Current state (2026-04-24)
 
-- **Active branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
-- **Base**: master `17451f4780` (S30 merge commit). S31/S32 carried in-branch.
+- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 CLOSED; pending commit/PR).
+- **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch.
 - **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
-- **Open PRs**: none. S28/S29/S30 merged. S31/S32 carried in-branch.
-- **Active DEC**: **DEC-036 OPEN** (reframed: iter≥2 runaway divergence, ~9%/iter, 12× super-amplification); **DEC-040 OPEN** (S33 L0-L4 SCAFFOLD); DEC-037/038/039 CLOSED.
+- **Open PRs**: none. S28/S29/S30 merged. S31/S32/S33 carried in-branch pending PR.
+- **Active DEC**: **DEC-036 PARTIAL-CLOSED** (mechanism explained: static vs dynamic quantization); **DEC-040 CLOSED** (L0-L4 scaffold complete); **DEC-041 OPEN** (quantization redesign decision, S34 scope); DEC-037/038/039 CLOSED.
 
 ## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
 
@@ -25,7 +25,7 @@
 - [x] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119. **COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (seeds 42/43/44) — statistically identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C (Config/RNG) fully closed. Proceed to #121 L2-GRAFT. Verdict: `docs/sprint33/l1-determinism/verdict.md`.**
 - [x] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B. **COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% vs ungrafted 52.643% (ratio 0.974). Graft had zero effect — per-iter persistent bug confirmed. Frame A falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`. Proceed to #122 L3-ITER2.**
 - [x] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). **COMPLETED 2026-04-24. Class: SPLIT. S1-GRADIENT bit-identical; S2-SPLIT divergent (CPU feat=0,bin=3 vs MLX feat=0,bin=64). S3/S4 cascade. Histogram anomaly: hist grad sum=-739 vs expected +0.23 (iter=2 grads correct; histogram kernel receives stale data). Suspected root: csv_train.cpp:4534 statsK construction. Verdict: `docs/sprint33/l3-iter2/verdict.md`. Data: `docs/sprint33/l3-iter2/data/`. Proceed to #123 L4-FIX.**
-- [ ] **#123 S33-L4-FIX** — Implement fix; G4a iter=1 ≤0.1%, G4b iter=50 ≤2%, G4c v5 ULP=0, G4d 18-config L2 [0.98, 1.02], G4e DW sanity. Closes DEC-036. Blocked by #122.
+- [x] **#123 S33-L4-FIX** — COMPLETED 2026-04-24. L3 statsK hypothesis FALSIFIED. True root cause: static 127-border grid (csv_train.cpp) vs dynamic border accumulation (CatBoost CPU). G4a N/A, G4b BLOCKED (DEC-041), G4c PASS, G4d PASS, G4e PASS. L4 instrumentation removed (DEC-012 atomic commit). DEC-036 PARTIAL-CLOSED. DEC-041 OPENED. Verdict: `docs/sprint33/l4-fix/verdict.md`.
 
 ### Carry-forwards (still pending)
 

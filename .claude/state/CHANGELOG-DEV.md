@@ -2,6 +2,67 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-24 — Sprint 33 CLOSED (DEC-036 PARTIAL-CLOSED; DEC-041 OPENED)
+
+Branch: `mlx/sprint-33-iter2-scaffold`, base S32 tip `9fcc9827d9`.
+Kernel sources unchanged — v5 `784f82a891`, md5 `9edaef45b99b9db3e2717da93800e76f`.
+
+### What shipped
+
+**L4 instrumentation removal**: `#ifdef L3_ITER2_DUMP` diagnostic block removed from
+`catboost/mlx/tests/csv_train.cpp`. All 13 guarded sites removed: global struct, env-var
+init, L3WriteBin helper, S1-GRADIENT dump, L4-DIAG BEFORE/AFTER CONCAT, L4-DEEP dispatch
+probe, L4-DEEP2 perDimHistData probe, S2-SPLIT dump, S3-LEAF dump, S4-APPROX dump, the
+force-eval on `dimGrads[k]` at histogram build time, and the ST+Cosine guard bypass.
+One atomic commit per DEC-012.
+
+**DEC-041** opened in `docs/decisions.md`: static vs dynamic feature quantization in
+csv_train.cpp. Three options documented; Option 3 (accept divergence in harness) recommended.
+
+**Verdict + sprint close docs**:
+- `docs/sprint33/l4-fix/verdict.md` — L4 full analysis + L3 hypothesis correction
+- `docs/sprint33/sprint-close.md` — sprint close record
+
+### DEC-036 status: PARTIAL-CLOSED
+
+Root cause fully explained: csv_train.cpp static 127-border grid vs CatBoost dynamic
+border accumulation. On 20-feature dataset with 18 noise features, MLX evaluates
+2540 bin-features per node vs CatBoost's 166. Each tree wastes depth on noise,
+compounding to 52.6% RMSE drift at 50 iterations.
+
+The L3 hypothesis (stale `statsK` via lazy-eval alias) is **falsified**. Evidence:
+- `mx::eval()` + readback confirmed statsK carries correct iter-2 gradients (sum=0.0114,
+  max_diff vs CPU = 1.5e-8, bit-near-identical).
+- Histogram total of -738.99 is the CORRECT value (sum of non-bin-0-doc gradients
+  across 20 features; bin-0 docs have large positive gradients that the Metal writeback
+  loop legitimately excludes from the suffix sum).
+- CPU "bin=3" and MLX "bin=64" are both splits at border_value ≈ 0.014 (median of
+  X[:,0]). Different indices, same physical split value.
+
+The drift remains at 52.6% pending DEC-041.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| G4a iter=1 ratio ≤ 1.001 | N/A (not the divergence site) |
+| G4b iter=50 drift ≤ 2%   | BLOCKED (requires DEC-041)   |
+| G4c v5 ULP=0              | PASS (kernel unchanged)      |
+| G4d 18-config L2 parity   | PASS (no logic changes)      |
+| G4e DW sanity             | PASS (no DW changes)         |
+
+### L0-L4 chain outcome
+
+| Layer | Class       | Finding                                        |
+|-------|-------------|------------------------------------------------|
+| L0    | NO-DIFF     | Config fields identical CPU vs MLX             |
+| L1    | FALSIFIED   | Drift 52.643% across seeds 42/43/44 = seed-independent |
+| L2    | FRAME-B     | Graft ratio 0.974; per-iter persistent confirmed |
+| L3    | SPLIT       | S1-grad bit-identical; S2-split divergent      |
+| L4    | QUANTIZATION | Static 127-border grid vs dynamic border accumulation |
+
+---
+
 ## 2026-04-24 — Sprint 32 CLOSED (DEC-038/DEC-039 shipped; DEC-036 reframed for S33)
 
 Branch: `mlx/sprint-32-cosine-gain-term-audit`, base S31 tip `9b3a5238a7`, tip `3e472ac49f`.

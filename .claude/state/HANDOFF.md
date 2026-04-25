@@ -1,21 +1,17 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 33 OPEN — DEC-040 L0-L4 SCAFFOLD; #119 L0-CONFIG COMPLETE [NO-DIFF]; #120 L1-DETERMINISM COMPLETE [FALSIFIED, 52.643%]; #121 L2-GRAFT COMPLETE [FRAME-B, 51.291%]; #122 L3-ITER2 COMPLETE [SPLIT class]; entry = task #123 L4-FIX)
+> Last updated: 2026-04-24 (Sprint 33 CLOSED — DEC-036 PARTIAL-CLOSED; DEC-041 OPEN; L4 instrumentation removed; quantization divergence mechanism confirmed)
 
 ## Current state
 
-- **Active sprint**: **S33** on branch `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
-- **Active entry point**: task **#123 S33-L4-FIX** — owner not yet claimed. L3 → SPLIT class; L4 targets `csv_train.cpp:4534` statsK construction in DispatchHistogram call — histogram kernel receives stale gradient data at iter>=2. S1-GRADIENT bit-identical; divergence introduced in S2 histogram build. Fix must ensure `dimGrads[k]` is fully materialized/graph-isolated before embedding in statsK for the Metal kernel call.
-- **#119 S33-L0-CONFIG**: COMPLETED 2026-04-24. Overall class: NO-DIFF. Frame C-config FALSIFIED. L0-PASS. Commit: see S33-L0-CONFIG commit SHA. Verdict: `docs/sprint33/l0-config/verdict.md`.
-- **#120 S33-L1-DETERMINISM**: COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (3 seeds) — identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C fully closed. No K6 fire. Verdict: `docs/sprint33/l1-determinism/verdict.md`.
-- **#121 S33-L2-GRAFT**: COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% (ratio 0.974 vs ungrafted 52.643%). Graft of CPU iter=1 predictions had zero effect — per-iter persistent bug confirmed. Frame A (trajectory cascade) falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`.
-- **#122 S33-L3-ITER2**: COMPLETED 2026-04-24. Class: SPLIT. S1-GRADIENT bit-identical (0.000e+00 diff); S2-SPLIT divergent (CPU feat=0,bin=3 vs MLX feat=0,bin=64); S3/S4 cascade from S2. Histogram anomaly: hist grad sum=-739 (expected +0.23 = 20 feats * iter2_grad_sum 0.011). Histogram kernel receiving stale gradient data at iter>=2. Suspected root: `csv_train.cpp:4534` (statsK construction). Verdict: `docs/sprint33/l3-iter2/verdict.md`.
-- **L0 → L1 → L2 → L3 → L4** sequenced via blockedBy. Hard rule: any HARD-DIFF at L0 → re-config and remeasure drift before L1.
-- **Kickoff DEC**: DEC-040 (L0-L4 SCAFFOLD per ultrathink reasoning; three-frame hypothesis ranking; 12× super-amplification rationale).
+- **Active sprint**: **S33 CLOSED** on branch `mlx/sprint-33-iter2-scaffold`. All 5 tasks complete. Pending commit + PR.
+- **S33 summary**: L0→L1→L2→L3→L4 scaffold complete. DEC-036 mechanism fully explained: csv_train.cpp static 127-border quantization vs CatBoost CPU dynamic border accumulation. L3 statsK hypothesis FALSIFIED. L4 instrumentation removed (DEC-012). DEC-041 opened for redesign decision. DEC-040 CLOSED.
+- **#123 S33-L4-FIX**: COMPLETED 2026-04-24. L3 statsK lazy-eval hypothesis FALSIFIED. True root = static vs dynamic quantization (DEC-041). G4a N/A, G4b BLOCKED, G4c/G4d/G4e PASS. Verdict: `docs/sprint33/l4-fix/verdict.md`.
+- **S33 entry point for S34**: DEC-041 quantization redesign decision. Option 3 (accept harness divergence) recommended; OR gate #93/#94 via Python-path quality test. Ramos decides.
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
 - **S31 status**: CLOSED jointly with S32. All S31 quality gates subsumed into S32 close.
-- **Campaign**: Post-Verstappen correctness. DEC-036 (ST+Cosine structural divergence) OPEN. Mechanism reframed to iter≥2 runaway divergence (~9%/iter; 70x amplification from 0.75% iter=1 residual). S33 targets L0-L4 scaffold.
-- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources byte-identical across all S31+S32 commits.
+- **Campaign**: Post-Verstappen correctness. DEC-036 PARTIAL-CLOSED (mechanism explained; drift 52.6% remains pending DEC-041). DEC-032 still PARTIALLY CLOSED pending guard removal (#93/#94).
+- **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical across all S31+S32+S33 commits.
 - **Open PRs**: none.
 - **Known bugs**:
     - BUG-T2-001 RESOLVED (`784f82a891`).
@@ -23,9 +19,10 @@
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
-    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guarded at Python API + C++ nanobind + CLI (SA-H1 closed S29). Pending DEC-036 closure.
+    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guarded at Python API + C++ nanobind + CLI (SA-H1 closed S29). Pending DEC-036/DEC-041 closure for guard removal.
     - **S29-DEC-034 RESOLVED** (outcome A, `64a8d9076b`): LG+Cosine shares float32 joint-denominator compounding with ST+Cosine. Single Kahan fix addresses both.
-    - **DEC-036 OPEN**: ST+Cosine 52.6% drift at iter=50 (iter=1 residual 0.75%). Mechanism = iter≥2 runaway divergence. S33 scope.
+    - **DEC-036 PARTIAL-CLOSED**: ST+Cosine 52.6% drift mechanism explained (static vs dynamic quantization). Drift remains pending DEC-041.
+    - **DEC-041 OPEN**: csv_train.cpp static 127-border quantization vs CatBoost dynamic border accumulation. Three options; Option 3 (accept harness divergence) recommended. S34 scope.
     - **Latent P11**: hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967`. Fires under Logloss/Poisson/Tweedie/Multiclass. Not blocking RMSE path.
 
 ## Sprint 29 — DEC-032 Closeout + LG Mechanism Spike (CLOSED 2026-04-23)
@@ -161,23 +158,21 @@ All S31 deliverables subsumed. T3b G1 PASS (GAIN-FORMULA localized). T3-MEASURE,
 
 ---
 
-## Entry point for S33
+## Entry point for S34
 
-S33 is NOT yet opened. The S33 kickoff agent (orchestrator-driven) should:
+S33 CLOSED. S34 entry depends on a Ramos decision on DEC-041:
 
-1. Cut a new branch `mlx/sprint-33-<topic>` from S32 tip on `mlx/sprint-32-cosine-gain-term-audit` or from master after PR merge.
-2. Author **DEC-040** as the structural divergence investigation DEC for S33.
-3. Execute the L0-L4 scaffold:
-   - **L0** — Config audit: bootstrap_type, bagging_temperature, RNG seeding, l2_leaf_reg scaling on both sides.
-   - **L1** — Determinism shift: iter=1 RMSE across 5 seeds; confirm 0.75% is stable and seed-independent.
-   - **L2** — Graft experiment: replace MLX iter=1 model with CPU iter=1; let MLX run iter=2 onward. If drift collapses → bug in leaf estimation or approx update.
-   - **L3** — Iter=2 instrumentation: dump per-partition splits at iter=2 after one iteration of shared history.
-   - **L4** — Fix + formal gates.
-4. Gates for DEC-040: G0 config audit complete, G1 L1 drift confirmed, G2 graft experiment verdict, G3 mechanism localized at iter=2, G4 drift ≤ 2%.
+**Option 3 (recommended)**: Accept csv_train.cpp quantization divergence as a known
+harness limitation. S34 scope = guard removal (#93/#94) via Python-path quality test
+(Python API uses CatBoost's own quantization, which is correct). Draft a DEC-042 for
+the Python-path guard-removal gate.
 
-**Carry-forwards from S31/S32** (still open):
-- S31-T4a (ST-guard removal): gated on DEC-040 G4.
-- S31-T4b (LG-guard removal): gated on DEC-040 G4.
+**Option 1 or 2**: Implement dynamic border accumulation or target-correlation filter
+in csv_train.cpp. S34 scope = DEC-041 implementation + G4b gate (drift ≤ 2%).
+
+**Carry-forwards from S31/S32/S33** (still open):
+- S31-T4a (ST-guard removal): gated on DEC-036 full closure or Python-path gate.
+- S31-T4b (LG-guard removal): gated on same.
 - S31-T-LATENT-P11: low priority; document when convenient.
 - S31-T-CLEANUP: SA-I2 try/catch + S29 CR nits.
 
