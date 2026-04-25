@@ -1,0 +1,44 @@
+==============================================================================
+S33-PROBE-C Stage 1 — border-VALUE byte-match across MLX vs CatBoost CPU
+==============================================================================
+
+Anchor: N=50000, ST/Cosine/RMSE, depth=6, bins=128, seed=42, l2=3, lr=0.03
+Sources:
+  MLX  = csv_train.cpp QuantizeFeatures (GreedyLogSum, cap 127 per DEC-039)
+  CPU  = CatBoost Pool.quantize(border_count=128) [Probe-A artifact]
+
+Per-feature counts:
+  feat   mlx   cpu  Δ
+     0   127   128  -1  ← MISMATCH
+     1   127   128  -1  ← MISMATCH
+     2   127   128  -1  ← MISMATCH
+     3   127   128  -1  ← MISMATCH
+     4   127   128  -1  ← MISMATCH
+     5   127   128  -1  ← MISMATCH
+     6   127   128  -1  ← MISMATCH
+     7   127   128  -1  ← MISMATCH
+     8   127   128  -1  ← MISMATCH
+     9   127   128  -1  ← MISMATCH
+    10   127   128  -1  ← MISMATCH
+    11   127   128  -1  ← MISMATCH
+    12   127   128  -1  ← MISMATCH
+    13   127   128  -1  ← MISMATCH
+    14   127   128  -1  ← MISMATCH
+    15   127   128  -1  ← MISMATCH
+    16   127   128  -1  ← MISMATCH
+    17   127   128  -1  ← MISMATCH
+    18   127   128  -1  ← MISMATCH
+    19   127   128  -1  ← MISMATCH
+  total  2540   2560  -20
+
+Per-(feature, idx) value comparison (overlap range):
+  pairs compared : 2540
+  byte-identical : 9  (0.35%)
+  ≤ 1 ulp        : 120  (4.72%)
+  max abs diff   : 2.933152e-01  at (7, 126, 2.43406606, 2.140750885)
+  max ulp diff   : 2294458628  at (8, 64, 0.0196119621, -0.001195362769)
+
+VERDICT: borders DIVERGE.
+  → max abs=2.933152e-01, max ulp=2294458628.
+  → Stage 1 LOCATES iter≥2 mechanism: divergent quantization grid.
+  → Open: which side's borders are 'right' (in CatBoost-parity sense)?

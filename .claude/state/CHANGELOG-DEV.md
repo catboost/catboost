@@ -2,6 +2,230 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-25 — S33-L4-FIX Commits 3a+3b: guard removal — DEC-042 FULLY CLOSED
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+**Commit 3a** (`e1d72d64e8`) — S28-ST-GUARD removed:
+- Removed S28-ST-GUARD from train_api.cpp, csv_train.cpp, core.py
+- Inverted ST tests in tests/test_cli_guards.py: rejection → acceptance
+- Python path sanity: iter=50 RMSE 0.19367887, ratio 1.000271 (G4b match)
+- 4/4 guard tests PASS
+
+**Commit 3b** (`d599e5b033`) — S28-LG-GUARD removed:
+- LG+Cosine drift measurement (csv_train_g4_cosine binary, -DCOSINE_T3_MEASURE):
+  - iter=1:  MLX 0.57729800 / CPU 0.57729795 / ratio 1.000000 / drift 0.0000%
+  - iter=50: MLX 0.17027600 / CPU 0.16962773 / ratio 1.003822 / drift 0.382%
+  - Threshold 2%: PASS
+- Removed S28-LG-GUARD from train_api.cpp, csv_train.cpp, core.py
+- Inverted LG tests in tests/test_cli_guards.py: all 4 tests now positive acceptance tests
+- 4/4 guard tests PASS
+
+DEC-042 FULLY CLOSED. DEC-032 CLOSED. #93 + #94 COMPLETED. S33 fully closed.
+All three grow policies (ST, DW, LG) now support score_function='Cosine'.
+
+---
+
+## 2026-04-25 — S33-L4-FIX Commit 2: DEC-042 four-gate validation PASS — DEC-036 RESOLVED
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+Validated commits `10c72b4e96` (Cosine per-side mask) + `e98c6725cd` (L2 per-side mask)
+against all five DEC-042 formal gates.
+
+Gate results:
+- G4a (iter=1 ST+Cosine drift <=0.1%): PASS — 0.0001% (ratio 0.999999)
+- G4b (iter=50 ST+Cosine drift <=2%): PASS — 0.027% (ratio 1.000271), down from 52.6%
+- G4c (v5 kernel ULP=0): PASS — BENCH_FINAL_LOSS=0.48231599 = AN-009
+- G4d (18-config L2 parity [0.98,1.02]): PASS — 18/18, ratios [0.9991, 1.0008]
+- G4e (DW+Cosine sanity S28 anchor): PASS — 5/5 seeds, deltas from S28 in [-0.006, +0.005]
+
+DEC-036 RESOLVED. DEC-042 RESOLVED. Guard removal (#93/#94, Commit 3) is unblocked.
+Gate report: `docs/sprint33/commit2-gates/REPORT.md`.
+Data: `docs/sprint33/commit2-gates/data/` (g4a_g4b_results.json, g4c_results.json,
+g4d_l2_parity.csv, g4d_results.json, g4e_results.json).
+
+---
+
+## 2026-04-25 — S33-PROBE-E (#126): partition-state class CONFIRMED — DEC-042 opened
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+PROBE-E adds per-(feat, bin, partition) capture at iter=2 d=0..5 inside
+`FindBestSplit` under a new compile-time gate `PROBE_E_INSTRUMENT`. Records
+both MLX's actual contribution (skip-when-degenerate rule) AND CPU's
+counterfactual (per-side mask formula from `short_vector_ops.h:155+` SSE2
+`UpdateScoreBinKernelPlain`). All instrumentation gated under
+`#ifdef PROBE_E_INSTRUMENT`; production builds compile to bit-identical
+machine code.
+
+Mechanism fully specified at `csv_train.cpp:1980`:
+
+```cpp
+if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+```
+
+The `continue` skips the entire partition's contribution to both `cosNum`
+and `cosDen`. CPU's reference instead masks the empty side's average to 0
+but always adds the non-empty side's `sumX² / (wX + λ)` to the joint sum.
+
+Per-partition smoking gun at iter=2 d=2 on the 50k anchor:
+- (feat=0, bin=21) [CPU's pick, signal × constrained]: 4 partitions, 2
+  degenerate (wL=0). MLX cosN=6691.79 → gain 81.83. CPU cosN=11727.93 →
+  gain 108.32. Δ=+26.49 gain units, exactly enough to flip d=2 pick from
+  feat=10 (noise, 101.79) to feat=0 (signal).
+- (feat=10, bin=79) [MLX's pick, noise]: 4 non-degenerate partitions, MLX
+  and CPU contribute identically; both gain = 101.79.
+
+Top-5 by CPU gain at d=2 is 5/5 feat=0 bins 104–108, all skips=2/4. Skip
+rate grows monotonically with depth: 0% / 2.5% / 5.0% / 7.6% / 10.6% /
+14.6% at d=0..5. All 127 non-trivial bins on feat=0 at d=2 have skips=2
+(d=0 split on feat=0 fixed every doc's feat=0 relationship).
+
+DEC-036 root-caused; DEC-042 opened. S33-L4-FIX (#123) reopened with
+mechanism known. Plan: per-side mask in per-partition update (Commit 1),
+parity validation (Commit 2), guard removal contingent on parity (Commit 3).
+
+Side-finding: re-running PROBE-D from current source matches committed
+PROBE-D within float-summation noise (max delta < 1.5e-3 abs cosNum,
+< 4e-3 abs gain). The earlier mismatch report was a corrupted run with
+wrong invocation; canonical regen reproduces yesterday's values cleanly.
+
+### Files
+
+- `catboost/mlx/tests/csv_train.cpp` — PROBE_E_INSTRUMENT block (struct
+  field, helper writer, capture inside per-partition loop, arm-clear,
+  flush). 161 added lines, all under `#ifdef PROBE_E_INSTRUMENT`. Zero
+  deletions.
+- `docs/sprint33/probe-e/FINDING.md` — narrative
+- `docs/sprint33/probe-e/scripts/build_probe_e.sh` — build script
+- `docs/sprint33/probe-e/data/cos_leaf_seed42_depth{0..5}.csv` — leaf
+  records (2540 / 5080 / 10160 / 20320 / 40640 / 81280 rows)
+- `docs/sprint33/probe-e/data/cos_accum_seed42_depth{0..5}.csv` —
+  PROBE-D-style per-bin shadow regenerated for cross-validation
+- `.claude/state/{HANDOFF,DECISIONS,TODOS,CHANGELOG-DEV}.md` — DEC-042
+  added; #123 reopened; #126 marked completed.
+
+## 2026-04-24 — Sprint 33 CLOSED (DEC-036 PARTIAL-CLOSED; DEC-041 OPENED)
+
+Branch: `mlx/sprint-33-iter2-scaffold`, base S32 tip `9fcc9827d9`.
+Kernel sources unchanged — v5 `784f82a891`, md5 `9edaef45b99b9db3e2717da93800e76f`.
+
+### What shipped
+
+**L4 instrumentation removal**: `#ifdef L3_ITER2_DUMP` diagnostic block removed from
+`catboost/mlx/tests/csv_train.cpp`. All 13 guarded sites removed: global struct, env-var
+init, L3WriteBin helper, S1-GRADIENT dump, L4-DIAG BEFORE/AFTER CONCAT, L4-DEEP dispatch
+probe, L4-DEEP2 perDimHistData probe, S2-SPLIT dump, S3-LEAF dump, S4-APPROX dump, the
+force-eval on `dimGrads[k]` at histogram build time, and the ST+Cosine guard bypass.
+One atomic commit per DEC-012.
+
+**DEC-041** opened in `docs/decisions.md`: static vs dynamic feature quantization in
+csv_train.cpp. Three options documented; Option 3 (accept divergence in harness) recommended.
+
+**Verdict + sprint close docs**:
+- `docs/sprint33/l4-fix/verdict.md` — L4 full analysis + L3 hypothesis correction
+- `docs/sprint33/sprint-close.md` — sprint close record
+
+### DEC-036 status: PARTIAL-CLOSED
+
+Root cause fully explained: csv_train.cpp static 127-border grid vs CatBoost dynamic
+border accumulation. On 20-feature dataset with 18 noise features, MLX evaluates
+2540 bin-features per node vs CatBoost's 166. Each tree wastes depth on noise,
+compounding to 52.6% RMSE drift at 50 iterations.
+
+The L3 hypothesis (stale `statsK` via lazy-eval alias) is **falsified**. Evidence:
+- `mx::eval()` + readback confirmed statsK carries correct iter-2 gradients (sum=0.0114,
+  max_diff vs CPU = 1.5e-8, bit-near-identical).
+- Histogram total of -738.99 is the CORRECT value (sum of non-bin-0-doc gradients
+  across 20 features; bin-0 docs have large positive gradients that the Metal writeback
+  loop legitimately excludes from the suffix sum).
+- CPU "bin=3" and MLX "bin=64" are both splits at border_value ≈ 0.014 (median of
+  X[:,0]). Different indices, same physical split value.
+
+The drift remains at 52.6% pending DEC-041.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| G4a iter=1 ratio ≤ 1.001 | N/A (not the divergence site) |
+| G4b iter=50 drift ≤ 2%   | BLOCKED (requires DEC-041)   |
+| G4c v5 ULP=0              | PASS (kernel unchanged)      |
+| G4d 18-config L2 parity   | PASS (no logic changes)      |
+| G4e DW sanity             | PASS (no DW changes)         |
+
+### L0-L4 chain outcome
+
+| Layer | Class       | Finding                                        |
+|-------|-------------|------------------------------------------------|
+| L0    | NO-DIFF     | Config fields identical CPU vs MLX             |
+| L1    | FALSIFIED   | Drift 52.643% across seeds 42/43/44 = seed-independent |
+| L2    | FRAME-B     | Graft ratio 0.974; per-iter persistent confirmed |
+| L3    | SPLIT       | S1-grad bit-identical; S2-split divergent      |
+| L4    | QUANTIZATION | Static 127-border grid vs dynamic border accumulation |
+
+---
+
+## 2026-04-24 — Sprint 32 CLOSED (DEC-038/DEC-039 shipped; DEC-036 reframed for S33)
+
+Branch: `mlx/sprint-32-cosine-gain-term-audit`, base S31 tip `9b3a5238a7`, tip `3e472ac49f`.
+7 commits on branch. No kernel sources touched (v5 `784f82a891` unchanged).
+
+### What shipped
+
+Three correctness fixes in `catboost/mlx/tests/csv_train.cpp`:
+
+**DEC-038** (`901bc760ac`): `GreedyLogSumBestSplit` was receiving deduplicated values instead
+of all-docs array. CPU's `TFeatureBin` uses `features.Values` (N docs with duplicates);
+`BinEnd - BinStart = document count`. Using unique values changed the score landscape,
+causing ~2-index border grid offset and the 5.4% Cosine gain deficit. Fix: pass `allVals`.
+
+**DEC-039** (`901bc760ac`): Histogram kernel T2_BIN_CAP contract violated at `fold_count=128`.
+`bin_value=128` at `posInWord=0` features sets bit 31 (= VALID_BIT), which is stripped by
+`p_clean = p_s & 0x7FFFFFFF`, aliasing 391 docs to bin_value=0 and dropping them from the
+histogram. Fix: `maxBordersCount = std::min(maxBins, 127u)`. Contract was already documented
+in `kernel_sources.h:38` ("Safe ONLY when every feature's fold count <= 127").
+
+**DEC-037** (S31 co-fix, `746d5090b5`): border count off-by-one + DP algorithm wrong; closed S31.
+
+### Gate results
+
+| Gate | Result |
+|------|--------|
+| G3a — depth=0 gain ratio (3 seeds) | PASS: ratios 1.000000/1.000000/1.000000 (delta < 5e-7) |
+| G3b — iter=50 ST+Cosine drift | FAIL: 52.6% (DEC-036 reframed; target was ≤2%) |
+| G3c — bench_boosting v5 ULP=0 | PASS: 0.48231599 = AN-009 anchor; kernel md5 byte-identical |
+| G3d — 18-config L2 non-regression | PASS: 18/18 cells in [0.98, 1.02] envelope |
+
+### DEC-036 reframe
+
+The "GAIN-FORMULA" framing (T3b ratio 0.946) was a surface symptom of the border bugs.
+With borders fixed, depth=0 gain ratio is 1.000000. But iter=50 drift is 52.6% (unchanged
+from 53.30% pre-fix). The 0.75% iter=1 residual compounds to 52.6% at iter=50 at ~9%/iter
+— ~70x amplification (geometric 1.0075^50 = 1.45; observed 1.526). Runaway divergence.
+S33 will audit this with L0-L4 scaffold: config → determinism → graft experiment → iter=2
+instrumentation → fix. DEC-040 opens at S33 kickoff.
+
+### DEC-012 atomicity violations (2 this sprint)
+
+1. DEC-037 bundled with T3b verdict doc in `746d5090b5` (S31).
+2. DEC-038 + DEC-039 bundled in `901bc760ac` (S32 T3).
+
+S33 hard rule: "if you find a second structural issue while fixing the first, STOP and
+commit the first atomically before continuing the investigation."
+
+### Key non-obvious finding
+
+The 52.6% drift at iter=50 from a 0.75% iter=1 residual implies 70x amplification — not
+geometric compounding. This is trajectory lock-in, not a precision floor. The DW/ST gap
+(6.33% vs 52.6%) remains unexplained and may be diagnostic.
+
+---
+
 ## 2026-04-24 — Sprint 30 CLOSING (precision fix class exhausted; DEC-036 opens structural investigation)
 
 Branch: `mlx/sprint-30-cosine-kahan`, base `4d855d47db`, tip `187a5e661f`. S30 executed full
@@ -73,6 +297,134 @@ Spawn @ml-engineer (or @research-scientist) on **S31-T1-ITER1-AUDIT**. Build ite
 2. **Measurement-layer gates can mask trajectory-layer failures**: G2 passed at 12.5× residual reduction but G3a did not move. Gate specs must test the lever's actual mechanism against the target outcome, not a measurement-layer proxy — this is the DEC-028 "kernel-ULP=0 ≠ full-path parity" trap in a different costume.
 3. **Verification audits must audit their own methodology**: V2 discovered D2's L3/L4 rulings were biased (`gain_f32` and `gain_f64` were both derived from the same `double`). Always verify that the measurement actually measures the claimed quantity.
 4. **Two falsified predictions in a row (D4 L3/L4, V6 L1) means stop guessing precision and measure structure directly** — the S31 iter=1 audit.
+
+## 2026-04-24 — Sprint 31 T2 COMPLETE (G2b FAIL — border divergence ruled out; T3b T1-AUDIT active)
+
+Branch: `mlx/sprint-31-iter1-audit` (continuing). Tip `dada4f7b26`. 5 commits this session
+(`768ee50abd..dada4f7b26`). T2-PORT-GREEDYLOGSUM fully executed and closed. T3b T1-AUDIT
+fallback activated.
+
+### Gate results
+
+| Gate | Criterion | Result |
+|------|-----------|--------|
+| G2a | Borders byte-match CPU CatBoost GreedyLogSum | PASS (qualified) — 84/100 exact; 16 equal-score tie-breaks |
+| G2b | ST+Cosine aggregate drift ≤ 2% at S28 anchor | **FAIL** — 53.03% (baseline 53.30%; delta 0.27pp = noise) |
+| G2c | bench_boosting v5 ULP=0 preserved | PASS — AN-009 anchor `0.48231599`; kernel sources diff = 0 |
+| G2d | 18-config L2 parity non-regression | PASS — 18/18 cells in acceptance envelope |
+
+### Commits (this session)
+
+| SHA | Description |
+|-----|-------------|
+| `768ee50abd` | T2 port GreedyLogSum into QuantizeFeatures |
+| `627b968983` | T2 G2a probe — borders byte-match infrastructure |
+| `bfb20d3241` | T2 P5 fix — ScaleL2Reg at all three split/leaf sites |
+| `661ef0bc2c` | T2 gate probes — G2b ST+Cosine drift + G2d L2 parity |
+| `dada4f7b26` | T2 verdict — G2b FAIL; T3b T1-AUDIT fallback triggered |
+
+### What ships
+
+- **GreedyLogSum border-selection port** — `csv_train.cpp:816–889` now uses CPU-equivalent
+  algorithm. G2a qualified-pass: algorithm is correct; 16/100 tie-breaks differ from pip
+  catboost v1.2.10 but both are valid GreedyLogSum outputs.
+- **P5 ScaleL2Reg fix** — `scaledL2 = L2RegLambda * sumAllWeights / docCount` wired at
+  all three call sites (Lossguide, Depthwise, SymmetricTree FindBest* + l2Arr for leaf Newton).
+  No-op at S28 anchor (uniform weights); load-bearing for non-uniform sample weights.
+- **G2a, G2b, G2d probe harnesses** — `docs/sprint31/t2-port-greedylogsum/`.
+- **Verdict doc** — `docs/sprint31/t2-port-greedylogsum/verdict.md`.
+
+### What does NOT close
+
+- **ST+Cosine 53% drift** — unchanged. Border divergence ruled out as root cause. The only
+  remaining diagnostic path is S31-T3b: instrumented iter=1 side-by-side dump.
+- **SA-H1 Cosine guards** — remain active at all three layers.
+- **T3, T4a, T4b** — all still blocked on T3b.
+
+### Lessons captured
+
+1. **The T1-PRE qualifier pattern works**: pre-announcing that a fix may not close the gap
+   prevents scope creep when the gate fails. The S26-D0 P10 probe (0.06% from borders at
+   L2+RS=0+N=10k) was the correct low-confidence signal that borders were unlikely to be
+   the mechanism at Cosine+ST.
+
+2. **G2b FAIL interpretation**: with 84/100 border byte-matches and G2b only improving
+   0.27pp, the 53% drift does not originate from quantization. Consistent with V6's flat
+   N-scaling (b ≈ 0) — a structural algorithmic difference, not a data-dependent precision floor.
+
+### Next step
+
+**S31-T3b-T1-AUDIT** is now ACTIVE. Owner: @ml-engineer. Instrumented iter=1 dump using
+`COSINE_RESIDUAL_INSTRUMENT` infrastructure already in `csv_train.cpp`. Compare CPU vs MLX
+on parent stats, top-K=5 split candidates, and winning split tuple at every depth level
+of iteration 1. First diverging layer names the mechanism class.
+
+---
+
+## 2026-04-24 — Sprint 31 T3b-T1-AUDIT COMPLETE + DEC-037 border fix
+
+Branch: `mlx/sprint-31-iter1-audit`, base `17451f4780`, commit `746d5090b5`.
+
+### What happened
+
+S31-T3b-T1-AUDIT built the full instrumented iter=1 comparison pipeline:
+
+1. **`build_mlx_audit.sh`** — compiles `csv_train.cpp` with `-DITER1_AUDIT -DCOSINE_T3_MEASURE`
+2. **`run_mlx_audit.py`** — runs MLX binary on canonical S26 data (N=50k, seeds 42/43/44),
+   writes per-layer JSON: parent stats + top-K=5 + winner
+3. **`compare_splits.py`** — diffs CPU (pip catboost) vs MLX JSONs, classifies first divergence
+   per DEC-036 mechanism table
+
+### DEC-037 co-fix (shipped)
+
+Root cause: `QuantizeFeatures` was calling `GreedyLogSumBestSplit` with
+`maxBordersCount = maxBins - 1 = 127`, while CPU CatBoost uses `border_count = 128`.
+
+Investigation path:
+1. Initial fix attempt: changed `maxBins - 1` → `maxBins` but also rewrote to a DP
+   (document-count weighted), which was incorrect. CatBoost's `TGreedyBinarizer` uses the
+   **unweighted** `TFeatureBin` path (count of unique values, not documents).
+2. Reverted to the original greedy priority-queue approach (correct), with only the
+   border count changed to `maxBins`.
+
+**Files changed**: `catboost/mlx/tests/csv_train.cpp` — `GreedyLogSumBestSplit` restored,
+`maxBordersCount = maxBins`.
+
+### G1 PASS verdict
+
+| Criterion | Result |
+|-----------|--------|
+| First diverging layer | depth=0 (seeds 42, 44); depth=2 (seed 43) |
+| Mechanism class | **GAIN-FORMULA** |
+| Gain ratio (MLX/CPU) | ~0.946 (5.4% deficit, consistent all seeds/depths) |
+| DEC-037 border fix | Shipped — 128 borders now match CPU |
+
+The Cosine gain formula in `FindBestSplit` produces values ~5.4% lower than CPU's
+`CosineScoreCalcer`. This shifts the argmax to a different bin. The partition stats
+(sumH) match at depth=0 confirming the histogram inputs are identical — only the
+score computation is wrong.
+
+Verdict doc: `docs/sprint31/t3b-audit/verdict.md`.
+
+### What ships
+
+- **DEC-037 border count fix** — `maxBordersCount = maxBins` (was `maxBins - 1`)
+- **T3b-T1-AUDIT pipeline** — build script, run harness, compare driver, audit data
+- **G1 PASS** — GAIN-FORMULA mechanism class named at depth=0
+
+### What does NOT close
+
+- **ST+Cosine 53% drift** — unchanged. GAIN-FORMULA identified but not yet fixed.
+- **SA-H1 Cosine guards** — remain active.
+- **T3, T4a, T4b** — still blocked.
+
+### Next step (S32)
+
+Instrument `FindBestSplit` to dump `cosNum`, `cosDen`, `wL`, `wR`, `gL`, `gR`
+per partition per bin at depth=0 for seed=42. Compare term-by-term against CPU's
+`CosineScoreCalcer`. Identify the exact expression causing the 5.4% deficit.
+
+---
 
 ## 2026-04-23 — Sprint 29 CLOSED (DEC-032 closeout partial advance; DEC-034 resolved)
 

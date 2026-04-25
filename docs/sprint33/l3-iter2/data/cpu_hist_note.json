@@ -1,0 +1,6 @@
+{
+  "note": "CPU raw histogram not extractable from Python CatBoost API",
+  "root_sumG": 0.01141357421875,
+  "root_sumH": 50000.0,
+  "comparison": "S2 diff uses partstats + bestsplit feat/bin; histogram bin-level diff unavailable on CPU side"
+}

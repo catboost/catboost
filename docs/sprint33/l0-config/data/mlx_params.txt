@@ -1,0 +1,62 @@
+# MLX effective config — anchor invocation
+# Source: TConfig struct in catboost/mlx/tests/csv_train.cpp (csv_train binary)
+# Anchor: N=50000, SymmetricTree, Cosine, RMSE, depth=6, bins=128 (DEC-039 cap: 127 borders), iter=50, seed=42, rs=0
+# Invocation flags used in all prior audit harnesses (e.g. run_g3a.py):
+#   --iterations 50 --depth 6 --lr 0.03 --bins 127 --loss rmse
+#   --grow-policy SymmetricTree --score-function Cosine
+#   --seed 42 --random-strength 0 --bootstrap-type no
+
+# ---- Training control ----
+NumIterations              = 50
+MaxDepth                   = 6
+LearningRate               = 0.03
+RandomSeed                 = 42
+MaxBins                    = 127              # DEC-039 cap: std::min(maxBins=128, 127u) = 127 borders
+L2RegLambda                = 3.0             # scaled by (sumAllWeights/docCount); no-op at uniform weights
+LossType                   = "rmse"
+GrowPolicy                 = "SymmetricTree"
+ScoreFunction              = "Cosine"
+
+# ---- Bootstrap / sampling ----
+BootstrapType              = "no"            # --bootstrap-type no
+BaggingTemperature         = 1.0            # default (unused when BootstrapType="no")
+SubsampleRatio             = 1.0            # default
+ColsampleByTree            = 1.0            # default (rsm=1)
+MvsReg                     = 0.0            # default (unused)
+RandomStrength             = 0.0            # --random-strength 0
+
+# ---- Leaf estimation ----
+# Single Newton step: leafValues = -lr * gSums / (hSums + l2)
+# No multiple iterations; no backtracking / line search.
+# Equivalent to leaf_estimation_method=Newton, leaf_estimation_iterations=1, backtracking=None (single step)
+leaf_estimation_method     = Newton (single step: -lr * gSum / (hSum + l2))
+leaf_estimation_iterations = 1
+leaf_estimation_backtracking = None (not implemented; single Newton step only)
+
+# ---- Quantization ----
+feature_border_type        = "GreedyLogSum"  # hard-coded; DEC-037 fix (greedy unweighted)
+border_count               = 127            # DEC-039 cap applied: std::min(maxBins, 127u)
+nan_mode                   = "min"          # NaN → bin 0 (TConfig.NanMode default)
+
+# ---- Base prediction ----
+boost_from_average         = true           # CalcBasePrediction always computes weighted mean of targets (RMSE)
+
+# ---- Grow policy ----
+MinDataInLeaf              = 1
+MaxLeaves                  = 31             # default (unused for SymmetricTree)
+
+# ---- Fields NOT present in MLX TConfig (no equivalent concept) ----
+boosting_type              = N/A            # no Ordered boosting path; all training is Plain-equivalent
+approx_on_full_history     = N/A            # no fold permutation structure
+fold_permutation_block     = N/A
+fold_len_multiplier        = N/A
+permutation_count          = N/A
+model_shrink_rate          = N/A            # no model shrinkage
+model_shrink_mode          = N/A
+langevin                   = N/A
+diffusion_temperature      = N/A
+sampling_unit              = N/A
+has_time                   = N/A            # no temporal ordering
+ordered                    = N/A
+gpu_cat_features_storage   = N/A
+task_type                  = "MLX"

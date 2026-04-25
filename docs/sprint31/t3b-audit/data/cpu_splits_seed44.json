@@ -1,0 +1,675 @@
+{
+  "seed": 44,
+  "N": 50000,
+  "layers": [
+    {
+      "depth": 0,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -1.1241683296248084e-05,
+          "sumH": 50000.0,
+          "W": 50000.0,
+          "leaf_count": 50000
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 0,
+          "bin_idx": 62,
+          "gain": 89.09794350354154
+        },
+        {
+          "feat_idx": 0,
+          "bin_idx": 63,
+          "gain": 88.99426425708707
+        },
+        {
+          "feat_idx": 0,
+          "bin_idx": 61,
+          "gain": 88.97667547194865
+        },
+        {
+          "feat_idx": 0,
+          "bin_idx": 64,
+          "gain": 88.91254804879085
+        },
+        {
+          "feat_idx": 0,
+          "bin_idx": 60,
+          "gain": 88.87845442958688
+        }
+      ],
+      "winner": {
+        "feat_idx": 0,
+        "bin_idx": 62,
+        "gain": 89.0979435,
+        "bin_value": -0.0281586349
+      }
+    },
+    {
+      "depth": 1,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -9956.578395308492,
+          "sumH": 24218.0,
+          "W": 24218.0,
+          "leaf_count": 24218
+        },
+        {
+          "leaf_idx": 1,
+          "sumG": 9956.578384066808,
+          "sumH": 25782.0,
+          "W": 25782.0,
+          "leaf_count": 25782
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 1,
+          "bin_idx": 67,
+          "gain": 104.10297477164866
+        },
+        {
+          "feat_idx": 1,
+          "bin_idx": 70,
+          "gain": 104.10273052996959
+        },
+        {
+          "feat_idx": 1,
+          "bin_idx": 69,
+          "gain": 104.09358692726346
+        },
+        {
+          "feat_idx": 1,
+          "bin_idx": 66,
+          "gain": 104.07778795552942
+        },
+        {
+          "feat_idx": 1,
+          "bin_idx": 68,
+          "gain": 104.0735533932107
+        }
+      ],
+      "winner": {
+        "feat_idx": 1,
+        "bin_idx": 67,
+        "gain": 104.1029748,
+        "bin_value": 0.05937901884
+      }
+    },
+    {
+      "depth": 2,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -8160.438748891511,
+          "sumH": 12764.0,
+          "W": 12764.0,
+          "leaf_count": 12764
+        },
+        {
+          "leaf_idx": 1,
+          "sumG": 2077.4373466177867,
+          "sumH": 13407.0,
+          "W": 13407.0,
+          "leaf_count": 13407
+        },
+        {
+          "leaf_idx": 2,
+          "sumG": -1796.1396464169811,
+          "sumH": 11454.0,
+          "W": 11454.0,
+          "leaf_count": 11454
+        },
+        {
+          "leaf_idx": 3,
+          "sumG": 7879.141037449022,
+          "sumH": 12375.0,
+          "W": 12375.0,
+          "leaf_count": 12375
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 3,
+          "bin_idx": 11,
+          "gain": 104.1148821446118
+        },
+        {
+          "feat_idx": 3,
+          "bin_idx": 10,
+          "gain": 104.11463744557581
+        },
+        {
+          "feat_idx": 3,
+          "bin_idx": 19,
+          "gain": 104.1137852495955
+        },
+        {
+          "feat_idx": 11,
+          "bin_idx": 69,
+          "gain": 104.1136498839502
+        },
+        {
+          "feat_idx": 18,
+          "bin_idx": 126,
+          "gain": 104.11362504476394
+        }
+      ],
+      "winner": {
+        "feat_idx": 0,
+        "bin_idx": 105,
+        "gain": 111.4542606,
+        "bin_value": 0.9151089191
+      }
+    },
+    {
+      "depth": 3,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -8160.438748891511,
+          "sumH": 12764.0,
+          "W": 12764.0,
+          "leaf_count": 12764
+        },
+        {
+          "leaf_idx": 1,
+          "sumG": -206.685948131636,
+          "sumH": 8774.0,
+          "W": 8774.0,
+          "leaf_count": 8774
+        },
+        {
+          "leaf_idx": 2,
+          "sumG": -1796.1396464169811,
+          "sumH": 11454.0,
+          "W": 11454.0,
+          "leaf_count": 11454
+        },
+        {
+          "leaf_idx": 3,
+          "sumG": 3628.9609700886213,
+          "sumH": 8023.0,
+          "W": 8023.0,
+          "leaf_count": 8023
+        },
+        {
+          "leaf_idx": 4,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 5,
+          "sumG": 2284.1232947494227,
+          "sumH": 4633.0,
+          "W": 4633.0,
+          "leaf_count": 4633
+        },
+        {
+          "leaf_idx": 6,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 7,
+          "sumG": 4250.180067360401,
+          "sumH": 4352.0,
+          "W": 4352.0,
+          "leaf_count": 4352
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 11,
+          "bin_idx": 64,
+          "gain": 111.46362134364199
+        },
+        {
+          "feat_idx": 11,
+          "bin_idx": 69,
+          "gain": 111.46355302717352
+        },
+        {
+          "feat_idx": 11,
+          "bin_idx": 65,
+          "gain": 111.4635411421546
+        },
+        {
+          "feat_idx": 11,
+          "bin_idx": 67,
+          "gain": 111.46340201418917
+        },
+        {
+          "feat_idx": 11,
+          "bin_idx": 66,
+          "gain": 111.46319484554738
+        }
+      ],
+      "winner": {
+        "feat_idx": 0,
+        "bin_idx": 19,
+        "gain": 117.8391561,
+        "bin_value": -1.032328367
+      }
+    },
+    {
+      "depth": 4,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -3950.775417183526,
+          "sumH": 3906.0,
+          "W": 3906.0,
+          "leaf_count": 3906
+        },
+        {
+          "leaf_idx": 1,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 2,
+          "sumG": -1842.6614572137769,
+          "sumH": 3515.0,
+          "W": 3515.0,
+          "leaf_count": 3515
+        },
+        {
+          "leaf_idx": 3,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 4,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 5,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 6,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 7,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 8,
+          "sumG": -4209.663331707985,
+          "sumH": 8858.0,
+          "W": 8858.0,
+          "leaf_count": 8858
+        },
+        {
+          "leaf_idx": 9,
+          "sumG": -206.685948131636,
+          "sumH": 8774.0,
+          "W": 8774.0,
+          "leaf_count": 8774
+        },
+        {
+          "leaf_idx": 10,
+          "sumG": 46.52181079679576,
+          "sumH": 7939.0,
+          "W": 7939.0,
+          "leaf_count": 7939
+        },
+        {
+          "leaf_idx": 11,
+          "sumG": 3628.9609700886213,
+          "sumH": 8023.0,
+          "W": 8023.0,
+          "leaf_count": 8023
+        },
+        {
+          "leaf_idx": 12,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 13,
+          "sumG": 2284.1232947494227,
+          "sumH": 4633.0,
+          "W": 4633.0,
+          "leaf_count": 4633
+        },
+        {
+          "leaf_idx": 14,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 15,
+          "sumG": 4250.180067360401,
+          "sumH": 4352.0,
+          "W": 4352.0,
+          "leaf_count": 4352
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 4,
+          "bin_idx": 32,
+          "gain": 117.84630001258823
+        },
+        {
+          "feat_idx": 9,
+          "bin_idx": 94,
+          "gain": 117.84619424861091
+        },
+        {
+          "feat_idx": 4,
+          "bin_idx": 36,
+          "gain": 117.84617834040499
+        },
+        {
+          "feat_idx": 3,
+          "bin_idx": 59,
+          "gain": 117.84611605671945
+        },
+        {
+          "feat_idx": 9,
+          "bin_idx": 95,
+          "gain": 117.84606897443214
+        }
+      ],
+      "winner": {
+        "feat_idx": 1,
+        "bin_idx": 22,
+        "gain": 120.3801685,
+        "bin_value": -0.9434301853
+      }
+    },
+    {
+      "depth": 5,
+      "partitions": [
+        {
+          "leaf_idx": 0,
+          "sumG": -1642.3976102755405,
+          "sumH": 1337.0,
+          "W": 1337.0,
+          "leaf_count": 1337
+        },
+        {
+          "leaf_idx": 1,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 2,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 3,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 4,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 5,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 6,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 7,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 8,
+          "sumG": -2000.190628694836,
+          "sumH": 2897.0,
+          "W": 2897.0,
+          "leaf_count": 2897
+        },
+        {
+          "leaf_idx": 9,
+          "sumG": -695.0732177522732,
+          "sumH": 2852.0,
+          "W": 2852.0,
+          "leaf_count": 2852
+        },
+        {
+          "leaf_idx": 10,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 11,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 12,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 13,
+          "sumG": 415.48863340880234,
+          "sumH": 1507.0,
+          "W": 1507.0,
+          "leaf_count": 1507
+        },
+        {
+          "leaf_idx": 14,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 15,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 16,
+          "sumG": -2308.3778069079854,
+          "sumH": 2569.0,
+          "W": 2569.0,
+          "leaf_count": 2569
+        },
+        {
+          "leaf_idx": 17,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 18,
+          "sumG": -1842.6614572137769,
+          "sumH": 3515.0,
+          "W": 3515.0,
+          "leaf_count": 3515
+        },
+        {
+          "leaf_idx": 19,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 20,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 21,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 22,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 23,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 24,
+          "sumG": -2209.4727030131494,
+          "sumH": 5961.0,
+          "W": 5961.0,
+          "leaf_count": 5961
+        },
+        {
+          "leaf_idx": 25,
+          "sumG": 488.3872696206372,
+          "sumH": 5922.0,
+          "W": 5922.0,
+          "leaf_count": 5922
+        },
+        {
+          "leaf_idx": 26,
+          "sumG": 46.52181079679576,
+          "sumH": 7939.0,
+          "W": 7939.0,
+          "leaf_count": 7939
+        },
+        {
+          "leaf_idx": 27,
+          "sumG": 3628.9609700886213,
+          "sumH": 8023.0,
+          "W": 8023.0,
+          "leaf_count": 8023
+        },
+        {
+          "leaf_idx": 28,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 29,
+          "sumG": 1868.6346613406204,
+          "sumH": 3126.0,
+          "W": 3126.0,
+          "leaf_count": 3126
+        },
+        {
+          "leaf_idx": 30,
+          "sumG": 0.0,
+          "sumH": 0.0,
+          "W": 0.0,
+          "leaf_count": 0
+        },
+        {
+          "leaf_idx": 31,
+          "sumG": 4250.180067360401,
+          "sumH": 4352.0,
+          "W": 4352.0,
+          "leaf_count": 4352
+        }
+      ],
+      "top5": [
+        {
+          "feat_idx": 3,
+          "bin_idx": 59,
+          "gain": 120.38841031459533
+        },
+        {
+          "feat_idx": 4,
+          "bin_idx": 31,
+          "gain": 120.38820771610585
+        },
+        {
+          "feat_idx": 4,
+          "bin_idx": 32,
+          "gain": 120.38820591523658
+        },
+        {
+          "feat_idx": 2,
+          "bin_idx": 109,
+          "gain": 120.38818310706199
+        },
+        {
+          "feat_idx": 2,
+          "bin_idx": 108,
+          "gain": 120.38811376161158
+        }
+      ],
+      "winner": {
+        "feat_idx": 1,
+        "bin_idx": 108,
+        "gain": 122.4928115,
+        "bin_value": 1.014840603
+      }
+    }
+  ]
+}

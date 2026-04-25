@@ -1,0 +1,7 @@
+seed: 42
+cpu_iter1_rmse:    0.5787483020
+cursor_rmse_py:    0.5787482858  (RMSE computed from cpu_preds array)
+graft_cursor_rmse: 0.5787482858  (RMSE computed from graft JSON cursor)
+sanity_drift_%:    -0.000003%
+mlx_iter1_rmse:    0.5830230000  (for reference)
+verdict:           PASS

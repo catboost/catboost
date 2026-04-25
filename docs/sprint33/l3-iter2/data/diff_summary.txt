@@ -1,0 +1,29 @@
+S33-L3-ITER2 diff summary
+Date: 2026-04-24
+Branch: mlx/sprint-33-iter2-scaffold
+Anchor: N=50000, depth=6, bins=127, seed=42
+Config: SymmetricTree/Cosine/rmse, rs=0.0
+Kernel md5: 9edaef45b99b9db3e2717da93800e76f
+
+stage                  status       max_abs_diff     max_rel_diff     frac_diverging
+----------------------------------------------------------------------------------------
+S1-GRADIENT-g          CLEAN        0.000e+00        0.000e+00        0.0000%
+S1-GRADIENT-h          CLEAN        0.000e+00        0.000e+00        0.0000%
+S2-SPLIT               DIVERGENT    n/a (discrete)   n/a (discrete)   n/a
+S3-LEAF-VALUES         DIVERGENT    2.5482e-02       2.5482e+10       100.0000%
+S4-APPROX              DIVERGENT    2.1848e-02       1.0084e+01       100.0000%
+
+CLASS CALL: S2-SPLIT
+
+S2 detail:
+  CPU: feat=0  bin=3   gain=n/a (not extractable from CatBoost Python model JSON)
+  MLX: feat=0  bin=64  gain=87.059881
+
+Histogram anomaly (for L4 context):
+  hist grad block total: -738.9923  (expected ~0.228 = 20 feats * sum_g=0.011414)
+  hist hess block total: 992200     (expected ~1000000 = 20 feats * 50000)
+  S1 gradient dump is bit-identical to CPU; histogram gradient is not.
+  Implies histogram kernel received stale gradient data at iter>=2.
+
+Suspected root cause: csv_train.cpp:4534 (statsK construction for DispatchHistogram)
+L4 fix target: task #123

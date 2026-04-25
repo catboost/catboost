@@ -1,0 +1,146 @@
+{
+  "seed": 43,
+  "layers": [
+    {
+      "depth": 0,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": -0.000577569007873535, "sumH": 50000, "W": 50000, "leaf_count": 50000}
+      ],
+      "top5": [
+        {"feat_idx": 0, "bin_idx": 64, "gain": 84.7510229938363},
+        {"feat_idx": 0, "bin_idx": 65, "gain": 84.7467765735586},
+        {"feat_idx": 0, "bin_idx": 63, "gain": 84.7119373367275},
+        {"feat_idx": 0, "bin_idx": 66, "gain": 84.6605992806504},
+        {"feat_idx": 0, "bin_idx": 67, "gain": 84.6480174849712}
+      ],
+      "winner": {"feat_idx": 0, "bin_idx": 64, "gain": 84.7510229938363}
+    },
+    {
+      "depth": 1,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": 10023.578125, "sumH": 25000, "W": 25000, "leaf_count": 25000},
+        {"leaf_idx": 1, "sumG": -10023.6298828125, "sumH": 25000, "W": 25000, "leaf_count": 25000}
+      ],
+      "top5": [
+        {"feat_idx": 1, "bin_idx": 69, "gain": 104.318909922285},
+        {"feat_idx": 1, "bin_idx": 67, "gain": 104.31251881162},
+        {"feat_idx": 1, "bin_idx": 68, "gain": 104.306483855162},
+        {"feat_idx": 1, "bin_idx": 63, "gain": 104.294934261366},
+        {"feat_idx": 1, "bin_idx": 64, "gain": 104.294336797877}
+      ],
+      "winner": {"feat_idx": 1, "bin_idx": 69, "gain": 104.318909922285}
+    },
+    {
+      "depth": 2,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": 8326.0947265625, "sumH": 13421, "W": 13421, "leaf_count": 13421},
+        {"leaf_idx": 1, "sumG": -2424.84790039062, "sumH": 13529, "W": 13529, "leaf_count": 13529},
+        {"leaf_idx": 2, "sumG": 1697.49133300781, "sumH": 11579, "W": 11579, "leaf_count": 11579},
+        {"leaf_idx": 3, "sumG": -7598.7490234375, "sumH": 11471, "W": 11471, "leaf_count": 11471}
+      ],
+      "top5": [
+        {"feat_idx": 0, "bin_idx": 23, "gain": 113.096995439816},
+        {"feat_idx": 0, "bin_idx": 20, "gain": 113.071194024397},
+        {"feat_idx": 0, "bin_idx": 24, "gain": 113.068609924285},
+        {"feat_idx": 0, "bin_idx": 22, "gain": 113.065510932458},
+        {"feat_idx": 0, "bin_idx": 19, "gain": 113.0525303739}
+      ],
+      "winner": {"feat_idx": 0, "bin_idx": 23, "gain": 113.096995439816}
+    },
+    {
+      "depth": 3,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": 4566.06298828125, "sumH": 4782, "W": 4782, "leaf_count": 4782},
+        {"leaf_idx": 1, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 2, "sumG": 1974.43603515625, "sumH": 4201, "W": 4201, "leaf_count": 4201},
+        {"leaf_idx": 3, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 4, "sumG": 3760.03051757812, "sumH": 8639, "W": 8639, "leaf_count": 8639},
+        {"leaf_idx": 5, "sumG": -2424.85424804688, "sumH": 13529, "W": 13529, "leaf_count": 13529},
+        {"leaf_idx": 6, "sumG": -276.946166992188, "sumH": 7378, "W": 7378, "leaf_count": 7378},
+        {"leaf_idx": 7, "sumG": -7598.7177734375, "sumH": 11471, "W": 11471, "leaf_count": 11471}
+      ],
+      "top5": [
+        {"feat_idx": 16, "bin_idx": 98, "gain": 111.379029052451},
+        {"feat_idx": 16, "bin_idx": 97, "gain": 111.378871198205},
+        {"feat_idx": 16, "bin_idx": 96, "gain": 111.37824959867},
+        {"feat_idx": 4, "bin_idx": 88, "gain": 111.377867622991},
+        {"feat_idx": 4, "bin_idx": 90, "gain": 111.377715137154}
+      ],
+      "winner": {"feat_idx": 16, "bin_idx": 98, "gain": 111.379029052451}
+    },
+    {
+      "depth": 4,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": 3494.3623046875, "sumH": 3681, "W": 3681, "leaf_count": 3681},
+        {"leaf_idx": 1, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 2, "sumG": 1561.12854003906, "sumH": 3262, "W": 3262, "leaf_count": 3262},
+        {"leaf_idx": 3, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 4, "sumG": 2908.46533203125, "sumH": 6694, "W": 6694, "leaf_count": 6694},
+        {"leaf_idx": 5, "sumG": -1860.47973632812, "sumH": 10469, "W": 10469, "leaf_count": 10469},
+        {"leaf_idx": 6, "sumG": -212.553329467773, "sumH": 5708, "W": 5708, "leaf_count": 5708},
+        {"leaf_idx": 7, "sumG": -5900.4130859375, "sumH": 8857, "W": 8857, "leaf_count": 8857},
+        {"leaf_idx": 8, "sumG": 1071.7109375, "sumH": 1101, "W": 1101, "leaf_count": 1101},
+        {"leaf_idx": 9, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 10, "sumG": 413.308685302734, "sumH": 939, "W": 939, "leaf_count": 939},
+        {"leaf_idx": 11, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 12, "sumG": 851.56103515625, "sumH": 1945, "W": 1945, "leaf_count": 1945},
+        {"leaf_idx": 13, "sumG": -564.371948242188, "sumH": 3060, "W": 3060, "leaf_count": 3060},
+        {"leaf_idx": 14, "sumG": -64.3931732177734, "sumH": 1670, "W": 1670, "leaf_count": 1670},
+        {"leaf_idx": 15, "sumG": -1698.32263183594, "sumH": 2614, "W": 2614, "leaf_count": 2614}
+      ],
+      "top5": [
+        {"feat_idx": 4, "bin_idx": 58, "gain": 111.393510562387},
+        {"feat_idx": 4, "bin_idx": 65, "gain": 111.393084735981},
+        {"feat_idx": 4, "bin_idx": 53, "gain": 111.393039789793},
+        {"feat_idx": 4, "bin_idx": 67, "gain": 111.39274225876},
+        {"feat_idx": 4, "bin_idx": 66, "gain": 111.392737054778}
+      ],
+      "winner": {"feat_idx": 4, "bin_idx": 58, "gain": 111.393510562387}
+    },
+    {
+      "depth": 5,
+      "partitions": [
+        {"leaf_idx": 0, "sumG": 1525.91247558594, "sumH": 1617, "W": 1617, "leaf_count": 1617},
+        {"leaf_idx": 1, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 2, "sumG": 677.81982421875, "sumH": 1450, "W": 1450, "leaf_count": 1450},
+        {"leaf_idx": 3, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 4, "sumG": 1304.46740722656, "sumH": 3031, "W": 3031, "leaf_count": 3031},
+        {"leaf_idx": 5, "sumG": -893.05322265625, "sumH": 4710, "W": 4710, "leaf_count": 4710},
+        {"leaf_idx": 6, "sumG": -81.777961730957, "sumH": 2614, "W": 2614, "leaf_count": 2614},
+        {"leaf_idx": 7, "sumG": -2675.11279296875, "sumH": 4022, "W": 4022, "leaf_count": 4022},
+        {"leaf_idx": 8, "sumG": 482.297332763672, "sumH": 503, "W": 503, "leaf_count": 503},
+        {"leaf_idx": 9, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 10, "sumG": 197.406784057617, "sumH": 432, "W": 432, "leaf_count": 432},
+        {"leaf_idx": 11, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 12, "sumG": 395.393218994141, "sumH": 901, "W": 901, "leaf_count": 901},
+        {"leaf_idx": 13, "sumG": -269.001800537109, "sumH": 1403, "W": 1403, "leaf_count": 1403},
+        {"leaf_idx": 14, "sumG": -38.1041030883789, "sumH": 754, "W": 754, "leaf_count": 754},
+        {"leaf_idx": 15, "sumG": -779.350769042969, "sumH": 1221, "W": 1221, "leaf_count": 1221},
+        {"leaf_idx": 16, "sumG": 1968.44995117188, "sumH": 2064, "W": 2064, "leaf_count": 2064},
+        {"leaf_idx": 17, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 18, "sumG": 883.309753417969, "sumH": 1812, "W": 1812, "leaf_count": 1812},
+        {"leaf_idx": 19, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 20, "sumG": 1604.00170898438, "sumH": 3663, "W": 3663, "leaf_count": 3663},
+        {"leaf_idx": 21, "sumG": -967.428039550781, "sumH": 5759, "W": 5759, "leaf_count": 5759},
+        {"leaf_idx": 22, "sumG": -130.775527954102, "sumH": 3094, "W": 3094, "leaf_count": 3094},
+        {"leaf_idx": 23, "sumG": -3225.30004882812, "sumH": 4835, "W": 4835, "leaf_count": 4835},
+        {"leaf_idx": 24, "sumG": 589.413452148438, "sumH": 598, "W": 598, "leaf_count": 598},
+        {"leaf_idx": 25, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 26, "sumG": 215.902053833008, "sumH": 507, "W": 507, "leaf_count": 507},
+        {"leaf_idx": 27, "sumG": 0, "sumH": 0, "W": 0, "leaf_count": 0},
+        {"leaf_idx": 28, "sumG": 456.167938232422, "sumH": 1044, "W": 1044, "leaf_count": 1044},
+        {"leaf_idx": 29, "sumG": -295.370666503906, "sumH": 1657, "W": 1657, "leaf_count": 1657},
+        {"leaf_idx": 30, "sumG": -26.2890911102295, "sumH": 916, "W": 916, "leaf_count": 916},
+        {"leaf_idx": 31, "sumG": -918.972961425781, "sumH": 1393, "W": 1393, "leaf_count": 1393}
+      ],
+      "top5": [
+        {"feat_idx": 19, "bin_idx": 114, "gain": 111.413262384708},
+        {"feat_idx": 19, "bin_idx": 115, "gain": 111.411462275681},
+        {"feat_idx": 19, "bin_idx": 113, "gain": 111.41051054922},
+        {"feat_idx": 8, "bin_idx": 100, "gain": 111.410113054019},
+        {"feat_idx": 8, "bin_idx": 103, "gain": 111.409935195793}
+      ],
+      "winner": {"feat_idx": 19, "bin_idx": 114, "gain": 111.413262384708}
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "gate": "G4c",
+  "description": "bench_boosting v5 ULP=0 kernel parity",
+  "kernel_md5_expected": "9edaef45b99b9db3e2717da93800e76f",
+  "kernel_md5_actual": "9edaef45b99b9db3e2717da93800e76f",
+  "kernel_md5_match": true,
+  "binary_used": "bench_boosting_t4",
+  "binary_built_date": "2026-04-24",
+  "anchor": "AN-009",
+  "config": {
+    "rows": 10000,
+    "features": 50,
+    "classes": 1,
+    "depth": 6,
+    "iters": 50,
+    "bins": 128,
+    "seed": 42
+  },
+  "bench_final_loss": 0.48231599,
+  "anchor_value": 0.48231599,
+  "ulp_delta": 0,
+  "pass": true
+}

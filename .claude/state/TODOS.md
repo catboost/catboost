@@ -1,16 +1,43 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-24 (Sprint 30 CLOSING — precision fix class exhausted; S31 KICKOFF prepped on iter=1 structural audit).
+> Last header refresh: 2026-04-25 (S33-L4-FIX Commit 3 complete — S28-ST-GUARD removed (`e1d72d64e8`), S28-LG-GUARD removed (`d599e5b033`); LG+Cosine drift iter=50 0.382%; DEC-042 FULLY CLOSED; #93/#94 completed.)
 
-## Current state (2026-04-24)
+## Current state (2026-04-25)
 
-- **Active branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`). Cut from master `4d855d47db` (S29 PR #27 merge).
-- **Base**: master `4d855d47db` (S29 merge commit).
-- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across the DEC-008 envelope **via `bench_boosting.cpp` harness only**. S30 widened two scalar types (gain + accumulators) outside the v5 kernel; kernel sources untouched.
+- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 CLOSED — L4-FIX complete: Commits 1/1.5/2/3a/3b all landed).
+- **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch pending PR.
+- **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
-- **Open PRs**: none. S28 + S29 merged. DEC-027 (alternative accumulation) remains deferred. S30 PR #28 to be opened at close.
-- **New DEC**: DEC-036 OPEN — structural divergence investigation; S31 T1 is an iter=1 algorithmic audit.
+- **Open PRs**: none. S28/S29/S30 merged. S31/S32/S33 carried in-branch pending PR.
+- **Active DEC**: **DEC-036 RESOLVED** (2026-04-25); **DEC-040 OPEN** (L0-L4 scaffold complete); **DEC-041 INVALIDATED**; **DEC-042 FULLY CLOSED** (2026-04-25; fix + guard removal complete); DEC-037/038/039 CLOSED. #93/#94 COMPLETED.
+
+## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
+
+**Branch**: `mlx/sprint-33-iter2-scaffold` (cut from S32 tip `9fcc9827d9`).
+**Driver**: DEC-040. Closes DEC-036.
+**Strategy**: L0-L4 cost-ordered falsification of three frames (A trajectory lock-in, B per-iter mechanism, C config/RNG).
+**Hard rule**: any second structural change discovered while fixing the first → STOP, commit first atomically, then continue (DEC-012 enforcement after S31/S32 violations).
+
+### Tasks
+
+- [x] **#119 S33-L0-CONFIG** — Dump CPU vs MLX effective config field-by-field. Falsifies Frame C-config (~45 min). Verdict: `docs/sprint33/l0-config/verdict.md`. Owner: @ml-engineer. **COMPLETED 2026-04-24. Overall class: NO-DIFF. Frame C-config FALSIFIED. L0-PASS. Proceed to L1.**
+- [x] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119. **COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (seeds 42/43/44) — statistically identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C (Config/RNG) fully closed. Proceed to #121 L2-GRAFT. Verdict: `docs/sprint33/l1-determinism/verdict.md`.**
+- [x] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B. **COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% vs ungrafted 52.643% (ratio 0.974). Graft had zero effect — per-iter persistent bug confirmed. Frame A falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`. Proceed to #122 L3-ITER2.**
+- [x] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). **COMPLETED 2026-04-24. Class: SPLIT. S1-GRADIENT bit-identical; S2-SPLIT divergent (CPU feat=0,bin=3 vs MLX feat=0,bin=64). S3/S4 cascade. Histogram anomaly: hist grad sum=-739 vs expected +0.23 (iter=2 grads correct; histogram kernel receives stale data). Suspected root: csv_train.cpp:4534 statsK construction. Verdict: `docs/sprint33/l3-iter2/verdict.md`. Data: `docs/sprint33/l3-iter2/data/`. Proceed to #123 L4-FIX.**
+- [x] **#123 S33-L4-FIX** — COMPLETED 2026-04-25. Commits 1 (`10c72b4e96`) + 1.5 (`e98c6725cd`) shipped per-side mask for Cosine and L2 paths. Commit 2 gate validation PASS (all 5 gates): G4a 0.0001%, G4b 0.027% (was 52.6%), G4c ULP=0, G4d 18/18 [0.9991,1.0008], G4e 5/5 DW+Cosine intact. DEC-036 RESOLVED, DEC-042 RESOLVED. Guard removal (Commit 3, #93/#94) is now unblocked. See `docs/sprint33/commit2-gates/REPORT.md`.
+- [x] **#124 S33-PROBE-C** — COMPLETED 2026-04-24. iter=2 divergence at d=2 (not d=0); CPU feat=0 vs MLX feat=10. L3 retracted. Tip `044ec9a5a8`.
+- [x] **#125 S33-PROBE-D** — COMPLETED 2026-04-24. fp32/fp64 gain shadow at d=0..5; max residual 3.89e-5 vs 20-unit gap. **Precision class CLOSED.** Tip `d246e00fae`.
+- [x] **#126 S33-PROBE-E** — COMPLETED 2026-04-25. Per-(feat, bin, partition) capture at iter=2 d=2 confirms partition-state class. Mechanism: `csv_train.cpp:1980` `continue` skips entire partition; CPU's mask formula adds non-empty side. Per-partition smoking gun: feat=0 bin=21 (CPU's pick) MLX gain 81.83 vs CPU gain 108.32 (Δ=+26.49); feat=10 bin=79 (MLX's pick) identical 101.79 both. Top-5 by CPU gain at d=2 is 5/5 feat=0 (signal). Skip rate 0%/2.5%/5%/7.6%/10.6%/14.6% at d=0..5. **DEC-036 root-caused; DEC-042 opened.** FINDING: `docs/sprint33/probe-e/FINDING.md`.
+
+### Carry-forwards (still pending)
+
+- **#114 S31-T-CLEANUP** — S30 carry-forwards (CLI exit wrap + S29 CR residuals).
+- **#113 S31-T3-MEASURE** — re-run T3 gate matrix post-fix (will run after L4).
+- [x] **#93 S30-T4a-ST-REMOVE** — COMPLETED 2026-04-25. S28-ST-GUARD removed (Commit 3a `e1d72d64e8`). G4a 0.0001%, G4b 0.027% (pre-fix 52.6%). Python path sanity ratio 1.000271. 4/4 tests PASS.
+- [x] **#94 S30-T4b-LG-REMOVE** — COMPLETED 2026-04-25. S28-LG-GUARD removed (Commit 3b `d599e5b033`). LG+Cosine drift measured post-fix: iter=1 0.0000%, iter=50 0.382% (<=2% threshold). 4/4 tests PASS.
+- **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967` (Logloss/Poisson/Tweedie/Multiclass; not blocking RMSE).
+- **#127** [pending] **S34-PROBE-F-LITE**: investigate one-hot per-side mask validity at `FindBestSplit:1698`. Empirical smoke (synthetic 8k 1-cat anchor, ST+Cosine) showed loss regression 0.479101 → 0.493401 when the L1698 patch was applied — syntactic-class argument insufficient. Math-first analysis (parent-term subtraction structure) and CPU CatBoost reference probe required before any fix lands. Scoping document: `docs/sprint33/s33-s1-rescope.md`. Branch: cut `mlx/sprint-34-probe-f-lite` from S33 close. blockedBy: none.
 
 ---
 
@@ -51,11 +78,12 @@
 
 ---
 
-## Sprint 30 — S30-COSINE-KAHAN — CLOSING 2026-04-24
+## Sprint 30 — S30-COSINE-KAHAN — CLOSED 2026-04-24
 
-**Branch**: `mlx/sprint-30-cosine-kahan` (tip `187a5e661f`)
+**Branch**: `mlx/sprint-30-cosine-kahan` (merged via PR #28 → master `17451f4780`; branch deleted).
 **Basis**: DEC-034 outcome A (moderate confidence); DEC-035 executed in full.
-**Outcome**: Precision fix class exhausted across 13 verdict docs. K4 + Fix 2 ship as proper (logically correct) fixes that remove precision floors; both ST and LG guards remain in place. DEC-036 opens structural divergence investigation for S31.
+**Outcome**: Precision fix class exhausted across 13 verdict docs. K4 + Fix 2 shipped as proper (logically correct) fixes that remove precision floors; both ST and LG guards remain in place. DEC-036 opens structural divergence investigation for S31.
+**Authoritative record**: `docs/sprint30/sprint-close.md`.
 
 ### Primary track — executed
 
@@ -81,16 +109,16 @@
 - [x] **#108 S30-FIX2-FP64-GAIN** — Widened `totalGain`, `bestGain`, `TBestSplitProperties::Gain`, `perturbedGain`, `TLeafCandidate::Gain` to `double`. ST drift 53.30% → 53.30% (prediction failed). Verdict: `docs/sprint30/fix2-fp64-gain/verdict.md`. Commits `90a0cb4475` + `364d4ee962`. — @ml-engineer
 - [x] **#109 S30-V6-N500-L1-CONFIRMER** — L1 hypothesis FALSIFIED. Drift flat 50.72% @ N=500 → 53.30% @ N=50k (b ≈ 0 across 100× N range). Verdict: `docs/sprint30/v6-n500-confirmer/verdict.md`. Commit `187a5e661f`. — @ml-engineer
 
-### Secondary track — carried to close
+### Secondary track — carried forward to S31-T-CLEANUP
 
-- [ ] **#95 S30-T5-CLI-EXIT-WRAP** — `try/catch` in `csv_train:main()` for graceful `exit(1)` (SA-I2-S29). Can bundle into S30 close OR defer to S31-T-cleanup. Owner: @ml-engineer
-- [ ] **#96 S30-T6-CLEANUP** — S29 CR residuals (N-1, N-2, N-3, SF-3) landed as atomic commits per DEC-012. Can bundle into S30 close OR defer to S31-T-cleanup. Owner: @ml-engineer
+- [>] **#95 S30-T5-CLI-EXIT-WRAP** — carried to S31-T-CLEANUP. Owner: @ml-engineer
+- [>] **#96 S30-T6-CLEANUP** — carried to S31-T-CLEANUP. Owner: @ml-engineer
 
-### Quality gates (end-of-sprint)
+### Quality gates (end-of-sprint) — closed
 
-- [ ] **#97 S30-CR** — Code review of K4 + Fix 2 + instrumentation (commits `108c7a59d2`-family, `90a0cb4475`, `364d4ee962`, and all verdict-only commits). **Blocked by #95, #96 decisions.** Owner: @code-reviewer
-- [ ] **#98 S30-SA** — Security audit: confirm guards intact at all three layers (Python + C++ nanobind + CLI); SA-H1 surface still closed; no secrets; no unsafe casts in K4 fp64 widening. **Blocked by #95 decision.** Owner: @security-auditor
-- [ ] **#99 S30-CLOSE** — Sprint close doc `docs/sprint30/sprint-close.md` with full T1→T4 + D1–D4 + V1–V6 + Fix 2 chain of evidence; DEC-035 PARTIALLY CLOSED; DEC-036 OPEN; DEC-034 partially falsified for ST. PR #28 opened (human-triggered). **Blocked by #97, #98.** Owner: @technical-writer
+- [x] **#97 S30-CR** — APPROVE (0 must-fix, 5 nits). `docs/sprint30/sprint-close/cr-report.md`. — @code-reviewer
+- [x] **#98 S30-SA** — PASS-WITH-FINDINGS (0 CRITICAL/HIGH/MEDIUM, 3 LOW, 3 INFO). `docs/sprint30/sprint-close/sa-report.md`. — @security-auditor
+- [x] **#99 S30-CLOSE** — Close doc shipped (`docs/sprint30/sprint-close.md`); DEC-035 PARTIALLY CLOSED; DEC-036 OPEN; DEC-034 partially falsified for ST. PR #28 merged `17451f4780`. — @technical-writer
 
 ### Kill-switches (triggered)
 
@@ -101,38 +129,68 @@
 
 ---
 
-## Sprint 31 — ITER1-AUDIT — KICKOFF (pending S30 PR #28 merge)
+## Sprint 32 — COSINE-GAIN-TERM-AUDIT — CLOSED 2026-04-24
 
-**Branch**: `mlx/sprint-31-iter1-audit` (to be cut from S30 merge tip)
+**Branch**: `mlx/sprint-32-cosine-gain-term-audit` (tip `3e472ac49f`).
+**Outcome**: DEC-038 + DEC-039 shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
+**Authoritative record**: `docs/sprint32/sprint-close.md`.
+
+### Primary track — DONE
+
+- [x] **#115 S32-T1-CODEPATH** — SAME-PATH; H1 eliminated. `docs/sprint32/t1-codepath/verdict.md`. Commit `0e24e7f8b7`.
+- [x] **#116 S32-T2-INSTRUMENT** — FORMULA CORRECT; root cause = border grid divergence (not formula error). `docs/sprint32/t2-terms/verdict.md`. Commits `5d3899090c`, `1762e8d49c`.
+- [x] **#117 S32-T3-FIX** — DEC-038 (allVals) + DEC-039 (fold_count cap 127) shipped. `docs/sprint32/t3-fix/verdict.md`. Commit `901bc760ac`. DEC-012 violation noted (two fixes in one commit).
+- [x] **#118 S32-T4-VALIDATE** — Gates run. G3a PASS / G3b FAIL / G3c PASS / G3d PASS. DEC-038/039 formalized. Sprint-close doc produced. State files updated.
+
+### Carry-forward to S33
+
+- [ ] **S31-T4a-ST-REMOVE** — Blocked by G3b FAIL. Deferred to S33 (gated on drift ≤ 2%).
+- [ ] **S31-T4b-LG-REMOVE** — Blocked by G3b FAIL. Deferred to S33.
+- [ ] **S31-T-LATENT-P11** — hessian-vs-sampleWeight semantics; not blocking. Carry to S33.
+- [ ] **S31-T-CLEANUP** — SA-I2 try/catch + S29 CR nits. Carry to S33.
+- [ ] **DEC-036 S33 investigation** — L0-L4 scaffold (config audit → determinism → graft → iter=2 instrument → fix). New DEC-040 to be authored at S33 kickoff by orchestrator.
+
+---
+
+## Sprint 31 — ITER1-AUDIT — CLOSING 2026-04-24
+
+**Branch**: `mlx/sprint-31-iter1-audit` (cut from master `17451f4780`, S30 PR #28 merge).
 **Basis**: DEC-036 — structural divergence investigation; precision class exhausted in S30.
-**Rationale**: V6 ruled out all precision-class fixes via flat N-scaling (b ≈ 0 across 100× N range). ST+Cosine 53% aggregate drift must come from **algorithmic divergence** between CPU and MLX, not fp32 accumulation. T1 iter=1 split-selection audit localizes which layer first disagrees; the first diverging layer names the mechanism class (see DEC-036 table).
+**Rationale**: V6 ruled out all precision-class fixes via flat N-scaling (b ≈ 0 across 100× N range). ST+Cosine 53% aggregate drift must come from **algorithmic divergence** between CPU and MLX, not fp32 accumulation. T1 (preflight-first) localizes the mechanism: cheap source-diff runs before any instrumentation work.
 
-### Primary track — T1 audit → mechanism fix
+### Primary track — T1-PRE → T2 port → T3 measure
 
-- [ ] **S31-T1-ITER1-AUDIT** — Build iter=1 split-selection comparison harness. For each of the 6 tree layers on S28 anchor cell, dump winning `(feature_idx, bin_idx, gain)` from both CPU CatBoost and MLX (seeds 42–46). Locate first diverging layer. Deliverable: `docs/sprint31/t1-audit/verdict.md` naming the mechanism class per DEC-036 table. Gate: **G1 — divergence localized with file:line pointers on both sides**. Owner: @ml-engineer (or @research-scientist if mechanism class is algebraic/formula)
+- [x] **S31-T1-PRE-SOURCEDIFF** — Verdict **(ii) PRE-SPLIT DIVERGENCE — K4 fires**. Formula algebraically equivalent across 11 audited rows (no divergence on numerator / denominator / L2 regularization / parent subtraction / K-dim sum order / sign convention). Pre-split divergence at **P6: feature quantization borders**. MLX's `QuantizeFeatures` (`csv_train.cpp:816–889`) uses a custom percentile-midpoint equal-frequency algorithm; CPU CatBoost default is `GreedyLogSum` (`binarization_options.h:16`). Different candidate-split populations are being argmax'd at every layer. Secondary latent bugs (not firing at S28 anchor): P5 `scaledL2Regularizer` missing, P11 hessian-vs-sampleWeight semantics swap under non-trivial hess losses. Verdict: `docs/sprint31/t1-pre/verdict.md`. Commit `aed81c63d7`. — @research-scientist.
 
-- [ ] **S31-T2-MECHANISM-FIX** — Design and implement the fix for the identified mechanism class. Concrete fix + parity gate + falsifiable prediction. **Blocked by T1.** Owner: depends on mechanism class
+- [x] **S31-T2-PORT-GREEDYLOGSUM** — Port CatBoost `GreedyLogSum` border-selection algorithm into MLX, replacing the custom percentile-midpoint code at `csv_train.cpp:816–889`. Also fixed latent P5 (`ScaleL2Reg`). **Gates: G2a PASS (qualified; 84/100 exact, 16 equal-score tie-breaks); G2b FAIL (53.03% drift vs 53.30% baseline; border divergence NOT the mechanism); G2c PASS (bench_boosting AN-009 preserved); G2d PASS (18/18 L2 parity)**. T1-PRE qualifier fires. Commits `768ee50abd`–`dada4f7b26`. Verdict: `docs/sprint31/t2-port-greedylogsum/verdict.md`. — @ml-engineer.
 
-- [ ] **S31-T3-MEASURE** — Re-run T3 gate matrix (G3a, G3b, G3c) post-fix. **Blocked by T2.** Owner: @qa-engineer
+- [ ] **S31-T3-MEASURE** — Re-run S30 T3 gate matrix (G3a ST, G3b LG-mid, G3c LG-stress) post-T2. **Blocked by T3b (G2b failed; T3b must close ST+Cosine first).** Owner: @qa-engineer.
 
-- [ ] **S31-T4a-ST-REMOVE** — Reopened from S30 #93 if T3 G3a passes. Atomic removal across Python + C++ nanobind + CLI + tests. **Blocked by S31-T3 G3a.** Owner: @ml-engineer
+- [x] **S31-T3b-T1-AUDIT** — G1 PASS. First diverging layer: depth=0. Mechanism: **GAIN-FORMULA** — Cosine score ~5.4% lower in MLX than CPU (ratio 0.946), shifting argmax to wrong bin. Co-fix DEC-037 shipped (border count maxBins, not maxBins-1; greedy unweighted GreedyLogSumBestSplit restored). Build script + run harness + comparison driver + audit JSON + verdict at `docs/sprint31/t3b-audit/`. Commit `746d5090b5`. Owner: @ml-engineer. **Next: S32 cosNum/cosDen per-partition instrumentation at depth=0.**
 
-- [ ] **S31-T4b-LG-REMOVE** — Reopened from S30 #94 if T3 G3b AND G3c pass. **Blocked by S31-T3 G3b + G3c.** Owner: @ml-engineer
+- [ ] **S31-T4a-ST-REMOVE** — Reopens S30 #93 if S31-T3 G3a passes. Atomic removal across Python + C++ nanobind + CLI + tests. **Blocked by S31-T3 G3a.** Owner: @ml-engineer.
 
-### Secondary track — carry-forward if not bundled into S30 close
+- [ ] **S31-T4b-LG-REMOVE** — Reopens S30 #94 if S31-T3 G3b AND G3c pass. **Blocked by S31-T3 G3b + G3c.** Owner: @ml-engineer.
 
-- [ ] **S31-T-CLEANUP** — S30 #95 CLI exit wrap + S30 #96 S29 CR residuals, if not landed in S30 close. Owner: @ml-engineer
+- [ ] **S31-T-LATENT-P11** — Follow-up (not blocking close): document the hessian-vs-sampleWeight semantics swap at MLX `csv_train.cpp:3780, 3967` as a correctness bug that fires under any loss with non-trivial hessian (Logloss, Poisson, Tweedie, Multiclass). File as a tracked risk under DEC-036 umbrella or an ad-hoc DEC-037 depending on S31 close scope. Owner: @technical-writer.
+
+### Secondary track — carry-forward from S30
+
+- [ ] **S31-T-CLEANUP** — S30 #95 `csv_train:main()` try/catch wrap (SA-I2) + S30 #96 S29 CR residuals (N-1, N-2, N-3, SF-3). Atomic per-commit per DEC-012. Can run in parallel with primary track. Owner: @ml-engineer.
 
 ### Quality gates (end-of-sprint)
 
-- [ ] **S31-CR** — Code review. Owner: @code-reviewer
-- [ ] **S31-SA** — Security audit. Owner: @security-auditor
-- [ ] **S31-CLOSE** — Sprint close + DEC-036 status transition + DEC-032 status transition (conditional on guard removal). Owner: @technical-writer
+- [ ] **S31-CR** — Code review of T1-AUDIT instrumentation + T2 fix + T-CLEANUP diffs. Owner: @code-reviewer.
+- [ ] **S31-SA** — Security audit; confirm guards remain intact until T4a/T4b land. Owner: @security-auditor.
+- [ ] **S31-CLOSE** — Sprint close + DEC-036 status transition + DEC-032 status transition (conditional on guard removal). Owner: @technical-writer.
 
 ### Kill-switches (pre-authorized per DEC-036)
 
-- **K1 (no iter=1 divergence)**: CPU and MLX produce bit-identical iter=1 split sequences → expand audit to iter=2 leaf-value and approx-update comparison. **Pre-authorized**, no user checkpoint.
-- **K2 (feature-port gap)**: divergence is a missing MLX feature (e.g., different Cosine variant) → S31 re-plans as port work, not a precision/structural sprint.
+- **K1 (no iter=1 divergence)**: CPU and MLX produce bit-identical iter=1 split sequences → expand audit to iter=2 leaf-value + approx-update comparison. **Pre-authorized.**
+- **K2 (feature-port gap)**: divergence is a missing MLX feature (e.g., different Cosine variant) → S31 re-plans as port work, not a precision/structural sprint. Escalate to Ramos before re-plan.
+- **K3 (seed-independent false positive)**: 0 / 3 seeds diverge at iter=1 → mechanism is not deterministic-structural; revisit precision hypothesis with new evidence (e.g., RandomStrength paths). Escalate to Ramos.
+- **K4 (pre-split divergence)**: T1-PRE finds basePred / quantization borders / initial gradients differ between CPU and MLX → S31 re-scopes to a pre-split fix track; T1-AUDIT deferred. **Pre-authorized** (trivial-class fix expected).
+- **K5 (cross-cutting fix)**: mechanism located but fix requires changes across histogram kernels + score calcer + node aggregation → budget warning; escalate to Ramos before committing to implementation scope.
 
 ---
 

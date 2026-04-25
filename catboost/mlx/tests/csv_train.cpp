@@ -66,7 +66,8 @@
 #include <unordered_set>
 #include <random>
 #include <optional>
-#include <stdexcept>   // std::invalid_argument — S28-LG-GUARD / S28-ST-GUARD
+#include <queue>
+#include <stdexcept>   // std::invalid_argument, std::runtime_error
 #ifdef CATBOOST_MLX_STAGE_PROFILE
 #include <filesystem>
 #include <sstream>
@@ -136,6 +137,30 @@ struct TCosineResidualInstrument {
         double gain_f64;    // true fp64 gain path: cosNum_d / sqrt(cosDen_d)
     };
     std::vector<TBinRecord> binRecords;  // populated inside FindBestSplit, flushed after return
+
+#ifdef PROBE_E_INSTRUMENT
+    // S33-PROBE-E: per-leaf cosNum/cosDen breakdown for the joint-denominator sum.
+    // For each (feat, bin, partition) tuple at depth >= 1, capture the partition
+    // contribution under MLX's current "skip-when-degenerate" rule and the CPU-style
+    // "mask-each-side-independently" rule. Lets us locate the gain-class divergence
+    // for candidates with degenerate child splits (e.g. CPU's d=2 (feat=0, bin=21)
+    // pick that produces empty children in 2 of 4 leaves after d=0/d=1 partitioning).
+    struct TLeafRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        uint32_t partition;
+        double sumLeft;
+        double sumRight;
+        double weightLeft;
+        double weightRight;
+        bool   mlxSkipped;     // true if MLX's `continue` at score_calcer skipped this partition
+        double mlxTermNum;     // contribution MLX actually adds (0 if skipped)
+        double mlxTermDen;
+        double cpuTermNum;     // contribution CPU's mask-formula would add (per-side independent)
+        double cpuTermDen;
+    };
+    std::vector<TLeafRecord> leafRecords;  // flushed per FindBestSplit call alongside binRecords
+#endif  // PROBE_E_INSTRUMENT
 };
 
 // Global singleton — zero-overhead when not compiled in
@@ -163,6 +188,33 @@ static void WriteCosAccumCSV(const std::string& path,
     fclose(f);
     fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", rows.size(), path.c_str());
 }
+
+#ifdef PROBE_E_INSTRUMENT
+// S33-PROBE-E: write per-leaf records (one row per (feat, bin, partition))
+static void WriteLeafRecordsCSV(const std::string& path,
+                                 const std::vector<TCosineResidualInstrument::TLeafRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[PROBE-E] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "featIdx,bin,partition,sumLeft,sumRight,weightLeft,weightRight,"
+               "mlx_skipped,mlx_termNum,mlx_termDen,"
+               "cpu_termNum,cpu_termDen,"
+               "term_num_diff,term_den_diff\n");
+    for (const auto& r : rows) {
+        double dN = r.cpuTermNum - r.mlxTermNum;
+        double dD = r.cpuTermDen - r.mlxTermDen;
+        fprintf(f, "%u,%u,%u,%.10g,%.10g,%.10g,%.10g,%d,%.15g,%.15g,%.15g,%.15g,%.6e,%.6e\n",
+                r.featIdx, r.bin, r.partition,
+                r.sumLeft, r.sumRight, r.weightLeft, r.weightRight,
+                r.mlxSkipped ? 1 : 0,
+                r.mlxTermNum, r.mlxTermDen,
+                r.cpuTermNum, r.cpuTermDen,
+                dN, dD);
+    }
+    fclose(f);
+    fprintf(stderr, "[PROBE-E] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+#endif  // PROBE_E_INSTRUMENT
 
 #ifdef COSINE_D2_INSTRUMENT
 // S30-D2-INSTRUMENT: write gain_scalar CSV — subset of cos_accum with only gain columns.
@@ -199,6 +251,202 @@ static void PrintResidualSummary(const char* label,
             label, residuals.size(), maxR, sumR / residuals.size(), p99);
 }
 #endif  // COSINE_RESIDUAL_INSTRUMENT
+
+// ============================================================================
+// S31-T3b-T1-AUDIT: iter=1 split-selection comparison harness instrumentation
+//
+// Compile-time gate: -DITER1_AUDIT
+// Purpose: for each depth layer of iter=0 (1-indexed iter=1), dump from MLX:
+//   - Per-partition parent aggregates: (partIdx, sumG, sumH, W, leafCount)
+//   - Top-K=5 split candidates: (featIdx, binIdx, gain) in descending order
+//   - Winning split: (featIdx, binIdx, gain)
+// Output: JSON file per seed in the directory given by ITER1_AUDIT_OUTDIR env var.
+//         Default: docs/sprint31/t3b-audit/data/
+//
+// Hard-stop rule: only instruments iter==0. Deeper iters see stale leaf assignments
+// and their comparisons are not meaningful.
+//
+// DEC-012 note: this block is diagnostic evidence, not product code.
+// ============================================================================
+#ifdef ITER1_AUDIT
+#ifndef COSINE_RESIDUAL_INSTRUMENT
+#  include <filesystem>
+#endif
+#include <algorithm>
+#include <tuple>
+
+struct TIter1AuditState {
+    std::string outDir;
+    int seed = 0;
+    bool active = false;  // true when iter==0, ST, Cosine
+
+    // Written per depth: one entry per depth level
+    struct TLayerRecord {
+        int depth = 0;
+        // Parent aggregates: one entry per active partition
+        struct TPartStat {
+            uint32_t partIdx;
+            double sumG;
+            double sumH;
+            double W;
+            uint64_t leafCount;
+        };
+        std::vector<TPartStat> partStats;
+        // Top-K=5 candidates: sorted descending by gain
+        struct TCandidate {
+            uint32_t featIdx;
+            uint32_t binIdx;
+            double gain;
+        };
+        std::vector<TCandidate> topK;
+        // Winner
+        uint32_t winnerFeat = 0;
+        uint32_t winnerBin  = 0;
+        double   winnerGain = 0.0;
+    };
+    std::vector<TLayerRecord> layers;
+
+    // Pending layer: filled during FindBestSplit, flushed after the call returns
+    TLayerRecord pendingLayer;
+    bool pendingActive = false;
+
+    // Top-K candidate accumulator inside FindBestSplit
+    // Each entry: (gain, featIdx, binIdx) — use gain as primary sort key
+    std::vector<std::tuple<double, uint32_t, uint32_t>> candidateAccum;
+    static constexpr int TOP_K = 5;
+};
+
+static TIter1AuditState g_iter1Audit;
+
+// Serialise all recorded layers to JSON file for the current seed.
+static void WriteIter1AuditJSON() {
+    if (g_iter1Audit.layers.empty()) return;
+    std::string path = g_iter1Audit.outDir
+                     + "/mlx_splits_seed" + std::to_string(g_iter1Audit.seed) + ".json";
+    std::filesystem::create_directories(
+        std::filesystem::path(path).parent_path());
+
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) {
+        fprintf(stderr, "[AUDIT] ERROR: cannot open %s\n", path.c_str());
+        return;
+    }
+    fprintf(f, "{\n  \"seed\": %d,\n  \"layers\": [\n", g_iter1Audit.seed);
+    for (size_t li = 0; li < g_iter1Audit.layers.size(); ++li) {
+        const auto& layer = g_iter1Audit.layers[li];
+        fprintf(f, "    {\n      \"depth\": %d,\n", layer.depth);
+        // partitions
+        fprintf(f, "      \"partitions\": [\n");
+        for (size_t pi = 0; pi < layer.partStats.size(); ++pi) {
+            const auto& ps = layer.partStats[pi];
+            fprintf(f, "        {\"leaf_idx\": %u, \"sumG\": %.15g, "
+                       "\"sumH\": %.15g, \"W\": %.15g, \"leaf_count\": %llu}%s\n",
+                    ps.partIdx, ps.sumG, ps.sumH, ps.W,
+                    (unsigned long long)ps.leafCount,
+                    (pi + 1 < layer.partStats.size()) ? "," : "");
+        }
+        fprintf(f, "      ],\n");
+        // top5
+        fprintf(f, "      \"top5\": [\n");
+        for (size_t ci = 0; ci < layer.topK.size(); ++ci) {
+            const auto& c = layer.topK[ci];
+            fprintf(f, "        {\"feat_idx\": %u, \"bin_idx\": %u, \"gain\": %.15g}%s\n",
+                    c.featIdx, c.binIdx, c.gain,
+                    (ci + 1 < layer.topK.size()) ? "," : "");
+        }
+        fprintf(f, "      ],\n");
+        // winner
+        fprintf(f, "      \"winner\": {\"feat_idx\": %u, \"bin_idx\": %u, \"gain\": %.15g}\n",
+                layer.winnerFeat, layer.winnerBin, layer.winnerGain);
+        fprintf(f, "    }%s\n", (li + 1 < g_iter1Audit.layers.size()) ? "," : "");
+    }
+    fprintf(f, "  ]\n}\n");
+    fclose(f);
+    fprintf(stderr, "[AUDIT] wrote %zu layers → %s\n",
+            g_iter1Audit.layers.size(), path.c_str());
+}
+#endif  // ITER1_AUDIT
+
+// ============================================================================
+// S32-T2-INSTRUMENT: Cosine term-level audit — per-bin (feat, bin) dump
+//
+// Compile-time gate: -DCOSINE_TERM_AUDIT
+// Purpose: at depth=0 iter=0 for SymmetricTree+Cosine, dump per-bin:
+//   (feat, bin, sumLeft, sumRight, weightLeft, weightRight, lambda,
+//    cosNum_d, cosDen_d, gain)
+// This is the term-level dump needed to compare against CPU CatBoost's
+// per-bin gain computation at the same (feat, bin) coordinate and identify
+// the first diverging quantity (gradient, weight, cosNum, cosDen, or gain).
+//
+// Output: CSV at COSINE_TERM_AUDIT_OUTDIR or default docs/sprint32/t2-terms/data/
+// One file per seed: mlx_terms_seed<N>_depth0.csv
+//
+// At depth=0 with N=50k RMSE SymmetricTree: numPartitions=1, K=1.
+// Each row corresponds to one (feat, bin) candidate, capturing the single
+// (p=0, k=0) term that comprises the entire Cosine accumulation.
+//
+// DEC-012 note: diagnostic evidence only; zero product-path behavior change.
+// ============================================================================
+#ifdef COSINE_TERM_AUDIT
+#ifndef COSINE_RESIDUAL_INSTRUMENT
+#  include <filesystem>
+#endif
+
+struct TCosineTermAuditState {
+    std::string outDir;
+    int seed = 0;
+    bool active = false;    // set true at depth=0, iter=0 arm site
+    bool flushed = false;   // prevent double-write
+
+    struct TTermRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        double sumLeft;
+        double sumRight;
+        double weightLeft;
+        double weightRight;
+        double lambda;
+        double cosNumTerm;  // incremental contribution to cosNum_d for this (feat,bin) sum
+        double cosDenTerm;  // incremental contribution to cosDen_d for this (feat,bin) sum
+        double gain;        // finalised cosNum / sqrt(cosDen) after all p,k
+    };
+    std::vector<TTermRecord> records;
+
+    // Per-bin accumulators filled inside the p,k loop then finalised
+    // Only meaningful while active == true
+    uint32_t curFeat  = 0;
+    uint32_t curBin   = 0;
+    double   curCosNum = 0.0;
+    double   curCosDen = 0.0;
+    double   curSumL  = 0.0;
+    double   curSumR  = 0.0;
+    double   curWL    = 0.0;
+    double   curWR    = 0.0;
+    double   curLambda = 0.0;
+};
+
+static TCosineTermAuditState g_termAudit;
+
+static void WriteCosineTermCSV(const std::string& path,
+                                const std::vector<TCosineTermAuditState::TTermRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[TERM_AUDIT] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "feat,bin,sumLeft,sumRight,weightLeft,weightRight,lambda,"
+               "cosNum_term,cosDen_term,gain\n");
+    for (const auto& r : rows) {
+        fprintf(f, "%u,%u,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g,%.15g\n",
+                r.featIdx, r.bin,
+                r.sumLeft, r.sumRight,
+                r.weightLeft, r.weightRight,
+                r.lambda,
+                r.cosNumTerm, r.cosDenTerm,
+                r.gain);
+    }
+    fclose(f);
+    fprintf(stderr, "[TERM_AUDIT] wrote %zu rows -> %s\n", rows.size(), path.c_str());
+}
+#endif  // COSINE_TERM_AUDIT
 
 namespace mx = mlx::core;
 using ui32 = uint32_t;
@@ -371,43 +619,6 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
-    // S28-LG-GUARD (CLI defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
-    // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
-    // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
-    // S30-T3-MEASURE: guard bypassed in T3-measure builds so post-Kahan LG parity can be
-    // measured (G3b LG-Mid and G3c LG-Stress).  The TODO-S29-LG-COSINE-RCA marker is preserved
-    // for T4b grep gate.  COSINE_T3_MEASURE MUST NOT be used in production builds.
-#ifndef COSINE_T3_MEASURE
-    if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "Lossguide") {
-        throw std::invalid_argument(
-            "score_function='Cosine' with grow_policy='Lossguide' is not supported "
-            "in catboost-mlx: priority-queue leaf ordering interacts with Cosine "
-            "joint-gain magnitude producing unacceptable per-partition gain drift "
-            "vs CPU CatBoost. Root-cause investigation is scheduled for Sprint 29 "
-            "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
-            "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
-        );
-    }
-#endif  // !COSINE_T3_MEASURE
-    // S28-ST-GUARD (CLI defense-in-depth): Cosine+SymmetricTree combination rejected until S29 Kahan fix.
-    // Mirrors python/catboost_mlx/core.py:638-647 verbatim so TODO markers stay greppable
-    // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
-    // S30-T1-INSTRUMENT: guard bypassed in instrumented builds so the drift can be measured.
-    // S30-T3-MEASURE: guard also bypassed in T3-measure builds for G3a post-Kahan parity.
-    // The TODO-S29-ST-COSINE-KAHAN marker is preserved for T4a grep gate.
-#if !defined(COSINE_RESIDUAL_INSTRUMENT) && !defined(COSINE_T3_MEASURE)
-    if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "SymmetricTree") {
-        throw std::invalid_argument(
-            "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
-            "supported in catboost-mlx: float32 joint-Cosine denominator accumulates "
-            "precision drift across partitions (~47% aggregate-metric drift at 50 "
-            "iterations in S28-OBLIV-DISPATCH gate). Compensated-summation port "
-            "(Kahan/Neumaier) is scheduled for Sprint 29 (TODO-S29-ST-COSINE-KAHAN). "
-            "Use score_function='L2' with SymmetricTree, or switch grow_policy to "
-            "'Depthwise' for Cosine."
-        );
-    }
-#endif  // !COSINE_RESIDUAL_INSTRUMENT && !COSINE_T3_MEASURE
     return config;
 }
 
@@ -805,6 +1016,170 @@ TDataset LoadBinary(const std::string& path, const std::string& nanMode) {
 }
 
 // ============================================================================
+// Quantization — GreedyLogSum border selection
+//
+// S31-T2-PORT-GREEDYLOGSUM: Port of CatBoost's GreedyLogSum border algorithm
+// from library/cpp/grid_creator/binarization.cpp (TGreedyBinarizer<MaxSumLog>).
+//
+// Algorithm (unweighted path — no DefaultValue):
+//   1. Sort feature values retaining duplicates (all N docs).
+//   2. Build TFeatureBin over the full sorted array — BinEnd-BinStart = document count.
+//   3. Greedily split the bin with the highest log-gain in a priority queue.
+//   4. Each split's score = log(total) - log(left) - log(right)  [MaxSumLog penalty].
+//   5. Border = midpoint of the two adjacent array elements at each split boundary.
+//
+// DEC-038 fix: prior implementation deduplicated before passing to GreedyLogSumBestSplit,
+// making BinEnd-BinStart count unique values instead of documents. This changed the
+// penalty score landscape, producing ~2-index border offsets for features with many
+// duplicate values (N=50k, continuous float32 → ~50k near-unique → small effect; but
+// for features with genuine duplicates it diverged significantly). Fix: pass allVals
+// (sorted, with duplicates) so BinEnd-BinStart = document count, matching CPU.
+//
+// DEC-037 fix: maxBordersCount = maxBins (was maxBins-1; caused MLX_bin = CPU_bin-1).
+//
+// Reference: TGreedyBinarizer<EPenaltyType::MaxSumLog>::BestSplit (no DefaultValue branch)
+//            + TFeatureBin<MaxSumLog>::CalcSplitScore / UpdateBestSplitProperties
+//            + GreedySplit priority-queue loop
+//            in library/cpp/grid_creator/binarization.cpp.
+//
+// Arcadia dependencies stripped — uses only std:: containers.
+// ============================================================================
+
+namespace {
+
+// MaxSumLog penalty: -log(w + 1e-8).  Gain from splitting [L,R) at s is:
+//   CalcSplitScore(s) = -Penalty(s-L) + -Penalty(R-s) - (-Penalty(R-L))
+//                     = log(R-L+1e-8) - log(s-L+1e-8) - log(R-s+1e-8)
+// Higher is better.
+inline double GreedyLogSumPenalty(double w) {
+    return -std::log(w + 1e-8);
+}
+
+struct TGreedyFeatureBin {
+    uint32_t BinStart;
+    uint32_t BinEnd;
+    const float* Values;   // pointer into sorted all-docs value array (with duplicates)
+    uint32_t BestSplit;
+    double BestScore;
+
+    TGreedyFeatureBin(uint32_t start, uint32_t end, const float* vals)
+        : BinStart(start), BinEnd(end), Values(vals), BestSplit(start), BestScore(0.0)
+    {
+        UpdateBestSplitProperties();
+    }
+
+    bool operator<(const TGreedyFeatureBin& other) const {
+        return BestScore < other.BestScore;
+    }
+
+    bool CanSplit() const {
+        return (BinStart != BestSplit) && (BinEnd != BestSplit);
+    }
+
+    bool IsFirst() const {
+        return BinStart == 0;
+    }
+
+    // Border value: midpoint between Values[BinStart-1] and Values[BinStart].
+    float LeftBorder() const {
+        if (IsFirst()) return Values[0];
+        float borderValue = 0.5f * Values[BinStart - 1];
+        borderValue += 0.5f * Values[BinStart];
+        return borderValue;
+    }
+
+    uint32_t Size() const { return BinEnd - BinStart; }
+    double Score() const { return BestScore; }
+
+    // Split this bin at BestSplit: returns the left child; this bin becomes right.
+    TGreedyFeatureBin Split() {
+        TGreedyFeatureBin left(BinStart, BestSplit, Values);
+        BinStart = BestSplit;
+        UpdateBestSplitProperties();
+        return left;
+    }
+
+private:
+    double CalcSplitScore(uint32_t splitPos) const {
+        if (splitPos == BinStart || splitPos == BinEnd) {
+            return -std::numeric_limits<double>::infinity();
+        }
+        const double leftScore  = -GreedyLogSumPenalty(static_cast<double>(splitPos - BinStart));
+        const double rightScore = -GreedyLogSumPenalty(static_cast<double>(BinEnd    - splitPos));
+        const double currScore  = -GreedyLogSumPenalty(static_cast<double>(BinEnd    - BinStart));
+        return leftScore + rightScore - currScore;
+    }
+
+    void UpdateBestSplitProperties() {
+        // Mirror TFeatureBin::UpdateBestSplitProperties from binarization.cpp:
+        // Find midValue at midpoint of [BinStart, BinEnd), then locate the first
+        // occurrence (lb) and one-past-last occurrence (ub) of that midValue.
+        // Evaluate score at both positions, pick the better one.
+        const uint32_t mid = BinStart + (BinEnd - BinStart) / 2;
+        const float midValue = Values[mid];
+
+        const uint32_t lb = static_cast<uint32_t>(
+            std::lower_bound(Values + BinStart, Values + mid, midValue) - Values
+        );
+        const uint32_t ub = static_cast<uint32_t>(
+            std::upper_bound(Values + mid, Values + BinEnd, midValue) - Values
+        );
+
+        const double scoreLeft  = CalcSplitScore(lb);
+        const double scoreRight = CalcSplitScore(ub);
+
+        BestSplit = (scoreLeft >= scoreRight) ? lb : ub;
+        BestScore = (BestSplit == lb) ? scoreLeft : scoreRight;
+    }
+};
+
+// GreedySplit: greedy priority-queue splitter (mirrors GreedySplit from binarization.cpp).
+// Takes ownership of initialBin; returns sorted vector of border values.
+static std::vector<float> GreedyLogSumBestSplit(
+    const std::vector<float>& uniqueValues,
+    int maxBordersCount)
+{
+    if (uniqueValues.size() <= 1 || maxBordersCount <= 0) {
+        return {};
+    }
+
+    TGreedyFeatureBin initialBin(
+        0,
+        static_cast<uint32_t>(uniqueValues.size()),
+        uniqueValues.data()
+    );
+
+    std::priority_queue<TGreedyFeatureBin> splits;
+    splits.push(initialBin);
+
+    while (static_cast<int>(splits.size()) <= maxBordersCount && splits.top().CanSplit()) {
+        auto top = splits.top();
+        splits.pop();
+        auto left = top.Split();
+        splits.push(left);
+        splits.push(top);
+    }
+
+    std::vector<float> borders;
+    borders.reserve(splits.size() > 0 ? splits.size() - 1 : 0);
+    while (!splits.empty()) {
+        if (!splits.top().IsFirst()) {
+            borders.push_back(splits.top().LeftBorder());
+        }
+        splits.pop();
+    }
+
+    // Sort borders (priority queue ordering is by score, not position).
+    std::sort(borders.begin(), borders.end());
+    // Remove exact duplicates that can arise when adjacent unique values share a midpoint.
+    borders.erase(std::unique(borders.begin(), borders.end()), borders.end());
+
+    return borders;
+}
+
+}  // namespace
+
+// ============================================================================
 // Quantization
 // ============================================================================
 
@@ -829,49 +1204,54 @@ TQuantization QuantizeFeatures(const TDataset& ds, ui32 maxBins) {
             continue;
         }
 
-        // Numeric: equal-frequency quantization
-        // Filter out NaN values before border computation
-        std::vector<float> sorted;
-        sorted.reserve(ds.NumDocs);
+        // Numeric: GreedyLogSum border selection (CatBoost default EBorderSelectionType).
+        // Uses greedy MaxSumLog priority-queue approach (TGreedyBinarizer<MaxSumLog>),
+        // unweighted path (TFeatureBin — count of ALL documents, not unique values).
+        //
+        // DEC-038 fix: CPU's TFeatureBin is built from features.Values (all docs, with
+        // duplicates), not from a deduplicated unique-value array. The CalcSplitScore
+        // uses BinEnd-BinStart as document counts, so the penalty function receives
+        // document counts. Using uniqueVals caused a different score landscape and
+        // produced ~2-index border offsets for features with many duplicate values.
+        //
+        // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1; caused MLX_bin = CPU_bin-1).
+        //
+        // Step 1: build sorted raw values (non-NaN only), with duplicates retained.
+        std::vector<float> allVals;
+        allVals.reserve(ds.NumDocs);
         for (ui32 d = 0; d < ds.NumDocs; ++d) {
             if (!std::isnan(ds.Features[f][d])) {
-                sorted.push_back(ds.Features[f][d]);
+                allVals.push_back(ds.Features[f][d]);
             }
         }
-        if (sorted.empty()) {
-            // All NaN — single NaN bin
+        if (allVals.empty()) {
+            // All NaN — single NaN bin, no borders.
             q.BinnedFeatures[f].resize(ds.NumDocs, 0);
             continue;
         }
-        std::sort(sorted.begin(), sorted.end());
+        std::sort(allVals.begin(), allVals.end());
 
-        // Remove duplicates for border computation
-        sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+        // Step 2: Greedy MaxSumLog binarization — pass allVals (with duplicates) to
+        // match CatBoost's TFeatureBin which operates on the full document array.
+        // DEC-037 fix: maxBordersCount = maxBins (was maxBins-1, causing bin offset).
+        //
+        // DEC-039 fix: cap maxBordersCount at 127 to satisfy the histogram kernel's
+        // T2_BIN_CAP = 128 (0..127) contract.  With folds ≤ 127 the maximum bin_value
+        // is 127, so the packed byte for posInWord=0 features never has bit 7 set
+        // (bit 7 at shift=24 = bit 31 of the word = VALID_BIT).  Requesting 128
+        // borders produces fold_count=128 and allows bin_value=128 at posInWord=0
+        // features; the histogram kernel strips the VALID_BIT on p_clean, aliasing
+        // bin_value=128 to bin_value=0 and silently dropping those docs from the
+        // suffix sum.  This caused wL to be offset by ~391 for features 0,4,8,12,16
+        // (every posInWord=0 feature) despite DEC-038-correct borders.
+        // Note: bench_boosting already applies this cap (NumBins-1 for fold count).
+        int maxBordersCount = static_cast<int>(std::min(maxBins, 127u));
+        std::vector<float> borders = GreedyLogSumBestSplit(allVals, maxBordersCount);
+        q.Borders[f] = std::move(borders);
 
-        ui32 numBorders = std::min(static_cast<ui32>(sorted.size()) - 1, maxBins - 1);
-        q.Borders[f].resize(numBorders);
-
-        for (ui32 b = 0; b < numBorders; ++b) {
-            // Equal-frequency: pick percentile borders
-            float frac = static_cast<float>(b + 1) / static_cast<float>(numBorders + 1);
-            ui32 idx = static_cast<ui32>(frac * (sorted.size() - 1));
-            idx = std::min(idx, static_cast<ui32>(sorted.size()) - 1);
-            // Border = midpoint between sorted[idx] and sorted[idx+1] if possible
-            if (idx + 1 < sorted.size()) {
-                q.Borders[f][b] = 0.5f * (sorted[idx] + sorted[idx + 1]);
-            } else {
-                q.Borders[f][b] = sorted[idx];
-            }
-        }
-
-        // Ensure borders are strictly increasing
-        for (ui32 b = 1; b < numBorders; ++b) {
-            if (q.Borders[f][b] <= q.Borders[f][b - 1]) {
-                q.Borders[f][b] = q.Borders[f][b - 1] + 1e-6f;
-            }
-        }
-
-        // Quantize: NaN → bin 0, real values → bins 1..numBorders+1
+        // Step 3: bin assignment (same policy as before):
+        //   NaN → bin 0 (if the feature has any NaN values in the dataset).
+        //   Real values → upper_bound into borders, offset by 1 if NaN bin is active.
         bool hasNaN = ds.HasNaN[f];
         ui32 binOffset = hasNaN ? 1 : 0;
         q.BinnedFeatures[f].resize(ds.NumDocs);
@@ -1111,6 +1491,8 @@ mx::array DispatchHistogram(
         true, false
     );
 
+    bool verbose_this_call = false;
+
     auto result = kernel(
         {mx::reshape(compressedData, {-1}), stats, docIndices,
          partOffsets, partSizes,
@@ -1126,11 +1508,12 @@ mx::array DispatchHistogram(
         std::make_tuple(static_cast<int>(256 * maxBlocksPerPart * numFeatureGroups),
                         static_cast<int>(numPartitions), 2),
         std::make_tuple(256, 1, 1),
-        {}, 0.0f, false, mx::Device::gpu
+        {}, 0.0f, verbose_this_call, mx::Device::gpu
     );
 
     histogram = result[0];
     mx::eval(histogram);
+
     return histogram;
 }
 
@@ -1361,6 +1744,12 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = static_cast<float>(-totalGain);
                 }
+#ifdef ITER1_AUDIT
+                // S31-T3b: collect candidate gain for top-K ranking (OneHot branch)
+                if (g_iter1Audit.pendingActive) {
+                    g_iter1Audit.candidateAccum.emplace_back(totalGain, featIdx, bin);
+                }
+#endif
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (OneHot: use partition 0, dim 0 stats)
@@ -1428,6 +1817,20 @@ TBestSplitProperties FindBestSplit(
                 // S30-T2-KAHAN K4: accumulate in double; Fix 2 removes the cast at finalization.
                 double cosNum_d = 0.0;
                 double cosDen_d = 1e-20;  // guard against sqrt(0), mirrors float guard
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: reset per-bin accumulators at the start of each bin candidate.
+                if (g_termAudit.active) {
+                    g_termAudit.curFeat   = featIdx;
+                    g_termAudit.curBin    = bin;
+                    g_termAudit.curCosNum = 0.0;
+                    g_termAudit.curCosDen = 0.0;
+                    g_termAudit.curSumL   = 0.0;
+                    g_termAudit.curSumR   = 0.0;
+                    g_termAudit.curWL     = 0.0;
+                    g_termAudit.curWR     = 0.0;
+                    g_termAudit.curLambda = 0.0;
+                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // S30-T2: parallel float32 shadow accumulators for residual comparison.
                 // These mirror the pre-K4 float32 accumulation.  The residual reported in the
@@ -1482,38 +1885,157 @@ TBestSplitProperties FindBestSplit(
                         float sumLeft = totalSum - sumRight;
                         float weightLeft = totalWeight - weightRight;
 
-                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+#ifdef PROBE_E_INSTRUMENT
+                        // S33-PROBE-E: capture per-leaf contribution snapshot BEFORE the
+                        // skip-when-degenerate gate. Mirrors MLX's actual behavior (mlxTerm*=0
+                        // when skipped) AND records what CPU's per-side-mask formula would add
+                        // at the same (sumL, sumR, wL, wR). Diff columns expose the divergence.
+                        if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine && K == 1) {
+                            TCosineResidualInstrument::TLeafRecord lr;
+                            lr.featIdx       = featIdx;
+                            lr.bin           = bin;
+                            lr.partition     = p;
+                            lr.sumLeft       = sumLeft;
+                            lr.sumRight      = sumRight;
+                            lr.weightLeft    = weightLeft;
+                            lr.weightRight   = weightRight;
+                            const bool skip  = (weightLeft < 1e-15f || weightRight < 1e-15f);
+                            lr.mlxSkipped    = skip;
+                            const double dL2_e = static_cast<double>(l2RegLambda);
+                            if (skip) {
+                                lr.mlxTermNum = 0.0;
+                                lr.mlxTermDen = 0.0;
+                            } else {
+                                const double dSL_e = static_cast<double>(sumLeft);
+                                const double dSR_e = static_cast<double>(sumRight);
+                                const double dWL_e = static_cast<double>(weightLeft);
+                                const double dWR_e = static_cast<double>(weightRight);
+                                const double dInvL_e = 1.0 / (dWL_e + dL2_e);
+                                const double dInvR_e = 1.0 / (dWR_e + dL2_e);
+                                lr.mlxTermNum = dSL_e * dSL_e * dInvL_e + dSR_e * dSR_e * dInvR_e;
+                                lr.mlxTermDen = dSL_e * dSL_e * dWL_e * dInvL_e * dInvL_e
+                                              + dSR_e * dSR_e * dWR_e * dInvR_e * dInvR_e;
+                            }
+                            // CPU-style: each side contributes independently, masked when its weight ≤ 0
+                            double cpuN = 0.0, cpuD = 0.0;
+                            if (weightLeft > 1e-15f) {
+                                const double dSL2 = static_cast<double>(sumLeft);
+                                const double dWL2 = static_cast<double>(weightLeft);
+                                const double inv  = 1.0 / (dWL2 + dL2_e);
+                                cpuN += dSL2 * dSL2 * inv;
+                                cpuD += dSL2 * dSL2 * dWL2 * inv * inv;
+                            }
+                            if (weightRight > 1e-15f) {
+                                const double dSR2 = static_cast<double>(sumRight);
+                                const double dWR2 = static_cast<double>(weightRight);
+                                const double inv  = 1.0 / (dWR2 + dL2_e);
+                                cpuN += dSR2 * dSR2 * inv;
+                                cpuD += dSR2 * dSR2 * dWR2 * inv * inv;
+                            }
+                            lr.cpuTermNum = cpuN;
+                            lr.cpuTermDen = cpuD;
+                            g_cosInstr.leafRecords.push_back(lr);
+                        }
+#endif  // PROBE_E_INSTRUMENT
+
+                        // S33-L4-FIX (DEC-042): replace the joint skip-when-either-side-empty
+                        // with a per-side mask that matches CPU's reference formula in
+                        // short_vector_ops.h:155+ (SSE2 UpdateScoreBinKernelPlain).
+                        // CPU zeroes the average of the empty side but ALWAYS adds the
+                        // non-empty side's contribution.  The old single continue discarded
+                        // the entire partition when one child was degenerate, which silently
+                        // under-attributed cosNum/cosDen for signal-correlated split candidates
+                        // that produce empty children in some partitions after depth>=1 splits.
+                        // Both L2 and Cosine now apply per-side accumulation (S33-L4-FIX Commit 1.5).
+                        const bool wL_pos = (weightLeft  > 1e-15f);
+                        const bool wR_pos = (weightRight > 1e-15f);
 
                         switch (scoreFunction) {
-                            case EScoreFunction::L2:
-                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                            case EScoreFunction::L2: {
+                                // S33-L4-FIX Commit 1.5 (DEC-042): replace joint skip-when-either-empty
+                                // with per-side mask matching CPU's CalcAverage formula in
+                                // online_predictor.h:112-119:
+                                //   average = (count > 0) ? sum / (count + λ) : 0
+                                // CPU calls AddLeaf for both sides unconditionally; the mask is
+                                // implicit in CalcAverage returning 0 for empty leaves.
+                                // Each non-empty side contributes sum² / (weight + λ) to gain.
+                                // Parent term (totalSum² / (totalWeight + λ)) is subtracted only
+                                // when at least one side is non-empty — skip entire partition only
+                                // when both children are empty (true no-op, no information).
+                                // Sibling of Commit 1 (10c72b4e96) which applied the same fix to Cosine.
+                                if (!wL_pos && !wR_pos) break;
+                                if (wL_pos) {
+                                    totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda);
+                                }
+                                if (wR_pos) {
+                                    totalGain += (sumRight * sumRight) / (weightRight + l2RegLambda);
+                                }
+                                totalGain -= (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
+                            }
                             case EScoreFunction::Cosine: {
+                                // S33-L4-FIX: per-side mask — skip whole partition only when
+                                // both sides are empty (true no-op); otherwise accumulate each
+                                // non-empty side independently.  Mirrors CPU's mask formula:
+                                //   average = mask · sum / (w + λ),  mask = (w > 0)
+                                //   num contribution: sum² / (w + λ)       [if w > 0]
+                                //   den contribution: sum² · w / (w + λ)²  [if w > 0]
                                 // S30-T2-KAHAN K4: widen to double before computing per-(p,k) terms.
                                 // This eliminates the ~1e-3 per-term fp32 computation error that
                                 // float32 Neumaier compensation could not reach.
-                                const double dSL   = static_cast<double>(sumLeft);
-                                const double dSR   = static_cast<double>(sumRight);
-                                const double dWL   = static_cast<double>(weightLeft);
-                                const double dWR   = static_cast<double>(weightRight);
+                                if (!wL_pos && !wR_pos) break;
                                 const double dL2   = static_cast<double>(l2RegLambda);
-                                const double dInvL = 1.0 / (dWL + dL2);
-                                const double dInvR = 1.0 / (dWR + dL2);
-                                cosNum_d += dSL * dSL * dInvL + dSR * dSR * dInvR;
-                                cosDen_d += dSL * dSL * dWL * dInvL * dInvL
-                                          + dSR * dSR * dWR * dInvR * dInvR;
+                                double termNum = 0.0;
+                                double termDen = 0.0;
+                                if (wL_pos) {
+                                    const double dSL   = static_cast<double>(sumLeft);
+                                    const double dWL   = static_cast<double>(weightLeft);
+                                    const double dInvL = 1.0 / (dWL + dL2);
+                                    termNum += dSL * dSL * dInvL;
+                                    termDen += dSL * dSL * dWL * dInvL * dInvL;
+                                }
+                                if (wR_pos) {
+                                    const double dSR   = static_cast<double>(sumRight);
+                                    const double dWR   = static_cast<double>(weightRight);
+                                    const double dInvR = 1.0 / (dWR + dL2);
+                                    termNum += dSR * dSR * dInvR;
+                                    termDen += dSR * dSR * dWR * dInvR * dInvR;
+                                }
+                                cosNum_d += termNum;
+                                cosDen_d += termDen;
+#ifdef COSINE_TERM_AUDIT
+                                // S32-T2: accumulate per-bin term contributions for the term audit.
+                                // At depth=0 K=1 numPartitions=1, there is exactly one (p=0,k=0)
+                                // term per (feat,bin) candidate — these are the raw input values.
+                                // S33-L4-FIX: use raw float stats (sumLeft/Right, weightLeft/Right)
+                                // since dSL/dSR/dWL/dWR are now scoped inside per-side if-blocks.
+                                if (g_termAudit.active) {
+                                    g_termAudit.curCosNum   += termNum;
+                                    g_termAudit.curCosDen   += termDen;
+                                    // Capture the partition stats from the last (p,k) iteration.
+                                    // For depth=0 K=1 these are the only (p,k) values.
+                                    g_termAudit.curSumL   = static_cast<double>(sumLeft);
+                                    g_termAudit.curSumR   = static_cast<double>(sumRight);
+                                    g_termAudit.curWL     = static_cast<double>(weightLeft);
+                                    g_termAudit.curWR     = static_cast<double>(weightRight);
+                                    g_termAudit.curLambda = dL2;
+                                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                                 // S30-T2: parallel float32 shadow accumulation for residual comparison.
                                 // Accumulates the same terms in float32 to show the pre-K4 precision.
+                                // S33-L4-FIX: apply per-side mask to match the corrected accumulation.
                                 if (g_cosInstr.dumpCosDen) {
-                                    const float invLf = 1.0f / (weightLeft  + l2RegLambda);
-                                    const float invRf = 1.0f / (weightRight + l2RegLambda);
-                                    cosNum_f32_shadow += sumLeft  * sumLeft  * invLf
-                                                       + sumRight * sumRight * invRf;
-                                    cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf
-                                                       + sumRight * sumRight * weightRight * invRf * invRf;
+                                    if (wL_pos) {
+                                        const float invLf = 1.0f / (weightLeft  + l2RegLambda);
+                                        cosNum_f32_shadow += sumLeft  * sumLeft  * invLf;
+                                        cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf;
+                                    }
+                                    if (wR_pos) {
+                                        const float invRf = 1.0f / (weightRight + l2RegLambda);
+                                        cosNum_f32_shadow += sumRight * sumRight * invRf;
+                                        cosDen_f32_shadow += sumRight * sumRight * weightRight * invRf * invRf;
+                                    }
                                 }
 #endif
                                 break;
@@ -1529,6 +2051,25 @@ TBestSplitProperties FindBestSplit(
                     // Fix 2 (S30-COSINE-KAHAN): assign fp64 result directly — no cast to float.
                     totalGain = cosNum_d / std::sqrt(cosDen_d);
                 }
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: record finalised per-bin term data.
+                // totalGain is now set for Cosine; for non-Cosine score functions this block
+                // is conditionally disabled by g_termAudit.active (only armed for Cosine).
+                if (g_termAudit.active && scoreFunction == EScoreFunction::Cosine) {
+                    TCosineTermAuditState::TTermRecord rec;
+                    rec.featIdx    = g_termAudit.curFeat;
+                    rec.bin        = g_termAudit.curBin;
+                    rec.sumLeft    = g_termAudit.curSumL;
+                    rec.sumRight   = g_termAudit.curSumR;
+                    rec.weightLeft = g_termAudit.curWL;
+                    rec.weightRight= g_termAudit.curWR;
+                    rec.lambda     = g_termAudit.curLambda;
+                    rec.cosNumTerm = g_termAudit.curCosNum;
+                    rec.cosDenTerm = g_termAudit.curCosDen;
+                    rec.gain       = totalGain;
+                    g_termAudit.records.push_back(rec);
+                }
+#endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // D2-redux: record per-bin residual for cosDen/cosNum/gain with CORRECTED methodology.
                 // gain_f32 is now computed from the true pre-K4 fp32 shadow accumulators, NEVER
@@ -1571,6 +2112,12 @@ TBestSplitProperties FindBestSplit(
                     bestSplit.Gain = totalGain;  // store actual gain, not perturbed
                     bestSplit.Score = static_cast<float>(-totalGain);
                 }
+#ifdef ITER1_AUDIT
+                // S31-T3b: collect candidate gain for top-K ranking (Ordinal branch)
+                if (g_iter1Audit.pendingActive) {
+                    g_iter1Audit.candidateAccum.emplace_back(totalGain, featIdx, bin);
+                }
+#endif
 #ifdef CATBOOST_MLX_DEBUG_LEAF
                 if (p11Active) {
                     // Record candidate for P11 top-10 (Ordinal: use partition 0, dim 0 suffix sums)
@@ -1643,6 +2190,38 @@ TBestSplitProperties FindBestSplit(
         printf("[DBG P13]   gain_reported_by_FindBestSplit = %.6f\n", p13_gain_reported);
         printf("[DBG P13]   L2=%g  wP=%.2f  sumP=%.6f\n", p13_l2, best.wP, best.sumP);
         fflush(stdout);
+    }
+#endif
+
+#ifdef ITER1_AUDIT
+    // S31-T3b: finalise top-K candidates and record winner into pending layer
+    if (g_iter1Audit.pendingActive) {
+        // Sort descending by gain (first element of tuple)
+        std::sort(g_iter1Audit.candidateAccum.begin(),
+                  g_iter1Audit.candidateAccum.end(),
+                  [](const auto& a, const auto& b){ return std::get<0>(a) > std::get<0>(b); });
+
+        g_iter1Audit.pendingLayer.topK.clear();
+        const int kLimit = std::min(
+            (int)g_iter1Audit.candidateAccum.size(),
+            TIter1AuditState::TOP_K);
+        for (int ki = 0; ki < kLimit; ++ki) {
+            TIter1AuditState::TLayerRecord::TCandidate c;
+            c.gain    = std::get<0>(g_iter1Audit.candidateAccum[ki]);
+            c.featIdx = std::get<1>(g_iter1Audit.candidateAccum[ki]);
+            c.binIdx  = std::get<2>(g_iter1Audit.candidateAccum[ki]);
+            g_iter1Audit.pendingLayer.topK.push_back(c);
+        }
+        g_iter1Audit.candidateAccum.clear();
+
+        // Record winner
+        if (bestSplit.Defined()) {
+            g_iter1Audit.pendingLayer.winnerFeat = bestSplit.FeatureId;
+            g_iter1Audit.pendingLayer.winnerBin  = bestSplit.BinId;
+            g_iter1Audit.pendingLayer.winnerGain = bestSplit.Gain;
+        }
+        // NOTE: pendingActive stays true here — the call-site FLUSH block clears it
+        // after pushing pendingLayer to g_iter1Audit.layers.
     }
 #endif
 
@@ -3351,6 +3930,23 @@ TTrainResult RunTraining(
         valPairLogitPairs = GeneratePairLogitPairs(valTargetsVec, valGroupOffsets, valNumGroups);
     }
 
+    // S31-T2 P5 fix: ScaleL2Reg — mirrors CPU catboost/private/libs/algo/online_predictor.h
+    // ScaleL2Reg(l2Regularizer, sumAllWeights, allDocCount) = l2Regularizer * sumAllWeights / allDocCount
+    // CPU always scales before passing to split-scoring and leaf-estimation.
+    // MLX was passing config.L2RegLambda raw (= unscaled). For uniform weights (S28 anchor),
+    // sumAllWeights == docCount so scaledL2 == L2RegLambda and this is a no-op.
+    // Becomes load-bearing for any training run with non-uniform sample weights.
+    float scaledL2RegLambda;
+    {
+        double sumAllWeights = 0.0;
+        if (sampleWeights.empty()) {
+            sumAllWeights = static_cast<double>(trainDocs);
+        } else {
+            for (float w : sampleWeights) sumAllWeights += static_cast<double>(w);
+        }
+        scaledL2RegLambda = static_cast<float>(
+            config.L2RegLambda * (sumAllWeights / static_cast<double>(trainDocs)));
+    }
 
 #ifdef CATBOOST_MLX_STAGE_PROFILE
     NCatboostMlx::TStageProfiler stageProfiler(static_cast<int>(config.NumIterations));
@@ -3407,7 +4003,7 @@ TTrainResult RunTraining(
                 printf("[DBG iter=0]   BootstrapType      = %s\n",    config.BootstrapType.c_str());
                 printf("[DBG iter=0]   BaggingTemperature = %.4f\n",  config.BaggingTemperature);
                 printf("[DBG iter=0]   MvsReg             = %.4f\n",  config.MvsReg);
-                printf("[DBG iter=0]   FeatureBorderType  = EqualFrequency (custom MLX impl)\n");
+                printf("[DBG iter=0]   FeatureBorderType  = GreedyLogSum (DEC-037: greedy unweighted, maxBins borders)\n");
                 // DEC-028 fix: noiseScale = RandomStrength * gradRms
                 // gradRms = sqrt(sum_{k,i} g_k[i]^2 / N), computed post-gradient below.
                 // Approximate at iter=0 using target std (residual ≈ -y for RMSE).
@@ -3804,10 +4400,11 @@ TTrainResult RunTraining(
                 }
 
                 // Find best split for partition 0 (the leaf's docs).
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto perPartSplits = FindBestSplitPerPartition(
                     histData2, partStats2,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, 2u, featureMask,
+                    scaledL2RegLambda, 2u, featureMask,
                     config.RandomStrength, gradRms, &rng,
                     ParseScoreFunction(config.ScoreFunction));
 
@@ -4062,10 +4659,11 @@ TTrainResult RunTraining(
 #ifdef CATBOOST_MLX_STAGE_PROFILE
                 auto _prof_split_start = std::chrono::steady_clock::now();
 #endif
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto perPartSplits = FindBestSplitPerPartition(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, numPartitions, featureMask,
+                    scaledL2RegLambda, numPartitions, featureMask,
                     config.RandomStrength, gradRms, &rng,
                     ParseScoreFunction(config.ScoreFunction)
                 );
@@ -4178,15 +4776,56 @@ TTrainResult RunTraining(
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // S30-T1: arm the cosDen/cosNum double-shadow for this FindBestSplit call
                 // when iter==0 and grow_policy==SymmetricTree (the ST anchor cell).
-                if (iter == 0 && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                // S33-PROBE-D: optional override to arm at a different iter via
+                //   -DPROBE_D_ARM_AT_ITER=N (default 0). Used to capture iter=2 d=2.
+#ifndef PROBE_D_ARM_AT_ITER
+#  define PROBE_D_ARM_AT_ITER 0
+#endif
+                if (iter == PROBE_D_ARM_AT_ITER && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
                     g_cosInstr.dumpCosDen = true;
                     g_cosInstr.binRecords.clear();
+#ifdef PROBE_E_INSTRUMENT
+                    g_cosInstr.leafRecords.clear();
+#endif
                 }
 #endif
+#ifdef ITER1_AUDIT
+                // S31-T3b: arm audit at iter=0 for SymmetricTree (all score functions).
+                // Collect parent partition stats and arm candidate accumulation.
+                if (iter == 0 && g_iter1Audit.active) {
+                    g_iter1Audit.pendingLayer = TIter1AuditState::TLayerRecord{};
+                    g_iter1Audit.pendingLayer.depth = static_cast<int>(depth);
+                    g_iter1Audit.pendingLayer.partStats.reserve(numPartitions);
+                    for (ui32 p = 0; p < numPartitions; ++p) {
+                        TIter1AuditState::TLayerRecord::TPartStat ps;
+                        ps.partIdx   = p;
+                        // Use dim-0 partition stats (K=1 for RMSE; for K>1 we'd need to sum)
+                        ps.sumG      = (approxDim > 0) ? perDimPartStats[0][p].Sum    : 0.0;
+                        ps.sumH      = (approxDim > 0) ? perDimPartStats[0][p].Weight : 0.0;
+                        ps.W         = ps.sumH;  // W = sumH = doc count for unweighted RMSE
+                        // leaf_count: sumH should equal doc count for RMSE (hess=1)
+                        ps.leafCount = static_cast<uint64_t>(std::round(ps.sumH));
+                        g_iter1Audit.pendingLayer.partStats.push_back(ps);
+                    }
+                    g_iter1Audit.candidateAccum.clear();
+                    g_iter1Audit.pendingActive = true;
+                }
+#endif
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: arm term audit at iter=0 depth=0 for SymmetricTree+Cosine only.
+                // depth=0 has numPartitions=1, K=1 for RMSE — one (p,k) term per (feat,bin).
+                // Disarm after depth=0 write to avoid multi-depth data mixing.
+                if (iter == 0 && depth == 0 && !g_termAudit.flushed
+                        && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                    g_termAudit.active = true;
+                    g_termAudit.records.clear();
+                }
+#endif  // COSINE_TERM_AUDIT
+                // P5: use scaledL2RegLambda (= L2RegLambda * sumAllWeights/docCount).
                 auto bestSplit = FindBestSplit(
                     perDimHistData, perDimPartStats,
                     packed.Features, packed.TotalBinFeatures,
-                    config.L2RegLambda, numPartitions, featureMask,
+                    scaledL2RegLambda, numPartitions, featureMask,
                     config.MinDataInLeaf, countHist, partDocCounts,
                     config.MonotoneConstraints,
                     config.RandomStrength, gradRms, &rng,
@@ -4235,7 +4874,55 @@ TTrainResult RunTraining(
                     g_cosInstr.binRecords.clear();
                     g_cosInstr.dumpCosDen = false;
                 }
+#ifdef PROBE_E_INSTRUMENT
+                if (!g_cosInstr.leafRecords.empty()) {
+                    std::string leafPath = g_cosInstr.outDir + "/cos_leaf_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteLeafRecordsCSV(leafPath, g_cosInstr.leafRecords);
+                    // Quick stderr summary: count of skipped vs total partitions
+                    size_t skipped = 0;
+                    for (const auto& r : g_cosInstr.leafRecords) if (r.mlxSkipped) ++skipped;
+                    fprintf(stderr, "[PROBE-E] depth=%u leaf rows=%zu skipped=%zu (%.1f%%)\n",
+                            depth, g_cosInstr.leafRecords.size(), skipped,
+                            100.0 * skipped / std::max<size_t>(1, g_cosInstr.leafRecords.size()));
+                    g_cosInstr.leafRecords.clear();
+                }
 #endif
+#endif
+#ifdef ITER1_AUDIT
+                // S31-T3b: flush completed layer record after FindBestSplit returns.
+                // pendingLayer.topK is non-empty iff FindBestSplit fired the finalization
+                // block (meaning at least one valid candidate was found).
+                if (iter == 0 && g_iter1Audit.pendingActive) {
+                    g_iter1Audit.pendingActive = false;
+                    if (!g_iter1Audit.pendingLayer.topK.empty()) {
+                        g_iter1Audit.layers.push_back(g_iter1Audit.pendingLayer);
+                        const auto& lay = g_iter1Audit.layers.back();
+                        fprintf(stderr, "[AUDIT] depth=%d: winner=(feat=%u, bin=%u, gain=%.8f)"
+                                " parts=%zu topK[0]=%.8f\n",
+                                lay.depth,
+                                lay.winnerFeat,
+                                lay.winnerBin,
+                                lay.winnerGain,
+                                lay.partStats.size(),
+                                lay.topK.front().gain);
+                    }
+                }
+#endif
+#ifdef COSINE_TERM_AUDIT
+                // S32-T2: flush term audit data after depth=0 FindBestSplit.
+                // Write CSV and disarm to prevent writing at deeper depths.
+                if (iter == 0 && depth == 0 && g_termAudit.active && !g_termAudit.flushed) {
+                    g_termAudit.active = false;
+                    g_termAudit.flushed = true;
+                    std::string termPath = g_termAudit.outDir + "/mlx_terms_seed"
+                        + std::to_string(g_termAudit.seed) + "_depth0.csv";
+                    WriteCosineTermCSV(termPath, g_termAudit.records);
+                    fprintf(stderr, "[TERM_AUDIT] depth=0 flushed — %zu candidates\n",
+                            g_termAudit.records.size());
+                }
+#endif  // COSINE_TERM_AUDIT
                 auto tD3 = std::chrono::steady_clock::now();
                 dbgSplitMs += std::chrono::duration<double, std::milli>(tD3 - tD2).count();
 #ifdef CATBOOST_MLX_STAGE_PROFILE
@@ -4314,7 +5001,7 @@ TTrainResult RunTraining(
                        : (1u << splits.size());
 
         auto lrArr = mx::array(config.LearningRate, mx::float32);
-        auto l2Arr = mx::array(config.L2RegLambda, mx::float32);
+        auto l2Arr = mx::array(scaledL2RegLambda, mx::float32);  // P5: scaled by sumAllWeights/docCount
         auto leafTarget = mx::zeros({static_cast<int>(numLeaves)}, mx::float32);
 
         // Stage 6 (LeafSums) + Stage 7 (LeafValues): scatter_add + Newton step are fused here.
@@ -4571,6 +5258,7 @@ TTrainResult RunTraining(
             ui32 totalFloats = (approxDim == 1) ? numLeaves : numLeaves * approxDim;
             record.LeafValues.assign(lvPtr, lvPtr + totalFloats);
             result.Trees.push_back(std::move(record));
+
         }
 
         auto tLeafEnd = std::chrono::steady_clock::now();
@@ -4916,6 +5604,53 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(g_cosInstr.outDir);
     }
 #endif  // COSINE_RESIDUAL_INSTRUMENT
+#ifdef ITER1_AUDIT
+    // S31-T3b: initialise iter=1 audit state.
+    // The binary is purpose-built; always activate.
+    // Output directory: ITER1_AUDIT_OUTDIR env var or default.
+    {
+        const char* envDir = std::getenv("ITER1_AUDIT_OUTDIR");
+        if (envDir && *envDir) {
+            g_iter1Audit.outDir = std::string(envDir);
+        } else {
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+            g_iter1Audit.outDir = (repoRoot / "docs" / "sprint31" / "t3b-audit" / "data").string();
+        }
+        g_iter1Audit.seed   = config.RandomSeed;
+        g_iter1Audit.active = true;
+        std::filesystem::create_directories(g_iter1Audit.outDir);
+        fprintf(stderr, "[AUDIT] ITER1_AUDIT active — outDir=%s seed=%d\n",
+                g_iter1Audit.outDir.c_str(), g_iter1Audit.seed);
+    }
+#endif  // ITER1_AUDIT
+#ifdef COSINE_TERM_AUDIT
+    // S32-T2-INSTRUMENT: initialise per-bin term audit output directory and seed.
+    // Output directory: COSINE_TERM_AUDIT_OUTDIR env var or default.
+    // Active only at depth=0 iter=0 with SymmetricTree+Cosine — armed at the call site.
+    {
+        const char* envDir = std::getenv("COSINE_TERM_AUDIT_OUTDIR");
+        if (envDir && *envDir) {
+            g_termAudit.outDir = std::string(envDir);
+        } else {
+            std::filesystem::path binPath = std::filesystem::absolute(argv[0]);
+            std::filesystem::path repoRoot = binPath.parent_path();
+            for (int attempt = 0; attempt < 6; ++attempt) {
+                if (std::filesystem::is_directory(repoRoot / "catboost" / "mlx")) break;
+                repoRoot = repoRoot.parent_path();
+            }
+            g_termAudit.outDir = (repoRoot / "docs" / "sprint32" / "t2-terms" / "data").string();
+        }
+        g_termAudit.seed = config.RandomSeed;
+        std::filesystem::create_directories(g_termAudit.outDir);
+        fprintf(stderr, "[TERM_AUDIT] COSINE_TERM_AUDIT active — outDir=%s seed=%d\n",
+                g_termAudit.outDir.c_str(), g_termAudit.seed);
+    }
+#endif  // COSINE_TERM_AUDIT
 
     printf("CatBoost-MLX CSV Training Tool\n");
     printf("==============================\n");
@@ -5000,6 +5735,17 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Error: No valid features after quantization\n");
         return 1;
     }
+#ifdef CATBOOST_MLX_DUMP_BORDERS
+    // S31-T2-G2a: dump all feature borders for byte-match probe.
+    // Output format: "BORDER\t{feature_idx}\t{border_value}" one per line.
+    for (ui32 df = 0; df < static_cast<ui32>(quant.Borders.size()); ++df) {
+        for (float bv : quant.Borders[df]) {
+            printf("BORDER\t%u\t%.9g\n", df, bv);
+        }
+    }
+    fflush(stdout);
+    return 0;
+#endif  // CATBOOST_MLX_DUMP_BORDERS
 #ifdef CATBOOST_MLX_DEBUG_LEAF
     // P10 (CLI path) — quantization borders for features 0 and 1
     for (ui32 p10_f = 0; p10_f < std::min(static_cast<ui32>(quant.Borders.size()), 2u); ++p10_f) {
@@ -5377,6 +6123,10 @@ int main(int argc, char** argv) {
 
     printf("---\n");
     printf("Training complete: %u trees in %.2fs\n", trainResult.TreesBuilt, totalTime / 1000.0);
+#ifdef ITER1_AUDIT
+    // S31-T3b: flush iter=1 audit JSON after training completes.
+    WriteIter1AuditJSON();
+#endif
     if (trainResult.TreesBuilt > 0) {
         double n = trainResult.TreesBuilt;
         printf("Phase breakdown (avg per iter): grad=%.1fms tree=%.1fms leaf=%.1fms apply=%.1fms\n",

@@ -1,0 +1,31 @@
+{
+  "_core_so_md5": "597a6966cdc581c79faa79042adb068e",
+  "_core_so_path": "/Users/ramos/Library/Mobile Documents/com~apple~CloudDocs/Programming/Frameworks/catboost-mlx/python/catboost_mlx/_core.cpython-313-darwin.so",
+  "_core_so_mtime": "Fri Apr 24 22:10:46 2026",
+  "anchor": {
+    "N": 50000,
+    "F": 20,
+    "seed": 42,
+    "depth": 6,
+    "bins": 127,
+    "lr": 0.03,
+    "grow_policy": "SymmetricTree",
+    "score_function": "Cosine",
+    "loss": "RMSE",
+    "bootstrap_type": "No",
+    "random_strength": 0.0,
+    "has_time": true
+  },
+  "cpu_rmse": {
+    "50": 0.1936788663732485,
+    "100": 0.1148014097630504
+  },
+  "mlx_rmse": {
+    "50": 0.2956263303155711,
+    "100": 0.18837645252883672
+  },
+  "drift_pct_iter50": 52.63737125859381,
+  "ratio_iter50": 1.5263737125859382,
+  "drift_pct_iter100": 64.08897148357751,
+  "ratio_iter100": 1.640889714835775
+}
