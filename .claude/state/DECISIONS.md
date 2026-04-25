@@ -1721,3 +1721,54 @@ sufficient deterrent. S33 enforces hard stop.
 
 - S32 sprint-close: `docs/sprint32/sprint-close.md`
 - S33 ultrathink reasoning: this entry; subsequent verdict docs in `docs/sprint33/{l0,l1,l2,l3,l4}/`
+
+### Outcome (2026-04-24) — S33 RETRACTED, REVERTED TO OPEN
+
+The L0→L3 chain executed cleanly:
+
+| Layer | Class      | Survives? | Evidence                                                         |
+|-------|------------|-----------|------------------------------------------------------------------|
+| L0    | NO-DIFF    | yes       | Frame C (config/RNG) falsified — fields identical                |
+| L1    | FALSIFIED  | yes       | 52.643% drift across 3 seeds — seed-independent                  |
+| L2    | FRAME-B    | yes       | Graft ratio 0.974, sanity drift −0.000003% — per-iter mechanism  |
+| L3    | SPLIT (S2) | yes       | S1-grad bit-identical (max_diff 1.5e-8); S2-split divergent      |
+| L4    | RETRACTED  | no        | "static vs dynamic quantization" mechanism falsified by probes   |
+
+**L4 retraction**: PROBE-A (`c770ab6630`) showed CatBoost `Pool.quantize` produces
+128 borders × 20 features = 2560 — identical to csv_train.cpp's static grid.
+The 95/71/0 numbers L4 cited are *stored-in-CBM* borders (serialization
+compression), not available borders. PROBE-B (`600238f39f`) showed the nanobind
+Python path traces `core.py:1090 → train_api.cpp:14 #include csv_train.cpp →
+train_api.cpp:268 QuantizeFeatures → csv_train.cpp:1177` — identical codepath
+to the CLI harness; Python-path drift = 52.64%, matching csv_train to 4 sig figs.
+
+**State after retraction**:
+- DEC-036 reverts to **OPEN** — mechanism unidentified.
+- DEC-040 reverts to **OPEN** — S33 incomplete.
+- DEC-041 **INVALIDATED** (built on falsified premise).
+- L0→L3 narrowing to S2 split selection at iter≥2 **survives** as the strongest
+  surviving constraint: at iter=2 depth=0 with bit-identical iter=1 state and
+  bit-identical iter=2 gradients, CPU picks bin=3 (split_index=3) and MLX picks
+  bin=64 of 127 — same physical border value (~0.014) but different argmax of
+  `cosNum/sqrt(cosDen)` over (feature, bin).
+
+**Preserved diagnostic artifacts** (`docs/sprint33/l4-fix/data/`):
+- `mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` — bit-identical to CPU at iter=2
+  start; rules out S1 GRADIENT class.
+- `mlx_hist_d0_iter2.bin` — confirmed correct (per-feature histogram total ≈
+  −739 is right; the L3 verdict's expected formula `20×sum_g=0.228` was wrong).
+- `mlx_partstats_d0_iter2.bin` — partition-stats dump, may be useful for next phase.
+
+**Meta-lesson** (S30→S31→S32→S33, four sprints in a row):
+agents shipping plausible-but-wrong verdicts in cold contexts under shipping
+pressure is now a recognized pattern. Successor probe runs in active main
+context with L0-L3 evidence held live, not in fresh subagent contexts.
+
+**Successor scope** (next session, not S33):
+- Direct in-context per-bin (cosNum, cosDen, wL, wR) dump at iter=2 depth=0
+  both sides; identify first feature/bin where they differ.
+- Three candidate loci: (a) cosNum/cosDen formula divergence at iter≥2
+  (l2 reg? sample weights post-iter-1?), (b) partition mask divergence, (c)
+  per-leaf state-vector indexing.
+- DEC-042 (or later) opens when mechanism is identified — DEC-041 is a dead
+  number; do not reuse.
