@@ -133,3 +133,39 @@ The L3 verdict contained two errors that were corrected in the L4 verdict:
 - `docs/sprint33/l2-graft/verdict.md` — L2 FRAME-B
 - `docs/sprint33/l3-iter2/verdict.md` — L3 SPLIT (contains falsified L3 hypothesis; L4 verdict is the correction)
 - `docs/sprint33/l4-fix/data/` — raw diagnostic dumps (mlx_grad_iter2.bin, mlx_hist_d0_iter2.bin, etc.)
+
+---
+
+## RETRACTION (2026-04-24)
+
+This sprint-close asserted **S33 CLOSED** on the L4 mechanism "static vs
+dynamic feature quantization." That mechanism was **falsified** by two
+independent probes commissioned after the close:
+
+- **PROBE-A** (`c770ab6630`, `docs/sprint33/probe-a-borders/verdict.md`).
+  CatBoost `Pool.quantize` produces 128 borders for **every** one of the 20
+  features (total 2560), matching csv_train.cpp's static grid 1:1. The
+  95/71/0 numbers cited in the L4 verdict are *stored-in-CBM* borders —
+  CatBoost's serialization prunes to thresholds trees reference. Available
+  borders ≠ stored borders; the L4 verdict conflated them. There is no
+  "dynamic border accumulation" mechanism in CatBoost.
+
+- **PROBE-B** (`600238f39f`, `docs/sprint33/probe-b-python/verdict.md`).
+  The nanobind Python path traces `core.py:1090 → train_api.cpp:14
+  #include csv_train.cpp → train_api.cpp:268 QuantizeFeatures →
+  csv_train.cpp:1177`. The Python path calls the **same** QuantizeFeatures as
+  the CLI harness; no `Pool::Quantize` anywhere. Measured Python-path drift
+  at the L4 anchor: **52.64%** — matches csv_train to four sig figs. The
+  L4 "production path is fine" rationale (Option 3) is structurally invalid.
+
+### Reverted state
+
+- DEC-036 reverts to **OPEN** — mechanism unidentified.
+- DEC-040 reverts to **OPEN** — S33 incomplete.
+- DEC-041 **INVALIDATED** (built on falsified premise).
+- S33 reverts to **OPEN**.
+- L0→L3 chain narrowing to S2 (split selection at iter≥2) **survives** —
+  that result is independent of the L4 misdiagnosis.
+
+This file preserved as historical record. The HANDOFF and `.claude/state/DECISIONS.md`
+state files are the source of truth going forward.
