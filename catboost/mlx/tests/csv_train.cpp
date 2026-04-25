@@ -137,6 +137,30 @@ struct TCosineResidualInstrument {
         double gain_f64;    // true fp64 gain path: cosNum_d / sqrt(cosDen_d)
     };
     std::vector<TBinRecord> binRecords;  // populated inside FindBestSplit, flushed after return
+
+#ifdef PROBE_E_INSTRUMENT
+    // S33-PROBE-E: per-leaf cosNum/cosDen breakdown for the joint-denominator sum.
+    // For each (feat, bin, partition) tuple at depth >= 1, capture the partition
+    // contribution under MLX's current "skip-when-degenerate" rule and the CPU-style
+    // "mask-each-side-independently" rule. Lets us locate the gain-class divergence
+    // for candidates with degenerate child splits (e.g. CPU's d=2 (feat=0, bin=21)
+    // pick that produces empty children in 2 of 4 leaves after d=0/d=1 partitioning).
+    struct TLeafRecord {
+        uint32_t featIdx;
+        uint32_t bin;
+        uint32_t partition;
+        double sumLeft;
+        double sumRight;
+        double weightLeft;
+        double weightRight;
+        bool   mlxSkipped;     // true if MLX's `continue` at score_calcer skipped this partition
+        double mlxTermNum;     // contribution MLX actually adds (0 if skipped)
+        double mlxTermDen;
+        double cpuTermNum;     // contribution CPU's mask-formula would add (per-side independent)
+        double cpuTermDen;
+    };
+    std::vector<TLeafRecord> leafRecords;  // flushed per FindBestSplit call alongside binRecords
+#endif  // PROBE_E_INSTRUMENT
 };
 
 // Global singleton — zero-overhead when not compiled in
@@ -164,6 +188,33 @@ static void WriteCosAccumCSV(const std::string& path,
     fclose(f);
     fprintf(stderr, "[INSTR] wrote %zu rows → %s\n", rows.size(), path.c_str());
 }
+
+#ifdef PROBE_E_INSTRUMENT
+// S33-PROBE-E: write per-leaf records (one row per (feat, bin, partition))
+static void WriteLeafRecordsCSV(const std::string& path,
+                                 const std::vector<TCosineResidualInstrument::TLeafRecord>& rows) {
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+    FILE* f = fopen(path.c_str(), "w");
+    if (!f) { fprintf(stderr, "[PROBE-E] ERROR: cannot open %s\n", path.c_str()); return; }
+    fprintf(f, "featIdx,bin,partition,sumLeft,sumRight,weightLeft,weightRight,"
+               "mlx_skipped,mlx_termNum,mlx_termDen,"
+               "cpu_termNum,cpu_termDen,"
+               "term_num_diff,term_den_diff\n");
+    for (const auto& r : rows) {
+        double dN = r.cpuTermNum - r.mlxTermNum;
+        double dD = r.cpuTermDen - r.mlxTermDen;
+        fprintf(f, "%u,%u,%u,%.10g,%.10g,%.10g,%.10g,%d,%.15g,%.15g,%.15g,%.15g,%.6e,%.6e\n",
+                r.featIdx, r.bin, r.partition,
+                r.sumLeft, r.sumRight, r.weightLeft, r.weightRight,
+                r.mlxSkipped ? 1 : 0,
+                r.mlxTermNum, r.mlxTermDen,
+                r.cpuTermNum, r.cpuTermDen,
+                dN, dD);
+    }
+    fclose(f);
+    fprintf(stderr, "[PROBE-E] wrote %zu rows → %s\n", rows.size(), path.c_str());
+}
+#endif  // PROBE_E_INSTRUMENT
 
 #ifdef COSINE_D2_INSTRUMENT
 // S30-D2-INSTRUMENT: write gain_scalar CSV — subset of cos_accum with only gain columns.
@@ -1870,6 +1921,59 @@ TBestSplitProperties FindBestSplit(
                         float weightRight = suffHess[base + bin];
                         float sumLeft = totalSum - sumRight;
                         float weightLeft = totalWeight - weightRight;
+
+#ifdef PROBE_E_INSTRUMENT
+                        // S33-PROBE-E: capture per-leaf contribution snapshot BEFORE the
+                        // skip-when-degenerate gate. Mirrors MLX's actual behavior (mlxTerm*=0
+                        // when skipped) AND records what CPU's per-side-mask formula would add
+                        // at the same (sumL, sumR, wL, wR). Diff columns expose the divergence.
+                        if (g_cosInstr.dumpCosDen && scoreFunction == EScoreFunction::Cosine && K == 1) {
+                            TCosineResidualInstrument::TLeafRecord lr;
+                            lr.featIdx       = featIdx;
+                            lr.bin           = bin;
+                            lr.partition     = p;
+                            lr.sumLeft       = sumLeft;
+                            lr.sumRight      = sumRight;
+                            lr.weightLeft    = weightLeft;
+                            lr.weightRight   = weightRight;
+                            const bool skip  = (weightLeft < 1e-15f || weightRight < 1e-15f);
+                            lr.mlxSkipped    = skip;
+                            const double dL2_e = static_cast<double>(l2RegLambda);
+                            if (skip) {
+                                lr.mlxTermNum = 0.0;
+                                lr.mlxTermDen = 0.0;
+                            } else {
+                                const double dSL_e = static_cast<double>(sumLeft);
+                                const double dSR_e = static_cast<double>(sumRight);
+                                const double dWL_e = static_cast<double>(weightLeft);
+                                const double dWR_e = static_cast<double>(weightRight);
+                                const double dInvL_e = 1.0 / (dWL_e + dL2_e);
+                                const double dInvR_e = 1.0 / (dWR_e + dL2_e);
+                                lr.mlxTermNum = dSL_e * dSL_e * dInvL_e + dSR_e * dSR_e * dInvR_e;
+                                lr.mlxTermDen = dSL_e * dSL_e * dWL_e * dInvL_e * dInvL_e
+                                              + dSR_e * dSR_e * dWR_e * dInvR_e * dInvR_e;
+                            }
+                            // CPU-style: each side contributes independently, masked when its weight ≤ 0
+                            double cpuN = 0.0, cpuD = 0.0;
+                            if (weightLeft > 1e-15f) {
+                                const double dSL2 = static_cast<double>(sumLeft);
+                                const double dWL2 = static_cast<double>(weightLeft);
+                                const double inv  = 1.0 / (dWL2 + dL2_e);
+                                cpuN += dSL2 * dSL2 * inv;
+                                cpuD += dSL2 * dSL2 * dWL2 * inv * inv;
+                            }
+                            if (weightRight > 1e-15f) {
+                                const double dSR2 = static_cast<double>(sumRight);
+                                const double dWR2 = static_cast<double>(weightRight);
+                                const double inv  = 1.0 / (dWR2 + dL2_e);
+                                cpuN += dSR2 * dSR2 * inv;
+                                cpuD += dSR2 * dSR2 * dWR2 * inv * inv;
+                            }
+                            lr.cpuTermNum = cpuN;
+                            lr.cpuTermDen = cpuD;
+                            g_cosInstr.leafRecords.push_back(lr);
+                        }
+#endif  // PROBE_E_INSTRUMENT
 
                         if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
 
@@ -4669,6 +4773,9 @@ TTrainResult RunTraining(
                 if (iter == PROBE_D_ARM_AT_ITER && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
                     g_cosInstr.dumpCosDen = true;
                     g_cosInstr.binRecords.clear();
+#ifdef PROBE_E_INSTRUMENT
+                    g_cosInstr.leafRecords.clear();
+#endif
                 }
 #endif
 #ifdef ITER1_AUDIT
@@ -4756,6 +4863,21 @@ TTrainResult RunTraining(
                     g_cosInstr.binRecords.clear();
                     g_cosInstr.dumpCosDen = false;
                 }
+#ifdef PROBE_E_INSTRUMENT
+                if (!g_cosInstr.leafRecords.empty()) {
+                    std::string leafPath = g_cosInstr.outDir + "/cos_leaf_seed"
+                        + std::to_string(g_cosInstr.seed)
+                        + "_depth" + std::to_string(depth) + ".csv";
+                    WriteLeafRecordsCSV(leafPath, g_cosInstr.leafRecords);
+                    // Quick stderr summary: count of skipped vs total partitions
+                    size_t skipped = 0;
+                    for (const auto& r : g_cosInstr.leafRecords) if (r.mlxSkipped) ++skipped;
+                    fprintf(stderr, "[PROBE-E] depth=%u leaf rows=%zu skipped=%zu (%.1f%%)\n",
+                            depth, g_cosInstr.leafRecords.size(), skipped,
+                            100.0 * skipped / std::max<size_t>(1, g_cosInstr.leafRecords.size()));
+                    g_cosInstr.leafRecords.clear();
+                }
+#endif
 #endif
 #ifdef ITER1_AUDIT
                 // S31-T3b: flush completed layer record after FindBestSplit returns.

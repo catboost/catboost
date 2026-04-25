@@ -2,6 +2,66 @@
 
 > Coverage: Sprints 0–15 reconstructed from git log on 2026-04-15. Sprint 16+ is source of truth.
 
+## 2026-04-25 — S33-PROBE-E (#126): partition-state class CONFIRMED — DEC-042 opened
+
+Branch: `mlx/sprint-33-iter2-scaffold`. Kernel sources unchanged
+(`9edaef45b99b9db3e2717da93800e76f`).
+
+PROBE-E adds per-(feat, bin, partition) capture at iter=2 d=0..5 inside
+`FindBestSplit` under a new compile-time gate `PROBE_E_INSTRUMENT`. Records
+both MLX's actual contribution (skip-when-degenerate rule) AND CPU's
+counterfactual (per-side mask formula from `short_vector_ops.h:155+` SSE2
+`UpdateScoreBinKernelPlain`). All instrumentation gated under
+`#ifdef PROBE_E_INSTRUMENT`; production builds compile to bit-identical
+machine code.
+
+Mechanism fully specified at `csv_train.cpp:1980`:
+
+```cpp
+if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+```
+
+The `continue` skips the entire partition's contribution to both `cosNum`
+and `cosDen`. CPU's reference instead masks the empty side's average to 0
+but always adds the non-empty side's `sumX² / (wX + λ)` to the joint sum.
+
+Per-partition smoking gun at iter=2 d=2 on the 50k anchor:
+- (feat=0, bin=21) [CPU's pick, signal × constrained]: 4 partitions, 2
+  degenerate (wL=0). MLX cosN=6691.79 → gain 81.83. CPU cosN=11727.93 →
+  gain 108.32. Δ=+26.49 gain units, exactly enough to flip d=2 pick from
+  feat=10 (noise, 101.79) to feat=0 (signal).
+- (feat=10, bin=79) [MLX's pick, noise]: 4 non-degenerate partitions, MLX
+  and CPU contribute identically; both gain = 101.79.
+
+Top-5 by CPU gain at d=2 is 5/5 feat=0 bins 104–108, all skips=2/4. Skip
+rate grows monotonically with depth: 0% / 2.5% / 5.0% / 7.6% / 10.6% /
+14.6% at d=0..5. All 127 non-trivial bins on feat=0 at d=2 have skips=2
+(d=0 split on feat=0 fixed every doc's feat=0 relationship).
+
+DEC-036 root-caused; DEC-042 opened. S33-L4-FIX (#123) reopened with
+mechanism known. Plan: per-side mask in per-partition update (Commit 1),
+parity validation (Commit 2), guard removal contingent on parity (Commit 3).
+
+Side-finding: re-running PROBE-D from current source matches committed
+PROBE-D within float-summation noise (max delta < 1.5e-3 abs cosNum,
+< 4e-3 abs gain). The earlier mismatch report was a corrupted run with
+wrong invocation; canonical regen reproduces yesterday's values cleanly.
+
+### Files
+
+- `catboost/mlx/tests/csv_train.cpp` — PROBE_E_INSTRUMENT block (struct
+  field, helper writer, capture inside per-partition loop, arm-clear,
+  flush). 161 added lines, all under `#ifdef PROBE_E_INSTRUMENT`. Zero
+  deletions.
+- `docs/sprint33/probe-e/FINDING.md` — narrative
+- `docs/sprint33/probe-e/scripts/build_probe_e.sh` — build script
+- `docs/sprint33/probe-e/data/cos_leaf_seed42_depth{0..5}.csv` — leaf
+  records (2540 / 5080 / 10160 / 20320 / 40640 / 81280 rows)
+- `docs/sprint33/probe-e/data/cos_accum_seed42_depth{0..5}.csv` —
+  PROBE-D-style per-bin shadow regenerated for cross-validation
+- `.claude/state/{HANDOFF,DECISIONS,TODOS,CHANGELOG-DEV}.md` — DEC-042
+  added; #123 reopened; #126 marked completed.
+
 ## 2026-04-24 — Sprint 33 CLOSED (DEC-036 PARTIAL-CLOSED; DEC-041 OPENED)
 
 Branch: `mlx/sprint-33-iter2-scaffold`, base S32 tip `9fcc9827d9`.

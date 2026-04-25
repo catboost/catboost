@@ -1,16 +1,16 @@
 # Active Tasks — CatBoost-MLX
 
 > Coverage: Sprints 0–15 reconstructed from git/agent-memory on 2026-04-15. Sprint 16+ is source of truth.
-> Last header refresh: 2026-04-24 (Sprint 33 CLOSED — DEC-036 PARTIAL-CLOSED; DEC-041 OPEN; all L0-L4 tasks complete; S34 entry = DEC-041 quantization redesign decision).
+> Last header refresh: 2026-04-25 (Sprint 33 RETRACTED+REOPEN — L4 verdict falsified by probes A/B; PROBE-C narrows to iter=2 d=2; PROBE-D closes precision class; **PROBE-E confirms partition-state class — degenerate-child skip at csv_train.cpp:1980 is the DEC-036 mechanism**. DEC-042 opened.)
 
-## Current state (2026-04-24)
+## Current state (2026-04-25)
 
-- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 CLOSED; pending commit/PR).
+- **Active branch**: `mlx/sprint-33-iter2-scaffold` (S33 OPEN — sprint did not close after L4 retraction; PROBE-E confirms mechanism; pending S33-L4-FIX implementation).
 - **Base**: master `17451f4780` (S30 merge commit). S31/S32/S33 carried in-branch.
 - **Production kernel**: v5 (`784f82a891`), shipped S24 D0. ULP=0 structural parity across DEC-008 envelope via `bench_boosting`. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical from S30 onward.
 - **R8 (honest)**: 1.01× e2e vs S16 baseline. Unchanged.
 - **Open PRs**: none. S28/S29/S30 merged. S31/S32/S33 carried in-branch pending PR.
-- **Active DEC**: **DEC-036 PARTIAL-CLOSED** (mechanism explained: static vs dynamic quantization); **DEC-040 CLOSED** (L0-L4 scaffold complete); **DEC-041 OPEN** (quantization redesign decision, S34 scope); DEC-037/038/039 CLOSED.
+- **Active DEC**: **DEC-036 OPEN** (root-caused 2026-04-25 by PROBE-E; pending fix); **DEC-040 OPEN** (L0-L4 scaffold complete; L4 retracted; PROBE-A/B/C/D/E successor chain); **DEC-041 INVALIDATED** (do not reuse number); **DEC-042 OPEN** (degenerate-child skip mechanism, partition-state class); DEC-037/038/039 CLOSED.
 
 ## Sprint 33 — Iter≥2 Runaway Divergence SCAFFOLD — OPEN 2026-04-24
 
@@ -25,7 +25,10 @@
 - [x] **#120 S33-L1-DETERMINISM** — Shift to deterministic config; remeasure drift. Falsifies Frame C-RNG (~2h). Blocked by #119. **COMPLETED 2026-04-24. Class: FALSIFIED. Median drift 52.643% (seeds 42/43/44) — statistically identical to S32 baseline 52.6%. Frame C-RNG FALSIFIED. Frame C (Config/RNG) fully closed. Proceed to #121 L2-GRAFT. Verdict: `docs/sprint33/l1-determinism/verdict.md`.**
 - [x] **#121 S33-L2-GRAFT** — Inject CPU iter=1 tree into MLX; measure post-graft drift. Discriminates Frame A vs B. **COMPLETED 2026-04-24. Class: FRAME-B. Median grafted drift 51.291% vs ungrafted 52.643% (ratio 0.974). Graft had zero effect — per-iter persistent bug confirmed. Frame A falsified. Verdict: `docs/sprint33/l2-graft/verdict.md`. Proceed to #122 L3-ITER2.**
 - [x] **#122 S33-L3-ITER2** — Per-leaf, per-doc iter=2 instrumentation (conditional on Frame B). **COMPLETED 2026-04-24. Class: SPLIT. S1-GRADIENT bit-identical; S2-SPLIT divergent (CPU feat=0,bin=3 vs MLX feat=0,bin=64). S3/S4 cascade. Histogram anomaly: hist grad sum=-739 vs expected +0.23 (iter=2 grads correct; histogram kernel receives stale data). Suspected root: csv_train.cpp:4534 statsK construction. Verdict: `docs/sprint33/l3-iter2/verdict.md`. Data: `docs/sprint33/l3-iter2/data/`. Proceed to #123 L4-FIX.**
-- [x] **#123 S33-L4-FIX** — COMPLETED 2026-04-24. L3 statsK hypothesis FALSIFIED. True root cause: static 127-border grid (csv_train.cpp) vs dynamic border accumulation (CatBoost CPU). G4a N/A, G4b BLOCKED (DEC-041), G4c PASS, G4d PASS, G4e PASS. L4 instrumentation removed (DEC-012 atomic commit). DEC-036 PARTIAL-CLOSED. DEC-041 OPENED. Verdict: `docs/sprint33/l4-fix/verdict.md`.
+- [ ] **#123 S33-L4-FIX** — REOPENED 2026-04-25 with mechanism known. L4 (static-vs-dynamic quantization) was retracted; PROBE-E (#126) confirms the real mechanism is degenerate-child skip at `csv_train.cpp:1980`. Plan: per-side mask (Commit 1) + parity validation (Commit 2) + guard removal (Commit 3, contingent on #93/#94). Predicted: ST+Cosine drift ≤2%, MLX d=2 pick flips to feat=0 bin~104. Owner: @ml-engineer. See DEC-042.
+- [x] **#124 S33-PROBE-C** — COMPLETED 2026-04-24. iter=2 divergence at d=2 (not d=0); CPU feat=0 vs MLX feat=10. L3 retracted. Tip `044ec9a5a8`.
+- [x] **#125 S33-PROBE-D** — COMPLETED 2026-04-24. fp32/fp64 gain shadow at d=0..5; max residual 3.89e-5 vs 20-unit gap. **Precision class CLOSED.** Tip `d246e00fae`.
+- [x] **#126 S33-PROBE-E** — COMPLETED 2026-04-25. Per-(feat, bin, partition) capture at iter=2 d=2 confirms partition-state class. Mechanism: `csv_train.cpp:1980` `continue` skips entire partition; CPU's mask formula adds non-empty side. Per-partition smoking gun: feat=0 bin=21 (CPU's pick) MLX gain 81.83 vs CPU gain 108.32 (Δ=+26.49); feat=10 bin=79 (MLX's pick) identical 101.79 both. Top-5 by CPU gain at d=2 is 5/5 feat=0 (signal). Skip rate 0%/2.5%/5%/7.6%/10.6%/14.6% at d=0..5. **DEC-036 root-caused; DEC-042 opened.** FINDING: `docs/sprint33/probe-e/FINDING.md`.
 
 ### Carry-forwards (still pending)
 

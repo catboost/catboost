@@ -1865,3 +1865,162 @@ Findings:
 - `scripts/build_probe_c2.sh` — train+save variant build (used for tree[1])
 - `scripts/run_probe_c.py`, `scripts/set_diff.py`, `scripts/find_missing.py`,
   `scripts/compare_tree1.py` — analysis pipeline
+
+---
+
+## DEC-042: PROBE-E mechanism — degenerate-child skip in FindBestSplit's per-partition update
+
+**Sprint**: 33
+**Date**: 2026-04-25
+**Status**: OPEN — root cause identified; pending S33-L4-FIX (#123) implementation and four-gate validation
+**Authored by**: ml-engineer (PROBE-E run)
+**Supersedes claim from PROBE-D**: confirms the partition-state class lead
+
+### Findings
+
+PROBE-E (`docs/sprint33/probe-e/FINDING.md`) captured per-(feat, bin, partition)
+contributions to the joint cosNum/cosDen sum at iter=2 d=0..5 under both
+MLX's actual rule and CPU's reference rule. The capture is purely
+counterfactual — MLX's emitted gain is unchanged by the instrumentation.
+
+**Mechanism**: at `catboost/mlx/tests/csv_train.cpp:1980` (FindBestSplit's
+per-partition update inside the per-bin sweep):
+
+```cpp
+if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+```
+
+This `continue` skips the entire partition — both `cosNum` and `cosDen`
+contributions go to zero for that partition. The reducer's joint
+denominator is therefore **under-attributed** for any candidate whose
+split is degenerate in some partitions.
+
+CPU's reference path (`catboost/libs/helpers/short_vector_ops.h:155+`,
+SSE2 `UpdateScoreBinKernelPlain`) computes
+`average = mask · sum / (w + λ)` where the mask zeros the average when
+`w ≤ 0`. Both sides are added; only the empty side's contribution is zero.
+The non-empty side's `sumX² / (wX + λ)` is **always** added, regardless of
+the other side's weight.
+
+### Smoking gun (iter=2 d=2, anchor `np.random.default_rng(42)`)
+
+CPU's d=2 pick (feat=0, bin=21, signal × constrained):
+- 4 partitions, 2 are degenerate (wL=0)
+- MLX contributes from 2 partitions only: cosN=6691.79, cosD=6687.72 → gain 81.83
+- CPU contributes from all 4 (zero from empty side, full from non-empty):
+  cosN=11727.93, cosD=11722.68 → gain 108.32
+- Δ=+26.49 gain units, exactly enough to flip d=2 pick from feat=10
+  (noise, 101.79) to feat=0 (signal)
+
+MLX's d=2 pick (feat=10, bin=79, noise): all 4 partitions non-degenerate;
+MLX and CPU contribute identically per partition; both gain = 101.79.
+
+Top-5 by CPU gain at d=2 is **5 of 5 feat=0** (signal feature, bins
+104–108, all skips=2/4). Under CPU's rule, signal beats noise; under
+MLX's rule, signal scores 26 units below noise floor and loses every time.
+
+Skip rate scales monotonically with depth: 0% / 2.5% / 5.0% / 7.6% /
+10.6% / 14.6% at d=0..5. **All 127 non-trivial bins on feat=0 at d=2 have
+skips=2** — a structural consequence of d=0 already splitting on feat=0.
+
+### What this confirms / closes
+
+- **Partition-state class CONFIRMED.** DEC-036 mechanism is no longer a
+  hypothesis but a measured fact with per-partition smoking gun.
+- **Precision class** (DEC-035 K4, Fix 2): closed by S30 + PROBE-D — not
+  load-bearing for DEC-036.
+- **Quantization class** (DEC-041): INVALIDATED earlier; PROBE-E adds no
+  evidence either way (irrelevant — mechanism is in the per-partition
+  update, not in border placement).
+- **DEC-038 (allVals fp64) and DEC-039 (cap-127)**: independent precision
+  items; not load-bearing for DEC-036; remain in v5.
+
+### Decision
+
+Open S33-L4-FIX (#123 REOPENED) with mechanism known. Implementation
+plan, in DEC-012 atomic commits:
+
+1. **Commit 1 (FIX)**: at `csv_train.cpp:1980`, replace the
+   `if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;` with a
+   per-side-mask formulation. The non-empty side's `sumX² / (wX + λ)`
+   contribution is always added; the empty side contributes zero. This
+   matches CPU's `UpdateScoreBinKernelPlain` reference.
+
+   Suggested form (Cosine path; analogous changes at the L2 path if it
+   shares the same skip):
+   ```cpp
+   const bool wL_pos = (weightLeft  > 1e-15f);
+   const bool wR_pos = (weightRight > 1e-15f);
+   if (!wL_pos && !wR_pos) continue;  // both empty — true no-op
+   // otherwise compute per-side contribution with empty side zeroed
+   ```
+
+2. **Commit 2 (PARITY)**: validate on the 50k Cosine/RMSE/d6 anchor.
+   Predicted result:
+   - MLX d=2 pick on iter=2 tree[1] flips from (feat=10, bin=79) to
+     (feat=0, bin ≈ 102–108) matching CPU
+   - DEC-036 ST+Cosine drift collapses from 52.6% to ≤2% (R8 1.07×
+     equivalent)
+   - 18-config L2 parity remains in [0.98, 1.02] (no regression)
+   - DW+Cosine sanity unchanged (DW path either does not use this
+     codepath, or the fix is a strict superset of the current behavior)
+
+3. **Commit 3 (GUARD REMOVAL)**: contingent on Commit 2 PASS — close out
+   #93 (S30-T4a-ST-REMOVE atomic guard removal) and #94 (S30-T4b-LG)
+   if the same fix removes both classes (likely; LG goes through the
+   same `FindBestSplit` per-partition logic). DEC-032 fully closes if so.
+
+### Four formal gates (DEC-040 G4a–G4e adapted)
+
+| Gate | Spec | Required |
+|------|------|----------|
+| G4a | iter=1 ST+Cosine drift ≤ 0.1% | YES |
+| G4b | iter=50 ST+Cosine drift ≤ 2% (R8 1.07× equivalent) | YES |
+| G4c | v5 kernel ULP=0 (parity coverage) | YES — md5 must remain `9edaef45b99b9db3e2717da93800e76f` |
+| G4d | 18-config L2 parity in [0.98, 1.02] | YES |
+| G4e | DW+Cosine sanity unchanged at the S28 anchor | YES |
+
+### Risks
+
+- **R-1 (low)**: the fix may need to also reach the score reducer
+  (`catboost/mlx/methods/...`) if any per-partition aggregation happens
+  outside `FindBestSplit`. The instrumentation is at the `FindBestSplit`
+  call site so we cannot rule it out from PROBE-E alone. Mitigation:
+  Commit 1 is local to one site; if Commit 2 PARITY shows a residual
+  delta in the same class, escalate to architect for a reducer-level
+  follow-up.
+- **R-2 (low)**: regularizer term inside the empty-side branch — at
+  `weightLeft=0` and `λ=3`, `sumLeft=0` → contribution is `0/(0+3)=0`,
+  so the per-side formula naturally handles it. No special-casing
+  required if `sumLeft=0` whenever `weightLeft=0`. PROBE-E data
+  confirms this for the d=2 anchor (sumLeft is exactly 0 in skipped
+  rows, sumRight matches the leaf totals).
+
+### Hard rule (carries over from DEC-040)
+
+DEC-012 atomic commits. Each of the three commits above gets its own
+parity check. No "fix everything in one commit" — separate FIX, PARITY
+record, and GUARD-REMOVAL into independent units.
+
+### Artifacts
+
+`docs/sprint33/probe-e/`:
+- `FINDING.md` — narrative with per-partition tables and top-k rankings
+- `data/cos_leaf_seed42_depth{0..5}.csv` — per-(feat, bin, partition)
+  records (14 columns: featIdx, bin, partition, sumLeft, sumRight,
+  weightLeft, weightRight, mlx_skipped, mlx_termN/D, cpu_termN/D,
+  term_num_diff, term_den_diff). Row counts: 2540 / 5080 / 10160 /
+  20320 / 40640 / 81280.
+- `data/cos_accum_seed42_depth{0..5}.csv` — PROBE-D-style per-bin gain
+  shadow regenerated for cross-validation; matches PROBE-D within
+  float-summation noise.
+- `data/leaf_sum_seed42.csv`, `data/approx_update_seed42.csv` —
+  auxiliary per-iter dumps (unchanged behavior from PROBE-D).
+- `scripts/build_probe_e.sh` — build with
+  `-DCOSINE_RESIDUAL_INSTRUMENT -DPROBE_E_INSTRUMENT
+  -DPROBE_D_ARM_AT_ITER=1`.
+
+Build invariants: `kernel_sources.h` md5 unchanged
+(`9edaef45b99b9db3e2717da93800e76f`). All instrumentation gated under
+`#ifdef PROBE_E_INSTRUMENT`. Production builds compile to bit-identical
+machine code as before.
