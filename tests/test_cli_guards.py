@@ -1,18 +1,22 @@
 """
-DEC-032 closeout guards — Sprint 29 S29-CLI-GUARD-T2, task #83.
-G1-CLI gate per DEC-031 Rule 3.
+DEC-032 / DEC-042 guard lifecycle — S29-CLI-GUARD-T2 (#83) + S33-L4-FIX Commit 3a (#93).
 
-Covers SA-H1 bypass closure: _core.train() and csv_train CLI must reject
-Cosine+{Lossguide, SymmetricTree} — both paths previously bypassed the
-Python _validate_params guards landed in Sprint 28 commit b9577067ef.
+Original scope (S29): SA-H1 bypass closure — _core.train() and csv_train CLI must reject
+Cosine+{Lossguide, SymmetricTree} in all entry paths (Python layer, C++ nanobind, CLI).
+
+Current state after S33-L4-FIX Commit 3a (2026-04-25):
+  - S28-ST-GUARD REMOVED: ST+Cosine validated (G4a 0.0001%, G4b 0.027%; DEC-042 RESOLVED).
+    Tests 2 and 4 below are now positive tests asserting ST+Cosine succeeds.
+  - S28-LG-GUARD RETAINED: LG+Cosine not yet validated independently.
+    Tests 1 and 3 remain rejection tests until Commit 3b (#94).
 
 Four cases:
-  1. _core.train() direct → ValueError with TODO-S29-LG-COSINE-RCA marker
-  2. _core.train() direct → ValueError with TODO-S29-ST-COSINE-KAHAN marker
-  3. csv_train CLI       → non-zero exit + TODO-S29-LG-COSINE-RCA in stderr
-  4. csv_train CLI       → non-zero exit + TODO-S29-ST-COSINE-KAHAN in stderr
+  1. _core.train() direct → ValueError with TODO-S29-LG-COSINE-RCA marker  [RETAINED]
+  2. _core.train() direct → succeeds for ST+Cosine (no ValueError)          [INVERTED by #93]
+  3. csv_train CLI       → non-zero exit + TODO-S29-LG-COSINE-RCA in stderr [RETAINED]
+  4. csv_train CLI       → exit 0 for ST+Cosine (no guard error)            [INVERTED by #93]
 
-CLI tests assert returncode != 0 (not == 1) so they survive a future
+CLI rejection tests assert returncode != 0 (not == 1) so they survive a future
 main() try/catch cleanup that replaces SIGABRT(134/-6) with exit(1).
 See S29-CR for the deferred cleanup.
 """
@@ -139,41 +143,38 @@ def test_core_train_rejects_cosine_lossguide():
     )
 
 
-def test_core_train_rejects_cosine_symmetric_tree():
-    """_core.train() must raise ValueError for score_function='Cosine' + grow_policy='SymmetricTree'.
+def test_core_train_accepts_cosine_symmetric_tree():
+    """_core.train() must succeed for score_function='Cosine' + grow_policy='SymmetricTree'.
 
-    Guard placed in TrainConfigToInternal (train_api.cpp) as C++ defense-in-depth,
-    mirroring the Python-layer guard in core.py:638-647.  nanobind auto-translates
-    std::invalid_argument → Python ValueError.
+    S28-ST-GUARD removed in S33-L4-FIX Commit 3a (#93) after DEC-042 validation:
+      G4a iter=1 drift 0.0001% (<=0.1% threshold) PASS
+      G4b iter=50 drift 0.027%  (<=2% threshold)  PASS
 
-    The TODO-S29-ST-COSINE-KAHAN token is greppable across C++ and Python sources,
-    providing a stable marker for when the Kahan/Neumaier compensated-summation fix
-    ships in Sprint 29 (at which point this guard — and this test — will be removed).
+    Guard was in TrainConfigToInternal (train_api.cpp) + Python core.py. Both removed.
+    This test verifies the combination trains without raising (correctness validated
+    separately by the G4a/G4b gate harness at docs/sprint33/commit2-gates/).
+
+    covers: S28-ST-GUARD removal, DEC-042 closure, Commit 3a (#93)
     """
     from catboost_mlx import _core
 
     cfg = _make_minimal_config(grow_policy="SymmetricTree", score_function="Cosine")
     X, y, w, g, val_X, val_y, fn, ic, chm = _minimal_arrays()
 
-    # covers: C++/nanobind guard, Cosine+SymmetricTree rejection, SA-H1 bypass closure
-    with pytest.raises(ValueError) as exc_info:
-        _core.train(
-            features=X,
-            targets=y,
-            feature_names=fn,
-            is_categorical=ic,
-            weights=w,
-            group_ids=g,
-            cat_hash_maps=chm,
-            val_features=val_X,
-            val_targets=val_y,
-            config=cfg,
-        )
-
-    assert "TODO-S29-ST-COSINE-KAHAN" in str(exc_info.value), (
-        f"Expected TODO-S29-ST-COSINE-KAHAN marker in ValueError message, got: "
-        f"{exc_info.value}"
+    # Must not raise — ST+Cosine is now a supported combination
+    result = _core.train(
+        features=X,
+        targets=y,
+        feature_names=fn,
+        is_categorical=ic,
+        weights=w,
+        group_ids=g,
+        cat_hash_maps=chm,
+        val_features=val_X,
+        val_targets=val_y,
+        config=cfg,
     )
+    assert result is not None, "Expected a non-None result from ST+Cosine train"
 
 
 # ---------------------------------------------------------------------------
@@ -217,34 +218,58 @@ def test_csv_train_cli_rejects_cosine_lossguide():
 
 
 @_SKIP_CLI
-def test_csv_train_cli_rejects_cosine_symmetric_tree():
-    """csv_train CLI must exit non-zero and emit TODO-S29-ST-COSINE-KAHAN on stderr.
+def test_csv_train_cli_accepts_cosine_symmetric_tree():
+    """csv_train CLI must exit 0 for score_function='Cosine' + grow_policy='SymmetricTree'.
 
-    Guard fires in ParseArgs (csv_train.cpp:257-266) after flag parsing,
-    before file open — so /dev/null as the CSV path argument is safe.
+    S28-ST-GUARD removed in S33-L4-FIX Commit 3a (#93).  The old guard fired in
+    ParseArgs after flag parsing, before file open, and terminated with non-zero exit.
+    After guard removal the combination must train successfully.
 
-    returncode is asserted != 0 (not == 1) for the same S29-CR reason as the
-    Lossguide test above.
+    Uses a tiny 20-row CSV written to a temp file so the binary sees real data.
+    The binary at python/catboost_mlx/bin/csv_train is the production binary
+    (post-#82 build, includes --score-function flag).
 
-    Binary: python/catboost_mlx/bin/csv_train (the post-#82 build).
+    covers: S28-ST-GUARD removal from CLI path (csv_train.cpp), DEC-042 Commit 3a
     """
-    result = subprocess.run(
-        [
-            str(_CSV_TRAIN_BIN),
-            "/dev/null",
-            "--grow-policy", "SymmetricTree",
-            "--score-function", "Cosine",
-        ],
-        capture_output=True,
-        text=True,
-    )
+    import csv
+    import tempfile
 
-    # covers: CLI guard, Cosine+SymmetricTree rejection, non-zero exit, SA-H1 bypass closure
-    assert result.returncode != 0, (
-        f"csv_train should have exited non-zero for Cosine+SymmetricTree, "
-        f"got returncode={result.returncode}"
+    rng = np.random.default_rng(42)
+    X = rng.standard_normal((20, 3)).astype(np.float32)
+    y = (X[:, 0] * 0.5 + X[:, 1] * 0.3).astype(np.float32)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        tmp_path = f.name
+        writer = csv.writer(f)
+        writer.writerow(["f0", "f1", "f2", "target"])
+        for i in range(20):
+            writer.writerow([X[i, 0], X[i, 1], X[i, 2], y[i]])
+
+    try:
+        result = subprocess.run(
+            [
+                str(_CSV_TRAIN_BIN),
+                tmp_path,
+                "--iterations", "2",
+                "--depth", "2",
+                "--bins", "16",
+                "--grow-policy", "SymmetricTree",
+                "--score-function", "Cosine",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    finally:
+        import os
+        os.unlink(tmp_path)
+
+    # covers: S28-ST-GUARD removal, CLI ST+Cosine now succeeds
+    assert result.returncode == 0, (
+        f"csv_train should exit 0 for Cosine+SymmetricTree after guard removal, "
+        f"got returncode={result.returncode}\nstderr: {result.stderr[:500]}"
     )
-    assert "TODO-S29-ST-COSINE-KAHAN" in result.stderr, (
-        f"Expected TODO-S29-ST-COSINE-KAHAN marker in csv_train stderr, got:\n"
+    assert "TODO-S29-ST-COSINE-KAHAN" not in result.stderr, (
+        f"Old guard error still present in stderr — guard not fully removed:\n"
         f"{result.stderr[:500]}"
     )

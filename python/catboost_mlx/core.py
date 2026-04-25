@@ -634,17 +634,6 @@ class CatBoostMLX(BaseEstimator):
                 "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
                 "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
             )
-        # S28-ST-GUARD: Cosine+SymmetricTree combination rejected until S29 Kahan fix.
-        if self.score_function == 'Cosine' and self.grow_policy == 'SymmetricTree':
-            raise ValueError(
-                "score_function='Cosine' with grow_policy='SymmetricTree' is not yet "
-                "supported in catboost-mlx: float32 joint-Cosine denominator accumulates "
-                "precision drift across partitions (~47% aggregate-metric drift at 50 "
-                "iterations in S28-OBLIV-DISPATCH gate). Compensated-summation port "
-                "(Kahan/Neumaier) is scheduled for Sprint 29 (TODO-S29-ST-COSINE-KAHAN). "
-                "Use score_function='L2' with SymmetricTree, or switch grow_policy to "
-                "'Depthwise' for Cosine."
-            )
         if self.grow_policy == "Lossguide":
             if not isinstance(self.max_leaves, int) or self.max_leaves < 2:
                 raise ValueError(
