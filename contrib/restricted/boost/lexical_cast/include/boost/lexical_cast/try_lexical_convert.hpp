@@ -1,6 +1,6 @@
 // Copyright Kevlin Henney, 2000-2005.
 // Copyright Alexander Nasonov, 2006-2010.
-// Copyright Antony Polukhin, 2011-2025.
+// Copyright Antony Polukhin, 2011-2026.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -18,11 +18,17 @@
 #ifndef BOOST_LEXICAL_CAST_TRY_LEXICAL_CONVERT_HPP
 #define BOOST_LEXICAL_CAST_TRY_LEXICAL_CONVERT_HPP
 
-#include <type_traits>
+#include <boost/lexical_cast/detail/config.hpp>
 
+#if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+
+#ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
+#endif
+
+#include <type_traits>
 #endif
 
 #include <boost/lexical_cast/detail/buffer_view.hpp>
@@ -44,6 +50,8 @@ namespace boost {
     }
 
     namespace conversion { namespace detail {
+
+BOOST_LEXICAL_CAST_BEGIN_MODULE_EXPORT
 
         template <typename Target, typename Source>
         inline bool try_lexical_convert(const Source& arg, Target& result)
@@ -78,15 +86,20 @@ namespace boost {
                 result
             );
         }
+BOOST_LEXICAL_CAST_END_MODULE_EXPORT
 
     }} // namespace conversion::detail
 
     namespace conversion {
+BOOST_LEXICAL_CAST_BEGIN_MODULE_EXPORT
         // ADL barrier
         using ::boost::conversion::detail::try_lexical_convert;
+BOOST_LEXICAL_CAST_END_MODULE_EXPORT
     }
 
 } // namespace boost
+
+#endif  // #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
 
 #endif // BOOST_LEXICAL_CAST_TRY_LEXICAL_CONVERT_HPP
 

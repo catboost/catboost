@@ -1,6 +1,6 @@
 // Copyright Kevlin Henney, 2000-2005.
 // Copyright Alexander Nasonov, 2006-2010.
-// Copyright Antony Polukhin, 2011-2025.
+// Copyright Antony Polukhin, 2011-2026.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -18,9 +18,15 @@
 #ifndef BOOST_LEXICAL_CAST_INCLUDED
 #define BOOST_LEXICAL_CAST_INCLUDED
 
+#include <boost/lexical_cast/detail/config.hpp>
+
+#if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+
+#ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
+#endif
 #endif
 
 #if defined(BOOST_NO_STRINGSTREAM) || defined(BOOST_NO_STD_WSTRING)
@@ -34,6 +40,7 @@
 
 namespace boost
 {
+BOOST_LEXICAL_CAST_BEGIN_MODULE_EXPORT
     template <typename Target, typename Source>
     inline Target lexical_cast(const Source &arg)
     {
@@ -94,9 +101,12 @@ namespace boost
         );
     }
 
+BOOST_LEXICAL_CAST_END_MODULE_EXPORT
 } // namespace boost
 
 #undef BOOST_LCAST_NO_WCHAR_T
+
+#endif  // #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
 
 #endif // BOOST_LEXICAL_CAST_INCLUDED
 
