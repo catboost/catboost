@@ -1,6 +1,6 @@
 // Copyright Kevlin Henney, 2000-2005.
 // Copyright Alexander Nasonov, 2006-2010.
-// Copyright Antony Polukhin, 2011-2025.
+// Copyright Antony Polukhin, 2011-2026.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -18,11 +18,15 @@
 #ifndef BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_STREAMS_HPP
 #define BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_STREAMS_HPP
 
+#include <boost/lexical_cast/detail/config.hpp>
+
+#if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+
+#ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
 #endif
-
 
 #if defined(BOOST_NO_STRINGSTREAM) || defined(BOOST_NO_STD_WSTRING)
 #define BOOST_LCAST_NO_WCHAR_T
@@ -33,9 +37,8 @@
 #include <cstring>
 #include <cstdio>
 #include <type_traits>
+
 #include <boost/limits.hpp>
-#include <boost/detail/lcast_precision.hpp>
-#include <boost/lexical_cast/detail/type_traits.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/snprintf.hpp>
 
@@ -58,20 +61,27 @@
 #include <sstream>
 #endif
 
-#include <boost/lexical_cast/detail/buffer_view.hpp>
-#include <boost/lexical_cast/detail/lcast_char_constants.hpp>
-#include <boost/lexical_cast/detail/lcast_unsigned_converters.hpp>
-#include <boost/lexical_cast/detail/lcast_basic_unlockedbuf.hpp>
-#include <boost/lexical_cast/detail/inf_nan.hpp>
-
-#include <istream>
 
 #include <array>
+#ifndef BOOST_NO_CWCHAR
+#   include <cwchar>
+#endif
+#include <istream>
 
 #include <boost/container/container_fwd.hpp>
 #ifndef BOOST_NO_CWCHAR
 #   include <cwchar>
 #endif
+
+#endif  // #ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
+
+#include <boost/lexical_cast/detail/buffer_view.hpp>
+#include <boost/lexical_cast/detail/lcast_char_constants.hpp>
+#include <boost/lexical_cast/detail/lcast_unsigned_converters.hpp>
+#include <boost/lexical_cast/detail/lcast_basic_unlockedbuf.hpp>
+#include <boost/lexical_cast/detail/inf_nan.hpp>
+#include <boost/lexical_cast/detail/lcast_precision.hpp>
+#include <boost/lexical_cast/detail/type_traits.hpp>
 
 // Forward declarations
 namespace boost {
@@ -746,6 +756,8 @@ namespace boost { namespace detail { namespace lcast {
 }}} // namespace boost::detail::lcast
 
 #undef BOOST_LCAST_NO_WCHAR_T
+
+#endif  // #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
 
 #endif // BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_HPP
 
