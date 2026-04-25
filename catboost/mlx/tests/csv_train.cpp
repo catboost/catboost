@@ -1983,19 +1983,33 @@ TBestSplitProperties FindBestSplit(
                         // the entire partition when one child was degenerate, which silently
                         // under-attributed cosNum/cosDen for signal-correlated split candidates
                         // that produce empty children in some partitions after depth>=1 splits.
-                        // L2 preserves the existing skip (both-empty guard added for safety);
-                        // Cosine switches to per-side accumulation.
+                        // Both L2 and Cosine now apply per-side accumulation (S33-L4-FIX Commit 1.5).
                         const bool wL_pos = (weightLeft  > 1e-15f);
                         const bool wR_pos = (weightRight > 1e-15f);
 
                         switch (scoreFunction) {
-                            case EScoreFunction::L2:
-                                // L2: preserve prior semantics — skip unless both sides are non-empty.
-                                if (!wL_pos || !wR_pos) break;
-                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                            case EScoreFunction::L2: {
+                                // S33-L4-FIX Commit 1.5 (DEC-042): replace joint skip-when-either-empty
+                                // with per-side mask matching CPU's CalcAverage formula in
+                                // online_predictor.h:112-119:
+                                //   average = (count > 0) ? sum / (count + λ) : 0
+                                // CPU calls AddLeaf for both sides unconditionally; the mask is
+                                // implicit in CalcAverage returning 0 for empty leaves.
+                                // Each non-empty side contributes sum² / (weight + λ) to gain.
+                                // Parent term (totalSum² / (totalWeight + λ)) is subtracted only
+                                // when at least one side is non-empty — skip entire partition only
+                                // when both children are empty (true no-op, no information).
+                                // Sibling of Commit 1 (10c72b4e96) which applied the same fix to Cosine.
+                                if (!wL_pos && !wR_pos) break;
+                                if (wL_pos) {
+                                    totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda);
+                                }
+                                if (wR_pos) {
+                                    totalGain += (sumRight * sumRight) / (weightRight + l2RegLambda);
+                                }
+                                totalGain -= (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
+                            }
                             case EScoreFunction::Cosine: {
                                 // S33-L4-FIX: per-side mask — skip whole partition only when
                                 // both sides are empty (true no-op); otherwise accumulate each
