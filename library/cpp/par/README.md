@@ -1,7 +1,7 @@
 PARalyzer: library for distributed computations
 ===============================================
 
-The library is intended for simple and effective use of multicore processors, as well as for distributed computing. It differs from Yandex mapreduce in absence of permanent storage (all data is stored only in memory) and in absence of fault tolerance. In a case of failure of one of hosts the program will most likely stop. As benefit, the PARalyzer provides very fast "transactions" (in terms of mapreduce) and automatically balances local and remove execution of elemental operations.
+The library is intended for simple and effective use of multicore processors, as well as for distributed computing. It differs from Yandex mapreduce in absence of permanent storage (all data is stored only in memory) and in absence of fault tolerance. In a case of failure of one of hosts the program will most likely stop. As benefit, the PARalyzer provides very fast "transactions" (in terms of mapreduce) and automatically balances local and remote execution of elemental operations.
 
 The simplest PARalyzer use case is fast execution of an operation for all elements of an array, which could be done by inheriting the operation from TMapReduceCmd<TInput,TOutput>, and then calling RunMap() function.
 
@@ -14,7 +14,7 @@ To run the operation, it is required to provide:
 3. an input vector to perform the operation on
 4. and a vector to store result
 
-In order for an operation to run in distributed mode a serialisation ability is required for the object which implements the operation (it has to have serialising operator &, and a call to REGISTER_SAVELOAD_CLASS() must present). In addition to that, types of TInput and TOutput also must implement the serialisation operator, otherwise a POD-type serialisation will be applied. For serialisation details see mapreduce documentation.
+In order for an operation to run in distributed mode a serialization ability is required for the object which implements the operation (it has to have serializing operator &, and a call to REGISTER_SAVELOAD_CLASS() must present). In addition to that, types of TInput and TOutput also must implement the serialization operator, otherwise a POD-type serialization will be applied. For serialization details see mapreduce documentation.
 
 
 Environment
@@ -22,7 +22,7 @@ Environment
 
 IEnvironment allows transfer and storage of additional data. It is useful for case of several operation on the same data. For example, MatrixNet runs several iterations over the same set of features, which remains unchangeable over iterations. To save costs of data transfers such features could be stored into Environment for later reuse and thus transferred only once.
 
-Class ```TCtxPtr<T>``` provides access to the data which was set thought Environment. Example of data transfer using Environment:
+Class ```TCtxPtr<T>``` provides access to the data which was set through Environment. Example of data transfer using Environment:
 ```cpp
 void TMyOp::DoMap(IUserContext *ctx, int hostId, TInput *src, TOutput *dst) const
 {
@@ -66,7 +66,7 @@ If features of RunMap() / RunMapReduce() are not enough, it is also possible to 
 5. Additionally there is CompId field which is filled on execution of a command with id of the current host.
 
 For a more convenient setting TJobDescription there are functions present:
-1. SetCurrentOperation() - sets the command which will be used. It is possible to provide the command itself, it will be serialised. Or it's possible to provide already serialised data.
+1. SetCurrentOperation() - sets the command which will be used. It is possible to provide the command itself, it will be serialized. Or it's possible to provide already serialized data.
 2. AddMap() - adds an operation to run on all hostId.
 3. AddQuery() - allows to specify on which hostId(s) to run.
 4. MergeResults() - sets all ReduceId to the same value, which means that results of all commands to be merged.
@@ -106,10 +106,10 @@ Location of execution for an operation
 In distributed mode one operation could be executed on several hosts. Result of the one finished first is used. For example elemental operations run simultaneously on head node and remote node (local-remote balance). This allows to pick minimal time between "transfer + remote run" and "local run". Additionally operations which run on the slowest host will also be executed somewhere else. This allows for case of unexpected slowdown of a host to keep overall execution time increase not more than 2 times.
 
 
-Initialisation/termination
+Initialization/termination
 --------------------------
 
-Following functions are responsible for PARalyzer initialisation:
+Following functions are responsible for PARalyzer initialization:
 ```cpp
 void RunSlave(int workerThreadCount, int port);
 IRootEnvironment *RunMaster(int workerThreadCount, const char *hostsFileName, int port);
