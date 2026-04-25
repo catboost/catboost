@@ -1975,56 +1975,90 @@ TBestSplitProperties FindBestSplit(
                         }
 #endif  // PROBE_E_INSTRUMENT
 
-                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+                        // S33-L4-FIX (DEC-042): replace the joint skip-when-either-side-empty
+                        // with a per-side mask that matches CPU's reference formula in
+                        // short_vector_ops.h:155+ (SSE2 UpdateScoreBinKernelPlain).
+                        // CPU zeroes the average of the empty side but ALWAYS adds the
+                        // non-empty side's contribution.  The old single continue discarded
+                        // the entire partition when one child was degenerate, which silently
+                        // under-attributed cosNum/cosDen for signal-correlated split candidates
+                        // that produce empty children in some partitions after depth>=1 splits.
+                        // L2 preserves the existing skip (both-empty guard added for safety);
+                        // Cosine switches to per-side accumulation.
+                        const bool wL_pos = (weightLeft  > 1e-15f);
+                        const bool wR_pos = (weightRight > 1e-15f);
 
                         switch (scoreFunction) {
                             case EScoreFunction::L2:
+                                // L2: preserve prior semantics — skip unless both sides are non-empty.
+                                if (!wL_pos || !wR_pos) break;
                                 totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
                                            + (sumRight * sumRight) / (weightRight + l2RegLambda)
                                            - (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
                             case EScoreFunction::Cosine: {
+                                // S33-L4-FIX: per-side mask — skip whole partition only when
+                                // both sides are empty (true no-op); otherwise accumulate each
+                                // non-empty side independently.  Mirrors CPU's mask formula:
+                                //   average = mask · sum / (w + λ),  mask = (w > 0)
+                                //   num contribution: sum² / (w + λ)       [if w > 0]
+                                //   den contribution: sum² · w / (w + λ)²  [if w > 0]
                                 // S30-T2-KAHAN K4: widen to double before computing per-(p,k) terms.
                                 // This eliminates the ~1e-3 per-term fp32 computation error that
                                 // float32 Neumaier compensation could not reach.
-                                const double dSL   = static_cast<double>(sumLeft);
-                                const double dSR   = static_cast<double>(sumRight);
-                                const double dWL   = static_cast<double>(weightLeft);
-                                const double dWR   = static_cast<double>(weightRight);
+                                if (!wL_pos && !wR_pos) break;
                                 const double dL2   = static_cast<double>(l2RegLambda);
-                                const double dInvL = 1.0 / (dWL + dL2);
-                                const double dInvR = 1.0 / (dWR + dL2);
-                                const double termNum = dSL * dSL * dInvL + dSR * dSR * dInvR;
-                                const double termDen = dSL * dSL * dWL * dInvL * dInvL
-                                                     + dSR * dSR * dWR * dInvR * dInvR;
+                                double termNum = 0.0;
+                                double termDen = 0.0;
+                                if (wL_pos) {
+                                    const double dSL   = static_cast<double>(sumLeft);
+                                    const double dWL   = static_cast<double>(weightLeft);
+                                    const double dInvL = 1.0 / (dWL + dL2);
+                                    termNum += dSL * dSL * dInvL;
+                                    termDen += dSL * dSL * dWL * dInvL * dInvL;
+                                }
+                                if (wR_pos) {
+                                    const double dSR   = static_cast<double>(sumRight);
+                                    const double dWR   = static_cast<double>(weightRight);
+                                    const double dInvR = 1.0 / (dWR + dL2);
+                                    termNum += dSR * dSR * dInvR;
+                                    termDen += dSR * dSR * dWR * dInvR * dInvR;
+                                }
                                 cosNum_d += termNum;
                                 cosDen_d += termDen;
 #ifdef COSINE_TERM_AUDIT
                                 // S32-T2: accumulate per-bin term contributions for the term audit.
                                 // At depth=0 K=1 numPartitions=1, there is exactly one (p=0,k=0)
                                 // term per (feat,bin) candidate — these are the raw input values.
+                                // S33-L4-FIX: use raw float stats (sumLeft/Right, weightLeft/Right)
+                                // since dSL/dSR/dWL/dWR are now scoped inside per-side if-blocks.
                                 if (g_termAudit.active) {
                                     g_termAudit.curCosNum   += termNum;
                                     g_termAudit.curCosDen   += termDen;
                                     // Capture the partition stats from the last (p,k) iteration.
                                     // For depth=0 K=1 these are the only (p,k) values.
-                                    g_termAudit.curSumL   = dSL;
-                                    g_termAudit.curSumR   = dSR;
-                                    g_termAudit.curWL     = dWL;
-                                    g_termAudit.curWR     = dWR;
+                                    g_termAudit.curSumL   = static_cast<double>(sumLeft);
+                                    g_termAudit.curSumR   = static_cast<double>(sumRight);
+                                    g_termAudit.curWL     = static_cast<double>(weightLeft);
+                                    g_termAudit.curWR     = static_cast<double>(weightRight);
                                     g_termAudit.curLambda = dL2;
                                 }
 #endif  // COSINE_TERM_AUDIT
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                                 // S30-T2: parallel float32 shadow accumulation for residual comparison.
                                 // Accumulates the same terms in float32 to show the pre-K4 precision.
+                                // S33-L4-FIX: apply per-side mask to match the corrected accumulation.
                                 if (g_cosInstr.dumpCosDen) {
-                                    const float invLf = 1.0f / (weightLeft  + l2RegLambda);
-                                    const float invRf = 1.0f / (weightRight + l2RegLambda);
-                                    cosNum_f32_shadow += sumLeft  * sumLeft  * invLf
-                                                       + sumRight * sumRight * invRf;
-                                    cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf
-                                                       + sumRight * sumRight * weightRight * invRf * invRf;
+                                    if (wL_pos) {
+                                        const float invLf = 1.0f / (weightLeft  + l2RegLambda);
+                                        cosNum_f32_shadow += sumLeft  * sumLeft  * invLf;
+                                        cosDen_f32_shadow += sumLeft  * sumLeft  * weightLeft  * invLf * invLf;
+                                    }
+                                    if (wR_pos) {
+                                        const float invRf = 1.0f / (weightRight + l2RegLambda);
+                                        cosNum_f32_shadow += sumRight * sumRight * invRf;
+                                        cosDen_f32_shadow += sumRight * sumRight * weightRight * invRf * invRf;
+                                    }
                                 }
 #endif
                                 break;
