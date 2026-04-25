@@ -22,19 +22,6 @@
 // ============================================================================
 
 static TConfig TrainConfigToInternal(const TTrainConfig& tc) {
-    // S28-LG-GUARD (C++ defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
-    // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
-    // across languages. nanobind auto-translates std::invalid_argument → Python ValueError.
-    if (tc.ScoreFunction == "Cosine" && tc.GrowPolicy == "Lossguide") {
-        throw std::invalid_argument(
-            "score_function='Cosine' with grow_policy='Lossguide' is not supported "
-            "in catboost-mlx: priority-queue leaf ordering interacts with Cosine "
-            "joint-gain magnitude producing unacceptable per-partition gain drift "
-            "vs CPU CatBoost. Root-cause investigation is scheduled for Sprint 29 "
-            "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
-            "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
-        );
-    }
     TConfig c;
     c.NumIterations        = tc.NumIterations;
     c.MaxDepth             = tc.MaxDepth;

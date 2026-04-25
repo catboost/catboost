@@ -67,7 +67,7 @@
 #include <random>
 #include <optional>
 #include <queue>
-#include <stdexcept>   // std::invalid_argument — S28-LG-GUARD
+#include <stdexcept>   // std::invalid_argument, std::runtime_error
 #ifdef CATBOOST_MLX_STAGE_PROFILE
 #include <filesystem>
 #include <sstream>
@@ -619,24 +619,6 @@ TConfig ParseArgs(int argc, char** argv) {
         else if (strcmp(argv[i], "--verbose") == 0) config.Verbose = true;
         else { fprintf(stderr, "Unknown option: %s\n", argv[i]); exit(1); }
     }
-    // S28-LG-GUARD (CLI defense-in-depth): Cosine+Lossguide combination rejected until S29 RCA.
-    // Mirrors python/catboost_mlx/core.py:628-636 verbatim so TODO markers stay greppable
-    // across languages. Uncaught std::invalid_argument terminates with non-zero exit + stderr msg.
-    // S30-T3-MEASURE: guard bypassed in T3-measure builds so post-Kahan LG parity can be
-    // measured (G3b LG-Mid and G3c LG-Stress).  The TODO-S29-LG-COSINE-RCA marker is preserved
-    // for T4b grep gate.  COSINE_T3_MEASURE MUST NOT be used in production builds.
-#ifndef COSINE_T3_MEASURE
-    if (config.ScoreFunction == "Cosine" && config.GrowPolicy == "Lossguide") {
-        throw std::invalid_argument(
-            "score_function='Cosine' with grow_policy='Lossguide' is not supported "
-            "in catboost-mlx: priority-queue leaf ordering interacts with Cosine "
-            "joint-gain magnitude producing unacceptable per-partition gain drift "
-            "vs CPU CatBoost. Root-cause investigation is scheduled for Sprint 29 "
-            "(TODO-S29-LG-COSINE-RCA). Use score_function='L2' with Lossguide, or "
-            "switch grow_policy to 'SymmetricTree' or 'Depthwise' for Cosine."
-        );
-    }
-#endif  // !COSINE_T3_MEASURE
     return config;
 }
 
