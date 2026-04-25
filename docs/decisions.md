@@ -240,46 +240,47 @@ update: `bits = updateBits << depth; partitions |= bits`.
 
 ---
 
-## DEC-041: Static vs Dynamic Feature Quantization in csv_train.cpp (OPEN)
+## DEC-041: Static vs Dynamic Feature Quantization in csv_train.cpp (INVALIDATED)
 
 **Date**: 2026-04-24
-**Status**: Open — S34 scope
-**Closes**: DEC-036 (partial)
+**Status**: INVALIDATED 2026-04-24 — premise falsified by post-close probes
+**Closes**: (none — does not close DEC-036; DEC-036 reverts to OPEN)
 
-**Context**: S33-L4-FIX investigation determined the root cause of the 52.6% ST+Cosine
-RMSE drift (DEC-036). csv_train.cpp calls `QuantizeFeatures` once before training,
-producing 127 borders for all features. CatBoost CPU builds borders dynamically:
-a border is added to a feature's list only when that feature is chosen for a split.
-On the 20-feature anchor dataset (X[:,0], X[:,1] signal; X[:,2]-X[:,19] pure noise),
-CatBoost produces 166 useful bin-features at 50 iterations; csv_train.cpp produces
-2540 bin-features (mostly noise). MLX wastes depth on noise features each iteration,
-compounding over 50 iterations to produce 52.6% RMSE drift.
+**Original premise (FALSE)**: that CatBoost CPU accumulates feature borders
+dynamically while csv_train.cpp builds a static 127-border grid, and that this
+difference explains the 52.6% ST+Cosine drift.
 
-**Decision (deferred)**: Three options are under consideration:
-  1. Port CatBoost's dynamic border accumulation into csv_train.cpp (correct, complex).
-  2. Pre-filter features by target correlation before quantization (heuristic, simpler).
-  3. Accept the divergence as a known design limitation of csv_train.cpp (the test
-     harness path). The production nanobind Python path uses CatBoost's own Pool +
-     QuantizedPool for data preparation, which handles quantization correctly.
+**Falsification**:
 
-**Recommended option**: Option 3 for the harness (csv_train.cpp is not production code).
-The guards on ST+Cosine remain until G4b (drift ≤ 2%) is met; Option 3 means G4b
-cannot be met via csv_train.cpp alone. To remove guards, the full Python nanobind
-path's model quality must be validated on a dataset where features 0-1 are signal and
-features 2-19 are noise — and that path uses CatBoost's own quantization, so the
-drift would not appear there.
+- **PROBE-A** (`c770ab6630`, `docs/sprint33/probe-a-borders/verdict.md`).
+  CatBoost `Pool.quantize` produces **128 borders for every one of the 20
+  features** (total 2560), matching csv_train.cpp's static grid 1:1. The
+  95/71/0 numbers cited in the L4 verdict are *stored-in-CBM* borders —
+  CatBoost's serialization compresses to thresholds the trained trees actually
+  reference. Available borders ≠ stored borders. There is no "dynamic border
+  accumulation" mechanism in CatBoost.
 
-**Rationale**: csv_train.cpp is a diagnostic harness, not a production training path.
-Reimplementing CatBoost's dynamic border accumulation in a test harness (Option 1)
-would be significant engineering work for no production benefit. The production path
-(nanobind Python) uses CatBoost internals for quantization, avoiding the problem.
+- **PROBE-B** (`600238f39f`, `docs/sprint33/probe-b-python/verdict.md`).
+  The nanobind Python path traces `core.py:1090 _fit_nanobind →
+  _nb_core.train → train_api.cpp:14 #include csv_train.cpp →
+  train_api.cpp:268 QuantizeFeatures → csv_train.cpp:1177`. The Python path
+  calls the **same** QuantizeFeatures as the CLI harness; no `Pool::Quantize`
+  is invoked anywhere. Measured Python-path drift at the L4 anchor: **52.64%**
+  — matches csv_train to four sig figs. The "production path uses CatBoost
+  Pool" rationale (Option 3) is structurally invalid.
 
-**Risks**:
-- If csv_train.cpp is used for any benchmark or parity comparison involving many
-  noise features, the 52.6% drift will appear. All such comparisons must be on
-  datasets with all features being informative (or use the Python path).
-- Guard removal for ST+Cosine in the Python path requires a separate quality gate
-  using the Python API, not csv_train.cpp.
+**Implications**:
+- DEC-036 (ST+Cosine 52.6% drift) reverts to **OPEN** — mechanism unidentified.
+- DEC-040 (S33 L0-L4 SCAFFOLD) reverts to **OPEN** — sprint did not close.
+- The L0→L3 narrowing to S2 (split selection at iter≥2) **survives** —
+  gradients are bit-identical at iter=2 start (max_diff vs CPU 1.5e-8); the
+  divergence is downstream in the histogram/scoring path. CPU bin=3 vs MLX
+  bin=64 at iter=2 depth=0 with bit-identical iter=1 state is the surviving
+  observation.
+
+**Status**: This DEC is preserved as historical record. **Do not act on its
+recommendations.** Any successor DEC opened for the genuine DEC-036 mechanism
+will be numbered DEC-042 or later.
 
 ---
 
