@@ -4661,7 +4661,12 @@ TTrainResult RunTraining(
 #ifdef COSINE_RESIDUAL_INSTRUMENT
                 // S30-T1: arm the cosDen/cosNum double-shadow for this FindBestSplit call
                 // when iter==0 and grow_policy==SymmetricTree (the ST anchor cell).
-                if (iter == 0 && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
+                // S33-PROBE-D: optional override to arm at a different iter via
+                //   -DPROBE_D_ARM_AT_ITER=N (default 0). Used to capture iter=2 d=2.
+#ifndef PROBE_D_ARM_AT_ITER
+#  define PROBE_D_ARM_AT_ITER 0
+#endif
+                if (iter == PROBE_D_ARM_AT_ITER && ParseScoreFunction(config.ScoreFunction) == EScoreFunction::Cosine) {
                     g_cosInstr.dumpCosDen = true;
                     g_cosInstr.binRecords.clear();
                 }

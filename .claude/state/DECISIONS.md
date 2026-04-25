@@ -1780,7 +1780,7 @@ agents shipping plausible-but-wrong verdicts in cold contexts under shipping
 pressure is now a recognized pattern. Successor probe runs in active main
 context with L0-L3 evidence held live, not in fresh subagent contexts.
 
-**Successor scope** (next session, post-PROBE-C):
+**Successor scope** (post-PROBE-C, supplanted by PROBE-D below):
 - Per-feature gain dump at iter=2 **depth=2** both sides, with the d=0+d=1
   partitions held identical from the agreed splits. Find the first feature
   where the gain ranking differs (CPU re-picks feat=0; MLX prefers feat=10).
@@ -1793,6 +1793,67 @@ context with L0-L3 evidence held live, not in fresh subagent contexts.
       docs migrate between bins, biasing leaf totals at d=2.
 - DEC-042 (or later) opens when mechanism is identified — DEC-041 is a dead
   number; do not reuse.
+
+**PROBE-D result (2026-04-24, in-context, `docs/sprint33/probe-d/`)**
+
+PROBE-D ran a fp32-vs-fp64 double-shadow gain dump at iter=2 d=0..5 via the
+existing `COSINE_RESIDUAL_INSTRUMENT` infrastructure with a new compile-time
+override `PROBE_D_ARM_AT_ITER=1` (default 0 preserves prior behavior).
+Build: `csv_train_probe_d` (kernel md5 unchanged).
+
+Findings:
+
+1. **Precision class is closed.** Across 6 depths × 2540 cells = 15,240
+   (feature, bin) evaluations, max abs(gain_f32 − gain_f64) = **3.89e-5**.
+   At every depth, argmax(gain_f32) == argmax(gain_f64) bit-for-bit.
+   No fp-widening change can flip the d=2 winner.
+
+2. **Smoking gun — signal/noise gain inversion at d=2.** Per-feature winners:
+   - **18 noise features cluster at gain ~101.95** (range 101.946–101.954,
+     spread 0.007).
+   - **Signal feat=0 evaluates to gain=81.89** (best bin=20).
+   - **Signal feat=1 evaluates to gain=77.77** (best bin=106).
+   - CPU's d=2 pick (feat=0, border=−0.946874) maps to MLX bin=21 with
+     ULP-identical physical value (−0.946875), and MLX scores it at
+     **gain=81.887** vs MLX winner (feat=10, bin=79) at **101.954**.
+   - **Gap = 20.07 gain units** — three orders of magnitude bigger than the
+     fp32 noise floor (1e-5).
+   - Compare d=0 (where MLX and CPU agree, ULP-identical): feat=0 → 87.18,
+     feat=1 → 53.30, all noise → 0.58–2.30. Signal scores 30–80× higher
+     than noise. **At d=2 this is inverted.**
+
+3. **Loci re-ranking (post PROBE-D):**
+   - (a) Cosine joint-denominator precision drift at d=2 — **falsified.**
+     fp64 shadow proves it is not a precision phenomenon.
+   - (b) Per-leaf partition-state accumulation differing at d=2 — **lead
+     candidate, refined.** Specifically: CPU's d=2 candidate (feat=0,
+     bin=21) produces **degenerate (empty-child) splits in 2 of 4 leaves**
+     because after d=0 splits feat=0 at 0.014, those 2 leaves contain
+     only X[0] > 0.014 docs — none can be on the X[0] < −0.947 side.
+     Noise features split all 4 leaves non-trivially; their gains
+     cluster at ~101.95 because the joint denominator is dominated by a
+     partition-global term that's identical across noise features.
+   - (c) Histogram bin-edge inclusivity at the missing-border seam — still
+     possible but does not explain the 20-unit signal/noise inversion.
+
+**Successor scope** (next probe, S33-PROBE-E #126):
+- Per-leaf (cosNum, cosDen, doc-count, child-L-count, child-R-count) at
+  iter=2 d=2 for two specific candidates — (feat=0, bin=21) [degenerate]
+  and (feat=10, bin=79) [non-degenerate] — both MLX and CPU.
+- Goal: locate the line where MLX includes (or CPU excludes) zero-doc
+  child weight in the joint cosNum/cosDen sum. This is partition-state
+  class, likely a one-line fix in the score reducer once located.
+- DEC-042 (or later) opens when mechanism is identified — DEC-041 is a
+  dead number; do not reuse.
+
+**PROBE-D artifacts** (`docs/sprint33/probe-d/`):
+- `data/cos_accum_seed42_depth{0..5}.csv` — fp32/fp64 gain shadow at each
+  depth of iter=2, 2540 (feature, bin) rows each
+- `data/mlx_anchor_iter2.json` — MLX 2-tree model JSON
+- `data/leaf_sum_seed42.csv`, `data/approx_update_seed42.csv` — auxiliary
+  per-iter dumps
+- `scripts/build_probe_d.sh` — build script
+- `FINDING.md` — narrative with full per-feature ranking tables
 
 **PROBE-C artifacts** (`docs/sprint33/probe-c-borders/`):
 - `data/mlx_borders.tsv`, `data/cpu_borders.tsv` — per-feature border values
