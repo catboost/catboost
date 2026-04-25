@@ -1695,15 +1695,26 @@ TBestSplitProperties FindBestSplit(
                         float sumLeft = totalSum - sumRight;
                         float weightLeft = totalWeight - weightRight;
 
-                        if (weightLeft < 1e-15f || weightRight < 1e-15f) continue;
+                        // S35-1H-L2-PER-SIDE (#129): apply per-side mask to L2 only.
+                        // Mirrors ordinal Commit 1.5 (csv_train.cpp:1973+).  Cosine retains
+                        // joint-skip per S34-PROBE-F-LITE verdict — Cosine is parentless,
+                        // so per-side mask injects rare-category bias.  L2 has the parent
+                        // term; at degenerate (p,k) the non-empty side cancels parent
+                        // exactly, so per-side mask matches CPU.
+                        const bool wL_pos = (weightLeft  > 1e-15f);
+                        const bool wR_pos = (weightRight > 1e-15f);
 
                         switch (scoreFunction) {
-                            case EScoreFunction::L2:
-                                totalGain += (sumLeft * sumLeft) / (weightLeft + l2RegLambda)
-                                           + (sumRight * sumRight) / (weightRight + l2RegLambda)
-                                           - (totalSum * totalSum) / (totalWeight + l2RegLambda);
+                            case EScoreFunction::L2: {
+                                if (!wL_pos && !wR_pos) break;
+                                if (wL_pos) totalGain += (sumLeft  * sumLeft)  / (weightLeft  + l2RegLambda);
+                                if (wR_pos) totalGain += (sumRight * sumRight) / (weightRight + l2RegLambda);
+                                totalGain -= (totalSum * totalSum) / (totalWeight + l2RegLambda);
                                 break;
+                            }
                             case EScoreFunction::Cosine: {
+                                // S34-PROBE-F-LITE verdict: leave joint-skip for one-hot Cosine.
+                                if (!wL_pos || !wR_pos) break;
                                 // S30-T2-KAHAN K4: widen inputs to double before computing terms.
                                 const double dSL    = static_cast<double>(sumLeft);
                                 const double dSR    = static_cast<double>(sumRight);
