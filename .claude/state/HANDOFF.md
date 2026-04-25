@@ -1,10 +1,10 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-25 (S33 docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE landed. Tip `c15057f126`. DEC-036 CLOSED, DEC-040 CLOSED, DEC-032 FULLY CLOSED, DEC-042 FULLY CLOSED (ordinal-branch scope). S34-PROBE-F-LITE ticket opened. S33 ARCHIVED.)
+> Last updated: 2026-04-25 (S34-PROBE-F-LITE T0 closed on math verdict — branch `mlx/sprint-34-probe-f-lite`. Per-side mask is WRONG for one-hot Cosine; leave `csv_train.cpp:1698` joint-skip. CR-S33-S1 / SA-N1 resolved as no-fix-needed. T1 empirical sweep not run; math-first sufficient. New ticket #128 S35-Q4-L2-PARENT-TERM opened from math-derivation §8.2 Q4. S33 PR #29 open.)
 
 ## Current state
 
-- **Active sprint**: **S33 ARCHIVED** on branch `mlx/sprint-33-iter2-scaffold`. Tip `c15057f126`. All S33-L4-FIX commits landed (1, 1.5, 2, 3a, 3b); docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE also landed.
+- **Active sprint**: **S34-PROBE-F-LITE** on branch `mlx/sprint-34-probe-f-lite`. T0a (math) + T0b (code) converged: per-side mask is WRONG for one-hot Cosine; recommended fix shape is "leave joint-skip as-is". CR-S33-S1 / SA-N1 resolved as no-fix-needed. T1 (empirical CPU-reference sweep) NOT run — math-first sufficient. Verdict: `docs/sprint34/probe-f-lite/verdict.md`. **S33 ARCHIVED** on branch `mlx/sprint-33-iter2-scaffold` tip `addd09ae0e`, PR #29 open. All S33-L4-FIX commits landed (1, 1.5, 2, 3a, 3b); docs-only close-out commits S33-S2/S33-S3/S33-S1-RESCOPE also landed.
 - **S33 status**: FULLY CLOSED. L0→L3 chain closed. PROBE-E confirmed partition-state mechanism. S33-L4-FIX landed: per-side mask (Commits 1+1.5), four-gate validation (Commit 2), ST guard removal (Commit 3a), LG guard removal (Commit 3b). DEC-036 CLOSED. DEC-040 CLOSED. DEC-042 FULLY CLOSED (ordinal-branch scope). DEC-032 FULLY CLOSED. #93 + #94 COMPLETED.
 - **#123 S33-L4-FIX**: COMPLETED 2026-04-25. Gate report: `docs/sprint33/commit2-gates/REPORT.md`. Commit 3 closures: `e1d72d64e8` (ST), `d599e5b033` (LG).
 - **Surviving narrowing (PROBE-C corrected, 2026-04-24)**: at iter=2, depth=0 AND depth=1 of tree[1] AGREE between CPU and MLX (depth-0 ULP-identical at border 0.014169; depth-1 borders differ by 4.6e-6 due to MLX's 127-vs-128 grid offset, but both pick feat=1 at the equivalent logical position). **Divergence kicks in at depth=2**: CPU picks feat=0 again (border=−0.947), MLX picks feat=10 (border=+0.306). y = 0.5·X[0] + 0.3·X[1] + 0.1·noise → feat=10 is pure noise; CPU correctly stays on signal, MLX prefers a noise feature. Mechanism is in the Cosine gain argmax at iter=2 depth=2, with depths 0–1 already shared. The L3 "depth-0 divergent" verdict is fully retracted: it conflated CPU CBM stored-coords (split_index=3) with MLX upfront-grid bin=64 — both physically 0.014169.
@@ -164,19 +164,27 @@ All S31 deliverables subsumed. T3b G1 PASS (GAIN-FORMULA localized). T3-MEASURE,
 
 ---
 
-## Entry point for S34
+## S34 status — T0 closed on math verdict
 
-S33 ARCHIVED. DEC-041 is INVALIDATED (premise falsified by PROBE-A). #93/#94 COMPLETED in S33. All Cosine guards removed.
+S34-PROBE-F-LITE T0a (mathematician) + T0b (ml-engineer) converged independently: **per-side mask is WRONG for one-hot Cosine; leave `csv_train.cpp:1698` as joint-skip**. Cosine has no parent-term subtraction anywhere → no cancellation when wR=0 → mirroring L1980's fix would inject `totalSum²/(totalWeight+λ)` into cosNum_d for every degenerate (p,k) → bin-dependent argmax bias toward rare-category bins. Predicts the 3% in-session regression directionally. T1 empirical sweep NOT run — math-first closed the question.
 
-**S34 scope**: S34-PROBE-F-LITE — investigate one-hot per-side mask validity at `FindBestSplit:1698`. Scoping document: `docs/sprint33/s33-s1-rescope.md`. Branch: cut `mlx/sprint-34-probe-f-lite` from S33 close. See TODOS.md #127.
+**Resolves**: CR-S33-S1, SA-N1-S33 (both as no-fix-needed). DEC-042 ordinal-scope footnote stands; one-hot branch confirmed correct as-is.
+
+**Verdict doc**: `docs/sprint34/probe-f-lite/verdict.md`.
+
+**New ticket from S34 side finding**: #128 S35-Q4-L2-PARENT-TERM — MLX's L2 path subtracts `totalSum²/(totalWeight+λ)` per-(p,k) at `csv_train.cpp:1704, 1973`; CPU's L2 path subtracts no parent term. Argmax-invariant at depth=0 numPartitions=1; variable elsewhere. Currently papered over by G4d.
+
+## Entry point for next session
 
 **Carry-forwards from S31/S32/S33** (still open):
 - S31-T-LATENT-P11: low priority; hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967`.
 - S31-T-CLEANUP: SA-I2 try/catch + S29 CR nits.
+- #113 S31-T3-MEASURE: re-run S30 T3 gate matrix post-fix.
+- **#128 S35-Q4-L2-PARENT-TERM**: investigate L2 parent-term divergence (new from S34 math derivation §8.2 Q4).
 
 ## PR state
 
-All S28 + S29 + S30 PRs merged. No open PRs. S31+S32 are on `mlx/sprint-32-cosine-gain-term-audit`, pending PR.
+S33 PR #29 OPEN: https://github.com/RR-AMATOK/catboost-mlx/pull/29 (DEC-036 closed for ordinal branch). S34 close-out commit pending. All prior PRs (S28, S29, S30) merged.
 
 ## Sprint 27 — Correctness Closeout — CLOSED
 
