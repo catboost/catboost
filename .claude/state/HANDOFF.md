@@ -1,16 +1,18 @@
 # Handoff — CatBoost-MLX
 
-> Last updated: 2026-04-24 (Sprint 33 CLOSED — DEC-036 PARTIAL-CLOSED; DEC-041 OPEN; L4 instrumentation removed; quantization divergence mechanism confirmed)
+> Last updated: 2026-04-24 (Sprint 33 RETRACTED — L4 mechanism falsified by probes A/B; DEC-036 OPEN; DEC-040 OPEN; DEC-041 INVALIDATED; L0→L3 narrowing to S2 split-selection at iter≥2 survives)
 
 ## Current state
 
-- **Active sprint**: **S33 CLOSED** on branch `mlx/sprint-33-iter2-scaffold`. All 5 tasks complete. Pending commit + PR.
-- **S33 summary**: L0→L1→L2→L3→L4 scaffold complete. DEC-036 mechanism fully explained: csv_train.cpp static 127-border quantization vs CatBoost CPU dynamic border accumulation. L3 statsK hypothesis FALSIFIED. L4 instrumentation removed (DEC-012). DEC-041 opened for redesign decision. DEC-040 CLOSED.
-- **#123 S33-L4-FIX**: COMPLETED 2026-04-24. L3 statsK lazy-eval hypothesis FALSIFIED. True root = static vs dynamic quantization (DEC-041). G4a N/A, G4b BLOCKED, G4c/G4d/G4e PASS. Verdict: `docs/sprint33/l4-fix/verdict.md`.
-- **S33 entry point for S34**: DEC-041 quantization redesign decision. Option 3 (accept harness divergence) recommended; OR gate #93/#94 via Python-path quality test. Ramos decides.
+- **Active sprint**: **S33 OPEN** on branch `mlx/sprint-33-iter2-scaffold`. L4 verdict retracted; sprint did not close. Tip `145d0945fc` after retraction commits.
+- **S33 status**: L0→L3 chain complete and survives; L4 mechanism (static vs dynamic quantization) FALSIFIED by PROBE-A `c770ab6630` (CatBoost `Pool.quantize` produces 128 borders × 20 features = 2560, identical to csv_train.cpp's static grid; the 95/71/0 numbers L4 cited are *stored-in-CBM* borders, not available borders) and PROBE-B `600238f39f` (nanobind Python path traces `core.py:1090 → train_api.cpp:14 #include csv_train.cpp → train_api.cpp:268 QuantizeFeatures → csv_train.cpp:1177`; identical codepath; Python-path drift = 52.64%, matches csv_train to 4 sig figs). DEC-041 INVALIDATED (do not reuse number). DEC-040 OPEN. DEC-036 OPEN.
+- **#123 S33-L4-FIX**: REOPENED 2026-04-24. L4 verdict retracted; mechanism unidentified. The L4 instrumentation removal commit is preserved (kernel md5 unchanged), but the verdict's diagnosis is wrong.
+- **Surviving narrowing (strongest constraint)**: at iter=2 depth=0 with bit-identical iter=1 state and bit-identical iter=2 gradients (max_diff vs CPU 1.5e-8), CPU picks split_index=3 and MLX picks bin=64 of 127 — same physical border value (~0.014) but different argmax of `cosNum/sqrt(cosDen)` over (feature, bin). Bug class is in S2 (histogram/split selection), specifically in the Cosine gain argmax at iter≥2.
+- **Successor scope** (next session, not S33): direct in-context per-bin (cosNum, cosDen, wL, wR) dump at iter=2 depth=0 both sides; identify first feature/bin where they differ. Three candidate loci: (a) cosNum/cosDen formula divergence at iter≥2 (l2 reg? sample weights post-iter-1?), (b) partition mask divergence, (c) per-leaf state-vector indexing. DEC-042 (or later) opens when mechanism is identified — DEC-041 is a dead number.
+- **Preserved diagnostic artifacts** (`docs/sprint33/l4-fix/data/`): `mlx_grad_iter2.bin`, `mlx_hess_iter2.bin` (bit-identical to CPU at iter=2 start; rules out S1 GRADIENT class); `mlx_hist_d0_iter2.bin` (correct; per-feature histogram total ≈ −739 is right; the L3 verdict's expected formula `20×sum_g=0.228` was wrong); `mlx_partstats_d0_iter2.bin` (partition-stats, may be useful for next phase).
 - **S32 status**: CLOSED. Branch `mlx/sprint-32-cosine-gain-term-audit`, tip `3e472ac49f`. DEC-038 (allVals fix) + DEC-039 (fold_count cap 127) shipped. G3a PASS, G3b FAIL (52.6%), G3c PASS, G3d PASS.
 - **S31 status**: CLOSED jointly with S32. All S31 quality gates subsumed into S32 close.
-- **Campaign**: Post-Verstappen correctness. DEC-036 PARTIAL-CLOSED (mechanism explained; drift 52.6% remains pending DEC-041). DEC-032 still PARTIALLY CLOSED pending guard removal (#93/#94).
+- **Campaign**: Post-Verstappen correctness. DEC-036 OPEN (mechanism unidentified after L4 retraction). DEC-032 still PARTIALLY CLOSED pending guard removal (#93/#94).
 - **Production kernel**: v5 (`784f82a891`) — unchanged. Kernel sources md5 `9edaef45b99b9db3e2717da93800e76f` byte-identical across all S31+S32+S33 commits.
 - **Open PRs**: none.
 - **Known bugs**:
@@ -19,11 +21,12 @@
     - K=10 anchor mismatch RESOLVED Sprint 8 (TODO-022, `CHANGELOG.md:27`).
     - Sibling S-1 (`kHistOneByte` writeback race) latent; guarded by compile-time `static_assert` at `histogram.cpp:126`.
     - **S27-FU-1 RESOLVED** (`fb7eb59b5f`): `ComputeLeafIndicesDepthwise` encoding + split-lookup bugs fixed. DEC-030. DEC-029 Risks entry retired.
-    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guarded at Python API + C++ nanobind + CLI (SA-H1 closed S29). Pending DEC-036/DEC-041 closure for guard removal.
+    - **S28-DEC-032 PARTIALLY CLOSED** (tip `e0b0b1b527`): `EScoreFunction` enum dispatched. DW+Cosine ships in-envelope. LG+Cosine and ST+Cosine guarded at Python API + C++ nanobind + CLI (SA-H1 closed S29). Pending DEC-036 closure for guard removal.
     - **S29-DEC-034 RESOLVED** (outcome A, `64a8d9076b`): LG+Cosine shares float32 joint-denominator compounding with ST+Cosine. Single Kahan fix addresses both.
-    - **DEC-036 PARTIAL-CLOSED**: ST+Cosine 52.6% drift mechanism explained (static vs dynamic quantization). Drift remains pending DEC-041.
-    - **DEC-041 OPEN**: csv_train.cpp static 127-border quantization vs CatBoost dynamic border accumulation. Three options; Option 3 (accept harness divergence) recommended. S34 scope.
+    - **DEC-036 OPEN**: ST+Cosine 52.6% drift mechanism unidentified after L4 retraction. L0→L3 narrowing to S2 split-selection at iter≥2 survives as the strongest remaining constraint.
+    - **DEC-041 INVALIDATED**: premise (static vs dynamic quantization) falsified by probes A/B. Number is dead; do not reuse. Successor will be DEC-042 or later.
     - **Latent P11**: hessian-vs-sampleWeight semantics swap at `csv_train.cpp:3780, 3967`. Fires under Logloss/Poisson/Tweedie/Multiclass. Not blocking RMSE path.
+    - **Meta-pattern (S30→S33)**: agents shipping plausible-but-wrong verdicts in cold subagent contexts under shipping pressure is now a recognized failure mode. Successor probe runs in active main context with L0-L3 evidence held live, not in fresh subagent contexts.
 
 ## Sprint 29 — DEC-032 Closeout + LG Mechanism Spike (CLOSED 2026-04-23)
 
