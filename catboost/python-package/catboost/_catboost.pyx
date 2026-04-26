@@ -4291,7 +4291,10 @@ cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) noexcept:
 
 cdef class _PoolBase:
     cdef TDataProviderPtr __pool
-    cdef object target_type
+    # Public so Python code (e.g. the train/eval dtype-mismatch guard in fit())
+    # can consult it; also lets users who expect consistent get_label() dtype
+    # introspect the Pool's current target dtype shadow.
+    cdef public object target_type
 
     # possibly hold list of references to data to allow using views to them in __pool
     # also useful to simplify get_label
@@ -4483,7 +4486,21 @@ cdef class _PoolBase:
                 forceUnitAutoPairWeights=False
             )
         self.__data_holders = None # free previously used resources
-        self.target_type = str
+        # Detect target dtype from the loaded native pool instead of hardcoding str.
+        # Previously this was `self.target_type = str`, which was correct for TSV/DSV
+        # sources (string labels) but wrong for quantized binaries where the target
+        # is stored numerically. With the hardcode, get_label() on a loaded quantized
+        # pool returned string-cast numbers.
+        cdef ERawTargetType raw_type = self.__pool.Get()[0].RawTargetData.GetTargetType()
+        if raw_type == ERawTargetType_Float:
+            self.target_type = float
+        elif raw_type == ERawTargetType_Integer:
+            self.target_type = int
+        elif raw_type == ERawTargetType_Boolean:
+            self.target_type = bool
+        else:
+            # String or None -- preserve previous default.
+            self.target_type = str
 
 
     cdef _init_features_order_layout_pool(
@@ -4800,6 +4817,14 @@ cdef class _PoolBase:
         self.__pool.Get()[0].SetWeights(
             TConstArrayRef[float](weight_vector.data(), weight_vector.size())
         )
+
+    cpdef _set_label(self, label):
+        cdef TVector[float] label_vector = py_to_tvector[float](label)
+        self.__pool.Get()[0].SetNumericTarget(move(label_vector))
+        self.__target_data_holders = []
+        # Mirror constructor (4325/4376) -- set_label receives 1-D label;
+        # Python set_label ravel()s (N,1) shapes before this call.
+        self.target_type = type(label[0]) if len(label) > 0 else float
 
     cpdef _set_group_id(self, group_id):
         cdef ui32 rows = self.num_row()
