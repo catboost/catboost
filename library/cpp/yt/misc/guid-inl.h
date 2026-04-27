@@ -73,6 +73,15 @@ Y_FORCE_INLINE std::strong_ordering operator <=> (TGuid lhs, TGuid rhs) noexcept
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Abseil hash support for TGuid.
+template <class THash>
+THash AbslHashValue(THash hash, const TGuid& guid)
+{
+    return THash::combine(std::move(hash), guid.Parts64[0], guid.Parts64[1]);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
 Y_FORCE_INLINE size_t THash<NYT::TGuid>::operator()(const NYT::TGuid& guid) const
