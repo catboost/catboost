@@ -1728,12 +1728,12 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
                 except (TypeError, ValueError):
                     raise CatBoostError("Can't infer loss for 2D label: non-numeric")
 
-                mn = y.min()
-                mx = y.max()
-                if not (np.isfinite(mn) and np.isfinite(mx)):
+                min_val = y.min()
+                max_val = y.max()
+                if not (np.isfinite(min_val) and np.isfinite(max_val)):
                     raise CatBoostError("Can't infer loss for 2D label: NaN/inf")
 
-                if 0.0 <= mn and mx <= 1.0:
+                if 0.0 <= min_val and max_val <= 1.0:
                     if np.all((y == 0.0) | (y == 1.0)):
                         return 'MultiLogloss'
                     return 'MultiCrossEntropy'
