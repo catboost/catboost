@@ -18,6 +18,19 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class TLock, auto LocationLite>
+class TSpinLockInplace
+    : public TLock
+{
+public:
+    TSpinLockInplace();
+};
+
+#define YT_SPIN_LOCK_INPLACE_TYPE(type) \
+    ::NYT::NThreading::TSpinLockInplace<type, YT_CURRENT_SOURCE_LOCATION_LITE>
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT::NThreading
 
 #define SPIN_LOCK_BASE_INL_H_
