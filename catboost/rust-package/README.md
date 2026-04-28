@@ -51,10 +51,17 @@ The most convenient way to override the default value is to use [`CUDAARCHS` env
 
 ### Basic usage example
 
-1. Add a dependency to your Cargo.toml:
+1. Add a dependency to your Cargo.toml
+
+Build and link shared library:
 ```
 [dependencies]
 catboost = { git = "https://github.com/catboost/catboost" }
+```
+Build and link static library:
+```
+[dependencies]
+catboost = { git = "https://github.com/catboost/catboost", features = ["static-link"] }
 ```
 
 2. Now you can apply pretrained model in your code:
