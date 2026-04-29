@@ -644,6 +644,11 @@ namespace NHnsw {
             if (Opts.ReportProgress) {
                 HNSW_LOG << Endl << "Done in " << HumanReadable(TDuration::Seconds(GlobalWatch.Passed())) << Endl;
             }
+            if constexpr (requires { Levels[0].ClearDistances(); }) {
+                for (auto& level : Levels) {
+                    level.ClearDistances();
+                }
+            }
             return ConstructIndexData(Opts, Levels);
         }
 
