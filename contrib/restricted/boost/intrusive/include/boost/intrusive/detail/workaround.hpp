@@ -121,5 +121,8 @@ template<unsigned> struct static_assert_test {};
 #  define BOOST_INTRUSIVE_NO_DANGLING
 #endif
 
+#if defined(__cpp_concepts) && (__cpp_concepts >= 202002L)
+#  define BOOST_INTRUSIVE_CONCEPTS_BASED_OVERLOADING
+#endif
 
 #endif   //#ifndef BOOST_INTRUSIVE_DETAIL_WORKAROUND_HPP
