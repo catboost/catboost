@@ -11955,8 +11955,8 @@ def test_deepcopy_fit_predict_with_cat_features():
 
     Deepcopying a model trained with categorical features and then calling fit
     on the copy could lead to a hang during subsequent predict calls because
-    _deserialize_model used ReadZeroCopyModel. After fit _train resets
-    model_blob, leaving the zero-copy model pointing to freed memory.
+    _train used to clear model_blob before the zero-copy TFullModel referencing
+    it had been destroyed.
     """
     from copy import deepcopy
     import time
