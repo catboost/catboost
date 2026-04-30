@@ -112,6 +112,7 @@ class BOOST_CONTAINER_DECL monotonic_buffer_resource
    ~monotonic_buffer_resource() BOOST_OVERRIDE;
 
    //! <b>Effects</b>: `upstream_resource()->deallocate()` as necessary to release all allocated memory.
+   //!   Resets *this to its initial state at construction.
    //!   [Note: memory is released back to `upstream_resource()` even if some blocks that were allocated
    //!   from this have not been deallocated from this. - end note]
    void release() BOOST_NOEXCEPT;

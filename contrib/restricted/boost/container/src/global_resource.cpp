@@ -14,6 +14,7 @@
 #include <boost/container/throw_exception.hpp>
 #include <boost/container/detail/dlmalloc.hpp>  //For global lock
 #include <boost/container/detail/singleton.hpp>
+#include <boost/container/detail/operator_new_helpers.hpp>
 
 #include <cstddef>
 #include <new>
@@ -22,7 +23,7 @@ namespace boost {
 namespace container {
 namespace pmr {
 
-class new_delete_resource_imp
+class new_delete_resource_imp BOOST_FINAL
    : public memory_resource
 {
    public:
@@ -31,16 +32,16 @@ class new_delete_resource_imp
    {}
 
    void* do_allocate(std::size_t bytes, std::size_t alignment) BOOST_OVERRIDE
-   {  (void)bytes; (void)alignment; return new char[bytes];  }
+   {  return boost::container::dtl::operator_new_raw_allocate(bytes, alignment);  }
 
    void do_deallocate(void* p, std::size_t bytes, std::size_t alignment) BOOST_OVERRIDE
-   {  (void)bytes; (void)alignment; delete[]((char*)p);  }
+   {  return boost::container::dtl::operator_delete_raw_deallocate(p, bytes, alignment);  }
 
    bool do_is_equal(const memory_resource& other) const BOOST_NOEXCEPT BOOST_OVERRIDE
    {  return &other == this;   }
 };
 
-struct null_memory_resource_imp
+struct null_memory_resource_imp BOOST_FINAL
    : public memory_resource
 {
    public:

@@ -30,13 +30,13 @@ namespace pmr {
 //!   memory_resource that can serve as a resource for allocating memory using
 //!   global `operator new` and global `operator delete`. The same value is returned every time this function
 //!   is called. For return value p and memory resource r, p->is_equal(r) returns &r == p.
-BOOST_CONTAINER_DECL memory_resource* new_delete_resource() BOOST_NOEXCEPT;
+BOOST_CONTAINER_NODISCARD BOOST_CONTAINER_DECL memory_resource* new_delete_resource() BOOST_NOEXCEPT;
 
 //! <b>Returns</b>: A pointer to a static-duration object of a type derived from
 //!   memory_resource for which allocate() always throws bad_alloc and for which
 //!   deallocate() has no effect. The same value is returned every time this function
 //!   is called. For return value p and memory resource r, p->is_equal(r) returns &r == p.
-BOOST_CONTAINER_DECL memory_resource* null_memory_resource() BOOST_NOEXCEPT;
+BOOST_CONTAINER_NODISCARD BOOST_CONTAINER_DECL memory_resource* null_memory_resource() BOOST_NOEXCEPT;
 
 //! <b>Effects</b>: If r is non-null, sets the value of the default memory resource
 //!   pointer to r, otherwise sets the default memory resource pointer to new_delete_resource().
@@ -52,7 +52,7 @@ BOOST_CONTAINER_DECL memory_resource* set_default_resource(memory_resource* r) B
 
 //! <b>Returns</b>: The current value of the default
 //!   memory resource pointer.
-BOOST_CONTAINER_DECL memory_resource* get_default_resource() BOOST_NOEXCEPT;
+BOOST_CONTAINER_NODISCARD BOOST_CONTAINER_DECL memory_resource* get_default_resource() BOOST_NOEXCEPT;
 
 }  //namespace pmr {
 }  //namespace container {

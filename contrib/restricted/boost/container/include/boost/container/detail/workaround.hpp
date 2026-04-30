@@ -137,14 +137,14 @@
 #endif
 
 #if defined(BOOST_CONTAINER_DISABLE_ATTRIBUTE_NODISCARD)
-   #define BOOST_CONTAINER_ATTRIBUTE_NODISCARD
+   #define BOOST_CONTAINER_NODISCARD
 #else
    #if   defined(BOOST_GCC) && ((BOOST_GCC < 100000) || (__cplusplus < 201703L))
       //Avoid using it in C++ < 17 and GCC < 10 because it warns in SFINAE contexts
       //(see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89070)
-      #define BOOST_CONTAINER_ATTRIBUTE_NODISCARD
+      #define BOOST_CONTAINER_NODISCARD
    #else
-      #define BOOST_CONTAINER_ATTRIBUTE_NODISCARD BOOST_ATTRIBUTE_NODISCARD
+      #define BOOST_CONTAINER_NODISCARD BOOST_ATTRIBUTE_NODISCARD
    #endif
 #endif
 
@@ -240,6 +240,16 @@ namespace boost {
 #define BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED
 #elif defined(__clang__)
 #define BOOST_CONTAINER_GCC_COMPATIBLE_HAS_DIAGNOSTIC_IGNORED
+#endif
+
+#if defined(__cpp_concepts) && (__cpp_concepts >= 202002L)
+#  define BOOST_CONTAINER_CONCEPTS_BASED_OVERLOADING
+#endif
+
+#ifdef _MSC_VER
+    #define BOOST_CONTAINER_NOVTABLE __declspec(novtable)
+#else
+    #define BOOST_CONTAINER_NOVTABLE
 #endif
 
 #endif   //#ifndef BOOST_CONTAINER_DETAIL_WORKAROUND_HPP
