@@ -21,18 +21,21 @@ namespace NHnsw {
     /**
      * @brief Parameters for HNSW search configuration.
      *
-     * @param TopSize                 The search will return at most this much nearest items.
-     * @param SearchNeighborhoodSize  Size of the dynamic candidate list (ef).
-     *                                Increasing this makes search slower but more accurate.
-     * @param DistanceCalcLimit       Limit on the number of distance computations.
-     * @param StopSearchSize          Minimum number of nearest neighbors found
-     *                                before termination conditions are evaluated.
+     * @param TopSize                   The search will return at most this much nearest items.
+     * @param SearchNeighborhoodSize    Size of the dynamic candidate list (ef).
+     *                                  Increasing this makes search slower but more accurate.
+     * @param DistanceCalcLimit         Limit on the number of distance computations.
+     * @param StopSearchSize            Minimum number of nearest neighbors found
+     *                                  before termination conditions are evaluated.
+     * @param UseBaseLevelForEntryInit  If true, entry-point refinement also traverses the base
+     *                                  level (level 0); by default only upper levels are used.
      */
     struct TSearchParameters {
         size_t TopSize;
         size_t SearchNeighborhoodSize;
         size_t DistanceCalcLimit = Max<size_t>();
         size_t StopSearchSize = 1;
+        bool UseBaseLevelForEntryInit = false;
     };
 
     /**
@@ -94,7 +97,8 @@ namespace NHnsw {
             NPrivate::TDistanceAdapter<TDistance, TDistanceResult, TItemStorage, TItem> distanceAdapter(
                 itemStorage, distance, params.DistanceCalcLimit);
             auto entryDist = distanceAdapter.Calc(query, entryId);
-            for (ui32 level = GetNumLevels(); level-- > 1 && !distanceAdapter.IsLimitReached(); ) {
+            const ui32 minLevel = params.UseBaseLevelForEntryInit ? 0 : 1;
+            for (ui32 level = GetNumLevels(); level-- > minLevel && !distanceAdapter.IsLimitReached(); ) {
                 for (bool entryChanged = true; entryChanged && !distanceAdapter.IsLimitReached(); ) {
                     entryChanged = false;
                     const TNeighborsView neighbors(GetNeighbors(level, entryId), GetNumNeighbors(level));
