@@ -1174,7 +1174,7 @@ void* boost_cont_malloc(size_t bytes)
    size_t received_bytes;
    ensure_initialization();
    return boost_cont_allocation_command
-      (BOOST_CONTAINER_ALLOCATE_NEW, 1, bytes, bytes, &received_bytes, 0).first;
+      (BOOST_CONTAINER_ALLOCATE_NEW, 1, 1, bytes, bytes, &received_bytes, 0).first;
 }
 
 void boost_cont_free(void* mem)
@@ -1341,7 +1341,7 @@ void* boost_cont_alloc
 {
    //ensure_initialization provided by boost_cont_allocation_command
    return boost_cont_allocation_command
-      (BOOST_CONTAINER_ALLOCATE_NEW, 1, minbytes, preferred_bytes, received_bytes, 0).first;
+      (BOOST_CONTAINER_ALLOCATE_NEW, 1, 1,  minbytes, preferred_bytes, received_bytes, 0).first;
 }
 
 void boost_cont_multidealloc(boost_cont_memchain *pchain)
@@ -1373,7 +1373,7 @@ int boost_cont_malloc_check(void)
 
 
 boost_cont_command_ret_t boost_cont_allocation_command
-   (allocation_type command, size_t sizeof_object, size_t limit_size
+   (allocation_type command, size_t sizeof_object, size_t alignof_object, size_t limit_size
    , size_t preferred_size, size_t *received_size, void *reuse_ptr)
 {
    boost_cont_command_ret_t ret = { 0, 0 };
@@ -1416,12 +1416,16 @@ boost_cont_command_ret_t boost_cont_allocation_command
          }
 
          if(command & BOOST_CONTAINER_ALLOCATE_NEW){
-            void *addr = mspace_malloc_lockless(ms, preferred_size);
-            if(!addr)   addr = mspace_malloc_lockless(ms, limit_size);
+            void* addr;
+            disable_lock(ms);
+            addr = mspace_memalign(ms, alignof_object, preferred_size);
+            if(!addr)   addr = mspace_memalign(ms, alignof_object, limit_size);
             if(addr){
                s_allocated_memory += chunksize(mem2chunk(addr));
                *received_size = DL_SIZE_IMPL(addr);
             }
+            enable_lock(ms);
+
             ret.first  = addr;
             ret.second = 0;
             if(addr){
