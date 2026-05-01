@@ -17,6 +17,9 @@ std::vector<std::string> GetEnvironNameValuePairs();
 
 std::pair<TStringBuf, std::optional<TStringBuf>> ParseEnvironNameValuePair(TStringBuf pair);
 
+std::optional<std::string> TryGetEnvValue(TStringBuf name);
+std::string GetEnvValueOrThrow(TStringBuf name);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
