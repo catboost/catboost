@@ -1669,7 +1669,6 @@ def test_onnx_export(problem_type, boost_from_average):
             'iterations': 5,
             'depth': 4,
 
-            # onnx format export does not yet support categorical features so ignore them
             'ignored_features': train_pool.get_cat_feature_indices(),
             'boost_from_average': boost_from_average
         }
@@ -1779,6 +1778,115 @@ def test_onnx_import(problem_type, boost_from_average):
             # TODO(akhropov): remove when MLTOOLS-4924 is fixed
             loaded_pred = np.array([value[0] for value in loaded_pred])
         assert np.all(canon_pred == loaded_pred)
+
+
+def test_onnx_export_with_categorical_features():
+    onnxruntime = pytest.importorskip("onnxruntime")
+
+    cat_features = [0, 1]
+    X = np.array([
+        ['a', 'x', 1.0],
+        ['b', 'y', 2.0],
+        ['a', 'y', 3.0],
+        ['b', 'x', 4.0],
+        ['a', 'x', 5.0],
+        ['b', 'y', 6.0],
+        ['a', 'y', 7.0],
+        ['b', 'x', 8.0],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
+
+    train_pool = Pool(X, y, cat_features=cat_features)
+
+    model = CatBoostRegressor(
+        iterations=5,
+        depth=3,
+        learning_rate=0.5,
+        one_hot_max_size=255,
+        verbose=False,
+        task_type='CPU'
+    )
+    model.fit(train_pool)
+
+    cb_pred = model.predict(train_pool)
+
+    output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(
+        output_onnx_model_path,
+        format="onnx",
+        pool=train_pool,
+        export_parameters={
+            'onnx_domain': 'ai.catboost',
+            'onnx_model_version': 1,
+            'onnx_doc_string': 'test model with categorical features',
+            'onnx_graph_name': 'CatBoostModel_cat_features'
+        }
+    )
+
+    session = onnxruntime.InferenceSession(output_onnx_model_path, providers=['CPUExecutionProvider'])
+    input_names = [inp.name for inp in session.get_inputs()]
+
+    feed = {}
+    for name in input_names:
+        if name == 'features':
+            feed[name] = X[:, 2:3].astype(np.float32)
+        elif name == 'cat_feature_0':
+            feed[name] = X[:, 0:1].astype(str)
+        elif name == 'cat_feature_1':
+            feed[name] = X[:, 1:2].astype(str)
+
+    onnx_pred = session.run(None, feed)[0].flatten()
+    assert np.allclose(cb_pred, onnx_pred, atol=1e-4)
+
+
+def test_onnx_import_with_categorical_features():
+    # Use categorical-only features because ONNX export reorders features
+    # (float features first, then categorical), which changes the expected
+    # feature layout for mixed-feature models.
+    X = np.array([
+        ['a', 'x'],
+        ['b', 'y'],
+        ['a', 'y'],
+        ['b', 'x'],
+        ['a', 'x'],
+        ['b', 'y'],
+        ['a', 'y'],
+        ['b', 'x'],
+    ], dtype=object)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.2, 2.2, 1.8, 2.8])
+
+    train_pool = Pool(X, y, cat_features=[0, 1])
+
+    model = CatBoostRegressor(
+        iterations=5,
+        depth=3,
+        learning_rate=0.5,
+        one_hot_max_size=255,
+        verbose=False,
+        task_type='CPU'
+    )
+    model.fit(train_pool)
+
+    cb_pred = model.predict(train_pool)
+
+    output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(
+        output_onnx_model_path,
+        format="onnx",
+        pool=train_pool,
+        export_parameters={
+            'onnx_domain': 'ai.catboost',
+            'onnx_model_version': 1,
+            'onnx_doc_string': 'test model with categorical features',
+            'onnx_graph_name': 'CatBoostModel_cat_features'
+        }
+    )
+
+    loaded_model = CatBoostRegressor()
+    loaded_model.load_model(output_onnx_model_path, format='onnx')
+    loaded_pred = loaded_model.predict(train_pool)
+
+    assert np.allclose(cb_pred, loaded_pred, atol=1e-4)
 
 
 def test_onnx_export_lightgbm_import_catboost():
