@@ -18,6 +18,7 @@
 #  pragma once
 #endif
 
+#include <cstddef>
 #include <boost/move/detail/workaround.hpp>  //forceinline
 #include <boost/move/detail/meta_utils_core.hpp>
 #include <boost/move/detail/addressof.hpp>
@@ -208,7 +209,25 @@ struct identity
 {
    typedef T type;
    typedef typename add_const_lvalue_reference<T>::type reference;
+
    BOOST_MOVE_FORCEINLINE reference operator()(reference t) const
+   {  return t;   }
+
+   //For transparent types
+   template<class K>
+   BOOST_MOVE_FORCEINLINE const K & operator()(const K &t) const
+   {  return t;   }
+};
+
+//////////////////////////////////////
+//             identity
+//////////////////////////////////////
+template <>
+struct identity<void>
+{
+   template <class U>
+   BOOST_MOVE_FORCEINLINE typename add_const_lvalue_reference<U>::type
+      operator()(typename add_const_lvalue_reference<U>::type t) const
    {  return t;   }
 };
 
@@ -508,6 +527,10 @@ struct add_rvalue_reference
 template< class T >
 struct add_rvalue_reference<T &>
 {  typedef T & type; };
+
+template< class T, std::size_t N >
+struct add_rvalue_reference<T[N]>
+{  typedef T (&type)[N]; };
 
 #endif // #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
