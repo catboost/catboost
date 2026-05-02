@@ -574,7 +574,6 @@ ctypedef const TFullModel* TFullModel_const_ptr
 
 cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel SumModels(TVector[TFullModel_const_ptr], const TVector[double]&, const TVector[TString]&, ECtrTableMergePolicy) except +ProcessException nogil
-
 cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "NCB":
     cdef void ExportModel(
         const TFullModel& model,
@@ -5428,12 +5427,8 @@ cdef class _CatBoost:
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
-        self.model_blob = None
-        _input_borders = params.pop("input_borders", None)
-        prep_params = _PreprocessParams(params)
-        cdef int thread_count = params.get("thread_count", 1)
+        cdef int thread_count
         cdef TDataProviders dataProviders
-        dataProviders.Learn = train_pool.__pool
         cdef _PoolBase test_pool
         cdef TVector[ui32] ignored_features
         cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
@@ -5442,57 +5437,69 @@ cdef class _CatBoost:
         cdef TMaybe[TFullModel*] init_model_param
         cdef THolder[TLearnProgress]* init_learn_progress_param
         cdef THolder[TLearnProgress]* dst_learn_progress_param
+        cdef size_t n_features_in
+        cdef TFullModel* old_model = self.__model
 
-        cdef size_t n_features_in = train_pool.__pool.Get().MetaInfo.GetFeatureCount()
-        self.__n_features_in = max(self.__n_features_in, n_features_in)
-        task_type = params.get('task_type', 'CPU')
+        self.__model = new TFullModel()
+        try:
+            _input_borders = params.pop("input_borders", None)
+            prep_params = _PreprocessParams(params)
+            thread_count = params.get("thread_count", 1)
+            dataProviders.Learn = train_pool.__pool
 
-        if isinstance(test_pools, list):
-            if task_type == 'GPU' and len(test_pools) > 1:
-                raise CatBoostError('Multiple eval sets are not supported on GPU')
-            for test_pool in test_pools:
+            n_features_in = train_pool.__pool.Get().MetaInfo.GetFeatureCount()
+            self.__n_features_in = max(self.__n_features_in, n_features_in)
+            task_type = params.get('task_type', 'CPU')
+
+            if isinstance(test_pools, list):
+                if task_type == 'GPU' and len(test_pools) > 1:
+                    raise CatBoostError('Multiple eval sets are not supported on GPU')
+                for test_pool in test_pools:
+                    dataProviders.Test.push_back(test_pool.__pool)
+            else:
+                test_pool = test_pools
                 dataProviders.Test.push_back(test_pool.__pool)
-        else:
-            test_pool = test_pools
-            dataProviders.Test.push_back(test_pool.__pool)
-        if maybe_init_model is not None:
-            if not isinstance(maybe_init_model, _CatBoost):
-                raise CatBoostError('init_model is not an instance of _CatBoost class')
-            init_model = maybe_init_model
-            init_model_param = init_model.__model
-            init_learn_progress_param = &(init_model.__cached_learn_progress)
-        else:
-            init_learn_progress_param = <THolder[TLearnProgress]*>nullptr
-        self._reserve_test_evals(dataProviders.Test.size())
-        self._clear_test_evals()
+            if maybe_init_model is not None:
+                if not isinstance(maybe_init_model, _CatBoost):
+                    raise CatBoostError('init_model is not an instance of _CatBoost class')
+                init_model = maybe_init_model
+                init_model_param = init_model.__model
+                init_learn_progress_param = &(init_model.__cached_learn_progress)
+            else:
+                init_learn_progress_param = <THolder[TLearnProgress]*>nullptr
+            self._reserve_test_evals(dataProviders.Test.size())
+            self._clear_test_evals()
 
-        if (_input_borders):
-            quantizedFeaturesInfo = _init_quantized_feature_info(dataProviders.Learn, _input_borders)
-        if task_type == 'CPU':
-            dst_learn_progress_param = &self.__cached_learn_progress
-        else:
-            dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
+            if (_input_borders):
+                quantizedFeaturesInfo = _init_quantized_feature_info(dataProviders.Learn, _input_borders)
+            if task_type == 'CPU':
+                dst_learn_progress_param = &self.__cached_learn_progress
+            else:
+                dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
 
-        with nogil:
-            SetPythonInterruptHandler()
-            try:
-                TrainModel(
-                    prep_params.tree,
-                    quantizedFeaturesInfo,
-                    prep_params.customObjectiveDescriptor,
-                    prep_params.customMetricDescriptor,
-                    prep_params.customCallbackDescriptor,
-                    dataProviders,
-                    init_model_param,
-                    init_learn_progress_param,
-                    TString(<const char*>""),
-                    self.__model,
-                    self.__test_evals,
-                    &self.__metrics_history,
-                    dst_learn_progress_param
-                )
-            finally:
-                ResetPythonInterruptHandler()
+            with nogil:
+                SetPythonInterruptHandler()
+                try:
+                    TrainModel(
+                        prep_params.tree,
+                        quantizedFeaturesInfo,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor,
+                        prep_params.customCallbackDescriptor,
+                        dataProviders,
+                        init_model_param,
+                        init_learn_progress_param,
+                        TString(<const char*>""),
+                        self.__model,
+                        self.__test_evals,
+                        &self.__metrics_history,
+                        dst_learn_progress_param
+                    )
+                finally:
+                    ResetPythonInterruptHandler()
+        finally:
+            del old_model
+            self.model_blob = None
 
     cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
@@ -5789,16 +5796,22 @@ cdef class _CatBoost:
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
+        cdef TFullModel* old_model = self.__model
+        self.__model = new TFullModel()
+        self.__model[0].Swap(tmp_model)
+        del old_model
         self.model_blob = None
-        self.__model.Swap(tmp_model)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
+        cdef TFullModel* old_model = self.__model
+        self.__model = new TFullModel()
+        self.__model[0].Swap(tmp_model)
+        del old_model
         self.model_blob = None
-        self.__model.Swap(tmp_model)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
@@ -5830,9 +5843,15 @@ cdef class _CatBoost:
         return py_serialized_model_str
 
     cpdef _deserialize_model(self, serialized_model_str):
-        self.model_blob = serialized_model_str
+        # Use ReadZeroCopyModel to avoid an extra copy of model data.
+        # model_blob must outlive the TFullModel that references it.
+        # See https://github.com/catboost/catboost/issues/2905
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
-        self.__model.Swap(tmp_model)
+        cdef TFullModel* old_model = self.__model
+        self.__model = new TFullModel()
+        self.__model[0].Swap(tmp_model)
+        del old_model
+        self.model_blob = serialized_model_str
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
@@ -5894,8 +5913,11 @@ cdef class _CatBoost:
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
+        cdef TFullModel* old_model = self.__model
+        self.__model = new TFullModel()
+        self.__model[0].Swap(tmp_model)
+        del old_model
         self.model_blob = None
-        self.__model.Swap(tmp_model)
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders(to_arcadia_string(fspath(output_file)), dereference(self.__model))
