@@ -1,0 +1,13 @@
+# util/charset/BUILD.bazel
+# The charset sources are compiled as part of //util:yutil.
+# This package only exposes the generated unidata for separate use.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "charset_generated",
+    srcs = ["generated/unidata.cpp"],
+    hdrs = glob(["*.h"], allow_empty = True),
+    includes = ["."],
+    deps = ["//util:yutil_hdrs", "//contrib/libs/cxxsupp:cxxsupp"],
+)

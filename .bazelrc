@@ -1,0 +1,26 @@
+# .bazelrc — Bazel build settings for CatBoost
+#
+# Mirrors the CMake build: C++20, repo root on include path,
+# platform defines matching util/system/platform.h.
+
+# ── C++ standard ────────────────────────────────────────────────────────────
+# Matches CMakeLists.txt: set(CMAKE_CXX_STANDARD 20)
+build --cxxopt=-std=c++20
+build --host_cxxopt=-std=c++20
+
+# ── Include path ─────────────────────────────────────────────────────────────
+# The repo root must be on the include path so that
+#   #include <util/generic/string.h>
+#   #include <catboost/libs/model/model.h>
+# resolve correctly from any package.
+build --cxxopt=-I.
+build --host_cxxopt=-I.
+
+# ── Platform defines (mirrors util/system/platform.h) ────────────────────────
+build:linux --cxxopt=-D_unix_
+build:linux --cxxopt=-D_linux_
+build:macos --cxxopt=-D_unix_
+build:macos --cxxopt=-D_darwin_
+
+# ── Test output ──────────────────────────────────────────────────────────────
+test --test_output=errors

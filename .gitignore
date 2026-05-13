@@ -72,3 +72,10 @@ node_modules/
 catboost/spark/catboost4j-spark/core/src/main/resources/
 catboost/spark/catboost4j-spark/core/target/
 catboost/spark/catboost4j-spark/projects/
+
+# Bazel build artifacts
+/bazel-bin
+/bazel-catboost
+/bazel-out
+/bazel-testlogs
+/MODULE.bazel.lock

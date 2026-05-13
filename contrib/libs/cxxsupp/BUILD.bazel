@@ -1,0 +1,7 @@
+# contrib/libs/cxxsupp/BUILD.bazel
+package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "cxxsupp",
+    actual = "//bazel/compat:gcc_stlfwd",
+)

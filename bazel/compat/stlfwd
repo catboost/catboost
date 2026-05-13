@@ -1,0 +1,22 @@
+// bazel/compat/stlfwd
+// Compatibility shim: provides STL forward declarations for GCC/libstdc++.
+// Replaces the Clang-specific libcxx stlfwd when building with GCC.
+#pragma once
+#include <iosfwd>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <deque>
+#include <list>
+#include <memory>
+#include <utility>
+#include <tuple>
+#include <filesystem>
+#include <functional>
+#include <optional>
+#include <variant>
+#include <any>
+#include <array>
+#include <unordered_map>
+#include <unordered_set>

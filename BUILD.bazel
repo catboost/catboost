@@ -1,0 +1,8 @@
+# BUILD.bazel — root package for CatBoost Bazel build
+#
+# The workspace root is added to the include path via .bazelrc:
+#   build --cxxopt=-I.
+# This makes #include <util/...> and #include <catboost/...> work
+# from any package without repeating include flags.
+
+package(default_visibility = ["//visibility:public"])

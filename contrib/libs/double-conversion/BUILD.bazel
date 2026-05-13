@@ -1,0 +1,21 @@
+# contrib/libs/double-conversion/BUILD.bazel
+# Sources from contrib/libs/double-conversion/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "double-conversion",
+    srcs = [
+        "double-conversion/bignum.cc",
+        "double-conversion/bignum-dtoa.cc",
+        "double-conversion/cached-powers.cc",
+        "double-conversion/double-to-string.cc",
+        "double-conversion/fast-dtoa.cc",
+        "double-conversion/fixed-dtoa.cc",
+        "double-conversion/string-to-double.cc",
+        "double-conversion/strtod.cc",
+    ],
+    copts = ["-I."],
+    deps = ["//util:yutil_hdrs"],
+    hdrs = glob(["double-conversion/*.h"]),
+)

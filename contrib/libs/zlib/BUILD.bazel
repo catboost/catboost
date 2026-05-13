@@ -1,0 +1,28 @@
+# contrib/libs/zlib/BUILD.bazel
+# Sources taken from contrib/libs/zlib/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "zlib",
+    srcs = [
+        "adler32.c",
+        "compress.c",
+        "crc32.c",
+        "deflate.c",
+        "gzclose.c",
+        "gzlib.c",
+        "gzread.c",
+        "gzwrite.c",
+        "infback.c",
+        "inffast.c",
+        "inflate.c",
+        "inftrees.c",
+        "trees.c",
+        "uncompr.c",
+        "zutil.c",
+    ],
+    copts = ["-I."],
+    deps = ["//util:yutil_hdrs"],
+    hdrs = glob(["*.h"]),
+)

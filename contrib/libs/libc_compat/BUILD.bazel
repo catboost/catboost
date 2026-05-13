@@ -1,0 +1,24 @@
+# contrib/libs/libc_compat/BUILD.bazel
+# POSIX compatibility shims for Linux.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "libc_compat",
+    srcs = [
+        "explicit_bzero.c",
+        "memfd_create/memfd_create.c",
+        "random/getentropy.c",
+        "random/getrandom.c",
+        "readpassphrase.c",
+    ],
+    hdrs = glob(
+        ["*.h", "include/**/*.h", "memfd_create/*.h", "random/*.h"],
+        allow_empty = True,
+    ),
+    copts = [
+        "-I.",
+        "-Icontrib/libs/libc_compat/include/readpassphrase",
+    ],
+    deps = ["//util:yutil_hdrs"],
+)
