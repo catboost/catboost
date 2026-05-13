@@ -1,7 +1,13 @@
 # contrib/libs/cxxsupp/BUILD.bazel
+#
+# C++ standard library supplement.
+# In the ya/CMake build this provides Clang's libc++ as a replacement
+# for libstdc++. When building with Bazel + GCC we use libstdc++ directly
+# and only need the <stlfwd> compatibility shim.
+
 package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "cxxsupp",
-    actual = "//bazel/compat:gcc_stlfwd",
+    actual = "//bazel/compat:libstlfwd",
 )

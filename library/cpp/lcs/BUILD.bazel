@@ -1,0 +1,20 @@
+# library/cpp/lcs/BUILD.bazel
+# Auto-generated from library/cpp/lcs/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "lcs",
+    srcs = [
+        "lcs_via_lis.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/containers/paged_vector:paged_vector",
+    ],
+)

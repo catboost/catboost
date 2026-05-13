@@ -1,26 +1,31 @@
-# .bazelrc — Bazel build settings for CatBoost
+# .bazelrc — Bazel build configuration for CatBoost
 #
-# Mirrors the CMake build: C++20, repo root on include path,
-# platform defines matching util/system/platform.h.
+# Applies to all build/test commands automatically.
 
-# ── C++ standard ────────────────────────────────────────────────────────────
-# Matches CMakeLists.txt: set(CMAKE_CXX_STANDARD 20)
+# ── C++ standard ──────────────────────────────────────────────────────────────
+# CatBoost requires C++20 (same as CMakeLists.txt: set(CMAKE_CXX_STANDARD 20))
 build --cxxopt=-std=c++20
 build --host_cxxopt=-std=c++20
 
-# ── Include path ─────────────────────────────────────────────────────────────
+# ── Include path ──────────────────────────────────────────────────────────────
 # The repo root must be on the include path so that
 #   #include <util/generic/string.h>
 #   #include <catboost/libs/model/model.h>
 # resolve correctly from any package.
+# Bazel's sandbox execroot IS the workspace root, so -I. works.
 build --cxxopt=-I.
 build --host_cxxopt=-I.
 
-# ── Platform defines (mirrors util/system/platform.h) ────────────────────────
-build:linux --cxxopt=-D_unix_
-build:linux --cxxopt=-D_linux_
-build:macos --cxxopt=-D_unix_
-build:macos --cxxopt=-D_darwin_
+# ── Platform defines ──────────────────────────────────────────────────────────
+# CatBoost's util/system/platform.h detects the platform from compiler macros.
+# GCC on Linux sets __linux__ and __x86_64__ automatically; no extra defines needed.
 
-# ── Test output ──────────────────────────────────────────────────────────────
+# ── Warnings ──────────────────────────────────────────────────────────────────
+# Suppress warnings from third-party code that we don't control.
+build --cxxopt=-Wno-deprecated-declarations
+build --cxxopt=-Wno-unused-parameter
+build --copt=-Wno-unused-parameter
+
+# ── Test output ───────────────────────────────────────────────────────────────
 test --test_output=errors
+build --dynamic_mode=off

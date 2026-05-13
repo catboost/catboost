@@ -1,0 +1,23 @@
+# library/cpp/json/writer/BUILD.bazel
+# Auto-generated from library/cpp/json/writer/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "json_writer",
+    srcs = [
+        "json.cpp",
+        "json_value.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/json/common:json_common",
+        "//library/cpp/json:json_hdrs",
+        "//tools/enum_parser/enum_serialization_runtime:enum_serialization_runtime",
+    ],
+)

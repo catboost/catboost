@@ -1,0 +1,11 @@
+# contrib/libs/rapidjson/BUILD.bazel
+# RapidJSON — header-only JSON library.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "rapidjson",
+    hdrs = glob(["include/**/*.h"], allow_empty = True),
+    includes = ["include"],
+    deps = ["//contrib/libs/linux-headers"],
+)

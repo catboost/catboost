@@ -1,0 +1,24 @@
+# library/cpp/testing/common/BUILD.bazel
+# Auto-generated from library/cpp/testing/common/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "testing_common",
+    srcs = [
+        "env.cpp",
+        "network.cpp",
+        "probe.cpp",
+        "scope.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//build/scripts/c_templates:svnversion",
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/json:json",
+    ],
+)

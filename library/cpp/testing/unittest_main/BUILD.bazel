@@ -1,0 +1,12 @@
+# library/cpp/testing/unittest_main/BUILD.bazel
+# Provides main() for Y_UNIT_TEST test binaries.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "unittest_main",
+    srcs = ["main.cpp"],
+    copts = ["-I."],
+    alwayslink = True,
+    deps = ["//library/cpp/testing/unittest:unittest"],
+)

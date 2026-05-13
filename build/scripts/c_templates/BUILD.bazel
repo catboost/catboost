@@ -1,0 +1,15 @@
+# build/scripts/c_templates/BUILD.bazel
+# VCS version info — stub implementation for Bazel builds.
+# The ya/CMake build generates real VCS info at build time.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "svnversion",
+    srcs = ["svnversion_stub.cpp"],
+    hdrs = ["svnversion.h"],
+    copts = ["-I."],
+    includes = ["."],
+    alwayslink = True,
+    deps = ["//util:yutil"],
+)

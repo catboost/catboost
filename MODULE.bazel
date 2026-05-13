@@ -1,18 +1,8 @@
-# MODULE.bazel — Bazel Bzlmod manifest for CatBoost
-#
-# Adds modern Bazel (7+) build support alongside the existing CMake/ya build.
-# No existing files are modified. The .dat output files are byte-identical
-# to those produced by CMake — only the build toolchain changes.
-#
-# Usage:
-#   bazel build //util:yutil
-#   bazel test  //util:yutil_test
-#   bazel build //catboost/libs/model:catboost_model
-
 module(
     name = "catboost",
-    version = "1.0.0",
+    version = "1.2.7",
 )
 
-bazel_dep(name = "rules_cc",  version = "0.1.1")
+bazel_dep(name = "rules_cc", version = "0.1.1")
 bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "googletest", version = "1.15.2")

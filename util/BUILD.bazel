@@ -2,40 +2,57 @@
 #
 # yutil — Yandex utility library, the foundation of CatBoost.
 #
+# This single cc_library mirrors the CMake yutil target exactly.
+# All sources and all headers are declared together so that Bazel's
+# sandbox has the complete include tree during compilation.
+# This is necessary because util/* sub-packages have circular header
+# dependencies (e.g., util/system ↔ util/generic) that prevent
+# splitting into separate packages.
+#
 # Build:  bazel build //util:yutil
-# Test:   bazel test  //util:yutil_test
+# Test:   bazel test  //util/...
 
 package(default_visibility = ["//visibility:public"])
 
 # Header-only target: exposes all util headers without compiling anything.
-# Used by contrib libs (zlib, libc_compat) that include util headers
-# but are compiled before yutil itself.
+# Used by contrib libs (zlib) that include util headers but are compiled
+# before yutil itself, breaking the circular dependency.
 cc_library(
     name = "yutil_hdrs",
-    hdrs = glob([
-        "*.h",
-        "charset/*.h",
-        "datetime/*.h",
-        "digest/*.h",
-        "draft/*.h",
-        "folder/*.h",
-        "generic/*.h",
-        "memory/*.h",
-        "network/*.h",
-        "random/*.h",
-        "stream/*.h",
-        "string/*.h",
-        "system/*.h",
-        "system/*.i",
-        "thread/*.h",
-    ], allow_empty = True),
+    hdrs = glob(
+        [
+            "*.h",
+            "charset/*.h",
+            "datetime/*.h",
+            "digest/*.h",
+            "draft/*.h",
+            "folder/*.h",
+            "generic/*.h",
+            "memory/*.h",
+            "network/*.h",
+            "random/*.h",
+            "stream/*.h",
+            "string/*.h",
+            "system/*.h",
+            "system/*.i",
+            "thread/*.h",
+        ],
+        allow_empty = True,
+    ),
+    copts = ["-I."],
     includes = ["."],
+    deps = [
+        "//bazel/compat:libstlfwd",
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/libc_compat",
+    ],
 )
 
 cc_library(
     name = "yutil",
     srcs = [
         "datetime/base.cpp",
+        "datetime/parser.cpp",
         "datetime/constants.cpp",
         "datetime/cputimer.cpp",
         "datetime/process_uptime.cpp",
@@ -269,23 +286,31 @@ cc_library(
         "ysafeptr.cpp",
         "ysaveload.cpp",
     ],
-    hdrs = glob([
-        "*.h",
-        "charset/*.h",
-        "datetime/*.h",
-        "digest/*.h",
-        "draft/*.h",
-        "folder/*.h",
-        "generic/*.h",
-        "memory/*.h",
-        "network/*.h",
-        "random/*.h",
-        "stream/*.h",
-        "string/*.h",
-        "system/*.h",
-        "system/*.i",
-        "thread/*.h",
-    ], allow_empty = True),
+    # All headers must be declared so Bazel's sandbox includes them.
+    # The glob crosses all util/* subdirectories intentionally.
+    hdrs = glob(
+        [
+            "*.h",
+            "charset/*.h",
+            "datetime/*.h",
+            "digest/*.h",
+            "draft/*.h",
+            "folder/*.h",
+            "generic/*.h",
+            "memory/*.h",
+            "network/*.h",
+            "random/*.h",
+            "stream/*.h",
+            "string/*.h",
+            "system/*.h",
+            "system/*.i",
+            "thread/*.h",
+        ],
+        allow_empty = True,
+    ),
+    # -I. makes #include <util/...> resolve from workspace root.
+    # includes=["."] adds util/ to -isystem for relative includes within util/*.
+    copts = ["-I."],
     includes = ["."],
     linkopts = [
         "-lpthread",
@@ -293,19 +318,57 @@ cc_library(
         "-lrt",
     ],
     deps = [
-        "//util/charset:charset_generated",
+        "//bazel/compat:libstlfwd",
+        "//contrib/libs/linux-headers",
+        "//util/charset:charset",
+        "//util/charset:charset_sse41",
         "//contrib/libs/zlib:zlib",
         "//contrib/libs/double-conversion:double-conversion",
         "//contrib/libs/libc_compat:libc_compat",
-        "//contrib/libs/cxxsupp:cxxsupp",
     ],
 )
 
-# cc_test(
-#     name = "yutil_test",
-#     srcs = [
-#         "ysafeptr_ut.cpp",
-#         "ysaveload_ut.cpp",
-#     ],
-#     deps = [":yutil"],
-# )
+# ── Tests ─────────────────────────────────────────────────────────────────────
+# A selection of util/generic unit tests that exercise the core library.
+# Run with: bazel test //util:generic_tests
+
+load("//bazel:rules.bzl", "yunit_test")
+
+yunit_test(
+    name = "generic_tests",
+    srcs = [
+        "generic/array_size_ut.cpp",
+        "generic/bitops_ut.cpp",
+        "generic/cast_ut.cpp",
+        "generic/maybe_ut.cpp",
+        "generic/ptr_ut.cpp",
+        "generic/vector_ut.cpp",
+    ],
+    deps = ["//build/cow/on:cow_on"],
+)
+
+yunit_test(
+    name = "string_tests",
+    srcs = [
+        "string/ascii_ut.cpp",
+        "string/builder_ut.cpp",
+        "string/cast_ut.cpp",
+        "string/escape_ut.cpp",
+        "string/join_ut.cpp",
+        "string/split_ut.cpp",
+        "string/strip_ut.cpp",
+        "string/subst_ut.cpp",
+        "string/type_ut.cpp",
+        "string/util_ut.cpp",
+        "string/vector_ut.cpp",
+    ],
+    deps = ["//build/cow/on:cow_on"],
+)
+
+yunit_test(
+    name = "datetime_tests",
+    srcs = [
+        "datetime/base_ut.cpp",
+    ],
+    deps = ["//build/cow/on:cow_on"],
+)

@@ -1,0 +1,20 @@
+# library/cpp/containers/stack_array/BUILD.bazel
+# Auto-generated from library/cpp/containers/stack_array/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "stack_array",
+    srcs = [
+        "range_ops.cpp",
+        "stack_array.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+    ],
+)

@@ -1,0 +1,22 @@
+# library/cpp/dbg_output/BUILD.bazel
+# Auto-generated from library/cpp/dbg_output/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "dbg_output",
+    srcs = [
+        "dump.cpp",
+        "dumpers.cpp",
+        "engine.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/colorizer:colorizer",
+    ],
+)

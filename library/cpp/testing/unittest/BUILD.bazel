@@ -1,0 +1,35 @@
+# library/cpp/testing/unittest/BUILD.bazel
+# CatBoost unit test framework — wraps Y_UNIT_TEST_SUITE / Y_UNIT_TEST macros.
+# Sources from library/cpp/testing/unittest/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+# The test framework library (linked into every test binary).
+cc_library(
+    name = "unittest",
+    srcs = [
+        "checks.cpp",
+        "gtest.cpp",
+        "junit.cpp",
+        "plugin.cpp",
+        "registar.cpp",
+        "tests_data.cpp",
+        "utmain.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    copts = ["-I."],
+    includes = ["."],
+    alwayslink = True,
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/colorizer:colorizer",
+        "//library/cpp/dbg_output:dbg_output",
+        "//library/cpp/diff:diff",
+        "//library/cpp/json:json",
+        "//library/cpp/json/writer:json_writer",
+        "//library/cpp/testing/common:testing_common",
+        "//library/cpp/testing/hook:testing_hook",
+    ],
+)

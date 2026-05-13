@@ -1,5 +1,6 @@
 # contrib/libs/libc_compat/BUILD.bazel
 # POSIX compatibility shims for Linux.
+# Sources from contrib/libs/libc_compat/CMakeLists.linux-x86_64.txt
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,9 +17,6 @@ cc_library(
         ["*.h", "include/**/*.h", "memfd_create/*.h", "random/*.h"],
         allow_empty = True,
     ),
-    copts = [
-        "-I.",
-        "-Icontrib/libs/libc_compat/include/readpassphrase",
-    ],
-    deps = ["//util:yutil_hdrs"],
+    # readpassphrase.h lives in include/readpassphrase/
+    copts = ["-Icontrib/libs/libc_compat/include/readpassphrase"],
 )

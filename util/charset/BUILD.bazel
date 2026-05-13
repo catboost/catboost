@@ -1,13 +1,40 @@
 # util/charset/BUILD.bazel
-# The charset sources are compiled as part of //util:yutil.
-# This package only exposes the generated unidata for separate use.
+# Sources from util/charset/CMakeLists.linux-x86_64.txt
 
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "charset_generated",
-    srcs = ["generated/unidata.cpp"],
-    hdrs = glob(["*.h"], allow_empty = True),
+    name = "charset",
+    srcs = [
+        "generated/unidata.cpp",
+        "recode_result.cpp",
+        "unicode_table.cpp",
+        "unidata.cpp",
+        "utf8.cpp",
+        "wide.cpp",
+    ],
+    hdrs = glob(["*.h"]),
+    # -I. for <util/...> includes; includes=["."] for relative includes within charset/
+    copts = ["-I."],
     includes = ["."],
-    deps = ["//util:yutil_hdrs", "//contrib/libs/cxxsupp:cxxsupp"],
+    deps = [
+        "//bazel/compat:libstlfwd",
+        "//contrib/libs/linux-headers",
+        "//util:yutil_hdrs",
+    ],
+)
+
+# wide_sse41.cpp requires SSE4.1 intrinsics (-msse4.1).
+# Compiled as a separate target so the flag applies only to this file.
+cc_library(
+    name = "charset_sse41",
+    srcs = ["wide_sse41.cpp"],
+    hdrs = glob(["*.h"]),
+    copts = ["-I.", "-msse4.1"],
+    includes = ["."],
+    deps = [
+        "//bazel/compat:libstlfwd",
+        "//contrib/libs/linux-headers",
+        "//util:yutil_hdrs",
+    ],
 )

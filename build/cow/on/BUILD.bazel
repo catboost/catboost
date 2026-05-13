@@ -1,0 +1,11 @@
+# build/cow/on/BUILD.bazel
+# Defines TStringUseCow=1, enabling copy-on-write semantics for TString.
+# Must be linked into every binary that uses TString.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "cow_on",
+    srcs = ["lib.c"],
+    alwayslink = True,
+)

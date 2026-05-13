@@ -1,5 +1,5 @@
 # contrib/libs/zlib/BUILD.bazel
-# Sources taken from contrib/libs/zlib/CMakeLists.linux-x86_64.txt
+# Sources from contrib/libs/zlib/CMakeLists.linux-x86_64.txt
 
 package(default_visibility = ["//visibility:public"])
 
@@ -22,7 +22,9 @@ cc_library(
         "uncompr.c",
         "zutil.c",
     ],
-    copts = ["-I."],
-    deps = ["//util:yutil_hdrs"],
     hdrs = glob(["*.h"]),
+    # -I. makes #include <util/system/compiler.h> resolve from workspace root.
+    copts = ["-I."],
+    includes = ["."],
+    deps = ["//util:yutil_hdrs"],
 )

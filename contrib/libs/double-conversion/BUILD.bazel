@@ -15,7 +15,6 @@ cc_library(
         "double-conversion/string-to-double.cc",
         "double-conversion/strtod.cc",
     ],
-    copts = ["-I."],
-    deps = ["//util:yutil_hdrs"],
     hdrs = glob(["double-conversion/*.h"]),
+    includes = ["double-conversion"],
 )

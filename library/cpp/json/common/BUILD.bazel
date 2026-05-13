@@ -1,0 +1,19 @@
+# library/cpp/json/common/BUILD.bazel
+# Auto-generated from library/cpp/json/common/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "json_common",
+    srcs = [
+        "defs.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+    ],
+)

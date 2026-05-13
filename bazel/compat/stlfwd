@@ -1,22 +1,33 @@
-// bazel/compat/stlfwd
-// Compatibility shim: provides STL forward declarations for GCC/libstdc++.
-// Replaces the Clang-specific libcxx stlfwd when building with GCC.
+// bazel/compat/stlfwd — GCC/libstdc++ compatibility shim
+//
+// CatBoost includes <stlfwd> which is a Clang/libc++ extension providing
+// forward declarations for STL types. This file provides the same
+// declarations using standard C++ headers, making the code compile
+// with GCC and libstdc++.
+//
+// Used only when building with Bazel + GCC. The ya/CMake builds use
+// the actual libc++ stlfwd from contrib/libs/cxxsupp/libcxx/include/.
 #pragma once
-#include <iosfwd>
+
+// Standard forward-declaration headers (C++11 and later)
+#include <iosfwd>       // std::ostream, std::istream, std::string (fwd)
+
+// Full headers — libstdc++ forward-declaration headers are not public API,
+// so we include the full headers. They are lightweight and widely included.
 #include <string>
+#include <string_view>
 #include <vector>
-#include <map>
-#include <set>
 #include <deque>
 #include <list>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <memory>
-#include <utility>
+#include <utility>      // std::pair
 #include <tuple>
-#include <filesystem>
+#include <array>
 #include <functional>
 #include <optional>
 #include <variant>
-#include <any>
-#include <array>
-#include <unordered_map>
-#include <unordered_set>
+#include <filesystem>

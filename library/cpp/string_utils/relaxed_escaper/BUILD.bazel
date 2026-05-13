@@ -1,0 +1,19 @@
+# library/cpp/string_utils/relaxed_escaper/BUILD.bazel
+# Auto-generated from library/cpp/string_utils/relaxed_escaper/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "relaxed_escaper",
+    srcs = [
+        "relaxed_escaper.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+    ],
+)

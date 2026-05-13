@@ -1,0 +1,21 @@
+# tools/enum_parser/enum_serialization_runtime/BUILD.bazel
+# Auto-generated from tools/enum_parser/enum_serialization_runtime/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "enum_serialization_runtime",
+    srcs = [
+        "dispatch_methods.cpp",
+        "enum_runtime.cpp",
+        "ordered_pairs.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+    ],
+)

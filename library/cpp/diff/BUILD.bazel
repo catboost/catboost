@@ -1,0 +1,21 @@
+# library/cpp/diff/BUILD.bazel
+# Auto-generated from library/cpp/diff/CMakeLists.linux-x86_64.txt
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "diff",
+    srcs = [
+        "diff.cpp",
+    ],
+    hdrs = glob(["*.h"], allow_empty = True),
+    copts = ["-I."],
+    includes = ["."],
+    deps = [
+        "//contrib/libs/linux-headers",
+        "//contrib/libs/cxxsupp",
+        "//util:yutil",
+        "//library/cpp/lcs:lcs",
+        "//library/cpp/containers/stack_array:stack_array",
+    ],
+)

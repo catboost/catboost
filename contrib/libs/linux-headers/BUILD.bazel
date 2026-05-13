@@ -1,0 +1,14 @@
+# contrib/libs/linux-headers/BUILD.bazel
+# Linux kernel headers used by CatBoost's system utilities.
+# Header-only: no compilation, just adds include directories.
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "linux-headers",
+    hdrs = glob(
+        ["**/*.h"],
+        allow_empty = True,
+    ),
+    includes = ["."],
+)

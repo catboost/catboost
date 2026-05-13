@@ -1,14 +1,14 @@
 # bazel/compat/BUILD.bazel
-# Compatibility headers for building CatBoost with GCC/libstdc++.
+#
+# Compatibility shims for building CatBoost with GCC + libstdc++.
 
 package(default_visibility = ["//visibility:public"])
 
-# Provides <stlfwd> for GCC builds.
-# The file is named "stlfwd" (no extension) to match the #include <stlfwd>.
+# Provides <stlfwd> for GCC/libstdc++ builds.
+# Named "libstlfwd" to avoid the self-reference cycle that occurs when
+# a cc_library named "stlfwd" lists "stlfwd" (the file) in hdrs=[].
 cc_library(
-    name = "gcc_stlfwd",
+    name = "libstlfwd",
     hdrs = ["stlfwd"],
-    # includes=["."] makes Bazel add bazel/compat/ to -isystem,
-    # so #include <stlfwd> resolves to this file.
     includes = ["."],
 )
