@@ -69,7 +69,7 @@ CATBOOST_API ModelCalcerHandle* ModelCalcerCreate();
 
 /**
  * Delete model handle
- * @param calcer
+ * @param modelHandle model
  */
 CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 
@@ -85,7 +85,7 @@ CATBOOST_API const char* GetErrorString();
 
 /**
  * Load model from file into given model handle
- * @param calcer
+ * @param modelHandle Model handle that will point to the loaded model
  * @param filename path to the file. Uses UTF-8 encoding
  * @return false if error occured
  */
@@ -95,7 +95,7 @@ CATBOOST_API bool LoadFullModelFromFile(
 
 /**
  * Load model from memory buffer into given model handle
- * @param calcer
+ * @param modelHandle Model handle that will store the loaded model
  * @param binaryBuffer pointer to a memory buffer where model file is mapped
  * @param binaryBufferSize size of the buffer in bytes
  * @return false if error occured
@@ -108,7 +108,7 @@ CATBOOST_API bool LoadFullModelFromBuffer(
 
 /**
  * Use model directly from given memory region with zero-copy method
- * @param calcer
+ * @param modelHandle Model handle that will store the loaded model
  * @param binaryBuffer pointer to a memory buffer where model file is mapped
  * @param binaryBufferSize size of the buffer in bytes
  * @return false if error occured
@@ -127,7 +127,7 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
  * Get supported formula evaluator types
  * formulaEvaluatorTypes array must be deallocated using free() after use.
  *
- * @param modelHandle model handle
+ * @param modelHandle model
  * @param formulaEvaluatorTypes address of the pointer to an array that will be initialized with formula evaluator types
  * @param formulaEvaluatorTypesCount address of the variable where the size of formulaEvaluatorTypes array will be stored
  * @return true on success, false on error
@@ -153,7 +153,7 @@ CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const 
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on flat feature vectors
  * Flat here means that float features and categorical feature are in the same float array.
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount number of objects
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float values array size
@@ -174,7 +174,7 @@ CATBOOST_API bool CalcModelPredictionFlat(
  * Calculate raw model predictions on flat feature vectors
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * Flat here means that float features and categorical feature are in the same float array.
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount number of objects
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
@@ -196,7 +196,7 @@ CATBOOST_API bool CalcModelPredictionFlatStaged(
 /**
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on transposed dataset layout
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount number of objects
  * @param floatFeatures array of array of float (first dimension is feature index, second is object index)
  * @param floatFeaturesSize float values array size
@@ -216,7 +216,7 @@ CATBOOST_API bool CalcModelPredictionFlatTransposed(
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on transposed dataset layout
  * taking into consideration only the trees in the range [treeStart; treeEnd)
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount number of objects
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
@@ -237,7 +237,7 @@ CATBOOST_API bool CalcModelPredictionFlatTransposedStaged(
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
@@ -259,7 +259,7 @@ CATBOOST_API bool CalcModelPrediction(
 /**
  * Calculate raw model predictions on float features and string categorical feature values
  * taking into consideration only the trees in the range [treeStart; treeEnd)
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
@@ -284,7 +284,7 @@ CATBOOST_API bool CalcModelPredictionStaged(
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
@@ -311,7 +311,7 @@ CATBOOST_API bool CalcModelPredictionText(
 /**
  * Calculate raw model predictions on float features and string categorical feature values
  * taking into consideration only the trees in the range [treeStart; treeEnd)
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
@@ -340,7 +340,7 @@ CATBOOST_API bool CalcModelPredictionTextStaged(
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
@@ -371,7 +371,7 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
 /**
  * Calculate raw model predictions on float features and string categorical feature values
  * taking into consideration only the trees in the range [treeStart; treeEnd)
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
@@ -404,7 +404,7 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddingsStaged(
 
 /**
  * Calculate raw model prediction on float features and string categorical feature values for single object
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param floatFeatures array of float features
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of char* categorical feature value pointers.
@@ -425,7 +425,7 @@ CATBOOST_API bool CalcModelPredictionSingle(
 /**
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * taking into consideration only the trees in the range [treeStart; treeEnd)
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param treeStart the index of the first tree to be used when applying the model (zero-based)
  * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of float features
@@ -448,7 +448,7 @@ CATBOOST_API bool CalcModelPredictionSingleStaged(
 
 /**
  * Calculate raw model predictions on float features and hashed categorical feature values
- * @param calcer model handle
+ * @param modelHandle model to use
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second if feature index)
  * @param floatFeaturesSize float feature count
@@ -576,14 +576,14 @@ CATBOOST_API int GetIntegerCatFeatureHash(long long val);
 
 /**
  * Get expected float feature count for model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected indices of float features used in the model.
  * indices array must be deallocated using free() after use.
- * @param modelHandle model handle
+ * @param modelHandle model
  * @param indices indices of the features
  * @param count indices size
  * @return true on success, false on error
@@ -592,14 +592,14 @@ CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, size_t*
 
 /**
  * Get expected categorical feature count for model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected indices of category features used in the model.
  * indices array must be deallocated using free() after use.
- * @param modelHandle model handle
+ * @param modelHandle model
  * @param indices indices of the features
  * @param count indices size
  * @return true on success, false on error
@@ -608,14 +608,14 @@ CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, size_t** 
 
 /**
  * Get expected text feature count for model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected indices of text features used in the model.
  * indices array must be deallocated using free() after use.
- * @param modelHandle model handle
+ * @param modelHandle model
  * @param indices indices of the features
  * @param count indices size
  * @return true on success, false on error
@@ -624,14 +624,14 @@ CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, size_t**
 
 /**
  * Get expected embedding feature count for model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected indices of embedding features used in the model.
  * indices array must be deallocated using free() after use.
- * @param modelHandle model handle
+ * @param modelHandle model
  * @param indices indices of the features
  * @param count indices size
  * @return true on success, false on error
@@ -640,13 +640,13 @@ CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, siz
 
 /**
  * Get number of trees in model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get number of dimensions in model
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
 
@@ -654,26 +654,26 @@ CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
  * Get number of dimensions for current prediction
  * For default `APT_RAW_FORMULA_VAL`, `APT_EXPONENT`, `APT_PROBABILITY`, `APT_CLASS` prediction type GetPredictionDimensionsCount == GetDimensionsCount
  * For `APT_RMSE_WITH_UNCERTAINTY` - returns 2 (value prediction and predicted uncertainty)
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetPredictionDimensionsCount(ModelCalcerHandle* modelHandle);
 
 
 /**
  * Check if model metadata holds some value for provided key
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 /**
  * Get model metainfo value size for some key. Returns 0 both if key is missing in model metadata and if it is really missing
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 /**
  * Get model metainfo for some key. Returns const char* pointer to inner string. If key is missing in model metainfo storage this method will return nullptr
- * @param calcer model handle
+ * @param modelHandle model
  */
 CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
