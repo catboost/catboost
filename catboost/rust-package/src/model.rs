@@ -282,7 +282,7 @@ impl Model {
         let indices = self.get_feature_indices(indices_fn, err_msg)?;
         Ok(indices.into_iter().map(|i| all_names[i].clone()).collect())
     }
-    
+
     /// Get names of features used in model
     pub fn get_feature_names(&self) -> CatBoostResult<Vec<String>> {
         unsafe {
