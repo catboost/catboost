@@ -61,13 +61,6 @@ EYsonType TYsonStringBuf::GetType() const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TYsonString::TYsonString()
-{
-    Begin_ = nullptr;
-    Size_ = 0;
-    Type_ = EYsonType::Node; // fake
-}
-
 TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
 {
     if (ysonStringBuf) {
@@ -94,21 +87,32 @@ TYsonString::TYsonString(
 TYsonString::TYsonString(
     const TString& data,
     EYsonType type)
-    : Payload_(TCowString(data))
+    : TYsonString(TCowString(data), type)
+{ }
+
+TYsonString::TYsonString(
+    TCowString data,
+    EYsonType type)
+    : Payload_(std::move(data))
     , Begin_(std::get<TCowString>(Payload_).data())
-    , Size_(data.length())
+    , Size_(std::get<TCowString>(Payload_).length())
     , Type_(type)
+{ }
+
+TYsonString::TYsonString(
+    std::string data,
+    EYsonType type)
+    : TYsonString(TCowString(std::move(data)), type)
 { }
 
 TYsonString::TYsonString(
     const TSharedRef& data,
     EYsonType type)
-{
-    Payload_ = data.GetHolder();
-    Begin_ = data.Begin();
-    Size_ = data.Size();
-    Type_ = type;
-}
+    : Payload_(data.GetHolder())
+    , Begin_(data.Begin())
+    , Size_(data.Size())
+    , Type_(type)
+{ }
 
 TYsonString::operator bool() const
 {
