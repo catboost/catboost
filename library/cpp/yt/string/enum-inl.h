@@ -35,7 +35,6 @@ void ThrowMalformedEnumValueException(
     TStringBuf value,
     const std::span<const TStringBuf>& domainNames = {});
 
-
 void FormatUnknownEnumValue(
     auto* builder,
     TStringBuf name,
