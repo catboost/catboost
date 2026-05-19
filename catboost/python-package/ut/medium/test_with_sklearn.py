@@ -338,3 +338,45 @@ def test_sklearn_tags_nan_mode_forbidden(task_type):
     else:
         tags = model._get_tags()
         assert tags['allow_nan'] is False
+
+
+@pytest.mark.parametrize(
+    'estimator_cls',
+    [CatBoostClassifier, CatBoostRegressor, CatBoostRanker],
+    ids=['Classifier', 'Regressor', 'Ranker'],
+)
+def test_clone_with_mutable_params(estimator_cls):
+    for kwargs in (
+        {'cat_features': [0, 1]},
+        {'text_features': [0]},
+        {'embedding_features': [0]},
+    ):
+        original = estimator_cls(iterations=2, verbose=False, **kwargs)
+        cloned = sklearn.base.clone(original)
+        assert type(cloned) is estimator_cls
+        for key, value in kwargs.items():
+            assert cloned.get_params(deep=False)[key] == value
+
+
+def test_clone_without_mutable_params():
+    for cls in (CatBoostClassifier, CatBoostRegressor, CatBoostRanker):
+        sklearn.base.clone(cls(iterations=2, verbose=False))
+
+
+@pytest.mark.skipif(
+    scikit_learn_version < (1, 3),
+    reason="metadata routing requires scikit-learn >= 1.3"
+)
+def test_clone_preserves_metadata_routing_request():
+    original = CatBoostRanker(iterations=2, verbose=False).set_fit_request(group_id=True)
+    cloned = sklearn.base.clone(original)
+    assert hasattr(cloned, '_metadata_request')
+    assert repr(original._metadata_request) == repr(cloned._metadata_request)
+
+
+def test_cross_val_score_with_cat_features():
+    from sklearn.model_selection import cross_val_score
+
+    X, y = make_classification(60, 5, random_state=0)
+    estimator = CatBoostClassifier(cat_features=[0], iterations=2, verbose=False)
+    cross_val_score(estimator, X, y, cv=3)

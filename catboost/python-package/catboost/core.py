@@ -1814,6 +1814,12 @@ class _CatBoostBase(object):
         model.__setstate__(state)
         return model
 
+    def __sklearn_clone__(self):
+        new_obj = type(self)(**{k: deepcopy(v) for k, v in self.get_params(deep=False).items()})
+        if hasattr(self, "_metadata_request"):
+            new_obj._metadata_request = deepcopy(self._metadata_request)
+        return new_obj
+
     def __eq__(self, other):
         return self._is_comparable_to(other) and self._object == other._object
 
