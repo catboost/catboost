@@ -1203,7 +1203,7 @@ void TrainModel(
 
     CB_ENSURE(
         !(loadOptions.CvParams.FoldCount != 0 && catBoostOptions.GetTaskType() == ETaskType::CPU && catBoostOptions.SystemOptions->IsMaster()),
-        "Distributed training on CPU does not support test and train datasests specified by cross validation options"
+        "Distributed training on CPU does not support test and train datasets specified by cross validation options"
     );
 
     const auto evalOutputFileName = outputOptions.CreateEvalFullPath();

@@ -231,9 +231,7 @@ CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount) {
 }
 
 CATBOOST_API void DataWrapperDelete(DataWrapperHandle* dataWrapperHandle) {
-    if (dataWrapperHandle != nullptr) {
-        delete DATA_WRAPPER_PTR(dataWrapperHandle);
-    }
+    delete DATA_WRAPPER_PTR(dataWrapperHandle);
 }
 
 CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const float** floatFeatures, size_t floatFeaturesSize) {
@@ -278,9 +276,7 @@ CATBOOST_API const char* GetErrorString() {
 }
 
 CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
-    if (modelHandle != nullptr) {
-        delete MODEL_HANDLE_CONTENT_PTR(modelHandle);
-    }
+    delete MODEL_HANDLE_CONTENT_PTR(modelHandle);
 }
 
 CATBOOST_API bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* filename) {

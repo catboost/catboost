@@ -30,12 +30,16 @@ T ConvertFromTextYsonString(TStringBuf str) = delete;
 template <>
 std::string ConvertToTextYsonString<i8>(const i8& value);
 template <>
+std::string ConvertToTextYsonString<i16>(const i16& value);
+template <>
 std::string ConvertToTextYsonString<i32>(const i32& value);
 template <>
 std::string ConvertToTextYsonString<i64>(const i64& value);
 
 template <>
 std::string ConvertToTextYsonString<ui8>(const ui8& value);
+template <>
+std::string ConvertToTextYsonString<ui16>(const ui16& value);
 template <>
 std::string ConvertToTextYsonString<ui32>(const ui32& value);
 template <>
@@ -66,12 +70,16 @@ std::string ConvertToTextYsonString<TGuid>(const TGuid& value);
 template <>
 i8 ConvertFromTextYsonString<i8>(TStringBuf str);
 template <>
+i16 ConvertFromTextYsonString<i16>(TStringBuf str);
+template <>
 i32 ConvertFromTextYsonString<i32>(TStringBuf str);
 template <>
 i64 ConvertFromTextYsonString<i64>(TStringBuf str);
 
 template <>
 ui8 ConvertFromTextYsonString<ui8>(TStringBuf str);
+template <>
+ui16 ConvertFromTextYsonString<ui16>(TStringBuf str);
 template <>
 ui32 ConvertFromTextYsonString<ui32>(TStringBuf str);
 template <>

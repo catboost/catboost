@@ -126,5 +126,3 @@ TEST(TParseEnumTest, ParseBitEnum)
 
 } // namespace
 } // namespace NYT
-
-

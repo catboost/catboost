@@ -579,6 +579,8 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
 Y_UNIT_TEST_SUITE(TDurationParseTest) {
     Y_UNIT_TEST(TestParse) {
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Parse("3600"), TDuration::Seconds(3600));
+
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60 * 60 * 24 * 7), TDuration::Parse("1w"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60), TDuration::Parse("1m"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(90), TDuration::Parse("1.5m"));

@@ -3,9 +3,10 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 
-#include "resource.h"
-
 namespace NResource {
+    struct TResource;
+
+
     TString Compress(const TStringBuf data);
     TString Decompress(const TStringBuf data);
 

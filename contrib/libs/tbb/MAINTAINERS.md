@@ -113,7 +113,6 @@ opening a PR against MAINTAINERS.md file.
 | Name                  | Github ID             | Affiliation       | Role       |
 | --------------------- | --------------------- | ----------------- | ---------- |
 | Ilya Isaev            | @isaevil              | Intel Corporation | Code Owner |
-| Sarath Nandu R        | @sarathnandu          | Intel Corporation | Code Owner |
 | Alexey Kukanov        | @akukanov             | Intel Corporation | Code Owner |
 | Konstantin Boyarinov  | @kboyarinov           | Intel Corporation | Maintainer |
 | Aleksei Fedotov       | @aleksei-fedotov      | Intel Corporation | Maintainer |
@@ -131,7 +130,8 @@ opening a PR against MAINTAINERS.md file.
 
 | Name                   | Github ID             | Affiliation       | Role       |
 | ---------------------- | --------------------- | ----------------- | ---------- |
-| Alexandra Epanchinzeva | @aepanchi             | Intel Corporation | Code Owner |
+| Alexandra Epanchinzeva | @aepanchi             | Independent       | Code Owner |
+| Olga Malysheva         | @omalyshe             | Intel Corporation | Code Owner |
 
 
 ## oneTBB Release Management

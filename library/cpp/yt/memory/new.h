@@ -117,8 +117,8 @@ TIntrusivePtr<T> NewWithDeleter(TDeleter deleter, As&&... args);
 //! Allocates a new instance of |T|.
 //! The allocation is additionally marked with #location.
 //! Aborts the process on out-of-memory condition.
-template <class T, class TTag, int Counter, class... As>
-TIntrusivePtr<T> NewWithLocation(const TSourceLocation& location, As&&... args);
+template <class T, auto LocationLite, class... As>
+TIntrusivePtr<T> NewWithLocation(As&&... args);
 
 //! Enables calling #New and co for types with private ctors.
 #define DECLARE_NEW_FRIEND() \

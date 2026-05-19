@@ -1,6 +1,3 @@
-import os
-import sys
-
 import pytest
 
 from catboost import CatBoost, CatBoostClassifier, EFstrType, Pool
@@ -9,7 +6,6 @@ try:
     import catboost_pytest_lib as lib
     pytest_plugins = "list_plugin"
 except ImportError:
-    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
 
 data_file = lib.data_file

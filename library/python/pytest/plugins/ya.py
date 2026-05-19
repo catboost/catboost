@@ -57,6 +57,8 @@ import yatest_lib.ya
 
 from library.python.pytest import context
 
+DEFAULT_COMMENT_LIMIT = 8 * 1024  # 8 Kb
+
 console_logger = logging.getLogger("console")
 yatest_logger = logging.getLogger("ya.test")
 
@@ -195,6 +197,16 @@ def pytest_addoption(parser):
     parser.addoption("--pdb-on-sigusr1", action="store_true", default=False, help="setup pdb.set_trace on SIGUSR1")
     parser.addoption("--test-tool-bin", help="Path to test_tool")
     parser.addoption("--test-list-path", dest="test_list_path", action="store", help="path to test list", default="")
+    parser.addoption(
+        "--max-test-comment-size",
+        action="store",
+        dest="max_test_comment_size",
+        type=int,
+        default=DEFAULT_COMMENT_LIMIT,
+        help="Max length (in bytes) of a test result comment (assertion/diagnostic message) "
+             "written to the trace file. 0 (or any non-positive value) disables truncation. "
+             "Default is 8*1024 (8 Kb)",
+    )
 
 
 def from_ya_test():
@@ -935,7 +947,7 @@ class TraceReportGenerator(object):
             message = self._test_messages[test_item.nodeid]
         else:
             comment = self._test_messages[test_item.nodeid]['comment'] if test_item.nodeid in self._test_messages else ''
-            comment += self._get_comment(test_item)
+            comment += self._get_comment(test_item, pytest_config.option.max_test_comment_size)
             message = {
                 'class': yatest_lib.tools.to_utf8(test_item.class_name),
                 'subtest': yatest_lib.tools.to_utf8(test_item.test_name),
@@ -962,7 +974,7 @@ class TraceReportGenerator(object):
         self.trace("chunk_event", message)
 
     def on_error(self, test_item):
-        self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+        self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item, pytest_config.option.max_test_comment_size))]})
 
     def on_log_report(self, test_item):
         if test_item.nodeid in self._test_duration:
@@ -971,7 +983,7 @@ class TraceReportGenerator(object):
             self._test_duration[test_item.nodeid] = test_item._duration
 
     @staticmethod
-    def _get_comment(test_item, limit=8*1024):
+    def _get_comment(test_item, limit=DEFAULT_COMMENT_LIMIT):
         msg = yatest_lib.tools.to_utf8(test_item.error)
         if not msg:
             return ""

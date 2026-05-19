@@ -498,6 +498,7 @@ def execute(
 ):
     """
     Executes a command
+
     :param command: command: can be a list of arguments or a string
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code
     :param shell: use shell to run the command
@@ -511,13 +512,13 @@ def execute(
     :type text: bool
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
-    :param process_progress_listener=object that is polled while execution is in progress
-    :param close_fds:  subrpocess.Popen close_fds args
+    :param process_progress_listener: object that is polled while execution is in progress
+    :param close_fds:  subprocess.Popen close_fds args
     :param collect_cores: recover core dump files if shell == False
     :param check_sanitizer: raise ExecutionError if stderr contains sanitize errors
-    :param preexec_fn: subrpocess.Popen preexec_fn arg
+    :param preexec_fn: subprocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
-    :param popen_kwargs: subrpocess.Popen args dictionary. Useful for python3-only arguments
+    :param popen_kwargs: subprocess.Popen args dictionary. Useful for python3-only arguments
 
     :return _Execution: Execution object
     """
@@ -708,6 +709,7 @@ def py_execute(
 ):
     """
     Executes a command with the arcadia python
+
     :param command: command to pass to python
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code
     :param shell: use shell to run the command
@@ -719,7 +721,7 @@ def py_execute(
     :param stderr: command stderr
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
-    :param process_progress_listener=object that is polled while execution is in progress
+    :param process_progress_listener: object that is polled while execution is in progress
     :param text: Return original str
     :return _Execution: Execution object
     """
@@ -767,7 +769,8 @@ def wait_for(check_function, timeout, fail_message="", sleep_time=1.0, on_check_
 def _kill_process_tree(process_pid, target_pid_signal=None):
     """
     Kills child processes, req. Note that psutil should be installed
-    @param process_pid: parent id to search for descendants
+
+    :param process_pid: parent id to search for descendants
     """
     yatest_logger.debug("Killing process %s", process_pid)
     if os.name == 'nt':

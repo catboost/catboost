@@ -14,9 +14,11 @@ namespace NYT {
 template <class T>
 concept CPrimitiveConvertible =
     std::same_as<T, i8> ||
+    std::same_as<T, i16> ||
     std::same_as<T, i32> ||
     std::same_as<T, i64> ||
     std::same_as<T, ui8> ||
+    std::same_as<T, ui16> ||
     std::same_as<T, ui32> ||
     std::same_as<T, ui64> ||
     std::same_as<T, float> ||

@@ -25,7 +25,7 @@ namespace NCB {
             , FirstLineInReadBuffer(false)
             , LinesProcessed(0)
         {
-            CB_ENSURE(BlockSize, "TAsyncRowProcessor: blockSize == 0");
+            CB_ENSURE_INTERNAL(BlockSize, "TAsyncRowProcessor: blockSize == 0");
 
             ReadBuffer.resize(blockSize);
             ParseBuffer.resize(blockSize);
@@ -37,7 +37,7 @@ namespace NCB {
 
         // sometimes we need to separately process first data, but add it to usual processing as well
         void AddFirstLine(TData&& firstLine) {
-            CB_ENSURE(!FirstLineInReadBuffer, "TAsyncRowProcessor: double call to AddFirstLine");
+            CB_ENSURE_INTERNAL(!FirstLineInReadBuffer, "TAsyncRowProcessor: double call to AddFirstLine");
             ReadBuffer[0] = std::move(firstLine);
             FirstLineInReadBuffer = true;
         }
@@ -64,7 +64,7 @@ namespace NCB {
                     1,
                     NPar::TLocalExecutor::HIGH_PRIORITY
                 );
-                CB_ENSURE(readFuturesVector.size() == 1, "ExecRangeWithFutures returned unexpected number of futures");
+                CB_ENSURE_INTERNAL(readFuturesVector.size() == 1, "ExecRangeWithFutures returned unexpected number of futures");
                 ReadFuture = std::move(readFuturesVector[0]);
             } else {
                 readLineBufferLambda(0);

@@ -232,8 +232,8 @@ namespace NNeh {
         struct TRequestFull {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation&) {
                 TRequestData::TPtr req(new TRequestData(0));
-                req->AddPart(msg.Data.data(), msg.Data.size());
                 req->Data = msg.Data;
+                req->AddPart(req->Data.data(), req->Data.size());
                 return req;
             }
 

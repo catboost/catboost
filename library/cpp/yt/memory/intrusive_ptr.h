@@ -319,7 +319,16 @@ bool operator==(const TIntrusivePtr<T>& lhs, std::nullptr_t)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-} //namespace NYT
+//! Abseil hash support for TIntrusivePtr.
+template <class THash, class T>
+THash AbslHashValue(THash hash, const TIntrusivePtr<T>& ptr)
+{
+    return THash::combine(std::move(hash), ptr.Get());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT
 
 //! A hasher for TIntrusivePtr.
 template <class T>

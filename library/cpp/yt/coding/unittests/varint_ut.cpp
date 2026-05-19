@@ -113,6 +113,25 @@ TEST(TVarInt32Test, RandomValues)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+TEST(TVarUint32Test, BoundaryValues)
+{
+    // UINT32_MAX encoded as a 5-byte varint: should succeed.
+    const char maxBytes[] = "\xff\xff\xff\xff\x0f";
+    ui32 value = 0;
+    EXPECT_EQ(5, ReadVarUint32(maxBytes, &value));
+    EXPECT_EQ(std::numeric_limits<ui32>::max(), value);
+
+    // 2^32 encoded as a 5-byte varint: should throw.
+    const char overflowBytes[] = "\x80\x80\x80\x80\x10";
+    EXPECT_THROW(ReadVarUint32(overflowBytes, &value), TSimpleException);
+
+    // Max 5-byte varint (2^35 - 1): should throw.
+    const char maxFiveByteBytes[] = "\xff\xff\xff\xff\x7f";
+    EXPECT_THROW(ReadVarUint32(maxFiveByteBytes, &value), TSimpleException);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 TEST(TVarInt64Test, RandomValues)
 {
     srand(100500); // Set seed

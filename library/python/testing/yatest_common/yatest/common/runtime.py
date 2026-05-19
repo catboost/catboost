@@ -118,6 +118,7 @@ def _join_path(main_path, path):
 def not_test(func):
     """
     Mark any function as not a test for py.test
+
     :param func:
     :return:
     """
@@ -134,6 +135,7 @@ def not_test(func):
 def source_path(path=None):
     """
     Get source path inside arcadia
+
     :param path: path arcadia relative, e.g. yatest.common.source_path('devtools/ya')
     :return: absolute path to the source folder
     """
@@ -144,6 +146,7 @@ def source_path(path=None):
 def build_path(path=None):
     """
     Get path inside build directory
+
     :param path: path relative to the build directory, e.g. yatest.common.build_path('devtools/ya/bin')
     :return: absolute path inside build directory
     """
@@ -153,6 +156,7 @@ def build_path(path=None):
 def java_path():
     """
     [DEPRECATED] Get path to java
+
     :return: absolute path to java
     """
     from . import runtime_java
@@ -186,6 +190,7 @@ def java_bin():
 def data_path(path=None):
     """
     Get path inside atd_ro_snapshot directory
+
     :param path: path relative to the atd_ro_snaphot directory, e.g. yatest.common.data_path("pers/rerank_service")
     :return: absolute path in arcadia
     """
@@ -196,7 +201,9 @@ def data_path(path=None):
 def output_path(path=None):
     """
     Get path inside the current test suite output dir.
+
     Placing files to this dir guarantees that files will be accessible after the test suite execution.
+
     :param path: path relative to the test suite output dir
     :return: absolute path inside the test suite output dir
     """
@@ -219,7 +226,9 @@ def ram_drive_path(path=None):
 def output_ram_drive_path(path=None):
     """
     Returns path inside ram drive directory which will be saved in the testing_out_stuff directory after testing.
+
     Returns None if no ram drive was provided by environment.
+
     :param path: path relative to the output ram drive directory
     """
     if 'YA_TEST_OUTPUT_RAM_DRIVE_PATH' in os.environ:
@@ -232,6 +241,7 @@ def output_ram_drive_path(path=None):
 def binary_path(path=None):
     """
     Get path to the built binary
+
     :param path: path to the binary relative to the build directory e.g. yatest.common.binary_path('devtools/ya/bin/ya-bin')
     :return: absolute path to the binary
     """
@@ -244,6 +254,7 @@ def work_path(path=None):
     """
     Get path inside the current test suite working directory. Creating files in the work directory does not guarantee
     that files will be accessible after the test suite execution
+
     :param path: path relative to the test suite working dir
     :return: absolute path inside the test suite working dir
     """
@@ -261,6 +272,7 @@ def python_path():
     are built in a stripped-down form that is needed for building, not running tests.
     See comments in the file below to find out which version of python is compatible with tests.
     https://a.yandex-team.ru/arc/trunk/arcadia/build/platform/python/resources.inc
+
     :return: absolute path to python
     """
     return _get_ya_plugin_instance().python_path
@@ -270,6 +282,7 @@ def python_path():
 def valgrind_path():
     """
     Get path to valgrind
+
     :return: absolute path to valgrind
     """
     return _get_ya_plugin_instance().valgrind_path
@@ -279,6 +292,7 @@ def valgrind_path():
 def get_param(key, default=None):
     """
     Get arbitrary parameter passed via command line
+
     :param key: key
     :param default: default value
     :return: parameter value or the default
@@ -290,6 +304,7 @@ def set_metric_value(name, val):
     """
     Use this method only when your test environment does not support pytest fixtures,
     otherwise you should prefer using https://docs.yandex-team.ru/ya-make/manual/tests/#python
+
     :param name: name
     :param val: value
     """
@@ -301,6 +316,7 @@ def get_metric_value(name, default=None):
     """
     Use this method only when your test environment does not support pytest fixtures,
     otherwise you should prefer using https://docs.yandex-team.ru/ya-make/manual/tests/#python
+
     :param name: name
     :param default: default
     :return: parameter value or the default

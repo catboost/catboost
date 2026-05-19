@@ -14,6 +14,44 @@
 * limitations under the License.
 *******************************************************************************/-->
 
+# oneTBB 2023.0 Release Notes
+
+## :rocket: Preview Features
+- Introduced ability to wait for a single task in a ``task_group`` instead of waiting for all tasks to finish. This increases reactivity and decreases latency in key user workloads.
+- Introduced ``flow::resource_limited_node`` and ``flow::resource_limiter`` classes. These nodes only execute when they can successfully acquire the necessary resources from the resource limiters associated with the node. This feature is used to guard access to shared resources, while maximizing available parallelism in the graph.
+- Introduced ``task_arena`` core type selector to better support hybrid architectures with several core types. Users use this new flexible API to more tightly constrain execution to set preferences for the specific core types that match their workload.
+- Added global control parameter to set default block time behavior on server HW. This allows developers to revert to older blocking behavior if their applications are not able to fully utilize all cores, thereby reducing idle spinning.
+
+
+## :tada: New Features
+- Added new API to create a set of NUMA bound task arenas, simplifying common patterns used to optimize for NUMA architectures.
+- Extended Flow Graph functional node deduction guides to support non-static member function and member object pointers as a node bodies.
+- The Flow Graph join_node and indexer_node now support 10 or more input ports.
+- Explicit deduction guides for ``blocked_nd_range`` are now a fully supported feature.
+- Added native WASM exception handling support.
+- Added support for Python 3.14.
+
+
+## :rotating_light: Known Limitations
+- The ``oneapi::tbb::info`` namespace interfaces might unexpectedly change the process affinity mask on Windows* OS systems (see https://github.com/open-mpi/hwloc/issues/366 for details) when using hwloc version lower than 2.5.
+- Using a hwloc version other than 1.11, 2.0, or 2.5 may cause an undefined behavior on Windows OS. See https://github.com/open-mpi/hwloc/issues/477 for details.
+- The NUMA topology may be detected incorrectly on Windows* OS machines where the number of NUMA node threads exceeds the size of 1 processor group.
+- On Windows OS on ARM64*, when compiling an application using oneTBB with the Microsoft* Compiler, the compiler issues a warning C4324 that a structure was padded due to the alignment specifier. Consider suppressing the warning by specifying /wd4324 to the compiler command line.
+- When CPU resource coordination is enabled by setting the TCM_ENABLE environment variable to 1, tasks from a lower-priority ``task_arena`` might be executed before tasks from a higher-priority ``task_arena``.
+- Using oneTBB on WASM* may cause applications to run in a single thread. See [Limitations of WASM Support](https://github.com/uxlfoundation/oneTBB/blob/master/WASM_Support.md#limitations).
+
+> **_NOTE:_**  To see known limitations that impact all versions of oneTBB, refer to [oneTBB Documentation](https://uxlfoundation.github.io/oneTBB/main/intro/limitations.html).
+
+
+## :hammer: Issues Fixed
+- Significantly improved scalability for concurrent ordered containers on systems with many threads. This change results in greater than 3x performance for some use cases.
+- Fixed ODR violations when public inline functions expose entities with internal linkage.
+
+## :octocat: Open-Source Contributions Integrated
+- Updated tbb4py installation approach to be aligned with PEP517. Contributed by Ben Greiner (https://github.com/uxlfoundation/oneTBB/pull/1941).
+- Improved usage of <windows.h> in oneTBB code. Contributed by Aras Pranckevi&#269;ius (https://github.com/uxlfoundation/oneTBB/pull/1932).
+- Fixed CMake build issue with Clang on Windows*. Contributed by JustinZhu (https://github.com/uxlfoundation/oneTBB/pull/1936).
+
 
 # oneTBB 2022.3 Release Notes
 

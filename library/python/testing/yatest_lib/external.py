@@ -43,6 +43,7 @@ def _do_apply(func, value, apply_to_keys, value_path):
 def apply(func, value, apply_to_keys=False):
     """
     Applies func to every possible member of value
+
     :param value: could be either a primitive object or a complex one (list, dicts)
     :param func: func to be applied
     :return:
@@ -61,7 +62,9 @@ def is_coroutine(val):
 def serialize(value):
     """
     Serialize value to json-convertible object
+
     Ensures that all components of value can be serialized to json
+
     :param value: object to be serialized
     """
     def _serialize(val, _):

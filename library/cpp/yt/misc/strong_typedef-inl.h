@@ -161,6 +161,15 @@ struct TBasicWrapperTraits<TStrongTypedef<T, TTag, Options>>
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Abseil hash support for TStrongTypedef.
+template <class THash, class T, class TTag, TStrongTypedefOptions Options>
+THash AbslHashValue(THash hash, const TStrongTypedef<T, TTag, Options>& value)
+{
+    return THash::combine(std::move(hash), value.Underlying());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
 namespace std {

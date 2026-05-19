@@ -26,22 +26,22 @@ namespace system
 
 // error_category default implementation
 
-inline error_condition error_category::default_error_condition( int ev ) const noexcept
+BOOST_SYSTEM_CXX20_CONSTEXPR inline error_condition error_category::default_error_condition( int ev ) const noexcept
 {
     return error_condition( ev, *this );
 }
 
-inline bool error_category::equivalent( int code, const error_condition & condition ) const noexcept
+BOOST_SYSTEM_CXX20_CONSTEXPR inline bool error_category::equivalent( int code, error_condition const& condition ) const noexcept
 {
     return default_error_condition( code ) == condition;
 }
 
-inline bool error_category::equivalent( const error_code & code, int condition ) const noexcept
+BOOST_SYSTEM_CXX20_CONSTEXPR inline bool error_category::equivalent( error_code const& code, int condition ) const noexcept
 {
     return code.equals( condition, *this );
 }
 
-inline char const * error_category::message( int ev, char * buffer, std::size_t len ) const noexcept
+inline char const* error_category::message( int ev, char* buffer, std::size_t len ) const noexcept
 {
     if( len == 0 )
     {
@@ -116,7 +116,7 @@ inline void error_category::init_stdcat() const
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
-inline BOOST_NOINLINE error_category::operator std::error_category const & () const
+inline BOOST_NOINLINE error_category::operator std::error_category const& () const
 {
     if( id_ == detail::generic_category_id )
     {

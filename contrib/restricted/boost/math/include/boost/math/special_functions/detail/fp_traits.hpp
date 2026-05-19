@@ -24,6 +24,7 @@ With these techniques, the code could be simplified.
 #include <cstring>
 #include <cstdint>
 #include <limits>
+#include <climits>
 #include <type_traits>
 #include <boost/math/tools/config.hpp>
 #include <boost/math/tools/is_standalone.hpp>
@@ -269,8 +270,7 @@ template<> struct fp_traits_non_native<double, double_precision>
 
 // long double (64 bits) -------------------------------------------------------
 
-#if defined(BOOST_NO_INT64_T) || defined(BOOST_NO_INCLASS_MEMBER_INITIALIZATION)\
-   || defined(BOOST_BORLANDC) || defined(__CODEGEAR__) || (defined(__APPLE__) && defined(__aarch64__)) || defined(_MSC_VER)
+#if LDBL_MANT_DIG == 53 || defined(__SYCL_DEVICE_ONLY__)
 
 template<> struct fp_traits_non_native<long double, double_precision>
 {
@@ -299,9 +299,7 @@ private:
 
 // long double (>64 bits), x86 and x64 -----------------------------------------
 
-#elif defined(__i386) || defined(__i386__) || defined(_M_IX86) \
-    || defined(__amd64) || defined(__amd64__)  || defined(_M_AMD64) \
-    || defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)
+#elif LDBL_MANT_DIG == 64
 
 // Intel extended double precision format (80 bits)
 
@@ -355,6 +353,8 @@ struct fp_traits_non_native<long double, extended_double_precision>
     || defined(__ppc) || defined(__ppc__) || defined(__PPC__)
 
 // PowerPC extended double precision format (128 bits)
+
+static_assert(LDBL_MANT_DIG == 113, "Oops, assumption that long double is a 128-bit quantity is incorrect!!");
 
 template<>
 struct fp_traits_non_native<long double, extended_double_precision>
@@ -426,7 +426,7 @@ struct fp_traits_non_native<long double, extended_double_precision>
 
 // long double (>64 bits), All other processors --------------------------------
 
-#else
+#elif (LDBL_MANT_DIG == 113)
 
 // IEEE extended double precision format with 15 exponent bits (128 bits)
 
@@ -455,6 +455,10 @@ struct fp_traits_non_native<long double, extended_double_precision>
 private:
     BOOST_MATH_STATIC constexpr int offset_ = BOOST_MATH_ENDIAN_BIG_BYTE ? 0 : 12;
 };
+
+#else
+
+// Nothing in here, we don't understand the format!
 
 #endif
 

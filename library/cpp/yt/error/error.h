@@ -133,13 +133,15 @@ public:
     TOriginAttributes* MutableOriginAttributes() const noexcept;
     void UpdateOriginAttributes();
 
+    static constexpr i64 DefaultTruncateStringLimit = 32_KBs;
+
     TError Truncate(
         int maxInnerErrorCount = 2,
-        i64 stringLimit = 16_KB,
+        i64 stringLimit = DefaultTruncateStringLimit,
         const THashSet<TStringBuf>& attributeWhitelist = {}) const &;
     TError Truncate(
         int maxInnerErrorCount = 2,
-        i64 stringLimit = 16_KB,
+        i64 stringLimit = DefaultTruncateStringLimit,
         const THashSet<TStringBuf>& attributeWhitelist = {}) &&;
 
     bool IsOK() const;
@@ -336,6 +338,7 @@ struct TErrorAdaptor
 };
 
 // Make these to correctly forward TError to Wrap call.
+// NB(pavook): TErrorLike is intentionally always stolen (even if the caller passes it as an lvalue).
 template <class TErrorLike, class U>
     requires
         std::derived_from<std::remove_cvref_t<TErrorLike>, TError> &&
@@ -426,6 +429,10 @@ public:
     const T& Value() const & Y_LIFETIME_BOUND;
     T& Value() & Y_LIFETIME_BOUND;
     T&& Value() && Y_LIFETIME_BOUND;
+
+    const T& ValueOrCrash() const & Y_LIFETIME_BOUND;
+    T& ValueOrCrash() & Y_LIFETIME_BOUND;
+    T&& ValueOrCrash() && Y_LIFETIME_BOUND;
 
     template <class U>
         requires (!CStringLiteral<std::remove_cvref_t<U>>)

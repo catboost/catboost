@@ -1,6 +1,6 @@
 /*
     Copyright (c) 2005-2025 Intel Corporation
-    Copyright (c) 2025 UXL Foundation Сontributors
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -195,7 +195,7 @@ static void initialize_hardware_concurrency_info () {
     int num_procs = availableProcs > 0 ? availableProcs : 1; // Fail safety strap
 #if __linux__
     int cgroup_num_cpus = INT_MAX;
-    if (cgroup_info::is_cpu_constrained(cgroup_num_cpus)) {
+    if (cgroup_info<>::is_cpu_constrained(cgroup_num_cpus)) {
         // If cgroup is used, limit the number of processors to the constrained value.
         num_procs = std::min(num_procs, cgroup_num_cpus);
     }

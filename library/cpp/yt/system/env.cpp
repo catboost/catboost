@@ -1,6 +1,13 @@
 #include "env.h"
 
+#include <library/cpp/yt/exception/exception.h>
+
+#include <util/string/printf.h>
+
 #include <util/system/platform.h>
+#include <util/system/env.h>
+
+#include <util/generic/maybe.h>
 
 #ifdef _darwin_
     #include <crt_externs.h>
@@ -35,6 +42,21 @@ std::pair<TStringBuf, std::optional<TStringBuf>> ParseEnvironNameValuePair(TStri
     } else {
         return {pair, std::nullopt};
     }
+}
+
+std::optional<std::string> TryGetEnvValue(TStringBuf name)
+{
+    auto result = TryGetEnv(TString(name));
+    return result ? std::optional<std::string>(*result) : std::nullopt;
+}
+
+std::string GetEnvValueOrThrow(TStringBuf name)
+{
+    auto value = TryGetEnvValue(name);
+    if (!value) {
+        throw TSimpleException(Sprintf("Environment variable \"%s\" is not set", name.data()));
+    }
+    return *value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

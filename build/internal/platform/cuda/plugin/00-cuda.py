@@ -117,6 +117,7 @@ class CUDAManager:
                 .ldata : { *(.ldata) }
                 .lrodata : { *(.lrodata .lrodata.*) }
                 .cask_resource : { *(.cask_resource) }
+                __llvm_prf_names : { *(__llvm_prf_names) }
             } INSERT AFTER .bss
         """).strip()
 

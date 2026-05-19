@@ -1,17 +1,22 @@
 from collections import defaultdict
 
 import os
+import pathlib
 import sys
-
 import tempfile
 import shutil
 
 import pytest
 
+
+if not (_git_repo_root := next((p for p in pathlib.Path(__file__).parents if (p / '.git').exists()), None)):
+    raise RuntimeError("Git repository root not found")
+
+_git_repo_root_dir = str(_git_repo_root.absolute())
 sys.path += [
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'pytest'),
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing'),
-    os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'pytest'),
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'testing'),
+    os.path.join(_git_repo_root_dir, 'library', 'python', 'testing', 'yatest_common')
 ]
 
 import yatest.common
@@ -97,7 +102,7 @@ def pytest_configure(config):
     global pytest_config
     pytest_config = config
     config.ya = yatest_lib.ya.Ya(
-        source_root=os.environ['CMAKE_SOURCE_DIR'],
+        source_root=_git_repo_root_dir,
         build_root=os.environ['CMAKE_BINARY_DIR'],
         output_dir=os.environ['TEST_OUTPUT_DIR']
     )

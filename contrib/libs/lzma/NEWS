@@ -2,6 +2,60 @@
 XZ Utils Release Notes
 ======================
 
+5.8.3 (2026-03-31)
+
+    IMPORTANT: This includes a fix for CVE-2026-34743 which affects all
+    XZ Utils versions since 5.0.0. No new 5.2.x, 5.4.x, or 5.6.x
+    releases will be made, but the fix is in the v5.2, v5.4, and v5.6
+    branches in the xz Git repository.
+
+    * liblzma:
+
+        - Fix a buffer overflow in lzma_index_append(): If
+          lzma_index_decoder() was used to decode an Index that
+          contained no Records, the resulting lzma_index was left in
+          a state where where a subsequent lzma_index_append() would
+          allocate too little memory, and a buffer overflow would occur.
+
+          The lzma_index functions are rarely used by applications
+          directly. In the few applications that do use these functions,
+          the combination of function calls required to trigger this bug
+          are unlikely to exist, because there typically is no reason to
+          append Records to a decoded lzma_index. Thus, it's likely that
+          this bug cannot be triggered in any real-world application.
+
+          The bug was reported and discovered by Cantina using their
+          AppSec agent, Apex.
+
+        - Fix the build on Windows ARM64EC.
+
+        - Add "License: 0BSD" to liblzma.pc.
+
+    * xz:
+
+        - Fix invalid memory access in --files and --files0. All of
+          the following must be true to trigger it:
+
+            1. A string being read (which supposedly is a filename) is
+               at least SIZE_MAX / 2 bytes long. This size is plausible
+               on 32-bit platforms (2 GiB - 1 B).
+
+            2. realloc(ptr, SIZE_MAX / 2 + 1) must succeed.
+               On glibc >= 2.30 it shouldn't because the value
+               exceeds PTRDIFF_MAX.
+
+            3. An integer overflow results in a realloc(ptr, 0) call.
+               If it doesn't return NULL, then invalid memory access
+               will occur.
+
+        - On QNX, don't use fsync() on directories because it fails.
+
+    * Autotools: Enable 32-bit x86 assembler on Hurd by default.
+      It was already enabled in the CMake-based build.
+
+    * Translations: Add Arabic man page translations.
+
+
 5.8.2 (2025-12-17)
 
     * liblzma:

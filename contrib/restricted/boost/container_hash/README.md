@@ -8,7 +8,7 @@ by C++11 as `std::hash`, and several support facilities (`hash_combine`,
 
 `boost::hash` supports most standard types and some user-defined types out of
 the box, and is extensible; it's possible for a user-defined type `X` to make
-iself hashable via `boost::hash<X>` by defining an appropriate overload of the
+itself hashable via `boost::hash<X>` by defining an appropriate overload of the
 function `hash_value`.
 
 See [the documentation of the library](https://www.boost.org/libs/container_hash)

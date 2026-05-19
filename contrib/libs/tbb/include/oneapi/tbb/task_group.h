@@ -75,10 +75,8 @@ struct task_group_context_impl;
 
 namespace d2 {
 
-namespace {
 template<typename F>
 d1::task* task_ptr_or_nullptr(F&& f);
-}
 
 template<typename F>
 class function_task : public task_handle_task  {
@@ -118,7 +116,7 @@ private:
 #if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
         // TODO: complete_and_try_get_successor returns one ready successor task, others are spawned and cancelled by the scheduler
         // Should cancel() be called directly instead?
-        task_ptr = this->complete_and_try_get_successor();
+        task_ptr = this->cancel_and_try_get_successor();
 #endif
         this->destroy(&ed);
         return task_ptr;
@@ -131,13 +129,12 @@ public:
 };
 
 #if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
-namespace {
     template<typename F>
     d1::task* task_ptr_or_nullptr_impl(std::false_type, F&& f){
         task_handle th = std::forward<F>(f)();
         task_handle_task* task_ptr = task_handle_accessor::release(th);
         // If task has unresolved dependencies, it can't be bypassed
-        if (task_ptr->has_dependencies() && !task_ptr->release_dependency()) {
+        if (task_ptr && task_ptr->has_dependencies() && !task_ptr->release_dependency()) {
             task_ptr = nullptr;
         }
 
@@ -158,15 +155,12 @@ namespace {
 
         return  task_ptr_or_nullptr_impl(is_void_t{}, std::forward<F>(f));
     }
-}
 #else
-namespace {
     template<typename F>
     d1::task* task_ptr_or_nullptr(F&& f){
         std::forward<F>(f)();
         return nullptr;
     }
-}  // namespace
 #endif // __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
 } // namespace d2
 
@@ -463,12 +457,6 @@ inline bool is_current_task_group_canceling() {
 
 namespace d2 {
 
-enum task_group_status {
-    not_complete,
-    complete,
-    canceled
-};
-
 class task_group;
 class structured_task_group;
 #if TBB_PREVIEW_ISOLATED_TASK_GROUP
@@ -476,7 +464,13 @@ class isolated_task_group;
 #endif
 
 template <typename F>
-class function_stack_task : public d1::task {
+class function_stack_task
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+    : public d2::dynamic_state_task
+#else
+    : public d1::task
+#endif
+{
     const F& m_func;
     d1::wait_tree_vertex_interface* m_wait_tree_vertex;
 
@@ -544,6 +538,24 @@ protected:
         return cancellation_status ? canceled : complete;
     }
 
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+    task_group_status internal_run_and_wait_for_task(d2::task_handle&& h) {
+        __TBB_ASSERT(h != nullptr, "Attempt to schedule empty task_handle");
+        __TBB_ASSERT(&d2::task_handle_accessor::ctx_of(h) == &context(), "Attempt to schedule task_handle into different task_group");
+        
+        task_handle_task* task_ptr = task_handle_accessor::release(h);
+        task_dynamic_state* state = task_ptr->get_dynamic_state();
+        task_group_status status = task_group_status::not_complete;
+
+        if (task_ptr->has_dependencies() && !task_ptr->release_dependency()) {
+            status = state->wait_for_completion(context());
+        } else {
+            status = state->run_self_and_wait_for_completion(context());
+        }
+        return status;
+    }
+#endif
+
     template<typename F>
     d1::task* prepare_task(F&& f) {
         d1::small_object_allocator alloc{};
@@ -605,6 +617,14 @@ public:
         return cancellation_status ? canceled : complete;
     }
 
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+    task_group_status wait_for_task(task_completion_handle& comp_handle) {
+        __TBB_ASSERT(comp_handle, "Attempt to wait for completion of empty handle");
+        task_dynamic_state* state = task_completion_handle_accessor::get_task_dynamic_state(comp_handle);
+        return state->wait_for_completion(context());
+    }
+#endif
+
     void cancel() {
         context().cancel_group_execution();
     }
@@ -652,6 +672,16 @@ public:
     }
 
 #if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+    task_group_status run_and_wait_for_task(d2::task_handle&& h) {
+        return internal_run_and_wait_for_task(std::move(h));
+    }
+
+    task_group_status get_status_of(task_completion_handle& comp_handle) {
+        __TBB_ASSERT(comp_handle, "Cannot get status of an empty task_completion_handle");
+        task_dynamic_state* state = task_completion_handle_accessor::get_task_dynamic_state(comp_handle);
+        return state->get_task_status();
+    }
+
     static void set_task_order(d2::task_handle& pred, d2::task_handle& succ) {
         __TBB_ASSERT(pred != nullptr, "empty predecessor handle is not allowed for set_task_order");
         __TBB_ASSERT(succ != nullptr, "empty successor handle is not allowed for set_task_order");
@@ -668,12 +698,12 @@ public:
 
     static void transfer_this_task_completion_to(d2::task_handle& new_task) {
         d1::task* curr_task = d1::current_task_ptr();
-        __TBB_ASSERT(curr_task != nullptr, "this_task_completion_to was called outside of task body");
-        task_handle_task* curr_th_task = dynamic_cast<task_handle_task*>(curr_task);
-        // Not using __TBB_ASSERT(curr_th_task) to allow function_stack_task body to use this method
-        if (curr_th_task != nullptr) {
-            curr_th_task->transfer_completion_to(new_task);
-        }
+        __TBB_ASSERT(curr_task != nullptr, "transfer_this_task_completion_to was called outside of task body");
+#if __TBB_USE_OPTIONAL_RTTI && TBB_USE_DEBUG
+        __TBB_ASSERT(dynamic_cast<dynamic_state_task*>(curr_task) != nullptr,
+                     "transfer_this_task_completion_to was called from a task outside a task_group");
+#endif
+        static_cast<dynamic_state_task*>(curr_task)->transfer_completion_to(new_task);
     }
 #endif
 }; // class task_group
@@ -690,6 +720,23 @@ public:
     wait_delegate(task_group& a_group, task_group_status& tgs)
         : tg(a_group), status(tgs) {}
 };
+
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+class wait_completion_delegate : public d1::delegate_base {
+    bool operator()() const override {
+        task_dynamic_state* state = task_completion_handle_accessor::get_task_dynamic_state(comp_handle);
+        d1::task_group_context& ctx = state->get_task()->ctx();
+        status = state->wait_for_completion(ctx);
+        return true;
+    }
+protected:
+    task_completion_handle& comp_handle;
+    task_group_status& status;
+public:
+    wait_completion_delegate(task_completion_handle& handle, task_group_status& ts)
+        : comp_handle(handle), status(ts) {}
+};
+#endif
 
 #if TBB_PREVIEW_ISOLATED_TASK_GROUP
 class spawn_delegate : public d1::delegate_base {
@@ -781,6 +828,7 @@ using detail::r1::missing_wait;
 using detail::d2::task_handle;
 #if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
 using detail::d2::task_completion_handle;
+using detail::d2::task_complete;
 #endif
 }
 

@@ -115,7 +115,8 @@ public:
             if (containingBegin->first < begin && begin < containingBegin->second) { // Contains begin.
                 if (containingBegin->second > end) { // Contains end.
                     const T prevEnd = containingBegin->second;
-                    Y_ASSERT(containingBegin->second - begin <= NumElements);
+                    Y_ASSERT(containingBegin->second >= begin);
+                    Y_ASSERT(static_cast<size_t>(containingBegin->second - begin) <= NumElements);
 
                     Y_ASSERT(containingBegin->second - containingBegin->first > end - begin);
                     containingBegin->second = begin;

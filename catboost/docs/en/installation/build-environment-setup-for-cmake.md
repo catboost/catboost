@@ -59,9 +59,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
       - [`gcc` compiler](https://gcc.gnu.org/), not used to compile {{ product }} code itself but used to build dependencies as Conan packages.
       - [`clang` compiler](https://clang.llvm.org/):
 
-        The supported versions are 18.x - 21.x
-
-        Possible version 22.x support depends on the next `conan` release. See [this issue](https://github.com/conan-io/conan/pull/19709).
+        The supported versions are 18.x - 22.x
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 

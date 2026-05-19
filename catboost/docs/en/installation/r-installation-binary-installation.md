@@ -30,7 +30,7 @@ To install the released {{ r-package }} binary:
         |--------|-----------------|------------|------------|
         | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | `linux` | `x86_64` and `aarch64` |yes|
         | macOS (versions currently supported by Apple) | `darwin` |`universal2` - supports both `x86_64` and `arm64` (Apple silicon)|no|
-        | Windows 10 and 11 | `windows` | `x86_64` |yes|
+        | Windows (versions 10, 11, Server 2022, Server 2025) | `windows` | `x86_64` |yes|
 
     - `INSTALL_opts`:
 

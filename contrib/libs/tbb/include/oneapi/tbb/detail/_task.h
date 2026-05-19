@@ -37,8 +37,8 @@ namespace detail {
 
 namespace d1 {
 using slot_id = unsigned short;
-constexpr slot_id no_slot = slot_id(~0);
-constexpr slot_id any_slot = slot_id(~1);
+__TBB_GLOBAL_VAR constexpr slot_id no_slot = slot_id(~0);
+__TBB_GLOBAL_VAR constexpr slot_id any_slot = slot_id(~1);
 
 class task;
 class wait_context;
@@ -60,7 +60,6 @@ TBB_EXPORT void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& c
 TBB_EXPORT void __TBB_EXPORTED_FUNC execute_and_wait(d1::task& t, d1::task_group_context& t_ctx, d1::wait_context&, d1::task_group_context& w_ctx);
 TBB_EXPORT void __TBB_EXPORTED_FUNC wait(d1::wait_context&, d1::task_group_context& ctx);
 TBB_EXPORT d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::execution_data*);
-TBB_EXPORT d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::task_arena_base&);
 TBB_EXPORT d1::task_group_context* __TBB_EXPORTED_FUNC current_context();
 TBB_EXPORT d1::wait_tree_vertex_interface* get_thread_reference_vertex(d1::wait_tree_vertex_interface* wc);
 TBB_EXPORT d1::task* __TBB_EXPORTED_FUNC current_task_ptr();
@@ -88,7 +87,7 @@ using suspend_point = r1::suspend_point_type*;
 
 #if __TBB_RESUMABLE_TASKS
 template <typename F>
-static void suspend_callback(void* user_callback, suspend_point sp) {
+inline void suspend_callback(void* user_callback, suspend_point sp) {
     // Copy user function to a new stack after the context switch to avoid a race when the previous
     // suspend point is resumed while the user_callback is being called.
     F user_callback_copy = *static_cast<F*>(user_callback);
@@ -253,7 +252,7 @@ class task_traits {
 };
 
 //! Alignment for a task object
-static constexpr std::size_t task_alignment = 64;
+__TBB_GLOBAL_VAR constexpr std::size_t task_alignment = 64;
 
 //! Base class for user-defined tasks.
 /** @ingroup task_scheduling */

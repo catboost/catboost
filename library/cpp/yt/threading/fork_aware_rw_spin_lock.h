@@ -15,8 +15,8 @@ public:
     TForkAwareReaderWriterSpinLock(const TForkAwareReaderWriterSpinLock&) = delete;
     TForkAwareReaderWriterSpinLock& operator =(const TForkAwareReaderWriterSpinLock&) = delete;
 
-    // TODO(babenko): make use of location.
-    explicit constexpr TForkAwareReaderWriterSpinLock(const ::TSourceLocation& /*location*/)
+    explicit constexpr TForkAwareReaderWriterSpinLock(const ::TSourceLocation& location)
+        : SpinLock_(location)
     { }
 
     void AcquireReader() noexcept;

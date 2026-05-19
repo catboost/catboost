@@ -1,6 +1,6 @@
 // Copyright Kevlin Henney, 2000-2005.
 // Copyright Alexander Nasonov, 2006-2010.
-// Copyright Antony Polukhin, 2011-2025.
+// Copyright Antony Polukhin, 2011-2026.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -18,6 +18,11 @@
 #ifndef BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_HPP
 #define BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_HPP
 
+#include <boost/lexical_cast/detail/config.hpp>
+
+#if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
+
+#ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
 #include <boost/config.hpp>
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #   pragma once
@@ -27,15 +32,11 @@
 #define BOOST_LCAST_NO_WCHAR_T
 #endif
 
+#include <array>
 #include <cstddef>
 #include <string>
 #include <type_traits>
 #include <boost/limits.hpp>
-#include <boost/detail/lcast_precision.hpp>
-
-#include <boost/lexical_cast/detail/widest_char.hpp>
-#include <boost/lexical_cast/detail/is_character.hpp>
-#include <boost/lexical_cast/detail/type_traits.hpp>
 
 #include <array>
 
@@ -43,9 +44,14 @@
 #include <string_view>
 #endif
 
-#include <boost/lexical_cast/detail/buffer_view.hpp>
 #include <boost/container/container_fwd.hpp>
 
+#endif  // #ifndef BOOST_LEXICAL_CAST_INTERFACE_UNIT
+
+#include <boost/lexical_cast/detail/lcast_precision.hpp>
+#include <boost/lexical_cast/detail/widest_char.hpp>
+#include <boost/lexical_cast/detail/is_character.hpp>
+#include <boost/lexical_cast/detail/buffer_view.hpp>
 #include <boost/lexical_cast/detail/converter_lexical_streams.hpp>
 
 namespace boost {
@@ -478,6 +484,8 @@ namespace boost {
 } // namespace boost
 
 #undef BOOST_LCAST_NO_WCHAR_T
+
+#endif  // #if !defined(BOOST_USE_MODULES) || defined(BOOST_LEXICAL_CAST_INTERFACE_UNIT)
 
 #endif // BOOST_LEXICAL_CAST_DETAIL_CONVERTER_LEXICAL_HPP
 

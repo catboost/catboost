@@ -15,7 +15,7 @@ namespace boost {
 namespace math {
 
 template <typename RealType, typename Policy>
-RealType logistic_sigmoid(RealType x, const Policy&)
+BOOST_MATH_GPU_ENABLED RealType logistic_sigmoid(RealType x, const Policy&)
 {
     BOOST_MATH_STD_USING
 
@@ -35,7 +35,7 @@ RealType logistic_sigmoid(RealType x, const Policy&)
 }
 
 template <typename RealType>
-RealType logistic_sigmoid(RealType x)
+BOOST_MATH_GPU_ENABLED RealType logistic_sigmoid(RealType x)
 {
     return logistic_sigmoid(x, policies::policy<>());
 }

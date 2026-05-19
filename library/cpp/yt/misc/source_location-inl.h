@@ -4,7 +4,19 @@
 #include "source_location.h"
 #endif
 
+#include <string>
+
 namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <size_t N>
+consteval TSourceLocationLite<N> MakeSourceLocationLite(const char* fileName, i64 line)
+{
+    TSourceLocationLite<N> result{.FileName = {}, .Line = line};
+    std::char_traits<char>::copy(result.FileName, fileName, N + 1);
+    return result;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -20,6 +32,12 @@ inline TSourceLocation::TSourceLocation(const std::source_location& location)
 { }
 #endif // __cpp_lib_source_location
 
+template <auto LocationLite>
+TSourceLocation TSourceLocation::FromLite()
+{
+    return TSourceLocation(LocationLite.FileName, LocationLite.Line);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace std
+} // namespace NYT

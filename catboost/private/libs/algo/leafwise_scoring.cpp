@@ -331,7 +331,7 @@ static void CalcScoresForSubCandidate(
     };
 
     auto calcScores = [&] (TConstArrayRef<TBucketStats> stats) {
-        const auto& getBucketStats = [stats] (int bucketIdx) {
+        const auto getBucketStats = [stats] (int bucketIdx) {
             return stats[bucketIdx];
         };
         CalcScoresForLeaf(

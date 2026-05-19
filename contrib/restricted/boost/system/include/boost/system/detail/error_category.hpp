@@ -94,31 +94,31 @@ protected:
 
 public:
 
-    virtual const char * name() const noexcept = 0;
+    virtual const char* name() const noexcept = 0;
 
-    virtual error_condition default_error_condition( int ev ) const noexcept;
-    virtual bool equivalent( int code, const error_condition & condition ) const noexcept;
-    virtual bool equivalent( const error_code & code, int condition ) const noexcept;
+    BOOST_SYSTEM_CXX20_CONSTEXPR virtual error_condition default_error_condition( int ev ) const noexcept;
+    BOOST_SYSTEM_CXX20_CONSTEXPR virtual bool equivalent( int code, error_condition const& condition ) const noexcept;
+    BOOST_SYSTEM_CXX20_CONSTEXPR virtual bool equivalent( error_code const& code, int condition ) const noexcept;
 
     virtual std::string message( int ev ) const = 0;
-    virtual char const * message( int ev, char * buffer, std::size_t len ) const noexcept;
+    virtual char const* message( int ev, char* buffer, std::size_t len ) const noexcept;
 
-    virtual bool failed( int ev ) const noexcept
+    BOOST_SYSTEM_CXX20_CONSTEXPR virtual bool failed( int ev ) const noexcept
     {
         return ev != 0;
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator==( error_category const & lhs, error_category const & rhs ) noexcept
+    friend BOOST_SYSTEM_CONSTEXPR bool operator==( error_category const& lhs, error_category const& rhs ) noexcept
     {
         return rhs.id_ == 0? &lhs == &rhs: lhs.id_ == rhs.id_;
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator!=( error_category const & lhs, error_category const & rhs ) noexcept
+    friend BOOST_SYSTEM_CONSTEXPR bool operator!=( error_category const& lhs, error_category const& rhs ) noexcept
     {
         return !( lhs == rhs );
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator<( error_category const & lhs, error_category const & rhs ) noexcept
+    friend BOOST_SYSTEM_CONSTEXPR bool operator<( error_category const& lhs, error_category const& rhs ) noexcept
     {
         if( lhs.id_ < rhs.id_ )
         {
@@ -135,15 +135,15 @@ public:
             return false; // equal
         }
 
-        return std::less<error_category const *>()( &lhs, &rhs );
+        return std::less<error_category const*>()( &lhs, &rhs );
     }
 
     void init_stdcat() const;
 
 # if defined(__SUNPRO_CC) // trailing __global is not supported
-    operator std::error_category const & () const;
+    operator std::error_category const& () const;
 # else
-    operator std::error_category const & () const BOOST_SYMBOL_VISIBLE;
+    operator std::error_category const& () const BOOST_SYMBOL_VISIBLE;
 # endif
 };
 
@@ -162,7 +162,7 @@ static const boost::ulong_long_type generic_category_id = ( boost::ulong_long_ty
 static const boost::ulong_long_type system_category_id = generic_category_id + 1;
 static const boost::ulong_long_type interop_category_id = generic_category_id + 2;
 
-BOOST_SYSTEM_CONSTEXPR inline bool failed_impl( int ev, error_category const & cat )
+BOOST_SYSTEM_CONSTEXPR inline bool failed_impl( int ev, error_category const& cat )
 {
     if( cat.id_ == system_category_id || cat.id_ == generic_category_id )
     {

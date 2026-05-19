@@ -70,7 +70,9 @@ private:
 //! A variant of TSpinLock occupying the whole cache line.
 class alignas(CacheLineSize) TPaddedSpinLock
     : public TSpinLock
-{ };
+{
+    using TSpinLock::TSpinLock;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 

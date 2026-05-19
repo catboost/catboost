@@ -219,7 +219,7 @@ void Cleanup(TFreeList<TFreeListItem>* freeList)
 TEST(TFreeListTest, ProducerConsumer)
 {
     auto now = Now();
-    auto until = now + std::chrono::seconds(15);
+    auto until = now + std::chrono::seconds(5);
 
     auto freeList = TFreeList<TFreeListItem>();
 

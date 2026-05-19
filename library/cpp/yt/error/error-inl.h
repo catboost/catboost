@@ -276,7 +276,7 @@ template <class T>
 template <class TErrorLike>
 TErrorOr<T>::TErrorOr(TErrorLike&& other) noexcept
     requires std::is_same_v<TErrorLike, TError>
-    : TError(std::move(other))
+    : TError(std::forward<TErrorLike>(other))
 {
     YT_VERIFY(!IsOK());
 }
@@ -474,6 +474,27 @@ const T& TErrorOr<T>::Value() const & Y_LIFETIME_BOUND
 }
 
 template <class T>
+T&& TErrorOr<T>::ValueOrCrash() && Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return std::move(*Value_);
+}
+
+template <class T>
+T& TErrorOr<T>::ValueOrCrash() & Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return *Value_;
+}
+
+template <class T>
+const T& TErrorOr<T>::ValueOrCrash() const & Y_LIFETIME_BOUND
+{
+    YT_VERIFY(IsOK());
+    return *Value_;
+}
+
+template <class T>
 const T& TErrorOr<T>::ValueOrDefault(const T& defaultValue Y_LIFETIME_BOUND) const & Y_LIFETIME_BOUND
 {
     return IsOK() ? *Value_ : defaultValue;
@@ -509,7 +530,7 @@ TException&& operator <<= (TException&& ex, const TError& error)
 {
     YT_VERIFY(!error.IsOK());
     ex.Error() = error;
-    return std::move(ex);
+    return std::forward<TException>(ex);
 }
 
 template <class TException>
@@ -518,7 +539,7 @@ TException&& operator <<= (TException&& ex, TError&& error)
 {
     YT_VERIFY(!error.IsOK());
     ex.Error() = std::move(error);
-    return std::move(ex);
+    return std::forward<TException>(ex);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

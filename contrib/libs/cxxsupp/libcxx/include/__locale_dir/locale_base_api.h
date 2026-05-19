@@ -295,7 +295,7 @@ __mbsrtowcs(wchar_t* __dest, const char** __src, size_t __len, mbstate_t* __ps, 
 _LIBCPP_DIAGNOSTIC_PUSH
 _LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Wgcc-compat")
 _LIBCPP_GCC_DIAGNOSTIC_IGNORED("-Wformat-nonliteral") // GCC doesn't support [[gnu::format]] on variadic templates
-#    ifdef _LIBCPP_COMPILER_CLANG_BASED  && !defined(__CUDACC__) && 1401 <= _LIBCPP_CLANG_VER
+#    ifdef _LIBCPP_COMPILER_CLANG_BASED
 #      define _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(...) _LIBCPP_ATTRIBUTE_FORMAT(__VA_ARGS__)
 #    else
 #      define _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(...) /* nothing */

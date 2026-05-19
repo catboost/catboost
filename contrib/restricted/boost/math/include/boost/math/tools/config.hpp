@@ -84,6 +84,10 @@
 
 #else // Things from boost/config that are required, and easy to replicate
 
+#if __has_include(<version>)
+#include <version>
+#endif
+
 #define BOOST_MATH_PREVENT_MACRO_SUBSTITUTION
 #define BOOST_MATH_NO_REAL_CONCEPT_TESTS
 #define BOOST_MATH_NO_DISTRIBUTION_CONCEPT_TESTS
@@ -102,9 +106,9 @@
 #if ((__cplusplus > 201700L) || (defined(_MSVC_LANG) && (_MSVC_LANG > 201700L)))
 #define BOOST_MATH_IF_CONSTEXPR if constexpr
 
-// Clang on mac provides the execution header with none of the functionality. TODO: Check back on this
+// libc++ currently provides the execution header with none of the functionality.
 // https://en.cppreference.com/w/cpp/compiler_support "Standardization of Parallelism TS"
-#  if !__has_include(<execution>) || (defined(__APPLE__) && defined(__clang__))
+#  if !__has_include(<execution>) || !defined(__cpp_lib_execution) || (__cpp_lib_execution < 201603L)
 #  define BOOST_MATH_NO_CXX17_HDR_EXECUTION
 #  endif
 #else

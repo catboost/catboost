@@ -58,9 +58,8 @@ try:
 
     import catboost_python_package_ut_lib as python_package_ut_lib
 except ImportError:
-    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
-    sys.path.insert(0, os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'python-package'))
+    sys.path.insert(0, os.path.join(lib.git_repo_root_dir, 'catboost', 'python-package'))
     import ut.lib as python_package_ut_lib
 
 
@@ -3158,6 +3157,50 @@ def test_multilabel_custom_objective(task_type, n=10):
 
     for p1, p2 in zip(pred1, pred2):
         assert (abs(p1 - p2) < EPS).all()
+
+
+def test_default_loss_function_column_vector_label_no_crash():
+    rng = np.random.RandomState(0)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30) > 0.5).astype(np.int32).reshape(-1, 1) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "Logloss"
+
+
+def test_default_loss_function_multilabel_binary_int_targets():
+    rng = np.random.RandomState(1)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.int32) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_binary_float_targets():
+    rng = np.random.RandomState(2)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.float32) 
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_soft_targets():
+    rng = np.random.RandomState(3)
+    X = rng.rand(30, 5)
+    y = rng.rand(30, 3).astype(np.float32)  
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiCrossEntropy"
 
 
 def test_pool_after_fit(task_type):

@@ -33,8 +33,8 @@ namespace NPrivate {
 
 // \brief `Y_SCOPE_EXIT(captures) { body };`
 //
-// General implementaion of RAII idiom (resource acquisition is initialization). Executes
-// function upon return from the current scope.
+// General implementaion of RAII idiom (resource acquisition is initialization). Executes code in the `body` block
+// upon return from the current scope.
 //
 // @note expects `body` to provide no-throw guarantee, otherwise whenever an exception
 // is thrown and leaves the outermost block of `body`, the function `std::terminate` is called.

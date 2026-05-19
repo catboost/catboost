@@ -11,7 +11,7 @@ To apply a previously trained {{ product }} model in Java:
     |--------|-----------------|------------|
     | macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
     | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
-    | Windows 10 and 11 | x86_64 |yes|
+    | Windows (versions 10, 11, Server 2022, Server 2025) | x86_64 |yes|
 
     {% note info %}
 

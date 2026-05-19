@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2025 UXL Foundation Сontributors
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,11 +33,18 @@ namespace tbb {
 namespace detail {
 namespace r1 {
 
+struct default_cgroup_settings {
+    const char* proc_self_mounts_path  = "/proc/self/mounts";
+    const char* proc_self_cgroup_path  = "/proc/self/cgroup";
+    const char* sys_fs_cgroup_dir_path = "/sys/fs/cgroup";
+};
+
 // Linux control groups support
+template <typename cgroup_settings = default_cgroup_settings>
 class cgroup_info {
 public:
     static bool is_cpu_constrained(int& constrained_num_cpus) {
-        static const int num_cpus = parse_cpu_constraints();
+        static const int num_cpus = parse_cpu_constraints(cgroup_settings{});
         if (num_cpus == error_value || num_cpus == unlimited_num_cpus)
             return false;
 
@@ -100,8 +107,10 @@ private:
         return path_start;
     }
 
-    static void parse_proc_cgroup_file(std::FILE* cgroup_fd, process_cgroup_data& pcd, bool look_for_v2_only = false) {
-        using cgroup_version_t = process_cgroup_data::cgroup_version;
+    static void parse_proc_cgroup_file(std::FILE* cgroup_fd, process_cgroup_data& pcd,
+                                       bool look_for_v2_only = false)
+    {
+        using cgroup_version_t = typename process_cgroup_data::cgroup_version;
         cgroup_version_t cgroup_version { cgroup_version_t::unknown };
 
         char line[rel_path_size] = {0};
@@ -110,11 +119,11 @@ private:
         const char* path_start = nullptr;
         constexpr std::size_t cgroup_v2_prefix_size = 3;
         while (std::fgets(line, rel_path_size, cgroup_fd)) {
-            // Both cgroup v1 and v2 mounts may be present. However,
-            // a specific controller can only be active in one of them. If the cgroup v1 CPU
-            // controller is found first, the search can stop immediately, as the CPU controller will not
-            // be active in cgroup v2. But if the cgroup v2 controller is found first, the search must
-            // continue, as the cgroup v1 CPU controller might appear later in the file.
+            // Both cgroup v1 and v2 mounts may be present. However, a specific controller can only
+            // be active in one of them. If the cgroup v1 CPU controller is found first, the search
+            // can stop immediately, as the CPU controller will not be active in cgroup v2. But if
+            // the cgroup v2 controller is found first, the search must continue, as the cgroup v1
+            // CPU controller might appear later in the file.
             if (!path_start && std::strncmp(line, "0::", cgroup_v2_prefix_size) == 0) {
                 path_start = line + cgroup_v2_prefix_size; // cgroup v2 unified path
                 cgroup_version = cgroup_version_t::v2;
@@ -201,7 +210,7 @@ private:
     }
 
     static bool try_read_cgroup_num_cpus_from(const char* dir, int& num_cpus,
-                                              process_cgroup_data::cgroup_version version)
+                                              typename process_cgroup_data::cgroup_version version)
     {
         // Try reading based on the provided cgroup version
         if (version == process_cgroup_data::cgroup_version::v2) {
@@ -210,7 +219,6 @@ private:
         __TBB_ASSERT(version == process_cgroup_data::cgroup_version::v1, nullptr);
         return try_read_cgroup_v1_num_cpus_from(dir, num_cpus);
     }
-
 
     static int parse_cgroup_entry(const char* mnt_dir, process_cgroup_data& pcd) {
         int num_cpus = error_value; // Initialize to an impossible value
@@ -232,24 +240,28 @@ private:
         } else if (pcd.relative_path[1]) {
             return true;
         }
-        __TBB_ASSERT(pcd.version == process_cgroup_data::cgroup_version::v2 && *pcd.relative_path == '/', nullptr);
+        __TBB_ASSERT(pcd.version == process_cgroup_data::cgroup_version::v2
+                     && *pcd.relative_path == '/', nullptr);
 
-        // At this point, we have cgroup v2 with a root path, which may indicate that the process is under the root cgroup.
-        // This implies that we shouldn't find any cpu.max file in the cgroup mount path. However, to verify whether
-        // the process is not running within a cgroup namespace, we need to inspect the cgroup information of the init
-        // process. On a host OS, the process with PID 1 is the init system (e.g., systemd). In containerized
-        // environments, though, PID 1 might correspond to a different process (e.g., a shell or application).
-        // In such cases, the /proc/1/cgroup file shouldn't show the "0::/init.scope" entry associated with systemd
-        // if non-root cgroup is used.
+        // At this point, we have cgroup v2 with a root path, which may indicate that the process is
+        // under the root cgroup. This implies that we shouldn't find any cpu.max file in the cgroup
+        // mount path. However, to verify whether the process is not running within a cgroup
+        // namespace, we need to inspect the cgroup information of the init process. On a host OS,
+        // the process with PID 1 is the init system (e.g., systemd). In containerized environments,
+        // though, PID 1 might correspond to a different process (e.g., a shell or application). In
+        // such cases, the /proc/1/cgroup file shouldn't show the "0::/init.scope" entry associated
+        // with systemd if non-root cgroup is used.
         unique_file_t init_process_cgroup_file(std::fopen("/proc/1/cgroup", "r"), &close_file);
         if (!init_process_cgroup_file)
-            return true; // We can't be sure whether it is root cgroup or not, so need to inspect cgroup mount
+            // We can't be sure whether it is root cgroup or not, so need to inspect cgroup mount
+            return true;
 
         process_cgroup_data init_process_cgroup_data{};
-        parse_proc_cgroup_file(init_process_cgroup_file.get(), init_process_cgroup_data, /*look_for_v2_only*/ true);
+        parse_proc_cgroup_file(init_process_cgroup_file.get(), init_process_cgroup_data,
+                               /*look_for_v2_only*/true);
         if (init_process_cgroup_data.version != process_cgroup_data::cgroup_version::unknown) {
-            __TBB_ASSERT(init_process_cgroup_data.version == process_cgroup_data::cgroup_version::v2 &&
-                *init_process_cgroup_data.relative_path, nullptr);
+            __TBB_ASSERT(init_process_cgroup_data.version == process_cgroup_data::cgroup_version::v2
+                         && *init_process_cgroup_data.relative_path, nullptr);
 
             // If the init process cgroup path is "/init.scope", it means systemd is used
             // and we are running on the host
@@ -261,25 +273,26 @@ private:
         return true;
     }
 
-    static int try_common_cgroup_mount_path(const process_cgroup_data& pcd) {
+    static int try_common_cgroup_mount_path(const process_cgroup_data& pcd,
+                                            const cgroup_settings& cg_cfg) {
         int num_cpus = error_value;
         char dir[PATH_MAX] = {0};
         __TBB_ASSERT(*pcd.relative_path, nullptr);
-        if (std::snprintf(dir, PATH_MAX, "%s/%s", "/sys/fs/cgroup", pcd.relative_path) >= 0) {
+        if (0 <= std::snprintf(dir, PATH_MAX, "%s/%s", cg_cfg.sys_fs_cgroup_dir_path,
+                               pcd.relative_path))
             try_read_cgroup_num_cpus_from(dir, num_cpus, pcd.version);
-        }
 
-        if (num_cpus == error_value && pcd.version == process_cgroup_data::cgroup_version::v2) {
-            if (std::snprintf(dir, PATH_MAX, "%s/%s", "/sys/fs/cgroup/unified", pcd.relative_path) >= 0) {
+        if (error_value == num_cpus && pcd.version == process_cgroup_data::cgroup_version::v2) {
+            if (0 <= std::snprintf(dir, PATH_MAX, "%s/%s", "/sys/fs/cgroup/unified",
+                                   pcd.relative_path))
                 try_read_cgroup_v2_num_cpus_from(dir, num_cpus);
-            }
         }
         return num_cpus;
     }
 
-    static int parse_cpu_constraints() {
+    static int parse_cpu_constraints(const cgroup_settings& cg_cfg) {
         // Reading /proc/self/cgroup anyway, so open it right away
-        unique_file_t cgroup_file_ptr(std::fopen("/proc/self/cgroup", "r"), &close_file);
+        unique_file_t cgroup_file_ptr(std::fopen(cg_cfg.proc_self_cgroup_path, "r"), &close_file);
         if (!cgroup_file_ptr)
             return error_value; // Failed to open cgroup file
 
@@ -293,14 +306,15 @@ private:
         __TBB_ASSERT(pcd.version != process_cgroup_data::cgroup_version::unknown, nullptr);
 
         int found_num_cpus = error_value; // Initialize to an impossible value
-        found_num_cpus = try_common_cgroup_mount_path(pcd);
+        found_num_cpus = try_common_cgroup_mount_path(pcd, cg_cfg);
         if (found_num_cpus != error_value) {
             return found_num_cpus;
         }
 
         auto close_mounts_file = [](std::FILE* file) { endmntent(file); };
         using unique_mounts_file_t = std::unique_ptr<std::FILE, decltype(close_mounts_file)>;
-        unique_mounts_file_t mounts_file_ptr(setmntent("/proc/self/mounts", "r"), close_mounts_file);
+        unique_mounts_file_t mounts_file_ptr(setmntent(cg_cfg.proc_self_mounts_path, "r"),
+                                             close_mounts_file);
         if (!mounts_file_ptr)
             return error_value;
 

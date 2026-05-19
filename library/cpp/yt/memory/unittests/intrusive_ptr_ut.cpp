@@ -653,7 +653,7 @@ TEST(TIntrusivePtrTest, TestConstCast)
     EXPECT_EQ(*ptr, *constPtr);
 }
 
-TEST(TIntrusivePtrTest, TestHeterogeneousLookup)
+TEST(TIntrusivePtrTest, HeterogeneousLookup)
 {
     TIntricateObject object;
     TIntricateObject object2;

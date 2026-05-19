@@ -11,7 +11,6 @@
 
 #include <__config>
 #include <__type_traits/integral_constant.h>
-#include <__type_traits/remove_cv.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -20,19 +19,11 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp>
-#if __has_builtin(__remove_cv)
 struct _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv(_Tp), void)> {};
-#else
-struct _LIBCPP_NO_SPECIALIZATIONS is_void : _BoolConstant<__is_same(__remove_cv_t<_Tp>, void)> {};
-#endif
 
 #if _LIBCPP_STD_VER >= 17
 template <class _Tp>
-#if __has_builtin(__remove_cv)
 _LIBCPP_NO_SPECIALIZATIONS inline constexpr bool is_void_v = __is_same(__remove_cv(_Tp), void);
-#else
-_LIBCPP_NO_SPECIALIZATIONS inline constexpr bool is_void_v = __is_same(__remove_cv_t<_Tp>, void);
-#endif
 #endif
 
 _LIBCPP_END_NAMESPACE_STD

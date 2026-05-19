@@ -52,18 +52,10 @@
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
     // Prevent GCC from throwing out functions in release builds.
     #define YT_ATTRIBUTE_USED __attribute__((used))
 #elif defined(_MSC_VER)
-    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS
     #define YT_ATTRIBUTE_USED
 #else
     #error Unsupported compiler
-#endif
-
-#if defined(_unix_)
-    #define YT_ATTRIBUTE_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#else
-    #define YT_ATTRIBUTE_NO_UNIQUE_ADDRESS
 #endif

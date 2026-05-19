@@ -46,7 +46,7 @@ public:
 private:
     DECLARE_LEAKY_SINGLETON_FRIEND()
 
-    TWriterStarvingRWSpinLock ForkLock_;
+    YT_DECLARE_SPIN_LOCK(TWriterStarvingRWSpinLock, ForkLock_);
 
     struct TAtForkHandlerSet
     {
@@ -137,4 +137,3 @@ TWriterStarvingRWSpinLock* GetForkLock()
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT::NThreading
-

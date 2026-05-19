@@ -55,7 +55,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_memcpy_x86_arm_combined.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_non_temporal_memcpy.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_x86_arm_combined.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/address_is_readable.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/borrowed_fixup_buffer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/decode_rust_punycode.cc
@@ -186,5 +185,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/zone_info_source.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/time.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/time_zone_name_win.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
 )
 

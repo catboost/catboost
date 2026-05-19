@@ -37,7 +37,7 @@ def run_ruff(ruff_bin: str, cmd_args: list[str], filename: str, config: Path) ->
         capture_output=True,
         encoding='utf8',
         errors='replace',
-        env=dict(os.environ.copy(), RUFF_OUTPUT_FORMAT='concise'),
+        env=dict(os.environ.copy(), RUFF_OUTPUT_FORMAT='concise', RAYON_NUM_THREADS='1'),
         # When config is passed through `--config`, `exclude` starts searching from cwd
         # so set cwd to config cwd to mimic behavior of autodiscovery.
         # Note that it stops being accurate when `extend` is used.

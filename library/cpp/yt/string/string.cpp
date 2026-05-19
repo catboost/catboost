@@ -362,6 +362,31 @@ std::string TruncateString(std::string string, int lengthLimit, TStringBuf trunc
     return string;
 }
 
+TTruncatedStringView::TTruncatedStringView(const std::string& value, int limit)
+    : Value_(value)
+    , Limit_(std::max(limit, 0))
+{ }
+
+void TTruncatedStringView::WriteToBuilder(TStringBuilderBase* builder, TStringBuf /* spec */) const
+{
+    i64 valueSize = std::ssize(Value_);
+    i64 maxSize = Limit_ + std::ssize(DefaultTruncatedMessage);
+    if (valueSize <= maxSize) {
+        builder->AppendString(Value_);
+        return;
+    }
+
+    char* begin = builder->Preallocate(maxSize);
+    memcpy(begin, Value_.data(), Limit_);
+    memcpy(begin + Limit_, DefaultTruncatedMessage.data(), DefaultTruncatedMessage.size());
+    builder->Advance(maxSize);
+}
+
+void FormatValue(TStringBuilderBase* builder, TTruncatedStringView value, TStringBuf spec)
+{
+    value.WriteToBuilder(builder, spec);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT

@@ -60,38 +60,45 @@ T ReadVarUintKnownSize(const char* buffer)
 
 } // namespace NDetail
 
-#define XX(type, size) \
-    if (static_cast<ui8>(input[size - 1]) < 0x80) { \
+#define READ_VARUINT_STEP(type, size, bound) \
+    if (static_cast<ui8>(input[size - 1]) < (bound)) { \
         *value = NYT::NDetail::ReadVarUintKnownSize<type, size>(input); \
         return size; \
     }
 
+#define READ_VARUINT_STEP7(type, size) \
+    READ_VARUINT_STEP(type, size, 0x80)
+
 Y_FORCE_INLINE int ReadVarUint32(const char* input, ui32* value)
 {
-    XX(ui64, 1)
-    XX(ui64, 2)
-    XX(ui64, 3)
-    XX(ui64, 4)
-    XX(ui64, 5)
+    READ_VARUINT_STEP7(ui64, 1)
+    READ_VARUINT_STEP7(ui64, 2)
+    READ_VARUINT_STEP7(ui64, 3)
+    READ_VARUINT_STEP7(ui64, 4)
+    // A varuint32 fits in at most 5 bytes: bytes 1-4 carry 7 bits each (28 bits),
+    // byte 5 carries the remaining 4 bits, so it must be below 0x10 = 2^4.
+    // Using READ_VARUINT_STEP7 here would silently accept 33-35 bit values.
+    READ_VARUINT_STEP(ui64, 5, 0x10)
     throw TSimpleException("Value is too big for varuint32");
 }
 
 Y_FORCE_INLINE int ReadVarUint64(const char* input, ui64* value)
 {
-    XX(ui64, 1)
-    XX(ui64, 2)
-    XX(ui64, 3)
-    XX(ui64, 4)
-    XX(ui64, 5)
-    XX(ui64, 6)
-    XX(ui64, 7)
-    XX(ui64, 8)
-    XX(ui64, 9)
-    XX(ui64, 10)
+    READ_VARUINT_STEP7(ui64, 1)
+    READ_VARUINT_STEP7(ui64, 2)
+    READ_VARUINT_STEP7(ui64, 3)
+    READ_VARUINT_STEP7(ui64, 4)
+    READ_VARUINT_STEP7(ui64, 5)
+    READ_VARUINT_STEP7(ui64, 6)
+    READ_VARUINT_STEP7(ui64, 7)
+    READ_VARUINT_STEP7(ui64, 8)
+    READ_VARUINT_STEP7(ui64, 9)
+    READ_VARUINT_STEP7(ui64, 10)
     throw TSimpleException("Value is too big for varuint64");
 }
 
-#undef XX
+#undef READ_VARUINT_STEP7
+#undef READ_VARUINT_STEP
 
 ////////////////////////////////////////////////////////////////////////////////
 

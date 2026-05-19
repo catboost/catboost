@@ -60,10 +60,12 @@ namespace NGTest::NInternal {
         } catch (...) {                                                                                             \
             gtestMsg = ::NGTest::NInternal::FormatErrorWrongException(                                              \
                 #statement, #expectedException);                                                                    \
+            /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                      \
             goto GTEST_CONCAT_TOKEN_(gtest_label_testthrow_, __LINE__);                                             \
         } if (!gtestCaughtExpected) {                                                                               \
             gtestMsg = ::NGTest::NInternal::FormatErrorWrongException(                                              \
                 #statement, #expectedException);                                                                    \
+            /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                      \
             goto GTEST_CONCAT_TOKEN_(gtest_label_testthrow_, __LINE__);                                             \
         }                                                                                                           \
     } else                                                                                                          \
@@ -81,16 +83,19 @@ namespace NGTest::NInternal {
             if (!::NGTest::NInternal::ExceptionMessageContains(gtestError, gtestSubstring)) {                       \
                 gtestMsg = ::NGTest::NInternal::FormatErrorWrongException(                                          \
                     #statement, #expectedException, gtestSubstring);                                                \
+                /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                  \
                 goto GTEST_CONCAT_TOKEN_(gtest_label_testthrowsubstr_, __LINE__);                                   \
             }                                                                                                       \
             gtestCaughtExpected = true;                                                                             \
         } catch (...) {                                                                                             \
             gtestMsg = ::NGTest::NInternal::FormatErrorWrongException(                                              \
                 #statement, #expectedException, gtestSubstring);                                                    \
+            /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                      \
             goto GTEST_CONCAT_TOKEN_(gtest_label_testthrowsubstr_, __LINE__);                                       \
         } if (!gtestCaughtExpected) {                                                                               \
             gtestMsg = ::NGTest::NInternal::FormatErrorWrongException(                                              \
                 #statement, #expectedException, gtestSubstring);                                                    \
+            /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                      \
             goto GTEST_CONCAT_TOKEN_(gtest_label_testthrowsubstr_, __LINE__);                                       \
         }                                                                                                           \
     } else                                                                                                          \
@@ -104,6 +109,7 @@ namespace NGTest::NInternal {
             GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement);                                              \
         } catch (...) {                                                                                             \
             gtestMsg = ::NGTest::NInternal::FormatErrorUnexpectedException(#statement);                             \
+            /* NOLINTNEXTLINE(cppcoreguidelines-avoid-goto) */                                                      \
             goto GTEST_CONCAT_TOKEN_(gtest_label_testnothrow_, __LINE__);                                           \
         }                                                                                                           \
     } else                                                                                                          \

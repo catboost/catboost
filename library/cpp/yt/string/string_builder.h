@@ -1,5 +1,7 @@
 #pragma once
 
+#include "format_string.h"
+
 #include <util/generic/string.h>
 
 namespace NYT {
@@ -28,10 +30,8 @@ public:
     void AppendString(TStringBuf str);
     void AppendString(const char* str);
 
-    template <size_t Length, class... TArgs>
-    void AppendFormat(const char (&format)[Length], TArgs&&... args);
     template <class... TArgs>
-    void AppendFormat(TStringBuf format, TArgs&&... args);
+    void AppendFormat(TFormatString<TArgs...> format, TArgs&&... args);
 
     void Reset();
 

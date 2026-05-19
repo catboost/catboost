@@ -29,6 +29,8 @@
 //!   - boost::container::small_vector_base
 //!   - boost::container::small_vector
 //!   - boost::container::devector
+//!   - boost::container::deque
+//!   - boost::container::segtor
 //!   - boost::container::slist
 //!   - boost::container::list
 //!   - boost::container::set
@@ -131,6 +133,11 @@ template <class T
          ,class Allocator = void
          ,class Options   = void>
 class deque;
+
+template <class T
+         ,class Allocator = void
+         ,class Options   = void>
+class segtor;
 
 template <class T
          ,class Allocator = void >
@@ -272,8 +279,9 @@ struct small_flat_multimap_of
 };
 
 template <class CharT
-         ,class Traits = std::char_traits<CharT>
-         ,class Allocator  = void >
+         ,class Traits     = std::char_traits<CharT>
+         ,class Allocator  = void
+         ,class Options    = void >
 class basic_string;
 
 typedef basic_string <char>   string;

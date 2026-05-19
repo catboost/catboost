@@ -1,5 +1,7 @@
 #include "registry.h"
 
+#include "resource.h"
+
 #include <library/cpp/containers/absl_flat_hash/flat_hash_map.h>
 #include <library/cpp/blockcodecs/core/codecs.h>
 

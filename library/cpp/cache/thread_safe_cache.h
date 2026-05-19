@@ -58,6 +58,7 @@ namespace NPrivate {
                     if (auto iter = Cache.Find(key); iter != Cache.End())
                         return iter.Value();
                 }
+                break;
                 case EGettersPromotionPolicy::Unpromoted: {
                     TReadGuard r(Mutex);
                     if (auto iter = Cache.Find(key); iter != Cache.End())

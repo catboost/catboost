@@ -31,15 +31,15 @@ struct TLcgIterator {
     {
     }
 
-    inline T Iterate(T x) noexcept {
+    inline T Iterate(T x) const noexcept {
         return x * A + C;
     }
 
-    inline T IterateMultiple(T x, T delta) noexcept {
+    inline T IterateMultiple(T x, T delta) const noexcept {
         return ::NPrivate::LcgAdvance(x, A, C, delta);
     }
 
-    const T C;
+    T C;
 };
 
 template <class TIterator, class TMixer>

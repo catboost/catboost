@@ -181,7 +181,9 @@ using TReaderWriterSpinLock = NDetail::TUncheckedReaderWriterSpinLock;
 //! A variant of TReaderWriterSpinLock occupying the whole cache line.
 class alignas(CacheLineSize) TPaddedReaderWriterSpinLock
     : public TReaderWriterSpinLock
-{ };
+{
+    using TReaderWriterSpinLock::TReaderWriterSpinLock;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 

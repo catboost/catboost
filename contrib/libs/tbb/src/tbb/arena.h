@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,6 +23,7 @@
 
 #include "oneapi/tbb/detail/_task.h"
 #include "oneapi/tbb/detail/_utils.h"
+#include "oneapi/tbb/global_control.h"
 #include "oneapi/tbb/spin_mutex.h"
 
 #include "scheduler_common.h"
@@ -45,9 +47,7 @@ class task_group_context;
 class threading_control;
 class allocate_root_with_context_proxy;
 
-#if __TBB_ARENA_BINDING
 class numa_binding_observer;
-#endif /*__TBB_ARENA_BINDING*/
 
 //! Bounded coroutines cache LIFO ring buffer
 class arena_co_cache {
@@ -191,14 +191,14 @@ public:
     // This method is not thread-safe!
     // Required to be called after construction to set initial state of the state machine.
     void set_initial_state(tbb::task_arena::leave_policy lp) {
+        std::uintptr_t policy = FAST_LEAVE;
         if (lp == tbb::task_arena::leave_policy::automatic) {
-            std::uintptr_t platform_policy = governor::hybrid_cpu() ? FAST_LEAVE : DELAYED_LEAVE;
-            my_state.store(platform_policy, std::memory_order_relaxed);
-        } else {
-            __TBB_ASSERT(lp == tbb::task_arena::leave_policy::fast,
-                         "Was the new value introduced for leave policy?");
-            my_state.store(FAST_LEAVE, std::memory_order_relaxed);
+            auto glp = tbb::task_arena::leave_policy(global_control::active_value(global_control::leave_policy));
+            if (glp == tbb::task_arena::leave_policy::automatic && !governor::hybrid_cpu()) {
+                policy = DELAYED_LEAVE;
+            }
         }
+        my_state.store(policy, std::memory_order_relaxed);
     }
 
     void reset_if_needed() {
@@ -298,10 +298,8 @@ struct arena_base : padded<intrusive_list_node> {
     //! The list of local observers attached to this arena.
     observer_list my_observers;
 
-#if __TBB_ARENA_BINDING
     //! Pointer to internal observer that allows to bind threads in arena to certain NUMA node.
     numa_binding_observer* my_numa_binding_observer{nullptr};
-#endif /*__TBB_ARENA_BINDING*/
 
     // Below are rarely modified members
 
@@ -370,7 +368,8 @@ public:
 
     static arena& create(threading_control* control, unsigned num_slots, unsigned num_reserved_slots,
                          unsigned arena_priority_level,
-                         d1::constraints constraints = d1::constraints{}
+                         d1::constraints constraints = d1::constraints{},
+                         numa_binding_observer* observer = nullptr
 #if __TBB_PREVIEW_PARALLEL_PHASE
                          , tbb::task_arena::leave_policy lp = tbb::task_arena::leave_policy::automatic
 #endif
@@ -483,6 +482,8 @@ public:
     int update_concurrency(unsigned concurrency);
 
     std::pair</*min workers = */ int, /*max workers = */ int> update_request(int mandatory_delta, int workers_delta);
+
+    tcm_cpu_mask_t get_affinity_mask() const;
 
     /** Must be the last data field */
     arena_slot my_slots[1];

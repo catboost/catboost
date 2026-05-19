@@ -81,15 +81,9 @@ inline void TStringBuilderBase::Reset()
 }
 
 template <class... TArgs>
-void TStringBuilderBase::AppendFormat(TStringBuf format, TArgs&& ... args)
+void TStringBuilderBase::AppendFormat(TFormatString<TArgs...> format, TArgs&&... args)
 {
-    Format(this, TRuntimeFormat{format}, std::forward<TArgs>(args)...);
-}
-
-template <size_t Length, class... TArgs>
-void TStringBuilderBase::AppendFormat(const char (&format)[Length], TArgs&& ... args)
-{
-    Format(this, TRuntimeFormat{format}, std::forward<TArgs>(args)...);
+    Format(this, format, std::forward<TArgs>(args)...);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

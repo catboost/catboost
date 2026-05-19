@@ -51,6 +51,12 @@ void RecycleFreedMemory(TMutableRef ref)
     ClobberMemory<'\xc0', '\x01', '\xb1', '\xba'>(ref.data(), ref.size());
 }
 
+void PoisonUnitializedOrFreedMemory(TMutableRef ref)
+{
+    // BADBLOOD
+    ClobberMemory<'\xba', '\xdb', '\x10', '\x0d'>(ref.data(), ref.size());
+}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

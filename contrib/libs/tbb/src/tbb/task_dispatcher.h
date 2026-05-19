@@ -118,11 +118,17 @@ inline task_dispatcher::task_dispatcher(arena* a) {
     m_execute_data_ext.task_disp = this;
 }
 
+#if !__TBB_USE_ADDRESS_SANITIZER
 inline bool task_dispatcher::can_steal() {
     __TBB_ASSERT(m_stealing_threshold != 0, nullptr);
     stack_anchor_type anchor{};
     return reinterpret_cast<std::uintptr_t>(&anchor) > m_stealing_threshold;
 }
+#else
+// ASan allocates fake stack which not necessarily monotonically grows downwards, therefore
+// we can't rely on stack overflow protection mechanism when Address Sanitizer is enabled.
+inline bool task_dispatcher::can_steal() { return true; }
+#endif
 
 inline d1::task* task_dispatcher::get_inbox_or_critical_task(
     execution_data_ext& ed, mail_inbox& inbox, isolation_type isolation, bool critical_allowed)

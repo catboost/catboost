@@ -67,7 +67,7 @@ class TYsonString
 {
 public:
     //! Constructs a null instance.
-    TYsonString();
+    TYsonString() = default;
 
     //! Constructs an instance from TYsonStringBuf.
     //! Copies the data into a ref-counted payload.
@@ -83,6 +83,18 @@ public:
     //! Zero-copy for CoW TString: retains the reference to TString in payload.
     explicit TYsonString(
         const TString& data,
+        EYsonType type = EYsonType::Node);
+
+    //! Constructs an instance from TCowString.
+    //! Zero-copy: retains the reference to TCowString in payload.
+    explicit TYsonString(
+        TCowString data,
+        EYsonType type = EYsonType::Node);
+
+    //! Constructs an instance from std::string.
+    //! Moves #data into a ref-counted payload.
+    explicit TYsonString(
+        std::string data,
         EYsonType type = EYsonType::Node);
 
     //! Constructs an instance from TSharedRef.
@@ -121,9 +133,9 @@ private:
 
     std::variant<TNullPayload, TSharedRangeHolderPtr, TCowString> Payload_;
 
-    const char* Begin_;
-    ui64 Size_ : 56;
-    EYsonType Type_ : 8;
+    const char* Begin_ = nullptr;
+    ui64 Size_ : 56 = 0;
+    EYsonType Type_ : 8 = EYsonType::Node;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

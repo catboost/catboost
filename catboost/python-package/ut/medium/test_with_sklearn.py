@@ -31,9 +31,8 @@ try:
 
     import catboost_python_package_ut_lib as python_package_ut_lib
 except ImportError:
-    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
-    sys.path.insert(0, os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'python-package'))
+    sys.path.insert(0, os.path.join(lib.git_repo_root_dir, 'catboost', 'python-package'))
     import ut.lib as python_package_ut_lib
 
 

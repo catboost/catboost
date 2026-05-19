@@ -182,7 +182,7 @@ struct canfd_frame {
 /*
  * defined bits for canxl_frame.flags
  *
- * The canxl_frame.flags element contains two bits CANXL_XLF and CANXL_SEC
+ * The canxl_frame.flags element contains three bits CANXL_[XLF|SEC|RRS]
  * and shares the relative position of the struct can[fd]_frame.len element.
  * The CANXL_XLF bit ALWAYS needs to be set to indicate a valid CAN XL frame.
  * As a side effect setting this bit intentionally breaks the length checks
@@ -192,10 +192,16 @@ struct canfd_frame {
  */
 #define CANXL_XLF 0x80 /* mandatory CAN XL frame flag (must always be set!) */
 #define CANXL_SEC 0x01 /* Simple Extended Content (security/segmentation) */
+#define CANXL_RRS 0x02 /* Remote Request Substitution */
+
+/* the 8-bit VCID is optionally placed in the canxl_frame.prio element */
+#define CANXL_VCID_OFFSET 16 /* bit offset of VCID in prio element */
+#define CANXL_VCID_VAL_MASK 0xFFUL /* VCID is an 8-bit value */
+#define CANXL_VCID_MASK (CANXL_VCID_VAL_MASK << CANXL_VCID_OFFSET)
 
 /**
  * struct canxl_frame - CAN with e'X'tended frame 'L'ength frame structure
- * @prio:  11 bit arbitration priority with zero'ed CAN_*_FLAG flags
+ * @prio:  11 bit arbitration priority with zero'ed CAN_*_FLAG flags / VCID
  * @flags: additional flags for CAN XL
  * @sdt:   SDU (service data unit) type
  * @len:   frame payload length in byte (CANXL_MIN_DLEN .. CANXL_MAX_DLEN)
@@ -205,7 +211,7 @@ struct canfd_frame {
  * @prio shares the same position as @can_id from struct can[fd]_frame.
  */
 struct canxl_frame {
-	canid_t prio;  /* 11 bit priority for arbitration (canid_t) */
+	canid_t prio;  /* 11 bit priority for arbitration / 8 bit VCID */
 	__u8    flags; /* additional flags for CAN XL */
 	__u8    sdt;   /* SDU (service data unit) type */
 	__u16   len;   /* frame payload length in byte */

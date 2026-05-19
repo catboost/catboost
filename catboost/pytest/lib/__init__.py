@@ -6,20 +6,12 @@ import shutil
 import tempfile
 import time
 from .common_helpers import *  # noqa
+from .common_helpers import git_repo_root_dir
 import zipfile
 from library.python import port_manager
 
 
-_use_cmake_paths = False
-try:
-    import yatest.common
-except ImportError:
-    _use_cmake_paths = True
-    sys.path += [
-        os.environ['CMAKE_SOURCE_DIR'],
-        os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
-    ]
-    import yatest.common
+import yatest.common
 
 
 def is_open_source():
@@ -27,7 +19,7 @@ def is_open_source():
 
 
 def get_catboost_binary_path():
-    if _use_cmake_paths:
+    if git_repo_root_dir:
         return os.path.join(
             os.environ['CMAKE_BINARY_DIR'],
             'catboost',
@@ -39,8 +31,8 @@ def get_catboost_binary_path():
 
 
 def data_file(*path):
-    if _use_cmake_paths:
-        return os.path.join(os.environ["CMAKE_SOURCE_DIR"], "catboost", "pytest", "data", *path)
+    if git_repo_root_dir:
+        return os.path.join(git_repo_root_dir, "catboost", "pytest", "data", *path)
     else:
         return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path).replace('\\', '/'))
 
