@@ -23,5 +23,5 @@ redistribute such patches, please make sure to include the mail, or at least the
 
 ## Using GitHub security advisory
 
-Please disclose it at our [security advisory](https://github.com/mm2/Little-CMS/security/advisories/new).
+Please contact me instead. Security advisories are immediatly deleted without checking due to high level of SPAM received.
 
