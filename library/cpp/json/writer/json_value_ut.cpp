@@ -287,6 +287,13 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
             UNIT_ASSERT(third.GetValueByPath("t.[2]", result));
             UNIT_ASSERT(result.GetStringRobust() == "g");
 
+            third.GetValueByPathOrCreate("t.[3]") = "7";
+            third.GetValueByPathOrCreate("t.[2]") = "4";
+            UNIT_ASSERT(third.GetValueByPath("t.[2]", result));
+            UNIT_ASSERT(result.GetStringRobust() == "4");
+            UNIT_ASSERT(third.GetValueByPath("t.[3]", result));
+            UNIT_ASSERT(result.GetStringRobust() == "7");
+
             UNIT_ASSERT(lhs.SetValueByPath("l/a/c/se", "h", '/'));
             UNIT_ASSERT(lhs.GetValueByPath("l/a/c/se", result, '/'));
             UNIT_ASSERT(result.GetStringRobust() == "h");

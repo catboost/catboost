@@ -100,6 +100,7 @@ namespace NJson {
         // returns NULL on failure
         const TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') const noexcept Y_LIFETIME_BOUND;
         TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') noexcept Y_LIFETIME_BOUND;
+        TJsonValue& GetValueByPathOrCreate(TStringBuf path, char delimiter = '.') noexcept Y_LIFETIME_BOUND;
 
         void EraseValue(TStringBuf key);
         void EraseValue(size_t index);
