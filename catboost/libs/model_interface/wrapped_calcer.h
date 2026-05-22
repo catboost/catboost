@@ -463,6 +463,14 @@ public:
         if (!GetModelUsedFeaturesNames(CalcerHolder.get(), &featureNames, &featureCount)) {
             throw std::runtime_error(GetErrorString());
         }
+
+        auto cleanupFunction = [featureNames, featureCount]() {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+        };
+
         std::vector<std::string> result;
         try {
             result.reserve(featureCount);
@@ -470,20 +478,11 @@ public:
                 result.push_back(std::string(featureNames[i]));
             }
         } catch (...) {
-            for (size_t i = 0; i < featureCount; ++i) {
-                std::free(featureNames[i]);
-            }
-            std::free(featureNames);
+            cleanupFunction();
             throw;
         }
 
-        {
-            for (size_t i = 0; i < featureCount; ++i) {
-                std::free(featureNames[i]);
-            }
-            std::free(featureNames);
-        }
-
+        cleanupFunction();
         return result;
     }
 
