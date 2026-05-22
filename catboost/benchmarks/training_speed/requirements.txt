@@ -2,7 +2,7 @@ xgboost==0.80
 matplotlib==2.2.2
 tqdm==4.66.3
 scipy==1.10.0
-lightgbm==2.2.1
+lightgbm==4.6.0
 pandas==0.23.4
 catboost==0.10.3
 numpy==1.22.0
