@@ -83,7 +83,7 @@ public:
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
+     * Does not work on multiclass models (models with ApproxDimension > 1)
      * @param[in] features
      * @return double raw model prediction
      */
@@ -99,7 +99,7 @@ public:
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.
-     * Work for models with any dimension count
+     * Works for models with any dimension count
      * @param[in] features
      * @return double raw model prediction
      */
@@ -115,7 +115,7 @@ public:
     /**
      * Evaluate model on single object float features vector, vector of categorical features strings,
      * vector of text features strings and vector of embedding features vectors.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
+     * Does not work on multiclass models (models with ApproxDimension > 1)
      * @param[in] features
      * @return double raw model prediction
      */
@@ -160,7 +160,7 @@ public:
     /**
      * Evaluate model on single object float features vector, vector of categorical features strings,
      * vector of text features strings, and vector of embedding features vectors
-     * Work for models with any dimension count
+     * Works for models with any dimension count
      * @param[in] features
      * @return double raw model prediction
      */
