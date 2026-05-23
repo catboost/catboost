@@ -397,7 +397,7 @@
 
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SVE
-    #error #include <arm_sve.h>
+    #include <arm_sve.h>
 
     // Since we depend on knowing SVE vector lengths at compile-time, we need
     // to ensure a fixed lengths is set
