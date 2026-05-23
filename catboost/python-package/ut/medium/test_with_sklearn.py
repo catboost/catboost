@@ -368,15 +368,18 @@ def test_clone_without_mutable_params():
     reason="metadata routing requires scikit-learn >= 1.3"
 )
 def test_clone_preserves_metadata_routing_request():
-    original = CatBoostRanker(iterations=2, verbose=False).set_fit_request(group_id=True)
-    cloned = sklearn.base.clone(original)
-    assert hasattr(cloned, '_metadata_request')
-    assert repr(original._metadata_request) == repr(cloned._metadata_request)
+    with sklearn.config_context(enable_metadata_routing=True):
+        original = CatBoostRanker(iterations=2, verbose=False).set_fit_request(group_id=True)
+        cloned = sklearn.base.clone(original)
+        assert hasattr(cloned, '_metadata_request')
+        assert repr(original._metadata_request) == repr(cloned._metadata_request)
 
 
 def test_cross_val_score_with_cat_features():
     from sklearn.model_selection import cross_val_score
 
     X, y = make_classification(60, 5, random_state=0)
+    X = pd.DataFrame(X)
+    X[0] = (X[0] > 0).astype(int)
     estimator = CatBoostClassifier(cat_features=[0], iterations=2, verbose=False)
     cross_val_score(estimator, X, y, cv=3)
