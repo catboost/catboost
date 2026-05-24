@@ -370,7 +370,7 @@ items:
             name: predict_proba
           - href: concepts/python-reference_catboostclassifier_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostclassifier_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostclassifier_calc_feature_statistics.md
@@ -543,7 +543,7 @@ items:
             name: predict
           - href: concepts/python-reference_catboostregressor_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostregressor_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostregressor_calc_feature_statistics.md
