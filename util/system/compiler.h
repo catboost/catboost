@@ -241,7 +241,8 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
  */
 #if defined(__cplusplus)
 template <class... Types>
-constexpr Y_FORCE_INLINE void Y_INITIALIZED(Types&...) {
+constexpr Y_FORCE_INLINE int Y_INITIALIZED(Types&...) {
+    return 0; // constexpr void functions are not supported in c++11
 }
 #endif
 
