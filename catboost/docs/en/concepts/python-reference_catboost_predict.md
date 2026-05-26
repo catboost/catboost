@@ -7,12 +7,12 @@
 
 ```python
 predict(data,
-    prediction_type=None,
-    ntree_start={{ fit--ntree_start }},
-    ntree_end=0,
-    thread_count={{ fit__thread_count__wrappers }},
-    verbose=None,
-    task_type="CPU")
+        prediction_type=None,
+        ntree_start={{ fit--ntree_start }},
+        ntree_end=0,
+        thread_count={{ fit__thread_count__wrappers }},
+        verbose=None,
+        task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}

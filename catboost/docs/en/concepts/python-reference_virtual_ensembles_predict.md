@@ -7,11 +7,11 @@
 
 ```python
 virtual_ensembles_predict(data,
-    prediction_type='VirtEnsembles',
-    ntree_end=0,
-    virtual_ensembles_count=10,
-    thread_count=-1 (the number of threads is equal to the number of processor cores),
-    verbose=None)
+                          prediction_type='VirtEnsembles',
+                          ntree_end=0,
+                          virtual_ensembles_count=10,
+                          thread_count=-1 (the number of threads is equal to the number of processor cores),
+                          verbose=None)
 ```
 
 ## {{ dl--parameters }} {#parameters}
