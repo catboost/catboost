@@ -198,6 +198,9 @@ items:
           name: Feature calcers and corresponding options
         - href: references/text-processing__test-processing__default-value.md
           hidden: true
+        - href: concepts/python-efstr-type__desc.md
+          hidden: true
+          name: EFStrType
   - when: audience == "internal"
     items:
       - href: yandex_specific/nirvana-operations/catboost__nirvana.md
@@ -308,13 +311,7 @@ items:
             name: get_borders
           - href: concepts/python-reference_catboost_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboost_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboost_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboost_metadata.md
             name: get_metadata
@@ -481,13 +478,7 @@ items:
             name: get_borders
           - href: concepts/python-reference_catboostranker_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboostranker_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboostranker_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboostranker_metadata.md
             name: get_metadata
