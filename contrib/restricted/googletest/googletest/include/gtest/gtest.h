@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2005, Google Inc.
 // All rights reserved.
 //
