@@ -32,7 +32,7 @@ public:
      * Note that this constructor could be racy due to unsynchronized operations
      * on the object and on the counter.
      *
-     * Note that it notoriously hard to make this constructor explicit
+     * Note that it is notoriously hard to make this constructor explicit
      * given the current amount of code written.
      */
     constexpr TIntrusivePtr(T* obj, bool addReference = true) noexcept

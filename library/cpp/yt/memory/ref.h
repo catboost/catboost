@@ -370,7 +370,7 @@ public:
      *  The user must provide the total (resulting) part count in #size.
      *
      *  Additionally, the user may request a certain memory pool of size #poolCapacity
-     *  to be created. Parts occupiying space in the above pool are created with #AllocateAndAdd
+     *  to be created. Parts occupying space in the above pool are created with #AllocateAndAdd
      *  calls.
      *
      *  The pool (if any) and the array are created within a single memory allocation tagged with
