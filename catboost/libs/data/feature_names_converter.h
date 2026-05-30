@@ -67,9 +67,12 @@ namespace {
                 CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
                 indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
             } else {
-                if (IndicesFromNames.contains(str)) {
-                    indices->push_back(IndicesFromNames.at(str));
-                    return;
+                {
+                    auto it = IndicesFromNames.find(str);
+                    if (it != IndicesFromNames.end()) {
+                        indices->push_back(it->second);
+                        return;
+                    }
                 }
                 auto left = str;
                 auto right = str;
