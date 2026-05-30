@@ -77,7 +77,7 @@ namespace {
                 auto left = str;
                 auto right = str;
                 const bool isRange = StringSplitter(str).Split('-').TryCollectInto(&left, &right);
-                CB_ENSURE(isRange, "String '" + str + "' is not a feature name");
+                CB_ENSURE(isRange, "String '" + str + "' does not represent a valid feature index, name or a feature range");
                 for (ui32 idx : xrange(ConvertToIndex(left, IndicesFromNames), ConvertToIndex(right, IndicesFromNames) + 1)) {
                     indices->push_back(idx);
                 }
