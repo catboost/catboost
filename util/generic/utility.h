@@ -52,15 +52,15 @@ static inline void Zero(T& t) noexcept {
 /**
  * Securely zero memory (compiler does not optimize this out)
  *
- * @param pointer   void pointer to start of memory block to be zeroed
- * @param count     size of memory block to be zeroed (in bytes)
+ * @param[out] pointer  void pointer to start of memory block to be zeroed
+ * @param count         size of memory block to be zeroed (in bytes)
  */
 void SecureZero(void* pointer, size_t count) noexcept;
 
 /**
  * Securely zero memory of given object (compiler does not optimize this out)
  *
- * @param t     reference to object, which must be zeroed
+ * @param[out] t        reference to object, which must be zeroed
  */
 template <class T>
 static inline void SecureZero(T& t) noexcept {
