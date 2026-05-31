@@ -63,7 +63,7 @@ public:
      *
      * @param[out] st                   String to read into.
      * @param ch                        Character to stop at.
-     * @returns                         Total number of characters read from the stream.
+     * @returns                         Total number of bytes read from the stream.
      *                                  A return value of zero signals end of stream.
      */
     inline size_t ReadTo(TString& st, char ch) {
@@ -105,7 +105,7 @@ public:
      * stream.
      *
      * @param out                       Output stream to use.
-     * @returns                         Total number of characters read from the stream.
+     * @returns                         Total number of bytes read from the stream.
      */
     ui64 ReadAll(IOutputStream& out);
 
@@ -140,7 +140,7 @@ public:
      *
      * @param[out] st                   String to store read characters into,
      *                                  excluding the line terminator.
-     * @returns                         Total number of characters read from the stream.
+     * @returns                         Total number of bytes read from the stream.
      *                                  A return value of zero signals end of stream.
      */
     size_t ReadLine(TString& st);
@@ -152,7 +152,7 @@ public:
      *
      * @param[out] w                    Wide string to store read characters into,
      *                                  excluding the line terminator.
-     * @returns                         Total number of characters read from the stream.
+     * @returns                         Total number of bytes read from the stream.
      *                                  A return value of zero signals end of stream.
      */
     size_t ReadLine(TUtf16String& w);
@@ -200,7 +200,7 @@ protected:
      *
      * @param[out] st                   String to read into.
      * @param ch                        Character to stop at.
-     * @returns                         Total number of characters read from the stream.
+     * @returns                         Total number of bytes read from the stream.
      *                                  A return value of zero signals end of stream.
      * @throws yexception               If IO error occurs.
      */
@@ -211,7 +211,7 @@ protected:
      * stream.
      *
      * @param out                       Output stream to use.
-     * @returns                         Total number of characters read from
+     * @returns                         Total number of bytes read from
      *                                  this stream.
      * @throws yexception               If IO error occurs.
      */
