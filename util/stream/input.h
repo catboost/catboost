@@ -146,7 +146,7 @@ public:
     size_t ReadLine(TString& st);
 
     /**
-     * Reads UTF8 encoded characters from the stream the first occurrence of '\n',
+     * Reads UTF8 encoded characters from the stream until the first occurrence of '\n',
      * converts them into wide ones, and stores into provided string. Also handles
      * Windows line breaks correctly.
      *
