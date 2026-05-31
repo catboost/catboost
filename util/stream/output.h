@@ -183,7 +183,7 @@ protected:
  * However, if the flexibility of overload resolution is needed, then one should
  * just overload `operator<<`.
  *
- * @param out                           Output stream to write into.
+ * @param[inout] out                    Output stream to write into.
  * @param value                         Value to write.
  */
 template <class T>

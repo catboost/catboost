@@ -31,7 +31,7 @@ public:
      * data than what was requested. Use `Load` function if you want to read as
      * much data as possible.
      *
-     * @param buf                       Buffer to read into.
+     * @param[out] buf                  Buffer to read into.
      * @param len                       Number of bytes to read.
      * @returns                         Number of bytes that were actually read.
      *                                  A return value of zero signals end of stream.
@@ -75,7 +75,7 @@ public:
      * function stops only when the requested amount of data is read, or when
      * end of stream is reached.
      *
-     * @param buf                       Buffer to read into.
+     * @param[out] buf                  Buffer to read into.
      * @param len                       Number of bytes to read.
      * @returns                         Number of bytes that were actually read.
      *                                  A return value different from `len`
@@ -87,7 +87,7 @@ public:
      * Reads the requested amount of data from the stream, or fails with an
      * exception if unable to do so.
      *
-     * @param buf                       Buffer to read into.
+     * @param[out] buf                  Buffer to read into.
      * @param len                       Number of bytes to read.
      * @see Load
      */
@@ -104,7 +104,7 @@ public:
      * Reads all data from this stream and writes it into a provided output
      * stream.
      *
-     * @param out                       Output stream to use.
+     * @param[inout] out                Output stream to use.
      * @returns                         Total number of bytes read from the stream.
      */
     ui64 ReadAll(IOutputStream& out);
@@ -172,7 +172,7 @@ protected:
      * Reads some data from the stream. Might read less data than what was
      * requested.
      *
-     * @param buf                       Buffer to read into.
+     * @param[out] buf                  Buffer to read into.
      * @param len                       Number of bytes to read.
      * @returns                         Number of bytes that were actually read.
      *                                  A return value of zero signals end of stream.
@@ -210,7 +210,7 @@ protected:
      * Reads all data from this stream and writes it into a provided output
      * stream.
      *
-     * @param out                       Output stream to use.
+     * @param[inout] out                Output stream to use.
      * @returns                         Total number of bytes read from
      *                                  this stream.
      * @throws yexception               If IO error occurs.
@@ -221,8 +221,8 @@ protected:
 /**
  * Transfers all data from the given input stream into the given output stream.
  *
- * @param in                            Input stream.
- * @param out                           Output stream.
+ * @param[inout] in                     Input stream.
+ * @param[inout] out                    Output stream.
  */
 ui64 TransferData(IInputStream* in, IOutputStream* out);
 
@@ -238,7 +238,7 @@ ui64 TransferData(IInputStream* in, IOutputStream* out);
  * However, if the flexibility of overload resolution is needed, then one should
  * just overload `operator>>`.
  *
- * @param in                            Input stream to read from.
+ * @param[inout] in                     Input stream to read from.
  * @param[out] value                    Value to read.
  * @throws                              `yexception` on invalid input or end of stream.
  * @see Out(IOutputStream&, T&)
@@ -249,7 +249,7 @@ void In(IInputStream& in, T& value);
 /**
  * Reads a value from the stream.
  *
- * @param in                            Input stream to read from.
+ * @param[inout] in                     Input stream to read from.
  * @param[out] value                    Value to read.
  * @returns                             Input stream.
  * @throws                              `yexception` on invalid input or end of stream.
