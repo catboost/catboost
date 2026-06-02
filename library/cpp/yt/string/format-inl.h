@@ -722,7 +722,9 @@ void FormatValue(TStringBuilderBase* builder, TEnum value, TStringBuf spec)
 }
 
 template <class TArcadiaEnum>
-    requires (std::is_enum_v<TArcadiaEnum> && !TEnumTraits<TArcadiaEnum>::IsEnum)
+concept CArcadiaEnum = (std::is_enum_v<TArcadiaEnum> && !TEnumTraits<TArcadiaEnum>::IsEnum);
+
+template <CArcadiaEnum TArcadiaEnum>
 void FormatValue(TStringBuilderBase* builder, TArcadiaEnum value, TStringBuf /*spec*/)
 {
     // NB(arkady-e1ppa): This can catch normal enums which
