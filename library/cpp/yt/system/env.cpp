@@ -59,6 +59,18 @@ std::string GetEnvValueOrThrow(TStringBuf name)
     return *value;
 }
 
+namespace NDetail {
+
+void ThrowFailedToParseEnvValueError(TStringBuf name, TStringBuf value)
+{
+    throw TSimpleException(Sprintf(
+        "Failed to parse value \"%s\" of environment variable \"%s\"",
+        TString(value).c_str(),
+        TString(name).c_str()));
+}
+
+} // namespace NDetail
+
 ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYT::NThreading
+} // namespace NYT
