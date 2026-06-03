@@ -6345,9 +6345,7 @@ class CatBoostRegressor(CatBoost):
                                 "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq, RMSPE or a custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
-        # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
-        params = self._get_canonized_params()
-        loss_function = params.get('loss_function')
+        loss_function = self._object._get_loss_function_name() if self.is_fitted() else None
         if loss_function and isinstance(loss_function, str):
             if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
                 return 'Exponent'
