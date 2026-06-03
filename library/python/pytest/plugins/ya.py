@@ -988,7 +988,7 @@ class TraceReportGenerator(object):
         if not msg:
             return ""
 
-        if len(msg) > limit:
+        if limit > 0 and len(msg) > limit:
             msg = msg[:limit - 3] + "..."
 
         return msg + "[[rst]]"
