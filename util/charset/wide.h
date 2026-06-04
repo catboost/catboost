@@ -775,36 +775,68 @@ bool IsTitleWord(const TWtringBuf text) noexcept;
 bool IsLower(const TWtringBuf text) noexcept;
 bool IsUpper(const TWtringBuf text) noexcept;
 
-/* Lowercase/uppercase given string inplace. Any alphabetic symbol will be converted to a proper
+/**
+ * Lowercase given string inplace. Any alphabetic symbol will be converted to a proper
  * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
  * UTF-16 string.
  *
  * For example `ToLower("heLLo")` will return `"hello"`.
  *
- * @param text      String to modify
- * @param pos       Position of the first character to modify
- * @param count     Length of the substring
- * @returns         `true` if `text` was changed
+ * @param[inout] text   String to modify
+ * @param pos           Position of the first character to modify
+ * @param count         Length of the substring
+ * @returns             `true` if `text` was changed
  *
  * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
  */
 bool ToLower(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
+
+/**
+ * Uppercase given string inplace. Any alphabetic symbol will be converted to a proper
+ * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
+ * UTF-16 string.
+ *
+ * For example `ToUpper("heLLo")` will return `"HELLO"`.
+ *
+ * @param[inout] text   String to modify
+ * @param pos           Position of the first character to modify
+ * @param count         Length of the substring
+ * @returns             `true` if `text` was changed
+ *
+ * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
+ */
 bool ToUpper(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
 
-/* Lowercase/uppercase given string inplace. Any alphabetic symbol will be converted to a proper
+/**
+ * Lowercase given string inplace. Any alphabetic symbol will be converted to a proper
  * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
  * UTF-32 string.
  *
  * For example `ToLower("heLLo")` will return `"hello"`.
  *
- * @param text      String to modify
- * @param pos       Position of the first character to modify
- * @param count     Length of the substring
- * @returns         `true` if `text` was changed
+ * @param[inout] text   String to modify
+ * @param pos           Position of the first character to modify
+ * @param count         Length of the substring
+ * @returns             `true` if `text` was changed
  *
  * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
  */
 bool ToLower(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
+
+/**
+ * Uppercase given string inplace. Any alphabetic symbol will be converted to a proper
+ * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
+ * UTF-32 string.
+ *
+ * For example `ToUpper("heLLo")` will return `"HELLO"`.
+ *
+ * @param[inout] text   String to modify
+ * @param pos           Position of the first character to modify
+ * @param count         Length of the substring
+ * @returns             `true` if `text` was changed
+ *
+ * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
+ */
 bool ToUpper(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
 
 /* Titlecase first symbol and lowercase the rest, see `ToLower` for more details.
@@ -815,9 +847,10 @@ bool ToTitle(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::np
  */
 bool ToTitle(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf32String::npos);
 
-/* @param text      Pointer to the string to modify
+/**
+ * @param text      String to modify
  * @param length    Length of the string to modify
- * @param out       Pointer to the character array to write to
+ * @param[out] out  Pointer to the character array to write to
  *
  * NOTE: [text, text+length) and [out, out+length) should not interleave.
  *
@@ -825,24 +858,43 @@ bool ToTitle(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf
  * overload.
  */
 bool ToLower(const wchar16* text, size_t length, wchar16* out) noexcept;
+
+//! @copydoc ToLower(const wchar16*,size_t,wchar16*)
 bool ToUpper(const wchar16* text, size_t length, wchar16* out) noexcept;
+
+//! @copydoc ToLower(const wchar16*,size_t,wchar16*)
 bool ToTitle(const wchar16* text, size_t length, wchar16* out) noexcept;
 
+//! @copydoc ToLower(const wchar16*,size_t,wchar16*)
 bool ToLower(const wchar32* text, size_t length, wchar32* out) noexcept;
+
+//! @copydoc ToLower(const wchar16*,size_t,wchar16*)
 bool ToUpper(const wchar32* text, size_t length, wchar32* out) noexcept;
+
+//! @copydoc ToLower(const wchar16*,size_t,wchar16*)
 bool ToTitle(const wchar32* text, size_t length, wchar32* out) noexcept;
 
-/* @param text      Pointer to the string to modify
- * @param length    Length of the string to modify
+/**
+ * @param[inout] text   Pointer to the string to modify
+ * @param length        Length of the string to modify
  *
  * TODO(yazevnul): replace these functions with `bool(const TArrayRef<wchar16>)` overload.
  */
 bool ToLower(wchar16* text, size_t length) noexcept;
+
+//! @copydoc ToLower(wchar16*,size_t)
 bool ToUpper(wchar16* text, size_t length) noexcept;
+
+//! @copydoc ToLower(wchar16*,size_t)
 bool ToTitle(wchar16* text, size_t length) noexcept;
 
+//! @copydoc ToLower(wchar16*,size_t)
 bool ToLower(wchar32* text, size_t length) noexcept;
+
+//! @copydoc ToLower(wchar16*,size_t)
 bool ToUpper(wchar32* text, size_t length) noexcept;
+
+//! @copydoc ToLower(wchar16*,size_t)
 bool ToTitle(wchar32* text, size_t length) noexcept;
 
 /* Convenience wrappers for `ToLower`, `ToUpper` and `ToTitle`.
