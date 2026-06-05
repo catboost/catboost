@@ -2568,6 +2568,30 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
+    def __sklearn_clone__(self):
+        """
+        Custom clone method for scikit-learn compatibility.
+
+        This method is called by sklearn.base.clone() instead of the default
+        identity-checking logic. It handles mutable parameters like cat_features,
+        text_features, and embedding_features correctly by using deepcopy.
+
+        Returns
+        -------
+        result : CatBoost
+            A new instance with the same parameters.
+        """
+        klass = self.__class__
+        params = self.get_params(deep=False)
+        new_params = {k: deepcopy(v) for k, v in params.items()}
+        new_obj = klass(**new_params)
+
+        # Preserve sklearn metadata routing requests (set_fit_request, set_score_request, etc.)
+        if hasattr(self, "_metadata_request"):
+            new_obj._metadata_request = deepcopy(self._metadata_request)
+
+        return new_obj
+
     def _dataset_train_eval_split(self, train_pool, params, save_eval_pool):
         """
         returns:
