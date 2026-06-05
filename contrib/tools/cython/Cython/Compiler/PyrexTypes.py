@@ -37,7 +37,7 @@ class BaseType:
     def can_coerce_to_pystring(self, env, format_spec=None):
         return False
 
-    def convert_to_pystring(self, cvalue, code, format_spec=None):
+    def convert_to_pystring(self, cvalue, code, format_spec=None, name_type=None):
         raise NotImplementedError("C types that support string formatting must override this method")
 
     def cast_code(self, expr_code):
@@ -153,12 +153,6 @@ class BaseType:
         """
         return None
 
-    def invalid_value(self):
-        """
-        Returns the most invalid value an object of this type can assume as a
-        C expression string. Returns None if no such value exists.
-        """
-
 
 class PyrexType(BaseType):
     #
@@ -198,6 +192,7 @@ class PyrexType(BaseType):
     #  is_buffer             boolean     Is buffer access type
     #  is_pythran_expr       boolean     Is Pythran expr
     #  is_numpy_buffer       boolean     Is Numpy array buffer
+    #  is_unowned_view       boolean     Is a pointer or a C++ class such as std::string_view
     #  is_cython_lock_type   boolean     Is a Cython lock
     #  has_attributes        boolean     Has C dot-selectable attributes
     #  needs_refcounting     boolean     Needs code to be generated similar to incref/gotref/decref.
@@ -273,6 +268,7 @@ class PyrexType(BaseType):
     is_memoryviewslice = 0
     is_pythran_expr = 0
     is_numpy_buffer = 0
+    is_unowned_view = False
     is_cython_lock_type = False
     has_attributes = 0
     needs_refcounting = 0
@@ -451,9 +447,6 @@ class CTypedefType(BaseType):
         self.typedef_base_type = base_type
         self.typedef_is_external = is_external
         self.typedef_namespace = namespace
-
-    def invalid_value(self):
-        return self.typedef_base_type.invalid_value()
 
     def resolve(self):
         return self.typedef_base_type.resolve()
@@ -641,6 +634,16 @@ class CTypedefType(BaseType):
     def can_coerce_from_pyobject(self, env):
         return self.typedef_base_type.can_coerce_from_pyobject(env)
 
+    def can_coerce_to_pystring(self, env, format_spec=None):
+        return self.typedef_base_type.can_coerce_to_pystring(env, format_spec)
+
+    def convert_to_pystring(self, cvalue, code, format_spec=None, name_type=None):
+        if self.typedef_is_external and name_type is None:
+            # The declared base type of external typedefs may not be exact, so use the typedef type name.
+            name_type = self
+
+        return self.typedef_base_type.convert_to_pystring(cvalue, code, format_spec, name_type)
+
 
 class MemoryViewSliceType(PyrexType):
 
@@ -751,7 +754,7 @@ class MemoryViewSliceType(PyrexType):
         assert not dll_linkage
         from . import MemoryView
         base_code = StringEncoding.EncodedString(
-            str(self) if pyrex or for_display else MemoryView.memviewslice_cname)
+            str(self) if pyrex or for_display else Naming.memviewslice_cname)
         return self.base_declaration_code(
                 base_code,
                 entity_code)
@@ -829,8 +832,7 @@ class MemoryViewSliceType(PyrexType):
                     copy_func_type, pos=pos, defining=1,
                     cname=copy_cname)
 
-                utility = MemoryView.get_copy_new_utility(pos, self, to_memview)
-                env.use_utility_code(utility)
+                entry.utility_code_definition = MemoryView.get_copy_new_utility(pos, self, to_memview)
 
             MemoryView.use_cython_array_utility_code(env)
 
@@ -992,10 +994,7 @@ class MemoryViewSliceType(PyrexType):
                 "ObjectToMemviewSlice", "MemoryView_C.c", context=context)
 
         env.use_utility_code(
-            MemoryView.get_memviewslice_init_code(
-                env.context.shared_utility_qualified_name
-            )
-        )
+            MemoryView.get_view_utility_code(env.context.shared_utility_qualified_name))
         env.use_utility_code(LazyUtilityCode(lazy_utility_callback))
 
         if self.is_c_contig:
@@ -1083,6 +1082,7 @@ class MemoryViewSliceType(PyrexType):
                 from_py_function=from_py_function,
                 dtype=self.dtype.empty_declaration_code(),
                 error_condition=error_condition,
+                dtype_is_const=self.dtype.is_const,
             )
 
         utility = TempitaUtilityCode.load_cached(
@@ -1419,12 +1419,24 @@ builtin_types_with_trashcan = frozenset({
     'dict', 'list', 'set', 'frozenset', 'tuple', 'type',
 })
 
-_is_exception_type_name = re.compile(
-    ".*(?:Exception|Error|Warning|Group)"
+is_exception_type_name = re.compile(
+    ".*(?:Exception|Error|Warning|ExceptionGroup)"
     "|KeyboardInterrupt"
+    "|GeneratorExit"
     "|SystemExit"
     "|Stop(?:Async)?Iteration"
-).search
+).match
+
+_special_type_check_functions = {
+    'int': 'PyLong_Check',
+    'str': 'PyUnicode_Check',
+    'bytearray': 'PyByteArray_Check',
+    'frozenset': 'PyFrozenSet_Check',
+    'memoryview': 'PyMemoryView_Check',
+    'Exception': '__Pyx_PyException_Check',
+    'BaseException': '__Pyx_PyBaseException_Check',
+}
+
 
 class BuiltinObjectType(PyObjectType):
     #  objstruct_cname  string           Name of PyObject struct
@@ -1454,7 +1466,7 @@ class BuiltinObjectType(PyObjectType):
             # Special case the type type, as many C API calls (and other
             # libraries) actually expect a PyTypeObject* for type arguments.
             self.decl_type = objstruct_cname
-        if _is_exception_type_name(name):
+        if is_exception_type_name(name):
             self.is_exception_type = True
             self.require_exact = False
 
@@ -1503,23 +1515,12 @@ class BuiltinObjectType(PyObjectType):
 
     def type_check_function(self, exact=True):
         type_name = self.name
-        if type_name == 'str':
-            type_check = 'PyUnicode_Check'
-        elif type_name == 'Exception':
-            type_check = '__Pyx_PyException_Check'
-        elif type_name == 'BaseException':
-            type_check = '__Pyx_PyBaseException_Check'
-        elif type_name == 'bytearray':
-            type_check = 'PyByteArray_Check'
-        elif type_name == 'frozenset':
-            type_check = 'PyFrozenSet_Check'
-        elif type_name == 'int':
-            type_check = 'PyLong_Check'
-        elif type_name == "memoryview":
-            # capitalize doesn't catch the 'V'
-            type_check = "PyMemoryView_Check"
+        if type_name in _special_type_check_functions:
+            type_check = _special_type_check_functions[type_name]
+        elif self.is_exception_type:
+            type_check = f"__Pyx_PyExc_{type_name}_Check"
         else:
-            type_check = 'Py%s_Check' % type_name.capitalize()
+            type_check = f'Py{type_name.capitalize()}_Check'
         if exact and not self.is_exception_type and type_name not in ('bool', 'slice', 'memoryview'):
             type_check += 'Exact'
         return type_check
@@ -1581,7 +1582,6 @@ class BuiltinObjectType(PyObjectType):
 
     def py_type_name(self):
         return self.name
-
 
 
 class PyExtensionType(PyObjectType):
@@ -2180,16 +2180,19 @@ class CIntLike:
         format_type, width, padding = self._parse_format(format_spec)
         return format_type is not None and width <= 2**30
 
-    def convert_to_pystring(self, cvalue, code, format_spec=None):
-        if self.to_pyunicode_utility is not None:
+    def convert_to_pystring(self, cvalue, code, format_spec=None, name_type=None):
+        if self.to_pyunicode_utility is not None and name_type is None:
             conversion_func_cname, to_pyunicode_utility = self.to_pyunicode_utility
         else:
-            conversion_func_cname = f"__Pyx_PyUnicode_From_{self.specialization_name()}"
+            if name_type is None:
+                name_type = self
+            conversion_func_cname = f"__Pyx_PyUnicode_From_{name_type.specialization_name()}"
             to_pyunicode_utility = TempitaUtilityCode.load_cached(
                 "CIntToPyUnicode", "TypeConversion.c",
-                context={"TYPE": self.empty_declaration_code(),
+                context={"TYPE": name_type.empty_declaration_code(),
                         "TO_PY_FUNCTION": conversion_func_cname})
-            self.to_pyunicode_utility = (conversion_func_cname, to_pyunicode_utility)
+            if name_type is self:
+                self.to_pyunicode_utility = (conversion_func_cname, to_pyunicode_utility)
 
         code.globalstate.use_utility_code(to_pyunicode_utility)
         format_type, width, padding_char = self._parse_format(format_spec)
@@ -2216,15 +2219,6 @@ class CIntType(CIntLike, CNumericType):
 
     def assignable_from_resolved_type(self, src_type):
         return src_type.is_int or src_type.is_enum or src_type is error_type
-
-    def invalid_value(self):
-        if rank_to_type_name[int(self.rank)] == 'char':
-            return "'?'"
-        else:
-            # We do not really know the size of the type, so return
-            # a 32-bit literal and rely on casting to final type. It will
-            # be negative for signed ints, which is good.
-            return "0xbad0bad0"
 
     def overflow_check_binop(self, binop, env, const_rhs=False):
         env.use_utility_code(UtilityCode.load("Common", "Overflow.c"))
@@ -2300,7 +2294,7 @@ class CReturnCodeType(CIntType):
     def can_coerce_to_pystring(self, env, format_spec=None):
         return not format_spec
 
-    def convert_to_pystring(self, cvalue, code, format_spec=None):
+    def convert_to_pystring(self, cvalue, code, format_spec=None, name_type=None):
         return "__Pyx_NewRef(%s)" % code.get_py_string_const(StringEncoding.EncodedString("None"))
 
 
@@ -2314,11 +2308,13 @@ class CBIntType(CIntType):
     def can_coerce_to_pystring(self, env, format_spec=None):
         return not format_spec or super().can_coerce_to_pystring(env, format_spec)
 
-    def convert_to_pystring(self, cvalue, code, format_spec=None):
+    def convert_to_pystring(self, cvalue, code, format_spec=None, name_type=None):
         if format_spec:
-            return super().convert_to_pystring(cvalue, code, format_spec)
+            return super().convert_to_pystring(cvalue, code, format_spec, name_type)
+        if name_type is None:
+            name_type = self
         # NOTE: no caching here as the string constant cnames depend on the current module
-        utility_code_name = "__Pyx_PyUnicode_FromBInt_" + self.specialization_name()
+        utility_code_name = "__Pyx_PyUnicode_FromBInt_" + name_type.specialization_name()
         to_pyunicode_utility = TempitaUtilityCode.load_cached(
             "CBIntToPyUnicode", "TypeConversion.c", context={
                 "TRUE_CONST":  code.get_py_string_const(StringEncoding.EncodedString("True")),
@@ -2454,8 +2450,6 @@ class CFloatType(CNumericType):
     def assignable_from_resolved_type(self, src_type):
         return (src_type.is_numeric and not src_type.is_complex) or src_type is error_type
 
-    def invalid_value(self):
-        return Naming.PYX_NAN
 
 class CComplexType(CNumericType):
 
@@ -2711,6 +2705,8 @@ class CPointerBaseType(CType):
     # common base type for pointer/array types
     #
     #  base_type     CType              Reference type
+    #  is_string         bool           Pointer is a char* or similar C string.
+    #  is_pyunicode_ptr  bool           Pointer is a Py_UNICODE*.
 
     subtypes = ['base_type']
 
@@ -2917,6 +2913,7 @@ class CPtrType(CPointerBaseType):
     #  base_type     CType              Reference type
 
     is_ptr = 1
+    is_unowned_view = True
     default_value = "0"
     exception_value = "NULL"
 
@@ -3003,9 +3000,6 @@ class CPtrType(CPointerBaseType):
             return self.base_type.deduce_template_params(actual.base_type)
         else:
             return {}
-
-    def invalid_value(self):
-        return "1"
 
     def find_cpp_operation_type(self, operator, operand_type=None):
         if self.base_type.is_cpp_class:
@@ -3097,7 +3091,7 @@ class CFuncType(CType):
     #  return_type      CType
     #  args             [CFuncTypeArg]
     #  has_varargs      boolean
-    #  exception_value  string
+    #  exception_value  CFuncType.ExceptionValue or Node (for except+)
     #  exception_check  boolean    True if PyErr_Occurred check needed
     #  calling_convention  string  Function calling convention
     #  nogil            boolean    Can be called without gil
@@ -3120,6 +3114,46 @@ class CFuncType(CType):
 
     subtypes = ['return_type', 'args']
 
+    class ExceptionValue:
+        def __init__(self, python_value, c_repr, type):
+            self.python_value = python_value
+            self.c_repr = c_repr
+            self.type = type
+
+        def __eq__(self, other):
+            if not isinstance(other, CFuncType.ExceptionValue):
+                return NotImplemented
+            # only the python_value is used for equality comparison. This allows
+            # things like "-1 == -1.0" to be treated as the same function signature
+            return self.python_value == other.python_value
+
+        def __str__(self):
+            # Called for C code generation.
+            return str(self.c_repr)
+
+        def may_be_nan(self):
+            if not self.type.is_float:
+                return False
+            if not isinstance(self.python_value, (int, float)):
+                # A string representing an unknown C constant that might be NaN.
+                return True
+            # a known constant that evaluates to NaN
+            return self.python_value != self.python_value
+
+        def exception_test_code(self, result_cname, code) -> str:
+            typed_exc_val = self.type.cast_code(str(self))
+            if self.type.is_ctuple:
+                code.globalstate.use_utility_code(UtilityCode.load_cached(
+                            "IncludeStringH", "StringTools.c"))
+                return f"memcmp(&{result_cname}, &{typed_exc_val}, sizeof({result_cname})) == 0"
+            elif self.may_be_nan():
+                # for floats, we may need to handle comparison with NaN
+                code.globalstate.use_utility_code(
+                        UtilityCode.load_cached("FloatExceptionCheck", "Exceptions.c"))
+                return f"__PYX_CHECK_FLOAT_EXCEPTION({result_cname}, {typed_exc_val})"
+            else:
+                return f"{result_cname} == {typed_exc_val}"
+
     def __init__(self, return_type, args, has_varargs = 0,
             exception_value = None, exception_check = 0, calling_convention = "",
             nogil = 0, with_gil = 0, is_overridable = 0, optional_arg_count = 0,
@@ -3129,6 +3163,12 @@ class CFuncType(CType):
         self.args = args
         self.has_varargs = has_varargs
         self.optional_arg_count = optional_arg_count
+        if (exception_value is not None and exception_check != '+' and
+                not isinstance(exception_value, self.ExceptionValue)):
+            # happens within Cython itself when writing custom function types
+            # for utility code functions.
+            exception_value = self.ExceptionValue(
+                exception_value, str(exception_value), return_type)
         self.exception_value = exception_value
         self.exception_check = exception_check
         self.calling_convention = calling_convention
@@ -3781,9 +3821,9 @@ class ToPyStructUtilityCode(AbstractUtilityCode):
     def __hash__(self):
         return hash(self.header)
 
-    def put_code(self, output):
-        code = output['utility_code_def']
-        proto = output['utility_code_proto']
+    def put_code(self, globalstate, used_by=None):
+        code = globalstate['utility_code_def']
+        proto = globalstate['utility_code_proto']
 
         code.enter_cfunc_scope(self.env.global_scope())
         code.putln("%s {" % self.header)
@@ -4011,6 +4051,7 @@ class CStructOrUnionType(CType):
         CppClassType.generate_explicit_destruction(self, code, entry, extra_access_code=extra_access_code)
 
 cpp_string_conversions = ("std::string", "std::string_view", "TString", "TStringBuf")
+cpp_unowned_views = ("std::string_view", "TStringBuf")
 
 builtin_cpp_conversions = {
     # type                element template params
@@ -4061,6 +4102,7 @@ class CppClassType(CType):
         else:
             self.specializations = {}
         self.is_cpp_string = cname in cpp_string_conversions
+        self.is_unowned_view = cname in cpp_unowned_views
 
     def use_conversion_utility(self, from_or_to):
         pass
@@ -4657,6 +4699,8 @@ class CTupleType(CType):
 
     _convert_to_py_code = None
     _convert_from_py_code = None
+    to_py_function = None
+    from_py_function = None
 
     def __init__(self, cname, components):
         from .Builtin import tuple_type
@@ -4664,8 +4708,6 @@ class CTupleType(CType):
         self.components = components
         self.equivalent_type = tuple_type
         self.size = len(components)
-        self.to_py_function = f"{Naming.convert_func_prefix}_to_py_{self.cname}"
-        self.from_py_function = f"{Naming.convert_func_prefix}_from_py_{self.cname}"
 
     def __str__(self):
         return "(%s)" % ", ".join(str(c) for c in self.components)
@@ -4700,6 +4742,7 @@ class CTupleType(CType):
                 return False
 
         if self._convert_to_py_code is None:
+            self.to_py_function = f"{Naming.convert_func_prefix}_to_py_{self.cname}"
             context = dict(
                 struct_type_decl=self.empty_declaration_code(),
                 components=self.components,
@@ -4723,6 +4766,7 @@ class CTupleType(CType):
                 return False
 
         if self._convert_from_py_code is None:
+            self.from_py_function = f"{Naming.convert_func_prefix}_from_py_{self.cname}"
             context = dict(
                 struct_type_decl=self.empty_declaration_code(),
                 components=self.components,
@@ -4914,9 +4958,10 @@ class CythonLockType(PyrexType):
         # Singleton, cannot be copied.
         return src_type is self._special_assignable_reference_type
 
-    def get_utility_code(self):
-        # It doesn't seem like a good way to associate utility code with a type actually exists
-        # so we just have to do it in as many places as possible.
+    def get_decl_utility_code(self):
+        return UtilityCode.load_cached(f"{self.cname_part}Decl", "Synchronization.c")
+
+    def get_usage_utility_code(self):
         return UtilityCode.load_cached(self.cname_part, "Synchronization.c")
 
     def needs_explicit_construction(self, scope):
@@ -4931,7 +4976,7 @@ class CythonLockType(PyrexType):
 
     def generate_explicit_construction(self, code, entry, extra_access_code=""):
         code.globalstate.use_utility_code(
-            self.get_utility_code()
+            self.get_usage_utility_code()
         )
         code.putln(f"__Pyx_Locks_{self.cname_part}_Init({extra_access_code}{entry.cname});")
 
@@ -4959,7 +5004,7 @@ class CythonLockType(PyrexType):
                     pos=None,
                     defining=1,
                     cname=f"__Pyx_Locks_{self.cname_part}_Lock",
-                    utility_code=self.get_utility_code())
+                    utility_code=self.get_usage_utility_code())
             scope.declare_cfunction(
                     "release",
                     CFuncType(c_void_type, [CFuncTypeArg("self", self_type, None)],
@@ -4967,7 +5012,7 @@ class CythonLockType(PyrexType):
                     pos=None,
                     defining=1,
                     cname=f"__Pyx_Locks_{self.cname_part}_Unlock",
-                    utility_code=self.get_utility_code())
+                    utility_code=self.get_usage_utility_code())
             # Don't define a "locked" function because we can't do this with Py_Mutex
             # (which is the preferred implementation)
 
@@ -4978,6 +5023,14 @@ class CythonLockType(PyrexType):
 
     def create_from_py_utility_code(self, env):
         return False
+
+    def __eq__(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
+        return other.cname_part == self.cname_part
+
+    def __hash__(self):
+        return hash(self.cname_part)
 
 
 rank_to_type_name = (
@@ -5110,8 +5163,12 @@ cython_memoryview_type = CStructOrUnionType("__pyx_memoryview_obj", "struct",
 memoryviewslice_type = CStructOrUnionType("memoryviewslice", "struct",
                                           None, 1, "__Pyx_memviewslice")
 
-cy_pymutex_type = CythonLockType("PyMutex")
-cy_pythread_type_lock_type = CythonLockType("PyThreadTypeLock")
+# Don't declare these as globals - it interferes with our ability to check if it's
+# used in a particular scope.
+def get_cy_pymutex_type():
+    return CythonLockType("PyMutex")
+def get_cy_pythread_type_lock_type():
+    return CythonLockType("PyThreadTypeLock")
 
 fixed_sign_int_types = {
     "bint":       (1, c_bint_type),
@@ -5144,6 +5201,9 @@ modifiers_and_name_to_type = {
     (2,  0, "int"): c_sint_type,
     (2,  1, "int"): c_slong_type,
     (2,  2, "int"): c_slonglong_type,
+
+    (1, 0, "short"): c_short_type,
+    (1, 0, "long"): c_long_type,
 
     (1,  0, "float"):  c_float_type,
     (1,  0, "double"): c_double_type,
@@ -5497,6 +5557,10 @@ def independent_spanning_type(type1, type2):
             return resolved_type1
         # e.g. PyInt + double => object
         return py_object_type
+    elif resolved_type1.is_builtin_type and resolved_type2.is_builtin_type:
+        # Either numeric or incompatible. Do not try to find a widest Python type
+        # (e.g. int+float => float) as it would change one of the result types.
+        return py_object_type
 
     span_type = _spanning_type(type1, type2)
     if span_type is None:
@@ -5604,9 +5668,7 @@ def parse_basic_type(name: str):
             return CConstOrVolatileType(
                 base, is_const=modifier == 'const', is_volatile=modifier == 'volatile')
     #
-    if name in fixed_sign_int_types:
-        return fixed_sign_int_types[name][1]
-    basic_type = simple_c_type(1, 0, name)
+    basic_type = parse_basic_ctype(name)
     if basic_type:
         return basic_type
     #
@@ -5633,6 +5695,21 @@ def parse_basic_type(name: str):
         name = 'int'  # long/short [int]
 
     return simple_c_type(signed, longness, name)
+
+
+def parse_basic_ctype(name):
+    """
+    This only covers C types without spaces (i.e. what NameNode can represent).
+    It doesn't cover 'longlong' or 'p_long' or similar - just what appears in C.
+    """
+    if name in fixed_sign_int_types:
+        return fixed_sign_int_types[name][1]
+    if "complex" in name and name != "complex":
+        return None  # not a "simple" name
+    basic_type = simple_c_type(1, 0, name)
+    if basic_type:
+        return basic_type
+    return None
 
 
 def _construct_type_from_base(cls, base_type, *args):

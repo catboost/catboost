@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Cython
-Version: 3.1.8
+Version: 3.2.5
 Summary: The Cython compiler for writing C extensions in the Python language.
 Home-page: https://cython.org/
 Author: Robert Bradshaw, Stefan Behnel, David Woods, Greg Ewing, et al.
@@ -13,7 +13,6 @@ Project-URL: Bug Tracker, https://github.com/cython/cython/issues/
 Project-URL: User Group, https://groups.google.com/g/cython-users
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
@@ -65,20 +64,82 @@ to install an uncompiled (slower) version of Cython with::
 
 .. _Pyrex: https://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
 
-3.1.8 (2026-01-03)
+3.2.5 (2026-05-23)
 ==================
 
 Bugs fixed
 ----------
 
-* Assignment expressions used in comprehensions could look at the wrong scope,
-  thus using different variables and different data.
-  (Github issue https://github.com/cython/cython/issues/6547)
+* A compile failure was fixed when using the walrus operator inside of try-except.
+  (Github issue https://github.com/cython/cython/issues/7462)
 
-* Some internal C symbols were not declared as ``static``, preventing static linking
-  of multiple modules.
-  Patch by Yury Popov.  (Github issue https://github.com/cython/cython/issues/7310)
+* Expressions with side-effects as object argument to ``isinstance()`` could get
+  evaluated multiple times, e.g. when they use the walrus operator.
+  (Github issue https://github.com/cython/cython/issues/7670)
 
-* Accidentally using ``except +`` in C mode did not raise a compile error but generated
-  invalid C code leading to obscure error messages.
-  Patch by user202729.  (Github issue https://github.com/cython/cython/issues/6560)
+* Several problems generating the shared utility module were resolved, including
+  a performance regression with memory views.
+  (Github issues https://github.com/cython/cython/issues/7487, https://github.com/cython/cython/issues/7497, https://github.com/cython/cython/issues/7504, https://github.com/cython/cython/issues/7558)
+
+* Some GC and refcounting issues were resolved for Cython functions in the Limited API.
+  (Github issue https://github.com/cython/cython/issues/7594)
+
+* Refcounting errors and error handling issues were resolved in some rare error handling cases.
+  (Github issues https://github.com/cython/cython/issues/7597, https://github.com/cython/cython/issues/7599, https://github.com/cython/cython/issues/7612, https://github.com/cython/cython/issues/7673)
+
+* Using ``cython.pymutex`` in an extension type with ``cdef`` methods generated
+  invalid C code missing the required ``PyMutex`` declarations.
+  (Github issue https://github.com/cython/cython/issues/6995)
+
+* Calling ``.get_frame()`` on Cython coroutines could crash in freethreading Python.
+  (Github issue https://github.com/cython/cython/issues/7632)
+
+* The vectorcall protocol was not used correctly in ``.throw()`` of Cython coroutines
+  when raising the exception only by type (without value or traceback).
+  (Github issue https://github.com/cython/cython/issues/7677)
+
+* A problem with cpdef enums in the Limited API of Python 3.11+ was resolved.
+  (Github issue https://github.com/cython/cython/issues/7503)
+
+* Unicode predicates like ``.isdigit()`` are now allowed to fail in the Limited API.
+  (Github issue https://github.com/cython/cython/issues/7602)
+
+* Conditional expressions mixing Python float and int object types could accidentally
+  infer float as the common result type, instead of treating both independently.
+
+* Using ``sizeof()`` in the size declarations of ``extern`` arrays failed.
+  (Github issue https://github.com/cython/cython/issues/7451)
+
+* Enabling profiling generated invalid C code for non-Python return tuples.
+  (Github issue https://github.com/cython/cython/issues/7580)
+
+* ``abs()`` on C ``long long`` values could generate invalid C code.
+
+* When the ``CYTHON_AVOID_BORROWED_REFS`` C macro is enabled, e.g. in GraalPython,
+  dict iteration could fail to compile.
+  Patch by Michael Šimáček.  (Github issue https://github.com/cython/cython/issues/7631)
+
+* A C compiler warning about unused functions was resolved.
+  (Github issue https://github.com/cython/cython/issues/7560)
+
+* The ``py_safe_call_once()`` C++ mutex helper function in ``libcpp.mutex``
+  failed to compile.
+  (Github issue https://github.com/cython/cython/issues/7585)
+
+* The ``cpython.array`` declarations were adapted for Python 3.15.  Direct access
+  to the C struct of the ``array.array`` data type might require user code changes.
+  (Github issue https://github.com/cython/cython/issues/7659)
+
+* Spaces in file paths written to the ``depfile`` were not escaped.
+  Patch by Loïc Estève.  (Github issue https://github.com/cython/cython/issues/7423)
+
+* Cython's cache failed to restore multi-file results.
+  (Github issue https://github.com/cython/cython/issues/7559)
+
+* Using Tempita from its command line failed with a name error.
+  (Github issue https://github.com/cython/cython/issues/7567)
+
+Other changes
+-------------
+
+* The known builtin types were updated for Py3.15.
