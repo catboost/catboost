@@ -22,7 +22,7 @@ See all common variables in [Variables used in formulas](loss-functions-variable
 
 ### {{ error-function__PairLogit }} {#PairLogit}
 
-$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
+$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(\log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
@@ -42,7 +42,7 @@ _Default:_ {{ loss-functions__params__max_pairs_default }}
 
 ### {{ error-function__PairLogitPairwise }} {#PairLogitPairwise}
 
-$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
+$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(\log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
 
 This metric may give more accurate results on large datasets compared to {{ error-function__PairLogit }} but it is calculated significantly slower.
 
@@ -615,7 +615,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
 1. The metric is calculated as follows:
 
     $PrecisionAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{top} { , where}$
-    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
+    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & \text{in other cases} \end{cases}$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
@@ -634,7 +634,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
 
 1. The metric is calculated as follows:
     $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
-    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
+    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & \text{in other cases} \end{cases}$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
