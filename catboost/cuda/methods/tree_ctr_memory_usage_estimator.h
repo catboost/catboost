@@ -149,8 +149,11 @@ namespace NCatboostCuda {
         ui32 MaxPackSize = 0;
 
         const double MB = 1024 * 1024;
-        const double ReserveMemory = 100;
-        //some magic consts
-        const double ReservationFactor = 1.15;
+        // Increased from 100MB to 256MB to provide more headroom for MultiLogloss
+        // and other multi-dimensional loss functions that require larger buffers
+        const double ReserveMemory = 256;
+        // Increased from 1.15 to 1.35 (35% headroom) to account for multi-class buffers
+        // and memory fragmentation in MultiLogloss scenarios
+        const double ReservationFactor = 1.35;
     };
 }
