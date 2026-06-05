@@ -319,7 +319,7 @@ private:
     THolder<TImpl> Impl_;
 };
 
-/** Behave like TThreadPool or TAdaptiveThreadPool, choosen by thrnum parameter of Start()  */
+/** Behave like TThreadPool or TAdaptiveThreadPool, chosen by thrnum parameter of Start()  */
 class TSimpleThreadPool: public TThreadPoolBase {
 public:
     TSimpleThreadPool(const TParams& params = {});
@@ -327,7 +327,7 @@ public:
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /**
-     * @parameter thrnum. If thrnum is 0, use TAdaptiveThreadPool with small
+     * @param thrnum If thrnum is 0, use TAdaptiveThreadPool with small
      * SetMaxIdleTime interval parameter. if thrnum is not 0, use non-blocking TThreadPool
      */
     void Start(size_t thrnum, size_t maxque = 0) override;
