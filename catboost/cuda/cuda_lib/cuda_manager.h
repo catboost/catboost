@@ -136,6 +136,9 @@ namespace NCudaLib {
         TVector<bool> IsActiveDevice;
         bool Locked = false;
 
+        // Mutex to protect Start/Stop from concurrent calls
+        TAdaptiveLock ManagerLifecycleMutex;
+
         void FreeStream(const ui32 streamId);
 
         TCudaManagerState& GetState() {

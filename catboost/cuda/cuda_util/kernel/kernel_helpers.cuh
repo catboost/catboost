@@ -9,8 +9,16 @@
 // https://docs.nvidia.com/cuda/cuda-c-programming-guide/#features-and-technical-specifications
 #if __CUDA_ARCH__ == 750
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1024;
-#elif __CUDA_ARCH__ == 860 || __CUDA_ARCH__ == 870 || __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 1200
+#elif __CUDA_ARCH__ == 860 || __CUDA_ARCH__ == 870 || __CUDA_ARCH__ == 890
+// Ampere (sm_86), Ada Lovelace (sm_89), Orin (sm_87)
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1536;
+#elif __CUDA_ARCH__ >= 900 && __CUDA_ARCH__ < 1000
+// Hopper (sm_90, sm_90a)
+constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 2048;
+#elif __CUDA_ARCH__ >= 1000 && __CUDA_ARCH__ < 1300
+// Blackwell (sm_100, sm_100a, sm_120, sm_120a) - CUDA 12.8+
+// Covers GB10, GB200, B100, B200 and future Blackwell variants
+constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 2048;
 #else
 constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 2048;
 #endif

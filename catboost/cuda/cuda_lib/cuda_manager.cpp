@@ -43,6 +43,7 @@ double TCudaManager::TotalMemoryMb(ui32 devId) const {
 }
 
 void TCudaManager::StopChild() {
+    TGuard<TAdaptiveLock> guard(ManagerLifecycleMutex);
     CB_ENSURE(IsChildManager);
     CB_ENSURE(ParentProfiler != nullptr);
     //add stats from child to parent
@@ -62,6 +63,7 @@ void TCudaManager::StopChild() {
 void TCudaManager::StartChild(TCudaManager& parent,
                               const TDevicesList& devices,
                               TManualEvent& stopEvent) {
+    TGuard<TAdaptiveLock> guard(ManagerLifecycleMutex);
     CB_ENSURE(!State, "Error: can't start, state already exists");
     State = parent.State;
 
@@ -198,7 +200,9 @@ void TCudaManager::WaitComplete(TDevicesList&& devices) {
 }
 
 void TCudaManager::Start(const NCudaLib::TDeviceRequestConfig& config) {
-    CB_ENSURE(State == nullptr);
+    TGuard<TAdaptiveLock> guard(ManagerLifecycleMutex);
+    CB_ENSURE(State == nullptr, "TCudaManager::Start() called but State is not nullptr. "
+                                "This may indicate a concurrent Start() call or a previous Stop() that failed.");
     State.Reset(new TCudaManagerState());
     CB_ENSURE(!HasDevices());
     SetDevices(GetDevicesProvider().RequestDevices(config));
@@ -210,8 +214,10 @@ void TCudaManager::Start(const NCudaLib::TDeviceRequestConfig& config) {
 }
 
 void TCudaManager::Stop() {
+    TGuard<TAdaptiveLock> guard(ManagerLifecycleMutex);
     CB_ENSURE(!IsChildManager);
-    CB_ENSURE(State);
+    CB_ENSURE(State, "TCudaManager::Stop() called but State is nullptr. "
+                     "This may indicate a concurrent Stop() call or Start() was never called.");
 
     if (State->PeersSupportEnabled) {
         DisablePeers();

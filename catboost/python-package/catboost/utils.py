@@ -696,19 +696,9 @@ def quantize(
         dev_max_subset_size_for_build_borders
     )
 
-    pool = Pool(
-        data_path,
-        column_description=column_description,
-        pairs=pairs,
-        graph=graph,
-        feature_names=feature_names,
-        delimiter=delimiter,
-        has_header=has_header,
-        ignore_csv_quoting=ignore_csv_quoting,
-        thread_count=thread_count,
-        log_cout=log_cout,
-        log_cerr=log_cerr
-    )
+    # Create an empty Pool and read data directly with quantization params
+    # This avoids loading the data twice (once raw, once quantized)
+    pool = Pool()
     pool._read(
         data_path,
         column_description,
