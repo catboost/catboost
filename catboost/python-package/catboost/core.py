@@ -3,6 +3,7 @@ from copy import deepcopy
 import logging
 import sys
 import os
+import tempfile
 
 if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence, Mapping, MutableMapping
