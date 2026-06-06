@@ -882,13 +882,15 @@ class Pool(_PoolBase):
             raise CatBoostError("Invalid delimiter type={} : must be str.".format(type(delimiter)))
         if len(delimiter) < 1:
             raise CatBoostError("Invalid delimiter length={} : must be > 0.".format(len(delimiter)))
-
-    def _check_column_description_type(self, column_description):
-        """
-        Check type of column_description parameter.
-        """
-        if not isinstance(column_description, PATH_TYPES):
-            raise CatBoostError("Invalid column_description type={}: must be str or os.PathLike.".format(type(column_description)))
+            
+def _check_column_description_type(self, column_description):
+    """
+    Check type of column_description parameter.
+    """
+    if not isinstance(column_description, PATH_TYPES + (ColumnDescription,)):
+        raise CatBoostError(
+            "Invalid column_description type={}: must be str, os.PathLike or ColumnDescription.".format(type(column_description))
+        )
 
     def _check_string_feature_type(self, features, features_name):
         """
