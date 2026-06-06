@@ -10,6 +10,9 @@ namespace NYT {
 
 using TSystemThreadId = size_t;
 constexpr TSystemThreadId InvalidSystemThreadId = Max<TSystemThreadId>();
+//! Returns the OS thread id (e.g. |gettid| on Linux).
+//! The value is cached in TLS, so only the first call per thread hits the kernel.
+//! The cache is reset in the child after |fork|.
 TSystemThreadId GetSystemThreadId();
 
 using TSequentialThreadId = ui32;
