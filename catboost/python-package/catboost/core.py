@@ -1369,10 +1369,21 @@ def _check_column_description_type(self, column_description):
         with log_fixup(log_cout, log_cerr):
             self._check_files(pool_file, column_description, pairs, graph)
             self._check_delimiter(delimiter)
-            if column_description is None:
-                column_description = ''
-            else:
-                self._check_column_description_type(column_description)
+          if column_description is None:
+    column_description = ''
+else:
+    if isinstance(column_description, ColumnDescription):
+        tmp = tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.cd',
+            delete=False
+        )
+        tmp.close()
+
+        column_description.save(tmp.name)
+        column_description = tmp.name
+
+    self._check_column_description_type(column_description)
             for item in [pairs, feature_names_path, graph]:
                 if item is None:
                     item = ''
