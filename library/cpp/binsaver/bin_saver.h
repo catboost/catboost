@@ -246,13 +246,13 @@ private:
             File.Write(data.c_str(), nCount * elemSize);
         }
     }
-    void DataChunkString(std::string& data) {
+    void DataChunkStdString(std::string& data) {
         DataChunkStr(data, sizeof(char));
     }
-    void DataChunkStroka(TString& data) {
+    void DataChunkTString(TString& data) {
         DataChunkStr(data, sizeof(TString::char_type));
     }
-    void DataChunkWtroka(TUtf16String& data) {
+    void DataChunkUtf16String(TUtf16String& data) {
         DataChunkStr(data, sizeof(wchar16));
     }
 
@@ -301,15 +301,15 @@ public:
         return 0;
     }
     int Add(const chunk_id, std::string* pStr) {
-        DataChunkString(*pStr);
+        DataChunkStdString(*pStr);
         return 0;
     }
     int Add(const chunk_id, TString* pStr) {
-        DataChunkStroka(*pStr);
+        DataChunkTString(*pStr);
         return 0;
     }
     int Add(const chunk_id, TUtf16String* pStr) {
-        DataChunkWtroka(*pStr);
+        DataChunkUtf16String(*pStr);
         return 0;
     }
     int Add(const chunk_id, TBlob* blob) {
