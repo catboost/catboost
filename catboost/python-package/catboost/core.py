@@ -692,7 +692,7 @@ class Pool(_PoolBase):
             If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
                 Dict keys must be the same as specified in 'embedding_features' parameter
 
-        column_description : string or os.PathLike, optional (default=None)
+        column_description : string, os.PathLike or ColumnDescription (default=None)
             ColumnsDescription parameter.
             There are several columns description types: Label, Categ, Num, Auxiliary, DocId, Weight, Baseline, GroupId, Timestamp.
             All columns are Num as default, it's not necessary to specify
