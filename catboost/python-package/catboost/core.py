@@ -599,6 +599,17 @@ def plot_features_selection_loss_graphs(summary):
 
     return result
 
+        class ColumnDescription:
+    def __init__(self):
+        self.lines = []
+
+    def load(self, path):
+        with open(path, 'r') as f:
+            self.lines = f.readlines()
+
+    def save(self, path):
+        with open(path, 'w') as f:
+            f.writelines(self.lines)
 
 class Pool(_PoolBase):
     """
