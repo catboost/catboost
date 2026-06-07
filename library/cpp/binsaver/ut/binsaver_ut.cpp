@@ -79,7 +79,7 @@ UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TVector<TCustomSerializer>>(0u));
 }
 
 
-Y_UNIT_TEST(TestStroka) {
+Y_UNIT_TEST(TestTString) {
     TestBinSaverSerialization(TString("QWERTY"));
 }
 
@@ -87,7 +87,7 @@ Y_UNIT_TEST(TestMoveOnlyType) {
     TestBinSaverSerializationToBuffer(TMoveOnlyType());
 }
 
-Y_UNIT_TEST(TestVectorStrok) {
+Y_UNIT_TEST(TestVectorOfStrings) {
     TestBinSaverSerialization(TVector<TString>{"A", "B", "C"});
 }
 

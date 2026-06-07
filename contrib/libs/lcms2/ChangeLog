@@ -1,4 +1,15 @@
 -----------------------
+2.20 Ongoing
+-----------------------
+
+-----------------------
+2.19.1 hot fix
+-----------------------
+Fixed sonames generation when using autotools
+Recovered an undocumented memory write feature lost because a "security" report.
+Fixed documentation pointers on visual studio project.
+
+-----------------------
 2.19 Featured release
 -----------------------
 CMake build system. Thanks to Vlad Erium for the initial implementation and kmilos for improvements. 

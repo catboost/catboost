@@ -3842,7 +3842,7 @@ XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(XXH_NOESCAPE const XXH64_can
 
 #if defined(__GNUC__) || defined(__clang__)
 #  if defined(__ARM_FEATURE_SVE)
-#    error #include <arm_sve.h>
+#    include <arm_sve.h>
 #  endif
 #  if defined(__ARM_NEON__) || defined(__ARM_NEON) \
    || (defined(_M_ARM) && _M_ARM >= 7) \

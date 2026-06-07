@@ -224,7 +224,7 @@ bool TryFromStringImpl(const TChar* data, size_t len, T& result);
 /**
  * @param data Source string buffer pointer
  * @param len Source string length, in characters
- * @param result Place to store conversion result value.
+ * @param[out] result Place to store conversion result value.
  * If conversion error occurs, no value stored in @c result
  * @return @c true in case of successful conversion, @c false otherwise
  **/

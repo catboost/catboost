@@ -67,9 +67,9 @@ inline bool IsUTF8ContinuationByte(unsigned char c) {
 }
 
 //! returns length of the current UTF8 character
-//! @param n    length of the current character, it is assigned in case of valid UTF8 byte sequence
-//! @param p    pointer to the current character
-//! @param e    end of the character sequence
+//! @param[out] n   length of the current character, it is assigned in case of valid UTF8 byte sequence
+//! @param p        pointer to the current character
+//! @param e        end of the character sequence
 inline RECODE_RESULT GetUTF8CharLen(size_t& n, const unsigned char* p, const unsigned char* e) {
     Y_ASSERT(p < e); // since p < e then we will check RECODE_EOINPUT only for n > 1 (see calls of this functions)
     switch (UTF8RuneLen(*p)) {
@@ -111,9 +111,9 @@ inline RECODE_RESULT GetUTF8CharLen(size_t& n, const unsigned char* p, const uns
 }
 
 //! returns number of characters in UTF8 encoded text, stops immediately if UTF8 byte sequence is wrong
-//! @param text     UTF8 encoded text
-//! @param len      the length of the text in bytes
-//! @param number   number of encoded symbols in the text
+//! @param text         UTF8 encoded text
+//! @param len          the length of the text in bytes
+//! @param[out] number  number of encoded symbols in the text
 inline bool GetNumberOfUTF8Chars(const char* text, size_t len, size_t& number) {
     const unsigned char* cur = reinterpret_cast<const unsigned char*>(text);
     const unsigned char* const last = cur + len;
@@ -183,10 +183,10 @@ inline bool IsValidUTF8Rune<4, StrictUTF8::No>(wchar32 rune) {
 }
 
 //! reads one unicode symbol from a character sequence encoded UTF8 and checks for overlong encoding
-//! @param rune      value of the current character
-//! @param rune_len  length of the UTF8 bytes sequence that has been read
-//! @param s         pointer to the current character
-//! @param end       the end of the character sequence
+//! @param[out] rune        value of the current character
+//! @param[out] rune_len    length of the UTF8 bytes sequence that has been read
+//! @param s                pointer to the current character
+//! @param end              the end of the character sequence
 template <StrictUTF8 strictMode = StrictUTF8::No>
 inline RECODE_RESULT SafeReadUTF8Char(wchar32& rune, size_t& rune_len, const unsigned char* s, const unsigned char* end) {
     rune = BROKEN_RUNE;
@@ -241,9 +241,9 @@ inline RECODE_RESULT SafeReadUTF8Char(wchar32& rune, size_t& rune_len, const uns
 }
 
 //! reads one unicode symbol from a character sequence encoded UTF8 and moves pointer to the next character
-//! @param c    value of the current character
-//! @param p    pointer to the current character, it will be changed in case of valid UTF8 byte sequence
-//! @param e    the end of the character sequence
+//! @param[out] rune    value of the current character
+//! @param[inout] p     pointer to the current character, it will be changed in case of valid UTF8 byte sequence
+//! @param e            the end of the character sequence
 template <StrictUTF8 strictMode = StrictUTF8::No>
 Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigned char*& p, const unsigned char* e) noexcept {
     Y_ASSERT(p < e); // since p < e then we will check RECODE_EOINPUT only for n > 1 (see calls of this functions)
@@ -317,10 +317,10 @@ Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigne
 
 //! writes one unicode symbol into a character sequence encoded UTF8
 //! checks for end of the buffer and returns the result of encoding
-//! @param rune      value of the current character
-//! @param rune_len  length of the UTF8 byte sequence that has been written
-//! @param s         pointer to the output buffer
-//! @param tail      available size of the buffer
+//! @param rune           value of the current character
+//! @param[out] rune_len  length of the UTF8 byte sequence that has been written
+//! @param s              pointer to the output buffer
+//! @param tail           available size of the buffer
 inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s, size_t tail) {
     rune_len = 0;
     if (rune < 0x80) {
@@ -368,11 +368,11 @@ inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned 
 }
 
 //! writes one unicode symbol into a character sequence encoded UTF8
-//! @attention       this function works as @c SafeWriteUTF8Char it does not check
-//!                  the size of the output buffer, it supposes that buffer is long enough
-//! @param rune      value of the current character
-//! @param rune_len  length of the UTF8 byte sequence that has been written
-//! @param s         pointer to the output buffer
+//! @attention            this function works as @c SafeWriteUTF8Char it does not check
+//!                       the size of the output buffer, it supposes that buffer is long enough
+//! @param rune           value of the current character
+//! @param[out] rune_len  length of the UTF8 byte sequence that has been written
+//! @param s              pointer to the output buffer
 inline void WriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s) {
     if (rune < 0x80) {
         *s = static_cast<unsigned char>(rune);

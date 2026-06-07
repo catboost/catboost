@@ -223,6 +223,30 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
 #endif
 
 /**
+ * @def Y_INITIALIZED
+ *
+ * This function can be used to silence erroneous bugprone-use-after-move warnings from clang-tidy.
+ * (see https://clang.llvm.org/extra/clang-tidy/checks/bugprone/use-after-move.html#silencing-erroneous-warnings)
+ *
+ * @code
+ * void Foo(T value, int i) {
+ *     if (i == 1) {
+ *         DoSomethingWith(std::move(value));
+ *     }
+ *     if (i == 2) {
+ *         Y_INITIALIZED(value);
+ *         DoOtherThingWith(std::move(value));
+ *     }
+ * }
+ */
+#if defined(__cplusplus)
+template <class... Types>
+constexpr Y_FORCE_INLINE int Y_INITIALIZED(Types&...) {
+    return 0; // constexpr void functions are not supported in c++11
+}
+#endif
+
+/**
  * @def Y_ASSUME
  *
  * Macro that tells the compiler that it can generate optimized code

@@ -892,6 +892,11 @@ namespace NJson {
     const TJsonValue* TJsonValue::GetValueByPath(const TStringBuf key, char delim) const noexcept {
         return GetValuePtrByPath<false>(this, key, delim);
     }
+    TJsonValue& TJsonValue::GetValueByPathOrCreate(TStringBuf path, char delimiter) noexcept {
+        TJsonValue* const ptr = GetValuePtrByPath<true>(this, path, delimiter);
+        Y_ASSERT(ptr);
+        return *ptr;
+    }
 
     TJsonValue* TJsonValue::GetValueByPath(const TStringBuf key, char delim) noexcept {
         return GetValuePtrByPath<false>(this, key, delim);

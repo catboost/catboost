@@ -119,14 +119,14 @@
                  env.module_name.as_c_string_literal(), py3_mod_func_name, py3_mod_func_name))
              h_code_main.putln('/* WARNING: %s from Python 3.5 */' % warning_string.rstrip('.'))
 @@ -530,7 +531,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-         self.generate_module_state_traverse(env, globalstate['module_state_traverse'])
 
          # init_globals is inserted before this
--        self.generate_module_init_func(modules[:-1], env, globalstate['init_module'])
-+        self.generate_module_init_func(modules[:-1], env, options, globalstate['init_module'])
+         self.generate_module_init_func(
+-            modules[:-1], shared_utility_exporter, env, globalstate['init_module']
++            modules[:-1], shared_utility_exporter, env, options, globalstate['init_module']
+         )
          self.generate_module_cleanup_func(env, globalstate['cleanup_module'])
          if Options.embed:
-             self.generate_main_method(env, globalstate['main_method'])
 @@ -970,6 +970,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
          if code.globalstate.filename_list:
              for source_desc in code.globalstate.filename_list:
@@ -147,11 +147,11 @@
                      code.put("static ")
                  elif attr.name == "<init>":
 @@ -2972,17 +2972,17 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
-         code.putln(f'Py_VISIT(traverse_module_state->{Naming.fusedfunction_type_cname});')
-         code.putln('#endif')
+         code.putln(f'__Pyx_VISIT_CONST(traverse_module_state->{Naming.empty_bytes});')
+         code.putln(f'__Pyx_VISIT_CONST(traverse_module_state->{Naming.empty_unicode});')
  
--    def generate_module_init_func(self, imported_modules, env, code):
-+    def generate_module_init_func(self, imported_modules, env, options, code):
+-    def generate_module_init_func(self, imported_modules, shared_utility_exporter, env, code):
++    def generate_module_init_func(self, imported_modules, shared_utility_exporter, env, options, code):
          subfunction = self.mod_init_subfunction(self.pos, self.scope, code)
  
 -        self.generate_pymoduledef_struct(env, code)
@@ -291,12 +291,14 @@
  
 --- contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(index)
 +++ contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(working tree)
-@@ -3986,7 +3986,7 @@ class CStructOrUnionType(CType):
+@@ -3986,8 +3986,8 @@ class CStructOrUnionType(CType):
          # defer to CppClassType since its implementation will be the same
          CppClassType.generate_explicit_destruction(self, code, entry, extra_access_code=extra_access_code)
  
 -cpp_string_conversions = ("std::string", "std::string_view")
+-cpp_unowned_views = ("std::string_view",)
 +cpp_string_conversions = ("std::string", "std::string_view", "TString", "TStringBuf")
++cpp_unowned_views = ("std::string_view", "TStringBuf")
  
  builtin_cpp_conversions = {
      # type                element template params
@@ -860,7 +862,7 @@
 --- contrib/tools/cython/cython.py	(index)
 +++ contrib/tools/cython/cython.py	(working tree)
 @@ -1,5 +1,7 @@
- #!/usr/bin/env python
+ #!/usr/bin/env python3
 
 +# Change content of this file to change uids for cython programs - cython
 +

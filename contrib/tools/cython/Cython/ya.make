@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 VERSION(Service-proxy-version)
 
-LICENSE(Public-Domain)
+LICENSE(Apache-2.0)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 

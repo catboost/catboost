@@ -3162,7 +3162,7 @@ def test_multilabel_custom_objective(task_type, n=10):
 def test_default_loss_function_column_vector_label_no_crash():
     rng = np.random.RandomState(0)
     X = rng.rand(30, 5)
-    y = (rng.rand(30) > 0.5).astype(np.int32).reshape(-1, 1) 
+    y = (rng.rand(30) > 0.5).astype(np.int32).reshape(-1, 1)
 
     model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
     model.fit(X, y)
@@ -3173,7 +3173,7 @@ def test_default_loss_function_column_vector_label_no_crash():
 def test_default_loss_function_multilabel_binary_int_targets():
     rng = np.random.RandomState(1)
     X = rng.rand(30, 5)
-    y = (rng.rand(30, 3) > 0.5).astype(np.int32) 
+    y = (rng.rand(30, 3) > 0.5).astype(np.int32)
 
     model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
     model.fit(X, y)
@@ -3184,7 +3184,7 @@ def test_default_loss_function_multilabel_binary_int_targets():
 def test_default_loss_function_multilabel_binary_float_targets():
     rng = np.random.RandomState(2)
     X = rng.rand(30, 5)
-    y = (rng.rand(30, 3) > 0.5).astype(np.float32) 
+    y = (rng.rand(30, 3) > 0.5).astype(np.float32)
 
     model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
     model.fit(X, y)
@@ -3195,7 +3195,7 @@ def test_default_loss_function_multilabel_binary_float_targets():
 def test_default_loss_function_multilabel_soft_targets():
     rng = np.random.RandomState(3)
     X = rng.rand(30, 5)
-    y = rng.rand(30, 3).astype(np.float32)  
+    y = rng.rand(30, 3).astype(np.float32)
 
     model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
     model.fit(X, y)
@@ -10975,6 +10975,30 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
         json.dump(summary, f, indent=4, sort_keys=True)
 
     return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
+
+
+def test_select_features_with_hyphenated_feature_names():
+    features, labels = generate_random_labeled_dataset(
+        n_samples=500,
+        n_features=4,
+        labels=[0, 1],
+        seed=42
+    )
+    feature_names = ['non-TB', 'feat-b', 'plain', 'other-feat']
+    learn = Pool(features, labels, feature_names=feature_names)
+    test = Pool(features, labels, feature_names=feature_names)
+    model = CatBoostClassifier(iterations=10, logging_level='Silent')
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=False,
+        features_for_select=['non-TB', 'feat-b'],
+        num_features_to_select=1
+    )
+    assert len(summary['selected_features']) == 1
+    assert len(summary['eliminated_features']) == 1
+    assert set(summary['selected_features_names'] + summary['eliminated_features_names']) == {'non-TB', 'feat-b'}
 
 
 def test_embedding_features_data_list_with_data_with_features_order():

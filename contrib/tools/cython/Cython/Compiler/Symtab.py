@@ -364,6 +364,7 @@ class Scope:
     # is_c_class_scope  boolean            Is an extension type scope
     # is_local_scope    boolean            Is a local (i.e. function/method/generator) scope
     # is_closure_scope  boolean            Is a closure scope
+    # is_generator_scope  boolean          Is a closure scope of a generator
     # is_generator_expression_scope boolean   A subset of closure scope used for generator expressions
     # is_passthrough    boolean            Outer scope is passed directly
     # is_cpp_class_scope  boolean          Is a C++ class scope
@@ -386,6 +387,7 @@ class Scope:
     is_c_class_scope = 0
     is_closure_scope = 0
     is_local_scope = False
+    is_generator_scope = False
     is_generator_expression_scope = 0
     is_comprehension_scope = 0
     is_passthrough = 0
@@ -1236,7 +1238,7 @@ class Scope:
         # e.g. slot, function, method
         return f"{Naming.modulestateglobal_cname}->{cname}"
 
-    def find_shared_usages_of_type(self, type_check_predicate, _seen_scopes=None):
+    def find_shared_usages_of_type(self, type_to_find, _seen_scopes=None):
         if _seen_scopes is None:
             _seen_scopes = set()
         include_all_entries = not self.is_module_scope
@@ -1244,13 +1246,13 @@ class Scope:
             if not (include_all_entries or entry.defined_in_pxd or entry.visibility == "public" or entry.api):
                 continue
             entry_subtypes = PyrexTypes.get_all_subtypes(entry.type)
-            if any(type_check_predicate(sub_tp) for sub_tp in entry_subtypes):
+            if any(type_to_find == sub_tp for sub_tp in entry_subtypes):
                 return True
             type_scope = getattr(entry.type, "scope", None)
             if type_scope is None or type_scope in _seen_scopes:
                 continue
             _seen_scopes.add(type_scope)
-            if type_scope.find_shared_usages_of_type(type_check_predicate, _seen_scopes):
+            if type_scope.find_shared_usages_of_type(type_to_find, _seen_scopes):
                 return True
         return False
 
@@ -1323,14 +1325,21 @@ class BuiltinScope(Scope):
         return entry
 
     def declare_builtin_type(self, name, cname,
-                             objstruct_cname=None, type_class=PyrexTypes.BuiltinObjectType):
+                             objstruct_cname=None, type_class=PyrexTypes.BuiltinObjectType,
+                             utility_code=None):
         name = EncodedString(name)
         type = type_class(name, cname, objstruct_cname)
         scope = CClassScope(name, outer_scope=None, visibility='extern', parent_type=type)
         scope.directives = {}
         type.set_scope(scope)
         self.type_names[name] = 1
+
         entry = self.declare_type(name, type, None, visibility='extern')
+        if utility_code:
+            entry.utility_code = utility_code
+        if name == 'range' and 'xrange' not in self.entries:
+            # Keep supporting legacy Py2 'xrange' because it's still in use.
+            self.entries['xrange'] = entry
 
         var_entry = Entry(
             name=entry.name,
@@ -1346,6 +1355,8 @@ class BuiltinScope(Scope):
         var_entry.scope = self
         if Options.cache_builtins:
             var_entry.is_const = True
+        if utility_code:
+            var_entry.utility_code = utility_code
         entry.as_variable = var_entry
 
         return type
@@ -1782,6 +1793,9 @@ class ModuleScope(Scope):
             self.utility_code_list.append(entry.utility_code)
         if entry.utility_code_definition:
             self.utility_code_list.append(entry.utility_code_definition)
+        for tp in PyrexTypes.get_all_subtypes(entry.type):
+            if hasattr(tp, "entry") and tp.entry is not entry:
+                self.use_entry_utility_code(tp.entry)
 
     def declare_c_class(self, name, pos, defining=0, implementing=0,
             module_name=None, base_type=None, objstruct_cname=None,
@@ -1881,18 +1895,12 @@ class ModuleScope(Scope):
             type.objstruct_cname = objstruct_cname
         if typeobj_cname:
             if type.typeobj_cname and type.typeobj_cname != typeobj_cname:
-                    error(pos, "Type object name differs from previous declaration")
+                error(pos, "Type object name differs from previous declaration")
             type.typeobj_cname = typeobj_cname
 
         if self.directives.get('final'):
             entry.type.is_final_type = True
         collection_type = self.directives.get('collection_type')
-        if collection_type:
-            from .UtilityCode import NonManglingModuleScope
-            if not isinstance(self, NonManglingModuleScope):
-                # TODO - DW would like to make it public, but I'm making it internal-only
-                # for now to avoid adding new features without consensus
-                error(pos, "'collection_type' is not a public cython directive")
         if collection_type == 'sequence':
             entry.type.has_sequence_flag = True
 
@@ -2242,6 +2250,7 @@ class ClosureScope(LocalScope):
 
 
 class GeneratorExpressionScope(ClosureScope):
+    is_generator_scope = True
     is_generator_expression_scope = True
 
     def declare_assignment_expression_target(self, name, type, pos):
