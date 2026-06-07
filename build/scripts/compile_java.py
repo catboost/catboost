@@ -91,21 +91,18 @@ def main():
                 '-Djava.correct.class.type.by.place.resolve.scope=true',
                 '-jar',
                 opts.kotlin_compiler,
-                '-classpath',
-                classpath,
                 '-d',
                 kt_classes_dir,
             ]
             + ktc_opts,
-            wrapped_args=ktsrcs + srcs,
+            wrapped_args=['-classpath', classpath] + ktsrcs + srcs,
         )
         classpath = os.pathsep.join([kt_classes_dir, classpath])
 
     if srcs:
         jcf.call_java_with_command_file(
-            [opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir]
-            + javac_opts,
-            wrapped_args=srcs,
+            [opts.javac_bin, '-nowarn', '-g', '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts,
+            wrapped_args=['-classpath', classpath] + srcs,
         )
 
     for s in jsrcs:

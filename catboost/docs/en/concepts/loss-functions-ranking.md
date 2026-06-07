@@ -633,7 +633,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
 1. The objects are sorted in descending order of predicted relevancies ($a_{i}$)
 
 1. The metric is calculated as follows:
-    $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
+    $RecallAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & \text{in other cases} \end{cases}$
 
 **{{ no-optimization }}**  See [more](#usage-information).
