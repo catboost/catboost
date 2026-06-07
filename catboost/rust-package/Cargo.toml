@@ -16,3 +16,4 @@ approx = "0.5.1"
 
 [features]
 gpu = ["catboost-sys/gpu"]
+static-link = ["catboost-sys/static-link"]
