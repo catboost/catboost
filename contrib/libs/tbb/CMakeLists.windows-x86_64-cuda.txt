@@ -24,6 +24,11 @@ target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_USE_ITT_NOTIFY
   -DDO_ITT_NOTIFY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+  # clang gates the RTM (_xbegin/
+  # _xend/_xabort) and WAITPKG (_tpause) intrinsics TBB uses behind target
+  # features; cl.exe does not. Enable them for the clang(-cl) build.
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-mrtm>
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-mwaitpkg>
 )
 
 target_include_directories(contrib-libs-tbb PUBLIC

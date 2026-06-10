@@ -1,3 +1,115 @@
+# ---------------------------------------------------------------------------
+# Build the same .cu sources with the HIP toolchain. Enabled with
+# -DHAVE_HIP=ON (which also sets USE_HIP). Only .cu translation units see HIP;
+# host C++ is untouched and the CUDA path below is byte-for-byte unchanged. The
+# arch comes from CMAKE_HIP_ARCHITECTURES and defaults to gfx90a when unset; set
+# -DCMAKE_HIP_ARCHITECTURES=<arch> to build other architectures with no source
+# edit.
+# ---------------------------------------------------------------------------
+if (HAVE_HIP)
+  if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
+    message(FATAL_ERROR "Build with HIP requires at least cmake 3.21.0")
+  endif()
+
+  if (NOT DEFINED CMAKE_HIP_ARCHITECTURES OR CMAKE_HIP_ARCHITECTURES STREQUAL "")
+    set(CMAKE_HIP_ARCHITECTURES "gfx90a")
+  endif()
+
+  enable_language(HIP)
+
+  include(global_flags)
+  include(common)
+
+  set(CB_HIP_COMPAT_HEADER ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_to_hip.h)
+  set(CB_HIP_COMPAT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/hip_compat)
+
+  # Force-include the compat header on every HIP TU so its cuda*->hip* aliases
+  # and CB_FULL_WARP_MASK precede any use regardless of per-file include order.
+  # clang-cl (the MSVC driver) ignores gcc-style -include
+  # (the header then becomes a stray source -> "/Fo with multiple source files");
+  # it needs MSVC /FI. The Linux clang gcc-driver uses -include.
+  if (CMAKE_HIP_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    string(APPEND CMAKE_HIP_FLAGS " -DUSE_HIP /FI${CB_HIP_COMPAT_HEADER}")
+    # On Windows, catboost's hygiene defines live in
+    # CMAKE_CXX_FLAGS (global_flags.compiler.msvc) and are not seen by HIP TUs.
+    # Without WIN32_LEAN_AND_MEAN, <windows.h> drags in winsock.h which then
+    # collides with winsock2.h (redefinition of sockaddr/fd_set/...). NOMINMAX
+    # avoids min/max macro clashes in the GPU host code.
+    string(APPEND CMAKE_HIP_FLAGS " -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_WIN32_WINNT=0x0601 -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+    # On Windows, catboost ships its own libc++ (libcxxmsvc) on
+    # the -I path. TUs that also pull MSVC's STL (e.g. via the unittest framework
+    # or ONNX) then see two std::memory_order etc. -> "ambiguous". Exclude MSVC's
+    # C++ stdlib so only libcxxmsvc is used (the C UCRT headers are unaffected).
+    string(APPEND CMAKE_HIP_FLAGS " /clang:-nostdinc++")
+  else()
+    string(APPEND CMAKE_HIP_FLAGS " -DUSE_HIP -include ${CB_HIP_COMPAT_HEADER}")
+  endif()
+  # rocThrust/hipCUB require C++17+; the project is C++20 already, keep it explicit.
+  string(APPEND CMAKE_HIP_FLAGS " -std=c++20")
+
+  function(target_cuda_flags Tgt)
+    # nvcc-only flags (e.g. -Wno-deprecated-gpu-targets) have no hipcc analogue.
+  endfunction()
+
+  function(target_cuda_cflags Tgt)
+    # host --compiler-options are passed directly to clang/hipcc; nothing to do.
+  endfunction()
+
+  function(target_cuda_sources Tgt Scope)
+    # The <cub/...> and <cooperative_groups.h> shim headers must win over the
+    # toolkit names; add the shim dir to this target's HIP include path only.
+    target_include_directories(${Tgt} PRIVATE ${CB_HIP_COMPAT_INCLUDE_DIR})
+    set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
+    set_target_properties(${Tgt} PROPERTIES HIP_ARCHITECTURES "${CMAKE_HIP_ARCHITECTURES}")
+    target_sources(${Tgt} ${Scope} ${ARGN})
+  endfunction()
+
+  # The generated CMakeLists hardcode CUDA-toolkit static libs in
+  # target_link_options (-lcudart_static -lcudadevrt -lculibos), which do not
+  # exist for a HIP build. Filter them out and link the HIP runtime instead, by
+  # overriding target_link_options here so the 80+ generated per-target files
+  # need no edits.
+  set(CB_HIP_RUNTIME_LIBS hip::host hip::device)
+  function(target_link_options Tgt)
+    set(_filtered "")
+    foreach(_opt ${ARGN})
+      if (_opt STREQUAL "-lcudart_static" OR _opt STREQUAL "-lcudadevrt" OR _opt STREQUAL "-lculibos")
+        continue()
+      endif()
+      list(APPEND _filtered ${_opt})
+    endforeach()
+    _target_link_options(${Tgt} ${_filtered})
+    if (NOT TARGET ${Tgt})
+      return()
+    endif()
+    get_target_property(_t ${Tgt} TYPE)
+    if (_t STREQUAL "EXECUTABLE" OR _t STREQUAL "SHARED_LIBRARY" OR _t STREQUAL "MODULE_LIBRARY")
+      target_link_libraries(${Tgt} PRIVATE ${CB_HIP_RUNTIME_LIBS})
+    endif()
+  endfunction()
+
+  find_package(hip REQUIRED)
+
+  # The generated platform shim does find_package(CUDAToolkit REQUIRED) and links
+  # CUDA::toolkit. Provide that target as the HIP runtime and make the CUDAToolkit
+  # find_package a no-op so the shim is unchanged (it is the single chokepoint all
+  # GPU targets link through).
+  if (NOT TARGET CUDA::toolkit)
+    add_library(CUDA::toolkit INTERFACE IMPORTED)
+    target_link_libraries(CUDA::toolkit INTERFACE hip::host hip::device)
+  endif()
+
+  macro(find_package)
+    if ("${ARGV0}" STREQUAL "CUDAToolkit")
+      # already satisfied by the CUDA::toolkit alias above
+    else()
+      _find_package(${ARGV})
+    endif()
+  endmacro()
+
+  return()
+endif()
+
 if (HAVE_CUDA)
   if(${CMAKE_VERSION} VERSION_LESS "3.17.0")
       message(FATAL_ERROR "Build with CUDA requires at least cmake 3.17.0")
