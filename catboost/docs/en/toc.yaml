@@ -1001,14 +1001,14 @@ items:
           - href: concepts/input-data_column-descfile.md
             name: Columns description
           - href: concepts/input-data_values-file.md
-            name: Dataset description in delimiter-separated values format
+            name: Dataset in delimiter-separated values format
           - href: concepts/input-data_libsvm.md
-            name: Dataset description in extended libsvm format
+            name: Dataset in extended libsvm format
           - href: yandex_specific/concepts/input-data_yt-col.md
             when: audience == "internal"
-            name: Dataset description in native YT columns format
+            name: Dataset in native YT columns format
           - href: concepts/input-data_pairs-description.md
-            name: Pairs description
+            name: Pairs data
           - href: concepts/input-data_custom-borders.md
             name: Custom quantization borders and missing value modes
           - href: concepts/input-data_group-weights.md
@@ -1016,7 +1016,7 @@ items:
           - href: concepts/input-data_baseline.md
             name: Baseline
           - href: concepts/input-data_graph-description.md
-            name: Graph description
+            name: Graph data
         name: Input data
       - items:
           - href: concepts/output-data.md

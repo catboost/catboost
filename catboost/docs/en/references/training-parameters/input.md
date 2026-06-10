@@ -6,7 +6,7 @@ These parameters are only for Command-line.
 
 #### Description
 
-The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset description.
+The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset.
 
 {% include [files-internal-files-internal__desc__full](../../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
 
@@ -22,7 +22,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 #### Description
 
-A comma-separated list of input files that contain the validation dataset description (the format must be the same as used in the training dataset).
+A comma-separated list of input files that contain the validation dataset (the format must be the same as used in the training dataset).
 
 {% if audience == "internal" %}
 
@@ -60,7 +60,7 @@ The path to the input file {% if audience == "internal" %}or table{% endif %} th
 
 **{{ cli__params-table__title__default }}:**
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 **{{ cli__params-table__title__processing-units-type }}**
 
@@ -114,7 +114,7 @@ The path to the input file that contains the weights of groups. Refer to the [G
 
 **{{ cli__params-table__title__default }}:**
 
-Omitted (group weights are either read from the dataset description or set to 1 for all groups if absent in the input dataset)
+Omitted (group weights are either read from the dataset file or set to 1 for all groups if absent in the input dataset)
 
 **{{ cli__params-table__title__processing-units-type }}**
 
@@ -132,7 +132,7 @@ The path to the input file that contains the weights of groups for the validatio
 
 **{{ cli__params-table__title__default }}:**
 
-Omitted (group weights are either read from the dataset description or set to 1 for all groups if absent in the input dataset)
+Omitted (group weights are either read from the dataset file or set to 1 for all groups if absent in the input dataset)
 
 **{{ cli__params-table__title__processing-units-type }}**
 
@@ -216,7 +216,7 @@ Omitted.
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
@@ -234,7 +234,7 @@ Only single char delimiters are supported. If the specified value contains more 
 
 #### Description
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 {% include [libsvm-note-restriction-delimiter-separated-format](../../_includes/work_src/reusage-formats/note-restriction-delimiter-separated-format.md) %}
 

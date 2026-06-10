@@ -1,4 +1,4 @@
-# Dataset description in delimiter-separated values format
+# Dataset in delimiter-separated values format
 
 {% if audience == "internal" %}
 
@@ -41,7 +41,7 @@ The feature indexed 3 is categorical, so the value in the second column of the d
 
 Other features are numerical and are omitted from the columns description file.
 
-The dataset description looks like this:
+The dataset file looks like this:
 ```
 1<\t>–10<\t>5<\t>north<\t>Memphis TN<\t>753
 0<\t>30<\t>1<\t>south<\t>Los Angeles CA<\t>760

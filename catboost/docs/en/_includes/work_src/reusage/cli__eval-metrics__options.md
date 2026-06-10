@@ -30,7 +30,7 @@ Possible values:
 
 #### Description
 
-The name of the input file with the [dataset description](../../../concepts/input-data_values-file.md).
+The name of the input file with the [dataset](../../../concepts/input-data_values-file.md).
 
 **{{ cli__params-table__title__default }}**
 
@@ -45,7 +45,7 @@ The path to the input file that contains the [columns description](../../../conc
 
 **{{ cli__params-table__title__default }}**
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### --input-pairs
 
@@ -104,7 +104,7 @@ The number of processor cores
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 

@@ -1,4 +1,4 @@
-# Dataset description in extended libsvm format
+# Dataset in extended libsvm format
 
 #### {{ input_data__title__contains }}
 
