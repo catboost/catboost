@@ -226,6 +226,11 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
     return AllocatePageAligned<TDefaultSharedBlobTag>(size, options);
 }
 
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    return AllocateViaMmap<TDefaultSharedBlobTag>(size, options);
+}
+
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref)
 {
@@ -258,6 +263,13 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
 {
     static_assert(IsEmptyClass<TTag>());
     return AllocatePageAligned(size, options, GetRefCountedTypeCookie<TTag>());
+}
+
+template <class TTag>
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    static_assert(IsEmptyClass<TTag>());
+    return AllocateViaMmap(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

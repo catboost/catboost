@@ -195,11 +195,23 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Various options for allocating TSharedMutableRef.
+//! Various options for allocating TSharedMutableRef via malloc.
 struct TSharedMutableRefAllocateOptions
 {
+    //! If true, the storage is zero-initialized; otherwise its contents are undefined.
     bool InitializeStorage = true;
+    //! If true, the allocation is extended to the usable size reported by the allocator.
     bool ExtendToUsableSize = false;
+};
+
+//! Various options for allocating TSharedMutableRef via mmap.
+struct TSharedMutableRefAllocateViaMmapOptions
+{
+    //! See TSharedMutableRefAllocateOptions::InitializeStorage.
+    bool InitializeStorage = true;
+    //! Hints the kernel to back the region with transparent huge pages.
+    //! Best-effort; ignored on non-Linux systems.
+    bool UseThp = false;
 };
 
 //! A reference to a mutable range of memory with shared ownership.
@@ -261,6 +273,21 @@ public:
     //! #size must be divisible by page size.
     //! The memory is marked with a given tag.
     static TSharedMutableRef AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie);
+
+    //! Allocates a new shared block of memory backed by an anonymous mmap region.
+    //! Optionally requests transparent huge pages; see #UseThp.
+    //! Falls back to AllocatePageAligned on non-Linux systems.
+    //! The memory is marked with a given tag.
+    template <class TTag>
+    static TSharedMutableRef AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options = {});
+
+    //! Allocates a new shared block of memory backed by an anonymous mmap region.
+    //! The memory is marked with TDefaultSharedBlobTag.
+    static TSharedMutableRef AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options = {});
+
+    //! Allocates a new shared block of memory backed by an anonymous mmap region.
+    //! The memory is marked with a given tag.
+    static TSharedMutableRef AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options, TRefCountedTypeCookie tagCookie);
 
     //! Allocates a new aligned shared block of memory.
     //! #size must be divisible by alignment size.
