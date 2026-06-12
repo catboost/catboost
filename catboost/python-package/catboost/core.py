@@ -1976,7 +1976,7 @@ class _CatBoostBase(object):
         return self._object._serialize_model()
 
     def _deserialize_model(self, dump_model_str):
-        assert isinstance(dump_model_str, bytes), "Not bytes passed as argument"
+        assert isinstance(dump_model_str, (bytes, memoryview)), "Not bytes passed as argument"
         self._object._deserialize_model(dump_model_str)
 
     def _load_from_string(self, dump_model_str):
