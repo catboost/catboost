@@ -103,9 +103,9 @@ inline void TStringBuilder::DoReset()
 
 inline void TStringBuilder::DoReserve(size_t newLength)
 {
-    Buffer_.resize(newLength);
+    ResizeUninitialized(Buffer_, newLength);
     auto capacity = Buffer_.capacity();
-    Buffer_.resize(capacity);
+    ResizeUninitialized(Buffer_, capacity);
     Begin_ = &*Buffer_.begin();
     End_ = Begin_ + capacity;
 }
