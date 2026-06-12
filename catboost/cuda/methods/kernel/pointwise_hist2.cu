@@ -30,7 +30,7 @@ namespace NKernel
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide(size, blockSize);
-        UpdateBinsImpl << < numBlocks, blockSize, 0, stream >> > (dstBins, bins, docIndices, size, loadBit, foldBits);
+        UpdateBinsImpl <<< numBlocks, blockSize, 0, stream >>> (dstBins, bins, docIndices, size, loadBit, foldBits);
     }
 
 
@@ -120,9 +120,9 @@ namespace NKernel
         }
         const int scanOffset = fullPass ? 0 : ((partCount / 2) * histLineSize * histCount) * foldCount;
         if (histCount == 1) {
-            ScanHistogramsImpl<scanBlockSize, 1> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + scanOffset);
+            ScanHistogramsImpl<scanBlockSize, 1> <<< scanBlocks, scanBlockSize, 0, stream >>> (features, featureCount, histLineSize, binSums + scanOffset);
         } else if (histCount == 2) {
-            ScanHistogramsImpl<scanBlockSize, 2> << < scanBlocks, scanBlockSize, 0, stream >> >
+            ScanHistogramsImpl<scanBlockSize, 2> <<< scanBlocks, scanBlockSize, 0, stream >>>
                                                                                     (features, featureCount, histLineSize, binSums + scanOffset);
         } else {
             CB_ENSURE_INTERNAL(false, "histCount should be 1 or 2, not " << histCount);

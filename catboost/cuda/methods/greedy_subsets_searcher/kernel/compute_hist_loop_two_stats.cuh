@@ -203,7 +203,7 @@ namespace NKernel {
                         localStats2[k] = Ldg(stats + statsLineSize, warpSize * k);
                     }
 
-                    hist.AddPoints<N>(localBins, localStats1, localStats2);
+                    hist.template AddPoints<N>(localBins, localStats1, localStats2);
 
                     bins += stripeSize;
                     stats += stripeSize;
@@ -256,7 +256,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<N>(localBins, localStats1, localStats2);
+                    hist.template AddPoints<N>(localBins, localStats1, localStats2);
                 }
             }
 
@@ -303,7 +303,7 @@ namespace NKernel {
                     stats += stripeSize;
                     bins += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
                 }
             }
 
@@ -351,7 +351,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
                 }
             }
 
@@ -398,7 +398,7 @@ namespace NKernel {
                     stats += stripeSize;
                     bins += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
                 }
             }
 
@@ -451,7 +451,7 @@ namespace NKernel {
                     stats += stripeSize;
                     indices += stripeSize;
 
-                    hist.AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
+                    hist.template AddPoints<loadSize * N>((ui32*)localBins, (float*)localStats1, (float*)localStats2);
                 }
             }
 
