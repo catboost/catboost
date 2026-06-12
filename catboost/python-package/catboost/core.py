@@ -2255,6 +2255,9 @@ class _CatBoostBase(object):
             'check_dtype_object':
                 'TODO: raise TypeError instead of generic CatBoostError.'
                 ' https://github.com/catboost/catboost/issues/2998',
+            'check_all_zero_sample_weights_error':
+                'TODO: raise ValueError instead of generic CatBoostError.'
+                ' https://github.com/catboost/catboost/issues/2996',
         }
 
         if scikit_learn_version < (1, 6):
