@@ -6219,9 +6219,10 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     if hasattr(folds, 'split'):
         if arr_group_ids.Defined():
             flatted_group = _CreateNumpyUI64ArrayView(arr_group_ids.GetRef().data(), arr_group_ids.GetRef().size())
+            folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
         else:
             flatted_group = np.zeros(num_data, dtype=int)
-        folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
+            folds = folds.split(X=np.zeros(num_data), y=pool.get_label())
 
     cdef TVector[TVector[ui32]] custom_train_subsets
     cdef TVector[TVector[ui32]] custom_test_subsets
