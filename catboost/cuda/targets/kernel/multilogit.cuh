@@ -97,6 +97,25 @@ namespace NKernel {
         ui32 der2Row, ui32 der2AlignSize,
         TCudaStream stream);
 
+    void MultiRMSEWithMissingValuesValueAndDer(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        const ui32* loadPredictionsIndices,
+        float* functionValue,
+        float* der, ui32 derAlignSize,
+        TCudaStream stream);
+
+    void MultiRMSEWithMissingValuesSecondDer(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 targetAlignSize,
+        const float* weights,
+        float* der2,
+        ui32 der2Row, ui32 der2AlignSize,
+        TCudaStream stream);
 
 
     void BuildConfusionMatrixBins(const float* targetClasses, int numClasses, ui32 size,

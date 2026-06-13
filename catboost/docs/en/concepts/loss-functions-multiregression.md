@@ -38,4 +38,4 @@ $dim$ is the identifier of the dimension of the label.
 | Name                                                                            | Optimization            | GPU Support             |
 ----------------------------------------------------------------------------------|-------------------------|-------------------------|
 [{{ error-function__MultiRMSE }}](#MultiRMSE)                                     |     +                   |     +                   |
-[{{ error-function__MultiRMSEWithMissingValues }}](#MultiRMSEWithMissingValues)   |     +                   |     -                   |
+[{{ error-function__MultiRMSEWithMissingValues }}](#MultiRMSEWithMissingValues)   |     +                   |     +                   |
