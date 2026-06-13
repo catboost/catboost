@@ -57,11 +57,19 @@ jobs:
     steps:
       - name: Install pyenv and python versions and pack to zip file
         run: |
-          brew install openssl readline sqlite3 xz zlib tcl-tk@8 libb2
+          brew install openssl@3.0 readline sqlite3 xz zlib tcl-tk@8 libb2
+
+          # pyenv builds cannot handle both openssl@1.1 and openssl@3 installed at the same time
+          brew unlink openssl@1.1
+          mv /usr/local/opt/openssl@1.1 /usr/local/opt/openssl@1.1.BAK
+
           brew install pyenv
 
-          export CFLAGS="-I$(brew --prefix openssl)/include -I$(brew --prefix bzip2)/include -I$(brew --prefix readline)/include -I$(xcrun --show-sdk-path)/usr/include"
-          export LDFLAGS="-L$(brew --prefix openssl)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix bzip2)/lib"
+          export OPENSSL_PATH=$(brew --prefix openssl@3.0)
+          export CFLAGS="-I$OPENSSL_PATH/include -I$(brew --prefix bzip2)/include -I$(brew --prefix readline)/include -I$(xcrun --show-sdk-path)/usr/include"
+          export LDFLAGS="-L$OPENSSL_PATH/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix bzip2)/lib"
+
+          export PYTHON_CONFIGURE_OPTS="--with-openssl=$OPENSSL_PATH"
 
           pyenv install -v 3.8.18
           cd $HOME/.pyenv/versions/ && ln -s 3.8.18 ./3.8
