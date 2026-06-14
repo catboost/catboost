@@ -330,7 +330,7 @@ Dict with four fields:
 ## Examples {#example}
 
 ```python
-from catboost import CatBoostRegressor, Pool, EShapCalcType, EFeaturesSelectionAlgorithm
+from catboost import CatBoost, Pool, EShapCalcType, EFeaturesSelectionAlgorithm
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
@@ -340,7 +340,7 @@ feature_names = ['F{}'.format(i) for i in range(train_X.shape[1])]
 train_pool = Pool(train_X, train_y, feature_names=feature_names)
 test_pool = Pool(test_X, test_y, feature_names=feature_names)
 
-model = CatBoostRegressor(iterations=1000, random_seed=0)
+model = CatBoost(loss_function='RMSE', iterations=1000, random_seed=0)
 summary = model.select_features(
     train_pool,
     eval_set=test_pool,
