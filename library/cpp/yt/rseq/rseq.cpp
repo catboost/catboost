@@ -10,6 +10,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstddef>
 #include <utility>
 
@@ -33,6 +34,11 @@ namespace {
 // offset 4 and is the only field we read.
 constexpr unsigned RseqRegistrationSize = 32;
 
+// The conventional rseq signature shared by glibc, librseq and tcmalloc. We must pass
+// the same one so that re-registering an already-registered area yields EBUSY (success)
+// rather than EINVAL; see RegisterCurrentThread.
+constexpr unsigned RseqSignature = 0x53053053;
+
 struct alignas(32) TRseqArea
 {
     ui32 CpuIdStart;
@@ -52,38 +58,50 @@ extern const std::ptrdiff_t __rseq_offset __attribute__((weak));
 extern const unsigned int __rseq_size __attribute__((weak));
 } // extern "C"
 
-// Our own per-thread rseq area, used when glibc does not own the registration.
-// initial-exec so its offset from the thread pointer is a link-time constant, and
-// CpuId starts at -1 so an unregistered thread takes the slow path.
-__thread TRseqArea OwnRseqArea __attribute__((tls_model("initial-exec"), aligned(32))) = {
+// The legacy per-thread rseq area. tcmalloc, librseq and pre-2.35 glibc all define and
+// register this exact symbol; our definition is weak, so it coalesces with theirs when
+// present (the common case in YT binaries -- tcmalloc owns it) and stands alone, with us
+// registering it, otherwise (e.g. musl). initial-exec gives a link-time-constant offset
+// from the thread pointer; CpuId starts at -1 so an unregistered thread takes the slow
+// path.
+extern "C" {
+__thread TRseqArea __rseq_abi __attribute__((weak, tls_model("initial-exec"), aligned(32))) = {
     .CpuId = static_cast<ui32>(-1),
 };
+} // extern "C"
 
-// True iff we (not glibc) own the registration and the kernel supports rseq.
+// True when we read __rseq_abi (not the glibc-owned area) and so must make sure each
+// thread is registered.
 bool OwnsRegistration = false;
 
 bool RegisterCurrentThread()
 {
-    // flags = 0, signature = 0: we never use restartable critical sections, so the
-    // signature is irrelevant (it is only checked at an rseq_cs abort handler).
-    return ::syscall(RseqSyscallNumber, &OwnRseqArea, RseqRegistrationSize, 0u, 0u) == 0;
+    // flags = 0. We pass the shared signature and the standard size so that whoever of
+    // {us, tcmalloc, librseq} runs first registers __rseq_abi and the rest get EBUSY,
+    // which is success for our read-only use (we never run rseq critical sections, so the
+    // signature only ever matters for matching this registration call).
+    if (::syscall(RseqSyscallNumber, &__rseq_abi, RseqRegistrationSize, 0u, RseqSignature) == 0) {
+        return true;
+    }
+    return errno == EBUSY;
 }
 
 YT_PREVENT_TLS_CACHING std::ptrdiff_t ComputeCpuIdFieldOffset()
 {
     if (&__rseq_size != nullptr && __rseq_size != 0) {
-        // glibc owns the registration and keeps every thread's cpu_id up to date.
+        // glibc owns the registration and keeps every thread's cpu_id up to date in its
+        // own area; just read it.
         return __rseq_offset + static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
     }
-    // We own the registration. Probe kernel support by registering this (main) thread;
-    // other threads register lazily on their first slow-path call. Point at our area
-    // either way: cpu_id holds the real value once registered and stays -1 (routing to
-    // the slow path) when it is not.
-    if (RegisterCurrentThread()) {
-        OwnsRegistration = true;
-    }
+    // Otherwise use __rseq_abi. Register this (main) thread; other threads register
+    // lazily on their first slow-path call. The offset points at __rseq_abi either way:
+    // cpu_id holds the real value once the thread is registered and stays -1 (routing to
+    // the slow path) until then.
+    OwnsRegistration = true;
+    RegisterCurrentThread();
     auto* threadPointer = static_cast<char*>(__builtin_thread_pointer());
-    return (reinterpret_cast<char*>(&OwnRseqArea) - threadPointer) + static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
+    return (reinterpret_cast<char*>(&__rseq_abi) - threadPointer) +
+        static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
 }
 
 YT_STATIC_INITIALIZER({
@@ -94,18 +112,15 @@ YT_STATIC_INITIALIZER({
 
 YT_PREVENT_TLS_CACHING bool EnsureCurrentThreadRegistered()
 {
-    if (!OwnsRegistration) {
-        // Either glibc owns the registration (every thread is already registered) or
-        // rseq is unavailable. The two are told apart by what cpu_id reads: a valid
-        // (>= 0) value means registered.
-        return ReadField<int>(CpuIdFieldOffset) >= 0;
+    if (OwnsRegistration) {
+        // Register this thread once, on first use. Usually a no-op (EBUSY): in YT
+        // binaries tcmalloc registers __rseq_abi for every thread before we get here.
+        thread_local bool RegistrationAttempted = false;
+        if (!std::exchange(RegistrationAttempted, true)) {
+            RegisterCurrentThread();
+        }
     }
-
-    // We own the registration: register this thread once, on first use.
-    thread_local bool RegistrationAttempted = false;
-    if (!std::exchange(RegistrationAttempted, true)) {
-        RegisterCurrentThread();
-    }
+    // Either way the thread is registered iff cpu_id reads as valid (>= 0).
     return ReadField<int>(CpuIdFieldOffset) >= 0;
 }
 
