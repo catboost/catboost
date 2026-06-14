@@ -256,18 +256,24 @@ template <class T>
 constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMinValue()
     requires (!TEnumTraitsImpl<T>::IsBitEnum)
 {
-    const auto& values = GetDomainValues();
-    static_assert(!values.empty()); \
-    return *std::min_element(std::begin(values), std::end(values));
+    // NB: GetDomainValues() is a static constexpr array, but a constexpr function called from
+    // a runtime context is not guaranteed to be constant-folded. Without binding the result to
+    // a constexpr local, clang (at -O2/-O3) emits a runtime std::min_element scan over the whole
+    // domain on every call -- which is hot, e.g. in TEnumIndexedArray::operator[] bounds checks.
+    constexpr auto values = GetDomainValues();
+    static_assert(!values.empty());
+    constexpr T result = *std::min_element(std::begin(values), std::end(values));
+    return result;
 }
 
 template <class T>
 constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMaxValue()
     requires (!TEnumTraitsImpl<T>::IsBitEnum)
 {
-    const auto& values = GetDomainValues();
-    static_assert(!values.empty()); \
-    return *std::max_element(std::begin(values), std::end(values));
+    constexpr auto values = GetDomainValues();
+    static_assert(!values.empty());
+    constexpr T result = *std::max_element(std::begin(values), std::end(values));
+    return result;
 }
 
 template <class T>
