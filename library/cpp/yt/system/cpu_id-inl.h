@@ -5,7 +5,9 @@
 #endif
 #undef CPU_ID_INL_H_
 
+#ifdef __linux__
 #include <library/cpp/yt/rseq/rseq.h>
+#endif
 
 #include <util/system/compiler.h>
 

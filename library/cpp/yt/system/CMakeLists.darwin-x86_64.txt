@@ -31,7 +31,6 @@ target_link_libraries(cpp-yt-system PUBLIC
   cpp-yt-cpu_clock
   cpp-yt-exception
   cpp-yt-misc
-  cpp-yt-rseq
 )
 
 target_sources(cpp-yt-system PRIVATE
