@@ -42,12 +42,12 @@ namespace NLastGetopt {
      *   argument parse politics: no/optional/required/
      *   option existence: required or optional
      *   handlers. See detailed documentation: <TODO:link>
-     *   default value: if the option has argument, but the option is ommited,
+     *   default value: if the option has argument, but the option is omitted,
      *                     then the <default value> is used as the value of the argument
      *   optional value: if the option has optional-argument, the option is present in parsed string,
      *                      but the argument is omitted, then <optional value is used>
-     *      in case of "not given <optional value>, omited optional argument" the <default value> is used
-     *   user value: allows to store arbitary pointer for handlers
+     *      in case of "not given <optional value>, omitted optional argument" the <default value> is used
+     *   user value: allows to store arbitrary pointer for handlers
      */
     class TOpt {
     public:
@@ -100,7 +100,7 @@ namespace NLastGetopt {
         /**
          *  Checks if given string can be a long name
          *  @param name            string to check
-         *  @param c               if given, the first bad charecter will be saved in c
+         *  @param c               if given, the first bad character will be saved in c
          */
         static bool IsAllowedLongName(const TString& name, unsigned char* c = nullptr);
 
