@@ -5,8 +5,8 @@
 // Internal API not declared by <Python.h>; declared opaquely to take &sym.
 #if PY_VERSION_HEX >= 0x030b0000
 extern "C" {
-void _PyFrame_IsEntryFrame();
-void _PyMem_GetCurrentAllocatorName();
+PyAPI_FUNC(int) _PyFrame_IsEntryFrame();
+PyAPI_FUNC(const char *) _PyMem_GetCurrentAllocatorName();
 }
 #endif
 
