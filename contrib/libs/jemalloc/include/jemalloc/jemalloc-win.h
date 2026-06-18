@@ -15,16 +15,3 @@
 /* JEMALLOC_NOTHROW with attrs on Windows should use __attribute__((nothrow)). */
 #undef JEMALLOC_NOTHROW
 #define JEMALLOC_NOTHROW JEMALLOC_ATTR(nothrow)
-
-/* memalign and valloc are not available on Windows. */
-#undef JEMALLOC_OVERRIDE_MEMALIGN
-#undef JEMALLOC_OVERRIDE_VALLOC
-#undef je_memalign
-#undef je_valloc
-
-/* Different GID / smallocx symbol on the Windows build. */
-#undef je_smallocx_54eaed1d8b56b1aa528be3bdd1877e59c56fa90c
-#define je_smallocx_ea6b3e973b477b8061e0076bb257dbd7f3faa756 smallocx_ea6b3e973b477b8061e0076bb257dbd7f3faa756
-
-/* malloc_conf_2_conf_harder is absent on the Windows build. */
-#undef je_malloc_conf_2_conf_harder
