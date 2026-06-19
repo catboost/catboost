@@ -29,10 +29,12 @@ target_link_libraries(cpp-yt-rseq PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-yt-assert
   cpp-yt-misc
 )
 
 target_sources(cpp-yt-rseq PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/rseq/per_cpu.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/rseq/rseq.cpp
 )
 

@@ -77,9 +77,10 @@ bool OwnsRegistration = false;
 bool RegisterCurrentThread()
 {
     // flags = 0. We pass the shared signature and the standard size so that whoever of
-    // {us, tcmalloc, librseq} runs first registers __rseq_abi and the rest get EBUSY,
-    // which is success for our read-only use (we never run rseq critical sections, so the
-    // signature only ever matters for matching this registration call).
+    // {us, tcmalloc, librseq} runs first registers __rseq_abi and the rest get EBUSY
+    // (success). The signature must be 0x53053053: it is the value emitted before abort_ip
+    // in the per_cpu rseq critical sections (see per_cpu-inl.h), and on a kernel abort the
+    // signature must match the registered one or the kernel delivers SIGSEGV.
     if (::syscall(RseqSyscallNumber, &__rseq_abi, RseqRegistrationSize, 0u, RseqSignature) == 0) {
         return true;
     }
