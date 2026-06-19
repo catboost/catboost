@@ -43,7 +43,8 @@ public:
     TRandomizedHash();
     explicit TRandomizedHash(size_t seed);
 
-    size_t operator()(const TElement& element) const;
+    template <class THeterogenousElement>
+    size_t operator()(const THeterogenousElement& element) const;
 
 private:
     size_t Seed_;

@@ -95,7 +95,8 @@ TRandomizedHash<TElement, TUnderlying>::TRandomizedHash(size_t seed)
 { }
 
 template <class TElement, class TUnderlying>
-size_t TRandomizedHash<TElement, TUnderlying>::operator ()(const TElement& element) const
+template <class THeterogenousElement>
+size_t TRandomizedHash<TElement, TUnderlying>::operator ()(const THeterogenousElement& element) const
 {
     auto result = Seed_;
     HashCombine(result, Underlying_(element));
