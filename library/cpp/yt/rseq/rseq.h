@@ -14,10 +14,10 @@ namespace NYT::NRseq {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Byte offset from the thread pointer to the rseq area's cpu_id field (glibc's area
-//! when glibc registers rseq, otherwise our own). Constant across threads
-//! (initial-exec TLS). NB: 0 until our startup initializer runs, so a read before then
-//! is meaningless -- but nothing reads rseq during static initialization.
+//! Byte offset from the thread pointer to the rseq area's cpu_id field (glibc's area when
+//! glibc registers rseq, otherwise our own). A fixed offset across threads only when the area
+//! is glibc-owned or in the static TLS block; #IsPerCpuFastPathSafe probes this and gates the
+//! fast path. NB: 0 until our startup initializer runs, but nothing reads rseq before then.
 extern std::ptrdiff_t CpuIdFieldOffset;
 
 //! Reads a field of the calling thread's rseq area at the given offset from the thread

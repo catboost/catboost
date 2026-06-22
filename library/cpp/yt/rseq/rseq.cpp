@@ -2,11 +2,14 @@
 
 #ifdef YT_RSEQ_AVAILABLE
 
+#include "per_cpu.h"
+
 #include <library/cpp/yt/misc/static_initializer.h>
 #include <library/cpp/yt/misc/tls.h>
 
 #include <util/system/types.h>
 
+#include <pthread.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -58,17 +61,33 @@ extern const std::ptrdiff_t __rseq_offset __attribute__((weak));
 extern const unsigned int __rseq_size __attribute__((weak));
 } // extern "C"
 
+// The TLS model for our weak __rseq_abi definition. initial-exec yields a
+// link-time-constant offset from the thread pointer (a single TP-relative load), but it
+// requires a static TLS block reserved at program startup -- which the dynamic loader
+// cannot grant a module dlopen'd afterwards (e.g. a YQL UDF .so), failing with "cannot
+// allocate memory in static TLS block". Position-independent objects (-fPIC/-fPIE, what
+// such .so's are built as) therefore use global-dynamic instead. This only affects the
+// cold &__rseq_abi accesses (ComputeCpuIdFieldOffset / RegisterCurrentThread); the hot
+// path reads *(thread_pointer + CpuIdFieldOffset) off a cached offset and is unchanged.
+// Mirrors the __PIC__/__PIE__ handling in contrib/libs/tcmalloc.
+#if defined(__PIC__) || defined(__PIE__)
+    #define YT_RSEQ_ABI_TLS_MODEL "global-dynamic"
+#else
+    #define YT_RSEQ_ABI_TLS_MODEL "initial-exec"
+#endif
+
 // The legacy per-thread rseq area. tcmalloc, librseq and pre-2.35 glibc all define and
 // register this exact symbol; our definition is weak, so it coalesces with theirs when
 // present (the common case in YT binaries -- tcmalloc owns it) and stands alone, with us
-// registering it, otherwise (e.g. musl). initial-exec gives a link-time-constant offset
-// from the thread pointer; CpuId starts at -1 so an unregistered thread takes the slow
-// path.
+// registering it, otherwise (e.g. musl). CpuId starts at -1 so an unregistered thread
+// takes the slow path.
 extern "C" {
-__thread TRseqArea __rseq_abi __attribute__((weak, tls_model("initial-exec"), aligned(32))) = {
+__thread TRseqArea __rseq_abi __attribute__((weak, tls_model(YT_RSEQ_ABI_TLS_MODEL), aligned(32))) = {
     .CpuId = static_cast<ui32>(-1),
 };
 } // extern "C"
+
+#undef YT_RSEQ_ABI_TLS_MODEL
 
 // True when we read __rseq_abi (not the glibc-owned area) and so must make sure each
 // thread is registered.
@@ -109,6 +128,39 @@ YT_STATIC_INITIALIZER({
     CpuIdFieldOffset = ComputeCpuIdFieldOffset();
 });
 
+// Checks, on a freshly spawned thread, whether CpuIdFieldOffset names *this* thread's rseq
+// area -- i.e. whether __rseq_abi sits at a fixed thread-pointer offset (a glibc-owned area or
+// the static TLS block, incl. tcmalloc) rather than a dlopen'd module's dynamically allocated
+// TLS, where the offset is valid only on the thread that computed it. Compares addresses
+// without dereferencing the suspect offset, so it is safe even when the offset is bogus. See
+// IsPerCpuFastPathSafe.
+YT_PREVENT_TLS_CACHING bool ValidateFastPathOnFreshThread()
+{
+    if (OwnsRegistration) {
+        RegisterCurrentThread();
+        const auto* viaOffset =
+            static_cast<const char*>(__builtin_thread_pointer()) + CpuIdFieldOffset;
+        const auto* viaSymbol =
+            reinterpret_cast<const char*>(&__rseq_abi) +
+            static_cast<std::ptrdiff_t>(offsetof(TRseqArea, CpuId));
+        if (viaOffset != viaSymbol) {
+            // Not thread-pointer-stable: dynamically allocated TLS. Disable the fast path.
+            return false;
+        }
+        // Stable; read cpu_id through the symbol and require the kernel to have registered us.
+        return __rseq_abi.CpuId != static_cast<ui32>(-1);
+    }
+    // glibc owns the registration: __rseq_offset is a fixed thread-pointer-relative offset
+    // valid on every thread. Usable iff a valid cpu_id is present.
+    return ReadField<int>(CpuIdFieldOffset) >= 0;
+}
+
+void* RunFastPathProbe(void* result)
+{
+    *static_cast<bool*>(result) = ValidateFastPathOnFreshThread();
+    return nullptr;
+}
+
 } // namespace
 
 YT_PREVENT_TLS_CACHING bool EnsureCurrentThreadRegistered()
@@ -123,6 +175,46 @@ YT_PREVENT_TLS_CACHING bool EnsureCurrentThreadRegistered()
     }
     // Either way the thread is registered iff cpu_id reads as valid (>= 0).
     return ReadField<int>(CpuIdFieldOffset) >= 0;
+}
+
+bool IsPerCpuFastPathSafe()
+{
+    // Decided once, lazily, on a freshly spawned thread (the check is meaningful only off the
+    // thread that computed the offset) and cached -- cost is one thread spawn at first use.
+    // Reached from the first hot-sensor construction, a runtime event; were it ever reached
+    // from a global constructor under the dynamic loader lock, spawning the probe thread could
+    // deadlock, but hot sensors are not built during static initialization.
+    static const bool Safe = [] {
+        // Make sure CpuIdFieldOffset (static initializer) and CpuCount are in place.
+        GetCpuCount();
+        bool result = false;
+        pthread_t thread;
+        if (::pthread_create(&thread, /*attr*/ nullptr, &RunFastPathProbe, &result) != 0) {
+            // Cannot validate -- stay on the safe atomic fallback.
+            return false;
+        }
+        ::pthread_join(thread, /*retval*/ nullptr);
+        return result;
+    }();
+    return Safe;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT::NRseq
+
+#else // YT_RSEQ_AVAILABLE
+
+#include "per_cpu.h"
+
+namespace NYT::NRseq {
+
+////////////////////////////////////////////////////////////////////////////////
+
+// No rseq fast path on this platform; hot sensors use the atomic fallback.
+bool IsPerCpuFastPathSafe()
+{
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

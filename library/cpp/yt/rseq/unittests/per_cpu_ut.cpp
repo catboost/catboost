@@ -58,6 +58,14 @@ TEST(TPerCpuRseqTest, CpuCountIsSane)
     EXPECT_LE(GetCpuCount(), 1 << 20);
 }
 
+TEST(TPerCpuRseqTest, FastPathSafetyIsStable)
+{
+    // The probe spawns a thread on first use and caches its verdict, so repeated calls must
+    // agree. We avoid asserting a specific value: it depends on kernel rseq support.
+    bool safe = IsPerCpuFastPathSafe();
+    EXPECT_EQ(safe, IsPerCpuFastPathSafe());
+}
+
 TEST(TPerCpuRseqTest, ParsePossibleCpuCount)
 {
     using NDetail::ParsePossibleCpuCount;
