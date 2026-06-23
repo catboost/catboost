@@ -78,6 +78,27 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         UNIT_ASSERT_VALUES_EQUAL(serializedTree["option_val"], tree["option_val"]);
     }
 
+    Y_UNIT_TEST(TestTOptionParseErrorContainsExpectedType) {
+        TStringBuf json = ""
+            "{\n"
+            "    \"leaf_estimation_iterations\": 86.85434834\n"
+            "}";
+
+        NJson::TJsonValue tree;
+        NJson::ReadJsonTree(json, &tree);
+
+        TOption<int> parsedOption("leaf_estimation_iterations", 10);
+
+        try {
+            TJsonFieldHelper<decltype(parsedOption)>::Read(tree, &parsedOption);
+            UNIT_ASSERT_C(false, "Expected TCatBoostException");
+        } catch (const TCatBoostException& e) {
+            UNIT_ASSERT(e.AsStrBuf().Contains("Can't parse parameter \"leaf_estimation_iterations\""));
+            UNIT_ASSERT(e.AsStrBuf().Contains("with value"));
+            UNIT_ASSERT(e.AsStrBuf().Contains(" as int"));
+        }
+    }
+
     Y_UNIT_TEST(TestJsonSerializationWithFloatingPointValues) {
         TVector<double> values = {1.0f, 0.4f, 12.33f, 1.e-6f, 0.0f};
 
