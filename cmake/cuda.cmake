@@ -2,19 +2,17 @@
 # Build the same .cu sources with the HIP toolchain. Enabled with
 # -DHAVE_HIP=ON (which also sets USE_HIP). Only .cu translation units see HIP;
 # host C++ is untouched and the CUDA path below is byte-for-byte unchanged. The
-# arch comes from CMAKE_HIP_ARCHITECTURES and defaults to gfx90a when unset; set
-# -DCMAKE_HIP_ARCHITECTURES=<arch> to build other architectures with no source
-# edit.
+# arch comes from CMAKE_HIP_ARCHITECTURES; set -DCMAKE_HIP_ARCHITECTURES=<arch>
+# to build a specific architecture with no source edit, otherwise the host GPU
+# is auto-detected.
 # ---------------------------------------------------------------------------
 if (HAVE_HIP)
   if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
     message(FATAL_ERROR "Build with HIP requires at least cmake 3.21.0")
   endif()
 
-  if (NOT DEFINED CMAKE_HIP_ARCHITECTURES OR CMAKE_HIP_ARCHITECTURES STREQUAL "")
-    set(CMAKE_HIP_ARCHITECTURES "gfx90a")
-  endif()
-
+  # enable_language(HIP) honors -DCMAKE_HIP_ARCHITECTURES, otherwise auto-detects
+  # the host GPU(s) and errors if none is found (no-GPU build host sets the arch).
   enable_language(HIP)
 
   include(global_flags)
