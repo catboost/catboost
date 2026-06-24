@@ -54,6 +54,9 @@ public:
     //! Creates a TRef for a part of existing range.
     TRef Slice(size_t startOffset, size_t endOffset) const;
 
+    //! Returns |true| if #other's range lies entirely within this range.
+    bool Contains(TRef other) const;
+
     //! Compares the content for bitwise equality.
     static bool AreBitwiseEqual(TRef lhs, TRef rhs);
 };
