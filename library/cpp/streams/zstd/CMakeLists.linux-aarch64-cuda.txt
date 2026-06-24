@@ -12,7 +12,17 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(brotli)
-add_subdirectory(bzip2)
-add_subdirectory(lzma)
-add_subdirectory(zstd)
+add_library(cpp-streams-zstd)
+
+
+target_link_libraries(cpp-streams-zstd PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  contrib-libs-zstd
+)
+
+target_sources(cpp-streams-zstd PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/streams/zstd/zstd.cpp
+)
+

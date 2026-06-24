@@ -31,6 +31,7 @@ target_link_libraries(cpp-http-io PUBLIC
   cpp-streams-brotli
   cpp-streams-bzip2
   cpp-streams-lzma
+  cpp-streams-zstd
 )
 
 target_sources(cpp-http-io PRIVATE
