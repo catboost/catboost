@@ -1,6 +1,7 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
 #include <library/cpp/yt/rseq/per_cpu.h>
+#include <library/cpp/yt/rseq/rseq.h>
 
 #include <library/cpp/yt/memory/public.h>
 
@@ -58,12 +59,12 @@ TEST(TPerCpuRseqTest, CpuCountIsSane)
     EXPECT_LE(GetCpuCount(), 1 << 20);
 }
 
-TEST(TPerCpuRseqTest, FastPathSafetyIsStable)
+TEST(TPerCpuRseqTest, FastPathSupportIsStable)
 {
     // The probe spawns a thread on first use and caches its verdict, so repeated calls must
     // agree. We avoid asserting a specific value: it depends on kernel rseq support.
-    bool safe = IsPerCpuFastPathSafe();
-    EXPECT_EQ(safe, IsPerCpuFastPathSafe());
+    bool supported = IsPerCpuFastPathSupported();
+    EXPECT_EQ(supported, IsPerCpuFastPathSupported());
 }
 
 TEST(TPerCpuRseqTest, ParsePossibleCpuCount)

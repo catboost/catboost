@@ -133,7 +133,7 @@ YT_STATIC_INITIALIZER({
 // the static TLS block, incl. tcmalloc) rather than a dlopen'd module's dynamically allocated
 // TLS, where the offset is valid only on the thread that computed it. Compares addresses
 // without dereferencing the suspect offset, so it is safe even when the offset is bogus. See
-// IsPerCpuFastPathSafe.
+// IsPerCpuFastPathSupported.
 YT_PREVENT_TLS_CACHING bool ValidateFastPathOnFreshThread()
 {
     if (OwnsRegistration) {
@@ -177,7 +177,7 @@ YT_PREVENT_TLS_CACHING bool EnsureCurrentThreadRegistered()
     return ReadField<int>(CpuIdFieldOffset) >= 0;
 }
 
-bool IsPerCpuFastPathSafe()
+bool IsPerCpuFastPathSupported()
 {
     // Decided once, lazily, on a freshly spawned thread (the check is meaningful only off the
     // thread that computed the offset) and cached -- cost is one thread spawn at first use.
@@ -205,14 +205,12 @@ bool IsPerCpuFastPathSafe()
 
 #else // YT_RSEQ_AVAILABLE
 
-#include "per_cpu.h"
-
 namespace NYT::NRseq {
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // No rseq fast path on this platform; hot sensors use the atomic fallback.
-bool IsPerCpuFastPathSafe()
+bool IsPerCpuFastPathSupported()
 {
     return false;
 }
