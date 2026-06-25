@@ -7,7 +7,6 @@
 #include <library/cpp/streams/brotli/brotli.h>
 #include <library/cpp/streams/lzma/lzma.h>
 #include <library/cpp/streams/bzip2/bzip2.h>
-#include <library/cpp/streams/zstd/zstd.h>
 
 #include <library/cpp/blockcodecs/stream.h>
 #include <library/cpp/blockcodecs/codecs.h>
@@ -23,7 +22,6 @@ TCompressionCodecFactory::TCompressionCodecFactory() {
     Add("gzip", gzip, [](auto s) { return MakeHolder<TZLibCompress>(s, ZLib::GZip); });
     Add("deflate", gzip, [](auto s) { return MakeHolder<TZLibCompress>(s, ZLib::ZLib); });
     Add("br", [](auto s) { return MakeHolder<TBrotliDecompress>(s); }, [](auto s) { return MakeHolder<TBrotliCompress>(s, 4); });
-    Add("zstd", [](auto s) { return MakeHolder<TZstdDecompress>(s); }, [](auto s) { return MakeHolder<TZstdCompress>(s, 3); });
     Add("x-gzip", gzip, [](auto s) { return MakeHolder<TZLibCompress>(s, ZLib::GZip); });
     Add("x-deflate", gzip, [](auto s) { return MakeHolder<TZLibCompress>(s, ZLib::ZLib); });
 
