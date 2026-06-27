@@ -8,6 +8,13 @@
     #define YT_ENABLE_REF_COUNTED_TRACKING
 #endif
 
+#if !defined(NDEBUG) && !defined(YT_DISABLE_REF_COUNTED_SIGNATURE)
+    // This define embeds a salted, poisonable signature into every TRefCounter
+    // (see ref_counted.h). It lets a coredump walker tell a live ref-counted object
+    // from freed-but-unreclaimed memory.
+    #define YT_ENABLE_REF_COUNTED_SIGNATURE
+#endif
+
 // This define enables logging with TRACE level. You can still disable trace logging
 // for particular TU by discarding this macro identifier.
 #define YT_ENABLE_TRACE_LOGGING
