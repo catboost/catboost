@@ -15,10 +15,17 @@ namespace NDotProductImpl {
     extern ui32 (*DotProductUi8Impl)(const ui8* lhs, const ui8* rhs, size_t length) noexcept;
     extern i64 (*DotProductI32Impl)(const i32* lhs, const i32* rhs, size_t length) noexcept;
     extern float (*DotProductFloatImpl)(const float* lhs, const float* rhs, size_t length) noexcept;
+    extern float (*DotProductFloatI8Impl)(const float* lhs, const i8* rhs, size_t length) noexcept;
     extern double (*DotProductDoubleImpl)(const double* lhs, const double* rhs, size_t length) noexcept;
 
     extern TTriWayDotProduct<float> (*TriWayDotProductImpl)
         (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept;
+
+    extern TTriWayDotProductFloatI8 (*TriWayDotProductFloatI8Impl)
+        (const float* lhs, const i8* rhs, size_t length) noexcept;
+
+    extern TTriWayDotProduct<i32> (*TriWayDotProductI8Impl)
+        (const i8* lhs, const i8* rhs, size_t length) noexcept;
 }
 
 Y_PURE_FUNCTION
@@ -39,6 +46,11 @@ inline i64 DotProduct(const i32* lhs, const i32* rhs, size_t length) noexcept {
 Y_PURE_FUNCTION
 inline float DotProduct(const float* lhs, const float* rhs, size_t length) noexcept {
     return NDotProductImpl::DotProductFloatImpl(lhs, rhs, length);
+}
+
+Y_PURE_FUNCTION
+inline float DotProduct(const float* lhs, const i8* rhs, size_t length) noexcept {
+    return NDotProductImpl::DotProductFloatI8Impl(lhs, rhs, length);
 }
 
 Y_PURE_FUNCTION
@@ -69,6 +81,24 @@ static inline TTriWayDotProduct<float> TriWayDotProduct(
     ETriWayDotProductComputeMask mask = ETriWayDotProductComputeMask::All) noexcept
 {
     return TriWayDotProduct(lhs, rhs, length, static_cast<unsigned>(mask));
+}
+
+Y_PURE_FUNCTION
+inline TTriWayDotProductFloatI8 TriWayDotProduct(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return NDotProductImpl::TriWayDotProductFloatI8Impl(lhs, rhs, length);
+}
+
+Y_PURE_FUNCTION
+inline TTriWayDotProduct<i32> TriWayDotProduct(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return NDotProductImpl::TriWayDotProductI8Impl(lhs, rhs, length);
 }
 
 namespace NDotProduct {

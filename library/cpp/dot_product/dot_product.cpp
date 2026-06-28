@@ -15,10 +15,17 @@ namespace NDotProductImpl {
     ui32 (*DotProductUi8Impl)(const ui8* lhs, const ui8* rhs, size_t length) noexcept = &DotProductSimple;
     i64 (*DotProductI32Impl)(const i32* lhs, const i32* rhs, size_t length) noexcept = &DotProductSimple;
     float (*DotProductFloatImpl)(const float* lhs, const float* rhs, size_t length) noexcept = &DotProductSimple;
+    float (*DotProductFloatI8Impl)(const float* lhs, const i8* rhs, size_t length) noexcept = &DotProductSimple;
     double (*DotProductDoubleImpl)(const double* lhs, const double* rhs, size_t length) noexcept = &DotProductSimple;
 
     TTriWayDotProduct<float> (*TriWayDotProductImpl)
         (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept = &TriWayDotProductSimple;
+
+    TTriWayDotProductFloatI8 (*TriWayDotProductFloatI8Impl)
+        (const float* lhs, const i8* rhs, size_t length) noexcept = &TriWayDotProductFloatI8Simple;
+
+    TTriWayDotProduct<i32> (*TriWayDotProductI8Impl)
+        (const i8* lhs, const i8* rhs, size_t length) noexcept = &TriWayDotProductI8Simple;
 
 
     namespace {
@@ -28,16 +35,22 @@ namespace NDotProductImpl {
                 DotProductUi8Impl = &DotProductAvx2;
                 DotProductI32Impl = &DotProductAvx2;
                 DotProductFloatImpl = &DotProductAvx2;
+                DotProductFloatI8Impl = &DotProductFloatI8Avx2;
                 DotProductDoubleImpl = &DotProductAvx2;
                 TriWayDotProductImpl = &TriWayDotProductAvx2;
+                TriWayDotProductFloatI8Impl = &TriWayDotProductFloatI8Avx2;
+                TriWayDotProductI8Impl = &TriWayDotProductI8Avx2;
             } else {
 #ifdef ARCADIA_SSE
                 DotProductI8Impl = &DotProductSse;
                 DotProductUi8Impl = &DotProductSse;
                 DotProductI32Impl = &DotProductSse;
                 DotProductFloatImpl = &DotProductSse;
+                DotProductFloatI8Impl = &DotProductSse;
                 DotProductDoubleImpl = &DotProductSse;
                 TriWayDotProductImpl = &TriWayDotProductSse;
+                TriWayDotProductFloatI8Impl = &TriWayDotProductFloatI8Sse;
+                TriWayDotProductI8Impl = &TriWayDotProductI8Sse;
 #endif
             }
             return 0;
@@ -171,15 +184,21 @@ namespace NDotProduct {
         NDotProductImpl::DotProductUi8Impl = &DotProductSse;
         NDotProductImpl::DotProductI32Impl = &DotProductSse;
         NDotProductImpl::DotProductFloatImpl = &DotProductSse;
+        NDotProductImpl::DotProductFloatI8Impl = &DotProductSse;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSse;
         NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSse;
+        NDotProductImpl::TriWayDotProductFloatI8Impl = &TriWayDotProductFloatI8Sse;
+        NDotProductImpl::TriWayDotProductI8Impl = &TriWayDotProductI8Sse;
 #else
         NDotProductImpl::DotProductI8Impl = &DotProductSimple;
         NDotProductImpl::DotProductUi8Impl = &DotProductSimple;
         NDotProductImpl::DotProductI32Impl = &DotProductSimple;
         NDotProductImpl::DotProductFloatImpl = &DotProductSimple;
+        NDotProductImpl::DotProductFloatI8Impl = &DotProductSimple;
         NDotProductImpl::DotProductDoubleImpl = &DotProductSimple;
         NDotProductImpl::TriWayDotProductImpl = &TriWayDotProductSimple;
+        NDotProductImpl::TriWayDotProductFloatI8Impl = &TriWayDotProductFloatI8Simple;
+        NDotProductImpl::TriWayDotProductI8Impl = &TriWayDotProductI8Simple;
 #endif
     }
 }

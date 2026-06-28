@@ -35,6 +35,9 @@ Y_PURE_FUNCTION
 float DotProductSimple(const float* lhs, const float* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
+float DotProductSimple(const float* lhs, const i8* rhs, size_t length) noexcept;
+
+Y_PURE_FUNCTION
 double DotProductSimple(const double* lhs, const double* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
@@ -46,3 +49,13 @@ TTriWayDotProduct<float> TriWayDotProductSimple(
     const float* rhs,
     size_t length,
     bool computeRR) noexcept;
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Simple(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept;
+
+TTriWayDotProduct<i32> TriWayDotProductI8Simple(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept;
