@@ -148,6 +148,15 @@ TString UnderscoreCaseToCamelCase(TStringBuf str);
 void CamelCaseToUnderscoreCase(TStringBuilderBase* builder, TStringBuf str);
 TString CamelCaseToUnderscoreCase(TStringBuf str);
 
+//! ASCII case conversion returning |std::string|.
+//! TODO(babenko): likely a temporary workaround; these exist only because util's
+//! |to_lower|/|to_upper| are |TString|-based (forcing a |TString| round-trip for
+//! |std::string| callers). Drop once util gains |std::string| support.
+//! Returns a copy of |value| with every ASCII letter lowercased; non-ASCII bytes are left intact.
+std::string AsciiStringToLower(TStringBuf value);
+//! Returns a copy of |value| with every ASCII letter uppercased; non-ASCII bytes are left intact.
+std::string AsciiStringToUpper(TStringBuf value);
+
 [[nodiscard]] TStringBuf TrimLeadingWhitespaces(TStringBuf str Y_LIFETIME_BOUND);
 [[nodiscard]] TStringBuf Trim(TStringBuf str Y_LIFETIME_BOUND, TStringBuf whitespaces = " ");
 
