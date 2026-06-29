@@ -269,7 +269,7 @@ namespace NCB {
 
     void TCatboostModelToCppConverter::WriteNamespaceBegin() {
         if (!(Namespace.empty())) 
-            Out << "namespace " << Namspace << " {" << "\n"; 
+            Out << "namespace " << Namespace << " {" << "\n"; 
     }
 
     void TCatboostModelToCppConverter::WriteNamespaceEnd() {
@@ -277,7 +277,7 @@ namespace NCB {
             Out << "}";
     }
 
-    bool IsValidCPPIdentifier(const TString& identifier)
+    bool TCatboostModelToCppConverter::IsValidCPPIdentifier(const TString& identifier)
     {
         // should be non-empty
         if (identifier.empty())
