@@ -266,4 +266,14 @@ namespace NCB {
     void TCatboostModelToCppConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_cpp_ctr_structs") << '\n';
     }
+
+    void TCatboostModelToCppConverter::WriteNamespaceBegin() {
+        if (!(Namespace.empty())) 
+            Out << "namespace " << Namspace << " {" << "\n"; 
+    }
+
+    void TCatboostModelToCppConverter::WriteNamespaceEnd() {
+        if (!(Namespace.empty()))
+            Out << "}";
+    }
 }
