@@ -1372,10 +1372,16 @@ def test_save_load_equality(task_type):
         cb_blob.load_model(blob=open(output_model_path, 'rb').read())
         check_equality(model, cb_blob)
 
+    def check_load_from_memoryview(model):
+        cb_blob = CatBoost()
+        cb_blob.load_model(blob=memoryview(open(output_model_path, 'rb').read()))
+        check_equality(model, cb_blob)
+
     def fill_check_model(params, train_file, test_file, cd_file):
         model, _ = fit_from_file(params, train_file, test_file, cd_file)
         model.save_model(fname=output_model_path)
         check_load_from_string(model)
+        check_load_from_memoryview(model)
         check_load_from_stream(model)
 
     fill_check_model({'iterations': 10, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'}, TRAIN_FILE, TEST_FILE, CD_FILE)

@@ -1790,7 +1790,7 @@ class _CatBoostBase(object):
         if '_init_params' not in dict(self.__dict__.items()):
             self._init_params = {}
         if '__model' in state:
-            self._load_from_string(state['__model'])
+            self._load_from_blob(state['__model'])
             del state['__model']
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
@@ -1975,12 +1975,12 @@ class _CatBoostBase(object):
     def _serialize_model(self):
         return self._object._serialize_model()
 
-    def _deserialize_model(self, dump_model_str):
-        assert isinstance(dump_model_str, bytes), "Not bytes passed as argument"
-        self._object._deserialize_model(dump_model_str)
+    def _deserialize_model(self, blob):
+        assert isinstance(blob, (bytes, memoryview)), f"Unsupported 'blob' type '{type(blob)}', expected 'bytes' or 'memoryview'"
+        self._object._deserialize_model(blob)
 
-    def _load_from_string(self, dump_model_str):
-        self._deserialize_model(dump_model_str)
+    def _load_from_blob(self, blob):
+        self._deserialize_model(blob)
         self._set_trained_model_attributes()
 
     def _load_from_stream(self, stream):
@@ -3785,7 +3785,7 @@ class CatBoost(_CatBoostBase):
         elif stream is not None:
             self._load_from_stream(stream)
         elif blob is not None:
-            self._load_from_string(blob)
+            self._load_from_blob(blob)
         return self
 
     def get_param(self, key):
