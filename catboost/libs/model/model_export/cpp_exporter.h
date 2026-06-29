@@ -25,8 +25,11 @@ namespace NCB {
             NJson::TJsonValue params;
             CB_ENSURE(
               NJson::ReadJsonTree(userParametersJson, &params), "Can't parse JSON user params for exporting model to C++");
-            if (params.Has("namespace")
-                Namespace = params["namespace"].GetStringSafe();
+            if (params.Has("namespace")) {
+                const TString ns = params["namespace"].GetStringSafe();
+                CB_ENSURE(IsValidCPPIdentifier(ns), "Invalid CPP identifier used for namespace: " << ns);
+                Namespace = ns;
+            }
         };
 
         void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override {
@@ -56,5 +59,6 @@ namespace NCB {
         void WriteCTRStructs();
         void WriteNamespaceBegin();
         void WriteNamespaceEnd();
+        bool IsValidCPPIdentifier(const TString& identifier);
     };
 }

@@ -276,4 +276,26 @@ namespace NCB {
         if (!(Namespace.empty()))
             Out << "}";
     }
+
+    bool IsValidCPPIdentifier(const TString& identifier)
+    {
+        // should be non-empty
+        if (identifier.empty())
+            return false;
+
+        // first character is alpha
+        unsigned char firstChar = static_cast<unsigned char>(identifier[0]);
+        if (!std::isalpha(firstChar) && firstChar != '_')
+            return false;
+
+        // remaining characters are alpha, num, or '_'
+        for (size_t i = 1; i < identifier.length(); ++i) {
+            unsigned char c = static_cast<unsigned char>(identifier[i]);
+            if(!std::isalnum(c) && c != '_')
+                return false;
+        }
+
+        // Note: Omitted keyword checks as the list of words is dependent on CPP standard
+        return true;
+    }
 }
