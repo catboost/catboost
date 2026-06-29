@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(TCppModelExportNamespace) {
 
     Y_UNIT_TEST(TestNoNamespace) {
         TFullModel model = TrainFloatCatboostModel();
-        ExportModel(model, "model_no_ns.cpp", EModelType::CPP);
+        ExportModel(model, "model_no_ns.cpp", EModelType::Cpp);
 
         TString code = ReadFile("model_no_ns.cpp");
         UNIT_ASSERT(!code.Contains("namespace"));
@@ -33,7 +33,7 @@ Y_UNIT_TEST_SUITE(TCppModelExportNamespace) {
 
     Y_UNIT_TEST(TestValidNamespace) {
         TFullModel model = TrainFloatCatboostModel();
-        ExportModel(model, "model_valid_ns.cpp", EModelType::CPP, BuildUserParams("MyNamespace"));
+        ExportModel(model, "model_valid_ns.cpp", EModelType::Cpp, BuildUserParams("MyNamespace"));
 
         TString code = ReadFile("model_valid_ns.cpp");
         UNIT_ASSERT(code.Contains("namespace MyNamespace {"));
@@ -42,7 +42,7 @@ Y_UNIT_TEST_SUITE(TCppModelExportNamespace) {
     Y_UNIT_TEST(TestInvalidNamespace) {
         TFullModel model = TrainFloatCatboostModel();
         UNIT_ASSERT_EXCEPTION(
-            ExportModel(model, "model_invalid_ns.cpp", EModelType::CPP, BuildUserParams("123abc")),
+            ExportModel(model, "model_invalid_ns.cpp", EModelType::Cpp, BuildUserParams("123abc")),
             yexception);
     }
 }
