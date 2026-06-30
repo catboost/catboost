@@ -3,7 +3,7 @@
 
 #### Description
 
-The name of the input file with the description of the model obtained as the result of training.
+The name of the input file with the model obtained as the result of training.
 
 **{{ cli__params-table__title__default }}**
 
@@ -26,7 +26,7 @@ Possible values:
 
 #### Description
 
-The path to the input file that contains the dataset description.
+The path to the input file that contains the dataset.
 
 Format:
 
@@ -38,7 +38,7 @@ Format:
     - `quantized://` — catboost. Pool [quantized](../../../concepts/python-reference_pool_quantized.md) pool.
     - `libsvm://` — dataset in the [extended libsvm format](../../../concepts/input-data_libsvm.md).
 If omitted, a dataset in the [Native CatBoost Delimiter-separated values format](../../../concepts/input-data_values-file.md) is expected.
-- `path` defines the path to the dataset description.
+- `path` defines the path to the dataset.
 
 **{{ cli__params-table__title__default }}**
 
@@ -48,7 +48,7 @@ Required parameter (the path must be specified).
 
 #### Description
 
-The path to the input file that contains the validation dataset description (the format must be the same as used in the training dataset).
+The path to the input file that contains the validation dataset (the format must be the same as used in the training dataset).
 
 **{{ cli__params-table__title__default }}**
 
@@ -62,7 +62,7 @@ The path to the input file that contains the [columns description](../../../conc
 
 **{{ cli__params-table__title__default }}**
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### -o, --output-path
 
@@ -79,7 +79,7 @@ The path to the output file with [calculated metrics](../../../concepts/output-d
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate object importance.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 
@@ -91,7 +91,7 @@ The number of processor cores
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input files.
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
 {% note info %}

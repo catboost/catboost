@@ -34,7 +34,7 @@ namespace NFormatPrivate {
 
         return os << Prec(d, mode, ndigits);
     }
-}
+} // namespace NFormatPrivate
 
 template <>
 void Out<NFormatPrivate::THumanReadableSize>(IOutputStream& stream, const NFormatPrivate::THumanReadableSize& value) {

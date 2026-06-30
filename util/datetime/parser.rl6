@@ -74,13 +74,14 @@ wkday   = 'Mon'i | 'Tue'i | 'Wed'i | 'Thu'i | 'Fri'i | 'Sat'i | 'Sun'i;
 weekday = 'Monday'i | 'Tuesday'i | 'Wednesday'i | 'Thursday'i
         | 'Friday'i | 'Saturday'i | 'Sunday'i;
 
-action set_second   { DateTimeFields.Second = I; }
-action set_minute   { DateTimeFields.Minute = I; }
-action set_hour     { DateTimeFields.Hour = I; }
-action set_day      { DateTimeFields.Day = I; }
-action set_month    { DateTimeFields.Month = I; }
-action set_year     { DateTimeFields.SetLooseYear(I); }
-action set_zone_utc { DateTimeFields.ZoneOffsetMinutes = 0; }
+action set_second       { DateTimeFields.Second = I; }
+action set_minute       { DateTimeFields.Minute = I; }
+action set_hour         { DateTimeFields.Hour = I; }
+action set_day          { DateTimeFields.Day = I; }
+action set_month        { DateTimeFields.Month = I; }
+action set_year         { DateTimeFields.SetLooseYear(I); }
+action set_precise_year { DateTimeFields.Year = I; }
+action set_zone_utc     { DateTimeFields.ZoneOffsetMinutes = 0; }
 
 }%%
 
@@ -193,7 +194,7 @@ machine ISO8601DateTimeParser;
 
 include DateTimeParserCommon;
 
-year = int4 @set_year;
+year = int4 @set_precise_year;
 month = int2 @set_month;
 day = int2 @set_day;
 hour = int2 @set_hour;

@@ -1,10 +1,12 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (c) ONNX Project Contributors
+//
+// SPDX-License-Identifier: Apache-2.0
 
 // Helper Methods for Adapters
 
 #include "onnx/version_converter/helper.h"
+
+#include <vector>
 
 namespace ONNX_NAMESPACE {
 namespace version_conversion {
@@ -34,20 +36,15 @@ void assert_numpy_multibroadcastable(
     const std::vector<Dimension>& input1_sizes,
     const std::vector<Dimension>& input2_sizes) {
   // Generalize above for multibroadcastable case
-  const std::vector<Dimension>* A_ptr;
-  const std::vector<Dimension>* B_ptr;
-  int A;
-  int B;
+  const std::vector<Dimension>* A_ptr = &input1_sizes;
+  const std::vector<Dimension>* B_ptr = &input2_sizes;
+  int A = 1;
+  int B = 2;
   if (input1_sizes.size() < input2_sizes.size()) {
     A_ptr = &input2_sizes;
     B_ptr = &input1_sizes;
     A = 2;
     B = 1;
-  } else {
-    A_ptr = &input1_sizes;
-    B_ptr = &input2_sizes;
-    A = 1;
-    B = 2;
   }
   const std::vector<Dimension>& A_sizes = *A_ptr;
   const std::vector<Dimension>& B_sizes = *B_ptr;

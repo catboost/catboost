@@ -2,6 +2,7 @@
 
 #include <catboost/libs/column_description/feature_tag.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/libs/helpers/serialization.h>
 
 #include <util/generic/algorithm.h>
@@ -14,6 +15,10 @@
 
 using namespace NCB;
 
+
+TDataColumnsMetaInfo::operator NJson::TJsonValue() const {
+    return VectorToJson(Columns);
+}
 
 ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
     return CountIf(
@@ -29,11 +34,22 @@ ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
 void TDataColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::Weight) <= 1, "Too many Weight columns.");
     CB_ENSURE(CountColumns(EColumn::SampleId) <= 1, "Too many SampleId columns.");
-    CB_ENSURE(CountColumns(EColumn::GroupId) <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
+    CB_ENSURE(
+        CountColumns(EColumn::GroupId) <= 1,
+        "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is a synonym for GroupId."
+    );
     CB_ENSURE(CountColumns(EColumn::GroupWeight) <= 1, "Too many GroupWeight columns.");
     CB_ENSURE(CountColumns(EColumn::SubgroupId) <= 1, "Too many SubgroupId columns.");
     CB_ENSURE(CountColumns(EColumn::Timestamp) <= 1, "Too many Timestamp columns.");
 }
+
+
+NCB::TTargetStats::operator NJson::TJsonValue() const {
+    return NJson::TJsonValue(NJson::JSON_MAP)
+        .InsertValue("MinValue"sv, MinValue)
+        .InsertValue("MaxValue"sv, MaxValue);
+}
+
 
 TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
@@ -41,6 +57,8 @@ TDataMetaInfo::TDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamp,
     bool hasPairs,
+    bool hasGraph,
+    bool loadSampleIds,
     bool forceUnitAutoPairWeights,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
@@ -51,25 +69,37 @@ TDataMetaInfo::TDataMetaInfo(
     , ClassLabels(classLabels)
     , ColumnsInfo(std::move(columnsInfo))
 {
+    ColumnsInfo->Validate();
+
+    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags, hasGraph);
+
     TargetCount = ColumnsInfo->CountColumns(EColumn::Label);
     if (TargetCount) {
         CB_ENSURE(TargetType != ERawTargetType::None, "data has target columns, but target type specified as None");
     } else {
-        CB_ENSURE(TargetType == ERawTargetType::None, "data has no target columns, but target type specified as not None");
+        CB_ENSURE(
+            TargetType == ERawTargetType::None,
+            "data has no target columns, but target type specified as not None"
+        );
     }
 
     BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
-    HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
+
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
+    if (loadSampleIds) {
+        HasSampleId = ColumnsInfo->CountColumns(EColumn::SampleId) != 0;
+        if (HasSampleId) {
+            StoreStringColumns = true;
+        }
+    }
+    HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
+    HasGraph = hasGraph;
     ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
 
-    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
-
-    ColumnsInfo->Validate();
     Validate();
 }
 
@@ -97,6 +127,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         HasWeights,
         HasTimestamp,
         HasPairs,
+        HasGraph,
         StoreStringColumns,
         ClassLabels,
         ColumnsInfo
@@ -111,6 +142,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
+        rhs.HasGraph,
         rhs.StoreStringColumns,
         ClassLabels,
         rhs.ColumnsInfo
@@ -132,19 +164,80 @@ void TDataMetaInfo::Validate() const {
         } else {
             CB_ENSURE(
                 BaselineCount == ClassLabels.size(),
-                "Baseline columns count " << BaselineCount << " and class labels count "  << ClassLabels.size() << " are not equal"
+                "Baseline columns count " << BaselineCount << " and class labels count "
+                << ClassLabels.size() << " are not equal"
             );
         }
     }
 }
 
+TDataMetaInfo::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result.InsertValue("ObjectCount"sv, ObjectCount);
+    result.InsertValue("FeaturesLayout"sv, *FeaturesLayout);
+    result.InsertValue("MaxCatFeaturesUniqValuesOnLearn"sv, MaxCatFeaturesUniqValuesOnLearn);
+    result.InsertValue("TargetType"sv, ToString(TargetType));
+    result.InsertValue("TargetCount"sv, TargetCount);
+
+    if (TargetStats) {
+        result.InsertValue("TargetStats"sv, *TargetStats);
+    }
+
+    result.InsertValue("BaselineCount"sv, BaselineCount);
+    result.InsertValue("HasGroupId"sv, HasGroupId);
+    result.InsertValue("HasGroupWeight"sv, HasGroupWeight);
+    result.InsertValue("HasSubgroupIds"sv, HasSubgroupIds);
+    result.InsertValue("HasSampleId"sv, HasSampleId);
+    result.InsertValue("HasWeights"sv, HasWeights);
+    result.InsertValue("HasTimestamp"sv, HasTimestamp);
+    result.InsertValue("HasPairs"sv, HasPairs);
+    result.InsertValue("HasGraph"sv, HasGraph);
+    result.InsertValue("StoreStringColumns"sv, StoreStringColumns);
+    result.InsertValue("ForceUnitAutoPairWeights"sv, ForceUnitAutoPairWeights);
+
+    if (!ClassLabels.empty()) {
+        result.InsertValue("ClassLabels"sv, VectorToJson(ClassLabels));
+    }
+
+    if (ColumnsInfo) {
+        result.InsertValue("ColumnsInfo"sv, *ColumnsInfo);
+    }
+
+    return result;
+}
+
+
+static bool AreAllColumnIdsEmpty(TConstArrayRef<TColumn> columns, const TMaybe<TVector<TString>>& header) {
+    for (const auto& column : columns) {
+        if (column.Type == EColumn::Features) {
+            CB_ENSURE(!header.Defined(), "Header columns cannot be defined if Features meta column is present");
+            for (const auto& subColumn : column.SubColumns) {
+                CB_ENSURE(
+                    IsFactorColumn(subColumn.Type),
+                    "Non-features sub columns are not supported in Features meta column"
+                );
+                if (!subColumn.Id.empty()) {
+                    return false;
+                }
+            }
+        } else if (!column.Id.empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const {
     TVector<TString> featureIds;
     // TODO: this convoluted logic is for compatibility
-    if (!AllOf(Columns.begin(), Columns.end(), [](const TColumn& column) { return column.Id.empty(); })) {
+    if (!AreAllColumnIdsEmpty(Columns, header)) {
         for (auto column : Columns) {
             if (IsFactorColumn(column.Type)) {
                 featureIds.push_back(column.Id);
+            } else if (column.Type == EColumn::Features) {
+                for (const auto& subColumn : column.SubColumns) {
+                    featureIds.push_back(subColumn.Id);
+                }
             }
         }
     } else if (header.Defined()) {
@@ -170,6 +263,7 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
+        data->HasGraph,
         data->StoreStringColumns,
         data->ClassLabels,
         data->ColumnsInfo

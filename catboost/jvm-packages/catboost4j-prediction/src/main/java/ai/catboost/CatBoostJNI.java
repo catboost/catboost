@@ -18,18 +18,38 @@ class CatBoostJNI {
 
     final void catBoostLoadModelFromFile(
             final @NotNull String fname,
-            final @NotNull long[] handle) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(fname, handle));
+            final @NotNull long[] handle,
+            final @Nullable String formatName) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(fname, handle, formatName));
     }
 
     final void catBoostLoadModelFromArray(
             final @NotNull byte[] data,
-            final @NotNull long[] handle) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(data, handle));
+            final @NotNull long[] handle,
+            final @Nullable String formatName) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(data, handle, formatName));
     }
 
     final void catBoostFreeModel(final long handle) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostFreeModel(handle));
+    }
+
+    final void catBoostModelGetSupportedEvaluatorTypes(
+            final long handle,
+            final @NotNull String[][] evaluatorTypes) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetSupportedEvaluatorTypes(handle, evaluatorTypes));
+    }
+
+    final void catBoostModelSetEvaluatorType(
+            final long handle,
+            final @NotNull String evaluatorType) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelSetEvaluatorType(handle, evaluatorType));
+    }
+
+    final void catBoostModelGetEvaluatorType(
+            final long handle,
+            final @NotNull String[] evaluatorType) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetEvaluatorType(handle, evaluatorType));
     }
 
     final void catBoostModelGetPredictionDimension(
@@ -61,7 +81,7 @@ class CatBoostJNI {
             final @NotNull int[] embeddingFeatureCount) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedEmbeddingFeatureCount(handle, embeddingFeatureCount));
     }
-    
+
     final void catBoostModelGetFlatFeatureVectorExpectedSize(
             final long handle,
             final @NotNull int[] featureVectorExpectedSize) throws CatBoostError {
@@ -159,5 +179,12 @@ class CatBoostJNI {
             final @Nullable float[][][] embeddingFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, predictions));
+    }
+
+    final void catBoostModelPredictTransposed(
+            final long handle,
+            final @NotNull float[][] numericFeatures,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredictTransposed(handle, numericFeatures, predictions));
     }
 }

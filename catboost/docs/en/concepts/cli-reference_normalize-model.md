@@ -26,7 +26,7 @@ The name of the input file with the description of the model obtained as the re
 
 #### Description
 
-The format of the input mode.
+The format of the input model.
 
 Possible values:
 
@@ -48,13 +48,13 @@ The path to the input file that contains the [columns description](input-data_co
 
 **{{ cli__params-table__title__default }}**
 
- If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+ If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### --delimiter
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
@@ -72,7 +72,7 @@ Used only if the dataset is given in the [Delimiter-separated values format](inp
 
 #### Description
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 {% note info %}
 
@@ -162,7 +162,7 @@ The number of threads to use.
 
 #### Description
 
-The name of the input file with the [dataset description](input-data_values-file.md#input-data_values-file).
+The name of the input file with the [dataset](input-data_values-file.md#input-data_values-file).
 
 **{{ cli__params-table__title__default }}**
 

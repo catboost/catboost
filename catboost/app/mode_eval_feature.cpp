@@ -39,7 +39,7 @@ int mode_eval_feature(int argc, const char* argv[]) {
         &poolLoadParams
     );
 
-    CB_ENSURE(poolLoadParams.TestSetPaths.empty(), "Test files are not supported in feature evaluation mode");
+    CB_ENSURE(poolLoadParams.TestSetPaths.empty(), "Test datasets are not supported in feature evaluation mode");
 
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;

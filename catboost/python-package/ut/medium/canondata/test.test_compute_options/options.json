@@ -265,6 +265,7 @@
             "penalties_coefficient": 1,
             "per_object_feature_penalties": {}
         },
+        "random_score_type": "NormalWithModelSizeDecrease",
         "random_strength": 1,
         "rsm": 1,
         "sampling_frequency": "PerTree",

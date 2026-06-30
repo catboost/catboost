@@ -146,6 +146,20 @@ public:
         InEnumState = AfterCppName;
     }
 
+    void DoKeyword(const TText& text) override {
+        if (InValue == InEnumState || InValueCall == InEnumState) {
+            AppendValue(text.Data);
+            return;
+        }
+    }
+
+    void DoCharacter(const TText& text) override {
+        if (InValue == InEnumState || InValueCall == InEnumState) {
+            AppendValue(text.Data);
+            return;
+        }
+    }
+
     void DoMultiLineComment(const TText& text) override {
         Y_ENSURE(text.Data.size() >= 4, "Invalid multiline comment " << text.Data.Quote() << ". ");
         TString commentText = text.Data.substr(2, text.Data.size() - 4);

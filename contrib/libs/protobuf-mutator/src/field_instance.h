@@ -176,7 +176,7 @@ class ConstFieldInstance {
                                             WireFormatLite::PARSE, "");
   }
 
-  TProtoStringType name() const { return descriptor_->name(); }
+  TProtoStringType name() const { return TProtoStringType(descriptor_->name()); }
 
   protobuf::FieldDescriptor::CppType cpp_type() const {
     return descriptor_->cpp_type();
@@ -190,11 +190,7 @@ class ConstFieldInstance {
     return descriptor_->message_type();
   }
 
-  bool EnforceUtf8() const {
-    return descriptor_->type() == protobuf::FieldDescriptor::TYPE_STRING &&
-           descriptor()->file()->syntax() ==
-               protobuf::FileDescriptor::SYNTAX_PROTO3;
-  }
+  bool EnforceUtf8() const { return RequiresUtf8Validation(*descriptor_); }
 
   const protobuf::FieldDescriptor* descriptor() const { return descriptor_; }
 

@@ -55,7 +55,7 @@ The situation is slightly more complex when the tree depth is bigger than 1:
 - {{ growing_policy__SymmetricTree }} method: The same $j, c$ are attempted to be found for each leaf, thus it's required to optimize the total sum over all leaves $S(a,g) = \sum_{leaf} S(leaf)$.
 
 
-## Second-order score functions {#second-order-functions}
+## Second-order leaf estimation method {#second-order-functions}
 
 Let's apply the Taylor expansion to the loss function at the point $a^{t-1} = F^{t-1}(x)$:
 

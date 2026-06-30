@@ -2,6 +2,7 @@ import {execProcess} from './common';
 import {linkSync, readFileSync, writeFileSync} from 'fs'
 import {downloadBinaryFile} from './download';
 import {readConfig} from './config';
+import {join,resolve} from 'path';
 
 async function compileTypeScript() {
     const result = await execProcess('npm run tsc');
@@ -17,7 +18,7 @@ function copyBindings() {
     writeFileSync('./lib/catboost.js', readFileSync('./bindings/catboost.js'));
 }
 
-async function compileNativeAddon(srcPath = '../..') {
+async function compileNativeAddon(srcPath = join('..','..')) {
     process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp build');
     if (result.code !== 0) {
@@ -37,9 +38,19 @@ export async function compileBindings() {
     await compileNativeAddon();
 }
 
-async function buildModelInterfaceLibrary() {
-    const srcPath = process.env['CATBOOST_SRC_PATH'] || '../..';
-    const result = await execProcess(`${srcPath}/build/build_native.py --targets catboostmodel --build-root-dir ./build`);
+async function buildModelInterfaceLibrary(buildNativeExtraArgs: string[]) {
+    for (const buildNativeArg of buildNativeExtraArgs) {
+        if (buildNativeArg.match(/^\-\-(targets|build\-root\-dir)/)) {
+            console.error(`build_native extra arguments cannot contain --targets or --build-root-dir, they are predefined`);
+            process.exit(1);
+        }
+    }
+
+    const srcPath = process.env['CATBOOST_SRC_PATH'] || join('..','..');
+    const result = await execProcess(
+        `python3 ${join(srcPath, 'build', 'build_native.py')} --targets catboostmodel --build-root-dir ./build `
+        + buildNativeExtraArgs.map(arg => '"' + arg + '"').join(' ')
+    );
     if (result.code !== 0) {
         console.error(`Building catboostmodel library failed:
             ${result.code} ${result.signal} ${result.err?.message}`);
@@ -47,7 +58,7 @@ async function buildModelInterfaceLibrary() {
     }
 }
 
-async function configureGyp(srcPath = '../..') {
+async function configureGyp(srcPath = join('..','..')) {
     process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp configure');
     if (result.code !== 0) {
@@ -57,49 +68,40 @@ async function configureGyp(srcPath = '../..') {
     }
 }
 
-export async function buildModel() {
+export async function buildModel(buildNativeExtraArgs: string[]) {
     await configureGyp();
-    await buildModelInterfaceLibrary();
+    await buildModelInterfaceLibrary(buildNativeExtraArgs);
 }
 
 /** Build binary from repository. */
-export async function buildNative() {
+export async function buildNative(buildNativeExtraArgs: string[]) {
     await configureGyp();
-    await buildModelInterfaceLibrary();
+    await buildModelInterfaceLibrary(buildNativeExtraArgs);
     await compileBindings();
 }
 
-async function preparePlatformBinary(platform: string) {
+async function preparePlatformBinary(platform: string, arch: string) {
     const config = readConfig();
-    switch (platform) {
-        case 'linux':
-            for (const binary of config.binaries['linux']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so',
-                './build/catboost/libs/model_interface/libcatboostmodel.so.1');
-            return;
-        case 'darwin':
-            for (const binary of config.binaries['mac']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            return;
-        case 'win32':
-            for (const binary of config.binaries['win']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            return;
-        default:
-            throw new Error(`Platform ${platform} is not supported`);
+
+    if (platform == 'darwin') {
+        arch = 'universal2';
     }
 
+    const platform_arch = platform + '-' + arch
+
+    for (const binary of config.binaries[platform_arch]) {
+        await downloadBinaryFile('./build/catboost/libs/model_interface',
+            binary);
+    }
+
+    if (platform == 'linux') {
+        linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so',
+            './build/catboost/libs/model_interface/libcatboostmodel.so.1');
+    }
 }
 
-export async function buildLocal(platform: string) {
-    await preparePlatformBinary(platform);
+export async function buildLocal(platform: string, arch: string) {
+    await preparePlatformBinary(platform, arch);
     await configureGyp('./inc');
     await compileNativeAddon('./inc');
 }

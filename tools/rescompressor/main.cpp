@@ -81,7 +81,7 @@ static TString CompressPath(const TVector<TStringBuf>& replacements, TStringBuf 
         TStringBuf from, to;
         r.Split('=', from, to);
         if (in.StartsWith(from)) {
-            return Compress(TString(to) + in.SubStr(from.Size()));
+            return Compress(TString(to) + in.SubStr(from.size()));
         }
     }
 
@@ -98,6 +98,20 @@ int main(int argc, char** argv) {
     TVector<TStringBuf> replacements;
 
     ind++;
+
+    if (TStringBuf(argv[ind]) == "--compress-only") {
+        ind++;
+        while (ind + 1 < argc) {
+            TUnbufferedFileInput inp(argv[ind]);
+            TString data = inp.ReadAll();
+            TString compressed = Compress(TStringBuf(data.data(), data.size()));
+            TFixedBufferFileOutput out(argv[ind+1]);
+            out << compressed;
+            ind += 2;
+        }
+        return 0;
+    }
+
     TFixedBufferFileOutput asmout(argv[ind]);
     ind++;
     TString prefix;
@@ -110,7 +124,7 @@ int main(int argc, char** argv) {
     }
 
     while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").Size()));
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").size()));
         ind++;
     }
 

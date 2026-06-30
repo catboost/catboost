@@ -518,7 +518,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTestDeprecated) {
             UNIT_ASSERT(!TInstant::TryParseX509Deprecated(s, iTry));
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDateTimeParseTestDeprecated)
 
 Y_UNIT_TEST_SUITE(TDurationParseTestDeprecated) {
     Y_UNIT_TEST(TestParseDeprecated) {
@@ -573,4 +573,4 @@ Y_UNIT_TEST_SUITE(TDurationParseTestDeprecated) {
 
         UNIT_ASSERT_EQUAL(TDuration(), TDuration::Parse("10ns")); // TDuration has 1us precision.
     }
-}
+} // Y_UNIT_TEST_SUITE(TDurationParseTestDeprecated)

@@ -10,7 +10,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 
 ## Specifics {#specifics}
 
-- Only models trained on datasets without categorical features are currently supported.
+- Only numerical features are supported. [Issue for categorical features support](https://github.com/catboost/catboost/issues/863). Text and embedding features will likely never be supported.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
 
@@ -67,7 +67,7 @@ Possible types: tensor of shape [N_examples] and type float
 
 ## Examples {#examples}
 
-The following examples use the [{{ python-package }}](python-quickstart.md) for training and the[ONNX Runtime](https://github.com/Microsoft/onnxruntime) scoring engine for applying the model.
+The following examples use the [{{ python-package }}](python-quickstart.md) for training and the [ONNX Runtime](https://github.com/Microsoft/onnxruntime) scoring engine for applying the model.
 
 ### Binary classification
 

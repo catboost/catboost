@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,10 @@
 // Adapter for broadcasting ops in default domain from version 7 to 6
 
 #pragma once
+
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -16,7 +22,7 @@ class BroadcastBackwardCompatibility final : public Adapter {
   explicit BroadcastBackwardCompatibility(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
-  void adapt_broadcast_backward_compatibility(std::shared_ptr<Graph>, Node* node) const {
+  void adapt_broadcast_backward_compatibility(const std::shared_ptr<Graph>&, Node* node) const {
     // Verify that broadcasts are allowed in limited spec of opset version 6
     // Multidirectional broadcasting, as defined in Broadcasting.md
     // MathDocGenerator provides differences

@@ -55,6 +55,7 @@ size_t IZeroCopyInputFastReadTo::DoReadTo(TString& st, char ch) {
             result += len;
             st.append(ptr, len);
         }
-    } while (len = Next(&ptr));
+        len = Next(&ptr);
+    } while (len);
     return result;
 }

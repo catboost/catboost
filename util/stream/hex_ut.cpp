@@ -26,4 +26,4 @@ Y_UNIT_TEST_SUITE(THexCodingTest) {
     Y_UNIT_TEST(TestEmpty) {
         TestImpl("");
     }
-}
+} // Y_UNIT_TEST_SUITE(THexCodingTest)

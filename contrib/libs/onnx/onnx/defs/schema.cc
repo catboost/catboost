@@ -3,8 +3,13 @@
  */
 
 #include "onnx/defs/schema.h"
+
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <unordered_set>
+#include <utility>
+
 #include "onnx/checker.h"
 #include "onnx/defs/operator_sets.h"
 #include "onnx/defs/operator_sets_preview.h"
@@ -15,7 +20,6 @@
 #endif
 
 #include "onnx/common/assertions.h"
-#include "onnx/common/stl_backports.h"
 #include "onnx/defs/parser.h"
 
 namespace ONNX_NAMESPACE {
@@ -28,8 +32,31 @@ constexpr int OpSchema::kUninitializedSinceVersion;
 
 // By default if opset_version_to_load=0, it registers all opset schema for all opset versions
 // Otherwise, it only registers the latest schema according to opset_version_to_load
-void RegisterSchema(OpSchema schema, int opset_version_to_load) {
-  OpSchemaRegistry::OpSchemaRegisterOnce ONNX_UNUSED registration(schema, opset_version_to_load);
+void RegisterSchema(
+    const OpSchema& schema,
+    int opset_version_to_load,
+    bool fail_duplicate_schema,
+    bool fail_with_exception) {
+  RegisterSchema(OpSchema(schema), opset_version_to_load, fail_duplicate_schema, fail_with_exception);
+}
+void RegisterSchema(
+    OpSchema&& schema,
+    int opset_version_to_load,
+    bool fail_duplicate_schema,
+    bool fail_with_exception) {
+  if (fail_with_exception) {
+    OpSchemaRegistry::OpSchemaRegisterOnce::OpSchemaRegisterImpl(
+        std::move(schema), opset_version_to_load, fail_duplicate_schema);
+  } else {
+    OpSchemaRegistry::OpSchemaRegisterOnce::OpSchemaRegisterNoExcept(
+        std::move(schema), opset_version_to_load, fail_duplicate_schema);
+  }
+}
+
+// The (name, version, domain) must match the target exactly
+// Otherwise will raise an SchemaError
+void DeregisterSchema(const std::string& op_type, int version, const std::string& domain) {
+  OpSchemaRegistry::OpSchemaDeregister(op_type, version, domain);
 }
 
 #ifndef NDEBUG
@@ -82,6 +109,10 @@ OpSchemaRegistry* OpSchemaRegistry::Instance() {
 
 void OpSchema::CheckInputOutputType(struct InferenceContext& ctx) const {
   std::unordered_map<std::string, std::string> type_constraints;
+  // Check the number of inputs / output.
+  VerifyInputNum(ctx.getNumInputs());
+  VerifyOutputNum(ctx.getNumOutputs());
+
   // check all input types
   for (size_t in_idx = 0; in_idx < ctx.getNumInputs(); ++in_idx) {
     // If the last input is Variadic by definition, checker still needs to check the rest of actual input's type
@@ -151,41 +182,8 @@ void OpSchema::Verify(const NodeProto& node) const {
     fail_check("Operator '", name_, "' has been deprecated since version ", since_version_);
   }
 
-  // Check the number of inputs.
-  if (node.input_size() < min_input_ || node.input_size() > max_input_) {
-    fail_check(
-        "Node (",
-        node.name(),
-        ") has input size ",
-        node.input_size(),
-        " not in range [min=",
-        min_input_,
-        ", max=",
-        max_input_,
-        "].");
-  }
-
-  if (!num_inputs_allowed_(node.input_size())) {
-    fail_check("Node (", node.name(), ") has input size ", node.input_size(), " not in allowed input sizes.");
-  }
-
-  // Check the number of outputs.
-  if (node.output_size() < min_output_ || node.output_size() > max_output_) {
-    fail_check(
-        "Node (",
-        node.name(),
-        ") has output size ",
-        node.output_size(),
-        " not in range [min=",
-        min_output_,
-        ", max=",
-        max_output_,
-        "].");
-  }
-
-  if (!num_outputs_allowed_(node.output_size())) {
-    fail_check("Node (", node.name(), "has output size ", node.output_size(), " not in allowed output sizes.");
-  }
+  VerifyInputNum(node.input_size(), node.name());
+  VerifyOutputNum(node.output_size(), node.name());
 
   // Check the values of inputs / outputs
   for (int in_idx = 0; in_idx < node.input_size(); ++in_idx) {
@@ -249,7 +247,7 @@ void OpSchema::Verify(const NodeProto& node) const {
     };
 
     const auto& search = attributes_.find(name);
-    AttributeProto::AttributeType expected_type;
+    AttributeProto::AttributeType expected_type{};
     if (search != attributes_.end()) {
       expected_type = search->second.type;
     } else if (allows_unchecked_attributes_ || isInternalSymbol(name)) {
@@ -260,7 +258,14 @@ void OpSchema::Verify(const NodeProto& node) const {
 
     // Type would be UNDEFINED if not set
     if (attr_proto.type() != expected_type) {
-      fail_check("Mismatched attribute type in '", node.name() + " : " + name, "'");
+      fail_check(
+          "Mismatched attribute type in '",
+          node.name() + " : " + name,
+          "'. Expected: '",
+          AttributeProto_AttributeType_Name(expected_type),
+          "', actual: '",
+          AttributeProto_AttributeType_Name(attr_proto.type()),
+          "'");
     }
 
     // ref_attr_name is only valid when non-empty
@@ -298,40 +303,15 @@ void OpSchema::Verify(const NodeProto& node) const {
           fail_check("Attribute '", name, "' is expected to have field 'type_proto'");
         }
         break;
-      case AttributeProto::FLOATS:
-        if (!attr_proto.floats_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'floats'");
-        }
-        break;
       case AttributeProto::INTS:
-        if (!attr_proto.ints_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'ints'");
-        }
-        break;
-      case AttributeProto::STRINGS:
-        if (!attr_proto.strings_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'strings'");
-        }
-        break;
+      case AttributeProto::FLOATS:
       case AttributeProto::TENSORS:
-        if (!attr_proto.tensors_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'tensors'");
-        }
-        break;
+      case AttributeProto::STRINGS:
       case AttributeProto::SPARSE_TENSORS:
-        // Not adding check ... we should likely delete the check in all other
-        // cases, which will not allow us to have an empty list as a valid value
-        // for an attribute and this seems undesirable.
-        break;
       case AttributeProto::GRAPHS:
-        if (!attr_proto.graphs_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'graphs'");
-        }
-        break;
       case AttributeProto::TYPE_PROTOS:
-        if (!attr_proto.type_protos_size()) {
-          fail_check("Attribute '", name, "' is expected to have field 'type_protos'");
-        }
+        // No check ... whether an empty list is a valid value for the attribute
+        // is op specific.
         break;
       default:
         fail_check("Attribute '", name, " has unknown expected type");
@@ -348,6 +328,51 @@ void OpSchema::Verify(const NodeProto& node) const {
   }
 
   // Phew. All verifications passed.
+}
+
+std::string OpSchema::VerifyFailPrefix(std::string_view node_name) const {
+  std::string str = "Node";
+  if (!node_name.empty()) {
+    str = str + "(" + std::string(node_name) + ")";
+  }
+  str = str + " with schema(" + domain() + "::" + Name() + ":" + std::to_string(since_version()) + ")";
+  return str;
+}
+
+void OpSchema::VerifyInputNum(int input_num, std::string_view node_name) const {
+  if (input_num < min_input_ || input_num > max_input_) {
+    fail_check(
+        VerifyFailPrefix(node_name),
+        " has input size ",
+        input_num,
+        " not in range [min=",
+        min_input_,
+        ", max=",
+        max_input_,
+        "].");
+  }
+
+  if (!num_inputs_allowed_(input_num)) {
+    fail_check(VerifyFailPrefix(node_name), " has input size ", input_num, " not in allowed input sizes.");
+  }
+}
+
+void OpSchema::VerifyOutputNum(int output_num, std::string_view node_name) const {
+  if (output_num < min_output_ || output_num > max_output_) {
+    fail_check(
+        VerifyFailPrefix(node_name),
+        " has output size ",
+        output_num,
+        " not in range [min=",
+        min_output_,
+        ", max=",
+        max_output_,
+        "].");
+  }
+
+  if (!num_outputs_allowed_(output_num)) {
+    fail_check(VerifyFailPrefix(node_name), " has output size ", output_num, " not in allowed output sizes.");
+  }
 }
 
 OpSchema& OpSchema::SinceVersion(OperatorSetVersion v) {
@@ -367,17 +392,14 @@ OpSchema& OpSchema::SinceVersion(OperatorSetVersion v) {
   // however, if a runtime needs to inline LayerNormalization, the inlined model has a ReduceMean op.
   // ReduceMean in opset 18 is different from opset 17.
   // This requires us to define more than one function body
-  std::map<int, ContextDependentFunctionBodyBuilder>::const_iterator it =
-      opset_version_to_function_builder_.find(OpSchema::kUninitializedSinceVersion);
-
-  if (it != opset_version_to_function_builder_.cend()) {
+  auto it = opset_version_to_function_builder_.find(OpSchema::kUninitializedSinceVersion);
+  if (it != opset_version_to_function_builder_.end()) {
     opset_version_to_function_builder_[since_version_] = it->second;
     opset_version_to_function_builder_.erase(it);
   }
 
-  std::map<int, std::shared_ptr<FunctionProto>>::const_iterator it_function_body =
-      opset_version_to_function_body_.find(OpSchema::kUninitializedSinceVersion);
-  if (it_function_body != opset_version_to_function_body_.cend()) {
+  auto it_function_body = opset_version_to_function_body_.find(OpSchema::kUninitializedSinceVersion);
+  if (it_function_body != opset_version_to_function_body_.end()) {
     opset_version_to_function_body_[since_version_] = it_function_body->second;
     UpdateFunctionProtoOpsetImportVersion(*opset_version_to_function_body_[since_version_], since_version_);
     opset_version_to_function_body_.erase(it_function_body);
@@ -391,15 +413,15 @@ OpSchema& OpSchema::Deprecate() {
   return *this;
 }
 
-OpSchema& OpSchema::NumInputs(std::set<int> allowed_input_nums) {
-  num_inputs_allowed_ = [MOVE_CAPTURE_IF_CPP14(allowed_input_nums)](int n) -> bool {
+OpSchema& OpSchema::NumInputs(std::unordered_set<int> allowed_input_nums) {
+  num_inputs_allowed_ = [allowed_input_nums = std::move(allowed_input_nums)](int n) -> bool {
     return allowed_input_nums.count(n);
   };
   return *this;
 }
 
-OpSchema& OpSchema::NumOutputs(std::set<int> allowed_output_nums) {
-  num_outputs_allowed_ = [MOVE_CAPTURE_IF_CPP14(allowed_output_nums)](int n) -> bool {
+OpSchema& OpSchema::NumOutputs(std::unordered_set<int> allowed_output_nums) {
+  num_outputs_allowed_ = [allowed_output_nums = std::move(allowed_output_nums)](int n) -> bool {
     return allowed_output_nums.count(n) > 0;
   };
   return *this;
@@ -452,7 +474,7 @@ OpSchema& OpSchema::SetDomain(const char* domain) {
 
 OpSchema& OpSchema::Attr(Attribute attr) {
   auto name = attr.name; // copy name so we can move attr in the next line
-  attributes_.insert(std::make_pair(std::move(name), std::move(attr)));
+  attributes_.emplace(std::move(name), std::move(attr));
   return *this;
 }
 
@@ -472,26 +494,8 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
+    a.set_name(name);                                                                                                  \
     a.set_##field(default_value);                                                                                      \
-    a.set_type(attr_type);                                                                                             \
-    Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
-    return *this;                                                                                                      \
-  }                                                                                                                    \
-  OpSchema& OpSchema::Attr(                                                                                            \
-      const char* name, const char* description, AttributeProto::AttributeType attr_type, const type& default_value) { \
-    return Attr(std::string(name), std::string(description), attr_type, default_value);                                \
-  }
-
-#define ATTR_SETTER_WITH_STRING_VALUE(type, field, attrtype)                                                           \
-  OpSchema& OpSchema::Attr(                                                                                            \
-      std::string name, std::string description, AttributeProto::AttributeType attr_type, const type& default_value) { \
-    if (attrtype != attr_type) {                                                                                       \
-      fail_schema("Attribute specification type mismatch.");                                                           \
-    }                                                                                                                  \
-    AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
-    a.set_##field(TString{default_value});                                                                             \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
     return *this;                                                                                                      \
@@ -511,7 +515,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(TString{name});                                              \
+    a.set_name(name);                                                       \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       a.add_##field(v);                                                     \
@@ -527,7 +531,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
+    a.set_name(name);                                                                                                  \
     *(a.mutable_##field()) = default_value;                                                                            \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), a));                                                       \
@@ -544,7 +548,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(TString{name});                                              \
+    a.set_name(name);                                                       \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       *(a.add_##field()) = v;                                               \
@@ -555,7 +559,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
 
 ATTR_SETTER_WITH_SINGLE_VALUE(int64_t, i, AttributeProto::INT)
 ATTR_SETTER_WITH_SINGLE_VALUE(float, f, AttributeProto::FLOAT)
-ATTR_SETTER_WITH_STRING_VALUE(std::string, s, AttributeProto::STRING)
+ATTR_SETTER_WITH_SINGLE_VALUE(std::string, s, AttributeProto::STRING)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(TensorProto, t, AttributeProto::TENSOR)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(GraphProto, g, AttributeProto::GRAPH)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(TypeProto, tp, AttributeProto::TYPE_PROTO)
@@ -571,6 +575,14 @@ OpSchema& OpSchema::AllowUncheckedAttributes() {
   return *this;
 }
 
+OpSchema& OpSchema::Input(int n, FormalParameter formal_parameter) {
+  if (inputs_.size() <= static_cast<size_t>(n)) {
+    inputs_.resize(n + 1);
+  }
+  inputs_[n] = std::move(formal_parameter);
+  return *this;
+}
+
 OpSchema& OpSchema::Input(
     int n,
     std::string name,
@@ -580,22 +592,20 @@ OpSchema& OpSchema::Input(
     bool is_homogeneous,
     int min_arity,
     DifferentiationCategory differentiation_category) {
-  if (int(inputs_.size()) <= n) {
-    inputs_.resize(n + 1);
-  }
-  inputs_[n] = FormalParameter(
-      std::move(name),
+  return Input(
+      n,
+      FormalParameter(
+          std::move(name),
 #ifndef __ONNX_NO_DOC_STRINGS
-      description,
+          description,
 #else
-      std::string(),
+          std::string(),
 #endif
-      std::move(type_str),
-      param_option,
-      is_homogeneous,
-      min_arity,
-      differentiation_category);
-  return *this;
+          std::move(type_str),
+          param_option,
+          is_homogeneous,
+          min_arity,
+          differentiation_category));
 }
 
 OpSchema& OpSchema::Input(
@@ -622,6 +632,14 @@ OpSchema& OpSchema::Input(
       differentiation_category);
 }
 
+OpSchema& OpSchema::Output(int n, FormalParameter formal_parameter) {
+  if (outputs_.size() <= static_cast<size_t>(n)) {
+    outputs_.resize(n + 1);
+  }
+  outputs_[n] = std::move(formal_parameter);
+  return *this;
+}
+
 OpSchema& OpSchema::Output(
     int n,
     std::string name,
@@ -631,22 +649,20 @@ OpSchema& OpSchema::Output(
     bool is_homogeneous,
     int min_arity,
     DifferentiationCategory differentiation_category) {
-  if (int(outputs_.size()) <= n) {
-    outputs_.resize(n + 1);
-  }
-  outputs_[n] = FormalParameter(
-      std::move(name),
+  return Output(
+      n,
+      FormalParameter(
+          std::move(name),
 #ifndef __ONNX_NO_DOC_STRINGS
-      description,
+          description,
 #else
-      std::string(),
+          std::string(),
 #endif
-      std::move(type_str),
-      param_option,
-      is_homogeneous,
-      min_arity,
-      differentiation_category);
-  return *this;
+          std::move(type_str),
+          param_option,
+          is_homogeneous,
+          min_arity,
+          differentiation_category));
 }
 
 OpSchema& OpSchema::Output(
@@ -683,9 +699,8 @@ OpSchema::TypeConstraint(std::string type_str, std::vector<std::string> constrai
   for (const auto& t : constraints) {
     d.insert(Utils::DataTypeUtils::ToType(t));
   }
-  type_constraints_.insert(std::make_pair(type_str, std::make_pair(d, description)));
-  type_constraint_params_.push_back(
-      TypeConstraintParam(std::move(type_str), std::move(constraints), std::move(description)));
+  type_constraints_.emplace(type_str, std::make_pair(d, description));
+  type_constraint_params_.emplace_back(std::move(type_str), std::move(constraints), std::move(description));
   return *this;
 }
 
@@ -695,8 +710,8 @@ OpSchema& OpSchema::TypeConstraint(
     const char* description) {
   std::vector<std::string> constraints_vector;
   constraints_vector.reserve(constraints.size());
-  for (auto iter = constraints.begin(); iter != constraints.end(); ++iter) {
-    constraints_vector.push_back(*iter);
+  for (auto constraint : constraints) {
+    constraints_vector.emplace_back(constraint);
   }
 
   return TypeConstraint(std::string(type_str), constraints_vector, std::string(description));
@@ -736,8 +751,7 @@ bool OpSchema::BuildContextDependentFunction(
   if (requested_opset_version == OpSchema::kUninitializedSinceVersion)
     requested_opset_version = since_version_;
 
-  std::map<int, ContextDependentFunctionBodyBuilder>::const_iterator it =
-      opset_version_to_function_builder_.upper_bound(requested_opset_version);
+  auto it = opset_version_to_function_builder_.upper_bound(requested_opset_version);
   if (opset_version_to_function_builder_.empty() || it == opset_version_to_function_builder_.begin()) {
     ONNX_THROW_EX(std::out_of_range(
         std::string("Cannot find a function builder that satisfies the requested opset version: op_type = ") +
@@ -775,7 +789,7 @@ void OpSchema::UpdateFunctionProtoOpsetImportVersion(FunctionProto& function_pro
 
   if (!opset_import_exist) {
     auto* schema_opset = function_proto.mutable_opset_import()->Add();
-    schema_opset->set_domain(TString{domain_});
+    schema_opset->set_domain(domain_);
     schema_opset->set_version(requested_opset_version);
   }
 }
@@ -784,7 +798,7 @@ OpSchema& OpSchema::FunctionBody(const char* func_body, int opset_version) {
   if (opset_version == OpSchema::kUninitializedSinceVersion && since_version_ != OpSchema::kUninitializedSinceVersion) {
     opset_version = since_version_;
   }
-  std::shared_ptr<FunctionProto> function_proto(new FunctionProto());
+  auto function_proto = std::make_shared<FunctionProto>();
   OnnxParser parser(func_body);
   auto status = parser.Parse(*function_proto->mutable_node());
   if (!status.IsOK())
@@ -796,7 +810,7 @@ OpSchema& OpSchema::FunctionBody(const char* func_body, int opset_version) {
   // we may need to update its version with the specified opset_version
   UpdateFunctionProtoOpsetImportVersion(*function_proto, opset_version);
 
-  opset_version_to_function_body_.insert(std::make_pair(opset_version, function_proto));
+  opset_version_to_function_body_.emplace(opset_version, function_proto);
   return *this;
 }
 
@@ -804,7 +818,7 @@ OpSchema& OpSchema::FunctionBody(const std::vector<NodeProto>& func_nodes, int o
   if (opset_version == OpSchema::kUninitializedSinceVersion && since_version_ != OpSchema::kUninitializedSinceVersion) {
     opset_version = since_version_;
   }
-  std::shared_ptr<FunctionProto> function_proto(new FunctionProto());
+  auto function_proto = std::make_shared<FunctionProto>();
   for (const auto& node : func_nodes) {
     auto new_node = function_proto->add_node();
     new_node->CopyFrom(node);
@@ -813,7 +827,7 @@ OpSchema& OpSchema::FunctionBody(const std::vector<NodeProto>& func_nodes, int o
   // opset import may have been set
   // we may need to update its version with the specified opset_version
   UpdateFunctionProtoOpsetImportVersion(*function_proto, opset_version);
-  opset_version_to_function_body_.insert(std::make_pair(opset_version, function_proto));
+  opset_version_to_function_body_.emplace(opset_version, std::move(function_proto));
   return *this;
 }
 
@@ -825,7 +839,7 @@ OpSchema& OpSchema::FunctionBody(
     opset_version = since_version_;
   }
 
-  std::shared_ptr<FunctionProto> function_proto(new FunctionProto());
+  auto function_proto = std::make_shared<FunctionProto>();
   for (auto& relied_opset : relied_opsets) {
     *(function_proto->mutable_opset_import()->Add()) = relied_opset;
   }
@@ -837,16 +851,19 @@ OpSchema& OpSchema::FunctionBody(
   // opset import may have been set
   // we may need to update its version with the specified opset_version
   UpdateFunctionProtoOpsetImportVersion(*function_proto, opset_version);
-  opset_version_to_function_body_.insert(std::make_pair(opset_version, function_proto));
+  opset_version_to_function_body_.emplace(opset_version, std::move(function_proto));
   return *this;
 }
 
 const FunctionProto* OpSchema::GetFunction(int requested_opset_version, bool validate) const {
-  if (requested_opset_version == OpSchema::kUninitializedSinceVersion)
-    requested_opset_version = since_version_;
-  std::map<int, std::shared_ptr<FunctionProto>>::const_iterator it =
-      opset_version_to_function_body_.upper_bound(requested_opset_version);
-  if (!opset_version_to_function_body_.empty() && it != opset_version_to_function_body_.begin()) {
+  if (opset_version_to_function_body_.empty())
+    return nullptr;
+  // Return latest FunctionProto when opset version request is not set
+  if (requested_opset_version == OpSchema::kUninitializedSinceVersion) {
+    return opset_version_to_function_body_.rbegin()->second.get();
+  }
+  auto it = opset_version_to_function_body_.upper_bound(requested_opset_version);
+  if (it != opset_version_to_function_body_.begin()) {
     --it;
     int function_since_version = it->first;
     const FunctionProto* function = it->second.get();
@@ -867,13 +884,13 @@ bool OpSchema::ValidateReferencedOpsInFuncton(
     const FunctionProto* function,
     int requested_opset_version,
     int function_since_version,
-    std::set<std::string>* updated_ops) const {
+    std::unordered_set<std::string>* updated_ops) const {
   bool all_ops_are_invalid = true;
   if (requested_opset_version == function_since_version) {
     return all_ops_are_invalid;
   }
   for (auto& node : function->node()) {
-    if (node.domain() == "" || node.domain() == "ai.onnx") {
+    if (node.domain().empty() || node.domain() == "ai.onnx") {
       const OpSchema* op1 =
           OpSchemaRegistry::Instance()->GetSchema(node.op_type(), requested_opset_version, node.domain());
       const OpSchema* op2 =
@@ -898,17 +915,17 @@ OpSchema& OpSchema::FillUsing(const std::function<void(OpSchema&)>& populator) {
 }
 
 void OpSchema::BuildFunction(FunctionProto& function_body) const {
-  function_body.set_name(TString{this->name_});
-  function_body.set_doc_string(TString{this->doc_});
-  function_body.set_domain(TString{this->domain_});
+  function_body.set_name(this->name_);
+  function_body.set_doc_string(this->doc_);
+  function_body.set_domain(this->domain_);
   for (auto& i : inputs_) {
-    function_body.add_input(TString{i.GetName()});
+    function_body.add_input(i.GetName());
   }
   for (auto& o : outputs_) {
-    function_body.add_output(TString{o.GetName()});
+    function_body.add_output(o.GetName());
   }
   for (auto& a : attributes_) {
-    function_body.add_attribute(TString{a.first});
+    function_body.add_attribute(a.first);
   }
 
   // In a typical onnx function where the function and all the
@@ -917,11 +934,471 @@ void OpSchema::BuildFunction(FunctionProto& function_body) const {
   // This is simply for convienince. If any of the function body ops do not belong to same
   // domain as function itself, then the function author needs to explicitly add all the relevant
   // opset imports.
-  if (function_body.opset_import().size() == 0) {
+  if (function_body.opset_import().empty()) {
     auto* schema_opset = function_body.mutable_opset_import()->Add();
-    schema_opset->set_domain(TString{domain_});
+    schema_opset->set_domain(domain_);
     schema_opset->set_version(since_version_);
   }
+}
+
+const std::vector<std::string>& OpSchema::numeric_types_for_math_reduction_ir9() {
+  static const std::vector<std::string> numeric_types_for_math_reduction_ir9 = {
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)",
+      "tensor(float8e4m3fn)",
+      "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)",
+      "tensor(float8e5m2fnuz)"};
+  return numeric_types_for_math_reduction_ir9;
+}
+
+const std::vector<std::string>& OpSchema::numeric_types_for_math_reduction_ir4() {
+  static const std::vector<std::string> numeric_types_for_math_reduction_ir4 = {
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)"};
+  return numeric_types_for_math_reduction_ir4;
+}
+
+const std::vector<std::string>& OpSchema::numeric_types_for_math_reduction() {
+  static const std::vector<std::string> numeric_types_for_math_reduction = {
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)"};
+  return numeric_types_for_math_reduction;
+}
+
+const std::vector<std::string>& OpSchema::all_numeric_types_ir11() {
+  static const std::vector<std::string> all_numeric_types_ir11 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)",
+      "tensor(float8e4m3fn)",
+      "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)",
+      "tensor(float8e5m2fnuz)",
+      "tensor(uint4)",
+      "tensor(int4)",
+      "tensor(float4e2m1)"};
+  return all_numeric_types_ir11;
+}
+const std::vector<std::string>& OpSchema::all_numeric_types_ir10() {
+  static const std::vector<std::string> all_numeric_types_ir10 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)",
+      "tensor(float8e4m3fn)",
+      "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)",
+      "tensor(float8e5m2fnuz)",
+      "tensor(uint4)",
+      "tensor(int4)"};
+  return all_numeric_types_ir10;
+}
+
+const std::vector<std::string>& OpSchema::all_numeric_types_ir9() {
+  static const std::vector<std::string> all_numeric_types_ir9 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)",
+      "tensor(float8e4m3fn)",
+      "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)",
+      "tensor(float8e5m2fnuz)"};
+  return all_numeric_types_ir9;
+}
+
+const std::vector<std::string>& OpSchema::all_numeric_types_ir4() {
+  static const std::vector<std::string> all_numeric_types_ir4 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bfloat16)"};
+  return all_numeric_types_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_numeric_types() {
+  static const std::vector<std::string> all_numeric_types = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)"};
+  return all_numeric_types;
+}
+
+const std::vector<std::string>& OpSchema::all_numeric_sequence_types() {
+  static const std::vector<std::string> all_numeric_sequence_types = {
+      "seq(tensor(uint8))",
+      "seq(tensor(uint16))",
+      "seq(tensor(uint32))",
+      "seq(tensor(uint64))",
+      "seq(tensor(int8))",
+      "seq(tensor(int16))",
+      "seq(tensor(int32))",
+      "seq(tensor(int64))",
+      "seq(tensor(float16))",
+      "seq(tensor(float))",
+      "seq(tensor(double))"};
+  return all_numeric_sequence_types;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_types() {
+  static const std::vector<std::string> all_tensor_types = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(string)",
+      "tensor(bool)",
+      "tensor(complex64)",
+      "tensor(complex128)"};
+  return all_tensor_types;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_types_ir4() {
+  static const std::vector<std::string> all_tensor_types_ir4 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(bfloat16)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(string)",
+      "tensor(bool)",
+      "tensor(complex64)",
+      "tensor(complex128)"};
+  return all_tensor_types_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_non_complex_numeric_types_plus_bool_ir4() {
+  static const std::vector<std::string> all_non_complex_numeric_types_plus_bool_ir4 = {
+      "tensor(uint8)",
+      "tensor(uint16)",
+      "tensor(uint32)",
+      "tensor(uint64)",
+      "tensor(int8)",
+      "tensor(int16)",
+      "tensor(int32)",
+      "tensor(int64)",
+      "tensor(bfloat16)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(bool)"};
+  return all_non_complex_numeric_types_plus_bool_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_float_types_ir4() {
+  static const std::vector<std::string> all_float_types_ir4 = {
+      "tensor(bfloat16)", "tensor(float16)", "tensor(float)", "tensor(double)"};
+  return all_float_types_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_float_types_plus_Xint8_ir4() {
+  static const std::vector<std::string> all_float_types_ir4 = {
+      "tensor(bfloat16)", "tensor(float16)", "tensor(float)", "tensor(double)", "tensor(int8)", "tensor(uint8)"};
+  return all_float_types_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_float_types_ir9() {
+  static const std::vector<std::string> all_float_types_ir9 = {
+      "tensor(bfloat16)",
+      "tensor(float16)",
+      "tensor(float)",
+      "tensor(double)",
+      "tensor(float8e4m3fn)",
+      "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)",
+      "tensor(float8e5m2fnuz)"};
+  return all_float_types_ir9;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_types_ir9() {
+  static const std::vector<std::string> all_tensor_types_ir9 = {
+      "tensor(uint8)",        "tensor(uint16)",         "tensor(uint32)",     "tensor(uint64)",
+      "tensor(int8)",         "tensor(int16)",          "tensor(int32)",      "tensor(int64)",
+      "tensor(bfloat16)",     "tensor(float16)",        "tensor(float)",      "tensor(double)",
+      "tensor(string)",       "tensor(bool)",           "tensor(complex64)",  "tensor(complex128)",
+      "tensor(float8e4m3fn)", "tensor(float8e4m3fnuz)", "tensor(float8e5m2)", "tensor(float8e5m2fnuz)"};
+  return all_tensor_types_ir9;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_types_ir10() {
+  static const std::vector<std::string> all_tensor_types_ir10 = {
+      "tensor(uint8)",      "tensor(uint16)",         "tensor(uint32)",
+      "tensor(uint64)",     "tensor(int8)",           "tensor(int16)",
+      "tensor(int32)",      "tensor(int64)",          "tensor(bfloat16)",
+      "tensor(float16)",    "tensor(float)",          "tensor(double)",
+      "tensor(string)",     "tensor(bool)",           "tensor(complex64)",
+      "tensor(complex128)", "tensor(float8e4m3fn)",   "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)", "tensor(float8e5m2fnuz)", "tensor(uint4)",
+      "tensor(int4)"};
+  return all_tensor_types_ir10;
+}
+
+const std::vector<std::string>& OpSchema::all_non_complex_tensor_types_ir10() {
+  static const std::vector<std::string> all_non_complex_tensor_types_ir10 = {
+      "tensor(uint8)",      "tensor(uint16)",         "tensor(uint32)",       "tensor(uint64)",
+      "tensor(int8)",       "tensor(int16)",          "tensor(int32)",        "tensor(int64)",
+      "tensor(bfloat16)",   "tensor(float16)",        "tensor(float)",        "tensor(double)",
+      "tensor(string)",     "tensor(bool)",           "tensor(float8e4m3fn)", "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)", "tensor(float8e5m2fnuz)", "tensor(uint4)",        "tensor(int4)"};
+  return all_non_complex_tensor_types_ir10;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_types_ir11() {
+  static const std::vector<std::string> all_tensor_types_ir11 = {
+      "tensor(uint8)",        "tensor(uint16)",         "tensor(uint32)",     "tensor(uint64)",
+      "tensor(int8)",         "tensor(int16)",          "tensor(int32)",      "tensor(int64)",
+      "tensor(bfloat16)",     "tensor(float16)",        "tensor(float)",      "tensor(double)",
+      "tensor(string)",       "tensor(bool)",           "tensor(complex64)",  "tensor(complex128)",
+      "tensor(float8e4m3fn)", "tensor(float8e4m3fnuz)", "tensor(float8e5m2)", "tensor(float8e5m2fnuz)",
+      "tensor(uint4)",        "tensor(int4)",           "tensor(float4e2m1)"};
+  return all_tensor_types_ir11;
+}
+
+const std::vector<std::string>& OpSchema::all_non_complex_tensor_types_ir11() {
+  static const std::vector<std::string> all_non_complex_tensor_types_ir11 = {
+      "tensor(uint8)",      "tensor(uint16)",         "tensor(uint32)",       "tensor(uint64)",
+      "tensor(int8)",       "tensor(int16)",          "tensor(int32)",        "tensor(int64)",
+      "tensor(bfloat16)",   "tensor(float16)",        "tensor(float)",        "tensor(double)",
+      "tensor(string)",     "tensor(bool)",           "tensor(float8e4m3fn)", "tensor(float8e4m3fnuz)",
+      "tensor(float8e5m2)", "tensor(float8e5m2fnuz)", "tensor(uint4)",        "tensor(int4)",
+      "tensor(float4e2m1)"};
+  return all_non_complex_tensor_types_ir11;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_sequence_types() {
+  static const std::vector<std::string> all_tensor_sequence_types = {
+      "seq(tensor(uint8))",
+      "seq(tensor(uint16))",
+      "seq(tensor(uint32))",
+      "seq(tensor(uint64))",
+      "seq(tensor(int8))",
+      "seq(tensor(int16))",
+      "seq(tensor(int32))",
+      "seq(tensor(int64))",
+      "seq(tensor(float16))",
+      "seq(tensor(float))",
+      "seq(tensor(double))",
+      "seq(tensor(string))",
+      "seq(tensor(bool))",
+      "seq(tensor(complex64))",
+      "seq(tensor(complex128))"};
+  return all_tensor_sequence_types;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_sequence_types_ir4() {
+  static const std::vector<std::string> all_tensor_sequence_types_ir4 = {
+      "seq(tensor(uint8))",
+      "seq(tensor(uint16))",
+      "seq(tensor(uint32))",
+      "seq(tensor(uint64))",
+      "seq(tensor(int8))",
+      "seq(tensor(int16))",
+      "seq(tensor(int32))",
+      "seq(tensor(int64))",
+      "seq(tensor(bfloat16))",
+      "seq(tensor(float16))",
+      "seq(tensor(float))",
+      "seq(tensor(double))",
+      "seq(tensor(string))",
+      "seq(tensor(bool))",
+      "seq(tensor(complex64))",
+      "seq(tensor(complex128))"};
+  return all_tensor_sequence_types_ir4;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_sequence_types_ir9() {
+  static const std::vector<std::string> all_tensor_sequence_types_ir9 = {
+      "seq(tensor(uint8))",      "seq(tensor(uint16))",        "seq(tensor(uint32))",
+      "seq(tensor(uint64))",     "seq(tensor(int8))",          "seq(tensor(int16))",
+      "seq(tensor(int32))",      "seq(tensor(int64))",         "seq(tensor(bfloat16))",
+      "seq(tensor(float16))",    "seq(tensor(float))",         "seq(tensor(double))",
+      "seq(tensor(string))",     "seq(tensor(bool))",          "seq(tensor(complex64))",
+      "seq(tensor(complex128))", "seq(tensor(float8e4m3fn))",  "seq(tensor(float8e4m3fnuz))",
+      "seq(tensor(float8e5m2))", "seq(tensor(float8e5m2fnuz))"};
+  return all_tensor_sequence_types_ir9;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_sequence_types_ir10() {
+  static const std::vector<std::string> all_tensor_sequence_types_ir10 = {
+      "seq(tensor(uint8))",      "seq(tensor(uint16))",         "seq(tensor(uint32))",
+      "seq(tensor(uint64))",     "seq(tensor(int8))",           "seq(tensor(int16))",
+      "seq(tensor(int32))",      "seq(tensor(int64))",          "seq(tensor(bfloat16))",
+      "seq(tensor(float16))",    "seq(tensor(float))",          "seq(tensor(double))",
+      "seq(tensor(string))",     "seq(tensor(bool))",           "seq(tensor(complex64))",
+      "seq(tensor(complex128))", "seq(tensor(float8e4m3fn))",   "seq(tensor(float8e4m3fnuz))",
+      "seq(tensor(float8e5m2))", "seq(tensor(float8e5m2fnuz))", "seq(tensor(uint4))",
+      "seq(tensor(int4))"};
+  return all_tensor_sequence_types_ir10;
+}
+
+const std::vector<std::string>& OpSchema::all_tensor_sequence_types_ir11() {
+  static const std::vector<std::string> all_tensor_sequence_types_ir11 = {
+      "seq(tensor(uint8))",      "seq(tensor(uint16))",         "seq(tensor(uint32))",
+      "seq(tensor(uint64))",     "seq(tensor(int8))",           "seq(tensor(int16))",
+      "seq(tensor(int32))",      "seq(tensor(int64))",          "seq(tensor(bfloat16))",
+      "seq(tensor(float16))",    "seq(tensor(float))",          "seq(tensor(double))",
+      "seq(tensor(string))",     "seq(tensor(bool))",           "seq(tensor(complex64))",
+      "seq(tensor(complex128))", "seq(tensor(float8e4m3fn))",   "seq(tensor(float8e4m3fnuz))",
+      "seq(tensor(float8e5m2))", "seq(tensor(float8e5m2fnuz))", "seq(tensor(uint4))",
+      "seq(tensor(int4))",       "seq(tensor(float4e2m1))"};
+  return all_tensor_sequence_types_ir11;
+}
+
+const std::vector<std::string>& OpSchema::all_optional_types() {
+  static const std::vector<std::string> all_optional_types = {
+      "optional(seq(tensor(uint8)))",  "optional(seq(tensor(uint16)))",    "optional(seq(tensor(uint32)))",
+      "optional(seq(tensor(uint64)))", "optional(seq(tensor(int8)))",      "optional(seq(tensor(int16)))",
+      "optional(seq(tensor(int32)))",  "optional(seq(tensor(int64)))",     "optional(seq(tensor(float16)))",
+      "optional(seq(tensor(float)))",  "optional(seq(tensor(double)))",    "optional(seq(tensor(string)))",
+      "optional(seq(tensor(bool)))",   "optional(seq(tensor(complex64)))", "optional(seq(tensor(complex128)))",
+      "optional(tensor(uint8))",       "optional(tensor(uint16))",         "optional(tensor(uint32))",
+      "optional(tensor(uint64))",      "optional(tensor(int8))",           "optional(tensor(int16))",
+      "optional(tensor(int32))",       "optional(tensor(int64))",          "optional(tensor(float16))",
+      "optional(tensor(float))",       "optional(tensor(double))",         "optional(tensor(string))",
+      "optional(tensor(bool))",        "optional(tensor(complex64))",      "optional(tensor(complex128))"};
+  return all_optional_types;
+}
+
+const std::vector<std::string>& OpSchema::all_optional_types_ir4() {
+  static const std::vector<std::string> all_optional_types = {
+      "optional(seq(tensor(uint8)))",      "optional(seq(tensor(uint16)))", "optional(seq(tensor(uint32)))",
+      "optional(seq(tensor(uint64)))",     "optional(seq(tensor(int8)))",   "optional(seq(tensor(int16)))",
+      "optional(seq(tensor(int32)))",      "optional(seq(tensor(int64)))",  "optional(seq(tensor(bfloat16)))",
+      "optional(seq(tensor(float16)))",    "optional(seq(tensor(float)))",  "optional(seq(tensor(double)))",
+      "optional(seq(tensor(string)))",     "optional(seq(tensor(bool)))",   "optional(seq(tensor(complex64)))",
+      "optional(seq(tensor(complex128)))", "optional(tensor(uint8))",       "optional(tensor(uint16))",
+      "optional(tensor(uint32))",          "optional(tensor(uint64))",      "optional(tensor(int8))",
+      "optional(tensor(int16))",           "optional(tensor(int32))",       "optional(tensor(int64))",
+      "optional(tensor(bfloat16))",        "optional(tensor(float16))",     "optional(tensor(float))",
+      "optional(tensor(double))",          "optional(tensor(string))",      "optional(tensor(bool))",
+      "optional(tensor(complex64))",       "optional(tensor(complex128))"};
+  return all_optional_types;
+}
+
+const std::vector<std::string>& OpSchema::all_optional_types_ir9() {
+  static const std::vector<std::string> all_optional_types = {
+      "optional(seq(tensor(uint8)))",      "optional(seq(tensor(uint16)))", "optional(seq(tensor(uint32)))",
+      "optional(seq(tensor(uint64)))",     "optional(seq(tensor(int8)))",   "optional(seq(tensor(int16)))",
+      "optional(seq(tensor(int32)))",      "optional(seq(tensor(int64)))",  "optional(seq(tensor(bfloat16)))",
+      "optional(seq(tensor(float16)))",    "optional(seq(tensor(float)))",  "optional(seq(tensor(double)))",
+      "optional(seq(tensor(string)))",     "optional(seq(tensor(bool)))",   "optional(seq(tensor(complex64)))",
+      "optional(seq(tensor(complex128)))", "optional(tensor(uint8))",       "optional(tensor(uint16))",
+      "optional(tensor(uint32))",          "optional(tensor(uint64))",      "optional(tensor(int8))",
+      "optional(tensor(int16))",           "optional(tensor(int32))",       "optional(tensor(int64))",
+      "optional(tensor(bfloat16))",        "optional(tensor(float16))",     "optional(tensor(float))",
+      "optional(tensor(double))",          "optional(tensor(string))",      "optional(tensor(bool))",
+      "optional(tensor(complex64))",       "optional(tensor(complex128))",  "optional(tensor(float8e4m3fn))",
+      "optional(tensor(float8e4m3fnuz))",  "optional(tensor(float8e5m2))",  "optional(tensor(float8e5m2fnuz))"};
+  return all_optional_types;
+}
+
+const std::vector<std::string>& OpSchema::all_optional_types_ir10() {
+  static const std::vector<std::string> all_optional_types = {
+      "optional(seq(tensor(uint8)))",      "optional(seq(tensor(uint16)))", "optional(seq(tensor(uint32)))",
+      "optional(seq(tensor(uint64)))",     "optional(seq(tensor(int8)))",   "optional(seq(tensor(int16)))",
+      "optional(seq(tensor(int32)))",      "optional(seq(tensor(int64)))",  "optional(seq(tensor(bfloat16)))",
+      "optional(seq(tensor(float16)))",    "optional(seq(tensor(float)))",  "optional(seq(tensor(double)))",
+      "optional(seq(tensor(string)))",     "optional(seq(tensor(bool)))",   "optional(seq(tensor(complex64)))",
+      "optional(seq(tensor(complex128)))", "optional(tensor(uint8))",       "optional(tensor(uint16))",
+      "optional(tensor(uint32))",          "optional(tensor(uint64))",      "optional(tensor(int8))",
+      "optional(tensor(int16))",           "optional(tensor(int32))",       "optional(tensor(int64))",
+      "optional(tensor(bfloat16))",        "optional(tensor(float16))",     "optional(tensor(float))",
+      "optional(tensor(double))",          "optional(tensor(string))",      "optional(tensor(bool))",
+      "optional(tensor(complex64))",       "optional(tensor(complex128))",  "optional(tensor(float8e4m3fn))",
+      "optional(tensor(float8e4m3fnuz))",  "optional(tensor(float8e5m2))",  "optional(tensor(float8e5m2fnuz))",
+      "optional(tensor(uint4))",           "optional(tensor(int4))"};
+  return all_optional_types;
+}
+
+const std::vector<std::string>& OpSchema::all_optional_types_ir11() {
+  static const std::vector<std::string> all_optional_types = {
+      "optional(seq(tensor(uint8)))",      "optional(seq(tensor(uint16)))", "optional(seq(tensor(uint32)))",
+      "optional(seq(tensor(uint64)))",     "optional(seq(tensor(int8)))",   "optional(seq(tensor(int16)))",
+      "optional(seq(tensor(int32)))",      "optional(seq(tensor(int64)))",  "optional(seq(tensor(bfloat16)))",
+      "optional(seq(tensor(float16)))",    "optional(seq(tensor(float)))",  "optional(seq(tensor(double)))",
+      "optional(seq(tensor(string)))",     "optional(seq(tensor(bool)))",   "optional(seq(tensor(complex64)))",
+      "optional(seq(tensor(complex128)))", "optional(tensor(uint8))",       "optional(tensor(uint16))",
+      "optional(tensor(uint32))",          "optional(tensor(uint64))",      "optional(tensor(int8))",
+      "optional(tensor(int16))",           "optional(tensor(int32))",       "optional(tensor(int64))",
+      "optional(tensor(bfloat16))",        "optional(tensor(float16))",     "optional(tensor(float))",
+      "optional(tensor(double))",          "optional(tensor(string))",      "optional(tensor(bool))",
+      "optional(tensor(complex64))",       "optional(tensor(complex128))",  "optional(tensor(float8e4m3fn))",
+      "optional(tensor(float8e4m3fnuz))",  "optional(tensor(float8e5m2))",  "optional(tensor(float8e5m2fnuz))",
+      "optional(tensor(uint4))",           "optional(tensor(int4))",        "optional(tensor(float4e2m1))"};
+  return all_optional_types;
 }
 
 void OpSchema::Finalize() {
@@ -936,6 +1413,11 @@ void OpSchema::Finalize() {
   // "optional" but not trailing inputs>. <Max number of inputs> = <number of
   // all inputs or std::numeric_limits<int>::max() (if the last input is
   // variadic).
+
+  max_input_ = 0;
+  min_input_ = 0;
+  min_output_ = 0;
+  max_output_ = 0;
 
   // Flag indicates whether an optional input is trailing one (there's no single
   // or variadic input behind).
@@ -994,13 +1476,13 @@ void OpSchema::Finalize() {
 
 std::ostream& operator<<(std::ostream& out, const OpSchema& schema) {
   if (!schema.attributes_.empty()) {
-    out << "Attributes:" << std::endl;
+    out << "Attributes:" << '\n';
     for (const auto& pair : schema.attributes_) {
-      out << "  " << pair.second.name << " : " << pair.second.description << std::endl;
+      out << "  " << pair.second.name << " : " << pair.second.description << '\n';
     }
   }
   if (schema.max_input_ > 0) {
-    out << "Inputs:" << std::endl;
+    out << "Inputs:" << '\n';
     if (!schema.inputs_.empty()) {
       for (size_t i = 0; i < schema.inputs_.size(); ++i) {
         const auto& p = schema.inputs_[i];
@@ -1009,14 +1491,14 @@ std::ostream& operator<<(std::ostream& out, const OpSchema& schema) {
         const auto& type_str = p.GetTypeStr();
         out << "  " << i << ", " << (!name.empty() ? name : "(unnamed)") << " : "
             << (!description.empty() ? description : "(no doc)") << " : "
-            << (!type_str.empty() ? type_str : "(no type)") << std::endl;
+            << (!type_str.empty() ? type_str : "(no type)") << '\n';
       }
     } else {
-      out << "  (no explicit description available)" << std::endl;
+      out << "  (no explicit description available)" << '\n';
     }
   }
   if (schema.max_output_ > 0) {
-    out << "Outputs:" << std::endl;
+    out << "Outputs:" << '\n';
     if (!schema.outputs_.empty()) {
       for (size_t i = 0; i < schema.outputs_.size(); ++i) {
         const auto& p = schema.outputs_[i];
@@ -1025,21 +1507,21 @@ std::ostream& operator<<(std::ostream& out, const OpSchema& schema) {
         const auto& type_str = p.GetTypeStr();
         out << "  " << i << ", " << (!name.empty() ? name : "(unnamed)") << " : "
             << (!description.empty() ? description : "(no doc)") << " : "
-            << (!type_str.empty() ? type_str : "(no type)") << std::endl;
+            << (!type_str.empty() ? type_str : "(no type)") << '\n';
       }
     } else {
-      out << "  (no explicit description available)" << std::endl;
+      out << "  (no explicit description available)" << '\n';
     }
   }
-  out << std::endl;
+  out << '\n';
   if (schema.doc()) {
     out << schema.doc();
   } else {
-    out << "(no documentation yet)" << std::endl;
+    out << "(no documentation yet)" << '\n';
   }
-  out << std::endl;
+  out << '\n';
   if (schema.line_) {
-    out << "Defined at " << schema.file_ << ":" << schema.line_ << std::endl;
+    out << "Defined at " << schema.file_ << ":" << schema.line_ << '\n';
   }
   return out;
 }
@@ -1096,6 +1578,7 @@ OpName_Domain_Version_Schema_Map& OpSchemaRegistry::map() {
     }
 
    private:
+#ifndef NDEBUG
     static size_t GetRegisteredSchemaCount() {
       size_t count = 0;
       for (auto& x : GetMapWithoutEnsuringRegistration()) {
@@ -1105,6 +1588,7 @@ OpName_Domain_Version_Schema_Map& OpSchemaRegistry::map() {
       }
       return count;
     }
+#endif
   };
 
 #ifndef __ONNX_DISABLE_STATIC_REGISTRATION

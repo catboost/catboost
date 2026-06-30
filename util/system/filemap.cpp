@@ -12,7 +12,7 @@
     #include <sys/types.h>
     #include <sys/mman.h>
 
-    #if !defined(_linux_)
+    #if !defined(_linux_) && !defined(_emscripten_)
         #ifdef MAP_POPULATE
             #error unlisted platform supporting MAP_POPULATE
         #endif
@@ -37,7 +37,7 @@
 #undef GRANULARITY
 
 #ifdef _win_
-    #define MAP_FAILED ((void*)(LONG_PTR)-1)
+    #define MAP_FAILED ((void*)(LONG_PTR) - 1)
 #endif
 
 namespace {
@@ -65,7 +65,7 @@ namespace {
         const size_t GRANULARITY_;
         const size_t PAGE_SIZE_;
     };
-}
+} // namespace
 
 #define GRANULARITY (TSysInfo::Instance().GRANULARITY_)
 #define PAGE_SIZE (TSysInfo::Instance().PAGE_SIZE_)
@@ -246,7 +246,7 @@ public:
     #endif
             result.Ptr = mmap((caddr_t) nullptr, size, ModeToMmapProt(Mode_), ModeToMmapFlags(Mode_), File_.GetHandle(), base);
 
-            if (result.Ptr == (char*)(-1)) {
+            if (result.Ptr == MAP_FAILED) {
                 result.Ptr = nullptr;
             }
     #if defined(_unix_)
@@ -300,7 +300,7 @@ public:
 
     void Evict() {
 #if defined(_unix_)
-//        Evict(PtrStart_, Length_);
+// Evict(PtrStart_, Length_);
 #endif
     }
 

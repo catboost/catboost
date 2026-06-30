@@ -46,7 +46,8 @@
 // for more information.
 #ifdef ABSL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
 #error ABSL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING cannot be directly set
-#elif defined(_WIN32) || defined(__asmjs__) || defined(__wasm__)
+#elif defined(_WIN32) || defined(__asmjs__) || defined(__wasm__) || \
+    defined(__hexagon__)
 #define ABSL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING 1
 #endif
 
@@ -118,6 +119,12 @@ class LowLevelAlloc {
  private:
   LowLevelAlloc();      // no instances
 };
+
+// Returns a global async-signal-safe arena for LowLevelAlloc.
+LowLevelAlloc::Arena *SigSafeArena();
+
+// Ensures the global async-signal-safe arena for LowLevelAlloc is initialized.
+void InitSigSafeArena();
 
 }  // namespace base_internal
 ABSL_NAMESPACE_END

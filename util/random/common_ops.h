@@ -47,7 +47,7 @@ namespace NPrivate {
      */
     template <class T, class TRandGen>
     static T GenUniform(T max, TRandGen&& gen) {
-        Y_VERIFY(max > 0, "Invalid random number range [0, 0)");
+        Y_ABORT_UNLESS(max > 0, "Invalid random number range [0, 0)");
 
         const T randmax = gen.RandMax() - gen.RandMax() % max;
         T rand;
@@ -58,7 +58,7 @@ namespace NPrivate {
 
         return rand % max;
     }
-}
+} // namespace NPrivate
 
 template <class TRandType, class T>
 struct TCommonRNG {
@@ -115,7 +115,7 @@ struct TCommonRNG {
         return ::NPrivate::ToRandReal4(Engine().GenRand64());
     }
 
-    //compatibility stuff
+    // compatibility stuff
     inline TResult operator()() noexcept {
         return Engine().GenRand();
     }

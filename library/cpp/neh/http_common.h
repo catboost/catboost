@@ -7,6 +7,7 @@
 #include <util/stream/mem.h>
 #include <util/stream/output.h>
 #include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/http/misc/httpcodes.h>
 
 #include "location.h"
 #include "neh.h"
@@ -147,7 +148,7 @@ namespace NNeh {
             }
 
             TVector<char> Mem;
-
+            TString Data;
         private:
             TParts Parts_;
         };
@@ -155,7 +156,6 @@ namespace NNeh {
         struct TRequestSettings {
             bool NoDelay = true;
             EResolverType ResolverType = EResolverType::ETCP;
-            bool UseAsyncSendRequest = false;
 
             TRequestSettings& SetNoDelay(bool noDelay) {
                 NoDelay = noDelay;
@@ -164,11 +164,6 @@ namespace NNeh {
 
             TRequestSettings& SetResolverType(EResolverType resolverType) {
                 ResolverType = resolverType;
-                return *this;
-            }
-
-            TRequestSettings& SetUseAsyncSendRequest(bool useAsyncSendRequest) {
-                UseAsyncSendRequest = useAsyncSendRequest;
                 return *this;
             }
         };
@@ -221,6 +216,7 @@ namespace NNeh {
 
                 req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
                 req->AddPart(msg.Data.data(), msg.Data.size());
+                req->Data = msg.Data;
                 return req;
             }
 
@@ -236,7 +232,8 @@ namespace NNeh {
         struct TRequestFull {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation&) {
                 TRequestData::TPtr req(new TRequestData(0));
-                req->AddPart(msg.Data.data(), msg.Data.size());
+                req->Data = msg.Data;
+                req->AddPart(req->Data.data(), req->Data.size());
                 return req;
             }
 
@@ -267,8 +264,8 @@ namespace NNeh {
             AbsoluteUri = 1,
         };
 
-        Y_DECLARE_FLAGS(ERequestFlags, ERequestFlag)
-        Y_DECLARE_OPERATORS_FOR_FLAGS(ERequestFlags)
+        Y_DECLARE_FLAGS(ERequestFlags, ERequestFlag);
+        Y_DECLARE_OPERATORS_FOR_FLAGS(ERequestFlags);
 
         static constexpr ERequestType DefaultRequestType = ERequestType::Any;
 
@@ -302,4 +299,6 @@ namespace NNeh {
 
         bool IsHttpScheme(TStringBuf scheme);
     }
+
+    HttpCodes GetHttpCode(const IRequest::TResponseError&);
 }

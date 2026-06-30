@@ -2,11 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "onnx/defs/function.h"
 #include "onnx/defs/schema.h"
-
-#include <algorithm>
-#include <numeric>
 
 namespace ONNX_NAMESPACE {
 static const char* OptionalHasElement_ver1_doc = R"DOC(

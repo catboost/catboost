@@ -80,7 +80,7 @@ For the [catboost calc](../concepts/cli-reference_calc-model.md) command:
 
 **{{ features__table__title__cli__key-description }}**
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe step of the trees to use to `eval-period`.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the step of the trees to use to `eval-period`.
 
 {% include [eval-start-end-cli__eval__period__desc](../_includes/work_src/reusage-common-phrases/cli__eval__period__desc.md) %}
 

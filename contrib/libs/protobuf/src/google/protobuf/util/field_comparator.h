@@ -34,12 +34,15 @@
 #define GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__
 
 #include <cstdint>
-#include <map>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "google/protobuf/port.h"
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -60,6 +63,8 @@ class MessageDifferencer;
 class PROTOBUF_EXPORT FieldComparator {
  public:
   FieldComparator();
+  FieldComparator(const FieldComparator&) = delete;
+  FieldComparator& operator=(const FieldComparator&) = delete;
   virtual ~FieldComparator();
 
   enum ComparisonResult {
@@ -89,9 +94,6 @@ class PROTOBUF_EXPORT FieldComparator {
                                    const FieldDescriptor* field, int index_1,
                                    int index_2,
                                    const util::FieldContext* field_context) = 0;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FieldComparator);
 };
 
 // Basic implementation of FieldComparator.  Supports three modes of floating
@@ -110,6 +112,8 @@ class PROTOBUF_EXPORT SimpleFieldComparator : public FieldComparator {
 
   // Creates new comparator with float comparison set to EXACT.
   SimpleFieldComparator();
+  SimpleFieldComparator(const SimpleFieldComparator&) = delete;
+  SimpleFieldComparator& operator=(const SimpleFieldComparator&) = delete;
 
   ~SimpleFieldComparator() override;
 
@@ -176,9 +180,6 @@ class PROTOBUF_EXPORT SimpleFieldComparator : public FieldComparator {
     Tolerance() : fraction(0.0), margin(0.0) {}
     Tolerance(double f, double m) : fraction(f), margin(m) {}
   };
-
-  // Defines the map to store the tolerances for floating point comparison.
-  typedef std::map<const FieldDescriptor*, Tolerance> ToleranceMap;
 
   friend class MessageDifferencer;
   // The following methods get executed when CompareFields is called for the
@@ -253,19 +254,12 @@ class PROTOBUF_EXPORT SimpleFieldComparator : public FieldComparator {
 
   // Field-specific float/double tolerances, which override any default for
   // those particular fields.
-  ToleranceMap map_tolerance_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(SimpleFieldComparator);
+  y_absl::flat_hash_map<const FieldDescriptor*, Tolerance> map_tolerance_;
 };
 
 // Default field comparison: use the basic implementation of FieldComparator.
-#ifdef PROTOBUF_FUTURE_BREAKING_CHANGES
-class PROTOBUF_EXPORT DefaultFieldComparator final
-    : public SimpleFieldComparator
-#else   // PROTOBUF_FUTURE_BREAKING_CHANGES
-class PROTOBUF_EXPORT DefaultFieldComparator : public SimpleFieldComparator
-#endif  // PROTOBUF_FUTURE_BREAKING_CHANGES
-{
+class PROTOBUF_EXPORT DefaultFieldComparator
+    : public SimpleFieldComparator {
  public:
   ComparisonResult Compare(const Message& message_1, const Message& message_2,
                            const FieldDescriptor* field, int index_1,
@@ -280,6 +274,6 @@ class PROTOBUF_EXPORT DefaultFieldComparator : public SimpleFieldComparator
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_UTIL_FIELD_COMPARATOR_H__

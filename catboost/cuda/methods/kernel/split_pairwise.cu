@@ -1,7 +1,7 @@
 #include "split_pairwise.cuh"
 #include "split_properties_helpers.cuh"
 #include <cooperative_groups.h>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
@@ -158,7 +158,7 @@ namespace NKernel {
             } else if (partCount == 256) {
                 RUN(256)
             } else {
-                Y_VERIFY(false);
+                Y_ABORT_UNLESS(false);
             }
         }
     }

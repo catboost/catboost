@@ -295,7 +295,6 @@ bool TParserCtx::Parse() {
             write init;
             write exec;
         }%%
-        ;
         Y_UNUSED(fastjson_en_main);
     } catch (const TFromStringException& e) {
         return OnError(e.what());

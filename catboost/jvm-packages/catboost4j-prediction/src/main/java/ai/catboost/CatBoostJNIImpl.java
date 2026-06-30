@@ -23,15 +23,32 @@ class CatBoostJNIImpl {
     @Nullable
     final static native String catBoostLoadModelFromFile(
             @NotNull String fname,
-            @NotNull long[] handle);
+            @NotNull long[] handle,
+            @Nullable String formatName);
 
     @Nullable
     final static native String catBoostLoadModelFromArray(
             @NotNull byte[] data,
-            @NotNull long[] handle);
+            @NotNull long[] handle,
+            @Nullable String formatName);
 
     @Nullable
     final static native String catBoostFreeModel(long handle);
+
+    @Nullable
+    final static native String catBoostModelGetSupportedEvaluatorTypes(
+            long handle,
+            @NotNull String[][] evaluatorTypes);
+
+    @Nullable
+    final static native String catBoostModelSetEvaluatorType(
+            long handle,
+            @NotNull String evaluatorType);
+
+    @Nullable
+    final static native String catBoostModelGetEvaluatorType(
+            long handle,
+            @NotNull String[] evaluatorType);
 
     @Nullable
     final static native String catBoostModelGetPredictionDimension(
@@ -47,7 +64,7 @@ class CatBoostJNIImpl {
     final static native String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
-    
+
     @Nullable
     final static native String catBoostModelGetUsedTextFeatureCount(
             long handle,
@@ -143,5 +160,11 @@ class CatBoostJNIImpl {
             @Nullable int[][] catFeatureHashes,
             @Nullable String[][] textFeatures,
             @Nullable float[][][] embeddingFeatures,
+            @NotNull double[] predictions);
+
+    @Nullable
+    final static native String catBoostModelPredictTransposed(
+            long handle,
+            @NotNull float[][] numericFeatures,
             @NotNull double[] predictions);
 }

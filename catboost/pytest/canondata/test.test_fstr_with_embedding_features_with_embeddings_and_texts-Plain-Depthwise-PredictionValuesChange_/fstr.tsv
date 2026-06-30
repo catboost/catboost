@@ -1,0 +1,16 @@
+51.25753665	text_synopsis
+27.86410801	rating
+8.268724914	text_genre
+5.153072553	text_review
+3.249698802	12
+1.987233617	mpaa_film_rating
+0.9883523505	embedding_genre
+0.5723751741	embedding_review
+0.3527043594	embedding_synopsis
+0.3005490029	date
+0.005644568912	theater_date
+0	director
+0	dvd_date
+0	writer
+0	critic
+0	publisher

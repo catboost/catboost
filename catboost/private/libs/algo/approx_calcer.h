@@ -7,10 +7,14 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 
+
 class IDerCalcer;
 class TLearnContext;
 struct TSplitTree;
 struct TNonSymmetricTreeStructure;
+
+template <class T>
+class TArray2D;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
@@ -61,7 +65,6 @@ void CalcLeafDeltasSimple(
 void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
-    const TFold& fold,
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,

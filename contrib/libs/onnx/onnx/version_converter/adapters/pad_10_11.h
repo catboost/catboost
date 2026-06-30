@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -6,6 +8,11 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "onnx/version_converter/adapters/adapter.h"
+
 namespace ONNX_NAMESPACE {
 namespace version_conversion {
 
@@ -13,7 +20,7 @@ class Pad_10_11 final : public Adapter {
  public:
   explicit Pad_10_11() : Adapter("Pad", OpSetID(10), OpSetID(11)) {}
 
-  void adapt_pad_10_11(std::shared_ptr<Graph> graph, Node* node) const {
+  void adapt_pad_10_11(const std::shared_ptr<Graph>& graph, Node* node) const {
     // Turn pads attribute into input
     Tensor t_pads;
     t_pads.elem_type() = TensorProto_DataType_INT64;
@@ -27,6 +34,8 @@ class Pad_10_11 final : public Adapter {
     node->removeAttribute(kpads);
     // Turn value attribute into input
     if (!node->hasAttribute(kmode) || node->s(kmode) == "constant") {
+      if (!node->hasAttribute(kvalue))
+        node->f_(kvalue, 0.);
       Tensor t_value;
       t_value.elem_type() = TensorProto_DataType_FLOAT;
       auto& data_value = t_value.floats();

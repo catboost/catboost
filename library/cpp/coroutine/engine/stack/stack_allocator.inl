@@ -52,7 +52,7 @@ namespace NCoro::NStack {
         , Guard_(GetGuard<TGuard>())
     {
 #ifdef _linux_
-        Y_VERIFY(sysconf(_SC_PAGESIZE) == PageSize);
+        Y_ABORT_UNLESS(sysconf(_SC_PAGESIZE) == PageSize);
 #endif
     }
 
@@ -64,7 +64,7 @@ namespace NCoro::NStack {
         if (pool == Pools_.end()) {
             Y_ASSERT(Pools_.size() < 1000); // too many different sizes for coroutine stacks
             auto [newPool, success] = Pools_.emplace(alignedSize, TPool<TGuard>{alignedSize, PoolSettings_, Guard_});
-            Y_VERIFY(success, "Failed to add new coroutine pool");
+            Y_ABORT_UNLESS(success, "Failed to add new coroutine pool");
             pool = newPool;
         }
         return pool->second.AllocStack(name);
@@ -73,7 +73,7 @@ namespace NCoro::NStack {
     template<typename TGuard>
     void TPoolAllocator<TGuard>::DoFreeStack(NDetails::TStack& stack) noexcept {
         auto pool = Pools_.find(stack.GetSize());
-        Y_VERIFY(pool != Pools_.end(), "Attempt to free stack from another allocator");
+        Y_ABORT_UNLESS(pool != Pools_.end(), "Attempt to free stack from another allocator");
         pool->second.FreeStack(stack);
     }
 
@@ -117,7 +117,7 @@ namespace NCoro::NStack {
         char* rawPtr = nullptr;
         char* alignedPtr = nullptr; // with extra space for previous guard in this type of allocator
 
-        Y_VERIFY(GetAlignedMemory((alignedSize + Guard_.GetPageAlignedSize()) / PageSize, rawPtr, alignedPtr)); // + memory for previous guard
+        Y_ABORT_UNLESS(GetAlignedMemory((alignedSize + Guard_.GetPageAlignedSize()) / PageSize, rawPtr, alignedPtr)); // + memory for previous guard
         char* alignedStackMemory = alignedPtr + Guard_.GetPageAlignedSize(); // after previous guard
 
         // Default allocator sets both guards, because it doesn't have memory chunk with previous stack and guard on it

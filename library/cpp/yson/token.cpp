@@ -72,7 +72,7 @@ namespace NYson {
             case ETokenType::Comma:
                 return ',';
             default:
-                Y_FAIL("unreachable");
+                Y_ABORT("unreachable");
         }
     }
 
@@ -106,7 +106,7 @@ namespace NYson {
             case ETokenType::Uint64:
             case ETokenType::Double:
             case ETokenType::Boolean:
-                Y_FAIL("unreachable");
+                Y_ABORT("unreachable");
             default:
                 break;
         }

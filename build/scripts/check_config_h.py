@@ -82,6 +82,14 @@ static_assert(sizeof(wchar_t) == SIZEOF_WCHAR_T, "fixme 16");
 #if defined(SIZEOF__BOOL)
 //TODO
 #endif
+
+#if defined(ALIGNOF_VOID_P)
+static_assert(alignof(void*) == ALIGNOF_VOID_P, "fixme 18");
+#endif
+
+#if defined(ALIGNOF_DOUBLE)
+static_assert(alignof(double) == ALIGNOF_DOUBLE, "fixme 19");
+#endif
 """
 if __name__ == '__main__':
     with open(sys.argv[2], 'w') as f:

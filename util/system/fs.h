@@ -23,6 +23,13 @@ namespace NFs {
 
     Y_DECLARE_FLAGS(EFilePermissions, EFilePermission);
 
+    /// Add executable bit
+    ///
+    /// @param[in] path  Path to mark as executable
+    /// @param[in] exec  New value of execution bit
+    /// @returns         true if bit has changed or false otherwise
+    bool SetExecutable(const TString& path, bool exec);
+
     /// Remove a file or empty directory
     ///
     /// @param[in] path  Path to file or directory
@@ -31,6 +38,7 @@ namespace NFs {
     bool Remove(const TString& path);
 
     /// Remove a file or directory with contents
+    /// Does nothing if path does not exist
     ///
     /// @param[in] path  Path to file or directory
     /// @throws
@@ -151,6 +159,6 @@ namespace NFs {
         Y_ENSURE_EX(Exists(path), TFileError{} << "Path " << path << " does not exists (checked from cwd:" << NFs::CurrentWorkingDirectory() << ")");
         return path;
     }
-}
+} // namespace NFs
 
-Y_DECLARE_OPERATORS_FOR_FLAGS(NFs::EFilePermissions)
+Y_DECLARE_OPERATORS_FOR_FLAGS(NFs::EFilePermissions);

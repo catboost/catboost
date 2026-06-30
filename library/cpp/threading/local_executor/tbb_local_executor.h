@@ -19,7 +19,6 @@ namespace NPar {
             , NumberOfTbbThreads(nThreads) {}
         ~TTbbLocalExecutor() noexcept override {}
 
-        // 0-based ILocalExecutor worker thread identification
         virtual int GetWorkerThreadId() const noexcept override;
         virtual int GetThreadCount() const noexcept override;
 

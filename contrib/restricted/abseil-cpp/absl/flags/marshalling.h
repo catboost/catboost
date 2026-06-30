@@ -199,14 +199,12 @@
 #ifndef ABSL_FLAGS_MARSHALLING_H_
 #define ABSL_FLAGS_MARSHALLING_H_
 
-#include "absl/base/config.h"
-
-#if defined(ABSL_HAVE_STD_OPTIONAL) && !defined(ABSL_USES_STD_OPTIONAL)
 #include <optional>
-#endif
 #include <string>
 #include <vector>
 
+#include "absl/base/config.h"
+#include "absl/numeric/int128.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 
@@ -233,26 +231,13 @@ bool AbslParseFlag(absl::string_view, unsigned long*, std::string*);   // NOLINT
 bool AbslParseFlag(absl::string_view, long long*, std::string*);       // NOLINT
 bool AbslParseFlag(absl::string_view, unsigned long long*,             // NOLINT
                    std::string*);
+bool AbslParseFlag(absl::string_view, absl::int128*, std::string*);    // NOLINT
+bool AbslParseFlag(absl::string_view, absl::uint128*, std::string*);   // NOLINT
 bool AbslParseFlag(absl::string_view, float*, std::string*);
 bool AbslParseFlag(absl::string_view, double*, std::string*);
 bool AbslParseFlag(absl::string_view, std::string*, std::string*);
 bool AbslParseFlag(absl::string_view, std::vector<std::string>*, std::string*);
 
-template <typename T>
-bool AbslParseFlag(absl::string_view text, absl::optional<T>* f,
-                   std::string* err) {
-  if (text.empty()) {
-    *f = absl::nullopt;
-    return true;
-  }
-  T value;
-  if (!absl::ParseFlag(text, &value, err)) return false;
-
-  *f = std::move(value);
-  return true;
-}
-
-#if defined(ABSL_HAVE_STD_OPTIONAL) && !defined(ABSL_USES_STD_OPTIONAL)
 template <typename T>
 bool AbslParseFlag(absl::string_view text, std::optional<T>* f,
                    std::string* err) {
@@ -266,7 +251,6 @@ bool AbslParseFlag(absl::string_view text, std::optional<T>* f,
   *f = std::move(value);
   return true;
 }
-#endif
 
 template <typename T>
 bool InvokeParseFlag(absl::string_view input, T* dst, std::string* err) {
@@ -282,16 +266,9 @@ std::string AbslUnparseFlag(absl::string_view v);
 std::string AbslUnparseFlag(const std::vector<std::string>&);
 
 template <typename T>
-std::string AbslUnparseFlag(const absl::optional<T>& f) {
-  return f.has_value() ? absl::UnparseFlag(*f) : "";
-}
-
-#if defined(ABSL_HAVE_STD_OPTIONAL) && !defined(ABSL_USES_STD_OPTIONAL)
-template <typename T>
 std::string AbslUnparseFlag(const std::optional<T>& f) {
   return f.has_value() ? absl::UnparseFlag(*f) : "";
 }
-#endif
 
 template <typename T>
 std::string Unparse(const T& v) {
@@ -310,6 +287,8 @@ std::string Unparse(long v);                // NOLINT
 std::string Unparse(unsigned long v);       // NOLINT
 std::string Unparse(long long v);           // NOLINT
 std::string Unparse(unsigned long long v);  // NOLINT
+std::string Unparse(absl::int128 v);
+std::string Unparse(absl::uint128 v);
 std::string Unparse(float v);
 std::string Unparse(double v);
 

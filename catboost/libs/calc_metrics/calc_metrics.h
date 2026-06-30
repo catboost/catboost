@@ -11,16 +11,18 @@
 namespace NCB {
     class ICalcMetricsImplementation {
     public:
+        virtual ~ICalcMetricsImplementation() = default;
         virtual THashMap<TString, double> CalcMetrics(
             const TPathWithScheme& inputPath,
             const TVector<TString>& metricNamesList,
             const NCB::TDsvFormatOptions& dsvFormat,
             const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
-            ui32 threadCount) const = 0;
-        virtual ~ICalcMetricsImplementation() = default;
+            ui32 threadCount
+        ) const = 0;
     };
 
-    using TCalcMetricsImplementationFactory = NObjectFactory::TParametrizedObjectFactory<ICalcMetricsImplementation, TString>;
+    using TCalcMetricsImplementationFactory
+        = NObjectFactory::TParametrizedObjectFactory<ICalcMetricsImplementation, TString>;
 
 
     TVector<THolder<IMetric>> ConstructMetric(
@@ -33,10 +35,8 @@ namespace NCB {
         TVector<TVector<float>> Target;
         TVector<float> Weights;
 
-        void SaveProcessedData(
-            const TDataProviderPtr datasetPart,
-            NPar::TLocalExecutor* localExecutor
-        );
+    public:
+        void SaveProcessedData(const TDataProviderPtr datasetPart, NPar::TLocalExecutor* localExecutor);
     };
 
     TVector<TMetricHolder> ConsumeCalcMetricsData(
@@ -70,7 +70,8 @@ namespace NCB {
             const TVector<TString>& metricNamesList,
             const NCB::TDsvFormatOptions& dsvFormat,
             const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
-            ui32 threadCount) const override;
+            ui32 threadCount
+        ) const override;
     };
 
     void CheckColumnIndices(int columnCount, const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription);

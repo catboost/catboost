@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,19 +7,19 @@
 // ATTENTION: The code in this file is highly EXPERIMENTAL.
 // Adventurous users should note that the APIs will probably change.
 
-#include <stdint.h>
+#include "onnx/common/interned_strings.h"
+
+#include <cstdint>
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "onnx/common/assertions.h"
-#include "onnx/common/interned_strings.h"
 
 namespace ONNX_NAMESPACE {
 
 struct InternedStrings {
-  InternedStrings() : next_sym(kLastSymbol) {
+  InternedStrings() {
 #define REGISTER_SYMBOL(s)   \
   string_to_sym_[#s] = k##s; \
   sym_to_string_[k##s] = #s;
@@ -59,7 +61,7 @@ struct InternedStrings {
   }
   std::unordered_map<std::string, uint32_t> string_to_sym_;
   std::unordered_map<uint32_t, std::string> sym_to_string_;
-  uint32_t next_sym;
+  uint32_t next_sym{kLastSymbol};
   std::mutex mutex_;
 };
 

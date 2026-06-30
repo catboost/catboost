@@ -949,6 +949,7 @@ namespace NCatboostDistributed {
             double minimizationSign;
             CreateBacktrackingObjective(
                 localData.Params.MetricOptions->ObjectiveMetric,
+                /*customMetric*/ Nothing(),
                 localData.Params.ObliviousTreeOptions,
                 localData.Progress->ApproxDimension,
                 &haveBacktrackingObjective,

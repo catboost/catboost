@@ -1,0 +1,12 @@
+diff --git a/include/__algorithm/ranges_equal_range.h b/include/__algorithm/ranges_equal_range.h
+index ed78cf3..1ff8856 100644
+--- a/include/__algorithm/ranges_equal_range.h
++++ b/include/__algorithm/ranges_equal_range.h
+@@ -1,6 +1,6 @@
+ //===----------------------------------------------------------------------===//
+ //
+-// Part of the LLVM __project, under the Apache License v2.0 with LLVM Exceptions.
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+ // See https://llvm.org/LICENSE.txt for license information.
+ // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+ //

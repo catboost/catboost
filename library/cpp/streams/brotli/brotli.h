@@ -1,5 +1,8 @@
 #pragma once
 
+#include "const.h"
+#include "dictionary.h"
+
 #include <util/generic/ptr.h>
 #include <util/stream/input.h>
 #include <util/stream/output.h>
@@ -11,13 +14,16 @@
 
 class TBrotliCompress: public IOutputStream {
 public:
-    static constexpr int BEST_QUALITY = 11;
-
     /**
       @param slave stream to write compressed data to
       @param quality the higher the quality, the slower and better the compression. Range is 0 to 11.
+      @param dictionary custom brotli dictionary
+      @param offset number of bytes already processed by a different encoder instance
     */
-    explicit TBrotliCompress(IOutputStream* slave, int quality = BEST_QUALITY);
+    explicit TBrotliCompress(IOutputStream* slave,
+                             int quality = NBrotli::BEST_BROTLI_QUALITY,
+                             const TBrotliDictionary* dictionary = nullptr,
+                             size_t offset = 0);
     ~TBrotliCompress() override;
 
 private:
@@ -37,8 +43,11 @@ public:
     /**
       @param slave stream to read compressed data from
       @param bufferSize approximate size of buffer compressed data is read in
+      @param dictionary custom brotli dictionary
     */
-    explicit TBrotliDecompress(IInputStream* slave, size_t bufferSize = 8 * 1024);
+    explicit TBrotliDecompress(IInputStream* slave,
+                               size_t bufferSize = NBrotli::DEFAULT_BROTLI_BUFFER_SIZE,
+                               const TBrotliDictionary* dictionary = nullptr);
     ~TBrotliDecompress() override;
 
 private:

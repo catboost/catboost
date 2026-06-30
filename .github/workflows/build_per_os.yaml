@@ -1,0 +1,93 @@
+name: Build per OS
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      revision:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
+      catboost_package_version:
+        required: false
+        type: string
+        default: ''   # version from repository will be used
+      artifacts_version:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 3
+
+env:
+  os_to_platforms_map: |
+    {
+      "linux": ["linux-x86_64", "linux-aarch64"],
+      "macos": ["darwin-universal2"],
+      "windows": ["windows-x86_64"]
+    }
+
+  platform_to_specs_map: |
+    {
+      "linux-x86_64" : {
+        "executable_suffix": "",
+        "python_platform_tag": "manylinux2014_x86_64",
+        "runs_on": "ubuntu-22.04"
+      },
+      "linux-aarch64" : {
+        "executable_suffix": "",
+        "python_platform_tag": "manylinux2014_aarch64",
+        "runs_on": "ubuntu-22.04"
+      },
+      "darwin-universal2" : {
+        "executable_suffix": "",
+        "python_platform_tag": "macosx_11_0_universal2",
+        "runs_on": "macos-14"
+      },
+      "windows-x86_64" : {
+        "executable_suffix": ".exe",
+        "python_platform_tag": "win_amd64",
+        "runs_on": "windows-2022"
+      }
+    }
+
+jobs:
+  # Workaround because passing env variables to reusable workflows is not supported
+  # https://github.com/orgs/community/discussions/26671
+  env_vars:
+    name: Expose env variables
+    runs-on: ubuntu-latest
+    outputs:
+      os_to_platforms_map: ${{ env.os_to_platforms_map }}
+      platform_to_specs_map: ${{ env.platform_to_specs_map }}
+    steps:
+      - run: echo "Exposing env vars to reusable workflows"
+
+  build:
+    name: Build
+    uses: ./.github/workflows/build_per_platform.yaml
+    needs: [env_vars]
+    strategy:
+      matrix:
+        platform: ${{ fromJSON(needs.env_vars.outputs.os_to_platforms_map)[inputs.os] }}
+      fail-fast: false
+    with:
+      os: ${{ inputs.os }}
+      target_platform: ${{ matrix.platform }}
+      executable_suffix: ${{ fromJSON(needs.env_vars.outputs.platform_to_specs_map)[matrix.platform]['executable_suffix'] }}
+      python_platform_tag: ${{ fromJSON(needs.env_vars.outputs.platform_to_specs_map)[matrix.platform]['python_platform_tag'] }}
+      runs-on_value: ${{ fromJSON(needs.env_vars.outputs.platform_to_specs_map)[matrix.platform]['runs_on'] }}
+      revision: ${{ inputs.revision }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
+      catboost_package_version: ${{ inputs.catboost_package_version }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      artifact_retention_days: ${{ fromJSON(inputs.artifact_retention_days) }}
+

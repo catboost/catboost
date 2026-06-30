@@ -9,4 +9,4 @@ Y_UNIT_TEST_SUITE(TCompatTest) {
     Y_UNIT_TEST(TestGetprogname) {
         getprogname(); // just check it links
     }
-}
+} // Y_UNIT_TEST_SUITE(TCompatTest)

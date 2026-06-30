@@ -2,6 +2,8 @@
 
 #include "compact_vector.h"
 
+#include <string>
+
 Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     Y_UNIT_TEST(TestSimple1) {
     }
@@ -44,8 +46,31 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(11u, vector[11]);
     }
 
+    Y_UNIT_TEST(TestEmplace) {
+        struct TFoo {
+            explicit TFoo(int)
+                : ConstructedFrom("int")
+            {
+            }
+
+            explicit TFoo(char)
+                : ConstructedFrom("char")
+            {
+            }
+
+            std::string ConstructedFrom;
+        };
+
+        TCompactVector<TFoo> vector;
+        auto& x = vector.emplace_back(123);
+        UNIT_ASSERT_VALUES_EQUAL(&x, &vector.back());
+        UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "int");
+        vector.emplace_back('c');
+        UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "char");
+    }
+
     Y_UNIT_TEST(TestInitializerListConstructor) {
-        TCompactVector<ui32> vector = { 4, 8, 10, 3, 5};
+        TCompactVector<ui32> vector = {4, 8, 10, 3, 5};
         UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
 
         UNIT_ASSERT_VALUES_EQUAL(4u, vector[0]);
@@ -56,7 +81,7 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     }
 
     Y_UNIT_TEST(TestIteratorConstructor) {
-        TVector<ui32> origVector = { 4, 8, 10, 3, 5};
+        TVector<ui32> origVector = {4, 8, 10, 3, 5};
         TCompactVector<ui32> vector(origVector.begin(), origVector.end());
         UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
 
@@ -68,10 +93,10 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     }
 
     Y_UNIT_TEST(TestInitializerListCopyOperator) {
-        TCompactVector<double> vector = { 4, 8, 10, 3, 5};
+        TCompactVector<double> vector = {4, 8, 10, 3, 5};
         UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
 
-        vector = { 11, 17, 23 };
+        vector = {11, 17, 23};
         UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
 
         UNIT_ASSERT_VALUES_EQUAL(11.0, vector[0]);
@@ -80,7 +105,7 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     }
 
     Y_UNIT_TEST(TestMoveConstructor) {
-        TCompactVector<ui32> vector = { 4, 8, 10, 3, 5};
+        TCompactVector<ui32> vector = {4, 8, 10, 3, 5};
         auto it = vector.Begin();
 
         TCompactVector<ui32> vector2(std::move(vector));
@@ -97,10 +122,9 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
 
     Y_UNIT_TEST(TestReverseIterators) {
         TCompactVector<std::string> vector = {
-                "мама",
-                "мыла",
-                "раму"
-        };
+            "мама",
+            "мыла",
+            "раму"};
 
         TCompactVector<std::string> reverseVector(vector.rbegin(), vector.rend());
         UNIT_ASSERT_VALUES_EQUAL(3u, reverseVector.Size());
@@ -112,11 +136,10 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
 
     Y_UNIT_TEST(TestErase) {
         TCompactVector<std::string> vector = {
-                "мама",
-                "утром",
-                "мыла",
-                "раму"
-        };
+            "мама",
+            "утром",
+            "мыла",
+            "раму"};
 
         vector.erase(vector.begin() + 1);
         UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
@@ -129,10 +152,9 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
     Y_UNIT_TEST(TestCopyAssignmentOperator) {
         TCompactVector<std::string> vector;
         const TCompactVector<std::string> vector2 = {
-                "мама",
-                "мыла",
-                "раму"
-        };
+            "мама",
+            "мыла",
+            "раму"};
 
         vector = vector2;
 
@@ -146,4 +168,80 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(vector[1], vector2[1]);
         UNIT_ASSERT_VALUES_EQUAL(vector[2], vector2[2]);
     }
-}
+
+    Y_UNIT_TEST(TestComparison) {
+        // UNIT_ASSERT_VALUES_EQUAL needs a specialization for Out(), so we just use bool assertions
+        TCompactVector<int> vector{1, 2, 3};
+        TCompactVector<int> vector2{1, 2};
+        UNIT_ASSERT(vector != vector2); // diff size
+        vector2.emplace_back(4);
+        UNIT_ASSERT(vector != vector2); // diff values
+        vector2.back() = 3;
+        UNIT_ASSERT(vector == vector2);
+    }
+
+    Y_UNIT_TEST(TestReserve) {
+        TCompactVector vector = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        UNIT_ASSERT_LT(vector.Capacity(), 100);
+        vector.reserve(100);
+        UNIT_ASSERT_GE(vector.Capacity(), 100);
+
+        UNIT_ASSERT_VALUES_EQUAL(vector.size(), 10);
+
+        for (size_t i = 0; i < 10; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(vector[i], i);
+        }
+    }
+
+    Y_UNIT_TEST(TestReserveWithMovableType) {
+        TCompactVector<TVector<int>> vector;
+        vector.EmplaceBack(TVector({1, 2, 3}));
+        vector.EmplaceBack(TVector({2, 4, 5, 6, 7}));
+
+        const int* ptr1 = vector[0].data();
+        const int* ptr2 = vector[1].data();
+        const size_t oldCapacity = vector.Capacity();
+
+        vector.Reserve(2 * oldCapacity);
+
+        UNIT_ASSERT_GE(vector.Capacity(), 2 * oldCapacity);
+
+        // check that values have been mooved, not copied
+        UNIT_ASSERT_VALUES_EQUAL(ptr1, vector[0].data());
+        UNIT_ASSERT_VALUES_EQUAL(ptr2, vector[1].data());
+    }
+
+    Y_UNIT_TEST(TestAssignWithCount) {
+        TCompactVector<ui32> vector = {1, 2, 3, 4, 5};
+        UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
+
+        vector.assign(3, 42);
+        UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL(42u, vector[2]);
+    }
+
+    Y_UNIT_TEST(TestAssignWithZeroCount) {
+        TCompactVector<ui32> vector = {1, 2, 3, 4, 5};
+        UNIT_ASSERT_VALUES_EQUAL(5u, vector.Size());
+
+        vector.assign(0, 42);
+        UNIT_ASSERT_VALUES_EQUAL(0u, vector.Size());
+        UNIT_ASSERT(vector.empty());
+    }
+
+    Y_UNIT_TEST(TestAssignWithString) {
+        TCompactVector<std::string> vector = {"hello", "world"};
+        UNIT_ASSERT_VALUES_EQUAL(2u, vector.Size());
+
+        vector.assign(4, "test");
+        UNIT_ASSERT_VALUES_EQUAL(4u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[2]);
+        UNIT_ASSERT_VALUES_EQUAL("test", vector[3]);
+    }
+} // Y_UNIT_TEST_SUITE(TCompactVectorTest)

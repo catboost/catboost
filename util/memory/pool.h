@@ -131,6 +131,29 @@ public:
         }
     };
 
+    // When a bookmark is destroyed, the memory pool returns to the state when the bookmark was created.
+    class TBookmark {
+    public:
+        inline TBookmark(TMemoryPool& memoryPool)
+            : OwnerPoolRef_(memoryPool)
+            , BookmarkChunk_(memoryPool.Current_)
+            , BookmarkChunkDataSize_(memoryPool.Current_->DataSize())
+        {
+        }
+
+        inline ~TBookmark() {
+            OwnerPoolRef_.Current_->ResetChunk();
+            if (OwnerPoolRef_.Current_ == BookmarkChunk_) {
+                Y_UNUSED(BookmarkChunk_->Allocate(BookmarkChunkDataSize_));
+            }
+        }
+
+    private:
+        TMemoryPool& OwnerPoolRef_;
+        TMemoryPool::TChunk* BookmarkChunk_;
+        size_t BookmarkChunkDataSize_;
+    };
+
     inline TMemoryPool(size_t initial, IGrowPolicy* grow = TExpGrow::Instance(), IAllocator* alloc = TDefaultAllocator::Instance(), const TOptions& options = TOptions())
         : Current_(&Empty_)
         , BlockSize_(initial)
@@ -244,6 +267,10 @@ public:
         DoClear(true);
     }
 
+    inline size_t ClearReturnUsedChunkCount(bool keepFirstChunk) noexcept {
+        return DoClear(keepFirstChunk);
+    }
+
     inline size_t MemoryAllocated() const noexcept {
         return MemoryAllocatedBeforeCurrent_ + (Current_ != &Empty_ ? Current_->Used() : 0);
     }
@@ -291,7 +318,7 @@ protected:
 
 private:
     void AddChunk(size_t hint);
-    void DoClear(bool keepfirst) noexcept;
+    size_t DoClear(bool keepfirst) noexcept;
 
 private:
     TChunk Empty_;

@@ -3,6 +3,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/generic/hash.h>
 
 #include <util/string/ascii.h>
@@ -63,42 +65,46 @@ TString CamelCaseToUnderscoreCase(TStringBuf str)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TString TrimLeadingWhitespaces(const TString& str)
+std::string AsciiStringToLower(TStringBuf value)
 {
-    for (int i = 0; i < static_cast<int>(str.size()); ++i) {
-        if (str[i] != ' ') {
-            return str.substr(i);
-        }
+    std::string result(value.size(), '\0');
+    for (size_t index = 0; index < value.size(); ++index) {
+        result[index] = ::AsciiToLower(value[index]);
     }
-    return "";
+    return result;
 }
 
-TString Trim(const TString& str, const TString& whitespaces)
+std::string AsciiStringToUpper(TStringBuf value)
 {
-    size_t end = str.size();
-    while (end > 0) {
-        size_t i = end - 1;
-        bool isWhitespace = false;
-        for (auto c : whitespaces) {
-            if (str[i] == c) {
-                isWhitespace = true;
-                break;
-            }
-        }
-        if (!isWhitespace) {
-            break;
-        }
-        --end;
+    std::string result(value.size(), '\0');
+    for (size_t index = 0; index < value.size(); ++index) {
+        result[index] = ::AsciiToUpper(value[index]);
     }
+    return result;
+}
 
-    if (end == 0) {
+////////////////////////////////////////////////////////////////////////////////
+
+[[nodiscard]] TStringBuf TrimLeadingWhitespaces(TStringBuf str Y_LIFETIME_BOUND)
+{
+    auto begin = str.find_first_not_of(' ');
+    return begin == TStringBuf::npos ? "" : str.substr(begin);
+}
+
+[[nodiscard]] TStringBuf Trim(TStringBuf str Y_LIFETIME_BOUND, TStringBuf whitespaces)
+{
+    if (whitespaces.empty()) {
+        return str;
+    }
+    auto end = str.find_last_not_of(whitespaces);
+
+    if (end == TStringBuf::npos) {
         return "";
     }
 
-    size_t begin = str.find_first_not_of(whitespaces);
-    YT_VERIFY(begin != TString::npos);
-    YT_VERIFY(begin < end);
-    return str.substr(begin, end - begin);
+    auto begin = str.find_first_not_of(whitespaces);
+    YT_VERIFY(begin != TStringBuf::npos);
+    return str.substr(begin, end - begin + 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +312,7 @@ size_t TCaseInsensitiveStringHasher::operator()(TStringBuf arg) const
 {
     auto compute = [&] (char* buffer) {
         for (size_t index = 0; index < arg.length(); ++index) {
-            buffer[index] = AsciiToLower(arg[index]);
+            buffer[index] = ::AsciiToLower(arg[index]);
         }
         return ComputeHash(TStringBuf(buffer, arg.length()));
     };
@@ -320,9 +326,14 @@ size_t TCaseInsensitiveStringHasher::operator()(TStringBuf arg) const
     }
 }
 
-bool TCaseInsensitiveStringEqualityComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
+bool TCaseInsensitiveStringEqualComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
 {
     return AsciiEqualsIgnoreCase(lhs, rhs);
+}
+
+bool TCaseInsensitiveStringLessComparer::operator()(TStringBuf lhs, TStringBuf rhs) const
+{
+    return AsciiCompareIgnoreCase(lhs, rhs) < 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -353,6 +364,47 @@ bool ParseBool(TStringBuf value)
 TStringBuf FormatBool(bool value)
 {
     return value ? TStringBuf("true") : TStringBuf("false");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void TruncateStringInplace(std::string* string, int lengthLimit, TStringBuf truncatedSuffix)
+{
+    if (std::ssize(*string) > lengthLimit) {
+        string->resize(lengthLimit);
+        string->append(truncatedSuffix);
+    }
+}
+
+std::string TruncateString(std::string string, int lengthLimit, TStringBuf truncatedSuffix)
+{
+    TruncateStringInplace(&string, lengthLimit, truncatedSuffix);
+    return string;
+}
+
+TTruncatedStringView::TTruncatedStringView(const std::string& value, int limit)
+    : Value_(value)
+    , Limit_(std::max(limit, 0))
+{ }
+
+void TTruncatedStringView::WriteToBuilder(TStringBuilderBase* builder, TStringBuf /* spec */) const
+{
+    i64 valueSize = std::ssize(Value_);
+    i64 maxSize = Limit_ + std::ssize(DefaultTruncatedMessage);
+    if (valueSize <= maxSize) {
+        builder->AppendString(Value_);
+        return;
+    }
+
+    char* begin = builder->Preallocate(maxSize);
+    memcpy(begin, Value_.data(), Limit_);
+    memcpy(begin + Limit_, DefaultTruncatedMessage.data(), DefaultTruncatedMessage.size());
+    builder->Advance(maxSize);
+}
+
+void FormatValue(TStringBuilderBase* builder, TTruncatedStringView value, TStringBuf spec)
+{
+    value.WriteToBuilder(builder, spec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

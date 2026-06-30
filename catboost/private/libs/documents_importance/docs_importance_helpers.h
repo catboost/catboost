@@ -14,6 +14,7 @@
 
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
+#include <util/system/compiler.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 
@@ -42,7 +43,7 @@ struct TUpdateMethod {
 class TDocumentImportancesEvaluator {
 public:
     TDocumentImportancesEvaluator(
-        const TFullModel& model,
+        const TFullModel& model Y_LIFETIME_BOUND,
         const NCB::TProcessedDataProvider& processedData,
         const TUpdateMethod& updateMethod,
         TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor,
@@ -106,7 +107,7 @@ private:
     );
 
 private:
-    TFullModel Model;
+    const TFullModel& Model;
     TVector<TTreeStatistics> TreesStatistics; // [treeCount]
     TVector<double> FinalFirstDerivatives; // [docCount]
     TUpdateMethod UpdateMethod;

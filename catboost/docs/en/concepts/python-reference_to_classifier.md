@@ -33,7 +33,7 @@ train_labels = [0, 0, 1, 1]
 
 model = CatBoost(params={'loss_function': 'Logloss'})
 
-model.fit(train_data, 
+model.fit(train_data,
           train_labels,
           verbose=False)
 

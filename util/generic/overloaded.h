@@ -6,7 +6,7 @@
  * Typically used with lambdas to construct type-matching visitors for e.g. std::variant:
  * ```
  * std::variant<int, void*, TString> var;
- * Visit(TOverloaded{
+ * std::visit(TOverloaded{
  *     [](int val) { Cerr << "int: " << val; },
  *     [](void* val) { Cerr << "ptr: " << val; },
  *     [](const TString& val) { Cerr << "str: " << val; },
@@ -23,7 +23,7 @@
  * double:
  * ```
  * std::variant<int, double, char> var;
- * Visit(TOverloaded{
+ * std::visit(TOverloaded{
  *     [](double val) { Cerr << "dbl: " << val; },
  * }, var);
  * ```
@@ -32,7 +32,7 @@
  * a verbose `if constexpr`-based version would be preferred:
  * ```
  * std::variant<int, double, char> var;
- * Visit([](auto&& val) {
+ * std::visit([](auto&& val) {
  *     using T = std::decay_t<decltype(val)>;
  *     if constexpr (std::is_same_v<T, int>) {
  *         Cerr << "int: " << val;

@@ -11,7 +11,7 @@ namespace NPar {
         THashMap<int, int> EnvId2Version;
         bool IsLowPriority;
 
-        SAVELOAD(Descr, ExecPlan, HostId2Computer, EnvId2Version, IsLowPriority)
+        SAVELOAD(Descr, ExecPlan, HostId2Computer, EnvId2Version, IsLowPriority);
 
         TJobRequest()
             : IsLowPriority(false)
@@ -23,7 +23,7 @@ namespace NPar {
         bool IsCanceled;
         TVector<TVector<char>> Result;
 
-        SAVELOAD(IsCanceled, Result)
+        SAVELOAD(IsCanceled, Result);
     };
 
     void ProjectJob(TJobDescription* res, int thisPartId,

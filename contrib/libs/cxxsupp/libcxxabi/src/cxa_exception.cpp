@@ -206,6 +206,24 @@ void __cxa_free_exception(void *thrown_object) throw() {
     __aligned_free_with_fallback((void *)raw_buffer);
 }
 
+__cxa_exception* __cxa_init_primary_exception(void* object, std::type_info* tinfo,
+#ifdef __wasm__
+// In Wasm, a destructor returns its argument
+                                              void *(_LIBCXXABI_DTOR_FUNC* dest)(void*)) throw() {
+#else
+                                              void(_LIBCXXABI_DTOR_FUNC* dest)(void*)) throw() {
+#endif
+  __cxa_exception* exception_header = cxa_exception_from_thrown_object(object);
+  exception_header->referenceCount = 0;
+  exception_header->unexpectedHandler = std::get_unexpected();
+  exception_header->terminateHandler = std::get_terminate();
+  exception_header->exceptionType = tinfo;
+  exception_header->exceptionDestructor = dest;
+  setOurExceptionClass(&exception_header->unwindHeader);
+  exception_header->unwindHeader.exception_cleanup = exception_cleanup_func;
+
+  return exception_header;
+}
 
 //  This function shall allocate a __cxa_dependent_exception and
 //  return a pointer to it. (Really to the object, not past its' end).
@@ -253,28 +271,37 @@ handler, _Unwind_RaiseException may return. In that case, __cxa_throw
 will call terminate, assuming that there was no handler for the
 exception.
 */
+
+#if defined(__EMSCRIPTEN__) && defined(__WASM_EXCEPTIONS__) && !defined(NDEBUG)
+extern "C" {
+void __throw_exception_with_stack_trace(_Unwind_Exception*);
+} // extern "C"
+#endif
+
 void
-__cxa_throw(void *thrown_object, std::type_info *tinfo, void (*dest)(void *)) {
-    __cxa_eh_globals *globals = __cxa_get_globals();
-    __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
+#ifdef __wasm__
+// In Wasm, a destructor returns its argument
+__cxa_throw(void *thrown_object, std::type_info *tinfo, void *(_LIBCXXABI_DTOR_FUNC *dest)(void *)) {
+#else
+__cxa_throw(void *thrown_object, std::type_info *tinfo, void (_LIBCXXABI_DTOR_FUNC *dest)(void *)) {
+#endif
+  __cxa_eh_globals* globals = __cxa_get_globals();
+  globals->uncaughtExceptions += 1; // Not atomically, since globals are thread-local
 
-    exception_header->unexpectedHandler = std::get_unexpected();
-    exception_header->terminateHandler  = std::get_terminate();
-    exception_header->exceptionType = tinfo;
-    exception_header->exceptionDestructor = dest;
-    setOurExceptionClass(&exception_header->unwindHeader);
-    exception_header->referenceCount = 1;  // This is a newly allocated exception, no need for thread safety.
-    globals->uncaughtExceptions += 1;   // Not atomically, since globals are thread-local
-
-    exception_header->unwindHeader.exception_cleanup = exception_cleanup_func;
+  __cxa_exception* exception_header = __cxa_init_primary_exception(thrown_object, tinfo, dest);
+  exception_header->referenceCount = 1; // This is a newly allocated exception, no need for thread safety.
 
 #if __has_feature(address_sanitizer)
-    // Inform the ASan runtime that now might be a good time to clean stuff up.
-    __asan_handle_no_return();
+  // Inform the ASan runtime that now might be a good time to clean stuff up.
+  __asan_handle_no_return();
 #endif
 
 #ifdef __USING_SJLJ_EXCEPTIONS__
     _Unwind_SjLj_RaiseException(&exception_header->unwindHeader);
+#elif defined(__EMSCRIPTEN__) && defined(__WASM_EXCEPTIONS__) && !defined(NDEBUG)
+    // In debug mode, call a JS library function to use WebAssembly.Exception JS
+    // API, which enables us to include stack traces
+    __throw_exception_with_stack_trace(&exception_header->unwindHeader);
 #else
     _Unwind_RaiseException(&exception_header->unwindHeader);
 #endif
@@ -341,10 +368,11 @@ unwinding with _Unwind_Resume.
 According to ARM EHABI 8.4.1, __cxa_end_cleanup() should not clobber any
 register, thus we have to write this function in assembly so that we can save
 {r1, r2, r3}.  We don't have to save r0 because it is the return value and the
-first argument to _Unwind_Resume().  In addition, we are saving lr in order to
-align the stack to 16 bytes and lr will be used to identify the caller and its
-frame information. _Unwind_Resume never return and we need to keep the original
-lr so just branch to it.
+first argument to _Unwind_Resume().  The function also saves/restores r4 to
+keep the stack aligned and to provide a temp register.  _Unwind_Resume never
+returns and we need to keep the original lr so just branch to it.  When
+targeting bare metal, the function also clobbers ip/r12 to hold the address of
+_Unwind_Resume, which may be too far away for an ordinary branch.
 */
 __attribute__((used)) static _Unwind_Exception *
 __cxa_end_cleanup_impl()
@@ -381,15 +409,19 @@ asm("	.pushsection	.text.__cxa_end_cleanup,\"ax\",%progbits\n"
 #if defined(__ARM_FEATURE_BTI_DEFAULT)
     "	bti\n"
 #endif
-    "	push	{r1, r2, r3, lr}\n"
+    "	push	{r1, r2, r3, r4}\n"
+    "	mov	r4, lr\n"
     "	bl	__cxa_end_cleanup_impl\n"
-    "	pop	{r1, r2, r3, r4}\n"
     "	mov	lr, r4\n"
 #if defined(LIBCXXABI_BAREMETAL)
     "	ldr	r4,	=_Unwind_Resume\n"
-    "	bx	r4\n"
+    "	mov	ip,	r4\n"
+#endif
+    "	pop	{r1, r2, r3, r4}\n"
+#if defined(LIBCXXABI_BAREMETAL)
+    "	bx	ip\n"
 #else
-    "   b _Unwind_Resume\n"
+    "	b	_Unwind_Resume\n"
 #endif
     "	.popsection");
 #endif // defined(_LIBCXXABI_ARM_EHABI)
@@ -439,6 +471,14 @@ __cxa_begin_catch(void* unwind_arg) throw()
             (
                 static_cast<_Unwind_Exception*>(unwind_exception)
             );
+
+#if defined(__MVS__)
+    // Remove the exception object from the linked list of exceptions that the z/OS unwinder
+    // maintains before adding it to the libc++abi list of caught exceptions.
+    // The libc++abi will manage the lifetime of the exception from this point forward.
+    _UnwindZOS_PopException();
+#endif
+
     if (native_exception)
     {
         // Increment the handler count, removing the flag about being rethrown
@@ -560,6 +600,11 @@ void __cxa_end_catch() {
     }
 }
 
+void __cxa_call_terminate(void* unwind_arg) throw() {
+  __cxa_begin_catch(unwind_arg);
+  std::terminate();
+}
+
 // Note:  exception_header may be masquerading as a __cxa_dependent_exception
 //        and that's ok.  exceptionType is there too.
 //        However watch out for foreign exceptions.  Return null for them.
@@ -611,6 +656,10 @@ void __cxa_rethrow() {
     }
 #ifdef __USING_SJLJ_EXCEPTIONS__
     _Unwind_SjLj_RaiseException(&exception_header->unwindHeader);
+#elif defined(__EMSCRIPTEN__) && defined(__WASM_EXCEPTIONS__) && !defined(NDEBUG)
+    // In debug mode, call a JS library function to use WebAssembly.Exception JS
+    // API, which enables us to include stack traces
+    __throw_exception_with_stack_trace(&exception_header->unwindHeader);
 #else
     _Unwind_RaiseException(&exception_header->unwindHeader);
 #endif
@@ -736,6 +785,11 @@ __cxa_rethrow_primary_exception(void* thrown_object)
         dep_exception_header->unwindHeader.exception_cleanup = dependent_exception_cleanup;
 #ifdef __USING_SJLJ_EXCEPTIONS__
         _Unwind_SjLj_RaiseException(&dep_exception_header->unwindHeader);
+#elif defined(__EMSCRIPTEN__) && defined(__WASM_EXCEPTIONS__) && !defined(NDEBUG)
+        // In debug mode, call a JS library function to use
+        // WebAssembly.Exception JS API, which enables us to include stack
+        // traces
+        __throw_exception_with_stack_trace(&dep_exception_header->unwindHeader);
 #else
         _Unwind_RaiseException(&dep_exception_header->unwindHeader);
 #endif
@@ -758,6 +812,6 @@ __cxa_uncaught_exceptions() throw()
     return globals->uncaughtExceptions;
 }
 
-}  // extern "C"
+} // extern "C"
 
 }  // abi

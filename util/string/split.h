@@ -47,7 +47,7 @@ namespace NStringSplitPrivate {
         return nullptr;
     }
 
-}
+} // namespace NStringSplitPrivate
 
 template <class I, class TDelim, class TConsumer>
 std::enable_if_t<::NStringSplitPrivate::TIsConsumerV<TConsumer, I>>
@@ -84,11 +84,11 @@ static inline I1* FastStrChr(I1* str, I2 f) noexcept {
 
 template <class I>
 static inline I* FastStrStr(I* str, I* f, size_t l) noexcept {
-    std::basic_string_view<I> strView(str);
+    auto strView = std::basic_string_view(str);
     const auto ret = strView.find(*f);
 
     if (ret != std::string::npos) {
-        std::basic_string_view<I> fView(f, l);
+        auto fView = std::basic_string_view(f, l);
         strView = strView.substr(ret);
         for (; strView.size() >= l; strView = strView.substr(1)) {
             if (strView.substr(0, l) == fView) {
@@ -117,7 +117,7 @@ struct TStringDelimiter {
     }
 
     inline Char* Find(Char*& b, Char* e) const noexcept {
-        const auto ret = std::basic_string_view<Char>(b, e - b).find(Delim, 0, Len);
+        const auto ret = std::basic_string_view(b, e - b).find(Delim, 0, Len);
 
         if (ret != std::string::npos) {
             const auto result = b + ret;
@@ -148,7 +148,7 @@ struct TCharDelimiter {
     }
 
     inline Char* Find(Char*& b, Char* e) const noexcept {
-        const auto ret = std::basic_string_view<Char>(b, e - b).find(Ch);
+        const auto ret = std::basic_string_view(b, e - b).find(Ch);
 
         if (ret != std::string::npos) {
             const auto result = b + ret;
@@ -205,14 +205,15 @@ struct TFindFirstOf {
     inline Char* FindFirstOf(Char* b, Char* e) const noexcept {
         Char* ret = b;
         for (; ret != e; ++ret) {
-            if (NStringSplitPrivate::Find(Set, *ret))
+            if (NStringSplitPrivate::Find(Set, *ret)) {
                 break;
+            }
         }
         return ret;
     }
 
     inline Char* FindFirstOf(Char* b) const noexcept {
-        const std::basic_string_view<Char> bView(b);
+        const auto bView = std::basic_string_view(b);
         const auto ret = bView.find_first_of(Set);
         return ret != std::string::npos ? b + ret : b + bView.size();
     }
@@ -262,7 +263,7 @@ struct TSetDelimiter: private TFindFirstOf<const Char> {
 
 namespace NSplitTargetHasPushBack {
     Y_HAS_MEMBER(push_back, PushBack);
-}
+} // namespace NSplitTargetHasPushBack
 
 template <class T, class = void>
 struct TConsumerBackInserter;
@@ -398,8 +399,9 @@ struct TSimplePusher {
 template <class T>
 static inline void Split(char* buf, char ch, T* res) {
     res->resize(0);
-    if (*buf == 0)
+    if (*buf == 0) {
         return;
+    }
 
     TCharDelimiter<char> delim(ch);
     TSimplePusher<T> pusher = {res};
@@ -493,6 +495,19 @@ namespace NStringSplitPrivate {
     Y_HAS_MEMBER(push_back, PushBack);
     Y_HAS_MEMBER(insert, Insert);
     Y_HAS_MEMBER(data, Data);
+
+    template <bool UseSentinel>
+    struct TIteratorStateTokenCounter {
+        bool HaveToUseNextToken = true; // At least one token must be returned. Only the first token needs to be distinguished.
+    };
+
+    // reserve an address that never aliases with user-provided strings
+    alignas(wchar32) Y_HIDDEN extern const char SPLITTER_EMPTY_SENTINEL;
+
+    template <>
+    struct TIteratorStateTokenCounter<true> {
+        static constexpr bool HaveToUseNextToken = false; // The sentinel value guarantees that the first token is not skipped anyway.
+    };
 
     /**
      * This one is needed here so that `std::string_view -> std::string_view`
@@ -654,14 +669,23 @@ namespace NStringSplitPrivate {
     class TStringSplitter;
 
     template <class String>
-    struct TIterState: public TStringBufOf<String> {
+    struct TIterState: public TStringBufOf<String>, private TIteratorStateTokenCounter<THasData<String>::value> {
     public:
         using TStringBufType = TStringBufOf<String>;
         using TIterator = TIteratorOf<String>;
         friend class TStringSplitter<String>;
 
+        template <typename S = String, std::enable_if_t<THasData<S>::value, int> = 0>
         TIterState(const String& string) noexcept
-            : TStringBufType()
+            : TStringBufType(MakeEmptyState())
+            , DelimiterEnd_(string.data())
+            , OriginEnd_(string.data() + string.size())
+        {
+        }
+
+        template <typename S = String, std::enable_if_t<!THasData<S>::value, int> = 0>
+        TIterState(const String& string) noexcept
+            : TStringBufType(MakeEmptyState())
             , DelimiterEnd_(std::begin(string))
             , OriginEnd_(std::end(string))
         {
@@ -694,10 +718,28 @@ namespace NStringSplitPrivate {
     private:
         void UpdateParentBuf(TIterator tokenStart, TIterator tokenDelim) noexcept {
             *static_cast<TStringBufType*>(this) = MakeStringBuf<TStringBufType>(tokenStart, tokenDelim);
+            if constexpr (!THasData<String>::value) {
+                this->HaveToUseNextToken = false;
+            }
         }
 
         bool DelimiterIsEmpty() const noexcept {
-            return TokenDelim() == DelimiterEnd_;
+            return TokenDelim() == DelimiterEnd_ && !this->HaveToUseNextToken;
+        }
+
+        void MarkExhausted() noexcept {
+            UpdateParentBuf(OriginEnd_, OriginEnd_);
+            DelimiterEnd_ = OriginEnd_;
+        }
+
+        static TStringBufType MakeEmptyState() noexcept {
+            if constexpr (THasData<String>::value) {
+                using TElement = std::remove_reference_t<decltype(*std::declval<TStringBufType>().data())>;
+                const TElement* ptr = reinterpret_cast<const TElement*>(&::NStringSplitPrivate::SPLITTER_EMPTY_SENTINEL);
+                return TStringBufType(ptr, ptr);
+            } else {
+                return TStringBufType{};
+            }
         }
 
     private:
@@ -782,7 +824,7 @@ namespace NStringSplitPrivate {
             size_t successfullyFilled = 0;
             auto it = this->begin();
 
-            //FIXME: actually, some kind of TryApplyToMany is needed in order to stop iteration upon first failure
+            // FIXME: actually, some kind of TryApplyToMany is needed in order to stop iteration upon first failure
             ApplyToMany([&](auto&& arg) {
                 if (it != this->end()) {
                     if (TryDoFromString(it->Token(), arg)) {
@@ -814,7 +856,7 @@ namespace NStringSplitPrivate {
             Y_ENSURE(TryCollectInto<Args...>(args...));
         }
 
-        inline size_t Count() const {
+        inline size_t Count() {
             size_t cnt = 0;
             for (auto&& it : *this) {
                 Y_UNUSED(it);
@@ -844,6 +886,24 @@ namespace NStringSplitPrivate {
                 , Delimiter_(std::forward<Args>(args)...)
             {
             }
+
+            TSplitRangeBase(const TSplitRangeBase& other)
+                : String_(other.String_)
+                , State_(String_)
+                , Delimiter_(other.Delimiter_)
+            {
+            }
+
+            TSplitRangeBase(TSplitRangeBase&& other)
+                : String_(std::move(other.String_))
+                , State_(String_)
+                , Delimiter_(std::move(other.Delimiter_))
+            {
+                other.State_.MarkExhausted();
+            }
+
+            TSplitRangeBase& operator=(const TSplitRangeBase& other) = delete;
+            TSplitRangeBase& operator=(TSplitRangeBase&& other) = delete;
 
             inline TIteratorState* Next() {
                 if (State_.DelimiterIsEmpty()) {
@@ -1007,7 +1067,7 @@ namespace NStringSplitPrivate {
         {
         }
 
-        //does not own TDelim
+        // does not own TDelim
         template <class TDelim>
         inline TIt<TPtrPolicy<const TDelim>> Split(const TDelim& d) const noexcept {
             return {String_, &d};
@@ -1038,7 +1098,7 @@ namespace NStringSplitPrivate {
     auto MakeStringSplitter(String&& s) {
         return TStringSplitter<std::remove_reference_t<String>>(std::forward<String>(s));
     }
-}
+} // namespace NStringSplitPrivate
 
 template <class Iterator>
 auto StringSplitter(Iterator begin, Iterator end) {

@@ -16,12 +16,12 @@ set_probability_threshold(binclass_probability_threshold=None)
 
 The float value of a probability threshold or `None` for resetting a default threshold.
 
-**Possible types** 
+**Possible types**
 
 `None`
 float
 
-**Default value** 
+**Default value**
 
 `None`
 

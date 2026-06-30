@@ -34,4 +34,4 @@ Y_UNIT_TEST_SUITE(TStringJoinTest) {
 
         UNIT_ASSERT_EQUAL(JoinStrings(v, TUtf16String()), str);
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringJoinTest)

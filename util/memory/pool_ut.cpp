@@ -84,6 +84,7 @@ class TMemPoolTest: public TTestBase {
     UNIT_TEST(TestLargeStartingAlign)
     UNIT_TEST(TestMoveAlloc)
     UNIT_TEST(TestRoundUpToNextPowerOfTwoOption)
+    UNIT_TEST(TestMemoryPoolBookmark)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -115,7 +116,7 @@ private:
                 memset(m, 0, i);
             }
 
-            pool.ClearKeepFirstChunk();
+            UNIT_ASSERT_VALUES_EQUAL(pool.ClearReturnUsedChunkCount(true), 11);
 
             UNIT_ASSERT_VALUES_EQUAL(memalloc - 8, pool.MemoryAllocated());
             UNIT_ASSERT_VALUES_EQUAL(memwaste + 8, pool.MemoryWaste());
@@ -127,7 +128,7 @@ private:
                 memset(m, 0, i);
             }
 
-            pool.Clear();
+            UNIT_ASSERT_VALUES_EQUAL(pool.ClearReturnUsedChunkCount(false), 12);
 
             UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryAllocated());
             UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryWaste());
@@ -279,6 +280,43 @@ private:
 
         pool.Allocate(1);
         UNIT_ASSERT_VALUES_EQUAL(2 * EXPECTED_ALLOCATION_SIZE, allocator.GetSize());
+    }
+
+    void TestMemoryPoolBookmark() {
+        TCheckedAllocator alloc;
+
+        {
+            TMemoryPool pool(200U, TMemoryPool::TExpGrow::Instance(), &alloc);
+            ui64* someData = pool.Allocate<ui64>();
+            static const ui64 TESTING{0x123456789ABCDEF};
+            *someData = TESTING;
+
+            const auto ma = pool.MemoryAllocated();
+            const auto chunkOverhead = ma - sizeof(ui64);
+            const auto firstChunkTotal = pool.MemoryWaste() + ma;
+
+            // Allocate some memory in pool but not enough to need new chunks:
+            {
+                TMemoryPool::TBookmark bookmarkA(pool);
+                for (size_t i = 0U; i != 10; ++i) {
+                    UNIT_ASSERT(pool.Allocate<ui64>());
+                }
+            }
+            UNIT_ASSERT_VALUES_EQUAL(pool.MemoryAllocated(), ma);
+            UNIT_ASSERT_VALUES_EQUAL(*someData, TESTING);
+
+            // Allocate some memory in pool enough to need a new single chunk:
+            {
+                TMemoryPool::TBookmark bookmarkB(pool);
+                for (size_t i = 0U; i != 50; ++i) {
+                    UNIT_ASSERT(pool.Allocate<ui64>());
+                }
+            }
+            UNIT_ASSERT_VALUES_EQUAL(pool.MemoryAllocated(), firstChunkTotal + chunkOverhead); // The last (second) chunk is completely free
+            UNIT_ASSERT_VALUES_EQUAL(*someData, TESTING);
+        }
+
+        alloc.CheckAtEnd();
     }
 };
 

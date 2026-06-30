@@ -25,7 +25,7 @@ void InCoreMemory(const void* addr, size_t len, unsigned char* vec, size_t vecLe
 /**
  * Takes as an argument an element of the vector previously filled by InCoreMemory.
  *
- * @param[in]           byte corresponding to the status of a single page
+ * @param[in] s         byte corresponding to the status of a single page
  *
  * @returns             true if this page was resident in memory at the time out the InCoreMemory execution
  */

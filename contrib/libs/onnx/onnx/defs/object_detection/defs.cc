@@ -7,7 +7,7 @@ using namespace ONNX_NAMESPACE;
 
 namespace ONNX_NAMESPACE {
 
-static const char* RoiAlign_ver16_doc = R"DOC(
+static const char* RoiAlign_ver22_doc = R"DOC(
 Region of Interest (RoI) align operation described in the
 [Mask R-CNN paper](https://arxiv.org/abs/1703.06870).
 RoiAlign consumes an input tensor X and region of interests (rois)
@@ -23,9 +23,9 @@ through bilinear interpolation.
 
 ONNX_OPERATOR_SET_SCHEMA(
     RoiAlign,
-    16,
+    22,
     OpSchema()
-        .SetDoc(RoiAlign_ver16_doc)
+        .SetDoc(RoiAlign_ver22_doc)
         .Attr(
             "spatial_scale",
             "Multiplicative spatial scale factor to translate ROI coordinates "
@@ -89,10 +89,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "(num_rois, C, output_height, output_width). The r-th batch element Y[r-1] "
             "is a pooled feature map corresponding to the r-th RoI X[r-1].",
             "T1")
-        .TypeConstraint(
-            "T1",
-            {"tensor(float16)", "tensor(float)", "tensor(double)"},
-            "Constrain types to float tensors.")
+        .TypeConstraint("T1", OpSchema::all_float_types_ir4(), "Constrain types to float tensors.")
         .TypeConstraint("T2", {"tensor(int64)"}, "Constrain types to int tensors.")
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           propagateElemTypeFromInputToOutput(ctx, 0, 0);
@@ -124,7 +121,7 @@ ONNX_OPERATOR_SET_SCHEMA(
           updateOutputShape(ctx, 0, {num_rois, C, ht, width});
         }));
 
-static const char* NonMaxSuppression_doc = R"DOC(
+static const char* NonMaxSuppression_ver11_doc = R"DOC(
 Filter out boxes that have high intersection-over-union (IOU) overlap with previously selected boxes.
 Bounding boxes with score less than score_threshold are removed. Bounding box format is indicated by attribute center_point_box.
 Note that this algorithm is agnostic to where the origin is in the coordinate system and more generally is invariant to
@@ -175,7 +172,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "1 - the box data is supplied as [x_center, y_center, width, height]. Mostly used for Pytorch models.",
             AttributeProto::INT,
             static_cast<int64_t>(0))
-        .SetDoc(NonMaxSuppression_doc)
+        .SetDoc(NonMaxSuppression_ver11_doc)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           // Type inference - Output is always of type INT64
           auto* selected_indices_type = ctx.getOutputType(0)->mutable_tensor_type();

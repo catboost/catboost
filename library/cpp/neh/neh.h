@@ -260,7 +260,7 @@ namespace NNeh {
 
     using THandleRef = TIntrusivePtr<THandle>;
 
-    THandleRef Request(const TMessage& msg, IOnRecv* fallback, bool useAsyncSendRequest = false);
+    THandleRef Request(const TMessage& msg, IOnRecv* fallback);
 
     inline THandleRef Request(const TMessage& msg) {
         return Request(msg, nullptr);

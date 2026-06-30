@@ -15,37 +15,40 @@ logger = logging.getLogger(__name__)
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
 
 
+def _do_apply(func, value, apply_to_keys, value_path):
+    if value_path is None:
+        value_path = []
+
+    if isinstance(value, list) or isinstance(value, tuple):
+        res = []
+        for ind, item in enumerate(value):
+            path = copy.copy(value_path)
+            path.append(ind)
+            res.append(_do_apply(func, item, apply_to_keys, path))
+    elif isinstance(value, dict):
+        if is_external(value):
+            # this is a special serialized object pointing to some external place
+            res = func(value, value_path)
+        else:
+            res = {}
+            for key, val in sorted(value.items(), key=lambda dict_item: dict_item[0]):
+                path = copy.copy(value_path)
+                path.append(key)
+                res[_do_apply(func, key, apply_to_keys, path) if apply_to_keys else key] = _do_apply(func, val, apply_to_keys, path)
+    else:
+        res = func(value, value_path)
+    return res
+
+
 def apply(func, value, apply_to_keys=False):
     """
     Applies func to every possible member of value
+
     :param value: could be either a primitive object or a complex one (list, dicts)
     :param func: func to be applied
     :return:
     """
-    def _apply(func, value, value_path):
-        if value_path is None:
-            value_path = []
-
-        if isinstance(value, list) or isinstance(value, tuple):
-            res = []
-            for ind, item in enumerate(value):
-                path = copy.copy(value_path)
-                path.append(ind)
-                res.append(_apply(func, item, path))
-        elif isinstance(value, dict):
-            if is_external(value):
-                # this is a special serialized object pointing to some external place
-                res = func(value, value_path)
-            else:
-                res = {}
-                for key, val in sorted(value.items(), key=lambda dict_item: dict_item[0]):
-                    path = copy.copy(value_path)
-                    path.append(key)
-                    res[_apply(func, key, path) if apply_to_keys else key] = _apply(func, val, path)
-        else:
-            res = func(value, value_path)
-        return res
-    return _apply(func, value, None)
+    return _do_apply(func, value, apply_to_keys, None)
 
 
 def is_coroutine(val):
@@ -59,7 +62,9 @@ def is_coroutine(val):
 def serialize(value):
     """
     Serialize value to json-convertible object
+
     Ensures that all components of value can be serialized to json
+
     :param value: object to be serialized
     """
     def _serialize(val, _):
@@ -95,6 +100,10 @@ class ExternalSchema(object):
 class CanonicalObject(dict):
     def __iter__(self):
         raise TypeError("Iterating canonical object is not implemented")
+
+
+def canonical_path(path):
+    return path.replace('\\', '/')
 
 
 class ExternalDataInfo(object):
@@ -178,6 +187,7 @@ class ExternalDataInfo(object):
             attrs["diff_tool_timeout"] = diff_tool_timeout
         if size is not None:
             attrs["size"] = size
+        path = canonical_path(path)
         return cls._serialize(ExternalSchema.File, path, checksum, attrs=attrs)
 
     @classmethod

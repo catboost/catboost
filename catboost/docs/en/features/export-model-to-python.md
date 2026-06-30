@@ -1,6 +1,6 @@
 # Export a model to Python or C++
 
-The {{ product }} model can be saved as standalone Python or C++ code. This solution simplifies the integration of resulting models to Python and C++ applications, allows to port models to architectures that are not directly supported by {{ product }} (such as ARM) and allows advanced users to manually explore or edit the model parameters.
+The {{ product }} model can be saved as standalone Python or C++ code. This solution simplifies the integration of resulting models to Python and C++ applications, allows to port models to architectures that are not directly supported by {{ product }} (such as IBM z/Architecture) and allows advanced users to manually explore or edit the model parameters.
 
 {% include [feature-importance-choose-the-required-implementation-for-more-details](../_includes/work_src/reusage-common-phrases/choose-the-required-implementation-for-more-details.md) %}
 
@@ -12,8 +12,6 @@ Depending on the output format the resulting file contains one of the following 
 - C++ — [C++](../concepts/c-plus-plus-api_applycatboostmodel.md)
 
 {% note alert %}
-
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
 
 - {% include [reusage-common-phrases-apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/apply_catboost_model__performance.md) %}
 

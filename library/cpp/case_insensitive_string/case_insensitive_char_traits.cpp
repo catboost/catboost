@@ -1,14 +1,25 @@
 #include "case_insensitive_char_traits.h"
-#include "case_insensitive_string.h"
 
 #include <util/string/escape.h>
 
+template <typename TImpl>
+const char* ::NPrivate::TCommonCaseInsensitiveCharTraits<TImpl>::find(const char* s, std::size_t n, char a) {
+    const auto ca(TImpl::ToCommonCase(a));
+    while (n-- != 0) {
+        if (TImpl::ToCommonCase(*s) == ca)
+            return s;
+        s++;
+    }
+    return nullptr;
+}
+
 int TCaseInsensitiveCharTraits::compare(const char* s1, const char* s2, std::size_t n) {
     while (n-- != 0) {
-        if (to_upper(*s1) < to_upper(*s2)) {
+        auto c1 = ToCommonCase(*s1), c2 = ToCommonCase(*s2);
+        if (c1 < c2) {
             return -1;
         }
-        if (to_upper(*s1) > to_upper(*s2)) {
+        if (c1 > c2) {
             return 1;
         }
         ++s1;
@@ -17,18 +28,5 @@ int TCaseInsensitiveCharTraits::compare(const char* s1, const char* s2, std::siz
     return 0;
 }
 
-const char* TCaseInsensitiveCharTraits::find(const char* s, std::size_t n, char a) {
-    auto const ua(to_upper(a));
-    while (n-- != 0) {
-        if (to_upper(*s) == ua)
-            return s;
-        s++;
-    }
-    return nullptr;
-}
-
-TCaseInsensitiveString EscapeC(const TCaseInsensitiveString& str) {
-    const auto result = EscapeC(str.data(), str.size());
-    return {result.data(), result.size()};
-}
-
+template struct ::NPrivate::TCommonCaseInsensitiveCharTraits<TCaseInsensitiveCharTraits>;
+template struct ::NPrivate::TCommonCaseInsensitiveCharTraits<TCaseInsensitiveAsciiCharTraits>;

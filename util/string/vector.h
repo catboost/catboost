@@ -39,7 +39,7 @@ namespace NPrivate {
     struct TStringDeducer<wchar16> {
         using type = TUtf16String;
     };
-}
+} // namespace NPrivate
 
 template <typename C>
 TVector<typename ::NPrivate::TStringDeducer<C>::type>
@@ -68,8 +68,9 @@ SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* de
 
 template <class TIter>
 inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {
-    if (begin == end)
+    if (begin == end) {
         return TString();
+    }
 
     TString result = ToString(*begin);
 
@@ -83,8 +84,9 @@ inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {
 
 template <class TIter>
 inline TUtf16String JoinStrings(TIter begin, TIter end, const TWtringBuf delim) {
-    if (begin == end)
+    if (begin == end) {
         return TUtf16String();
+    }
 
     TUtf16String result = ToWtring(*begin);
 
@@ -125,7 +127,7 @@ template <typename T, typename TStringType>
 TVector<T> Scan(const TVector<TStringType>& input) {
     TVector<T> output;
     output.reserve(input.size());
-    for (int i = 0; i < input.ysize(); ++i) {
+    for (size_t i = 0; i < input.size(); ++i) {
         output.push_back(FromString<T>(input[i]));
     }
     return output;

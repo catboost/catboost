@@ -13,10 +13,10 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-YT_DEFINE_STRONG_TYPEDEF(TRefCountedTypeCookie, int)
+YT_DEFINE_STRONG_TYPEDEF(TRefCountedTypeCookie, int);
 constexpr TRefCountedTypeCookie NullRefCountedTypeCookie{-1};
 
-YT_DEFINE_STRONG_TYPEDEF(TRefCountedTypeKey, const std::type_info*)
+YT_DEFINE_STRONG_TYPEDEF(TRefCountedTypeKey, const std::type_info*);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -45,23 +45,14 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-
-//! A per-translation unit tag type.
-struct TCurrentTranslationUnitTag
-{ };
-
-} // namespace
-
 template <class T>
 TRefCountedTypeKey GetRefCountedTypeKey();
 
 template <class T>
 TRefCountedTypeCookie GetRefCountedTypeCookie();
 
-template <class T, class TTag, int Counter>
-TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation(
-    const TSourceLocation& location);
+template <class T, auto LocationLite>
+TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation();
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -79,7 +70,7 @@ public:
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
     TRefTracked();
     TRefTracked(const TRefTracked&);
-    TRefTracked(TRefTracked&&);
+    TRefTracked(TRefTracked&&) noexcept;
     ~TRefTracked();
 #endif
 };

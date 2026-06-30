@@ -2,17 +2,17 @@
 # coding: utf-8
 # cython: wraparound=False
 
-from six import iteritems, string_types, PY3
+from six import string_types
 
 cimport cython  # noqa
 from cython.operator cimport dereference
 
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
-from util.system.types cimport ui32, ui64
+from util.system.types cimport ui32
 
 from util.generic.array_ref cimport TConstArrayRef
-from util.generic.string cimport TString, TStringBuf
+from util.generic.string cimport TString
 from util.generic.ptr cimport THolder, MakeHolder, TIntrusivePtr
 from util.generic.vector cimport TVector
 from util.string.cast cimport FromString
@@ -27,10 +27,13 @@ from library.cpp.text_processing.dictionary.dictionary cimport (
 import numpy as np
 
 try:
-    from pandas import Series
+    import pandas as pd
 except ImportError:
-    class Series(object):
-        pass
+    # just to avoid checking (pd is not None) everywhere
+    class pandas:
+        class Series(object):
+            pass
+    pd = pandas
 
 include "library/cpp/text_processing/tokenizer/tokenizer.pxi"
 
@@ -63,7 +66,7 @@ cdef extern from * nogil:
     cdef T dynamic_cast[T](void *) except +
 
 
-cdef TDictionaryBuilderOptions CreateDictionaryBuilderOptions(occurence_lower_bound, max_dictionary_size):
+cdef TDictionaryBuilderOptions CreateDictionaryBuilderOptions(occurence_lower_bound, max_dictionary_size) except *:
     cdef TDictionaryBuilderOptions dict_builder_options
 
     if occurence_lower_bound is not None:
@@ -81,7 +84,7 @@ cdef TDictionaryOptions CreateDictionaryOptions(
     start_token_id,
     end_of_word_policy,
     end_of_sentence_policy,
-):
+) except *:
     cdef TDictionaryOptions dict_options
 
     if token_level_type is not None:
@@ -100,7 +103,7 @@ cdef TDictionaryOptions CreateDictionaryOptions(
     return dict_options
 
 
-cdef TBpeDictionaryOptions CreateBpeDictionaryOptions(num_bpe_units, skip_unknown):
+cdef TBpeDictionaryOptions CreateBpeDictionaryOptions(num_bpe_units, skip_unknown) except *:
     cdef TBpeDictionaryOptions bpe_dict_options
 
     if num_bpe_units is not None:
@@ -203,10 +206,9 @@ cdef class Dictionary:
                     dereference(tokenizer.Get()).Tokenize(to_arcadia_string(line), &tokens, <TVector[ETokenType]*>nullptr)
                 else:
                     tokens.push_back(to_arcadia_string(line))
-            elif isinstance(line, (list, np.ndarray, Series)):
+            elif isinstance(line, (list, np.ndarray, pd.Series)):
                 [_ensure(isinstance(token, string_types), msg.format(type(token))) for token in line]
-                for token in line:
-                    tokens.push_back(to_arcadia_string(token))
+                tokens = py_to_tvector[TString](line)
             dereference(dictionaryBuilder.Get()).Add(<TConstArrayRef[TString]>tokens);
         self.__dictionary_holder = THolder[IDictionary](dereference(dictionaryBuilder.Get()).FinishBuilding().Release())
 
@@ -220,7 +222,7 @@ cdef class Dictionary:
                 useTokenizer,
                 verbose
             ).Release())
-        elif isinstance(data, (list, np.ndarray, Series)):
+        elif isinstance(data, (list, np.ndarray, pd.Series)):
             self.__fit_fb_from_array(data, tokenizerOptions, useTokenizer)
         else:
             raise Exception('Unsupported data format.')
@@ -246,10 +248,10 @@ cdef class Dictionary:
 
         Parameters
         ----------
-        data : string or list or numpy.array or pandas.Series
+        data : string or list or numpy.ndarray or pandas.Series
             Input data.
             If string, giving the path to the file with text data.
-            If list or numpy.arrays or pandas.Series, giving 1 or 2 dimensional array like text data.
+            If list or numpy.ndarrays or pandas.Series, giving 1 or 2 dimensional array like text data.
 
         tokenizer : Tokenizer, optional (default=None)
             Tokenizer for text processing. If you specify it and pass 1-dimensional data,
@@ -284,7 +286,7 @@ cdef class Dictionary:
 
         Parameters
         ----------
-        data : string or list or numpy.array or pandas.Series
+        data : string or list or numpy.ndarray or pandas.Series
             Input data. Giving 0,1 or 2 dimensional array like text data.
 
         tokenizer : Tokenizer, optional (default=None)
@@ -315,15 +317,13 @@ cdef class Dictionary:
         cdef TVector[TString] tokens
         cdef TVector[TTokenId] tokenIds
         for line in data:
-            tokens.clear()
             tokenIds.clear()
             if isinstance(line, string_types):
                 if tokenizer is not None:
                     line = tokenizer.tokenize(line)
                 else:
                     line = [line]
-            for token in line:
-                tokens.push_back(to_arcadia_string(token))
+            tokens = py_to_tvector[TString](line)
             dereference(self.__dictionary_holder.Get()).Apply(TConstArrayRef[TString](tokens), &tokenIds, unknownTokenPolicy)
             token_ids.append([<int>tokenId for tokenId in tokenIds])
 
@@ -361,7 +361,7 @@ cdef class Dictionary:
 
         cdef ui32 _token_id = token_id
         self.__check_dictionary_initialized()
-        return to_native_str(dereference(self.__dictionary_holder.Get()).GetToken(_token_id))
+        return to_str(dereference(self.__dictionary_holder.Get()).GetToken(_token_id))
 
     def get_tokens(self, token_ids):
         """
@@ -385,7 +385,7 @@ cdef class Dictionary:
 
         cdef TVector[TString] tokens
         dereference(self.__dictionary_holder.Get()).GetTokens(<TConstArrayRef[TTokenId]>tokenIds, &tokens)
-        return [to_native_str(tokens[i]) for i in xrange(tokens.size())]
+        return [to_str(token) for token in tokens]
 
     def get_top_tokens(self, top_size=None):
         """
@@ -406,7 +406,7 @@ cdef class Dictionary:
             top = dereference(self.__dictionary_holder.Get()).GetTopTokens()
         else:
             top = dereference(self.__dictionary_holder.Get()).GetTopTokens(top_size)
-        return [to_native_str(s) for s in top]
+        return [to_str(s) for s in top]
 
     @property
     def unknown_token_id(self):
@@ -511,4 +511,3 @@ cdef class Dictionary:
             bpeDictHolder = dynamic_cast[TBpeDictionaryPtr](self.__dictionary_holder.Get())
             dereference(bpeDictHolder).Save(to_arcadia_string(frequency_dict_path), to_arcadia_string(bpe_path))
         return self
-

@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '1.1.1',
+    'catboost_version_placeholder': '1.2.10',
     'relative_global_project_root_placeholder': '../..'
 }
 
@@ -43,128 +43,66 @@ scala_maven_plugin_configuration_scala_2_13 = """
 
 configs = [
     {
-        'dst_dir' : '../projects/spark_2.3_2.11',
+        'dst_dir' : '../projects/spark_3.5_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_2_x/scala',
-            'scala_compat_version_placeholder': '2.11',
-            'scala_version_placeholder': '2.11.12',
-            'spark_compat_version_placeholder': '2.3',
-            'spark_version_placeholder': '2.3.0',
-            'hadoop_version_placeholder': '2.7.3',
-            'json4s_version_placeholder': '3.2.11',
-            'netty_all_version_placeholer': '4.1.42.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_2.4_2.11',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_2_x/scala',
-            'scala_compat_version_placeholder': '2.11',
-            'scala_version_placeholder': '2.11.12',
-            'spark_compat_version_placeholder': '2.4',
-            'spark_version_placeholder': '2.4.0',
-            'hadoop_version_placeholder': '2.7.3',
-            'json4s_version_placeholder': '3.5.3',
-            'netty_all_version_placeholer': '4.1.72.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_2.4_2.12',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_2_x/scala',
+            'version_specific_src_dir': 'spark_3.5__4.x/scala',
             'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
-            'spark_compat_version_placeholder': '2.4',
-            'spark_version_placeholder': '2.4.1',
-            'hadoop_version_placeholder': '2.7.3',
-            'json4s_version_placeholder': '3.5.3',
-            'netty_all_version_placeholer': '4.1.72.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_3.0_2.12',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
-            'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
-            'spark_compat_version_placeholder': '3.0',
-            'spark_version_placeholder': '3.0.1',
-            'hadoop_version_placeholder': '2.7.3',
-            'json4s_version_placeholder': '3.6.6',
-            'netty_all_version_placeholer': '4.1.72.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_3.1_2.12',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
-            'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
-            'spark_compat_version_placeholder': '3.1',
-            'spark_version_placeholder': '3.1.0',
-            'hadoop_version_placeholder': '3.2.0',
-            'json4s_version_placeholder': '3.7.0-M5',
-            'netty_all_version_placeholer': '4.1.72.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
-        }
-    },
-    {
-        'dst_dir' : '../projects/spark_3.2_2.12',
-        'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
-            'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
-            'spark_compat_version_placeholder': '3.2',
-            'spark_version_placeholder': '3.2.0',
-            'hadoop_version_placeholder': '3.3.1',
+            'scala_version_placeholder': '2.12.20',
+            'spark_compat_version_placeholder': '3.5',
+            'spark_version_placeholder': '3.5.0',
+            'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
-            'netty_all_version_placeholer': '4.1.72.Final',
+            'jackson_databind_version_placeholder': '2.15.2',
+            'jackson_module_scala_version_placeholder': '2.15.2',
+            'netty_all_version_placeholer': '4.1.96.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
     },
     {
-        'dst_dir' : '../projects/spark_3.2_2.13',
+        'dst_dir' : '../projects/spark_3.5_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.5__4.x/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
-            'spark_compat_version_placeholder': '3.2',
-            'spark_version_placeholder': '3.2.0',
-            'hadoop_version_placeholder': '3.3.1',
+            'scala_version_placeholder': '2.13.16',
+            'spark_compat_version_placeholder': '3.5',
+            'spark_version_placeholder': '3.5.0',
+            'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
-            'netty_all_version_placeholer': '4.1.72.Final',
+            'jackson_databind_version_placeholder': '2.15.2',
+            'jackson_module_scala_version_placeholder': '2.15.2',
+            'netty_all_version_placeholer': '4.1.96.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
     },
     {
-        'dst_dir' : '../projects/spark_3.3_2.12',
+        'dst_dir' : '../projects/spark_4.0_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
-            'scala_compat_version_placeholder': '2.12',
-            'scala_version_placeholder': '2.12.12',
-            'spark_compat_version_placeholder': '3.3',
-            'spark_version_placeholder': '3.3.0',
-            'hadoop_version_placeholder': '3.3.2',
-            'json4s_version_placeholder': '3.7.0-M11',
-            'netty_all_version_placeholer': '4.1.74.Final',
-            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
+            'version_specific_src_dir': 'spark_3.5__4.x/scala',
+            'scala_compat_version_placeholder': '2.13',
+            'scala_version_placeholder': '2.13.16',
+            'spark_compat_version_placeholder': '4.0',
+            'spark_version_placeholder': '4.0.1',
+            'hadoop_version_placeholder': '3.4.2',
+            'json4s_version_placeholder': '4.0.7',
+            'jackson_databind_version_placeholder': '2.20.1',
+            'jackson_module_scala_version_placeholder': '2.20.1',
+            'netty_all_version_placeholer': '4.2.7.Final',
+            'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
     },
     {
-        'dst_dir' : '../projects/spark_3.3_2.13',
+        'dst_dir' : '../projects/spark_4.1_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.5__4.x/scala',
             'scala_compat_version_placeholder': '2.13',
-            'scala_version_placeholder': '2.13.5',
-            'spark_compat_version_placeholder': '3.3',
-            'spark_version_placeholder': '3.3.0',
-            'hadoop_version_placeholder': '3.3.2',
-            'json4s_version_placeholder': '3.7.0-M11',
-            'netty_all_version_placeholer': '4.1.74.Final',
+            'scala_version_placeholder': '2.13.17',
+            'spark_compat_version_placeholder': '4.1',
+            'spark_version_placeholder': '4.1.1',
+            'hadoop_version_placeholder': '3.4.2',
+            'json4s_version_placeholder': '4.0.7',
+            'jackson_databind_version_placeholder': '2.20.1',
+            'jackson_module_scala_version_placeholder': '2.20.1',
+            'netty_all_version_placeholer': '4.2.7.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
     }
@@ -180,4 +118,3 @@ for config in configs:
         substitution_dict=substitution_dict,
         dst_dir=os.path.join(current_dir, config['dst_dir'])
     )
-

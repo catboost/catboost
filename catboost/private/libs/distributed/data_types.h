@@ -19,6 +19,7 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/json/json_value.h>
 #include <library/cpp/par/par.h>
 #include <library/cpp/par/par_util.h>

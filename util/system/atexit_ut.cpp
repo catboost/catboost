@@ -88,7 +88,6 @@ UNIT_TEST_SUITE_REGISTRATION(TAtExitTest);
 Y_UNIT_TEST_SUITE(TestAtExit) {
 
     Y_UNIT_TEST(CreateUponDestruction) {
-
         struct T1 {
         };
 
@@ -99,6 +98,5 @@ Y_UNIT_TEST_SUITE(TestAtExit) {
         };
 
         Singleton<T2>();
-
     }
-}
+} // Y_UNIT_TEST_SUITE(TestAtExit)

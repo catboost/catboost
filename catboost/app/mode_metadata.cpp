@@ -16,7 +16,7 @@
 
 
 struct TCommonMetaInfoParams {
-    TString ModelPath;
+    TVector<TString> ModelPath;
     EModelType ModelFormat = EModelType::CatboostBinary;
     TFullModel Model;
 
@@ -25,7 +25,8 @@ struct TCommonMetaInfoParams {
     }
 
     void LoadModel() {
-        Model = ReadModel(ModelPath, ModelFormat);
+        CB_ENSURE(ModelPath.size() == 1, "Metadata manipulation requires exactly one model");
+        Model = ReadModel(ModelPath[0], ModelFormat);
     }
 };
 
@@ -60,7 +61,8 @@ int set_key(int argc, const char* argv[]) {
     params.LoadModel();
     params.Model.ModelInfo[key] = value;
     if (outputModelPath.empty()) {
-        NCB::ExportModel(params.Model, params.ModelPath, outputModelFormat);
+        CB_ENSURE(params.ModelPath.size() == 1, "Metadata manipulation requires exactly one model");
+        NCB::ExportModel(params.Model, params.ModelPath[0], outputModelFormat);
     } else {
         NCB::ExportModel(params.Model, outputModelPath, outputModelFormat);
     }
@@ -76,7 +78,7 @@ int get_keys(int argc, const char* argv[]) {
     params.BindParser(parser);
     parser.AddLongOption("key", "keys to dump")
         .AppendTo(&keys);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgDefaultTitle("KEY", "you can use freeargs to select keys");
@@ -106,7 +108,7 @@ int dump(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgsMax(0);
@@ -132,7 +134,7 @@ int dump_feature_names(int argc, const char* argv[]) {
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
-    parser.AddLongOption("dump-format", "One of Plain, JSON")
+    parser.AddLongOption("dump-format", "One of 'Plain', 'JSON'")
         .DefaultValue("Plain")
         .StoreResult(&dumpFormat);
     parser.SetFreeArgsMax(0);

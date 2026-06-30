@@ -20,17 +20,6 @@ namespace NCB {
 
 
     /*
-     * Use TReturnValue = 'TMaybe<TValue>' for const iteration over light or dynamically generated objects
-     * Use TReturnValue = 'const TValue*'/'TValue*' for iteration objects stored somewhere
-     *  Use if TValue is either heavy for copying or mutability of objects iterated over is desired
-     *
-     *  Other useful case is TConstArrayRef<T> for both TValue and TReturnValue, empty array will indicate
-     *    the end of iteration
-     *
-     * Both 'TMaybe<TValue>' and 'const TValue*' support
-     *  checking for end of iteration with 'if (returnedValue)' and
-     *  getting value by '*returnedValue' so they will work with generic code
-     *
      *  Is not intended to be shared, so use with THolder
      *   but STL LegacyIterator requires CopyConstructible and CopyAssignable - use with TIntrusivePtr
      *   in this case.
@@ -154,7 +143,7 @@ namespace NCB {
         bool Next(std::pair<TIndex, TValue>* value) override {
             TValue nextValue;
             if (ValueIterator->Next(&nextValue)) {
-                *value = std::pair<TIndex, TValue>(Index++, *nextValue);
+                *value = std::pair<TIndex, TValue>(Index++, nextValue);
                 return true;
             }
             return false;

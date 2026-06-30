@@ -15,6 +15,8 @@
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
+#include <limits>
+
 
 namespace NCB {
 
@@ -28,15 +30,37 @@ namespace NCB {
 
         SAVELOAD(Columns);
 
+        operator NJson::TJsonValue() const;
+
         ui32 CountColumns(const EColumn columnType) const;
-        TVector<int> GetCategFeatures() const;
         void Validate() const;
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
     };
 
     struct TTargetStats {
-        float MinValue = 0;
-        float MaxValue = 0;
+        float MinValue = std::numeric_limits<float>::max();
+        float MaxValue = std::numeric_limits<float>::lowest();
+
+    public:
+        operator NJson::TJsonValue() const;
+
+        void Update(float value) {
+            if (value < MinValue) {
+                MinValue = value;
+            }
+            if (value > MaxValue) {
+                MaxValue = value;
+            }
+        }
+
+        void Update(const TTargetStats& update) {
+            if (update.MinValue < MinValue) {
+                MinValue = update.MinValue;
+            }
+            if (update.MaxValue > MaxValue) {
+                MaxValue = update.MaxValue;
+            }
+        }
     };
 
     struct TDataMetaInfo {
@@ -58,6 +82,7 @@ namespace NCB {
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;
+        bool HasGraph = false;
         bool StoreStringColumns = false;
         bool ForceUnitAutoPairWeights = false;
 
@@ -77,6 +102,8 @@ namespace NCB {
             bool hasAdditionalGroupWeight,
             bool hasTimestamp,
             bool hasPairs,
+            bool hasGraph,
+            bool loadSampleIds, // special flag because they are rarely used
             bool forceUnitAutoPairWeights,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
 
@@ -94,7 +121,9 @@ namespace NCB {
 
         void Validate() const;
 
-        ui32 GetFeatureCount() const {
+        operator NJson::TJsonValue() const;
+
+        ui32 GetFeatureCount() const noexcept {
             return FeaturesLayout ? FeaturesLayout->GetExternalFeatureCount() : 0;
         }
     };
@@ -135,6 +164,7 @@ struct TDumper<NCB::TDataMetaInfo> {
         PRINT_META_INFO_FIELD(HasWeights);
         PRINT_META_INFO_FIELD(HasTimestamp);
         PRINT_META_INFO_FIELD(HasPairs);
+        PRINT_META_INFO_FIELD(HasGraph);
 
         s << "ClassLabels=" << DbgDump(metaInfo.ClassLabels) << Endl;
 

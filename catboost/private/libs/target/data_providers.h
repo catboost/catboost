@@ -27,6 +27,7 @@ namespace NCB {
         bool CreatePairs;
         bool SkipMinMaxPairsCheck;
         TMaybe<ui32> MaxPairsCount;
+        bool AllowConstLabel;
     };
 
     struct TInputClassificationInfo {
@@ -63,6 +64,8 @@ namespace NCB {
         TMaybe<ui32> knownModelApproxDimension,
         bool knownIsClassification,
         const TInputClassificationInfo& inputClassificationInfo,
+        bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck=false);
 
     TTargetCreationOptions MakeTargetCreationOptions(
@@ -70,6 +73,8 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo,
+        bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck=false);
 
     void CheckTargetConsistency(
@@ -118,7 +123,8 @@ namespace NCB {
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
         bool metricsThatRequireTargetCanBeSkipped=false,
-        bool skipMinMaxPairsCheck=false);
+        bool skipMinMaxPairsCheck=false,
+        bool skipTargetConsistencyCheck=false);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
@@ -153,6 +159,7 @@ namespace NCB {
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,
+        bool allowConstLabel,
         TVector<NJson::TJsonValue>* outputClassLabels,
         NPar::ILocalExecutor* localExecutor,
         ui32* classCount);

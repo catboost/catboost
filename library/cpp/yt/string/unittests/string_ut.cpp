@@ -45,8 +45,23 @@ TEST(TStringTest, CamelCaseToUnderscoreCase)
     }
 }
 
+TEST(TStringTest, TrimWhitespaces)
+{
+    EXPECT_EQ("", TrimLeadingWhitespaces(""));
+    EXPECT_EQ("", TrimLeadingWhitespaces("   "));
+    EXPECT_EQ("foo", TrimLeadingWhitespaces("   foo"));
+    EXPECT_EQ("foo ", TrimLeadingWhitespaces("   foo "));
+    EXPECT_EQ("f oo ", TrimLeadingWhitespaces("   f oo "));
+
+    EXPECT_EQ("", Trim("", ""));
+    EXPECT_EQ("", Trim(" ", " "));
+    EXPECT_EQ(" ", Trim(" ", "\t"));
+    EXPECT_EQ("", Trim(" \t", " \t"));
+    EXPECT_EQ("foo", Trim(" foo ", " "));
+    EXPECT_EQ("f", Trim(" f ", " "));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 } // namespace NYT
-

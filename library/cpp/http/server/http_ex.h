@@ -8,6 +8,10 @@ class THttpClientRequestExtension: public TClientRequest {
 public:
     bool Parse(char* req, TBaseServerRequestData& rd);
     bool ProcessHeaders(TBaseServerRequestData& rd, TBlob& postData);
+protected:
+    virtual bool OptionsAllowed() {
+        return false;
+    }
 };
 
 template <class TRequestData>

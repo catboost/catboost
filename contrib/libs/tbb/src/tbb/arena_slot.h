@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -65,7 +66,7 @@ struct alignas(max_nfs_size) arena_slot_private_state {
     /** Modified by the owner thread (during these operations). **/
     unsigned hint_for_fifo_stream;
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     //! Similar to 'hint_for_fifo_stream' but for critical tasks.
     unsigned hint_for_critical_stream;
 #endif
@@ -169,6 +170,11 @@ public:
         return task_pool.load(std::memory_order_relaxed) != EmptyTaskPool;
     }
 
+    bool is_empty() const {
+        return task_pool.load(std::memory_order_relaxed) == EmptyTaskPool ||
+               head.load(std::memory_order_relaxed) >= tail.load(std::memory_order_relaxed);
+    }
+
     bool is_occupied() const {
         return my_is_occupied.load(std::memory_order_relaxed);
     }
@@ -183,12 +189,12 @@ public:
 #if __TBB_RESUMABLE_TASKS
         hint_for_resume_stream = h;
 #endif
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
         hint_for_critical_stream = h;
 #endif
     }
 
-#if __TBB_PREVIEW_CRITICAL_TASKS
+#if __TBB_CRITICAL_TASKS
     unsigned& critical_hint() {
         return hint_for_critical_stream;
     }
@@ -221,7 +227,7 @@ private:
         }
         acquire_task_pool();
         std::size_t H =  head.load(std::memory_order_relaxed); // mirror
-        d1::task** new_task_pool = task_pool_ptr;;
+        d1::task** new_task_pool = task_pool_ptr;
         __TBB_ASSERT( my_task_pool_size >= min_task_pool_size, nullptr);
         // Count not skipped tasks. Consider using std::count_if.
         for ( std::size_t i = H; i < T; ++i )

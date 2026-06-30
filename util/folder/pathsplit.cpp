@@ -106,7 +106,7 @@ TString TPathSplitStore::DoReconstruct(const TStringBuf slash) const {
 
 void TPathSplitStore::AppendComponent(const TStringBuf comp) {
     if (!comp || comp == TStringBuf(".")) {
-        ; // ignore
+        // ignore
     } else if (comp == TStringBuf("..") && !empty() && back() != TStringBuf("..")) {
         pop_back();
     } else {
@@ -132,7 +132,7 @@ TString JoinPaths(const TPathSplit& p1, const TPathSplit& p2) {
     return TPathSplit(p1).AppendMany(p2.begin(), p2.end()).Reconstruct();
 }
 
-TStringBuf CutExtension(const TStringBuf fileName) {
+TStringBuf CutExtension(const TStringBuf fileName Y_LIFETIME_BOUND) {
     if (fileName.empty()) {
         return fileName;
     }

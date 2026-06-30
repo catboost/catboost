@@ -1,9 +1,8 @@
 //===-- aeabi_uldivmod.S - EABI uldivmod implementation -------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -16,16 +15,41 @@
 //   return {quot, rem};
 // }
 
+#if defined(__MINGW32__)
+#define __aeabi_uldivmod __rt_udiv64
+#endif
+
         .syntax unified
         .p2align 2
 DEFINE_COMPILERRT_FUNCTION(__aeabi_uldivmod)
-        push	{r11, lr}
+        PACBTI_LANDING
+#if defined(__ARM_FEATURE_PAC_DEFAULT)
+        push    {r6, r12, lr}
+#else
+        push    {r6, lr}
+#endif
         sub	sp, sp, #16
-        add	r12, sp, #8
-        str	r12, [sp]
+        add	r6, sp, #8
+        str	r6, [sp]
+#if defined(__MINGW32__)
+        movs    r6, r0
+        movs    r0, r2
+        movs    r2, r6
+        movs    r6, r1
+        movs    r1, r3
+        movs    r3, r6
+#endif
         bl	SYMBOL_NAME(__udivmoddi4)
         ldr	r2, [sp, #8]
         ldr	r3, [sp, #12]
         add	sp, sp, #16
-        pop	{r11, pc}
+#if defined(__ARM_FEATURE_PAC_DEFAULT)
+        pop     {r6, r12, lr}
+        PAC_RETURN
+#else
+        pop     {r6, pc}
+#endif
 END_COMPILERRT_FUNCTION(__aeabi_uldivmod)
+
+NO_EXEC_STACK_DIRECTIVE
+

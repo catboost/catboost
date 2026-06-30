@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef LIBCXXABI_SRC_INCLUDE_CXA_GUARD_IMPL_H
 #define LIBCXXABI_SRC_INCLUDE_CXA_GUARD_IMPL_H
 
@@ -46,6 +47,9 @@
 #include "__cxxabi_config.h"
 #include "include/atomic_support.h" // from libc++
 #if defined(__has_include)
+#  if __has_include(<sys/futex.h>)
+#    error #include <sys/futex.h>
+#  endif
 #  if __has_include(<sys/syscall.h>)
 #    include <sys/syscall.h>
 #  endif
@@ -54,9 +58,12 @@
 #  endif
 #endif
 
+#include <__thread/support.h>
+#include <cstdint>
+#include <cstring>
 #include <limits.h>
 #include <stdlib.h>
-#include <__threading_support>
+
 #ifndef _LIBCXXABI_HAS_NO_THREADS
 #  if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
 #    pragma comment(lib, "pthread")
@@ -84,7 +91,7 @@
 // the former.
 #ifdef BUILDING_CXA_GUARD
 #  include "abort_message.h"
-#  define ABORT_WITH_MESSAGE(...) ::abort_message(__VA_ARGS__)
+#  define ABORT_WITH_MESSAGE(...) ::__abort_message(__VA_ARGS__)
 #elif defined(TESTING_CXA_GUARD)
 #  define ABORT_WITH_MESSAGE(...) ::abort()
 #else
@@ -149,12 +156,12 @@ private:
 //                       PlatformGetThreadID
 //===----------------------------------------------------------------------===//
 
-#if defined(__APPLE__) && defined(_LIBCPP_HAS_THREAD_API_PTHREAD)
+#if defined(__APPLE__) && _LIBCPP_HAS_THREAD_API_PTHREAD
 uint32_t PlatformThreadID() {
   static_assert(sizeof(mach_port_t) == sizeof(uint32_t), "");
   return static_cast<uint32_t>(pthread_mach_thread_np(std::__libcpp_thread_get_current_id()));
 }
-#elif defined(SYS_gettid) && defined(_LIBCPP_HAS_THREAD_API_PTHREAD)
+#elif defined(SYS_gettid) && _LIBCPP_HAS_THREAD_API_PTHREAD
 uint32_t PlatformThreadID() {
   static_assert(sizeof(pid_t) == sizeof(uint32_t), "");
   return static_cast<uint32_t>(syscall(SYS_gettid));
@@ -251,7 +258,7 @@ struct InitByteNoThreads {
     if (*init_byte_address == COMPLETE_BIT)
       return true;
     if (*init_byte_address & PENDING_BIT)
-      ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization");
+      ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization: do you have a function-local static variable whose initialization depends on that function?");
     *init_byte_address = PENDING_BIT;
     return false;
   }
@@ -321,7 +328,7 @@ public:
     // Check for possible recursive initialization.
     if (has_thread_id_support && (*init_byte_address & PENDING_BIT)) {
       if (*thread_id_address == current_thread_id.get())
-        ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization");
+        ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization: do you have a function-local static variable whose initialization depends on that function?");
     }
 
     // Wait until the pending bit is not set.
@@ -407,7 +414,18 @@ private:
 //                         Futex Implementation
 //===----------------------------------------------------------------------===//
 
-#if defined(SYS_futex)
+#if defined(__OpenBSD__)
+void PlatformFutexWait(int* addr, int expect) {
+  constexpr int WAIT = 0;
+  futex(reinterpret_cast<volatile uint32_t*>(addr), WAIT, expect, NULL, NULL);
+  __tsan_acquire(addr);
+}
+void PlatformFutexWake(int* addr) {
+  constexpr int WAKE = 1;
+  __tsan_release(addr);
+  futex(reinterpret_cast<volatile uint32_t*>(addr), WAKE, INT_MAX, NULL, NULL);
+}
+#elif defined(SYS_futex)
 void PlatformFutexWait(int* addr, int expect) {
   constexpr int WAIT = 0;
   syscall(SYS_futex, addr, WAIT, expect, 0);
@@ -456,7 +474,7 @@ public:
 
         // Check for recursive initialization
         if (has_thread_id_support && thread_id.load(std::_AO_Relaxed) == current_thread_id.get()) {
-          ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization");
+          ABORT_WITH_MESSAGE("__cxa_guard_acquire detected recursive initialization: do you have a function-local static variable whose initialization depends on that function?");
         }
 
         if ((last_val & WAITING_BIT) == 0) {
@@ -619,7 +637,7 @@ struct GlobalStatic {
   static T instance;
 };
 template <class T>
-_LIBCPP_SAFE_STATIC T GlobalStatic<T>::instance = {};
+_LIBCPP_CONSTINIT T GlobalStatic<T>::instance = {};
 
 enum class Implementation { NoThreads, GlobalMutex, Futex };
 
@@ -658,8 +676,8 @@ static_assert(CurrentImplementation != Implementation::Futex || PlatformSupports
 
 using SelectedImplementation = SelectImplementation<CurrentImplementation>::type;
 
-} // end namespace
-} // end namespace __cxxabiv1
+} // namespace
+} // namespace __cxxabiv1
 
 #if defined(__clang__)
 #  pragma clang diagnostic pop

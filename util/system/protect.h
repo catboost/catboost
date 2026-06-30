@@ -11,8 +11,8 @@ enum EProtectMemoryMode {
     PM_EXEC = 0x04   // execute access allowed
 };
 
-Y_DECLARE_FLAGS(EProtectMemory, EProtectMemoryMode)
-Y_DECLARE_OPERATORS_FOR_FLAGS(EProtectMemory)
+Y_DECLARE_FLAGS(EProtectMemory, EProtectMemoryMode);
+Y_DECLARE_OPERATORS_FOR_FLAGS(EProtectMemory);
 
 /**
  * Set protection mode on memory block

@@ -3,6 +3,10 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/typelist.h>
 
+#include <limits.h>
+
+static_assert(CHAR_BIT == 8, "Non 8-bit bytes are not supported");
+
 static_assert(sizeof(ui8) == 1, "incorrect ui8 type");
 static_assert(sizeof(ui16) == 2, "incorrect ui16 type");
 static_assert(sizeof(ui32) == 4, "incorrect ui32 type");

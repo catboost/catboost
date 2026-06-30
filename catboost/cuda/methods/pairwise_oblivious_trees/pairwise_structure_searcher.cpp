@@ -49,7 +49,7 @@ namespace NCatboostCuda {
 
         CB_ENSURE(
             target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice(),
-            "Slices of pairs and pair weight/derivatives should have same size");
+            "Slices of pairs and pair weight/derivatives should have the same size");
         CATBOOST_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
         CATBOOST_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
         return target;
@@ -120,7 +120,7 @@ namespace NCatboostCuda {
             }
 
             CB_ENSURE(bestSplitProp.BestSplit.FeatureId != static_cast<ui32>(-1),
-                      TStringBuilder() << "Error: something went wrong, best split is NaN with score" << bestSplitProp.BestSplit.Score);
+                      "Error: something went wrong, best split is NaN with score" << bestSplitProp.BestSplit.Score);
 
             bestSplit = ToSplit(FeaturesManager, bestSplitProp.BestSplit);
             PrintBestScore(FeaturesManager, bestSplit, bestSplitProp.BestSplit.Score, depth);

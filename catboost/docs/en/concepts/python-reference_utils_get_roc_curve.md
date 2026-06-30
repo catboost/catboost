@@ -8,7 +8,7 @@ This information is used to plot the ROC curve.
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-get_roc_curve(model, 
+get_roc_curve(model,
               data,
               thread_count=-1,
               plot=False)
@@ -54,7 +54,7 @@ The number of threads to use.
 
 {% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
-**Possible type** 
+**Possible type**
 
 {{ python-type--int }}
 
@@ -62,7 +62,7 @@ The number of threads to use.
 
 {{ fit__thread_count__wrappers }}
 
-### plot 
+### plot
 
 #### Description
 

@@ -44,6 +44,8 @@ bool IsSurvivalRegressionObjective(ELossFunction loss);
 bool IsSurvivalRegressionObjective(TStringBuf loss);
 bool IsMultiLabelObjective(ELossFunction lossFunction);
 bool IsMultiLabelObjective(TStringBuf lossFunction);
+bool IsMultiClassCompatibleObjective(ELossFunction lossFunction);
+bool IsMultiClassCompatibleObjective(TStringBuf lossDescription);
 
 // various
 bool UsesPairsForCalculation(ELossFunction lossFunction);

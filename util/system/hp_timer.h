@@ -14,7 +14,7 @@ namespace NHPTimer {
     double GetClockRate() noexcept;
     // same as GetClockRate, but in integer
     ui64 GetCyclesPerSecond() noexcept;
-}
+} // namespace NHPTimer
 
 struct THPTimer {
     THPTimer() noexcept {

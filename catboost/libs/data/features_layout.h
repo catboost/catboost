@@ -10,6 +10,7 @@
 
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/dbg_output/dump.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
@@ -17,6 +18,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 namespace NCB {
@@ -40,6 +42,11 @@ namespace NCB {
          */
         bool IsAvailable = true;
 
+        /* feature is aggregated from neighboring vertices in the graph
+         * see paper Learning on Graphs with Tabular Features
+         */
+        bool IsAggregated = false;
+
     public:
         // needed for BinSaver
         TFeatureMetaInfo() = default;
@@ -49,13 +56,15 @@ namespace NCB {
             const TString& name,
             bool isSparse = false,
             bool isIgnored = false,
-            bool isAvailable = true // isIgnored = true overrides this parameter
+            bool isAvailable = true, // isIgnored = true overrides this parameter
+            bool isAggregated = false // feature is aggregated using graph
         )
             : Type(type)
             , Name(name)
             , IsSparse(isSparse)
             , IsIgnored(isIgnored)
             , IsAvailable(!isIgnored && isAvailable)
+            , IsAggregated(!isIgnored && isAggregated)
         {}
 
         bool EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity = false) const;
@@ -64,7 +73,9 @@ namespace NCB {
             return EqualTo(rhs);
         }
 
-        SAVELOAD(Type, Name, IsSparse, IsIgnored, IsAvailable);
+        SAVELOAD(Type, Name, IsSparse, IsIgnored, IsAvailable, IsAggregated);
+
+        operator NJson::TJsonValue() const;
     };
 
 }
@@ -75,7 +86,9 @@ struct TDumper<NCB::TFeatureMetaInfo> {
     static inline void Dump(S& s, const NCB::TFeatureMetaInfo& featureMetaInfo) {
         s << "Type=" << featureMetaInfo.Type << "\tName=" << featureMetaInfo.Name
           << "\tIsSparse=" << featureMetaInfo.IsSparse
-          << "\tIsIgnored=" << featureMetaInfo.IsIgnored << "\tIsAvailable=" << featureMetaInfo.IsAvailable;
+          << "\tIsIgnored=" << featureMetaInfo.IsIgnored
+          << "\tIsAvailable=" << featureMetaInfo.IsAvailable
+          << "\tIsAggregated=" << featureMetaInfo.IsAggregated;
     }
 };
 
@@ -94,13 +107,14 @@ namespace NCB {
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
             const TVector<TString>& featureId)
-            : TFeaturesLayout(featureCount, catFeatureIndices, {}, {}, featureId) {}
+            : TFeaturesLayout(featureCount, catFeatureIndices, {}, {}, featureId, /*graph*/ false) {}
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
             const TVector<ui32>& textFeatureIndices,
             const TVector<ui32>& embeddingFeatureIndices,
             const TVector<TString>& featureId,
+            bool hasGraph = false,
             const THashMap<TString, TTagDescription>& featureTags = {},
             bool allFeaturesAreSparse = false);
         TFeaturesLayout(
@@ -122,8 +136,9 @@ namespace NCB {
         // create from columns info
         static TFeaturesLayoutPtr CreateFeaturesLayout(
             TConstArrayRef<TColumn> columns,
-            TMaybe<const TVector<TString>*> featureNames,
-            TMaybe<const THashMap<TString, TTagDescription>*> featureTags = Nothing());
+            TMaybe<const TVector<TString>*> featureNames = Nothing(),
+            TMaybe<const THashMap<TString, TTagDescription>*> featureTags = Nothing(),
+            bool hasGraph = false);
 
         bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
 
@@ -138,8 +153,10 @@ namespace NCB {
             FloatFeatureInternalIdxToExternalIdx,
             TextFeatureInternalIdxToExternalIdx,
             EmbeddingFeatureInternalIdxToExternalIdx,
-            TagToExternalIndices);
+            TagToExternalIndices,
+            HasGraph);
 
+        operator NJson::TJsonValue() const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,
@@ -148,7 +165,7 @@ namespace NCB {
         const TFeatureMetaInfo& GetExternalFeatureMetaInfo(ui32 externalFeatureIdx) const;
 
         // prefer this method to GetExternalFeatureIds
-        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const;
+        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const noexcept;
 
         TString GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const;
 
@@ -168,6 +185,7 @@ namespace NCB {
                 case EFeatureType::Embedding:
                     return EmbeddingFeatureInternalIdxToExternalIdx[internalFeatureIdx];
             }
+            Y_UNREACHABLE();
         }
 
         ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const;
@@ -204,30 +222,38 @@ namespace NCB {
 
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const;
 
-        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const;
+        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const noexcept;
 
-        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const;
+        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const noexcept;
 
-        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const;
+        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const noexcept;
 
-        ui32 GetFloatFeatureCount() const;
+        ui32 GetFloatFeatureCount() const noexcept;
 
-        ui32 GetCatFeatureCount() const;
+        ui32 GetCatFeatureCount() const noexcept;
 
-        ui32 GetTextFeatureCount() const;
+        ui32 GetTextFeatureCount() const noexcept;
 
-        ui32 GetEmbeddingFeatureCount() const;
+        ui32 GetEmbeddingFeatureCount() const noexcept;
 
-        ui32 GetExternalFeatureCount() const;
+        ui32 GetExternalFeatureCount() const noexcept;
 
-        ui32 GetFeatureCount(EFeatureType type) const;
+        ui32 GetFloatAggregatedFeatureCount() const noexcept;
 
-        bool HasSparseFeatures(bool checkOnlyAvailable = true) const;
+        ui32 GetAggregatedFeatureCount(EFeatureType type) const noexcept;
 
-        void IgnoreExternalFeature(ui32 externalFeatureIdx);
+        bool HasGraphForAggregatedFeatures() const noexcept {
+            return HasGraph;
+        }
+
+        ui32 GetFeatureCount(EFeatureType type) const noexcept;
+
+        bool HasSparseFeatures(bool checkOnlyAvailable = true) const noexcept;
+
+        void IgnoreExternalFeature(ui32 externalFeatureIdx) noexcept;
 
         // indices in list can be outside of range of features in layout - such features are ignored
-        void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures);
+        void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) noexcept;
 
         // Function must get one param -  TFeatureIdx<FeatureType>
         template <EFeatureType FeatureType, class Function>
@@ -241,17 +267,17 @@ namespace NCB {
             }
         }
 
-        TConstArrayRef<ui32> GetFloatFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetFloatFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const noexcept;
 
-        const THashMap<TString, TVector<ui32>>& GetTagToExternalIndices() const;
+        const THashMap<TString, TVector<ui32>>& GetTagToExternalIndices() const noexcept;
 
-        bool HasAvailableAndNotIgnoredFeatures() const;
+        bool HasAvailableAndNotIgnoredFeatures() const noexcept;
 
         void AddFeature(TFeatureMetaInfo&& featureMetaInfo);
 
@@ -263,6 +289,7 @@ namespace NCB {
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
         TVector<ui32> EmbeddingFeatureInternalIdxToExternalIdx;
         THashMap<TString, TVector<ui32>> TagToExternalIndices;
+        bool HasGraph = false;
 
         template <class TFeatureElement>
         inline void UpdateFeaturesMetaInfo(
@@ -345,5 +372,3 @@ struct TDumper<NCB::TFeaturesLayout> {
         }
     }
 };
-
-

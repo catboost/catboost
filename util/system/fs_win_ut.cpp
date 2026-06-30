@@ -20,8 +20,9 @@ static void Touch(const TFsPath& path) {
 static LPCWSTR UTF8ToWCHAR(const TStringBuf str, TUtf16String& wstr) {
     wstr.resize(str.size());
     size_t written = 0;
-    if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written))
+    if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written)) {
         return nullptr;
+    }
     wstr.erase(written);
     static_assert(sizeof(WCHAR) == sizeof(wchar16), "expect sizeof(WCHAR) == sizeof(wchar16)");
     return (const WCHAR*)wstr.data();
@@ -68,4 +69,4 @@ Y_UNIT_TEST_SUITE(TFsWinTest) {
         NFsPrivate::WinRemove(dir1);
         UNIT_ASSERT(!NFsPrivate::WinExists(dir1));
     }
-}
+} // Y_UNIT_TEST_SUITE(TFsWinTest)

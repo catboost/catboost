@@ -26,4 +26,4 @@ Y_UNIT_TEST_SUITE(StdOstreamFormattingTest) {
         UNIT_ASSERT_VALUES_EQUAL(ToStringViaOstream(Bin(static_cast<ui8>(16))), "0b00010000");
         UNIT_ASSERT_VALUES_EQUAL(ToStringViaOstream(Bin(static_cast<ui64>(1234587912357ull))), "0b0000000000000000000000010001111101110011001011001000100010100101");
     }
-}
+} // Y_UNIT_TEST_SUITE(StdOstreamFormattingTest)

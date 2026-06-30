@@ -5,6 +5,11 @@ import six
 
 from library.python import strings
 
+if six.PY3:
+    from urllib.parse import parse_qs, parse_qsl, unquote
+else:
+    from urlparse import parse_qs, parse_qsl, unquote
+
 
 class Convertible(object):
     text = u'текст'
@@ -272,3 +277,148 @@ def test_truncate_utf_8_text_wrong_limit():
 
     with pytest.raises(AssertionError):
         strings.truncate("hello", 4, msg="long msg")
+
+
+@pytest.mark.parametrize(
+    "given,expected",
+    [
+        (
+            b"a=a",
+            [(b"a", b"a")],
+        ),
+        (
+            b"a=a&a=b",
+            [(b"a", b"a"), (b"a", b"b")],
+        ),
+        (
+            b"a=a+&b=b++",
+            [(b"a", b"a "), (b"b", b"b  ")],
+        ),
+        (
+            b"a=a&&b=b",
+            [(b"a", b"a"), (b"b", b"b")],
+        ),
+        (
+            b"a=a&b=%%3C%2Fscript%3E",
+            [(b"a", b"a"), (b"b", b"%</script>")],
+        ),
+        (
+            b"clid=%EF%BB%BF123",
+            [(b"clid", b"\xef\xbb\xbf123")],
+        ),
+    ],
+)
+def test_parse_qsl(given, expected):
+    assert strings.parse_qsl_binary(given) == expected
+
+
+@pytest.mark.parametrize(
+    "given,expected,keep_blank_values",
+    [
+        (b"a=", {}, False),
+        (b"a=", {b"a": [b""]}, True),
+        (b"a", {}, False),
+        (b"a", {b"a": [b""]}, True),
+        (b"a=a&a=b", {b"a": [b"a", b"b"]}, False),
+    ],
+)
+def test_parse_qs_with_keep_blank_values(given, expected, keep_blank_values):
+    assert strings.parse_qs_binary(given, keep_blank_values=keep_blank_values) == expected
+
+
+@pytest.mark.parametrize(
+    "given,strict_parsing",
+    [(b"a", True)],
+)
+def test_parse_qs_with_strict_parsing(given, strict_parsing):
+    with pytest.raises(ValueError, match="bad query field.*"):
+        strings.parse_qs_binary(given, strict_parsing=strict_parsing)
+
+    with pytest.raises(ValueError, match="bad query field.*"):
+        parse_qs(given, strict_parsing=strict_parsing)
+
+
+@pytest.mark.parametrize(
+    "given,max_num_fields",
+    [(b"a=a&b=bb&c=c", 2)],
+)
+def test_parse_qs_with_max_num_fields(given, max_num_fields):
+    with pytest.raises(ValueError, match="Max number of fields exceeded"):
+        strings.parse_qs_binary(given, max_num_fields=max_num_fields)
+
+    with pytest.raises(ValueError, match="Max number of fields exceeded"):
+        parse_qs(given, max_num_fields=max_num_fields)
+
+
+@pytest.mark.parametrize(
+    "given,expected",
+    [
+        (
+            b"",
+            b"",
+        ),
+        (
+            b"without percent",
+            b"without percent",
+        ),
+        (
+            b"%61 and %62",
+            b"a and b",
+        ),
+        (
+            b"%FF can't %unparse char%",
+            b"\xff can't %unparse char%",
+        ),
+    ],
+)
+def test_unquote(given, expected):
+    assert strings.unquote_binary(given) == expected
+
+
+URL_PARAMS = [
+    (b"a=", False, False, None),
+    (b"a=a&a=b", False, False, None),
+    (b"a=a&a=b&b=b", False, False, None),
+    (b"a=a&&b=b", False, False, None),
+    (b"a=a&b=%%3C%2Fscript%3E", False, False, None),
+    (b"a=", True, False, None),
+    (b"a", False, False, None),
+    (b"a", True, False, None),
+]
+
+
+@pytest.mark.parametrize(
+    "string,keep_blank_values,strict_parsing,max_num_fields",
+    URL_PARAMS if six.PY3 else URL_PARAMS + [(b"clid=%EF%BB%BF123", False, False, None)],
+)
+def test_parse_qs_compatibility(string, keep_blank_values, strict_parsing, max_num_fields):
+    for string_method, urlparse_method in (strings.parse_qsl_binary, parse_qsl), (strings.parse_qs_binary, parse_qs):
+        string_res = string_method(
+            string,
+            keep_blank_values=keep_blank_values,
+            strict_parsing=strict_parsing,
+            max_num_fields=max_num_fields,
+        )
+        urlparse_res = urlparse_method(
+            string,
+            keep_blank_values=keep_blank_values,
+            strict_parsing=strict_parsing,
+            max_num_fields=max_num_fields,
+        )
+        assert string_res == urlparse_res
+
+
+@pytest.mark.parametrize(
+    "string",
+    [
+        (b""),
+        (b"without percent"),
+        (b"a and b"),
+        ((b"%FF " if six.PY2 else b"") + b"can't %unparse char%"),
+    ],
+)
+def test_unquote_compatibility(string):
+    unquote_res = unquote(string)
+    if six.PY3:
+        unquote_res = six.ensure_binary(unquote_res)
+    assert strings.unquote_binary(string) == unquote_res

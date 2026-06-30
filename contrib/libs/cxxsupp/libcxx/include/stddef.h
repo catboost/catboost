@@ -7,22 +7,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if defined(__need_ptrdiff_t) || defined(__need_size_t) || \
-    defined(__need_wchar_t) || defined(__need_NULL) || defined(__need_wint_t)
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stddef.h)
-#else
-#include_next <stddef.h>
-#endif
-
-#elif !defined(_LIBCPP_STDDEF_H)
-#define _LIBCPP_STDDEF_H
-
 /*
     stddef.h synopsis
 
@@ -40,21 +24,25 @@ Types:
 
 */
 
-#include <__config>
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stddef.h)
-typedef double max_align_t;
+#if defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#error  include <__cxx03/stddef.h>
 #else
-#include_next <stddef.h>
-#endif
+#  include <__config>
 
-#ifdef __cplusplus
-    typedef decltype(nullptr) nullptr_t;
-#endif
+#  if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#    pragma GCC system_header
+#  endif
+
+// Note: This include is outside of header guards because we sometimes get included multiple times
+//       with different defines and the underlying <stddef.h> will know how to deal with that.
+#  include_next <stddef.h>
+
+#  ifndef _LIBCPP_STDDEF_H
+#    define _LIBCPP_STDDEF_H
+
+#    ifdef __cplusplus
+typedef decltype(nullptr) nullptr_t;
+#    endif
+#  endif // defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
 
 #endif // _LIBCPP_STDDEF_H

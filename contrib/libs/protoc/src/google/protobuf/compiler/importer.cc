@@ -32,6 +32,8 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include "google/protobuf/compiler/importer.h"
+
 #ifdef _MSC_VER
 #include <direct.h>
 #else
@@ -44,13 +46,18 @@
 
 #include <algorithm>
 #include <memory>
+#include <vector>
 
-#include <google/protobuf/compiler/importer.h>
-#include <google/protobuf/compiler/parser.h>
-#include <google/protobuf/io/tokenizer.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/io/io_win32.h>
+#include "y_absl/strings/match.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_join.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/str_split.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/compiler/parser.h"
+#include "google/protobuf/io/io_win32.h"
+#include "google/protobuf/io/tokenizer.h"
+#include "google/protobuf/io/zero_copy_stream_impl.h"
 
 #ifdef _WIN32
 #include <ctype.h>
@@ -70,7 +77,7 @@ using google::protobuf::io::win32::open;
 // Returns true if the text looks like a Windows-style absolute path, starting
 // with a drive letter.  Example:  "C:\foo".  TODO(kenton):  Share this with
 // copy in command_line_interface.cc?
-static bool IsWindowsAbsolutePath(const TProtoStringType& text) {
+static bool IsWindowsAbsolutePath(y_absl::string_view text) {
 #if defined(_WIN32) || defined(__CYGWIN__)
   return text.size() >= 3 && text[1] == ':' && isalpha(text[0]) &&
          (text[2] == '/' || text[2] == '\\') && text.find_last_of(':') == 1;
@@ -93,14 +100,15 @@ class SourceTreeDescriptorDatabase::SingleFileErrorCollector
       : filename_(filename),
         multi_file_error_collector_(multi_file_error_collector),
         had_errors_(false) {}
-  ~SingleFileErrorCollector() {}
+  ~SingleFileErrorCollector() override {}
 
   bool had_errors() { return had_errors_; }
 
   // implements ErrorCollector ---------------------------------------
-  void AddError(int line, int column, const TProtoStringType& message) override {
-    if (multi_file_error_collector_ != NULL) {
-      multi_file_error_collector_->AddError(filename_, line, column, message);
+  void RecordError(int line, int column, y_absl::string_view message) override {
+    if (multi_file_error_collector_ != nullptr) {
+      multi_file_error_collector_->RecordError(filename_, line, column,
+                                               message);
     }
     had_errors_ = true;
   }
@@ -134,14 +142,14 @@ SourceTreeDescriptorDatabase::~SourceTreeDescriptorDatabase() {}
 bool SourceTreeDescriptorDatabase::FindFileByName(const TProtoStringType& filename,
                                                   FileDescriptorProto* output) {
   std::unique_ptr<io::ZeroCopyInputStream> input(source_tree_->Open(filename));
-  if (input == NULL) {
+  if (input == nullptr) {
     if (fallback_database_ != nullptr &&
         fallback_database_->FindFileByName(filename, output)) {
       return true;
     }
-    if (error_collector_ != NULL) {
-      error_collector_->AddError(filename, -1, 0,
-                                 source_tree_->GetLastErrorMessage());
+    if (error_collector_ != nullptr) {
+      error_collector_->RecordError(filename, -1, 0,
+                                    source_tree_->GetLastErrorMessage());
     }
     return false;
   }
@@ -151,7 +159,7 @@ bool SourceTreeDescriptorDatabase::FindFileByName(const TProtoStringType& filena
   io::Tokenizer tokenizer(input.get(), &file_error_collector);
 
   Parser parser;
-  if (error_collector_ != NULL) {
+  if (error_collector_ != nullptr) {
     parser.RecordErrorsTo(&file_error_collector);
   }
   if (using_validation_error_collector_) {
@@ -183,11 +191,11 @@ SourceTreeDescriptorDatabase::ValidationErrorCollector::
 SourceTreeDescriptorDatabase::ValidationErrorCollector::
     ~ValidationErrorCollector() {}
 
-void SourceTreeDescriptorDatabase::ValidationErrorCollector::AddError(
-    const TProtoStringType& filename, const TProtoStringType& element_name,
+void SourceTreeDescriptorDatabase::ValidationErrorCollector::RecordError(
+    y_absl::string_view filename, y_absl::string_view element_name,
     const Message* descriptor, ErrorLocation location,
-    const TProtoStringType& message) {
-  if (owner_->error_collector_ == NULL) return;
+    y_absl::string_view message) {
+  if (owner_->error_collector_ == nullptr) return;
 
   int line, column;
   if (location == DescriptorPool::ErrorCollector::IMPORT) {
@@ -196,14 +204,14 @@ void SourceTreeDescriptorDatabase::ValidationErrorCollector::AddError(
   } else {
     owner_->source_locations_.Find(descriptor, location, &line, &column);
   }
-  owner_->error_collector_->AddError(filename, line, column, message);
+  owner_->error_collector_->RecordError(filename, line, column, message);
 }
 
-void SourceTreeDescriptorDatabase::ValidationErrorCollector::AddWarning(
-    const TProtoStringType& filename, const TProtoStringType& element_name,
+void SourceTreeDescriptorDatabase::ValidationErrorCollector::RecordWarning(
+    y_absl::string_view filename, y_absl::string_view element_name,
     const Message* descriptor, ErrorLocation location,
-    const TProtoStringType& message) {
-  if (owner_->error_collector_ == NULL) return;
+    y_absl::string_view message) {
+  if (owner_->error_collector_ == nullptr) return;
 
   int line, column;
   if (location == DescriptorPool::ErrorCollector::IMPORT) {
@@ -212,7 +220,7 @@ void SourceTreeDescriptorDatabase::ValidationErrorCollector::AddWarning(
   } else {
     owner_->source_locations_.Find(descriptor, location, &line, &column);
   }
-  owner_->error_collector_->AddWarning(filename, line, column, message);
+  owner_->error_collector_->RecordWarning(filename, line, column, message);
 }
 
 // ===================================================================
@@ -251,10 +259,6 @@ DiskSourceTree::DiskSourceTree() {}
 
 DiskSourceTree::~DiskSourceTree() {}
 
-static inline char LastChar(const TProtoStringType& str) {
-  return str[str.size() - 1];
-}
-
 // Given a path, returns an equivalent path with these changes:
 // - On Windows, any backslashes are replaced with forward slashes.
 // - Any instances of the directory "." are removed.
@@ -274,45 +278,39 @@ static inline char LastChar(const TProtoStringType& str) {
 //   then if foo/bar is a symbolic link, foo/bar/baz.proto will canonicalize
 //   to a path which does not appear to be under foo, and thus the compiler
 //   will complain that baz.proto is not inside the --proto_path.
-static TProtoStringType CanonicalizePath(TProtoStringType path) {
+static TProtoStringType CanonicalizePath(y_absl::string_view path) {
 #ifdef _WIN32
   // The Win32 API accepts forward slashes as a path delimiter even though
   // backslashes are standard.  Let's avoid confusion and use only forward
   // slashes.
-  if (HasPrefixString(path, "\\\\")) {
+  TProtoStringType path_str;
+  if (y_absl::StartsWith(path, "\\\\")) {
     // Avoid converting two leading backslashes.
-    path = "\\\\" + StringReplace(path.substr(2), "\\", "/", true);
+    path_str = y_absl::StrCat("\\\\",
+                            y_absl::StrReplaceAll(path.substr(2), {{"\\", "/"}}));
   } else {
-    path = StringReplace(path, "\\", "/", true);
+    path_str = y_absl::StrReplaceAll(path, {{"\\", "/"}});
   }
+  path = path_str;
 #endif
 
-  std::vector<TProtoStringType> canonical_parts;
-  std::vector<TProtoStringType> parts = Split(
-      path, "/", true);  // Note:  Removes empty parts.
-  for (const TProtoStringType& part : parts) {
+  std::vector<y_absl::string_view> canonical_parts;
+  if (!path.empty() && path.front() == '/') canonical_parts.push_back("");
+  for (y_absl::string_view part : y_absl::StrSplit(path, '/', y_absl::SkipEmpty())) {
     if (part == ".") {
       // Ignore.
     } else {
       canonical_parts.push_back(part);
     }
   }
-  TProtoStringType result = Join(canonical_parts, "/");
-  if (!path.empty() && path[0] == '/') {
-    // Restore leading slash.
-    result = '/' + result;
-  }
-  if (!path.empty() && LastChar(path) == '/' && !result.empty() &&
-      LastChar(result) != '/') {
-    // Restore trailing slash.
-    result += '/';
-  }
-  return result;
+  if (!path.empty() && path.back() == '/') canonical_parts.push_back("");
+
+  return y_absl::StrJoin(canonical_parts, "/");
 }
 
-static inline bool ContainsParentReference(const TProtoStringType& path) {
-  return path == ".." || HasPrefixString(path, "../") ||
-         HasSuffixString(path, "/..") || path.find("/../") != TProtoStringType::npos;
+static inline bool ContainsParentReference(y_absl::string_view path) {
+  return path == ".." || y_absl::StartsWith(path, "../") ||
+         y_absl::EndsWith(path, "/..") || y_absl::StrContains(path, "/../");
 }
 
 // Maps a file from an old location to a new one.  Typically, old_prefix is
@@ -332,28 +330,28 @@ static inline bool ContainsParentReference(const TProtoStringType& path) {
 //   assert(!ApplyMapping("foo/bar", "baz", "qux", &result));
 //   assert(!ApplyMapping("foo/bar", "baz", "qux", &result));
 //   assert(!ApplyMapping("foobar", "foo", "baz", &result));
-static bool ApplyMapping(const TProtoStringType& filename,
-                         const TProtoStringType& old_prefix,
-                         const TProtoStringType& new_prefix, TProtoStringType* result) {
+static bool ApplyMapping(y_absl::string_view filename,
+                         y_absl::string_view old_prefix,
+                         y_absl::string_view new_prefix, TProtoStringType* result) {
   if (old_prefix.empty()) {
     // old_prefix matches any relative path.
     if (ContainsParentReference(filename)) {
       // We do not allow the file name to use "..".
       return false;
     }
-    if (HasPrefixString(filename, "/") || IsWindowsAbsolutePath(filename)) {
+    if (y_absl::StartsWith(filename, "/") || IsWindowsAbsolutePath(filename)) {
       // This is an absolute path, so it isn't matched by the empty string.
       return false;
     }
-    result->assign(new_prefix);
+    result->assign(TProtoStringType(new_prefix));
     if (!result->empty()) result->push_back('/');
-    result->append(filename);
+    result->append(TProtoStringType(filename));
     return true;
-  } else if (HasPrefixString(filename, old_prefix)) {
+  } else if (y_absl::StartsWith(filename, old_prefix)) {
     // old_prefix is a prefix of the filename.  Is it the whole filename?
     if (filename.size() == old_prefix.size()) {
       // Yep, it's an exact match.
-      *result = new_prefix;
+      *result = TProtoStringType(new_prefix);
       return true;
     } else {
       // Not an exact match.  Is the next character a '/'?  Otherwise,
@@ -370,14 +368,14 @@ static bool ApplyMapping(const TProtoStringType& filename,
       if (after_prefix_start != -1) {
         // Yep.  So the prefixes are directories and the filename is a file
         // inside them.
-        TProtoStringType after_prefix = filename.substr(after_prefix_start);
+        y_absl::string_view after_prefix = filename.substr(after_prefix_start);
         if (ContainsParentReference(after_prefix)) {
           // We do not allow the file name to use "..".
           return false;
         }
-        result->assign(new_prefix);
+        result->assign(TProtoStringType(new_prefix));
         if (!result->empty()) result->push_back('/');
-        result->append(after_prefix);
+        result->append(TProtoStringType(after_prefix));
         return true;
       }
     }
@@ -386,13 +384,14 @@ static bool ApplyMapping(const TProtoStringType& filename,
   return false;
 }
 
-void DiskSourceTree::MapPath(const TProtoStringType& virtual_path,
-                             const TProtoStringType& disk_path) {
-  mappings_.push_back(Mapping(virtual_path, CanonicalizePath(disk_path)));
+void DiskSourceTree::MapPath(y_absl::string_view virtual_path,
+                             y_absl::string_view disk_path) {
+  mappings_.push_back(
+      Mapping(TProtoStringType(virtual_path), CanonicalizePath(disk_path)));
 }
 
 DiskSourceTree::DiskFileToVirtualFileResult
-DiskSourceTree::DiskFileToVirtualFile(const TProtoStringType& disk_file,
+DiskSourceTree::DiskFileToVirtualFile(y_absl::string_view disk_file,
                                       TProtoStringType* virtual_file,
                                       TProtoStringType* shadowing_disk_file) {
   int mapping_index = -1;
@@ -429,22 +428,22 @@ DiskSourceTree::DiskFileToVirtualFile(const TProtoStringType& disk_file,
   // of verifying that we are not canonicalizing away any non-existent
   // directories.
   std::unique_ptr<io::ZeroCopyInputStream> stream(OpenDiskFile(disk_file));
-  if (stream == NULL) {
+  if (stream == nullptr) {
     return CANNOT_OPEN;
   }
 
   return SUCCESS;
 }
 
-bool DiskSourceTree::VirtualFileToDiskFile(const TProtoStringType& virtual_file,
+bool DiskSourceTree::VirtualFileToDiskFile(y_absl::string_view virtual_file,
                                            TProtoStringType* disk_file) {
   std::unique_ptr<io::ZeroCopyInputStream> stream(
       OpenVirtualFile(virtual_file, disk_file));
-  return stream != NULL;
+  return stream != nullptr;
 }
 
 io::ZeroCopyInputStream* DiskSourceTree::Open(const TProtoStringType& filename) {
-  return OpenVirtualFile(filename, NULL);
+  return OpenVirtualFile(filename, nullptr);
 }
 
 TProtoStringType DiskSourceTree::GetLastErrorMessage() {
@@ -452,7 +451,7 @@ TProtoStringType DiskSourceTree::GetLastErrorMessage() {
 }
 
 io::ZeroCopyInputStream* DiskSourceTree::OpenVirtualFile(
-    const TProtoStringType& virtual_file, TProtoStringType* disk_file) {
+    y_absl::string_view virtual_file, TProtoStringType* disk_file) {
   if (virtual_file != CanonicalizePath(virtual_file) ||
       ContainsParentReference(virtual_file)) {
     // We do not allow importing of paths containing things like ".." or
@@ -461,7 +460,7 @@ io::ZeroCopyInputStream* DiskSourceTree::OpenVirtualFile(
     last_error_message_ =
         "Backslashes, consecutive slashes, \".\", or \"..\" "
         "are not allowed in the virtual path";
-    return NULL;
+    return nullptr;
   }
 
   for (const auto& mapping : mappings_) {
@@ -469,8 +468,8 @@ io::ZeroCopyInputStream* DiskSourceTree::OpenVirtualFile(
     if (ApplyMapping(virtual_file, mapping.virtual_path, mapping.disk_path,
                      &temp_disk_file)) {
       io::ZeroCopyInputStream* stream = OpenDiskFile(temp_disk_file);
-      if (stream != NULL) {
-        if (disk_file != NULL) {
+      if (stream != nullptr) {
+        if (disk_file != nullptr) {
           *disk_file = temp_disk_file;
         }
         return stream;
@@ -479,43 +478,43 @@ io::ZeroCopyInputStream* DiskSourceTree::OpenVirtualFile(
       if (errno == EACCES) {
         // The file exists but is not readable.
         last_error_message_ =
-            "Read access is denied for file: " + temp_disk_file;
-        return NULL;
+            y_absl::StrCat("Read access is denied for file: ", temp_disk_file);
+        return nullptr;
       }
     }
   }
   last_error_message_ = "File not found.";
-  return NULL;
+  return nullptr;
 }
 
 io::ZeroCopyInputStream* DiskSourceTree::OpenDiskFile(
-    const TProtoStringType& filename) {
+    y_absl::string_view filename) {
   struct stat sb;
   int ret = 0;
   do {
-    ret = stat(filename.c_str(), &sb);
+    ret = stat(TProtoStringType(filename).c_str(), &sb);
   } while (ret != 0 && errno == EINTR);
 #if defined(_WIN32)
   if (ret == 0 && sb.st_mode & S_IFDIR) {
     last_error_message_ = "Input file is a directory.";
-    return NULL;
+    return nullptr;
   }
 #else
   if (ret == 0 && S_ISDIR(sb.st_mode)) {
     last_error_message_ = "Input file is a directory.";
-    return NULL;
+    return nullptr;
   }
 #endif
   int file_descriptor;
   do {
-    file_descriptor = open(filename.c_str(), O_RDONLY);
+    file_descriptor = open(TProtoStringType(filename).c_str(), O_RDONLY);
   } while (file_descriptor < 0 && errno == EINTR);
   if (file_descriptor >= 0) {
     io::FileInputStream* result = new io::FileInputStream(file_descriptor);
     result->SetCloseOnDelete(true);
     return result;
   } else {
-    return NULL;
+    return nullptr;
   }
 }
 

@@ -92,6 +92,7 @@ namespace NCB {
             [&](int blockId) {
                 int left = startPositions[blockId];
                 int right = left + blockSizes[blockId];
+                // used only in AUC
                 Sort(elements->begin() + left, elements->begin() + right, cmp);
             }
         );

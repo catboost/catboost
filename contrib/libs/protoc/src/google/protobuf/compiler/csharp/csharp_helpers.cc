@@ -32,28 +32,34 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+
 #include <algorithm>
 #include <limits>
-#include <vector>
 #include <sstream>
+#include <string>
+#include <vector>
 
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_names.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/stubs/strutil.h>
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/compiler/csharp/csharp_enum_field.h"
+#include "google/protobuf/compiler/csharp/csharp_field_base.h"
+#include "google/protobuf/compiler/csharp/csharp_map_field.h"
+#include "google/protobuf/compiler/csharp/csharp_message_field.h"
+#include "google/protobuf/compiler/csharp/csharp_options.h"
+#include "google/protobuf/compiler/csharp/csharp_primitive_field.h"
+#include "google/protobuf/compiler/csharp/csharp_repeated_enum_field.h"
+#include "google/protobuf/compiler/csharp/csharp_repeated_message_field.h"
+#include "google/protobuf/compiler/csharp/csharp_repeated_primitive_field.h"
+#include "google/protobuf/compiler/csharp/csharp_wrapper_field.h"
+#include "google/protobuf/compiler/csharp/names.h"
+#include "google/protobuf/descriptor.pb.h"
 
-#include <google/protobuf/compiler/csharp/csharp_field_base.h>
-#include <google/protobuf/compiler/csharp/csharp_enum_field.h>
-#include <google/protobuf/compiler/csharp/csharp_map_field.h>
-#include <google/protobuf/compiler/csharp/csharp_message_field.h>
-#include <google/protobuf/compiler/csharp/csharp_options.h>
-#include <google/protobuf/compiler/csharp/csharp_primitive_field.h>
-#include <google/protobuf/compiler/csharp/csharp_repeated_enum_field.h>
-#include <google/protobuf/compiler/csharp/csharp_repeated_message_field.h>
-#include <google/protobuf/compiler/csharp/csharp_repeated_primitive_field.h>
-#include <google/protobuf/compiler/csharp/csharp_wrapper_field.h>
+// Must be last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -102,86 +108,8 @@ CSharpType GetCSharpType(FieldDescriptor::Type type) {
       // No default because we want the compiler to complain if any new
       // types are added.
   }
-  GOOGLE_LOG(FATAL)<< "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return (CSharpType) -1;
-}
-
-TProtoStringType StripDotProto(const TProtoStringType& proto_file) {
-  int lastindex = proto_file.find_last_of(".");
-  return proto_file.substr(0, lastindex);
-}
-
-TProtoStringType GetFileNamespace(const FileDescriptor* descriptor) {
-  if (descriptor->options().has_csharp_namespace()) {
-    return descriptor->options().csharp_namespace();
-  }
-  return UnderscoresToCamelCase(descriptor->package(), true, true);
-}
-
-// Returns the Pascal-cased last part of the proto file. For example,
-// input of "google/protobuf/foo_bar.proto" would result in "FooBar".
-TProtoStringType GetFileNameBase(const FileDescriptor* descriptor) {
-    TProtoStringType proto_file = descriptor->name();
-    int lastslash = proto_file.find_last_of("/");
-    TProtoStringType base = proto_file.substr(lastslash + 1);
-    return UnderscoresToPascalCase(StripDotProto(base));
-}
-
-TProtoStringType GetReflectionClassUnqualifiedName(const FileDescriptor* descriptor) {
-  // TODO: Detect collisions with existing messages,
-  // and append an underscore if necessary.
-  return GetFileNameBase(descriptor) + "Reflection";
-}
-
-TProtoStringType GetExtensionClassUnqualifiedName(const FileDescriptor* descriptor) {
-  // TODO: Detect collisions with existing messages,
-  // and append an underscore if necessary.
-  return GetFileNameBase(descriptor) + "Extensions";
-}
-
-// TODO(jtattermusch): can we reuse a utility function?
-TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
-                                   bool cap_next_letter,
-                                   bool preserve_period) {
-  TProtoStringType result;
-  // Note:  I distrust ctype.h due to locales.
-  for (int i = 0; i < input.size(); i++) {
-    if ('a' <= input[i] && input[i] <= 'z') {
-      if (cap_next_letter) {
-        result += input[i] + ('A' - 'a');
-      } else {
-        result += input[i];
-      }
-      cap_next_letter = false;
-    } else if ('A' <= input[i] && input[i] <= 'Z') {
-      if (i == 0 && !cap_next_letter) {
-        // Force first letter to lower-case unless explicitly told to
-        // capitalize it.
-        result += input[i] + ('a' - 'A');
-      } else {
-        // Capital letters after the first are left as-is.
-        result += input[i];
-      }
-      cap_next_letter = false;
-    } else if ('0' <= input[i] && input[i] <= '9') {
-      result += input[i];
-      cap_next_letter = true;
-    } else {
-      cap_next_letter = true;
-      if (input[i] == '.' && preserve_period) {
-        result += '.';
-      }
-    }
-  }
-  // Add a trailing "_" if the name should be altered.
-  if (input.size() > 0 && input[input.size() - 1] == '#') {
-    result += '_';
-  }
-  return result;
-}
-
-TProtoStringType UnderscoresToPascalCase(const TProtoStringType& input) {
-  return UnderscoresToCamelCase(input, true);
 }
 
 // Convert a string which is expected to be SHOUTY_CASE (but may not be *precisely* shouty)
@@ -194,24 +122,24 @@ TProtoStringType UnderscoresToPascalCase(const TProtoStringType& input) {
 // Numeric                       Alphanumeric              Upper
 // Lower letter                  Alphanumeric              Same as current
 // Upper letter                  Alphanumeric              Lower
-TProtoStringType ShoutyToPascalCase(const TProtoStringType& input) {
+TProtoStringType ShoutyToPascalCase(y_absl::string_view input) {
   TProtoStringType result;
   // Simple way of implementing "always start with upper"
   char previous = '_';
   for (int i = 0; i < input.size(); i++) {
     char current = input[i];
-    if (!ascii_isalnum(current)) {
+    if (!y_absl::ascii_isalnum(current)) {
       previous = current;
       continue;
     }
-    if (!ascii_isalnum(previous)) {
-      result += ascii_toupper(current);
-    } else if (ascii_isdigit(previous)) {
-      result += ascii_toupper(current);
-    } else if (ascii_islower(previous)) {
+    if (!y_absl::ascii_isalnum(previous)) {
+      result += y_absl::ascii_toupper(current);
+    } else if (y_absl::ascii_isdigit(previous)) {
+      result += y_absl::ascii_toupper(current);
+    } else if (y_absl::ascii_islower(previous)) {
       result += current;
     } else {
-      result += ascii_tolower(current);
+      result += y_absl::ascii_tolower(current);
     }
     previous = current;
   }
@@ -224,12 +152,12 @@ TProtoStringType ShoutyToPascalCase(const TProtoStringType& input) {
 // (foo_bar, foobarbaz) => baz - underscore in prefix is ignored
 // (foobar, foo_barbaz) => baz - underscore in value is ignored
 // (foo, bar) => bar - prefix isn't matched; return original value
-TProtoStringType TryRemovePrefix(const TProtoStringType& prefix, const TProtoStringType& value) {
+TProtoStringType TryRemovePrefix(y_absl::string_view prefix, y_absl::string_view value) {
   // First normalize to a lower-case no-underscores prefix to match against
   TProtoStringType prefix_to_match = "";
   for (size_t i = 0; i < prefix.size(); i++) {
     if (prefix[i] != '_') {
-      prefix_to_match += ascii_tolower(prefix[i]);
+      prefix_to_match += y_absl::ascii_tolower(prefix[i]);
     }
   }
 
@@ -242,15 +170,15 @@ TProtoStringType TryRemovePrefix(const TProtoStringType& prefix, const TProtoStr
     if (value[value_index] == '_') {
       continue;
     }
-    if (ascii_tolower(value[value_index]) != prefix_to_match[prefix_index++]) {
+    if (y_absl::ascii_tolower(value[value_index]) != prefix_to_match[prefix_index++]) {
       // Failed to match the prefix - bail out early.
-      return value;
+      return TProtoStringType(value);
     }
   }
 
   // If we didn't finish looking through the prefix, we can't strip it.
   if (prefix_index < prefix_to_match.size()) {
-    return value;
+    return TProtoStringType(value);
   }
 
   // Step over any underscores after the prefix
@@ -260,10 +188,10 @@ TProtoStringType TryRemovePrefix(const TProtoStringType& prefix, const TProtoStr
 
   // If there's nothing left (e.g. it was a prefix with only underscores afterwards), don't strip.
   if (value_index == value.size()) {
-    return value;
+    return TProtoStringType(value);
   }
 
-  return value.substr(value_index);
+  return TProtoStringType(value.substr(value_index));
 }
 
 // Format the enum value name in a pleasant way for C#:
@@ -271,13 +199,14 @@ TProtoStringType TryRemovePrefix(const TProtoStringType& prefix, const TProtoStr
 // - Convert to PascalCase.
 // For example, an enum called Color with a value of COLOR_BLUE should
 // result in an enum value in C# called just Blue
-TProtoStringType GetEnumValueName(const TProtoStringType& enum_name, const TProtoStringType& enum_value_name) {
+TProtoStringType GetEnumValueName(y_absl::string_view enum_name,
+                             y_absl::string_view enum_value_name) {
   TProtoStringType stripped = TryRemovePrefix(enum_name, enum_value_name);
   TProtoStringType result = ShoutyToPascalCase(stripped);
   // Just in case we have an enum name of FOO and a value of FOO_2... make sure the returned
   // string is a valid identifier.
-  if (ascii_isdigit(result[0])) {
-    result = "_" + result;
+  if (y_absl::ascii_isdigit(result[0])) {
+    return y_absl::StrCat("_", result);
   }
   return result;
 }
@@ -320,47 +249,14 @@ uint GetGroupEndTag(const Descriptor* descriptor) {
   return 0;
 }
 
-TProtoStringType ToCSharpName(const TProtoStringType& name, const FileDescriptor* file) {
-  TProtoStringType result = GetFileNamespace(file);
-  if (!result.empty()) {
-    result += '.';
-  }
-  TProtoStringType classname;
-  if (file->package().empty()) {
-    classname = name;
-  } else {
-    // Strip the proto package from full_name since we've replaced it with
-    // the C# namespace.
-    classname = name.substr(file->package().size() + 1);
-  }
-  result += StringReplace(classname, ".", ".Types.", true);
-  return "global::" + result;
-}
-
-TProtoStringType GetReflectionClassName(const FileDescriptor* descriptor) {
-  TProtoStringType result = GetFileNamespace(descriptor);
-  if (!result.empty()) {
-    result += '.';
-  }
-  result += GetReflectionClassUnqualifiedName(descriptor);
-  return "global::" + result;
-}
-
 TProtoStringType GetFullExtensionName(const FieldDescriptor* descriptor) {
   if (descriptor->extension_scope()) {
-    return GetClassName(descriptor->extension_scope()) + ".Extensions." + GetPropertyName(descriptor);
+    return y_absl::StrCat(GetClassName(descriptor->extension_scope()),
+                        ".Extensions.", GetPropertyName(descriptor));
   }
-  else {
-    return GetExtensionClassUnqualifiedName(descriptor->file())  + "." + GetPropertyName(descriptor);
-  }
-}
 
-TProtoStringType GetClassName(const Descriptor* descriptor) {
-  return ToCSharpName(descriptor->full_name(), descriptor->file());
-}
-
-TProtoStringType GetClassName(const EnumDescriptor* descriptor) {
-  return ToCSharpName(descriptor->full_name(), descriptor->file());
+  return y_absl::StrCat(GetExtensionClassUnqualifiedName(descriptor->file()), ".",
+                      GetPropertyName(descriptor));
 }
 
 // Groups are hacky:  The name of the field is just the lower-cased name
@@ -375,56 +271,44 @@ TProtoStringType GetFieldName(const FieldDescriptor* descriptor) {
 }
 
 TProtoStringType GetFieldConstantName(const FieldDescriptor* field) {
-  return GetPropertyName(field) + "FieldNumber";
+  return y_absl::StrCat(GetPropertyName(field), "FieldNumber");
 }
 
 TProtoStringType GetPropertyName(const FieldDescriptor* descriptor) {
+  // Names of members declared or overridden in the message.
+  static const auto& reserved_member_names = *new y_absl::flat_hash_set<y_absl::string_view>({
+    "Types",
+    "Descriptor",
+    "Equals",
+    "ToString",
+    "GetHashCode",
+    "WriteTo",
+    "Clone",
+    "CalculateSize",
+    "MergeFrom",
+    "OnConstruction",
+    "Parser"
+    });
+
   // TODO(jtattermusch): consider introducing csharp_property_name field option
   TProtoStringType property_name = UnderscoresToPascalCase(GetFieldName(descriptor));
-  // Avoid either our own type name or reserved names. Note that not all names
-  // are reserved - a field called to_string, write_to etc would still cause a problem.
+  // Avoid either our own type name or reserved names.
   // There are various ways of ending up with naming collisions, but we try to avoid obvious
-  // ones.
+  // ones. In particular, we avoid the names of all the members we generate.
+  // Note that we *don't* add an underscore for MemberwiseClone or GetType. Those generate
+  // warnings, but not errors; changing the name now could be a breaking change.
   if (property_name == descriptor->containing_type()->name()
-      || property_name == "Types"
-      || property_name == "Descriptor") {
-    property_name += "_";
+      || reserved_member_names.find(property_name) != reserved_member_names.end()) {
+    y_absl::StrAppend(&property_name, "_");
   }
   return property_name;
 }
 
-TProtoStringType GetOutputFile(const FileDescriptor* descriptor,
-                          const TProtoStringType file_extension,
-                          const bool generate_directories,
-                          const TProtoStringType base_namespace,
-                          TProtoStringType* error) {
-  TProtoStringType relative_filename = GetFileNameBase(descriptor) + file_extension;
-  if (!generate_directories) {
-    return relative_filename;
-  }
-  TProtoStringType ns = GetFileNamespace(descriptor);
-  TProtoStringType namespace_suffix = ns;
-  if (!base_namespace.empty()) {
-    // Check that the base_namespace is either equal to or a leading part of
-    // the file namespace. This isn't just a simple prefix; "Foo.B" shouldn't
-    // be regarded as a prefix of "Foo.Bar". The simplest option is to add "."
-    // to both.
-    TProtoStringType extended_ns = ns + ".";
-    if (extended_ns.find(base_namespace + ".") != 0) {
-      *error = "Namespace " + ns + " is not a prefix namespace of base namespace " + base_namespace;
-      return ""; // This will be ignored, because we've set an error.
-    }
-    namespace_suffix = ns.substr(base_namespace.length());
-    if (namespace_suffix.find(".") == 0) {
-      namespace_suffix = namespace_suffix.substr(1);
-    }
-  }
-
-  TProtoStringType namespace_dir = StringReplace(namespace_suffix, ".", "/", true);
-  if (!namespace_dir.empty()) {
-    namespace_dir += "/";
-  }
-  return namespace_dir + relative_filename;
+TProtoStringType GetOneofCaseName(const FieldDescriptor* descriptor) {
+  // The name in a oneof case enum is the same as for the property, but as we always have a "None"
+  // value as well, we need to reserve that by appending an underscore.
+  TProtoStringType property_name = GetPropertyName(descriptor);
+  return property_name == "None" ? "None_" : property_name;
 }
 
 // TODO: c&p from Java protoc plugin
@@ -456,17 +340,17 @@ int GetFixedSize(FieldDescriptor::Type type) {
     // No default because we want the compiler to complain if any new
     // types are added.
   }
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return -1;
 }
 
 static const char base64_chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-TProtoStringType StringToBase64(const TProtoStringType& input) {
+TProtoStringType StringToBase64(y_absl::string_view input) {
   TProtoStringType result;
   size_t remaining = input.size();
-  const unsigned char *src = (const unsigned char*) input.c_str();
+  const unsigned char* src = (const unsigned char*)input.data();
   while (remaining > 2) {
     result += base64_chars[src[0] >> 2];
     result += base64_chars[((src[0] & 0x3) << 4) | (src[1] >> 4)];
@@ -581,7 +465,7 @@ bool IsNullable(const FieldDescriptor* descriptor) {
       return true;
 
     default:
-      GOOGLE_LOG(FATAL) << "Unknown field type.";
+      Y_ABSL_LOG(FATAL) << "Unknown field type.";
       return true;
   }
 }
@@ -590,3 +474,5 @@ bool IsNullable(const FieldDescriptor* descriptor) {
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"

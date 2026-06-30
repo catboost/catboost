@@ -120,7 +120,7 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
             WriteJson(&out, &v);
             UNIT_ASSERT_VALUES_EQUAL(out.Str(), expected);
         } // 18446744073709551615
-    }     // SimpleUnsignedIntegerWriteTest
+    } // SimpleUnsignedIntegerWriteTest
 
     Y_UNIT_TEST(WriteOptionalTest) {
         {
@@ -225,4 +225,4 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
             UNIT_ASSERT_VALUES_EQUAL(actual, expected);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TJsonWriterTest)

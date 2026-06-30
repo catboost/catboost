@@ -13,8 +13,8 @@ enum ENumberFormatFlag {
     HF_FULL = 0x01, /**< Output number with leading zeros. */
     HF_ADDX = 0x02, /**< Output '0x' or '0b' before hex/bin digits. */
 };
-Y_DECLARE_FLAGS(ENumberFormat, ENumberFormatFlag)
-Y_DECLARE_OPERATORS_FOR_FLAGS(ENumberFormat)
+Y_DECLARE_FLAGS(ENumberFormat, ENumberFormatFlag);
+Y_DECLARE_OPERATORS_FOR_FLAGS(ENumberFormat);
 
 enum ESizeFormat {
     SF_QUANTITY, /**< Base 1000, usual suffixes. 1100 gets turned into "1.1K". */
@@ -45,8 +45,9 @@ namespace NFormatPrivate {
 
     template <typename T>
     static inline void WriteChars(T& os, char c, size_t count) {
-        if (count == 0)
+        if (count == 0) {
             return;
+        }
         TTempBuf buf(count);
         memset(buf.Data(), c, count);
         StreamWrite(os, buf.Data(), count);
@@ -67,7 +68,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TLeftPad<T>& lp) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TLeftPad<T>& lp) {
         TTempBuf buf;
         TMemoryOutput ss(buf.Data(), buf.Size());
         ss << lp.Value;
@@ -94,7 +95,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TRightPad<T>& lp) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TRightPad<T>& lp) {
         TTempBuf buf;
         TMemoryOutput ss(buf.Data(), buf.Size());
         ss << lp.Value;
@@ -123,7 +124,7 @@ namespace NFormatPrivate {
     using TUnsignedBaseNumber = TBaseNumber<std::make_unsigned_t<std::remove_cv_t<T>>, Base>;
 
     template <typename TStream, typename T, size_t Base>
-    TStream& ToStreamImpl(TStream& stream, const TBaseNumber<T, Base>& value) {
+    TStream& ToStreamImpl(TStream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         char buf[8 * sizeof(T) + 1]; /* Add 1 for sign. */
         TStringBuf str(buf, IntToString<Base>(value.Value, buf, sizeof(buf)));
 
@@ -149,12 +150,12 @@ namespace NFormatPrivate {
     }
 
     template <typename T, size_t Base>
-    IOutputStream& operator<<(IOutputStream& stream, const TBaseNumber<T, Base>& value) {
+    IOutputStream& operator<<(IOutputStream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         return ToStreamImpl(stream, value);
     }
 
     template <typename T, size_t Base>
-    std::ostream& operator<<(std::ostream& stream, const TBaseNumber<T, Base>& value) {
+    std::ostream& operator<<(std::ostream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         return ToStreamImpl(stream, value);
     }
 
@@ -169,7 +170,7 @@ namespace NFormatPrivate {
     };
 
     template <typename Char, size_t Base>
-    IOutputStream& operator<<(IOutputStream& os, const TBaseText<Char, Base>& text) {
+    IOutputStream& operator<<(IOutputStream& os Y_LIFETIME_BOUND, const TBaseText<Char, Base>& text) {
         for (size_t i = 0; i < text.Text.size(); ++i) {
             if (i != 0) {
                 os << ' ';
@@ -190,7 +191,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TFloatPrecision<T>& prec) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TFloatPrecision<T>& prec) {
         char buf[512];
         size_t count = FloatToString(prec.Value, buf, sizeof(buf), prec.Mode, prec.NDigits);
         o << TStringBuf(buf, count);
@@ -210,7 +211,7 @@ namespace NFormatPrivate {
         double Value;
         ESizeFormat Format;
     };
-}
+} // namespace NFormatPrivate
 
 /**
  * Output manipulator basically equivalent to `std::setw` and `std::setfill`
@@ -396,7 +397,7 @@ static inline ::NFormatPrivate::TBaseText<TChar, 2> BinText(const TBasicStringBu
  * stream << HumanReadable(TDuration::Seconds(3672));       // Will output "1h 1m 12s"
  * @endcode
  *
- * @param value                         Value to output.
+ * @param duration                      Value to output.
  */
 static constexpr ::NFormatPrivate::THumanReadableDuration HumanReadable(const TDuration duration) noexcept {
     return ::NFormatPrivate::THumanReadableDuration(duration);
@@ -419,7 +420,7 @@ static constexpr ::NFormatPrivate::THumanReadableDuration HumanReadable(const TD
  * stream << "average usage " << HumanReadableSize(100 / 3., SF_BYTES);     // Will output    "average usage "33.3B""
  * @endcode
  *
- * @param value                         Value to output.
+ * @param size                          Value to output.
  * @param format                        Format to use.
  */
 static constexpr ::NFormatPrivate::THumanReadableSize HumanReadableSize(const double size, ESizeFormat format) noexcept {

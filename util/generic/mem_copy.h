@@ -45,7 +45,7 @@ static inline TIfNotPOD<T> MemMove(T* to, const T* from, size_t n) {
         return MemCopy(to, from, n);
     }
 
-    //copy backwards
+    // copy backwards
     while (n) {
         to[n - 1] = from[n - 1];
         --n;

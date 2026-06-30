@@ -62,7 +62,7 @@ Format:
 ```
 
 - `Validation dataset ID` is the serial number of the input validation dataset. The value is output if several validation datasets are input for model evaluation purposes.
-- `SampleId` is an alphanumeric ID of the object given in the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
+- `SampleId` is an alphanumeric ID of the object given in the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
 - `model value for prediction type` is the float number resulting from applying the model for the corresponding prediction type.
 - `label` is the label value for the object. This value is only output for the validation dataset in training mode and the cross-validation dataset in cross-validation mode if it is specified in the input dataset.
 
@@ -127,7 +127,7 @@ Format:
 ```
 
 - `Validation dataset ID` is the serial number of the input validation dataset. The value is output if several validation datasets are input for model evaluation purposes.
-- `SampleId` is an alphanumeric ID of the object given in the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
+- `SampleId` is an alphanumeric ID of the object given in the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
 - `model value` is the number resulting from applying the model for the corresponding prediction type.
 - `label`is the label value for the object. This value is only output for the validation dataset in training mode and the cross-validation dataset in cross-validation mode if it is specified in the input dataset.
 
@@ -206,7 +206,7 @@ Format:
 ```
 
 - `Validation dataset ID` is the serial number of the input validation dataset. The value is output if several validation datasets are input for model evaluation purposes.
-- `SampleId` is an alphanumeric ID of the object given in the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
+- `SampleId` is an alphanumeric ID of the object given in the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
 - `Model value` is a number or a list of numbers depending on the selected output mode for approximated values of the formula for the corresponding prediction type.
 - `label`is the label value for the object. This value is only output for the validation dataset in training mode and the cross-validation dataset in cross-validation mode if it is specified in the input dataset.
 
@@ -284,7 +284,7 @@ Format:
 ```
 
 - `Validation dataset ID` is the serial number of the input validation dataset. The value is output if several validation datasets are input for model evaluation purposes.
-- `SampleId` is an alphanumeric ID of the object given in the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
+- `SampleId` is an alphanumeric ID of the object given in the [Dataset in delimiter-separated values format](../concepts/input-data_values-file.md). If the identifiers are not set in the input data the objects are sequentially numbered, starting from zero.
 - `model value for prediction type and dimension` is the float number resulting from applying the model for the corresponding prediction type and label dimension ID.
 - `label`is the label value for the object. This value is only output for the validation dataset in training mode and the cross-validation dataset in cross-validation mode if it is specified in the input dataset.
 

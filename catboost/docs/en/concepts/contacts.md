@@ -12,6 +12,7 @@
 
 - Ask questions on Stack overflow with the [catboost tag](https://stackoverflow.com/questions/tagged/catboost). These questions are monitored by the development team.
 - Join our [English](https://t.me/catboost_en) and [Russian](https://t.me/catboost_ru) Telegram groups.
+- Ask questions on [CatBoost GitHub Discussions Q&A forum](https://github.com/catboost/catboost/discussions/categories/q-a).
 - Join our Slack community where we have our channel: `#tool_catboost` in [http://opendatascience.slack.com](https://opendatascience.slack.com/).
 
 {% endif %}

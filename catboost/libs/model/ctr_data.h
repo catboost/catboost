@@ -1,14 +1,16 @@
 #pragma once
 
-#include "ctr_value_table.h"
 
+#include "ctr_value_table.h"
+#include "online_ctr.h"
+
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/hash.h>
 #include <util/stream/fwd.h>
 #include <util/system/mutex.h>
 #include <util/system/guard.h>
-#include <util/system/yassert.h>
 #include <util/ysaveload.h>
 
 #include <exception>

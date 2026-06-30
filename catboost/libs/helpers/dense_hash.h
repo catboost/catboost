@@ -59,8 +59,8 @@ namespace NTensor2 {
         {
         }
 
-        SAVELOAD(Elems, HashMask, BinCount)
-        Y_SAVELOAD_DEFINE(Elems, HashMask, BinCount)
+        SAVELOAD(Elems, HashMask, BinCount);
+        Y_SAVELOAD_DEFINE(Elems, HashMask, BinCount);
 
         void Clear() {
             Elems.resize(0);

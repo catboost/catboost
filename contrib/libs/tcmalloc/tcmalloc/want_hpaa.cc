@@ -20,9 +20,7 @@ namespace tcmalloc {
 namespace tcmalloc_internal {
 
 // This -if linked into a binary - overrides page_allocator.cc and forces HPAA
-// on/subrelease off.
-ABSL_ATTRIBUTE_UNUSED int default_want_hpaa() { return 1; }
-
+// subrelease off.
 ABSL_ATTRIBUTE_UNUSED int default_subrelease() { return -1; }
 
 }  // namespace tcmalloc_internal

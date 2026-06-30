@@ -32,13 +32,17 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/code_generator.h>
+#include "google/protobuf/compiler/code_generator.h"
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/compiler/plugin.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/stubs/strutil.h>
+#include <utility>
+
+#include "google/protobuf/compiler/plugin.pb.h"
+#include "google/protobuf/descriptor.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_split.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/strings/strip.h"
 
 namespace google {
 namespace protobuf {
@@ -62,7 +66,7 @@ bool CodeGenerator::GenerateAll(const std::vector<const FileDescriptor*>& files,
           "description.";
     }
     if (error && !error->empty()) {
-      *error = file->name() + ": " + *error;
+      *error = y_absl::StrCat(file->name(), ": ", *error);
       break;
     }
     if (!succeeded) {
@@ -76,13 +80,13 @@ GeneratorContext::~GeneratorContext() {}
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForAppend(
     const TProtoStringType& filename) {
-  return NULL;
+  return nullptr;
 }
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
     const TProtoStringType& filename, const TProtoStringType& insertion_point) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
+  Y_ABSL_LOG(FATAL) << "This GeneratorContext does not support insertion.";
+  return nullptr;  // make compiler happy
 }
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForInsertWithGeneratedCodeInfo(
@@ -93,7 +97,7 @@ io::ZeroCopyOutputStream* GeneratorContext::OpenForInsertWithGeneratedCodeInfo(
 
 void GeneratorContext::ListParsedFiles(
     std::vector<const FileDescriptor*>* output) {
-  GOOGLE_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
+  Y_ABSL_LOG(FATAL) << "This GeneratorContext does not support ListParsedFiles";
 }
 
 void GeneratorContext::GetCompilerVersion(Version* version) const {
@@ -105,30 +109,28 @@ void GeneratorContext::GetCompilerVersion(Version* version) const {
 
 // Parses a set of comma-delimited name/value pairs.
 void ParseGeneratorParameter(
-    const TProtoStringType& text,
+    y_absl::string_view text,
     std::vector<std::pair<TProtoStringType, TProtoStringType> >* output) {
-  std::vector<TProtoStringType> parts = Split(text, ",", true);
+  std::vector<y_absl::string_view> parts =
+      y_absl::StrSplit(text, ',', y_absl::SkipEmpty());
 
-  for (int i = 0; i < parts.size(); i++) {
-    TProtoStringType::size_type equals_pos = parts[i].find_first_of('=');
-    std::pair<TProtoStringType, TProtoStringType> value;
-    if (equals_pos == TProtoStringType::npos) {
-      value.first = parts[i];
-      value.second = "";
+  for (y_absl::string_view part : parts) {
+    auto equals_pos = part.find_first_of('=');
+    if (equals_pos == y_absl::string_view::npos) {
+      output->emplace_back(part, "");
     } else {
-      value.first = parts[i].substr(0, equals_pos);
-      value.second = parts[i].substr(equals_pos + 1);
+      output->emplace_back(part.substr(0, equals_pos),
+                           part.substr(equals_pos + 1));
     }
-    output->push_back(value);
   }
 }
 
 // Strips ".proto" or ".protodevel" from the end of a filename.
-TProtoStringType StripProto(const TProtoStringType& filename) {
-  if (HasSuffixString(filename, ".protodevel")) {
-    return StripSuffixString(filename, ".protodevel");
+TProtoStringType StripProto(y_absl::string_view filename) {
+  if (y_absl::EndsWith(filename, ".protodevel")) {
+    return TProtoStringType(y_absl::StripSuffix(filename, ".protodevel"));
   } else {
-    return StripSuffixString(filename, ".proto");
+    return TProtoStringType(y_absl::StripSuffix(filename, ".proto"));
   }
 }
 

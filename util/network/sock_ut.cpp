@@ -176,4 +176,4 @@ Y_UNIT_TEST_SUITE(TSocketTest) {
         sal.Set(sockPath);
         UNIT_ASSERT_STRINGS_EQUAL(sal.ToString(), "/var/run/some.sock");
     }
-}
+} // Y_UNIT_TEST_SUITE(TSocketTest)

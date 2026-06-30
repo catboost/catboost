@@ -54,4 +54,4 @@ Y_UNIT_TEST_SUITE(TFileLockTest) {
             UNIT_ASSERT(guard3.WasAcquired());
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TFileLockTest)

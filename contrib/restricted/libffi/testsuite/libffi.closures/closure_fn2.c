@@ -32,6 +32,7 @@ static void closure_test_fn2(ffi_cif* cif __UNUSED__, void* resp, void** args,
 	 (int)*(int *)args[12], (int)(*(float *)args[13]),
 	 (int)(*(int *)args[14]), *(int *)args[15], (int)(intptr_t)userdata,
 	 (int)*(ffi_arg *)resp);
+  CHECK((int)*(ffi_arg *)resp == 255);
 }
 
 typedef int (*closure_test_type2)(double, double, double, double, signed short,
@@ -77,5 +78,6 @@ int main (void)
   /* { dg-output "1 2 3 4 127 5 6 8 9 10 11 12 13 19 21 1 3: 255" } */
   printf("res: %d\n",res);
   /* { dg-output "\nres: 255" } */
+  CHECK(res == 255);
   exit(0);
 }

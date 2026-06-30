@@ -1,3 +1,4 @@
+#include "library/cpp/netliba/v12/udp_address.h"
 #include "stdafx.h"
 #include <util/digest/numeric.h>
 #include <util/generic/cast.h>
@@ -147,7 +148,7 @@ namespace NNetliba_v12 {
                     toRemove.push_back(it);
                 } else if (res == EIdleResult::ER_YIELD) {
                     LoopPreemptedNum++;
-                    Y_VERIFY(savedPos == CachedPos); //just to check nobody change me
+                    Y_ABORT_UNLESS(savedPos == CachedPos); //just to check nobody change me
                     CachedPos = it;
                     break;
                 }
@@ -171,7 +172,7 @@ namespace NNetliba_v12 {
         }
 
         void InsertToActive(TConnection* connection) {
-            Y_VERIFY(connection, "null connection inserted\n");
+            Y_ABORT_UNLESS(connection, "null connection inserted\n");
             if (connection->Inactivated == true) {
                 ActiveConnectionList.PushBack(connection);
             }
@@ -186,7 +187,7 @@ namespace NNetliba_v12 {
         }
 
         void InsertToSending(TConnection* connection) {
-            Y_VERIFY(connection, "null connection inserted\n");
+            Y_ABORT_UNLESS(connection, "null connection inserted\n");
             if (connection->Sending == false) {
                 SendingConnectionList.insert(SendingConnectionList.end(), connection);
             }
@@ -229,6 +230,7 @@ namespace NNetliba_v12 {
     };
 
     static bool IBDetection = true;
+    static bool XsPingSendingEnabled = false;
 
     typedef std::function<void(TConnection* connection)> TConnectCb;
     typedef std::function<void(const TTransfer& transfer,
@@ -316,7 +318,7 @@ namespace NNetliba_v12 {
                         delete cancelCmd;
                     } break;
                     default:
-                        Y_VERIFY(false);
+                        Y_ABORT_UNLESS(false);
                         break;
                 }
             }
@@ -428,6 +430,7 @@ namespace NNetliba_v12 {
 
         TUdpRequest* GetRequest() override;
         TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TConnectionSettings& connectionSettings) override;
+        TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TUdpAddress& myAddress, const TConnectionSettings& connectionSettings) override;
         TTransfer Send(const TIntrusivePtr<IConnection>& connectionPtr, TAutoPtr<TRopeDataPacket> data, EPacketPriority pp, const TTos& tos, ui8 netlibaColor) override;
         bool GetSendResult(TSendResult* res) override;
         void Cancel(const TTransfer& transfer) override;
@@ -528,7 +531,7 @@ namespace NNetliba_v12 {
             while (IB->GetSendResult(&sr)) {
                 TIBtoTransferHash::iterator z = IBKeyToTransfer.find(sr.Handle);
                 if (z == IBKeyToTransfer.end()) {
-                    Y_VERIFY(0, "unknown handle returned from IB");
+                    Y_ABORT_UNLESS(0, "unknown handle returned from IB");
                 }
                 TTransfer transfer = z->second;
                 IBKeyToTransfer.erase(z);
@@ -536,7 +539,7 @@ namespace NNetliba_v12 {
                 TConnection* connection = CheckedCast<TConnection*>(transfer.Connection.Get());
                 TUdpOutTransfer* xferPtr = connection->GetSendQueue().Get(transfer.Id);
                 if (!xferPtr) {
-                    Y_VERIFY(0, "IBKeyToTransferKey refers nonexisting xfer");
+                    Y_ABORT_UNLESS(0, "IBKeyToTransferKey refers nonexisting xfer");
                 }
                 TUdpOutTransfer& xfer = *xferPtr;
 
@@ -563,10 +566,14 @@ namespace NNetliba_v12 {
     }
 
     TIntrusivePtr<IConnection> TUdpHost::Connect(const TUdpAddress& address, const TConnectionSettings& connectionSettings) {
+        return Connect(address, TUdpAddress(), connectionSettings);
+    }
+
+    TIntrusivePtr<IConnection> TUdpHost::Connect(const TUdpAddress& address, const TUdpAddress &myAddress, const TConnectionSettings& connectionSettings) {
         TGUID guid;
         CreateGuid(&guid);
 
-        TConnection* connection = new TConnection(address, TUdpAddress(), connectionSettings, guid, UdpTransferTimeout);
+        TConnection* connection = new TConnection(address, myAddress, connectionSettings, guid, UdpTransferTimeout);
         TIntrusivePtr<IConnection> result = connection;
         TXUserQueue.EnqueueConnect(connection);
         CancelWaitLow();
@@ -586,7 +593,7 @@ namespace NNetliba_v12 {
         Y_ASSERT(connection);
 
         TTransfer transfer(connection, connection->GetNextTransferId());
-        Y_VERIFY(transfer.Id > 0, "transferId overflowed, wow you have counted to almost infinity!");
+        Y_ABORT_UNLESS(transfer.Id > 0, "transferId overflowed, wow you have counted to almost infinity!");
         TXUserQueue.EnqueueSend(transfer, data, pp, tos, netlibaColor);
         CancelWaitLow();
         return transfer;
@@ -667,8 +674,18 @@ namespace NNetliba_v12 {
         Y_ASSERT(congestion.Get() != nullptr);
         if (!congestion->IsKnownMTU()) {
             TLameMTUDiscovery* md = congestion->GetMTUDiscovery();
+
+            if (XsPingSendingEnabled && md->CanSendXs()) {
+                ui8 err = FlushPackets();
+                if (!(err & TUdpHost::EFlashPacketResult::FPR_OVERFLOW)) {
+                    SendXsPing(S, connection, S.GetNetworkOrderPort(), xfer.DataTos);
+                    md->XsPingSent();
+                }
+            }
+
             if (md->IsTimedOut()) {
-                congestion->SetMTU(UDP_SMALL_PACKET_SIZE);
+                bool useXs = connection->GetSmallMtuUseXs() || congestion->HasXsPongReceived();
+                congestion->SetMTU(useXs ? UDP_XSMALL_PACKET_SIZE : UDP_SMALL_PACKET_SIZE);
 
             } else {
                 if (md->CanSend()) {
@@ -681,14 +698,14 @@ namespace NNetliba_v12 {
         }
 
         // try to use large mtu, we could have selected small mtu due to connectivity problems
-        if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE || IB.Get() != nullptr) {
+        if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE || congestion->GetMTU() == UDP_XSMALL_PACKET_SIZE || IB.Get() != nullptr) {
             // recheck every ~50mb
             int chkDenom = (50000000 / xfer.Data->GetSize()) | 1;
             if ((NetAckRnd() % chkDenom) == 0) {
                 FlushPackets();
 
                 //printf("send rechecking ping\n");
-                if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE) {
+                if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE || congestion->GetMTU() == UDP_XSMALL_PACKET_SIZE) {
                     SendJumboPing(S, connection, S.GetNetworkOrderPort(), xfer.DataTos);
                 } else {
                     SendIBOnlyPing(S, connection, S.GetNetworkOrderPort());
@@ -739,6 +756,14 @@ namespace NNetliba_v12 {
         }
         const int dataSize = (packetId == xfer->PacketCount - 1) ? xfer->LastPacketSize : xfer->PacketSize;
 
+        // I intentionally use very specific comparison here to minimize possible backward compatibility issues
+        if (dataSize == UDP_SMALL_PACKET_SIZE && xfer->AckTracker.Congestion->GetMTU() == UDP_XSMALL_PACKET_SIZE) {
+            // Cerr << "SendTransferPacker: dataSize " << dataSize << " > mtu " << xfer->AckTracker.Congestion->GetMTU()
+            //      << ", xfer " << ui64(xfer) << " marked as failed" << Endl;
+            FailedSend(TTransfer(connection, transferId));
+            return TUdpHost::ESentPacketResult::SPR_STOP_SENDING_TRANSFER;
+        }
+
         const std::pair<char* const, ui8>& packetBuffer = GetPacketBuffer(dataSize + PACKET_HEADERS_SIZE, connection, transferId);
 
         if (!packetBuffer.first) { //buffer overflow, or current transfer removed during packet flushing
@@ -778,6 +803,7 @@ namespace NNetliba_v12 {
                 xfer->LastTime = CurrentT;
 
                 if (!xfer->AckTracker.IsInitialized()) {
+                    // Cerr << GetAddressAsString(connection->GetAddress()) << " Checking MTU for conn=" << ui64(connection) << ", xfer=" << ui64(xfer) << Endl;
                     if (!CheckMTU(connection, *xfer)) {
                         return TSentConnectionResult::SCR_CONT; //if we can`t get MTU for transfer we can`t get for connection
                     }
@@ -1176,6 +1202,7 @@ namespace NNetliba_v12 {
 
         const size_t dataSize = pktEnd - pktData;
         if (dataSize > xfer.PacketSize) {
+            // Cerr << "ProcessDataPacket: dataSize " << dataSize << " > xfer.PacketSize " << xfer.PacketSize << Endl;
             Y_ASSERT(false);
             return false; // mem overrun protection
         }
@@ -1183,7 +1210,6 @@ namespace NNetliba_v12 {
         const bool isLastPacket = dataSize < xfer.PacketSize;
         if (isLastPacket) {
             if (xfer.HasLastPacket || packetId < xfer.GetPacketCount()) {
-                Y_ASSERT(false);
                 return false;
             }
             xfer.LastPacketSize = dataSize;
@@ -1195,7 +1221,7 @@ namespace NNetliba_v12 {
         }
 
         TUdpRecvPacket* pkt1 = nullptr;
-        if (xfer.PacketSize == UDP_SMALL_PACKET_SIZE) {
+        if (xfer.PacketSize == UDP_SMALL_PACKET_SIZE || xfer.PacketSize == UDP_XSMALL_PACKET_SIZE) {
             // save memory by using smaller buffer at the cost of additional memcpy
             pkt1 = TUdpHostRecvBufAlloc::CreateNewSmallPacket(dataSize);
             memcpy(pkt1->Data.get(), pktData, dataSize);
@@ -1210,6 +1236,15 @@ namespace NNetliba_v12 {
 
         if (HasAllPackets(xfer)) {
             //printf("received\n");
+            /*
+            Cerr << GetAddressAsString(connection->GetAddress()) << " all packets received: " << xfer.GetPacketCount()
+                << ", packet.dataSize=" << dataSize
+                << ", xfer.PacketSize=" << xfer.PacketSize
+                << ", xfer.LastPacketSize=" << xfer.LastPacketSize
+                << ", packetopts.SmallMtuUseXs=" << opt.PacketOpt.IsSmallMtuUseXs()
+                << ", *conn=" << size_t(connection)
+                << Endl;
+            */
             TUdpRequest* out = new TUdpRequest;
             out->Connection = connection;
 
@@ -1230,6 +1265,15 @@ namespace NNetliba_v12 {
             connection->SuccessfulRecvTransfer(transfer.Id);
 
         } else {
+            /*
+            Cerr << GetAddressAsString(connection->GetAddress()) << " got packet: " << (packetId+1) << "/" << xfer.GetPacketCount()
+                << ", packet.dataSize=" << dataSize
+                << ", xfer.PacketSize=" << xfer.PacketSize
+                << ", xfer.LastPacketSize=" << xfer.LastPacketSize
+                << ", packetopts.SmallMtuUseXs=" << opt.PacketOpt.IsSmallMtuUseXs()
+                << ", *conn=" << size_t(connection)
+                << Endl;
+            */
             xfer.NewPacketsToAck.push_back(packetId);
         }
 
@@ -1289,7 +1333,7 @@ namespace NNetliba_v12 {
             case ACK_RESEND_NOSHMEM: {
                 // abort execution here
                 // failed to open shmem on recv side, need to transmit data without using shmem
-                Y_VERIFY(0, "not implemented yet");
+                Y_ABORT_UNLESS(0, "not implemented yet");
                 return true;
             }
             default:
@@ -1356,10 +1400,16 @@ namespace NNetliba_v12 {
         Y_ASSERT(pktData <= pktEnd);
 
         switch (cmd) {
+            case XS_PING:
             case PING: {
                 sockaddr_in6 trueFromAddress = fromAddress;
                 Y_ASSERT(trueFromAddress.sin6_family == AF_INET6);
 
+                /*
+                Cerr <<  GetAddressAsString(connection->GetAddress()) << " got ping " << int(cmd)
+                    << ", *conn=" << size_t(connection)
+                    << Endl;
+                */
                 // can not set MTU for fromAddress here since asymmetrical mtu is possible
                 if (!ReadPing(pktData, pktEnd, &trueFromAddress.sin6_port)) {
                     Y_ASSERT(false);
@@ -1367,16 +1417,54 @@ namespace NNetliba_v12 {
                 }
 
                 if (IB.Get()) {
-                    SendIBPong(S, connection, IB->GetConnectInfo(), trueFromAddress);
+                    if (cmd == PING) {
+                        SendIBPong(S, connection, IB->GetConnectInfo(), trueFromAddress);
+                    } else {
+                        SendPong(S, connection, trueFromAddress, false);
+                    }
                 } else {
-                    SendPong(S, connection, trueFromAddress);
+                    if (cmd == XS_PING) {
+                        connection->SetSmallMtuUseXs(true);
+                        TPeerLink& peerInfo = connection->GetAlivePeerLink();
+                        auto congestion = peerInfo.GetUdpCongestion();
+                        congestion->MarkXsPongReceived();
+                        if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE) {
+                            // Cerr <<  GetAddressAsString(connection->GetAddress()) << " dropping MTU to " << int(UDP_XSMALL_PACKET_SIZE) << Endl;
+                            congestion->SetMTU(UDP_XSMALL_PACKET_SIZE);
+                        }
+                    }
+                    SendPong(S, connection, trueFromAddress, cmd == XS_PING);
                 }
+                return true;
+            }
+            case XS_PONG: {
+                /*
+                Cerr <<  GetAddressAsString(connection->GetAddress()) << " got xs pong"
+                    << ", *conn=" << size_t(connection)
+                    << Endl;
+                */
+
+                Connections.InsertToActive(connection);
+                connection->SetSmallMtuUseXs(true);
+                TPeerLink& peerInfo = connection->GetAlivePeerLink();
+                auto congestion = peerInfo.GetUdpCongestion();
+                congestion->MarkXsPongReceived();
+                if (congestion->GetMTU() == UDP_SMALL_PACKET_SIZE) {
+                    // Cerr << GetAddressAsString(connection->GetAddress()) << " dropping MTU to " << int(UDP_XSMALL_PACKET_SIZE) << Endl;
+                    congestion->SetMTU(UDP_XSMALL_PACKET_SIZE);
+                }
+
                 return true;
             }
             case PONG: {
                 TPeerLink& peerInfo = connection->GetAlivePeerLink();
                 Connections.InsertToActive(connection);
                 peerInfo.GetUdpCongestion()->SetMTU(UDP_PACKET_SIZE);
+                /*
+                Cerr <<  GetAddressAsString(connection->GetAddress()) << " got pong"
+                    << ", *conn=" << size_t(connection)
+                    << Endl;
+                */
 
                 return true;
             }
@@ -1503,12 +1591,13 @@ namespace NNetliba_v12 {
         fprintf(stderr, "\n");
     }
     void TUdpHost::SendAckForConnection(TConnection* connection, const float& deltaT) {
-        for (TRecvTransfers::TIdIterator i = connection->GetRecvQueue().Begin(); i != connection->GetRecvQueue().End(); ++i) {
+        for (TRecvTransfers::TIdIterator i = connection->GetRecvQueue().Begin(); i != connection->GetRecvQueue().End(); ) {
             TTransfer transfer(connection, *i);
             TUdpInTransfer& xfer = *connection->GetRecvQueue().Get(*i);
             xfer.TimeSinceLastRecv += deltaT;
             if (xfer.TimeSinceLastRecv > UDP_MAX_INPUT_DATA_WAIT) {
                 fprintf(stderr, "recv %" PRIu64 " failed by timeout\n", (ui64)*i);
+                ++i;
                 connection->FailedRecvTransfer(transfer.Id);
                 continue;
             }
@@ -1520,10 +1609,12 @@ namespace NNetliba_v12 {
                 std::pair<char*, ui8> packetBuffer = GetPacketBuffer(UDP_PACKET_BUF_SIZE, connection, transfer.Id);
                 if (!packetBuffer.first) { // buffer overflow, stop trying to send ACK, continue just checking keep alives.
                     fprintf(stderr, "can`t get packetBuffer to send ACK, err: %i\n", packetBuffer.second);
+                    ++i;
                     continue;
                 }
                 AddAcksToPacketQueue(S, packetBuffer.first, UDP_PACKET_BUF_SIZE, connection, transfer.Id, &xfer);
             }
+            ++i;
         }
     }
 
@@ -1784,7 +1875,7 @@ namespace NNetliba_v12 {
 
     TString TUdpHost::GetPendingDataStatsDebug(const TRequesterPendingDataStats& pds) const {
         char buf[1000];
-        sprintf(buf, "\tPending data size: %" PRIu64 "\n\t\tin packets: %d, size %" PRIu64 "\n\t\tout packets: %d, size %" PRIu64 "\n",
+        snprintf(buf, sizeof(buf), "\tPending data size: %" PRIu64 "\n\t\tin packets: %d, size %" PRIu64 "\n\t\tout packets: %d, size %" PRIu64 "\n",
                 pds.InpDataSize + pds.OutDataSize,
                 pds.InpCount, pds.InpDataSize,
                 pds.OutCount, pds.OutDataSize);
@@ -1803,7 +1894,7 @@ namespace NNetliba_v12 {
             const TRequesterPendingDataStats& pds = *TotalPendingDataStats;
             TString res;
             char buf[1000];
-            sprintf(buf, "Receiving %d transfers, sending %d system prior, sending %d high prior, %d regular, %d low prior\n",
+            snprintf(buf, sizeof(buf), "Receiving %d transfers, sending %d system prior, sending %d high prior, %d regular, %d low prior\n",
                     pds.InpCount, (int)SendOrderSystem.size(), (int)SendOrderHigh.size(), (int)SendOrder.size(), (int)SendOrderLow.size());
             res += buf;
 
@@ -1813,7 +1904,7 @@ namespace NNetliba_v12 {
             for (TColoredRequesterPendingDataStats::const_iterator i = ColoredPendingDataStats.Begin(); i != ColoredPendingDataStats.End(); ++i) {
                 const TRequesterPendingDataStats& p = *(i->second);
                 if (p.InpCount || p.OutCount) {
-                    sprintf(buf, "Pending data stats for color \"%d\":\n", (int)i->first);
+                    snprintf(buf, sizeof(buf), "Pending data stats for color \"%d\":\n", (int)i->first);
                     res += buf;
                     res += GetPendingDataStatsDebug(p);
                 }
@@ -1860,6 +1951,10 @@ namespace NNetliba_v12 {
 
     void DisableIBDetection() {
         IBDetection = false;
+    }
+
+    void EnableXsPing() {
+        XsPingSendingEnabled = true;
     }
 
 }

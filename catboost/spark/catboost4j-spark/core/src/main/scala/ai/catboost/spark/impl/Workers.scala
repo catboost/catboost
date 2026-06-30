@@ -38,7 +38,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
   protected override def logName = {
     s"CatBoostWorker[partitionId=${this.partitionId}]"
   }
-  
+
   def processPartition(
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
@@ -49,7 +49,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
     connectTimeout: java.time.Duration,
     workerInitializationTimeout: java.time.Duration,
     workerListeningPortParam: Int, // auto-assign if 0
-    
+
     // returns (quantizedDataProviders, estimatedQuantizedDataProviders, dstRows) can return null
     getDataProvidersCallback : (TLocalExecutor) => (TVector_TDataProviderPtr, TVector_TDataProviderPtr, Array[mutable.ArrayBuffer[Array[Any]]])
   ) = {
@@ -62,13 +62,13 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
 
       val localExecutor = new TLocalExecutor
       localExecutor.Init(threadCount)
-      
+
       log.info("processPartition: get data providers: start")
 
       var (quantizedDataProviders, estimatedQuantizedDataProviders, _) = getDataProvidersCallback(localExecutor)
 
       log.info("processPartition: get data providers: finish")
-      
+
       val partitionSize = if (quantizedDataProviders != null) native_impl.GetPartitionTotalObjectCount(quantizedDataProviders).toInt else 0
 
       if (partitionSize != 0) {
@@ -94,39 +94,38 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
 
       val workerListeningPort = if (workerListeningPortParam != 0) { workerListeningPortParam } else { TrainingDriver.getWorkerPort() }
 
-      val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
-
-      val partitionId = this.partitionId
-      val sendWorkerInfoFuture = ecs.submit(
-        new Runnable() {
-          def run() = {
-            TrainingDriver.waitForListeningPortAndSendWorkerInfo(
-              trainingDriverListeningAddress,
-              partitionId,
-              partitionSize,
-              workerListeningPort,
-              connectTimeout,
-              workerInitializationTimeout
-            )
-          }
-        },
-        ()
-      )
-
-      val workerFuture = ecs.submit(
-        new Runnable() {
-          def run() = {
-            if (partitionSize != 0) {
-              log.info("processPartition: start RunWorker")
-              native_impl.RunWorker(threadCount, workerListeningPort)
-              log.info("processPartition: end RunWorker")
-            }
-          }
-        },
-        ()
-      )
-
+      val ecsPool = Executors.newFixedThreadPool(2)
+      val ecs = new ExecutorCompletionService[Unit](ecsPool)
       try {
+        val partitionId = this.partitionId
+        val sendWorkerInfoFuture = ecs.submit(
+          new Runnable() {
+            def run() = {
+              TrainingDriver.waitForListeningPortAndSendWorkerInfo(
+                trainingDriverListeningAddress,
+                partitionId,
+                partitionSize,
+                workerListeningPort,
+                connectTimeout,
+                workerInitializationTimeout
+              )
+            }
+          },
+          ()
+        )
+
+        val workerFuture = ecs.submit(
+          new Runnable() {
+            def run() = {
+              if (partitionSize != 0) {
+                log.info("processPartition: start RunWorker")
+                native_impl.RunWorker(threadCount, workerListeningPort)
+                log.info("processPartition: end RunWorker")
+              }
+            }
+          },
+          ()
+        )
         impl.Helpers.waitForTwoFutures(
           ecs,
           workerFuture,
@@ -151,6 +150,8 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
             case _ => throw e
           }
         }
+      } finally {
+        ecsPool.shutdown()
       }
 
       log.info("processPartition: end")
@@ -202,7 +203,7 @@ private[spark] object CatBoostWorkers {
     serializedLabelConverter: TVector_i8,
     precomputedOnlineCtrMetaDataAsJsonString: String,
 
-    // needed here because CatBoost master should get all its data before workers 
+    // needed here because CatBoost master should get all its data before workers
     // occupy all cores on their executors
     masterSavedPoolsFuture: Future[(PoolFilesPaths, Array[PoolFilesPaths])]
   ) : CatBoostWorkers = {
@@ -258,13 +259,13 @@ private[spark] object CatBoostWorkers {
         trainDataForWorkers.asInstanceOf[DatasetForTrainingWithPairs],
         evalDataForWorkers.map{ _.asInstanceOf[DatasetForTrainingWithPairs] }
       ).cache()
-      
+
       // Force cache before starting worker processes
       cogroupedTrainData.count()
-      
+
       // make sure CatBoost master downloaded all the necessary data from cluster before starting worker processes
       Await.result(masterSavedPoolsFuture, Duration.Inf)
-      
+
       val pairsSchema = preparedTrainPool.srcPool.pairsData.schema
 
       (trainingDriverListeningPort : Int) => {
@@ -314,7 +315,7 @@ private[spark] object CatBoostWorkers {
 
       // Force cache before starting worker processes
       mergedTrainData.count()
-      
+
       // make sure CatBoost master downloaded all the necessary data from cluster before starting worker processes
       Await.result(masterSavedPoolsFuture, Duration.Inf)
 

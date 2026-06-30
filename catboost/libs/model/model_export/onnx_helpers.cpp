@@ -404,7 +404,7 @@ static void AddTree(
         } else {
             CB_ENSURE_INTERNAL(
                 false,
-                "Categorical features splits are unsupported in ONNX-ML format export for now"
+                "Non-numeric features splits are unsupported in ONNX-ML format export for now"
             );
         }
 

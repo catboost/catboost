@@ -231,7 +231,7 @@ namespace {
         TLinePredictor<16, TTime, TTime> P_;
         TTime Next_;
     };
-}
+} // namespace
 
 ui64 InterpolatedMicroSeconds() {
     return FastTlsSingleton<TTimePredictor>()->Get();

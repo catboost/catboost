@@ -38,5 +38,5 @@ struct TCvDataPartitionParams : public TCrossValidationParams {
 
 public:
     void Check() const;
-    SAVELOAD(customTrainSubsets, customTestSubsets)
+    SAVELOAD(customTrainSubsets, customTestSubsets);
 };

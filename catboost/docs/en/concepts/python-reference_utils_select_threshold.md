@@ -6,9 +6,9 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-select_threshold(model=None, 
-                 data=None, 
-                 curve=None, 
+select_threshold(model=None,
+                 data=None,
+                 curve=None,
                  FPR=None,
                  FNR=None,
                  thread_count=-1)
@@ -153,8 +153,8 @@ model = CatBoostClassifier(learning_rate=0.03)
 model.fit(train_data, train_labels, verbose=False)
 roc_curve_values = get_roc_curve(model, catboost_pool)
 
-boundary = select_threshold(model, 
-                            curve=roc_curve_values,  
+boundary = select_threshold(model,
+                            curve=roc_curve_values,
                             FPR=0.01)
 print(boundary)
 ```

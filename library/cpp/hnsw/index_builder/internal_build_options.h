@@ -21,6 +21,7 @@ namespace NHnsw {
         bool Verbose = false;
         bool ReportProgress = true;
         TString SnapshotFile;
+        TBlob* SnapshotBlobPtr;
         double SnapshotInterval;
 
         THnswInternalBuildOptions() = default;
@@ -45,6 +46,7 @@ namespace NHnsw {
             ReportProgress = opts.ReportProgress;
             SnapshotFile = opts.SnapshotFile;
             SnapshotInterval = opts.SnapshotInterval;
+            SnapshotBlobPtr = opts.SnapshotBlobPtr;
         }
     };
 }

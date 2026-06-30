@@ -1,4 +1,4 @@
-iter	QueryRMSE	NDCG:top=10;type=Base
+iter	QueryRMSE	NDCG:top=10;type=Base;denominator=Position
 0	0.07597006085	0.4290896044
 1	0.07586109321	0.6176276774
 2	0.07582489263	0.6163405881

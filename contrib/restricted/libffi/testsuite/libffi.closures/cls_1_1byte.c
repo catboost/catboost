@@ -23,6 +23,9 @@ cls_struct_1_1byte cls_struct_1_1byte_fn(struct cls_struct_1_1byte a1,
   result.a = a1.a + a2.a;
 
   printf("%d %d: %d\n", a1.a, a2.a, result.a);
+  CHECK(a1.a == 12);
+  CHECK(a2.a == 178);
+  CHECK(result.a == 190);
 
   return  result;
 }
@@ -84,6 +87,7 @@ int main (void)
   /* { dg-output "\n12 178: 190" } */
   printf("res: %d\n", res_dbl.a);
   /* { dg-output "\nres: 190" } */
+  CHECK(res_dbl.a == 190);
 
   exit(0);
 }

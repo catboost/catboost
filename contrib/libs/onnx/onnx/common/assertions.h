@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -49,6 +51,7 @@ std::string barf(const char* fmt, ...);
 
 // Note: msg must be a string literal
 #define _ONNX_ASSERTM(cond, msg, ...)                                                                \
+  /* NOLINTNEXTLINE */                                                                               \
   if (_ONNX_EXPECT(!(cond), 0)) {                                                                    \
     std::string error_msg = ::ONNX_NAMESPACE::barf(                                                  \
         "%s:%u: %s: Assertion `%s` failed: " msg, __FILE__, __LINE__, __func__, #cond, __VA_ARGS__); \

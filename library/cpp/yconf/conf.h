@@ -380,7 +380,7 @@ private:
             strict = false;
 
 DEFINE_UNSTRICT_SECTION(AnyDirectives)
-END_DEFINE_SECTION;
+END_DEFINE_SECTION
 
 #define EMBEDDED_CONFIG(SectionName)                                \
     if (sec.Parent != &sec) /* not root not placed at root */ {     \

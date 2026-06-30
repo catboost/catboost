@@ -6,7 +6,7 @@
 #include "fstat.h"
 #include <util/folder/path.h>
 
-//WARNING: on windows the test must be run with administative rules
+// WARNING: on windows the test must be run with administative rules
 
 class TFsTest: public TTestBase {
     UNIT_TEST_SUITE(TFsTest);
@@ -45,7 +45,7 @@ void TFsTest::TestCreateRemove() {
 
     UNIT_ASSERT(NFs::Exists(dir1));
     TFsPath subdir1 = dir1 / "a" / "b";
-    //TFsPath link = dir1 / "link";
+    // TFsPath link = dir1 / "link";
 
     UNIT_ASSERT(NFs::MakeDirectoryRecursive(subdir1, NFs::FP_COMMON_FILE, true));
     UNIT_ASSERT(NFs::Exists(subdir1));
@@ -59,7 +59,7 @@ void TFsTest::TestCreateRemove() {
     Touch(file1);
     Touch(file2);
     Touch(file3);
-    //UNIT_ASSERT(NFs::SymLink(file3.RealPath(), link));
+    // UNIT_ASSERT(NFs::SymLink(file3.RealPath(), link));
 
     UNIT_ASSERT(NFs::MakeDirectoryRecursive(dir1 / "subdir1" / "subdir2" / "subdir3" / "subdir4", NFs::FP_COMMON_FILE, false));
     UNIT_ASSERT(NFs::MakeDirectoryRecursive(dir1 / "subdir1" / "subdir2", NFs::FP_COMMON_FILE, false));
@@ -80,7 +80,7 @@ void TFsTest::TestCreateRemove() {
     UNIT_ASSERT(NFs::Exists(file1));
     UNIT_ASSERT(NFs::Exists(file2));
     UNIT_ASSERT(NFs::Exists(file3));
-    //UNIT_ASSERT(NFs::Exists(link));
+    // UNIT_ASSERT(NFs::Exists(link));
 
     UNIT_ASSERT(!NFs::Remove(dir1));
     NFs::RemoveRecursive(dir1);
@@ -88,7 +88,7 @@ void TFsTest::TestCreateRemove() {
     UNIT_ASSERT(!NFs::Exists(file1));
     UNIT_ASSERT(!NFs::Exists(file2));
     UNIT_ASSERT(!NFs::Exists(file3));
-    //UNIT_ASSERT(!NFs::Exists(link));
+    // UNIT_ASSERT(!NFs::Exists(link));
     UNIT_ASSERT(!NFs::Exists(subdir1));
     UNIT_ASSERT(!NFs::Exists(longfile));
     UNIT_ASSERT(!NFs::Exists(dir1));
@@ -186,7 +186,7 @@ static void RunHardlinkTest(const TFsPath& src, const TFsPath& dst) {
 
 void TFsTest::TestHardlink() {
     RunHardlinkTest("tempfile", "hardlinkfile");
-    RunHardlinkTest("tempfile_абвг", "hardlinkfile_абвг"); //utf-8 names
+    RunHardlinkTest("tempfile_абвг", "hardlinkfile_абвг"); // utf-8 names
 }
 
 static void RunSymLinkTest(TString fileLocalName, TString symLinkName) {
@@ -240,7 +240,7 @@ static void RunSymLinkTest(TString fileLocalName, TString symLinkName) {
     {
         TFileStat fs(linkD1, true);
         UNIT_ASSERT(!fs.IsFile());
-        //UNIT_ASSERT(fs.IsDir()); // failed on unix
+        // UNIT_ASSERT(fs.IsDir()); // failed on unix
         UNIT_ASSERT(fs.IsSymlink());
     }
     {
@@ -253,7 +253,7 @@ static void RunSymLinkTest(TString fileLocalName, TString symLinkName) {
 
     {
         TFileStat fs(symLinkName, true);
-        //UNIT_ASSERT(fs.IsFile()); // no evidence that symlink has to be a file as well
+        // UNIT_ASSERT(fs.IsFile()); // no evidence that symlink has to be a file as well
         UNIT_ASSERT(!fs.IsDir());
         UNIT_ASSERT(fs.IsSymlink());
     }
@@ -277,7 +277,7 @@ static void RunSymLinkTest(TString fileLocalName, TString symLinkName) {
 void TFsTest::TestSymlink() {
     // if previous running was failed
     RunSymLinkTest("f.txt", "fl.txt");
-    RunSymLinkTest("f_абвг.txt", "fl_абвг.txt"); //utf-8 names
+    RunSymLinkTest("f_абвг.txt", "fl_абвг.txt"); // utf-8 names
 }
 
 void TFsTest::TestCwdOpts() {

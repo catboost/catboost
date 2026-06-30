@@ -82,10 +82,10 @@ public:
         }
     }
 
-    //TMyList(const TMyList& rhs) = default;
+    // TMyList(const TMyList& rhs) = default;
     TMyList(TMyList&& rhs) noexcept = default;
 
-    //operator=(const TMyList& rhs) = default;
+    // operator=(const TMyList& rhs) = default;
     TMyList& operator=(TMyList&& rhs) noexcept = default;
 
     inline ~TMyList() {

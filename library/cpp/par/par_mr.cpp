@@ -233,7 +233,7 @@ namespace NPar {
                 }
             } else {
                 // direct request
-                Y_VERIFY(
+                Y_ABORT_UNLESS(
                     (jp.HostId >= 0 && jp.HostId < hostIdCount) || jp.HostId == TJobDescription::ANYWHERE_HOST_ID,
                     "jp.HostId=%d, hostIdCount=%d",
                     jp.HostId, hostIdCount);

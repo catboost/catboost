@@ -1,9 +1,9 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[CPU-1024]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-1024_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-1024_/predictions.txt"
     },
     "test.test_allow_writing_files_and_used_ram_limit[CPU-2Gb]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.txt"
     },
     "test.test_approximate_shap_feature_importance[CPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_CPU_/feature_importance.npy"
@@ -138,6 +138,70 @@
     "test.test_ctr_target_border_count[CPU]": {
         "uri": "file://test.test_ctr_target_border_count_CPU_/model.bin"
     },
+    "test.test_custom_class_labels[CPU-label_type=boolean-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=boolean-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
     "test.test_cv[CPU]": {
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
@@ -162,8 +226,11 @@
     "test.test_cv_pairs_generated[CPU]": {
         "uri": "file://test.test_cv_pairs_generated_CPU_/catboost_training.json"
     },
-    "test.test_cv_query[CPU]": {
-        "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
+    "test.test_cv_query[CPU-loss_function=QueryRMSE]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=QueryRMSE_/catboost_training.json"
+    },
+    "test.test_cv_query[CPU-loss_function=YetiRank]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=YetiRank_/catboost_training.json"
     },
     "test.test_cv_skip_train[CPU]": {
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
@@ -442,7 +509,7 @@
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
     "test.test_fit_and_predict_on_sliced_pools[CPU]": {
-        "uri": "file://test.test_fit_and_predict_on_sliced_pools_CPU_/predictions.npy"
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_CPU_/predictions.txt"
     },
     "test.test_fit_data[CPU]": {
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
@@ -582,6 +649,9 @@
     "test.test_get_metric_evals[CPU]": {
         "uri": "file://test.test_get_metric_evals_CPU_/evals.txt"
     },
+    "test.test_graph_features[CPU]": {
+        "uri": "file://test.test_graph_features_CPU_/predictions.txt"
+    },
     "test.test_grow_policy_restriction[CPU-Depthwise]": {
         "uri": "file://test.test_grow_policy_restriction_CPU-Depthwise_/predictions.npy"
     },
@@ -639,12 +709,6 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],
-    "test.test_multiclass_custom_class_labels[CPU-int]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_CPU-int_/predictions.txt"
-    },
-    "test.test_multiclass_custom_class_labels[CPU-string]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_CPU-string_/predictions.txt"
-    },
     "test.test_multiclass_custom_class_labels_from_files[CPU]": {
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_CPU_/predictions.txt"
     },
@@ -727,13 +791,13 @@
         "uri": "file://test.test_pool_with_timestamp_CPU_/model.bin"
     },
     "test.test_predict_class[CPU]": {
-        "uri": "file://test.test_predict_class_CPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_CPU_/predictions.txt"
     },
     "test.test_predict_class_proba[CPU]": {
         "uri": "file://test.test_predict_class_proba_CPU_/predictions.npy"
     },
     "test.test_predict_class_raw[CPU]": {
-        "uri": "file://test.test_predict_class_raw_CPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_raw_CPU_/predictions.txt"
     },
     "test.test_predict_regress[CPU]": {
         "uri": "file://test.test_predict_regress_CPU_/model.bin"
@@ -809,6 +873,70 @@
         },
         {
             "uri": "file://test.test_roc_with_target_border/bounds"
+        }
+    ],
+    "test.test_sample_gaussian_process[random_score_type=Gumbel]": [
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_0.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_1.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_2.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_3.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_4.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_5.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_6.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_7.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_8.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=Gumbel_/model_9.cbm"
+        }
+    ],
+    "test.test_sample_gaussian_process[random_score_type=NormalWithModelSizeDecrease]": [
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_0.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_1.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_2.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_3.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_4.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_5.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_6.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_7.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_8.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process_random_score_type=NormalWithModelSizeDecrease_/model_9.cbm"
         }
     ],
     "test.test_save_border_file": [
@@ -892,19 +1020,22 @@
         "uri": "file://test.test_sparse_input_with_categorical_features_with_default_value_present_only_in_eval/predictions.txt"
     },
     "test.test_staged_predict[CPU]": {
-        "uri": "file://test.test_staged_predict_CPU_/predictions.npy"
+        "uri": "file://test.test_staged_predict_CPU_/predictions.txt"
     },
     "test.test_text_processing_dictionary": {
         "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"
     },
-    "test.test_train_with_embedding_features[classification]": {
-        "uri": "file://test.test_train_with_embedding_features_classification_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-classification]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-classification_/predictions.txt"
     },
-    "test.test_train_with_embedding_features[ranking]": {
-        "uri": "file://test.test_train_with_embedding_features_ranking_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-multilabel]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-multilabel_/predictions.txt"
     },
-    "test.test_train_with_embedding_features[regression]": {
-        "uri": "file://test.test_train_with_embedding_features_regression_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-ranking]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-ranking_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[CPU-regression]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-regression_/predictions.txt"
     },
     "test.test_uncertainty_prediction_types[Logloss-TotalUncertainty-1]": {
         "uri": "file://test.test_uncertainty_prediction_types_Logloss-TotalUncertainty-1_/predictions.txt"
@@ -1019,5 +1150,11 @@
     },
     "test_catboost_utils.test_create_cd_label_only": {
         "uri": "file://test_catboost_utils.test_create_cd_label_only/column_description"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[CPU-isotonic]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_CPU-isotonic_/calib_classifier_predictions.tsv"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[CPU-sigmoid]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_CPU-sigmoid_/calib_classifier_predictions.tsv"
     }
 }

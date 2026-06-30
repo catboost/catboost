@@ -20,8 +20,9 @@ Y_UNIT_TEST_SUITE(TestFunctionRef) {
     }
 
     int F1(bool x) {
-        if (x)
+        if (x) {
             throw 19;
+        }
         return 42;
     }
 
@@ -147,4 +148,4 @@ Y_UNIT_TEST_SUITE(TestFunctionRef) {
         ref(std::make_unique<int>(5), x);
         UNIT_ASSERT_EQUAL(x, 'a');
     }
-}
+} // Y_UNIT_TEST_SUITE(TestFunctionRef)

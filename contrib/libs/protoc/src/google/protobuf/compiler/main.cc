@@ -28,25 +28,27 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/compiler/cpp/cpp_generator.h>
-#include <google/protobuf/compiler/java/java_generator.h>
-#include <google/protobuf/compiler/java/java_kotlin_generator.h>
-#include <google/protobuf/compiler/js/js_generator.h>
-#include <google/protobuf/compiler/command_line_interface.h>
-#include <google/protobuf/compiler/perlxs/perlxs_generator.h>
-#include <google/protobuf/compiler/python/python_generator.h>
-#include <google/protobuf/compiler/csharp/csharp_generator.h>
-#include <google/protobuf/compiler/objectivec/objectivec_generator.h>
-#include <google/protobuf/compiler/php/php_generator.h>
-#include <google/protobuf/compiler/ruby/ruby_generator.h>
+#include "y_absl/log/initialize.h"
+#include "google/protobuf/compiler/command_line_interface.h"
+#include "google/protobuf/compiler/cpp/generator.h"
+#include "google/protobuf/compiler/csharp/csharp_generator.h"
+#include "google/protobuf/compiler/java/generator.h"
+#include "google/protobuf/compiler/java/kotlin_generator.h"
+#include "google/protobuf/compiler/objectivec/generator.h"
+#include "google/protobuf/compiler/php/php_generator.h"
+#include "google/protobuf/compiler/python/generator.h"
+#include "google/protobuf/compiler/python/pyi_generator.h"
+#include "google/protobuf/compiler/ruby/ruby_generator.h"
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 
 int ProtobufMain(int argc, char* argv[]) {
+  y_absl::InitializeLog();
 
   CommandLineInterface cli;
   cli.AllowPlugins("protoc-");
@@ -66,6 +68,10 @@ int ProtobufMain(int argc, char* argv[]) {
   cli.RegisterGenerator("--java_out", "--java_opt", &java_generator,
                         "Generate Java source file.");
 
+#ifdef GOOGLE_PROTOBUF_RUNTIME_INCLUDE_BASE
+  java_generator.set_opensource_runtime(true);
+#endif
+
   // Proto2 Kotlin
   java::KotlinGenerator kt_generator;
   cli.RegisterGenerator("--kotlin_out", "--kotlin_opt", &kt_generator,
@@ -76,6 +82,15 @@ int ProtobufMain(int argc, char* argv[]) {
   python::Generator py_generator;
   cli.RegisterGenerator("--python_out", "--python_opt", &py_generator,
                         "Generate Python source file.");
+
+#ifdef GOOGLE_PROTOBUF_RUNTIME_INCLUDE_BASE
+  py_generator.set_opensource_runtime(true);
+#endif
+
+  // Python pyi
+  python::PyiGenerator pyi_generator;
+  cli.RegisterGenerator("--pyi_out", &pyi_generator,
+                        "Generate python pyi stub.");
 
   // PHP
   php::Generator php_generator;
@@ -96,16 +111,6 @@ int ProtobufMain(int argc, char* argv[]) {
   objectivec::ObjectiveCGenerator objc_generator;
   cli.RegisterGenerator("--objc_out", "--objc_opt", &objc_generator,
                         "Generate Objective-C header and source.");
-           
-  // Proto2 Perl/XS
-  perlxs::PerlXSGenerator perlxs_generator;
-  cli.RegisterGenerator("--perlxs_out", &perlxs_generator,
-                        "Generate Perl/XS source files.");
-
-  // JavaScript
-  js::Generator js_generator;
-  cli.RegisterGenerator("--js_out", "--js_opt", &js_generator,
-                        "Generate JavaScript source.");
 
   return cli.Run(argc, argv);
 }

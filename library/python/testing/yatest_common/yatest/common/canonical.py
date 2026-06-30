@@ -14,10 +14,11 @@ yatest_logger = logging.getLogger("ya.test")
 
 def _copy(src, dst, universal_lines=False):
     if universal_lines:
-        with open(dst, "wb") as f:
+        with open(dst, "wb") as f_dst:
             mode = "rbU" if six.PY2 else "rb"
-            for line in open(src, mode):
-                f.write(line)
+            with open(src, mode) as f_src:
+                for line in f_src:
+                    f_dst.write(line)
         return
     shutil.copy(src, dst)
 
@@ -28,6 +29,7 @@ def canonical_file(
 ):
     """
     Create canonical file that can be returned from a test
+
     :param path: path to the file
     :param diff_tool: custom diff tool to use for comparison with the canonical one, if None - default will be used
     :param local: save file locally, otherwise move to sandbox
@@ -46,7 +48,7 @@ def canonical_file(
             try:  # check if iterable
                 if not isinstance(diff_tool[0], six.string_types):
                     raise Exception("Invalid custom diff-tool: not cmd")
-            except:
+            except Exception:
                 raise Exception("Invalid custom diff-tool: not binary path")
     return runtime._get_ya_plugin_instance().file(
         safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
@@ -89,6 +91,7 @@ def canonical_execute(
 ):
     """
     Shortcut to execute a binary and canonize its stdout
+
     :param binary: absolute path to the binary
     :param args: binary arguments
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code
@@ -106,7 +109,7 @@ def canonical_execute(
     :param data_transformer: data modifier (before canonize)
     :return: object that can be canonized
     """
-    if type(binary) == list:
+    if isinstance(binary, list):
         command = binary
     else:
         command = [binary]
@@ -157,6 +160,7 @@ def canonical_py_execute(
 ):
     """
     Shortcut to execute a python script and canonize its stdout
+
     :param script_path: path to the script arcadia relative
     :param args: script arguments
     :param check_exit_code: will raise ExecutionError if the command exits with non zero code
@@ -202,7 +206,7 @@ def _prepare_args(args):
     if args is None:
         args = []
     if isinstance(args, six.string_types):
-        args = map(lambda a: a.strip(), args.split())
+        args = list(map(lambda a: a.strip(), args.split()))
     return args
 
 
@@ -217,7 +221,9 @@ def _canonical_execute(
     out_file_path = path.get_unique_file_path(runtime.output_path(), "{}.out.txt".format(file_name))
     err_file_path = path.get_unique_file_path(runtime.output_path(), "{}.err.txt".format(file_name))
     if not data_transformer:
-        data_transformer = lambda x: x
+
+        def data_transformer(x):
+            return x
 
     try:
         os.makedirs(os.path.dirname(out_file_path))

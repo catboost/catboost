@@ -64,5 +64,5 @@ void CompileTestSigned() {
     static_assert(8388607_TBs == 8388607_GBs * 1024, "Wrong 8388607TBs value"); // 2**23 - 1 TB
 
     // Should cause compilation error if uncommented
-    //static_assert(8388608_TBs == 8388608_GBs * 1024, "Wrong 8388608TBs value");
+    // static_assert(8388608_TBs == 8388608_GBs * 1024, "Wrong 8388608TBs value");
 }

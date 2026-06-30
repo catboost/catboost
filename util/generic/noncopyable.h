@@ -32,7 +32,7 @@ namespace NNonCopyable { // protection from unintended ADL
         TMoveOnly() = default;
         ~TMoveOnly() = default;
     };
-}
+} // namespace NNonCopyable
 
 using TNonCopyable = NNonCopyable::TNonCopyable;
 using TMoveOnly = NNonCopyable::TMoveOnly;

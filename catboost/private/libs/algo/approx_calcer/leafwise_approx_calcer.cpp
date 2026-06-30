@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
+#include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
@@ -192,12 +193,13 @@ static void CalcExactLeafDeltas(
 
 static void CalcLeafValuesSimple(
     const IDerCalcer& error,
-    const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
-    TArrayRef<TDers> weightedDers,
-    NPar::ILocalExecutor* localExecutor
+    TLearnContext* ctx,
+    TArrayRef<TDers> weightedDers
 ) {
     Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
+    const auto& params = ctx->Params;
+    NPar::ILocalExecutor* localExecutor = ctx->LocalExecutor;
     const auto& learnerOptions = params.ObliviousTreeOptions.Get();
     int gradientIterations = learnerOptions.LeavesEstimationIterations;
     ELeavesEstimation estimationMethod = learnerOptions.LeavesEstimationMethod;
@@ -268,6 +270,7 @@ static void CalcLeafValuesSimple(
 
     CreateBacktrackingObjective(
         params.MetricOptions->ObjectiveMetric,
+        ctx->EvalMetricDescriptor,
         learnerOptions,
         /*approxDimension*/ 1,
         &haveBacktrackingObjective,
@@ -307,12 +310,12 @@ static void CalcLeafValuesSimple(
 
 void CalcLeafValues(
     const IDerCalcer& error,
-    const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
-    TRestorableFastRng64* rng,
-    NPar::ILocalExecutor* localExecutor,
+    TLearnContext* ctx,
     TArrayRef<TDers> weightedDers
 ) {
+    const auto& params = ctx->Params;
+
     Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
     Y_ASSERT(!params.BoostingOptions->ApproxOnFullHistory);
     Y_ASSERT(
@@ -327,10 +330,9 @@ void CalcLeafValues(
     if (statistics->GetApproxDimension() == 1 && !isMultiTarget) {
         CalcLeafValuesSimple(
             error,
-            params,
             statistics,
-            weightedDers,
-            localExecutor);
+            ctx,
+            weightedDers);
     } else {
         const auto leafValuesRef = statistics->GetLeafValuesRef();
         const auto approxDim = statistics->GetApproxDimension();
@@ -339,20 +341,16 @@ void CalcLeafValues(
             leafValues[dim][0] = leafValuesRef->at(dim);
         }
         CalcLeafValuesMulti(
-            params,
             /*leafCount*/ 1,
             error,
             /*queryInfo*/ {},
             /*indices*/ {},
             To2DConstArrayRef<float>(statistics->GetLabels()),
             statistics->GetWeights(),
-            approxDim,
             statistics->GetAllObjectsSumWeight(),
             statistics->GetLearnObjectsCount(),
             statistics->GetObjectsCountInLeaf(),
-            params.MetricOptions->ObjectiveMetric,
-            rng,
-            localExecutor,
+            ctx,
             &leafValues,
             statistics->GetApproxRef()
         );

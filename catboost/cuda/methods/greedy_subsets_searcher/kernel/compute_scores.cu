@@ -1,6 +1,6 @@
 #include "compute_scores.cuh"
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/methods/kernel/score_calcers.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/block/block_reduce.cuh>
+#include <cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>
@@ -43,8 +43,8 @@ namespace NKernel {
             result->Score = scores[0];\
             result->Gain = gains[0];\
         } else {\
-            result->FeatureId = -1;\
-            result->BinId = -1;\
+            result->FeatureId = static_cast<ui32>(-1);\
+            result->BinId = static_cast<ui32>(-1);\
             result->Score = FLT_MAX;\
             result->Gain = FLT_MAX;\
         }\
@@ -371,7 +371,7 @@ namespace NKernel {
             const float scoreBefore = !skip ? beforeSplitCalcer.GetScore() : FLT_MAX;
 
             //-10 - 0 = -10
-            //in gpu catboost all scores are inverse, lower is better
+            //in GPU catboost all scores are inverse, lower is better
             float gain = !skip ? (scoreAfter - scoreBefore) : 0;
 
             const ui32 featureId = bf[binFeatureId].FeatureId;
@@ -460,7 +460,7 @@ namespace NKernel {
             const float scoreBefore = !skip ? beforeSplitCalcer.GetScore() : FLT_MAX;
 
             //-10 - 0 = -10
-            //in gpu catboost all scores are inverse, lower is better
+            //in GPU catboost all scores are inverse, lower is better
             float gain = !skip ? (scoreAfter - scoreBefore) : 0;
 
             const ui32 featureId = bf[binFeatureId].FeatureId;
@@ -635,11 +635,9 @@ namespace NKernel {
             const int leafId = allPartIds[i];
             const double weight = max(partStats[leafId * statCount], 0.0);
             double totalSum = 0;
-            double totalSumPart = 0;
 
             for (int statId = 1; statId < statCount; ++statId) {
                 double sum = partStats[leafId * statCount + statId];
-                totalSumPart += sum;
 
                 calcer.AddLeaf(sum, weight);
                 totalSum += sum;

@@ -21,30 +21,32 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#if _LIBCPP_STD_VER >= 20
 
 // [expos.only.func]
 
-_LIBCPP_HIDE_FROM_ABI inline constexpr auto __synth_three_way =
-  []<class _Tp, class _Up>(const _Tp& __t, const _Up& __u)
-    requires requires {
-      { __t < __u } -> __boolean_testable;
-      { __u < __t } -> __boolean_testable;
-    }
-  {
-    if constexpr (three_way_comparable_with<_Tp, _Up>) {
-      return __t <=> __u;
-    } else {
-      if (__t < __u) return weak_ordering::less;
-      if (__u < __t) return weak_ordering::greater;
-      return weak_ordering::equivalent;
-    }
-  };
+_LIBCPP_HIDE_FROM_ABI inline constexpr auto __synth_three_way = []<class _Tp, class _Up>(const _Tp& __t, const _Up& __u)
+  requires requires {
+    { __t < __u } -> __boolean_testable;
+    { __u < __t } -> __boolean_testable;
+  }
+{
+  if constexpr (three_way_comparable_with<_Tp, _Up>) {
+    return __t <=> __u;
+  } else {
+    if (__t < __u)
+      return weak_ordering::less;
+    if (__u < __t)
+      return weak_ordering::greater;
+    return weak_ordering::equivalent;
+  }
+};
 
 template <class _Tp, class _Up = _Tp>
-using __synth_three_way_result = decltype(__synth_three_way(declval<_Tp&>(), declval<_Up&>()));
+using __synth_three_way_result _LIBCPP_NODEBUG =
+    decltype(std::__synth_three_way(std::declval<_Tp&>(), std::declval<_Up&>()));
 
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#endif // _LIBCPP_STD_VER >= 20
 
 _LIBCPP_END_NAMESPACE_STD
 

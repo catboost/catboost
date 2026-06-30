@@ -4,7 +4,7 @@
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
+#include <cub/block/block_radix_sort.cuh>
 
 namespace NKernel {
 
@@ -33,7 +33,7 @@ namespace NKernel {
 
 
     template <bool ATOMIC_UPDATE, int BLOCK_SIZE, int DOCS_PER_THREAD>
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void BinarizeFloatFeatureImpl(TCFeature feature, const float* values, ui32 docCount,
                                              const float* borders,
                                              const ui32* gatherIndex, ui32* dst) {
@@ -220,7 +220,7 @@ namespace NKernel {
 
         if (tid < (bordersCount + 1)) {
             const float borderIdx = tid * 1.0f / bordersCount;
-            //emulate ui8 rounding in cpu
+            //emulate ui8 rounding in CPU
             const float val =  (minValue + borderIdx * (maxValue - minValue)) * 0.9999;
             borders[tid] =  tid == 0 ? bordersCount : val;
         }

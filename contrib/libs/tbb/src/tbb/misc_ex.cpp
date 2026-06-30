@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -35,7 +36,8 @@
 #if __unix__
 #if __linux__
 #include <sys/sysinfo.h>
-#endif
+#include "cgroup_info.h"
+#endif // __linux__
 #include <cstring>
 #include <sched.h>
 #include <cerrno>
@@ -190,7 +192,15 @@ static void initialize_hardware_concurrency_info () {
         availableProcs = (maxProcs == INT_MAX) ? sysconf(_SC_NPROCESSORS_ONLN) : maxProcs;
         delete[] processMask;
     }
-    theNumProcs = availableProcs > 0 ? availableProcs : 1; // Fail safety strap
+    int num_procs = availableProcs > 0 ? availableProcs : 1; // Fail safety strap
+#if __linux__
+    int cgroup_num_cpus = INT_MAX;
+    if (cgroup_info<>::is_cpu_constrained(cgroup_num_cpus)) {
+        // If cgroup is used, limit the number of processors to the constrained value.
+        num_procs = std::min(num_procs, cgroup_num_cpus);
+    }
+#endif // __linux__
+    theNumProcs = num_procs;
     __TBB_ASSERT( theNumProcs <= sysconf(_SC_NPROCESSORS_ONLN), nullptr);
 }
 
@@ -215,6 +225,7 @@ int AvailableHwConcurrency() {
         }
         fscanf(fp, ",");
     }
+    fclose(fp);
     return (num_cpus > 0) ? num_cpus : 1;
 }
 
@@ -296,11 +307,21 @@ static void initialize_hardware_concurrency_info () {
         if ( pam & m )
             ++nproc;
     }
-    __TBB_ASSERT( nproc <= (int)si.dwNumberOfProcessors, nullptr);
+    int number_of_processors = (int)si.dwNumberOfProcessors;
+    if (nproc > number_of_processors && TBB_GetThreadGroupAffinity) {
+        // Sometimes on systems with multiple processor groups GetNativeSystemInfo
+        // reports mask and processor count from the parent process
+        TBB_GROUP_AFFINITY ga;
+        if (TBB_GetThreadGroupAffinity(GetCurrentThread(), &ga)) {
+            number_of_processors = (int)TBB_GetActiveProcessorCount(ga.Group);
+        }
+    }
+
+    __TBB_ASSERT( nproc <= number_of_processors, nullptr);
     // By default setting up a number of processors for one processor group
     theProcessorGroups[0].numProcs = theProcessorGroups[0].numProcsRunningTotal = nproc;
     // Setting up processor groups in case the process does not restrict affinity mask and more than one processor group is present
-    if ( nproc == (int)si.dwNumberOfProcessors && TBB_GetActiveProcessorCount ) {
+    if ( nproc == number_of_processors && TBB_GetActiveProcessorCount ) {
         // The process does not have restricting affinity mask and multiple processor groups are possible
         ProcessorGroupInfo::NumGroups = (int)TBB_GetActiveProcessorGroupCount();
         __TBB_ASSERT( ProcessorGroupInfo::NumGroups <= MaxProcessorGroups, nullptr);

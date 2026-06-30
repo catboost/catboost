@@ -151,6 +151,40 @@ namespace {
         {LANG_BRE, SCRIPT_LATIN, "Breton", "bre", "br", nullptr},
         {LANG_SAH, SCRIPT_CYRILLIC, "Yakut", "sah", "sah", nullptr},
         {LANG_KAZ_LAT, SCRIPT_LATIN, "Latin Kazakh", "kazlat", "kk-Latn", nullptr},
+        {LANG_KJH, SCRIPT_CYRILLIC, "Khakas", "kjh", "kjh", "khk"},
+        {LANG_OSS, SCRIPT_CYRILLIC, "Ossetian", "oss", "os", nullptr},
+        {LANG_TYV, SCRIPT_CYRILLIC, "Tuvan", "tyv", "tyv", nullptr},
+        {LANG_CHE, SCRIPT_CYRILLIC, "Chechen", "che", "ce", nullptr},
+        {LANG_MNS, SCRIPT_CYRILLIC, "Mansi", "mns", "mns", nullptr},
+        {LANG_ARZ, SCRIPT_ARABIC, "Egyptian Arabic", "arz", "arz", "ar-EG"},
+        {LANG_KRC, SCRIPT_CYRILLIC, "Karachay–Balkar", "krc", "krc", nullptr},
+        {LANG_KBD, SCRIPT_CYRILLIC, "Kabardino-Cherkess", "kbd", "kbd", nullptr},
+        {LANG_NOG, SCRIPT_CYRILLIC, "Nogai", "nog", "nog", nullptr},
+        {LANG_ABQ, SCRIPT_CYRILLIC, "Abaza", "abq", "abq", nullptr},
+        {LANG_MYV, SCRIPT_CYRILLIC, "Erzya", "myv", "myv", nullptr},
+        {LANG_MDF, SCRIPT_CYRILLIC, "Moksha", "mdf", "mdf", nullptr},
+        {LANG_BUA, SCRIPT_CYRILLIC, "Buryat", "bua", "bua", nullptr},
+        {LANG_ADY, SCRIPT_CYRILLIC, "Adyghe", "ady", "ady", nullptr},
+        {LANG_LEZ, SCRIPT_CYRILLIC, "Lezgian", "lez", "lez", nullptr},
+        {LANG_CRH, SCRIPT_CYRILLIC, "Crimean Tatar", "crh", "crh", nullptr},
+        {LANG_EVN, SCRIPT_CYRILLIC, "Evenki", "evn", "evn", nullptr},
+        {LANG_VEP, SCRIPT_LATIN, "Veps", "vep", "vep", nullptr},
+        {LANG_AVA, SCRIPT_CYRILLIC, "Avar", "ava", "av", nullptr},
+        {LANG_KUM, SCRIPT_CYRILLIC, "Kumyk", "kum", "kum", nullptr},
+        {LANG_DAR, SCRIPT_CYRILLIC, "Dargwa", "dar", "dar", nullptr},
+        {LANG_INH, SCRIPT_CYRILLIC, "Ingush", "inh", "inh", nullptr},
+        {LANG_XAL, SCRIPT_CYRILLIC, "Kalmyk", "xal", "xal", nullptr},
+        {LANG_LBE, SCRIPT_CYRILLIC, "Lak", "lbe", "lbe", nullptr},
+        {LANG_TAB, SCRIPT_CYRILLIC, "Tabasaran", "tab", "tab", nullptr},
+        {LANG_ALT, SCRIPT_CYRILLIC, "Southern Altai", "alt", "alt", nullptr},
+        {LANG_ATV, SCRIPT_CYRILLIC, "Northern Altai", "atv", "atv", nullptr},
+        {LANG_YRK, SCRIPT_CYRILLIC, "Nenets", "yrk", "yrk", nullptr},
+        {LANG_AGX, SCRIPT_CYRILLIC, "Aghul", "agx", "agx", nullptr},
+        {LANG_RUT, SCRIPT_CYRILLIC, "Rutul", "rut", "rut", nullptr},
+        {LANG_ABK, SCRIPT_CYRILLIC, "Abkhaz", "abk", "ab", nullptr},
+        {LANG_KRL, SCRIPT_LATIN, "Karelian Proper", "krl", "krl", nullptr},
+        {LANG_OLO, SCRIPT_LATIN, "Livvi-Karelian", "olo", "olo", nullptr},
+        {LANG_JDT, SCRIPT_CYRILLIC, "Judeo-Tat", "jdt", "jdt", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");
@@ -245,19 +279,19 @@ namespace {
         }
 
         inline const char* FullNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= FullNames.size())
+            if (static_cast<size_t>(language) >= FullNames.size())
                 return nullptr;
 
             return FullNames[language];
         }
         inline const char* BiblioNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= BiblioNames.size())
+            if (static_cast<size_t>(language) >= BiblioNames.size())
                 return nullptr;
 
             return BiblioNames[language];
         }
         inline const char* IsoNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= IsoNames.size())
+            if (static_cast<size_t>(language) >= IsoNames.size())
                 return nullptr;
 
             return IsoNames[language];

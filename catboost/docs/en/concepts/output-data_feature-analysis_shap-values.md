@@ -10,14 +10,14 @@ A vector $v$ with contributions of each feature to the prediction for every inpu
 #### {{ output--format }}
 
 - The rows are sorted in the same order as the order of objects in the input dataset.
-    
+
 - Each row contains information related to one object from the input dataset.
-    
+
     Format:
     ```
     <contribution of feature 1><\t><contribution of feature 2><\t> .. <\t><contribution of feature N><\t><expected value of the model prediction>
     ```
-    
+
 
 #### {{ output--example }}
 

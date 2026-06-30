@@ -6,12 +6,13 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-predict(data, 
-        prediction_type='{{ prediction-type--Class }}', 
-        ntree_start={{ fit--ntree_start }}, 
-        ntree_end=0, 
+predict(data,
+        prediction_type='{{ prediction-type--Class }}',
+        ntree_start={{ fit--ntree_start }},
+        ntree_end=0,
         thread_count=-1,
-        verbose=None)
+        verbose=None,
+        task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -27,7 +28,7 @@ The format depends on the number of input objects:
 - Multiple — Matrix-like data of shape `(object_count, feature_count)`
 - Single — An array
 
-**Possible types** 
+**Possible types**
 
 For multiple objects:
 
@@ -37,9 +38,10 @@ For multiple objects:
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - [{{ python-type__FeaturesData }}](../concepts/python-features-data__desc.md)
 - {% include [libsvm-scipy-except-dia](../_includes/work_src/reusage-formats/scipy-except-dia.md) %}
-    
+
 
 For a single object:
 
@@ -47,7 +49,7 @@ For a single object:
 - one-dimensional {{ python-type__np_ndarray }} with feature values
 
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -63,59 +65,60 @@ The required prediction type.
 - RawFormulaVal
 - Exponent
 - LogProbability
- 
-**Possible types** 
- 
+
+**Possible types**
+
 {{ python-type--string }}
- 
-**Default value** 
- 
+
+**Default value**
+
 Class
 
 ### ntree_start
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe range of the tree indices to`[ntree_start; ntree_end)` and the `eval_period` parameter to _k_ to calculate metrics on every _k_-th iteration.
- 
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the range of the tree indices to`[ntree_start; ntree_end)` and the `eval_period` parameter to _k_ to calculate metrics on every _k_-th iteration.
+
 {% include [eval-start-end-ntree_start__short-param-desc](../_includes/work_src/reusage-common-phrases/ntree_start__short-param-desc.md) %}
- 
-**Possible types** 
- 
+
+**Possible types**
+
 {{ python-type--int }}
- 
-**Default value** 
- 
+
+**Default value**
+
 {{ fit--ntree_start }}
 
 ### ntree_end
- 
+
 #### Description
- 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe range of the tree indices to`[ntree_start; ntree_end)` and the `eval_period` parameter to _k_ to calculate metrics on every _k_-th iteration.
- 
+
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the range of the tree indices to`[ntree_start; ntree_end)` and the `eval_period` parameter to _k_ to calculate metrics on every _k_-th iteration.
+
 {% include [eval-start-end-ntree_end__short-param-desc](../_includes/work_src/reusage-common-phrases/ntree_end__short-param-desc.md) %}
- 
-**Possible types** 
- 
+
+**Possible types**
+
 {{ python-type--int }}
- 
-**Default value** 
- 
+
+**Default value**
+
 {{ fit--ntree_end }}
- 
+
 ### thread_count
 
 #### Description
 
 The number of threads to use.
-{% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
-**Possible types** 
+Optimizes the speed of execution. This parameter doesn't affect results.
+
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__thread_count__wrappers }}
 
@@ -125,16 +128,32 @@ The number of threads to use.
 
 Output the measured evaluation metric to stderr.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 None
+
+### task_type
+
+#### Description
+
+The evaluator type.
+
+Possible values:
+    - 'CPU'
+    - 'GPU' (models with only numerical features are supported for now)
+
+**Possible types**
+
+string
+
+**Default value**
+
+CPU
 
 ## {{ dl__return-value }} {#output-format}
 
 {% include [sections-with-methods-desc-python__predict-returned-value](../_includes/work_src/reusage/python__predict-returned-value.md) %}
-
-

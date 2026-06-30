@@ -2,48 +2,14 @@
 # coding: utf-8
 # cython: wraparound=False
 
-from catboost.base_defs cimport *
+from catboost.base_defs cimport TJsonValue, ProcessException
 
-import atexit
-import six
-from six import iteritems, string_types, PY3
-from six.moves import range
-from json import dumps, loads, JSONEncoder
-from copy import deepcopy
-from collections import defaultdict
-import functools
-import traceback
-import numbers
-
-import sys
-if sys.version_info >= (3, 3):
-    from collections.abc import Iterable, Sequence
-else:
-    from collections import Iterable, Sequence
-import platform
-
-
-cimport cython
-from cython.operator cimport dereference, preincrement
-
-from libc.math cimport isnan, modf
-from libc.stdint cimport uint32_t, uint64_t
-from libc.string cimport memcpy
 from libcpp cimport bool as bool_t
-from libcpp cimport nullptr
-from libcpp.map cimport map as cmap
-from libcpp.vector cimport vector
-from libcpp.pair cimport pair
-from cpython.ref cimport PyObject
 
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
-from util.generic.hash cimport THashMap
-from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
-from util.generic.string cimport TString, TStringBuf
+from util.generic.ptr cimport TIntrusivePtr
+from util.generic.string cimport TString
 from util.generic.vector cimport TVector
-from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
-from util.string.cast cimport StrToD, TryFromString, ToString
 
 
 cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
@@ -51,7 +17,7 @@ cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
         double WPlus
         double WMinus
         double PValue
-    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
+    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
@@ -65,7 +31,7 @@ cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
 cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "NCB":
     cdef cppclass TMaybeOwningArrayHolder[T]:
         @staticmethod
-        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef)
+        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef) noexcept
 
         @staticmethod
         TMaybeOwningArrayHolder[T] CreateOwning(
@@ -77,7 +43,7 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
 
     cdef cppclass TMaybeOwningConstArrayHolder[T]:
         @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef)
+        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef) noexcept
 
         @staticmethod
         TMaybeOwningConstArrayHolder[T] CreateOwning(
@@ -166,3 +132,6 @@ cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
         bool_t ordered,
         TDstValue defaultValue
     ) except +ProcessException
+
+cdef extern from "catboost/libs/helpers/json_helpers.h":
+    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException nogil

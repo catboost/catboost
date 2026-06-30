@@ -328,4 +328,4 @@ Y_UNIT_TEST_SUITE(TLockFreeQueueTests) {
         queue.Dequeue(&o);
         o.Check(0, 0, 2, 1, 0);
     }
-}
+} // Y_UNIT_TEST_SUITE(TLockFreeQueueTests)

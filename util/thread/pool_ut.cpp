@@ -253,4 +253,4 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
             TestEnumeratedThreadName(pool, expectedNames);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TThreadPoolTest)

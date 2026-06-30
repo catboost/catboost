@@ -2,8 +2,8 @@
 #include "segmented_scan_helpers.cuh"
 #include "fill.cuh"
 
-#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
-#include <contrib/libs/nvidia/cub/cub/iterator/transform_input_iterator.cuh>
+#include <cub/device/device_scan.cuh>
+#include <thrust/iterator/transform_iterator.h>
 
 namespace NKernel {
 
@@ -93,7 +93,7 @@ namespace NKernel {
                 return static_cast<ui64>(v);
             }
         };
-        using TUi32AsUi64 = cub::TransformInputIterator<ui64, TCastToUi64, ui32*>;
+        using TUi32AsUi64 = thrust::transform_iterator<TCastToUi64, ui32*, ui64>;
     }
 
     template <>

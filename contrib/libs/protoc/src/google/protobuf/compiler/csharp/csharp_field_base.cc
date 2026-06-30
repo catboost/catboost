@@ -28,22 +28,25 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/csharp/csharp_field_base.h"
+
 #include <cmath>
 #include <limits>
 #include <sstream>
+#include <string>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/wire_format.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/log/absl_log.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/compiler/csharp/names.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/wire_format.h"
 
-#include <google/protobuf/compiler/csharp/csharp_field_base.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_names.h>
+// Must be last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -51,7 +54,7 @@ namespace compiler {
 namespace csharp {
 
 void FieldGeneratorBase::SetCommonFieldVariables(
-    std::map<TProtoStringType, TProtoStringType>* variables) {
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
   // Note: this will be valid even though the tag emitted for packed and unpacked versions of
   // repeated fields varies by wire format. The wire format is encoded in the bottom 3 bits, which
   // never effects the tag size.
@@ -61,15 +64,15 @@ void FieldGeneratorBase::SetCommonFieldVariables(
     part_tag_size /= 2;
   }
   uint tag = internal::WireFormat::MakeTag(descriptor_);
-  uint8 tag_array[5];
+  uint8_t tag_array[5];
   io::CodedOutputStream::WriteTagToArray(tag, tag_array);
-  TProtoStringType tag_bytes = StrCat(tag_array[0]);
+  TProtoStringType tag_bytes = y_absl::StrCat(tag_array[0]);
   for (int i = 1; i < part_tag_size; i++) {
-    tag_bytes += ", " + StrCat(tag_array[i]);
+    y_absl::StrAppend(&tag_bytes, ", ", tag_array[i]);
   }
 
-  (*variables)["tag"] = StrCat(tag);
-  (*variables)["tag_size"] = StrCat(tag_size);
+  (*variables)["tag"] = y_absl::StrCat(tag);
+  (*variables)["tag_size"] = y_absl::StrCat(tag_size);
   (*variables)["tag_bytes"] = tag_bytes;
 
   if (descriptor_->type() == FieldDescriptor::Type::TYPE_GROUP) {
@@ -77,12 +80,12 @@ void FieldGeneratorBase::SetCommonFieldVariables(
         descriptor_->number(),
         internal::WireFormatLite::WIRETYPE_END_GROUP);
     io::CodedOutputStream::WriteTagToArray(tag, tag_array);
-    tag_bytes = StrCat(tag_array[0]);
+    tag_bytes = y_absl::StrCat(tag_array[0]);
     for (int i = 1; i < part_tag_size; i++) {
-        tag_bytes += ", " + StrCat(tag_array[i]);
+      y_absl::StrAppend(&tag_bytes, ", ", tag_array[i]);
     }
 
-    variables_["end_tag"] = StrCat(tag);
+    variables_["end_tag"] = y_absl::StrCat(tag);
     variables_["end_tag_bytes"] = tag_bytes;
   }
 
@@ -97,41 +100,55 @@ void FieldGeneratorBase::SetCommonFieldVariables(
   (*variables)["capitalized_type_name"] = capitalized_type_name();
   (*variables)["number"] = number();
   if (has_default_value() && !SupportsPresenceApi(descriptor_)) {
-    (*variables)["name_def_message"] =
-      (*variables)["name"] + "_ = " + (*variables)["default_value"];
+    variables->insert({"name_def_message",
+                       y_absl::StrCat((*variables)["name"],
+                                    "_ = ", (*variables)["default_value"])});
   } else {
-    (*variables)["name_def_message"] = (*variables)["name"] + "_";
+    variables->insert(
+        {"name_def_message", y_absl::StrCat((*variables)["name"], "_")});
   }
   if (SupportsPresenceApi(descriptor_)) {
-    (*variables)["has_property_check"] = "Has" + (*variables)["property_name"];
-    (*variables)["other_has_property_check"] = "other.Has" + (*variables)["property_name"];
-    (*variables)["has_not_property_check"] = "!" + (*variables)["has_property_check"];
-    (*variables)["other_has_not_property_check"] = "!" + (*variables)["other_has_property_check"];
+    variables->insert({"has_property_check",
+                       y_absl::StrCat("Has", (*variables)["property_name"])});
+    variables->insert(
+        {"other_has_property_check",
+         y_absl::StrCat("other.Has", (*variables)["property_name"])});
+    variables->insert({"has_not_property_check",
+                       y_absl::StrCat("!", (*variables)["has_property_check"])});
+    variables->insert(
+        {"other_has_not_property_check",
+         y_absl::StrCat("!", (*variables)["other_has_property_check"])});
     if (presenceIndex_ != -1) {
-      TProtoStringType hasBitsNumber = StrCat(presenceIndex_ / 32);
-      TProtoStringType hasBitsMask = StrCat(1 << (presenceIndex_ % 32));
-      (*variables)["has_field_check"] = "(_hasBits" + hasBitsNumber + " & " + hasBitsMask + ") != 0";
-      (*variables)["set_has_field"] = "_hasBits" + hasBitsNumber + " |= " + hasBitsMask;
-      (*variables)["clear_has_field"] = "_hasBits" + hasBitsNumber + " &= ~" + hasBitsMask;
+        const int hasBitsNumber = presenceIndex_ / 32;
+        const int hasBitsMask = 1 << (presenceIndex_ % 32);
+        (*variables)["has_field_check"] = y_absl::StrCat(
+            "(_hasBits", hasBitsNumber, " & ", hasBitsMask, ") != 0");
+        (*variables)["set_has_field"] =
+            y_absl::StrCat("_hasBits", hasBitsNumber, " |= ", hasBitsMask);
+        (*variables)["clear_has_field"] =
+            y_absl::StrCat("_hasBits", hasBitsNumber, " &= ~", hasBitsMask);
     }
   } else {
-    (*variables)["has_property_check"] =
-      (*variables)["property_name"] + " != " + (*variables)["default_value"];
-    (*variables)["other_has_property_check"] = "other." +
-      (*variables)["property_name"] + " != " + (*variables)["default_value"];
+    variables->insert({"has_property_check",
+                       y_absl::StrCat((*variables)["property_name"],
+                                    " != ", (*variables)["default_value"])});
+    variables->insert({"other_has_property_check",
+                       y_absl::StrCat("other.", (*variables)["property_name"],
+                                    " != ", (*variables)["default_value"])});
   }
 }
 
 void FieldGeneratorBase::SetCommonOneofFieldVariables(
-    std::map<TProtoStringType, TProtoStringType>* variables) {
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
   (*variables)["oneof_name"] = oneof_name();
   if (SupportsPresenceApi(descriptor_)) {
-    (*variables)["has_property_check"] = "Has" + property_name();
+    (*variables)["has_property_check"] = y_absl::StrCat("Has", property_name());
   } else {
     (*variables)["has_property_check"] =
-      oneof_name() + "Case_ == " + oneof_property_name() +
-      "OneofCase." + property_name();
+        y_absl::StrCat(oneof_name(), "Case_ == ", oneof_property_name(),
+                     "OneofCase.", oneof_case_name());
   }
+  (*variables)["oneof_case_name"] = oneof_case_name();
   (*variables)["oneof_property_name"] = oneof_property_name();
 }
 
@@ -187,6 +204,10 @@ void FieldGeneratorBase::AddPublicMemberAttributes(io::Printer* printer) {
   WriteGeneratedCodeAttributes(printer);
 }
 
+TProtoStringType FieldGeneratorBase::oneof_case_name() {
+  return GetOneofCaseName(descriptor_);
+}
+
 TProtoStringType FieldGeneratorBase::oneof_property_name() {
   return UnderscoresToCamelCase(descriptor_->containing_oneof()->name(), true);
 }
@@ -223,7 +244,7 @@ TProtoStringType FieldGeneratorBase::type_name(const FieldDescriptor* descriptor
             wrapped_field->type() == FieldDescriptor::TYPE_BYTES) {
           return wrapped_field_type_name;
         } else {
-          return wrapped_field_type_name + "?";
+          return y_absl::StrCat(wrapped_field_type_name, "?");
         }
       }
       return GetClassName(descriptor->message_type());
@@ -258,7 +279,7 @@ TProtoStringType FieldGeneratorBase::type_name(const FieldDescriptor* descriptor
     case FieldDescriptor::TYPE_SINT64:
       return "long";
     default:
-      GOOGLE_LOG(FATAL)<< "Unknown field type.";
+      Y_ABSL_LOG(FATAL) << "Unknown field type.";
       return "";
   }
 }
@@ -300,12 +321,12 @@ bool FieldGeneratorBase::has_default_value() {
     case FieldDescriptor::TYPE_SINT64:
       return descriptor_->default_value_int64() != 0L;
     default:
-      GOOGLE_LOG(FATAL)<< "Unknown field type.";
+      Y_ABSL_LOG(FATAL) << "Unknown field type.";
       return true;
   }
 }
 
-bool AllPrintableAscii(const TProtoStringType& text) {
+bool AllPrintableAscii(y_absl::string_view text) {
   for(int i = 0; i < text.size(); i++) {
     if (text[i] < 0x20 || text[i] > 0x7e) {
       return false;
@@ -317,17 +338,19 @@ bool AllPrintableAscii(const TProtoStringType& text) {
 TProtoStringType FieldGeneratorBase::GetStringDefaultValueInternal(const FieldDescriptor* descriptor) {
     if (descriptor->default_value_string().empty())
         return "\"\"";
-    else
-      return "global::System.Text.Encoding.UTF8.GetString(global::System."
-             "Convert.FromBase64String(\"" +
-             StringToBase64(descriptor->default_value_string()) + "\"), 0, " + StrCat(descriptor->default_value_string().length()) + ")";
+    return y_absl::StrCat(
+        "global::System.Text.Encoding.UTF8.GetString(global::System."
+        "Convert.FromBase64String(\"",
+        StringToBase64(descriptor->default_value_string()), "\"), 0, ",
+        descriptor->default_value_string().length(), ")");
 }
 
 TProtoStringType FieldGeneratorBase::GetBytesDefaultValueInternal(const FieldDescriptor* descriptor) {
     if (descriptor->default_value_string().empty())
         return "pb::ByteString.Empty";
-    else
-        return "pb::ByteString.FromBase64(\"" + StringToBase64(descriptor->default_value_string()) + "\")";
+    return y_absl::StrCat("pb::ByteString.FromBase64(\"",
+                        StringToBase64(descriptor->default_value_string()),
+                        "\")");
 }
 
 TProtoStringType FieldGeneratorBase::default_value() {
@@ -337,8 +360,10 @@ TProtoStringType FieldGeneratorBase::default_value() {
 TProtoStringType FieldGeneratorBase::default_value(const FieldDescriptor* descriptor) {
   switch (descriptor->type()) {
     case FieldDescriptor::TYPE_ENUM:
-      return GetClassName(descriptor->default_value_enum()->type()) + "." +
-        GetEnumValueName(descriptor->default_value_enum()->type()->name(), descriptor->default_value_enum()->name());
+      return y_absl::StrCat(
+          GetClassName(descriptor->default_value_enum()->type()), ".",
+          GetEnumValueName(descriptor->default_value_enum()->type()->name(),
+                           descriptor->default_value_enum()->name()));
     case FieldDescriptor::TYPE_MESSAGE:
     case FieldDescriptor::TYPE_GROUP:
       if (IsWrapperType(descriptor)) {
@@ -356,7 +381,7 @@ TProtoStringType FieldGeneratorBase::default_value(const FieldDescriptor* descri
       } else if (std::isnan(value)) {
         return "double.NaN";
       }
-      return StrCat(value) + "D";
+      return y_absl::StrCat(value, "D");
     }
     case FieldDescriptor::TYPE_FLOAT: {
       float value = descriptor->default_value_float();
@@ -367,18 +392,18 @@ TProtoStringType FieldGeneratorBase::default_value(const FieldDescriptor* descri
       } else if (std::isnan(value)) {
         return "float.NaN";
       }
-      return StrCat(value) + "F";
+      return y_absl::StrCat(value, "F");
     }
     case FieldDescriptor::TYPE_INT64:
-      return StrCat(descriptor->default_value_int64()) + "L";
+      return y_absl::StrCat(descriptor->default_value_int64(), "L");
     case FieldDescriptor::TYPE_UINT64:
-      return StrCat(descriptor->default_value_uint64()) + "UL";
+      return y_absl::StrCat(descriptor->default_value_uint64(), "UL");
     case FieldDescriptor::TYPE_INT32:
-      return StrCat(descriptor->default_value_int32());
+      return y_absl::StrCat(descriptor->default_value_int32());
     case FieldDescriptor::TYPE_FIXED64:
-      return StrCat(descriptor->default_value_uint64()) + "UL";
+      return y_absl::StrCat(descriptor->default_value_uint64(), "UL");
     case FieldDescriptor::TYPE_FIXED32:
-      return StrCat(descriptor->default_value_uint32());
+      return y_absl::StrCat(descriptor->default_value_uint32());
     case FieldDescriptor::TYPE_BOOL:
       if (descriptor->default_value_bool()) {
         return "true";
@@ -390,23 +415,23 @@ TProtoStringType FieldGeneratorBase::default_value(const FieldDescriptor* descri
     case FieldDescriptor::TYPE_BYTES:
       return GetBytesDefaultValueInternal(descriptor);
     case FieldDescriptor::TYPE_UINT32:
-      return StrCat(descriptor->default_value_uint32());
+      return y_absl::StrCat(descriptor->default_value_uint32());
     case FieldDescriptor::TYPE_SFIXED32:
-      return StrCat(descriptor->default_value_int32());
+      return y_absl::StrCat(descriptor->default_value_int32());
     case FieldDescriptor::TYPE_SFIXED64:
-      return StrCat(descriptor->default_value_int64()) + "L";
+      return y_absl::StrCat(descriptor->default_value_int64(), "L");
     case FieldDescriptor::TYPE_SINT32:
-      return StrCat(descriptor->default_value_int32());
+      return y_absl::StrCat(descriptor->default_value_int32());
     case FieldDescriptor::TYPE_SINT64:
-      return StrCat(descriptor->default_value_int64()) + "L";
+      return y_absl::StrCat(descriptor->default_value_int64(), "L");
     default:
-      GOOGLE_LOG(FATAL)<< "Unknown field type.";
+      Y_ABSL_LOG(FATAL) << "Unknown field type.";
       return "";
   }
 }
 
 TProtoStringType FieldGeneratorBase::number() {
-  return StrCat(descriptor_->number());
+  return y_absl::StrCat(descriptor_->number());
 }
 
 TProtoStringType FieldGeneratorBase::capitalized_type_name() {
@@ -448,7 +473,7 @@ TProtoStringType FieldGeneratorBase::capitalized_type_name() {
     case FieldDescriptor::TYPE_SINT64:
       return "SInt64";
     default:
-      GOOGLE_LOG(FATAL)<< "Unknown field type.";
+      Y_ABSL_LOG(FATAL) << "Unknown field type.";
       return "";
   }
 }
@@ -457,3 +482,5 @@ TProtoStringType FieldGeneratorBase::capitalized_type_name() {
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"

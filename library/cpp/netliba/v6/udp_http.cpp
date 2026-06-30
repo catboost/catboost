@@ -4,8 +4,6 @@
 #include "udp_socket.h"
 #include "cpu_affinity.h"
 
-#include <library/cpp/threading/atomic/bool.h>
-
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/thread.h>
@@ -23,9 +21,9 @@ namespace NNetliba {
     const float HTTP_TIMEOUT = 15.0f;
     const int MIN_SHARED_MEM_PACKET = 1000;
 
-    static ::NAtomic::TBool PanicAttack;
+    static std::atomic<bool> PanicAttack = false;
     static std::atomic<NHPTimer::STime> LastHeartbeat;
-    static std::atomic<double> HeartbeatTimeout;
+    static std::atomic<double> HeartbeatTimeout = 0.0;
 
     static int GetPacketSize(TRequest* req) {
         if (req && req->Data.Get())
@@ -829,7 +827,7 @@ namespace NNetliba {
         void SendRequestImpl(const TUdpAddress& addr, const TString& url, TVector<char>* data, const TGUID& reqId,
                              TWaitResponse* wr, TRequesterUserQueues* userQueues) {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+                Y_ABORT_UNLESS(0, "data size is too large");
             }
             //printf("SendRequest(%s)\n", url.c_str());
             if (wr)
@@ -873,7 +871,7 @@ namespace NNetliba {
         void SendResponseImpl(const TGUID& reqId, EPacketPriority prior, TVector<char>* data) // non-virtual, for direct call from TRequestOps
         {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+                Y_ABORT_UNLESS(0, "data size is too large");
             }
             SendRespList.Enqueue(new TSendResponse(reqId, prior, data));
             Host->CancelWait();
@@ -1041,9 +1039,9 @@ namespace NNetliba {
 
             char buf[1000];
             TRequesterUserQueueSizes* qs = QueueSizes.Get();
-            sprintf(buf, "\nRequest queue %d (%d bytes)\n", (int)AtomicGet(qs->ReqCount), (int)AtomicGet(qs->ReqQueueSize));
+            snprintf(buf, sizeof(buf), "\nRequest queue %d (%d bytes)\n", (int)AtomicGet(qs->ReqCount), (int)AtomicGet(qs->ReqQueueSize));
             res += buf;
-            sprintf(buf, "Response queue %d (%d bytes)\n", (int)AtomicGet(qs->RespCount), (int)AtomicGet(qs->RespQueueSize));
+            snprintf(buf, sizeof(buf), "Response queue %d (%d bytes)\n", (int)AtomicGet(qs->RespCount), (int)AtomicGet(qs->RespQueueSize));
             res += buf;
 
             const char* outReqStateNames[] = {
@@ -1061,7 +1059,7 @@ namespace NNetliba {
                 const TGUID& gg = i->first;
                 const TOutRequestState& s = i->second;
                 bool isSync = SyncRequests.find(gg) != SyncRequests.end();
-                sprintf(buf, "%s\t%s  %s  TimePassed: %g  %s\n",
+                snprintf(buf, sizeof(buf), "%s\t%s  %s  TimePassed: %g  %s\n",
                         GetAddressAsString(s.Address).c_str(), GetGuidAsString(gg).c_str(), outReqStateNames[s.State],
                         s.TimePassed * 1000,
                         isSync ? "isSync" : "");
@@ -1071,7 +1069,7 @@ namespace NNetliba {
             for (TInRequestHash::const_iterator i = InRequests.begin(); i != InRequests.end(); ++i) {
                 const TGUID& gg = i->first;
                 const TInRequestState& s = i->second;
-                sprintf(buf, "%s\t%s  %s\n",
+                snprintf(buf, sizeof(buf), "%s\t%s  %s\n",
                         GetAddressAsString(s.Address).c_str(), GetGuidAsString(gg).c_str(), inReqStateNames[s.State]);
                 res += buf;
             }

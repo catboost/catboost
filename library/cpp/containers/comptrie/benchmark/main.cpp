@@ -89,7 +89,7 @@ struct TDatasetInstance {
                 Samples.back() += dictionary[rng.GenRand() % dictionary.size()];
             }
         }
-    };
+    }
 
     TString GetSample(size_t iteration) const {
         TFastRng<ui64> rng(iteration);
@@ -159,7 +159,7 @@ struct TAhoCorasickInstance {
         builder.SaveToStream(&buffer);
 
         Instance.Reset(new TDefaultMappedAhoCorasick(TBlob::FromBuffer(buffer.Buffer())));
-    };
+    }
 
     THolder<TDefaultMappedAhoCorasick> Instance;
 };

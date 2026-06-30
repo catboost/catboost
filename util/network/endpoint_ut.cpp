@@ -120,4 +120,4 @@ Y_UNIT_TEST_SUITE(TEndpointTest) {
         UNIT_ASSERT(!ep2.IsUnix());
         UNIT_ASSERT(ep2.SockAddr()->sa_family != AF_UNIX);
     }
-}
+} // Y_UNIT_TEST_SUITE(TEndpointTest)

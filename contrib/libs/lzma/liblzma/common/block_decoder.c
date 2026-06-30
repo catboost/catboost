@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       block_decoder.c
 /// \brief      Decodes .xz Blocks
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +122,10 @@ block_decode(void *coder_ptr, const lzma_allocator *allocator,
 				return LZMA_DATA_ERROR;
 		}
 
-		if (!coder->ignore_check)
+		// Don't waste time updating the integrity check if it will be
+		// ignored. Also skip it if no new output was produced. This
+		// avoids null pointer + 0 (undefined behavior) when out == 0.
+		if (!coder->ignore_check && out_used > 0)
 			lzma_check_update(&coder->check, coder->block->check,
 					out + out_start, out_used);
 
@@ -144,9 +146,8 @@ block_decode(void *coder_ptr, const lzma_allocator *allocator,
 		coder->block->uncompressed_size = coder->uncompressed_size;
 
 		coder->sequence = SEQ_PADDING;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_PADDING:
 		// Compressed Data is padded to a multiple of four bytes.
@@ -171,8 +172,7 @@ block_decode(void *coder_ptr, const lzma_allocator *allocator,
 			lzma_check_finish(&coder->check, coder->block->check);
 
 		coder->sequence = SEQ_CHECK;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_CHECK: {
 		const size_t check_size = lzma_check_size(coder->block->check);

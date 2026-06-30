@@ -32,30 +32,37 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/generated_message_reflection.h>
+#include "google/protobuf/generated_message_reflection.h"
 
 #include <algorithm>
-#include <set>
+#include <atomic>
+#include <cstdint>
+#include <cstring>
+#include <string>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_message_util.h>
-#include <google/protobuf/inlined_string_field.h>
-#include <google/protobuf/map_field.h>
-#include <google/protobuf/map_field_inl.h>
-#include <google/protobuf/stubs/mutex.h>
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/unknown_field_set.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/stubs/casts.h>
-#include <google/protobuf/stubs/strutil.h>
+#include "y_absl/base/casts.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/match.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/extension_set.h"
+#include "google/protobuf/generated_message_tctable_gen.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
+#include "google/protobuf/generated_message_util.h"
+#include "google/protobuf/inlined_string_field.h"
+#include "google/protobuf/map_field.h"
+#include "google/protobuf/map_field_inl.h"
+#include "google/protobuf/repeated_field.h"
+#include "google/protobuf/unknown_field_set.h"
 
 
 // clang-format off
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 // clang-format on
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
@@ -74,7 +81,6 @@ using google::protobuf::internal::OnShutdownDelete;
 using google::protobuf::internal::ReflectionSchema;
 using google::protobuf::internal::RepeatedPtrFieldBase;
 using google::protobuf::internal::StringSpaceUsedExcludingSelfLong;
-using google::protobuf::internal::WrappedMutex;
 
 namespace google {
 namespace protobuf {
@@ -96,7 +102,7 @@ Message* MaybeForceCopy(Arena* arena, Message* msg) {
 
 namespace internal {
 
-bool ParseNamedEnum(const EnumDescriptor* descriptor, ConstStringParam name,
+bool ParseNamedEnum(const EnumDescriptor* descriptor, y_absl::string_view name,
                     int* value) {
   const EnumValueDescriptor* d = descriptor->FindValueByName(name);
   if (d == nullptr) return false;
@@ -107,6 +113,54 @@ bool ParseNamedEnum(const EnumDescriptor* descriptor, ConstStringParam name,
 const TProtoStringType& NameOfEnum(const EnumDescriptor* descriptor, int value) {
   const EnumValueDescriptor* d = descriptor->FindValueByNumber(value);
   return (d == nullptr ? GetEmptyString() : d->name());
+}
+
+// Internal helper routine for NameOfDenseEnum in the header file.
+// Allocates and fills a simple array of string pointers, based on
+// reflection information about the names of the enums.  This routine
+// allocates max_val + 1 entries, under the assumption that all the enums
+// fall in the range [min_val .. max_val].
+const TProtoStringType** MakeDenseEnumCache(const EnumDescriptor* desc, int min_val,
+                                       int max_val) {
+  auto* str_ptrs =
+      new const TProtoStringType*[static_cast<size_t>(max_val - min_val + 1)]();
+  const int count = desc->value_count();
+  for (int i = 0; i < count; ++i) {
+    const int num = desc->value(i)->number();
+    if (str_ptrs[num - min_val] == nullptr) {
+      // Don't over-write an existing entry, because in case of duplication, the
+      // first one wins.
+      str_ptrs[num - min_val] = &desc->value(i)->name();
+    }
+  }
+  // Change any unfilled entries to point to the empty string.
+  for (int i = 0; i < max_val - min_val + 1; ++i) {
+    if (str_ptrs[i] == nullptr) str_ptrs[i] = &GetEmptyStringAlreadyInited();
+  }
+  return str_ptrs;
+}
+
+PROTOBUF_NOINLINE const TProtoStringType& NameOfDenseEnumSlow(
+    int v, DenseEnumCacheInfo* deci) {
+  if (v < deci->min_val || v > deci->max_val)
+    return GetEmptyStringAlreadyInited();
+
+  const TProtoStringType** new_cache =
+      MakeDenseEnumCache(deci->descriptor_fn(), deci->min_val, deci->max_val);
+  const TProtoStringType** old_cache = nullptr;
+
+  if (deci->cache.compare_exchange_strong(old_cache, new_cache,
+                                          std::memory_order_release,
+                                          std::memory_order_acquire)) {
+    // We successfully stored our new cache, and the old value was nullptr.
+    return *new_cache[v - deci->min_val];
+  } else {
+    // In the time it took to create our enum cache, another thread also
+    //  created one, and put it into deci->cache.  So delete ours, and
+    // use theirs instead.
+    delete[] new_cache;
+    return *old_cache[v - deci->min_val];
+  }
 }
 
 }  // namespace internal
@@ -124,18 +178,18 @@ using internal::GetPointerAtOffset;
 void ReportReflectionUsageError(const Descriptor* descriptor,
                                 const FieldDescriptor* field,
                                 const char* method, const char* description) {
-  GOOGLE_LOG(FATAL) << "Protocol Buffer reflection usage error:\n"
-                "  Method      : google::protobuf::Reflection::"
-             << method
-             << "\n"
-                "  Message type: "
-             << descriptor->full_name()
-             << "\n"
-                "  Field       : "
-             << field->full_name()
-             << "\n"
-                "  Problem     : "
-             << description;
+  Y_ABSL_LOG(FATAL) << "Protocol Buffer reflection usage error:\n"
+                     "  Method      : google::protobuf::Reflection::"
+                  << method
+                  << "\n"
+                     "  Message type: "
+                  << descriptor->full_name()
+                  << "\n"
+                     "  Field       : "
+                  << field->full_name()
+                  << "\n"
+                     "  Problem     : "
+                  << description;
 }
 
 const char* cpptype_names_[FieldDescriptor::MAX_CPPTYPE + 1] = {
@@ -146,7 +200,7 @@ const char* cpptype_names_[FieldDescriptor::MAX_CPPTYPE + 1] = {
 static void ReportReflectionUsageTypeError(
     const Descriptor* descriptor, const FieldDescriptor* field,
     const char* method, FieldDescriptor::CppType expected_type) {
-  GOOGLE_LOG(FATAL)
+  Y_ABSL_LOG(FATAL)
       << "Protocol Buffer reflection usage error:\n"
          "  Method      : google::protobuf::Reflection::"
       << method
@@ -168,28 +222,22 @@ static void ReportReflectionUsageTypeError(
 static void ReportReflectionUsageEnumTypeError(
     const Descriptor* descriptor, const FieldDescriptor* field,
     const char* method, const EnumValueDescriptor* value) {
-  GOOGLE_LOG(FATAL) << "Protocol Buffer reflection usage error:\n"
-                "  Method      : google::protobuf::Reflection::"
-             << method
-             << "\n"
-                "  Message type: "
-             << descriptor->full_name()
-             << "\n"
-                "  Field       : "
-             << field->full_name()
-             << "\n"
-                "  Problem     : Enum value did not match field type:\n"
-                "    Expected  : "
-             << field->enum_type()->full_name()
-             << "\n"
-                "    Actual    : "
-             << value->full_name();
-}
-
-inline void CheckInvalidAccess(const internal::ReflectionSchema& schema,
-                               const FieldDescriptor* field) {
-  GOOGLE_CHECK(!schema.IsFieldStripped(field))
-      << "invalid access to a stripped field " << field->full_name();
+  Y_ABSL_LOG(FATAL) << "Protocol Buffer reflection usage error:\n"
+                     "  Method      : google::protobuf::Reflection::"
+                  << method
+                  << "\n"
+                     "  Message type: "
+                  << descriptor->full_name()
+                  << "\n"
+                     "  Field       : "
+                  << field->full_name()
+                  << "\n"
+                     "  Problem     : Enum value did not match field type:\n"
+                     "    Expected  : "
+                  << field->enum_type()->full_name()
+                  << "\n"
+                     "    Actual    : "
+                  << value->full_name();
 }
 
 #define USAGE_CHECK(CONDITION, METHOD, ERROR_DESCRIPTION) \
@@ -240,6 +288,12 @@ Reflection::Reflection(const Descriptor* descriptor,
   last_non_weak_field_index_ = descriptor_->field_count() - 1;
 }
 
+Reflection::~Reflection() {
+  // No need to use sized delete. This code path is uncommon and it would not be
+  // worth saving or recalculating the size.
+  ::operator delete(const_cast<internal::TcParseTableBase*>(tcparse_table_));
+}
+
 const UnknownFieldSet& Reflection::GetUnknownFields(
     const Message& message) const {
   return GetInternalMetadata(message).unknown_fields<UnknownFieldSet>(
@@ -258,7 +312,11 @@ bool Reflection::IsLazyExtension(const Message& message,
 }
 
 bool Reflection::IsLazilyVerifiedLazyField(const FieldDescriptor* field) const {
-  return field->options().lazy();
+  if (field->options().unverified_lazy()) return true;
+
+  // Message fields with [lazy=true] will be eagerly verified
+  // (go/verified-lazy).
+  return field->options().lazy() && !IsEagerlyVerifiedLazyField(field);
 }
 
 bool Reflection::IsEagerlyVerifiedLazyField(
@@ -346,31 +404,26 @@ size_t Reflection::SpaceUsedLong(const Message& message) const {
         case FieldDescriptor::CPPTYPE_STRING: {
           switch (field->options().ctype()) {
             default:  // TODO(kenton):  Support other string reps.
-            case FieldOptions::STRING: {
+            case FieldOptions::STRING:
               if (IsInlined(field)) {
                 const TProtoStringType* ptr =
                     &GetField<InlinedStringField>(message, field).GetNoArena();
                 total_size += StringSpaceUsedExcludingSelfLong(*ptr);
-                break;
-              }
-
-              const TProtoStringType* ptr =
-                  GetField<ArenaStringPtr>(message, field).GetPointer();
-
-              // Initially, the string points to the default value stored
-              // in the prototype. Only count the string if it has been
-              // changed from the default value.
-              // Except oneof fields, those never point to a default instance,
-              // and there is no default instance to point to.
-              if (schema_.InRealOneof(field) ||
-                  ptr != DefaultRaw<ArenaStringPtr>(field).GetPointer()) {
-                // string fields are represented by just a pointer, so also
-                // include sizeof(string) as well.
-                total_size +=
-                    sizeof(*ptr) + StringSpaceUsedExcludingSelfLong(*ptr);
+              } else {
+                // Initially, the string points to the default value stored
+                // in the prototype. Only count the string if it has been
+                // changed from the default value.
+                // Except oneof fields, those never point to a default instance,
+                // and there is no default instance to point to.
+                const auto& str = GetField<ArenaStringPtr>(message, field);
+                if (!str.IsDefault() || schema_.InRealOneof(field)) {
+                  // string fields are represented by just a pointer, so also
+                  // include sizeof(string) as well.
+                  total_size += sizeof(TProtoStringType) +
+                                StringSpaceUsedExcludingSelfLong(str.Get());
+                }
               }
               break;
-            }
           }
           break;
         }
@@ -389,7 +442,19 @@ size_t Reflection::SpaceUsedLong(const Message& message) const {
       }
     }
   }
+#ifndef PROTOBUF_FUZZ_MESSAGE_SPACE_USED_LONG
   return total_size;
+#else
+  // Use both `this` and `dummy` to generate the seed so that the scale factor
+  // is both per-object and non-predictable, but consistent across multiple
+  // calls in the same binary.
+  static bool dummy;
+  uintptr_t seed =
+      reinterpret_cast<uintptr_t>(&dummy) ^ reinterpret_cast<uintptr_t>(this);
+  // Fuzz the size by +/- 50%.
+  double scale = (static_cast<double>(seed % 10000) / 10000) + 0.5;
+  return total_size * scale;
+#endif
 }
 
 namespace {
@@ -444,7 +509,7 @@ struct OneofFieldMover {
         }
         break;
       default:
-        GOOGLE_LOG(FATAL) << "unimplemented type: " << field->cpp_type();
+        Y_ABSL_LOG(FATAL) << "unimplemented type: " << field->cpp_type();
     }
     if (unsafe_shallow_swap) {
       // Not clearing oneof case after move may cause unwanted "ClearOneof"
@@ -478,8 +543,7 @@ class SwapFieldHelper {
   static void SwapStringField(const Reflection* r, Message* lhs, Message* rhs,
                               const FieldDescriptor* field);
 
-  static void SwapArenaStringPtr(const TProtoStringType* default_ptr,
-                                 ArenaStringPtr* lhs, Arena* lhs_arena,
+  static void SwapArenaStringPtr(ArenaStringPtr* lhs, Arena* lhs_arena,
                                  ArenaStringPtr* rhs, Arena* rhs_arena);
 
   template <bool unsafe_shallow_swap>
@@ -494,6 +558,10 @@ class SwapFieldHelper {
   static void SwapMessage(const Reflection* r, Message* lhs, Arena* lhs_arena,
                           Message* rhs, Arena* rhs_arena,
                           const FieldDescriptor* field);
+
+  static void SwapNonMessageNonStringField(const Reflection* r, Message* lhs,
+                                           Message* rhs,
+                                           const FieldDescriptor* field);
 };
 
 template <bool unsafe_shallow_swap>
@@ -524,21 +592,26 @@ void SwapFieldHelper::SwapInlinedStrings(const Reflection* r, Message* lhs,
   Arena* rhs_arena = rhs->GetArenaForAllocation();
   auto* lhs_string = r->MutableRaw<InlinedStringField>(lhs, field);
   auto* rhs_string = r->MutableRaw<InlinedStringField>(rhs, field);
-  const uint32 index = r->schema_.InlinedStringIndex(field);
-  uint32* lhs_state = &r->MutableInlinedStringDonatedArray(lhs)[index / 32];
-  uint32* rhs_state = &r->MutableInlinedStringDonatedArray(rhs)[index / 32];
-  const uint32 mask = ~(static_cast<uint32>(1) << (index % 32));
+  arc_ui32 index = r->schema_.InlinedStringIndex(field);
+  Y_ABSL_DCHECK_GT(index, 0);
+  arc_ui32* lhs_array = r->MutableInlinedStringDonatedArray(lhs);
+  arc_ui32* rhs_array = r->MutableInlinedStringDonatedArray(rhs);
+  arc_ui32* lhs_state = &lhs_array[index / 32];
+  arc_ui32* rhs_state = &rhs_array[index / 32];
+  bool lhs_arena_dtor_registered = (lhs_array[0] & 0x1u) == 0;
+  bool rhs_arena_dtor_registered = (rhs_array[0] & 0x1u) == 0;
+  const arc_ui32 mask = ~(static_cast<arc_ui32>(1) << (index % 32));
   if (unsafe_shallow_swap || lhs_arena == rhs_arena) {
-    lhs_string->Swap(rhs_string, /*default_value=*/nullptr, lhs_arena,
-                     r->IsInlinedStringDonated(*lhs, field),
-                     r->IsInlinedStringDonated(*rhs, field),
-                     /*donating_states=*/lhs_state, rhs_state, mask);
+    InlinedStringField::InternalSwap(lhs_string, lhs_arena,
+                                     lhs_arena_dtor_registered, lhs, rhs_string,
+                                     rhs_arena, rhs_arena_dtor_registered, rhs);
   } else {
     const TProtoStringType temp = lhs_string->Get();
-    lhs_string->Set(nullptr, rhs_string->Get(), lhs_arena,
-                    r->IsInlinedStringDonated(*lhs, field), lhs_state, mask);
-    rhs_string->Set(nullptr, temp, rhs_arena,
-                    r->IsInlinedStringDonated(*rhs, field), rhs_state, mask);
+    lhs_string->Set(rhs_string->Get(), lhs_arena,
+                    r->IsInlinedStringDonated(*lhs, field), lhs_state, mask,
+                    lhs);
+    rhs_string->Set(temp, rhs_arena, r->IsInlinedStringDonated(*rhs, field),
+                    rhs_state, mask, rhs);
   }
 }
 
@@ -552,8 +625,7 @@ void SwapFieldHelper::SwapNonInlinedStrings(const Reflection* r, Message* lhs,
     ArenaStringPtr::UnsafeShallowSwap(lhs_string, rhs_string);
   } else {
     SwapFieldHelper::SwapArenaStringPtr(
-        r->DefaultRaw<ArenaStringPtr>(field).GetPointer(),  //
-        lhs_string, lhs->GetArenaForAllocation(),           //
+        lhs_string, lhs->GetArenaForAllocation(),  //
         rhs_string, rhs->GetArenaForAllocation());
   }
 }
@@ -577,28 +649,27 @@ void SwapFieldHelper::SwapStringField(const Reflection* r, Message* lhs,
   }
 }
 
-void SwapFieldHelper::SwapArenaStringPtr(const TProtoStringType* default_ptr,
-                                         ArenaStringPtr* lhs, Arena* lhs_arena,
+void SwapFieldHelper::SwapArenaStringPtr(ArenaStringPtr* lhs, Arena* lhs_arena,
                                          ArenaStringPtr* rhs,
                                          Arena* rhs_arena) {
   if (lhs_arena == rhs_arena) {
-    ArenaStringPtr::InternalSwap(default_ptr, lhs, lhs_arena, rhs, rhs_arena);
-  } else if (lhs->IsDefault(default_ptr) && rhs->IsDefault(default_ptr)) {
+    ArenaStringPtr::InternalSwap(lhs, lhs_arena, rhs, rhs_arena);
+  } else if (lhs->IsDefault() && rhs->IsDefault()) {
     // Nothing to do.
-  } else if (lhs->IsDefault(default_ptr)) {
-    lhs->Set(default_ptr, rhs->Get(), lhs_arena);
+  } else if (lhs->IsDefault()) {
+    lhs->Set(rhs->Get(), lhs_arena);
     // rhs needs to be destroyed before overwritten.
-    rhs->Destroy(default_ptr, rhs_arena);
-    rhs->UnsafeSetDefault(default_ptr);
-  } else if (rhs->IsDefault(default_ptr)) {
-    rhs->Set(default_ptr, lhs->Get(), rhs_arena);
+    rhs->Destroy();
+    rhs->InitDefault();
+  } else if (rhs->IsDefault()) {
+    rhs->Set(lhs->Get(), rhs_arena);
     // lhs needs to be destroyed before overwritten.
-    lhs->Destroy(default_ptr, lhs_arena);
-    lhs->UnsafeSetDefault(default_ptr);
+    lhs->Destroy();
+    lhs->InitDefault();
   } else {
     TProtoStringType temp = lhs->Get();
-    lhs->Set(default_ptr, rhs->Get(), lhs_arena);
-    rhs->Set(default_ptr, std::move(temp), rhs_arena);
+    lhs->Set(rhs->Get(), lhs_arena);
+    rhs->Set(std::move(temp), rhs_arena);
   }
 }
 
@@ -673,6 +744,30 @@ void SwapFieldHelper::SwapMessage(const Reflection* r, Message* lhs,
   }
 }
 
+void SwapFieldHelper::SwapNonMessageNonStringField(
+    const Reflection* r, Message* lhs, Message* rhs,
+    const FieldDescriptor* field) {
+  switch (field->cpp_type()) {
+#define SWAP_VALUES(CPPTYPE, TYPE)               \
+  case FieldDescriptor::CPPTYPE_##CPPTYPE:       \
+    std::swap(*r->MutableRaw<TYPE>(lhs, field),  \
+              *r->MutableRaw<TYPE>(rhs, field)); \
+    break;
+
+    SWAP_VALUES(INT32, arc_i32);
+    SWAP_VALUES(INT64, arc_i64);
+    SWAP_VALUES(UINT32, arc_ui32);
+    SWAP_VALUES(UINT64, arc_ui64);
+    SWAP_VALUES(FLOAT, float);
+    SWAP_VALUES(DOUBLE, double);
+    SWAP_VALUES(BOOL, bool);
+    SWAP_VALUES(ENUM, int);
+#undef SWAP_VALUES
+    default:
+      Y_ABSL_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
+  }
+}
+
 }  // namespace internal
 
 void Reflection::SwapField(Message* message1, Message* message2,
@@ -705,25 +800,10 @@ void Reflection::SwapField(Message* message1, Message* message2,
         break;
 
       default:
-        GOOGLE_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
+        Y_ABSL_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
     }
   } else {
     switch (field->cpp_type()) {
-#define SWAP_VALUES(CPPTYPE, TYPE)                 \
-  case FieldDescriptor::CPPTYPE_##CPPTYPE:         \
-    std::swap(*MutableRaw<TYPE>(message1, field),  \
-              *MutableRaw<TYPE>(message2, field)); \
-    break;
-
-      SWAP_VALUES(INT32, arc_i32);
-      SWAP_VALUES(INT64, arc_i64);
-      SWAP_VALUES(UINT32, arc_ui32);
-      SWAP_VALUES(UINT64, arc_ui64);
-      SWAP_VALUES(FLOAT, float);
-      SWAP_VALUES(DOUBLE, double);
-      SWAP_VALUES(BOOL, bool);
-      SWAP_VALUES(ENUM, int);
-#undef SWAP_VALUES
       case FieldDescriptor::CPPTYPE_MESSAGE:
         internal::SwapFieldHelper::SwapMessageField<false>(this, message1,
                                                            message2, field);
@@ -733,9 +813,9 @@ void Reflection::SwapField(Message* message1, Message* message2,
         internal::SwapFieldHelper::SwapStringField<false>(this, message1,
                                                           message2, field);
         break;
-
       default:
-        GOOGLE_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
+        internal::SwapFieldHelper::SwapNonMessageNonStringField(
+            this, message1, message2, field);
     }
   }
 }
@@ -750,7 +830,8 @@ void Reflection::UnsafeShallowSwapField(Message* message1, Message* message2,
       internal::SwapFieldHelper::SwapStringField<true>(this, message1, message2,
                                                        field);
     } else {
-      SwapField(message1, message2, field);
+      internal::SwapFieldHelper::SwapNonMessageNonStringField(this, message1,
+                                                              message2, field);
     }
     return;
   }
@@ -782,7 +863,7 @@ void Reflection::UnsafeShallowSwapField(Message* message1, Message* message2,
       break;
 
     default:
-      GOOGLE_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
+      Y_ABSL_LOG(FATAL) << "Unimplemented type: " << field->cpp_type();
   }
 }
 
@@ -876,9 +957,9 @@ void Reflection::SwapOneofField(Message* lhs, Message* rhs,
     const FieldDescriptor* field;
   };
 
-  GOOGLE_DCHECK(!oneof_descriptor->is_synthetic());
-  uint32 oneof_case_lhs = GetOneofCase(*lhs, oneof_descriptor);
-  uint32 oneof_case_rhs = GetOneofCase(*rhs, oneof_descriptor);
+  Y_ABSL_DCHECK(!oneof_descriptor->is_synthetic());
+  arc_ui32 oneof_case_lhs = GetOneofCase(*lhs, oneof_descriptor);
+  arc_ui32 oneof_case_rhs = GetOneofCase(*rhs, oneof_descriptor);
 
   LocalVarWrapper temp;
   MessageWrapper lhs_wrapper, rhs_wrapper;
@@ -917,7 +998,7 @@ void Reflection::Swap(Message* message1, Message* message2) const {
   if (message1 == message2) return;
 
   // TODO(kenton):  Other Reflection methods should probably check this too.
-  GOOGLE_CHECK_EQ(message1->GetReflection(), this)
+  Y_ABSL_CHECK_EQ(message1->GetReflection(), this)
       << "First argument to Swap() (of type \""
       << message1->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
@@ -925,7 +1006,7 @@ void Reflection::Swap(Message* message1, Message* message2) const {
       << descriptor_->full_name()
       << "\").  Note that the exact same class is required; not just the same "
          "descriptor.";
-  GOOGLE_CHECK_EQ(message2->GetReflection(), this)
+  Y_ABSL_CHECK_EQ(message2->GetReflection(), this)
       << "Second argument to Swap() (of type \""
       << message2->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
@@ -962,8 +1043,6 @@ void Reflection::Swap(Message* message1, Message* message2) const {
     return;
   }
 
-  GOOGLE_DCHECK_EQ(message1->GetOwningArena(), message2->GetOwningArena());
-
   UnsafeArenaSwap(message1, message2);
 }
 
@@ -974,7 +1053,7 @@ void Reflection::SwapFieldsImpl(
   if (message1 == message2) return;
 
   // TODO(kenton):  Other Reflection methods should probably check this too.
-  GOOGLE_CHECK_EQ(message1->GetReflection(), this)
+  Y_ABSL_CHECK_EQ(message1->GetReflection(), this)
       << "First argument to SwapFields() (of type \""
       << message1->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
@@ -982,7 +1061,7 @@ void Reflection::SwapFieldsImpl(
       << descriptor_->full_name()
       << "\").  Note that the exact same class is required; not just the same "
          "descriptor.";
-  GOOGLE_CHECK_EQ(message2->GetReflection(), this)
+  Y_ABSL_CHECK_EQ(message2->GetReflection(), this)
       << "Second argument to SwapFields() (of type \""
       << message2->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
@@ -991,15 +1070,11 @@ void Reflection::SwapFieldsImpl(
       << "\").  Note that the exact same class is required; not just the same "
          "descriptor.";
 
-  std::set<int> swapped_oneof;
-
-  GOOGLE_DCHECK(!unsafe_shallow_swap || message1->GetArenaForAllocation() ==
-                                     message2->GetArenaForAllocation());
+  y_absl::flat_hash_set<int> swapped_oneof;
 
   const Message* prototype =
       message_factory_->GetPrototype(message1->GetDescriptor());
   for (const auto* field : fields) {
-    CheckInvalidAccess(schema_, field);
     if (field->is_extension()) {
       if (unsafe_shallow_swap) {
         MutableExtensionSet(message1)->UnsafeShallowSwapExtension(
@@ -1012,10 +1087,9 @@ void Reflection::SwapFieldsImpl(
       if (schema_.InRealOneof(field)) {
         int oneof_index = field->containing_oneof()->index();
         // Only swap the oneof field once.
-        if (swapped_oneof.find(oneof_index) != swapped_oneof.end()) {
+        if (!swapped_oneof.insert(oneof_index).second) {
           continue;
         }
-        swapped_oneof.insert(oneof_index);
         SwapOneofField<unsafe_shallow_swap>(message1, message2,
                                             field->containing_oneof());
       } else {
@@ -1030,6 +1104,13 @@ void Reflection::SwapFieldsImpl(
         // may depend on the information in has bits.
         if (!field->is_repeated()) {
           SwapBit(message1, message2, field);
+          if (field->options().ctype() == FieldOptions::STRING &&
+              IsInlined(field)) {
+            Y_ABSL_DCHECK(!unsafe_shallow_swap ||
+                        message1->GetArenaForAllocation() ==
+                            message2->GetArenaForAllocation());
+            SwapInlinedStringDonated(message1, message2, field);
+          }
         }
       }
     }
@@ -1045,13 +1126,16 @@ void Reflection::SwapFields(
 void Reflection::UnsafeShallowSwapFields(
     Message* message1, Message* message2,
     const std::vector<const FieldDescriptor*>& fields) const {
+  Y_ABSL_DCHECK_EQ(message1->GetArenaForAllocation(),
+                 message2->GetArenaForAllocation());
+
   SwapFieldsImpl<true>(message1, message2, fields);
 }
 
 void Reflection::UnsafeArenaSwapFields(
     Message* lhs, Message* rhs,
     const std::vector<const FieldDescriptor*>& fields) const {
-  GOOGLE_DCHECK_EQ(lhs->GetArenaForAllocation(), rhs->GetArenaForAllocation());
+  Y_ABSL_DCHECK_EQ(lhs->GetArenaForAllocation(), rhs->GetArenaForAllocation());
   UnsafeShallowSwapFields(lhs, rhs, fields);
 }
 
@@ -1061,7 +1145,6 @@ bool Reflection::HasField(const Message& message,
                           const FieldDescriptor* field) const {
   USAGE_CHECK_MESSAGE_TYPE(HasField);
   USAGE_CHECK_SINGULAR(HasField);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     return GetExtensionSet(message).Has(field->number());
@@ -1075,6 +1158,11 @@ bool Reflection::HasField(const Message& message,
 }
 
 void Reflection::UnsafeArenaSwap(Message* lhs, Message* rhs) const {
+  Y_ABSL_DCHECK_EQ(lhs->GetOwningArena(), rhs->GetOwningArena());
+  InternalSwap(lhs, rhs);
+}
+
+void Reflection::InternalSwap(Message* lhs, Message* rhs) const {
   if (lhs == rhs) return;
 
   MutableInternalMetadata(lhs)->InternalSwap(MutableInternalMetadata(rhs));
@@ -1082,8 +1170,13 @@ void Reflection::UnsafeArenaSwap(Message* lhs, Message* rhs) const {
   for (int i = 0; i <= last_non_weak_field_index_; i++) {
     const FieldDescriptor* field = descriptor_->field(i);
     if (schema_.InRealOneof(field)) continue;
-    if (schema_.IsFieldStripped(field)) continue;
+    if (schema_.IsSplit(field)) {
+      continue;
+    }
     UnsafeShallowSwapField(lhs, rhs, field);
+  }
+  if (schema_.IsSplit()) {
+    std::swap(*MutableSplitField(lhs), *MutableSplitField(rhs));
   }
   const int oneof_decl_count = descriptor_->oneof_decl_count();
   for (int i = 0; i < oneof_decl_count; i++) {
@@ -1096,8 +1189,8 @@ void Reflection::UnsafeArenaSwap(Message* lhs, Message* rhs) const {
   // Swapping bits need to happen after swapping fields, because the latter may
   // depend on the has bit information.
   if (schema_.HasHasbits()) {
-    uint32* lhs_has_bits = MutableHasBits(lhs);
-    uint32* rhs_has_bits = MutableHasBits(rhs);
+    arc_ui32* lhs_has_bits = MutableHasBits(lhs);
+    arc_ui32* rhs_has_bits = MutableHasBits(rhs);
 
     int fields_with_has_bits = 0;
     for (int i = 0; i < descriptor_->field_count(); i++) {
@@ -1115,6 +1208,32 @@ void Reflection::UnsafeArenaSwap(Message* lhs, Message* rhs) const {
     }
   }
 
+  if (schema_.HasInlinedString()) {
+    arc_ui32* lhs_donated_array = MutableInlinedStringDonatedArray(lhs);
+    arc_ui32* rhs_donated_array = MutableInlinedStringDonatedArray(rhs);
+    int inlined_string_count = 0;
+    for (int i = 0; i < descriptor_->field_count(); i++) {
+      const FieldDescriptor* field = descriptor_->field(i);
+      if (field->is_extension() || field->is_repeated() ||
+          schema_.InRealOneof(field) ||
+          field->options().ctype() != FieldOptions::STRING ||
+          !IsInlined(field)) {
+        continue;
+      }
+      inlined_string_count++;
+    }
+
+    int donated_array_size = inlined_string_count == 0
+                                 ? 0
+                                 // One extra bit for the arena dtor tracking.
+                                 : (inlined_string_count + 1 + 31) / 32;
+    Y_ABSL_CHECK_EQ((lhs_donated_array[0] & 0x1u) == 0,
+                  (rhs_donated_array[0] & 0x1u) == 0);
+    for (int i = 0; i < donated_array_size; i++) {
+      std::swap(lhs_donated_array[i], rhs_donated_array[i]);
+    }
+  }
+
   if (schema_.HasExtensionSet()) {
     MutableExtensionSet(lhs)->InternalSwap(MutableExtensionSet(rhs));
   }
@@ -1124,7 +1243,6 @@ int Reflection::FieldSize(const Message& message,
                           const FieldDescriptor* field) const {
   USAGE_CHECK_MESSAGE_TYPE(FieldSize);
   USAGE_CHECK_REPEATED(FieldSize);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     return GetExtensionSet(message).ExtensionSize(field->number());
@@ -1161,7 +1279,7 @@ int Reflection::FieldSize(const Message& message,
         }
     }
 
-    GOOGLE_LOG(FATAL) << "Can't get here.";
+    Y_ABSL_LOG(FATAL) << "Can't get here.";
     return 0;
   }
 }
@@ -1169,7 +1287,6 @@ int Reflection::FieldSize(const Message& message,
 void Reflection::ClearField(Message* message,
                             const FieldDescriptor* field) const {
   USAGE_CHECK_MESSAGE_TYPE(ClearField);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     MutableExtensionSet(message)->ClearExtension(field->number());
@@ -1205,20 +1322,17 @@ void Reflection::ClearField(Message* message,
         case FieldDescriptor::CPPTYPE_STRING: {
           switch (field->options().ctype()) {
             default:  // TODO(kenton):  Support other string reps.
-            case FieldOptions::STRING: {
+            case FieldOptions::STRING:
               if (IsInlined(field)) {
                 // Currently, string with default value can't be inlined. So we
                 // don't have to handle default value here.
                 MutableRaw<InlinedStringField>(message, field)->ClearToEmpty();
-                break;
+              } else {
+                auto* str = MutableRaw<ArenaStringPtr>(message, field);
+                str->Destroy();
+                str->InitDefault();
               }
-              const TProtoStringType* default_ptr =
-                  DefaultRaw<ArenaStringPtr>(field).GetPointer();
-              MutableRaw<ArenaStringPtr>(message, field)
-                  ->SetAllocated(default_ptr, nullptr,
-                                 message->GetArenaForAllocation());
               break;
-            }
           }
           break;
         }
@@ -1283,7 +1397,6 @@ void Reflection::RemoveLast(Message* message,
                             const FieldDescriptor* field) const {
   USAGE_CHECK_MESSAGE_TYPE(RemoveLast);
   USAGE_CHECK_REPEATED(RemoveLast);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     MutableExtensionSet(message)->RemoveLast(field->number());
@@ -1331,7 +1444,6 @@ void Reflection::RemoveLast(Message* message,
 Message* Reflection::ReleaseLast(Message* message,
                                  const FieldDescriptor* field) const {
   USAGE_CHECK_ALL(ReleaseLast, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   Message* released;
   if (field->is_extension()) {
@@ -1357,7 +1469,6 @@ Message* Reflection::ReleaseLast(Message* message,
 Message* Reflection::UnsafeArenaReleaseLast(
     Message* message, const FieldDescriptor* field) const {
   USAGE_CHECK_ALL(UnsafeArenaReleaseLast, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     return static_cast<Message*>(
@@ -1378,7 +1489,6 @@ void Reflection::SwapElements(Message* message, const FieldDescriptor* field,
                               int index1, int index2) const {
   USAGE_CHECK_MESSAGE_TYPE(Swap);
   USAGE_CHECK_REPEATED(Swap);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     MutableExtensionSet(message)->SwapElements(field->number(), index1, index2);
@@ -1425,7 +1535,7 @@ struct FieldNumberSorter {
 };
 
 bool IsIndexInHasBitSet(const arc_ui32* has_bit_set, arc_ui32 has_bit_index) {
-  GOOGLE_DCHECK_NE(has_bit_index, ~0u);
+  Y_ABSL_DCHECK_NE(has_bit_index, ~0u);
   return ((has_bit_set[has_bit_index / 32] >> (has_bit_index % 32)) &
           static_cast<arc_ui32>(1)) != 0;
 }
@@ -1433,6 +1543,13 @@ bool IsIndexInHasBitSet(const arc_ui32* has_bit_set, arc_ui32 has_bit_index) {
 bool CreateUnknownEnumValues(const FileDescriptor* file) {
   return file->syntax() == FileDescriptor::SYNTAX_PROTO3;
 }
+
+void CheckInOrder(const FieldDescriptor* field, arc_ui32* last) {
+  *last = *last <= static_cast<arc_ui32>(field->number())
+              ? static_cast<arc_ui32>(field->number())
+              : UINT32_MAX;
+}
+
 }  // namespace
 
 namespace internal {
@@ -1443,9 +1560,8 @@ bool CreateUnknownEnumValues(const FieldDescriptor* field) {
 }  // namespace internal
 using internal::CreateUnknownEnumValues;
 
-void Reflection::ListFieldsMayFailOnStripped(
-    const Message& message, bool should_fail,
-    std::vector<const FieldDescriptor*>* output) const {
+void Reflection::ListFields(const Message& message,
+                            std::vector<const FieldDescriptor*>* output) const {
   output->clear();
 
   // Optimization:  The default instance never has any fields set.
@@ -1461,14 +1577,17 @@ void Reflection::ListFieldsMayFailOnStripped(
   const arc_ui32* const has_bits_indices = schema_.has_bit_indices_;
   output->reserve(descriptor_->field_count());
   const int last_non_weak_field_index = last_non_weak_field_index_;
+  // Fields in messages are usually added with the increasing tags.
+  arc_ui32 last = 0;  // UINT32_MAX if out-of-order
+  auto append_to_output = [&last, &output](const FieldDescriptor* field) {
+    CheckInOrder(field, &last);
+    output->push_back(field);
+  };
   for (int i = 0; i <= last_non_weak_field_index; i++) {
     const FieldDescriptor* field = descriptor_->field(i);
-    if (!should_fail && schema_.IsFieldStripped(field)) {
-      continue;
-    }
     if (field->is_repeated()) {
       if (FieldSize(message, field) > 0) {
-        output->push_back(field);
+        append_to_output(field);
       }
     } else {
       const OneofDescriptor* containing_oneof = field->containing_oneof();
@@ -1479,36 +1598,43 @@ void Reflection::ListFieldsMayFailOnStripped(
         // Equivalent to: HasOneofField(message, field)
         if (static_cast<arc_i64>(oneof_case_array[containing_oneof->index()]) ==
             field->number()) {
-          output->push_back(field);
+          append_to_output(field);
         }
       } else if (has_bits && has_bits_indices[i] != static_cast<arc_ui32>(-1)) {
-        CheckInvalidAccess(schema_, field);
         // Equivalent to: HasBit(message, field)
         if (IsIndexInHasBitSet(has_bits, has_bits_indices[i])) {
-          output->push_back(field);
+          append_to_output(field);
         }
       } else if (HasBit(message, field)) {  // Fall back on proto3-style HasBit.
-        output->push_back(field);
+        append_to_output(field);
       }
     }
   }
+  // Descriptors of ExtensionSet are appended in their increasing tag
+  // order and they are usually bigger than the field tags so if all fields are
+  // not sorted, let them be sorted.
+  if (last == UINT32_MAX) {
+    std::sort(output->begin(), output->end(), FieldNumberSorter());
+    last = output->back()->number();
+  }
+  size_t last_size = output->size();
   if (schema_.HasExtensionSet()) {
+    // Descriptors of ExtensionSet are appended in their increasing order.
     GetExtensionSet(message).AppendToList(descriptor_, descriptor_pool_,
                                           output);
+    Y_ABSL_DCHECK(std::is_sorted(output->begin() + last_size, output->end(),
+                               FieldNumberSorter()));
+    if (output->size() != last_size) {
+      CheckInOrder((*output)[last_size], &last);
+    }
   }
-
-  // ListFields() must sort output by field number.
-  std::sort(output->begin(), output->end(), FieldNumberSorter());
-}
-
-void Reflection::ListFields(const Message& message,
-                            std::vector<const FieldDescriptor*>* output) const {
-  ListFieldsMayFailOnStripped(message, true, output);
-}
-
-void Reflection::ListFieldsOmitStripped(
-    const Message& message, std::vector<const FieldDescriptor*>* output) const {
-  ListFieldsMayFailOnStripped(message, false, output);
+  if (last != UINT32_MAX) {
+    Y_ABSL_DCHECK(
+        std::is_sorted(output->begin(), output->end(), FieldNumberSorter()));
+  } else {
+    // ListFields() must sort output by field number.
+    std::sort(output->begin(), output->end(), FieldNumberSorter());
+  }
 }
 
 // -------------------------------------------------------------------
@@ -1597,17 +1723,13 @@ TProtoStringType Reflection::GetString(const Message& message,
     }
     switch (field->options().ctype()) {
       default:  // TODO(kenton):  Support other string reps.
-      case FieldOptions::STRING: {
+      case FieldOptions::STRING:
         if (IsInlined(field)) {
           return GetField<InlinedStringField>(message, field).GetNoArena();
+        } else {
+          const auto& str = GetField<ArenaStringPtr>(message, field);
+          return str.IsDefault() ? field->default_value_string() : str.Get();
         }
-
-        if (auto* value =
-                GetField<ArenaStringPtr>(message, field).GetPointer()) {
-          return *value;
-        }
-        return field->default_value_string();
-      }
     }
   }
 }
@@ -1626,17 +1748,13 @@ const TProtoStringType& Reflection::GetStringReference(const Message& message,
     }
     switch (field->options().ctype()) {
       default:  // TODO(kenton):  Support other string reps.
-      case FieldOptions::STRING: {
+      case FieldOptions::STRING:
         if (IsInlined(field)) {
           return GetField<InlinedStringField>(message, field).GetNoArena();
+        } else {
+          const auto& str = GetField<ArenaStringPtr>(message, field);
+          return str.IsDefault() ? field->default_value_string() : str.Get();
         }
-
-        if (auto* value =
-                GetField<ArenaStringPtr>(message, field).GetPointer()) {
-          return *value;
-        }
-        return field->default_value_string();
-      }
     }
   }
 }
@@ -1654,12 +1772,14 @@ void Reflection::SetString(Message* message, const FieldDescriptor* field,
       case FieldOptions::STRING: {
         if (IsInlined(field)) {
           const arc_ui32 index = schema_.InlinedStringIndex(field);
+          Y_ABSL_DCHECK_GT(index, 0);
           arc_ui32* states =
               &MutableInlinedStringDonatedArray(message)[index / 32];
           arc_ui32 mask = ~(static_cast<arc_ui32>(1) << (index % 32));
           MutableField<InlinedStringField>(message, field)
-              ->Set(nullptr, value, message->GetArenaForAllocation(),
-                    IsInlinedStringDonated(*message, field), states, mask);
+              ->Set(value, message->GetArenaForAllocation(),
+                    IsInlinedStringDonated(*message, field), states, mask,
+                    message);
           break;
         }
 
@@ -1667,18 +1787,12 @@ void Reflection::SetString(Message* message, const FieldDescriptor* field,
         // We just need to pass some arbitrary default string to make it work.
         // This allows us to not have the real default accessible from
         // reflection.
-        const TProtoStringType* default_ptr =
-            schema_.InRealOneof(field)
-                ? nullptr
-                : DefaultRaw<ArenaStringPtr>(field).GetPointer();
         if (schema_.InRealOneof(field) && !HasOneofField(*message, field)) {
           ClearOneof(message, field->containing_oneof());
-          MutableField<ArenaStringPtr>(message, field)
-              ->UnsafeSetDefault(default_ptr);
+          MutableField<ArenaStringPtr>(message, field)->InitDefault();
         }
         MutableField<ArenaStringPtr>(message, field)
-            ->Set(default_ptr, std::move(value),
-                  message->GetArenaForAllocation());
+            ->Set(std::move(value), message->GetArenaForAllocation());
         break;
       }
     }
@@ -1945,7 +2059,6 @@ const Message& Reflection::GetMessage(const Message& message,
                                       const FieldDescriptor* field,
                                       MessageFactory* factory) const {
   USAGE_CHECK_ALL(GetMessage, SINGULAR, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (factory == nullptr) factory = message_factory_;
 
@@ -1968,7 +2081,6 @@ Message* Reflection::MutableMessage(Message* message,
                                     const FieldDescriptor* field,
                                     MessageFactory* factory) const {
   USAGE_CHECK_ALL(MutableMessage, SINGULAR, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (factory == nullptr) factory = message_factory_;
 
@@ -2004,7 +2116,6 @@ void Reflection::UnsafeArenaSetAllocatedMessage(
     Message* message, Message* sub_message,
     const FieldDescriptor* field) const {
   USAGE_CHECK_ALL(SetAllocatedMessage, SINGULAR, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
 
   if (field->is_extension()) {
@@ -2037,9 +2148,9 @@ void Reflection::UnsafeArenaSetAllocatedMessage(
 
 void Reflection::SetAllocatedMessage(Message* message, Message* sub_message,
                                      const FieldDescriptor* field) const {
-  GOOGLE_DCHECK(sub_message == nullptr || sub_message->GetOwningArena() == nullptr ||
-         sub_message->GetOwningArena() == message->GetArenaForAllocation());
-  CheckInvalidAccess(schema_, field);
+  Y_ABSL_DCHECK(
+      sub_message == nullptr || sub_message->GetOwningArena() == nullptr ||
+      sub_message->GetOwningArena() == message->GetArenaForAllocation());
 
   // If message and sub-message are in different memory ownership domains
   // (different arenas, or one is on heap and one is not), then we may need to
@@ -2070,7 +2181,6 @@ Message* Reflection::UnsafeArenaReleaseMessage(Message* message,
                                                const FieldDescriptor* field,
                                                MessageFactory* factory) const {
   USAGE_CHECK_ALL(ReleaseMessage, SINGULAR, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (factory == nullptr) factory = message_factory_;
 
@@ -2099,8 +2209,6 @@ Message* Reflection::UnsafeArenaReleaseMessage(Message* message,
 Message* Reflection::ReleaseMessage(Message* message,
                                     const FieldDescriptor* field,
                                     MessageFactory* factory) const {
-  CheckInvalidAccess(schema_, field);
-
   Message* released = UnsafeArenaReleaseMessage(message, field, factory);
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
   released = MaybeForceCopy(message->GetArenaForAllocation(), released);
@@ -2117,7 +2225,6 @@ const Message& Reflection::GetRepeatedMessage(const Message& message,
                                               const FieldDescriptor* field,
                                               int index) const {
   USAGE_CHECK_ALL(GetRepeatedMessage, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     return static_cast<const Message&>(
@@ -2138,7 +2245,6 @@ Message* Reflection::MutableRepeatedMessage(Message* message,
                                             const FieldDescriptor* field,
                                             int index) const {
   USAGE_CHECK_ALL(MutableRepeatedMessage, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     return static_cast<Message*>(
@@ -2159,7 +2265,6 @@ Message* Reflection::MutableRepeatedMessage(Message* message,
 Message* Reflection::AddMessage(Message* message, const FieldDescriptor* field,
                                 MessageFactory* factory) const {
   USAGE_CHECK_ALL(AddMessage, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (factory == nullptr) factory = message_factory_;
 
@@ -2202,7 +2307,6 @@ void Reflection::AddAllocatedMessage(Message* message,
                                      const FieldDescriptor* field,
                                      Message* new_entry) const {
   USAGE_CHECK_ALL(AddAllocatedMessage, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     MutableExtensionSet(message)->AddAllocatedMessage(field, new_entry);
@@ -2222,7 +2326,6 @@ void Reflection::UnsafeArenaAddAllocatedMessage(Message* message,
                                                 const FieldDescriptor* field,
                                                 Message* new_entry) const {
   USAGE_CHECK_ALL(UnsafeArenaAddAllocatedMessage, REPEATED, MESSAGE);
-  CheckInvalidAccess(schema_, field);
 
   if (field->is_extension()) {
     MutableExtensionSet(message)->UnsafeArenaAddAllocatedMessage(field,
@@ -2246,7 +2349,6 @@ void* Reflection::MutableRawRepeatedField(Message* message,
                                           const Descriptor* desc) const {
   (void)ctype;  // Parameter is used by Google-internal code.
   USAGE_CHECK_REPEATED("MutableRawRepeatedField");
-  CheckInvalidAccess(schema_, field);
 
   if (field->cpp_type() != cpptype &&
       (field->cpp_type() != FieldDescriptor::CPPTYPE_ENUM ||
@@ -2254,7 +2356,7 @@ void* Reflection::MutableRawRepeatedField(Message* message,
     ReportReflectionUsageTypeError(descriptor_, field,
                                    "MutableRawRepeatedField", cpptype);
   if (desc != nullptr)
-    GOOGLE_CHECK_EQ(field->message_type(), desc) << "wrong submessage type";
+    Y_ABSL_CHECK_EQ(field->message_type(), desc) << "wrong submessage type";
   if (field->is_extension()) {
     return MutableExtensionSet(message)->MutableRawRepeatedField(
         field->number(), field->type(), field->is_packed(), field);
@@ -2278,9 +2380,9 @@ const void* Reflection::GetRawRepeatedField(const Message& message,
     ReportReflectionUsageTypeError(descriptor_, field, "GetRawRepeatedField",
                                    cpptype);
   if (ctype >= 0)
-    GOOGLE_CHECK_EQ(field->options().ctype(), ctype) << "subtype mismatch";
+    Y_ABSL_CHECK_EQ(field->options().ctype(), ctype) << "subtype mismatch";
   if (desc != nullptr)
-    GOOGLE_CHECK_EQ(field->message_type(), desc) << "wrong submessage type";
+    Y_ABSL_CHECK_EQ(field->message_type(), desc) << "wrong submessage type";
   if (field->is_extension()) {
     // Should use extension_set::GetRawRepeatedField. However, the required
     // parameter "default repeated value" is not very easy to get here.
@@ -2325,7 +2427,7 @@ bool Reflection::InsertOrLookupMapValue(Message* message,
                                         MapValueRef* val) const {
   USAGE_CHECK(IsMapFieldInApi(field), "InsertOrLookupMapValue",
               "Field is not a map field.");
-  val->SetType(field->message_type()->FindFieldByName("value")->cpp_type());
+  val->SetType(field->message_type()->map_value()->cpp_type());
   return MutableRaw<MapFieldBase>(message, field)
       ->InsertOrLookupMapValue(key, val);
 }
@@ -2335,7 +2437,7 @@ bool Reflection::LookupMapValue(const Message& message,
                                 MapValueConstRef* val) const {
   USAGE_CHECK(IsMapFieldInApi(field), "LookupMapValue",
               "Field is not a map field.");
-  val->SetType(field->message_type()->FindFieldByName("value")->cpp_type());
+  val->SetType(field->message_type()->map_value()->cpp_type());
   return GetRaw<MapFieldBase>(message, field).LookupMapValue(key, val);
 }
 
@@ -2371,7 +2473,7 @@ int Reflection::MapSize(const Message& message,
 // -----------------------------------------------------------------------------
 
 const FieldDescriptor* Reflection::FindKnownExtensionByName(
-    const TProtoStringType& name) const {
+    y_absl::string_view name) const {
   if (!schema_.HasExtensionSet()) return nullptr;
   return descriptor_pool_->FindExtensionByPrintableName(descriptor_, name);
 }
@@ -2395,13 +2497,35 @@ bool Reflection::SupportsUnknownEnumValues() const {
 template <class Type>
 const Type& Reflection::GetRawNonOneof(const Message& message,
                                        const FieldDescriptor* field) const {
+  if (schema_.IsSplit(field)) {
+    return *GetConstPointerAtOffset<Type>(
+        GetSplitField(&message), schema_.GetFieldOffsetNonOneof(field));
+  }
   return GetConstRefAtOffset<Type>(message,
                                    schema_.GetFieldOffsetNonOneof(field));
+}
+
+void Reflection::PrepareSplitMessageForWrite(Message* message) const {
+  Y_ABSL_DCHECK_NE(message, schema_.default_instance_);
+  void** split = MutableSplitField(message);
+  const void* default_split = GetSplitField(schema_.default_instance_);
+  if (*split == default_split) {
+    arc_ui32 size = schema_.SizeofSplit();
+    Arena* arena = message->GetArenaForAllocation();
+    *split = (arena == nullptr) ? ::operator new(size)
+                                : arena->AllocateAligned(size);
+    memcpy(*split, default_split, size);
+  }
 }
 
 template <class Type>
 Type* Reflection::MutableRawNonOneof(Message* message,
                                      const FieldDescriptor* field) const {
+  if (schema_.IsSplit(field)) {
+    PrepareSplitMessageForWrite(message);
+    return GetPointerAtOffset<Type>(*MutableSplitField(message),
+                                    schema_.GetFieldOffsetNonOneof(field));
+  }
   return GetPointerAtOffset<Type>(message,
                                   schema_.GetFieldOffsetNonOneof(field));
 }
@@ -2409,22 +2533,27 @@ Type* Reflection::MutableRawNonOneof(Message* message,
 template <typename Type>
 Type* Reflection::MutableRaw(Message* message,
                              const FieldDescriptor* field) const {
+  if (schema_.IsSplit(field)) {
+    PrepareSplitMessageForWrite(message);
+    return GetPointerAtOffset<Type>(*MutableSplitField(message),
+                                    schema_.GetFieldOffset(field));
+  }
   return GetPointerAtOffset<Type>(message, schema_.GetFieldOffset(field));
 }
 
 const arc_ui32* Reflection::GetHasBits(const Message& message) const {
-  GOOGLE_DCHECK(schema_.HasHasbits());
+  Y_ABSL_DCHECK(schema_.HasHasbits());
   return &GetConstRefAtOffset<arc_ui32>(message, schema_.HasBitsOffset());
 }
 
 arc_ui32* Reflection::MutableHasBits(Message* message) const {
-  GOOGLE_DCHECK(schema_.HasHasbits());
+  Y_ABSL_DCHECK(schema_.HasHasbits());
   return GetPointerAtOffset<arc_ui32>(message, schema_.HasBitsOffset());
 }
 
 arc_ui32* Reflection::MutableOneofCase(
     Message* message, const OneofDescriptor* oneof_descriptor) const {
-  GOOGLE_DCHECK(!oneof_descriptor->is_synthetic());
+  Y_ABSL_DCHECK(!oneof_descriptor->is_synthetic());
   return GetPointerAtOffset<arc_ui32>(
       message, schema_.GetOneofCaseOffset(oneof_descriptor));
 }
@@ -2452,13 +2581,13 @@ InternalMetadata* Reflection::MutableInternalMetadata(Message* message) const {
 
 const arc_ui32* Reflection::GetInlinedStringDonatedArray(
     const Message& message) const {
-  GOOGLE_DCHECK(schema_.HasInlinedString());
+  Y_ABSL_DCHECK(schema_.HasInlinedString());
   return &GetConstRefAtOffset<arc_ui32>(message,
                                         schema_.InlinedStringDonatedOffset());
 }
 
 arc_ui32* Reflection::MutableInlinedStringDonatedArray(Message* message) const {
-  GOOGLE_DCHECK(schema_.HasHasbits());
+  Y_ABSL_DCHECK(schema_.HasInlinedString());
   return GetPointerAtOffset<arc_ui32>(message,
                                       schema_.InlinedStringDonatedOffset());
 }
@@ -2466,20 +2595,57 @@ arc_ui32* Reflection::MutableInlinedStringDonatedArray(Message* message) const {
 // Simple accessors for manipulating _inlined_string_donated_;
 bool Reflection::IsInlinedStringDonated(const Message& message,
                                         const FieldDescriptor* field) const {
-  return IsIndexInHasBitSet(GetInlinedStringDonatedArray(message),
-                            schema_.InlinedStringIndex(field));
+  arc_ui32 index = schema_.InlinedStringIndex(field);
+  Y_ABSL_DCHECK_GT(index, 0);
+  return IsIndexInHasBitSet(GetInlinedStringDonatedArray(message), index);
+}
+
+inline void SetInlinedStringDonated(arc_ui32 index, arc_ui32* array) {
+  array[index / 32] |= (static_cast<arc_ui32>(1) << (index % 32));
+}
+
+inline void ClearInlinedStringDonated(arc_ui32 index, arc_ui32* array) {
+  array[index / 32] &= ~(static_cast<arc_ui32>(1) << (index % 32));
+}
+
+void Reflection::SwapInlinedStringDonated(Message* lhs, Message* rhs,
+                                          const FieldDescriptor* field) const {
+  Arena* lhs_arena = lhs->GetArenaForAllocation();
+  Arena* rhs_arena = rhs->GetArenaForAllocation();
+  // If arenas differ, inined string fields are swapped by copying values.
+  // Donation status should not be swapped.
+  if (lhs_arena != rhs_arena) {
+    return;
+  }
+  bool lhs_donated = IsInlinedStringDonated(*lhs, field);
+  bool rhs_donated = IsInlinedStringDonated(*rhs, field);
+  if (lhs_donated == rhs_donated) {
+    return;
+  }
+  // If one is undonated, both must have already registered ArenaDtor.
+  arc_ui32* lhs_array = MutableInlinedStringDonatedArray(lhs);
+  arc_ui32* rhs_array = MutableInlinedStringDonatedArray(rhs);
+  Y_ABSL_CHECK_EQ(lhs_array[0] & 0x1u, 0u);
+  Y_ABSL_CHECK_EQ(rhs_array[0] & 0x1u, 0u);
+  // Swap donation status bit.
+  arc_ui32 index = schema_.InlinedStringIndex(field);
+  Y_ABSL_DCHECK_GT(index, 0);
+  if (rhs_donated) {
+    SetInlinedStringDonated(index, lhs_array);
+    ClearInlinedStringDonated(index, rhs_array);
+  } else {  // lhs_donated
+    ClearInlinedStringDonated(index, lhs_array);
+    SetInlinedStringDonated(index, rhs_array);
+  }
 }
 
 // Simple accessors for manipulating has_bits_.
 bool Reflection::HasBit(const Message& message,
                         const FieldDescriptor* field) const {
-  GOOGLE_DCHECK(!field->options().weak());
+  Y_ABSL_DCHECK(!field->options().weak());
   if (schema_.HasBitIndex(field) != static_cast<arc_ui32>(-1)) {
     return IsIndexInHasBitSet(GetHasBits(message), schema_.HasBitIndex(field));
   }
-
-  // Intentionally check here because HasBitIndex(field) != -1 means valid.
-  CheckInvalidAccess(schema_, field);
 
   // proto3: no has-bits. All fields present except messages, which are
   // present only if their message-field pointer is non-null.
@@ -2535,13 +2701,13 @@ bool Reflection::HasBit(const Message& message,
         // handled above; avoid warning
         break;
     }
-    GOOGLE_LOG(FATAL) << "Reached impossible case in HasBit().";
+    Y_ABSL_LOG(FATAL) << "Reached impossible case in HasBit().";
     return false;
   }
 }
 
 void Reflection::SetBit(Message* message, const FieldDescriptor* field) const {
-  GOOGLE_DCHECK(!field->options().weak());
+  Y_ABSL_DCHECK(!field->options().weak());
   const arc_ui32 index = schema_.HasBitIndex(field);
   if (index == static_cast<arc_ui32>(-1)) return;
   MutableHasBits(message)[index / 32] |=
@@ -2550,7 +2716,7 @@ void Reflection::SetBit(Message* message, const FieldDescriptor* field) const {
 
 void Reflection::ClearBit(Message* message,
                           const FieldDescriptor* field) const {
-  GOOGLE_DCHECK(!field->options().weak());
+  Y_ABSL_DCHECK(!field->options().weak());
   const arc_ui32 index = schema_.HasBitIndex(field);
   if (index == static_cast<arc_ui32>(-1)) return;
   MutableHasBits(message)[index / 32] &=
@@ -2559,7 +2725,7 @@ void Reflection::ClearBit(Message* message,
 
 void Reflection::SwapBit(Message* message1, Message* message2,
                          const FieldDescriptor* field) const {
-  GOOGLE_DCHECK(!field->options().weak());
+  Y_ABSL_DCHECK(!field->options().weak());
   if (!schema_.HasHasbits()) {
     return;
   }
@@ -2618,8 +2784,7 @@ void Reflection::ClearOneof(Message* message,
               // We just need to pass some arbitrary default string to make it
               // work. This allows us to not have the real default accessible
               // from reflection.
-              MutableField<ArenaStringPtr>(message, field)
-                  ->Destroy(nullptr, message->GetArenaForAllocation());
+              MutableField<ArenaStringPtr>(message, field)->Destroy();
               break;
             }
           }
@@ -2632,6 +2797,7 @@ void Reflection::ClearOneof(Message* message,
         default:
           break;
       }
+    } else {
     }
 
     *MutableOneofCase(message, oneof_descriptor) = 0;
@@ -2753,15 +2919,15 @@ void* Reflection::RepeatedFieldData(Message* message,
                                     const FieldDescriptor* field,
                                     FieldDescriptor::CppType cpp_type,
                                     const Descriptor* message_type) const {
-  GOOGLE_CHECK(field->is_repeated());
-  GOOGLE_CHECK(field->cpp_type() == cpp_type ||
-        (field->cpp_type() == FieldDescriptor::CPPTYPE_ENUM &&
-         cpp_type == FieldDescriptor::CPPTYPE_INT32))
+  Y_ABSL_CHECK(field->is_repeated());
+  Y_ABSL_CHECK(field->cpp_type() == cpp_type ||
+             (field->cpp_type() == FieldDescriptor::CPPTYPE_ENUM &&
+              cpp_type == FieldDescriptor::CPPTYPE_INT32))
       << "The type parameter T in RepeatedFieldRef<T> API doesn't match "
       << "the actual field type (for enums T should be the generated enum "
       << "type or arc_i32).";
   if (message_type != nullptr) {
-    GOOGLE_CHECK_EQ(message_type, field->message_type());
+    Y_ABSL_CHECK_EQ(message_type, field->message_type());
   }
   if (field->is_extension()) {
     return MutableExtensionSet(message)->MutableRawRepeatedField(
@@ -2785,6 +2951,378 @@ const MapFieldBase* Reflection::GetMapData(const Message& message,
   return &(GetRaw<MapFieldBase>(message, field));
 }
 
+template <typename T>
+static arc_ui32 AlignTo(arc_ui32 v) {
+  return (v + alignof(T) - 1) & ~(alignof(T) - 1);
+}
+
+static internal::TailCallParseFunc GetFastParseFunction(
+    y_absl::string_view name) {
+  // This list must be synchronized with TcParser.
+  // Missing entries are replaced with MiniParse in opt mode to avoid runtime
+  // failures. It check-fails in debug mode.
+  static const auto* const map =
+      new y_absl::flat_hash_map<y_absl::string_view, internal::TailCallParseFunc>{
+          {"::_pbi::TcParser::FastF32S1", internal::TcParser::FastF32S1},
+          {"::_pbi::TcParser::FastF32S2", internal::TcParser::FastF32S2},
+          {"::_pbi::TcParser::FastF32R1", internal::TcParser::FastF32R1},
+          {"::_pbi::TcParser::FastF32R2", internal::TcParser::FastF32R2},
+          {"::_pbi::TcParser::FastF32P1", internal::TcParser::FastF32P1},
+          {"::_pbi::TcParser::FastF32P2", internal::TcParser::FastF32P2},
+          {"::_pbi::TcParser::FastF64S1", internal::TcParser::FastF64S1},
+          {"::_pbi::TcParser::FastF64S2", internal::TcParser::FastF64S2},
+          {"::_pbi::TcParser::FastF64R1", internal::TcParser::FastF64R1},
+          {"::_pbi::TcParser::FastF64R2", internal::TcParser::FastF64R2},
+          {"::_pbi::TcParser::FastF64P1", internal::TcParser::FastF64P1},
+          {"::_pbi::TcParser::FastF64P2", internal::TcParser::FastF64P2},
+          {"::_pbi::TcParser::FastV8S1", internal::TcParser::FastV8S1},
+          {"::_pbi::TcParser::FastV8S2", internal::TcParser::FastV8S2},
+          {"::_pbi::TcParser::FastV8R1", internal::TcParser::FastV8R1},
+          {"::_pbi::TcParser::FastV8R2", internal::TcParser::FastV8R2},
+          {"::_pbi::TcParser::FastV8P1", internal::TcParser::FastV8P1},
+          {"::_pbi::TcParser::FastV8P2", internal::TcParser::FastV8P2},
+          {"::_pbi::TcParser::FastV32S1", internal::TcParser::FastV32S1},
+          {"::_pbi::TcParser::FastV32S2", internal::TcParser::FastV32S2},
+          {"::_pbi::TcParser::FastV32R1", internal::TcParser::FastV32R1},
+          {"::_pbi::TcParser::FastV32R2", internal::TcParser::FastV32R2},
+          {"::_pbi::TcParser::FastV32P1", internal::TcParser::FastV32P1},
+          {"::_pbi::TcParser::FastV32P2", internal::TcParser::FastV32P2},
+          {"::_pbi::TcParser::FastV64S1", internal::TcParser::FastV64S1},
+          {"::_pbi::TcParser::FastV64S2", internal::TcParser::FastV64S2},
+          {"::_pbi::TcParser::FastV64R1", internal::TcParser::FastV64R1},
+          {"::_pbi::TcParser::FastV64R2", internal::TcParser::FastV64R2},
+          {"::_pbi::TcParser::FastV64P1", internal::TcParser::FastV64P1},
+          {"::_pbi::TcParser::FastV64P2", internal::TcParser::FastV64P2},
+          {"::_pbi::TcParser::FastZ32S1", internal::TcParser::FastZ32S1},
+          {"::_pbi::TcParser::FastZ32S2", internal::TcParser::FastZ32S2},
+          {"::_pbi::TcParser::FastZ32R1", internal::TcParser::FastZ32R1},
+          {"::_pbi::TcParser::FastZ32R2", internal::TcParser::FastZ32R2},
+          {"::_pbi::TcParser::FastZ32P1", internal::TcParser::FastZ32P1},
+          {"::_pbi::TcParser::FastZ32P2", internal::TcParser::FastZ32P2},
+          {"::_pbi::TcParser::FastZ64S1", internal::TcParser::FastZ64S1},
+          {"::_pbi::TcParser::FastZ64S2", internal::TcParser::FastZ64S2},
+          {"::_pbi::TcParser::FastZ64R1", internal::TcParser::FastZ64R1},
+          {"::_pbi::TcParser::FastZ64R2", internal::TcParser::FastZ64R2},
+          {"::_pbi::TcParser::FastZ64P1", internal::TcParser::FastZ64P1},
+          {"::_pbi::TcParser::FastZ64P2", internal::TcParser::FastZ64P2},
+          {"::_pbi::TcParser::FastErS1", internal::TcParser::FastErS1},
+          {"::_pbi::TcParser::FastErS2", internal::TcParser::FastErS2},
+          {"::_pbi::TcParser::FastErR1", internal::TcParser::FastErR1},
+          {"::_pbi::TcParser::FastErR2", internal::TcParser::FastErR2},
+          {"::_pbi::TcParser::FastErP1", internal::TcParser::FastErP1},
+          {"::_pbi::TcParser::FastErP2", internal::TcParser::FastErP2},
+          {"::_pbi::TcParser::FastEr0S1", internal::TcParser::FastEr0S1},
+          {"::_pbi::TcParser::FastEr0S2", internal::TcParser::FastEr0S2},
+          {"::_pbi::TcParser::FastEr0R1", internal::TcParser::FastEr0R1},
+          {"::_pbi::TcParser::FastEr0R2", internal::TcParser::FastEr0R2},
+          {"::_pbi::TcParser::FastEr0P1", internal::TcParser::FastEr0P1},
+          {"::_pbi::TcParser::FastEr0P2", internal::TcParser::FastEr0P2},
+          {"::_pbi::TcParser::FastEr1S1", internal::TcParser::FastEr1S1},
+          {"::_pbi::TcParser::FastEr1S2", internal::TcParser::FastEr1S2},
+          {"::_pbi::TcParser::FastEr1R1", internal::TcParser::FastEr1R1},
+          {"::_pbi::TcParser::FastEr1R2", internal::TcParser::FastEr1R2},
+          {"::_pbi::TcParser::FastEr1P1", internal::TcParser::FastEr1P1},
+          {"::_pbi::TcParser::FastEr1P2", internal::TcParser::FastEr1P2},
+          {"::_pbi::TcParser::FastEvS1", internal::TcParser::FastEvS1},
+          {"::_pbi::TcParser::FastEvS2", internal::TcParser::FastEvS2},
+          {"::_pbi::TcParser::FastEvR1", internal::TcParser::FastEvR1},
+          {"::_pbi::TcParser::FastEvR2", internal::TcParser::FastEvR2},
+          {"::_pbi::TcParser::FastEvP1", internal::TcParser::FastEvP1},
+          {"::_pbi::TcParser::FastEvP2", internal::TcParser::FastEvP2},
+          {"::_pbi::TcParser::FastBS1", internal::TcParser::FastBS1},
+          {"::_pbi::TcParser::FastBS2", internal::TcParser::FastBS2},
+          {"::_pbi::TcParser::FastBR1", internal::TcParser::FastBR1},
+          {"::_pbi::TcParser::FastBR2", internal::TcParser::FastBR2},
+          {"::_pbi::TcParser::FastSS1", internal::TcParser::FastSS1},
+          {"::_pbi::TcParser::FastSS2", internal::TcParser::FastSS2},
+          {"::_pbi::TcParser::FastSR1", internal::TcParser::FastSR1},
+          {"::_pbi::TcParser::FastSR2", internal::TcParser::FastSR2},
+          {"::_pbi::TcParser::FastUS1", internal::TcParser::FastUS1},
+          {"::_pbi::TcParser::FastUS2", internal::TcParser::FastUS2},
+          {"::_pbi::TcParser::FastUR1", internal::TcParser::FastUR1},
+          {"::_pbi::TcParser::FastUR2", internal::TcParser::FastUR2},
+          {"::_pbi::TcParser::FastBiS1", internal::TcParser::FastBiS1},
+          {"::_pbi::TcParser::FastBiS2", internal::TcParser::FastBiS2},
+          {"::_pbi::TcParser::FastSiS1", internal::TcParser::FastSiS1},
+          {"::_pbi::TcParser::FastSiS2", internal::TcParser::FastSiS2},
+          {"::_pbi::TcParser::FastUiS1", internal::TcParser::FastUiS1},
+          {"::_pbi::TcParser::FastUiS2", internal::TcParser::FastUiS2},
+          {"::_pbi::TcParser::FastBcS1", internal::TcParser::FastBcS1},
+          {"::_pbi::TcParser::FastBcS2", internal::TcParser::FastBcS2},
+          {"::_pbi::TcParser::FastScS1", internal::TcParser::FastScS1},
+          {"::_pbi::TcParser::FastScS2", internal::TcParser::FastScS2},
+          {"::_pbi::TcParser::FastUcS1", internal::TcParser::FastUcS1},
+          {"::_pbi::TcParser::FastUcS2", internal::TcParser::FastUcS2},
+          {"::_pbi::TcParser::FastMdS1", internal::TcParser::FastMdS1},
+          {"::_pbi::TcParser::FastMdS2", internal::TcParser::FastMdS2},
+          {"::_pbi::TcParser::FastGdS1", internal::TcParser::FastGdS1},
+          {"::_pbi::TcParser::FastGdS2", internal::TcParser::FastGdS2},
+          {"::_pbi::TcParser::FastMtS1", internal::TcParser::FastMtS1},
+          {"::_pbi::TcParser::FastMtS2", internal::TcParser::FastMtS2},
+          {"::_pbi::TcParser::FastGtS1", internal::TcParser::FastGtS1},
+          {"::_pbi::TcParser::FastGtS2", internal::TcParser::FastGtS2},
+          {"::_pbi::TcParser::FastMdR1", internal::TcParser::FastMdR1},
+          {"::_pbi::TcParser::FastMdR2", internal::TcParser::FastMdR2},
+          {"::_pbi::TcParser::FastGdR1", internal::TcParser::FastGdR1},
+          {"::_pbi::TcParser::FastGdR2", internal::TcParser::FastGdR2},
+          {"::_pbi::TcParser::FastMtR1", internal::TcParser::FastMtR1},
+          {"::_pbi::TcParser::FastMtR2", internal::TcParser::FastMtR2},
+          {"::_pbi::TcParser::FastGtR1", internal::TcParser::FastGtR1},
+          {"::_pbi::TcParser::FastGtR2", internal::TcParser::FastGtR2},
+          {"::_pbi::TcParser::FastEndG1", internal::TcParser::FastEndG1},
+          {"::_pbi::TcParser::FastEndG2", internal::TcParser::FastEndG2},
+      };
+  auto it = map->find(name);
+  if (it == map->end()) {
+    Y_ABSL_DLOG(FATAL) << "Failed to find function: " << name;
+    // Let's not crash in opt, just in case.
+    // MiniParse is always a valid parser.
+    return &internal::TcParser::MiniParse;
+  }
+  return it->second;
+}
+
+const internal::TcParseTableBase* Reflection::CreateTcParseTableForMessageSet()
+    const {
+  // ParseLoop can't parse message set wire format.
+  // Create a dummy table that only exists to make TcParser::ParseLoop jump
+  // into the reflective parse loop.
+
+  using Table = internal::TcParseTable<0, 0, 0, 0, 1>;
+  // We use `operator new` here because the destruction will be done with
+  // `operator delete` unconditionally.
+  void* p = ::operator new(sizeof(Table));
+  auto* full_table = ::new (p) Table{
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, schema_.default_instance_, nullptr},
+      {{{&internal::TcParser::ReflectionParseLoop, {}}}}};
+  Y_ABSL_DCHECK_EQ(static_cast<void*>(&full_table->header),
+                 static_cast<void*>(full_table));
+  return &full_table->header;
+}
+
+void Reflection::PopulateTcParseFastEntries(
+    const internal::TailCallTableInfo& table_info,
+    TcParseTableBase::FastFieldEntry* fast_entries) const {
+  for (const auto& fast_field : table_info.fast_path_fields) {
+    if (fast_field.field == nullptr) {
+      if (fast_field.func_name.empty()) {
+        // No fast entry here. Use mini parser.
+        *fast_entries++ = {internal::TcParser::MiniParse, {}};
+      } else {
+        // No field, but still a special entry.
+        *fast_entries++ = {GetFastParseFunction(fast_field.func_name),
+                           {fast_field.coded_tag, fast_field.nonfield_info}};
+      }
+    } else if (fast_field.func_name.find("TcParser::FastEv") !=
+               fast_field.func_name.npos) {
+      // We can't use fast parsing for these entries because we can't specify
+      // the validator. Use the reflection based parser called from MiniParse.
+      // TODO(b/239592582): Implement a fast parser for these enums.
+      *fast_entries++ = {internal::TcParser::MiniParse, {}};
+    } else {
+      *fast_entries++ = {
+          GetFastParseFunction(fast_field.func_name),
+          {fast_field.coded_tag, fast_field.hasbit_idx, fast_field.aux_idx,
+           static_cast<uint16_t>(schema_.GetFieldOffset(fast_field.field))}};
+    }
+  }
+}
+
+static void PopulateTcParseLookupTable(
+    const internal::TailCallTableInfo& table_info, uint16_t* lookup_table) {
+  for (const auto& entry_block : table_info.num_to_entry_table.blocks) {
+    *lookup_table++ = entry_block.first_fnum & 0xFFFF;
+    *lookup_table++ = entry_block.first_fnum >> 16;
+    *lookup_table++ = entry_block.entries.size();
+    for (auto se16 : entry_block.entries) {
+      *lookup_table++ = se16.skipmap;
+      *lookup_table++ = se16.field_entry_offset;
+    }
+  }
+  *lookup_table++ = 0xFFFF;
+  *lookup_table++ = 0xFFFF;
+}
+
+void Reflection::PopulateTcParseEntries(
+    internal::TailCallTableInfo& table_info,
+    TcParseTableBase::FieldEntry* entries) const {
+  for (const auto& entry : table_info.field_entries) {
+    const FieldDescriptor* field = entry.field;
+    if (field->options().weak()) {
+      // Weak fields are handled by the generated fallback function.
+      // (These are handled by legacy Google-internal logic.)
+      *entries = {};
+    } else if (field->type() == field->TYPE_ENUM &&
+               table_info.aux_entries[entry.aux_idx].type ==
+                   internal::TailCallTableInfo::kEnumValidator) {
+      // Mini parse can't handle it. Fallback to reflection.
+      *entries = {};
+      table_info.aux_entries[entry.aux_idx] = {};
+    } else {
+      const OneofDescriptor* oneof = field->real_containing_oneof();
+      entries->offset = schema_.GetFieldOffset(field);
+      if (oneof != nullptr) {
+        entries->has_idx = schema_.oneof_case_offset_ + 4 * oneof->index();
+      } else if (schema_.HasHasbits()) {
+        entries->has_idx =
+            static_cast<int>(8 * schema_.HasBitsOffset() + entry.hasbit_idx);
+      } else {
+        entries->has_idx = 0;
+      }
+      entries->aux_idx = entry.aux_idx;
+      entries->type_card = entry.type_card;
+    }
+
+    ++entries;
+  }
+}
+
+void Reflection::PopulateTcParseFieldAux(
+    const internal::TailCallTableInfo& table_info,
+    TcParseTableBase::FieldAux* field_aux) const {
+  for (const auto& aux_entry : table_info.aux_entries) {
+    switch (aux_entry.type) {
+      case internal::TailCallTableInfo::kNothing:
+        *field_aux++ = {};
+        break;
+      case internal::TailCallTableInfo::kInlinedStringDonatedOffset:
+        field_aux++->offset =
+            static_cast<arc_ui32>(schema_.inlined_string_donated_offset_);
+        break;
+      case internal::TailCallTableInfo::kSplitOffset:
+        field_aux++->offset = schema_.SplitOffset();
+        break;
+      case internal::TailCallTableInfo::kSplitSizeof:
+        field_aux++->offset = schema_.SizeofSplit();
+        break;
+      case internal::TailCallTableInfo::kSubTable:
+      case internal::TailCallTableInfo::kSubMessageWeak:
+        Y_ABSL_LOG(FATAL) << "Not supported";
+        break;
+      case internal::TailCallTableInfo::kSubMessage:
+        field_aux++->message_default_p =
+            GetDefaultMessageInstance(aux_entry.field);
+        break;
+      case internal::TailCallTableInfo::kEnumRange:
+        field_aux++->enum_range = {aux_entry.enum_range.start,
+                                   aux_entry.enum_range.size};
+        break;
+      case internal::TailCallTableInfo::kEnumValidator:
+        Y_ABSL_LOG(FATAL) << "Not supported.";
+        break;
+      case internal::TailCallTableInfo::kNumericOffset:
+        field_aux++->offset = aux_entry.offset;
+        break;
+    }
+  }
+}
+
+const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
+  using TcParseTableBase = internal::TcParseTableBase;
+
+  if (descriptor_->options().message_set_wire_format()) {
+    return CreateTcParseTableForMessageSet();
+  }
+
+  std::vector<const FieldDescriptor*> fields;
+  constexpr int kNoHasbit = -1;
+  std::vector<int> has_bit_indices(
+      static_cast<size_t>(descriptor_->field_count()), kNoHasbit);
+  std::vector<int> inlined_string_indices = has_bit_indices;
+  for (int i = 0; i < descriptor_->field_count(); ++i) {
+    auto* field = descriptor_->field(i);
+    fields.push_back(field);
+    has_bit_indices[static_cast<size_t>(field->index())] =
+        static_cast<int>(schema_.HasBitIndex(field));
+
+    if (IsInlined(field)) {
+      inlined_string_indices[static_cast<size_t>(field->index())] =
+          schema_.InlinedStringIndex(field);
+    }
+  }
+  std::sort(fields.begin(), fields.end(),
+            [](const FieldDescriptor* a, const FieldDescriptor* b) {
+              return a->number() < b->number();
+            });
+
+  class ReflectionOptionProvider final
+      : public internal::TailCallTableInfo::OptionProvider {
+   public:
+    explicit ReflectionOptionProvider(const Reflection& ref) : ref_(ref) {}
+    internal::TailCallTableInfo::PerFieldOptions GetForField(
+        const FieldDescriptor* field) const final {
+      return {ref_.IsLazyField(field),  //
+              ref_.IsInlined(field),    //
+
+              // Only LITE can be implicitly weak.
+              /* is_implicitly_weak */ false,
+
+              // We could change this to use direct table.
+              // Might be easier to do when all messages support TDP.
+              /* use_direct_tcparser_table */ false,
+
+              /* is_lite */ false,  //
+              ref_.schema_.IsSplit(field)};
+    }
+
+   private:
+    const Reflection& ref_;
+  };
+  internal::TailCallTableInfo table_info(
+      descriptor_, fields, ReflectionOptionProvider(*this), has_bit_indices,
+      inlined_string_indices);
+
+  const size_t fast_entries_count = table_info.fast_path_fields.size();
+  Y_ABSL_CHECK_EQ(fast_entries_count, 1 << table_info.table_size_log2);
+  const uint16_t lookup_table_offset = AlignTo<uint16_t>(
+      sizeof(TcParseTableBase) +
+      fast_entries_count * sizeof(TcParseTableBase::FastFieldEntry));
+  const arc_ui32 field_entry_offset = AlignTo<TcParseTableBase::FieldEntry>(
+      lookup_table_offset +
+      sizeof(uint16_t) * table_info.num_to_entry_table.size16());
+  const arc_ui32 aux_offset = AlignTo<TcParseTableBase::FieldAux>(
+      field_entry_offset +
+      sizeof(TcParseTableBase::FieldEntry) * fields.size());
+
+  int byte_size =
+      aux_offset +
+      sizeof(TcParseTableBase::FieldAux) * table_info.aux_entries.size() +
+      sizeof(char) * table_info.field_name_data.size();
+
+  void* p = ::operator new(byte_size);
+  auto* res = ::new (p) TcParseTableBase{
+      static_cast<uint16_t>(schema_.HasHasbits() ? schema_.HasBitsOffset() : 0),
+      // extensions handled through reflection.
+      0, 0, 0,
+      static_cast<arc_ui32>(fields.empty() ? 0 : fields.back()->number()),
+      static_cast<uint8_t>((fast_entries_count - 1) << 3), lookup_table_offset,
+      table_info.num_to_entry_table.skipmap32, field_entry_offset,
+      static_cast<uint16_t>(fields.size()),
+      static_cast<uint16_t>(table_info.aux_entries.size()), aux_offset,
+      schema_.default_instance_, &internal::TcParser::ReflectionFallback};
+
+  // Now copy the rest of the payloads
+  PopulateTcParseFastEntries(table_info, res->fast_entry(0));
+
+  PopulateTcParseLookupTable(table_info, res->field_lookup_begin());
+
+  PopulateTcParseEntries(table_info, res->field_entries_begin());
+
+  PopulateTcParseFieldAux(table_info, res->field_aux(0u));
+
+  // Copy the name data.
+  if (!table_info.field_name_data.empty()) {
+    memcpy(res->name_data(), table_info.field_name_data.data(),
+           table_info.field_name_data.size());
+  }
+  // Validation to make sure we used all the bytes correctly.
+  Y_ABSL_CHECK_EQ(res->name_data() + table_info.field_name_data.size() -
+                    reinterpret_cast<char*>(res),
+                byte_size);
+
+  return res;
+}
+
 namespace {
 
 // Helper function to transform migration schema into reflection schema.
@@ -2793,9 +3331,11 @@ ReflectionSchema MigrationToReflectionSchema(
     MigrationSchema migration_schema) {
   ReflectionSchema result;
   result.default_instance_ = *default_instance;
-  // First 7 offsets are offsets to the special fields. The following offsets
+  // First 9 offsets are offsets to the special fields. The following offsets
   // are the proto fields.
-  result.offsets_ = offsets + migration_schema.offsets_index + 6;
+  //
+  // TODO(congliu): Find a way to not encode sizeof_split_ in offsets.
+  result.offsets_ = offsets + migration_schema.offsets_index + 8;
   result.has_bit_indices_ = offsets + migration_schema.has_bit_indices_index;
   result.has_bits_offset_ = offsets[migration_schema.offsets_index + 0];
   result.metadata_offset_ = offsets[migration_schema.offsets_index + 1];
@@ -2805,6 +3345,8 @@ ReflectionSchema MigrationToReflectionSchema(
   result.weak_field_map_offset_ = offsets[migration_schema.offsets_index + 4];
   result.inlined_string_donated_offset_ =
       offsets[migration_schema.offsets_index + 5];
+  result.split_offset_ = offsets[migration_schema.offsets_index + 6];
+  result.sizeof_split_ = offsets[migration_schema.offsets_index + 7];
   result.inlined_string_indices_ =
       offsets + migration_schema.inlined_string_indices_index;
   return result;
@@ -2891,7 +3433,7 @@ struct MetadataOwner {
  private:
   MetadataOwner() = default;  // private because singleton
 
-  WrappedMutex mu_;
+  y_absl::Mutex mu_;
   std::vector<std::pair<const Metadata*, const Metadata*> > metadata_arrays_;
 };
 
@@ -2902,7 +3444,7 @@ void AssignDescriptorsImpl(const DescriptorTable* table, bool eager) {
   {
     // This only happens once per proto file. So a global mutex to serialize
     // calls to AddDescriptors.
-    static WrappedMutex mu{GOOGLE_PROTOBUF_LINKER_INITIALIZED};
+    static y_absl::Mutex mu{y_absl::kConstInit};
     mu.Lock();
     AddDescriptors(table);
     mu.Unlock();
@@ -2930,7 +3472,7 @@ void AssignDescriptorsImpl(const DescriptorTable* table, bool eager) {
   const FileDescriptor* file =
       DescriptorPool::internal_generated_pool()->FindFileByName(
           table->filename);
-  GOOGLE_CHECK(file != nullptr);
+  Y_ABSL_CHECK(file != nullptr);
 
   MessageFactory* factory = MessageFactory::generated_factory();
 
@@ -2997,9 +3539,8 @@ void RegisterAllTypesInternal(const Metadata* file_level_metadata, int size) {
 namespace internal {
 
 Metadata AssignDescriptors(const DescriptorTable* (*table)(),
-                           internal::once_flag* once,
-                           const Metadata& metadata) {
-  call_once(*once, [=] {
+                           y_absl::once_flag* once, const Metadata& metadata) {
+  y_absl::call_once(*once, [=] {
     auto* t = table();
     AssignDescriptorsImpl(t, t->is_eager);
   });
@@ -3009,7 +3550,7 @@ Metadata AssignDescriptors(const DescriptorTable* (*table)(),
 
 void AssignDescriptors(const DescriptorTable* table, bool eager) {
   if (!eager) eager = table->is_eager;
-  call_once(*table->once, AssignDescriptorsImpl, table, eager);
+  y_absl::call_once(*table->once, AssignDescriptorsImpl, table, eager);
 }
 
 AddDescriptorsRunner::AddDescriptorsRunner(const DescriptorTable* table) {
@@ -3027,15 +3568,63 @@ void UnknownFieldSetSerializer(const uint8_t* base, arc_ui32 offset,
   const void* ptr = base + offset;
   const InternalMetadata* metadata = static_cast<const InternalMetadata*>(ptr);
   if (metadata->have_unknown_fields()) {
-    internal::WireFormat::SerializeUnknownFields(
-        metadata->unknown_fields<UnknownFieldSet>(
-            UnknownFieldSet::default_instance),
-        output);
+    metadata->unknown_fields<UnknownFieldSet>(UnknownFieldSet::default_instance)
+        .SerializeToCodedStream(output);
   }
+}
+
+bool IsDescendant(Message& root, const Message& message) {
+  const Reflection* reflection = root.GetReflection();
+  std::vector<const FieldDescriptor*> fields;
+  reflection->ListFields(root, &fields);
+
+  for (const auto* field : fields) {
+    // Skip non-message fields.
+    if (field->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) continue;
+
+    // Optional messages.
+    if (!field->is_repeated()) {
+      Message* sub_message = reflection->MutableMessage(&root, field);
+      if (sub_message == &message || IsDescendant(*sub_message, message)) {
+        return true;
+      }
+      continue;
+    }
+
+    // Repeated messages.
+    if (!IsMapFieldInApi(field)) {
+      int count = reflection->FieldSize(root, field);
+      for (int i = 0; i < count; i++) {
+        Message* sub_message =
+            reflection->MutableRepeatedMessage(&root, field, i);
+        if (sub_message == &message || IsDescendant(*sub_message, message)) {
+          return true;
+        }
+      }
+      continue;
+    }
+
+    // Map field: if accessed as repeated fields, messages are *copied* and
+    // matching pointer won't work. Must directly access map.
+    constexpr int kValIdx = 1;
+    const FieldDescriptor* val_field = field->message_type()->field(kValIdx);
+    // Skip map fields whose value type is not message.
+    if (val_field->cpp_type() != FieldDescriptor::CPPTYPE_MESSAGE) continue;
+
+    MapIterator end = reflection->MapEnd(&root, field);
+    for (auto iter = reflection->MapBegin(&root, field); iter != end; ++iter) {
+      Message* sub_message = iter.MutableValueRef()->MutableMessageValue();
+      if (sub_message == &message || IsDescendant(*sub_message, message)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

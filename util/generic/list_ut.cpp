@@ -11,4 +11,4 @@ Y_UNIT_TEST_SUITE(TYListSuite) {
         expected.push_back(6);
         UNIT_ASSERT_VALUES_EQUAL(l, expected);
     }
-}
+} // Y_UNIT_TEST_SUITE(TYListSuite)

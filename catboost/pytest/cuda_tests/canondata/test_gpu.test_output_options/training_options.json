@@ -276,6 +276,7 @@
             "feature_weights" : { },
             "penalties_coefficient" : 1
         },
+        "random_score_type" : "NormalWithModelSizeDecrease",
         "leaf_estimation_iterations" : 1
     },
     "task_type" : "GPU",

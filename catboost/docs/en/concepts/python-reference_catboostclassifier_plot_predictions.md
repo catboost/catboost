@@ -2,6 +2,8 @@
 
 {% include [plot_predictions-plot_predictions__desc__full](../_includes/work_src/reusage-python/plot_predictions__desc__full.md) %}
 
+{% include [plot_predictions-plot_predictions__call_format](../_includes/work_src/reusage-python/plot_predictions__call_format.md) %}
+
 ## {{ dl--parameters }} {#parameters}
 
 
@@ -15,9 +17,10 @@ For example, use a two-document slice of the original dataset (refer to the exam
 
 **Possible types**
 
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - {{ python_type__scipy-sparse-spmatrix }}
 - {{ python-type--pool }}
 
@@ -30,7 +33,7 @@ For example, use a two-document slice of the original dataset (refer to the exam
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe The list of numerical features to vary the prediction value for.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the The list of numerical features to vary the prediction value for.
 
 For example, chose the required features by selecting top N most important features that impact the prediction results for a pair of objects according to [PredictionDiff](fstr.md#fstr__prediction-diff) (refer to the example below).
 

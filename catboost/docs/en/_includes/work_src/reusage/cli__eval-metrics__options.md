@@ -30,7 +30,7 @@ Possible values:
 
 #### Description
 
-The name of the input file with the [dataset description](../../../concepts/input-data_values-file.md).
+The name of the input file with the [dataset](../../../concepts/input-data_values-file.md).
 
 **{{ cli__params-table__title__default }}**
 
@@ -45,7 +45,7 @@ The path to the input file that contains the [columns description](../../../conc
 
 **{{ cli__params-table__title__default }}**
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 ### --input-pairs
 
@@ -60,6 +60,21 @@ This information is used for the calculation of Pairwise metrics.
 Omitted
 
 Pairwise metrics require pairs of data. If this data is not provided explicitly by specifying this parameter, pairs are generated automatically in each group using object label values
+
+
+### --input-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../../concepts/input-data_graph-description.md) for the dataset.
+
+This information is used for calculation of [](../../../features/graph-aggregated-features.md).
+
+
+**{{ cli__params-table__title__default }}**
+
+Omitted
+
 
 ### -o, --output-path
 
@@ -76,7 +91,7 @@ The path to the output file with [calculated metrics](../../../concepts/output-d
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate metrics.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 
@@ -89,15 +104,11 @@ The number of processor cores
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
-{% note info %}
-
-Used only if the dataset is given in the [Delimiter-separated values format](../../../concepts/input-data_values-file.md).
-
-{% endnote %}
+{% include [note-restriction-delimiter-separated-format](../reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
 **{{ cli__params-table__title__default }}**
 
@@ -108,7 +119,9 @@ The input data is assumed to be tab-separated
 
 #### Description
 
-False (the first line is supposed to have the same data as the rest of them)
+Read the column names from the first line of the dataset file if this parameter is set.
+
+{% include [note-restriction-delimiter-separated-format](../reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
 **{{ cli__params-table__title__default }}**
 

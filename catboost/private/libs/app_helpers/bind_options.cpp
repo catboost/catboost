@@ -92,7 +92,7 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
         .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
-                if (!path.Empty()) {
+                if (!path.empty()) {
                     loadParamsPtr->TestSetPaths.emplace_back(TString{path.Token()}, "dsv");
                 }
             }
@@ -110,6 +110,20 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "dsv-flat");
         });
+
+    parser->AddLongOption("learn-graph", "path to learn dataset graph")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->GraphFilePath = TPathWithScheme(str, "dsv-flat");
+        })
+        .Help("graph is used for calculating aggregation features");
+
+    parser->AddLongOption("test-graph", "path to test dataset graph")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestGraphFilePath = TPathWithScheme(str, "dsv-flat");
+        })
+        .Help("graph is used for calculating aggregation features");
 
     parser->AddLongOption("learn-group-weights", "path to learn group weights")
         .RequiredArgument("[SCHEME://]PATH")
@@ -197,7 +211,7 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
-    const auto allObjectives = GetAllObjectives();
+    auto allObjectives = GetAllObjectives();
     const auto lossFunctionDescription = TString::Join(
         "Should be one of: ",
         JoinSeq(", ", allObjectives),
@@ -205,10 +219,10 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
     parser
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
+        .Handler1T<TString>([plainJsonPtr, allObjectives=std::move(allObjectives)](const auto& value) {
             const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
-            const auto enum_ = FromString<ELossFunction>(lossFunctionName);
-            CB_ENSURE(IsIn(allObjectives, enum_), lossFunctionName + " objective is not known");
+            const auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+            CB_ENSURE(IsIn(allObjectives, lossFunction), lossFunctionName + " objective is not known");
             (*plainJsonPtr)["loss_function"] = value;
         });
 
@@ -248,8 +262,8 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
                 for (const auto& format : StringSplitter(formatsLine).Split(',').SkipEmpty()) {
-                    const auto enum_ = FromString<EModelType>(format.Token());
-                    (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
+                    const auto modelType = FromString<EModelType>(format.Token());
+                    (*plainJsonPtr)["model_format"].AppendValue(ToString(modelType));
                 }
                 CB_ENSURE(!(*plainJsonPtr)["model_format"].GetArray().empty(), "Empty model format list " << formatsLine);
             })
@@ -323,7 +337,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
             TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
-    parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
+    parser.AddLongOption("use-best-model", "If true - save all trees until the best iteration on test.")
         .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
@@ -1128,7 +1142,7 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
         .Handler1T<size_t>([plainJsonPtr](const size_t oneHotMaxSize) {
             (*plainJsonPtr).InsertValue("one_hot_max_size", oneHotMaxSize);
         })
-        .Help("If parameter is specified than features with no more than specified value different values will be converted to float features using one-hot encoding. No ctrs will be calculated on this features.");
+        .Help("Use one-hot encoding for all categorical features with a number of different values less than or equal to the given parameter value. Ctrs are not calculated for such features.");
 }
 
 static void ParseDigitizerDescriptions(TStringBuf descriptionLine, TStringBuf idKey, NJson::TJsonValue* digitizers) {
@@ -1181,7 +1195,11 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .RequiredArgument("{...}")
         .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
-            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+            try {
+                NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"], /*throwOnError*/true);
+            } catch (const NJson::TJsonException& error) {
+                CB_ENSURE(false, "Can't parse text processing JSON: " << error.what());
+            }
         });
 }
 
@@ -1222,7 +1240,7 @@ void BindQuantizerDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJs
             }
             CB_ENSURE(!(*plainJsonPtr)["class_names"].GetArray().empty(), "Empty class names list" << namesLine);
         })
-        .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+        .Help("Takes effect only with classification. Without this parameter classes are 0, 1, ..., classes-count - 1");
 }
 
 void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -1251,7 +1269,7 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
         .Handler1T<int>([plainJsonPtr](const int classesCount) {
             (*plainJsonPtr).InsertValue("classes_count", classesCount);
         })
-        .Help("Takes effect only with MultiClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
+        .Help("Takes effect only with multiclassification. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
 
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
@@ -1261,10 +1279,10 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
             }
             CB_ENSURE(!(*plainJsonPtr)["class_weights"].GetArray().empty(), "Empty class weights list " << weightsLine);
         })
-        .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
+        .Help("Takes effect only with classification. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
     const auto autoClassWeightsHelp = TString::Join(
-        "Takes effect only with MultiClass/LogLoss loss functions. Must be one of: ",
+        "Takes effect only with classification. Must be one of: ",
         GetEnumAllNames<EAutoClassWeightsType>(),
         ". Default: ",
         ToString(EAutoClassWeightsType::None));

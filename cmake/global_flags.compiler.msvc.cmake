@@ -1,3 +1,12 @@
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang
+    AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC"
+    AND "${CMAKE_CXX_SIMULATE_ID}" STREQUAL "MSVC")
+
+  set(_IS_CLANG_CL_COMPILER true)
+else()
+  set(_IS_CLANG_CL_COMPILER false)
+endif()
+
 set(_WARNS_ENABLED
   4018  # 'expression' : signed/unsigned mismatch
   4265  # 'class' : class has virtual functions, but destructor is not virtual
@@ -50,7 +59,6 @@ set (_MSVC_COMMON_C_CXX_FLAGS " \
   /D__STDC_CONSTANT_MACROS \
   /D__STDC_FORMAT_MACROS \
   /D_USING_V110_SDK71_ \
-  /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES \
   /DWIN32_LEAN_AND_MEAN \
   /DNOMINMAX \
   /nologo \
@@ -65,8 +73,12 @@ set (_MSVC_COMMON_C_CXX_FLAGS " \
   /permissive- \
   /D_WIN32_WINNT=0x0601 \
   /D_MBCS \
-  /MP \
 ")
+
+if (NOT _IS_CLANG_CL_COMPILER)
+  # unused by clang-cl
+  string(APPEND _MSVC_COMMON_C_CXX_FLAGS " /MP")
+endif()
 
 if (CMAKE_GENERATOR MATCHES "Visual.Studio.*")
   string(APPEND _MSVC_COMMON_C_CXX_FLAGS "\
@@ -119,6 +131,7 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
   string(APPEND _MSVC_COMMON_C_CXX_FLAGS " \
     /D_WIN64 \
     /DWIN64 \
+    /D__SSE__ \
     /D__SSE2__ \
     /D__SSE3__ \
     /D__SSSE3__ \
@@ -128,6 +141,15 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
   ")
 endif()
 
+if (_IS_CLANG_CL_COMPILER)
+  # clang-cl works slighly differently than MSVC compiler when specifying arch options, so we have to set them differently
+  # https://github.com/llvm/llvm-project/issues/56722
+
+  include(global_flags.compiler.gnu.march)
+  string(APPEND _MSVC_COMMON_C_CXX_FLAGS " ${_GNU_MARCH_C_CXX_FLAGS}")
+endif()
+
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_MSVC_COMMON_C_CXX_FLAGS} \
 ")
 
@@ -135,7 +157,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_MSVC_COMMON_C_CXX_FLAGS} \
 # TODO - -DUSE_STL_SYSTEM
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_MSVC_COMMON_C_CXX_FLAGS} \
-  /std:c++latest \
   /Zc:__cplusplus \
 ")
 

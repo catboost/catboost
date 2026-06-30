@@ -1,5 +1,7 @@
 #include "stream_pool.h"
-#include "cuda_event.h"
+
+#include <library/cpp/cuda/exception/exception.h>
+
 
 void NCudaNN::TStreamPool::RequestSize(ui64 requestedSize)  {
     ui64 currentSize = 1 + HelperStreams_.size();

@@ -9,12 +9,14 @@
 */
 
 #pragma once
-
 #include "detail/class.h"
+#include "detail/exception_translation.h"
 #include "detail/init.h"
 #include "attr.h"
 #include "gil.h"
+#include "gil_safe_call_once.h"
 #include "options.h"
+#include "typing.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -35,6 +37,8 @@
 #    include <cxxabi.h>
 #endif
 
+PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
+
 /* https://stackoverflow.com/questions/46798456/handling-gccs-noexcept-type-warning
    This warning is about ABI compatibility, not code health.
    It is only actually needed in a couple places, but apparently GCC 7 "generates this warning if
@@ -43,30 +47,52 @@
    No other GCC version generates this warning.
  */
 #if defined(__GNUC__) && __GNUC__ == 7
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wnoexcept-type"
+PYBIND11_WARNING_DISABLE_GCC("-Wnoexcept-type")
 #endif
 
-PYBIND11_NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
+PYBIND11_WARNING_DISABLE_MSVC(4127)
 
 PYBIND11_NAMESPACE_BEGIN(detail)
 
-// Apply all the extensions translators from a list
-// Return true if one of the translators completed without raising an exception
-// itself. Return of false indicates that if there are other translators
-// available, they should be tried.
-inline bool apply_exception_translators(std::forward_list<ExceptionTranslator> &translators) {
-    auto last_exception = std::current_exception();
+inline std::string replace_newlines_and_squash(const char *text) {
+    const char *whitespaces = " \t\n\r\f\v";
+    std::string result(text);
+    bool previous_is_whitespace = false;
 
-    for (auto &translator : translators) {
-        try {
-            translator(last_exception);
-            return true;
-        } catch (...) {
-            last_exception = std::current_exception();
+    if (result.size() >= 2) {
+        // Do not modify string representations
+        char first_char = result[0];
+        char last_char = result[result.size() - 1];
+        if (first_char == last_char && first_char == '\'') {
+            return result;
         }
     }
-    return false;
+    result.clear();
+
+    // Replace characters in whitespaces array with spaces and squash consecutive spaces
+    while (*text != '\0') {
+        if (std::strchr(whitespaces, *text)) {
+            if (!previous_is_whitespace) {
+                result += ' ';
+                previous_is_whitespace = true;
+            }
+        } else {
+            result += *text;
+            previous_is_whitespace = false;
+        }
+        ++text;
+    }
+
+    // Strip leading and trailing whitespaces
+    const size_t str_begin = result.find_first_not_of(whitespaces);
+    if (str_begin == std::string::npos) {
+        return "";
+    }
+
+    const size_t str_end = result.find_last_not_of(whitespaces);
+    const size_t str_range = str_end - str_begin + 1;
+
+    return result.substr(str_begin, str_range);
 }
 
 #if defined(_MSC_VER)
@@ -83,6 +109,7 @@ public:
     cpp_function() = default;
     // NOLINTNEXTLINE(google-explicit-constructor)
     cpp_function(std::nullptr_t) {}
+    cpp_function(std::nullptr_t, const is_setter &) {}
 
     /// Construct a cpp_function from a vanilla function pointer
     template <typename Return, typename... Args, typename... Extra>
@@ -177,22 +204,22 @@ protected:
         auto *rec = unique_rec.get();
 
         /* Store the capture object directly in the function record if there is enough space */
-        if (PYBIND11_SILENCE_MSVC_C4127(sizeof(capture) <= sizeof(rec->data))) {
+        if (sizeof(capture) <= sizeof(rec->data)) {
             /* Without these pragmas, GCC warns that there might not be
                enough space to use the placement new operator. However, the
                'if' statement above ensures that this is the case. */
-#if defined(__GNUG__) && __GNUC__ >= 6 && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wplacement-new"
+            PYBIND11_WARNING_PUSH
+
+#if defined(__GNUG__) && __GNUC__ >= 6
+            PYBIND11_WARNING_DISABLE_GCC("-Wplacement-new")
 #endif
+
             new ((capture *) &rec->data) capture{std::forward<Func>(f)};
-#if defined(__GNUG__) && __GNUC__ >= 6 && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#    pragma GCC diagnostic pop
+
+#if !PYBIND11_HAS_STD_LAUNDER
+            PYBIND11_WARNING_DISABLE_GCC("-Wstrict-aliasing")
 #endif
-#if defined(__GNUG__) && !PYBIND11_HAS_STD_LAUNDER && !defined(__INTEL_COMPILER)
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
+
             // UB without std::launder, but without breaking ABI and/or
             // a significant refactoring it's "impossible" to solve.
             if (!std::is_trivially_destructible<capture>::value) {
@@ -202,9 +229,7 @@ protected:
                     data->~capture();
                 };
             }
-#if defined(__GNUG__) && !PYBIND11_HAS_STD_LAUNDER && !defined(__INTEL_COMPILER)
-#    pragma GCC diagnostic pop
-#endif
+            PYBIND11_WARNING_POP
         } else {
             rec->data[0] = new capture{std::forward<Func>(f)};
             rec->free_data = [](function_record *r) { delete ((capture *) r->data[0]); };
@@ -245,10 +270,16 @@ protected:
             using Guard = extract_guard_t<Extra...>;
 
             /* Perform the function call */
-            handle result
-                = cast_out::cast(std::move(args_converter).template call<Return, Guard>(cap->f),
-                                 policy,
-                                 call.parent);
+            handle result;
+            if (call.func.is_setter) {
+                (void) std::move(args_converter).template call<Return, Guard>(cap->f);
+                result = none().release();
+            } else {
+                result = cast_out::cast(
+                    std::move(args_converter).template call<Return, Guard>(cap->f),
+                    policy,
+                    call.parent);
+            }
 
             /* Invoke call policy post-call hook */
             process_attributes<Extra...>::postcall(call, result);
@@ -312,6 +343,10 @@ protected:
     // along the way.
     class strdup_guard {
     public:
+        strdup_guard() = default;
+        strdup_guard(const strdup_guard &) = delete;
+        strdup_guard &operator=(const strdup_guard &) = delete;
+
         ~strdup_guard() {
             for (auto *s : strings) {
                 std::free(s);
@@ -366,7 +401,7 @@ protected:
         rec->is_constructor = (std::strcmp(rec->name, "__init__") == 0)
                               || (std::strcmp(rec->name, "__setstate__") == 0);
 
-#if !defined(NDEBUG) && !defined(PYBIND11_DISABLE_NEW_STYLE_INIT_WARNING)
+#if defined(PYBIND11_DETAILED_ERROR_MESSAGES) && !defined(PYBIND11_DISABLE_NEW_STYLE_INIT_WARNING)
         if (rec->is_constructor && !rec->is_new_style_constructor) {
             const auto class_name
                 = detail::get_fully_qualified_tp_name((PyTypeObject *) rec->scope.ptr());
@@ -414,7 +449,7 @@ protected:
                 // Write default value if available.
                 if (!is_starred && arg_index < rec->args.size() && rec->args[arg_index].descr) {
                     signature += " = ";
-                    signature += rec->args[arg_index].descr;
+                    signature += detail::replace_newlines_and_squash(rec->args[arg_index].descr);
                 }
                 // Separator for positional-only arguments (placed after the
                 // argument, rather than before like *
@@ -431,18 +466,15 @@ protected:
                 }
                 if (auto *tinfo = detail::get_type_info(*t)) {
                     handle th((PyObject *) tinfo->type);
-                    signature += th.attr("__module__").cast<std::string>() + "." +
-                                 // Python 3.3+, but we backport it to earlier versions
-                                 th.attr("__qualname__").cast<std::string>();
+                    signature += th.attr("__module__").cast<std::string>() + "."
+                                 + th.attr("__qualname__").cast<std::string>();
                 } else if (rec->is_new_style_constructor && arg_index == 0) {
                     // A new-style `__init__` takes `self` as `value_and_holder`.
                     // Rewrite it to the proper class type.
                     signature += rec->scope.attr("__module__").cast<std::string>() + "."
                                  + rec->scope.attr("__qualname__").cast<std::string>();
                 } else {
-                    std::string tname(t->name());
-                    detail::clean_type_id(tname);
-                    signature += tname;
+                    signature += detail::quote_cpp_type_name(detail::clean_type_id(t->name()));
                 }
             } else {
                 signature += c;
@@ -474,13 +506,20 @@ protected:
         if (rec->sibling) {
             if (PyCFunction_Check(rec->sibling.ptr())) {
                 auto *self = PyCFunction_GET_SELF(rec->sibling.ptr());
-                capsule rec_capsule = isinstance<capsule>(self) ? reinterpret_borrow<capsule>(self)
-                                                                : capsule(self);
-                chain = (detail::function_record *) rec_capsule;
-                /* Never append a method to an overload chain of a parent class;
-                   instead, hide the parent's overloads in this case */
-                if (!chain->scope.is(rec->scope)) {
+                if (!isinstance<capsule>(self)) {
                     chain = nullptr;
+                } else {
+                    auto rec_capsule = reinterpret_borrow<capsule>(self);
+                    if (detail::is_function_record_capsule(rec_capsule)) {
+                        chain = rec_capsule.get_pointer<detail::function_record>();
+                        /* Never append a method to an overload chain of a parent class;
+                           instead, hide the parent's overloads in this case */
+                        if (!chain->scope.is(rec->scope)) {
+                            chain = nullptr;
+                        }
+                    } else {
+                        chain = nullptr;
+                    }
                 }
             }
             // Don't trigger for things like the default __init__, which are wrapper_descriptors
@@ -501,6 +540,7 @@ protected:
             rec->def->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
             capsule rec_capsule(unique_rec.release(),
+                                detail::get_function_record_capsule_name(),
                                 [](void *ptr) { destruct((detail::function_record *) ptr); });
             guarded_strdup.release();
 
@@ -524,8 +564,9 @@ protected:
             if (chain->is_method != rec->is_method) {
                 pybind11_fail(
                     "overloading a method with both static and instance methods is not supported; "
-#if defined(NDEBUG)
-                    "compile in debug mode for more details"
+#if !defined(PYBIND11_DETAILED_ERROR_MESSAGES)
+                    "#define PYBIND11_DETAILED_ERROR_MESSAGES or compile in debug mode for more "
+                    "details"
 #else
                     "error while attempting to bind "
                     + std::string(rec->is_method ? "instance" : "static") + " method "
@@ -560,7 +601,8 @@ protected:
         int index = 0;
         /* Create a nice pydoc rec including all signatures and
            docstrings of the functions in the overload chain */
-        if (chain && options::show_function_signatures()) {
+        if (chain && options::show_function_signatures()
+            && std::strcmp(rec->name, "_pybind11_conduit_v1_") != 0) {
             // First a generic signature
             signatures += rec->name;
             signatures += "(*args, **kwargs)\n";
@@ -569,16 +611,17 @@ protected:
         // Then specific overload signatures
         bool first_user_def = true;
         for (auto *it = chain_start; it != nullptr; it = it->next) {
-            if (options::show_function_signatures()) {
+            if (options::show_function_signatures()
+                && std::strcmp(rec->name, "_pybind11_conduit_v1_") != 0) {
                 if (index > 0) {
-                    signatures += "\n";
+                    signatures += '\n';
                 }
                 if (chain) {
                     signatures += std::to_string(++index) + ". ";
                 }
                 signatures += rec->name;
                 signatures += it->signature;
-                signatures += "\n";
+                signatures += '\n';
             }
             if (it->doc && it->doc[0] != '\0' && options::show_user_defined_docstrings()) {
                 // If we're appending another docstring, and aren't printing function signatures,
@@ -587,15 +630,15 @@ protected:
                     if (first_user_def) {
                         first_user_def = false;
                     } else {
-                        signatures += "\n";
+                        signatures += '\n';
                     }
                 }
                 if (options::show_function_signatures()) {
-                    signatures += "\n";
+                    signatures += '\n';
                 }
                 signatures += it->doc;
                 if (options::show_function_signatures()) {
-                    signatures += "\n";
+                    signatures += '\n';
                 }
             }
         }
@@ -666,10 +709,13 @@ protected:
     /// Main dispatch logic for calls to functions bound using pybind11
     static PyObject *dispatcher(PyObject *self, PyObject *args_in, PyObject *kwargs_in) {
         using namespace detail;
+        assert(isinstance<capsule>(self));
 
         /* Iterator over the list of potentially admissible overloads */
-        const function_record *overloads = (function_record *) PyCapsule_GetPointer(self, nullptr),
-                              *it = overloads;
+        const function_record *overloads = reinterpret_cast<function_record *>(
+                                  PyCapsule_GetPointer(self, get_function_record_capsule_name())),
+                              *current_overload = overloads;
+        assert(overloads != nullptr);
 
         /* Need to know how many arguments + keyword arguments there are to pick the right
            overload */
@@ -682,9 +728,8 @@ protected:
         if (overloads->is_constructor) {
             if (!parent
                 || !PyObject_TypeCheck(parent.ptr(), (PyTypeObject *) overloads->scope.ptr())) {
-                PyErr_SetString(
-                    PyExc_TypeError,
-                    "__init__(self, ...) called with invalid or missing `self` argument");
+                set_error(PyExc_TypeError,
+                          "__init__(self, ...) called with invalid or missing `self` argument");
                 return nullptr;
             }
 
@@ -707,9 +752,10 @@ protected:
             std::vector<function_call> second_pass;
 
             // However, if there are no overloads, we can just skip the no-convert pass entirely
-            const bool overloaded = it != nullptr && it->next != nullptr;
+            const bool overloaded
+                = current_overload != nullptr && current_overload->next != nullptr;
 
-            for (; it != nullptr; it = it->next) {
+            for (; current_overload != nullptr; current_overload = current_overload->next) {
 
                 /* For each overload:
                    1. Copy all positional arguments we were given, also checking to make sure that
@@ -730,7 +776,7 @@ protected:
                    a result other than PYBIND11_TRY_NEXT_OVERLOAD.
                  */
 
-                const function_record &func = *it;
+                const function_record &func = *current_overload;
                 size_t num_args = func.nargs; // Number of positional arguments that we need
                 if (func.has_args) {
                     --num_args; // (but don't count py::args
@@ -912,7 +958,7 @@ protected:
 
 // 5. Put everything in a vector.  Not technically step 5, we've been building it
 // in `call.args` all along.
-#if !defined(NDEBUG)
+#if defined(PYBIND11_DETAILED_ERROR_MESSAGES)
                 if (call.args.size() != func.nargs || call.args_convert.size() != func.nargs) {
                     pybind11_fail("Internal error: function call dispatcher inserted wrong number "
                                   "of arguments!");
@@ -968,10 +1014,10 @@ protected:
                     }
 
                     if (result.ptr() != PYBIND11_TRY_NEXT_OVERLOAD) {
-                        // The error reporting logic below expects 'it' to be valid, as it would be
-                        // if we'd encountered this failure in the first-pass loop.
+                        // The error reporting logic below expects 'current_overload' to be valid,
+                        // as it would be if we'd encountered this failure in the first-pass loop.
                         if (!result) {
-                            it = &call.func;
+                            current_overload = &call.func;
                         }
                         break;
                     }
@@ -985,34 +1031,7 @@ protected:
             throw;
 #endif
         } catch (...) {
-            /* When an exception is caught, give each registered exception
-               translator a chance to translate it to a Python exception. First
-               all module-local translators will be tried in reverse order of
-               registration. If none of the module-locale translators handle
-               the exception (or there are no module-locale translators) then
-               the global translators will be tried, also in reverse order of
-               registration.
-
-               A translator may choose to do one of the following:
-
-                - catch the exception and call PyErr_SetString or PyErr_SetObject
-                  to set a standard (or custom) Python exception, or
-                - do nothing and let the exception fall through to the next translator, or
-                - delegate translation to the next translator by throwing a new type of exception.
-             */
-
-            auto &local_exception_translators
-                = get_local_internals().registered_exception_translators;
-            if (detail::apply_exception_translators(local_exception_translators)) {
-                return nullptr;
-            }
-            auto &exception_translators = get_internals().registered_exception_translators;
-            if (detail::apply_exception_translators(exception_translators)) {
-                return nullptr;
-            }
-
-            PyErr_SetString(PyExc_SystemError,
-                            "Exception escaped from default exception translator!");
+            try_translate_exceptions();
             return nullptr;
         }
 
@@ -1065,7 +1084,7 @@ protected:
                     msg += it2->signature;
                 }
 
-                msg += "\n";
+                msg += '\n';
             }
             msg += "\nInvoked with: ";
             auto args_ = reinterpret_borrow<tuple>(args_in);
@@ -1090,7 +1109,7 @@ protected:
                     }
                     msg += "kwargs: ";
                     bool first = true;
-                    for (auto kwarg : kwargs) {
+                    for (const auto &kwarg : kwargs) {
                         if (first) {
                             first = false;
                         } else {
@@ -1115,13 +1134,14 @@ protected:
                 return nullptr;
             }
 #endif
-            PyErr_SetString(PyExc_TypeError, msg.c_str());
+            set_error(PyExc_TypeError, msg.c_str());
             return nullptr;
         }
         if (!result) {
             std::string msg = "Unable to convert function return value to a "
                               "Python type! The signature was\n\t";
-            msg += it->signature;
+            assert(current_overload != nullptr);
+            msg += current_overload->signature;
             append_note_if_missing_header_is_suspected(msg);
 #if PY_VERSION_HEX >= 0x03030000
             // Attach additional error info to the exception if supported
@@ -1130,7 +1150,7 @@ protected:
                 return nullptr;
             }
 #endif
-            PyErr_SetString(PyExc_TypeError, msg.c_str());
+            set_error(PyExc_TypeError, msg.c_str());
             return nullptr;
         }
         if (overloads->is_constructor && !self_value_and_holder.holder_constructed()) {
@@ -1139,6 +1159,25 @@ protected:
         }
         return result.ptr();
     }
+};
+
+PYBIND11_NAMESPACE_BEGIN(detail)
+
+template <>
+struct handle_type_name<cpp_function> {
+    static constexpr auto name = const_name("Callable");
+};
+
+PYBIND11_NAMESPACE_END(detail)
+
+// Use to activate Py_MOD_GIL_NOT_USED.
+class mod_gil_not_used {
+public:
+    explicit mod_gil_not_used(bool flag = true) : flag_(flag) {}
+    bool flag() const { return flag_; }
+
+private:
+    bool flag_;
 };
 
 /// Wrapper for Python extension modules
@@ -1186,9 +1225,16 @@ public:
             py::module_ m3 = m2.def_submodule("subsub", "A submodule of 'example.sub'");
     \endrst */
     module_ def_submodule(const char *name, const char *doc = nullptr) {
-        std::string full_name
-            = std::string(PyModule_GetName(m_ptr)) + std::string(".") + std::string(name);
-        auto result = reinterpret_borrow<module_>(PyImport_AddModule(full_name.c_str()));
+        const char *this_name = PyModule_GetName(m_ptr);
+        if (this_name == nullptr) {
+            throw error_already_set();
+        }
+        std::string full_name = std::string(this_name) + '.' + name;
+        handle submodule = PyImport_AddModule(full_name.c_str());
+        if (!submodule) {
+            throw error_already_set();
+        }
+        auto result = reinterpret_borrow<module_>(submodule);
         if (doc && options::show_user_defined_docstrings()) {
             result.attr("__doc__") = pybind11::str(doc);
         }
@@ -1232,7 +1278,7 @@ public:
     }
 
 #if PY_MAJOR_VERSION >= 3
-    using module_def = PyModuleDef;
+    using module_def = PyModuleDef; // TODO: Can this be removed (it was needed only for Python 2)?
 #else
     struct module_def {};
 #endif
@@ -1243,7 +1289,11 @@ public:
         For Python 3, ``def`` should point to a statically allocated module_def.
         For Python 2, ``def`` can be a nullptr and is completely ignored.
     \endrst */
-    static module_ create_extension_module(const char *name, const char *doc, module_def *def) {
+    static module_ create_extension_module(const char *name,
+                                           const char *doc,
+                                           module_def *def,
+                                           mod_gil_not_used gil_not_used
+                                           = mod_gil_not_used(false)) {
 #if PY_MAJOR_VERSION >= 3
         // module_def is PyModuleDef
         // Placement new (not an allocation).
@@ -1270,12 +1320,26 @@ public:
             }
             pybind11_fail("Internal error in module_::create_extension_module()");
         }
+        if (gil_not_used.flag()) {
+#ifdef Py_GIL_DISABLED
+            PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+#endif
+        }
         // TODO: Should be reinterpret_steal for Python 3, but Python also steals it again when
-        // returned from PyInit_...
-        //       For Python 2, reinterpret_borrow is correct.
+        //       returned from PyInit_...
+        //       For Python 2, reinterpret_borrow was correct.
         return reinterpret_borrow<module_>(m);
     }
 };
+
+PYBIND11_NAMESPACE_BEGIN(detail)
+
+template <>
+struct handle_type_name<module_> {
+    static constexpr auto name = const_name("module");
+};
+
+PYBIND11_NAMESPACE_END(detail)
 
 // When inside a namespace (or anywhere as long as it's not the first item on a line),
 // C++20 allows "module" to be used. This is provided for backward compatibility, and for
@@ -1286,8 +1350,14 @@ using module = module_;
 /// Return a dictionary representing the global variables in the current execution frame,
 /// or ``__main__.__dict__`` if there is no frame (usually when the interpreter is embedded).
 inline dict globals() {
+#if PY_VERSION_HEX >= 0x030d0000
+    PyObject *p = PyEval_GetFrameGlobals();
+    return p ? reinterpret_steal<dict>(p)
+             : reinterpret_borrow<dict>(module_::import("__main__").attr("__dict__").ptr());
+#else
     PyObject *p = PyEval_GetGlobals();
     return reinterpret_borrow<dict>(p ? p : module_::import("__main__").attr("__dict__").ptr());
+#endif
 }
 
 #if PY_VERSION_HEX >= 0x03030000
@@ -1335,15 +1405,16 @@ protected:
         tinfo->default_holder = rec.default_holder;
         tinfo->module_local = rec.module_local;
 
-        auto &internals = get_internals();
-        auto tindex = std::type_index(*rec.type);
-        tinfo->direct_conversions = &internals.direct_conversions[tindex];
-        if (rec.module_local) {
-            get_local_internals().registered_types_cpp[tindex] = tinfo;
-        } else {
-            internals.registered_types_cpp[tindex] = tinfo;
-        }
-        internals.registered_types_py[(PyTypeObject *) m_ptr] = {tinfo};
+        with_internals([&](internals &internals) {
+            auto tindex = std::type_index(*rec.type);
+            tinfo->direct_conversions = &internals.direct_conversions[tindex];
+            if (rec.module_local) {
+                get_local_internals().registered_types_cpp[tindex] = tinfo;
+            } else {
+                internals.registered_types_cpp[tindex] = tinfo;
+            }
+            internals.registered_types_py[(PyTypeObject *) m_ptr] = {tinfo};
+        });
 
         if (rec.bases.size() > 1 || rec.multiple_inheritance) {
             mark_parents_nonsimple(tinfo->type);
@@ -1436,9 +1507,9 @@ template <typename T, enable_if_t<has_operator_delete<T>::value, int> = 0>
 void call_operator_delete(T *p, size_t, size_t) {
     T::operator delete(p);
 }
-template <
-    typename T,
-    enable_if_t<!has_operator_delete<T>::value && has_operator_delete_size<T>::value, int> = 0>
+template <typename T,
+          enable_if_t<!has_operator_delete<T>::value && has_operator_delete_size<T>::value, int>
+          = 0>
 void call_operator_delete(T *p, size_t s, size_t) {
     T::operator delete(p, s);
 }
@@ -1556,11 +1627,14 @@ public:
         generic_type::initialize(record);
 
         if (has_alias) {
-            auto &instances = record.module_local ? get_local_internals().registered_types_cpp
-                                                  : get_internals().registered_types_cpp;
-            instances[std::type_index(typeid(type_alias))]
-                = instances[std::type_index(typeid(type))];
+            with_internals([&](internals &internals) {
+                auto &instances = record.module_local ? get_local_internals().registered_types_cpp
+                                                      : internals.registered_types_cpp;
+                instances[std::type_index(typeid(type_alias))]
+                    = instances[std::type_index(typeid(type))];
+            });
         }
+        def("_pybind11_conduit_v1_", cpp_conduit_method);
     }
 
     template <typename Base, detail::enable_if_t<is_base<Base>::value, int> = 0>
@@ -1593,18 +1667,19 @@ public:
                         scope(*this),
                         sibling(getattr(*this, name_, none())),
                         extra...);
-        attr(cf.name()) = staticmethod(cf);
+        auto cf_name = cf.name();
+        attr(std::move(cf_name)) = staticmethod(std::move(cf));
         return *this;
     }
 
-    template <detail::op_id id, detail::op_type ot, typename L, typename R, typename... Extra>
-    class_ &def(const detail::op_<id, ot, L, R> &op, const Extra &...extra) {
+    template <typename T, typename... Extra, detail::enable_if_t<T::op_enable_if_hook, int> = 0>
+    class_ &def(const T &op, const Extra &...extra) {
         op.execute(*this, extra...);
         return *this;
     }
 
-    template <detail::op_id id, detail::op_type ot, typename L, typename R, typename... Extra>
-    class_ &def_cast(const detail::op_<id, ot, L, R> &op, const Extra &...extra) {
+    template <typename T, typename... Extra, detail::enable_if_t<T::op_enable_if_hook, int> = 0>
+    class_ &def_cast(const T &op, const Extra &...extra) {
         op.execute_cast(*this, extra...);
         return *this;
     }
@@ -1647,7 +1722,7 @@ public:
                 if (!caster.load(obj, false)) {
                     return nullptr;
                 }
-                return new buffer_info(((capture *) ptr)->func(caster));
+                return new buffer_info(((capture *) ptr)->func(std::move(caster)));
             },
             ptr);
         weakref(m_ptr, cpp_function([ptr](handle wr) {
@@ -1738,7 +1813,8 @@ public:
     template <typename Getter, typename Setter, typename... Extra>
     class_ &
     def_property(const char *name, const Getter &fget, const Setter &fset, const Extra &...extra) {
-        return def_property(name, fget, cpp_function(method_adaptor<type>(fset)), extra...);
+        return def_property(
+            name, fget, cpp_function(method_adaptor<type>(fset), is_setter()), extra...);
     }
     template <typename Getter, typename... Extra>
     class_ &def_property(const char *name,
@@ -1849,7 +1925,7 @@ private:
         if (holder_ptr) {
             init_holder_from_existing(v_h, holder_ptr, std::is_copy_constructible<holder_type>());
             v_h.set_holder_constructed();
-        } else if (inst->owned || detail::always_construct_holder<holder_type>::value) {
+        } else if (detail::always_construct_holder<holder_type>::value || inst->owned) {
             new (std::addressof(v_h.holder<holder_type>())) holder_type(v_h.value_ptr<type>());
             v_h.set_holder_constructed();
         }
@@ -1889,9 +1965,22 @@ private:
 
     static detail::function_record *get_function_record(handle h) {
         h = detail::get_function(h);
-        return h ? (detail::function_record *) reinterpret_borrow<capsule>(
-                   PyCFunction_GET_SELF(h.ptr()))
-                 : nullptr;
+        if (!h) {
+            return nullptr;
+        }
+
+        handle func_self = PyCFunction_GET_SELF(h.ptr());
+        if (!func_self) {
+            throw error_already_set();
+        }
+        if (!isinstance<capsule>(func_self)) {
+            return nullptr;
+        }
+        auto cap = reinterpret_borrow<capsule>(func_self);
+        if (!detail::is_function_record_capsule(cap)) {
+            return nullptr;
+        }
+        return cap.get_pointer<detail::function_record>();
     }
 };
 
@@ -1952,7 +2041,8 @@ struct enum_base {
             [](const object &arg) -> str {
                 handle type = type::handle_of(arg);
                 object type_name = type.attr("__name__");
-                return pybind11::str("<{}.{}: {}>").format(type_name, enum_name(arg), int_(arg));
+                return pybind11::str("<{}.{}: {}>")
+                    .format(std::move(type_name), enum_name(arg), int_(arg));
             },
             name("__repr__"),
             is_method(m_base));
@@ -1962,34 +2052,40 @@ struct enum_base {
         m_base.attr("__str__") = cpp_function(
             [](handle arg) -> str {
                 object type_name = type::handle_of(arg).attr("__name__");
-                return pybind11::str("{}.{}").format(type_name, enum_name(arg));
+                return pybind11::str("{}.{}").format(std::move(type_name), enum_name(arg));
             },
-            name("name"),
+            name("__str__"),
             is_method(m_base));
 
-        m_base.attr("__doc__") = static_property(
-            cpp_function(
-                [](handle arg) -> std::string {
-                    std::string docstring;
-                    dict entries = arg.attr("__entries");
-                    if (((PyTypeObject *) arg.ptr())->tp_doc) {
-                        docstring += std::string(((PyTypeObject *) arg.ptr())->tp_doc) + "\n\n";
-                    }
-                    docstring += "Members:";
-                    for (auto kv : entries) {
-                        auto key = std::string(pybind11::str(kv.first));
-                        auto comment = kv.second[int_(1)];
-                        docstring += "\n\n  " + key;
-                        if (!comment.is_none()) {
-                            docstring += " : " + (std::string) pybind11::str(comment);
+        if (options::show_enum_members_docstring()) {
+            m_base.attr("__doc__") = static_property(
+                cpp_function(
+                    [](handle arg) -> std::string {
+                        std::string docstring;
+                        dict entries = arg.attr("__entries");
+                        if (((PyTypeObject *) arg.ptr())->tp_doc) {
+                            docstring += std::string(
+                                reinterpret_cast<PyTypeObject *>(arg.ptr())->tp_doc);
+                            docstring += "\n\n";
                         }
-                    }
-                    return docstring;
-                },
-                name("__doc__")),
-            none(),
-            none(),
-            "");
+                        docstring += "Members:";
+                        for (auto kv : entries) {
+                            auto key = std::string(pybind11::str(kv.first));
+                            auto comment = kv.second[int_(1)];
+                            docstring += "\n\n  ";
+                            docstring += key;
+                            if (!comment.is_none()) {
+                                docstring += " : ";
+                                docstring += pybind11::str(comment).cast<std::string>();
+                            }
+                        }
+                        return docstring;
+                    },
+                    name("__doc__")),
+                none(),
+                none(),
+                "");
+        }
 
         m_base.attr("__members__") = static_property(cpp_function(
                                                          [](handle arg) -> dict {
@@ -2086,12 +2182,12 @@ struct enum_base {
         str name(name_);
         if (entries.contains(name)) {
             std::string type_name = (std::string) str(m_base.attr("__name__"));
-            throw value_error(type_name + ": element \"" + std::string(name_)
+            throw value_error(std::move(type_name) + ": element \"" + std::string(name_)
                               + "\" already exists!");
         }
 
-        entries[name] = std::make_pair(value, doc);
-        m_base.attr(name) = value;
+        entries[name] = pybind11::make_tuple(value, doc);
+        m_base.attr(std::move(name)) = std::move(value);
     }
 
     PYBIND11_NOINLINE void export_values() {
@@ -2255,28 +2351,32 @@ keep_alive_impl(size_t Nurse, size_t Patient, function_call &call, handle ret) {
 
 inline std::pair<decltype(internals::registered_types_py)::iterator, bool>
 all_type_info_get_cache(PyTypeObject *type) {
-    auto res = get_internals()
-                   .registered_types_py
+    auto res = with_internals([type](internals &internals) {
+        return internals
+            .registered_types_py
 #ifdef __cpp_lib_unordered_map_try_emplace
-                   .try_emplace(type);
+            .try_emplace(type);
 #else
-                   .emplace(type, std::vector<detail::type_info *>());
+            .emplace(type, std::vector<detail::type_info *>());
 #endif
+    });
     if (res.second) {
         // New cache entry created; set up a weak reference to automatically remove it if the type
         // gets destroyed:
         weakref((PyObject *) type, cpp_function([type](handle wr) {
-                    get_internals().registered_types_py.erase(type);
+                    with_internals([type](internals &internals) {
+                        internals.registered_types_py.erase(type);
 
-                    // TODO consolidate the erasure code in pybind11_meta_dealloc() in class.h
-                    auto &cache = get_internals().inactive_override_cache;
-                    for (auto it = cache.begin(), last = cache.end(); it != last;) {
-                        if (it->first == reinterpret_cast<PyObject *>(type)) {
-                            it = cache.erase(it);
-                        } else {
-                            ++it;
+                        // TODO consolidate the erasure code in pybind11_meta_dealloc() in class.h
+                        auto &cache = internals.inactive_override_cache;
+                        for (auto it = cache.begin(), last = cache.end(); it != last;) {
+                            if (it->first == reinterpret_cast<PyObject *>(type)) {
+                                it = cache.erase(it);
+                            } else {
+                                ++it;
+                            }
                         }
-                    }
+                    });
 
                     wr.dec_ref();
                 }))
@@ -2379,7 +2479,7 @@ iterator make_iterator_impl(Iterator first, Sentinel last, Extra &&...extra) {
                 Policy);
     }
 
-    return cast(state{first, last, true});
+    return cast(state{std::forward<Iterator>(first), std::forward<Sentinel>(last), true});
 }
 
 PYBIND11_NAMESPACE_END(detail)
@@ -2390,13 +2490,15 @@ template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Sentinel,
           typename ValueType = typename detail::iterator_access<Iterator>::result_type,
           typename... Extra>
-iterator make_iterator(Iterator first, Sentinel last, Extra &&...extra) {
+typing::Iterator<ValueType> make_iterator(Iterator first, Sentinel last, Extra &&...extra) {
     return detail::make_iterator_impl<detail::iterator_access<Iterator>,
                                       Policy,
                                       Iterator,
                                       Sentinel,
                                       ValueType,
-                                      Extra...>(first, last, std::forward<Extra>(extra)...);
+                                      Extra...>(std::forward<Iterator>(first),
+                                                std::forward<Sentinel>(last),
+                                                std::forward<Extra>(extra)...);
 }
 
 /// Makes a python iterator over the keys (`.first`) of a iterator over pairs from a
@@ -2406,13 +2508,15 @@ template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Sentinel,
           typename KeyType = typename detail::iterator_key_access<Iterator>::result_type,
           typename... Extra>
-iterator make_key_iterator(Iterator first, Sentinel last, Extra &&...extra) {
+typing::Iterator<KeyType> make_key_iterator(Iterator first, Sentinel last, Extra &&...extra) {
     return detail::make_iterator_impl<detail::iterator_key_access<Iterator>,
                                       Policy,
                                       Iterator,
                                       Sentinel,
                                       KeyType,
-                                      Extra...>(first, last, std::forward<Extra>(extra)...);
+                                      Extra...>(std::forward<Iterator>(first),
+                                                std::forward<Sentinel>(last),
+                                                std::forward<Extra>(extra)...);
 }
 
 /// Makes a python iterator over the values (`.second`) of a iterator over pairs from a
@@ -2422,40 +2526,51 @@ template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Sentinel,
           typename ValueType = typename detail::iterator_value_access<Iterator>::result_type,
           typename... Extra>
-iterator make_value_iterator(Iterator first, Sentinel last, Extra &&...extra) {
+typing::Iterator<ValueType> make_value_iterator(Iterator first, Sentinel last, Extra &&...extra) {
     return detail::make_iterator_impl<detail::iterator_value_access<Iterator>,
                                       Policy,
                                       Iterator,
                                       Sentinel,
                                       ValueType,
-                                      Extra...>(first, last, std::forward<Extra>(extra)...);
+                                      Extra...>(std::forward<Iterator>(first),
+                                                std::forward<Sentinel>(last),
+                                                std::forward<Extra>(extra)...);
 }
 
 /// Makes an iterator over values of an stl container or other container supporting
 /// `std::begin()`/`std::end()`
 template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Type,
+          typename ValueType = typename detail::iterator_access<
+              decltype(std::begin(std::declval<Type &>()))>::result_type,
           typename... Extra>
-iterator make_iterator(Type &value, Extra &&...extra) {
-    return make_iterator<Policy>(std::begin(value), std::end(value), extra...);
+typing::Iterator<ValueType> make_iterator(Type &value, Extra &&...extra) {
+    return make_iterator<Policy>(
+        std::begin(value), std::end(value), std::forward<Extra>(extra)...);
 }
 
 /// Makes an iterator over the keys (`.first`) of a stl map-like container supporting
 /// `std::begin()`/`std::end()`
 template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Type,
+          typename KeyType = typename detail::iterator_key_access<
+              decltype(std::begin(std::declval<Type &>()))>::result_type,
           typename... Extra>
-iterator make_key_iterator(Type &value, Extra &&...extra) {
-    return make_key_iterator<Policy>(std::begin(value), std::end(value), extra...);
+typing::Iterator<KeyType> make_key_iterator(Type &value, Extra &&...extra) {
+    return make_key_iterator<Policy>(
+        std::begin(value), std::end(value), std::forward<Extra>(extra)...);
 }
 
 /// Makes an iterator over the values (`.second`) of a stl map-like container supporting
 /// `std::begin()`/`std::end()`
 template <return_value_policy Policy = return_value_policy::reference_internal,
           typename Type,
+          typename ValueType = typename detail::iterator_value_access<
+              decltype(std::begin(std::declval<Type &>()))>::result_type,
           typename... Extra>
-iterator make_value_iterator(Type &value, Extra &&...extra) {
-    return make_value_iterator<Policy>(std::begin(value), std::end(value), extra...);
+typing::Iterator<ValueType> make_value_iterator(Type &value, Extra &&...extra) {
+    return make_value_iterator<Policy>(
+        std::begin(value), std::end(value), std::forward<Extra>(extra)...);
 }
 
 template <typename InputType, typename OutputType>
@@ -2466,7 +2581,11 @@ void implicitly_convertible() {
         ~set_flag() { flag = false; }
     };
     auto implicit_caster = [](PyObject *obj, PyTypeObject *type) -> PyObject * {
+#ifdef Py_GIL_DISABLED
+        thread_local bool currently_used = false;
+#else
         static bool currently_used = false;
+#endif
         if (currently_used) { // implicit conversions are non-reentrant
             return nullptr;
         }
@@ -2484,15 +2603,17 @@ void implicitly_convertible() {
     };
 
     if (auto *tinfo = detail::get_type_info(typeid(OutputType))) {
-        tinfo->implicit_conversions.push_back(implicit_caster);
+        tinfo->implicit_conversions.emplace_back(std::move(implicit_caster));
     } else {
         pybind11_fail("implicitly_convertible: Unable to find type " + type_id<OutputType>());
     }
 }
 
 inline void register_exception_translator(ExceptionTranslator &&translator) {
-    detail::get_internals().registered_exception_translators.push_front(
-        std::forward<ExceptionTranslator>(translator));
+    detail::with_internals([&](detail::internals &internals) {
+        internals.registered_exception_translators.push_front(
+            std::forward<ExceptionTranslator>(translator));
+    });
 }
 
 /**
@@ -2502,14 +2623,17 @@ inline void register_exception_translator(ExceptionTranslator &&translator) {
  * the exception.
  */
 inline void register_local_exception_translator(ExceptionTranslator &&translator) {
-    detail::get_local_internals().registered_exception_translators.push_front(
-        std::forward<ExceptionTranslator>(translator));
+    detail::with_internals([&](detail::internals &internals) {
+        (void) internals;
+        detail::get_local_internals().registered_exception_translators.push_front(
+            std::forward<ExceptionTranslator>(translator));
+    });
 }
 
 /**
  * Wrapper to generate a new Python exception type.
  *
- * This should only be used with PyErr_SetString for now.
+ * This should only be used with py::set_error() for now.
  * It is not (yet) possible to use as a py::base.
  * Template type argument is reserved for future use.
  */
@@ -2520,7 +2644,7 @@ public:
     exception(handle scope, const char *name, handle base = PyExc_Exception) {
         std::string full_name
             = scope.attr("__name__").cast<std::string>() + std::string(".") + name;
-        m_ptr = PyErr_NewException(const_cast<char *>(full_name.c_str()), base.ptr(), NULL);
+        m_ptr = PyErr_NewException(const_cast<char *>(full_name.c_str()), base.ptr(), nullptr);
         if (hasattr(scope, "__dict__") && scope.attr("__dict__").contains(name)) {
             pybind11_fail("Error during initialization: multiple incompatible "
                           "definitions with name \""
@@ -2530,27 +2654,25 @@ public:
     }
 
     // Sets the current python exception to this exception object with the given message
-    void operator()(const char *message) { PyErr_SetString(m_ptr, message); }
+    PYBIND11_DEPRECATED("Please use py::set_error() instead "
+                        "(https://github.com/pybind/pybind11/pull/4772)")
+    void operator()(const char *message) const { set_error(*this, message); }
 };
 
 PYBIND11_NAMESPACE_BEGIN(detail)
-// Returns a reference to a function-local static exception object used in the simple
-// register_exception approach below.  (It would be simpler to have the static local variable
-// directly in register_exception, but that makes clang <3.5 segfault - issue #1349).
-template <typename CppException>
-exception<CppException> &get_exception_object() {
-    static exception<CppException> ex;
-    return ex;
-}
+
+template <>
+struct handle_type_name<exception<void>> {
+    static constexpr auto name = const_name("Exception");
+};
 
 // Helper function for register_exception and register_local_exception
 template <typename CppException>
 exception<CppException> &
 register_exception_impl(handle scope, const char *name, handle base, bool isLocal) {
-    auto &ex = detail::get_exception_object<CppException>();
-    if (!ex) {
-        ex = exception<CppException>(scope, name, base);
-    }
+    PYBIND11_CONSTINIT static gil_safe_call_once_and_store<exception<CppException>> exc_storage;
+    exc_storage.call_once_and_store_result(
+        [&]() { return exception<CppException>(scope, name, base); });
 
     auto register_func
         = isLocal ? &register_local_exception_translator : &register_exception_translator;
@@ -2562,10 +2684,10 @@ register_exception_impl(handle scope, const char *name, handle base, bool isLoca
         try {
             std::rethrow_exception(p);
         } catch (const CppException &e) {
-            detail::get_exception_object<CppException>()(e.what());
+            set_error(exc_storage.get_stored(), e.what());
         }
     });
-    return ex;
+    return exc_storage.get_stored();
 }
 
 PYBIND11_NAMESPACE_END(detail)
@@ -2602,8 +2724,8 @@ PYBIND11_NOINLINE void print(const tuple &args, const dict &kwargs) {
     for (size_t i = 0; i < args.size(); ++i) {
         strings[i] = str(args[i]);
     }
-    auto sep = kwargs.contains("sep") ? kwargs["sep"] : cast(" ");
-    auto line = sep.attr("join")(strings);
+    auto sep = kwargs.contains("sep") ? kwargs["sep"] : str(" ");
+    auto line = sep.attr("join")(std::move(strings));
 
     object file;
     if (kwargs.contains("file")) {
@@ -2621,8 +2743,8 @@ PYBIND11_NOINLINE void print(const tuple &args, const dict &kwargs) {
     }
 
     auto write = file.attr("write");
-    write(line);
-    write(kwargs.contains("end") ? kwargs["end"] : cast("\n"));
+    write(std::move(line));
+    write(kwargs.contains("end") ? kwargs["end"] : str("\n"));
 
     if (kwargs.contains("flush") && kwargs["flush"].cast<bool>()) {
         file.attr("flush")();
@@ -2636,17 +2758,21 @@ void print(Args &&...args) {
     detail::print(c.args(), c.kwargs());
 }
 
-error_already_set::~error_already_set() {
-    if (m_type) {
-        gil_scoped_acquire gil;
-        error_scope scope;
-        m_type.release().dec_ref();
-        m_value.release().dec_ref();
-        m_trace.release().dec_ref();
-    }
+inline void
+error_already_set::m_fetched_error_deleter(detail::error_fetch_and_normalize *raw_ptr) {
+    gil_scoped_acquire gil;
+    error_scope scope;
+    delete raw_ptr;
+}
+
+inline const char *error_already_set::what() const noexcept {
+    gil_scoped_acquire gil;
+    error_scope scope;
+    return m_fetched_error->error_string().c_str();
 }
 
 PYBIND11_NAMESPACE_BEGIN(detail)
+
 inline function
 get_type_override(const void *this_ptr, const type_info *this_type, const char *name) {
     handle self = get_object_handle(this_ptr, this_type);
@@ -2658,14 +2784,19 @@ get_type_override(const void *this_ptr, const type_info *this_type, const char *
 
     /* Cache functions that aren't overridden in Python to avoid
        many costly Python dictionary lookups below */
-    auto &cache = get_internals().inactive_override_cache;
-    if (cache.find(key) != cache.end()) {
+    bool not_overridden = with_internals([&key](internals &internals) {
+        auto &cache = internals.inactive_override_cache;
+        return cache.find(key) != cache.end();
+    });
+    if (not_overridden) {
         return function();
     }
 
     function override = getattr(self, name, function());
     if (override.is_cpp_function()) {
-        cache.insert(key);
+        with_internals([&](internals &internals) {
+            internals.inactive_override_cache.insert(std::move(key));
+        });
         return function();
     }
 
@@ -2678,12 +2809,22 @@ get_type_override(const void *this_ptr, const type_info *this_type, const char *
         PyCodeObject *f_code = PyFrame_GetCode(frame);
         // f_code is guaranteed to not be NULL
         if ((std::string) str(f_code->co_name) == name && f_code->co_argcount > 0) {
+#        if PY_VERSION_HEX >= 0x030d0000
+            PyObject *locals = PyEval_GetFrameLocals();
+#        else
             PyObject *locals = PyEval_GetLocals();
+            Py_XINCREF(locals);
+#        endif
             if (locals != nullptr) {
+#        if PY_VERSION_HEX >= 0x030b0000
+                PyObject *co_varnames = PyCode_GetVarnames(f_code);
+#        else
                 PyObject *co_varnames = PyObject_GetAttrString((PyObject *) f_code, "co_varnames");
+#        endif
                 PyObject *self_arg = PyTuple_GET_ITEM(co_varnames, 0);
                 Py_DECREF(co_varnames);
                 PyObject *self_caller = dict_getitem(locals, self_arg);
+                Py_DECREF(locals);
                 if (self_caller == self.ptr()) {
                     Py_DECREF(f_code);
                     Py_DECREF(frame);
@@ -2760,10 +2901,14 @@ function get_override(const T *this_ptr, const char *name) {
             = pybind11::get_override(static_cast<const cname *>(this), name);                     \
         if (override) {                                                                           \
             auto o = override(__VA_ARGS__);                                                       \
-            if (pybind11::detail::cast_is_temporary_value_reference<ret_type>::value) {           \
+            PYBIND11_WARNING_PUSH                                                                 \
+            PYBIND11_WARNING_DISABLE_MSVC(4127)                                                   \
+            if (pybind11::detail::cast_is_temporary_value_reference<ret_type>::value              \
+                && !pybind11::detail::is_same_ignoring_cvref<ret_type, PyObject *>::value) {      \
                 static pybind11::detail::override_caster_t<ret_type> caster;                      \
                 return pybind11::detail::cast_ref<ret_type>(std::move(o), caster);                \
             }                                                                                     \
+            PYBIND11_WARNING_POP                                                                  \
             return pybind11::detail::cast_safe<ret_type>(std::move(o));                           \
         }                                                                                         \
     } while (false)
@@ -2865,7 +3010,3 @@ inline function get_overload(const T *this_ptr, const char *name) {
     PYBIND11_OVERRIDE_PURE(PYBIND11_TYPE(ret_type), PYBIND11_TYPE(cname), fn, __VA_ARGS__);
 
 PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)
-
-#if defined(__GNUC__) && __GNUC__ == 7
-#    pragma GCC diagnostic pop // -Wnoexcept-type
-#endif

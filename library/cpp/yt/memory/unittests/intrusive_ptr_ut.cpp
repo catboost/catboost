@@ -5,6 +5,8 @@
 #include <library/cpp/yt/memory/serialize.h>
 
 #include <util/generic/buffer.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/set.h>
 
 #include <util/stream/buffer.h>
 
@@ -48,7 +50,7 @@ struct TIntricateObject
     }
 };
 
-typedef TIntrusivePtr<TIntricateObject> TIntricateObjectPtr;
+using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;
 
 void Ref(TIntricateObject* obj, int /*n*/ = 1)
 {
@@ -159,6 +161,18 @@ public:
 private:
     IOutputStream* const Output_;
 
+};
+
+class TObjectWithExceptionInConstructor
+    : public TRefCounted
+{
+public:
+    TObjectWithExceptionInConstructor()
+    {
+        throw int(1);
+    }
+
+    volatile int Number = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -437,7 +451,7 @@ TEST(TIntrusivePtrTest, CompareWithNullptr)
 template <class T>
 void TestIntrusivePtrBehavior()
 {
-    typedef TIntrusivePtr<T> TMyPtr;
+    using TMyPtr = TIntrusivePtr<T>;
 
     TStringStream output;
     {
@@ -617,6 +631,101 @@ TEST(TIntrusivePtrTest, Serialize)
     ::Load(&stream, ptr);
     EXPECT_FALSE(ptr);
 }
+
+TEST(TIntrusivePtrTest, TestObjectConstructionFail)
+{
+    ASSERT_THROW(New<TObjectWithExceptionInConstructor>(), int);
+}
+
+TEST(TIntrusivePtrTest, TestConstCast)
+{
+    struct TUi64Pair final
+    {
+        ui64 First;
+        ui64 Second;
+
+        bool operator==(const TUi64Pair&) const = default;
+    };
+
+    auto ptr = New<TUi64Pair>(TUi64Pair{1, 2});
+    TIntrusivePtr<const TUi64Pair> constPtr = ptr;
+    EXPECT_EQ(ptr.Get(), constPtr.Get());
+    EXPECT_EQ(*ptr, *constPtr);
+}
+
+TEST(TIntrusivePtrTest, HeterogeneousLookup)
+{
+    TIntricateObject object;
+    TIntricateObject object2;
+    auto ptr = TIntricateObjectPtr(&object);
+    auto ptr2 = TIntricateObjectPtr(&object2);
+    EXPECT_EQ(ptr->Increments, 1);
+    EXPECT_EQ(ptr2->Increments, 1);
+
+    {
+        THashSet<TIntricateObjectPtr> set;
+        set.insert(ptr);
+
+        EXPECT_TRUE(set.contains(ptr.Get()));
+        EXPECT_FALSE(set.contains(ptr2.Get()));
+
+        EXPECT_EQ(ptr->Increments, 2);
+        EXPECT_EQ(ptr2->Increments, 1);
+
+        EXPECT_FALSE(set.contains((TIntricateObject*)0xDEADBEEF));
+    }
+
+    {
+        TSet<TIntricateObjectPtr> set;
+        set.insert(ptr);
+
+        EXPECT_TRUE(set.contains(ptr.Get()));
+        EXPECT_FALSE(set.contains(ptr2.Get()));
+
+        EXPECT_EQ(ptr->Increments, 3);
+        EXPECT_EQ(ptr2->Increments, 1);
+
+        EXPECT_FALSE(set.contains((TIntricateObject*)0xDEADBEEF));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+
+TEST(TRefCountedSignatureTest, FinalType)
+{
+    // Final, non-derived type: New lays a TRefCounter right before the object.
+    struct TObject final
+    {
+        ui64 Data = 0;
+    };
+
+    auto obj = New<TObject>();
+    const auto* refCounter = GetRefCounter(obj.Get());
+
+    // The signature is salted purely by the counter's own address.
+    EXPECT_EQ(refCounter->GetSignature(), NDetail::ComputeRefCountedAliveSignature(refCounter));
+    EXPECT_NE(refCounter->GetSignature(), NDetail::RefCountedDeadSignatureMagic);
+}
+
+TEST(TRefCountedSignatureTest, DerivedType)
+{
+    // Polymorphic (TRefCounted-derived) type: the counter is a base subobject.
+    struct TObject
+        : public TRefCounted
+    {
+        ui64 Data = 0;
+    };
+
+    auto obj = New<TObject>();
+    const auto* refCounter = GetRefCounter(obj.Get());
+
+    EXPECT_EQ(refCounter->GetSignature(), NDetail::ComputeRefCountedAliveSignature(refCounter));
+    EXPECT_NE(refCounter->GetSignature(), NDetail::RefCountedDeadSignatureMagic);
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

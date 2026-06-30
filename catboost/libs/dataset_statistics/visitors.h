@@ -13,14 +13,16 @@
 #include <util/generic/vector.h>
 #include <util/stream/fwd.h>
 
-using namespace NCB;
 
-class TDatasetStatisticsFullVisitor: public IRawObjectsOrderDataVisitor {
+namespace NCB {
+
+class TDatasetStatisticsFullVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     TDatasetStatisticsFullVisitor(
         const TDataProviderBuilderOptions& options,
         bool isLocal,
-        NPar::ILocalExecutor* /*localExecutor*/)
+        NPar::ILocalExecutor* /*localExecutor*/
+    )
         : InBlock(false)
         , ObjectCount(0)
         , NextCursor(0)
@@ -28,14 +30,7 @@ public:
         , InProcess(false)
         , ResultTaken(false)
         , IsLocal(isLocal)
-        , FeatureCorrelationDocsToUse(0)
-        , DocsCount(1)
     {}
-
-    void SetTakenFraction(ui64 featureCorrelationDocsToUse, ui64 docsCount) {
-        FeatureCorrelationDocsToUse = featureCorrelationDocsToUse;
-        DocsCount = docsCount;
-    }
 
     void SetCustomBorders(
         const TFeatureCustomBorders& customBorders,
@@ -79,7 +74,7 @@ public:
         if (MetaInfo.TargetType == ERawTargetType::String && ConvertStringTargets) {
             MetaInfo.TargetType = ERawTargetType::Float;
         }
-        DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
+        DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders);
 //        MetaInfo.TargetType = ERawTargetType::String;
         FloatTarget.resize(metaInfo.TargetCount);
     }
@@ -127,12 +122,7 @@ public:
                 .FloatFeatureStatistics[TFloatFeatureIdx(perTypeFeatureIdx).Idx]
                 .Update(features[perTypeFeatureIdx]);
         }
-        ui64 hash = static_cast<ui64>(IntHash(localObjectIdx));
-        if (hash % DocsCount < FeatureCorrelationDocsToUse) {
-            DatasetStatistics.FeatureStatistics
-                .FloatFeaturePairwiseProduct
-                .Update(features);
-        }
+        Y_UNUSED(localObjectIdx);
     }
     void AddAllFloatFeatures(
         ui32 localObjectIdx,
@@ -173,7 +163,8 @@ public:
 
     void AddAllCatFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<ui32, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<ui32, ui32> features
+    ) override {
         CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
@@ -185,11 +176,15 @@ public:
     }
 
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
-        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[
+            GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)
+        ].Update(feature);
         Y_UNUSED(localObjectIdx);
     }
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
-        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[
+            GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)
+        ].Update(feature);
         Y_UNUSED(localObjectIdx);
     }
     void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
@@ -197,7 +192,8 @@ public:
     }
     void AddAllTextFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<TString, ui32> features
+    ) override {
         CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
@@ -205,7 +201,8 @@ public:
     void AddEmbeddingFeature(
         ui32 localObjectIdx,
         ui32 flatFeatureIdx,
-        TMaybeOwningConstArrayHolder<float> feature) override {
+        TMaybeOwningConstArrayHolder<float> feature
+    ) override {
         Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
     }
 
@@ -224,9 +221,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
-        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
-        with_lock(TargetLock) {
-            FloatTarget[0].push_back(value);
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+            with_lock(TargetLock) {
+                FloatTarget[0].push_back(value);
+            }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -243,9 +244,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-        DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
-        with_lock(TargetLock) {
-            FloatTarget[flatTargetIdx].push_back(value);
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
+            with_lock(TargetLock) {
+                FloatTarget[flatTargetIdx].push_back(value);
+            }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -263,7 +268,13 @@ public:
         CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
         CB_ENSURE(
             !IsLocal || NextCursor >= ObjectCount,
-            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+            "processed object count is less than than specified in metadata: " << NextCursor << "<"
+            << ObjectCount);
+        if (IsLocal) {
+            DatasetStatistics.ObjectsCount = ObjectCount;
+        } else {
+            DatasetStatistics.ObjectsCount = NextCursor;
+        }
 
         if (DatasetStatistics.GroupwiseStats.Defined()) {
             DatasetStatistics.GroupwiseStats->Flush();
@@ -271,7 +282,7 @@ public:
 
         if (ObjectCount != 0) {
             CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "
-                              << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
+                << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
         } else {
             // should this be an error?
             CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
@@ -295,12 +306,24 @@ public:
         Y_UNUSED(pairs);
     }
 
+    void SetGraph(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+        CB_ENSURE_INTERNAL(false, "Unsupported");
+    }
+
     TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
         return Nothing();
     }
 
     void SetTimestamps(TVector<ui64>&& timestamps) override {
         Y_UNUSED(timestamps);
+    }
+
+    void OutputResult(const TString& outputPath) const;
+
+    const TDatasetStatistics& GetDatasetStatistics() const;
+    const TVector<TVector<float>>& GetFloatTarget() const {
+        return FloatTarget;
     }
 
 private:
@@ -325,24 +348,14 @@ private:
     TVector<TVector<float>> FloatTarget;
     TMutex TargetLock;
     TDataMetaInfo MetaInfo;
-    ui64 FeatureCorrelationDocsToUse;
-    ui64 DocsCount;
     ui32 CatFeatureCount;
 
     TFeatureCustomBorders CustomBorders;
     TFeatureCustomBorders TargetCustomBorders;
     bool ConvertStringTargets;
-
-public:
-    void OutputResult(const TString& outputPath) const;
-
-    const TDatasetStatistics& GetDatasetStatistics() const;
-    const TVector<TVector<float>>& GetFloatTarget() const {
-        return FloatTarget;
-    }
 };
 
-class TDatasetStatisticsOnlyGroupVisitor: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsOnlyGroupVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     explicit TDatasetStatisticsOnlyGroupVisitor(bool isLocal)
         : ObjectCount(0)
@@ -453,14 +466,16 @@ public:
     }
     void AddAllTextFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<TString, ui32> features
+    ) override {
         Y_UNUSED(localObjectIdx, features);
     }
 
     void AddEmbeddingFeature(
         ui32 localObjectIdx,
         ui32 flatFeatureIdx,
-        TMaybeOwningConstArrayHolder<float> feature) override {
+        TMaybeOwningConstArrayHolder<float> feature
+    ) override {
         Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
     }
 
@@ -492,7 +507,8 @@ public:
         CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
         CB_ENSURE(
             !IsLocal || NextCursor >= ObjectCount,
-            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+            "processed object count is less than than specified in metadata: " << NextCursor << "<"
+            << ObjectCount);
 
         GroupwiseStats.Flush();
 
@@ -521,6 +537,11 @@ public:
         Y_UNUSED(pairs);
     }
 
+    void SetGraph(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+        CB_ENSURE(false, "Unsupported");
+    }
+
     TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
         return Nothing();
     }
@@ -528,6 +549,10 @@ public:
     void SetTimestamps(TVector<ui64>&& timestamps) override {
         Y_UNUSED(timestamps);
     }
+
+    void OutputResult(const TString& outputPath) const;
+
+    const TGroupwiseStats& GetGroupwiseStats() const;
 
 private:
     ui32 ObjectCount;
@@ -538,9 +563,6 @@ private:
     bool IsLocal;
 
     TGroupwiseStats GroupwiseStats;
-
-public:
-    void OutputResult(const TString& outputPath) const;
-
-    const TGroupwiseStats& GetGroupwiseStats() const;
 };
+
+}

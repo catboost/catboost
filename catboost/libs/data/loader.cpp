@@ -60,31 +60,28 @@ namespace NCB {
 
 
     static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset, const TVector<TString>& classNames) {
-        TBaselineReader reader(filePath, classNames);
+        THolder<IBaselineReader> reader = GetProcessor<IBaselineReader, TBaselineReaderArgs>(
+            filePath,
+            TBaselineReaderArgs{filePath, classNames, loadSubset.Range}
+        );
 
-        TString line;
-
-        TVector<ui32> tokenIndexes = reader.GetBaselineIndexes();
+        auto baselineCount = reader->GetBaselineCount();
 
         TVector<TVector<float>> baseline;
-        ResizeRank2(tokenIndexes.size(), docCount, baseline);
-        ui32 lineNumber = 0;
-        auto addBaselineFunc = [&baseline, &lineNumber, &loadSubset](ui32 approxIdx, float value) {
-            baseline[approxIdx][lineNumber - loadSubset.Range.Begin] = value;
-        };
+        ResizeRank2(baselineCount, docCount, baseline);
 
-        for (; reader.ReadLine(&line); lineNumber++) {
-            if (lineNumber < loadSubset.Range.Begin) {
-                continue;
+        TObjectBaselineData baselineData;
+        ui64 objectIdx = 0;
+        ui32 objectCount = 0;
+
+        for (; reader->Read(&baselineData, &objectIdx); objectCount++) {
+            for (auto approxIdx : xrange(baselineCount)) {
+                baseline[approxIdx][objectIdx] = baselineData.Baseline[approxIdx];
             }
-            if (lineNumber >= loadSubset.Range.End) {
-                break;
-            }
-            reader.Parse(addBaselineFunc, line, lineNumber - loadSubset.Range.Begin);
         }
-        CB_ENSURE(lineNumber - loadSubset.Range.Begin == docCount,
+        CB_ENSURE(objectCount == docCount,
             "Expected " << docCount << " lines in baseline file starting at offset " << loadSubset.Range.Begin
-            << " got " << lineNumber - loadSubset.Range.Begin);
+            << " got " << objectCount);
         return baseline;
     }
 
@@ -179,45 +176,34 @@ namespace NCB {
         return timestamps;
     }
 
-    void SetPairs(
-        const TPathWithScheme& pairsPath,
-        TDatasetSubset loadSubset,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
-        IDatasetVisitor* visitor
-    ) {
+    void SetPairs(const TPathWithScheme& pairsPath, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
         DumpMemUsage("After data read");
         if (pairsPath.Inited()) {
             auto pairsDataLoader = GetProcessor<IPairsDataLoader>(
                 pairsPath,
                 TPairsDataLoaderArgs{pairsPath, loadSubset}
             );
-            THashMap<TGroupId, ui32> groupIdToIdxMap;
             if (pairsDataLoader->NeedGroupIdToIdxMap()) {
-                CB_ENSURE(groupIds, "Cannot load pairs data with group ids for a dataset without groups");
+                auto maybeGroupIds = visitor->GetGroupIds();
+                CB_ENSURE(maybeGroupIds, "Cannot load pairs data with group ids for a dataset without groups");
+                pairsDataLoader->SetGroupIdToIdxMap(*maybeGroupIds);
+            }
+            pairsDataLoader->Do(visitor);
+        }
+    }
 
-                TConstArrayRef<TGroupId> groupIdsArray = *groupIds;
-                if (!groupIdsArray.empty()) {
-                    TGroupId currentGroupId = groupIdsArray[0];
-                    ui32 currentGroupIdx = 0;
-
-                    auto insertCurrentGroup = [&] () {
-                        CB_ENSURE(
-                            !groupIdToIdxMap.contains(currentGroupId),
-                            "Group id " << currentGroupId << " is used for several groups in the dataset"
-                        );
-                        groupIdToIdxMap.emplace(currentGroupId, currentGroupIdx++);
-                    };
-
-                    for (TGroupId groupId : groupIdsArray) {
-                        if (groupId != currentGroupId) {
-                            insertCurrentGroup();
-                            currentGroupId = groupId;
-                        }
-                    }
-                    insertCurrentGroup();
-                }
-
-                pairsDataLoader->SetGroupIdToIdxMap(&groupIdToIdxMap);
+    void SetGraph(const TPathWithScheme& graphPath, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
+        DumpMemUsage("Before data read graphPath");
+        if (graphPath.Inited()) {
+            auto pairsDataLoader = GetProcessor<IPairsDataLoader>(
+                graphPath,
+                TPairsDataLoaderArgs{graphPath, loadSubset}
+            );
+            pairsDataLoader->IsPairs = false;
+            if (pairsDataLoader->NeedGroupIdToIdxMap()) {
+                auto maybeGroupIds = visitor->GetGroupIds();
+                CB_ENSURE(maybeGroupIds, "Cannot load graph data with group ids for a dataset without groups");
+                pairsDataLoader->SetGroupIdToIdxMap(*maybeGroupIds);
             }
             pairsDataLoader->Do(visitor);
         }
@@ -319,6 +305,21 @@ namespace NCB {
         return featureNames;
     }
 
+    static size_t GetFeatureCount(TConstArrayRef<TColumn> columns) {
+        size_t featureCount = 0;
+
+        for (auto column : columns) {
+            if (IsFactorColumn(column.Type)) {
+                ++featureCount;
+            } else if (column.Type == EColumn::Features) {
+                featureCount += GetFeatureCount(column.SubColumns);
+            }
+        }
+
+        return featureCount;
+    }
+
+
     TVector<TString> GetFeatureNames(
         const TDataColumnsMetaInfo& columnsDescription,
         const TMaybe<TVector<TString>>& headerColumns,
@@ -328,10 +329,7 @@ namespace NCB {
         const TVector<TString> featureNamesFromColumns = columnsDescription.GenerateFeatureIds(headerColumns);
         const size_t featureCount
             = featureNamesFromColumns.empty() ?
-                CountIf(
-                    columnsDescription.Columns,
-                    [](const TColumn& column) { return IsFactorColumn(column.Type); }
-                )
+                GetFeatureCount(columnsDescription.Columns)
                 : featureNamesFromColumns.size();
 
         TVector<TString> externalFeatureNames = LoadFeatureNames(featureNamesPath);

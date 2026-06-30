@@ -14,6 +14,9 @@ static void cls_ret_float_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
 
    printf("%g: %g\n",*(float *)args[0],
 	  *(float *)resp);
+
+   CHECK((int)(*(float *)args[0]) == -2122);
+   CHECK((int)(*(float *)resp) == -2122);
  }
 
 typedef float (*cls_ret_float)(float);
@@ -38,5 +41,6 @@ int main (void)
   /* { dg-output "\\-2122.12: \\-2122.12" } */
   printf("res: %.6f\n", res);
   /* { dg-output "\nres: \-2122.120117" } */
+  CHECK((int)res == -2122);
   exit(0);
 }

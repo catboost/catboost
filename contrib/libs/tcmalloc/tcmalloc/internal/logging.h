@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +21,24 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "absl/base/internal/per_thread_tls.h"
+#include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <initializer_list>
+#include <optional>
+#include <string>
+#include <type_traits>
+
+#include "absl/base/attributes.h"
+#include "absl/base/internal/sysinfo.h"
 #include "absl/base/optimization.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/time/time.h"
+#include "tcmalloc/internal/allocation_guard.h"
 #include "tcmalloc/internal/config.h"
+#include "tcmalloc/malloc_extension.h"
 
 //-------------------------------------------------------------------
 // Utility routines
@@ -33,19 +47,125 @@
 // Safe logging helper: we write directly to the stderr file
 // descriptor and avoid FILE buffering because that may invoke
 // malloc().
-//
-// Example:
-//   Log(kLog, __FILE__, __LINE__, "error", bytes);
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
+class SampleUserDataSupport {
+public:
+  using CreateSampleUserDataCallback = void*();
+  using CopySampleUserDataCallback = void*(void*);
+  using DestroySampleUserDataCallback = void(void*);
+  using ComputeSampleUserDataHashCallback = size_t(void*);
+
+  class UserData {
+  public:
+    static UserData Make() {
+      return UserData{CreateSampleUserData()};
+    }
+    // must be matched with preceding Release
+    static void DestroyRaw(void* ptr) {
+      DestroySampleUserData(ptr);
+    }
+
+    constexpr UserData() noexcept : ptr_(nullptr) {}
+
+    UserData(const UserData& that) noexcept : ptr_(CopySampleUserData(that.ptr_)) {}
+    UserData& operator=(const UserData& that) noexcept {
+      DestroySampleUserData(ptr_);
+      ptr_ = CopySampleUserData(that.ptr_);
+      return *this;
+    }
+
+    UserData(UserData&& that) noexcept : ptr_(that.ptr_) {
+      that.ptr_ = nullptr;
+    }
+    UserData& operator=(UserData&& that) noexcept {
+      if (this == &that) {
+        return *this;
+      }
+      DestroySampleUserData(ptr_);
+      ptr_ = that.ptr_;
+      that.ptr_ = nullptr;
+      return *this;
+    }
+    void Reset() {
+      DestroySampleUserData(ptr_);
+      ptr_ = nullptr;
+    }
+
+    ~UserData() {
+      DestroySampleUserData(ptr_);
+    }
+
+    // should be paired with subsequent DestroyRaw
+    void* Release() && {
+      void* p = ptr_;
+      ptr_ = nullptr;
+      return p;
+    }
+  private:
+    UserData(void* ptr) noexcept : ptr_(ptr) {}
+  private:
+    void* ptr_;
+  };
+
+  static void Enable(CreateSampleUserDataCallback create,
+                     CopySampleUserDataCallback copy,
+                     DestroySampleUserDataCallback destroy,
+                     ComputeSampleUserDataHashCallback compute_hash) {
+    create_sample_user_data_callback_ = create;
+    copy_sample_user_data_callback_ = copy;
+    destroy_sample_user_data_callback_ = destroy;
+    compute_sample_user_data_hash_callback_ = compute_hash;
+  }
+
+  static size_t ComputeSampleUserDataHash(void* ptr) noexcept {
+    if (compute_sample_user_data_hash_callback_ != nullptr) {
+      return compute_sample_user_data_hash_callback_(ptr);
+    }
+    return 0;
+  }
+
+private:
+  static void* CreateSampleUserData() {
+    if (create_sample_user_data_callback_ != nullptr) {
+      return create_sample_user_data_callback_();
+    }
+    return nullptr;
+  }
+
+  static void* CopySampleUserData(void* ptr) noexcept {
+    if (copy_sample_user_data_callback_ != nullptr) {
+      return copy_sample_user_data_callback_(ptr);
+    }
+    return nullptr;
+  }
+
+  static void DestroySampleUserData(void* ptr) noexcept {
+    if (destroy_sample_user_data_callback_ != nullptr) {
+      destroy_sample_user_data_callback_(ptr);
+    }
+  }
+
+  ABSL_CONST_INIT static CreateSampleUserDataCallback* create_sample_user_data_callback_;
+  ABSL_CONST_INIT static CopySampleUserDataCallback* copy_sample_user_data_callback_;
+  ABSL_CONST_INIT static DestroySampleUserDataCallback* destroy_sample_user_data_callback_;
+  ABSL_CONST_INIT static ComputeSampleUserDataHashCallback* compute_sample_user_data_hash_callback_;
+};
+
 static constexpr int kMaxStackDepth = 64;
+
+// An opaque handle type used to identify allocations.
+using AllocHandle = int64_t;
 
 // size/depth are made the same size as a pointer so that some generic
 // code below can conveniently cast them back and forth to void*.
 struct StackTrace {
+  // An opaque handle used by allocator to uniquely identify the sampled
+  // memory block.
+  AllocHandle sampled_alloc_handle;
 
   // For small sampled objects, we allocate a full span to hold the
   // sampled object.  However to avoid disturbing fragmentation
@@ -59,113 +179,201 @@ struct StackTrace {
   uintptr_t requested_size;
   uintptr_t requested_alignment;
   uintptr_t allocated_size;  // size after sizeclass/page rounding
+  bool requested_size_returning;
 
-  uintptr_t depth;           // Number of PC values stored in array below
-  void* stack[kMaxStackDepth];
+  uint8_t access_hint;
+  bool cold_allocated;
 
   // weight is the expected number of *bytes* that were requested
   // between the previous sample and this one
   size_t weight;
 
-  void* user_data;
+  SampleUserDataSupport::UserData user_data;
 
-  template <typename H>
-  friend H AbslHashValue(H h, const StackTrace& t) {
-    // As we use StackTrace as a key-value node in StackTraceTable, we only
-    // produce a hasher for the fields used as keys.
-    return H::combine(H::combine_contiguous(std::move(h), t.stack, t.depth),
-                      t.depth, t.requested_size, t.requested_alignment,
-                      t.allocated_size
-    );
-  }
+  // Timestamp of allocation.
+  absl::Time allocation_time;
+
+  Profile::Sample::GuardedStatus guarded_status;
+
+  // How the memory was allocated (new/malloc/etc.)
+  Profile::Sample::AllocationType allocation_type;
+
+  // If not nullptr, this is the start address of the span corresponding to this
+  // sampled allocation. This may be nullptr for cases where it is not useful
+  // for residency analysis such as for peakheapz.
+  void* span_start_address = nullptr;
+
+  uintptr_t depth;  // Number of PC values stored in array below
+  // Place stack as last member because it might not all be accessed.
+  void* stack[kMaxStackDepth];
 };
 
-enum LogMode {
-  kLog,           // Just print the message
-  kLogWithStack,  // Print the message and a stack trace
-};
+#define TC_LOG(msg, ...)                                                \
+  tcmalloc::tcmalloc_internal::LogImpl("%d %s:%d] " msg "\n", __FILE__, \
+                                       __LINE__, ##__VA_ARGS__)
 
-class Logger;
+void RecordCrash(absl::string_view detector, absl::string_view error);
+ABSL_ATTRIBUTE_NORETURN void CrashWithOOM(size_t alloc_size);
+ABSL_ATTRIBUTE_NORETURN void CheckFailed(const char* file, int line,
+                                         const char* msg, int msglen);
 
-// A LogItem holds any of the argument types that can be passed to Log()
-class LogItem {
- public:
-  LogItem() : tag_(kEnd) {}
-  LogItem(const char* v) : tag_(kStr) { u_.str = v; }
-  LogItem(int v) : tag_(kSigned) { u_.snum = v; }
-  LogItem(long v) : tag_(kSigned) { u_.snum = v; }
-  LogItem(long long v) : tag_(kSigned) { u_.snum = v; }
-  LogItem(unsigned int v) : tag_(kUnsigned) { u_.unum = v; }
-  LogItem(unsigned long v) : tag_(kUnsigned) { u_.unum = v; }
-  LogItem(unsigned long long v) : tag_(kUnsigned) { u_.unum = v; }
-  LogItem(const void* v) : tag_(kPtr) { u_.ptr = v; }
+template <typename... Args>
+ABSL_ATTRIBUTE_NORETURN ABSL_ATTRIBUTE_NOINLINE void CheckFailed(
+    const char* func, const char* file, int line,
+    const absl::FormatSpec<int, const char*, int, const char*, Args...>& format,
+    const Args&... args) {
+  AllocationGuard no_allocations;
+  char buf[512];
+  int n =
+      absl::SNPrintF(buf, sizeof(buf), format, absl::base_internal::GetTID(),
+                     file, line, func, args...);
+  buf[sizeof(buf) - 1] = 0;
+  CheckFailed(file, line, buf, std::min<size_t>(n, sizeof(buf) - 1));
+}
 
- private:
-  friend class Logger;
-  enum Tag { kStr, kSigned, kUnsigned, kPtr, kEnd };
-  Tag tag_;
-  union {
-    const char* str;
-    const void* ptr;
-    int64_t snum;
-    uint64_t unum;
-  } u_;
-};
-
-extern void Log(LogMode mode, const char* filename, int line, LogItem a,
-                LogItem b = LogItem(), LogItem c = LogItem(),
-                LogItem d = LogItem());
-
-enum CrashMode {
-  kCrash,          // Print the message and crash
-  kCrashWithStats  // Print the message, some stats, and crash
-};
-
-ABSL_ATTRIBUTE_NORETURN
-void Crash(CrashMode mode, const char* filename, int line, LogItem a,
-           LogItem b = LogItem(), LogItem c = LogItem(), LogItem d = LogItem());
+void PrintStackTrace(void* const* stack_frames, size_t depth);
+void PrintStackTraceFromSignalHandler(void* context);
 
 // Tests can override this function to collect logging messages.
 extern void (*log_message_writer)(const char* msg, int length);
 
-// Like assert(), but executed even in NDEBUG mode
-#undef CHECK_CONDITION
-#define CHECK_CONDITION(cond)                                           \
-  (ABSL_PREDICT_TRUE(cond) ? (void)0                                    \
-                           : (::tcmalloc::tcmalloc_internal::Crash(     \
-                                 ::tcmalloc::tcmalloc_internal::kCrash, \
-                                 __FILE__, __LINE__, #cond)))
+template <typename... Args>
+ABSL_ATTRIBUTE_NOINLINE void LogImpl(
+    const absl::FormatSpec<int, Args...>& format, const Args&... args) {
+  char buf[512];
+  int n;
+  {
+    AllocationGuard no_allocations;
+    n = absl::SNPrintF(buf, sizeof(buf), format, absl::base_internal::GetTID(),
+                       args...);
+  }
+  buf[sizeof(buf) - 1] = 0;
+  (*log_message_writer)(buf, std::min<size_t>(n, sizeof(buf) - 1));
+}
 
-// Our own version of assert() so we can avoid hanging by trying to do
-// all kinds of goofy printing while holding the malloc lock.
+// TC_BUG unconditionally aborts the program with the message.
+#define TC_BUG(msg, ...)                                                       \
+  tcmalloc::tcmalloc_internal::CheckFailed(__FUNCTION__, __FILE__, __LINE__,   \
+                                           "%d %s:%d] CHECK in %s: " msg "\n", \
+                                           ##__VA_ARGS__)
+
+// TC_CHECK* check the given condition in both debug and release builds,
+// and abort the program if the condition is false.
+// Macros accept an additional optional formatted message, for example:
+// TC_CHECK_EQ(a, b);
+// TC_CHECK_EQ(a, b, "ptr=%p flags=%d", ptr, flags);
+#define TC_CHECK(a, ...) TCMALLOC_CHECK_IMPL(a, #a, "" __VA_ARGS__)
+#define TC_CHECK_EQ(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), ==, (b), #a, #b, "" __VA_ARGS__)
+#define TC_CHECK_NE(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), !=, (b), #a, #b, "" __VA_ARGS__)
+#define TC_CHECK_LT(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), <, (b), #a, #b, "" __VA_ARGS__)
+#define TC_CHECK_LE(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), <=, (b), #a, #b, "" __VA_ARGS__)
+#define TC_CHECK_GT(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), >, (b), #a, #b, "" __VA_ARGS__)
+#define TC_CHECK_GE(a, b, ...) \
+  TCMALLOC_CHECK_OP((a), >=, (b), #a, #b, "" __VA_ARGS__)
+
+// TC_ASSERT* are debug-only versions of TC_CHECK*.
 #ifndef NDEBUG
-#define ASSERT(cond) CHECK_CONDITION(cond)
-#else
-#define ASSERT(cond) ((void)0)
-#endif
+#define TC_ASSERT TC_CHECK
+#define TC_ASSERT_EQ TC_CHECK_EQ
+#define TC_ASSERT_NE TC_CHECK_NE
+#define TC_ASSERT_LT TC_CHECK_LT
+#define TC_ASSERT_LE TC_CHECK_LE
+#define TC_ASSERT_GT TC_CHECK_GT
+#define TC_ASSERT_GE TC_CHECK_GE
+#else  // #ifndef NDEBUG
+#define TC_ASSERT(a, ...) TC_CHECK(true || (a), ##__VA_ARGS__)
+#define TC_ASSERT_EQ(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#define TC_ASSERT_NE(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#define TC_ASSERT_LT(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#define TC_ASSERT_LE(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#define TC_ASSERT_GT(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#define TC_ASSERT_GE(a, b, ...) TC_ASSERT((a) == (b), ##__VA_ARGS__)
+#endif  // #ifndef NDEBUG
+
+#define TCMALLOC_CHECK_IMPL(condition, str, msg, ...)          \
+  ({                                                           \
+    ABSL_PREDICT_TRUE((condition))                             \
+    ? (void)0 : TC_BUG("%s (false) " msg, str, ##__VA_ARGS__); \
+  })
+
+#define TCMALLOC_CHECK_OP(c1, op, c2, cs1, cs2, msg, ...)                     \
+  ({                                                                          \
+    const auto& cc1 = (c1);                                                   \
+    const auto& cc2 = (c2);                                                   \
+    if (ABSL_PREDICT_FALSE(!(cc1 op cc2))) {                                  \
+      TC_BUG("%s " #op " %s (%v " #op " %v) " msg, cs1, cs2,                  \
+             tcmalloc::tcmalloc_internal::FormatConvert(cc1),                 \
+             tcmalloc::tcmalloc_internal::FormatConvert(cc2), ##__VA_ARGS__); \
+    }                                                                         \
+    (void)0;                                                                  \
+  })
+
+// absl::SNPrintF rejects to print pointers with %v,
+// so we need this little dance to convenience it.
+struct PtrFormatter {
+  const volatile void* val;
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const PtrFormatter& p) {
+    absl::Format(&sink, "%p", p.val);
+  }
+};
+
+template <typename T>
+PtrFormatter FormatConvert(T* v) {
+  return PtrFormatter{v};
+}
+
+inline PtrFormatter FormatConvert(std::nullptr_t v) { return PtrFormatter{v}; }
+
+template <typename T>
+struct OptionalFormatter {
+  const T* val;
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const OptionalFormatter<T>& p) {
+    if (p.val != nullptr) {
+      absl::Format(&sink, "%v", *p.val);
+    } else {
+      absl::Format(&sink, "???");
+    }
+  }
+};
+
+template <typename T>
+OptionalFormatter<T> FormatConvert(const std::optional<T>& v) {
+  return {v.has_value() ? &*v : nullptr};
+}
+
+template <typename T>
+const T& FormatConvert(const T& v) {
+  return v;
+}
 
 // Print into buffer
 class Printer {
  private:
-  char* buf_;     // Where should we write next
-  int left_;      // Space left in buffer (including space for \0)
-  int required_;  // Space we needed to complete all printf calls up to this
-                  // point
+  char* buf_;        // Where should we write next
+  size_t left_;      // Space left in buffer (including space for \0)
+  size_t required_;  // Space we needed to complete all printf calls up to this
+                     // point
 
  public:
   // REQUIRES: "length > 0"
-  Printer(char* buf, int length) : buf_(buf), left_(length), required_(0) {
-    ASSERT(length > 0);
+  Printer(char* buf, size_t length) : buf_(buf), left_(length), required_(0) {
+    TC_ASSERT_GT(length, 0);
     buf[0] = '\0';
   }
 
+  Printer(const Printer&) = delete;
+  Printer(Printer&&) = default;
+
   template <typename... Args>
   void printf(const absl::FormatSpec<Args...>& format, const Args&... args) {
-    ASSERT(left_ >= 0);
-    if (left_ <= 0) {
-      return;
-    }
-
+    AllocationGuard enforce_no_alloc;
     const int r = absl::SNPrintF(buf_, left_, format, args...);
     if (r < 0) {
       left_ = 0;
@@ -181,7 +389,37 @@ class Printer {
     }
   }
 
-  int SpaceRequired() const { return required_; }
+  template <typename... Args>
+  void Append(const Args&... args) {
+    AllocationGuard enforce_no_alloc;
+    AppendPieces({static_cast<const absl::AlphaNum&>(args).Piece()...});
+  }
+
+  size_t SpaceRequired() const { return required_; }
+
+ private:
+  void AppendPieces(std::initializer_list<absl::string_view> pieces) {
+    size_t total_size = 0;
+    for (const absl::string_view piece : pieces) total_size += piece.size();
+
+    required_ += total_size;
+    if (left_ < total_size) {
+      left_ = 0;
+      return;
+    }
+
+    for (const absl::string_view& piece : pieces) {
+      const size_t this_size = piece.size();
+      if (this_size == 0) {
+        continue;
+      }
+
+      memcpy(buf_, piece.data(), this_size);
+      buf_ += this_size;
+    }
+
+    left_ -= total_size;
+  }
 };
 
 enum PbtxtRegionType { kTop, kNested };
@@ -191,7 +429,7 @@ enum PbtxtRegionType { kTop, kNested };
 // brackets).
 class PbtxtRegion {
  public:
-  PbtxtRegion(Printer* out, PbtxtRegionType type, int indent);
+  PbtxtRegion(Printer& out ABSL_ATTRIBUTE_LIFETIME_BOUND, PbtxtRegionType type);
   ~PbtxtRegion();
 
   PbtxtRegion(const PbtxtRegion&) = delete;
@@ -205,14 +443,16 @@ class PbtxtRegion {
   void PrintRaw(absl::string_view key, absl::string_view value);
 
   // Prints 'key subregion'. Return the created subregion.
-  PbtxtRegion CreateSubRegion(absl::string_view key);
+  PbtxtRegion CreateSubRegion(absl::string_view key)
+      ABSL_ATTRIBUTE_LIFETIME_BOUND;
+
+#ifndef NDEBUG
+  static void InjectValues(int64_t* i64, double* d, bool* b);
+#endif
 
  private:
-  void NewLineAndIndent();
-
   Printer* out_;
   PbtxtRegionType type_;
-  int indent_;
 };
 
 }  // namespace tcmalloc_internal

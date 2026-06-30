@@ -1,6 +1,5 @@
 #pragma once
 
-#include "typetraits.h"
 #include "typelist.h"
 
 #include <functional>
@@ -64,10 +63,9 @@ namespace NPrivate {
 
     template <class R, typename... Args>
     struct TFuncInfo<R(Args...)> {
-        using TResult = R;
         typedef R TSignature(Args...);
     };
-}
+} // namespace NPrivate
 
 template <class C>
 using TFunctionSignature = typename ::NPrivate::TFuncInfo<::NPrivate::TRemoveClass<std::remove_reference_t<std::remove_pointer_t<C>>>>::TSignature;
@@ -97,22 +95,3 @@ struct TFunctionArgImpl {
 
 template <typename C, size_t N>
 using TFunctionArg = typename TFunctionArgImpl<C, N>::TResult;
-
-// temporary before std::apply appearance
-
-template <typename F, typename Tuple, size_t... I>
-auto ApplyImpl(F&& f, Tuple&& t, std::index_sequence<I...>) {
-    return f(std::get<I>(std::forward<Tuple>(t))...);
-}
-
-// change to std::apply after c++ 17
-template <typename F, typename Tuple>
-auto Apply(F&& f, Tuple&& t) {
-    return ApplyImpl(f, t, std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
-}
-
-// change to std::apply after c++ 17
-template <typename F>
-auto Apply(F&& f, std::tuple<>) {
-    return f();
-}

@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,6 +29,12 @@
 /* Check which standard library we use. */
 #include <cstddef>
 
+#ifdef __has_include
+#if __has_include(<version>)
+#include <version>
+#endif
+#endif
+
 #include "_export.h"
 
 #if _MSC_VER
@@ -47,6 +54,12 @@
 #define __TBB_CPP14_PRESENT (__TBB_LANG >= 201402L)
 #define __TBB_CPP17_PRESENT (__TBB_LANG >= 201703L)
 #define __TBB_CPP20_PRESENT (__TBB_LANG >= 202002L)
+
+#if __TBB_CPP17_PRESENT
+    #define __TBB_GLOBAL_VAR inline
+#else
+    #define __TBB_GLOBAL_VAR static
+#endif
 
 #if __INTEL_COMPILER || _MSC_VER
     #define __TBB_NOINLINE(decl) __declspec(noinline) decl
@@ -182,7 +195,7 @@
 
 /** __TBB_DYNAMIC_LOAD_ENABLED describes the system possibility to load shared libraries at run time **/
 #ifndef __TBB_DYNAMIC_LOAD_ENABLED
-    #define __TBB_DYNAMIC_LOAD_ENABLED 1
+    #define __TBB_DYNAMIC_LOAD_ENABLED (!__EMSCRIPTEN__)
 #endif
 
 /** __TBB_WIN8UI_SUPPORT enables support of Windows* Store Apps and limit a possibility to load
@@ -195,7 +208,7 @@
 
 /** __TBB_WEAK_SYMBOLS_PRESENT denotes that the system supports the weak symbol mechanism **/
 #ifndef __TBB_WEAK_SYMBOLS_PRESENT
-    #define __TBB_WEAK_SYMBOLS_PRESENT ( !_WIN32 && !__APPLE__ && !__sun && (__TBB_GCC_VERSION >= 40000 || __INTEL_COMPILER ) )
+    #define __TBB_WEAK_SYMBOLS_PRESENT ( !__EMSCRIPTEN__ && !_WIN32 && !__APPLE__ && !__sun && (__TBB_GCC_VERSION >= 40000 || __INTEL_COMPILER ) )
 #endif
 
 /** Presence of compiler features **/
@@ -220,17 +233,15 @@
 /** Library features presence macros **/
 
 #define __TBB_CPP14_INTEGER_SEQUENCE_PRESENT       (__TBB_LANG >= 201402L)
-#define __TBB_CPP17_INVOKE_RESULT_PRESENT          (__TBB_LANG >= 201703L)
+#define __TBB_CPP17_INVOKE_PRESENT                 (__TBB_LANG >= 201703L)
 
 // TODO: Remove the condition(__INTEL_COMPILER > 2021) from the __TBB_CPP17_DEDUCTION_GUIDES_PRESENT
 // macro when this feature start working correctly on this compiler.
 #if __INTEL_COMPILER && (!_MSC_VER || __INTEL_CXX11_MOVE__)
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (__TBB_LANG >= 201402L)
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (__INTEL_COMPILER > 2021 && __TBB_LANG >= 201703L)
-    #define __TBB_CPP20_CONCEPTS_PRESENT           0 // TODO: add a mechanism for future addition
 #elif __clang__
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (__has_feature(cxx_variable_templates))
-    #define __TBB_CPP20_CONCEPTS_PRESENT           0 // TODO: add a mechanism for future addition
     #ifdef __cpp_deduction_guides
         #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT (__cpp_deduction_guides >= 201611L)
     #else
@@ -239,15 +250,12 @@
 #elif __GNUC__
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (__TBB_LANG >= 201402L && __TBB_GCC_VERSION >= 50000)
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (__cpp_deduction_guides >= 201606L)
-    #define __TBB_CPP20_CONCEPTS_PRESENT           (__TBB_LANG >= 201709L && __TBB_GCC_VERSION >= 100201)
 #elif _MSC_VER
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (_MSC_FULL_VER >= 190023918 && (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700))
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (_MSC_VER >= 1914 && __TBB_LANG >= 201703L && (!__INTEL_COMPILER || __INTEL_COMPILER > 2021))
-    #define __TBB_CPP20_CONCEPTS_PRESENT           (_MSC_VER >= 1923 && __TBB_LANG >= 202002L) // TODO: INTEL_COMPILER?
 #else
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (__TBB_LANG >= 201402L)
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (__TBB_LANG >= 201703L)
-    #define __TBB_CPP20_CONCEPTS_PRESENT           (__TBB_LANG >= 202002L)
 #endif
 
 // GCC4.8 on RHEL7 does not support std::get_new_handler
@@ -255,16 +263,28 @@
 // GCC4.8 on RHEL7 does not support std::is_trivially_copyable
 #define __TBB_CPP11_TYPE_PROPERTIES_PRESENT             (_LIBCPP_VERSION || _MSC_VER >= 1700 || (__TBB_GLIBCXX_VERSION >= 50000 && __GXX_EXPERIMENTAL_CXX0X__))
 
-#define __TBB_CPP17_MEMORY_RESOURCE_PRESENT             0
-#define __TBB_CPP17_HW_INTERFERENCE_SIZE_PRESENT        (_MSC_VER >= 1911)
+#if defined(__cpp_lib_memory_resource)
+    #define __TBB_CPP17_MEMORY_RESOURCE_PRESENT         (_MSC_VER >= 1913 && (__TBB_LANG > 201402L) || \
+                                                        __TBB_GLIBCXX_VERSION >= 90000 && __TBB_LANG >= 201703L)
+#else
+    #define __TBB_CPP17_MEMORY_RESOURCE_PRESENT         0
+#endif
+#define __TBB_CPP17_HW_INTERFERENCE_SIZE_PRESENT        0
 #define __TBB_CPP17_LOGICAL_OPERATIONS_PRESENT          (__TBB_LANG >= 201703L)
 #define __TBB_CPP17_ALLOCATOR_IS_ALWAYS_EQUAL_PRESENT   (__TBB_LANG >= 201703L)
 #define __TBB_CPP17_IS_SWAPPABLE_PRESENT                (__TBB_LANG >= 201703L)
 
+// TODO: fix concepts on Clang or define the broken versions
+#if !(__clang__) && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+    #define __TBB_CPP20_CONCEPTS_PRESENT ((__cpp_concepts >= 201907L) && (__cpp_lib_concepts >= 202002L))
+#else
+    #define __TBB_CPP20_CONCEPTS_PRESENT 0
+#endif
+
 #if defined(__cpp_impl_three_way_comparison) && defined(__cpp_lib_three_way_comparison)
     #define __TBB_CPP20_COMPARISONS_PRESENT ((__cpp_impl_three_way_comparison >= 201907L) && (__cpp_lib_three_way_comparison >= 201907L))
 #else
-    #define __TBB_CPP20_COMPARISONS_PRESENT __TBB_CPP20_PRESENT
+    #define __TBB_CPP20_COMPARISONS_PRESENT 0
 #endif
 
 #define __TBB_RESUMABLE_TASKS                           (!__TBB_WIN8UI_SUPPORT && !__ANDROID__ && !__QNXNTO__ && (!__linux__ || __GLIBC__))
@@ -328,7 +348,7 @@
 
 #define __TBB_TSX_INTRINSICS_PRESENT (__RTM__ || __INTEL_COMPILER || (_MSC_VER>=1700 && (__TBB_x86_64 || __TBB_x86_32)))
 
-#define __TBB_WAITPKG_INTRINSICS_PRESENT ((__INTEL_COMPILER >= 1900 || __TBB_GCC_VERSION >= 110000 || __TBB_CLANG_VERSION >= 120000) \
+#define __TBB_WAITPKG_INTRINSICS_PRESENT ((__INTEL_COMPILER >= 1900 || (__TBB_GCC_VERSION >= 110000 && (__APPLE__ || __TBB_GNU_ASM_VERSION >= 2032)) || __TBB_CLANG_VERSION >= 120000) \
                                          && (_WIN32 || _WIN64 || __unix__ || __APPLE__) && (__TBB_x86_32 || __TBB_x86_64) && !__ANDROID__)
 
 /** Internal TBB features & modes **/
@@ -369,20 +389,15 @@
     #define __TBB_ARENA_OBSERVER __TBB_SCHEDULER_OBSERVER
 #endif /* __TBB_ARENA_OBSERVER */
 
-#ifndef __TBB_ARENA_BINDING
-    #define __TBB_ARENA_BINDING 1
-#endif
-
-#if (TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION || __TBB_BUILD) && __TBB_ARENA_BINDING
-    #define __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT 1
-#endif
+// Thread pinning is not available on macOS*
+#define __TBB_CPUBIND_PRESENT (!__APPLE__)
 
 #ifndef __TBB_ENQUEUE_ENFORCED_CONCURRENCY
     #define __TBB_ENQUEUE_ENFORCED_CONCURRENCY 1
 #endif
 
 #if !defined(__TBB_SURVIVE_THREAD_SWITCH) && \
-          (_WIN32 || _WIN64 || __APPLE__ || (__linux__ && !__ANDROID__))
+          (_WIN32 || _WIN64 || __APPLE__ || (defined(__unix__) && !__ANDROID__))
     #define __TBB_SURVIVE_THREAD_SWITCH 1
 #endif /* __TBB_SURVIVE_THREAD_SWITCH */
 
@@ -505,14 +520,25 @@
     #include <android/api-level.h>
 #endif
 
+#ifndef __TBB_CRITICAL_TASKS
+#define __TBB_CRITICAL_TASKS 1
+#endif
+
 #define __TBB_PREVIEW_MESSAGE_BASED_KEY_MATCHING (TBB_PREVIEW_FLOW_GRAPH_FEATURES)
 
-#ifndef __TBB_PREVIEW_CRITICAL_TASKS
-#define __TBB_PREVIEW_CRITICAL_TASKS            1
-#endif
 
 #ifndef __TBB_PREVIEW_FLOW_GRAPH_NODE_SET
 #define __TBB_PREVIEW_FLOW_GRAPH_NODE_SET       (TBB_PREVIEW_FLOW_GRAPH_FEATURES)
+#endif
+
+#ifndef __TBB_PREVIEW_FLOW_GRAPH_TRY_PUT_AND_WAIT
+#define __TBB_PREVIEW_FLOW_GRAPH_TRY_PUT_AND_WAIT (TBB_PREVIEW_FLOW_GRAPH_FEATURES \
+                                                   || TBB_PREVIEW_FLOW_GRAPH_TRY_PUT_AND_WAIT)
+#endif
+
+#ifndef __TBB_PREVIEW_FLOW_GRAPH_RESOURCE_LIMITING
+#define __TBB_PREVIEW_FLOW_GRAPH_RESOURCE_LIMITING (TBB_PREVIEW_FLOW_GRAPH_FEATURES \
+                                                        || TBB_PREVIEW_FLOW_GRAPH_RESOURCE_LIMITING)
 #endif
 
 #if TBB_PREVIEW_CONCURRENT_HASH_MAP_EXTENSIONS
@@ -521,6 +547,39 @@
 
 #if TBB_PREVIEW_TASK_GROUP_EXTENSIONS || __TBB_BUILD
 #define __TBB_PREVIEW_TASK_GROUP_EXTENSIONS 1
+#endif
+
+#if TBB_PREVIEW_PARALLEL_PHASE || __TBB_BUILD
+#define __TBB_PREVIEW_PARALLEL_PHASE 1
+#endif
+
+#if TBB_PREVIEW_TASK_ARENA_CORE_TYPE_SELECTOR || __TBB_BUILD
+#define __TBB_PREVIEW_TASK_ARENA_CORE_TYPE_SELECTOR 1
+#endif
+
+#if !__TBB_DISABLE_SPEC_EXTENSIONS
+#define TBB_EXT_CUSTOM_ASSERTION_HANDLER 202510
+#endif
+
+// Feature-test macros
+#if __TBB_PREVIEW_FLOW_GRAPH_RESOURCE_LIMITING
+#define TBB_HAS_FLOW_GRAPH_RESOURCE_LIMITING 202603
+#endif
+
+#if __TBB_PREVIEW_PARALLEL_PHASE
+#define TBB_HAS_PARALLEL_PHASE 202603
+#endif
+
+#if __TBB_PREVIEW_TASK_ARENA_CORE_TYPE_SELECTOR
+#define TBB_HAS_TASK_ARENA_CORE_TYPE_SELECTOR 202603
+#endif
+
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+#define TBB_HAS_TASK_GROUP_DEPENDENCIES 202603
+#endif
+
+#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
+#define TBB_HAS_TASK_GROUP_WAIT_FOR_SINGLE_TASK 202603
 #endif
 
 #endif // __TBB_detail__config_H

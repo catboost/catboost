@@ -2,6 +2,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <string>
+
 Y_UNIT_TEST_SUITE(TCompilerTest) {
     Y_UNIT_TEST(TestPragmaNoWshadow) {
         Y_PRAGMA_DIAGNOSTIC_PUSH
@@ -69,4 +71,13 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
         Y_PRAGMA_DIAGNOSTIC_POP
     }
-}
+
+    Y_UNIT_TEST(TestYInitialized) {
+        std::string s;
+        if (false) {
+            auto _ = std::move(s);
+        }
+        Y_INITIALIZED(s);   // not moved
+        Y_UNUSED(s.size()); // no bugprone-use-after-move warning
+    }
+} // Y_UNIT_TEST_SUITE(TCompilerTest)

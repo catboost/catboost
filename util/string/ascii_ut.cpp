@@ -95,4 +95,4 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
         UNIT_ASSERT_EQUAL(AsciiHasSuffixIgnoreCase("qweasd", "asD"), true);
         UNIT_ASSERT_EQUAL(AsciiHasSuffixIgnoreCase("qweasd", "ast"), false);
     }
-}
+} // Y_UNIT_TEST_SUITE(TAsciiTest)

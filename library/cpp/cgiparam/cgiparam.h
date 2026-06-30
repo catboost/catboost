@@ -61,7 +61,7 @@ public:
     }
 
     Y_PURE_FUNCTION
-    const_iterator Find(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    const_iterator Find(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
     Y_PURE_FUNCTION
     bool Has(const TStringBuf name, const TStringBuf value) const noexcept;
@@ -76,23 +76,32 @@ public:
      * @note The returned value is CGI-unescaped.
      */
     Y_PURE_FUNCTION
-    const TString& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    const TString& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
+
+    /// Returns the last value by name
+    /**
+     * @note The returned value is CGI-unescaped.
+     */
+    Y_PURE_FUNCTION
+    const TString& GetLast(const TStringBuf name) const noexcept Y_LIFETIME_BOUND;
 
     void InsertEscaped(const TStringBuf name, const TStringBuf value);
 
 #if !defined(__GLIBCXX__)
     template <typename TName, typename TValue>
-    inline void InsertUnescaped(TName&& name, TValue&& value) {
+    inline TCgiParameters& InsertUnescaped(TName&& name, TValue&& value) {
         // TStringBuf use as TName or TValue is C++17 actually.
         // There is no pair constructor available in C++14 when required type
         // is not implicitly constructible from given type.
         // But libc++ pair allows this with C++14.
         emplace(std::forward<TName>(name), std::forward<TValue>(value));
+        return *this;
     }
 #else
     template <typename TName, typename TValue>
-    inline void InsertUnescaped(TName&& name, TValue&& value) {
+    inline TCgiParameters& InsertUnescaped(TName&& name, TValue&& value) {
         emplace(TString(name), TString(value));
+        return *this;
     }
 #endif
 
@@ -116,24 +125,24 @@ public:
     bool Erase(const TStringBuf name, const TStringBuf val);
     bool ErasePattern(const TStringBuf name, const TStringBuf pat);
 
-    inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const {
+    inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const Y_LIFETIME_BOUND {
         const_iterator it = Find(name, numOfValue);
 
         if (it == end()) {
             return nullptr;
         }
 
-        return it->second.data();
+        return it->second.c_str();
     }
 
-    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const {
+    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const Y_LIFETIME_BOUND {
         const_iterator it = Find(name, numOfValue);
 
         if (it == end()) {
-            return nullptr;
+            return TStringBuf{};
         }
 
-        return it->second.data();
+        return it->second;
     }
 };
 
@@ -181,7 +190,7 @@ public:
     }
 
     Y_PURE_FUNCTION
-    const TStringBuf& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    TStringBuf Get(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
 private:
     TString UnescapeBuf;

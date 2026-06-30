@@ -19,13 +19,10 @@ commands = [
 commands += [
     'cd ' + os.path.join(projects_dir, mvn_project_subdir) + ' && mvn deploy ' + mvn_deploy_args
     for mvn_project_subdir in [
-        'spark_2.3_2.11',
-        os.path.join('spark_2.4_2.11', 'core'),
-        'spark_2.4_2.12',
-        os.path.join('spark_3.0_2.12', 'core'),
-        os.path.join('spark_3.1_2.12', 'core'),
-        os.path.join('spark_3.2_2.12', 'core'),
-        'spark_3.2_2.13',
+        'spark_3.5_2.12',
+        'spark_3.5_2.13',
+        os.path.join('spark_4.0_2.13', 'core'),
+        os.path.join('spark_4.1_2.13', 'core'),
     ]
 ]
 

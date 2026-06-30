@@ -24,8 +24,8 @@ extern "C" {
 
     #define SIGQUIT SIGBREAK // instead of 3
     #define SIGKILL SIGTERM  // instead of 9
-    #define SIGPIPE 13       //will not receive under win?
-    #define SIGALRM 14       //will not receive under win?
+    #define SIGPIPE 13       // will not receive under win?
+    #define SIGALRM 14       // will not receive under win?
 #endif
 
 #if defined(__FreeBSD__) || defined(_darwin_)

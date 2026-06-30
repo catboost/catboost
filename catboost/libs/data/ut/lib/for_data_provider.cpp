@@ -16,11 +16,11 @@
 namespace NCB {
     namespace NDataNewUT {
 
-    template <class T>
-    void Compare(const TMaybeData<TConstArrayRef<T>>& lhs, const TMaybe<TVector<T>>& rhs) {
+    template <class T1, class T2>
+    void Compare(const TMaybeData<TConstArrayRef<T1>>& lhs, const TMaybe<TVector<T2>>& rhs) {
         if (lhs) {
             UNIT_ASSERT(rhs);
-            UNIT_ASSERT(Equal(*lhs, *rhs));
+            UNIT_ASSERT(std::equal(lhs->begin(), lhs->end(), rhs->begin(), rhs->end()));
         } else {
             UNIT_ASSERT(!rhs);
         }
@@ -155,12 +155,18 @@ namespace NCB {
         UNIT_ASSERT_EQUAL(*objectsData.GetFeaturesLayout(), *expectedData.MetaInfo.FeaturesLayout);
         UNIT_ASSERT_VALUES_EQUAL(objectsData.GetOrder(), expectedData.Objects.Order);
 
-        CompareGroupIds(
-            objectsData.GetGroupIds(),
-            expectedData.Objects.GroupIds,
-            expectedData.Objects.TreatGroupIdsAsIntegers
-        );
-        CompareSubgroupIds(objectsData.GetSubgroupIds(), expectedData.Objects.SubgroupIds);
+        if (expectedData.MetaInfo.StoreStringColumns) {
+            Compare(objectsData.GetStringGroupIds(), expectedData.Objects.GroupIds);
+            Compare(objectsData.GetStringSubgroupIds(), expectedData.Objects.SubgroupIds);
+        } else {
+            CompareGroupIds(
+                objectsData.GetGroupIds(),
+                expectedData.Objects.GroupIds,
+                expectedData.Objects.TreatGroupIdsAsIntegers
+            );
+            CompareSubgroupIds(objectsData.GetSubgroupIds(), expectedData.Objects.SubgroupIds);
+        }
+
         Compare(objectsData.GetTimestamp(), expectedData.Objects.Timestamp);
 
         CompareFeatures<EFeatureType::Float, float, TFloatValuesHolder>(

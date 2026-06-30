@@ -17,7 +17,7 @@
 #endif
 
 #if defined(_bionic_)
-//TODO
+// TODO
 #else
     #if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
         #define CaptureStackBackTrace RtlCaptureStackBackTrace
@@ -32,7 +32,7 @@ extern "C" __stdcall unsigned short CaptureStackBackTrace(unsigned long FramesTo
         #define HAVE_BACKTRACE
     #endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
+    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__) && !defined(__EMSCRIPTEN__)
         #define USE_GCC_BACKTRACE
         #define HAVE_BACKTRACE
     #endif
@@ -95,8 +95,8 @@ namespace {
 
             return 0;
         }
-    }
-}
+    } // namespace NGCCBacktrace
+} // namespace
 
 size_t BackTrace(void** p, size_t len) {
     return NGCCBacktrace::BackTrace(p, len);
@@ -216,7 +216,7 @@ namespace {
         TSymFromAddrFunc SymFromAddrFunc;
         BOOL InitOk;
     };
-}
+} // namespace
 
 TResolvedSymbol ResolveSymbol(void* sym, char* buf, size_t len) {
     return Singleton<TWinSymbolResolverImpl>()->Resolve(sym, buf, len);
@@ -231,6 +231,16 @@ TResolvedSymbol ResolveSymbol(void* sym, char*, size_t) {
     return ret;
 }
 #endif
+
+TBackTraceFn BackTraceFn = BackTrace;
+
+void SetBackTraceFn(TBackTraceFn f) {
+    BackTraceFn = f;
+}
+
+TBackTraceFn GetBackTraceFn() {
+    return BackTraceFn;
+}
 
 void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtraceSize) {
     char tmpBuf[1024];
@@ -270,7 +280,9 @@ TBackTrace::TBackTrace()
 }
 
 void TBackTrace::Capture() {
-    Size = BackTrace(Data, CAPACITY);
+    if (BackTraceFn) {
+        Size = BackTraceFn(Data, CAPACITY);
+    }
 }
 
 void TBackTrace::PrintTo(IOutputStream& out) const {

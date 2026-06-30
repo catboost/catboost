@@ -121,11 +121,13 @@ TDataProviderPtr GetAdultPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
+        TPathWithScheme(),
         readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
+        /*loadSampleIds*/ false,
         /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );
@@ -169,11 +171,13 @@ TDataProviderPtr GetMultiClassPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
+        TPathWithScheme(),
         readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
+        /*loadSampleIds*/ false,
         /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );

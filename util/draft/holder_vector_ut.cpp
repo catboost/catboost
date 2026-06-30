@@ -66,4 +66,4 @@ Y_UNIT_TEST_SUITE(THolderVectorTest) {
         UNIT_ASSERT(v.Size() == 1);
         UNIT_ASSERT(str.get() == nullptr);
     }
-}
+} // Y_UNIT_TEST_SUITE(THolderVectorTest)

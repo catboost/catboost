@@ -8,8 +8,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-model.select_features(
-                X,
+select_features(X,
                 y=None,
                 eval_set=None,
                 features_for_select=None,
@@ -57,11 +56,9 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 #### Description
 
-{% include [methods-param-desc-label--short-desc1](../_includes/work_src/reusage/label--short-desc1.md) %}
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-
-{% include [methods-param-desc-label--short-desc2](../_includes/work_src/reusage/label--short-desc2.md) %}
-
+{% include [methods-param-desc-label--detailed-desc-generic](../_includes/work_src/reusage/label--detailed-desc-generic.md) %}
 
 {% note info %}
 
@@ -69,21 +66,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 
 {% endnote %}
 
-**Possible types**
-
-- {{ python-type--list }}
-- {{ python-type--numpyarray }}
-- {{ python-type--pandasDataFrame }}
-- {{ python-type--pandasSeries }}
-
-**Default value**
-
-None
-
-**Supported processing units**
-
-{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
-
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 ### eval_set
 
@@ -91,13 +74,13 @@ None
 
 The validation dataset or datasets used for the following processes:
 - [overfitting detector](../concepts/overfitting-detector.md)
-- best iteration selection
+- the best iteration selection
 - monitoring metrics' changes
 
 **Possible types**
 
 - {{ python-type--pool }}
-- {{ python-type--tuple }} (x, y)
+- {{ python-type--tuple }} (X, y)
 - {{ python-type--string }} (path to the dataset file)
 
 **Default value**
@@ -347,7 +330,7 @@ Dict with four fields:
 ## Examples {#example}
 
 ```python
-from catboost import CatBoostRegressor, Pool, EShapCalcType, EFeaturesSelectionAlgorithm
+from catboost import CatBoost, Pool, EShapCalcType, EFeaturesSelectionAlgorithm
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
@@ -357,7 +340,7 @@ feature_names = ['F{}'.format(i) for i in range(train_X.shape[1])]
 train_pool = Pool(train_X, train_y, feature_names=feature_names)
 test_pool = Pool(test_X, test_y, feature_names=feature_names)
 
-model = CatBoostRegressor(iterations=1000, random_seed=0)
+model = CatBoost(loss_function='RMSE', iterations=1000, random_seed=0)
 summary = model.select_features(
     train_pool,
     eval_set=test_pool,
@@ -375,4 +358,3 @@ summary = model.select_features(
 The following is a chart plotted with [Jupyter Notebook](../features/visualization_jupyter-notebook.md) for the given example.
 
 ![](../images/jupyter__features__selection.png)
-

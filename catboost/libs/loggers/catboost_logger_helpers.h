@@ -1,21 +1,19 @@
 #pragma once
 
-#include "logger.h"
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/metrics/metric.h>
 
+#include <library/cpp/json/json_value.h>
+
 #include <util/generic/maybe.h>
 
+class TLogger;
+struct TProfileResults;
 
 struct TTimeInfo {
-    TTimeInfo(const TProfileResults& profileResults)
-        : IterationTime(profileResults.CurrentTime)
-        , PassedTime(profileResults.PassedTime)
-        , RemainingTime(profileResults.RemainingTime)
-    {
-    }
+    explicit TTimeInfo(const TProfileResults& profileResults);
     TTimeInfo() = default;
 
     double IterationTime = 0;
@@ -35,6 +33,10 @@ struct TMetricsAndTimeLeftHistory {
     TVector<THashMap<TString, double>> TestBestError;
 
     Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory, BestIteration, LearnBestError, TestBestError);
+
+    // Serialization for model metadata without TimeHistory
+    NJson::TJsonValue SaveMetrics() const;
+    static TMetricsAndTimeLeftHistory LoadMetrics(const NJson::TJsonValue& rhs);
 
     void AddLearnError(const IMetric& metric, double error);
     void AddTestError(size_t testIdx, const IMetric& metric, double error, bool updateBestIteration);

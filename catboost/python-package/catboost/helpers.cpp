@@ -1,22 +1,31 @@
 #include "helpers.h"
 
 #include <catboost/libs/data/feature_names_converter.h>
+#include <catboost/libs/data/sampler.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+#include <library/cpp/json/json_reader.h>
+
+#include <util/string/vector.h>
 #include <util/system/guard.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
 
 
-extern "C" PyObject* PyCatboostExceptionType;
+using namespace NCB;
+
+
+extern "C++" PyObject* PyCatboostExceptionType;
 
 void ProcessException() {
     try {
@@ -48,6 +57,19 @@ void ResetPythonInterruptHandler() {
 void ThrowCppExceptionWithMessage(const TString& message) {
     ythrow TCatBoostException() << message;
 }
+
+void WaitAll(TVector<std::future<void>>& futures) {
+    TVector<TString> errors;
+    for (auto& future : futures) {
+        try {
+            future.get();
+        } catch (...) {
+            errors.push_back(CurrentExceptionMessage());
+        }
+    }
+    CB_ENSURE(errors.empty(), "Errors:\n" << JoinStrings(errors, "\n"));
+}
+
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
@@ -205,7 +227,7 @@ NJson::TJsonValue GetTrainingOptions(
     return catboostOptionsJson;
 }
 
-size_t GetNumPairs(const NCB::TDataProvider& dataProvider) {
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider) noexcept {
     size_t result = 0;
     const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
     if (maybePairsData) {
@@ -331,4 +353,56 @@ TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int thre
 size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
     const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
     return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
+}
+
+void GetNumFeatureValuesSample(
+    const TFullModel& model,
+    const NCatboostOptions::TDatasetReadingParams& datasetReadingParams,
+    int threadCount,
+    const TVector<ui32>& sampleIndicesVector,
+    const TVector<TString>& sampleIdsVector,
+    TVector<TArrayRef<float>>* numFeaturesColumns
+) {
+    auto localExecutor = GetCachedLocalExecutor(threadCount).Get();
+
+    auto sampler = GetProcessor<IDataProviderSampler, TDataProviderSampleParams>(
+        datasetReadingParams.PoolPath,
+        TDataProviderSampleParams {
+            datasetReadingParams,
+            /*OnlyFeaturesData*/ true,
+            /*CpuUsedRamLimit*/ Max<ui64>(),
+            localExecutor
+        }
+    );
+
+    TDataProviderPtr dataProvider;
+    if (!sampleIndicesVector.empty()) {
+        dataProvider = sampler->SampleByIndices(sampleIndicesVector);
+    } else if (!sampleIdsVector.empty()) {
+        dataProvider = sampler->SampleBySampleIds(sampleIdsVector);
+    } else {
+        CB_ENSURE(false, "Neither indices nor sampleIds are provided");
+    }
+    auto objectsDataProvider = dataProvider->ObjectsData;
+    auto rawObjectsDataProvider = dynamic_cast<const TRawObjectsDataProvider*>(objectsDataProvider.Get());
+    CB_ENSURE(rawObjectsDataProvider, "Only non-quantized datasets are supported now");
+
+    for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
+        auto values = (*rawObjectsDataProvider->GetFloatFeature(floatFeature.Position.Index))->ExtractValues(localExecutor);
+        auto dst = (*numFeaturesColumns)[floatFeature.Position.FlatIndex];
+        Copy(values.begin(), values.end(), dst.begin());
+    }
+}
+
+TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model) {
+    if (model.ModelInfo.contains("training"sv)) {
+        NJson::TJsonValue trainingJson;
+        ReadJsonTree(model.ModelInfo.at("training"sv), &trainingJson, /*throwOnError*/ true);
+        const auto& trainingMap = trainingJson.GetMap();
+        if (trainingMap.contains("metrics"sv)) {
+            return TMetricsAndTimeLeftHistory::LoadMetrics(trainingMap.at("metrics"sv));
+        }
+    }
+
+    return TMetricsAndTimeLeftHistory();
 }

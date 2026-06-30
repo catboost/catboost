@@ -21,49 +21,60 @@ struct TDateTimeFields {
     i32 ZoneOffsetMinutes;
 
     void SetLooseYear(ui32 year) {
-        if (year < 60)
+        if (year < 60) {
             year += 100;
-        if (year < 160)
+        }
+        if (year < 160) {
             year += 1900;
+        }
         Year = year;
     }
 
     bool IsOk() const noexcept {
-        if (Year < 1970)
+        if (Year < 1970) {
             return false;
-        if (Month < 1 || Month > 12)
+        }
+        if (Month < 1 || Month > 12) {
             return false;
+        }
 
         unsigned int maxMonthDay = 31;
         if (Month == 4 || Month == 6 || Month == 9 || Month == 11) {
             maxMonthDay = 30;
         } else if (Month == 2) {
-            if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0))
+            if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0)) {
                 // leap year
                 maxMonthDay = 29;
-            else
+            } else {
                 maxMonthDay = 28;
+            }
         }
-        if (Day > maxMonthDay)
+        if (Day > maxMonthDay) {
             return false;
+        }
 
-        if (Hour > 23)
+        if (Hour > 23) {
             return false;
+        }
 
-        if (Minute > 59)
+        if (Minute > 59) {
             return false;
+        }
 
         // handle leap second which is explicitly allowed by ISO 8601:2004(E) $2.2.2
         // https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
-        if (Second > 60)
+        if (Second > 60) {
             return false;
+        }
 
-        if (MicroSecond > 999999)
+        if (MicroSecond > 999999) {
             return false;
+        }
 
         if (Year == 1970 && Month == 1 && Day == 1) {
-            if ((i64)(3600 * Hour + 60 * Minute + Second) < (60 * ZoneOffsetMinutes))
+            if ((i64)(3600 * Hour + 60 * Minute + Second) < (60 * ZoneOffsetMinutes)) {
                 return false;
+            }
         }
 
         return true;
@@ -71,14 +82,16 @@ struct TDateTimeFields {
 
     TInstant ToInstant(TInstant defaultValue) const {
         time_t tt = ToTimeT(-1);
-        if (tt == -1)
+        if (tt == -1) {
             return defaultValue;
+        }
         return TInstant::Seconds(tt) + TDuration::MicroSeconds(MicroSecond);
     }
 
     time_t ToTimeT(time_t defaultValue) const {
-        if (!IsOk())
+        if (!IsOk()) {
             return defaultValue;
+        }
         struct tm tm;
         Zero(tm);
         tm.tm_year = Year - 1900;
@@ -88,8 +101,9 @@ struct TDateTimeFields {
         tm.tm_min = Minute;
         tm.tm_sec = Second;
         time_t tt = TimeGM(&tm);
-        if (tt == -1)
+        if (tt == -1) {
             return defaultValue;
+        }
         return tt - ZoneOffsetMinutes * 60;
     }
 };
@@ -102,7 +116,7 @@ public:
 
 protected:
     TDateTimeFields DateTimeFields;
-    int cs; //for ragel
+    int cs; // for ragel
     int Sign;
     int I;
     int Dc;
@@ -118,8 +132,9 @@ protected:
     }
 
     inline TInstant GetResult(int firstFinalState, TInstant defaultValue) const {
-        if (cs < firstFinalState)
+        if (cs < firstFinalState) {
             return defaultValue;
+        }
         return DateTimeFields.ToInstant(defaultValue);
     }
 };
@@ -177,47 +192,58 @@ struct TDateTimeFieldsDeprecated {
     i32 ZoneOffsetMinutes;
 
     void SetLooseYear(ui32 year) {
-        if (year < 60)
+        if (year < 60) {
             year += 100;
-        if (year < 160)
+        }
+        if (year < 160) {
             year += 1900;
+        }
         Year = year;
     }
 
     bool IsOk() const noexcept {
-        if (Year < 1970)
+        if (Year < 1970) {
             return false;
-        if (Month < 1 || Month > 12)
+        }
+        if (Month < 1 || Month > 12) {
             return false;
+        }
 
         unsigned int maxMonthDay = 31;
         if (Month == 4 || Month == 6 || Month == 9 || Month == 11) {
             maxMonthDay = 30;
         } else if (Month == 2) {
-            if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0))
+            if (Year % 4 == 0 && (Year % 100 != 0 || Year % 400 == 0)) {
                 // leap year
                 maxMonthDay = 29;
-            else
+            } else {
                 maxMonthDay = 28;
+            }
         }
-        if (Day > maxMonthDay)
+        if (Day > maxMonthDay) {
             return false;
+        }
 
-        if (Hour > 23)
+        if (Hour > 23) {
             return false;
+        }
 
-        if (Minute > 59)
+        if (Minute > 59) {
             return false;
+        }
 
-        if (Second > 60)
+        if (Second > 60) {
             return false;
+        }
 
-        if (MicroSecond > 999999)
+        if (MicroSecond > 999999) {
             return false;
+        }
 
         if (Year == 1970 && Month == 1 && Day == 1) {
-            if ((i64)(3600 * Hour + 60 * Minute + Second) < (60 * ZoneOffsetMinutes))
+            if ((i64)(3600 * Hour + 60 * Minute + Second) < (60 * ZoneOffsetMinutes)) {
                 return false;
+            }
         }
 
         return true;
@@ -225,14 +251,16 @@ struct TDateTimeFieldsDeprecated {
 
     TInstant ToInstant(TInstant defaultValue) const {
         time_t tt = ToTimeT(-1);
-        if (tt == -1)
+        if (tt == -1) {
             return defaultValue;
+        }
         return TInstant::Seconds(tt) + TDuration::MicroSeconds(MicroSecond);
     }
 
     time_t ToTimeT(time_t defaultValue) const {
-        if (!IsOk())
+        if (!IsOk()) {
             return defaultValue;
+        }
         struct tm tm;
         Zero(tm);
         tm.tm_year = Year - 1900;
@@ -242,8 +270,9 @@ struct TDateTimeFieldsDeprecated {
         tm.tm_min = Minute;
         tm.tm_sec = Second;
         time_t tt = TimeGM(&tm);
-        if (tt == -1)
+        if (tt == -1) {
             return defaultValue;
+        }
         return tt - ZoneOffsetMinutes * 60;
     }
 };
@@ -256,7 +285,7 @@ public:
 
 protected:
     TDateTimeFieldsDeprecated DateTimeFields;
-    int cs; //for ragel
+    int cs; // for ragel
     int Sign;
     int I;
     int Dc;
@@ -272,8 +301,9 @@ protected:
     }
 
     inline TInstant GetResult(int firstFinalState, TInstant defaultValue) const {
-        if (cs < firstFinalState)
+        if (cs < firstFinalState) {
             return defaultValue;
+        }
         return DateTimeFields.ToInstant(defaultValue);
     }
 };

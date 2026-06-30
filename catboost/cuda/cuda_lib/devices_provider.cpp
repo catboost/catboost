@@ -1,5 +1,7 @@
 #include "devices_provider.h"
 
+#include <catboost/libs/helpers/memory_utils.h>
+
 NCudaLib::TDeviceRequestConfig NCudaLib::CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options) {
     NCudaLib::TDeviceRequestConfig config;
     const auto& systemOptions = options.SystemOptions.Get();

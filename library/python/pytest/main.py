@@ -2,13 +2,16 @@ import os
 import sys
 import time
 
-import __res
+import yatest.common
+
+import yatest_lib.ya
 
 FORCE_EXIT_TESTSFAILED_ENV = 'FORCE_EXIT_TESTSFAILED'
 
 
 def main():
     import library.python.pytest.context as context
+
     context.Ctx["YA_PYTEST_START_TIMESTAMP"] = time.time()
 
     profile = None
@@ -17,6 +20,7 @@ def main():
 
         import pstats
         import cProfile
+
         profile = cProfile.Profile()
         profile.enable()
 
@@ -38,35 +42,20 @@ def main():
     import library.python.pytest.plugins.collection as collection
     import library.python.pytest.plugins.ya as ya
     import library.python.pytest.plugins.conftests as conftests
+    import library.python.pytest.plugins.fixtures as fixtures
 
     import _pytest.assertion
     from _pytest.monkeypatch import MonkeyPatch
     from . import rewrite
+
     m = MonkeyPatch()
     m.setattr(_pytest.assertion.rewrite, "AssertionRewritingHook", rewrite.AssertionRewritingHook)
 
-    prefix = '__tests__.'
+    # see https://st.yandex-team.ru/DEVTOOLSSUPPORT-50337
+    m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_LINES", 16)
+    m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_CHARS", 32 * 80)
 
-    test_modules = [
-        name[len(prefix):] for name in sys.extra_modules
-        if name.startswith(prefix) and not name.endswith('.conftest')
-    ]
-
-    doctest_packages = __res.find("PY_DOCTEST_PACKAGES") or ""
-    if isinstance(doctest_packages, bytes):
-        doctest_packages = doctest_packages.decode('utf-8')
-    doctest_packages = doctest_packages.split()
-
-    def is_doctest_module(name):
-        for package in doctest_packages:
-            if name == package or name.startswith(str(package) + "."):
-                return True
-        return False
-
-    doctest_modules = [
-        name for name in sys.extra_modules
-        if is_doctest_module(name)
-    ]
+    yatest.common.runtime._set_ya_config(ya=yatest_lib.ya.Ya())
 
     def remove_user_site(paths):
         site_paths = ('site-packages', 'site-python')
@@ -85,11 +74,15 @@ def main():
         return new_paths
 
     sys.path = remove_user_site(sys.path)
-    rc = pytest.main(plugins=[
-        collection.CollectionPlugin(test_modules, doctest_modules),
-        ya,
-        conftests,
-    ])
+
+    rc = pytest.main(
+        plugins=[
+            collection,
+            ya,
+            conftests,
+            fixtures,
+        ]
+    )
 
     if rc == 5:
         # don't care about EXIT_NOTESTSCOLLECTED

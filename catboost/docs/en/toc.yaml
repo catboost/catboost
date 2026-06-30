@@ -16,15 +16,25 @@ items:
           - href: yandex_specific/python-installation-build-from-arcadia-sources.md
             when: audience == "internal"
             name: Build from Arcadia sources
-          - href: >-
-              installation/python-installation-method-build-from-source-linux-macos.md
-            name: Build from source on Linux and macOS
-          - href: >-
-              installation/python-installation-method-build-from-source-windows.md
-            name: Build from source on Windows
-          - href: >-
-              installation/python-installation-method-build-a-wheel-package.md
-            name: Build a wheel package
+          - items:
+              - href: installation/python-installation-method-build-from-source.md
+                name: Overview
+              - href: >-
+                  installation/python-installation-method-build-from-source-linux-macos.md
+                name: Build from source on Linux and macOS
+              - href: >-
+                  installation/python-installation-method-build-from-source-linux-macos-using-ya-make.md
+                name: Build from source on Linux and macOS using Ya Make
+              - href: >-
+                  installation/python-installation-method-build-from-source-windows.md
+                name: Build from source on Windows
+              - href: >-
+                  installation/python-installation-method-build-from-source-windows-using-ya-make.md
+                name: Build from source on Windows using Ya Make
+              - href: >-
+                  installation/python-installation-method-build-a-wheel-package.md
+                name: Build a wheel package
+            name: Build from source
           - href: >-
               installation/python-installation-additional-data-visualization-packages.md
             name: Additional packages for data visualization support
@@ -51,13 +61,13 @@ items:
           - href: installation/r-installation-conda-install.md
             name: conda install
           - href: installation/r-installation-github-installation.md
-            name: Build from source
+            name: Build from source directly from GitHub
           - href: installation/r-installation-local-copy-installation.md
             when: audience == "external"
-            name: Install from a local copy on Linux and macOS
+            name: Install from a local source repository copy
           - href: installation/r-installation-local-copy-installation-windows.md
             when: audience == "external"
-            name: Install from a local copy on Windows
+            name: Install from a local source repository copy on Windows
         name: R package installation
       - items:
           - href: concepts/cli-installation.md
@@ -69,18 +79,35 @@ items:
             name: Build from Arcadia sources
           - href: installation/cli-installation-local-copy-installation.md
             when: audience == "external"
-            name: Build the binary from a local copy on Linux and macOS
+            name: Build from a local source repository copy
           - href: >-
               installation/cli-installation-local-copy-installation-windows.md
             when: audience == "external"
-            name: Build the binary from a local copy on Windows
+            name: Build from a local source repository copy on Windows
           - href: installation/cli-installation-make-install.md
+            when: audience == "external"
             name: Build the binary with make on Linux (CPU only)
           - href: installation/cli-installation-multi-node-installation.md
-            name: Build the binary with MPI support from a local copy (GPU only)
+            when: audience == "external"
+            name: Build the binary with MPI support from a local source repository copy (GPU only)
           - href: installation/cli-installation-cmake-install.md
+            when: audience == "external"
             name: Build the binary with CMake
         name: Command-line version binary
+      - items:
+          - href: concepts/build-from-source.md
+            name: Overview
+          - items:
+              - href: installation/build-environment-setup-for-cmake.md
+                name: Build environment setup
+              - href: installation/build-native-artifacts.md
+                name: Build native artifacts
+            name: Using CMake
+          - items:
+              - href: installation/build-environment-setup-for-ya-make.md
+                name: Build environment setup
+            name: Using Ya Make (previous versions)
+        name: Build from source
   - name: Key Features
     items:
         - href: features/training.md
@@ -111,6 +138,8 @@ items:
           name: Text features
         - href: features/embeddings-features.md
           name: Embeddings features
+        - href: features/graph-aggregated-features.md
+          name: Aggregated graph features
         - href: features/loss-functions-desc.md
           name: Implemented metrics
         - href: features/export-model-to-python.md
@@ -169,40 +198,45 @@ items:
           name: Feature calcers and corresponding options
         - href: references/text-processing__test-processing__default-value.md
           hidden: true
+        - href: concepts/python-efstr-type__desc.md
+          hidden: true
+          name: EFStrType
   - when: audience == "internal"
     items:
       - href: yandex_specific/nirvana-operations/catboost__nirvana.md
         when: audience == "internal"
         name: Overview
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__apply-catboost-model.md
-        name: 'CatBoost: Apply'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__calculate-quantization-schema.md
-        name: 'CatBoost: Calculate Borders'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__convert-catboost-bin-to-matrixnet-info.md
-        name: 'CatBoost: Convert boosting model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__eval_metrics.md
-        name: 'CatBoost: Eval Metrics'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__model-analysis.md
-        name: 'CatBoost: Model Analysis'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__sum-models.md
-        name: 'CatBoost: Sum models'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__train-catboost.md
-        name: 'CatBoost: Train'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__truncate-model.md
-        name: 'CatBoost: Truncate Model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__visualization.md
-        name: 'CatBoost: Visualization'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__train-catboost-with-matrixnet-interface.md
-        name: Train CatBoost with Matrixnet interface
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__train-formula-on-fml.md
-        name: Train Formula on FML
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__normalize_model.md
-        name: 'CatBoost: Normalize Model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__select-features.md
-        name: 'CatBoost: Select Features'
+      - name: Operations
+        items:
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__train-catboost.md
+            name: 'CatBoost: Train'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__apply-catboost-model.md
+            name: 'CatBoost: Apply'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__calculate-quantization-schema.md
+            name: 'CatBoost: Calculate Borders'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__convert-catboost-bin-to-matrixnet-info.md
+            name: 'CatBoost: Convert boosting model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__eval_metrics.md
+            name: 'CatBoost: Eval Metrics'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__model-analysis.md
+            name: 'CatBoost: Model Analysis'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__sum-models.md
+            name: 'CatBoost: Sum models'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__truncate-model.md
+            name: 'CatBoost: Truncate Model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__visualization.md
+            name: 'CatBoost: Visualization'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__train-catboost-with-matrixnet-interface.md
+            name: Train CatBoost with Matrixnet interface
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__train-formula-on-fml.md
+            name: Train Formula on FML
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__normalize_model.md
+            name: 'CatBoost: Normalize Model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__select-features.md
+            name: 'CatBoost: Select Features'
       - name: Tutorials
         items:
           - href: yandex_specific/tutorials/tutorials-nirvana__main.md
@@ -215,6 +249,8 @@ items:
             name: Cross Validation
           - href: yandex_specific/tutorials/tutorials-nirvana__feature-analysis.md
             name: Feature analysis
+      - href: yandex_specific/catboost__nirvana__troubleshooting.md
+        name: Troubleshooting
     name: Nirvana operations
   - name: Training parameters
     items:
@@ -225,7 +261,7 @@ items:
       - href: references/training-parameters/ctr.md
         name: CTR settings
       - href: references/training-parameters/input.md
-        name: Input file settings
+        name: Input settings
       - href: references/training-parameters/multiclassification.md
         name: Multiclassification settings
       - href: references/training-parameters/output.md
@@ -275,13 +311,7 @@ items:
             name: get_borders
           - href: concepts/python-reference_catboost_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboost_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboost_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboost_metadata.md
             name: get_metadata
@@ -337,7 +367,7 @@ items:
             name: predict_proba
           - href: concepts/python-reference_catboostclassifier_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostclassifier_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostclassifier_calc_feature_statistics.md
@@ -448,13 +478,7 @@ items:
             name: get_borders
           - href: concepts/python-reference_catboostranker_get_evals_result.md
             name: get_evals_result
-          - items:
-              - href: >-
-                  concepts/python-reference_catboostranker_get_feature_importance.md
-                name: Overview
-              - href: concepts/python-efstr-type__desc.md
-                hidden: true
-                name: EFStrType
+          - href: concepts/python-reference_catboostranker_get_feature_importance.md
             name: get_feature_importance
           - href: concepts/python-reference_catboostranker_metadata.md
             name: get_metadata
@@ -510,7 +534,7 @@ items:
             name: predict
           - href: concepts/python-reference_catboostregressor_attributes.md
             name: Attributes
-          - href: concepts/python-reference_catboost_calc_leaf_indexes.md
+          - href: concepts/python-reference_catboostregressor_calc_leaf_indexes.md
             name: calc_leaf_indexes
           - href: >-
               concepts/python-reference_catboostregressor_calc_feature_statistics.md
@@ -686,6 +710,8 @@ items:
           - href: concepts/python-data-processing.md
             name: Pool initialization
         name: Pool
+      - href: concepts/python-reference_sample_gaussian_process.md
+        name: sample_gaussian_process
       - href: concepts/python-reference_sum_models.md
         name: sum_models
       - href: concepts/python-reference_to_classifier.md
@@ -780,7 +806,7 @@ items:
   - name: R package
     items:
       - href: concepts/r-quickstart.md
-        name: 'Quick start '
+        name: Quick start
       - href: concepts/r-reference_catboost-load_pool.md
         name: catboost.load_pool
       - href: concepts/r-reference_catboost-save_pool.md
@@ -867,9 +893,13 @@ items:
             name: Evaluation library
           - href: concepts/c-plus-plus-api_header-only-evaluator.md
             name: Standalone evaluator
+          - href: concepts/c-plus-plus-api_carrying_model.md
+            name: Carrying model
       - items:
           - href: concepts/java-package.md
             name: Overview
+          - href: installation/java-installation-build-from-source-maven.md
+            name: Build from source using Maven
           - items:
               - href: concepts/java-reference_catboostmodel.md
                 name: Overview
@@ -912,6 +942,8 @@ items:
         name: Java
       - href: concepts/export-coreml.md
         name: CoreML
+      - href: concepts/apply-node-js.md
+        name: Node.js
       - href: concepts/apply-onnx-ml.md
         name: ONNX
       - href: concepts/apply-rust.md
@@ -935,17 +967,17 @@ items:
       - href: concepts/loss-functions-variables-used.md
         name: Variables used in formulas
       - href: concepts/loss-functions-regression.md
-        name: 'Regression'
+        name: Regression
       - href: concepts/loss-functions-multiregression.md
-        name: 'Multiregression'
+        name: Multiregression
       - href: concepts/loss-functions-classification.md
-        name: 'Classification'
+        name: Classification
       - href: concepts/loss-functions-multiclassification.md
-        name: 'Multiclassification'
+        name: Multiclassification
       - href: concepts/loss-functions-multilabel-classification.md
-        name: 'Multilabel Classification'
+        name: Multilabel Classification
       - href: concepts/loss-functions-ranking.md
-        name: 'Ranking'
+        name: Ranking
     name: Objectives and metrics
   - items:
       - href: concepts/model-analysis.md
@@ -969,17 +1001,22 @@ items:
           - href: concepts/input-data_column-descfile.md
             name: Columns description
           - href: concepts/input-data_values-file.md
-            name: Dataset description in delimiter-separated values format
+            name: Dataset in delimiter-separated values format
           - href: concepts/input-data_libsvm.md
-            name: Dataset description in extended libsvm format
+            name: Dataset in extended libsvm format
+          - href: yandex_specific/concepts/input-data_yt-col.md
+            when: audience == "internal"
+            name: Dataset in native YT columns format
           - href: concepts/input-data_pairs-description.md
-            name: Pairs description
+            name: Pairs data
           - href: concepts/input-data_custom-borders.md
             name: Custom quantization borders and missing value modes
           - href: concepts/input-data_group-weights.md
             name: Group weights
           - href: concepts/input-data_baseline.md
-            name: 'Baseline '
+            name: Baseline
+          - href: concepts/input-data_graph-description.md
+            name: Graph data
         name: Input data
       - items:
           - href: concepts/output-data.md
@@ -1043,6 +1080,8 @@ items:
             name: Transforming categorical features to numerical features
           - href: concepts/algorithm-main-stages_text-to-numeric.md
             name: Transforming text features to numerical features
+          - href: concepts/algorithm-main-stages_embedding-to-numeric.md
+            name: Transforming embedding features to numerical features
           - href: concepts/algorithm-main-stages_choose-tree-structure.md
             name: Choosing the tree structure
           - href: concepts/algorithm-main-stages_bootstrap-options.md
@@ -1078,5 +1117,3 @@ items:
     name: Development and contributions
   - href: concepts/contacts.md
     name: Contacts
-
-

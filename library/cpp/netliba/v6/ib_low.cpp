@@ -8,7 +8,7 @@ namespace NNetliba {
         EnableROCEFlag = f;
     }
 
-#if defined _linux_ && !defined CATBOOST_OPENSOURCE
+#if defined(_linux_) && !defined(__ANDROID__)
     static TMutex IBPortMutex;
     static TIntrusivePtr<TIBPort> IBPort;
     static bool IBWasInitialized;
@@ -33,7 +33,7 @@ namespace NNetliba {
 
         TIntrusivePtr<TIBContext> ctx;
         TIntrusivePtr<TIBPort> resPort;
-        int numDevices;
+        int numDevices{0};
         ibv_device** deviceList = ibv_get_device_list(&numDevices);
         //for (int i = 0; i < numDevices; ++i) {
         //    ibv_device *dev = deviceList[i];

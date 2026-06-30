@@ -47,7 +47,7 @@ namespace protobuf {
 // place in open source code.  Feel free to fill this function in with your
 // own disgusting hack if you want the perf boost.
 inline void STLStringResizeUninitialized(TProtoStringType* s, size_t new_size) {
-  s->ReserveAndResize(new_size);
+  s->resize(new_size);
 }
 
 // As above, but we make sure to follow amortized growth in which we always
@@ -74,6 +74,11 @@ inline void STLStringResizeUninitializedAmortized(TProtoStringType* s,
 // (http://www.open-std.org/JTC1/SC22/WG21/docs/lwg-active.html#530)
 // proposes this as the method. According to Matt Austern, this should
 // already work on all current implementations.
+inline char* string_as_array(std::string* str) {
+  // DO NOT USE const_cast<char*>(str->data())! See the unittest for why.
+  return str->empty() ? nullptr : &*str->begin();
+}
+
 inline char* string_as_array(TProtoStringType* str) {
   // DO NOT USE const_cast<char*>(str->data())! See the unittest for why.
   return str->empty() ? nullptr : &*str->begin();

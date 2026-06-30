@@ -50,6 +50,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*textFeatureIndices*/ TVector<ui32>(),
                 /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
+                /*hasGraph*/ false,
                 /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
@@ -126,6 +127,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                     "Cat2", // 10
                     "" // 11
                 },
+                /*hasGraph*/ false,
                 /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
@@ -190,6 +192,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*textFeatureIndices*/ TVector<ui32>(),
                 /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
+                /*hasGraph*/ false,
                 /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );

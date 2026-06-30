@@ -1,7 +1,11 @@
 #pragma once
 
+#include <util/generic/bitops.h>
 #include <util/generic/yexception.h>
 #include <util/system/sys_alloc.h>
+
+#include <algorithm>
+#include <type_traits>
 
 // vector that is 8 bytes when empty (TVector is 24 bytes)
 
@@ -112,6 +116,14 @@ public:
         return *this;
     }
 
+    bool operator==(const TCompactVector<T>& other) const {
+        return size() == other.size() && std::equal(begin(), end(), other.begin());
+    }
+
+    explicit operator bool() const {
+        return !empty();
+    }
+
     TIterator Begin() {
         return Ptr;
     }
@@ -160,6 +172,14 @@ public:
         return std::make_reverse_iterator(begin());
     }
 
+    value_type* data() {
+        return Begin();
+    }
+
+    const value_type* data() const {
+        return Begin();
+    }
+
     void Swap(TThis& that) noexcept {
         DoSwap(Ptr, that.Ptr);
     }
@@ -185,8 +205,13 @@ public:
         } else {
             TThis copy;
             copy.Reserve(newCapacity);
-            for (TConstIterator it = Begin(); it != End(); ++it) {
-                copy.PushBack(*it);
+            if constexpr (std::is_trivially_copyable_v<T>) {
+                std::copy_n(Ptr, Size(), copy.Ptr);
+                copy.Header()->Size = Size();
+            } else {
+                for (auto& val : *this) {
+                    copy.EmplaceBack(std::move(val));
+                }
             }
             Swap(copy);
         }
@@ -196,34 +221,45 @@ public:
         Reserve(newCapacity);
     }
 
-    size_t Size() const {
+    [[nodiscard]] size_t Size() const {
         return Ptr ? Header()->Size : 0;
     }
 
-    size_t size() const {
+    [[nodiscard]] size_t size() const {
         return Size();
     }
 
-    bool Empty() const {
+    [[nodiscard]] bool Empty() const {
         return Size() == 0;
     }
 
-    bool empty() const {
+    [[nodiscard]] bool empty() const {
         return Empty();
     }
 
-    size_t Capacity() const {
+    [[nodiscard]] size_t Capacity() const {
         return Ptr ? Header()->Capacity : 0;
     }
 
     void PushBack(const T& elem) {
-        Reserve(Size() + 1);
-        new (Ptr + Size()) T(elem);
-        ++(Header()->Size);
+        EmplaceBack(elem);
     }
 
     void push_back(const T& elem) {
         PushBack(elem);
+    }
+
+    template <class... Args>
+    T& EmplaceBack(Args&&... args) {
+        Reserve(Size() + 1);
+        auto* t = new (Ptr + Size()) T(std::forward<Args>(args)...);
+        ++(Header()->Size);
+        return *t;
+    }
+
+    template <class... Args>
+    T& emplace_back(Args&&... args) {
+        return EmplaceBack(std::forward<Args>(args)...);
     }
 
     T& Back() {
@@ -276,6 +312,14 @@ public:
 
     void clear() {
         Clear();
+    }
+
+    void assign(size_t count, const T& value) {
+        Clear();
+        Reserve(count);
+        for (size_t i = 0; i < count; ++i) {
+            PushBack(value);
+        }
     }
 
     void erase(iterator position) {

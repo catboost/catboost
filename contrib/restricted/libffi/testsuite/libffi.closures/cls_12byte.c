@@ -25,6 +25,17 @@ cls_struct_12byte cls_struct_12byte_fn(struct cls_struct_12byte b1,
   printf("%d %d %d %d %d %d: %d %d %d\n", b1.a, b1.b, b1.c, b2.a, b2.b, b2.c,
 	 result.a, result.b, result.c);
 
+  CHECK(b1.a == 7);
+  CHECK(b1.b == 4);
+  CHECK(b1.c == 9);
+
+  CHECK(b2.a == 1);
+  CHECK(b2.b == 5);
+  CHECK(b2.c == 3);
+
+  CHECK(result.a == 8);
+  CHECK(result.b == 9);
+  CHECK(result.c == 12);
   return result;
 }
 
@@ -78,6 +89,9 @@ int main (void)
   /* { dg-output "7 4 9 1 5 3: 8 9 12" } */
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 8 9 12" } */
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 9);
+  CHECK(res_dbl.c == 12);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_12byte_gn, NULL, code) == FFI_OK);
 
@@ -87,8 +101,12 @@ int main (void)
 
   res_dbl = ((cls_struct_12byte(*)(cls_struct_12byte, cls_struct_12byte))(code))(h_dbl, j_dbl);
   /* { dg-output "\n7 4 9 1 5 3: 8 9 12" } */
+
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 8 9 12" } */
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 9);
+  CHECK(res_dbl.c == 12);
 
   exit(0);
 }

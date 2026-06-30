@@ -34,6 +34,8 @@ namespace NCatboostCuda {
             const NCB::TTrainingDataProvider& learn,
             const NCB::TTrainingDataProvider* test,
             const NCB::TFeatureEstimators& featureEstimators,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TGpuAwareRandom& random,
             ui32 approxDimension,
             ITrainingCallbacks* trainingCallbacks,

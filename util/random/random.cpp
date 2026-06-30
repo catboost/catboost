@@ -66,7 +66,7 @@ namespace {
     struct TToRealType {
         using TResult = typename TToRealTypeBySize<sizeof(T)>::TResult;
     };
-}
+} // namespace
 
 #define DEF_RND(TY)                                               \
     template <>                                                   \

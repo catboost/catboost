@@ -87,7 +87,7 @@ static double CalcSampleQuantileLinearSearch(
     for (auto i : xrange(sampleSize)) {
         elements[i] = {sampleRef[i], weightsRef[i]};
     }
-    Sort(elements, [](const TValueWithWeight& elem1, const TValueWithWeight& elem2) {
+    StableSort(elements, [](const TValueWithWeight& elem1, const TValueWithWeight& elem2) {
         return elem1.Value < elem2.Value;
     });
     const double totalWeight = Accumulate(weightsRef, 0.0);

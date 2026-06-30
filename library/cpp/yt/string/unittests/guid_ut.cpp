@@ -10,9 +10,9 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static_assert(TFormatTraits<TGuid>::HasCustomFormatValue);
+static_assert(CFormattable<TGuid>);
 
-TString CanonicalToString(TGuid value)
+std::string CanonicalToString(TGuid value)
 {
    return Sprintf("%x-%x-%x-%x",
         value.Parts32[3],
@@ -48,7 +48,7 @@ TEST(TGuidTest, FormatAllSymbols)
 TEST(TGuidTest, ByteOrder)
 {
     auto guid = TGuid::FromStringHex32("12345678ABCDEF0112345678ABCDEF01");
-    TString bytes{reinterpret_cast<const char*>(&(guid.Parts32[0])), 16};
+    std::string bytes{reinterpret_cast<const char*>(&(guid.Parts32[0])), 16};
     EXPECT_EQ(HexEncode(bytes), "01EFCDAB7856341201EFCDAB78563412");
 }
 

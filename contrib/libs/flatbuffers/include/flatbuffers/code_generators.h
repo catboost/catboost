@@ -97,8 +97,6 @@ class BaseGenerator {
                                   const Namespace &ns,
                                   const bool dasherize = false);
 
-  static std::string ToDasherizedCase(const std::string pascal_case);
-
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
                                 const IDLOptions &options) const;
@@ -140,7 +138,8 @@ class BaseGenerator {
   std::string WrapInNameSpace(const Namespace *ns,
                               const std::string &name) const;
 
-  std::string WrapInNameSpace(const Definition &def) const;
+  std::string WrapInNameSpace(const Definition &def,
+                              const std::string &suffix = "") const;
 
   std::string GetNameSpace(const Definition &def) const;
 
@@ -229,6 +228,10 @@ class TypedFloatConstantGenerator : public FloatConstantGenerator {
   const std::string pos_inf_number_;
   const std::string neg_inf_number_;
 };
+
+std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
+                               const std::string &path,
+                               const std::string &file_name);
 
 }  // namespace flatbuffers
 

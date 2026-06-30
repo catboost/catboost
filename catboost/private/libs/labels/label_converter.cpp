@@ -10,26 +10,38 @@
 #include <library/cpp/json/json_value.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
 #include <util/string/join.h>
 
-static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount) {
+static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount, bool allowConstLabel = false) {
     SortUnique(targets);
     THashMap<float, int> labels;
     if (classesCount != 0) {  // classes-count or class-names are set
         CB_ENSURE(AllOf(targets, [&classesCount](float x) { return int(x) == x && x >= 0 && x < classesCount; }),
             "If classes count is specified each target label should be nonnegative integer in [0,..,classes_count - 1].");
 
-        if (classesCount > targets.ysize()) {
+        if ((classesCount > targets.ysize()) && !(allowConstLabel && (targets.ysize() == 1))) {
             CATBOOST_WARNING_LOG << "Found only " << targets.ysize() << " unique classes in the data"
                 << ", but have defined " << classesCount << " classes."
                 << " Probably something is wrong with data." << Endl;
         }
     }
 
-    labels.reserve(targets.size());
-    int id = 0;
-    for (auto target : targets) {
-        labels.emplace(target, id++);
+    if (allowConstLabel && (targets.ysize() == 1)) {
+        // make at least 2 labels/classes otherwise model won't apply
+        if (targets.front() != 0.0f) {
+            labels.emplace(0.0f, 0);
+            labels.emplace(targets.front(), 1);
+        } else {
+            labels.emplace(targets.front(), 0);
+            labels.emplace(1.0f, 1);
+        }
+    } else {
+        labels.reserve(targets.size());
+        int id = 0;
+        for (auto target : targets) {
+            labels.emplace(target, id++);
+        }
     }
 
     return labels;
@@ -105,13 +117,13 @@ void TLabelConverter::InitializeMultiClass(int approxDimension) {
     Initialized = true;
 }
 
-void TLabelConverter::InitializeMultiClass(TConstArrayRef<float> targets, int classesCount) {
+void TLabelConverter::InitializeMultiClass(TConstArrayRef<float> targets, int classesCount, bool allowConstLabel) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
 
     MultiClass = true;
 
     TVector<float> targetsCopy(targets.begin(), targets.end());
-    LabelToClass = CalcLabelToClassMap(std::move(targetsCopy), classesCount);
+    LabelToClass = CalcLabelToClassMap(std::move(targetsCopy), classesCount, allowConstLabel);
     ClassesCount = Max(classesCount, LabelToClass.ysize());
 
     ClassToLabel.resize(LabelToClass.ysize());
@@ -123,7 +135,8 @@ void TLabelConverter::InitializeMultiClass(TConstArrayRef<float> targets, int cl
 
 int TLabelConverter::GetApproxDimension() const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
-    return MultiClass ? LabelToClass.ysize() : 1;
+    // return at least 2 for MultiClass case, otherwise allowConstLabel won't work
+    return MultiClass ? Max(LabelToClass.ysize(), 2) : 1;
 }
 
 int TLabelConverter::GetClassIdx(float label) const {

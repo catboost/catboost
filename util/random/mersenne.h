@@ -17,7 +17,7 @@ namespace NPrivate {
     struct TMersenneTraits<ui32> {
         using TImpl = TMersenne32;
     };
-}
+} // namespace NPrivate
 
 class IInputStream;
 

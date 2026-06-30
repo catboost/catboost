@@ -1,0 +1,401 @@
+{
+    "test.test_hnsw_estimator[dimension=10-DotProduct-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-DotProduct-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-DotProduct-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-DotProduct-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L1-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L1-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L1-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L1-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L2Sqr-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L2Sqr-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-L2Sqr-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-DotProduct-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-DotProduct-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-DotProduct-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L1-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L1-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L1-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L1-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L2Sqr-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L2Sqr-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-L2Sqr-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-DotProduct-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-DotProduct-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-DotProduct-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-DotProduct-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L1-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L1-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L1-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L1-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L2Sqr-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L2Sqr-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-L2Sqr-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_index[DotProduct-float]": [
+        {
+            "uri": "file://test.test_index_DotProduct-float_/index"
+        },
+        {
+            "uri": "file://test.test_index_DotProduct-float_/log"
+        }
+    ],
+    "test.test_index[DotProduct-int32]": [
+        {
+            "uri": "file://test.test_index_DotProduct-int32_/index"
+        },
+        {
+            "uri": "file://test.test_index_DotProduct-int32_/log"
+        }
+    ],
+    "test.test_index[DotProduct-int8]": [
+        {
+            "uri": "file://test.test_index_DotProduct-int8_/index"
+        },
+        {
+            "uri": "file://test.test_index_DotProduct-int8_/log"
+        }
+    ],
+    "test.test_index[L1-float]": [
+        {
+            "uri": "file://test.test_index_L1-float_/index"
+        },
+        {
+            "uri": "file://test.test_index_L1-float_/log"
+        }
+    ],
+    "test.test_index[L1-int32]": [
+        {
+            "uri": "file://test.test_index_L1-int32_/index"
+        },
+        {
+            "uri": "file://test.test_index_L1-int32_/log"
+        }
+    ],
+    "test.test_index[L1-int8]": [
+        {
+            "uri": "file://test.test_index_L1-int8_/index"
+        },
+        {
+            "uri": "file://test.test_index_L1-int8_/log"
+        }
+    ],
+    "test.test_index[L2Sqr-float]": [
+        {
+            "uri": "file://test.test_index_L2Sqr-float_/index"
+        },
+        {
+            "uri": "file://test.test_index_L2Sqr-float_/log"
+        }
+    ],
+    "test.test_index[L2Sqr-int32]": [
+        {
+            "uri": "file://test.test_index_L2Sqr-int32_/index"
+        },
+        {
+            "uri": "file://test.test_index_L2Sqr-int32_/log"
+        }
+    ],
+    "test.test_index[L2Sqr-int8]": [
+        {
+            "uri": "file://test.test_index_L2Sqr-int8_/index"
+        },
+        {
+            "uri": "file://test.test_index_L2Sqr-int8_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-float_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-float_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int32_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int32_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int8_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int8_/log"
+        }
+    ],
+    "test.test_pool[float]": [
+        {
+            "uri": "file://test.test_pool_float_/log"
+        }
+    ],
+    "test.test_pool[int32]": [
+        {
+            "uri": "file://test.test_pool_int32_/log"
+        }
+    ],
+    "test.test_pool[int8]": [
+        {
+            "uri": "file://test.test_pool_int8_/log"
+        }
+    ]
+}

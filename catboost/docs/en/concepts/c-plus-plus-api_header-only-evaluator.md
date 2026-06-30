@@ -1,6 +1,6 @@
 # Standalone evaluator
 
-Allows to integrate the {{ product }} code into Android projects and simplifies the integration of  {{ product }} in the CERN experiments.
+Allows to integrate the {{ product }} code into Android projects and simplifies the integration of {{ product }} in the CERN experiments.
 
 This method of using a trained model is not recommended due to several limitations:
 - Only models with float features are supported.
@@ -16,4 +16,3 @@ std::cout << "Model uses: " << modelFloatFeatureCount << " float features" << st
 std::vector<float> features(modelFloatFeatureCount);
 std::cout << evaluator.Apply(features, NCatboostStandalone::EPredictionType::RawValue) << std::endl;
 ```
-

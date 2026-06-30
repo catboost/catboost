@@ -2,18 +2,25 @@
 
 #include <util/system/platform.h>
 
-// Check platform bitness.
-#if !defined(_64_)
-    #error YT requires 64-bit platform
+#ifndef YT_DISABLE_REF_COUNTED_TRACKING
+    // This define enables tracking of reference-counted objects to provide
+    // various insightful information on memory usage and object creation patterns.
+    #define YT_ENABLE_REF_COUNTED_TRACKING
 #endif
 
-// This define enables tracking of reference-counted objects to provide
-// various insightful information on memory usage and object creation patterns.
-#define YT_ENABLE_REF_COUNTED_TRACKING
+#if !defined(NDEBUG) && !defined(YT_DISABLE_REF_COUNTED_SIGNATURE)
+    // This define embeds a salted, poisonable signature into every TRefCounter
+    // (see ref_counted.h). It lets a coredump walker tell a live ref-counted object
+    // from freed-but-unreclaimed memory.
+    #define YT_ENABLE_REF_COUNTED_SIGNATURE
+#endif
 
 // This define enables logging with TRACE level. You can still disable trace logging
 // for particular TU by discarding this macro identifier.
 #define YT_ENABLE_TRACE_LOGGING
+
+// This define should be used to compile YT with vanilla protobuf instead of patched one.
+// #define YT_USE_VANILLA_PROTOBUF
 
 #ifndef NDEBUG
     // This define enables thread affinity check -- a user-defined verification ensuring
@@ -29,11 +36,6 @@
 
     // Detects deadlocks caused by recursive acquisitions of (non-recursive) spin locks.
     #define YT_ENABLE_SPIN_LOCK_OWNERSHIP_TRACKING
-#endif
-
-// Configure SSE usage.
-#ifdef SSE42_ENABLED
-    #define YT_USE_SSE42
 #endif
 
 #ifdef _win_
@@ -57,11 +59,9 @@
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
     // Prevent GCC from throwing out functions in release builds.
     #define YT_ATTRIBUTE_USED __attribute__((used))
 #elif defined(_MSC_VER)
-    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS
     #define YT_ATTRIBUTE_USED
 #else
     #error Unsupported compiler

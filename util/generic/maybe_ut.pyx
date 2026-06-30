@@ -27,7 +27,7 @@ class TestMaybe(unittest.TestCase):
     def test_ctor2(self):
         cdef TMaybe[int] tmp = TMaybe[int](42)
         self.assertTrue(tmp.Defined())
-        self.assertEquals(tmp.GetRef(), 42)
+        self.assertEqual(tmp.GetRef(), 42)
 
     def test_ctor3(self):
         cdef TMaybe[int] tmp = Nothing()
@@ -37,7 +37,7 @@ class TestMaybe(unittest.TestCase):
         cdef TMaybe[int] tmp
         tmp = 42
         self.assertTrue(tmp.Defined())
-        self.assertEquals(tmp.GetRef(), 42)
+        self.assertEqual(tmp.GetRef(), 42)
 
     def test_compare(self):
         cdef TMaybe[int] tmp1 = 17
@@ -114,7 +114,7 @@ class TestMaybe(unittest.TestCase):
         cdef TMaybe[int] tmp
         tmp.ConstructInPlace(42)
         self.assertTrue(tmp.Defined())
-        self.assertEquals(tmp.GetRef(), 42)
+        self.assertEqual(tmp.GetRef(), 42)
 
     def test_clear(self):
         cdef TMaybe[int] tmp = 42
@@ -140,38 +140,38 @@ class TestMaybe(unittest.TestCase):
         cdef TMaybe[int] tmp = 42
         cdef int* p = tmp.Get()
         self.assertTrue(p != NULL)
-        self.assertEquals(p[0], 42)
+        self.assertEqual(p[0], 42)
 
     def test_get_ref(self):
         cdef TMaybe[int] tmp = 42
         self.assertTrue(tmp.Defined())
-        self.assertEquals(tmp.GetRef(), 42)
+        self.assertEqual(tmp.GetRef(), 42)
 
     def test_get_or_else(self):
         cdef TMaybe[int] tmp = 42
-        self.assertEquals(tmp.GetOrElse(13), 42)
+        self.assertEqual(tmp.GetOrElse(13), 42)
         tmp.Clear()
-        self.assertEquals(tmp.GetOrElse(13), 13)
+        self.assertEqual(tmp.GetOrElse(13), 13)
 
     def test_or_else(self):
         cdef TMaybe[int] tmp = 42
         cdef TMaybe[int] nothing
         self.assertFalse(nothing.OrElse(nothing).Defined())
-        self.assertEquals(tmp.OrElse(nothing).GetRef(), 42)
-        self.assertEquals(nothing.OrElse(tmp).GetRef(), 42)
-        self.assertEquals(tmp.OrElse(tmp).GetRef(), 42)
+        self.assertEqual(tmp.OrElse(nothing).GetRef(), 42)
+        self.assertEqual(nothing.OrElse(tmp).GetRef(), 42)
+        self.assertEqual(tmp.OrElse(tmp).GetRef(), 42)
 
     def test_cast(self):
         cdef TMaybe[int] tmp = 42
         cdef TMaybe[char] tmp2 = tmp.Cast[char]()
-        self.assertEquals(tmp2.GetRef(), 42)
+        self.assertEqual(tmp2.GetRef(), 42)
 
     def test_swap(self):
         cdef TMaybe[int] tmp1 = 42
         cdef TMaybe[int] tmp2
         tmp2.Swap(tmp1)
         self.assertFalse(tmp1.Defined())
-        self.assertEquals(tmp2.GetRef(), 42)
+        self.assertEqual(tmp2.GetRef(), 42)
 
     def test_from_py(self):
         self.assertTrue(_check_from_py(42))
@@ -181,5 +181,5 @@ class TestMaybe(unittest.TestCase):
             _check_from_py("ttt")
 
     def test_to_py(self):
-        self.assertEquals(_check_to_py_value(), 42)
-        self.assertEquals(_check_to_py_nothing(), None)
+        self.assertEqual(_check_to_py_value(), 42)
+        self.assertEqual(_check_to_py_nothing(), None)

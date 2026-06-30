@@ -78,6 +78,9 @@ namespace NCatboostStandalone {
         }
         Scale = ObliviousTrees->Scale();
         Bias = ObliviousTrees->Bias();
+        if (ObliviousTrees->MultiBias()->size() == 1) {
+            Bias = (*ObliviousTrees->MultiBias())[0];
+        }
         if (ObliviousTrees->CatFeatures() != nullptr && ObliviousTrees->CatFeatures()->size() != 0) {
             throw std::runtime_error(
                 "trying to initialize TZeroCopyEvaluator from coreModel with categorical features");

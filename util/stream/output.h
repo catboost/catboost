@@ -7,6 +7,7 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/typetraits.h>
+#include <util/system/compiler.h>
 
 #include <type_traits>
 
@@ -60,7 +61,7 @@ public:
 
     IOutputStream& operator=(IOutputStream&&) noexcept {
         return *this;
-    };
+    }
 
     /**
      * Writes into this stream.
@@ -182,7 +183,7 @@ protected:
  * However, if the flexibility of overload resolution is needed, then one should
  * just overload `operator<<`.
  *
- * @param out                           Output stream to write into.
+ * @param[inout] out                    Output stream to write into.
  * @param value                         Value to write.
  */
 template <class T>
@@ -207,54 +208,54 @@ void Out<const wchar16*>(IOutputStream& o, const wchar16* w);
 template <>
 void Out<const wchar32*>(IOutputStream& o, const wchar32* w);
 
-static inline IOutputStream& operator<<(IOutputStream& o, TStreamManipulator m) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, TStreamManipulator m) {
     m(o);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
 template <class T>
-static inline std::enable_if_t<std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, T t) {
+static inline std::enable_if_t<std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o Y_LIFETIME_BOUND, T t) {
     Out<T>(o, t);
 
     return o;
 }
 
 template <class T>
-static inline std::enable_if_t<!std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, const T& t) {
+static inline std::enable_if_t<!std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o Y_LIFETIME_BOUND, const T& t) {
     Out<T>(o, t);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const wchar32* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const wchar32* t) {
     Out<const wchar32*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, wchar32* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, wchar32* t) {
     Out<const wchar32*>(o, t);
     return o;
 }
@@ -262,7 +263,8 @@ static inline IOutputStream& operator<<(IOutputStream& o, wchar32* t) {
 namespace NPrivate {
     IOutputStream& StdOutStream() noexcept;
     IOutputStream& StdErrStream() noexcept;
-}
+    IOutputStream& StdDbgStream() noexcept;
+} // namespace NPrivate
 
 /**
  * Standard output stream.
@@ -278,6 +280,15 @@ namespace NPrivate {
  * Standard log stream.
  */
 #define Clog Cerr
+
+/**
+ * Standard debug stream.
+ *
+ * Behavior of this stream is controlled via `DBGOUT` environment variable.
+ * If this variable is set, then this stream is redirected into `stderr`,
+ * otherwise whatever is written into it is simply ignored.
+ */
+#define Cdbg (::NPrivate::StdDbgStream())
 
 /**
  * End-of-line output manipulator, basically the same as `std::endl`.
@@ -297,8 +308,32 @@ static inline void Flush(IOutputStream& o) {
  * Also see format.h for additional manipulators.
  */
 
-#include "debug.h"
-
 void RedirectStdioToAndroidLog(bool redirect);
 
-/** @} */
+/**
+ * Debug output stream. Writes into `stderr`.
+ */
+class TDebugOutput: public IOutputStream {
+public:
+    inline TDebugOutput() noexcept = default;
+    ~TDebugOutput() override = default;
+
+    TDebugOutput(TDebugOutput&&) noexcept = default;
+    TDebugOutput& operator=(TDebugOutput&&) noexcept = default;
+
+private:
+    void DoWrite(const void* buf, size_t len) override;
+};
+
+/**
+ * This function returns the current debug level as set via `DBGOUT` environment
+ * variable.
+ *
+ * Note that the proper way to use this function is via `Y_DBGTRACE` macro.
+ * There are very few cases when there is a need to use it directly.
+ *
+ * @returns                             Debug level.
+ * @see ETraceLevel
+ * @see DBGTRACE
+ */
+int StdDbgLevel() noexcept;

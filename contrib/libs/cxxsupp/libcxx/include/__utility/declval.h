@@ -26,27 +26,12 @@ template <class _Tp>
 _Tp __declval(long);
 _LIBCPP_SUPPRESS_DEPRECATED_POP
 
-#ifdef _LIBCPP_COMPILER_MSVC
 template <class _Tp>
-using __declval_void = void;
-
-template <class _Tp, class = void>
-struct __declval_add_rvalue_reference {
-    using type = _Tp;
-};
-template <class _Tp>
-struct __declval_add_rvalue_reference<_Tp, __declval_void<_Tp&>> {
-    using type = _Tp&&;
-};
-#endif
-
-template <class _Tp>
-#ifdef _LIBCPP_COMPILER_MSVC
-typename __declval_add_rvalue_reference<_Tp>::type
-#else
-decltype(__declval<_Tp>(0))
-#endif
-declval() _NOEXCEPT;
+_LIBCPP_HIDE_FROM_ABI decltype(std::__declval<_Tp>(0)) declval() _NOEXCEPT {
+  static_assert(!__is_same(_Tp, _Tp),
+                "std::declval can only be used in an unevaluated context. "
+                "It's likely that your current usage is trying to extract a value from the function.");
+}
 
 _LIBCPP_END_NAMESPACE_STD
 

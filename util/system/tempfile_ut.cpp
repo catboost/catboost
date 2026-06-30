@@ -115,7 +115,7 @@ Y_UNIT_TEST_SUITE(TTempFileHandle) {
     Y_UNIT_TEST(NonExistingDirectory) {
         UNIT_ASSERT_EXCEPTION(TTempFileHandle::InDir("nonexsistingdirname"), TSystemError);
     }
-}
+} // Y_UNIT_TEST_SUITE(TTempFileHandle)
 
 Y_UNIT_TEST_SUITE(MakeTempName) {
     Y_UNIT_TEST(Default) {
@@ -148,4 +148,4 @@ Y_UNIT_TEST_SUITE(MakeTempName) {
         }
         UNIT_ASSERT(!NFs::Exists(path));
     }
-}
+} // Y_UNIT_TEST_SUITE(MakeTempName)

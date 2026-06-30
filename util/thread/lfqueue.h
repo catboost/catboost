@@ -72,8 +72,9 @@ class TLockFreeQueue: public TNonCopyable {
     void TryToFreeAsyncMemory() {
         const auto keepCounter = FreeingTaskCounter.load();
         TRootNode* current = FreePtr.load(std::memory_order_acquire);
-        if (current == nullptr)
+        if (current == nullptr) {
             return;
+        }
         if (FreememCounter.load() == 1) {
             // we are the last thread, try to cleanup
             // check if another thread have cleaned up
@@ -103,8 +104,9 @@ class TLockFreeQueue: public TNonCopyable {
         toDelete->ToDelete.store(lst, std::memory_order_release);
         for (auto freePtr = FreePtr.load();;) {
             toDelete->NextFree.store(freePtr, std::memory_order_release);
-            if (FreePtr.compare_exchange_weak(freePtr, toDelete))
+            if (FreePtr.compare_exchange_weak(freePtr, toDelete)) {
                 break;
+            }
         }
     }
     void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
@@ -148,15 +150,17 @@ class TLockFreeQueue: public TNonCopyable {
                     Tail->Next.store(newCopy, std::memory_order_release);
                     newCopy = Copy;
                     Copy = nullptr; // do not destroy prev try
-                    if (!newTail)
+                    if (!newTail) {
                         newTail = Tail; // tried to invert same list
+                    }
                     break;
                 }
                 TListNode* newElem = new TListNode(ptr->Data, newCopy);
                 newCopy = newElem;
                 ptr = ptr->Next.load(std::memory_order_acquire);
-                if (!newTail)
+                if (!newTail) {
                     newTail = newElem;
+                }
             }
             EraseList(Copy); // copy was useless
             Copy = newCopy;
@@ -176,8 +180,9 @@ class TLockFreeQueue: public TNonCopyable {
 
             for (TListNode* node = head;; node = node->Next.load(std::memory_order_acquire)) {
                 newRoot->IncCount(node->Data);
-                if (node == tail)
+                if (node == tail) {
                     break;
+                }
             }
 
             if (JobQueue.compare_exchange_weak(curRoot, newRoot)) {
@@ -251,8 +256,9 @@ public:
     }
     template <typename TIter>
     void EnqueueAll(TIter dataBegin, TIter dataEnd) {
-        if (dataBegin == dataEnd)
+        if (dataBegin == dataEnd) {
             return;
+        }
 
         TIter i = dataBegin;
         TListNode* node = new TListNode(*i);
@@ -272,8 +278,9 @@ public:
             TListNode* tail = curRoot->PopQueue.load(std::memory_order_acquire);
             if (tail) {
                 // has elems to pop
-                if (!newRoot)
+                if (!newRoot) {
                     newRoot = new TRootNode;
+                }
 
                 newRoot->PushQueue.store(curRoot->PushQueue.load(std::memory_order_acquire), std::memory_order_release);
                 newRoot->PopQueue.store(tail->Next.load(std::memory_order_acquire), std::memory_order_release);
@@ -294,8 +301,9 @@ public:
                 return false; // no elems to pop
             }
 
-            if (!newRoot)
+            if (!newRoot) {
                 newRoot = new TRootNode;
+            }
             newRoot->PushQueue.store(nullptr, std::memory_order_release);
             listInvertor.DoCopy(curRoot->PushQueue.load(std::memory_order_acquire));
             newRoot->PopQueue.store(listInvertor.Copy, std::memory_order_release);

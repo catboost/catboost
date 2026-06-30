@@ -3,6 +3,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/map.h>
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
 #include <util/ysaveload.h>

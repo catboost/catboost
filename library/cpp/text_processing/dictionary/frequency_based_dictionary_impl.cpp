@@ -167,14 +167,16 @@ void TUnigramDictionaryImpl::Save(IOutputStream* stream) const {
 static void GetTokenInfoFromLineInOldFormat(
     const TString& line,
     NFH::TFlatHashMap<TString, TTokenId>* tokenToId,
-    TVector<TStringBuf>* idToToken,
+    TVector<TString>* orderedTokens,
     TVector<ui64>* idToCount
 ) {
     TVector<TStringBuf> splittedLine;
     StringSplitter(line).Split('\t').Collect(&splittedLine);
     auto token = splittedLine[1];
     (*tokenToId)[token] = FromString<ui32>(splittedLine[0]);
-    idToToken->emplace_back(tokenToId->find(token)->first);
+    // Don't capture a TStringBuf into the map key here: a later insert may rehash the map
+    // and free the old keys. Remember the token now and build IdToToken after the loop.
+    orderedTokens->emplace_back(token);
     if (splittedLine.size() == 3) {
         idToCount->emplace_back(FromString<ui64>(splittedLine[2]));
     }
@@ -183,14 +185,15 @@ static void GetTokenInfoFromLineInOldFormat(
 static void GetTokenInfoFromLineInNewFormat(
     const TString& line,
     NFH::TFlatHashMap<TString, TTokenId>* tokenToId,
-    TVector<TStringBuf>* idToToken,
+    TVector<TString>* orderedTokens,
     TVector<ui64>* idToCount
 ) {
     TVector<TStringBuf> splittedLine;
     StringSplitter(line).Split('\t').Limit(3).Collect(&splittedLine);
     auto token = splittedLine[2];
     (*tokenToId)[token] = FromString<ui32>(splittedLine[0]);
-    idToToken->emplace_back(tokenToId->find(token)->first);
+    // See the note in GetTokenInfoFromLineInOldFormat.
+    orderedTokens->emplace_back(token);
     if (!splittedLine[1].empty()) {
         idToCount->emplace_back(FromString<ui64>(splittedLine[1]));
     }
@@ -202,19 +205,29 @@ void TUnigramDictionaryImpl::Load(IInputStream* stream, bool isNewFormat) {
     TokenToId.clear();
     TokenToId.reserve(dictionarySize);
     IdToToken.clear();
-    IdToToken.reserve(dictionarySize);
     IdToCount.clear();
     IdToCount.reserve(dictionarySize);
+
+    TVector<TString> orderedTokens;
+    orderedTokens.reserve(dictionarySize);
 
     for (ui32 tokenIndex = 0; tokenIndex < dictionarySize; ++tokenIndex) {
         const TString line = stream->ReadLine();
         if (isNewFormat) {
-            GetTokenInfoFromLineInNewFormat(line, &TokenToId, &IdToToken, &IdToCount);
+            GetTokenInfoFromLineInNewFormat(line, &TokenToId, &orderedTokens, &IdToCount);
         } else {
-            GetTokenInfoFromLineInOldFormat(line, &TokenToId, &IdToToken, &IdToCount);
+            GetTokenInfoFromLineInOldFormat(line, &TokenToId, &orderedTokens, &IdToCount);
         }
     }
     IdToCount.shrink_to_fit();
+
+    // TokenToId is fully populated now, so its keys won't be reallocated by further inserts.
+    // Only now is it safe to alias them with TStringBuf.
+    IdToToken.reserve(orderedTokens.size());
+    for (const auto& token : orderedTokens) {
+        IdToToken.emplace_back(TokenToId.find(token)->first);
+    }
+
     InitializeSpecialTokenIds();
 }
 

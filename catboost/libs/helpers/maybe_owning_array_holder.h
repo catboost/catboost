@@ -89,19 +89,19 @@ namespace NCB {
             return EqualTo(rhs);
         }
 
-        TArrayRef<T> operator*() {
+        TArrayRef<T> operator*() noexcept {
             return ArrayRef;
         }
 
-        TConstArrayRef<T> operator*() const {
+        TConstArrayRef<T> operator*() const noexcept {
             return ArrayRef;
         }
 
-        T* data() {
+        T* data() noexcept {
             return ArrayRef.data();
         }
 
-        const T* data() const {
+        const T* data() const noexcept {
             return ArrayRef.data();
         }
 
@@ -117,7 +117,7 @@ namespace NCB {
             return ResourceHolder;
         }
 
-        size_t GetSize() const {
+        size_t GetSize() const noexcept {
             return ArrayRef.size();
         }
 
@@ -174,4 +174,3 @@ namespace NCB {
         return CreateOwningWithMaybeTypeCast<const TDst, TSrc>(std::move(src));
     }
 }
-

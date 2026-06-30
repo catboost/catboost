@@ -4,7 +4,6 @@
 
 #include <cstdlib>
 #include <string>
-#include <array>
 #include <vector>
 #include <functional>
 #include <memory>
@@ -58,10 +57,33 @@ public:
             throw std::runtime_error(GetErrorString());
         }
     }
+
+    /**
+     * Get supported formula evaluator types
+     */
+    std::vector<ECatBoostApiFormulaEvaluatorType> GetSupportedEvaluatorTypes() {
+        enum ECatBoostApiFormulaEvaluatorType* formulaEvaluatorTypes = nullptr;
+        size_t formulaEvaluatorTypesCount = 0;
+        if (!::GetSupportedEvaluatorTypes(CalcerHolder.get(), &formulaEvaluatorTypes, &formulaEvaluatorTypesCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+        std::vector<ECatBoostApiFormulaEvaluatorType> result;
+        try {
+            for (size_t i = 0; i < formulaEvaluatorTypesCount; ++i) {
+                result.push_back(formulaEvaluatorTypes[i]);
+            }
+        } catch (...) {
+            free(formulaEvaluatorTypes);
+            throw;
+        }
+        free(formulaEvaluatorTypes);
+        return result;
+    }
+
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
+     * Does not work on multiclass models (models with ApproxDimension > 1)
      * @param[in] features
      * @return double raw model prediction
      */
@@ -77,7 +99,7 @@ public:
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.
-     * Work for models with any dimension count
+     * Works for models with any dimension count
      * @param[in] features
      * @return double raw model prediction
      */
@@ -93,7 +115,7 @@ public:
     /**
      * Evaluate model on single object float features vector, vector of categorical features strings,
      * vector of text features strings and vector of embedding features vectors.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
+     * Does not work on multiclass models (models with ApproxDimension > 1)
      * @param[in] features
      * @return double raw model prediction
      */
@@ -138,7 +160,7 @@ public:
     /**
      * Evaluate model on single object float features vector, vector of categorical features strings,
      * vector of text features strings, and vector of embedding features vectors
-     * Work for models with any dimension count
+     * Works for models with any dimension count
      * @param[in] features
      * @return double raw model prediction
      */
@@ -190,6 +212,7 @@ public:
     std::vector<double> CalcFlat(const std::vector<std::vector<float>>& features) const {
         std::vector<double> result(features.size() * DimensionsCount);
         std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(features.size());
         size_t flatVecSize = 0;
         for (const auto& flatVec : features) {
             flatVecSize = flatVec.size();
@@ -197,6 +220,28 @@ public:
             ptrsVector.push_back(flatVec.data());
         }
         if (!CalcModelPredictionFlat(CalcerHolder.get(), features.size(), ptrsVector.data(), flatVecSize, result.data(), result.size())) {
+            throw std::runtime_error(GetErrorString());
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate model on transposed dataset layout.
+     * **WARNING** currently supports only singleclass models.
+     * @param transposedFeatures
+     * @return vector of raw prediction values
+     */
+    std::vector<double> CalcFlatTransposed(const std::vector<std::vector<float>>& transposedFeatures) const {
+        std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(transposedFeatures.size());
+        size_t docCount = 0;
+        for (const auto& feature : transposedFeatures) {
+            docCount = feature.size();
+            // TODO(kirillovs): add check that all docCount are equal
+            ptrsVector.push_back(feature.data());
+        }
+        std::vector<double> result(docCount * DimensionsCount);
+        if (!CalcModelPredictionFlatTransposed(CalcerHolder.get(), docCount, ptrsVector.data(), transposedFeatures.size(), result.data(), result.size())) {
             throw std::runtime_error(GetErrorString());
         }
         return result;
@@ -371,12 +416,32 @@ public:
         return ::GetFloatFeaturesCount(CalcerHolder.get());
     }
 
+    std::vector<size_t> GetFloatFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetFloatFeatureIndices);
+    }
+
     size_t GetCatFeaturesCount() const {
         return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
+    std::vector<size_t> GetCatFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetCatFeatureIndices);
+    }
+
     size_t GetTextFeaturesCount() const {
         return ::GetTextFeaturesCount(CalcerHolder.get());
+    }
+
+    std::vector<size_t> GetTextFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetTextFeatureIndices);
+    }
+
+    size_t GetEmbeddingFeaturesCount() const {
+        return ::GetEmbeddingFeaturesCount(CalcerHolder.get());
+    }
+
+    std::vector<size_t> GetEmbeddingFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetEmbeddingFeatureIndices);
     }
 
     bool CheckMetadataHasKey(const std::string& key) const {
@@ -398,6 +463,14 @@ public:
         if (!GetModelUsedFeaturesNames(CalcerHolder.get(), &featureNames, &featureCount)) {
             throw std::runtime_error(GetErrorString());
         }
+
+        auto cleanupFunction = [featureNames, featureCount]() {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+        };
+
         std::vector<std::string> result;
         try {
             result.reserve(featureCount);
@@ -405,20 +478,11 @@ public:
                 result.push_back(std::string(featureNames[i]));
             }
         } catch (...) {
-            for (size_t i = 0; i < featureCount; ++i) {
-                std::free(featureNames[i]);
-            }
-            std::free(featureNames);
+            cleanupFunction();
             throw;
         }
 
-        {
-            for (size_t i = 0; i < featureCount; ++i) {
-                std::free(featureNames[i]);
-            }
-            std::free(featureNames);
-        }
-
+        cleanupFunction();
         return result;
     }
 
@@ -489,6 +553,27 @@ private:
             }
             (*embeddingFeaturesPerSamplePtrs)[sampleIdx] = embeddingFeaturesPtrs->data() + sampleIdx * embeddingFeatureCountLocal;
         }
+    }
+
+    std::vector<size_t> GetFeaturesIndicesImpl(
+        std::function<bool (ModelCalcerHandle*, size_t**, size_t*)>&& cApiCall
+    ) const {
+        size_t* featureIndices = nullptr;
+        size_t featureCount = 0;
+        if (!cApiCall(CalcerHolder.get(), &featureIndices, &featureCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+
+        std::vector<size_t> result;
+        try {
+            result.assign(featureIndices, featureIndices + featureCount);
+        } catch (...) {
+            std::free(featureIndices);
+            throw;
+        }
+        std::free(featureIndices);
+
+        return result;
     }
 
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;

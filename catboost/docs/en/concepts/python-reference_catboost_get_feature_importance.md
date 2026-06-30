@@ -68,7 +68,14 @@ Possible values:
 
 **Possible types**
 
-{{ python-type--pool }}
+- {{ python-type--string }}
+- [{{ python-type__EFStrType }}](../concepts/python-efstr-type__desc.md)
+
+{% note info %}
+
+It is recommended to use {{ python-type__EFStrType }} for this parameter.
+
+{% endnote %}
 
 **Default value**
 
@@ -101,7 +108,7 @@ False
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate feature importance.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 

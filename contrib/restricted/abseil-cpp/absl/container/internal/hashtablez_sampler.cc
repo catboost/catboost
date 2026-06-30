@@ -18,25 +18,30 @@
 #include <atomic>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <limits>
+#include <utility>
 
 #include "absl/base/attributes.h"
 #include "absl/base/config.h"
+#include "absl/base/internal/per_thread_tls.h"
+#include "absl/base/internal/raw_logging.h"
+#include "absl/base/macros.h"
+#include "absl/base/no_destructor.h"
+#include "absl/base/optimization.h"
 #include "absl/debugging/stacktrace.h"
 #include "absl/memory/memory.h"
 #include "absl/profiling/internal/exponential_biased.h"
 #include "absl/profiling/internal/sample_recorder.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/time/clock.h"
 #include "absl/utility/utility.h"
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace container_internal {
-
-#ifdef ABSL_INTERNAL_NEED_REDUNDANT_CONSTEXPR_DECL
-constexpr int HashtablezInfo::kMaxStackDepth;
-#endif
 
 namespace {
 ABSL_CONST_INIT std::atomic<bool> g_hashtablez_enabled{
@@ -62,7 +67,7 @@ ABSL_PER_THREAD_TLS_KEYWORD SamplingState global_next_sample = {0, 0};
 #endif  // defined(ABSL_INTERNAL_HASHTABLEZ_SAMPLE)
 
 HashtablezSampler& GlobalHashtablezSampler() {
-  static auto* sampler = new HashtablezSampler();
+  static absl::NoDestructor<HashtablezSampler> sampler;
   return *sampler;
 }
 
@@ -70,7 +75,10 @@ HashtablezInfo::HashtablezInfo() = default;
 HashtablezInfo::~HashtablezInfo() = default;
 
 void HashtablezInfo::PrepareForSampling(int64_t stride,
-                                        size_t inline_element_size_value) {
+                                        size_t inline_element_size_value,
+                                        size_t key_size_value,
+                                        size_t value_size_value,
+                                        uint16_t soo_capacity_value) {
   capacity.store(0, std::memory_order_relaxed);
   size.store(0, std::memory_order_relaxed);
   num_erases.store(0, std::memory_order_relaxed);
@@ -79,7 +87,6 @@ void HashtablezInfo::PrepareForSampling(int64_t stride,
   total_probe_length.store(0, std::memory_order_relaxed);
   hashes_bitwise_or.store(0, std::memory_order_relaxed);
   hashes_bitwise_and.store(~size_t{}, std::memory_order_relaxed);
-  hashes_bitwise_xor.store(0, std::memory_order_relaxed);
   max_reserve.store(0, std::memory_order_relaxed);
 
   create_time = absl::Now();
@@ -87,9 +94,13 @@ void HashtablezInfo::PrepareForSampling(int64_t stride,
   // The inliner makes hardcoded skip_count difficult (especially when combined
   // with LTO).  We use the ability to exclude stacks by regex when encoding
   // instead.
-  depth = absl::GetStackTrace(stack, HashtablezInfo::kMaxStackDepth,
-                              /* skip_count= */ 0);
+  depth = static_cast<unsigned>(
+      absl::GetStackTrace(stack, HashtablezInfo::kMaxStackDepth,
+                          /* skip_count= */ 0));
   inline_element_size = inline_element_size_value;
+  key_size = key_size_value;
+  value_size = value_size_value;
+  soo_capacity = soo_capacity_value;
 }
 
 static bool ShouldForceSampling() {
@@ -112,13 +123,34 @@ static bool ShouldForceSampling() {
   return state == kForce;
 }
 
+#if defined(ABSL_INTERNAL_HASHTABLEZ_SAMPLE)
+HashtablezInfoHandle ForcedTrySample(size_t inline_element_size,
+                                     size_t key_size, size_t value_size,
+                                     uint16_t soo_capacity) {
+  return HashtablezInfoHandle(SampleSlow(global_next_sample,
+                                         inline_element_size, key_size,
+                                         value_size, soo_capacity));
+}
+void TestOnlyRefreshSamplingStateForCurrentThread() {
+  global_next_sample.next_sample =
+      g_hashtablez_sample_parameter.load(std::memory_order_relaxed);
+  global_next_sample.sample_stride = global_next_sample.next_sample;
+}
+#else
+HashtablezInfoHandle ForcedTrySample(size_t, size_t, size_t, uint16_t) {
+  return HashtablezInfoHandle{nullptr};
+}
+void TestOnlyRefreshSamplingStateForCurrentThread() {}
+#endif  // ABSL_INTERNAL_HASHTABLEZ_SAMPLE
+
 HashtablezInfo* SampleSlow(SamplingState& next_sample,
-                           size_t inline_element_size) {
+                           size_t inline_element_size, size_t key_size,
+                           size_t value_size, uint16_t soo_capacity) {
   if (ABSL_PREDICT_FALSE(ShouldForceSampling())) {
     next_sample.next_sample = 1;
-    const int64_t old_stride = exchange(next_sample.sample_stride, 1);
-    HashtablezInfo* result =
-        GlobalHashtablezSampler().Register(old_stride, inline_element_size);
+    const int64_t old_stride = std::exchange(next_sample.sample_stride, 1);
+    HashtablezInfo* result = GlobalHashtablezSampler().Register(
+        old_stride, inline_element_size, key_size, value_size, soo_capacity);
     return result;
   }
 
@@ -148,10 +180,12 @@ HashtablezInfo* SampleSlow(SamplingState& next_sample,
   // that case.
   if (first) {
     if (ABSL_PREDICT_TRUE(--next_sample.next_sample > 0)) return nullptr;
-    return SampleSlow(next_sample, inline_element_size);
+    return SampleSlow(next_sample, inline_element_size, key_size, value_size,
+                      soo_capacity);
   }
 
-  return GlobalHashtablezSampler().Register(old_stride, inline_element_size);
+  return GlobalHashtablezSampler().Register(old_stride, inline_element_size,
+                                            key_size, value_size, soo_capacity);
 #endif
 }
 
@@ -196,8 +230,8 @@ void RecordStorageChangedSlow(HashtablezInfo* info, size_t size,
   }
 }
 
-void RecordInsertSlow(HashtablezInfo* info, size_t hash,
-                      size_t distance_from_desired) {
+void RecordInsertMissSlow(HashtablezInfo* info, size_t hash,
+                          size_t distance_from_desired) {
   // SwissTables probe in groups of 16, so scale this to count items probes and
   // not offset from desired.
   size_t probe_length = distance_from_desired;
@@ -209,7 +243,6 @@ void RecordInsertSlow(HashtablezInfo* info, size_t hash,
 
   info->hashes_bitwise_and.fetch_and(hash, std::memory_order_relaxed);
   info->hashes_bitwise_or.fetch_or(hash, std::memory_order_relaxed);
-  info->hashes_bitwise_xor.fetch_xor(hash, std::memory_order_relaxed);
   info->max_probe_length.store(
       std::max(info->max_probe_length.load(std::memory_order_relaxed),
                probe_length),

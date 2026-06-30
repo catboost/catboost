@@ -1,11 +1,14 @@
 #pragma once
 
+#include "features_layout.h"
 #include "meta_info.h"
 
 #include <catboost/private/libs/options/feature_penalties_options.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/monotone_constraints.h>
+
+#include <catboost/libs/helpers/json_helpers.h>
 
 #include <library/cpp/json/json_reader.h>
 
@@ -15,8 +18,10 @@
 
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TFeaturesLayout& featuresLayout);
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo);
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TFeaturesLayout& featuresLayout);
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo);
 
 inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
@@ -45,6 +50,10 @@ namespace {
             : TIndicesMapper(MakeIndicesFromNames(poolLoadParams), MakeIndicesFromTags(poolLoadParams))
         { }
 
+        TIndicesMapper(const NCB::TFeaturesLayout& featuresLayout)
+            : TIndicesMapper(MakeIndicesFromNames(featuresLayout), MakeIndicesFromTags(featuresLayout))
+        { }
+
         TIndicesMapper(const NCB::TDataMetaInfo& metaInfo)
             : TIndicesMapper(MakeIndicesFromNames(metaInfo), MakeIndicesFromTags(metaInfo))
         { }
@@ -58,9 +67,17 @@ namespace {
                 CB_ENSURE(tagIndices, TStringBuf() << "There is no tag '#" << tag << "' in pool metainfo");
                 indices->insert(indices->end(), tagIndices->begin(), tagIndices->end());
             } else {
+                {
+                    auto it = IndicesFromNames.find(str);
+                    if (it != IndicesFromNames.end()) {
+                        indices->push_back(it->second);
+                        return;
+                    }
+                }
                 auto left = str;
                 auto right = str;
-                StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                const bool isRange = StringSplitter(str).Split('-').TryCollectInto(&left, &right);
+                CB_ENSURE(isRange, "String '" + str + "' does not represent a valid feature index, name or a feature range");
                 for (ui32 idx : xrange(ConvertToIndex(left, IndicesFromNames), ConvertToIndex(right, IndicesFromNames) + 1)) {
                     indices->push_back(idx);
                 }
@@ -102,7 +119,12 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const TSource& matchingSource
     }
 }
 
-void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson);
+void ConvertFeaturesFromStringToIndices(
+    const NCB::TPathWithScheme& cdFilePath,
+    const NCB::TPathWithScheme& featureNamesPath,
+    const NCB::TPathWithScheme& poolMetaInfoPath,
+    NJson::TJsonValue* featuresArrayJson
+);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
@@ -122,7 +144,7 @@ void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndices
         }
     }
     Sort(featuresForSelect);
-    NCatboostOptions::TJsonFieldHelper<TVector<int>>::Write(
+    TJsonFieldHelper<TVector<int>>::Write(
         TVector<int>(featuresForSelect.begin(), Unique(featuresForSelect.begin(), featuresForSelect.end())),
         &(*featuresSelectJsonOptions)["features_for_select"]);
 }
@@ -151,4 +173,3 @@ NJson::TJsonValue ExtractFeatureNamesDependentParams(NJson::TJsonValue* catBoost
 
 // feature names - dependent params are added to catBoostJsonOptions
 void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDependentOptions, NJson::TJsonValue* catBoostJsonOptions);
-

@@ -29,11 +29,12 @@
 #include <array>
 
 namespace NNetliba_v12 {
-    enum {
-        PACKET_HEADERS_SIZE = 128, // 128 bytes are enough for any header (100 is not enough for PONG_IB)
-        UDP_PACKET_SIZE = UDP_PACKET_BUF_SIZE - PACKET_HEADERS_SIZE,
-        UDP_SMALL_PACKET_SIZE = 1350, // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
-    };
+    constexpr int PACKET_HEADERS_SIZE = 128; // 128 bytes are enough for any header (100 is not enough for PONG_IB)
+    constexpr int UDP_PACKET_SIZE = UDP_PACKET_BUF_SIZE - PACKET_HEADERS_SIZE;
+    constexpr int UDP_SMALL_PACKET_SIZE = 1350; // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
+    // NOTE (torkve) netliba had UDP_SMALL_PACKET_SIZE hardcoded for ages, and we cannot change this value, while preserving
+    //               backward compatibility. Thus we have XS packet size which is turned on by an transfer option
+    constexpr int UDP_XSMALL_PACKET_SIZE = 1180;
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +81,7 @@ namespace NNetliba_v12 {
         void AttachStats(TIntrusivePtr<TRequesterPendingDataStats> stats) {
             Y_ASSERT(stats.Get());
             Y_ASSERT(Find(Stats, Stats + StatsEnd, stats.Get()) == Stats + StatsEnd && "Duplicate stats attach!");
-            Y_VERIFY(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
+            Y_ABORT_UNLESS(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
 
             Stats[StatsEnd++] = stats;
             AddToInpCount(stats.Get(), 1);
@@ -190,7 +191,7 @@ namespace NNetliba_v12 {
         void AttachStats(TIntrusivePtr<TRequesterPendingDataStats> stats) {
             Y_ASSERT(stats.Get());
             Y_ASSERT(Find(Stats, Stats + StatsEnd, stats.Get()) == Stats + StatsEnd && "Duplicate stats attach!");
-            Y_VERIFY(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
+            Y_ABORT_UNLESS(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
 
             Stats[StatsEnd++] = stats;
             IncStats(stats.Get());
@@ -198,6 +199,11 @@ namespace NNetliba_v12 {
         void InitXfer() {
             PacketSize = AckTracker.GetCongestionControl()->GetMTU();
             //fprintf(stderr, "MTU is: %i\n", (int)xfer.PacketSize);
+            /*
+            Cerr << "InitXfer AckTracker.GetCongestionControl()->GetMTU(): "
+                << ui64(&AckTracker) << "." << ui64(AckTracker.GetCongestionControl().Get())
+                << " = " << PacketSize << Endl;
+            */
             LastPacketSize = Data->GetSize() % PacketSize;
             PacketCount = Data->GetSize() / PacketSize + 1;
             AckTracker.SetPacketCount(PacketCount);
@@ -306,7 +312,7 @@ namespace NNetliba_v12 {
 
         friend class TConnection;
 
-        enum { WINDOW_SIZE = 128 }; // window size must be equal to max expected simultanious active transfers
+        static constexpr int WINDOW_SIZE = 128; // window size must be equal to max expected simultanious active transfers
 
         static size_t GetWindowIndexById(const size_t latest, const ui64 id) {
             Y_ASSERT(id <= latest);
@@ -392,7 +398,7 @@ namespace NNetliba_v12 {
                     }
 
                     Window.PopFront();
-                    Y_VERIFY(Window.PushBack(nullptr), "");
+                    Y_ABORT_UNLESS(Window.PushBack(nullptr), "");
                     Y_ASSERT(Window.Full());
                 }
 
@@ -441,7 +447,7 @@ namespace NNetliba_v12 {
 
             Y_ASSERT(Window.Capacity() == WINDOW_SIZE);
             for (size_t i = 1; i <= Latest; ++i) {
-                Y_VERIFY(Window.PushBack(nullptr), "");
+                Y_ABORT_UNLESS(Window.PushBack(nullptr), "");
             }
             Y_ASSERT(Window.Full());
             Y_ASSERT(GetIdByWindowIndex(Latest, 0) == 1);
@@ -530,7 +536,7 @@ namespace NNetliba_v12 {
         TString GetDebugInfo() const {
             char buf[1000];
             const TCongestionControl& cc = *UdpCongestion;
-            sprintf(buf, "IB: %d, RTT: %g, Timeout: %g, Window: %g, MaxWin: %g, FailRate: %g, TimeSinceLastRecv: %g, MTU: %d, Sleeping: %g, Alive: %d",
+            snprintf(buf, sizeof(buf), "IB: %d, RTT: %g, Timeout: %g, Window: %g, MaxWin: %g, FailRate: %g, TimeSinceLastRecv: %g, MTU: %d, Sleeping: %g, Alive: %d",
                     IBPeer.Get() ? IBPeer->GetState() : -1,
                     cc.GetRTT() * 1000, cc.GetTimeout() * 1000, cc.GetWindow(), cc.GetMaxWindow(), cc.GetFailRate(),
                     cc.GetTimeSinceLastRecv() * 1000, cc.GetMTU(), TimeSleeping, (int)cc.IsAlive());
@@ -598,6 +604,7 @@ namespace NNetliba_v12 {
             , MyAddress(myAddress)
             , Guid(guid)
             , Stats(new TRequesterPendingDataStats)
+            , SmallMtuUseXs(false)
             , TransferId(1) // start with 1, do not use 0
             , PeerLink(address, connectionSettings, udpTransferTimeout)
         {
@@ -760,6 +767,12 @@ namespace NNetliba_v12 {
         bool IsSleeping() const {
             return PeerLink.IsSleeping();
         }
+        bool GetSmallMtuUseXs() const {
+            return SmallMtuUseXs;
+        }
+        void SetSmallMtuUseXs(bool smallMtuUseXs) {
+            SmallMtuUseXs = smallMtuUseXs;
+        }
 
         bool Step(const float maxSleepTime, float* maxWaitTime, float* stepDeltaTime, const NHPTimer::STime now, TStatAggregator* failureStat) {
             const float deltaT = (float)NHPTimer::GetSeconds(now - CurrentTime);
@@ -846,6 +859,7 @@ namespace NNetliba_v12 {
         sockaddr_in6 WinsockMyAddress;
         TGUID Guid;
         TIntrusivePtr<TRequesterPendingDataStats> Stats;
+        bool SmallMtuUseXs;
 
         NHPTimer::STime CurrentTime;
 

@@ -28,20 +28,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/util/type_resolver_util.h>
+#include "google/protobuf/util/type_resolver_util.h"
 
-#include <google/protobuf/type.pb.h>
-#include <google/protobuf/wrappers.pb.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/util/internal/utility.h>
-#include <google/protobuf/util/type_resolver.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/status.h>
-#include <google/protobuf/stubs/status.h>
+#include "google/protobuf/type.pb.h"
+#include "google/protobuf/wrappers.pb.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/descriptor.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/status/status.h"
+#include "y_absl/strings/escaping.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/strings/strip.h"
+#include "google/protobuf/io/strtod.h"
+#include "google/protobuf/util/type_resolver.h"
 
 // clang-format off
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 // clang-format on
 
 namespace google {
@@ -66,42 +69,42 @@ using google::protobuf::UInt64Value;
 
 class DescriptorPoolTypeResolver : public TypeResolver {
  public:
-  DescriptorPoolTypeResolver(const TProtoStringType& url_prefix,
+  DescriptorPoolTypeResolver(y_absl::string_view url_prefix,
                              const DescriptorPool* pool)
       : url_prefix_(url_prefix), pool_(pool) {}
 
-  util::Status ResolveMessageType(const TProtoStringType& type_url,
+  y_absl::Status ResolveMessageType(const TProtoStringType& type_url,
                                   Type* type) override {
     TProtoStringType type_name;
-    util::Status status = ParseTypeUrl(type_url, &type_name);
+    y_absl::Status status = ParseTypeUrl(type_url, &type_name);
     if (!status.ok()) {
       return status;
     }
 
     const Descriptor* descriptor = pool_->FindMessageTypeByName(type_name);
     if (descriptor == NULL) {
-      return util::NotFoundError("Invalid type URL, unknown type: " +
-                                 type_name);
+      return y_absl::NotFoundError(
+          y_absl::StrCat("Invalid type URL, unknown type: ", type_name));
     }
     ConvertDescriptor(descriptor, type);
-    return util::Status();
+    return y_absl::Status();
   }
 
-  util::Status ResolveEnumType(const TProtoStringType& type_url,
+  y_absl::Status ResolveEnumType(const TProtoStringType& type_url,
                                Enum* enum_type) override {
     TProtoStringType type_name;
-    util::Status status = ParseTypeUrl(type_url, &type_name);
+    y_absl::Status status = ParseTypeUrl(type_url, &type_name);
     if (!status.ok()) {
       return status;
     }
 
     const EnumDescriptor* descriptor = pool_->FindEnumTypeByName(type_name);
     if (descriptor == NULL) {
-      return util::InvalidArgumentError("Invalid type URL, unknown type: " +
-                                        type_name);
+      return y_absl::InvalidArgumentError(
+          y_absl::StrCat("Invalid type URL, unknown type: ", type_name));
     }
     ConvertEnumDescriptor(descriptor, enum_type);
-    return util::Status();
+    return y_absl::Status();
   }
 
  private:
@@ -296,50 +299,52 @@ class DescriptorPoolTypeResolver : public TypeResolver {
   }
 
   TProtoStringType GetTypeUrl(const Descriptor* descriptor) {
-    return url_prefix_ + "/" + descriptor->full_name();
+    return y_absl::StrCat(url_prefix_, "/", descriptor->full_name());
   }
 
   TProtoStringType GetTypeUrl(const EnumDescriptor* descriptor) {
-    return url_prefix_ + "/" + descriptor->full_name();
+    return y_absl::StrCat(url_prefix_, "/", descriptor->full_name());
   }
 
-  util::Status ParseTypeUrl(const TProtoStringType& type_url,
+  y_absl::Status ParseTypeUrl(y_absl::string_view type_url,
                             TProtoStringType* type_name) {
-    if (type_url.substr(0, url_prefix_.size() + 1) != url_prefix_ + "/") {
-      return util::InvalidArgumentError(
-          StrCat("Invalid type URL, type URLs must be of the form '",
+    y_absl::string_view stripped = type_url;
+    if (!y_absl::ConsumePrefix(&stripped, url_prefix_) ||
+        !y_absl::ConsumePrefix(&stripped, "/")) {
+      return y_absl::InvalidArgumentError(
+          y_absl::StrCat("Invalid type URL, type URLs must be of the form '",
                        url_prefix_, "/<typename>', got: ", type_url));
     }
-    *type_name = type_url.substr(url_prefix_.size() + 1);
-    return util::Status();
+    *type_name = TProtoStringType(stripped);
+    return y_absl::Status();
   }
 
   TProtoStringType DefaultValueAsString(const FieldDescriptor* descriptor) {
     switch (descriptor->cpp_type()) {
       case FieldDescriptor::CPPTYPE_INT32:
-        return StrCat(descriptor->default_value_int32());
+        return y_absl::StrCat(descriptor->default_value_int32());
         break;
       case FieldDescriptor::CPPTYPE_INT64:
-        return StrCat(descriptor->default_value_int64());
+        return y_absl::StrCat(descriptor->default_value_int64());
         break;
       case FieldDescriptor::CPPTYPE_UINT32:
-        return StrCat(descriptor->default_value_uint32());
+        return y_absl::StrCat(descriptor->default_value_uint32());
         break;
       case FieldDescriptor::CPPTYPE_UINT64:
-        return StrCat(descriptor->default_value_uint64());
+        return y_absl::StrCat(descriptor->default_value_uint64());
         break;
       case FieldDescriptor::CPPTYPE_FLOAT:
-        return SimpleFtoa(descriptor->default_value_float());
+        return io::SimpleFtoa(descriptor->default_value_float());
         break;
       case FieldDescriptor::CPPTYPE_DOUBLE:
-        return SimpleDtoa(descriptor->default_value_double());
+        return io::SimpleDtoa(descriptor->default_value_double());
         break;
       case FieldDescriptor::CPPTYPE_BOOL:
         return descriptor->default_value_bool() ? "true" : "false";
         break;
       case FieldDescriptor::CPPTYPE_STRING:
         if (descriptor->type() == FieldDescriptor::TYPE_BYTES) {
-          return CEscape(descriptor->default_value_string());
+          return y_absl::CEscape(descriptor->default_value_string());
         } else {
           return descriptor->default_value_string();
         }
@@ -348,7 +353,7 @@ class DescriptorPoolTypeResolver : public TypeResolver {
         return descriptor->default_value_enum()->name();
         break;
       case FieldDescriptor::CPPTYPE_MESSAGE:
-        GOOGLE_LOG(DFATAL) << "Messages can't have default values!";
+        Y_ABSL_DLOG(FATAL) << "Messages can't have default values!";
         break;
     }
     return "";
@@ -360,7 +365,7 @@ class DescriptorPoolTypeResolver : public TypeResolver {
 
 }  // namespace
 
-TypeResolver* NewTypeResolverForDescriptorPool(const TProtoStringType& url_prefix,
+TypeResolver* NewTypeResolverForDescriptorPool(y_absl::string_view url_prefix,
                                                const DescriptorPool* pool) {
   return new DescriptorPoolTypeResolver(url_prefix, pool);
 }

@@ -9,6 +9,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
+#include <util/system/compiler.h>
 
 using namespace NCB;
 
@@ -64,6 +65,7 @@ static void CheckIfDatasetNanModeIsCompatibleWithModelNanValueTreatment(
             case TFloatFeature::ENanValueTreatment::AsTrue:
                 return datasetNanMode != ENanMode::Min;
         }
+        Y_UNREACHABLE();
     };
 
     CB_ENSURE(

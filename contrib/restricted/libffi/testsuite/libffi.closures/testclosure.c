@@ -14,12 +14,17 @@ typedef struct cls_struct_combined {
   float d;
 } cls_struct_combined;
 
-void cls_struct_combined_fn(struct cls_struct_combined arg)
+static void cls_struct_combined_fn(struct cls_struct_combined arg)
 {
   printf("%g %g %g %g\n",
 	 arg.a, arg.b,
 	 arg.c, arg.d);
   fflush(stdout);
+
+  CHECK_FLOAT_EQ(arg.a, 4);
+  CHECK_FLOAT_EQ(arg.b, 5);
+  CHECK_FLOAT_EQ(arg.c, 1);
+  CHECK_FLOAT_EQ(arg.d, 8);
 }
 
 static void

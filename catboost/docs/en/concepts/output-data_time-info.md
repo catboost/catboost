@@ -8,14 +8,14 @@
 #### {{ output--format }}
 
 - The rows are added to the file after choosing the next tree.
-    
+
 - Each row contains information related to the corresponding tree.
-    
+
     Format:
     ```
     <tree number><\t><time remaining><\t><time passed>
     ```
-    
+
     - `tree number` is the ID of the tree (numbering starts from zero).
     - `time remaining` is the number of milliseconds remaining until the end of training.
     - `time passed` is the number of milliseconds that has passed since training started.

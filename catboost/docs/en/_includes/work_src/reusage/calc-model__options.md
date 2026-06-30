@@ -26,7 +26,7 @@ Possible values:
 
 #### Description
 
-The name of the input file with the [dataset description](../../../concepts/input-data_values-file.md).
+The name of the input file with the [dataset](../../../concepts/input-data_values-file.md).
 
 **{{ cli__params-table__title__default }}**
 
@@ -65,6 +65,21 @@ Omitted
 
 Pairwise metrics require pairs of data. If this data is not provided explicitly by specifying this parameter, pairs are generated automatically in each group using object label values
 
+
+### --input-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../../concepts/input-data_graph-description.md) for the dataset.
+
+This information is used for calculation of [](../../../features/graph-aggregated-features.md).
+
+
+**{{ cli__params-table__title__default }}**
+
+Omitted
+
+
 ### -o, --output-path
 
 #### Description
@@ -101,7 +116,7 @@ The output data [format](../../../concepts/output-data_model-value-output.md) d
 
 A comma-separated list of columns names to output when forming the [results of applying the model](../../../concepts/output-data_model-value-output.md) (including the ones obtained for the validation dataset when training).
 
-Prediction and feature values can be output for each object of the input dataset. Additionally, some [column types](../../../concepts/input-data_column-descfile.md) can be output if specified in the input data.
+Prediction and feature values can be output for each object of the input dataset. Auxiliary column can be output, if name for column was specified in column description. Additionally, some [column types](../../../concepts/input-data_column-descfile.md) can be output if specified in the input data.
 
 {% cut "Supported prediction types" %}
 
@@ -196,7 +211,7 @@ The number of trees from the model to use when applying. If specified, the first
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe step of the trees to use to `eval-period`.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the step of the trees to use to `eval-period`.
 
 
 {% include [eval-start-end-cli__eval__period__desc](../reusage-common-phrases/cli__eval__period__desc.md) %}

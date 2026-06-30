@@ -8,6 +8,7 @@ class Pool(data,
            embedding_features=None,
            column_description=None,
            pairs=None,
+           graph=None,
            delimiter='\t',
            has_header=False,
            weight=None,
@@ -27,7 +28,7 @@ class Pool(data,
 
 Dataset processing.
 
-The fastest way to pass the features data to the Pool constructor (and other [CatBoost](python-reference_catboost.md), [CatBoostClassifier](python-reference_catboostclassifier.md), [CatBoostRegressor](python-reference_catboostregressor.md) methods that accept it) if most (or all) of your features are numerical is to pass it using FeaturesData class. Another way to get similar performance with datasets that contain numerical features only is to pass features data as numpy.ndarray with numpy.float32 dtype.
+The fastest way to pass the features data to the Pool constructor (and other [CatBoost](python-reference_catboost.md), [CatBoostClassifier](python-reference_catboostclassifier.md), [CatBoostRegressor](python-reference_catboostregressor.md) and [CatBoostRanker](python-reference_catboostranker.md) methods that accept it) if most (or all) of your features are numerical is to pass it using FeaturesData class. Another way to get similar performance with datasets that contain numerical features only is to pass features data as numpy.ndarray with numpy.float32 dtype.
 
 ## {{ dl--parameters }} {#parameters}
 
@@ -39,7 +40,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 Dataset in the form of a two-dimensional feature matrix.
 
@@ -58,14 +59,13 @@ Dataset in the form of a two-dimensional feature matrix.
 
 Dataset in the form of {{ python-type__FeaturesData }}. The fastest way to create a Pool from Python objects.
 
-{% include [files-internal-files-internal__desc__full](../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
-
 {% endcut %}
 
 {% cut "{{ python-type--string }}" %}
 
+The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset.
 
-The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset description.
+{% include [files-internal-files-internal__desc__full](../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
 
 {% endcut %}
 
@@ -79,25 +79,24 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 #### Description
 
-The target variables (in other words, the objects' label values) for the training dataset.
+The target variables (in other words, the objects' label values).
 
-Must be in the form of a one-dimensional array. The type of data in the array depends on the machine learning task being solved:
-- Regression , multiregression and ranking  — Numeric values.
-- Binary classification — Numeric values.
+{% include [methods-param-desc-label--detailed-desc-generic](../_includes/work_src/reusage/label--detailed-desc-generic.md) %}
 
-    The interpretation of numeric values depends on the selected loss function:
+{% note info %}
 
-    - {{ error-function--Logit }} — The value is considered a positive class if it is strictly greater than the value of the `` parameter of the loss function. Otherwise, it is considered a negative class.
-    - {{ error-function--CrossEntropy }} — The value is interpreted as the probability that the dataset object belongs to the positive class. Possible values are in the range `[0; 1]`.
+If `data` parameter points to a file, label data is loaded from it as well. This parameter must be `None` in this case.
 
-- Multiclassification — Integers or strings that represents the labels of the classes.
+{% endnote %}
 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 - {{ python-type--pandasDataFrame }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
@@ -109,14 +108,14 @@ None
 
 A one-dimensional array of categorical columns indices (specified as integers) or names (specified as strings).
 
-Use only if the `data` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}).
+Use only if the `data` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}), polars.DataFrame.
 
 If any elements in this array are specified as names instead of indices, names for all columns must be provided. To do this, either use the `feature_names` parameter of this constructor to explicitly specify them or pass a {{ python-type--pandasDataFrame }} with column names specified in the `data` parameter.
 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -133,7 +132,7 @@ A one-dimensional array of text columns indices (specified as integers) or names
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -150,7 +149,7 @@ A one-dimensional array of embedding columns indices (specified as integers) or 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -184,7 +183,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, polars.DataFrame" %}
 
 The pairs description in the form of a two-dimensional matrix of shape `N` by 2:
 
@@ -206,6 +205,34 @@ The path to the input file that contains the [pairs description](../concepts/in
 
 {% endcut %}
 
+### graph
+
+#### Description
+
+The description is different for each group of possible types.
+
+**Possible types**
+
+
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, polars.DataFrame" %}
+
+The graph description in the form of a two-dimensional matrix of shape `N` by 2:
+
+
+- `N` is the number of edges.
+- The first element of the edge is the zero-based index of start vertex (object) from the input dataset.
+- The second element of the edge is the zero-based index of end vertex (object) from the input dataset.
+
+{% endcut %}
+
+
+{% cut "{{ python-type--string }}" %}
+
+The path to the input file that contains the [graph information](../concepts/input-data_graph-description.md).
+
+
+{% endcut %}
+
 
 **Default value**
 
@@ -215,7 +242,7 @@ None
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
@@ -234,7 +261,7 @@ Only single char delimiters are supported. If the specified value contains more 
 
 #### Description
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 {% include [libsvm-note-restriction-delimiter-separated-format](../_includes/work_src/reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
@@ -259,7 +286,8 @@ By default, it is set to 1 for all objects.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -278,7 +306,8 @@ Used for calculating the final values of trees. By default, it is set to 1 for a
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -312,7 +341,8 @@ $\begin{pmatrix} d_{1}&g_{1}&f_{1}\\ d_{3}&g_{3}&f_{3}\\ d_{2}&g_{2}&f_{2}\\ d_{
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -329,7 +359,8 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -349,7 +380,8 @@ By default, it is set to 1 for all pairs.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -364,7 +396,9 @@ Array of formula values for all input objects. The training starts from these va
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
@@ -381,7 +415,8 @@ Useful for sorting a learning dataset by this field during training.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 

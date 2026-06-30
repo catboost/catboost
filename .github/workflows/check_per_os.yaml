@@ -1,0 +1,50 @@
+name: Check build and tests per OS
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      revision:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
+      catboost_package_version:
+        required: false
+        type: string
+        default: ''   # version from repository will be used
+      artifacts_version:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 3
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build_per_os.yaml
+    with:
+      os: ${{ inputs.os }}
+      revision: ${{ inputs.revision }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
+      catboost_package_version: ${{ inputs.catboost_package_version }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      artifact_retention_days: ${{ fromJSON(inputs.artifact_retention_days) }}
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test_per_os.yaml
+    needs:
+      - build
+    with:
+      os: ${{ inputs.os }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}

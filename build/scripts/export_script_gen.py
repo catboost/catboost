@@ -22,12 +22,12 @@ def parse_export_file(src):
 def to_c(sym):
     symbols = collections.deque(sym.split('::'))
     c_prefixes = [  # demangle prefixes for c++ symbols
-        '_ZN',      # namespace
-        '_ZTIN',    # typeinfo for
-        '_ZTSN',    # typeinfo name for
-        '_ZTTN',    # VTT for
-        '_ZTVN',    # vtable for
-        '_ZNK',     # const methods
+        '_ZN',  # namespace
+        '_ZTIN',  # typeinfo for
+        '_ZTSN',  # typeinfo name for
+        '_ZTTN',  # VTT for
+        '_ZTVN',  # vtable for
+        '_ZNK',  # const methods
     ]
     c_sym = ''
     while symbols:
@@ -58,7 +58,7 @@ def to_gnu(src, dest):
             d['C'].extend(to_c(item['sym']))
         else:
             d[item['lang']].append(item['sym'])
-   
+
     if version:
         dest.write('{} {{\nglobal:\n'.format(version))
     else:
@@ -102,9 +102,15 @@ def to_darwin(src, dest):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Convert self-invented platform independent export file format to the format required by specific linker')
-    parser.add_argument('src', type=argparse.FileType('r', encoding='UTF-8'), help='platform independent export file path')
-    parser.add_argument('dest', type=argparse.FileType('w', encoding='UTF-8'), help='destination export file for required linker')
+    parser = argparse.ArgumentParser(
+        description='Convert self-invented platform independent export file format to the format required by specific linker'
+    )
+    parser.add_argument(
+        'src', type=argparse.FileType('r', encoding='UTF-8'), help='platform independent export file path'
+    )
+    parser.add_argument(
+        'dest', type=argparse.FileType('w', encoding='UTF-8'), help='destination export file for required linker'
+    )
     parser.add_argument('--format', help='destination file type format: gnu, msvc or darwin')
 
     args = parser.parse_args()

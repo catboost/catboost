@@ -1,0 +1,1 @@
+Later in this document `$CATBOOST_SRC_ROOT` refers to the root dir of the local working copy of the source code cloned from the GitHub {{ product }} repository.

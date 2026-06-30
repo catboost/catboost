@@ -28,18 +28,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/csharp/csharp_map_field.h"
+
 #include <sstream>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-
-#include <google/protobuf/compiler/csharp/csharp_doc_comment.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_map_field.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/compiler/csharp/csharp_doc_comment.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
 
 namespace google {
 namespace protobuf {
@@ -57,9 +55,9 @@ MapFieldGenerator::~MapFieldGenerator() {
 
 void MapFieldGenerator::GenerateMembers(io::Printer* printer) {
   const FieldDescriptor* key_descriptor =
-      descriptor_->message_type()->FindFieldByName("key");
+      descriptor_->message_type()->map_key();
   const FieldDescriptor* value_descriptor =
-      descriptor_->message_type()->FindFieldByName("value");
+      descriptor_->message_type()->map_value();
   variables_["key_type_name"] = type_name(key_descriptor);
   variables_["value_type_name"] = type_name(value_descriptor);
   std::unique_ptr<FieldGeneratorBase> key_generator(
@@ -88,9 +86,8 @@ void MapFieldGenerator::GenerateMembers(io::Printer* printer) {
 }
 
 void MapFieldGenerator::GenerateMergingCode(io::Printer* printer) {
-  printer->Print(
-      variables_,
-      "$name$_.Add(other.$name$_);\n");
+  printer->Print(variables_,
+                 "$name$_.MergeFrom(other.$name$_);\n");
 }
 
 void MapFieldGenerator::GenerateParsingCode(io::Printer* printer) {

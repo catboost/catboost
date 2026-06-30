@@ -2,6 +2,7 @@
 
 #include <util/generic/iterator_range.h>
 #include <util/generic/store_policy.h>
+#include <util/system/compiler.h>
 
 #include <iterator>
 
@@ -12,7 +13,7 @@ namespace NIteratorPrivate {
         return std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,
                               std::random_access_iterator_tag>;
     }
-};
+}
 
 
 template <class TIterator, class TMapper>
@@ -20,11 +21,13 @@ class TMappedIterator {
 protected:
     using TSelf = TMappedIterator<TIterator, TMapper>;
     using TSrcPointerType = typename std::iterator_traits<TIterator>::reference;
-    using TValue = typename std::invoke_result_t<TMapper, TSrcPointerType>;
+    using TInvokeResult = std::invoke_result_t<TMapper, TSrcPointerType>;
+    using TValue = std::remove_reference_t<TInvokeResult>;
 public:
     using difference_type = std::ptrdiff_t;
     using value_type = TValue;
     using reference = TValue&;
+    using const_reference = const TValue&;
     using pointer = std::remove_reference_t<TValue>*;
     using iterator_category = std::conditional_t<NIteratorPrivate::HasRandomAccess<TIterator>(),
         std::random_access_iterator_tag, std::input_iterator_tag>;
@@ -43,10 +46,10 @@ public:
         --Iter;
         return *this;
     }
-    TValue operator*() {
+    TInvokeResult operator*() {
         return Mapper((*Iter));
     }
-    TValue operator*() const {
+    TInvokeResult operator*() const {
         return Mapper((*Iter));
     }
 
@@ -54,7 +57,7 @@ public:
         return &(Mapper((*Iter)));
     }
 
-    TValue operator[](difference_type n) const {
+    TInvokeResult operator[](difference_type n) const {
         return Mapper(*(Iter + n));
     }
     TSelf& operator+=(difference_type n) {
@@ -89,7 +92,7 @@ public:
 
 private:
     TIterator Iter;
-    TMapper Mapper;
+    Y_NO_UNIQUE_ADDRESS TMapper Mapper;
 };
 
 
@@ -106,7 +109,7 @@ public:
     using const_iterator = TIterator;
     using value_type = typename TIterator::value_type;
     using reference = typename TIterator::reference;
-    using const_reference = typename TIterator::reference;
+    using const_reference = typename TIterator::const_reference;
 
     TInputMappedRange(TContainer&& container, TMapper&& mapper)
         : Container(std::forward<TContainer>(container))
@@ -128,7 +131,7 @@ public:
 
 protected:
     mutable TContainerStorage Container;
-    mutable TMapperStorage Mapper;
+    Y_NO_UNIQUE_ADDRESS mutable TMapperStorage Mapper;
 };
 
 

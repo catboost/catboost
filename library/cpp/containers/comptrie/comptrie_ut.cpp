@@ -1483,7 +1483,7 @@ void TCompactTrieTest::TestBuilderFindLongestPrefix(size_t keysCount, double bra
     TVector<TString> keys;
     TString keyToAdd;
     for (size_t i = 0; i < keysCount; ++i) {
-        const size_t prevKeyLen = keyToAdd.Size();
+        const size_t prevKeyLen = keyToAdd.size();
         // add two random chars to prev key
         keyToAdd += RandChar();
         keyToAdd += RandChar();
@@ -1517,8 +1517,8 @@ void TCompactTrieTest::TestBuilderFindLongestPrefix(size_t keysCount, double bra
             } else {
                 size_t max = 0;
                 for (size_t k = 0; k < i; ++k)
-                    if (keys[k].Size() < otherKey.Size() && keys[k].Size() > max && otherKey.StartsWith(keys[k]))
-                        max = keys[k].Size();
+                    if (keys[k].size() < otherKey.size() && keys[k].size() > max && otherKey.StartsWith(keys[k]))
+                        max = keys[k].size();
                 expectedSize = max;
             }
 
@@ -1621,11 +1621,11 @@ void TCompactTrieTest::TestPatternSearcherOnDataset(
         size_t matchesNum = 0;
         THashSet<TString> processedPatterns;
         for (const auto& pattern : patterns) {
-            if (pattern.Empty() || processedPatterns.contains(pattern)) {
+            if (pattern.empty() || processedPatterns.contains(pattern)) {
                 continue;
             }
-            for (size_t start = 0; start + pattern.Size() <= sample.Size(); ++start) {
-                matchesNum += (pattern == sample.substr(start, pattern.Size()));
+            for (size_t start = 0; start + pattern.size() <= sample.size(); ++start) {
+                matchesNum += (pattern == sample.substr(start, pattern.size()));
             }
             processedPatterns.insert(pattern);
         }
@@ -1760,7 +1760,7 @@ void TCompactTrieTest::TestPatternSearcherRandom(
         patterns.push_back(RandStr(rng, patternMaxLength, maxChar, /*nonEmpty*/true));
     }
 
-    auto filler = RandStr(rng, strMaxLength - patternToSearch.Size() + 1, maxChar);
+    auto filler = RandStr(rng, strMaxLength - patternToSearch.size() + 1, maxChar);
     size_t leftFillerSize = rng.GenRand() % (filler.size() + 1);
     auto leftFiller = filler.substr(0, leftFillerSize);
     auto rightFiller = filler.substr(leftFillerSize, filler.size() - leftFillerSize);

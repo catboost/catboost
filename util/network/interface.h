@@ -14,4 +14,4 @@ namespace NAddr {
     using TNetworkInterfaceList = TVector<TNetworkInterface>;
 
     TNetworkInterfaceList GetNetworkInterfaces();
-}
+} // namespace NAddr

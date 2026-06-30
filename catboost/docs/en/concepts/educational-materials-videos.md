@@ -14,10 +14,6 @@
 
 @[youtube](jLU6kNRiZ5o)
 
-## Ordered boosting and categorical features processing in {{ product }} full overview {#unbiased-boosting-with-cat-features}
-
-@[youtube](db-iLhQvcH8)
-
 ## {{ product }} on GPU {#fast-open-source-gradient-boosting}
 
 @[youtube](aHSw4BQkK3s)
@@ -34,10 +30,10 @@
 
 @[youtube](wjd1G5bu_TY)
 
-## Apache Spark: Introducing CatBoost
+## CatBoost for Apache Spark: Introduction
 
 @[youtube](47-mAVms-b8)
 
-## Apache Spark: Architecture
+## CatBoost for Apache Spark: Architecture
 
 @[youtube](nrGt5VKZpzc)

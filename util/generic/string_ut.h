@@ -525,17 +525,13 @@ public:
     }
 
     void TestConstructors() {
-        TStringType s0(nullptr);
+        TStringType s0;
         UNIT_ASSERT(s0.size() == 0);
-        UNIT_ASSERT_EQUAL(s0, TStringType());
 
         TStringType s;
         TStringType s1(*Data._0());
         TStringType s2(Data._0());
         UNIT_ASSERT(s1 == s2);
-
-        TStringType fromZero(0);
-        UNIT_ASSERT_VALUES_EQUAL(fromZero.size(), 0u);
 
         TStringType fromChar(char_type('a'));
         UNIT_ASSERT_VALUES_EQUAL(fromChar.size(), 1u);
@@ -674,7 +670,7 @@ public:
     }
 #endif
 
-    //  Find family
+    // Find family
 
     void TestFind() {
         const TStringType s(Data._0123456_12345());
@@ -731,6 +727,13 @@ public:
 
         UNIT_ASSERT(s.Contains('1'));
         UNIT_ASSERT(!s.Contains('*'));
+
+        // std-compatible "contains".
+        UNIT_ASSERT(s.contains(Data._345()));
+        UNIT_ASSERT(!s2.contains(Data._345()));
+
+        UNIT_ASSERT(s.contains('1'));
+        UNIT_ASSERT(!s.contains('*'));
 
         TStringType empty;
         UNIT_ASSERT(s.Contains(empty));
@@ -897,7 +900,7 @@ public:
         ComputeHash(sS); /*size_t hash_val = sS.hash();
 
         try {
-            //UNIT_ASSERT(hash_val == Data.HashOf_0123456());
+            // UNIT_ASSERT(hash_val == Data.HashOf_0123456());
         } catch (...) {
             Cerr << hash_val << Endl;
             throw;

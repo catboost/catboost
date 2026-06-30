@@ -27,21 +27,39 @@ namespace NCB {
     }
 
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
-        : TDSVPoolColumnsPrinter(TLineDataPoolColumnsPrinterPushArgs{
-            GetLineDataReader(args.PoolPath, args.Format),
-            args.Format,
-            args.ColumnsMetaInfo})
+        : TDSVPoolColumnsPrinter(
+            TLineDataPoolColumnsPrinterPushArgs{
+                GetLineDataReader(args.PoolPath, args.Format),
+                args.Format,
+                args.ColumnsMetaInfo})
     {}
 
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
+        CB_ENSURE(
+            FromColumnTypeToColumnId.contains(columnType),
             "You can not output " << ToString(columnType) << " column by type");
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
 
     void TDSVPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) {
         *outStream << GetCell(docId, FromExternalIdToColumnId[featureId]);
+    }
+
+    void TDSVPoolColumnsPrinter::OutputAuxiliaryColumn(
+        IOutputStream* outStream,
+        ui64 docId,
+        ui32 auxiliaryColumnId,
+        const TString& /*columnName*/) {
+        *outStream << GetCell(docId, auxiliaryColumnId);
+    }
+
+    bool TDSVPoolColumnsPrinter::ValidAuxiliaryColumn(const TString& columnName) {
+        return AuxiliaryColumnNameToId.contains(columnName);
+    }
+
+    ui32 TDSVPoolColumnsPrinter::GetAuxiliaryColumnId(const TString& columnName) {
+        return AuxiliaryColumnNameToId[columnName];
     }
 
     void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
@@ -51,6 +69,9 @@ namespace NCB {
                 FromColumnTypeToColumnId[columnType] = columnId;
                 if (columnType == EColumn::SampleId) {
                     HasDocIdColumn = true;
+                }
+                if (columnType == EColumn::Auxiliary and columnsMetaInfo->Columns[columnId].Id) {
+                    AuxiliaryColumnNameToId[columnsMetaInfo->Columns[columnId].Id] = columnId;
                 }
                 if (IsFactorColumn(columnType)) {
                     FromExternalIdToColumnId.push_back(columnId);
@@ -68,8 +89,7 @@ namespace NCB {
         if (docId == DocId + 1) {
             ++DocId;
             TString line;
-            CB_ENSURE(LineDataReader->ReadLine(&line),
-                      "there's no line in pool for " << DocId);
+            CB_ENSURE(LineDataReader->ReadLine(&line), "there's no line in pool for " << DocId);
             Columns.clear();
             for (const auto& typeName : StringSplitter(line).Split(Delimiter)) {
                 Columns.push_back(FromString<TString>(typeName.Token()));
@@ -80,7 +100,10 @@ namespace NCB {
     }
 
     TQuantizedPoolColumnsPrinter::TQuantizedPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
-        : QuantizedPool(LoadQuantizedPool(args.PoolPath, {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns(!IsSharedFs(args.PoolPath))}))
+        : QuantizedPool(
+            LoadQuantizedPool(
+                args.PoolPath,
+                {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns(!IsSharedFs(args.PoolPath))}))
     {
         for (const ui32 columnId : xrange(QuantizedPool.ColumnTypes.size())) {
             const auto columnType = QuantizedPool.ColumnTypes[columnId];
@@ -105,15 +128,18 @@ namespace NCB {
             auto& chunkIndices = ColumnsInfo[columnType].CorrectChunkOrder;
             chunkIndices.resize(chunks.size());
             Iota(chunkIndices.begin(), chunkIndices.end(), 0);
-            Sort(chunkIndices, [&](ui32 lhs, ui32 rhs) {
-                return chunks[lhs].DocumentOffset < chunks[rhs].DocumentOffset;
-            });
+            Sort(
+                chunkIndices,
+                [&](ui32 lhs, ui32 rhs) {
+                    return chunks[lhs].DocumentOffset < chunks[rhs].DocumentOffset;
+                });
             ColumnsInfo[columnType].LocalColumnIndex = localColumnIndex;
         }
     }
 
     void TQuantizedPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(ColumnsInfo.contains(columnType),
+        CB_ENSURE(
+            ColumnsInfo.contains(columnType),
             "Pool doesn't have " << ToString(columnType) << " column.");
 
         TString token;
@@ -129,14 +155,34 @@ namespace NCB {
                 token = GetStringColumnToken(docId, columnType);
                 break;
             default:
-                CB_ENSURE("Unsupported output columnType for Quantized pool.");
+                CB_ENSURE(false, "Unsupported output columnType for Quantized pool");
         }
 
         *outStream << token;
     }
 
-    void TQuantizedPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* /*outStream*/, ui64 /*docId*/, ui32 /*columnId*/) {
+    void TQuantizedPoolColumnsPrinter::OutputFeatureColumnByIndex(
+        IOutputStream* /*outStream*/,
+        ui64 /*docId*/,
+        ui32 /*columnId*/) {
         CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    void TQuantizedPoolColumnsPrinter::OutputAuxiliaryColumn(
+        IOutputStream* /*outStream*/,
+        ui64 /*docId*/,
+        ui32 /*auxiliaryColumnId*/,
+        const TString& /*columnName*/) {
+        CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    bool TQuantizedPoolColumnsPrinter::ValidAuxiliaryColumn(const TString& /*columnName*/) {
+        CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    ui32 TQuantizedPoolColumnsPrinter::GetAuxiliaryColumnId(const TString& /*columnName*/) {
+        CB_ENSURE_INTERNAL(false, "Unreachable");
+        return 0;
     }
 
     std::type_index TQuantizedPoolColumnsPrinter::GetOutputFeatureType(ui32 /*featureId*/) {
@@ -204,6 +250,7 @@ namespace NCB {
 
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
 
-    TPoolColumnsPrinterLoaderFactory::TRegistrator<TQuantizedPoolColumnsPrinter> QuantizedPoolColumnsPrinter("quantized");
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TQuantizedPoolColumnsPrinter> QuantizedPoolColumnsPrinter(
+        "quantized");
 
 } // namespace NCB

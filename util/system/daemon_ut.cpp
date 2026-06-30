@@ -91,4 +91,4 @@ Y_UNIT_TEST_SUITE(TDaemonTest) {
         delete[] pages;
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(TDaemonTest)

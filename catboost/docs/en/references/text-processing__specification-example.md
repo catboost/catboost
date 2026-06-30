@@ -22,7 +22,7 @@
             "feature_calcers" : ["BoW"],
             "tokenizers_names" : ["Space"]
         }],
-        
+
         "1" : [{
             "tokenizers_names" : ["Space"],
             "dictionaries_names" : ["BiGram", "Word"],
@@ -42,6 +42,6 @@ In this example:
 - Two feature calcers are specified for the second text feature:
     - {{ dictionary__feature-calcers__BoW }}, which uses the <q>BiGram</q> and <q>Word</q> dictionaries.
     - {{ dictionary__feature-calcers__NaiveBayes }}, which uses the <q>Word</q> dictionary.
-    
+
 - A single feature calcer is specified for all other text features: {{ dictionary__feature-calcers__BoW }}, which uses the <q>Word</q> dictionary.
 

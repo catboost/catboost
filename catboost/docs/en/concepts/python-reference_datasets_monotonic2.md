@@ -8,19 +8,19 @@ This dataset can be used for regression.
 The contents of columns depends on the name or on the pattern of the name of the corresponding column:
 
 - `Target`(the first column) — Target values.
-    
+
 - `MonotonicNeg*` — Monotonic negative numerical features.
-    
+
     If values of such features decrease, then the prediction value must not decrease. Thus, if there are two objects $x_{1}$ and $x_{2}$ with all features being equal except for a monotonic negative feature $MNeg$, such that $x_{1}[MNeg] > x_{2}[MNeg]$, then the following inequality must be met for predictions:
-    
+
     $f(x_{1}) \leq f(x_{2})$
-    
+
 - `MonotonicPos*` — Monotonic positive numerical features.
-    
+
     If values of such features decrease, then the prediction value must not increase. Thus, if there are two objects $x_{1}$ and $x_{2}$ with all features being equal except for a monotonic positive feature $MPos$, such that $x_{1}[MPos] > x_{2}[MPos]$, then the following inequality must be met for predictions:
-    
+
     $f(x_{1}) \geq f(x_{2})$
-    
+
 
 ## {{ dl--invoke-format }} {#method-call}
 

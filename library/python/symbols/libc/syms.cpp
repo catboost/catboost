@@ -138,6 +138,8 @@ SYM(inotify_init)
 SYM(inotify_add_watch)
 SYM(inotify_rm_watch)
 SYM(mlockall)
+SYM(malloc)
+SYM(free)
 #endif
 
 #if defined(_darwin_)

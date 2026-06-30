@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import json
+import io
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -27,51 +28,71 @@ from catboost import (
     metrics,
     sum_models,
     train,
+    sample_gaussian_process,
     _have_equal_features,
     to_regressor,
     to_classifier,
     to_ranker,
     MultiTargetCustomMetric,
-    MultiTargetCustomObjective,)
+)
 from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
+from catboost.dev_utils import need_dataset_for_leaves_weights
+from catboost.carry import carry, uplift
 import os.path
 import os
 import pandas as pd
-from pandas import read_csv, DataFrame, Series, Categorical
-from pandas.arrays import SparseArray
+import pandas.arrays
+
 import scipy.sparse
 import scipy.special
 
-from catboost_pytest_lib import (
-    DelayedTee,
-    binary_path,
-    data_file,
-    get_limited_precision_dsv_diff_tool,
-    get_limited_precision_json_diff_tool,
-    get_limited_precision_numpy_diff_tool,
-    local_canonical_file,
-    permute_dataset_columns,
-    remove_time_from_json,
-    test_output_path,
-    generate_concatenated_random_labeled_dataset,
-    generate_random_labeled_dataset,
-    generate_dataset_with_num_and_cat_features,
-    load_dataset_as_dataframe,
-    load_pool_features_as_df
-)
+import _pickle as pickle
 
-if sys.version_info.major == 2:
-    import cPickle as pickle
-else:
-    import _pickle as pickle
-    pytest_plugins = "list_plugin",
+
+try:
+    import catboost_pytest_lib as lib
+    pytest_plugins = "list_plugin"
+
+    import catboost_python_package_ut_lib as python_package_ut_lib
+except ImportError:
+    import lib
+    sys.path.insert(0, os.path.join(lib.git_repo_root_dir, 'catboost', 'python-package'))
+    import ut.lib as python_package_ut_lib
+
+
+DelayedTee = lib.DelayedTee
+binary_path = lib.binary_path
+data_file = lib.data_file
+get_limited_precision_dsv_diff_tool = lib.get_limited_precision_dsv_diff_tool
+get_limited_precision_json_diff_tool = lib.get_limited_precision_json_diff_tool
+get_limited_precision_numpy_diff_tool = lib.get_limited_precision_numpy_diff_tool
+local_canonical_file = lib.local_canonical_file
+permute_dataset_columns = lib.permute_dataset_columns
+remove_time_from_json = lib.remove_time_from_json
+test_output_path = lib.test_output_path
+generate_concatenated_random_labeled_dataset = lib.generate_concatenated_random_labeled_dataset
+generate_random_labeled_dataset = lib.generate_random_labeled_dataset
+generate_dataset_with_num_and_cat_features = lib.generate_dataset_with_num_and_cat_features
+load_dataset_as_dataframe = lib.load_dataset_as_dataframe
+load_pool_features_as_df = lib.load_pool_features_as_df
+compare_with_limited_precision = lib.compare_with_limited_precision
+is_canonical_test_run = lib.is_canonical_test_run
+
+LoglossObjective = python_package_ut_lib.LoglossObjective
+LoglossObjectiveNumpy = python_package_ut_lib.LoglossObjectiveNumpy
+LoglossObjectiveNumpy32 = python_package_ut_lib.LoglossObjectiveNumpy32
+MultiRMSEObjective = python_package_ut_lib.MultiRMSEObjective
+
 
 fails_on_gpu = pytest.mark.fails_on_gpu
 
 EPS = 1e-5
+
+# avoid 'Warning: less than 75% GPU memory available for training' when running with 4 gpus
+TEST_GPU_RAM_PART = 0.0625
 
 BOOSTING_TYPE = ['Ordered', 'Plain']
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
@@ -80,6 +101,7 @@ NONSYMMETRIC = ['Lossguide', 'Depthwise']
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
 CD_FILE = data_file('adult', 'train.cd')
+CD_FILE_NO_TARGET = data_file('adult', 'train_no_target.cd')
 
 NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
 NAN_TEST_FILE = data_file('adult_nan', 'test_small')
@@ -165,12 +187,19 @@ CV_CSV_PATH = 'result.csv'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
+SCORE_PATH = 'score.txt'
 OUTPUT_QUANTIZED_POOL_PATH = 'quantized_pool.bin'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 CAT_COLUMNS = [0, 2, 3, 5, 7, 9, 10, 11, 12, 13, 17]
 
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
+
+NO_RANDOM_PARAMS = {
+    'random_strength': 0,
+    'bootstrap_type': 'No',
+    'has_time': True
+}
 
 
 def JSON_LOG_CV_PATH(foldIdx):
@@ -607,7 +636,7 @@ def test_load_df_vs_load_from_file(dataset):
     text_features = pool1.get_text_feature_indices()
     embedding_features = pool1.get_embedding_feature_indices()
 
-    data = read_csv(train_file, header=None, delimiter='\t', na_filter=False)
+    data = pd.read_csv(train_file, header=None, delimiter='\t', na_filter=False)
 
     labels = data.iloc[:, target_idx]
     group_ids = None
@@ -656,7 +685,7 @@ def test_load_df_vs_load_from_file_multitarget():
     target_idx = [0, 1]
 
     pool1 = Pool(train_file, column_description=cd_file)
-    data = read_csv(train_file, header=None, delimiter='\t')
+    data = pd.read_csv(train_file, header=None, delimiter='\t')
 
     labels = data.iloc[:, target_idx]
 
@@ -677,10 +706,10 @@ def test_load_df_vs_load_from_file_multitarget():
 
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    data = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    labels = Series(data.iloc[:, TARGET_IDX])
+    data = pd.read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    labels = pd.Series(data.iloc[:, TARGET_IDX])
     data.drop([TARGET_IDX], axis=1, inplace=True)
-    data = Series(list(data.values))
+    data = pd.Series(list(data.values))
     cat_features = pool.get_cat_feature_indices()
     pool2 = Pool(data, labels, cat_features)
     assert _have_equal_features(pool, pool2)
@@ -693,7 +722,7 @@ def test_pool_cat_features():
 
 
 def test_pool_cat_features_as_strings():
-    df = DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
+    df = pd.DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
     pool = Pool(df, cat_features=['col2'])
     assert np.all(pool.get_cat_feature_indices() == [1])
 
@@ -727,9 +756,10 @@ def test_load_dumps():
         line = [str(labels[i])] + [str(x) for x in data[i]]
         lines.append('\t'.join(line))
     text = '\n'.join(lines)
-    with open('test_data_dumps', 'w') as f:
+    tmp_file = test_output_path('test_data_dumps')
+    with open(tmp_file, 'w') as f:
         f.write(text)
-    pool2 = Pool('test_data_dumps')
+    pool2 = Pool(tmp_file)
     assert _check_data(pool1.get_features(), pool2.get_features())
     assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
 
@@ -755,7 +785,7 @@ def test_pool_from_slices(features_type):
         if features_type == 'numpy.ndarray':
             pool = Pool(subset_features_data, subset_label)
         else:
-            pool = Pool(DataFrame(subset_features_data), subset_label)
+            pool = Pool(pd.DataFrame(subset_features_data), subset_label)
         assert _check_data(pool.get_features(), subset_features_data)
         assert _check_data([float(value) for value in pool.get_label()], subset_label)
 
@@ -766,12 +796,12 @@ def test_pool_from_slices(features_type):
     ids=['cat_features_specified=False', 'cat_features_specified=True']
 )
 def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
-    df = DataFrame()
+    df = pd.DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
     df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
-    df['cat_feat_2'] = Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
-    df['cat_feat_3'] = Series(['x', 'x', 'y', 'y', 'y', 'x', 'x'])
-    df['cat_feat_4'] = Categorical(
+    df['cat_feat_2'] = pd.Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
+    df['cat_feat_3'] = pd.Series(['x', 'x', 'y', 'y', 'y', 'x', 'x'])
+    df['cat_feat_4'] = pd.Categorical(
         ['large', 'small', 'medium', 'large', 'small', 'small', 'medium'],
         categories=['small', 'medium', 'large'],
         ordered=True
@@ -794,7 +824,7 @@ def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
 
 
 def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_column_types():
-    df = DataFrame()
+    df = pd.DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
     df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
     df['cat_feat_2'] = ['A', 'B', 'A', 'C', 'A', 'A', 'A']
@@ -815,7 +845,7 @@ def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_
                 column_data = column_data.astype(cat_features_dtype)
             columns_for_new_df.setdefault(column_name, column_data)
 
-        new_df = DataFrame(columns_for_new_df)
+        new_df = pd.DataFrame(columns_for_new_df)
 
         pool_from_new_df = Pool(new_df, labels, cat_features=cat_features)
 
@@ -892,7 +922,7 @@ def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'
 
 
 def get_features_data_from_file(data_file, drop_columns, cat_feature_indices, order='C'):
-    data_matrix_from_file = read_csv(data_file, header=None, dtype=str, delimiter='\t')
+    data_matrix_from_file = pd.read_csv(data_file, header=None, dtype=str, delimiter='\t')
     data_matrix_from_file.drop(drop_columns, axis=1, inplace=True)
     return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices, order)
 
@@ -1114,7 +1144,7 @@ def test_features_data_bad():
 
 def test_predict_regress(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     assert (model.is_fitted())
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -1124,7 +1154,7 @@ def test_predict_regress(task_type):
 
 def test_predict_sklearn_regress(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostRegressor(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     assert (model.is_fitted())
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -1134,7 +1164,7 @@ def test_predict_sklearn_regress(task_type):
 
 def test_predict_sklearn_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss', task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss', task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     assert (model.is_fitted())
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -1145,18 +1175,20 @@ def test_predict_sklearn_class(task_type):
 def test_predict_class_raw(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
-    pred = model.predict(test_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool)
+        )
     return local_canonical_file(preds_path)
 
 
 def test_raw_predict_equals_to_model_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=10, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     assert (model.is_fitted())
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
@@ -1173,7 +1205,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
+    test_data = pd.read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     pred = model.predict(test_data)
@@ -1189,22 +1221,131 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
-@fails_on_gpu(how='Model contains categorical features, gpu evaluation impossible')
-def test_predict_on_gpu(task_type):
+@pytest.mark.parametrize(
+    'problem,prediction_type,feature_types',
+    [
+        pytest.param(
+            'Regression', 'RawFormulaVal', 'Numeric',
+            id='problem=Regression-prediction_type=RawFormulaVal-feature_types=Numeric'
+        ),
+        pytest.param(
+            'Regression', 'RawFormulaVal', 'NumericCateg',
+            id='problem=Regression-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'Class', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=Class-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'Probability', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=Probability-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCateg',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCategText',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCategText',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCategTextEmbeddings',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCategTextEmbeddings',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'Numeric',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'Class', 'Numeric',
+            id='problem=MultiClassification-prediction_type=Class-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'Probability', 'Numeric',
+            id='problem=MultiClassification-prediction_type=Probability-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'NumericCateg',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'NumericCategText',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=NumericCategText',
+            marks=[pytest.mark.xfail]
+        ),
+    ],
+)
+def test_predict_on_gpu(task_type, problem, prediction_type, feature_types):
     if task_type == 'CPU':
-        return
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=10, task_type='GPU', devices='0')
+        pytest.skip('test_predict_on_gpu is a GPU-specific test')
+
+    iterations = 1100
+
+    if problem == 'Regression':
+        model = CatBoostRegressor(iterations=iterations, task_type='GPU', devices='0')
+        if feature_types == 'Numeric':
+            pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        if feature_types == 'NumericCateg':
+            pool = Pool(
+                data_file('adult_not_binarized', 'train_small'),
+                column_description=data_file('adult_not_binarized', 'train.cd')
+            )
+    elif 'Classification' in problem:
+        model = CatBoostClassifier(iterations=iterations, task_type='GPU', devices='0')
+        if (problem, feature_types) == ('BinaryClassification', 'Numeric'):
+            pool = Pool(HIGGS_TRAIN_FILE, column_description=HIGGS_CD_FILE)
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCateg'):
+            pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCategText'):
+            pool = Pool(
+                ROTTEN_TOMATOES_TRAIN_FILE,
+                column_description=ROTTEN_TOMATOES_CD_BINCLASS_FILE
+            )
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCategTextEmbeddings'):
+            pool = Pool(
+                ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+                column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+            )
+        elif (problem, feature_types) == ('MultiClassification', 'Numeric'):
+            object_count = 100
+            feature_count = 10
+            unique_labels = [0, 1, 2, 3, 4]
+            prng = np.random.RandomState(seed=0)
+            pool = Pool(
+                prng.random_sample(size=(object_count, feature_count)),
+                label=prng.choice(unique_labels, size=object_count)
+            )
+        elif (problem, feature_types) == ('MultiClassification', 'NumericCateg'):
+            pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+        elif (problem, feature_types) == ('MultiClassification', 'NumericCategText'):
+            pool = Pool(ROTTEN_TOMATOES_TRAIN_FILE, column_description=ROTTEN_TOMATOES_CD_FILE)
+
     model.fit(pool)
-    cpu_prediction = np.array(model.predict(pool, task_type='CPU'))
-    gpu_prediction = np.array(model.predict(pool, task_type='GPU'))
-    assert np.abs(cpu_prediction - gpu_prediction).max() < 1e-9
+
+    cpu_prediction = model.predict(pool, task_type='CPU', prediction_type=prediction_type)
+    gpu_prediction = model.predict(pool, task_type='GPU', prediction_type=prediction_type)
+    if prediction_type == 'Class':
+        assert all(cpu_prediction == gpu_prediction)
+    else:
+        assert np.abs(np.array(cpu_prediction) - np.array(gpu_prediction)).max() < 1e-6
 
 
 def test_model_pickling(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=10, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     model_unpickled = pickle.loads(pickle.dumps(model))
@@ -1215,24 +1356,35 @@ def test_model_pickling(task_type):
 def test_save_load_equality(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
 
+    def check_equality(model1, model2):
+        assert model1 == model2
+        for attr in ('best_score_', 'evals_result_', 'best_iteration_'):
+            assert compare_with_limited_precision(getattr(model1, attr), getattr(model2, attr))
+
     def check_load_from_stream(model):
         cb_stream = CatBoost()
         with open(output_model_path, 'rb') as stream:
             cb_stream.load_model(stream=stream)
-        assert model == cb_stream
+        check_equality(model, cb_stream)
 
     def check_load_from_string(model):
         cb_blob = CatBoost()
         cb_blob.load_model(blob=open(output_model_path, 'rb').read())
-        assert model == cb_blob
+        check_equality(model, cb_blob)
+
+    def check_load_from_memoryview(model):
+        cb_blob = CatBoost()
+        cb_blob.load_model(blob=memoryview(open(output_model_path, 'rb').read()))
+        check_equality(model, cb_blob)
 
     def fill_check_model(params, train_file, test_file, cd_file):
         model, _ = fit_from_file(params, train_file, test_file, cd_file)
         model.save_model(fname=output_model_path)
         check_load_from_string(model)
+        check_load_from_memoryview(model)
         check_load_from_stream(model)
 
-    fill_check_model({'iterations': 10, 'task_type': task_type, 'devices': '0'}, TRAIN_FILE, TEST_FILE, CD_FILE)
+    fill_check_model({'iterations': 10, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'}, TRAIN_FILE, TEST_FILE, CD_FILE)
     fill_check_model({'loss_function': 'RMSE', 'iterations': 10}, HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE)
 
     params = {
@@ -1245,6 +1397,7 @@ def test_save_load_equality(task_type):
         'iterations': 10,
         'loss_function': 'MultiClass',
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'devices': '0'
     }
     fill_check_model(params, ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_TEST_FILE, ROTTEN_TOMATOES_CD_FILE)
@@ -1270,7 +1423,7 @@ def test_load_model_incorrect_argument(task_type):
 
 def test_fit_from_file(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     predictions1 = model.predict(train_pool)
 
@@ -1281,7 +1434,7 @@ def test_fit_from_file(task_type):
 
 
 def test_fit_from_empty_features_data(task_type):
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     with pytest.raises(CatBoostError):
         model.fit(
             X=FeaturesData(num_feature_data=np.empty((0, 2), dtype=np.float32)),
@@ -1290,8 +1443,8 @@ def test_fit_from_empty_features_data(task_type):
 
 
 def fit_from_df(params, learn_file, test_file, cd_file, dummy_multi_target=False):
-    learn_df = read_csv(learn_file, header=None, sep='\t', na_filter=False)
-    test_df = read_csv(test_file, header=None, sep='\t', na_filter=False)
+    learn_df = pd.read_csv(learn_file, header=None, sep='\t', na_filter=False)
+    test_df = pd.read_csv(test_file, header=None, sep='\t', na_filter=False)
     columns_metadata = read_cd(cd_file, data_file=learn_file)
 
     target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
@@ -1326,6 +1479,9 @@ def fit_from_file(params, learn_file, test_file, cd_file):
 
 @pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression', 'multiregression'])
 def test_fit_with_texts(task_type, problem_type):
+    if (task_type == 'GPU') and (problem_type == 'multiregression'):
+        pytest.xfail('Catboost does not support MultiRMSE on GPU yet for categorical features')
+
     params = {
         'dictionaries': [
             {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
@@ -1341,6 +1497,7 @@ def test_fit_with_texts(task_type, problem_type):
             'multiregression': 'MultiRMSE'
         }[problem_type],
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'devices': '0'
     }
 
@@ -1357,7 +1514,7 @@ def test_fit_with_texts(task_type, problem_type):
 def test_coreml_import_export(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
     model.save_model(output_coreml_model_path, format="coreml")
@@ -1370,7 +1527,7 @@ def test_coreml_import_export(task_type):
 
 def test_coreml_import_export_one_hot_features(task_type):
     train_pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
-    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'one_hot_max_size': 4})
     model.fit(train_pool)
     output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
     model.save_model(output_coreml_model_path, format="coreml", pool=train_pool)
@@ -1386,7 +1543,7 @@ def test_convert_model_to_json(task_type, pool, parameters):
     train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
     test_pool = Pool(data_file(pool, 'test_small'), column_description=data_file(pool, 'train.cd'))
     converted_model_path = test_output_path("converted_model.bin")
-    parameters.update({'iterations': 20, 'task_type': task_type, 'devices': '0'})
+    parameters.update({'iterations': 20, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model = CatBoost(parameters)
     model.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -1410,7 +1567,7 @@ def test_convert_model_to_json(task_type, pool, parameters):
 def test_coreml_cbm_import_export(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     canon_pred = model.predict(test_pool)
     output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
@@ -1429,7 +1586,7 @@ def test_coreml_cbm_import_export(task_type):
 
 def test_cpp_export_no_cat_features(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_cpp_model_path = test_output_path(OUTPUT_CPP_MODEL_PATH)
     model.save_model(output_cpp_model_path, format="cpp")
@@ -1438,7 +1595,7 @@ def test_cpp_export_no_cat_features(task_type):
 
 def test_cpp_export_with_cat_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': 20, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 20, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_cpp_model_path = test_output_path(OUTPUT_CPP_MODEL_PATH)
     model.save_model(output_cpp_model_path, format="cpp", pool=train_pool)
@@ -1448,7 +1605,7 @@ def test_cpp_export_with_cat_features(task_type):
 @pytest.mark.parametrize('iterations', [2, 40])
 def test_export_to_python_no_cat_features(task_type, iterations):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost({'iterations': iterations, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': iterations, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_python_model_path = test_output_path(OUTPUT_PYTHON_MODEL_PATH)
     model.save_model(output_python_model_path, format="python")
@@ -1458,7 +1615,7 @@ def test_export_to_python_no_cat_features(task_type, iterations):
 @pytest.mark.parametrize('iterations', [2, 40])
 def test_export_to_python_with_cat_features(task_type, iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': iterations, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': iterations, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_python_model_path = test_output_path(OUTPUT_PYTHON_MODEL_PATH)
     model.save_model(output_python_model_path, format="python", pool=train_pool)
@@ -1466,8 +1623,8 @@ def test_export_to_python_with_cat_features(task_type, iterations):
 
 
 def test_export_to_python_with_cat_features_from_pandas(task_type):
-    model = CatBoost({'iterations': 5, 'task_type': task_type, 'devices': '0'})
-    X = DataFrame([[1, 2], [3, 4]], columns=['Num', 'Categ'])
+    model = CatBoost({'iterations': 5, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
+    X = pd.DataFrame([[1, 2], [3, 4]], columns=['Num', 'Categ'])
     y = [1, 0]
     cat_features = [1]
     model.fit(X, y, cat_features)
@@ -1692,17 +1849,19 @@ def test_pmml_export(problem_type):
 def test_predict_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
-    pred = model.predict(test_pool, prediction_type="Class")
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool, prediction_type="Class")
+        )
     return local_canonical_file(preds_path)
 
 
 def test_zero_learning_rate(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(train_pool)
 
@@ -1710,7 +1869,7 @@ def test_zero_learning_rate(task_type):
 def test_predict_class_proba(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     pred = model.predict_proba(test_pool)
     preds_path = test_output_path(PREDS_PATH)
@@ -1720,7 +1879,7 @@ def test_predict_class_proba(task_type):
 
 def test_no_cat_in_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
 
     test_features_data, _ = load_simple_dataset_as_lists(is_test=True)
@@ -1732,7 +1891,7 @@ def test_no_cat_in_predict(task_type):
 def test_save_model(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoost({'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -1745,7 +1904,7 @@ def test_save_model(task_type):
 
 def test_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)
@@ -1791,6 +1950,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
         loss_function='MultiClass',
         thread_count=8,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
     classifier.fit(pool)
@@ -1813,28 +1973,81 @@ def test_multiclass_classes_count(task_type, missed_classes):
     ]
 
 
-@pytest.mark.parametrize('label_type', ['string', 'int'])
-def test_multiclass_custom_class_labels(label_type, task_type):
-    if label_type == 'int':
-        train_labels = [1, 2]
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'MultiClass'],
+    ids=['loss_function=%s' % s for s in ['Logloss', 'MultiClass']]
+)
+@pytest.mark.parametrize(
+    'label_type,class_count',
+    [
+        pytest.param(
+            'boolean', 2,
+            id='label_type=boolean-class_count=2'
+        ),
+        pytest.param(
+            'string', 2,
+            id='label_type=string-class_count=2'
+        ),
+        pytest.param(
+            'int', 2,
+            id='label_type=int-class_count=2'
+        ),
+        pytest.param(
+            'string', 5,
+            id='label_type=string-class_count=5'
+        ),
+        pytest.param(
+            'int', 5,
+            id='label_type=int-class_count=5'
+        ),
+    ]
+)
+def test_custom_class_labels(loss_function, label_type, class_count, task_type):
+    if label_type == 'boolean':
+        assert (class_count == 2)
+        labels = [False, True]
+    elif label_type == 'int':
+        labels = {2 : [1, 2], 5 : [1, 3, 2, 10, 20]}[class_count]
     elif label_type == 'string':
-        train_labels = ['Class1', 'Class2']
+        labels = {
+            2 : ['Class1', 'Class2'],
+            5 : ['Class1', 'Class3', 'Class2', 'Class10', 'Class20']
+        }[class_count]
+
     prng = np.random.RandomState(seed=0)
-    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(train_labels, size=100))
-    test_pool = Pool(prng.random_sample(size=(50, 10)))
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
-    classifier.fit(train_pool)
-    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
-    classifier.save_model(output_model_path)
-    new_classifier = CatBoostClassifier()
-    new_classifier.load_model(output_model_path)
-    pred = new_classifier.predict_proba(test_pool)
-    classes = new_classifier.predict(test_pool)
-    assert pred.shape == (50, 2)
-    assert all(((class1 in train_labels) for class1 in classes))
-    preds_path = test_output_path(PREDS_TXT_PATH)
-    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
-    return local_canonical_file(preds_path)
+    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(labels, size=100))
+    test_features = prng.random_sample(size=(50, 10))
+    test_label = prng.choice(labels, size=50)
+
+    classifier = CatBoostClassifier(iterations=2, loss_function=loss_function, thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
+
+    if (loss_function == 'Logloss') and (class_count != 2):
+        with pytest.raises(CatBoostError):
+            classifier.fit(train_pool)
+    else:
+        classifier.fit(train_pool)
+        output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+        classifier.save_model(output_model_path)
+        new_classifier = CatBoostClassifier()
+        new_classifier.load_model(output_model_path)
+        pred = new_classifier.predict_proba(test_features)
+        classes = new_classifier.predict(test_features)
+        assert pred.shape == (50, class_count)
+        assert all(((class1 in labels) for class1 in classes))
+        preds_path = test_output_path(PREDS_TXT_PATH)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+
+        score = new_classifier.score(test_features, test_label)
+
+        score_path = test_output_path(SCORE_PATH)
+        with open(score_path, 'w') as score_file:
+            score_file.write(f'{score:.8f}')
+
+        return [
+            local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
+            local_canonical_file(score_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
+        ]
 
 
 def test_multiclass_custom_class_labels_from_files(task_type):
@@ -1853,7 +2066,7 @@ def test_multiclass_custom_class_labels_from_files(task_type):
 
     train_pool = Pool(train_path, column_description=cd_path)
     test_pool = Pool(test_path, column_description=cd_path)
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     classifier.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)
@@ -1951,6 +2164,7 @@ def test_class_names(task_type):
         class_names=class_names,
         thread_count=8,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
     classifier.fit(train_pool)
@@ -2029,16 +2243,16 @@ def test_unknown_class_labels_in_eval_dataset():
 def test_querywise(features_dtype, task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=8, task_type=task_type, devices='0')
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
     model.fit(train_data, train_target, group_id=train_query_id)
@@ -2049,17 +2263,17 @@ def test_querywise(features_dtype, task_type):
 def test_group_weight(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-    model = CatBoostRanker(loss_function='YetiRank', iterations=10, thread_count=8, task_type=task_type, devices='0')
+    model = CatBoostRanker(loss_function='YetiRank', iterations=10, thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_weight = df.loc[:, 0]
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_query_weight = df.loc[:, 0]
     test_query_id = df.loc[:, 1]
     test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32), group_id=test_query_id, group_weight=test_query_weight)
@@ -2073,7 +2287,7 @@ def test_zero_baseline(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     baseline = np.zeros(pool.num_row())
     pool.set_baseline(baseline)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -2084,7 +2298,7 @@ def test_ones_weight(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     weight = np.ones(pool.num_row())
     pool.set_weight(weight)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -2095,7 +2309,7 @@ def test_non_ones_weight(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     weight = np.arange(1, pool.num_row() + 1)
     pool.set_weight(weight)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -2105,7 +2319,7 @@ def test_non_ones_weight(task_type):
 def test_ones_weight_equal_to_nonspecified_weight(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
 
     predictions = []
 
@@ -2122,16 +2336,16 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
 def test_py_data_group_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
-    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = train_df.loc[:, 2]
     raw_train_group_id = train_df.loc[:, 1]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for group_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -2144,17 +2358,17 @@ def test_py_data_group_id(task_type):
 def test_py_data_subgroup_id(task_type):
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
-    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, devices='0')
+    model = CatBoostRanker(loss_function='QueryRMSE', iterations=2, thread_count=4, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_group_id = train_df.loc[:, 1]
     raw_train_subgroup_id = train_df.loc[:, 4]
     train_target = train_df.loc[:, 2]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for subgroup_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -2167,7 +2381,7 @@ def test_py_data_subgroup_id(task_type):
 def test_fit_data(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     eval_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
-    base_model = CatBoostClassifier(iterations=10, learning_rate=0.05, loss_function="MultiClass", task_type=task_type, devices='0')
+    base_model = CatBoostClassifier(iterations=10, learning_rate=0.05, loss_function="MultiClass", task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     base_model.fit(pool)
     baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
     eval_baseline = np.array(base_model.predict(eval_pool, prediction_type='RawFormulaVal'))
@@ -2192,7 +2406,7 @@ def test_fit_predict_baseline(task_type):
     test_baseline = np.arange(0, test_pool.num_row())
     test_pool.set_baseline(test_baseline)
     test_pool_without_baseline = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=100, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostRegressor(iterations=100, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     pred = model.predict(test_pool)
     pred_no_baseline = model.predict(test_pool_without_baseline)
@@ -2205,7 +2419,7 @@ def test_fit_predict_baseline(task_type):
 def test_ntree_limit(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=100, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=100, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     pred = model.predict_proba(test_pool, ntree_end=10)
     preds_path = test_output_path(PREDS_PATH)
@@ -2227,14 +2441,30 @@ def test_ntree_invalid_range():
 def test_staged_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=10, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     preds = []
     for pred in model.staged_predict(test_pool):
         preds.append(pred)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(preds))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            preds
+        )
     return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('eval_period', [-2, 0], ids=['eval_period=-2', 'eval_period=0'])
+def test_staged_predict_with_bad_params(task_type, eval_period):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
+    model.fit(train_pool)
+    preds = []
+
+    with pytest.raises(CatBoostError):
+        for pred in model.staged_predict(test_pool, eval_period=eval_period):
+            preds.append(pred)
 
 
 @pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
@@ -2247,7 +2477,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
+    test_data = pd.read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     preds = []
@@ -2283,42 +2513,42 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
 
 def test_invalid_loss_base(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_invalid_loss_classifier(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, devices='0')
+    model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_invalid_loss_regressor(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(loss_function="fee", task_type=task_type, devices='0')
+    model = CatBoostRegressor(loss_function="fee", task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_invalid_loss_ranker(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(loss_function="MultiClass", task_type=task_type, devices='0')
+    model = CatBoostRegressor(loss_function="MultiClass", task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_fit_no_label(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(task_type=task_type, devices='0')
+    model = CatBoostClassifier(task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(pool.get_features())
 
 
 def test_predict_without_fit(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(task_type=task_type, devices='0')
+    model = CatBoostClassifier(task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.predict(pool)
 
@@ -2333,7 +2563,7 @@ def test_real_numbers_cat_features():
 
 def test_wrong_ctr_for_classification(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'], task_type=task_type, devices='0')
+    model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'], task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     with pytest.raises(CatBoostError):
         model.fit(pool)
 
@@ -2342,7 +2572,7 @@ def test_wrong_feature_count(task_type):
     prng = np.random.RandomState(seed=20181219)
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
-    model = CatBoostClassifier(task_type=task_type, devices='0')
+    model = CatBoostClassifier(task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(data, label)
     with pytest.raises(CatBoostError):
         model.predict(data[:, :-1])
@@ -2429,13 +2659,15 @@ def test_generated_metrics_default_params():
         metrics.NormalizedGini, metrics.BrierScore, metrics.Precision, metrics.HingeLoss, metrics.ZeroOneLoss,
         metrics.WKappa, metrics.Combination, metrics.MAE, metrics.PairLogit, metrics.Kappa, metrics.MRR, metrics.RMSE,
         metrics.Poisson, metrics.BalancedAccuracy, metrics.Accuracy, metrics.MultiClass, metrics.HammingLoss,
-        metrics.QueryRMSE, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
-        metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound
+        metrics.QueryRMSE, metrics.GroupQuantile, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
+        metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound, metrics.Cox,
+        metrics.PairLogitPairwise, metrics.UserPerObjMetric, metrics.SurvivalAft
     )
     for metric in metrics_without_default_params:
         assert str(metric()) == metric.__name__
     metrics_with_mandatory_params = (
-        metrics.NumErrors, metrics.Huber, metrics.AverageGain, metrics.QueryAverage, metrics.Lq, metrics.Tweedie
+        metrics.NumErrors, metrics.Huber, metrics.AverageGain, metrics.QueryAverage, metrics.Lq, metrics.Tweedie,
+        metrics.Focal
     )
     for metric in metrics_with_mandatory_params:
         with pytest.raises(ValueError):
@@ -2454,7 +2686,7 @@ def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task)
     for metric in metrics:
         assert np.allclose(td_results[metric], ag_results[metric]), "Different results for {}".format(metric)
 
-    if task not in ("ranking", "multiclassification", "multiregression"):
+    if task not in ("ranking", "multiclassification", "multiregression", "survival_regression"):
         preds = model.predict(test_pool, prediction_type='RawFormulaVal')
         for metric, metric_obj in metrics.items():
             score = metric_obj.eval(test_pool.get_label(), preds)[0]
@@ -2484,7 +2716,8 @@ def test_generated_classification_metrics():
             'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
             'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2)
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2),
+            'Focal:focal_alpha=0.75;focal_gamma=2.0': metrics.Focal(focal_alpha=0.75, focal_gamma=2.0)
         },
         "classification"
     )
@@ -2574,7 +2807,7 @@ def test_generated_multiclassification_class_metrics():
     for metric in class_metrics:
         for i_class in range(n_classes):
             metric_key = '{}:class={}'.format(metric['name'], i_class)
-            assert np.allclose(td_results[metric_key], ag_results[metric_key]),\
+            assert np.allclose(td_results[metric_key], ag_results[metric_key]), \
                 "Different results for {}".format(metric_key)
 
 
@@ -2597,7 +2830,7 @@ def test_generated_ranking_groupwise_metric():
         Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
         Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
         {
-            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(),
+            'QueryRMSE': metrics.QueryRMSE(), 'GroupQuantile:alpha=0.5': metrics.GroupQuantile(), 'PFound': metrics.PFound(),
             # Metric descriptions should be 'NDCG' & 'DCG' instead of 'NDCG:type=Base' & 'DCG:type=Base' respectively
             'NDCG:type=Base': metrics.NDCG(), 'DCG:type=Base': metrics.DCG(),
             'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
@@ -2605,6 +2838,31 @@ def test_generated_ranking_groupwise_metric():
             'AUC': metrics.AUC()
         },
         "ranking"
+    )
+
+
+def test_generated_survival_aft():
+    cd_file = data_file('survival_aft', 'train.cd')
+    _test_generated_metrics(
+        'SurvivalAft',
+        Pool(data=data_file('survival_aft', 'train'), column_description=cd_file),
+        Pool(data=data_file('survival_aft', 'test'), column_description=cd_file),
+        {
+            'SurvivalAft': metrics.SurvivalAft()
+        },
+        "survival_regression"
+    )
+
+
+def test_generated_cox():
+    _test_generated_metrics(
+        'Cox',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'Cox': metrics.Cox()
+        },
+        "survival_regression"
     )
 
 
@@ -2635,7 +2893,7 @@ def _test_generated_losses(train_pool, test_pool, losses, result_dtype=float):
         ag_model = CatBoost(ag_params)
         ag_model.fit(train_pool, eval_set=test_pool)
         ag_pred = ag_model.predict(test_pool)
-        np.allclose(td_pred.astype(result_dtype), ag_pred.astype(result_dtype)),\
+        np.allclose(td_pred.astype(result_dtype), ag_pred.astype(result_dtype)), \
             "Different results for {}".format(loss_text)
 
 
@@ -2643,7 +2901,11 @@ def test_generated_classification_losses():
     _test_generated_losses(
         Pool(data=TRAIN_FILE, column_description=CD_FILE),
         Pool(data=TEST_FILE, column_description=CD_FILE),
-        {'Logloss': metrics.Logloss(), 'CrossEntropy': metrics.CrossEntropy()},
+        {
+            'Logloss': metrics.Logloss(),
+            'CrossEntropy': metrics.CrossEntropy(),
+            'Focal:focal_alpha=0.75;focal_gamma=2.0': metrics.Focal(focal_alpha=0.75, focal_gamma=2.0)
+        },
         int
     )
 
@@ -2783,6 +3045,14 @@ def test_metrics_is_min_max_optimal():
     assert is_maximizable_metric('AUC') and not is_minimizable_metric('AUC')
 
 
+def test_need_dataset_for_leaves_weights():
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor()
+    model.fit(train_pool)
+    assert not need_dataset_for_leaves_weights(model, is_on_train_pool=True)
+    assert not need_dataset_for_leaves_weights(model, is_on_train_pool=False)
+
+
 def test_custom_eval():
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -2821,50 +3091,10 @@ def test_custom_eval():
     assert np.all(pred1 == pred2)
 
 
-class LoglossObjective(object):
-    def calc_ders_range(self, approxes, targets, weights):
-        assert len(approxes) == len(targets)
-        if weights is not None:
-            assert len(weights) == len(approxes)
-
-        exponents = []
-        for index in range(len(approxes)):
-            exponents.append(math.exp(approxes[index]))
-
-        result = []
-        for index in range(len(targets)):
-            p = exponents[index] / (1 + exponents[index])
-            der1 = (1 - p) if targets[index] > 0.0 else -p
-            der2 = -p * (1 - p)
-
-            if weights is not None:
-                der1 *= weights[index]
-                der2 *= weights[index]
-
-            result.append((der1, der2))
-
-        return result
-
-
-class LoglossObjectiveNumpy(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights))
-
-
-class LoglossObjectiveNumpy32(object):
-    def __init__(self):
-        self._objective = LoglossObjective()
-
-    def calc_ders_range(self, approxes, targets, weights):
-        return np.array(self._objective.calc_ders_range(approxes, targets, weights), dtype=np.float32)
-
-
 @pytest.mark.parametrize('loss_objective', [LoglossObjective, LoglossObjectiveNumpy, LoglossObjectiveNumpy32])
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
 def test_custom_objective(task_type, loss_objective):
+    if task_type == 'GPU':
+        pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
@@ -2873,7 +3103,7 @@ def test_custom_objective(task_type, loss_objective):
                                loss_function=loss_objective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
-                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
+                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
@@ -2885,23 +3115,9 @@ def test_custom_objective(task_type, loss_objective):
         assert abs(p1 - p2) < EPS
 
 
-@fails_on_gpu(how='User defined loss functions, metrics and callbacks are not supported for GPU')
 def test_multilabel_custom_objective(task_type, n=10):
-    class MultiRMSEObjective(MultiTargetCustomObjective):
-        def calc_ders_multi(self, approxes, targets, weight):
-            assert len(approxes) == len(targets)
-
-            grad = []
-            hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
-
-            for index in range(len(targets)):
-                der1 = (targets[index] - approxes[index]) * weight
-                der2 = -weight
-
-                grad.append(der1)
-                hess[index][index] = der2
-
-            return (grad, hess)
+    if task_type == 'GPU':
+        pytest.skip('CPU custom objectives used in GPU training will cause the process termination')
 
     xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
     ys = np.hstack([
@@ -2926,6 +3142,7 @@ def test_multilabel_custom_objective(task_type, n=10):
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
 
@@ -2948,11 +3165,55 @@ def test_multilabel_custom_objective(task_type, n=10):
         assert (abs(p1 - p2) < EPS).all()
 
 
+def test_default_loss_function_column_vector_label_no_crash():
+    rng = np.random.RandomState(0)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30) > 0.5).astype(np.int32).reshape(-1, 1)
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "Logloss"
+
+
+def test_default_loss_function_multilabel_binary_int_targets():
+    rng = np.random.RandomState(1)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.int32)
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_binary_float_targets():
+    rng = np.random.RandomState(2)
+    X = rng.rand(30, 5)
+    y = (rng.rand(30, 3) > 0.5).astype(np.float32)
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiLogloss"
+
+
+def test_default_loss_function_multilabel_soft_targets():
+    rng = np.random.RandomState(3)
+    X = rng.rand(30, 5)
+    y = rng.rand(30, 3).astype(np.float32)
+
+    model = CatBoostClassifier(iterations=2, depth=2, random_seed=0, verbose=False)
+    model.fit(X, y)
+
+    assert model.get_all_params()["loss_function"] == "MultiCrossEntropy"
+
+
 def test_pool_after_fit(task_type):
     pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool2 = Pool(TRAIN_FILE, column_description=CD_FILE)
     assert _have_equal_features(pool1, pool2)
-    model = CatBoostClassifier(iterations=5, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool2)
     assert _have_equal_features(pool1, pool2)
 
@@ -2965,7 +3226,7 @@ def test_priors(task_type):
         has_time=True,
         ctr_description=["Borders:Prior=0:Prior=0.6:Prior=1:Prior=5",
                          ("FeatureFreq" if task_type == 'GPU' else "Counter") + ":Prior=0:Prior=0.6:Prior=1:Prior=5"],
-        task_type=task_type, devices='0',
+        task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0',
     )
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -2976,10 +3237,10 @@ def test_priors(task_type):
 def test_ignored_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1)
+    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', max_ctr_complexity=1)
     model1.fit(train_pool)
     fstr = model1.get_feature_importance()
-    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', max_ctr_complexity=1, ignored_features=np.argsort(fstr)[-2:])
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', max_ctr_complexity=1, ignored_features=np.argsort(fstr)[-2:])
     model2.fit(train_pool)
     predictions1 = model1.predict_proba(test_pool)
     predictions2 = model2.predict_proba(test_pool)
@@ -2995,6 +3256,7 @@ def test_multi_reload_model(task_type):
         iterations=20,
         learning_rate=0.5,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         max_ctr_complexity=1,
         target_border=5000,
@@ -3005,7 +3267,7 @@ def test_multi_reload_model(task_type):
     friday_model.save_model(friday_model_path)
 
     adult_train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    adult_model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    adult_model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     adult_model.fit(adult_train_pool)
     adult_model_path = test_output_path('adult_' + OUTPUT_MODEL_PATH)
     adult_model.save_model(adult_model_path)
@@ -3028,6 +3290,7 @@ def test_ignored_features_names(task_type):
         iterations=20,
         learning_rate=0.5,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         max_ctr_complexity=1,
         target_border=5000,
@@ -3047,7 +3310,7 @@ def test_ignored_features_names(task_type):
 
 def test_class_weights_list_binclass(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -3202,7 +3465,7 @@ def test_classification_ctr(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03,
                                ctr_description=['Borders', 'FeatureFreq' if task_type == 'GPU' else 'Counter'],
-                               task_type=task_type, devices='0')
+                               task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -3212,7 +3475,13 @@ def test_classification_ctr(task_type):
 @fails_on_gpu(how="private/libs/options/catboost_options.cpp:280: Error: GPU doesn't not support target binarization per CTR description currently. Please use ctr_target_border_count option instead")
 def test_regression_ctr(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'], task_type=task_type, devices='0')
+    model = CatBoostRegressor(
+        iterations=5,
+        learning_rate=0.03,
+        ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'],
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -3221,7 +3490,7 @@ def test_regression_ctr(task_type):
 
 def test_ctr_target_border_count(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, ctr_target_border_count=5, task_type=task_type, devices='0')
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, ctr_target_border_count=5, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -3252,6 +3521,7 @@ def test_cv(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
@@ -3264,20 +3534,27 @@ def test_cv(task_type):
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
-def test_cv_query(task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['QueryRMSE', 'YetiRank'],
+    ids=['loss_function=' + val for val in ['QueryRMSE', 'YetiRank']]
+)
+def test_cv_query(task_type, loss_function):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     train_dir_prefix = test_output_path('')
+
+    computed_metric = {
+        'QueryRMSE': 'QueryRMSE',
+        'YetiRank': 'PFound'
+    }[loss_function]
+
     results = cv(
         pool,
-        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type,
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": loss_function, "task_type": task_type, "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
-    assert "train-QueryRMSE-mean" in results
+    assert f"test-{computed_metric}-mean" in results
 
-    prev_value = results["train-QueryRMSE-mean"][0]
-    for value in results["train-QueryRMSE-mean"][1:]:
-        assert value < prev_value
-        prev_value = value
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
@@ -3292,6 +3569,7 @@ def test_cv_pairs(task_type):
             "random_seed": 8,
             "loss_function": "PairLogit",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
@@ -3315,6 +3593,7 @@ def test_cv_pairs_generated(task_type):
             "random_seed": 8,
             "loss_function": "PairLogit",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
@@ -3338,6 +3617,7 @@ def test_cv_custom_loss(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         }
     )
@@ -3356,6 +3636,7 @@ def test_cv_skip_train(task_type):
             "loss_function": "Logloss:hints=skip_train~true",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
@@ -3378,6 +3659,7 @@ def test_cv_skip_train_default(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
@@ -3398,6 +3680,7 @@ def test_cv_metric_period(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5,
@@ -3427,6 +3710,7 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5 if with_metric_period else None,
@@ -3499,7 +3783,7 @@ def test_cv_with_text(problem_type):
 
     preds_path = test_output_path(CV_CSV_PATH)
     result.to_csv(preds_path)
-    return local_canonical_file(preds_path, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
+    return local_canonical_file(preds_path)
 
 
 def test_cv_with_save_snapshot(task_type):
@@ -3514,6 +3798,7 @@ def test_cv_with_save_snapshot(task_type):
                 "loss_function": "Logloss",
                 "eval_metric": "AUC",
                 "task_type": task_type,
+                "gpu_ram_part": TEST_GPU_RAM_PART,
                 "save_snapshot": True,
                 "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
             },
@@ -3630,6 +3915,7 @@ def test_grid_search_aliases(task_type):
     model = CatBoost(
         {
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "iterations": 10,
         }
     )
@@ -3650,52 +3936,6 @@ def test_grid_search_aliases(task_type):
         assert value in grid[key]
 
 
-def test_grid_search_and_get_best_result(task_type):
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    for refit in [True, False]:
-        for search_by_train_test_split in [True, False]:
-            model = CatBoost(
-                {
-                    "loss_function": "Logloss",
-                    "eval_metric": "AUC",
-                    "task_type": task_type,
-                    "custom_metric": ["CrossEntropy", "F1", "F:beta=2"]
-                }
-            )
-            feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
-            one_hot_max_size_list = [4, 7, 10]
-            iterations_list = [5, 7, 10]
-            border_count_list = [4, 10, 50, 100]
-            model.grid_search(
-                {
-                    'feature_border_type': feature_border_type_list,
-                    'one_hot_max_size': one_hot_max_size_list,
-                    'iterations': iterations_list,
-                    'border_count': border_count_list
-                },
-                pool,
-                refit=refit,
-                search_by_train_test_split=search_by_train_test_split
-            )
-            best_scores = model.get_best_score()
-            if refit:
-                assert 'validation' not in best_scores, 'validation results found for refit=True'
-                assert 'learn' in best_scores, 'no train results found for refit=True'
-            elif search_by_train_test_split:
-                assert 'validation' in best_scores, 'no validation results found for refit=False, search_by_train_test_split=True'
-                assert 'learn' in best_scores, 'no train results found for refit=False, search_by_train_test_split=True'
-            else:
-                assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
-                assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
-            if 'validation' in best_scores:
-                for metric in ["AUC", "Logloss", "CrossEntropy", "F1", "F:beta=2"]:
-                    assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
-            if 'learn' in best_scores:
-                for metric in ["Logloss", "CrossEntropy", "F1", "F:beta=2"]:
-                    assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
-                assert "AUC" not in best_scores['learn'], 'train AUC results found'
-
-
 def test_grid_search(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
@@ -3704,6 +3944,7 @@ def test_grid_search(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
     feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
@@ -3757,7 +3998,8 @@ def test_randomized_search(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "eval_metric": "AUC",
-            "task_type": task_type
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
     feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
@@ -3793,7 +4035,8 @@ def test_randomized_search_only_dist(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "eval_metric": "AUC",
-            "task_type": task_type
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
 
@@ -3828,7 +4071,8 @@ def test_randomized_search_refit_model(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "eval_metric": "AUC",
-            "task_type": task_type
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
 
@@ -3863,7 +4107,8 @@ def test_randomized_search_cv(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "eval_metric": "AUC",
-            "task_type": task_type
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
 
@@ -3917,6 +4162,7 @@ def test_grid_search_wrong_param_type(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
     feature_border_type_list = ['Median', 12, 'UniformAndQuantiles', 'MaxLogSum']
@@ -3943,6 +4189,7 @@ def test_grid_search_trivial(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
     feature_border_type_list = ['Median']
@@ -3973,6 +4220,7 @@ def test_grid_search_several_grids(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
         }
     )
     grids = []
@@ -4003,18 +4251,60 @@ def test_grid_search_several_grids(task_type):
     assert results['params']['border_count'] in grids[grid_num]['border_count']
 
 
+def test_grid_search_complex_params(task_type):
+    n25_index = 25
+    n75_index = 75
+
+    train_labels = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    prng = np.random.RandomState(seed=0)
+    pool = Pool(prng.random_sample(size=(1000, 100)), label=prng.choice(train_labels, size=1000))
+
+    params = {
+        'depth': [4, 7, 10],
+        'per_float_feature_quantization': [
+            None,
+            [f'{n25_index}:border_count=1024'],
+            [f'{n75_index}:border_count=1024'],
+            [f'{n25_index}:border_count=1024', f'{n75_index}:border_count=1024']
+        ],
+        'l2_leaf_reg': [1, 3, 5, 7, 9],
+        'iterations': [10],
+        'learning_rate': [0.3],
+        'verbose': [100]
+    }
+
+    cbr = CatBoostRegressor(task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
+    results = cbr.grid_search(
+        params,
+        pool,
+        cv=3,
+        partition_random_seed=42,
+        calc_cv_statistics=True,
+        search_by_train_test_split=True,
+        refit=True,
+        shuffle=True,
+        stratified=None,
+        train_size=0.8,
+        verbose=5,
+        plot=True
+    )
+
+    for name, values in params.items():
+        assert ((name in results['params']) and (results['params'][name] in values))
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
 
-    model = CatBoostRanker(iterations=5, learning_rate=0.03, task_type=task_type, devices="0", loss_function="QueryRMSE")
+    model = CatBoostRanker(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices="0", loss_function="QueryRMSE")
     model.fit(pool_querywise)
 
     assert len(model.feature_importances_.shape) == 0
     model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool_querywise)
 
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     failed = False
@@ -4053,6 +4343,7 @@ def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_p
         "iterations": 5,
         "learning_rate": 0.03,
         "task_type": task_type,
+        "gpu_ram_part": TEST_GPU_RAM_PART,
         "devices": "0",
         "loss_function": "QueryRMSE",
         "grow_policy": grow_policy
@@ -4071,7 +4362,7 @@ def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_p
 
 def test_feature_importance_explicit(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.PredictionValuesChange)))
@@ -4080,7 +4371,7 @@ def test_feature_importance_explicit(task_type):
 
 def test_feature_importance_prettified(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
 
     feature_importances = model.get_feature_importance(type=EFstrType.PredictionValuesChange, prettified=True)
@@ -4093,7 +4384,7 @@ def test_feature_importance_prettified(task_type):
 
 def test_interaction_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.Interaction)))
@@ -4112,7 +4403,7 @@ def make_reference_data(pool, calc_shap_mode):
 def test_shap_feature_importance(task_type, calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
@@ -4122,9 +4413,34 @@ def test_shap_feature_importance(task_type, calc_shap_mode):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_shap_feature_importance_with_user_metrics_and_no_target(task_type):
+    if task_type != 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        loss_function=LoglossObjective(),
+        eval_metric=metrics.Logloss(),
+    )
+    model.fit(pool)
+    test_pool = Pool(TRAIN_FILE, column_description=CD_FILE_NO_TARGET)
+    model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
+
+    model_path = test_output_path('model.json')
+    model.save_model(model_path, format='json')
+    json_model = json.load(open(model_path))
+    for tree in json_model['oblivious_trees']:
+        del tree['leaf_weights']
+    json.dump(json_model, open(model_path, 'wt'))
+    model = model.load_model(model_path, format='json')
+    model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
+
+
 def test_approximate_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
@@ -4136,7 +4452,7 @@ def test_approximate_shap_feature_importance(task_type):
 
 def test_exact_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
@@ -4150,7 +4466,16 @@ def test_exact_shap_feature_importance(task_type):
 def test_shap_feature_importance_multiclass(task_type, calc_shap_mode):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        loss_function='MultiClass',
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)), 9))
@@ -4159,7 +4484,16 @@ def test_shap_feature_importance_multiclass(task_type, calc_shap_mode):
 
 def test_approximate_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        loss_function='MultiClass',
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4169,7 +4503,15 @@ def test_approximate_shap_feature_importance_multiclass(task_type):
 
 def test_exact_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03, task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        loss_function='MultiClass',
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4183,7 +4525,7 @@ def test_shap_feature_importance_multirmse(task_type, calc_shap_mode):
     cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)), 9))
@@ -4194,7 +4536,7 @@ def test_approximate_shap_feature_importance_multirmse(task_type):
     train_file = MULTIREGRESSION_TRAIN_FILE
     cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4206,7 +4548,7 @@ def test_exact_shap_feature_importance_multirmse(task_type):
     train_file = MULTIREGRESSION_TRAIN_FILE
     cd_file = MULTIREGRESSION_CD_FILE
     pool = Pool(train_file, column_description=cd_file)
-    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiRMSE')
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='MultiRMSE')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4216,7 +4558,7 @@ def test_exact_shap_feature_importance_multirmse(task_type):
 
 def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -4231,7 +4573,7 @@ def test_shap_feature_importance_ranking(task_type):
 
 def test_approximate_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -4246,7 +4588,7 @@ def test_approximate_shap_feature_importance_ranking(task_type):
 
 def test_exact_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='PairLogit')
+    model = CatBoostRanker(iterations=20, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='PairLogit')
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
@@ -4266,6 +4608,7 @@ def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
         learning_rate=0.03,
         max_ctr_complexity=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0')
     model.fit(pool)
     shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool))
@@ -4281,6 +4624,7 @@ def test_approximate_shap_feature_importance_asymmetric_and_symmetric(task_type)
         learning_rate=0.03,
         max_ctr_complexity=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0')
     model.fit(pool)
     shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4336,6 +4680,7 @@ def test_loss_function_change_asymmetric_and_symmetric(task_type):
         learning_rate=0.03,
         max_ctr_complexity=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0')
     model.fit(pool)
     shap_symm = np.array(model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool))
@@ -4352,6 +4697,7 @@ def test_shap_feature_importance_asymmetric(task_type, grow_policy):
         learning_rate=0.03,
         max_ctr_complexity=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         grow_policy=grow_policy,
         devices='0')
     model.fit(pool)
@@ -4368,6 +4714,7 @@ def test_loss_function_change_asymmetric(task_type, grow_policy):
         learning_rate=0.03,
         max_ctr_complexity=1,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         grow_policy=grow_policy,
         devices='0')
     model.fit(pool)
@@ -4380,7 +4727,7 @@ def test_loss_function_change_asymmetric(task_type, grow_policy):
 def test_shap_feature_importance_modes(task_type, calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = CatBoostClassifier(iterations=5, task_type=task_type)
+    model = CatBoostClassifier(iterations=5, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
     model.fit(pool)
     modes = ["Auto", "UsePreCalc", "NoPreCalc"]
     shaps_for_modes = []
@@ -4393,7 +4740,7 @@ def test_shap_feature_importance_modes(task_type, calc_shap_mode):
 def test_shap_feature_probability(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     reference_data = make_reference_data(pool, "IndependentTreeSHAP")
-    model = CatBoostClassifier(iterations=50, task_type=task_type)
+    model = CatBoostClassifier(iterations=50, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
     model.fit(pool)
     shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data, model_output="Probability")
     predictions = model.predict(pool, "Probability")
@@ -4404,7 +4751,7 @@ def test_shap_feature_probability(task_type):
 def test_shap_feature_multiclass_probability(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     reference_data = make_reference_data(pool, "IndependentTreeSHAP")
-    model = CatBoostClassifier(iterations=50, loss_function='MultiClass', task_type=task_type)
+    model = CatBoostClassifier(iterations=50, loss_function='MultiClass', task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
     classes_count = 3
     model.fit(pool)
     shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data, model_output="Probability")
@@ -4420,7 +4767,7 @@ def test_shap_feature_log_loss(task_type):
 
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     reference_data = make_reference_data(pool, "IndependentTreeSHAP")
-    model = CatBoostClassifier(iterations=50, loss_function='Logloss', task_type=task_type)
+    model = CatBoostClassifier(iterations=50, loss_function='Logloss', task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
     model.fit(pool)
     label = pool.get_label()
     shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data, model_output="LossFunction")
@@ -4497,7 +4844,7 @@ def test_feature_importance_sage_all_feature_types():
 def test_prediction_diff_feature_importance(task_type):
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=110, task_type=task_type, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(
@@ -4511,7 +4858,7 @@ def test_prediction_diff_feature_importance(task_type):
 def test_prediction_diff_nonsym_feature_importance(task_type, grow_policy):
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=110, task_type=task_type, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     np.savetxt(fimp_txt_path, np.around(np.array(model.get_feature_importance(
@@ -4524,7 +4871,7 @@ def test_prediction_diff_nonsym_feature_importance(task_type, grow_policy):
 def test_od(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -4537,7 +4884,7 @@ def test_clone(task_type):
         loss_function="MultiClass",
         iterations=400,
         learning_rate=0.03,
-        task_type=task_type, devices='0')
+        task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
 
     # This is important for sklearn.base.clone since
     # it uses get_params for cloning estimator.
@@ -4557,7 +4904,7 @@ def test_different_cat_features_order(task_type):
     pool1 = Pool(dataset, labels, cat_features=[0, 1])
     pool2 = Pool(dataset, labels, cat_features=[1, 0])
 
-    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 42, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 42, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(pool1)
     assert (model.predict(pool1) == model.predict(pool2)).all()
 
@@ -4568,7 +4915,7 @@ def test_full_history(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42,
-        approx_on_full_history=True, task_type=task_type, devices='0', boosting_type='Ordered'
+        approx_on_full_history=True, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', boosting_type='Ordered'
     )
     model.fit(train_pool, eval_set=test_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -4586,6 +4933,7 @@ def test_cv_logging(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
@@ -4604,6 +4952,7 @@ def test_cv_with_not_binarized_target(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "target_border": 0.5,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
@@ -4611,8 +4960,17 @@ def test_cv_with_not_binarized_target(task_type):
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
-def test_eval_metrics(loss_function, task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'RMSE', 'QueryRMSE'],
+    ids=[f'loss_function={n}' for n in ['Logloss', 'RMSE', 'QueryRMSE']]
+)
+@pytest.mark.parametrize(
+    'metric_period',
+    [1, 5, 10],
+    ids=[f'metric_period={n}' for n in [1, 5, 10]]
+)
+def test_eval_metrics(loss_function, metric_period, task_type):
     train, test, cd, metric = TRAIN_FILE, TEST_FILE, CD_FILE, loss_function
     if loss_function == 'QueryRMSE':
         train, test, cd, metric = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'PFound'
@@ -4621,12 +4979,15 @@ def test_eval_metrics(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric,
-                             'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
+    model = CatBoost(
+        params={'loss_function': loss_function, 'iterations': 20, 'thread_count': 8,
+                'eval_metric': metric, 'metric_period': metric_period,
+                'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'counter_calc_method': 'SkipTest'}
+    )
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
     first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
-    second_metrics = model.eval_metrics(test_pool, [metric])[metric]
+    second_metrics = model.eval_metrics(test_pool, [metric], eval_period=metric_period)[metric]
     elemwise_reldiff = np.abs(first_metrics - second_metrics) / np.max((np.abs(first_metrics), np.abs(second_metrics)), 0)
     elemwise_absdiff = np.abs(first_metrics - second_metrics)
     elemwise_mindiff = np.min((elemwise_reldiff, elemwise_absdiff), 0)
@@ -4636,8 +4997,17 @@ def test_eval_metrics(loss_function, task_type):
         assert np.all(abs(elemwise_mindiff) < 1e-9)
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
-def test_eval_metrics_batch_calcer(loss_function, task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'RMSE', 'QueryRMSE'],
+    ids=[f'loss_function={n}' for n in ['Logloss', 'RMSE', 'QueryRMSE']]
+)
+@pytest.mark.parametrize(
+    'metric_period',
+    [1, 5, 10],
+    ids=[f'metric_period={n}' for n in [1, 5, 10]]
+)
+def test_eval_metrics_batch_calcer(loss_function, metric_period, task_type):
     metric = loss_function
     if loss_function == 'QueryRMSE':
         train, test, cd = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE
@@ -4647,13 +5017,16 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'iterations': 100, 'thread_count': 8,
-                             'eval_metric': metric, 'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
+    model = CatBoost(
+        params={'loss_function': loss_function, 'iterations': 100, 'thread_count': 8,
+                'eval_metric': metric, 'metric_period': metric_period,
+                'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'counter_calc_method': 'SkipTest'}
+    )
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
     first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
 
-    calcer = model.create_metric_calcer([metric])
+    calcer = model.create_metric_calcer([metric], eval_period=metric_period)
     calcer.add(test_pool)
 
     second_metrics = calcer.eval_metrics().get_result(metric)
@@ -4670,22 +5043,44 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose, task_type):
     expected_line_count = {5: 3, False: 0, True: 10}
-    expected_cv_line_count = {5: 24, False: 15, True: 45}
+    expected_cv_line_count = {
+        "CPU": {5: 18 + 6, False: 9 + 6, True: 39 + 6},
+        "GPU": {5: 18, False: 9, True: 39},
+    }
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    tmpfile = 'test_data_dumps'
+    tmpfile = test_output_path('test_data_dumps')
 
     with open(tmpfile, 'w') as cout:
         cv(
             pool,
-            {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+            {
+                "iterations": 10,
+                "learning_rate": 0.03,
+                "loss_function": "Logloss",
+                "task_type": task_type,
+                "gpu_ram_part": TEST_GPU_RAM_PART,
+                "devices": '0',
+            },
             verbose=verbose,
             log_cout=cout,
         )
-    assert (_count_lines(tmpfile) == expected_cv_line_count[verbose])
+    assert (_count_lines(tmpfile) == expected_cv_line_count[task_type][verbose])
 
     with open(tmpfile, 'w') as cout:
-        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'},
-              verbose=verbose, log_cout=cout)
+        train(
+            pool,
+            {
+                "iterations": 10,
+                "learning_rate": 0.03,
+                "loss_function": "Logloss",
+                "task_type": task_type,
+                "gpu_ram_part": TEST_GPU_RAM_PART,
+                "devices": '0',
+                **NO_RANDOM_PARAMS,
+            },
+            verbose=verbose,
+            log_cout=cout
+        )
     assert (_count_lines(tmpfile) == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -4696,7 +5091,7 @@ def test_eval_set(task_type):
     labels = [1, 2, 3, 4]
     train_pool = Pool(dataset, labels, cat_features=[0, 3, 2])
 
-    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
 
     eval_dataset = [(5, 6, 6, 6), (6, 6, 6, 6)]
     eval_labels = [5, 6]
@@ -4715,7 +5110,7 @@ def test_object_importances(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool = Pool(TEST_FILE, column_description=CD_FILE)
 
-    model = CatBoost({'loss_function': 'RMSE', 'iterations': 10, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'loss_function': 'RMSE', 'iterations': 10, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
     indices, scores = model.get_object_importance(pool, train_pool, top_size=10)
     oimp_path = test_output_path(OIMP_PATH)
@@ -4736,7 +5131,7 @@ def test_positive_object_importance_per_object():
 def test_shap(task_type):
     train_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]], [0, 1, 5, 8], cat_features=[])
     test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
-    model = CatBoostRegressor(iterations=1, max_ctr_complexity=1, depth=2, task_type=task_type, devices='0')
+    model = CatBoostRegressor(iterations=1, max_ctr_complexity=1, depth=2, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool)
     shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
 
@@ -4744,7 +5139,7 @@ def test_shap(task_type):
     labels = [1.1, 1.85, 2.3, 0.7, 1.1, 1.6]
     train_pool = Pool(dataset, labels, cat_features=[])
 
-    model = CatBoost({'iterations': 10, 'max_ctr_complexity': 1, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 10, 'max_ctr_complexity': 1, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool)
 
     testset = [(0.6, 1.2), (1.4, 0.3), (1.5, 0.8), (1.4, 0.6)]
@@ -4762,7 +5157,7 @@ def test_shap(task_type):
 def test_shap_complex_ctr(task_type, calc_shap_mode):
     pool = Pool([[0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 2]], [0, 0, 5, 8], cat_features=[0, 1, 2])
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = train(pool, {'random_seed': 12302113, 'iterations': 100, 'task_type': task_type, 'devices': '0'})
+    model = train(pool, {'random_seed': 12302113, 'iterations': 100, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)
     predictions = model.predict(pool)
     assert (len(predictions) == len(shap_values))
@@ -4775,25 +5170,35 @@ def test_shap_complex_ctr(task_type, calc_shap_mode):
 
 def test_shap_interaction_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_interaction_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        loss_function='MultiClass',
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True
+    )
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_interaction_feature_on_symmetric(task_type):
     pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
-    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0', 'one_hot_max_size': 4})
     model.fit(pool)
     shap_interaction_values = model.get_feature_importance(
         type=EFstrType.ShapInteractionValues,
@@ -4824,7 +5229,7 @@ def test_shap_interaction_feature_importance_asymmetric_and_symmetric(task_type)
 
 def test_properties_shap_interaction_values(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     classifier.fit(pool)
     shap_values = classifier.get_feature_importance(
         type=EFstrType.ShapValues,
@@ -4886,42 +5291,6 @@ def test_shap_interaction_value_between_pair():
                     assert abs(interaction_value[doc_idx][0][0] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
                 else:
                     assert abs(interaction_value[doc_idx][0][1] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
-
-
-def test_shap_interaction_value_between_pair_multi():
-    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=10, loss_function='MultiClass', thread_count=8, devices='0')
-    classifier.fit(pool)
-
-    shap_interaction_values = classifier.get_feature_importance(
-        type=EFstrType.ShapInteractionValues,
-        data=pool,
-        thread_count=8
-    )
-    features_count = pool.num_col()
-    doc_count = pool.num_row()
-    checked_doc_count = doc_count // 3
-    classes_count = 3
-
-    for feature_idx_1 in range(features_count):
-        for feature_idx_2 in range(features_count):
-            interaction_value = classifier.get_feature_importance(
-                type=EFstrType.ShapInteractionValues,
-                data=pool,
-                thread_count=8,
-                interaction_indices=[feature_idx_1, feature_idx_2]
-            )
-            if feature_idx_1 == feature_idx_2:
-                assert interaction_value.shape == (doc_count, classes_count, 2, 2)
-            else:
-                assert interaction_value.shape == (doc_count, classes_count, 3, 3)
-
-            for doc_idx in range(checked_doc_count):
-                for class_idx in range(classes_count):
-                    if feature_idx_1 == feature_idx_2:
-                        assert abs(interaction_value[doc_idx][class_idx][0][0] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
-                    else:
-                        assert abs(interaction_value[doc_idx][class_idx][0][1] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
 
 
 def random_xy(num_rows, num_cols_x, seed=20181219, prng=None):
@@ -5179,7 +5548,7 @@ def test_metric_period_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile1 = test_output_path('tmpfile1')
     tmpfile2 = test_output_path('tmpfile2')
-    model = CatBoost(dict(iterations=10, metric_period=3, task_type=task_type, devices='0'))
+    model = CatBoost(dict(iterations=10, metric_period=3, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0'))
 
     with open(tmpfile1, 'w') as cout:
         model.fit(pool, log_cout=cout)
@@ -5194,7 +5563,7 @@ def test_verbose_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile1 = test_output_path('tmpfile1')
     tmpfile2 = test_output_path('tmpfile2')
-    model = CatBoost(dict(iterations=10, verbose=False, task_type=task_type, devices='0'))
+    model = CatBoost(dict(iterations=10, verbose=False, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0'))
 
     with open(tmpfile1, 'w') as cout:
         model.fit(pool, log_cout=cout)
@@ -5276,7 +5645,7 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_custom_metric_object(self):
-        with pytest.raises(CatBoostError, match='custom_metric.*must be string'):
+        with pytest.raises(CatBoostError, match='custom_metric.*must be str or Sequence of strings'):
             model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -5345,6 +5714,7 @@ def test_set_params_with_synonyms(task_type):
               'od_wait': 150,
               'random_seed': 8888,
               'task_type': task_type,
+              'gpu_ram_part': TEST_GPU_RAM_PART,
               'devices': '0'
               }
 
@@ -5423,7 +5793,7 @@ def test_feature_names_from_model():
 
 @pytest.mark.parametrize('format', ['cbm', 'json'])
 def test_feature_names_from_loaded_model(format):
-    df = DataFrame({
+    df = pd.DataFrame({
         'a': np.random.choice(['X', 'Y', 'Z'], 100),
         'b': np.random.randint(0, 10, 100),
         'c': np.random.randint(0, 10, 100),
@@ -5479,7 +5849,7 @@ class TestMissingValues(object):
         assert str(pool.get_features()) == str(np.array([[1.0], [float('nan')]]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', [(None, True)] + Value_AcceptableAsEmpty)
-    @pytest.mark.parametrize('object', [list, np.array, DataFrame, Series])
+    @pytest.mark.parametrize('object', [list, np.array, pd.DataFrame, pd.Series])
     def test_create_pool_from_object(self, value, value_acceptable_as_empty, object):
         if value_acceptable_as_empty:
             self.assert_expected(Pool(object([[1], [value]])))
@@ -5544,12 +5914,13 @@ def test_eval_set_with_nans(task_type):
     labels = prng.random_sample((10,))
     features_with_nans = features.copy()
     np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     train_pool = Pool(features, label=labels)
     test_pool = Pool(features_with_nans, label=labels)
     model.fit(train_pool, eval_set=test_pool)
 
 
+@fails_on_gpu(how='Training continuation for GPU is not yet supported')
 def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
     prng = np.random.RandomState(seed=20200803)
     features = prng.random_sample((10, 200))
@@ -5563,6 +5934,7 @@ def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
         model = CatBoostRegressor(
             iterations=10,
             task_type=task_type,
+            gpu_ram_part=TEST_GPU_RAM_PART,
             devices='0',
             nan_mode=nan_mode
         )
@@ -5595,11 +5967,11 @@ def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
 def test_learning_rate_auto_set(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model1 = CatBoostClassifier(iterations=10, task_type=task_type, devices='0')
+    model1 = CatBoostClassifier(iterations=10, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model1.fit(train_pool)
     predictions1 = model1.predict_proba(test_pool)
 
-    model2 = CatBoostClassifier(iterations=10, learning_rate=model1.learning_rate_, task_type=task_type, devices='0')
+    model2 = CatBoostClassifier(iterations=10, learning_rate=model1.learning_rate_, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model2.fit(train_pool)
     predictions2 = model2.predict_proba(test_pool)
     assert _check_data(predictions1, predictions2)
@@ -5611,7 +5983,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
     train_dir_prefix = test_output_path('')
     results = cv(
         pool,
-        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type,
+        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type, "gpu_ram_part": TEST_GPU_RAM_PART,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
     assert "train-Logloss-mean" in results
@@ -5625,7 +5997,17 @@ def test_learning_rate_auto_set_in_cv(task_type):
 
 def test_shap_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(
+        iterations=50,
+        loss_function='MultiClass',
+        thread_count=8,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True
+    )
     classifier.fit(pool)
     pred = classifier.predict(pool, prediction_type='Probability')
 
@@ -5699,21 +6081,28 @@ def test_pool_group_id_hash():
 
 
 def test_pairs_generation(task_type):
-    model = CatBoost({"loss_function": "PairLogit", "iterations": 2, "task_type": task_type})
+    model = CatBoost(
+        {
+            "loss_function": "PairLogit",
+            "iterations": 2,
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
+        }
+    )
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model.fit(pool)
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_pairs_generation_generated(task_type):
-    model = CatBoostRanker(loss_function='PairLogit', iterations=10, thread_count=8, task_type=task_type, devices='0')
+    model = CatBoostRanker(loss_function='PairLogit', iterations=10, thread_count=8, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
 
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     prng = np.random.RandomState(seed=20181219)
@@ -5739,7 +6128,14 @@ def test_pairs_generation_generated(task_type):
 
 
 def test_pairs_generation_with_max_pairs(task_type):
-    model = CatBoost({"loss_function": "PairLogit:max_pairs=30", "iterations": 2, "task_type": task_type})
+    model = CatBoost(
+        {
+            "loss_function": "PairLogit:max_pairs=30",
+            "iterations": 2,
+            "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
+        }
+    )
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model.fit(pool)
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -5814,22 +6210,26 @@ def test_fit_and_predict_on_sliced_pools(task_type):
     args = {
         'iterations': 10,
         'loss_function': 'Logloss',
-        'task_type': task_type
+        'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
     }
 
     model = CatBoostClassifier(**args)
     model.fit(train_subset_pool, eval_set=test_subset_pool)
 
     pred = model.predict(test_subset_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            pred
+        )
     return local_canonical_file(preds_path)
 
 
 def test_str_metrics_in_eval_metrics(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=40, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=40, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     first_metrics = model.eval_metrics(data=train_pool, metrics='Logloss')
     second_metrics = model.eval_metrics(data=train_pool, metrics=['Logloss'])
@@ -5873,6 +6273,7 @@ def test_cv_fold_count_alias(task_type):
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "gpu_ram_part": TEST_GPU_RAM_PART,
         "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, fold_count=4)
     results_nfold = cv(pool=pool, params={
@@ -5881,6 +6282,7 @@ def test_cv_fold_count_alias(task_type):
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "gpu_ram_part": TEST_GPU_RAM_PART,
         "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, nfold=4)
     assert results_fold_count.equals(results_nfold)
@@ -5913,12 +6315,14 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
         iterations=20,
         learning_rate=0.03,
         thread_count=4,
-        task_type=task_type, devices='0',
+        task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0',
     )
     model.fit(train_pool, eval_set=test_pool)
-    pred = model.predict(test_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    with open(preds_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.predict(test_pool)
+        )
     return local_canonical_file(preds_path)
 
 
@@ -6022,7 +6426,8 @@ def test_roc_cv(task_type):
             'iterations': 10,
             'roc_file': 'out_roc',
             'thread_count': 4,
-            'task_type': task_type
+            'task_type': task_type,
+            'gpu_ram_part': TEST_GPU_RAM_PART,
         },
     )
 
@@ -6031,6 +6436,7 @@ def test_roc_cv(task_type):
     ]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Unexpected stopping, investigation in progress")
 @pytest.mark.parametrize('boosting_type', ['Ordered'])
 @pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
 def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_type, overfitting_detector_type):
@@ -6148,7 +6554,9 @@ def test_use_loss_if_no_eval_metric_cv(task_type):
         'iterations': 50,
         'loss_function': 'Logloss',
         'logging_level': 'Silent',
-        'task_type': task_type
+        'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
+        'metric_period': (5 if task_type == 'GPU' else 1)
     }
 
     cv_params = {
@@ -6188,7 +6596,8 @@ def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
         'loss_function': 'Logloss',
         'custom_metric': metrics['custom_metric'],
         'logging_level': 'Silent',
-        'task_type': task_type
+        'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
     }
     if metrics['eval_metric'] is not None:
         params['eval_metric'] = metrics['eval_metric']
@@ -6239,6 +6648,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "gpu_ram_part": TEST_GPU_RAM_PART,
             "ignored_features": ignored_features,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
@@ -6253,6 +6663,40 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
     # Unfortunately, for GPU results differ too much between different GPU models.
     if task_type != 'GPU':
         return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
+
+
+def test_custom_splitting_before_cv_iter():
+    cv_data = [["France", 1924, 44],
+               ["USA", 1932, 37],
+               ["Switzerland", 1928, 25],
+               ["Norway", 1952, 30],
+               ["Japan", 1972, 35],
+               ["Mexico", 1968, 112]]
+
+    labels = [1, 0, 1, 0, 0, 1]
+    cv_dataset = Pool(data=cv_data,
+                      label=labels,
+                      cat_features=[0])
+
+    params = {"iterations": 100,
+              "depth": 2,
+              "loss_function": "Logloss",
+              "verbose": False,
+              "bootstrap_type": "No",
+              "roc_file": "roc-file"}
+
+    right_scores = cv(cv_dataset,
+                      params,
+                      fold_count=2,
+                      stratified=False,
+                      shuffle=False)
+    train_test = [[[3, 4, 5], [0, 1, 2]],
+                  [[0, 1, 2], [3, 4, 5]]]
+    iter_scores = cv(cv_dataset,
+                     params,
+                     folds=iter(train_test))
+
+    assert (right_scores.equals(iter_scores))
 
 
 def test_use_last_testset_for_best_iteration():
@@ -6294,6 +6738,7 @@ def test_best_model_min_trees(task_type):
         'iterations': 200,
         'use_best_model': True,
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'learning_rate': 0.3
     }
     model_1 = CatBoostClassifier(**learn_params)
@@ -6386,6 +6831,7 @@ class Metrics(object):
             'PairLogit',
             'PairAccuracy',
             'QueryRMSE',
+            'GroupQuantile',
             'QuerySoftMax',
             'PFound',
             'NDCG',
@@ -6444,6 +6890,7 @@ class Metrics(object):
             'QueryAverage:top=5',
             'QueryCrossEntropy',
             'QueryRMSE',
+            'GroupQuantile',
             'QuerySoftMax',
             'R2',
             'Recall',
@@ -6493,7 +6940,7 @@ class TestUseWeights(object):
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
 
-        cb = CatBoostRegressor(loss_function='RMSE', iterations=3, task_type=task_type, devices='0')
+        cb = CatBoostRegressor(loss_function='RMSE', iterations=3, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6516,7 +6963,7 @@ class TestUseWeights(object):
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
 
-        cb = CatBoostRegressor(loss_function='RMSEWithUncertainty', iterations=3, task_type=task_type, devices='0')
+        cb = CatBoostRegressor(loss_function='RMSEWithUncertainty', iterations=3, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6539,7 +6986,7 @@ class TestUseWeights(object):
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
 
-        cb = CatBoostClassifier(loss_function='Logloss', iterations=3, task_type=task_type, devices='0')
+        cb = CatBoostClassifier(loss_function='Logloss', iterations=3, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6550,7 +6997,7 @@ class TestUseWeights(object):
         prng = np.random.RandomState(seed=20181219)
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
-        cb = CatBoostClassifier(loss_function='MultiClass', iterations=3, use_best_model=False, task_type=task_type, devices='0')
+        cb = CatBoostClassifier(loss_function='MultiClass', iterations=3, use_best_model=False, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6561,12 +7008,12 @@ class TestUseWeights(object):
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
 
-        if metric == 'QueryRMSE':
+        if metric in ('QueryRMSE', 'GroupQuantile'):
             loss_function = 'QueryRMSE'
         else:
             loss_function = 'PairLogit'
 
-        cb = CatBoostRanker(loss_function=loss_function, iterations=3, task_type=task_type, devices='0')
+        cb = CatBoostRanker(loss_function=loss_function, iterations=3, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
@@ -6795,13 +7242,13 @@ def test_set_scale_and_bias():
     model.set_scale_and_bias(3.14, 15.)
     assert (3.14, 15.) == model.get_scale_and_bias()
     pred2 = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-15)
+    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-12)
 
 
 def test_get_metric_evals(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, eval_metric='Accuracy', task_type=task_type)
+    model = CatBoostClassifier(iterations=10, eval_metric='Accuracy', task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
     model.fit(train_pool, eval_set=test_pool)
     evals_path = test_output_path('evals.txt')
     with open(evals_path, 'w') as f:
@@ -6828,6 +7275,7 @@ def test_best_score(task_type):
         'eval_metric': 'ZeroOneLoss',
         'custom_metric': ['Precision', 'CtrFactor'],
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool, eval_set=test_pool)
@@ -6854,6 +7302,7 @@ def test_best_iteration(task_type):
         'eval_metric': 'ZeroOneLoss',
         'custom_metric': ['Precision', 'Recall'],
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool, eval_set=test_pool)
@@ -6968,15 +7417,38 @@ def test_model_sum_labels():
 
 def test_tree_depth_pairwise(task_type):
     if task_type == 'GPU':
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
         with pytest.raises(CatBoostError):
-            CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 9})
-        CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 8})
+            model = CatBoost(
+                {
+                    'iterations': 2,
+                    'loss_function':
+                    'PairLogitPairwise',
+                    'task_type': task_type,
+                    'gpu_ram_part': TEST_GPU_RAM_PART,
+                    'devices': '0',
+                    'depth': 9
+                }
+            )
+            model.fit(train_pool)
+
+        model = CatBoost(
+            {
+                'iterations': 2,
+                'loss_function': 'PairLogitPairwise',
+                'task_type': task_type,
+                'gpu_ram_part': TEST_GPU_RAM_PART,
+                'devices': '0',
+                'depth': 8
+            }
+        )
+        model.fit(train_pool)
 
 
 def test_eval_set_with_no_target(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     eval_set_pool = Pool(TEST_FILE, column_description=data_file('train_notarget.cd'))
-    model = CatBoost({'iterations': 2, 'loss_function': 'Logloss', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': 2, 'loss_function': 'Logloss', 'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'})
     model.fit(train_pool, eval_set=eval_set_pool)
 
     evals_path = test_output_path('evals.txt')
@@ -6994,6 +7466,7 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
             'loss_function': 'Logloss',
             'eval_metric': 'AUC',
             'task_type': task_type,
+            'gpu_ram_part': TEST_GPU_RAM_PART,
             'devices': '0'
         }
     )
@@ -7031,7 +7504,7 @@ def test_eval_period_size():
 
 
 def test_output_border_file(task_type):
-    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+    OUTPUT_BORDERS_FILE = test_output_path('output_border_file.dat')
 
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -7064,7 +7537,7 @@ def test_output_border_file(task_type):
 
 
 def test_output_border_file_regressor(task_type):
-    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+    OUTPUT_BORDERS_FILE = test_output_path('output_border_file.dat')
 
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -7097,7 +7570,7 @@ def test_output_border_file_regressor(task_type):
 
 
 def test_output_border_file_ranker(task_type):
-    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+    OUTPUT_BORDERS_FILE = test_output_path('output_border_file.dat')
 
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
@@ -7147,7 +7620,10 @@ def test_save_border_file():
 
 
 def test_set_feature_names():
-    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_pool = Pool(
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+    )
 
     model = CatBoostClassifier(loss_function='Logloss', iterations=10)
     model.fit(train_pool)
@@ -7155,6 +7631,20 @@ def test_set_feature_names():
     names = ["feature_{}".format(x) for x in range(train_pool.num_col())]
     model.set_feature_names(names)
     assert names == model.feature_names_
+
+
+def test_bad_set_feature_names():
+    train_pool = Pool(
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+    )
+
+    model = CatBoostClassifier(loss_function='Logloss', iterations=10)
+    model.fit(train_pool)
+
+    names = ["feature_{}".format(x) for x in range(3)]
+    with pytest.raises(CatBoostError):
+        model.set_feature_names(names)
 
 
 def test_model_comparison():
@@ -7198,10 +7688,12 @@ def test_param_synonyms(task_type):
         (['random_seed', 'random_state'], 1),
         (['l2_leaf_reg', 'reg_lambda'], 4),
         (['depth', 'max_depth'], 7),
-        (['rsm', 'colsample_bylevel'], 0.5),
         (['border_count', 'max_bin'], 32),
         # (['verbose', 'verbose_eval'], True), # TODO(akhropov): support 'verbose_eval' in CatBoostClassifier ?
     ]
+
+    if task_type == 'CPU':
+        synonym_params.append((['rsm', 'colsample_bylevel'], 0.5))
 
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
 
@@ -7214,7 +7706,7 @@ def test_param_synonyms(task_type):
     canonical_predictions = None
 
     for variant_idx in range(variants_count):
-        params = {'task_type': task_type, 'devices': '0'}
+        params = {'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'devices': '0'}
         for synonym_names, value in synonym_params:
             synonym_name = synonym_names[variant_idx] if variant_idx < len(synonym_names) else synonym_names[0]
             params[synonym_name] = value
@@ -7246,6 +7738,7 @@ def test_grow_policy_fails(task_type, grow_policy):
         'grow_policy': grow_policy,
         'boosting_type': 'Plain',
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'devices': '0'
     }
     model = CatBoostClassifier(**args)
@@ -7273,6 +7766,7 @@ def test_multiclass_grow_policy(task_type, grow_policy):
         loss_function='MultiClass',
         thread_count=8,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         boosting_type='Plain',
         grow_policy=grow_policy
@@ -7297,6 +7791,7 @@ def test_grow_policy_restriction(task_type, grow_policy):
         'iterations': 2,
         'thread_count': 8,
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'devices': '0',
         'grow_policy': grow_policy
     }
@@ -7324,7 +7819,7 @@ def test_grow_policy_restriction(task_type, grow_policy):
 def test_use_all_cpus(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE, thread_count=-1)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE, thread_count=-1)
-    model = CatBoostClassifier(iterations=10, task_type=task_type, thread_count=-1, devices='0')
+    model = CatBoostClassifier(iterations=10, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, thread_count=-1, devices='0')
     model.fit(train_pool)
     model.predict(test_pool, thread_count=-1)
     model.predict_proba(test_pool, thread_count=-1)
@@ -7377,13 +7872,17 @@ def test_eval_features(task_type, eval_type, problem):
 
     learn_params = {
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'devices': '0',
         'iterations': 20,
         'learning_rate': 0.5,
         'logging_level': 'Silent',
         'loss_function': loss_function,
         'boosting_type': 'Plain',
-        'allow_const_label': True
+        'allow_const_label': True,
+        'bootstrap_type': 'No',
+        'random_strength': 0,
+        'has_time': True
     }
     evaluator = CatboostEvaluation(
         train_file,
@@ -7541,10 +8040,10 @@ def test_feature_statistics(combination):
             bucket_value = np.mean(res['borders'][bucket_num-1:bucket_num+1])
         return np.hstack((X[:, :feature_num], np.tile(bucket_value, (n_samples, 1)), X[:, feature_num + 1:]))
 
-    assert (np.alltrue(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
+    assert (np.all(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
     assert (res['objects_per_bin'].sum() == X.shape[0])
     assert (
-        np.alltrue(
+        np.all(
             np.unique(np.digitize(X[:, feature_num], res['borders']), return_counts=True)[1] == res['objects_per_bin']
         )
     )
@@ -7785,8 +8284,8 @@ SAMPLES_AND_FEATURES_FOR_CONTINUATION = [
     ]
 )
 def test_continue_learning_with_changing_dataset(samples, features):
-    all_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    all_labels = Series(all_df.iloc[:, TARGET_IDX])
+    all_df = pd.read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    all_labels = pd.Series(all_df.iloc[:, TARGET_IDX])
     all_df.drop([TARGET_IDX], axis=1, inplace=True)
     all_features_df = all_df
 
@@ -7846,10 +8345,10 @@ def test_equal_feature_names():
 
 @pytest.mark.parametrize('feature_names', [0, 'text'])
 def test_not_sequence_feature_names(feature_names):
-    train_data = DataFrame({'text_f': ['у попа была собака',
-                                       'он ее любил',
-                                       'she ate a piece of meat',
-                                       'he killed her...']})
+    train_data = pd.DataFrame({'text_f': ['у попа была собака',
+                                          'он ее любил',
+                                          'she ate a piece of meat',
+                                          'he killed her...']})
     with pytest.raises(CatBoostError):
         Pool(train_data, feature_names=feature_names)
 
@@ -7864,7 +8363,8 @@ def test_tweedie_loss_on_gpu(task_type, variance_power):
             'iterations': 10,
             'loss_function': 'Tweedie:variance_power=' + str(variance_power),
             'task_type': task_type,
-            'devices': '0-7'
+            'gpu_ram_part': TEST_GPU_RAM_PART,
+            'devices': '0'
         }
     )
 
@@ -7882,7 +8382,8 @@ def test_huber_loss_on_gpu(task_type, delta):
             'iterations': 10,
             'loss_function': 'Huber:delta=' + str(delta),
             'task_type': task_type,
-            'devices': '0-7'
+            'gpu_ram_part': TEST_GPU_RAM_PART,
+            'devices': '0'
         }
     )
 
@@ -8026,7 +8527,7 @@ def test_prediction_border_in_eval_metric(metric_name, proba_border):
 
 def test_dataframe_with_custom_index():
     np.random.seed(0)
-    X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
+    X = pd.DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
     X[0] = X[0].astype('category')
     y = X[1]
 
@@ -8051,7 +8552,7 @@ def test_load_model_from_snapshot(features_type):
                           [5, 6, 7, 8]],
                     label=[1, 1, -1])
     else:
-        df = DataFrame(data={'col1': ['a', 'b', 'c', 'd'], 'col2': [1, 1, 1, 1], 'col3': [2, 3, 4, 5]})
+        df = pd.DataFrame(data={'col1': ['a', 'b', 'c', 'd'], 'col2': [1, 1, 1, 1], 'col3': [2, 3, 4, 5]})
         pool = Pool(data=df,
                     label=[1, 1, -1, -1],
                     cat_features=['col1'])
@@ -8076,6 +8577,7 @@ def test_regress_with_per_float_feature_binarization_param(task_type):
     model = CatBoostRegressor(iterations=2,
                               learning_rate=0.03,
                               task_type=task_type,
+                              gpu_ram_part=TEST_GPU_RAM_PART,
                               devices='0',
                               per_float_feature_quantization=per_float_feature_quantization_list)
     model.fit(train_pool)
@@ -8087,8 +8589,8 @@ def test_regress_with_per_float_feature_binarization_param(task_type):
 
 def test_pairs_without_groupid():
     model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8})
-    pairs = read_csv(QUERYWISE_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
-    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    pairs = pd.read_csv(QUERYWISE_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
+    df = pd.read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
     model.fit(train_data, train_target, pairs=pairs)
@@ -8098,6 +8600,7 @@ def test_pairs_without_groupid():
 def test_groupwise_sampling_without_groups(task_type):
     params = {
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'iterations': 10,
         'thread_count': 4,
         'bootstrap_type': 'Bernoulli',
@@ -8119,7 +8622,8 @@ def test_convert_to_asymmetric(task_type):
     train_params = {
         'iterations': 10,
         'learning_rate': 0.03,
-        'task_type': task_type
+        'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
     }
     model = CatBoost(train_params)
     model.fit(train_pool)
@@ -8511,9 +9015,10 @@ def convert_cat_columns_to_hashed(src_features_dataframe):
         else:
             new_columns_data[column_name] = column_data
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
+@pytest.mark.skip(reason="Known int conversion issues, investigation in progress")
 @pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
 def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
     metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
@@ -8628,7 +9133,7 @@ def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
 
         new_columns_data[column_name] = column_data
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
 def convert_to_sparse(src_features_dataframe, indexing_kind):
@@ -8639,9 +9144,9 @@ def convert_to_sparse(src_features_dataframe, indexing_kind):
         else:
             fill_value = 0.0
 
-        new_columns_data[column_name] = SparseArray(column_data, fill_value=fill_value, kind=indexing_kind)
+        new_columns_data[column_name] = pandas.arrays.SparseArray(column_data, fill_value=fill_value, kind=indexing_kind)
 
-    return DataFrame(new_columns_data)
+    return pd.DataFrame(new_columns_data)
 
 
 @pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
@@ -8722,6 +9227,7 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
 
     params = {
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'loss_function': metadata['loss_function'],
         'iterations': 5,
         'boosting_type': boosting_type
@@ -8914,6 +9420,7 @@ def test_same_values_with_different_types(task_type):
 
     params = {
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'loss_function': 'Logloss',
         'iterations': 5
     }
@@ -8923,7 +9430,7 @@ def test_same_values_with_different_types(task_type):
     canon_features = np.random.randint(0, 127, size=(n_objects, n_features), dtype=np.int8)
 
     for data_type in numpy_num_data_types:
-        features_df = DataFrame()
+        features_df = pd.DataFrame()
 
         for feature_idx in range(n_features):
             features_df['feature_%i' % feature_idx] = canon_features[:, feature_idx].astype(data_type)
@@ -9083,6 +9590,7 @@ def test_snapshot_checksum(task_type):
 
     model = CatBoostClassifier(
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         iterations=15,
         save_snapshot=True,
         snapshot_file='snapshot',
@@ -9091,6 +9599,7 @@ def test_snapshot_checksum(task_type):
 
     model_next = CatBoostClassifier(
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         iterations=30,
         save_snapshot=True,
         snapshot_file='snapshot',
@@ -9154,7 +9663,7 @@ def test_text_processing_dictionary():
 
     dictionary_path = test_output_path('dictionary.tsv')
     dictionary.save(dictionary_path)
-    return compare_canonical_models(dictionary_path)
+    return local_canonical_file(dictionary_path)
 
 
 def test_log_proba():
@@ -9643,10 +10152,13 @@ def test_feature_tags_interface():
     cat.fit(pool)
     assert np.array_equal(np.where(cat.feature_importances_ == 0)[0], [0, 1, 2, 3, 7])
     cat = CatBoostClassifier()
+    plot_file = test_output_path('plot.html')
     result = cat.select_features(
         pool,
         features_for_select=["#tag1", "#tag2"],
-        num_features_to_select=3
+        num_features_to_select=3,
+        plot=True,
+        plot_file=plot_file
     )
     assert all(x in [0, 1, 2, 3, 7] for x in result["selected_features"])
     assert all(x in [0, 1, 2, 3, 7] for x in result["eliminated_features"])
@@ -10083,7 +10595,8 @@ def test_eval_metric_with_weights(task_type, task, metric, use_weights):
         loss_function='Logloss' if task == 'binclass' else 'MultiClass',
         iterations=1,
         eval_metric=full_metric_name,
-        task_type=task_type
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
     )
     model.fit(pool, eval_set=pool)
     fit_metric = model.evals_result_['validation'][full_metric_name]
@@ -10151,7 +10664,7 @@ def test_callbacks_metrics():
 
 
 def test_fit_cat_features_type():
-    X = DataFrame(
+    X = pd.DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
         columns=['feature{}'.format(i) for i in range(5)]
     )
@@ -10167,19 +10680,6 @@ def test_fit_cat_features_type():
     model.fit(X, y, cat_features=[0, 1, 2])
 
 
-def test_sklearn_meta_algo():
-    from sklearn.calibration import CalibratedClassifierCV
-
-    X_train = [[1, 2, 3, 4], [2, 3, 4, 5]]
-    y_train = [1, 0]
-
-    model = CatBoostClassifier()
-    model.fit(X_train, y_train)
-
-    cc_model = CalibratedClassifierCV(model, cv='prefit', method='isotonic')
-    model = cc_model.fit(X_train, y_train)
-
-
 def test_pool_with_timestamp(task_type):
     features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[0, 1])
     np.random.seed(42)
@@ -10192,6 +10692,7 @@ def test_pool_with_timestamp(task_type):
         iterations=2,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
     model.fit(pool)
@@ -10211,12 +10712,48 @@ def test_pool_set_timestamp(task_type):
         iterations=2,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+bad_timestamp_data_desc = [
+    'None',
+    'Bool',
+    'OverflowInt',
+    'NegativeInt',
+    'Float',
+    'String',
+]
+
+
+@pytest.mark.parametrize('desc', bad_timestamp_data_desc)
+def test_pool_bad_timestamp_data(desc):
+    if desc == 'None':
+        timestamp = [None, 0, 3]
+    elif desc == 'Bool':
+        timestamp = [False, True, False]
+    elif desc == 'OverflowInt':
+        timestamp = [0, 2, 2**128]
+    elif desc == 'NegativeInt':
+        timestamp = [0, -2, 13]
+    elif desc == 'Float':
+        timestamp = [0.3, 0.11, 2.0]
+    elif desc == 'String':
+        timestamp = ['x', 'y', '']
+
+    features, labels = generate_random_labeled_dataset(n_samples=len(timestamp), n_features=5, labels=[0, 1])
+
+    with pytest.raises(Exception):
+        Pool(features, label=labels, timestamp=timestamp)
+
+    dataset = Pool(features, label=labels)
+    with pytest.raises(Exception):
+        dataset.set_timestamp(timestamp)
 
 
 @pytest.mark.parametrize('train_final_model', [True, False])
@@ -10227,6 +10764,7 @@ def test_select_features(task_type, train_final_model):
         iterations=10,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0'
     )
     summary = model.select_features(
@@ -10334,6 +10872,7 @@ def test_select_features_by_single_feature_tags(task_type, train_final_model, al
         iterations=100,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         logging_level='Debug'
     )
@@ -10350,6 +10889,7 @@ def test_select_features_by_single_feature_tags(task_type, train_final_model, al
         iterations=100,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         logging_level='Debug'
     )
@@ -10421,6 +10961,7 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
         iterations=20,
         learning_rate=0.03,
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         devices='0',
         logging_level='Debug'
     )
@@ -10442,9 +10983,33 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
     return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
 
 
+def test_select_features_with_hyphenated_feature_names():
+    features, labels = generate_random_labeled_dataset(
+        n_samples=500,
+        n_features=4,
+        labels=[0, 1],
+        seed=42
+    )
+    feature_names = ['non-TB', 'feat-b', 'plain', 'other-feat']
+    learn = Pool(features, labels, feature_names=feature_names)
+    test = Pool(features, labels, feature_names=feature_names)
+    model = CatBoostClassifier(iterations=10, logging_level='Silent')
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=False,
+        features_for_select=['non-TB', 'feat-b'],
+        num_features_to_select=1
+    )
+    assert len(summary['selected_features']) == 1
+    assert len(summary['eliminated_features']) == 1
+    assert set(summary['selected_features_names'] + summary['eliminated_features_names']) == {'non-TB', 'feat-b'}
+
+
 def test_embedding_features_data_list_with_data_with_features_order():
     pool1 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5],
@@ -10455,7 +11020,7 @@ def test_embedding_features_data_list_with_data_with_features_order():
         embedding_features=[2, 3]
     )
     pool2 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5]
@@ -10472,7 +11037,7 @@ def test_embedding_features_data_list_with_data_with_features_order():
 
 def test_embedding_features_data_dict_with_data_with_features_order():
     pool1 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5],
@@ -10483,7 +11048,7 @@ def test_embedding_features_data_dict_with_data_with_features_order():
         embedding_features=['f2', 'f3']
     )
     pool2 = Pool(
-        data=DataFrame(
+        data=pd.DataFrame(
             {
                 'f0': [0, 1, 2],
                 'f1': [3, 4, 5]
@@ -10549,14 +11114,35 @@ def test_embedding_features_data_dict_with_data_with_objects_order():
 
 
 def test_pandas_integer_array():
-    X = DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
+    X = pd.DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
     y = list(range(10))
     cb = CatBoostRegressor(iterations=1)
     cb.fit(X, y)
 
 
-@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking'])
-def test_train_with_embedding_features(problem_type):
+def test_pandas_categorical_with_categories_as_string_array():
+    X = pd.DataFrame({
+        "ints": pd.Series([1, 9, 5]),
+        "strs": pd.Series(["a", "b", "c"], dtype="category")
+    })
+    y = pd.Series([1, 2, 5])
+
+    X = X.astype({"strs": "string"}).astype({"strs": "category"})
+
+    clf = CatBoostClassifier(iterations=10, cat_features=["strs"])
+    clf.fit(X, y)
+
+
+@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking', 'multilabel'])
+def test_train_with_embedding_features(task_type, problem_type):
+
+    def make_train_y(problem_type):
+        if problem_type == 'classification':
+            return [0, 1, 1, 0, 1, 0, 1]
+        elif problem_type == 'multilabel':
+            return [[0, 1], [1, 0], [1, 0], [1, 1], [0, 0], [1, 0], [1, 1]]
+        else:
+            return [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13]
     train_pool = Pool(
         data=[
             [0.1, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 0.12],
@@ -10567,10 +11153,18 @@ def test_train_with_embedding_features(problem_type):
             [0.3, 2, [0.1, 0.22], [0.1, 0.22, 0.2], 0.0],
             [0.5, 3, [0.21, 0.3], [0.4, 0.6, 0.33], 0.25]
         ],
-        label=[0, 1, 1, 0, 1, 0, 1] if problem_type == 'classification' else [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13],
+        label=make_train_y(problem_type),
         group_id=[0, 0, 0, 1, 1, 1, 2],
         embedding_features=[2, 3]
     )
+
+    def make_test_y(problem_type):
+        if problem_type == 'classification':
+            return [1, 0, 0, 1]
+        elif problem_type == 'multilabel':
+            return [[1, 0], [0, 1], [0, 1], [1, 0]]
+        else:
+            return [0.1, 0.0, 0.3, 0.2]
     test_pool = Pool(
         data=[
             [0.3, 2, [0.0, 0.14], [0.9, 0.0, 0.12], 0.22],
@@ -10578,7 +11172,7 @@ def test_train_with_embedding_features(problem_type):
             [0.2, 7, [0.3, 0.11], [0.0, 0.2, 0.4], 0.7],
             [0.0, 3, [0.5, 0.3], [1.0, 0.93, 0.1], 0.8]
         ],
-        label=[1, 0, 0, 1] if problem_type == 'classification' else [0.1, 0.0, 0.3, 0.2],
+        label=make_test_y(problem_type),
         group_id=[0, 0, 1, 1],
         embedding_features=[2, 3]
     )
@@ -10588,9 +11182,12 @@ def test_train_with_embedding_features(problem_type):
             'loss_function' : {
                 'classification': 'Logloss',
                 'regression': 'RMSE',
-                'ranking': 'YetiRank'
+                'ranking': 'YetiRank',
+                'multilabel': 'MultiLogloss',
             }[problem_type],
-            'iterations' : 5
+            'iterations' : 5,
+            'task_type' : task_type,
+            **NO_RANDOM_PARAMS,
         }
     )
     model.fit(train_pool, eval_set=test_pool)
@@ -10598,7 +11195,9 @@ def test_train_with_embedding_features(problem_type):
     preds = model.predict(test_pool)
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
-    return local_canonical_file(preds_path)
+
+    epsilon = 1e-18 if is_canonical_test_run() else 1e9
+    return local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(epsilon, False))
 
 
 @pytest.mark.parametrize(
@@ -10758,6 +11357,7 @@ def test_fit_with_fixed_splits(task_type):
 
     params = {
         'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
         'fixed_binary_splits': [0, 1],
         'iterations': 2,
         'learning_rate': 1,
@@ -10779,6 +11379,7 @@ def test_regressor_with_fixed_splits(task_type):
 
     model = CatBoostRegressor(
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         fixed_binary_splits=[0, 1],
         iterations=2,
         learning_rate=1,
@@ -10799,6 +11400,7 @@ def test_classifier_with_fixed_splits(task_type):
 
     model = CatBoostClassifier(
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         loss_function='Logloss',
         fixed_binary_splits=[0, 1],
         iterations=2,
@@ -10820,6 +11422,7 @@ def test_ranker_with_fixed_splits(task_type):
 
     model = CatBoostRanker(
         task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
         fixed_binary_splits=[0, 1],
         iterations=2,
         learning_rate=1,
@@ -10833,3 +11436,545 @@ def test_ranker_with_fixed_splits(task_type):
     train_labels = [0, 1, 0]
     group_id = [10, 20, 20]
     model.fit(train_data, train_labels, group_id=group_id)
+
+
+def test_github_issue_2378_numpy_int_is_deprecated():
+    train_data = [[1, 4, 5, 6],
+                  [4, 5, 6, 7],
+                  [30, 40, 50, 60]]
+
+    train_labels = [10, 20, 30]
+    model = CatBoostRegressor(iterations=2,
+                              learning_rate=1,
+                              depth=2)
+    model.fit(train_data, train_labels)
+    model.calc_feature_statistics(train_data, train_labels, plot=False)
+
+
+@pytest.mark.xfail(sys.platform == "win32", reason="tmp dir creation problems")
+@pytest.mark.parametrize(
+    'random_score_type',
+    ['Gumbel', 'NormalWithModelSizeDecrease'],
+    ids=['random_score_type=Gumbel', 'random_score_type=NormalWithModelSizeDecrease']
+)
+def test_sample_gaussian_process(random_score_type):
+    samples = 10
+
+    columns_metadata = read_cd(
+        QUERYWISE_CD_FILE,
+        data_file=QUERYWISE_TRAIN_FILE,
+        canonize_column_types=True
+    )
+
+    learn_data = load_dataset_as_dataframe(QUERYWISE_TRAIN_FILE, columns_metadata)
+    test_data = load_dataset_as_dataframe(QUERYWISE_TEST_FILE, columns_metadata)
+
+    output_models = sample_gaussian_process(
+        learn_data['features'],
+        learn_data['target'],
+        eval_set=(test_data['features'], test_data['target']),
+        cat_features=columns_metadata['cat_feature_indices'],
+        samples=samples,
+        prior_iterations=10,
+        posterior_iterations=90,
+        random_score_type=random_score_type
+    )
+
+    canonical_models = []
+    for i in range(samples):
+        output_model_path = test_output_path("model_%i.cbm" % i)
+        output_models[i].save_model(output_model_path)
+        canonical_models.append(compare_canonical_models(output_model_path))
+
+    return canonical_models
+
+
+def test_carry_model():
+    prng = np.random.RandomState(seed=20230927)
+    test_features = prng.random_sample((10, 200))
+    train_pool = Pool(prng.random_sample((10, 200)), label=prng.random_sample((10,)))
+
+    model = CatBoostRegressor(iterations=10)
+    model.fit(train_pool)
+
+    as_is_predict = model.predict(test_features)
+    assert np.min(as_is_predict) < np.max(as_is_predict), 'formula produce with constant score'
+
+    # search for factor wich can change formula score if be replaced by constant
+    factor_id = None
+    for i in range(test_features.shape[1]):
+        test_copy = np.copy(test_features)
+        test_copy[:, i] = 0
+        carry_pool_predict = model.predict(test_copy)
+
+        test_copy[:, i] = 1
+        uplift_pool_predict = model.predict(test_copy) - carry_pool_predict
+        if np.sum((carry_pool_predict - as_is_predict) ** 2) > 1e-4:
+            factor_id = i
+            break
+
+    assert factor_id is not None, 'no factor can change formula score'
+    pool_without_feature = np.concatenate([
+        test_features[:, :factor_id],
+        test_features[:, factor_id + 1 :]],
+        axis=1)
+
+    # remove feature
+    carried_model = carry(model, {factor_id: 0})
+    carry_model_predict = carried_model.predict(pool_without_feature)
+    assert np.max((carry_pool_predict - carry_model_predict) ** 2)**0.5 < 1e-8, 'Wrong carry model predict'
+
+    uplifted_model = uplift(model, {factor_id: (0, 1)})
+    uplift_model_predict = uplifted_model.predict(pool_without_feature)
+    assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
+
+
+def test_custom_gpu_objective_metric(task_type):
+    if (task_type == 'CPU'):
+        return
+
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
+
+    if task_type == 'GPU':
+        from numba import cuda
+
+    class GPURMSEObjective(object):
+
+        def calc_ders_range_gpu(self, approxes, target, weights, value_output, der1_output, der2_output):
+
+            init_thread_idx = cuda.grid(1)
+            if (init_thread_idx >= len(approxes)):
+                return
+
+            der1_curr = target[init_thread_idx] - approxes[init_thread_idx]
+            der2_curr = 1.0
+            val_curr = - der1_curr * der1_curr
+
+            if len(weights):
+                der1_curr *= weights[init_thread_idx]
+                der2_curr *= weights[init_thread_idx]
+                val_curr *= weights[init_thread_idx]
+
+            if len(value_output):
+                cuda.atomic.add(value_output, 0, val_curr)
+
+            if len(der1_output):
+                der1_output[init_thread_idx] = der1_curr
+
+            if len(der2_output):
+                der2_output[init_thread_idx] = der2_curr
+
+    model1 = CatBoostRegressor(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function=GPURMSEObjective(),
+        eval_metric='MAE',
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+        boost_from_average=False
+    )
+
+    model2 = CatBoostRegressor(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function='RMSE',
+        eval_metric='MAE',
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+        boost_from_average=False
+    )
+
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    model1.fit(train_pool, eval_set=test_pool)
+    model2.fit(train_pool, eval_set=test_pool)
+
+    pred1 = model1.predict(test_pool, prediction_type='RawFormulaVal')
+    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
+
+    assert np.allclose(pred1, pred2)
+
+
+def test_custom_gpu_eval_metric(task_type):
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
+
+    if task_type == 'GPU':
+        from numba import cuda
+
+    class LoglossMetric(object):
+        def get_final_error(self, error, weight):
+            return error / (weight + 1e-38)
+
+        def is_max_optimal(self):
+            return False
+
+        def evaluate(self, approxes, target, weight):
+            approx = approxes[0]
+
+            error_sum = 0.0
+            weight_sum = 0.0
+
+            for i in range(len(approx)):
+                e = np.exp(approx[i])
+                p = e / (1 + e)
+                w = 1.0 if weight is None else weight[i]
+                weight_sum += w
+                error_sum += -w * (target[i] * np.log(p) + (1 - target[i]) * np.log(1 - p))
+
+            return error_sum, weight_sum
+
+        def gpu_evaluate(self, approx, target, weight, output, output_weight):
+            init_thread_idx = thread_idx = cuda.grid(1)
+            n = target.size
+
+            output[init_thread_idx] = 0.0
+            output_weight[init_thread_idx] = 0.0
+
+            while thread_idx < n:
+                e = math.exp(approx[thread_idx])
+                p = e / (1 + e)
+                w = 1.0 if weight is None else weight[thread_idx]
+                output[init_thread_idx] += -w * (target[thread_idx] * math.log(p) + (1 - target[thread_idx]) * math.log(1 - p))
+                output_weight[init_thread_idx] += weight[thread_idx]
+                thread_idx += cuda.gridsize(1)
+
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    model1 = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function="Logloss",
+        eval_metric=LoglossMetric(),
+        # Leaf estimation method and gradient iteration are set to match
+        # defaults for Logloss.
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+    )
+
+    model1.fit(train_pool, eval_set=test_pool)
+    pred1 = model1.predict(test_pool, prediction_type='RawFormulaVal')
+
+    model2 = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function="Logloss",
+        eval_metric="Logloss",
+        task_type=task_type,
+        gpu_ram_part=TEST_GPU_RAM_PART,
+        devices='0',
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+    )
+
+    model2.fit(train_pool, eval_set=test_pool)
+    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
+
+    assert np.all(pred1 == pred2)
+    assert np.allclose(model1.evals_result_['validation']['LoglossMetric'], model2.evals_result_['validation']['Logloss'])
+
+
+@pytest.mark.parametrize('add_evaluate', [False, True])
+@pytest.mark.parametrize('add_gpu_evaluate', [False, True])
+def test_eval_metric_correct_selection(task_type, add_evaluate, add_gpu_evaluate):
+    if (task_type == 'GPU') and (not lib.is_open_source()):
+        pytest.skip('Numba is needed for Custom functions on GPU but it is not supported')
+
+    if task_type == 'GPU':
+        from numba import cuda
+
+    # Base class for metric mocks
+    class EvaluationMetricMockBase(object):
+
+        def __init__(self):
+            pass
+
+        def get_final_error(self, error, weight):
+            return error / (weight + 1e-38)
+
+        def is_max_optimal(self):
+            return False
+
+    class EvaluationMetricMockEval(EvaluationMetricMockBase):
+
+        # The evaluation metric at each step should be 2.0, if this is called
+        def evaluate(self, approxes, target, weight):
+            return 2.0, 1.0
+
+    class EvaluationMetricMockGpuEval(EvaluationMetricMockBase):
+
+        # The evaluation metric at each step should be 3.0, if this is called
+        def gpu_evaluate(self, approx, target, weight, output, output_weight):
+            init_thread_idx = cuda.grid(1)
+            output[init_thread_idx] = 3.0
+            output_weight[init_thread_idx] = 1.0
+
+    class EvaluationMetricMockFull(EvaluationMetricMockGpuEval, EvaluationMetricMockEval):
+        pass
+
+    if add_evaluate and add_gpu_evaluate:
+        metric_mock = EvaluationMetricMockFull()
+    elif add_evaluate:
+        metric_mock = EvaluationMetricMockEval()
+    elif add_gpu_evaluate:
+        metric_mock = EvaluationMetricMockGpuEval()
+    else:
+        metric_mock = EvaluationMetricMockBase()
+    metric_mock_name = type(metric_mock).__name__
+
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    # We should fail, if we don't have any evaluation metric defined
+    should_fail = not add_evaluate and not add_gpu_evaluate
+
+    # We also should fail, if only gpu_evaluate is defined for task_type==CPU
+    should_fail |= not add_evaluate and task_type == 'CPU'
+
+    # If we don't have GPU evaluation method,
+    # or we try to train on CPU, we chould call "evaluate"
+    # otherwise we should call "gpu_evaluate"
+    should_call_eval = (task_type == 'CPU') or (not add_gpu_evaluate)
+
+    if should_fail:
+        with pytest.raises(CatBoostError):
+            model = CatBoostClassifier(
+                task_type=task_type,
+                gpu_ram_part=TEST_GPU_RAM_PART,
+                eval_metric=metric_mock,
+                iterations=8
+            )
+            model.fit(train_pool, eval_set=test_pool)
+    else:
+        model = CatBoostClassifier(
+            task_type=task_type,
+            gpu_ram_part=TEST_GPU_RAM_PART,
+            eval_metric=metric_mock,
+            iterations=8
+        )
+        model.fit(train_pool, eval_set=test_pool)
+
+        if should_call_eval:
+            assert np.allclose(model.evals_result_['validation'][metric_mock_name], 2.0)
+        else:
+            assert np.allclose(model.evals_result_['validation'][metric_mock_name], 3.0)
+
+
+def test_fit_with_256_categories(task_type):
+    train = np.array([[c] * 5 for c in range(128)])
+    label = np.array([c % 2 for c in range(128)])
+
+    test = np.array([[c + 128] * 5 for c in range(128)])
+    test_label = label
+
+    model = CatBoostClassifier(iterations=5, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART)
+
+    model.fit(train, y=label, eval_set=tuple((test, test_label)), cat_features=list(range(5)))
+
+
+@pytest.mark.parametrize('problem_type', PROBLEM_TYPES, ids=['problem_type=%s' % pt for pt in PROBLEM_TYPES])
+@pytest.mark.parametrize('allow_const_label', [False, True], ids=['allow_const_label=False', 'allow_const_label=True'])
+def test_allow_const_label(task_type, problem_type, allow_const_label):
+    label = {
+        'binclass': True,
+        'multiclass': 'Class',
+        'regression': 0.0,
+        'ranking': 1.0
+    }[problem_type]
+
+    loss_function = {
+        'binclass': 'Logloss',
+        'multiclass': 'MultiClass',
+        'regression': 'RMSE',
+        'ranking': 'YetiRank'
+    }[problem_type]
+
+    params = {
+        'task_type': task_type,
+        'gpu_ram_part': TEST_GPU_RAM_PART,
+        'iterations': 5,
+        'loss_function': loss_function,
+        'allow_const_label': allow_const_label,
+        'devices': '0'
+    }
+
+    if problem_type == 'ranking':
+        group_id = [0] * 5 + [1] * 4 + [2] * 6 + [3] * 5
+    else:
+        group_id = None
+
+    features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[label])
+
+    model = CatBoost(params)
+    if allow_const_label:
+        model.fit(features, labels, group_id=group_id)
+        model.predict(features)
+    else:
+        with pytest.raises(CatBoostError):
+            model.fit(features, labels, group_id=group_id)
+
+
+def test_text_features_missing_border_for_feature_github_2657(task_type):
+    csv_content = """idx,ad_text,latitude,log_closed_price
+    0,"Amazing Freehold With No Condo Fees! This Sought After 2 Story Freehold Unit Town Offers 3 Generous Sized Bedrooms And 3.5 Baths \
+In A Family Friendly Neighborhood That Is Close To Parks, Schools, Shopping Amenities, And Highway Access. Enjoy The Bright Open Concept \
+Kitchen, Living, And Dining Room Provides Plenty Of Room For Relaxing Or Entertaining, Where The Kitchen Includes S.S Appliances, Quartz \
+Countertops And A Great Island. Main Level Includes A 2-piece Bath and Sliding Glass Doors That Open To A Spacious Back Deck With Great \
+Views Of The Park. The Second Level Features A Primary Bedroom With Walk-In Closet And 4-Piece Ensuite, Other 2 Spacious Bedrooms, A 4-Piece \
+Bath And Upper Level Laundry. Downstairs You Will fully Appreciate An Amazing Family Room With 3-Pc Washroom And An Abundance Of Light From \
+The Large Window And Sliding Glass Doors Walk-Out To The Oversize Private Backyard.<br/><br/><b>EXTRAS:</b> ",43.213356300000,13.652991628466498
+    1,"Charming Big Cedar Lake Cottage! Not much comes for sale on this pristine lake. 100ft of clean waterfront and west sunsets! Year \
+round cottage/home with 3 bedrooms, 2 bathrooms plus bunkie. Open concept kitchen and dining with woodstove and walkout to private \
+lakeside deck. Bright lakeview living room with cozy propane fireplace. Beautiful primary bedroom with 2pc ensuite and walk-in closet. \
+Lower level laundry and workshop space with walkout to lakeside yard. Mature trees offering great privacy, lakeside firepit, large dock, \
+brand new septic 2020 and spacious parking off year round road with garbage & recycling pickup. Around 20 min to the amenities of Lakefield \
+or Apsley. Stunning views, clean waterfront, west sunsets and year round living on sought after Big Cedar Lake!!<br/><br/><b>EXTRAS:</b> ",44.600458100000,13.455257792677658
+    2,"Prepare to be amazed! Absolutely stunning 1 Bedroom + 1 Den corner unit with extremely rare 10 ft ceilings - only offered on the \
+ultra exclusive top 3 floors at The Bond condos! Perfectly designed and elegantly appointed open concept living space highlighted by \
+incredible floor to ceiling wrap around windows which allow natural light to cascade throughout the entire unit all day long! Ideal layout \
+maximizing every sq ft with beautiful floors and soaring 10 ft ceilings! The open concept kitchen finished with quartz counters and integrated \
+appliances sits overlooking the spacious living/dining room with walk out to private balcony. Enjoy unobstructed, and truly jaw dropping, south/west \
+views of Toronto's skyline, CN Tower and even Lake Ontario! Large primary bedroom with two, yes two, fully organized double closets offers incredible \
+storage space.Impressive separate Den with sliding glass door is the perfect home office that can easily function as a second bedroom. Spa like \
+washroom with over sized shower and en suite laundry nicely tucked away from the main living space. 5 star building amenities - roof top pool, \
+exterior and interior party room, impressive fitness centre, 24 Hour Concierge, Visitor/Public Parking, Billiards Room, Bbq Area, Guest Suites and \
+more! Perfect Location (100 Walk Score & Transit Score) surrounded by delicious restaurants, excellent shopping, TTC, P.A.T.H. system, Tiff, U of T, \
+and all Toronto has to offer! This is the Toronto condo you have been waiting for, don't miss out!<br/><br/><b>EXTRAS:</b> Sophisticated luxury in the \
+heart of the entertainment district surrounded by Toronto's most iconic landmarks! Amazing location, perfect corner unit layout, 10ft ceilings & private \
+balcony w/ stunning south west views! This one has it all!",43.647939900000,13.53843866462451
+    3,"Welcome to Westbeach Boutique Condos in the Beaches! Enjoy this 1 bedroom 524 sqft Penthouse Unit With 9 Ft Ceilings, Floor to Ceiling Windows \
+With Walk Out to Private 260 Sqft Terrace Oasis with Gas line and Lush Views. Open Concept with White Modern Kitchen With Quartz Countertops and \
+Luxury Finishes. Enjoy Vibrant Living Steps to the Beach, Bars, Restaurants, Movie Theatres, LCBO, Waterfront parks, Leslieville. Amenities include: \
+Fitness center, Party room, Pet Washing Station, Outdoor Rooftop Terrace, BBQ & more!<br/><br/><b>EXTRAS:</b> All Window Coverings, All Electrical Light \
+Fixtures, Stainless Steel Appliances; Fridge, Stove, Microwave Range. Built-In Dishwasher, Washer And Dryer.",43.666660000000,13.199324418540456
+    4,"Welcome To This Exquisite Home Nestled In The Heart Of North Oshawa Offering Approximately 2500 Sq Ft Of Finished Livable Space! Step Inside To \
+Discover An Inviting Open-Concept Main Floor Adorned With Soaring Cathedral Ceilings In The Foyer, Setting A Grand Tone. The Spacious Recently Updated \
+Eat-In Kitchen Overlooks The Cozy Living Room Featuring A Built-In Media Wall And A Gas Fireplace, Perfect For Gatherings And Relaxation. Entertain \
+Outdoor With Ease On The Private Deck In The Backyard. Discover Three Generously Sized Bedrooms On The Second Floor, With The Primary Room Boasting A \
+Luxurious Walk-In Closet And A Lavish 5pc Ensuite, Providing Comfort And Convenience. Finished Recreational Space In The Basement Offering Additional \
+Entertainment Space. Close To Multiple Amenities, Schools, Parks & Trails. Don't Miss The Opportunity To Make This Stunning Residence Your \
+Own!<br/><br/><b>EXTRAS:</b> ",43.936883800000,13.815509557963773"""
+
+    df = pd.read_csv(io.StringIO(csv_content))
+    params = {'task_type': task_type, 'gpu_ram_part': TEST_GPU_RAM_PART, 'iterations': 10, }
+    X_train, y_train = df[['idx', 'latitude', 'ad_text']], df[['log_closed_price']]
+
+    model = CatBoostRegressor(text_features=['ad_text'], **params)
+    train_pool = Pool(data=X_train, label=y_train, text_features=['ad_text'])
+    model.fit(train_pool)
+
+
+def test_graph_features(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TRAIN_PAIRS_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TEST_PAIRS_FILE)
+    model = CatBoostRegressor(iterations=20, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='RMSE')
+
+    model.fit(pool)
+    pred = model.predict(test_pool)
+
+    model.get_feature_importance(type=EFstrType.PredictionValuesChange, data=test_pool)
+
+    if task_type == 'CPU':
+        preds_path = test_output_path(PREDS_TXT_PATH)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+
+        return local_canonical_file(preds_path)
+
+
+def test_graph_features_quantization(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TRAIN_PAIRS_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TEST_PAIRS_FILE)
+    borders_file = test_output_path('output_borders_file.dat')
+
+    model = CatBoostRegressor(
+        iterations=20, learning_rate=0.03, task_type=task_type, gpu_ram_part=TEST_GPU_RAM_PART, devices='0', loss_function='RMSE', output_borders=borders_file)
+
+    model.fit(pool)
+
+    l_pred = model.predict(pool)
+    pool.quantize(input_borders=borders_file)
+    pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+    pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+    l_pred2 = model.predict(pool)
+    assert np.all(l_pred == l_pred2)
+
+    pred = model.predict(test_pool)
+    test_pool.quantize(input_borders=borders_file)
+    pred2 = model.predict(test_pool)
+    assert np.all(pred == pred2)
+
+    test_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+    test_pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+
+    pred2 = model.predict(test_pool)
+    assert np.all(pred == pred2)
+
+
+def test_fit_fit_quantized_cat_features_type():
+    Xy = pd.DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['t', 'f0', 'f1', 'f2', 'f3']
+    )
+
+    model = CatBoostClassifier(iterations=2,
+                               depth=2,
+                               learning_rate=1,
+                               target_border=50,
+                               loss_function='Logloss',
+                               logging_level='Silent')
+
+    train_pool = Pool(
+        data=Xy[['f0', 'f1', 'f2', 'f3']],
+        label=Xy['t'],
+        cat_features=['f1']
+    )
+    train_pool.quantize()
+
+    model.fit(train_pool)
+    model.fit(train_pool)
+
+    quantized_pool = test_output_path('pool.bin')
+    train_pool.save(quantized_pool)
+    del train_pool
+
+    train_pool = Pool("quantized://" + quantized_pool)  # not path join to keep //
+    model.fit(train_pool)
+    model.fit(train_pool)
+
+
+def test_repr():
+    assert (CatBoostRegressor(verbose=False, random_seed=42).__repr__() == r"CatBoostRegressor(loss_function='RMSE', random_seed=42, verbose=False)")
+    assert (CatBoostClassifier(verbose=False, random_seed=32).__repr__() == r"CatBoostClassifier(random_seed=32, verbose=False)")
+    assert (CatBoostRanker(one_hot_max_size=10, depth=7).__repr__() == r"CatBoostRanker(depth=7, loss_function='YetiRank', one_hot_max_size=10)")

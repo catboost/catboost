@@ -146,7 +146,7 @@ namespace {
             }
         }
     };
-}
+} // namespace
 
 template <class TChar>
 TBasicString<TChar>& EscapeCImpl(const TChar* str, size_t len, TBasicString<TChar>& r) {
@@ -224,7 +224,7 @@ namespace {
 
         return maxsz;
     }
-}
+} // namespace
 
 template <class TChar, class TStr>
 static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {

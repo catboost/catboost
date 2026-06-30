@@ -4,6 +4,12 @@
 #include "typelist.h"
 #include "vector.h"
 
+template <class A, class B>
+void UnitAssertTypesEqual()
+{
+    UNIT_ASSERT_TYPES_EQUAL(A, B);
+}
+
 class TTypeListTest: public TTestBase {
     UNIT_TEST_SUITE(TTypeListTest);
     UNIT_TEST(TestSimple);
@@ -11,6 +17,9 @@ class TTypeListTest: public TTestBase {
     UNIT_TEST(TestGet);
     UNIT_TEST(TestFloatList);
     UNIT_TEST(TestSelectBy);
+    UNIT_TEST(TestUnique);
+    UNIT_TEST(TestUniqueTypeList);
+    UNIT_TEST(TestConcat);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -78,6 +87,36 @@ public:
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<i32>, float);
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<ui64>, double);
         UNIT_ASSERT_TYPES_EQUAL(TFixedWidthFloat<i64>, double);
+    }
+
+    void TestUnique() {
+        UnitAssertTypesEqual<NTL::TUnique<TSignedInts>::type, TSignedInts>();
+        UnitAssertTypesEqual<typename NTL::TUnique<typename NTL::TConcat<TSignedInts, TSignedInts>::type>::type, TSignedInts>();
+    }
+
+    void TestUniqueTypeList() {
+        UnitAssertTypesEqual<TUniqueTypeList<int>, TTypeList<int>>();
+        UnitAssertTypesEqual<TUniqueTypeList<int, int, int, int, int, int, int, int, int>, TTypeList<int>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts>, TTypeList<TSignedInts>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TTypeList<TSignedInts>>();
+        UnitAssertTypesEqual<TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts, TSignedInts>, TUniqueTypeList<TSignedInts, TSignedInts, TSignedInts>>();
+    }
+
+    void TestConcat() {
+        using TFirstListType = TTypeList<TA, TB*>;
+        using TSecondListType = TTypeList<const TC&>;
+        using TThirdListType = TTypeList<int, double, TA>;
+        using TListType = NTL::TConcat<TFirstListType, TSecondListType, TThirdListType>::type;
+
+        UNIT_ASSERT(TListType::THave<TA>::value);
+        UNIT_ASSERT(TListType::THave<TB*>::value);
+        UNIT_ASSERT(TListType::THave<int>::value);
+        UNIT_ASSERT(TListType::THave<double>::value);
+        UNIT_ASSERT(!TListType::THave<std::string>::value);
+        UNIT_ASSERT(!TListType::THave<TB>::value);
+        UNIT_ASSERT(TListType::THave<const TC&>::value);
+        UNIT_ASSERT(!TListType::THave<TC&>::value);
+        UNIT_ASSERT_VALUES_EQUAL(TListType::Length, TFirstListType::Length + TSecondListType::Length + TThirdListType::Length);
     }
 };
 

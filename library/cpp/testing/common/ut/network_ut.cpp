@@ -1,20 +1,38 @@
+#include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/common/network.h>
 #include <library/cpp/testing/common/scope.h>
+#include <library/cpp/testing/gtest/gtest.h>
 
 #include <util/generic/hash_set.h>
 
 #include <util/folder/dirut.h>
 #include <util/folder/path.h>
 #include <util/folder/tempdir.h>
+#include <util/generic/scope.h>
 #include <util/network/sock.h>
+#include <util/system/file.h>
 #include <util/system/fs.h>
+#include <util/system/sysstat.h>
 
-#include <library/cpp/testing/gtest/gtest.h>
+class NetworkTestBase: public ::testing::Test {
+protected:
+    void SetUp() override {
+        TmpDir.ConstructInPlace();
+    }
 
-static TTempDir TmpDir;
+    void TearDown() override {
+        TmpDir.Clear();
+    }
 
-TEST(NetworkTest, FreePort) {
-    NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir.Name());
+public:
+    TMaybe<TTempDir> TmpDir;
+};
+
+class NetworkTest: public NetworkTestBase {};
+class FreePortTest: public NetworkTestBase {};
+
+TEST_F(NetworkTest, FreePort) {
+    NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir->Name());
     NTesting::InitPortManagerFromEnv();
     TVector<NTesting::TPortHolder> ports(Reserve(100));
 
@@ -24,7 +42,7 @@ TEST(NetworkTest, FreePort) {
 
     THashSet<ui16> uniqPorts;
     for (auto& port : ports) {
-        const TString guardPath = TmpDir.Path() / ToString(static_cast<ui16>(port));
+        const TString guardPath = TmpDir->Path() / ToString(static_cast<ui16>(port));
         EXPECT_TRUE(NFs::Exists(guardPath));
         EXPECT_TRUE(uniqPorts.emplace(port).second);
 
@@ -35,16 +53,16 @@ TEST(NetworkTest, FreePort) {
     }
     ports.clear();
     for (ui16 port : uniqPorts) {
-        const TString guardPath = TmpDir.Path() / ToString(port);
+        const TString guardPath = TmpDir->Path() / ToString(port);
         EXPECT_FALSE(NFs::Exists(guardPath));
     }
 }
 
-TEST(NetworkTest, FreePortWithinRanges) {
+TEST_F(NetworkTest, FreePortWithinRanges) {
     NTesting::TScopedEnvironment envGuard{{
-            {"PORT_SYNC_PATH", TmpDir.Name()},
-            {"VALID_PORT_RANGE", "3456:7654"},
-        }};
+        {"PORT_SYNC_PATH", TmpDir->Name()},
+        {"VALID_PORT_RANGE", "3456:7654"},
+    }};
     NTesting::InitPortManagerFromEnv();
 
     for (size_t i = 0; i < 100; ++i) {
@@ -55,11 +73,11 @@ TEST(NetworkTest, FreePortWithinRanges) {
     }
 }
 
-TEST(NetworkTest, GetPortRandom) {
+TEST_F(NetworkTest, GetPortRandom) {
     NTesting::TScopedEnvironment envGuard{{
-            {"PORT_SYNC_PATH", TmpDir.Name()},
-            {"NO_RANDOM_PORTS", ""},
-        }};
+        {"PORT_SYNC_PATH", TmpDir->Name()},
+        {"NO_RANDOM_PORTS", ""},
+    }};
     NTesting::InitPortManagerFromEnv();
 
     ui16 testPort = 80; // value just must be outside the assignable range
@@ -70,11 +88,11 @@ TEST(NetworkTest, GetPortRandom) {
     }
 }
 
-TEST(NetworkTest, GetPortNonRandom) {
+TEST_F(NetworkTest, GetPortNonRandom) {
     NTesting::TScopedEnvironment envGuard{{
-            {"PORT_SYNC_PATH", TmpDir.Name()},
-            {"NO_RANDOM_PORTS", "1"},
-        }};
+        {"PORT_SYNC_PATH", TmpDir->Name()},
+        {"NO_RANDOM_PORTS", "1"},
+    }};
     NTesting::InitPortManagerFromEnv();
 
     TVector<ui16> ports(Reserve(100)); // keep integers, we don't need the ports to remain allocated
@@ -91,9 +109,36 @@ TEST(NetworkTest, GetPortNonRandom) {
     }
 }
 
+TEST_F(NetworkTest, Permissions) {
+    constexpr ui16 loPort = 3456;
+    constexpr ui16 hiPort = 7654;
+    NTesting::TScopedEnvironment envGuard{{
+        {"PORT_SYNC_PATH", TmpDir->Name()},
+        {"VALID_PORT_RANGE", ToString(loPort) + ":" + ToString(hiPort)},
+    }};
+    NTesting::InitPortManagerFromEnv();
+    TVector<NTesting::TPortHolder> ports(Reserve(100));
+    for (ui64 port = loPort; port <= hiPort; ++port) {
+        const TString guardPath = TmpDir->Path() / ToString(static_cast<ui16>(port));
+        TFile f{guardPath, OpenAlways | RdOnly};
+        ASSERT_TRUE(f.IsOpen());
+        ASSERT_TRUE(Chmod(f.GetName().c_str(), 0444) != -1);
+    }
+    Y_DEFER {
+        Chmod(TmpDir->Path().c_str(), NFs::FP_COMMON_FILE);
+    };
+    ASSERT_TRUE(Chmod(TmpDir->Path().c_str(), 0555) != -1) << errno << " " << strerror(errno); // Lock dir
+    for (size_t i = 0; i < 100; ++i) {
+        NTesting::TPortHolder p;
+        EXPECT_NO_THROW(p = NTesting::GetFreePort());
+        ui16 port = p;
+        ASSERT_GE(port, 3456u);
+        ASSERT_LE(port, 7654u);
+    }
+}
 
-TEST(FreePortTest, FreePortsRange) {
-    NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir.Name());
+TEST_F(FreePortTest, FreePortsRange) {
+    NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir->Name());
     NTesting::InitPortManagerFromEnv();
 
     for (ui16 i = 2; i < 10; ++i) {

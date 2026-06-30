@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzma2_encoder.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -160,8 +159,7 @@ lzma2_encode(void *coder_ptr, lzma_mf *restrict mf,
 		coder->uncompressed_size = 0;
 		coder->compressed_size = 0;
 		coder->sequence = SEQ_LZMA_ENCODE;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_LZMA_ENCODE: {
 		// Calculate how much more uncompressed data this chunk
@@ -220,9 +218,8 @@ lzma2_encode(void *coder_ptr, lzma_mf *restrict mf,
 		lzma2_header_lzma(coder);
 
 		coder->sequence = SEQ_LZMA_COPY;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_LZMA_COPY:
 		// Copy the compressed chunk along its headers to the
@@ -245,8 +242,7 @@ lzma2_encode(void *coder_ptr, lzma_mf *restrict mf,
 			return LZMA_OK;
 
 		coder->sequence = SEQ_UNCOMPRESSED_COPY;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_UNCOMPRESSED_COPY:
 		// Copy the uncompressed data as is from the dictionary
@@ -408,6 +404,9 @@ extern uint64_t
 lzma_lzma2_block_size(const void *options)
 {
 	const lzma_options_lzma *const opt = options;
+
+	if (!IS_ENC_DICT_SIZE_VALID(opt->dict_size))
+		return UINT64_MAX;
 
 	// Use at least 1 MiB to keep compression ratio better.
 	return my_max((uint64_t)(opt->dict_size) * 3, UINT64_C(1) << 20);

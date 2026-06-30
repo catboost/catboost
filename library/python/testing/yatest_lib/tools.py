@@ -5,13 +5,14 @@ import sys
 def to_utf8(value):
     """
     Converts value to string encoded into utf-8
+
     :param value:
     :return:
     """
     if sys.version_info[0] < 3:
         if not isinstance(value, basestring):  # noqa
             value = unicode(value)  # noqa
-        if type(value) == str:
+        if isinstance(value, str):
             value = value.decode("utf-8", errors="ignore")
         return value.encode('utf-8', 'ignore')
     else:
@@ -23,6 +24,7 @@ def trim_string(s, max_bytes):
     Adjusts the length of the string s in order to fit it
     into max_bytes bytes of storage after encoding as UTF-8.
     Useful when cutting filesystem paths.
+
     :param s: unicode string
     :param max_bytes: number of bytes
     :return the prefix of s

@@ -7,6 +7,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <util/ysaveload.h>
+
 #include <optional>
 
 namespace NYT {
@@ -55,8 +57,8 @@ public:
     { }
 
     //! Constructs an empty TSharedRange from a nullptr expression.
-    TSharedRange(nullptr_t)
-        : TRange<T>(nullptr, 0UL)
+    TSharedRange(std::nullptr_t)
+        : TRange<T>(nullptr, static_cast<size_t>(0))
         , Holder_(nullptr)
     { }
 
@@ -98,6 +100,26 @@ public:
         , Holder_(std::move(holder))
     { }
 
+    TSharedRange(const TSharedRange& other) = default;
+
+    TSharedRange(TSharedRange&& other) noexcept
+        : TSharedRange()
+    {
+        other.Swap(*this);
+    }
+
+    TSharedRange& operator=(TSharedRange other) noexcept
+    {
+        other.Swap(*this);
+        return *this;
+    }
+
+    void Swap(TSharedRange& other) noexcept
+    {
+        DoSwap(TRange<T>::Data_, other.Data_);
+        DoSwap(TRange<T>::Length_, other.Length_);
+        Holder_.Swap(other.Holder_);
+    }
 
     void Reset()
     {
@@ -120,7 +142,7 @@ public:
         return TSharedRange<T>(begin, end, Holder_);
     }
 
-    const TSharedRangeHolderPtr& GetHolder() const
+    const TSharedRangeHolderPtr& GetHolder() const Y_LIFETIME_BOUND
     {
         return Holder_;
     }
@@ -158,25 +180,34 @@ TSharedRangeHolderPtr MakeSharedRangeHolder(THolders&&... holders)
 template <class T, class TContainer, class... THolders>
 TSharedRange<T> DoMakeSharedRange(TContainer&& elements, THolders&&... holders)
 {
+    using THoldersTuple = std::tuple<typename std::decay_t<THolders>...>;
+
     struct THolder
         : public TSharedRangeHolder
     {
-        typename std::decay<TContainer>::type Elements;
-        std::tuple<typename std::decay<THolders>::type...> Holders;
+        typename std::decay_t<TContainer> Elements;
+        THoldersTuple Holders;
+
+        THolder(
+            std::decay_t<TContainer> elements,
+            THoldersTuple holders)
+            : Elements(std::move(elements))
+            , Holders(std::move(holders))
+        { }
     };
 
-    auto holder = New<THolder>();
-    holder->Holders = std::tuple<THolders...>(std::forward<THolders>(holders)...);
-    holder->Elements = std::forward<TContainer>(elements);
+    auto holder = New<THolder>(
+        std::forward<TContainer>(elements),
+        THoldersTuple(std::forward<THolders>(holders)...));
 
-    auto range = MakeRange<T>(holder->Elements);
+    auto range = TRange<T>(holder->Elements);
 
     return TSharedRange<T>(range, std::move(holder));
 }
 
 //! Constructs a TSharedRange by taking ownership of an std::vector.
-template <class T, class... THolders>
-TSharedRange<T> MakeSharedRange(std::vector<T>&& elements, THolders&&... holders)
+template <class T, class A = std::allocator<T>, class... THolders>
+TSharedRange<T> MakeSharedRange(std::vector<T, A>&& elements, THolders&&... holders)
 {
     return DoMakeSharedRange<T>(std::move(elements), std::forward<THolders>(holders)...);
 }
@@ -189,8 +220,8 @@ TSharedRange<T> MakeSharedRange(TCompactVector<T, N>&& elements, THolders&&... h
 }
 
 //! Constructs a TSharedRange by copying an std::vector.
-template <class T, class... THolders>
-TSharedRange<T> MakeSharedRange(const std::vector<T>& elements, THolders&&... holders)
+template <class T, class A = std::allocator<T>, class... THolders>
+TSharedRange<T> MakeSharedRange(const std::vector<T, A>& elements, THolders&&... holders)
 {
     return DoMakeSharedRange<T>(elements, std::forward<THolders>(holders)...);
 }
@@ -212,7 +243,7 @@ TSharedRange<U> ReinterpretCastRange(const TSharedRange<T>& range)
 {
     static_assert(sizeof(T) == sizeof(U), "T and U must have equal sizes.");
     return TSharedRange<U>(reinterpret_cast<const U*>(range.Begin()), range.Size(), range.GetHolder());
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -265,6 +296,26 @@ public:
         , Holder_(std::move(holder))
     { }
 
+    TSharedMutableRange(const TSharedMutableRange& other) = default;
+
+    TSharedMutableRange(TSharedMutableRange&& other) noexcept
+        : TSharedMutableRange()
+    {
+        other.Swap(*this);
+    }
+
+    TSharedMutableRange& operator=(TSharedMutableRange other) noexcept
+    {
+        other.Swap(*this);
+        return *this;
+    }
+
+    void Swap(TSharedMutableRange& other) noexcept
+    {
+        DoSwap(TRange<T>::Data_, other.Data_);
+        DoSwap(TRange<T>::Length_, other.Length_);
+        Holder_.Swap(other.Holder_);
+    }
 
     void Reset()
     {
@@ -287,7 +338,7 @@ public:
         return TSharedMutableRange<T>(begin, end, Holder_);
     }
 
-    TSharedRangeHolderPtr GetHolder() const
+    const TSharedRangeHolderPtr& GetHolder() const Y_LIFETIME_BOUND
     {
         return Holder_;
     }

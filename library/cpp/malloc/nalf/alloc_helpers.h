@@ -9,17 +9,17 @@ struct TNoHeapAlloc {
     // implemented and available for gcc virtual destructors
 protected:
     void operator delete(void*) {
-        Y_FAIL();
+        Y_ABORT();
     }
     void operator delete[](void*) {
-        Y_FAIL();
+        Y_ABORT();
     }
 
     void operator delete(void*, const std::nothrow_t&) {
-        Y_FAIL();
+        Y_ABORT();
     }
     void operator delete[](void*, const std::nothrow_t&) {
-        Y_FAIL();
+        Y_ABORT();
     }
 };
 
@@ -29,12 +29,12 @@ struct TSystemAllocHelper {
     // (allocator themself)
 
     void* operator new(size_t sz) {
-        Y_VERIFY(sz == sizeof(TFinal));
+        Y_ABORT_UNLESS(sz == sizeof(TFinal));
         return NNumaAwareLockFreeAllocator::SystemAllocation(sz);
     }
 
     void* operator new[](size_t sz) {
-        Y_VERIFY(sz == sizeof(TFinal));
+        Y_ABORT_UNLESS(sz == sizeof(TFinal));
         return NNumaAwareLockFreeAllocator::SystemAllocation(sz);
     }
 
@@ -109,7 +109,7 @@ struct TNalfAllocator {
     ~TNalfAllocator() noexcept = default;
 
     template <typename U>
-    explicit TNalfAllocator(TNalfAllocator<U, Hint>) noexcept {};
+    explicit TNalfAllocator(TNalfAllocator<U, Hint>) noexcept {}
     template <typename U>
     struct rebind { typedef TNalfAllocator<U, Hint> other; };
 

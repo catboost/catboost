@@ -1,5 +1,5 @@
-#ifndef _ASM_X86_UNISTD_X32_H
-#define _ASM_X86_UNISTD_X32_H 1
+#ifndef _ASM_UNISTD_X32_H
+#define _ASM_UNISTD_X32_H
 
 #define __NR_read (__X32_SYSCALL_BIT + 0)
 #define __NR_write (__X32_SYSCALL_BIT + 1)
@@ -289,6 +289,7 @@
 #define __NR_statx (__X32_SYSCALL_BIT + 332)
 #define __NR_io_pgetevents (__X32_SYSCALL_BIT + 333)
 #define __NR_rseq (__X32_SYSCALL_BIT + 334)
+#define __NR_uretprobe (__X32_SYSCALL_BIT + 335)
 #define __NR_pidfd_send_signal (__X32_SYSCALL_BIT + 424)
 #define __NR_io_uring_setup (__X32_SYSCALL_BIT + 425)
 #define __NR_io_uring_enter (__X32_SYSCALL_BIT + 426)
@@ -301,8 +302,38 @@
 #define __NR_fspick (__X32_SYSCALL_BIT + 433)
 #define __NR_pidfd_open (__X32_SYSCALL_BIT + 434)
 #define __NR_clone3 (__X32_SYSCALL_BIT + 435)
+#define __NR_close_range (__X32_SYSCALL_BIT + 436)
 #define __NR_openat2 (__X32_SYSCALL_BIT + 437)
 #define __NR_pidfd_getfd (__X32_SYSCALL_BIT + 438)
+#define __NR_faccessat2 (__X32_SYSCALL_BIT + 439)
+#define __NR_process_madvise (__X32_SYSCALL_BIT + 440)
+#define __NR_epoll_pwait2 (__X32_SYSCALL_BIT + 441)
+#define __NR_mount_setattr (__X32_SYSCALL_BIT + 442)
+#define __NR_quotactl_fd (__X32_SYSCALL_BIT + 443)
+#define __NR_landlock_create_ruleset (__X32_SYSCALL_BIT + 444)
+#define __NR_landlock_add_rule (__X32_SYSCALL_BIT + 445)
+#define __NR_landlock_restrict_self (__X32_SYSCALL_BIT + 446)
+#define __NR_memfd_secret (__X32_SYSCALL_BIT + 447)
+#define __NR_process_mrelease (__X32_SYSCALL_BIT + 448)
+#define __NR_futex_waitv (__X32_SYSCALL_BIT + 449)
+#define __NR_set_mempolicy_home_node (__X32_SYSCALL_BIT + 450)
+#define __NR_cachestat (__X32_SYSCALL_BIT + 451)
+#define __NR_fchmodat2 (__X32_SYSCALL_BIT + 452)
+#define __NR_map_shadow_stack (__X32_SYSCALL_BIT + 453)
+#define __NR_futex_wake (__X32_SYSCALL_BIT + 454)
+#define __NR_futex_wait (__X32_SYSCALL_BIT + 455)
+#define __NR_futex_requeue (__X32_SYSCALL_BIT + 456)
+#define __NR_statmount (__X32_SYSCALL_BIT + 457)
+#define __NR_listmount (__X32_SYSCALL_BIT + 458)
+#define __NR_lsm_get_self_attr (__X32_SYSCALL_BIT + 459)
+#define __NR_lsm_set_self_attr (__X32_SYSCALL_BIT + 460)
+#define __NR_lsm_list_modules (__X32_SYSCALL_BIT + 461)
+#define __NR_mseal (__X32_SYSCALL_BIT + 462)
+#define __NR_setxattrat (__X32_SYSCALL_BIT + 463)
+#define __NR_getxattrat (__X32_SYSCALL_BIT + 464)
+#define __NR_listxattrat (__X32_SYSCALL_BIT + 465)
+#define __NR_removexattrat (__X32_SYSCALL_BIT + 466)
+#define __NR_open_tree_attr (__X32_SYSCALL_BIT + 467)
 #define __NR_rt_sigaction (__X32_SYSCALL_BIT + 512)
 #define __NR_rt_sigreturn (__X32_SYSCALL_BIT + 513)
 #define __NR_ioctl (__X32_SYSCALL_BIT + 514)
@@ -341,4 +372,4 @@
 #define __NR_pwritev2 (__X32_SYSCALL_BIT + 547)
 
 
-#endif /* _ASM_X86_UNISTD_X32_H */
+#endif /* _ASM_UNISTD_X32_H */

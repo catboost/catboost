@@ -70,129 +70,128 @@ static bool operator==(const TBlob& l, const TBlob& r) {
 Y_UNIT_TEST_SUITE(BinSaver){
     Y_UNIT_TEST(HasTrivialSerializer){
         UNIT_ASSERT(!IBinSaver::HasNonTrivialSerializer<TBinarySerializable>(0u));
-UNIT_ASSERT(!IBinSaver::HasNonTrivialSerializer<TNonBinarySerializable>(0u));
-UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomSerializer>(0u));
-UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializer>(0u));
-UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmpl>(0u));
-UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmplDerived>(0u));
-UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TVector<TCustomSerializer>>(0u));
-}
-
-
-Y_UNIT_TEST(TestStroka) {
-    TestBinSaverSerialization(TString("QWERTY"));
-}
-
-Y_UNIT_TEST(TestMoveOnlyType) {
-    TestBinSaverSerializationToBuffer(TMoveOnlyType());
-}
-
-Y_UNIT_TEST(TestVectorStrok) {
-    TestBinSaverSerialization(TVector<TString>{"A", "B", "C"});
-}
-
-Y_UNIT_TEST(TestCArray) {
-    TestBinSaverSerialization(TTypeWithArray());
-}
-
-Y_UNIT_TEST(TestSets) {
-    TestBinSaverSerialization(THashSet<TString>{"A", "B", "C"});
-    TestBinSaverSerialization(TSet<TString>{"A", "B", "C"});
-}
-
-Y_UNIT_TEST(TestMaps) {
-    TestBinSaverSerialization(THashMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
-    TestBinSaverSerialization(TMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
-}
-
-Y_UNIT_TEST(TestBlob) {
-    TestBinSaverSerialization(TBlob::FromStringSingleThreaded("qwerty"));
-}
-
-Y_UNIT_TEST(TestVariant) {
-    {
-        using T = std::variant<TString, int>;
-
-        TestBinSaverSerialization(T(TString("")));
-        TestBinSaverSerialization(T(0));
+        UNIT_ASSERT(!IBinSaver::HasNonTrivialSerializer<TNonBinarySerializable>(0u));
+        UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomSerializer>(0u));
+        UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializer>(0u));
+        UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmpl>(0u));
+        UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TCustomOuterSerializerTmplDerived>(0u));
+        UNIT_ASSERT(IBinSaver::HasNonTrivialSerializer<TVector<TCustomSerializer>>(0u));
     }
-    {
-        using T = std::variant<TString, int, float>;
 
-        TestBinSaverSerialization(T(TString("ask")));
-        TestBinSaverSerialization(T(12));
-        TestBinSaverSerialization(T(0.64f));
+
+    Y_UNIT_TEST(TestTString) {
+        TestBinSaverSerialization(TString("QWERTY"));
     }
-}
 
-Y_UNIT_TEST(TestPod) {
-    struct TPod {
-        ui32 A = 5;
-        ui64 B = 7;
-        bool operator==(const TPod& other) const {
-            return A == other.A && B == other.B;
+    Y_UNIT_TEST(TestMoveOnlyType) {
+        TestBinSaverSerializationToBuffer(TMoveOnlyType());
+    }
+
+    Y_UNIT_TEST(TestVectorOfStrings) {
+        TestBinSaverSerialization(TVector<TString>{"A", "B", "C"});
+    }
+
+    Y_UNIT_TEST(TestCArray) {
+        TestBinSaverSerialization(TTypeWithArray());
+    }
+
+    Y_UNIT_TEST(TestSets) {
+        TestBinSaverSerialization(THashSet<TString>{"A", "B", "C"});
+        TestBinSaverSerialization(TSet<TString>{"A", "B", "C"});
+    }
+
+    Y_UNIT_TEST(TestMaps) {
+        TestBinSaverSerialization(THashMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
+        TestBinSaverSerialization(TMap<TString, ui32>{{"A", 1}, {"B", 2}, {"C", 3}});
+    }
+
+    Y_UNIT_TEST(TestBlob) {
+        TestBinSaverSerialization(TBlob::FromStringSingleThreaded("qwerty"));
+    }
+
+    Y_UNIT_TEST(TestVariant) {
+        {
+            using T = std::variant<TString, int>;
+
+            TestBinSaverSerialization(T(TString("")));
+            TestBinSaverSerialization(T(0));
         }
-    };
-    TestBinSaverSerialization(TPod());
-    TPod custom;
-    custom.A = 25;
-    custom.B = 37;
-    TestBinSaverSerialization(custom);
-    TestBinSaverSerialization(TVector<TPod>{custom});
-}
+        {
+            using T = std::variant<TString, int, float>;
 
-Y_UNIT_TEST(TestSubPod) {
-    struct TPod {
-        struct TSub {
-            ui32 X = 10;
-            bool operator==(const TSub& other) const {
-                return X == other.X;
+            TestBinSaverSerialization(T(TString("ask")));
+            TestBinSaverSerialization(T(12));
+            TestBinSaverSerialization(T(0.64f));
+        }
+    }
+
+    Y_UNIT_TEST(TestPod) {
+        struct TPod {
+            ui32 A = 5;
+            ui64 B = 7;
+            bool operator==(const TPod& other) const {
+                return A == other.A && B == other.B;
             }
         };
-        TVector<TSub> B;
-        int operator&(IBinSaver& f) {
-            f.Add(0, &B);
-            return 0;
-        }
-        bool operator==(const TPod& other) const {
-            return B == other.B;
-        }
-    };
-    TestBinSaverSerialization(TPod());
-    TPod::TSub sub;
-    sub.X = 1;
-    TPod custom;
-    custom.B = {sub};
-    TestBinSaverSerialization(TVector<TPod>{custom});
+        TestBinSaverSerialization(TPod());
+        TPod custom;
+        custom.A = 25;
+        custom.B = 37;
+        TestBinSaverSerialization(custom);
+        TestBinSaverSerialization(TVector<TPod>{custom});
+    }
+
+    Y_UNIT_TEST(TestSubPod) {
+        struct TPod {
+            struct TSub {
+                ui32 X = 10;
+                bool operator==(const TSub& other) const {
+                    return X == other.X;
+                }
+            };
+            TVector<TSub> B;
+            int operator&(IBinSaver& f) {
+                f.Add(0, &B);
+                return 0;
+            }
+            bool operator==(const TPod& other) const {
+                return B == other.B;
+            }
+        };
+        TestBinSaverSerialization(TPod());
+        TPod::TSub sub;
+        sub.X = 1;
+        TPod custom;
+        custom.B = {sub};
+        TestBinSaverSerialization(TVector<TPod>{custom});
+    }
+
+    Y_UNIT_TEST(TestMemberAndOpIsMain) {
+        struct TBase {
+            TString S;
+            virtual int operator&(IBinSaver& f) {
+                f.Add(0, &S);
+                return 0;
+            }
+            virtual ~TBase() = default;
+        };
+
+        struct TDerived: public TBase {
+            int A = 0;
+            int operator&(IBinSaver& f)override {
+                f.Add(0, static_cast<TBase*>(this));
+                f.Add(0, &A);
+                return 0;
+            }
+            bool operator==(const TDerived& other) const {
+                return A == other.A && S == other.S;
+            }
+        };
+
+        TDerived obj;
+        obj.S = "TString";
+        obj.A = 42;
+
+        TestBinSaverSerialization(obj);
+    }
 }
-
-Y_UNIT_TEST(TestMemberAndOpIsMain) {
-    struct TBase {
-        TString S;
-        virtual int operator&(IBinSaver& f) {
-            f.Add(0, &S);
-            return 0;
-        }
-        virtual ~TBase() = default;
-    };
-
-    struct TDerived: public TBase {
-        int A = 0;
-        int operator&(IBinSaver& f)override {
-            f.Add(0, static_cast<TBase*>(this));
-            f.Add(0, &A);
-            return 0;
-        }
-        bool operator==(const TDerived& other) const {
-            return A == other.A && S == other.S;
-        }
-    };
-
-    TDerived obj;
-    obj.S = "TString";
-    obj.A = 42;
-
-    TestBinSaverSerialization(obj);
-}
-}
-;

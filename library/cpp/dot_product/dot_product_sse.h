@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include <util/system/types.h>
 #include <util/system/compiler.h>
 
@@ -16,4 +18,21 @@ Y_PURE_FUNCTION
 float DotProductSse(const float* lhs, const float* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
+float DotProductSse(const float* lhs, const i8* rhs, size_t length) noexcept;
+
+Y_PURE_FUNCTION
 double DotProductSse(const double* lhs, const double* rhs, size_t length) noexcept;
+
+Y_PURE_FUNCTION
+TTriWayDotProduct<float> TriWayDotProductSse
+    (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept;
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Sse(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept;
+
+TTriWayDotProduct<i32> TriWayDotProductI8Sse(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept;

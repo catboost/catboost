@@ -5,6 +5,7 @@
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
+#include <util/string/cast.h>
 
 namespace NHelpers {
     template <class T>
@@ -16,23 +17,35 @@ namespace NHelpers {
         return false;
     }
 
-    static inline TSet<ui32> ParseRangeString(const TString& str, ui32 devCountLimit) {
+    static inline TSet<ui32> ParseRangeString(const TString& str, ui32 devIdLimit) {
         TSet<ui32> data;
         size_t cur = 0, prev = 0;
-        while (cur != TString::npos && data.size() < devCountLimit) {
+        while (cur != TString::npos) {
             cur = str.find(':', prev);
             TString range = str.substr(prev, cur - prev);
-            size_t dash = range.find('-');
-            if (range.length()) {
+            try {
+                auto addToData = [&] (ui32 devId) {
+                    Y_ENSURE_EX(
+                        devId < devIdLimit,
+                        TBadArgumentException() << "id " << devId << " greater than limit " << devIdLimit
+                    );
+                    data.insert(devId);
+                };
+
+                Y_ENSURE_EX(!range.empty(), TBadArgumentException() << "empty");
+                size_t dash = range.find('-');
                 if (dash == TString::npos)
-                    data.insert(atoi(range.c_str()));
+                    addToData(FromString<ui32>(range));
                 else if (dash > 0 && dash < range.length() - 1) {
-                    int first = atoi(range.substr(0, dash).c_str());
-                    int last = atoi(range.substr(dash + 1).c_str());
-                    while (first <= last && data.size() < devCountLimit)
-                        data.insert(first++);
+                    auto first = FromString<ui32>(range.substr(0, dash));
+                    auto last = FromString<ui32>(range.substr(dash + 1));
+                    Y_ENSURE_EX(last >= first, TBadArgumentException() << "The start of the range is greater than the end");
+                    while (first <= last)
+                        addToData(first++);
                 } else
-                    ythrow yexception() << "Invalid range: " << range;
+                    throw TBadArgumentException() << "Should be an single numeric id or '<start_id>-<end_id>'";
+            } catch (TBadArgumentException& e) {
+                ythrow TBadArgumentException() << "Range specification string \"" << range << "\" is invalid: " << e.what();
             }
             prev = cur + 1;
         }

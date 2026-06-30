@@ -12,6 +12,7 @@ from .ipythonwidget import MetricWidget
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 class MetricsWidget(MetricWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -20,14 +21,15 @@ class MetricsWidget(MetricWidget):
         # deepcopy is crucial here
         self.data = deepcopy(data)
 
+
 class MetricsPlotter:
     """
-    Context manager that enables widget with learning curves in 
+    Context manager that enables widget with learning curves in
     JupyterLab / Jupyter Notebook
     """
 
-    def __init__(self, train_metrics: List[Union[str, tp.Dict[str, str]]], 
-                 test_metrics: Optional[List[Union[str, tp.Dict[str, str]]]] = None, 
+    def __init__(self, train_metrics: List[Union[str, tp.Dict[str, str]]],
+                 test_metrics: Optional[List[Union[str, tp.Dict[str, str]]]] = None,
                  total_iterations: Optional[int] = None) -> None:
         """
         Constructor that defines metrics to be plotted and total iterations count.
@@ -35,18 +37,18 @@ class MetricsPlotter:
         Parameters
         ----------
         train_metrics : list of str or list of dict
-            List of train metrics to be tracked. 
-            Each item in list can be either string with metric name or dict 
+            List of train metrics to be tracked.
+            Each item in list can be either string with metric name or dict
             with the following format:
             {
                 "name": "{metric_name}",
                 "best_value": "Max|Min|Undefined",
             }
-        
+
         test_metrics : list of str or list of dict, optional (default=None)
-            List of test metrics to be tracked. 
+            List of test metrics to be tracked.
             Has the same format as train_metrics. Equals to train_metrics, if not defined
-        
+
         total_iterations: int, optional (default=None)
             Total number of iterations, allows for remaining time estimation.
         """
@@ -59,17 +61,17 @@ class MetricsPlotter:
                 "launch_mode": "Train",
                 "parameters": "",
                 "name": "experiment",
-                "iteration_count": None, # set later
+                "iteration_count": None,  # set later
                 "learn_sets": ["learn"],
-                "learn_metrics": None, # set later
+                "learn_metrics": None,  # set later
                 "test_sets": ["test"],
-                "test_metrics": None, # set later
+                "test_metrics": None,  # set later
             }
         }
 
         self._content = {
             "passed_iterations": 0,
-            "total_iterations": None, # set later
+            "total_iterations": None,  # set later
             "data": self._values,
         }
 
@@ -101,11 +103,11 @@ class MetricsPlotter:
 
         if total_iterations is not None:
             self._values["meta"]["iteration_count"] = total_iterations
-        
+
         self._content["total_iterations"] = total_iterations or 0
 
         self._start_time = time.time()
-    
+
     def __enter__(self) -> 'MetricsPlotter':
         display(self._widget)
         return self
@@ -134,7 +136,7 @@ class MetricsPlotter:
         return meta
 
     @staticmethod
-    def construct_metrics_array(metrics_positions: tp.Dict[str, int], 
+    def construct_metrics_array(metrics_positions: tp.Dict[str, int],
                                 metrics: tp.Dict[str, float]) -> List[float]:
         array: List[float] = [0.] * len(metrics_positions)
 
@@ -162,10 +164,10 @@ class MetricsPlotter:
         ----------
         epoch : int
             Current epoch
-        
+
         train : bool
             Flag that indicates whether metrics are calculated on train or test data
-        
+
         metrics: dict
             Values for each of metrics defined in `__init__` method of this class
         """
@@ -199,7 +201,7 @@ class MetricsPlotter:
         key: str = "learn" if train else "test"
         value: List[float] = self.construct_metrics_array(
             self._train_metrics_positions if train else self._test_metrics_positions, metrics)
-        
+
         self._values["iterations"][-1].update({key: value})
 
         if should_redraw:

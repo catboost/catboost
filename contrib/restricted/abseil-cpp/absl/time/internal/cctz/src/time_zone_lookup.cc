@@ -17,9 +17,6 @@
 
 #if defined(__ANDROID__)
 #include <sys/system_properties.h>
-#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
-#include <dlfcn.h>
-#endif
 #endif
 
 #if defined(__APPLE__)
@@ -35,46 +32,23 @@
 #error #include <zircon/types.h>
 #endif
 
+#include <array>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string>
 
-#include "time_zone_fixed.h"
-#include "time_zone_impl.h"
+#include "absl/time/internal/cctz/src/time_zone_fixed.h"
+#include "absl/time/internal/cctz/src/time_zone_impl.h"
+
+#if defined(_WIN32)
+#include "absl/time/internal/cctz/src/time_zone_name_win.h"
+#endif  // _WIN32
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace time_internal {
 namespace cctz {
-
-#if defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__ >= 21
-namespace {
-// Android 'L' removes __system_property_get() from the NDK, however
-// it is still a hidden symbol in libc so we use dlsym() to access it.
-// See Chromium's base/sys_info_android.cc for a similar example.
-
-using property_get_func = int (*)(const char*, char*);
-
-property_get_func LoadSystemPropertyGet() {
-  int flag = RTLD_LAZY | RTLD_GLOBAL;
-#if defined(RTLD_NOLOAD)
-  flag |= RTLD_NOLOAD;  // libc.so should already be resident
-#endif
-  if (void* handle = dlopen("libc.so", flag)) {
-    void* sym = dlsym(handle, "__system_property_get");
-    dlclose(handle);
-    return reinterpret_cast<property_get_func>(sym);
-  }
-  return nullptr;
-}
-
-int __system_property_get(const char* name, char* value) {
-  static property_get_func system_property_get = LoadSystemPropertyGet();
-  return system_property_get ? system_property_get(name, value) : -1;
-}
-
-}  // namespace
-#endif
 
 std::string time_zone::name() const { return effective_impl().Name(); }
 
@@ -188,6 +162,12 @@ time_zone local_time_zone() {
 
   if (!primary_tz.empty()) {
     zone = primary_tz.c_str();
+  }
+#endif
+#if defined(_WIN32)
+  std::string win32_tz = GetWindowsLocalTimeZone();
+  if (!win32_tz.empty()) {
+    zone = win32_tz.c_str();
   }
 #endif
 

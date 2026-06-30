@@ -25,6 +25,7 @@
 #define ABSL_LOG_LOG_ENTRY_H_
 
 #include <cstddef>
+#include <ostream>
 #include <string>
 
 #include "absl/base/attributes.h"
@@ -96,7 +97,8 @@ class LogEntry final {
   // LogEntry::verbosity()
   //
   // Returns this entry's verbosity, or `kNoVerbosityLevel` for a non-verbose
-  // entry.  Verbosity control is not available outside of Google yet.
+  // entry. Taken from the argument to `VLOG` or from
+  // `LOG(...).WithVerbosity(...)`.
   int verbosity() const { return verbose_level_; }
 
   // LogEntry::timestamp()
@@ -212,6 +214,7 @@ class LogEntry final {
 
   friend class log_internal::LogEntryTestPeer;
   friend class log_internal::LogMessage;
+  friend void PrintTo(const absl::LogEntry& entry, std::ostream* os);
 };
 
 ABSL_NAMESPACE_END

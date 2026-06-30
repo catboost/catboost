@@ -210,8 +210,10 @@ Y_UNIT_TEST_SUITE(TCgiParametersTest) {
         UNIT_ASSERT_VALUES_EQUAL(c.NumOfValues("b"), 1u);
 
         UNIT_ASSERT_VALUES_EQUAL(c.Get("b"), "b1");
+        UNIT_ASSERT_VALUES_EQUAL(c.GetLast("b"), "b1");
         UNIT_ASSERT_VALUES_EQUAL(c.Get("a", 0), "a1");
         UNIT_ASSERT_VALUES_EQUAL(c.Get("a", 1), "a2");
+        UNIT_ASSERT_VALUES_EQUAL(c.GetLast("a"), "a2");
 
         UNIT_ASSERT_VALUES_EQUAL(c.Print(), "a=a1&a=a2&b=b1");
     }

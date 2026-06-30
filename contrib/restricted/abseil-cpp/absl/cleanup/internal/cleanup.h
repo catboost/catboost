@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "absl/base/internal/invoke.h"
+#include "absl/base/internal/hardening.h"
 #include "absl/base/macros.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/utility/utility.h"
@@ -39,7 +39,7 @@ constexpr bool WasDeduced() {
 
 template <typename Callback>
 constexpr bool ReturnsVoid() {
-  return (std::is_same<base_internal::invoke_result_t<Callback>, void>::value);
+  return (std::is_same<std::invoke_result_t<Callback>, void>::value);
 }
 
 template <typename Callback>
@@ -50,13 +50,13 @@ class Storage {
   explicit Storage(Callback callback) {
     // Placement-new into a character buffer is used for eager destruction when
     // the cleanup is invoked or cancelled. To ensure this optimizes well, the
-    // behavior is implemented locally instead of using an absl::optional.
+    // behavior is implemented locally instead of using a std::optional.
     ::new (GetCallbackBuffer()) Callback(std::move(callback));
     is_callback_engaged_ = true;
   }
 
   Storage(Storage&& other) {
-    ABSL_HARDENING_ASSERT(other.IsCallbackEngaged());
+    absl::base_internal::HardeningAssert(other.IsCallbackEngaged());
 
     ::new (GetCallbackBuffer()) Callback(std::move(other.GetCallback()));
     is_callback_engaged_ = true;
@@ -70,7 +70,7 @@ class Storage {
 
   Storage& operator=(const Storage& other) = delete;
 
-  void* GetCallbackBuffer() { return static_cast<void*>(+callback_buffer_); }
+  void* GetCallbackBuffer() { return static_cast<void*>(callback_buffer_); }
 
   Callback& GetCallback() {
     return *reinterpret_cast<Callback*>(GetCallbackBuffer());
@@ -89,7 +89,7 @@ class Storage {
 
  private:
   bool is_callback_engaged_;
-  alignas(Callback) char callback_buffer_[sizeof(Callback)];
+  alignas(Callback) unsigned char callback_buffer_[sizeof(Callback)];
 };
 
 }  // namespace cleanup_internal

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       arm.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -19,8 +18,10 @@ arm_code(void *simple lzma_attribute((__unused__)),
 		uint32_t now_pos, bool is_encoder,
 		uint8_t *buffer, size_t size)
 {
+	size &= ~(size_t)3;
+
 	size_t i;
-	for (i = 0; i + 4 <= size; i += 4) {
+	for (i = 0; i < size; i += 4) {
 		if (buffer[i + 3] == 0xEB) {
 			uint32_t src = ((uint32_t)(buffer[i + 2]) << 16)
 					| ((uint32_t)(buffer[i + 1]) << 8)

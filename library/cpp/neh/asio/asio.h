@@ -105,6 +105,9 @@ namespace NAsio {
         void Post(TCompletionHandler); //call handler in Run() thread-executor
         void Abort();                  //in Run() all exist async i/o operations + timers receive error = ECANCELED, Run() exited
 
+        // not const since internal queue is lockfree and needs to increment and decrement its reference counters
+        size_t GetOpQueueSize() noexcept;
+
         //counterpart boost::asio::io_service::work
         class TWork {
         public:

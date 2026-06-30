@@ -75,7 +75,7 @@ namespace {
         }
     };
 
-}
+} // namespace
 
 Y_UNIT_TEST_SUITE(EventTest) {
     Y_UNIT_TEST(WaitAndSignalTest) {
@@ -124,4 +124,4 @@ Y_UNIT_TEST_SUITE(EventTest) {
         }
         queue.Stop();
     }
-}
+} // Y_UNIT_TEST_SUITE(EventTest)

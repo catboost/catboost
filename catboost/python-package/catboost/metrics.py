@@ -2,18 +2,22 @@ from functools import partial
 
 import numpy as np
 try:
-    from pandas import DataFrame, Series
+    import pandas as pd
 except ImportError:
-    class DataFrame(object):
-        pass
+    # just to avoid checking (pd is not None) everywhere
+    class pandas:
+        class DataFrame(object):
+            pass
 
-    class Series(object):
-        pass
-# copied from core.py to avoid circular import
-_ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
+        class Series(object):
+            pass
+    pd = pandas
 
 from . import _catboost
 
+
+# copied from core.py to avoid circular import
+_ARRAY_TYPES = (list, np.ndarray, pd.DataFrame, pd.Series)
 
 __all__ = []
 
@@ -53,15 +57,17 @@ class BuiltinMetric(object):
         """
         raise NotImplementedError('Should be overridden by the child class.')
 
-    def eval(self,
-            label,
-            approx,
-            weight=None,
-            group_id=None,
-            group_weight=None,
-            subgroup_id=None,
-            pairs=None,
-            thread_count=-1):
+    def eval(
+        self,
+        label,
+        approx,
+        weight=None,
+        group_id=None,
+        group_weight=None,
+        subgroup_id=None,
+        pairs=None,
+        thread_count=-1
+    ):
         """
         Evaluate the metric with raw approxes and labels.
 
@@ -285,5 +291,6 @@ def _generate_metric_classes():
                 '_underlying_metric_name': metric_name,
             })
             globals()['__all__'].append(derived_name)
+
 
 _generate_metric_classes()

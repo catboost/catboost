@@ -30,6 +30,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -39,6 +40,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
@@ -49,6 +51,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -59,6 +62,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels = Nothing()
     );
@@ -67,6 +71,7 @@ namespace NCB {
     TDataProviderPtr ReadDataset(
         THolder<ILineDataReader>&& lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -76,6 +81,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor

@@ -19,5 +19,6 @@ def main():
 
     assert np.allclose(array1, array2, args.rtol, args.atol)
 
+
 if __name__ == "__main__":
     main()

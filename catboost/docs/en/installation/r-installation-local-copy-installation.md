@@ -1,4 +1,4 @@
-# Install from a local copy on Linux and macOS
+# Install R package from a local source repository copy
 
 {% include [r-package-r__recommended-installation-method__note](../_includes/work_src/reusage-installation/r__recommended-installation-method__note.md) %}
 
@@ -7,12 +7,9 @@
 
 
 To install the {{ r-package }} from a local copy of the {{ product }} repository:
-1. {% if audience == "internal" %} {% include [arcadia_users_step](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %}Install the `libc` header files on macOS and Linux.
+1. Set up build environment
 
-    Depending on the used OS:
-
-    - macOS: `xcode-select --install`
-    - Linux: Install the appropriate package (for example, `libc6-dev` on Ubuntu)
+    {% include [setup-build-environment-alternatives](../_includes/work_src/reusage-installation/setup-build-environment-alternatives.md) %}
 
 1. Clone the repository:
     ```
@@ -29,4 +26,3 @@ To install the {{ r-package }} from a local copy of the {{ product }} repositor
     ```
 
 {% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
-

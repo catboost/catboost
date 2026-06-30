@@ -64,4 +64,49 @@ Y_UNIT_TEST_SUITE(TParsedLocationTest) {
             UNIT_ASSERT_C(parsed.Service == testCase.Service, TStringBuilder() << parsed.Service << " != " << testCase.Service << " " << url);
         }
     }
+
+    Y_UNIT_TEST(UserInfo) {
+        {
+            TString path = "http://localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+        {
+            TString path = "https://localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+        {
+            TString path = "http://userinfo@localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "userinfo");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+        {
+            TString path = "https://userinfo@localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "userinfo");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+        {//ill-formed
+            TString path = "http://cert=./path1;key=./path2@localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "cert=.");
+        }
+        {
+            TString path = "https://cert=./path1;key=./path2@localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "cert=./path1;key=./path2");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+        {
+            TString path = "https://key=./path1;cert=./path2@localhost:80/@zzz";
+            NNeh::TParsedLocation loc(path);
+            UNIT_ASSERT_STRINGS_EQUAL(loc.UserInfo, "key=./path1;cert=./path2");
+            UNIT_ASSERT_STRINGS_EQUAL(loc.Host, "localhost");
+        }
+    }
 }

@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -53,13 +54,13 @@ void resume(suspend_point_type* sp) {
         // Prolong the arena's lifetime while all coroutines are alive
         // (otherwise the arena can be destroyed while some tasks are suspended).
         arena& a = *sp->m_arena;
-        a.my_references += arena::ref_external;
+        a.my_references += arena::ref_worker;
 
         if (task_disp.m_properties.critical_task_allowed) {
             // The target is not in the process of executing critical task, so the resume task is not critical.
             a.my_resume_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
         } else {
-    #if __TBB_PREVIEW_CRITICAL_TASKS
+    #if __TBB_CRITICAL_TASKS
             // The target is in the process of executing critical task, so the resume task is critical.
             a.my_critical_task_stream.push(&sp->m_resume_task, random_lane_selector(sp->m_random));
     #endif
@@ -67,7 +68,7 @@ void resume(suspend_point_type* sp) {
         // Do not access target after that point.
         a.advertise_new_work<arena::wakeup>();
         // Release our reference to my_arena.
-        a.on_thread_leaving<arena::ref_external>();
+        a.on_thread_leaving(arena::ref_worker);
     }
 
 }
@@ -77,13 +78,13 @@ suspend_point_type* current_suspend_point() {
     return td.my_task_dispatcher->get_suspend_point();
 }
 
-static task_dispatcher& create_coroutine(thread_data& td) {
+task_dispatcher& create_coroutine(thread_data& td) {
     // We may have some task dispatchers cached
     task_dispatcher* task_disp = td.my_arena->my_co_cache.pop();
     if (!task_disp) {
         void* ptr = cache_aligned_allocate(sizeof(task_dispatcher));
         task_disp = new(ptr) task_dispatcher(td.my_arena);
-        task_disp->init_suspend_point(td.my_arena, td.my_arena->my_market->worker_stack_size());
+        task_disp->init_suspend_point(td.my_arena, td.my_arena->my_threading_control->worker_stack_size());
     }
     // Prolong the arena's lifetime until all coroutines is alive
     // (otherwise the arena can be destroyed while some tasks are suspended).
@@ -163,7 +164,7 @@ void task_dispatcher::do_post_resume_action() {
     case post_resume_action::register_waiter:
     {
         __TBB_ASSERT(td->my_post_resume_arg, "The post resume action must have an argument");
-        static_cast<market_concurrent_monitor::resume_context*>(td->my_post_resume_arg)->notify();
+        static_cast<thread_control_monitor::resume_context*>(td->my_post_resume_arg)->notify();
         break;
     }
     case post_resume_action::cleanup:
@@ -171,7 +172,8 @@ void task_dispatcher::do_post_resume_action() {
         __TBB_ASSERT(td->my_post_resume_arg, "The post resume action must have an argument");
         task_dispatcher* to_cleanup = static_cast<task_dispatcher*>(td->my_post_resume_arg);
         // Release coroutine's reference to my_arena
-        td->my_arena->on_thread_leaving<arena::ref_external>();
+        td->my_arena->on_thread_leaving(arena::ref_external);
+        __TBB_ASSERT(is_alive(td->my_arena->my_guard), "The arena should not have been destroyed");
         // Cache the coroutine for possible later re-usage
         td->my_arena->my_co_cache.push(to_cleanup);
         break;
@@ -186,7 +188,7 @@ void task_dispatcher::do_post_resume_action() {
         auto is_our_suspend_point = [sp] (market_context ctx) {
             return std::uintptr_t(sp) == ctx.my_uniq_addr;
         };
-        td->my_arena->my_market->get_wait_list().notify(is_our_suspend_point);
+        td->my_arena->get_waiting_threads_monitor().notify(is_our_suspend_point);
         break;
     }
     default:
@@ -218,10 +220,46 @@ void notify_waiters(std::uintptr_t wait_ctx_addr) {
         return wait_ctx_addr == context.my_uniq_addr;
     };
 
-    r1::governor::get_thread_data()->my_arena->my_market->get_wait_list().notify(is_related_wait_ctx);
+    governor::get_thread_data()->my_arena->get_waiting_threads_monitor().notify(is_related_wait_ctx);
+}
+
+d1::wait_tree_vertex_interface* get_thread_reference_vertex(d1::wait_tree_vertex_interface* top_wait_context) {
+    __TBB_ASSERT(top_wait_context, nullptr);
+    auto& dispatcher = *governor::get_thread_data()->my_task_dispatcher;
+
+    thread_reference_vertex* ref_counter{nullptr};
+    auto& reference_map = dispatcher.m_reference_vertex_map;
+    auto pos = reference_map.find(top_wait_context);
+    if (pos != reference_map.end()) {
+        ref_counter = pos->second;
+    } else {
+        constexpr std::size_t max_reference_vertex_map_size = 1000;
+        if (reference_map.size() > max_reference_vertex_map_size) {
+            // TODO: Research the possibility of using better approach for a clean-up
+            for (auto it = reference_map.begin(); it != reference_map.end();) {
+                __TBB_ASSERT(it->second, nullptr);
+                thread_reference_vertex*& node = it->second;
+                __TBB_ASSERT(!node->is_orphaned(), "the orphaned bit should not yet be set");
+                if (node->get_num_children() == 0) {
+                    node->destroy();
+                    it = reference_map.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+        }
+
+        reference_map[top_wait_context] = ref_counter =
+            new (cache_aligned_allocate(sizeof(thread_reference_vertex))) thread_reference_vertex(*top_wait_context, 0);
+    }
+
+    return ref_counter;
+}
+
+d1::task* __TBB_EXPORTED_FUNC current_task_ptr() {
+    return governor::get_thread_data()->get_innermost_running_task();
 }
 
 } // namespace r1
 } // namespace detail
 } // namespace tbb
-

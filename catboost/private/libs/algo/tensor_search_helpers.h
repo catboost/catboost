@@ -117,9 +117,17 @@ void CalcWeightedDerivatives(
     NPar::ILocalExecutor* localExecutor
 );
 
+inline ERandomScoreDistribution GetScoreDistribution(ERandomScoreType randomScoreType) {
+    return randomScoreType == ERandomScoreType::NormalWithModelSizeDecrease
+        ? ERandomScoreDistribution::Normal
+        : ERandomScoreDistribution::Gumbel;
+}
+
+
 void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
+    ERandomScoreDistribution scoreDistribution,
     double scoreStDev,
     const TCandidatesContext& candidatesContext, // candidates from it is not used, subcan
     TVector<TCandidateInfo>* subcandidates

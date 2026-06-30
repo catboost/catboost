@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       index.c
@@ -5,11 +7,9 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "common.h"
 #include "index.h"
 #include "stream_flags_common.h"
 
@@ -433,6 +433,26 @@ lzma_index_prealloc(lzma_index *i, lzma_vli records)
 	if (records > PREALLOC_MAX)
 		records = PREALLOC_MAX;
 
+	// If index_decoder.c calls us with records == 0, it's decoding
+	// an Index that has no Records. In that case the decoder won't call
+	// lzma_index_append() at all, and i->prealloc isn't used during
+	// the Index decoding either.
+	//
+	// Normally the first lzma_index_append() call from the Index decoder
+	// would reset i->prealloc to INDEX_GROUP_SIZE. With no Records,
+	// lzma_index_append() isn't called and the resetting of prealloc
+	// won't occur either. Thus, if records == 0, use the default value
+	// INDEX_GROUP_SIZE instead.
+	//
+	// NOTE: lzma_index_append() assumes i->prealloc > 0. liblzma <= 5.8.2
+	// didn't have this check and could set i->prealloc = 0, which would
+	// result in a buffer overflow if the application called
+	// lzma_index_append() after decoding an empty Index. Appending
+	// Records after decoding an Index is a rare thing to do, but
+	// it is supposed to work.
+	if (records == 0)
+		records = INDEX_GROUP_SIZE;
+
 	i->prealloc = (size_t)(records);
 	return;
 }
@@ -660,6 +680,12 @@ lzma_index_append(lzma_index *i, const lzma_allocator *allocator,
 	if (uncompressed_base + uncompressed_size > LZMA_VLI_MAX)
 		return LZMA_DATA_ERROR;
 
+	// Check that the new unpadded sum will not overflow. This is
+	// checked again in index_file_size(), but the unpadded sum is
+	// passed to vli_ceil4() which expects a valid lzma_vli value.
+	if (compressed_base + unpadded_size > UNPADDED_SIZE_MAX)
+		return LZMA_DATA_ERROR;
+
 	// Check that the file size will stay within limits.
 	if (index_file_size(s->node.compressed_base,
 			compressed_base + unpadded_size, s->record_count + 1,
@@ -679,6 +705,7 @@ lzma_index_append(lzma_index *i, const lzma_allocator *allocator,
 		++g->last;
 	} else {
 		// We need to allocate a new group.
+		assert(i->prealloc > 0);
 		g = lzma_alloc(sizeof(index_group)
 				+ i->prealloc * sizeof(index_record),
 				allocator);

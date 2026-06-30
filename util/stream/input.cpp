@@ -248,7 +248,7 @@ namespace {
     };
     #endif
 #endif
-}
+} // namespace
 
 IInputStream& NPrivate::StdInStream() noexcept {
     return *SingletonWithPriority<TGetLine, 4>();

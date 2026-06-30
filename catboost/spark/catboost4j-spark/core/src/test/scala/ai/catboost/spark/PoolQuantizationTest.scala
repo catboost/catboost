@@ -22,6 +22,7 @@ class PoolQuantizationTest {
     ) {
         val spark = SparkSession.builder()
             .master("local[4]")
+            .config("spark.driver.host", "localhost")
             .appName("TestQuantizeCase")
             .getOrCreate();
 

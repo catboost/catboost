@@ -8,6 +8,7 @@
 int main() {
     Cout << "GetProgramSvnVersion(): " << GetProgramSvnVersion() << Endl;
     Cout << "GetCustomVersion(): " << GetCustomVersion() << Endl;
+    Cout << "GetReleaseVersion(): " << GetReleaseVersion() << Endl;
     Cout << "PrintProgramSvnVersion(): " << Endl; PrintProgramSvnVersion();
     Cout << "GetArcadiaSourcePath(): " << GetArcadiaSourcePath() << Endl;
     Cout << "GetArcadiaSourceUrl(): " << GetArcadiaSourceUrl() << Endl;

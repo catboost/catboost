@@ -33,8 +33,9 @@ namespace NCB {
         }
 
         decltype(auto) GetReadBaselineFunc() {
-            return [this](TString *line) -> bool {
-                return BaselineReader.ReadLine(line);
+            return [this](TObjectBaselineData *line) -> bool {
+                ui64 objectIdx = 0;
+                return BaselineReader->Read(line, &objectIdx);
             };
         }
 
@@ -82,7 +83,7 @@ namespace NCB {
     protected:
         TVector<bool> FeatureIgnored; // init in process
         THolder<NCB::ILineDataReader> LineDataReader;
-        TBaselineReader BaselineReader;
+        THolder<NCB::IBaselineReader> BaselineReader;
 
         // cached
         TMutex ObjectCountMutex;

@@ -9,13 +9,14 @@
 
 #include <util/generic/string.h>
 #include <util/stream/file.h>
+#include <util/stream/output.h>
 #include <util/ysaveload.h>
 
 static NJson::TJsonValue GetOptions(const TString& snapshotPath) {
-    TFileInput snapthotFile(snapshotPath);
+    TFileInput snapshotFile(snapshotPath);
     TString label;
     TString optionsStr;
-    ::LoadMany(&snapthotFile, label, optionsStr);
+    ::LoadMany(&snapshotFile, label, optionsStr);
     NJson::TJsonValue options;
     CB_ENSURE(ReadJsonTree(optionsStr, &options), "Unable to parse options from snapshot");
     return options;

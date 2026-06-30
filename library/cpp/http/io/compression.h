@@ -4,6 +4,7 @@
 
 #include <util/generic/deque.h>
 #include <util/generic/hash.h>
+#include <util/generic/vector.h>
 
 class TCompressionCodecFactory {
 public:

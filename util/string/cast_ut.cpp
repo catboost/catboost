@@ -122,7 +122,7 @@ struct TRet<bool> {
 template <class A>
 inline TRet<A> F() {
     return TRet<A>();
-};
+}
 
 #if 0
 template <class T>
@@ -153,7 +153,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
     template <class A>
     inline TRet<A> F() {
         return TRet<A>();
-    };
+    }
 
     template <class TFloat>
     void GoodFloatTester(const char* str, const TFloat canonValue, const double eps) {
@@ -410,6 +410,11 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault<size_t>("100q500"), size_t());
         UNIT_CHECK_GENERATED_EXCEPTION(FromString<size_t>(s2), TFromStringException);
 
+        UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("100"sv, res, def1), true);
+        UNIT_ASSERT_VALUES_EQUAL(res, 100);
+        UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault("abc"sv, res, def1), false);
+        UNIT_ASSERT_VALUES_EQUAL(res, def1);
+
         int res2 = 0;
         const int def2 = -6;
 
@@ -461,6 +466,12 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         std::string s5 = "100500";
         UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s5), yexception);
         UNIT_ASSERT_VALUES_EQUAL(res, 100500);
+
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>("500"sv), yexception);
+        UNIT_ASSERT_VALUES_EQUAL(res, 500);
+
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>("abc"sv), yexception);
+        UNIT_ASSERT(res.Empty());
     }
 
     Y_UNIT_TEST(TestBool) {
@@ -605,4 +616,15 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
     }
-};
+
+    Y_UNIT_TEST(TestTrivial) {
+        UNIT_ASSERT_VALUES_EQUAL(ToString(ToString(ToString("abc"))), TString("abc"));
+
+        // May cause compilation error:
+        // const TString& ref = ToString(TString{"foo"});
+
+        const TString ok = ToString(TString{"foo"});
+        UNIT_ASSERT_VALUES_EQUAL(ok, "foo");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(ToString(ok)), "foo");
+    }
+} // Y_UNIT_TEST_SUITE(TCastTest)

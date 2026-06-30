@@ -11,7 +11,6 @@
 #include <library/cpp/neh/rpc.h>
 #include <library/cpp/netliba/v12/ib_low.h>
 #include <library/cpp/netliba/v12/udp_http.h>
-#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/strbuf.h>
 #include <util/network/sock.h>
@@ -21,6 +20,9 @@
 #include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/mutex.h>
 #include <util/thread/factory.h>
+
+#include <atomic>
+
 
 namespace NPar {
     class TNehRequester: public IRequester {
@@ -182,7 +184,7 @@ namespace NPar {
                         --infoDataPtr->RetriesRest;
                         if (infoDataPtr->RetriesRest < 0) {
                             Singleton<TParLogger>()->OutputLogTailToCout();
-                            Y_FAIL("got unexpected network error, no retries rest");
+                            Y_ABORT("got unexpected network error, no retries rest");
                         }
                         NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                              Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -190,7 +192,7 @@ namespace NPar {
                     } else {
                         if (resp->Data != TStringBuf{"OK"}) {
                             ERROR_LOG << "query info: " << infoDataPtr->ToString() << Endl;
-                            Y_FAIL("reply isn't OK");
+                            Y_ABORT("reply isn't OK");
                         }
                     }
                 } else if (ev.Type == NNeh::IMultiClient::TEvent::Timeout) {
@@ -200,7 +202,7 @@ namespace NPar {
                     --infoDataPtr->RetriesRest;
                     if (infoDataPtr->RetriesRest < 0) {
                         Singleton<TParLogger>()->OutputLogTailToCout();
-                        Y_FAIL("got timeout for some request :(");
+                        Y_ABORT("got timeout for some request :(");
                     }
                     NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                          Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -280,7 +282,7 @@ namespace NPar {
             PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(reqId) << " url: " << url << " data len: " << (data ? data->size() : 0) << Endl;
             InternalSendQuery(address, reqId, url + "@" + ToString(ListenPort), data);
             reqInfo->Event.WaitI();
-            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId));
+            Y_ABORT_UNLESS(DirectRequestsInfo.EraseValueIfPresent(reqId));
             return std::move(reqInfo->Response);
         }
 
@@ -355,7 +357,7 @@ namespace NPar {
         TAutoPtr<IThreadFactory::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
-        NAtomic::TBool Running = true;
+        std::atomic<bool> Running = true;
     };
 
     class TNetlibaRequester: public IRequester {
@@ -454,7 +456,7 @@ namespace NPar {
         TProcessQueryCallback QueryCallback;
         TProcessReplyCallback ReplyCallback;
 
-        NAtomic::TBool Stopped = false;
+        std::atomic<bool> Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadFactory::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
@@ -492,7 +494,7 @@ namespace NPar {
                     std::move(processQueryCallback),
                     std::move(processReplyCallback));
             default:
-                Y_FAIL("Unknown requester type");
+                Y_ABORT("Unknown requester type");
         }
     }
 }

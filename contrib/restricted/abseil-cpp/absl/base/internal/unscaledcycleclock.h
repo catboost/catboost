@@ -47,6 +47,10 @@
 
 #if ABSL_USE_UNSCALED_CYCLECLOCK
 
+namespace gloop_do_not_use {
+class UnscaledCycleClockWrapperForPerCpuTest;
+}  // namespace gloop_do_not_use
+
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace time_internal {
@@ -75,6 +79,7 @@ class UnscaledCycleClock {
   friend class base_internal::CycleClock;
   friend class time_internal::UnscaledCycleClockWrapperForGetCurrentTime;
   friend class base_internal::UnscaledCycleClockWrapperForInitializeFrequency;
+  friend class gloop_do_not_use::UnscaledCycleClockWrapperForPerCpuTest;
 };
 
 #if defined(__x86_64__)
@@ -83,6 +88,23 @@ inline int64_t UnscaledCycleClock::Now() {
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
   return static_cast<int64_t>((high << 32) | low);
+}
+
+#elif defined(__aarch64__)
+
+// System timer of ARMv8 runs at a different frequency than the CPU's.
+//
+// Frequency is fixed. From Armv8.6-A and Armv9.1-A on, the frequency is 1GHz.
+// Pre-Armv8.6-A, the frequency was a system design choice, typically in the
+// range of 1MHz to 50MHz. See also:
+// https://developer.arm.com/documentation/102379/0101/What-is-the-Generic-Timer-
+//
+// It can be read at CNTFRQ special register.  We assume the OS has set up the
+// virtual timer properly.
+inline int64_t UnscaledCycleClock::Now() {
+  int64_t virtual_timer_value;
+  asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+  return virtual_timer_value;
 }
 
 #endif

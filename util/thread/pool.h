@@ -86,6 +86,7 @@ struct TThreadPoolParams {
     IThreadFactory* Factory_ = SystemThreadFactory();
     TString ThreadName_;
     bool EnumerateThreads_ = false;
+    bool IsForkAware_ = true;
 
     using TSelf = TThreadPoolParams;
 
@@ -131,6 +132,11 @@ struct TThreadPoolParams {
         EnumerateThreads_ = true;
         return *this;
     }
+
+    TSelf& SetForkAware(bool val) {
+        IsForkAware_ = val;
+        return *this;
+    }
 };
 
 /**
@@ -156,7 +162,7 @@ public:
     void SafeAddAndOwn(THolder<IObjectInQueue> obj);
 
     /**
-     * Add object to queue, run ojb->Proccess in other threads.
+     * Add object to queue, run obj->Proccess in other threads.
      * Obj is not deleted after execution
      * @return true of obj is successfully added to queue
      * @return false if queue is full or shutting down
@@ -313,7 +319,7 @@ private:
     THolder<TImpl> Impl_;
 };
 
-/** Behave like TThreadPool or TAdaptiveThreadPool, choosen by thrnum parameter of Start()  */
+/** Behave like TThreadPool or TAdaptiveThreadPool, chosen by thrnum parameter of Start()  */
 class TSimpleThreadPool: public TThreadPoolBase {
 public:
     TSimpleThreadPool(const TParams& params = {});
@@ -321,7 +327,7 @@ public:
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /**
-     * @parameter thrnum. If thrnum is 0, use TAdaptiveThreadPool with small
+     * @param thrnum If thrnum is 0, use TAdaptiveThreadPool with small
      * SetMaxIdleTime interval parameter. if thrnum is not 0, use non-blocking TThreadPool
      */
     void Start(size_t thrnum, size_t maxque = 0) override;

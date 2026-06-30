@@ -111,7 +111,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(0 == EqualToOneOf(1, 2));
         UNIT_ASSERT(0 == EqualToOneOf(3));
 
-        //test, that EqualToOneOf can compare different types, and don't copy objects:
+        // test, that EqualToOneOf can compare different types, and don't copy objects:
         TStrokaNoCopy x("x");
         TStrokaNoCopy y("y");
         TStrokaNoCopy z("z");
@@ -169,7 +169,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         int array[3] = {1, 2, 3};
         const int array_const[3] = {1, 2, 3};
 
-        //test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
+        // test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
         // value '3' is in container, value '4' is not
         for (int j = 3; j <= 4; ++j) {
             TestFindPtrFoundValue<int*>(j, FindPtr(v, j));
@@ -191,7 +191,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         int array[3] = {1, 2, 3};
         const int array_const[3] = {1, 2, 3};
 
-        //test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
+        // test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
         // search, that 2*2 == 4, but there is no value 'x' in array that (x*x == 3)
         for (int j = 3; j <= 4; ++j) {
             TestFindIfPtrFoundValue<int*>(j, FindIfPtr(v, [j](int i) { return i * i == j; }));
@@ -752,6 +752,18 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         MinElementBy(empty, functor);
     }
 
+    Y_UNIT_TEST(MinMaxElementMovableKeys) {
+        const TString strings[] = {"one", "two", "three", "four"};
+        struct TMoveOnlyKey
+            : TString,
+              TMoveOnly {
+            using TString::TString;
+        };
+        auto keyFn = [](TString s) { return TMoveOnlyKey{std::move(s)}; };
+        UNIT_ASSERT_STRINGS_EQUAL(*MaxElementBy(strings, keyFn), "two");
+        UNIT_ASSERT_STRINGS_EQUAL(*MinElementBy(strings, keyFn), "four");
+    }
+
     Y_UNIT_TEST(TestApplyToMany) {
         int res = 0;
         ApplyToMany([&res](auto v) { res += v; }, 1, 2, 3, 4, 5);
@@ -764,10 +776,10 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
             }
             void operator()(const TString& s) {
                 Acc += s.size();
-            };
+            }
             void operator()(int v) {
                 Acc += v * 2;
-            };
+            }
             int& Acc;
         };
         TString s{"8-800-555-35-35"};
@@ -903,4 +915,4 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         std::vector<int> v = {1, 2, 777};
         UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto&& a, auto& b) { return a + ";" + ToString(b); }));
     }
-};
+} // Y_UNIT_TEST_SUITE(TAlgorithm)

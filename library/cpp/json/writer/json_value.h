@@ -1,5 +1,6 @@
 #pragma once
 
+#include <library/cpp/json/writer/fwd.h>
 #include <library/cpp/json/common/defs.h>
 
 #include <util/generic/string.h>
@@ -8,6 +9,7 @@
 #include <util/generic/deque.h>
 #include <util/generic/utility.h>
 #include <util/generic/yexception.h>
+#include <util/system/compiler.h>
 
 namespace NJson {
     enum EJsonValueType {
@@ -22,8 +24,6 @@ namespace NJson {
         JSON_UINTEGER /* "UInteger" */
     };
 
-    class TJsonValue;
-
     class IScanCallback {
     public:
         virtual ~IScanCallback() = default;
@@ -32,8 +32,6 @@ namespace NJson {
     };
 
     class TJsonValue {
-        void Clear() noexcept;
-
     public:
         typedef THashMap<TString, TJsonValue> TMapType;
         typedef TDeque<TJsonValue> TArray;
@@ -62,67 +60,75 @@ namespace NJson {
         TJsonValue(const TJsonValue& vval);
         TJsonValue(TJsonValue&& vval) noexcept;
 
-        TJsonValue& operator=(const TJsonValue& val);
-        TJsonValue& operator=(TJsonValue&& val) noexcept;
+        TJsonValue& operator=(const TJsonValue& val) Y_LIFETIME_BOUND;
+        TJsonValue& operator=(TJsonValue&& val) noexcept Y_LIFETIME_BOUND;
 
         ~TJsonValue() {
             Clear();
         }
 
         EJsonValueType GetType() const noexcept;
-        TJsonValue& SetType(EJsonValueType type);
+        TJsonValue& SetType(EJsonValueType type) Y_LIFETIME_BOUND;
 
-        TJsonValue& SetValue(const TJsonValue& value);
-        TJsonValue& SetValue(TJsonValue&& value);
+        TJsonValue& SetValue(const TJsonValue& value) Y_LIFETIME_BOUND;
+        TJsonValue& SetValue(TJsonValue&& value) Y_LIFETIME_BOUND;
 
         // for Map
-        TJsonValue& InsertValue(const TString& key, const TJsonValue& value);
-        TJsonValue& InsertValue(TStringBuf key, const TJsonValue& value);
-        TJsonValue& InsertValue(const char* key, const TJsonValue& value);
-        TJsonValue& InsertValue(const TString& key, TJsonValue&& value);
-        TJsonValue& InsertValue(TStringBuf key, TJsonValue&& value);
-        TJsonValue& InsertValue(const char* key, TJsonValue&& value);
+        TJsonValue& InsertValue(const TString& key, const TJsonValue& value) Y_LIFETIME_BOUND;
+        TJsonValue& InsertValue(TStringBuf key, const TJsonValue& value) Y_LIFETIME_BOUND;
+        TJsonValue& InsertValue(const char* key, const TJsonValue& value) Y_LIFETIME_BOUND;
+        TJsonValue& InsertValue(const TString& key, TJsonValue&& value) Y_LIFETIME_BOUND;
+        TJsonValue& InsertValue(TStringBuf key, TJsonValue&& value) Y_LIFETIME_BOUND;
+        TJsonValue& InsertValue(const char* key, TJsonValue&& value) Y_LIFETIME_BOUND;
 
         // for Array
-        TJsonValue& AppendValue(const TJsonValue& value);
-        TJsonValue& AppendValue(TJsonValue&& value);
-        TJsonValue& Back();
-        const TJsonValue& Back() const;
+        TJsonValue& AppendValue(const TJsonValue& value) Y_LIFETIME_BOUND;
+        TJsonValue& AppendValue(TJsonValue&& value) Y_LIFETIME_BOUND;
+        TJsonValue& Back() Y_LIFETIME_BOUND;
+        const TJsonValue& Back() const Y_LIFETIME_BOUND;
 
+        // path lookup syntax
+        //  1. steps delimited by delimiter char
+        //  2. if step is use square brackets `[1]` - array lookup by index will be performed
+        //    2.1 negative `[-1]` indexes allow to lookup array-items from end
+        //    2.2 empty brackets `[]` in modification methods allow to create an item
+        //  3. otherwise - dict lookup by string-key will be performed
         bool GetValueByPath(TStringBuf path, TJsonValue& result, char delimiter = '.') const;
         bool SetValueByPath(TStringBuf path, const TJsonValue& value, char delimiter = '.');
         bool SetValueByPath(TStringBuf path, TJsonValue&& value, char delimiter = '.');
 
         // returns NULL on failure
-        const TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') const noexcept;
-        TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') noexcept;
+        const TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') const noexcept Y_LIFETIME_BOUND;
+        TJsonValue* GetValueByPath(TStringBuf path, char delimiter = '.') noexcept Y_LIFETIME_BOUND;
+        TJsonValue& GetValueByPathOrCreate(TStringBuf path, char delimiter = '.') noexcept Y_LIFETIME_BOUND;
 
         void EraseValue(TStringBuf key);
         void EraseValue(size_t index);
 
-        TJsonValue& operator[](size_t idx);
-        TJsonValue& operator[](const TStringBuf& key);
-        const TJsonValue& operator[](size_t idx) const noexcept;
-        const TJsonValue& operator[](const TStringBuf& key) const noexcept;
+        TJsonValue& operator[](size_t idx) Y_LIFETIME_BOUND;
+        TJsonValue& operator[](const TStringBuf& key) Y_LIFETIME_BOUND;
+        const TJsonValue& operator[](size_t idx) const noexcept Y_LIFETIME_BOUND;
+        const TJsonValue& operator[](const TStringBuf& key) const noexcept Y_LIFETIME_BOUND;
 
         bool GetBoolean() const;
         long long GetInteger() const;
         unsigned long long GetUInteger() const;
         double GetDouble() const;
-        const TString& GetString() const;
-        const TMapType& GetMap() const;
-        const TArray& GetArray() const;
+        const TString& GetString() const Y_LIFETIME_BOUND;
+        const TMapType& GetMap() const Y_LIFETIME_BOUND;
+        const TArray& GetArray() const Y_LIFETIME_BOUND;
 
-        //throwing TJsonException possible
+        // throwing TJsonException possible
         bool GetBooleanSafe() const;
         long long GetIntegerSafe() const;
         unsigned long long GetUIntegerSafe() const;
         double GetDoubleSafe() const;
-        const TString& GetStringSafe() const;
-        const TMapType& GetMapSafe() const;
-        TMapType& GetMapSafe();
-        const TArray& GetArraySafe() const;
-        TArray& GetArraySafe();
+        const TString& GetStringSafe() const Y_LIFETIME_BOUND;
+        TString& GetStringSafe() Y_LIFETIME_BOUND;
+        const TMapType& GetMapSafe() const Y_LIFETIME_BOUND;
+        TMapType& GetMapSafe() Y_LIFETIME_BOUND;
+        const TArray& GetArraySafe() const Y_LIFETIME_BOUND;
+        TArray& GetArraySafe() Y_LIFETIME_BOUND;
 
         bool GetBooleanSafe(bool defaultValue) const;
         long long GetIntegerSafe(long long defaultValue) const;
@@ -179,10 +185,6 @@ namespace NJson {
         /// Non-robust comparison.
         bool operator==(const TJsonValue& rhs) const;
 
-        bool operator!=(const TJsonValue& rhs) const {
-            return !(*this == rhs);
-        }
-
         void Swap(TJsonValue& rhs) noexcept;
 
         // save using util/ysaveload.h serialization (not to JSON stream)
@@ -191,6 +193,18 @@ namespace NJson {
         // load using util/ysaveload.h serialization (not as JSON stream)
         void Load(IInputStream* s);
 
+    private:
+        void Clear() noexcept;
+
+        void DoScan(const TString& path, TJsonValue* parent, IScanCallback& callback);
+        void SwapWithUndefined(TJsonValue& output) noexcept;
+
+        /**
+            @throw yexception if Back shouldn't be called on the object.
+         */
+        void BackChecks() const;
+
+    public:
         static const TJsonValue UNDEFINED;
 
     private:
@@ -211,13 +225,6 @@ namespace NJson {
             }
         };
         TValueUnion Value;
-        void DoScan(const TString& path, TJsonValue* parent, IScanCallback& callback);
-        void SwapWithUndefined(TJsonValue& output) noexcept;
-
-        /**
-            @throw yexception if Back shouldn't be called on the object.
-         */
-        void BackChecks() const;
     };
 
     inline bool GetBoolean(const TJsonValue& jv, size_t index, bool* value) noexcept {
@@ -270,7 +277,8 @@ namespace NJson {
     public:
         TJsonMap()
             : TJsonValue(NJson::JSON_MAP)
-        {}
+        {
+        }
 
         TJsonMap(const std::initializer_list<std::pair<TString, TJsonValue>>& list)
             : TJsonValue(NJson::JSON_MAP)
@@ -283,7 +291,8 @@ namespace NJson {
     public:
         TJsonArray()
             : TJsonValue(NJson::JSON_ARRAY)
-        {}
+        {
+        }
 
         TJsonArray(const std::initializer_list<TJsonValue>& list)
             : TJsonValue(NJson::JSON_ARRAY)
@@ -291,4 +300,4 @@ namespace NJson {
             GetArraySafe() = TJsonValue::TArray(list);
         }
     };
-}
+} // namespace NJson

@@ -2,7 +2,7 @@
 
 namespace NCatboostOptions {
     void TBootstrapConfig::Validate() const {
-        CB_ENSURE((GetTakenFraction() > 0) && (GetTakenFraction() <= 1.0f), "Taken fraction should be in (0,1]");
+        CB_ENSURE((GetTakenFraction() > 0) && (GetTakenFraction() <= 1.0f), "Subsample should be in (0,1]");
         CB_ENSURE(GetBaggingTemperature() >= 0, "Bagging temperature should be >= 0");
         CB_ENSURE(GetMvsReg().OrElse(0) >= 0, "MVS regularization parameter should be >= 0");
 
@@ -14,7 +14,7 @@ namespace NCatboostOptions {
             case EBootstrapType::Bayesian: {
                 if (TakenFraction.IsSet()) {
                     ythrow TCatBoostException()
-                        << "Error: bayesian bootstrap doesn't support taken fraction option";
+                        << "Error: bayesian bootstrap doesn't support 'subsample' option";
                 }
                 break;
             }

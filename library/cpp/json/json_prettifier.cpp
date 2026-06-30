@@ -26,8 +26,9 @@ namespace NJson {
         }
 
         void Hold(char c) {
-            if (Dirty)
+            if (Dirty) {
                 Flush();
+            }
             Last = c;
             Dirty = true;
         }
@@ -221,8 +222,9 @@ namespace NJson {
         }
 
         bool OnClose(char c) {
-            if (!Level)
+            if (!Level) {
                 return false;
+            }
 
             Level--;
 
@@ -237,16 +239,18 @@ namespace NJson {
         }
 
         bool OnCloseMap() override {
-            if (!OnClose('{'))
+            if (!OnClose('{')) {
                 return false;
+            }
             Out.Write("}");
             AfterVal();
             return true;
         }
 
         bool OnCloseArray() override {
-            if (!OnClose('['))
+            if (!OnClose('[')) {
                 return false;
+            }
             Out.Write("]");
             AfterVal();
             return true;
@@ -269,9 +273,10 @@ namespace NJson {
 
     TString TJsonPrettifier::Prettify(TStringBuf in) const {
         TStringStream s;
-        if (Prettify(in, s))
+        if (Prettify(in, s)) {
             return s.Str();
+        }
         return TString();
     }
 
-}
+} // namespace NJson

@@ -81,6 +81,8 @@ TStringBuf TBaseServerRequestData::Environment(TStringBuf key) const {
         return ip ? *ip : RemoteAddr();
     } else if (ciKey == "QUERY_STRING") {
         return Query();
+    } else if (ciKey == "BODY") {
+        return Body();
     } else if (ciKey == "SERVER_NAME") {
         return ServerName();
     } else if (ciKey == "SERVER_PORT") {

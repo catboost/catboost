@@ -87,7 +87,7 @@ namespace CatBoostNet {
         }
 
         /// <summary>
-        /// Use CUDA gpu device for model evaluation
+        /// Use CUDA GPU device for model evaluation
         /// </summary>
         /// <param name="handler"></param>
         /// <param name="deviceId"></param>

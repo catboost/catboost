@@ -59,7 +59,7 @@ namespace NCB {
             if (SourceToDestinationIndexes.empty()) {
                 return 0;
             }
-            return SourceToDestinationIndexes.rbegin()->first + 1;
+            return *SourceToDestinationIndexes.begin()->second.begin(); // index of 1st tokenized text feature == number of text features
         }
 
         ui32 GetDigitizedTextsCount() const {

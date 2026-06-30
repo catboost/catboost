@@ -4,12 +4,16 @@
 
 // Test prog.cc, compile.cc
 
+#include <stddef.h>
+
 #include <string>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
-#include "re2/regexp.h"
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "absl/strings/string_view.h"
+#include "gtest/gtest.h"
 #include "re2/prog.h"
+#include "re2/regexp.h"
 
 namespace re2 {
 
@@ -127,17 +131,17 @@ static Test tests[] = {
 
 TEST(TestRegexpCompileToProg, Simple) {
   int failed = 0;
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(tests); i++) {
     const re2::Test& t = tests[i];
     Regexp* re = Regexp::Parse(t.regexp, Regexp::PerlX|Regexp::Latin1, NULL);
     if (re == NULL) {
-      LOG(ERROR) << "Cannot parse: " << t.regexp;
+      ABSL_LOG(ERROR) << "Cannot parse: " << t.regexp;
       failed++;
       continue;
     }
     Prog* prog = re->CompileToProg(0);
     if (prog == NULL) {
-      LOG(ERROR) << "Cannot compile: " << t.regexp;
+      ABSL_LOG(ERROR) << "Cannot compile: " << t.regexp;
       re->Decref();
       failed++;
       continue;
@@ -145,9 +149,9 @@ TEST(TestRegexpCompileToProg, Simple) {
     ASSERT_TRUE(re->CompileToProg(1) == NULL);
     std::string s = prog->Dump();
     if (s != t.code) {
-      LOG(ERROR) << "Incorrect compiled code for: " << t.regexp;
-      LOG(ERROR) << "Want:\n" << t.code;
-      LOG(ERROR) << "Got:\n" << s;
+      ABSL_LOG(ERROR) << "Incorrect compiled code for: " << t.regexp;
+      ABSL_LOG(ERROR) << "Want:\n" << t.code;
+      ABSL_LOG(ERROR) << "Got:\n" << s;
       failed++;
     }
     delete prog;
@@ -156,7 +160,7 @@ TEST(TestRegexpCompileToProg, Simple) {
   EXPECT_EQ(failed, 0);
 }
 
-static void DumpByteMap(StringPiece pattern, Regexp::ParseFlags flags,
+static void DumpByteMap(absl::string_view pattern, Regexp::ParseFlags flags,
                         std::string* bytemap) {
   Regexp* re = Regexp::Parse(pattern, flags, NULL);
   EXPECT_TRUE(re != NULL);
@@ -257,7 +261,7 @@ TEST(TestCompile, InsufficientMemory) {
   re->Decref();
 }
 
-static void Dump(StringPiece pattern, Regexp::ParseFlags flags,
+static void Dump(absl::string_view pattern, Regexp::ParseFlags flags,
                  std::string* forward, std::string* reverse) {
   Regexp* re = Regexp::Parse(pattern, flags, NULL);
   EXPECT_TRUE(re != NULL);

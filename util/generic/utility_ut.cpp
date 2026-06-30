@@ -177,4 +177,4 @@ Y_UNIT_TEST_SUITE(TUtilityTest) {
             UNIT_ASSERT_EQUAL(test[i], 0);
         }
     }
-};
+}

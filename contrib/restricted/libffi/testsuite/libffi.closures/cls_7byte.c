@@ -15,7 +15,7 @@ typedef struct cls_struct_7byte {
   unsigned short d;
 } cls_struct_7byte;
 
-cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
+static cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
 			    struct cls_struct_7byte a2)
 {
   struct cls_struct_7byte result;
@@ -28,6 +28,22 @@ cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
   printf("%d %d %d %d %d %d %d %d: %d %d %d %d\n", a1.a, a1.b, a1.c, a1.d,
 	 a2.a, a2.b, a2.c, a2.d,
 	 result.a, result.b, result.c, result.d);
+
+  CHECK(a1.a == 127);
+  CHECK(a1.b == 120);
+  CHECK(a1.c == 1);
+  CHECK(a1.d == 254);
+	
+  CHECK(a2.a == 12);
+  CHECK(a2.b == 128);
+  CHECK(a2.c == 9);
+  CHECK(a2.d == 255);
+
+  CHECK(result.a == 139);
+  CHECK(result.b == 248);
+  CHECK(result.c == 10);
+  CHECK(result.d == 509);
+
 
   return  result;
 }
@@ -85,6 +101,10 @@ int main (void)
   /* { dg-output "127 120 1 254 12 128 9 255: 139 248 10 509" } */
   printf("res: %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 139 248 10 509" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 509);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_7byte_gn, NULL, code) == FFI_OK);
 
@@ -92,6 +112,10 @@ int main (void)
   /* { dg-output "\n127 120 1 254 12 128 9 255: 139 248 10 509" } */
   printf("res: %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
   /* { dg-output "\nres: 139 248 10 509" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 509);
 
   exit(0);
 }

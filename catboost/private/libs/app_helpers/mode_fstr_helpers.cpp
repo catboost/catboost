@@ -45,6 +45,7 @@ namespace {
                 Dataset = NCB::ReadDataset(/*taskType*/Nothing(),
                                            Params.DatasetReadingParams.PoolPath,
                                            Params.DatasetReadingParams.PairsFilePath,
+                                           Params.DatasetReadingParams.GraphFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),
@@ -54,6 +55,7 @@ namespace {
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
+                                           /*loadSampleIds*/ false,
                                            /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels*/ Nothing(),
                                            LocalExecutor.Get());
@@ -128,7 +130,7 @@ void NCB::ModeFstrSingleHostInner(
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
-                              inputPath.IsFile() ? poolLoader() : nullptr, // because InputPath has default value and is always inited
+                              params.DatasetReadingParams.PoolPath.Inited() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               fstrPathPtr,
                               internalFstrPathPtr,
@@ -176,7 +178,8 @@ void NCB::ModeFstrSingleHostInner(
 void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     params.DatasetReadingParams.ValidatePoolParams();
 
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    CB_ENSURE(params.ModelFileName.size() == 1, "Fstr calculation requires exactly one model");
+    TFullModel model = ReadModel(params.ModelFileName[0], params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
@@ -185,4 +188,3 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
 
     ModeFstrSingleHostInner(params, model);
 }
-

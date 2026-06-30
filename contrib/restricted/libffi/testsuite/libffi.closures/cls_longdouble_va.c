@@ -5,19 +5,36 @@
    Originator:	Blake Chaffin 6/6/2007	 */
 
 /* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-output "" { xfail avr32*-*-* x86_64-*-mingw* } } */
+/* { dg-output "" { xfail avr32*-*-* } } */
 /* { dg-output "" { xfail mips-sgi-irix6* } } PR libffi/46660 */
 
 #include "ffitest.h"
+#include <stdarg.h>
+
+#define BUF_SIZE 50
+static char buffer[BUF_SIZE];
+
+static int
+wrap_printf(char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	long double ldArg = va_arg(ap, long double);
+	va_end(ap);
+	CHECK((int)ldArg == 7);
+	return printf(fmt, ldArg);	
+}
 
 static void
-cls_longdouble_va_fn(ffi_cif* cif __UNUSED__, void* resp, 
+cls_longdouble_va_fn(ffi_cif* cif __UNUSED__, void* resp,
 		     void** args, void* userdata __UNUSED__)
 {
 	char*		format	= *(char**)args[0];
 	long double	ldValue	= *(long double*)args[1];
 
 	*(ffi_arg*)resp = printf(format, ldValue);
+	CHECK(*(ffi_arg*)resp == 4);
+	snprintf(buffer, BUF_SIZE, format, ldValue);
+	CHECK(strncmp(buffer, "7.0\n", BUF_SIZE) == 0);
 }
 
 int main (void)
@@ -44,10 +61,11 @@ int main (void)
 	args[1] = &ldArg;
 	args[2] = NULL;
 
-	ffi_call(&cif, FFI_FN(printf), &res, args);
+	ffi_call(&cif, FFI_FN(wrap_printf), &res, args);
 	/* { dg-output "7.0" } */
 	printf("res: %d\n", (int) res);
 	/* { dg-output "\nres: 4" } */
+	CHECK(res == 4);
 
 	CHECK(ffi_prep_closure_loc(pcl, &cif, cls_longdouble_va_fn, NULL,
 				   code) == FFI_OK);
@@ -56,6 +74,7 @@ int main (void)
 	/* { dg-output "\n7.0" } */
 	printf("res: %d\n", (int) res);
 	/* { dg-output "\nres: 4" } */
+	CHECK(res == 4);
 
 	exit(0);
 }

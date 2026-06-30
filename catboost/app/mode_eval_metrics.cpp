@@ -52,7 +52,11 @@ struct TModeEvalMetricsParams {
                 .RequiredArgument("INT")
                 .DefaultValue("150000")
                 .StoreResult(&ReadBlockSize);
-        parser.AddLongOption("tmp-dir", "Dir to store approx for non-additive metrics. Use \"-\" to generate directory.")
+        parser.AddLongOption(
+                "tmp-dir",
+                "Dir to store approx for non-additive metrics. "
+                "Use \"-\" to generate a temporary directory automatically."
+            )
                 .RequiredArgument("String")
                 .DefaultValue("-")
                 .StoreResult(&TmpDir);
@@ -130,7 +134,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     params.DatasetReadingParams.ForceUnitAutoPairWeights = false;
     params.DatasetReadingParams.ValidatePoolParams();
 
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    CB_ENSURE(params.ModelFileName.size() == 1, "Metrics evaluation requires exactly one model");
+    TFullModel model = ReadModel(params.ModelFileName[0], params.ModelFormat);
     CB_ENSURE(
         model.GetUsedCatFeaturesCount() == 0 || params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
         "Model has categorical features. Specify column_description file with correct categorical features.");

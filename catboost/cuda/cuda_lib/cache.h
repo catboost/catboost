@@ -8,20 +8,27 @@
 #include <util/system/spinlock.h>
 #include <util/system/mutex.h>
 
+#include <atomic>
+#include <type_traits>
+
+
 //cacheable type should has GetGuid() method. this stub is default implementation for this method
-template <class TLock>
+template <bool ThreadSafe>
 class TGuidHolderBase {
+    using TLock = std::conditional_t<ThreadSafe, TAdaptiveLock, TFakeMutex>;
+    using TFlag = std::conditional_t<ThreadSafe, std::atomic<bool>, bool>;
+
 public:
     TGuidHolderBase()
         : Lock(new TLock)
     {
     }
     const TGUID& GetGuid() const {
-        if (!HasGuid) {
+        if (NotInitialized) {
             TGuard<TLock> guard(*Lock);
-            if (!HasGuid) {
+            if (NotInitialized) {
                 CreateGuid(&Guid);
-                HasGuid = true;
+                NotInitialized = false;
             }
         }
         return Guid;
@@ -30,11 +37,11 @@ public:
 private:
     THolder<TLock> Lock;
     mutable TGUID Guid;
-    mutable bool HasGuid = false;
+    mutable TFlag NotInitialized = true;
 };
 
-using TGuidHolder = TGuidHolderBase<TFakeMutex>;
-using TThreadSafeGuidHolder = TGuidHolderBase<TAdaptiveLock>;
+using TGuidHolder = TGuidHolderBase<false>;
+using TThreadSafeGuidHolder = TGuidHolderBase<true>;
 
 class TScopedCacheHolder {
 private:

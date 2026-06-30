@@ -20,9 +20,11 @@
 #ifndef ABSL_DEBUGGING_INTERNAL_STACKTRACE_EMSCRIPTEN_INL_H_
 #define ABSL_DEBUGGING_INTERNAL_STACKTRACE_EMSCRIPTEN_INL_H_
 
-#error #include <emscripten.h>
+#include <emscripten.h>
+#include <stdint.h>
 
 #include <atomic>
+#include <cstddef>
 #include <cstring>
 
 #include "absl/base/attributes.h"
@@ -50,20 +52,14 @@ static std::atomic<bool> disable_stacktraces(true);  // Disabled until healthy.
 // Waiting until static initializers run seems to be late enough.
 // This file is included into stacktrace.cc so this will only run once.
 ABSL_ATTRIBUTE_UNUSED static int stacktraces_enabler = []() {
-  // Check if we can even create stacktraces. If not, bail early and leave
-  // disable_stacktraces set as-is.
-  // clang-format off
-  if (!EM_ASM_INT({ return (typeof wasmOffsetConverter !== 'undefined'); })) {
-    return 0;
-  }
-  // clang-format on
   disable_stacktraces.store(false, std::memory_order_relaxed);
   return 0;
 }();
 
 template <bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
-                      const void *ucp, int *min_dropped_frames) {
+static int UnwindImpl(void **result, uintptr_t *frames, int *sizes,
+                      int max_depth, int skip_count, const void *ucp,
+                      int *min_dropped_frames) {
   if (recursive || disable_stacktraces.load(std::memory_order_relaxed)) {
     return 0;
   }
@@ -75,16 +71,31 @@ static int UnwindImpl(void **result, int *sizes, int max_depth, int skip_count,
 
   int size;
   uintptr_t pc = emscripten_stack_snapshot();
-  size = emscripten_stack_unwind_buffer(pc, stack, kStackLength);
+  size =
+      static_cast<int>(emscripten_stack_unwind_buffer(pc, stack, kStackLength));
 
-  int result_count = size - skip_count;
-  if (result_count < 0) result_count = 0;
-  if (result_count > max_depth) result_count = max_depth;
-  for (int i = 0; i < result_count; i++) result[i] = stack[i + skip_count];
+  int num_frames = size - skip_count;
+  if (num_frames < 0) num_frames = 0;
+  if (num_frames > max_depth) num_frames = max_depth;
+
+  int result_count = 0;
+  for (int i = 0; i < num_frames; i++) {
+    int stack_index = i + skip_count;
+    // Follow x86 and stop if the return address is null (end of stack).
+    if (stack[stack_index] == nullptr) {
+      break;
+    }
+    result[result_count++] = stack[stack_index];
+  }
 
   if (IS_STACK_FRAMES) {
-    // No implementation for finding out the stack frame sizes yet.
-    memset(sizes, 0, sizeof(*sizes) * result_count);
+    // No implementation for finding out the stack frames yet.
+    if (frames != nullptr) {
+      memset(frames, 0, sizeof(*frames) * static_cast<size_t>(result_count));
+    }
+    if (sizes != nullptr) {
+      memset(sizes, 0, sizeof(*sizes) * static_cast<size_t>(result_count));
+    }
   }
   if (min_dropped_frames != nullptr) {
     if (size - skip_count - max_depth > 0) {

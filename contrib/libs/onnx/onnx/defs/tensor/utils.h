@@ -4,14 +4,16 @@
 
 #pragma once
 
-#include "onnx/defs/schema.h"
-#include "onnx/defs/tensor_proto_util.h"
-
 #include <cmath>
+#include <vector>
+
+#include "onnx/defs/schema.h"
 
 namespace ONNX_NAMESPACE {
 // The below is called by ops after opset 11, inclusively.
 void resizeShapeInference(InferenceContext& ctx);
+
+void gridSampleShapeInference(InferenceContext& ctx);
 
 void resizeShapeInferenceHelper(
     const TensorShapeProto& input_shape,
@@ -27,6 +29,7 @@ void resizeShapeInferenceHelper(
 void resizeShapeInference_opset7_to_10(InferenceContext& ctx);
 void resizeShapeInference_opset11_to_12(InferenceContext& ctx);
 void resizeShapeInference_opset13_to_18(InferenceContext& ctx);
+void resizeShapeInference_opset18_to_19(InferenceContext& ctx);
 
 void resizeShapeInferenceHelper_opset7_to_10(
     const TensorShapeProto& input_shape,
@@ -47,4 +50,9 @@ void KeepAspectRatioHelper(
 
 extern const char* NonZero_ver9_doc;
 
+std::function<void(OpSchema&)> PadDocGenerator(
+    const char* description,
+    const char* mode_description,
+    const std::vector<std::string>& op_schema = OpSchema::all_tensor_types_ir4(),
+    const std::string& op_schema_description = "Constrain input and output types to all tensor types.");
 } // namespace ONNX_NAMESPACE

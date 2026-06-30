@@ -53,7 +53,7 @@ namespace NKernel {
         __device__ __forceinline__ float Der2(float target, float prediction) const {
             const float der2 = target * std::exp((1 - VariancePower) * prediction) * (1 - VariancePower);
             const float delta = std::exp((2 - VariancePower) * prediction) * (2 - VariancePower);
-            return der2 - delta;
+            return - der2 + delta;
         }
     };
 
@@ -87,7 +87,7 @@ namespace NKernel {
         __device__ __forceinline__ float Der2(float target, float prediction) const {
             const float diff = target - prediction;
             if (fabs(diff) < Delta) {
-                return HUBER_DER2;
+                return -HUBER_DER2;
             } else {
                 return 0.0;
             }
@@ -323,7 +323,7 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE, int ELEMENTS_PER_THREAD, bool HAS_BORDER>
-    __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void CrossEntropyImpl(const float* targetClasses, const float* targetWeights, ui32 size,
                                      const float* predictions,
                                      float* functionValue, float* der, float* der2,
@@ -518,7 +518,7 @@ namespace NKernel {
                 break;
             }
             default: {
-                Y_VERIFY(false, "Unknown target");
+                Y_ABORT_UNLESS(false, "Unknown target");
             }
         }
     }

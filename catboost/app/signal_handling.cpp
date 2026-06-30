@@ -1,27 +1,27 @@
 #include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/helpers/interrupt.h>
 
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/compiler.h>
 #include <util/system/interrupt_signals.h>
 #include <util/system/yassert.h>
 
+#include <atomic>
 #include <csignal>
 
 
 namespace NCB {
 
-    static volatile TAtomic HasBeenInterrupted = 0;
+    static std::atomic<bool> HasBeenInterrupted = false;
 
     static void AppInterruptHandler() {
-        if (AtomicGet(HasBeenInterrupted)) {
+        if (HasBeenInterrupted) {
             throw TInterruptException();
         }
     }
 
     static void AppInterruptSignalHandler(int signum) {
         Y_ASSERT((signum == SIGINT) || (signum == SIGTERM) || (signum == SIGHUP));
-        AtomicSet(HasBeenInterrupted, 1);
+        HasBeenInterrupted = true;
     }
 
     static NCB::TCmdLineInit::TRegistrator SetupAppSignalHandling(

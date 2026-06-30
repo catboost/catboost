@@ -10,7 +10,6 @@
 #ifndef _LIBCPP_FENV_H
 #define _LIBCPP_FENV_H
 
-
 /*
     fenv.h synopsis
 
@@ -50,71 +49,70 @@ int feupdateenv(const fenv_t* envp);
 
 */
 
-#include <__config>
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(fenv.h)
+#if defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#error  include <__cxx03/fenv.h>
 #else
-#include_next <fenv.h>
-#endif
+#  include <__config>
 
-#ifdef __cplusplus
+#  if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#    pragma GCC system_header
+#  endif
+
+#  if __has_include_next(<fenv.h>)
+#    include_next <fenv.h>
+#  endif
+
+#  ifdef __cplusplus
 
 extern "C++" {
 
-#ifdef feclearexcept
-#undef feclearexcept
-#endif
+#    ifdef feclearexcept
+#      undef feclearexcept
+#    endif
 
-#ifdef fegetexceptflag
-#undef fegetexceptflag
-#endif
+#    ifdef fegetexceptflag
+#      undef fegetexceptflag
+#    endif
 
+#    ifdef feraiseexcept
+#      undef feraiseexcept
+#    endif
 
-#ifdef feraiseexcept
-#undef feraiseexcept
-#endif
+#    ifdef fesetexceptflag
+#      undef fesetexceptflag
+#    endif
 
-#ifdef fesetexceptflag
-#undef fesetexceptflag
-#endif
+#    ifdef fetestexcept
+#      undef fetestexcept
+#    endif
 
+#    ifdef fegetround
+#      undef fegetround
+#    endif
 
-#ifdef fetestexcept
-#undef fetestexcept
-#endif
+#    ifdef fesetround
+#      undef fesetround
+#    endif
 
-#ifdef fegetround
-#undef fegetround
-#endif
+#    ifdef fegetenv
+#      undef fegetenv
+#    endif
 
-#ifdef fesetround
-#undef fesetround
-#endif
+#    ifdef feholdexcept
+#      undef feholdexcept
+#    endif
 
-#ifdef fegetenv
-#undef fegetenv
-#endif
+#    ifdef fesetenv
+#      undef fesetenv
+#    endif
 
-#ifdef feholdexcept
-#undef feholdexcept
-#endif
-
-
-#ifdef fesetenv
-#undef fesetenv
-#endif
-
-#ifdef feupdateenv
-#undef feupdateenv
-#endif
+#    ifdef feupdateenv
+#      undef feupdateenv
+#    endif
 
 } // extern "C++"
 
-#endif // defined(__cplusplus)
+#  endif // defined(__cplusplus)
+#endif   // defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
 
 #endif // _LIBCPP_FENV_H

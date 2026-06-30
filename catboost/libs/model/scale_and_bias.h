@@ -5,6 +5,9 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
+#include <tuple>
+
+
 //! For computing final formula as `Scale * sumTrees + Bias`
 struct TScaleAndBias {
     double Scale = 1.0;
@@ -20,12 +23,12 @@ public:
     {
     }
 
-    auto AsTie() const {
+    auto AsTuple() const {
         return std::tie(Scale, Bias);
     }
 
     bool operator==(const TScaleAndBias& other) const {
-        return AsTie() == other.AsTie();
+        return AsTuple() == other.AsTuple();
     }
 
     bool operator!=(const TScaleAndBias& other) const {

@@ -24,7 +24,7 @@ template <class T>
 class TExplicitType {
 public:
     template <class OtherT>
-    TExplicitType(const OtherT& value, std::enable_if_t<std::is_same<OtherT, T>::value>* = nullptr) noexcept
+    TExplicitType(const OtherT& value Y_LIFETIME_BOUND, std::enable_if_t<std::is_same<OtherT, T>::value>* = nullptr) noexcept
         : Value_(value)
     {
     }

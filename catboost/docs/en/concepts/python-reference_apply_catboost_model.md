@@ -7,8 +7,6 @@ Apply the model in Python format. The method is available within the output Pyth
 
 - {% include [reusage-common-phrases-apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/apply_catboost_model__performance.md) %}
 
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
-
 {% endnote %}
 
 
@@ -79,7 +77,4 @@ Possible types:
 
 ### {{ dl--output-format }}
 
-{{ python-type--numpyarray }} (identical to the `[CatBoost()](python-reference_catboost.md).[predict](python-reference_catboost_predict.md)(prediction_type='RawFormulaVal')` method output)[Train a model](../references/training-parameters/index.md)
-
-
-
+{{ python-type--numpy-ndarray }} (identical to the `[CatBoost()](python-reference_catboost.md).[predict](python-reference_catboost_predict.md)(prediction_type='RawFormulaVal')` method output)[Train a model](../references/training-parameters/index.md)

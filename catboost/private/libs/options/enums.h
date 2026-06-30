@@ -79,6 +79,11 @@ enum class EScoreFunction {
     L2
 };
 
+enum class ERandomScoreType {
+    NormalWithModelSizeDecrease,
+    Gumbel
+};
+
 enum class EModelShrinkMode {
     Constant,
     Decreasing
@@ -117,6 +122,7 @@ enum class ELossFunction {
     Logloss,
     CrossEntropy,
     CtrFactor,
+    Focal,
 
     /* regression errors */
 
@@ -136,6 +142,7 @@ enum class ELossFunction {
     Huber,
     Tweedie,
     Cox,
+    RMSPE,
 
     RMSEWithUncertainty,
 
@@ -153,6 +160,7 @@ enum class ELossFunction {
     YetiRank,
     YetiRankPairwise,
     QueryRMSE,
+    GroupQuantile,
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
@@ -413,6 +421,7 @@ namespace NCB {
     };
 
     enum class ERawTargetType : ui32 {
+        Boolean,
         Integer,
         Float,
         String,

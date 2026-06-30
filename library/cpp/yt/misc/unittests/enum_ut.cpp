@@ -1,5 +1,6 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
+#include <library/cpp/yt/misc/cast.h>
 #include <library/cpp/yt/misc/enum.h>
 
 namespace NYT {
@@ -28,6 +29,12 @@ DEFINE_BIT_ENUM(EFlag,
     ((_4)(0x0008))
 );
 
+DEFINE_BIT_ENUM(EAmbiguousFlag,
+    ((A)  (0x1))
+    ((B)  (0x2))
+    ((AB) (0x3))
+);
+
 DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(EMultipleNames, int,
      (A1)
     ((A2)(0))
@@ -41,6 +48,20 @@ DEFINE_ENUM(ECustomString,
     ((A) (1) ("1_a"))
     ((B) (2) ("1_b"))
 );
+
+DEFINE_ENUM_WITH_UNDERLYING_TYPE(ECardinal, char,
+    ((West)  (0))
+    ((North) (1))
+    ((East)  (2))
+    ((South) (3))
+);
+
+DEFINE_ENUM(EWithUnknown,
+    (First)
+    (Second)
+    (Unknown)
+);
+DEFINE_ENUM_UNKNOWN_VALUE(EWithUnknown, Unknown);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -195,6 +216,33 @@ TEST(TEnumTest, DomainValues)
     EXPECT_EQ(colorValues, ToVector(TEnumTraits<EColor>::GetDomainValues()));
 }
 
+TEST(TEnumTest, IsKnownValue)
+{
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::X));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Y));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Z));
+    EXPECT_FALSE(TEnumTraits<ESimple>::IsKnownValue(static_cast<ESimple>(100)));
+}
+
+TEST(TEnumTest, IsValidValue)
+{
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::X));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::Y));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::Z));
+    EXPECT_FALSE(TEnumTraits<ESimple>::IsValidValue(static_cast<ESimple>(100)));
+
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag()));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1 | EFlag::_2));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1 | EFlag::_2 | EFlag::_3 | EFlag::_4));
+    EXPECT_FALSE(TEnumTraits<EFlag>::IsValidValue(static_cast<EFlag>(0x10)));
+}
+
+TEST(TEnumTest, AllSetValue)
+{
+    EXPECT_EQ(TEnumTraits<EFlag>::GetAllSetValue(), EFlag::_1 | EFlag::_2 | EFlag::_3 | EFlag::_4);
+}
+
 TEST(TEnumTest, Decompose1)
 {
     auto f = EFlag(0);
@@ -249,8 +297,20 @@ TEST(TEnumTest, CustomString)
     EXPECT_EQ("1_b", ToString(ECustomString::B));
 }
 
+TEST(TEnumTest, UnknownValue)
+{
+    EXPECT_EQ(TEnumTraits<EColor>::TryGetUnknownValue(), std::nullopt);
+    EXPECT_EQ(TEnumTraits<EWithUnknown>::TryGetUnknownValue(), EWithUnknown::Unknown);
+}
+
+TEST(TEnumTest, PopCount)
+{
+    EXPECT_EQ(PopCount(EAmbiguousFlag::A), 1);
+    EXPECT_EQ(PopCount(EAmbiguousFlag::B), 1);
+    EXPECT_EQ(PopCount(EAmbiguousFlag::AB), 2);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 } // namespace NYT
-

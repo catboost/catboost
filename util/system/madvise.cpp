@@ -40,7 +40,7 @@ namespace {
         }
 #endif
     }
-}
+} // namespace
 
 void MadviseSequentialAccess(const void* begin, size_t size) {
 #if !defined(_win_)

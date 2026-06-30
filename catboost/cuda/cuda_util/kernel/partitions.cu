@@ -1,6 +1,6 @@
 #include "partitions.cuh"
 #include "fill.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 
@@ -87,7 +87,7 @@ namespace NKernel {
 
         while (i < size) {
             ui32 bin0 = __ldg(sortedBins + i);
-            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : -1;
+            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : UINT32_MAX;
             if (bin0 != bin1) {
                 ui32 b = bin0;
                 while (b != bin1) {

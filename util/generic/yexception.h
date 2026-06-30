@@ -1,13 +1,12 @@
 #pragma once
 
-#include "bt_exception.h"
 #include "strbuf.h"
 #include "string.h"
 #include "utility.h"
 #include "va_args.h"
-#include <utility>
 
 #include <util/stream/tempbuf.h>
+#include <util/system/backtrace.h>
 #include <util/system/compat.h>
 #include <util/system/compiler.h>
 #include <util/system/defaults.h>
@@ -16,10 +15,8 @@
 #include <util/system/platform.h>
 
 #include <exception>
-
+#include <utility>
 #include <cstdio>
-
-class TBackTrace;
 
 namespace NPrivateException {
     class TTempBufCuttingWrapperOutput: public IOutputStream {
@@ -56,7 +53,7 @@ namespace NPrivateException {
             ZeroTerminate();
         }
 
-        TStringBuf AsStrBuf() const;
+        TStringBuf AsStrBuf() const Y_LIFETIME_BOUND;
 
     private:
         void ZeroTerminate() noexcept;
@@ -67,17 +64,17 @@ namespace NPrivateException {
 
     template <class E, class T>
     static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
-    operator<<(E&& e, const T& t) {
+    operator<<(E&& e Y_LIFETIME_BOUND, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
     }
 
     template <class T>
-    static inline T&& operator+(const TSourceLocation& sl, T&& t) {
+    static inline T&& operator+(const TSourceLocation& sl, T&& t Y_LIFETIME_BOUND) {
         return std::forward<T>(t << sl << TStringBuf(": "));
     }
-}
+} // namespace NPrivateException
 
 class yexception: public NPrivateException::yexception {
 };
@@ -138,11 +135,29 @@ struct TBadArgumentException: public virtual yexception {
 struct TBadCastException: public virtual TBadArgumentException {
 };
 
+template <class T>
+class TWithBackTrace: public T {
+public:
+    template <typename... Args>
+    inline TWithBackTrace(Args&&... args)
+        : T(std::forward<Args>(args)...)
+    {
+        BT_.Capture();
+    }
+
+    const TBackTrace* BackTrace() const noexcept override {
+        return &BT_;
+    }
+
+private:
+    TBackTrace BT_;
+};
+
 #define ythrow throw __LOCATION__ +
 
 namespace NPrivate {
-    /// Encapsulates data for one of the most common case in which
-    /// exception message consists of single constant string
+    /// Encapsulates data for the most common case when
+    /// an exception message consists of a single constant string
     struct TSimpleExceptionMessage {
         TSourceLocation Location;
         TStringBuf Message;
@@ -150,7 +165,7 @@ namespace NPrivate {
 
     [[noreturn]] void ThrowYException(const TSimpleExceptionMessage& sm);
     [[noreturn]] void ThrowYExceptionWithBacktrace(const TSimpleExceptionMessage& sm);
-}
+} // namespace NPrivate
 
 void fputs(const std::exception& e, FILE* f = stderr);
 
@@ -163,7 +178,7 @@ TString CurrentExceptionMessage();
  * The speed of this method is not guaranteed either. Do not call it in hot paths of your code.
  *
  * The lack of current exception prior to the invocation indicates logical bug in the client code.
- * Y_VERIFY asserts the existence of exception, otherwise panic and abort.
+ * Y_ABORT_UNLESS asserts the existence of exception, otherwise panic and abort.
  */
 TString FormatCurrentException();
 void FormatCurrentExceptionTo(IOutputStream& out);
@@ -187,23 +202,24 @@ std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 
-#define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
-    do {                                         \
-        if (Y_UNLIKELY(!(CONDITION))) {          \
-            ythrow THROW_EXPRESSION;             \
-        }                                        \
+#define Y_THROW_UNLESS_EX(CONDITION, THROW_EXPRESSION) \
+    do {                                               \
+        if (Y_UNLIKELY(!(CONDITION))) {                \
+            ythrow THROW_EXPRESSION;                   \
+        }                                              \
     } while (false)
+#define Y_ENSURE_EX Y_THROW_UNLESS_EX
 
 /// @def Y_ENSURE_SIMPLE
 /// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
 /// Should not be used directly.
-#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE, THROW_FUNCTION)                                                                 \
-    do {                                                                                                                    \
-        if (Y_UNLIKELY(!(CONDITION))) {                                                                                     \
-            /* use variable to guarantee evaluation at compile time */                                                      \
-            static constexpr const ::NPrivate::TSimpleExceptionMessage __SIMPLE_EXCEPTION_MESSAGE{__LOCATION__, (MESSAGE)}; \
-            THROW_FUNCTION(__SIMPLE_EXCEPTION_MESSAGE);                                                                     \
-        }                                                                                                                   \
+#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE, THROW_FUNCTION)                                                             \
+    do {                                                                                                                \
+        if (Y_UNLIKELY(!(CONDITION))) {                                                                                 \
+            /* use variable to guarantee evaluation at compile time */                                                  \
+            static constexpr const ::NPrivate::TSimpleExceptionMessage SimpleExceptionMessage{__LOCATION__, (MESSAGE)}; \
+            THROW_FUNCTION(SimpleExceptionMessage);                                                                     \
+        }                                                                                                               \
     } while (false)
 
 #define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
@@ -225,7 +241,8 @@ TString FormatExc(const std::exception& exception);
  * }
  * @endcode
  */
-#define Y_ENSURE(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_IMPL_2, Y_ENSURE_IMPL_1)(__VA_ARGS__))
+#define Y_THROW_UNLESS(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_IMPL_2, Y_ENSURE_IMPL_1)(__VA_ARGS__))
+#define Y_ENSURE Y_THROW_UNLESS
 
 /**
  * @def Y_ENSURE_BT

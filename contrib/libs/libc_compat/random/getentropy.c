@@ -14,7 +14,9 @@ int getentropy(void *buffer, size_t len)
 		return -1;
 	}
 
+#if defined(__linux__) && !defined(__ANDROID__)
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+#endif
 
 	while (len) {
 		ret = getrandom(pos, len, 0);
@@ -27,7 +29,9 @@ int getentropy(void *buffer, size_t len)
 		ret = 0;
 	}
 
+#if defined(__linux__) && !defined(__ANDROID__)
 	pthread_setcancelstate(cs, 0);
+#endif
 
 	return ret;
 }

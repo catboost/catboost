@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       block_buffer_encoder.c
 /// \brief      Single-call .xz Block encoder
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -277,7 +276,7 @@ block_buffer_encode(lzma_block *block, const lzma_allocator *allocator,
 		if (ret != LZMA_BUF_ERROR)
 			return ret;
 
-		// The data was uncompressible (at least with the options
+		// The data was incompressible (at least with the options
 		// given to us) or the output buffer was too small. Use the
 		// uncompressed chunks of LZMA2 to wrap the data into a valid
 		// Block. If we haven't been given enough output space, even

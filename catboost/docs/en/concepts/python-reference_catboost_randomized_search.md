@@ -61,7 +61,7 @@ If a nontrivial value of the cat_features parameter is specified in the construc
 
 {% endcut %}
 
-{% cut "{{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, polars.DataFrame" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -81,31 +81,17 @@ Required parameter
 
 #### Description
 
-The target variables (in other words, the objects' label values) for the training dataset.
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-Must be in the form of a one-dimensional array. The type of data in the array depends on the machine learning task being solved:
-- Regression , multiregression and ranking — Numeric values.
+{% include [methods-param-desc-label--detailed-desc-generic](../_includes/work_src/reusage/label--detailed-desc-generic.md) %}
 
-- Binary classification — Numeric values.
-
-The interpretation of numeric values depends on the selected loss function:
-   - Logloss — The value is considered a positive class if it is strictly greater than the value of the border parameter of the loss function. Otherwise, it is considered a negative class.
-   - CrossEntropy — The value is interpreted as the probability that the dataset object belongs to the positive class. Possible values are in the range [0; 1].
-- Multiclassification — Integers or strings that represents the labels of the classes.
 {% note info %}
 
 Do not use this parameter if the input training dataset (specified in the X parameter) type is catboost.Pool.
 
 {% endnote %}
 
-**Possible types**
-
-- numpy.array
-- pandas.Series
-
-**Default value**
-
-None
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 ### cv
 
@@ -181,22 +167,6 @@ True
 Split the source dataset into train and test parts. Models are trained on the train part, while parameters are compared by the loss function score on the test dataset.
 
 It is recommended to enable this option for large datasets and disable it for the small ones.
-
-**Possible types**
-
-bool
-
-**Default value**
-
-True
-
-### calc_cv_statistics
-
-#### Description
-
-Estimate the quality by using cross-validation with the best of the found parameters. The model is fitted using these parameters.
-
-This option can be enabled if the `search_by_train_test_split` parameter is set to True.
 
 **Possible types**
 
@@ -307,5 +277,3 @@ Dict with two fields:
 ## {{ dl--example }} {#example}
 
 {% include [random_search-randomized-search](../_includes/work_src/reusage-code-examples/randomized-search.md) %}
-
-

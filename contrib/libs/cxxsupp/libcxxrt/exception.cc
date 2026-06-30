@@ -1,5 +1,6 @@
 /* 
  * Copyright 2010-2011 PathScale, Inc. All rights reserved.
+ * Copyright 2021 David Chisnall. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,7 +35,7 @@
 #include "dwarf_eh.h"
 #include "atomic.h"
 #include "cxxabi.h"
-#include "msan.h"
+#include <sanitizer/msan_interface.h>
 
 using namespace ABI_NAMESPACE;
 
@@ -98,7 +99,7 @@ static inline _Unwind_Reason_Code continueUnwinding(struct _Unwind_Exception *ex
 }
 
 
-extern "C" void __cxa_free_exception(void *thrown_exception);
+extern "C" void __cxa_free_exception(void *thrown_exception) _LIBCXXRT_NOEXCEPT;
 extern "C" void __cxa_free_dependent_exception(void *thrown_exception);
 extern "C" void* __dynamic_cast(const void *sub,
                                 const __class_type_info *src,
@@ -139,6 +140,7 @@ struct __cxa_thread_info
 	terminate_handler terminateHandler;
 	/** The unexpected exception handler for this thread. */
 	unexpected_handler unexpectedHandler;
+#ifndef LIBCXXRT_NO_EMERGENCY_MALLOC
 	/**
 	 * The number of emergency buffers held by this thread.  This is 0 in
 	 * normal operation - the emergency buffers are only used when malloc()
@@ -147,6 +149,7 @@ struct __cxa_thread_info
 	 * in ABI spec [3.3.1]).
 	 */
 	int emergencyBuffersHeld;
+#endif
 	/**
 	 * The exception currently running in a cleanup.
 	 */
@@ -173,7 +176,8 @@ struct __cxa_thread_info
  */
 struct __cxa_dependent_exception
 {
-#if __LP64__
+#ifdef __LP64__
+	void *reserve;
 	void *primaryException;
 #endif
 	std::type_info *exceptionType;
@@ -191,22 +195,32 @@ struct __cxa_dependent_exception
 	const char *languageSpecificData;
 	void *catchTemp;
 	void *adjustedPtr;
-#if !__LP64__
+#ifndef __LP64__
 	void *primaryException;
 #endif
 	_Unwind_Exception unwindHeader;
 };
+static_assert(sizeof(__cxa_exception) == sizeof(__cxa_dependent_exception),
+    "__cxa_exception and __cxa_dependent_exception should have the same size");
+static_assert(offsetof(__cxa_exception, referenceCount) ==
+    offsetof(__cxa_dependent_exception, primaryException),
+    "referenceCount and primaryException should have the same offset");
+static_assert(offsetof(__cxa_exception, unwindHeader) ==
+    offsetof(__cxa_dependent_exception, unwindHeader),
+    "unwindHeader fields should have the same offset");
+static_assert(offsetof(__cxa_dependent_exception, unwindHeader) ==
+    offsetof(__cxa_dependent_exception, adjustedPtr) + 8,
+    "there should be no padding before unwindHeader");
 
-static_assert(sizeof(__cxa_dependent_exception) == sizeof(__cxa_exception));
 
 namespace std
 {
-	void unexpected();
+	[[noreturn]] void unexpected();
 	class exception
 	{
 		public:
-			virtual ~exception();
-			virtual const char* what() const noexcept;
+			virtual ~exception() _LIBCXXRT_NOEXCEPT;
+			virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 }
@@ -268,17 +282,21 @@ namespace std
 {
 	// Forward declaration of standard library terminate() function used to
 	// abort execution.
-	void terminate(void) noexcept;
+	[[noreturn]] void terminate(void) _LIBCXXRT_NOEXCEPT;
 }
 
 using namespace ABI_NAMESPACE;
 
+#ifdef LIBCXXRT_NO_DEFAULT_TERMINATE_DIAGNOSTICS
+/** The global termination handler. */
+static atomic<terminate_handler> terminateHandler = abort;
+#else
 /**
  * Callback function used with _Unwind_Backtrace().
  *
  * Prints a stack trace.  Used only for debugging help.
  *
- * Note: As of FreeBSD 8.1, dladd() still doesn't work properly, so this only
+ * Note: As of FreeBSD 8.1, dladdr() still doesn't work properly, so this only
  * correctly prints function names from public, relocatable, symbols.
  */
 static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
@@ -298,46 +316,47 @@ static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
 	return _URC_CONTINUE_UNWIND;
 }
 
-static void bt_terminate_handler() {
-    __cxa_eh_globals* globals = __cxa_get_globals();
-    __cxa_exception* thrown_exception = globals->caughtExceptions;
+static void terminate_with_diagnostics() {
+	__cxa_eh_globals *globals = __cxa_get_globals();
+	__cxa_exception *ex = globals->caughtExceptions;
 
-    if (!thrown_exception) {
-        abort();
-    }
+	if (ex != nullptr) {
+		fprintf(stderr, "Terminating due to uncaught exception %p", static_cast<void*>(ex));
+		ex = realExceptionFromException(ex);
+		const __class_type_info *e_ti =
+			static_cast<const __class_type_info*>(&typeid(std::exception));
+		const __class_type_info *throw_ti =
+			dynamic_cast<const __class_type_info*>(ex->exceptionType);
+		if (throw_ti) {
+			void* ptr = ex + 1;
+			if (throw_ti->__do_upcast(e_ti, &ptr)) {
+				std::exception* e = static_cast<std::exception*>(ptr);
+				if (e) {
+					fprintf(stderr, "    what() -> \"%s\"\n", e->what());
+				}
+			}
+		}
 
-    fprintf(stderr, "uncaught exception:\n    address -> %p\n", (void*)thrown_exception);
-    thrown_exception = realExceptionFromException(thrown_exception);
+		size_t bufferSize = 128;
+		char *demangled = static_cast<char*>(malloc(bufferSize));
+		const char *mangled = ex->exceptionType->name();
+		int status;
+		demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
+		fprintf(stderr, " of type %s\n", status == 0 ? demangled : mangled);
+		if (status == 0) { free(demangled); }
 
-    const __class_type_info *e_ti = static_cast<const __class_type_info*>(&typeid(std::exception));
-    const __class_type_info *throw_ti = dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
+		_Unwind_Backtrace(trace, 0);
+	}
 
-    if (throw_ti) {
-        void* ptr = thrown_exception + 1;
-
-        if (throw_ti->__do_upcast(e_ti, &ptr)) {
-            std::exception* e = static_cast<std::exception*>(ptr);
-
-            if (e) {
-                fprintf(stderr, "    what() -> \"%s\"\n", e->what());
-            }
-        }
-    }
-
-    size_t bufferSize = 128;
-    char *demangled = static_cast<char*>(malloc(bufferSize));
-    const char *mangled = thrown_exception->exceptionType->name();
-    int status;
-    demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
-    fprintf(stderr, "    type -> %s\n", status == 0 ? demangled : mangled);
-    if (status == 0) { free(demangled); }
-    abort();
+	abort();
 }
 
 /** The global termination handler. */
-static terminate_handler terminateHandler = bt_terminate_handler;
+static atomic<terminate_handler> terminateHandler = terminate_with_diagnostics;
+#endif
+
 /** The global unexpected exception handler. */
-static unexpected_handler unexpectedHandler = std::terminate;
+static atomic<unexpected_handler> unexpectedHandler = std::terminate;
 
 /** Key used for thread-local data. */
 static pthread_key_t eh_key;
@@ -512,11 +531,36 @@ extern "C" __cxa_eh_globals *ABI_NAMESPACE::__cxa_get_globals_fast(void)
 	return &(thread_info_fast()->globals);
 }
 
+#ifdef LIBCXXRT_NO_EMERGENCY_MALLOC
+static char *alloc_or_die(size_t size)
+{
+	char *buffer = static_cast<char*>(calloc(1, size));
+
+	if (buffer == nullptr)
+	{
+		fputs("Out of memory attempting to allocate exception\n", stderr);
+		std::terminate();
+	}
+	return buffer;
+}
+static void free_exception(char *e)
+{
+	free(e);
+}
+#else
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+static constexpr size_t emergency_buffer_full_size = 32768;
+static constexpr size_t emergency_single_buffer_size = 2048;
+#else
+static constexpr size_t emergency_buffer_full_size = 16384;
+static constexpr size_t emergency_single_buffer_size = 1024;
+#endif
 /**
  * An emergency allocation reserved for when malloc fails.  This is treated as
  * 16 buffers of 1KB each.
  */
-static char emergency_buffer[16384];
+static char emergency_buffer[emergency_buffer_full_size];
 /**
  * Flag indicating whether each buffer is allocated.
  */
@@ -539,7 +583,7 @@ static pthread_cond_t emergency_malloc_wait = PTHREAD_COND_INITIALIZER;
  */
 static char *emergency_malloc(size_t size)
 {
-	if (size > 1024) { return 0; }
+	if (size > emergency_single_buffer_size) { return 0; }
 
 	__cxa_thread_info *info = thread_info();
 	// Only 4 emergency buffers allowed per thread!
@@ -578,7 +622,7 @@ static char *emergency_malloc(size_t size)
 	}
 	pthread_mutex_unlock(&emergency_malloc_lock);
 	info->emergencyBuffersHeld++;
-	return emergency_buffer + (1024 * buffer);
+	return emergency_buffer + (emergency_single_buffer_size * buffer);
 }
 
 /**
@@ -595,7 +639,7 @@ static void emergency_malloc_free(char *ptr)
 	// Find the buffer corresponding to this pointer.
 	for (int i=0 ; i<16 ; i++)
 	{
-		if (ptr == static_cast<void*>(emergency_buffer + (1024 * i)))
+		if (ptr == static_cast<void*>(emergency_buffer + (emergency_single_buffer_size * i)))
 		{
 			buffer = i;
 			break;
@@ -606,7 +650,7 @@ static void emergency_malloc_free(char *ptr)
 	// emergency_malloc() is expected to return 0-initialized data.  We don't
 	// zero the buffer when allocating it, because the static buffers will
 	// begin life containing 0 values.
-	memset(ptr, 0, 1024);
+	memset(ptr, 0, emergency_single_buffer_size);
 	// Signal the condition variable to wake up any threads that are blocking
 	// waiting for some space in the emergency buffer
 	pthread_mutex_lock(&emergency_malloc_lock);
@@ -651,6 +695,7 @@ static void free_exception(char *e)
 		free(e);
 	}
 }
+#endif
 
 static constexpr size_t align_to(size_t size, size_t alignment) noexcept {
     return (size + alignment - 1) / alignment * alignment;
@@ -672,13 +717,14 @@ static_assert(
 static constexpr size_t backtrace_buffer_size = 0;
 #endif
 
+
 /**
  * Allocates an exception structure.  Returns a pointer to the space that can
  * be used to store an object of thrown_size bytes.  This function will use an
  * emergency buffer if malloc() fails, and may block if there are no such
  * buffers available.
  */
-extern "C" void *__cxa_allocate_exception(size_t thrown_size)
+extern "C" void *__cxa_allocate_exception(size_t thrown_size) _LIBCXXRT_NOEXCEPT
 {
 	size_t size = thrown_size + exception_size + backtrace_buffer_size;
 	char *buffer = alloc_or_die(size);
@@ -703,7 +749,7 @@ extern "C" void *__cxa_allocate_dependent_exception(void)
  * In this implementation, it is also called by __cxa_end_catch() and during
  * thread cleanup.
  */
-extern "C" void __cxa_free_exception(void *thrown_exception)
+extern "C" void __cxa_free_exception(void *thrown_exception) _LIBCXXRT_NOEXCEPT
 {
 	__cxa_exception *ex = reinterpret_cast<__cxa_exception*>(thrown_exception) - 1;
 	// Free the object that was thrown, calling its destructor
@@ -755,10 +801,11 @@ void __cxa_free_dependent_exception(void *thrown_exception)
  * Report a failure that occurred when attempting to throw an exception.
  *
  * If the failure happened by falling off the end of the stack without finding
- * a handler, prints a back trace before aborting.
+ * a handler, catch the exception before calling terminate. The default
+ * terminate handler will print a backtrace before aborting.
  */
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-extern "C" void *__cxa_begin_catch(void *e) noexcept;
+extern "C" void *__cxa_begin_catch(void *e) _LIBCXXRT_NOEXCEPT;
 #else
 extern "C" void *__cxa_begin_catch(void *e);
 #endif
@@ -777,39 +824,6 @@ static void report_failure(_Unwind_Reason_Code err, __cxa_exception *thrown_exce
 #endif
 		case _URC_END_OF_STACK:
 			__cxa_begin_catch (&(thrown_exception->unwindHeader));
- 			std::terminate();
-			fprintf(stderr, "uncaught exception:\n    address -> %p\n", 
-					static_cast<void*>(thrown_exception));
-			thrown_exception = realExceptionFromException(thrown_exception);
-			static const __class_type_info *e_ti =
-				static_cast<const __class_type_info*>(&typeid(std::exception));
-			const __class_type_info *throw_ti =
-				dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
-			if (throw_ti)
-			{
-				std::exception *e =
-					static_cast<std::exception*>(e_ti->cast_to(static_cast<void*>(thrown_exception+1),
-							throw_ti));
-				if (e)
-				{
-					fprintf(stderr, " what() -> \"%s\"\n", e->what());
-				}
-			}
-
-			size_t bufferSize = 128;
-			char *demangled = static_cast<char*>(malloc(bufferSize));
-			const char *mangled = thrown_exception->exceptionType->name();
-			int status;
-			demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
-			fprintf(stderr, "    type -> %s\n", 
-				status == 0 ? demangled : mangled);
-			if (status == 0) { free(demangled); }
-			// Print a back trace if no handler is found.
-			// TODO: Make this optional
-			_Unwind_Backtrace(trace, 0);
-
-			// Just abort. No need to call std::terminate for the second time
-			abort();
 			break;
 	}
 	std::terminate();
@@ -821,12 +835,12 @@ static void throw_exception(__cxa_exception *ex)
 	ex->unexpectedHandler = info->unexpectedHandler;
 	if (0 == ex->unexpectedHandler)
 	{
-		ex->unexpectedHandler = unexpectedHandler;
+		ex->unexpectedHandler = unexpectedHandler.load();
 	}
 	ex->terminateHandler  = info->terminateHandler;
 	if (0 == ex->terminateHandler)
 	{
-		ex->terminateHandler = terminateHandler;
+		ex->terminateHandler = terminateHandler.load();
 	}
 	info->globals.uncaughtExceptions++;
 
@@ -835,6 +849,21 @@ static void throw_exception(__cxa_exception *ex)
 	// unwind the stack past this function.  If it does return, then something
 	// has gone wrong.
 	report_failure(err, ex);
+}
+
+extern "C" __cxa_exception *__cxa_init_primary_exception(
+		void *object, std::type_info* tinfo, void (*dest)(void *)) _LIBCXXRT_NOEXCEPT {
+	__cxa_exception *ex = reinterpret_cast<__cxa_exception*>(object) - 1;
+
+	ex->referenceCount = 0;
+	ex->exceptionType = tinfo;
+
+	ex->exceptionDestructor = dest;
+
+	ex->unwindHeader.exception_class = exception_class;
+	ex->unwindHeader.exception_cleanup = exception_cleanup;
+
+	return ex;
 }
 
 typedef void (*cxa_throw_hook_t)(void*, std::type_info*, void(*)(void*)) noexcept;
@@ -855,15 +884,8 @@ extern "C" void __cxa_throw(void *thrown_exception,
 		cxa_throw_hook(thrown_exception, tinfo, dest);
 	}
 
-	__cxa_exception *ex = reinterpret_cast<__cxa_exception*>(thrown_exception) - 1;
-
+	__cxa_exception *ex = __cxa_init_primary_exception(thrown_exception, tinfo, dest);
 	ex->referenceCount = 1;
-	ex->exceptionType = tinfo;
-	
-	ex->exceptionDestructor = dest;
-	
-	ex->unwindHeader.exception_class = exception_class;
-	ex->unwindHeader.exception_cleanup = exception_cleanup;
 
 	throw_exception(ex);
 }
@@ -1322,7 +1344,7 @@ BEGIN_PERSONALITY_FUNCTION(__gxx_personality_v0)
  * C++ exceptions) of the unadjusted pointer (for foreign exceptions).
  */
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-extern "C" void *__cxa_begin_catch(void *e) noexcept
+extern "C" void *__cxa_begin_catch(void *e) _LIBCXXRT_NOEXCEPT
 #else
 extern "C" void *__cxa_begin_catch(void *e)
 #endif
@@ -1511,6 +1533,19 @@ extern "C" void __cxa_call_unexpected(void*exception)
 }
 
 /**
+ * ABI function, called when an object destructor exits due to an
+ * exception during stack unwinding.
+ *
+ * This function does not return.
+ */
+extern "C" void __cxa_call_terminate(void*exception) _LIBCXXRT_NOEXCEPT
+{
+	std::terminate();
+	// Should not be reached.
+	abort();
+}
+
+/**
  * ABI function, returns the adjusted pointer to the exception object.
  */
 extern "C" void *__cxa_get_exception_ptr(void *exceptionObject)
@@ -1531,14 +1566,14 @@ namespace pathscale
 	/**
 	 * Sets whether unexpected and terminate handlers should be thread-local.
 	 */
-	void set_use_thread_local_handlers(bool flag) noexcept
+	void set_use_thread_local_handlers(bool flag) _LIBCXXRT_NOEXCEPT
 	{
 		thread_local_handlers = flag;
 	}
 	/**
 	 * Sets a thread-local unexpected handler.  
 	 */
-	unexpected_handler set_unexpected(unexpected_handler f) noexcept
+	unexpected_handler set_unexpected(unexpected_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		unexpected_handler old = info->unexpectedHandler;
@@ -1548,7 +1583,7 @@ namespace pathscale
 	/**
 	 * Sets a thread-local terminate handler.  
 	 */
-	terminate_handler set_terminate(terminate_handler f) noexcept
+	terminate_handler set_terminate(terminate_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		terminate_handler old = info->terminateHandler;
@@ -1563,59 +1598,65 @@ namespace std
 	 * Sets the function that will be called when an exception specification is
 	 * violated.
 	 */
-	unexpected_handler set_unexpected(unexpected_handler f) noexcept
+	unexpected_handler set_unexpected(unexpected_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		if (thread_local_handlers) { return pathscale::set_unexpected(f); }
 
-		return ATOMIC_SWAP(&unexpectedHandler, f);
+		return unexpectedHandler.exchange(f);
 	}
 	/**
 	 * Sets the function that is called to terminate the program.
 	 */
-	terminate_handler set_terminate(terminate_handler f) noexcept
+	terminate_handler set_terminate(terminate_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		if (thread_local_handlers) { return pathscale::set_terminate(f); }
 
-		return ATOMIC_SWAP(&terminateHandler, f);
+		return terminateHandler.exchange(f);
 	}
 	/**
 	 * Terminates the program, calling a custom terminate implementation if
 	 * required.
 	 */
-	void terminate() noexcept
+	[[noreturn]] void terminate() _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		if (0 != info && 0 != info->terminateHandler)
 		{
 			info->terminateHandler();
-			// Should not be reached - a terminate handler is not expected to
-			// return.
-			abort();
 		}
-		terminateHandler();
+		else
+		{
+			terminateHandler.load()();
+		}
+		// Should not be reached - a terminate handler is not expected
+		// to return.
+		abort();
 	}
 	/**
 	 * Called when an unexpected exception is encountered (i.e. an exception
 	 * violates an exception specification).  This calls abort() unless a
 	 * custom handler has been set..
 	 */
-	void unexpected()
+	[[noreturn]] void unexpected()
 	{
 		static __cxa_thread_info *info = thread_info();
 		if (0 != info && 0 != info->unexpectedHandler)
 		{
 			info->unexpectedHandler();
-			// Should not be reached - a terminate handler is not expected to
-			// return.
-			abort();
 		}
-		unexpectedHandler();
+		else
+		{
+			unexpectedHandler.load()();
+		}
+		// Should not be reached - a unexpected handler is not expected
+		// to return.
+		abort();
 	}
 	/**
 	 * Returns whether there are any exceptions currently being thrown that
 	 * have not been caught.  This can occur inside a nested catch statement.
 	 */
-	bool uncaught_exception() noexcept
+	bool uncaught_exception() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		return info->globals.uncaughtExceptions != 0;
@@ -1624,7 +1665,7 @@ namespace std
 	 * Returns the number of exceptions currently being thrown that have not
 	 * been caught.  This can occur inside a nested catch statement.
 	 */
-	int uncaught_exceptions() noexcept
+	int uncaught_exceptions() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		return info->globals.uncaughtExceptions;
@@ -1632,26 +1673,26 @@ namespace std
 	/**
 	 * Returns the current unexpected handler.
 	 */
-	unexpected_handler get_unexpected() noexcept
+	unexpected_handler get_unexpected() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		if (info->unexpectedHandler)
 		{
 			return info->unexpectedHandler;
 		}
-		return ATOMIC_LOAD(&unexpectedHandler);
+		return unexpectedHandler.load();
 	}
 	/**
 	 * Returns the current terminate handler.
 	 */
-	terminate_handler get_terminate() noexcept
+	terminate_handler get_terminate() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		if (info->terminateHandler)
 		{
 			return info->terminateHandler;
 		}
-		return ATOMIC_LOAD(&terminateHandler);
+		return terminateHandler.load();
 	}
 }
 #if defined(__arm__) && !defined(__ARM_DWARF_EH__)
@@ -1682,8 +1723,10 @@ asm (
 ".type __cxa_end_cleanup, \"function\"   \n"
 "__cxa_end_cleanup:                      \n"
 "	push {r1, r2, r3, r4}                \n"
+"	mov r4, lr                           \n"
 "	bl __cxa_get_cleanup                 \n"
-"	push {r1, r2, r3, r4}                \n"
+"	mov lr, r4                           \n"
+"	pop {r1, r2, r3, r4}                 \n"
 "	b _Unwind_Resume                     \n"
 "	bl abort                             \n"
 ".popsection                             \n"

@@ -26,11 +26,11 @@ FeaturesData makes no checks at all to the input data. Use it only if there is c
 
 Numerical features for all objects from the dataset in the form of {{ python-type__np_ndarray }} of shape `(object_count x num_feature_count)` with dtype <q>numpy.float32</q>.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type__np_ndarray }}
 
-**Default value** 
+**Default value**
 
 None (the dataset does not contain numerical features)
 
@@ -56,7 +56,7 @@ Using other data types (for example, int32) raises an error.
 
 {{ python-type__np_ndarray }}
 
-**Default value** 
+**Default value**
 
 None (the dataset does not contain categorical features)
 
@@ -74,7 +74,7 @@ If the string is represented by the {{ python-type__bytes }} type, it must be UT
 
 - {{ python-type__list-of-bytes }}
 
-**Default value** 
+**Default value**
 
 None (the `num_feature_names` data attribute is set to a list of empty strings)
 
@@ -86,13 +86,13 @@ The names of categorical features in the form of a sequence of strings or bytes.
 
 If the string is represented by the {{ python-type__bytes }} type, it must be UTF-8 encoded.
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--list-of-strings }}
 
 - {{ python-type__list-of-bytes }}
 
-**Default value** 
+**Default value**
 
 None (the `cat_feature_names` data attribute is set to a list of empty strings)
 

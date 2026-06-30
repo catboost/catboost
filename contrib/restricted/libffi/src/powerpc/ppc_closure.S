@@ -27,6 +27,7 @@
 #define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
+#include "internal.h"
 #include <powerpc/asm.h>
 
 	.file   "ppc_closure.S"
@@ -390,6 +391,29 @@ ENTRY(ffi_go_closure_sysv)
 	b .Ldoclosure
 	.cfi_endproc
 END(ffi_go_closure_sysv)
+
+#ifdef FFI_EXEC_STATIC_TRAMP
+	.text
+	.align PPC_TRAMP_MAP_SHIFT
+	FFI_HIDDEN (trampoline_code_table)
+	.globl  trampoline_code_table
+	.type   trampoline_code_table,@function
+trampoline_code_table:
+	.rept   PPC_TRAMP_MAP_SIZE / PPC_TRAMP_SIZE
+	mflr    %r0
+	bcl     20,31,$+4
+	mflr    %r11
+	addis   %r11,%r11,PPC_TRAMP_MAP_SIZE@ha
+	mtlr    %r0
+	lwz     %r0,(PPC_TRAMP_MAP_SIZE-4)@l(%r11)
+	mtctr   %r0
+	lwz     %r11,(PPC_TRAMP_MAP_SIZE-8)@l(%r11)
+	bctr
+	nop
+	.endr
+	.size   trampoline_code_table,.-trampoline_code_table
+	.align PPC_TRAMP_MAP_SHIFT
+#endif /* FFI_EXEC_STATIC_TRAMP */
 
 #if defined __ELF__ && defined __linux__
 	.section	.note.GNU-stack,"",@progbits

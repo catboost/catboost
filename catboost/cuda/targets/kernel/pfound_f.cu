@@ -1,12 +1,12 @@
-#include "yeti_rank_pointwise.cuh"
+#include "pfound_f.cuh"
 #include "radix_sort_block.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/scan.cuh>
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
+#include <cub/block/block_radix_sort.cuh>
 
 #include <util/generic/cast.h>
 

@@ -20,7 +20,6 @@
 
 #if !defined(_win_)
 #include <signal.h>
-#include <pthread.h>
 #endif
 
 using namespace NNetliba;
@@ -30,9 +29,9 @@ namespace {
     const size_t MIN_SHARED_MEM_PACKET = 1000;
     const size_t MAX_PACKET_SIZE = 0x70000000;
 
-    NNeh::TAtomicBool PanicAttack;
+    NNeh::TAtomicBool PanicAttack = false;
     std::atomic<NHPTimer::STime> LastHeartbeat;
-    std::atomic<double> HeartbeatTimeout;
+    std::atomic<double> HeartbeatTimeout = 0.0;
 
     bool IsLocal(const TUdpAddress& addr) {
         return addr.IsIPv4() ? IsLocalIPv4(addr.GetIPv4()) : IsLocalIPv6(addr.Network, addr.Interface);
@@ -282,7 +281,7 @@ namespace NNehNetliba {
         }
 
         void SendRequest(const TUdpAddress& addr, const TString& url, const TString& data, const TGUID& reqId) override {
-            Y_VERIFY(
+            Y_ABORT_UNLESS(
                 data.size() < MAX_PACKET_SIZE,
                 "data size is too large; data.size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
                 data.size(), MAX_PACKET_SIZE);
@@ -322,7 +321,7 @@ namespace NNehNetliba {
 
         void SendResponse(const TGUID& reqId, TVector<char>* data) override {
             if (data && data->size() > MAX_PACKET_SIZE) {
-               Y_FAIL(
+               Y_ABORT(
                     "data size is too large; data->size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
                     data->size(), MAX_PACKET_SIZE);
             }

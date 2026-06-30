@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_util/kernel/cub_storage_context.cuh>
 #include <catboost/cuda/cuda_util/kernel/reduce.cuh>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <type_traits>
 
 using NCudaLib::EPtrType;
@@ -293,7 +295,7 @@ namespace {
         Y_SAVELOAD_DEFINE(Input, Offsets, Output, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
-            CB_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
+            CB_ENSURE(Output.Size() + 1 == Offsets.Size(), "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
             CUDA_SAFE_CALL(NKernel::SegmentedReduce(Input.Get(), Input.Size(),
                                                     Offsets.Get(), Offsets.Size() - 1,
                                                     Output.Get(), Type, context, stream.GetStream()));

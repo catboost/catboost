@@ -28,17 +28,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/ruby/ruby_generator.h"
+
 #include <iomanip>
+#include <memory>
 #include <sstream>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/plugin.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-
-#include <google/protobuf/compiler/ruby/ruby_generator.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/log/absl_log.h"
+#include "google/protobuf/compiler/plugin.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/io/zero_copy_stream.h"
 
 namespace google {
 namespace protobuf {
@@ -48,15 +50,15 @@ namespace ruby {
 // Forward decls.
 template <class numeric_type>
 TProtoStringType NumberToString(numeric_type value);
-TProtoStringType GetRequireName(const TProtoStringType& proto_file);
+TProtoStringType GetRequireName(y_absl::string_view proto_file);
 TProtoStringType LabelForField(FieldDescriptor* field);
 TProtoStringType TypeName(FieldDescriptor* field);
 bool GenerateMessage(const Descriptor* message, io::Printer* printer,
                      TProtoStringType* error);
 void GenerateEnum(const EnumDescriptor* en, io::Printer* printer);
-void GenerateMessageAssignment(const TProtoStringType& prefix,
+void GenerateMessageAssignment(y_absl::string_view prefix,
                                const Descriptor* message, io::Printer* printer);
-void GenerateEnumAssignment(const TProtoStringType& prefix, const EnumDescriptor* en,
+void GenerateEnumAssignment(y_absl::string_view prefix, const EnumDescriptor* en,
                             io::Printer* printer);
 TProtoStringType DefaultValueForField(const FieldDescriptor* field);
 
@@ -67,13 +69,13 @@ TProtoStringType NumberToString(numeric_type value) {
   return TProtoStringType{os.str()};
 }
 
-TProtoStringType GetRequireName(const TProtoStringType& proto_file) {
-  int lastindex = proto_file.find_last_of(".");
-  return proto_file.substr(0, lastindex) + "_pb";
+TProtoStringType GetRequireName(y_absl::string_view proto_file) {
+  size_t lastindex = proto_file.find_last_of('.');
+  return y_absl::StrCat(proto_file.substr(0, lastindex), "_pb");
 }
 
-TProtoStringType GetOutputFilename(const TProtoStringType& proto_file) {
-  return GetRequireName(proto_file) + ".rb";
+TProtoStringType GetOutputFilename(y_absl::string_view proto_file) {
+  return y_absl::StrCat(GetRequireName(proto_file), ".rb");
 }
 
 TProtoStringType LabelForField(const FieldDescriptor* field) {
@@ -121,8 +123,8 @@ TProtoStringType StringifySyntax(FileDescriptor::Syntax syntax) {
       return "proto3";
     case FileDescriptor::SYNTAX_UNKNOWN:
     default:
-      GOOGLE_LOG(FATAL) << "Unsupported syntax; this generator only supports "
-                           "proto2 and proto3 syntax.";
+      Y_ABSL_LOG(FATAL) << "Unsupported syntax; this generator only supports "
+                         "proto2 and proto3 syntax.";
       return "";
   }
 }
@@ -158,7 +160,7 @@ TProtoStringType DefaultValueForField(const FieldDescriptor* field) {
         for (int i = 0; i < default_str.length(); ++i) {
           // Write the hex form of each byte.
           os << "\\x" << std::hex << std::setw(2)
-             << ((uint16)((unsigned char)default_str.at(i)));
+             << ((uint16_t)((unsigned char)default_str.at(i)));
         }
         os << "\".force_encoding(\"ASCII-8BIT\")";
       }
@@ -247,7 +249,8 @@ void GenerateOneof(const OneofDescriptor* oneof, io::Printer* printer) {
 bool GenerateMessage(const Descriptor* message, io::Printer* printer,
                      TProtoStringType* error) {
   if (message->extension_range_count() > 0 || message->extension_count() > 0) {
-    GOOGLE_LOG(WARNING) << "Extensions are not yet supported for proto2 .proto files.";
+    Y_ABSL_LOG(WARNING)
+        << "Extensions are not yet supported for proto2 .proto files.";
   }
 
   // Don't generate MapEntry messages -- we use the Ruby extension's native
@@ -321,7 +324,7 @@ char UpperChar(char ch) { return IsLower(ch) ? (ch - 'a' + 'A') : ch; }
 // names must be PascalCased.
 //
 //   foo_bar_baz -> FooBarBaz
-TProtoStringType PackageToModule(const TProtoStringType& name) {
+TProtoStringType PackageToModule(y_absl::string_view name) {
   bool next_upper = true;
   TProtoStringType result;
   result.reserve(name.size());
@@ -346,8 +349,8 @@ TProtoStringType PackageToModule(const TProtoStringType& name) {
 // since there is nothing enforcing this we need to ensure that they are valid
 // Ruby constants.  That mainly means making sure that the first character is
 // an upper-case letter.
-TProtoStringType RubifyConstant(const TProtoStringType& name) {
-  TProtoStringType ret = name;
+TProtoStringType RubifyConstant(y_absl::string_view name) {
+  TProtoStringType ret(name);
   if (!ret.empty()) {
     if (IsLower(ret[0])) {
       // If it starts with a lowercase letter, capitalize it.
@@ -358,14 +361,14 @@ TProtoStringType RubifyConstant(const TProtoStringType& name) {
       // here, e.g. try to strip leading underscores, but this may cause other
       // problems if the user really intended the name. So let's just prepend a
       // well-known suffix.
-      ret = "PB_" + ret;
+      return y_absl::StrCat("PB_", ret);
     }
   }
 
   return ret;
 }
 
-void GenerateMessageAssignment(const TProtoStringType& prefix,
+void GenerateMessageAssignment(y_absl::string_view prefix,
                                const Descriptor* message,
                                io::Printer* printer) {
   // Don't generate MapEntry messages -- we use the Ruby extension's native
@@ -383,7 +386,8 @@ void GenerateMessageAssignment(const TProtoStringType& prefix,
     "lookup(\"$full_name$\").msgclass\n",
     "full_name", message->full_name());
 
-  TProtoStringType nested_prefix = prefix + RubifyConstant(message->name()) + "::";
+  TProtoStringType nested_prefix =
+      y_absl::StrCat(prefix, RubifyConstant(message->name()), "::");
   for (int i = 0; i < message->nested_type_count(); i++) {
     GenerateMessageAssignment(nested_prefix, message->nested_type(i), printer);
   }
@@ -392,7 +396,7 @@ void GenerateMessageAssignment(const TProtoStringType& prefix,
   }
 }
 
-void GenerateEnumAssignment(const TProtoStringType& prefix, const EnumDescriptor* en,
+void GenerateEnumAssignment(y_absl::string_view prefix, const EnumDescriptor* en,
                             io::Printer* printer) {
   printer->Print(
     "$prefix$$name$ = ",
@@ -421,9 +425,9 @@ int GeneratePackageModules(const FileDescriptor* file, io::Printer* printer) {
     //    -> A.B.C
     if (package_name.find("::") != TProtoStringType::npos) {
       need_change_to_module = false;
-    } else {
-      GOOGLE_LOG(WARNING) << "ruby_package option should be in the form of:"
-                          << " 'A::B::C' and not 'A.B.C'";
+    } else if (package_name.find('.') != TProtoStringType::npos) {
+      Y_ABSL_LOG(WARNING) << "ruby_package option should be in the form of:"
+                        << " 'A::B::C' and not 'A.B.C'";
     }
   } else {
     package_name = file->package();
@@ -519,7 +523,8 @@ bool GenerateFile(const FileDescriptor* file, io::Printer* printer,
   // TODO: Remove this when ruby supports extensions for proto2 syntax.
   if (file->syntax() == FileDescriptor::SYNTAX_PROTO2 &&
       file->extension_count() > 0) {
-    GOOGLE_LOG(WARNING) << "Extensions are not yet supported for proto2 .proto files.";
+    Y_ABSL_LOG(WARNING)
+        << "Extensions are not yet supported for proto2 .proto files.";
   }
 
   bool use_raw_descriptor = file->name() == "google/protobuf/descriptor.proto";

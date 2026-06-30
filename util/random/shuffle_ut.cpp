@@ -111,4 +111,4 @@ Y_UNIT_TEST_SUITE(TRandUtilsTest) {
         TestIter(prng);
         TestIterPartial(prng);
     }
-}
+} // Y_UNIT_TEST_SUITE(TRandUtilsTest)

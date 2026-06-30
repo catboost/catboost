@@ -1,43 +1,40 @@
 Metadata-Version: 2.1
 Name: Cython
-Version: 0.29.33
-Summary: The Cython compiler for writing C extensions for the Python language.
-Home-page: http://cython.org/
-Author: Robert Bradshaw, Stefan Behnel, Dag Seljebotn, Greg Ewing, et al.
+Version: 3.2.5
+Summary: The Cython compiler for writing C extensions in the Python language.
+Home-page: https://cython.org/
+Author: Robert Bradshaw, Stefan Behnel, David Woods, Greg Ewing, et al.
 Author-email: cython-devel@python.org
-License: Apache
+License: Apache-2.0
 Project-URL: Documentation, https://cython.readthedocs.io/
 Project-URL: Donate, https://cython.readthedocs.io/en/latest/src/donating.html
 Project-URL: Source Code, https://github.com/cython/cython
-Project-URL: Bug Tracker, https://github.com/cython/cython/issues
+Project-URL: Bug Tracker, https://github.com/cython/cython/issues/
 Project-URL: User Group, https://groups.google.com/g/cython-users
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.6
-Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.4
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Programming Language :: Python :: Implementation :: Stackless
 Classifier: Programming Language :: C
+Classifier: Programming Language :: C++
 Classifier: Programming Language :: Cython
 Classifier: Topic :: Software Development :: Code Generators
 Classifier: Topic :: Software Development :: Compilers
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Requires-Python: >=2.6, !=3.0.*, !=3.1.*, !=3.2.*
-License-File: LICENSE.txt
-License-File: COPYING.txt
+Classifier: Typing :: Typed
+Requires-Python: >=3.8
+Description-Content-Type: text/x-rst
 
 The Cython language makes writing C extensions for the Python language as
 easy as Python itself.  Cython is a source code translator based on Pyrex_,
@@ -53,13 +50,96 @@ This makes Cython the ideal language for writing glue code for external
 C/C++ libraries, and for fast C modules that speed up the execution of
 Python code.
 
+The newest Cython release can always be downloaded from https://cython.org/.
+Unpack the tarball or zip file, enter the directory, and then run::
+
+    pip install .
+
 Note that for one-time builds, e.g. for CI/testing, on platforms that are not
 covered by one of the wheel packages provided on PyPI *and* the pure Python wheel
 that we provide is not used, it is substantially faster than a full source build
 to install an uncompiled (slower) version of Cython with::
 
-    pip install Cython --install-option="--no-cython-compile"
+    NO_CYTHON_COMPILE=true pip install .
 
-.. _Pyrex: http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
+.. _Pyrex: https://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
 
+3.2.5 (2026-05-23)
+==================
 
+Bugs fixed
+----------
+
+* A compile failure was fixed when using the walrus operator inside of try-except.
+  (Github issue https://github.com/cython/cython/issues/7462)
+
+* Expressions with side-effects as object argument to ``isinstance()`` could get
+  evaluated multiple times, e.g. when they use the walrus operator.
+  (Github issue https://github.com/cython/cython/issues/7670)
+
+* Several problems generating the shared utility module were resolved, including
+  a performance regression with memory views.
+  (Github issues https://github.com/cython/cython/issues/7487, https://github.com/cython/cython/issues/7497, https://github.com/cython/cython/issues/7504, https://github.com/cython/cython/issues/7558)
+
+* Some GC and refcounting issues were resolved for Cython functions in the Limited API.
+  (Github issue https://github.com/cython/cython/issues/7594)
+
+* Refcounting errors and error handling issues were resolved in some rare error handling cases.
+  (Github issues https://github.com/cython/cython/issues/7597, https://github.com/cython/cython/issues/7599, https://github.com/cython/cython/issues/7612, https://github.com/cython/cython/issues/7673)
+
+* Using ``cython.pymutex`` in an extension type with ``cdef`` methods generated
+  invalid C code missing the required ``PyMutex`` declarations.
+  (Github issue https://github.com/cython/cython/issues/6995)
+
+* Calling ``.get_frame()`` on Cython coroutines could crash in freethreading Python.
+  (Github issue https://github.com/cython/cython/issues/7632)
+
+* The vectorcall protocol was not used correctly in ``.throw()`` of Cython coroutines
+  when raising the exception only by type (without value or traceback).
+  (Github issue https://github.com/cython/cython/issues/7677)
+
+* A problem with cpdef enums in the Limited API of Python 3.11+ was resolved.
+  (Github issue https://github.com/cython/cython/issues/7503)
+
+* Unicode predicates like ``.isdigit()`` are now allowed to fail in the Limited API.
+  (Github issue https://github.com/cython/cython/issues/7602)
+
+* Conditional expressions mixing Python float and int object types could accidentally
+  infer float as the common result type, instead of treating both independently.
+
+* Using ``sizeof()`` in the size declarations of ``extern`` arrays failed.
+  (Github issue https://github.com/cython/cython/issues/7451)
+
+* Enabling profiling generated invalid C code for non-Python return tuples.
+  (Github issue https://github.com/cython/cython/issues/7580)
+
+* ``abs()`` on C ``long long`` values could generate invalid C code.
+
+* When the ``CYTHON_AVOID_BORROWED_REFS`` C macro is enabled, e.g. in GraalPython,
+  dict iteration could fail to compile.
+  Patch by Michael Šimáček.  (Github issue https://github.com/cython/cython/issues/7631)
+
+* A C compiler warning about unused functions was resolved.
+  (Github issue https://github.com/cython/cython/issues/7560)
+
+* The ``py_safe_call_once()`` C++ mutex helper function in ``libcpp.mutex``
+  failed to compile.
+  (Github issue https://github.com/cython/cython/issues/7585)
+
+* The ``cpython.array`` declarations were adapted for Python 3.15.  Direct access
+  to the C struct of the ``array.array`` data type might require user code changes.
+  (Github issue https://github.com/cython/cython/issues/7659)
+
+* Spaces in file paths written to the ``depfile`` were not escaped.
+  Patch by Loïc Estève.  (Github issue https://github.com/cython/cython/issues/7423)
+
+* Cython's cache failed to restore multi-file results.
+  (Github issue https://github.com/cython/cython/issues/7559)
+
+* Using Tempita from its command line failed with a name error.
+  (Github issue https://github.com/cython/cython/issues/7567)
+
+Other changes
+-------------
+
+* The known builtin types were updated for Py3.15.

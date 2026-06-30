@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-FILE* out;
+FILE* out = NULL;
 
 #define uchar unsigned char
 #define ushort unsigned short
@@ -64,7 +64,11 @@ typedef struct {
 typedef struct { char c[3]; } T;
 typedef struct { char c[33],c1; } X;
 
-char c1='a', c2=127, c3=(char)128, c4=(char)255, c5=-1;
+/* Don't use a number over 127, as some systems use signed chars and
+   the test case 25 doesn't account for this, resulting in undefined
+   behavior. See https://github.com/libffi/libffi/issues/598. */
+char c1='a', c2=127, c3=(char)1;
+
 short s1=32767, s2=(short)32768, s3=3, s4=4, s5=5, s6=6, s7=7, s8=8, s9=9;
 int i1=1, i2=2, i3=3, i4=4, i5=5, i6=6, i7=7, i8=8, i9=9,
     i10=11, i11=12, i12=13, i13=14, i14=15, i15=16, i16=17;

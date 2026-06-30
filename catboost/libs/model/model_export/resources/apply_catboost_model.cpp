@@ -8,9 +8,10 @@ static int GetHash(const std::string& catFeature, const std::unordered_map<std::
 }
 
 /* Model applicator */
-double ApplyCatboostModel(
+std::vector<double> ApplyCatboostModelMulti(
     const std::vector<float>& floatFeatures,
-    const std::vector<std::string>& catFeatures) {
+    const std::vector<std::string>& catFeatures
+) {
     const struct CatboostModel& model = CatboostModelStatic;
 
     assert(floatFeatures.size() == model.FloatFeatureCount);
@@ -69,23 +70,39 @@ double ApplyCatboostModel(
     }
 
     /* Extract and sum values from trees */
-    double result = 0.0;
-    const unsigned int* treeSplitsPtr = model.TreeSplits.data();
-    const double* leafValuesPtr = model.LeafValues;
-    size_t treePtr = 0;
+    std::vector<double> results(model.Dimension, 0.0);
+    const auto* leafValuesPtr = model.LeafValues;
+    size_t treeSplitsIdx = 0;
+
     for (unsigned int treeId = 0; treeId < model.TreeCount; ++treeId) {
         const unsigned int currentTreeDepth = model.TreeDepth[treeId];
         unsigned int index = 0;
         for (unsigned int depth = 0; depth < currentTreeDepth; ++depth) {
-            const unsigned char borderVal = model.TreeSplitIdxs[treePtr + depth];
-            const unsigned int featureIndex = model.TreeSplitFeatureIndex[treePtr + depth];
-            const unsigned char xorMask = model.TreeSplitXorMask[treePtr + depth];
+            const unsigned char borderVal = model.TreeSplitIdxs[treeSplitsIdx + depth];
+            const unsigned int featureIndex = model.TreeSplitFeatureIndex[treeSplitsIdx + depth];
+            const unsigned char xorMask = model.TreeSplitXorMask[treeSplitsIdx + depth];
             index |= ((binaryFeatures[featureIndex] ^ xorMask) >= borderVal) << depth;
         }
-        result += leafValuesPtr[index];
-        treeSplitsPtr += currentTreeDepth;
-        leafValuesPtr += (1 << currentTreeDepth);
-        treePtr += currentTreeDepth;
+
+        for (unsigned int resultIndex = 0; resultIndex < model.Dimension; resultIndex++) {
+            results[resultIndex] += leafValuesPtr[index][resultIndex];
+        }
+
+        leafValuesPtr += 1 << currentTreeDepth;
+        treeSplitsIdx += currentTreeDepth;
     }
-    return model.Scale * result + model.Bias;
+
+    std::vector<double> finalResults(model.Dimension);
+    for (unsigned int resultId = 0; resultId < model.Dimension; resultId++) {
+        finalResults[resultId] = model.Scale * results[resultId] + model.Biases[resultId];
+    }
+    return finalResults;
+}
+
+
+double ApplyCatboostModel(
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>& catFeatures
+) {
+    return ApplyCatboostModelMulti(floatFeatures, catFeatures)[0];
 }

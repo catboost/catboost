@@ -1,0 +1,35 @@
+name: Test on all OSes
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifacts_version:
+        required: true
+        type: string
+      artifacts_run_id:
+        required: true
+        type: string
+      artifacts_repository:
+        required: false
+        type: string
+        default: catboost/catboost
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
+
+
+jobs:
+  check:
+    name: Test per OS
+    strategy:
+      matrix:
+         os: [linux, macos, windows]
+      fail-fast: false
+    with:
+      os: ${{ matrix.os }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      artifacts_run_id: ${{ inputs.artifacts_run_id }}
+      artifacts_repository: ${{ inputs.artifacts_repository }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
+    uses: ./.github/workflows/test_per_os.yaml

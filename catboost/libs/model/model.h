@@ -330,40 +330,40 @@ public:
         return GetModelTreeData()->GetTreeSizes().size();
     }
 
-    size_t GetDimensionsCount() const {
+    size_t GetDimensionsCount() const noexcept {
         return ApproxDimension;
     }
 
-    const THolder<IModelTreeData>& GetModelTreeData() const {
+    const THolder<IModelTreeData>& GetModelTreeData() const noexcept {
         return ModelTreeData;
     }
 
-    TConstArrayRef<TCatFeature> GetCatFeatures() const {
-        return TConstArrayRef<TCatFeature>(CatFeatures.begin(), CatFeatures.end());
+    TConstArrayRef<TCatFeature> GetCatFeatures() const noexcept {
+        return TConstArrayRef<TCatFeature>(CatFeatures.data(), CatFeatures.data() + CatFeatures.size());
     }
 
-    TConstArrayRef<TFloatFeature> GetFloatFeatures() const {
-        return TConstArrayRef<TFloatFeature>(FloatFeatures.begin(), FloatFeatures.end());
+    TConstArrayRef<TFloatFeature> GetFloatFeatures() const noexcept {
+        return TConstArrayRef<TFloatFeature>(FloatFeatures.data(), FloatFeatures.data() + FloatFeatures.size());
     }
 
-    TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const {
-        return TConstArrayRef<TOneHotFeature>(OneHotFeatures.begin(), OneHotFeatures.end());
+    TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const noexcept {
+        return TConstArrayRef<TOneHotFeature>(OneHotFeatures.data(), OneHotFeatures.data() + OneHotFeatures.size());
     }
 
-    TConstArrayRef<TCtrFeature> GetCtrFeatures() const {
-        return TConstArrayRef<TCtrFeature>(CtrFeatures.begin(), CtrFeatures.end());
+    TConstArrayRef<TCtrFeature> GetCtrFeatures() const noexcept {
+        return TConstArrayRef<TCtrFeature>(CtrFeatures.data(), CtrFeatures.data() + CtrFeatures.size());
     }
 
-    TConstArrayRef<TTextFeature> GetTextFeatures() const {
-        return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
+    TConstArrayRef<TTextFeature> GetTextFeatures() const noexcept {
+        return TConstArrayRef<TTextFeature>(TextFeatures.data(), TextFeatures.data() + TextFeatures.size());
     }
 
-    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const {
-        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.begin(), EmbeddingFeatures.end());
+    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const noexcept {
+        return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.data(), EmbeddingFeatures.data() + EmbeddingFeatures.size());
     }
 
-    TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const {
-        return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
+    TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const noexcept {
+        return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.data(), EstimatedFeatures.data() + EstimatedFeatures.size());
     }
 
     void SetApproxDimension(int approxDimension) {
@@ -402,11 +402,27 @@ public:
     );
 
     void ApplyFeatureNames(const TVector<TString>& featureNames) {
+        auto setFeatureName = [&] (TFeatureBase& feature) {
+            size_t flatIndex = static_cast<size_t>(feature.Position.FlatIndex);
+            CB_ENSURE(
+                flatIndex < featureNames.size(),
+                "Model has a feature with index " << flatIndex << " but the length of the provided features names array ("
+                << featureNames.size() << ") is too small for it"
+            );
+            feature.FeatureId = featureNames[flatIndex];
+        };
+
         for (TFloatFeature& feature : FloatFeatures) {
-            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+            setFeatureName(feature);
         }
         for (TCatFeature& feature : CatFeatures) {
-            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+            setFeatureName(feature);
+        }
+        for (TTextFeature& feature : TextFeatures) {
+            setFeatureName(feature);
+        }
+        for (TEmbeddingFeature& feature : EmbeddingFeatures) {
+            setFeatureName(feature);
         }
     }
 
@@ -606,14 +622,14 @@ private:
 
 class TCOWTreeWrapper {
 public:
-    const TModelTrees& operator*() const {
+    const TModelTrees& operator*() const noexcept {
         return *Trees;
     }
-    const TModelTrees* operator->() const {
+    const TModelTrees* operator->() const noexcept {
         return Trees.Get();
     }
 
-    const TModelTrees* Get() const {
+    const TModelTrees* Get() const noexcept {
         return Trees.Get();
     }
 
@@ -651,6 +667,8 @@ private:
     mutable NCB::NModelEvaluation::TModelEvaluatorPtr Evaluator;
 public:
     void InitNonOwning(const void* binaryBuffer, size_t dataSize);
+
+    static TVector<EFormulaEvaluatorType> GetSupportedEvaluatorTypes();
 
     void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) {
         with_lock(CurrentEvaluatorLock) {
@@ -734,7 +752,7 @@ public:
     /**
      * @return Number of dimensions in model.
      */
-    size_t GetDimensionsCount() const {
+    size_t GetDimensionsCount() const noexcept {
         return ModelTrees->GetDimensionsCount();
     }
 
@@ -940,6 +958,33 @@ public:
     ) const {
         TVector<TConstArrayRef<float>> featureRefs{features.begin(), features.end()};
         CalcFlat(featureRefs, results, featureInfo);
+    }
+
+    /**
+     * Call CalcFlatTransposed on all model trees
+     * @param features
+     * @param results
+     */
+    void CalcFlatTransposed(
+        TConstArrayRef<TConstArrayRef<float>> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcFlatTransposed(features, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
+     * Call CalcFlatTransposed on all model trees
+     * @param features
+     * @param results
+     */
+    void CalcFlatTransposed(
+        TConstArrayRef<TVector<float>> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        TVector<TConstArrayRef<float>> featureRefs{features.begin(), features.end()};
+        CalcFlatTransposed(featureRefs, results, featureInfo);
     }
 
     /**
@@ -1338,6 +1383,14 @@ TFullModel DeserializeModel(TMemoryInput serializedModel);
 TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
+
+TVector<size_t> GetModelCatFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelFloatFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelTextFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelEmbeddingFeaturesIndices(const TFullModel& model);
 
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model);
 

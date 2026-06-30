@@ -194,7 +194,11 @@ namespace NCB {
 
     public:
         void SetStoreStringColumns(bool storeStringColumns);
-        bool EqualTo(const TCommonObjectsData& rhs, bool ignoreSparsity = false) const;
+        bool EqualTo(
+            const TCommonObjectsData& rhs,
+            bool ignoreSparsity = false,
+            bool ignoreCatFeaturesHashToString = false
+        ) const;
 
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailCount);
@@ -239,17 +243,24 @@ namespace NCB {
         /*
          * ignoreSparsity means don't take into account whether columns are marked as either sparse or dense
          *  - only compare values
+         * ignoreCatFeaturesHashToString means don't compare CatFeaturesHashToString fields.
+         *   They can be different while both containing the necessary hashed values for data present in
+         *   the dataset
          */
-        virtual bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const {
+        virtual bool EqualTo(
+            const TObjectsDataProvider& rhs,
+            bool ignoreSparsity = false,
+            bool ignoreCatFeaturesHashToString = false
+        ) const {
             return (*ObjectsGrouping == *rhs.ObjectsGrouping) &&
-                CommonData.EqualTo(rhs.CommonData, ignoreSparsity);
+                CommonData.EqualTo(rhs.CommonData, ignoreSparsity, ignoreCatFeaturesHashToString);
         }
 
         bool operator==(const TObjectsDataProvider& rhs) const {
             return EqualTo(rhs);
         }
 
-        ui32 GetObjectCount() const {
+        ui32 GetObjectCount() const noexcept {
             return ObjectsGrouping->GetObjectCount();
         }
 
@@ -297,7 +308,7 @@ namespace NCB {
 
         // The following Get* functions are common for all implementations, so they're in this base class
 
-        TFeaturesLayoutPtr GetFeaturesLayout() const {
+        TFeaturesLayoutPtr GetFeaturesLayout() const noexcept {
             return CommonData.FeaturesLayout;
         }
 
@@ -321,11 +332,11 @@ namespace NCB {
             return CommonData.SubgroupIds.GetMaybeStringData();
         }
 
-        TMaybeData<TConstArrayRef<TString>> GetSampleIds() const { // [objectIdx]
+        TMaybeData<TConstArrayRef<TString>> GetSampleIds() const noexcept { // [objectIdx]
             return CommonData.SampleId;
         }
 
-        TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const { // [objectIdx]
+        TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const noexcept { // [objectIdx]
             return CommonData.Timestamp;
         }
 
@@ -423,12 +434,17 @@ namespace NCB {
             Data = std::move(data);
         }
 
-        bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const override {
+        bool EqualTo(
+            const TObjectsDataProvider& rhs,
+            bool ignoreSparsity = false,
+            bool ignoreCatFeaturesHashToString = false
+        ) const override {
             const auto* rhsRawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&rhs);
             if (!rhsRawObjectsData) {
                 return false;
             }
-            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) && (Data == rhsRawObjectsData->Data);
+            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity, ignoreCatFeaturesHashToString)
+                && (Data == rhsRawObjectsData->Data);
         }
 
         TObjectsDataProviderPtr GetSubsetImpl(
@@ -683,12 +699,16 @@ namespace NCB {
             }
         }
 
-        bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const override {
+        bool EqualTo(
+            const TObjectsDataProvider& rhs,
+            bool ignoreSparsity = false,
+            bool ignoreCatFeaturesHashToString = false
+        ) const override {
             const auto* rhsQuantizedObjectsData = dynamic_cast<const TQuantizedObjectsDataProvider*>(&rhs);
             if (!rhsQuantizedObjectsData) {
                 return false;
             }
-            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) &&
+            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity, ignoreCatFeaturesHashToString) &&
                 (Data == rhsQuantizedObjectsData->Data);
         }
 

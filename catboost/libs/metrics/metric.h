@@ -14,7 +14,6 @@
 #include <catboost/libs/helpers/maybe.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
-#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>
@@ -112,6 +111,19 @@ struct TCustomMetricDescriptor {
         int end,
         void* customData);
 
+    using TGpuEvalFuncPtr = void (*)(
+        TConstArrayRef<float> approx,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<float> result,
+        TConstArrayRef<float> resultWeight,
+        int begin,
+        int end,
+        void* customData,
+        void* cudaStream,
+        size_t blockSize,
+        size_t numBlocks);
+
     using TEvalMultiTargetFuncPtr = TMetricHolder (*)(
         TConstArrayRef<TConstArrayRef<double>> approx,
         TConstArrayRef<TConstArrayRef<float>> target,
@@ -123,17 +135,31 @@ struct TCustomMetricDescriptor {
     using TGetDescriptionFuncPtr = TString (*)(void* customData);
     using TIsMaxOptimalFuncPtr = bool (*)(void* customData);
     using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
+    using TIsAdditiveFuncPtr = bool (*)(void* customData);
 
     void* CustomData = nullptr;
     TMaybe<TEvalFuncPtr> EvalFunc;
+    TMaybe<TGpuEvalFuncPtr> GpuEvalFunc;
     TMaybe<TEvalMultiTargetFuncPtr> EvalMultiTargetFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
+    TIsAdditiveFuncPtr IsAdditiveFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
 
     bool IsMultiTargetMetric() const {
-        CB_ENSURE(EvalFunc.Defined() || EvalMultiTargetFunc.Defined(), "Any custom eval function must be defined");
-        CB_ENSURE(EvalFunc.Empty() || EvalMultiTargetFunc.Empty(), "Only one custom eval function must be defined");
+        CB_ENSURE(
+            EvalFunc.Empty() || EvalMultiTargetFunc.Empty(),
+            "Only one of custom CPU eval functions must be defined"
+        );
+        if (GpuEvalFunc.Defined()) {
+            // TODO: support Multitarget custom GPU eval functions
+            return false;
+        }
+
+        CB_ENSURE(
+            EvalFunc.Defined() || EvalMultiTargetFunc.Defined(),
+            "Any custom CPU eval function must be defined"
+        );
         return EvalMultiTargetFunc.Defined();
     }
 };

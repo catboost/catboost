@@ -6,6 +6,7 @@ import ast
 import py
 
 from _pytest.assertion import rewrite
+
 try:
     import importlib.util
 except ImportError:
@@ -19,6 +20,8 @@ except ImportError:
 from __res import importer
 import sys
 import six
+
+import library.python.pytest.module_utils as module_utils
 
 
 def _get_state(config):
@@ -52,7 +55,10 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
         if hasattr(self._rewritten_names, 'add'):
             self._rewritten_names.add(name)
         else:
-            self._rewritten_names[name] = Path(path[0])
+            if path:
+                self._rewritten_names[name] = Path(path[0])
+            else:
+                self._rewritten_names[name] = Path(module_utils.get_proper_module_path(name))
 
         state.trace("rewriting %s" % name)
         co = _rewrite_test(self.config, name)
@@ -66,13 +72,13 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
         co = self._find_module(name, path)
         if co is not None:
             return importlib.util.spec_from_file_location(
-            name,
-            co.co_filename,
-            loader=self,
-        )
+                name,
+                co.co_filename,
+                loader=self,
+            )
 
     def _should_rewrite(self, name, fn, state):
-        if name.startswith("__tests__.") or name.endswith(".conftest"):
+        if name.startswith("__tests__.") or name == "conftest" or name.endswith(".conftest"):
             return True
 
         return self._is_marked_for_rewrite(name, state)
@@ -84,6 +90,7 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
         return importer.get_source(name)
 
     if six.PY3:
+
         def load_module(self, module):
             co, _ = self.modules.pop(module.__name__)
             try:
@@ -91,7 +98,7 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
                 module.__cached__ = None
                 module.__loader__ = self
                 module.__spec__ = importlib.util.spec_from_file_location(module.__name__, co.co_filename, loader=self)
-                exec(co, module.__dict__)
+                exec(co, module.__dict__)  # noqa
             except:  # noqa
                 if module.__name__ in sys.modules:
                     del sys.modules[module.__name__]

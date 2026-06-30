@@ -13,4 +13,4 @@ Y_UNIT_TEST_SUITE(TYStackTest) {
         UNIT_ASSERT(s);
         UNIT_ASSERT(!s.empty());
     }
-}
+} // Y_UNIT_TEST_SUITE(TYStackTest)

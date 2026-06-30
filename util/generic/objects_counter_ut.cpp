@@ -33,4 +33,4 @@ Y_UNIT_TEST_SUITE(ObjectsCounter) {
         }
         UNIT_ASSERT_EQUAL(TObjectCounter<TObject>::ObjectCount(), 1);
     }
-}
+} // Y_UNIT_TEST_SUITE(ObjectsCounter)

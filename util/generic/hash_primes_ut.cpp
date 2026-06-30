@@ -77,4 +77,4 @@ Y_UNIT_TEST_SUITE(TestHashPrimes) {
             }
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TestHashPrimes)

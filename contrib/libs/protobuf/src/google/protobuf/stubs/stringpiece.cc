@@ -35,7 +35,7 @@
 #include <string>
 #include <ostream>
 
-#include <google/protobuf/stubs/logging.h>
+#include <y_absl/log/absl_log.h>
 
 namespace google {
 namespace protobuf {
@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& o, StringPiece piece) {
 }
 
 void StringPiece::LogFatalSizeTooBig(size_t size, const char* details) {
-  GOOGLE_LOG(FATAL) << "size too big: " << size << " details: " << details;
+  Y_ABSL_LOG(FATAL) << "size too big: " << size << " details: " << details;
 }
 
 void StringPiece::CopyToString(TProtoStringType* target) const {

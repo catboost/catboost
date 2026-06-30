@@ -71,6 +71,7 @@ namespace NCudaLib {
                     } else {
                         return false;
                     }
+                    [[fallthrough]];
                 }
                 case ESectionState::Entered: {
                     const bool isDone = Kernel.Exec(stream,
@@ -80,6 +81,7 @@ namespace NCudaLib {
                     } else {
                         return false;
                     }
+                    [[fallthrough]];
                 }
                 case ESectionState::Leaving: {
                     if (context->Section) {
@@ -91,6 +93,7 @@ namespace NCudaLib {
                     } else {
                         context->SectionState = ESectionState::Left;
                     }
+                    [[fallthrough]];
                 }
                 case ESectionState::Left: {
                     return true;

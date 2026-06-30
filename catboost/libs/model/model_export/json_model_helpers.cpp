@@ -441,18 +441,18 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
             auto& learnCtr = ctrProvider->CtrData.LearnCtrs.at(ctr->Base);
             auto hashIndexResolver = learnCtr.GetIndexHashViewer();
             const ECtrType ctrType = ctr->Base.CtrType;
-            TSet<ui64> hashIndexes;
+            THashSet<ui64> hashIndexes;
             for (const auto& bucket: hashIndexResolver.GetBuckets()) {
                 auto value = bucket.IndexValue;
                 if (value == NCatboost::TDenseIndexHashView::NotFoundIndex) {
                     continue;
                 }
-                if (hashIndexes.find(bucket.Hash) != hashIndexes.end()) {
+                // make a copy because we can't pass a reference to an unaligned struct member to 'hashIndexes' methods
+                auto bucketHash = bucket.Hash;
+                if (!hashIndexes.insert(bucketHash).second) {
                     continue;
-                } else {
-                    hashIndexes.insert(bucket.Hash);
                 }
-                hashValue.AppendValue(ToString(bucket.Hash));
+                hashValue.AppendValue(ToString(bucketHash));
                 if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                     if (value != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();

@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 TEST_SUBTEST_SEPARATOR = '::'
 
-PARSE_TAG_RE = re.compile("([+-]?[\w:]*)")
+PARSE_TAG_RE = re.compile(r"([+-]?[\w:]*)")
 
 
 class FilterException(Exception):

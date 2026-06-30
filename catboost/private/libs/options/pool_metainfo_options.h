@@ -25,6 +25,9 @@ namespace NCatboostOptions {
         TOption<THashMap<TString, NCB::TTagDescription>> Tags;
     };
 
+    // `path` can be not inited
     TPoolMetaInfoOptions LoadPoolMetaInfoOptions(const NCB::TPathWithScheme& path);
+
+    // `path` can be not inited
     void LoadPoolMetaInfoOptions(const NCB::TPathWithScheme& path, NJson::TJsonValue* catBoostJsonOptions);
 }

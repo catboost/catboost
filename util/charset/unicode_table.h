@@ -101,15 +101,17 @@ namespace NUnicodeTable {
         }
 
         inline TValueRef Get(size_t key, TValueRef value) const {
-            if (key >= Size())
+            if (key >= Size()) {
                 return value;
+            }
 
             return GetImpl(key);
         }
 
         inline TValueRef Get(size_t key, size_t defaultKey) const {
-            if (key >= Size())
+            if (key >= Size()) {
                 return Get(defaultKey);
+            }
 
             return GetImpl(key);
         }
@@ -120,4 +122,4 @@ namespace NUnicodeTable {
     };
 
     const size_t UNICODE_TABLE_SHIFT = 5;
-}
+} // namespace NUnicodeTable

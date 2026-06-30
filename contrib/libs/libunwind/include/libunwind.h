@@ -43,6 +43,109 @@
   #define LIBUNWIND_AVAIL
 #endif
 
+#if defined(_LIBUNWIND_TARGET_AARCH64_AUTHENTICATED_UNWINDING)
+
+  #error #include <ptrauth.h>
+
+  // `__ptrauth_restricted_intptr` is a feature of apple clang that predates
+  // support for direct application of `__ptrauth` to integer types. This
+  // guard is necessary to support compilation with those compiler.
+  #if __has_extension(ptrauth_restricted_intptr_qualifier)
+    #define __unwind_ptrauth_restricted_intptr(...) \
+      __ptrauth_restricted_intptr(__VA_ARGS__)
+  #else
+    #define __unwind_ptrauth_restricted_intptr(...) \
+      __ptrauth(__VA_ARGS__)
+  #endif
+
+  // ptrauth_string_discriminator("unw_proc_info_t::handler") == 0x7405
+  #define __ptrauth_unwind_upi_handler_disc 0x7405
+
+  #define __ptrauth_unwind_upi_handler \
+    __ptrauth(ptrauth_key_function_pointer, 1, __ptrauth_unwind_upi_handler_disc)
+
+  #define __ptrauth_unwind_upi_handler_intptr \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_function_pointer, 1,\
+                                       __ptrauth_unwind_upi_handler_disc)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::start_ip") == 0xCA2C
+  #define __ptrauth_unwind_upi_startip \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_independent_code, 1, 0xCA2C)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::end_ip") == 0xE183
+  #define __ptrauth_unwind_upi_endip \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_independent_code, 1, 0xE183)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::lsda") == 0x83DE
+  #define __ptrauth_unwind_upi_lsda \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x83DE)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::flags") == 0x79A1
+  #define __ptrauth_unwind_upi_flags \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x79A1)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::unwind_info") == 0xC20C
+  #define __ptrauth_unwind_upi_info \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0xC20C)
+
+  // ptrauth_string_discriminator("unw_proc_info_t::extra") == 0x03DF
+  #define __ptrauth_unwind_upi_extra \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x03DF)
+
+  // ptrauth_string_discriminator("Registers_arm64::link_reg_t") == 0x8301
+  #define __ptrauth_unwind_registers_arm64_link_reg \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_code, 1, 0x8301)
+
+  // ptrauth_string_discriminator("UnwindInfoSections::dso_base") == 0x4FF5
+  #define __ptrauth_unwind_uis_dso_base \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x4FF5)
+
+  // ptrauth_string_discriminator("UnwindInfoSections::dwarf_section") == 0x4974
+  #define __ptrauth_unwind_uis_dwarf_section \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x4974)
+
+  // ptrauth_string_discriminator("UnwindInfoSections::dwarf_section_length") == 0x2A9A
+  #define __ptrauth_unwind_uis_dwarf_section_length \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x2A9A)
+
+  // ptrauth_string_discriminator("UnwindInfoSections::compact_unwind_section") == 0xA27B
+  #define __ptrauth_unwind_uis_compact_unwind_section \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0xA27B)
+
+  // ptrauth_string_discriminator("UnwindInfoSections::compact_unwind_section_length") == 0x5D0A
+  #define __ptrauth_unwind_uis_compact_unwind_section_length \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_process_dependent_data, 1, 0x5D0A)
+
+  // ptrauth_string_discriminator("CIE_Info::personality") == 0x6A40
+  #define __ptrauth_unwind_cie_info_personality_disc 0x6A40
+  #define __ptrauth_unwind_cie_info_personality \
+    __unwind_ptrauth_restricted_intptr(ptrauth_key_function_pointer, 1, \
+                                       __ptrauth_unwind_cie_info_personality_disc)
+
+  // ptrauth_string_discriminator("personality") == 0x7EAD)
+  #define __ptrauth_unwind_pauthtest_personality_disc 0x7EAD
+
+#else
+
+  #define __unwind_ptrauth_restricted_intptr(...)
+  #define __ptrauth_unwind_upi_handler
+  #define __ptrauth_unwind_upi_handler_intptr
+  #define __ptrauth_unwind_upi_startip
+  #define __ptrauth_unwind_upi_endip
+  #define __ptrauth_unwind_upi_lsda
+  #define __ptrauth_unwind_upi_flags
+  #define __ptrauth_unwind_upi_info
+  #define __ptrauth_unwind_upi_extra
+  #define __ptrauth_unwind_registers_arm64_link_reg
+  #define __ptrauth_unwind_uis_dso_base
+  #define __ptrauth_unwind_uis_dwarf_section
+  #define __ptrauth_unwind_uis_dwarf_section_length
+  #define __ptrauth_unwind_uis_compact_unwind_section
+  #define __ptrauth_unwind_uis_compact_unwind_section_length
+  #define __ptrauth_unwind_cie_info_personality
+
+#endif
+
 #if defined(_WIN32) && defined(__SEH__)
   #define LIBUNWIND_CURSOR_ALIGNMENT_ATTR __attribute__((__aligned__(16)))
 #else
@@ -81,24 +184,25 @@ typedef struct unw_addr_space *unw_addr_space_t;
 
 typedef int unw_regnum_t;
 typedef uintptr_t unw_word_t;
-#if defined(__arm__) && !defined(__ARM_DWARF_EH__)
+#if defined(__arm__) && !defined(__ARM_DWARF_EH__) && !defined(__SEH__)
 typedef uint64_t unw_fpreg_t;
 #else
 typedef double unw_fpreg_t;
 #endif
 
 struct unw_proc_info_t {
-  unw_word_t  start_ip;         /* start address of function */
-  unw_word_t  end_ip;           /* address after end of function */
-  unw_word_t  lsda;             /* address of language specific data area, */
-                                /*  or zero if not used */
-  unw_word_t  handler;          /* personality routine, or zero if not used */
-  unw_word_t  gp;               /* not used */
-  unw_word_t  flags;            /* not used */
-  uint32_t    format;           /* compact unwind encoding, or zero if none */
-  uint32_t    unwind_info_size; /* size of DWARF unwind info, or zero if none */
-  unw_word_t  unwind_info;      /* address of DWARF unwind info, or zero */
-  unw_word_t  extra;            /* mach_header of mach-o image containing func */
+  unw_word_t __ptrauth_unwind_upi_startip start_ip; /* start address of function */
+  unw_word_t __ptrauth_unwind_upi_endip end_ip;     /* address after end of function */
+  unw_word_t __ptrauth_unwind_upi_lsda lsda;        /* address of language specific data area, */
+                                                    /* or zero if not used */
+
+  unw_word_t __ptrauth_unwind_upi_handler_intptr handler;
+  unw_word_t  gp;                                   /* not used */
+  unw_word_t __ptrauth_unwind_upi_flags flags;      /* not used */
+  uint32_t   format;                                /* compact unwind encoding, or zero if none */
+  uint32_t   unwind_info_size;                      /* size of DWARF unwind info, or zero if none */
+  unw_word_t __ptrauth_unwind_upi_info unwind_info; /* address of DWARF unwind info, or zero */
+  unw_word_t __ptrauth_unwind_upi_extra extra;      /* mach_header of mach-o image containing func */
 };
 typedef struct unw_proc_info_t unw_proc_info_t;
 
@@ -120,6 +224,9 @@ extern int unw_resume(unw_cursor_t *) LIBUNWIND_AVAIL;
 extern void unw_save_vfp_as_X(unw_cursor_t *) LIBUNWIND_AVAIL;
 #endif
 
+#ifdef _AIX
+extern uintptr_t unw_get_data_rel_base(unw_cursor_t *) LIBUNWIND_AVAIL;
+#endif
 
 extern const char *unw_regname(unw_cursor_t *, unw_regnum_t) LIBUNWIND_AVAIL;
 extern int unw_get_proc_info(unw_cursor_t *, unw_proc_info_t *) LIBUNWIND_AVAIL;
@@ -127,6 +234,7 @@ extern int unw_is_fpreg(unw_cursor_t *, unw_regnum_t) LIBUNWIND_AVAIL;
 extern int unw_is_signal_frame(unw_cursor_t *) LIBUNWIND_AVAIL;
 extern int unw_get_proc_name(unw_cursor_t *, char *, size_t, unw_word_t *) LIBUNWIND_AVAIL;
 //extern int       unw_get_save_loc(unw_cursor_t*, int, unw_save_loc_t*);
+extern const char *unw_strerror(int) LIBUNWIND_AVAIL;
 
 extern unw_addr_space_t unw_local_addr_space;
 
@@ -529,6 +637,7 @@ enum {
   UNW_AARCH64_X31 = 31,
   UNW_AARCH64_SP = 31,
   UNW_AARCH64_PC = 32,
+  UNW_AARCH64_VG = 46,
 
   // reserved block
   UNW_AARCH64_RA_SIGN_STATE = 34,
@@ -873,6 +982,9 @@ enum {
   UNW_MIPS_F29 = 61,
   UNW_MIPS_F30 = 62,
   UNW_MIPS_F31 = 63,
+  // HI,LO have been dropped since r6, we keep them here.
+  // So, when we add DSP/MSA etc, we can use the same register indexes
+  // for r6 and pre-r6.
   UNW_MIPS_HI = 64,
   UNW_MIPS_LO = 65,
 };
@@ -1020,6 +1132,16 @@ enum {
   UNW_RISCV_F29 = 61,
   UNW_RISCV_F30 = 62,
   UNW_RISCV_F31 = 63,
+  // 65-95 -- Reserved for future standard extensions
+  // 96-127 -- v0-v31 (Vector registers)
+  // 128-3071 -- Reserved for future standard extensions
+  // 3072-4095 -- Reserved for custom extensions
+  // 4096-8191 -- CSRs
+  //
+  // VLENB CSR number: 0xC22 -- defined by section 3 of v-spec:
+  // https://github.com/riscv/riscv-v-spec/blob/master/v-spec.adoc#3-vector-extension-programmers-model
+  // VLENB DWARF number: 0x1000 + 0xC22
+  UNW_RISCV_VLENB = 0x1C22,
 };
 
 // VE register numbers
@@ -1172,6 +1294,116 @@ enum {
   // Following registers don't have DWARF register numbers.
   UNW_VE_VIXR = 144,
   UNW_VE_VL   = 145,
+};
+
+// s390x register numbers
+enum {
+  UNW_S390X_R0      = 0,
+  UNW_S390X_R1      = 1,
+  UNW_S390X_R2      = 2,
+  UNW_S390X_R3      = 3,
+  UNW_S390X_R4      = 4,
+  UNW_S390X_R5      = 5,
+  UNW_S390X_R6      = 6,
+  UNW_S390X_R7      = 7,
+  UNW_S390X_R8      = 8,
+  UNW_S390X_R9      = 9,
+  UNW_S390X_R10     = 10,
+  UNW_S390X_R11     = 11,
+  UNW_S390X_R12     = 12,
+  UNW_S390X_R13     = 13,
+  UNW_S390X_R14     = 14,
+  UNW_S390X_R15     = 15,
+  UNW_S390X_F0      = 16,
+  UNW_S390X_F2      = 17,
+  UNW_S390X_F4      = 18,
+  UNW_S390X_F6      = 19,
+  UNW_S390X_F1      = 20,
+  UNW_S390X_F3      = 21,
+  UNW_S390X_F5      = 22,
+  UNW_S390X_F7      = 23,
+  UNW_S390X_F8      = 24,
+  UNW_S390X_F10     = 25,
+  UNW_S390X_F12     = 26,
+  UNW_S390X_F14     = 27,
+  UNW_S390X_F9      = 28,
+  UNW_S390X_F11     = 29,
+  UNW_S390X_F13     = 30,
+  UNW_S390X_F15     = 31,
+  // 32-47 Control Registers
+  // 48-63 Access Registers
+  UNW_S390X_PSWM    = 64,
+  UNW_S390X_PSWA    = 65,
+  // 66-67 Reserved
+  // 68-83 Vector Registers %v16-%v31
+};
+
+// LoongArch registers.
+enum {
+  UNW_LOONGARCH_R0 = 0,
+  UNW_LOONGARCH_R1 = 1,
+  UNW_LOONGARCH_R2 = 2,
+  UNW_LOONGARCH_R3 = 3,
+  UNW_LOONGARCH_R4 = 4,
+  UNW_LOONGARCH_R5 = 5,
+  UNW_LOONGARCH_R6 = 6,
+  UNW_LOONGARCH_R7 = 7,
+  UNW_LOONGARCH_R8 = 8,
+  UNW_LOONGARCH_R9 = 9,
+  UNW_LOONGARCH_R10 = 10,
+  UNW_LOONGARCH_R11 = 11,
+  UNW_LOONGARCH_R12 = 12,
+  UNW_LOONGARCH_R13 = 13,
+  UNW_LOONGARCH_R14 = 14,
+  UNW_LOONGARCH_R15 = 15,
+  UNW_LOONGARCH_R16 = 16,
+  UNW_LOONGARCH_R17 = 17,
+  UNW_LOONGARCH_R18 = 18,
+  UNW_LOONGARCH_R19 = 19,
+  UNW_LOONGARCH_R20 = 20,
+  UNW_LOONGARCH_R21 = 21,
+  UNW_LOONGARCH_R22 = 22,
+  UNW_LOONGARCH_R23 = 23,
+  UNW_LOONGARCH_R24 = 24,
+  UNW_LOONGARCH_R25 = 25,
+  UNW_LOONGARCH_R26 = 26,
+  UNW_LOONGARCH_R27 = 27,
+  UNW_LOONGARCH_R28 = 28,
+  UNW_LOONGARCH_R29 = 29,
+  UNW_LOONGARCH_R30 = 30,
+  UNW_LOONGARCH_R31 = 31,
+  UNW_LOONGARCH_F0 = 32,
+  UNW_LOONGARCH_F1 = 33,
+  UNW_LOONGARCH_F2 = 34,
+  UNW_LOONGARCH_F3 = 35,
+  UNW_LOONGARCH_F4 = 36,
+  UNW_LOONGARCH_F5 = 37,
+  UNW_LOONGARCH_F6 = 38,
+  UNW_LOONGARCH_F7 = 39,
+  UNW_LOONGARCH_F8 = 40,
+  UNW_LOONGARCH_F9 = 41,
+  UNW_LOONGARCH_F10 = 42,
+  UNW_LOONGARCH_F11 = 43,
+  UNW_LOONGARCH_F12 = 44,
+  UNW_LOONGARCH_F13 = 45,
+  UNW_LOONGARCH_F14 = 46,
+  UNW_LOONGARCH_F15 = 47,
+  UNW_LOONGARCH_F16 = 48,
+  UNW_LOONGARCH_F17 = 49,
+  UNW_LOONGARCH_F18 = 50,
+  UNW_LOONGARCH_F19 = 51,
+  UNW_LOONGARCH_F20 = 52,
+  UNW_LOONGARCH_F21 = 53,
+  UNW_LOONGARCH_F22 = 54,
+  UNW_LOONGARCH_F23 = 55,
+  UNW_LOONGARCH_F24 = 56,
+  UNW_LOONGARCH_F25 = 57,
+  UNW_LOONGARCH_F26 = 58,
+  UNW_LOONGARCH_F27 = 59,
+  UNW_LOONGARCH_F28 = 60,
+  UNW_LOONGARCH_F29 = 61,
+  UNW_LOONGARCH_F30 = 62,
+  UNW_LOONGARCH_F31 = 63,
 };
 
 #endif

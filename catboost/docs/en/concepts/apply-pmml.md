@@ -7,12 +7,12 @@ The [Predictive Model Markup Language]({{ pmml-v4point3 }}) (PMML) is an XML-bas
 
 - {{ product }} exports models to [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }}).
 - Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
-    
+- Multiclassification models are not currently supported.
+
 - Models saved as PMML cannot be currently loaded by {{ product }} libraries/executable. Use this format if the model is intended to be used with external Machine Learning libraries.
-    
+
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
-    
+
 
 
 ## Model parameters {#model-parameters}
@@ -95,19 +95,19 @@ import org.jpmml.model.*;
 import org.jpmml.evaluator.*;
 
 
-public class App 
+public class App
 {
     public static void main(String[] args) throws Exception
     {
         String modelPath = "breast_cancer.pmml";
-        
+
         Evaluator evaluator = new LoadingModelEvaluatorBuilder()
             .setLocatable(false)
             .setVisitors(new DefaultVisitorBattery())
             //.setOutputFilter(OutputFilters.KEEP_FINAL_RESULTS)
             .load(new File(modelPath))
             .build();
-    
+
         Map<String, Float> inputDataRecord = new HashMap<String,Float>();
         inputDataRecord.put("mean radius", 17.99f);
         inputDataRecord.put("mean texture", 10.38f);
@@ -139,33 +139,33 @@ public class App
         inputDataRecord.put("worst concave points", 0.2654f);
         inputDataRecord.put("worst symmetry", 0.4601f);
         inputDataRecord.put("worst fractal dimension", 0.1189f);
-        
+
         Map<FieldName, FieldValue> arguments = new LinkedHashMap<>();
-        
+
         List<? extends InputField> inputFields = evaluator.getInputFields();
         for(InputField inputField : inputFields){
             FieldName inputName = inputField.getName();
-            
+
             Object rawValue = inputDataRecord.get(inputName.getValue());
-            
+
             // Transforming an arbitrary user-supplied value to a known-good PMML value
             // The user-supplied value is passed through: 1) outlier treatment, 2) missing value treatment, 3) invalid value treatment and 4) type conversion
             FieldValue inputValue = inputField.prepare(rawValue);
-            
+
             arguments.put(inputName, inputValue);
         }
-    
+
         Map<FieldName, ?> results = evaluator.evaluate(arguments);
-    
+
         List<? extends TargetField> targetFields = evaluator.getTargetFields();
         for(TargetField targetField : targetFields){
             FieldName targetName = targetField.getName();
-            
+
             Object targetValue = results.get(targetName);
             System.out.println(targetName);
             System.out.println(targetValue);
         }
-        
+
     }
 }
 ```
@@ -218,19 +218,19 @@ import org.jpmml.model.*;
 import org.jpmml.evaluator.*;
 
 
-public class App 
+public class App
 {
     public static void main(String[] args) throws Exception
     {
         String modelPath = "boston.pmml";
-        
+
         Evaluator evaluator = new LoadingModelEvaluatorBuilder()
             .setLocatable(false)
             .setVisitors(new DefaultVisitorBattery())
             //.setOutputFilter(OutputFilters.KEEP_FINAL_RESULTS)
             .load(new File(modelPath))
             .build();
-    
+
         Map<String, Float> inputDataRecord = new HashMap<String,Float>();
         inputDataRecord.put("CRIM", 0.00632f);
         inputDataRecord.put("ZN", 18.0f);
@@ -245,34 +245,33 @@ public class App
         inputDataRecord.put("PTRATIO", 15.3f);
         inputDataRecord.put("B", 396.9f);
         inputDataRecord.put("LSTAT", 4.98f);
-        
+
         Map<FieldName, FieldValue> arguments = new LinkedHashMap<>();
-        
+
         List<? extends InputField> inputFields = evaluator.getInputFields();
         for(InputField inputField : inputFields){
             FieldName inputName = inputField.getName();
-            
+
             Object rawValue = inputDataRecord.get(inputName.getValue());
-            
+
             // Transforming an arbitrary user-supplied value to a known-good PMML value
             // The user-supplied value is passed through: 1) outlier treatment, 2) missing value treatment, 3) invalid value treatment and 4) type conversion
             FieldValue inputValue = inputField.prepare(rawValue);
-            
+
             arguments.put(inputName, inputValue);
         }
-    
+
         Map<FieldName, ?> results = evaluator.evaluate(arguments);
-    
+
         List<? extends TargetField> targetFields = evaluator.getTargetFields();
         for(TargetField targetField : targetFields){
             FieldName targetName = targetField.getName();
-            
+
             Object targetValue = results.get(targetName);
             System.out.println(targetName);
             System.out.println(targetValue);
         }
-        
+
     }
 }
 ```
-

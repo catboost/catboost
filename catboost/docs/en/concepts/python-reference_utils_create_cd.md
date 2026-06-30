@@ -7,14 +7,14 @@
 
 ```python
 create_cd(label=None,
-          cat_features=None, 
+          cat_features=None,
           text_features=None,
           embedding_features=None,
           weight=None,
           baseline=None,
           doc_id=None,
-          group_id=None, 
-          subgroup_id=None, 
+          group_id=None,
+          subgroup_id=None,
           timestamp=None,
           auxiliary_columns=None,
           feature_names=None,
@@ -147,7 +147,7 @@ A zero-based index of the column that defines the identifier of the object's su
 **Possible types**
 
 {{ python-type--int }}
- 
+
 **Default value**
 
 None

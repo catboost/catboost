@@ -55,4 +55,4 @@ namespace NJson {
         return TJsonPrettifier::Compactifier(unquote, sq).Prettify(in);
     }
 
-}
+} // namespace NJson

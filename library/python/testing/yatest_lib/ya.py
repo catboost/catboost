@@ -2,9 +2,11 @@ import os
 import sys
 import logging
 import json
+import six
 
 from .tools import to_str
 from .external import ExternalDataInfo
+
 
 TESTING_OUT_DIR_NAME = "testing_out_stuff"  # XXX import from test.const
 
@@ -38,11 +40,16 @@ class Ya(object):
         valgrind_path=None,
         gdb_path=None,
         data_root=None,
+        env_file=None,
+        project_path=None,
     ):
         context_file_path = os.environ.get("YA_TEST_CONTEXT_FILE", None)
         if context_file_path:
             with open(context_file_path, 'r') as afile:
                 test_context = json.load(afile)
+            if six.PY2:
+                from library.python.strings import ensure_str_deep
+                test_context = ensure_str_deep(test_context)
             context_runtime = test_context["runtime"]
             context_internal = test_context.get("internal", {})
             context_build = test_context.get("build", {})
@@ -87,7 +94,7 @@ class Ya(object):
             self._test_params.update(dict(x.split('=', 1) for x in test_params))
         self._test_params.update(context_runtime.get("test_params", {}))
 
-        self._context["project_path"] = context_runtime.get("project_path")
+        self._context["project_path"] = context_runtime.get("project_path") or project_path
         self._context["modulo"] = context_runtime.get("split_count", 1)
         self._context["modulo_index"] = context_runtime.get("split_index", 0)
         self._context["work_path"] = to_str(context_runtime.get("work_path"))
@@ -100,12 +107,27 @@ class Ya(object):
         self._context["sanitize"] = context_build.get("sanitizer")
         self._context["ya_trace_path"] = context_internal.get("trace_file")
 
-        self._env_file = context_internal.get("env_file")
+        self._env_file = context_internal.get("env_file") or env_file
 
         if context:
             for k, v in context.items():
                 if k not in self._context or v is not None:
                     self._context[k] = v
+
+        if self._env_file and os.path.exists(self._env_file):
+            yatest_logger.debug("Reading variables from env_file at %s", self._env_file)
+            var_list = []
+            with open(self._env_file) as file:
+                for ljson in file.readlines():
+                    variable = json.loads(ljson)
+                    for key, value in six.iteritems(variable):
+                        if value is not None:
+                            os.environ[key] = str(value)
+                            var_list.append(key)
+                        else:
+                            if key in os.environ:
+                                del os.environ[key]
+            yatest_logger.debug("Variables loaded: %s", var_list)
 
     @property
     def source_root(self):
@@ -168,7 +190,23 @@ class Ya(object):
         if self._mode == RunMode.Run:
             raise TestMisconfigurationException(error_message)
 
+    def _build_root_rel(self, path):
+        real_build_root = os.path.realpath(self.build_root)
+        real_path = os.path.abspath(path)
+        if path.startswith(real_build_root):
+            return os.path.relpath(real_path, real_build_root)
+        return path
+
     def file(self, path, diff_tool=None, local=False, diff_file_name=None, diff_tool_timeout=None):
+        if diff_tool:
+            if isinstance(diff_tool, tuple):
+                diff_tool = list(diff_tool)
+            # Normalize path to diff_tool - abs path in run_test node won't be accessible in canonize node
+            if isinstance(diff_tool, list):
+                diff_tool[0] = self._build_root_rel(diff_tool[0])
+            else:
+                diff_tool = self._build_root_rel(diff_tool)
+
         return ExternalDataInfo.serialize_file(path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
 
     def get_param(self, key, default=None):

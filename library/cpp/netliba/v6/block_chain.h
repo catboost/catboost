@@ -140,9 +140,8 @@ namespace NNetliba {
         TIntrusivePtr<TSharedMemory> SharedData;
         TVector<TIntrusivePtr<TThrRefBase>> AttachedStorage;
         char DefaultBuf[128]; // prevent allocs in most cases
-        enum {
-            N_DEFAULT_BLOCK_SIZE = 1024
-        };
+
+        static constexpr int N_DEFAULT_BLOCK_SIZE = 1024;
 
         char* Alloc(int sz) {
             char* res = nullptr;

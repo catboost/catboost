@@ -29,35 +29,37 @@ int tolower(int c);
 int toupper(int c);
 */
 
-#include <__config>
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(ctype.h)
+#if defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#error  include <__cxx03/ctype.h>
 #else
-#include_next <ctype.h>
-#endif
+#  include <__config>
 
-#ifdef __cplusplus
+#  if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#    pragma GCC system_header
+#  endif
 
-#undef isalnum
-#undef isalpha
-#undef isblank
-#undef iscntrl
-#undef isdigit
-#undef isgraph
-#undef islower
-#undef isprint
-#undef ispunct
-#undef isspace
-#undef isupper
-#undef isxdigit
-#undef tolower
-#undef toupper
+#  if __has_include_next(<ctype.h>)
+#    include_next <ctype.h>
+#  endif
 
-#endif
+#  ifdef __cplusplus
+
+#    undef isalnum
+#    undef isalpha
+#    undef isblank
+#    undef iscntrl
+#    undef isdigit
+#    undef isgraph
+#    undef islower
+#    undef isprint
+#    undef ispunct
+#    undef isspace
+#    undef isupper
+#    undef isxdigit
+#    undef tolower
+#    undef toupper
+
+#  endif
+#endif // defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
 
 #endif // _LIBCPP_CTYPE_H

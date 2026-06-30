@@ -38,18 +38,22 @@
 #ifndef GOOGLE_PROTOBUF_TEXT_FORMAT_H__
 #define GOOGLE_PROTOBUF_TEXT_FORMAT_H__
 
-#include <map>
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/port.h>
+#include "google/protobuf/port.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/port.h"
 
-#include <google/protobuf/port_def.inc>
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -57,6 +61,16 @@
 
 namespace google {
 namespace protobuf {
+
+namespace internal {
+PROTOBUF_EXPORT extern const char kDebugStringSilentMarker[1];
+PROTOBUF_EXPORT extern const char kDebugStringSilentMarkerForDetection[3];
+
+PROTOBUF_EXPORT extern std::atomic<bool> enable_debug_text_redaction_marker;
+PROTOBUF_EXPORT extern std::atomic<bool> enable_debug_text_random_marker;
+PROTOBUF_EXPORT extern std::atomic<bool> enable_debug_text_format_marker;
+
+}  // namespace internal
 
 namespace io {
 class ErrorCollector;  // tokenizer.h
@@ -69,6 +83,9 @@ class ErrorCollector;  // tokenizer.h
 // This class is really a namespace that contains only static methods.
 class PROTOBUF_EXPORT TextFormat {
  public:
+  TextFormat(const TextFormat&) = delete;
+  TextFormat& operator=(const TextFormat&) = delete;
+
   // Outputs a textual representation of the given message to the given
   // output stream. Returns false if printing fails.
   static bool Print(const Message& message, io::ZeroCopyOutputStream* output);
@@ -97,7 +114,22 @@ class PROTOBUF_EXPORT TextFormat {
                                       const FieldDescriptor* field, int index,
                                       TProtoStringType* output);
 
+  // Forward declare `Printer` for `BaseTextGenerator::MarkerToken` which
+  // restricts some methods of `BaseTextGenerator` to the class `Printer`.
+  class Printer;
+
   class PROTOBUF_EXPORT BaseTextGenerator {
+   private:
+    // Passkey (go/totw/134#what-about-stdshared-ptr) that allows `Printer`
+    // (but not derived classes) to call `PrintMaybeWithMarker` and its
+    // `Printer::TextGenerator` to overload it.
+    // This prevents users from bypassing the marker generation.
+    class MarkerToken {
+     private:
+      explicit MarkerToken() = default;  // 'explicit' prevents aggregate init.
+      friend class Printer;
+    };
+
    public:
     virtual ~BaseTextGenerator();
 
@@ -105,6 +137,8 @@ class PROTOBUF_EXPORT TextFormat {
     virtual void Outdent() {}
     // Returns the current indentation size in characters.
     virtual size_t GetCurrentIndentationSize() const { return 0; }
+
+    virtual bool failed() const { return false; }
 
     // Print text to the output stream.
     virtual void Print(const char* text, size_t size) = 0;
@@ -115,6 +149,20 @@ class PROTOBUF_EXPORT TextFormat {
     void PrintLiteral(const char (&text)[n]) {
       Print(text, n - 1);  // n includes the terminating zero character.
     }
+
+    // Internal to Printer, access regulated by `MarkerToken`.
+    virtual void PrintMaybeWithMarker(MarkerToken, y_absl::string_view text) {
+      Print(text.data(), text.size());
+    }
+
+    // Internal to Printer, access regulated by `MarkerToken`.
+    virtual void PrintMaybeWithMarker(MarkerToken, y_absl::string_view text_head,
+                                      y_absl::string_view text_tail) {
+      Print(text_head.data(), text_head.size());
+      Print(text_tail.data(), text_tail.size());
+    }
+
+    friend class Printer;
   };
 
   // The default printer that converts scalar values from fields into their
@@ -124,6 +172,8 @@ class PROTOBUF_EXPORT TextFormat {
   class PROTOBUF_EXPORT FastFieldValuePrinter {
    public:
     FastFieldValuePrinter();
+    FastFieldValuePrinter(const FastFieldValuePrinter&) = delete;
+    FastFieldValuePrinter& operator=(const FastFieldValuePrinter&) = delete;
     virtual ~FastFieldValuePrinter();
     virtual void PrintBool(bool val, BaseTextGenerator* generator) const;
     virtual void PrintInt32(arc_i32 val, BaseTextGenerator* generator) const;
@@ -160,15 +210,14 @@ class PROTOBUF_EXPORT TextFormat {
     virtual void PrintMessageEnd(const Message& message, int field_index,
                                  int field_count, bool single_line_mode,
                                  BaseTextGenerator* generator) const;
-
-   private:
-    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FastFieldValuePrinter);
   };
 
   // Deprecated: please use FastFieldValuePrinter instead.
   class PROTOBUF_EXPORT FieldValuePrinter {
    public:
     FieldValuePrinter();
+    FieldValuePrinter(const FieldValuePrinter&) = delete;
+    FieldValuePrinter& operator=(const FieldValuePrinter&) = delete;
     virtual ~FieldValuePrinter();
     virtual TProtoStringType PrintBool(bool val) const;
     virtual TProtoStringType PrintInt32(arc_i32 val) const;
@@ -192,18 +241,16 @@ class PROTOBUF_EXPORT TextFormat {
 
    private:
     FastFieldValuePrinter delegate_;
-    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FieldValuePrinter);
   };
 
   class PROTOBUF_EXPORT MessagePrinter {
    public:
     MessagePrinter() {}
+    MessagePrinter(const MessagePrinter&) = delete;
+    MessagePrinter& operator=(const MessagePrinter&) = delete;
     virtual ~MessagePrinter() {}
     virtual void Print(const Message& message, bool single_line_mode,
                        BaseTextGenerator* generator) const = 0;
-
-   private:
-    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MessagePrinter);
   };
 
   // Interface that Printers or Parsers can use to find extensions, or types
@@ -345,6 +392,9 @@ class PROTOBUF_EXPORT TextFormat {
       truncate_string_field_longer_than_ = truncate_string_field_longer_than;
     }
 
+    // Sets whether strings will be redacted and thus unparsable.
+    void SetRedactDebugString(bool redact) { redact_debug_string_ = redact; }
+
     // Register a custom field-specific FastFieldValuePrinter for fields
     // with a particular FieldDescriptor.
     // Returns "true" if the registration succeeded, or "false", if there is
@@ -364,17 +414,35 @@ class PROTOBUF_EXPORT TextFormat {
     bool RegisterMessagePrinter(const Descriptor* descriptor,
                                 const MessagePrinter* printer);
 
+    // Default printing for messages, which allows registered message printers
+    // to fall back to default printing without losing the ability to control
+    // sub-messages or fields.
+    // NOTE: If the passed in `text_generaor` is not actually the current
+    // `TextGenerator`, then no output will be produced.
+    void PrintMessage(const Message& message,
+                      BaseTextGenerator* generator) const;
+
    private:
     friend TProtoStringType Message::DebugString() const;
     friend TProtoStringType Message::ShortDebugString() const;
     friend TProtoStringType Message::Utf8DebugString() const;
+    friend void internal::PerformAbslStringify(
+        const Message& message,
+        y_absl::FunctionRef<void(y_absl::string_view)> append);
 
-    // Sets whether *DebugString should insert a silent marker.
+    // Sets whether silent markers will be inserted.
     void SetInsertSilentMarker(bool v) { insert_silent_marker_ = v; }
+
+    // Sets whether the output string should be made non-deterministic.
+    // This discourages equality checks based on serialized string comparisons.
+    void SetRandomizeDebugString(bool randomize) {
+      randomize_debug_string_ = randomize;
+    }
 
     // Forward declaration of an internal class used to print the text
     // output to the OutputStream (see text_format.cc for implementation).
     class TextGenerator;
+    using MarkerToken = BaseTextGenerator::MarkerToken;
 
     // Forward declaration of an internal class used to print field values for
     // DebugString APIs (see text_format.cc for implementation).
@@ -384,44 +452,49 @@ class PROTOBUF_EXPORT TextFormat {
     // strings (see text_format.cc for implementation).
     class FastFieldValuePrinterUtf8Escaping;
 
-    static const char* const kDoNotParse;
-
     // Internal Print method, used for writing to the OutputStream via
     // the TextGenerator class.
-    void Print(const Message& message, TextGenerator* generator) const;
+    void Print(const Message& message, BaseTextGenerator* generator) const;
 
     // Print a single field.
     void PrintField(const Message& message, const Reflection* reflection,
                     const FieldDescriptor* field,
-                    TextGenerator* generator) const;
+                    BaseTextGenerator* generator) const;
 
     // Print a repeated primitive field in short form.
     void PrintShortRepeatedField(const Message& message,
                                  const Reflection* reflection,
                                  const FieldDescriptor* field,
-                                 TextGenerator* generator) const;
+                                 BaseTextGenerator* generator) const;
 
     // Print the name of a field -- i.e. everything that comes before the
     // ':' for a single name/value pair.
     void PrintFieldName(const Message& message, int field_index,
                         int field_count, const Reflection* reflection,
                         const FieldDescriptor* field,
-                        TextGenerator* generator) const;
+                        BaseTextGenerator* generator) const;
 
     // Outputs a textual representation of the value of the field supplied on
     // the message supplied or the default value if not set.
     void PrintFieldValue(const Message& message, const Reflection* reflection,
                          const FieldDescriptor* field, int index,
-                         TextGenerator* generator) const;
+                         BaseTextGenerator* generator) const;
 
     // Print the fields in an UnknownFieldSet.  They are printed by tag number
     // only.  Embedded messages are heuristically identified by attempting to
     // parse them (subject to the recursion budget).
     void PrintUnknownFields(const UnknownFieldSet& unknown_fields,
-                            TextGenerator* generator,
+                            BaseTextGenerator* generator,
                             int recursion_budget) const;
 
-    bool PrintAny(const Message& message, TextGenerator* generator) const;
+    bool PrintAny(const Message& message, BaseTextGenerator* generator) const;
+
+    // Try to redact a field value based on the annotations associated with
+    // the field. This function returns true if it redacts the field value.
+    bool TryRedactFieldValue(const Message& message,
+                             const FieldDescriptor* field,
+                             BaseTextGenerator* generator,
+                             bool insert_value_separator) const;
 
     const FastFieldValuePrinter* GetFieldPrinter(
         const FieldDescriptor* field) const {
@@ -435,48 +508,48 @@ class PROTOBUF_EXPORT TextFormat {
     bool use_field_number_;
     bool use_short_repeated_primitives_;
     bool insert_silent_marker_;
+    bool redact_debug_string_;
+    bool randomize_debug_string_;
     bool hide_unknown_fields_;
     bool print_message_fields_in_index_order_;
     bool expand_any_;
     arc_i64 truncate_string_field_longer_than_;
 
     std::unique_ptr<const FastFieldValuePrinter> default_field_value_printer_;
-    typedef std::map<const FieldDescriptor*,
-                     std::unique_ptr<const FastFieldValuePrinter>>
-        CustomPrinterMap;
-    CustomPrinterMap custom_printers_;
+    y_absl::flat_hash_map<const FieldDescriptor*,
+                        std::unique_ptr<const FastFieldValuePrinter>>
+        custom_printers_;
 
-    typedef std::map<const Descriptor*, std::unique_ptr<const MessagePrinter>>
-        CustomMessagePrinterMap;
-    CustomMessagePrinterMap custom_message_printers_;
+    y_absl::flat_hash_map<const Descriptor*,
+                        std::unique_ptr<const MessagePrinter>>
+        custom_message_printers_;
 
     const Finder* finder_;
   };
 
   // Parses a text-format protocol message from the given input stream to
-  // the given message object. This function parses the human-readable format
-  // written by Print(). Returns true on success. The message is cleared first,
-  // even if the function fails -- See Merge() to avoid this behavior.
+  // the given message object. This function parses the human-readable
+  // serialization format written by Print(). Returns true on success. The
+  // message is cleared first, even if the function fails -- See Merge() to
+  // avoid this behavior.
   //
   // Example input: "user {\n id: 123 extra { gender: MALE language: 'en' }\n}"
   //
-  // One use for this function is parsing handwritten strings in test code.
-  // Another use is to parse the output from google::protobuf::Message::DebugString()
-  // (or ShortDebugString()), because these functions output using
-  // google::protobuf::TextFormat::Print().
+  // One common use for this function is parsing handwritten strings in test
+  // code.
   //
   // If you would like to read a protocol buffer serialized in the
   // (non-human-readable) binary wire format, see
   // google::protobuf::MessageLite::ParseFromString().
   static bool Parse(io::ZeroCopyInputStream* input, Message* output);
   // Like Parse(), but reads directly from a string.
-  static bool ParseFromString(ConstStringParam input, Message* output);
+  static bool ParseFromString(y_absl::string_view input, Message* output);
 
   // Like Parse(), but the data is merged into the given message, as if
   // using Message::MergeFrom().
   static bool Merge(io::ZeroCopyInputStream* input, Message* output);
   // Like Merge(), but reads directly from a string.
-  static bool MergeFromString(ConstStringParam input, Message* output);
+  static bool MergeFromString(y_absl::string_view input, Message* output);
 
   // Parse the given text as a single field value and store it into the
   // given field of the given message. If the field is a repeated field,
@@ -543,17 +616,13 @@ class PROTOBUF_EXPORT TextFormat {
     ParseInfoTree* CreateNested(const FieldDescriptor* field);
 
     // Defines the map from the index-th field descriptor to its parse location.
-    typedef std::map<const FieldDescriptor*, std::vector<ParseLocationRange>>
-        LocationMap;
-
+    y_absl::flat_hash_map<const FieldDescriptor*, std::vector<ParseLocationRange>>
+        locations_;
     // Defines the map from the index-th field descriptor to the nested parse
     // info tree.
-    typedef std::map<const FieldDescriptor*,
-                     std::vector<std::unique_ptr<ParseInfoTree>>>
-        NestedMap;
-
-    LocationMap locations_;
-    NestedMap nested_;
+    y_absl::flat_hash_map<const FieldDescriptor*,
+                        std::vector<std::unique_ptr<ParseInfoTree>>>
+        nested_;
   };
 
   // For more control over parsing, use this class.
@@ -565,11 +634,11 @@ class PROTOBUF_EXPORT TextFormat {
     // Like TextFormat::Parse().
     bool Parse(io::ZeroCopyInputStream* input, Message* output);
     // Like TextFormat::ParseFromString().
-    bool ParseFromString(ConstStringParam input, Message* output);
+    bool ParseFromString(y_absl::string_view input, Message* output);
     // Like TextFormat::Merge().
     bool Merge(io::ZeroCopyInputStream* input, Message* output);
     // Like TextFormat::MergeFromString().
-    bool MergeFromString(ConstStringParam input, Message* output);
+    bool MergeFromString(y_absl::string_view input, Message* output);
 
     // Set where to report parse errors.  If nullptr (the default), errors will
     // be printed to stderr.
@@ -664,9 +733,8 @@ class PROTOBUF_EXPORT TextFormat {
                                     ParseLocationRange location);
   static inline ParseInfoTree* CreateNested(ParseInfoTree* info_tree,
                                             const FieldDescriptor* field);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(TextFormat);
 };
+
 
 inline void TextFormat::RecordLocation(ParseInfoTree* info_tree,
                                        const FieldDescriptor* field,
@@ -682,6 +750,6 @@ inline TextFormat::ParseInfoTree* TextFormat::CreateNested(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_TEXT_FORMAT_H__

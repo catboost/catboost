@@ -3,7 +3,6 @@
 #include "align.h"
 #include "defaults.h"
 #include "compiler.h"
-#include "sanitizers.h"
 
 #include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
@@ -17,12 +16,21 @@
     #error todo
 #endif
 
+#if defined(__clang_major__) && (__clang_major__ >= 9) && (defined(_asan_enabled_) || defined(_tsan_enabled_))
+    #include "sanitizers.h"
+    #define USE_SANITIZER_CONTEXT
+#endif
+
 /*
  * switch method
  */
-#if defined(thread_sanitizer_enabled)
-    #define USE_UCONTEXT_CONT
-#elif defined(_bionic_) || defined(__IOS__)
+#if defined(thread_sanitizer_enabled) && defined(_darwin_)
+    #define _XOPEN_SOURCE 700
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+#if defined(_bionic_) || defined(__IOS__)
     #define USE_GENERIC_CONT
 #elif defined(_cygwin_)
     #define USE_UCONTEXT_CONT
@@ -140,6 +148,8 @@ public:
 private:
     __myjmp_buf Buf_;
 
+    #if defined(USE_SANITIZER_CONTEXT)
+
     struct TSan: public ITrampoLine, public ::NSan::TFiberContext {
         TSan() noexcept;
         TSan(const TContClosure& c) noexcept;
@@ -149,7 +159,6 @@ private:
         ITrampoLine* TL;
     };
 
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
     TSan San_;
     #endif
 };
@@ -163,6 +172,7 @@ static inline size_t MachineContextSize() noexcept {
  * be polite
  */
 #if !defined(FROM_CONTEXT_IMPL)
+    #undef USE_SANITIZER_CONTEXT
     #undef USE_JUMP_CONT
     #undef USE_FIBER_CONT
     #undef USE_GENERIC_CONT
@@ -170,6 +180,11 @@ static inline size_t MachineContextSize() noexcept {
     #undef PROGR_CNT
     #undef STACK_CNT
     #undef EXTRA_PUSH_ARGS
+#endif
+
+#if defined(_darwin_) && defined(thread_sanitizer_enabled)
+    #pragma clang diagnostic pop
+    #undef _XOPEN_SOURCE
 #endif
 
 struct TExceptionSafeContext: public TContMachineContext {

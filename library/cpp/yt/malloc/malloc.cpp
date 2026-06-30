@@ -7,13 +7,18 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Y_WEAK extern "C" size_t nallocx(size_t size, int /*flags*/) noexcept
+extern "C" Y_WEAK size_t nallocx(size_t size, int /*flags*/) noexcept
 {
     return size;
 }
 
-#ifndef _win_
-Y_WEAK extern "C" size_t malloc_usable_size(void* /*ptr*/) noexcept
+#if defined(__ANDROID__)
+extern "C" Y_WEAK size_t malloc_usable_size(const void* /*ptr*/)
+{
+    return 0;
+}
+#elif !defined(_win_)
+extern "C" Y_WEAK size_t malloc_usable_size(void* /*ptr*/) noexcept
 {
     return 0;
 }
@@ -23,7 +28,7 @@ void* aligned_malloc(size_t size, size_t alignment)
 {
 #if defined(_win_)
     return _aligned_malloc(size, alignment);
-#elif defined(_darwin_) || defined(_linux_)
+#elif defined(_darwin_) || defined(_linux_) || defined(__FreeBSD__)
     void* ptr = nullptr;
     ::posix_memalign(&ptr, alignment, size);
     return ptr;

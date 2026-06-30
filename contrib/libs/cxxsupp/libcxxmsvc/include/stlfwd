@@ -1,0 +1,68 @@
+#pragma once
+
+#include <__config>
+#include <cstddef>
+#include <iosfwd>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#pragma GCC system_header
+#endif
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+    template <class F, class S>
+    struct pair;
+
+    template <class T, size_t N>
+    struct array;
+
+    template <class T, class A>
+    class vector;
+
+    template <class T, class A>
+    class list;
+
+    template <class T, class A>
+    class deque;
+
+    template <class T, class C, class A>
+    class set;
+
+    template <class T, class C, class A>
+    class multiset;
+
+    template <class K, class V, class C, class A>
+    class map;
+
+    template <class K, class V, class C, class A>
+    class multimap;
+
+    template <typename... TArgs>
+    class tuple;
+
+    constexpr void get(...) = delete;
+
+    template <class>
+    class _LIBCPP_TEMPLATE_VIS function;
+
+    template <class _Tp>
+    struct _LIBCPP_TEMPLATE_VIS default_delete;
+
+    template <class _Tp, class Deleter = default_delete<_Tp>>
+    class _LIBCPP_TEMPLATE_VIS unique_ptr;
+
+    template <class T>
+    class _LIBCPP_TEMPLATE_VIS shared_ptr;
+
+    /* basic_string is already forward-declared in <iosfwd> */
+
+    template<class T, class Traits>
+    class basic_string_view;
+
+_LIBCPP_END_NAMESPACE_STD
+
+_LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
+
+    class path;
+
+_LIBCPP_END_NAMESPACE_FILESYSTEM

@@ -32,7 +32,7 @@ namespace NStringPrivate {
         Y_ASSERT(s);
         return strnlen(s, maxlen);
     }
-}
+} // namespace NStringPrivate
 
 template <typename TDerived, typename TCharType, typename TTraitsType = std::char_traits<TCharType>>
 class TStringBase {
@@ -71,7 +71,7 @@ public:
     }
 
     /**
-     * @param                           Pointer to character inside the string, or nullptr.
+     * @param ret                       Pointer to character inside the string, or nullptr.
      * @return                          Offset from string beginning (in chars), or npos on nullptr.
      */
     inline size_t off(const TCharType* ret) const noexcept {
@@ -550,5 +550,24 @@ private:
         TTraits::copy(pc, Ptr() + pos, toCopy);
 
         return toCopy;
+    }
+};
+
+template <typename TDerived, typename TCharType, typename TTraitsType>
+class TStdStringCompatibilityBase {
+    using TStringView = std::basic_string_view<TCharType>;
+
+public:
+    inline bool contains(const TStringView s) const noexcept {
+        return This()->Contains(s);
+    }
+
+    inline bool contains(TChar c) const noexcept {
+        return This()->Contains(c);
+    }
+
+private:
+    constexpr inline const TDerived* This() const noexcept {
+        return static_cast<const TDerived*>(this);
     }
 };

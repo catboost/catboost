@@ -20,7 +20,7 @@ namespace __cxxabiv1 {
     };
 
     extern "C" __cxa_eh_globals* __cxa_get_globals();
-}
+} // namespace __cxxabiv1
     #endif
 #endif
 
@@ -117,22 +117,24 @@ namespace {
     #if defined(_x86_64_)
     // not sure if Y_NO_SANITIZE is needed
     Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") extern "C" void ContextTrampoLine(void*, void*, void*, void*, void*, void*, // register arguments, no defined value
-                                                              /* first argument passed through the stack */ void* t1,
-                                                              /* second argument passed through the stack */ void* t2) {
+    Y_NO_SANITIZE("memory") extern "C" void
+    ContextTrampoLine(void*, void*, void*, void*, void*, void*, // register arguments, no defined value
+                      /* first argument passed through the stack */ void* t1,
+                      /* second argument passed through the stack */ void* t2) {
         Y_ASSERT(t1 == t2);
         Run(t1);
     }
     #else
     Y_NO_SANITIZE("address")
-    Y_NO_SANITIZE("memory") static void ContextTrampoLine() {
+    Y_NO_SANITIZE("memory") static void
+    ContextTrampoLine() {
         void** argPtr = (void**)((char*)AlignUp(&argPtr + EXTRA_PUSH_ARGS, STACK_ALIGN) + STACK_ALIGN);
-        Y_ASSERT(*(argPtr - 1) == *(argPtr - 2));
-
         Run(*(argPtr - 1));
     }
     #endif
-}
+} // namespace
+
+    #if defined(USE_SANITIZER_CONTEXT)
 
 TContMachineContext::TSan::TSan() noexcept
     : TL(nullptr)
@@ -148,11 +150,12 @@ TContMachineContext::TSan::TSan(const TContClosure& c) noexcept
 void TContMachineContext::TSan::DoRunNaked() {
     AfterSwitch();
     TL->DoRunNaked();
-    BeforeFinish();
 }
 
+    #endif
+
 TContMachineContext::TContMachineContext(const TContClosure& c)
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
     : San_(c)
     #endif
 {
@@ -162,7 +165,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
      * arg, and align data
      */
 
-    #if defined(_asan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
     auto trampoline = &San_;
     #else
     auto trampoline = c.TrampoLine;
@@ -196,12 +199,12 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     if (Y_LIKELY(__mysetjmp(Buf_) == 0)) {
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
         next->San_.BeforeSwitch(&San_);
     #endif
         __mylongjmp(next->Buf_, 1);
     } else {
-    #if defined(_asan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
         San_.AfterSwitch();
     #endif
     }

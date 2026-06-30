@@ -12,15 +12,18 @@
 #include <util/system/yassert.h>
 
 void SlashFolderLocal(TString& folder) {
-    if (!folder)
+    if (!folder) {
         return;
+    }
 #ifdef _win32_
     size_t pos;
-    while ((pos = folder.find('/')) != TString::npos)
+    while ((pos = folder.find('/')) != TString::npos) {
         folder.replace(pos, 1, LOCSLASH_S);
+    }
 #endif
-    if (folder[folder.size() - 1] != LOCSLASH_C)
+    if (folder[folder.size() - 1] != LOCSLASH_C) {
         folder.append(LOCSLASH_S);
+    }
 }
 
 #ifndef _win32_
@@ -36,8 +39,9 @@ bool resolvepath(TString& folder, const TString& home) {
     }
     // may be from windows
     char* ptr = folder.begin();
-    while ((ptr = strchr(ptr, '\\')) != nullptr)
+    while ((ptr = strchr(ptr, '\\')) != nullptr) {
         *ptr = '/';
+    }
 
     if (folder.at(0) == '~') {
         if (folder.length() == 1 || folder.at(1) == '/') {
@@ -46,14 +50,16 @@ bool resolvepath(TString& folder, const TString& home) {
             char* buf = (char*)alloca(folder.length() + 1);
             strcpy(buf, folder.data() + 1);
             char* p = strchr(buf, '/');
-            if (p)
+            if (p) {
                 *p++ = 0;
+            }
             passwd* pw = getpwnam(buf);
             if (pw) {
                 folder = pw->pw_dir;
                 folder += "/";
-                if (p)
+                if (p) {
                     folder += p;
+                }
             } else {
                 return false; // unknown user
             }
@@ -75,8 +81,9 @@ bool resolvepath(TString& folder, const TString& home) {
     for (char* s = path; s;) {
         pp[i++] = s;
         s = strchr(s, '/');
-        if (s)
+        if (s) {
             *s++ = 0;
+        }
     }
 
     for (int j = 1; j < i;) {
@@ -108,8 +115,9 @@ bool resolvepath(TString& folder, const TString& home) {
                     --j;
                 }
             }
-        } else
+        } else {
             ++j;
+        }
     }
 
     char* s = newpath;
@@ -160,24 +168,31 @@ static int next_dir(T*& ptr) {
                 ++has_ctrl;
                 break;
             default:
-                if (c == 127 || c < ' ')
+                if (c == 127 || c < ' ') {
                     ++has_ctrl;
-                else
+                } else {
                     ++has_letter;
+                }
         }
     }
-    if (*ptr)
+    if (*ptr) {
         ++ptr;
-    if (has_ctrl)
+    }
+    if (has_ctrl) {
         return dt_error;
-    if (has_letter)
+    }
+    if (has_letter) {
         return dt_dir;
-    if (has_dot && has_blank)
+    }
+    if (has_dot && has_blank) {
         return dt_error;
-    if (has_dot == 1)
+    }
+    if (has_dot == 1) {
         return dt_empty;
-    if (has_dot == 2)
+    }
+    if (has_dot == 2) {
         return dt_up;
+    }
     return dt_error;
 }
 
@@ -193,15 +208,18 @@ using disk_type = enum {
 template <typename T>
 static int skip_disk(T*& ptr) {
     int result = dk_noflags;
-    if (!*ptr)
+    if (!*ptr) {
         return result;
+    }
     if (ptr[0] == '\\' && ptr[1] == '\\') {
         result |= dk_unc | dk_fromroot;
         ptr += 2;
-        if (next_dir(ptr) != dt_dir)
+        if (next_dir(ptr) != dt_dir) {
             return dk_error; // has no host name
-        if (next_dir(ptr) != dt_dir)
+        }
+        if (next_dir(ptr) != dt_dir) {
             return dk_error; // has no share name
+        }
     } else {
         if (*ptr && *(ptr + 1) == ':') {
             result |= dk_hasdrive;
@@ -225,12 +243,14 @@ int correctpath(char* cpath, const char* path) {
     int counter = 0;
     while (*ptr) {
         char c = *ptr;
-        if (c == '/')
+        if (c == '/') {
             c = '\\';
-        if (c == '\\')
+        }
+        if (c == '\\') {
             ++counter;
-        else
+        } else {
             counter = 0;
+        }
         if (counter <= 1) {
             *cptr = c;
             ++cptr;
@@ -241,8 +261,9 @@ int correctpath(char* cpath, const char* path) {
     // replace '/' by '\'
     int dk = skip_disk(cpath);
 
-    if (dk == dk_error)
+    if (dk == dk_error) {
         return 0;
+    }
 
     char* ptr1 = ptr = cpath;
     int level = 0;
@@ -260,10 +281,11 @@ int correctpath(char* cpath, const char* path) {
                 if (level >= 0) {
                     *--ptr1 = 0;
                     ptr1 = strrchr(cpath, '\\');
-                    if (!ptr1)
+                    if (!ptr1) {
                         ptr1 = cpath;
-                    else
+                    } else {
                         ++ptr1;
+                    }
                     memmove(ptr1, ptr, strlen(ptr) + 1);
                     ptr = ptr1;
                     break;
@@ -273,8 +295,9 @@ int correctpath(char* cpath, const char* path) {
                         return 1;
                     }
                 }
-                if (dk & dk_fromroot)
+                if (dk & dk_fromroot) {
                     return 0;
+                }
                 break;
             case dt_error:
             default:
@@ -283,8 +306,9 @@ int correctpath(char* cpath, const char* path) {
         ptr1 = ptr;
     }
 
-    if ((ptr > cpath || ptr == cpath && dk & dk_unc) && *(ptr - 1) == '\\')
+    if ((ptr > cpath || ptr == cpath && dk & dk_unc) && *(ptr - 1) == '\\') {
         *(ptr - 1) = 0;
+    }
     return 1;
 }
 
@@ -294,54 +318,63 @@ static inline int normchar(unsigned char c) {
 
 static inline char* strslashcat(char* a, const char* b) {
     size_t len = strlen(a);
-    if (len && a[len - 1] != '\\')
+    if (len && a[len - 1] != '\\') {
         a[len++] = '\\';
+    }
     strcpy(a + len, b);
     return a;
 }
 
 int resolvepath(char* apath, const char* rpath, const char* cpath) {
     const char* redisk = rpath;
-    if (!rpath || !*rpath)
+    if (!rpath || !*rpath) {
         return 0;
+    }
     int rdt = skip_disk(redisk);
-    if (rdt == dk_error)
+    if (rdt == dk_error) {
         return 0;
+    }
     if (rdt & dk_unc || rdt & dk_hasdrive && rdt & dk_fromroot) {
         return correctpath(apath, rpath);
     }
 
     const char* cedisk = cpath;
-    if (!cpath || !*cpath)
+    if (!cpath || !*cpath) {
         return 0;
+    }
     int cdt = skip_disk(cedisk);
-    if (cdt == dk_error)
+    if (cdt == dk_error) {
         return 0;
+    }
 
     char* tpath = (char*)alloca(strlen(rpath) + strlen(cpath) + 3);
 
     // rdt&dk_hasdrive && !rdt&dk_fromroot
     if (rdt & dk_hasdrive) {
-        if (!(cdt & dk_fromroot))
+        if (!(cdt & dk_fromroot)) {
             return 0;
-        if (cdt & dk_hasdrive && normchar(*rpath) != normchar(*cpath))
+        }
+        if (cdt & dk_hasdrive && normchar(*rpath) != normchar(*cpath)) {
             return 0;
+        }
         memcpy(tpath, rpath, 2);
         memcpy(tpath + 2, cedisk, strlen(cedisk) + 1);
         strslashcat(tpath, redisk);
 
         // !rdt&dk_hasdrive && rdt&dk_fromroot
     } else if (rdt & dk_fromroot) {
-        if (!(cdt & dk_hasdrive) && !(cdt & dk_unc))
+        if (!(cdt & dk_hasdrive) && !(cdt & dk_unc)) {
             return 0;
+        }
         memcpy(tpath, cpath, cedisk - cpath);
         tpath[cedisk - cpath] = 0;
         strslashcat(tpath, redisk);
 
         // !rdt&dk_hasdrive && !rdt&dk_fromroot
     } else {
-        if (!(cdt & dk_fromroot) || !(cdt & dk_hasdrive) && !(cdt & dk_unc))
+        if (!(cdt & dk_fromroot) || !(cdt & dk_hasdrive) && !(cdt & dk_unc)) {
             return 0;
+        }
         strslashcat(strcpy(tpath, cpath), redisk);
     }
 
@@ -388,8 +421,9 @@ void RemoveDirWithContents(TString dirName) {
             case FTS_DP:
             case FTS_SL:
             case FTS_SLNONE:
-                if (!NFs::Remove(it->fts_path))
+                if (!NFs::Remove(it->fts_path)) {
                     ythrow TSystemError() << "error while removing " << it->fts_path;
+                }
                 break;
         }
     }
@@ -404,7 +438,7 @@ int mkpath(char* path, int mode) {
 // if it does not). Use RealLocation if that behaviour is required.
 TString RealPath(const TString& path) {
     TTempBuf result;
-    Y_ASSERT(result.Size() > MAX_PATH); //TMP_BUF_LEN > MAX_PATH
+    Y_ASSERT(result.Size() > MAX_PATH); // TMP_BUF_LEN > MAX_PATH
 #ifdef _win_
     if (GetFullPathName(path.data(), result.Size(), result.Data(), nullptr) == 0)
 #else
@@ -415,11 +449,13 @@ TString RealPath(const TString& path) {
 }
 
 TString RealLocation(const TString& path) {
-    if (NFs::Exists(path))
+    if (NFs::Exists(path)) {
         return RealPath(path);
+    }
     TString dirpath = GetDirName(path);
-    if (NFs::Exists(dirpath))
+    if (NFs::Exists(dirpath)) {
         return RealPath(dirpath) + GetDirectorySeparatorS() + GetFileNameComponent(path.data());
+    }
     ythrow TFileError() << "RealLocation failed \"" << path << "\"";
 }
 
@@ -437,14 +473,18 @@ int MakeTempDir(char path[/*FILENAME_MAX*/], const char* prefix) {
         prefix = sysTmp.data();
     }
 
-    if ((ret = ResolvePath(prefix, nullptr, path, 1)) != 0)
+    if ((ret = ResolvePath(prefix, nullptr, path, 1)) != 0) {
         return ret;
-    if (!TFileStat(path).IsDir())
+    }
+    if (!TFileStat(path).IsDir()) {
         return ENOENT;
-    if ((strlcat(path, "tmpXXXXXX", FILENAME_MAX) > FILENAME_MAX - 100))
+    }
+    if ((strlcat(path, "tmpXXXXXX", FILENAME_MAX) > FILENAME_MAX - 100)) {
         return EINVAL;
-    if (!(mkdtemp(path)))
+    }
+    if (!(mkdtemp(path))) {
         return errno ? errno : EINVAL;
+    }
     strcat(path, LOCSLASH_S);
     return 0;
 }
@@ -459,13 +499,14 @@ TString GetHomeDir() {
 #ifndef _win32_
         passwd* pw = nullptr;
         s = getenv("USER");
-        if (s)
+        if (s) {
             pw = getpwnam(s.data());
-        else
+        } else {
             pw = getpwuid(getuid());
-        if (pw)
+        }
+        if (pw) {
             s = pw->pw_dir;
-        else
+        } else
 #endif
         {
             char* cur_dir = getcwd(nullptr, 0);
@@ -494,8 +535,9 @@ const char* GetFileNameComponent(const char* f) {
 #ifdef _win_
     // "/" is also valid char separator on Windows
     const char* p2 = strrchr(f, '/');
-    if (p2 > p)
+    if (p2 > p) {
         p = p2;
+    }
 #endif
 
     if (p) {
@@ -561,20 +603,24 @@ int ResolvePath(const char* rel, const char* abs, char res[/*MAXPATHLEN*/], bool
     size_t len;
 
     *res = 0;
-    if (!rel || !*rel)
+    if (!rel || !*rel) {
         return EINVAL;
+    }
     if (!IsAbsolutePath(rel) && IsAbsolutePath(abs)) {
         len = strlcpy(t, abs, sizeof(t));
-        if (len >= sizeof(t) - 3)
+        if (len >= sizeof(t) - 3) {
             return EINVAL;
-        if (t[len - 1] != LOCSLASH_C)
+        }
+        if (t[len - 1] != LOCSLASH_C) {
             t[len++] = LOCSLASH_C;
+        }
         len += strlcpy(t + len, rel, sizeof(t) - len);
     } else {
         len = strlcpy(t, rel, sizeof(t));
     }
-    if (len >= sizeof(t) - 3)
+    if (len >= sizeof(t) - 3) {
         return EINVAL;
+    }
     if (isdir && t[len - 1] != LOCSLASH_C) {
         t[len++] = LOCSLASH_C;
         t[len] = 0;
@@ -603,8 +649,9 @@ int ResolvePath(const char* rel, const char* abs, char res[/*MAXPATHLEN*/], bool
 
 TString ResolvePath(const char* rel, const char* abs, bool isdir) {
     char buf[PATH_MAX];
-    if (ResolvePath(rel, abs, buf, isdir))
+    if (ResolvePath(rel, abs, buf, isdir)) {
         ythrow yexception() << "cannot resolve path: \"" << rel << "\"";
+    }
     return buf;
 }
 

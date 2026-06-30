@@ -35,8 +35,9 @@ namespace {
             }
             cNew = ConvertChar(conversion, c);
 
-            if (cNew != c)
+            if (cNew != c) {
                 break;
+            }
             p += cLen;
         }
         if (p == end) {
@@ -80,6 +81,29 @@ namespace {
         Y_ASSERT(false);
         return false;
     }
+
+    // return longest valid utf-8 prefix size in bytes that is less than or equal to |size|
+    size_t GetLongestUtf8PrefixSize(TStringBuf sb, size_t size, bool robust) {
+        const unsigned char* beg = reinterpret_cast<const unsigned char*>(sb.data());
+        const unsigned char* end = reinterpret_cast<const unsigned char*>(sb.data() + sb.size());
+        const unsigned char* cur = beg;
+        while (cur < end && static_cast<size_t>(cur - beg) < size) {
+            size_t runeLen;
+            if (RECODE_OK != GetUTF8CharLen(runeLen, cur, end)) {
+                if (robust) {
+                    break;
+                } else {
+                    ythrow yexception() << "invalid UTF-8 char at pos " << (cur - beg);
+                }
+            }
+            if ((cur - beg) + runeLen > size) {
+                break;
+            }
+            cur += runeLen;
+        }
+        return cur - beg;
+    }
+
 } // namespace
 
 extern const wchar32 BROKEN_RUNE = 0xFFFD;
@@ -99,7 +123,7 @@ static const char* SkipUTF8Chars(const char* begin, const char* end, size_t numC
     return begin;
 }
 
-TStringBuf SubstrUTF8(const TStringBuf str, size_t pos, size_t len) {
+TStringBuf SubstrUTF8(const TStringBuf str Y_LIFETIME_BOUND, size_t pos, size_t len) {
     const char* start = SkipUTF8Chars(str.begin(), str.end(), pos);
     const char* end = SkipUTF8Chars(start, str.end(), len);
     return TStringBuf(start, end - start);
@@ -167,4 +191,26 @@ TString ToUpperUTF8(TStringBuf s) {
 
 TString ToUpperUTF8(const char* s) {
     return ToUpperUTF8(TStringBuf(s));
+}
+
+void Utf8TruncateInplace(TString& s, size_t size) {
+    const size_t prefixSize = GetLongestUtf8PrefixSize(TStringBuf{s}, size, false);
+    if (prefixSize != s.size()) {
+        s.resize(prefixSize);
+    }
+}
+
+void Utf8TruncateInplaceRobust(TString& s, size_t size) {
+    const size_t prefixSize = GetLongestUtf8PrefixSize(TStringBuf{s}, size, true);
+    if (prefixSize != s.size()) {
+        s.resize(prefixSize);
+    }
+}
+
+TStringBuf Utf8Truncate(TStringBuf sb Y_LIFETIME_BOUND, size_t size) {
+    return sb.substr(0, GetLongestUtf8PrefixSize(sb, size, false));
+}
+
+TStringBuf Utf8TruncateRobust(TStringBuf sb Y_LIFETIME_BOUND, size_t size) noexcept {
+    return sb.substr(0, GetLongestUtf8PrefixSize(sb, size, true));
 }

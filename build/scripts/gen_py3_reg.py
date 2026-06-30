@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 template = '''
@@ -21,10 +22,11 @@ def mangle(name):
         return name
     return ''.join('{}{}'.format(len(s), s) for s in name.split('.'))
 
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print >>sys.stderr, 'Usage: <path/to/gen_py_reg.py> <python_module_name> <output_file>'
-        print >>sys.stderr, 'Passed: ' + ' '.join(sys.argv)
+        print('Usage: <path/to/gen_py_reg.py> <python_module_name> <output_file>', file=sys.stderr)
+        print('Passed: ' + ' '.join(sys.argv), file=sys.stderr)
         sys.exit(1)
 
     with open(sys.argv[2], 'w') as f:

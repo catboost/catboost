@@ -106,7 +106,7 @@ namespace NHiLoPrivate {
 
         return MakeIntRef<TRepr>(CharPtrOf(std::forward<T>(value)) + offset);
     }
-}
+} // namespace NHiLoPrivate
 
 /**
  * Return manipulator object that allows to get and set lower or higher bits of the value.

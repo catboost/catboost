@@ -1,9 +1,8 @@
 //===-- switch.S - Implement switch* --------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -39,4 +38,6 @@ DEFINE_COMPILERRT_PRIVATE_FUNCTION(__switchu8)
 	add     ip, lr, r0, lsl #1      // compute label = lr + element*2
 	bx      ip                      // jump to computed label
 END_COMPILERRT_FUNCTION(__switchu8)
+
+NO_EXEC_STACK_DIRECTIVE
 

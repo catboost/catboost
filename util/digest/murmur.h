@@ -27,7 +27,7 @@ namespace NMurmurPrivate {
     DEF_MUR(64)
 
 #undef DEF_MUR
-}
+} // namespace NMurmurPrivate
 
 template <class T>
 inline T MurmurHash(const void* buf, size_t len, T init) noexcept {

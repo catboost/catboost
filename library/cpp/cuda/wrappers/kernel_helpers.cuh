@@ -1,9 +1,11 @@
 #pragma once
 
 #include "kernel.cuh"
-#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
-#include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
+#include <cub/thread/thread_load.cuh>
+#include <cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
+
+#include <util/system/types.h>
 
 template<int Alignment, typename T>
 __forceinline__ __device__ __host__ T AlignBy(T x) {
@@ -238,7 +240,7 @@ __forceinline__ __device__ TReduceType TileReduce4(cooperative_groups::thread_bl
 
 template <int TileSize, class TOp = TCudaAdd<float>>
 __forceinline__ __device__ float4 WarpReduce4(const float4 threadValue) {
-    #define FULL_MASK 0xffffffff
+    constexpr unsigned FULL_MASK = 0xffffffff;
     TOp op;
     __syncwarp();
     float4 val = threadValue;

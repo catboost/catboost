@@ -173,4 +173,16 @@ namespace NEnumSerializationRuntime {
             return {TCast::CastToRepresentationType(key), name};
         }
     };
+
+    constexpr std::pair<TStringBuf, TStringBuf> CommonStringBuffer(const TStringBuf a, const TStringBuf b) {
+        if (!a.empty() && !b.empty()) {
+            if (a.StartsWith(b)) {
+                return {a, TStringBuf{a.data(), b.size()}};
+            }
+            if (b.StartsWith(a)) {
+                return {TStringBuf{b.data(), a.size()}, b};
+            }
+        }
+        return {a, b};
+    }
 }

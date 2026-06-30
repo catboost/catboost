@@ -410,7 +410,7 @@ static int ProcessInput(const TOptions& o, const TPacker& packer) {
         #ifndef CATBOOST_OPENSOURCE
             return DoMain< TRecord< TString, char, TValue, TUTF8ToYandexRecoder, TFromString<TValue> > >(o, packer);
         #else
-            Y_FAIL("Yandex encoding is not supported in CATBOOST_OPENSOURCE mode");
+            Y_ABORT("Yandex encoding is not supported in CATBOOST_OPENSOURCE mode");
         #endif
         }
     } else {

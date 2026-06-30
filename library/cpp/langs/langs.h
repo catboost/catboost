@@ -13,7 +13,7 @@
 // Language names are given according to ISO 639-2/B
 // Some languages are not present in ISO 639-2/B. Then ISO 639-3 is used.
 // http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-enum ELanguage {
+enum ELanguage: unsigned {
     LANG_UNK = 0,           // Unknown
     LANG_RUS = 1,           // Russian
     LANG_ENG = 2,           // English
@@ -136,6 +136,40 @@ enum ELanguage {
     LANG_BRE = 119,         // Breton
     LANG_SAH = 120,         // Yakut
     LANG_KAZ_LAT = 121,     // Latin Kazakh
+    LANG_KJH = 122,         // Khakas
+    LANG_OSS = 123,         // Ossetian
+    LANG_TYV = 124,         // Tuvan
+    LANG_CHE = 125,         // Chechen
+    LANG_MNS = 126,         // Mansi
+    LANG_ARZ = 127,         // Egyptian Arabic
+    LANG_KRC = 128,         // Karachay-Balkar
+    LANG_KBD = 129,         // Kabardino-Cherkess
+    LANG_NOG = 130,         // Nogai
+    LANG_ABQ = 131,         // Abaza
+    LANG_MYV = 132,         // Erzya
+    LANG_MDF = 133,         // Moksha
+    LANG_BUA = 134,         // Buryat
+    LANG_ADY = 135,         // Adyghe
+    LANG_LEZ = 136,         // Lezgian
+    LANG_CRH = 137,         // Crimean Tatar
+    LANG_EVN = 138,         // Evenki
+    LANG_VEP = 139,         // Veps
+    LANG_AVA = 140,         // Avar
+    LANG_KUM = 141,         // Kumyk
+    LANG_DAR = 142,         // Dargwa
+    LANG_INH = 143,         // Ingush
+    LANG_XAL = 144,         // Kalmyk
+    LANG_LBE = 145,         // Lak
+    LANG_TAB = 146,         // Tabasaran
+    LANG_ALT = 147,         // Southern Altai
+    LANG_ATV = 148,         // Northern Altai
+    LANG_YRK = 149,         // Nenets
+    LANG_AGX = 150,         // Aghul
+    LANG_RUT = 151,         // Rutul
+    LANG_ABK = 152,         // Abkhaz
+    LANG_KRL = 153,         // Karelian Proper
+    LANG_OLO = 154,         // Livvi-Karelian
+    LANG_JDT = 155,         // Judeo-Tat
     LANG_MAX
 };
 

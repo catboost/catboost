@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       armthumb.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -19,8 +18,13 @@ armthumb_code(void *simple lzma_attribute((__unused__)),
 		uint32_t now_pos, bool is_encoder,
 		uint8_t *buffer, size_t size)
 {
+	if (size < 4)
+		return 0;
+
+	size -= 4;
+
 	size_t i;
-	for (i = 0; i + 4 <= size; i += 2) {
+	for (i = 0; i <= size; i += 2) {
 		if ((buffer[i + 1] & 0xF8) == 0xF0
 				&& (buffer[i + 3] & 0xF8) == 0xF8) {
 			uint32_t src = (((uint32_t)(buffer[i + 1]) & 7) << 19)

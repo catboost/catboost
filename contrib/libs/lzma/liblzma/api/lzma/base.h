@@ -1,15 +1,13 @@
+/* SPDX-License-Identifier: 0BSD */
+
 /**
  * \file        lzma/base.h
  * \brief       Data types and functions used in many places in liblzma API
+ * \note        Never include this file directly. Use <lzma.h> instead.
  */
 
 /*
  * Author: Lasse Collin
- *
- * This file has been put into the public domain.
- * You can do whatever you want with this file.
- *
- * See ../lzma.h for information about liblzma as a whole.
  */
 
 #ifndef LZMA_H_INTERNAL
@@ -22,8 +20,8 @@
  *
  * This is here because C89 doesn't have stdbool.h. To set a value for
  * variables having type lzma_bool, you can use
- *   - C99's `true' and `false' from stdbool.h;
- *   - C++'s internal `true' and `false'; or
+ *   - C99's 'true' and 'false' from stdbool.h;
+ *   - C++'s internal 'true' and 'false'; or
  *   - integers one (true) and zero (false).
  */
 typedef unsigned char lzma_bool;
@@ -138,7 +136,7 @@ typedef enum {
 		 */
 
 	LZMA_MEMLIMIT_ERROR     = 6,
-		/**
+		/**<
 		 * \brief       Memory usage limit was reached
 		 *
 		 * Decoder would need more memory than allowed by the
@@ -259,7 +257,7 @@ typedef enum {
 		 */
 
 	/*
-	 * These eumerations may be used internally by liblzma
+	 * These enumerations may be used internally by liblzma
 	 * but they will never be returned to applications.
 	 */
 	LZMA_RET_INTERNAL1      = 101,
@@ -274,13 +272,13 @@ typedef enum {
 
 
 /**
- * \brief       The `action' argument for lzma_code()
+ * \brief       The 'action' argument for lzma_code()
  *
  * After the first use of LZMA_SYNC_FLUSH, LZMA_FULL_FLUSH, LZMA_FULL_BARRIER,
- * or LZMA_FINISH, the same `action' must is used until lzma_code() returns
+ * or LZMA_FINISH, the same 'action' must be used until lzma_code() returns
  * LZMA_STREAM_END. Also, the amount of input (that is, strm->avail_in) must
  * not be modified by the application until lzma_code() returns
- * LZMA_STREAM_END. Changing the `action' or modifying the amount of input
+ * LZMA_STREAM_END. Changing the 'action' or modifying the amount of input
  * will make lzma_code() return LZMA_PROG_ERROR.
  */
 typedef enum {
@@ -394,8 +392,8 @@ typedef enum {
  * Single-threaded mode only: liblzma doesn't make an internal copy of
  * lzma_allocator. Thus, it is OK to change these function pointers in
  * the middle of the coding process, but obviously it must be done
- * carefully to make sure that the replacement `free' can deallocate
- * memory allocated by the earlier `alloc' function(s).
+ * carefully to make sure that the replacement 'free' can deallocate
+ * memory allocated by the earlier 'alloc' function(s).
  *
  * Multithreaded mode: liblzma might internally store pointers to the
  * lzma_allocator given via the lzma_stream structure. The application
@@ -423,7 +421,7 @@ typedef struct {
 	 *                      liblzma never sets this to zero.
 	 *
 	 * \return      Pointer to the beginning of a memory block of
-	 *              `size' bytes, or NULL if allocation fails
+	 *              'size' bytes, or NULL if allocation fails
 	 *              for some reason. When allocation fails, functions
 	 *              of liblzma return LZMA_MEM_ERROR.
 	 *
@@ -452,7 +450,9 @@ typedef struct {
 	 * \param       opaque  lzma_allocator.opaque (see below)
 	 * \param       ptr     Pointer returned by lzma_allocator.alloc(),
 	 *                      or when it is set to NULL, a pointer returned
-	 *                      by the standard malloc().
+	 *                      by the standard malloc(). In addition, NULL
+	 *                      is a possible value. The function should do
+	 *                      nothing when ptr == NULL.
 	 */
 	void (LZMA_API_CALL *free)(void *opaque, void *ptr);
 
@@ -546,16 +546,24 @@ typedef struct {
 	 * you should not touch these, because the names of these variables
 	 * may change.
 	 */
+
+	/** \private     Reserved member. */
 	void *reserved_ptr1;
+
+	/** \private     Reserved member. */
 	void *reserved_ptr2;
+
+	/** \private     Reserved member. */
 	void *reserved_ptr3;
+
+	/** \private     Reserved member. */
 	void *reserved_ptr4;
 
 	/**
 	 * \brief       New seek input position for LZMA_SEEK_NEEDED
 	 *
 	 * When lzma_code() returns LZMA_SEEK_NEEDED, the new input position
-	 * needed by liblzma will be available seek_pos. The value is
+	 * needed by liblzma will be available in seek_pos. The value is
 	 * guaranteed to not exceed the file size that was specified when
 	 * this lzma_stream was initialized.
 	 *
@@ -563,10 +571,19 @@ typedef struct {
 	 */
 	uint64_t seek_pos;
 
+	/** \private     Reserved member. */
 	uint64_t reserved_int2;
+
+	/** \private     Reserved member. */
 	size_t reserved_int3;
+
+	/** \private     Reserved member. */
 	size_t reserved_int4;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum1;
+
+	/** \private     Reserved member. */
 	lzma_reserved_enum reserved_enum2;
 
 } lzma_stream;
@@ -606,7 +623,15 @@ typedef struct {
  * to and get output from liblzma.
  *
  * See the description of the coder-specific initialization function to find
- * out what `action' values are supported by the coder.
+ * out what 'action' values are supported by the coder.
+ *
+ * \param       strm    Pointer to lzma_stream that is at least initialized
+ *                      with LZMA_STREAM_INIT.
+ * \param       action  Action for this function to take. Must be a valid
+ *                      lzma_action enum value.
+ *
+ * \return      Any valid lzma_ret. See the lzma_ret enum description for more
+ *              information.
  */
 extern LZMA_API(lzma_ret) lzma_code(lzma_stream *strm, lzma_action action)
 		lzma_nothrow lzma_attr_warn_unused_result;
@@ -615,15 +640,15 @@ extern LZMA_API(lzma_ret) lzma_code(lzma_stream *strm, lzma_action action)
 /**
  * \brief       Free memory allocated for the coder data structures
  *
- * \param       strm    Pointer to lzma_stream that is at least initialized
- *                      with LZMA_STREAM_INIT.
- *
  * After lzma_end(strm), strm->internal is guaranteed to be NULL. No other
  * members of the lzma_stream structure are touched.
  *
  * \note        zlib indicates an error if application end()s unfinished
  *              stream structure. liblzma doesn't do this, and assumes that
  *              application knows what it is doing.
+ *
+ * \param       strm    Pointer to lzma_stream that is at least initialized
+ *                      with LZMA_STREAM_INIT.
  */
 extern LZMA_API(void) lzma_end(lzma_stream *strm) lzma_nothrow;
 
@@ -642,6 +667,11 @@ extern LZMA_API(void) lzma_end(lzma_stream *strm) lzma_nothrow;
  * mode by taking into account the progress made by each thread. In
  * single-threaded mode *progress_in and *progress_out are set to
  * strm->total_in and strm->total_out, respectively.
+ *
+ * \param       strm          Pointer to lzma_stream that is at least
+ *                            initialized with LZMA_STREAM_INIT.
+ * \param[out]  progress_in   Pointer to the number of input bytes processed.
+ * \param[out]  progress_out  Pointer to the number of output bytes processed.
  */
 extern LZMA_API(void) lzma_get_progress(lzma_stream *strm,
 		uint64_t *progress_in, uint64_t *progress_out) lzma_nothrow;
@@ -659,6 +689,9 @@ extern LZMA_API(void) lzma_get_progress(lzma_stream *strm,
  * the memory usage limit should have been to decode the input. Note that
  * this may give misleading information if decoding .xz Streams that have
  * multiple Blocks, because each Block can have different memory requirements.
+ *
+ * \param       strm    Pointer to lzma_stream that is at least initialized
+ *                      with LZMA_STREAM_INIT.
  *
  * \return      How much memory is currently allocated for the filter
  *              decoders. If no filter chain is currently allocated,
@@ -678,6 +711,9 @@ extern LZMA_API(uint64_t) lzma_memusage(const lzma_stream *strm)
  *
  * This function is supported only when *strm has been initialized with
  * a function that takes a memlimit argument.
+ *
+ * \param       strm    Pointer to lzma_stream that is at least initialized
+ *                      with LZMA_STREAM_INIT.
  *
  * \return      On success, the current memory usage limit is returned
  *              (always non-zero). On error, zero is returned.
@@ -702,7 +738,8 @@ extern LZMA_API(uint64_t) lzma_memlimit_get(const lzma_stream *strm)
  * after LZMA_MEMLIMIT_ERROR even if the limit was increased using
  * lzma_memlimit_set(). Other decoders worked correctly.
  *
- * \return      - LZMA_OK: New memory usage limit successfully set.
+ * \return      Possible lzma_ret values:
+ *              - LZMA_OK: New memory usage limit successfully set.
  *              - LZMA_MEMLIMIT_ERROR: The new limit is too small.
  *                The limit was not changed.
  *              - LZMA_PROG_ERROR: Invalid arguments, e.g. *strm doesn't

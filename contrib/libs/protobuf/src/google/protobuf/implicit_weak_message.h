@@ -33,16 +33,17 @@
 
 #include <string>
 
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/arena.h>
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/repeated_field.h>
+#include "google/protobuf/arena.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/repeated_field.h"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
 #endif
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 // This file is logically internal-only and should only be used by protobuf
 // generated code.
@@ -56,8 +57,19 @@ namespace internal {
 // message type does not get linked into the binary.
 class PROTOBUF_EXPORT ImplicitWeakMessage : public MessageLite {
  public:
-  ImplicitWeakMessage() {}
-  explicit ImplicitWeakMessage(Arena* arena) : MessageLite(arena) {}
+  ImplicitWeakMessage() : data_(new TProtoStringType) {}
+  explicit constexpr ImplicitWeakMessage(ConstantInitialized)
+      : data_(nullptr) {}
+  explicit ImplicitWeakMessage(Arena* arena)
+      : MessageLite(arena), data_(new TProtoStringType) {}
+  ImplicitWeakMessage(const ImplicitWeakMessage&) = delete;
+  ImplicitWeakMessage& operator=(const ImplicitWeakMessage&) = delete;
+
+  ~ImplicitWeakMessage() override {
+    // data_ will be null in the default instance, but we can safely call delete
+    // here because the default instance will never be destroyed.
+    delete data_;
+  }
 
   static const ImplicitWeakMessage* default_instance();
 
@@ -67,32 +79,48 @@ class PROTOBUF_EXPORT ImplicitWeakMessage : public MessageLite {
     return Arena::CreateMessage<ImplicitWeakMessage>(arena);
   }
 
-  void Clear() override { data_.clear(); }
+  void Clear() override { data_->clear(); }
 
   bool IsInitialized() const override { return true; }
 
   void CheckTypeAndMergeFrom(const MessageLite& other) override {
-    data_.append(static_cast<const ImplicitWeakMessage&>(other).data_);
+    const TProtoStringType* other_data =
+        static_cast<const ImplicitWeakMessage&>(other).data_;
+    if (other_data != nullptr) {
+      data_->append(*other_data);
+    }
   }
 
   const char* _InternalParse(const char* ptr, ParseContext* ctx) final;
 
-  size_t ByteSizeLong() const override { return data_.size(); }
+  size_t ByteSizeLong() const override {
+    return data_ == nullptr ? 0 : data_->size();
+  }
 
   uint8_t* _InternalSerialize(uint8_t* target,
                               io::EpsCopyOutputStream* stream) const final {
-    return stream->WriteRaw(data_.data(), static_cast<int>(data_.size()),
+    if (data_ == nullptr) {
+      return target;
+    }
+    return stream->WriteRaw(data_->data(), static_cast<int>(data_->size()),
                             target);
   }
 
-  int GetCachedSize() const override { return static_cast<int>(data_.size()); }
+  int GetCachedSize() const override {
+    return data_ == nullptr ? 0 : static_cast<int>(data_->size());
+  }
 
   typedef void InternalArenaConstructable_;
 
  private:
-  TProtoStringType data_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImplicitWeakMessage);
+  // This TProtoStringType is allocated on the heap, but we use a raw pointer so that
+  // the default instance can be constant-initialized. In the const methods, we
+  // have to handle the possibility of data_ being null.
+  TProtoStringType* data_;
 };
+
+struct ImplicitWeakMessageDefaultType;
+extern ImplicitWeakMessageDefaultType implicit_weak_message_default_instance;
 
 // A type handler for use with implicit weak repeated message fields.
 template <typename ImplicitWeakType>
@@ -181,6 +209,6 @@ struct WeakRepeatedPtrField {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_IMPLICIT_WEAK_MESSAGE_H__

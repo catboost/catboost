@@ -23,13 +23,19 @@ Y_UNIT_TEST_SUITE(YassertTest) {
 
     Y_UNIT_TEST(TestFailCompiles) {
         if (false) {
-            Y_FAIL("%d is a lucky number", 7);
-            Y_FAIL();
+            Y_ABORT("%d is a lucky number", 7);
+            Y_ABORT();
         }
     }
 
     Y_UNIT_TEST(TestVerify) {
-        Y_VERIFY(true, "hi %s", "there");
-        Y_VERIFY(true);
+        Y_ABORT_UNLESS(true, "hi %s", "there");
+        Y_ABORT_UNLESS(true);
     }
-}
+
+    Y_UNIT_TEST(TestExceptionVerify) {
+        UNIT_ASSERT_EXCEPTION(
+            []() { Y_ABORT_UNLESS([]() {throw yexception{} << "check"; return false; }(), "hi %s", "there"); }(),
+            yexception);
+    }
+} // Y_UNIT_TEST_SUITE(YassertTest)

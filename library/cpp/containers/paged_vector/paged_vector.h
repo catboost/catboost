@@ -115,17 +115,17 @@ namespace NPagedVector {
                 return it;
             }
 
-            TSelf operator+(ptrdiff_t off) {
+            TSelf operator+(ptrdiff_t off) const {
                 TSelf res = *this;
                 res += off;
                 return res;
             }
 
-            TSelf operator-(ptrdiff_t off) {
+            TSelf operator-(ptrdiff_t off) const {
                 return this->operator+(-off);
             }
 
-            size_t GetOffset() {
+            size_t GetOffset() const {
                 return Offset;
             }
         };
@@ -395,7 +395,7 @@ namespace NPagedVector {
             if (pagepart)
                 CurrentPage().resize(pagepart);
 
-            Y_VERIFY(sz == size(), "%" PRIu64 " %" PRIu64, (ui64)sz, (ui64)size());
+            Y_ABORT_UNLESS(sz == size(), "%" PRIu64 " %" PRIu64, (ui64)sz, (ui64)size());
         }
 
         reference at(size_t idx) {

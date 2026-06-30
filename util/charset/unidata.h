@@ -126,7 +126,7 @@ namespace NUnicode {
         inline bool IsBidi(wchar32 ch, ui32 type) {
             return ((NUnicode::NPrivate::CharInfo(ch) >> BIDI_OFFSET) & 15) == type;
         }
-    }
+    } // namespace NPrivate
 
     inline size_t UnicodeInstancesLimit() {
         return NPrivate::UnidataTable().Size();
@@ -142,7 +142,7 @@ namespace NUnicode {
     inline bool CharHasType(wchar32 ch, ui64 type_bits) {
         return (SHIFT(NUnicode::CharType(ch)) & type_bits) != 0;
     }
-}
+} // namespace NUnicode
 
 // all usefull properties
 
@@ -401,8 +401,9 @@ inline bool IsPrint(wchar32 ch) {
 }
 
 inline bool IsRomanDigit(wchar32 ch) {
-    if (NUnicode::CharHasType(ch, SHIFT(Nl_LETTER)) && 0x2160 <= ch && ch <= 0x2188)
+    if (NUnicode::CharHasType(ch, SHIFT(Nl_LETTER)) && 0x2160 <= ch && ch <= 0x2188) {
         return true;
+    }
     if (ch < 127) {
         switch (static_cast<char>(::ToLower(ch))) {
             case 'i':

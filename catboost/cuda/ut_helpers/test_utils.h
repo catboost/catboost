@@ -14,11 +14,11 @@
 #include <util/stream/file.h>
 
 struct TUnitTestPool {
-    TVector<float> Features;
-    TVector<float> Targets;
-    TVector<TGroupId> Qids;
-    TVector<ui32> Gids;
-    TVector<TVector<ui32>> Queries;
+    TVector<float> Features;        // 2D matrix data: [featureIdx * NumSamples + sampleIdx]
+    TVector<float> Targets;         // 1D data: [sampleIdx]
+    TVector<TGroupId> Qids;         // 1D data: [sampleIdx]
+    TVector<ui32> Gids;             // 1D data: [sampleIdx]
+    TVector<TVector<ui32>> Queries; // 2D data: [queryIdx] -> vector of sample indices for this query
 
     ui64 NumSamples;
     ui64 SamplesPerQuery;
@@ -35,11 +35,11 @@ struct TUnitTestPool {
 ////
 
 struct TBinarizedPool {
-    TVector<TVector<ui8>> Features;
-    TVector<float> Targets;
-    TVector<TGroupId> Qids;
-    TVector<TVector<ui32>> CatFeatures;
-    TVector<TVector<int>> Queries;
+    TVector<TVector<ui8>> Features;         // 2D matrix data: [featureIdx][sampleIdx]
+    TVector<float> Targets;                 // 1D data: [sampleIdx]
+    TVector<TGroupId> Qids;                 // 1D data: [sampleIdx]
+    TVector<TVector<ui32>> CatFeatures;     // 2D matrix data: [catFeatureIdx][sampleIdx]
+    TVector<TVector<int>> Queries;          // 2D data: [queryIdx] -> vector of sample indices for this query
     ui32 NumSamples;
     ui32 SamplesPerQuery;
     ui32 NumFeatures;

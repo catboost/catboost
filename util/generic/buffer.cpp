@@ -97,3 +97,8 @@ void TBuffer::AsString(TString& s) {
     s.assign(Data(), Size());
     Clear();
 }
+
+void TBuffer::AsString(std::string& s) {
+    s.assign(Data(), Size());
+    Clear();
+}

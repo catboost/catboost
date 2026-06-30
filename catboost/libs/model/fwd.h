@@ -57,6 +57,4 @@ namespace NCatBoostFbs {
 namespace flatbuffers {
     template <typename T>
     struct Offset;
-
-    class FlatBufferBuilder;
 }

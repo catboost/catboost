@@ -40,12 +40,12 @@ void NormalizeLeafValues(
 void InitApproxes(
     int size,
     const TMaybe<TVector<double>>& startingApprox,
-    double approxDimension,
+    size_t approxDimension,
     bool storeExpApproxes,
     TVector<TVector<double>>* approx
 ) {
     approx->resize(approxDimension);
-    Y_ASSERT(!startingApprox.Defined() || startingApprox->ysize() == approxDimension);
+    Y_ASSERT(!startingApprox.Defined() || startingApprox->size() == approxDimension);
     for (auto dim : xrange(approxDimension)) {
         (*approx)[dim].resize(
             size,

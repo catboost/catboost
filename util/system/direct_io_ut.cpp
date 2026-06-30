@@ -18,7 +18,7 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             i = RandomNumber<ui64>();
         }
         for (size_t writePos = 0; writePos < data.size();) {
-            size_t writeCount = Min<size_t>(1 + RandomNumber<size_t>(1 << 10), data.ysize() - writePos);
+            size_t writeCount = Min<size_t>(1 + RandomNumber<size_t>(1 << 10), data.size() - writePos);
             file.Write(&data[writePos], sizeof(ui64) * writeCount);
             writePos += writeCount;
             size_t readPos = RandomNumber(writePos);
@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             TestHugeFile(5 * 1024 * 1024 * 1024ULL + 1111);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirectIoTestSuite)
 
 Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
     Y_UNIT_TEST(Constructor) {
@@ -112,4 +112,4 @@ Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
         UNIT_ASSERT_EXCEPTION(file.Finish(), TFileError);
         NFs::Remove(FileName_);
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirectIoErrorHandling)

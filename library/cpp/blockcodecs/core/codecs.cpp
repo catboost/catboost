@@ -2,15 +2,11 @@
 #include "common.h"
 #include "register.h"
 
-#include <util/ysaveload.h>
 #include <util/stream/null.h>
-#include <util/stream/mem.h>
-#include <util/string/cast.h>
 #include <util/string/join.h>
 #include <util/system/align.h>
 #include <util/system/unaligned_mem.h>
 #include <util/generic/hash.h>
-#include <util/generic/cast.h>
 #include <util/generic/deque.h>
 #include <util/generic/buffer.h>
 #include <util/generic/array_ref.h>

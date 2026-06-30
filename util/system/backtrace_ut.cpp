@@ -56,7 +56,7 @@ class TBackTraceTest: public TTestBase {
     }
 
     void TestBackTrace() {
-        //PrintBackTrace();
+        // PrintBackTrace();
         void* buf1[100];
         size_t ret1;
 

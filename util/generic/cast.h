@@ -18,7 +18,7 @@ static inline T VerifyDynamicCast(F f) {
 
     T ret = dynamic_cast<T>(f);
 
-    Y_VERIFY(ret, "verify cast failed");
+    Y_ABORT_UNLESS(ret, "verify cast failed");
 
     return ret;
 }
@@ -32,7 +32,7 @@ namespace NPrivate {
     static T DynamicCast(F f) {
         return dynamic_cast<T>(f);
     }
-}
+} // namespace NPrivate
 
 /*
  * replacement for dynamic_cast(dynamic_cast in debug mode, else static_cast)
@@ -104,7 +104,15 @@ namespace NPrivate {
                                        ((std::is_signed<TSmallInt>::value == std::is_signed<TLargeInt>::value && sizeof(TSmallInt) >= sizeof(TLargeInt)) ||
                                         (std::is_signed<TSmallInt>::value && sizeof(TSmallInt) > sizeof(TLargeInt)));
     };
-}
+
+    template <class TLargeInt>
+    [[noreturn]] void ThrowBadIntegerCast(const TLargeInt largeInt, const std::type_info& smallIntType, const TStringBuf reason) {
+        ythrow TBadCastException() << "Conversion '" << TypeName<TLargeInt>() << '{' << largeInt << "}' to '"
+                                   << TypeName(smallIntType)
+                                   << "', " << reason;
+    }
+
+} // namespace NPrivate
 
 template <class TSmallInt, class TLargeInt>
 constexpr std::enable_if_t<::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {
@@ -116,27 +124,22 @@ inline std::enable_if_t<!::NPrivate::TSafelyConvertible<TSmall, TLarge>::Result,
     using TSmallInt = ::NPrivate::TUnderlyingTypeOrSelf<TSmall>;
     using TLargeInt = ::NPrivate::TUnderlyingTypeOrSelf<TLarge>;
 
-    if (std::is_unsigned<TSmallInt>::value && std::is_signed<TLargeInt>::value) {
+    if constexpr (std::is_unsigned<TSmallInt>::value && std::is_signed<TLargeInt>::value) {
         if (IsNegative(largeInt)) {
-            ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                       << TypeName<TSmallInt>()
-                                       << "', negative value converted to unsigned";
+            ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "negative value converted to unsigned"sv);
         }
     }
 
     TSmallInt smallInt = TSmallInt(largeInt);
 
-    if (std::is_signed<TSmallInt>::value && std::is_unsigned<TLargeInt>::value) {
+    if constexpr (std::is_signed<TSmallInt>::value && std::is_unsigned<TLargeInt>::value) {
         if (IsNegative(smallInt)) {
-            ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                       << TypeName<TSmallInt>()
-                                       << "', positive value converted to negative";
+            ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "positive value converted to negative"sv);
         }
     }
 
     if (TLargeInt(smallInt) != largeInt) {
-        ythrow TBadCastException() << "Conversion '" << TypeName<TLarge>() << '{' << TLargeInt(largeInt) << "}' to '"
-                                   << TypeName<TSmallInt>() << "', loss of data";
+        ::NPrivate::ThrowBadIntegerCast(TLargeInt(largeInt), typeid(TSmallInt), "loss of data"sv);
     }
 
     return static_cast<TSmall>(smallInt);
@@ -147,7 +150,7 @@ inline TSmallInt IntegerCast(TLargeInt largeInt) noexcept {
     try {
         return SafeIntegerCast<TSmallInt>(largeInt);
     } catch (const yexception& exc) {
-        Y_FAIL("IntegerCast: %s", exc.what());
+        Y_ABORT("IntegerCast: %s", exc.what());
     }
 }
 

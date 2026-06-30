@@ -5,16 +5,12 @@
 
 template <class TBase, class TCounter>
 struct TWithRefCount: public TBase, public TRefCounted<TWithRefCount<TBase, TCounter>, TCounter> {
-    template <typename... Args>
-    inline TWithRefCount(Args&&... args)
-        : TBase(std::forward<Args>(args)...)
-    {
-    }
+    using TBase::TBase;
 };
 
 template <class T>
 struct TPtrPolicy {
-    inline TPtrPolicy(T* t)
+    inline TPtrPolicy(T* t Y_LIFETIME_BOUND)
         : T_(t)
     {
     }
@@ -32,7 +28,7 @@ struct TPtrPolicy {
 
 template <class T>
 struct TEmbedPolicy {
-    template <typename... Args>
+    template <typename... Args, typename = typename std::enable_if<std::is_constructible<T, Args...>::value>::type>
     inline TEmbedPolicy(Args&&... args)
         : T_(std::forward<Args>(args)...)
     {
@@ -53,7 +49,7 @@ template <class T, class TCounter>
 struct TRefPolicy {
     using THelper = TWithRefCount<T, TCounter>;
 
-    template <typename... Args>
+    template <typename... Args, typename = typename std::enable_if<std::is_constructible<T, Args...>::value>::type>
     inline TRefPolicy(Args&&... args)
         : T_(new THelper(std::forward<Args>(args)...))
     {
@@ -97,7 +93,7 @@ template <class T, bool IsReference = std::is_reference<T>::value>
 struct TAutoEmbedOrPtrPolicy: TPtrPolicy<std::remove_reference_t<T>> {
     using TBase = TPtrPolicy<std::remove_reference_t<T>>;
 
-    TAutoEmbedOrPtrPolicy(T& reference)
+    TAutoEmbedOrPtrPolicy(T& reference Y_LIFETIME_BOUND)
         : TBase(&reference)
     {
     }

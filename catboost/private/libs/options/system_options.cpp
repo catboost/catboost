@@ -1,5 +1,6 @@
 #include "system_options.h"
 
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/private/libs/options/json_helper.h>
 
 #include <util/charset/utf8.h>
@@ -59,46 +60,4 @@ bool TSystemOptions::IsSingleHost() const {
 
 bool TSystemOptions::IsWorker() const {
     return NodeType == ENodeType::Master && FileWithHosts->empty();
-}
-
-static bool IsInfinity(const TStringBuf value) {
-    static const TStringBuf examples[] = {
-        "",
-        "no", "none",
-        "off",
-        "inf", "infinity",
-        "unlim", "unlimited"
-    };
-    for (const auto example : examples) {
-        if (example == value) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-ui64 ParseMemorySizeDescription(const TStringBuf description) {
-    char* suffixBegin = nullptr;
-    const double number = StrToD(description.begin(), description.end(), &suffixBegin);
-    if (suffixBegin > description.begin() && number >= 0) {
-        // `number` is valid
-        const auto suffix = to_lower(TString(suffixBegin, description.end()));
-        if (suffix == "tb") {
-            return static_cast<ui64>(number * (1ll << 40));
-        } else if (suffix == "gb") {
-            return static_cast<ui64>(number * (1ll << 30));
-        } else if (suffix == "mb") {
-            return static_cast<ui64>(number * (1ll << 20));
-        } else if (suffix == "kb") {
-            return static_cast<ui64>(number * (1ll << 10));
-        } else if (suffix == "b" || suffix.empty()) {
-            return static_cast<ui64>(number);
-        }
-    } else {
-        if (IsInfinity(ToLowerUTF8(description))) {
-            return Max<ui64>();
-        }
-    }
-    CB_ENSURE(false, "incomprehensible memory size description: " << description);
 }

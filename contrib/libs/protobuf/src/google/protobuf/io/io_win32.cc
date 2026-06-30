@@ -49,7 +49,7 @@
 // debug failing tests if that's caused by the long path support.
 #define SUPPORT_LONGPATHS
 
-#include <google/protobuf/io/io_win32.h>
+#include "google/protobuf/io/io_win32.h"
 
 #include <ctype.h>
 #include <direct.h>
@@ -397,7 +397,8 @@ ExpandWildcardsResult ExpandWildcards(
       matched = ExpandWildcardsResult::kSuccess;
       string filename;
       if (!strings::wcs_to_utf8(metadata.cFileName, &filename)) {
-        return ExpandWildcardsResult::kErrorOutputPathConversion;
+        matched = ExpandWildcardsResult::kErrorOutputPathConversion;
+        break;
       }
 
       if (dirname.empty()) {

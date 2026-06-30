@@ -30,6 +30,14 @@ float DotProductSimple(const float* lhs, const float* rhs, size_t length) noexce
     return DotProductSimpleImpl<float, float>(lhs, rhs, length);
 }
 
+float DotProductSimple(const float* lhs, const i8* rhs, size_t length) noexcept {
+    float sum = 0;
+    for (size_t i = 0; i < length; ++i) {
+        sum += lhs[i] * rhs[i];
+    }
+    return sum;
+}
+
 double DotProductSimple(const double* lhs, const double* rhs, size_t length) noexcept {
     return DotProductSimpleImpl<double, double>(lhs, rhs, length);
 }
@@ -41,4 +49,68 @@ ui32 DotProductUI4Simple(const ui8* lhs, const ui8* rhs, size_t lengtInBytes) no
         res += static_cast<ui32>(lhs[i] & 0xf0) * static_cast<ui32>(rhs[i] & 0xf0) >> 8;
     }
     return res;
+}
+
+TTriWayDotProduct<float> TriWayDotProductSimple(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    float sumLL = 0.0f;
+    float sumLR = 0.0f;
+    float sumRR = 0.0f;
+
+    for (size_t i = 0; i < length; ++i) {
+        const float l = lhs[i];
+        const float r = rhs[i];
+        sumLL += l * l;
+        sumLR += l * r;
+        if (computeRR) {
+            sumRR += r * r;
+        }
+    }
+
+    TTriWayDotProduct<float> result;
+    result.LL = sumLL;
+    result.LR = sumLR;
+    if (computeRR) {
+        result.RR = sumRR;
+    } else {
+        static constexpr TTriWayDotProduct<float> def;
+        result.RR = def.RR;
+    }
+    return result;
+}
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Simple(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    TTriWayDotProductFloatI8 result;
+    for (size_t i = 0; i < length; ++i) {
+        const float l = lhs[i];
+        const float r = rhs[i];
+        result.LL += l * l;
+        result.LR += l * r;
+        result.RR += r * r;
+    }
+    return result;
+}
+
+TTriWayDotProduct<i32> TriWayDotProductI8Simple(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    TTriWayDotProduct<i32> result{0, 0, 0};
+    for (size_t i = 0; i < length; ++i) {
+        const i32 l = lhs[i];
+        const i32 r = rhs[i];
+        result.LL += l * l;
+        result.LR += l * r;
+        result.RR += r * r;
+    }
+    return result;
 }

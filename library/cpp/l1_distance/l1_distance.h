@@ -423,7 +423,7 @@ inline double L1Distance(const double* lhs, const double* rhs, int length) {
     return NL1Distance::NPrivate::L1DistanceImpl4<double, double>(lhs, rhs, length);
 }
 
-#endif // _sse_
+#endif // ARCADIA_SSE
 
 /**
  * L1Distance (sum(abs(l[i] - r[i]))) implementation without SSE.

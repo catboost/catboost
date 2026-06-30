@@ -6,10 +6,10 @@
 #define RE2_TESTING_EXHAUSTIVE_TESTER_H_
 
 #include <stdint.h>
+
 #include <string>
 #include <vector>
 
-#include "util/util.h"
 #include "re2/testing/regexp_generator.h"
 #include "re2/testing/string_generator.h"
 

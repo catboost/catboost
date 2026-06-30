@@ -13,7 +13,7 @@
 namespace NCatboostCuda {
     /*
      * Warning: this class doesn't guarantee optimal performance
-     * Preprocessing stage is not critical and we have some gpu/cpu-memory tradeoff with some possible duplicate copies
+     * Preprocessing stage is not critical and we have some GPU/CPU-memory tradeoff with some possible duplicate copies
      * during featureTensor index construction
      */
     class TBatchedBinarizedCtrsCalcer {

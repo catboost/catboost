@@ -88,9 +88,9 @@ struct TStripImpl {
 
         if (StripRange(b, e, criterion)) {
             if constexpr (::TIsTemplateBaseOf<std::basic_string_view, T>::value) {
-                to = T(b, e - b);
+                to = T(b, e);
             } else {
-                to.assign(b, e - b);
+                to.assign(b, e);
             }
 
             return true;
@@ -157,8 +157,28 @@ template <class T, class TStripCriterion>
     return TStripImpl<true, true>::StripString(from, criterion);
 }
 
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, true>::StripString(from, criterion);
+}
+
 template <class T>
 [[nodiscard]] static inline T StripString(const T& from) {
+    return TStripImpl<true, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripString(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripString(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<true, true>::StripString(from);
 }
 
@@ -167,8 +187,28 @@ template <class T>
     return TStripImpl<true, false>::StripString(from);
 }
 
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, false>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<true, false>::StripString(from);
+}
+
 template <class T>
 [[nodiscard]] static inline T StripStringRight(const T& from) {
+    return TStripImpl<false, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline TBasicStringBuf<TChar, TTraits> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND) {
+    return TStripImpl<false, true>::StripString(from);
+}
+
+template <typename TChar, typename TTraits>
+[[nodiscard]] static inline std::basic_string_view<TChar, TTraits> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND) {
     return TStripImpl<false, true>::StripString(from);
 }
 
@@ -177,8 +217,28 @@ template <class T, class TStripCriterion>
     return TStripImpl<true, false>::StripString(from, criterion);
 }
 
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringLeft(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, false>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringLeft(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<true, false>::StripString(from, criterion);
+}
+
 template <class T, class TStripCriterion>
 [[nodiscard]] static inline T StripStringRight(const T& from, TStripCriterion&& criterion) {
+    return TStripImpl<false, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename TBasicStringBuf<TChar, TTraits>::iterator>, TBasicStringBuf<TChar, TTraits>> StripStringRight(const TBasicStringBuf<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
+    return TStripImpl<false, true>::StripString(from, criterion);
+}
+
+template <typename TChar, typename TTraits, class TStripCriterion>
+[[nodiscard]] static inline std::enable_if_t<std::is_invocable_v<TStripCriterion, typename std::basic_string_view<TChar, TTraits>::iterator>, std::basic_string_view<TChar, TTraits>> StripStringRight(const std::basic_string_view<TChar, TTraits> from Y_LIFETIME_BOUND, TStripCriterion&& criterion) {
     return TStripImpl<false, true>::StripString(from, criterion);
 }
 
@@ -246,12 +306,14 @@ std::enable_if_t<std::is_invocable_v<TWhitespaceFunc, typename TStringType::valu
     return CollapseImpl(from, to, maxLen, isWhitespace);
 }
 
-inline bool Collapse(const TString& from, TString& to, size_t maxLen = 0) {
-    return Collapse(from, to, IsAsciiSpace<typename TString::value_type>, maxLen);
+template <class TStringType>
+inline bool Collapse(const TStringType& from, TStringType& to, size_t maxLen = 0) {
+    return Collapse(from, to, IsAsciiSpace<typename TStringType::value_type>, maxLen);
 }
 
 /// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
-inline TString& CollapseInPlace(TString& s, size_t maxLen = 0) {
+template <class TStringType>
+inline TStringType& CollapseInPlace(TStringType& s, size_t maxLen = 0) {
     Collapse(s, s, maxLen);
     return s;
 }
@@ -262,8 +324,9 @@ inline TStringType& CollapseInPlace(TStringType& s, TWhitespaceFunc isWhitespace
 }
 
 /// Replaces several consequtive space symbols with one (processing is limited to maxLen bytes)
-[[nodiscard]] inline TString Collapse(const TString& s, size_t maxLen = 0) {
-    TString ret;
+template <class TStringType>
+[[nodiscard]] inline TStringType Collapse(const TStringType& s, size_t maxLen = 0) {
+    TStringType ret;
     Collapse(s, ret, maxLen);
     return ret;
 }

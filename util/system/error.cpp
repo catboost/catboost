@@ -24,13 +24,15 @@ int LastSystemError() {
 #if defined(_win_)
     int ret = GetLastError();
 
-    if (ret)
+    if (ret) {
         return ret;
+    }
 
     ret = WSAGetLastError();
 
-    if (ret)
+    if (ret) {
         return ret;
+    }
     // when descriptors number are over maximum, errno set in this variable
     ret = *(_errno());
     return ret;
@@ -49,7 +51,7 @@ namespace {
 
         char data[1024];
     };
-}
+} // namespace
 #endif
 
 const char* LastSystemErrorText(int code) {
@@ -68,8 +70,9 @@ static char* Strip(char* s) {
     size_t len = strlen(s);
     const char* ptr = s;
     Strip(ptr, len);
-    if (ptr != s)
+    if (ptr != s) {
         memmove(s, ptr, len);
+    }
     s[len] = 0;
     return s;
 }
@@ -81,7 +84,7 @@ void LastSystemErrorText(char* str, size_t size, int code) {
     Strip(str);
 #elif defined(_sun_)
     strfcpy(str, strerror(code), size);
-#elif defined(_freebsd_) || defined(_darwin_) || defined(_musl_) || defined(_bionic_)
+#elif defined(_freebsd_) || defined(_darwin_) || defined(_musl_) || defined(_bionic_) || defined(_emscripten_)
     strerror_r(code, str, size);
 #elif defined(_linux_) | defined(_cygwin_)
     char* msg = strerror_r(code, str, size);

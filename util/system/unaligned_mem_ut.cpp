@@ -26,7 +26,7 @@ namespace {
 
         __uint128_t x;
     };
-}
+} // namespace
 #endif
 
 Y_UNIT_TEST_SUITE(UnalignedMem) {
@@ -93,4 +93,4 @@ Y_UNIT_TEST_SUITE(UnalignedMem) {
         UNIT_ASSERT(val == TUInt128::Max());
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(UnalignedMem)

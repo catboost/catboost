@@ -36,7 +36,7 @@ None (leaf values weights are set to 1 for all models)
 #### Description
 
 The counters merging policy. Possible values:
-- {{ ECtrTableMergePolicy__FailIfCtrsIntersects }} — Ensure that the models have zero intersecting counters.
+- {{ ECtrTableMergePolicy__FailIfCtrIntersects }} — Ensure that the models have zero intersecting counters.
 - {{ ECtrTableMergePolicy__LeaveMostDiversifiedTable }} — Use the most diversified counters by the count of unique hash values.
 - {{ ECtrTableMergePolicy__IntersectingCountersAverage }} — Use the average ctr counter values in the intersecting bins.
 - {{ ECtrTableMergePolicy__KeepAllTables }} — Keep Counter and FeatureFreq ctr's from all models.

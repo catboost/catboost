@@ -40,6 +40,18 @@ test_fn (int n, ...)
   printf ("%u %u %u %u %u %u %u %u %u\n", s1.a, s1.b, l.a, l.b, l.c, l.d, l.e,
 	  s2.a, s2.b);
   va_end (ap);
+
+  CHECK(s1.a == 5);
+  CHECK(s1.b == 6);
+
+  CHECK(l.a == 10);
+  CHECK(l.b == 11);
+  CHECK(l.c == 12);
+  CHECK(l.d == 13);
+  CHECK(l.e == 14);
+
+  CHECK(s2.a == 7);
+  CHECK(s2.b == 8);
   return n + 1;
 }
 
@@ -116,6 +128,7 @@ main (void)
   /* { dg-output "5 6 10 11 12 13 14 7 8" } */
   printf("res: %d\n", (int) res);
   /* { dg-output "\nres: 42" } */
+  CHECK(res == 42);
 
   return 0;
 }

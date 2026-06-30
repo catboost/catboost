@@ -217,6 +217,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Auxiliary:
             case EColumn::Text:
             case EColumn::NumVector:
+            case EColumn::Features:
                 ythrow TCatBoostException() << "unexpected column type in quantized pool";
         }
 
@@ -1153,6 +1154,7 @@ namespace NCB {
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
+            case ERawTargetType::Boolean:
             case ERawTargetType::Integer:
             case ERawTargetType::Float:
                 {

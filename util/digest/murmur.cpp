@@ -50,7 +50,7 @@ namespace NMurmurPrivate {
                 h ^= data[0];
                 h *= m;
                 break;
-        };
+        }
 
         h ^= h >> 13;
         h *= m;
@@ -124,6 +124,6 @@ namespace NMurmurPrivate {
 
         return h;
     }
-}
+} // namespace NMurmurPrivate
 
 template size_t MurmurHash<size_t>(const void* buf, size_t len) noexcept;

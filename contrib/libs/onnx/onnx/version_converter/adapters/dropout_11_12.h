@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -6,6 +8,11 @@
 
 #pragma once
 
+#include <cmath>
+#include <memory>
+
+#include "onnx/version_converter/adapters/adapter.h"
+
 namespace ONNX_NAMESPACE {
 namespace version_conversion {
 
@@ -13,8 +20,8 @@ class Dropout_11_12 final : public Adapter {
  public:
   explicit Dropout_11_12() : Adapter("Dropout", OpSetID(11), OpSetID(12)) {}
 
-  void adapt_dropout_11_12(std::shared_ptr<Graph> graph, Node* node) const {
-    float ratio;
+  void adapt_dropout_11_12(const std::shared_ptr<Graph>& graph, Node* node) const {
+    float ratio = NAN;
     if (node->hasAttribute(kratio)) {
       ratio = node->f(kratio);
       node->removeAttribute(kratio);

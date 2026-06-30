@@ -37,6 +37,10 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         using T4 = TMaybe<TString>;
         static_assert(!std::is_trivially_copy_constructible<T4>::value, "");
         static_assert(!std::is_trivially_destructible<T4>::value, "");
+
+        using T5 = TMaybe<TMoveOnly>;
+        static_assert(!std::is_copy_constructible<T5>::value);
+        static_assert(std::is_move_constructible<T5>::value);
     }
 
     Y_UNIT_TEST(TestWarning) {
@@ -155,6 +159,12 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m == 2);
         x = 7;
         UNIT_ASSERT(m == 7);
+
+        m.emplace(4);
+        UNIT_ASSERT(m == 4);
+        UNIT_ASSERT(m.GetOrEmplace(3) == 4);
+        m.Clear();
+        UNIT_ASSERT(m.GetOrEmplace(4) == 4);
     }
 
     Y_UNIT_TEST(TestMove) {
@@ -236,6 +246,126 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
             TString xxx = "xxx";
             UNIT_ASSERT_VALUES_EQUAL(TMaybe<TString>("yyy").GetOrElse(xxx).append('x'), TString("yyyx"));
             UNIT_ASSERT_VALUES_EQUAL(xxx, "xxx");
+        }
+    }
+
+    Y_UNIT_TEST(TestGetOrElseMove) {
+        struct TData {
+            int Value = 0;
+
+            TData(int value)
+                : Value(value)
+            {
+            }
+
+            TData(TData&&) = default;
+            TData& operator=(TData&&) = default;
+        };
+
+        TData d5 = MakeMaybe(TData{5}).GetOrElse(TData{6});
+        UNIT_ASSERT_VALUES_EQUAL(d5.Value, 5);
+        TData d6 = TMaybe<TData>{}.GetOrElse(TData{6});
+        UNIT_ASSERT_VALUES_EQUAL(d6.Value, 6);
+
+        TMaybe<TData> d7 = MakeMaybe(TData{7}).OrElse(MakeMaybe(TData{8}));
+        UNIT_ASSERT_VALUES_EQUAL(d7.GetRef().Value, 7);
+        TMaybe<TData> d8 = TMaybe<TData>{}.OrElse(MakeMaybe(TData{8}));
+        UNIT_ASSERT_VALUES_EQUAL(d8.GetRef().Value, 8);
+        TMaybe<TData> d9 = TMaybe<TData>{}.OrElse(TMaybe<TData>{});
+        UNIT_ASSERT(d9.Empty());
+    }
+
+    Y_UNIT_TEST(TestAndThen) {
+        {
+            auto f = [](int i) -> TMaybe<int> {
+                if (i % 2 == 0) {
+                    return i / 2;
+                }
+                return {};
+            };
+
+            UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{4}.AndThen(f), TMaybe<int>{2});
+            UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{5}.AndThen(f), TMaybe<int>{});
+            UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{}.AndThen(f), TMaybe<int>{});
+        }
+
+        {
+            // Move semantics: value stealing
+            TMaybe<TString> x{"Hello, "};
+            UNIT_ASSERT_VALUES_EQUAL(std::move(x).AndThen([](TString s) { return MakeMaybe(s + "world!"); }), TMaybe<TString>{"Hello, world!"});
+            UNIT_ASSERT_VALUES_EQUAL(*x, "");
+        }
+    }
+
+    Y_UNIT_TEST(TestTransform) {
+        auto f = [](int i) {
+            return i + 1;
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{1}.Transform(f), TMaybe<int>{2});
+        UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{}.Transform(f), TMaybe<int>{});
+
+        auto f2 = [](int i) {
+            return ToString(i);
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{1}.Transform(f2), TMaybe<TString>{"1"});
+        UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{}.Transform(f2), TMaybe<TString>{});
+
+        {
+            // Move semantics: value stealing
+            TMaybe<TString> x{"Hello, "};
+            UNIT_ASSERT_VALUES_EQUAL(std::move(x).Transform([](TString s) { return s + "world!"; }), TMaybe<TString>("Hello, world!"));
+            UNIT_ASSERT_VALUES_EQUAL(*x, "");
+        }
+
+        {
+            struct Data {
+                Data(int x)
+                    : value(x)
+                {
+                }
+
+                int value;
+                int GetValue() {
+                    return value;
+                }
+            };
+
+            UNIT_ASSERT_VALUES_EQUAL(MakeMaybe<Data>(5).Transform(std::mem_fn(&Data::value)), TMaybe<int>{5});
+            UNIT_ASSERT_VALUES_EQUAL(MakeMaybe<Data>(5).Transform(std::mem_fn(&Data::GetValue)), TMaybe<int>{5});
+        }
+    }
+
+    Y_UNIT_TEST(TestOr) {
+        {
+            auto f = []() {
+                return TMaybe<int>{5};
+            };
+
+            UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{1}.Or(f), TMaybe<int>{1});
+            UNIT_ASSERT_VALUES_EQUAL(TMaybe<int>{}.Or(f), TMaybe<int>{5});
+        }
+
+        {
+            bool flag = false;
+
+            auto f = [&flag]() {
+                flag = true;
+                return TMaybe<int>{5};
+            };
+
+            TMaybe<int>{5}.Or(f);
+            UNIT_ASSERT(!flag);
+
+            TMaybe<int>{}.Or(f);
+            UNIT_ASSERT(flag);
+        }
+
+        {
+            TMaybe<TString> x{"abacaba"};
+            std::move(x).Or([]() { return TMaybe<TString>{}; });
+            UNIT_ASSERT_VALUES_EQUAL(*x, "");
         }
     }
 
@@ -1003,4 +1133,4 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         TMaybe<TStringBuf> v;
         UNIT_ASSERT_EXCEPTION_CONTAINS(v.GetRef(), yexception, "StringBuf");
     }
-}
+} // Y_UNIT_TEST_SUITE(TMaybeTest)

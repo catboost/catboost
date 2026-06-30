@@ -5,10 +5,10 @@
 // Test simplify.cc.
 
 #include <string.h>
-#include <string>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "gtest/gtest.h"
 #include "re2/regexp.h"
 
 namespace re2 {
@@ -139,6 +139,22 @@ static Test tests[] = {
   { "(){1,}", "()+" },
   { "(){0,2}", "(?:()()?)?" },
 
+  // For an empty-width op OR a concatenation or alternation of empty-width
+  // ops, test that the repetition count is capped at 1.
+  { "(?:^){0,}", "^*" },            // x{0,} -> x*
+  { "(?:$){28,}", "$+" },           // x{N,} -> x{1,} -> x+
+  { "(?-m:^){0,30}", "(?-m:^)?" },  // x{0,N} -> x{0,1} -> x?
+  { "(?-m:$){28,30}", "(?-m:$)" },  // x{N,M} -> x{1,1} -> x
+  { "\\b(?:\\b\\B){999}\\B", "\\b\\b\\B\\B" },
+  { "\\b(?:\\b|\\B){999}\\B", "\\b(?:\\b|\\B)\\B" },
+  // NonGreedy should also be handled.
+  { "(?:^){0,}?", "^*?" },
+  { "(?:$){28,}?", "$+?" },
+  { "(?-m:^){0,30}?", "(?-m:^)??" },
+  { "(?-m:$){28,30}?", "(?-m:$)" },
+  { "\\b(?:\\b\\B){999}?\\B", "\\b\\b\\B\\B" },
+  { "\\b(?:\\b|\\B){999}?\\B", "\\b(?:\\b|\\B)\\B" },
+
   // Test that coalescing occurs and that the resulting repeats are simplified.
   // Two-op combinations of *, +, ?, {n}, {n,} and {n,m} with a literal:
   { "a*a*", "a*" },
@@ -245,9 +261,9 @@ static Test tests[] = {
 };
 
 TEST(TestSimplify, SimpleRegexps) {
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(tests); i++) {
     RegexpStatus status;
-    VLOG(1) << "Testing " << tests[i].regexp;
+    ABSL_VLOG(1) << "Testing " << tests[i].regexp;
     Regexp* re = Regexp::Parse(tests[i].regexp,
                                Regexp::MatchNL | (Regexp::LikePerl &
                                                   ~Regexp::OneLine),

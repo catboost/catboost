@@ -9,4 +9,4 @@ Y_UNIT_TEST_SUITE(TestUptimeSuite) {
         auto t2 = Uptime();
         UNIT_ASSERT(t2 > t1);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestUptimeSuite)

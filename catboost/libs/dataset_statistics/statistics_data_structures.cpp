@@ -69,8 +69,30 @@ void TFloatFeatureStatistics::Update(float feature) {
 
 bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) const {
     return (
-        std::tie(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount) ==
-        std::tie(rhs.MinValue, rhs.MaxValue, rhs.CustomMin, rhs.CustomMax, rhs.OutOfDomainValuesCount, rhs.Underflow, rhs.Overflow, rhs.Sum, SumSqr, rhs.ObjectCount)
+        std::tie(
+            MinValue,
+            MaxValue,
+            CustomMin,
+            CustomMax,
+            OutOfDomainValuesCount,
+            Underflow,
+            Overflow,
+            Sum,
+            SumSqr,
+            ObjectCount
+        ) ==
+        std::tie(
+            rhs.MinValue,
+            rhs.MaxValue,
+            rhs.CustomMin,
+            rhs.CustomMax,
+            rhs.OutOfDomainValuesCount,
+            rhs.Underflow,
+            rhs.Overflow,
+            rhs.Sum,
+            rhs.SumSqr,
+            rhs.ObjectCount
+        )
     );
 }
 
@@ -142,32 +164,39 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCusto
         case ERawTargetType::Float:
             FloatTargetStatistics.resize(TargetCount);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
-            StringTargetStatistics.resize(TargetCount);
+            DiscreteTargetStatistics.resize(TargetCount);
             for (ui32 i = 0; i < TargetCount; ++i) {
-                StringTargetStatistics[i].TargetType = TargetType;
+                DiscreteTargetStatistics[i].TargetType = TargetType;
             }
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found for Target statistics\n";
+            break;
     }
     SetCustomBorders(customBorders, &FloatTargetStatistics);
 }
 
 void TTargetsStatistics::Update(ui32 flatTargetIdx, TStringBuf value) {
-    StringTargetStatistics[flatTargetIdx].Update(value);
+    DiscreteTargetStatistics[flatTargetIdx].Update(value);
 }
 
 bool TTargetsStatistics::operator==(const TTargetsStatistics& a) const {
     return (
-        std::tie(TargetType, TargetCount, FloatTargetStatistics, StringTargetStatistics) ==
-        std::tie(a.TargetType, a.TargetCount, a.FloatTargetStatistics, a.StringTargetStatistics)
+        std::tie(TargetType, TargetCount, FloatTargetStatistics, DiscreteTargetStatistics) ==
+        std::tie(a.TargetType, a.TargetCount, a.FloatTargetStatistics, a.DiscreteTargetStatistics)
     );
 }
 
 void TTargetsStatistics::Update(ui32 flatTargetIdx, float value) {
     FloatTargetStatistics[flatTargetIdx].Update(value);
+}
+
+void TTargetsStatistics::Update(ui32 flatTargetIdx, ui32 value) {
+    DiscreteTargetStatistics[flatTargetIdx].Update(value);
 }
 
 NJson::TJsonValue TTargetsStatistics::ToJson() const {
@@ -179,30 +208,33 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
         case ERawTargetType::Float:
             result.InsertValue("TargetStatistics", AggregateStatistics(FloatTargetStatistics));
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
-            result.InsertValue("TargetStatistics", AggregateStatistics(StringTargetStatistics));
+            result.InsertValue("TargetStatistics", AggregateStatistics(DiscreteTargetStatistics));
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found, Target statistics is empty\n";
+            break;
     }
     return result;
 }
 
-void TStringTargetStatistic::Update(TStringBuf feature) {
+void TDiscreteTargetStatistic::Update(TStringBuf feature) {
     CB_ENSURE(TargetType == ERawTargetType::String, "bad target type");
     with_lock(Mutex) {
         StringTargets[feature]++;
     }
 }
 
-void TStringTargetStatistic::Update(ui32 feature) {
+void TDiscreteTargetStatistic::Update(ui32 feature) {
     with_lock(Mutex) {
         IntegerTargets[feature]++;
     }
 }
 
-void TStringTargetStatistic::Update(const TStringTargetStatistic& update) {
+void TDiscreteTargetStatistic::Update(const TDiscreteTargetStatistic& update) {
     with_lock(Mutex) {
         CB_ENSURE(TargetType == update.TargetType, "bad target type");
         for (auto const& x : update.IntegerTargets) {
@@ -232,15 +264,16 @@ void OutputSorted(const THashMap<T, ui64>& targets, NJson::TJsonValue* targetsDi
     }
 }
 
-NJson::TJsonValue TStringTargetStatistic::ToJson() const {
+NJson::TJsonValue TDiscreteTargetStatistic::ToJson() const {
     NJson::TJsonValue result;
     NJson::TJsonValue targetsDistribution;
-    targetsDistribution.SetType(EJsonValueType::JSON_ARRAY);
+    targetsDistribution.SetType(NJson::EJsonValueType::JSON_ARRAY);
     InsertEnumType("TargetType", TargetType, &result);
     switch (TargetType) {
         case ERawTargetType::String:
             OutputSorted(StringTargets, &targetsDistribution);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
             OutputSorted(IntegerTargets, &targetsDistribution);
             break;
@@ -328,96 +361,11 @@ void TCatFeatureStatistics::Update(const TCatFeatureStatistics& update) {
     ImperfectHashSet.insert(update.ImperfectHashSet.begin(), update.ImperfectHashSet.end());
 }
 
-void TFloatFeaturePairwiseProduct::Init(ui32 featureCount, bool calculatePairwiseStatistics) {
-    IsCalculated = calculatePairwiseStatistics;
-    if (!calculatePairwiseStatistics) {
-        return;
-    }
-    Y_ASSERT(false);
-    PairwiseProduct.resize(featureCount * (featureCount - 1) / 2, 0);
-    FeatureCount = featureCount;
-    PairwiseProductDocsUsed = 0;
-}
-
-void TFloatFeaturePairwiseProduct::Update(TConstArrayRef<float> features) {
-    CB_ENSURE(IsCalculated);
-    TVector<long double> add(Min(PairwiseProduct.size(), size_t(1000)));
-    ui32 resIdx = 0;
-    ui32 idx = 0;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        for (ui32 j = i + 1; j < FeatureCount; ++j) {
-            add[idx++] = features[i] * features[j];
-
-            if (idx == add.size()) {
-                idx = 0;
-                with_lock(Mutex) {
-                    for (; idx < add.size(); ++idx) {
-                        PairwiseProduct[resIdx + idx] += add[idx];
-                    }
-                }
-                resIdx += add.size();
-                idx = 0;
-            }
-        }
-    }
-
-    with_lock(Mutex) {
-        idx = 0;
-        for (; resIdx < PairwiseProduct.size(); ++resIdx) {
-            PairwiseProduct[resIdx] += add[idx++];
-        }
-        PairwiseProductDocsUsed++;
-    }
-}
-
-void TFloatFeaturePairwiseProduct::Update(const TFloatFeaturePairwiseProduct& update) {
-    CB_ENSURE(IsCalculated == update.IsCalculated);
-    if (!IsCalculated) {
-        return;
-    }
-    CB_ENSURE(FeatureCount == update.FeatureCount);
-    for (ui32 idx = 0; idx < PairwiseProduct.size(); ++idx) {
-        PairwiseProduct[idx] += update.PairwiseProduct[idx];
-    }
-    PairwiseProductDocsUsed += update.PairwiseProductDocsUsed;
-}
-
-bool TFloatFeaturePairwiseProduct::operator==(const TFloatFeaturePairwiseProduct& rhs) const {
-    return (
-        std::tie(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount, IsCalculated) ==
-        std::tie(rhs.PairwiseProduct, rhs.PairwiseProductDocsUsed, rhs.FeatureCount, rhs.IsCalculated)
-    );
-}
-
-NJson::TJsonValue TFloatFeaturePairwiseProduct::ToJson(const TVector<TFloatFeatureStatistics>& featureStats) const {
-    if (!IsCalculated) {
-        return NJson::TJsonValue("NotCalculated");
-    }
-    CB_ENSURE(FeatureCount == featureStats.size(), "" << FeatureCount << " != " << featureStats.size());
-    TVector<TVector<NJson::TJsonValue>> matrix(FeatureCount, TVector<NJson::TJsonValue>(FeatureCount));
-    ui32 idx = 0;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        for (ui32 j = i + 1; j < FeatureCount; ++j) {
-            matrix[i][j] = ToString(PairwiseProduct[idx]);
-            matrix[j][i] = ToString(PairwiseProduct[idx]);
-            idx++;
-        }
-        matrix[i][i] = ToString(featureStats[i].SumSqr);
-    }
-    TVector<NJson::TJsonValue> vectorOfJsons;
-    for (ui32 i = 0; i < FeatureCount; ++i) {
-        vectorOfJsons.emplace_back(VectorToJson(matrix[i]));
-    }
-    return VectorToJson(vectorOfJsons);
-}
-
 void TFeatureStatistics::Init(
     const TDataMetaInfo& metaInfo,
-    const TFeatureCustomBorders& customBorders,
-    bool calculatePairwiseStatistics
+    const TFeatureCustomBorders& customBorders
 ) {
     FloatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetFloatFeatureCount());
-    FloatFeaturePairwiseProduct.Init(metaInfo.FeaturesLayout->GetFloatFeatureCount(), calculatePairwiseStatistics);
     CatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetCatFeatureCount());
     TextFeatureStatistics.resize(metaInfo.FeaturesLayout->GetTextFeatureCount());
 
@@ -427,10 +375,6 @@ void TFeatureStatistics::Init(
 NJson::TJsonValue TFeatureStatistics::ToJson() const {
     NJson::TJsonValue result;
     result.InsertValue("FloatFeatureStatistics", AggregateStatistics(FloatFeatureStatistics));
-    if (FloatFeaturePairwiseProduct.IsCalculated) {
-        result.InsertValue("FloatFeaturePairwiseProductSum", FloatFeaturePairwiseProduct.ToJson(FloatFeatureStatistics));
-        result.InsertValue("PairwiseProductDocsUsed", FloatFeaturePairwiseProduct.PairwiseProductDocsUsed);
-    }
     result.InsertValue("CatFeaturesStatistics", AggregateStatistics(CatFeatureStatistics));
     result.InsertValue("TextFeaturesStatistics", AggregateStatistics(TextFeatureStatistics));
     //  ToDo: add statistics for Embedding features
@@ -450,13 +394,12 @@ void TFeatureStatistics::Update(const TFeatureStatistics& update) {
     for (ui32 i = 0; i < TextFeatureStatistics.size(); ++i) {
         TextFeatureStatistics[i].Update(update.TextFeatureStatistics[i]);
     }
-    FloatFeaturePairwiseProduct.Update(update.FloatFeaturePairwiseProduct);
 }
 
 bool TFeatureStatistics::operator==(const TFeatureStatistics& a) const {
     return (
-        std::tie(FloatFeatureStatistics, CatFeatureStatistics, TextFeatureStatistics, FloatFeaturePairwiseProduct) ==
-        std::tie(a.FloatFeatureStatistics, a.CatFeatureStatistics, a.TextFeatureStatistics, FloatFeaturePairwiseProduct)
+        std::tie(FloatFeatureStatistics, CatFeatureStatistics, TextFeatureStatistics) ==
+        std::tie(a.FloatFeatureStatistics, a.CatFeatureStatistics, a.TextFeatureStatistics)
     );
 }
 
@@ -531,7 +474,7 @@ NJson::TJsonValue TDatasetStatistics::ToJson() const {
     if (TargetHistogram.Defined()) {
         result.InsertValue("TargetHistogram", AggregateStatistics(TargetHistogram.GetRef()));
     }
-    result.InsertValue("ObjectCount", TargetsStatistics.GetObjectCount());
+    result.InsertValue("ObjectCount", ObjectsCount);
 
     return result;
 }
@@ -540,4 +483,5 @@ void TDatasetStatistics::Update(const TDatasetStatistics& update) {
     FeatureStatistics.Update(update.FeatureStatistics);
     TargetsStatistics.Update(update.TargetsStatistics);
     SampleIdStatistics.Update(update.SampleIdStatistics);
+    ObjectsCount += update.ObjectsCount;
 }

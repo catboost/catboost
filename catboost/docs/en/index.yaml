@@ -34,6 +34,8 @@ links:
         href: concepts/c-plus-plus-api
       - title: Java
         href: concepts/java-package
+      - title: Node.js
+        href: concepts/apply-node-js
       - title: Rust
         href: concepts/apply-rust
       - title: Calculate metrics
@@ -56,7 +58,7 @@ links:
         href: features/loss-functions-desc
       - title: User-defined metrics
         href: features/custom-loss-functions
-  - title: Metrics
+  - title: Recovery
     imgSrc: https://catboost-opensource.s3.yandex.net/icon__recovery.png
     links:
       - title: Recovery

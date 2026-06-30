@@ -276,7 +276,7 @@ static void MapBinFeaturesToClasses(
     }
     TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
-    Sort(
+    StableSort(
         sortedBinFeatures.begin(),
         sortedBinFeatures.end(),
         [featuresCombinations](int feature1, int feature2) {

@@ -21,6 +21,7 @@
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -197,8 +198,8 @@ static void InitializeAndCheckMetricData(
     const bool canCalcEvalMetric = hasTest && (!metrics[0]->NeedTarget() || lastTestDatasetHasTargetData);
 
     if (canCalcEvalMetric) {
-        EMetricBestValue bestValueType;
-        float bestPossibleValue;
+        EMetricBestValue bestValueType = {};
+        float bestPossibleValue = 0;
 
         metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
         metricsData->ErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
@@ -214,7 +215,7 @@ static void InitializeAndCheckMetricData(
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
-    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    // Use only (last_test, first_metric) for the best iteration and overfitting detection
     // In case of changing the order it should be changed in GPU mode also.
     metricsData->ErrorTrackerMetricIdx = 0;
 
@@ -717,6 +718,8 @@ static void SaveModel(
             trainingDataForCpu.Learn->ObjectsData
         ).WithFeatureEstimators(
             trainingDataForCpu.FeatureEstimators
+        ).WithMetrics(
+            ctx.LearnProgress->MetricsAndTimeHistory
         );
 
         const TVector<TTargetClassifier>* targetClassifiers = &ctx.CtrsHelper.GetTargetClassifiers();
@@ -791,6 +794,7 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
+
             if (!internalOptions.CalcMetricsOnly) {
                 if (dstModel != nullptr) {
                     CB_ENSURE(
@@ -1002,6 +1006,14 @@ static void TrainModel(
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(updatedTrainOptionsJson);
 
+    const auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
+    if (poolLoadOptions && poolLoadOptions->HavePairs() && !IsPairLogit(lossFunction)) {
+        CATBOOST_WARNING_LOG
+            << "Input files specifying pairs are ignored because loss function " << ToString(lossFunction)
+            << " does not use pairs provided by the user (only PairLogit and PairLogitPairwise do)"
+            << Endl;
+    }
+
     if (!quantizedFeaturesInfo) {
         quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *learnFeaturesLayout,
@@ -1191,7 +1203,7 @@ void TrainModel(
 
     CB_ENSURE(
         !(loadOptions.CvParams.FoldCount != 0 && catBoostOptions.GetTaskType() == ETaskType::CPU && catBoostOptions.SystemOptions->IsMaster()),
-        "Distributed training on CPU does not support test and train datasests specified by cross validation options"
+        "Distributed training on CPU does not support test and train datasets specified by cross validation options"
     );
 
     const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
@@ -1280,7 +1292,7 @@ void TrainModel(
             );
 
             ValidateColumnOutput(
-                outputColumns,
+                {outputColumns},
                 testPool,
                 loadOptions.CvParams.FoldCount > 0
             );

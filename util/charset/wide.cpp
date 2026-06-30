@@ -23,13 +23,14 @@ namespace {
             case '\"':
                 return Y_ARRAY_SIZE(QUOT);
             default:
-                if (insertBr && (c == '\r' || c == '\n'))
+                if (insertBr && (c == '\r' || c == '\n')) {
                     return Y_ARRAY_SIZE(BR);
-                else
+                } else {
                     return 1;
+                }
         }
     }
-}
+} // namespace
 
 void Collapse(TUtf16String& w) {
     CollapseImpl(w, w, 0, IsWhitespace);
@@ -579,11 +580,13 @@ void EscapeHtmlChars(TUtf16String& str) {
 
     const TUtf16String& cs = str;
 
-    for (size_t i = 0; i < cs.size(); ++i)
+    for (size_t i = 0; i < cs.size(); ++i) {
         escapedLen += EscapedLen<insertBr>(cs[i]);
+    }
 
-    if (escapedLen == cs.size())
+    if (escapedLen == cs.size()) {
         return;
+    }
 
     TUtf16String res;
     res.reserve(escapedLen);
@@ -609,8 +612,9 @@ void EscapeHtmlChars(TUtf16String& str) {
                 if (insertBr && (cs[i] == '\r' || cs[i] == '\n')) {
                     ent = &br;
                     break;
-                } else
+                } else {
                     continue;
+                }
         }
 
         res.append(cs.begin() + start, cs.begin() + i);

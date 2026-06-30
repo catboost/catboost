@@ -27,6 +27,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVSimple")
         .getOrCreate()
 
@@ -74,6 +75,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithHeader")
         .getOrCreate()
 
@@ -121,6 +123,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithHeader")
         .getOrCreate()
 
@@ -177,6 +180,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVGroupData")
         .getOrCreate()
 
@@ -241,6 +245,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVFloatAndCatFeatures")
         .getOrCreate()
 
@@ -267,6 +272,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadLibSVMSimple")
         .getOrCreate();
 
@@ -322,6 +328,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadLibSVMSimple")
         .getOrCreate();
 
@@ -353,7 +360,7 @@ class PoolLoadingTest {
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testLoadDSVWithPairs() = {
@@ -377,13 +384,14 @@ class PoolLoadingTest {
       )
       val pairsFile = PoolTestHelpers.writeToTempFile(
         "query0\t0\t1\n" +
-        "Query 2\t0\t2\n" + 
+        "Query 2\t0\t2\n" +
         "Query 2\t1\t2\n"
       )
 
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithPairs")
         .getOrCreate()
 
@@ -438,7 +446,7 @@ class PoolLoadingTest {
         compareByIds = true
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testLoadDSVWithPairsWithWeights() = {
@@ -469,6 +477,7 @@ class PoolLoadingTest {
       val spark = SparkSession.builder()
         //.master("local[4]")
         .master("local[1]")
+        .config("spark.driver.host", "localhost")
         .appName("testLoadDSVWithPairsWithWeights")
         .getOrCreate()
 

@@ -23,7 +23,7 @@ public:
     void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, const TApproxType* approxDelta, float queryWeight, const ui32* subgroupData, ui32 querySize) {
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
-        Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
+        StableSort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
             if (hasDelta) {
                 if (isExpApprox) {
                     return CompareDocs(approxes[left] * approxDelta[left], relevs[left], approxes[right] * approxDelta[right], relevs[right]);

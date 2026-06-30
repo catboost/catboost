@@ -43,4 +43,4 @@ Y_UNIT_TEST_SUITE(TTestInterruptSignals) {
             UNIT_ASSERT_VALUES_EQUAL(HandledSigNum.load(), signum);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestInterruptSignals)

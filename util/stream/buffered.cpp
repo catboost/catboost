@@ -174,7 +174,7 @@ public:
     }
 
     inline void Undo(size_t len) {
-        Y_VERIFY(len <= Stored(), "trying to undo more bytes than actually written");
+        Y_ABORT_UNLESS(len <= Stored(), "trying to undo more bytes than actually written");
         MemOut_.Undo(len);
     }
 
@@ -207,7 +207,7 @@ public:
 
             Slave_->Write(parts, end - parts);
 
-            //grow buffer only on full flushes
+            // grow buffer only on full flushes
             OnBufferExhausted();
             Reset();
 
@@ -344,7 +344,7 @@ namespace {
         TBuffer B_;
         ui64 N_;
     };
-}
+} // namespace
 
 TBufferedOutputBase::TBufferedOutputBase(IOutputStream* slave)
     : Impl_(new TAdaptiveImpl(slave))

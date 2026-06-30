@@ -263,7 +263,7 @@ void NTokenizer::TTokenizer::Initialize() {
         Lemmer.Reset(TLemmerImplementationFactory::Construct(EImplementationType::YandexSpecific, Options.Languages));
     } else {
         Y_ENSURE(TLemmerImplementationFactory::Has(EImplementationType::Trivial),
-            "Lemmer implementation factory should have open source implementation.");
+            "Lemmer implementation factory should have an open source implementation.");
         Y_ENSURE(!Options.Lemmatizing, "Lemmer isn't implemented yet.");
         Lemmer.Reset(TLemmerImplementationFactory::Construct(EImplementationType::Trivial, {}));
     }

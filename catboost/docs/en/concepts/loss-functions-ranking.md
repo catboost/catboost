@@ -22,7 +22,7 @@ See all common variables in [Variables used in formulas](loss-functions-variable
 
 ### {{ error-function__PairLogit }} {#PairLogit}
 
-$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
+$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(\log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
@@ -42,7 +42,7 @@ _Default:_ {{ loss-functions__params__max_pairs_default }}
 
 ### {{ error-function__PairLogitPairwise }} {#PairLogitPairwise}
 
-$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
+$\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(\log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
 
 This metric may give more accurate results on large datasets compared to {{ error-function__PairLogit }} but it is calculated significantly slower.
 
@@ -88,13 +88,15 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
 
 **{{ optimization }}** See [more](#usage-information).
 
+Since CatBoost 1.2.1 YetiRank meaning has been expanded to allow for optimizing specific ranking loss functions by specifying `mode` loss function parameter. Default YetiRank can now also be referred as `mode=Classic`.
+
 **{{ title__loss-functions__text__user-defined-params }}**
 
-{% cut "{{ loss-functions__params__decay }}" %}
+{% cut "{{ loss-functions__params__mode }}" %}
 
-The probability of search continuation after reaching the current object.
+The mode of operation. Either `Classic` - the traditional YetiRank as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`. Non-Classic modes are supported only on CPU.
 
-_Default:_  {{ fit__decay__yetirank }}
+_Default:_  `Classic`
 
 {% endcut %}
 
@@ -103,6 +105,74 @@ _Default:_  {{ fit__decay__yetirank }}
 The number of permutations.
 
 _Default:_ {{ fit__permutations }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__decay }}" %}
+
+Used only in `Classic` mode.
+The probability of search continuation after reaching the current object.
+
+_Default:_  {{ fit__decay__yetirank }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__top }}" %}
+
+Used in all modes except `Classic`.
+
+The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+Unlimited by default.
+
+{% endcut %}
+
+{% cut "dcg_type" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__type__default }}.
+_Possible values_: `{{ error-function__ndcg__type__Base }}`, `{{ error-function__ndcg__type__Exp }}`.
+
+{% endcut %}
+
+{% cut "dcg_denominator" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of the denominator in \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
+
+{% endcut %}
+
+{% cut "noise" %}
+
+Type of noise to add to approxes.
+
+_Default_: `Gumbel`.
+_Possible values_: `Gumbel`, `Gauss`, `No`.
+
+{% endcut %}
+
+{% cut "noise_power" %}
+
+Power of noise to add (multiplier). Used only for `Gauss` noise for now.
+
+_Default_: 1.
+
+{% endcut %}
+
+{% cut "num_neighbors" %}
+
+Used in all modes except `Classic`.
+
+Number of neighbors used in the metric calculation.
+
+_Default_: 1.
 
 {% endcut %}
 
@@ -124,13 +194,15 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 **{{ optimization }}** See [more](#usage-information).
 
+Since CatBoost 1.2.1 YetiRankPairwise meaning has been expanded to allow for optimizing specific ranking loss functions by specifying `mode` loss function parameter. Default YetiRankPairwise can now also be referred as `mode=Classic`.
+
 **{{ title__loss-functions__text__user-defined-params }}**
 
-{% cut "{{ loss-functions__params__decay }}" %}
+{% cut "{{ loss-functions__params__mode }}" %}
 
-The probability of search continuation after reaching the current object.
+The mode of operation. Either `Classic` - the traditional YetiRankPairwise as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`. Non-Classic modes are supported only on CPU.
 
-_Default:_ {{ fit__decay__yetirank }}
+_Default:_  `Classic`
 
 {% endcut %}
 
@@ -142,7 +214,113 @@ _Default:_ {{ fit__permutations }}
 
 {% endcut %}
 
+{% cut "{{ loss-functions__params__decay }}" %}
+
+Used only in `Classic` mode.
+The probability of search continuation after reaching the current object.
+
+_Default:_  {{ fit__decay__yetirank }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__top }}" %}
+
+Used in all modes except `Classic`.
+
+The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+Unlimited by default.
+
+{% endcut %}
+
+{% cut "dcg_type" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__type__default }}.
+_Possible values_: `{{ error-function__ndcg__type__Base }}`, `{{ error-function__ndcg__type__Exp }}`.
+
+{% endcut %}
+
+{% cut "dcg_denominator" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of the denominator in \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
+
+{% endcut %}
+
+{% cut "noise" %}
+
+Type of noise to add to approxes.
+
+_Default_: `Gumbel`.
+_Possible values_: `Gumbel`, `Gauss`, `No`.
+
+{% endcut %}
+
+{% cut "noise_power" %}
+
+Power of noise to add (multiplier). Used only for `Gauss` noise for now.
+
+_Default_: 1.
+
+{% endcut %}
+
+{% cut "num_neighbors" %}
+
+Used in all modes except `Classic`.
+
+Number of neighbors used in the metric calculation.
+
+_Default_: 1.
+
+{% endcut %}
+
 {% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
+
+### {{ error-function__LambdaMart }} {#LambdaMart}
+
+Directly optimize the selected metric. The value of the selected metric is written to [output data](../concepts/output-data.md)
+
+Refer to the [From RankNet to LambdaRank to LambdaMART](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf) paper for details.
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% cut "{{ loss-functions__params__metric }}" %}
+
+The metric that should be optimized.
+
+_Default_: `{{ error-function__ndcg }}`
+_Supported values_: `{{ error-function__dcg }}`, `{{ error-function__ndcg }}`, `{{ error-function__mrr }}`, `{{ error-function__err }}`, `{{ error-function__mapk }}`.
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__sigma }}" %}
+
+General sigmoid parameter. See [From RankNet to LambdaRank to LambdaMART](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf) paper for details.
+
+_Default_: 1.0
+_Supported values_: Real positive values.
+
+{% endcut %}
+
+{% cut "norm" %}
+
+Derivatives should be normalized.
+
+_Default_: True
+_Supported values_: False, True.
+
+{% endcut %}
 
 
 ### {{ error-function__StochasticFilter }} {#StochasticFilter}
@@ -262,7 +440,7 @@ _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ e
 
 Metric denominator type.
 
-_Default_: {{ error-function__dcg__denominator__default }}.
+_Default_: {{ error-function__ndcg__denominator__default }}.
 _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
 
 {% endcut %}
@@ -320,6 +498,18 @@ The input scale coefficient.
 _Default:_ 1
 
 {% endcut %}
+
+### {{ error-function__GroupQuantile }} {#GroupQuantile}
+
+$\displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limits_{i \in Group}w_{i}  (\alpha - I(t_{i} \leq a_{i} - g_{Group\ mean}  ))(t_{i} - a_{i} -  g_{Group\ mean}) } {\sum\limits_{Group \in Groups} \sum_{i\in Group} w_{i}}$,
+where $g_{Group\ mean}=\displaystyle\frac{\sum\limits_{j \in Group} w_{j} (t_{j} - a_{j})}{\sum\limits_{j \in Group} w_{j}}$.
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
 
 ### {{ error-function__PFound }} {#PFound}
 
@@ -420,12 +610,12 @@ _Default_: {{ loss-functions__obligatory-text }}.
 
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
 
-1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
+1. The objects are sorted in descending order of predicted relevancies ($a_{i}$)
 
 1. The metric is calculated as follows:
 
     $PrecisionAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{top} { , where}$
-    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
+    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & \text{in other cases} \end{cases}$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
@@ -440,11 +630,11 @@ _Default_: {{ loss-functions__obligatory-text }}.
 
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
 
-1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
+1. The objects are sorted in descending order of predicted relevancies ($a_{i}$)
 
 1. The metric is calculated as follows:
-    $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
-    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
+    $RecallAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
+    - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & \text{in other cases} \end{cases}$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
@@ -544,27 +734,29 @@ _Examples_: `AUC:type=Ranking;use_weights=False`.
 ## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 
-| Name                                                        | Optimization            | GPU Support             |
---------------------------------------------------------------|-------------------------|-------------------------|
-[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |     +                   |
-[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |     +                   |
-[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |     -                   |
-[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     +                   |
-[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     +                   |
-[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |     -                   |
-[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |     -                   |
-[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |     +                   |
-[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |     +                   |
-[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |     +                   |
-[{{ error-function__PFound }}](#PFound)                       |     -                   |     -                   |
-[{{ error-function__ndcg }}](#ndcg)                           |     -                   |     -                   |
-[{{ error-function__dcg }}](#dcg)                             |     -                   |     -                   |
-[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |     -                   |
-[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |     -                   |
-[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |     -                   |
-[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |     -                   |
-[{{ error-function__mapk }}](#mapk)                           |     -                   |     -                   |
-[{{ error-function__err }}](#err)                             |     -                   |     -                   |
-[{{ error-function__mrr }}](#mrr)                             |     -                   |     -                   |
-[{{ error-function--AUC }}](#AUC)                             |     -                   |     -                   |
-[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |     -                   |
+| Name                                                        | Optimization            | GPU Support               |
+--------------------------------------------------------------|-------------------------|---------------------------|
+[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   | +                         |
+[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   | +                         |
+[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   | -                         |
+[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   | + (but only Classic mode) |
+[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   | + (but only Classic mode) |
+[{{ error-function__LambdaMart }}](#LambdaMart)               |     +                   | -                         |
+[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   | -                         |
+[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   | -                         |
+[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   | +                         |
+[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   | +                         |
+[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   | +                         |
+[{{ error-function__GroupQuantile }}](#GroupQuantile)         |     +                   | -                         |
+[{{ error-function__PFound }}](#PFound)                       |     -                   | -                         |
+[{{ error-function__ndcg }}](#ndcg)                           |     -                   | -                         |
+[{{ error-function__dcg }}](#dcg)                             |     -                   | -                         |
+[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   | -                         |
+[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   | -                         |
+[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   | -                         |
+[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   | -                         |
+[{{ error-function__mapk }}](#mapk)                           |     -                   | -                         |
+[{{ error-function__err }}](#err)                             |     -                   | -                         |
+[{{ error-function__mrr }}](#mrr)                             |     -                   | -                         |
+[{{ error-function--AUC }}](#AUC)                             |     -                   | -                         |
+[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   | -                         |

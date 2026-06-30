@@ -39,7 +39,7 @@ private:
     void CheckLCSString(TStringBuf s1, TStringBuf s2, TStringBuf reflcs) {
         TString lcs;
         size_t len = NLCS::MakeLCS<char>(s1, s2, &lcs);
-        const char* comment = Sprintf("%s & %s = %s", s1.data(), s2.data(), reflcs.data()).c_str();
+        const TString comment = Sprintf("%s & %s = %s", s1.data(), s2.data(), reflcs.data());
 
         UNIT_ASSERT_VALUES_EQUAL_C(Length(s1, s2), len, comment);
         UNIT_ASSERT_VALUES_EQUAL_C(lcs.size(), len, comment);

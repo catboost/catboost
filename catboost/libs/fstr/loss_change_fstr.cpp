@@ -55,12 +55,12 @@ TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model) {
         };
         featuresCombinations.back().second = TFeature(
             estimatedFeature.ModelEstimatedFeature,
-            model.TextProcessingCollection->GetCalcer(estimatedFeature.ModelEstimatedFeature.CalcerId)->Type()
+            GetEstimatedFeatureCalcerType(model, estimatedFeature.ModelEstimatedFeature)
         );
     }
     TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
-    Sort(
+    StableSort(
         sortedBinFeatures.begin(),
         sortedBinFeatures.end(),
         [featuresCombinations](int feature1, int feature2) {
@@ -344,7 +344,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChangeFromScores(
         featureScore[idx].first = score;
         featureScore[idx].second = idx;
     }
-    Sort(featureScore.begin(), featureScore.end(), std::greater<std::pair<double, int>>());
+    StableSort(featureScore.begin(), featureScore.end(), std::greater<std::pair<double, int>>());
     TVector<std::pair<double, TFeature>> result;
 
     for (const auto& score: featureScore) {

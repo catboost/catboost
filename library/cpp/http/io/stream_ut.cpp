@@ -355,7 +355,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         size_t bodyPos = str.find(bodyDelimiter);
         UNIT_ASSERT(bodyPos != TString::npos);
         return str.substr(bodyPos + strlen(bodyDelimiter));
-    };
+    }
 
     TString SimulateBodyEncoding(const char* body) {
         TString bodyStr;
@@ -364,7 +364,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         TZLibCompress comprOut(&chunkOut, ZLib::GZip);
         comprOut << body;
         return bodyStr;
-    };
+    }
 
     Y_UNIT_TEST(TestRebuildStreamOnPost) {
         const char* body = "<html>Hello</html>";

@@ -116,7 +116,7 @@ void TSplitIteratorTest::TestScreenedDelimitersSplit() {
         const TString s = "77.88.58.91 - - [28/Aug/2008:00:08:07 +0400] \"GET /export/mordashka.tgz HTTP/1.1\" 304 - \"-\" \"libwww-perl/5.805\" \"news.yandex.ru,80\" \"-\" \"-\" 1219867687 \"0\" 3283 2";
         const TSplitDelimiters delims(" ");
         const TSplitDelimiters screens("\"[]");
-        const TScreenedDelimitersSplit splitter(s.Data(), s.Size(), delims, screens);
+        const TScreenedDelimitersSplit splitter(s.data(), s.size(), delims, screens);
         TScreenedDelimitersSplit::TIterator it = splitter.Iterator();
         UNIT_ASSERT_EQUAL(it.NextString(), "77.88.58.91");
         UNIT_ASSERT_EQUAL(it.NextString(), "-");

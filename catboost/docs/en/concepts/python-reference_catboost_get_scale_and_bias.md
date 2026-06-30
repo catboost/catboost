@@ -13,6 +13,7 @@ get_scale_and_bias()
 
 {% include [get_scale_and_bias-get_scale_and_bias__return_value_type](../_includes/work_src/reusage-python/get_scale_and_bias__return_value_type.md) %}
 
+## {{ dl--example }}
 
 ```python
 from catboost import CatBoost
@@ -32,4 +33,3 @@ The output of this example:
 ```no-highlight
 (1.0, 0.0)
 ```
-

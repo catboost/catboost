@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2025 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,6 +24,7 @@
 #include "oneapi/tbb/detail/_machine.h"
 #include "oneapi/tbb/task_group.h"
 #include "oneapi/tbb/cache_aligned_allocator.h"
+#include "oneapi/tbb/tbb_allocator.h"
 #include "itt_notify.h"
 #include "co_context.h"
 #include "misc.h"
@@ -41,6 +43,8 @@
 
 #include <cstdint>
 #include <exception>
+#include <memory> // unique_ptr
+#include <unordered_map>
 
 //! Mutex type for global locks in the scheduler
 using scheduler_mutex_type = __TBB_SCHEDULER_MUTEX_TYPE;
@@ -67,6 +71,22 @@ template<task_stream_accessor_type> class task_stream;
 
 using isolation_type = std::intptr_t;
 constexpr isolation_type no_isolation = 0;
+
+struct cache_aligned_deleter {
+    template <typename T>
+    void operator() (T* ptr) const {
+        ptr->~T();
+        cache_aligned_deallocate(ptr);
+    }
+};
+
+template <typename T>
+using cache_aligned_unique_ptr = std::unique_ptr<T, cache_aligned_deleter>;
+
+template <typename T, typename ...Args>
+cache_aligned_unique_ptr<T> make_cache_aligned_unique(Args&& ...args) {
+    return cache_aligned_unique_ptr<T>(new (cache_aligned_allocate(sizeof(T))) T(std::forward<Args>(args)...));
+}
 
 //------------------------------------------------------------------------
 // Extended execute data
@@ -129,6 +149,10 @@ struct task_accessor {
     context execution **/
 template <bool report_tasks>
 class context_guard_helper {
+    // The number of unsuccessful attempts to retrieve a non-local task, after which ITT_TASK_END notification
+    // should be sent. If the notification is postponed for too long, data in profiling tools might get skewed.
+    static constexpr int itt_task_end_threshold = 2;
+
     const d1::task_group_context* curr_ctx;
     d1::cpu_ctl_env guard_cpu_ctl_env;
     d1::cpu_ctl_env curr_cpu_ctl_env;
@@ -161,8 +185,16 @@ public:
             // reporting begin of new task group context execution frame.
             // using address of task group context object to group tasks (parent).
             // id of task execution frame is nullptr and reserved for future use.
-            ITT_TASK_BEGIN(ctx, ctx->my_name, nullptr);
             curr_ctx = ctx;
+            ITT_TASK_BEGIN(ctx, ctx->my_name, nullptr);
+        }
+    }
+    void maybe_end_itt_task(int task_search_count) {
+        if (report_tasks) {
+            if (curr_ctx && task_search_count == itt_task_end_threshold) {
+                ITT_TASK_END;
+                curr_ctx = nullptr;
+            }
         }
     }
 #if _WIN64
@@ -225,9 +257,10 @@ inline void prolonged_pause() {
         std::uint64_t time_stamp = machine_time_stamp();
         // _tpause function directs the processor to enter an implementation-dependent optimized state
         // until the Time Stamp Counter reaches or exceeds the value specified in second parameter.
-        // Constant "700" is ticks to wait for.
+        // Constant "1000" is ticks to wait for.
+        // TODO : Modify this parameter based on empirical study of benchmarks.
         // First parameter 0 selects between a lower power (cleared) or faster wakeup (set) optimized state.
-        _tpause(0, time_stamp + 700);
+        _tpause(0, time_stamp + 1000);
     }
     else
 #endif
@@ -245,17 +278,12 @@ class stealing_loop_backoff {
     int my_yield_count;
 public:
     // my_yield_threshold = 100 is an experimental value. Ideally, once we start calling __TBB_Yield(),
-    // the time spent spinning before calling is_out_of_work() should be approximately
+    // the time spent spinning before calling out_of_work() should be approximately
     // the time it takes for a thread to be woken up. Doing so would guarantee that we do
     // no worse than 2x the optimal spin time. Or perhaps a time-slice quantum is the right amount.
     stealing_loop_backoff(int num_workers, int yields_multiplier)
         : my_pause_threshold{ 2 * (num_workers + 1) }
-#if __APPLE__
-        // threshold value tuned separately for macOS due to high cost of sched_yield there
-        , my_yield_threshold{10 * yields_multiplier}
-#else
         , my_yield_threshold{100 * yields_multiplier}
-#endif
         , my_pause_count{}
         , my_yield_count{}
     {}
@@ -273,6 +301,9 @@ public:
     }
     void reset_wait() {
         my_pause_count = my_yield_count = 0;
+    }
+    int limited_pause_count() {
+        return my_pause_count + my_yield_count;
     }
 };
 
@@ -305,12 +336,31 @@ public:
     /** Note that objects of this type can be created only by the allocate() method. **/
     void destroy() noexcept;
 
-    //! Throws the contained exception .
-    void throw_self();
+    //! Throws the contained exception and then destroys this object.
+    void rethrow_and_destroy();
 
 private:
     tbb_exception_ptr(const std::exception_ptr& src) : my_ptr(src) {}
 }; // class tbb_exception_ptr
+
+//! Utility function to atomically clear and handle exceptions from task_group_context
+/** This function implements thread-safe pattern for clearing exceptions
+    from a task_group_context and either destroying or throwing them. **/
+inline void handle_context_exception(d1::task_group_context& ctx, bool rethrow = true) {
+
+    tbb_exception_ptr* exception = ctx.my_exception.load(std::memory_order_acquire);
+    if (exception) {
+        if (ctx.my_exception.compare_exchange_strong(exception, nullptr, 
+                                                     std::memory_order_acq_rel)) {
+            // TODO: An exception should not be captured and then not rethrown.
+            //       Either add asserts or remove corner cases.
+            if (rethrow) {
+                exception->rethrow_and_destroy();
+            } else
+                exception->destroy();
+        }
+    }
+}
 
 //------------------------------------------------------------------------
 // Debugging support
@@ -382,7 +432,7 @@ struct suspend_point_type {
 
     void finilize_resume() {
         m_stack_state.store(stack_state::active, std::memory_order_relaxed);
-        // Set the suspended state for the stack that we left. If the state is already notified, it means that 
+        // Set the suspended state for the stack that we left. If the state is already notified, it means that
         // someone already tried to resume our previous stack but failed. So, we need to resume it.
         // m_prev_suspend_point might be nullptr when destroying co_context based on threads
         if (m_prev_suspend_point && m_prev_suspend_point->m_stack_state.exchange(stack_state::suspended) == stack_state::notified) {
@@ -424,6 +474,66 @@ struct suspend_point_type {
 #pragma warning( disable: 4324 )
 #endif
 
+class thread_reference_vertex : public d1::wait_tree_vertex_interface {
+public:
+    thread_reference_vertex(wait_tree_vertex_interface& parent, std::uint32_t ref_count)
+        : m_parent{parent}, m_ref_count{ref_count} {}
+
+    void reserve(std::uint32_t delta = 1) override {
+        auto ref = m_ref_count.fetch_add(delta);
+        __TBB_ASSERT_EX(((ref + delta) & m_overflow_mask) == 0, "Overflow is detected");
+        if (ref == 0) {
+            m_parent.reserve();
+        }
+    }
+
+    void release(std::uint32_t delta = 1) override {
+        // Saving a reference to the parent before decrementing the reference count
+        // because other thread can destroy the vertex after the decrement
+        auto& parent = m_parent;
+        std::uint64_t ref = m_ref_count.fetch_sub(delta) - delta;
+        __TBB_ASSERT_EX((ref & m_overflow_mask) == 0, "Underflow is detected");
+        // Masking out the orphaned bit to check actual number of references
+        if ((ref & ~m_orphaned_bit) == 0) {
+            parent.release();
+            // If the owning thread has abandoned this vertex, it is our responsibility to destroy it
+            if (ref & m_orphaned_bit) {
+                destroy();
+            }
+        }
+    }
+
+    std::uint32_t get_num_children() {
+        auto num_children = m_ref_count.load(std::memory_order_acquire) & ~m_orphaned_bit;
+        return static_cast<std::uint32_t>(num_children);
+    }
+
+    void release_ownership() {
+        auto ref = m_ref_count.fetch_or(m_orphaned_bit);
+        __TBB_ASSERT(!(ref & m_orphaned_bit), "cannot release ownership twice");
+        if (ref == 0) {
+            destroy();
+        }
+    }
+
+    void destroy() {
+        this->~thread_reference_vertex();
+        cache_aligned_deallocate(this);
+    }
+
+#if TBB_USE_ASSERT
+    bool is_orphaned() {
+        return m_ref_count.load(std::memory_order_relaxed) & m_orphaned_bit;
+    }
+#endif
+
+private:
+    static constexpr std::uint64_t m_orphaned_bit = 1ull << 63;
+    static constexpr std::uint64_t m_overflow_mask = ~(((1ull << 32) - 1) | m_orphaned_bit);
+    wait_tree_vertex_interface& m_parent;
+    std::atomic<std::uint64_t> m_ref_count;
+};
+
 class alignas (max_nfs_size) task_dispatcher {
 public:
     // TODO: reconsider low level design to better organize dependencies and files.
@@ -461,6 +571,15 @@ public:
     //! Suspend point (null if this task dispatcher has been never suspended)
     suspend_point_type* m_suspend_point{ nullptr };
 
+    //! Used to improve scalability of d1::wait_context by using per thread reference_counter
+    std::unordered_map<d1::wait_tree_vertex_interface*, r1::thread_reference_vertex*,
+                       std::hash<d1::wait_tree_vertex_interface*>, std::equal_to<d1::wait_tree_vertex_interface*>,
+                       tbb_allocator<std::pair<d1::wait_tree_vertex_interface* const, r1::thread_reference_vertex*>>
+                      >
+        m_reference_vertex_map;
+
+    d1::task* m_innermost_running_task{ nullptr };
+
     //! Attempt to get a task from the mailbox.
     /** Gets a task only if it has not been executed by its sender or a thief
         that has stolen it from the sender's task pool. Otherwise returns nullptr.
@@ -473,6 +592,7 @@ public:
 
     template <bool ITTPossible, typename Waiter>
     d1::task* receive_or_steal_task(thread_data& tls, execution_data_ext& ed, Waiter& waiter,
+                                context_guard_helper<ITTPossible>& ctxguard,
                                 isolation_type isolation, bool outermost, bool criticality_absence);
 
     template <bool ITTPossible, typename Waiter>
@@ -489,6 +609,13 @@ public:
             m_suspend_point->~suspend_point_type();
             cache_aligned_deallocate(m_suspend_point);
         }
+
+        for (auto& elem : m_reference_vertex_map) {
+            thread_reference_vertex*& node = elem.second;
+            node->release_ownership();
+            poison_pointer(node);
+        }
+
         poison_pointer(m_thread_data);
         poison_pointer(m_suspend_point);
     }
@@ -548,6 +675,7 @@ public:
 #endif
 
 inline std::uintptr_t calculate_stealing_threshold(std::uintptr_t base, std::size_t stack_size) {
+    __TBB_ASSERT(stack_size != 0, "Stack size cannot be zero");
     __TBB_ASSERT(base > stack_size / 2, "Stack anchor calculation overflow");
     return base - stack_size / 2;
 }
@@ -558,8 +686,7 @@ struct task_group_context_impl {
     static void register_with(d1::task_group_context&, thread_data*);
     static void bind_to_impl(d1::task_group_context&, thread_data*);
     static void bind_to(d1::task_group_context&, thread_data*);
-    template <typename T>
-    static void propagate_task_group_state(d1::task_group_context&, std::atomic<T> d1::task_group_context::*, d1::task_group_context&, T);
+    static void propagate_task_group_state(d1::task_group_context&, std::atomic<uint32_t> d1::task_group_context::*, d1::task_group_context&, uint32_t);
     static bool cancel_group_execution(d1::task_group_context&);
     static bool is_group_execution_cancelled(const d1::task_group_context&);
     static void reset(d1::task_group_context&);

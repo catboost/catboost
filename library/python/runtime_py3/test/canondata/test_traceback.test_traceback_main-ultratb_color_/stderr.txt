@@ -8,6 +8,6 @@ Traceback (most recent call last):
   File library/python/runtime_py3/test/traceback/crash.py:15 in two
     three(42)
   File library/python/runtime_py3/test/traceback/crash.py:19 in three
-    raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
+    raise RuntimeError(f"Kaboom! I'm dead: {x}")
 RuntimeError: Kaboom! I'm dead: 42
 

@@ -66,4 +66,4 @@ Y_UNIT_TEST_SUITE(TestCommonRNG) {
             UNIT_ASSERT_DOUBLES_EQUAL(nd(r), -0.430375088, 0.01);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TestCommonRNG)

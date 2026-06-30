@@ -24,13 +24,13 @@ namespace NLastGetopt {
     TCompletionGenerator::TCompletionGenerator(const TModChooser* modChooser)
         : Options_(modChooser)
     {
-        Y_VERIFY(modChooser != nullptr);
+        Y_ABORT_UNLESS(modChooser != nullptr);
     }
 
     TCompletionGenerator::TCompletionGenerator(const TOpts* opts)
         : Options_(opts)
     {
-        Y_VERIFY(opts != nullptr);
+        Y_ABORT_UNLESS(opts != nullptr);
     }
 
     void TZshCompletionGenerator::Generate(TStringBuf command, IOutputStream& stream) {
@@ -62,6 +62,14 @@ namespace NLastGetopt {
         L << "}";
         L;
         manager.GenerateZsh(out);
+
+        // When the completion file is autoloaded by `compinit` from `$fpath`,
+        // zsh treats the file content as the body of function `_<command>`.
+        // On first invocation that body merely (re)defines `_<command>` and
+        // its helpers, so completion would not actually run until the second
+        // TAB. Calling the redefined function here makes it work on the very
+        // first TAB and is also harmless when the script is `source`d.
+        L << "_" << command << " \"$@\"";
 
         out.Print(stream);
     }

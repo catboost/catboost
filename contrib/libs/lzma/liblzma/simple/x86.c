@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       x86.c
@@ -5,9 +7,6 @@
 ///
 //  Authors:    Igor Pavlov
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -27,11 +26,7 @@ static size_t
 x86_code(void *simple_ptr, uint32_t now_pos, bool is_encoder,
 		uint8_t *buffer, size_t size)
 {
-	static const bool MASK_TO_ALLOWED_STATUS[8]
-		= { true, true, true, false, true, false, false, false };
-
-	static const uint32_t MASK_TO_BIT_NUMBER[8]
-			= { 0, 1, 2, 2, 3, 3, 3, 3 };
+	static const uint32_t MASK_TO_BIT_NUMBER[5] = { 0, 1, 2, 2, 3 };
 
 	lzma_simple_x86 *simple = simple_ptr;
 	uint32_t prev_mask = simple->prev_mask;
@@ -68,9 +63,8 @@ x86_code(void *simple_ptr, uint32_t now_pos, bool is_encoder,
 
 		b = buffer[buffer_pos + 4];
 
-		if (Test86MSByte(b)
-			&& MASK_TO_ALLOWED_STATUS[(prev_mask >> 1) & 0x7]
-				&& (prev_mask >> 1) < 0x10) {
+		if (Test86MSByte(b) && (prev_mask >> 1) <= 4
+			&& (prev_mask >> 1) != 3) {
 
 			uint32_t src = ((uint32_t)(b) << 24)
 				| ((uint32_t)(buffer[buffer_pos + 3]) << 16)
@@ -149,6 +143,18 @@ lzma_simple_x86_encoder_init(lzma_next_coder *next,
 {
 	return x86_coder_init(next, allocator, filters, true);
 }
+
+
+extern LZMA_API(size_t)
+lzma_bcj_x86_encode(uint32_t start_offset, uint8_t *buf, size_t size)
+{
+	lzma_simple_x86 simple = {
+		.prev_mask = 0,
+		.prev_pos = (uint32_t)(-5),
+	};
+
+	return x86_code(&simple, start_offset, true, buf, size);
+}
 #endif
 
 
@@ -159,5 +165,17 @@ lzma_simple_x86_decoder_init(lzma_next_coder *next,
 		const lzma_filter_info *filters)
 {
 	return x86_coder_init(next, allocator, filters, false);
+}
+
+
+extern LZMA_API(size_t)
+lzma_bcj_x86_decode(uint32_t start_offset, uint8_t *buf, size_t size)
+{
+	lzma_simple_x86 simple = {
+		.prev_mask = 0,
+		.prev_pos = (uint32_t)(-5),
+	};
+
+	return x86_code(&simple, start_offset, false, buf, size);
 }
 #endif

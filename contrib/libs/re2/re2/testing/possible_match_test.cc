@@ -3,12 +3,15 @@
 // license that can be found in the LICENSE file.
 
 #include <string.h>
+
 #include <string>
 #include <vector>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
-#include "util/strutil.h"
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "absl/strings/escaping.h"
+#include "absl/strings/string_view.h"
+#include "gtest/gtest.h"
 #include "re2/prog.h"
 #include "re2/re2.h"
 #include "re2/regexp.h"
@@ -107,12 +110,12 @@ static PrefixTest tests[] = {
 };
 
 TEST(PossibleMatchRange, HandWritten) {
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(tests); i++) {
     for (size_t j = 0; j < 2; j++) {
       const PrefixTest& t = tests[i];
       std::string min, max;
       if (j == 0) {
-        LOG(INFO) << "Checking regexp=" << CEscape(t.regexp);
+        ABSL_LOG(INFO) << "Checking regexp=" << absl::CEscape(t.regexp);
         Regexp* re = Regexp::Parse(t.regexp, Regexp::LikePerl, NULL);
         ASSERT_TRUE(re != NULL);
         Prog* prog = re->CompileToProg(0);
@@ -142,26 +145,26 @@ TEST(PossibleMatchRange, Failures) {
   // are no valid UTF-8 strings beginning with byte 0xFF.
   EXPECT_FALSE(RE2("[\\s\\S]+", RE2::Latin1).
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
   EXPECT_FALSE(RE2("[\\0-\xFF]+", RE2::Latin1).
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
   EXPECT_FALSE(RE2(".+hello", RE2::Latin1).
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
   EXPECT_FALSE(RE2(".*hello", RE2::Latin1).
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
   EXPECT_FALSE(RE2(".*", RE2::Latin1).
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
   EXPECT_FALSE(RE2("\\C*").
                PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
 
   // Fails because it's a malformed regexp.
   EXPECT_FALSE(RE2("*hello").PossibleMatchRange(&min, &max, 10))
-      << "min=" << CEscape(min) << ", max=" << CEscape(max);
+      << "min=" << absl::CEscape(min) << ", max=" << absl::CEscape(max);
 }
 
 // Exhaustive test: generate all regexps within parameters,
@@ -201,7 +204,7 @@ class PossibleMatchTester : public RegexpGenerator {
 void PossibleMatchTester::HandleRegexp(const std::string& regexp) {
   regexps_++;
 
-  VLOG(3) << CEscape(regexp);
+  ABSL_VLOG(3) << absl::CEscape(regexp);
 
   RE2 re(regexp, RE2::Latin1);
   ASSERT_EQ(re.error(), "");
@@ -213,12 +216,13 @@ void PossibleMatchTester::HandleRegexp(const std::string& regexp) {
     // complicated expressions.
     if(strstr(regexp.c_str(), "\\C*"))
       return;
-    LOG(QFATAL) << "PossibleMatchRange failed on: " << CEscape(regexp);
+    ABSL_LOG(QFATAL) << "PossibleMatchRange failed on: "
+                     << absl::CEscape(regexp);
   }
 
   strgen_.Reset();
   while (strgen_.HasNext()) {
-    const StringPiece& s = strgen_.Next();
+    absl::string_view s = strgen_.Next();
     tests_++;
     if (!RE2::FullMatch(s, re))
       continue;
@@ -240,8 +244,8 @@ TEST(PossibleMatchRange, Exhaustive) {
                  RegexpGenerator::EgrepOps(),
                  stringlen, Explode("ab4"));
   t.Generate();
-  LOG(INFO) << t.regexps() << " regexps, "
-            << t.tests() << " tests";
+  ABSL_LOG(INFO) << t.regexps() << " regexps, "
+                 << t.tests() << " tests";
 }
 
 }  // namespace re2

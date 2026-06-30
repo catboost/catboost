@@ -1,4 +1,5 @@
 #include "feature_str.h"
+#include "util.h"
 
 #include <catboost/private/libs/options/enum_helpers.h>
 
@@ -314,12 +315,10 @@ TFeature GetFeature(const TFullModel& model, const TModelSplit& split) {
                 split.EstimatedFeature.ModelEstimatedFeature.LocalId,
                 split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType
             };
-            if (split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Text) {
-                result.FeatureCalcerType = model.TextProcessingCollection->GetCalcer(split.EstimatedFeature.ModelEstimatedFeature.CalcerId)->Type();
-            } else {
-                CB_ENSURE(split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Embedding);
-                result.FeatureCalcerType = model.EmbeddingProcessingCollection->GetCalcer(split.EstimatedFeature.ModelEstimatedFeature.CalcerId)->Type();
-            }
+            result.FeatureCalcerType = GetEstimatedFeatureCalcerType(
+                model,
+                split.EstimatedFeature.ModelEstimatedFeature
+            );
             result.FeatureIdx = split.EstimatedFeature.ModelEstimatedFeature.SourceFeatureId;
             break;
         default:

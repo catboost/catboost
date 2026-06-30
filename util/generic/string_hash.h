@@ -19,4 +19,4 @@ namespace NHashPrivate {
         return MurmurHash<size_t>(ptr, size * sizeof(C));
 #endif
     }
-}
+} // namespace NHashPrivate

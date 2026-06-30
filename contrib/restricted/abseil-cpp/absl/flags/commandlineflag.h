@@ -27,10 +27,12 @@
 #define ABSL_FLAGS_COMMANDLINEFLAG_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "absl/base/config.h"
-#include "absl/base/internal/fast_type_id.h"
+#include "absl/base/fast_type_id.h"
+#include "absl/base/nullability.h"
 #include "absl/flags/internal/commandlineflag.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
@@ -59,6 +61,14 @@ class PrivateHandleAccessor;
 //   // Now you can get flag info from that reflection handle.
 //   std::string flag_location = my_flag_data->Filename();
 //   ...
+
+// These are only used as constexpr global objects.
+// They do not use a virtual destructor to simplify their implementation.
+// They are not destroyed except at program exit, so leaks do not matter.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 class CommandLineFlag {
  public:
   constexpr CommandLineFlag() = default;
@@ -72,17 +82,17 @@ class CommandLineFlag {
   // Return true iff flag has type T.
   template <typename T>
   inline bool IsOfType() const {
-    return TypeId() == base_internal::FastTypeId<T>();
+    return TypeId() == FastTypeId<T>();
   }
 
   // absl::CommandLineFlag::TryGet()
   //
   // Attempts to retrieve the flag value. Returns value on success,
-  // absl::nullopt otherwise.
+  // std::nullopt otherwise.
   template <typename T>
-  absl::optional<T> TryGet() const {
+  std::optional<T> TryGet() const {
     if (IsRetired() || !IsOfType<T>()) {
-      return absl::nullopt;
+      return std::nullopt;
     }
 
     // Implementation notes:
@@ -110,7 +120,7 @@ class CommandLineFlag {
     Read(&u.value);
     // allow retired flags to be "read", so we can report invalid access.
     if (IsRetired()) {
-      return absl::nullopt;
+      return std::nullopt;
     }
     return std::move(u.value);
   }
@@ -150,7 +160,7 @@ class CommandLineFlag {
   // Sets the value of the flag based on specified string `value`. If the flag
   // was successfully set to new value, it returns true. Otherwise, sets `error`
   // to indicate the error, leaves the flag unchanged, and returns false.
-  bool ParseFrom(absl::string_view value, std::string* error);
+  bool ParseFrom(absl::string_view value, std::string* absl_nonnull error);
 
  protected:
   ~CommandLineFlag() = default;
@@ -180,19 +190,29 @@ class CommandLineFlag {
 
   // Copy-construct a new value of the flag's type in a memory referenced by
   // the dst based on the current flag's value.
-  virtual void Read(void* dst) const = 0;
+  virtual void Read(void* absl_nonnull dst) const = 0;
 
   // To be deleted. Used to return true if flag's current value originated from
   // command line.
   virtual bool IsSpecifiedOnCommandLine() const = 0;
 
-  // Validates supplied value usign validator or parseflag routine
+  // Validates supplied value using validator or parseflag routine
   virtual bool ValidateInputValue(absl::string_view value) const = 0;
 
   // Checks that flags default value can be converted to string and back to the
   // flag's value type.
   virtual void CheckDefaultValueParsingRoundtrip() const = 0;
+
+  // absl::CommandLineFlag::TypeName()
+  //
+  // Returns string representation of the type of this flag
+  // (the way it is spelled in the ABSL_FLAG macro).
+  // The default implementation returns the empty string.
+  virtual absl::string_view TypeName() const;
 };
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 ABSL_NAMESPACE_END
 }  // namespace absl

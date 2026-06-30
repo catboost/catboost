@@ -111,9 +111,9 @@ private[spark] object SparkJobGroupLastStagesFailedStats {
         case jobInfo : SparkJobInfo => {
           if (jobInfo.stageIds.nonEmpty) {
             statusTracker.getStageInfo(jobInfo.stageIds.max).foreach{
-              case stageInfo : SparkStageInfo => { 
+              case stageInfo : SparkStageInfo => {
                 failedAttempts += stageInfo.currentAttemptId
-                failedTasksInLastAttempt += stageInfo.numFailedTasks 
+                failedTasksInLastAttempt += stageInfo.numFailedTasks
               }
             }
           }

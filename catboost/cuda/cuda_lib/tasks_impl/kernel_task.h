@@ -14,7 +14,7 @@ namespace NCudaLib {
     class IGpuKernelTask: public ICommand {
     public:
         explicit IGpuKernelTask(ui32 stream = 0)
-            : ICommand(EComandType::StreamKernel)
+            : ICommand(ECommandType::StreamKernel)
             , Stream(stream)
         {
         }

@@ -34,11 +34,11 @@ For example, use the following construction if features indexed 1, 2, 7, 42, 43,
 [1,2,7,42,43,44,45]
 ```
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--list }}
 
-**Default value** 
+**Default value**
 
 None
 
@@ -75,7 +75,7 @@ Examples:
     {% include [python-feature_0-1_have_1024_borders](../_includes/work_src/reusage/feature_0-1_have_1024_borders.md) %}
 
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--list-of-strings }}
 
@@ -131,7 +131,7 @@ Possible values:
 
 {{ fit--feature_border_type }}
 
-**Supported processing units** 
+**Supported processing units**
 
 {{ cpu-gpu }}
 

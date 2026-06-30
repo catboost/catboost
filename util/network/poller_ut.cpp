@@ -240,4 +240,4 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
         UNIT_ASSERT_EXCEPTION_CONTAINS(poller.Set(nullptr, Max<int>(), CONT_POLL_READ | CONT_POLL_MODIFY), TSystemError, "epoll modify failed");
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(TSocketPollerTest)

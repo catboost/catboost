@@ -403,7 +403,7 @@ L30:
     doublereal one, two;
     logical ieee;
     doublereal half;
-    logical lrnd;
+    static logical lrnd;
     static doublereal leps;
     doublereal zero;
     static integer lbeta;

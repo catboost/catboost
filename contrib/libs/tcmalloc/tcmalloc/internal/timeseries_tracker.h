@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,17 +56,17 @@ class TimeSeriesTracker {
         1;
   }
 
-  bool Report(S val);
+  bool Report(const S& val);
 
   // Iterates over the time series, starting from the oldest entry. The callback
-  // receives the offset of the entry, its timestamp according to the clock and
-  // the entry itself. Offsets are relative to the beginning of the buffer.
-  void Iter(absl::FunctionRef<void(size_t, int64_t, const T&)> f,
+  // receives the offset of the entry and the entry itself. Offsets are relative
+  // to the beginning of the buffer.
+  void Iter(absl::FunctionRef<void(size_t, const T&)> f,
             SkipEntriesSetting skip_entries) const;
 
   // Iterates over the last num_epochs data points (if -1, iterate to the
   // oldest entry). Offsets are relative to the end of the buffer.
-  void IterBackwards(absl::FunctionRef<void(size_t, int64_t, const T&)> f,
+  void IterBackwards(absl::FunctionRef<void(size_t, const T&)> f,
                      int64_t num_epochs = -1) const;
 
   // This retrieves a particular data point (if offset is outside the valid
@@ -139,16 +140,13 @@ bool TimeSeriesTracker<T, S, kEpochs>::UpdateClock() {
 
 template <class T, class S, size_t kEpochs>
 void TimeSeriesTracker<T, S, kEpochs>::Iter(
-    absl::FunctionRef<void(size_t, int64_t, const T&)> f,
+    absl::FunctionRef<void(size_t, const T&)> f,
     SkipEntriesSetting skip_entries) const {
   size_t j = current_epoch_ + 1;
   if (j == kEpochs) j = 0;
-  int64_t timestamp =
-      (last_epoch_ - kEpochs) * absl::ToInt64Nanoseconds(epoch_length_);
   for (int offset = 0; offset < kEpochs; offset++) {
-    timestamp += absl::ToInt64Nanoseconds(epoch_length_);
     if (skip_entries == kDoNotSkipEmptyEntries || !entries_[j].empty()) {
-      f(offset, timestamp, entries_[j]);
+      f(offset, entries_[j]);
     }
     j++;
     if (j == kEpochs) j = 0;
@@ -157,18 +155,13 @@ void TimeSeriesTracker<T, S, kEpochs>::Iter(
 
 template <class T, class S, size_t kEpochs>
 void TimeSeriesTracker<T, S, kEpochs>::IterBackwards(
-    absl::FunctionRef<void(size_t, int64_t, const T&)> f,
-    int64_t num_epochs) const {
+    absl::FunctionRef<void(size_t, const T&)> f, int64_t num_epochs) const {
   // -1 means that we are outputting all epochs.
   num_epochs = (num_epochs == -1) ? kEpochs : num_epochs;
   size_t j = current_epoch_;
-  ASSERT(num_epochs <= kEpochs);
-  int64_t timestamp = last_epoch_ * absl::ToInt64Nanoseconds(epoch_length_);
+  TC_ASSERT_LE(num_epochs, kEpochs);
   for (size_t offset = 0; offset < num_epochs; ++offset) {
-    // This is deliberately int64_t and not a time unit, since clock_ is not
-    // guaranteed to be a real time base.
-    f(offset, timestamp, entries_[j]);
-    timestamp -= absl::ToInt64Nanoseconds(epoch_length_);
+    f(offset, entries_[j]);
     if (j == 0) j = kEpochs;
     --j;
   }
@@ -182,7 +175,7 @@ const T TimeSeriesTracker<T, S, kEpochs>::GetEpochAtOffset(size_t offset) {
 }
 
 template <class T, class S, size_t kEpochs>
-bool TimeSeriesTracker<T, S, kEpochs>::Report(S val) {
+bool TimeSeriesTracker<T, S, kEpochs>::Report(const S& val) {
   bool updated_clock = UpdateClock();
   entries_[current_epoch_].Report(val);
   return updated_clock;

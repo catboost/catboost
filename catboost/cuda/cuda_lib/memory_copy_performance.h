@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cuda_buffer.h"
-#include <library/cpp/containers/2d_array/2d_array.h>
 #include <util/system/hp_timer.h>
 #include <catboost/libs/helpers/exception.h>
 

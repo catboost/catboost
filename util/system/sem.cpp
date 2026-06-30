@@ -16,7 +16,7 @@
     #if defined(_bionic_) || defined(_darwin_) && defined(_arm_)
         #include <fcntl.h>
     #else
-        #define USE_SYSV_SEMAPHORES //unixoids declared the standard but not implemented it...
+        #define USE_SYSV_SEMAPHORES // unixoids declared the standard but not implemented it...
     #endif
 #endif
 
@@ -26,7 +26,7 @@
     #include <sys/ipc.h>
     #include <sys/sem.h>
 
-    #if defined(_linux_) || defined(_sun_) || defined(_cygwin_)
+    #if defined(_linux_) || defined(_sun_) || defined(_cygwin_) || defined(_freebsd_)
 union semun {
     int val;
     struct semid_ds* buf;
@@ -70,12 +70,14 @@ namespace {
                 size_t len = strlen(name);
                 key = (char*)alloca(len + 1);
                 strcpy(key, name);
-                if (len > MAX_PATH)
+                if (len > MAX_PATH) {
                     *(key + MAX_PATH) = 0;
+                }
                 char* p = key;
                 while (*p) {
-                    if (*p == '\\')
+                    if (*p == '\\') {
                         *p = '/';
+                    }
                     ++p;
                 }
             }
@@ -83,7 +85,7 @@ namespace {
             Handle = ::CreateSemaphore(0, max_free_count, max_free_count, key);
 #else
     #ifdef USE_SYSV_SEMAPHORES
-            key_t key = TPCGMixer::Mix(CityHash64(name, strlen(name))); //32 bit hash
+            key_t key = TPCGMixer::Mix(CityHash64(name, strlen(name))); // 32 bit hash
             Handle = semget(key, 0, 0);                                 // try to open exist semaphore
             if (Handle == -1) {                                         // create new semaphore
                 Handle = semget(key, 1, 0666 | IPC_CREAT);
@@ -110,8 +112,8 @@ namespace {
 #else
     #ifdef USE_SYSV_SEMAPHORES
     // we DO NOT want 'semctl(Handle, 0, IPC_RMID)' for multiprocess tasks;
-    //struct sembuf ops[] = {{0, 0, IPC_NOWAIT}};
-    //if (semop(Handle, ops, 1) != 0) // close only if semaphore's value is zero
+    // struct sembuf ops[] = {{0, 0, IPC_NOWAIT}};
+    // if (semop(Handle, ops, 1) != 0) // close only if semaphore's value is zero
     //    semctl(Handle, 0, IPC_RMID);
     #else
             sem_close(Handle); // we DO NOT want sem_unlink(...)
@@ -129,15 +131,15 @@ namespace {
     #else
             int ret = sem_post(Handle);
     #endif
-            Y_VERIFY(ret == 0, "can not release semaphore");
+            Y_ABORT_UNLESS(ret == 0, "can not release semaphore");
 #endif
         }
 
-        //The UNIX semaphore object does not support a timed "wait", and
-        //hence to maintain consistancy, for win32 case we use INFINITE or 0 timeout.
+        // The UNIX semaphore object does not support a timed "wait", and
+        // hence to maintain consistancy, for win32 case we use INFINITE or 0 timeout.
         inline void Acquire() noexcept {
 #ifdef _win_
-            Y_VERIFY(::WaitForSingleObject(Handle, INFINITE) == WAIT_OBJECT_0, "can not acquire semaphore");
+            Y_ABORT_UNLESS(::WaitForSingleObject(Handle, INFINITE) == WAIT_OBJECT_0, "can not acquire semaphore");
 #else
     #ifdef USE_SYSV_SEMAPHORES
             struct sembuf ops[] = {{0, -1, SEM_UNDO}};
@@ -145,7 +147,7 @@ namespace {
     #else
             int ret = sem_wait(Handle);
     #endif
-            Y_VERIFY(ret == 0, "can not acquire semaphore");
+            Y_ABORT_UNLESS(ret == 0, "can not acquire semaphore");
 #endif
         }
 
@@ -183,20 +185,20 @@ namespace {
         }
 
         inline ~TPosixSemaphore() {
-            Y_VERIFY(sem_destroy(&S_) == 0, "semaphore destroy failed");
+            Y_ABORT_UNLESS(sem_destroy(&S_) == 0, "semaphore destroy failed");
         }
 
         inline void Acquire() noexcept {
-            Y_VERIFY(sem_wait(&S_) == 0, "semaphore acquire failed");
+            Y_ABORT_UNLESS(sem_wait(&S_) == 0, "semaphore acquire failed");
         }
 
         inline void Release() noexcept {
-            Y_VERIFY(sem_post(&S_) == 0, "semaphore release failed");
+            Y_ABORT_UNLESS(sem_post(&S_) == 0, "semaphore release failed");
         }
 
         inline bool TryAcquire() noexcept {
             if (sem_trywait(&S_)) {
-                Y_VERIFY(errno == EAGAIN, "semaphore try wait failed");
+                Y_ABORT_UNLESS(errno == EAGAIN, "semaphore try wait failed");
 
                 return false;
             }
@@ -210,7 +212,7 @@ namespace {
     Y_PRAGMA_DIAGNOSTIC_POP
     #endif
 #endif
-}
+} // namespace
 
 class TSemaphore::TImpl: public TSemaphoreImpl {
 public:

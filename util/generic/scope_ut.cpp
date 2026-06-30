@@ -44,4 +44,4 @@ Y_UNIT_TEST_SUITE(ScopeToolsTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(i, 20);
     }
-}
+} // Y_UNIT_TEST_SUITE(ScopeToolsTest)

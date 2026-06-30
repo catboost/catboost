@@ -2,7 +2,7 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 
 namespace NKernel {
 

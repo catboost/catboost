@@ -66,13 +66,13 @@ namespace NPar {
 
     struct TParTimings {
         TParTimings(const TParTimings&) {
-            Y_FAIL("you should not be there");
+            Y_ABORT("you should not be there");
         }
         TParTimings(TParTimings&&) {
-            Y_FAIL("you should not be there");
+            Y_ABORT("you should not be there");
         }
         TParTimings& operator=(const TParTimings&) {
-            Y_FAIL("you should not be there");
+            Y_ABORT("you should not be there");
         }
         TVector<THolder<TTiming>> Timings;
 

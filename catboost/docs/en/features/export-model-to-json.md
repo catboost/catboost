@@ -9,7 +9,7 @@ The trained {{ product }} model can be saved as a JSON file. This file can be ac
 
 |methods| {{ features__table__title__python__parameters }}| description|
 |-------|-----------|-----------|
-|- [save_model](../concepts/python-reference_catboost_save_model.md) ([CatBoost](../concepts/python-reference_catboost.md)) <br> - [save_model](../concepts/python-reference_catboostclassifier_save_model.md) ([CatBoostClassifier](../concepts/python-reference_catboostclassifier.md)) <br> - [save_model](../concepts/python-reference_catboostregressor_save_model.md) ([CatBoostRegressor](../concepts/python-reference_catboostregressor.md))| `format`| The output format of the model. <br> Set this parameter to “json”.|
+|- [save_model](../concepts/python-reference_catboost_save_model.md) ([CatBoost](../concepts/python-reference_catboost.md)) <br> - [save_model](../concepts/python-reference_catboostclassifier_save_model.md) ([CatBoostClassifier](../concepts/python-reference_catboostclassifier.md)) <br> - [save_model](../concepts/python-reference_catboostregressor_save_model.md) ([CatBoostRegressor](../concepts/python-reference_catboostregressor.md)) <br> - [save_model](../concepts/python-reference_catboostranker_save_model.md) ([CatBoostRanker](../concepts/python-reference_catboostranker.md))| `format`| The output format of the model. <br> Set this parameter to “json”.|
 
 
 ## {{ title__implementation__cli }}

@@ -25,10 +25,10 @@ public:
      * @param buf                       Memory block to use.
      * @param len                       Size of the memory block.
      */
-    TMemoryInput(const void* buf, size_t len) noexcept;
+    TMemoryInput(const void* buf Y_LIFETIME_BOUND, size_t len) noexcept;
     TMemoryInput(TString&&) = delete;
-    explicit TMemoryInput(const TStringBuf buf) noexcept;
-    explicit TMemoryInput(const char* zstr)
+    explicit TMemoryInput(const TStringBuf buf Y_LIFETIME_BOUND) noexcept;
+    explicit TMemoryInput(const char* zstr Y_LIFETIME_BOUND)
         : TMemoryInput(TStringBuf(zstr))
     {
     }
@@ -93,7 +93,7 @@ public:
      * Initializes this stream with a next chunk extracted from the given zero
      * copy stream.
      *
-     * @param stream                    Zero copy stream to initialize from.
+     * @param[inout] stream             Zero copy stream to initialize from.
      */
     void Fill(IZeroCopyInput* stream) {
         Len_ = stream->Next(&Buf_);

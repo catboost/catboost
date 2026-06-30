@@ -3,7 +3,10 @@
  */
 
 #include "tensor_proto_util.h"
+
+#include <string>
 #include <vector>
+
 #include "onnx/common/platform_helpers.h"
 #include "onnx/defs/data_type_utils.h"
 #include "onnx/defs/shape_inference.h"
@@ -24,7 +27,7 @@ namespace ONNX_NAMESPACE {
   TensorProto ToTensor<type>(const type& value) {   \
     TensorProto t;                                  \
     t.set_data_type(enumType);                      \
-    t.add_##field##_data(TString(value));                    \
+    t.add_##field##_data(TProtoStringType(value));  \
     return t;                                       \
   }
 
@@ -47,14 +50,14 @@ namespace ONNX_NAMESPACE {
     t.clear_##field##_data();                                   \
     t.set_data_type(enumType);                                  \
     for (const type& val : values) {                            \
-      t.add_##field##_data(TString{val});                                \
+      t.add_##field##_data(TProtoStringType{val});                                \
     }                                                           \
     return t;                                                   \
   }
 
 #define DEFINE_PARSE_DATA(type, typed_data_fetch, tensorproto_datatype)                                            \
   template <>                                                                                                      \
-  const std::vector<type> ParseData(const TensorProto* tensor_proto) {                                             \
+  std::vector<type> ParseData(const TensorProto* tensor_proto) {                                                   \
     if (!tensor_proto->has_data_type() || tensor_proto->data_type() == TensorProto_DataType_UNDEFINED) {           \
       fail_shape_inference("The type of tensor: ", tensor_proto->name(), " is undefined so it cannot be parsed."); \
     } else if (tensor_proto->data_type() != tensorproto_datatype) {                                                \
@@ -100,8 +103,11 @@ namespace ONNX_NAMESPACE {
     /* The given tensor does have raw_data itself so parse it by given type */                                     \
     /* make copy as we may have to reverse bytes */                                                                \
     std::string raw_data = tensor_proto->raw_data();                                                               \
+    if (raw_data.empty()) {                                                                                        \
+      return res;                                                                                                  \
+    }                                                                                                              \
     /* okay to remove const qualifier as we have already made a copy */                                            \
-    char* bytes = const_cast<char*>(raw_data.c_str());                                                             \
+    char* bytes = raw_data.data();                                                                                 \
     /* onnx is little endian serialized always-tweak byte order if needed */                                       \
     if (!is_processor_little_endian()) {                                                                           \
       const size_t element_size = sizeof(type);                                                                    \
@@ -150,5 +156,7 @@ DEFINE_PARSE_DATA(int32_t, int32_data, TensorProto_DataType_INT32)
 DEFINE_PARSE_DATA(int64_t, int64_data, TensorProto_DataType_INT64)
 DEFINE_PARSE_DATA(float, float_data, TensorProto_DataType_FLOAT)
 DEFINE_PARSE_DATA(double, double_data, TensorProto_DataType_DOUBLE)
+
+#undef DEFINE_PARSE_DATA
 
 } // namespace ONNX_NAMESPACE

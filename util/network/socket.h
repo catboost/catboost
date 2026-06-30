@@ -94,7 +94,7 @@ static inline void FixIPv6ListenSocket(SOCKET s) {
 
 namespace NAddr {
     class IRemoteAddr;
-}
+} // namespace NAddr
 
 void SetSocketTimeout(SOCKET s, long timeout);
 void SetSocketTimeout(SOCKET s, long sec, long msec);
@@ -136,11 +136,6 @@ ESocketReadStatus HasSocketDataToRead(SOCKET s);
  **/
 bool HasLocalAddress(SOCKET socket);
 
-/**
- * Runtime check if current kernel supports SO_REUSEPORT option.
- **/
-extern "C" bool IsReusePortAvailable();
-
 bool IsNonBlock(SOCKET fd);
 void SetNonBlock(SOCKET fd, bool nonBlock = true);
 
@@ -148,7 +143,7 @@ struct addrinfo;
 
 class TNetworkResolutionError: public yexception {
 public:
-    // @param error error code (EAI_XXX) returned by getaddrinfo or getnameinfo (not errno)
+    //! @param error error code (EAI_XXX) returned by getaddrinfo or getnameinfo (not errno)
     TNetworkResolutionError(int error);
 };
 
@@ -428,5 +423,5 @@ private:
     TSocket S_;
 };
 
-//return -(error code) if error occured, or number of ready fds
+// return -(error code) if error occured, or number of ready fds
 ssize_t PollD(struct pollfd fds[], nfds_t nfds, const TInstant& deadLine) noexcept;

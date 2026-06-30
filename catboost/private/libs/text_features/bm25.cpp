@@ -2,52 +2,75 @@
 
 #include <catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 
 using namespace NCB;
 
 TTextFeatureCalcerFactory::TRegistrator<TBM25> BM25Registrator(EFeatureCalcerType::BM25);
 
-template <class T>
-static inline ui32 NonZeros(TConstArrayRef<T> arr) {
-    ui32 result = 0;
-    for (const auto& val : arr) {
-        result += static_cast<T>(0) != val;
-    }
-    return result;
+static inline double CalcTruncatedInvClassFreq(ui32 numClasses, ui32 classesWithTerm, double eps) {
+    return Max<double>(log((numClasses - classesWithTerm + 0.5) / (classesWithTerm + 0.5)), eps);
 }
 
-static inline double CalcTruncatedInvClassFreq(TConstArrayRef<ui32> inClassFreq, double eps) {
-    double classesWithTerm = NonZeros(inClassFreq);
-    const auto numClasses = inClassFreq.size();
-    return Max<double>(log(numClasses - classesWithTerm + 0.5) - log(classesWithTerm + 0.5), eps);
-}
-
-static inline void ExtractTermFreq(TConstArrayRef<TDenseHash<TTokenId, ui32>> freq,
+static inline ui32 ExtractTermFreq(TConstArrayRef<TDenseHash<TTokenId, ui32>> freq,
                                    TTokenId term,
                                    TArrayRef<ui32> termFreq) {
+    ui32 nonZeroCount = 0;
     for (ui32 clazz = 0; clazz < freq.size(); ++clazz) {
         const auto& classFreqTable = freq[clazz];
-        auto termFreqIt = classFreqTable.find(term);
-        termFreq[clazz] = termFreqIt != classFreqTable.end() ? termFreqIt->second : 0;
+        const auto termFreqIt = classFreqTable.find(term);
+        if (termFreqIt != classFreqTable.end()) {
+            termFreq[clazz] = termFreqIt->second;
+            ++nonZeroCount;
+        } else {
+            termFreq[clazz] = 0;
+        }
     }
+    return nonZeroCount;
 }
 
 static inline double Score(double termFreq, double k, double b, double meanLength, double classLength) {
-    return termFreq * (k + 1) / (termFreq + k * (1.0 - b + b * meanLength / classLength));
+    if (termFreq == 0) {
+        return 0.0;
+    }
+    return termFreq * (k + 1.0) / (termFreq + k * (1.0 - b + b * meanLength / classLength));
+}
+
+static void InitTruncatedInvClassFreq(ui32 numClasses, double truncateBorder, TArrayRef<double> truncatedInvClassFreq) {
+    for (auto classFreq : xrange(numClasses + 1)) {
+        truncatedInvClassFreq[classFreq] = CalcTruncatedInvClassFreq(numClasses, classFreq, truncateBorder);
+    }
+}
+
+TBM25::TBM25(
+    const TGuid& calcerId,
+    ui32 numClasses,
+    double truncateBorder,
+    double k,
+    double b
+)
+    : TTextFeatureCalcer(BaseFeatureCount(numClasses), calcerId)
+    , NumClasses(numClasses)
+    , K(k)
+    , B(b)
+    , TruncateBorder(truncateBorder)
+    , TotalTokens(1)
+    , ClassTotalTokens(numClasses)
+    , Frequencies(numClasses)
+{
+    TruncatedInvClassFreq.resize(NumClasses + 1);
+    InitTruncatedInvClassFreq(numClasses, truncateBorder, TruncatedInvClassFreq);
 }
 
 void TBM25::Compute(const TText& text, TOutputFloatIterator iterator) const {
     TVector<ui32> termFreqInClass(NumClasses);
     TVector<double> scores(NumClasses);
-
+    const double meanClassLength = (double)TotalTokens / NumClasses;
     for (const auto& tokenToCount : text) {
-        ExtractTermFreq(Frequencies, tokenToCount.Token(), termFreqInClass);
-        double inverseClassFreq = CalcTruncatedInvClassFreq(termFreqInClass, TruncateBorder);
-        double meanClassLength = TotalTokens * 1.0 / NumClasses;
-
+        const ui32 nonZeroCount = ExtractTermFreq(Frequencies, tokenToCount.Token(), termFreqInClass);
         for (ui32 clazz = 0; clazz < NumClasses; ++clazz) {
-            scores[clazz] += inverseClassFreq * Score(termFreqInClass[clazz], K, B, meanClassLength,  ClassTotalTokens[clazz]);
+            scores[clazz] += TruncatedInvClassFreq[nonZeroCount] * Score(termFreqInClass[clazz], K, B, meanClassLength,  ClassTotalTokens[clazz]);
         }
     }
 
@@ -88,6 +111,9 @@ void TBM25::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {
     B = fbBm25->ParamB();
     TruncateBorder = fbBm25->TruncateBorder();
     TotalTokens = fbBm25->TotalTokens();
+
+    TruncatedInvClassFreq.resize(NumClasses + 1);
+    InitTruncatedInvClassFreq(NumClasses, TruncateBorder, TruncatedInvClassFreq);
 
     auto classTotalTokens = fbBm25->ClassTotalTokens();
     ClassTotalTokens.yresize(classTotalTokens->size());

@@ -7,3 +7,7 @@ TMallocInfo NMalloc::MallocInfo() {
     r.Name = "system";
     return r;
 }
+
+void NMalloc::ClearCaches() {
+    // nothing to do
+}

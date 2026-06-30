@@ -143,6 +143,10 @@ namespace NCatboostOptions {
 
     double GetTweedieParam(const TLossDescription& lossFunctionConfig);
 
+    double GetFocalParamA(const TLossDescription& lossFunctionConfig);
+
+    double GetFocalParamG(const TLossDescription& lossFunctionConfig);
+
     // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
     // key). Returns default value if the key isn't present in the map and throws an exception if the border target is not
     // a valid floating point number.
@@ -178,7 +182,7 @@ void IterateOverCombination(const TMap<TString, TString>& params, const TCallabl
         const auto& weightKey = GetCombinationWeightKey(idx);
         CB_ENSURE(params.contains(lossKey) && params.contains(weightKey), "Mandatory parameter " << lossKey << " or " << weightKey << " is missing");
         float weight;
-        CB_ENSURE(TryFromString<float>(params.at(weightKey), weight), "Value of " << weightKey << " must be floating point number");
+        CB_ENSURE(TryFromString<float>(params.at(weightKey), weight), "Value of " << weightKey << " must be floating point number, not " << params.at(weightKey));
         if (weight == 0.0f) {
             continue;
         }

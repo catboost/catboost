@@ -154,4 +154,4 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT(lv.GetRef() == 100500);
         UNIT_ASSERT(lv.WasLazilyInitialized());
     }
-}
+} // Y_UNIT_TEST_SUITE(TLazyValueTestSuite)

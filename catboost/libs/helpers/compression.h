@@ -377,8 +377,8 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
                     const ui32 shift = indexHelper.Shift((ui32)i);
                     CB_ENSURE(
                         (data[i] & mask) == data[i],
-                        TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed "
-                            << bitsPerKey << ", observe key " << static_cast<ui64>(data[i])
+                        "Error: key contains too many bits: max bits per key: allowed "
+                        << bitsPerKey << ", observe key " << static_cast<ui64>(data[i])
                     );
                     dst[offset] |= static_cast<ui64>(data[i]) << shift;
                 }

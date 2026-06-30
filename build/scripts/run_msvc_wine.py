@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import re
@@ -8,23 +9,25 @@ import json
 import argparse
 import errno
 
-import process_command_files as pcf
-import process_whole_archive_option as pwa
-
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import process_command_files as pcf  # noqa: E402
+import process_whole_archive_option as pwa  # noqa: E402
 
 procs = []
 build_kekeke = 45
 
 
 def stringize(s):
-    return s.encode('utf-8') if isinstance(s, unicode) else s
+    return s.encode('utf-8')
 
 
 def run_subprocess(*args, **kwargs):
     if 'env' in kwargs:
-        kwargs['env'] = {stringize(k): stringize(v) for k, v in kwargs['env'].iteritems()}
+        kwargs['env'] = {stringize(k): stringize(v) for k, v in kwargs['env'].items()}
 
-    p = subprocess.Popen(*args, **kwargs)
+    p = subprocess.Popen(*args, **kwargs, text=True)
 
     procs.append(p)
 
@@ -41,7 +44,7 @@ def run_subprocess_with_timeout(timeout, args):
             stdout, stderr = p.communicate(timeout=timeout)
             return p, stdout, stderr
         except subprocess.TimeoutExpired as e:
-            print >>sys.stderr, 'timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay)
+            print('timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay), file=sys.stderr)
             if p is not None:
                 try:
                     p.kill()
@@ -68,16 +71,18 @@ def sig_term(sig, fr):
     sys.exit(sig)
 
 
-def subst_path(l):
-    if len(l) > 3:
-        if l[:3].lower() in ('z:\\', 'z:/'):
-            return l[2:].replace('\\', '/')
+def subst_path(line):
+    if len(line) > 3:
+        if line[:3].lower() in ('z:\\', 'z:/'):
+            return line[2:].replace('\\', '/')
 
-    return l
+    return line
 
 
 def call_wine_cmd_once(wine, cmd, env, mode):
-    p = run_subprocess(wine + cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, close_fds=True, shell=False)
+    p = run_subprocess(
+        wine + cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, close_fds=True, shell=False
+    )
 
     output = find_cmd_out(cmd)
     error = None
@@ -91,7 +96,7 @@ def call_wine_cmd_once(wine, cmd, env, mode):
             error = e
 
     if error is not None:
-        print >> sys.stderr, 'Output {} already exists and we have failed to remove it: {}'.format(output, error)
+        print('Output {} already exists and we have failed to remove it: {}'.format(output, error), file=sys.stderr)
 
     # print >>sys.stderr, cmd, env, wine
 
@@ -118,7 +123,7 @@ def call_wine_cmd_once(wine, cmd, env, mode):
         'Could not load wine-gecko',
         'wine: configuration in',
         'wine: created the configuration directory',
-        'libpng warning:'
+        'libpng warning:',
     ]
 
     suffixes = [
@@ -139,30 +144,30 @@ def call_wine_cmd_once(wine, cmd, env, mode):
         'err:winediag:',
     ]
 
-    def good_line(l):
+    def good_line(li):
         for x in prefixes:
-            if l.startswith(x):
+            if li.startswith(x):
                 return False
 
         for x in suffixes:
-            if l.endswith(x):
+            if li.endswith(x):
                 return False
 
         for x in substrs:
-            if x in l:
+            if x in li:
                 return False
 
         return True
 
     def filter_lines():
-        for l in lines:
-            if good_line(l):
-                yield subst_path(l.strip())
+        for line in lines:
+            if good_line(line):
+                yield subst_path(line.strip())
 
     stdout_and_stderr = '\n'.join(filter_lines()).strip()
 
     if stdout_and_stderr:
-        print >>sys.stderr, stdout_and_stderr
+        print(stdout_and_stderr, file=sys.stderr)
 
     return return_code
 
@@ -173,7 +178,7 @@ def prepare_vc(fr, to):
         to_p = os.path.join(to, p)
 
         if not os.path.exists(to_p):
-            print >>sys.stderr, 'install %s -> %s' % (fr_p, to_p)
+            print('install %s -> %s' % (fr_p, to_p), file=sys.stderr)
 
             os.link(fr_p, to_p)
 
@@ -194,7 +199,7 @@ def run_slave():
         try:
             return call_wine_cmd_once([wine], args['cmd'], args['env'], args['mode'])
         except Exception as e:
-            print >>sys.stderr, '%s, will retry in %s' % (str(e), tout)
+            print('%s, will retry in %s' % (str(e), tout), file=sys.stderr)
 
             time.sleep(tout)
             tout = min(2 * tout, 4)
@@ -273,65 +278,65 @@ GRN = '\x1b[32m'
 CYA = '\x1b[36m'
 
 
-def colorize_strings(l):
-    p = l.find("'")
+def colorize_strings(line):
+    p = line.find("'")
 
     if p >= 0:
-        yield l[:p]
+        yield line[:p]
 
-        l = l[p + 1:]
+        line = line[p + 1 :]
 
-        p = l.find("'")
+        p = line.find("'")
 
         if p >= 0:
-            yield CYA + "'" + subst_path(l[:p]) + "'" + RST
+            yield CYA + "'" + subst_path(line[:p]) + "'" + RST
 
-            for x in colorize_strings(l[p + 1:]):
+            for x in colorize_strings(line[p + 1 :]):
                 yield x
         else:
-            yield "'" + l
+            yield "'" + line
     else:
-        yield l
+        yield line
 
 
-def colorize_line(l):
-    lll = l
+def colorize_line(li):
+    lll = li
 
     try:
         parts = []
 
-        if l.startswith('(compiler file'):
-            return ''.join(colorize_strings(l))
+        if li.startswith('(compiler file'):
+            return ''.join(colorize_strings(li))
 
-        if l.startswith('/'):
-            p = l.find('(')
-            parts.append(GRAY + l[:p] + RST)
-            l = l[p:]
+        if li.startswith('/'):
+            p = li.find('(')
+            parts.append(GRAY + li[:p] + RST)
+            li = li[p:]
 
-        if l and l.startswith('('):
-            p = l.find(')')
-            parts.append(':' + MGT + l[1:p] + RST)
-            l = l[p + 1:]
+        if li and li.startswith('('):
+            p = li.find(')')
+            parts.append(':' + MGT + li[1:p] + RST)
+            li = li[p + 1 :]
 
-        if l:
-            if l.startswith(' : '):
-                l = l[1:]
+        if li:
+            if li.startswith(' : '):
+                li = li[1:]
 
-            if l.startswith(': error'):
+            if li.startswith(': error'):
                 parts.append(': ' + RED + 'error' + RST)
-                l = l[7:]
-            elif l.startswith(': warning'):
+                li = li[7:]
+            elif li.startswith(': warning'):
                 parts.append(': ' + YEL + 'warning' + RST)
-                l = l[9:]
-            elif l.startswith(': note'):
+                li = li[9:]
+            elif li.startswith(': note'):
                 parts.append(': ' + GRN + 'note' + RST)
-                l = l[6:]
-            elif l.startswith('fatal error'):
+                li = li[6:]
+            elif li.startswith('fatal error'):
                 parts.append(RED + 'fatal error' + RST)
-                l = l[11:]
+                li = li[11:]
 
-        if l:
-            parts.extend(colorize_strings(l))
+        if li:
+            parts.extend(colorize_strings(li))
 
         return ''.join(parts)
     except Exception:
@@ -339,7 +344,7 @@ def colorize_line(l):
 
 
 def colorize(out):
-    return '\n'.join(colorize_line(l) for l in out.split('\n'))
+    return '\n'.join(colorize_line(li) for li in out.split('\n'))
 
 
 def trim_path(path, winepath):
@@ -360,8 +365,9 @@ def trim_path(path, winepath):
     if not check_path[1:].startswith((path[1:4], path[1:4].upper())):
         raise Exception(
             'Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(
-            path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr
-        ))
+                path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr
+            )
+        )
 
     return short_path
 
@@ -416,12 +422,13 @@ def process_free_args(args, wine, bld_root, mode):
 
     free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args))
 
-    process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+    def process_link(x):
+        return make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
 
     def process_arg(arg):
         with_wa_prefix = arg.startswith(whole_archive_prefix)
         prefix = whole_archive_prefix if with_wa_prefix else ''
-        without_prefix_arg = arg[len(prefix):]
+        without_prefix_arg = arg[len(prefix) :]
         return prefix + fix_path(process_link(downsize_path(without_prefix_arg, short_names)))
 
     result = []
@@ -493,12 +500,7 @@ def run_main():
         if sleep:
             time.sleep(sleep)
 
-        args = {
-            'cmd': cmd,
-            'env': env,
-            'mode': mode,
-            'tout': tout
-        }
+        args = {'cmd': cmd, 'env': env, 'mode': mode, 'tout': tout}
 
         slave_cmd = [sys.executable, sys.argv[0], wine, 'slave', json.dumps(args)]
         p = run_subprocess(slave_cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
@@ -510,7 +512,7 @@ def run_main():
             return
         if mode == 'cxx':
             log = colorize(log)
-        print >>sys.stderr, log
+        print(log, file=sys.stderr)
 
     tout = 200
 
@@ -519,26 +521,26 @@ def run_main():
 
         if rc in (-signal.SIGALRM, signal.SIGALRM):
             print_err_log(out)
-            print >>sys.stderr, '##append_tag##time out'
+            print('##append_tag##time out', file=sys.stderr)
         elif out and ' stack overflow ' in out:
-            print >>sys.stderr, '##append_tag##stack overflow'
+            print('##append_tag##stack overflow', file=sys.stderr)
         elif out and 'recvmsg: Connection reset by peer' in out:
-            print >>sys.stderr, '##append_tag##wine gone'
+            print('##append_tag##wine gone', file=sys.stderr)
         elif out and 'D8037' in out:
-            print >>sys.stderr, '##append_tag##repair wine'
+            print('##append_tag##repair wine', file=sys.stderr)
 
             try:
                 os.unlink(os.path.join(os.environ['WINEPREFIX'], '.update-timestamp'))
             except Exception as e:
-                print >>sys.stderr, e
+                print(e, file=sys.stderr)
 
         else:
             print_err_log(out)
 
             # non-zero return code - bad, return it immediately
             if rc:
-                print >>sys.stderr, '##win_cmd##' + ' '.join(cmd)
-                print >>sys.stderr, '##args##' + ' '.join(free_args)
+                print('##win_cmd##' + ' '.join(cmd), file=sys.stderr)
+                print('##args##' + ' '.join(free_args), file=sys.stderr)
                 return rc
 
             # check for output existence(if we expect it!) and real length
@@ -547,7 +549,7 @@ def run_main():
                     return 0
                 else:
                     # retry!
-                    print >>sys.stderr, '##append_tag##no output'
+                    print('##append_tag##no output', file=sys.stderr)
             else:
                 return 0
 
@@ -577,7 +579,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(4)
     except Exception as e:
-        print >>sys.stderr, str(e)
+        print(str(e), file=sys.stderr)
 
         sys.exit(3)
 

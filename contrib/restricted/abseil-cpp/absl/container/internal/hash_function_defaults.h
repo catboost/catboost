@@ -45,14 +45,17 @@
 #ifndef ABSL_CONTAINER_INTERNAL_HASH_FUNCTION_DEFAULTS_H_
 #define ABSL_CONTAINER_INTERNAL_HASH_FUNCTION_DEFAULTS_H_
 
-#include <stdint.h>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 #include "absl/base/config.h"
+#include "absl/container/internal/common.h"
 #include "absl/hash/hash.h"
+#include "absl/meta/type_traits.h"
 #include "absl/strings/cord.h"
 #include "absl/strings/string_view.h"
 
@@ -75,6 +78,18 @@ struct StringHash {
   }
   size_t operator()(const absl::Cord& v) const {
     return absl::Hash<absl::Cord>{}(v);
+  }
+
+ private:
+  friend struct absl::hash_internal::HashWithSeed;
+
+  size_t hash_with_seed(absl::string_view v, size_t seed) const {
+    return absl::hash_internal::HashWithSeed().hash(
+        absl::Hash<absl::string_view>{}, v, seed);
+  }
+  size_t hash_with_seed(const absl::Cord& v, size_t seed) const {
+    return absl::hash_internal::HashWithSeed().hash(absl::Hash<absl::Cord>{}, v,
+                                                    seed);
   }
 };
 
@@ -106,6 +121,44 @@ template <>
 struct HashEq<absl::string_view> : StringHashEq {};
 template <>
 struct HashEq<absl::Cord> : StringHashEq {};
+
+template <typename TChar>
+struct BasicStringHash {
+  using is_transparent = void;
+
+  size_t operator()(std::basic_string_view<TChar> v) const {
+    return absl::Hash<std::basic_string_view<TChar>>{}(v);
+  }
+};
+
+template <typename TChar>
+struct BasicStringEq {
+  using is_transparent = void;
+  bool operator()(std::basic_string_view<TChar> lhs,
+                  std::basic_string_view<TChar> rhs) const {
+    return lhs == rhs;
+  }
+};
+
+// Supports heterogeneous lookup for w/u16/u32 string + string_view + char*.
+template <typename TChar>
+struct BasicStringHashEq {
+  using Hash = BasicStringHash<TChar>;
+  using Eq = BasicStringEq<TChar>;
+};
+
+template <>
+struct HashEq<std::wstring> : BasicStringHashEq<wchar_t> {};
+template <>
+struct HashEq<std::wstring_view> : BasicStringHashEq<wchar_t> {};
+template <>
+struct HashEq<std::u16string> : BasicStringHashEq<char16_t> {};
+template <>
+struct HashEq<std::u16string_view> : BasicStringHashEq<char16_t> {};
+template <>
+struct HashEq<std::u32string> : BasicStringHashEq<char32_t> {};
+template <>
+struct HashEq<std::u32string_view> : BasicStringHashEq<char32_t> {};
 
 // Supports heterogeneous lookup for pointers and smart pointers.
 template <class T>
@@ -141,6 +194,71 @@ template <class T, class D>
 struct HashEq<std::unique_ptr<T, D>> : HashEq<T*> {};
 template <class T>
 struct HashEq<std::shared_ptr<T>> : HashEq<T*> {};
+
+template <typename T, typename E = void>
+struct HasAbslContainerHash : std::false_type {};
+
+template <typename T>
+struct HasAbslContainerHash<T, std::void_t<typename T::absl_container_hash>>
+    : std::true_type {};
+
+template <typename T, typename E = void>
+struct HasAbslContainerEq : std::false_type {};
+
+template <typename T>
+struct HasAbslContainerEq<T, std::void_t<typename T::absl_container_eq>>
+    : std::true_type {};
+
+template <typename T, typename E = void>
+struct AbslContainerEq {
+  using type = std::equal_to<>;
+};
+
+template <typename T>
+struct AbslContainerEq<
+    T, typename std::enable_if_t<HasAbslContainerEq<T>::value>> {
+  using type = typename T::absl_container_eq;
+};
+
+template <typename T, typename E = void>
+struct AbslContainerHash {
+  using type = void;
+};
+
+template <typename T>
+struct AbslContainerHash<
+    T, typename std::enable_if_t<HasAbslContainerHash<T>::value>> {
+  using type = typename T::absl_container_hash;
+};
+
+// HashEq specialization for user types that provide `absl_container_hash` and
+// (optionally) `absl_container_eq`. This specialization allows user types to
+// provide heterogeneous lookup without requiring to explicitly specify Hash/Eq
+// type arguments in unordered Abseil containers.
+//
+// Both `absl_container_hash` and `absl_container_eq` should be transparent
+// (have inner is_transparent type). While there is no technical reason to
+// restrict to transparent-only types, there is also no feasible use case when
+// it shouldn't be transparent - it is easier to relax the requirement later if
+// such a case arises rather than restricting it.
+//
+// If type provides only `absl_container_hash` then `eq` part will be
+// `std::equal_to<void>`.
+//
+// User types are not allowed to provide only a `Eq` part as there is no
+// feasible use case for this behavior - if Hash should be a default one then Eq
+// should be an equivalent to the `std::equal_to<T>`.
+template <typename T>
+struct HashEq<T, typename std::enable_if_t<HasAbslContainerHash<T>::value>> {
+  using Hash = typename AbslContainerHash<T>::type;
+  using Eq = typename AbslContainerEq<T>::type;
+  static_assert(IsTransparent<Hash>::value,
+                "absl_container_hash must be transparent. To achieve it add a "
+                "`using is_transparent = void;` clause to this type.");
+  static_assert(IsTransparent<Eq>::value,
+                "absl_container_eq must be transparent. To achieve it add a "
+                "`using is_transparent = void;` clause to this type.");
+};
 
 // This header's visibility is restricted.  If you need to access the default
 // hasher please use the container's ::hasher alias instead.

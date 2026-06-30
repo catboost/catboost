@@ -430,7 +430,7 @@ namespace NCudaLib {
     };
 
     //make from (dev0, ABCD) (dev1, ABCD),  (dev2 , ABCD) (dev3, ABCD) (dev0, A), (dev1, B), (dev2, C), (dev3, D)
-    //this version trade off some speed to memory (use memory for one extra block if we don't have peer access support
+    //this version trades off some speed for memory (use memory for one extra block if we don't have a peer access support
     template <class T, EReduceAlgorithm ReduceType>
     class TReducer<TCudaBuffer<T, TStripeMapping>, ReduceType> {
     private:

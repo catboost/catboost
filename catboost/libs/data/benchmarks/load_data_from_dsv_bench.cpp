@@ -59,6 +59,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
+            readDatasetMainParams.GraphFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
@@ -68,6 +69,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ true,
             /*classLabels*/ Nothing(),
             &localExecutor);
@@ -97,6 +99,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
+            readDatasetMainParams.GraphFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
@@ -106,6 +109,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);
@@ -135,6 +139,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
+            readDatasetMainParams.GraphFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
@@ -144,6 +149,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);

@@ -2,7 +2,7 @@
 
 #include <library/cpp/dbg_output/dump.h>
 
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/map.h>
@@ -12,6 +12,7 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
+#include <util/generic/serialized_enum.h>
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>
@@ -27,6 +28,8 @@
 #include <cmath>
 #include <cstdio>
 #include <functional>
+#include <tuple>
+#include <utility>
 
 extern bool CheckExceptionMessage(const char*, TString&);
 
@@ -42,7 +45,7 @@ namespace NUnitTest {
 
     extern bool ShouldColorizeDiff;
     TString ColoredDiff(TStringBuf s1, TStringBuf s2, const TString& delims = TString(), bool reverse = false);
-    TString GetFormatTag(const char* name);
+    TString GetFormatTag(TStringBuf name);
     TString GetResetTag();
 
     // Raise error handler
@@ -135,6 +138,14 @@ namespace NUnitTest {
         // Should execute a test whitin suite?
         virtual bool CheckAccessTest(TString /*suite*/, const char* /*name*/);
 
+        // Should execute a test within suite? (with file and line info)
+        virtual bool CheckAccessTest(TString suite, const char* name, const char* file, int line) {
+            // Default implementation ignores file and line, calls the old version
+            Y_UNUSED(file);
+            Y_UNUSED(line);
+            return CheckAccessTest(suite, name);
+        }
+
         virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, bool /*forceFork*/);
 
         // This process is forked for current test
@@ -218,6 +229,8 @@ namespace NUnitTest {
 
     protected:
         bool CheckAccessTest(const char* test);
+
+        bool CheckAccessTest(const char* test, const char* file, int line);
 
         void BeforeTest(const char* func);
 
@@ -482,6 +495,7 @@ public:                       \
 //bool
 #define UNIT_ASSERT_C(A, C)                                                                             \
     do {                                                                                                \
+        static_assert(!std::is_array_v<std::remove_cvref_t<decltype(A)>>, "An array type always evaluates to true in a condition; this is likely an error in the condition expression."); \
         if (!(A)) {                                                                                     \
             UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (::TStringBuilder() << C).data())); \
         }                                                                                               \
@@ -714,6 +728,7 @@ public:                       \
 //values
 #define UNIT_ASSERT_VALUES_EQUAL_IMPL(A, B, C, EQflag, EQstr, NEQstr)                                                                  \
     do {                                                                                                                               \
+        /* NOLINTBEGIN(bugprone-reserved-identifier, readability-identifier-naming) */                                                 \
         TString _as;                                                                                                                   \
         TString _bs;                                                                                                                   \
         TString _asInd;                                                                                                                \
@@ -727,6 +742,7 @@ public:                       \
             }                                                                                                                          \
             UNIT_FAIL_IMPL("assertion failed", failMsg);                                                                               \
         }                                                                                                                              \
+        /* NOLINTEND(bugprone-reserved-identifier, readability-identifier-naming) */                                                   \
     } while (false)
 
 #define UNIT_ASSERT_VALUES_EQUAL_C(A, B, C) \
@@ -809,14 +825,21 @@ public:                       \
         // Consider using SetUp()/TearDown() methods instead
 
         inline TBaseTestCase()
-            : TBaseTestCase(nullptr, nullptr, false)
+            : TBaseTestCase(nullptr, nullptr, false, nullptr, 0)
         {
         }
 
         inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
+            : TBaseTestCase(name, std::move(body), forceFork, nullptr, 0)
+        {
+        }
+
+        inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork, const char* file, int line)
             : Name_(name)
             , Body_(std::move(body))
             , ForceFork_(forceFork)
+            , File_(file)
+            , Line_(line)
         {
         }
 
@@ -844,6 +867,8 @@ public:                       \
         const char* Name_;
         std::function<void(TTestContext&)> Body_;
         bool ForceFork_;
+        const char* File_;
+        int Line_;
     };
 
     using TBaseFixture = TBaseTestCase;
@@ -919,6 +944,42 @@ public:                       \
         bool Failed_ = false;
     };
 
+    template <class... Es>
+    TString BuildParamTestName(const char* base, const Es&... es) {
+        TString s = base;
+        ((s += "-", s += ToString(es)), ...);
+        return s;
+    }
+
+    template <class F>
+    void ForEachProductRanges(F&& f) {
+        std::invoke(std::forward<F>(f));
+    }
+
+    template <class F, class FirstRange, class... RestRanges>
+    void ForEachProductRanges(F&& f, const FirstRange& first, const RestRanges&... rest) {
+        for (auto&& x : first) {
+            auto bound = std::bind_front(std::forward<F>(f), x);
+            ForEachProductRanges(std::move(bound), rest...);
+        }
+    }
+
+    template <class... Enums, class F>
+    void ForEachEnums(F&& f) {
+        ForEachProductRanges(std::forward<F>(f), GetEnumAllValues<Enums>()...);
+    }
+
+    template <class Tuple, size_t... I>
+    TString BuildParamTestNameFromTupleImpl(const char* base, const Tuple& t, std::index_sequence<I...>) {
+        return BuildParamTestName(base, std::get<I>(t)...);
+    }
+
+    template <class Tuple>
+    TString BuildParamTestNameFromTuple(const char* base, const Tuple& t) {
+        return BuildParamTestNameFromTupleImpl(
+            base, t, std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+    }
+
 #define UNIT_TEST_SUITE_REGISTRATION(T) \
     static const ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
 
@@ -945,9 +1006,10 @@ public:                       \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(const char* name,                                                                       \
-                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork)                              \
+                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork,                              \
+                const char* file = nullptr, int line = 0)                                                               \
             {                                                                                                           \
-                Tests().push_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork); });          \
+                Tests().emplace_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork, file, line); }); \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(TTestCaseFactory testCaseFactory) {                                                     \
@@ -959,7 +1021,7 @@ public:                       \
                 this->GlobalSuiteSetUp();                                                                               \
                 for (TTests::iterator it = Tests().begin(), ie = Tests().end(); it != ie; ++it) {                       \
                     const auto i = (*it)();                                                                             \
-                    if (!this->CheckAccessTest(i->Name_)) {                                                             \
+                    if (!this->CheckAccessTest(i->Name_, i->File_, i->Line_)) {                                         \
                         continue;                                                                                       \
                     }                                                                                                   \
                     NUnitTest::TTestContext context(this->TTestBase::Processor());                                      \
@@ -1014,6 +1076,8 @@ public:                       \
         {                                                   \
             Name_ = #N;                                     \
             ForceFork_ = FF;                                \
+            File_ = __FILE__;                               \
+            Line_ = __LINE__;                               \
         }                                                   \
         static THolder<NUnitTest::TBaseTestCase> Create() { \
             return ::MakeHolder<TTestCase##N>();            \
@@ -1031,9 +1095,70 @@ public:                       \
     Y_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
     void TTestCase##N::Execute_(NUnitTest::TTestContext& ut_context Y_DECLARE_UNUSED)
 
-#define Y_UNIT_TEST(N) Y_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
-#define Y_UNIT_TEST_F(N, F) Y_UNIT_TEST_IMPL(N, false, F)
-#define SIMPLE_UNIT_FORKED_TEST(N) Y_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
+#define Y_UNIT_TEST_ENUM_IMPL(N, FF, F, ...)                                                                               \
+    struct TTestCase##N : public F {                                                                                         \
+        using Types = std::tuple<__VA_ARGS__>;                                                                               \
+        Types Args;                                                                                                          \
+        TString ParametrizedTestName;                                                                                        \
+        explicit TTestCase##N(Types args)                                                                                    \
+            : Args(std::move(args))                                                                                          \
+            , ParametrizedTestName(::NUnitTest::BuildParamTestNameFromTuple(#N, Args))                                       \
+       {                                                                                                                    \
+            Name_ = ParametrizedTestName.c_str();                                                                            \
+            ForceFork_ = FF;                                                                                                 \
+            File_ = nullptr;                                                                                                 \
+            Line_ = 0;                                                                                                       \
+        }                                                                                                                    \
+        static THolder<NUnitTest::TBaseTestCase> Create(Types args) {                                                        \
+            return ::MakeHolder<TTestCase##N>(std::move(args));                                                              \
+        }                                                                                                                    \
+        void Execute_(NUnitTest::TTestContext&) override;                                                                     \
+        template <size_t I>                                                                                                  \
+        decltype(auto) Arg() const {                                                                                         \
+            return std::get<I>(Args);                                                                                        \
+        }                                                                                                                    \
+    };                                                                                                                       \
+    struct TTestRegistration##N {                                                                                            \
+        TTestRegistration##N() {                                                                                             \
+            ::NUnitTest::ForEachEnums<__VA_ARGS__>([&](auto... items) {                                                      \
+                TCurrentTest::AddTest([=] {                                                                                 \
+                    return TTestCase##N::Create(typename TTestCase##N::Types(items...));                                   \
+                });                                                                                                          \
+            });                                                                                                              \
+        }                                                                                                                    \
+    };                                                                                                                       \
+    static const TTestRegistration##N testRegistration##N;                                                                     \
+    void TTestCase##N::Execute_(NUnitTest::TTestContext& ut_context Y_DECLARE_UNUSED)
+
+#define Y_UNIT_TEST_ENUM_IMPL_LINE(N, FF, F, ...) \
+    Y_UNIT_TEST_ENUM_IMPL(N, FF, F, __VA_ARGS__)
+
+#define Y_UNIT_TEST(N, ...) \
+    Y_UNIT_TEST_DISPATCH_##__VA_OPT__(ENUMS)(N __VA_OPT__(,) __VA_ARGS__)
+
+#define Y_UNIT_TEST_DISPATCH_(N) \
+    Y_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
+
+#define Y_UNIT_TEST_DISPATCH_ENUMS(N, ...) \
+    Y_UNIT_TEST_ENUM_IMPL_LINE(N, false, TCurrentTestCase, __VA_ARGS__)
+
+#define Y_UNIT_TEST_F(N, F, ...) \
+    Y_UNIT_TEST_F_DISPATCH_##__VA_OPT__(ENUMS)(N, F __VA_OPT__(,) __VA_ARGS__)
+
+#define Y_UNIT_TEST_F_DISPATCH_(N, F) \
+    Y_UNIT_TEST_IMPL(N, false, F)
+
+#define Y_UNIT_TEST_F_DISPATCH_ENUMS(N, F, ...) \
+    Y_UNIT_TEST_ENUM_IMPL_LINE(N, false, F, __VA_ARGS__)
+
+#define SIMPLE_UNIT_FORKED_TEST(N, ...) \
+    SIMPLE_UNIT_FORKED_TEST_DISPATCH_##__VA_OPT__(ENUMS)(N __VA_OPT__(,) __VA_ARGS__)
+
+#define SIMPLE_UNIT_FORKED_TEST_DISPATCH_(N) \
+    Y_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
+
+#define SIMPLE_UNIT_FORKED_TEST_DISPATCH_ENUMS(N, ...) \
+    Y_UNIT_TEST_ENUM_IMPL_LINE(N, true, TCurrentTestCase, __VA_ARGS__)
 
 #define Y_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
     namespace NTestSuite##N

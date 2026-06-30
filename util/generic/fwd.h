@@ -18,10 +18,10 @@ using TStringBuf = TBasicStringBuf<char>;
 using TWtringBuf = TBasicStringBuf<wchar16>;
 using TUtf32StringBuf = TBasicStringBuf<wchar32>;
 
-//misc
+// misc
 class TBuffer;
 
-//functors
+// functors
 template <class T = void>
 struct TLess;
 
@@ -34,7 +34,7 @@ struct TEqualTo;
 template <class T>
 struct THash;
 
-//intrusive containers
+// intrusive containers
 struct TIntrusiveListDefaultTag;
 template <class T, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveList;
@@ -45,13 +45,7 @@ class TIntrusiveListWithAutoDelete;
 template <class T, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveSList;
 
-template <class T, class C>
-class TAvlTree;
-
-template <class TValue, class TCmp>
-class TRbTree;
-
-//containers
+// containers
 template <class T, class A = std::allocator<T>>
 class TVector;
 
@@ -97,7 +91,7 @@ class TStack;
 template <size_t BitCount, typename TChunkType = ui64>
 class TBitMap;
 
-//autopointers
+// autopointers
 class TDelete;
 class TDeleteArray;
 class TFree;
@@ -151,10 +145,10 @@ using TArrayPtr = TAutoPtr<T, TDeleteArray>;
 template <typename T>
 using TMallocPtr = TAutoPtr<T, TFree>;
 
-//maybe
+// maybe
 namespace NMaybe {
     struct TPolicyUndefinedExcept;
-}
+} // namespace NMaybe
 
 template <class T, class Policy = ::NMaybe::TPolicyUndefinedExcept>
 class TMaybe;
@@ -166,3 +160,5 @@ class TArrayRef;
 
 template <class T>
 using TConstArrayRef = TArrayRef<const T>;
+
+class TBlob;

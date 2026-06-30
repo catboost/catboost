@@ -12,8 +12,10 @@
 #include <util/generic/bitmap.h>
 #include <util/generic/variant.h>
 #include <util/generic/ylimits.h>
+#include <util/generic/ptr.h>
 #include <util/memory/blob.h>
 #include <util/digest/murmur.h>
+#include <util/system/compiler.h>
 
 #include <array>
 #include <bitset>
@@ -76,8 +78,9 @@ private:
     template <class T>
     void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<0>) { // lower priority - will be resolved last
 #if (!defined(_MSC_VER))
+        // broken in clang16 for some types
         // In MSVC __has_trivial_copy returns false to enums, primitive types and arrays.
-        static_assert(__has_trivial_copy(T), "Class is nontrivial copyable, you must define operator&, see");
+        // static_assert(__is_trivially_copyable(T), "Class is nontrivial copyable, you must define operator&, see");
 #endif
         DataChunk(p, sizeof(T));
     }
@@ -243,13 +246,13 @@ private:
             File.Write(data.c_str(), nCount * elemSize);
         }
     }
-    void DataChunkString(std::string& data) {
+    void DataChunkStdString(std::string& data) {
         DataChunkStr(data, sizeof(char));
     }
-    void DataChunkStroka(TString& data) {
+    void DataChunkTString(TString& data) {
         DataChunkStr(data, sizeof(TString::char_type));
     }
-    void DataChunkWtroka(TUtf16String& data) {
+    void DataChunkUtf16String(TUtf16String& data) {
         DataChunkStr(data, sizeof(wchar16));
     }
 
@@ -276,10 +279,10 @@ private:
     bool StableOutput;
 
     typedef THashMap<void*, ui32> PtrIdHash;
-    TAutoPtr<PtrIdHash> PtrIds;
+    THolder<PtrIdHash> PtrIds;
 
     typedef THashMap<ui64, TPtr<IObjectBase>> CObjectsHash;
-    TAutoPtr<CObjectsHash> Objects;
+    THolder<CObjectsHash> Objects;
 
     TVector<IObjectBase*> ObjectQueue;
 
@@ -298,15 +301,15 @@ public:
         return 0;
     }
     int Add(const chunk_id, std::string* pStr) {
-        DataChunkString(*pStr);
+        DataChunkStdString(*pStr);
         return 0;
     }
     int Add(const chunk_id, TString* pStr) {
-        DataChunkStroka(*pStr);
+        DataChunkTString(*pStr);
         return 0;
     }
     int Add(const chunk_id, TUtf16String* pStr) {
-        DataChunkWtroka(*pStr);
+        DataChunkUtf16String(*pStr);
         return 0;
     }
     int Add(const chunk_id, TBlob* blob) {
@@ -327,7 +330,7 @@ public:
     }
     template <class T1, class TA>
     int Add(const chunk_id, TVector<T1, TA>* pVec) {
-        if (HasNonTrivialSerializer<T1>(0u))
+        if constexpr (HasNonTrivialSerializer<T1>(0u))
             DoVector(*pVec);
         else
             DoDataVector(*pVec);
@@ -336,7 +339,7 @@ public:
 
     template <class T, int N>
     int Add(const chunk_id, T (*pVec)[N]) {
-        if (HasNonTrivialSerializer<T>(0u))
+        if constexpr (HasNonTrivialSerializer<T>(0u))
             DoArray(*pVec);
         else
             DataChunk(pVec, sizeof(*pVec));
@@ -371,7 +374,7 @@ public:
 
     template <class T1>
     int Add(const chunk_id, TArray2D<T1>* pArr) {
-        if (HasNonTrivialSerializer<T1>(0u))
+        if constexpr (HasNonTrivialSerializer<T1>(0u))
             Do2DArray(*pArr);
         else
             Do2DArrayData(*pArr);
@@ -403,7 +406,7 @@ public:
 
     template <class T1, size_t N>
     int Add(const chunk_id, std::array<T1, N>* pData) {
-        if (HasNonTrivialSerializer<T1>(0u)) {
+        if constexpr (HasNonTrivialSerializer<T1>(0u)) {
             for (size_t i = 0; i < N; ++i)
                 Add(1, &(*pData)[i]);
         } else {
@@ -536,12 +539,12 @@ public:
     }
 
     template <class T, typename = decltype(std::declval<T&>() & std::declval<IBinSaver&>())>
-    static bool HasNonTrivialSerializer(ui32) {
+    constexpr static bool HasNonTrivialSerializer(ui32) {
         return true;
     }
 
     template <class T>
-    static bool HasNonTrivialSerializer(...) {
+    constexpr static bool HasNonTrivialSerializer(...) {
         return sizeof(std::declval<IBinSaver*>()->Add(0, std::declval<T*>())) != 1;
     }
 
@@ -623,24 +626,24 @@ struct TRegisterSaveLoadType {
     int operator&(IBinSaver& f) { \
         f.AddMulti(__VA_ARGS__);  \
         return 0;                 \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_OVERRIDE_WITHOUT_BASE(...) \
     int operator&(IBinSaver& f) override {  \
         f.AddMulti(__VA_ARGS__);            \
         return 0;                           \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_OVERRIDE(base, ...)       \
     int operator&(IBinSaver& f) override { \
         base::operator&(f);                \
         f.AddMulti(__VA_ARGS__);           \
         return 0;                          \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_BASE(...)        \
     int operator&(IBinSaver& f) { \
         TBase::operator&(f);      \
         f.AddMulti(__VA_ARGS__);  \
         return 0;                 \
-    }
+    } Y_SEMICOLON_GUARD

@@ -118,7 +118,7 @@ static void ScaleAllApproxes(
     );
 }
 
-void CalcApproxesLeafwise(
+static void CalcApproxesLeafwise(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
@@ -148,10 +148,8 @@ void CalcApproxesLeafwise(
     for (int leafIdx = 0; leafIdx < GetLeafCount(tree); ++leafIdx) {
         CalcLeafValues(
             error,
-            ctx->Params,
             &(statistics[leafIdx]),
-            &ctx->LearnProgress->Rand,
-            ctx->LocalExecutor,
+            ctx,
             weightedDers
         );
     }
@@ -325,7 +323,6 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
                 CalcLeafValues(
                     data,
                     *error,
-                    ctx->LearnProgress->AveragingFold,
                     bestTree,
                     ctx,
                     &treeValues,
@@ -387,12 +384,10 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
         } else {
             const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
-            if (isMultiTarget) {
+            if (isMultiTarget || (ctx->LearnProgress->ApproxDimension != 1)) {
                 MapSetApproxesMulti(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
-            } else if (ctx->LearnProgress->ApproxDimension == 1) {
-                MapSetApproxesSimple(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesSimple(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
             }
         }
 

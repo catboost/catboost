@@ -29,12 +29,12 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
@@ -98,7 +98,7 @@
                                 <classpath/>
                                 <argument>ai.catboost.spark.impl.pyspark_wrapper_generator.Generator</argument>
                                 <argument>${project.version}</argument>
-                                <argument>${project.build.directory}/classes/catboost_spark</argument>
+                                <argument>${project.build.directory}/classes</argument>
                                 <argument>${spark.compat.version}</argument>
                             </arguments>
                         </configuration>
@@ -164,7 +164,7 @@
                     <trimStackTrace>false</trimStackTrace>
                     <forkCount>1C</forkCount>
                     <reuseForks>false</reuseForks>
-                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx1024m</argLine>
                     <systemPropertyVariables>
                         <catboost.test.data.path>${catboost_root}/pytest/data</catboost.test.data.path>
                         <canonical.data.path>${src.root}/test/resources/canondata</canonical.data.path>
@@ -216,18 +216,28 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>32.0.0-jre</version>
         </dependency>
 
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.7</version>
+            <version>2.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.11</version>
+            <version>3.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+        <dependency>
+          <groupId>commons-validator</groupId>
+          <artifactId>commons-validator</artifactId>
+          <version>1.10.1</version>
         </dependency>
 
         <dependency>
@@ -236,21 +246,24 @@
             <version>${json4s_version_placeholder}</version>
         </dependency>
 
+        <!-- com.fasterxml.jackson modules are not used by CatBoost directly but we need to specify their
+          versions here to avoid conflicts in dependencies
+        -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        <version>2.13.1</version>
+        <version>${jackson_databind_version_placeholder}</version>
         </dependency>
             <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <version>2.13.1</version>
+            <version>${jackson_module_scala_version_placeholder}</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.98</version>
+            <version>4.8.112</version>
         </dependency>
 
         <!--
@@ -342,7 +355,7 @@
         <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.8.4</version>
+            <version>1.1.10.4</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
@@ -395,7 +408,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

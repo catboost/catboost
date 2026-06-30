@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/port.h>
 
 #include "src/random.h"
 

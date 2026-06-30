@@ -2,7 +2,11 @@
 
 #include <library/cpp/yt/string/format.h>
 
-#include <library/cpp/yt/small_containers/compact_vector.h>
+#include <library/cpp/yt/compact_containers/compact_flat_map.h>
+#include <library/cpp/yt/compact_containers/compact_flat_set.h>
+#include <library/cpp/yt/compact_containers/compact_vector.h>
+
+#include <util/generic/hash_set.h>
 
 #include <limits>
 
@@ -11,31 +15,76 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct TWithCustomFlags
+{
+    [[maybe_unused]]
+    friend void FormatValue(TStringBuilderBase* builder, const TWithCustomFlags&, TStringBuf spec)
+    {
+        if (spec.Contains('R')) {
+            builder->AppendString("R");
+        }
+        if (spec.Contains('N')) {
+            builder->AppendString("N");
+        }
+
+        builder->AppendString("P");
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct TFormatArg<TWithCustomFlags>
+{
+    [[maybe_unused]] static constexpr std::array ConversionSpecifiers = {
+        'v',
+    };
+
+    [[maybe_unused]] static constexpr std::array FlagSpecifiers = {
+        'R', 'N',
+    };
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
 // Some compile-time sanity checks.
-static_assert(TFormatTraits<int>::HasCustomFormatValue);
-static_assert(TFormatTraits<double>::HasCustomFormatValue);
-static_assert(TFormatTraits<void*>::HasCustomFormatValue);
-static_assert(TFormatTraits<const char*>::HasCustomFormatValue);
-static_assert(TFormatTraits<TStringBuf>::HasCustomFormatValue);
-static_assert(TFormatTraits<TString>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::vector<int>>::HasCustomFormatValue);
+static_assert(CFormattable<int>);
+static_assert(CFormattable<double>);
+static_assert(CFormattable<void*>);
+static_assert(CFormattable<const char*>);
+static_assert(CFormattable<TStringBuf>);
+static_assert(CFormattable<TString>);
+static_assert(CFormattable<std::span<int>>);
+static_assert(CFormattable<std::vector<int>>);
+static_assert(CFormattable<std::array<int, 5>>);
 
 // N.B. TCompactVector<int, 1> is not buildable on Windows
-static_assert(TFormatTraits<TCompactVector<int, 2>>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::set<int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::map<int, int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::multimap<int, int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<THashSet<int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<THashMap<int, int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<THashMultiSet<int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::pair<int, int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<std::optional<int>>::HasCustomFormatValue);
-static_assert(TFormatTraits<TDuration>::HasCustomFormatValue);
-static_assert(TFormatTraits<TInstant>::HasCustomFormatValue);
+static_assert(CFormattable<TCompactVector<int, 2>>);
+static_assert(CFormattable<std::set<int>>);
+static_assert(CFormattable<std::map<int, int>>);
+static_assert(CFormattable<std::multimap<int, int>>);
+static_assert(CFormattable<THashSet<int>>);
+static_assert(CFormattable<TCompactFlatSet<int, 2>>);
+static_assert(CFormattable<THashMap<int, int>>);
+static_assert(CFormattable<THashMultiSet<int>>);
+static_assert(CFormattable<TCompactFlatMap<int, int, 2>>);
+static_assert(CFormattable<std::pair<int, int>>);
+static_assert(CFormattable<std::optional<int>>);
+static_assert(CFormattable<TDuration>);
+static_assert(CFormattable<TInstant>);
 
 struct TUnformattable
 { };
-static_assert(!TFormatTraits<TUnformattable>::HasCustomFormatValue);
+static_assert(!CFormattable<TUnformattable>);
+static_assert(!CFormattable<std::variant<TUnformattable>>);
+
+static_assert(CFormattable<TWithCustomFlags>);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -148,6 +197,24 @@ TEST(TFormatTest, Quotes)
     EXPECT_EQ("'\\\'\"'", Format("%qv", "\'\""));
     EXPECT_EQ("\"\\x01\"", Format("%Qv", "\x1"));
     EXPECT_EQ("'\\x1b'", Format("%qv", '\x1b'));
+    EXPECT_EQ("'\\\\'", Format("%qv", '\\'));
+    EXPECT_EQ("'\\n'", Format("%qv", '\n'));
+    EXPECT_EQ("'\\t'", Format("%qv", '\t'));
+    EXPECT_EQ("'\\\''", Format("%qv", '\''));
+    EXPECT_EQ("\"'\"", Format("%Qv", '\''));
+    EXPECT_EQ("'\"'", Format("%qv", '\"'));
+    EXPECT_EQ("\"\\\"\"", Format("%Qv", '\"'));
+}
+
+TEST(TFormatTest, Escape)
+{
+    EXPECT_EQ("\'\"", Format("%hv", "\'\""));
+    EXPECT_EQ("\\x01", Format("%hv", "\x1"));
+    EXPECT_EQ("\\x1b", Format("%hv", '\x1b'));
+    EXPECT_EQ("\\\\", Format("%hv", '\\'));
+    EXPECT_EQ("\\n", Format("%hv", '\n'));
+    EXPECT_EQ("\\t", Format("%hv", '\t'));
+    EXPECT_EQ("\'", Format("%hv", '\''));
 }
 
 TEST(TFormatTest, Nullable)
@@ -174,6 +241,137 @@ TEST(TFormatTest, Pointers)
         EXPECT_EQ("12345678abcdefab", Format("%x", ptr));
         EXPECT_EQ("12345678ABCDEFAB", Format("%X", ptr));
     }
+}
+
+TEST(TFormatTest, Tuples)
+{
+    EXPECT_EQ("{}", Format("%v", std::tuple()));
+    EXPECT_EQ("{1, 2, 3}", Format("%v", std::tuple(1, 2, 3)));
+    EXPECT_EQ("{1, 2}", Format("%v", std::pair(1, 2)));
+}
+
+TEST(TFormatTest, CompactIntervalView)
+{
+    EXPECT_EQ("[]", Format("%v", MakeCompactIntervalView(std::vector<int>{})));
+    EXPECT_EQ("[1]", Format("%v", MakeCompactIntervalView(std::vector<int>{1})));
+    EXPECT_EQ("[0, 2-4, 7]", Format("%v", MakeCompactIntervalView(std::vector<int>{0, 2, 3, 4, 7})));
+}
+
+TEST(TFormatTest, LazyMultiValueFormatter)
+{
+    int i = 1;
+    TString s = "hello";
+    std::vector<int> range{1, 2, 3};
+    auto lazyFormatter = MakeLazyMultiValueFormatter(
+        "int: %v, string: %v, range: %v",
+        i,
+        s,
+        MakeFormattableView(range, TDefaultFormatter{}));
+    EXPECT_EQ("int: 1, string: hello, range: [1, 2, 3]", Format("%v", lazyFormatter));
+}
+
+TEST(TFormatTest, ReusableLambdaFormatter)
+{
+    auto formatter = [&] (auto* builder, int value) {
+        builder->AppendFormat("%v", value);
+    };
+
+    std::vector<int> range1{1, 2, 3};
+    EXPECT_EQ("[1, 2, 3]", Format("%v", MakeFormattableView(range1, formatter)));
+
+    std::vector<int> range2{4, 5, 6};
+    EXPECT_EQ("[4, 5, 6]", Format("%v", MakeFormattableView(range2, formatter)));
+}
+
+TEST(TFormatTest, VectorArg)
+{
+    std::vector<TString> params = {"a", "b", "c"};
+
+    EXPECT_EQ(FormatVector("a is %v, b is %v, c is %v", params), "a is a, b is b, c is c");
+}
+
+TEST(TFormatTest, RuntimeFormat)
+{
+    TString format = "Hello %v";
+    EXPECT_EQ(Format(TRuntimeFormat(format), "World"), "Hello World");
+}
+
+TEST(TFormatTest, CustomFlagsSimple)
+{
+    EXPECT_EQ(Format("%v", TWithCustomFlags{}), TString("P"));
+    EXPECT_EQ(Format("%Rv", TWithCustomFlags{}), TString("RP"));
+    EXPECT_EQ(Format("%Nv", TWithCustomFlags{}), TString("NP"));
+    EXPECT_EQ(Format("%RNv", TWithCustomFlags{}), TString("RNP"));
+    EXPECT_EQ(Format("%NRv", TWithCustomFlags{}), TString("RNP"));
+}
+
+TEST(TFormatTest, CustomFlagsCollection)
+{
+    constexpr int elementCount = 5;
+    auto toCollection = [] (TString pattern) {
+        TString ret = "[";
+        for (int i = 0; i < elementCount - 1; ++i) {
+            ret += pattern + ", ";
+        }
+
+        ret += pattern + "]";
+
+        return ret;
+    };
+
+    std::vector vec(elementCount, TWithCustomFlags{});
+
+    EXPECT_EQ(Format("%v", vec), toCollection("P"));
+    EXPECT_EQ(Format("%Rv", vec), toCollection("RP"));
+    EXPECT_EQ(Format("%Nv", vec), toCollection("NP"));
+    EXPECT_EQ(Format("%RNv", vec), toCollection("RNP"));
+    EXPECT_EQ(Format("%NRv", vec), toCollection("RNP"));
+}
+
+TEST(TFormatTest, CustomFlagsCollectionTwoLevels)
+{
+    constexpr int elementCount1 = 5;
+    constexpr int elementCount2 = 3;
+    auto toCollection = [] (int count, TString pattern) {
+        TString ret = "[";
+        for (int i = 0; i < count - 1; ++i) {
+            ret += pattern + ", ";
+        }
+
+        ret += pattern + "]";
+
+        return ret;
+    };
+    auto toCollectionD2 = [&] (TString pattern) {
+        return toCollection(elementCount2, toCollection(elementCount1, std::move(pattern)));
+    };
+
+    std::vector vec(elementCount1, TWithCustomFlags{});
+    std::array<decltype(vec), elementCount2> arr;
+    std::ranges::fill(arr, vec);
+
+    EXPECT_EQ(Format("%v", arr), toCollectionD2("P"));
+    EXPECT_EQ(Format("%Rv", arr), toCollectionD2("RP"));
+    EXPECT_EQ(Format("%Nv", arr), toCollectionD2("NP"));
+    EXPECT_EQ(Format("%RNv", arr), toCollectionD2("RNP"));
+    EXPECT_EQ(Format("%NRv", arr), toCollectionD2("RNP"));
+}
+
+TEST(TFormatTest, ManyEscapes)
+{
+    EXPECT_EQ("a%b%c%d%e%f%g", Format("%v%%%v%%%v%%%v%%%v%%%v%%%g", "a", "b", "c", "d", "e", "f", "g"));
+}
+
+TEST(TFormatTest, TTruncatedString)
+{
+    EXPECT_EQ("", Format("%v", TTruncatedStringView("", 3)));
+    EXPECT_EQ("abc", Format("%v", TTruncatedStringView("abc", 3)));
+    EXPECT_EQ("abcd", Format("%v", TTruncatedStringView("abcd", 3)));
+    EXPECT_EQ("abcdefghijklmnopq", Format("%v", TTruncatedStringView("abcdefghijklmnopq", 3)));
+    EXPECT_EQ("abc...<truncated>", Format("%v", TTruncatedStringView("abcdefghijklmnopqr", 3)));
+    EXPECT_EQ("a: \"abc...<truncated>\",", Format("a: %Qv,", TTruncatedStringView("abcdefghijklmnopqr", 3)));
+    EXPECT_EQ("a: \'abc...<truncated>\',", Format("a: %qv,", TTruncatedStringView("abcdefghijklmnopqr", 3)));
+    EXPECT_EQ("aQ: \'abc...<truncated>\',", Format("aQ: %qv,", TTruncatedStringView("abcdefghijklmnopqr", 3)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

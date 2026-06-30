@@ -25,7 +25,7 @@ public:
         Y_UNUSED(rmode);
     }
     ~TMuxEvent() {
-        Y_VERIFY(WaitList.empty(), "");
+        Y_ABORT_UNLESS(WaitList.empty(), "");
     }
 
     // TODO: potentially unsafe, but currently I can't add "virtual" to TSystemEvent methods

@@ -2,6 +2,7 @@
 
 #if !defined(INCLUDE_FUTURE_INL_H)
 #error "you should never include future-inl.h directly"
+#include "future.h" // Fix LSP
 #endif // INCLUDE_FUTURE_INL_H
 
 namespace NThreading {
@@ -116,6 +117,9 @@ namespace NThreading {
             bool HasException() const {
                 return AtomicGet(State) == ExceptionSet;
             }
+            bool IsReady() const {
+                return AtomicGet(State) != NotReady;
+            }
 
             const T& GetValue(TDuration timeout = TDuration::Zero()) const {
                 AccessValue(timeout, ValueRead);
@@ -136,9 +140,8 @@ namespace NThreading {
             }
 
             template <typename TT>
-            bool TrySetValue(TT&& value) {
+            bool TrySetValue(TT&& value, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -149,7 +152,6 @@ namespace NThreading {
                     new (&Value) T(std::forward<TT>(value));
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ValueSet);
                 }
@@ -158,11 +160,8 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
-                    TFuture<T> temp(this);
-                    for (auto& callback : callbacks) {
-                        callback(temp);
-                    }
+                if (!deferCallbacks) {
+                    RunCallbacks();
                 }
 
                 return true;
@@ -175,9 +174,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetException(std::exception_ptr e) {
+            bool TrySetException(std::exception_ptr e, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent;
-                TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -188,7 +186,6 @@ namespace NThreading {
                     Exception = std::move(e);
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ExceptionSet);
                 }
@@ -197,14 +194,22 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
+                if (!deferCallbacks) {
+                    RunCallbacks();
+                }
+
+                return true;
+            }
+
+            void RunCallbacks() {
+                Y_ASSERT(AtomicGet(State) != NotReady);
+                if (!Callbacks.empty()) {
+                    TCallbackList<T> callbacks = std::move(Callbacks);
                     TFuture<T> temp(this);
                     for (auto& callback : callbacks) {
                         callback(temp);
                     }
                 }
-
-                return true;
             }
 
             template <typename F>
@@ -297,6 +302,9 @@ namespace NThreading {
             bool HasException() const {
                 return AtomicGet(State) == ExceptionSet;
             }
+            bool IsReady() const {
+                return AtomicGet(State) != NotReady;
+            }
 
             void GetValue(TDuration timeout = TDuration::Zero()) const {
                 TAtomicBase state = AtomicGet(State);
@@ -324,9 +332,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetValue() {
+            bool TrySetValue(bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -335,7 +342,6 @@ namespace NThreading {
                     }
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ValueSet);
                 }
@@ -344,11 +350,8 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
-                    TFuture<void> temp(this);
-                    for (auto& callback : callbacks) {
-                        callback(temp);
-                    }
+                if (!deferCallbacks) {
+                    RunCallbacks();
                 }
 
                 return true;
@@ -361,9 +364,8 @@ namespace NThreading {
                 }
             }
 
-            bool TrySetException(std::exception_ptr e) {
+            bool TrySetException(std::exception_ptr e, bool deferCallbacks = false) {
                 TSystemEvent* readyEvent = nullptr;
-                TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     TAtomicBase state = AtomicGet(State);
@@ -374,7 +376,6 @@ namespace NThreading {
                     Exception = std::move(e);
 
                     readyEvent = ReadyEvent.Get();
-                    callbacks = std::move(Callbacks);
 
                     AtomicSet(State, ExceptionSet);
                 }
@@ -383,14 +384,22 @@ namespace NThreading {
                     readyEvent->Signal();
                 }
 
-                if (callbacks) {
+                if (!deferCallbacks) {
+                    RunCallbacks();
+                }
+
+                return true;
+            }
+
+            void RunCallbacks() {
+                Y_ASSERT(AtomicGet(State) != NotReady);
+                if (!Callbacks.empty()) {
+                    TCallbackList<void> callbacks = std::move(Callbacks);
                     TFuture<void> temp(this);
                     for (auto& callback : callbacks) {
                         callback(temp);
                     }
                 }
-
-                return true;
             }
 
             template <typename F>
@@ -583,6 +592,10 @@ namespace NThreading {
     inline bool TFuture<T>::HasException() const {
         return State && State->HasException();
     }
+    template <typename T>
+    inline bool TFuture<T>::IsReady() const {
+        return State && State->IsReady();
+    }
 
     template <typename T>
     inline void TFuture<T>::Wait() const {
@@ -624,7 +637,7 @@ namespace NThreading {
     inline TFuture<TFutureType<TFutureCallResult<F, T>>> TFuture<T>::Apply(F&& func) const {
         auto promise = NewPromise<TFutureType<TFutureCallResult<F, T>>>();
         Subscribe([promise, func = std::forward<F>(func)](const TFuture<T>& future) mutable {
-            NImpl::SetValue(promise, [&]() { return func(future); });
+            NImpl::SetValue(promise, [&]() { return std::move(func)(future); });
         });
         return promise;
     }
@@ -688,6 +701,9 @@ namespace NThreading {
     inline bool TFuture<void>::HasException() const {
         return State && State->HasException();
     }
+    inline bool TFuture<void>::IsReady() const {
+        return State && State->IsReady();
+    }
 
     inline void TFuture<void>::Wait() const {
         EnsureInitialized();
@@ -723,22 +739,22 @@ namespace NThreading {
     inline TFuture<TFutureType<TFutureCallResult<F, void>>> TFuture<void>::Apply(F&& func) const {
         auto promise = NewPromise<TFutureType<TFutureCallResult<F, void>>>();
         Subscribe([promise, func = std::forward<F>(func)](const TFuture<void>& future) mutable {
-            NImpl::SetValue(promise, [&]() { return func(future); });
+            NImpl::SetValue(promise, [&]() { return std::move(func)(future); });
         });
         return promise;
     }
 
     template <typename R>
-    inline TFuture<R> TFuture<void>::Return(const R& value) const {
-        auto promise = NewPromise<R>();
-        Subscribe([=](const TFuture<void>& future) mutable {
+    inline TFuture<std::remove_cvref_t<R>> TFuture<void>::Return(R&& value) const {
+        auto promise = NewPromise<std::remove_cvref_t<R>>();
+        Subscribe([promise, value = std::forward<R>(value)](const TFuture<void>& future) mutable {
             try {
                 future.TryRethrow();
             } catch (...) {
                 promise.SetException(std::current_exception());
                 return;
             }
-            promise.SetValue(value);
+            promise.SetValue(std::move(value));
         });
         return promise;
     }
@@ -824,6 +840,11 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline bool TPromise<T>::IsReady() const {
+        return State && State->IsReady();
+    }
+
+    template <typename T>
     inline void TPromise<T>::SetException(const TString& e) {
         EnsureInitialized();
         State->SetException(std::make_exception_ptr(yexception() << e));
@@ -904,6 +925,10 @@ namespace NThreading {
         return State && State->HasException();
     }
 
+    inline bool TPromise<void>::IsReady() const {
+        return State && State->IsReady();
+    }
+
     inline void TPromise<void>::SetException(const TString& e) {
         EnsureInitialized();
         State->SetException(std::make_exception_ptr(yexception() << e));
@@ -945,10 +970,6 @@ namespace NThreading {
         return {new NImpl::TFutureState<T>()};
     }
 
-    inline TPromise<void> NewPromise() {
-        return {new NImpl::TFutureState<void>()};
-    }
-
     template <typename T>
     inline TFuture<T> MakeFuture(const T& value) {
         return {new NImpl::TFutureState<T>(value)};
@@ -979,7 +1000,8 @@ namespace NThreading {
         return {new NImpl::TFutureState<T>(std::move(exception), NImpl::TError::Error)};
     }
 
-    inline TFuture<void> MakeFuture() {
+    template<>
+    inline TFuture<void> MakeFuture<void>() {
         struct TCache {
             TFuture<void> Instance{new NImpl::TFutureState<void>(true)};
         };

@@ -20,44 +20,50 @@ Here is the specification for this library:
 
 http://gcc.gnu.org/onlinedocs/gccint/Libgcc.html#Libgcc
 
+Please note that the libgcc specification explicitly mentions actual types of
+arguments and returned values being expressed with machine modes.
+In some cases particular types such as "int", "unsigned", "long long", etc.
+may be specified just as examples there.
+
 Here is a synopsis of the contents of this library:
 
-typedef      int si_int;
-typedef unsigned su_int;
+typedef  int32_t si_int;
+typedef uint32_t su_int;
 
-typedef          long long di_int;
-typedef unsigned long long du_int;
+typedef  int64_t di_int;
+typedef uint64_t du_int;
 
 // Integral bit manipulation
 
-di_int __ashldi3(di_int a, si_int b);      // a << b
-ti_int __ashlti3(ti_int a, si_int b);      // a << b
+di_int __ashldi3(di_int a, int b);         // a << b
+ti_int __ashlti3(ti_int a, int b);         // a << b
 
-di_int __ashrdi3(di_int a, si_int b);      // a >> b  arithmetic (sign fill)
-ti_int __ashrti3(ti_int a, si_int b);      // a >> b  arithmetic (sign fill)
-di_int __lshrdi3(di_int a, si_int b);      // a >> b  logical    (zero fill)
-ti_int __lshrti3(ti_int a, si_int b);      // a >> b  logical    (zero fill)
+di_int __ashrdi3(di_int a, int b);         // a >> b  arithmetic (sign fill)
+ti_int __ashrti3(ti_int a, int b);         // a >> b  arithmetic (sign fill)
+di_int __lshrdi3(di_int a, int b);         // a >> b  logical    (zero fill)
+ti_int __lshrti3(ti_int a, int b);         // a >> b  logical    (zero fill)
 
-si_int __clzsi2(si_int a);  // count leading zeros
-si_int __clzdi2(di_int a);  // count leading zeros
-si_int __clzti2(ti_int a);  // count leading zeros
-si_int __ctzsi2(si_int a);  // count trailing zeros
-si_int __ctzdi2(di_int a);  // count trailing zeros
-si_int __ctzti2(ti_int a);  // count trailing zeros
+int __clzsi2(si_int a);  // count leading zeros
+int __clzdi2(di_int a);  // count leading zeros
+int __clzti2(ti_int a);  // count leading zeros
+int __ctzsi2(si_int a);  // count trailing zeros
+int __ctzdi2(di_int a);  // count trailing zeros
+int __ctzti2(ti_int a);  // count trailing zeros
 
-si_int __ffsdi2(di_int a);  // find least significant 1 bit
-si_int __ffsti2(ti_int a);  // find least significant 1 bit
+int __ffssi2(si_int a);  // find least significant 1 bit
+int __ffsdi2(di_int a);  // find least significant 1 bit
+int __ffsti2(ti_int a);  // find least significant 1 bit
 
-si_int __paritysi2(si_int a);  // bit parity
-si_int __paritydi2(di_int a);  // bit parity
-si_int __parityti2(ti_int a);  // bit parity
+int __paritysi2(si_int a);  // bit parity
+int __paritydi2(di_int a);  // bit parity
+int __parityti2(ti_int a);  // bit parity
 
-si_int __popcountsi2(si_int a);  // bit population
-si_int __popcountdi2(di_int a);  // bit population
-si_int __popcountti2(ti_int a);  // bit population
+int __popcountsi2(si_int a);  // bit population
+int __popcountdi2(di_int a);  // bit population
+int __popcountti2(ti_int a);  // bit population
 
-uint32_t __bswapsi2(uint32_t a);   // a byteswapped, arm only
-uint64_t __bswapdi2(uint64_t a);   // a byteswapped, arm only
+uint32_t __bswapsi2(uint32_t a);   // a byteswapped
+uint64_t __bswapdi2(uint64_t a);   // a byteswapped
 
 // Integral arithmetic
 
@@ -81,6 +87,8 @@ du_int __udivmoddi4(du_int a, du_int b, du_int* rem);  // a / b, *rem = a % b  u
 tu_int __udivmodti4(tu_int a, tu_int b, tu_int* rem);  // a / b, *rem = a % b  unsigned
 su_int __udivmodsi4(su_int a, su_int b, su_int* rem);  // a / b, *rem = a % b  unsigned
 si_int __divmodsi4(si_int a, si_int b, si_int* rem);   // a / b, *rem = a % b  signed
+di_int __divmoddi4(di_int a, di_int b, di_int* rem);   // a / b, *rem = a % b  signed
+ti_int __divmodti4(ti_int a, ti_int b, ti_int* rem);   // a / b, *rem = a % b  signed
 
 
 
@@ -129,49 +137,54 @@ si_int __ucmpti2(tu_int a, tu_int b);
 di_int __fixsfdi(      float a);
 di_int __fixdfdi(     double a);
 di_int __fixxfdi(long double a);
+di_int __fixtfdi(   tf_float a);
 
 ti_int __fixsfti(      float a);
 ti_int __fixdfti(     double a);
 ti_int __fixxfti(long double a);
-uint64_t __fixtfdi(long double input);  // ppc only, doesn't match documentation
+ti_int __fixtfti(   tf_float a);
 
 su_int __fixunssfsi(      float a);
 su_int __fixunsdfsi(     double a);
 su_int __fixunsxfsi(long double a);
+su_int __fixunstfsi(   tf_float a);
 
 du_int __fixunssfdi(      float a);
 du_int __fixunsdfdi(     double a);
 du_int __fixunsxfdi(long double a);
+du_int __fixunstfdi(   tf_float a);
 
 tu_int __fixunssfti(      float a);
 tu_int __fixunsdfti(     double a);
 tu_int __fixunsxfti(long double a);
-uint64_t __fixunstfdi(long double input);  // ppc only
+tu_int __fixunstfti(   tf_float a);
 
 float       __floatdisf(di_int a);
 double      __floatdidf(di_int a);
 long double __floatdixf(di_int a);
-long double __floatditf(int64_t a);        // ppc only
+tf_float    __floatditf(int64_t a);
 
 float       __floattisf(ti_int a);
 double      __floattidf(ti_int a);
 long double __floattixf(ti_int a);
+tf_float    __floattitf(ti_int a);
 
 float       __floatundisf(du_int a);
 double      __floatundidf(du_int a);
 long double __floatundixf(du_int a);
-long double __floatunditf(uint64_t a);     // ppc only
+tf_float    __floatunditf(du_int a);
 
 float       __floatuntisf(tu_int a);
 double      __floatuntidf(tu_int a);
 long double __floatuntixf(tu_int a);
+tf_float    __floatuntixf(tu_int a);
 
 //  Floating point raised to integer power
 
-float       __powisf2(      float a, si_int b);  // a ^ b
-double      __powidf2(     double a, si_int b);  // a ^ b
-long double __powixf2(long double a, si_int b);  // a ^ b
-long double __powitf2(long double a, si_int b);  // ppc only, a ^ b
+float       __powisf2(      float a, int b);  // a ^ b
+double      __powidf2(     double a, int b);  // a ^ b
+long double __powixf2(long double a, int b);  // a ^ b
+tf_float    __powitf2(   tf_float a, int b);  // a ^ b
 
 //  Complex arithmetic
 
@@ -181,8 +194,7 @@ long double __powitf2(long double a, si_int b);  // ppc only, a ^ b
      double _Complex __muldc3(double a, double b, double c, double d);
 long double _Complex __mulxc3(long double a, long double b,
                               long double c, long double d);
-long double _Complex __multc3(long double a, long double b,
-                              long double c, long double d); // ppc only
+   tf_float _Complex __multc3(tf_float a, tf_float b, tf_float c, tf_float d);
 
 //  (a + ib) / (c + id)
 
@@ -190,8 +202,7 @@ long double _Complex __multc3(long double a, long double b,
      double _Complex __divdc3(double a, double b, double c, double d);
 long double _Complex __divxc3(long double a, long double b,
                               long double c, long double d);
-long double _Complex __divtc3(long double a, long double b,
-                              long double c, long double d);  // ppc only
+   tf_float _Complex __divtc3(tf_float a, tf_float b, tf_float c, tf_float d);
 
 
 //         Runtime support
@@ -263,8 +274,8 @@ switchu8
 
 // There is no C interface to the *_vfp_d8_d15_regs functions.  There are
 // called in the prolog and epilog of Thumb1 functions.  When the C++ ABI use
-// SJLJ for exceptions, each function with a catch clause or destuctors needs
-// to save and restore all registers in it prolog and epliog.  But there is 
+// SJLJ for exceptions, each function with a catch clause or destructors needs
+// to save and restore all registers in it prolog and epilog.  But there is
 // no way to access vector and high float registers from thumb1 code, so the 
 // compiler must add call outs to these helper functions in the prolog and 
 // epilog.
@@ -303,9 +314,9 @@ double __floatsidfvfp(int a);           // Appears to convert from
 float __floatsisfvfp(int a);            // Appears to convert from
                                         //     int to float.
 double __floatunssidfvfp(unsigned int a); // Appears to convert from
-                                        //     unisgned int to double.
+                                        //     unsigned int to double.
 float __floatunssisfvfp(unsigned int a); // Appears to convert from
-                                        //     unisgned int to float.
+                                        //     unsigned int to float.
 int __gedf2vfp(double a, double b);     // Appears to return __gedf2
                                         //     (a >= b)
 int __gesf2vfp(float a, float b);       // Appears to return __gesf2

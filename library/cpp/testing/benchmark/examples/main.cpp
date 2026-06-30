@@ -4,7 +4,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 
 Y_CPU_BENCHMARK(F, iface) {
     TVector<size_t> x;

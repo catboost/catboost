@@ -3,12 +3,19 @@
 #include <util/memory/blob.h>
 #include <util/generic/yexception.h>
 
-TUnbufferedFileInput::TUnbufferedFileInput(const TString& path)
-    : File_(path, OpenExisting | RdOnly | Seq)
+TUnbufferedFileInput::TUnbufferedFileInput(const char* path)
+    : TUnbufferedFileInput(TFile(path, OPEN_MODE))
 {
-    if (!File_.IsOpen()) {
-        ythrow TIoException() << "file " << path << " not open";
-    }
+}
+
+TUnbufferedFileInput::TUnbufferedFileInput(const TString& path)
+    : TUnbufferedFileInput(TFile(path, OPEN_MODE))
+{
+}
+
+TUnbufferedFileInput::TUnbufferedFileInput(const std::filesystem::path& path)
+    : TUnbufferedFileInput(TFile(path, OPEN_MODE))
+{
 }
 
 TUnbufferedFileInput::TUnbufferedFileInput(const TFile& file)
@@ -42,12 +49,19 @@ size_t TUnbufferedFileInput::DoSkip(size_t len) {
     return newPos - oldPos;
 }
 
-TUnbufferedFileOutput::TUnbufferedFileOutput(const TString& path)
-    : File_(path, CreateAlways | WrOnly | Seq)
+TUnbufferedFileOutput::TUnbufferedFileOutput(const char* path)
+    : TUnbufferedFileOutput(TFile(path, OPEN_MODE))
 {
-    if (!File_.IsOpen()) {
-        ythrow TFileError() << "can not open " << path;
-    }
+}
+
+TUnbufferedFileOutput::TUnbufferedFileOutput(const TString& path)
+    : TUnbufferedFileOutput(TFile(path, OPEN_MODE))
+{
+}
+
+TUnbufferedFileOutput::TUnbufferedFileOutput(const std::filesystem::path& path)
+    : TUnbufferedFileOutput(TFile(path, OPEN_MODE))
+{
 }
 
 TUnbufferedFileOutput::TUnbufferedFileOutput(const TFile& file)

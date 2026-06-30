@@ -12,14 +12,14 @@ Detailed information about the duration of different operations within each iter
     ```
     <verbal description operation>: <time> <sec|ms>
     ```
-    
+
 - The last line in the iteration block starts with a tab and contains tab-separated values of the time that has passed since training started and the remaining time until the end of training.
 - The last block in the file contains information regarding the average times of execution of different operations and starts with the `Average times:` string on a new line.
 - Each of the following lines in the block with average times of execution contains information regarding a single operation in the format:
     ```
     <verbal description operation>: <time> <sec|ms>
     ```
-    
+
 
 #### {{ output--example }}
 

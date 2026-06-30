@@ -261,4 +261,4 @@ Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         }
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
-}
+} // Y_UNIT_TEST_SUITE(TStreamTokenizerTests)

@@ -35,6 +35,7 @@
 #include "absl/base/config.h"
 #include "absl/base/internal/raw_logging.h"
 #include "absl/base/log_severity.h"
+#include "absl/base/no_destructor.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/log/globals.h"
@@ -122,11 +123,11 @@ class AndroidLogSink final : public LogSink {
 
   void Send(const absl::LogEntry& entry) override {
     const int level = AndroidLogLevel(entry);
-    // TODO(b/37587197): make the tag ("native") configurable.
-    __android_log_write(level, "native",
+    const char* const tag = GetAndroidNativeTag();
+    __android_log_write(level, tag,
                         entry.text_message_with_prefix_and_newline_c_str());
     if (entry.log_severity() == absl::LogSeverity::kFatal)
-      __android_log_write(ANDROID_LOG_FATAL, "native", "terminating.\n");
+      __android_log_write(ANDROID_LOG_FATAL, tag, "terminating.\n");
   }
 
  private:
@@ -168,17 +169,16 @@ class GlobalLogSinkSet final {
 #if defined(__myriad2__) || defined(__Fuchsia__)
     // myriad2 and Fuchsia do not log to stderr by default.
 #else
-    static StderrLogSink* stderr_log_sink = new StderrLogSink;
-    AddLogSink(stderr_log_sink);
+    static absl::NoDestructor<StderrLogSink> stderr_log_sink;
+    AddLogSink(stderr_log_sink.get());
 #endif
 #ifdef __ANDROID__
-    static AndroidLogSink* android_log_sink = new AndroidLogSink;
-    AddLogSink(android_log_sink);
+    static absl::NoDestructor<AndroidLogSink> android_log_sink;
+    AddLogSink(android_log_sink.get());
 #endif
 #if defined(_WIN32)
-    static WindowsDebuggerLogSink* debugger_log_sink =
-        new WindowsDebuggerLogSink;
-    AddLogSink(debugger_log_sink);
+    static absl::NoDestructor<WindowsDebuggerLogSink> debugger_log_sink;
+    AddLogSink(debugger_log_sink.get());
 #endif  // !defined(_WIN32)
   }
 
@@ -192,7 +192,7 @@ class GlobalLogSinkSet final {
         absl::log_internal::WriteToStderr(
             entry.text_message_with_prefix_and_newline(), entry.log_severity());
       } else {
-        absl::ReaderMutexLock global_sinks_lock(&guard_);
+        absl::ReaderMutexLock global_sinks_lock(guard_);
         ThreadIsLoggingStatus() = true;
         // Ensure the "thread is logging" status is reverted upon leaving the
         // scope even in case of exceptions.
@@ -205,7 +205,7 @@ class GlobalLogSinkSet final {
 
   void AddLogSink(absl::LogSink* sink) ABSL_LOCKS_EXCLUDED(guard_) {
     {
-      absl::WriterMutexLock global_sinks_lock(&guard_);
+      absl::WriterMutexLock global_sinks_lock(guard_);
       auto pos = std::find(sinks_.begin(), sinks_.end(), sink);
       if (pos == sinks_.end()) {
         sinks_.push_back(sink);
@@ -217,7 +217,7 @@ class GlobalLogSinkSet final {
 
   void RemoveLogSink(absl::LogSink* sink) ABSL_LOCKS_EXCLUDED(guard_) {
     {
-      absl::WriterMutexLock global_sinks_lock(&guard_);
+      absl::WriterMutexLock global_sinks_lock(guard_);
       auto pos = std::find(sinks_.begin(), sinks_.end(), sink);
       if (pos != sinks_.end()) {
         sinks_.erase(pos);
@@ -235,7 +235,7 @@ class GlobalLogSinkSet final {
       guard_.AssertReaderHeld();
       FlushLogSinksLocked();
     } else {
-      absl::ReaderMutexLock global_sinks_lock(&guard_);
+      absl::ReaderMutexLock global_sinks_lock(guard_);
       // In case if LogSink::Flush overload decides to log
       ThreadIsLoggingStatus() = true;
       // Ensure the "thread is logging" status is reverted upon leaving the
@@ -268,7 +268,7 @@ class GlobalLogSinkSet final {
 
 // Returns reference to the global LogSinks set.
 GlobalLogSinkSet& GlobalSinks() {
-  static GlobalLogSinkSet* global_sinks = new GlobalLogSinkSet;
+  static absl::NoDestructor<GlobalLogSinkSet> global_sinks;
   return *global_sinks;
 }
 

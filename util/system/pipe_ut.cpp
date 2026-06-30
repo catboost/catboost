@@ -12,4 +12,4 @@ Y_UNIT_TEST_SUITE(TPipeTest) {
         UNIT_ASSERT(1 == r.Read(&c, 1));
         UNIT_ASSERT_VALUES_EQUAL('a', c);
     }
-}
+} // Y_UNIT_TEST_SUITE(TPipeTest)

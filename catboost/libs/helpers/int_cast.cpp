@@ -13,10 +13,3 @@ TVector<ui32> ToUnsigned(const TVector<int>& src) {
     return result;
 }
 
-THashSet<int> ToSigned(const THashSet<ui32>& src) {
-    THashSet<int> result;
-    for (auto element : src) {
-        result.insert(SafeIntegerCast<int>(element));
-    }
-    return result;
-}

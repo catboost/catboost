@@ -7,7 +7,7 @@
 /* { dg-do run } */
 #include "ffitest.h"
 
-unsigned char test_func_fn(unsigned char a1, unsigned char a2,
+static unsigned char test_func_fn(unsigned char a1, unsigned char a2,
 			   unsigned char a3, unsigned char a4)
 {
   unsigned char result;
@@ -15,6 +15,12 @@ unsigned char test_func_fn(unsigned char a1, unsigned char a2,
   result = a1 + a2 + a3 + a4;
 
   printf("%d %d %d %d: %d\n", a1, a2, a3, a4, result);
+
+  CHECK(a1 == 1);
+  CHECK(a2 == 2);
+  CHECK(a3 == 127);
+  CHECK(a4 == 125);
+  CHECK(result == 255);
 
   return result;
 
@@ -79,6 +85,7 @@ int main (void)
   /* { dg-output "1 2 127 125: 255" } */
   printf("res: %d\n", (unsigned char)res_call);
   /* { dg-output "\nres: 255" } */
+  CHECK((unsigned char)res_call == 255);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == FFI_OK);
 
@@ -86,6 +93,7 @@ int main (void)
   /* { dg-output "\n1 2 127 125: 255" } */
   printf("res: %d\n", res_closure);
   /* { dg-output "\nres: 255" } */
+  CHECK(res_closure == 255);
 
   exit(0);
 }

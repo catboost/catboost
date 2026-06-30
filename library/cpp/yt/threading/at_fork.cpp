@@ -1,4 +1,5 @@
 #include "at_fork.h"
+#include "writer_starving_rw_spin_lock.h"
 
 #include <library/cpp/yt/memory/leaky_singleton.h>
 
@@ -29,7 +30,7 @@ public:
         TAtForkHandler child)
     {
         int index = AtForkHandlerCount_++;
-        Y_VERIFY(index < MaxAtForkHandlerSets);
+        Y_ABORT_UNLESS(index < MaxAtForkHandlerSets);
         auto& set = AtForkHandlerSets_[index];
         set.Prepare = std::move(prepare);
         set.Parent = std::move(parent);
@@ -37,7 +38,7 @@ public:
         set.Initialized.store(true);
     }
 
-    TReaderWriterSpinLock* GetForkLock()
+    TWriterStarvingRWSpinLock* GetForkLock()
     {
         return &ForkLock_;
     }
@@ -45,7 +46,7 @@ public:
 private:
     DECLARE_LEAKY_SINGLETON_FRIEND()
 
-    TReaderWriterSpinLock ForkLock_;
+    YT_DECLARE_SPIN_LOCK(TWriterStarvingRWSpinLock, ForkLock_);
 
     struct TAtForkHandlerSet
     {
@@ -128,7 +129,7 @@ void RegisterAtForkHandlers(
         std::move(child));
 }
 
-TReaderWriterSpinLock* GetForkLock()
+TWriterStarvingRWSpinLock* GetForkLock()
 {
     return TAtForkManager::Get()->GetForkLock();
 }
@@ -136,4 +137,3 @@ TReaderWriterSpinLock* GetForkLock()
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT::NThreading
-

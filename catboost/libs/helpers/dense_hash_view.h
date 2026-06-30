@@ -5,6 +5,7 @@
 #include <util/digest/numeric.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/bitops.h>
 
 namespace NCatboost {
 

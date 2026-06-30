@@ -7,6 +7,7 @@
 #include <util/generic/fwd.h>
 #include <util/system/types.h>
 #include <util/str_stl.h>
+#include <util/ysaveload.h>
 
 #include <tuple>
 
@@ -25,6 +26,7 @@ namespace NCB {
             return std::tie(GroupIdx, WinnerIdxInGroup, LoserIdxInGroup, Weight)
                 == std::tie(other.GroupIdx, other.WinnerIdxInGroup, other.LoserIdxInGroup, other.Weight);
         }
+        Y_SAVELOAD_DEFINE(GroupIdx, WinnerIdxInGroup, LoserIdxInGroup, Weight);
     };
 
 }

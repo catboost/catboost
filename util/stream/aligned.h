@@ -17,7 +17,7 @@
  */
 class TAlignedInput: public IInputStream {
 public:
-    TAlignedInput(IInputStream* s)
+    TAlignedInput(IInputStream* s Y_LIFETIME_BOUND)
         : Stream_(s)
         , Position_(0)
     {
@@ -58,7 +58,7 @@ private:
  */
 class TAlignedOutput: public IOutputStream {
 public:
-    TAlignedOutput(IOutputStream* s)
+    TAlignedOutput(IOutputStream* s Y_LIFETIME_BOUND)
         : Stream_(s)
         , Position_(0)
     {

@@ -45,8 +45,11 @@ class _Formatting(object):
     def escaped_define(strkey, val):
         name = "#define " + strkey + " "
         if _Formatting.is_str(val):
-            define = "\"" + _Formatting.escape_line_feed(
-                _Formatting.escape_trigraphs(_Formatting.escape_special_symbols(val))) + "\""
+            define = (
+                "\""
+                + _Formatting.escape_line_feed(_Formatting.escape_trigraphs(_Formatting.escape_special_symbols(val)))
+                + "\""
+            )
         else:
             define = str(val)
         return name + define
@@ -60,7 +63,8 @@ class _Formatting(object):
 
 
 def get_default_json():
-    return json.loads('''{
+    return json.loads(
+        '''{
     "ARCADIA_SOURCE_HG_HASH": "0000000000000000000000000000000000000000",
     "ARCADIA_SOURCE_LAST_AUTHOR": "<UNKNOWN>",
     "ARCADIA_SOURCE_LAST_CHANGE": -1,
@@ -73,17 +77,19 @@ def get_default_json():
     "BUILD_HOST": "localhost",
     "BUILD_USER": "nobody",
     "CUSTOM_VERSION": "",
+    "RELEASE_VERSION": "",
     "PROGRAM_VERSION": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n\\n",
     "SCM_DATA": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n",
     "VCS": "arc",
     "ARCADIA_PATCH_NUMBER": 0,
     "ARCADIA_TAG": ""
-}''')
+}'''
+    )
 
 
 def get_json(file_name):
     try:
-        with open(file_name, 'r') as f:
+        with open(file_name, 'rt', encoding="utf-8") as f:
             out = json.load(f)
 
         # TODO: check 'tar+svn' parsing
@@ -99,15 +105,15 @@ def get_json(file_name):
 
 
 def print_c(json_file, output_file, argv):
-    """ params:
-            json file
-            output file
-            $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c"""
+    """params:
+    json file
+    output file
+    $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c"""
     interface = argv[0]
 
-    with open(interface) as c:
+    with open(interface, 'rt', encoding="utf-8") as c:
         c_file = c.read()
-    with open(output_file, 'w') as f:
+    with open(output_file, 'wt', encoding="utf-8") as f:
         header = '\n'.join(_Formatting.escaped_define(k, v) for k, v in json_file.items())
         f.write(header + '\n' + c_file)
 
@@ -173,10 +179,10 @@ def merge_java_mf_dir(json_file, out_manifest, input_dir):
 
     old_lines = []
     if os.path.isfile(manifest):
-        with open(manifest, 'r') as f:
+        with open(manifest, 'rt', encoding="utf-8") as f:
             old_lines = f.readlines()
 
-    with open(out_manifest, 'w') as f:
+    with open(out_manifest, 'wt', encoding="utf-8") as f:
         f.write(merge_java_content(old_lines, json_file))
 
 
@@ -188,10 +194,9 @@ def merge_java_mf(json_file, out_manifest, input):
 
 
 def print_java_mf(info):
-    wrapper = textwrap.TextWrapper(subsequent_indent=' ',
-                                   break_long_words=True,
-                                   replace_whitespace=False,
-                                   drop_whitespace=False)
+    wrapper = textwrap.TextWrapper(
+        subsequent_indent=' ', break_long_words=True, replace_whitespace=False, drop_whitespace=False
+    )
     names = set()
 
     def wrap(key, val):
@@ -222,35 +227,97 @@ def print_java_mf(info):
     if 'BUILD_TIMESTAMP' in info:
         lines += wrap('Build-Timestamp: ', str(info['BUILD_TIMESTAMP']))
     if 'CUSTOM_VERSION' in info:
-        lines += wrap('Custom-Version-String: ', base64.b64encode(info['CUSTOM_VERSION'].encode('utf-8')).decode('utf-8'))
+        lines += wrap(
+            'Custom-Version-String: ', base64.b64encode(info['CUSTOM_VERSION'].encode('utf-8')).decode('utf-8')
+        )
+    if 'RELEASE_VERSION' in info:
+        lines += wrap(
+            'Release-Version-String: ', base64.b64encode(info['RELEASE_VERSION'].encode('utf-8')).decode('utf-8')
+        )
     return lines, names
 
 
 def print_java(json_file, output_file, argv):
-    """ params:
-            json file
-            output file
-            file"""
+    """params:
+    json file
+    output file
+    file"""
     input = argv[0] if argv else os.curdir
     merge_java_mf(json_file, output_file, input)
 
 
-def print_go(json_file, output_file):
+def print_go(json_file, output_file, arc_project_prefix):
     def gen_map(info):
         lines = []
         for k, v in info.items():
             lines.append(_Formatting.escaped_go_map_key(k, v))
         return lines
 
-    with open(output_file, 'w') as f:
-        f.write('\n'.join([
-            'package main',
-            'import ("a.yandex-team.ru/library/go/core/buildinfo")',
-            'var buildinfomap = map[string]string {'] + gen_map(json_file) + ['}'] +
-            ['func init() {',
-             '   buildinfo.InitBuildInfo(buildinfomap)',
-             '}']
-        ) + '\n')
+    with open(output_file, 'wt', encoding="utf-8") as f:
+        f.write(
+            '\n'.join(
+                [
+                    '// Code generated by vcs_info.py; DO NOT EDIT.',
+                    '',
+                    'package main',
+                    'import "{}library/go/core/buildinfo"'.format(arc_project_prefix),
+                    'func init() {',
+                    '   buildinfo.InitBuildInfo(map[string]string {',
+                ]
+                + gen_map(json_file)
+                + ['})', '}']
+            )
+            + '\n'
+        )
+
+
+def print_json(json_file, output_file):
+    MANDATOTRY_FIELDS_MAP = {
+        'ARCADIA_TAG': 'Arcadia-Tag',
+        'ARCADIA_PATCH_NUMBER': 'Arcadia-Patch-Number',
+        'ARCADIA_SOURCE_URL': 'Arcadia-Source-URL',
+        'ARCADIA_SOURCE_REVISION': 'Arcadia-Source-Revision',
+        'ARCADIA_SOURCE_HG_HASH': 'Arcadia-Source-Hash',
+        'ARCADIA_SOURCE_LAST_CHANGE': 'Arcadia-Source-Last-Change',
+        'ARCADIA_SOURCE_LAST_AUTHOR': 'Arcadia-Source-Last-Author',
+        'BRANCH': 'Branch',
+        'BUILD_HOST': 'Build-Host',
+        'BUILD_USER': 'Build-User',
+        'PROGRAM_VERSION': 'Program-Version-String',
+        'SCM_DATA': 'SCM-String',
+        'VCS': 'Version-Control-System',
+    }
+
+    SVN_REVISION = 'SVN_REVISION'
+
+    SVN_FIELDS_MAP = {
+        SVN_REVISION: 'SVN-Revision',
+        'SVN_ARCROOT': 'SVN-Arcroot',
+        'SVN_TIME': 'SVN-Time',
+    }
+
+    OPTIONAL_FIELDS_MAP = {
+        'BUILD_TIMESTAMP': 'Build-Timestamp',
+        'CUSTOM_VERSION': 'Custom-Version-String',
+        'RELEASE_VERSION': 'Release-Version-String',
+        'DIRTY': 'Working-Copy-State',
+    }
+
+    ext_json = {}
+
+    for k in MANDATOTRY_FIELDS_MAP:
+        ext_json[MANDATOTRY_FIELDS_MAP[k]] = json_file[k]
+
+    if SVN_REVISION in json_file:
+        for k in SVN_FIELDS_MAP:
+            ext_json[SVN_FIELDS_MAP[k]] = json_file[k]
+
+    for k in OPTIONAL_FIELDS_MAP:
+        if k in json_file and json_file[k]:
+            ext_json[OPTIONAL_FIELDS_MAP[k]] = json_file[k]
+
+    with open(output_file, 'wt', encoding="utf-8") as f:
+        json.dump(ext_json, f, sort_keys=True, indent=4)
 
 
 if __name__ == '__main__':
@@ -260,6 +327,9 @@ if __name__ == '__main__':
     elif 'output-java' in sys.argv:
         lang = 'Java'
         sys.argv.remove('output-java')
+    elif 'output-json' in sys.argv:
+        lang = 'JSON'
+        sys.argv.remove('output-json')
     else:
         lang = 'C'
 
@@ -271,8 +341,10 @@ if __name__ == '__main__':
         json_file = get_json(json_name)
 
     if lang == 'Go':
-        print_go(json_file, sys.argv[2])
+        print_go(json_file, sys.argv[2], sys.argv[3])
     elif lang == 'Java':
         print_java(json_file, sys.argv[2], sys.argv[3:])
+    elif lang == 'JSON':
+        print_json(json_file, sys.argv[2])
     else:
         print_c(json_file, sys.argv[2], sys.argv[3:])

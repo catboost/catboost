@@ -36,12 +36,26 @@ public:
         GzipAllowMultipleStreams_ = allow;
     }
 
+    inline void DisableDecodeContent() noexcept {
+        DecodeContent_ = false;
+    }
+
+    /*
+     * Disable message-body parsing.
+     * Useful for parse HEAD method responses
+     */
+    inline void BodyNotExpected() {
+        BodyNotExpected_ = true;
+    }
+
     /// @return true on end parsing (GetExtraDataSize() return amount not used bytes)
     /// throw exception on bad http format (unsupported encoding, etc)
     /// sz == 0 signaling end of input stream
     bool Parse(const char* data, size_t sz) {
         if (ParseImpl(data, sz)) {
-            DecodeContent();
+            if (DecodeContent_) {
+                DecodeContent(DecodedContent_);
+            }
             return true;
         }
         return false;
@@ -50,6 +64,7 @@ public:
     const char* Data() const noexcept {
         return Data_;
     }
+
     size_t GetExtraDataSize() const noexcept {
         return ExtraDataSize_;
     }
@@ -85,6 +100,8 @@ public:
 
     TString GetBestCompressionScheme() const;
 
+    const THashSet<TString>& AcceptedEncodings() const;
+
     const TString& Content() const noexcept {
         return Content_;
     }
@@ -97,6 +114,8 @@ public:
         HeaderLine_.reserve(128);
         FirstLine_.reserve(128);
     }
+
+    bool DecodeContent(TString& decodedContent) const;
 
 private:
     bool ParseImpl(const char* data, size_t sz) {
@@ -122,7 +141,6 @@ private:
     void ParseHeaderLine();
 
     void OnEof();
-    bool DecodeContent();
 
     void ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val);
 
@@ -132,6 +150,8 @@ private:
     TMessageType MessageType_ = Response;
     bool CollectHeaders_ = true;
     bool GzipAllowMultipleStreams_ = true;
+    bool DecodeContent_ = true;
+    bool BodyNotExpected_ = false;
 
     // parsed data
     const char* Data_ = nullptr;

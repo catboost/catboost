@@ -79,14 +79,13 @@ struct segpool_alloc {
             free(__p);
         } else {
             Y_IF_DEBUG(pool_free_count++);
-            ;
         }
     }
     ~segpool_alloc() {
-        //assert(pool_count == pool_free_count && malloc_count == malloc_free_count); <- uncomment when swap() problem is solved
-        //printf("in ~segpool_alloc: size = %u, pool_count = %" PRId64 ", malloc_count = %" PRId64 ", pool_free_count = %" PRId64 ", malloc_free_count = %" PRId64 "\n",
+        // assert(pool_count == pool_free_count && malloc_count == malloc_free_count); <- uncomment when swap() problem is solved
+        // printf("in ~segpool_alloc: size = %u, pool_count = %" PRId64 ", malloc_count = %" PRId64 ", pool_free_count = %" PRId64 ", malloc_free_count = %" PRId64 "\n",
         //        sizeof(_Tp), pool_count, malloc_count, pool_free_count, malloc_free_count);
-        //fflush(stdout);
+        // fflush(stdout);
     }
     template <class _Tp1>
     struct rebind {

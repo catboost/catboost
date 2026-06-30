@@ -55,18 +55,20 @@ public:
     TExternalSymbol(const TExternalSymbol& es) {
         PLib = nullptr;
         DLib = nullptr;
-        if (es.IsDynamic())
+        if (es.IsDynamic()) {
             Open(es.LibName().data(), es.VtblName().data());
-        else if (es.IsStatic())
+        } else if (es.IsStatic()) {
             SetSym(es.Symbol());
+        }
     }
     TExternalSymbol& operator=(const TExternalSymbol& es) {
         if (this != &es) {
             Close();
-            if (es.IsDynamic())
+            if (es.IsDynamic()) {
                 Open(es.LibName().data(), es.VtblName().data());
-            else if (es.IsStatic())
+            } else if (es.IsStatic()) {
                 SetSym(es.Symbol());
+            }
         }
         return *this;
     }
@@ -75,8 +77,9 @@ public:
     }
     // set the symbol from dynamic source
     void Open(const char* lib_name, const char* vtbl_name) {
-        if (DLib != nullptr || PLib != nullptr)
+        if (DLib != nullptr || PLib != nullptr) {
             return;
+        }
         try {
             DLib = new TDynamicLibrary();
             DLib->Open(lib_name);
@@ -91,8 +94,9 @@ public:
     }
     // set the symbol from static source
     void SetSym(TLib* pl) noexcept {
-        if (DLib == nullptr && PLib == nullptr)
+        if (DLib == nullptr && PLib == nullptr) {
             PLib = pl;
+        }
     }
     void Close() noexcept {
         delete DLib;

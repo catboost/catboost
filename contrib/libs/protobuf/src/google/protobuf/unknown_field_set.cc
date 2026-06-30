@@ -32,22 +32,25 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/unknown_field_set.h>
+#include "google/protobuf/unknown_field_set.h"
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/parse_context.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_message_tctable_decl.h>
-#include <google/protobuf/generated_message_tctable_impl.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/stubs/stl_util.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/cord.h"
+#include "y_absl/strings/internal/resize_uninitialized.h"
+#include "google/protobuf/extension_set.h"
+#include "google/protobuf/generated_message_tctable_decl.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/zero_copy_stream.h"
+#include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
+#include "google/protobuf/parse_context.h"
+#include "google/protobuf/wire_format.h"
+#include "google/protobuf/wire_format_lite.h"
 
-#include <google/protobuf/port_def.inc>
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -58,7 +61,7 @@ const UnknownFieldSet& UnknownFieldSet::default_instance() {
 }
 
 void UnknownFieldSet::ClearFallback() {
-  GOOGLE_DCHECK(!fields_.empty());
+  Y_ABSL_DCHECK(!fields_.empty());
   int n = fields_.size();
   do {
     (fields_)[--n].Delete();
@@ -109,7 +112,7 @@ void UnknownFieldSet::MergeToInternalMetadata(
 size_t UnknownFieldSet::SpaceUsedExcludingSelfLong() const {
   if (fields_.empty()) return 0;
 
-  size_t total_size = sizeof(fields_) + sizeof(UnknownField) * fields_.size();
+  size_t total_size = sizeof(UnknownField) * fields_.capacity();
 
   for (const UnknownField& field : fields_) {
     switch (field.type()) {
@@ -133,45 +136,45 @@ size_t UnknownFieldSet::SpaceUsedLong() const {
 }
 
 void UnknownFieldSet::AddVarint(int number, arc_ui64 value) {
-  UnknownField field;
+  fields_.emplace_back();
+  auto& field = fields_.back();
   field.number_ = number;
   field.SetType(UnknownField::TYPE_VARINT);
   field.data_.varint_ = value;
-  fields_.push_back(field);
 }
 
 void UnknownFieldSet::AddFixed32(int number, arc_ui32 value) {
-  UnknownField field;
+  fields_.emplace_back();
+  auto& field = fields_.back();
   field.number_ = number;
   field.SetType(UnknownField::TYPE_FIXED32);
   field.data_.fixed32_ = value;
-  fields_.push_back(field);
 }
 
 void UnknownFieldSet::AddFixed64(int number, arc_ui64 value) {
-  UnknownField field;
+  fields_.emplace_back();
+  auto& field = fields_.back();
   field.number_ = number;
   field.SetType(UnknownField::TYPE_FIXED64);
   field.data_.fixed64_ = value;
-  fields_.push_back(field);
 }
 
 TProtoStringType* UnknownFieldSet::AddLengthDelimited(int number) {
-  UnknownField field;
+  fields_.emplace_back();
+  auto& field = fields_.back();
   field.number_ = number;
   field.SetType(UnknownField::TYPE_LENGTH_DELIMITED);
   field.data_.length_delimited_.string_value = new TProtoStringType;
-  fields_.push_back(field);
   return field.data_.length_delimited_.string_value;
 }
 
 
 UnknownFieldSet* UnknownFieldSet::AddGroup(int number) {
-  UnknownField field;
+  fields_.emplace_back();
+  auto& field = fields_.back();
   field.number_ = number;
   field.SetType(UnknownField::TYPE_GROUP);
   field.data_.group_ = new UnknownFieldSet;
-  fields_.push_back(field);
   return field.data_.group_;
 }
 
@@ -238,6 +241,33 @@ bool UnknownFieldSet::ParseFromArray(const void* data, int size) {
   return ParseFromZeroCopyStream(&input);
 }
 
+bool UnknownFieldSet::SerializeToString(TProtoStringType* output) const {
+  const size_t size =
+      google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(*this);
+  y_absl::strings_internal::STLStringResizeUninitializedAmortized(output, size);
+  google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+      *this, reinterpret_cast<uint8_t*>(const_cast<char*>(output->data())));
+  return true;
+}
+
+bool UnknownFieldSet::SerializeToCodedStream(
+    io::CodedOutputStream* output) const {
+  google::protobuf::internal::WireFormat::SerializeUnknownFields(*this, output);
+  return !output->HadError();
+}
+
+bool UnknownFieldSet::SerializeToCord(y_absl::Cord* output) const {
+  const size_t size =
+      google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(*this);
+  io::CordOutputStream cord_output_stream(size);
+  {
+    io::CodedOutputStream coded_output_stream(&cord_output_stream);
+    if (!SerializeToCodedStream(&coded_output_stream)) return false;
+  }
+  *output = cord_output_stream.Consume();
+  return true;
+}
+
 void UnknownField::Delete() {
   switch (type()) {
     case UnknownField::TYPE_LENGTH_DELIMITED:
@@ -272,7 +302,7 @@ void UnknownField::DeepCopy(const UnknownField& other) {
 
 uint8_t* UnknownField::InternalSerializeLengthDelimitedNoTag(
     uint8_t* target, io::EpsCopyOutputStream* stream) const {
-  GOOGLE_DCHECK_EQ(TYPE_LENGTH_DELIMITED, type());
+  Y_ABSL_DCHECK_EQ(TYPE_LENGTH_DELIMITED, type());
   const TProtoStringType& data = *data_.length_delimited_.string_value;
   target = io::CodedOutputStream::WriteVarint32ToArray(data.size(), target);
   target = stream->WriteRaw(data.data(), data.size(), target);
@@ -331,4 +361,4 @@ const char* UnknownFieldParse(arc_ui64 tag, UnknownFieldSet* unknown,
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

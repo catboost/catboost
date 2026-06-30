@@ -75,7 +75,7 @@ public:
 
 protected:
     inline void Check() const {
-        Y_VERIFY(ThreadId == SystemCurrentThreadId(), "incorrect usage of TSimpleCounter");
+        Y_ABORT_UNLESS(ThreadId == SystemCurrentThreadId(), "incorrect usage of TSimpleCounter");
     }
 
 private:

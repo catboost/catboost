@@ -37,13 +37,16 @@
 #ifndef GOOGLE_PROTOBUF_IO_TOKENIZER_H__
 #define GOOGLE_PROTOBUF_IO_TOKENIZER_H__
 
-
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/port.h"
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -67,22 +70,40 @@ typedef int ColumnNumber;
 class PROTOBUF_EXPORT ErrorCollector {
  public:
   inline ErrorCollector() {}
+  ErrorCollector(const ErrorCollector&) = delete;
+  ErrorCollector& operator=(const ErrorCollector&) = delete;
   virtual ~ErrorCollector();
 
   // Indicates that there was an error in the input at the given line and
   // column numbers.  The numbers are zero-based, so you may want to add
   // 1 to each before printing them.
-  virtual void AddError(int line, ColumnNumber column,
-                        const TProtoStringType& message) = 0;
+  virtual void RecordError(int line, ColumnNumber column,
+                           y_absl::string_view message) {
+    PROTOBUF_IGNORE_DEPRECATION_START
+    AddError(line, column, TProtoStringType(message));
+    PROTOBUF_IGNORE_DEPRECATION_STOP
+  }
 
   // Indicates that there was a warning in the input at the given line and
   // column numbers.  The numbers are zero-based, so you may want to add
   // 1 to each before printing them.
-  virtual void AddWarning(int /* line */, ColumnNumber /* column */,
-                          const TProtoStringType& /* message */) {}
+  virtual void RecordWarning(int line, ColumnNumber column,
+                             y_absl::string_view message) {
+    PROTOBUF_IGNORE_DEPRECATION_START
+    AddWarning(line, column, TProtoStringType(message));
+    PROTOBUF_IGNORE_DEPRECATION_STOP
+  }
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ErrorCollector);
+  // These should never be called directly, but if a legacy class overrides
+  // them they'll get routed to by the Record* methods.
+
+  virtual void AddError(int line, ColumnNumber column,
+                        const TProtoStringType& message) {
+    Y_ABSL_LOG(FATAL) << "AddError or RecordError must be implemented.";
+  }
+
+  virtual void AddWarning(int line, ColumnNumber column,
+                          const TProtoStringType& message) {}
 };
 
 // This class converts a stream of raw text into a stream of tokens for
@@ -97,6 +118,8 @@ class PROTOBUF_EXPORT Tokenizer {
   // input stream and writes errors to the given error_collector.
   // The caller keeps ownership of input and error_collector.
   Tokenizer(ZeroCopyInputStream* input, ErrorCollector* error_collector);
+  Tokenizer(const Tokenizer&) = delete;
+  Tokenizer& operator=(const Tokenizer&) = delete;
   ~Tokenizer();
 
   enum TokenType {
@@ -147,11 +170,11 @@ class PROTOBUF_EXPORT Tokenizer {
 
   // Get the current token.  This is updated when Next() is called.  Before
   // the first call to Next(), current() has type TYPE_START and no contents.
-  const Token& current();
+  const Token& current() const;
 
   // Return the previous token -- i.e. what current() returned before the
   // previous call to Next().
-  const Token& previous();
+  const Token& previous() const;
 
   // Advance to the next token.  Returns false if the end of the input is
   // reached.
@@ -210,6 +233,10 @@ class PROTOBUF_EXPORT Tokenizer {
   // comes from a TYPE_FLOAT token parsed by Tokenizer.  If it doesn't, the
   // result is undefined (possibly an assert failure).
   static double ParseFloat(const TProtoStringType& text);
+
+  // Parses given text as if it were a TYPE_FLOAT token.  Returns false if the
+  // given text is not actually a valid float literal.
+  static bool TryParseFloat(const TProtoStringType& text, double* result);
 
   // Parses a TYPE_STRING token.  This never fails, so long as the text actually
   // comes from a TYPE_STRING token parsed by Tokenizer.  If it doesn't, the
@@ -274,8 +301,6 @@ class PROTOBUF_EXPORT Tokenizer {
 
   // -----------------------------------------------------------------
  private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Tokenizer);
-
   Token current_;   // Returned by current().
   Token previous_;  // Returned by previous().
 
@@ -334,7 +359,7 @@ class PROTOBUF_EXPORT Tokenizer {
 
   // Convenience method to add an error at the current line and column.
   void AddError(const TProtoStringType& message) {
-    error_collector_->AddError(line_, column_, message);
+    error_collector_->RecordError(line_, column_, message);
   }
 
   // -----------------------------------------------------------------
@@ -421,9 +446,9 @@ class PROTOBUF_EXPORT Tokenizer {
 };
 
 // inline methods ====================================================
-inline const Tokenizer::Token& Tokenizer::current() { return current_; }
+inline const Tokenizer::Token& Tokenizer::current() const { return current_; }
 
-inline const Tokenizer::Token& Tokenizer::previous() { return previous_; }
+inline const Tokenizer::Token& Tokenizer::previous() const { return previous_; }
 
 inline void Tokenizer::ParseString(const TProtoStringType& text,
                                    TProtoStringType* output) {
@@ -435,6 +460,6 @@ inline void Tokenizer::ParseString(const TProtoStringType& text,
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_IO_TOKENIZER_H__

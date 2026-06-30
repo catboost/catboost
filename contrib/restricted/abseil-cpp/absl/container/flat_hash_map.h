@@ -26,21 +26,24 @@
 //
 // In most cases, your default choice for a hash map should be a map of type
 // `flat_hash_map`.
+//
+// `flat_hash_map` is not exception-safe.
 
 #ifndef ABSL_CONTAINER_FLAT_HASH_MAP_H_
 #define ABSL_CONTAINER_FLAT_HASH_MAP_H_
 
 #include <cstddef>
-#include <new>
+#include <memory>
 #include <type_traits>
 #include <utility>
 
 #include "absl/algorithm/container.h"
+#include "absl/base/attributes.h"
 #include "absl/base/macros.h"
+#include "absl/container/hash_container_defaults.h"
 #include "absl/container/internal/container_memory.h"
-#include "absl/container/internal/hash_function_defaults.h"  // IWYU pragma: export
 #include "absl/container/internal/raw_hash_map.h"  // IWYU pragma: export
-#include "absl/memory/memory.h"
+#include "absl/meta/type_traits.h"
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
@@ -62,9 +65,9 @@ struct FlatHashMapPolicy;
 // * Requires values that are MoveConstructible
 // * Supports heterogeneous lookup, through `find()`, `operator[]()` and
 //   `insert()`, provided that the map is provided a compatible heterogeneous
-//   hashing function and equality operator.
+//   hashing function and equality operator. See below for details.
 // * Invalidates any references and pointers to elements within the table after
-//   `rehash()`.
+//   `rehash()` and when the table is moved.
 // * Contains a `capacity()` member function indicating the number of element
 //   slots (open, deleted, and empty) within the hash map.
 // * Returns `void` from the `erase(iterator)` overload.
@@ -80,6 +83,19 @@ struct FlatHashMapPolicy;
 // libraries (e.g. .dll, .so) is unsupported due to way `absl::Hash` values may
 // be randomized across dynamically loaded libraries.
 //
+// To achieve heterogeneous lookup for custom types either `Hash` and `Eq` type
+// parameters can be used or `T` should have public inner types
+// `absl_container_hash` and (optionally) `absl_container_eq`. In either case,
+// `typename Hash::is_transparent` and `typename Eq::is_transparent` should be
+// well-formed. Both types are basically functors:
+// * `Hash` should support `size_t operator()(U val) const` that returns a hash
+// for the given `val`.
+// * `Eq` should support `bool operator()(U lhs, V rhs) const` that returns true
+// if `lhs` is equal to `rhs`.
+//
+// In most cases `T` needs only to provide the `absl_container_hash`. In this
+// case `std::equal_to<void>` will be used instead of `eq` part.
+//
 // NOTE: A `flat_hash_map` stores its value types directly inside its
 // implementation array to avoid memory indirection. Because a `flat_hash_map`
 // is designed to move data when rehashed, map values will not retain pointer
@@ -88,31 +104,40 @@ struct FlatHashMapPolicy;
 // If your types are not moveable or you require pointer stability for keys,
 // consider `absl::node_hash_map`.
 //
+// PERFORMANCE WARNING: Erasure & sparsity can negatively affect performance:
+//  * Iteration takes O(capacity) time, not O(size).
+//  * erase() slows down begin() and ++iterator.
+//  * Capacity only shrinks on rehash() or clear() -- not on erase().
+//
 // Example:
 //
 //   // Create a flat hash map of three strings (that map to strings)
 //   absl::flat_hash_map<std::string, std::string> ducks =
 //     {{"a", "huey"}, {"b", "dewey"}, {"c", "louie"}};
 //
-//  // Insert a new element into the flat hash map
-//  ducks.insert({"d", "donald"});
+//   // Insert a new element into the flat hash map
+//   ducks.insert({"d", "donald"});
 //
-//  // Force a rehash of the flat hash map
-//  ducks.rehash(0);
+//   // Force a rehash of the flat hash map
+//   ducks.rehash(0);
 //
-//  // Find the element with the key "b"
-//  std::string search_key = "b";
-//  auto result = ducks.find(search_key);
-//  if (result != ducks.end()) {
-//    std::cout << "Result: " << result->second << std::endl;
-//  }
-template <class K, class V,
-          class Hash = absl::container_internal::hash_default_hash<K>,
-          class Eq = absl::container_internal::hash_default_eq<K>,
-          class Allocator = std::allocator<std::pair<const K, V>>>
-class flat_hash_map : public absl::container_internal::raw_hash_map<
-                          absl::container_internal::FlatHashMapPolicy<K, V>,
-                          Hash, Eq, Allocator> {
+//   // Find the element with the key "b"
+//   std::string search_key = "b";
+//   auto result = ducks.find(search_key);
+//   if (result != ducks.end()) {
+//     std::cout << "Result: " << result->second << std::endl;
+//   }
+template <
+    class K, class V,
+    class Hash =
+        typename container_internal::FlatHashMapPolicy<K, V>::DefaultHash,
+    class Eq = typename container_internal::FlatHashMapPolicy<K, V>::DefaultEq,
+    class Allocator =
+        typename container_internal::FlatHashMapPolicy<K, V>::DefaultAlloc>
+class ABSL_ATTRIBUTE_OWNER flat_hash_map
+    : public absl::container_internal::InstantiateRawHashMap<
+          absl::container_internal::FlatHashMapPolicy<K, V>, Hash, Eq,
+          Allocator>::type {
   using Base = typename flat_hash_map::raw_hash_map;
 
  public:
@@ -137,14 +162,19 @@ class flat_hash_map : public absl::container_internal::raw_hash_map<
   //
   // * Copy assignment operator
   //
-  //  // Hash functor and Comparator are copied as well
-  //  absl::flat_hash_map<int, std::string> map4;
-  //  map4 = map3;
+  //   // Hash functor and Comparator are copied as well
+  //   absl::flat_hash_map<int, std::string> map4;
+  //   map4 = map3;
   //
   // * Move constructor
   //
   //   // Move is guaranteed efficient
   //   absl::flat_hash_map<int, std::string> map5(std::move(map4));
+  //
+  //   // After the move, map4 is in a valid but unspecified state. The only
+  //   // operations guaranteed to be safe on a moved-from map are destruction,
+  //   // assignment, and clear(). Any other operation (e.g. size(), empty(),
+  //   // iteration) results in undefined behavior.
   //
   // * Move assignment operator
   //
@@ -152,10 +182,17 @@ class flat_hash_map : public absl::container_internal::raw_hash_map<
   //   absl::flat_hash_map<int, std::string> map6;
   //   map6 = std::move(map5);
   //
+  //   // Same moved-from guarantees apply to map5 after this operation.
+  //
   // * Range constructor
   //
   //   std::vector<std::pair<int, std::string>> v = {{1, "a"}, {2, "b"}};
   //   absl::flat_hash_map<int, std::string> map7(v.begin(), v.end());
+  //
+  // * from_range constructor (C++23)
+  //
+  //   std::vector<std::pair<int, std::string>> v = {{1, "a"}, {2, "b"}};
+  //   absl::flat_hash_map<int, std::string> map8(std::from_range, v);
   flat_hash_map() {}
   using Base::Base;
 
@@ -235,7 +272,11 @@ class flat_hash_map : public absl::container_internal::raw_hash_map<
   // iterator erase(const_iterator first, const_iterator last):
   //
   //   Erases the elements in the open interval [`first`, `last`), returning an
-  //   iterator pointing to `last`.
+  //   iterator pointing to `last`. The special case of calling
+  //   `erase(begin(), end())` resets the reserved growth such that if
+  //   `reserve(N)` has previously been called and there has been no intervening
+  //   call to `clear()`, then after calling `erase(begin(), end())`, it is safe
+  //   to assume that inserting N elements will not cause a rehash.
   //
   // size_type erase(const key_type& key):
   //
@@ -406,8 +447,7 @@ class flat_hash_map : public absl::container_internal::raw_hash_map<
   // flat_hash_map::swap(flat_hash_map& other)
   //
   // Exchanges the contents of this `flat_hash_map` with those of the `other`
-  // flat hash map, avoiding invocation of any move, copy, or swap operations on
-  // individual elements.
+  // flat hash map.
   //
   // All iterators and references on the `flat_hash_map` remain valid, excepting
   // for the past-the-end iterator, which is invalidated.
@@ -438,7 +478,9 @@ class flat_hash_map : public absl::container_internal::raw_hash_map<
   //
   // Sets the number of slots in the `flat_hash_map` to the number needed to
   // accommodate at least `count` total elements without exceeding the current
-  // maximum load factor, and may rehash the container if needed.
+  // maximum load factor, and may rehash the container if needed. After this
+  // returns, it is guaranteed that `count - size()` elements can be inserted
+  // into the `flat_hash_map` without another rehash.
   using Base::reserve;
 
   // flat_hash_map::at()
@@ -554,6 +596,53 @@ typename flat_hash_map<K, V, H, E, A>::size_type erase_if(
   return container_internal::EraseIf(pred, &c);
 }
 
+// swap(flat_hash_map<>, flat_hash_map<>)
+//
+// Swaps the contents of two `flat_hash_map` containers.
+//
+// NOTE: we need to define this function template in order for
+// `flat_hash_set::swap` to be called instead of `std::swap`. Even though we
+// have `swap(raw_hash_set&, raw_hash_set&)` defined, that function requires a
+// derived-to-base conversion, whereas `std::swap` is a function template so
+// `std::swap` will be preferred by compiler.
+template <typename K, typename V, typename H, typename E, typename A>
+void swap(flat_hash_map<K, V, H, E, A>& x,
+          flat_hash_map<K, V, H, E, A>& y) noexcept(noexcept(x.swap(y))) {
+  x.swap(y);
+}
+
+namespace container_internal {
+
+// c_for_each_fast(flat_hash_map<>, Function)
+//
+// Container-based version of the <algorithm> `std::for_each()` function to
+// apply a function to a container's elements.
+// There is no guarantees on the order of the function calls.
+// Erasure and/or insertion of elements in the function is not allowed.
+template <typename K, typename V, typename H, typename E, typename A,
+          typename Function>
+std::decay_t<Function> c_for_each_fast(const flat_hash_map<K, V, H, E, A>& c,
+                                       Function&& f) {
+  container_internal::ForEach(f, &c);
+  return f;
+}
+template <typename K, typename V, typename H, typename E, typename A,
+          typename Function>
+std::decay_t<Function> c_for_each_fast(flat_hash_map<K, V, H, E, A>& c,
+                                       Function&& f) {
+  container_internal::ForEach(f, &c);
+  return f;
+}
+template <typename K, typename V, typename H, typename E, typename A,
+          typename Function>
+std::decay_t<Function> c_for_each_fast(flat_hash_map<K, V, H, E, A>&& c,
+                                       Function&& f) {
+  container_internal::ForEach(f, &c);
+  return f;
+}
+
+}  // namespace container_internal
+
 namespace container_internal {
 
 template <class K, class V>
@@ -564,20 +653,25 @@ struct FlatHashMapPolicy {
   using mapped_type = V;
   using init_type = std::pair</*non const*/ key_type, mapped_type>;
 
+  using DefaultHash = DefaultHashContainerHash<K>;
+  using DefaultEq = DefaultHashContainerEq<K>;
+  using DefaultAlloc = std::allocator<std::pair<const K, V>>;
+
   template <class Allocator, class... Args>
   static void construct(Allocator* alloc, slot_type* slot, Args&&... args) {
     slot_policy::construct(alloc, slot, std::forward<Args>(args)...);
   }
 
+  // Returns std::true_type in case destroy is trivial.
   template <class Allocator>
-  static void destroy(Allocator* alloc, slot_type* slot) {
-    slot_policy::destroy(alloc, slot);
+  static auto destroy(Allocator* alloc, slot_type* slot) {
+    return slot_policy::destroy(alloc, slot);
   }
 
   template <class Allocator>
-  static void transfer(Allocator* alloc, slot_type* new_slot,
+  static auto transfer(Allocator* alloc, slot_type* new_slot,
                        slot_type* old_slot) {
-    slot_policy::transfer(alloc, new_slot, old_slot);
+    return slot_policy::transfer(alloc, new_slot, old_slot);
   }
 
   template <class F, class... Args>
@@ -586,6 +680,13 @@ struct FlatHashMapPolicy {
   apply(F&& f, Args&&... args) {
     return absl::container_internal::DecomposePair(std::forward<F>(f),
                                                    std::forward<Args>(args)...);
+  }
+
+  template <class Hash, bool kIsDefault>
+  static constexpr HashSlotFn get_hash_slot_fn() {
+    return memory_internal::IsLayoutCompatible<K, V>::value
+               ? &TypeErasedApplyToSlotFn<Hash, K, kIsDefault>
+               : nullptr;
   }
 
   static size_t space_used(const slot_type*) { return 0; }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "async_row_processor.h"
+#include "baseline.h"
 #include "meta_info.h"
 #include "objects.h"
 #include "visitor.h"
@@ -59,6 +60,7 @@ namespace NCB {
 
     struct TDatasetLoaderCommonArgs {
         TPathWithScheme PairsFilePath;
+        TPathWithScheme GraphFilePath;
         TPathWithScheme GroupWeightsFilePath;
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
@@ -68,12 +70,13 @@ namespace NCB {
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;
-        EObjectsOrder ObjectsOrder;
-        ui32 BlockSize;
+        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
+        ui32 BlockSize = 0;
         TDatasetSubset DatasetSubset;
-        bool LoadColumnsAsString;
-        bool ForceUnitAutoPairWeights;
-        NPar::ILocalExecutor* LocalExecutor;
+        bool LoadColumnsAsString = false;
+        bool LoadSampleIds = false; // special flag because they are rarely used
+        bool ForceUnitAutoPairWeights = false;
+        NPar::ILocalExecutor* LocalExecutor = nullptr;
     };
 
     // pass this struct to to IDatasetLoader ctor
@@ -183,10 +186,14 @@ namespace NCB {
      * Indices of objects passed to visitor methods are indices from the beginning of the subset (not indices in the whole dataset).
      * objectCount parameter represents the number of objects in the subset.
      */
+    THashMap<TGroupId, ui32> ConvertGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray);
     void SetPairs(
         const TPathWithScheme& pairsPath,
         TDatasetSubset loadSubset,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
+        IDatasetVisitor* visitor);
+    void SetGraph(
+        const TPathWithScheme& graphPath,
+        TDatasetSubset loadSubset,
         IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
@@ -289,7 +296,8 @@ namespace NCB {
             if (!inBlock) {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
-                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor->GetGroupIds(), visitor);
+                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor);
+                SetGraph(Args.GraphFilePath, Args.DatasetSubset, visitor);
                 SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();
@@ -300,7 +308,7 @@ namespace NCB {
     protected:
         TDatasetLoaderCommonArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
-        NCB::TAsyncRowProcessor<TString> AsyncBaselineRowProcessor;
+        NCB::TAsyncRowProcessor<TObjectBaselineData> AsyncBaselineRowProcessor;
 
         TVector<TString> FeatureIds;
         TDataMetaInfo DataMetaInfo;

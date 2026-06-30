@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2025 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,8 +22,6 @@
 
 #include "detail/_range_common.h"
 #include "detail/_namespace_injection.h"
-
-#include "version.h"
 
 namespace tbb {
 namespace detail {
@@ -151,8 +150,7 @@ private:
     friend class blocked_range3d;
 
     template<typename DimValue, unsigned int N, typename>
-        __TBB_requires(blocked_range_value<DimValue>)
-    friend class blocked_rangeNd_impl;
+    friend class blocked_nd_range_impl;
 };
 
 } // namespace d1

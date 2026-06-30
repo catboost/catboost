@@ -12,6 +12,7 @@
 #include <catboost/cuda/cuda_lib/tasks_impl/request_stream_task.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
 
+#include <library/cpp/cuda/exception/exception.h>
 #include <library/cpp/threading/name_guard/name_guard.h>
 
 #include <util/generic/map.h>
@@ -177,7 +178,7 @@ namespace NCudaLib {
         TAdaptiveLock CallbackLock;
 
         std::unique_ptr<std::thread> WorkingThread;
-        TAtomic Stopped = 1;
+        std::atomic<bool> Stopped = true;
 
     private:
         void WaitAllTaskToSubmit() {
@@ -312,7 +313,7 @@ namespace NCudaLib {
                 ui64 total = 0;
                 CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
                 if (free * 1.0 / DeviceProperties.GetDeviceMemory() < 0.75) {
-                    CATBOOST_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << total * 1.0 / 1024 / 1024 << Endl;
+                    CATBOOST_WARNING_LOG << "Warning: less than 75% GPU memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << total * 1.0 / 1024 / 1024 << Endl;
                 }
                 gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }
@@ -333,14 +334,14 @@ namespace NCudaLib {
             if (callback) {
                 RegisterErrorCallback(callback);
             }
-            WorkingThread.reset(new std::thread([=]() -> void {
+            WorkingThread.reset(new std::thread([this]() -> void {
                 Y_THREAD_NAME_GUARD(TStringBuilder() << "GpuWorker" << LocalDeviceId);
                 this->Run();
             }));
         }
 
         ~TGpuOneDeviceWorker() noexcept(false) {
-            CB_ENSURE(AtomicGet(Stopped), "Worker is not stopped");
+            CB_ENSURE(Stopped, "Worker is not stopped");
         }
 
         TTaskQueue& GetTaskQueue() {
@@ -350,11 +351,11 @@ namespace NCudaLib {
         void Run();
 
         bool IsRunning() const {
-            return !AtomicGet(Stopped);
+            return !Stopped;
         }
 
         TMemoryState GetMemoryState() const final {
-            CB_ENSURE(!AtomicGet(Stopped));
+            CB_ENSURE(!Stopped);
             CB_ENSURE(HostMemoryProvider);
             CB_ENSURE(DeviceMemoryProvider);
             TMemoryState result;

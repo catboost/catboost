@@ -5,15 +5,6 @@ Style guide for the util folder is a stricter version of
 (mostly in terms of ambiguity resolution).
 
  * all {} must be in K&R style
- * &, * tied closer to a type, not to variable
- * always use `using` not `typedef`
- * even a single line block must be in braces {}:
-   ```
-   if (A) {
-       B();
-   }
-   ```
- * _ at the end of private data member of a class - `First_`, `Second_`
  * every .h file must be accompanied with corresponding .cpp to avoid a leakage and check that it is self contained
  * prohibited to use `printf`-like functions
 
@@ -46,13 +37,13 @@ Don't forget to run tests from folder `tests`: `ya make -t tests`
 In order to make a commit, you have to get approval from one of
 [util](https://arcanum.yandex-team.ru/arc/trunk/arcadia/groups/util) members.
 
-If no comments have been received withing 1–2 days, it is OK
+If no comments have been received within 1–2 working (for the reviewers) days, it is OK
 to send a graceful ping into [Igni et ferro](https://wiki.yandex-team.ru/ignietferro/) chat.
 
 Certain exceptions apply. The following trivial changes do not need to be reviewed:
 
-* docs, comments, typo fixes,
-* renaming of an internal variable to match the styleguide.
+* grammar and misspelling fixes,
+* making the code compliant with the style guide.
 
 Whenever a breaking change happens to accidentally land into trunk, reverting it does not need to be reviewed.
 
@@ -66,5 +57,5 @@ To limit the incoming review request queue size, util reviewers follow these rul
 
 Review requests discarded as stale may be reopened or resubmitted by any committer willing to push them to completion.
 
-**Note:** It's an author's duty to push the review request to completion. 
+**Note:** It's an author's duty to push the review request to completion.
 If util reviewers stop responding to updates, they should be politely pinged via appropriate means of communication.

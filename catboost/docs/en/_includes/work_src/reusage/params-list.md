@@ -32,12 +32,14 @@
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
 - {{ error-function__YetiRankPairwise }}
 - {{ error-function__StochasticFilter }}
 - {{ error-function__StochasticRank }}
+- {{ error-function__LambdaMart }}
 
 {% endcut %}
 
@@ -505,7 +507,7 @@ None
 #### Description
 
 
-Depth of the tree.
+Depth of the trees.
 
 The range of supported values depends on the processing unit type and the type of the selected loss function:
 - CPU — Any integer up to  {{ fit--maxtree }}.
@@ -689,7 +691,7 @@ The value must be in the range (0;1].
 **{{ cli__params-table__title__processing-units-type }}**
 
 
-{{ calcer_type__cpu }}
+{{ calcer_type__cpu }} and {{ calcer_type__gpu }} for pairwise ranking
 
 
 

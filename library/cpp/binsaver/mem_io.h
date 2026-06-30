@@ -2,6 +2,9 @@
 
 #include "bin_saver.h"
 
+#include <util/system/unaligned_mem.h>
+
+
 namespace NMemIoInternals {
     class TMemoryStream: public IBinaryStream {
         TVector<char>& Data;
@@ -48,7 +51,7 @@ namespace NMemIoInternals {
 
     template <class T>
     inline void SerializeMem(bool bRead, TVector<char>* data, T& c, bool stableOutput = false) {
-        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+        if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
             TMemoryStream f(data);
             {
                 IBinSaver bs(f, bRead, stableOutput);
@@ -57,10 +60,10 @@ namespace NMemIoInternals {
         } else {
             if (bRead) {
                 Y_ASSERT(data->size() == sizeof(T));
-                c = *reinterpret_cast<T*>(&(*data)[0]);
+                c = ReadUnaligned<T>(data->data());
             } else {
                 data->yresize(sizeof(T));
-                *reinterpret_cast<T*>(&(*data)[0]) = c;
+                WriteUnaligned<T>(data->data(), c);
             }
         }
     }
@@ -177,12 +180,12 @@ namespace NMemIoInternals {
 
 template <class T>
 inline void SerializeMem(const TVector<char>& data, T& c) {
-    if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+    if constexpr (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
         TVector<char> tmp(data);
         SerializeFromMem(&tmp, c);
     } else {
         Y_ASSERT(data.size() == sizeof(T));
-        c = *reinterpret_cast<const T*>(&data[0]);
+        c = ReadUnaligned<T>(data.data());
     }
 }
 

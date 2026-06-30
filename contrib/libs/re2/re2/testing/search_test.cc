@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "re2/prog.h"
-#include "re2/regexp.h"
-#include "re2/testing/tester.h"
+#include <stddef.h>
+
+#include <string>
+#include <vector>
+
+#include "absl/base/macros.h"
+#include "gtest/gtest.h"
 #include "re2/testing/exhaustive_tester.h"
+#include "re2/testing/tester.h"
 
 // For target `log' in the Makefile.
 #ifndef LOGGING
@@ -314,7 +318,7 @@ RegexpTest simple_tests[] = {
 
 TEST(Regexp, SearchTests) {
   int failures = 0;
-  for (size_t i = 0; i < arraysize(simple_tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(simple_tests); i++) {
     const RegexpTest& t = simple_tests[i];
     if (!TestRegexpOnText(t.regexp, t.text))
       failures++;

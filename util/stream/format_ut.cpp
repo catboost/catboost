@@ -179,4 +179,4 @@ Y_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
         UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadable(TDuration::Seconds(3672))), "1h 1m 12s");
         UNIT_ASSERT_VALUES_EQUAL(ToString(HumanReadable(TDuration::Seconds(4220))), "1h 10m 20s");
     }
-}
+} // Y_UNIT_TEST_SUITE(TOutputStreamFormattingTest)

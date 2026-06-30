@@ -66,4 +66,4 @@ Y_UNIT_TEST_SUITE(TUtilDraftMemoryTest) {
         ss3.A.C = -789;
         UNIT_ASSERT(!IsZero(ss3));
     }
-}
+} // Y_UNIT_TEST_SUITE(TUtilDraftMemoryTest)

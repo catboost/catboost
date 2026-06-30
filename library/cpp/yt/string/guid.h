@@ -1,13 +1,14 @@
-#include <library/cpp/yt/misc/guid.h>
+#pragma once
 
-#include "format.h"
+#include "format_arg.h"
+
+#include <library/cpp/yt/misc/guid.h>
 
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void FormatValue(TStringBuilderBase* builder, TGuid value, TStringBuf /*format*/);
-TString ToString(TGuid guid);
+void FormatValue(TStringBuilderBase* builder, TGuid value, TStringBuf /*spec*/);
 
 ////////////////////////////////////////////////////////////////////////////////
 

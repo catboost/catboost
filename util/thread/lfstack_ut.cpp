@@ -344,4 +344,4 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     Y_UNIT_TEST(TesMultiThreadMove) {
         TMultiThreadTester<TMoveTest>().Run();
     }
-}
+} // Y_UNIT_TEST_SUITE(TLockFreeStackTests)

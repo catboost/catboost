@@ -10,11 +10,19 @@
 #ifndef _LIBCPP___FUNCTIONAL_REFERENCE_WRAPPER_H
 #define _LIBCPP___FUNCTIONAL_REFERENCE_WRAPPER_H
 
+#include <__compare/synth_three_way.h>
 #include <__config>
 #include <__functional/weak_result_type.h>
 #include <__memory/addressof.h>
+#include <__type_traits/desugars_to.h>
+#include <__type_traits/enable_if.h>
+#include <__type_traits/invoke.h>
+#include <__type_traits/is_const.h>
+#include <__type_traits/is_core_convertible.h>
+#include <__type_traits/remove_cvref.h>
+#include <__type_traits/void_t.h>
+#include <__utility/declval.h>
 #include <__utility/forward.h>
-#include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -23,189 +31,129 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _Tp>
-class _LIBCPP_TEMPLATE_VIS reference_wrapper
-#if _LIBCPP_STD_VER <= 17 || !defined(_LIBCPP_ABI_NO_BINDER_BASES)
-    : public __weak_result_type<_Tp>
-#endif
-{
+class reference_wrapper : public __weak_result_type<_Tp> {
 public:
-    // types
-    typedef _Tp type;
+  // types
+  typedef _Tp type;
+
 private:
-    type* __f_;
+  type* __f_;
 
-    static void __fun(_Tp&) _NOEXCEPT;
-    static void __fun(_Tp&&) = delete;
+  static void __fun(_Tp&) _NOEXCEPT;
+  static void __fun(_Tp&&) = delete; // NOLINT(modernize-use-equals-delete) ; This is llvm.org/PR54276
 
 public:
-    template <class _Up, class = __enable_if_t<!__is_same_uncvref<_Up, reference_wrapper>::value, decltype(__fun(declval<_Up>())) > >
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    reference_wrapper(_Up&& __u) _NOEXCEPT_(noexcept(__fun(declval<_Up>()))) {
-        type& __f = static_cast<_Up&&>(__u);
-        __f_ = _VSTD::addressof(__f);
-    }
+  template <class _Up,
+            class = __void_t<decltype(__fun(std::declval<_Up>()))>,
+            __enable_if_t<!__is_same_uncvref<_Up, reference_wrapper>::value, int> = 0>
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 reference_wrapper(_Up&& __u)
+      _NOEXCEPT_(noexcept(__fun(std::declval<_Up>()))) {
+    type& __f = static_cast<_Up&&>(__u);
+    __f_      = std::addressof(__f);
+  }
 
-    // access
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    operator type&() const _NOEXCEPT {return *__f_;}
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    type& get() const _NOEXCEPT {return *__f_;}
+  // access
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 operator type&() const _NOEXCEPT { return *__f_; }
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 type& get() const _NOEXCEPT { return *__f_; }
 
-#ifndef _LIBCPP_CXX03_LANG
-    // invoke
-    template <class... _ArgTypes>
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    typename __invoke_of<type&, _ArgTypes...>::type
-    operator() (_ArgTypes&&... __args) const {
-        return _VSTD::__invoke(get(), _VSTD::forward<_ArgTypes>(__args)...);
-    }
-#else
+  // invoke
+  template <class... _ArgTypes>
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 __invoke_result_t<type&, _ArgTypes...>
+  operator()(_ArgTypes&&... __args) const
+#if _LIBCPP_STD_VER >= 17
+      // Since is_nothrow_invocable requires C++17 LWG3764 is not backported
+      // to earlier versions.
+      noexcept(is_nothrow_invocable_v<_Tp&, _ArgTypes...>)
+#endif
+  {
+    return std::__invoke(get(), std::forward<_ArgTypes>(__args)...);
+  }
 
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return<type>::type
-    operator() () const {
-        return _VSTD::__invoke(get());
-    }
+#if _LIBCPP_STD_VER >= 26
 
-    template <class _A0>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return0<type, _A0>::type
-    operator() (_A0& __a0) const {
-        return _VSTD::__invoke(get(), __a0);
-    }
+  // [refwrap.comparisons], comparisons
 
-    template <class _A0>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return0<type, _A0 const>::type
-    operator() (_A0 const& __a0) const {
-        return _VSTD::__invoke(get(), __a0);
+  _LIBCPP_HIDE_FROM_ABI friend constexpr bool operator==(reference_wrapper __x, reference_wrapper __y)
+    requires requires {
+      { __x.get() == __y.get() } -> __core_convertible_to<bool>;
     }
+  {
+    return __x.get() == __y.get();
+  }
 
-    template <class _A0, class _A1>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return1<type, _A0, _A1>::type
-    operator() (_A0& __a0, _A1& __a1) const {
-        return _VSTD::__invoke(get(), __a0, __a1);
+  _LIBCPP_HIDE_FROM_ABI friend constexpr bool operator==(reference_wrapper __x, const _Tp& __y)
+    requires requires {
+      { __x.get() == __y } -> __core_convertible_to<bool>;
     }
+  {
+    return __x.get() == __y;
+  }
 
-    template <class _A0, class _A1>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return1<type, _A0 const, _A1>::type
-    operator() (_A0 const& __a0, _A1& __a1) const {
-        return _VSTD::__invoke(get(), __a0, __a1);
+  _LIBCPP_HIDE_FROM_ABI friend constexpr bool operator==(reference_wrapper __x, reference_wrapper<const _Tp> __y)
+    requires(!is_const_v<_Tp>) && requires {
+      { __x.get() == __y.get() } -> __core_convertible_to<bool>;
     }
+  {
+    return __x.get() == __y.get();
+  }
 
-    template <class _A0, class _A1>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return1<type, _A0, _A1 const>::type
-    operator() (_A0& __a0, _A1 const& __a1) const {
-        return _VSTD::__invoke(get(), __a0, __a1);
-    }
+  _LIBCPP_HIDE_FROM_ABI friend constexpr auto operator<=>(reference_wrapper __x, reference_wrapper __y)
+    requires requires { std::__synth_three_way(__x.get(), __y.get()); }
+  {
+    return std::__synth_three_way(__x.get(), __y.get());
+  }
 
-    template <class _A0, class _A1>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return1<type, _A0 const, _A1 const>::type
-    operator() (_A0 const& __a0, _A1 const& __a1) const {
-        return _VSTD::__invoke(get(), __a0, __a1);
-    }
+  _LIBCPP_HIDE_FROM_ABI friend constexpr auto operator<=>(reference_wrapper __x, const _Tp& __y)
+    requires requires { std::__synth_three_way(__x.get(), __y); }
+  {
+    return std::__synth_three_way(__x.get(), __y);
+  }
 
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0, _A1, _A2>::type
-    operator() (_A0& __a0, _A1& __a1, _A2& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
+  _LIBCPP_HIDE_FROM_ABI friend constexpr auto operator<=>(reference_wrapper __x, reference_wrapper<const _Tp> __y)
+    requires(!is_const_v<_Tp>) && requires { std::__synth_three_way(__x.get(), __y.get()); }
+  {
+    return std::__synth_three_way(__x.get(), __y.get());
+  }
 
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0 const, _A1, _A2>::type
-    operator() (_A0 const& __a0, _A1& __a1, _A2& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0, _A1 const, _A2>::type
-    operator() (_A0& __a0, _A1 const& __a1, _A2& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0, _A1, _A2 const>::type
-    operator() (_A0& __a0, _A1& __a1, _A2 const& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0 const, _A1 const, _A2>::type
-    operator() (_A0 const& __a0, _A1 const& __a1, _A2& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0 const, _A1, _A2 const>::type
-    operator() (_A0 const& __a0, _A1& __a1, _A2 const& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0, _A1 const, _A2 const>::type
-    operator() (_A0& __a0, _A1 const& __a1, _A2 const& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-
-    template <class _A0, class _A1, class _A2>
-    _LIBCPP_INLINE_VISIBILITY
-    typename __invoke_return2<type, _A0 const, _A1 const, _A2 const>::type
-    operator() (_A0 const& __a0, _A1 const& __a1, _A2 const& __a2) const {
-        return _VSTD::__invoke(get(), __a0, __a1, __a2);
-    }
-#endif // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_STD_VER >= 26
 };
 
-#if _LIBCPP_STD_VER > 14
+#if _LIBCPP_STD_VER >= 17
 template <class _Tp>
 reference_wrapper(_Tp&) -> reference_wrapper<_Tp>;
 #endif
 
 template <class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-reference_wrapper<_Tp>
-ref(_Tp& __t) _NOEXCEPT
-{
-    return reference_wrapper<_Tp>(__t);
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 reference_wrapper<_Tp> ref(_Tp& __t) _NOEXCEPT {
+  return reference_wrapper<_Tp>(__t);
 }
 
 template <class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-reference_wrapper<_Tp>
-ref(reference_wrapper<_Tp> __t) _NOEXCEPT
-{
-    return __t;
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 reference_wrapper<_Tp>
+ref(reference_wrapper<_Tp> __t) _NOEXCEPT {
+  return __t;
 }
 
 template <class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-reference_wrapper<const _Tp>
-cref(const _Tp& __t) _NOEXCEPT
-{
-    return reference_wrapper<const _Tp>(__t);
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 reference_wrapper<const _Tp> cref(const _Tp& __t) _NOEXCEPT {
+  return reference_wrapper<const _Tp>(__t);
 }
 
 template <class _Tp>
-inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-reference_wrapper<const _Tp>
-cref(reference_wrapper<_Tp> __t) _NOEXCEPT
-{
-    return __t;
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 reference_wrapper<const _Tp>
+cref(reference_wrapper<_Tp> __t) _NOEXCEPT {
+  return __t;
 }
 
-template <class _Tp> void ref(const _Tp&&) = delete;
-template <class _Tp> void cref(const _Tp&&) = delete;
+template <class _Tp>
+void ref(const _Tp&&) = delete;
+template <class _Tp>
+void cref(const _Tp&&) = delete;
+
+// Let desugars-to pass through std::reference_wrapper
+template <class _CanonicalTag, class _Operation, class... _Args>
+inline const bool __desugars_to_v<_CanonicalTag, reference_wrapper<_Operation>, _Args...> =
+    __desugars_to_v<_CanonicalTag, _Operation, _Args...>;
 
 _LIBCPP_END_NAMESPACE_STD
 

@@ -29,6 +29,7 @@ namespace NCB {
 
     class IColumnPrinter {
     public:
+        virtual ~IColumnPrinter() = default;
         virtual void OutputValue(IOutputStream* outstream, size_t docIndex) = 0;
         virtual void OutputHeader(IOutputStream* outstream) = 0;
         virtual void GetValue(size_t docIndex, TColumnPrinterOuputType* result) = 0;
@@ -36,7 +37,6 @@ namespace NCB {
             return "\t";
         }
         virtual std::type_index GetOutputType() = 0;
-        virtual ~IColumnPrinter() = default;
     };
 
 
@@ -154,7 +154,12 @@ namespace NCB {
 
     class TFeatureColumnPrinter: public IColumnPrinter {
     public:
-        TFeatureColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int featureId, TString columnName, ui64 docIdOffset)
+        TFeatureColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            int featureId,
+            TString columnName,
+            ui64 docIdOffset
+        )
             : PrinterPtr(printerPtr)
             , FeatureId(featureId)
             , ColumnName(std::move(columnName))
@@ -191,9 +196,11 @@ namespace NCB {
 
     class TCatFeaturePrinter: public IColumnPrinter {
     public:
-        TCatFeaturePrinter(TMaybeOwningArrayHolder<ui32>&& hashedValues,
-                           const THashMap<ui32, TString>& hashToString,
-                           const TString& header)
+        TCatFeaturePrinter(
+            TMaybeOwningArrayHolder<ui32>&& hashedValues,
+            const THashMap<ui32, TString>& hashToString,
+            const TString& header
+        )
             : HashedValues(std::move(hashedValues))
             , HashToString(hashToString)
             , Header(header)
@@ -230,7 +237,8 @@ namespace NCB {
             const EPredictionType predictionType,
             const TString& header,
             const TVector<double>& approx,
-            const TExternalLabelsHelper& visibleLabelsHelper)
+            const TExternalLabelsHelper& visibleLabelsHelper
+        )
             : PredictionType(predictionType)
             , Header(header)
             , Approx(approx)
@@ -239,7 +247,9 @@ namespace NCB {
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             if (PredictionType == EPredictionType::Class) {
-                *outStream << VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(Approx[docIndex]));
+                *outStream << VisibleLabelsHelper.GetVisibleClassNameFromClass(
+                    static_cast<int>(Approx[docIndex])
+                );
             } else {
                 *outStream << Approx[docIndex];
             }
@@ -268,13 +278,14 @@ namespace NCB {
         EPredictionType PredictionType;
         TString Header;
         TVector<double> Approx;
-        const TExternalLabelsHelper& VisibleLabelsHelper;
+        TExternalLabelsHelper VisibleLabelsHelper;
     };
 
     void PushBackEvalPrinters(
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         bool isMultiTarget,
         size_t ensemblesCount,
         const TExternalLabelsHelper& visibleLabelsHelper,
@@ -390,13 +401,56 @@ namespace NCB {
         TString Header;
     };
 
+
+
+    class TAuxiliaryColumnPrinter: public IColumnPrinter {
+    public:
+        TAuxiliaryColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            TString columnName,
+            ui64 docIdOffset
+        )
+            : PrinterPtr(printerPtr)
+            , AuxiliaryColumnId(printerPtr->GetAuxiliaryColumnId(columnName))
+            , ColumnName(std::move(columnName))
+            , DocIdOffset(docIdOffset)
+        {
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
+            PrinterPtr->OutputAuxiliaryColumn(outStream, DocIdOffset + docIndex, AuxiliaryColumnId, ColumnName);
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            TStringStream value;
+            PrinterPtr->OutputAuxiliaryColumn(&value, DocIdOffset + docIndex, AuxiliaryColumnId, ColumnName);
+            *result = value.Str();
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << ColumnName;
+        }
+
+        std::type_index GetOutputType() override {
+            return typeid(TString);
+        }
+
+    private:
+        TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
+        ui32 AuxiliaryColumnId;
+        TString ColumnName;
+        ui64 DocIdOffset;
+    };
+
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
         bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         size_t ensemblesCount,
         ui32 startTreeIndex = 0,
-        std::pair<size_t, size_t>* evalParameters = nullptr);
+        std::pair<size_t, size_t>* evalParameters = nullptr
+    );
 } // namespace NCB

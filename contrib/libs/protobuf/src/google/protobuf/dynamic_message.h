@@ -40,20 +40,21 @@
 
 #include <algorithm>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/stubs/mutex.h>
-#include <google/protobuf/reflection.h>
-#include <google/protobuf/repeated_field.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/reflection.h"
+#include "google/protobuf/repeated_field.h"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
 #endif
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -79,6 +80,9 @@ class DescriptorPool;  // descriptor.h
 // encapsulates this "cache".  All DynamicMessages of the same type created
 // from the same factory will share the same support data.  Any Descriptors
 // used with a particular factory must outlive the factory.
+//
+// The thread safety for this class is subtle, see comments around GetPrototype
+// for details
 class PROTOBUF_EXPORT DynamicMessageFactory : public MessageFactory {
  public:
   // Construct a DynamicMessageFactory that will search for extensions in
@@ -93,8 +97,10 @@ class PROTOBUF_EXPORT DynamicMessageFactory : public MessageFactory {
   //   this is almost never what you want to do.  Almost all users should use
   //   the zero-arg constructor.
   DynamicMessageFactory(const DescriptorPool* pool);
+  DynamicMessageFactory(const DynamicMessageFactory&) = delete;
+  DynamicMessageFactory& operator=(const DynamicMessageFactory&) = delete;
 
-  ~DynamicMessageFactory();
+  ~DynamicMessageFactory() override;
 
   // Call this to tell the DynamicMessageFactory that if it is given a
   // Descriptor d for which:
@@ -130,13 +136,11 @@ class PROTOBUF_EXPORT DynamicMessageFactory : public MessageFactory {
   bool delegate_to_generated_factory_;
 
   struct TypeInfo;
-  std::unordered_map<const Descriptor*, const TypeInfo*> prototypes_;
-  mutable internal::WrappedMutex prototypes_mutex_;
+  y_absl::flat_hash_map<const Descriptor*, const TypeInfo*> prototypes_;
+  mutable y_absl::Mutex prototypes_mutex_;
 
   friend class DynamicMessage;
   const Message* GetPrototypeNoLock(const Descriptor* type);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(DynamicMessageFactory);
 };
 
 // Helper for computing a sorted list of map entries via reflection.
@@ -158,9 +162,9 @@ class PROTOBUF_EXPORT DynamicMapSorter {
 #ifndef NDEBUG
     for (size_t j = 1; j < static_cast<size_t>(map_size); j++) {
       if (!comparator(result[j - 1], result[j])) {
-        GOOGLE_LOG(ERROR) << (comparator(result[j], result[j - 1])
-                           ? "internal error in map key sorting"
-                           : "map keys are not unique");
+        Y_ABSL_LOG(ERROR) << (comparator(result[j], result[j - 1])
+                                ? "internal error in map key sorting"
+                                : "map keys are not unique");
       }
     }
 #endif
@@ -207,7 +211,7 @@ class PROTOBUF_EXPORT DynamicMapSorter {
           return first < second;
         }
         default:
-          GOOGLE_LOG(DFATAL) << "Invalid key for map field.";
+          Y_ABSL_DLOG(FATAL) << "Invalid key for map field.";
           return true;
       }
     }
@@ -220,6 +224,6 @@ class PROTOBUF_EXPORT DynamicMapSorter {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_DYNAMIC_MESSAGE_H__

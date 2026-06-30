@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,9 @@
 // Adapter for Upsample in default domain from version 8 to 9
 
 #pragma once
+
+#include <memory>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -14,7 +19,7 @@ namespace version_conversion {
 struct Upsample_8_9 final : public Adapter {
   explicit Upsample_8_9() : Adapter("Upsample", OpSetID(8), OpSetID(9)) {}
 
-  void adapt_upsample_8_9(std::shared_ptr<Graph> graph, Node* node) const {
+  void adapt_upsample_8_9(const std::shared_ptr<Graph>& graph, Node* node) const {
     Symbol input_dirs = Symbol("scales");
     int dim = (int)(node->fs(kscales).size());
     Tensor t;

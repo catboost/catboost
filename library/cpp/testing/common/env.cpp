@@ -41,27 +41,7 @@ TString BinaryPath(TStringBuf path) {
 }
 
 TString GetArcadiaTestsData() {
-    TString atdRoot = NPrivate::GetTestEnv().ArcadiaTestsDataDir;
-    if (atdRoot) {
-        return atdRoot;
-    }
-
-    TString path = NPrivate::GetCwd();
-    const char pathsep = GetDirectorySeparator();
-    while (!path.empty()) {
-        TString dataDir = path + "/arcadia_tests_data";
-        if (IsDir(dataDir)) {
-            return dataDir;
-        }
-
-        size_t pos = path.find_last_of(pathsep);
-        if (pos == TString::npos) {
-            pos = 0;
-        }
-        path.erase(pos);
-    }
-
-    return {};
+    return ArcadiaSourceRoot() + "/atd_ro_snapshot";
 }
 
 TString GetWorkPath() {
@@ -110,7 +90,7 @@ const TString& GetTestParam(TStringBuf name, const TString& def) {
 const TString& GetGlobalResource(TStringBuf name) {
     auto& resources = NPrivate::GetTestEnv().GlobalResources;
     auto it = resources.find(name.data());
-    Y_VERIFY(it != resources.end());
+    Y_ABORT_UNLESS(it != resources.end());
     return it->second;
 }
 
@@ -161,7 +141,6 @@ namespace NPrivate {
 
     void TTestEnv::ReInitialize() {
         IsRunningFromTest = false;
-        ArcadiaTestsDataDir = "";
         SourceRoot = "";
         BuildRoot = "";
         WorkPath = "";
@@ -170,11 +149,12 @@ namespace NPrivate {
         TestOutputRamDrivePath = "";
         GdbPath = "";
         CoreSearchFile = "";
+        EnvFile = "";
         TestParameters.clear();
         GlobalResources.clear();
 
         const TString contextFilename = GetEnv("YA_TEST_CONTEXT_FILE");
-        if (contextFilename) {
+        if (contextFilename && TFsPath(contextFilename).Exists()) {
             NJson::TJsonValue context;
             NJson::ReadJsonTree(TFileInput(contextFilename).ReadAll(), &context);
 
@@ -188,11 +168,6 @@ namespace NPrivate {
             value = context.GetValueByPath("runtime.build_root");
             if (value) {
                 BuildRoot = value->GetStringSafe("");
-            }
-
-            value = context.GetValueByPath("runtime.atd_root");
-            if (value) {
-                ArcadiaTestsDataDir = value->GetStringSafe("");
             }
 
             value = context.GetValueByPath("runtime.work_path");
@@ -238,6 +213,27 @@ namespace NPrivate {
             if (value) {
                 CoreSearchFile = value->GetStringSafe("");
             }
+
+            value = context.GetValueByPath("internal.env_file");
+            if (value) {
+                EnvFile = value->GetStringSafe("");
+                if (TFsPath(EnvFile).Exists()) {
+                    TFileInput file(EnvFile);
+                    NJson::TJsonValue envVar;
+                    TString ljson;
+                    while (file.ReadLine(ljson) > 0) {
+                        NJson::ReadJsonTree(ljson, &envVar);
+                        for (const auto& entry : envVar.GetMap()) {
+                            auto value = entry.second;
+                            if (value.GetType() == NJson::JSON_NULL) {
+                                UnsetEnv(entry.first);
+                            } else {
+                                SetEnv(entry.first, value.GetStringSafe(""));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!YtHddPath) {
@@ -250,10 +246,6 @@ namespace NPrivate {
 
         if (!BuildRoot) {
             BuildRoot = GetEnv("ARCADIA_BUILD_ROOT");
-        }
-
-        if (!ArcadiaTestsDataDir) {
-            ArcadiaTestsDataDir = GetEnv("ARCADIA_TESTS_DATA_DIR");
         }
 
         if (!WorkPath) {

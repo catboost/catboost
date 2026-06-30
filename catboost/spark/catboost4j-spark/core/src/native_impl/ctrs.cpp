@@ -12,9 +12,11 @@
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/cpp/binsaver/util_stream_io.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>

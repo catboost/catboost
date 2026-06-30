@@ -21,7 +21,7 @@ A one-dimensional array of feature names for each feature. The order and number 
 - ndarray
 - list
 
-**Default value** 
+**Default value**
 
 Required parameter.
 

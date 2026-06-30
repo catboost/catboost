@@ -1,10 +1,11 @@
 const childProcess = require('child_process');
 const fs = require('fs');
+var path = require('path');
 
 process.chdir('./build_scripts');
 
 function compileBuildScripts() {
-    const buildRun = childProcess.exec('../node_modules/.bin/tsc');
+    const buildRun = childProcess.exec(path.join('..','node_modules', '.bin', 'tsc'));
     buildRun.stdout.on('data', chunk => {
         console.log(chunk);
     });

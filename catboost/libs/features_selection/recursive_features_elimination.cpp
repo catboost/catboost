@@ -110,7 +110,10 @@ namespace NCB {
                 ::LoadMany(snapshot, options);
                 TFeaturesSelectOptions featuresSelectOptions;
                 featuresSelectOptions.Load(options);
-                CB_ENSURE(featuresSelectOptions == FeaturesSelectOptions, "Current features selection options differ from options in snapshot");
+                CB_ENSURE(
+                    featuresSelectOptions == FeaturesSelectOptions,
+                    "Current features selection options differ from options in snapshot"
+                );
                 FeaturesSelectOptions = featuresSelectOptions;
                 IsNextLoadValid = false;
                 return true;
@@ -140,14 +143,22 @@ namespace NCB {
                 {}
 
             void AddEstimatedPoint(ui32 removedEntitiesCount, double lossValue) {
-                Y_ASSERT(LossGraph->RemovedEntitiesCount.empty() || LossGraph->RemovedEntitiesCount.back() < removedEntitiesCount);
+                Y_ASSERT(
+                    LossGraph->RemovedEntitiesCount.empty() ||
+                    LossGraph->RemovedEntitiesCount.back() < removedEntitiesCount
+                );
                 LossGraph->RemovedEntitiesCount.push_back(removedEntitiesCount);
                 LossGraph->LossValues.push_back(lossValue);
             }
 
             void AddPrecisePoint(ui32 removedEntitiesCount, double lossValue) {
-                Y_ASSERT(LossGraph->RemovedEntitiesCount.empty() || LossGraph->RemovedEntitiesCount.back() <= removedEntitiesCount);
-                if (!LossGraph->RemovedEntitiesCount.empty() && LossGraph->RemovedEntitiesCount.back() == removedEntitiesCount) {
+                Y_ASSERT(
+                    LossGraph->RemovedEntitiesCount.empty() ||
+                    LossGraph->RemovedEntitiesCount.back() <= removedEntitiesCount
+                );
+                if (!LossGraph->RemovedEntitiesCount.empty() &&
+                    LossGraph->RemovedEntitiesCount.back() == removedEntitiesCount)
+                {
                     AdaptLossGraphValues(lossValue);
                 } else {
                     LossGraph->RemovedEntitiesCount.push_back(removedEntitiesCount);
@@ -169,13 +180,18 @@ namespace NCB {
                 if (Abs(expectedChange) > 1e-9) {
                     const double coef = realChange / expectedChange;
                     CATBOOST_DEBUG_LOG << "Graph adaptation coef: " << coef << Endl;
-                    for (size_t idx = LossGraph->LossValues.size() - 1; idx > LossGraph->MainIndices.back(); --idx) {
-                        LossGraph->LossValues[idx] = prevLossValue + (LossGraph->LossValues[idx] - prevLossValue) * coef;
+                    size_t idx = LossGraph->LossValues.size() - 1;
+                    for (; idx > LossGraph->MainIndices.back(); --idx) {
+                        LossGraph->LossValues[idx]
+                            = prevLossValue + (LossGraph->LossValues[idx] - prevLossValue) * coef;
                     }
                 } else {
-                    const double changePerFeature = realChange / (LossGraph->LossValues.size() - LossGraph->MainIndices.back() - 1);
-                    CATBOOST_DEBUG_LOG << "Expected change is 0, real change per feature " << changePerFeature << Endl;
-                    for (size_t idx = LossGraph->MainIndices.back() + 1; idx < LossGraph->LossValues.size(); ++idx) {
+                    const double changePerFeature
+                        = realChange / (LossGraph->LossValues.size() - LossGraph->MainIndices.back() - 1);
+                    CATBOOST_DEBUG_LOG << "Expected change is 0, real change per feature "
+                        << changePerFeature << Endl;
+                    size_t idx = LossGraph->MainIndices.back() + 1;
+                    for (; idx < LossGraph->LossValues.size(); ++idx) {
                         LossGraph->LossValues[idx] = LossGraph->LossValues[idx - 1] + changePerFeature;
                     }
                 }
@@ -226,6 +242,9 @@ namespace NCB {
                     for (const auto& featuresTag : featuresSelectOptions.FeaturesTagsForSelect.Get()) {
                         if (!eliminatedFeaturesTagsSet.contains(featuresTag)) {
                             FeaturesTags.insert(featuresTag);
+                            CB_ENSURE(
+                                tagsMap.at(featuresTag).Cost != 0,
+                                "Cost of features with tag '" << featuresTag << "' should be non-zero");
                             CurrentCostValue += tagsMap.at(featuresTag).Cost;
                         }
                     }
@@ -378,21 +397,31 @@ namespace NCB {
                         const auto& tagDescription = tagsDescription.at(featuresTag);
                         TConstArrayRef<ui32> featureIndices = tagDescription.Features;
 
-                        executor->ExecRange([&](ui32 docIdx) {
-                            for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
-                                for (auto featureIdx : featureIndices) {
-                                    approx[dimensionIdx][docIdx] -= shapValues[docIdx][dimensionIdx][featureIdx];
+                        executor->ExecRange(
+                            [&](ui32 docIdx) {
+                                for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
+                                    for (auto featureIdx : featureIndices) {
+                                        approx[dimensionIdx][docIdx]
+                                            -= shapValues[docIdx][dimensionIdx][featureIdx];
+                                    }
                                 }
-                            }
-                        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+                            },
+                            blockParams,
+                            NPar::TLocalExecutor::WAIT_COMPLETE
+                        );
                         double result = calcLoss(approx, model) - selectSet->CurrentLossValue;
-                        executor->ExecRange([&](ui32 docIdx) {
-                            for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
-                                for (auto featureIdx : featureIndices) {
-                                    approx[dimensionIdx][docIdx] += shapValues[docIdx][dimensionIdx][featureIdx];
+                        executor->ExecRange(
+                            [&](ui32 docIdx) {
+                                for (size_t dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
+                                    for (auto featureIdx : featureIndices) {
+                                        approx[dimensionIdx][docIdx]
+                                            += shapValues[docIdx][dimensionIdx][featureIdx];
+                                    }
                                 }
-                            }
-                        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+                            },
+                            blockParams,
+                            NPar::TLocalExecutor::WAIT_COMPLETE
+                        );
                         return result / tagDescription.Cost;
                     },
                     /*getCost*/ [&] (const TString& featuresTag) -> double {
@@ -455,10 +484,13 @@ namespace NCB {
 
         CATBOOST_DEBUG_LOG << "Select features to eliminate" << Endl;
         auto eliminateFeature = [&] (ui32 featureIdx) {
-            CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has effect " << featureEffect[featureIdx] << Endl;
+            CATBOOST_DEBUG_LOG << "Feature #" << featureIdx << " has effect " << featureEffect[featureIdx]
+                << Endl;
             CATBOOST_NOTICE_LOG << "Feature #" << featureIdx << " eliminated" << Endl;
             summary->EliminatedFeatures.push_back(featureIdx);
-            if (fstrType == EFstrType::LossFunctionChange && lossBestValueType != EMetricBestValue::FixedValue) {
+            if (fstrType == EFstrType::LossFunctionChange &&
+                lossBestValueType != EMetricBestValue::FixedValue)
+            {
                 if (lossBestValueType == EMetricBestValue::Min) {
                     selectSet->CurrentLossValue += featureEffect[featureIdx];
                 } else {
@@ -475,7 +507,7 @@ namespace NCB {
         if (selectSet->Grouping == EFeaturesSelectionGrouping::Individual) {
             TVector<ui32> featureIndices(featureEffect.size());
             Iota(featureIndices.begin(), featureIndices.end(), 0);
-            SortBy(featureIndices, [&](ui32 featureIdx) {
+            StableSortBy(featureIndices, [&](ui32 featureIdx) {
                 return featureEffect[featureIdx];
             });
 
@@ -498,10 +530,11 @@ namespace NCB {
                 for (auto featureIdx : featuresTagDescription.Features) {
                     effect += featureEffect[featureIdx];
                 }
+                // TSelectSet guarantees featuresTagDescription.Cost != 0
                 tagsWithEffect.push_back(std::pair{featuresTagName, effect / featuresTagDescription.Cost});
             }
 
-            SortBy(tagsWithEffect, [](const auto& pair) { return pair.second; } );
+            StableSortBy(tagsWithEffect, [](const auto& pair) { return pair.second; } );
 
             ui32 eliminatedEntitiesCount = 0;
             for (const auto& [featuresTagName, effect] : tagsWithEffect) {
@@ -510,11 +543,14 @@ namespace NCB {
                 for (auto featureIdx : tagDescription.Features) {
                     eliminateFeature(featureIdx);
                 }
-                CATBOOST_DEBUG_LOG << "Features tag \"" << featuresTagName << "\" has effect " << effect << Endl;
+                CATBOOST_DEBUG_LOG << "Features tag \"" << featuresTagName << "\" has effect " << effect
+                    << Endl;
                 CATBOOST_NOTICE_LOG << "Features tag \"" << featuresTagName << "\" eliminated" << Endl;
                 selectSet->FeaturesTags.erase(featuresTagName);
                 summary->EliminatedFeaturesTags.push_back(featuresTagName);
-                if (fstrType == EFstrType::LossFunctionChange && lossBestValueType != EMetricBestValue::FixedValue) {
+                if (fstrType == EFstrType::LossFunctionChange &&
+                    lossBestValueType != EMetricBestValue::FixedValue)
+                {
                     lossGraphBuilders->ForFeaturesTags.AddEstimatedPoint(
                         summary->EliminatedFeaturesTags.size(),
                         selectSet->CurrentLossValue
@@ -618,7 +654,10 @@ namespace NCB {
             const auto& absoluteSnapshotPath = MakeAbsolutePath(outputFileOptions.GetSnapshotFilename());
             outputFileOptions.SetSnapshotFilename(absoluteSnapshotPath);
             if (NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
-                callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
+                callbacks->LoadSnapshot(
+                    catBoostOptions.GetTaskType(),
+                    outputFileOptions.GetSnapshotFilename()
+                );
             }
         }
         TFeaturesSelectionLossGraphBuilders lossGraphBuilders(&summary);
@@ -650,7 +689,9 @@ namespace NCB {
             labelConverter,
             trainingData.Learn->TargetData->GetTargetDimension()
         );
-        const THolder<IMetric> loss = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
+        const THolder<IMetric> loss = std::move(
+            CreateMetricFromDescription(lossDescription, approxDimension)[0]
+        );
 
         const TTargetDataProviderPtr testTarget = trainingData.Test.empty()
             ? trainingData.Learn->TargetData
@@ -714,7 +755,8 @@ namespace NCB {
         TSelectSet selectSet(featuresSelectOptions, tagsMap, summary);
 
         for (auto step : xrange(alreadyPassedSteps, featuresSelectOptions.Steps.Get())) {
-            CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
+            CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get()
+                << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-" + ToString(step));
             const TFullModel model = trainModel(/*isFinal*/ false);
             TVector<TVector<double>> approx = applyModel(model);
@@ -753,7 +795,9 @@ namespace NCB {
                 }
                 case EFeaturesSelectionAlgorithm::RecursiveByPredictionValuesChange:
                 case EFeaturesSelectionAlgorithm::RecursiveByLossFunctionChange: {
-                    EFstrType fstrType = featuresSelectOptions.Algorithm == EFeaturesSelectionAlgorithm::RecursiveByPredictionValuesChange
+                    const auto recursiveByPredictionValuesChange
+                        = EFeaturesSelectionAlgorithm::RecursiveByPredictionValuesChange;
+                    EFstrType fstrType = featuresSelectOptions.Algorithm == recursiveByPredictionValuesChange
                         ? EFstrType::PredictionValuesChange
                         : EFstrType::LossFunctionChange;
                     EliminateFeaturesBasedOnFeatureEffect(
@@ -783,7 +827,7 @@ namespace NCB {
         {
             CATBOOST_NOTICE_LOG << "Train final model" << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-final");
-            const TFullModel finalModel = trainModel(/*isFinal*/ featuresSelectOptions.TrainFinalModel.Get());
+            TFullModel finalModel = trainModel(/*isFinal*/ featuresSelectOptions.TrainFinalModel.Get());
             const double lossValue = calcLoss(applyModel(finalModel), finalModel);
 
             lossGraphBuilders.ForFeatures.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);
@@ -796,7 +840,7 @@ namespace NCB {
 
             if (featuresSelectOptions.TrainFinalModel.Get()) {
                 if (dstModel != nullptr) {
-                    *dstModel = finalModel;
+                    *dstModel = std::move(finalModel);
                 } else {
                     CATBOOST_NOTICE_LOG << "Save final model" << Endl;
                     ExportFullModel(

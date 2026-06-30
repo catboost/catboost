@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,9 @@
 // Adapter for Gemm in default domain from version 7 to 6
 
 #pragma once
+
+#include <memory>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -15,7 +20,7 @@ class Gemm_7_6 final : public Adapter {
  public:
   explicit Gemm_7_6() : Adapter("Gemm", OpSetID(7), OpSetID(6)) {}
 
-  void adapt_gemm_7_6(std::shared_ptr<Graph>, Node* node) const {
+  void adapt_gemm_7_6(const std::shared_ptr<Graph>&, Node* node) const {
     const ArrayRef<Value*>& inputs = node->inputs();
     assertInputsAvailable(inputs, name().c_str(), 3);
     const auto& A_shape = inputs[0]->sizes();

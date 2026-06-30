@@ -29,7 +29,8 @@ This information is used for optimization and calculation of [Pairwise metrics]
 - {{ python-type--list }}
 - {{ python-type__np_ndarray }}
 - {{ python-type--pandasDataFrame }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

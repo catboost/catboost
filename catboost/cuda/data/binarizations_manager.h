@@ -54,6 +54,8 @@ namespace NCatboostCuda {
 
         bool IsCat(ui32 featureId) const;
 
+        bool IsEstimated(ui32 featureId) const;
+
         bool UseForOneHotEncoding(ui32 featureId) const;
 
         bool UseForCtr(ui32 featureId) const;
@@ -72,7 +74,7 @@ namespace NCatboostCuda {
         bool UseForTreeCtr(const TFeatureTensor& tensor) const;
 
         bool IsCtr(ui32 featureId) const {
-            CB_ENSURE(featureId < Cursor);
+            CB_ENSURE(featureId < Cursor, "featureId " << featureId << ", Cursor " << Cursor);
             return InverseCtrs.contains(featureId);
         }
 

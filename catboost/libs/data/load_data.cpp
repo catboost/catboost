@@ -19,6 +19,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -28,6 +29,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
@@ -45,6 +47,7 @@ namespace NCB {
 
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
+                    graphFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
@@ -57,7 +60,8 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
-                    /*LoadColumnsAsString*/ false,
+                    /*LoadColumnsAsString*/ loadSampleIds,
+                    /*LoadSampleIds*/ loadSampleIds,
                     forceUnitAutoPairWeights,
                     localExecutor
                 }
@@ -90,6 +94,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -100,6 +105,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels
     ) {
@@ -112,6 +118,7 @@ namespace NCB {
             taskType,
             poolPath,
             pairsFilePath,
+            graphFilePath,
             groupWeightsFilePath,
             timestampsFilePath,
             baselineFilePath,
@@ -121,6 +128,7 @@ namespace NCB {
             ignoredFeatures,
             objectsOrder,
             TDatasetSubset::MakeColumns(),
+            loadSampleIds,
             forceUnitAutoPairWeights,
             classLabels,
             &localExecutor
@@ -133,6 +141,7 @@ namespace NCB {
     TDataProviderPtr ReadDataset(
         THolder<ILineDataReader>&& poolReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -142,6 +151,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
@@ -164,6 +174,7 @@ namespace NCB {
 
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
+                    graphFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
@@ -176,7 +187,8 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
-                    /*LoadColumnsAsString*/ false,
+                    /*LoadColumnsAsString*/ loadSampleIds,
+                    loadSampleIds,
                     forceUnitAutoPairWeights,
                     localExecutor
                 }
@@ -213,6 +225,7 @@ namespace NCB {
                 taskType,
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
+                loadOptions.GraphFilePath,
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.TimestampsFilePath,
                 loadOptions.BaselineFilePath,
@@ -222,6 +235,7 @@ namespace NCB {
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
                 learnDatasetSubset,
+                /*loadSampleIds*/ false,
                 forceUnitAutoPairWeights,
                 classLabels,
                 executor
@@ -239,6 +253,8 @@ namespace NCB {
                 const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
                 const NCB::TPathWithScheme& testPairsFilePath =
                         testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
+                const NCB::TPathWithScheme& testGraphFilePath =
+                        testIdx == 0 ? loadOptions.TestGraphFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testGroupWeightsFilePath =
                     testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testTimestampsFilePath =
@@ -250,6 +266,7 @@ namespace NCB {
                     taskType,
                     testSetPath,
                     testPairsFilePath,
+                    testGraphFilePath,
                     testGroupWeightsFilePath,
                     testTimestampsFilePath,
                     testBaselineFilePath,
@@ -259,6 +276,7 @@ namespace NCB {
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
                     testDatasetSubsets[testIdx],
+                    /*loadSampleIds*/ false,
                     forceUnitAutoPairWeights,
                     classLabels,
                     executor

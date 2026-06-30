@@ -35,12 +35,28 @@ static C C_fn (int x, int y, int z, C source, int i, int j, int k)
 
   printf ("%d, %d, %d, %d, %d, %d\n", x, y, z, i, j, k);
 
+  CHECK(x == 1);
+  CHECK(y == 1);
+  CHECK(z == 1);
+  CHECK(i == 1);
+  CHECK(j == 1);
+  CHECK(k == 1);
+
   printf ("%.1f, %.1f, %.1f, %.1f, "
 	  "%.1f, %.1f, %.1f, %.1f\n",
 	  source.a.a_x, source.a.a_y,
 	  source.b.b_x, source.b.b_y,
 	  result.a.a_x, result.a.a_y,
 	  result.b.b_x, result.b.b_y);
+
+    CHECK_FLOAT_EQ(source.a.a_x, 1.0);
+    CHECK_FLOAT_EQ(source.a.a_y, 2.0);
+    CHECK_FLOAT_EQ(source.b.b_x, 4.0);
+    CHECK_FLOAT_EQ(source.b.b_y, 8.0);
+    CHECK_FLOAT_EQ(result.a.a_x, 1.0);
+    CHECK_FLOAT_EQ(result.a.a_y, 2.0);
+    CHECK_FLOAT_EQ(result.b.b_x, 4.0);
+    CHECK_FLOAT_EQ(result.b.b_y, 8.0);
 
   return result;
 }
@@ -113,9 +129,9 @@ int main (void)
   ffi_call (&cif, FFI_FN (C_fn), &result, args);
   /* { dg-output "1, 1, 1, 1, 1, 1\n" } */
   /* { dg-output "1.0, 2.0, 4.0, 8.0, 1.0, 2.0, 4.0, 8.0" } */
-  CHECK (result.a.a_x == source.a.a_x);
-  CHECK (result.a.a_y == source.a.a_y);
-  CHECK (result.b.b_x == source.b.b_x);
-  CHECK (result.b.b_y == source.b.b_y);
-  exit (0);
+  CHECK_FLOAT_EQ(result.a.a_x, source.a.a_x);
+  CHECK_FLOAT_EQ(result.a.a_y, source.a.a_y);
+  CHECK_FLOAT_EQ(result.b.b_x, source.b.b_x);
+  CHECK_FLOAT_EQ(result.b.b_y, source.b.b_y);
+  exit(0);
 }

@@ -8,8 +8,8 @@ enum ETestFlag1: ui16 {
     Test4 = 4,
     Test8 = 8
 };
-Y_DECLARE_FLAGS(ETest1, ETestFlag1)
-Y_DECLARE_OPERATORS_FOR_FLAGS(ETest1)
+Y_DECLARE_FLAGS(ETest1, ETestFlag1);
+Y_DECLARE_OPERATORS_FOR_FLAGS(ETest1);
 
 static_assert(TTypeTraits<ETest1>::IsPod, "flags should be POD type");
 
@@ -19,17 +19,17 @@ enum class ETestFlag2 {
     Test4 = 4,
     Test8 = 8
 };
-Y_DECLARE_FLAGS(ETest2, ETestFlag2)
-Y_DECLARE_OPERATORS_FOR_FLAGS(ETest2)
+Y_DECLARE_FLAGS(ETest2, ETestFlag2);
+Y_DECLARE_OPERATORS_FOR_FLAGS(ETest2);
 
 namespace {
     // won't compile without Y_DECLARE_UNUSED
     enum class ETestFlag3 { One = 1,
                             Two = 2,
                             Three = 3 };
-    Y_DECLARE_FLAGS(ETestFlags3, ETestFlag3)
-    Y_DECLARE_OPERATORS_FOR_FLAGS(ETestFlags3)
-}
+    Y_DECLARE_FLAGS(ETestFlags3, ETestFlag3);
+    Y_DECLARE_OPERATORS_FOR_FLAGS(ETestFlags3);
+} // namespace
 
 Y_UNIT_TEST_SUITE(TFlagsTest) {
     template <class Enum>
@@ -42,9 +42,14 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
             UNIT_ASSERT(!(std::is_same<decltype(i), int>::value));
             UNIT_ASSERT_VALUES_EQUAL(sizeof(Enum), sizeof(TFlags<Enum>));
 
+            UNIT_ASSERT(i.HasFlag(Enum::Test1));
+            UNIT_ASSERT(i.HasFlag(Enum::Test4) == false);
             UNIT_ASSERT(i.HasFlags(Enum::Test1));
             UNIT_ASSERT(i.HasFlags(Enum::Test4) == false);
             UNIT_ASSERT(i.HasFlags(Enum::Test1 | Enum::Test4) == false);
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test1));
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test4) == false);
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test1 | Enum::Test4));
 
             i |= Enum::Test4;
             i ^= Enum::Test2;
@@ -53,6 +58,11 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
             UNIT_ASSERT(i & Enum::Test4);
             UNIT_ASSERT_UNEQUAL(i, ~i);
             UNIT_ASSERT_EQUAL(i, ~~i);
+        }
+        {
+            auto i = Enum::Test1 | Enum::Test2;
+            i.RemoveFlag(Enum::Test1);
+            UNIT_ASSERT_EQUAL(i, TFlags<Enum>(Enum::Test2));
         }
         {
             auto i = Enum::Test1 | Enum::Test2;
@@ -104,9 +114,9 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
     Y_UNIT_TEST(TestBaseType) {
         ui16 goodValue = 7;
         auto goodFlags = ETest1::FromBaseType(goodValue);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test1);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test2);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test4);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test1);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test2);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test4);
         UNIT_ASSERT_VALUES_EQUAL(goodValue, goodFlags.ToBaseType());
 
         // Passed value is not checked, but preserved as is
@@ -114,4 +124,4 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
         auto badFlags = ETest1::FromBaseType(badValue);
         UNIT_ASSERT_VALUES_EQUAL(badValue, badFlags.ToBaseType());
     }
-}
+} // Y_UNIT_TEST_SUITE(TFlagsTest)

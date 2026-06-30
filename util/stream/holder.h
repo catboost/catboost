@@ -19,7 +19,7 @@ namespace NPrivate {
         using TType = IOutputStream;
     };
 
-}
+} // namespace NPrivate
 
 /**
  * An ownership-gaining wrapper for proxy streams.

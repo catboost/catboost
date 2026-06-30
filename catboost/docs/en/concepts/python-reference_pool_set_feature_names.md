@@ -17,11 +17,11 @@ set_feature_names(feature_names)
 
 A list of names for each feature in the dataset.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--list-of-strings }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

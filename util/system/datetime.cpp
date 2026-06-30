@@ -95,7 +95,11 @@ void NanoSleep(ui64 ns) noexcept {
 }
 
 #if defined(_x86_)
-extern const bool HaveRdtscp = NX86::HaveRDTSCP();
+namespace NPrivate {
+    bool HaveRdtscpImpl() {
+        return NX86::HaveRDTSCP();
+    }
+} // namespace NPrivate
 #endif
 
 #ifdef Y_HAS_CLOCK_GETTIME

@@ -66,12 +66,12 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
         if core_pattern and not core_pattern.startswith("|"):
             default_pattern.mask = os.path.basename(core_pattern)
         else:
-            core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
-            logger.debug("core_uses_pid = '%d'", core_uses_pid)
-            if core_uses_pid == 0:
-                default_pattern.mask = "core"
-            else:
-                default_pattern.mask = "core.%p"
+            default_pattern.mask = "core"
+
+        core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
+        logger.debug("core_uses_pid = '%d'", core_uses_pid)
+        if core_uses_pid == 1 and "%p" not in re.split(r"(%.)", default_pattern.mask):
+            default_pattern.mask += ".%p"
 
         # widely distributed core dump dir and mask (see DEVTOOLS-4408)
         yandex_pattern = CoreFilePattern('/coredumps', '%e.%p.%s')
@@ -125,9 +125,13 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
 
 
 def get_gdb_full_backtrace(binary, core, gdb_path):
+    # XXX ya tool gdb uses shell script as wrapper so we need directory with shell binary in PATH
+    os.environ["PATH"] = os.pathsep.join(filter(None, [os.environ.get("PATH"), "/bin"]))
     cmd = [
         gdb_path, binary, core,
         "--eval-command", "set print thread-events off",
+        "--eval-command", "set print elements 20",
+        "--eval-command", "set print max-depth 3",
         "--eval-command", "thread apply all backtrace full",
         "--batch",
         "--quiet",
@@ -160,21 +164,45 @@ def get_problem_stack(backtrace):
     return "\n".join(stack)
 
 
+BT_COLORS = {
+    "function_name": "[[c:cyan]]",
+    "function_arg": "[[c:green]]",
+    "stack_frame": "[[c:red]]",
+    "thread_prefix": "[[c:light-cyan]]",
+    "thread_id": "[[c:red]]",
+    "file_path": "[[c:light-grey]]",
+    "line_num": "[[c:magenta]]",
+    "address": "[[c:light-grey]]",
+}
+
+
 # XXX
-def colorize_backtrace(text):
+def colorize_backtrace(text, c=None):
+    if c is None:
+        c = BT_COLORS
+
     filters = [
         # Function names and the class they belong to
-        (re.compile(r"^(#[0-9]+ .*?)([a-zA-Z0-9_:\.@]+)(\s?\()", flags=re.MULTILINE), r"\1[[c:cyan]]\2[[rst]]\3"),
+        (
+            re.compile(r"^(#[0-9]+ .*?)([a-zA-Z0-9_:\.@]+)(\s?\()", flags=re.MULTILINE),
+            r"\1" + c['function_name'] + r"\2[[rst]]\3",
+        ),
         # Function argument names
-        (re.compile(r"([a-zA-Z0-9_#]*)(\s?=\s?)"), r"[[c:green]]\1[[rst]]\2"),
+        (re.compile(r"([a-zA-Z0-9_#]*)(\s?=\s?)"), c["function_arg"] + r"\1[[rst]]\2"),
         # Stack frame number
-        (re.compile(r"^(#[0-9]+)", flags=re.MULTILINE), r"[[c:red]]\1[[rst]]"),
+        (re.compile(r"^(#[0-9]+)", flags=re.MULTILINE), c["stack_frame"] + r"\1[[rst]]"),
         # Thread id colorization
-        (re.compile(r"^([ \*]) ([0-9]+)", flags=re.MULTILINE), r"[[c:light-cyan]]\1 [[c:red]]\2[[rst]]"),
+        (
+            re.compile(r"^([ \*]) ([0-9]+)", flags=re.MULTILINE),
+            c["thread_prefix"] + r"\1 " + c["thread_id"] + r"\2[[rst]]",
+        ),
         # File path and line number
-        (re.compile(r"(\.*[/A-Za-z0-9\+_\.\-]*):(([0-9]+)(:[0-9]+)?)$", flags=re.MULTILINE), r"[[c:light-grey]]\1[[rst]]:[[c:magenta]]\2[[rst]]"),
+        (
+            re.compile(r"(\.*[/A-Za-z0-9\+_\.\-]*):(([0-9]+)(:[0-9]+)?)$", flags=re.MULTILINE),
+            c["file_path"] + r"\1[[rst]]:" + c["line_num"] + r"\2[[rst]]",
+        ),
         # Addresses
-        (re.compile(r"\b(0x[a-f0-9]{6,})\b"), r"[[c:light-grey]]\1[[rst]]"),
+        (re.compile(r"\b(0x[a-f0-9]{6,})\b"), c["address"] + r"\1[[rst]]"),
     ]
 
     text = six.ensure_str(text)
@@ -191,12 +219,12 @@ def resolve_addresses(addresses, symbolizer, binary):
         "--obj",
         binary,
     ]
-    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,  **({'text': True} if six.PY3 else {}))
     out, err = proc.communicate(input="\n".join(addresses))
     if proc.returncode:
         raise Exception("Symbolizer failed with rc:{}\nstderr: {}".format(proc.returncode, err))
 
-    resolved = filter(None, out.split("\n\n"))
+    resolved = list(filter(None, out.split("\n\n")))
     if len(addresses) != len(resolved):
         raise Exception("llvm-symbolizer can not extract lines from addresses (count mismatch: {}-{})".format(len(addresses), len(resolved)))
 

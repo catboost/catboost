@@ -10,7 +10,8 @@
 #define _LIBCPP___UTILITY_INTEGER_SEQUENCE_H
 
 #include <__config>
-#include <type_traits>
+#include <__cstddef/size_t.h>
+#include <__type_traits/is_integral.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -18,76 +19,71 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 11
+template <size_t...>
+struct __tuple_indices;
 
-template<class _Tp, _Tp... _Ip>
-struct _LIBCPP_TEMPLATE_VIS integer_sequence
-{
-    typedef _Tp value_type;
-    static_assert( is_integral<_Tp>::value,
-                  "std::integer_sequence can only be instantiated with an integral type" );
-    static
-    _LIBCPP_INLINE_VISIBILITY
-    constexpr
-    size_t
-    size() noexcept { return sizeof...(_Ip); }
+template <class _IdxType, _IdxType... _Values>
+struct __integer_sequence {
+  template <template <class _OIdxType, _OIdxType...> class _ToIndexSeq, class _ToIndexType>
+  using __convert _LIBCPP_NODEBUG = _ToIndexSeq<_ToIndexType, _Values...>;
+
+  template <size_t _Sp>
+  using __to_tuple_indices _LIBCPP_NODEBUG = __tuple_indices<(_Values + _Sp)...>;
 };
 
-template<size_t... _Ip>
-    using index_sequence = integer_sequence<size_t, _Ip...>;
-
-#if __has_builtin(__make_integer_seq) && !defined(_LIBCPP_TESTING_FALLBACK_MAKE_INTEGER_SEQUENCE)
-
-template <class _Tp, _Tp _Ep>
-using __make_integer_sequence _LIBCPP_NODEBUG = __make_integer_seq<integer_sequence, _Tp, _Ep>;
-
+#if __has_builtin(__make_integer_seq)
+template <size_t _Ep, size_t _Sp>
+using __make_indices_imp _LIBCPP_NODEBUG =
+    typename __make_integer_seq<__integer_sequence, size_t, _Ep - _Sp>::template __to_tuple_indices<_Sp>;
+#elif __has_builtin(__integer_pack)
+template <size_t _Ep, size_t _Sp>
+using __make_indices_imp _LIBCPP_NODEBUG =
+    typename __integer_sequence<size_t, __integer_pack(_Ep - _Sp)...>::template __to_tuple_indices<_Sp>;
 #else
+#  error "No known way to get an integer pack from the compiler"
+#endif
 
-template <class _Tp, class _T> struct __integer_sequence_convert {
-    using type = integer_sequence<_Tp>;
+#if _LIBCPP_STD_VER >= 14
+
+template <class _Tp, _Tp... _Ip>
+struct integer_sequence {
+  typedef _Tp value_type;
+  static_assert(is_integral<_Tp>::value, "std::integer_sequence can only be instantiated with an integral type");
+  static _LIBCPP_HIDE_FROM_ABI constexpr size_t size() noexcept { return sizeof...(_Ip); }
 };
 
-template<class _Tp, class _Tp2, _Tp... _Values>
-struct __integer_sequence_convert<_Tp, __integer_sequence<_Tp2, _Values...>> {
-    using type = integer_sequence<_Tp, _Values...>;
-};
+template <size_t... _Ip>
+using index_sequence = integer_sequence<size_t, _Ip...>;
 
-template<typename _Tp, _Tp _Np> using __make_integer_sequence_unchecked _LIBCPP_NODEBUG =
-  typename __integer_sequence_convert<_Tp, typename __detail::__make<_Np>::type>::type;
+#  if __has_builtin(__make_integer_seq)
 
 template <class _Tp, _Tp _Ep>
-struct __make_integer_sequence_checked
-{
-    static_assert(is_integral<_Tp>::value,
-                  "std::make_integer_sequence can only be instantiated with an integral type" );
-    static_assert(0 <= _Ep, "std::make_integer_sequence must have a non-negative sequence length");
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4296 )
-#endif
-    // Workaround GCC bug by preventing bad installations when 0 <= _Ep
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68929
-    typedef _LIBCPP_NODEBUG __make_integer_sequence_unchecked<_Tp, 0 <= _Ep ? _Ep : 0> type;
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
-};
+using make_integer_sequence _LIBCPP_NODEBUG = __make_integer_seq<integer_sequence, _Tp, _Ep>;
 
-template <class _Tp, _Tp _Ep>
-using __make_integer_sequence _LIBCPP_NODEBUG = typename __make_integer_sequence_checked<_Tp, _Ep>::type;
+#  elif __has_builtin(__integer_pack)
 
-#endif
+template <class _Tp, _Tp _SequenceSize>
+using make_integer_sequence _LIBCPP_NODEBUG = integer_sequence<_Tp, __integer_pack(_SequenceSize)...>;
 
-template<class _Tp, _Tp _Np>
-    using make_integer_sequence = __make_integer_sequence<_Tp, _Np>;
+#  else
+#    error "No known way to get an integer pack from the compiler"
+#  endif
 
-template<size_t _Np>
-    using make_index_sequence = make_integer_sequence<size_t, _Np>;
+template <size_t _Np>
+using make_index_sequence = make_integer_sequence<size_t, _Np>;
 
-template<class... _Tp>
-    using index_sequence_for = make_index_sequence<sizeof...(_Tp)>;
+template <class... _Tp>
+using index_sequence_for = make_index_sequence<sizeof...(_Tp)>;
 
-#endif // _LIBCPP_STD_VER > 11
+#  if _LIBCPP_STD_VER >= 20
+// Executes __func for every element in an index_sequence.
+template <size_t... _Index, class _Function>
+_LIBCPP_HIDE_FROM_ABI constexpr void __for_each_index_sequence(index_sequence<_Index...>, _Function __func) {
+  (__func.template operator()<_Index>(), ...);
+}
+#  endif // _LIBCPP_STD_VER >= 20
+
+#endif // _LIBCPP_STD_VER >= 14
 
 _LIBCPP_END_NAMESPACE_STD
 

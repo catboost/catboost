@@ -21,7 +21,7 @@ The identifier of the token that should be returned.
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ loss-functions__params__q__default }}
 

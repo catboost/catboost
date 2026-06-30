@@ -27,6 +27,8 @@
  * @{
  */
 
+#ifndef OPENSOURCE
+
 /**
  * MiniLZO compressing stream.
  */
@@ -61,6 +63,8 @@ private:
     THolder<TImpl> Impl_;
 };
 
+#endif
+
 /**
  * FastLZ compressing stream.
  */
@@ -94,6 +98,8 @@ private:
     class TImpl;
     THolder<TImpl> Impl_;
 };
+
+#ifndef OPENSOURCE
 
 /**
  * QuickLZ compressing stream.
@@ -146,6 +152,8 @@ private:
     class TImpl;
     THolder<TImpl> Impl_;
 };
+
+#endif
 
 /** @} */
 

@@ -16,7 +16,7 @@ typedef struct cls_struct_5byte {
   unsigned char e;
 } cls_struct_5byte;
 
-cls_struct_5byte cls_struct_5byte_fn(struct cls_struct_5byte a1,
+static cls_struct_5byte cls_struct_5byte_fn(struct cls_struct_5byte a1,
 			    struct cls_struct_5byte a2)
 {
   struct cls_struct_5byte result;
@@ -31,6 +31,24 @@ cls_struct_5byte cls_struct_5byte_fn(struct cls_struct_5byte a1,
 	 a1.a, a1.b, a1.c, a1.d, a1.e,
 	 a2.a, a2.b, a2.c, a2.d, a2.e,
 	 result.a, result.b, result.c, result.d, result.e);
+
+  CHECK(a1.a == 127);
+  CHECK(a1.b == 120);
+  CHECK(a1.c == 1);
+  CHECK(a1.d == 3);
+  CHECK(a1.e == 4);
+
+  CHECK(a2.a == 12);
+  CHECK(a2.b == 128);
+  CHECK(a2.c == 9);
+  CHECK(a2.d == 3);
+  CHECK(a2.e == 4);
+
+  CHECK(result.a == 139);
+  CHECK(result.b == 248);
+  CHECK(result.c == 10);
+  CHECK(result.d == 6);
+  CHECK(result.e == 8);
 
   return  result;
 }
@@ -90,6 +108,11 @@ int main (void)
   printf("res: %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
   /* { dg-output "\nres: 139 248 10 6 8" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 6);
+  CHECK(res_dbl.e == 8);
 
   res_dbl.a = 0;
   res_dbl.b = 0;
@@ -104,6 +127,11 @@ int main (void)
   printf("res: %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
   /* { dg-output "\nres: 139 248 10 6 8" } */
+  CHECK(res_dbl.a == 139);
+  CHECK(res_dbl.b == 248);
+  CHECK(res_dbl.c == 10);
+  CHECK(res_dbl.d == 6);
+  CHECK(res_dbl.e == 8);
 
   exit(0);
 }

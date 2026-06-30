@@ -60,4 +60,4 @@ Y_UNIT_TEST_SUITE(TAlignedTest) {
         alignedInput.ReadChar(c);
         UNIT_ASSERT_VALUES_EQUAL(c, '\x80');
     }
-}
+} // Y_UNIT_TEST_SUITE(TAlignedTest)

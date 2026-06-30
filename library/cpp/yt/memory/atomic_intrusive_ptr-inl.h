@@ -16,24 +16,6 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(std::nullptr_t)
 { }
 
 template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
-    : Ptr_(AcquireObject(other.Release(), true))
-{ }
-
-template <class T>
-TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
-    : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
-{
-    other.Ptr_.store(nullptr, std::memory_order::relaxed);
-}
-
-template <class T>
-TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr()
-{
-    ReleaseObject(Ptr_.load());
-}
-
-template <class T>
 TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(TIntrusivePtr<T> other)
 {
     Store(std::move(other));
@@ -45,6 +27,102 @@ TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
 {
     Reset();
     return *this;
+}
+
+template <class T>
+TAtomicIntrusivePtr<T>::operator bool() const
+{
+    return Get();
+}
+
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
+    : Ptr_(std::move(other))
+{ }
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
+    : Ptr_(std::move(other))
+{ }
+
+template <class T>
+TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr() = default;
+
+template <class T>
+TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
+{
+    auto guard = Guard(Lock_);
+    return Ptr_;
+}
+
+template <class T>
+TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
+{
+    auto guard = Guard(Lock_);
+    Ptr_.Swap(other);
+    return other;
+}
+
+template <class T>
+void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
+{
+    Exchange(std::move(other));
+}
+
+template <class T>
+void TAtomicIntrusivePtr<T>::Reset()
+{
+    Exchange(nullptr);
+}
+
+template <class T>
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, T* target)
+{
+    auto guard = Guard(Lock_);
+    if (Ptr_.Get() != comparePtr) {
+        comparePtr = Ptr_.Get();
+        return false;
+    }
+    auto targetPtr = TIntrusivePtr<T>(target, /*addReference*/ false);
+    Ptr_.Swap(targetPtr);
+    guard.Release();
+    // targetPtr will die here.
+    return true;
+}
+
+template <class T>
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target)
+{
+    return CompareAndSwap(comparePtr, target.Release());
+}
+
+template <class T>
+typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
+{
+    auto guard = Guard(Lock_);
+    return Ptr_.Get();
+}
+
+#else
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
+    : Ptr_(AcquireObject(other.Release(), /*consumeRef*/ true))
+{ }
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept
+    : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
+{
+    other.Ptr_.store(TPackedPtr(), std::memory_order::relaxed);
+}
+
+template <class T>
+TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr()
+{
+    ReleaseObject(Ptr_.load());
 }
 
 template <class T>
@@ -70,7 +148,10 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
         }
 
         // Can not Ref(obj) here because it can be destroyed.
-        if (Ptr_.compare_exchange_weak(ptr, TTaggedPtr(obj, newLocalRefs).Pack())) {
+        auto newPtr = TTaggedPtr(obj, newLocalRefs).Pack();
+        if (Ptr_.compare_exchange_weak(ptr, newPtr)) {
+            ptr = newPtr;
+
             if (Y_UNLIKELY(newLocalRefs > ReservedRefCount / 2)) {
                 Ref(obj, ReservedRefCount / 2);
 
@@ -97,7 +178,7 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
 template <class T>
 TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
 {
-    auto [obj, localRefs] = TTaggedPtr<T>::Unpack(Ptr_.exchange(AcquireObject(other.Release(), true)));
+    auto [obj, localRefs] = TTaggedPtr<T>::Unpack(Ptr_.exchange(AcquireObject(other.Release(), /*consumeRef*/ true)));
     DoRelease(obj, localRefs + 1);
     return TIntrusivePtr<T>(obj, false);
 }
@@ -105,19 +186,19 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
 template <class T>
 void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
 {
-    ReleaseObject(Ptr_.exchange(AcquireObject(other.Release(), true)));
+    ReleaseObject(Ptr_.exchange(AcquireObject(other.Release(), /*consumeRef*/ true)));
 }
 
 template <class T>
 void TAtomicIntrusivePtr<T>::Reset()
 {
-    ReleaseObject(Ptr_.exchange(0));
+    ReleaseObject(Ptr_.exchange(TPackedPtr()));
 }
 
 template <class T>
 bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, T* target)
 {
-    auto* targetPtr = AcquireObject(target, false);
+    auto* targetPtr = AcquireObject(target, /*consumeRef*/ false);
 
     auto currentPtr = Ptr_.load();
     if (UnpackPointer<T>(currentPtr).Ptr == comparePtr && Ptr_.compare_exchange_strong(currentPtr, targetPtr)) {
@@ -135,7 +216,7 @@ template <class T>
 bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target)
 {
     // TODO(lukyan): Make helper for packed owning ptr?
-    auto targetPtr = AcquireObject(target.Release(), true);
+    auto targetPtr = AcquireObject(target.Release(), /*consumeRef*/ true);
 
     auto currentPtr = Ptr_.load();
     if (TTaggedPtr<T>::Unpack(currentPtr).Ptr == comparePtr && Ptr_.compare_exchange_strong(currentPtr, targetPtr)) {
@@ -156,7 +237,7 @@ typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
 }
 
 template <class T>
-TAtomicIntrusivePtr<T>::operator bool() const
+typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::get() const
 {
     return Get();
 }
@@ -165,7 +246,7 @@ template <class T>
 TPackedPtr TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
 {
     if (obj) {
-        Ref(obj, static_cast<int>(ReservedRefCount - consumeRef));
+        Ref(obj, ReservedRefCount - static_cast<int>(consumeRef));
     }
 
     return TTaggedPtr(obj).Pack();
@@ -182,9 +263,11 @@ template <class T>
 void TAtomicIntrusivePtr<T>::DoRelease(T* obj, int refs)
 {
     if (obj) {
-        Unref(obj, static_cast<int>(ReservedRefCount - refs));
+        Unref(obj, ReservedRefCount - refs);
     }
 }
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

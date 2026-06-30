@@ -6,7 +6,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```
-save(frequency_dict_path, 
+save(frequency_dict_path,
      bpe_path=None)
 ```
 

@@ -8,7 +8,7 @@ The model scale.
 
 The value of this parameters affects the prediction by changing the default value of the scale.
 
-**Possible types**  
+**Possible types**
 
 {{ python-type--float }}
 
@@ -26,7 +26,7 @@ The model bias.
 
 The value of this parameters affects the prediction by changing the default value of the bias.
 
-**Possible types**  
+**Possible types**
 
 {{ python-type--float }}
 

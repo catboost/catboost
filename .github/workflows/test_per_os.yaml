@@ -1,0 +1,60 @@
+name: Test per OS
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      artifacts_version:
+        required: true
+        type: string
+      artifacts_run_id:
+        required: false
+        type: string
+        default: ${{ github.run_id }}
+      artifacts_repository:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
+
+env:
+  os_to_specs_map: |
+    {
+      "linux": [["x86_64", "ubuntu-22.04"], ["aarch64", "ubuntu-22.04-arm"]],
+      "macos": [["x86_64", "macos-15-intel"], ["arm64", "macos-14"]],
+      "windows": [["x86_64", "windows-2022"]]
+    }
+
+jobs:
+  # Workaround because passing env variables to reusable workflows is not supported
+  # https://github.com/orgs/community/discussions/26671
+  env_vars:
+    name: Expose env variables
+    runs-on: ubuntu-latest
+    outputs:
+      os_to_specs_map: ${{ env.os_to_specs_map }}
+    steps:
+      - run: echo "Exposing env vars to reusable workflows"
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test_per_platform.yaml
+    needs: [env_vars]
+    strategy:
+      matrix:
+        platform: ${{ fromJSON(needs.env_vars.outputs.os_to_specs_map)[inputs.os] }}
+      fail-fast: false
+    with:
+      os: ${{ inputs.os }}
+      machine: ${{ matrix.platform[0] }}
+      runs-on_value: ${{ matrix.platform[1] }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      artifacts_run_id: ${{ inputs.artifacts_run_id }}
+      artifacts_repository: ${{ inputs.artifacts_repository }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
+

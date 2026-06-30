@@ -250,4 +250,4 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
             UNIT_ASSERT_VALUES_EQUAL(st, ss);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringSubst)

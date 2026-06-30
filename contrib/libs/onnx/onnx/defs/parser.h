@@ -7,22 +7,19 @@
 
 #pragma once
 
-#include <ctype.h>
-#include <iostream>
-#include <stdexcept>
+#include <cctype>
 #include <string>
 #include <unordered_map>
 
-#include "onnx/onnx_pb.h"
-
 #include "onnx/common/status.h"
+#include "onnx/onnx_pb.h"
 #include "onnx/string_utils.h"
 
 namespace ONNX_NAMESPACE {
 
 using namespace ONNX_NAMESPACE::Common;
 
-using IdList = google::protobuf::RepeatedPtrField<TString>;
+using IdList = google::protobuf::RepeatedPtrField<TProtoStringType>;
 
 using NodeList = google::protobuf::RepeatedPtrField<NodeProto>;
 
@@ -34,6 +31,8 @@ using TensorList = google::protobuf::RepeatedPtrField<TensorProto>;
 
 using OpsetIdList = google::protobuf::RepeatedPtrField<OperatorSetIdProto>;
 
+using StringStringList = google::protobuf::RepeatedPtrField<StringStringEntryProto>;
+
 #define CHECK_PARSER_STATUS(status) \
   {                                 \
     auto local_status_ = status;    \
@@ -42,6 +41,7 @@ using OpsetIdList = google::protobuf::RepeatedPtrField<OperatorSetIdProto>;
   }
 
 template <typename Map>
+// NOLINTNEXTLINE(bugprone-crtp-constructor-accessibility)
 class StringIntMap {
  public:
   static const std::unordered_map<std::string, int32_t>& Instance() {
@@ -72,22 +72,29 @@ class StringIntMap {
 class PrimitiveTypeNameMap : public StringIntMap<PrimitiveTypeNameMap> {
  public:
   PrimitiveTypeNameMap() : StringIntMap() {
-    map_["float"] = 1;
-    map_["uint8"] = 2;
-    map_["int8"] = 3;
-    map_["uint16"] = 4;
-    map_["int16"] = 5;
-    map_["int32"] = 6;
-    map_["int64"] = 7;
-    map_["string"] = 8;
-    map_["bool"] = 9;
-    map_["float16"] = 10;
-    map_["double"] = 11;
-    map_["uint32"] = 12;
-    map_["uint64"] = 13;
-    map_["complex64"] = 14;
-    map_["complex128"] = 15;
-    map_["bfloat16"] = 16;
+    map_["float"] = TensorProto_DataType_FLOAT;
+    map_["uint8"] = TensorProto_DataType_UINT8;
+    map_["int8"] = TensorProto_DataType_INT8;
+    map_["uint16"] = TensorProto_DataType_UINT16;
+    map_["int16"] = TensorProto_DataType_INT16;
+    map_["int32"] = TensorProto_DataType_INT32;
+    map_["int64"] = TensorProto_DataType_INT64;
+    map_["string"] = TensorProto_DataType_STRING;
+    map_["bool"] = TensorProto_DataType_BOOL;
+    map_["float16"] = TensorProto_DataType_FLOAT16;
+    map_["double"] = TensorProto_DataType_DOUBLE;
+    map_["uint32"] = TensorProto_DataType_UINT32;
+    map_["uint64"] = TensorProto_DataType_UINT64;
+    map_["complex64"] = TensorProto_DataType_COMPLEX64;
+    map_["complex128"] = TensorProto_DataType_COMPLEX128;
+    map_["bfloat16"] = TensorProto_DataType_BFLOAT16;
+    map_["float8e4m3fn"] = TensorProto_DataType_FLOAT8E4M3FN;
+    map_["float8e4m3fnuz"] = TensorProto_DataType_FLOAT8E4M3FNUZ;
+    map_["float8e5m2"] = TensorProto_DataType_FLOAT8E5M2;
+    map_["float8e5m2fnuz"] = TensorProto_DataType_FLOAT8E5M2FNUZ;
+    map_["uint4"] = TensorProto_DataType_UINT4;
+    map_["int4"] = TensorProto_DataType_INT4;
+    map_["float4e2m1"] = TensorProto_DataType_FLOAT4E2M1;
   }
 
   static bool IsTypeName(const std::string& dtype) {
@@ -98,20 +105,20 @@ class PrimitiveTypeNameMap : public StringIntMap<PrimitiveTypeNameMap> {
 class AttributeTypeNameMap : public StringIntMap<AttributeTypeNameMap> {
  public:
   AttributeTypeNameMap() : StringIntMap() {
-    map_["float"] = 1;
-    map_["int"] = 2;
-    map_["string"] = 3;
-    map_["tensor"] = 4;
-    map_["graph"] = 5;
-    map_["sparse_tensor"] = 11;
-    map_["type_proto"] = 13;
-    map_["floats"] = 6;
-    map_["ints"] = 7;
-    map_["strings"] = 8;
-    map_["tensors"] = 9;
-    map_["graphs"] = 10;
-    map_["sparse_tensors"] = 12;
-    map_["type_protos"] = 14;
+    map_["float"] = AttributeProto_AttributeType_FLOAT;
+    map_["int"] = AttributeProto_AttributeType_INT;
+    map_["string"] = AttributeProto_AttributeType_STRING;
+    map_["tensor"] = AttributeProto_AttributeType_TENSOR;
+    map_["graph"] = AttributeProto_AttributeType_GRAPH;
+    map_["sparse_tensor"] = AttributeProto_AttributeType_SPARSE_TENSOR;
+    map_["type_proto"] = AttributeProto_AttributeType_TYPE_PROTO;
+    map_["floats"] = AttributeProto_AttributeType_FLOATS;
+    map_["ints"] = AttributeProto_AttributeType_INTS;
+    map_["strings"] = AttributeProto_AttributeType_STRINGS;
+    map_["tensors"] = AttributeProto_AttributeType_TENSORS;
+    map_["graphs"] = AttributeProto_AttributeType_GRAPHS;
+    map_["sparse_tensors"] = AttributeProto_AttributeType_SPARSE_TENSORS;
+    map_["type_protos"] = AttributeProto_AttributeType_TYPE_PROTOS;
   }
 };
 
@@ -130,7 +137,8 @@ class KeyWordMap {
     SEQ_TYPE,
     MAP_TYPE,
     OPTIONAL_TYPE,
-    SPARSE_TENSOR_TYPE
+    SPARSE_TENSOR_TYPE,
+    OVERLOAD_KW
   };
 
   KeyWordMap() {
@@ -146,12 +154,10 @@ class KeyWordMap {
     map_["map"] = KeyWord::MAP_TYPE;
     map_["optional"] = KeyWord::OPTIONAL_TYPE;
     map_["sparse_tensor"] = KeyWord::SPARSE_TENSOR_TYPE;
+    map_["overload"] = KeyWord::OVERLOAD_KW;
   }
 
-  static const std::unordered_map<std::string, KeyWord>& Instance() {
-    static KeyWordMap instance;
-    return instance.map_;
-  }
+  static const std::unordered_map<std::string, KeyWord>& Instance();
 
   static KeyWord Lookup(const std::string& id) {
     auto it = Instance().find(id);
@@ -160,14 +166,7 @@ class KeyWordMap {
     return KeyWord::NONE;
   }
 
-  static const std::string& ToString(KeyWord kw) {
-    static std::string undefined("undefined");
-    for (const auto& pair : Instance()) {
-      if (pair.second == kw)
-        return pair.first;
-    }
-    return undefined;
-  }
+  static const std::string& ToString(KeyWord kw);
 
  private:
   std::unordered_map<std::string, KeyWord> map_;
@@ -175,10 +174,10 @@ class KeyWordMap {
 
 class ParserBase {
  public:
-  ParserBase(const std::string& str)
+  explicit ParserBase(const std::string& str)
       : start_(str.data()), next_(str.data()), end_(str.data() + str.length()), saved_pos_(next_) {}
 
-  ParserBase(const char* cstr) : start_(cstr), next_(cstr), end_(cstr + strlen(cstr)), saved_pos_(next_) {}
+  explicit ParserBase(const char* cstr) : start_(cstr), next_(cstr), end_(cstr + strlen(cstr)), saved_pos_(next_) {}
 
   void SavePos() {
     saved_pos_ = next_;
@@ -220,8 +219,8 @@ class ParserBase {
   template <typename... Args>
   Status ParseError(const Args&... args) {
     return Status(
-        NONE,
-        FAIL,
+        StatusCategory::NONE,
+        StatusCode::FAIL,
         ONNX_NAMESPACE::MakeString(
             "[ParseError at position ", GetCurrentPos(), "]\n", "Error context: ", GetErrorContext(), "\n", args...));
   }
@@ -265,10 +264,10 @@ class ParserBase {
     return (next_ >= end_);
   }
 
-  enum class LiteralType { INT_LITERAL, FLOAT_LITERAL, STRING_LITERAL };
+  enum class LiteralType { UNDEFINED, INT_LITERAL, FLOAT_LITERAL, STRING_LITERAL };
 
   struct Literal {
-    LiteralType type;
+    LiteralType type{LiteralType::UNDEFINED};
     std::string value;
   };
 
@@ -322,7 +321,7 @@ class ParserBase {
     return Status::OK();
   }
 
-  // Parse a string-literal enclosed within doube-quotes.
+  // Parse a string-literal enclosed within double-quotes.
   Status Parse(std::string& val) {
     Literal literal;
     CHECK_PARSER_STATUS(Parse(literal));
@@ -334,7 +333,7 @@ class ParserBase {
 
   // Parse an identifier, including keywords. If none found, this will
   // return an empty-string identifier.
-  Status ParseOptionalIdentifier(std::string& id) {
+  std::string ParseOptionalIdentifier() {
     SkipWhiteSpace();
     auto from = next_;
     if ((next_ < end_) && (isalpha(*next_) || (*next_ == '_'))) {
@@ -342,22 +341,59 @@ class ParserBase {
       while ((next_ < end_) && (isalnum(*next_) || (*next_ == '_')))
         ++next_;
     }
-    id = std::string(from, next_ - from);
-    return Status::OK();
+    return std::string(from, next_ - from);
   }
 
   Status ParseIdentifier(std::string& id) {
-    ParseOptionalIdentifier(id);
+    id = ParseOptionalIdentifier();
     if (id.empty())
       return ParseError("Identifier expected but not found.");
     return Status::OK();
   }
 
-  Status PeekIdentifier(std::string& id) {
-    SavePos();
-    ParseOptionalIdentifier(id);
-    RestorePos();
+  Status ParseQuotableIdentifier(std::string& id) {
+    if (NextChar() == '"') {
+      return Parse(id);
+    }
+    return ParseIdentifier(id);
+  }
+
+  Status ParseOptionalQuotableIdentifier(std::string& id) {
+    if (NextChar() == '"') {
+      return Parse(id);
+    }
+    id = ParseOptionalIdentifier();
     return Status::OK();
+  }
+
+  // Parse an optional quotable identifier, and return whether an identifier was found
+  // in the output parameter 'id_found'.
+  // A empty string followed by a comma is considered to be a valid, but empty, identifier.
+  // This helps handle the following different cases:
+  // "Op()" has no operands
+  // "Op(,x)" has two operands, the first being empty.
+  // 'Op("")' has one operand, which is an empty string.
+  // 'Op(,)' has one operand, which is an empty string.
+  // Thus, this will also allow a trailing comma after a non-empty identifier with no effect.
+  // 'Op(x,)' has one operand, which is 'x'.
+  //
+  // This is mostly for some backward compatibility. "" is a simpler way to represent an
+  // empty identifier that is less confusing and is recommended.
+  Status ParseOptionalQuotableIdentifier(std::string& id, bool& id_found) {
+    if (NextChar() == '"') {
+      id_found = true;
+      return Parse(id);
+    }
+    id = ParseOptionalIdentifier();
+    id_found = !id.empty() || NextChar() == ',';
+    return Status::OK();
+  }
+
+  std::string PeekIdentifier() {
+    SavePos();
+    auto id = ParseOptionalIdentifier();
+    RestorePos();
+    return id;
   }
 
   Status Parse(KeyWordMap::KeyWord& keyword) {
@@ -372,19 +408,25 @@ class ParserBase {
   const char* next_;
   const char* end_;
   const char* saved_pos_;
+
+  bool NextIsValidFloatString();
 };
 
 class OnnxParser : public ParserBase {
  public:
-  OnnxParser(const char* cstr) : ParserBase(cstr) {}
+  explicit OnnxParser(const char* cstr) : ParserBase(cstr) {}
 
   Status Parse(TensorShapeProto& shape);
 
   Status Parse(TypeProto& typeProto);
 
+  Status Parse(StringStringList& stringStringList);
+
   Status Parse(TensorProto& tensorProto);
 
   Status Parse(AttributeProto& attr);
+
+  Status Parse(AttributeProto& attr, std::string& name);
 
   Status Parse(AttrList& attrlist);
 
@@ -411,11 +453,19 @@ class OnnxParser : public ParserBase {
 
   Status Parse(char open, IdList& idlist, char close);
 
-  Status ParseSingleAttributeValue(AttributeProto& attr);
+  Status Parse(IdList& idlist, AttrList& attrlist);
+
+  Status Parse(char open, IdList& idlist, AttrList& attrlist, char close);
+
+  Status ParseSingleAttributeValue(AttributeProto& attr, AttributeProto_AttributeType expected);
 
   Status Parse(ValueInfoProto& valueinfo);
 
-  Status Parse(ValueInfoList& vilist);
+  Status ParseGraphInputOutput(ValueInfoList& vilist);
+
+  Status ParseFunctionInputOutput(IdList& idlist, ValueInfoList& vilist);
+
+  Status Parse(char open, ValueInfoList& vilist, char close);
 
   Status ParseInput(ValueInfoList& vilist, TensorList& initializers);
 
@@ -426,6 +476,8 @@ class OnnxParser : public ParserBase {
   Status Parse(OpsetIdList& opsets);
 
   bool NextIsType();
+
+  bool NextIsIdentifier();
 };
 
 } // namespace ONNX_NAMESPACE

@@ -37,8 +37,8 @@ namespace NNetliba_v12 {
 #ifdef _win_
         UseSmallPacketsOptimization = false;
 #endif
-        Y_VERIFY(MaxUdpPacketsInQueue > 0, "WAT?");
-        Y_VERIFY(!UseSmallPacketsOptimization || MaxUdpPacketsInQueue > 1, "For small packets optimization use packets queue with at least 2 elements");
+        Y_ABORT_UNLESS(MaxUdpPacketsInQueue > 0, "WAT?");
+        Y_ABORT_UNLESS(!UseSmallPacketsOptimization || MaxUdpPacketsInQueue > 1, "For small packets optimization use packets queue with at least 2 elements");
 
         UdpPacketsHeaders.reserve(MaxUdpPacketsInQueue * 2);
 
@@ -100,13 +100,12 @@ namespace NNetliba_v12 {
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    enum {
-        UDP_CRC_SIZE = 8,
-        UDP_VERSION_OFFSET = 0 + UDP_CRC_SIZE,
-        UDP_PACKET_DATA_SIZE_OFFSET = UDP_VERSION_OFFSET + 1,
-        UDP_DATA_OFFSET = UDP_PACKET_DATA_SIZE_OFFSET + 2,
-    };
-    static_assert((int)UDP_LOW_LEVEL_HEADER_SIZE == (int)UDP_DATA_OFFSET, "expect (int)UDP_LOW_LEVEL_HEADER_SIZE == (int)UDP_DATA_OFFSET");
+    static constexpr int UDP_CRC_SIZE = 8;
+    static constexpr int UDP_VERSION_OFFSET = 0 + UDP_CRC_SIZE;
+    static constexpr int UDP_PACKET_DATA_SIZE_OFFSET = UDP_VERSION_OFFSET + 1;
+    static constexpr int UDP_DATA_OFFSET = UDP_PACKET_DATA_SIZE_OFFSET + 2;
+
+    static_assert(UDP_LOW_LEVEL_HEADER_SIZE == UDP_DATA_OFFSET, "expect UDP_LOW_LEVEL_HEADER_SIZE == UDP_DATA_OFFSET");
 
     ///////////////////////////////////////////////////////////////////////////////
 

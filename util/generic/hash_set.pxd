@@ -5,7 +5,6 @@ cdef extern from "util/generic/hash_set.h" nogil:
         cppclass iterator:
             T& operator*()
             iterator operator++()
-            iterator operator--()
             bint operator==(iterator)
             bint operator!=(iterator)
 
@@ -14,15 +13,10 @@ cdef extern from "util/generic/hash_set.h" nogil:
 
         THashSet() except +
         THashSet(THashSet&) except +
-        THashSet(T* t) except +
         THashSet& operator=(THashSet&)
 
         bint operator==(THashSet&)
         bint operator!=(THashSet&)
-        bint operator<(THashSet&)
-        bint operator>(THashSet&)
-        bint operator<=(THashSet&)
-        bint operator>=(THashSet&)
 
         iterator begin()
         const_iterator const_begin "begin"()

@@ -174,7 +174,7 @@ dird get_dird(char* path) {
 static int fts_safe_changedir(FTS*, FTSENT*, int, dird);
 #endif
 
-#if defined(__svr4__) || defined(__linux__) || defined(__CYGWIN__) || defined(_win_)
+#if defined(__svr4__) || defined(__linux__) || defined(__CYGWIN__) || defined(_win_) || defined(_emscripten_)
     #ifdef MAX
         #undef MAX
     #endif
@@ -183,7 +183,7 @@ static int fts_safe_changedir(FTS*, FTSENT*, int, dird);
     #undef ALIGN
     #define ALIGNBYTES (sizeof(long long) - 1)
     #define ALIGN(p) (((uintptr_t)(p) + ALIGNBYTES) & ~ALIGNBYTES)
-    #if !defined(__linux__) && !defined(__CYGWIN__)
+    #if !defined(__linux__) && !defined(__CYGWIN__) && !defined(_emscripten_)
         #define dirfd(dirp) ((dirp)->dd_fd)
     #endif
     #define D_NAMLEN(dirp) (strlen(dirp->d_name))
@@ -1251,6 +1251,8 @@ fts_alloc(FTS* sp, const char* name, int namelen)
 
     if (!ISSET(FTS_NOSTAT)) {
         p->fts_statp = (stat_struct*)ALIGN(p->fts_name + namelen + 2);
+    } else {
+        p->fts_statp = nullptr;
     }
     p->fts_namelen = (u_short)namelen;
     p->fts_path = sp->fts_path;

@@ -31,20 +31,22 @@
 // Author: kenton@google.com (Kenton Varda)
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
-#include <google/protobuf/reflection_ops.h>
+#include "google/protobuf/reflection_ops.h"
 
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/map_field.h>
-#include <google/protobuf/map_field_inl.h>
-#include <google/protobuf/unknown_field_set.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/map_field.h"
+#include "google/protobuf/map_field_inl.h"
+#include "google/protobuf/unknown_field_set.h"
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -56,7 +58,8 @@ static const Reflection* GetReflectionOrDie(const Message& m) {
     const Descriptor* d = m.GetDescriptor();
     const TProtoStringType& mtype = d ? d->name() : "unknown";
     // RawMessage is one known type for which GetReflection() returns nullptr.
-    GOOGLE_LOG(FATAL) << "Message does not support reflection (type " << mtype << ").";
+    Y_ABSL_LOG(FATAL) << "Message does not support reflection (type " << mtype
+                    << ").";
   }
   return r;
 }
@@ -68,10 +71,10 @@ void ReflectionOps::Copy(const Message& from, Message* to) {
 }
 
 void ReflectionOps::Merge(const Message& from, Message* to) {
-  GOOGLE_CHECK_NE(&from, to);
+  Y_ABSL_CHECK_NE(&from, to);
 
   const Descriptor* descriptor = from.GetDescriptor();
-  GOOGLE_CHECK_EQ(to->GetDescriptor(), descriptor)
+  Y_ABSL_CHECK_EQ(to->GetDescriptor(), descriptor)
       << "Tried to merge messages of different types "
       << "(merge " << descriptor->full_name() << " to "
       << to->GetDescriptor()->full_name() << ")";
@@ -84,7 +87,7 @@ void ReflectionOps::Merge(const Message& from, Message* to) {
                           google::protobuf::MessageFactory::generated_factory());
 
   std::vector<const FieldDescriptor*> fields;
-  from_reflection->ListFieldsOmitStripped(from, &fields);
+  from_reflection->ListFields(from, &fields);
   for (const FieldDescriptor* field : fields) {
     if (field->is_repeated()) {
       // Use map reflection if both are in map status and have the
@@ -169,20 +172,24 @@ void ReflectionOps::Merge(const Message& from, Message* to) {
     }
   }
 
-  to_reflection->MutableUnknownFields(to)->MergeFrom(
-      from_reflection->GetUnknownFields(from));
+  if (!from_reflection->GetUnknownFields(from).empty()) {
+    to_reflection->MutableUnknownFields(to)->MergeFrom(
+        from_reflection->GetUnknownFields(from));
+  }
 }
 
 void ReflectionOps::Clear(Message* message) {
   const Reflection* reflection = GetReflectionOrDie(*message);
 
   std::vector<const FieldDescriptor*> fields;
-  reflection->ListFieldsOmitStripped(*message, &fields);
+  reflection->ListFields(*message, &fields);
   for (const FieldDescriptor* field : fields) {
     reflection->ClearField(message, field);
   }
 
-  reflection->MutableUnknownFields(message)->Clear();
+  if (reflection->GetInternalMetadata(*message).have_unknown_fields()) {
+    reflection->MutableUnknownFields(message)->Clear();
+  }
 }
 
 bool ReflectionOps::IsInitialized(const Message& message, bool check_fields,
@@ -192,7 +199,7 @@ bool ReflectionOps::IsInitialized(const Message& message, bool check_fields,
   if (const int field_count = descriptor->field_count()) {
     const FieldDescriptor* begin = descriptor->field(0);
     const FieldDescriptor* end = begin + field_count;
-    GOOGLE_DCHECK_EQ(descriptor->field(field_count - 1), end - 1);
+    Y_ABSL_DCHECK_EQ(descriptor->field(field_count - 1), end - 1);
 
     if (check_fields) {
       // Check required fields of this message.
@@ -240,9 +247,20 @@ bool ReflectionOps::IsInitialized(const Message& message, bool check_fields,
       }
     }
   }
-  if (check_descendants && reflection->HasExtensionSet(message) &&
-      !reflection->GetExtensionSet(message).IsInitialized()) {
-    return false;
+  if (check_descendants && reflection->HasExtensionSet(message)) {
+    // Note that "extendee" is only referenced if the extension is lazily parsed
+    // (e.g. LazyMessageExtensionImpl), which requires a verification function
+    // to be generated.
+    //
+    // Dynamic messages would get null prototype from the generated message
+    // factory but their verification functions are not generated. Therefore, it
+    // it will always be eagerly parsed and "extendee" here will not be
+    // referenced.
+    const Message* extendee =
+        MessageFactory::generated_factory()->GetPrototype(descriptor);
+    if (!reflection->GetExtensionSet(message).IsInitialized(extendee)) {
+      return false;
+    }
   }
   return true;
 }
@@ -267,7 +285,7 @@ bool ReflectionOps::IsInitialized(const Message& message) {
   std::vector<const FieldDescriptor*> fields;
   // Should be safe to skip stripped fields because required fields are not
   // stripped.
-  reflection->ListFieldsOmitStripped(message, &fields);
+  reflection->ListFields(message, &fields);
   for (const FieldDescriptor* field : fields) {
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
 
@@ -369,7 +387,7 @@ static TProtoStringType SubMessagePrefix(const TProtoStringType& prefix,
   }
   if (index != -1) {
     result.append("[");
-    result.append(StrCat(index));
+    result.append(y_absl::StrCat(index));
     result.append("]");
   }
   result.append(".");
@@ -396,7 +414,7 @@ void ReflectionOps::FindInitializationErrors(const Message& message,
 
   // Check sub-messages.
   std::vector<const FieldDescriptor*> fields;
-  reflection->ListFieldsOmitStripped(message, &fields);
+  reflection->ListFields(message, &fields);
   for (const FieldDescriptor* field : fields) {
     if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
 
@@ -420,16 +438,16 @@ void ReflectionOps::FindInitializationErrors(const Message& message,
 
 void GenericSwap(Message* lhs, Message* rhs) {
 #ifndef PROTOBUF_FORCE_COPY_IN_SWAP
-  GOOGLE_DCHECK(Arena::InternalHelper<Message>::GetOwningArena(lhs) !=
-         Arena::InternalHelper<Message>::GetOwningArena(rhs));
-  GOOGLE_DCHECK(Arena::InternalHelper<Message>::GetOwningArena(lhs) != nullptr ||
-         Arena::InternalHelper<Message>::GetOwningArena(rhs) != nullptr);
+  Y_ABSL_DCHECK(Arena::InternalGetOwningArena(lhs) !=
+              Arena::InternalGetOwningArena(rhs));
+  Y_ABSL_DCHECK(Arena::InternalGetOwningArena(lhs) != nullptr ||
+              Arena::InternalGetOwningArena(rhs) != nullptr);
 #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
   // At least one of these must have an arena, so make `rhs` point to it.
-  Arena* arena = Arena::InternalHelper<Message>::GetOwningArena(rhs);
+  Arena* arena = Arena::InternalGetOwningArena(rhs);
   if (arena == nullptr) {
     std::swap(lhs, rhs);
-    arena = Arena::InternalHelper<Message>::GetOwningArena(rhs);
+    arena = Arena::InternalGetOwningArena(rhs);
   }
 
   // Improve efficiency by placing the temporary on an arena so that messages
@@ -451,4 +469,4 @@ void GenericSwap(Message* lhs, Message* rhs) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

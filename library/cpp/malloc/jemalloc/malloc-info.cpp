@@ -104,3 +104,7 @@ TMallocInfo NMalloc::MallocInfo() {
     return r;
 }
 #endif
+
+void NMalloc::ClearCaches() {
+    // nothing to do
+}

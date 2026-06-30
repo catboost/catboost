@@ -79,7 +79,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             localExecutor.RunAdditionalThreads(threadsToRun);
         }
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             const TSlice docSlice = target.Docs.GetMapping().DeviceSlice(dev);
 
             if (docSlice.Size() == 0) {

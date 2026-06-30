@@ -1,22 +1,9 @@
 #pragma once
 
 #include <util/generic/string.h>
-
-#include <variant>
+#include <util/generic/variant.h>
 
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TStringBuilderBase;
-
-template <class... Ts>
-void FormatValue(TStringBuilderBase* builder, const std::variant<Ts...>& variant, TStringBuf spec);
-
-void FormatValue(TStringBuilderBase* builder, const std::monostate&, TStringBuf /*format*/);
-
-template <class... Ts>
-TString ToString(const std::variant<Ts...>& variant);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +41,3 @@ auto Visit(T&& variant, U&&... visitorOverloads)
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
-
-#define VARIANT_INL_H_
-#include "variant-inl.h"
-#undef VARIANT_INL_H_

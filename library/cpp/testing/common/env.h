@@ -69,7 +69,6 @@ namespace NPrivate {
         void AddTestParam(TStringBuf name, TStringBuf value);
 
         bool IsRunningFromTest;
-        TString ArcadiaTestsDataDir;
         TString SourceRoot;
         TString BuildRoot;
         TString WorkPath;
@@ -78,6 +77,7 @@ namespace NPrivate {
         TString TestOutputRamDrivePath;
         TString GdbPath;
         TString CoreSearchFile;
+        TString EnvFile;
         std::unordered_map<TString, TString> TestParameters;
         std::unordered_map<TString, TString> GlobalResources;
     };

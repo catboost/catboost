@@ -22,6 +22,8 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
 import ai.catboost.CatBoostError
 
+import ai.catboost.spark.impl.RowEncoderConstructor
+
 
 class FeatureImportance(
   val featureName: String = "",
@@ -111,7 +113,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       dataFrame.sparkSession.createDataFrame(resultAsRDD, resultSchema)
     }
   }
-  
+
   /**
    * This function is useful when the dataset has been already quantized but works with any Pool
    */
@@ -129,7 +131,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
         dataset.data
       } else {
         val resultSchema = StructType(dataset.data.schema.toSeq ++ additionalColumnsForApply)
-      
+
         dataset.mapQuantizedPartitions(
           selectedColumns=Seq(dataset.getFeaturesCol),
           includeEstimatedFeatures=false,
@@ -148,23 +150,23 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
               localExecutor
             )
           }
-        )(RowEncoder(resultSchema), classTag[Row])  
+        )(RowEncoderConstructor.construct(resultSchema), classTag[Row])
       }
     } else {
       transformImpl(dataset.data)
     }
   }
-  
+
 
   override def write: MLWriter = new CatBoostModelWriter[Model](this)
-  
+
   /**
    * Save the model to a local file.
-   * 
+   *
    * @param fileName The path to the output model.
    * @param format The output format of the model.
    *  Possible values:
-   *  
+   *
    *  <table>
    *  <tr>
    *  <td>CatboostBinary</td>
@@ -182,14 +184,14 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    *  <td>Cpp</td>
    *  <td>
    *  Standalone C++ code (multiclassification models are not currently supported).
-   *  See the <a href="https://catboost.ai/docs/concepts/c-plus-plus-api_applycatboostmodel.html#c-plus-plus-api_applycatboostmodel">C++</a> 
+   *  See the <a href="https://catboost.ai/docs/concepts/c-plus-plus-api_applycatboostmodel.html#c-plus-plus-api_applycatboostmodel">C++</a>
    *   section for details on applying the resulting model.
    *  </td>
    *  </tr>
    *  <tr>
    *  <td>Python</td>
    *  <td>
-   *  Standalone Python code (multiclassification models are not currently supported). 
+   *  Standalone Python code (multiclassification models are not currently supported).
    *  See the <a href="https://catboost.ai/docs/concepts/python-reference_apply_catboost_model.html#python-reference_apply_catboost_model">Python</a>
    *   section for details on applying the resulting model.
    *  </td>
@@ -203,7 +205,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    *  <tr>
    *  <td>Onnx</td>
    *  <td>
-   *  ONNX-ML format (only datasets without categorical features are currently supported). 
+   *  ONNX-ML format (only datasets without categorical features are currently supported).
    *  Refer to <a href="https://onnx.ai">https://onnx.ai</a> for details.
    *  </td>
    *  </tr>
@@ -211,15 +213,15 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    *  <td>Pmml</td>
    *  <td>
    *  <a href="http://dmg.org/pmml/pmml-v4-3.html">PMML version 4.3</a> format.
-   *   Categorical features must be interpreted as one-hot encoded during the training 
-   *   if present in the training dataset.  This can be accomplished by setting the --one-hot-max-size/one_hot_max_size parameter to a value that is greater 
-   *   than the maximum number of unique categorical feature values among all categorical features in the dataset. 
+   *   Categorical features must be interpreted as one-hot encoded during the training
+   *   if present in the training dataset.  This can be accomplished by setting the --one-hot-max-size/one_hot_max_size parameter to a value that is greater
+   *   than the maximum number of unique categorical feature values among all categorical features in the dataset.
    *   Note. Multiclassification models are not currently supported.
    *   See the <a href="https://catboost.ai/docs/concepts/apply-pmml.html">PMML</a> section for details on applying the resulting model.
    *  </td>
    *  </tr>
    *  </table>
-   * @param exportParameters Additional format-dependent parameters for AppleCoreML, Onnx or Pmml formats. 
+   * @param exportParameters Additional format-dependent parameters for AppleCoreML, Onnx or Pmml formats.
    *  See <a href="https://catboost.ai/docs/concepts/python-reference_catboost_save_model.html">python API documentation</a> for details.
    * @param pool The dataset previously used for training.
    *  This parameter is required if the model contains categorical features and the output format is Cpp, Python, or Json.
@@ -239,8 +241,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    *
    * val regressor = new CatBoostRegressor()
    * val model = regressor.fit(pool)
-   * 
-   * // save in CatBoostBinary format 
+   *
+   * // save in CatBoostBinary format
    * model.saveNativeModel("/home/user/model/model.cbm")
    *
    * // save in ONNX format with metadata
@@ -257,8 +259,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    * }}}
    */
   def saveNativeModel(
-    fileName: String, 
-    format: EModelType = EModelType.CatboostBinary, 
+    fileName: String,
+    format: EModelType = EModelType.CatboostBinary,
     exportParameters: java.util.Map[String, Any] = null,
     pool: Pool = null
   ) = {
@@ -302,7 +304,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
 
   /**
    * @param fstrType Supported values are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
-   * @param data 
+   * @param data
    *  if fstrType is PredictionDiff it is required and must contain 2 samples
    *  if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
    *   with flag to store no leaf weights.
@@ -328,7 +330,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       case (name, value) => new FeatureImportance(name, value)
     }.toArray
   }
-    
+
   /**
    * @param data dataset to calculate SHAP values for
    * @param preCalcMode Possible values:
@@ -353,8 +355,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    * @param referenceData reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
    *   if referenceData is not null, then Independent Tree SHAP values are calculated
    * @param outputColumns columns from data to add to output DataFrame, if null - add all columns
-   * @return 
-   *   - for regression and binclass models: 
+   * @return
+   *   - for regression and binclass models:
    *     DataFrame which contains outputColumns and "shapValues" column with Vector of length (n_features + 1) with SHAP values
    *   - for multiclass models:
    *     DataFrame which contains outputColumns and "shapValues" column with Matrix of shape (n_classes x (n_features + 1)) with SHAP values
@@ -405,9 +407,9 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    *       Calculate exact SHAP values
    * @param outputColumns columns from data to add to output DataFrame, if null - add all columns
    * @return
-   *   - for binclass or regression: 
+   *   - for binclass or regression:
    *       DataFrame which contains outputColumns and "featureIdx1", "featureIdx2", "shapInteractionValue" columns
-   *   - for multiclass: 
+   *   - for multiclass:
    *   		 DataFrame which contains outputColumns and "classIdx", "featureIdx1", "featureIdx2", "shapInteractionValue" columns
    */
   def getFeatureImportanceShapInteractionValues(
@@ -428,7 +430,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       outputColumns
     )
   }
-  
+
   /**
    * @return array of feature interaction scores
    */
@@ -547,4 +549,3 @@ private[spark] class CatBoostModelWriter[Model <: org.apache.spark.ml.Prediction
     }
   }
 }
-

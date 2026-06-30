@@ -1,0 +1,342 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_NUMBERS
+#define _CUDA_STD_NUMBERS
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__floating_point/nvfp_types.h>
+#include <cuda/std/__floating_point/storage.h>
+#include <cuda/std/__type_traits/always_false.h>
+#include <cuda/std/version>
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+template <class _Tp>
+struct __numbers
+{
+  static_assert(__always_false_v<_Tp>,
+                "[math.constants] A program that instantiates a primary template of a mathematical constant variable "
+                "template is ill-formed.");
+};
+
+#define _CCCL_STD_NUMBERS_SPECIALATION_IMPL(_TYPE, _SUFFIX)  \
+  template <>                                                \
+  struct __numbers<_TYPE>                                    \
+  {                                                          \
+    static _CCCL_API constexpr _TYPE __e() noexcept          \
+    {                                                        \
+      return 0x1.5bf0a8b1457695355fb8ac404e7ap+1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __log2e() noexcept      \
+    {                                                        \
+      return 0x1.71547652b82fe1777d0ffda0d23ap+0##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __log10e() noexcept     \
+    {                                                        \
+      return 0x1.bcb7b1526e50e32a6ab7555f5a68p-2##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __pi() noexcept         \
+    {                                                        \
+      return 0x1.921fb54442d18469898cc51701b8p+1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __inv_pi() noexcept     \
+    {                                                        \
+      return 0x1.45f306dc9c882a53f84eafa3ea6ap-2##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __inv_sqrtpi() noexcept \
+    {                                                        \
+      return 0x1.20dd750429b6d11ae3a914fed7fep-1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __ln2() noexcept        \
+    {                                                        \
+      return 0x1.62e42fefa39ef35793c7673007e6p-1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __ln10() noexcept       \
+    {                                                        \
+      return 0x1.26bb1bbb5551582dd4adac5705a6p+1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __sqrt2() noexcept      \
+    {                                                        \
+      return 0x1.6a09e667f3bcc908b2fb1366ea95p+0##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __sqrt3() noexcept      \
+    {                                                        \
+      return 0x1.bb67ae8584caa73b25742d7078b8p+0##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __inv_sqrt3() noexcept  \
+    {                                                        \
+      return 0x1.279a74590331c4d218f81e4afb25p-1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __egamma() noexcept     \
+    {                                                        \
+      return 0x1.2788cfc6fb618f49a37c7f0202a6p-1##_SUFFIX;   \
+    }                                                        \
+    static _CCCL_API constexpr _TYPE __phi() noexcept        \
+    {                                                        \
+      return 0x1.9e3779b97f4a7c15f39cc0605ceep+0##_SUFFIX;   \
+    }                                                        \
+  };
+
+_CCCL_BEGIN_NV_DIAG_SUPPRESS(1046) // floating-point value cannot be represented exactly
+
+_CCCL_STD_NUMBERS_SPECIALATION_IMPL(float, f);
+_CCCL_STD_NUMBERS_SPECIALATION_IMPL(double, );
+#if _CCCL_HAS_LONG_DOUBLE()
+_CCCL_STD_NUMBERS_SPECIALATION_IMPL(long double, l);
+#endif // _CCCL_HAS_LONG_DOUBLE()
+#if _CCCL_HAS_FLOAT128()
+_CCCL_STD_NUMBERS_SPECIALATION_IMPL(__float128, q);
+#endif // _CCCL_HAS_FLOAT128()
+
+_CCCL_END_NV_DIAG_SUPPRESS()
+
+#undef _CCCL_STD_NUMBERS_SPECIALATION_IMPL
+
+#if _CCCL_HAS_NVFP16()
+template <>
+struct __numbers<__half>
+{
+  static _CCCL_API constexpr __half __e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x4170u});
+  }
+  static _CCCL_API constexpr __half __log2e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3dc5u});
+  }
+  static _CCCL_API constexpr __half __log10e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x36f3u});
+  }
+  static _CCCL_API constexpr __half __pi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x4248u});
+  }
+  static _CCCL_API constexpr __half __inv_pi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3518u});
+  }
+  static _CCCL_API constexpr __half __inv_sqrtpi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3883u});
+  }
+  static _CCCL_API constexpr __half __ln2() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x398cu});
+  }
+  static _CCCL_API constexpr __half __ln10() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x409bu});
+  }
+  static _CCCL_API constexpr __half __sqrt2() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3da8u});
+  }
+  static _CCCL_API constexpr __half __sqrt3() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3eeeu});
+  }
+  static _CCCL_API constexpr __half __inv_sqrt3() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x389eu});
+  }
+  static _CCCL_API constexpr __half __egamma() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x389eu});
+  }
+  static _CCCL_API constexpr __half __phi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__half>(__fp_storage_of_t<__half>{0x3e79u});
+  }
+};
+#endif // _CCCL_HAS_NVFP16()
+
+#if _CCCL_HAS_NVBF16()
+template <>
+struct __numbers<__nv_bfloat16>
+{
+  static _CCCL_API constexpr __nv_bfloat16 __e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x402eu});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __log2e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3fb9u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __log10e() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3edeu});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __pi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x4049u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __inv_pi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3ea3u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __inv_sqrtpi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3f10u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __ln2() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3f31u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __ln10() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x4013u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __sqrt2() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3fb5u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __sqrt3() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3fdeu});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __inv_sqrt3() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3f14u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __egamma() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3f14u});
+  }
+  static _CCCL_API constexpr __nv_bfloat16 __phi() noexcept
+  {
+    return _CUDA_VSTD::__fp_from_storage<__nv_bfloat16>(__fp_storage_of_t<__nv_bfloat16>{0x3fcfu});
+  }
+};
+#endif // _CCCL_HAS_NVBF16()
+
+namespace numbers
+{
+
+template <class _Tp>
+inline constexpr _Tp e_v = __numbers<_Tp>::__e();
+template <class _Tp>
+inline constexpr _Tp log2e_v = __numbers<_Tp>::__log2e();
+template <class _Tp>
+inline constexpr _Tp log10e_v = __numbers<_Tp>::__log10e();
+template <class _Tp>
+inline constexpr _Tp pi_v = __numbers<_Tp>::__pi();
+template <class _Tp>
+inline constexpr _Tp inv_pi_v = __numbers<_Tp>::__inv_pi();
+template <class _Tp>
+inline constexpr _Tp inv_sqrtpi_v = __numbers<_Tp>::__inv_sqrtpi();
+template <class _Tp>
+inline constexpr _Tp ln2_v = __numbers<_Tp>::__ln2();
+template <class _Tp>
+inline constexpr _Tp ln10_v = __numbers<_Tp>::__ln10();
+template <class _Tp>
+inline constexpr _Tp sqrt2_v = __numbers<_Tp>::__sqrt2();
+template <class _Tp>
+inline constexpr _Tp sqrt3_v = __numbers<_Tp>::__sqrt3();
+template <class _Tp>
+inline constexpr _Tp inv_sqrt3_v = __numbers<_Tp>::__inv_sqrt3();
+template <class _Tp>
+inline constexpr _Tp egamma_v = __numbers<_Tp>::__egamma();
+template <class _Tp>
+inline constexpr _Tp phi_v = __numbers<_Tp>::__phi();
+
+#if !_CCCL_COMPILER(MSVC)
+// MSVC errors here because of "error: A __device__ variable template cannot have a const qualified type on Windows"
+#  if _CCCL_HAS_NVFP16()
+template <>
+_CCCL_GLOBAL_CONSTANT __half e_v<__half> = __numbers<__half>::__e();
+template <>
+_CCCL_GLOBAL_CONSTANT __half log2e_v<__half> = __numbers<__half>::__log2e();
+template <>
+_CCCL_GLOBAL_CONSTANT __half log10e_v<__half> = __numbers<__half>::__log10e();
+template <>
+_CCCL_GLOBAL_CONSTANT __half pi_v<__half> = __numbers<__half>::__pi();
+template <>
+_CCCL_GLOBAL_CONSTANT __half inv_pi_v<__half> = __numbers<__half>::__inv_pi();
+template <>
+_CCCL_GLOBAL_CONSTANT __half inv_sqrtpi_v<__half> = __numbers<__half>::__inv_sqrtpi();
+template <>
+_CCCL_GLOBAL_CONSTANT __half ln2_v<__half> = __numbers<__half>::__ln2();
+template <>
+_CCCL_GLOBAL_CONSTANT __half ln10_v<__half> = __numbers<__half>::__ln10();
+template <>
+_CCCL_GLOBAL_CONSTANT __half sqrt2_v<__half> = __numbers<__half>::__sqrt2();
+template <>
+_CCCL_GLOBAL_CONSTANT __half sqrt3_v<__half> = __numbers<__half>::__sqrt3();
+template <>
+_CCCL_GLOBAL_CONSTANT __half inv_sqrt3_v<__half> = __numbers<__half>::__inv_sqrt3();
+template <>
+_CCCL_GLOBAL_CONSTANT __half egamma_v<__half> = __numbers<__half>::__egamma();
+template <>
+_CCCL_GLOBAL_CONSTANT __half phi_v<__half> = __numbers<__half>::__phi();
+#  endif // _CCCL_HAS_NVFP16()
+
+#  if _CCCL_HAS_NVBF16()
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 e_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__e();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 log2e_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__log2e();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 log10e_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__log10e();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 pi_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__pi();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 inv_pi_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__inv_pi();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 inv_sqrtpi_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__inv_sqrtpi();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 ln2_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__ln2();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 ln10_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__ln10();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 sqrt2_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__sqrt2();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 sqrt3_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__sqrt3();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 inv_sqrt3_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__inv_sqrt3();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 egamma_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__egamma();
+template <>
+_CCCL_GLOBAL_CONSTANT __nv_bfloat16 phi_v<__nv_bfloat16> = __numbers<__nv_bfloat16>::__phi();
+#  endif // _CCCL_HAS_NVBF16()
+#endif // !_CCCL_COMPILER(MSVC)
+
+inline constexpr double e          = __numbers<double>::__e();
+inline constexpr double log2e      = __numbers<double>::__log2e();
+inline constexpr double log10e     = __numbers<double>::__log10e();
+inline constexpr double pi         = __numbers<double>::__pi();
+inline constexpr double inv_pi     = __numbers<double>::__inv_pi();
+inline constexpr double inv_sqrtpi = __numbers<double>::__inv_sqrtpi();
+inline constexpr double ln2        = __numbers<double>::__ln2();
+inline constexpr double ln10       = __numbers<double>::__ln10();
+inline constexpr double sqrt2      = __numbers<double>::__sqrt2();
+inline constexpr double sqrt3      = __numbers<double>::__sqrt3();
+inline constexpr double inv_sqrt3  = __numbers<double>::__inv_sqrt3();
+inline constexpr double egamma     = __numbers<double>::__egamma();
+inline constexpr double phi        = __numbers<double>::__phi();
+
+} // namespace numbers
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_NUMBERS

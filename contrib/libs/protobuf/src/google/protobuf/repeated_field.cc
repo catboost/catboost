@@ -32,29 +32,35 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/repeated_field.h>
+#include "google/protobuf/repeated_field.h"
 
 #include <algorithm>
+#include <string>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/cord.h"
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
 
 
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<bool>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<arc_i32>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<arc_ui32>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<arc_i64>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<arc_ui64>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<float>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<double>;
-template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedPtrField<TProtoStringType>;
+template <>
+PROTOBUF_EXPORT_TEMPLATE_DEFINE size_t
+RepeatedField<y_absl::Cord>::SpaceUsedExcludingSelfLong() const {
+  size_t result = current_size_ * sizeof(y_absl::Cord);
+  for (int i = 0; i < current_size_; i++) {
+    // Estimate only.
+    result += Get(i).size();
+  }
+  return result;
+}
+
 
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

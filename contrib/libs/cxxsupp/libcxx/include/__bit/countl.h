@@ -1,0 +1,89 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCPP___BIT_COUNTL_H
+#define _LIBCPP___BIT_COUNTL_H
+
+#include <__config>
+#include <__type_traits/integer_traits.h>
+#include <limits>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#  pragma GCC system_header
+#endif
+
+#if !__has_builtin(__builtin_clzg) || defined(__CUDACC__)
+  #include <__bit/rotate.h>
+#endif
+
+_LIBCPP_PUSH_MACROS
+#include <__undef_macros>
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned __x) _NOEXCEPT {
+  return __builtin_clz(__x);
+}
+[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned long __x) _NOEXCEPT {
+  return __builtin_clzl(__x);
+}
+[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR int __libcpp_clz(unsigned long long __x) _NOEXCEPT {
+  return __builtin_clzll(__x);
+}
+
+template <class _Tp>
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 int __countl_zero(_Tp __t) _NOEXCEPT {
+  static_assert(__is_unsigned_integer_v<_Tp>, "__countl_zero requires an unsigned integer type");
+#if __has_builtin(__builtin_clzg) && !defined(__CUDACC__)
+  return __builtin_clzg(__t, numeric_limits<_Tp>::digits);
+#else  // __has_builtin(__builtin_clzg)
+  if (__t == 0)
+    return numeric_limits<_Tp>::digits;
+  if (sizeof(_Tp) <= sizeof(unsigned int))
+    return std::__libcpp_clz(static_cast<unsigned int>(__t)) -
+           (numeric_limits<unsigned int>::digits - numeric_limits<_Tp>::digits);
+  else if (sizeof(_Tp) <= sizeof(unsigned long))
+    return std::__libcpp_clz(static_cast<unsigned long>(__t)) -
+           (numeric_limits<unsigned long>::digits - numeric_limits<_Tp>::digits);
+  else if (sizeof(_Tp) <= sizeof(unsigned long long))
+    return std::__libcpp_clz(static_cast<unsigned long long>(__t)) -
+           (numeric_limits<unsigned long long>::digits - numeric_limits<_Tp>::digits);
+  else {
+    int __ret                      = 0;
+    int __iter                     = 0;
+    const unsigned int __ulldigits = numeric_limits<unsigned long long>::digits;
+    while (true) {
+      __t = std::__rotl(__t, __ulldigits);
+      if ((__iter = std::__countl_zero(static_cast<unsigned long long>(__t))) != __ulldigits)
+        break;
+      __ret += __iter;
+    }
+    return __ret + __iter;
+  }
+#endif // __has_builtin(__builtin_clzg)
+}
+
+#if _LIBCPP_STD_VER >= 20
+
+template <__unsigned_integer _Tp>
+[[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int countl_zero(_Tp __t) noexcept {
+  return std::__countl_zero(__t);
+}
+
+template <__unsigned_integer _Tp>
+[[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr int countl_one(_Tp __t) noexcept {
+  return __t != numeric_limits<_Tp>::max() ? std::countl_zero(static_cast<_Tp>(~__t)) : numeric_limits<_Tp>::digits;
+}
+
+#endif // _LIBCPP_STD_VER >= 20
+
+_LIBCPP_END_NAMESPACE_STD
+
+_LIBCPP_POP_MACROS
+
+#endif // _LIBCPP___BIT_COUNTL_H

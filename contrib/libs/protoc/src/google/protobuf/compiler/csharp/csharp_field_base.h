@@ -32,12 +32,16 @@
 #define GOOGLE_PROTOBUF_COMPILER_CSHARP_FIELD_BASE_H__
 
 #include <string>
-#include <google/protobuf/stubs/strutil.h>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/csharp/csharp_source_generator_base.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/io/printer.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/escaping.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/str_split.h"
+#include "google/protobuf/compiler/csharp/csharp_source_generator_base.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/io/printer.h"
 
 namespace google {
 namespace protobuf {
@@ -74,7 +78,7 @@ class FieldGeneratorBase : public SourceGeneratorBase {
  protected:
   const FieldDescriptor* descriptor_;
   const int presenceIndex_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
 
   void AddDeprecatedFlag(io::Printer* printer);
   void AddNullCheck(io::Printer* printer);
@@ -82,9 +86,10 @@ class FieldGeneratorBase : public SourceGeneratorBase {
 
   void AddPublicMemberAttributes(io::Printer* printer);
   void SetCommonOneofFieldVariables(
-      std::map<TProtoStringType, TProtoStringType>* variables);
+      y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables);
 
   TProtoStringType oneof_property_name();
+  TProtoStringType oneof_case_name(); 
   TProtoStringType oneof_name();
   TProtoStringType property_name();
   TProtoStringType name();
@@ -97,7 +102,8 @@ class FieldGeneratorBase : public SourceGeneratorBase {
   TProtoStringType capitalized_type_name();
 
  private:
-  void SetCommonFieldVariables(std::map<TProtoStringType, TProtoStringType>* variables);
+  void SetCommonFieldVariables(
+      y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables);
   TProtoStringType GetStringDefaultValueInternal(const FieldDescriptor* descriptor);
   TProtoStringType GetBytesDefaultValueInternal(const FieldDescriptor* descriptor);
 };

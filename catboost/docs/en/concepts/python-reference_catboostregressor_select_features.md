@@ -8,8 +8,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-model.select_features(
-                X,
+select_features(X,
                 y=None,
                 eval_set=None,
                 features_for_select=None,
@@ -55,11 +54,9 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 #### Description
 
-{% include [methods-param-desc-label--short-desc1](../_includes/work_src/reusage/label--short-desc1.md) %}
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-
-{% include [methods-param-desc-label--short-desc2](../_includes/work_src/reusage/label--short-desc2.md) %}
-
+{% include [methods-param-desc-label--detailed-desc-regression](../_includes/work_src/reusage/label--detailed-desc-regression.md) %}
 
 {% note info %}
 
@@ -67,20 +64,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 
 {% endnote %}
 
-**Possible types**
-
-- {{ python-type--list }}
-- {{ python-type--numpyarray }}
-- {{ python-type--pandasDataFrame }}
-- {{ python-type--pandasSeries }}
-
-**Default value**
-
-None
-
-**Supported processing units**
-
-{{ cpu-gpu }}
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 ### eval_set
 
@@ -88,13 +72,13 @@ None
 
 The validation dataset or datasets used for the following processes:
 - [overfitting detector](../concepts/overfitting-detector.md)
-- best iteration selection
+- the best iteration selection
 - monitoring metrics' changes
 
 **Possible types**
 
 - {{ python-type--pool }}
-- {{ python-type--tuple }} (x, y)
+- {{ python-type--tuple }} (X, y)
 - {{ python-type--string }} (path to the dataset file)
 
 **Default value**

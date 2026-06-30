@@ -361,7 +361,6 @@ static void AdjustBoostFromAverageDefaultValue(
     }
     if (catBoostOptions->SystemOptions->IsSingleHost()
         && !continueFromModel
-        // boost from average is enabled by default only for RMSE, MAE, Quantile and MAPE now
         && EqualToOneOf(
             catBoostOptions->LossFunctionDescription->GetLossFunction(),
             ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE,

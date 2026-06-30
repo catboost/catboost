@@ -3,11 +3,16 @@
 #include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/ref_counted.h>
 #include <library/cpp/yt/memory/atomic_intrusive_ptr.h>
+#include <library/cpp/yt/memory/leaky_singleton.h>
+
+#include <util/system/compiler.h>
 
 namespace NYT {
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#if !defined(_lsan_enabled_) && !defined(_asan_enabled_)
 
 using ::testing::IsNull;
 using ::testing::NotNull;
@@ -42,8 +47,8 @@ struct TIntricateObject
     }
 };
 
-typedef TIntrusivePtr<TIntricateObject> TIntricateObjectPtr;
-typedef TIntrusivePtr<const TIntricateObject> TConstIntricateObjectPtr;
+using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;
+using TConstIntricateObjectPtr = TIntrusivePtr<const TIntricateObject>;
 
 void Ref(TIntricateObject* obj, int n = 1)
 {
@@ -168,16 +173,25 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TEST(TAtomicPtrTest, Empty)
+TEST(TIntrusiveAtomicPtrTest, Empty)
 {
     TIntricateObjectPtr emptyPointer;
     EXPECT_EQ(nullptr, emptyPointer.Get());
 }
 
-// Reserved ref count.
-constexpr int RRC = 65535;
+constexpr int ReservedRefCount = 65535;
 
-TEST(TAtomicPtrTest, Basic)
+TEST(TIntrusiveAtomicPtrTest, Reset)
+{
+    TIntricateObject object;
+    TIntricateObjectPtr owningPointer(&object);
+    TAtomicIntrusivePtr<TIntricateObject> atomicPointer(owningPointer);
+    atomicPointer.Reset();
+    EXPECT_EQ(nullptr, atomicPointer.Get());
+    EXPECT_THAT(object, HasRefCounts(1 + ReservedRefCount, ReservedRefCount, 0));
+}
+
+TEST(TIntrusiveAtomicPtrTest, Basic)
 {
     TIntricateObject object;
 
@@ -196,27 +210,27 @@ TEST(TAtomicPtrTest, Basic)
         TIntricateObjectPtr owningPointer(&object);
         TAtomicIntrusivePtr<TIntricateObject> atomicPointer(owningPointer);
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 1, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 1, 1));
         EXPECT_EQ(&object, owningPointer.Get());
 
 
         auto p1 = atomicPointer.Acquire();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 1, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 1, 1));
 
         p1.Reset();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 2, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 2, 1));
 
         owningPointer.Reset();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 3, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 3, 1));
     }
 
-    EXPECT_THAT(object, HasRefCounts(2 + RRC, 2 + RRC, 2));
+    EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 2 + ReservedRefCount, 2));
 }
 
-TEST(TAtomicPtrTest, BasicConst)
+TEST(TIntrusiveAtomicPtrTest, BasicConst)
 {
     const TIntricateObject object;
 
@@ -235,86 +249,86 @@ TEST(TAtomicPtrTest, BasicConst)
         TConstIntricateObjectPtr owningPointer(&object);
         TAtomicIntrusivePtr<const TIntricateObject> atomicPointer(owningPointer);
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 1, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 1, 1));
         EXPECT_EQ(&object, owningPointer.Get());
 
 
         auto p1 = atomicPointer.Acquire();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 1, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 1, 1));
 
         p1.Reset();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 2, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 2, 1));
 
         owningPointer.Reset();
 
-        EXPECT_THAT(object, HasRefCounts(2 + RRC, 3, 1));
+        EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 3, 1));
     }
 
-    EXPECT_THAT(object, HasRefCounts(2 + RRC, 2 + RRC, 2));
+    EXPECT_THAT(object, HasRefCounts(2 + ReservedRefCount, 2 + ReservedRefCount, 2));
 }
 
-TEST(TAtomicPtrTest, Acquire)
+TEST(TIntrusiveAtomicPtrTest, Acquire)
 {
     TIntricateObject object;
     {
         TAtomicIntrusivePtr<TIntricateObject> atomicPtr{TIntricateObjectPtr(&object)};
-        EXPECT_THAT(object, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(object, HasRefCounts(ReservedRefCount, 0, 0));
 
-        for (int i = 0; i < RRC / 2; ++i) {
+        for (int i = 0; i < ReservedRefCount / 2; ++i) {
             {
                 auto tmp = atomicPtr.Acquire();
-                EXPECT_THAT(object, HasRefCounts(RRC, i, 0));
+                EXPECT_THAT(object, HasRefCounts(ReservedRefCount, i, 0));
             }
-            EXPECT_THAT(object, HasRefCounts(RRC, i + 1, 0));
+            EXPECT_THAT(object, HasRefCounts(ReservedRefCount, i + 1, 0));
         }
 
         {
             auto tmp = atomicPtr.Acquire();
-            EXPECT_THAT(object, HasRefCounts( RRC + RRC / 2, RRC - 1, 0));
+            EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount / 2, 0));
         }
 
-        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC, 0));
+        EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount / 2 + 1, 0));
     }
 
-    EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
+    EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount + ReservedRefCount / 2, 1));
 }
 
-TEST(TAtomicPtrTest, AcquireConst)
+TEST(TIntrusiveAtomicPtrTest, AcquireConst)
 {
     const TIntricateObject object;
     {
         TAtomicIntrusivePtr<const TIntricateObject> atomicPtr{TConstIntricateObjectPtr(&object)};
-        EXPECT_THAT(object, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(object, HasRefCounts(ReservedRefCount, 0, 0));
 
-        for (int i = 0; i < RRC / 2; ++i) {
+        for (int i = 0; i < ReservedRefCount / 2; ++i) {
             {
                 auto tmp = atomicPtr.Acquire();
-                EXPECT_THAT(object, HasRefCounts(RRC, i, 0));
+                EXPECT_THAT(object, HasRefCounts(ReservedRefCount, i, 0));
             }
-            EXPECT_THAT(object, HasRefCounts(RRC, i + 1, 0));
+            EXPECT_THAT(object, HasRefCounts(ReservedRefCount, i + 1, 0));
         }
 
         {
             auto tmp = atomicPtr.Acquire();
-            EXPECT_THAT(object, HasRefCounts( RRC + RRC / 2, RRC - 1, 0));
+            EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount / 2, 0));
         }
 
-        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC, 0));
+        EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount / 2 + 1, 0));
     }
 
-    EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
+    EXPECT_THAT(object, HasRefCounts(ReservedRefCount + ReservedRefCount / 2, ReservedRefCount + ReservedRefCount / 2, 1));
 }
 
-TEST(TAtomicPtrTest, CAS)
+TEST(TIntrusiveAtomicPtrTest, CAS)
 {
     TIntricateObject o1;
     TIntricateObject o2;
     {
 
         TAtomicIntrusivePtr<TIntricateObject> atomicPtr{TIntricateObjectPtr(&o1)};
-        EXPECT_THAT(o1, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(ReservedRefCount, 0, 0));
 
         TIntricateObjectPtr p2(&o2);
         EXPECT_THAT(o2, HasRefCounts(1, 0, 0));
@@ -323,28 +337,28 @@ TEST(TAtomicPtrTest, CAS)
         EXPECT_TRUE(atomicPtr.CompareAndSwap(rawPtr, std::move(p2)));
         EXPECT_EQ(rawPtr, &o1);
 
-        EXPECT_THAT(o1, HasRefCounts(RRC, RRC, 1));
-        EXPECT_THAT(o2, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(ReservedRefCount, ReservedRefCount, 1));
+        EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, 0, 0));
 
         rawPtr = nullptr;
         EXPECT_FALSE(atomicPtr.CompareAndSwap(rawPtr, TIntricateObjectPtr(&o1)));
         EXPECT_EQ(rawPtr, &o2);
 
-        EXPECT_THAT(o1, HasRefCounts(2 * RRC, 2 * RRC, 2));
-        EXPECT_THAT(o2, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(2 * ReservedRefCount, 2 * ReservedRefCount, 2));
+        EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, 0, 0));
     }
 
-    EXPECT_THAT(o2, HasRefCounts(RRC, RRC, 1));
+    EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, ReservedRefCount, 1));
 }
 
-TEST(TAtomicPtrTest, CASConst)
+TEST(TIntrusiveAtomicPtrTest, CASConst)
 {
     const TIntricateObject o1;
     const TIntricateObject o2;
     {
 
         TAtomicIntrusivePtr<const TIntricateObject> atomicPtr{TConstIntricateObjectPtr(&o1)};
-        EXPECT_THAT(o1, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(ReservedRefCount, 0, 0));
 
         TConstIntricateObjectPtr p2(&o2);
         EXPECT_THAT(o2, HasRefCounts(1, 0, 0));
@@ -353,19 +367,44 @@ TEST(TAtomicPtrTest, CASConst)
         EXPECT_TRUE(atomicPtr.CompareAndSwap(rawPtr, std::move(p2)));
         EXPECT_EQ(rawPtr, &o1);
 
-        EXPECT_THAT(o1, HasRefCounts(RRC, RRC, 1));
-        EXPECT_THAT(o2, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(ReservedRefCount, ReservedRefCount, 1));
+        EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, 0, 0));
 
         rawPtr = nullptr;
         EXPECT_FALSE(atomicPtr.CompareAndSwap(rawPtr, TConstIntricateObjectPtr(&o1)));
         EXPECT_EQ(rawPtr, &o2);
 
-        EXPECT_THAT(o1, HasRefCounts(2 * RRC, 2 * RRC, 2));
-        EXPECT_THAT(o2, HasRefCounts(RRC, 0, 0));
+        EXPECT_THAT(o1, HasRefCounts(2 * ReservedRefCount, 2 * ReservedRefCount, 2));
+        EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, 0, 0));
     }
 
-    EXPECT_THAT(o2, HasRefCounts(RRC, RRC, 1));
+    EXPECT_THAT(o2, HasRefCounts(ReservedRefCount, ReservedRefCount, 1));
 }
+
+TEST(TIntrusiveAtomicPtrTest, LSan)
+{
+    struct S final
+    { };
+
+    struct TSingleton
+    {
+        TSingleton()
+        {
+            for (auto& ptr : Ptrs) {
+                ptr.Store(New<S>());
+                // Clobber pointer bits to prevent LSan from tracing the pointer.
+                ptr.Acquire();
+            }
+        }
+
+        // LSan has some issues detecting leaks when just one allocation is made.
+        std::array<TAtomicIntrusivePtr<S>, 100> Ptrs;
+    };
+
+    LeakySingleton<TSingleton>();
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

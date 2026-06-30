@@ -29,6 +29,7 @@ namespace NCatboostOptions {
         TOption<float> L2Reg;
         TOption<float> PairwiseNonDiagReg;
         TOption<float> RandomStrength;
+        TOption<ERandomScoreType> RandomScoreType;
         TOption<TBootstrapConfig> BootstrapConfig;
         TOption<float> Rsm;
         TOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;

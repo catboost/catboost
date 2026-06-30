@@ -223,7 +223,7 @@ namespace NPar {
         dst.ParentEnvId = parentEnvId;
 
         if (existingEnv) {
-            Y_VERIFY(dst.Computer2HostId == computer2HostId);
+            Y_ABORT_UNLESS(dst.Computer2HostId == computer2HostId);
         }
         dst.Computer2HostId = computer2HostId;
 

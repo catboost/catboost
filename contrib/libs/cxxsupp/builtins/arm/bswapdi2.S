@@ -1,9 +1,8 @@
 //===------- bswapdi2 - Implement bswapdi2 --------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -11,9 +10,7 @@
 
 	.syntax unified
 	.text
-#if __ARM_ARCH_ISA_THUMB == 2
-	.thumb
-#endif
+	DEFINE_CODE_STATE
 
 //
 // extern uint64_t __bswapdi2(uint64_t);
@@ -21,11 +18,7 @@
 // Reverse all the bytes in a 64-bit integer.
 //
 	.p2align 2
-#if __ARM_ARCH_ISA_THUMB == 2
-DEFINE_COMPILERRT_THUMB_FUNCTION(__bswapdi2)
-#else
 DEFINE_COMPILERRT_FUNCTION(__bswapdi2)
-#endif
 #if __ARM_ARCH < 6
     // before armv6 does not have "rev" instruction
     // r2 = rev(r0)
@@ -45,3 +38,6 @@ DEFINE_COMPILERRT_FUNCTION(__bswapdi2)
     mov r1, r2  // r1 = r2 = rev(r0)
     JMP(lr)
 END_COMPILERRT_FUNCTION(__bswapdi2)
+
+NO_EXEC_STACK_DIRECTIVE
+

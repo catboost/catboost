@@ -23,7 +23,7 @@ TEST(TChunkedMemoryPoolTest, Absorb)
     auto fillPool = [&] (TChunkedMemoryPool& pool, TString prefix, int count) {
         for (int i = 0; i < count; i++) {
             TString expected = prefix + ToString(count);
-            char* buf = pool.AllocateUnaligned(expected.Size());
+            char* buf = pool.AllocateUnaligned(expected.size());
             ::memcpy(buf, expected.c_str(), expected.size());
             TStringBuf ref(buf, buf + expected.size());
             totalSize += expected.size();

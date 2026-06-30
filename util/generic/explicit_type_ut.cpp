@@ -5,7 +5,9 @@
 struct TCallableBase {
 public:
     using TYes = char;
-    using TNo = struct { TYes dummy[32]; };
+    using TNo = struct {
+        TYes dummy[32];
+    };
 
     template <class T, class Arg>
     static TNo Test(const T&, const Arg&, ...);
@@ -49,4 +51,4 @@ Y_UNIT_TEST_SUITE(TestExplicitType) {
         UNIT_ASSERT_VALUES_EQUAL(static_cast<bool>(TCallable<TExplicitlyCallable<IntConstructible>, IntConvertible>::Result), false);
         UNIT_ASSERT_VALUES_EQUAL(static_cast<bool>(TCallable<TExplicitlyCallable<IntConstructible>, int>::Result), false);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestExplicitType)

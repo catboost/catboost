@@ -38,7 +38,7 @@ namespace NPar {
         TVector<int> Computer2HostId;
         TObj<IObjectBase> Data;
 
-        SAVELOAD(Computer2HostId, Data)
+        SAVELOAD(Computer2HostId, Data);
 
         ~TContextDataHolder() override {
             IObjectBase::SetThreadCheckMode(false);
@@ -53,7 +53,7 @@ namespace NPar {
         bool KeepRawData;
         TVector<char> DataPart;
 
-        SAVELOAD(EnvId, Version, Part, PartCount, KeepRawData, DataPart)
+        SAVELOAD(EnvId, Version, Part, PartCount, KeepRawData, DataPart);
     };
 
     struct TContextForwardCmd {
@@ -69,13 +69,13 @@ namespace NPar {
         TContextForwardCmd() {
         }
 
-        SAVELOAD(EnvId, DstCompId, Part, KeepRawData)
+        SAVELOAD(EnvId, DstCompId, Part, KeepRawData);
     };
 
     struct TContextFreeCmd {
         int EnvId;
 
-        SAVELOAD(EnvId)
+        SAVELOAD(EnvId);
     };
 
     struct TContextSetData {
@@ -84,7 +84,7 @@ namespace NPar {
         i64 DataId;
         bool KeepRawData;
 
-        SAVELOAD(EnvId, Version, DstCompId, Computer2HostId, DataId, KeepRawData)
+        SAVELOAD(EnvId, Version, DstCompId, Computer2HostId, DataId, KeepRawData);
     };
 
     inline void MakeDataPartCmd(int envId, int version, int part, int partCount, bool keepRawData, const TVector<char>& dataPart,

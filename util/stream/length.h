@@ -14,7 +14,7 @@
  */
 class TLengthLimitedInput: public IInputStream {
 public:
-    inline TLengthLimitedInput(IInputStream* slave, ui64 length) noexcept
+    inline TLengthLimitedInput(IInputStream* slave Y_LIFETIME_BOUND, ui64 length) noexcept
         : Slave_(slave)
         , Length_(length)
     {
@@ -40,7 +40,7 @@ private:
  */
 class TCountingInput: public IInputStream {
 public:
-    inline TCountingInput(IInputStream* slave) noexcept
+    inline TCountingInput(IInputStream* slave Y_LIFETIME_BOUND) noexcept
         : Slave_(slave)
         , Count_()
     {
@@ -72,7 +72,7 @@ private:
  */
 class TCountingOutput: public IOutputStream {
 public:
-    inline TCountingOutput(IOutputStream* slave) noexcept
+    inline TCountingOutput(IOutputStream* slave Y_LIFETIME_BOUND) noexcept
         : Slave_(slave)
         , Count_()
     {

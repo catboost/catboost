@@ -23,16 +23,7 @@ namespace NCB {
             double truncateBorder = 1e-3,
             double k = 1.5,
             double b = 0.75
-        )
-            : TTextFeatureCalcer(BaseFeatureCount(numClasses), calcerId)
-            , NumClasses(numClasses)
-            , K(k)
-            , B(b)
-            , TruncateBorder(truncateBorder)
-            , TotalTokens(1)
-            , ClassTotalTokens(numClasses)
-            , Frequencies(numClasses)
-        {}
+        );
 
         bool IsSerializable() const override {
             return true;
@@ -57,6 +48,7 @@ namespace NCB {
         ui64 TotalTokens;
         TVector<ui64> ClassTotalTokens;
         TVector<TDenseHash<TTokenId, ui32>> Frequencies;
+        TVector<double> TruncatedInvClassFreq;
 
     protected:
         TTextFeatureCalcer::TFeatureCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;

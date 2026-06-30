@@ -29,6 +29,7 @@
 #include <ostream>
 
 #include "absl/crc/internal/crc32c_inline.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 
 namespace absl {
@@ -61,9 +62,15 @@ class crc32c_t final {
 
   friend bool operator!=(crc32c_t lhs, crc32c_t rhs) { return !(lhs == rhs); }
 
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, crc32c_t crc) {
+    absl::Format(&sink, "%08x", static_cast<uint32_t>(crc));
+  }
+
  private:
   uint32_t crc_;
 };
+
 
 namespace crc_internal {
 // Non-inline code path for `absl::ExtendCrc32c()`. Do not call directly.
@@ -75,11 +82,6 @@ crc32c_t ExtendCrc32cInternal(crc32c_t initial_crc,
 // -----------------------------------------------------------------------------
 // CRC32C Computation Functions
 // -----------------------------------------------------------------------------
-
-// ComputeCrc32c()
-//
-// Returns the CRC32C value of the provided string.
-crc32c_t ComputeCrc32c(absl::string_view buf);
 
 // ExtendCrc32c()
 //
@@ -103,6 +105,13 @@ inline crc32c_t ExtendCrc32c(crc32c_t initial_crc,
     }
   }
   return crc_internal::ExtendCrc32cInternal(initial_crc, buf_to_add);
+}
+
+// ComputeCrc32c()
+//
+// Returns the CRC32C value of the provided string.
+inline crc32c_t ComputeCrc32c(absl::string_view buf) {
+  return ExtendCrc32c(crc32c_t{0}, buf);
 }
 
 // ExtendCrc32cByZeroes()
@@ -174,7 +183,7 @@ crc32c_t RemoveCrc32cSuffix(crc32c_t full_string_crc, crc32c_t suffix_crc,
 //
 // Streams the CRC32C value `crc` to the stream `os`.
 inline std::ostream& operator<<(std::ostream& os, crc32c_t crc) {
-  return os << static_cast<uint32_t>(crc);
+  return os << absl::StreamFormat("%08x", static_cast<uint32_t>(crc));
 }
 
 ABSL_NAMESPACE_END

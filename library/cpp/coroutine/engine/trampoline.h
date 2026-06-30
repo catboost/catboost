@@ -39,8 +39,8 @@ namespace NCoro {
         }
 
         void SwitchTo(TExceptionSafeContext* ctx) noexcept {
-            Y_VERIFY(Stack_.LowerCanaryOk(), "Stack overflow (%s)", ContName());
-            Y_VERIFY(Stack_.UpperCanaryOk(), "Stack override (%s)", ContName());
+            Y_ABORT_UNLESS(Stack_.LowerCanaryOk(), "Stack overflow (%s)", ContName());
+            Y_ABORT_UNLESS(Stack_.UpperCanaryOk(), "Stack override (%s)", ContName());
             Ctx_.SwitchTo(ctx);
         }
 

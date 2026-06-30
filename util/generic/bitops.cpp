@@ -137,5 +137,5 @@ namespace NBitOps {
             ~0x7FFFFFFFFFFFFFFFULL,
             ~0xFFFFFFFFFFFFFFFFULL,
         };
-    }
-}
+    } // namespace NPrivate
+} // namespace NBitOps

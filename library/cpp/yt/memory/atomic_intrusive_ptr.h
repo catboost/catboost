@@ -2,26 +2,32 @@
 
 #include "intrusive_ptr.h"
 
+#include <util/system/compiler.h>
+
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
+#include <util/system/spinlock.h>
+#endif
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Atomic ptr based on https://github.com/facebook/folly/blob/main/folly/concurrency/AtomicSharedPtr.h
-
-// Operators * and -> for TAtomicIntrusivePtr are useless because it is not safe to work with atomic ptr such way
-// Safe usage is to convert to TIntrusivePtr.
-
-// Max TAtomicIntrusivePtr count per object is (2**16 = 2**32 / 2**16).
-
+//! Atomic pointer with split reference counting.
+/*
+ *  \see https://github.com/facebook/folly/blob/main/folly/concurrency/AtomicSharedPtr.h
+*/
 template <class T>
 class TAtomicIntrusivePtr
 {
 public:
+    using TUnderlying = T;
+    using element_type = T;
+
     TAtomicIntrusivePtr() = default;
     TAtomicIntrusivePtr(std::nullptr_t);
 
     explicit TAtomicIntrusivePtr(TIntrusivePtr<T> other);
-    TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other);
+    TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other) noexcept;
 
     ~TAtomicIntrusivePtr();
 
@@ -39,8 +45,11 @@ public:
     bool CompareAndSwap(TRawPtr& comparePtr, T* target);
     bool CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target);
 
-    // Result is suitable only for comparison. Not dereference.
+    //! Result is only suitable for comparison, not dereference.
     TRawPtr Get() const;
+
+    //! Result is only suitable for comparison, not dereference.
+    TRawPtr get() const;
 
     explicit operator bool() const;
 
@@ -57,22 +66,26 @@ private:
     template <class U>
     friend bool operator!=(const TIntrusivePtr<U>& lhs, const TAtomicIntrusivePtr<U>& rhs);
 
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
+    ::TSpinLock Lock_;
+    TIntrusivePtr<T> Ptr_;
+#else
     // Keeps packed pointer (localRefCount, objectPtr).
     // Atomic ptr holds N references, where N = ReservedRefCount - localRefCount.
     // LocalRefCount is incremented in Acquire method.
     // When localRefCount exceeds ReservedRefCount / 2 a new portion of refs are required globally.
     // This field is marked mutable in order to make Acquire const-qualified in accordance to its semantics.
-    mutable std::atomic<TPackedPtr> Ptr_ = 0;
+    static_assert(std::atomic<TPackedPtr>::is_always_lock_free);
+    mutable std::atomic<TPackedPtr> Ptr_;
 
     constexpr static int CounterBits = PackedPtrTagBits;
     constexpr static int ReservedRefCount = (1 << CounterBits) - 1;
 
     // Consume ref if ownership is transferred.
-    // AcquireObject(ptr.Release(), true)
-    // AcquireObject(ptr.Get(), false)
     static TPackedPtr AcquireObject(T* obj, bool consumeRef = false);
     static void ReleaseObject(TPackedPtr packedPtr);
     static void DoRelease(T* obj, int refs);
+#endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -81,6 +81,12 @@ public:
          CB_ENSURE(false, "SetPairs is incompatible with blocked processing");
      }
 
+
+    void SetGraph(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+        CB_ENSURE(false, "SetGraph is incompatible with blocked processing");
+    }
+
      void SetTimestamps(TVector<ui64>&& timestamps) override {
          Y_UNUSED(timestamps);
          CB_ENSURE(false, "SetTimestamps is incompatible with blocked processing");
@@ -369,6 +375,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
 
         TDatasetLoaderCommonArgs {
             /*pairsFilePath*/ TPathWithScheme(),
+            /*graphFilePath*/ TPathWithScheme(),
             /*groupWeightsFilePath*/ TPathWithScheme(),
             /*baselineFilePath*/ TPathWithScheme(),
             /*timestampsFilePath*/ TPathWithScheme(),
@@ -382,6 +389,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             SafeIntegerCast<ui32>(blockSize),
             /*loadSubset*/ TDatasetSubset(),
             /*LoadColumnsAsString*/ false,
+            /*LoadSampleIds*/ false,
             /*ForceUnitAutoPairWeights*/ false,
             &LocalExecutor
         }
@@ -413,6 +421,3 @@ i32 TRawDatasetRowsReader::ReadNextBlock() {
 const TRawDatasetRow& TRawDatasetRowsReader::GetRow(i32 objectIdx) {
     return Visitor->GetRow(objectIdx);
 }
-
-
-

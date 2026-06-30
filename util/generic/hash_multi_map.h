@@ -16,6 +16,7 @@ public:
     using key_equal = typename ht::key_equal;
     using mapped_type = T;
     using allocator_type = typename ht::allocator_type;
+    using node_allocator_type = typename ht::node_allocator_type;
 
     using size_type = typename ht::size_type;
     using difference_type = typename ht::difference_type;
@@ -99,6 +100,7 @@ public:
     size_type size() const {
         return rep.size();
     }
+    // DEPRECATED. DO NOT USE.
     yssize_t ysize() const {
         return (yssize_t)rep.size();
     }
@@ -197,6 +199,11 @@ public:
     template <class TKey>
     std::pair<iterator, iterator> equal_range(const TKey& key) {
         return rep.equal_range(key);
+    }
+
+    template <class TKey>
+    std::pair<iterator, iterator> equal_range_i(const TKey& key, insert_ctx& ins) {
+        return rep.equal_range_i(key, ins);
     }
 
     template <class TKey>

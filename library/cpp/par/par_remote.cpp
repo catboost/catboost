@@ -24,7 +24,7 @@ namespace NPar {
         TArray2D<TVector<float>> DelayMatrixData;
         TVector<TNetworkAddress> BaseSearcherAddrs;
 
-        SAVELOAD(DelayMatrixData, BaseSearcherAddrs)
+        SAVELOAD(DelayMatrixData, BaseSearcherAddrs);
     };
 
     struct THostInitData {
@@ -32,7 +32,7 @@ namespace NPar {
         TNetworkAddress MasterAddress;
         TVector<TNetworkAddress> BaseSearcherAddrs;
 
-        SAVELOAD(CompId, MasterAddress, BaseSearcherAddrs)
+        SAVELOAD(CompId, MasterAddress, BaseSearcherAddrs);
 
         THostInitData()
             : CompId(-1)
@@ -59,7 +59,7 @@ namespace NPar {
     struct TAllPingResults {
         TVector<TPingResult> PingResults;
 
-        SAVELOAD(PingResults)
+        SAVELOAD(PingResults);
     };
 
     class TMetaRequester: public IRemoteQueryResponseNotify {
@@ -133,7 +133,7 @@ namespace NPar {
     void TRemoteQueryProcessor::RegisterCallback(const TGUID& reqId, IRemoteQueryCancelNotify* notify) {
         CHROMIUM_TRACE_FUNCTION();
 
-        Y_VERIFY(!reqId.IsEmpty());
+        Y_ABORT_UNLESS(!reqId.IsEmpty());
         PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " Register cancel callback for request: " << GetGuidAsString(reqId) << Endl;
         TIntrusivePtr<TQueryResultDst> queryResultDst;
         auto functor = [notify](TIntrusivePtr<TQueryResultDst>& theQueryResultDst) {
@@ -251,7 +251,7 @@ namespace NPar {
             [this](const TGUID& canceledReq) { QueryCancelCallback(canceledReq); },
             [this](TAutoPtr<TNetworkRequest>& nlReq) { IncomingQueryCallback(nlReq); },
             [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); }));
-        Y_VERIFY(Requester.Get());
+        Y_ABORT_UNLESS(Requester.Get());
         SlaveFinish.Reset();
         SlaveFinish.Wait();
     }
@@ -288,7 +288,7 @@ namespace NPar {
         auto& masterTimings = Singleton<TParHostStats>()->ParTimings;
         TVector<TVector<char>> res;
         mr->GetResults(&res);
-        Y_VERIFY(
+        Y_ABORT_UNLESS(
             res.ysize() == searcherCount,
             "res.ysize()=%d, searcherCount=%d",
             res.ysize(), searcherCount);
@@ -458,8 +458,16 @@ namespace NPar {
     }
 
     TRemoteQueryProcessor::~TRemoteQueryProcessor() {
-        DoRun = false;
-        MetaThread->Join();
+        if (DoRun) {
+            Stop();
+        }
+    }
+
+    void TRemoteQueryProcessor::Stop() {
+        if (DoRun) {
+            DoRun = false;
+            MetaThread->Join();
+        }
     }
 
     void TRemoteQueryProcessor::MetaThreadFunction() {
@@ -500,7 +508,7 @@ namespace NPar {
                         queryFullTime += (TInstant::Now() - queryInfoPtr->QueryCreationTime).SecondsFloat();
                         queryInfoPtr->Proc->GotResponse(queryInfoPtr->Id, &netEvent.Response->Data);
                     } else {
-                        Y_FAIL();
+                        Y_ABORT();
                     }
                 }
             }

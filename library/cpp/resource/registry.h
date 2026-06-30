@@ -3,15 +3,17 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 
-#include "resource.h"
-
 namespace NResource {
+    struct TResource;
+
+
     TString Compress(const TStringBuf data);
     TString Decompress(const TStringBuf data);
 
     class IMatch {
     public:
         virtual void OnMatch(const TResource& res) = 0;
+        virtual ~IMatch() = default;
     };
 
     class IStore {
@@ -22,15 +24,15 @@ namespace NResource {
         virtual void FindMatch(const TStringBuf subkey, IMatch& cb) const = 0;
         virtual size_t Count() const noexcept = 0;
         virtual TStringBuf KeyByIndex(size_t idx) const = 0;
-        virtual ~IStore() {
-        }
+        virtual ~IStore() = default;
     };
 
     IStore* CommonStore();
 
     struct TRegHelper {
-        inline TRegHelper(const TStringBuf key, const TStringBuf data) {
-            CommonStore()->Store(key, data);
-        }
+        TRegHelper(const TStringBuf key, const TStringBuf data);
     };
+
+    int LightRegisterS(const char* key, const char* data, unsigned long data_len);
+    int LightRegisterI(const char* key, const char* data, const char* data_end);
 }

@@ -31,9 +31,9 @@
 #ifndef GOOGLE_PROTOBUF_EXTENSION_SET_INL_H__
 #define GOOGLE_PROTOBUF_EXTENSION_SET_INL_H__
 
-#include <google/protobuf/parse_context.h>
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/metadata_lite.h>
+#include "google/protobuf/extension_set.h"
+#include "google/protobuf/metadata_lite.h"
+#include "google/protobuf/parse_context.h"
 
 namespace google {
 namespace protobuf {
@@ -76,7 +76,7 @@ const char* ExtensionSet::ParseFieldWithExtensionInfo(
       case WireFormatLite::TYPE_BYTES:
       case WireFormatLite::TYPE_GROUP:
       case WireFormatLite::TYPE_MESSAGE:
-        GOOGLE_LOG(FATAL) << "Non-primitive types can't be packed.";
+        Y_ABSL_LOG(FATAL) << "Non-primitive types can't be packed.";
         break;
     }
   } else {
@@ -207,15 +207,20 @@ const char* ExtensionSet::ParseMessageSetItemTmpl(
     internal::ParseContext* ctx) {
   TProtoStringType payload;
   arc_ui32 type_id = 0;
-  bool payload_read = false;
+  enum class State { kNoTag, kHasType, kHasPayload, kDone };
+  State state = State::kNoTag;
+
   while (!ctx->Done(&ptr)) {
     arc_ui32 tag = static_cast<uint8_t>(*ptr++);
     if (tag == WireFormatLite::kMessageSetTypeIdTag) {
       arc_ui64 tmp;
       ptr = ParseBigVarint(ptr, &tmp);
       GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-      type_id = tmp;
-      if (payload_read) {
+      if (state == State::kNoTag) {
+        type_id = tmp;
+        state = State::kHasType;
+      } else if (state == State::kHasPayload) {
+        type_id = tmp;
         ExtensionInfo extension;
         bool was_packed_on_wire;
         if (!FindExtension(2, type_id, extendee, ctx, &extension,
@@ -241,20 +246,24 @@ const char* ExtensionSet::ParseMessageSetItemTmpl(
           GOOGLE_PROTOBUF_PARSER_ASSERT(value->_InternalParse(p, &tmp_ctx) &&
                                          tmp_ctx.EndedAtLimit());
         }
-        type_id = 0;
+        state = State::kDone;
       }
     } else if (tag == WireFormatLite::kMessageSetMessageTag) {
-      if (type_id != 0) {
+      if (state == State::kHasType) {
         ptr = ParseFieldMaybeLazily(static_cast<arc_ui64>(type_id) * 8 + 2, ptr,
                                     extendee, metadata, ctx);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
-        type_id = 0;
+        state = State::kDone;
       } else {
+        TProtoStringType tmp;
         arc_i32 size = ReadSize(&ptr);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ptr = ctx->ReadString(ptr, size, &payload);
+        ptr = ctx->ReadString(ptr, size, &tmp);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        payload_read = true;
+        if (state == State::kNoTag) {
+          payload = std::move(tmp);
+          state = State::kHasPayload;
+        }
       }
     } else {
       ptr = ReadTag(ptr - 1, &tag);

@@ -104,7 +104,7 @@ public:
 
     const TBlob& Data() const {
         return DataHolder;
-    };
+    }
 
     const NCompactTrie::ILeafSkipper& GetSkipper() const {
         return Skipper;

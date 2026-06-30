@@ -24,6 +24,9 @@ class CatBoostClassifierTest {
   @Rule
   def temporaryFolder = _temporaryFolder
 
+  @Rule
+  def processingVerifier = ProcessingFinishedVerifier
+
 
   @Test
   @throws(classOf[Exception])
@@ -39,7 +42,7 @@ class CatBoostClassifierTest {
       featureNames,
       /*addFeatureNamesMetadata*/ true
     )
-    
+
     val srcData = Seq(
       Row(Vectors.dense(0.1, 0.2, 0.11), 1),
       Row(Vectors.dense(0.97, 0.82, 0.33), 2),
@@ -48,7 +51,7 @@ class CatBoostClassifierTest {
       Row(Vectors.dense(0.9, 0.67, 0.17), 2),
       Row(Vectors.dense(0.66, 0.1, 0.31), 1)
     )
-    
+
     val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
 
     val classifier = new CatBoostClassifier()
@@ -56,7 +59,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(df)
     val predictions = model.transform(df)
-    
+
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
       Seq(
         ("features", SQLDataTypes.VectorType),
@@ -69,47 +72,47 @@ class CatBoostClassifierTest {
       /*addFeatureNamesMetadata*/ true,
       /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
     )
-    
+
     val expectedPredictionsData = Seq(
       Row(
-        Vectors.dense(0.1, 0.2, 0.11), 
-        1, 
+        Vectors.dense(0.1, 0.2, 0.11),
+        1,
         Vectors.dense(0.08414989363659559, -0.08414989363659559),
         Vectors.dense(0.541975913549805, 0.458024086450195),
         0.0
       ),
       Row(
-        Vectors.dense(0.97, 0.82, 0.33), 
+        Vectors.dense(0.97, 0.82, 0.33),
         2,
-        Vectors.dense(-0.07660239597875373,0.07660239597875373), 
+        Vectors.dense(-0.07660239597875373,0.07660239597875373),
         Vectors.dense(0.4617735427982884,0.5382264572017116),
         1.0
       ),
       Row(
-        Vectors.dense(0.13, 0.22, 0.23), 
+        Vectors.dense(0.13, 0.22, 0.23),
         2,
-        Vectors.dense(-0.07657474373810148,0.07657474373810148), 
+        Vectors.dense(-0.07657474373810148,0.07657474373810148),
         Vectors.dense(0.4617872881333314,0.5382127118666686),
         1.0
       ),
       Row(
         Vectors.dense(0.14, 0.18, 0.1),
         1,
-        Vectors.dense(0.09721485072232189,-0.09721485072232189), 
+        Vectors.dense(0.09721485072232189,-0.09721485072232189),
         Vectors.dense(0.5484548768406571,0.4515451231593429),
         0.0
       ),
       Row(
         Vectors.dense(0.9, 0.67, 0.17),
         2,
-        Vectors.dense(-0.08702243949954704,0.08702243949954704), 
+        Vectors.dense(-0.08702243949954704,0.08702243949954704),
         Vectors.dense(0.4565982840017737,0.5434017159982263),
         1.0
       ),
       Row(
         Vectors.dense(0.66, 0.1, 0.31),
-        1, 
-        Vectors.dense(0.07883731282470079,-0.07883731282470079), 
+        1,
+        Vectors.dense(0.07883731282470079,-0.07883731282470079),
         Vectors.dense(0.539337192390336,0.460662807609664),
         0.0
       )
@@ -121,14 +124,15 @@ class CatBoostClassifierTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test   
+
+
+  @Test
   @throws(classOf[Exception])
   def testSimpleBinaryClassification() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -162,7 +166,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
     val quantizedPool = pool.quantize()
-    
+
     val expectedRawPrediction = Seq(
       (
         0.024000747348794246,
@@ -216,7 +220,7 @@ class CatBoostClassifierTest {
       )
     )
     val expectedPrediction = Seq(0.0, 0.0, 1.0, 1.0, 0.0, 1.0)
-    
+
     for (rawPrediction <- Seq(false, true)) {
       for (probability <- Seq(false, true)) {
         for (prediction <- Seq(false, true)) {
@@ -224,11 +228,11 @@ class CatBoostClassifierTest {
           model.setProbabilityCol(if (probability) "probability" else "")
           model.setPredictionCol(if (prediction) "prediction" else "")
           val predictions = model.transform(pool.data)
-          
+
           val expectedPredictionsData = mutable.Seq.concat(srcData)
           var expectedPredictionsSchemaData = srcSchemaData
           if (rawPrediction) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("rawPrediction", SQLDataTypes.VectorType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -238,7 +242,7 @@ class CatBoostClassifierTest {
             }
           }
           if (probability) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("probability", SQLDataTypes.VectorType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -248,7 +252,7 @@ class CatBoostClassifierTest {
             }
           }
           if (prediction) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("prediction", DoubleType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -267,12 +271,12 @@ class CatBoostClassifierTest {
             spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
             StructType(expectedPredictionsSchema)
           )
-          
+
           TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
-          
+
           // check apply on quantized
           val quantizedPredictions = model.transformPool(quantizedPool)
-          
+
           TestHelpers.assertEqualsWithPrecision(
             expectedPredictions.drop("features"),
             quantizedPredictions.drop("features")
@@ -281,7 +285,109 @@ class CatBoostClassifierTest {
       }
     }
   }
-  
+
+  @Test
+  @throws(classOf[Exception])
+  def testSimpleBinaryClassificationWithBooleanTarget() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+    val srcSchemaData = Seq(
+      ("features", SQLDataTypes.VectorType),
+      ("label", BooleanType)
+    )
+
+    val srcData = Seq(
+      Row(Vectors.dense(0.1, 0.2, 0.11), false),
+      Row(Vectors.dense(0.97, 0.82, 0.33), true),
+      Row(Vectors.dense(0.13, 0.22, 0.23), true),
+      Row(Vectors.dense(0.14, 0.18, 0.1), false),
+      Row(Vectors.dense(0.9, 0.67, 0.17), true),
+      Row(Vectors.dense(0.66, 0.1, 0.31), false)
+    )
+
+    val pool = PoolTestHelpers.createRawPool(
+      TestHelpers.getCurrentMethodName,
+      PoolTestHelpers.createSchema(
+        srcSchemaData,
+        featureNames,
+        /*addFeatureNamesMetadata*/ true
+      ),
+      srcData,
+      Map()
+    )
+
+    val classifier = new CatBoostClassifier()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val model = classifier.fit(pool)
+    val predictions = model.transform(pool.data)
+
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", BooleanType),
+        ("rawPrediction", SQLDataTypes.VectorType),
+        ("probability", SQLDataTypes.VectorType),
+        ("prediction", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
+    )
+
+    val expectedPredictionsData = Seq(
+      Row(
+        Vectors.dense(0.1, 0.2, 0.11),
+        false,
+        Vectors.dense(0.08414989363659559, -0.08414989363659559),
+        Vectors.dense(0.541975913549805, 0.458024086450195),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.97, 0.82, 0.33),
+        true,
+        Vectors.dense(-0.07660239597875373,0.07660239597875373),
+        Vectors.dense(0.4617735427982884,0.5382264572017116),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.13, 0.22, 0.23),
+        true,
+        Vectors.dense(-0.07657474373810148,0.07657474373810148),
+        Vectors.dense(0.4617872881333314,0.5382127118666686),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.14, 0.18, 0.1),
+        false,
+        Vectors.dense(0.09721485072232189,-0.09721485072232189),
+        Vectors.dense(0.5484548768406571,0.4515451231593429),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.9, 0.67, 0.17),
+        true,
+        Vectors.dense(-0.08702243949954704,0.08702243949954704),
+        Vectors.dense(0.4565982840017737,0.5434017159982263),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.66, 0.1, 0.31),
+        false,
+        Vectors.dense(0.07883731282470079,-0.07883731282470079),
+        Vectors.dense(0.539337192390336,0.460662807609664),
+        0.0
+      )
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+  }
+
   // Master: String target type is not currently supported
   @Test(expected = classOf[CatBoostError])
   @throws(classOf[Exception])
@@ -315,7 +421,7 @@ class CatBoostClassifierTest {
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
   }
-  
+
   // Master: String target type is not currently supported
   @Test(expected = classOf[CatBoostError])
   @throws(classOf[Exception])
@@ -350,12 +456,12 @@ class CatBoostClassifierTest {
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testBinaryClassificationWithClassNamesAsIntSet() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
 
     val pool = PoolTestHelpers.createRawPool(
@@ -385,7 +491,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
-    
+
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
       Seq(
         ("features", SQLDataTypes.VectorType),
@@ -398,47 +504,47 @@ class CatBoostClassifierTest {
       /*addFeatureNamesMetadata*/ true,
       /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
     )
-    
+
     val expectedPredictionsData = Seq(
       Row(
-        Vectors.dense(0.1, 0.2, 0.11), 
-        "1", 
+        Vectors.dense(0.1, 0.2, 0.11),
+        "1",
         Vectors.dense(0.08414989363659559, -0.08414989363659559),
         Vectors.dense(0.541975913549805, 0.458024086450195),
         0.0
       ),
       Row(
-        Vectors.dense(0.97, 0.82, 0.33), 
+        Vectors.dense(0.97, 0.82, 0.33),
         "2",
-        Vectors.dense(-0.07660239597875373,0.07660239597875373), 
+        Vectors.dense(-0.07660239597875373,0.07660239597875373),
         Vectors.dense(0.4617735427982884,0.5382264572017116),
         1.0
       ),
       Row(
-        Vectors.dense(0.13, 0.22, 0.23), 
+        Vectors.dense(0.13, 0.22, 0.23),
         "2",
-        Vectors.dense(-0.07657474373810148,0.07657474373810148), 
+        Vectors.dense(-0.07657474373810148,0.07657474373810148),
         Vectors.dense(0.4617872881333314,0.5382127118666686),
         1.0
       ),
       Row(
         Vectors.dense(0.14, 0.18, 0.1),
         "1",
-        Vectors.dense(0.09721485072232189,-0.09721485072232189), 
+        Vectors.dense(0.09721485072232189,-0.09721485072232189),
         Vectors.dense(0.5484548768406571,0.4515451231593429),
         0.0
       ),
       Row(
         Vectors.dense(0.9, 0.67, 0.17),
         "2",
-        Vectors.dense(-0.08702243949954704,0.08702243949954704), 
+        Vectors.dense(-0.08702243949954704,0.08702243949954704),
         Vectors.dense(0.4565982840017737,0.5434017159982263),
         1.0
       ),
       Row(
         Vectors.dense(0.66, 0.1, 0.31),
-        "1", 
-        Vectors.dense(0.07883731282470079,-0.07883731282470079), 
+        "1",
+        Vectors.dense(0.07883731282470079,-0.07883731282470079),
         Vectors.dense(0.539337192390336,0.460662807609664),
         0.0
       )
@@ -450,12 +556,12 @@ class CatBoostClassifierTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test   
+
+  @Test
   @throws(classOf[Exception])
   def testBinaryClassificationWithTargetBorder() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
 
     val pool = PoolTestHelpers.createRawPool(
@@ -485,7 +591,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
-    
+
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
       Seq(
         ("features", SQLDataTypes.VectorType),
@@ -498,47 +604,47 @@ class CatBoostClassifierTest {
       /*addFeatureNamesMetadata*/ true,
       /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
     )
-    
+
     val expectedPredictionsData = Seq(
       Row(
-        Vectors.dense(0.1, 0.2, 0.11), 
-        0.12, 
+        Vectors.dense(0.1, 0.2, 0.11),
+        0.12,
         Vectors.dense(0.08057222609664604,-0.08057222609664604),
         Vectors.dense(0.5401991612479529,0.45980083875204714),
         0.0
       ),
       Row(
-        Vectors.dense(0.97, 0.82, 0.33), 
+        Vectors.dense(0.97, 0.82, 0.33),
         0.1,
-        Vectors.dense(0.04555562514432977,-0.04555562514432977), 
+        Vectors.dense(0.04555562514432977,-0.04555562514432977),
         Vectors.dense(0.5227620685962877,0.4772379314037123),
         0.0
       ),
       Row(
-        Vectors.dense(0.13, 0.22, 0.23), 
+        Vectors.dense(0.13, 0.22, 0.23),
         0.7,
-        Vectors.dense(-0.0799281861623364,0.0799281861623364), 
+        Vectors.dense(-0.0799281861623364,0.0799281861623364),
         Vectors.dense(0.4601207937404179,0.5398792062595821),
         1.0
       ),
       Row(
         Vectors.dense(0.14, 0.18, 0.1),
         0.33,
-        Vectors.dense(0.08057222609664604,-0.08057222609664604), 
+        Vectors.dense(0.08057222609664604,-0.08057222609664604),
         Vectors.dense(0.5401991612479529,0.45980083875204714),
         0.0
       ),
       Row(
         Vectors.dense(0.9, 0.67, 0.17),
         0.82,
-        Vectors.dense(-0.07938095256503758,0.07938095256503758), 
+        Vectors.dense(-0.07938095256503758,0.07938095256503758),
         Vectors.dense(0.46039268179178616,0.5396073182082138),
         1.0
       ),
       Row(
         Vectors.dense(0.66, 0.1, 0.31),
-        0.93, 
-        Vectors.dense(-0.07118906575434053,0.07118906575434053), 
+        0.93,
+        Vectors.dense(-0.07118906575434053,0.07118906575434053),
         Vectors.dense(0.4644654751240226,0.5355345248759774),
         1.0
       )
@@ -550,8 +656,8 @@ class CatBoostClassifierTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test(expected = classOf[CatBoostError]) 
+
+  @Test(expected = classOf[CatBoostError])
   @throws(classOf[Exception])
   def testBinaryClassificationWithRealTargetWithoutTargetBorder() {
     val featureNames = Array[String]("f1", "f2", "f3")
@@ -583,12 +689,12 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
   }
-  
-  @Test   
+
+  @Test
   @throws(classOf[Exception])
   def testBinaryClassificationWithClassWeightsMap() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
 
     val pool = PoolTestHelpers.createRawPool(
@@ -611,7 +717,7 @@ class CatBoostClassifierTest {
         ),
         Map[String,String]()
     )
-    
+
     val classWeightsMap = new java.util.LinkedHashMap[String, Double]
     classWeightsMap.put("0", 1.0)
     classWeightsMap.put("1", 2.0)
@@ -622,7 +728,7 @@ class CatBoostClassifierTest {
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
-    
+
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
       Seq(
         ("features", SQLDataTypes.VectorType),
@@ -635,47 +741,47 @@ class CatBoostClassifierTest {
       /*addFeatureNamesMetadata*/ true,
       /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
     )
-    
+
     val expectedPredictionsData = Seq(
       Row(
-        Vectors.dense(0.1, 0.2, 0.11), 
-        0, 
+        Vectors.dense(0.1, 0.2, 0.11),
+        0,
         Vectors.dense(0.061542387422523895, -0.061542387422523895),
         Vectors.dense(0.5307324041981032, 0.46926759580189686),
         0.0
       ),
       Row(
-        Vectors.dense(0.97, 0.82, 0.33), 
+        Vectors.dense(0.97, 0.82, 0.33),
         1,
-        Vectors.dense(-0.10732143550400228,0.10732143550400228), 
+        Vectors.dense(-0.10732143550400228,0.10732143550400228),
         Vectors.dense(0.4465443569128503,0.5534556430871497),
         1.0
       ),
       Row(
-        Vectors.dense(0.13, 0.22, 0.23), 
+        Vectors.dense(0.13, 0.22, 0.23),
         1,
-        Vectors.dense(-0.09010562508687871,0.09010562508687871), 
+        Vectors.dense(-0.09010562508687871,0.09010562508687871),
         Vectors.dense(0.45506872106197505,0.544931278938025),
         1.0
       ),
       Row(
         Vectors.dense(0.14, 0.18, 0.1),
         0,
-        Vectors.dense(0.0660650934240398,-0.0660650934240398), 
+        Vectors.dense(0.0660650934240398,-0.0660650934240398),
         Vectors.dense(0.5329845725520714,0.46701542744792857),
         0.0
       ),
       Row(
         Vectors.dense(0.9, 0.67, 0.17),
         0,
-        Vectors.dense(0.057555746416403084,-0.057555746416403084), 
+        Vectors.dense(0.057555746416403084,-0.057555746416403084),
         Vectors.dense(0.5287461381176124,0.4712538618823876),
         0.0
       ),
       Row(
         Vectors.dense(0.66, 0.1, 0.31),
-        0, 
-        Vectors.dense(0.03719023254887147,-0.03719023254887147), 
+        0,
+        Vectors.dense(0.03719023254887147,-0.03719023254887147),
         Vectors.dense(0.5185865479633033,0.4814134520366967),
         0.0
       )
@@ -687,13 +793,112 @@ class CatBoostClassifierTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  
-  @Test   
+
+  @Test
+  @throws(classOf[Exception])
+  def testBinaryClassificationWithScalePosWeight() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+
+    val pool = PoolTestHelpers.createRawPool(
+        TestHelpers.getCurrentMethodName,
+        PoolTestHelpers.createSchema(
+          Seq(
+            ("features", SQLDataTypes.VectorType),
+            ("label", IntegerType)
+          ),
+          featureNames,
+          /*addFeatureNamesMetadata*/ true
+        ),
+        Seq(
+          Row(Vectors.dense(0.1, 0.2, 0.11), 0),
+          Row(Vectors.dense(0.97, 0.82, 0.33), 1),
+          Row(Vectors.dense(0.13, 0.22, 0.23), 1),
+          Row(Vectors.dense(0.14, 0.18, 0.1), 0),
+          Row(Vectors.dense(0.9, 0.67, 0.17), 0),
+          Row(Vectors.dense(0.66, 0.1, 0.31), 0)
+        ),
+        Map[String,String]()
+    )
+
+    val classifier = new CatBoostClassifier()
+      .setIterations(20)
+      .setScalePosWeight(2.0f)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val model = classifier.fit(pool)
+    val predictions = model.transform(pool.data)
+
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", IntegerType),
+        ("rawPrediction", SQLDataTypes.VectorType),
+        ("probability", SQLDataTypes.VectorType),
+        ("prediction", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
+    )
+
+    val expectedPredictionsData = Seq(
+      Row(
+        Vectors.dense(0.1, 0.2, 0.11),
+        0,
+        Vectors.dense(0.061542387422523895, -0.061542387422523895),
+        Vectors.dense(0.5307324041981032, 0.46926759580189686),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.97, 0.82, 0.33),
+        1,
+        Vectors.dense(-0.10732143550400228,0.10732143550400228),
+        Vectors.dense(0.4465443569128503,0.5534556430871497),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.13, 0.22, 0.23),
+        1,
+        Vectors.dense(-0.09010562508687871,0.09010562508687871),
+        Vectors.dense(0.45506872106197505,0.544931278938025),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.14, 0.18, 0.1),
+        0,
+        Vectors.dense(0.0660650934240398,-0.0660650934240398),
+        Vectors.dense(0.5329845725520714,0.46701542744792857),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.9, 0.67, 0.17),
+        0,
+        Vectors.dense(0.057555746416403084,-0.057555746416403084),
+        Vectors.dense(0.5287461381176124,0.4712538618823876),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.66, 0.1, 0.31),
+        0,
+        Vectors.dense(0.03719023254887147,-0.03719023254887147),
+        Vectors.dense(0.5185865479633033,0.4814134520366967),
+        0.0
+      )
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+  }
+
+  @Test
   @throws(classOf[Exception])
   def testBinaryClassificationWithWeights() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
 
     val pool = PoolTestHelpers.createRawPool(
@@ -720,10 +925,10 @@ class CatBoostClassifierTest {
 
     val classifier = new CatBoostClassifier()
       .setIterations(20)
-      
+
     val model = classifier.fit(pool)
     val predictions = model.transform(pool.data)
-    
+
     val expectedPredictionsSchema = PoolTestHelpers.createSchema(
       Seq(
         ("features", SQLDataTypes.VectorType),
@@ -737,29 +942,29 @@ class CatBoostClassifierTest {
       /*addFeatureNamesMetadata*/ true,
       /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
     )
-    
+
     val expectedPredictionsData = Seq(
       Row(
-        Vectors.dense(0.1, 0.2, 0.11), 
-        0, 
+        Vectors.dense(0.1, 0.2, 0.11),
+        0,
         1.0,
         Vectors.dense(0.061542387422523895, -0.061542387422523895),
         Vectors.dense(0.5307324041981032, 0.46926759580189686),
         0.0
       ),
       Row(
-        Vectors.dense(0.97, 0.82, 0.33), 
+        Vectors.dense(0.97, 0.82, 0.33),
         1,
         2.0,
-        Vectors.dense(-0.10732143550400228,0.10732143550400228), 
+        Vectors.dense(-0.10732143550400228,0.10732143550400228),
         Vectors.dense(0.4465443569128503,0.5534556430871497),
         1.0
       ),
       Row(
-        Vectors.dense(0.13, 0.22, 0.23), 
+        Vectors.dense(0.13, 0.22, 0.23),
         1,
         2.0,
-        Vectors.dense(-0.09010562508687871,0.09010562508687871), 
+        Vectors.dense(-0.09010562508687871,0.09010562508687871),
         Vectors.dense(0.45506872106197505,0.544931278938025),
         1.0
       ),
@@ -767,7 +972,7 @@ class CatBoostClassifierTest {
         Vectors.dense(0.14, 0.18, 0.1),
         0,
         1.0,
-        Vectors.dense(0.0660650934240398,-0.0660650934240398), 
+        Vectors.dense(0.0660650934240398,-0.0660650934240398),
         Vectors.dense(0.5329845725520714,0.46701542744792857),
         0.0
       ),
@@ -775,15 +980,15 @@ class CatBoostClassifierTest {
         Vectors.dense(0.9, 0.67, 0.17),
         0,
         1.0,
-        Vectors.dense(0.057555746416403084,-0.057555746416403084), 
+        Vectors.dense(0.057555746416403084,-0.057555746416403084),
         Vectors.dense(0.5287461381176124,0.4712538618823876),
         0.0
       ),
       Row(
         Vectors.dense(0.66, 0.1, 0.31),
-        0, 
+        0,
         1.0,
-        Vectors.dense(0.03719023254887147,-0.03719023254887147), 
+        Vectors.dense(0.03719023254887147,-0.03719023254887147),
         Vectors.dense(0.5185865479633033,0.4814134520366967),
         0.0
       )
@@ -796,11 +1001,11 @@ class CatBoostClassifierTest {
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testBinaryClassificationWithNumAndOneHotAndCtrCatFeaturesWithEvalSets() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -865,7 +1070,7 @@ class CatBoostClassifierTest {
         )
       }
     )
-    
+
     val expectedPredictionSeq = Seq(
       Map(
         "raw_prediction" -> Seq(
@@ -985,7 +1190,7 @@ class CatBoostClassifierTest {
       .setLearningRate(0.3f)
     val model = classifier.fit(trainPool, Array[Pool](testPools(0), testPools(1)))
     val predictionsSeq = testPools.map(testPool => model.transform(testPool.data))
-  
+
     (predictionsSeq zip expectedPredictionDfs).map{
       case (predictions, expectedPredictionsDf) => {
         TestHelpers.assertEqualsWithPrecision(expectedPredictionsDf, predictions)
@@ -993,14 +1198,14 @@ class CatBoostClassifierTest {
     }
   }
 
-  
-  @Test  
+
+  @Test
   @throws(classOf[Exception])
   def testSimpleMultiClassification() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -1017,7 +1222,7 @@ class CatBoostClassifierTest {
       Row(Vectors.dense(0.66, 0.1, 0.31), "2", 0xD9DBDD3199D6518AL, 0.5f, 0x1FA606FD, 2.0f),
       Row(Vectors.dense(0.14, 0.18, 0.1), "1", 0xD9DBDD3199D6518AL, 0.5f, 0x62772D1C, 0.45f)
     )
-    
+
     val pool = PoolTestHelpers.createRawPool(
         TestHelpers.getCurrentMethodName,
         PoolTestHelpers.createSchema(
@@ -1035,7 +1240,7 @@ class CatBoostClassifierTest {
 
     val model = classifier.fit(pool)
     val quantizedPool = pool.quantize()
-    
+
     val expectedRawPrediction = Seq(
       (
         -0.36816374672276697,
@@ -1101,7 +1306,7 @@ class CatBoostClassifierTest {
       )
     )
     val expectedPrediction = Seq(2.0, 2.0, 0.0, 0.0, 2.0, 1.0)
-    
+
     for (rawPrediction <- Seq(false, true)) {
       for (probability <- Seq(false, true)) {
         for (prediction <- Seq(false, true)) {
@@ -1109,11 +1314,11 @@ class CatBoostClassifierTest {
           model.setProbabilityCol(if (probability) "probability" else "")
           model.setPredictionCol(if (prediction) "prediction" else "")
           val predictions = model.transform(pool.data)
-          
+
           val expectedPredictionsData = mutable.Seq.concat(srcData)
           var expectedPredictionsSchemaData = srcSchemaData
           if (rawPrediction) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("rawPrediction", SQLDataTypes.VectorType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -1123,7 +1328,7 @@ class CatBoostClassifierTest {
             }
           }
           if (probability) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("probability", SQLDataTypes.VectorType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -1133,7 +1338,7 @@ class CatBoostClassifierTest {
             }
           }
           if (prediction) {
-            expectedPredictionsSchemaData 
+            expectedPredictionsSchemaData
               = expectedPredictionsSchemaData :+ ("prediction", DoubleType)
             for (i <- 0 until srcData.length) {
               expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -1152,12 +1357,12 @@ class CatBoostClassifierTest {
             spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
             StructType(expectedPredictionsSchema)
           )
-          
+
           TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
-          
+
           // check apply on quantized
           val quantizedPredictions = model.transformPool(quantizedPool)
-          
+
           TestHelpers.assertEqualsWithPrecision(
             expectedPredictions.drop("features"),
             quantizedPredictions.drop("features")
@@ -1166,12 +1371,12 @@ class CatBoostClassifierTest {
       }
     }
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testMultiClassificationWithNumAndOneHotAndCtrCatFeaturesWithEvalSets() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -1236,7 +1441,7 @@ class CatBoostClassifierTest {
         )
       }
     )
-    
+
     val expectedPredictionSeq = Seq(
       Map(
         "raw_prediction" -> Seq(
@@ -1384,7 +1589,7 @@ class CatBoostClassifierTest {
       .setLearningRate(0.3f)
     val model = classifier.fit(trainPool, Array[Pool](testPools(0), testPools(1)))
     val predictionsSeq = testPools.map(testPool => model.transform(testPool.data))
-  
+
     (predictionsSeq zip expectedPredictionDfs).map{
       case (predictions, expectedPredictionsDf) => {
         TestHelpers.assertEqualsWithPrecision(expectedPredictionsDf, predictions)
@@ -1392,7 +1597,7 @@ class CatBoostClassifierTest {
     }
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testSerialization() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName);
@@ -1408,17 +1613,17 @@ class CatBoostClassifierTest {
       val classifier = new CatBoostClassifier().setLossFunction("MultiClass").setIterations(2)
       classifier.write.overwrite.save(path)
       val loadedClassifier = CatBoostClassifier.load(path)
-      
+
       // TODO - uids
       //Assert.assertEquals(classifier, loadedClassifier)
     }
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testModelSerializationInPipeline() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName);
-    
+
     val srcData = Seq(
       Row(0, "query0", 0.1, "Male", 0.2, "Germany", 0.11),
       Row(1, "query0", 0.97, "Female", 0.82, "Russia", 0.33),
@@ -1479,7 +1684,7 @@ class CatBoostClassifierTest {
       featureNames,
       /*addFeatureNamesMetadata*/ true
     )
-    
+
     val srcData1 = Seq(
       Row(Vectors.dense(0.1, 0.2, 0.11), 1),
       Row(Vectors.dense(0.97, 0.82, 0.33), 2),
@@ -1490,7 +1695,7 @@ class CatBoostClassifierTest {
     )
 
     val df1 = spark.createDataFrame(spark.sparkContext.parallelize(srcData1), StructType(srcDataSchema))
-    
+
     val srcData2 = Seq(
       Row(Vectors.dense(0.12, 0.3, 0.0), 2),
       Row(Vectors.dense(0.21, 0.77, 0.1), 1),

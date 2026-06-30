@@ -2,11 +2,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "onnx/defs/function.h"
-#include "onnx/defs/schema.h"
-
 #include <algorithm>
 #include <numeric>
+
+#include "onnx/defs/function.h"
+#include "onnx/defs/schema.h"
 
 namespace ONNX_NAMESPACE {
 
@@ -81,7 +81,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
           output_tensor_type->set_elem_type(static_cast<TensorProto_DataType>(input_elem_types[0]));
 
-          if (!hasNInputShapes(ctx, static_cast<int>(numInputs))) {
+          if (!hasNInputShapes(ctx, numInputs)) {
             return;
           }
 
@@ -188,7 +188,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           const auto input0_type = ctx.getInputType(0);
           if (nullptr == input0_type) {
-            fail_type_inference("Input type for input at index 0 is null. Type info is expected.")
+            fail_type_inference("Input type for input at index 0 is null. Type info is expected.");
           }
           ctx.getOutputType(0)->CopyFrom(input0_type->sequence_type().elem_type());
         }));
@@ -256,16 +256,19 @@ ONNX_OPERATOR_SET_SCHEMA(
 // Updated operators that consume/produce sequence of tensors.
 
 static const char* SplitToSequence_ver11_doc =
-    R"DOC(Split a tensor into a sequence of tensors, along the specified
-'axis'. Lengths of the parts can be specified using argument 'split'.
+    R"DOC(
+Split a tensor into a sequence of tensors, along the specified 'axis'.
+Lengths of the parts can be specified using the optional argument 'split'.
+If the argument `split' is not specified, a default scalar value of 1
+is used as the value of `split'.
 'split' must contain only positive numbers.
 'split' is either a scalar (tensor of empty shape), or a 1-D tensor.
-If 'split' is a scalar, then 'input' will be split into equally sized chunks(if possible).
-Last chunk will be smaller if the 'input' size along the given axis 'axis' is not divisible
-by 'split'.
-Otherwise, the tensor is split into 'size(split)' chunks, with lengths of the parts on 'axis'
-specified in 'split'. In this scenario, the sum of entries in 'split' must be equal to the
-dimension size of input tensor on 'axis'.
+If 'split' is a scalar, then 'input' will be split into chunks all of size 'split'
+if possible. The last chunk alone may be smaller than 'split' if the 'input' size
+along the given axis 'axis' is not divisible by 'split'.
+If 'split' is a 1-dimensional tensor, the input tensor is split into 'size(split)' chunks,
+with lengths of the parts on 'axis' specified in 'split'. In this scenario, the sum of entries
+in 'split' must be equal to the dimension size of input tensor on 'axis'.
 )DOC";
 
 ONNX_OPERATOR_SET_SCHEMA(
@@ -342,17 +345,17 @@ ONNX_OPERATOR_SET_SCHEMA(
 
               std::vector<int64_t> splitSizes;
               if (splitInitializer->data_type() == TensorProto::INT64) {
-                const auto& data = ParseData<int64_t>(splitInitializer);
+                const auto data = ParseData<int64_t>(splitInitializer);
                 splitSizes.insert(splitSizes.end(), data.begin(), data.end());
               } else if (splitInitializer->data_type() == TensorProto::INT32) {
-                const auto& data = ParseData<int32_t>(splitInitializer);
+                const auto data = ParseData<int32_t>(splitInitializer);
                 splitSizes.insert(splitSizes.end(), data.begin(), data.end());
               } else {
                 // unaccepted data type
                 fail_shape_inference("Only supports `int32_t` or `int64_t` inputs for split");
               }
 
-              if (splitSizes.size() == 0) {
+              if (splitSizes.empty()) {
                 fail_shape_inference("Input 'split' can not be empty.");
               }
 
@@ -523,7 +526,7 @@ the input.
 This operator assumes that processing each sample is independent and could executed in parallel
 or in any order. Users cannot expect any specific ordering in which each subgraph is computed.)DOC";
 
-void SequenceMapInferenceFunction(InferenceContext& ctx) {
+static void SequenceMapInferenceFunction(InferenceContext& ctx) {
   auto num_inputs = ctx.getNumInputs();
   assert(num_inputs > 0);
 
@@ -573,10 +576,8 @@ void SequenceMapInferenceFunction(InferenceContext& ctx) {
   }
 }
 
-bool BuildSequenceMapBodyFunc(
-    const FunctionBodyBuildContext& ctx,
-    const OpSchema& schema,
-    FunctionProto& functionProto) {
+static bool
+BuildSequenceMapBodyFunc(const FunctionBodyBuildContext& ctx, const OpSchema& schema, FunctionProto& functionProto) {
   schema.BuildFunction(functionProto);
 
   // variadic input/outputs will be expanded
@@ -606,9 +607,9 @@ bool BuildSequenceMapBodyFunc(
   if (!first_input_type->has_sequence_type())
     ONNX_THROW_EX(std::invalid_argument("Expected a sequence type for input 0"));
 
-  auto schema_inputs = schema.inputs();
-  auto input_0_name = schema_inputs[0].GetName();
-  auto input_1_name = schema_inputs[1].GetName(); // variadic input
+  auto const& schema_inputs = schema.inputs();
+  auto const& input_0_name = schema_inputs[0].GetName();
+  auto const& input_1_name = schema_inputs[1].GetName(); // variadic input
 
   *functionProto.add_input() = input_0_name;
   for (int i = 1; i < ninputs; i++) {
@@ -617,7 +618,7 @@ bool BuildSequenceMapBodyFunc(
     *functionProto.add_input() = MakeString(input_1_name, "_", i);
   }
 
-  auto schema_outputs = schema.outputs();
+  auto const& schema_outputs = schema.outputs();
   auto output_0_name = schema_outputs[0].GetName();
   for (int i = 0; i < noutputs; i++) {
     if (!ctx.hasOutput(i))
@@ -628,7 +629,7 @@ bool BuildSequenceMapBodyFunc(
   // Loop body subgraph
   std::string loopbody_graph_name("SequenceMap_loop_body");
   GraphProto loopbody_graph;
-  loopbody_graph.set_name(TString{loopbody_graph_name});
+  loopbody_graph.set_name(loopbody_graph_name);
   {
     TypeProto int64_type;
     int64_type.mutable_tensor_type()->set_elem_type(TensorProto_DataType_INT64);
@@ -640,27 +641,27 @@ bool BuildSequenceMapBodyFunc(
 
     ValueInfoProto iter_count;
     std::string iter_count_name = MakeString(loopbody_graph_name, "_itercount");
-    iter_count.set_name(TString{iter_count_name});
+    iter_count.set_name(iter_count_name);
     *iter_count.mutable_type() = int64_type;
     *loopbody_graph.add_input() = iter_count;
 
     ValueInfoProto cond_in;
     std::string cond_in_name = MakeString(loopbody_graph_name, "_cond_in");
-    cond_in.set_name(TString{cond_in_name});
+    cond_in.set_name(cond_in_name);
     *cond_in.mutable_type() = bool_type;
     *loopbody_graph.add_input() = cond_in;
 
     ValueInfoProto cond_out;
     std::string cond_out_name = MakeString(loopbody_graph_name, "_cond_out");
-    cond_out.set_name(TString{cond_out_name});
+    cond_out.set_name(cond_out_name);
     *cond_out.mutable_type() = bool_type;
     *loopbody_graph.add_output() = cond_out;
 
     NodeProto cond_identity;
-    cond_identity.set_domain(TString{ONNX_DOMAIN});
-    cond_identity.set_op_type(TString{"Identity"});
-    cond_identity.add_input(TString{cond_in_name});
-    cond_identity.add_output(TString{cond_out_name});
+    cond_identity.set_domain(ONNX_DOMAIN);
+    cond_identity.set_op_type("Identity");
+    cond_identity.add_input(cond_in_name);
+    cond_identity.add_output(cond_out_name);
     *loopbody_graph.add_node() = cond_identity;
 
     for (int inputIndex = 0; inputIndex < ninputs; inputIndex++) {
@@ -668,20 +669,20 @@ bool BuildSequenceMapBodyFunc(
       if (input_type && input_type->has_sequence_type()) {
         // If it's a sequence input, extract ``iter_count`` element
         NodeProto seq_at_node;
-        seq_at_node.set_domain(TString{ONNX_DOMAIN});
-        seq_at_node.set_op_type(TString{"SequenceAt"});
-        seq_at_node.add_input(TString{functionProto.input(inputIndex)});
-        seq_at_node.add_input(TString{iter_count_name});
-        seq_at_node.add_output(TString{g_inputs.Get(inputIndex).name()});
-        *loopbody_graph.add_node() = seq_at_node;
+        seq_at_node.set_domain(ONNX_DOMAIN);
+        seq_at_node.set_op_type("SequenceAt");
+        seq_at_node.add_input(functionProto.input(inputIndex));
+        seq_at_node.add_input(iter_count_name);
+        seq_at_node.add_output(g_inputs.Get(inputIndex).name());
+        *loopbody_graph.add_node() = std::move(seq_at_node);
       } else {
         // If not a sequence, simply connect
         NodeProto identity;
-        identity.set_domain(TString{ONNX_DOMAIN});
-        identity.set_op_type(TString{"Identity"});
-        identity.add_input(TString{functionProto.input(inputIndex)});
-        identity.add_output(TString{g_inputs.Get(inputIndex).name()});
-        *loopbody_graph.add_node() = identity;
+        identity.set_domain(ONNX_DOMAIN);
+        identity.set_op_type("Identity");
+        identity.add_input(functionProto.input(inputIndex));
+        identity.add_output(g_inputs.Get(inputIndex).name());
+        *loopbody_graph.add_node() = std::move(identity);
       }
     }
 
@@ -703,19 +704,19 @@ bool BuildSequenceMapBodyFunc(
       ValueInfoProto tmp;
       *tmp.mutable_type()->mutable_sequence_type()->mutable_elem_type()->mutable_tensor_type() =
           body_out_i.type().tensor_type();
-      tmp.set_name(TString{loopbody_in_name});
+      tmp.set_name(loopbody_in_name);
       *loopbody_graph.add_input() = tmp;
 
       std::string loopbody_out_name = MakeString(prefix, "_out");
-      tmp.set_name(TString{loopbody_out_name});
+      tmp.set_name(loopbody_out_name);
       *loopbody_graph.add_output() = tmp;
 
       NodeProto seq_insert_node;
-      seq_insert_node.set_domain(TString{ONNX_DOMAIN});
-      seq_insert_node.set_op_type(TString{"SequenceInsert"});
-      seq_insert_node.add_input(TString{loopbody_in_name});
-      seq_insert_node.add_input(TString{body_out_i.name()});
-      seq_insert_node.add_output(TString{loopbody_out_name});
+      seq_insert_node.set_domain(ONNX_DOMAIN);
+      seq_insert_node.set_op_type("SequenceInsert");
+      seq_insert_node.add_input(loopbody_in_name);
+      seq_insert_node.add_input(body_out_i.name());
+      seq_insert_node.add_output(loopbody_out_name);
       *loopbody_graph.add_node() = seq_insert_node;
     }
   }
@@ -740,8 +741,8 @@ bool BuildSequenceMapBodyFunc(
     std::string seqempty_name = MakeString(out_prefix, "_seqempty");
     int64_t dtype = g_outputs.Get(outputIndex).type().tensor_type().elem_type();
     nodes.push_back({{seqempty_name}, "SequenceEmpty", {}, {MakeAttribute("dtype", dtype)}});
-    loop_node_inputs.push_back(seqempty_name);
-    loop_node_outputs.push_back(output_name);
+    loop_node_inputs.emplace_back(std::move(seqempty_name));
+    loop_node_outputs.emplace_back(std::move(output_name));
   }
 
   nodes.push_back({loop_node_outputs, "Loop", loop_node_inputs, {MakeAttribute("body", loopbody_graph)}});

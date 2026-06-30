@@ -46,6 +46,7 @@ namespace NCB {
         virtual void SetBaseline(TVector<TVector<float>>&& baseline) = 0;
 
         virtual void SetPairs(TRawPairsData&& pairs) = 0;
+        virtual void SetGraph(TRawPairsData&& graph) = 0;
 
         virtual void SetTimestamps(TVector<ui64>&& timestamps) = 0;
 
@@ -54,6 +55,13 @@ namespace NCB {
             TVector<TPair> pairsCopy;
             Assign(pairs, &pairsCopy);
             SetPairs(TRawPairsData(std::move(pairsCopy)));
+        }
+
+        // less effective version for Cython
+        void SetGraph(TConstArrayRef<TPair> pairs) {
+            TVector<TPair> pairsCopy;
+            Assign(pairs, &pairsCopy);
+            SetGraph(TRawPairsData(std::move(pairsCopy)));
         }
 
         /* needed for checking groupWeights consistency while loading from separate file

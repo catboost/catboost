@@ -136,7 +136,7 @@ namespace NPar {
             // has at least one remote comp for each hostId
             // try regular execution
             bool chk = ScheduleJobRequest(jr, queryProc);
-            Y_VERIFY(chk);
+            Y_ABORT_UNLESS(chk);
 
             TMRCommandExec::Launch(jr, queryProc, localCompId, userContext, mrNotify);
         } else {

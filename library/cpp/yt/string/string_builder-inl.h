@@ -1,8 +1,10 @@
 #ifndef STRING_BUILDER_INL_H_
-#error "Direct inclusion of this file is not allowed, include string.h"
+#error "Direct inclusion of this file is not allowed, include string_builder.h"
 // For the sake of sane code completion.
 #include "string_builder.h"
 #endif
+
+#include "format_string.h"
 
 #include <library/cpp/yt/assert/assert.h>
 
@@ -79,20 +81,14 @@ inline void TStringBuilderBase::Reset()
 }
 
 template <class... TArgs>
-void TStringBuilderBase::AppendFormat(TStringBuf format, TArgs&& ... args)
-{
-    Format(this, format, std::forward<TArgs>(args)...);
-}
-
-template <size_t Length, class... TArgs>
-void TStringBuilderBase::AppendFormat(const char (&format)[Length], TArgs&& ... args)
+void TStringBuilderBase::AppendFormat(TFormatString<TArgs...> format, TArgs&&... args)
 {
     Format(this, format, std::forward<TArgs>(args)...);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline TString TStringBuilder::Flush()
+inline std::string TStringBuilder::Flush()
 {
     Buffer_.resize(GetLength());
     auto result = std::move(Buffer_);
@@ -102,31 +98,16 @@ inline TString TStringBuilder::Flush()
 
 inline void TStringBuilder::DoReset()
 {
-    Buffer_ = {};
+    Buffer_.clear();
 }
 
 inline void TStringBuilder::DoReserve(size_t newLength)
 {
-    Buffer_.ReserveAndResize(newLength);
+    ResizeUninitialized(Buffer_, newLength);
     auto capacity = Buffer_.capacity();
-    Buffer_.ReserveAndResize(capacity);
+    ResizeUninitialized(Buffer_, capacity);
     Begin_ = &*Buffer_.begin();
     End_ = Begin_ + capacity;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-inline void FormatValue(TStringBuilderBase* builder, const TStringBuilder& value, TStringBuf /*format*/)
-{
-    builder->AppendString(value.GetBuffer());
-}
-
-template <class T>
-TString ToStringViaBuilder(const T& value, TStringBuf spec)
-{
-    TStringBuilder builder;
-    FormatValue(&builder, value, spec);
-    return builder.Flush();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

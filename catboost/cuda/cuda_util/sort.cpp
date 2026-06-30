@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/cpp/cuda/exception/exception.h>
+
 #include <util/generic/cast.h>
 #include <util/stream/labeled.h>
 
@@ -309,7 +311,7 @@ static void RadixSortImpl(
         return;
     }
     using TKernel = TRadixSortKernel<K, V>;
-    CB_ENSURE((offset + bits) <= (sizeof(K) * 8), LabeledOutput(offset + bits, sizeof(K) + 8));
+    CB_ENSURE((offset + bits) <= (sizeof(K) * 8), LabeledOutput(offset + bits, sizeof(K) * 8));
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);
 }
 

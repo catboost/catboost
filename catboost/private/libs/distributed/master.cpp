@@ -16,6 +16,7 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/options/json_helper.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/par/par_settings.h>
 
 #include <util/generic/algorithm.h>
@@ -255,6 +256,8 @@ void MapGenericCalcScore(
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     auto& candidateList = candidatesContext->CandidateList;
 
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
@@ -289,7 +292,13 @@ void MapGenericCalcScore(
                 const auto& splitInfo = subCandidates[subcandidateIdx];
                 allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
             }
-            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, *candidatesContext, &subCandidates);
+            SetBestScore(
+                randSeed + candidateIdx,
+                allScores,
+                scoreDistribution,
+                scoreStDev,
+                *candidatesContext,
+                &subCandidates);
         });
 }
 
@@ -321,6 +330,8 @@ void MapGenericRemoteCalcScore(
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     // Flatten candidateLists from all contexts to ensure even parallelization
     TCandidateList allCandidatesList;
     for (auto& candidatesContext : *candidatesContexts) {
@@ -351,6 +362,7 @@ void MapGenericRemoteCalcScore(
                 SetBestScore(
                     randSeed + candidateIdx,
                     allScores[allScoresOffset + candidateIdx],
+                    scoreDistribution,
                     scoreStDev,
                     candidatesContext,
                     &candidates);
@@ -565,7 +577,7 @@ static void UpdateLeavesExact(
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const auto lossFunction = ctx->Params.LossFunctionDescription;
 
-    Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE));
+    Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE));
     averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
     double alpha = 0.5;
     double delta = 0.0;
@@ -690,14 +702,13 @@ void MapSetApproxes(
                     continue;
                 }
                 for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-                    if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
+                    if (estimationMethod == ELeavesEstimation::Gradient) {
                         buckets[leafIdx].AddDerWeight(
                             singleBuckets[leafIdx].SumDer,
                             singleBuckets[leafIdx].SumWeights,
                             recalcLeafWeights);
                     } else {
-                        Y_ASSERT(
-                            ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
+                        Y_ASSERT(estimationMethod == ELeavesEstimation::Newton);
                         buckets[leafIdx].AddDerDer2(singleBuckets[leafIdx].SumDer, singleBuckets[leafIdx].SumDer2);
                     }
                 }

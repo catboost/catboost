@@ -1,6 +1,8 @@
 import functools
 import threading
 import collections
+import contextlib
+import six
 
 
 def map0(func, value):
@@ -23,7 +25,7 @@ def lazy(func):
     lock = threading.Lock()
 
     @functools.wraps(func)
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         try:
             return result.result
         except AttributeError:
@@ -31,7 +33,7 @@ def lazy(func):
                 try:
                     return result.result
                 except AttributeError:
-                    result.result = func(*args)
+                    result.result = func(*args, **kwargs)
 
             return result.result
 
@@ -76,20 +78,32 @@ class lazy_classproperty(object):
         return getattr(owner, attr_name)
 
 
-def memoize(limit=0, thread_local=False):
+class nullcontext(object):
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+
+def memoize(limit=0, thread_local=False, thread_safe=True):
     assert limit >= 0
+    assert limit <= 0 or thread_safe, 'memoize() it not thread safe enough to work in limiting and non-thread safe mode'
 
     def decorator(func):
         memory = {}
-        lock = threading.Lock()
+
+        if six.PY3:
+            lock = contextlib.nullcontext()
+        else:
+            lock = nullcontext()
+        lock = threading.Lock() if thread_safe else lock
 
         if limit:
             keys = collections.deque()
 
             def get(args):
-                try:
-                    return memory[args]
-                except KeyError:
+                if args not in memory:
                     with lock:
                         if args not in memory:
                             fargs = args[-1]
@@ -97,7 +111,7 @@ def memoize(limit=0, thread_local=False):
                             keys.append(args)
                             if len(keys) > limit:
                                 del memory[keys.popleft()]
-                        return memory[args]
+                return memory[args]
 
         else:
 
@@ -106,7 +120,7 @@ def memoize(limit=0, thread_local=False):
                     with lock:
                         if args not in memory:
                             fargs = args[-1]
-                            memory[args] = func(*fargs)
+                            memory.setdefault(args, func(*fargs))
                 return memory[args]
 
         if thread_local:
@@ -136,12 +150,25 @@ def compose(*functions):
 
 
 class Singleton(type):
-    _instances = {}
+    __instances = {}
+    __lock = threading.Lock()
+
+    class _LockedObj:
+        def __init__(self, obj, lock):
+            self.obj = obj
+            self.lock = lock
 
     def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+        if cls not in cls.__instances:
+            with cls.__lock:
+                if cls not in cls.__instances:
+                    cls.__instances[cls] = cls._LockedObj(None, threading.Lock())
+
+        if not cls.__instances[cls].obj:
+            with cls.__instances[cls].lock:
+                if not cls.__instances[cls].obj:
+                    cls.__instances[cls].obj = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls.__instances[cls].obj
 
 
 def stable_uniq(it):

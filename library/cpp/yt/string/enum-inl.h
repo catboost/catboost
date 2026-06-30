@@ -4,9 +4,16 @@
 #include "enum.h"
 #endif
 
+#include "format.h"
+#include "string.h"
+#include "string_builder.h"
+
 #include <library/cpp/yt/exception/exception.h>
 
 #include <util/string/printf.h>
+#include <util/string/strip.h>
+
+#include <span>
 
 namespace NYT {
 
@@ -14,114 +21,136 @@ namespace NYT {
 
 namespace NDetail {
 
+////////////////////////////////////////////////////////////////////////////////
+
+using TEnumSuggestionsCalculator = std::string (*)(
+    TStringBuf value,
+    const std::span<const TStringBuf>& domainNames);
+
+extern "C" TEnumSuggestionsCalculator TryGetEnumSuggestionsCalculator();
+
 [[noreturn]]
 void ThrowMalformedEnumValueException(
     TStringBuf typeName,
-    TStringBuf value);
+    TStringBuf value,
+    const std::span<const TStringBuf>& domainNames = {});
 
 void FormatUnknownEnumValue(
-    TStringBuilderBase* builder,
+    auto* builder,
     TStringBuf name,
-    i64 value);
+    auto value)
+{
+    builder->AppendFormat("%v::unknown-%v", name, ToUnderlying(value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NDetail
 
+////////////////////////////////////////////////////////////////////////////////
+
 template <class T>
-std::optional<T> TryParseEnum(TStringBuf value)
+std::optional<T> TryParseEnum(TStringBuf str, bool enableUnknown)
 {
-    auto tryFromString = [] (TStringBuf value) -> std::optional<T> {
-        try {
-            return TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value));
-        } catch (const TSimpleException&) {
-            TStringBuf typeName;
-            auto isTypeNameCorrect = value.NextTok('(', typeName) && typeName == TEnumTraits<T>::GetTypeName();
-            if (!isTypeNameCorrect) {
-                throw;
-            }
+    auto tryParseToken = [&] (TStringBuf token) -> std::optional<T> {
+        if (auto optionalValue = TEnumTraits<T>::FindValueByLiteral(token)) {
+            return *optionalValue;
 
-            TStringBuf enumValue;
-            std::underlying_type_t<T> underlyingValue;
-            auto isEnumValueCorrect = value.NextTok(')', enumValue) && TryFromString(enumValue, underlyingValue);
-            if (!isEnumValueCorrect) {
-                throw;
-            }
-
-            auto isParsingComplete = value.empty();
-            if (!isParsingComplete) {
-                throw;
-            }
-
-            return static_cast<T>(underlyingValue);
         }
+
+        if (auto optionalDecodedValue = TryDecodeEnumValue(token)) {
+            if (auto optionalValue = TEnumTraits<T>::FindValueByLiteral(*optionalDecodedValue)) {
+                return *optionalValue;
+            }
+        }
+
+        if (enableUnknown) {
+            if constexpr (constexpr auto optionalUnknownValue = TEnumTraits<T>::TryGetUnknownValue()) {
+                return *optionalUnknownValue;
+            }
+        }
+
+        return std::nullopt;
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
         T result{};
         TStringBuf token;
-        while (value.NextTok('|', token)) {
-            if (auto scalar = tryFromString(StripString(token))) {
-                result |= *scalar;
+        while (str.NextTok('|', token)) {
+            if (auto optionalValue = tryParseToken(StripString(token))) {
+                result |= *optionalValue;
             } else {
                 return {};
             }
         }
         return result;
     } else {
-        return tryFromString(value);
+        return tryParseToken(str);
     }
 }
 
 template <class T>
-T ParseEnum(TStringBuf value)
+T ParseEnum(TStringBuf str)
 {
-    if (auto optionalResult = TryParseEnum<T>(value)) {
+    if (auto optionalResult = TryParseEnum<T>(str, /*enableUnkown*/ true)) {
         return *optionalResult;
     }
-    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), value);
+
+    std::span<const TStringBuf> domainNames;
+    if constexpr (requires { TEnumTraits<T>::GetDomainNames(); }) {
+        domainNames = TEnumTraits<T>::GetDomainNames();
+    }
+
+    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), str, domainNames);
 }
 
 template <class T>
 void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
 {
-    auto formatScalarValue = [builder, lowerCase] (T value) {
-        auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value);
-        if (!optionalLiteral) {
-            NYT::NDetail::FormatUnknownEnumValue(
-                builder,
-                TEnumTraits<T>::GetTypeName(),
-                ToUnderlying(value));
-            return;
-        }
-
+    auto formatLiteral = [&] (auto* builder, TStringBuf literal) {
         if (lowerCase) {
-            CamelCaseToUnderscoreCase(builder, *optionalLiteral);
+            CamelCaseToUnderscoreCase(builder, literal);
         } else {
-            builder->AppendString(*optionalLiteral);
+            builder->AppendString(literal);
         }
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
-        if (TEnumTraits<T>::FindLiteralByValue(value)) {
-            formatScalarValue(value);
+        if (None(value)) {
+            // Avoid empty string if possible.
+            if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
+                formatLiteral(builder, *optionalLiteral);
+            }
             return;
         }
-        auto first = true;
-        for (auto scalarValue : TEnumTraits<T>::GetDomainValues()) {
-            if (Any(value & scalarValue)) {
-                if (!first) {
-                    builder->AppendString(TStringBuf(" | "));
-                }
-                first = false;
-                formatScalarValue(scalarValue);
+
+        TDelimitedStringBuilderWrapper delimitedBuilder(builder, " | ");
+
+        T printedValue{};
+        for (auto currentValue : TEnumTraits<T>::GetDomainValues()) {
+            // Check if currentValue is viable and non-redunant.
+            if ((value & currentValue) == currentValue && (printedValue | currentValue) != printedValue) {
+                formatLiteral(&delimitedBuilder, *TEnumTraits<T>::FindLiteralByValue(currentValue));
+                printedValue |= currentValue;
             }
         }
+
+        // Handle the remainder.
+        if (printedValue != value) {
+            NYT::NDetail::FormatUnknownEnumValue(&delimitedBuilder, TEnumTraits<T>::GetTypeName(), value & ~printedValue);
+        }
     } else {
-        formatScalarValue(value);
+        if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
+            formatLiteral(builder, *optionalLiteral);
+            return;
+        }
+
+        NYT::NDetail::FormatUnknownEnumValue(builder, TEnumTraits<T>::GetTypeName(), value);
     }
 }
 
 template <class T>
-TString FormatEnum(T value)
+std::string FormatEnum(T value)
 {
     TStringBuilder builder;
     FormatEnum(&builder, value, /*lowerCase*/ true);

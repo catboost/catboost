@@ -26,7 +26,7 @@
 #include <sanitizer/asan_interface.h>
 #endif
 
-#if !defined(__USING_SJLJ_EXCEPTIONS__)
+#if !defined(__USING_SJLJ_EXCEPTIONS__) && !defined(__wasm__)
 #include "AddressSpace.hpp"
 #include "UnwindCursor.hpp"
 
@@ -75,6 +75,10 @@ _LIBUNWIND_HIDDEN int __unw_init_local(unw_cursor_t *cursor,
 # define REGISTER_KIND Registers_riscv
 #elif defined(__ve__)
 # define REGISTER_KIND Registers_ve
+#elif defined(__s390x__)
+# define REGISTER_KIND Registers_s390x
+#elif defined(__loongarch__) && __loongarch_grlen == 64
+#define REGISTER_KIND Registers_loongarch
 #else
 # error Architecture not supported
 #endif
@@ -114,14 +118,55 @@ _LIBUNWIND_HIDDEN int __unw_set_reg(unw_cursor_t *cursor, unw_regnum_t regNum,
   typedef LocalAddressSpace::pint_t pint_t;
   AbstractUnwindCursor *co = (AbstractUnwindCursor *)cursor;
   if (co->validReg(regNum)) {
-    co->setReg(regNum, (pint_t)value);
-    // specical case altering IP to re-find info (being called by personality
+    // special case altering IP to re-find info (being called by personality
     // function)
     if (regNum == UNW_REG_IP) {
       unw_proc_info_t info;
       // First, get the FDE for the old location and then update it.
       co->getInfo(&info);
-      co->setInfoBasedOnIPRegister(false);
+
+      pint_t sp = (pint_t)co->getReg(UNW_REG_SP);
+
+#if defined(_LIBUNWIND_TARGET_AARCH64_AUTHENTICATED_UNWINDING)
+      {
+        // It is only valid to set the IP within the current function. This is
+        // important for ptrauth, otherwise the IP cannot be correctly signed.
+        // The current signature of `value` is via the schema:
+        //   __ptrauth(ptrauth_key_return_address, <<sp>>, 0)
+        // For this to be generally usable we manually re-sign it to the
+        // directly supported schema:
+        //   __ptrauth(ptrauth_key_return_address, 1, 0)
+        unw_word_t
+              __unwind_ptrauth_restricted_intptr(ptrauth_key_return_address, 1,
+                                                 0) authenticated_value;
+        unw_word_t opaque_value = (uint64_t)ptrauth_auth_and_resign(
+            (void *)value, ptrauth_key_return_address, sp,
+            ptrauth_key_return_address, &authenticated_value);
+        memmove(reinterpret_cast<void *>(&authenticated_value),
+                reinterpret_cast<void *>(&opaque_value),
+                sizeof(authenticated_value));
+        if (authenticated_value < info.start_ip ||
+            authenticated_value > info.end_ip)
+          _LIBUNWIND_ABORT("PC vs frame info mismatch");
+
+        // PC should have been signed with the sp, so we verify that
+        // roundtripping does not fail. The `ptrauth_auth_and_resign` is
+        // guaranteed to trap on authentication failure even without FPAC
+        // feature.
+        pint_t pc = (pint_t)co->getReg(UNW_REG_IP);
+        if (ptrauth_auth_and_resign((void *)pc, ptrauth_key_return_address, sp,
+                                    ptrauth_key_return_address,
+                                    sp) != (void *)pc) {
+          _LIBUNWIND_LOG(
+              "Bad unwind with PAuth-enabled ABI (0x%zX, 0x%zX)->0x%zX\n", pc,
+              sp,
+              (pint_t)ptrauth_auth_data((void *)pc, ptrauth_key_return_address,
+                                        sp));
+          _LIBUNWIND_ABORT("Bad unwind with PAuth-enabled ABI");
+        }
+      }
+#endif
+
       // If the original call expects stack adjustment, perform this now.
       // Normal frame unwinding would have included the offset already in the
       // CFA computation.
@@ -129,7 +174,11 @@ _LIBUNWIND_HIDDEN int __unw_set_reg(unw_cursor_t *cursor, unw_regnum_t regNum,
       // this should actually be - info.gp. LLVM doesn't currently support
       // any such platforms and Clang doesn't export a macro for them.
       if (info.gp)
-        co->setReg(UNW_REG_SP, co->getReg(UNW_REG_SP) + info.gp);
+        co->setReg(UNW_REG_SP, sp + info.gp);
+      co->setReg(UNW_REG_IP, value);
+      co->setInfoBasedOnIPRegister(false);
+    } else {
+      co->setReg(regNum, (pint_t)value);
     }
     return UNW_ESUCCESS;
   }
@@ -179,6 +228,15 @@ _LIBUNWIND_HIDDEN int __unw_step(unw_cursor_t *cursor) {
 }
 _LIBUNWIND_WEAK_ALIAS(__unw_step, unw_step)
 
+// Move cursor to next frame and for stage2 of unwinding.
+// This resets MTE tags of tagged frames to zero.
+extern "C" _LIBUNWIND_HIDDEN int __unw_step_stage2(unw_cursor_t *cursor) {
+  _LIBUNWIND_TRACE_API("__unw_step_stage2(cursor=%p)",
+                       static_cast<void *>(cursor));
+  AbstractUnwindCursor *co = (AbstractUnwindCursor *)cursor;
+  return co->step(true);
+}
+
 /// Get unwind info at cursor position in stack frame.
 _LIBUNWIND_HIDDEN int __unw_get_proc_info(unw_cursor_t *cursor,
                                           unw_proc_info_t *info) {
@@ -192,7 +250,27 @@ _LIBUNWIND_HIDDEN int __unw_get_proc_info(unw_cursor_t *cursor,
 }
 _LIBUNWIND_WEAK_ALIAS(__unw_get_proc_info, unw_get_proc_info)
 
-/// Resume execution at cursor position (aka longjump).
+/// Rebalance the execution flow by injecting the right amount of `ret`
+/// instruction relatively to the amount of `walkedFrames` then resume execution
+/// at cursor position (aka longjump).
+_LIBUNWIND_HIDDEN int __unw_resume_with_frames_walked(unw_cursor_t *cursor,
+                                                      [[maybe_unused]] unsigned walkedFrames) {
+  _LIBUNWIND_TRACE_API("__unw_resume(cursor=%p, walkedFrames=%u)",
+                       static_cast<void *>(cursor), walkedFrames);
+#if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__)
+  // Inform the ASan runtime that now might be a good time to clean stuff up.
+  __asan_handle_no_return();
+#endif
+#ifdef _LIBUNWIND_TRACE_RET_INJECT
+  AbstractUnwindCursor *co = (AbstractUnwindCursor *)cursor;
+  co->setWalkedFrames(walkedFrames);
+#endif
+  return __unw_resume(cursor);
+}
+_LIBUNWIND_WEAK_ALIAS(__unw_resume_with_frames_walked,
+                      unw_resume_with_frames_walked)
+
+/// Legacy function. Resume execution at cursor position (aka longjump).
 _LIBUNWIND_HIDDEN int __unw_resume(unw_cursor_t *cursor) {
   _LIBUNWIND_TRACE_API("__unw_resume(cursor=%p)", static_cast<void *>(cursor));
 #if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__)
@@ -246,6 +324,16 @@ _LIBUNWIND_HIDDEN int __unw_is_signal_frame(unw_cursor_t *cursor) {
   return co->isSignalFrame();
 }
 _LIBUNWIND_WEAK_ALIAS(__unw_is_signal_frame, unw_is_signal_frame)
+
+#ifdef _AIX
+_LIBUNWIND_EXPORT uintptr_t __unw_get_data_rel_base(unw_cursor_t *cursor) {
+  _LIBUNWIND_TRACE_API("unw_get_data_rel_base(cursor=%p)",
+                       static_cast<void *>(cursor));
+  AbstractUnwindCursor *co = reinterpret_cast<AbstractUnwindCursor *>(cursor);
+  return co->getDataRelBase();
+}
+_LIBUNWIND_WEAK_ALIAS(__unw_get_data_rel_base, unw_get_data_rel_base)
+#endif
 
 #ifdef __arm__
 // Save VFP registers d0-d15 using FSTMIADX instead of FSTMIADD
@@ -301,7 +389,7 @@ void __unw_add_dynamic_eh_frame_section(unw_word_t eh_frame_start) {
   CFI_Parser<LocalAddressSpace>::CIE_Info cieInfo;
   CFI_Parser<LocalAddressSpace>::FDE_Info fdeInfo;
   auto p = (LocalAddressSpace::pint_t)eh_frame_start;
-  while (true) {
+  while (LocalAddressSpace::sThisAddressSpace.get32(p)) {
     if (CFI_Parser<LocalAddressSpace>::decodeFDE(
             LocalAddressSpace::sThisAddressSpace, p, &fdeInfo, &cieInfo,
             true) == NULL) {
@@ -324,9 +412,124 @@ void __unw_remove_dynamic_eh_frame_section(unw_word_t eh_frame_start) {
 }
 
 #endif // defined(_LIBUNWIND_SUPPORT_DWARF_UNWIND)
-#endif // !defined(__USING_SJLJ_EXCEPTIONS__)
 
+/// Maps the UNW_* error code to a textual representation
+_LIBUNWIND_HIDDEN const char *__unw_strerror(int error_code) {
+  switch (error_code) {
+  case UNW_ESUCCESS:
+    return "no error";
+  case UNW_EUNSPEC:
+    return "unspecified (general) error";
+  case UNW_ENOMEM:
+    return "out of memory";
+  case UNW_EBADREG:
+    return "bad register number";
+  case UNW_EREADONLYREG:
+    return "attempt to write read-only register";
+  case UNW_ESTOPUNWIND:
+    return "stop unwinding";
+  case UNW_EINVALIDIP:
+    return "invalid IP";
+  case UNW_EBADFRAME:
+    return "bad frame";
+  case UNW_EINVAL:
+    return "unsupported operation or bad value";
+  case UNW_EBADVERSION:
+    return "unwind info has unsupported version";
+  case UNW_ENOINFO:
+    return "no unwind info found";
+#if defined(_LIBUNWIND_TARGET_AARCH64) && !defined(_LIBUNWIND_IS_NATIVE_ONLY)
+  case UNW_ECROSSRASIGNING:
+    return "cross unwind with return address signing";
+#endif
+  }
+  return "invalid error code";
+}
+_LIBUNWIND_WEAK_ALIAS(__unw_strerror, unw_strerror)
 
+#endif // !defined(__USING_SJLJ_EXCEPTIONS__) && !defined(__wasm__)
+
+#ifdef __APPLE__
+
+namespace libunwind {
+
+static constexpr size_t MAX_DYNAMIC_UNWIND_SECTIONS_FINDERS = 8;
+
+static RWMutex findDynamicUnwindSectionsLock;
+static size_t numDynamicUnwindSectionsFinders = 0;
+static unw_find_dynamic_unwind_sections
+    dynamicUnwindSectionsFinders[MAX_DYNAMIC_UNWIND_SECTIONS_FINDERS] = {0};
+
+bool findDynamicUnwindSections(void *addr, unw_dynamic_unwind_sections *info) {
+  bool found = false;
+  findDynamicUnwindSectionsLock.lock_shared();
+  for (size_t i = 0; i != numDynamicUnwindSectionsFinders; ++i) {
+    if (dynamicUnwindSectionsFinders[i]((unw_word_t)addr, info)) {
+      found = true;
+      break;
+    }
+  }
+  findDynamicUnwindSectionsLock.unlock_shared();
+  return found;
+}
+
+} // namespace libunwind
+
+int __unw_add_find_dynamic_unwind_sections(
+    unw_find_dynamic_unwind_sections find_dynamic_unwind_sections) {
+  findDynamicUnwindSectionsLock.lock();
+
+  // Check that we have enough space...
+  if (numDynamicUnwindSectionsFinders == MAX_DYNAMIC_UNWIND_SECTIONS_FINDERS) {
+    findDynamicUnwindSectionsLock.unlock();
+    return UNW_ENOMEM;
+  }
+
+  // Check for value already present...
+  for (size_t i = 0; i != numDynamicUnwindSectionsFinders; ++i) {
+    if (dynamicUnwindSectionsFinders[i] == find_dynamic_unwind_sections) {
+      findDynamicUnwindSectionsLock.unlock();
+      return UNW_EINVAL;
+    }
+  }
+
+  // Success -- add callback entry.
+  dynamicUnwindSectionsFinders[numDynamicUnwindSectionsFinders++] =
+    find_dynamic_unwind_sections;
+  findDynamicUnwindSectionsLock.unlock();
+
+  return UNW_ESUCCESS;
+}
+
+int __unw_remove_find_dynamic_unwind_sections(
+    unw_find_dynamic_unwind_sections find_dynamic_unwind_sections) {
+  findDynamicUnwindSectionsLock.lock();
+
+  // Find index to remove.
+  size_t finderIdx = numDynamicUnwindSectionsFinders;
+  for (size_t i = 0; i != numDynamicUnwindSectionsFinders; ++i) {
+    if (dynamicUnwindSectionsFinders[i] == find_dynamic_unwind_sections) {
+      finderIdx = i;
+      break;
+    }
+  }
+
+  // If no such registration is present then error out.
+  if (finderIdx == numDynamicUnwindSectionsFinders) {
+    findDynamicUnwindSectionsLock.unlock();
+    return UNW_EINVAL;
+  }
+
+  // Remove entry.
+  for (size_t i = finderIdx; i != numDynamicUnwindSectionsFinders - 1; ++i)
+    dynamicUnwindSectionsFinders[i] = dynamicUnwindSectionsFinders[i + 1];
+  dynamicUnwindSectionsFinders[--numDynamicUnwindSectionsFinders] = nullptr;
+
+  findDynamicUnwindSectionsLock.unlock();
+  return UNW_ESUCCESS;
+}
+
+#endif // __APPLE__
 
 // Add logging hooks in Debug builds only
 #ifndef NDEBUG

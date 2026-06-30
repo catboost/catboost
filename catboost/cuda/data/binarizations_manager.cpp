@@ -82,6 +82,11 @@ namespace NCatboostCuda {
         return Borders.contains(featureId);
     }
 
+    bool TBinarizedFeaturesManager::IsEstimated(ui32 featureId) const {
+        return FeatureManagerIdToEstimatedFeatureId.contains(featureId);
+    }
+
+
     bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const {
         if (FeatureManagerIdToDataProviderId.contains(featureId)) {
             return DataProviderFloatFeatureIdToFeatureManagerId.contains(FeatureManagerIdToDataProviderId.at(featureId));
@@ -99,7 +104,7 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::UseForOneHotEncoding(ui32 featureId) const {
-        auto uniqValuesOnLearn = GetUniqueValuesCounts(featureId).OnLearnOnly;
+        auto uniqValuesOnLearn = GetUniqueValuesCounts(featureId).OnAll; // match for OnAll in TBinarizationInfoProvider::GetFoldsCount
         return (uniqValuesOnLearn > 1) && (uniqValuesOnLearn <= CatFeatureOptions.OneHotMaxSize);
     }
 

@@ -37,15 +37,17 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_IMPORTER_H__
 #define GOOGLE_PROTOBUF_COMPILER_IMPORTER_H__
 
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <google/protobuf/compiler/parser.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor_database.h>
 
-#include <google/protobuf/port_def.inc>
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/compiler/parser.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor_database.h"
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -85,7 +87,7 @@ class PROTOBUF_EXPORT SourceTreeDescriptorDatabase : public DescriptorDatabase {
   // the specified source_tree.
   SourceTreeDescriptorDatabase(SourceTree* source_tree,
                                DescriptorDatabase* fallback_database);
-  ~SourceTreeDescriptorDatabase();
+  ~SourceTreeDescriptorDatabase() override;
 
   // Instructs the SourceTreeDescriptorDatabase to report any parse errors
   // to the given MultiFileErrorCollector.  This should be called before
@@ -124,17 +126,17 @@ class PROTOBUF_EXPORT SourceTreeDescriptorDatabase : public DescriptorDatabase {
       : public DescriptorPool::ErrorCollector {
    public:
     ValidationErrorCollector(SourceTreeDescriptorDatabase* owner);
-    ~ValidationErrorCollector();
+    ~ValidationErrorCollector() override;
 
     // implements ErrorCollector ---------------------------------------
-    void AddError(const TProtoStringType& filename, const TProtoStringType& element_name,
-                  const Message* descriptor, ErrorLocation location,
-                  const TProtoStringType& message) override;
+    void RecordError(y_absl::string_view filename, y_absl::string_view element_name,
+                     const Message* descriptor, ErrorLocation location,
+                     y_absl::string_view message) override;
 
-    void AddWarning(const TProtoStringType& filename,
-                    const TProtoStringType& element_name, const Message* descriptor,
-                    ErrorLocation location,
-                    const TProtoStringType& message) override;
+    void RecordWarning(y_absl::string_view filename,
+                       y_absl::string_view element_name,
+                       const Message* descriptor, ErrorLocation location,
+                       y_absl::string_view message) override;
 
    private:
     SourceTreeDescriptorDatabase* owner_;
@@ -157,6 +159,8 @@ class PROTOBUF_EXPORT SourceTreeDescriptorDatabase : public DescriptorDatabase {
 class PROTOBUF_EXPORT Importer {
  public:
   Importer(SourceTree* source_tree, MultiFileErrorCollector* error_collector);
+  Importer(const Importer&) = delete;
+  Importer& operator=(const Importer&) = delete;
   ~Importer();
 
   // Import the given file and build a FileDescriptor representing it.  If
@@ -186,27 +190,43 @@ class PROTOBUF_EXPORT Importer {
  private:
   SourceTreeDescriptorDatabase database_;
   DescriptorPool pool_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Importer);
 };
 
 // If the importer encounters problems while trying to import the proto files,
 // it reports them to a MultiFileErrorCollector.
 class PROTOBUF_EXPORT MultiFileErrorCollector {
  public:
-  inline MultiFileErrorCollector() {}
+  MultiFileErrorCollector() {}
+  MultiFileErrorCollector(const MultiFileErrorCollector&) = delete;
+  MultiFileErrorCollector& operator=(const MultiFileErrorCollector&) = delete;
   virtual ~MultiFileErrorCollector();
 
   // Line and column numbers are zero-based.  A line number of -1 indicates
   // an error with the entire file (e.g. "not found").
+  virtual void RecordError(y_absl::string_view filename, int line, int column,
+                           y_absl::string_view message) {
+    PROTOBUF_IGNORE_DEPRECATION_START
+    AddError(TProtoStringType(filename), line, column, TProtoStringType(message));
+    PROTOBUF_IGNORE_DEPRECATION_STOP
+  }
+  virtual void RecordWarning(y_absl::string_view filename, int line, int column,
+                             y_absl::string_view message) {
+    PROTOBUF_IGNORE_DEPRECATION_START
+    AddWarning(TProtoStringType(filename), line, column, TProtoStringType(message));
+    PROTOBUF_IGNORE_DEPRECATION_STOP
+  }
+
+  // These should never be called directly, but if a legacy class overrides
+  // them they'll get routed to by the Record* methods.
+
   virtual void AddError(const TProtoStringType& filename, int line, int column,
-                        const TProtoStringType& message) = 0;
+                        const TProtoStringType& message) {
+    Y_ABSL_LOG(FATAL) << "AddError or RecordError must be implemented.";
+  }
 
-  virtual void AddWarning(const TProtoStringType& /* filename */, int /* line */,
-                          int /* column */, const TProtoStringType& /* message */) {}
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MultiFileErrorCollector);
+  virtual void AddWarning(const TProtoStringType& filename, int line, int column,
+                          const TProtoStringType& message) {}
 };
 
 // Abstract interface which represents a directory tree containing proto files.
@@ -215,7 +235,9 @@ class PROTOBUF_EXPORT MultiFileErrorCollector {
 // below.
 class PROTOBUF_EXPORT SourceTree {
  public:
-  inline SourceTree() {}
+  SourceTree() {}
+  SourceTree(const SourceTree&) = delete;
+  SourceTree& operator=(const SourceTree&) = delete;
   virtual ~SourceTree();
 
   // Open the given file and return a stream that reads it, or NULL if not
@@ -230,9 +252,6 @@ class PROTOBUF_EXPORT SourceTree {
   // better error reporting.
   // TODO(xiaofeng): change this to a pure virtual function.
   virtual TProtoStringType GetLastErrorMessage();
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(SourceTree);
 };
 
 // An implementation of SourceTree which loads files from locations on disk.
@@ -241,7 +260,9 @@ class PROTOBUF_EXPORT SourceTree {
 class PROTOBUF_EXPORT DiskSourceTree : public SourceTree {
  public:
   DiskSourceTree();
-  ~DiskSourceTree();
+  DiskSourceTree(const DiskSourceTree&) = delete;
+  DiskSourceTree& operator=(const DiskSourceTree&) = delete;
+  ~DiskSourceTree() override;
 
   // Map a path on disk to a location in the SourceTree.  The path may be
   // either a file or a directory.  If it is a directory, the entire tree
@@ -259,7 +280,7 @@ class PROTOBUF_EXPORT DiskSourceTree : public SourceTree {
   //
   // disk_path may be an absolute path or relative to the current directory,
   // just like a path you'd pass to open().
-  void MapPath(const TProtoStringType& virtual_path, const TProtoStringType& disk_path);
+  void MapPath(y_absl::string_view virtual_path, y_absl::string_view disk_path);
 
   // Return type for DiskFileToVirtualFile().
   enum DiskFileToVirtualFileResult {
@@ -290,13 +311,13 @@ class PROTOBUF_EXPORT DiskSourceTree : public SourceTree {
   // * NO_MAPPING: Indicates that no mapping was found which contains this
   //   file.
   DiskFileToVirtualFileResult DiskFileToVirtualFile(
-      const TProtoStringType& disk_file, TProtoStringType* virtual_file,
+      y_absl::string_view disk_file, TProtoStringType* virtual_file,
       TProtoStringType* shadowing_disk_file);
 
   // Given a virtual path, find the path to the file on disk.
   // Return true and update disk_file with the on-disk path if the file exists.
   // Return false and leave disk_file untouched if the file doesn't exist.
-  bool VirtualFileToDiskFile(const TProtoStringType& virtual_file,
+  bool VirtualFileToDiskFile(y_absl::string_view virtual_file,
                              TProtoStringType* disk_file);
 
   // implements SourceTree -------------------------------------------
@@ -309,28 +330,26 @@ class PROTOBUF_EXPORT DiskSourceTree : public SourceTree {
     TProtoStringType virtual_path;
     TProtoStringType disk_path;
 
-    inline Mapping(const TProtoStringType& virtual_path_param,
-                   const TProtoStringType& disk_path_param)
-        : virtual_path(virtual_path_param), disk_path(disk_path_param) {}
+    inline Mapping(TProtoStringType virtual_path_param, TProtoStringType disk_path_param)
+        : virtual_path(std::move(virtual_path_param)),
+          disk_path(std::move(disk_path_param)) {}
   };
   std::vector<Mapping> mappings_;
   TProtoStringType last_error_message_;
 
   // Like Open(), but returns the on-disk path in disk_file if disk_file is
   // non-NULL and the file could be successfully opened.
-  io::ZeroCopyInputStream* OpenVirtualFile(const TProtoStringType& virtual_file,
+  io::ZeroCopyInputStream* OpenVirtualFile(y_absl::string_view virtual_file,
                                            TProtoStringType* disk_file);
 
   // Like Open() but given the actual on-disk path.
-  io::ZeroCopyInputStream* OpenDiskFile(const TProtoStringType& filename);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(DiskSourceTree);
+  io::ZeroCopyInputStream* OpenDiskFile(y_absl::string_view filename);
 };
 
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_IMPORTER_H__

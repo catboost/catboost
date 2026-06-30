@@ -45,4 +45,4 @@ namespace NValgrind {
         return plain;
 #endif
     }
-}
+} // namespace NValgrind

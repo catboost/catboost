@@ -4,6 +4,7 @@
 #include "columns.h"
 #include "data_provider.h"
 #include "feature_index.h"
+#include "graph.h"
 #include "lazy_columns.h"
 #include "sparse_columns.h"
 #include "objects.h"
@@ -35,13 +36,12 @@
 #include <util/system/yassert.h>
 
 #include <algorithm>
-#include <array>
 
 
 namespace NCB {
 
-    class TRawObjectsOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                public IRawObjectsOrderDataVisitor
+    class TRawObjectsOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                      public IRawObjectsOrderDataVisitor
     {
     public:
         TRawObjectsOrderDataProviderBuilder(
@@ -51,6 +51,8 @@ namespace NCB {
             : InBlock(false)
             , ObjectCount(0)
             , CatFeatureCount(0)
+            // extra +1 until issues with TTbbLocalExecutor::GetWorkerThreadId are resolved
+            , HashMapParts(localExecutor->GetThreadCount() + 2)
             , Cursor(NotSet)
             , NextCursor(0)
             , Options(options)
@@ -126,6 +128,7 @@ namespace NCB {
             prepareFeaturesStorage(EmbeddingFeaturesStorage);
 
             switch (Data.MetaInfo.TargetType) {
+                case ERawTargetType::Boolean:
                 case ERawTargetType::Float:
                 case ERawTargetType::Integer:
                     PrepareForInitialization(
@@ -182,6 +185,7 @@ namespace NCB {
         }
 
         void AddSampleId(ui32 localObjectIdx, const TString& value) override {
+            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
             (*Data.CommonObjectsData.SampleId)[Cursor + localObjectIdx] = value;
         }
 
@@ -196,6 +200,12 @@ namespace NCB {
                 Cursor + localObjectIdx,
                 feature
             );
+        }
+
+        void SetGraph(TRawPairsData&& graph) override {
+            const auto matrix = ConvertGraphToAdjMatrix(graph, ObjectCount);
+            FloatFeaturesStorage.SetAggregatedFeatures(matrix);
+            Data.TargetData.Graph = std::move(graph);
         }
 
         void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef<float> features) override {
@@ -236,8 +246,8 @@ namespace NCB {
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
             ui32 hashVal = CalcCatFeatureHash(feature);
-            int hashPartIdx = LocalExecutor->GetWorkerThreadId();
-            CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
+            size_t hashPartIdx = (size_t)LocalExecutor->GetWorkerThreadId();
+            CheckThreadId(hashPartIdx, HashMapParts.size());
             auto& catFeatureHashes = HashMapParts[hashPartIdx].CatFeatureHashes;
             catFeatureHashes.resize(CatFeatureCount);
             auto& catFeatureHash = catFeatureHashes[*catFeatureIdx];
@@ -344,6 +354,7 @@ namespace NCB {
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
             Y_ASSERT(
+                (Data.MetaInfo.TargetType == ERawTargetType::Boolean) ||
                 (Data.MetaInfo.TargetType == ERawTargetType::Float) ||
                 (Data.MetaInfo.TargetType == ERawTargetType::Integer)
             );
@@ -614,6 +625,15 @@ namespace NCB {
             return Data.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx);
         }
 
+        static void CheckThreadId(size_t threadId, size_t limit) {
+            CB_ENSURE_INTERNAL(
+                threadId < limit,
+                "LocalExecutor current thread ID " << threadId << " exceeds the limit set in "
+                "TRawObjectsOrderDataProviderBuilder (" << limit << "). Perhaps additional threads were "
+                " added to LocalExecutor after initialization of TRawObjectsOrderDataProviderBuilder."
+            );
+        }
+
     private:
         struct THashPart {
             TVector<THashMap<ui32, TString>> CatFeatureHashes;
@@ -672,7 +692,9 @@ namespace NCB {
 
             TVector<TPerFeatureData> PerFeatureData; // [perTypeFeatureIdx]
 
-            std::array<TSparsePart, CB_THREAD_LIMIT> SparseDataParts; // [threadId]
+            TVector<TPerFeatureData> GraphAggregatedFeaturesData; // [perTypeFeatureIdx * kFloatAggregationFeaturesCount]
+
+            TVector<TSparsePart> SparseDataParts; // [threadId] in LocalExecutor
 
             // [perTypeFeaturesIdx] + extra element for adding new features
             TVector<TSetCallback> PerFeatureCallbacks;
@@ -687,6 +709,15 @@ namespace NCB {
                 TFeaturesStorage* storage
             ) {
                 storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = std::move(value);
+            }
+
+            static void SetAggregatedFeature(
+                TFeatureIdx<FeatureType> perTypeFeatureIdx,
+                ui32 objectIdx,
+                T value,
+                TFeaturesStorage* storage
+            ) {
+                storage->GraphAggregatedFeaturesData[*perTypeFeatureIdx].DenseDstView[objectIdx] = std::move(value);
             }
 
             static void SetSparseFeature(
@@ -709,6 +740,9 @@ namespace NCB {
             }
 
             void PrepareForInitializationSparseParts(ui32 prevObjectCount, ui32 prevTailSize) {
+                // extra +1 until issues with TTbbLocalExecutor::GetWorkerThreadId are resolved
+                SparseDataParts.resize(LocalExecutor->GetThreadCount() + 2);
+
                 ui32 objectIdxShift = prevObjectCount - prevTailSize;
 
                 LocalExecutor->ExecRangeWithThrow(
@@ -723,7 +757,9 @@ namespace NCB {
                                         = index2d.PerTypeFeatureIdx;
                                     sparseDataPart.Indices[dstIdx].ObjectIdx
                                         = index2d.ObjectIdx - objectIdxShift;
-                                    sparseDataPart.Values[dstIdx] = std::move(sparseDataPart.Values[i]);
+                                    if (i != dstIdx) {
+                                        sparseDataPart.Values[dstIdx] = std::move(sparseDataPart.Values[i]);
+                                    }
                                     ++dstIdx;
                                 }
                             }
@@ -883,6 +919,21 @@ namespace NCB {
                 const size_t featureCount = (size_t) featuresLayout.GetFeatureCount(FeatureType);
                 PerFeatureData.resize(featureCount);
                 PerFeatureCallbacks.resize(featureCount + 1);
+
+                const size_t aggregatedFeatureCount = (size_t) featuresLayout.GetAggregatedFeatureCount(FeatureType);
+                GraphAggregatedFeaturesData.resize(aggregatedFeatureCount);
+
+                for (auto perTypeFeatureIdx : xrange(aggregatedFeatureCount)) {
+                    if (PerFeatureData[perTypeFeatureIdx / kFloatAggregationFeaturesCount].MetaInfo.IsAvailable) {
+                        auto &maybeSharedStoragePtr = GraphAggregatedFeaturesData[perTypeFeatureIdx].DenseDataStorage;
+                        CB_ENSURE_INTERNAL(!prevTailSize, "No dense data storage to store remainder of previous block");
+                        maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
+                        maybeSharedStoragePtr->Data.yresize(objectCount);
+
+                        GraphAggregatedFeaturesData[perTypeFeatureIdx].DenseDstView = maybeSharedStoragePtr->Data;
+                     }
+                }
+
                 for (auto perTypeFeatureIdx : xrange(featureCount)) {
                     auto& perFeatureData = PerFeatureData[perTypeFeatureIdx];
                     perFeatureData.MetaInfo
@@ -938,6 +989,73 @@ namespace NCB {
                 );
             }
 
+            inline void AddAggFeaturesToLayout(TFeaturesLayout* featuresLayout) {
+                if (!featuresLayout->HasGraphForAggregatedFeatures()) {
+                    return;
+                }
+                const auto aggregationTypes = GetAggregationTypeNames(FeatureType);
+                if (aggregationTypes.empty()) {
+                    return;
+                }
+                for (auto perTypeFeatureIdx : xrange(PerFeatureData.size())) {
+                    const auto& metaInfo = PerFeatureData[perTypeFeatureIdx].MetaInfo;
+                    for (auto aggregationType : aggregationTypes) {
+                        TStringStream name;
+                        if (metaInfo.Name) {
+                            name << "Aggregated for float " << metaInfo.Name;
+                        } else {
+                            name << "Aggregated for float " << perTypeFeatureIdx;
+                        }
+                        featuresLayout->AddFeature(
+                            TFeatureMetaInfo(
+                                FeatureType,
+                                /*name*/ ToString(aggregationType) + name.Str(),
+                                /*isSparse*/ false,
+                                /*isIgnored*/ metaInfo.IsIgnored,
+                                /*isAvailable*/ metaInfo.IsAvailable,
+                                /*isAggregated*/ true));
+                    }
+                }
+            }
+
+            inline void SetFloatAggregatedFeatures(const TVector<TVector<ui32>>& matrix) {
+                for (auto perTypeFeatureIdx : xrange(PerFeatureData.size())) {
+                    if (!PerFeatureData[perTypeFeatureIdx].MetaInfo.IsAvailable) {
+                        continue;
+                    }
+                    auto featureAccessor = [&](size_t index) {
+                        return PerFeatureData[perTypeFeatureIdx].DenseDstView[index];
+                    };
+
+                    for (ui32 objectIdx = 0; objectIdx < ObjectCount; ++objectIdx) {
+                        TFloatAggregation agg = CalcAggregationFeatures(
+                            matrix,
+                            featureAccessor,
+                            objectIdx
+                        );
+
+                        auto idx = perTypeFeatureIdx * kFloatAggregationFeaturesCount;
+                        SetAggregatedFeature(TFeatureIdx<FeatureType>(idx), objectIdx, agg.Mean, this);
+                        SetAggregatedFeature(TFeatureIdx<FeatureType>(idx + 1), objectIdx, agg.Min, this);
+                        SetAggregatedFeature(TFeatureIdx<FeatureType>(idx + 2), objectIdx, agg.Max, this);
+                    }
+                }
+            }
+
+            inline void SetAggregatedFeatures(const TVector<TVector<ui32>>& matrix) {
+                CB_ENSURE(!HasSparseData, "Sparse data is not supported\n");
+                switch (FeatureType) {
+                    case EFeatureType::Float:
+                        SetFloatAggregatedFeatures(matrix);
+                    case EFeatureType::Categorical:
+                        break;
+                    case EFeatureType::Text:
+                        break;
+                    case EFeatureType::Embedding:
+                        break;
+                }
+            }
+
             inline bool IsSparse(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {
                 const auto idx = *perTypeFeatureIdx;
                 return idx + 1 < PerFeatureCallbacks.size() && PerFeatureCallbacks[idx] == SetSparseFeature;
@@ -949,10 +1067,11 @@ namespace NCB {
                 TConstArrayRef<T> values,
                 TFeaturesStorage* storage
             ) {
-                Y_POD_STATIC_THREAD(int) threadId(-1);
-                if (Y_UNLIKELY(threadId == -1)) {
-                    threadId = storage->LocalExecutor->GetWorkerThreadId();
-                }
+                int threadId = storage->LocalExecutor->GetWorkerThreadId();
+                TRawObjectsOrderDataProviderBuilder::CheckThreadId(
+                    threadId,
+                    storage->SparseDataParts.size()
+                );
                 auto& sparseDataPart = storage->SparseDataParts[threadId];
                 for (auto idx : indices) {
                     sparseDataPart.Indices.emplace_back(TSparseIndex2d{idx, objectIdx});
@@ -991,11 +1110,13 @@ namespace NCB {
                     "PerFeatureData is inconsistent with feature Layout"
                 );
 
+                AddAggFeaturesToLayout(featuresLayout);
                 TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> sparseData = CreateSparseArrays(
                     subsetIndexing->Size(),
                     sparseArrayIndexingType,
                     LocalExecutor
                 );
+                featureCount = (size_t)featuresLayout->GetFeatureCount(FeatureType);
 
                 // there are some new sparse features
                 for (auto perTypeFeatureIdx : xrange(featureCount, sparseData.size())) {
@@ -1019,6 +1140,18 @@ namespace NCB {
                                 MakeHolder<TSparsePolymorphicArrayValuesHolder<TColumn>>(
                                     /* featureId */ flatFeatureIdx,
                                     std::move(*(sparseData[perTypeFeatureIdx]))
+                                )
+                            );
+                        } else if (metaInfo.IsAggregated) {
+                            const auto& perFeatureData = GraphAggregatedFeaturesData[perTypeFeatureIdx - PerFeatureData.size()];
+                            result->push_back(
+                                MakeHolder<TPolymorphicArrayValuesHolder<TColumn>>(
+                                    /* featureId */ flatFeatureIdx,
+                                    TMaybeOwningConstArrayHolder<T>::CreateOwning(
+                                        perFeatureData.DenseDstView,
+                                        perFeatureData.DenseDataStorage
+                                    ),
+                                    subsetIndexing
                                 )
                             );
                         } else {
@@ -1066,7 +1199,7 @@ namespace NCB {
         TArrayRef<TSubgroupId> NumSubgroupIdsRef;
         TArrayRef<TString> StringSubgroupIdsRef;
 
-        std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
+        TVector<THashPart> HashMapParts; // [threadId] in LocalExecutor
 
 
         static constexpr const ui32 NotSet = Max<ui32>();
@@ -1082,8 +1215,8 @@ namespace NCB {
     };
 
 
-    class TRawFeaturesOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                 public IRawFeaturesOrderDataVisitor
+    class TRawFeaturesOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                       public IRawFeaturesOrderDataVisitor
     {
     public:
         static constexpr int OBJECT_CALC_BLOCK_SIZE = 10000;
@@ -1183,6 +1316,11 @@ namespace NCB {
                 flatFeatureIdx,
                 std::move(features)
             );
+        }
+
+        void SetGraph(TRawPairsData&& graph) override {
+            Y_UNUSED(graph);
+            CB_ENSURE_INTERNAL(false, "Unimplemented");
         }
 
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
@@ -1486,24 +1624,17 @@ namespace NCB {
             } else if ((metaInfo.TargetType != ERawTargetType::None) && !schemaClassLabels.empty()) {
                 FloatClassLabels.reserve(schemaClassLabels.size());
                 switch (schemaClassLabels[0].GetType()) {
+                    case NJson::JSON_BOOLEAN:
+                        CheckBooleanClassLabels(schemaClassLabels);
+                        FloatClassLabels.push_back(0.0f);
+                        FloatClassLabels.push_back(1.0f);
+                        break;
                     case NJson::JSON_INTEGER:
-                        CB_ENSURE_INTERNAL(
-                            metaInfo.TargetType == ERawTargetType::Integer,
-                            "metaInfo.TargetType (" << metaInfo.TargetType
-                            << ") is inconsistent with schemaClassLabels type ("
-                            << schemaClassLabels[0].GetType() << ')'
-                        );
                         for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
                             FloatClassLabels.push_back(static_cast<float>(classLabel.GetInteger()));
                         }
                         break;
                     case NJson::JSON_DOUBLE:
-                        CB_ENSURE_INTERNAL(
-                            metaInfo.TargetType == ERawTargetType::Float,
-                            "metaInfo.TargetType (" << metaInfo.TargetType
-                            << ") is inconsistent with schemaClassLabels type ("
-                            << schemaClassLabels[0].GetType() << ')'
-                        );
                         for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
                             FloatClassLabels.push_back(static_cast<float>(classLabel.GetDouble()));
                         }
@@ -1511,10 +1642,16 @@ namespace NCB {
                     default:
                         CB_ENSURE_INTERNAL(
                             false,
-                            "Unexpected JSON label type for numeric target type : "
+                            "Unexpected JSON label type for non-string target type : "
                             << schemaClassLabels[0].GetType()
                         );
                 }
+                CB_ENSURE_INTERNAL(
+                    metaInfo.TargetType == GetRawTargetType(schemaClassLabels[0].GetType()),
+                    "metaInfo.TargetType (" << metaInfo.TargetType
+                    << ") is inconsistent with schemaClassLabels type ("
+                    << schemaClassLabels[0].GetType() << ')'
+                );
             }
 
             InProcess = true;
@@ -1663,6 +1800,12 @@ namespace NCB {
             );
         }
 
+        void SetGraph(TRawPairsData&& graph) override {
+            Y_UNUSED(graph);
+            CB_ENSURE_INTERNAL(false, "Unimplemented");
+
+        }
+
         void AddCatFeaturePart(
             ui32 flatFeatureIdx,
             ui32 objectOffset,
@@ -1708,6 +1851,7 @@ namespace NCB {
                 );
             } else {
                 Y_ASSERT(
+                    (Data.MetaInfo.TargetType == ERawTargetType::Boolean) ||
                     (Data.MetaInfo.TargetType == ERawTargetType::Integer) ||
                     (Data.MetaInfo.TargetType == ERawTargetType::Float)
                 );
@@ -2079,17 +2223,18 @@ namespace NCB {
                 WholeColumns = wholeColumns;
 
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
+                const size_t aggPerTypeFeatureCount = (size_t)featuresLayout.GetAggregatedFeatureCount(FeatureType);
                 if (WholeColumns) {
-                    DenseWholeColumns.resize(perTypeFeatureCount);
+                    DenseWholeColumns.resize(perTypeFeatureCount + aggPerTypeFeatureCount);
                     DenseDataStorage.clear();
                     DenseDstView.clear();
                 } else {
                     DenseWholeColumns.clear();
-                    DenseDataStorage.resize(perTypeFeatureCount);
-                    DenseDstView.resize(perTypeFeatureCount);
+                    DenseDataStorage.resize(perTypeFeatureCount + aggPerTypeFeatureCount);
+                    DenseDstView.resize(perTypeFeatureCount + aggPerTypeFeatureCount);
                 }
-                IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
-                FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
+                IndexHelpers.resize(perTypeFeatureCount + aggPerTypeFeatureCount, TIndexHelper<ui64>(8));
+                FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount + aggPerTypeFeatureCount);
 
                 IsAvailable = MakeIsAvailable<FeatureType>(featuresLayout);
 
@@ -2331,7 +2476,7 @@ namespace NCB {
     };
 
 
-    class TLazyQuantizedFeaturesDataProviderBuilder : public TQuantizedFeaturesDataProviderBuilder
+    class TLazyQuantizedFeaturesDataProviderBuilder final : public TQuantizedFeaturesDataProviderBuilder
     {
     public:
         TLazyQuantizedFeaturesDataProviderBuilder(

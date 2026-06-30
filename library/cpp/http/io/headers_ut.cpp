@@ -44,6 +44,7 @@ bool operator==(const THttpHeaders& lhs, const THeadersExistence& rhs) {
 
 class THttpHeadersTest: public TTestBase {
     UNIT_TEST_SUITE(THttpHeadersTest);
+    UNIT_TEST(TestConstructorFromArrayRef);
     UNIT_TEST(TestAddOperation1Arg);
     UNIT_TEST(TestAddOperation2Args);
     UNIT_TEST(TestAddOrReplaceOperation1Arg);
@@ -57,6 +58,7 @@ private:
     typedef void (*TAddOrReplaceHeaderFunction)(THttpHeaders&, TStringBuf name, TStringBuf value);
 
 public:
+    void TestConstructorFromArrayRef();
     void TestAddOperation1Arg();
     void TestAddOperation2Args();
     void TestAddOrReplaceOperation1Arg();
@@ -87,6 +89,26 @@ private:
 
 UNIT_TEST_SUITE_REGISTRATION(THttpHeadersTest);
 
+void THttpHeadersTest::TestConstructorFromArrayRef() {
+    THeadersExistence expected;
+    expected.Add("h1", "v1");
+    expected.Add("h2", "v2");
+
+    // Construct from vector
+    TVector<THttpInputHeader> headerVec{
+        {"h1", "v1"},
+        {"h2", "v2"}
+    };
+    THttpHeaders h1(headerVec);
+    UNIT_ASSERT(expected == h1);
+
+    // Construct from initializer list
+    THttpHeaders h2({
+        {"h1", "v1"},
+        {"h2", "v2"}
+    });
+    UNIT_ASSERT(expected == h2);
+}
 void THttpHeadersTest::TestAddOperation1Arg() {
     DoTestAddOperation(AddHeaderImpl1Arg);
 }

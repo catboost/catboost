@@ -21,14 +21,3 @@ void ComputeSegmentSizes(
     const NCudaLib::TCudaBuffer<TUi32, TMapping>& offsets,
     NCudaLib::TCudaBuffer<float, TMapping, DstPtr>& dst,
     ui32 stream = 0);
-
-//
-//template <class TMapping>
-//inline void WriteInitPartitions(const TMapping& objectsMapping, TCudaBuffer<TDataPartition, TMapping>& parts) {
-//
-//    const int devId = GetSingleDevId(objectsMapping);
-//    const TDataPartition initialPart(0, objectsMapping->SizeAt(devId));
-//    TVector<TDataPartition> partitioningInitial;
-//    partitioningInitial.push_back(initialPart);
-//    parts.Write(partitioningInitial);
-//}

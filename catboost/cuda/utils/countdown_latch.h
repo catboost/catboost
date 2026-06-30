@@ -1,22 +1,23 @@
 #pragma once
 
-#include <library/cpp/deprecated/atomic/atomic.h>
 #include <condition_variable>
 #include <catboost/libs/helpers/exception.h>
 #include <util/system/mutex.h>
 #include <util/system/condvar.h>
 
+#include <atomic>
+
+
 class TCountDownLatch {
 public:
     explicit TCountDownLatch(ui32 init)
-        : Counter(init)
+        : Counter(static_cast<i64>(init))
     {
     }
 
     void Countdown() {
         with_lock (Mutex) {
-            AtomicDecrement(Counter);
-            if (Counter <= 0) {
+            if (--Counter <= 0) {
                 CondVar.BroadCast();
             }
         }
@@ -33,6 +34,6 @@ public:
 
 private:
     TMutex Mutex;
-    TAtomic Counter;
+    std::atomic<i64> Counter;
     TCondVar CondVar;
 };

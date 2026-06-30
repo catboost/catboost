@@ -222,7 +222,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const auto blockParams = GetBlockParams(threadCount, objectsData.GetObjectCount(), lastTreeIdx - begin);
 
     NPar::TLocalExecutor executor;
-    // ToDo: fix prediction on gpu for several threads
+    // ToDo: fix prediction on GPU for several threads
     if (model.GetEvaluatorType() == EFormulaEvaluatorType::CPU) {
         executor.RunAdditionalThreads(Min<int>(threadCount, blockParams.GetBlockCount()) - 1);
     }

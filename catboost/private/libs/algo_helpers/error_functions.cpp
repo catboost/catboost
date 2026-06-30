@@ -74,7 +74,7 @@ void IDerCalcer::CalcDersRange(
     const bool hasDelta = approxDeltas != nullptr;
     const bool useTDers = ders != nullptr;
     DispatchGenericLambda(
-        [=] (auto useTDers, auto isExpApprox, auto hasDelta) {
+        [=, this] (auto useTDers, auto isExpApprox, auto hasDelta) {
             switch (maxDerivativeOrder) {
                 case 1:
                     return CalcDersRangeImpl<1, useTDers, isExpApprox, hasDelta>(
@@ -113,15 +113,17 @@ void IDerCalcer::CalcDersRange(
     useTDers, IsExpApprox, hasDelta);
 }
 
-TVector<size_t> ArgSort(
+static TVector<int> ArgSort(
     int start,
     int count,
     const float* targets
 ) {
-    TVector<size_t> labelOrder(count);
+    TVector<int> labelOrder(count);
     std::iota(labelOrder.begin(), labelOrder.end(), start);
-    std::sort(labelOrder.begin(), labelOrder.end(), [&]
-        (size_t lhs, size_t rhs){
+    StableSort(
+        labelOrder.begin(),
+        labelOrder.end(),
+        [=] (int lhs, int rhs) {
             return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
@@ -129,19 +131,20 @@ TVector<size_t> ArgSort(
     return labelOrder;
 }
 
-double CalcCoxApproxSum(
+static double CalcCoxApproxSum(
     int start,
     int count,
+    double maxApprox,
     const double* approxes,
     const double* approxesDeltas
 ) {
     double expPSum = 0;
-    for (yssize_t i = 0; i < count; ++i) {
-        double updatedApprox = approxes[start + i];
+    for (auto i : xrange(start, start + count)) {
+        double updatedApprox = approxes[i];
         if (approxesDeltas != nullptr) {
-            updatedApprox += approxesDeltas[start + i];
+            updatedApprox += approxesDeltas[i];
         }
-        expPSum += std::exp(updatedApprox);
+        expPSum += std::exp(updatedApprox - maxApprox);
     }
 
     return expPSum;
@@ -157,96 +160,96 @@ void TCoxError::CalcDersRange(
     const float* /*weights*/,
     TDers* ders
 ) const {
+    const TVector<int> labelOrder = ArgSort(start, count, targets);
 
-    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+    const auto getApprox = [=] (int i) {
+        return approxes[i] + (approxesDeltas == nullptr ? 0 : approxesDeltas[i]);
+    };
 
-    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
+    double maxApprox = getApprox(start);
+    for (auto i : xrange(start + 1, start + count)) {
+        const auto approx = getApprox(i);
+        if (approx > maxApprox) {
+            maxApprox = approx;
+        }
+    }
+
+    double expPSum = CalcCoxApproxSum(start, count, maxApprox, approxes, approxesDeltas);
 
     double rk = 0;
     double sk = 0;
     double lastExpP = 0.0;
-    double lastAbsY = 0.0;
     double accumulatedSum = 0;
-    for (yssize_t i = 0; i < count; ++i) {
-        const size_t ind = labelOrder[i];
-        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+    for (auto i : xrange(start, start + count)) {
+        const int ind = labelOrder[i];
+        const double p = getApprox(ind) - maxApprox;
 
         const double expP = std::exp(p);
         const double y = targets[ind];
-        const double absY = std::abs(y);
-        // only update the denominator after we move forward in time (labels are sorted)
-        // this is Breslow's method for ties
         accumulatedSum += lastExpP;
-        if (lastAbsY < absY) {
-            expPSum -= accumulatedSum;
-            accumulatedSum = 0;
-        } else {
-            CB_ENSURE(lastAbsY <= absY);
-        }
 
         if (y > 0) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
             rk += 1.0 / expPSum;
             sk += 1.0 / (expPSum * expPSum);
         }
 
-        const double grad = expP * rk - static_cast<float>(y > 0);
+        const double grad = static_cast<double>(y > 0) - expP * rk;
         const double hess = expP * rk - expP * expP * sk;
-        ders[ind].Der1 = - grad;
+        ders[ind].Der1 = grad;
         ders[ind].Der2 = - hess;
 
-        lastAbsY = absY;
         lastExpP = expP;
     }
 }
 
 
 void TCoxError::CalcFirstDerRange(
-        int start,
-        int count,
-        const double* approxes,
-        const double* approxesDeltas,
-        const float* targets,
-        const float* /*weights*/,
-        double* firstDers
-    ) const {
+    int start,
+    int count,
+    const double* approxes,
+    const double* approxesDeltas,
+    const float* targets,
+    const float* /*weights*/,
+    double* firstDers
+) const {
+    const TVector<int> labelOrder = ArgSort(start, count, targets);
 
-    //CalcCoxDersRange(start, count, approxes, approxesDeltas, targets, );
-    // object weights are not supported yet
+    const auto getApprox = [=] (int i) {
+        return approxes[i] + (approxesDeltas == nullptr ? 0 : approxesDeltas[i]);
+    };
 
-    TVector<size_t> labelOrder = ArgSort(start, count, targets);
+    double maxApprox = getApprox(0);
+    for (auto i : xrange(start, start + count)) {
+        const auto approx = getApprox(i);
+        if (approx > maxApprox) {
+            maxApprox = approx;
+        }
+    }
 
-    double expPSum = CalcCoxApproxSum(start, count, approxes, approxesDeltas);
-
+    double expPSum = CalcCoxApproxSum(start, count, maxApprox, approxes, approxesDeltas);
 
     double rk = 0;
     double lastExpP = 0.0;
-    double lastAbsY = 0.0;
     double accumulatedSum = 0;
-    for (yssize_t i = 0; i < count; ++i) {
-        const size_t ind = labelOrder[start + i];
-        const double p = approxes[ind] + (approxesDeltas == nullptr ? 0 : approxesDeltas[ind]);
+    for (auto i : xrange(start, start + count)) {
+        const int ind = labelOrder[i];
+        const double p = getApprox(ind) - maxApprox;
 
         const double expP = std::exp(p);
         const double y = targets[ind];
-        const double absY = std::abs(y);
-        // only update the denominator after we move forward in time (labels are sorted)
-        // this is Breslow's method for ties
         accumulatedSum += lastExpP;
-        if (lastAbsY < absY) {
-            expPSum -= accumulatedSum;
-            accumulatedSum = 0;
-        } else {
-            CB_ENSURE(lastAbsY <= absY);
-        }
 
         if (y > 0) {
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
             rk += 1.0 / expPSum;
         }
 
-        const double grad = expP * rk - static_cast<float>(y > 0);
-        firstDers[ind] =  - grad; // GradientPair(grad * w, hess * w);
+        const double grad = static_cast<double>(y > 0) - expP * rk;
+        firstDers[ind] = grad;
 
-        lastAbsY = absY;
         lastExpP = expP;
     }
 }
@@ -282,7 +285,7 @@ namespace {
                         ExpSrc[i - ViewBegin] = Src[i];
                     }
                 }
-                FastExpInplace(ExpSrc.data(), ViewEnd - ViewBegin);
+                NCB::FastExpWithInfInplace(ExpSrc.data(), ViewEnd - ViewBegin);
             }
             return ExpSrc[idx - ViewBegin];
         }
@@ -311,9 +314,6 @@ static void CalcCrossEntropyDerRangeImpl(
     TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes + start, count));
     TExpForwardView</*Capacity*/16> expApproxDeltas(MakeArrayRef(approxDeltas + start, count));
     Y_ASSERT(HasDelta == (approxDeltas != nullptr));
-#if defined(NDEBUG) && !defined(address_sanitizer_enabled) && !defined(CLANG_COVERAGE)
-#pragma clang loop vectorize_width(4) interleave_count(2)
-#endif
     for (int i = start; i < start + count; ++i) {
         double e;
         if (UseExpApprox) {
@@ -340,7 +340,7 @@ static void CalcCrossEntropyDerRangeImpl(
         }
     }
     if (weights != nullptr) {
-#if !defined(CLANG_COVERAGE) && !defined(undefined_sanitizer_enabled)
+#if defined(__clang__) && !defined(CLANG_COVERAGE) && !defined(undefined_sanitizer_enabled)
 #pragma clang loop vectorize_width(4) interleave_count(2)
 #endif
         for (int i = start; i < start + count; ++i) {
@@ -366,12 +366,11 @@ void TSurvivalAftError::CalcDers(
 ) const {
     double transformedTargetLower = 0, transformedTargetUpper = 0;
     double firstDerNumerator, firstDerDenominator, secondDerNumerator, secondDerDenominator;
-    bool target_sign;
+    bool targetSign;
     ECensoredType censorType;
-    const auto distributionType = Distribution->GetDistributionType();
     if (target[0] == target[1]) {
         transformedTargetLower = InverseMonotoneTransform(approx[0], target[0], Scale);
-        target_sign = transformedTargetLower > 0;
+        targetSign = transformedTargetLower > 0;
         censorType = ECensoredType::Uncensored;
         const auto pdf = Distribution->CalcPdf(transformedTargetLower);
         const auto der1 = Distribution->CalcPdfDer1(pdf, transformedTargetLower);
@@ -382,8 +381,8 @@ void TSurvivalAftError::CalcDers(
             Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
                         der2->ApproxDimension == approx.ysize());
 
-            secondDerNumerator = -(pdf * Distribution->CalcPdfDer2(pdf, transformedTargetLower) - std::pow(der1, 2));
-            secondDerDenominator = std::pow(Scale * pdf, 2);
+            secondDerNumerator = -(pdf * Distribution->CalcPdfDer2(pdf, transformedTargetLower) - Sqr(der1));
+            secondDerDenominator = Sqr(Scale * pdf);
         }
     } else {
         censorType = ECensoredType::IntervalCensored;
@@ -406,11 +405,11 @@ void TSurvivalAftError::CalcDers(
             censorType = ECensoredType::LeftCensored;
         } else {
             transformedTargetLower = InverseMonotoneTransform(approx[0], target[0], Scale);
-            pdfLower = Distribution->CalcPdf(transformedTargetLower);;
+            pdfLower = Distribution->CalcPdf(transformedTargetLower);
             cdfLower = Distribution->CalcCdf(transformedTargetLower);
             der1Lower = Distribution->CalcPdfDer1(pdfLower, transformedTargetLower);
         }
-        target_sign = (transformedTargetLower > 0 || transformedTargetUpper > 0);
+        targetSign = (transformedTargetLower > 0 || transformedTargetUpper > 0);
         const auto pdfDiff = pdfUpper - pdfLower;
         const auto der1Diff = der1Upper - der1Lower;
         const auto cdfDiff = cdfUpper - cdfLower;
@@ -422,18 +421,19 @@ void TSurvivalAftError::CalcDers(
             Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
                         der2->ApproxDimension == approx.ysize());
 
-            secondDerNumerator = -cdfDiff * der1Diff + std::pow(pdfDiff, 2);
-            secondDerDenominator = std::pow(Scale * cdfDiff, 2);
+            secondDerNumerator = -cdfDiff * der1Diff + Sqr(pdfDiff);
+            secondDerDenominator = Sqr(Scale * cdfDiff);
         }
     }
 
 
+    const auto distributionType = Distribution->GetDistributionType();
     (*der)[0] = firstDerNumerator / firstDerDenominator;
     if (firstDerDenominator < TDerivativeConstants::Epsilon && (IsNan((*der)[0]) || !IsFinite((*der)[0]))) {
         const auto& ders =  DispatchDerivativeLimits(distributionType, EDerivativeOrder::First, censorType, Scale);
         auto minDer1 = std::get<0>(ders);
         auto maxDer1 = std::get<1>(ders);
-        (*der)[0] = target_sign ? minDer1 : maxDer1;
+        (*der)[0] = targetSign ? minDer1 : maxDer1;
     }
     (*der)[0] = -ClipDerivatives((*der)[0], TDerivativeConstants::MinFirstDer, TDerivativeConstants::MaxFirstDer);
 
@@ -443,7 +443,7 @@ void TSurvivalAftError::CalcDers(
             const auto& ders =  DispatchDerivativeLimits(distributionType, EDerivativeOrder::Second, censorType, Scale);
             auto minDer2 = std::get<0>(ders);
             auto maxDer2 = std::get<1>(ders);
-            der2->Data[0] = target_sign ? minDer2 : maxDer2;
+            der2->Data[0] = targetSign ? minDer2 : maxDer2;
         }
         der2->Data[0] = -ClipDerivatives(der2->Data[0], TDerivativeConstants::MinSecondDer, TDerivativeConstants::MaxSecondDer);
     }
@@ -599,8 +599,8 @@ TLambdaMartError::TLambdaMartError(
     , Sigma(sigma)
     , Norm(norm)
 {
-    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG),
-        "Only DCG and NDCG target metric supported for LambdaMART now");
+    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::MRR, ELossFunction::ERR, ELossFunction::MAP),
+        "Only DCG, NDCG, MRR, ERR and MAP target metric supported for LambdaMART now");
     CB_ENSURE(Sigma > 0, "Sigma should be positive");
 }
 
@@ -627,34 +627,17 @@ void TLambdaMartError::CalcDersForQueries(
     });
 }
 
-void TLambdaMartError::CalcDersForSingleQuery(
+void TLambdaMartError::CalcDersNDCG(
     TConstArrayRef<double> approxes,
     TConstArrayRef<float> targets,
-    TArrayRef<TDers> ders
+    TConstArrayRef<size_t> order,
+    TArrayRef<TDers> ders,
+    double& sumDer1
 ) const {
-    size_t count = approxes.size();
-    Y_ASSERT(targets.size() == count);
-    Y_ASSERT(ders.size() == count);
-
-    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
-
-    if (count <= 1) {
-        return;
-    }
-
+    const size_t count = approxes.size();
     const size_t queryTopSize = GetQueryTopSize(count);
-
     const double idealScore = CalcIdealMetric(targets, queryTopSize);
-
-    TVector<size_t> order(count);
-    Iota(order.begin(), order.end(), 0);
-    Sort(order.begin(), order.end(), [&](int a, int b) {
-        return approxes[a] > approxes[b];
-    });
-
     const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
-
-    double sumDer1 = 0.0;
 
     for (size_t firstId = 0; firstId < count; ++firstId) {
         size_t boundForSecondId = firstId < queryTopSize ? count : queryTopSize;
@@ -670,8 +653,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
             const double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
 
             const double dcgNum = CalcNumerator(firstTarget) - CalcNumerator(secondTarget);
-            const double dcgDen = std::abs(1.0 / CalcDenominator(firstId) -
-                                     1.0 / CalcDenominator(secondId));
+            const double dcgDen = std::abs(1.0 / CalcDenominator(firstId) - 1.0 / CalcDenominator(secondId));
 
             double delta = dcgNum * dcgDen / idealScore;
 
@@ -692,6 +674,245 @@ void TLambdaMartError::CalcDersForSingleQuery(
             sumDer1 -= 2 * antigrad;
         }
     }
+}
+
+void TLambdaMartError::CalcDersMRR(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<size_t> order,
+    TArrayRef<TDers> ders,
+    double& sumDer1
+) const {
+    const size_t count = approxes.size();
+    const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
+    size_t numRelevants = 0;
+    size_t firstRelevantId = 0;
+    size_t secondRelevantId = 0;
+    for (size_t id = 0; id < count; ++id) {
+        if (targets[order[id]] > 0) {
+            ++numRelevants;
+            if (numRelevants == 1) {
+                firstRelevantId = id;
+            } else if (numRelevants == 2) {
+                secondRelevantId = id;
+                break;
+            }
+        }
+    }
+    if (!numRelevants) {
+        return;
+    }
+
+    for (size_t firstId = 0; firstId < count; ++firstId) {
+        const bool isFirstRelevant = targets[order[firstId]] > 0;
+        if (!isFirstRelevant) {
+            continue;
+        }
+
+        size_t boundForSecondId = firstId == firstRelevantId ? count : firstRelevantId;
+        for (size_t secondId = 0; secondId < boundForSecondId; ++secondId) {
+            const bool isSecondRelevant = targets[order[secondId]] > 0;
+
+            if (isSecondRelevant) {
+                continue;
+            }
+
+            const double approxDiff = approxes[order[firstId]] - approxes[order[secondId]];
+
+            double delta = secondId < firstId
+                ? 1.0 / (secondId + 1) - 1.0 / (firstId + 1)
+                : (secondRelevantId == 0 || secondId < secondRelevantId
+                    ? 1.0 / (firstId + 1) - 1.0 / (secondId + 1)
+                    : 1.0 / (firstId + 1) - 1.0 / (secondRelevantId + 1)
+                );
+
+            if (Norm && !isApproxesSame) {
+                delta /= 0.01 + std::abs(approxDiff);
+            }
+
+            double antigrad = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = antigrad * (1 - antigrad);
+            antigrad *=  - Sigma * delta;
+            hessian *= Sigma * Sigma * delta;
+
+            ders[order[firstId]].Der1 += antigrad;
+            ders[order[firstId]].Der2 += hessian;
+            ders[order[secondId]].Der1 -= antigrad;
+            ders[order[secondId]].Der2 += hessian;
+
+            sumDer1 -= 2 * antigrad;
+        }
+    }
+}
+
+void TLambdaMartError::CalcDersERR(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<size_t> order,
+    TArrayRef<TDers> ders,
+    double& sumDer1
+) const {
+    const size_t count = approxes.size();
+    const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
+
+    double pFirstLook = 1.0;
+    for (size_t firstId = 0; firstId < count; ++firstId) {
+        const int firstCandidate = order[firstId];
+
+        double pMiddleLook = 1.0;
+        double middleRR = 0.0;
+        for (size_t secondId = firstId + 1; secondId < count; ++secondId) {
+            const int secondCandidate = order[secondId];
+
+            if (targets[firstCandidate] == targets[secondCandidate])
+                continue;
+
+            const size_t highId = targets[firstCandidate] > targets[secondCandidate] ? firstId : secondId;
+            const size_t lowId = targets[firstCandidate] > targets[secondCandidate] ? secondId : firstId;
+
+            const double approxDiff = approxes[order[highId]] - approxes[order[lowId]];
+
+            const double firstDelta = (targets[firstCandidate] - targets[secondCandidate]) / (firstId + 1);
+            const double middleDelta = middleRR * (targets[secondCandidate] - targets[firstCandidate]);
+            const double secondDelta = pMiddleLook * (targets[secondCandidate] - targets[firstCandidate]) / (secondId + 1);
+
+            double delta = pFirstLook * std::abs(firstDelta + middleDelta + secondDelta);
+
+            middleRR += pMiddleLook * targets[secondCandidate] / (secondId + 1);
+            pMiddleLook *= (1 - targets[secondCandidate]);
+
+            if (Norm && !isApproxesSame) {
+                delta /= 0.01 + std::abs(approxDiff);
+            }
+
+            double antigrad = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = antigrad * (1 - antigrad);
+            antigrad *=  - Sigma * delta;
+            hessian *= Sigma * Sigma * delta;
+
+            ders[order[highId]].Der1 += antigrad;
+            ders[order[highId]].Der2 += hessian;
+            ders[order[lowId]].Der1 -= antigrad;
+            ders[order[lowId]].Der2 += hessian;
+
+            sumDer1 -= 2 * antigrad;
+        }
+
+        pFirstLook *= 1 - targets[firstCandidate];
+    }
+}
+
+void TLambdaMartError::CalcDersMAP(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<size_t> order,
+    TArrayRef<TDers> ders,
+    double& sumDer1
+) const {
+    const size_t count = approxes.size();
+    const bool isApproxesSame = (approxes[order[0]] == approxes[order[count - 1]]);
+
+    for (size_t firstId = 0; firstId < count; ++firstId) {
+        const int firstCandidate = order[firstId];
+        const bool isFirstRelevant = targets[firstCandidate] > 0;
+
+        double sumRR = 1.0 / (firstId + 1);
+
+        for (size_t secondId = firstId + 1; secondId < count; ++secondId) {
+            const int secondCandidate = order[secondId];
+            const bool isSecondRelevant = targets[secondCandidate] > 0;
+
+            if (isFirstRelevant == isSecondRelevant)
+                continue;
+
+            const size_t highId = targets[firstCandidate] > targets[secondCandidate] ? firstId : secondId;
+            const size_t lowId = targets[firstCandidate] > targets[secondCandidate] ? secondId : firstId;
+
+            const double approxDiff = approxes[order[highId]] - approxes[order[lowId]];
+
+            double delta = sumRR;
+
+            if (Norm && !isApproxesSame) {
+                delta /= 0.01 + std::abs(approxDiff);
+            }
+
+            double antigrad = 1.0 / (1.0 + std::exp(Sigma * approxDiff));
+            double hessian = antigrad * (1 - antigrad);
+            antigrad *=  - Sigma * delta;
+            hessian *= Sigma * Sigma * delta;
+
+            ders[order[highId]].Der1 += antigrad;
+            ders[order[highId]].Der2 += hessian;
+            ders[order[lowId]].Der1 -= antigrad;
+            ders[order[lowId]].Der2 += hessian;
+
+            sumDer1 -= 2 * antigrad;
+
+            if (isSecondRelevant) {
+                sumRR += 1.0 / (secondId + 1);
+            }
+        }
+
+    }
+}
+
+void TLambdaMartError::CalcDersForSingleQuery(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TArrayRef<TDers> ders
+) const {
+    const size_t count = approxes.size();
+    Y_ASSERT(targets.size() == count);
+    Y_ASSERT(ders.size() == count);
+
+    Fill(ders.begin(), ders.end(), TDers{0.0, 0.0, 0.0});
+
+    if (count <= 1) {
+        return;
+    }
+
+    TVector<size_t> order(count);
+    Iota(order.begin(), order.end(), 0);
+    StableSort(order.begin(), order.end(), [&](int a, int b) {
+        return approxes[a] > approxes[b];
+    });
+
+    double sumDer1 = 0.0;
+
+    if (TargetMetric == ELossFunction::DCG || TargetMetric == ELossFunction::NDCG) {
+        CalcDersNDCG(
+            approxes,
+            targets,
+            order,
+            ders,
+            sumDer1
+        );
+    } else if (TargetMetric == ELossFunction::MRR) {
+        CalcDersMRR(
+            approxes,
+            targets,
+            order,
+            ders,
+            sumDer1
+        );
+    } else if (TargetMetric == ELossFunction::ERR) {
+        CalcDersERR(
+            approxes,
+            targets,
+            order,
+            ders,
+            sumDer1
+        );
+    } else if (TargetMetric == ELossFunction::MAP) {
+        CalcDersMAP(
+            approxes,
+            targets,
+            order,
+            ders,
+            sumDer1
+        );
+    }
+
     if (Norm && sumDer1 > 0) {
         double norma = std::log2(1 + sumDer1) / sumDer1;
         for (auto& der : ders) {
@@ -704,7 +925,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
 double TLambdaMartError::CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
     double score = 0;
     TVector<float> sortedTargets(target.begin(), target.end());
-    Sort(sortedTargets, [](float a, float b) {
+    StableSort(sortedTargets, [](float a, float b) {
         return a > b;
     });
     for (size_t id = 0; id < queryTopSize; ++id) {
@@ -741,8 +962,8 @@ TStochasticRankError::TStochasticRankError(
     , Lambda(lambda)
 {
     CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG,
-                                         ELossFunction::PFound, ELossFunction::FilteredDCG),
-        "Only DCG, NDCG, PFound and FilteredDCG target metric supported for StochasticRank now");
+                                         ELossFunction::PFound, ELossFunction::FilteredDCG, ELossFunction::ERR, ELossFunction::MRR),
+        "Only DCG, NDCG, PFound, FilteredDCG, ERR and MRR target metric supported for StochasticRank now");
     CB_ENSURE(0.0 <= Decay && Decay <= 1.0, "Decay should be in [0, 1]");
     CB_ENSURE(NumEstimations > 0, "Number of estimations should be positive");
     CB_ENSURE(Sigma > 0, "Sigma should be positive");
@@ -829,13 +1050,15 @@ void TStochasticRankError::CalcDersForSingleQuery(
         }
         const double noiseSum = Accumulate(noise, 0.0);
         Iota(order.begin(), order.end(), 0);
-        Sort(order.begin(), order.end(), [&](int a, int b) {
+        StableSort(order.begin(), order.end(), [&](int a, int b) {
             return scores[a] > scores[b];
         });
         if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::FilteredDCG) && sample == 0) {
             posWeights = ComputeDCGPosWeights(targets);
         } else if (TargetMetric == ELossFunction::PFound) {
             posWeights = ComputePFoundPosWeights(targets, order);
+        } else if (TargetMetric == ELossFunction::ERR) {
+            posWeights = ComputeERRPosWeights(targets, order);
         }
         CalcMonteCarloEstimateForSingleQueryPermutation(
             targets,
@@ -896,31 +1119,28 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
     TVector<double> cumSum(count + 1);
     TVector<double> cumSumUp(count + 1);
     TVector<double> cumSumLow(count + 1);
+    int firstRelevPos = -1, secondRelevPos = -1; // avoid passing uninitialized values
     if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::FilteredDCG)) {
         CalcDCGCumulativeStatistics(targets, order, posWeights, scores, cumSum, cumSumUp, cumSumLow);
     } else if (TargetMetric == ELossFunction::PFound) {
         CalcPFoundCumulativeStatistics(targets, order, posWeights, cumSum);
+    } else if (TargetMetric == ELossFunction::ERR) {
+        CalcERRCumulativeStatistics(targets, order, posWeights, cumSum, cumSumUp, cumSumLow);
+    } else if (TargetMetric == ELossFunction::MRR) {
+        CalcMRRStatistics(targets, order, &firstRelevPos, &secondRelevPos);
     } else {
         CB_ENSURE(false, "StochasticRank is unimplemented for " << TargetMetric);
     }
 
-    for (size_t pos = 0; pos < count; ++pos) {
-        const size_t docId = order[pos];
-        const double score = scores[docId];
-        const double approx = approxes[docId];
-        const double mean = approx + (
-            TargetMetric == ELossFunction::FilteredDCG ? 0 : (noiseSum - (score - approx)) / (count - 1)
-        );
-        const double sigma = Sigma * (
-            TargetMetric == ELossFunction::FilteredDCG ? 1 : std::sqrtl(count / (count - 1.0))
-        );
+    auto calcDerSumOverAllPositions = [&](size_t pos, double mean, double sigma, size_t maxNewPos) {
         double derSum = 0.0;
-        for (size_t newPos = 0; newPos < Min(count, queryTopSize + 1); ++newPos) {
+        for (size_t newPos = 0; newPos < maxNewPos + 1; ++newPos) {
             if (newPos == pos) {
                 continue;
             }
             const double metricDiff = CalcMetricDiff(pos, newPos, queryTopSize, targets, order,
-                                                     posWeights, scores, cumSum, cumSumUp, cumSumLow);
+                                                     posWeights, scores, cumSum, cumSumUp, cumSumLow,
+                                                     firstRelevPos, secondRelevPos);
             double densityDiff = 0.0;
             if (newPos == 0) {
                 densityDiff = NormalDensity(scores[order[0]], mean, sigma);
@@ -934,6 +1154,67 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
                     : NormalDensityDiff(scores[order[newPos + 1]], scores[order[newPos]], mean, sigma);
             }
             derSum += metricDiff * densityDiff;
+        }
+        return derSum;
+    };
+
+    for (size_t pos = 0; pos < count; ++pos) {
+        const size_t docId = order[pos];
+        const double score = scores[docId];
+        const double approx = approxes[docId];
+        const double mean = approx + (
+            TargetMetric == ELossFunction::FilteredDCG ? 0 : (noiseSum - (score - approx)) / (count - 1)
+        );
+        const double sigma = Sigma * (
+            TargetMetric == ELossFunction::FilteredDCG ? 1 : std::sqrtl(count / (count - 1.0))
+        );
+        double derSum = 0.0;
+        if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::PFound, ELossFunction::FilteredDCG, ELossFunction::ERR)) {
+            derSum += calcDerSumOverAllPositions(pos, mean, sigma, Min(count - 1, queryTopSize));
+        } else if (TargetMetric == ELossFunction::MRR) {
+            if (static_cast<int>(pos) == firstRelevPos) {
+                if (secondRelevPos == -1) {
+                    derSum += calcDerSumOverAllPositions(pos, mean, sigma, count - 1);
+                } else {
+                    derSum += calcDerSumOverAllPositions(pos, mean, sigma, secondRelevPos - 1);
+                    // newPos >= secondRelevPos
+                    {
+                        const double metricDiff = 1.0 / secondRelevPos - 1.0 / (firstRelevPos + 1);
+                        const double densityDiff = -NormalDensity(scores[order[secondRelevPos]], mean, sigma);
+                        derSum += metricDiff * densityDiff;
+                    }
+                }
+            }
+            else if (static_cast<int>(pos) == secondRelevPos) {
+                derSum += calcDerSumOverAllPositions(pos, mean, sigma, firstRelevPos);
+            }
+            else if (static_cast<int>(pos) < firstRelevPos) {
+                // newPos >= firstRelevPos
+                {
+                    const double metricDiff = 1.0 / firstRelevPos - 1.0 / (firstRelevPos + 1);
+                    const double densityDiff = -NormalDensity(scores[order[firstRelevPos]], mean, sigma);
+                    derSum += metricDiff * densityDiff;
+                }
+            }
+            else if (static_cast<int>(pos) < secondRelevPos) {
+                // newPos <= firstRelevPos
+                {
+                    const double metricDiff = 1.0 / (firstRelevPos + 2) - 1.0 / (firstRelevPos + 1);
+                    const double densityDiff = NormalDensity(scores[order[firstRelevPos]], mean, sigma);
+                    derSum += metricDiff * densityDiff;
+                }
+            }
+            else if (firstRelevPos != -1) {
+                Y_ASSERT(static_cast<int>(pos) > secondRelevPos);
+                // newPos <= firstRelevPos
+                if (targets[order[pos]] == 0) {
+                    const double densityDiff = NormalDensity(scores[order[firstRelevPos]], mean, sigma);
+                    const double metricDiff = 1.0 / (firstRelevPos + 2) - 1.0 / (firstRelevPos + 1);
+                    derSum += metricDiff * densityDiff;
+                } else {
+                    derSum += calcDerSumOverAllPositions(pos, mean, sigma, firstRelevPos);
+                }
+            }
         }
         ders[docId].Der1 += derSum / NumEstimations;
     }
@@ -1026,6 +1307,94 @@ double TStochasticRankError::CalcPFoundMetricDiff(
     return docDiff + midDiff;
 }
 
+double TStochasticRankError::CalcERRMetricDiff(
+    size_t oldPos,
+    size_t newPos,
+    size_t queryTopSize,
+    const TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    const TVector<double>& posWeights,
+    const TVector<double>& cumSum,
+    const TVector<double>& cumSumUp,
+    const TVector<double>& cumSumLow
+) const {
+    const double docGain = targets[order[oldPos]];
+    double docDiff = 0.0;
+    double midDiff = 0.0;
+    if (newPos < oldPos) {
+        const double oldWeight = posWeights[oldPos];
+        const double newWeight = posWeights[newPos];
+        docDiff = docGain * (newWeight - oldWeight);
+        const double oldMidValue = cumSum[oldPos] - cumSum[newPos];
+        double newMidValue = (cumSumLow[oldPos] - cumSumLow[newPos]) * (1 - docGain);
+        if (oldPos >= queryTopSize) {
+            const double lastValue = posWeights[queryTopSize - 1] * targets[order[queryTopSize - 1]];
+            newMidValue -= lastValue * (1 - docGain);
+        }
+        midDiff = newMidValue - oldMidValue;
+    } else {
+        const double oldWeight = posWeights[oldPos];
+        const double oldMidValue = cumSum[newPos + 1] - cumSum[oldPos + 1];
+        double newWeight = 0.0;
+        double newMidValue = 0.0;
+        if (docGain == 1.0) { // we can't use cumsum because of zero multipliers
+            double plook = posWeights[oldPos] * (oldPos + 1);
+            for (size_t pos = oldPos + 1; pos <= newPos && plook > 0; ++pos) {
+                newMidValue += targets[order[pos]] * plook / pos;
+                plook *= (1 - targets[order[pos]]);
+            }
+            newWeight = newPos < queryTopSize ? plook / (newPos + 1) : 0.0;
+        } else {
+            newWeight = posWeights[newPos] * (1 - targets[order[newPos]]) / (1 - docGain) * (newPos + 2.0) / (newPos + 1.0);
+            newMidValue = (cumSumUp[newPos + 1] - cumSumUp[oldPos + 1]) / (1 - docGain);
+            if (newPos >= queryTopSize) {
+                const double lastValue = posWeights[queryTopSize - 1] * targets[order[queryTopSize]];
+                newMidValue += lastValue / (1 - docGain) * (1 - targets[order[queryTopSize - 1]]);
+            }
+        }
+        docDiff = docGain * (newWeight - oldWeight);
+        midDiff = newMidValue - oldMidValue;
+    }
+    return docDiff + midDiff;
+}
+
+double TStochasticRankError::CalcMRRMetricDiff(
+    size_t oldPos,
+    size_t newPos,
+    const TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    int firstRelevPos,
+    int secondRelevPos
+) const {
+    if (firstRelevPos == -1) {
+        return 0;
+    }
+
+    if (oldPos < static_cast<size_t>(firstRelevPos)) {
+        if (newPos >= static_cast<size_t>(firstRelevPos)) {
+            return 1.0 / firstRelevPos  - 1.0 / (firstRelevPos + 1);
+        } else {
+            return 0.0;
+        }
+    }
+    if (oldPos == static_cast<size_t>(firstRelevPos)) {
+        if (secondRelevPos == -1 || newPos < static_cast<size_t>(secondRelevPos)) {
+            return 1.0 / (newPos + 1) - 1.0 / (oldPos + 1);
+        } else {
+            return 1.0 / secondRelevPos - 1.0 / (oldPos + 1);
+        }
+    }
+    if (newPos <= static_cast<size_t>(firstRelevPos)) {
+        if (targets[order[oldPos]] > 0) {
+            return 1.0 / (newPos + 1) - 1.0 / (firstRelevPos + 1);
+        } else {
+            return 1.0 / (firstRelevPos + 2)  - 1.0 / (firstRelevPos + 1);
+        }
+    }
+
+    return 0;
+}
+
 double TStochasticRankError::CalcMetricDiff(
     size_t oldPos,
     size_t newPos,
@@ -1036,7 +1405,9 @@ double TStochasticRankError::CalcMetricDiff(
     const TVector<double>& scores,
     const TVector<double>& cumSum,
     const TVector<double>& cumSumUp,
-    const TVector<double>& cumSumLow
+    const TVector<double>& cumSumLow,
+    int firstRelevPos,
+    int secondRelevPos
 ) const {
     if (newPos == oldPos || Min(oldPos, newPos) >= queryTopSize) {
         return 0.0;
@@ -1046,6 +1417,10 @@ double TStochasticRankError::CalcMetricDiff(
         return CalcDCGMetricDiff(oldPos, newPos, targets, order, posWeights, scores, cumSum, cumSumUp, cumSumLow);
     } else if (TargetMetric == ELossFunction::PFound) {
         return CalcPFoundMetricDiff(oldPos, newPos, queryTopSize, targets, order, posWeights, cumSum);
+    } else if (TargetMetric == ELossFunction::ERR) {
+        return CalcERRMetricDiff(oldPos, newPos, queryTopSize, targets, order, posWeights, cumSum, cumSumUp, cumSumLow);
+    } else if (TargetMetric == ELossFunction::MRR) {
+        return CalcMRRMetricDiff(oldPos, newPos, targets, order, firstRelevPos, secondRelevPos);
     }
     CB_ENSURE(false, "Unexpected target metric type");
 }
@@ -1090,6 +1465,52 @@ void TStochasticRankError::CalcPFoundCumulativeStatistics(
     }
 }
 
+void TStochasticRankError::CalcERRCumulativeStatistics(
+    TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    const TVector<double>& posWeights,
+    TArrayRef<double> cumSum,
+    TArrayRef<double> cumSumUp,
+    TArrayRef<double> cumSumLow
+) const {
+    const size_t count = targets.size();
+    cumSum[0] = cumSumUp[0] = cumSumLow[0] = cumSumUp[1] = 0;
+    for (size_t pos = 0; pos < count; ++pos) {
+        const size_t docId = order[pos];
+        const double gain = targets[docId];
+        cumSum[pos + 1] = cumSum[pos] + gain * posWeights[pos];
+        if (pos + 1 < count) {
+            cumSumLow[pos + 1] = cumSumLow[pos] + gain * posWeights[pos] * (pos + 1.0) / (pos + 2.0);
+        }
+        if (pos > 0) {
+            cumSumUp[pos + 1] = cumSumUp[pos] + gain * posWeights[pos] * (pos + 1.0) / (pos + 0.0);
+        }
+    }
+}
+
+
+
+void TStochasticRankError::CalcMRRStatistics(
+    TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    int* firstRelevPos,
+    int* secondRelevPos
+) const {
+    *firstRelevPos = -1;
+    *secondRelevPos = -1;
+    for (size_t pos = 0; pos < order.size(); ++pos) {
+        size_t docId = order[pos];
+        if (targets[docId] > 0) {
+            if (*firstRelevPos == -1) {
+                *firstRelevPos = pos;
+            } else if (*secondRelevPos == -1) {
+                *secondRelevPos = pos;
+                break;
+            }
+        }
+    }
+}
+
 TVector<double> TStochasticRankError::ComputeDCGPosWeights(
     TConstArrayRef<float> targets
 ) const {
@@ -1103,7 +1524,7 @@ TVector<double> TStochasticRankError::ComputeDCGPosWeights(
 
     if (TargetMetric == ELossFunction::NDCG) {
         TVector<float> sortedTargets(targets.begin(), targets.end());
-        Sort(sortedTargets, [](float a, float b) {
+        StableSort(sortedTargets, [](float a, float b) {
             return a > b;
         });
         const double idealDCG = CalcDCG(sortedTargets, posWeights);
@@ -1127,6 +1548,23 @@ TVector<double> TStochasticRankError::ComputePFoundPosWeights(
     posWeights[0] = 1.0;
     for (size_t pos = 1; pos < queryTopSize; ++pos) {
         posWeights[pos] = posWeights[pos - 1] * Decay * (1 - targets[order[pos - 1]]);
+    }
+    return posWeights;
+}
+
+TVector<double> TStochasticRankError::ComputeERRPosWeights(
+    TConstArrayRef<float> targets,
+    const TVector<size_t>& order
+) const {
+    size_t count = targets.size();
+    TVector<double> posWeights(count);
+    size_t queryTopSize = GetQueryTopSize(count);
+    Y_ASSERT(TargetMetric == ELossFunction::ERR);
+    posWeights[0] = 1.0;
+    double pLook = 1.0;
+    for (size_t pos = 1; pos < queryTopSize; ++pos) {
+        pLook *= (1 - targets[order[pos - 1]]);
+        posWeights[pos] = pLook / (pos + 1);
     }
     return posWeights;
 }

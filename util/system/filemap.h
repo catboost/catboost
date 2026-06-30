@@ -17,7 +17,7 @@
 namespace NPrivate {
     // NB: use TFileMap::Precharge() and TFileMappedArray::Prechage()
     void Precharge(const void* data, size_t dataSize, size_t offset, size_t size);
-}
+} // namespace NPrivate
 
 struct TMemoryMapCommon {
     struct TMapResult {
@@ -58,7 +58,7 @@ struct TMemoryMapCommon {
         oPrecharge = 16,
         oPopulate = 32, // Populate page table entries (see mmap's MAP_POPULATE)
     };
-    Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag)
+    Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag);
 
     /**
      * Name that will be printed in exceptions if not specified.
@@ -66,7 +66,7 @@ struct TMemoryMapCommon {
      */
     static const TString& UnknownFileName();
 };
-Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode)
+Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode);
 
 class TMemoryMap: public TMemoryMapCommon {
 public:
@@ -233,8 +233,9 @@ public:
         return Size_;
     }
     const T& GetAt(size_t pos) const {
-        if (pos < Size_)
+        if (pos < Size_) {
             return Ptr_[pos];
+        }
         return Dummy();
     }
     void SetDummy(const T& n_Dummy) {
@@ -334,8 +335,9 @@ public:
     TMappedArray(size_t siz = 0)
         : TMappedAllocation(0)
     {
-        if (siz)
+        if (siz) {
             Create(siz);
+        }
     }
     ~TMappedArray() {
         Destroy();
@@ -343,18 +345,21 @@ public:
     T* Create(size_t siz) {
         Y_ASSERT(MappedSize() == 0 && Ptr() == nullptr);
         T* arr = (T*)Alloc((sizeof(T) * siz));
-        if (!arr)
+        if (!arr) {
             return nullptr;
+        }
         Y_ASSERT(MappedSize() == sizeof(T) * siz);
-        for (size_t n = 0; n < siz; n++)
+        for (size_t n = 0; n < siz; n++) {
             new (&arr[n]) T();
+        }
         return arr;
     }
     void Destroy() {
         T* arr = (T*)Ptr();
         if (arr) {
-            for (size_t n = 0; n < size(); n++)
+            for (size_t n = 0; n < size(); n++) {
                 arr[n].~T();
+            }
             Dealloc();
         }
     }

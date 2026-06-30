@@ -47,4 +47,4 @@ namespace NPrivate {
         ui64 mt[NN];
         int mti;
     };
-}
+} // namespace NPrivate

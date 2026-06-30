@@ -1,2 +1,2 @@
 
-The number of threads to use during the training.
+The number of threads to use for operation.

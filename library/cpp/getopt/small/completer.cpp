@@ -122,7 +122,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput&, TCompleterManager&) const override {
-            Y_FAIL("unreachable");
+            Y_ABORT("unreachable");
         }
 
     private:
@@ -256,7 +256,7 @@ namespace NLastGetopt::NComp {
     }
 
     void TCustomCompleter::RegisterCustomCompleter(TCustomCompleter* completer) noexcept {
-        Y_VERIFY(completer);
+        Y_ABORT_UNLESS(completer);
         completer->Next_ = Head;
         Head = completer;
     }

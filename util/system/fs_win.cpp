@@ -12,8 +12,9 @@ namespace NFsPrivate {
     static LPCWSTR UTF8ToWCHAR(const TStringBuf str, TUtf16String& wstr) {
         wstr.resize(str.size());
         size_t written = 0;
-        if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written))
+        if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written)) {
             return nullptr;
+        }
         wstr.erase(written);
         static_assert(sizeof(WCHAR) == sizeof(wchar16), "expect sizeof(WCHAR) == sizeof(wchar16)");
         return (const WCHAR*)wstr.data();
@@ -64,8 +65,9 @@ namespace NFsPrivate {
                 fad.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
                 ::SetFileAttributesW(wname, fad.dwFileAttributes);
             }
-            if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 return ::RemoveDirectoryW(wname) != 0;
+            }
             return ::DeleteFileW(wname) != 0;
         }
 
@@ -76,8 +78,9 @@ namespace NFsPrivate {
         TString tName(targetName);
         {
             size_t pos;
-            while ((pos = tName.find('/')) != TString::npos)
+            while ((pos = tName.find('/')) != TString::npos) {
                 tName.replace(pos, 1, LOCSLASH_S);
+            }
         }
         TUtf16String tstr;
         LPCWSTR wname = UTF8ToWCHAR(tName, tstr);
@@ -127,8 +130,9 @@ namespace NFsPrivate {
         TTempBuf result;
         LPWSTR buf = reinterpret_cast<LPWSTR>(result.Data());
         int r = GetCurrentDirectoryW(result.Size() / sizeof(WCHAR), buf);
-        if (r == 0)
+        if (r == 0) {
             throw TIoSystemError() << "failed to GetCurrentDirectory";
+        }
         return WCHARToUTF8(buf, r);
     }
 
@@ -208,6 +212,9 @@ namespace NFsPrivate {
     TString WinReadLink(const TString& name) {
         TFileHandle h = CreateFileWithUtf8Name(name, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING,
                                                FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, true);
+        if (h == INVALID_HANDLE_VALUE) {
+            ythrow TIoSystemError() << "can't open file " << name;
+        }
         TTempBuf buf;
         REPARSE_DATA_BUFFER* rdb = ReadReparsePoint(h, buf);
         if (rdb == nullptr) {
@@ -222,7 +229,7 @@ namespace NFsPrivate {
             size_t len = rdb->MountPointReparseBuffer.SubstituteNameLength / sizeof(wchar16);
             return WideToUTF8(str, len);
         }
-        //this reparse point is unsupported in arcadia
+        // this reparse point is unsupported in arcadia
         return TString();
     }
 
@@ -233,7 +240,7 @@ namespace NFsPrivate {
     }
 
     // we can't use this function to get an analog of unix inode due to a lot of NTFS folders do not have this GUID
-    //(it will be 'create' case really)
+    // (it will be 'create' case really)
     /*
 bool GetObjectId(const char* path, GUID* id) {
     TFileHandle h = CreateFileWithUtf8Name(path, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -252,4 +259,4 @@ bool GetObjectId(const char* path, GUID* id) {
 }
 */
 
-}
+} // namespace NFsPrivate

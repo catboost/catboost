@@ -3,6 +3,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/private/libs/options/output_file_options.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
@@ -178,7 +179,7 @@ public:
 
     ~TJVMStringAsStringBuf() {
         if (JEnv) {
-            JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.Data()), JNI_ABORT);
+            JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.data()), JNI_ABORT);
             JEnv->DeleteGlobalRef(Utf8Array);
         }
     }
@@ -268,9 +269,6 @@ static void GetEmbeddingFeatures(
         // `_jobject` is not a polymorphic type
         const auto jembeddingFeature = (jfloatArray)jenv->GetObjectArrayElement(jembeddingFeatures, i);
         CB_ENSURE(jenv->IsSameObject(jembeddingFeature, NULL) == JNI_FALSE, "got null array element");
-        Y_SCOPE_EXIT(jenv, jembeddingFeature) {
-            jenv->DeleteLocalRef(jembeddingFeature);
-        };
         embeddingFeaturesStorage->push_back(TJVMFloatArrayAsArrayRef(jenv, jembeddingFeature));
         embeddingFeatures->push_back(embeddingFeaturesStorage->back().Get());
     }
@@ -310,7 +308,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
 }
 
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
-  (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles) {
+  (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles, jstring jmodelFormat) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto modelPathSize = jenv->GetStringUTFLength(jmodelPath);
@@ -321,9 +319,20 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     };
     CB_ENSURE(modelPath, "got nullptr modelPath");
 
+    const auto* const modelFormat = jenv->GetStringUTFChars(jmodelFormat, nullptr);
+    CB_ENSURE(modelFormat, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, jmodelFormat, modelFormat) {
+        jenv->ReleaseStringUTFChars(jmodelFormat, modelFormat);
+    };
+
+    EModelType modelType;
+    if( !NCatboostOptions::TryGetModelTypeFromExtension(TString(modelFormat), modelType) ) {
+        modelType = EModelType::CatboostBinary;
+    }
+
     // TODO(yazevnul): `ReadModel` should return `THolder<TFullModel>` instead of `TFullModel`
     auto model = MakeHolder<TFullModel>();
-    *model = ReadModel(TString(modelPath, modelPathSize));
+    *model = ReadModel(TString(modelPath, modelPathSize), modelType);
 
     const auto handle = ToHandle(model.Get());
     jenv->SetLongArrayRegion(jhandles, 0, 1, &handle);
@@ -335,7 +344,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
 }
 
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
-  (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles) {
+  (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles, jstring jmodelFormat) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
@@ -345,13 +354,76 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     };
     const size_t dataSize = jenv->GetArrayLength(jdata);
 
+    const auto* const modelFormat = jenv->GetStringUTFChars(jmodelFormat, nullptr);
+    CB_ENSURE(modelFormat, "OutOfMemoryError");
+    Y_SCOPE_EXIT(jenv, jmodelFormat, modelFormat) {
+        jenv->ReleaseStringUTFChars(jmodelFormat, modelFormat);
+    };
+
+    EModelType modelType;
+    if( !NCatboostOptions::TryGetModelTypeFromExtension(TString(modelFormat), modelType) ) {
+        modelType = EModelType::CatboostBinary;
+    }
+
     auto model = MakeHolder<TFullModel>();
-    *model = ReadModel(data, dataSize);
+    *model = ReadModel(data, dataSize, modelType);
 
     const auto handle = ToHandle(model.Get());
     jenv->SetLongArrayRegion(jhandles, 0, 1, &handle);
 
     Y_UNUSED(model.Release());
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetSupportedEvaluatorTypes
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jevaluatorTypes) {
+    Y_BEGIN_JNI_API_CALL();
+
+    Y_UNUSED(jhandle);
+
+    auto supportedEvaluatorTypes = TFullModel::GetSupportedEvaluatorTypes();
+
+    auto evaluatorTypes = jenv->NewObjectArray(
+        supportedEvaluatorTypes.size(),
+        jenv->FindClass("java/lang/String"),
+        /*init*/ NULL
+    );
+    CB_ENSURE(evaluatorTypes, "OutOfMemoryError");
+
+    for (auto i : xrange(supportedEvaluatorTypes.size())) {
+        auto jevaluatorType = StringToJavaUTF8(jenv, ToString(supportedEvaluatorTypes[i]));
+        jenv->SetObjectArrayElement(evaluatorTypes, static_cast<jsize>(i), jevaluatorType);
+    }
+
+    jenv->SetObjectArrayElement(jevaluatorTypes, 0, evaluatorTypes);
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelSetEvaluatorType
+  (JNIEnv* jenv, jclass, jlong jhandle, jstring jevaluatorType) {
+    Y_BEGIN_JNI_API_CALL();
+
+    auto* model = ToFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    TJVMStringAsStringBuf evaluatorTypeStringBuf(jenv, jevaluatorType);
+    model->SetEvaluatorType(FromString<EFormulaEvaluatorType>(evaluatorTypeStringBuf.Get()));
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetEvaluatorType
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jevaluatorType) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto evaluatorTypeString = ToString(model->GetEvaluatorType());
+    auto jevaluatorTypeString = StringToJavaUTF8(jenv, evaluatorTypeString);
+    jenv->SetObjectArrayElement(jevaluatorType, 0, jevaluatorTypeString);
 
     Y_END_JNI_API_CALL();
 }
@@ -838,6 +910,14 @@ static size_t GetMatrixColumnCount(JNIEnv* const jenv, const jobjectArray matrix
     return jenv->GetArrayLength(firstRow);
 }
 
+static size_t GetMatrixRowCount(JNIEnv* const jenv, const jobjectArray matrix) {
+    if (jenv->IsSameObject(matrix, NULL) == JNI_TRUE) {
+        return 0;
+    }
+
+    return jenv->GetArrayLength(matrix);
+}
+
 static size_t GetDocumentCount(
     JNIEnv* const jenv,
     jobjectArray jnumericFeaturesMatrix,
@@ -1294,6 +1374,73 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     Y_END_JNI_API_CALL();
 }
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredictTransposed
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jdoubleArray jpredictions) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const size_t documentCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
+    if (documentCount == 0) {
+        return 0;
+    }
+
+    const size_t modelPredictionSize = model->GetDimensionsCount();
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+
+    const size_t numericFeatureCount = GetMatrixRowCount(jenv, jnumericFeaturesMatrix);
+
+    CB_ENSURE(
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
+
+    const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
+    CB_ENSURE(
+        predictionsSize >= documentCount * modelPredictionSize,
+        "`prediction` size is insufficient, must be at least document count * model prediction dimension: "
+        LabeledOutput(predictionsSize, documentCount * modelPredictionSize));
+
+    TVector<jfloatArray> numericFeatureMatrixRowObjects;
+    TVector<TConstArrayRef<float>> numericFeatureMatrixRows;
+
+    Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
+        const auto size = numericFeatureMatrixRows.size();
+        for (size_t i = 0; i < size; ++i) {
+            jenv->ReleaseFloatArrayElements(
+                numericFeatureMatrixRowObjects[i],
+                const_cast<float*>(numericFeatureMatrixRows[i].data()),
+                JNI_ABORT);
+        }
+    };
+
+    if (numericFeatureCount) {
+        numericFeatureMatrixRowObjects.reserve(numericFeatureCount);
+        numericFeatureMatrixRows.reserve(numericFeatureCount);
+        for (size_t i = 0; i < numericFeatureCount; ++i) {
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            const size_t rowSize = jenv->GetArrayLength(row);
+            CB_ENSURE(
+                documentCount == rowSize,
+                "document count doesn't match for row " << i << ": "
+                LabeledOutput(documentCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
+            numericFeatureMatrixRows.push_back(MakeArrayRef(
+                jenv->GetFloatArrayElements(row, nullptr),
+                documentCount));
+        }
+    }
+
+    TVector<double> predictions;
+    predictions.yresize(documentCount * modelPredictionSize);
+    model->CalcFlatTransposed(numericFeatureMatrixRows, predictions);
+    jenv->SetDoubleArrayRegion(jpredictions, 0, predictions.size(), predictions.data());
+
+    Y_END_JNI_API_CALL();
+}
+
 
 #undef Y_BEGIN_JNI_API_CALL
 #undef Y_END_JNI_API_CALL

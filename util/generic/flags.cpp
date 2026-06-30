@@ -22,7 +22,7 @@ void ::NPrivate::PrintFlags(IOutputStream& stream, ui64 value, size_t size) {
             stream << Bin(static_cast<ui64>(value), HF_FULL);
             break;
         default:
-            Y_VERIFY(false);
+            Y_ABORT_UNLESS(false);
     }
 
     stream << ")";

@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -6,6 +8,10 @@
 
 #pragma once
 
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include "onnx/version_converter/adapters/adapter.h"
 
 namespace ONNX_NAMESPACE {
@@ -13,7 +19,7 @@ namespace version_conversion {
 struct Scan_8_9 final : public Adapter {
   explicit Scan_8_9() : Adapter("Scan", OpSetID(8), OpSetID(9)) {}
 
-  void adapt_scan_8_9(std::shared_ptr<Graph>, Node* node) const {
+  void adapt_scan_8_9(const std::shared_ptr<Graph>&, Node* node) const {
     const std::vector<Value*> inputs(node->inputs().vec());
     const std::vector<Value*> outputs(node->outputs().vec());
 
@@ -21,7 +27,7 @@ struct Scan_8_9 final : public Adapter {
 
     Symbol dirs = Symbol("directions");
     if (node->hasAttribute(dirs)) {
-      const std::vector<int64_t> directions(node->is(dirs));
+      std::vector<int64_t> directions(node->is(dirs));
       node->removeAttribute(dirs);
       node->is_(Symbol("scan_input_directions"), std::move(directions));
     }
@@ -30,9 +36,7 @@ struct Scan_8_9 final : public Adapter {
 
     node->removeAllInputs();
 
-    if (inputs[0]->uniqueName() != "") {
-      ONNX_ASSERT("Unsupported conversion to opset 9");
-    }
+    ONNX_ASSERTM(inputs[0]->uniqueName().empty(), "Unsupported conversion to opset 9");
 
     for (Value* input : inputs) {
       if (!input->sizes().empty()) {

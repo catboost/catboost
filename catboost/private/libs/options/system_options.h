@@ -36,5 +36,3 @@ namespace NCatboostOptions {
         bool IsWorker() const;
     };
 }
-
-ui64 ParseMemorySizeDescription(TStringBuf memSizeDescription);

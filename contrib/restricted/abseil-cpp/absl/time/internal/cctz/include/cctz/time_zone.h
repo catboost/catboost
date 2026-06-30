@@ -23,6 +23,7 @@
 #include <chrono>
 #include <cstdint>
 #include <limits>
+#include <ratio>  // NOLINT: We use std::ratio in this header
 #include <string>
 #include <utility>
 
@@ -199,7 +200,7 @@ class time_zone {
   // version() and description() provide additional information about the
   // time zone. The content of each of the returned strings is unspecified,
   // however, when the IANA Time Zone Database is the underlying data source
-  // the version() string will be in the familar form (e.g, "2018e") or
+  // the version() string will be in the familiar form (e.g, "2018e") or
   // empty when unavailable.
   //
   // Note: These functions are for informational or testing purposes only.

@@ -50,6 +50,7 @@ namespace NCB {
         TVector<bool> IsFeatureIgnored;
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
+        TPathWithScheme GraphPath;
         TPathWithScheme GroupWeightsPath;
         TPathWithScheme BaselinePath;
         TPathWithScheme TimestampsPath;
@@ -79,7 +80,6 @@ namespace NCB {
             TDatasetSubset loadSubset);
         static bool HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset);
         static void DropAllLoaders();
-        static bool IsEmpty();
 
     private:
         THashMap<std::pair<TPathWithScheme, TDatasetSubset>, TAtomicSharedPtr<IQuantizedPoolLoader>> Cache;

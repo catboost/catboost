@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       microlzma_encoder.c
 /// \brief      Encode into MicroLZMA format
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -111,7 +110,8 @@ microlzma_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
 
 	// Encode the properties byte. Bitwise-negation of it will be the
 	// first output byte.
-	return_if_error(lzma_lzma_lclppb_encode(options, &coder->props));
+	if (lzma_lzma_lclppb_encode(options, &coder->props))
+		return LZMA_OPTIONS_ERROR;
 
 	// Initialize the LZMA encoder.
 	const lzma_filter_info filters[2] = {

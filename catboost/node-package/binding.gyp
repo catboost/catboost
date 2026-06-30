@@ -9,9 +9,7 @@
                  ],
       'include_dirs': [
                          "<!@(node -p \"require('node-addon-api').include\")",
-                         "<!@(node -p \"process.env['CATBOOST_SRC_PATH'] || '../..'\")",
-                         "<!@(node -p \"process.env['CATBOOST_SRC_PATH'] || '../..'\")/catboost/libs/model_interface",
-                         "<!@(node -p \"process.env['CATBOOST_SRC_PATH'] || '../..'\")/contrib/libs/cxxsupp/system_stl/include",
+                         "<!@(node -p \"JSON.stringify(path.resolve(process.env['CATBOOST_SRC_PATH'] || path.join('..','..')))\")",
                       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'conditions': [

@@ -13,6 +13,8 @@
 #include <catboost/private/libs/quantization/grid_creator.h>
 #include <catboost/private/libs/quantization/utils.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
+
 #include <library/cpp/testing/unittest/registar.h>
 
 using namespace std;
@@ -58,7 +60,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         auto features = dataSet.GetFeatures();
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             //            TSlice featuresSlice = featuresMapping.DeviceSlice(dev);
 
             TVector<ui32> compressedIndex;

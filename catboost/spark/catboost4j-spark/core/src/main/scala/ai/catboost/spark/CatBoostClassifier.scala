@@ -248,9 +248,9 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
         new CatBoostClassificationModel(uid, nativeModel, nativeModel.GetDimensionsCount.toInt)
       }
   }
-  
+
   def loadNativeModel(
-    fileName: String, 
+    fileName: String,
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostClassificationModel = {
     new CatBoostClassificationModel(native_impl.native_impl.ReadModel(fileName, format))
@@ -262,7 +262,7 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
     ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
   ): CatBoostClassificationModel = {
     new CatBoostClassificationModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostClassificationModel]], weights, ctrMergePolicy))
-  } 
+  }
 }
 
 
@@ -405,6 +405,10 @@ class CatBoostClassifier (override val uid: String)
           )
           classTargetPreprocessor.ProcessDistinctStringTargetValues(distinctLabels)
         }
+        case ERawTargetType.Boolean => throw new CatBoostError(
+            "[Internal CatBoost error] classTargetPreprocessor.IsNeedToProcessDistinctTargetValues should be"
+            + " false for Boolean targets"
+        )
         case ERawTargetType.None => throw new CatBoostError(
             "CatBoostClassifier requires a label column in the training dataset"
         )
@@ -421,7 +425,7 @@ class CatBoostClassifier (override val uid: String)
     ).asInstanceOf[JObject]
     val serializedLabelConverter = classTargetPreprocessor.GetSerializedLabelConverter()
 
-    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext)
         = addEstimatedCtrFeatures(
             quantizedTrainPool,
             quantizedEvalPools,
@@ -430,8 +434,8 @@ class CatBoostClassifier (override val uid: String)
             serializedLabelConverter
           )
     (
-      preprocessedTrainPool, 
-      preprocessedEvalPools, 
+      preprocessedTrainPool,
+      preprocessedEvalPools,
       new CatBoostTrainingContext(
         ctrsContext,
         catBoostJsonParams,
@@ -448,4 +452,3 @@ class CatBoostClassifier (override val uid: String)
 object CatBoostClassifier extends DefaultParamsReadable[CatBoostClassifier] {
   override def load(path: String): CatBoostClassifier = super.load(path)
 }
-

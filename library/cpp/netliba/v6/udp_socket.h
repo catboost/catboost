@@ -9,9 +9,7 @@ namespace NNetliba {
     bool IsLocalIPv6(ui64 network, ui64 iface);
     bool InitLocalIPList();
 
-    enum {
-        UDP_LOW_LEVEL_HEADER_SIZE = 4,
-    };
+    constexpr int UDP_LOW_LEVEL_HEADER_SIZE = 4;
 
     using NNetlibaSocket::EFragFlag;
     using NNetlibaSocket::FF_ALLOW_FRAG;

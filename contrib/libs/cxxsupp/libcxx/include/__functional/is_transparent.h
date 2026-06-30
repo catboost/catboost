@@ -11,7 +11,7 @@
 #define _LIBCPP___FUNCTIONAL_IS_TRANSPARENT
 
 #include <__config>
-#include <type_traits>
+#include <__type_traits/void_t.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -19,15 +19,13 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 11
+#if _LIBCPP_STD_VER >= 14
 
-template <class _Tp, class, class = void>
-struct __is_transparent : false_type {};
+template <class _Tp, class _Key = void, class = void>
+inline const bool __is_transparent_v = false;
 
-template <class _Tp, class _Up>
-struct __is_transparent<_Tp, _Up,
-                        typename __void_t<typename _Tp::is_transparent>::type>
-   : true_type {};
+template <class _Tp, class _Key>
+inline const bool __is_transparent_v<_Tp, _Key, __void_t<typename _Tp::is_transparent> > = true;
 
 #endif
 

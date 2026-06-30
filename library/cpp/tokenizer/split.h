@@ -15,10 +15,10 @@ public:
     static const THandledMask NOT_PUNCT;
 
 public:
-    TTokenizerSplitParams(){};
+    TTokenizerSplitParams(){}
 
     TTokenizerSplitParams(const THandledMask& mask)
-        : HandledMask(mask){};
+        : HandledMask(mask){}
 
 public:
     /// Token types to handle, not used in SplitIntoSentences

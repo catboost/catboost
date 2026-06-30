@@ -1,10 +1,25 @@
 import argparse
+import os
 import subprocess
 import sys
 
-from process_whole_archive_option import ProcessWholeArchiveOption
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import process_command_files as pcf  # noqa: E402
+
+from process_whole_archive_option import ProcessWholeArchiveOption  # noqa: E402
 
 YA_ARG_PREFIX = '-Ya,'
+
+
+def flt_args():
+    for a in sys.argv[1:]:
+        if a.startswith('-l'):
+            # skip -lxxx args
+            pass
+        else:
+            yield a
 
 
 def get_args():
@@ -19,7 +34,7 @@ def get_args():
 
     groups = {}
     args_list = groups.setdefault('default', [])
-    for arg in sys.argv[1:]:
+    for arg in pcf.iter_args(list(flt_args())):
         if arg == '--with-own-obj':
             groups['default'].append(arg)
         elif arg == '--globals-lib':
@@ -27,7 +42,7 @@ def get_args():
         elif arg == '--with-global-srcs':
             groups['default'].append(arg)
         elif arg.startswith(YA_ARG_PREFIX):
-            group_name = arg[len(YA_ARG_PREFIX):]
+            group_name = arg[len(YA_ARG_PREFIX) :]
             args_list = groups.setdefault(group_name, [])
         else:
             args_list.append(arg)
@@ -41,7 +56,7 @@ def strip_suppression_files(srcs):
 
 def strip_forceload_prefix(srcs):
     force_load_prefix = '-Wl,-force_load,'
-    return list(map(lambda lib: lib[lib.startswith(force_load_prefix) and len(force_load_prefix):], srcs))
+    return list(map(lambda lib: lib[lib.startswith(force_load_prefix) and len(force_load_prefix) :], srcs))
 
 
 def main():
@@ -65,7 +80,12 @@ def main():
     linker = groups['linker']
     archiver = groups['archiver']
 
-    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles'] + global_srcs + auto_input
+    do_link = (
+        linker
+        + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', '-Wl,-no-pie']
+        + global_srcs
+        + auto_input
+    )
     do_archive = archiver + [lib_output] + peers
     do_globals = None
     if args.globals_lib:

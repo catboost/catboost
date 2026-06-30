@@ -335,75 +335,100 @@ void TFileTest::TestPread() {
     #define TMPFS_MAGIC 0x01021994
 #endif
 
-void TFileTest::TestCache(){
+void TFileTest::TestCache() {
 #ifdef _linux_
-    {// create file in /tmp, current dir could be tmpfs which does not support fadvise
-     TFile file(MakeTempName("/tmp"), OpenAlways | Transient | RdWr | NoReadAhead);
+    { // create file in /tmp, current dir could be tmpfs which does not support fadvise
+        TFile file(MakeTempName("/tmp"), OpenAlways | Transient | RdWr | NoReadAhead);
 
-struct statfs fs;
-if (!fstatfs(file.GetHandle(), &fs) && fs.f_type == TMPFS_MAGIC) {
-    return;
-}
+        struct statfs fs;
+        if (!fstatfs(file.GetHandle(), &fs) && fs.f_type == TMPFS_MAGIC) {
+            return;
+        }
 
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(0, 0), 0);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(0, 0), 0);
 
-file.Resize(7);
-file.PrefetchCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(3, 2), 2);
+        file.Resize(7);
+        file.PrefetchCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(3, 2), 2);
 
-file.FlushCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
+        file.FlushCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
 
-file.EvictCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
+        file.EvictCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
 
-file.PrefetchCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
+        file.PrefetchCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 7);
 
-file.Resize(12345);
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 4096);
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(4096, 0), 0);
+        file.Resize(12345);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 4096);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(4096, 0), 0);
 
-file.PrefetchCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 12345);
+        file.PrefetchCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 12345);
 
-file.FlushCache();
-file.EvictCache();
-UNIT_ASSERT_LE(file.CountCache(), 0);
+        file.FlushCache();
+        file.EvictCache();
+        UNIT_ASSERT_LE(file.CountCache(), 0);
 
-file.Resize(33333333);
-file.PrefetchCache(11111111, 11111111);
-UNIT_ASSERT_GE(file.CountCache(), 11111111);
+        file.Resize(33333333);
+        file.PrefetchCache(11111111, 11111111);
+        UNIT_ASSERT_GE(file.CountCache(), 11111111);
 
-UNIT_ASSERT_LE(file.CountCache(0, 11111111), 1111111);
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(11111111, 11111111), 11111111);
-UNIT_ASSERT_LE(file.CountCache(22222222, 11111111), 1111111);
+        UNIT_ASSERT_LE(file.CountCache(0, 11111111), 1111111);
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(11111111, 11111111), 11111111);
+        UNIT_ASSERT_LE(file.CountCache(22222222, 11111111), 1111111);
 
-file.FlushCache(11111111, 11111111);
-UNIT_ASSERT_GE(file.CountCache(), 11111111);
+        file.FlushCache(11111111, 11111111);
+        UNIT_ASSERT_GE(file.CountCache(), 11111111);
 
-// first and last incomplete pages could stay in cache
-file.EvictCache(11111111, 11111111);
-UNIT_ASSERT_LT(file.CountCache(11111111, 11111111), 4096 * 2);
+        // first and last incomplete pages could stay in cache
+        file.EvictCache(11111111, 11111111);
+        UNIT_ASSERT_LT(file.CountCache(11111111, 11111111), 4096 * 2);
 
-file.EvictCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
-}
+        file.EvictCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), 0);
+    }
 #else
-    {TFile file(MakeTempName(), OpenAlways | Transient | RdWr);
+    {
+        TFile file(MakeTempName(), OpenAlways | Transient | RdWr);
 
-file.Resize(12345);
+        file.Resize(12345);
 
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), -1);
-file.PrefetchCache();
-file.FlushCache();
-file.EvictCache();
-UNIT_ASSERT_VALUES_EQUAL(file.CountCache(0, 12345), -1);
-}
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(), -1);
+        file.PrefetchCache();
+        file.FlushCache();
+        file.EvictCache();
+        UNIT_ASSERT_VALUES_EQUAL(file.CountCache(0, 12345), -1);
+    }
 #endif
 }
+
+Y_UNIT_TEST_SUITE(TTestFileHandle) {
+    Y_UNIT_TEST(MoveAssignment) {
+        TTempFile tmp("tmp");
+        {
+            TFileHandle file1(tmp.Name(), OpenAlways | WrOnly);
+            file1.Write("1", 1);
+
+            TFileHandle file2;
+            file2 = std::move(file1);
+            Y_ENSURE(!file1.IsOpen());
+            Y_ENSURE(file2.IsOpen());
+
+            file2.Write("2", 1);
+        }
+
+        {
+            TFileHandle file(tmp.Name(), OpenExisting | RdOnly);
+            char buf[2];
+            Y_ENSURE(file.Read(buf, 2) == 2);
+            Y_ENSURE(TStringBuf(buf, 2) == "12");
+        }
+    }
+} // Y_UNIT_TEST_SUITE(TTestFileHandle)
 
 Y_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
     Y_UNIT_TEST(It) {
@@ -413,4 +438,4 @@ Y_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
         UNIT_ASSERT_VALUES_EQUAL("WrOnly|ForAppend", DecodeOpenMode(WrOnly | ForAppend));
         UNIT_ASSERT_VALUES_EQUAL("RdWr|CreateAlways|CreateNew|ForAppend|Transient|CloseOnExec|Temp|Sync|Direct|DirectAligned|Seq|NoReuse|NoReadAhead|AX|AR|AW|AWOther|0xF8888000", DecodeOpenMode(0xFFFFFFFF));
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestDecodeOpenMode)

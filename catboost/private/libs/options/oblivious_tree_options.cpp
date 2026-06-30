@@ -15,6 +15,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , L2Reg("l2_leaf_reg", 3.0)
       , PairwiseNonDiagReg("bayesian_matrix_reg", 0.1)
       , RandomStrength("random_strength", 1.0)
+      , RandomScoreType("random_score_type", ERandomScoreType::NormalWithModelSizeDecrease)
       , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
       , Rsm("rsm", 1.0)
       , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovement)
@@ -50,7 +51,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
 void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
             &MaxDepth, &LeavesEstimationIterations, &LeavesEstimationMethod, &L2Reg, &MetaL2Exponent, &MetaL2Frequency, &ModelSizeReg,
-            &RandomStrength,
+            &RandomStrength, &RandomScoreType,
             &BootstrapConfig, &FoldSizeLossNormalization, &AddRidgeToTargetFunctionFlag,
             &ScoreFunction,
             &GrowPolicy,
@@ -76,7 +77,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
 
 void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(options, MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, MetaL2Exponent, MetaL2Frequency, ModelSizeReg,
-            RandomStrength,
+            RandomStrength, RandomScoreType,
             BootstrapConfig, FoldSizeLossNormalization, AddRidgeToTargetFunctionFlag,
             ScoreFunction,
             GrowPolicy,
@@ -96,7 +97,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TObliviousTreeLearnerOptions& rhs) const {
-    return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, MetaL2Exponent, MetaL2Frequency, ModelSizeReg, RandomStrength,
+    return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, MetaL2Exponent, MetaL2Frequency, ModelSizeReg,
+            RandomStrength, RandomScoreType,
             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
             AddRidgeToTargetFunctionFlag, ScoreFunction, GrowPolicy, MaxLeaves, MinDataInLeaf, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
@@ -104,7 +106,8 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
             MonotoneConstraints, DevLeafwiseApproxes, FeaturePenalties
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.MetaL2Exponent, rhs.MetaL2Frequency, rhs.ModelSizeReg,
-                rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
+                rhs.RandomStrength, rhs.RandomScoreType,
+                rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                 rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                 rhs.ScoreFunction, rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MaxCtrComplexityForBordersCaching,
                 rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType, rhs.DevScoreCalcObjBlockSize,
@@ -140,5 +143,11 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
     CB_ENSURE(
         TaskType.Get() == ETaskType::GPU || EqualToOneOf(ScoreFunction, EScoreFunction::Cosine, EScoreFunction::L2),
         "Only Cosine and L2 score functions are supported for CPU."
+    );
+
+    // TODO(akhropov): Implement ERandomScoreType::Gumbel for GPU
+    CB_ENSURE(
+        TaskType.Get() == ETaskType::CPU || (RandomScoreType == ERandomScoreType::NormalWithModelSizeDecrease),
+        "random_score_type must be NormalWithModelSizeDecrease for GPU"
     );
 }

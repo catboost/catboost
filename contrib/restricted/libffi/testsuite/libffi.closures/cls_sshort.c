@@ -13,6 +13,8 @@ static void cls_ret_sshort_fn(ffi_cif* cif __UNUSED__, void* resp, void** args,
   *(ffi_arg*)resp = *(signed short *)args[0];
   printf("%d: %d\n",*(signed short *)args[0],
 	 (int)*(ffi_arg *)(resp));
+  CHECK(*(signed short *)args[0] == 255);
+  CHECK((int)*(ffi_arg *)(resp) == 255);
 }
 typedef signed short (*cls_ret_sshort)(signed short);
 
@@ -37,6 +39,7 @@ int main (void)
   /* { dg-output "255: 255" } */
   printf("res: %d\n",res);
   /* { dg-output "\nres: 255" } */
+  CHECK(res == 255);
 
   exit(0);
 }

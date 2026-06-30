@@ -17,6 +17,8 @@ void
 closure_test_fn(Dbls p)
 {
 	printf("%.1f %.1f\n", p.x, p.y);
+	CHECK(p.x == 1);
+	CHECK(p.y == 2);
 }
 
 void
@@ -26,7 +28,7 @@ closure_test_gn(ffi_cif* cif __UNUSED__, void* resp __UNUSED__,
 	closure_test_fn(*(Dbls*)args[0]);
 }
 
-int main(int argc __UNUSED__, char** argv __UNUSED__)
+int main(void)
 {
 	ffi_cif cif;
 
@@ -56,7 +58,7 @@ int main(int argc __UNUSED__, char** argv __UNUSED__)
 
 	CHECK(ffi_prep_closure_loc(pcl, &cif, closure_test_gn, NULL, code) == FFI_OK);
 
-	((void*(*)(Dbls))(code))(arg);
+	((void (*)(Dbls))(code))(arg);
 	/* { dg-output "1.0 2.0" } */
 
 	closure_test_fn(arg);

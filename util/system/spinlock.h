@@ -32,8 +32,16 @@ public:
         return Val_.compare_exchange_strong(zero, 1);
     }
 
+    inline void Release() noexcept {
+        Val_.store(0, std::memory_order_release);
+    }
+
     inline bool try_lock() noexcept {
         return TryAcquire();
+    }
+
+    inline void unlock() noexcept {
+        Release();
     }
 
 protected:
@@ -58,10 +66,6 @@ class TSpinLock: public TSpinLockBase {
 public:
     using TSpinLockBase::TSpinLockBase;
 
-    inline void Release() noexcept {
-        Val_.store(0, std::memory_order_release);
-    }
-
     inline void Acquire() noexcept {
         intptr_t zero = 0;
         if (Val_.compare_exchange_strong(zero, 1)) {
@@ -72,10 +76,6 @@ public:
             zero = 0;
         } while (Val_.load(std::memory_order_acquire) != 0 ||
                  !Val_.compare_exchange_strong(zero, 1));
-    }
-
-    inline void unlock() noexcept {
-        Release();
     }
 
     inline void lock() noexcept {
@@ -95,10 +95,6 @@ class TAdaptiveLock: public TSpinLockBase {
 public:
     using TSpinLockBase::TSpinLockBase;
 
-    void Release() noexcept {
-        Val_.store(0, std::memory_order_release);
-    }
-
     void Acquire() noexcept {
         intptr_t zero = 0;
         if (Val_.compare_exchange_strong(zero, 1)) {
@@ -115,10 +111,6 @@ public:
             }
             sw.Sleep();
         }
-    }
-
-    inline void unlock() noexcept {
-        Release();
     }
 
     inline void lock() noexcept {

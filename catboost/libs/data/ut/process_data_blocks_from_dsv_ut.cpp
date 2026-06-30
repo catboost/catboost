@@ -35,6 +35,7 @@ inline void ReadAndProceedPoolInBlocks(
 
             TDatasetLoaderCommonArgs {
                 /*PairsFilePath*/TPathWithScheme(),
+                /*GraphFilePath*/TPathWithScheme(),
                 /*GroupWeightsFilePath=*/TPathWithScheme(),
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
@@ -47,8 +48,9 @@ inline void ReadAndProceedPoolInBlocks(
                 EObjectsOrder::Undefined,
                 blockSize,
                 loadSubset,
-                /*ForceUnitPairWeights*/ false,
                 /*LoadColumnsAsString*/ false,
+                /*LoadSampleIds*/ false,
+                /*ForceUnitPairWeights*/ false,
                 localExecutor
             }
         }
@@ -181,7 +183,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
@@ -246,7 +248,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }

@@ -33,7 +33,7 @@ template <class TDenseVectorLikeStorage,
         {
             auto currentVector = itemStorage.GetItem(i);
             TOutVectorComponent vectorLengthSqr = DotProduct(currentVector, currentVector, itemStorage.GetDimension());
-            Y_VERIFY(vectorLengthSqr > 0, "All vectors should have positive length");
+            Y_ABORT_UNLESS(vectorLengthSqr > 0, "All vectors should have positive length");
             for(size_t j = 0; j < itemStorage.GetDimension(); j++)
             {
                 *bufferPtr = static_cast<TOutVectorComponent>(currentVector[j])/vectorLengthSqr;

@@ -4,7 +4,6 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
-#include <library/cpp/threading/atomic/bool.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
@@ -13,6 +12,9 @@
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
 #include <util/thread/factory.h>
+
+#include <atomic>
+
 
 namespace NPar {
     class TRemoteQueryProcessor;
@@ -139,10 +141,10 @@ namespace NPar {
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
         THolder<IThreadFactory::IThread> MetaThread;
-        NAtomic::TBool DoRun = true;
+        std::atomic<bool> DoRun = true;
         TAutoEvent NetworkEvent;
 
-        NAtomic::TBool RequesterIsSet = false;
+        std::atomic<bool> RequesterIsSet = false;
         TIntrusivePtr<IRequester> Requester;
 
     private:
@@ -186,7 +188,13 @@ namespace NPar {
 
         void RunMaster(const TVector<TNetworkAddress>& baseSearcherAddrs, unsigned short masterListenPort = 0);
         void RunSlave(int port);
+
         void StopSlaves();
+
+        // needs an explicit Stop instead of just a destructor because some code in MetaThread can hold TInstrusivePtrs
+        // to 'this' and then it is possible that the destructor will be called from MetaThread that will mean
+        // self TThread::Join that is prohibited
+        void Stop();
     };
 
     template <class T>

@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +18,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "absl/base/attributes.h"
 #include "tcmalloc/huge_pages.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
+#include "tcmalloc/metadata_allocator.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
@@ -31,11 +35,10 @@ namespace tcmalloc_internal {
 //
 // This class scales well and is *reasonably* performant, but it is not intended
 // for use on extremely hot paths.
-// TODO(b/134688982): extend to support other range-like types?
 class HugeAddressMap {
  public:
-  typedef void *(*MetadataAllocFunction)(size_t bytes);
-  explicit constexpr HugeAddressMap(MetadataAllocFunction meta);
+  explicit constexpr HugeAddressMap(
+      MetadataAllocator& meta ABSL_ATTRIBUTE_LIFETIME_BOUND);
 
   // IMPORTANT: DESTROYING A HUGE ADDRESS MAP DOES NOT MAKE ANY ATTEMPT
   // AT FREEING ALLOCATED METADATA.
@@ -46,11 +49,11 @@ class HugeAddressMap {
     // the range stored at this point
     HugeRange range() const;
     // Tree structure
-    Node *left();
-    Node *right();
+    Node* left();
+    Node* right();
     // Iterate to the next node in address order
-    const Node *next() const;
-    Node *next();
+    const Node* next() const;
+    Node* next();
     // when were this node's content added (in
     // absl::base_internal::CycleClock::Now units)?
     int64_t when() const;
@@ -64,28 +67,28 @@ class HugeAddressMap {
     HugeRange range_;
     int prio_;  // chosen randomly
     Node *left_, *right_;
-    Node *parent_;
+    Node* parent_;
     HugeLength longest_;
     int64_t when_;
     // Expensive, recursive consistency check.
     // Accumulates node count and range sizes into passed arguments.
-    void Check(size_t *num_nodes, HugeLength *size) const;
+    void Check(size_t* num_nodes, HugeLength* size) const;
 
     // We've broken longest invariants somehow; fix them here.
     void FixLongest();
   };
 
   // Get root of the tree.
-  Node *root();
-  const Node *root() const;
+  Node* root();
+  const Node* root() const;
 
   // Get lowest-addressed node
-  const Node *first() const;
-  Node *first();
+  const Node* first() const;
+  Node* first();
 
   // Returns the highest-addressed range that does not lie completely
   // after p (if any).
-  Node *Predecessor(HugePage p);
+  Node* Predecessor(HugePage p);
 
   // Expensive consistency check.
   void Check();
@@ -93,51 +96,51 @@ class HugeAddressMap {
   // Statistics
   size_t nranges() const;
   HugeLength total_mapped() const;
-  void Print(Printer *out) const;
-  void PrintInPbtxt(PbtxtRegion *hpaa) const;
+  void Print(Printer& out) const;
+  void PrintInPbtxt(PbtxtRegion& hpaa) const;
 
   // Add <r> to the map, merging with adjacent ranges as needed.
   void Insert(HugeRange r);
 
   // Delete n from the map.
-  void Remove(Node *n);
+  void Remove(Node* n);
 
  private:
   // our tree
-  Node *root_{nullptr};
+  Node* root_{nullptr};
   size_t used_nodes_{0};
   HugeLength total_size_{NHugePages(0)};
 
   // cache of unused nodes
-  Node *freelist_{nullptr};
+  Node* freelist_{nullptr};
   size_t freelist_size_{0};
   // How we get more
-  MetadataAllocFunction meta_;
-  Node *Get(HugeRange r);
-  void Put(Node *n);
+  MetadataAllocator& meta_;
+  Node* Get(HugeRange r);
+  void Put(Node* n);
 
   size_t total_nodes_{0};
 
-  void Merge(Node *b, HugeRange r, Node *a);
-  void FixLongest(Node *n);
+  void Merge(Node* b, HugeRange r, Node* a);
+  void FixLongest(Node* n);
   // Note that we always use the same seed, currently; this isn't very random.
   // In practice we're not worried about adversarial input and this works well
   // enough.
-  unsigned int seed_{0};
+  uint64_t seed_{0};
 };
 
-inline constexpr HugeAddressMap::HugeAddressMap(MetadataAllocFunction meta)
+inline constexpr HugeAddressMap::HugeAddressMap(MetadataAllocator& meta)
     : meta_(meta) {}
 
 inline HugeRange HugeAddressMap::Node::range() const { return range_; }
-inline HugeAddressMap::Node *HugeAddressMap::Node::left() { return left_; }
-inline HugeAddressMap::Node *HugeAddressMap::Node::right() { return right_; }
+inline HugeAddressMap::Node* HugeAddressMap::Node::left() { return left_; }
+inline HugeAddressMap::Node* HugeAddressMap::Node::right() { return right_; }
 
 inline int64_t HugeAddressMap::Node::when() const { return when_; }
 inline HugeLength HugeAddressMap::Node::longest() const { return longest_; }
 
-inline HugeAddressMap::Node *HugeAddressMap::root() { return root_; }
-inline const HugeAddressMap::Node *HugeAddressMap::root() const {
+inline HugeAddressMap::Node* HugeAddressMap::root() { return root_; }
+inline const HugeAddressMap::Node* HugeAddressMap::root() const {
   return root_;
 }
 

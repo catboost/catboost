@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       index_decoder.h
@@ -5,14 +7,12 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef LZMA_INDEX_DECODER_H
 #define LZMA_INDEX_DECODER_H
 
+#include "common.h"
 #include "index.h"
 
 

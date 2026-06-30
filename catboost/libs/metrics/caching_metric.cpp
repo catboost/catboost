@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
@@ -344,8 +345,11 @@ double TMCCCachingMetric::GetFinalError(const TMetricHolder &error) const {
     return denominator != 0 ? numerator / denominator : 0.0;
 }
 
-void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
+void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TMCCCachingMetric::ValidParamSets() {
@@ -429,8 +433,11 @@ double TZeroOneLossCachingMetric::GetFinalError(const TMetricHolder &error) cons
     return 1 - error.Stats[0] / error.Stats[1];
 }
 
-void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
+void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TZeroOneLossCachingMetric::ValidParamSets() {
@@ -582,8 +589,11 @@ TMetricHolder TAccuracyCachingMetric::Eval(
     return error;
 }
 
-void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TString TAccuracyCachingMetric::GetDescription() const {
@@ -726,8 +736,11 @@ TMetricHolder THammingLossCachingMetric::Eval(
     return error;
 }
 
-void THammingLossCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void THammingLossCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> THammingLossCachingMetric::ValidParamSets() {
@@ -886,8 +899,11 @@ double TRecallCachingMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
-void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TRecallCachingMetric::ValidParamSets() {
@@ -1036,11 +1052,20 @@ TString TPrecisionCachingMetric::GetDescription() const {
 }
 
 double TPrecisionCachingMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
+    if (error.Stats[1] == 0) {
+        CATBOOST_WARNING_LOG << "Number of the positive class predictions is 0. "
+            "Setting Precision metric value to the default 0\n";
+        return 0.0;
+    } else {
+        return error.Stats[0] / error.Stats[1];
+    }
 }
 
-void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TPrecisionCachingMetric::ValidParamSets() {
@@ -1208,8 +1233,11 @@ double TFCachingMetric::GetFinalError(const TMetricHolder& error) const {
     return precision + recall != 0 ? (1 + beta_square) * precision * recall / (beta_square * precision + recall) : 0.0;
 }
 
-void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TFCachingMetric::ValidParamSets() {
@@ -1405,8 +1433,11 @@ double TTotalF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
     return numerator / denumerator;
 }
 
-void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TTotalF1CachingMetric::ValidParamSets() {
@@ -1498,8 +1529,11 @@ TString TKappaMetric::GetDescription() const {
                             MakePredictionBorderParam(PredictionBorder));
 }
 
-void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
@@ -1589,8 +1623,11 @@ TString TWKappaMetric::GetDescription() const {
                             MakePredictionBorderParam(PredictionBorder));
 }
 
-void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
@@ -1677,6 +1714,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
 
         const bool isObjectwise = metric->GetErrorType() == EErrorType::PerObjectError;
         const auto end = isObjectwise ? objectCount : queryCount;
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
 
         const bool isCaching = dynamic_cast<const ICachingSingleTargetEval*>(metric)
                             || dynamic_cast<const ICachingMultiTargetEval*>(metric);

@@ -1,5 +1,5 @@
-set(CMAKE_C_FLAGS "")
-set(CMAKE_CXX_FLAGS "")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_INIT}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT}")
 
 # workaround when old NDK toolchain that does not set CMAKE_ANDROID_NDK_VERSION is used
 # See for details: https://gitlab.kitware.com/cmake/cmake/-/issues/24386
@@ -44,7 +44,7 @@ message(VERBOSE "CMAKE_C_FLAGS = \"${CMAKE_C_FLAGS}\"")
 message(VERBOSE "CMAKE_CXX_FLAGS = \"${CMAKE_CXX_FLAGS}\"")
 
 if (NOT CMAKE_CROSSCOMPILING)
-  set(TOOLS_ROOT ${CMAKE_BINARY_DIR})
+  set(TOOLS_ROOT ${PROJECT_BINARY_DIR})
 elseif(NOT TOOLS_ROOT)
   message(FATAL_ERROR "TOOLS_ROOT is required for crosscompilation")
 endif()

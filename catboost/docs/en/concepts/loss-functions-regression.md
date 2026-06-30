@@ -7,7 +7,7 @@
 
 ### {{ error-function--MAE }} {#MAE}
 
-$\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -17,7 +17,7 @@ $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i
 
 ### {{ error-function--MAPE }} {#MAPE}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{Max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{\max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -126,7 +126,9 @@ $\displaystyle\frac{\sum\limits_{i=1}^N |a_{i} - t_{i}|^q w_i}{\sum\limits_{i=1}
 
 {% cut "{{ loss-functions__params__q }}" %}
 
-The power coefficient.<br/><br/>Valid values are real numbers in the following range:  $[1; +\infty)$
+The power coefficient.
+
+Valid values are real numbers in the following range:  $[1; +\infty)$
 
 _Default:_ {{ loss-functions__params__q__default }}
 
@@ -135,7 +137,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__Huber }} {#Huber}
 
-$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i} { , where}$
+$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i}$
 
 $l(t,a) = \begin{cases} \frac{1}{2} (t - a)^{2} { , } & |t -a| \leq \delta \\ \delta|t -a| - \frac{1}{2} \delta^{2} { , } & |t -a| > \delta \end{cases}$
 
@@ -158,7 +160,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__Expectile }} {#Expectile}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - 1(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - I(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -176,9 +178,17 @@ _Default:_  {{ fit--alpha }}
 
 ### {{ error-function__Tweedie }} {#Tweedie}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\lambda)}}{2-\lambda} - t_{i}\frac{e^{a_{i}(1-\lambda)}}{1-\lambda} \right)\cdot w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\lambda)}}{2-\lambda} - t_{i}\frac{e^{a_{i}(1-\lambda)}}{1-\lambda} \right)\cdot w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 $\lambda$ is the value of the {{ loss-functions__params__variance_power }} parameter.
+
+Labels $t_i$ should be non-negative.
+
+Large labels may cause numerical overflows and/or divergence when training a tweedie regression model.
+
+On CPU, it is recommended to scale labels to range $[0,1000]$.
+
+On GPU, it is recommended to scale lables to range $[0,1]$.
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -198,7 +208,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__LogCosh }} {#LogCosh}
 
-$\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
+$\displaystyle\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -209,7 +219,7 @@ $\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
 
 ### {{ error-function__FairLoss }} {#FairLoss}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\frac{|t_{i} - a_{i} |}{c} + 1))w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} c^2\left(\frac{|t_{i} - a_{i} |}{c} - \log\left(\frac{|t_{i} - a_{i} |}{c} + 1\right)\right)w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 $c$ is the value of the {{ loss-functions__params__smoothness }} parameter.
 
@@ -232,13 +242,9 @@ _Default:_ {{ fit--smoothness }}
 
 The proportion of predictions, for which the difference from the label value exceeds the specified value `{{ loss-function__params__greater-than }}`.
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} I\{x\} w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
-
-$I\{x\} = \begin{cases} 1 { , } & |a_{i} - t_{i}| > greater\_than \\ 0 { , } & |a_{i} - t_{i}| \leq greater\_than \end{cases}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} I(|a_{i} - t_{i}|\geq \text{greater\_than}) w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 {{ title__loss-functions__text__user-defined-params }}: {{ loss-function__params__greater-than }}
-
-Increase the numerator of the formula if the following inequality is met:<br/><br/>$|prediction - label|>value$
 
 **{{ no-optimization }}** See [more](#usage-information).
 
@@ -271,7 +277,7 @@ $\bar{t} = \frac{1}{N}\sum\limits_{i=1}^{N}t_{i}$
 
 ### {{ error-function__MSLE }} {#MSLE}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e} (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log (1 + t_{i}) - \log (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ no-optimization }}** See [more](#usage-information).
 
@@ -282,7 +288,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e}
 
 ### {{ error-function__MedianAbsoluteError }} {#MedianAbsoluteError}
 
-$median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
+$\displaystyle\text{median}(|t_{1} - a_{1}|, ..., |t_{N} - a_{N}|)$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
@@ -290,23 +296,85 @@ $median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
 
 No.
 
+### {{ error-function__Cox }} {#Cox}
+
+$\displaystyle\sum\limits_{t_i > 0}\left( a_i - \log\sum\limits_{|t_j| \ge t_i} \exp(a_j)\right)$
+
+Labels $t_i > 0$ mean occurence of the event at time $t_i$, and labels $t_i < 0$ mean absence of the event at time $|t_i|$.
+
+Predictions $a_i$ are hazard rates.
+
+**{{ optimization }}**  See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+No.
+
+### {{ error-function__SurvivalAft }} {#SurvivalAft}
+
+$\displaystyle\sum\limits_{t_{i,0} = t_{i,1}} \log\left(f(\epsilon(t_{i,0}, a_i)\right) + \sum\limits_{t_{i,0} \ne t_{i,1}} \log \left(F(\epsilon(t_{i,1}, a_i)) - F(\epsilon(t_{i,0}, a_i))\right)$
+
+Observation interval is $[t_{i,0}, t_{i,1}]$ for $t_{i,1} \ne -1$, and $[t_{i,0}, \infty)$ for $t_{i,1} = -1$.
+
+Predictions $a_i$ are hazard rates.
+
+Helper $\epsilon(t, a) = (\log t - a)/\sigma$ for $t \ne -1$, and $\epsilon(-1, a) = \infty$, is hazard prediction error.
+
+Coefficient $\sigma$ is scale of hazard prediction error, specified by `scale` parameter.
+
+Functions $f$ and $F$ are probability density and cumulative distribution, specified by `dist` parameter.
+
+{% cut "{{ loss-functions__params__survivalaft_dist }}" %}
+
+Guessed distribution of hazard prediction error.
+
+Possible values: `Normal`, `Extreme`, `Logistic`.
+
+| `dist` | $F$ | $f$ |
+| --- | --- | --- |
+| `Normal` | $\displaystyle\frac{1}{2}\left(1+\text{erf}\left( \frac{z}{\sqrt{2}}\right)\right)$ | $\displaystyle\frac{e^{-z^2/2}}{\sqrt{2\pi}}$|
+| `Logistic` | $\displaystyle\frac{e^z}{1+e^z}$ | $\displaystyle\frac{e^z}{(1+e^z)^2}$ |
+| `Extreme` | $\displaystyle 1-e^{-e^z}$ | $\displaystyle e^ze^{-e^z}$  |
+
+_Default:_ {{ loss-functions__params__survivalaft_dist_default }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__survivalaft_scale }}" %}
+
+Scale of hazard prediction error.
+
+_Default:_ {{ loss-functions__params__survivalaft_scale_default }}
+
+{% endcut %}
+
+
+**{{ optimization }}**  See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+No.
+
+
 ## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 | Name                                                            | Optimization            | GPU Support             |
 ------------------------------------------------------------------|-------------------------|-------------------------|
-[{{ error-function--MAE }}](#MAE)                                 |     +                   |     -                   |
+[{{ error-function--MAE }}](#MAE)                                 |     +                   |     +                   |
 [{{ error-function--MAPE }}](#MAPE)                               |     +                   |     +                   |
 [{{ error-function--Poisson }}](#Poisson)                         |     +                   |     +                   |
 [{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
 [{{ error-function--MultiQuantile }}](#MultiQuantile)             |     +                   |     -                   |
 [{{ error-function--RMSE }}](#RMSE)                               |     +                   |     +                   |
-[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     -                   |
+[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     +                   |
 [{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |     +                   |
 [{{ error-function__lq }}](#lq)                                   |     +                   |     +                   |
 [{{ error-function__Huber }}](#Huber)                             |     +                   |     +                   |
 [{{ error-function__Expectile }}](#Expectile)                     |     +                   |     +                   |
 [{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |     +                   |
 [{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |     -                   |
+[{{ error-function__Cox }}](#Cox)                                 |     +                   |     -                   |
+[{{ error-function__SurvivalAft }}](#SurvivalAft)                 |     +                   |     -                   |
 [{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |     -                   |
 [{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |     +                   |
 [{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |     -                   |

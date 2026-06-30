@@ -60,4 +60,4 @@ Y_UNIT_TEST_SUITE(TStringBuilderTest) {
         UNIT_ASSERT(TRValueAcceptTester::IsRValue(TStringBuilder() << b2));
         UNIT_ASSERT_VALUES_EQUAL("a1a", TStringBuilder() << b2);
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringBuilderTest)

@@ -45,6 +45,7 @@ Classes:
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -76,7 +77,7 @@ Examples:
 
 - Calculate the value of {{ error-function--Quantile }} with the coefficient $\alpha = 0.1$
     ```
-    {{ error-function--Quantile }}alpha=0.1
+    {{ error-function--Quantile }}:alpha=0.1
     ```
 
 
@@ -184,6 +185,7 @@ Method:  [catboost.train](../concepts/r-reference_catboost-train.md)
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -292,6 +294,7 @@ Format:
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -379,4 +382,3 @@ Possible values:
 - Info — Output additional information and the number of trees.
 
 - Debug — Output debugging information.
-

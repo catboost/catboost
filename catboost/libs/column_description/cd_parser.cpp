@@ -24,6 +24,27 @@ namespace {
         }
     }
 
+    void ProcessColumnAfterIndex(
+        TStringBuf srcDescription,
+        const TColumn& defaultColumn,
+        size_t index,
+        TArrayRef<TString> tokens,
+        TVector<TColumn>* columns,
+        TSet<size_t>* parsedColumns
+    ) {
+        CB_ENSURE(!parsedColumns->contains(index), "column specified twice in " << srcDescription << ": " << index);
+        parsedColumns->insert(index);
+
+        columns->resize(Max(columns->size(), index + 1), defaultColumn);
+
+        TStringBuf type = ToCanonicalColumnName(tokens[1]);
+        CB_ENSURE(TryFromString<EColumn>(type, (*columns)[index].Type), "unsupported column type " << type);
+
+        if (tokens.ysize() == 3) {
+            (*columns)[index].Id = tokens[2];
+        }
+    }
+
 
     template <class TReadLineFunc>
     TVector<TColumn> ReadCDImpl(TReadLineFunc readLineFunc, const TCdParserDefaults& defaults) {
@@ -40,36 +61,66 @@ namespace {
                 try {
                     StringSplitter(line).Split('\t').SkipEmpty().Collect(&tokens);
                 } catch (const yexception& e) {
-                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
+                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line "
+                        << line << Endl;
                     break;
                 }
                 if (tokens.empty()) {
                     continue;
                 }
-                CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                CB_ENSURE(
+                    tokens.ysize() == 2 || tokens.ysize() == 3,
                     "Each line should have two or three columns. This line has " << tokens.size()
                 );
 
-                size_t index = 0;
-                CB_ENSURE(
-                    TryFromString(tokens[0], index),
-                    "Invalid column index: \"" << tokens[0] << "\""
-                );
-                if (defaults.UseDefaultColumnCount) {
-                    CB_ENSURE(
-                        index < columnsCount,
-                        "Invalid column index: " LabeledOutput(index, columnsCount));
+                TVector<TString> indexTokens;
+
+                try {
+                    StringSplitter(tokens[0]).Split('.').SkipEmpty().Collect(&indexTokens);
+                } catch (const yexception& e) {
+                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing index field "
+                        << tokens[0] << Endl;
+                    throw;
                 }
-                CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
-                parsedColumns.insert(index);
 
-                columns.resize(Max(columns.size(), index + 1), defaultColumn);
+                if (indexTokens.ysize() == 1) {
+                    size_t index = 0;
+                    CB_ENSURE(TryFromString(tokens[0], index), "Invalid column index: \"" << tokens[0] << "\"");
+                    if (defaults.UseDefaultColumnCount) {
+                        CB_ENSURE(index < columnsCount, "Invalid column index: " LabeledOutput(index, columnsCount));
+                    }
+                    ProcessColumnAfterIndex("file", defaultColumn, index, tokens, &columns, &parsedColumns);
+                } else if (indexTokens.ysize() == 2) {
+                    size_t metaColumnIndex = 0;
+                    CB_ENSURE(
+                        TryFromString(indexTokens[0], metaColumnIndex),
+                        "Invalid meta column index: \"" << indexTokens[0] << "\""
+                    );
+                    CB_ENSURE(
+                        metaColumnIndex < columns.size(),
+                        "Invalid meta column index: " << LabeledOutput(metaColumnIndex, columns.size())
+                    );
+                    CB_ENSURE(
+                        columns[metaColumnIndex].Type == EColumn::Features,
+                        "Column with index " << metaColumnIndex << " is not a Features meta column"
+                    );
+                    size_t subIndex = 0;
+                    CB_ENSURE(
+                        TryFromString(indexTokens[1], subIndex),
+                        "Invalid sub column index: \"" << indexTokens[1] << "\""
+                    );
 
-                TStringBuf type = ToCanonicalColumnName(tokens[1]);
-
-                CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
-                if (tokens.ysize() == 3) {
-                    columns[index].Id = tokens[2];
+                    TSet<size_t> parsedSubColumns;
+                    ProcessColumnAfterIndex(
+                        "file for Features metacolumn",
+                        defaultColumn,
+                        subIndex,
+                        tokens,
+                        &columns[metaColumnIndex].SubColumns,
+                        &parsedSubColumns
+                    );
+                } else {
+                    CB_ENSURE(false, "Index can contains one or two elements. This line has " << indexTokens.size());
                 }
             } catch (const TCatBoostException& e) {
                 throw TCatBoostException() << "Incorrect CD file. Invalid line number #" << lineNumber
@@ -86,7 +137,8 @@ namespace {
     class TCdFromFileProvider : public ICdProvider {
     public:
         TCdFromFileProvider(const NCB::TPathWithScheme& cdFilePath)
-            : CdFilePath(cdFilePath) {}
+            : CdFilePath(cdFilePath)
+        {}
 
         TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override;
 
@@ -100,10 +152,24 @@ namespace {
     class TCdFromArrayProvider : public ICdProvider {
     public:
         TCdFromArrayProvider(const TVector<TColumn>& columnsDescription)
-            : ColumnsDescription(columnsDescription) {}
+            : ColumnsDescription(columnsDescription)
+        {}
 
-        TVector<TColumn> GetColumnsDescription(TMaybe<ui32>) const override {
-            return ColumnsDescription;
+        TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override {
+            if (columnsCount) {
+                if (*columnsCount > ColumnsDescription.size()) {
+                    TVector<TColumn> extendedColumnsDescription(ColumnsDescription);
+                    extendedColumnsDescription.resize(*columnsCount, TColumn{EColumn::Num, ""});
+                    return extendedColumnsDescription;
+                }
+                CB_ENSURE_INTERNAL(
+                    *columnsCount == ColumnsDescription.size(),
+                    "columnsCount < ColumnsDescription.size()"
+                );
+                return ColumnsDescription;
+            } else {
+                return ColumnsDescription;
+            }
         }
 
         bool Inited() const override {
@@ -128,15 +194,10 @@ TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(TMaybe<ui32> columns
     if (CdFilePath.Inited()) {
         columnsDescription = ReadCD(
             CdFilePath,
-            columnsCount.Defined() ?
-                TCdParserDefaults(EColumn::Num, *columnsCount) :
-                TCdParserDefaults(EColumn::Num)
+            columnsCount.Defined() ? TCdParserDefaults(EColumn::Num, *columnsCount) : TCdParserDefaults(EColumn::Num)
         );
     } else {
-        columnsDescription.assign(
-            columnsCount.Defined() ? *columnsCount : ui32(0),
-            TColumn{EColumn::Num, TString()}
-        );
+        columnsDescription.assign(columnsCount.Defined() ? *columnsCount : ui32(1), TColumn{EColumn::Num, TString()});
         columnsDescription[0].Type = EColumn::Label;
     }
     return columnsDescription;
@@ -156,7 +217,7 @@ TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults) {
 }
 
 TVector<TColumn> MakeDefaultColumnsDescription(size_t columnsCount) {
-    TVector<TColumn> result(columnsCount, {EColumn::Num, TString()});
+    TVector<TColumn> result(columnsCount);
     result[0].Type = EColumn::Label;
     return result;
 }

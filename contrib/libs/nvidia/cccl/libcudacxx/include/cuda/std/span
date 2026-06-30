@@ -1,0 +1,628 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_SPAN
+#define _CUDA_STD_SPAN
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__concepts/convertible_to.h>
+#include <cuda/std/__concepts/equality_comparable.h>
+#include <cuda/std/__fwd/array.h>
+#include <cuda/std/__fwd/span.h>
+#include <cuda/std/__fwd/string.h>
+#include <cuda/std/__iterator/access.h>
+#include <cuda/std/__iterator/concepts.h>
+#include <cuda/std/__iterator/data.h>
+#include <cuda/std/__iterator/distance.h>
+#include <cuda/std/__iterator/empty.h>
+#include <cuda/std/__iterator/reverse_access.h>
+#include <cuda/std/__iterator/reverse_iterator.h>
+#include <cuda/std/__iterator/size.h>
+#include <cuda/std/__iterator/wrap_iter.h>
+#include <cuda/std/__ranges/concepts.h>
+#include <cuda/std/__ranges/data.h>
+#include <cuda/std/__ranges/enable_borrowed_range.h>
+#include <cuda/std/__ranges/enable_view.h>
+#include <cuda/std/__ranges/size.h>
+#include <cuda/std/__type_traits/integral_constant.h>
+#include <cuda/std/__type_traits/is_array.h>
+#include <cuda/std/__type_traits/is_const.h>
+#include <cuda/std/__type_traits/is_convertible.h>
+#include <cuda/std/__type_traits/is_integral.h>
+#include <cuda/std/__type_traits/is_same.h>
+#include <cuda/std/__type_traits/remove_const.h>
+#include <cuda/std/__type_traits/remove_cv.h>
+#include <cuda/std/__type_traits/remove_cvref.h>
+#include <cuda/std/__type_traits/remove_reference.h>
+#include <cuda/std/__type_traits/type_identity.h>
+#include <cuda/std/array>
+#include <cuda/std/cstddef>
+#include <cuda/std/detail/libcxx/include/stdexcept>
+#include <cuda/std/initializer_list>
+#include <cuda/std/version>
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+template <class _From, class _To>
+_CCCL_CONCEPT __span_array_convertible = _CCCL_TRAIT(is_convertible, _From (*)[], _To (*)[]);
+
+template <class _Range, class _ElementType>
+_CCCL_CONCEPT_FRAGMENT(
+  __span_compatible_range_,
+  requires()(
+    requires(_CUDA_VRANGES::contiguous_range<_Range>),
+    requires(_CUDA_VRANGES::sized_range<_Range>),
+    requires((_CUDA_VRANGES::borrowed_range<_Range> || _CCCL_TRAIT(is_const, _ElementType))),
+    requires((!_CCCL_TRAIT(is_array, remove_cvref_t<_Range>))),
+    requires((!__is_std_span_v<remove_cvref_t<_Range>> && !__is_std_array_v<remove_cvref_t<_Range>>) ),
+    requires(_CCCL_TRAIT(
+      is_convertible, remove_reference_t<_CUDA_VRANGES::range_reference_t<_Range>> (*)[], _ElementType (*)[]))));
+
+template <class _Range, class _ElementType>
+_CCCL_CONCEPT __span_compatible_range = _CCCL_FRAGMENT(__span_compatible_range_, _Range, _ElementType);
+
+#if _CCCL_STD_VER >= 2020
+template <class _It, class _Tp>
+_CCCL_CONCEPT __span_compatible_iterator =
+  contiguous_iterator<_It> && __span_array_convertible<remove_reference_t<iter_reference_t<_It>>, _Tp>;
+
+template <class _Sentinel, class _It>
+_CCCL_CONCEPT __span_compatible_sentinel_for =
+  sized_sentinel_for<_Sentinel, _It> && !_CCCL_TRAIT(is_convertible, _Sentinel, size_t);
+#else // ^^^ C++20 ^^^ / vvv C++17 vvv
+template <class _It, class _Tp>
+_CCCL_CONCEPT_FRAGMENT(__span_compatible_iterator_,
+                       requires()(requires(contiguous_iterator<_It>),
+                                  requires(__span_array_convertible<remove_reference_t<iter_reference_t<_It>>, _Tp>)));
+
+template <class _It, class _Tp>
+_CCCL_CONCEPT __span_compatible_iterator = _CCCL_FRAGMENT(__span_compatible_iterator_, _It, _Tp);
+
+template <class _Sentinel, class _It>
+_CCCL_CONCEPT_FRAGMENT(
+  __span_compatible_sentinel_for_,
+  requires()(requires(sized_sentinel_for<_Sentinel, _It>), requires(!_CCCL_TRAIT(is_convertible, _Sentinel, size_t))));
+
+template <class _Sentinel, class _It>
+_CCCL_CONCEPT __span_compatible_sentinel_for = _CCCL_FRAGMENT(__span_compatible_sentinel_for_, _Sentinel, _It);
+#endif // ^^^ !_CCCL_HAS_CONCEPTS() ^^^
+
+#if _CCCL_HAS_CONCEPTS()
+
+template <class _Tp>
+concept __integral_constant_like =
+  is_integral_v<decltype(_Tp::value)> //
+  && !is_same_v<bool, remove_const_t<decltype(_Tp::value)>> //
+  && convertible_to<_Tp, decltype(_Tp::value)> //
+  && equality_comparable_with<_Tp, decltype(_Tp::value)> //
+  && bool_constant<_Tp() == _Tp::value>::value
+  && bool_constant<static_cast<decltype(_Tp::value)>(_Tp()) == _Tp::value>::value;
+
+#else // ^^^ _CCCL_HAS_CONCEPTS() ^^^ / vvv !_CCCL_HAS_CONCEPTS() vvv
+
+template <class _Tp>
+_CCCL_CONCEPT_FRAGMENT(
+  __integral_constant_like_,
+  requires()(requires(_CCCL_TRAIT(is_integral, decltype(_Tp::value))),
+             requires(!_CCCL_TRAIT(is_same, bool, remove_const_t<decltype(_Tp::value)>)),
+             requires(convertible_to<_Tp, decltype(_Tp::value)>),
+             requires(equality_comparable_with<_Tp, decltype(_Tp::value)>),
+             (integral_constant<bool, _Tp() == _Tp::value>::value),
+             (integral_constant<bool, static_cast<decltype(_Tp::value)>(_Tp()) == _Tp::value>::value)));
+template <class _Tp>
+_CCCL_CONCEPT __integral_constant_like = _CCCL_FRAGMENT(__integral_constant_like_, _Tp);
+#endif // ^^^ !_CCCL_HAS_CONCEPTS() ^^^
+
+template <class _Tp, bool = __integral_constant_like<_Tp>>
+inline constexpr size_t __maybe_static_ext = dynamic_extent;
+
+template <class _Tp>
+inline constexpr size_t __maybe_static_ext<_Tp, true> = {_Tp::value};
+
+template <typename _Tp, size_t _Extent>
+class _CCCL_TYPE_VISIBILITY_DEFAULT span
+{
+public:
+  //  constants and types
+  using element_type     = _Tp;
+  using value_type       = remove_cv_t<_Tp>;
+  using size_type        = size_t;
+  using difference_type  = ptrdiff_t;
+  using pointer          = _Tp*;
+  using const_pointer    = const _Tp*;
+  using reference        = _Tp&;
+  using const_reference  = const _Tp&;
+  using iterator         = __wrap_iter<pointer>;
+  using reverse_iterator = _CUDA_VSTD::reverse_iterator<iterator>;
+
+  static constexpr size_type extent = _Extent;
+
+  // [span.cons], span constructors, copy, assignment, and destructor
+  _CCCL_TEMPLATE(size_t _Sz = _Extent)
+  _CCCL_REQUIRES((_Sz == 0))
+  _CCCL_API constexpr span() noexcept
+      : __data_{nullptr}
+  {}
+
+  _CCCL_TEMPLATE(class _Tp2 = _Tp)
+  _CCCL_REQUIRES(_CCCL_TRAIT(is_const, _Tp2))
+  _CCCL_API constexpr explicit span(initializer_list<value_type> __il) noexcept
+      : __data_{__il.begin()}
+  {
+    _CCCL_ASSERT(_Extent == __il.size(), "size mismatch in span's constructor (initializer_list).");
+  }
+
+  _CCCL_HIDE_FROM_ABI span(const span&) noexcept            = default;
+  _CCCL_HIDE_FROM_ABI span& operator=(const span&) noexcept = default;
+
+  _CCCL_TEMPLATE(class _It)
+  _CCCL_REQUIRES(__span_compatible_iterator<_It, element_type>)
+  _CCCL_API constexpr explicit span(_It __first, [[maybe_unused]] size_type __count)
+      : __data_{_CUDA_VSTD::to_address(__first)}
+  {
+    _CCCL_ASSERT(_Extent == __count, "size mismatch in span's constructor (iterator, len)");
+  }
+
+  _CCCL_TEMPLATE(class _It, class _End)
+  _CCCL_REQUIRES(__span_compatible_iterator<_It, element_type> _CCCL_AND __span_compatible_sentinel_for<_End, _It>)
+  _CCCL_API constexpr explicit span(_It __first, [[maybe_unused]] _End __last)
+      : __data_{_CUDA_VSTD::to_address(__first)}
+  {
+    _CCCL_ASSERT((__last - __first >= 0), "invalid range in span's constructor (iterator, sentinel)");
+    _CCCL_ASSERT(__last - __first == _Extent,
+                 "invalid range in span's constructor (iterator, sentinel): last - first != extent");
+  }
+
+  _CCCL_TEMPLATE(size_t _Sz = _Extent)
+  _CCCL_REQUIRES((_Sz != 0))
+  _CCCL_API constexpr span(type_identity_t<element_type> (&__arr)[_Sz]) noexcept
+      : __data_{__arr}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType)
+  _CCCL_REQUIRES(__span_array_convertible<_OtherElementType, element_type>)
+  _CCCL_API constexpr span(array<_OtherElementType, _Extent>& __arr) noexcept
+      : __data_{__arr.data()}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType)
+  _CCCL_REQUIRES(__span_array_convertible<const _OtherElementType, element_type>)
+  _CCCL_API constexpr span(const array<_OtherElementType, _Extent>& __arr) noexcept
+      : __data_{__arr.data()}
+  {}
+
+  _CCCL_TEMPLATE(class _Range)
+  _CCCL_REQUIRES(__span_compatible_range<_Range, element_type>)
+  _CCCL_API constexpr explicit span(_Range&& __r)
+      : __data_{_CUDA_VRANGES::data(__r)}
+  {
+    _CCCL_ASSERT(_CUDA_VRANGES::size(__r) == _Extent, "size mismatch in span's constructor (range)");
+  }
+
+  _CCCL_TEMPLATE(class _OtherElementType, size_t _Extent2 = _Extent)
+  _CCCL_REQUIRES((_Extent2 != dynamic_extent) _CCCL_AND __span_array_convertible<_OtherElementType, element_type>)
+  _CCCL_API constexpr span(const span<_OtherElementType, _Extent2>& __other) noexcept
+      : __data_{__other.data()}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType)
+  _CCCL_REQUIRES(__span_array_convertible<_OtherElementType, element_type>)
+  _CCCL_API constexpr explicit span(const span<_OtherElementType, dynamic_extent>& __other) noexcept
+      : __data_{__other.data()}
+  {
+    _CCCL_ASSERT(_Extent == __other.size(), "size mismatch in span's constructor (other span)");
+  }
+
+  //  ~span() noexcept = default;
+
+  template <size_t _Count>
+  _CCCL_API constexpr span<element_type, _Count> first() const noexcept
+  {
+    static_assert(_Count <= _Extent, "span<T, N>::first<Count>(): Count out of range");
+    return span<element_type, _Count>{data(), _Count};
+  }
+
+  template <size_t _Count>
+  _CCCL_API constexpr span<element_type, _Count> last() const noexcept
+  {
+    static_assert(_Count <= _Extent, "span<T, N>::last<Count>(): Count out of range");
+    return span<element_type, _Count>{data() + size() - _Count, _Count};
+  }
+
+  _CCCL_API constexpr span<element_type, dynamic_extent> first(size_type __count) const noexcept
+  {
+    _CCCL_ASSERT(__count <= size(), "span<T, N>::first(count): count out of range");
+    return {data(), __count};
+  }
+
+  _CCCL_API constexpr span<element_type, dynamic_extent> last(size_type __count) const noexcept
+  {
+    _CCCL_ASSERT(__count <= size(), "span<T, N>::last(count): count out of range");
+    return {data() + size() - __count, __count};
+  }
+
+  template <size_t _Offset, size_t _Count>
+  using __subspan_t = span<element_type, _Count != dynamic_extent ? _Count : _Extent - _Offset>;
+
+  template <size_t _Offset, size_t _Count = dynamic_extent>
+  _CCCL_API constexpr __subspan_t<_Offset, _Count> subspan() const noexcept
+  {
+    static_assert(_Offset <= _Extent, "span<T, N>::subspan<Offset, Count>(): Offset out of range");
+    static_assert(_Count == dynamic_extent || _Count <= _Extent - _Offset,
+                  "span<T, N>::subspan<Offset, Count>(): Offset + Count out of range");
+    return __subspan_t<_Offset, _Count>{data() + _Offset, _Count == dynamic_extent ? size() - _Offset : _Count};
+  }
+
+  _CCCL_API constexpr span<element_type, dynamic_extent>
+  subspan(size_type __offset, size_type __count = dynamic_extent) const noexcept
+  {
+    _CCCL_ASSERT(__offset <= size(), "span<T, N>::subspan(offset, count): offset out of range");
+    _CCCL_ASSERT(__count <= size() || __count == dynamic_extent,
+                 "span<T, N>::subspan(offset, count): count out of range");
+    if (__count == dynamic_extent)
+    {
+      return {data() + __offset, size() - __offset};
+    }
+    _CCCL_ASSERT(__count <= size() - __offset, "span<T, N>::subspan(offset, count): offset + count out of range");
+    return {data() + __offset, __count};
+  }
+
+  _CCCL_API constexpr size_type size() const noexcept
+  {
+    return _Extent;
+  }
+  _CCCL_API constexpr size_type size_bytes() const noexcept
+  {
+    return _Extent * sizeof(element_type);
+  }
+  [[nodiscard]] _CCCL_API constexpr bool empty() const noexcept
+  {
+    return _Extent == 0;
+  }
+
+  _CCCL_API constexpr reference operator[](size_type __idx) const noexcept
+  {
+    _CCCL_ASSERT(__idx < size(), "span<T, N>::operator[](index): index out of range");
+    return __data_[__idx];
+  }
+
+  _CCCL_API constexpr reference at(size_type __idx) const
+  {
+    if (__idx >= size())
+    {
+      _CUDA_VSTD::__throw_out_of_range("span::at");
+    }
+    return __data_[__idx];
+  }
+
+  _CCCL_API constexpr reference front() const noexcept
+  {
+    _CCCL_ASSERT(!empty(), "span<T, N>::front() on empty span");
+    return __data_[0];
+  }
+
+  _CCCL_API constexpr reference back() const noexcept
+  {
+    _CCCL_ASSERT(!empty(), "span<T, N>::back() on empty span");
+    return __data_[size() - 1];
+  }
+
+  _CCCL_API constexpr pointer data() const noexcept
+  {
+    return __data_;
+  }
+
+  // [span.iter], span iterator support
+  _CCCL_API constexpr iterator begin() const noexcept
+  {
+    return iterator(data());
+  }
+  _CCCL_API constexpr iterator end() const noexcept
+  {
+    return iterator(data() + size());
+  }
+  _CCCL_API constexpr reverse_iterator rbegin() const noexcept
+  {
+    return reverse_iterator(end());
+  }
+  _CCCL_API constexpr reverse_iterator rend() const noexcept
+  {
+    return reverse_iterator(begin());
+  }
+
+  _CCCL_API inline span<const byte, _Extent * sizeof(element_type)> __as_bytes() const noexcept
+  {
+    return span<const byte, _Extent * sizeof(element_type)>{reinterpret_cast<const byte*>(data()), size_bytes()};
+  }
+
+  _CCCL_API inline span<byte, _Extent * sizeof(element_type)> __as_writable_bytes() const noexcept
+  {
+    return span<byte, _Extent * sizeof(element_type)>{reinterpret_cast<byte*>(data()), size_bytes()};
+  }
+
+private:
+  pointer __data_;
+};
+
+template <typename _Tp>
+class _CCCL_TYPE_VISIBILITY_DEFAULT span<_Tp, dynamic_extent>
+{
+public:
+  //  constants and types
+  using element_type     = _Tp;
+  using value_type       = remove_cv_t<_Tp>;
+  using size_type        = size_t;
+  using difference_type  = ptrdiff_t;
+  using pointer          = _Tp*;
+  using const_pointer    = const _Tp*;
+  using reference        = _Tp&;
+  using const_reference  = const _Tp&;
+  using iterator         = __wrap_iter<pointer>;
+  using reverse_iterator = _CUDA_VSTD::reverse_iterator<iterator>;
+
+  static constexpr size_type extent = dynamic_extent;
+
+  // [span.cons], span constructors, copy, assignment, and destructor
+  _CCCL_API constexpr span() noexcept
+      : __data_{nullptr}
+      , __size_{0}
+  {}
+
+  _CCCL_TEMPLATE(class _Tp2 = _Tp)
+  _CCCL_REQUIRES(_CCCL_TRAIT(is_const, _Tp2))
+  _CCCL_API constexpr span(initializer_list<value_type> __il) noexcept
+      : __data_{__il.begin()}
+      , __size_{__il.size()}
+  {}
+
+  _CCCL_HIDE_FROM_ABI span(const span&) noexcept            = default;
+  _CCCL_HIDE_FROM_ABI span& operator=(const span&) noexcept = default;
+
+  _CCCL_TEMPLATE(class _It)
+  _CCCL_REQUIRES(__span_compatible_iterator<_It, element_type>)
+  _CCCL_API constexpr span(_It __first, size_type __count)
+      : __data_{_CUDA_VSTD::to_address(__first)}
+      , __size_{__count}
+  {}
+
+  _CCCL_TEMPLATE(class _It, class _End)
+  _CCCL_REQUIRES(__span_compatible_iterator<_It, element_type> _CCCL_AND __span_compatible_sentinel_for<_End, _It>)
+  _CCCL_API constexpr span(_It __first, _End __last)
+      : __data_(_CUDA_VSTD::to_address(__first))
+      , __size_(__last - __first)
+  {
+    _CCCL_ASSERT(__last - __first >= 0, "invalid range in span's constructor (iterator, sentinel)");
+  }
+
+  template <size_t _Sz>
+  _CCCL_API constexpr span(type_identity_t<element_type> (&__arr)[_Sz]) noexcept
+      : __data_{__arr}
+      , __size_{_Sz}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType, size_t _Sz)
+  _CCCL_REQUIRES(__span_array_convertible<_OtherElementType, element_type>)
+  _CCCL_API constexpr span(array<_OtherElementType, _Sz>& __arr) noexcept
+      : __data_{__arr.data()}
+      , __size_{_Sz}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType, size_t _Sz)
+  _CCCL_REQUIRES(__span_array_convertible<const _OtherElementType, element_type>)
+  _CCCL_API constexpr span(const array<_OtherElementType, _Sz>& __arr) noexcept
+      : __data_{__arr.data()}
+      , __size_{_Sz}
+  {}
+
+  _CCCL_TEMPLATE(class _Range)
+  _CCCL_REQUIRES(__span_compatible_range<_Range, element_type>)
+  _CCCL_API constexpr span(_Range&& __r)
+      : __data_(_CUDA_VRANGES::data(__r))
+      , __size_{_CUDA_VRANGES::size(__r)}
+  {}
+
+  _CCCL_TEMPLATE(class _OtherElementType, size_t _OtherExtent)
+  _CCCL_REQUIRES(__span_array_convertible<_OtherElementType, element_type>)
+  _CCCL_API constexpr span(const span<_OtherElementType, _OtherExtent>& __other) noexcept
+      : __data_{__other.data()}
+      , __size_{__other.size()}
+  {}
+
+  //    ~span() noexcept = default;
+
+  template <size_t _Count>
+  _CCCL_API constexpr span<element_type, _Count> first() const noexcept
+  {
+    // ternary avoids "pointless comparison of unsigned integer with zero" warning
+    _CCCL_ASSERT(_Count == 0 ? true : _Count <= size(), "span<T>::first<Count>(): Count out of range");
+    return span<element_type, _Count>{data(), _Count};
+  }
+
+  template <size_t _Count>
+  _CCCL_API constexpr span<element_type, _Count> last() const noexcept
+  {
+    // ternary avoids "pointless comparison of unsigned integer with zero" warning
+    _CCCL_ASSERT(_Count == 0 ? true : _Count <= size(), "span<T>::last<Count>(): Count out of range");
+    return span<element_type, _Count>{data() + size() - _Count, _Count};
+  }
+
+  _CCCL_API constexpr span<element_type, dynamic_extent> first(size_type __count) const noexcept
+  {
+    _CCCL_ASSERT(__count <= size(), "span<T>::first(count): count out of range");
+    return {data(), __count};
+  }
+
+  _CCCL_API constexpr span<element_type, dynamic_extent> last(size_type __count) const noexcept
+  {
+    _CCCL_ASSERT(__count <= size(), "span<T>::last(count): count out of range");
+    return {data() + size() - __count, __count};
+  }
+
+  template <size_t _Offset, size_t _Count>
+  using __subspan_t = span<element_type, _Count>;
+
+  template <size_t _Offset, size_t _Count = dynamic_extent>
+  _CCCL_API constexpr __subspan_t<_Offset, _Count> subspan() const noexcept
+  {
+    // ternary avoids "pointless comparison of unsigned integer with zero" warning
+    _CCCL_ASSERT(_Offset == 0 ? true : _Offset <= size(), "span<T>::subspan<Offset, Count>(): Offset out of range");
+    _CCCL_ASSERT(_Count == dynamic_extent || _Count == 0 ? true : _Count <= size() - _Offset,
+                 "span<T>::subspan<Offset, Count>(): Offset + Count out of range");
+    return __subspan_t<_Offset, _Count>{data() + _Offset, _Count == dynamic_extent ? size() - _Offset : _Count};
+  }
+
+  constexpr span<element_type, dynamic_extent> _CCCL_API inline subspan(
+    size_type __offset, size_type __count = dynamic_extent) const noexcept
+  {
+    _CCCL_ASSERT(__offset <= size(), "span<T>::subspan(offset, count): offset out of range");
+    _CCCL_ASSERT(__count <= size() || __count == dynamic_extent, "span<T>::subspan(offset, count): count out of range");
+    if (__count == dynamic_extent)
+    {
+      return {data() + __offset, size() - __offset};
+    }
+    _CCCL_ASSERT(__count <= size() - __offset, "span<T>::subspan(offset, count): offset + count out of range");
+    return {data() + __offset, __count};
+  }
+
+  _CCCL_API constexpr size_type size() const noexcept
+  {
+    return __size_;
+  }
+  _CCCL_API constexpr size_type size_bytes() const noexcept
+  {
+    return __size_ * sizeof(element_type);
+  }
+  [[nodiscard]] _CCCL_API constexpr bool empty() const noexcept
+  {
+    return __size_ == 0;
+  }
+
+  _CCCL_API constexpr reference operator[](size_type __idx) const noexcept
+  {
+    _CCCL_ASSERT(__idx < size(), "span<T>::operator[](index): index out of range");
+    return __data_[__idx];
+  }
+
+  _CCCL_API constexpr reference at(size_type __idx) const
+  {
+    if (__idx >= size())
+    {
+      _CUDA_VSTD::__throw_out_of_range("span::at");
+    }
+    return __data_[__idx];
+  }
+
+  _CCCL_API constexpr reference front() const noexcept
+  {
+    _CCCL_ASSERT(!empty(), "span<T>::front() on empty span");
+    return __data_[0];
+  }
+
+  _CCCL_API constexpr reference back() const noexcept
+  {
+    _CCCL_ASSERT(!empty(), "span<T>::back() on empty span");
+    return __data_[size() - 1];
+  }
+
+  _CCCL_API constexpr pointer data() const noexcept
+  {
+    return __data_;
+  }
+
+  // [span.iter], span iterator support
+  _CCCL_API constexpr iterator begin() const noexcept
+  {
+    return iterator(data());
+  }
+  _CCCL_API constexpr iterator end() const noexcept
+  {
+    return iterator(data() + size());
+  }
+  _CCCL_API constexpr reverse_iterator rbegin() const noexcept
+  {
+    return reverse_iterator(end());
+  }
+  _CCCL_API constexpr reverse_iterator rend() const noexcept
+  {
+    return reverse_iterator(begin());
+  }
+
+  _CCCL_API inline span<const byte, dynamic_extent> __as_bytes() const noexcept
+  {
+    return span<const byte, dynamic_extent>{reinterpret_cast<const byte*>(data()), size_bytes()};
+  }
+
+  _CCCL_API inline span<byte, dynamic_extent> __as_writable_bytes() const noexcept
+  {
+    return span<byte, dynamic_extent>{reinterpret_cast<byte*>(data()), size_bytes()};
+  }
+
+private:
+  pointer __data_;
+  size_type __size_;
+};
+
+//  as_bytes & as_writable_bytes
+template <class _Tp, size_t _Extent>
+_CCCL_API inline auto as_bytes(span<_Tp, _Extent> __s) noexcept
+{
+  return __s.__as_bytes();
+}
+
+_CCCL_TEMPLATE(class _Tp, size_t _Extent)
+_CCCL_REQUIRES((!is_const<_Tp>::value))
+_CCCL_API inline auto as_writable_bytes(span<_Tp, _Extent> __s) noexcept
+{
+  return __s.__as_writable_bytes();
+}
+
+//  Deduction guides
+template <class _Tp, size_t _Sz>
+_CCCL_HOST_DEVICE span(_Tp (&)[_Sz]) -> span<_Tp, _Sz>;
+
+template <class _Tp, size_t _Sz>
+_CCCL_HOST_DEVICE span(array<_Tp, _Sz>&) -> span<_Tp, _Sz>;
+
+template <class _Tp, size_t _Sz>
+_CCCL_HOST_DEVICE span(const array<_Tp, _Sz>&) -> span<const _Tp, _Sz>;
+
+_CCCL_TEMPLATE(class _It, class _EndOrSize)
+_CCCL_REQUIRES(contiguous_iterator<_It>)
+_CCCL_HOST_DEVICE span(_It, _EndOrSize)
+  -> span<remove_reference_t<iter_reference_t<_It>>, __maybe_static_ext<_EndOrSize>>;
+
+_CCCL_TEMPLATE(class _Range)
+_CCCL_REQUIRES(_CUDA_VRANGES::contiguous_range<_Range>)
+_CCCL_HOST_DEVICE span(_Range&&) -> span<remove_reference_t<_CUDA_VRANGES::range_reference_t<_Range>>>;
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+_LIBCUDACXX_BEGIN_NAMESPACE_RANGES
+template <class _Tp, size_t _Extent>
+inline constexpr bool enable_borrowed_range<span<_Tp, _Extent>> = true;
+
+template <class _Tp, size_t _Extent>
+inline constexpr bool enable_view<span<_Tp, _Extent>> = true;
+_LIBCUDACXX_END_NAMESPACE_RANGES
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_SPAN

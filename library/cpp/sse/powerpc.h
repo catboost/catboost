@@ -82,7 +82,7 @@ Y_FORCE_INLINE __m128 _mm_load_ps(const float* p) {
     return (__m128)vec_ld(0, (vector float*)p);
 }
 
-Y_FORCE_INLINE __m128 _mm_loadu_pd(const double* d) {
+Y_FORCE_INLINE __m128d _mm_loadu_pd(const double* d) {
     return vec_vsx_ld(0, d);
 }
 
@@ -485,7 +485,7 @@ Y_FORCE_INLINE __m128i _mm_srli_epi16(__m128i a, int count) {
         /* The PowerPC Architecture says all shift count fields must contain the same shift count. */
         __v8hi replicated_count;
         replicated_count = vec_splats((short)count);
-        return (__m128i)vec_sr((vector signed short)a, replicated_count);
+        return (__m128i)vec_sr((vector signed short)a, (vector unsigned short)replicated_count);
     }
 }
 
@@ -499,7 +499,7 @@ Y_FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, int count) {
         /* The PowerPC Architecture says all shift count fields must contain the same shift count. */
         __v4si replicated_count;
         replicated_count = vec_splats(count);
-        return (__m128i)vec_sr((vector signed int)a, replicated_count);
+        return (__m128i)vec_sr((vector signed int)a, (vector unsigned int)replicated_count);
     }
 }
 
@@ -621,7 +621,7 @@ Y_FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count) {
     lshift = (__v2du)vec_splat((__v2du)count, 0);
     shmask = vec_cmplt(lshift, shmax);
     result = vec_sl((__v2du)a, lshift);
-    result = ((vector long long)shmask & ~(vector long long)shmask) | ((vector long long)result & (vector long long)shmask);
+    result = result & shmask;
 
     return (__m128i)result;
 }
@@ -750,7 +750,7 @@ Y_FORCE_INLINE __m128i _mm_sub_epi64(__m128i a, __m128i b) {
     return (__m128i)((__v2du)a - (__v2du)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128 b) {
+Y_FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b) {
 #ifdef __LITTLE_ENDIAN__
     return (__m128i)vec_mule((__v4su)a, (__v4su)b);
 #elif __BIG_ENDIAN__
@@ -906,7 +906,7 @@ Y_FORCE_INLINE __m128i _mm_cmpgt_epi32(__m128i a, __m128i b) {
 }
 
 Y_FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b) {
-    return vec_cmpgt((vector signed long long)a, (vector signed long long)b);
+    return (__m128i)vec_cmpgt((vector signed long long)a, (vector signed long long)b);
 }
 
 Y_FORCE_INLINE __m128i _mm_cmplt_epi8(__m128i a, __m128i b) {
@@ -922,7 +922,7 @@ Y_FORCE_INLINE __m128i _mm_cmplt_epi32(__m128i a, __m128i b) {
 }
 
 Y_FORCE_INLINE __m128i _mm_cmplt_epi64(__m128i a, __m128i b) {
-    return vec_cmplt((vector signed long long)a, (vector signed long long)b);
+    return (__m128i)vec_cmplt((vector signed long long)a, (vector signed long long)b);
 }
 
 Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i A, __m128i B) {

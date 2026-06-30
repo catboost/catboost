@@ -24,14 +24,21 @@ TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(
 ) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
-        if (Stats.contains(splitEnsemble) && Stats[splitEnsemble] != nullptr) {
-            splitStats = Stats[splitEnsemble].Get();
+        decltype(Stats)::insert_ctx statsInsertCtx;
+        auto it = Stats.find(splitEnsemble, statsInsertCtx);
+        if ((it != Stats.end()) && (it->second != nullptr)) {
+            splitStats = it->second.Get();
             Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;
         } else {
-            splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
-            splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[splitEnsemble] = THolder<TVector<TBucketStats, TPoolAllocator>>(splitStats);
+            auto holder = MakeHolder<TVector<TBucketStats, TPoolAllocator>>(MemoryPool.Get());
+            holder->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
+            if (it == Stats.end()) {
+                it = Stats.emplace_direct(statsInsertCtx, splitEnsemble, std::move(holder));
+            } else {
+                it->second = std::move(holder);
+            }
+            splitStats = it->second.Get();
             *areStatsDirty = true;
         }
     }
@@ -268,7 +275,7 @@ void TCalcScoreFold::Create(
     IsPairwiseScoring = isPairwiseScoring;
     HasOfflineEstimatedFeatures = hasOfflineEstimatedFeatures;
     Y_ASSERT(BodyTailCount > 0);
-    BodyTailArr.yresize(BodyTailCount);
+    BodyTailArr.Reset(new TBodyTail[BodyTailCount]);
     ApproxDimension = folds[0].GetApproxDimension();
     Y_ASSERT(ApproxDimension > 0);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
@@ -329,6 +336,31 @@ static inline void SetElementsDenseUnrolled(
 }
 
 
+static inline size_t FindTrue(
+    TArrayRef<const bool> srcControlRef,
+    size_t sourceCount,
+    size_t srcIdx
+) {
+    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
+    const bool* controlData = srcControlRef.data();
+    while (srcIdx < sourceCount && (reinterpret_cast<size_t>(controlData + srcIdx) & (boolsPerUi64 - 1))) {
+        if (controlData[srcIdx]) {
+            return srcIdx;
+        }
+        ++srcIdx;
+    }
+    for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
+        if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
+            break;
+        }
+    }
+    while (srcIdx < sourceCount && !controlData[srcIdx]) {
+        ++srcIdx;
+    }
+    return srcIdx;
+}
+
+
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
 static inline void SetElementsSparse(
     TArrayRef<const bool> srcControlRef,
@@ -342,19 +374,10 @@ static inline void SetElementsSparse(
     const size_t sourceCount = srcRef.size();
     auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
-    const bool* controlData = srcControlRef.data();
     size_t dstIdx = *endElementIdx;
     size_t srcIdx = *sourceIdx;
-    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
     while (dstIdx < destinationCount) {
-        for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
-            if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
-                break;
-            }
-        }
-        while (srcIdx < sourceCount && !controlData[srcIdx]) {
-            ++srcIdx;
-        }
+        srcIdx = FindTrue(srcControlRef, sourceCount, srcIdx);
         if (srcIdx >= sourceCount) {
             break;
         }
@@ -411,7 +434,9 @@ static inline void SetElementsToConstant(
     auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
     size_t endElementIdx = 0;
-#pragma unroll(4)
+#if defined(__clang__)
+    #pragma unroll(4)
+#endif
     for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
         destinationData[endElementIdx] = constant;
         endElementIdx += controlData[sourceIdx];
@@ -500,8 +525,8 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
                 &tailCount
             );
         }
-        AtomicAdd(dstBodyTail.BodyFinish, bodyCount); // these atomics may take up to 2-3% of iteration time
-        AtomicAdd(dstBodyTail.TailFinish, tailCount);
+        dstBodyTail.BodyFinish += bodyCount; // these atomics may take up to 2-3% of iteration time
+        dstBodyTail.TailFinish += tailCount;
     }
 }
 

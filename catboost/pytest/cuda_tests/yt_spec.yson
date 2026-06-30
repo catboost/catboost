@@ -1,5 +1,5 @@
 {
-    cluster=hahn;
+    cluster=watt;
     pool="nirvana-matrixnet";
     cypress_root="//home/mltools/catboost_tests_with_yt";
     "coordinate_upload" = %false;
@@ -13,8 +13,8 @@
     "task_spec" = {
         "gpu_limit" = 1;
         "layer_paths" = [
-            "//porto_layers/delta/gpu/driver/418.67";
-            "//porto_layers/ubuntu-xenial-base.tar.xz";
+            "//porto_layers/delta/gpu/driver/450.80.02";
+            "//porto_layers/base/xenial/porto_layer_search_ubuntu_xenial_app_lastest.tar.gz";
         ];
     };
 }

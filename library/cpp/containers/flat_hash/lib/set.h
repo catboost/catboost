@@ -11,10 +11,10 @@ namespace NPrivate {
 
 struct TSimpleKeyGetter {
     template <class T>
-    static constexpr auto& Apply(T& t) noexcept { return t; };
+    static constexpr auto& Apply(T& t) noexcept { return t; }
 
     template <class T>
-    static constexpr const auto& Apply(const T& t) noexcept { return t; };
+    static constexpr const auto& Apply(const T& t) noexcept { return t; }
 };
 
 }  // namespace NPrivate

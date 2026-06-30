@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
@@ -537,15 +538,15 @@ namespace {
         // Adding quantization params if needed
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsBordersCountInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.BordersCountParamName;
-            namedOptionsCollection->IntOptions[paramName] = gridParams.QuantizationParamsSet.BinsCount;
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(gridParams.QuantizationParamsSet.BinsCount);
         }
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsBorderTypeInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.BorderTypeParamName;
-            namedOptionsCollection->StringOptions[paramName] = ToString(gridParams.QuantizationParamsSet.BorderType);
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(ToString(gridParams.QuantizationParamsSet.BorderType));
         }
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsNanModeInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.NanModeParamName;
-            namedOptionsCollection->StringOptions[paramName] = ToString(gridParams.QuantizationParamsSet.NanMode);
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(ToString(gridParams.QuantizationParamsSet.NanMode));
         }
     }
 
@@ -855,7 +856,6 @@ namespace {
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
                 bestIterationIdx = iterationIdx;
-                *bestCvResult = cvResult;
             }
             const TString& lossDescription = metrics[0]->GetDescription();
             TOneInterationLogger oneIterLogger(logger);
@@ -894,6 +894,9 @@ namespace {
                     generalQuantizeParamsInfo,
                     oneIterLogger
                 );
+            }
+            if (isUpdateBest) {
+                *bestCvResult = std::move(cvResult);
             }
             profile.FinishIterationBlock(1);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
@@ -1146,46 +1149,12 @@ namespace NCB {
     void TBestOptionValuesWithCvResult::SetOptionsFromJson(
         const THashMap<TString, NJson::TJsonValue>& options,
         const TVector<TString>& optionsNames) {
-        BoolOptions.clear();
-        IntOptions.clear();
-        UIntOptions.clear();
-        DoubleOptions.clear();
-        StringOptions.clear();
-        ListOfDoublesOptions.clear();
+
+        BestParams = NJson::TJsonValue(NJson::JSON_MAP);
+        auto& bestParamsMap = BestParams.GetMapSafe();
+
         for (const auto& optionName : optionsNames) {
-            const auto& option = options.at(optionName);
-            NJson::EJsonValueType type = option.GetType();
-            switch(type) {
-                case NJson::EJsonValueType::JSON_BOOLEAN: {
-                    BoolOptions[optionName] = option.GetBoolean();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_INTEGER: {
-                    IntOptions[optionName] = option.GetInteger();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_UINTEGER: {
-                    UIntOptions[optionName] = option.GetUInteger();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_DOUBLE: {
-                    DoubleOptions[optionName] = option.GetDouble();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_STRING: {
-                    StringOptions[optionName] = option.GetString();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_ARRAY: {
-                    for (const auto& listElement : option.GetArray()) {
-                        ListOfDoublesOptions[optionName].push_back(listElement.GetDouble());
-                    }
-                    break;
-                }
-                default: {
-                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double, string or list of doubles");
-                }
-            }
+            bestParamsMap.emplace(optionName, options.at(optionName));
         }
     }
 
@@ -1318,7 +1287,7 @@ namespace NCB {
                     &(bestOptionValuesWithCvResult->CvResult)
                 );
             } else {
-                bestOptionValuesWithCvResult->CvResult = bestCvResult;
+                bestOptionValuesWithCvResult->CvResult = std::move(bestCvResult);
             }
         }
     }
@@ -1446,7 +1415,7 @@ namespace NCB {
                     &(bestOptionValuesWithCvResult->CvResult)
                 );
             } else {
-                bestOptionValuesWithCvResult->CvResult = cvResult;
+                bestOptionValuesWithCvResult->CvResult = std::move(cvResult);
             }
         }
     }

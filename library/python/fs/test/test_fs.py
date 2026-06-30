@@ -808,6 +808,10 @@ def test_read_file(path):
     mkfile(path('src'), 'SRC')
     assert library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding()) == 'SRC'
     assert library.python.fs.read_file(path('src'), binary=False) == 'SRC'
+    # test size
+    assert library.python.fs.read_file(path('src'), size=2, binary=False) == 'SR'
+    assert library.python.fs.read_file(path('src'), size=100, binary=False) == 'SRC'
+    assert library.python.fs.read_file(path('src'), size=-1, binary=False) == 'SRC'
 
 
 @in_env
@@ -1023,7 +1027,9 @@ def test_copy2():
 
 def test_commonpath():
     pj = os.path.join
-    pja = lambda *x: os.path.abspath(pj(*x))
+
+    def pja(*x):
+        return os.path.abspath(pj(*x))
 
     assert library.python.fs.commonpath(['a', 'b']) == ''
     assert library.python.fs.commonpath([pj('t', '1')]) == pj('t', '1')

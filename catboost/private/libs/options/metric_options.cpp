@@ -9,7 +9,7 @@ NCatboostOptions::TMetricOptions::TMetricOptions()
 
 void NCatboostOptions::TMetricOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options, &EvalMetric, &ObjectiveMetric, &CustomMetrics);
-    CB_ENSURE(EvalMetric.Get().GetLossFunction() != ELossFunction::CtrFactor, ToString(ELossFunction::CtrFactor) << " cannot be used for overfitting detection or selecting best iteration on validation");
+    CB_ENSURE(EvalMetric.Get().GetLossFunction() != ELossFunction::CtrFactor, ToString(ELossFunction::CtrFactor) << " cannot be used for overfitting detection or selecting the best iteration on validation");
 }
 
 void NCatboostOptions::TMetricOptions::Save(NJson::TJsonValue* options) const {

@@ -30,7 +30,7 @@ struct DIR* opendir(const char* dirname) {
     dir->readdir_buf = NULL;
 
     int len = strlen(dirname);
-    //Remove trailing slashes
+    // Remove trailing slashes
     while (len && (dirname[len - 1] == '\\' || dirname[len - 1] == '/')) {
         --len;
     }
@@ -59,8 +59,9 @@ struct DIR* opendir(const char* dirname) {
 }
 
 int closedir(struct DIR* dir) {
-    if (dir->sh != INVALID_HANDLE_VALUE)
+    if (dir->sh != INVALID_HANDLE_VALUE) {
         FindClose(dir->sh);
+    }
     free(dir->fff_templ);
     free(dir->readdir_buf);
     free(dir);
@@ -109,8 +110,9 @@ struct dirent* readdir(struct DIR* dir) {
     struct dirent* res;
     if (!dir->readdir_buf) {
         dir->readdir_buf = (struct dirent*)malloc(sizeof(struct dirent));
-        if (dir->readdir_buf == 0)
+        if (dir->readdir_buf == 0) {
             return 0;
+        }
     }
     readdir_r(dir, dir->readdir_buf, &res);
     return res;
@@ -122,4 +124,4 @@ void rewinddir(struct DIR* dir) {
     dir->file_no = 0;
 }
 
-#endif //_win_
+#endif // _win_

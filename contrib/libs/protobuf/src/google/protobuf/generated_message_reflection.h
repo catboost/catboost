@@ -39,17 +39,18 @@
 #define GOOGLE_PROTOBUF_GENERATED_MESSAGE_REFLECTION_H__
 
 #include <string>
-#include <vector>
-#include <google/protobuf/stubs/casts.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/generated_enum_reflection.h>
-#include <google/protobuf/stubs/once.h>
-#include <google/protobuf/port.h>
-#include <google/protobuf/unknown_field_set.h>
 
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/base/call_once.h"
+#include "y_absl/base/casts.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/generated_enum_reflection.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/unknown_field_set.h"
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -72,6 +73,16 @@ class DefaultEmptyOneof;
 // Defined in other files.
 class ExtensionSet;  // extension_set.h
 class WeakFieldMap;  // weak_field_map.h
+
+// Tag used on offsets for fields that don't have a real offset.
+// For example, weak message fields go into the WeakFieldMap and not in an
+// actual field.
+constexpr arc_ui32 kInvalidFieldOffsetTag = 0x40000000u;
+
+// Mask used on offsets for split fields.
+constexpr arc_ui32 kSplitFieldOffsetMask = 0x80000000u;
+constexpr arc_ui32 kLazyMask = 0x1u;
+constexpr arc_ui32 kInlinedMask = 0x1u;
 
 // This struct describes the internal layout of the message, hence this is
 // used to act on the message reflectively.
@@ -129,7 +140,7 @@ struct ReflectionSchema {
   // Offset of a non-oneof field.  Getting a field offset is slightly more
   // efficient when we know statically that it is not a oneof field.
   arc_ui32 GetFieldOffsetNonOneof(const FieldDescriptor* field) const {
-    GOOGLE_DCHECK(!InRealOneof(field));
+    Y_ABSL_DCHECK(!InRealOneof(field));
     return OffsetValue(offsets_[field->index()], field->type());
   }
 
@@ -137,8 +148,8 @@ struct ReflectionSchema {
   arc_ui32 GetFieldOffset(const FieldDescriptor* field) const {
     if (InRealOneof(field)) {
       size_t offset =
-          static_cast<size_t>(field->containing_type()->field_count() +
-                              field->containing_oneof()->index());
+          static_cast<size_t>(field->containing_type()->field_count()) +
+          field->containing_oneof()->index();
       return OffsetValue(offsets_[offset], field->type());
     } else {
       return GetFieldOffsetNonOneof(field);
@@ -161,13 +172,13 @@ struct ReflectionSchema {
   // Bit index within the bit array of hasbits.  Bit order is low-to-high.
   arc_ui32 HasBitIndex(const FieldDescriptor* field) const {
     if (has_bits_offset_ == -1) return static_cast<arc_ui32>(-1);
-    GOOGLE_DCHECK(HasHasbits());
+    Y_ABSL_DCHECK(HasHasbits());
     return has_bit_indices_[field->index()];
   }
 
   // Byte offset of the hasbits array.
   arc_ui32 HasBitsOffset() const {
-    GOOGLE_DCHECK(HasHasbits());
+    Y_ABSL_DCHECK(HasHasbits());
     return static_cast<arc_ui32>(has_bits_offset_);
   }
 
@@ -176,13 +187,13 @@ struct ReflectionSchema {
   // Bit index within the bit array of _inlined_string_donated_.  Bit order is
   // low-to-high.
   arc_ui32 InlinedStringIndex(const FieldDescriptor* field) const {
-    GOOGLE_DCHECK(HasInlinedString());
+    Y_ABSL_DCHECK(HasInlinedString());
     return inlined_string_indices_[field->index()];
   }
 
   // Byte offset of the _inlined_string_donated_ array.
   arc_ui32 InlinedStringDonatedOffset() const {
-    GOOGLE_DCHECK(HasInlinedString());
+    Y_ABSL_DCHECK(HasInlinedString());
     return static_cast<arc_ui32>(inlined_string_donated_offset_);
   }
 
@@ -199,7 +210,7 @@ struct ReflectionSchema {
 
   // The offset of the ExtensionSet in this message.
   arc_ui32 GetExtensionSetOffset() const {
-    GOOGLE_DCHECK(HasExtensionSet());
+    Y_ABSL_DCHECK(HasExtensionSet());
     return static_cast<arc_ui32>(extensions_offset_);
   }
 
@@ -220,26 +231,27 @@ struct ReflectionSchema {
 
   // Returns true if the field is implicitly backed by LazyField.
   bool IsEagerlyVerifiedLazyField(const FieldDescriptor* field) const {
-    GOOGLE_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_MESSAGE);
+    Y_ABSL_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_MESSAGE);
     (void)field;
     return false;
   }
 
-  // Returns true if the field's accessor is called by any external code (aka,
-  // non proto library code).
-  bool IsFieldUsed(const FieldDescriptor* field) const {
-    (void)field;
-    return true;
+  bool IsSplit() const { return split_offset_ != -1; }
+
+  bool IsSplit(const FieldDescriptor* field) const {
+    return split_offset_ != -1 &&
+           (offsets_[field->index()] & kSplitFieldOffsetMask) != 0;
   }
 
-  bool IsFieldStripped(const FieldDescriptor* field) const {
-    (void)field;
-    return false;
+  // Byte offset of _split_.
+  arc_ui32 SplitOffset() const {
+    Y_ABSL_DCHECK(IsSplit());
+    return static_cast<arc_ui32>(split_offset_);
   }
 
-  bool IsMessageStripped(const Descriptor* descriptor) const {
-    (void)descriptor;
-    return false;
+  arc_ui32 SizeofSplit() const {
+    Y_ABSL_DCHECK(IsSplit());
+    return static_cast<arc_ui32>(sizeof_split_);
   }
 
 
@@ -262,6 +274,8 @@ struct ReflectionSchema {
   int weak_field_map_offset_;
   const arc_ui32* inlined_string_indices_;
   int inlined_string_donated_offset_;
+  int split_offset_;
+  int sizeof_split_;
 
   // We tag offset values to provide additional data about fields (such as
   // "unused" or "lazy" or "inlined").
@@ -269,15 +283,15 @@ struct ReflectionSchema {
     if (type == FieldDescriptor::TYPE_MESSAGE ||
         type == FieldDescriptor::TYPE_STRING ||
         type == FieldDescriptor::TYPE_BYTES) {
-      return v & 0x7FFFFFFEu;
+      return v & (~kSplitFieldOffsetMask) & (~kInlinedMask) & (~kLazyMask);
     }
-    return v & 0x7FFFFFFFu;
+    return v & (~kSplitFieldOffsetMask);
   }
 
   static bool Inlined(arc_ui32 v, FieldDescriptor::Type type) {
     if (type == FieldDescriptor::TYPE_STRING ||
         type == FieldDescriptor::TYPE_BYTES) {
-      return (v & 1u) != 0u;
+      return (v & kInlinedMask) != 0u;
     } else {
       // Non string/byte fields are not inlined.
       return false;
@@ -307,7 +321,7 @@ struct PROTOBUF_EXPORT DescriptorTable {
   int size;  // of serialized descriptor
   const char* descriptor;
   const char* filename;
-  once_flag* once;
+  y_absl::once_flag* once;
   const DescriptorTable* const* deps;
   int num_deps;
   int num_messages;
@@ -318,13 +332,6 @@ struct PROTOBUF_EXPORT DescriptorTable {
   Metadata* file_level_metadata;
   const EnumDescriptor** file_level_enum_descriptors;
   const ServiceDescriptor** file_level_service_descriptors;
-};
-
-enum {
-  // Tag used on offsets for fields that don't have a real offset.
-  // For example, weak message fields go into the WeakFieldMap and not in an
-  // actual field.
-  kInvalidFieldOffsetTag = 0x40000000u,
 };
 
 // AssignDescriptors() pulls the compiled FileDescriptor from the DescriptorPool
@@ -340,7 +347,7 @@ void PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable* table,
 // It takes a `Metadata` and returns it to allow for tail calls and reduce
 // binary size.
 Metadata PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable* (*table)(),
-                                           internal::once_flag* once,
+                                           y_absl::once_flag* once,
                                            const Metadata& metadata);
 
 // These cannot be in lite so we put them in the reflection.
@@ -353,10 +360,38 @@ struct PROTOBUF_EXPORT AddDescriptorsRunner {
   explicit AddDescriptorsRunner(const DescriptorTable* table);
 };
 
+struct DenseEnumCacheInfo {
+  std::atomic<const TProtoStringType**> cache;
+  int min_val;
+  int max_val;
+  const EnumDescriptor* (*descriptor_fn)();
+};
+PROTOBUF_EXPORT const TProtoStringType& NameOfDenseEnumSlow(int v,
+                                                       DenseEnumCacheInfo*);
+
+// Similar to the routine NameOfEnum, this routine returns the name of an enum.
+// Unlike that routine, it allocates, on-demand, a block of pointers to the
+// TProtoStringType objects allocated by reflection to store the enum names. This
+// way, as long as the enum values are fairly dense, looking them up can be
+// very fast. This assumes all the enums fall in the range [min_val .. max_val].
+template <const EnumDescriptor* (*descriptor_fn)(), int min_val, int max_val>
+const TProtoStringType& NameOfDenseEnum(int v) {
+  static_assert(max_val - min_val >= 0, "Too many enums between min and max.");
+  static DenseEnumCacheInfo deci = {/* atomic ptr */ {}, min_val, max_val,
+                                    descriptor_fn};
+  const TProtoStringType** cache = deci.cache.load(std::memory_order_acquire );
+  if (PROTOBUF_PREDICT_TRUE(cache != nullptr)) {
+    if (PROTOBUF_PREDICT_TRUE(v >= min_val && v <= max_val)) {
+      return *cache[v - min_val];
+    }
+  }
+  return NameOfDenseEnumSlow(v, &deci);
+}
+
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_GENERATED_MESSAGE_REFLECTION_H__

@@ -164,7 +164,7 @@ namespace NPrivate {
     struct TBufferedStreamFor {
         using TResult = std::conditional_t<std::is_base_of<IInputStream, T>::value, TBufferedInput, TMyBufferedOutput>;
     };
-}
+} // namespace NPrivate
 
 /**
  * A mixin class that turns unbuffered stream into a buffered one.

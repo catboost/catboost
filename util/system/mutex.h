@@ -6,7 +6,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/noncopyable.h>
 
-class TFakeMutex: public TNonCopyable {
+class TFakeMutex: public TMoveOnly {
 public:
     inline void Acquire() noexcept {
     }
@@ -29,11 +29,9 @@ public:
     inline void unlock() noexcept {
         Release();
     }
-
-    ~TFakeMutex() = default;
 };
 
-class TMutex {
+class TMutex: public TMoveOnly {
 public:
     TMutex();
     TMutex(TMutex&&) noexcept;
@@ -55,7 +53,7 @@ public:
         Release();
     }
 
-    //return opaque pointer to real handler
+    // return opaque pointer to real handler
     void* Handle() const noexcept;
 
 private:

@@ -21,7 +21,13 @@ namespace NMaybe {
         {
         }
 
+        constexpr TStorageBase(TStorageBase&&) = default;
+        constexpr TStorageBase(const TStorageBase&) = default;
+
         ~TStorageBase() = default;
+
+        TStorageBase& operator=(const TStorageBase&) = default;
+        TStorageBase& operator=(TStorageBase&&) = default;
 
         union {
             char NullState_;
@@ -44,11 +50,17 @@ namespace NMaybe {
         {
         }
 
+        constexpr TStorageBase(TStorageBase&&) = default;
+        constexpr TStorageBase(const TStorageBase&) = default;
+
         ~TStorageBase() {
             if (this->Defined_) {
                 this->Data_.~T();
             }
         }
+
+        TStorageBase& operator=(const TStorageBase&) = default;
+        TStorageBase& operator=(TStorageBase&&) = default;
 
         union {
             char NullState_;
@@ -136,7 +148,7 @@ namespace NMaybe {
 
     // -------------------- MOVE ASSIGN --------------------
 
-    template <class T, bool = std::is_trivially_copy_assignable<T>::value>
+    template <class T, bool = std::is_trivially_move_assignable<T>::value>
     struct TMoveAssignBase: TCopyAssignBase<T> {
         using TCopyAssignBase<T>::TCopyAssignBase;
     };
@@ -150,8 +162,8 @@ namespace NMaybe {
         constexpr TMoveAssignBase(TMoveAssignBase&&) = default;
         TMoveAssignBase& operator=(const TMoveAssignBase&) = default;
         TMoveAssignBase& operator=(TMoveAssignBase&& rhs) noexcept(
-            std::is_nothrow_move_assignable<T>::value&&
-                std::is_nothrow_move_constructible<T>::value)
+            std::is_nothrow_move_assignable<T>::value &&
+            std::is_nothrow_move_constructible<T>::value)
         {
             if (this->Defined_) {
                 if (rhs.Defined_) {
@@ -167,7 +179,38 @@ namespace NMaybe {
             return *this;
         }
     };
-}
+
+    template <bool CanCopy, bool CanMove>
+    struct TMaybeSFINAEConstructorBaseImpl {};
+
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<false, false> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = delete;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = delete;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<true, false> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = delete;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+    template <>
+    struct TMaybeSFINAEConstructorBaseImpl<false, true> {
+        TMaybeSFINAEConstructorBaseImpl() = default;
+        TMaybeSFINAEConstructorBaseImpl(const TMaybeSFINAEConstructorBaseImpl&) = delete;
+        TMaybeSFINAEConstructorBaseImpl(TMaybeSFINAEConstructorBaseImpl&&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(const TMaybeSFINAEConstructorBaseImpl&) = default;
+        TMaybeSFINAEConstructorBaseImpl& operator=(TMaybeSFINAEConstructorBaseImpl&&) = default;
+    };
+
+    template <class T>
+    using TMaybeSFINAEConstructorBase = TMaybeSFINAEConstructorBaseImpl<std::is_copy_constructible<T>::value, std::is_move_constructible<T>::value>;
+} // namespace NMaybe
 
 template <class T>
 using TMaybeBase = NMaybe::TMoveAssignBase<T>;

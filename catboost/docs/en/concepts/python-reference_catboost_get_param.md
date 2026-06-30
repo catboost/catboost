@@ -16,15 +16,15 @@ get_param(key)
 
 ### key
 
-#### Description 
+#### Description
 
 The key to get the value from.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

@@ -1,0 +1,418 @@
+name: 'Release: Publish'
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      artifacts_run_id:
+        required: false
+        type: string
+        default: ${{ github.run_id }}
+      artifacts_repository:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost
+      is_test_env:
+        required: false
+        type: boolean
+        default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
+      make_latest:
+        required: False
+        type: boolean
+        default: true
+      components: # can't make individual choices due to GitHub limitations: https://github.com/orgs/community/discussions/8774
+        required: False
+        type: string
+        default: widget,python_package,jvm_catboost_common,jvm_catboost_prediction,jvm_catboost_spark,github
+
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+      artifacts_run_id:
+        required: true
+        type: string
+      artifacts_repository:
+        required: false
+        type: string
+        default: catboost/catboost
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost
+      is_test_env:
+        required: false
+        type: boolean
+        default: false
+      maven_central_auto_release:
+        required: false
+        type: boolean
+        default: true
+      make_latest:
+        required: False
+        type: boolean
+        default: true
+      components: # can't make individual choices due to GitHub limitations: https://github.com/orgs/community/discussions/8774
+        required: False
+        type: string
+        default: widget,python_package,jvm_catboost_common,jvm_catboost_prediction,jvm_catboost_spark,github
+
+
+jobs:
+  publish_widget:
+    if: contains(inputs.components, 'widget')
+    name: Publish catboost-widget on NPM
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Env setup
+        shell: pwsh
+        run: New-Item -Path built_widget -ItemType Directory
+
+      - name: Download catboost python package visualization widget
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-python-package-widget-v${{ inputs.version }}
+          path: built_widget/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+
+      - name: Publish catboost-widget npm package
+        run: |
+          cd ${{ github.workspace }}/built_widget
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish_python_package:
+    if: contains(inputs.components, 'python_package')
+    name: Publish Python package to PyPI
+    runs-on: ubuntu-22.04
+
+    environment:
+      name: ${{ inputs.is_test_env && 'testpypi' || 'pypi' }}
+      url: https://${{ inputs.is_test_env && 'test.pypi.org' || 'pypi.org' }}/p/${{ inputs.catboost_package_name }}
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download python package dists
+        uses: actions/download-artifact@v4
+        with:
+          pattern: catboost-python-package-dist-*
+          merge-multiple: true
+          path: dist/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: ${{ ! inputs.is_test_env }}
+        name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
+
+      - if: ${{ inputs.is_test_env }}
+        name: Publish distribution to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+          verbose: true
+
+  publish_jvm_catboost_common:
+    if: contains(inputs.components, 'jvm_catboost_common')
+    name: Publish catboost-common package to Maven Central
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          ref: v${{ inputs.version }}
+          sparse-checkout: catboost/jvm-packages/common
+
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/jvm-packages/common/pom.xml
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+
+      - name: Publish package
+        run: |
+          cd ${{ github.workspace }}/catboost/catboost/jvm-packages/common
+          mvn --batch-mode clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
+
+  publish_jvm_catboost_prediction:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'jvm_catboost_prediction')
+    name: Publish catboost-prediction package to Maven Central
+    needs:
+      - publish_jvm_catboost_common
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          ref: v${{ inputs.version }}
+          sparse-checkout: |
+            .github/actions
+            catboost/jvm-packages/catboost4j-prediction
+            catboost/jvm-packages/tools
+
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+
+      - name: Env setup
+        shell: pwsh
+        run: |
+          New-Item -Path prebuilt/catboost4j-prediction_resources -ItemType Directory
+
+      - name: Download catboost4j-prediction_resources
+        uses: actions/download-artifact@v4
+        with:
+          pattern: catboost4j-prediction_resources-*
+          merge-multiple: true
+          path: prebuilt/catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Wait for catboost-common availability on Maven Central
+        uses: ./catboost/.github/actions/retried_wait_for_mvn_dependency
+        with:
+          groupId: ai.catboost
+          artifactId: catboost-common
+          version: ${{ inputs.version }}
+
+      - name: Publish package
+        run: |
+          ls -lR ${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/
+          cd ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
+          mvn --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ -DskipTests clean deploy -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
+
+  publish_jvm_catboost_spark:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'jvm_catboost_spark')
+    name: Publish CatBoost for Apache Spark packages to Maven Central
+    needs:
+      - publish_jvm_catboost_common
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Python 3.12 for running scripts
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          ref: v${{ inputs.version }}
+          sparse-checkout: |
+            .github/actions
+            catboost/jvm-packages/tools
+            catboost/spark/catboost4j-spark
+
+      - name: Generate CatBoost for Apache Spark projects
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
+          python ./generate_projects/generate.py
+
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+
+      - name: Env setup
+        shell: pwsh
+        run: |
+          New-Item -Path prebuilt/spark -ItemType Directory
+          New-Item -Path prebuilt/spark/catboost4j-spark_core_resources -ItemType Directory
+
+      - name: Download catboost4j-spark-impl-sources
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark-impl-sources-v${{ inputs.version }}
+          path: prebuilt/spark/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Download catboost4j-spark_core_resources
+        uses: actions/download-artifact@v4
+        with:
+          pattern: catboost4j-spark_core_resources*
+          merge-multiple: true
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Wait for catboost-common availability on Maven Central
+        uses: ./catboost/.github/actions/retried_wait_for_mvn_dependency
+        with:
+          groupId: ai.catboost
+          artifactId: catboost-common
+          version: ${{ inputs.version }}
+
+      - name: Publish package
+        run: |
+          cd ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
+          python ./mvn_deploy_all_projects.py --batch-mode -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar -DskipTests -DautoReleaseAfterClose=${{ inputs.maven_central_auto_release }}
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_CENTRAL_GPG_SECRET_KEY_PASSWORD }}
+
+  publish_on_github:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'github')
+    name: Publish Release on GitHub
+    needs:
+      - publish_widget
+      - publish_python_package
+      - publish_jvm_catboost_common
+      - publish_jvm_catboost_prediction
+      - publish_jvm_catboost_spark
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Python 3.12 for running scripts
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          ref: v${{ inputs.version }}
+          sparse-checkout: |
+            .github
+            RELEASE.md
+            ci
+
+      - name: Env setup
+        shell: pwsh
+        run: |
+          New-Item -Path src_artifacts -ItemType Directory
+          Set-Location -LiteralPath ${{ github.workspace }}/src_artifacts
+          New-Item -Path R -ItemType Directory
+
+      - name: Download R packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: catboost-R-package-*
+          merge-multiple: true
+          path: src_artifacts/R/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Download CLI executables
+        uses: ./catboost/.github/actions/download_artifacts_for_all_platforms
+        with:
+          name: cli
+          artifacts_version: v${{ inputs.version }}
+          artifacts_run_id: ${{ inputs.artifacts_run_id }}
+          artifacts_repository: ${{ inputs.artifacts_repository }}
+          dst_path_prefix: src_artifacts/bin
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download model_interface libraries
+        uses: ./catboost/.github/actions/download_artifacts_for_all_platforms
+        with:
+          name: model-interface
+          artifacts_version: v${{ inputs.version }}
+          artifacts_run_id: ${{ inputs.artifacts_run_id }}
+          artifacts_repository: ${{ inputs.artifacts_repository }}
+          dst_path_prefix: src_artifacts/model_interface
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare release artifacts
+        run: |
+          python ${{ github.workspace }}/catboost/ci/prepare_release_artifacts.py \
+            --src-dir ${{ github.workspace }}/src_artifacts \
+            --dst-dir ${{ github.workspace }}/upload \
+            --release-version ${{ inputs.version }}
+
+      - name: Extract release changelog
+        run: |
+          python ${{ github.workspace }}/catboost/ci/extract_release_changelog.py \
+            --all-changelog ${{ github.workspace }}/catboost/RELEASE.md  \
+            --dst-release-changelog ${{ github.workspace }}/RELEASE_changelog.md \
+            --release-version ${{ inputs.version }}
+
+      - name: Release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ github.workspace }}/RELEASE_changelog.md
+          files: upload/*
+          name: ${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
+          discussion_category_name: Announcements
+          make_latest: ${{ inputs.make_latest }}

@@ -20,7 +20,7 @@
 
     #define PSUF(NAME) NAME
     #define PSUF_LOCAL(NAME) NAME##Local
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #undef PSUF
     #undef PSUF_LOCAL
 
@@ -30,7 +30,7 @@
         #undef _win_
         #define REVERT_WIN
     #endif
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #ifdef REVERT_WIN
         #define _win_
         #undef REVERT_WIN
@@ -44,7 +44,7 @@
         #define _win_
         #define REVERT_WIN
     #endif
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #ifdef REVERT_WIN
         #undef _win_
         #undef REVERT_WIN
@@ -437,7 +437,7 @@ Y_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_STRINGS_EQUAL(ps.Reconstruct(), "../path");
     #endif
     }
-}
+} // Y_UNIT_TEST_SUITE(PSUF(PathSplit)
 
 Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
     Y_UNIT_TEST(IsPathSep) {
@@ -475,7 +475,7 @@ Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("#:\\somepath"), false);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("#:/somepath"), false);
     }
-}
+} // Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)
 
     #undef TRUE_ONLY_WIN
 

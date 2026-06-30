@@ -24,7 +24,7 @@ namespace NPar {
                 if (Y_UNLIKELY(typeid(*obj) != typeid(T))) {
                     const auto objTypeName = TypeName(*obj);
                     const auto expectedTypeName = TypeName<T>();
-                    Y_FAIL("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
+                    Y_ABORT("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
                 }
                 Ptr = CastToUserObject(const_cast<IObjectBase*>(obj), (T*)nullptr);
             }
@@ -83,13 +83,13 @@ namespace NPar {
             (void)hostId;
             (void)src;
             (void)dst;
-            Y_FAIL("missing map implementation");
+            Y_ABORT("missing map implementation");
         }
         virtual void DoReduce(TVector<TOutput>* src, TOutput* dst) const {
             CHROMIUM_TRACE_FUNCTION();
             (void)src;
             (void)dst;
-            Y_FAIL("missing reduce implementation");
+            Y_ABORT("missing reduce implementation");
         }
     };
 
@@ -113,7 +113,7 @@ namespace NPar {
 
             void MRCommandComplete(bool isCanceled, TVector<TVector<char>>* res) override {
                 // easy way to get isCanceled here is to forget to call SetCotextData() for all hostIds
-                Y_VERIFY(!isCanceled);
+                Y_ABORT_UNLESS(!isCanceled);
                 Y_ASSERT(!IsReadyFlag);
                 Results.swap(*res);
                 IsReadyFlag = true;
@@ -153,7 +153,7 @@ namespace NPar {
         void GetResult(T* res) {
             TVector<TVector<char>> buf;
             GetRawResult(&buf);
-            Y_VERIFY(buf.ysize() == 1, "buf.ysize()=%d", buf.ysize());
+            Y_ABORT_UNLESS(buf.ysize() == 1, "buf.ysize()=%d", buf.ysize());
             SerializeFromMem(&buf[0], *res);
         }
         template <class T>

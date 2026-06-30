@@ -123,6 +123,7 @@ TSplit TCandidateInfo::GetSplit(
                 return TSplit();
             }
     }
+    Y_UNREACHABLE();
 }
 
 
@@ -134,8 +135,8 @@ THolder<IDerCalcer> BuildError(
     switch (params.LossFunctionDescription->GetLossFunction()) {
         case ELossFunction::SurvivalAft: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
-            for (auto &param: lossParams) {
-            CB_ENSURE(
+            for (const auto& param : lossParams) {
+                CB_ENSURE(
                     param.first == "dist" || param.first == "scale",
                     "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
             }
@@ -183,6 +184,14 @@ THolder<IDerCalcer> BuildError(
             double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
             return MakeHolder<TQuantileError>(alpha, delta, isStoreExpApprox);
         }
+        case ELossFunction::GroupQuantile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
+            const auto badParam = FindIf(lossParams, [] (const auto& param) { return !EqualToOneOf(param.first, "alpha", "delta"); });
+            CB_ENSURE(badParam == lossParams.end(), "Invalid loss description " << ToString(badParam->first));
+            double alpha = lossParams.contains("alpha") ? FromString<float>(lossParams.at("alpha")) : 0.5;
+            double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
+            return MakeHolder<TGroupQuantileError>(alpha, delta, isStoreExpApprox);
+        }
         case ELossFunction::MultiQuantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
             const auto badParam = FindIf(lossParams, [] (const auto& param) { return !EqualToOneOf(param.first, "alpha", "delta"); });
@@ -216,6 +225,8 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::MAPE:
             return MakeHolder<TMAPError>(isStoreExpApprox);
+        case ELossFunction::RMSPE:
+            return MakeHolder<TRMSPEError>(isStoreExpApprox);
         case ELossFunction::Poisson:
             return MakeHolder<TPoissonError>(isStoreExpApprox);
         case ELossFunction::MultiClass:
@@ -295,6 +306,11 @@ THolder<IDerCalcer> BuildError(
         case ELossFunction::Tweedie:
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
+                isStoreExpApprox);
+        case ELossFunction::Focal:
+            return MakeHolder<TFocalError>(
+                NCatboostOptions::GetFocalParamA(params.LossFunctionDescription),
+                NCatboostOptions::GetFocalParamG(params.LossFunctionDescription),
                 isStoreExpApprox);
         case ELossFunction::LogCosh:
             return MakeHolder<TLogCoshError>(isStoreExpApprox);
@@ -661,7 +677,7 @@ void CalcWeightedDerivatives(
             } else {
                 error.CalcFirstDerRange(
                     /*start*/ 0,
-                    /*count*/ target.size(),
+                    /*count*/ tailFinish,
                     /*approx*/ approx[0].data(),
                     /*approx deltas*/ nullptr,
                     /*targets*/ target.data(),
@@ -700,6 +716,7 @@ void CalcWeightedDerivatives(
 void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
+    ERandomScoreDistribution scoreDistribution,
     double scoreStDev,
     const TCandidatesContext& candidatesContext,
     TVector<TCandidateInfo>* subcandidates
@@ -712,11 +729,12 @@ void SetBestScore(
         const auto& scores = allScores[subcandidateIdx];
 
         auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
-            const double score = scores[binFeatureIdx];
-            const double scoreInstance = TRandomScore(score, scoreStDev).GetInstance(rand);
+            const double scoreWoNoise = scores[binFeatureIdx];
+            TRandomScore randomScore(scoreDistribution, scoreWoNoise, scoreStDev);
+            const double scoreInstance = randomScore.GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {
                 bestScoreInstance = scoreInstance;
-                subcandidateInfo.BestScore = TRandomScore(score, scoreStDev);
+                subcandidateInfo.BestScore = std::move(randomScore);
                 subcandidateInfo.BestBinId = binFeatureIdx;
             }
         };

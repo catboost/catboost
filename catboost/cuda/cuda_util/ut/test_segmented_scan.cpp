@@ -4,6 +4,7 @@
 #include <catboost/cuda/cuda_util/segmented_scan.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <library/cpp/testing/unittest/registar.h>
+#include <algorithm>
 #include <iostream>
 #include <catboost/cuda/cuda_util/scan.h>
 #include <catboost/cuda/cuda_util/helpers.h>
@@ -214,9 +215,7 @@ Y_UNIT_TEST_SUITE(TSegmentedScanTest) {
                 });
 
                 const double p = 1000.0 / size;
-                for (ui32 i = 0; i < indicesCpu.size(); ++i) {
-                    indicesCpu[i] = i;
-                };
+                std::iota(indicesCpu.begin(), indicesCpu.end(), ui32(0));
                 Shuffle(indicesCpu.begin(), indicesCpu.end(), rand);
                 for (ui32 i = 0; i < indicesCpu.size(); ++i) {
                     indicesCpu[i] |= ((rand.NextUniform() < p ? 1 : 0) << 31);

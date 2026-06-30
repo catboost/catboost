@@ -1,0 +1,83 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCUDACXX_SOURCE_LOCATION
+#define _LIBCUDACXX_SOURCE_LOCATION
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/cstdint>
+#include <cuda/std/version>
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+//! NOTE: we cannot use `__builtin_source_location` as that requires us to use `::std::source_location::impl`
+class source_location
+{
+private:
+  const char* __file_name_     = "";
+  const char* __function_name_ = "";
+  uint_least32_t __line_       = 0;
+  uint_least32_t __column_     = 0;
+
+  // Needed to make C++11 happy
+  _CCCL_API explicit constexpr source_location(
+    const char* __file, const char* __func, uint_least32_t __line, uint_least32_t __column) noexcept
+      : __file_name_(__file)
+      , __function_name_(__func)
+      , __line_(__line)
+      , __column_(__column)
+  {}
+
+public:
+  [[nodiscard]] _CCCL_API static constexpr source_location current(
+    const char* __file      = _CCCL_BUILTIN_FILE(),
+    const char* __func      = _CCCL_BUILTIN_FUNCTION(),
+    uint_least32_t __line   = _CCCL_BUILTIN_LINE(),
+    uint_least32_t __column = _CCCL_BUILTIN_COLUMN()) noexcept
+  {
+    return source_location{__file, __func, __line, __column};
+  }
+
+  _CCCL_HIDE_FROM_ABI constexpr source_location() = default;
+
+  [[nodiscard]] _CCCL_API constexpr uint_least32_t line() const noexcept
+  {
+    return __line_;
+  }
+  [[nodiscard]] _CCCL_API constexpr uint_least32_t column() const noexcept
+  {
+    return __column_;
+  }
+  [[nodiscard]] _CCCL_API constexpr const char* file_name() const noexcept
+  {
+    return __file_name_;
+  }
+  [[nodiscard]] _CCCL_API constexpr const char* function_name() const noexcept
+  {
+    return __function_name_;
+  }
+};
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _LIBCUDACXX_SOURCE_LOCATION

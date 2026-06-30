@@ -13,7 +13,7 @@ set_pairs_weight(pairs_weight)
 
 ### pairs_weight
 
-#### Description 
+#### Description
 
 {% include [methods-param-desc-pairs_weight__short-desc](../_includes/work_src/reusage/pairs_weight__short-desc.md) %}
 
@@ -29,7 +29,8 @@ set_pairs_weight(pairs_weight)
 - {{ python-type__np_ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

@@ -13,10 +13,30 @@
 #include "udp_socket.h"
 #include "socket.h"
 
+#if defined(__clang__)
+#if __has_feature(memory_sanitizer)
+extern "C" void __msan_unpoison(const volatile void* a, size_t size);
+#endif
+#endif
+
 // THESE SMALL FUNCTIONS DEFINED IN HEADER FILE TO ALLOW INLINING THEM!
 
 namespace NNetliba_v12 {
     using namespace NNetlibaSocket::NNetliba_v12;
+
+    inline void UnpoisonForMsan(const void* ptr, size_t len) {
+#if defined(__clang__)
+#if __has_feature(memory_sanitizer)
+        __msan_unpoison(ptr, len);
+#else
+        Y_UNUSED(ptr);
+        Y_UNUSED(len);
+#endif
+#else
+        Y_UNUSED(ptr);
+        Y_UNUSED(len);
+#endif
+    }
 
     enum EMask {
         MASK_CLEAR = 31,
@@ -64,6 +84,8 @@ namespace NNetliba_v12 {
             case PING:
             case PONG:
             case PONG_IB:
+            case XS_PING:
+            case XS_PONG:
                 return true;
             default:
                 return false;
@@ -114,14 +136,13 @@ namespace NNetliba_v12 {
 
     //options per packet
     class TPacketOptions {
-        enum {
-            PO_INFLATE_CONGESTION = 128,
-            PO_USE_TOS_CONGESTION = 64,
-            PO_NETLIBA_COLOR_IS_CUSTOM = 32,
-            PO_ACK_TOS_IS_CUSTOM = 16,
-            PO_TRANSFER_ID_IS_LONG = 8,
-            PO_DO_NOT_USE_SHARED_MEMORY_FOR_LOCAL_CONNECTIONS = 4 //this is removed option
-        };
+        static constexpr int PO_INFLATE_CONGESTION = 128;
+        static constexpr int PO_USE_TOS_CONGESTION = 64;
+        static constexpr int PO_NETLIBA_COLOR_IS_CUSTOM = 32;
+        static constexpr int PO_ACK_TOS_IS_CUSTOM = 16;
+        static constexpr int PO_TRANSFER_ID_IS_LONG = 8;
+        static constexpr int PO_DO_NOT_USE_SHARED_MEMORY_FOR_LOCAL_CONNECTIONS = 4; //this is removed option
+        static constexpr int PO_SMALL_MTU_USE_XS = 2;
 
         ui8 PacketFlags;
         TMaybe<ui8> AckTOS;
@@ -212,6 +233,11 @@ namespace NNetliba_v12 {
             return *this;
         }
 
+        TPacketOptions& SetSmallMtuUseXs(bool enabled) {
+            SetFlag(&PacketFlags, PO_SMALL_MTU_USE_XS, enabled);
+            return *this;
+        }
+
         ui32 EncodeTransferId(ui64 transferId) {
             if (transferId > std::numeric_limits<ui32>::max()) {
                 PacketFlags |= PO_TRANSFER_ID_IS_LONG;
@@ -240,6 +266,10 @@ namespace NNetliba_v12 {
             return Color;
         }
 
+        bool IsSmallMtuUseXs() const {
+            return PacketFlags & PO_SMALL_MTU_USE_XS;
+        }
+
         ui64 GetHigherTransferId() const {
             return HigherTransferId;
         }
@@ -247,10 +277,8 @@ namespace NNetliba_v12 {
 
     //Transfer Options are valid only for "zero" packet in transfer
     class TTransferOptions {
-        enum {
-            TO_HP_QUEUE = 128,
-            TO_HAS_SHM = 64,
-        };
+        static constexpr int TO_HP_QUEUE = 128;
+        static constexpr int TO_HAS_SHM = 64;
 
         ui8 TransferFlags;
         ui32 SharedMemorySize;
@@ -336,10 +364,8 @@ namespace NNetliba_v12 {
     //   - Add bit flag in the TOptionsVector
     //   - Modify Serialize/Deserialize function
     class TOptionsVector {
-        enum {
-            OV_HAS_PACKET_OPTIONS = 128,
-            OV_HAS_TRANSFER_OPTIONS = 64,
-        };
+        static constexpr int OV_HAS_PACKET_OPTIONS = 128;
+        static constexpr int OV_HAS_TRANSFER_OPTIONS = 64;
 
     public:
         TOptionsVector() {
@@ -402,7 +428,7 @@ namespace NNetliba_v12 {
                 map |= OV_HAS_TRANSFER_OPTIONS;
                 written += TransferOpt.Serialize(buf);
             }
-            Y_VERIFY(written < 255, "TOptionsVector is too long\n");
+            Y_ABORT_UNLESS(written < 255, "TOptionsVector is too long\n");
             Write(&start, (ui8)written);
             Write(&start, map);
             return written;
@@ -422,6 +448,13 @@ namespace NNetliba_v12 {
     inline bool ReadBasicPacketHeader(const char** pktData, const char* pktEnd, EUdpCmd* cmd, ui8* originalCmd) {
         *originalCmd = Read<ui8>(pktData);
         *cmd = EUdpCmd(*originalCmd & MASK_CLEAR);
+        /*
+        Cerr << "Read packet header: originalCmd=" << (*originalCmd & 255)
+            << ", cmd=" << (*originalCmd & MASK_CLEAR)
+            << ", pktData<=pktEnd:" << (*pktData <= pktEnd)
+            << ", IsValidCmd(cmd)=" << IsValidCmd(*cmd)
+            << Endl;
+        */
         return *pktData <= pktEnd && IsValidCmd(*cmd);
     }
 
@@ -439,6 +472,9 @@ namespace NNetliba_v12 {
         }
         //this option was removed, but we have to set this flag for old versions
         opt->PacketOpt.SetDisableSharedMemory(true);
+        // we always set this flag so that versions supporting XSMALL mtu value
+        // would switch to it
+        opt->PacketOpt.SetSmallMtuUseXs(connection->GetSmallMtuUseXs());
 
         // in "all default" case we don't need this extra byte flags
         WriteBasicPacketHeader(buf, (ui8)cmd);
@@ -518,7 +554,7 @@ namespace NNetliba_v12 {
     inline void CheckedSendTo(TUdpSocket& s, const char (&buf)[TbufSize], const char* bufEnd, const sockaddr_in6& dst, const sockaddr_in6& src,
                               const ui8 tos, const EFragFlag frag) {
         const size_t len = bufEnd - buf;
-        Y_VERIFY(len <= TbufSize, "Increase buf size to at least %d bytes", (int)len);
+        Y_ABORT_UNLESS(len <= TbufSize, "Increase buf size to at least %d bytes", (int)len);
         s.SendTo(buf, len, {dst, src}, tos, frag);
     }
 
@@ -582,13 +618,30 @@ namespace NNetliba_v12 {
 
     ///////////////////////////////////////////////////////////////////////////////
 
+    inline void SendXsPing(TUdpSocket& s, const TConnection* connection, const int selfNetworkOrderPort, ui8 tos) {
+        char buf[UDP_XSMALL_PACKET_SIZE], *pktData = buf + UDP_LOW_LEVEL_HEADER_SIZE;
+        // Cerr << GetAddressAsString(connection->GetAddress()) << " Sending xs ping" << Endl;
+
+        TOptionsVector opt;
+        WriteInConnectionPacketHeader(&pktData, XS_PING, connection, &opt);
+        Write(&pktData, selfNetworkOrderPort);
+
+        UnpoisonForMsan(buf, Y_ARRAY_SIZE(buf));
+
+        CheckedSendTo(s, buf, buf + Y_ARRAY_SIZE(buf), connection->GetWinsockAddress(), connection->GetWinsockMyAddress(),
+                      tos, FF_DONT_FRAG);
+    }
+
     inline void SendJumboPing(TUdpSocket& s, const TConnection* connection, const int selfNetworkOrderPort, ui8 tos) {
         //HACK: 50 is delta to decrease MTU
         char buf[UDP_MAX_PACKET_SIZE - 50], *pktData = buf + UDP_LOW_LEVEL_HEADER_SIZE;
+        // Cerr << GetAddressAsString(connection->GetAddress()) << " Sending jumbo ping" << Endl;
 
         TOptionsVector opt;
         WriteInConnectionPacketHeader(&pktData, PING, connection, &opt);
         Write(&pktData, selfNetworkOrderPort);
+
+        UnpoisonForMsan(buf, Y_ARRAY_SIZE(buf));
 
         CheckedSendTo(s, buf, buf + Y_ARRAY_SIZE(buf), connection->GetWinsockAddress(), connection->GetWinsockMyAddress(),
                       tos, FF_DONT_FRAG);
@@ -615,10 +668,10 @@ namespace NNetliba_v12 {
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    inline void SendPong(TUdpSocket& s, const TConnection* connection, const sockaddr_in6& toAddress) {
+    inline void SendPong(TUdpSocket& s, const TConnection* connection, const sockaddr_in6& toAddress, bool isXs) {
         char buf[PACKET_HEADERS_SIZE], *pktData = buf + UDP_LOW_LEVEL_HEADER_SIZE;
         TOptionsVector opt;
-        WriteInConnectionPacketHeader(&pktData, PONG, connection, &opt);
+        WriteInConnectionPacketHeader(&pktData, isXs ? XS_PONG : PONG, connection, &opt);
 
         const ui8 tos = 0; // TODO: tos?
         CheckedSendTo(s, buf, pktData, toAddress, connection->GetWinsockMyAddress(),
@@ -665,7 +718,7 @@ namespace NNetliba_v12 {
     ///////////////////////////////////////////////////////////////////////////////
 
     // grouped acks, first int - packet_id, second int - bit mask for 32 packets preceding packet_id
-    extern const size_t SIZEOF_ACK = 8;
+    static constexpr size_t SIZEOF_ACK = 8;
     inline size_t WriteAck(TUdpInTransfer* xfer, int* dst, const size_t maxAcks) {
         if (xfer->NewPacketsToAck.empty())
             return 0;
@@ -737,8 +790,10 @@ namespace NNetliba_v12 {
         const size_t acks = WriteAck(xfer, (int*)pktData, (size_t)(packetBufferSize - (pktData - packetBuffer)) / SIZEOF_ACK);
         pktData += acks * SIZEOF_ACK;
 
+        const size_t ackPacketSize = connection->GetSmallMtuUseXs() ? UDP_XSMALL_PACKET_SIZE : UDP_SMALL_PACKET_SIZE;
+
         s.AddPacketToQueue(pktData - packetBuffer, {connection->GetWinsockAddress(), connection->GetWinsockMyAddress()},
-                           xfer->AckTos, UDP_SMALL_PACKET_SIZE);
+                           xfer->AckTos, ackPacketSize);
     }
 
     inline bool ReadAndSetAcks(const char* pktData, const char* pktEnd, const float deltaT, TAckTracker* ackTracker) {
@@ -750,7 +805,7 @@ namespace NNetliba_v12 {
     inline void AddDataToPacketQueue(TUdpSocket& s, char* packetBuffer,
                                      TConnection* connection, const ui64 transferId, const TUdpOutTransfer& xfer,
                                      const int packetId, const int dataSize) {
-        Y_ASSERT(xfer.PacketSize == UDP_PACKET_SIZE || xfer.PacketSize == UDP_SMALL_PACKET_SIZE);
+        Y_ASSERT(xfer.PacketSize == UDP_PACKET_SIZE || xfer.PacketSize == UDP_SMALL_PACKET_SIZE || xfer.PacketSize == UDP_XSMALL_PACKET_SIZE);
         Y_ASSERT(xfer.LastPacketSize < xfer.PacketSize);
         Y_ASSERT(dataSize == xfer.PacketSize || dataSize == xfer.LastPacketSize);
 
@@ -770,6 +825,15 @@ namespace NNetliba_v12 {
                 TransferOptions.TransferOpt.SetSharedMemory((ui32)shm->GetSizeT(), shm->GetId());
             }
         }
+        /*
+        Cerr << GetAddressAsString(connection->GetAddress()) << " Sending packet " << packetId << " of " << xfer.PacketCount
+            << " with xfer.PacketSize=" << xfer.PacketSize
+            << ", *conn=" << size_t(connection)
+            << ", conn.SmallMtuUseXs=" << connection->GetSmallMtuUseXs()
+            << ", dataSize=" << dataSize
+            << ", cmde=" << int(cmd)
+            << Endl;
+        */
         WriteDataPacketHeader(&pktData, cmd, connection, transferId, packetId, xfer.AckTos, xfer.NetlibaColor, &TransferOptions);
 
         // TODO: we can avoid memcpy here, but xfer.Data is a list of data chunks and we need whole packet...
@@ -813,7 +877,7 @@ namespace NNetliba_v12 {
             }
         }
 
-        const size_t expectedPacketSize = (cmd == DATA) ? UDP_PACKET_SIZE : UDP_SMALL_PACKET_SIZE;
+        const size_t expectedPacketSize = (cmd == DATA) ? UDP_PACKET_SIZE : (opt.PacketOpt.IsSmallMtuUseXs() ? UDP_XSMALL_PACKET_SIZE : UDP_SMALL_PACKET_SIZE);
         if (!(*packetSize)) {
             *packetSize = expectedPacketSize;
         }

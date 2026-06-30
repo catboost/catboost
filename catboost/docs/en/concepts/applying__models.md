@@ -18,6 +18,7 @@ The following non-standard methods for applying the models are supported:
 
 - [Java](java-package.md)
 - [CoreML](export-coreml.md)
+- [Node.js](apply-node-js.md)
 - [ONNX](apply-onnx-ml.md)
 - [Rust](apply-rust.md)
 - [.NET](apply-dotnet.md)

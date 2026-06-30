@@ -38,6 +38,9 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme TestPairsFilePath;
 
+        NCB::TPathWithScheme GraphFilePath;
+        NCB::TPathWithScheme TestGraphFilePath;
+
         NCB::TPathWithScheme GroupWeightsFilePath;
         NCB::TPathWithScheme TestGroupWeightsFilePath;
 
@@ -63,10 +66,12 @@ namespace NCatboostOptions {
         void Validate() const;
         void Validate(TMaybe<ETaskType> taskType) const;
         void ValidateLearn() const;
+        bool HavePairs() const;
+        bool HaveGraph() const;
 
         SAVELOAD(
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
-            PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
+            PairsFilePath, TestPairsFilePath, GraphFilePath, TestGraphFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
             ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, PoolMetaInfoPath,
             HostsAlreadyContainLoadedData, PrecomputedMetadataFile

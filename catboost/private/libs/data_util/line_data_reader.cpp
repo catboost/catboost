@@ -77,6 +77,58 @@ namespace NCB {
     }
 
 
+    TIndexedSubsetLineDataReader::TIndexedSubsetLineDataReader(THolder<ILineDataReader>&& lineDataReader, TVector<ui64>&& subsetIndices)
+        : LineDataReader(std::move(lineDataReader))
+        , SubsetIndices(std::move(subsetIndices))
+        , CurrentIndex(SubsetIndices.begin())
+        , EnclosingLineIdx(0)
+        , Header(LineDataReader->GetHeader())
+    {
+        if (!SubsetIndices.empty()) {
+            bool enclosingReadResult = LineDataReader->ReadLine(&LineBuffer);
+            CB_ENSURE(enclosingReadResult, "Reached the end of data but not reached the end of subset");
+        }
+    }
+
+    ui64 TIndexedSubsetLineDataReader::GetDataLineCount(bool estimate) {
+        Y_UNUSED(estimate);
+        return SubsetIndices.size();
+    }
+
+    TMaybe<TString> TIndexedSubsetLineDataReader::GetHeader() {
+        return Header;
+    }
+
+    bool TIndexedSubsetLineDataReader::ReadLine(TString* line, ui64* lineIdx) {
+        if (CurrentIndex == SubsetIndices.end()) {
+            return false;
+        }
+
+        while (true) {
+            if (EnclosingLineIdx == *CurrentIndex) {
+                // in a subset
+
+                if (lineIdx) {
+                    *lineIdx = (CurrentIndex - SubsetIndices.begin());
+                }
+
+                auto prevIndex = *CurrentIndex;
+                ++CurrentIndex;
+                if ((CurrentIndex == SubsetIndices.end()) || (*CurrentIndex != prevIndex)) {
+                    *line = std::move(LineBuffer);
+                } else {
+                    *line = LineBuffer;
+                }
+                return true;
+            }
+
+            bool enclosingReadResult = LineDataReader->ReadLine(&LineBuffer);
+            CB_ENSURE(enclosingReadResult, "Reached the end of data but not reached the end of subset");
+            ++EnclosingLineIdx;
+        }
+    }
+
+
     TLineDataReaderFactory::TRegistrator<TFileLineDataReader> DefLineDataReaderReg("");
     TLineDataReaderFactory::TRegistrator<TFileLineDataReader> FileLineDataReaderReg("file");
     TLineDataReaderFactory::TRegistrator<TFileLineDataReader> DsvLineDataReaderReg("dsv");

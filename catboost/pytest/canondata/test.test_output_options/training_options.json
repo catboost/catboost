@@ -270,6 +270,7 @@
             "feature_weights" : { },
             "penalties_coefficient" : 1
         },
+        "random_score_type" : "NormalWithModelSizeDecrease",
         "leaf_estimation_iterations" : 1,
         "sparse_features_conflict_fraction" : 0
     },

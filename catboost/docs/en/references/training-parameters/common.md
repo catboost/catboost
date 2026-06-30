@@ -34,6 +34,7 @@ _Alias:_ `objective`
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -215,7 +216,7 @@ Used for reducing the gradient step.
 
 **Default value**
 
-The default value is defined automatically for {{ error-function--Logit }}, {{ error-function--MultiClass }} & {{ error-function--RMSE }} loss functions depending on the number of iterations if none of parameters leaf_estimation_iterations, `--leaf-estimation-method`,l2_leaf_reg is set. In this case, the selected learning rate is printed to stdout and saved in the model.
+The default value is defined automatically for [`Logloss`](../../concepts/loss-functions-classification.md#Logit), [`MultiClass`](../../concepts/loss-functions-multiclassification.md#MultiClass) and [`RMSE`](../../concepts/loss-functions-regression.md#RMSE) loss functions depending on the number of iterations if none of parameters [`leaf_estimation_iterations`](#leaf_estimation_iterations), [`leaf_estimation_method`](#leaf_estimation_method), [`l2_leaf_reg`](#l2_leaf_reg) is set. In this case, the selected learning rate is printed to stdout and saved in the model.
 
 In other cases, the default value is 0.03.
 
@@ -546,7 +547,7 @@ _Alias:_ `max_depth`
 
 #### Description
 
-Depth of the tree.
+Depth of the trees.
 
 The range of supported values depends on the processing unit type and the type of the selected loss function:
 
@@ -773,7 +774,7 @@ None (set to 1)
 
 **Supported processing units**
 
-{{ calcer_type__cpu }}
+{{ calcer_type__cpu }}; {{ calcer_type__gpu }} for pairwise ranking
 
 
 ## nan_mode {#nan_mode}

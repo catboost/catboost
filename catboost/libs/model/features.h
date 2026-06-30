@@ -35,7 +35,19 @@ public:
     Y_SAVELOAD_DEFINE(Index, FlatIndex);
 };
 
-struct TFloatFeature {
+struct TFeatureBase {
+public:
+    TFeaturePosition Position;
+    TString FeatureId;
+public:
+    TFeatureBase() = default;
+    TFeatureBase(TFeaturePosition position, TString featureId)
+        : Position(std::move(position))
+        , FeatureId(std::move(featureId))
+    {}
+};
+
+struct TFloatFeature : public TFeatureBase {
     enum class ENanValueTreatment {
         AsIs,
         AsFalse,
@@ -43,9 +55,9 @@ struct TFloatFeature {
     };
 public:
     bool HasNans = false;
-    TFeaturePosition Position;
+
     TVector<float> Borders;
-    TString FeatureId;
+
     ENanValueTreatment NanValueTreatment = ENanValueTreatment::AsIs;
 
 public:
@@ -57,10 +69,9 @@ public:
         const TVector<float>& borders,
         const TString& featureId = ""
     )
-        : HasNans(hasNans)
-        , Position(featureIndex, flatFeatureIndex)
+        : TFeatureBase(TFeaturePosition(featureIndex, flatFeatureIndex), featureId)
+        , HasNans(hasNans)
         , Borders(borders)
-        , FeatureId(featureId)
     {}
 
     bool operator==(const TFloatFeature& other) const {
@@ -90,10 +101,7 @@ inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
     return result;
 }
 
-struct TCatFeature {
-public:
-    TFeaturePosition Position;
-    TString FeatureId;
+struct TCatFeature : public TFeatureBase {
 public:
     TCatFeature() = default;
 
@@ -103,8 +111,7 @@ public:
         int flatFeatureIndex,
         TString featureId
     )
-        : Position(featureIndex, flatFeatureIndex)
-        , FeatureId(featureId)
+        : TFeatureBase(TFeaturePosition(featureIndex, flatFeatureIndex), featureId)
         , IsUsedInModel(usedInModel)
     {}
 
@@ -152,10 +159,7 @@ public:
     Y_SAVELOAD_DEFINE(CatFeatureIndex, Values);
 };
 
-struct TTextFeature {
-public:
-    TFeaturePosition Position;
-    TString FeatureId;
+struct TTextFeature : public TFeatureBase {
 public:
     TTextFeature() = default;
 
@@ -165,8 +169,7 @@ public:
         int flatFeatureIndex,
         TString featureId
     )
-        : Position(featureIndex, flatFeatureIndex)
-        , FeatureId(std::move(featureId))
+        : TFeatureBase(TFeaturePosition(featureIndex, flatFeatureIndex), featureId)
         , IsUsedInModel(usedInModel)
     {}
 
@@ -196,10 +199,8 @@ private:
     bool IsUsedInModel = true;
 };
 
-struct TEmbeddingFeature {
+struct TEmbeddingFeature : public TFeatureBase {
 public:
-    TFeaturePosition Position;
-    TString FeatureId;
     int Dimension = 0;
 public:
     TEmbeddingFeature() = default;
@@ -211,8 +212,7 @@ public:
         TString featureId,
         int dimension
     )
-        : Position(featureIndex, flatFeatureIndex)
-        , FeatureId(std::move(featureId))
+        : TFeatureBase(TFeaturePosition(featureIndex, flatFeatureIndex), std::move(featureId))
         , Dimension(dimension)
         , IsUsedInModel(usedInModel)
     {}

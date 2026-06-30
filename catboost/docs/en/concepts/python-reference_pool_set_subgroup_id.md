@@ -25,7 +25,8 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 - {{ python-type__np_ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

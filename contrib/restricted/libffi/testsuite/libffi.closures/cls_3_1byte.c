@@ -28,6 +28,18 @@ cls_struct_3_1byte cls_struct_3_1byte_fn(struct cls_struct_3_1byte a1,
 	 a2.a, a2.b, a2.c,
 	 result.a, result.b, result.c);
 
+  CHECK(a1.a == 12);
+  CHECK(a1.b == 13);
+  CHECK(a1.c == 14);
+
+  CHECK(a2.a == 178);
+  CHECK(a2.b == 179);
+  CHECK(a2.c == 180);
+
+  CHECK(result.a == 190);
+  CHECK(result.b == 192);
+  CHECK(result.c == 194);
+
   return  result;
 }
 
@@ -83,6 +95,9 @@ int main (void)
   /* { dg-output "12 13 14 178 179 180: 190 192 194" } */
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 190 192 194" } */
+  CHECK(res_dbl.a == 190);
+  CHECK(res_dbl.b == 192);
+  CHECK(res_dbl.c == 194);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_3_1byte_gn, NULL, code) == FFI_OK);
 
@@ -90,6 +105,10 @@ int main (void)
   /* { dg-output "\n12 13 14 178 179 180: 190 192 194" } */
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 190 192 194" } */
+
+  CHECK(res_dbl.a == 190);
+  CHECK(res_dbl.b == 192);
+  CHECK(res_dbl.c == 194);
 
   exit(0);
 }

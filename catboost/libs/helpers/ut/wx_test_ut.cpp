@@ -31,7 +31,7 @@ TWxTestResult OldWxTest(const TVector<double>& baseline,
         return result;
     }
 
-    Sort(diffs.begin(), diffs.end(), [&](double x, double y) {
+    StableSort(diffs.begin(), diffs.end(), [&](double x, double y) {
         return Abs(x) < Abs(y);
     });
 

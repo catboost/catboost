@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,11 @@
 // Adapter for broadcasting ops in default domain from version 6 to 7
 
 #pragma once
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -16,7 +23,7 @@ class BroadcastForwardCompatibility final : public Adapter {
   explicit BroadcastForwardCompatibility(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
-  void adapt_broadcast_forward_compatibility(std::shared_ptr<Graph> graph, Node* node) const {
+  void adapt_broadcast_forward_compatibility(const std::shared_ptr<Graph>& graph, Node* node) const {
     // Remove axis and broadcast attributes
     // Assess whether axis requires reshaping
     if (node->hasAttribute(kbroadcast)) {
@@ -37,7 +44,7 @@ class BroadcastForwardCompatibility final : public Adapter {
           new_sizes.reserve(new_sizes.size() + size);
           for (size_t i = 0; i < size; i++) {
             axes.emplace_back(B_sizes.size() + i);
-            new_sizes.emplace_back(Dimension(1));
+            new_sizes.emplace_back(1);
           }
           if (target_version().version() >= 13) { // Unsqueeze takes 'axes' input
             Tensor t;

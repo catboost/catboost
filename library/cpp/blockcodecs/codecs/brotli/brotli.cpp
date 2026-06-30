@@ -2,8 +2,8 @@
 #include <library/cpp/blockcodecs/core/common.h>
 #include <library/cpp/blockcodecs/core/register.h>
 
-#include <contrib/libs/brotli/include/brotli/encode.h>
-#include <contrib/libs/brotli/include/brotli/decode.h>
+#include <contrib/libs/brotli/c/include/brotli/encode.h>
+#include <contrib/libs/brotli/c/include/brotli/decode.h>
 
 using namespace NBlockCodecs;
 

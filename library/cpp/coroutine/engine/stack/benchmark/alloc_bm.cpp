@@ -17,14 +17,14 @@ namespace NCoro::NStack::NBenchmark {
     constexpr size_t ManyStacks = 4096;
 
     void BasicOperations(TStackHolder& stack) {
-        Y_VERIFY(!stack.Get().empty());
+        Y_ABORT_UNLESS(!stack.Get().empty());
         stack.LowerCanaryOk();
         stack.UpperCanaryOk();
     }
 
     void WriteStack(TStackHolder& stack) {
         auto memory = stack.Get();
-        Y_VERIFY(!memory.empty());
+        Y_ABORT_UNLESS(!memory.empty());
         stack.LowerCanaryOk();
         stack.UpperCanaryOk();
         for (size_t i = PageSize / 2; i < memory.size(); i += PageSize * 2) {

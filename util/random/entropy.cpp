@@ -53,7 +53,7 @@ namespace {
                 try {
                     Save(&out, GetExecPath());
                 } catch (...) {
-                    //workaround - sometimes fails on FreeBSD
+                    // workaround - sometimes fails on FreeBSD
                 }
 
                 Save(&out, (size_t)Data());
@@ -85,7 +85,11 @@ namespace {
                     out << TStringBuf(CpuBrand(store));
                 }
 
-                out << NFs::CurrentWorkingDirectory();
+                try {
+                    out << NFs::CurrentWorkingDirectory();
+                } catch (const TSystemError& e) {
+                    // the current working directory has been unliked or unavailable for similar reasons
+                }
 
                 out.Finish();
             }
@@ -93,7 +97,7 @@ namespace {
             {
                 TMemoryOutput out(Data(), Size());
 
-                //replace zlib header with hash
+                // replace zlib header with hash
                 Save(&out, CityHash64(Data(), Size()));
             }
 
@@ -101,7 +105,7 @@ namespace {
         }
     };
 
-    //not thread-safe
+    // not thread-safe
     class TMersenneInput: public IInputStream {
         using TKey = ui64;
         using TRnd = TMersenne<TKey>;
@@ -206,7 +210,7 @@ namespace {
     };
 
     using TRandomTraits = TDefaultTraits;
-}
+} // namespace
 
 IInputStream& EntropyPool() {
     return TRandomTraits::Instance().EntropyPool();

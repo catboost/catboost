@@ -13,6 +13,8 @@
 #include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/algo_helpers/scratch_cache.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
 #include <util/generic/hash.h>

@@ -13,7 +13,7 @@
 #include <catboost/cuda/gpu_data/kernels.h>
 #include <catboost/cuda/gpu_data/querywise_helper.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
-
+#include <catboost/cuda/targets/user_defined.h>
 #include <catboost/libs/helpers/math_utils.h>
 
 using namespace NCudaLib;
@@ -175,6 +175,9 @@ namespace NCatboostCuda {
             double totalWeight = SumVector(weights);
             auto metricType = GetMetricDescription().GetLossFunction();
             const auto& params = GetMetricDescription().GetLossParamsMap();
+            // for models with uncertainty
+            // compatibility of metrics and loss is checked at startup in CheckMetric
+            const auto& prediction0 = cursor.ColumnView(0);
             switch (metricType) {
                 case ELossFunction::Logloss:
                 case ELossFunction::CrossEntropy: {
@@ -190,7 +193,7 @@ namespace NCatboostCuda {
 
                     ApproximateCrossEntropy(target,
                                             weights,
-                                            cursor,
+                                            prediction0,
                                             &tmp,
                                             (TVec*)nullptr,
                                             (TVec*)nullptr,
@@ -201,8 +204,8 @@ namespace NCatboostCuda {
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::RMSE: {
-                    auto tmp = TVec::CopyMapping(cursor);
-                    tmp.Copy(cursor);
+                    auto tmp = TVec::CopyMapping(prediction0);
+                    tmp.Copy(prediction0);
                     SubtractVector(tmp, target);
                     const double sum2 = DotProduct(tmp, tmp, &weights);
                     return MakeSimpleAdditiveStatistic(sum2, totalWeight);
@@ -218,7 +221,7 @@ namespace NCatboostCuda {
                 case ELossFunction::Tweedie:
                 case ELossFunction::Huber: {
                     float alpha = 0.5;
-                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    auto tmp = TVec::Create(prediction0.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
                     if (params.contains("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
@@ -238,7 +241,7 @@ namespace NCatboostCuda {
 
                     ApproximatePointwise(target,
                                          weights,
-                                         cursor,
+                                         prediction0,
                                          metricType,
                                          alpha,
                                          &tmp,
@@ -255,6 +258,7 @@ namespace NCatboostCuda {
                     RMSEWithUncertaintyValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                           &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
+                    CB_ENSURE(IsFinite(sum), "Numerical overflow in RMSEWithUncertainty");
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MultiClass: {
@@ -275,6 +279,18 @@ namespace NCatboostCuda {
                 case ELossFunction::MultiLogloss: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiCrossEntropyValueAndDer(
+                        target,
+                        weights,
+                        cursor,
+                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                        &tmp,
+                        (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
+                case ELossFunction::MultiRMSE: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    MultiRMSEValueAndDer(
                         target,
                         weights,
                         cursor,
@@ -492,6 +508,7 @@ namespace NCatboostCuda {
         const int start = 0;
         const int end = static_cast<const int>(GetCpuMetric().GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
         CB_ENSURE(approx.size() >= 1);
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
         for (ui32 dim = 0; dim < approx.size(); ++dim) {
             CB_ENSURE(approx[dim].size() == target.size());
         }
@@ -505,6 +522,53 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TStripeBuffer<const float>& target,
+        const TStripeBuffer<const float>& weights,
+        const TStripeBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TStripeMapping>(target, weights, cursor, cache, stream);
+    }
+
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TMirrorBuffer<const float>& target,
+        const TMirrorBuffer<const float>& weights,
+        const TMirrorBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TMirrorMapping>(target, weights, cursor, cache, stream);
+    }
+
+    template<class TMapping>
+    TMetricHolder TGpuCustomMetric::EvalImpl(
+        const TCudaBuffer<const float, TMapping>& target,
+        const TCudaBuffer<const float, TMapping>& weights,
+        const TCudaBuffer<const float, TMapping>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        using TKernel = NKernelHost::TUserDefinedMetricKernel;
+        using TVec = TCudaBuffer<float, TMapping>;
+        Y_UNUSED(cache);
+
+        const size_t tmpArraySize = TKernel::BlockSize * TKernel::NumBlocks;
+        auto resultTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        auto resultWeightsTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+
+        auto onesTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        FillBuffer(onesTmp, 1.0f);
+
+        LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, cursor, resultTmp, resultWeightsTmp, Descriptor);
+        return MakeSimpleAdditiveStatistic(DotProduct(resultTmp, onesTmp), DotProduct(resultWeightsTmp, onesTmp));
+    }
+
+    double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const {
+        return (*(Descriptor.GetFinalErrorFunc))(metricHolder, Descriptor.CustomData);
+    }
+
     static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TLossParams& params, int approxDimension) {
         THolder<IMetric> metricHolder = std::move(CreateMetric(metric, params, approxDimension)[0]);
         return metricHolder;
@@ -513,11 +577,13 @@ namespace NCatboostCuda {
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
+        const bool isMultiLabel = IsMultiLabelObjective(targetObjective);
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
-        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty) {
-            CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
+        const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
+        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE) {
+            CB_ENSURE(approxDim > 1, "Error: Approx dimension equal to 1 for multidimensional output");
         } else {
-            CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
+            CB_ENSURE(approxDim == 1, "Error: non-multidimensional output dim should be equal to 1");
         }
 
         auto metricType = metricDescription.GetLossFunction();
@@ -536,6 +602,7 @@ namespace NCatboostCuda {
             case ELossFunction::MultiClassOneVsAll:
             case ELossFunction::MultiCrossEntropy:
             case ELossFunction::MultiLogloss:
+            case ELossFunction::MultiRMSE:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
@@ -555,7 +622,7 @@ namespace NCatboostCuda {
                 auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
                 const auto numClasses = approxDim == 1 ? 2 : approxDim;
                 for (ui32 i = 0; i < approxDim; ++i) {
-                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass || isMultiLabel, metricDescription));
                 }
                 break;
             }
@@ -634,21 +701,26 @@ namespace NCatboostCuda {
                !metric->GetUseWeights().IsIgnored();
     }
 
-    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights) {
+    TVector<THolder<IGpuMetric>> CreateGpuMetrics(
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
+        ui32 cpuApproxDim,
+        bool hasWeights,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+    ) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
         const NCatboostOptions::TLossDescription& evalMetricDescription =
                 haveEvalMetricFromUser ? metricOptions->EvalMetric.Get() : objectiveMetricDescription;
-        CB_ENSURE(!IsUserDefined(objectiveMetricDescription.GetLossFunction()), "Error: GPU doesn't support user-defined loss");
-        CB_ENSURE(!IsUserDefined(evalMetricDescription.GetLossFunction()), "Error: GPU doesn't support custom metrics");
 
-
-        TVector<THolder<IGpuMetric>> createdObjectiveMetrics = CreateGpuMetricFromDescription(
+        TVector<THolder<IGpuMetric>> createdObjectiveMetrics;
+        if (!IsUserDefined(objectiveMetricDescription.GetLossFunction())){
+            createdObjectiveMetrics = CreateGpuMetricFromDescription(
                 objectiveMetricDescription.GetLossFunction(),
                 objectiveMetricDescription,
                 cpuApproxDim);
+        }
+
         if (hasWeights) {
             for (auto&& metric : createdObjectiveMetrics) {
                 const auto& useWeights = metric->GetUseWeights();
@@ -661,14 +733,28 @@ namespace NCatboostCuda {
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
 
-        metrics = CreateGpuMetricFromDescription(
-                objectiveMetricDescription.GetLossFunction(),
-                evalMetricDescription,
-                cpuApproxDim);
+        if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
+            if (evalMetricDescriptor.Defined() && evalMetricDescriptor.GetRef().GpuEvalFunc.Defined()) {
+                metrics.emplace_back(new TGpuCustomMetric(
+                    evalMetricDescriptor.GetRef(),
+                    evalMetricDescription
+                ));
+            } else {
+                metrics.emplace_back(new TCpuFallbackMetric(
+                    MakeCustomMetric(evalMetricDescriptor.GetRef()),
+                    evalMetricDescription
+                ));
+            }
+        } else {
+            metrics = CreateGpuMetricFromDescription(
+                    objectiveMetricDescription.GetLossFunction(),
+                    evalMetricDescription,
+                    cpuApproxDim);
+        }
         CB_ENSURE(metrics.size() == 1, "Eval metric should have a single value. Metric "
                 << ToString(objectiveMetricDescription.GetLossFunction())
                 << " provides a value for each class, thus it cannot be used as "
-                << "a single value to select best iteration or to detect overfitting. "
+                << "a single value to select the best iteration or to detect overfitting. "
                 << "If you just want to look on the values of this metric use custom_metric parameter.");
 
         if (hasWeights && !metrics.back()->GetUseWeights().IsIgnored()) {
@@ -677,7 +763,7 @@ namespace NCatboostCuda {
             } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
                 metrics.back()->GetUseWeights().SetDefaultValue(true);
                 CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
-                                  "Set MetricName:use_weights=False to calculate unweighted metric." << Endl;
+                                  "Set MetricName:use_weights=False to calculate an unweighted metric." << Endl;
             }
         }
         usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());

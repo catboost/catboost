@@ -61,13 +61,6 @@ EYsonType TYsonStringBuf::GetType() const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TYsonString::TYsonString()
-{
-    Begin_ = nullptr;
-    Size_ = 0;
-    Type_ = EYsonType::Node; // fake
-}
-
 TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
 {
     if (ysonStringBuf) {
@@ -75,7 +68,7 @@ TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
         auto holder = NDetail::TYsonStringHolder::Allocate(data.length());
         ::memcpy(holder->GetData(), data.data(), data.length());
         Begin_ = holder->GetData();
-        Size_ = data.Size();
+        Size_ = data.size();
         Type_ = ysonStringBuf.GetType();
         Payload_ = std::move(holder);
     } else {
@@ -91,35 +84,35 @@ TYsonString::TYsonString(
     : TYsonString(TYsonStringBuf(data, type))
 { }
 
-#ifdef TSTRING_IS_STD_STRING
 TYsonString::TYsonString(
     const TString& data,
     EYsonType type)
-    : TYsonString(TYsonStringBuf(data, type))
+    : TYsonString(TCowString(data), type)
 { }
-#else
+
 TYsonString::TYsonString(
-    const TString& data,
+    TCowString data,
     EYsonType type)
-{
-    // NOTE: CoW TString implementation is assumed
-    // Moving the payload MUST NOT invalidate its internal pointers
-    Payload_ = data;
-    Begin_ = data.data();
-    Size_ = data.length();
-    Type_ = type;
-}
-#endif
+    : Payload_(std::move(data))
+    , Begin_(std::get<TCowString>(Payload_).data())
+    , Size_(std::get<TCowString>(Payload_).length())
+    , Type_(type)
+{ }
+
+TYsonString::TYsonString(
+    std::string data,
+    EYsonType type)
+    : TYsonString(TCowString(std::move(data)), type)
+{ }
 
 TYsonString::TYsonString(
     const TSharedRef& data,
     EYsonType type)
-{
-    Payload_ = data.GetHolder();
-    Begin_ = data.Begin();
-    Size_ = data.Size();
-    Type_ = type;
-}
+    : Payload_(data.GetHolder())
+    , Begin_(data.Begin())
+    , Size_(data.Size())
+    , Type_(type)
+{ }
 
 TYsonString::operator bool() const
 {
@@ -148,8 +141,8 @@ TString TYsonString::ToString() const
         [&] (const TSharedRangeHolderPtr&) {
             return TString(AsStringBuf());
         },
-        [] (const TString& payload) {
-            return payload;
+        [] (const TCowString& payload) {
+            return TString(payload);
         });
 }
 
@@ -163,7 +156,7 @@ TSharedRef TYsonString::ToSharedRef() const
         [&] (const TSharedRangeHolderPtr& holder) {
             return TSharedRef(Begin_, Size_, holder);
         },
-        [] (const TString& payload) {
+        [] (const TCowString& payload) {
             return TSharedRef::FromString(payload);
         });
 }
@@ -173,16 +166,38 @@ size_t TYsonString::ComputeHash() const
     return THash<TStringBuf>()(TStringBuf(Begin_, Begin_ + Size_));
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-TString ToString(const TYsonString& yson)
+void TYsonString::Save(IOutputStream* s) const
 {
-    return yson.ToString();
+    EYsonType type = Type_;
+    if (*this) {
+        ::SaveMany(s, type, ToSharedRef());
+    } else {
+        ::SaveMany(s, type, TString());
+    }
 }
 
-TString ToString(const TYsonStringBuf& yson)
+void TYsonString::Load(IInputStream* s)
 {
-    return TString(yson.AsStringBuf());
+    EYsonType type;
+    TString data;
+    ::LoadMany(s, type, data);
+    if (data) {
+        *this = TYsonString(data, type);
+    } else {
+        *this = TYsonString();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void FormatValue(TStringBuilderBase* builder, const TYsonString& yson, TStringBuf spec)
+{
+    FormatValue(builder, yson.ToString(), spec);
+}
+
+void FormatValue(TStringBuilderBase* builder, const TYsonStringBuf& yson, TStringBuf spec)
+{
+    FormatValue(builder, yson.AsStringBuf(), spec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

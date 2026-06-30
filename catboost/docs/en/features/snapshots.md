@@ -18,12 +18,12 @@ To restore an interrupted training from a previously saved snapshot, launch the 
 #### Description
 
 
-The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertModelType__CBM }}) with information regarding the training progress. This file allows to recover the training after an interruption from where it left off.
+The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertModelType__CBM }}) with information regarding the training progress. This file allows to resume the training after an interruption from where it left off.
 
 {% note info %}
 
-- GPU snapshots can not be input if training is performed on CPU and vice versa.
-- The number of iterations set in the options defines the final number of iterations of the model (not the number of iterations that should take place after recovering the training).
+- Snapshots of training progress on CPUs and GPUs currently have different formats so training using GPUs cannot be continued on CPUs and vice versa.
+- The number of iterations set in the options defines the final number of iterations of the model (not the number of iterations that should take place after resuming the training).
 
 {% endnote %}
 
@@ -52,9 +52,9 @@ The native {{ product }} model file ({{ yandex-specific__model_ops__EConvertMode
 
   {% endcut %}
 
-  {% cut "save_snapshot" %}
+  {% cut "snapshot_file" %}
 
-   `save_snapshot`
+   `snapshot_file`
 
    The name of the file to save the training progress information in. This file is used for [recovering training after an interruption](../features/snapshots.md).
 

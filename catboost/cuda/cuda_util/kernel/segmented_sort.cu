@@ -1,6 +1,6 @@
 #include "segmented_sort.cuh"
 
-#include <contrib/libs/nvidia/cub/cub/device/device_segmented_radix_sort.cuh>
+#include <cub/device/device_segmented_radix_sort.cuh>
 
 namespace NKernel {
 

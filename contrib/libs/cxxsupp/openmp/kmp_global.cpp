@@ -63,8 +63,8 @@ int __kmp_init_counter = 0;
 int __kmp_root_counter = 0;
 int __kmp_version = 0;
 
-std::atomic<kmp_int32> __kmp_team_counter = ATOMIC_VAR_INIT(0);
-std::atomic<kmp_int32> __kmp_task_counter = ATOMIC_VAR_INIT(0);
+std::atomic<kmp_int32> __kmp_team_counter = 0;
+std::atomic<kmp_int32> __kmp_task_counter = 0;
 
 size_t __kmp_stksize = KMP_DEFAULT_STKSIZE;
 #if KMP_USE_MONITOR
@@ -125,6 +125,7 @@ size_t __kmp_sys_min_stksize = KMP_MIN_STKSIZE;
 int __kmp_sys_max_nth = KMP_MAX_NTH;
 int __kmp_max_nth = 0;
 int __kmp_cg_max_nth = 0;
+int __kmp_task_max_nth = 0;
 int __kmp_teams_max_nth = 0;
 int __kmp_threads_capacity = 0;
 int __kmp_dflt_team_nth = 0;
@@ -134,11 +135,9 @@ int __kmp_tp_cached = 0;
 int __kmp_dispatch_num_buffers = KMP_DFLT_DISP_NUM_BUFF;
 int __kmp_dflt_max_active_levels = 1; // Nesting off by default
 bool __kmp_dflt_max_active_levels_set = false; // Don't override set value
-#if KMP_NESTED_HOT_TEAMS
 int __kmp_hot_teams_mode = 0; /* 0 - free extra threads when reduced */
 /* 1 - keep extra threads when reduced */
 int __kmp_hot_teams_max_level = 1; /* nesting level of hot teams */
-#endif
 enum library_type __kmp_library = library_none;
 enum sched_type __kmp_sched =
     kmp_sch_default; /* scheduling method for runtime scheduling */
@@ -154,7 +153,8 @@ int __kmp_hier_max_units[kmp_hier_layer_e::LAYER_LAST + 1];
 int __kmp_hier_threads_per[kmp_hier_layer_e::LAYER_LAST + 1];
 kmp_hier_sched_env_t __kmp_hier_scheds = {0, 0, NULL, NULL, NULL};
 #endif
-int __kmp_dflt_blocktime = KMP_DEFAULT_BLOCKTIME;
+int __kmp_dflt_blocktime = KMP_DEFAULT_BLOCKTIME; // in microseconds
+char __kmp_blocktime_units = 'm'; // Units specified in KMP_BLOCKTIME
 bool __kmp_wpolicy_passive = false;
 #if KMP_USE_MONITOR
 int __kmp_monitor_wakeups = KMP_MIN_MONITOR_WAKEUPS;
@@ -170,7 +170,7 @@ int __kmp_ncores = 0;
 int __kmp_chunk = 0;
 int __kmp_force_monotonic = 0;
 int __kmp_abort_delay = 0;
-#if KMP_OS_LINUX && defined(KMP_TDATA_GTID)
+#if (KMP_OS_LINUX || KMP_OS_AIX || KMP_OS_SOLARIS) && defined(KMP_TDATA_GTID)
 int __kmp_gtid_mode = 3; /* use __declspec(thread) TLS to store gtid */
 int __kmp_adjust_gtid_mode = FALSE;
 #elif KMP_OS_WINDOWS
@@ -240,11 +240,6 @@ enum sched_type __kmp_sch_map[kmp_sched_upper - kmp_sched_lower_ext +
     // of public intel extension schedules
 };
 
-#if KMP_OS_LINUX
-enum clock_function_type __kmp_clock_function;
-int __kmp_clock_function_param;
-#endif /* KMP_OS_LINUX */
-
 #if KMP_MIC_SUPPORTED
 enum mic_type __kmp_mic_type = non_mic;
 #endif
@@ -253,10 +248,10 @@ enum mic_type __kmp_mic_type = non_mic;
 
 KMPAffinity *__kmp_affinity_dispatch = NULL;
 
-#if KMP_USE_HWLOC
+#if KMP_HWLOC_ENABLED
 int __kmp_hwloc_error = FALSE;
 hwloc_topology_t __kmp_hwloc_topology = NULL;
-#endif
+#endif // KMP_HWLOC_ENABLED
 
 #if KMP_OS_WINDOWS
 #if KMP_GROUP_AFFINITY
@@ -269,23 +264,20 @@ kmp_SetThreadGroupAffinity_t __kmp_SetThreadGroupAffinity = NULL;
 #endif /* KMP_OS_WINDOWS */
 
 size_t __kmp_affin_mask_size = 0;
-enum affinity_type __kmp_affinity_type = affinity_default;
-kmp_hw_t __kmp_affinity_gran = KMP_HW_UNKNOWN;
-int __kmp_affinity_gran_levels = -1;
-int __kmp_affinity_dups = TRUE;
 enum affinity_top_method __kmp_affinity_top_method =
     affinity_top_method_default;
-int __kmp_affinity_compact = 0;
-int __kmp_affinity_offset = 0;
-int __kmp_affinity_verbose = FALSE;
-int __kmp_affinity_warnings = TRUE;
-int __kmp_affinity_respect_mask = affinity_respect_mask_default;
-char *__kmp_affinity_proclist = NULL;
-kmp_affin_mask_t *__kmp_affinity_masks = NULL;
-unsigned __kmp_affinity_num_masks = 0;
+
+// Regular thread affinity settings from KMP_AFFINITY
+kmp_affinity_t __kmp_affinity = KMP_AFFINITY_INIT("KMP_AFFINITY");
+// Hidden helper thread affinity settings from KMP_HIDDEN_HELPER_AFFINITY
+kmp_affinity_t __kmp_hh_affinity =
+    KMP_AFFINITY_INIT("KMP_HIDDEN_HELPER_AFFINITY");
+kmp_affinity_t *__kmp_affinities[] = {&__kmp_affinity, &__kmp_hh_affinity};
 
 char *__kmp_cpuinfo_file = NULL;
-bool __kmp_affin_reset = 0;
+#if KMP_WEIGHTED_ITERATIONS_SUPPORTED
+int __kmp_first_osid_with_ecore = -1;
+#endif
 
 #endif /* KMP_AFFINITY_SUPPORTED */
 
@@ -302,6 +294,7 @@ kmp_int32 __kmp_max_task_priority = 0;
 kmp_uint64 __kmp_taskloop_min_tasks = 0;
 
 int __kmp_memkind_available = 0;
+bool __kmp_hwloc_available = false;
 omp_allocator_handle_t const omp_null_allocator = NULL;
 omp_allocator_handle_t const omp_default_mem_alloc =
     (omp_allocator_handle_t const)1;
@@ -329,8 +322,9 @@ omp_allocator_handle_t const kmp_max_mem_alloc =
     (omp_allocator_handle_t const)1024;
 omp_allocator_handle_t __kmp_def_allocator = omp_default_mem_alloc;
 
+omp_memspace_handle_t const omp_null_mem_space = (omp_memspace_handle_t const)0;
 omp_memspace_handle_t const omp_default_mem_space =
-    (omp_memspace_handle_t const)0;
+    (omp_memspace_handle_t const)99;
 omp_memspace_handle_t const omp_large_cap_mem_space =
     (omp_memspace_handle_t const)1;
 omp_memspace_handle_t const omp_const_mem_space =
@@ -345,6 +339,8 @@ omp_memspace_handle_t const llvm_omp_target_shared_mem_space =
     (omp_memspace_handle_t const)101;
 omp_memspace_handle_t const llvm_omp_target_device_mem_space =
     (omp_memspace_handle_t const)102;
+omp_memspace_handle_t const kmp_max_mem_space =
+    (omp_memspace_handle_t const)1024;
 
 /* This check ensures that the compiler is passing the correct data type for the
    flags formal parameter of the function kmpc_omp_task_alloc(). If the type is
@@ -392,7 +388,7 @@ int __kmp_debug_buf_atomic =
 
 char *__kmp_debug_buffer = NULL; /* Debug buffer itself */
 std::atomic<int> __kmp_debug_count =
-    ATOMIC_VAR_INIT(0); /* number of lines printed in buffer so far */
+    0; /* number of lines printed in buffer so far */
 int __kmp_debug_buf_warn_chars =
     0; /* Keep track of char increase recommended in warnings */
 /* end rotating debug buffer */
@@ -460,7 +456,7 @@ volatile kmp_info_t *__kmp_thread_pool = NULL;
 volatile kmp_team_t *__kmp_team_pool = NULL;
 
 KMP_ALIGN_CACHE
-std::atomic<int> __kmp_thread_pool_active_nth = ATOMIC_VAR_INIT(0);
+std::atomic<int> __kmp_thread_pool_active_nth = 0;
 
 /* -------------------------------------------------
  * GLOBAL/ROOT STATE */
@@ -493,10 +489,6 @@ KMP_BOOTSTRAP_LOCK_INIT(__kmp_tp_cached_lock);
 
 KMP_ALIGN_CACHE_INTERNODE
 KMP_LOCK_INIT(__kmp_global_lock); /* Control OS/global access */
-KMP_ALIGN_CACHE_INTERNODE
-kmp_queuing_lock_t __kmp_dispatch_lock; /* Control dispatch access  */
-KMP_ALIGN_CACHE_INTERNODE
-KMP_LOCK_INIT(__kmp_debug_lock); /* Control I/O access for KMP_DEBUG */
 #else
 KMP_ALIGN_CACHE
 
@@ -513,10 +505,6 @@ KMP_BOOTSTRAP_LOCK_INIT(__kmp_tp_cached_lock);
 
 KMP_ALIGN(128)
 KMP_LOCK_INIT(__kmp_global_lock); /* Control OS/global access */
-KMP_ALIGN(128)
-kmp_queuing_lock_t __kmp_dispatch_lock; /* Control dispatch access  */
-KMP_ALIGN(128)
-KMP_LOCK_INIT(__kmp_debug_lock); /* Control I/O access for KMP_DEBUG */
 #endif
 
 /* ----------------------------------------------- */
@@ -553,13 +541,6 @@ int get_suspend_count_(void) {
 void set_suspend_count_(int *value) { __kmp_suspend_count = *value; }
 #endif
 
-// Symbols for MS mutual detection.
-int _You_must_link_with_exactly_one_OpenMP_library = 1;
-int _You_must_link_with_Intel_OpenMP_library = 1;
-#if KMP_OS_WINDOWS && (KMP_VERSION_MAJOR > 4)
-int _You_must_link_with_Microsoft_OpenMP_library = 1;
-#endif
-
 kmp_target_offload_kind_t __kmp_target_offload = tgt_default;
 
 // OMP Pause Resources
@@ -570,4 +551,17 @@ int __kmp_nesting_mode = 0;
 int __kmp_nesting_mode_nlevels = 1;
 int *__kmp_nesting_nth_level;
 
+#if OMPX_TASKGRAPH
+// TDG record & replay
+int __kmp_tdg_dot = 0;
+kmp_int32 __kmp_max_tdgs = 100;
+kmp_tdg_info_t **__kmp_global_tdgs = NULL;
+kmp_int32 __kmp_curr_tdg_idx =
+    0; // Id of the current TDG being recorded or executed
+kmp_int32 __kmp_num_tdg = 0;
+kmp_int32 __kmp_successors_size = 10; // Initial succesor size list for
+                                      // recording
+std::atomic<kmp_int32> __kmp_tdg_task_id = 0;
+#endif
 // end of file //
+

@@ -1,9 +1,10 @@
 libcxxabi
 =========
 
-This library implements the Code Sourcery C++ ABI, as documented here:
+This library implements the Itanium C++ ABI, as documented here:
 
 http://www.codesourcery.com/public/cxx-abi/abi.html
+https://itanium-cxx-abi.github.io/cxx-abi/
 
 It is intended to sit below an STL implementation, and provide features required by the compiler for implementation of the C++ language.
 

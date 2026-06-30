@@ -67,7 +67,7 @@ Y_UNIT_TEST_SUITE(TShellQuoteTest) {
         ShellQuoteArgSp(cmd, "-DVal=Blah");
         UNIT_ASSERT_STRINGS_EQUAL(cmd, "\"/pr f/krev/prev.exe\" \"-DVal=\\\"W Quotes\\\"\" \"-DVal=W Space\" \"-DVal=Blah\"");
     }
-}
+} // Y_UNIT_TEST_SUITE(TShellQuoteTest)
 
 Y_UNIT_TEST_SUITE(TShellCommandTest) {
     Y_UNIT_TEST(TestNoQuotes) {
@@ -489,4 +489,4 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(firstLine, text);
     }
-}
+} // Y_UNIT_TEST_SUITE(TShellCommandTest)

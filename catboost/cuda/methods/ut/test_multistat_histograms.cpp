@@ -69,7 +69,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
         TAdaptiveLock refStatLock;
 
-        for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
+        for (ui32 dev = 0; dev < NCudaLib::GetDeviceCount(); ++dev) {
             TSlice docSlice = stats.GetMapping().DeviceSlice(dev);
             const TVector<ui32>& compressedIndex = cindexCpu[dev];
 
@@ -198,7 +198,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                     }
 
                     for (ui32 statId = 0; statId < numStats; ++statId) {
-                        //on gpu we store stats for all binFeatures in sequence, so we could load them in compute scores in coallased way
+                        //on GPU we store stats for all binFeatures in sequence, so we could load them in compute scores in coallased way
                         const ui64 idx = leaf * numStats * binFeatureCountOnDevice +
                                          statId * binFeatureCountOnDevice +
                                          i;

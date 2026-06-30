@@ -53,7 +53,7 @@ The path to the output model obtained as the result of blending the input ones.
 #### Description
 
 The counters merging policy. Possible values:
-- {{ ECtrTableMergePolicy__FailIfCtrsIntersects }} — Ensure that the models have zero intersecting counters.
+- {{ ECtrTableMergePolicy__FailIfCtrIntersects }} — Ensure that the models have zero intersecting counters.
 - {{ ECtrTableMergePolicy__LeaveMostDiversifiedTable }} — Use the most diversified counters by the count of unique hash values.
 - {{ ECtrTableMergePolicy__IntersectingCountersAverage }} — Use the average ctr counter values in the intersecting bins.
 

@@ -7,7 +7,8 @@
 #include <util/generic/typetraits.h>
 #include <util/memory/pool.h>
 #include <util/random/random.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
+
+#include <atomic>
 
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
@@ -29,7 +30,6 @@ namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TSizeCounter {
-    private:
         size_t Size;
 
     public:
@@ -73,9 +73,8 @@ namespace NThreading {
         int Branching = 4>
     class TSkipList: public TCounter, private TNonCopyable {
         class TNode {
-        private:
             T Value;       // should be immutable after insert
-            TNode* Next[]; // variable-size array maximum of MaxHeight values
+            std::atomic<TNode*> Next[]; // variable-size array maximum of MaxHeight values
 
         public:
             TNode(T&& value)
@@ -93,30 +92,24 @@ namespace NThreading {
             }
 
             TNode* GetNext(int height) const {
-                return AtomicGet(Next[height]);
+                return Next[height].load();
             }
 
-            void Link(int height, TNode** prev) {
+            void Link(const int height, TNode** prev) {
                 for (int i = 0; i < height; ++i) {
-                    Next[i] = prev[i]->Next[i];
-                    AtomicSet(prev[i]->Next[i], this);
+                    Next[i].store(prev[i]->Next[i]);
+                    prev[i]->Next[i] = this;
                 }
             }
         };
 
     public:
         class TIterator {
-        private:
-            const TSkipList* List;
-            const TNode* Node;
+            const TSkipList* List = nullptr;
+            const TNode* Node = nullptr;
 
         public:
-            TIterator()
-                : List(nullptr)
-                , Node(nullptr)
-            {
-            }
-
+            TIterator() noexcept = default;
             TIterator(const TSkipList* list, const TNode* node)
                 : List(list)
                 , Node(node)
@@ -129,11 +122,7 @@ namespace NThreading {
             {
             }
 
-            TIterator& operator=(const TIterator& other) {
-                List = other.List;
-                Node = other.Node;
-                return *this;
-            }
+            TIterator& operator=(const TIterator& other) = default;
 
             void Next() {
                 Node = Node ? Node->GetNext(0) : nullptr;
@@ -166,7 +155,7 @@ namespace NThreading {
         TComparer Comparer;
 
         TNode* Head;
-        TAtomic Height;
+        std::atomic<int> Height;
         TCounter Counter;
 
         TNode* Prev[MaxHeight];
@@ -290,7 +279,7 @@ namespace NThreading {
 
         TNode* FindLast() const {
             TNode* node = Head;
-            int height = AtomicGet(Height) - 1;
+            int height = Height.load() - 1;
 
             while (true) {
                 TNode* next = node->GetNext(height);
@@ -315,7 +304,7 @@ namespace NThreading {
         template <typename TValue>
         TNode* FindLessThan(const TValue& value, TNode** links) const {
             TNode* node = Head;
-            int height = AtomicGet(Height) - 1;
+            int height = Height.load() - 1;
 
             TNode* prev = nullptr;
             while (true) {
@@ -345,7 +334,7 @@ namespace NThreading {
         template <typename TValue>
         TNode* FindGreaterThanOrEqual(const TValue& value) const {
             TNode* node = Head;
-            int height = AtomicGet(Height) - 1;
+            int height = Height.load() - 1;
 
             TNode* prev = nullptr;
             while (true) {
@@ -384,14 +373,14 @@ namespace NThreading {
 
         TNode* DoInsert(T&& value) {
             // choose level to place new node
-            int currentHeight = AtomicGet(Height);
-            int height = RandomHeight();
+            const int currentHeight = Height.load();
+            const int height = RandomHeight();
             if (height > currentHeight) {
                 for (int i = currentHeight; i < height; ++i) {
                     // head should link to all levels
                     Prev[i] = Head;
                 }
-                AtomicSet(Height, height);
+                Height.store(height);
             }
 
             TNode* node = AllocateNode(std::move(value), height);

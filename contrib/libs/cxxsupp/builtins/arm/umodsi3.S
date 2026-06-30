@@ -1,34 +1,27 @@
-/*===-- umodsi3.S - 32-bit unsigned integer modulus -----------------------===//
- *
- *                     The LLVM Compiler Infrastructure
- *
- * This file is dual licensed under the MIT and the University of Illinois Open
- * Source Licenses. See LICENSE.TXT for details.
- *
- *===----------------------------------------------------------------------===//
- *
- * This file implements the __umodsi3 (32-bit unsigned integer modulus)
- * function for the ARM 32-bit architecture.
- *
- *===----------------------------------------------------------------------===*/
+//===-- umodsi3.S - 32-bit unsigned integer modulus -----------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+//
+// This file implements the __umodsi3 (32-bit unsigned integer modulus)
+// function for the ARM 32-bit architecture.
+//
+//===----------------------------------------------------------------------===//
 
 #include "../assembly.h"
 
 	.syntax unified
 	.text
-#if __ARM_ARCH_ISA_THUMB == 2
-	.thumb
-#endif
+	DEFINE_CODE_STATE
 
 @ unsigned int __umodsi3(unsigned int divident, unsigned int divisor)
 @   Calculate and return the remainder of the (unsigned) division.
 
 	.p2align 2
-#if __ARM_ARCH_ISA_THUMB == 2
-DEFINE_COMPILERRT_THUMB_FUNCTION(__umodsi3)
-#else
 DEFINE_COMPILERRT_FUNCTION(__umodsi3)
-#endif
 #if __ARM_ARCH_EXT_IDIV__
 	tst     r1, r1
 	beq     LOCAL_LABEL(divby0)
@@ -44,28 +37,27 @@ DEFINE_COMPILERRT_FUNCTION(__umodsi3)
 	cmp	r0, r1
 	IT(cc)
 	JMPc(lr, cc)
-	/*
-	 * Implement division using binary long division algorithm.
-	 *
-	 * r0 is the numerator, r1 the denominator.
-	 *
-	 * The code before JMP computes the correct shift I, so that
-	 * r0 and (r1 << I) have the highest bit set in the same position.
-	 * At the time of JMP, ip := .Ldiv0block - 8 * I.
-	 * This depends on the fixed instruction size of block.
-	 * For ARM mode, this is 8 Bytes, for THUMB mode 10 Bytes.
-	 *
-	 * block(shift) implements the test-and-update-quotient core.
-	 * It assumes (r0 << shift) can be computed without overflow and
-	 * that (r0 << shift) < 2 * r1. The quotient is stored in r3.
-	 */
+
+	// Implement division using binary long division algorithm.
+	//
+	// r0 is the numerator, r1 the denominator.
+	//
+	// The code before JMP computes the correct shift I, so that
+	// r0 and (r1 << I) have the highest bit set in the same position.
+	// At the time of JMP, ip := .Ldiv0block - 8 * I.
+	// This depends on the fixed instruction size of block.
+	// For ARM mode, this is 8 Bytes, for THUMB mode 10 Bytes.
+	//
+	// block(shift) implements the test-and-update-quotient core.
+	// It assumes (r0 << shift) can be computed without overflow and
+	// that (r0 << shift) < 2 * r1. The quotient is stored in r3.
 
 #  ifdef __ARM_FEATURE_CLZ
 	clz	ip, r0
 	clz	r3, r1
-	/* r0 >= r1 implies clz(r0) <= clz(r1), so ip <= r3. */
+	// r0 >= r1 implies clz(r0) <= clz(r1), so ip <= r3.
 	sub	r3, r3, ip
-#    if __ARM_ARCH_ISA_THUMB == 2
+#    if defined(USE_THUMB_2)
 	adr	ip, LOCAL_LABEL(div0block) + 1
 	sub	ip, ip, r3, lsl #1
 #    else
@@ -74,7 +66,7 @@ DEFINE_COMPILERRT_FUNCTION(__umodsi3)
 	sub	ip, ip, r3, lsl #3
 	bx	ip
 #  else
-#    if __ARM_ARCH_ISA_THUMB == 2
+#    if defined(USE_THUMB_2)
 #    error THUMB mode requires CLZ or UDIV
 #    endif
 	mov	r2, r0
@@ -100,7 +92,7 @@ DEFINE_COMPILERRT_FUNCTION(__umodsi3)
 	movhs	r2, r3
 	subhs	ip, ip, #(2 * 8)
 
-	/* Last block, no need to update r2 or r3. */
+	// Last block, no need to update r2 or r3.
 	cmp	r1, r2, lsr #1
 	subls	ip, ip, #(1 * 8)
 
@@ -148,7 +140,7 @@ DEFINE_COMPILERRT_FUNCTION(__umodsi3)
 LOCAL_LABEL(div0block):
 	block(0)
 	JMP(lr)
-#endif /* __ARM_ARCH_EXT_IDIV__ */
+#endif // __ARM_ARCH_EXT_IDIV__
 
 LOCAL_LABEL(divby0):
 	mov	r0, #0
@@ -159,3 +151,6 @@ LOCAL_LABEL(divby0):
 #endif
 
 END_COMPILERRT_FUNCTION(__umodsi3)
+
+NO_EXEC_STACK_DIRECTIVE
+

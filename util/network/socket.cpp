@@ -110,15 +110,18 @@ static int convert_events(int events, const evpair* evpairs, size_t nevpairs, bo
         if (events & event) {
             events ^= event;
             long winEvent = evpairs[i].winevent;
-            if (winEvent == -1)
+            if (winEvent == -1) {
                 return -1;
-            if (winEvent == 0)
+            }
+            if (winEvent == 0) {
                 continue;
+            }
             result |= winEvent;
         }
     }
-    if (events != 0 && !ignoreUnknown)
+    if (events != 0 && !ignoreUnknown) {
         return -1;
+    }
     return result;
 }
 
@@ -199,12 +202,13 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
 
     HANDLE events[] = {event.Get()};
     DWORD wait_result = WSAWaitForMultipleEvents(1, events, TRUE, timeout, FALSE);
-    if (wait_result == WSA_WAIT_TIMEOUT)
+    if (wait_result == WSA_WAIT_TIMEOUT) {
         return 0;
-    else if (wait_result == WSA_WAIT_EVENT_0) {
+    } else if (wait_result == WSA_WAIT_EVENT_0) {
         for (pollfd* fd = fds; fd < fds + nfds; ++fd) {
-            if (fd->revents == POLLNVAL)
+            if (fd->revents == POLLNVAL) {
                 continue;
+            }
             WSANETWORKEVENTS network_events;
             if (WSAEnumNetworkEvents(fd->fd, event.Get(), &network_events)) {
                 errno = EIO;
@@ -217,8 +221,9 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
                     break;
                 }
             }
-            if (fd->revents == POLLERR)
+            if (fd->revents == POLLERR) {
                 continue;
+            }
             if (network_events.lNetworkEvents) {
                 fd->revents = static_cast<short>(convert_events(network_events.lNetworkEvents, evpairs_to_unix, nevpairs_to_unix, true));
                 if (fd->revents & POLLHUP) {
@@ -227,9 +232,11 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
             }
         }
         int chanded_sockets = 0;
-        for (pollfd* fd = fds; fd < fds + nfds; ++fd)
-            if (fd->revents != 0)
+        for (pollfd* fd = fds; fd < fds + nfds; ++fd) {
+            if (fd->revents != 0) {
                 ++chanded_sockets;
+            }
+        }
         return chanded_sockets;
     } else {
         errno = EIO;
@@ -273,6 +280,8 @@ void SetSocketTimeout(SOCKET s, long sec, long msec) {
 #ifdef SO_SNDTIMEO
     #ifdef _darwin_
     const timeval timeout = {sec, (__darwin_suseconds_t)msec * 1000};
+    #elif defined(_emscripten_)
+    const timeval timeout = {sec, static_cast<suseconds_t>(msec * 1000)};
     #elif defined(_unix_)
     const timeval timeout = {sec, msec * 1000};
     #else
@@ -307,17 +316,13 @@ void SetInputBuffer(SOCKET s, unsigned value) {
     CheckedSetSockOpt(s, SOL_SOCKET, SO_RCVBUF, value, "input buffer");
 }
 
-#if defined(_linux_) && !defined(SO_REUSEPORT)
-    #define SO_REUSEPORT 15
-#endif
-
 void SetReusePort(SOCKET s, bool value) {
-#if defined(SO_REUSEPORT)
+#if defined(_unix_)
     CheckedSetSockOpt(s, SOL_SOCKET, SO_REUSEPORT, (int)value, "reuse port");
 #else
     Y_UNUSED(s);
     Y_UNUSED(value);
-    ythrow TSystemError(ENOSYS) << "SO_REUSEPORT is not defined";
+    ythrow TSystemError(ENOSYS) << "SO_REUSEPORT is not available on Windows";
 #endif
 }
 
@@ -479,7 +484,7 @@ namespace {
         bool HasFastOpen_;
     };
 #endif
-}
+} // namespace
 
 void SetTcpFastOpen(SOCKET s, int qlen) {
 #if defined(TCP_FASTOPEN)
@@ -561,9 +566,9 @@ void TSocketHolder::Close() noexcept {
 // because often it means double close
 // that is disasterous
 #ifdef _win_
-            Y_VERIFY(WSAGetLastError() != WSAENOTSOCK, "must not quietly close bad socket descriptor");
+            Y_ABORT_UNLESS(WSAGetLastError() != WSAENOTSOCK, "must not quietly close bad socket descriptor");
 #elif defined(_unix_)
-            Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
+            Y_ABORT_UNLESS(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
 #else
     #error unsupported platform
 #endif
@@ -945,7 +950,7 @@ void TSocketOutput::DoWriteV(const TPart* parts, size_t count) {
 }
 
 namespace {
-    //https://bugzilla.mozilla.org/attachment.cgi?id=503263&action=diff
+    // https://bugzilla.mozilla.org/attachment.cgi?id=503263&action=diff
 
     struct TLocalNames: public THashSet<TStringBuf> {
         inline TLocalNames() {
@@ -967,7 +972,7 @@ namespace {
             return contains(name);
         }
     };
-}
+} // namespace
 
 class TNetworkAddress::TImpl: public TAtomicRefCount<TImpl> {
 private:
@@ -1254,44 +1259,4 @@ void ShutDown(SOCKET s, int mode) {
     if (shutdown(s, mode)) {
         ythrow TSystemError() << "shutdown socket error";
     }
-}
-
-extern "C" bool IsReusePortAvailable() {
-// SO_REUSEPORT is always defined for linux builds, see SetReusePort() implementation above
-#if defined(SO_REUSEPORT)
-
-    class TCtx {
-    public:
-        TCtx() {
-            TSocketHolder sock(::socket(AF_INET, SOCK_STREAM, 0));
-            const int e1 = errno;
-            if (sock == INVALID_SOCKET) {
-                ythrow TSystemError(e1) << "Cannot create AF_INET socket";
-            }
-            int val;
-            const int ret = GetSockOpt(sock, SOL_SOCKET, SO_REUSEPORT, val);
-            const int e2 = errno;
-            if (ret == 0) {
-                Flag_ = true;
-            } else {
-                if (e2 == ENOPROTOOPT) {
-                    Flag_ = false;
-                } else {
-                    ythrow TSystemError(e2) << "Unexpected error in getsockopt";
-                }
-            }
-        }
-
-        static inline const TCtx* Instance() noexcept {
-            return Singleton<TCtx>();
-        }
-
-    public:
-        bool Flag_;
-    };
-
-    return TCtx::Instance()->Flag_;
-#else
-    return false;
-#endif
 }

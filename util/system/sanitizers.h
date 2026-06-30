@@ -4,8 +4,13 @@
 
 extern "C" { // sanitizers API
 
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_lsan_enabled_)
     void __lsan_ignore_object(const void* p);
+#endif
+
+#if defined(_asan_enabled_)
+    void __sanitizer_start_switch_fiber(void** fake_stack_save, const void* bottom, size_t size);
+    void __sanitizer_finish_switch_fiber(void* fake_stack_save, const void** old_bottom, size_t* old_size);
 #endif
 
 #if defined(_msan_enabled_)
@@ -17,9 +22,12 @@ extern "C" { // sanitizers API
 #if defined(_tsan_enabled_)
     void __tsan_acquire(void* a);
     void __tsan_release(void* a);
+    void* __tsan_get_current_fiber(void);
+    void __tsan_destroy_fiber(void* fiber);
+    void __tsan_switch_to_fiber(void* fiber, unsigned flags);
 #endif
 
-}; // sanitizers API
+} // sanitizers API
 
 namespace NSan {
     class TFiberContext {
@@ -27,13 +35,42 @@ namespace NSan {
         TFiberContext() noexcept;
         TFiberContext(const void* stack, size_t len, const char* contName) noexcept;
 
-        ~TFiberContext() noexcept;
+        ~TFiberContext() noexcept {
+            if (!IsMainFiber_) {
+#if defined(_asan_enabled_)
+                if (Token_) {
+                    // destroy saved FakeStack
+                    void* activeFakeStack = nullptr;
+                    const void* activeStack = nullptr;
+                    size_t activeStackSize = 0;
+                    __sanitizer_start_switch_fiber(&activeFakeStack, (char*)Stack_, Len_);
+                    __sanitizer_finish_switch_fiber(Token_, &activeStack, &activeStackSize);
+                    __sanitizer_start_switch_fiber(nullptr, activeStack, activeStackSize);
+                    __sanitizer_finish_switch_fiber(activeFakeStack, nullptr, nullptr);
+                }
+#endif
+#if defined(_tsan_enabled_)
+                __tsan_destroy_fiber(CurrentTSanFiberContext_);
+#endif
+            }
+        }
 
-        void BeforeFinish() noexcept;
-        void BeforeSwitch(TFiberContext* old) noexcept;
-        void AfterSwitch() noexcept;
+        Y_FORCE_INLINE void BeforeSwitch(TFiberContext* old) noexcept {
+#if defined(_asan_enabled_)
+            __sanitizer_start_switch_fiber(old ? &old->Token_ : nullptr, (char*)Stack_, Len_);
+#else
+            (void)old;
+#endif
 
-        static void AfterStart() noexcept;
+#if defined(_tsan_enabled_)
+            __tsan_switch_to_fiber(CurrentTSanFiberContext_, /*flags =*/0);
+#endif
+        }
+        void AfterSwitch() noexcept {
+#if defined(_asan_enabled_)
+            __sanitizer_finish_switch_fiber(Token_, nullptr, nullptr);
+#endif
+        }
 
     private:
         void* Token_;
@@ -118,7 +155,7 @@ namespace NSan {
     }
 
     inline static void MarkAsIntentionallyLeaked(const void* ptr) noexcept {
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_lsan_enabled_)
         __lsan_ignore_object(ptr);
 #else
         Y_UNUSED(ptr);
@@ -159,4 +196,4 @@ namespace NSan {
         Y_UNUSED(a);
 #endif
     }
-}
+} // namespace NSan

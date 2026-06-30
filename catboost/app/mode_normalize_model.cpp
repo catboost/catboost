@@ -27,11 +27,11 @@ using namespace NCB;
 namespace {
 
     struct TModeParams {
-        TString ModelFileName;
+        TVector<TString> ModelFileName;
         EModelType ModelType = EModelType::CatboostBinary;
         TString OutputModelFileName;
         TMaybe<EModelType> OutputModelType;
-        NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
+        NCatboostOptions::TDatasetReadingBaseParams DatasetReadingBaseParams;
         TMaybe<double> Scale;
         TMaybe<TVector<double>> Bias;
         ELoggingLevel LoggingLevel;
@@ -44,13 +44,13 @@ namespace {
             parser.AddHelpOption();
             parser.SetFreeArgsNum(0);
             BindModelFileParams(&parser, &ModelFileName, &ModelType);
-            BindColumnarPoolFormatParams(&parser, &ColumnarPoolFormatParams);
+            DatasetReadingBaseParams.BindParserOpts(&parser);
             parser.AddLongOption("set-scale").RequiredArgument("SCALE")
-                .Handler1T<double>([=](auto scale){ Scale = scale; })
+                .Handler1T<double>([this](auto scale){ Scale = scale; })
                 .Help("Scale")
                 ;
             parser.AddLongOption("set-bias").RequiredArgument("BIAS")
-                .Handler1T<TStringBuf>([=](auto bias) {
+                .Handler1T<TStringBuf>([this](auto bias) {
                     Bias = TVector<double>(0);
                     for (const auto& biasValue : StringSplitter(bias).Split(':')) {
                         Bias->push_back(FromString<double>(biasValue.Token()));
@@ -63,7 +63,7 @@ namespace {
                 .Help("Print input and resulting scale and bias")
                 ;
             parser.AddLongOption("logging-level").RequiredArgument("LEVEL")
-                .Handler1T<TStringBuf>([=](auto level){ LoggingLevel = FromString<ELoggingLevel>(level); })
+                .Handler1T<TStringBuf>([this](auto level){ LoggingLevel = FromString<ELoggingLevel>(level); })
                 .Help("Logging level, one of " + GetEnumAllNames<ELoggingLevel>())
                 .DefaultValue(ELoggingLevel::Info)
                 ;
@@ -73,7 +73,7 @@ namespace {
                 .DefaultValue(NSystemInfo::CachedNumberOfCpus())
                 ;
             parser.AddLongOption('i', "input-path").RequiredArgument("PATH...")
-                .Handler1T<TStringBuf>([=](auto path){ PoolPaths.push_back(TPathWithScheme{path, "dsv"}); })
+                .Handler1T<TStringBuf>([this](auto path){ PoolPaths.push_back(TPathWithScheme{path, "dsv"}); })
                 .Help("Pool path (repeat the option for multiple pools)")
                 ;
             parser.AddLongOption("output-model").RequiredArgument("PATH")
@@ -81,7 +81,7 @@ namespace {
                 .Help("Output model path")
                 ;
             parser.AddLongOption("output-model-format").RequiredArgument("FORMAT")
-                .Handler1T<TStringBuf>([=](auto format){ OutputModelType = FromString<EModelType>(format); })
+                .Handler1T<TStringBuf>([this](auto format){ OutputModelType = FromString<EModelType>(format); })
                 .Help("Output model format, one of " + GetEnumAllNames<EModelType>())
                 ;
             NLastGetopt::TOptsParseResult parseResult{&parser, argc, argv};
@@ -95,8 +95,9 @@ namespace {
             TModeParams modeParams(argc, argv);
             TSetLogging inThisScope(modeParams.LoggingLevel);
 
-            TFullModel model = ReadModel(modeParams.ModelFileName, modeParams.ModelType);
-            CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize empty model");
+            CB_ENSURE(modeParams.ModelFileName.size() == 1, "Model normalization requires exactly one model");
+            TFullModel model = ReadModel(modeParams.ModelFileName[0], modeParams.ModelType);
+            CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize an empty model");
             CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multitarget model");
             TScaleAndBias inputScaleAndBias = model.GetScaleAndBias();
             if (modeParams.PrintScaleAndBias) {
@@ -127,7 +128,7 @@ namespace {
                         << " bias " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero()
                         << Endl;
                 }
-                const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName;
+                const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName[0];
                 const EModelType outputModelType = modeParams.OutputModelType.GetOrElse(modeParams.ModelType);
                 ExportModel(model, outputModelFileName, outputModelType);
             }
@@ -158,17 +159,13 @@ namespace {
         ) const {
             TMinMax<double> result{+DBL_MAX, -DBL_MAX};
             TMutex result_guard;
+
+            NCatboostOptions::TDatasetReadingParams datasetReadingParams;
+            ((NCatboostOptions::TDatasetReadingBaseParams&)datasetReadingParams) = modeParams.DatasetReadingBaseParams;
+            datasetReadingParams.PoolPath = poolPath;
+
             ReadAndProceedPoolInBlocks(
-                NCatboostOptions::TDatasetReadingParams{
-                    modeParams.ColumnarPoolFormatParams,
-                    poolPath,
-                    TVector<NJson::TJsonValue>(),  // ClassLabels
-                    TPathWithScheme(),  // PairsFilePath
-                    TPathWithScheme(),  // FeatureNamesPath
-                    TPathWithScheme(),  // PoolMetaInfoPath
-                    false,  // ForceUnitAutoPairWeights
-                    TVector<ui32>(),  // IgnoredFeatures
-                },
+                datasetReadingParams,
                 10000,  // blockSize
                 [&](const TDataProviderPtr datasetPart) {
                     auto approx = ApplyModelForMinMax(
@@ -187,4 +184,4 @@ namespace {
     };
 }
 
-TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> YandexSpecificModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);
+TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> OpenSourceModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);

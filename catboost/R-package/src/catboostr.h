@@ -16,6 +16,7 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(
     SEXP poolFileParam,
     SEXP cdFileParam,
     SEXP pairsFileParam,
+    SEXP graphFileParam,
     SEXP featureNamesFileParam,
     SEXP delimiterParam,
     SEXP numVectorDelimiterParam,
@@ -31,13 +32,15 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
     SEXP textMatrixParam,
     SEXP textFeaturesIndicesParam,
     SEXP pairsParam,
+    SEXP graphParam,
     SEXP weightParam,
     SEXP groupIdParam,
     SEXP groupWeightParam,
     SEXP subgroupIdParam,
     SEXP pairsWeightParam,
     SEXP baselineParam,
-    SEXP featureNamesParam
+    SEXP featureNamesParam,
+    SEXP classLabelsParam
 );
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);

@@ -26,7 +26,7 @@ params = {"iterations": 100,
 
 scores = cv(cv_dataset,
             params,
-            fold_count=2, 
+            fold_count=2,
             plot="True")
 
 ```

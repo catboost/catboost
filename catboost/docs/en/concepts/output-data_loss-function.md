@@ -8,22 +8,22 @@
 #### {{ output--format }}
 
 - The first row describes the data provided in the file.
-    
+
     Format:
-    
+
     ```
     iter<\t><loss 1><loss 2><\t>...<\t><loss N>
     ```
-    
+
 - The metric names are expanded by colon-separated numbers if several validation datasets are input. The numbers correspond to the serial number of the input dataset.
 - All the rows except the first contain information for the specific iteration of building the tree.
-    
+
     Format:
-    
+
     ```
     <tree index><\t><loss 1><loss 2><\t>...<\t><loss N>
     ```
-    
+
 
 #### {{ dl--example }}
 

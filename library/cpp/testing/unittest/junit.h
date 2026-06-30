@@ -4,9 +4,12 @@
 #include <util/generic/maybe.h>
 #include <util/system/tempfile.h>
 
+#include <optional>
+
 namespace NUnitTest {
 
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION;
+extern const TString Y_UNITTEST_TEST_FILTER_FILE_OPTION;
 
 class TJUnitProcessor : public ITestSuiteProcessor {
     struct TFailure {
@@ -51,10 +54,35 @@ class TJUnitProcessor : public ITestSuiteProcessor {
         }
     };
 
+    // Holds a copy of TTest structure for current test
+    class TCurrentTest {
+    public:
+        TCurrentTest(const TTest* test)
+            : TestName(test->name)
+            , Unit(*test->unit)
+            , Test{&Unit, TestName.c_str()}
+        {
+        }
+
+        operator const TTest*() const {
+            return &Test;
+        }
+
+    private:
+        TString TestName;
+        TUnit Unit;
+        TTest Test;
+    };
+
     struct TOutputCapturer;
 
 public:
-    TJUnitProcessor(TString file, TString exec);
+    enum class EOutputFormat {
+        Xml,
+        Json,
+    };
+
+    TJUnitProcessor(TString file, TString exec, EOutputFormat outputFormat);
     ~TJUnitProcessor();
 
     void SetForkTestsParams(bool forkTests, bool isForked) override;
@@ -88,22 +116,33 @@ private:
     }
 
     void SerializeToFile();
+    void SerializeToXml();
+    void SerializeToJson();
     void MergeSubprocessReport();
 
     TString BuildFileName(size_t index, const TStringBuf extension) const;
+    TStringBuf GetFileExtension() const;
     void MakeReportFileName();
     void MakeTmpFileNameForForkedTests();
     static void TransferFromCapturer(THolder<TJUnitProcessor::TOutputCapturer>& capturer, TString& out, IOutputStream& outStream);
 
+    static void CaptureSignal(TJUnitProcessor* processor);
+    static void UncaptureSignal();
+    static void SignalHandler(int signal);
+
 private:
     const TString FileName; // cmd line param
     const TString ExecName; // cmd line param
+    const EOutputFormat OutputFormat;
     TString ResultReportFileName;
     TMaybe<TTempFile> TmpReportFile;
     TMap<TString, TTestSuite> Suites;
     THolder<TOutputCapturer> StdErrCapturer;
     THolder<TOutputCapturer> StdOutCapturer;
     TInstant StartCurrentTestTime;
+    void (*PrevAbortHandler)(int) = nullptr;
+    void (*PrevSegvHandler)(int) = nullptr;
+    std::optional<TCurrentTest> CurrentTest;
 };
 
 } // namespace NUnitTest

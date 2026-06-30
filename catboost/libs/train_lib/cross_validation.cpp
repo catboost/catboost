@@ -14,6 +14,7 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
@@ -24,6 +25,7 @@
 #include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/target/util.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/mapfindptr.h>
@@ -111,12 +113,6 @@ static void CheckCrossValidationOptions(
             "Can't load GPU learning library. "
             "Module was not compiled or driver  is incompatible with package. "
             "Please install latest NVDIA driver and check again");
-
-        // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
-        CB_ENSURE(
-            outputFileOptions.AllowWriteFiles(),
-            "Cross-validation on GPU relies on writing files, so it must be allowed"
-    );
     }
 
     bool hasQuerywiseMetric = false;
@@ -174,8 +170,6 @@ TFoldContext::TFoldContext(
     , Rand(randomSeed)
 {
     OutputOptions.UseBestModel = false;
-    // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
-    OutputOptions.SetSaveSnapshotFlag(taskType == ETaskType::GPU);
     if (hasFullModel) {
         FullModel = TFullModel();
     }
@@ -327,6 +321,25 @@ void UpdatePermutationBlockSize(
     }
 }
 
+static void UpdateYetiRankEvalMetric(
+    NCB::TDataProviderPtr data,
+    NPar::ILocalExecutor* localExecutor,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+
+    TTargetStats targetStats;
+    if (data->MetaInfo.TargetStats.Defined()) {
+        targetStats = *(data->MetaInfo.TargetStats);
+    } else {
+        targetStats = ComputeTargetStatsForYetiRank(
+            data->RawTargetData,
+            catBoostOptions->LossFunctionDescription.Get().LossFunction,
+            localExecutor
+        );
+    }
+    UpdateYetiRankEvalMetric(targetStats, Nothing(), catBoostOptions);
+}
+
+
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -357,7 +370,11 @@ void CrossValidate(
                                               labelConverter,
                                               data->RawTargetData.GetTargetDimension());
 
-    UpdateYetiRankEvalMetric(data->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    if (IsYetiRankLossFunction(catBoostOptions.LossFunctionDescription.Get().LossFunction)) {
+        // Can't use standard UpdateYetiRankEvalMetric because for raw data TargetStats might not be available
+        UpdateYetiRankEvalMetric(data, localExecutor, &catBoostOptions);
+    }
+
     UpdateSampleRateOption(data->ObjectsData->GetObjectCount(), &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
@@ -468,9 +485,6 @@ void CrossValidate(
             catBoostOptions.RandomSeed,
             cvParams.ReturnModels
         );
-        if (cvParams.IsCalledFromSearchHyperparameters) {
-            foldContext.OutputOptions.SetSaveSnapshotFlag(false); // hotfix for MLTOOLS-5965
-        }
         const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
             globalMaxIteration,
             &errorTracker,
@@ -616,6 +630,7 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
     );
 
     switch (dataProvider.RawTargetData.GetTargetType()) {
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::Float: {
             TVector<float> rawTargetData;

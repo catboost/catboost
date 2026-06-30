@@ -10,6 +10,8 @@ void TForkAwareSpinLock::Acquire() noexcept
 {
     GetForkLock()->AcquireReaderForkFriendly();
     SpinLock_.Acquire();
+    // To compensate for one of the above acquisitions.
+    NDetail::RecordSpinLockReleased();
 }
 
 bool TForkAwareSpinLock::TryAcquire() noexcept
@@ -21,11 +23,15 @@ bool TForkAwareSpinLock::TryAcquire() noexcept
         GetForkLock()->ReleaseReader();
         return false;
     }
+    // See Acquire.
+    NDetail::RecordSpinLockReleased();
     return true;
 }
 
 void TForkAwareSpinLock::Release() noexcept
 {
+    // See Acquire.
+    NDetail::RecordSpinLockAcquired();
     SpinLock_.Release();
     GetForkLock()->ReleaseReader();
 }

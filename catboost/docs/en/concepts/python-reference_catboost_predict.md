@@ -7,11 +7,12 @@
 
 ```python
 predict(data,
-    prediction_type=None,
-    ntree_start={{ fit--ntree_start }},
-    ntree_end=0,
-    thread_count={{ fit__thread_count__wrappers }},
-    verbose=None)
+        prediction_type=None,
+        ntree_start={{ fit--ntree_start }},
+        ntree_end=0,
+        thread_count={{ fit__thread_count__wrappers }},
+        verbose=None,
+        task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -37,6 +38,7 @@ For multiple objects:
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 - [{{ python-type__FeaturesData }}](../concepts/python-features-data__desc.md)
 
 
@@ -66,7 +68,7 @@ Supported prediction types:
 string
 
 
-**Default value** 
+**Default value**
 
 None (Exponent for Poisson and Tweedie, RawFormulaVal for all other loss functions)
 
@@ -79,11 +81,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 0
 
@@ -96,7 +98,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
@@ -108,11 +110,11 @@ int
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate prediction.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 
-**Possible types** 
+**Possible types**
 
 int
 
@@ -126,13 +128,31 @@ int
 
 Output the measured evaluation metric to stderr.
 
-**Possible types** 
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 
 None
+
+### task_type
+
+#### Description
+
+The evaluator type.
+
+Possible values:
+    - 'CPU'
+    - 'GPU' (models with only numerical features are supported for now)
+
+**Possible types**
+
+string
+
+**Default value**
+
+CPU
 
 
 ## {{ dl__return-value }} {#output-format}

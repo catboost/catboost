@@ -7,7 +7,6 @@
 
 Y_UNIT_TEST_SUITE(JsonSaveLoad) {
     Y_UNIT_TEST(Serialize) {
-
         NJson::TJsonValue expected;
 
         expected["ui64"] = ui64(1);
@@ -33,4 +32,4 @@ Y_UNIT_TEST_SUITE(JsonSaveLoad) {
 
         UNIT_ASSERT_EQUAL_C(expected, load, "expected: " << expected << ", got: " << load);
     }
-}
+} // Y_UNIT_TEST_SUITE(JsonSaveLoad)

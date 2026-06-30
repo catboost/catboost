@@ -55,7 +55,7 @@ private:
                 }
                 break;
             default:
-                Y_VERIFY(false, "Not implemented");
+                Y_ABORT_UNLESS(false, "Not implemented");
             }
             Status_ = rhs.Status_;
             return *this;

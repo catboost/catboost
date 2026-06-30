@@ -28,26 +28,29 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sstream>
+#include "google/protobuf/compiler/csharp/csharp_message.h"
+
 #include <algorithm>
-#include <map>
+#include <sstream>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/wire_format_lite.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "google/protobuf/compiler/csharp/csharp_doc_comment.h"
+#include "google/protobuf/compiler/csharp/csharp_enum.h"
+#include "google/protobuf/compiler/csharp/csharp_field_base.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/compiler/csharp/csharp_options.h"
+#include "google/protobuf/compiler/csharp/names.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/wire_format.h"
+#include "google/protobuf/wire_format_lite.h"
 
-#include <google/protobuf/compiler/csharp/csharp_options.h>
-#include <google/protobuf/compiler/csharp/csharp_doc_comment.h>
-#include <google/protobuf/compiler/csharp/csharp_enum.h>
-#include <google/protobuf/compiler/csharp/csharp_field_base.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_message.h>
-#include <google/protobuf/compiler/csharp/csharp_names.h>
+// Must be last.
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -112,7 +115,7 @@ void MessageGenerator::AddSerializableAttribute(io::Printer* printer) {
 }
 
 void MessageGenerator::Generate(io::Printer* printer) {
-  std::map<TProtoStringType, TProtoStringType> vars;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
   vars["class_name"] = class_name();
   vars["access_level"] = class_access_level();
 
@@ -161,7 +164,7 @@ void MessageGenerator::Generate(io::Printer* printer) {
   for (int i = 0; i < has_bit_field_count_; i++) {
     // don't use arrays since all arrays are heap allocated, saving allocations
     // use ints instead of bytes since bytes lack bitwise operators, saving casts
-    printer->Print("private int _hasBits$i$;\n", "i", StrCat(i));
+    printer->Print("private int _hasBits$i$;\n", "i", y_absl::StrCat(i));
   }
 
   WriteGeneratedCodeAttributes(printer);
@@ -172,11 +175,13 @@ void MessageGenerator::Generate(io::Printer* printer) {
 
   // Access the message descriptor via the relevant file descriptor or containing message descriptor.
   if (!descriptor_->containing_type()) {
-    vars["descriptor_accessor"] = GetReflectionClassName(descriptor_->file())
-        + ".Descriptor.MessageTypes[" + StrCat(descriptor_->index()) + "]";
+    vars["descriptor_accessor"] =
+        y_absl::StrCat(GetReflectionClassName(descriptor_->file()),
+                     ".Descriptor.MessageTypes[", descriptor_->index(), "]");
   } else {
-    vars["descriptor_accessor"] = GetClassName(descriptor_->containing_type())
-        + ".Descriptor.NestedTypes[" + StrCat(descriptor_->index()) + "]";
+    vars["descriptor_accessor"] =
+        y_absl::StrCat(GetClassName(descriptor_->containing_type()),
+                     ".Descriptor.NestedTypes[", descriptor_->index(), "]");
   }
 
   WriteGeneratedCodeAttributes(printer);
@@ -216,7 +221,7 @@ void MessageGenerator::Generate(io::Printer* printer) {
       "public const int $field_constant_name$ = $index$;\n",
       "field_name", fieldDescriptor->name(),
       "field_constant_name", GetFieldConstantName(fieldDescriptor),
-      "index", StrCat(fieldDescriptor->number()));
+      "index", y_absl::StrCat(fieldDescriptor->number()));
     std::unique_ptr<FieldGeneratorBase> generator(
         CreateFieldGeneratorInternal(fieldDescriptor));
     generator->GenerateMembers(printer);
@@ -238,9 +243,9 @@ void MessageGenerator::Generate(io::Printer* printer) {
     printer->Print("None = 0,\n");
     for (int j = 0; j < oneof->field_count(); j++) {
       const FieldDescriptor* field = oneof->field(j);
-      printer->Print("$field_property_name$ = $index$,\n",
-                     "field_property_name", GetPropertyName(field),
-                     "index", StrCat(field->number()));
+      printer->Print("$oneof_case_name$ = $index$,\n",
+                     "oneof_case_name", GetOneofCaseName(field),
+                     "index", y_absl::StrCat(field->number()));
     }
     printer->Outdent();
     printer->Print("}\n");
@@ -374,7 +379,7 @@ bool MessageGenerator::HasNestedGeneratedTypes()
 }
 
 void MessageGenerator::GenerateCloningCode(io::Printer* printer) {
-  std::map<TProtoStringType, TProtoStringType> vars;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
   WriteGeneratedCodeAttributes(printer);
   vars["class_name"] = class_name();
     printer->Print(
@@ -382,7 +387,7 @@ void MessageGenerator::GenerateCloningCode(io::Printer* printer) {
     "public $class_name$($class_name$ other) : this() {\n");
   printer->Indent();
   for (int i = 0; i < has_bit_field_count_; i++) {
-    printer->Print("_hasBits$i$ = other._hasBits$i$;\n", "i", StrCat(i));
+    printer->Print("_hasBits$i$ = other._hasBits$i$;\n", "i", y_absl::StrCat(i));
   }
   // Clone non-oneof fields first (treating optional proto3 fields as non-oneof)
   for (int i = 0; i < descriptor_->field_count(); i++) {
@@ -403,10 +408,10 @@ void MessageGenerator::GenerateCloningCode(io::Printer* printer) {
     for (int j = 0; j < oneof->field_count(); j++) {
       const FieldDescriptor* field = oneof->field(j);
       std::unique_ptr<FieldGeneratorBase> generator(CreateFieldGeneratorInternal(field));
-      vars["field_property_name"] = GetPropertyName(field);
+      vars["oneof_case_name"] = GetOneofCaseName(field);
       printer->Print(
           vars,
-          "case $property_name$OneofCase.$field_property_name$:\n");
+          "case $property_name$OneofCase.$oneof_case_name$:\n");
       printer->Indent();
       generator->GenerateCloningCode(printer);
       printer->Print("break;\n");
@@ -438,32 +443,30 @@ void MessageGenerator::GenerateFreezingCode(io::Printer* printer) {
 }
 
 void MessageGenerator::GenerateFrameworkMethods(io::Printer* printer) {
-    std::map<TProtoStringType, TProtoStringType> vars;
-    vars["class_name"] = class_name();
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
+  vars["class_name"] = class_name();
 
-    // Equality
-    WriteGeneratedCodeAttributes(printer);
-    printer->Print(
-        vars,
-        "public override bool Equals(object other) {\n"
-        "  return Equals(other as $class_name$);\n"
-        "}\n\n");
-    WriteGeneratedCodeAttributes(printer);
-    printer->Print(
-        vars,
-        "public bool Equals($class_name$ other) {\n"
-        "  if (ReferenceEquals(other, null)) {\n"
-        "    return false;\n"
-        "  }\n"
-        "  if (ReferenceEquals(other, this)) {\n"
-        "    return true;\n"
-        "  }\n");
-    printer->Indent();
-    for (int i = 0; i < descriptor_->field_count(); i++) {
-      std::unique_ptr<FieldGeneratorBase> generator(
-            CreateFieldGeneratorInternal(descriptor_->field(i)));
-        generator->WriteEquals(printer);
-    }
+  // Equality
+  WriteGeneratedCodeAttributes(printer);
+  printer->Print(vars,
+                 "public override bool Equals(object other) {\n"
+                 "  return Equals(other as $class_name$);\n"
+                 "}\n\n");
+  WriteGeneratedCodeAttributes(printer);
+  printer->Print(vars,
+                 "public bool Equals($class_name$ other) {\n"
+                 "  if (ReferenceEquals(other, null)) {\n"
+                 "    return false;\n"
+                 "  }\n"
+                 "  if (ReferenceEquals(other, this)) {\n"
+                 "    return true;\n"
+                 "  }\n");
+  printer->Indent();
+  for (int i = 0; i < descriptor_->field_count(); i++) {
+    std::unique_ptr<FieldGeneratorBase> generator(
+        CreateFieldGeneratorInternal(descriptor_->field(i)));
+    generator->WriteEquals(printer);
+  }
     for (int i = 0; i < descriptor_->real_oneof_decl_count(); i++) {
       printer->Print("if ($property_name$Case != other.$property_name$Case) return false;\n",
           "property_name", UnderscoresToCamelCase(descriptor_->oneof_decl(i)->name(), true));
@@ -605,7 +608,7 @@ void MessageGenerator::GenerateMergingMethods(io::Printer* printer) {
   // Note:  These are separate from GenerateMessageSerializationMethods()
   //   because they need to be generated even for messages that are optimized
   //   for code size.
-  std::map<TProtoStringType, TProtoStringType> vars;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
   vars["class_name"] = class_name();
 
   WriteGeneratedCodeAttributes(printer);
@@ -635,10 +638,10 @@ void MessageGenerator::GenerateMergingMethods(io::Printer* printer) {
     printer->Indent();
     for (int j = 0; j < oneof->field_count(); j++) {
       const FieldDescriptor* field = oneof->field(j);
-      vars["field_property_name"] = GetPropertyName(field);
+      vars["oneof_case_name"] = GetOneofCaseName(field);
       printer->Print(
         vars,
-        "case $property_name$OneofCase.$field_property_name$:\n");
+        "case $property_name$OneofCase.$oneof_case_name$:\n");
       printer->Indent();
       std::unique_ptr<FieldGeneratorBase> generator(CreateFieldGeneratorInternal(field));
       generator->GenerateMergingCode(printer);
@@ -685,7 +688,7 @@ void MessageGenerator::GenerateMergingMethods(io::Printer* printer) {
 }
 
 void MessageGenerator::GenerateMainParseLoop(io::Printer* printer, bool use_parse_context) {
-  std::map<TProtoStringType, TProtoStringType> vars;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
   vars["maybe_ref_input"] = use_parse_context ? "ref input" : "input";
 
   printer->Print(
@@ -698,7 +701,7 @@ void MessageGenerator::GenerateMainParseLoop(io::Printer* printer, bool use_pars
     printer->Print(
         "case $end_tag$:\n"
         "  return;\n",
-        "end_tag", StrCat(end_tag_));
+        "end_tag", y_absl::StrCat(end_tag_));
   }
   if (has_extension_ranges_) {
     printer->Print(vars,
@@ -717,7 +720,7 @@ void MessageGenerator::GenerateMainParseLoop(io::Printer* printer, bool use_pars
     const FieldDescriptor* field = fields_by_number()[i];
     internal::WireFormatLite::WireType wt =
         internal::WireFormat::WireTypeForFieldType(field->type());
-    uint32 tag = internal::WireFormatLite::MakeTag(field->number(), wt);
+    arc_ui32 tag = internal::WireFormatLite::MakeTag(field->number(), wt);
     // Handle both packed and unpacked repeated fields with the same Read*Array call;
     // the two generated cases are the packed and unpacked tags.
     // TODO(jonskeet): Check that is_packable is equivalent to
@@ -727,13 +730,13 @@ void MessageGenerator::GenerateMainParseLoop(io::Printer* printer, bool use_pars
       printer->Print(
         "case $packed_tag$:\n",
         "packed_tag",
-        StrCat(
+        y_absl::StrCat(
             internal::WireFormatLite::MakeTag(
                 field->number(),
                 internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED)));
     }
 
-    printer->Print("case $tag$: {\n", "tag", StrCat(tag));
+    printer->Print("case $tag$: {\n", "tag", y_absl::StrCat(tag));
     printer->Indent();
     std::unique_ptr<FieldGeneratorBase> generator(
         CreateFieldGeneratorInternal(field));
@@ -764,7 +767,8 @@ int MessageGenerator::GetPresenceIndex(const FieldDescriptor* descriptor) {
       index++;
     }
   }
-  GOOGLE_LOG(DFATAL)<< "Could not find presence index for field " << descriptor->name();
+  Y_ABSL_DLOG(FATAL) << "Could not find presence index for field "
+                   << descriptor->name();
   return -1;
 }
 
@@ -777,3 +781,5 @@ FieldGeneratorBase* MessageGenerator::CreateFieldGeneratorInternal(
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"

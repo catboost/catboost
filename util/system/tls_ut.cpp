@@ -55,4 +55,4 @@ Y_UNIT_TEST_SUITE(TTestTLS) {
             UNIT_ASSERT_VALUES_EQUAL(x.Get()[i].Get(), 0);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestTLS)

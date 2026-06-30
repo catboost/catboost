@@ -9,15 +9,15 @@ It contains several numerical and categorical features.
 
 The contents of columns depends on the name or on the pattern of the name of the corresponding column:
 - `Target` (the first column) — Target values.
-    
+
 - `Cat*` — Categorical features.
-    
+
 - `Num*` — Numerical features.
-    
+
 - `MonotonicNeg*` — Numerical features, for which monotonic constraints must hold.
-    
+
     If values of such features decrease, then the prediction value must not decrease. Thus, if there are two objects $x_{1}$ and $x_{2}$ with all features being equal except for a monotonic negative feature M, such that $x_{1}[M] > x_{2}[M]$, then the following inequality must be met for predictions:
-    
+
     $f(x_{1}) \leq f(x_{2})$
 
 ## {{ dl--invoke-format }} {#method-call}

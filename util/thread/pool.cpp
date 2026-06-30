@@ -1,6 +1,7 @@
 #include <atomic>
 
 #include <util/system/defaults.h>
+#include <util/system/spinlock.h>
 
 #if defined(_unix_)
     #include <pthread.h>
@@ -57,7 +58,7 @@ namespace {
         bool EnumerateThreads = false;
         std::atomic<ui64> Index{0};
     };
-}
+} // namespace
 
 TThreadFactoryHolder::TThreadFactoryHolder() noexcept
     : Pool_(SystemThreadFactory())
@@ -80,8 +81,11 @@ public:
         , ThreadCountExpected(0)
         , ThreadCountReal(0)
         , Forked(false)
+        , IsForkAware_(params.IsForkAware_)
     {
-        TAtforkQueueRestarter::Get().RegisterObject(this);
+        if (IsForkAware_) {
+            TAtforkQueueRestarter::Get().RegisterObject(this);
+        }
         Start(thrnum, maxqueue);
     }
 
@@ -92,7 +96,9 @@ public:
             // ¯\_(ツ)_/¯
         }
 
-        TAtforkQueueRestarter::Get().UnregisterObject(this);
+        if (IsForkAware_) {
+            TAtforkQueueRestarter::Get().UnregisterObject(this);
+        }
         Y_ASSERT(Tharr.empty());
     }
 
@@ -268,6 +274,7 @@ private:
     size_t ThreadCountExpected;
     size_t ThreadCountReal;
     bool Forked;
+    bool IsForkAware_;
 
     class TAtforkQueueRestarter {
     public:
@@ -289,30 +296,36 @@ private:
 
     private:
         void ChildAction() {
-            TTryGuard guard{ActionMutex};
-            // If you get an error here, it means you've used fork(2) in multi-threaded environment and probably created thread pools often.
-            // Don't use fork(2) in multi-threaded programs, don't create thread pools often.
-            // The mutex is locked after fork iff the fork(2) call was concurrent with RegisterObject / UnregisterObject in another thread.
-            Y_VERIFY(guard.WasAcquired(), "Failed to acquire ActionMutex after fork");
+            Y_ABORT_UNLESS(ActionMutex.IsLocked(), "ActionMutex must be locked after fork");
 
             for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
                 it->AtforkAction();
             }
+
+            ActionMutex.Release();
         }
 
         static void ProcessChildAction() {
             Get().ChildAction();
         }
 
+        static void ProcessParentBeforeFork() {
+            Get().ActionMutex.Acquire();
+        }
+
+        static void ProcessParentAfterFork() {
+            Get().ActionMutex.Release();
+        }
+
         TIntrusiveList<TImpl> RegisteredObjects;
-        TMutex ActionMutex;
+        TAdaptiveLock ActionMutex;
 
     public:
         inline TAtforkQueueRestarter() {
 #if defined(_bionic_)
-//no pthread_atfork on android libc
+// no pthread_atfork on android libc
 #elif defined(_unix_)
-            pthread_atfork(nullptr, nullptr, ProcessChildAction);
+            pthread_atfork(ProcessParentBeforeFork, ProcessParentAfterFork, ProcessChildAction);
 #endif
         }
     };
@@ -431,7 +444,7 @@ public:
         , Free_(0)
         , IdleTime_(TDuration::Max())
     {
-        sprintf(Name_, "[mtp queue %ld]", ++MtpQueueCounter);
+        snprintf(Name_, sizeof(Name_), "[mtp queue %ld]", ++MtpQueueCounter);
     }
 
     inline ~TImpl() {
@@ -660,7 +673,7 @@ namespace {
             Owned->Process(data);
         }
     };
-}
+} // namespace
 
 void IThreadPool::SafeAdd(IObjectInQueue* obj) {
     Y_ENSURE_EX(Add(obj), TThreadPoolException() << TStringBuf("can not add object to queue"));
@@ -757,7 +770,7 @@ namespace {
         IThreadPool* Parent_;
         TThreadImplRef Impl_;
     };
-}
+} // namespace
 
 IThread* IThreadPool::DoCreate() {
     return new TPoolThread(this);

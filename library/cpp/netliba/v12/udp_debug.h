@@ -24,7 +24,7 @@ namespace NNetliba_v12 {
                a.InpDataSize == b.InpDataSize && a.OutDataSize == b.OutDataSize;
     }
 
-    enum { DEFAULT_NETLIBA_COLOR = 0 };
+    constexpr int DEFAULT_NETLIBA_COLOR = 0;
 
     class TColoredRequesterPendingDataStats {
         THashMap<ui8, TIntrusivePtr<TRequesterPendingDataStats>> ColoredStats;

@@ -56,8 +56,9 @@ ABSL_ATTRIBUTE_UNUSED static int stacktraces_enabler = []() {
 }();
 
 template <bool IS_STACK_FRAMES, bool IS_WITH_CONTEXT>
-static int UnwindImpl(void** result, int* sizes, int max_depth, int skip_count,
-                      const void *ucp, int *min_dropped_frames) {
+static int UnwindImpl(void** result, uintptr_t* frames, int* sizes,
+                      int max_depth, int skip_count, const void* ucp,
+                      int* min_dropped_frames) {
   if (recursive || disable_stacktraces.load(std::memory_order_relaxed)) {
     return 0;
   }
@@ -70,17 +71,29 @@ static int UnwindImpl(void** result, int* sizes, int max_depth, int skip_count,
 
   size = backtrace(stack, kStackLength);
   skip_count++;  // we want to skip the current frame as well
-  int result_count = size - skip_count;
-  if (result_count < 0)
-    result_count = 0;
-  if (result_count > max_depth)
-    result_count = max_depth;
-  for (int i = 0; i < result_count; i++)
-    result[i] = stack[i + skip_count];
+
+  int num_frames = size - skip_count;
+  if (num_frames < 0) num_frames = 0;
+  if (num_frames > max_depth) num_frames = max_depth;
+
+  int result_count = 0;
+  for (int i = 0; i < num_frames; i++) {
+    int stack_index = i + skip_count;
+    // Follow x86 and stop if the return address is null (end of stack).
+    if (stack[stack_index] == nullptr) {
+      break;
+    }
+    result[result_count++] = stack[stack_index];
+  }
 
   if (IS_STACK_FRAMES) {
-    // No implementation for finding out the stack frame sizes yet.
-    memset(sizes, 0, sizeof(*sizes) * static_cast<size_t>(result_count));
+    // No implementation for finding out the stack frames yet.
+    if (frames != nullptr) {
+      memset(frames, 0, sizeof(*frames) * static_cast<size_t>(result_count));
+    }
+    if (sizes != nullptr) {
+      memset(sizes, 0, sizeof(*sizes) * static_cast<size_t>(result_count));
+    }
   }
   if (min_dropped_frames != nullptr) {
     if (size - skip_count - max_depth > 0) {

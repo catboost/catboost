@@ -34,12 +34,15 @@ void LockMemory(const void* addr, size_t len) {
 #elif defined(_win_)
     HANDLE hndl = GetCurrentProcess();
     SIZE_T min, max;
-    if (!GetProcessWorkingSetSize(hndl, &min, &max))
+    if (!GetProcessWorkingSetSize(hndl, &min, &max)) {
         ythrow yexception() << LastSystemErrorText();
-    if (!SetProcessWorkingSetSize(hndl, min + len, max + len))
+    }
+    if (!SetProcessWorkingSetSize(hndl, min + len, max + len)) {
         ythrow yexception() << LastSystemErrorText();
-    if (!VirtualLock((LPVOID)addr, len))
+    }
+    if (!VirtualLock((LPVOID)addr, len)) {
         ythrow yexception() << LastSystemErrorText();
+    }
 #endif
 }
 
@@ -58,12 +61,15 @@ void UnlockMemory(const void* addr, size_t len) {
 #elif defined(_win_)
     HANDLE hndl = GetCurrentProcess();
     SIZE_T min, max;
-    if (!GetProcessWorkingSetSize(hndl, &min, &max))
+    if (!GetProcessWorkingSetSize(hndl, &min, &max)) {
         ythrow yexception() << LastSystemErrorText();
-    if (!SetProcessWorkingSetSize(hndl, min - len, max - len))
+    }
+    if (!SetProcessWorkingSetSize(hndl, min - len, max - len)) {
         ythrow yexception() << LastSystemErrorText();
-    if (!VirtualUnlock((LPVOID)addr, len))
+    }
+    if (!VirtualUnlock((LPVOID)addr, len)) {
         ythrow yexception() << LastSystemErrorText();
+    }
 #endif
 }
 

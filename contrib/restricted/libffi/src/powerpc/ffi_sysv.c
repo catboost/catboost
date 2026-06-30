@@ -29,6 +29,7 @@
    ----------------------------------------------------------------------- */
 
 #include "ffi.h"
+#include <tramp.h>
 
 #ifndef POWERPC64
 #include "ffi_common.h"
@@ -636,25 +637,34 @@ ffi_prep_closure_loc_sysv (ffi_closure *closure,
 			   void *user_data,
 			   void *codeloc)
 {
-  unsigned int *tramp;
-
   if (cif->abi < FFI_SYSV || cif->abi >= FFI_LAST_ABI)
     return FFI_BAD_ABI;
 
-  tramp = (unsigned int *) &closure->tramp[0];
-  tramp[0] = 0x7c0802a6;  /*   mflr    r0 */
-  tramp[1] = 0x429f0005;  /*   bcl     20,31,.+4 */
-  tramp[2] = 0x7d6802a6;  /*   mflr    r11 */
-  tramp[3] = 0x7c0803a6;  /*   mtlr    r0 */
-  tramp[4] = 0x800b0018;  /*   lwz     r0,24(r11) */
-  tramp[5] = 0x816b001c;  /*   lwz     r11,28(r11) */
-  tramp[6] = 0x7c0903a6;  /*   mtctr   r0 */
-  tramp[7] = 0x4e800420;  /*   bctr */
-  *(void **) &tramp[8] = (void *) ffi_closure_SYSV; /* function */
-  *(void **) &tramp[9] = codeloc;                   /* context */
+#ifdef FFI_EXEC_STATIC_TRAMP
+  if (ffi_tramp_is_present(closure))
+    {
+      /* Initialize the static trampoline's parameters. */
+      void (*dest)(void) = ffi_closure_SYSV;
+      ffi_tramp_set_parms (closure->ftramp, dest, closure);
+    }
+  else
+#endif
+    {
+      unsigned int *tramp = (unsigned int *) &closure->tramp[0];
+      tramp[0] = 0x7c0802a6;  /*   mflr    r0 */
+      tramp[1] = 0x429f0005;  /*   bcl     20,31,.+4 */
+      tramp[2] = 0x7d6802a6;  /*   mflr    r11 */
+      tramp[3] = 0x7c0803a6;  /*   mtlr    r0 */
+      tramp[4] = 0x800b0018;  /*   lwz     r0,24(r11) */
+      tramp[5] = 0x816b001c;  /*   lwz     r11,28(r11) */
+      tramp[6] = 0x7c0903a6;  /*   mtctr   r0 */
+      tramp[7] = 0x4e800420;  /*   bctr */
+      *(void **) &tramp[8] = (void *) ffi_closure_SYSV; /* function */
+      *(void **) &tramp[9] = codeloc;			/* context */
 
-  /* Flush the icache.  */
-  flush_icache ((char *)tramp, (char *)codeloc, 8 * 4);
+      /* Flush the icache.  */
+      flush_icache ((char *)tramp, (char *)codeloc, 8 * 4);
+    }
 
   closure->cif = cif;
   closure->fun = fun;

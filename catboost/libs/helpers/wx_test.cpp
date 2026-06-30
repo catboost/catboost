@@ -61,7 +61,7 @@ TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& tes
         return result;
     }
 
-    Sort(diffs.begin(), diffs.end(), [&](double x, double y) { return Abs(x) < Abs(y); });
+    StableSort(diffs.begin(), diffs.end(), [&](double x, double y) { return Abs(x) < Abs(y); });
 
     double wPlus = 0;
     double wMinus = 0;

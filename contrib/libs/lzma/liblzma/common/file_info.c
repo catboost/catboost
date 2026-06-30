@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       file_info.c
 /// \brief      Decode .xz file information into a lzma_index structure
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -299,15 +298,13 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 		// Start looking for Stream Padding and Stream Footer
 		// at the end of the file.
 		coder->file_target_pos = coder->file_size;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_PADDING_SEEK:
 		coder->sequence = SEQ_PADDING_DECODE;
 		return_if_error(reverse_seek(
 				coder, in_start, in_pos, in_size));
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_PADDING_DECODE: {
 		// Copy to coder->temp first. This keeps the code simpler if
@@ -350,16 +347,16 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 		// coder->temp[coder->temp_size - LZMA_STREAM_HEADER_SIZE].
 		//
 		// Otherwise we will need to seek. The seeking is done so
-		// that Stream Footer wil be at the end of coder->temp.
+		// that Stream Footer will be at the end of coder->temp.
 		// This way it's likely that we also get a complete Index
 		// field into coder->temp without needing a separate seek
 		// for that (unless the Index field is big).
 		if (coder->temp_size < LZMA_STREAM_HEADER_SIZE)
 			return_if_error(reverse_seek(
 					coder, in_start, in_pos, in_size));
-	}
 
-	// Fall through
+		FALLTHROUGH;
+	}
 
 	case SEQ_FOOTER:
 		// Copy the Stream Footer field into coder->temp.
@@ -415,7 +412,7 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 				return LZMA_SEEK_NEEDED;
 		}
 
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_INDEX_INIT: {
 		// Calculate the amount of memory already used by the earlier
@@ -445,9 +442,8 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		coder->index_remaining = coder->footer_flags.backward_size;
 		coder->sequence = SEQ_INDEX_DECODE;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_INDEX_DECODE: {
 		// Decode (a part of) the Index. If the whole Index is already
@@ -575,9 +571,9 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return_if_error(reverse_seek(coder,
 					in_start, in_pos, in_size));
 		}
-	}
 
-	// Fall through
+		FALLTHROUGH;
+	}
 
 	case SEQ_HEADER_DECODE:
 		// Copy the Stream Header field into coder->temp.
@@ -597,8 +593,7 @@ file_info_decode(void *coder_ptr, const lzma_allocator *allocator,
 				coder->temp + coder->temp_size)));
 
 		coder->sequence = SEQ_HEADER_COMPARE;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_HEADER_COMPARE:
 		// Compare Stream Header against Stream Footer. They must

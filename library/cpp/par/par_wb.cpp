@@ -10,7 +10,7 @@ namespace NPar {
     struct TWBCopyCmd {
         TVector<i64> Data;
 
-        SAVELOAD(Data)
+        SAVELOAD(Data);
     };
 
     class TDataCollector: public IRemoteQueryResponseNotify {

@@ -85,7 +85,7 @@ namespace {
                     featuresVecSecond[i] = MakeArrayRef(featuresVec[i].begin(), featuresVec[i].end());
                 }
 
-                IQuantizedData* iQuantizedData = reinterpret_cast<IQuantizedData*>(ResultGpu.Get());
+                IQuantizedData* iQuantizedData = static_cast<IQuantizedData*>(ResultGpu.Get());
                 Model.GetCurrentEvaluator()->Quantize(featuresVecSecond, iQuantizedData);
                 #else
                 CB_ENSURE(false, "Binary built without CUDA support, CUDA quantization failed");
@@ -116,7 +116,8 @@ namespace {
                         ctrs
                 );
             } else {
-                CB_ENSURE(false, "Can't apply visitor to GPU quantized data, please contact catboost developers via GitHub issue or in support chat");
+                CB_ENSURE(false, "Model evaluation on GPU is not supported for quantized pools: "
+                                 "can't apply visitor to GPU quantized data, please contact catboost developers via GitHub issue or in support chat");
             }
         }
 

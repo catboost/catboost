@@ -1,23 +1,40 @@
 import os
 import pytest
 import re
+import sys
+import shutil
 import tempfile
 import time
-import yatest.common
-import yatest.common.network
-import yatest.common.runtime
 from .common_helpers import *  # noqa
+from .common_helpers import git_repo_root_dir
 import zipfile
+from library.python import port_manager
 
-from testpath.tempdir import TemporaryDirectory
+
+import yatest.common
+
+
+def is_open_source():
+    return not getattr(sys, 'is_standalone_binary', False)
 
 
 def get_catboost_binary_path():
-    return yatest.common.binary_path("catboost/app/catboost")
+    if git_repo_root_dir:
+        return os.path.join(
+            os.environ['CMAKE_BINARY_DIR'],
+            'catboost',
+            'app',
+            'catboost' + ('.exe' if sys.platform == 'win32' else '')
+        )
+    else:
+        return yatest.common.binary_path("catboost/app/catboost")
 
 
 def data_file(*path):
-    return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
+    if git_repo_root_dir:
+        return os.path.join(git_repo_root_dir, "catboost", "pytest", "data", *path)
+    else:
+        return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path).replace('\\', '/'))
 
 
 @yatest.common.misc.lazy
@@ -118,30 +135,53 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     yatest.common.execute(calc_cmd)
 
 
+def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, args=None):
+    cmd = (
+        get_catboost_binary_path(),
+        'fstr',
+        '-m', model_file,
+        '--input-path', pool_path,
+        '--output-path', fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    if pairs:
+        cmd += ('--input-pairs', pairs)
+    if cd_path:
+        cmd += ('--column-description', cd_path)
+    if args:
+        cmd += tuple(args.strip().split())
+    yatest.common.execute(cmd)
+
+
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 
 
 def execute_catboost_dist(mode, cmd):
     hosts_path = yatest.common.test_output_path('hosts.txt')
-    with yatest.common.network.PortManager() as pm:
+    with port_manager.PortManager() as pm:
         port0 = pm.get_port()
         port1 = pm.get_port()
         with open(hosts_path, 'w') as hosts:
             hosts.write('localhost:' + str(port0) + '\n')
             hosts.write('localhost:' + str(port1) + '\n')
 
-        catboost_path = yatest.common.binary_path("catboost/app/catboost")
+        catboost_path = get_catboost_binary_path()
         worker0 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port0),), wait=False)
         worker1 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port1),), wait=False)
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        execute_catboost(
-            mode,
-            'CPU',
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
-        )
+        try:
+            execute_catboost(
+                mode,
+                'CPU',
+                cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
+            )
+        except BaseException:
+            worker0.terminate()
+            worker1.terminate()
+
         worker0.wait()
         worker1.wait()
 
@@ -152,11 +192,14 @@ def execute_dist_train(cmd):
 
 @pytest.fixture(scope="module")
 def compressed_data():
-    data_path = yatest.common.source_path(os.path.join("catboost", "pytest", "data"))
-    tmp_dir = TemporaryDirectory()
-    for file_name in os.listdir(data_path):
-        if file_name.endswith('.zip'):
-            with zipfile.ZipFile(os.path.join(data_path, file_name)) as zip_file:
-                zip_file.extractall(path=tmp_dir.name)
+    data_path = yatest.common.source_path("catboost/pytest/data")
+    try:
+        tmp_dir = tempfile.mkdtemp()
+        for file_name in os.listdir(data_path):
+            if file_name.endswith('.zip'):
+                with zipfile.ZipFile(os.path.join(data_path, file_name)) as zip_file:
+                    zip_file.extractall(path=tmp_dir)
 
-    return tmp_dir
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir)

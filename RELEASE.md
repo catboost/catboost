@@ -1,3 +1,366 @@
+# Node package Release 1.27.0
+(uses `catboostmodel` native libraries from the main CatBoost release v1.2.10)
+* Fix prediction of type `Probability` on CPUs that do not have SSE4 instruction set (that includes all ARM CPUs).
+  Values with probability 0 have been erroneously computed as `nan`.
+* Fix a race condition in error messages in exceptions in multithreaded programs.
+* \[Performance\]\[Windows\] `__SSE__` compiler flag was not enabled for Windows builds with MSVC compiler. This affected code that relied on this flag including quantization during model inference. It is important to note that the compiler itself was configured for SSE support and could still apply automatic SSE optimizations.
+* \[Build\] Switch to Conan 2.x. #2582
+* \[Build\] Use 'spawn' instead of 'exec' to avoid issues with maxBuffer overflow.
+* \[Build\]\[CUDA\] Do not output detailed ptxas statistics by default.
+* \[Build\]\[CUDA\] Switch from hardcoded gencode specifications in multiple `CMakeLists.txt` files to [the standard `CMake` variable `CMAKE_CUDA_ARCHITECTURES`](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard and [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). #2540
+* \[Build\]\[CUDA\] Remove excessive CUDA compilation parallelism that could lead to RAM exhaustion during build. #3034
+* \[Build\]\[macOS\] Support Apple Clang 17. #2860
+* \[Build\]\[Windows\] Support building with MSVC toolsets 14.4*. #2302
+
+
+# Release 1.2.10
+
+## New features
+* \[JVM applier\] Add `predictTransposed` method #2927. Thanks to @levs2001.
+* \[Spark\]: Support Spark 4.0.x and 4.1.x #2946. Thanks to @jdries.
+
+
+# Release 1.2.9
+
+> :warning: **There are no JVM artifacts for this release due to issues with publishing.**: They will be updated in the next release soon.
+
+## Major changes
+* \[Python-package\] Add [`polars`](https://docs.pola.rs/api/python/stable/reference/index.html) input data support. #2524.
+
+  `Polars` data structures are supported for features, labels and auxiliary data like `weight`, `timestamp` etc.
+
+## New features
+* \[R-package\] Make 'predict' an S3 method #1657. Thanks to @david-cortes.
+* Add `RMSPE` metric and loss (both as are CPU-only for now) #1767. Thanks to @ivan339339.
+* \[C/C++ applier\] New function `LoadFullModelZeroCopy` for mmap #2893. Thanks to @gakoshin.
+
+## Improvements
+* Remove the limit of 128 threads when loading data. #3027
+
+## Speedups
+* Optimize `Lossguide` grow policy on CPU #2883. Approximate speedup is 1.4x. Thanks to @Levachev.
+* \[Python-package\] Support non-float32 `numpy` numeric types in multithreaded native features data initialization. #1558, #2847
+* \[Python-package\] Avoid possible repeated reparsing of estimator parameters to canonical forms
+
+## Python package
+* Support Python 3.14 #2943
+* `pyproject.toml` is now PEP-517 compliant.
+* Estimators: Add `__sklearn_tags__` method to be compatible with `scikit-learn` >= 1.8.x. #2955
+* Estimators: Add `__repr__` method with a meaningful description expected by `scikit-learn` #2307. Thanks to @besteady.
+* Adapt to the removal of `dry_run` parameters in setuptools 81.0. [pypa/setuptools#4872](https://github.com/pypa/setuptools/pull/4872)
+* Set upper version bounds for important dependencies to avoid breaking changes
+
+## Rust package
+* Implement Sync for rust Model struct #2689. Thanks to @alexeysofin.
+* Support Windows #2842
+* Fix build on Linux aarch64 #2890. Thanks to @joelchen.
+
+## Build & testing
+* \[Windows\] Support building with MSVC toolsets 14.4*. #2302
+* \[GPU\] Switch from hardcoded gencode specifications in multiple `CMakeLists.txt` files to [the standard `CMake` variable `CMAKE_CUDA_ARCHITECTURES`](https://cmake.org/cmake/help/v3.24/variable/CMAKE_CUDA_ARCHITECTURES.html), although the default value is non-standard and [specified in `cuda.cmake`](https://github.com/catboost/catboost/blob/5fb7b9def07f4ea2df6dcc31b5cd1e81a8b00217/cmake/cuda.cmake#L7). #2540
+* \[macOS\] Support Apple Clang 17. #2860
+* \[Python-package\]\[Windows\] Fix python package installation from a source distribution. #3024
+* \[Python-package\] `wheel` build dependency no longer required
+
+## Bugfixes
+* \[Performance\]\[Windows\] `__SSE__` compiler flag was not enabled for Windows builds with MSVC compiler. This affected code that relied on this flag including some operations used during training and quantization during model inference. It is important to note that the compiler itself was configured for SSE support and could still apply automatic SSE optimizations.
+* \[Python-package\] carry.py: fix _uplift_by_name. #2861
+* \[Python-package\] `CatBoostError` was missing from `__all__` in `catboost` package. #2862
+* \[Python-package\] `log_cout` was used instead of `log_cerr` by mistake. #2863
+* \[Python-package\] Don't fail when all features are embeddings with the same dimension. #2875
+* \[Python-package\] `get_params`: `deep` parameter meaning was inconsistent with `scikit-learn` expectations. #2991
+* \[Python-package\] Estimators' `_get_tags`: Add missing tags. #3008
+* \[Python-package\] Estimators' `_get_tags` returned incorrect values for several tags. #3009
+* \[Python-package\] Incorrect values were silently accepted in `timestamp` parameters. #3019
+* \[CLI\] fix eval result output for `MultiRMSE`
+* \[GPU\] Fix `devices` parameter parsing. Parsing was non-robust: in case of non-numbers specified it defaulted to `0` and device ids outside of the available range were silently ignored.
+* \[C/C++ applier\] Fix a race condition in error messages reported by `GetErrorString` in multithreaded programs. It is now thread-local.
+
+
+# Release 1.2.8
+
+## Python package
+* Support Python 3.13 #2748. Thanks to @jeremy010203.
+* Support NumPy 2.x. #2671
+* Drop support for obsolete Python 3.7.
+* Use the proper name of the implementation class as a string id when storing values calculated for custom metrics on GPU. #1792
+* Propagate exceptions from custom metrics code on GPU. #1792
+
+## CatBoost for Apache Spark
+* Fix workers hanging after training. #2151. Thanks to @Shamann.
+* Remove support for Spark 2.x
+
+## Improvements
+* \[R-package\] Allow targets of `character` and `factor` types (useful for classes). #1874
+* Better default `leaf_estimation_iterations` for Tweedie regression on GPU. #2812
+
+## Build & testing
+* Switch to external Cython 3.0.10+ instead of 0.29.x-based version from contrib. #2810
+* Switch to Conan 2.x. #2582
+* \[CUDA\]. Do not output detailed ptxas statistics by default.
+* Used OpenSSL version updated to 3.0.15
+
+## Bugfixes
+* \[JVM applier\]. Methods related to evaluator types have been `private` by mistake.
+* \[JVM applier\]. Categorical features hashing methods have been `private` by mistake.
+* Fix crash when training on a quantized dataset that contains categorical features. #2816
+* Fix prediction of type `Probability` on CPUs that do not have SSE4 instruction set (that includes all ARM CPUs).
+  Values with probability 0 have been erroneously computed as `nan`.
+* Fix race condition when loading sparse datasets.
+
+
+# Node package Release 1.26.0
+(uses `catboostmodel` native libraries from the main CatBoost release v1.2.7)
+* Fix MultiClassification models support. #1903
+* Fix predict on GPU. #1901, #1923.
+* Make specifying categorical features parameter optional.
+* Support text and embedding features. #2523
+* Add support for 'MultiProbability' prediction type
+* Support Linux aarch64
+* Support macOS arm64
+* Support Windows x86_64
+
+
+# Release 1.2.7
+
+## Bugfixes
+* \[R-package\]: Restore basic functionality.
+
+## Build & testing
+* \[GPU\] Return configuration for multi-node GPU training with CMake-based build. See [documentation](https://catboost.ai/en/docs/installation/cli-installation-multi-node-installation).
+
+
+# Release 1.2.6
+
+## Major changes
+* CatBoost open source build, test and release infrastructure has been switched to GitHub actions. It is possible to run it if you fork CatBoost repository as well. See [the announcement](https://github.com/catboost/catboost/discussions/2708) for details.
+
+## Python package
+* Adapt `numpy` dependency specification to prohibit `numpy >= 2.0` for now. #2671
+
+## New features
+* User-defined metric GPU evaluation for task_type=GPU. Thanks to @pnsemyon.
+* GPU Custom objective support. Thanks to @pnsemyon.
+* \[C/C++ applier\]. `APT_MULTI_PROBABILITY` prediction type is now supported. #2639. Thanks to @aivarasbaranauskas.
+* `GroupQuantile` metric
+* [Aggregated graph features](https://catboost.ai/en/docs/features/graph-aggregated-features)
+
+## Build & testing
+* \[Windows\]: Visual Studio 2022 with MSVC toolset 14.29.30133 is now supported. #2302
+
+## Speedups
+* \[GPU\]: Increase block size in `QueryCrossEntropy` (~3x faster on a100 for 6m samples, 350 features, query size near 1).
+
+## Improvements
+* \[datasets\] Use mkstemp to replace deprecated mktemp. #2660. Thanks to @fatmo666
+
+## Bugfixes
+* \[C/C++ applier\]. Add missed `PredictSpecificClassFlat` to calcer.exports. #2715
+* \[Linux\]. Restore readable backtraces
+* \[GPU\] Make CUDA_MAX_THREADS_PER_SM cuda arch-specific
+* \[JVM applier\]: Fixed bloating temp directory with copies of native libraries on Windows. #2622. Thanks to @DKARAGODIN.
+* Calculate F1, Precision, and Recall for all labels in multi-label classification
+* Synchronize values of NCB::NModelEvaluation::EPredictionType and EApiPredictionType. #2643
+* Fix sign of 2nd derivative for Tweedie loss
+* Fix 'Can't find borders for feature ...' error when using text features on GPU. #2657
+* Fix indexing of tokenized text features in model saver and dataset loader when some features are ignored
+* Fix descent direction for Cox regression fix #2701
+* Fix GetTreeNodeToLeaf in multidimensional case (fixes plot_tree for multidimensional approx with non-oblivious trees). #2668
+
+
+# Release 1.2.5
+
+## New features
+* \[Python-package\]: Support custom eval metrics on GPU. #1792. Thanks to @pnsemyon.
+
+## Bugfixes
+* \[Python-package\]: Check eval_period parameter validity for staged prediction. #2593
+* \[Python-package\]: Fix _CustomLoggersStack.pop logic. #2620
+* \[R-package\]: Fix Caret object: Inconsistent grid creation with documentation. #2609
+* \[JVM applier\]: Fix issues with exposing undesired symbols in JNI shared libraries (including allocators) on macOS. #2606
+* Fix training with embedding features on GPU. #2249, #2308, #2591
+* Fix training with text features on GPU
+* Use correct sample count in MultiRMSE on multiple GPUs. #2557
+* Fix sign of 2nd order derivative in Huber loss
+* Enable gradient walker for non-additive metrics
+* Fixes for Cox objective: buffer overflow in derivatives calculation, derivatives summation, metric calculation, disable ordered boosting
+* Fix text features data serialization in the model files
+
+
+# Release 1.2.3
+
+## Python package
+* Support Python 3.12. #2510
+* \[Performance\]: Fix ineffective loops in Cython. Significant speedups (up to 3x) on dataset construction from data in C-order can be expected.
+* \[Performance\]: Make features data initialization from C-order `numpy.ndarray`s with `float32` data type multithreaded. Significant speedups of 5x up to 10x (on CPUs with many cores) can be expected. #385, #2542
+* Save training metrics into the model metadata. So `best_score_`, `evals_result_`, `best_iteration_` model attributes now work after model saving and loading. Can be removed by model metadata manipulation if needed. #1166
+* \[Breaking change\]. Support a separate boolean target type, now `Class` predictions for models that have been trained with boolean targets will also be boolean instead of `True`, `False` strings as before. Such models will be incompatible with the previous versions of CatBoost appliers. If you want the old behavior convert your target to `False`, `True` strings before training. #1954
+* Restrict `jupyterlab` version for setup to 3.x for now. Fixes #2530
+* `utils.read_cd`: Support CD files with non-increasing column indices.
+* Make `log_cout`, `log_cerr` specification consistent, avoid reset in recursive calls.
+* Late-initialize default values for `log_cout`, `log_cerr`. #2195
+* Add missing generated metrics: `Cox`, `PairLogitPairwise`, `UserPerObjMetric`, `SurvivalAft`.
+
+## New features
+* Support boolean target/labels type during training in Python and Spark (in the latter case only when using `fit` with `Pool` arguments) and `Class` prediction in Python. #1954
+* \[Spark\]: Support Spark 3.5.x.
+* \[C/C++ applier\]. Add functions for getting indices of features of different types to C and C++ API. #2568. Thanks to @nimusp.
+* \[C/C++ applier\]. Add staged prediction functions to C API. #2584. Thanks to @Mb-NextTime.
+* \[JVM applier\]. Add loading CatBoostModel from a byte array to API. #2539
+* \[Linux\] Support CgroupsV2 when computing default number of threads used in parallel computations. #2519. Thanks to @elukey.
+* \[CLI\] Support printing `Auxiliary` columns by name in evaluation result output. #1659
+* Save training metrics into the model metadata. Can be removed by model metadata manipulation if needed. #1166
+
+## Build & testing
+* \[Windows\]: Use `clang-cl` from Visual Studio 2022 for the build without CUDA (build with CUDA still uses standard Microsoft toolchain from Visual Studio 2019).
+* \[macOS\]: Pass `os.version` to `conan` host settings to ensure version consistency.
+* \[Linux aarch64\]: Set `-mno-outline-atomics` for modern versions of CLang and GCC to avoid unresolved symbols linking errors. #2527
+* Added missing `CMakeLists` for unit tests for `util`. #2525
+
+## Bugfixes
+* \[Performance\]: Fix performance regression that could slow down training on GPU by 50% on some datasets that had been introduced in release 1.2. Thanks to @JeanPaulShapo.
+* \[Python-package\]: Fix segfault on Pool(data=None). #2522
+* \[Python-package\]: Fix Python exception in `Pool()` when `pairs_weight` is a numpy array. #1913
+* \[Python-package\]: Fix segfault and other strange errors when specifying custom logger with `__call__` method. #2277
+* \[Python-package\]: Fix returning complex params in hyperparameter search. #1741, #1833
+* \[Python-package\]: Fix ignored exceptions for missed metrics descriptions on startup. This has not been visible to users but has been making debugging more difficult.
+* \[Python-package\]: Fix misleading `Targets are required for YetiRank loss function.` error in Cross validation. #2083
+* \[Python-package\]: Fix `Pool.get_label()` returns constant `True` for boolean labels. #2133
+* \[Python-package\]: Copying models does not lose `best_score_`, `evals_result_`, `best_iteration_` attributes values anymore. #1793
+* \[Spark\]: Fix hangs at the end of the training. #2151
+* `Precision` metric default value in the absense of positive samples is changed to 0 and a warning is added
+ (similar to the behavior of `scikit-learn` implementation). #2422
+* Fix ignoring embedding features
+* Try to avoid hash collisions when computing group ids with datasets with a lot of groups (may occur in datasets with around a 10^9 samples).
+* Fix Multiclass models export to C++ and Python code. #2549
+* Fix dataset_statistics mode when no `Target` data is available.
+* Fix `Error: can't proceed some features` error on GPU. #1024
+* Fix `allow_const_label=True` for classification. #1933
+* Add checking of approx and target dimensions for `SurvivalAft` objective/metric.
+* Fix Focal loss derivatives sign. #2563
+
+
+# Release 1.2.2
+
+## Bugfixes
+* Fix Segmentation fault when using custom `eval_metric` in binary python packages of version 1.2.1 on PyPI. #2486
+* Fix LossFunctionChange fstr with embedding features.
+* Fix a segmentation fault in JVM applier when using embedding features on JVM 11+.
+* Fix CTR data handling in model summation (especially for models with CTRs with multiple target quantizations).
+
+
+# Release 1.2.1
+
+## New features
+* Allow to optimize specific ranking loss functions with YetiRank and YetiRankPairwise by specifying `mode` parameter. See [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper for details (this family of losses is called `YetiLoss` there). CPU-only for now.
+* Add Kernel Gradient Boosting support (use `catboost.sample_gaussian_process` function). #2408, thanks to @TakeOver. See [Gradient Boosting Performs Gaussian Process Inference](https://arxiv.org/abs/2206.05608) paper for details.
+* LambdaMart loss: support new target metrics MRR, ERR and MAP.
+* StochasticRank loss: support new target metrics ERR and MRR.
+* Support MultiRMSE on GPU. #2264, #2390
+* Load JSON model format in Java Client. #1627, thanks to @timotta
+* Implement exporting of Multiclass models to C++ and Python. #2283, thanks to @antoninkriz
+
+## Improvements
+* Speedup BM25 feature calcers 3x
+* Use `int` instead of deprecated `numpy.int`. #2378
+* Add `ModelCalcerWrapper::CalcFlatTransposed`, #2413 thanks to @faucct
+* Update dependencies to avoid known vulnerabilities
+
+## Bugfixes
+* Fix __shfl_up_sync mask. #2339
+* TFocalMetric negative values fix. #2386, thanks to @diditforlulz273
+* Focal loss: Use user-defined alpha and gamma
+* Fix exception propagation: Rethrow exceptions caused by user's python code as C++ exceptions
+* CatBoost trained with user defined objective was incompatible with ShapValues calculation
+* Avoid nan's in Newton step calculation for RMSEWithUncertainty
+* Fix score method for y with shape (N, 1). #2405
+* Fix scalePosWeight support for Spark. #2470
+
+
+# Release 1.2
+## Major changes
+CatBoost's build system has been switched from Ya Make (Yandex's build system) to [CMake](https://cmake.org/). This means more transparency in the build process and more familiar tools for Open Source developers.
+For now it is possible to build CatBoost for:
+* Linux on x86-64 with or without CUDA
+* Linux on aarch64 with or without CUDA
+* macOS on x86-64 and arm64, including creating universal binaries
+* Windows on x86-64 with or without CUDA
+* Android (only model applier) on [All supported ABIs](https://developer.android.com/ndk/guides/abis).
+
+This allowed us to prepare the Python package in the source distribution form (also known as `sdist`). #830
+
+* `msvs` subdirectory with the Microsoft Visual Studio solution has been removed. Visual Studio solutions can be generated using CMake instead.
+* `make` subdirectory with Makefiles has been removed. Use `CMake` + `ninja` (recommended) or `CMake` + `make` instead.
+
+## Python package
+* Switch to the standard Python build and installation method that uses `setup.py` instead of the custom `mk_wheel.py` script. All common scenarios (`sdist`, `build`, `install`, editable `install`, `bdist_wheel`) are supported.
+* Switch wheel platform tag on Linux from obsolete `manylinux1` to `manylinux2014`.
+* The source distribution is now available on PyPI. #830
+* Support Python 3.11. #2213
+* Drop support for obsolete Python 3.6.
+* Make wheels [PEP427](https://peps.python.org/pep-0427/)-compliant. #2165
+* Fix wrong checksums in wheels that caused problems with poetry. #2331
+* Improved performance due to caching TBB local executors. #2203
+* Add `fixed_binary_splits` to the regressor, classifier, and ranker.
+* Compatibility with pandas 2.0. #2320
+* CatBoost widget is now compatible with ipywidgets 8.x. #2266
+
+## Rust package
+* Support CUDA applier. #1925, thanks to @getumen.
+* Properly forward debug/release setting to native library build.
+* Passing features: switch from `String` and `Vec` types for features to `AsRef` of slices to make code more generic
+* Support text and embedding features.
+* Support multidimensional output in predictions.
+
+## New features
+* \[JVM applier\]: Support CUDA.
+* \[Spark\]: Support Spark 3.4.x (if you want to use Spark with python 3.11 use this version).
+* Static model applier library now works on Windows.
+* Add `binary-classification-threshold` parameter to the CLI model applier.
+* Support Multi-target regression with text features (but only Bag-of-Words features are generated for now). #2229
+* Support `RMSEWithUncertainty` loss function on GPU. #1573
+* Support `MultiLogloss` and `MultiCrossEntropy` loss functions with numerical features on GPU.
+* Support `MultiLogloss` loss function with text features on CPU and GPU. #1885
+* Enable univariate metrics for models with uncertainty
+* Add `Focal` loss (CPU-only for now). #1807, thanks to @diditforlulz273.
+
+## Improvements
+* Removed legacy dependency on Python 2 interpreter in the build process. #2297
+* Calc metrics: Throw catboost exception if column index exceeds column count.
+* Speedup `MultiLogloss` on CPU by 8% per tree (110K samples, 20 targets, 480 float features, 3 cat features, 16 cores CPU).
+* Update .NET projects from obsolete .NET Core 2.1 to .NET Core 3.1.
+* Code generation for new CUDA Compute Architectures 8.6, 8.9 and 9.0 is enabled by default (requires CUDA 11.8 to build from source).
+* Check that evaluator implementation is available in  `TFullModel::SetEvaluatorType` (it was possible to get a Segmentation fault when calling it for non-available implementstion). Add `TFullModel::GetSupportedEvaluatorTypes`.
+* Cross Validation on GPU no longer requires `allow_write_files=True`.
+
+## Bugfixes
+* \[Python-package\]: Clear model params before load_model. Fixes #2205.
+* \[Python-package\]: Fix CatBoostRanker score computation. #2231
+* \[Python-package\]: Fix `_get_embedding_feature_indices`. #2273
+* \[Python-package\]: Fix `set_feature_names` with text or embedding features. #2090
+* \[Python-package\]: pandas.Categorical.categories is not necessarily a numpy.ndarray. #1965
+* \[Spark\]: Pass classpath in a file to avoid hitting cmdline length limits. #1842
+* \[CUDA Applier\]: Apply scale and bias.
+* \[CUDA Applier\]: Fix that `libs/model_interface applier` always produced an error in CUDA mode.
+* Fix CUDA error 700 in pairwise ranking.
+* Fix kernel registration for distributed training on GPU.
+* Fix `floating point exception' on CPU for small datasets on GPU.
+* Fix wrong log message 'There are invalid params and some of them will be ignored'. #2253
+* Fix incorrect results and crashes for GPU applier on Nvidia Ampere - based GPUs.
+* Fix 'CUDA error 9' in Multi-GPU training.
+* Fix serialization of embedding features structures in the model.
+* Fix GPU buffer overrun in distributed multi-classification training.
+* Fix `catboost/cuda/cuda_util/sort.cpp:166: CUDA error 9` on Nvidia Ampere - based GPUs.
+* Fix inf/nan parsing in dataset input files.
+* Fix floating point exception for very small datasets on GPU.
+* Fix: built static applier library lacked the part with 'global' objects. #2187
+* Fix sum of models with categorical features with CTRs.
+* Fix: model_interface/cmake_example failed build "‘runtime_error’ is not a member of ‘std’". #2324, thanks to @Mandelag.
+* Fix Segmentation fault in Cross Validation and hyperparameter search functions that use it on GPU.
+* Fix Segmentation fault in `utils.eval_metrics` for groupwise metrics when group data has not been specified. #2343
+* Fix errors when running Cross Validation repeatedly on GPU. #2221
+
+
 # Release 1.1.1
 ## New features
 * Support building for Linux on aarch64 from sources using CMake (no prebuilt binaries or PyPI packages yet). #1981
@@ -48,7 +411,7 @@
 # Release 1.0.6
 ## New features
 
-* Fixed splits for binary features on gpu for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
+* Fixed splits for binary features on GPU for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
 
 
 ## Documentation
@@ -56,17 +419,17 @@
 * New sections on [MultiRMSEWithMissingValues](https://catboost.ai/en/docs/concepts/loss-functions-multiregression#MultiRMSEWithMissingValues)
 and [LogCosh](https://catboost.ai/en/docs/concepts/loss-functions-regression#LogCosh)
 * New section on [get_embedding_feature_indices](https://catboost.ai/en/docs/concepts/python-reference_pool_get_embedding_feature_indices)
-* Add info on gpu support for metrics
+* Add info on GPU support for metrics
 
 
 ## Bug-fixes
 
 * Fix warning about resetting logger when logging to sys.stdout & sys.stderr from different threads #1855
 * Fix model summation in CatBoost for Apache Spark
-* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 cpu cores 0.55s -> 0.04s)
+* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 CPU cores 0.55s -> 0.04s)
 * Fix support for text features and embeddings in Java applier #2043
 * Fix nan/inf split scores with yeti rank pairwise loss
-* Fix nan/inf feature strengths in pair logit on cpu
+* Fix nan/inf feature strengths in pair logit on CPU
 
 
 # Release 1.0.5
@@ -203,7 +566,7 @@ In this release we decided to increment major version as we think that CatBoost 
 
 ## GPU improvements
 * Fixed distributed training performance on Ethernet networks ~2x training time speedup. For 2 hosts, 8 v100/host, 10gigabit eth, 300 factors, 150m samples, 200 trees, 3300s -> 1700s
-* We've found a bug in model-size-reg implementation in gpu that leaded to worse quality of resulting model, especially in comparison to model trained on CPU with equal parameters
+* We've found a bug in model-size-reg implementation in GPU that leaded to worse quality of resulting model, especially in comparison to model trained on CPU with equal parameters
 
 ## Rust
 * Enabled load model from buffer for rust by @manavsah
@@ -408,7 +771,7 @@ CatBoost supports recursive feature elimination procedure - when you have lot's 
 
 
 ## Bugfixes:
-* Reduced GPU memory usage in multi gpu training when there is no need to compute categorical feature counters.
+* Reduced GPU memory usage in multi GPU training when there is no need to compute categorical feature counters.
 * Now CatBoost allows to specify `use_weights` for metrics when `auto_class_weights` parameter is set.
 * Correctly handle NaN values in `plot_predictions` function.
 * Fixed floating point precision drop releated bugs during Multiclass training with lots of objects in our case, bug was triggered while training on 25mln objects on single GPU card.
@@ -1311,7 +1674,7 @@ Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the sa
 - Added a flag to allow constant labels
 
 ## New metrics
-We added many new metrics that can be used for visualization, overfitting detection, selecting of best iteration of training or for cross-validation:
+We added many new metrics that can be used for visualization, overfitting detection, selecting of the best iteration of training or for cross-validation:
 - BierScore
 - HingeLoss
 - HammingLoss
@@ -1349,7 +1712,7 @@ We want to especially mention @pukhlyakova who implemented lots of useful metric
 
 # Release 0.8
 ## Breaking changes
-- We fixed bug in CatBoost. Pool initialization from `numpy.array` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
+- We fixed bug in CatBoost. Pool initialization from `numpy.ndarray` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
 
 ## Major Features And Improvements
 - Algorithm for finding most influential training samples for a given object from the 'Finding Influential Training Samples for Gradient Boosted Decision Trees' [paper](https://arxiv.org/pdf/1802.06640.pdf) is implemented. This mode for every object from input pool calculates scores for every object from train pool. A positive score means that the given train object has made a negative contribution to the given test object prediction. And vice versa for negative scores. The higher score modulo - the higher contribution.

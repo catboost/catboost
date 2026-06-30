@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lzip_decoder.c
@@ -5,9 +7,6 @@
 //
 //  Author:     Michał Górny
 //              Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -151,9 +150,8 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		coder->member_size = sizeof(lzip_id_string);
 
 		coder->sequence = SEQ_VERSION;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_VERSION:
 		if (*in_pos >= in_size)
@@ -174,7 +172,7 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		if (coder->tell_any_check)
 			return LZMA_GET_CHECK;
 
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_DICT_SIZE: {
 		if (*in_pos >= in_size)
@@ -186,7 +184,7 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		// The five lowest bits are for the base-2 logarithm of
 		// the dictionary size and the highest three bits are
 		// the fractional part (0/16 to 7/16) that will be
-		// substracted to get the final value.
+		// subtracted to get the final value.
 		//
 		// For example, with 0xB5:
 		//     b2log = 21
@@ -214,16 +212,16 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		coder->options.pb = LZIP_PB;
 
 		// Calculate the memory usage.
-		coder->memusage = lzma_lzma_decoder_memusage(&coder->options)
+		coder->memusage
+			= lzma_lzma_decoder_memusage_nocheck(&coder->options)
 				+ LZMA_MEMUSAGE_BASE;
 
 		// Initialization is a separate step because if we return
 		// LZMA_MEMLIMIT_ERROR we need to be able to restart after
 		// the memlimit has been increased.
 		coder->sequence = SEQ_CODER_INIT;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_CODER_INIT: {
 		if (coder->memusage > coder->memlimit)
@@ -244,9 +242,8 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 
 		coder->crc32 = 0;
 		coder->sequence = SEQ_LZMA_STREAM;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_LZMA_STREAM: {
 		const size_t in_start = *in_pos;
@@ -262,7 +259,11 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		coder->member_size += *in_pos - in_start;
 		coder->uncompressed_size += out_used;
 
-		if (!coder->ignore_check)
+		// Don't update the CRC32 if the integrity check will be
+		// ignored or if there was no new output. The latter is
+		// important in case out == NULL to avoid null pointer + 0
+		// which is undefined behavior.
+		if (!coder->ignore_check && out_used > 0)
 			coder->crc32 = lzma_crc32(out + out_start, out_used,
 					coder->crc32);
 
@@ -270,9 +271,8 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return ret;
 
 		coder->sequence = SEQ_MEMBER_FOOTER;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_MEMBER_FOOTER: {
 		// The footer of .lz version 0 lacks the Member size field.

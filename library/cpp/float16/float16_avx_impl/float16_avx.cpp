@@ -19,7 +19,7 @@ bool NFloat16Impl::AreConversionIntrinsicsAvailableOnHost() {
 
 ui16 NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics(float val) {
 #ifdef _MSC_VER
-    Y_FAIL("MSVC doesn't have _cvtss_sh(), so NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics() is not implemented");
+    Y_ABORT("MSVC doesn't have _cvtss_sh(), so NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics() is not implemented");
 #else
     return _cvtss_sh(val, _MM_FROUND_TO_NEAREST_INT);
 #endif
@@ -27,7 +27,7 @@ ui16 NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics(float val) {
 
 float NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics(ui16 val) {
 #ifdef _MSC_VER
-    Y_FAIL("MSVC doesn't have _cvtsh_ss(), so NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics() is not implemented");
+    Y_ABORT("MSVC doesn't have _cvtsh_ss(), so NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics() is not implemented");
 #else
     return _cvtsh_ss(val);
 #endif

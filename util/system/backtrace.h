@@ -7,6 +7,11 @@ class IOutputStream;
 
 size_t BackTrace(void** p, size_t len);
 
+using TBackTraceFn = size_t (*)(void** p, size_t len);
+
+void SetBackTraceFn(TBackTraceFn f);
+TBackTraceFn GetBackTraceFn();
+
 struct TResolvedSymbol {
     const char* Name;
     void* NearestSymbol;

@@ -11,7 +11,7 @@ namespace {
     struct TType1 {};
     struct TType2 {};
     struct TType3 {};
-}
+} // namespace
 
 Y_UNIT_TEST_SUITE(TOverloadedTest) {
     Y_UNIT_TEST(StaticTest) {
@@ -79,4 +79,4 @@ Y_UNIT_TEST_SUITE(TOverloadedTest) {
         UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{12345}), 12345.0);
         UNIT_ASSERT_VALUES_EQUAL(matchAsDouble(TTestVariant{'X'}), 88.0);
     }
-}
+} // Y_UNIT_TEST_SUITE(TOverloadedTest)

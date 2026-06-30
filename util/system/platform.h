@@ -11,6 +11,12 @@
     #define _win32_
 #elif defined(__WIN32__) || defined(_WIN32) // _WIN32 is also defined by the 64-bit compiler for backward compatibility
     #define _win32_
+#elif defined(__FREERTOS__)
+    #define _freertos_
+    #define _rtos_
+#elif defined(__ZEPHYR__)
+    #define _zephyr_
+    #define _rtos_
 #else
     #define _unix_
 
@@ -41,6 +47,10 @@
 
     #if defined(__ANDROID__)
         #define _android_
+    #endif
+
+    #if defined(__EMSCRIPTEN__)
+        #define _emscripten_
     #endif
 #endif
 
@@ -107,7 +117,15 @@
     #define _ppc64_
 #endif
 
-#if !defined(sparc) && !defined(__sparc) && !defined(__hpux__) && !defined(__alpha__) && !defined(_ia64_) && !defined(_x86_64_) && !defined(_arm_) && !defined(_i386_) && !defined(_ppc_) && !defined(_ppc64_)
+#if defined(__wasm64__)
+    #define _wasm64_
+#endif
+
+#if defined(__wasm32__)
+    #define _wasm32_
+#endif
+
+#if !defined(sparc) && !defined(__sparc) && !defined(__hpux__) && !defined(__alpha__) && !defined(_ia64_) && !defined(_x86_64_) && !defined(_arm_) && !defined(_i386_) && !defined(_ppc_) && !defined(_ppc64_) && !defined(_wasm64_) && !defined(_wasm32_) && !defined(__riscv)
     #error "platform not defined, please, define one"
 #endif
 
@@ -130,51 +148,51 @@
     #define _console_
 #endif
 
-#if defined(__SSE__) || defined(SSE_ENABLED)
+#if defined(__SSE__)
     #define _sse_
 #endif
 
-#if defined(__SSE2__) || defined(SSE2_ENABLED)
+#if defined(__SSE2__)
     #define _sse2_
 #endif
 
-#if defined(__SSE3__) || defined(SSE3_ENABLED)
+#if defined(__SSE3__)
     #define _sse3_
 #endif
 
-#if defined(__SSSE3__) || defined(SSSE3_ENABLED)
+#if defined(__SSSE3__)
     #define _ssse3_
 #endif
 
-#if defined(__SSE4_1__) || defined(SSE41_ENABLED)
+#if defined(__SSE4_1__)
     #define _sse4_1_
 #endif
 
-#if defined(__SSE4_2__) || defined(SSE42_ENABLED)
+#if defined(__SSE4_2__)
     #define _sse4_2_
 #endif
 
-#if defined(__POPCNT__) || defined(POPCNT_ENABLED)
+#if defined(__POPCNT__)
     #define _popcnt_
 #endif
 
-#if defined(__PCLMUL__) || defined(PCLMUL_ENABLED)
+#if defined(__PCLMUL__)
     #define _pclmul_
 #endif
 
-#if defined(__AES__) || defined(AES_ENABLED)
+#if defined(__AES__)
     #define _aes_
 #endif
 
-#if defined(__AVX__) || defined(AVX_ENABLED)
+#if defined(__AVX__)
     #define _avx_
 #endif
 
-#if defined(__AVX2__) || defined(AVX2_ENABLED)
+#if defined(__AVX2__)
     #define _avx2_
 #endif
 
-#if defined(__FMA__) || defined(FMA_ENABLED)
+#if defined(__FMA__)
     #define _fma_
 #endif
 
@@ -182,12 +200,15 @@
     #define _dll_
 #endif
 
-// 16, 32 or 64
-#if defined(__sparc_v9__) || defined(_x86_64_) || defined(_ia64_) || defined(_arm64_) || defined(_ppc64_)
+// 32 or 64
+#if defined(__sparc_v9__) || defined(_x86_64_) || defined(_ia64_) || defined(_arm64_) || defined(_ppc64_) || defined(_wasm64_) || __riscv_xlen == 64
     #define _64_
 #else
     #define _32_
 #endif
+
+
+// The following SIZEOF_* definitions are needed for use in preprocessor conditional directives (#if, #elif).
 
 /* All modern 64-bit Unix systems use scheme LP64 (long, pointers are 64-bit).
  * Microsoft uses a different scheme: LLP64 (long long, pointers are 64-bit).

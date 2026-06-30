@@ -6,6 +6,7 @@
 #include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/fstr/calc_fstr.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/dir_helper.h>
@@ -34,7 +35,8 @@ namespace NCB {
                 TTrainerFactory::Has(ETaskType::GPU),
                 "Can't load GPU learning library. "
                 "Module was not compiled or driver is incompatible with package. "
-                "Please install latest NVDIA driver and check again");
+                "Please install latest NVDIA driver and check again"
+            );
         }
 
         auto checkCountConsistency = [] (
@@ -70,7 +72,11 @@ namespace NCB {
 
             const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
             for (const ui32 feature : featuresForSelect) {
-                CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+                CB_ENSURE(
+                    feature < featureCount,
+                    "Tested feature " << feature << " is not present; dataset contains only " << featureCount
+                    << " features"
+                );
             }
         } else { // ByTags
             const auto& featuresTagsForSelect = featuresSelectOptions.FeaturesTagsForSelect.Get();
@@ -117,7 +123,8 @@ namespace NCB {
         if (poolLoadParams && poolLoadParams->BordersFile) {
             LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
                 poolLoadParams->BordersFile,
-                quantizedFeaturesInfo.Get());
+                quantizedFeaturesInfo.Get()
+            );
         }
 
         for (auto testPoolIdx : xrange(pools.Test.size())) {
@@ -128,7 +135,8 @@ namespace NCB {
             CheckCompatibleForApply(
                 *learnFeaturesLayout,
                 *testPool.MetaInfo.FeaturesLayout,
-                TStringBuilder() << "test dataset #" << testPoolIdx);
+                TStringBuilder() << "test dataset #" << testPoolIdx
+            );
         }
 
         TString tmpDir;
@@ -190,6 +198,7 @@ namespace NCB {
             catBoostOptions.GetTaskType(),
             poolLoadParams->LearnSetPath,
             poolLoadParams->PairsFilePath,
+            poolLoadParams->GraphFilePath,
             poolLoadParams->GroupWeightsFilePath,
             poolLoadParams->TimestampsFilePath,
             poolLoadParams->BaselineFilePath,
@@ -199,6 +208,7 @@ namespace NCB {
             poolLoadParams->IgnoredFeatures,
             catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ? EObjectsOrder::Ordered : EObjectsOrder::Undefined,
             TDatasetSubset::MakeRange(0, subsetDocumentCount),
+            /*loadSampleIds*/ false,
             catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
             &classLabels,
             executor
@@ -292,8 +302,10 @@ namespace NCB {
             &catBoostOptions
         );
 
-        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
-                                     &catBoostOptions.MetricOptions->EvalMetric);
+        InitializeEvalMetricIfNotSet(
+            catBoostOptions.MetricOptions->ObjectiveMetric,
+            &catBoostOptions.MetricOptions->EvalMetric
+        );
 
         UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
 

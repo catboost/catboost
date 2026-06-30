@@ -1,20 +1,32 @@
+from __future__ import print_function
+
 import sys
 import os
+import json
 import subprocess
 import tempfile
 import collections
 import optparse
-import pipes
+
+try:
+    import shlex
+
+    shlex_join = shlex.join
+except AttributeError:
+    import pipes
+
+    def shlex_join(cmd):
+        # equivalent to shlex.join() in python 3
+        return ' '.join(pipes.quote(part) for part in cmd)
+
+
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import thinlto_cache
+import link_exe
 
 from process_whole_archive_option import ProcessWholeArchiveOption
-
-
-def shlex_join(cmd):
-    # equivalent to shlex.join() in python 3
-    return ' '.join(
-        pipes.quote(part)
-        for part in cmd
-    )
 
 
 def parse_export_file(p):
@@ -37,12 +49,12 @@ def parse_export_file(p):
 def to_c(sym):
     symbols = collections.deque(sym.split('::'))
     c_prefixes = [  # demangle prefixes for c++ symbols
-        '_ZN',      # namespace
-        '_ZTIN',    # typeinfo for
-        '_ZTSN',    # typeinfo name for
-        '_ZTTN',    # VTT for
-        '_ZTVN',    # vtable for
-        '_ZNK',     # const methods
+        '_ZN',  # namespace
+        '_ZTIN',  # typeinfo for
+        '_ZTSN',  # typeinfo name for
+        '_ZTTN',  # VTT for
+        '_ZTVN',  # vtable for
+        '_ZNK',  # const methods
     ]
     c_sym = ''
     while symbols:
@@ -113,7 +125,7 @@ def fix_gnu_param(arch, ex):
 
 
 def fix_windows_param(ex):
-    with tempfile.NamedTemporaryFile(delete=False) as def_file:
+    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as def_file:
         exports = []
         for item in ex:
             if item.get('lang') == 'C':
@@ -122,28 +134,6 @@ def fix_windows_param(ex):
         for export in exports:
             def_file.write('    {}\n'.format(export))
         return ['/DEF:{}'.format(def_file.name)]
-
-
-MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
-
-CUDA_LIBRARIES = {
-    '-lcublas_static': '-lcublas',
-    '-lcublasLt_static': '-lcublasLt',
-    '-lcudart_static': '-lcudart',
-    '-lcudnn_static': '-lcudnn',
-    '-lcufft_static_nocallback': '-lcufft',
-    '-lcurand_static': '-lcurand',
-    '-lcusolver_static': '-lcusolver',
-    '-lcusparse_static': '-lcusparse',
-    '-lmyelin_compiler_static': '-lmyelin',
-    '-lmyelin_executor_static': '-lnvcaffe_parser',
-    '-lmyelin_pattern_library_static': '',
-    '-lmyelin_pattern_runtime_static': '',
-    '-lnvinfer_static': '-lnvinfer',
-    '-lnvinfer_plugin_static': '-lnvinfer_plugin',
-    '-lnvonnxparser_static': '-lnvonnxparser',
-    '-lnvparsers_static': '-lnvparsers'
-}
 
 
 def fix_cmd(arch, c):
@@ -159,12 +149,9 @@ def fix_cmd(arch, c):
 
     def do_fix(p):
         if p.startswith(prefix) and p.endswith('.exports'):
-            fname = p[len(prefix):]
+            fname = p[len(prefix) :]
 
             return list(f(list(parse_export_file(fname))))
-
-        if p.endswith('.supp'):
-            return []
 
         if p.endswith('.pkg.fake'):
             return []
@@ -174,67 +161,51 @@ def fix_cmd(arch, c):
     return sum((do_fix(x) for x in c), [])
 
 
-def fix_cmd_for_musl(cmd):
-    flags = []
-    for flag in cmd:
-        if flag not in MUSL_LIBS:
-            flags.append(flag)
-    return flags
-
-
-def fix_cmd_for_dynamic_cuda(cmd):
-    flags = []
-    for flag in cmd:
-        if flag in CUDA_LIBRARIES:
-            flags.append(CUDA_LIBRARIES[flag])
-        else:
-            flags.append(flag)
-    return flags
-
-
-def fix_blas_resolving(cmd):
-    # Intel mkl comes as a precompiled static library and thus can not be recompiled with sanitizer runtime instrumentation.
-    # That's why we prefer to use cblas instead of Intel mkl as a drop-in replacement under sanitizers.
-    # But if the library has dependencies on mkl and cblas simultaneously, it will get a linking error.
-    # Hence we assume that it's probably compiling without sanitizers and we can easily remove cblas to prevent multiple definitions of the same symbol at link time.
-    for arg in cmd:
-        if arg.startswith('contrib/libs') and arg.endswith('mkl-lp64.a'):
-            return [arg for arg in cmd if not arg.endswith('libcontrib-libs-cblas.a')]
-    return cmd
-
-
-def parse_args():
+def parse_args(args):
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
     parser.add_option('--arch')
     parser.add_option('--target')
     parser.add_option('--soname')
+    parser.add_option('--source-root')
+    parser.add_option('--build-root')
     parser.add_option('--fix-elf')
     parser.add_option('--linker-output')
-    parser.add_option('--musl', action='store_true')
     parser.add_option('--dynamic-cuda', action='store_true')
+    parser.add_option('--objcopy-exe')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
     parser.add_option('--custom-step')
     parser.add_option('--python')
-    return parser.parse_args()
+    thinlto_cache.add_options(parser)
+    return parser.parse_args(args)
 
 
 if __name__ == '__main__':
-    opts, args = parse_args()
+    args = sys.argv[1:]
+    plugins = []
+
+    if '--start-plugins' in args:
+        ib = args.index('--start-plugins')
+        ie = args.index('--end-plugins')
+        plugins = list(sorted(args[ib + 1 : ie]))
+        args = args[:ib] + args[ie + 1 :]
+
+    for p in plugins:
+        res = subprocess.check_output([sys.executable, p] + args).decode().strip()
+
+        if res:
+            args = json.loads(res)
+
+    opts, args = parse_args(args)
 
     assert opts.arch
     assert opts.target
 
-    cmd = fix_blas_resolving(args)
+    cmd = args
     cmd = fix_cmd(opts.arch, cmd)
-
-    if opts.musl:
-        cmd = fix_cmd_for_musl(cmd)
-    if opts.dynamic_cuda:
-        cmd = fix_cmd_for_dynamic_cuda(cmd)
-
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
+    thinlto_cache.preprocess(opts, cmd)
 
     if opts.custom_step:
         assert opts.python
@@ -247,10 +218,11 @@ if __name__ == '__main__':
 
     proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
     proc.communicate()
+    thinlto_cache.postprocess(opts)
 
     if proc.returncode:
-        print >>sys.stderr, 'linker has failed with retcode:', proc.returncode
-        print >>sys.stderr, 'linker command:', shlex_join(cmd)
+        print('linker has failed with retcode:', proc.returncode, file=sys.stderr)
+        print('linker command:', shlex_join(cmd), file=sys.stderr)
         sys.exit(proc.returncode)
 
     if opts.fix_elf:
@@ -259,8 +231,8 @@ if __name__ == '__main__':
         proc.communicate()
 
         if proc.returncode:
-            print >>sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
-            print >>sys.stderr, 'fix_elf command:', shlex_join(cmd)
+            print('fix_elf has failed with retcode:', proc.returncode, file=sys.stderr)
+            print('fix_elf command:', shlex_join(cmd), file=sys.stderr)
             sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:
@@ -272,6 +244,7 @@ if __name__ == '__main__':
 # -----------------Test---------------- #
 def write_temp_file(content):
     import yatest.common as yc
+
     filename = yc.output_path('test.exports')
     with open(filename, 'w') as f:
         f.write(content)
@@ -304,7 +277,7 @@ C++ geobase5::hardcoded_service
 def run_fix_gnu_param(export_file_content):
     filename = write_temp_file(export_file_content)
     result = fix_gnu_param('LINUX', list(parse_export_file(filename)))[0]
-    version_script_path = result[len('-Wl,--version-script='):]
+    version_script_path = result[len('-Wl,--version-script=') :]
     with open(version_script_path) as f:
         content = f.read()
     return content

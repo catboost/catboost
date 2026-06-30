@@ -10,6 +10,6 @@ Building stages for a single tree:
 1. [Preliminary calculation of splits](algorithm-main-stages_pre-count.md).
 1. (_Optional_) [Transforming categorical features to numerical features](algorithm-main-stages_cat-to-numberic.md).
 1. (_Optional_) [Transforming text features to numerical features](algorithm-main-stages_text-to-numeric.md).
+1. (_Optional_) [Transforming embedding features to numerical features](algorithm-main-stages_embedding-to-numeric.md).
 1. [Choosing the tree structure](algorithm-main-stages_choose-tree-structure.md). This stage is affected by the set [Bootstrap options](algorithm-main-stages_bootstrap-options.md).
 1. Calculating values in leaves.
-

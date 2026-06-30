@@ -15,4 +15,4 @@ namespace NMemInfo {
     };
 
     TMemInfo GetMemInfo(pid_t = 0);
-}
+} // namespace NMemInfo

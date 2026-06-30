@@ -9,6 +9,7 @@
 #include <util/stream/file.h>
 #include <util/stream/output.h>
 #include <util/string/builder.h>
+#include <util/system/compiler.h>
 
 #include <cmath>
 
@@ -188,6 +189,7 @@ bool AreJsonValuesDifferent(
                     rhs.GetUIntegerSafe(),
                     context->PathFromRoot);
         }
+        Y_UNREACHABLE();
     }
 }
 

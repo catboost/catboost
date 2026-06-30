@@ -32,7 +32,7 @@ static TString ModeToString(const EProtectMemory mode) {
 }
 
 void ProtectMemory(void* addr, const size_t length, const EProtectMemory mode) {
-    Y_VERIFY(!(mode & ~(PM_READ | PM_WRITE | PM_EXEC)), "Invalid memory protection flag combination. ");
+    Y_ABORT_UNLESS(!(mode & ~(PM_READ | PM_WRITE | PM_EXEC)), "Invalid memory protection flag combination. ");
 
 #if defined(_unix_) || defined(_darwin_)
     int mpMode = PROT_NONE;
@@ -88,7 +88,8 @@ void ProtectMemory(void* addr, const size_t length, const EProtectMemory mode) {
             break;
     }
     DWORD oldMode = 0;
-    if (!VirtualProtect(addr, length, mpMode, &oldMode))
+    if (!VirtualProtect(addr, length, mpMode, &oldMode)) {
         ythrow TSystemError() << "Memory protection failed for mode " << ModeToString(mode) << ". ";
+    }
 #endif
 }

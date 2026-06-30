@@ -2,12 +2,6 @@
 
 #include <catboost/libs/helpers/distribution_helpers.h>
 
-#include <library/cpp/fast_log/fast_log.h>
-
-#include <util/generic/ymath.h>
-#include <util/generic/string.h>
-
-#include <cmath>
 #include <tuple>
 
 

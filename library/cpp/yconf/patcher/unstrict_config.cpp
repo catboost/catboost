@@ -159,7 +159,7 @@ TYandexConfig::Section* TUnstrictConfig::GetSection(TYandexConfig::Section* sect
 }
 
 TVector<const TYandexConfig::Section*> TUnstrictConfig::GetSections(const TYandexConfig::Section* section, TPathIterator begin, TPathIterator end) const {
-    Y_VERIFY(section);
+    Y_ABORT_UNLESS(section);
     if (begin == end)
         return {section};
 
@@ -183,7 +183,7 @@ TVector<const TYandexConfig::Section*> TUnstrictConfig::GetSections(const TYande
 }
 
 TVector<TYandexConfig::Section*> TUnstrictConfig::GetSections(TYandexConfig::Section* section, TPathIterator begin, TPathIterator end, bool add) {
-    Y_VERIFY(section);
+    Y_ABORT_UNLESS(section);
     if (begin == end)
         return {section};
 
@@ -283,7 +283,7 @@ bool TUnstrictConfig::PatchEntry(const TString& path, const TString& value, cons
 }
 
 [[nodiscard]] bool TUnstrictConfig::ParseJson(const NJson::TJsonValue& json) {
-    Y_VERIFY(ParseMemory(""));
+    Y_ABORT_UNLESS(ParseMemory(""));
     return ParseJson(json, TString());
 }
 

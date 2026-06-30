@@ -17,11 +17,15 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "absl/base/internal/spinlock.h"
-#include "absl/hash/hash.h"
+#include <cstdint>
+
+#include "absl/functional/function_ref.h"
 #include "tcmalloc/common.h"
+#include "tcmalloc/internal/allocation_guard.h"
+#include "tcmalloc/internal/config.h"
 #include "tcmalloc/internal/logging.h"
-#include "tcmalloc/page_heap_allocator.h"
+#include "tcmalloc/malloc_extension.h"
+#include "tcmalloc/metadata_object_allocator.h"
 #include "tcmalloc/sampler.h"
 #include "tcmalloc/static_vars.h"
 
@@ -29,124 +33,79 @@ GOOGLE_MALLOC_SECTION_BEGIN
 namespace tcmalloc {
 namespace tcmalloc_internal {
 
-bool StackTraceTable::Bucket::KeyEqual(uintptr_t h, const StackTrace& t) const {
-  // Do not merge entries with different sizes so that profiling tools
-  // can allow size-based analysis of the resulting profiles.  Note
-  // that sizes being supplied here are already quantized (to either
-  // the size-class size for small objects, or a multiple of pages for
-  // big objects).  So the number of distinct buckets kept per stack
-  // trace should be fairly small.
-  if (this->hash != h || this->trace.depth != t.depth ||
-      this->trace.requested_size != t.requested_size ||
-      this->trace.requested_alignment != t.requested_alignment ||
-      // These could theoretically differ due to e.g. memalign choices.
-      // Split the buckets just in case that happens (though it should be rare.)
-      this->trace.allocated_size != t.allocated_size) {
-    return false;
-  }
-  for (int i = 0; i < t.depth; ++i) {
-    if (this->trace.stack[i] != t.stack[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-StackTraceTable::StackTraceTable(ProfileType type, int64_t period, bool merge,
-                                 bool unsample)
-    : type_(type),
-      period_(period),
-      bucket_mask_(merge ? (1 << 14) - 1 : 0),
-      depth_total_(0),
-      table_(new Bucket*[num_buckets()]()),
-      bucket_total_(0),
-      merge_(merge),
-      error_(false),
-      unsample_(unsample) {
-  memset(table_, 0, num_buckets() * sizeof(Bucket*));
-}
+StackTraceTable::StackTraceTable(ProfileType type)
+    : type_(type), depth_total_(0), all_(nullptr) {}
 
 StackTraceTable::~StackTraceTable() {
-  {
-    absl::base_internal::SpinLockHolder h(&pageheap_lock);
-    for (int i = 0; i < num_buckets(); ++i) {
-      Bucket* b = table_[i];
-      while (b != nullptr) {
-        Bucket* next = b->next;
-        Static::DestroySampleUserData(b->trace.user_data);
-        Static::bucket_allocator().Delete(b);
-        b = next;
-      }
-    }
+  LinkedSample* cur = all_;
+  while (cur != nullptr) {
+    SampleUserDataSupport::UserData::DestroyRaw(cur->sample.user_data);
+    LinkedSample* next = cur->next;
+    tc_globals.linked_sample_allocator().Delete(cur);
+    cur = next;
   }
-  delete[] table_;
+  all_ = nullptr;
 }
 
-void StackTraceTable::AddTrace(double count, const StackTrace& t) {
-  if (error_) {
-    return;
-  }
+void StackTraceTable::AddTrace(double sample_weight, const StackTrace& t) {
+  depth_total_ += t.depth;
+  // Note this makes a copy of the information from the stack trace and users
+  // would call TCMalloc public API and iterate over the copied data in the
+  // `StackTraceTable`. Ideally, we would want to avoid the copy and let the API
+  // iterate over the stack traces directly. However, this would result in
+  // deadlocks when users allocate while iterating. For example, allocationz/
+  // holds a global lock when calling `AddTrace` and is on the allocation path.
+  // New allocations happening under `AddTrace` can be sampled, re-enter the
+  // allocation path and cause deadlocks. Another example of deadlock happens
+  // when iterating over `tc_globals.sampled_allocation_recorder()` and
+  // allocating, see more details in "HeapProfilingTest.AllocateWhileIterating"
+  // under google3/tcmalloc/heap_profiling_test.cc.
+  LinkedSample* s = tc_globals.linked_sample_allocator().New();
 
-  uintptr_t h = absl::Hash<StackTrace>()(t);
+  // Report total bytes that are a multiple of the object size.
+  size_t allocated_size = t.allocated_size;
+  size_t requested_size = t.requested_size;
 
-  const int idx = h & bucket_mask_;
+  uintptr_t bytes = sample_weight * AllocatedBytes(t) + 0.5;
+  // We want sum to be a multiple of allocated_size; pick the nearest
+  // multiple rather than always rounding up or down.
+  //
+  // TODO(b/215362992): Revisit this assertion when GWP-ASan guards
+  // zero-byte allocations.
+  TC_ASSERT_GT(allocated_size, 0);
+  // The reported count of samples, with possible rounding up for unsample.
+  s->sample.count = (bytes + allocated_size / 2) / allocated_size;
+  s->sample.sum = s->sample.count * allocated_size;
+  s->sample.requested_size = requested_size;
+  s->sample.requested_alignment = t.requested_alignment;
+  s->sample.requested_size_returning = t.requested_size_returning;
+  s->sample.allocated_size = allocated_size;
+  s->sample.access_hint = static_cast<hot_cold_t>(t.access_hint);
+  s->sample.access_allocated = t.cold_allocated ? Profile::Sample::Access::Cold
+                                                : Profile::Sample::Access::Hot;
+  s->sample.depth = t.depth;
+  s->sample.allocation_time = t.allocation_time;
 
-  Bucket* b = merge_ ? table_[idx] : nullptr;
-  while (b != nullptr && !b->KeyEqual(h, t)) {
-    b = b->next;
-  }
-  if (b != nullptr) {
-    b->count += count;
-    b->total_weight += count * t.weight;
-    b->trace.weight = b->total_weight / b->count + 0.5;
-  } else {
-    depth_total_ += t.depth;
-    bucket_total_++;
-    b = Static::bucket_allocator().New();
-    b->hash = h;
-    b->trace = t;
-    b->trace.user_data = Static::CopySampleUserData(t.user_data);
-    b->count = count;
-    b->total_weight = t.weight * count;
-    b->next = table_[idx];
-    table_[idx] = b;
-  }
+  s->sample.span_start_address = t.span_start_address;
+  s->sample.guarded_status = t.guarded_status;
+  s->sample.type = t.allocation_type;
+  s->sample.user_data = SampleUserDataSupport::UserData{t.user_data}.Release();
+
+  static_assert(kMaxStackDepth <= Profile::Sample::kMaxStackDepth,
+                "Profile stack size smaller than internal stack sizes");
+  memcpy(s->sample.stack, t.stack,
+         sizeof(s->sample.stack[0]) * s->sample.depth);
+
+  s->next = all_;
+  all_ = s;
 }
 
 void StackTraceTable::Iterate(
     absl::FunctionRef<void(const Profile::Sample&)> func) const {
-  if (error_) {
-    return;
-  }
-
-  for (int i = 0; i < num_buckets(); ++i) {
-    Bucket* b = table_[i];
-    while (b != nullptr) {
-      // Report total bytes that are a multiple of the object size.
-      size_t allocated_size = b->trace.allocated_size;
-      size_t requested_size = b->trace.requested_size;
-
-      uintptr_t bytes = b->count * AllocatedBytes(b->trace, unsample_) + 0.5;
-
-      Profile::Sample e;
-      // We want sum to be a multiple of allocated_size; pick the nearest
-      // multiple rather than always rounding up or down.
-      e.count = (bytes + allocated_size / 2) / allocated_size;
-      e.sum = e.count * allocated_size;
-      e.requested_size = requested_size;
-      e.requested_alignment = b->trace.requested_alignment;
-      e.allocated_size = allocated_size;
-
-      e.user_data = b->trace.user_data;
-
-      e.depth = b->trace.depth;
-      static_assert(kMaxStackDepth <= Profile::Sample::kMaxStackDepth,
-                    "Profile stack size smaller than internal stack sizes");
-      memcpy(e.stack, b->trace.stack, sizeof(e.stack[0]) * e.depth);
-      func(e);
-
-      b = b->next;
-    }
+  LinkedSample* cur = all_;
+  while (cur != nullptr) {
+    func(cur->sample);
+    cur = cur->next;
   }
 }
 

@@ -59,7 +59,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}, polars.DataFrame" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -83,11 +83,9 @@ The input training dataset in the form of a two-dimensional feature matrix.
 
 #### Description
 
-{% include [methods-param-desc-label--short-desc1](../_includes/work_src/reusage/label--short-desc1.md) %}
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-
-{% include [methods-param-desc-label--short-desc2](../_includes/work_src/reusage/label--short-desc2.md) %}
-
+{% include [methods-param-desc-label--detailed-desc-classification](../_includes/work_src/reusage/label--detailed-desc-classification.md) %}
 
 {% note info %}
 
@@ -95,21 +93,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 
 {% endnote %}
 
-**Possible types**
-
-- {{ python-type--list }}
-- {{ python-type--numpyarray }}
-- {{ python-type--pandasDataFrame }}
-- {{ python-type--pandasSeries }}
-
-**Default value**
-
-None
-
-**Supported processing units**
-
-{{ cpu-gpu }}
-
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 ### cat_features
 
@@ -117,7 +101,7 @@ None
 
 A one-dimensional array of categorical columns indices.
 
-Use it only if the `X` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}).
+Use it only if the `X` parameter is a two-dimensional feature matrix (has one of the following types: {{ python-type--list }}, {{ python-type__np_ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}), pandas.DataFrame.
 
 {% note info %}
 
@@ -129,7 +113,7 @@ The `cat_features` parameter can also be specified in the constructor of the cl
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -151,7 +135,7 @@ A one-dimensional array of text columns indices (specified as integers) or names
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -173,7 +157,7 @@ A one-dimensional array of embedding columns indices (specified as integers) or 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -196,9 +180,10 @@ A one-dimensional array of embedding columns indices (specified as integers) or 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
 
 **Default value**
 
@@ -225,7 +210,9 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
+- [polars.Series](https://docs.pola.rs/api/python/stable/reference/series/index.html)
+- [polars.DataFrame](https://docs.pola.rs/api/python/stable/reference/dataframe/index.html)
 
 **Default value**
 
@@ -255,7 +242,7 @@ This option requires a validation dataset to be provided.
 
 **Default value**
 
-True if a validation set is input (the `eval_set` parameter is defined) and at least one of the label values of objects in this set differs from the others. False otherwise.
+True if validation sets are specified (the `eval_set` parameter is defined) and at least one of the label values of objects in the last validation dataset differs from the others. False otherwise.
 
 **Supported processing units**
 
@@ -268,7 +255,7 @@ True if a validation set is input (the `eval_set` parameter is defined) and at l
 
 The validation dataset or datasets used for the following processes:
 - [overfitting detector](../concepts/overfitting-detector.md)
-- best iteration selection
+- the best iteration selection
 - monitoring metrics' changes
 
 
@@ -276,8 +263,8 @@ The validation dataset or datasets used for the following processes:
 
 - {{ python-type--pool }}
 - {{ python-type--list }} of {{ python-type--pool }}
-- {{ python-type--tuple }} (x, y)
-- {{ python-type--list }} of {{ python-type--tuple }}s (x, y)
+- {{ python-type--tuple }} (X, y)
+- {{ python-type--list }} of {{ python-type--tuple }}s (X, y)
 - {{ python-type--string }} (path to the dataset file)
 - {{ python-type--list }} of {{ python-type--string }}s (paths to dataset files)
 
@@ -291,7 +278,7 @@ None
 
 {% note info %}
 
-Only a single validation dataset can be input if the training is performed on GPU
+GPU training does not support multiple validation datasets for now
 
 {% endnote %}
 

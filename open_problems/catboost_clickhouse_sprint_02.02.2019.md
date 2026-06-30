@@ -7,10 +7,10 @@ Proposed new option --cross-validate TYPE[:param[;param...]]
 
 **Problem**
 
-CatBoost `eval_metrics()` shows as metrics change with ensemble size. 
+CatBoost `eval_metrics()` shows as metrics change with ensemble size.
 Computing a metric on a dataset is time-consuming, so it is wise to compute the metrics
-not for every tree, but with a step. If you selected a reasonably large step and 
-then decide to reduce the number of trees to use, you may get 
+not for every tree, but with a step. If you selected a reasonably large step and
+then decide to reduce the number of trees to use, you may get
 an annoying error. Let us fix it.
 
 **How to see the problem**
@@ -30,9 +30,9 @@ model.eval_metrics(test_pool, ['AUC', 'Recall'], eval_period=200)  # error here
 
 **Solution**
 
-The error comes from 
+The error comes from
 class `TMetricsPlotCalcer` which checks the step against plot size, [here](https://github.com/catboost/catboost/blob/29f49edf05bd7b25d1a3ecb7c892d81155f3f074/catboost/private/libs/algo/plot.h#L121).
- 
+
 We should
 make this check always pass or get rid of this check.
 
@@ -48,7 +48,7 @@ Add a test
 
 **Problem**
 
-Python package has such function ((https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_eval-metrics-docpage here)) 
+Python package has such function ((https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_eval-metrics-docpage here))
 Your task is to add this function to R package.
 
 **How to see**
@@ -84,17 +84,17 @@ Methods to add this parameter to:
 * `Pool` class constructor (see <https://github.com/catboost/catboost/blob/master/catboost/python-package/catboost/core.py>).
     Should be forwarded to `_init_pool` method of `_PoolBase` class in `_catboost.pyx` Cython module (<https://github.com/catboost/catboost/blob/master/catboost/python-package/catboost/_catboost.pyx>).
 * Augment logic in _init_pool method of `_PoolBase` class in `_catboost.pyx` Cython module with checking that zero-copy implementation is used (`do_use_raw_data_in_features_order` flag is `True`).
-* All methods in <https://github.com/catboost/catboost/blob/master/catboost/python-package/catboost/core.py> that could create Pool objects internally. 
+* All methods in <https://github.com/catboost/catboost/blob/master/catboost/python-package/catboost/core.py> that could create Pool objects internally.
     Pass to `Pool` constructor.
 
 ## 6. Weight in greedy binarization
 
-Decision tree learning is a greedy algorithm:  on each iteration for each input feature f with N samples algorithm search for best split of points f > c, where c is some condition. CatBoost doesn't use all possible conditions. Instead we select conditions that will be used for each feature before training. We need to select the most representative conditions. As a result we convert numerical feature to discrete one: feature value is replaced with number of conditions that are true for this feature value (e.g. if we have feature 10 and conditions 1, 2, 8, 12 => 10 will be replaced with 3 
+Decision tree learning is a greedy algorithm:  on each iteration for each input feature f with N samples algorithm search for best split of points f > c, where c is some condition. CatBoost doesn't use all possible conditions. Instead we select conditions that will be used for each feature before training. We need to select the most representative conditions. As a result we convert numerical feature to discrete one: feature value is replaced with number of conditions that are true for this feature value (e.g. if we have feature 10 and conditions 1, 2, 8, 12 => 10 will be replaced with 3
  The most straightforward way to find conditions is to use quantiles of feature distribution. But this approach can't deal with highly imbalance features (e.g. 99% of ones and 1% of other). To achieve best quality we want to find such condition that after binarization will be of "similar" size. So in library/cpp/grid_creator/binarization.cpp we have several algorithms to deal with this problem.
 
- CatBoost uses as a default  TMedianInBinBinarizer. This class implements a greedy algorithm. Assume we have feature with values v_1, …, v_n. First, we create set with 2 conditions c_0 = min(v_1, …, v_n) and c_1 = max(v_1, …, v_n). Then on each iteration goes through all current splits c_0 < c_1 … < c_k. We search for conditions c_{i} and c_{i+1} and new condition c, which will maximise next score: log(#{points with v between c_i and c}) + log(#{points v between c and c_{i+1}). Then new condition c is added to set of all condition and algorithm starts next iterations. 
+ CatBoost uses as a default  TMedianInBinBinarizer. This class implements a greedy algorithm. Assume we have feature with values v_1, …, v_n. First, we create set with 2 conditions c_0 = min(v_1, …, v_n) and c_1 = max(v_1, …, v_n). Then on each iteration goes through all current splits c_0 < c_1 … < c_k. We search for conditions c_{i} and c_{i+1} and new condition c, which will maximise next score: log(#{points with v between c_i and c}) + log(#{points v between c and c_{i+1}). Then new condition c is added to set of all condition and algorithm starts next iterations.
 
-Our algorithm currently can't handle weighted samples. Your task will be to add this functionality. For this you'll need to add new function to TMedianInBinBinarizer: 
+Our algorithm currently can't handle weighted samples. Your task will be to add this functionality. For this you'll need to add new function to TMedianInBinBinarizer:
 
 ```cpp
 THashSet<float> BestSplit(TVector<float>& featureValues,
@@ -121,7 +121,7 @@ Implementation steps:
    a. Look at example function `test_cv`
    b. Add test `test_cv_skip_train`, with parameters:
    c. `Logloss:skip_train~true,AUC` (`skip_train` by default) and check that there is no metric results on train.
-   
+
 ## 8. add options `{input,output}_borders_file` to fit function in CatBoost* in python-package
 
 During training and prediction, CatBoost splits the range of values of each floating point feature into intervals, and uses these intervals instead of the true values.
@@ -144,7 +144,7 @@ You need to implement option --one-hot to list explicitly indexes of categorical
 2. Find which code handles `--one-hot-max-size` during training, and change this code so that it looks at the features listed after --one-hot
   * Look in `catboost/private/libs/algo/greedy_tensor_search.cpp`.
   * If some feature listed after `--one-hot` has too many values, throw `TCatBoostException`.
-  
+
 ## 10. sklearn check classifier
 
 <https://scikit-learn.org/stable/modules/generated/sklearn.utils.estimator_checks.check_estimator.html>
@@ -154,7 +154,7 @@ Current `CatBoostClassifier` and `CatBoostRegressor` don't pass this check.
 
 ## 11. Implement "Generalized Cross Entropy Loss for Noise-Robust Classifications".
 
-The proposed loss function in the article works well with training neural networks on noisy data. 
+The proposed loss function in the article works well with training neural networks on noisy data.
 We want to implement it and check how it is suitable for gradient boosting.
 
 Steps of implementation:
@@ -166,19 +166,19 @@ Steps of implementation:
    b. test part: <https://storage.mds.yandex.net/get-devtools-opensource/250854/epsilon.tar.gz> to test.tsv
 - In catboost/private/libs/algo/error_functions.h
    a. Add new class `TNoiseRobustLogloss` inherited from `IDerCalcer`.
-   b. Implement constructor and functions 
+   b. Implement constructor and functions
       `ouble CalcDer(double approx, float target)`, `CalcDer2`, `CalcDer3`
 - Add function to common set of loss functions:
    a. Add value `TNoiseRobustLogloss` to enum `ELossFunction` in `private/libs/options/enums.h`
    b. Add enum value to `GetAllObjectives`, `IsForCrossEntropyOptimization` functions in `private/libs/options/enum_helpers.cpp`
    c. Add object initialization to `BuildError` function in `private/libs/algo/tensor_search_helpers.cpp`
-   
+
      ```cpp
      case ELossFunction::NoiseRobustLogloss:
          ...
          return MakeHolder<TNoiseRobustLogloss>(q);
      ```
-     
+
 - Test it:
    a. Compile the code via "ya make -r" in catboost/app
    b. Run usual logloss on epsilon dataset for 1000 iterations.
@@ -186,12 +186,12 @@ Steps of implementation:
    d. Compare results
 - Optional:
    a. Add random noise to labels and rerun experiments from point 4.
-   
+
 ## 12. Model calculation: possibility to write predictions to stdout
 
 Currently, in CLI CatBoost binary it is possible to output predictions only to file, when sometimes it would be more useful to output predictions to stdout.
 To implement this functionality we suppose to add special input path scheme with two possible paths:  `stream://stdout` and `stream://stderr` .
-In function  CalcModelSingleHost in file 
+In function  CalcModelSingleHost in file
 catboost/private/libs/app_helpers/mode_calc_helpers.cpp
 add output path schema check and use  `TFileOutput(Duplicate(1))` to create `IOutputStream` compatible stdout stream wrapper.
 
@@ -237,7 +237,7 @@ You need to implement special `ILineDataReader` successor class for scheme and p
 ## 20. Example of Kaggle GPU kernel in tutorials
 
 Use some large dataset, for example Epsilon (in catboost.datasets).
-In kernel run cpu and gpu and compare timings.
+In kernel run CPU and GPU and compare timings.
 Put link to kernel in tutorials repo.
 
 ## 21. rename Custom to UserDefined
@@ -270,7 +270,7 @@ Reference:
 
 ## 24. Add `SampleId` as a main name for sample id column in a column description file.
 
-CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/). 
+CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/).
 
 One of the possible column types is now called `DocId`. It can contain a custom alphanumeric object identifier. The name `DocId` is used for historical reasons because it has been used for cases when samples in a dataset are documents for web search engine ranking. It is more approriate to have a more generally applicable name for this column (while keeping current `DocId` identifier for compatibility).
 
@@ -278,7 +278,7 @@ The task is to rename `DocId` column name to `SampleId` in a column description 
 
 Reference:
 
-* Column types are stored here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/column.h#L8-L22>. Function `TryFromString` to convert enum `EColumn` to `TString` is generated automatically because of `GENERATE_ENUM_SERIALIZATION` setting in `ya.make` [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/ya.make#L16) 
+* Column types are stored here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/column.h#L8-L22>. Function `TryFromString` to convert enum `EColumn` to `TString` is generated automatically because of `GENERATE_ENUM_SERIALIZATION` setting in `ya.make` [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/ya.make#L16)
 * Column description file parsing is implemented here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L29>. See how current synonyms are handled [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L66-L71)
 * Column name handling to process synonyms should also be added in `eval_result` output columns specification processing in [this file](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp).
 
@@ -309,7 +309,7 @@ Should compare trained models if both objects contain trained models or raise ex
 
 ## 32. Allow names for all columns in column description file.
 
-CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/). 
+CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/).
 
 Names for columns are allowed only for features now but it can be useful sometimes to specify names for other columns as well. Especially for `Auxuliary` columns - some extra data in `eval_result` file might be useful.
 
@@ -317,4 +317,3 @@ The task is to allow names for all columns in column description file and allow 
 
 * Column description file parsing is implemented here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L29>.
 * `eval_result` output columns specification processing](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp).
-

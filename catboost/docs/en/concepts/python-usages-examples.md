@@ -42,7 +42,7 @@ train_labels = [0, 0, 1, 1]
 
 model = CatBoostClassifier(iterations=1000,
                            task_type="GPU",
-                           devices='0:1')
+                           devices='0')
 model.fit(train_data,
           train_labels,
           verbose=False)
@@ -103,7 +103,7 @@ preds_class = model.predict(train_data)
 ```python
 from catboost import CatBoostClassifier
 # Initialize data
-cat_features = [2]
+cat_features = [3]
 embedding_features=[0, 1]
 train_data = [
     [[0.1, 0.12, 0.33], [1.0, 0.7], 2, "male"],
@@ -493,7 +493,7 @@ dataset = cb.Pool(X, y, cat_features=['d'])
 
 {% note info %}
 
-Specify a non-default `fill_value` for categorical feature columns with string data because the default value (`fill_value=np.NaN`) is [prohibited for categorical feature values](faq.md).
+Specify a non-default `fill_value` for categorical feature columns with string data because the default value (`fill_value=np.nan`) is [prohibited for categorical feature values](faq.md).
 
 {% endnote %}
 
@@ -787,7 +787,7 @@ catboost_model.fit(train_pool, eval_set=test_pool)
 # Apply model on pool with baseline values
 preds1 = catboost_model.predict(test_pool)
 
-# Apply model on numpy.array and then add the baseline values
+# Apply model on numpy.ndarray and then add the baseline values
 preds2 = test_baseline + catboost_model.predict(X_test)
 
 # Check that preds have small diffs
@@ -817,7 +817,7 @@ catboost_model.fit(train_pool, eval_set=test_pool)
 # Apply model on pool with baseline values
 preds1 = catboost_model.predict(test_pool)
 
-# Apply model on numpy.array and then add the baseline values
+# Apply model on numpy.ndarray and then add the baseline values
 preds2 = baseline_model.predict(X_test) + catboost_model.predict(X_test)
 
 # Check that preds have small diffs
@@ -905,7 +905,7 @@ model1.fit(X=batch1)
 
 model2 = CatBoostRegressor(**params)
 batch2 = Pool(train_data2, label=train_labels2)
-batch2.set_baseline(model1.predict(batch1))
+batch2.set_baseline(model1.predict(batch2))
 model2.fit(X=batch2)
 
 # build resulting model
@@ -1236,4 +1236,3 @@ class AccuracyMetric(object):
 ```python
 model = CatBoostClassifier(eval_metric=AccuracyMetric())
 ```
-

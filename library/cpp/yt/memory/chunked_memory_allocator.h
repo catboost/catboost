@@ -31,7 +31,9 @@ public:
             chunkSize,
             maxSmallBlockSizeRatio,
             GetRefCountedTypeCookie<TTag>())
-    { }
+    {
+        static_assert(IsEmptyClass<TTag>());
+    }
 
     //! Allocates #sizes bytes without any alignment.
     TSharedMutableRef AllocateUnaligned(i64 size);

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       string_conversion.c
@@ -5,12 +7,14 @@
 //
 //  Author:     Lasse Collin
 //
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
-//
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "filter_common.h"
+
+
+// liblzma itself doesn't use gettext to translate messages.
+// Mark the strings still so that xz can translate them.
+#define N_(msgid) msgid
 
 
 /////////////////////
@@ -197,7 +201,7 @@ typedef struct {
 /// (default is uint32_t).
 ///
 /// Stringifying a filter is done by processing a given number of options
-/// in oder from the beginning of an option_map array. The integer is
+/// in order from the beginning of an option_map array. The integer is
 /// read from filter_options at .offset using the type from .type.
 ///
 /// If the integer is zero and .flags has OPTMAP_NO_STRFY_ZERO then the
@@ -218,12 +222,14 @@ typedef struct {
 	uint16_t offset;
 
 	union {
+		// NVHPC has problems with unions that contain pointers that
+		// are not the first members, so keep "map" at the top.
+		const name_value_map *map;
+
 		struct {
 			uint32_t min;
 			uint32_t max;
 		} range;
-
-		const name_value_map *map;
 	} u;
 } option_map;
 
@@ -250,7 +256,9 @@ static const char *parse_options(const char **const str, const char *str_end,
 		|| defined(HAVE_ENCODER_IA64) \
 		|| defined(HAVE_DECODER_IA64) \
 		|| defined(HAVE_ENCODER_SPARC) \
-		|| defined(HAVE_DECODER_SPARC)
+		|| defined(HAVE_DECODER_SPARC) \
+		|| defined(HAVE_ENCODER_RISCV) \
+		|| defined(HAVE_DECODER_RISCV)
 static const option_map bcj_optmap[] = {
 	{
 		.name = "start",
@@ -314,9 +322,13 @@ parse_lzma12_preset(const char **const str, const char *str_end,
 		uint32_t *preset)
 {
 	assert(*str < str_end);
+
+	if (!(**str >= '0' && **str <= '9'))
+		return N_("Unsupported preset");
+
 	*preset = (uint32_t)(**str - '0');
 
-	// NOTE: Remember to update LZMA_PRESET_STR if this is modified!
+	// NOTE: Remember to update LZMA12_PRESET_STR if this is modified!
 	while (++*str < str_end) {
 		switch (**str) {
 		case 'e':
@@ -324,7 +336,7 @@ parse_lzma12_preset(const char **const str, const char *str_end,
 			break;
 
 		default:
-			return "Unsupported preset flag";
+			return N_("Unsupported flag in the preset");
 		}
 	}
 
@@ -343,7 +355,7 @@ set_lzma12_preset(const char **const str, const char *str_end,
 
 	lzma_options_lzma *opts = filter_options;
 	if (lzma_lzma_preset(opts, preset))
-		return "Unsupported preset";
+		return N_("Unsupported preset");
 
 	return NULL;
 }
@@ -435,7 +447,7 @@ parse_lzma12(const char **const str, const char *str_end, void *filter_options)
 		return errmsg;
 
 	if (opts->lc + opts->lp > LZMA_LCLP_MAX)
-		return "The sum of lc and lp must not exceed 4";
+		return N_("The sum of lc and lp must not exceed 4");
 
 	return NULL;
 }
@@ -466,9 +478,9 @@ static const struct {
 	/// If the flag LZMA_STR_ENCODER is used then the first
 	/// strfy_encoder elements of optmap are stringified.
 	/// With LZMA_STR_DECODER strfy_decoder is used.
-	/// Currently encoders use all flags that decoders do but if
+	/// Currently encoders use all options that decoders do but if
 	/// that changes then this needs to be changed too, for example,
-	/// add a new OPTMAP flag to skip printing some decoder-only flags.
+	/// add a new OPTMAP flag to skip printing some decoder-only options.
 	const option_map *optmap;
 	uint8_t strfy_encoder;
 	uint8_t strfy_decoder;
@@ -509,6 +521,11 @@ static const struct {
 	  &parse_bcj,     bcj_optmap, 1, 1, true },
 #endif
 
+#if defined(HAVE_ENCODER_RISCV) || defined(HAVE_DECODER_RISCV)
+	{ "riscv",        sizeof(lzma_options_bcj),   LZMA_FILTER_RISCV,
+	  &parse_bcj,     bcj_optmap, 1, 1, true },
+#endif
+
 #if defined(HAVE_ENCODER_POWERPC) || defined(HAVE_DECODER_POWERPC)
 	{ "powerpc",      sizeof(lzma_options_bcj),   LZMA_FILTER_POWERPC,
 	  &parse_bcj,     bcj_optmap, 1, 1, true },
@@ -538,7 +555,7 @@ static const struct {
 ///
 /// The input string starts at *str and the address in str_end is the first
 /// char that is not part of the string anymore. So no '\0' terminator is
-/// used. *str is advanced everytime something has been decoded successfully.
+/// used. *str is advanced every time something has been decoded successfully.
 static const char *
 parse_options(const char **const str, const char *str_end,
 		void *filter_options,
@@ -566,21 +583,21 @@ parse_options(const char **const str, const char *str_end,
 		// Fail if the '=' wasn't found or the option name is missing
 		// (the first char is '=').
 		if (equals_sign == NULL || **str == '=')
-			return "Options must be 'name=value' pairs separated "
-					"with commas";
+			return N_("Options must be 'name=value' pairs "
+					"separated with commas");
 
 		// Reject a too long option name so that the memcmp()
 		// in the loop below won't read past the end of the
 		// string in optmap[i].name.
 		const size_t name_len = (size_t)(equals_sign - *str);
 		if (name_len > NAME_LEN_MAX)
-			return "Unknown option name";
+			return N_("Unknown option name");
 
 		// Find the option name from optmap[].
 		size_t i = 0;
 		while (true) {
 			if (i == optmap_size)
-				return "Unknown option name";
+				return N_("Unknown option name");
 
 			if (memcmp(*str, optmap[i].name, name_len) == 0
 					&& optmap[i].name[name_len] == '\0')
@@ -597,7 +614,7 @@ parse_options(const char **const str, const char *str_end,
 		// string so check it here.
 		const size_t value_len = (size_t)(name_eq_value_end - *str);
 		if (value_len == 0)
-			return "Option value cannot be empty";
+			return N_("Option value cannot be empty");
 
 		// LZMA1/2 preset has its own parsing function.
 		if (optmap[i].type == OPTMAP_TYPE_LZMA_PRESET) {
@@ -618,14 +635,14 @@ parse_options(const char **const str, const char *str_end,
 			// in the loop below won't read past the end of the
 			// string in optmap[i].u.map[j].name.
 			if (value_len > NAME_LEN_MAX)
-				return "Invalid option value";
+				return N_("Invalid option value");
 
 			const name_value_map *map = optmap[i].u.map;
 			size_t j = 0;
 			while (true) {
 				// The array is terminated with an empty name.
 				if (map[j].name[0] == '\0')
-					return "Invalid option value";
+					return N_("Invalid option value");
 
 				if (memcmp(*str, map[j].name, value_len) == 0
 						&& map[j].name[value_len]
@@ -639,7 +656,8 @@ parse_options(const char **const str, const char *str_end,
 		} else if (**str < '0' || **str > '9') {
 			// Note that "max" isn't supported while it is
 			// supported in xz. It's not useful here.
-			return "Value is not a non-negative decimal integer";
+			return N_("Value is not a non-negative "
+					"decimal integer");
 		} else {
 			// strtoul() has locale-specific behavior so it cannot
 			// be relied on to get reproducible results since we
@@ -653,13 +671,13 @@ parse_options(const char **const str, const char *str_end,
 			v = 0;
 			do {
 				if (v > UINT32_MAX / 10)
-					return "Value out of range";
+					return N_("Value out of range");
 
 				v *= 10;
 
 				const uint32_t add = (uint32_t)(*p - '0');
 				if (UINT32_MAX - add < v)
-					return "Value out of range";
+					return N_("Value out of range");
 
 				v += add;
 				++p;
@@ -667,7 +685,7 @@ parse_options(const char **const str, const char *str_end,
 					&& *p >= '0' && *p <= '9');
 
 			if (p < name_eq_value_end) {
-				// Remember this position so that it an be
+				// Remember this position so that it can be
 				// used for error messages that are
 				// specifically about the suffix. (Out of
 				// range values are about the whole value
@@ -684,8 +702,9 @@ parse_options(const char **const str, const char *str_end,
 				if ((optmap[i].flags & OPTMAP_USE_BYTE_SUFFIX)
 						== 0) {
 					*str = multiplier_start;
-					return "This option does not support "
-						"any integer suffixes";
+					return N_("This option does not "
+						"support any multiplier "
+						"suffixes");
 				}
 
 				uint32_t shift;
@@ -708,8 +727,13 @@ parse_options(const char **const str, const char *str_end,
 
 				default:
 					*str = multiplier_start;
-					return "Invalid multiplier suffix "
-							"(KiB, MiB, or GiB)";
+
+					// TRANSLATORS: Don't translate the
+					// suffixes "KiB", "MiB", or "GiB"
+					// because a user can only specify
+					// untranslated suffixes.
+					return N_("Invalid multiplier suffix "
+							"(KiB, MiB, or GiB)");
 				}
 
 				++p;
@@ -728,19 +752,19 @@ parse_options(const char **const str, const char *str_end,
 				// Now we must have no chars remaining.
 				if (p < name_eq_value_end) {
 					*str = multiplier_start;
-					return "Invalid multiplier suffix "
-							"(KiB, MiB, or GiB)";
+					return N_("Invalid multiplier suffix "
+							"(KiB, MiB, or GiB)");
 				}
 
 				if (v > (UINT32_MAX >> shift))
-					return "Value out of range";
+					return N_("Value out of range");
 
 				v <<= shift;
 			}
 
 			if (v < optmap[i].u.range.min
 					|| v > optmap[i].u.range.max)
-				return "Value out of range";
+				return N_("Value out of range");
 		}
 
 		// Set the value in filter_options. Enums are handled
@@ -802,15 +826,15 @@ parse_filter(const char **const str, const char *str_end, lzma_filter *filter,
 	// string in filter_name_map[i].name.
 	const size_t name_len = (size_t)(name_end - *str);
 	if (name_len > NAME_LEN_MAX)
-		return "Unknown filter name";
+		return N_("Unknown filter name");
 
 	for (size_t i = 0; i < ARRAY_SIZE(filter_name_map); ++i) {
 		if (memcmp(*str, filter_name_map[i].name, name_len) == 0
 				&& filter_name_map[i].name[name_len] == '\0') {
 			if (only_xz && filter_name_map[i].id
 					>= LZMA_FILTER_RESERVED_START)
-				return "This filter cannot be used in "
-						"the .xz format";
+				return N_("This filter cannot be used in "
+						"the .xz format");
 
 			// Allocate the filter-specific options and
 			// initialize the memory with zeros.
@@ -818,7 +842,7 @@ parse_filter(const char **const str, const char *str_end, lzma_filter *filter,
 					filter_name_map[i].opts_size,
 					allocator);
 			if (options == NULL)
-				return "Memory allocation failed";
+				return N_("Memory allocation failed");
 
 			// Filter name was found so the input string is good
 			// at least this far.
@@ -838,13 +862,13 @@ parse_filter(const char **const str, const char *str_end, lzma_filter *filter,
 		}
 	}
 
-	return "Unknown filter name";
+	return N_("Unknown filter name");
 }
 
 
 /// Converts the string to a filter chain (array of lzma_filter structures).
 ///
-/// *str is advanced everytime something has been decoded successfully.
+/// *str is advanced every time something has been decoded successfully.
 /// This way the caller knows where in the string a possible error occurred.
 static const char *
 str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
@@ -857,8 +881,8 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 		++*str;
 
 	if (**str == '\0')
-		return "Empty string is not allowed, "
-				"try \"6\" if a default value is needed";
+		return N_("Empty string is not allowed, "
+				"try '6' if a default value is needed");
 
 	// Detect the type of the string.
 	//
@@ -881,7 +905,7 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 			// there are no chars other than spaces.
 			for (size_t i = 1; str_end[i] != '\0'; ++i)
 				if (str_end[i] != ' ')
-					return "Unsupported preset";
+					return N_("Unsupported preset");
 		} else {
 			// There are no trailing spaces. Use the whole string.
 			str_end = *str + str_len;
@@ -894,11 +918,11 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 
 		lzma_options_lzma *opts = lzma_alloc(sizeof(*opts), allocator);
 		if (opts == NULL)
-			return "Memory allocation failed";
+			return N_("Memory allocation failed");
 
 		if (lzma_lzma_preset(opts, preset)) {
 			lzma_free(opts, allocator);
-			return "Unsupported preset";
+			return N_("Unsupported preset");
 		}
 
 		filters[0].id = LZMA_FILTER_LZMA2;
@@ -922,7 +946,7 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 	size_t i = 0;
 	do {
 		if (i == LZMA_FILTERS_MAX) {
-			errmsg = "The maximum number of filters is four";
+			errmsg = N_("The maximum number of filters is four");
 			goto error;
 		}
 
@@ -944,7 +968,7 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 		// Inputs that have "--" at the end or "-- " in the middle
 		// will result in an empty filter name.
 		if (filter_end == *str) {
-			errmsg = "Filter name is missing";
+			errmsg = N_("Filter name is missing");
 			goto error;
 		}
 
@@ -971,8 +995,8 @@ str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
 		const lzma_ret ret = lzma_validate_chain(temp_filters, &dummy);
 		assert(ret == LZMA_OK || ret == LZMA_OPTIONS_ERROR);
 		if (ret != LZMA_OK) {
-			errmsg = "Invalid filter chain "
-					"('lzma2' missing at the end?)";
+			errmsg = N_("Invalid filter chain "
+					"('lzma2' missing at the end?)");
 			goto error;
 		}
 	}
@@ -994,17 +1018,32 @@ extern LZMA_API(const char *)
 lzma_str_to_filters(const char *str, int *error_pos, lzma_filter *filters,
 		uint32_t flags, const lzma_allocator *allocator)
 {
-	if (str == NULL || filters == NULL)
+	// If error_pos isn't NULL, *error_pos must always be set.
+	// liblzma <= 5.4.6 and <= 5.6.1 have a bug and don't do this
+	// when str == NULL or filters == NULL or flags are unsupported.
+	if (error_pos != NULL)
+		*error_pos = 0;
+
+	if (str == NULL || filters == NULL) {
+		// Don't translate this because it's only shown in case of
+		// a programming error.
 		return "Unexpected NULL pointer argument(s) "
 				"to lzma_str_to_filters()";
+	}
 
 	// Validate the flags.
 	const uint32_t supported_flags
 			= LZMA_STR_ALL_FILTERS
 			| LZMA_STR_NO_VALIDATION;
 
-	if (flags & ~supported_flags)
+	if (flags & ~supported_flags) {
+		// This message is possible only if the caller uses flags
+		// that are only supported in a newer liblzma version (or
+		// the flags are simply buggy). Don't translate this at least
+		// when liblzma itself doesn't use gettext; xz and liblzma
+		// are usually upgraded at the same time.
 		return "Unsupported flags to lzma_str_to_filters()";
+	}
 
 	const char *used = str;
 	const char *errmsg = str_to_filters(&used, filters, flags, allocator);
@@ -1131,6 +1170,13 @@ lzma_str_from_filters(char **output_str, const lzma_filter *filters,
 	const char *opt_delim = (flags & LZMA_STR_GETOPT_LONG) ? "=" : ":";
 
 	for (size_t i = 0; filters[i].id != LZMA_VLI_UNKNOWN; ++i) {
+		// If we reach LZMA_FILTERS_MAX, then the filters array
+		// is too large since the ID cannot be LZMA_VLI_UNKNOWN here.
+		if (i == LZMA_FILTERS_MAX) {
+			str_free(&dest, allocator);
+			return LZMA_OPTIONS_ERROR;
+		}
+
 		// Don't add a space between filters if the caller
 		// doesn't want them.
 		if (i > 0 && !(flags & LZMA_STR_NO_SPACES))

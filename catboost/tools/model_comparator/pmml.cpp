@@ -45,6 +45,7 @@ static TStringBuf GetNodeTypeAsStringBuf(pugi::xml_node_type nodeType) {
 
 #undef XML_NODE_TYPE_CASE
     }
+    Y_UNREACHABLE();
 }
 
 

@@ -7,7 +7,7 @@
 /* This test is known to PASS on armv7l-unknown-linux-gnueabihf, so I have
    remove the xfail for arm*-*-* below, until we know more.  */
 /* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-options -mlong-double-128 { target powerpc64*-*-linux* } } */
+/* { dg-options -mlong-double-128 { target powerpc64*-*-linux-gnu* } } */
 
 #include "ffitest.h"
 
@@ -25,6 +25,14 @@ long double cls_ldouble_fn(
 
 	printf("%Lg %Lg %Lg %Lg %Lg %Lg %Lg %Lg: %Lg\n",
 		a1, a2, a3, a4, a5, a6, a7, a8, r);
+	CHECK(a1 == 1);
+	CHECK(a2 == 2);
+	CHECK(a3 == 3);
+	CHECK(a4 == 4);
+	CHECK(a5 == 5);
+	CHECK(a6 == 6);
+	CHECK(a7 == 7);
+	CHECK(a8 == 8);
 
 	return r;
 }
@@ -91,6 +99,7 @@ int main(void)
 	/* { dg-output "1 2 3 4 5 6 7 8: 36" } */
 	printf("res: %Lg\n", res);
 	/* { dg-output "\nres: 36" } */
+	CHECK(res == 36);
 
 	CHECK(ffi_prep_closure_loc(pcl, &cif, cls_ldouble_gn, NULL, code) == FFI_OK);
 
@@ -100,6 +109,7 @@ int main(void)
 	/* { dg-output "\n1 2 3 4 5 6 7 8: 36" } */
 	printf("res: %Lg\n", res);
 	/* { dg-output "\nres: 36" } */
+	CHECK(res == 36);
 
 	return 0;
 }

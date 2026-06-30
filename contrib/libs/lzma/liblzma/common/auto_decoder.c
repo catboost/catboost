@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       auto_decoder.c
 /// \brief      Autodetect between .xz, .lzma (LZMA_Alone), and .lz (lzip)
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -80,7 +79,7 @@ auto_decode(void *coder_ptr, const lzma_allocator *allocator,
 				return LZMA_GET_CHECK;
 		}
 
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_CODE: {
 		const lzma_ret ret = coder->next.code(
@@ -92,9 +91,8 @@ auto_decode(void *coder_ptr, const lzma_allocator *allocator,
 			return ret;
 
 		coder->sequence = SEQ_FINISH;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_FINISH:
 		// When LZMA_CONCATENATED was used and we were decoding

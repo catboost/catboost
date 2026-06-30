@@ -43,8 +43,8 @@ size_t SaveMessageAsBinary(const Message& message, uint8_t* data,
 }
 
 TProtoStringType SaveMessageAsBinary(const protobuf::Message& message) {
-  String tmp;
-  if (!message.SerializePartialToString(&tmp)) return {};
+  TProtoStringType tmp;
+  if (!message.SerializePartialToString(&tmp)) tmp.clear();
   return tmp;
 }
 

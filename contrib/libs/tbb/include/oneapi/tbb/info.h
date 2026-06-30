@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2019-2021 Intel Corporation
+    Copyright (c) 2019-2022 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,8 +20,10 @@
 
 #include "detail/_config.h"
 #include "detail/_namespace_injection.h"
+#include "detail/_utils.h"
+#include "version.h"
 
-#if __TBB_ARENA_BINDING
+#include <tuple>
 #include <vector>
 #include <cstdint>
 
@@ -49,7 +52,6 @@ struct constraints {
         max_concurrency = maximal_concurrency;
         return *this;
     }
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
     constraints& set_core_type(core_type_id id) {
         core_type = id;
         return *this;
@@ -58,14 +60,11 @@ struct constraints {
         max_threads_per_core = threads_number;
         return *this;
     }
-#endif
 
     numa_node_id numa_id = -1;
     int max_concurrency = -1;
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
     core_type_id core_type = -1;
     int max_threads_per_core = -1;
-#endif
 };
 
 } // namespace d1
@@ -96,7 +95,6 @@ inline int default_concurrency(numa_node_id id = -1) {
     return r1::numa_default_concurrency(id);
 }
 
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
 inline std::vector<core_type_id> core_types() {
     std::vector<int> core_type_indexes(r1::core_type_count());
     r1::fill_core_type_indices(core_type_indexes.data());
@@ -107,29 +105,75 @@ inline int default_concurrency(constraints c) {
     if (c.max_concurrency > 0) { return c.max_concurrency; }
     return r1::constraints_default_concurrency(c);
 }
-#endif /*__TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT*/
+
+#if __TBB_PREVIEW_TASK_ARENA_CORE_TYPE_SELECTOR
+// Call a custom selector on the available core type(s) and encode those selected
+template <typename Selector>
+inline core_type_id apply_core_type_selector(Selector selector) {
+    constexpr core_type_id automatic = -1;
+
+    auto ids = core_types();
+    size_t total = ids.size();
+    if (total < 2) {
+        // Not enough core types to select from, so use the default
+        return automatic;
+    }
+
+    int max_score = 0, max_score_id = -1, num_zero_scores = 0;
+    std::vector<core_type_id> selected_core_types;
+    for (size_t index = 0; index < total; ++index) {
+        int score = selector(std::make_tuple(ids[index], index, total));
+        if (score > 0) {
+            selected_core_types.push_back(ids[index]);
+        }
+        else if (score == 0) {
+            ++num_zero_scores;
+        }
+
+        if (TBB_runtime_interface_version() < 12180) {
+            if (score > max_score) {
+                max_score = score;
+                max_score_id = ids[index];
+            }
+        }
+    }
+    if (TBB_runtime_interface_version() < 12180) {
+        // No runtime multi core type support, so select all or one
+        if (selected_core_types.size() + num_zero_scores == total) {
+            selected_core_types.clear(); // all
+        }
+        else if (!selected_core_types.empty()) {
+            selected_core_types = { max_score_id }; // the one with the highest score
+        }
+    }
+    return multi_core_type_codec::encode(selected_core_types);
+}
+
+template <typename Selector>
+inline int default_concurrency(constraints c, Selector selector) {
+    constexpr core_type_id selectable = -2;
+    if (c.core_type == selectable) {
+        c.core_type = apply_core_type_selector(selector);
+    }
+    return default_concurrency(c);
+}
+#endif
 
 } // namespace d1
 } // namespace detail
 
 inline namespace v1 {
 using detail::d1::numa_node_id;
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
 using detail::d1::core_type_id;
-#endif
 
 namespace info {
 using detail::d1::numa_nodes;
-#if __TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION_PRESENT
 using detail::d1::core_types;
-#endif
 
 using detail::d1::default_concurrency;
 } // namespace info
 } // namespace v1
 
 } // namespace tbb
-
-#endif /*__TBB_ARENA_BINDING*/
 
 #endif /*__TBB_info_H*/

@@ -11,11 +11,10 @@ namespace NNetliba {
 
     // single thread version
     class TIBBufferPool: public TThrRefBase, TNonCopyable {
-        enum {
-            BLOCK_SIZE_LN = 11,
-            BLOCK_SIZE = 1 << BLOCK_SIZE_LN,
-            BLOCK_COUNT = 1024
-        };
+        static constexpr int BLOCK_SIZE_LN = 11;
+        static constexpr int BLOCK_SIZE = 1 << BLOCK_SIZE_LN;
+        static constexpr int BLOCK_COUNT = 1024;
+
         struct TSingleBlock {
             TIntrusivePtr<TMemoryRegion> Mem;
             TVector<ui8> BlkRefCounts;
@@ -42,7 +41,7 @@ namespace NNetliba {
 
         void AddBlock() {
             if (FirstFreeBlock == Blocks.size()) {
-                Y_VERIFY(0, "run out of buffers");
+                Y_ABORT_UNLESS(0, "run out of buffers");
             }
             Blocks[FirstFreeBlock].Alloc(IBCtx);
             size_t start = (FirstFreeBlock == 0) ? 1 : FirstFreeBlock * BLOCK_SIZE;
@@ -95,7 +94,7 @@ namespace NNetliba {
         }
         int PostSend(TPtrArg<TRCQueuePair> qp, const void* data, size_t len) {
             if (len > SMALL_PKT_SIZE) {
-                Y_VERIFY(0, "buffer overrun");
+                Y_ABORT_UNLESS(0, "buffer overrun");
             }
             if (len <= MAX_INLINE_DATA_SIZE) {
                 qp->PostSend(nullptr, 0, data, len);
@@ -112,7 +111,7 @@ namespace NNetliba {
         void PostSend(TPtrArg<TUDQueuePair> qp, TPtrArg<TAddressHandle> ah, int remoteQPN, int remoteQKey,
                       const void* data, size_t len) {
             if (len > SMALL_PKT_SIZE - 40) {
-                Y_VERIFY(0, "buffer overrun");
+                Y_ABORT_UNLESS(0, "buffer overrun");
             }
             ui64 id = AllocBuf();
             TSingleBlock& blk = Blocks[id >> BLOCK_SIZE_LN];

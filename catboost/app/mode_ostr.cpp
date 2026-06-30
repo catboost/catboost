@@ -17,7 +17,7 @@ using namespace NCB;
 
 
 struct TObjectImportancesParams {
-    TString ModelFileName;
+    TVector<TString> ModelFileName;
     EModelType ModelFormat = EModelType::CatboostBinary;
     TString OutputPath;
     TPathWithScheme LearnSetPath;
@@ -44,7 +44,11 @@ struct TObjectImportancesParams {
             .DefaultValue("object_importances.tsv");
         parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
             .StoreResult(&ThreadCount);
-        parser.AddLongOption("update-method", "Should be one of: SinglePoint, TopKLeaves, AllPoints or TopKLeaves:top=2 to set the top size in TopKLeaves method.")
+        parser.AddLongOption(
+                "update-method",
+                "Should be one of: 'SinglePoint', 'TopKLeaves', 'AllPoints' or 'TopKLeaves:top=2' to set "
+                "the top size in TopKLeaves method."
+            )
             .StoreResult(&UpdateMethod)
             .DefaultValue("SinglePoint");
     }
@@ -62,7 +66,8 @@ int mode_ostr(int argc, const char* argv[]) {
     NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.ColumnarPoolFormatParams);
     NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.ColumnarPoolFormatParams);
 
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    CB_ENSURE(params.ModelFileName.size() == 1, "Fstr calculation requires exactly one model");
+    TFullModel model = ReadModel(params.ModelFileName[0], params.ModelFormat);
 
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Object importance is supported only for symmetric trees");
@@ -73,6 +78,7 @@ int mode_ostr(int argc, const char* argv[]) {
     NCB::TDataProviderPtr trainPool = NCB::ReadDataset(/*taskType*/Nothing(),
                                                        params.LearnSetPath,
                                                        /*pairsFilePath=*/NCB::TPathWithScheme(),
+                                                       /*graphFilePath=*/NCB::TPathWithScheme(),
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                        /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                        /*baselineFilePath=*/NCB::TPathWithScheme(),
@@ -82,6 +88,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
+                                                       /*loadSampleIds*/ false,
                                                        /*forceUnitAutoPairWeight*/ false,
                                                        /*classLabels=*/Nothing(),
                                                        &localExecutor);
@@ -89,6 +96,7 @@ int mode_ostr(int argc, const char* argv[]) {
     NCB::TDataProviderPtr testPool = NCB::ReadDataset(/*taskType*/Nothing(),
                                                       params.TestSetPath,
                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
+                                                      /*graphFilePath=*/NCB::TPathWithScheme(),
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                       /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
@@ -98,6 +106,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),
+                                                      /*loadSampleIds*/ false,
                                                       /*forceUnitAutoPairWeight*/ false,
                                                       /*classLabels=*/Nothing(),
                                                       &localExecutor);

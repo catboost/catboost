@@ -26,7 +26,7 @@ namespace {
             real->~TMappedAllocation();
         }
     };
-}
+} // namespace
 
 IAllocator* MmapAllocator() {
     return SingletonWithPriority<TMmapAllocator, 0>();

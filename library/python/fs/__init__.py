@@ -196,32 +196,6 @@ def hardlink(src, lnk):
         os.link(src, lnk)
 
 
-@errorfix_win
-def hardlink_or_copy(src, lnk):
-    def should_fallback_to_copy(exc):
-        if WindowsError is not None and isinstance(exc, WindowsError) and exc.winerror == 1142:  # too many hardlinks
-            return True
-        # cross-device hardlink or too many hardlinks, or some known WSL error
-        if isinstance(exc, OSError) and exc.errno in (
-            errno.EXDEV,
-            errno.EMLINK,
-            errno.EINVAL,
-            errno.EACCES,
-            errno.EPERM,
-        ):
-            return True
-        return False
-
-    try:
-        hardlink(src, lnk)
-    except Exception as e:
-        logger.debug('Failed to hardlink %s to %s with error %s, will copy it', src, lnk, repr(e))
-        if should_fallback_to_copy(e):
-            copy2(src, lnk, follow_symlinks=False)
-        else:
-            raise
-
-
 # Atomic file/directory symlink (Unix only)
 # Dst must not exist
 # Throws OSError
@@ -247,24 +221,57 @@ def copy2(src, lnk, follow_symlinks=True):
     symlink(os.readlink(src), lnk)
 
 
+def copy2_safe(src, lnk, follow_symlinks=True):
+    try:
+        copy2(src, lnk, follow_symlinks)
+    except shutil.SameFileError:
+        pass
+
+
+@errorfix_win
+def hardlink_or_copy(src, lnk, copy_function=copy2):
+    def should_fallback_to_copy(exc):
+        if WindowsError is not None and isinstance(exc, WindowsError) and exc.winerror == 1142:  # too many hardlinks
+            return True
+        # cross-device hardlink or too many hardlinks, or some known WSL error
+        if isinstance(exc, OSError) and exc.errno in (
+            errno.EXDEV,
+            errno.EMLINK,
+            errno.EINVAL,
+            errno.EACCES,
+            errno.EPERM,
+        ):
+            return True
+        return False
+
+    try:
+        hardlink(src, lnk)
+    except Exception as e:
+        logger.debug('Failed to hardlink %s to %s with error %s, will copy it', src, lnk, repr(e))
+        if should_fallback_to_copy(e):
+            copy_function(src, lnk, follow_symlinks=False)
+        else:
+            raise
+
+
 # Recursively hardlink directory
 # Uses plain hardlink for files
 # Dst must not exist
 # Non-atomic
 # Throws OSError
 @errorfix_win
-def hardlink_tree(src, dst):
+def hardlink_tree(src, dst, hardlink_function=hardlink, mkdir_function=os.mkdir):
     if not os.path.exists(src):
         raise CustomFsError(errno.ENOENT, filename=src)
     if os.path.isfile(src):
-        hardlink(src, dst)
+        hardlink_function(src, dst)
         return
     for dirpath, _, filenames in walk_relative(src):
         src_dirpath = os.path.join(src, dirpath) if dirpath != '.' else src
         dst_dirpath = os.path.join(dst, dirpath) if dirpath != '.' else dst
-        os.mkdir(dst_dirpath)
+        mkdir_function(dst_dirpath)
         for filename in filenames:
-            hardlink(os.path.join(src_dirpath, filename), os.path.join(dst_dirpath, filename))
+            hardlink_function(os.path.join(src_dirpath, filename), os.path.join(dst_dirpath, filename))
 
 
 # File copy
@@ -289,9 +296,27 @@ def copy_tree(src, dst, copy_function=shutil.copy2):
 # File read
 # Throws OSError
 @errorfix_win
-def read_file(path, binary=True):
-    with open(path, 'r' + ('b' if binary else '')) as f:
-        return f.read()
+def read_file(path, binary=True, size=-1):
+    """
+    Read file contents
+
+    :param path:
+        File path
+
+    :param binary:
+        If `True`, read in binary mode. Read in text mode otherwise.
+
+    :param size:
+        An optional numeric argument.
+        When size is omitted or negative, the entire contents of the file will be read and returned;
+        it’s your problem if the file is twice as large as your machine’s memory.
+        Otherwise, at most size characters (in text mode) or size bytes (in binary mode) are read and returned.
+    """
+    kwargs = {}
+    if not binary and six.PY3:
+        kwargs['encoding'] = sys.getfilesystemencoding()
+    with open(path, 'r' + ('b' if binary else ''), **kwargs) as f:
+        return f.read(size)
 
 
 # Text file read

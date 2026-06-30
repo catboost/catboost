@@ -7,13 +7,12 @@
 #include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/cpp/containers/2d_array/2d_array.h>
-#include <library/cpp/fast_exp/fast_exp.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
@@ -299,7 +298,7 @@ public:
         Y_ASSERT(target.size() == 1);
         const double diff = (target[0] - approx[0]);
         double prec = -2 * approx[1];
-        FastExpInplace(&prec, /*count*/ 1);
+        NCB::FastExpWithInfInplace(&prec, /*count*/ 1);
         (*der)[0] = weight * diff;
         (*der)[1] = weight * (Sqr(diff) * prec - 1);
 
@@ -430,6 +429,7 @@ public:
     explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)
         : IDerCalcer(isExpApprox, maxDerivativeOrder)
     {
+        CB_ENSURE_INTERNAL(!isExpApprox, "Cox objective requires isExpApprox == false");
     }
 
     void CalcDersRange(
@@ -629,6 +629,31 @@ private:
     }
 };
 
+class TRMSPEError final : public IDerCalcer {
+public:
+    static constexpr double RMSPE_DER3 = 0.0;
+
+public:
+    explicit TRMSPEError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        return (target - approx) / (target * target);
+    }
+
+    double CalcDer2(double /*approx*/, float target) const override {
+        return - 1 / (target * target);
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const override {
+        return RMSPE_DER3;
+    }
+};
+
 class TPoissonError final : public IDerCalcer {
 public:
     explicit TPoissonError(bool isExpApprox)
@@ -722,7 +747,7 @@ public:
         const int approxDimension = approx.ysize();
 
         TVector<double> prob = approx;
-        FastExpInplace(prob.data(), prob.ysize());
+        NCB::FastExpWithInfInplace(prob.data(), prob.ysize());
         for (int dim = 0; dim < approxDimension; ++dim) {
             prob[dim] /= (1 + prob[dim]);
             (*der)[dim] = -prob[dim];
@@ -766,7 +791,7 @@ public:
         TArrayRef<double> derRef(*der);
         CopyN(approx.data(), approx.ysize(), derRef.data());
 
-        FastExpInplace(derRef.data(), derRef.ysize());
+        NCB::FastExpWithInfInplace(derRef.data(), derRef.ysize());
         for (int dim = 0; dim < approxDimension; ++dim) {
             derRef[dim] = -derRef[dim] / (1 + derRef[dim]);
         }
@@ -883,6 +908,100 @@ public:
                 }
             });
     }
+private:
+    double CalcQueryAvrg(
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights
+    ) const {
+        double querySum = 0;
+        double queryCount = 0;
+        for (int docId = start; docId < start + count; ++docId) {
+            double w = weights.empty() ? 1 : weights[docId];
+            querySum += (targets[docId] - approxes[docId]) * w;
+            queryCount += w;
+        }
+
+        double queryAvrg = 0;
+        if (queryCount > 0) {
+            queryAvrg = querySum / queryCount;
+        }
+        return queryAvrg;
+    }
+};
+
+class TGroupQuantileError final : public IDerCalcer {
+public:
+    static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
+
+public:
+    const double Alpha;
+    const double Delta;
+
+public:
+    explicit TGroupQuantileError(bool isExpApprox)
+        : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
+        , Alpha(0.5)
+        , Delta(1e-6)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    explicit TGroupQuantileError(double alpha, double delta, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 3, /* errorType */ EErrorType::QuerywiseError)
+        , Alpha(alpha)
+        , Delta(delta)
+    {
+        Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 /*randomSeed*/,
+        NPar::ILocalExecutor* localExecutor
+    ) const override {
+        const int start = queriesInfo[queryStartIndex].Begin;
+        NPar::ParallelFor(
+            *localExecutor,
+            queryStartIndex,
+            queryEndIndex,
+            [&] (ui32 queryIndex) {
+                const int begin = queriesInfo[queryIndex].Begin;
+                const int end = queriesInfo[queryIndex].End;
+                const int querySize = end - begin;
+
+                const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
+                for (int docId = begin; docId < end; ++docId) {
+                    const double val = targets[docId] - approxes[docId] - queryAvrg;
+                    ders[docId - start].Der2 = QUANTILE_DER2_AND_DER3;
+                    ders[docId - start].Der3 = QUANTILE_DER2_AND_DER3;
+                    if (!weights.empty()) {
+                        ders[docId - start].Der2 *= weights[docId];
+                        ders[docId - start].Der3 *= weights[docId];
+                    }
+                    if (abs(val) < Delta) {
+                        ders[docId - start].Der1 = 0;
+                        continue;
+                    }
+                    ders[docId - start].Der1 = (val > 0) ? Alpha : -(1 - Alpha);
+                    if (!weights.empty()) {
+                        ders[docId - start].Der1 *= weights[docId];
+                    }
+                }
+            }
+        );
+    }
+
 private:
     double CalcQueryAvrg(
         int start,
@@ -1253,6 +1372,38 @@ private:
     }
 
     double CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
+
+    void CalcDersNDCG(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersMRR(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersERR(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersMAP(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
 };
 
 class TStochasticRankError final : public IDerCalcer {
@@ -1332,6 +1483,27 @@ private:
         const TVector<double>& cumSum
     ) const;
 
+    double CalcERRMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    double CalcMRRMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        int firstRelevPos,
+        int secondRelevPos
+    ) const;
+
     double CalcMetricDiff(
         size_t oldPos,
         size_t newPos,
@@ -1342,7 +1514,9 @@ private:
         const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
-        const TVector<double>& cumSumLow
+        const TVector<double>& cumSumLow,
+        int firstRelevPos,
+        int secondRelevPos
     ) const;
 
     void CalcDCGCumulativeStatistics(
@@ -1362,11 +1536,32 @@ private:
         TArrayRef<double> cumSum
     ) const;
 
+    void CalcERRCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSumRef,
+        TArrayRef<double> cumSumUpRef,
+        TArrayRef<double> cumSumLowRef
+    ) const;
+
+    void CalcMRRStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        int* firstRelevPos,
+        int* secondRelevPos
+    ) const;
+
     TVector<double> ComputeDCGPosWeights(
         TConstArrayRef<float> targets
     ) const;
 
     TVector<double> ComputePFoundPosWeights(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order
+    ) const;
+
+    TVector<double> ComputeERRPosWeights(
         TConstArrayRef<float> targets,
         const TVector<size_t>& order
     ) const;
@@ -1470,3 +1665,47 @@ private:
 };
 
 void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
+
+class TFocalError final : public IDerCalcer {
+public:
+    const double FocalAlpha;
+    const double FocalGamma;
+
+public:
+    TFocalError(double alpha, double gamma, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
+        , FocalAlpha(alpha), FocalGamma(gamma)
+    {
+        Y_ASSERT(FocalAlpha > 0 && FocalAlpha < 1 && FocalGamma > 0);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double approx_exp, at, p, pt, y, der;
+        approx_exp = 1 / (1 + exp(-approx));
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
+        pt = target == 1 ? p : 1 - p;
+        y = 2 * target - 1;
+        der = at * y * pow((1 - pt), FocalGamma);
+        der = der * (FocalGamma * pt * log(pt) + pt - 1);
+        return -der;
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double approx_exp, at, p, pt, y, u, du, v, dv, der2;
+        approx_exp = 1 / (1 + exp(-approx));
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
+        pt = target == 1 ? p : 1 - p;
+        y = 2 * target - 1;
+        u = at * y * pow((1 - pt), FocalGamma);
+        du = -at * y * FocalGamma * pow((1 - pt), FocalGamma - 1);
+        v = FocalGamma * pt * log(pt) + pt - 1;
+        dv = FocalGamma * log(pt) + FocalGamma + 1;
+        der2 = (du * v + u * dv) * y * (pt * (1 - pt));
+        return -der2;
+    }
+
+};

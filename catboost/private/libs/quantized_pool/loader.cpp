@@ -48,6 +48,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         )
       )
     , PairsPath(args.CommonArgs.PairsFilePath)
+    , GraphPath(args.CommonArgs.GraphFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
     , TimestampsPath(args.CommonArgs.TimestampsFilePath)
@@ -67,11 +68,11 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         !PairsPath.Inited() || CheckExists(PairsPath),
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
     CB_ENSURE(
+        !GraphPath.Inited() || CheckExists(GraphPath),
+        "TCBQuantizedDataLoader:GraphFilePath does not supported");
+    CB_ENSURE(
         !GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
-    CB_ENSURE(
-        !BaselinePath.Inited() || CheckExists(BaselinePath),
-        "TCBQuantizedDataLoader:BaselineFilePath does not exist");
     CB_ENSURE(
         !TimestampsPath.Inited() || CheckExists(TimestampsPath),
         "TCBQuantizedDataLoader:TimestampsPath does not exist");
@@ -81,16 +82,30 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     CB_ENSURE(
         !PoolMetaInfoPath.Inited() || CheckExists(PoolMetaInfoPath),
         "TCBQuantizedDataLoader:PoolMetaInfoPath does not exist");
-    const NCB::TBaselineReader baselineReader(
-        BaselinePath,
-        NCB::ClassLabelsToStrings(args.CommonArgs.ClassLabels));
+
+    THolder<NCB::IBaselineReader> baselineReader;
+    if (BaselinePath.Inited()) {
+        CB_ENSURE(
+            CheckExists(BaselinePath),
+            "TCBQuantizedDataLoader:BaselineFilePath does not exist");
+
+        baselineReader = GetProcessor<NCB::IBaselineReader, NCB::TBaselineReaderArgs>(
+            BaselinePath,
+            NCB::TBaselineReaderArgs{
+                BaselinePath,
+                ClassLabelsToStrings(args.CommonArgs.ClassLabels),
+                DatasetSubset.Range
+            }
+        );
+    }
+
     DataMetaInfo = GetDataMetaInfo(
         QuantizedPool,
         GroupWeightsPath.Inited(),
         TimestampsPath.Inited(),
         PairsPath.Inited(),
         args.CommonArgs.ForceUnitAutoPairWeights,
-        baselineReader.GetBaselineCount(),
+        baselineReader ? TMaybe<ui32>(baselineReader->GetBaselineCount()) : Nothing(),
         args.CommonArgs.FeatureNamesPath,
         PoolMetaInfoPath);
 
@@ -324,7 +339,8 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             // Should not be present in quantized pool
         case EColumn::Sparse:
             // Not supported by CatBoost at all
-        case EColumn::Prediction: {
+        case EColumn::Prediction:
+        case EColumn::Features: {
             // Can't be present in quantized pool
             ythrow TCatBoostException() << "Unexpected column type " << columnType;
         }
@@ -443,7 +459,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
 
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
-    SetPairs(PairsPath, DatasetSubset, visitor->GetGroupIds(), visitor);
+    SetPairs(PairsPath, DatasetSubset, visitor);
     SetBaseline(
         BaselinePath,
         ObjectCount,
@@ -466,6 +482,7 @@ TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::Get
     auto& loadersCache = GetRef();
     TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         const auto loaderKey = std::make_pair(pathWithScheme, loadSubset);
         if (!loadersCache.Cache.contains(loaderKey)) {
             loader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
@@ -485,20 +502,15 @@ TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::Get
 bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset) {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         return loadersCache.Cache.contains(std::make_pair(pathWithScheme, loadSubset));
-    }
-}
-
-bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
-    auto& loadersCache = GetRef();
-    with_lock(loadersCache.Lock) {
-        return loadersCache.Cache.empty();
     }
 }
 
 void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         for (auto& keyValue : loadersCache.Cache) {
             CB_ENSURE(
                 keyValue.second.RefCount() <= 1,

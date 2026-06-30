@@ -229,7 +229,7 @@ def with_eval_sets():
 
 def overfitting_detector():
     data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
-    learn_set_path = os.path.join(data_path, "train")
+    learn_set_path = os.path.join(data_path, "train.with_groups_sorted_by_group_id_hash")
     eval_set_path = os.path.join(data_path, "test")
     cd_path = os.path.join(data_path, "train.cd")
 
@@ -513,6 +513,8 @@ def num_and_one_hot_cat_features_with_eval_sets():
         os.remove(cd_path)
 
 def one_hot_and_ctr_cat_features():
+    eval_metric = 'RMSE'
+
     learn_set_path = tempfile.mkstemp(prefix='catboost_learn_set_')[1]
     cd_path = tempfile.mkstemp(prefix='catboost_cd_')[1]
 
@@ -542,7 +544,7 @@ def one_hot_and_ctr_cat_features():
 
         model = utils.run_local_train(
             ['--iterations', '20',
-             '--loss-function', 'RMSE',
+             '--loss-function', eval_metric,
              '--dev-efb-max-buckets', '0',
              '--max-ctr-complexity', '1',
              '--has-time',
@@ -558,8 +560,15 @@ def one_hot_and_ctr_cat_features():
             model_class=cb.CatBoostRegressor
         )
         train_pool = cb.Pool(learn_set_path, column_description=cd_path)
+        learn_metric_values = model.eval_metrics(train_pool, metrics=[eval_metric])
 
-        result = {'prediction': model.predict(train_pool).tolist()}
+        result = {
+            'metrics': {
+                'learn': {
+                    eval_metric : learn_metric_values[eval_metric][-1]
+                }
+            }
+        }
 
         json.dump(
             result,
@@ -731,27 +740,36 @@ def constant_and_ctr_cat_features():
 
 
 def with_pairs():
+    top_k_in_MAP = 3
+    eval_metric = f'MAP:top={top_k_in_MAP}'
+
     data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
     learn_set_path = os.path.join(data_path, "train")
     learn_set_pairs_path_with_scheme = 'dsv-grouped://' + os.path.join(data_path, "train.grouped_pairs")
     cd_path = os.path.join(data_path, "train.cd")
 
     model = utils.run_dist_train(
-        ['--iterations', '20',
+        ['--iterations', '25',
          '--loss-function', 'PairLogit',
+         '--eval-metric', eval_metric,
          '--learn-set', learn_set_path,
          '--learn-pairs', learn_set_pairs_path_with_scheme,
-         '--cd', cd_path
+         '--cd', cd_path,
+         '--has-time'
         ],
         model_class=cb.CatBoostRegressor
     )
-    train_pool = cb.Pool(
-        learn_set_path,
-        column_description=cd_path,
-        pairs=learn_set_pairs_path_with_scheme
-    )
+    learn_pool = cb.Pool(learn_set_path, column_description=cd_path)
+    learn_metric_values = model.eval_metrics(learn_pool, metrics=[eval_metric])
 
-    result = {'prediction': model.predict(train_pool).tolist()}
+    result = {
+        'metrics': {
+            'learn': {
+                eval_metric : learn_metric_values[eval_metric][-1]
+            }
+        }
+    }
+
 
     json.dump(
         result,
@@ -762,6 +780,9 @@ def with_pairs():
 
 
 def with_pairs_with_eval_set():
+    top_k_in_MAP = 2
+    eval_metric = f'MAP:top={top_k_in_MAP}'
+
     data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
     learn_set_path = os.path.join(data_path, "train")
     learn_set_pairs_path_with_scheme = 'dsv-grouped://' + os.path.join(data_path, "train.grouped_pairs")
@@ -771,23 +792,34 @@ def with_pairs_with_eval_set():
     cd_path = os.path.join(data_path, "train.cd")
 
     model = utils.run_dist_train(
-        ['--iterations', '20',
+        ['--iterations', '25',
          '--loss-function', 'PairLogit',
+         '--eval-metric', eval_metric,
          '--learn-set', learn_set_path,
          '--learn-pairs', learn_set_pairs_path_with_scheme,
          '--test-set', eval_set_path,
          '--test-pairs', eval_set_pairs_path_with_scheme,
-         '--cd', cd_path
+         '--cd', cd_path,
+         '--has-time'
         ],
         model_class=cb.CatBoostRegressor
     )
-    eval_pool = cb.Pool(
-        eval_set_path,
-        column_description=cd_path,
-        pairs=eval_set_pairs_path_with_scheme
-    )
+    learn_pool = cb.Pool(learn_set_path, column_description=cd_path)
+    learn_metric_values = model.eval_metrics(learn_pool, metrics=[eval_metric])
 
-    result = {'prediction': model.predict(eval_pool).tolist()}
+    eval_pool = cb.Pool(eval_set_path, column_description=cd_path)
+    eval_metric_values = model.eval_metrics(eval_pool, metrics=[eval_metric])
+
+    result = {
+        'metrics': {
+            'learn': {
+                eval_metric : learn_metric_values[eval_metric][-1]
+            },
+            'eval': {
+                eval_metric : eval_metric_values[eval_metric][-1]
+            },
+        }
+    }
 
     json.dump(
         result,

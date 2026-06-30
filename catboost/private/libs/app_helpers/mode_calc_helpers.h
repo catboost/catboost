@@ -30,14 +30,14 @@ namespace NCB {
         NCB::TAnalyticalModeCommonParams* paramsPtr,
         size_t* iterationsLimitPtr,
         size_t* evalPeriodPtr,
-        TFullModel* modelPtr);
+        TVector<TFullModel>* allModelsPtr);
 
     void CalcModelSingleHost(
         const NCB::TAnalyticalModeCommonParams& params,
         size_t iterationsLimit,
         size_t evalPeriod,
         size_t virtualEnsemblesCount,
-        TFullModel&& model);
+        TVector<TFullModel>&& model);
 
     TEvalResult Apply(
         const TFullModel& model,
@@ -48,4 +48,27 @@ namespace NCB {
         size_t virtualEnsemblesCount,
         bool isUncertaintyPrediction,
         NPar::ILocalExecutor* executor);
+
+    TVector<TEvalResult> ApplyAllModels(
+        const TVector<TFullModel>& allModels,
+        const NCB::TDataProvider& dataset,
+        size_t begin,
+        size_t end,
+        size_t evalPeriod,
+        size_t virtualEnsemblesCount,
+        bool isUncertaintyPrediction,
+        NPar::ILocalExecutor* executor);
+
+    TEvalColumnsInfo CreateEvalColumnsInfo(
+        const TVector<TFullModel>& allModels,
+        const TDataProviderPtr datasetPart,
+        ui32 iterationsLimit,
+        ui32 evalPeriod,
+        ui32 virtualEnsemblesCount,
+        bool isUncertaintyPrediction,
+        NPar::TLocalExecutor* localExecutor);
+
+    void AddBlendedApprox(
+        const TString& blendingExpression,
+        NCB::TEvalColumnsInfo* evalColumnsInfo);
 }

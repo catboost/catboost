@@ -3,9 +3,8 @@
 #include <library/cpp/diff/diff.h>
 #include <library/cpp/colorizer/colors.h>
 
-#include <util/generic/bt_exception.h>
+#include <util/generic/yexception.h>
 #include <util/random/fast.h>
-#include <util/string/printf.h>
 #include <util/system/backtrace.h>
 #include <util/system/guard.h>
 #include <util/system/tls.h>
@@ -34,8 +33,8 @@ currentTest;
 ::NUnitTest::TRaiseErrorHandler RaiseErrorHandler;
 
 void ::NUnitTest::NPrivate::RaiseError(const char* what, const TString& msg, bool fatalFailure) {
-    Y_VERIFY(UnittestThread, "%s in non-unittest thread with message:\n%s", what, msg.data());
-    Y_VERIFY(GetCurrentTest());
+    Y_ABORT_UNLESS(UnittestThread, "%s in non-unittest thread with message:\n%s", what, msg.data());
+    Y_ABORT_UNLESS(GetCurrentTest());
 
     if (RaiseErrorHandler) {
         RaiseErrorHandler(what, msg, fatalFailure);
@@ -53,17 +52,17 @@ void ::NUnitTest::NPrivate::RaiseError(const char* what, const TString& msg, boo
 }
 
 void ::NUnitTest::SetRaiseErrorHandler(::NUnitTest::TRaiseErrorHandler handler) {
-    Y_VERIFY(UnittestThread);
+    Y_ABORT_UNLESS(UnittestThread);
     RaiseErrorHandler = std::move(handler);
 }
 
 void ::NUnitTest::NPrivate::SetUnittestThread(bool unittestThread) {
-    Y_VERIFY(UnittestThread != unittestThread, "state check");
+    Y_ABORT_UNLESS(UnittestThread != unittestThread, "state check");
     UnittestThread = unittestThread;
 }
 
 void ::NUnitTest::NPrivate::SetCurrentTest(TTestBase* test) {
-    Y_VERIFY(!test || !currentTest, "state check");
+    Y_ABORT_UNLESS(!test || !currentTest, "state check");
     currentTest = test;
 }
 
@@ -134,8 +133,8 @@ struct TTraceDiffFormatter {
     }
 };
 
-TString NUnitTest::GetFormatTag(const char* name) {
-    return Sprintf("[[%s]]", name);
+TString NUnitTest::GetFormatTag(TStringBuf name) {
+    return TString::Join("[[", name, "]]");
 }
 
 TString NUnitTest::GetResetTag() {
@@ -156,7 +155,7 @@ TString NUnitTest::ColoredDiff(TStringBuf s1, TStringBuf s2, const TString& deli
 }
 
 static TString MakeTestName(const NUnitTest::ITestSuiteProcessor::TTest& test) {
-    return TStringBuilder() << test.unit->name << "::" << test.name;
+    return TString::Join(test.unit->name, "::", test.name);
 }
 
 static size_t CountTests(const TMap<TString, size_t>& testErrors, bool succeeded) {
@@ -333,6 +332,11 @@ void NUnitTest::TTestBase::RunAfterTest(std::function<void()> f) {
 
 bool NUnitTest::TTestBase::CheckAccessTest(const char* test) {
     return Processor()->CheckAccessTest(Name(), test);
+}
+
+bool NUnitTest::TTestBase::CheckAccessTest(const char* test, const char* file, int line) {
+    return Processor()->CheckAccessTest(Name(), test, file, line);
+
 }
 
 void NUnitTest::TTestBase::BeforeTest(const char* func) {

@@ -106,13 +106,13 @@ This parameter works with `tokenizers` and `feature_calcers` parameters.
 
 ```python
 dictionaries = [{
-	'dictionaryId': 'Unigram',
+	'dictionary_id': 'Unigram',
 	'max_dictionary_size': '50000',
-	'gram_count': '1',
+	'gram_order': '1',
 },{
-	'dictionaryId': 'Bigram',
+	'dictionary_id': 'Bigram',
 	'max_dictionary_size': '50000',
-	'gram_count': '2',
+	'gram_order': '2',
 }]
 ```
 
@@ -288,7 +288,7 @@ This parameter works with `--tokenizers` and `--feature-calcers` parameters.
 {% cut "Usage example" %}
 
 ```
---dictionaries "Unigram:gram_count=1:max_dictionary_size=50000,Bigram:gram_count=2:max_dictionary_size=50000"
+--dictionaries "Unigram:gram_order=1:max_dictionary_size=50000,Bigram:gram_order=2:max_dictionary_size=50000"
 ```
 
 {% endcut %}

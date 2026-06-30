@@ -35,10 +35,12 @@
 
 
 #if HAVE_ZLIB
-#include <google/protobuf/io/gzip_stream.h>
+#include "google/protobuf/io/gzip_stream.h"
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "google/protobuf/port.h"
 
 namespace google {
 namespace protobuf {
@@ -64,13 +66,13 @@ GzipInputStream::GzipInputStream(ZeroCopyInputStream* sub_stream, Format format,
     output_buffer_length_ = buffer_size;
   }
   output_buffer_ = operator new(output_buffer_length_);
-  GOOGLE_CHECK(output_buffer_ != NULL);
+  Y_ABSL_CHECK(output_buffer_ != NULL);
   zcontext_.next_out = static_cast<Bytef*>(output_buffer_);
   zcontext_.avail_out = output_buffer_length_;
   output_position_ = output_buffer_;
 }
 GzipInputStream::~GzipInputStream() {
-  operator delete(output_buffer_);
+  internal::SizedDelete(output_buffer_, output_buffer_length_);
   zerror_ = inflateEnd(&zcontext_);
 }
 
@@ -219,7 +221,7 @@ void GzipOutputStream::Init(ZeroCopyOutputStream* sub_stream,
 
   input_buffer_length_ = options.buffer_size;
   input_buffer_ = operator new(input_buffer_length_);
-  GOOGLE_CHECK(input_buffer_ != NULL);
+  Y_ABSL_CHECK(input_buffer_ != NULL);
 
   zcontext_.zalloc = Z_NULL;
   zcontext_.zfree = Z_NULL;
@@ -244,7 +246,7 @@ void GzipOutputStream::Init(ZeroCopyOutputStream* sub_stream,
 
 GzipOutputStream::~GzipOutputStream() {
   Close();
-  operator delete(input_buffer_);
+  internal::SizedDelete(input_buffer_, input_buffer_length_);
 }
 
 // private
@@ -258,7 +260,7 @@ int GzipOutputStream::Deflate(int flush) {
         sub_data_size_ = 0;
         return Z_BUF_ERROR;
       }
-      GOOGLE_CHECK_GT(sub_data_size_, 0);
+      Y_ABSL_CHECK_GT(sub_data_size_, 0);
       zcontext_.next_out = static_cast<Bytef*>(sub_data_);
       zcontext_.avail_out = sub_data_size_;
     }
@@ -293,12 +295,12 @@ bool GzipOutputStream::Next(void** data, int* size) {
     *size = input_buffer_length_;
   } else {
     // The loop in Deflate should consume all avail_in
-    GOOGLE_LOG(DFATAL) << "Deflate left bytes unconsumed";
+    Y_ABSL_DLOG(FATAL) << "Deflate left bytes unconsumed";
   }
   return true;
 }
 void GzipOutputStream::BackUp(int count) {
-  GOOGLE_CHECK_GE(zcontext_.avail_in, static_cast<uInt>(count));
+  Y_ABSL_CHECK_GE(zcontext_.avail_in, static_cast<uInt>(count));
   zcontext_.avail_in -= count;
 }
 int64_t GzipOutputStream::ByteCount() const {

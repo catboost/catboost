@@ -11,7 +11,7 @@ class TThreadedLogBackend::TImpl {
     class TRec: public IObjectInQueue, public TAdditionalStorage<TRec>, public TLogRecord {
     public:
         inline TRec(TImpl* parent, const TLogRecord& rec)
-            : TLogRecord(rec.Priority, (const char*)AdditionalData(), rec.Len)
+            : TLogRecord(rec.Priority, (const char*)AdditionalData(), rec.Len, rec.MetaFlags)
             , Parent_(parent)
         {
             memcpy(AdditionalData(), rec.Data, rec.Len);

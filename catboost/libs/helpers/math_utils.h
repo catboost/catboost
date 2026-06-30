@@ -27,5 +27,9 @@ namespace NCB {
     inline double Logit(double x) {
         return -log(1 / x - 1);
     }
+
+    // If SSE2 is not enabled
+    // uses std::exp instead of fast_exp from library/cpp/fast_exp because fast_exp does not work with +/-inf.
+    void FastExpWithInfInplace(double* x, size_t count);
 }
 

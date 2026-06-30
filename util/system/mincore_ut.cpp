@@ -36,4 +36,4 @@ Y_UNIT_TEST_SUITE(MincoreSuite) {
         }
 #endif
     }
-}
+} // Y_UNIT_TEST_SUITE(MincoreSuite)

@@ -1,7 +1,8 @@
 #include "output.h"
 
 #include <util/string/cast.h>
-#include "format.h"
+#include <util/stream/format.h>
+#include <util/stream/null.h>
 #include <util/memory/tempbuf.h>
 #include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
@@ -17,8 +18,11 @@
 
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <string_view>
+#include <optional>
+#include <complex>
 
 #if defined(_win_)
     #include <io.h>
@@ -69,24 +73,13 @@ void Out<wchar32>(IOutputStream& o, wchar32 ch) {
     o.Write(buffer, length);
 }
 
-static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
+template <typename TCharType>
+static void WriteString(IOutputStream& o, const TCharType* w, size_t n) {
     const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
-    char* const data = buffer.Data();
     size_t written = 0;
-    WideToUTF8(w, n, data, written);
-    data[written] = 0;
-    o.Write(data, written);
-}
-
-static void WriteString(IOutputStream& o, const wchar32* w, size_t n) {
-    const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
-    TTempBuf buffer(buflen + 1);
-    char* const data = buffer.Data();
-    size_t written = 0;
-    WideToUTF8(w, n, data, written);
-    data[written] = 0;
-    o.Write(data, written);
+    WideToUTF8(w, n, buffer.Data(), written);
+    o.Write(buffer.Data(), written);
 }
 
 template <>
@@ -100,8 +93,28 @@ void Out<std::string>(IOutputStream& o, const std::string& p) {
 }
 
 template <>
+void Out<std::wstring>(IOutputStream& o, const std::wstring& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
+void Out<std::u16string>(IOutputStream& o, const std::u16string& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
+void Out<std::u32string>(IOutputStream& o, const std::u32string& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
 void Out<std::string_view>(IOutputStream& o, const std::string_view& p) {
     o.Write(p.data(), p.length());
+}
+
+template <>
+void Out<std::wstring_view>(IOutputStream& o, const std::wstring_view& p) {
+    WriteString(o, p.data(), p.length());
 }
 
 template <>
@@ -114,13 +127,10 @@ void Out<std::u32string_view>(IOutputStream& o, const std::u32string_view& p) {
     WriteString(o, p.data(), p.length());
 }
 
-#ifndef USE_STL_SYSTEM
-// FIXME thegeorg@: remove #ifndef upon raising minimal macOS version to 10.15 in https://st.yandex-team.ru/DTCC-836
 template <>
 void Out<std::filesystem::path>(IOutputStream& o, const std::filesystem::path& p) {
     o.Write(p.string());
 }
-#endif
 
 template <>
 void Out<TStringBuf>(IOutputStream& o, const TStringBuf& p) {
@@ -244,12 +254,47 @@ void Out<void*>(IOutputStream& o, void* t) {
     Out<const void*>(o, t);
 }
 
+namespace {
+    template <typename T>
+    void ComplexOutImpl(IOutputStream& o, const T& t) {
+        // similar to operator<<(std::basic_ostream<...>&, const std::complex<...>&)
+        o << "(" << t.real() << "," << t.imag() << ")";
+    }
+} // namespace
+
+template <>
+void Out<std::complex<float>>(IOutputStream& o, const std::complex<float>& t) {
+    ComplexOutImpl(o, t);
+}
+
+template <>
+void Out<std::complex<double>>(IOutputStream& o, const std::complex<double>& t) {
+    ComplexOutImpl(o, t);
+}
+
 using TNullPtr = decltype(nullptr);
 
 template <>
 void Out<TNullPtr>(IOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
     o << TStringBuf("nullptr");
 }
+
+#define DEF_OPTIONAL(TYPE)                                                               \
+    template <>                                                                          \
+    void Out<std::optional<TYPE>>(IOutputStream & o, const std::optional<TYPE>& value) { \
+        if (value) {                                                                     \
+            o << *value;                                                                 \
+        } else {                                                                         \
+            o << "(NULL)";                                                               \
+        }                                                                                \
+    }
+
+DEF_OPTIONAL(ui32);
+DEF_OPTIONAL(i64);
+DEF_OPTIONAL(ui64);
+DEF_OPTIONAL(std::string);
+DEF_OPTIONAL(TString);
+DEF_OPTIONAL(TStringBuf);
 
 #if defined(_android_)
 namespace {
@@ -343,7 +388,7 @@ namespace {
     };
 
     bool TAndroidStdIOStreams::Enabled = false;
-}
+} // namespace
 #endif // _android_
 
 namespace {
@@ -407,7 +452,7 @@ namespace {
             return *SingletonWithPriority<TStdIOStreams, 4>();
         }
     };
-}
+} // namespace
 
 IOutputStream& NPrivate::StdErrStream() noexcept {
 #if defined(_android_)
@@ -433,4 +478,44 @@ void RedirectStdioToAndroidLog(bool redirect) {
 #else
     Y_UNUSED(redirect);
 #endif
+}
+void TDebugOutput::DoWrite(const void* buf, size_t len) {
+    if (len != fwrite(buf, 1, len, stderr)) {
+        ythrow yexception() << "write failed(" << LastSystemErrorText() << ")";
+    }
+}
+
+namespace {
+    struct TDbgSelector {
+        inline TDbgSelector() {
+            char* dbg = getenv("DBGOUT");
+            if (dbg) {
+                Out = &Cerr;
+                try {
+                    Level = FromString(dbg);
+                } catch (const yexception&) {
+                    Level = 0;
+                }
+            } else {
+                Out = &Cnull;
+                Level = 0;
+            }
+        }
+
+        IOutputStream* Out;
+        int Level;
+    };
+} // namespace
+
+template <>
+struct TSingletonTraits<TDbgSelector> {
+    static constexpr size_t Priority = 8;
+};
+
+IOutputStream& NPrivate::StdDbgStream() noexcept {
+    return *(Singleton<TDbgSelector>()->Out);
+}
+
+int StdDbgLevel() noexcept {
+    return Singleton<TDbgSelector>()->Level;
 }

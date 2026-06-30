@@ -50,6 +50,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TModelBasedEvalOptions& ModelBasedEvalConfig;
         const NCatboostOptions::TLossDescription& TargetOptions;
+        const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
 
         NPar::ILocalExecutor* LocalExecutor;
 
@@ -289,9 +290,11 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TDocParallelDataSet& dataSet) const {
-            return MakeHolder<TObjective>(dataSet,
-                                  Random,
-                                  TargetOptions);
+            return MakeHolder<TObjective>(
+                dataSet,
+                Random,
+                TargetOptions,
+                ObjectiveDescriptor);
         }
 
         //TODO(noxoomo): remove overhead of multiple target for permutation datasets
@@ -441,6 +444,7 @@ namespace NCatboostCuda {
     public:
         TBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                   const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
                   NPar::ILocalExecutor* localExecutor)
@@ -451,6 +455,7 @@ namespace NCatboostCuda {
             , Config(catBoostOptions.BoostingOptions)
             , ModelBasedEvalConfig(catBoostOptions.ModelBasedEvalOptions)
             , TargetOptions(catBoostOptions.LossFunctionDescription)
+            , ObjectiveDescriptor(objectiveDescriptor)
             , LocalExecutor(localExecutor)
         {
         }
@@ -563,7 +568,7 @@ namespace NCatboostCuda {
 
             const ui32 baseModelSize = baseModels[0].Size();
             const ui32 offset = ModelBasedEvalConfig.Offset;
-            CB_ENSURE(baseModelSize >= offset, "Error: offset " << offset << " must be less or equal to best iteration of baseline model " << baseModelSize);
+            CB_ENSURE(baseModelSize >= offset, "Error: offset " << offset << " must be less or equal to the best iteration of baseline model " << baseModelSize);
             const ui32 experimentCount = ModelBasedEvalConfig.ExperimentCount;
             const auto getExperimentStart = [=] (ui32 experimentIdx) {
                 return baseModelSize - offset + offset / experimentCount * experimentIdx;

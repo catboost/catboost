@@ -11,10 +11,10 @@ inline int CalcCatFeatureHashInt(const TStringBuf feature) noexcept {
     return *reinterpret_cast<int*>(&hashVal);
 }
 
-inline float ConvertCatFeatureHashToFloat(ui32 hashVal) {
+inline float ConvertCatFeatureHashToFloat(ui32 hashVal) noexcept {
     return *reinterpret_cast<const float*>(&hashVal);
 }
 
-inline ui32 ConvertFloatCatFeatureToIntHash(float feature)  {
+inline ui32 ConvertFloatCatFeatureToIntHash(float feature) noexcept {
     return *reinterpret_cast<const ui32*>(&feature);
 }

@@ -10,6 +10,7 @@ namespace NYT::NDetail {
 Y_WEAK void AssertTrapImpl(
     TStringBuf trapType,
     TStringBuf expr,
+    TStringBuf description,
     TStringBuf file,
     int line,
     TStringBuf function)
@@ -20,8 +21,10 @@ Y_WEAK void AssertTrapImpl(
         line,
         function.data(),
         expr.data(),
-        "%s",
-        trapType.data());
+        "%s: %.*s",
+        trapType.data(),
+        static_cast<int>(std::min<ui64>(description.length(), std::numeric_limits<int>::max())),
+        description.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -177,7 +177,7 @@ private:
         TDirHier dh;
         const TString dir("tmpdir");
 
-        //prepare fs
+        // prepare fs
         {
             TMersenne<ui32> rnd;
             const TString prefixes[] = {

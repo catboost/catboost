@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       common.c
 /// \brief      Common functions needed in many places in liblzma
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +34,8 @@ lzma_version_string(void)
 // Memory allocation //
 ///////////////////////
 
-extern void * lzma_attribute((__malloc__)) lzma_attr_alloc_size(1)
+lzma_attr_alloc_size(1)
+extern void *
 lzma_alloc(size_t size, const lzma_allocator *allocator)
 {
 	// Some malloc() variants return NULL if called with size == 0.
@@ -53,7 +53,8 @@ lzma_alloc(size_t size, const lzma_allocator *allocator)
 }
 
 
-extern void * lzma_attribute((__malloc__)) lzma_attr_alloc_size(1)
+lzma_attr_alloc_size(1)
+extern void *
 lzma_alloc_zero(size_t size, const lzma_allocator *allocator)
 {
 	// Some calloc() variants return NULL if called with size == 0.
@@ -95,6 +96,12 @@ lzma_bufcpy(const uint8_t *restrict in, size_t *restrict in_pos,
 		size_t in_size, uint8_t *restrict out,
 		size_t *restrict out_pos, size_t out_size)
 {
+	assert(in != NULL || *in_pos == in_size);
+	assert(out != NULL || *out_pos == out_size);
+
+	assert(*in_pos <= in_size);
+	assert(*out_pos <= out_size);
+
 	const size_t in_avail = in_size - *in_pos;
 	const size_t out_avail = out_size - *out_pos;
 	const size_t copy_size = my_min(in_avail, out_avail);
@@ -288,13 +295,21 @@ lzma_code(lzma_stream *strm, lzma_action action)
 			strm->next_in, &in_pos, strm->avail_in,
 			strm->next_out, &out_pos, strm->avail_out, action);
 
-	strm->next_in += in_pos;
-	strm->avail_in -= in_pos;
-	strm->total_in += in_pos;
+	// Updating next_in and next_out has to be skipped when they are NULL
+	// to avoid null pointer + 0 (undefined behavior). Do this by checking
+	// in_pos > 0 and out_pos > 0 because this way NULL + non-zero (a bug)
+	// will get caught one way or other.
+	if (in_pos > 0) {
+		strm->next_in += in_pos;
+		strm->avail_in -= in_pos;
+		strm->total_in += in_pos;
+	}
 
-	strm->next_out += out_pos;
-	strm->avail_out -= out_pos;
-	strm->total_out += out_pos;
+	if (out_pos > 0) {
+		strm->next_out += out_pos;
+		strm->avail_out -= out_pos;
+		strm->total_out += out_pos;
+	}
 
 	strm->internal->avail_in = strm->avail_in;
 
@@ -339,7 +354,7 @@ lzma_code(lzma_stream *strm, lzma_action action)
 		else
 			strm->internal->sequence = ISEQ_END;
 
-	// Fall through
+		FALLTHROUGH;
 
 	case LZMA_NO_CHECK:
 	case LZMA_UNSUPPORTED_CHECK:

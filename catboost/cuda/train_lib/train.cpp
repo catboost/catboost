@@ -16,6 +16,7 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/memory_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -227,7 +228,10 @@ namespace NCatboostCuda {
                                                                 ITrainingCallbacks* trainingCallbacks,
                                                                 NPar::ILocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                                                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+                                                                ) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
         ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
 
@@ -246,6 +250,8 @@ namespace NCatboostCuda {
                                         dataProvider,
                                         testProvider,
                                         featureEstimators,
+                                        objectiveDescriptor,
+                                        evalMetricDescriptor,
                                         random,
                                         approxDimension,
                                         trainingCallbacks,
@@ -307,8 +313,6 @@ namespace NCatboostCuda {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress) const override {
 
-            Y_UNUSED(objectiveDescriptor);
-            Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
@@ -349,11 +353,6 @@ namespace NCatboostCuda {
                                                       quantizedFeaturesInfo,
                                                       objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
-            CB_ENSURE(
-                !IsMultiTargetObjective(lossFunction)
-                || (EqualToOneOf(lossFunction, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
-                && featuresManager.GetCtrsCount() == 0),
-                "Catboost does not support " << ToString(lossFunction) << " on GPU yet for categorical features");
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
@@ -398,7 +397,10 @@ namespace NCatboostCuda {
                 trainingCallbacks,
                 localExecutor,
                 &rawValues,
-                metricsAndTimeHistory);
+                metricsAndTimeHistory,
+                objectiveDescriptor,
+                evalMetricDescriptor
+            );
 
             if (evalResultPtrs.size()) {
                 evalResultPtrs[0]->SetRawValuesByMove(rawValues);
@@ -477,7 +479,8 @@ namespace NCatboostCuda {
                 .WithCoreModelFrom(
                     modelPtr)
                 .WithObjectsDataFrom(trainingData.Learn->ObjectsData)
-                .WithFeatureEstimators(trainingData.FeatureEstimators);
+                .WithFeatureEstimators(trainingData.FeatureEstimators)
+                .WithMetrics(*metricsAndTimeHistory);
 
             if (dstModel) {
                 coreModelToFullModelConverter.Do(true, dstModel, localExecutor, &targetClassifiers);

@@ -10,13 +10,13 @@
 
 namespace {
     static const int opts[] = {
-        //Auto
+        // Auto
         15 + 32,
-        //ZLib
+        // ZLib
         15 + 0,
-        //GZip
+        // GZip
         15 + 16,
-        //Raw
+        // Raw
         -15};
 
     class TZLibCommon {
@@ -75,7 +75,7 @@ namespace {
         const char* Buf;
         size_t Len;
     };
-}
+} // namespace
 
 class TZLibDecompress::TImpl: private TZLibCommon, public TChunkedZeroCopyInput {
 public:
@@ -184,7 +184,7 @@ namespace {
     };
 
     using TZeroCopyDecompress = TZLibDecompress::TImpl;
-}
+} // namespace
 
 class TZLibCompress::TImpl: public TAdditionalStorage<TImpl>, private TZLibCommon {
     static inline ZLib::StreamType Type(ZLib::StreamType type) {

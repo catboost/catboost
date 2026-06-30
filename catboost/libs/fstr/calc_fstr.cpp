@@ -134,7 +134,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     for (int i = 0; i < effect.ysize(); ++i) {
         effectWithFeature.emplace_back(effect[i], i);
     }
-    Sort(effectWithFeature.begin(), effectWithFeature.end(), std::greater<std::pair<double, int>>());
+    StableSort(effectWithFeature.begin(), effectWithFeature.end(), std::greater<std::pair<double, int>>());
 
     TVector<std::pair<double, TFeature>> result;
     for (int i = 0; i < effectWithFeature.ysize(); ++i) {
@@ -403,7 +403,7 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(
             );
     }
 
-    Sort(
+    StableSort(
         regularFeatureEffect.rbegin(),
         regularFeatureEffect.rend(),
         [](const TFeatureInteraction& left, const TFeatureInteraction& right) {

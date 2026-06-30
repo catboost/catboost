@@ -33,6 +33,8 @@ namespace NTesting {
         inline TTest* _This() noexcept {
             return this;
         }
+
+        virtual ~TTest() = default;
     };
 }
 
@@ -64,7 +66,7 @@ namespace testing {
             }                                 \
             void NN();                        \
         };                                    \
-    };                                        \
+    }                                         \
     TEST_IMPL(N, NN, FF) {                    \
         NTestSuite##N##NN::TTestSuite().NN(); \
     }                                         \

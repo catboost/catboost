@@ -1,55 +1,30 @@
 #pragma once
 
-#include "kernel.cuh"
-
 #include <library/cpp/cuda/exception/exception.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/noncopyable.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/yexception.h>
+#include <util/stream/output.h>
 
 #include <cuda_runtime.h>
 
-#define CUDA_SAFE_CALL(statement)                                                                                    \
-    {                                                                                                                \
-        cudaError_t errorCode = statement;                                                                           \
-        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            ythrow TCudaException(errorCode) << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
-        }                                                                                                            \
-    }
-
-#ifdef _MSC_VER
-#define CUDA_DISABLE_4297_WARN __pragma(warning(push)); __pragma(warning(disable:4297))
-#define CUDA_RESTORE_WARNINGS __pragma(warning(pop))
-#elif defined(__GNUC__) || defined(__clang__)
-#define CUDA_DISABLE_4297_WARN _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wexceptions\"")
-#define CUDA_RESTORE_WARNINGS _Pragma("GCC diagnostic pop")
-#else
-#define CUDA_DISABLE_4297_WARN
-#define CUDA_RESTORE_WARNINGS
-#endif
-
-#define CUDA_SAFE_CALL_FOR_DESTRUCTOR(statement)                                                                                    \
-    {                                                                                                                \
-        cudaError_t errorCode = statement;                                                                           \
-        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            if (UncaughtException()) {                                                                               \
-                Cerr << "Got CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode);                \
-                Cerr << " while processing exception: " << CurrentExceptionMessage() << Endl;                        \
-            } else {                                                                                                 \
-                CUDA_DISABLE_4297_WARN                                                                               \
-                ythrow TCudaException(errorCode) << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
-                CUDA_RESTORE_WARNINGS                                                                                 \
-            }                                                                                                        \
-        }                                                                                                            \
-    }
 
 class TCudaEvent;
 
-enum class EStreamPriority {
-    Default,
-    Low,
-    High
-};
+
+namespace NCuda {
+
+    enum class EStreamPriority {
+        Default,
+        Low,
+        High
+    };
+
+}
 
 class TCudaStream {
 private:
@@ -59,10 +34,10 @@ private:
             CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamDestroy(Stream_));
         }
 
-        explicit TImpl(bool nonBlocking, EStreamPriority streamPriority)
+        explicit TImpl(bool nonBlocking, NCuda::EStreamPriority streamPriority)
             : NonBlocking(nonBlocking)
         {
-            if (streamPriority == EStreamPriority::Default) {
+            if (streamPriority == NCuda::EStreamPriority::Default) {
                 if (nonBlocking) {
                     CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&Stream_, cudaStreamNonBlocking));
                 } else {
@@ -73,7 +48,7 @@ private:
                 int greatestPriority = 0;
                 CUDA_SAFE_CALL(cudaDeviceGetStreamPriorityRange(&leastPriority, &greatestPriority));
                 CUDA_ENSURE(nonBlocking, "non default priority for nonBlocking streams only");
-                int priority = leastPriority ? streamPriority == EStreamPriority::Low : greatestPriority;
+                int priority = leastPriority ? streamPriority == NCuda::EStreamPriority::Low : greatestPriority;
                 CUDA_SAFE_CALL(cudaStreamCreateWithPriority(&Stream_, cudaStreamNonBlocking, priority));
             }
         }
@@ -112,7 +87,7 @@ public:
         return TCudaStream();
     }
 
-    static TCudaStream NewStream(bool nonBlocking = true, EStreamPriority streamPriority = EStreamPriority::Default) {
+    static TCudaStream NewStream(bool nonBlocking = true, NCuda::EStreamPriority streamPriority = NCuda::EStreamPriority::Default) {
         return TCudaStream(new TImpl(nonBlocking, streamPriority));
     }
 
@@ -123,55 +98,62 @@ public:
     void WaitEvent(const TCudaEvent& event) const;
 };
 
-inline void DeviceSynchronize() {
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+
+namespace NCuda {
+    inline void DeviceSynchronize() {
+        CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    }
+
+    inline int GetDevice() {
+        int devId;
+        CUDA_SAFE_CALL(cudaGetDevice(&devId));
+        return devId;
+    }
+
+    class TDeviceGuard: private TNonCopyable {
+    public:
+        TDeviceGuard(int device) {
+            PreviousDevice = NCuda::GetDevice();
+            if (device != PreviousDevice) {
+                CUDA_SAFE_CALL(cudaSetDevice(device));
+            } else {
+                PreviousDevice = -1;
+            }
+        }
+
+        ~TDeviceGuard() {
+            if (PreviousDevice != -1) {
+                CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaSetDevice(PreviousDevice));
+            }
+        }
+
+    private:
+        int PreviousDevice = -1;
+    };
+
+    void GetMemoryInfo(int device, size_t* available, size_t* total);
+    int GetDeviceCount();
+
+    class TProfile: private TNonCopyable {
+    public:
+        TProfile(const TString& message)
+            : Message_(message)
+        {
+            NCuda::DeviceSynchronize();
+            Start = TInstant::Now();
+        }
+
+        ~TProfile() {
+            NCuda::DeviceSynchronize();
+            Cout << Message_ << " in " << (TInstant::Now() - Start).SecondsFloat() << " seconds" << Endl;
+        }
+
+    private:
+        TString Message_;
+        TInstant Start;
+    };
 }
 
-class TDeviceGuard: private TNonCopyable {
-public:
-    TDeviceGuard(int device) {
-        CUDA_SAFE_CALL(cudaGetDevice(&PreviousDevice));
-        if (device != PreviousDevice) {
-            CUDA_SAFE_CALL(cudaSetDevice(device));
-        } else {
-            PreviousDevice = -1;
-        }
-    }
-
-    ~TDeviceGuard() {
-        if (PreviousDevice != -1) {
-            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaSetDevice(PreviousDevice));
-        }
-    }
-
-private:
-    int PreviousDevice = -1;
-};
-
-
-//return 0 if success and 1 otherwise
-void GetMemoryInfo(int device, size_t* available, size_t* total);
-int GetDeviceCount();
-
-class TProfile: private TNonCopyable {
-public:
-    TProfile(const TString& message)
-        : Message_(message)
-    {
-        DeviceSynchronize();
-        Start = TInstant::Now();
-    }
-
-    ~TProfile() {
-        DeviceSynchronize();
-        Cout << Message_ << " in " << (TInstant::Now() - Start).SecondsFloat() << " seconds" << Endl;
-    }
-
-private:
-    TString Message_;
-    TInstant Start;
-};
-//
 
 template <class T>
 inline void ClearMemoryAsync(TArrayRef<T> data, TCudaStream stream) {

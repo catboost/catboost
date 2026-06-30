@@ -5,23 +5,22 @@ import copy
 import logging
 import os
 import platform
+import shlex
 import subprocess
-import sys
 import tempfile
-from typing import Dict
-
-if sys.version_info < (3, 8):
-    import pipes
-else:
-    import shlex
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 
+MSVS_TO_DEFAULT_MSVC_TOOLSET = {
+    '2019': '14.28.29333',
+    '2022': '14.29.30133'
+}
 
 class Target(object):
-    def __init__(self, catboost_component, need_pic, macos_binaries_paths):
-        self.catboost_component = catboost_component
-        self.need_pic = need_pic
-        self.macos_binaries_paths = macos_binaries_paths # needed for lipo
+    def __init__(self, catboost_component: Optional[str], need_pic: bool, macos_binaries_paths: List[str]):
+        self.catboost_component: Optional[str] = catboost_component
+        self.need_pic: bool = need_pic
+        self.macos_binaries_paths: List[str] = macos_binaries_paths # needed for lipo
 
 class Targets(object):
     catboost = {
@@ -52,12 +51,17 @@ class Targets(object):
         'rescompiler',
         'triecompiler'
     ]
+    test_tools = {
+        'limited_precision_dsv_diff': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff']),
+        'limited_precision_json_diff': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/limited_precision_json_diff/limited_precision_json_diff']),
+        'model_comparator': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/model_comparator/model_comparator']),
+    }
 
 
 class Option(object):
-    def __init__(self, description, required=False, default=None, opt_type=str):
-        self.description = description
-        self.required = required
+    def __init__(self, description: str, required: Optional[bool] = False, default=None, opt_type=str):
+        self.description: str = description
+        self.required: Optional[bool] = required
         if required and (default is not None):
             raise RuntimeError("Required option shouldn't have default specified")
         self.default = default
@@ -71,6 +75,7 @@ class Opts(object):
         'build_root_dir': Option('CMake build dir (-B)', required=True),
         'build_type': Option('build type (Debug,Release,RelWithDebInfo,MinSizeRel)', default='Release'),
         'rebuild': Option('Rebuild targets from scratch', default=False, opt_type=bool),
+        'keep_going': Option('Continue to build even if errors have already been encountered', default=False, opt_type=bool),
         'targets':
             Option(
                 f'List of CMake targets to build (,-separated). Note: you cannot mix targets that require PIC and non-PIC targets here',
@@ -85,12 +90,17 @@ class Opts(object):
             'Custom CMake toolchain path for target platform instead of one of preselected\n'
             + ' (used even in default case when no explicit target_platform is specified)'
         ),
-        'conan_host_profile': Option('Custom Conan host profile instead of one of preselected (used only in cross-build)'),
+        'conan_build_profile': Option('Custom Conan build profile instead of default'),
+        'conan_host_profile': Option('Custom Conan host profile instead of one of preselected'),
         'msvs_installation_path':
             Option('Microsoft Visual Studio installation path (default is "{Program Files}\\Microsoft Visual Studio\\")'
         ),
-        'msvs_version': Option('Microsoft Visual Studio version (like "2019", "2022")', default='2019'),
-        'msvc_toolset': Option('Microsoft Visual C++ Toolset version to use', default='14.28.29333'),
+        'msvs_version': Option('Microsoft Visual Studio version (like "2019", "2022")', default='2022'),
+        'msvc_toolset': Option(
+            'Microsoft Visual C++ Toolset version to use'
+            + f'(default for Visual Studio 2019 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2019"]}",'
+            + f' for Visual Studio 2022 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2022"]}")'
+        ),
         'macosx_version_min': Option('Minimal macOS version to target', default='11.0'),
         'have_cuda': Option('Enable CUDA support', default=False, opt_type=bool),
         'cuda_root_dir': Option('CUDA root dir (taken from CUDA_PATH or CUDA_ROOT by default)'),
@@ -129,52 +139,58 @@ class Opts(object):
                 setattr(self, key, option.default)
 
 class PythonDevPaths:
-    def __init__(self, include_path:str, library_path:str):
-        self.include_path = include_path
-        self.library_path = library_path
+    def __init__(self, include_path: str, library_path: str, numpy_include_path: str):
+        self.include_path: str = include_path
+        self.library_path: str = library_path
+        self.numpy_include_path: str = numpy_include_path
+
+    def prepend_paths(self, path_prefix: str):
+        return PythonDevPaths(
+            os.path.join(path_prefix, self.include_path),
+            os.path.join(path_prefix, self.library_path),
+            os.path.join(path_prefix, self.numpy_include_path)
+        )
+
+    def add_to_cmake_args(self, cmake_args: List[str]):
+        cmake_args += [
+            f'-DPython3_INCLUDE_DIR={self.include_path}',
+            f'-DPython3_LIBRARY={self.library_path}',
+            f'-DPython3_NumPy_INCLUDE_DIR={self.numpy_include_path}',
+        ]
 
 
-def get_host_platform():
+def get_host_platform() -> str:
     arch = platform.machine()
     if arch == 'AMD64':
         arch = 'x86_64'
     return f'{platform.system().lower()}-{arch}'
 
 class CmdRunner(object):
-    def __init__(self, dry_run=False):
-        self.dry_run = dry_run
+    def __init__(self, dry_run: bool = False):
+        self.dry_run: bool = dry_run
 
-    @staticmethod
-    def shlex_join(cmd):
-        if sys.version_info >= (3, 8):
-            return shlex.join(cmd)
-        else:
-            return ' '.join(
-                pipes.quote(part)
-                for part in cmd
-            )
-
-    def run(self, cmd, run_even_with_dry_run=False, **subprocess_run_kwargs):
+    def run(self, cmd = Union[str, Iterable[str]], run_even_with_dry_run: bool = False, **subprocess_run_kwargs):
         if 'shell' in subprocess_run_kwargs:
             printed_cmd = cmd
         else:
-            printed_cmd = CmdRunner.shlex_join(cmd)
+            printed_cmd = shlex.join(cmd)
         logging.info(f'Running "{printed_cmd}"')
         if run_even_with_dry_run or (not self.dry_run):
             subprocess.run(cmd, check=True, **subprocess_run_kwargs)
 
-def get_source_root_dir():
+def get_source_root_dir() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-def mkdir_if_not_exists(dir, verbose, dry_run):
+def mkdir_if_not_exists(dir: str, verbose: bool, dry_run: bool):
     if verbose:
         logging.info(f'create directory {dir}')
     if not dry_run:
         os.makedirs(dir, exist_ok=True)
 
 def lipo(opts : Opts, cmd_runner: CmdRunner):
+    all_targets_specs = {**Targets.catboost, **Targets.test_tools}
     for target in opts.targets:
-        for target_binary_sub_path in Targets.catboost[target].macos_binaries_paths:
+        for target_binary_sub_path in all_targets_specs[target].macos_binaries_paths:
             dst_path = os.path.join(opts.build_root_dir, target_binary_sub_path)
             mkdir_if_not_exists(os.path.dirname(dst_path), opts.verbose, opts.dry_run)
             cmd = ['lipo', '-create', '-output', dst_path]
@@ -184,8 +200,8 @@ def lipo(opts : Opts, cmd_runner: CmdRunner):
 
 def build_macos_universal_binaries(
     opts: Opts,
-    cmake_platform_to_root_path:Dict[str,str],
-    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths],
+    cmake_platform_to_root_path: Optional[Dict[str,str]],
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]],
     cmd_runner: CmdRunner):
 
     host_platform = get_host_platform()
@@ -206,15 +222,12 @@ def build_macos_universal_binaries(
     host_build_opts.target_platform = host_platform
     host_build_opts.build_root_dir = host_build_root_dir
     host_build_opts.cmake_extra_args = copy.copy(host_build_opts.cmake_extra_args)
-    if cmake_platform_to_root_path is not None:
-        host_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[host_platform]}']
-    if cmake_platform_to_python_dev_paths is not None:
-        host_build_opts.cmake_extra_args += [
-            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[host_platform].include_path}',
-            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[host_platform].library_path}'
-        ]
 
-    build(host_build_opts)
+    build(
+        host_build_opts,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+    )
 
     cross_build_root_dir = os.path.join(opts.build_root_dir, cross_build_platform)
     mkdir_if_not_exists(cross_build_root_dir, opts.verbose, opts.dry_run)
@@ -224,23 +237,21 @@ def build_macos_universal_binaries(
     cross_build_opts.target_platform = cross_build_platform
     cross_build_opts.build_root_dir = cross_build_root_dir
     cross_build_opts.cmake_extra_args = copy.copy(cross_build_opts.cmake_extra_args)
-    if cmake_platform_to_root_path is not None:
-        cross_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[cross_build_platform]}']
-    if cmake_platform_to_python_dev_paths is not None:
-        cross_build_opts.cmake_extra_args += [
-            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[cross_build_platform].include_path}',
-            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[cross_build_platform].library_path}'
-        ]
     if cross_build_opts.native_built_tools_root_dir is None:
         cross_build_opts.native_built_tools_root_dir = os.path.abspath(host_build_opts.build_root_dir)
 
-    cross_build(cross_build_opts, cmd_runner)
+    cross_build(
+        cross_build_opts,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths,
+        cmd_runner=cmd_runner
+    )
 
     lipo(opts, cmd_runner)
 
 
 
-def get_default_cross_build_toolchain(source_root_dir, opts):
+def get_default_cross_build_toolchain(source_root_dir: str, opts: Opts) -> str:
     build_system_name = platform.system().lower()
     target_system_name, target_system_arch = opts.target_platform.split('-')
 
@@ -248,10 +259,10 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
 
     if build_system_name == 'darwin':
         if target_system_name != 'darwin':
-            raise RuntimeError('Cross-compilation to darwin from non-darwin is not supported')
+            raise RuntimeError('Cross-compilation from macOS to non-macOS is not supported')
         return os.path.join(
             default_toolchains_dir,
-            f'cross-build.host.darwin.target.{target_system_arch}-darwin-default.clang.toolchain'
+            f'cross-build.host.darwin.target.{target_system_arch}-apple-darwin.clang.toolchain'
         )
     elif build_system_name == 'linux':
         if target_system_name == 'android':
@@ -269,7 +280,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
     else:
         raise RuntimeError(f'Cross-compilation from {build_system_name} is not supported')
 
-def get_default_conan_host_profile(source_root_dir, target_platform):
+def get_default_cross_build_conan_host_profile(source_root_dir: str, target_platform: str) -> str:
     target_system_name, target_system_arch = target_platform.split('-')
 
     # a bit of name mismatch
@@ -282,33 +293,45 @@ def get_default_conan_host_profile(source_root_dir, target_platform):
     )
 
 
-def cross_build(opts: Opts, cmd_runner=None):
+def cross_build(
+    opts: Opts,
+    cmake_platform_to_root_path: Optional[Dict[str,str]],
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]],
+    cmd_runner: Optional[CmdRunner] = None):
+    """
+        cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
+        cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
+    """
     if cmd_runner is None:
         cmd_runner = CmdRunner(opts.dry_run)
 
     host_platform = get_host_platform()
     logging.info(f"Cross-building from host platform {host_platform} to target platform {opts.target_platform}")
 
-    tmp_native_built_tools_root_dir = None
-
     if opts.native_built_tools_root_dir:
         native_built_tools_root_dir = opts.native_built_tools_root_dir
     else:
-        tmp_native_built_tools_root_dir = tempfile.TemporaryDirectory(prefix='native_built_tools_root_dir')
-        native_built_tools_root_dir = tmp_native_built_tools_root_dir.name
+        native_built_tools_root_dir = os.path.join(opts.build_root_dir, 'native_tools')
+        mkdir_if_not_exists(native_built_tools_root_dir, opts.verbose, opts.dry_run)
 
         logging.info("Build tools")
         build(
-            dry_run=opts.dry_run,
-            verbose=opts.verbose,
-            build_root_dir=native_built_tools_root_dir,
-            build_type='Release',
-            rebuild=opts.rebuild,
-            targets=Targets.tools,
-            cmake_target_toolchain=opts.cmake_build_toolchain,
-            msvs_version=opts.msvs_version,
-            msvc_toolset=opts.msvc_toolset,
-            macosx_version_min=opts.macosx_version_min
+            opts=Opts(
+                dry_run=opts.dry_run,
+                verbose=opts.verbose,
+                build_root_dir=native_built_tools_root_dir,
+                build_type='Release',
+                rebuild=opts.rebuild,
+                targets=Targets.tools,
+                cmake_target_toolchain=opts.cmake_build_toolchain,
+                conan_build_profile=opts.conan_build_profile,
+                conan_host_profile=opts.conan_build_profile,
+                msvs_version=opts.msvs_version,
+                msvc_toolset=opts.msvc_toolset,
+                macosx_version_min=opts.macosx_version_min
+            ),
+            cmake_platform_to_root_path=cmake_platform_to_root_path,
+            cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
         )
 
     source_root_dir = get_source_root_dir()
@@ -319,42 +342,40 @@ def cross_build(opts: Opts, cmd_runner=None):
         cmake_target_toolchain = opts.cmake_target_toolchain
 
     if opts.conan_host_profile is None:
-        conan_host_profile = get_default_conan_host_profile(source_root_dir, opts.target_platform)
+        conan_host_profile = get_default_cross_build_conan_host_profile(source_root_dir, opts.target_platform)
     else:
         conan_host_profile = opts.conan_host_profile
 
-    conan_cmd_prefix = [
+    conan_install_cmd = [
         'conan',
         'install',
         '-s', f'build_type={opts.build_type}',
-        '-if', opts.build_root_dir,
+        '--output-folder', opts.build_root_dir,
         '--build=missing',
+        f'-pr:b={opts.conan_build_profile if opts.conan_build_profile else "default"}',
+        f'-pr:h={conan_host_profile}'
     ]
+    if opts.target_platform.startswith('darwin-'):
+        conan_install_cmd += ['-s:h', f'os.version={opts.macosx_version_min}']
+    conan_install_cmd += [os.path.join(source_root_dir, 'conanfile.py')]
 
-    conan_tools_cmd = conan_cmd_prefix + [
-        os.path.join(source_root_dir, 'conanfile.txt')
-    ]
-    logging.info("Run conan to build tools")
-    cmd_runner.run(conan_tools_cmd)
-
-    conan_libs_cmd = conan_cmd_prefix + [
-        '--no-imports',
-        f'-pr:h={conan_host_profile}',
-        '-pr:b=default',
-        os.path.join(source_root_dir, 'conanfile.txt')
-    ]
-    logging.info(f"Run conan to build libs for target platform {opts.target_platform}")
-    cmd_runner.run(conan_libs_cmd)
+    logging.info(f"Run conan install for target platform {opts.target_platform}")
+    cmd_runner.run(conan_install_cmd)
 
     final_build_opts = copy.copy(opts)
     final_build_opts.cmake_target_toolchain = cmake_target_toolchain
     final_build_opts.native_built_tools_root_dir = native_built_tools_root_dir
 
     logging.info(f"Run build for target platform {opts.target_platform}")
-    build(opts=final_build_opts, cross_build_final_stage=True)
+    build(
+        opts=final_build_opts,
+        cross_build_final_stage=True,
+        cmake_platform_to_root_path=cmake_platform_to_root_path,
+        cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+    )
 
 
-def get_require_pic(targets):
+def get_require_pic(targets : Iterable[str]) -> bool:
     for target in targets:
         if target in Targets.catboost:
             if Targets.catboost[target].need_pic:
@@ -362,19 +383,37 @@ def get_require_pic(targets):
 
     return False
 
-def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
-    if msvs_installation_path is None:
-        program_files = 'Program Files' if msvs_version == '2022' else 'Program Files (x86)'
-        msvs_base_dir = f'c:\\{program_files}\\Microsoft Visual Studio\\{msvs_version}'
-    else:
-        msvs_base_dir = os.path.join(msvs_installation_path, msvs_version)
+def get_msvs_dir(msvs_installation_path: Optional[str], msvs_version: str) -> str:
 
-    if os.path.exists(f'{msvs_base_dir}\\Community'):
-        msvs_dir = f'{msvs_base_dir}\\Community'
-    elif os.path.exists(f'{msvs_base_dir}\\Enterprise'):
-        msvs_dir = f'{msvs_base_dir}\\Enterprise'
-    else:
-        raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found')
+    msvs_base_dir_candidates = ['c:\\Program Files\\Microsoft Visual Studio', 'c:\\Program Files (x86)\\Microsoft Visual Studio']
+    if msvs_installation_path is not None:
+        msvs_base_dir_candidates = [msvs_installation_path]
+
+    for base_dir in msvs_base_dir_candidates:
+        for subfolder in ['Community', 'Enterprise', 'BuildTools']:
+            msvs_dir = os.path.join(base_dir, msvs_version, subfolder)
+            if os.path.exists(msvs_dir):
+                return msvs_dir
+
+    raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found in {msvs_base_dir_candidates}')
+
+def get_msvc_toolset(msvs_version: str, msvc_toolset: Optional[str]) -> str:
+    if msvc_toolset:
+        return msvc_toolset
+
+    if msvs_version not in MSVS_TO_DEFAULT_MSVC_TOOLSET:
+        raise RuntimeError(f'No default C++ toolset for Microsoft Visual Studio {msvs_version}')
+    return MSVS_TO_DEFAULT_MSVC_TOOLSET[msvs_version]
+
+def get_msvc_environ(
+    msvs_installation_path: Optional[str],
+    msvs_version: str,
+    msvc_toolset: Optional[str],
+    cmd_runner: CmdRunner,
+    dry_run: bool) -> Dict[str, str]:
+
+    msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
+    msvc_toolset = get_msvc_toolset(msvs_version, msvc_toolset)
 
     env_vars = {}
 
@@ -390,20 +429,26 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
 
     return env_vars
 
-def get_cuda_root_dir(cuda_root_dir_option):
+def get_cuda_root_dir(cuda_root_dir_option: Optional[str]) -> str:
     cuda_root_dir = cuda_root_dir_option or os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT')
     if not cuda_root_dir:
         raise RuntimeError('No cuda_root_dir specified and CUDA_PATH and CUDA_ROOT environment variables also not defined')
     return cuda_root_dir
 
-def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir):
+def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir: str):
     cuda_bin_dir = os.path.join(cuda_root_dir, 'bin')
     if platform.system().lower() == 'windows':
-        build_environ['Path'] = cuda_bin_dir + ';' + build_environ['Path']
+        if 'Path' in build_environ:
+            path_env_name = 'Path'
+        elif 'PATH' in build_environ:
+            path_env_name = 'PATH'
+        else:
+            raise RuntimeError('no PATH environment variable')
+        build_environ[path_env_name] = cuda_bin_dir + ';' + build_environ[path_env_name]
     else:
         build_environ['PATH'] = cuda_bin_dir + ':' + build_environ['PATH']
 
-def get_catboost_components(targets):
+def get_catboost_components(targets : Iterable[str]) -> Set[str]:
     catboost_components = set()
 
     for target in targets:
@@ -412,24 +457,78 @@ def get_catboost_components(targets):
 
     return catboost_components
 
-def get_default_build_platform_toolchain(source_root_dir):
+def get_default_build_platform_toolchain(source_root_dir: str) -> str:
     if platform.system().lower() == 'windows':
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'default.toolchain'))
     else:
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'clang.toolchain'))
 
+def get_build_environ(opts: Opts, target_platform: str, cmd_runner: CmdRunner):
+    if platform.system().lower() == 'windows':
+        # Need vcvars set up for Ninja generator
+        build_environ = get_msvc_environ(
+            opts.msvs_installation_path,
+            opts.msvs_version,
+            opts.msvc_toolset,
+            cmd_runner,
+            opts.dry_run
+        )
+    else:
+        build_environ = copy.deepcopy(os.environ)
+        if target_platform == 'linux-aarch64':
+            # Inject these flags to conan builds
+            # TODO(akhropov): Prefer a more general solution at CMake/conan level
+            build_environ['CFLAGS'] = '-mno-outline-atomics'
+            build_environ['CXXFLAGS'] = '-mno-outline-atomics'
+
+    if opts.have_cuda:
+        cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
+        # CMake requires nvcc to be available in $PATH
+        add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
+
+    # this environment variable can be used in conan profiles to avoid profile duplication
+    build_environ['CMAKE_BUILD_TYPE'] = opts.build_type
+
+    return build_environ
+
+def get_default_windows_conan_host_profile(
+    source_root_dir: str,
+    target_platform: str,
+    msvs_version: str,
+    msvc_toolset: Optional[str]) -> Optional[str]:
+
+    target_system_name, target_system_arch = target_platform.split('-')
+    assert target_system_name == 'windows'
+    if msvs_version == '2022':
+        msvc_toolset = get_msvc_toolset(msvs_version, msvc_toolset)
+        if msvc_toolset.startswith('14.28.') or msvc_toolset.startswith('14.29.'):
+            return os.path.join(
+                source_root_dir,
+                'cmake',
+                'conan-profiles',
+                f'windows.msvs2022.{target_system_arch}.profile'
+            )
+
+    return None
 
 def build(
-    opts=None,
-    cross_build_final_stage=False,
-    cmake_platform_to_root_path:Dict[str,str]=None,
-    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths]=None,
+    opts: Optional[Opts] = None,
+    cross_build_final_stage: bool = False,
+    cmake_platform_to_root_path: Optional[Dict[str,str]] = None,
+    cmake_platform_to_python_dev_paths: Optional[Dict[str,PythonDevPaths]] = None,
     **kwargs):
     """
         cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
+            Note that if 'cuda_root_dir' is specified in 'opts' or **kwargs then the following directories must exist and will be used:
+              - 'cuda_root_dir' - for CUDA compiler 'nvcc' and other tools like 'ptxas' to be used on the host platform
+              - os.path.join(cmake_platform_to_root_path[target_platform], cuda_root_dir) - for CUDA headers and libraries for the target platform
+                If cuda_root_dir contains a drive letter on Windows if will be cut from the start of cuda_root_dir before this join.
+                E.g. if
+                  cuda_root_dir = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
+                  cmake_platform_to_root_path[target_platform] = 'C:/cmake_build_env/windows-x86_64'
+                then the full path to the CUDA for the target platform will be
+                  'C:/cmake_build_env/windows-x86_64/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
         cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
-        used only for macOS universal builds because in other cases it is sufficient
-        to add Python3_INCLUDE_DIR, Python3_LIBRARY, CMAKE_FIND_ROOT_PATH to cmake_extra_args
     """
 
     if opts is None:
@@ -447,13 +546,15 @@ def build(
         return
     elif opts.target_platform is not None:
         if (opts.target_platform != get_host_platform()) and not cross_build_final_stage:
-            cross_build(opts, cmd_runner)
+            cross_build(opts, cmake_platform_to_root_path, cmake_platform_to_python_dev_paths, cmd_runner)
             return
         target_platform = opts.target_platform
     else:
         target_platform = get_host_platform()
 
-    require_pic = get_require_pic(opts.targets)
+    # require_pic = get_require_pic(opts.targets)
+    # TODO(akhropov): return when -fPIC is removed from explicit linking flags
+    require_pic = True
 
     logging.info(
         f'target_platform={target_platform}. Building targets {" ".join(opts.targets)} {"with" if require_pic else "without"} PIC'
@@ -466,17 +567,7 @@ def build(
     else:
         cmake_target_toolchain = opts.cmake_target_toolchain
 
-    if platform.system().lower() == 'windows':
-        # Need vcvars set up for Ninja generator
-        build_environ = get_msvc_environ(
-            opts.msvs_installation_path,
-            opts.msvs_version,
-            opts.msvc_toolset,
-            cmd_runner,
-            opts.dry_run
-        )
-    else:
-        build_environ = os.environ
+    build_environ = get_build_environ(opts, target_platform, cmd_runner)
 
     # can be empty if called for tools build
     catboost_components = get_catboost_components(opts.targets)
@@ -489,7 +580,36 @@ def build(
         '-G', 'Ninja',
         f'-DCMAKE_BUILD_TYPE={opts.build_type}',
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
+        f'-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES={source_root_dir}/cmake/conan_provider.cmake'
     ]
+
+    conan_host_profile = opts.conan_host_profile
+    if platform.system().lower() == 'windows':
+        if not conan_host_profile:
+            # TODO: support proper passing of mavc_toolset in conan_provider.cmake
+            conan_host_profile = get_default_windows_conan_host_profile(
+                source_root_dir,
+                target_platform,
+                opts.msvs_version,
+                opts.msvc_toolset
+            )
+
+        if not opts.have_cuda:
+            msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
+
+            # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
+            # (as clang-cl is not supported by CUDA yet)
+            cmake_cmd += [
+                f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+                f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+                f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
+            ]
+
+    if opts.conan_build_profile:
+        cmake_cmd += [f'-DCONAN_BUILD_PROFILE={opts.conan_build_profile}']
+    if conan_host_profile:
+        cmake_cmd += [f'-DCONAN_HOST_PROFILE={conan_host_profile}']
+
     if opts.verbose:
         cmake_cmd += ['--log-level=VERBOSE']
     if require_pic:
@@ -501,20 +621,36 @@ def build(
     cmake_cmd += [f'-DHAVE_CUDA={"yes" if opts.have_cuda else "no"}']
     if opts.have_cuda:
         cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
-        # CMake requires nvcc to be available in $PATH
-        add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
         cmake_cmd += [
-            f'-DCUDAToolkit_ROOT={cuda_root_dir}',
+            f'-DCUDAToolkit_ROOT={os.path.splitdrive(cuda_root_dir)[1] if cmake_platform_to_root_path is not None else cuda_root_dir}',
             f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}'
         ]
 
     if opts.native_built_tools_root_dir:
         cmake_cmd += [f'-DTOOLS_ROOT={opts.native_built_tools_root_dir}']
 
+    if cmake_platform_to_root_path is not None:
+        cmake_cmd += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[target_platform]}']
+    if cmake_platform_to_python_dev_paths is not None:
+        cmake_platform_to_python_dev_paths[target_platform].add_to_cmake_args(cmake_cmd)
+
     if opts.cmake_extra_args is not None:
         cmake_cmd += opts.cmake_extra_args
 
     cmd_runner.run(cmake_cmd, env=build_environ)
+
+    # Manifest is necessary to enable long paths on Windows
+    # https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+    if platform.system().lower() == 'windows':
+        # use cmake -E copy as a cross-platform copy command that can be run through cmd_runner
+        # for uniformity
+        copy_swig_manifest_cmd = [
+            'cmake',
+            '-E', 'copy',
+            os.path.join(source_root_dir, 'build', 'swig.exe.manifest'),
+            os.path.join(opts.build_root_dir, 'bin')
+        ]
+        cmd_runner.run(copy_swig_manifest_cmd, env=build_environ)
 
     if opts.rebuild:
         ninja_clean_cmd = [
@@ -535,6 +671,8 @@ def build(
         ninja_cmd += ['-v']
     if opts.parallel_build_jobs is not None:
         ninja_cmd += ['-j', str(opts.parallel_build_jobs)]
+    if opts.keep_going:
+        ninja_cmd += ['-k', '0']
     ninja_cmd += opts.targets
     cmd_runner.run(ninja_cmd, env=build_environ)
 

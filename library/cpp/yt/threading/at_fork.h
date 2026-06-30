@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rw_spin_lock.h"
+#include "writer_starving_rw_spin_lock.h"
 
 #include <functional>
 
@@ -23,7 +23,7 @@ void RegisterAtForkHandlers(
     TAtForkHandler child);
 
 //! Returns the fork lock.
-TReaderWriterSpinLock* GetForkLock();
+TWriterStarvingRWSpinLock* GetForkLock();
 
 ////////////////////////////////////////////////////////////////////////////////
 

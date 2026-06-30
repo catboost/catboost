@@ -30,24 +30,21 @@
 
 // Author: kenton@google.com (Kenton Varda)
 
-#include <google/protobuf/compiler/plugin.h>
+#include "google/protobuf/compiler/plugin.h"
 
 #include <iostream>
-#include <set>
-
 #ifdef _WIN32
 #include <fcntl.h>
 #else
 #include <unistd.h>
 #endif
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/compiler/plugin.pb.h>
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/io/io_win32.h>
+#include "google/protobuf/compiler/plugin.pb.h"
+#include "google/protobuf/compiler/code_generator.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/io_win32.h"
+#include "google/protobuf/io/zero_copy_stream_impl.h"
 
 
 namespace google {
@@ -68,7 +65,7 @@ class GeneratorResponseContext : public GeneratorContext {
       : compiler_version_(compiler_version),
         response_(response),
         parsed_files_(parsed_files) {}
-  virtual ~GeneratorResponseContext() {}
+  ~GeneratorResponseContext() override {}
 
   // implements GeneratorContext --------------------------------------
 
@@ -117,7 +114,7 @@ bool GenerateCode(const CodeGeneratorRequest& request,
   DescriptorPool pool;
   for (int i = 0; i < request.proto_file_size(); i++) {
     const FileDescriptor* file = pool.BuildFile(request.proto_file(i));
-    if (file == NULL) {
+    if (file == nullptr) {
       // BuildFile() already wrote an error message.
       return false;
     }
@@ -126,11 +123,11 @@ bool GenerateCode(const CodeGeneratorRequest& request,
   std::vector<const FileDescriptor*> parsed_files;
   for (int i = 0; i < request.file_to_generate_size(); i++) {
     parsed_files.push_back(pool.FindFileByName(request.file_to_generate(i)));
-    if (parsed_files.back() == NULL) {
-      *error_msg =
+    if (parsed_files.back() == nullptr) {
+      *error_msg = y_absl::StrCat(
           "protoc asked plugin to generate a file but "
-          "did not provide a descriptor for the file: " +
-          request.file_to_generate(i);
+          "did not provide a descriptor for the file: ",
+          request.file_to_generate(i));
       return false;
     }
   }

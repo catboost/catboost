@@ -1,6 +1,6 @@
-#include "bt_exception.h"
 #include "yexception.h"
 
+#include <util/stream/str.h>
 #include <util/system/backtrace.h>
 #include <util/system/type_name.h>
 
@@ -103,8 +103,8 @@ std::string CurrentExceptionTypeName() {
         return TypeName(*currentExceptionTypePtr);
     }
 #endif
-    //There is no abi::__cxa_current_exception_type() on Windows.
-    //Emulated it with rethrow - catch construction.
+    // There is no abi::__cxa_current_exception_type() on Windows.
+    // Emulated it with rethrow - catch construction.
     std::exception_ptr currentException = std::current_exception();
     Y_ASSERT(currentException != nullptr);
     try {
@@ -119,9 +119,11 @@ std::string CurrentExceptionTypeName() {
 void TSystemError::Init() {
     yexception& exc = *this;
 
-    exc << TStringBuf("(");
-    exc << TStringBuf(LastSystemErrorText(Status_));
-    exc << TStringBuf(") ");
+    exc << "(Error "sv
+        << Status_
+        << ": "sv
+        << TStringBuf(LastSystemErrorText(Status_))
+        << ") "sv;
 }
 
 NPrivateException::yexception::yexception() {

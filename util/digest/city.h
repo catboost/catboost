@@ -50,7 +50,7 @@ namespace NPrivateCityHash {
         static_assert(std::is_integral<std::remove_reference_t<decltype(*str.data())>>::value, "invalid type passed to hash function");
         return TStringBuf(reinterpret_cast<const char*>(str.data()), (str.size()) * sizeof(*str.data()));
     }
-}
+} // namespace NPrivateCityHash
 
 template <class TStringType>
 inline ui64 CityHash64(const TStringType& str) {

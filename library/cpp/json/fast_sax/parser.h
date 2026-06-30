@@ -10,4 +10,4 @@ namespace NJson {
         TJsonCallbacks c(throwOnError);
         return ReadJsonFast(in, &c);
     }
-}
+} // namespace NJson

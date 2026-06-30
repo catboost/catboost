@@ -179,7 +179,7 @@ protected:
         }
 
         {
-            //This is to test move constructor
+            // This is to test move constructor
             TVector<TStringType> str_vect;
 
             str_vect.push_back(short_str1);
@@ -279,7 +279,9 @@ protected:
     void null_char_of_empty() {
         const TStringType s;
 
-        UNIT_ASSERT(s[s.size()] == 0);
+        // NOTE: https://a.yandex-team.ru/arcadia/junk/grechnik/test_string?rev=r12602052
+        i64 i = s[s.size()];
+        UNIT_ASSERT_VALUES_EQUAL(i, 0);
     }
 
     void null_char() {
@@ -348,7 +350,7 @@ protected:
         str.reserve(100);
         str = strorg;
 
-        //test self insertion:
+        // test self insertion:
         str.insert(10, str.c_str() + 5, 15);
         UNIT_ASSERT(str == Data_.This_is_teis_test_string_st_string_for_string_calls());
 
@@ -685,12 +687,10 @@ protected:
         str.replace(5, 5, str.c_str(), 10);
         UNIT_ASSERT(str == Data.This_This_is_test_StringT_for_StringT_calls());
 
-    #if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
         deque<TChar> cdeque;
         cdeque.push_back(*Data.I());
         str.replace(str.begin(), str.begin() + 11, cdeque.begin(), cdeque.end());
         UNIT_ASSERT(str == Data.Is_test_StringT_for_StringT_calls());
-    #endif
     }
 #endif
 }; // TStringStdTestImpl
@@ -725,7 +725,7 @@ public:
     UNIT_TEST(TestAppendUtf16)
     UNIT_TEST(TestFillingAssign)
     UNIT_TEST(TestStdStreamApi)
-    //UNIT_TEST(TestOperatorsCI); must fail
+    // UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {
@@ -1163,7 +1163,7 @@ Y_UNIT_TEST_SUITE(TStringConversionTest) {
         std::string_view stdAbra = abra;
         UNIT_ASSERT_VALUES_EQUAL(stdAbra, "cadabra");
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringConversionTest)
 
 Y_UNIT_TEST_SUITE(HashFunctorTests) {
     Y_UNIT_TEST(TestTransparency) {
@@ -1176,7 +1176,7 @@ Y_UNIT_TEST_SUITE(HashFunctorTests) {
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(str));
         UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(stdStr));
     }
-}
+} // Y_UNIT_TEST_SUITE(HashFunctorTests)
 
 #if !defined(TSTRING_IS_STD_STRING)
 Y_UNIT_TEST_SUITE(StdNonConformant) {
@@ -1206,7 +1206,7 @@ Y_UNIT_TEST_SUITE(StdNonConformant) {
         UNIT_ASSERT_VALUES_EQUAL(s, "xabc");
         UNIT_ASSERT_VALUES_EQUAL(TString(s.c_str()), "xabc");
     }
-}
+} // Y_UNIT_TEST_SUITE(StdNonConformant)
 #endif
 
 Y_UNIT_TEST_SUITE(Interop) {
@@ -1241,4 +1241,38 @@ Y_UNIT_TEST_SUITE(Interop) {
     Y_UNIT_TEST(TestTemp) {
         UNIT_ASSERT_VALUES_EQUAL("x" + ConstRef(TString("y")), "xy");
     }
-}
+
+    static void ComparePointers(const std::string& s, const void* expected, TStringBuf descr) {
+        UNIT_ASSERT_VALUES_EQUAL_C(static_cast<const void*>(s.c_str()), expected, descr);
+    }
+
+    Y_UNIT_TEST(TestConstShared) {
+        TString s(600, 'a');
+        const void* stringStart = s.c_str();
+        ComparePointers(s, stringStart, "unique");
+        TString shared{s};
+        ComparePointers(s, stringStart, "shared"); // converting a TString to a `const std::string&` should not cause data cloning
+    }
+} // Y_UNIT_TEST_SUITE(Interop)
+
+#ifdef __cpp_lib_format
+
+    #include <format>
+Y_UNIT_TEST_SUITE(TStringStdFormatTest) {
+    Y_UNIT_TEST(TestFormatTString) {
+        TString s("hello");
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{}", s), "hello");
+    }
+
+    Y_UNIT_TEST(TestFormatTStringWithWidth) {
+        TString s("hi");
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{:>5}", s), "   hi");
+    }
+
+    Y_UNIT_TEST(TestFormatEmptyTString) {
+        TString s;
+        UNIT_ASSERT_VALUES_EQUAL(std::format("{}", s), "");
+    }
+} // Y_UNIT_TEST_SUITE(TStringStdFormatTest)
+
+#endif

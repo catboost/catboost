@@ -1,0 +1,154 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_CTIME
+#define _CUDA_STD_CTIME
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#if _CCCL_CUDA_COMPILATION()
+#  include <cuda/__ptx/instructions/get_sreg.h>
+#endif // _CCCL_CUDA_COMPILATION()
+
+#if !_CCCL_COMPILER(NVRTC)
+#  include <time.h>
+#else
+#  define TIME_UTC 1
+
+using time_t = long long int;
+
+struct timespec
+{
+  ::time_t tv_sec;
+  long tv_nsec;
+};
+#endif // _CCCL_COMPILER(NVRTC)
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+using ::clock_t;
+using ::size_t;
+using ::time_t;
+using ::timespec;
+
+// glibc defines clock and other functions as macros, we need to prevent our symbols being redefined by them
+
+// clock
+
+#if defined(clock)
+#  pragma push_macro("clock")
+#  undef clock
+#  define _LIBCUDACXX_POP_CLOCK_MACRO
+#endif // clock
+[[nodiscard]] _CCCL_API inline clock_t clock() noexcept
+#ifdef _LIBCUDACXX_POP_CLOCK_MACRO
+#  pragma pop_macro("clock")
+#  undef _LIBCUDACXX_POP_CLOCK_MACRO
+#endif // _LIBCUDACXX_POP_CLOCK_MACRO
+{
+  NV_IF_ELSE_TARGET(NV_IS_HOST, (return ::clock();), (return static_cast<clock_t>(_CUDA_VPTX::get_sreg_clock64());))
+}
+
+// difftime
+
+#if defined(difftime)
+#  pragma push_macro("difftime")
+#  undef difftime
+#  define _LIBCUDACXX_POP_DIFFTIME_MACRO
+#endif // difftime
+[[nodiscard]] _CCCL_API constexpr double difftime(time_t __end, time_t __start) noexcept
+#ifdef _LIBCUDACXX_POP_DIFFTIME_MACRO
+#  pragma pop_macro("difftime")
+#  undef _LIBCUDACXX_POP_DIFFTIME_MACRO
+#endif // _LIBCUDACXX_POP_DIFFTIME_MACRO
+{
+  return static_cast<double>(__end - __start);
+}
+
+// time
+
+#if _CCCL_CUDA_COMPILATION()
+[[nodiscard]] _CCCL_HIDE_FROM_ABI _CCCL_DEVICE time_t __cccl_time_impl_device(time_t* __v) noexcept
+{
+  const auto __t = static_cast<clock_t>(_CUDA_VPTX::get_sreg_globaltimer() / 1'000'000'000);
+  if (__v != nullptr)
+  {
+    *__v = __t;
+  }
+  return __t;
+}
+#endif // _CCCL_CUDA_COMPILATION()
+
+#if defined(time)
+#  pragma push_macro("time")
+#  undef time
+#  define _LIBCUDACXX_POP_TIME_MACRO
+#endif // time
+_CCCL_API inline time_t time(time_t* __v) noexcept
+#ifdef _LIBCUDACXX_POP_TIME_MACRO
+#  pragma pop_macro("time")
+#  undef _LIBCUDACXX_POP_TIME_MACRO
+#endif // _LIBCUDACXX_POP_TIME_MACRO
+{
+  NV_IF_ELSE_TARGET(NV_IS_HOST, (return ::time(__v);), (return _CUDA_VSTD::__cccl_time_impl_device(__v);))
+}
+
+#if !defined(__ANDROID_API__) || __ANDROID_API__ >= 29
+
+// timespec_get
+
+#  if _CCCL_CUDA_COMPILATION()
+[[nodiscard]] _CCCL_HIDE_FROM_ABI _CCCL_DEVICE int __cccl_timespec_get_impl_device(timespec* __ts, int __base) noexcept
+{
+  if (__base != TIME_UTC)
+  {
+    return 0;
+  }
+  const auto __t = _CUDA_VPTX::get_sreg_globaltimer();
+  __ts->tv_sec   = static_cast<time_t>(__t / 1'000'000'000);
+  __ts->tv_nsec  = static_cast<long>(__t % 1'000'000'000);
+  return __base;
+}
+#  endif // _CCCL_CUDA_COMPILATION()
+
+#  if defined(timespec_get)
+#    pragma push_macro("timespec_get")
+#    undef timespec_get
+#    define _LIBCUDACXX_POP_TIMESPEC_GET_MACRO
+#  endif // timespec_get
+template <int = 0>
+[[nodiscard]] _CCCL_API inline int timespec_get(timespec* __ts, int __base) noexcept
+#  ifdef _LIBCUDACXX_POP_TIMESPEC_GET_MACRO
+#    pragma pop_macro("timespec_get")
+#    undef _LIBCUDACXX_POP_TIMESPEC_GET_MACRO
+#  endif // _LIBCUDACXX_POP_TIMESPEC_GET_MACRO
+{
+  NV_IF_ELSE_TARGET(NV_IS_HOST,
+                    (return ::timespec_get(__ts, __base);),
+                    (return _CUDA_VSTD::__cccl_timespec_get_impl_device(__ts, __base);))
+}
+
+#endif // !defined(__ANDROID_API__) || __ANDROID_API__ >= 29
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_CTIME

@@ -16,7 +16,10 @@ template <class T>
 class TIntrusivePtr
 {
 public:
-    typedef T TUnderlying;
+    using TUnderlying = T;
+
+    //! For compatibility with std:: smart pointers.
+    using element_type = T;
 
     constexpr TIntrusivePtr() noexcept
     { }
@@ -29,10 +32,10 @@ public:
      * Note that this constructor could be racy due to unsynchronized operations
      * on the object and on the counter.
      *
-     * Note that it notoriously hard to make this constructor explicit
+     * Note that it is notoriously hard to make this constructor explicit
      * given the current amount of code written.
      */
-    TIntrusivePtr(T* obj, bool addReference = true) noexcept
+    constexpr TIntrusivePtr(T* obj, bool addReference = true) noexcept
         : T_(obj)
     {
         if (T_ && addReference) {
@@ -54,9 +57,7 @@ public:
     TIntrusivePtr(const TIntrusivePtr<U>& other) noexcept
         : T_(other.Get())
     {
-        static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         if (T_) {
             Ref(T_);
         }
@@ -74,9 +75,7 @@ public:
     TIntrusivePtr(TIntrusivePtr<U>&& other) noexcept
         : T_(other.Get())
     {
-        static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         other.T_ = nullptr;
     }
 
@@ -102,9 +101,7 @@ public:
         static_assert(
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
-        static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         TIntrusivePtr(other).Swap(*this);
         return *this;
     }
@@ -123,9 +120,7 @@ public:
         static_assert(
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
-        static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
-            "Cast allowed only for types derived from TRefCountedBase");
+        ValidateCastFrom<U>();
         TIntrusivePtr(std::move(other)).Swap(*this);
         return *this;
     }
@@ -144,6 +139,12 @@ public:
 
     //! Returns the pointer.
     T* Get() const noexcept
+    {
+        return T_;
+    }
+
+    //! Returns the pointer, for compatibility with std:: smart pointers.
+    T* get() const noexcept
     {
         return T_;
     }
@@ -184,6 +185,16 @@ private:
     friend class TIntrusivePtr;
 
     T* T_ = nullptr;
+
+    template <class U>
+    static constexpr void ValidateCastFrom() noexcept
+    {
+        if constexpr (!std::is_same_v<const U, T>) {
+            static_assert(
+                std::derived_from<T, TRefCountedBase>,
+                "Cast allowed only for types derived from TRefCountedBase");
+        }
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -256,63 +267,42 @@ TIntrusivePtr<T> DynamicPointerCast(const TIntrusivePtr<U>& ptr)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-bool operator<(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<T>& rhs)
+std::strong_ordering operator<=>(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<T>& rhs)
 {
-    return lhs.Get() < rhs.Get();
+    return lhs.Get() <=> rhs.Get();
 }
 
 template <class T>
-bool operator>(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<T>& rhs)
+std::strong_ordering operator<=>(const TIntrusivePtr<T>& lhs, T* rhs)
 {
-    return lhs.Get() > rhs.Get();
+    return lhs.Get() <=> rhs;
+}
+
+template <class T>
+std::strong_ordering operator<=>(T* lhs, const TIntrusivePtr<T>& rhs)
+{
+    return lhs <=> rhs.Get();
 }
 
 template <class T, class U>
+    requires std::equality_comparable_with<T*, U*>
 bool operator==(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<U>& rhs)
 {
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
     return lhs.Get() == rhs.Get();
 }
 
 template <class T, class U>
-bool operator!=(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<U>& rhs)
-{
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
-    return lhs.Get() != rhs.Get();
-}
-
-template <class T, class U>
+    requires std::equality_comparable_with<T*, U*>
 bool operator==(const TIntrusivePtr<T>& lhs, U* rhs)
 {
     return lhs.Get() == rhs;
 }
 
 template <class T, class U>
-bool operator!=(const TIntrusivePtr<T>& lhs, U* rhs)
-{
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
-    return lhs.Get() != rhs;
-}
-
-template <class T, class U>
+    requires std::equality_comparable_with<T*, U*>
 bool operator==(T* lhs, const TIntrusivePtr<U>& rhs)
 {
     return lhs == rhs.Get();
-}
-
-template <class T, class U>
-bool operator!=(T* lhs, const TIntrusivePtr<U>& rhs)
-{
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
-    return lhs != rhs.Get();
 }
 
 template <class T>
@@ -322,33 +312,70 @@ bool operator==(std::nullptr_t, const TIntrusivePtr<T>& rhs)
 }
 
 template <class T>
-bool operator!=(std::nullptr_t, const TIntrusivePtr<T>& rhs)
-{
-    return nullptr != rhs.Get();
-}
-
-template <class T>
 bool operator==(const TIntrusivePtr<T>& lhs, std::nullptr_t)
 {
     return nullptr == lhs.Get();
 }
 
-template <class T>
-bool operator!=(const TIntrusivePtr<T>& lhs, std::nullptr_t)
+////////////////////////////////////////////////////////////////////////////////
+
+//! Abseil hash support for TIntrusivePtr.
+template <class THash, class T>
+THash AbslHashValue(THash hash, const TIntrusivePtr<T>& ptr)
 {
-    return nullptr != lhs.Get();
+    return THash::combine(std::move(hash), ptr.Get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-} //namespace NYT
+} // namespace NYT
 
 //! A hasher for TIntrusivePtr.
 template <class T>
 struct THash<NYT::TIntrusivePtr<T>>
 {
-    Y_FORCE_INLINE size_t operator () (const NYT::TIntrusivePtr<T>& ptr) const
+    using is_transparent = void;
+
+    Y_FORCE_INLINE size_t operator()(const NYT::TIntrusivePtr<T>& ptr) const
     {
         return THash<T*>()(ptr.Get());
+    }
+
+    Y_FORCE_INLINE size_t operator()(T* ptr) const
+    {
+        return THash<T*>()(ptr);
+    }
+};
+
+template <class T>
+struct TEqualTo<NYT::TIntrusivePtr<T>>
+{
+    using is_transparent = void;
+
+    template <class U>
+        requires std::equality_comparable_with<NYT::TIntrusivePtr<T>, const U&>
+    bool operator()(const NYT::TIntrusivePtr<T>& lhs, const U& rhs) const
+    {
+        return lhs == rhs;
+    }
+};
+
+template <class T>
+struct TLess<NYT::TIntrusivePtr<T>>
+{
+    using is_transparent = void;
+
+    template <class U>
+        requires std::three_way_comparable_with<const NYT::TIntrusivePtr<T>&, const U&>
+    bool operator()(const NYT::TIntrusivePtr<T>& lhs, const U& rhs) const
+    {
+        return lhs < rhs;
+    }
+
+    template <class U>
+        requires std::three_way_comparable_with<T*, const U&>
+    bool operator()(T* lhs, const U& rhs) const
+    {
+        return lhs < rhs;
     }
 };

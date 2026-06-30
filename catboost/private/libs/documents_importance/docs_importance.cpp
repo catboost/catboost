@@ -81,7 +81,7 @@ static TDStrResult GetFinalDocumentImportances(
         TVector<ui32> indices(docCount);
         std::iota(indices.begin(), indices.end(), 0);
         if (docImpMethod != EDocumentStrengthType::Raw) {
-            Sort(indices.begin(), indices.end(), [&](ui32 first, ui32 second) {
+            StableSort(indices.begin(), indices.end(), [&](ui32 first, ui32 second) {
                 return Abs(preprocessedImportancesRef[first]) > Abs(preprocessedImportancesRef[second]);
             });
         }

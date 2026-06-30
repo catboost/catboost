@@ -16,7 +16,7 @@ private:
 
         UNIT_ASSERT_EQUAL(c->AdditionalDataLength(), 100);
 
-        //test segfault
+        // test segfault
         memset(c->AdditionalData(), 0, c->AdditionalDataLength());
     }
 };

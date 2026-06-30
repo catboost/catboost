@@ -64,8 +64,9 @@ GetTemp(char* path, int* doopen, int domkdir, int slen)
         return (0);
     }
 
-    for (trv = path; *trv != '\0'; ++trv) {
-        ;
+    trv = path;
+    while (*trv != 0) {
+        ++trv;
     }
     trv -= slen;
     suffp = trv;

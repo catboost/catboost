@@ -114,4 +114,4 @@ Y_UNIT_TEST_SUITE(TIsIn) {
         UNIT_ASSERT(!IsIn(array, "c"));
         UNIT_ASSERT(IsIn(array, TStringBuf("d")));
     }
-}
+} // Y_UNIT_TEST_SUITE(TIsIn)

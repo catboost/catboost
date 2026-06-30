@@ -9,7 +9,7 @@
 class IOutputStream;
 namespace NPrivate {
     void PrintFlags(IOutputStream& stream, ui64 value, size_t size);
-}
+} // namespace NPrivate
 
 /**
  * `TFlags` wrapper provides a type-safe mechanism for storing OR combinations
@@ -23,12 +23,12 @@ namespace NPrivate {
  *         Vertical = 1,
  *         Horizontal = 2
  *     };
- *     Y_DECLARE_FLAGS(EOrientations, EOrientation)
+ *     Y_DECLARE_FLAGS(EOrientations, EOrientation);
  *
  *     // ...
  * };
  *
- * Y_DECLARE_OPERATORS_FOR_FLAGS(TAligner::EOrientations)
+ * Y_DECLARE_OPERATORS_FOR_FLAGS(TAligner::EOrientations);
  * @endcode
  */
 template <class Enum>
@@ -126,13 +126,13 @@ public:
         return l.Value_ != static_cast<TInt>(r);
     }
 
-    TFlags& operator&=(TFlags mask) {
-        *this = *this & mask;
+    TFlags& operator&=(TFlags flags) {
+        *this = *this & flags;
         return *this;
     }
 
-    TFlags& operator&=(Enum mask) {
-        *this = *this & mask;
+    TFlags& operator&=(Enum value) {
+        *this = *this & value;
         return *this;
     }
 
@@ -141,8 +141,8 @@ public:
         return *this;
     }
 
-    TFlags& operator|=(Enum flags) {
-        *this = *this | flags;
+    TFlags& operator|=(Enum value) {
+        *this = *this | value;
         return *this;
     }
 
@@ -168,8 +168,21 @@ public:
         return Value_;
     }
 
+    constexpr bool HasFlag(Enum value) const {
+        return (Value_ & static_cast<TInt>(value)) == static_cast<TInt>(value);
+    }
+
     constexpr bool HasFlags(TFlags flags) const {
         return (Value_ & flags.Value_) == flags.Value_;
+    }
+
+    constexpr bool HasAnyOfFlags(TFlags flags) const {
+        return (Value_ & flags.Value_) != 0;
+    }
+
+    TFlags RemoveFlag(Enum value) {
+        Value_ &= ~static_cast<TInt>(value);
+        return *this;
     }
 
     TFlags RemoveFlags(TFlags flags) {
@@ -177,7 +190,7 @@ public:
         return *this;
     }
 
-    friend IOutputStream& operator<<(IOutputStream& stream, const TFlags& flags) {
+    friend IOutputStream& operator<<(IOutputStream& stream Y_LIFETIME_BOUND, const TFlags& flags) {
         ::NPrivate::PrintFlags(stream, static_cast<ui64>(flags.Value_), sizeof(TInt));
         return stream;
     }
@@ -204,16 +217,16 @@ private:
 };
 
 template <class T>
-struct TPodTraits<TFlags<T>> {
+struct TPodTraits<::TFlags<T>> {
     enum {
         IsPod = TTypeTraits<T>::IsPod
     };
 };
 
 template <class Enum>
-struct THash<TFlags<Enum>> {
+struct THash<::TFlags<Enum>> {
     size_t operator()(const TFlags<Enum>& flags) const noexcept {
-        return THash<typename TFlags<Enum>::TInt>()(flags);
+        return THash<typename ::TFlags<Enum>::TInt>()(flags);
     }
 };
 
@@ -224,7 +237,7 @@ struct THash<TFlags<Enum>> {
  * @param ENUM                          Name of the base enum type to use.
  */
 #define Y_DECLARE_FLAGS(FLAGS, ENUM) \
-    using FLAGS = TFlags<ENUM>;
+    using FLAGS = ::TFlags<ENUM>
 
 /**
  * This macro declares global operator functions for enum base of `FLAGS` type.
@@ -241,4 +254,5 @@ struct THash<TFlags<Enum>> {
     Y_DECLARE_UNUSED                                                   \
     constexpr inline FLAGS operator~(FLAGS::TEnum value) {             \
         return ~FLAGS(value);                                          \
-    }
+    }                                                                  \
+    Y_SEMICOLON_GUARD

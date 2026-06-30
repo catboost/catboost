@@ -16,6 +16,10 @@ void* cls_pointer_fn(void* a1, void* a2)
                (unsigned int)(uintptr_t) a2,
                (unsigned int)(uintptr_t) result);
 
+	CHECK((unsigned int)(uintptr_t) a1 == 0x12345678);
+	CHECK((unsigned int)(uintptr_t) a2 == 0x89abcdef);
+	CHECK((unsigned int)(uintptr_t) result == 0x9be02467);
+
 	return result;
 }
 
@@ -69,6 +73,7 @@ int main (void)
 	/* { dg-output "\n0x12345678 0x89abcdef: 0x9be02467" } */
 	printf("res: 0x%08x\n", (unsigned int) res);
 	/* { dg-output "\nres: 0x9be02467" } */
+	CHECK(res == 0x9be02467);
 
 	exit(0);
 }

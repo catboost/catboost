@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """unittest-xml-reporting is a PyUnit-based TestRunner that can export test
 results to XML files that can be consumed by a wide range of tools, such as
 build systems, IDEs and Continuous Integration servers.
@@ -38,17 +36,14 @@ if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-reports'))
 """
 
-from __future__ import absolute_import
 
 import os
 import sys
 import time
 from unittest import TestResult, TextTestResult, TextTestRunner
 import xml.dom.minidom
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO  # doesn't accept 'str' in Py2
+
+from io import StringIO
 
 
 class XMLDocument(xml.dom.minidom.Document):
@@ -58,7 +53,7 @@ class XMLDocument(xml.dom.minidom.Document):
         return self.createCDATASection(data)
 
 
-class _TestInfo(object):
+class _TestInfo:
     """This class is used to keep useful information about the execution of a
     test method.
     """
@@ -109,8 +104,7 @@ class _XMLTestResult(TextTestResult):
         self.elapsed_times = elapsed_times
         self.output_patched = False
 
-    def _prepare_callback(self, test_info, target_list, verbose_str,
-        short_str):
+    def _prepare_callback(self, test_info, target_list, verbose_str, short_str):
         """Append a _TestInfo to the given target list and sets a callback
         method to be called by stopTest method.
         """
@@ -125,7 +119,7 @@ class _XMLTestResult(TextTestResult):
                 self.start_time = self.stop_time = 0
 
             if self.showAll:
-                self.stream.writeln('(%.3fs) %s' % \
+                self.stream.writeln('(%.3fs) %s' %
                     (test_info.get_elapsed_time(), verbose_str))
             elif self.dots:
                 self.stream.write(short_str)
@@ -300,8 +294,7 @@ class _XMLTestResult(TextTestResult):
         "Generates the XML reports to a given XMLTestRunner object."
         all_results = self._get_info_by_testcase()
 
-        if type(test_runner.output) == str and not \
-            os.path.exists(test_runner.output):
+        if isinstance(test_runner.output, str) and not os.path.exists(test_runner.output):
             os.makedirs(test_runner.output)
 
         for suite, tests in all_results.items():
@@ -321,7 +314,7 @@ class _XMLTestResult(TextTestResult):
             xml_content = doc.toprettyxml(indent='\t')
 
             if type(test_runner.output) is str:
-                report_file = open('%s%sTEST-%s.xml' % \
+                report_file = open('%s%sTEST-%s.xml' %
                     (test_runner.output, os.sep, suite), 'w')
                 try:
                     report_file.write(xml_content)
@@ -348,7 +341,7 @@ class XMLTestRunner(TextTestRunner):
         """Create the TestResult object which will be used to store
         information about the executed tests.
         """
-        return _XMLTestResult(self.stream, self.descriptions, \
+        return _XMLTestResult(self.stream, self.descriptions,
             self.verbosity, self.elapsed_times)
 
     def run(self, test):

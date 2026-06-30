@@ -18,4 +18,4 @@ Y_UNIT_TEST_SUITE(TExecPathTest) {
             throw;
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TExecPathTest)

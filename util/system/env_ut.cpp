@@ -28,4 +28,71 @@ Y_UNIT_TEST_SUITE(EnvTest) {
         SetEnv(longKey, TString());
         UNIT_ASSERT_VALUES_EQUAL(GetEnv(longKey), TString());
     }
-}
+
+    Y_UNIT_TEST(TryGetEnv) {
+        TString key = "util_TryGetEnv_var";
+        UNIT_ASSERT_NO_EXCEPTION(TryGetEnv(key));
+        SetEnv(key, "value");
+        UNIT_ASSERT(TryGetEnv(key).Defined());
+        UNIT_ASSERT_VALUES_EQUAL(*TryGetEnv(key), "value");
+        UnsetEnv(key);
+        UNIT_ASSERT(TryGetEnv(key).Empty());
+    }
+
+    Y_UNIT_TEST(UnsetEnv) {
+        TString key = "util_UnsetEnv_var";
+        SetEnv(key, "value");
+        UnsetEnv(key);
+        UNIT_ASSERT_VALUES_EQUAL(GetEnv(key, "default_value"), "default_value");
+    }
+
+    Y_UNIT_TEST(UnsetNonexistingEnv) {
+        TString key = "util_UnsetNonexistingEnv_var";
+        UNIT_ASSERT_NO_EXCEPTION(UnsetEnv(key));
+        UNIT_ASSERT_NO_EXCEPTION(UnsetEnv(key));
+    }
+
+    Y_UNIT_TEST(SetEnvInvalidName) {
+        UNIT_ASSERT_EXCEPTION(SetEnv("", "value"), yexception);
+        UNIT_ASSERT_EXCEPTION(SetEnv("A=B", "C=D"), yexception);
+    }
+
+    Y_UNIT_TEST(ClearEnv) {
+        TString key1 = "util_GETENV_TestVar1";
+        TString key2 = "util_GETENV_TestVar2";
+        SetEnv(key1, "some value");
+        SetEnv(key2, "some other value");
+        ClearEnv();
+        UNIT_ASSERT(TryGetEnv(key1).Empty());
+        UNIT_ASSERT(TryGetEnv(key2).Empty());
+    }
+
+    Y_UNIT_TEST(IterateEnv) {
+        ClearEnv();
+        IterateEnv([](TStringBuf name, TStringBuf value) {
+            UNIT_FAIL(TString::Join("Got unexpected env variable ", name, " with value ", value));
+        });
+        TString key1 = "util_GETENV_TestVar1";
+        TString key2 = "util_GETENV_TestVar2";
+        TString value1 = "some value";
+        TString value2 = "some other value";
+        SetEnv(key1, value1);
+        SetEnv(key2, value2);
+
+        bool foundVar1 = false;
+        bool foundVar2 = false;
+        IterateEnv([&](TStringBuf name, TStringBuf value) {
+            if (name == key1) {
+                foundVar1 = true;
+                UNIT_ASSERT_EQUAL(value, value1);
+            } else if (name == key2) {
+                foundVar2 = true;
+                UNIT_ASSERT_EQUAL(value, value2);
+            } else {
+                UNIT_FAIL(TString::Join("Got unexpected env variable ", name, " with value ", value));
+            }
+        });
+        UNIT_ASSERT(foundVar1);
+        UNIT_ASSERT(foundVar2);
+    }
+} // Y_UNIT_TEST_SUITE(EnvTest)

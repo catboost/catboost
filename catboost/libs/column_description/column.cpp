@@ -1,6 +1,7 @@
 #include "column.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 
 #include <util/string/cast.h>
 
@@ -25,4 +26,14 @@ void ParseOutputColumnByIndex(const TString& outputColumn, ui32* columnNumber, T
     if (!TryFromString(index, *columnNumber)) {
         CB_ENSURE(false, "Wrong index format " << index << " in output column " << outputColumn);
     }
+}
+
+TColumn::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result.InsertValue("Type"sv, ToString(Type));
+    result.InsertValue("Id"sv, Id);
+    if (!SubColumns.empty()) {
+        result.InsertValue("SubColumns"sv, VectorToJson(SubColumns));
+    }
+    return result;
 }

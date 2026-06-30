@@ -27,9 +27,10 @@ message TCatFeatureQuantizationSchema {
 }
 
 message TPoolQuantizationSchema {
+    // [flat feature index]
     map<uint32, TFeatureQuantizationSchema> FeatureIndexToSchema = 1;
 
-    // [column index] -> ([hashCategorical] -> [perfectHash(number), count of this hashCategorical])
+    // [flat feature index] -> ([hashCategorical] -> [perfectHash(number), count of this hashCategorical])
     map<uint32, TCatFeatureQuantizationSchema> CatFeatureIndexToSchema = 3;
 
     /* only one of these fields can be nonempty (but all can be empty)

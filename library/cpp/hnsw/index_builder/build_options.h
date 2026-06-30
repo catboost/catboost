@@ -5,6 +5,7 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
+#include <util/memory/blob.h>
 #include <util/ysaveload.h>
 
 #include <stddef.h>
@@ -22,6 +23,7 @@ namespace NHnsw {
         bool Verbose = false;
         bool ReportProgress = true;
         TString SnapshotFile = "";
+        TBlob* SnapshotBlobPtr = nullptr;
         double SnapshotInterval = 600; // seconds
 
         static constexpr size_t AutoSelect = 0;

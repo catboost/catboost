@@ -2,6 +2,7 @@
 
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/str_stl.h>
 
 /*
  * Zero-terminated string view.
@@ -15,22 +16,33 @@
 
 class TZtStringBuf: public TStringBuf {
 public:
-    TZtStringBuf(const char* s)
+    constexpr TZtStringBuf(const char* s Y_LIFETIME_BOUND) noexcept
         : TStringBuf(s)
     {
     }
 
-    TZtStringBuf(const TString& s)
+    TZtStringBuf(const TString& s Y_LIFETIME_BOUND) noexcept
         : TStringBuf(s)
     {
     }
 
-    TZtStringBuf()
-        : TZtStringBuf(TString{})
+    TZtStringBuf(const std::string& s Y_LIFETIME_BOUND) noexcept
+        : TStringBuf(s)
     {
     }
 
-    const char* c_str() const {
+    constexpr TZtStringBuf() noexcept
+        : TZtStringBuf("")
+    {
+    }
+
+    TZtStringBuf(const TStringBuf&) = delete;
+
+    constexpr const char* c_str() const noexcept {
         return data();
     }
+};
+
+template <>
+struct THash<TZtStringBuf> : public THash<TStringBuf> {
 };

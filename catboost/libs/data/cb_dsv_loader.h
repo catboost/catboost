@@ -33,8 +33,9 @@ namespace NCB {
         }
 
         decltype(auto) GetReadBaselineFunc() {
-            return [this](TString *line) -> bool {
-                return BaselineReader.ReadLine(line);
+            return [this](TObjectBaselineData *line) -> bool {
+                ui64 objectIdx = 0;
+                return BaselineReader->Read(line, &objectIdx);
             };
         }
 
@@ -74,17 +75,22 @@ namespace NCB {
         char NumVectorDelimiter;
         char CsvSplitterQuote;
         THolder<NCB::ILineDataReader> LineDataReader;
-        TBaselineReader BaselineReader;
+        THolder<NCB::IBaselineReader> BaselineReader;
 
         // cached
         TMutex ObjectCountMutex;
         TMaybe<ui32> ObjectCount;
     };
 
-    int GetDsvColumnCount(
+    size_t GetDsvColumnCount(
         const TPathWithScheme& pathWithScheme,
-        const TDsvFormatOptions& format = TDsvFormatOptions(),
-        bool ignoreCsvQuoting = false
+        const TDsvFormatOptions& format = TDsvFormatOptions()
     );
 
+    TVector<TColumn> CreateDsvColumnsDescription(
+        const TPathWithScheme& datasetPathWithScheme,
+        const TPathWithScheme& cdPathWithScheme = TPathWithScheme(),
+        const TPathWithScheme& featureNamesPathWithScheme = TPathWithScheme(),
+        const TDsvFormatOptions& format = TDsvFormatOptions()
+    );
 }

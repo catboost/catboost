@@ -8,4 +8,3 @@ compiler.version=14
 compiler.cppstd=20
 os=Macos
 [options]
-[env]

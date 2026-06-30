@@ -18,6 +18,7 @@
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__SMAPE }}
@@ -44,6 +45,7 @@
 - {{ error-function__ZeroOneLoss }}
 - {{ error-function__MSLE }}
 - {{ error-function__MedianAbsoluteError }}
+- {{ error-function__Cox }}
 - {{ error-function__Huber }}
 - {{ error-function__Expectile }}
 - {{ error-function__MultiRMSE }}

@@ -2,6 +2,7 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/typetraits.h>
+#include <util/string/join.h>
 
 template <typename T>
 const T ReturnConstTemp();
@@ -149,4 +150,76 @@ Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
         // Check old stream is in a valid state
         output1 << "baz";
     }
-}
+
+    Y_UNIT_TEST(MoveableStringInputStream) {
+        TString data{JoinSeq("\n", "qwertyuiop"sv)};
+        TStringInput in0{data};
+        TString str;
+        in0 >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('q')));
+        TStringInput in1{std::move(in0)};
+        in1 >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('w')));
+
+        // Check old stream is in a valid state
+        in0 >> str;
+    }
+
+    Y_UNIT_TEST(MoveableStringStream) {
+        TString str;
+        str.reserve(500);
+        const char* ptr = str.data();
+        TStringStream stream{std::move(str)};
+        stream << "foo"
+               << "bar";
+        TString out = std::move(stream).Str();
+        UNIT_ASSERT_EQUAL(ptr, out.data());
+        UNIT_ASSERT_STRINGS_EQUAL(out, "foobar");
+
+        TStringStream multiline{JoinSeq("\n", "qwertyuiop"sv)};
+        multiline >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('q')));
+        TStringStream other = std::move(multiline);
+        // Check old stream is in a valid state
+        multiline >> str;
+        multiline << "bar";
+    }
+
+    // There is no distinct tests for Out<> via IOutputStream.
+    // Let's tests strings output here.
+    Y_UNIT_TEST(TestWritingWideStrings) {
+        using namespace std::literals::string_literals;
+        TString str;
+        TStringOutput stream(str);
+
+        // test char16_t
+        const char16_t* utf16Data = u"Быть или не быть? Вот в чём вопрос";
+        stream << std::u16string(utf16Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::u16string_view(utf16Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        // test char32_t
+        const char32_t* utf32Data = U"Быть или не быть? Вот в чём вопрос";
+        stream << std::u32string(utf32Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::u32string_view(utf32Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        // test wchar_t
+        const wchar_t* wcharData = L"Быть или не быть? Вот в чём вопрос";
+        stream << std::wstring(wcharData);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::wstring_view(wcharData);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+    }
+} // Y_UNIT_TEST_SUITE(TStringInputOutputTest)

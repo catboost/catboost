@@ -9,9 +9,11 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <optional>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "gtest/gtest.h"
 #include "re2/re2.h"
 
 namespace re2 {
@@ -87,7 +89,7 @@ const SuccessTable kSuccessTable[] = {
 { "18446744073709551616", 0,    { false, false, false, false, false, false }},
 };
 
-const int kNumStrings = arraysize(kSuccessTable);
+const int kNumStrings = ABSL_ARRAYSIZE(kSuccessTable);
 
 // It's ugly to use a macro, but we apparently can't use the EXPECT_EQ
 // macro outside of a TEST block and this seems to be the only way to
@@ -134,10 +136,9 @@ TEST(RE2ArgTest, Uint64Test) {
 }
 
 TEST(RE2ArgTest, ParseFromTest) {
-#if !defined(_MSC_VER)
   struct {
     bool ParseFrom(const char* str, size_t n) {
-      LOG(INFO) << "str = " << str << ", n = " << n;
+      ABSL_LOG(INFO) << "str = " << str << ", n = " << n;
       return true;
     }
   } obj1;
@@ -146,7 +147,7 @@ TEST(RE2ArgTest, ParseFromTest) {
 
   struct {
     bool ParseFrom(const char* str, size_t n) {
-      LOG(INFO) << "str = " << str << ", n = " << n;
+      ABSL_LOG(INFO) << "str = " << str << ", n = " << n;
       return false;
     }
     // Ensure that RE2::Arg works even with overloaded ParseFrom().
@@ -154,7 +155,28 @@ TEST(RE2ArgTest, ParseFromTest) {
   } obj2;
   RE2::Arg arg2(&obj2);
   EXPECT_FALSE(arg2.Parse("two", 3));
-#endif
+}
+
+TEST(RE2ArgTest, OptionalDoubleTest) {
+  std::optional<double> opt;
+  RE2::Arg arg(&opt);
+  EXPECT_TRUE(arg.Parse(NULL, 0));
+  EXPECT_FALSE(opt.has_value());
+  EXPECT_FALSE(arg.Parse("", 0));
+  EXPECT_TRUE(arg.Parse("28.30", 5));
+  EXPECT_TRUE(opt.has_value());
+  EXPECT_EQ(*opt, 28.30);
+}
+
+TEST(RE2ArgTest, OptionalIntWithCRadixTest) {
+  std::optional<int> opt;
+  RE2::Arg arg = RE2::CRadix(&opt);
+  EXPECT_TRUE(arg.Parse(NULL, 0));
+  EXPECT_FALSE(opt.has_value());
+  EXPECT_FALSE(arg.Parse("", 0));
+  EXPECT_TRUE(arg.Parse("0xb0e", 5));
+  EXPECT_TRUE(opt.has_value());
+  EXPECT_EQ(*opt, 2830);
 }
 
 }  // namespace re2

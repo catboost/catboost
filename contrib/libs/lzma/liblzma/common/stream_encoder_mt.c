@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       stream_encoder_mt.c
 /// \brief      Multithreaded .xz Stream encoder
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -645,7 +644,7 @@ stream_encode_in(lzma_stream_coder *coder, const lzma_allocator *allocator,
 		}
 
 		if (block_error) {
-			lzma_ret ret;
+			lzma_ret ret = LZMA_OK; // Init to silence a warning.
 
 			mythread_sync(coder->mutex) {
 				ret = coder->thread_error;
@@ -732,8 +731,7 @@ stream_encode_mt(void *coder_ptr, const lzma_allocator *allocator,
 
 		coder->header_pos = 0;
 		coder->sequence = SEQ_BLOCK;
-
-	// Fall through
+		FALLTHROUGH;
 
 	case SEQ_BLOCK: {
 		// Initialized to silence warnings.
@@ -743,7 +741,7 @@ stream_encode_mt(void *coder_ptr, const lzma_allocator *allocator,
 
 		// These are for wait_for_work().
 		bool has_blocked = false;
-		mythread_condtime wait_abs;
+		mythread_condtime wait_abs = { 0 };
 
 		while (true) {
 			mythread_sync(coder->mutex) {
@@ -852,9 +850,9 @@ stream_encode_mt(void *coder_ptr, const lzma_allocator *allocator,
 		// to be ready to be copied out.
 		coder->progress_out += lzma_index_size(coder->index)
 				+ LZMA_STREAM_HEADER_SIZE;
-	}
 
-	// Fall through
+		FALLTHROUGH;
+	}
 
 	case SEQ_INDEX: {
 		// Call the Index encoder. It doesn't take any input, so
@@ -874,9 +872,8 @@ stream_encode_mt(void *coder_ptr, const lzma_allocator *allocator,
 			return LZMA_PROG_ERROR;
 
 		coder->sequence = SEQ_STREAM_FOOTER;
+		FALLTHROUGH;
 	}
-
-	// Fall through
 
 	case SEQ_STREAM_FOOTER:
 		lzma_bufcpy(coder->header, &coder->header_pos,
@@ -979,20 +976,18 @@ get_options(const lzma_mt *options, lzma_options_easy *opt_easy,
 		*filters = opt_easy->filters;
 	}
 
-	// Block size
-	if (options->block_size > 0) {
-		if (options->block_size > BLOCK_SIZE_MAX)
-			return LZMA_OPTIONS_ERROR;
-
+	// If the Block size is not set, determine it from the filter chain.
+	if (options->block_size > 0)
 		*block_size = options->block_size;
-	} else {
-		// Determine the Block size from the filter chain.
+	else
 		*block_size = lzma_mt_block_size(*filters);
-		if (*block_size == 0)
-			return LZMA_OPTIONS_ERROR;
 
-		assert(*block_size <= BLOCK_SIZE_MAX);
-	}
+	// UINT64_MAX > BLOCK_SIZE_MAX, so the second condition
+	// should be optimized out by any reasonable compiler.
+	// The second condition should be there in the unlikely event that
+	// the macros change and UINT64_MAX < BLOCK_SIZE_MAX.
+	if (*block_size > BLOCK_SIZE_MAX || *block_size == UINT64_MAX)
+		return LZMA_OPTIONS_ERROR;
 
 	// Calculate the maximum amount output that a single output buffer
 	// may need to hold. This is the same as the maximum total size of

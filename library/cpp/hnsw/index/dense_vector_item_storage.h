@@ -29,6 +29,10 @@ namespace NHnsw {
             return VectorData.Size() / sizeof(TVectorComponent) / Dimension;
         }
 
+        size_t GetDataSize() const {
+            return VectorData.Size() / sizeof(TVectorComponent);
+        }
+
     private:
         const size_t Dimension;
         TBlob VectorData;

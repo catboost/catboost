@@ -73,4 +73,4 @@ Y_UNIT_TEST_SUITE(TStringClassify) {
         UNIT_ASSERT(!IsHexNumber(u"foobar"));
         UNIT_ASSERT(!IsHexNumber(TUtf16String()));
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringClassify)

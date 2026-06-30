@@ -1,4 +1,5 @@
 #' @import jsonlite
+#' @importFrom stats predict
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @importFrom utils write.table
@@ -29,6 +30,8 @@ NULL
 #' @param label The label vector or label matrix
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
+#' If data parameter is data.frame don't use cat_features, categorical features are determined automatically
+#' from data.frame column types.
 #' @param column_description The path to the input file that contains the column descriptions.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
@@ -43,6 +46,8 @@ NULL
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
+#' @param graph A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
+#' The shape should be Nx2, where N is the pairs of indices count.
 #' If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' @examples
@@ -71,9 +76,12 @@ NULL
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-                               baseline = NULL, feature_names = NULL, thread_count = -1) {
+                               baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL) {
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
+    }
+    if (!is.null(graph) && (is.character(graph) != is.character(graph))) {
+        stop("Data and graph should be the same types.")
     }
 
     if (is.character(data) && length(data) == 1) {
@@ -84,10 +92,10 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                 stop("parameter '", arg, "' should be NULL when the pool is read from file")
             }
         }
-        pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names)
+        pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names, graph_path = graph)
     } else if (is.matrix(data)) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, feature_names)
+                                     baseline, feature_names, graph)
     } else if (is.data.frame(data)) {
         for (arg in list("column_description")) {
             if (!is.null(get(arg))) {
@@ -99,7 +107,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                 "Please, convert categorical columns to factors manually.", sep = "\n")
         }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                         baseline, feature_names)
+                                         baseline, feature_names, graph)
     } else {
         stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
     }
@@ -109,20 +117,22 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 
 catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE,
                                thread_count = -1, verbose = FALSE, feature_names_path = "",
-                               num_vector_delimiter = ';') {
+                               num_vector_delimiter = ';', graph_path = "") {
     if (missing(pool_path))
         stop("Need to specify pool path.")
     if (is.null(pairs_path))
         pairs_path <- ""
+    if (is.null(graph_path))
+        graph_path <- ""
     if (is.null(feature_names_path))
         feature_names_path <- ""
-    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path) || !is.character(feature_names_path))
+    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path) || !is.character(graph_path) || !is.character(feature_names_path))
         stop("Path must be a string.")
 
     pool_path <- path.expand(pool_path)
     cd_path <- path.expand(cd_path)
 
-    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose)
+    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, graph_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose)
     attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
     return(pool)
 }
@@ -130,7 +140,7 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 
 catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
                                  text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
+                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL) {
   if (!is.matrix(float_and_cat_features_data))
       stop("Unsupported data type, expecting matrix, got: ", class(float_and_cat_features_data))
 
@@ -140,17 +150,27 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
 
+  if (is.character(label))
+      label <- as.factor(label)
+
+  if (is.factor(label)) {
+      class_labels <- labels(label)
+      # R starts integer labels from 1, we generally prefer to start from 0
+      label <- as.integer(label) - 1L
+  } else {
+      class_labels <- NULL
+  }
+
   if (!is.null(label) && !is.matrix(label))
       label <- as.matrix(label)
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
-  if (!is.null(label) && !is.double(label))
-      label <- matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+
   if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
   if (!all(cat_features_indices == as.integer(cat_features_indices)) && !is.null(cat_features_indices))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features_indices))
+      stop("Unsupported cat_features_indices type, expecting integer, got: ", typeof(cat_features_indices))
 
   if (!is.null(text_features_data) && !is.matrix(text_features_data))
      stop("Unsupported text data type, expecting matrix, got: ", class(text_features_data))
@@ -163,6 +183,13 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       stop("Unsupported pairs dim, expecting 2 columns, got: ", dim(pairs)[2])
   if (!all(pairs == as.integer(pairs)) && !is.null(pairs))
       stop("Unsupported pair type, expecting integer, got: ", typeof(pairs))
+
+  if (!is.matrix(graph) && !is.null(graph))
+      stop("Unsupported graph class, expecting matrix, got: ", class(graph))
+  if (!is.null(graph) && dim(graph)[2] != 2)
+      stop("Unsupported graph dim, expecting 2 columns, got: ", dim(graph)[2])
+  if (!all(graph == as.integer(graph)) && !is.null(graph))
+      stop("Unsupported graph data elements type, expecting integer, got: ", typeof(graph))
 
   if (!is.double(weight) && !is.null(weight))
       stop("Unsupported weight type, expecting double, got: ", typeof(weight))
@@ -206,15 +233,15 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (text_columns == 0)
       text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
-                float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, weight,
-                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
+                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
 
 
 catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                     subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
+                                     subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL) {
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
     }
@@ -250,8 +277,11 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
     if (!is.null(pairs)) {
         pairs <- as.matrix(pairs)
     }
+    if (!is.null(graph)) {
+        graph <- as.matrix(graph)
+    }
     pool <- catboost.from_matrix(as.matrix(float_and_cat_features_data), label, cat_features_indices, as.matrix(text_features_data),
-                                 text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                                 text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, graph)
     return(pool)
 }
 
@@ -750,7 +780,7 @@ summary.catboost.Model <- function(object, ...) {
 #'
 #'     \item depth
 #'
-#'       Depth of the tree.
+#'       Depth of the trees.
 #'
 #'       The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
 #'
@@ -1789,18 +1819,13 @@ catboost.save_model <- function(model, model_path,
 
 
 #' @name catboost.predict
-#' @title Apply the model
+#' @title Get predictions from a CatBoost model
 #'
-#' @description Apply the model to the given dataset.
+#' @description Get predictions from a CatBoost model on new data.
 #'
-#'              Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-#'              Each line of this matrix contains the predictions for one object of the input dataset.
-#' @param model The model obtained as the result of training.
+#' In case of multiclassification the prediction is returned in the form of a matrix.
+#' Each row of this matrix contains the predictions for one row of the input dataset.
 #'
-#' Default value: Required argument
-#' @param pool The input dataset.
-#'
-#' Default value: Required argument
 #' @param verbose Verbose output to stdout.
 #'
 #' Default value: FALSE (not used)
@@ -1830,23 +1855,62 @@ catboost.save_model <- function(model, model_path,
 #'
 #' Default value: 1
 #' @return Vector of predictions (matrix for multi-class classification).
-#' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
-catboost.predict <- function(model, pool,
-                             verbose = FALSE, prediction_type = "RawFormulaVal",
-                             ntree_start = 0, ntree_end = 0, thread_count = -1) {
-    if (!inherits(pool, "catboost.Pool"))
-        stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
+
+
+#' @rdname catboost.predict
+#' @param object The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param newdata The input data on which to make predictions. Should be a `catboost.Pool`
+#' object.
+#'
+#' Default value: Required argument
+#' @export
+predict.catboost.Model <- function(object, newdata,
+                                   verbose = FALSE, prediction_type = "RawFormulaVal",
+                                   ntree_start = 0, ntree_end = 0, thread_count = -1) {
+    if (!inherits(object, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(object))
+    if (!inherits(newdata, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(newdata))
+    if (is.null.handle(newdata))
         stop("Pool object is invalid.")
 
-    catboost.restore_handle(model)
-    prediction <- .Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
+    catboost.restore_handle(object)
+    prediction <- .Call("CatBoostPredictMulti_R", object$cpp_obj$handle, newdata,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
-    if (length(prediction) != nrow(pool)) {
-        prediction <- matrix(prediction, nrow = nrow(pool), byrow = TRUE)
+    if (length(prediction) != nrow(newdata)) {
+        prediction <- matrix(prediction, nrow = nrow(newdata), byrow = TRUE)
     }
     return(prediction)
+}
+
+#' @rdname catboost.predict
+#'
+#' @details The function `catboost.predict` is a synonym for `predict.catboost.Model`,
+#' which is an S3 method (i.e. called like `predict(model, newdata)`).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The input data on which to make predictions. Should be a `catboost.Pool`
+#' object.
+#'
+#' Default value: Required argument
+#'
+#' @export
+#' @usage catboost.predict(
+#'   model,
+#'   pool,
+#'   verbose = FALSE,
+#'   prediction_type = "RawFormulaVal",
+#'   ntree_start = 0,
+#'   ntree_end = 0,
+#'   thread_count = -1
+#' )
+catboost.predict <- function(model, pool, ...) {
+    return(predict.catboost.Model(model, pool, ...))
 }
 
 

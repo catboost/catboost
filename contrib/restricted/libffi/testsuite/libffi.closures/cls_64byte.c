@@ -38,6 +38,14 @@ cls_struct_64byte cls_struct_64byte_fn(struct cls_struct_64byte b0,
 
   printf("%g %g %g %g %g %g %g %g\n", result.a, result.b, result.c,
 	 result.d, result.e, result.f, result.g, result.h);
+  CHECK(result.a == 22);
+  CHECK(result.b == 15);
+  CHECK(result.c == 17);
+  CHECK(result.d == 25);
+  CHECK(result.e == 6);
+  CHECK(result.f == 13);
+  CHECK(result.g == 19);
+  CHECK(result.h == 18);
 
   return result;
 }
@@ -107,6 +115,14 @@ int main (void)
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
   /* { dg-output "\nres: 22 15 17 25 6 13 19 18" } */
+  CHECK(res_dbl.a == 22);
+  CHECK(res_dbl.b == 15);
+  CHECK(res_dbl.c == 17);
+  CHECK(res_dbl.d == 25);
+  CHECK(res_dbl.e == 6);
+  CHECK(res_dbl.f == 13);
+  CHECK(res_dbl.g == 19);
+  CHECK(res_dbl.h == 18);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, cls_struct_64byte_gn, NULL, code) == FFI_OK);
 
@@ -119,6 +135,14 @@ int main (void)
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
   /* { dg-output "\nres: 22 15 17 25 6 13 19 18" } */
+  CHECK(res_dbl.a == 22);
+  CHECK(res_dbl.b == 15);
+  CHECK(res_dbl.c == 17);
+  CHECK(res_dbl.d == 25);
+  CHECK(res_dbl.e == 6);
+  CHECK(res_dbl.f == 13);
+  CHECK(res_dbl.g == 19);
+  CHECK(res_dbl.h == 18);
 
   exit(0);
 }

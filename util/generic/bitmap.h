@@ -13,7 +13,7 @@
 #include <util/ysaveload.h>
 
 namespace NBitMapPrivate {
-    // Returns number of bits set; result is in most significatnt byte
+    // Returns the number of bits set; result is in the most significant byte
     inline ui64 ByteSums(ui64 x) {
         ui64 byteSums = x - ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
 
@@ -170,7 +170,7 @@ namespace NBitMapPrivate {
 
         template <typename TOtherChunk>
         TFixedStorage(const TOtherChunk* data, size_t size) {
-            Y_VERIFY(Size * sizeof(TChunk) >= size * sizeof(TOtherChunk), "Exceeding bitmap storage capacity");
+            Y_ABORT_UNLESS(Size * sizeof(TChunk) >= size * sizeof(TOtherChunk), "Exceeding bitmap storage capacity");
             CopyData(Data, Size, data, size);
         }
 
@@ -199,7 +199,7 @@ namespace NBitMapPrivate {
     };
 
     // Dynamically expanded storage.
-    // It uses "on stack" realization with no allocation for one chunk spaces
+    // It uses the "on stack" implementation with no allocation for one chunk spaces
     template <typename TChunkType>
     struct TDynamicStorage {
         using TChunk = TChunkType;
@@ -294,7 +294,7 @@ namespace NBitMapPrivate {
         static constexpr size_t Value = 0;
     };
 
-}
+} // namespace NBitMapPrivate
 
 template <size_t BitCount, typename TChunkType>
 struct TFixedBitMapTraits {
@@ -327,7 +327,7 @@ private:
 
     using TStorage = typename TTraits::TStorage;
 
-    // The smallest unsigned type, which can be used in bit ops
+    // The smallest unsigned type that can be used in bit ops
     using TIntType = std::conditional_t<sizeof(TChunk) < sizeof(unsigned int), unsigned int, TChunk>;
 
     TStorage Mask;
@@ -350,19 +350,21 @@ public:
         ~TReference() = default;
 
         Y_FORCE_INLINE TReference& operator=(bool val) {
-            if (val)
+            if (val) {
                 *Chunk |= static_cast<TChunk>(1) << Offset;
-            else
+            } else {
                 *Chunk &= ~(static_cast<TChunk>(1) << Offset);
+            }
 
             return *this;
         }
 
         Y_FORCE_INLINE TReference& operator=(const TReference& ref) {
-            if (ref)
+            if (ref) {
                 *Chunk |= static_cast<TChunk>(1) << Offset;
-            else
+            } else {
                 *Chunk &= ~(static_cast<TChunk>(1) << Offset);
+            }
 
             return *this;
         }
@@ -407,8 +409,9 @@ private:
             TChunk updateMask = FullChunk << bitOffset;
             if (chunk == endChunk) {
                 updateMask ^= FullChunk << endBitOffset;
-                if (!updateMask)
+                if (!updateMask) {
                     break;
+                }
             }
             Mask.Data[chunk] = TUpdateOp::Op(Mask.Data[chunk], updateMask);
             bitOffset = 0;
@@ -570,19 +573,21 @@ public:
         static_assert(std::is_unsigned<TTo>::value, "expect std::is_unsigned<TTo>::value");
         to = 0;
         size_t chunkpos = pos >> DivCount;
-        if (chunkpos >= Mask.GetChunkCapacity())
+        if (chunkpos >= Mask.GetChunkCapacity()) {
             return;
+        }
         if ((pos & ModMask) == 0) {
-            if (sizeof(TChunk) >= sizeof(TTo))
+            if (sizeof(TChunk) >= sizeof(TTo)) {
                 to = (TTo)Mask.Data[chunkpos];
-            else //if (sizeof(TChunk) < sizeof(TTo))
+            } else { // if (sizeof(TChunk) < sizeof(TTo))
                 NBitMapPrivate::CopyData(&to, 1, Mask.Data + chunkpos, Min(((sizeof(TTo) * 8) >> DivCount), Mask.GetChunkCapacity() - chunkpos));
-        } else if ((pos & (sizeof(TTo) * 8 - 1)) == 0 && sizeof(TChunk) >= 2 * sizeof(TTo))
+            }
+        } else if ((pos & (sizeof(TTo) * 8 - 1)) == 0 && sizeof(TChunk) >= 2 * sizeof(TTo)) {
             to = (TTo)(Mask.Data[chunkpos] >> (pos & ModMask));
-        else {
+        } else {
             static constexpr size_t copyToSize = (sizeof(TChunk) >= sizeof(TTo)) ? (sizeof(TChunk) / sizeof(TTo)) + 2 : 3;
             TTo temp[copyToSize] = {0, 0};
-            //or use non defined by now TBitmap<copyToSize, TTo>::CopyData,RShift(pos & ModMask),Export(0,to)
+            // or use non defined by now TBitmap<copyToSize, TTo>::CopyData,RShift(pos & ModMask),Export(0,to)
             NBitMapPrivate::CopyData(temp, copyToSize, Mask.Data + chunkpos, Min((sizeof(TTo) / sizeof(TChunk)) + 1, Mask.GetChunkCapacity() - chunkpos));
             to = (temp[0] >> (pos & ModMask)) | (temp[1] << (8 * sizeof(TTo) - (pos & ModMask)));
         }
@@ -602,7 +607,7 @@ public:
         return RShift(1), val;
     }
 
-    // Clear entire bitmap. Current capacity is kept unchanged
+    // Clear the entire bitmap. Current capacity is kept unchanged
     Y_FORCE_INLINE TThis& Clear() {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
@@ -616,22 +621,25 @@ public:
     }
 
     Y_FORCE_INLINE void Reserve(size_t bitCount) {
-        Y_VERIFY(Mask.ExpandBitSize(bitCount), "Exceeding bitmap storage capacity");
+        Y_ABORT_UNLESS(Mask.ExpandBitSize(bitCount), "Exceeding bitmap storage capacity");
     }
 
     Y_FORCE_INLINE size_t ValueBitCount() const {
         size_t nonZeroChunk = Mask.GetChunkCapacity() - 1;
-        while (nonZeroChunk != 0 && !Mask.Data[nonZeroChunk])
+        while (nonZeroChunk != 0 && !Mask.Data[nonZeroChunk]) {
             --nonZeroChunk;
+        }
         return nonZeroChunk || Mask.Data[nonZeroChunk]
                    ? nonZeroChunk * BitsPerChunk + GetValueBitCount(TIntType(Mask.Data[nonZeroChunk]))
                    : 0;
     }
 
     Y_PURE_FUNCTION Y_FORCE_INLINE bool Empty() const {
-        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i)
-            if (Mask.Data[i])
+        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
+            if (Mask.Data[i]) {
                 return false;
+            }
+        }
         return true;
     }
 
@@ -677,13 +685,15 @@ public:
     }
 
     TThis& And(const TThis& bitmap) {
-        // Don't expand capacity here, because resulting bits in positions,
-        // which are greater then size of one of these bitmaps, will be zero
-        for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i)
+        // Don't expand capacity here, because resulting bits in positions
+        // that are greater than the size of one of these bitmaps will be zero
+        for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
             Mask.Data[i] &= bitmap.Mask.Data[i];
-        // Clear bits if current bitmap size is greater than AND-ed one
-        for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i)
+        }
+        // Clear bits if the current bitmap size is greater than AND-ed one
+        for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
+        }
         return *this;
     }
 
@@ -694,8 +704,9 @@ public:
 
     Y_FORCE_INLINE TThis& And(const TChunk& val) {
         Mask.Data[0] &= val;
-        for (size_t i = 1; i < Mask.GetChunkCapacity(); ++i)
+        for (size_t i = 1; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = 0;
+        }
         return *this;
     }
 
@@ -704,8 +715,9 @@ public:
         if (valueBitCount) {
             // Memory optimization: expand size only for non-zero bits
             Reserve(valueBitCount);
-            for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i)
+            for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
                 Mask.Data[i] |= bitmap.Mask.Data[i];
+            }
         }
         return *this;
     }
@@ -723,8 +735,9 @@ public:
 
     TThis& Xor(const TThis& bitmap) {
         Reserve(bitmap.Size());
-        for (size_t i = 0; i < bitmap.Mask.GetChunkCapacity(); ++i)
+        for (size_t i = 0; i < bitmap.Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] ^= bitmap.Mask.Data[i];
+        }
         return *this;
     }
 
@@ -740,8 +753,9 @@ public:
     }
 
     TThis& SetDifference(const TThis& bitmap) {
-        for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i)
+        for (size_t i = 0; i < Min(bitmap.Mask.GetChunkCapacity(), Mask.GetChunkCapacity()); ++i) {
             Mask.Data[i] &= ~bitmap.Mask.Data[i];
+        }
         return *this;
     }
 
@@ -756,8 +770,9 @@ public:
     }
 
     Y_FORCE_INLINE TThis& Flip() {
-        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i)
+        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             Mask.Data[i] = ~Mask.Data[i];
+        }
         Mask.Sanitize();
         return *this;
     }
@@ -765,13 +780,13 @@ public:
     TThis& LShift(size_t shift) {
         if (shift != 0) {
             const size_t valueBitCount = ValueBitCount();
-            // Do nothing for empty bitmap
+            // Do nothing for the empty bitmap
             if (valueBitCount != 0) {
                 const size_t eshift = shift / BitsPerChunk;
                 const size_t offset = shift % BitsPerChunk;
                 const size_t subOffset = BitsPerChunk - offset;
 
-                // Don't verify expand result, so l-shift of fixed bitmap will work in the same way as for unsigned integer.
+                // Don't verify expand result, so l-shift of a fixed bitmap will work in the same way as for an unsigned integer.
                 Mask.ExpandBitSize(valueBitCount + shift);
 
                 if (offset == 0) {
@@ -779,13 +794,16 @@ public:
                         Mask.Data[i] = Mask.Data[i - eshift];
                     }
                 } else {
-                    for (size_t i = Mask.GetChunkCapacity() - 1; i > eshift; --i)
+                    for (size_t i = Mask.GetChunkCapacity() - 1; i > eshift; --i) {
                         Mask.Data[i] = (Mask.Data[i - eshift] << offset) | (Mask.Data[i - eshift - 1] >> subOffset);
-                    if (eshift < Mask.GetChunkCapacity())
+                    }
+                    if (eshift < Mask.GetChunkCapacity()) {
                         Mask.Data[eshift] = Mask.Data[0] << offset;
+                    }
                 }
-                for (size_t i = 0; i < Min(eshift, Mask.GetChunkCapacity()); ++i)
+                for (size_t i = 0; i < Min(eshift, Mask.GetChunkCapacity()); ++i) {
                     Mask.Data[i] = 0;
+                }
 
                 // Cleanup extra high bits in the storage
                 Mask.Sanitize();
@@ -810,24 +828,27 @@ public:
                     }
                 } else {
                     const size_t subOffset = BitsPerChunk - offset;
-                    for (size_t i = 0; i < limit; ++i)
+                    for (size_t i = 0; i < limit; ++i) {
                         Mask.Data[i] = (Mask.Data[i + eshift] >> offset) | (Mask.Data[i + eshift + 1] << subOffset);
+                    }
                     Mask.Data[limit] = Mask.Data[Mask.GetChunkCapacity() - 1] >> offset;
                 }
 
-                for (size_t i = limit + 1; i < Mask.GetChunkCapacity(); ++i)
+                for (size_t i = limit + 1; i < Mask.GetChunkCapacity(); ++i) {
                     Mask.Data[i] = 0;
+                }
             }
         }
         return *this;
     }
 
     // Applies bitmap at the specified offset using OR operator.
-    // This method is optimized combination of Or() and LShift(), which allows reducing memory allocation
+    // This method is an optimized combination of Or() and LShift(), which allows reducing memory allocation
     // when combining long dynamic bitmaps.
     TThis& Or(const TThis& bitmap, size_t offset) {
-        if (0 == offset)
+        if (0 == offset) {
             return Or(bitmap);
+        }
 
         const size_t otherValueBitCount = bitmap.ValueBitCount();
         // Continue only if OR-ed bitmap have non-zero bits
@@ -848,8 +869,9 @@ public:
                 for (; i < Min(bitmap.Mask.GetChunkCapacity() + chunkShift, Mask.GetChunkCapacity()); ++i) {
                     Mask.Data[i] |= (bitmap.Mask.Data[i - chunkShift] << subShift) | (bitmap.Mask.Data[i - chunkShift - 1] >> subOffset);
                 }
-                if (i < Mask.GetChunkCapacity())
+                if (i < Mask.GetChunkCapacity()) {
                     Mask.Data[i] |= bitmap.Mask.Data[i - chunkShift - 1] >> subOffset;
+                }
             }
         }
 
@@ -859,19 +881,22 @@ public:
     bool Equal(const TThis& bitmap) const {
         if (Mask.GetChunkCapacity() > bitmap.Mask.GetChunkCapacity()) {
             for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i) {
-                if (0 != Mask.Data[i])
+                if (0 != Mask.Data[i]) {
                     return false;
+                }
             }
         } else if (Mask.GetChunkCapacity() < bitmap.Mask.GetChunkCapacity()) {
             for (size_t i = Mask.GetChunkCapacity(); i < bitmap.Mask.GetChunkCapacity(); ++i) {
-                if (0 != bitmap.Mask.Data[i])
+                if (0 != bitmap.Mask.Data[i]) {
                     return false;
+                }
             }
         }
         size_t size = Min(Mask.GetChunkCapacity(), bitmap.Mask.GetChunkCapacity());
         for (size_t i = 0; i < size; ++i) {
-            if (Mask.Data[i] != bitmap.Mask.Data[i])
+            if (Mask.Data[i] != bitmap.Mask.Data[i]) {
                 return false;
+            }
         }
         return true;
     }
@@ -884,18 +909,21 @@ public:
     int Compare(const TThis& bitmap) const {
         size_t size = Min(Mask.GetChunkCapacity(), bitmap.Mask.GetChunkCapacity());
         int res = ::memcmp(Mask.Data, bitmap.Mask.Data, size * sizeof(TChunk));
-        if (0 != res || Mask.GetChunkCapacity() == bitmap.Mask.GetChunkCapacity())
+        if (0 != res || Mask.GetChunkCapacity() == bitmap.Mask.GetChunkCapacity()) {
             return res;
+        }
 
         if (Mask.GetChunkCapacity() > bitmap.Mask.GetChunkCapacity()) {
             for (size_t i = bitmap.Mask.GetChunkCapacity(); i < Mask.GetChunkCapacity(); ++i) {
-                if (0 != Mask.Data[i])
+                if (0 != Mask.Data[i]) {
                     return 1;
+                }
             }
         } else {
             for (size_t i = Mask.GetChunkCapacity(); i < bitmap.Mask.GetChunkCapacity(); ++i) {
-                if (0 != bitmap.Mask.Data[i])
+                if (0 != bitmap.Mask.Data[i]) {
                     return -1;
+                }
             }
         }
         return 0;
@@ -953,8 +981,9 @@ public:
 
     Y_FORCE_INLINE size_t Count() const {
         size_t count = 0;
-        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i)
+        for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i) {
             count += ::NBitMapPrivate::CountBitsPrivate(Mask.Data[i]);
+        }
         return count;
     }
 
@@ -967,7 +996,7 @@ public:
     void Load(IInputStream* inp) {
         ui8 chunkSize = 0;
         ::Load(inp, chunkSize);
-        Y_VERIFY(size_t(chunkSize) == sizeof(TChunk), "Chunk size is not the same");
+        Y_ABORT_UNLESS(size_t(chunkSize) == sizeof(TChunk), "Chunk size is not the same");
 
         ui64 bitCount64 = 0;
         ::Load(inp, bitCount64);

@@ -7,36 +7,42 @@
 
 #include "re2/prog.h"
 
+#include <stdint.h>
+#include <string.h>
+
+#include <algorithm>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "absl/log/absl_check.h"
+#include "absl/log/absl_log.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
+#include "re2/bitmap256.h"
+#include "re2/pod_array.h"
+#include "re2/sparse_array.h"
+#include "re2/sparse_set.h"
+
 #if defined(__AVX2__)
 #include <immintrin.h>
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
 #endif
-#include <stdint.h>
-#include <string.h>
-#include <algorithm>
-#include <memory>
-#include <utility>
-
-#include "util/util.h"
-#include "util/logging.h"
-#include "util/strutil.h"
-#include "re2/bitmap256.h"
-#include "re2/stringpiece.h"
 
 namespace re2 {
 
 // Constructors per Inst opcode
 
 void Prog::Inst::InitAlt(uint32_t out, uint32_t out1) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_out_opcode(out, kInstAlt);
   out1_ = out1;
 }
 
 void Prog::Inst::InitByteRange(int lo, int hi, int foldcase, uint32_t out) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_out_opcode(out, kInstByteRange);
   lo_ = lo & 0xFF;
   hi_ = hi & 0xFF;
@@ -44,64 +50,64 @@ void Prog::Inst::InitByteRange(int lo, int hi, int foldcase, uint32_t out) {
 }
 
 void Prog::Inst::InitCapture(int cap, uint32_t out) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_out_opcode(out, kInstCapture);
   cap_ = cap;
 }
 
 void Prog::Inst::InitEmptyWidth(EmptyOp empty, uint32_t out) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_out_opcode(out, kInstEmptyWidth);
   empty_ = empty;
 }
 
 void Prog::Inst::InitMatch(int32_t id) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_opcode(kInstMatch);
   match_id_ = id;
 }
 
 void Prog::Inst::InitNop(uint32_t out) {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_opcode(kInstNop);
 }
 
 void Prog::Inst::InitFail() {
-  DCHECK_EQ(out_opcode_, 0);
+  ABSL_DCHECK_EQ(out_opcode_, uint32_t{0});
   set_opcode(kInstFail);
 }
 
 std::string Prog::Inst::Dump() {
   switch (opcode()) {
     default:
-      return StringPrintf("opcode %d", static_cast<int>(opcode()));
+      return absl::StrFormat("opcode %d", static_cast<int>(opcode()));
 
     case kInstAlt:
-      return StringPrintf("alt -> %d | %d", out(), out1_);
+      return absl::StrFormat("alt -> %d | %d", out(), out1_);
 
     case kInstAltMatch:
-      return StringPrintf("altmatch -> %d | %d", out(), out1_);
+      return absl::StrFormat("altmatch -> %d | %d", out(), out1_);
 
     case kInstByteRange:
-      return StringPrintf("byte%s [%02x-%02x] %d -> %d",
-                          foldcase() ? "/i" : "",
-                          lo_, hi_, hint(), out());
+      return absl::StrFormat("byte%s [%02x-%02x] %d -> %d",
+                             foldcase() ? "/i" : "",
+                             lo_, hi_, hint(), out());
 
     case kInstCapture:
-      return StringPrintf("capture %d -> %d", cap_, out());
+      return absl::StrFormat("capture %d -> %d", cap_, out());
 
     case kInstEmptyWidth:
-      return StringPrintf("emptywidth %#x -> %d",
-                          static_cast<int>(empty_), out());
+      return absl::StrFormat("emptywidth %#x -> %d",
+                             static_cast<int>(empty_), out());
 
     case kInstMatch:
-      return StringPrintf("match! %d", match_id());
+      return absl::StrFormat("match! %d", match_id());
 
     case kInstNop:
-      return StringPrintf("nop -> %d", out());
+      return absl::StrFormat("nop -> %d", out());
 
     case kInstFail:
-      return StringPrintf("fail");
+      return absl::StrFormat("fail");
   }
 }
 
@@ -143,7 +149,7 @@ static std::string ProgToString(Prog* prog, Workq* q) {
   for (Workq::iterator i = q->begin(); i != q->end(); ++i) {
     int id = *i;
     Prog::Inst* ip = prog->inst(id);
-    s += StringPrintf("%d. %s\n", id, ip->Dump().c_str());
+    s += absl::StrFormat("%d. %s\n", id, ip->Dump());
     AddToQueue(q, ip->out());
     if (ip->opcode() == kInstAlt || ip->opcode() == kInstAltMatch)
       AddToQueue(q, ip->out1());
@@ -156,9 +162,9 @@ static std::string FlattenedProgToString(Prog* prog, int start) {
   for (int id = start; id < prog->size(); id++) {
     Prog::Inst* ip = prog->inst(id);
     if (ip->last())
-      s += StringPrintf("%d. %s\n", id, ip->Dump().c_str());
+      s += absl::StrFormat("%d. %s\n", id, ip->Dump());
     else
-      s += StringPrintf("%d+ %s\n", id, ip->Dump().c_str());
+      s += absl::StrFormat("%d+ %s\n", id, ip->Dump());
   }
   return s;
 }
@@ -189,7 +195,7 @@ std::string Prog::DumpByteMap() {
     while (c < 256-1 && bytemap_[c+1] == b)
       c++;
     int hi = c;
-    map += StringPrintf("[%02x-%02x] -> %d\n", lo, hi, b);
+    map += absl::StrFormat("[%02x-%02x] -> %d\n", lo, hi, b);
   }
   return map;
 }
@@ -199,7 +205,7 @@ static bool IsMatch(Prog* prog, Prog::Inst* ip) {
   for (;;) {
     switch (ip->opcode()) {
       default:
-        LOG(DFATAL) << "Unexpected opcode in IsMatch: " << ip->opcode();
+        ABSL_LOG(DFATAL) << "Unexpected opcode in IsMatch: " << ip->opcode();
         return false;
 
       case kInstAlt:
@@ -284,7 +290,7 @@ void Prog::Optimize() {
   }
 }
 
-uint32_t Prog::EmptyFlags(const StringPiece& text, const char* p) {
+uint32_t Prog::EmptyFlags(absl::string_view text, const char* p) {
   int flags = 0;
 
   // ^ and \A
@@ -363,11 +369,11 @@ class ByteMapBuilder {
 };
 
 void ByteMapBuilder::Mark(int lo, int hi) {
-  DCHECK_GE(lo, 0);
-  DCHECK_GE(hi, 0);
-  DCHECK_LE(lo, 255);
-  DCHECK_LE(hi, 255);
-  DCHECK_LE(lo, hi);
+  ABSL_DCHECK_GE(lo, 0);
+  ABSL_DCHECK_GE(hi, 0);
+  ABSL_DCHECK_LE(lo, 255);
+  ABSL_DCHECK_LE(hi, 255);
+  ABSL_DCHECK_LE(lo, hi);
 
   // Ignore any [0-255] ranges. They cause us to recolor every range, which
   // has no effect on the eventual result and is therefore a waste of time.
@@ -512,7 +518,7 @@ void Prog::ComputeByteMap() {
   builder.Build(bytemap_, &bytemap_range_);
 
   if ((0)) {  // For debugging, use trivial bytemap.
-    LOG(ERROR) << "Using trivial bytemap.";
+    ABSL_LOG(ERROR) << "Using trivial bytemap.";
     for (int i = 0; i < 256; i++)
       bytemap_[i] = static_cast<uint8_t>(i);
     bytemap_range_ = 256;
@@ -616,12 +622,12 @@ void Prog::Flatten() {
   size_t total = 0;
   for (int i = 0; i < kNumInst; i++)
     total += inst_count_[i];
-  CHECK_EQ(total, flat.size());
+  ABSL_CHECK_EQ(total, flat.size());
 #endif
 
   // Remap start_unanchored and start.
   if (start_unanchored() == 0) {
-    DCHECK_EQ(start(), 0);
+    ABSL_DCHECK_EQ(start(), 0);
   } else if (start_unanchored() == start()) {
     set_start_unanchored(flatmap[1]);
     set_start(flatmap[1]);
@@ -678,7 +684,7 @@ void Prog::MarkSuccessors(SparseArray<int>* rootmap,
     Inst* ip = inst(id);
     switch (ip->opcode()) {
       default:
-        LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
+        ABSL_LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
         break;
 
       case kInstAltMatch:
@@ -738,7 +744,7 @@ void Prog::MarkDominator(int root, SparseArray<int>* rootmap,
     Inst* ip = inst(id);
     switch (ip->opcode()) {
       default:
-        LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
+        ABSL_LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
         break;
 
       case kInstAltMatch:
@@ -805,7 +811,7 @@ void Prog::EmitList(int root, SparseArray<int>* rootmap,
     Inst* ip = inst(id);
     switch (ip->opcode()) {
       default:
-        LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
+        ABSL_LOG(DFATAL) << "unhandled opcode: " << ip->opcode();
         break;
 
       case kInstAltMatch:
@@ -813,7 +819,7 @@ void Prog::EmitList(int root, SparseArray<int>* rootmap,
         flat->back().set_opcode(kInstAltMatch);
         flat->back().set_out(static_cast<int>(flat->size()));
         flat->back().out1_ = static_cast<uint32_t>(flat->size())+1;
-        FALLTHROUGH_INTENDED;
+        [[fallthrough]];
 
       case kInstAlt:
         stk->push_back(ip->out1());
@@ -1106,7 +1112,7 @@ const void* Prog::PrefixAccel_ShiftDFA(const void* data, size_t size) {
 #if defined(__AVX2__)
 // Finds the least significant non-zero bit in n.
 static int FindLSBSet(uint32_t n) {
-  DCHECK_NE(n, 0);
+  ABSL_DCHECK_NE(n, uint32_t{0});
 #if defined(__GNUC__)
   return __builtin_ctz(n);
 #elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
@@ -1128,7 +1134,7 @@ static int FindLSBSet(uint32_t n) {
 #endif
 
 const void* Prog::PrefixAccel_FrontAndBack(const void* data, size_t size) {
-  DCHECK_GE(prefix_size_, 2);
+  ABSL_DCHECK_GE(prefix_size_, size_t{2});
   if (size < prefix_size_)
     return NULL;
   // Don't bother searching the last prefix_size_-1 bytes for prefix_front_.
@@ -1165,7 +1171,7 @@ const void* Prog::PrefixAccel_FrontAndBack(const void* data, size_t size) {
 
   const char* p0 = reinterpret_cast<const char*>(data);
   for (const char* p = p0;; p++) {
-    DCHECK_GE(size, static_cast<size_t>(p-p0));
+    ABSL_DCHECK_GE(size, static_cast<size_t>(p-p0));
     p = reinterpret_cast<const char*>(memchr(p, prefix_front_, size - (p-p0)));
     if (p == NULL || p[prefix_size_-1] == prefix_back_)
       return p;

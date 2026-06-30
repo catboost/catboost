@@ -17,24 +17,20 @@
 
 */
 
-#include <__config>
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-
-#ifdef __cplusplus
-
-#include <ccomplex>
-
-#else  // __cplusplus
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(complex.h)
+#if defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#error  include <__cxx03/complex.h>
 #else
-#include_next <complex.h>
-#endif
+#  include <__config>
 
-#endif // __cplusplus
+#  if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#    pragma GCC system_header
+#  endif
+
+#  ifdef __cplusplus
+#    include <complex>
+#  elif __has_include_next(<complex.h>)
+#    include_next <complex.h>
+#  endif
+#endif // defined(__cplusplus) && __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
 
 #endif // _LIBCPP_COMPLEX_H

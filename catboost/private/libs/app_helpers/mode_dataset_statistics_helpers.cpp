@@ -38,7 +38,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .Handler1T<TString>([&](const TString& param) {
             ConvertStringTargets = !FromString<bool>(param);
         });
-    parser.AddLongOption("custom-feature-limits", "comma separated list of feature limits description in format <feature_id>:<min>:<max>,"
+    parser.AddLongOption("custom-feature-limits", "A comma-separated list of feature limits descriptions in the format <feature_id>:<min>:<max>,"
                                                   "for example: 0:0:1,10:-2.1:-1")
         .RequiredArgument("string")
         .Handler1T<TString>([&](const TString& limitsDescription) {
@@ -59,7 +59,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
                 }
                 CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(ignoredFeature));
                 CB_ENSURE(FeatureLimits.find(featureId) == FeatureLimits.end(),
-                          "Duplicate feature " << featureId << "in custom-feature-limits");
+                          "Duplicate feature " << featureId << " in custom-feature-limits");
                 FeatureLimits[featureId] = {minValue, maxValue};
             }
         });
@@ -148,6 +148,7 @@ static THolder<IDatasetLoader> GetDatasetLoader(
     auto getDatasetLoaderCommonArgs = [&] () {
         return TDatasetLoaderCommonArgs{
             params.PairsFilePath,
+            params.GraphFilePath,
             /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
             /*BaselineFilePath=*/NCB::TPathWithScheme(),
             /*TimestampsFilePath*/ NCB::TPathWithScheme(),
@@ -161,6 +162,7 @@ static THolder<IDatasetLoader> GetDatasetLoader(
             blockSize,
             NCB::TDatasetSubset::MakeColumns(),
             /*LoadColumnsAsString*/ false,
+            /*LoadSampleIds*/ false,
             params.ForceUnitAutoPairWeights,
             localExecutor};
     };
@@ -236,7 +238,7 @@ static void CalculateHistogram(
 }
 
 
-void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
+void NCB::CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
 
     int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
@@ -248,11 +250,11 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
     auto datasetLoader = GetDatasetLoader(calculateStatisticsParams, &localExecutor);
 
     if (calculateStatisticsParams.OnlyGroupStatistics) {
-        auto visitor = MakeHolder<TDatasetStatisticsOnlyGroupVisitor>(/*isLocal*/ true);
+        TDatasetStatisticsOnlyGroupVisitor visitor(/*isLocal*/ true);
 
-        datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(visitor.Get()));
+        datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(&visitor));
 
-        visitor->OutputResult(calculateStatisticsParams.OutputPath);
+        visitor.OutputResult(calculateStatisticsParams.OutputPath);
     } else {
         auto visitor = MakeHolder<TDatasetStatisticsFullVisitor>(
             NCB::TDataProviderBuilderOptions{},

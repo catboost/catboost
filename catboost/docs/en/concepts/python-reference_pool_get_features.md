@@ -11,5 +11,4 @@ get_features()
 
 ## {{ dl--output-format }} {#output-format}
 
-A two-dimensional {{ python-type--nparray }}
-
+A two-dimensional {{ python-type__np_ndarray }}

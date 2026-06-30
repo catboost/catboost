@@ -1,10 +1,29 @@
 #include "ref.h"
+
 #include "blob.h"
+#include "poison.h"
+
+#include <library/cpp/yt/exception/exception.h>
 
 #include <library/cpp/yt/malloc/malloc.h>
 
+#include <library/cpp/yt/misc/port.h>
+
+#include <library/cpp/yt/string/format.h>
+
+#include <util/generic/size_literals.h>
+
+#include <util/string/printf.h>
+
 #include <util/system/info.h>
 #include <util/system/align.h>
+
+#ifdef _linux_
+#include <errno.h>
+#include <string.h>
+
+#include <sys/mman.h>
+#endif
 
 namespace NYT {
 
@@ -41,6 +60,7 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class TString>
 class TStringHolder
     : public TSharedRangeHolder
 {
@@ -54,6 +74,8 @@ public:
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, String_.length());
+#else
+        Y_UNUSED(cookie);
 #endif
     }
     ~TStringHolder()
@@ -114,14 +136,25 @@ protected:
         TRefCountedTypeCookie cookie)
     {
         Size_ = size;
+#ifdef YT_ENABLE_REF_COUNTED_TRACKING
         Cookie_ = cookie;
+#else
+        Y_UNUSED(cookie);
+#endif
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
+        } else {
+            PoisonUnitializedOrFreedMemory(GetRef());
         }
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, Size_);
 #endif
+    }
+
+    void Finalize()
+    {
+        PoisonUnitializedOrFreedMemory(GetRef());
     }
 };
 
@@ -138,11 +171,16 @@ public:
         TRefCountedTypeCookie cookie)
     {
         if (options.ExtendToUsableSize) {
-            if (auto usableSize = GetUsableSpaceSize(); usableSize != 0) {
-                size = usableSize;
+            if (auto usableSize = GetUsableSpaceSize()) {
+                size = *usableSize;
             }
         }
         Initialize(size, options, cookie);
+    }
+
+    ~TDefaultAllocationHolder()
+    {
+        Finalize();
     }
 
     char* GetBegin()
@@ -155,6 +193,45 @@ public:
     {
         return Size_;
     }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class TCustomAlignedAllocationHolder
+    : public TAllocationHolderBase<TCustomAlignedAllocationHolder>
+{
+public:
+    TCustomAlignedAllocationHolder(
+        size_t size,
+        size_t alignment,
+        TSharedMutableRefAllocateOptions options,
+        TRefCountedTypeCookie cookie)
+        : Begin_(static_cast<char*>(::aligned_malloc(size, alignment)))
+        , Alignment_(alignment)
+    {
+        Initialize(size, options, cookie);
+    }
+
+    ~TCustomAlignedAllocationHolder()
+    {
+        Finalize();
+        ::free(Begin_);
+    }
+
+    char* GetBegin()
+    {
+        return Begin_;
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return AlignUp(Size_, Alignment_);
+    }
+
+private:
+    char* const Begin_;
+    size_t Alignment_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,6 +251,7 @@ public:
 
     ~TPageAlignedAllocationHolder()
     {
+        Finalize();
         ::free(Begin_);
     }
 
@@ -191,6 +269,71 @@ public:
 private:
     char* const Begin_;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _linux_
+
+class TMmapAllocationHolder
+    : public TAllocationHolderBase<TMmapAllocationHolder>
+{
+public:
+    TMmapAllocationHolder(
+        size_t size,
+        TSharedMutableRefAllocateViaMmapOptions options,
+        TRefCountedTypeCookie cookie)
+    {
+        // Round the mapping up to the huge page size when huge pages are
+        // requested so that the whole region can be backed by them.
+        auto alignment = options.UseThp ? TransparentPageSize : GetPageSize();
+        MappedSize_ = AlignUp(size, alignment);
+        auto* ptr = ::mmap(
+            nullptr,
+            MappedSize_,
+            PROT_READ | PROT_WRITE,
+            MAP_PRIVATE | MAP_ANONYMOUS,
+            -1,
+            0);
+        if (ptr == MAP_FAILED) {
+            throw TSimpleException(Sprintf("Failed to mmap %" PRISZT " bytes: %s", MappedSize_, strerror(errno)));
+        }
+        Begin_ = static_cast<char*>(ptr);
+#ifdef MADV_HUGEPAGE
+        if (options.UseThp) {
+            // Hint before the first touch so that faults are served by huge
+            // pages directly rather than relying on khugepaged to collapse
+            // already-populated small pages.
+            YT_VERIFY(::madvise(Begin_, MappedSize_, MADV_HUGEPAGE) == 0);
+        }
+#endif
+        Initialize(size, {.InitializeStorage = options.InitializeStorage}, cookie);
+    }
+
+    ~TMmapAllocationHolder()
+    {
+        Finalize();
+        YT_VERIFY(::munmap(Begin_, MappedSize_) == 0);
+    }
+
+    char* GetBegin()
+    {
+        return Begin_;
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return MappedSize_;
+    }
+
+private:
+    static constexpr size_t TransparentPageSize = 2_MB;
+
+    char* Begin_;
+    size_t MappedSize_;
+};
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -221,9 +364,25 @@ TMutableRef TMutableRef::FromBlob(TBlob& blob)
 
 TSharedRef TSharedRef::FromString(TString str, TRefCountedTypeCookie tagCookie)
 {
-    auto holder = New<TStringHolder>(std::move(str), tagCookie);
+    return FromStringImpl(std::move(str), tagCookie);
+}
+
+TSharedRef TSharedRef::FromString(std::string str, TRefCountedTypeCookie tagCookie)
+{
+    return FromStringImpl(std::move(str), tagCookie);
+}
+
+template <class TString>
+TSharedRef TSharedRef::FromStringImpl(TString str, TRefCountedTypeCookie tagCookie)
+{
+    auto holder = New<TStringHolder<TString>>(std::move(str), tagCookie);
     auto ref = TRef::FromString(holder->String());
     return TSharedRef(ref, std::move(holder));
+}
+
+TSharedRef TSharedRef::FromString(const char* str)
+{
+    return FromString(std::string(str));
 }
 
 TSharedRef TSharedRef::FromBlob(TBlob&& blob)
@@ -250,11 +409,15 @@ std::vector<TSharedRef> TSharedRef::Split(size_t partSize) const
 {
     YT_VERIFY(partSize > 0);
     std::vector<TSharedRef> result;
+    if (partSize >= Size()) {
+        result.push_back(Slice(Begin(), End()));
+        return result;
+    }
     result.reserve(Size() / partSize + 1);
     auto sliceBegin = Begin();
     while (sliceBegin < End()) {
         auto sliceEnd = sliceBegin + partSize;
-        if (sliceEnd < sliceBegin || sliceEnd > End()) {
+        if (sliceEnd > End()) {
             sliceEnd = End();
         }
         result.push_back(Slice(sliceBegin, sliceEnd));
@@ -275,6 +438,28 @@ TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllo
 TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie)
 {
     auto holder = New<TPageAlignedAllocationHolder>(size, options, tagCookie);
+    auto ref = holder->GetRef();
+    return TSharedMutableRef(ref, std::move(holder));
+}
+
+TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options, TRefCountedTypeCookie tagCookie)
+{
+#ifdef _linux_
+    auto holder = New<TMmapAllocationHolder>(size, options, tagCookie);
+    auto ref = holder->GetRef();
+    return TSharedMutableRef(ref, std::move(holder));
+#else
+    // No mmap/huge page support; fall back to a plain page-aligned allocation.
+    return AllocatePageAligned(
+        size,
+        TSharedMutableRefAllocateOptions{.InitializeStorage = options.InitializeStorage},
+        tagCookie);
+#endif
+}
+
+TSharedMutableRef TSharedMutableRef::AllocateAligned(size_t size, size_t alignment, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie)
+{
+    auto holder = New<TCustomAlignedAllocationHolder>(size, alignment, options, tagCookie);
     auto ref = holder->GetRef();
     return TSharedMutableRef(ref, std::move(holder));
 }
@@ -301,24 +486,24 @@ TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref, TRefCountedTypeCookie ta
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TString ToString(TRef ref)
+void FormatValue(TStringBuilderBase* builder, const TRef& ref, TStringBuf spec)
 {
-    return TString(ref.Begin(), ref.End());
+    FormatValue(builder, TStringBuf{ref.Begin(), ref.End()}, spec);
 }
 
-TString ToString(const TMutableRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TMutableRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
-TString ToString(const TSharedRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TSharedRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
-TString ToString(const TSharedMutableRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TSharedMutableRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
 size_t GetPageSize()
@@ -384,6 +569,36 @@ TString TSharedRefArray::ToString() const
         ptr += part.size();
     }
     return result;
+}
+
+TSharedRefArray TSharedRefArray::MakeCopy(
+    const TSharedRefArray& array,
+    TRefCountedTypeCookie tagCookie)
+{
+    TSharedRefArrayBuilder builder(
+        array.Size(),
+        array.ByteSize(),
+        tagCookie);
+    for (const auto& part : array) {
+        auto partCopy = builder.AllocateAndAdd(part.Size());
+        ::memcpy(partCopy.Begin(), part.Begin(), part.Size());
+    }
+    return builder.Finish();
+}
+
+bool TSharedRefArray::AreBitwiseEqual(
+    const TSharedRefArray& lhs,
+    const TSharedRefArray& rhs)
+{
+    if (lhs.Size() != rhs.Size()) {
+        return false;
+    }
+    for (size_t index = 0; index < lhs.Size(); ++index) {
+        if (!TRef::AreBitwiseEqual(lhs[index], rhs[index])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

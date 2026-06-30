@@ -43,21 +43,24 @@
 #include <atomic>
 #include <climits>
 #include <string>
+#include <type_traits>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/any.h>
-#include <google/protobuf/has_bits.h>
-#include <google/protobuf/implicit_weak_message.h>
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/stubs/once.h>  // Add direct dep on port for pb.cc
-#include <google/protobuf/port.h>
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/casts.h>
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/base/call_once.h"
+#include "y_absl/base/casts.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/any.h"
+#include "google/protobuf/has_bits.h"
+#include "google/protobuf/implicit_weak_message.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/repeated_field.h"
+#include "google/protobuf/wire_format_lite.h"
 
-#include <google/protobuf/port_def.inc>
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -74,15 +77,6 @@ class CodedInputStream;
 }
 
 namespace internal {
-
-template <typename To, typename From>
-inline To DownCast(From* f) {
-  return PROTOBUF_NAMESPACE_ID::internal::down_cast<To>(f);
-}
-template <typename To, typename From>
-inline To DownCast(From& f) {
-  return PROTOBUF_NAMESPACE_ID::internal::down_cast<To>(f);
-}
 
 
 // This fastpath inlines a single branch instead of having to make the
@@ -184,13 +178,58 @@ T* GetOwnedMessage(Arena* message_arena, T* submessage,
 
 // Hide atomic from the public header and allow easy change to regular int
 // on platforms where the atomic might have a perf impact.
+//
+// CachedSize is like std::atomic<int> but with some important changes:
+//
+// 1) CachedSize uses Get / Set rather than load / store.
+// 2) CachedSize always uses relaxed ordering.
+// 3) CachedSize is assignable and copy-constructible.
+// 4) CachedSize has a constexpr default constructor, and a constexpr
+//    constructor that takes an int argument.
+// 5) If the compiler supports the __atomic_load_n / __atomic_store_n builtins,
+//    then CachedSize is trivially copyable.
+//
+// Developed at https://godbolt.org/z/vYcx7zYs1 ; supports gcc, clang, MSVC.
 class PROTOBUF_EXPORT CachedSize {
+ private:
+  using Scalar = int;
+
  public:
-  int Get() const { return size_.load(std::memory_order_relaxed); }
-  void Set(int size) { size_.store(size, std::memory_order_relaxed); }
+  constexpr CachedSize() noexcept : atom_(Scalar{}) {}
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  constexpr CachedSize(Scalar desired) noexcept : atom_(desired) {}
+#if PROTOBUF_BUILTIN_ATOMIC
+  constexpr CachedSize(const CachedSize& other) = default;
+
+  Scalar Get() const noexcept {
+    return __atomic_load_n(&atom_, __ATOMIC_RELAXED);
+  }
+
+  void Set(Scalar desired) noexcept {
+    __atomic_store_n(&atom_, desired, __ATOMIC_RELAXED);
+  }
+#else
+  CachedSize(const CachedSize& other) noexcept : atom_(other.Get()) {}
+  CachedSize& operator=(const CachedSize& other) noexcept {
+    Set(other.Get());
+    return *this;
+  }
+
+  Scalar Get() const noexcept {  //
+    return atom_.load(std::memory_order_relaxed);
+  }
+
+  void Set(Scalar desired) noexcept {
+    atom_.store(desired, std::memory_order_relaxed);
+  }
+#endif
 
  private:
-  std::atomic<int> size_{0};
+#if PROTOBUF_BUILTIN_ATOMIC
+  Scalar atom_;
+#else
+  std::atomic<Scalar> atom_;
+#endif
 };
 
 PROTOBUF_EXPORT void DestroyMessage(const void* message);
@@ -208,6 +247,6 @@ inline void OnShutdownDestroyString(const TProtoStringType* ptr) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_GENERATED_MESSAGE_UTIL_H__

@@ -6,7 +6,7 @@ namespace NKernel {
 
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiLogitValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                  const float* weights,
                                                  const float* predictions,
@@ -100,7 +100,7 @@ namespace NKernel {
 
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiLogitSecondDerRowImpl(const float* targetClasses, int numClasses, ui32 size,
                                                const float* weights,
                                                const float* predictions,
@@ -211,7 +211,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void RMSEWithUncertaintyValAndFirstDerImpl(
         const float* target, ui32 size,
         const float* weights,
@@ -238,7 +238,7 @@ namespace NKernel {
             const float approx0 = __ldg(predictions + loadApproxIndex);
             const float approx1 = __ldg(predictions + loadApproxIndex + predictionsAlignSize);
             const float direction = __ldg(target + idx) - approx0;
-            const float expApprox1 = __expf(-2 * approx1);
+            const float expApprox1 = __expf(min(-2 * approx1, 70.0f));
 
             if (der) { // -gradient
                 der[idx] = weight * direction;
@@ -265,7 +265,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void RMSEWithUncertaintySecondDerRowImpl(
         const float* target, ui32 size,
         const float* weights,
@@ -293,7 +293,7 @@ namespace NKernel {
                     const float approx1 = __ldg(predictions + idx + predictionsAlignSize);
                     const float weight = weights ? __ldg(weights + idx) : 1.0f;
                     const float miss = __ldg(target + idx) - approx0;
-                    const float expApprox1 = __expf(-2 * approx1);
+                    const float expApprox1 = __expf(min(-2 * approx1, 70.0f));
                     der2[idx] = 0.0f;
                     der2[idx + der2AlignSize] = 2 * weight * miss * miss * expApprox1;
                 }
@@ -352,7 +352,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiCrossEntropyValueAndDerImpl(
         ui32 targetCount,
         ui32 size,
@@ -403,7 +403,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiCrossEntropySecondDerImpl(
         ui32 targetCount,
         ui32 size,
@@ -488,7 +488,128 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSEValueAndDerImpl(
+        ui32 targetCount,
+        ui32 size,
+        const float* targets, ui32 targetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        const ui32* loadPredictionsIndices,
+        float* functionValue,
+        float* der, ui32 derAlignSize
+    ) {
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+
+        float sumDimErrors = 0;
+        for (int dim = 0; dim < targetCount; ++dim) {
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+                const int idx = tid + j * BlockSize;
+                if (idx >= size) {
+                    continue;
+                }
+                const ui32 loadApproxIndex = loadPredictionsIndices ? __ldg(loadPredictionsIndices + idx) : idx;
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                const float target = __ldg(targets + idx + dim * targetAlignSize);
+                const float approx = __ldg(predictions + loadApproxIndex + dim * predictionsAlignSize);
+                const float diff = target - approx;
+                if (functionValue) {
+                    sumDimErrors += diff * diff * weight;
+                }
+                if (der) { // -gradient
+                    der[idx + dim * derAlignSize] = diff * weight;
+                }
+
+            }
+        }
+        if (functionValue) {
+            __shared__ float tmpScores[BlockSize];
+            tmpScores[threadIdx.x] = -sumDimErrors;
+            __syncthreads();
+
+            float val = FastInBlockReduce<float>(threadIdx.x, tmpScores, BlockSize);
+
+            if (threadIdx.x == 0) {
+                atomicAdd(functionValue, val);
+            }
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
+    __global__ void MultiRMSESecondDerImpl(
+        ui32 size,
+        const float* weights,
+        float* der2,
+        int der2Row, ui32 der2AlignSize
+    ) {
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+        #pragma unroll
+        for (int j = 0; j < ElementsPerThread; ++j) {
+            const ui32 idx = tid + j * BlockSize;
+            if (idx < size) {
+                for (int k = 0; k < der2Row; ++k) {
+                    der2[idx + k * der2AlignSize] = 0.0f;
+                }
+                const float weight = weights ? __ldg(weights + idx) : 1.0f;
+                der2[idx + der2Row * der2AlignSize] = weight;
+            }
+        }
+    }
+
+
+    void MultiRMSEValueAndDer(
+        ui32 targetCount,
+        ui32 size,
+        const float* target, ui32 tragetAlignSize,
+        const float* weights,
+        const float* predictions, ui32 predictionsAlignSize,
+        const ui32* loadPredictionsIndices,
+        float* functionValue,
+        float* der, ui32 derAlignSize,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        if (functionValue) {
+            FillBuffer(functionValue, 0.0f, 1, stream);
+        }
+        if (numBlocks) {
+            MultiRMSEValueAndDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                targetCount,
+                size,
+                target, tragetAlignSize,
+                weights,
+                predictions, predictionsAlignSize,
+                loadPredictionsIndices,
+                functionValue,
+                der, derAlignSize);
+        }
+    }
+
+    void MultiRMSESecondDer(
+        ui32 size,
+        const float* weights,
+        float* der2,
+        ui32 der2Row, ui32 der2AlignSize,
+        TCudaStream stream
+    ) {
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 4;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        if (numBlocks) {
+            MultiRMSESecondDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(
+                size,
+                weights,
+                der2,
+                der2Row, der2AlignSize);
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                          const float* weights,
                                                          const float* predictions,
@@ -550,7 +671,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllSecondDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                     const float* weights,
                                                     const float* predictions,

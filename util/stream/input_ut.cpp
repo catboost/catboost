@@ -154,4 +154,4 @@ Y_UNIT_TEST_SUITE(TInputTest) {
                            });
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TInputTest)

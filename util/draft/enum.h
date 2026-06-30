@@ -21,18 +21,22 @@ class TEnumNotFoundException: public yexception {
 
 template <class K1, class K2, class V>
 const V* FindEnumFromStringImpl(K1 key, const std::pair<K2, V>* entries, size_t arraySize) {
-    for (size_t i = 0; i < arraySize; i++)
-        if (entries[i].first == key)
+    for (size_t i = 0; i < arraySize; i++) {
+        if (entries[i].first == key) {
             return &entries[i].second;
+        }
+    }
     return nullptr;
 }
 
 // special version for const char*
 template <class V>
 const V* FindEnumFromStringImpl(const char* key, const std::pair<const char*, V>* entries, size_t arraySize) {
-    for (size_t i = 0; i < arraySize; i++)
-        if (entries[i].first && key && !strcmp(entries[i].first, key))
+    for (size_t i = 0; i < arraySize; i++) {
+        if (entries[i].first && key && !strcmp(entries[i].first, key)) {
             return &entries[i].second;
+        }
+    }
     return nullptr;
 }
 
@@ -40,8 +44,9 @@ template <class K, class V>
 TString PrintEnumItemsImpl(const std::pair<K, V>* entries, size_t arraySize) {
     TString result;
     TStringOutput out(result);
-    for (size_t i = 0; i < arraySize; i++)
+    for (size_t i = 0; i < arraySize; i++) {
         out << (i ? ", " : "") << "'" << entries[i].first << "'";
+    }
     return result;
 }
 
@@ -50,30 +55,35 @@ template <class V>
 TString PrintEnumItemsImpl(const std::pair<const char*, V>* entries, size_t arraySize) {
     TString result;
     TStringOutput out(result);
-    for (size_t i = 0; i < arraySize; i++)
+    for (size_t i = 0; i < arraySize; i++) {
         out << (i ? ", " : "") << "'" << (entries[i].first ? entries[i].first : "<null>") << "'";
+    }
     return result;
 }
 
 template <class K1, class K2, class V>
 const V* EnumFromStringImpl(K1 key, const std::pair<K2, V>* entries, size_t arraySize) {
     const V* res = FindEnumFromStringImpl(key, entries, arraySize);
-    if (res)
+    if (res) {
         return res;
+    }
 
     ythrow TEnumNotFoundException() << "Key '" << key << "' not found in enum. Valid options are: " << PrintEnumItemsImpl(entries, arraySize) << ". ";
 }
 
 template <class K, class V>
 const K* EnumToStringImpl(V value, const std::pair<K, V>* entries, size_t arraySize) {
-    for (size_t i = 0; i < arraySize; i++)
-        if (entries[i].second == value)
+    for (size_t i = 0; i < arraySize; i++) {
+        if (entries[i].second == value) {
             return &entries[i].first;
+        }
+    }
 
     TEnumNotFoundException exc;
     exc << "Value '" << int(value) << "' not found in enum. Valid values are: ";
-    for (size_t i = 0; i < arraySize; i++)
+    for (size_t i = 0; i < arraySize; i++) {
         exc << (i ? ", " : "") << int(entries[i].second);
+    }
     exc << ". ";
     ythrow exc;
 }
@@ -128,8 +138,9 @@ inline void SetEnumFlags(TStringBuf optSpec, std::bitset<B>& flags, bool allIfEm
         flags.reset();
         for (const auto& it : StringSplitter(optSpec).Split(',')) {
             E e;
-            if (!TryFromString(it.Token(), e))
+            if (!TryFromString(it.Token(), e)) {
                 ythrow yexception() << "Unknown enum value '" << it.Token() << "'";
+            }
             flags.set((size_t)e);
         }
     }

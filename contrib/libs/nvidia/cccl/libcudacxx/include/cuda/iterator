@@ -1,0 +1,34 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_ITERATOR
+#define _CUDA_ITERATOR
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/__iterator/constant_iterator.h>
+#include <cuda/__iterator/counting_iterator.h>
+#include <cuda/__iterator/discard_iterator.h>
+#include <cuda/__iterator/permutation_iterator.h>
+#include <cuda/__iterator/strided_iterator.h>
+#include <cuda/__iterator/tabulate_output_iterator.h>
+#include <cuda/__iterator/transform_iterator.h>
+#include <cuda/__iterator/transform_output_iterator.h>
+#include <cuda/std/iterator>
+
+#endif // _CUDA_ITERATOR

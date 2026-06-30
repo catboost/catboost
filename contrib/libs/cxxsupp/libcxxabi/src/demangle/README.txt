@@ -34,7 +34,7 @@ differences, we want to keep the "core" generic demangling library
 identical between both copies to simplify development and testing.
 
 If you're working on the generic library, then do the work first in
-libcxxabi, then run the cp-to-llvm.sh script in src/demangle. This
+libcxxabi, then run libcxxabi/src/demangle/cp-to-llvm.sh. This
 script takes as an optional argument the path to llvm, and copies the
 changes you made to libcxxabi over.  Note that this script just
 blindly overwrites all changes to the generic library in llvm, so be
@@ -53,7 +53,7 @@ Testing
 -------
 
 The tests are split up between libcxxabi/test/{unit,}test_demangle.cpp, and
-llvm/unittest/Demangle. The llvm directory should only get tests for stuff not
+llvm/unittests/Demangle. The llvm directory should only get tests for stuff not
 included in the core library. In the future though, we should probably move all
 the tests to LLVM.
 

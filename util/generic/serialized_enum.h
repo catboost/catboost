@@ -41,7 +41,7 @@ namespace NEnumSerializationRuntime {
 
         template <typename TEnumType, typename TRepresentationType, typename TValueType, class TStorage = TMap<TRepresentationType, TValueType>>
         class TMappedDictView;
-    }
+    } // namespace NDetail
 
     /// Class with behaviour similar to TMap<EnumT, TValueType>
     template <typename EnumT, typename TValueType>
@@ -89,7 +89,7 @@ namespace NEnumSerializationRuntime {
      */
     template <typename EnumT>
     TStringBuf ToStringBuf(EnumT e);
-}
+} // namespace NEnumSerializationRuntime
 
 /**
  * Returns names for items in enum or enum class
@@ -403,5 +403,5 @@ namespace NEnumSerializationRuntime {
         private:
             const TStorage& Ref;
         };
-    }
-}
+    } // namespace NDetail
+} // namespace NEnumSerializationRuntime

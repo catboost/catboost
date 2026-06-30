@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/system/yassert.h>
+
 #include <iterator>
 #include <utility>
 
@@ -136,4 +138,10 @@ public:
 template <class TIterator>
 auto ToForwardIterator(TIterator iter) {
     return std::next(iter).base();
+}
+
+template <class T>
+constexpr inline size_t NonNegativeDistance(T* b, T* e) noexcept {
+    Y_ASSERT(e >= b);
+    return e - b;
 }

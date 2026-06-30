@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -6,6 +8,11 @@
 // definitions
 
 #pragma once
+
+#include <memory>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -17,7 +24,7 @@ struct ExtendSupportedTypes final : public Adapter {
       : Adapter(op_name, initial, target) {}
 
   Node* create_cast_op(
-      std::shared_ptr<Graph> graph,
+      const std::shared_ptr<Graph>& graph,
       ArrayRef<Value*> inputs,
       const int to_type,
       const std::vector<Dimension>& output_shape,
@@ -30,12 +37,12 @@ struct ExtendSupportedTypes final : public Adapter {
     return node;
   }
 
-  void adapt_type_extension(std::shared_ptr<Graph> graph, Node* node) const {
+  void adapt_type_extension(const std::shared_ptr<Graph>& graph, Node* node) const {
     const ArrayRef<Value*>& inputs = node->inputs();
     const ArrayRef<Value*>& outputs = node->outputs();
     const std::string original_output_name = node->output()->uniqueName();
 
-    const int input_type = inputs.size() > 0 ? inputs[0]->elemType() : -1;
+    const int input_type = !inputs.empty() ? inputs[0]->elemType() : -1;
     const int output_type = outputs[0]->elemType();
 
     const std::unordered_set<int>& supported_version8_types = {

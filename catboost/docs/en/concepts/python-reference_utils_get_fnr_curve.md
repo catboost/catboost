@@ -15,7 +15,7 @@ get_fnr_curve(model=None,
 
 ## {{ dl--parameters }} {#parameters}
 
-### model 
+### model
 
 #### Description
 

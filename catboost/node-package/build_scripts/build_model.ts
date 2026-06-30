@@ -1,3 +1,3 @@
 import {buildModel} from './build';
 
-buildModel();
+buildModel(process.argv.slice(5));

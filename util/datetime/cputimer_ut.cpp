@@ -7,4 +7,4 @@ Y_UNIT_TEST_SUITE(TestCpuTimerSuite) {
         ui64 cycles = DurationToCyclesSafe(TDuration::Hours(24));
         UNIT_ASSERT_VALUES_EQUAL(24, CyclesToDurationSafe(cycles).Hours());
     }
-}
+} // Y_UNIT_TEST_SUITE(TestCpuTimerSuite)

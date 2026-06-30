@@ -5,6 +5,7 @@
 #include <util/string/cast.h>
 #include <util/string/builder.h>
 #include "error.h"
+#include "getpid.h"
 #include "info.h"
 
 #if defined(_unix_)
@@ -119,10 +120,13 @@ namespace NMemInfo {
         result.RSS = FromString<ui64>(statsiter.NextTok(' ')) * pagesize;
 
         #if defined(_cygwin_)
-        //cygwin not very accurate
+        // cygwin not very accurate
         result.VMS = Max(result.VMS, result.RSS);
         #endif
     #elif defined(_freebsd_)
+        if (pid == 0) {
+            pid = GetPID();
+        }
         int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
         size_t size = sizeof(struct kinfo_proc);
 
@@ -212,4 +216,4 @@ namespace NMemInfo {
 #endif
         return result;
     }
-}
+} // namespace NMemInfo

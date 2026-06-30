@@ -1,17 +1,17 @@
 
 Compile the packages using one of the following methods:
 - Use one of the Python versions provided by the `ya make` utility:
-    
+
     ```bash
     ../../../ya make -r -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=<Python version> [optional parameters]
     ```
-    
+
 - Use one of the Python versions installed on the machine:
-    
+
     ```python
     ../../../ya make -r -DUSE_ARCADIA_PYTHON=no -DOS_SDK=local -DPYTHON_CONFIG=<path to the required python-config> [optional parameters]
     ```
-    
+
 <table>
   <tr>
     <th>Parameter</th>

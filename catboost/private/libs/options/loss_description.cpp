@@ -3,6 +3,8 @@
 #include "json_helper.h"
 #include "metric_options.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
+
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/generic/fwd.h>
@@ -251,6 +253,24 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
     return FromString<double>(lossParams.at("variance_power"));
 }
 
+double NCatboostOptions::GetFocalParamA(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
+    CB_ENSURE(
+        lossParams.contains("focal_alpha"),
+        "For " << ELossFunction::Focal << " focal_alpha parameter is mandatory");
+    return FromString<double>(lossParams.at("focal_alpha"));
+}
+
+double NCatboostOptions::GetFocalParamG(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Focal);
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
+    CB_ENSURE(
+        lossParams.contains("focal_gamma"),
+        "For " << ELossFunction::Focal << " focal_gamma parameter is mandatory");
+    return FromString<double>(lossParams.at("focal_gamma"));
+}
+
 double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
     auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
     if (it == params.end()) {
@@ -391,7 +411,7 @@ TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
     paramType += ":";
     TLossParams lossParams;
-    NCatboostOptions::TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
+    TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
     const auto& paramsMap = lossParams.GetParamsMap();
     for (const auto& paramName : lossParams.GetUserSpecifiedKeyOrder()) {
         const TString& paramValue = StripString(paramsMap.at(paramName), EqualsStripAdapter('"'));

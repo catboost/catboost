@@ -5,19 +5,22 @@
 #include <util/random/fast.h>
 
 Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
-    TString Compress(TString data) {
+    TString Compress(const TString& data, TStringBuf dict = "") {
         TString compressed;
         TStringOutput output(compressed);
-        TBrotliCompress compressStream(&output, 11);
+        size_t quality = NBrotli::BEST_BROTLI_QUALITY;
+        TBrotliDictionary dictionary(dict, quality);
+        TBrotliCompress compressStream(&output, quality, &dictionary);
         compressStream.Write(data.data(), data.size());
         compressStream.Finish();
         output.Finish();
         return compressed;
     }
 
-    TString Decompress(TString data) {
+    TString Decompress(const TString& data, TStringBuf dict = "") {
         TStringInput input(data);
-        TBrotliDecompress decompressStream(&input);
+        TBrotliDictionary dictionary(dict);
+        TBrotliDecompress decompressStream(&input, NBrotli::DEFAULT_BROTLI_BUFFER_SIZE, &dictionary);
         return decompressStream.ReadAll();
     }
 
@@ -86,4 +89,28 @@ Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
     Y_UNIT_TEST(TestEmpty) {
         TestCase("");
     }
-}
+
+    Y_UNIT_TEST(TestDictionary) {
+        TString str = "Bond, James Bond";
+        TStringBuf dict = "Bond";
+        UNIT_ASSERT_VALUES_EQUAL(str, Decompress(Compress(str, dict), dict));
+    }
+
+    Y_UNIT_TEST(TestStreamOffset) {
+        TString first = "apple pen";
+        TString second = " pineapple pen";
+
+        TString compressed;
+        TStringOutput out1(compressed);
+        TBrotliCompress stream1(&out1, NBrotli::BEST_BROTLI_QUALITY);
+        stream1.Write(first);
+        stream1.Flush();
+
+        TStringOutput out2(compressed);
+        TBrotliCompress stream2(&out2, NBrotli::BEST_BROTLI_QUALITY, nullptr, first.size());
+        stream2.Write(second);
+        stream2.Finish();
+
+        UNIT_ASSERT_VALUES_EQUAL(first + second, Decompress(compressed));
+    }
+} // Y_UNIT_TEST_SUITE(TBrotliTestSuite)

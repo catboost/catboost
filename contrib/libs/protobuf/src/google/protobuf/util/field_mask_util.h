@@ -35,13 +35,15 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
-#include <google/protobuf/field_mask.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/stubs/strutil.h>
+#include "google/protobuf/field_mask.pb.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/descriptor.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -54,7 +56,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // Converts FieldMask to/from string, formatted by separating each path
   // with a comma (e.g., "foo_bar,baz.quz").
   static TProtoStringType ToString(const FieldMask& mask);
-  static void FromString(StringPiece str, FieldMask* out);
+  static void FromString(y_absl::string_view str, FieldMask* out);
 
   // Populates the FieldMask with the paths corresponding to the fields with the
   // given numbers, after checking that all field numbers are valid.
@@ -64,7 +66,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
     for (const auto field_number : field_numbers) {
       const FieldDescriptor* field_desc =
           T::descriptor()->FindFieldByNumber(field_number);
-      GOOGLE_CHECK(field_desc != nullptr)
+      Y_ABSL_CHECK(field_desc != nullptr)
           << "Invalid field number for " << T::descriptor()->full_name() << ": "
           << field_number;
       AddPathToFieldMask<T>(field_desc->lowercase_name(), out);
@@ -76,19 +78,19 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // style conforming (i.e., not snake_case when converted to string, or not
   // camelCase when converted from string), the conversion will fail.
   static bool ToJsonString(const FieldMask& mask, TProtoStringType* out);
-  static bool FromJsonString(StringPiece str, FieldMask* out);
+  static bool FromJsonString(y_absl::string_view str, FieldMask* out);
 
   // Get the descriptors of the fields which the given path from the message
   // descriptor traverses, if field_descriptors is not null.
   // Return false if the path is not valid, and the content of field_descriptors
   // is unspecified.
   static bool GetFieldDescriptors(
-      const Descriptor* descriptor, StringPiece path,
+      const Descriptor* descriptor, y_absl::string_view path,
       std::vector<const FieldDescriptor*>* field_descriptors);
 
   // Checks whether the given path is valid for type T.
   template <typename T>
-  static bool IsValidPath(StringPiece path) {
+  static bool IsValidPath(y_absl::string_view path) {
     return GetFieldDescriptors(T::descriptor(), path, nullptr);
   }
 
@@ -96,8 +98,9 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   template <typename T>
   static bool IsValidFieldMask(const FieldMask& mask) {
     for (int i = 0; i < mask.paths_size(); ++i) {
-      if (!GetFieldDescriptors(T::descriptor(), mask.paths(i), nullptr))
+      if (!GetFieldDescriptors(T::descriptor(), mask.paths(i), nullptr)) {
         return false;
+      }
     }
     return true;
   }
@@ -105,8 +108,8 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // Adds a path to FieldMask after checking whether the given path is valid.
   // This method check-fails if the path is not a valid path for type T.
   template <typename T>
-  static void AddPathToFieldMask(StringPiece path, FieldMask* mask) {
-    GOOGLE_CHECK(IsValidPath<T>(path)) << path;
+  static void AddPathToFieldMask(y_absl::string_view path, FieldMask* mask) {
+    Y_ABSL_CHECK(IsValidPath<T>(path)) << path;
     mask->add_paths(TProtoStringType(path));
   }
 
@@ -158,7 +161,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // "foo.bar" covers all paths like "foo.bar.baz", "foo.bar.quz.x", etc.
   // Also note that parent paths are not covered by explicit child path, i.e.
   // "foo.bar" does NOT cover "foo", even if "bar" is the only child.
-  static bool IsPathInFieldMask(StringPiece path, const FieldMask& mask);
+  static bool IsPathInFieldMask(y_absl::string_view path, const FieldMask& mask);
 
   class MergeOptions;
   // Merges fields specified in a FieldMask into another message.
@@ -193,7 +196,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // Note that the input can contain characters not allowed in C identifiers.
   // For example, "foo_bar,baz_quz" will be converted to "fooBar,bazQuz"
   // successfully.
-  static bool SnakeCaseToCamelCase(StringPiece input,
+  static bool SnakeCaseToCamelCase(y_absl::string_view input,
                                    TProtoStringType* output);
   // Converts a field name from camelCase to snake_case:
   //   1. Every uppercase letter is converted to lowercase with an additional
@@ -207,7 +210,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // Note that the input can contain characters not allowed in C identifiers.
   // For example, "fooBar,bazQuz" will be converted to "foo_bar,baz_quz"
   // successfully.
-  static bool CamelCaseToSnakeCase(StringPiece input,
+  static bool CamelCaseToSnakeCase(y_absl::string_view input,
                                    TProtoStringType* output);
 };
 
@@ -257,6 +260,6 @@ class PROTOBUF_EXPORT FieldMaskUtil::TrimOptions {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_UTIL_FIELD_MASK_UTIL_H__

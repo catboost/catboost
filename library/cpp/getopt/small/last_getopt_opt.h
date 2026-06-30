@@ -4,13 +4,17 @@
 #include "last_getopt_handlers.h"
 
 #include <util/string/split.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/string/cast.h>
+#include <util/string/join.h>
 
-#include <stdarg.h>
+#include <optional>
+#include <functional>
+#include <utility>
 
 namespace NLastGetopt {
     enum EHasArg {
@@ -19,6 +23,11 @@ namespace NLastGetopt {
         OPTIONAL_ARGUMENT,
         DEFAULT_HAS_ARG = REQUIRED_ARGUMENT
     };
+
+    template<class T>
+    concept ArgTagConcept =
+        std::is_enum_v<std::remove_cvref_t<T>> ||
+        std::is_same_v<std::remove_cvref_t<T>, ui32>;
 
     /**
      * NLastGetopt::TOpt is a storage of data about exactly one program option.
@@ -33,12 +42,12 @@ namespace NLastGetopt {
      *   argument parse politics: no/optional/required/
      *   option existence: required or optional
      *   handlers. See detailed documentation: <TODO:link>
-     *   default value: if the option has argument, but the option is ommited,
+     *   default value: if the option has argument, but the option is omitted,
      *                     then the <default value> is used as the value of the argument
      *   optional value: if the option has optional-argument, the option is present in parsed string,
      *                      but the argument is omitted, then <optional value is used>
-     *      in case of "not given <optional value>, omited optional argument" the <default value> is used
-     *   user value: allows to store arbitary pointer for handlers
+     *      in case of "not given <optional value>, omitted optional argument" the <default value> is used
+     *   user value: allows to store arbitrary pointer for handlers
      */
     class TOpt {
     public:
@@ -79,6 +88,7 @@ namespace NLastGetopt {
         TdOptVal OptionalValue_;
         TdOptVal DefaultValue_;
         TOptHandlers Handlers_;
+        THashSet<TString> Choices_;
 
     public:
         /**
@@ -90,7 +100,7 @@ namespace NLastGetopt {
         /**
          *  Checks if given string can be a long name
          *  @param name            string to check
-         *  @param c               if given, the first bad charecter will be saved in c
+         *  @param c               if given, the first bad character will be saved in c
          */
         static bool IsAllowedLongName(const TString& name, unsigned char* c = nullptr);
 
@@ -291,7 +301,7 @@ namespace NLastGetopt {
          *  @return self
          */
         TOpt& DisableSpaceParse() {
-            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT);
+            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT || GetHasArg() == REQUIRED_ARGUMENT);
             EqParseOnly_ = true;
             return *this;
         }
@@ -395,6 +405,10 @@ namespace NLastGetopt {
          */
         const TString& GetHelp() const {
             return Help_;
+        }
+
+        TString GetChoicesHelp() const {
+            return JoinSeq(", ", Choices_);
         }
 
         /**
@@ -628,6 +642,11 @@ namespace NLastGetopt {
             return StoreResultT<T>(target);
         }
 
+        template <typename T>
+        TOpt& StoreResult(std::optional<T>* target) {
+            return StoreResultT<T>(target);
+        }
+
         template <typename TpVal, typename T, typename TpDef>
         TOpt& StoreResultT(T* target, const TpDef& def) {
             return Handler1T<TpVal>(def, NPrivate::TStoreResultFunctor<T, TpVal>(target));
@@ -658,6 +677,11 @@ namespace NLastGetopt {
         // Similar to store_true in Python's argparse
         TOpt& StoreTrue(bool* target) {
             return NoArgument().SetFlag(target);
+        }
+
+        // Similar to store_false in Python's argparse
+        TOpt& StoreFalse(bool* target) {
+            return NoArgument().StoreResult(target, false);
         }
 
         template <typename TpVal, typename T, typename TpFunc>
@@ -693,18 +717,30 @@ namespace NLastGetopt {
         // Appends FromString<T>(arg) to *target for each argument
         template<class Container>
         TOpt& AppendTo(Container* target) {
-            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::move(value)); });
+            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::forward<decltype(value)>(value)); });
         }
 
         // Appends FromString<T>(arg) to *target for each argument
         template <typename T>
         TOpt& InsertTo(THashSet<T>* target) {
-            return Handler1T<T>([target](auto&& value) { target->insert(std::move(value)); });
+            return Handler1T<T>([target](auto&& value) { target->insert(std::forward<decltype(value)>(value)); });
+        }
+
+        // Appends FromString<T>(arg) to *target for each argument
+        template <class Container>
+        TOpt& InsertTo(Container* target) {
+            return Handler1T<typename Container::value_type>([target](auto&& value) { target->insert(std::forward<decltype(value)>(value)); });
         }
 
         // Emplaces TString arg to *target for each argument
         template <typename T>
         TOpt& EmplaceTo(TVector<T>* target) {
+            return Handler1T<TString>([target](TString arg) { target->emplace_back(std::move(arg)); } );
+        }
+
+        // Emplaces TString arg to *target for each argument
+        template <class Container>
+        TOpt& EmplaceTo(Container* target) {
             return Handler1T<TString>([target](TString arg) { target->emplace_back(std::move(arg)); } );
         }
 
@@ -722,6 +758,41 @@ namespace NLastGetopt {
         TOpt& KVHandler(TpFunc func, const char kvdelim = '=') {
             return Handler(new NLastGetopt::TOptKVHandler<TpFunc>(func, kvdelim));
         }
+
+        template <typename TIterator>
+        TOpt& Choices(TIterator begin, TIterator end) {
+            return Choices(THashSet<typename TIterator::value_type>{begin, end});
+        }
+
+        template <typename TValue>
+        TOpt& Choices(THashSet<TValue> choices) {
+            Choices_ = std::move(choices);
+            return Handler1T<TValue>(
+                [this] (const TValue& arg) {
+                    if (!Choices_.contains(arg)) {
+                        throw TUsageException() << " value '" << arg
+                                                << "' is not allowed for option '" << GetName() << "'";
+                    }
+                });
+        }
+
+        TOpt& Choices(TVector<TString> choices) {
+            return Choices(
+                THashSet<TString>{
+                    std::make_move_iterator(choices.begin()),
+                    std::make_move_iterator(choices.end())
+                });
+        }
+
+        TOpt& ChoicesWithCompletion(TVector<NComp::TChoice> choices) {
+            Completer(NComp::Choice(choices));
+            THashSet<TString> choicesSet;
+            choicesSet.reserve(choices.size());
+            for (const auto& choice : choices) {
+                choicesSet.insert(choice.Choice);
+            }
+            return Choices(std::move(choicesSet));
+        }
     };
 
     /**
@@ -733,6 +804,9 @@ namespace NLastGetopt {
      *   argument name (title)
      */
     struct TFreeArgSpec {
+        template <ArgTagConcept E>
+        using TTagger = std::function<E(const TString&)>;
+
         TFreeArgSpec() = default;
         TFreeArgSpec(const TString& title, const TString& help = TString(), bool optional = false)
             : Title_(title)
@@ -744,6 +818,7 @@ namespace NLastGetopt {
         TString Title_;
         TString Help_;
         TString CompletionArgHelp_;
+        TTagger<ui32> Tagger_;
 
         bool Optional_ = false;
         NComp::ICompleterPtr Completer_ = nullptr;
@@ -825,6 +900,49 @@ namespace NLastGetopt {
         TFreeArgSpec& Completer(NComp::ICompleterPtr completer) {
             Completer_ = std::move(completer);
             return *this;
+        }
+
+        /**
+         * Set a tagger that can compute tag dynamically for each argument value.
+         */
+        TFreeArgSpec& SetTag(TTagger<ui32>&& tagger) {
+            Tagger_ = std::forward<TTagger<ui32>>(tagger);
+            return *this;
+        }
+
+        /**
+         * Set a static tag for all arguments described by this spec.
+         */
+        template <ArgTagConcept E>
+        TFreeArgSpec& SetTag(E tag) {
+            Tagger_ = [tag](const TString&) -> ui32 {
+                return static_cast<ui32>(tag);
+            };
+            return *this;
+        }
+
+        /**
+         * Set a tagger that can compute tag dynamically for each argument value.
+         */
+        template <ArgTagConcept E>
+        TFreeArgSpec& SetTag(TTagger<E>&& tagger) {
+            Tagger_ = [tagger](const TString& value) -> ui32 {
+                return static_cast<ui32>(tagger(value));
+            };
+            return *this;
+        }
+
+        /**
+         * Compute tag for argument value at given position.
+         */
+        ui32 GetTag(const TString& value) const {
+            if (Tagger_) {
+                ui32 tag = Tagger_(value);
+                if (tag) {
+                    return tag;
+                }
+            }
+            return 0;
         }
     };
 }

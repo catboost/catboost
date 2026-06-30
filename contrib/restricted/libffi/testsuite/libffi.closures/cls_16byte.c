@@ -26,6 +26,19 @@ cls_struct_16byte cls_struct_16byte_fn(struct cls_struct_16byte b1,
   printf("%d %g %d %d %g %d: %d %g %d\n", b1.a, b1.b, b1.c, b2.a, b2.b, b2.c,
 	 result.a, result.b, result.c);
 
+  CHECK(b1.a == 7);
+  CHECK(b1.b == 8);
+  CHECK(b1.c == 9);
+
+  CHECK(b2.a == 1);
+  CHECK(b2.b == 9);
+  CHECK(b2.c == 3);
+
+  CHECK(result.a == 8);
+  CHECK(result.b == 17);
+  CHECK(result.c == 12);
+
+
   return result;
 }
 
@@ -80,6 +93,10 @@ int main (void)
   printf("res: %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 8 17 12" } */
 
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 17);
+  CHECK(res_dbl.c == 12);
+
   res_dbl.a = 0;
   res_dbl.b = 0.0;
   res_dbl.c = 0;
@@ -90,6 +107,11 @@ int main (void)
   /* { dg-output "\n7 8 9 1 9 3: 8 17 12" } */
   printf("res: %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
   /* { dg-output "\nres: 8 17 12" } */
+
+  CHECK(res_dbl.a == 8);
+  CHECK(res_dbl.b == 17);
+  CHECK(res_dbl.c == 12);
+
 
   exit(0);
 }

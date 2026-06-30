@@ -1,6 +1,9 @@
 from catboost.utils import create_cd
 
-from catboost_pytest_lib import test_output_path, local_canonical_file
+try:
+    from catboost_pytest_lib import test_output_path, local_canonical_file
+except Exception:
+    from lib import test_output_path, local_canonical_file
 
 
 def test_create_cd_label_only():

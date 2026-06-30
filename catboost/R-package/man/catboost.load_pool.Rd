@@ -19,7 +19,8 @@ catboost.load_pool(
   pairs_weight = NULL,
   baseline = NULL,
   feature_names = NULL,
-  thread_count = -1
+  thread_count = -1,
+  graph = NULL
 )
 }
 \arguments{
@@ -41,7 +42,9 @@ Default value: Required argument}
 \item{label}{The label vector or label matrix}
 
 \item{cat_features}{A vector of categorical features indices.
-The indices are zero based and can differ from the given in the Column descriptions file.}
+The indices are zero based and can differ from the given in the Column descriptions file.
+If data parameter is data.frame don't use cat_features, categorical features are determined automatically
+from data.frame column types.}
 
 \item{column_description}{The path to the input file that contains the column descriptions.}
 
@@ -67,7 +70,10 @@ Used in the calculation of final values of trees.}
 
 \item{feature_names}{A list of names for each feature in the dataset.}
 
-\item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
+\item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.}
+
+\item{graph}{A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
+The shape should be Nx2, where N is the pairs of indices count.
 If -1, then the number of threads is set to the number of CPU cores.}
 }
 \value{

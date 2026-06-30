@@ -13,11 +13,11 @@ Format:
 ```
 
 - `token_id1` — The token ID of the first part of the new token.
-    
+
 - `token_id2` — The token ID of the second part of the new token.
-    
+
 - {% include [dictionaries-number-of-occurrences-desc](../_includes/work_src/reusage-tokenizer/number-of-occurrences-desc.md) %}
-    
+
 - `token` — The value of the token.
 
 {% include [dictionaries-tokens-origin](../_includes/work_src/reusage-tokenizer/tokens-origin.md) %}

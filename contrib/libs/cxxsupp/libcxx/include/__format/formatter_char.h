@@ -10,13 +10,17 @@
 #ifndef _LIBCPP___FORMAT_FORMATTER_CHAR_H
 #define _LIBCPP___FORMAT_FORMATTER_CHAR_H
 
-#include <__availability>
+#include <__concepts/same_as.h>
 #include <__config>
-#include <__format/format_error.h>
-#include <__format/format_fwd.h>
+#include <__format/concepts.h>
+#include <__format/format_parse_context.h>
 #include <__format/formatter.h>
 #include <__format/formatter_integral.h>
+#include <__format/formatter_output.h>
 #include <__format/parser_std_format_spec.h>
+#include <__format/write_escaped.h>
+#include <__type_traits/conditional.h>
+#include <__type_traits/make_unsigned.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -24,80 +28,73 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER >= 20
 
-// TODO FMT Remove this once we require compilers with proper C++20 support.
-// If the compiler has no concepts support, the format header will be disabled.
-// Without concepts support enable_if needs to be used and that too much effort
-// to support compilers with partial C++20 support.
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
-
-namespace __format_spec {
-
-template <class _CharT>
-class _LIBCPP_TEMPLATE_VIS __parser_char : public __parser_integral<_CharT> {
+template <__fmt_char_type _CharT>
+struct __formatter_char {
 public:
-  _LIBCPP_HIDE_FROM_ABI constexpr auto parse(auto& __parse_ctx)
-      -> decltype(__parse_ctx.begin()) {
-    auto __it = __parser_integral<_CharT>::__parse(__parse_ctx);
-
-    switch (this->__type) {
-    case _Flags::_Type::__default:
-      this->__type = _Flags::_Type::__char;
-      [[fallthrough]];
-    case _Flags::_Type::__char:
-      this->__handle_char();
-      break;
-
-    case _Flags::_Type::__binary_lower_case:
-    case _Flags::_Type::__binary_upper_case:
-    case _Flags::_Type::__octal:
-    case _Flags::_Type::__decimal:
-    case _Flags::_Type::__hexadecimal_lower_case:
-    case _Flags::_Type::__hexadecimal_upper_case:
-      this->__handle_integer();
-      break;
-
-    default:
-      __throw_format_error(
-          "The format-spec type has a type not supported for a char argument");
-    }
-
-    return __it;
+  template <class _ParseContext>
+  _LIBCPP_HIDE_FROM_ABI constexpr typename _ParseContext::iterator parse(_ParseContext& __ctx) {
+    typename _ParseContext::iterator __result = __parser_.__parse(__ctx, __format_spec::__fields_integral);
+    __format_spec::__process_parsed_char(__parser_, "a character");
+    return __result;
   }
-};
 
-template <class _CharT>
-using __formatter_char = __formatter_integral<__parser_char<_CharT>>;
+  template <class _FormatContext>
+  _LIBCPP_HIDE_FROM_ABI typename _FormatContext::iterator format(_CharT __value, _FormatContext& __ctx) const {
+    if (__parser_.__type_ == __format_spec::__type::__default || __parser_.__type_ == __format_spec::__type::__char)
+      return __formatter::__format_char(__value, __ctx.out(), __parser_.__get_parsed_std_specifications(__ctx));
 
-} // namespace __format_spec
+#  if _LIBCPP_STD_VER >= 23
+    if (__parser_.__type_ == __format_spec::__type::__debug)
+      return __formatter::__format_escaped_char(__value, __ctx.out(), __parser_.__get_parsed_std_specifications(__ctx));
+#  endif
 
-// [format.formatter.spec]/2.1 The specializations
-
-template <>
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_AVAILABILITY_FORMAT formatter<char, char>
-    : public __format_spec::__formatter_char<char> {};
-
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
-template <>
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_AVAILABILITY_FORMAT formatter<char, wchar_t>
-    : public __format_spec::__formatter_char<wchar_t> {
-  using _Base = __format_spec::__formatter_char<wchar_t>;
-
-  _LIBCPP_HIDE_FROM_ABI auto format(char __value, auto& __ctx)
-      -> decltype(__ctx.out()) {
-    return _Base::format(static_cast<wchar_t>(__value), __ctx);
+    if constexpr (sizeof(_CharT) <= sizeof(unsigned))
+      return __formatter::__format_integer(
+          static_cast<unsigned>(static_cast<make_unsigned_t<_CharT>>(__value)),
+          __ctx,
+          __parser_.__get_parsed_std_specifications(__ctx));
+    else
+      return __formatter::__format_integer(
+          static_cast<make_unsigned_t<_CharT>>(__value), __ctx, __parser_.__get_parsed_std_specifications(__ctx));
   }
+
+  template <class _FormatContext>
+  _LIBCPP_HIDE_FROM_ABI typename _FormatContext::iterator format(char __value, _FormatContext& __ctx) const
+    requires(same_as<_CharT, wchar_t>)
+  {
+    return format(static_cast<wchar_t>(static_cast<unsigned char>(__value)), __ctx);
+  }
+
+#  if _LIBCPP_STD_VER >= 23
+  _LIBCPP_HIDE_FROM_ABI constexpr void set_debug_format() { __parser_.__type_ = __format_spec::__type::__debug; }
+#  endif
+
+  __format_spec::__parser<_CharT> __parser_;
 };
 
 template <>
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_AVAILABILITY_FORMAT
-    formatter<wchar_t, wchar_t>
-    : public __format_spec::__formatter_char<wchar_t> {};
-#endif // _LIBCPP_HAS_NO_WIDE_CHARACTERS
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+struct formatter<char, char> : public __formatter_char<char> {};
 
-#endif //_LIBCPP_STD_VER > 17
+#  if _LIBCPP_HAS_WIDE_CHARACTERS
+template <>
+struct formatter<char, wchar_t> : public __formatter_char<wchar_t> {};
+
+template <>
+struct formatter<wchar_t, wchar_t> : public __formatter_char<wchar_t> {};
+#  endif // _LIBCPP_HAS_WIDE_CHARACTERS
+
+#  if _LIBCPP_STD_VER >= 23
+template <>
+inline constexpr bool enable_nonlocking_formatter_optimization<char> = true;
+#    if _LIBCPP_HAS_WIDE_CHARACTERS
+template <>
+inline constexpr bool enable_nonlocking_formatter_optimization<wchar_t> = true;
+#    endif // _LIBCPP_HAS_WIDE_CHARACTERS
+#  endif   // _LIBCPP_STD_VER >= 23
+
+#endif // _LIBCPP_STD_VER >= 20
 
 _LIBCPP_END_NAMESPACE_STD
 

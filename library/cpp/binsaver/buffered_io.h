@@ -7,7 +7,6 @@
 
 struct IBinaryStream {
     virtual ~IBinaryStream() = default;
-    ;
 
     inline i64 Write(const void* userBuffer, i64 size) {
         if (size <= Max<int>()) {

@@ -4,7 +4,7 @@
 
 #include <util/str_stl.h>
 
-//some equivalent boost::asio::ip::endpoint (easy for using pair ip:port)
+// some equivalent boost::asio::ip::endpoint (easy for using pair ip:port)
 class TEndpoint {
 public:
     using TAddrRef = NAddr::IRemoteAddrRef;

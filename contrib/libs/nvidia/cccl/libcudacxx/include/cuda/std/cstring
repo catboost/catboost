@@ -1,0 +1,110 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of libcu++, the C++ Standard Library for your entire system,
+// under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _CUDA_STD_CSTRING
+#define _CUDA_STD_CSTRING
+
+#include <cuda/std/detail/__config>
+
+#if defined(_CCCL_IMPLICIT_SYSTEM_HEADER_GCC)
+#  pragma GCC system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_CLANG)
+#  pragma clang system_header
+#elif defined(_CCCL_IMPLICIT_SYSTEM_HEADER_MSVC)
+#  pragma system_header
+#endif // no system header
+
+#include <cuda/std/__string/constexpr_c_functions.h>
+
+#if !_CCCL_COMPILER(NVRTC)
+#  include <cstring>
+#endif // !_CCCL_COMPILER(NVRTC)
+
+#include <cuda/std/__cccl/prologue.h>
+
+_LIBCUDACXX_BEGIN_NAMESPACE_STD
+
+using ::memcpy;
+using ::memset;
+using ::size_t;
+
+_CCCL_API constexpr char* strcpy(char* _CCCL_RESTRICT __dst, const char* _CCCL_RESTRICT __src)
+{
+  return _CUDA_VSTD::__cccl_strcpy(__dst, __src);
+}
+
+_CCCL_API constexpr char* strncpy(char* _CCCL_RESTRICT __dst, const char* _CCCL_RESTRICT __src, size_t __n)
+{
+  return _CUDA_VSTD::__cccl_strncpy(__dst, __src, __n);
+}
+
+[[nodiscard]] _CCCL_API constexpr size_t strlen(const char* __ptr)
+{
+  return _CUDA_VSTD::__cccl_strlen(__ptr);
+}
+
+[[nodiscard]] _CCCL_API constexpr int strcmp(const char* __lhs, const char* __rhs)
+{
+  return _CUDA_VSTD::__cccl_strcmp(__lhs, __rhs);
+}
+
+[[nodiscard]] _CCCL_API constexpr int strncmp(const char* __lhs, const char* __rhs, size_t __n)
+{
+  return _CUDA_VSTD::__cccl_strncmp(__lhs, __rhs, __n);
+}
+
+[[nodiscard]] _CCCL_API constexpr const char* strchr(const char* __ptr, int __c)
+{
+  return _CUDA_VSTD::__cccl_strchr<const char>(__ptr, static_cast<char>(__c));
+}
+
+[[nodiscard]] _CCCL_API constexpr char* strchr(char* __ptr, int __c)
+{
+  return _CUDA_VSTD::__cccl_strchr(__ptr, static_cast<char>(__c));
+}
+
+[[nodiscard]] _CCCL_API constexpr const char* strrchr(const char* __ptr, int __c)
+{
+  return _CUDA_VSTD::__cccl_strrchr<const char>(__ptr, static_cast<char>(__c));
+}
+
+[[nodiscard]] _CCCL_API constexpr char* strrchr(char* __ptr, int __c)
+{
+  return _CUDA_VSTD::__cccl_strrchr(__ptr, static_cast<char>(__c));
+}
+
+_CCCL_API inline const void* memchr(const void* __ptr, int __c, size_t __n) noexcept
+{
+  return _CUDA_VSTD::__cccl_memchr<const unsigned char>(
+    reinterpret_cast<const unsigned char*>(__ptr), static_cast<unsigned char>(__c), __n);
+}
+
+_CCCL_API inline void* memchr(void* __ptr, int __c, size_t __n) noexcept
+{
+  return _CUDA_VSTD::__cccl_memchr(reinterpret_cast<unsigned char*>(__ptr), static_cast<unsigned char>(__c), __n);
+}
+
+_CCCL_API inline void* memmove(void* __dst, const void* __src, size_t __n) noexcept
+{
+  return _CUDA_VSTD::__cccl_memmove(
+    reinterpret_cast<unsigned char*>(__dst), reinterpret_cast<const unsigned char*>(__src), __n);
+}
+
+[[nodiscard]] _CCCL_API inline int memcmp(const void* __lhs, const void* __rhs, size_t __n) noexcept
+{
+  return _CUDA_VSTD::__cccl_memcmp(
+    reinterpret_cast<const unsigned char*>(__lhs), reinterpret_cast<const unsigned char*>(__rhs), __n);
+}
+
+_LIBCUDACXX_END_NAMESPACE_STD
+
+#include <cuda/std/__cccl/epilogue.h>
+
+#endif // _CUDA_STD_CSTRING

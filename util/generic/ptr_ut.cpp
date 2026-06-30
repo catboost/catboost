@@ -35,6 +35,8 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestSimpleIntrusivePtrCtorTsan);
     UNIT_TEST(TestRefCountedPtrsInHashSet);
     UNIT_TEST(TestSharedPtrDowncast);
+    UNIT_TEST(TestStdCompatibility);
+    UNIT_TEST(TestGetRef);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -89,6 +91,8 @@ private:
     void TestRefCountedPtrsInHashSetImpl();
     void TestRefCountedPtrsInHashSet();
     void TestSharedPtrDowncast();
+    void TestStdCompatibility();
+    void TestGetRef();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TPointerTest);
@@ -385,7 +389,7 @@ namespace NTestIntrusiveConvertion {
 
     void Func(TIntrusiveConstPtr<TB>) {
     }
-}
+} // namespace NTestIntrusiveConvertion
 
 void TPointerTest::TestIntrusiveConvertion() {
     using namespace NTestIntrusiveConvertion;
@@ -559,7 +563,7 @@ namespace {
         }
     };
 
-}
+} // namespace
 
 void TPointerTest::TestOperatorBool() {
     using TVec = TVector<ui32>;
@@ -806,7 +810,7 @@ public:
     }
 
     void DecRef() noexcept {
-        Y_VERIFY(--ExternalCounter_.Counter != 0);
+        Y_ABORT_UNLESS(--ExternalCounter_.Counter != 0);
     }
 
 private:
@@ -932,5 +936,58 @@ void TPointerTest::TestSharedPtrDowncast() {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
+    }
+}
+
+void TPointerTest::TestStdCompatibility() {
+    {
+        TSimpleSharedPtr<int> ptr = MakeSimpleShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TAtomicSharedPtr<int> ptr = MakeAtomicShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TAutoPtr<int> ptr = MakeHolder<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TIntrusivePtr<TOp> ptr;
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, TOp);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+}
+
+void TPointerTest::TestGetRef() {
+    {
+        TSimpleSharedPtr<int> ptr = MakeSimpleShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), int&);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 5);
+        ptr.GetRef() += 5;
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 10);
+    }
+    {
+        THolder<const int> ptr = MakeHolder<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), const int&);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.GetRef(), 5);
+    }
+    {
+        THolder<const int> ptr;
+        UNIT_ASSERT_EXCEPTION(ptr.GetRef(), yexception);
+    }
+
+    {
+        THolder<void, TNoAction> ptr((void*)10);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr.GetRef()), void);
+        ptr.GetRef();
+        ptr = {};
+        UNIT_ASSERT_EXCEPTION(ptr.GetRef(), yexception);
     }
 }

@@ -33,13 +33,11 @@
 
 #include <stdint.h>
 
+#include <string>
 #include <utility>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-
 // clang-format off
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 // clang-format on
 
 namespace google {
@@ -59,7 +57,7 @@ namespace internal {
 // 3. Call get() and get_mutable() only if the object is initialized.
 // 4. Call Destruct() only if the object is initialized.
 //    After the call, the object becomes uninitialized.
-template <typename T>
+template <typename T, size_t min_align = 1>
 class ExplicitlyConstructed {
  public:
   void DefaultConstruct() { new (&union_) T(); }
@@ -76,16 +74,22 @@ class ExplicitlyConstructed {
 
  private:
   union AlignedUnion {
-    alignas(T) char space[sizeof(T)];
+    alignas(min_align > alignof(T) ? min_align
+                                   : alignof(T)) char space[sizeof(T)];
     arc_i64 align_to_int64;
     void* align_to_ptr;
   } union_;
 };
 
+// ArenaStringPtr compatible explicitly constructed string type.
+// This empty string type is aligned with a minimum alignment of 8 bytes
+// which is the minimum requirement of ArenaStringPtr
+using ExplicitlyConstructedArenaString = ExplicitlyConstructed<TProtoStringType, 8>;
+
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_EXPLICITLY_CONSTRUCTED_H__

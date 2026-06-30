@@ -28,19 +28,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/util/time_util.h>
+#include "google/protobuf/util/time_util.h"
 
 #include <cstdint>
+#include <cstdlib>
 
-#include <google/protobuf/stubs/stringprintf.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/duration.pb.h>
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/stubs/int128.h>
-#include <google/protobuf/stubs/time.h>
+#include "google/protobuf/duration.pb.h"
+#include "google/protobuf/timestamp.pb.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/numeric/int128.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_format.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/time/clock.h"
+#include "y_absl/time/time.h"
 
 // Must go after other includes.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -50,19 +54,24 @@ using google::protobuf::Duration;
 using google::protobuf::Timestamp;
 
 namespace {
-static const int kNanosPerSecond = 1000000000;
-static const int kMicrosPerSecond = 1000000;
-static const int kMillisPerSecond = 1000;
-static const int kNanosPerMillisecond = 1000000;
-static const int kNanosPerMicrosecond = 1000;
-static const int kSecondsPerMinute = 60;  // Note that we ignore leap seconds.
-static const int kSecondsPerHour = 3600;
+static constexpr arc_i32 kNanosPerSecond = 1000000000;
+static constexpr arc_i32 kMicrosPerSecond = 1000000;
+static constexpr arc_i32 kMillisPerSecond = 1000;
+static constexpr arc_i32 kNanosPerMillisecond = 1000000;
+static constexpr arc_i32 kNanosPerMicrosecond = 1000;
+static constexpr arc_i32 kSecondsPerMinute =
+    60;  // Note that we ignore leap seconds.
+static constexpr arc_i32 kSecondsPerHour = 3600;
 
 template <typename T>
-T CreateNormalized(arc_i64 seconds, arc_i64 nanos);
+T CreateNormalized(arc_i64 seconds, arc_i32 nanos);
 
 template <>
-Timestamp CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
+Timestamp CreateNormalized(arc_i64 seconds, arc_i32 nanos) {
+  Y_ABSL_DCHECK(seconds >= TimeUtil::kTimestampMinSeconds &&
+              seconds <= TimeUtil::kTimestampMaxSeconds)
+      << "Timestamp seconds are outside of the valid range";
+
   // Make sure nanos is in the range.
   if (nanos <= -kNanosPerSecond || nanos >= kNanosPerSecond) {
     seconds += nanos / kNanosPerSecond;
@@ -73,8 +82,12 @@ Timestamp CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
     seconds -= 1;
     nanos += kNanosPerSecond;
   }
-  GOOGLE_DCHECK(seconds >= TimeUtil::kTimestampMinSeconds &&
-         seconds <= TimeUtil::kTimestampMaxSeconds);
+
+  Y_ABSL_DCHECK(seconds >= TimeUtil::kTimestampMinSeconds &&
+              seconds <= TimeUtil::kTimestampMaxSeconds &&
+              nanos >= TimeUtil::kTimestampMinNanoseconds &&
+              nanos <= TimeUtil::kTimestampMaxNanoseconds)
+      << "Timestamp is outside of the valid range";
   Timestamp result;
   result.set_seconds(seconds);
   result.set_nanos(static_cast<arc_i32>(nanos));
@@ -82,7 +95,11 @@ Timestamp CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
 }
 
 template <>
-Duration CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
+Duration CreateNormalized(arc_i64 seconds, arc_i32 nanos) {
+  Y_ABSL_DCHECK(seconds >= TimeUtil::kDurationMinSeconds &&
+              seconds <= TimeUtil::kDurationMaxSeconds)
+      << "Duration seconds are outside of the valid range";
+
   // Make sure nanos is in the range.
   if (nanos <= -kNanosPerSecond || nanos >= kNanosPerSecond) {
     seconds += nanos / kNanosPerSecond;
@@ -96,8 +113,12 @@ Duration CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
     seconds -= 1;
     nanos += kNanosPerSecond;
   }
-  GOOGLE_DCHECK(seconds >= TimeUtil::kDurationMinSeconds &&
-         seconds <= TimeUtil::kDurationMaxSeconds);
+
+  Y_ABSL_DCHECK(seconds >= TimeUtil::kDurationMinSeconds &&
+              seconds <= TimeUtil::kDurationMaxSeconds &&
+              nanos >= TimeUtil::kDurationMinNanoseconds &&
+              nanos <= TimeUtil::kDurationMaxNanoseconds)
+      << "Duration is outside of the valid range";
   Duration result;
   result.set_seconds(seconds);
   result.set_nanos(static_cast<arc_i32>(nanos));
@@ -108,24 +129,49 @@ Duration CreateNormalized(arc_i64 seconds, arc_i64 nanos) {
 // precision to represent the exact value.
 TProtoStringType FormatNanos(arc_i32 nanos) {
   if (nanos % kNanosPerMillisecond == 0) {
-    return StringPrintf("%03d", nanos / kNanosPerMillisecond);
+    return y_absl::StrFormat("%03d", nanos / kNanosPerMillisecond);
   } else if (nanos % kNanosPerMicrosecond == 0) {
-    return StringPrintf("%06d", nanos / kNanosPerMicrosecond);
+    return y_absl::StrFormat("%06d", nanos / kNanosPerMicrosecond);
   } else {
-    return StringPrintf("%09d", nanos);
+    return y_absl::StrFormat("%09d", nanos);
   }
 }
 
-TProtoStringType FormatTime(int64 seconds, int32 nanos) {
-  return ::google::protobuf::internal::FormatTime(seconds, nanos);
+TProtoStringType FormatTime(arc_i64 seconds, arc_i32 nanos) {
+  static constexpr y_absl::string_view kTimestampFormat = "%E4Y-%m-%dT%H:%M:%S";
+
+  timespec spec;
+  spec.tv_sec = seconds;
+  // We only use y_absl::FormatTime to format the seconds part because we need
+  // finer control over the precision of nanoseconds.
+  spec.tv_nsec = 0;
+  TProtoStringType result = y_absl::FormatTime(
+      kTimestampFormat, y_absl::TimeFromTimespec(spec), y_absl::UTCTimeZone());
+  // We format the nanoseconds part separately to meet the precision
+  // requirement.
+  if (nanos != 0) {
+    y_absl::StrAppend(&result, ".", FormatNanos(nanos));
+  }
+  y_absl::StrAppend(&result, "Z");
+  return result;
 }
 
-bool ParseTime(const TProtoStringType& value, int64* seconds, int32* nanos) {
-  return ::google::protobuf::internal::ParseTime(value, seconds, nanos);
+bool ParseTime(y_absl::string_view value, arc_i64* seconds, arc_i32* nanos) {
+  y_absl::Time result;
+  if (!y_absl::ParseTime(y_absl::RFC3339_full, value, &result, nullptr)) {
+    return false;
+  }
+  timespec spec = y_absl::ToTimespec(result);
+  *seconds = spec.tv_sec;
+  *nanos = spec.tv_nsec;
+  return true;
 }
 
-void CurrentTime(int64* seconds, int32* nanos) {
-  return ::google::protobuf::internal::GetCurrentTime(seconds, nanos);
+void CurrentTime(arc_i64* seconds, arc_i32* nanos) {
+  y_absl::Time now = y_absl::Now();
+  timespec spec = y_absl::ToTimespec(now);
+  *seconds = spec.tv_sec;
+  *nanos = spec.tv_nsec;
 }
 
 // Truncates the remainder part after division.
@@ -148,17 +194,21 @@ arc_i64 RoundTowardZero(arc_i64 value, arc_i64 divider) {
 // Actually define these static const integers. Required by C++ standard (but
 // some compilers don't like it).
 #ifndef _MSC_VER
-const arc_i64 TimeUtil::kTimestampMinSeconds;
-const arc_i64 TimeUtil::kTimestampMaxSeconds;
-const arc_i64 TimeUtil::kDurationMaxSeconds;
-const arc_i64 TimeUtil::kDurationMinSeconds;
+constexpr arc_i64 TimeUtil::kTimestampMinSeconds;
+constexpr arc_i64 TimeUtil::kTimestampMaxSeconds;
+constexpr arc_i32 TimeUtil::kTimestampMinNanoseconds;
+constexpr arc_i32 TimeUtil::kTimestampMaxNanoseconds;
+constexpr arc_i64 TimeUtil::kDurationMaxSeconds;
+constexpr arc_i64 TimeUtil::kDurationMinSeconds;
+constexpr arc_i32 TimeUtil::kDurationMaxNanoseconds;
+constexpr arc_i32 TimeUtil::kDurationMinNanoseconds;
 #endif  // !_MSC_VER
 
 TProtoStringType TimeUtil::ToString(const Timestamp& timestamp) {
   return FormatTime(timestamp.seconds(), timestamp.nanos());
 }
 
-bool TimeUtil::FromString(const TProtoStringType& value, Timestamp* timestamp) {
+bool TimeUtil::FromString(y_absl::string_view value, Timestamp* timestamp) {
   arc_i64 seconds;
   arc_i32 nanos;
   if (!ParseTime(value, &seconds, &nanos)) {
@@ -182,15 +232,15 @@ TProtoStringType TimeUtil::ToString(const Duration& duration) {
   arc_i64 seconds = duration.seconds();
   arc_i32 nanos = duration.nanos();
   if (seconds < 0 || nanos < 0) {
-    result += "-";
+    result = "-";
     seconds = -seconds;
     nanos = -nanos;
   }
-  result += StrCat(seconds);
+  y_absl::StrAppend(&result, seconds);
   if (nanos != 0) {
-    result += "." + FormatNanos(nanos);
+    y_absl::StrAppend(&result, ".", FormatNanos(nanos));
   }
-  result += "s";
+  y_absl::StrAppend(&result, "s");
   return result;
 }
 
@@ -202,33 +252,36 @@ static arc_i64 Pow(arc_i64 x, int y) {
   return result;
 }
 
-bool TimeUtil::FromString(const TProtoStringType& value, Duration* duration) {
+bool TimeUtil::FromString(y_absl::string_view value, Duration* duration) {
   if (value.length() <= 1 || value[value.length() - 1] != 's') {
     return false;
   }
   bool negative = (value[0] == '-');
-  int sign_length = (negative ? 1 : 0);
+  size_t sign_length = (negative ? 1 : 0);
   // Parse the duration value as two integers rather than a float value
   // to avoid precision loss.
   TProtoStringType seconds_part, nanos_part;
   size_t pos = value.find_last_of('.');
   if (pos == TProtoStringType::npos) {
-    seconds_part = value.substr(sign_length, value.length() - 1 - sign_length);
+    seconds_part = TProtoStringType(
+        value.substr(sign_length, value.length() - 1 - sign_length));
     nanos_part = "0";
   } else {
-    seconds_part = value.substr(sign_length, pos - sign_length);
-    nanos_part = value.substr(pos + 1, value.length() - pos - 2);
+    seconds_part = TProtoStringType(value.substr(sign_length, pos - sign_length));
+    nanos_part = TProtoStringType(value.substr(pos + 1, value.length() - pos - 2));
   }
   char* end;
-  arc_i64 seconds = strto64(seconds_part.c_str(), &end, 10);
+  static_assert(sizeof(arc_i64) == sizeof(long long),
+                "sizeof arc_i64 is not sizeof long long");
+  arc_i64 seconds = std::strtoll(seconds_part.c_str(), &end, 10);
   if (end != seconds_part.c_str() + seconds_part.length()) {
     return false;
   }
-  arc_i64 nanos = strto64(nanos_part.c_str(), &end, 10);
+  arc_i64 nanos = std::strtoll(nanos_part.c_str(), &end, 10);
   if (end != nanos_part.c_str() + nanos_part.length()) {
     return false;
   }
-  nanos = nanos * Pow(10, 9 - nanos_part.length());
+  nanos = nanos * Pow(10, static_cast<int>(9 - nanos_part.length()));
   if (negative) {
     // If a Duration is negative, both seconds and nanos should be negative.
     seconds = -seconds;
@@ -261,37 +314,45 @@ Duration TimeUtil::SecondsToDuration(arc_i64 seconds) {
 }
 
 Duration TimeUtil::MinutesToDuration(arc_i64 minutes) {
-  return CreateNormalized<Duration>(minutes * kSecondsPerMinute, 0);
+  Y_ABSL_DCHECK(minutes >= TimeUtil::kDurationMinSeconds / kSecondsPerMinute &&
+              minutes <= TimeUtil::kDurationMaxSeconds / kSecondsPerMinute)
+      << "Duration minutes are outside of the valid range";
+  return SecondsToDuration(minutes * kSecondsPerMinute);
 }
 
 Duration TimeUtil::HoursToDuration(arc_i64 hours) {
-  return CreateNormalized<Duration>(hours * kSecondsPerHour, 0);
+  Y_ABSL_DCHECK(hours >= TimeUtil::kDurationMinSeconds / kSecondsPerHour &&
+              hours <= TimeUtil::kDurationMaxSeconds / kSecondsPerHour)
+      << "Duration hours are outside of the valid range";
+  return SecondsToDuration(hours * kSecondsPerHour);
 }
 
 arc_i64 TimeUtil::DurationToNanoseconds(const Duration& duration) {
+  Y_ABSL_DCHECK(IsDurationValid(duration))
+      << "Duration is outside of the valid range";
   return duration.seconds() * kNanosPerSecond + duration.nanos();
 }
 
 arc_i64 TimeUtil::DurationToMicroseconds(const Duration& duration) {
-  return duration.seconds() * kMicrosPerSecond +
-         RoundTowardZero(duration.nanos(), kNanosPerMicrosecond);
+  return RoundTowardZero(DurationToNanoseconds(duration), kNanosPerMicrosecond);
 }
 
 arc_i64 TimeUtil::DurationToMilliseconds(const Duration& duration) {
-  return duration.seconds() * kMillisPerSecond +
-         RoundTowardZero(duration.nanos(), kNanosPerMillisecond);
+  return RoundTowardZero(DurationToNanoseconds(duration), kNanosPerMillisecond);
 }
 
 arc_i64 TimeUtil::DurationToSeconds(const Duration& duration) {
+  Y_ABSL_DCHECK(IsDurationValid(duration))
+      << "Duration is outside of the valid range";
   return duration.seconds();
 }
 
 arc_i64 TimeUtil::DurationToMinutes(const Duration& duration) {
-  return RoundTowardZero(duration.seconds(), kSecondsPerMinute);
+  return RoundTowardZero(DurationToSeconds(duration), kSecondsPerMinute);
 }
 
 arc_i64 TimeUtil::DurationToHours(const Duration& duration) {
-  return RoundTowardZero(duration.seconds(), kSecondsPerHour);
+  return RoundTowardZero(DurationToSeconds(duration), kSecondsPerHour);
 }
 
 Timestamp TimeUtil::NanosecondsToTimestamp(arc_i64 nanos) {
@@ -316,20 +377,28 @@ Timestamp TimeUtil::SecondsToTimestamp(arc_i64 seconds) {
 }
 
 arc_i64 TimeUtil::TimestampToNanoseconds(const Timestamp& timestamp) {
+  Y_ABSL_DCHECK(IsTimestampValid(timestamp))
+      << "Timestamp is outside of the valid range";
   return timestamp.seconds() * kNanosPerSecond + timestamp.nanos();
 }
 
 arc_i64 TimeUtil::TimestampToMicroseconds(const Timestamp& timestamp) {
+  Y_ABSL_DCHECK(IsTimestampValid(timestamp))
+      << "Timestamp is outside of the valid range";
   return timestamp.seconds() * kMicrosPerSecond +
          RoundTowardZero(timestamp.nanos(), kNanosPerMicrosecond);
 }
 
 arc_i64 TimeUtil::TimestampToMilliseconds(const Timestamp& timestamp) {
+  Y_ABSL_DCHECK(IsTimestampValid(timestamp))
+      << "Timestamp is outside of the valid range";
   return timestamp.seconds() * kMillisPerSecond +
          RoundTowardZero(timestamp.nanos(), kNanosPerMillisecond);
 }
 
 arc_i64 TimeUtil::TimestampToSeconds(const Timestamp& timestamp) {
+  Y_ABSL_DCHECK(IsTimestampValid(timestamp))
+      << "Timestamp is outside of the valid range";
   return timestamp.seconds();
 }
 
@@ -381,7 +450,7 @@ using ::PROTOBUF_NAMESPACE_ID::util::CreateNormalized;
 using ::PROTOBUF_NAMESPACE_ID::util::kNanosPerSecond;
 
 // Convert a Duration to uint128.
-void ToUint128(const Duration& value, uint128* result, bool* negative) {
+void ToUint128(const Duration& value, y_absl::uint128* result, bool* negative) {
   if (value.seconds() < 0 || value.nanos() < 0) {
     *negative = true;
     *result = static_cast<arc_ui64>(-value.seconds());
@@ -393,11 +462,11 @@ void ToUint128(const Duration& value, uint128* result, bool* negative) {
   }
 }
 
-void ToDuration(const uint128& value, bool negative, Duration* duration) {
+void ToDuration(const y_absl::uint128& value, bool negative, Duration* duration) {
   arc_i64 seconds =
-      static_cast<arc_i64>(Uint128Low64(value / kNanosPerSecond));
+      static_cast<arc_i64>(y_absl::Uint128Low64(value / kNanosPerSecond));
   arc_i32 nanos =
-      static_cast<arc_i32>(Uint128Low64(value % kNanosPerSecond));
+      static_cast<arc_i32>(y_absl::Uint128Low64(value % kNanosPerSecond));
   if (negative) {
     seconds = -seconds;
     nanos = -nanos;
@@ -421,7 +490,7 @@ Duration& operator-=(Duration& d1, const Duration& d2) {  // NOLINT
 
 Duration& operator*=(Duration& d, arc_i64 r) {  // NOLINT
   bool negative;
-  uint128 value;
+  y_absl::uint128 value;
   ToUint128(d, &value, &negative);
   if (r > 0) {
     value *= static_cast<arc_ui64>(r);
@@ -434,9 +503,12 @@ Duration& operator*=(Duration& d, arc_i64 r) {  // NOLINT
 }
 
 Duration& operator*=(Duration& d, double r) {  // NOLINT
-  double result = (d.seconds() * 1.0 + 1.0 * d.nanos() / kNanosPerSecond) * r;
+  double result =
+      (static_cast<double>(d.seconds()) + d.nanos() * (1.0 / kNanosPerSecond)) *
+      r;
   arc_i64 seconds = static_cast<arc_i64>(result);
-  arc_i32 nanos = static_cast<arc_i32>((result - seconds) * kNanosPerSecond);
+  arc_i32 nanos = static_cast<arc_i32>((result - static_cast<double>(seconds)) *
+                                       kNanosPerSecond);
   // Note that we normalize here not just because nanos can have a different
   // sign from seconds but also that nanos can be any arbitrary value when
   // overflow happens (i.e., the result is a much larger value than what
@@ -447,7 +519,7 @@ Duration& operator*=(Duration& d, double r) {  // NOLINT
 
 Duration& operator/=(Duration& d, arc_i64 r) {  // NOLINT
   bool negative;
-  uint128 value;
+  y_absl::uint128 value;
   ToUint128(d, &value, &negative);
   if (r > 0) {
     value /= static_cast<arc_ui64>(r);
@@ -465,10 +537,10 @@ Duration& operator/=(Duration& d, double r) {  // NOLINT
 
 Duration& operator%=(Duration& d1, const Duration& d2) {  // NOLINT
   bool negative1, negative2;
-  uint128 value1, value2;
+  y_absl::uint128 value1, value2;
   ToUint128(d1, &value1, &negative1);
   ToUint128(d2, &value2, &negative2);
-  uint128 result = value1 % value2;
+  y_absl::uint128 result = value1 % value2;
   // When negative values are involved in division, we round the division
   // result towards zero. With this semantics, sign of the remainder is the
   // same as the dividend. For example:
@@ -481,10 +553,10 @@ Duration& operator%=(Duration& d1, const Duration& d2) {  // NOLINT
 
 arc_i64 operator/(const Duration& d1, const Duration& d2) {
   bool negative1, negative2;
-  uint128 value1, value2;
+  y_absl::uint128 value1, value2;
   ToUint128(d1, &value1, &negative1);
   ToUint128(d2, &value2, &negative2);
-  arc_i64 result = Uint128Low64(value1 / value2);
+  arc_i64 result = y_absl::Uint128Low64(value1 / value2);
   if (negative1 != negative2) {
     result = -result;
   }

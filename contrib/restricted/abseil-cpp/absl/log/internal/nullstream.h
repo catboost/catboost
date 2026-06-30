@@ -79,6 +79,7 @@ class NullStream {
     return *this;
   }
   NullStream& InternalStream() { return *this; }
+  void Flush() {}
 };
 template <typename T>
 inline NullStream& operator<<(NullStream& str, const T&) {
@@ -102,7 +103,9 @@ class NullStreamMaybeFatal final : public NullStream {
   explicit NullStreamMaybeFatal(absl::LogSeverity severity)
       : fatal_(severity == absl::LogSeverity::kFatal) {}
   ~NullStreamMaybeFatal() {
-    if (fatal_) _exit(1);
+    if (fatal_) {
+      _exit(1);
+    }
   }
 
  private:
@@ -114,21 +117,12 @@ class NullStreamMaybeFatal final : public NullStream {
 // and expression-defined severity use `NullStreamMaybeFatal` above.
 class NullStreamFatal final : public NullStream {
  public:
-  NullStreamFatal() {}
-  // ABSL_ATTRIBUTE_NORETURN doesn't seem to work on destructors with msvc, so
-  // disable msvc's warning about the d'tor never returning.
-#if defined(_MSC_VER) && !defined(__clang__)
-#pragma warning(push)
-#pragma warning(disable : 4722)
-#endif
-  ABSL_ATTRIBUTE_NORETURN ~NullStreamFatal() { _exit(1); }
-#if defined(_MSC_VER) && !defined(__clang__)
-#pragma warning(pop)
-#endif
+  NullStreamFatal() = default;
+  [[noreturn]] ~NullStreamFatal() { _exit(1); }
 };
 
 }  // namespace log_internal
 ABSL_NAMESPACE_END
 }  // namespace absl
 
-#endif  // ABSL_LOG_INTERNAL_GLOBALS_H_
+#endif  // ABSL_LOG_INTERNAL_NULLSTREAM_H_

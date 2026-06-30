@@ -87,11 +87,13 @@ bool THttpClientRequestExtension::ProcessHeaders(TBaseServerRequestData& rd, TBl
                     }
 
                     TBuffer buf(SafeIntegerCast<size_t>(contentLength));
-                    buf.Resize(Input().Load(buf.Data(), (size_t)contentLength));
+                    Input().LoadOrFail(buf.Data(), (size_t)contentLength);
+                    buf.Resize((size_t)contentLength);
                     postData = TBlob::FromBuffer(buf);
                 } else {
                     postData = TBlob::FromStream(Input());
                 }
+                rd.SetBody(postData);
             } catch (...) {
                 Output() << "HTTP/1.1 400 Bad request\r\n\r\n";
                 return false;
@@ -103,9 +105,14 @@ bool THttpClientRequestExtension::ProcessHeaders(TBaseServerRequestData& rd, TBl
             break;
 
         case Options:
-            Output() << "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
-            return false;
-            
+            if (!OptionsAllowed()) {
+                Output() << "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                return false;
+            } else if (!Parse(urlStart, rd)) {
+                return false;
+            }
+            break;
+
         case NotImplemented:
             Output() << "HTTP/1.1 501 Not Implemented\r\n\r\n";
             return false;

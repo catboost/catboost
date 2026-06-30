@@ -2,16 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include <stddef.h>
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <vector>
-#include <utility>
-
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
 #include "re2/filtered_re2.h"
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "gtest/gtest.h"
 #include "re2/re2.h"
 
 namespace re2 {
@@ -31,14 +33,14 @@ TEST(FilteredRE2Test, EmptyTest) {
   FilterTestVars v;
 
   v.f.Compile(&v.atoms);
-  EXPECT_EQ(0, v.atoms.size());
+  EXPECT_EQ(size_t{0}, v.atoms.size());
 
   // Compile has no effect at all when called before Add: it will not
   // record that it has been called and it will not clear the vector.
   // The second point does not matter here, but the first point means
   // that an error will be logged during the call to AllMatches.
   v.f.AllMatches("foo", v.atom_indices, &v.matches);
-  EXPECT_EQ(0, v.matches.size());
+  EXPECT_EQ(size_t{0}, v.matches.size());
 }
 
 TEST(FilteredRE2Test, SmallOrTest) {
@@ -47,10 +49,10 @@ TEST(FilteredRE2Test, SmallOrTest) {
   v.f.Add("(foo|bar)", v.opts, &id);
 
   v.f.Compile(&v.atoms);
-  EXPECT_EQ(0, v.atoms.size());
+  EXPECT_EQ(size_t{0}, v.atoms.size());
 
   v.f.AllMatches("lemurs bar", v.atom_indices, &v.matches);
-  EXPECT_EQ(1, v.matches.size());
+  EXPECT_EQ(size_t{1}, v.matches.size());
   EXPECT_EQ(id, v.matches[0]);
 }
 
@@ -61,12 +63,12 @@ TEST(FilteredRE2Test, SmallLatinTest) {
   v.opts.set_encoding(RE2::Options::EncodingLatin1);
   v.f.Add("\xde\xadQ\xbe\xef", v.opts, &id);
   v.f.Compile(&v.atoms);
-  EXPECT_EQ(1, v.atoms.size());
+  EXPECT_EQ(size_t{1}, v.atoms.size());
   EXPECT_EQ(v.atoms[0], "\xde\xadq\xbe\xef");
 
   v.atom_indices.push_back(0);
   v.f.AllMatches("foo\xde\xadQ\xbe\xeflemur", v.atom_indices, &v.matches);
-  EXPECT_EQ(1, v.matches.size());
+  EXPECT_EQ(size_t{1}, v.matches.size());
   EXPECT_EQ(id, v.matches[0]);
 }
 
@@ -171,13 +173,13 @@ bool CheckExpectedAtoms(const char* atoms[],
       pass = pass && expected[i] == v->atoms[i];
 
   if (!pass) {
-    LOG(ERROR) << "Failed " << testname;
-    LOG(ERROR) << "Expected #atoms = " << expected.size();
+    ABSL_LOG(ERROR) << "Failed " << testname;
+    ABSL_LOG(ERROR) << "Expected #atoms = " << expected.size();
     for (size_t i = 0; i < expected.size(); i++)
-      LOG(ERROR) << expected[i];
-    LOG(ERROR) << "Found #atoms = " << v->atoms.size();
+      ABSL_LOG(ERROR) << expected[i];
+    ABSL_LOG(ERROR) << "Found #atoms = " << v->atoms.size();
     for (size_t i = 0; i < v->atoms.size(); i++)
-      LOG(ERROR) << v->atoms[i];
+      ABSL_LOG(ERROR) << v->atoms[i];
   }
 
   return pass;
@@ -185,14 +187,14 @@ bool CheckExpectedAtoms(const char* atoms[],
 
 TEST(FilteredRE2Test, AtomTests) {
   int nfail = 0;
-  for (size_t i = 0; i < arraysize(atom_tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(atom_tests); i++) {
     FilterTestVars v;
     AtomTest* t = &atom_tests[i];
     size_t nregexp, natom;
-    for (nregexp = 0; nregexp < arraysize(t->regexps); nregexp++)
+    for (nregexp = 0; nregexp < ABSL_ARRAYSIZE(t->regexps); nregexp++)
       if (t->regexps[nregexp] == NULL)
         break;
-    for (natom = 0; natom < arraysize(t->atoms); natom++)
+    for (natom = 0; natom < ABSL_ARRAYSIZE(t->atoms); natom++)
       if (t->atoms[natom] == NULL)
         break;
     AddRegexpsAndCompile(t->regexps, nregexp, &v);
@@ -224,7 +226,7 @@ TEST(FilteredRE2Test, MatchEmptyPattern) {
   // the index we use for the test is for the correct test.
   EXPECT_EQ("CheckEmptyPattern", std::string(t->testname));
   size_t nregexp;
-  for (nregexp = 0; nregexp < arraysize(t->regexps); nregexp++)
+  for (nregexp = 0; nregexp < ABSL_ARRAYSIZE(t->regexps); nregexp++)
     if (t->regexps[nregexp] == NULL)
       break;
   AddRegexpsAndCompile(t->regexps, nregexp, &v);
@@ -241,7 +243,7 @@ TEST(FilteredRE2Test, MatchTests) {
   // for this test.
   EXPECT_EQ("SubstrAtomRemovesSuperStrInOr", std::string(t->testname));
   size_t nregexp;
-  for (nregexp = 0; nregexp < arraysize(t->regexps); nregexp++)
+  for (nregexp = 0; nregexp < ABSL_ARRAYSIZE(t->regexps); nregexp++)
     if (t->regexps[nregexp] == NULL)
       break;
   AddRegexpsAndCompile(t->regexps, nregexp, &v);
@@ -254,7 +256,7 @@ TEST(FilteredRE2Test, MatchTests) {
   FindAtomIndices(v.atoms, atoms, &atom_ids);
   std::vector<int> matching_regexps;
   v.f.AllMatches(text, atom_ids, &matching_regexps);
-  EXPECT_EQ(1, matching_regexps.size());
+  EXPECT_EQ(size_t{1}, matching_regexps.size());
 
   text = "abc12312yyyzzz";
   atoms.clear();
@@ -263,7 +265,7 @@ TEST(FilteredRE2Test, MatchTests) {
   atoms.push_back("yyyzzz");
   FindAtomIndices(v.atoms, atoms, &atom_ids);
   v.f.AllMatches(text, atom_ids, &matching_regexps);
-  EXPECT_EQ(1, matching_regexps.size());
+  EXPECT_EQ(size_t{1}, matching_regexps.size());
 
   text = "abcd12yyy32yyyzzz";
   atoms.clear();
@@ -272,11 +274,11 @@ TEST(FilteredRE2Test, MatchTests) {
   atoms.push_back("yyy");
   atoms.push_back("yyyzzz");
   FindAtomIndices(v.atoms, atoms, &atom_ids);
-  LOG(INFO) << "S: " << atom_ids.size();
+  ABSL_LOG(INFO) << "S: " << atom_ids.size();
   for (size_t i = 0; i < atom_ids.size(); i++)
-    LOG(INFO) << "i: " << i << " : " << atom_ids[i];
+    ABSL_LOG(INFO) << "i: " << i << " : " << atom_ids[i];
   v.f.AllMatches(text, atom_ids, &matching_regexps);
-  EXPECT_EQ(2, matching_regexps.size());
+  EXPECT_EQ(size_t{2}, matching_regexps.size());
 }
 
 TEST(FilteredRE2Test, EmptyStringInStringSetBug) {
@@ -288,8 +290,8 @@ TEST(FilteredRE2Test, EmptyStringInStringSetBug) {
   FilterTestVars v(0);  // override the minimum atom length
   const char* regexps[] = {"-R.+(|ADD=;AA){12}}"};
   const char* atoms[] = {"", "-r", "add=;aa", "}"};
-  AddRegexpsAndCompile(regexps, arraysize(regexps), &v);
-  EXPECT_TRUE(CheckExpectedAtoms(atoms, arraysize(atoms),
+  AddRegexpsAndCompile(regexps, ABSL_ARRAYSIZE(regexps), &v);
+  EXPECT_TRUE(CheckExpectedAtoms(atoms, ABSL_ARRAYSIZE(atoms),
                                  "EmptyStringInStringSetBug", &v));
 }
 
@@ -299,43 +301,43 @@ TEST(FilteredRE2Test, MoveSemantics) {
   v1.f.Add("foo\\d+", v1.opts, &id);
   EXPECT_EQ(0, id);
   v1.f.Compile(&v1.atoms);
-  EXPECT_EQ(1, v1.atoms.size());
+  EXPECT_EQ(size_t{1}, v1.atoms.size());
   EXPECT_EQ("foo", v1.atoms[0]);
   v1.f.AllMatches("abc foo1 xyz", {0}, &v1.matches);
-  EXPECT_EQ(1, v1.matches.size());
+  EXPECT_EQ(size_t{1}, v1.matches.size());
   EXPECT_EQ(0, v1.matches[0]);
   v1.f.AllMatches("abc bar2 xyz", {0}, &v1.matches);
-  EXPECT_EQ(0, v1.matches.size());
+  EXPECT_EQ(size_t{0}, v1.matches.size());
 
   // The moved-to object should do what the moved-from object did.
   FilterTestVars v2;
   v2.f = std::move(v1.f);
   v2.f.AllMatches("abc foo1 xyz", {0}, &v2.matches);
-  EXPECT_EQ(1, v2.matches.size());
+  EXPECT_EQ(size_t{1}, v2.matches.size());
   EXPECT_EQ(0, v2.matches[0]);
   v2.f.AllMatches("abc bar2 xyz", {0}, &v2.matches);
-  EXPECT_EQ(0, v2.matches.size());
+  EXPECT_EQ(size_t{0}, v2.matches.size());
 
   // The moved-from object should have been reset and be reusable.
   v1.f.Add("bar\\d+", v1.opts, &id);
   EXPECT_EQ(0, id);
   v1.f.Compile(&v1.atoms);
-  EXPECT_EQ(1, v1.atoms.size());
+  EXPECT_EQ(size_t{1}, v1.atoms.size());
   EXPECT_EQ("bar", v1.atoms[0]);
   v1.f.AllMatches("abc foo1 xyz", {0}, &v1.matches);
-  EXPECT_EQ(0, v1.matches.size());
+  EXPECT_EQ(size_t{0}, v1.matches.size());
   v1.f.AllMatches("abc bar2 xyz", {0}, &v1.matches);
-  EXPECT_EQ(1, v1.matches.size());
+  EXPECT_EQ(size_t{1}, v1.matches.size());
   EXPECT_EQ(0, v1.matches[0]);
 
   // Verify that "overwriting" works and also doesn't leak memory.
   // (The latter will need a leak detector such as LeakSanitizer.)
   v1.f = std::move(v2.f);
   v1.f.AllMatches("abc foo1 xyz", {0}, &v1.matches);
-  EXPECT_EQ(1, v1.matches.size());
+  EXPECT_EQ(size_t{1}, v1.matches.size());
   EXPECT_EQ(0, v1.matches[0]);
   v1.f.AllMatches("abc bar2 xyz", {0}, &v1.matches);
-  EXPECT_EQ(0, v1.matches.size());
+  EXPECT_EQ(size_t{0}, v1.matches.size());
 }
 
 }  //  namespace re2

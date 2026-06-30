@@ -612,7 +612,27 @@ class Table {
   }
 
   // Verify a particular field.
-  template<typename T> bool VerifyField(const Verifier<Iter> &verifier,
+  template<typename T>
+  bool VerifyField(const Verifier<Iter> &verifier, voffset_t field,
+                   size_t align) const {
+    // Calling GetOptionalFieldOffset should be safe now thanks to
+    // VerifyTable().
+    auto field_offset = GetOptionalFieldOffset(field);
+    // Check the actual field.
+    return !field_offset || verifier.template VerifyField<T>(data_, field_offset, align);
+  }
+
+  // VerifyField for required fields.
+  template<typename T>
+  bool VerifyFieldRequired(const Verifier<Iter> &verifier, voffset_t field,
+                           size_t align) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return verifier.Check(field_offset != 0) &&
+           verifier.template VerifyField<T>(data_, field_offset, align);
+  }
+
+  // Versions for offsets.
+  template<typename T> bool VerifyOffset(const Verifier<Iter> &verifier,
                                         voffset_t field) const {
     // Calling GetOptionalFieldOffset should be safe now thanks to
     // VerifyTable().
@@ -621,13 +641,12 @@ class Table {
     return !field_offset || verifier.template Verify<T>(data_ + field_offset);
   }
 
-  // VerifyField for required fields.
-  template<typename T> bool VerifyFieldRequired(const Verifier<Iter> &verifier,
+  template<typename T> bool VerifyOffsetRequired(const Verifier<Iter> &verifier,
                                         voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
            verifier.template Verify<T>(data_ + field_offset);
-  }
+  } 
 
  private:
   Iter data_;

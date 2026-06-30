@@ -29,17 +29,19 @@
  * of the exceptions for the runtime to use.  
  */
 
+#include "cxxabi.h"
+
 namespace std
 {
 
 	class exception
 	{
 	public:
-		exception() noexcept;
-		exception(const exception&) noexcept;
-		exception& operator=(const exception&) noexcept;
+		exception() _LIBCXXRT_NOEXCEPT;
+		exception(const exception&) _LIBCXXRT_NOEXCEPT;
+		exception& operator=(const exception&) _LIBCXXRT_NOEXCEPT;
 		virtual ~exception();
-		virtual const char* what() const noexcept;
+		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 
@@ -49,11 +51,11 @@ namespace std
 	class bad_alloc: public exception
 	{
 	public:
-		bad_alloc() noexcept;
-		bad_alloc(const bad_alloc&) noexcept;
-		bad_alloc& operator=(const bad_alloc&) noexcept;
+		bad_alloc() _LIBCXXRT_NOEXCEPT;
+		bad_alloc(const bad_alloc&) _LIBCXXRT_NOEXCEPT;
+		bad_alloc& operator=(const bad_alloc&) _LIBCXXRT_NOEXCEPT;
 		~bad_alloc();
-		virtual const char* what() const noexcept;
+		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 	/**
@@ -61,11 +63,11 @@ namespace std
 	 */
 	class bad_cast: public exception {
 	public:
-		bad_cast() noexcept;
-		bad_cast(const bad_cast&) noexcept;
-		bad_cast& operator=(const bad_cast&) noexcept;
+		bad_cast() _LIBCXXRT_NOEXCEPT;
+		bad_cast(const bad_cast&) _LIBCXXRT_NOEXCEPT;
+		bad_cast& operator=(const bad_cast&) _LIBCXXRT_NOEXCEPT;
 		virtual ~bad_cast();
-		virtual const char* what() const noexcept;
+		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 	/**
@@ -74,21 +76,21 @@ namespace std
 	class bad_typeid: public exception
 	{
 	public:
-		bad_typeid() noexcept;
-		bad_typeid(const bad_typeid &__rhs) noexcept;
+		bad_typeid() _LIBCXXRT_NOEXCEPT;
+		bad_typeid(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT;
 		virtual ~bad_typeid();
-		bad_typeid& operator=(const bad_typeid &__rhs) noexcept;
-		virtual const char* what() const noexcept;
+		bad_typeid& operator=(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT;
+		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 	class bad_array_new_length: public bad_alloc
 	{
 	public:
-		bad_array_new_length() noexcept;
-		bad_array_new_length(const bad_array_new_length&) noexcept;
-		bad_array_new_length& operator=(const bad_array_new_length&) noexcept;
+		bad_array_new_length() _LIBCXXRT_NOEXCEPT;
+		bad_array_new_length(const bad_array_new_length&) _LIBCXXRT_NOEXCEPT;
+		bad_array_new_length& operator=(const bad_array_new_length&) _LIBCXXRT_NOEXCEPT;
 		virtual ~bad_array_new_length();
-		virtual const char *what() const noexcept;
+		virtual const char *what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 

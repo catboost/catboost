@@ -79,7 +79,7 @@ static inline void PrintAddr(IOutputStream& out, const IRemoteAddr& addr) {
                 out << "(raw " << (int)a->sa_family << " ";
 
                 while (b != e) {
-                    //just print raw bytes
+                    // just print raw bytes
                     out << (int)*b++;
                     if (b != e) {
                         out << " ";

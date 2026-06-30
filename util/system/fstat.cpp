@@ -44,8 +44,9 @@ static ui32 GetWinFileType(DWORD fileAttributes, ULONG reparseTag) {
 
 static ui32 GetFileMode(DWORD fileAttributes, ULONG reparseTag) {
     ui32 mode = 0;
-    if (fileAttributes == 0xFFFFFFFF)
+    if (fileAttributes == 0xFFFFFFFF) {
         return mode;
+    }
 
     mode |= GetWinFileType(fileAttributes, reparseTag);
 
@@ -63,32 +64,67 @@ struct TSystemFStat: public BY_HANDLE_FILE_INFORMATION {
     ULONG ReparseTag = 0;
 };
 
-#else
-
+#elif defined(_unix_)
 using TSystemFStat = struct stat;
-
+#else
+    #error unsupported platform
 #endif
 
-static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
-#ifdef _unix_
+#if defined(_unix_)
+static void MakeStatFromStructStat(TFileStat& st, const struct stat& fs) {
     st.Mode = fs.st_mode;
     st.NLinks = fs.st_nlink;
     st.Uid = fs.st_uid;
     st.Gid = fs.st_gid;
     st.Size = fs.st_size;
     st.AllocationSize = fs.st_blocks * 512;
+
+    #if defined(_linux_)
+    st.ATime = fs.st_atim.tv_sec;
+    st.ATimeNSec = fs.st_atim.tv_nsec;
+
+    st.MTime = fs.st_mtim.tv_sec;
+    st.MTimeNSec = fs.st_mtim.tv_nsec;
+
+    st.CTime = fs.st_ctim.tv_sec;
+    st.CTimeNSec = fs.st_ctim.tv_nsec;
+    #elif defined(_darwin_)
+    st.ATime = fs.st_atimespec.tv_sec;
+    st.ATimeNSec = fs.st_atimespec.tv_nsec;
+
+    st.MTime = fs.st_mtimespec.tv_sec;
+    st.MTimeNSec = fs.st_mtimespec.tv_nsec;
+
+    st.CTime = fs.st_birthtimespec.tv_sec;
+    st.CTimeNSec = fs.st_birthtimespec.tv_nsec;
+    #else
+    // Fallback.
     st.ATime = fs.st_atime;
     st.MTime = fs.st_mtime;
     st.CTime = fs.st_ctime;
+    #endif
+
     st.INode = fs.st_ino;
+}
+#endif
+
+static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
+#ifdef _unix_
+    MakeStatFromStructStat(st, fs);
 #else
-    timeval tv;
-    FileTimeToTimeval(&fs.ftCreationTime, &tv);
-    st.CTime = tv.tv_sec;
-    FileTimeToTimeval(&fs.ftLastAccessTime, &tv);
-    st.ATime = tv.tv_sec;
-    FileTimeToTimeval(&fs.ftLastWriteTime, &tv);
-    st.MTime = tv.tv_sec;
+    timespec timeSpec;
+    FileTimeToTimespec(fs.ftCreationTime, &timeSpec);
+    st.CTime = timeSpec.tv_sec;
+    st.CTimeNSec = timeSpec.tv_nsec;
+
+    FileTimeToTimespec(fs.ftLastAccessTime, &timeSpec);
+    st.ATime = timeSpec.tv_sec;
+    st.ATimeNSec = timeSpec.tv_nsec;
+
+    FileTimeToTimespec(fs.ftLastWriteTime, &timeSpec);
+    st.MTime = timeSpec.tv_sec;
+    st.MTimeNSec = timeSpec.tv_nsec;
+
     st.NLinks = fs.nNumberOfLinks;
     st.Mode = GetFileMode(fs.dwFileAttributes, fs.ReparseTag);
     st.Uid = 0;
@@ -115,9 +151,13 @@ static bool GetStatByHandle(TSystemFStat& fs, FHANDLE f) {
 
 static bool GetStatByName(TSystemFStat& fs, const char* fileName, bool nofollow) {
 #ifdef _win_
-    TFileHandle h = NFsPrivate::CreateFileWithUtf8Name(fileName, FILE_READ_ATTRIBUTES | FILE_READ_EA, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                                       OPEN_EXISTING,
-                                                       (nofollow ? FILE_FLAG_OPEN_REPARSE_POINT : 0) | FILE_FLAG_BACKUP_SEMANTICS, true);
+    TFileHandle h = NFsPrivate::CreateFileWithUtf8Name(
+        fileName,
+        FILE_READ_ATTRIBUTES | FILE_READ_EA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+        OPEN_EXISTING,
+        (nofollow ? FILE_FLAG_OPEN_REPARSE_POINT : 0) | FILE_FLAG_BACKUP_SEMANTICS,
+        true);
     if (!h.IsOpen()) {
         return false;
     }
@@ -141,6 +181,14 @@ TFileStat::TFileStat(FHANDLE f) {
         *this = TFileStat();
     }
 }
+
+#if defined(_unix_)
+TFileStat::TFileStat(const struct stat& st) {
+    MakeStatFromStructStat(*this, st);
+}
+#endif
+
+bool TFileStat::operator==(const TFileStat& other) const noexcept = default;
 
 void TFileStat::MakeFromFileName(const char* fileName, bool nofollow) {
     TSystemFStat st;
@@ -179,26 +227,12 @@ bool TFileStat::IsSymlink() const noexcept {
     return S_ISLNK(Mode);
 }
 
-bool operator==(const TFileStat& l, const TFileStat& r) noexcept {
-    return l.Mode == r.Mode &&
-           l.Uid == r.Uid &&
-           l.Gid == r.Gid &&
-           l.NLinks == r.NLinks &&
-           l.Size == r.Size &&
-           l.ATime == r.ATime &&
-           l.MTime == r.MTime &&
-           l.CTime == r.CTime;
-}
-
-bool operator!=(const TFileStat& l, const TFileStat& r) noexcept {
-    return !(l == r);
-}
-
 i64 GetFileLength(FHANDLE fd) {
 #if defined(_win_)
     LARGE_INTEGER pos;
-    if (!::GetFileSizeEx(fd, &pos))
+    if (!::GetFileSizeEx(fd, &pos)) {
         return -1L;
+    }
     return pos.QuadPart;
 #elif defined(_unix_)
     struct stat statbuf;
@@ -220,8 +254,9 @@ i64 GetFileLength(const char* name) {
 #if defined(_win_)
     WIN32_FIND_DATA fData;
     HANDLE h = FindFirstFileA(name, &fData);
-    if (h == INVALID_HANDLE_VALUE)
+    if (h == INVALID_HANDLE_VALUE) {
         return -1;
+    }
     FindClose(h);
     return (((i64)fData.nFileSizeHigh) * (i64(MAXDWORD) + 1)) + (i64)fData.nFileSizeLow;
 #elif defined(_unix_)

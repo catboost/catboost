@@ -1,5 +1,8 @@
 #include "model.h"
 
+#include "evaluation_interface.h"
+
+#include "ctr_helpers.h"
 #include "flatbuffers_serializer_helper.h"
 #include "model_import_interface.h"
 #include "model_build_helper.h"
@@ -30,6 +33,9 @@
 #include <util/generic/ymath.h>
 #include <util/string/builder.h>
 #include <util/stream/str.h>
+
+
+using namespace NCB;
 
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
@@ -689,8 +695,8 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
 void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     CB_ENSURE(IsValidFloat(scaleAndBias.Scale), "Invalid scale " << scaleAndBias.Scale);
     TVector<double> bias = scaleAndBias.GetBiasRef();
-    for (auto b: bias) {
-        CB_ENSURE(IsValidFloat(b), "Invalid bias " << b);
+    for (auto i : xrange(bias.size())) {
+        CB_ENSURE(IsValidFloat(bias[i]), "Invalid bias[" << i << "] : " << bias[i]);
     }
     if (bias.empty()) {
         bias.resize(GetDimensionsCount(), 0);
@@ -978,6 +984,16 @@ void TOpaqueModelTree::SetLeafWeights(const TVector<double>&) {
     CB_ENSURE(false, "Only solid models are modifiable");
 }
 
+TVector<EFormulaEvaluatorType> TFullModel::GetSupportedEvaluatorTypes() {
+    TVector<EFormulaEvaluatorType> result;
+    for (auto formulaEvaluatorType : GetEnumAllValues<EFormulaEvaluatorType>()) {
+        if (NCB::NModelEvaluation::TEvaluationBackendFactory::Has(formulaEvaluatorType)) {
+            result.push_back(formulaEvaluatorType);
+        }
+    }
+    return result;
+}
+
 void TFullModel::CalcFlat(
     TConstArrayRef<TConstArrayRef<float>> features,
     size_t treeStart,
@@ -1202,8 +1218,8 @@ void TFullModel::Load(IInputStream* s) {
             } else {
                 CB_ENSURE(
                     false,
-                    "Got unknown partId = " << modelPartId << " via deserialization"
-                        << "only static ctr and text processing collection model parts are supported"
+                    "Got unknown partId = " << modelPartId << " via deserialization. "
+                        << "Only static ctr, text or embedding processing collection model parts are supported"
                 );
             }
         }
@@ -1222,7 +1238,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
 
     size_t coreSize = ::LoadSize(&in);
     const ui8* fbPtr = reinterpret_cast<const ui8*>(in.Buf());
-    in.Skip(coreSize);
+    const size_t skippedCore = in.Skip(coreSize);
+    CB_ENSURE(skippedCore == coreSize, "Failed to skip core data in zero-copy model loading");
 
     {
         flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);
@@ -1258,8 +1275,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
             } else {
                 CB_ENSURE(
                     false,
-                    "Got unknown partId = " << modelPartId << " via deserialization"
-                                            << "only static ctr and text processing collection model parts are supported"
+                    "Got unknown partId = " << modelPartId << " via deserialization. "
+                                            << "Only static ctr, text or embedding processing collection model parts are supported"
                 );
             }
         }
@@ -1325,13 +1342,34 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
+template <typename T>
+TVector<size_t> MakeIndicesVector(const TConstArrayRef<T>& features) {
+    TVector<size_t> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(SafeIntegerCast<size_t>(feature.Position.FlatIndex));
+    }
+    return indices;
+}
+
+TVector<size_t> GetModelCatFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetCatFeatures());
+}
+
+TVector<size_t> GetModelFloatFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetFloatFeatures());
+}
+
+TVector<size_t> GetModelTextFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetTextFeatures());
+}
+
+TVector<size_t> GetModelEmbeddingFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetEmbeddingFeatures());
+}
+
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
-    TModelTrees& forest = *(model->ModelTrees.GetMutable());
-    CB_ENSURE(
-        (forest.GetFloatFeatures().empty() || featureNames.ysize() > forest.GetFloatFeatures().back().Position.FlatIndex) &&
-        (forest.GetCatFeatures().empty() || featureNames.ysize() > forest.GetCatFeatures().back().Position.FlatIndex),
-        "Features in model not corresponds to features names array length not correspond");
-    forest.ApplyFeatureNames(featureNames);
+    model->ModelTrees.GetMutable()->ApplyFeatureNames(featureNames);
 }
 
 static TMaybe<NCatboostOptions::TLossDescription> GetLossDescription(const TFullModel& model) {
@@ -1550,7 +1588,8 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
     bool streamLeafWeights,
-    TMaybe<size_t> ownerModelIdx
+    ECtrTableMergePolicy ctrTableMergePolicy,
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus>* ctrTablesIndices
 ) {
     auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
@@ -1564,8 +1603,9 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
         {
             modelSplits.push_back(binFeatures[data->GetTreeSplits()[splitIdx]]);
             auto& split = modelSplits.back();
-            if (ownerModelIdx && split.Type == ESplitType::OnlineCtr) {
-                split.OnlineCtr.Ctr.Base.TargetBorderClassifierIdx = *ownerModelIdx;
+            if ((split.Type == ESplitType::OnlineCtr) && (ctrTableMergePolicy == ECtrTableMergePolicy::KeepAllTables)) {
+                auto& ctrBase = split.OnlineCtr.Ctr.Base;
+                ctrBase.TargetBorderClassifierIdx = (*ctrTablesIndices)[ctrBase].GetResultIndex(ctrBase.TargetBorderClassifierIdx);
             }
         }
         if (leafMultiplier == 1.0) {
@@ -1600,6 +1640,12 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                     (1ull << data->GetTreeSizes()[treeIdx])
                 )
             );
+        }
+    }
+
+    if (ctrTableMergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+        for (auto& [key, status] : *ctrTablesIndices) {
+            status.FinishModel();
         }
     }
 }
@@ -1665,9 +1711,12 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     double leafMultiplier,
     TNonSymmetricTreeModelBuilder* builder,
     bool streamLeafWeights,
-    TMaybe<size_t> ownerModelIdx
+    ECtrTableMergePolicy ctrTableMergePolicy,
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus>* ctrTablesIndices
 ) {
-    Y_UNUSED(ownerModelIdx);
+    CB_ENSURE(ctrTableMergePolicy != ECtrTableMergePolicy::KeepAllTables, "KeepAllTables CTR merge policy in not yet supported for non-symmetric trees");
+
+    Y_UNUSED(ctrTablesIndices);
     const auto& data = trees.GetModelTreeData();
     for (size_t treeIdx = 0; treeIdx < trees.GetTreeCount(); ++treeIdx) {
         builder->AddTree(
@@ -1806,6 +1855,8 @@ static void SumModels(
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
     TBuilderType builder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus> ctrTablesIndices;
+
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
         StreamModelTreesWithoutScaleAndBiasToBuilder(
@@ -1813,7 +1864,8 @@ static void SumModels(
             weights[modelId] * normer.Scale,
             &builder,
             allModelsHaveLeafWeights,
-            ctrMergePolicy == ECtrTableMergePolicy::KeepAllTables ? MakeMaybe(modelId) : Nothing()
+            ctrMergePolicy,
+            &ctrTablesIndices
         );
     }
     builder.Build(sum->ModelTrees.GetMutable());

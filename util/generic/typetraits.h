@@ -46,7 +46,7 @@ namespace NPrivate {
         }
         return false;
     }
-}
+} // namespace NPrivate
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
 // Disable std::conjunction for MSVC by analogy with std::disjunction.
@@ -93,7 +93,7 @@ public:
 namespace NPrivate {
     template <class T>
     struct TIsSmall: std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
-}
+} // namespace NPrivate
 
 template <class T>
 class TTypeTraits: public TTypeTraitsBase<T> {
@@ -133,19 +133,19 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
         struct TBase {                                                                    \
             void method();                                                                \
         };                                                                                \
-        class THelper: public T, public TBase {                                           \
+        class THelper: public std::remove_const_t<T>, public TBase {                      \
         public:                                                                           \
             template <class T1>                                                           \
-            inline THelper(const T1& = T1()) {                                            \
+            inline explicit THelper(const T1& = T1()) {                                   \
             }                                                                             \
         };                                                                                \
         template <class T1, T1 val>                                                       \
         class TChecker {};                                                                \
         struct TNo {                                                                      \
-            char ch;                                                                      \
+            char Ch;                                                                      \
         };                                                                                \
         struct TYes {                                                                     \
-            char arr[2];                                                                  \
+            char Arr[2]; /* NOLINT(modernize-avoid-c-arrays) */                           \
         };                                                                                \
         template <class T1>                                                               \
         static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr); \
@@ -197,7 +197,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
     template <class T, class = void>        \
     struct THas##name: std::false_type {};  \
     template <class T>                      \
-    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {};
+    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {}
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)
 
@@ -273,7 +273,7 @@ namespace NPrivate {
 
         using TType = decltype(Check(std::declval<TDerived*>()));
     };
-}
+} // namespace NPrivate
 
 template <template <class...> class T, class U>
 struct TIsSpecializationOf: std::false_type {};
@@ -321,15 +321,14 @@ namespace NPrivate {
     using std::end;
 
     template <typename T>
-    auto IsIterableImpl(int) -> decltype(
-        begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
-        ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
-        *begin(std::declval<T&>()),                             // operator*
-        std::true_type{});
+    auto IsIterableImpl(int) -> decltype(begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
+                                         ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
+                                         *begin(std::declval<T&>()),                             // operator*
+                                         std::true_type{});
 
     template <typename T>
     std::false_type IsIterableImpl(...);
-}
+} // namespace NPrivate
 
 template <typename T>
 using TIsIterable = decltype(NPrivate::IsIterableImpl<T>(0));

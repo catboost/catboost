@@ -5,24 +5,29 @@
 
 // TODO: Test extractions for PartialMatch/Consume
 
+#include "re2/re2.h"
+
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
+#include "gtest/gtest.h"
+#include "re2/regexp.h"
+
 #if !defined(_MSC_VER) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #include <sys/mman.h>
-#include <unistd.h>  /* for sysconf */
+#include <unistd.h>
 #endif
-
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
-#include "util/strutil.h"
-#include "re2/re2.h"
-#include "re2/regexp.h"
 
 namespace re2 {
 
@@ -238,7 +243,7 @@ TEST(RE2, Consume) {
   std::string word;
 
   std::string s("   aaa b!@#$@#$cccc");
-  StringPiece input(s);
+  absl::string_view input(s);
 
   ASSERT_TRUE(RE2::Consume(&input, r, &word));
   ASSERT_EQ(word, "aaa") << " input: " << input;
@@ -249,7 +254,7 @@ TEST(RE2, Consume) {
 
 TEST(RE2, ConsumeN) {
   const std::string s(" one two three 4");
-  StringPiece input(s);
+  absl::string_view input(s);
 
   RE2::Arg argv[2];
   const RE2::Arg* const args[2] = { &argv[0], &argv[1] };
@@ -276,7 +281,7 @@ TEST(RE2, FindAndConsume) {
   std::string word;
 
   std::string s("   aaa b!@#$@#$cccc");
-  StringPiece input(s);
+  absl::string_view input(s);
 
   ASSERT_TRUE(RE2::FindAndConsume(&input, r, &word));
   ASSERT_EQ(word, "aaa");
@@ -296,7 +301,7 @@ TEST(RE2, FindAndConsume) {
 
 TEST(RE2, FindAndConsumeN) {
   const std::string s(" one two three 4");
-  StringPiece input(s);
+  absl::string_view input(s);
 
   RE2::Arg argv[2];
   const RE2::Arg* const args[2] = { &argv[0], &argv[1] };
@@ -345,17 +350,17 @@ TEST(RE2, MatchNumberPeculiarity) {
 
 TEST(RE2, Match) {
   RE2 re("((\\w+):([0-9]+))");   // extracts host and port
-  StringPiece group[4];
+  absl::string_view group[4];
 
   // No match.
-  StringPiece s = "zyzzyva";
+  absl::string_view s = "zyzzyva";
   ASSERT_FALSE(
-      re.Match(s, 0, s.size(), RE2::UNANCHORED, group, arraysize(group)));
+      re.Match(s, 0, s.size(), RE2::UNANCHORED, group, ABSL_ARRAYSIZE(group)));
 
   // Matches and extracts.
   s = "a chrisr:9000 here";
   ASSERT_TRUE(
-      re.Match(s, 0, s.size(), RE2::UNANCHORED, group, arraysize(group)));
+      re.Match(s, 0, s.size(), RE2::UNANCHORED, group, ABSL_ARRAYSIZE(group)));
   ASSERT_EQ(group[0], "chrisr:9000");
   ASSERT_EQ(group[1], "chrisr:9000");
   ASSERT_EQ(group[2], "chrisr");
@@ -528,7 +533,7 @@ TEST(EmptyCharset, Fuzz) {
     "[^\\D\\d]",
     "[^\\D[:digit:]]"
   };
-  for (size_t i = 0; i < arraysize(empties); i++)
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(empties); i++)
     ASSERT_FALSE(RE2(empties[i]).Match("abc", 0, 3, RE2::UNANCHORED, NULL, 0));
 }
 
@@ -542,8 +547,8 @@ TEST(EmptyCharset, BitstateAssumptions) {
     "((((()))))" "([^\\S\\s]|[^\\S\\s])?",
     "((((()))))" "(([^\\S\\s]|[^\\S\\s])|)"
   };
-  StringPiece group[6];
-  for (size_t i = 0; i < arraysize(nop_empties); i++)
+  absl::string_view group[6];
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(nop_empties); i++)
     ASSERT_TRUE(RE2(nop_empties[i]).Match("", 0, 0, RE2::UNANCHORED, group, 6));
 }
 
@@ -553,14 +558,14 @@ TEST(Capture, NamedGroups) {
     RE2 re("(hello world)");
     ASSERT_EQ(re.NumberOfCapturingGroups(), 1);
     const std::map<std::string, int>& m = re.NamedCapturingGroups();
-    ASSERT_EQ(m.size(), 0);
+    ASSERT_EQ(m.size(), size_t{0});
   }
 
   {
     RE2 re("(?P<A>expr(?P<B>expr)(?P<C>expr))((expr)(?P<D>expr))");
     ASSERT_EQ(re.NumberOfCapturingGroups(), 6);
     const std::map<std::string, int>& m = re.NamedCapturingGroups();
-    ASSERT_EQ(m.size(), 4);
+    ASSERT_EQ(m.size(), size_t{4});
     ASSERT_EQ(m.find("A")->second, 1);
     ASSERT_EQ(m.find("B")->second, 2);
     ASSERT_EQ(m.find("C")->second, 3);
@@ -672,17 +677,17 @@ TEST(RE2, FullMatchIntegerArg) {
 
 TEST(RE2, FullMatchStringArg) {
   std::string s;
-  // String-arg
+  // string-arg
   ASSERT_TRUE(RE2::FullMatch("hello", "h(.*)o", &s));
   ASSERT_EQ(s, std::string("ell"));
 }
 
-TEST(RE2, FullMatchStringPieceArg) {
+TEST(RE2, FullMatchStringViewArg) {
   int i;
-  // StringPiece-arg
-  StringPiece sp;
+  absl::string_view sp;
+  // string_view-arg
   ASSERT_TRUE(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", &sp, &i));
-  ASSERT_EQ(sp.size(), 4);
+  ASSERT_EQ(sp.size(), size_t{4});
   ASSERT_TRUE(memcmp(sp.data(), "ruby", 4) == 0);
   ASSERT_EQ(i, 1234);
 }
@@ -742,7 +747,7 @@ TEST(RE2, FullMatchTypedNullArg) {
   // Ignore non-void* NULL arg
   ASSERT_TRUE(RE2::FullMatch("hello", "he(.*)lo", (char*)NULL));
   ASSERT_TRUE(RE2::FullMatch("hello", "h(.*)o", (std::string*)NULL));
-  ASSERT_TRUE(RE2::FullMatch("hello", "h(.*)o", (StringPiece*)NULL));
+  ASSERT_TRUE(RE2::FullMatch("hello", "h(.*)o", (absl::string_view*)NULL));
   ASSERT_TRUE(RE2::FullMatch("1234", "(.*)", (int*)NULL));
   ASSERT_TRUE(RE2::FullMatch("1234567890123456", "(.*)", (long long*)NULL));
   ASSERT_TRUE(RE2::FullMatch("123.4567890123456", "(.*)", (double*)NULL));
@@ -772,12 +777,13 @@ TEST(RE2, NULTerminated) {
   v = static_cast<char*>(mmap(NULL, 2*pagesize, PROT_READ|PROT_WRITE,
                               MAP_ANONYMOUS|MAP_PRIVATE, -1, 0));
   ASSERT_TRUE(v != reinterpret_cast<char*>(-1));
-  LOG(INFO) << "Memory at " << (void*)v;
+  ABSL_LOG(INFO) << "Memory at " << reinterpret_cast<void*>(v);
   ASSERT_EQ(munmap(v + pagesize, pagesize), 0) << " error " << errno;
   v[pagesize - 1] = '1';
 
   x = 0;
-  ASSERT_TRUE(RE2::FullMatch(StringPiece(v + pagesize - 1, 1), "(.*)", &x));
+  ASSERT_TRUE(
+      RE2::FullMatch(absl::string_view(v + pagesize - 1, 1), "(.*)", &x));
   ASSERT_EQ(x, 1);
 #endif
 }
@@ -789,6 +795,11 @@ TEST(RE2, FullMatchTypeTests) {
     char c;
     ASSERT_TRUE(RE2::FullMatch("Hello", "(H)ello", &c));
     ASSERT_EQ(c, 'H');
+  }
+  {
+    signed char c;
+    ASSERT_TRUE(RE2::FullMatch("Hello", "(H)ello", &c));
+    ASSERT_EQ(c, static_cast<signed char>('H'));
   }
   {
     unsigned char c;
@@ -835,7 +846,7 @@ TEST(RE2, FullMatchTypeTests) {
   {
     uint32_t v;
     static const uint32_t max = UINT32_C(0xffffffff);
-    ASSERT_TRUE(RE2::FullMatch("100",         "(\\d+)", &v)); ASSERT_EQ(v, 100);
+    ASSERT_TRUE(RE2::FullMatch("100",         "(\\d+)", &v)); ASSERT_EQ(v, uint32_t{100});
     ASSERT_TRUE(RE2::FullMatch("4294967295",  "(\\d+)", &v)); ASSERT_EQ(v, max);
     ASSERT_FALSE(RE2::FullMatch("4294967296", "(\\d+)", &v));
     ASSERT_FALSE(RE2::FullMatch("-1",         "(\\d+)", &v));
@@ -873,7 +884,7 @@ TEST(RE2, FullMatchTypeTests) {
     static const uint64_t max = UINT64_C(0xffffffffffffffff);
     std::string str;
 
-    ASSERT_TRUE(RE2::FullMatch("100",  "(-?\\d+)", &v));  ASSERT_EQ(v, 100);
+    ASSERT_TRUE(RE2::FullMatch("100",  "(-?\\d+)", &v));  ASSERT_EQ(v, uint64_t{100});
     ASSERT_TRUE(RE2::FullMatch("-100", "(-?\\d+)", &v2)); ASSERT_EQ(v2, -100);
 
     str = std::to_string(max);
@@ -891,11 +902,11 @@ TEST(RE2, FloatingPointFullMatchTypes) {
     float v;
     ASSERT_TRUE(RE2::FullMatch("100",   "(.*)", &v)); ASSERT_EQ(v, 100);
     ASSERT_TRUE(RE2::FullMatch("-100.", "(.*)", &v)); ASSERT_EQ(v, -100);
-    ASSERT_TRUE(RE2::FullMatch("1e23",  "(.*)", &v)); ASSERT_EQ(v, float(1e23));
+    ASSERT_TRUE(RE2::FullMatch("1e23",  "(.*)", &v)); ASSERT_EQ(v, float{1e23});
     ASSERT_TRUE(RE2::FullMatch(" 100",  "(.*)", &v)); ASSERT_EQ(v, 100);
 
     ASSERT_TRUE(RE2::FullMatch(zeros + "1e23",  "(.*)", &v));
-    ASSERT_EQ(v, float(1e23));
+    ASSERT_EQ(v, float{1e23});
 
     // 6700000000081920.1 is an edge case.
     // 6700000000081920 is exactly halfway between
@@ -914,25 +925,27 @@ TEST(RE2, FloatingPointFullMatchTypes) {
     // implementation of strtof(3). And apparently MSVC too. Sigh.
 #if !defined(_MSC_VER) && !defined(__CYGWIN__) && !defined(__MINGW32__)
     ASSERT_TRUE(RE2::FullMatch("0.1", "(.*)", &v));
-    ASSERT_EQ(v, 0.1f) << StringPrintf("%.8g != %.8g", v, 0.1f);
+    ASSERT_EQ(v, 0.1f) << absl::StrFormat("%.8g != %.8g", v, 0.1f);
     ASSERT_TRUE(RE2::FullMatch("6700000000081920.1", "(.*)", &v));
     ASSERT_EQ(v, 6700000000081920.1f)
-      << StringPrintf("%.8g != %.8g", v, 6700000000081920.1f);
+      << absl::StrFormat("%.8g != %.8g", v, 6700000000081920.1f);
 #endif
   }
   {
     double v;
     ASSERT_TRUE(RE2::FullMatch("100",   "(.*)", &v)); ASSERT_EQ(v, 100);
     ASSERT_TRUE(RE2::FullMatch("-100.", "(.*)", &v)); ASSERT_EQ(v, -100);
-    ASSERT_TRUE(RE2::FullMatch("1e23",  "(.*)", &v)); ASSERT_EQ(v, 1e23);
+    ASSERT_TRUE(RE2::FullMatch("1e23",  "(.*)", &v)); ASSERT_EQ(v, double{1e23});
+    ASSERT_TRUE(RE2::FullMatch(" 100",  "(.*)", &v)); ASSERT_EQ(v, 100);
+
     ASSERT_TRUE(RE2::FullMatch(zeros + "1e23", "(.*)", &v));
-    ASSERT_EQ(v, double(1e23));
+    ASSERT_EQ(v, double{1e23});
 
     ASSERT_TRUE(RE2::FullMatch("0.1", "(.*)", &v));
-    ASSERT_EQ(v, 0.1) << StringPrintf("%.17g != %.17g", v, 0.1);
+    ASSERT_EQ(v, 0.1) << absl::StrFormat("%.17g != %.17g", v, 0.1);
     ASSERT_TRUE(RE2::FullMatch("1.00000005960464485", "(.*)", &v));
     ASSERT_EQ(v, 1.0000000596046448)
-      << StringPrintf("%.17g != %.17g", v, 1.0000000596046448);
+      << absl::StrFormat("%.17g != %.17g", v, 1.0000000596046448);
   }
 }
 
@@ -1242,21 +1255,21 @@ TEST(RE2, DeepRecursion) {
 // not implementing case-folding.
 TEST(CaseInsensitive, MatchAndConsume) {
   std::string text = "A fish named *Wanda*";
-  StringPiece sp(text);
-  StringPiece result;
+  absl::string_view sp(text);
+  absl::string_view result;
   EXPECT_TRUE(RE2::PartialMatch(text, "(?i)([wand]{5})", &result));
   EXPECT_TRUE(RE2::FindAndConsume(&sp, "(?i)([wand]{5})", &result));
 }
 
-// RE2 should permit implicit conversions from string, StringPiece, const char*,
+// RE2 should permit implicit conversions from string, string_view, const char*,
 // and C string literals.
 TEST(RE2, ImplicitConversions) {
   std::string re_string(".");
-  StringPiece re_stringpiece(".");
-  const char* re_cstring = ".";
+  absl::string_view re_string_view(".");
+  const char* re_c_string = ".";
   EXPECT_TRUE(RE2::PartialMatch("e", re_string));
-  EXPECT_TRUE(RE2::PartialMatch("e", re_stringpiece));
-  EXPECT_TRUE(RE2::PartialMatch("e", re_cstring));
+  EXPECT_TRUE(RE2::PartialMatch("e", re_string_view));
+  EXPECT_TRUE(RE2::PartialMatch("e", re_c_string));
   EXPECT_TRUE(RE2::PartialMatch("e", "."));
 }
 
@@ -1309,7 +1322,7 @@ static struct ErrorTest {
   { "zz(?P<name\377>abc)", RE2::ErrorBadUTF8, "" },
 };
 TEST(RE2, ErrorCodeAndArg) {
-  for (size_t i = 0; i < arraysize(error_tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(error_tests); i++) {
     RE2 re(error_tests[i].regexp, RE2::Quiet);
     EXPECT_FALSE(re.ok());
     EXPECT_EQ(re.error_code(), error_tests[i].error_code) << re.error();
@@ -1332,13 +1345,13 @@ static struct NeverTest {
 TEST(RE2, NeverNewline) {
   RE2::Options opt;
   opt.set_never_nl(true);
-  for (size_t i = 0; i < arraysize(never_tests); i++) {
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(never_tests); i++) {
     const NeverTest& t = never_tests[i];
     RE2 re(t.regexp, opt);
     if (t.match == NULL) {
       EXPECT_FALSE(re.PartialMatch(t.text, re));
     } else {
-      StringPiece m;
+      absl::string_view m;
       EXPECT_TRUE(re.PartialMatch(t.text, re, &m));
       EXPECT_EQ(m, t.match);
     }
@@ -1371,7 +1384,7 @@ TEST(RE2, BitstateCaptureBug) {
   RE2::Options opt;
   opt.set_max_mem(20000);
   RE2 re("(_________$)", opt);
-  StringPiece s = "xxxxxxxxxxxxxxxxxxxxxxxxxx_________x";
+  absl::string_view s = "xxxxxxxxxxxxxxxxxxxxxxxxxx_________x";
   EXPECT_FALSE(re.Match(s, 0, s.size(), RE2::UNANCHORED, NULL, 0));
 }
 
@@ -1450,10 +1463,10 @@ TEST(RE2, NullVsEmptyString) {
   RE2 re(".*");
   EXPECT_TRUE(re.ok());
 
-  StringPiece null;
+  absl::string_view null;
   EXPECT_TRUE(RE2::FullMatch(null, re));
 
-  StringPiece empty("");
+  absl::string_view empty("");
   EXPECT_TRUE(RE2::FullMatch(empty, re));
 }
 
@@ -1465,25 +1478,25 @@ TEST(RE2, NullVsEmptyStringSubmatches) {
   EXPECT_TRUE(re.ok());
 
   // matches[0] is overall match, [1] is (), [2] is (foo), [3] is nonexistent.
-  StringPiece matches[4];
+  absl::string_view matches[4];
 
-  for (size_t i = 0; i < arraysize(matches); i++)
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(matches); i++)
     matches[i] = "bar";
 
-  StringPiece null;
+  absl::string_view null;
   EXPECT_TRUE(re.Match(null, 0, null.size(), RE2::UNANCHORED,
-                       matches, arraysize(matches)));
-  for (size_t i = 0; i < arraysize(matches); i++) {
+                       matches, ABSL_ARRAYSIZE(matches)));
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(matches); i++) {
     EXPECT_TRUE(matches[i].data() == NULL);  // always null
     EXPECT_TRUE(matches[i].empty());
   }
 
-  for (size_t i = 0; i < arraysize(matches); i++)
+  for (size_t i = 0; i < ABSL_ARRAYSIZE(matches); i++)
     matches[i] = "bar";
 
-  StringPiece empty("");
+  absl::string_view empty("");
   EXPECT_TRUE(re.Match(empty, 0, empty.size(), RE2::UNANCHORED,
-                       matches, arraysize(matches)));
+                       matches, ABSL_ARRAYSIZE(matches)));
   EXPECT_TRUE(matches[0].data() != NULL);  // empty, not null
   EXPECT_TRUE(matches[0].empty());
   EXPECT_TRUE(matches[1].data() != NULL);  // empty, not null
@@ -1497,7 +1510,7 @@ TEST(RE2, NullVsEmptyStringSubmatches) {
 // Issue 1816809
 TEST(RE2, Bug1816809) {
   RE2 re("(((((llx((-3)|(4)))(;(llx((-3)|(4))))*))))");
-  StringPiece piece("llx-3;llx4");
+  absl::string_view piece("llx-3;llx4");
   std::string x;
   EXPECT_TRUE(RE2::Consume(&piece, re, &x));
 }
@@ -1560,7 +1573,7 @@ TEST(RE2, Bug18391750) {
 
 TEST(RE2, Bug18458852) {
   // Bug in parser accepting invalid (too large) rune,
-  // causing compiler to fail in DCHECK in UTF-8
+  // causing compiler to fail in ABSL_DCHECK() in UTF-8
   // character class code.
   const char b[] = {
       (char)0x28, (char)0x05, (char)0x05, (char)0x41, (char)0x41, (char)0x28,
@@ -1596,7 +1609,7 @@ TEST(RE2, Bug18523943) {
 
 TEST(RE2, Bug21371806) {
   // Bug in parser accepting Unicode groups in Latin-1 mode,
-  // causing compiler to fail in DCHECK in prog.cc.
+  // causing compiler to fail in ABSL_DCHECK() in prog.cc.
 
   RE2::Options opt;
   opt.set_encoding(RE2::Options::EncodingLatin1);
@@ -1615,7 +1628,7 @@ TEST(RE2, Bug26356109) {
   ASSERT_TRUE(re.ok());
 
   std::string s = "abc";
-  StringPiece m;
+  absl::string_view m;
 
   ASSERT_TRUE(re.Match(s, 0, s.size(), RE2::UNANCHORED, &m, 1));
   ASSERT_EQ(m, s) << " (UNANCHORED) got m='" << m << "', want '" << s << "'";
@@ -1645,7 +1658,7 @@ TEST(RE2, Issue310) {
   // (?:|a)* matched more text than (?:|a)+ did.
 
   std::string s = "aaa";
-  StringPiece m;
+  absl::string_view m;
 
   RE2 star("(?:|a)*");
   ASSERT_TRUE(star.Match(s, 0, s.size(), RE2::UNANCHORED, &m, 1));
@@ -1654,6 +1667,33 @@ TEST(RE2, Issue310) {
   RE2 plus("(?:|a)+");
   ASSERT_TRUE(plus.Match(s, 0, s.size(), RE2::UNANCHORED, &m, 1));
   ASSERT_EQ(m, "") << " got m='" << m << "', want ''";
+}
+
+TEST(RE2, Issue477) {
+  // Regexp::LeadingString didn't output Latin1 into flags.
+  // In the given pattern, 0xA5 should be factored out, but
+  // shouldn't lose its Latin1-ness in the process. Because
+  // that was happening, the prefix for accel was 0xC2 0xA5
+  // instead of 0xA5. Note that the former doesn't occur in
+  // the given input and so replacements weren't occurring.
+
+  const char bytes[] = {
+      (char)0xa5, (char)0xd1, (char)0xa5, (char)0xd1,
+      (char)0x61, (char)0x63, (char)0xa5, (char)0x64,
+  };
+  std::string s(bytes, ABSL_ARRAYSIZE(bytes));
+  RE2 re("\xa5\xd1|\xa5\x64", RE2::Latin1);
+  int n = RE2::GlobalReplace(&s, re, "");
+  ASSERT_EQ(n, 3);
+  ASSERT_EQ(s, "\x61\x63");
+}
+
+TEST(RE2, InitNULL) {
+  // RE2::RE2 accepts NULL. Make sure it keeps doing that.
+  RE2 re(NULL);
+  ASSERT_TRUE(re.ok());
+  ASSERT_TRUE(RE2::FullMatch("", re));
+  ASSERT_TRUE(RE2::FullMatch("", NULL));
 }
 
 }  // namespace re2

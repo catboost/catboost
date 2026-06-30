@@ -2,6 +2,7 @@
 
 #include "public.h"
 #include "spin_lock_base.h"
+#include "spin_lock_count.h"
 
 #include <library/cpp/yt/system/thread_id.h>
 
@@ -18,6 +19,8 @@ class TRecursiveSpinLock
     : public TSpinLockBase
 {
 public:
+    static constexpr bool Traced = true;
+
     using TSpinLockBase::TSpinLockBase;
 
     void Acquire() noexcept;

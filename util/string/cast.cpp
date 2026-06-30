@@ -347,7 +347,7 @@ namespace {
     constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
     constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
     constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
-}
+} // namespace
 
 #define DEF_INT_SPEC_II(TYPE, ITYPE, BASE)                              \
     template <>                                                         \
@@ -463,13 +463,10 @@ std::string FromStringImpl<std::string>(const char* data, size_t len) {
     return std::string(data, len);
 }
 
-#ifndef USE_STL_SYSTEM
-// FIXME thegeorg@: remove #ifndef upon raising minimal macOS version to 10.15 in https://st.yandex-team.ru/DTCC-836
 template <>
 std::filesystem::path FromStringImpl<std::filesystem::path>(const char* data, size_t len) {
     return std::filesystem::path(std::string(data, len));
 }
-#endif
 
 template <>
 TUtf16String FromStringImpl<TUtf16String>(const wchar16* data, size_t len) {
@@ -728,11 +725,11 @@ namespace {
     static inline size_t DoDtoa(double d, char* buf, size_t len, int prec) noexcept {
         TBuilder sb(buf, len);
 
-        Y_VERIFY(ToStringConverterNoPad().ToPrecision(d, prec, sb.SB), "conversion failed");
+        Y_ABORT_UNLESS(ToStringConverterNoPad().ToPrecision(d, prec, sb.SB), "conversion failed");
 
         return FixEnd(buf, FixZeros(buf, sb.SB->position()));
     }
-}
+} // namespace
 
 template <>
 size_t ToStringImpl<double>(double d, char* buf, size_t len) {
@@ -748,7 +745,7 @@ size_t FloatToString(float t, char* buf, size_t len, EFloatToStringMode mode, in
     if (mode == PREC_AUTO) {
         TBuilder sb(buf, len);
 
-        Y_VERIFY(ToStringConverterNoPad().ToShortestSingle(t, sb.SB), "conversion failed");
+        Y_ABORT_UNLESS(ToStringConverterNoPad().ToShortestSingle(t, sb.SB), "conversion failed");
 
         return FixEnd(buf, sb.SB->position());
     }
@@ -767,7 +764,7 @@ size_t FloatToString(double t, char* buf, size_t len, EFloatToStringMode mode, i
     TBuilder sb(buf, len);
 
     if (mode == PREC_AUTO) {
-        Y_VERIFY(ToStringConverterNoPad().ToShortest(t, sb.SB), "conversion failed");
+        Y_ABORT_UNLESS(ToStringConverterNoPad().ToShortest(t, sb.SB), "conversion failed");
 
         return FixEnd(buf, sb.SB->position());
     }

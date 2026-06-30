@@ -123,7 +123,7 @@ static double SortAndCountInversions(TVector<TSample>* samples, TVector<TSample>
 static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSum = nullptr, double* outPairWeightSum = nullptr) {
     double weightSum = 0;
     double pairWeightSum = 0;
-    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+    StableSort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
         return left.Target < right.Target;
     });
     double accumulatedWeight = 0;
@@ -145,12 +145,12 @@ static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSu
         return 0;
     }
     TVector<TSample> aux(samples->begin(), samples->end());
-    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+    StableSort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
         return left.Prediction < right.Prediction ||
                left.Prediction == right.Prediction && left.Target < right.Target;
     });
     auto optimisticAUC = 1 - SortAndCountInversions(samples, &aux, 0, samples->size()) / pairWeightSum;
-    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+    StableSort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
         return left.Prediction < right.Prediction ||
                left.Prediction == right.Prediction && left.Target > right.Target;
     });
@@ -320,10 +320,10 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         TFastRng<ui64> rng(239);
         TRandom rnd(239);
         TVector<double> prediction = RandomVector(size, differentCount, rnd, rng);
-        Sort(prediction.begin(), prediction.end());
+        StableSort(prediction.begin(), prediction.end());
         Reverse(prediction.begin(), prediction.end());
         TVector<double> target = RandomVector(size, differentCount, rnd, rng);
-        Sort(target.begin(), target.end());
+        StableSort(target.begin(), target.end());
         if (!isDifferentOrders) {
             Reverse(target.begin(), target.end());
         }

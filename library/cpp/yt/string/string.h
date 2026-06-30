@@ -1,8 +1,6 @@
 #pragma once
 
-#include "string_builder.h"
-
-#include <library/cpp/yt/exception/exception.h>
+#include "format_arg.h"
 
 #include <util/datetime/base.h>
 
@@ -11,8 +9,6 @@
 #include <util/string/strip.h>
 
 #include <vector>
-#include <set>
-#include <map>
 
 namespace NYT {
 
@@ -27,6 +23,25 @@ struct TDefaultFormatter
     {
         FormatValue(builder, obj, TStringBuf("v"));
     }
+};
+
+//! Bind spec to a formatter.
+//! Used in ranges processing.
+class TSpecBoundFormatter
+{
+public:
+    explicit TSpecBoundFormatter(TStringBuf spec)
+        : Spec_(spec)
+    { }
+
+    template <class T>
+    void operator()(TStringBuilderBase* builder, const T& obj) const
+    {
+        FormatValue(builder, obj, Spec_);
+    }
+
+private:
+    TStringBuf Spec_;
 };
 
 static constexpr TStringBuf DefaultJoinToStringDelimiter = ", ";
@@ -48,43 +63,27 @@ static constexpr TStringBuf IntToHexUppercase = "0123456789ABCDEF";
  *  \param delimiter A delimiter to be inserted between items: ", " by default.
  *  \return The resulting combined string.
  */
-template <class TIterator, class TFormatter>
+template <std::forward_iterator TIterator, class TFormatter>
 void JoinToString(
     TStringBuilderBase* builder,
     const TIterator& begin,
     const TIterator& end,
     const TFormatter& formatter,
-    TStringBuf delimiter = DefaultJoinToStringDelimiter)
-{
-    for (auto current = begin; current != end; ++current) {
-        if (current != begin) {
-            builder->AppendString(delimiter);
-        }
-        formatter(builder, *current);
-    }
-}
+    TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
-template <class TIterator, class TFormatter>
-TString JoinToString(
+template <std::forward_iterator TIterator, class TFormatter>
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
     const TFormatter& formatter,
-    TStringBuf delimiter = DefaultJoinToStringDelimiter)
-{
-    TStringBuilder builder;
-    JoinToString(&builder, begin, end, formatter, delimiter);
-    return builder.Flush();
-}
+    TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! A handy shortcut with default formatter.
-template <class TIterator>
-TString JoinToString(
+template <std::forward_iterator TIterator>
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
-    TStringBuf delimiter = DefaultJoinToStringDelimiter)
-{
-    return JoinToString(begin, end, TDefaultFormatter(), delimiter);
-}
+    TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! Joins a collection of given items into a string intermixing them with the delimiter.
 /*!
@@ -92,69 +91,36 @@ TString JoinToString(
  *  \param formatter Formatter to apply to the items.
  *  \param delimiter A delimiter to be inserted between items; ", " by default.
  */
-template <class TCollection, class TFormatter>
-TString JoinToString(
-    const TCollection& collection,
+template <std::ranges::range TCollection, class TFormatter>
+std::string JoinToString(
+    TCollection&& collection,
     const TFormatter& formatter,
-    TStringBuf delimiter = DefaultJoinToStringDelimiter)
-{
-    using std::begin;
-    using std::end;
-    return JoinToString(begin(collection), end(collection), formatter, delimiter);
-}
+    TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! A handy shortcut with the default formatter.
-template <class TCollection>
-TString JoinToString(
-    const TCollection& collection,
-    TStringBuf delimiter = DefaultJoinToStringDelimiter)
-{
-    return JoinToString(collection, TDefaultFormatter(), delimiter);
-}
+template <std::ranges::range TCollection>
+std::string JoinToString(
+    TCollection&& collection,
+    TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! Concatenates a bunch of TStringBuf-like instances into TString.
 template <class... Ts>
-TString ConcatToString(Ts... args)
-{
-    size_t length = 0;
-    ((length += args.length()), ...);
-
-    TString result;
-    result.reserve(length);
-    (result.append(args), ...);
-
-    return result;
-}
+std::string ConcatToString(Ts... args);
 
 //! Converts a range of items into strings.
-template <class TIter, class TFormatter>
-std::vector<TString> ConvertToStrings(
+template <std::forward_iterator TIter, class TFormatter>
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
     const TFormatter& formatter,
-    size_t maxSize = std::numeric_limits<size_t>::max())
-{
-    std::vector<TString> result;
-    for (auto it = begin; it != end; ++it) {
-        TStringBuilder builder;
-        formatter(&builder, *it);
-        result.push_back(builder.Flush());
-        if (result.size() == maxSize) {
-            break;
-        }
-    }
-    return result;
-}
+    size_t maxSize = std::numeric_limits<size_t>::max());
 
 //! A handy shortcut with the default formatter.
-template <class TIter>
-std::vector<TString> ConvertToStrings(
+template <std::forward_iterator TIter>
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
-    size_t maxSize = std::numeric_limits<size_t>::max())
-{
-    return ConvertToStrings(begin, end, TDefaultFormatter(), maxSize);
-}
+    size_t maxSize = std::numeric_limits<size_t>::max());
 
 //! Converts a given collection of items into strings.
 /*!
@@ -162,25 +128,17 @@ std::vector<TString> ConvertToStrings(
  *  \param formatter Formatter to apply to the items.
  *  \param maxSize Size limit for the resulting vector.
  */
-template <class TCollection, class TFormatter>
-std::vector<TString> ConvertToStrings(
-    const TCollection& collection,
+template <std::ranges::range TCollection, class TFormatter>
+std::vector<std::string> ConvertToStrings(
+    TCollection&& collection,
     const TFormatter& formatter,
-    size_t maxSize = std::numeric_limits<size_t>::max())
-{
-    using std::begin;
-    using std::end;
-    return ConvertToStrings(begin(collection), end(collection), formatter, maxSize);
-}
+    size_t maxSize = std::numeric_limits<size_t>::max());
 
 //! A handy shortcut with default formatter.
-template <class TCollection>
-std::vector<TString> ConvertToStrings(
-    const TCollection& collection,
-    size_t maxSize = std::numeric_limits<size_t>::max())
-{
-    return ConvertToStrings(collection, TDefaultFormatter(), maxSize);
-}
+template <std::ranges::range TCollection>
+std::vector<std::string> ConvertToStrings(
+    TCollection&& collection,
+    size_t maxSize = std::numeric_limits<size_t>::max());
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -190,8 +148,17 @@ TString UnderscoreCaseToCamelCase(TStringBuf str);
 void CamelCaseToUnderscoreCase(TStringBuilderBase* builder, TStringBuf str);
 TString CamelCaseToUnderscoreCase(TStringBuf str);
 
-TString TrimLeadingWhitespaces(const TString& str);
-TString Trim(const TString& str, const TString& whitespaces);
+//! ASCII case conversion returning |std::string|.
+//! TODO(babenko): likely a temporary workaround; these exist only because util's
+//! |to_lower|/|to_upper| are |TString|-based (forcing a |TString| round-trip for
+//! |std::string| callers). Drop once util gains |std::string| support.
+//! Returns a copy of |value| with every ASCII letter lowercased; non-ASCII bytes are left intact.
+std::string AsciiStringToLower(TStringBuf value);
+//! Returns a copy of |value| with every ASCII letter uppercased; non-ASCII bytes are left intact.
+std::string AsciiStringToUpper(TStringBuf value);
+
+[[nodiscard]] TStringBuf TrimLeadingWhitespaces(TStringBuf str Y_LIFETIME_BOUND);
+[[nodiscard]] TStringBuf Trim(TStringBuf str Y_LIFETIME_BOUND, TStringBuf whitespaces = " ");
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -210,8 +177,15 @@ struct TCaseInsensitiveStringHasher
     size_t operator()(TStringBuf arg) const;
 };
 
-struct TCaseInsensitiveStringEqualityComparer
+struct TCaseInsensitiveStringEqualComparer
 {
+    using is_transparent = void;
+    bool operator()(TStringBuf lhs, TStringBuf rhs) const;
+};
+
+struct TCaseInsensitiveStringLessComparer
+{
+    using is_transparent = void;
     bool operator()(TStringBuf lhs, TStringBuf rhs) const;
 };
 
@@ -223,4 +197,28 @@ TStringBuf FormatBool(bool value);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+inline constexpr TStringBuf DefaultTruncatedMessage = "...<truncated>";
+
+void TruncateStringInplace(std::string* string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
+std::string TruncateString(std::string string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
+
+class TTruncatedStringView
+{
+public:
+    TTruncatedStringView(const std::string& value, int limit);
+    void WriteToBuilder(TStringBuilderBase* builder, TStringBuf spec) const;
+
+private:
+    const std::string& Value_;
+    const int Limit_;
+};
+
+void FormatValue(TStringBuilderBase* builder, TTruncatedStringView value, TStringBuf spec);
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
+
+#define STRING_INL_H_
+#include "string-inl.h"
+#undef STRING_INL_H_

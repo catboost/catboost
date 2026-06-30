@@ -73,7 +73,7 @@ _cache_path = None
 def _get_cache_path():
     global _cache_path
     if _cache_path is None:
-         _cache_path = os.path.join(os.getcwd(), 'catboost_cached_datasets')
+        _cache_path = os.path.join(os.getcwd(), 'catboost_cached_datasets')
     return _cache_path
 
 
@@ -102,10 +102,12 @@ def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False
             os.remove(file_path)
     # move files for safe delete of temp dir
     if not cache:
-        new_train_path = tempfile.mktemp()
-        new_test_path = tempfile.mktemp()
-        os.rename(train_path, new_train_path)
-        os.rename(test_path, new_test_path)
+        fd_new_train, new_train_path = tempfile.mkstemp()
+        fd_new_test, new_test_path = tempfile.mkstemp()
+        os.close(fd_new_train)
+        os.close(fd_new_test)
+        os.replace(train_path, new_train_path)
+        os.replace(test_path, new_test_path)
         shutil.rmtree(dir_path)
         train_path, test_path = new_train_path, new_test_path
     return train_path, test_path
@@ -288,21 +290,23 @@ def adult():
         'https://proxy.sandbox.yandex-team.ru/779118052',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data', )
     train_md5 = '5d7c39d7b8804f071cdd1f2a7c460872'
-    train_path = tempfile.mktemp()
+    fd_train, train_path = tempfile.mkstemp()
+    os.close(fd_train)
     _cached_download(train_urls, train_md5, train_path)
 
     test_urls = (
         'https://proxy.sandbox.yandex-team.ru/779120000',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test', )
     test_md5 = '35238206dfdf7f1fe215bbb874adecdc'
-    test_path = tempfile.mktemp()
+    fd_test, test_path = tempfile.mkstemp()
+    os.close(fd_test)
     _cached_download(test_urls, test_md5, test_path)
 
-    train_df = pd.read_csv(train_path, names=names, header=None, sep=',\s*', na_values=['?'], engine='python')
+    train_df = pd.read_csv(train_path, names=names, header=None, sep=r',\s*', na_values=['?'], engine='python')
     os.remove(train_path)
 
     # lines in test part end with dot, thus we need to fix last column of the dataset
-    test_df = pd.read_csv(test_path, names=names, header=None, sep=',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
+    test_df = pd.read_csv(test_path, names=names, header=None, sep=r',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
     os.remove(test_path)
 
     # pandas 0.19.1 doesn't support `dtype` parameter for `read_csv` when `python` engine is used,

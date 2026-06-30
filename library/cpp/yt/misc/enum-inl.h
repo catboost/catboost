@@ -8,7 +8,10 @@
 #include <util/string/printf.h>
 #include <util/string/cast.h>
 
+#include <util/generic/cast.h>
+
 #include <algorithm>
+#include <numeric>
 #include <stdexcept>
 
 namespace NYT {
@@ -36,6 +39,14 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+constexpr std::optional<T> TryGetEnumUnknownValueImpl(T)
+{
+    return std::nullopt;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 namespace NDetail {
 
 template <typename TValues>
@@ -47,12 +58,26 @@ constexpr bool CheckValuesMonotonic(const TValues& values)
 template <typename TValues>
 constexpr bool CheckValuesUnique(const TValues& values)
 {
-    if (CheckValuesMonotonic(values)) {
-        return true;
-    }
     for (size_t i = 0; i < std::size(values); ++i) {
         for (size_t j = i + 1; j < std::size(values); ++j) {
             if (values[i] == values[j]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+template <typename TNames>
+constexpr bool CheckDomainNames(const TNames& names)
+{
+    for (size_t i = 0; i < std::size(names); ++i) {
+        if (std::size(names[i]) == 0) {
+            return false;
+        }
+        for (size_t j = 1; j < std::size(names[i]); ++j) {
+            // If name does not start with a capital letter, all the others must be in lowercase.
+            if (('A' <= names[i][j] && names[i][j] <= 'Z') && ('A' > names[i][0] || names[i][0] > 'Z')) {
                 return false;
             }
         }
@@ -81,17 +106,23 @@ constexpr bool CheckValuesUnique(const TValues& values)
         static constexpr std::array<TStringBuf, DomainSize> Names{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_NAMES_ITEM, seq) \
         }}; \
+        static_assert(::NYT::NDetail::CheckDomainNames(Names), \
+            "Enumeration " #enumType " contains names in wrong format"); \
         static constexpr std::array<T, DomainSize> Values{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
         }}; \
         \
-        static TStringBuf GetTypeName() \
+        [[maybe_unused]] static constexpr bool IsMonotonic = \
+            ::NYT::NDetail::CheckValuesMonotonic(Values); \
+        \
+        static constexpr TStringBuf TypeName = PP_STRINGIZE(enumType); \
+        \
+        static constexpr TStringBuf GetTypeName() \
         { \
-            static constexpr TStringBuf Result = PP_STRINGIZE(enumType); \
-            return Result; \
+            return TypeName; \
         } \
         \
-        static const std::optional<TStringBuf> FindLiteralByValue(T value) \
+        static constexpr std::optional<TStringBuf> FindLiteralByValue(T value) \
         { \
             for (int i = 0; i < GetDomainSize(); ++i) { \
                 if (Values[i] == value) { \
@@ -101,7 +132,7 @@ constexpr bool CheckValuesUnique(const TValues& values)
             return std::nullopt; \
         } \
         \
-        static std::optional<T> FindValueByLiteral(TStringBuf literal) \
+        static constexpr std::optional<T> FindValueByLiteral(TStringBuf literal) \
         { \
             for (int i = 0; i < GetDomainSize(); ++i) { \
                 if (Names[i] == literal) { \
@@ -109,6 +140,13 @@ constexpr bool CheckValuesUnique(const TValues& values)
                 } \
             } \
             return std::nullopt; \
+        } \
+        \
+        static constexpr bool IsKnownValue(T value) \
+        { \
+            return false  \
+                PP_FOR_EACH(ENUM__IS_KNOWN_VALUE_ITEM, seq) \
+            ; \
         } \
         \
         static constexpr const std::array<TStringBuf, DomainSize>& GetDomainNames() \
@@ -163,8 +201,21 @@ constexpr bool CheckValuesUnique(const TValues& values)
 #define ENUM__GET_DOMAIN_NAMES_ITEM_ATOMIC(item) \
     TStringBuf(PP_STRINGIZE(item)),
 
+#define ENUM__IS_KNOWN_VALUE_ITEM(item) \
+    PP_IF( \
+        PP_IS_SEQUENCE(item), \
+        ENUM__IS_KNOWN_VALUE_ITEM_SEQ, \
+        ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC \
+    )(item)
+
+#define ENUM__IS_KNOWN_VALUE_ITEM_SEQ(seq) \
+    ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
+
+#define ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC(item) \
+    || value == T::item
+
 #define ENUM__VALIDATE_UNIQUE(enumType) \
-    static_assert(::NYT::NDetail::CheckValuesUnique(Values), \
+    static_assert(IsMonotonic || ::NYT::NDetail::CheckValuesUnique(Values), \
         "Enumeration " #enumType " contains duplicate values");
 
 #define ENUM__END_TRAITS(enumType) \
@@ -176,7 +227,7 @@ constexpr bool CheckValuesUnique(const TValues& values)
     } \
     \
     using ::ToString; \
-    [[maybe_unused]] inline TString ToString(enumType value) \
+    [[maybe_unused]] inline std::string ToString(enumType value) \
     { \
         return ::NYT::TEnumTraits<enumType>::ToString(value); \
     }
@@ -205,18 +256,31 @@ template <class T>
 constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMinValue()
     requires (!TEnumTraitsImpl<T>::IsBitEnum)
 {
-    const auto& values = GetDomainValues();
-    static_assert(!values.empty()); \
-    return *std::min_element(std::begin(values), std::end(values));
+    // NB: GetDomainValues() is a static constexpr array, but a constexpr function called from
+    // a runtime context is not guaranteed to be constant-folded. Without binding the result to
+    // a constexpr local, clang (at -O2/-O3) emits a runtime std::min_element scan over the whole
+    // domain on every call -- which is hot, e.g. in TEnumIndexedArray::operator[] bounds checks.
+    constexpr auto values = GetDomainValues();
+    static_assert(!values.empty());
+    constexpr T result = *std::min_element(std::begin(values), std::end(values));
+    return result;
 }
 
 template <class T>
 constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMaxValue()
     requires (!TEnumTraitsImpl<T>::IsBitEnum)
 {
-    const auto& values = GetDomainValues();
-    static_assert(!values.empty()); \
-    return *std::max_element(std::begin(values), std::end(values));
+    constexpr auto values = GetDomainValues();
+    static_assert(!values.empty());
+    constexpr T result = *std::max_element(std::begin(values), std::end(values));
+    return result;
+}
+
+template <class T>
+constexpr T TEnumTraitsWithKnownDomain<T, true>::GetAllSetValue()
+    requires (TEnumTraitsImpl<T>::IsBitEnum)
+{
+    return TEnumTraitsImpl<T>::GetAllSetValue();
 }
 
 template <class T>
@@ -235,31 +299,55 @@ std::vector<T> TEnumTraitsWithKnownDomain<T, true>::Decompose(T value)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
-TStringBuf TEnumTraits<T, true>::GetTypeName()
+constexpr TStringBuf TEnumTraits<T, true>::GetTypeName()
 {
     return TEnumTraitsImpl<T>::GetTypeName();
 }
 
 template <class T>
-std::optional<T> TEnumTraits<T, true>::FindValueByLiteral(TStringBuf literal)
+constexpr std::optional<T> TEnumTraits<T, true>::TryGetUnknownValue()
+{
+    using NYT::TryGetEnumUnknownValueImpl;
+    return TryGetEnumUnknownValueImpl(T());
+}
+
+template <class T>
+constexpr std::optional<T> TEnumTraits<T, true>::FindValueByLiteral(TStringBuf literal)
 {
     return TEnumTraitsImpl<T>::FindValueByLiteral(literal);
 }
 
 template <class T>
-std::optional<TStringBuf> TEnumTraits<T, true>::FindLiteralByValue(T value)
+constexpr std::optional<TStringBuf> TEnumTraits<T, true>::FindLiteralByValue(T value)
 {
     return TEnumTraitsImpl<T>::FindLiteralByValue(value);
 }
 
 template <class T>
-TString TEnumTraits<T, true>::ToString(T value)
+constexpr bool TEnumTraits<T, true>::IsKnownValue(T value)
+    requires (!TEnumTraitsImpl<T>::IsBitEnum)
+{
+    return TEnumTraitsImpl<T>::IsKnownValue(value);
+}
+
+template <class T>
+constexpr bool TEnumTraits<T, true>::IsValidValue(T value)
+{
+    if constexpr (IsBitEnum) {
+        return (value & TEnumTraits<T>::GetAllSetValue()) == value;
+    } else {
+        return IsKnownValue(value);
+    }
+}
+
+template <class T>
+std::string TEnumTraits<T, true>::ToString(T value)
 {
     using ::ToString;
     if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
         return ToString(*optionalLiteral);
     }
-    TString result;
+    std::string result;
     result = TEnumTraits<T>::GetTypeName();
     result += "(";
     result += ToString(ToUnderlying(value));
@@ -268,7 +356,7 @@ TString TEnumTraits<T, true>::ToString(T value)
 }
 
 template <class T>
-T TEnumTraits<T, true>::FromString(TStringBuf literal)
+constexpr T TEnumTraits<T, true>::FromString(TStringBuf literal)
 {
     auto optionalValue = FindValueByLiteral(literal);
     if (!optionalValue) {
@@ -281,74 +369,13 @@ T TEnumTraits<T, true>::FromString(TStringBuf literal)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector()
-    : Items_{}
-{ }
-
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(std::initializer_list<T> elements)
-    : Items_{}
-{
-    Y_ASSERT(std::distance(elements.begin(), elements.end()) <= N);
-    size_t index = 0;
-    for (const auto& element : elements) {
-        Items_[index++] = element;
-    }
-}
-
-template <class E, class T, E Min, E Max>
-T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index)
-{
-    Y_ASSERT(index >= Min && index <= Max);
-    return Items_[ToUnderlying(index) - ToUnderlying(Min)];
-}
-
-template <class E, class T, E Min, E Max>
-const T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index) const
-{
-    return const_cast<TEnumIndexedVector&>(*this)[index];
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::begin()
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::begin() const
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::end()
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::end() const
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
-{
-    return value >= Min && value <= Max;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 #define ENUM__BINARY_BITWISE_OPERATOR(T, assignOp, op) \
     [[maybe_unused]] inline constexpr T operator op (T lhs, T rhs) \
     { \
         return T(ToUnderlying(lhs) op ToUnderlying(rhs)); \
     } \
     \
-    [[maybe_unused]] inline T& operator assignOp (T& lhs, T rhs) \
+    [[maybe_unused]] inline constexpr T& operator assignOp (T& lhs, T rhs) \
     { \
         lhs = T(ToUnderlying(lhs) op ToUnderlying(rhs)); \
         return lhs; \
@@ -366,13 +393,13 @@ bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
         return T(ToUnderlying(lhs) op rhs); \
     } \
     \
-    [[maybe_unused]] inline T& operator assignOp (T& lhs, size_t rhs) \
+    [[maybe_unused]] inline constexpr T& operator assignOp (T& lhs, size_t rhs) \
     { \
         lhs = T(ToUnderlying(lhs) op rhs); \
         return lhs; \
     }
 
-#define ENUM__BITWISE_OPS(enumType) \
+#define ENUM__BITWISE_OPS(enumType)                 \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, &=, &)  \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, |=, | ) \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, ^=, ^)  \
@@ -380,14 +407,17 @@ bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
     ENUM__BIT_SHIFT_OPERATOR(enumType, <<=, << )    \
     ENUM__BIT_SHIFT_OPERATOR(enumType, >>=, >> )
 
-////////////////////////////////////////////////////////////////////////////////
+#define ENUM__ALL_SET_VALUE(enumType, seq)             \
+    static constexpr enumType GetAllSetValue()         \
+    {                                                  \
+        return std::accumulate(                        \
+            Values.begin(),                            \
+            Values.end(),                              \
+            enumType(),                                \
+            [] (auto a, auto b) { return a | b; });    \
+    }
 
-template <typename E>
-    requires std::is_enum_v<E>
-constexpr std::underlying_type_t<E> ToUnderlying(E value) noexcept
-{
-    return static_cast<std::underlying_type_t<E>>(value);
-}
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename E>
     requires TEnumTraits<E>::IsBitEnum
@@ -401,6 +431,13 @@ template <typename E>
 constexpr bool None(E value) noexcept
 {
     return ToUnderlying(value) == 0;
+}
+
+template <typename E>
+    requires TEnumTraits<E>::IsBitEnum
+constexpr int PopCount(E value)
+{
+    return std::popcount(static_cast<std::underlying_type_t<E>>(value));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

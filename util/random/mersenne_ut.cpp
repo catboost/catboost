@@ -79,4 +79,4 @@ Y_UNIT_TEST_SUITE(TMersenneRndTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(r1.GenRand(), r2.GenRand());
     }
-}
+} // Y_UNIT_TEST_SUITE(TMersenneRndTest)

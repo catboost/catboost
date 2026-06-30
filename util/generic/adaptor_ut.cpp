@@ -121,4 +121,4 @@ Y_UNIT_TEST_SUITE(TReverseAdaptor) {
             UNIT_ASSERT_VALUES_EQUAL(etalon2[idx++], x);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TReverseAdaptor)

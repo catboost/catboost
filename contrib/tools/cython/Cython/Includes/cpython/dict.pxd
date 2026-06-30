@@ -1,7 +1,101 @@
 from .object cimport PyObject
+from .pyport cimport uint64_t
+
+cdef extern from *:
+    # On Python 2, PyDict_GetItemWithError is called _PyDict_GetItemWithError
+    # Also backport PyDict_GetItemStringRef and PyDict_SetDefaultRef
+    """
+    #if PY_MAJOR_VERSION <= 2
+    #define PyDict_GetItemWithError _PyDict_GetItemWithError
+    #endif
+
+    #if __PYX_LIMITED_VERSION_HEX < 0x030d0000
+    static CYTHON_INLINE int
+    __Pyx_CAPI_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
+    {
+        int res;
+        PyObject *key_obj = PyUnicode_FromString(key);
+        if (key_obj == NULL) {
+            *result = NULL;
+            return -1;
+        }
+        res = __Pyx_PyDict_GetItemRef(mp, key_obj, result);
+        Py_DECREF(key_obj);
+        return res;
+    }
+    #else
+    #define __Pyx_CAPI_PyDict_GetItemStringRef PyDict_GetItemStringRef
+    #endif
+    #if PY_VERSION_HEX < 0x030d0000 || (CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030F0000)
+    static CYTHON_INLINE int
+    __Pyx_CAPI_PyDict_SetDefaultRef(PyObject *d, PyObject *key, PyObject *default_value,
+                        PyObject **result)
+    {
+        PyObject *value;
+        if (__Pyx_PyDict_GetItemRef(d, key, &value) < 0) {
+            // get error
+            if (result) {
+                *result = NULL;
+            }
+            return -1;
+        }
+        if (value != NULL) {
+            // present
+            if (result) {
+                *result = value;
+            }
+            else {
+                Py_DECREF(value);
+            }
+            return 1;
+        }
+
+        // missing: set the item
+        if (PyDict_SetItem(d, key, default_value) < 0) {
+            // set error
+            if (result) {
+                *result = NULL;
+            }
+            return -1;
+        }
+        if (result) {
+            Py_INCREF(default_value);
+            *result = default_value;
+        }
+        return 0;
+    }
+    #else
+    #define __Pyx_CAPI_PyDict_SetDefaultRef PyDict_SetDefaultRef
+    #endif
+    """
+    int PyDict_GetItemRef "__Pyx_PyDict_GetItemRef" (object p, object key, PyObject* *result) except -1
+    # Return a new strong reference to the object from dictionary p
+    # which has a key key:
+    # - If the key is present, set *result to a new strong reference to
+    #   the value and return 1.
+    # - If the key is missing, set *result to NULL and return 0.
+    # - On error, raise an exception and return -1.
+
+    int PyDict_GetItemStringRef "__Pyx_CAPI_PyDict_GetItemStringRef" (object p, const char *key, PyObject* *result) except -1
+    # Similar to PyDict_GetItemRef(), but key is specified as a const char*
+    # UTF-8 encoded bytes string, rather than a PyObject*.
+
+    int PyDict_SetDefaultRef "__Pyx_CAPI_PyDict_SetDefaultRef" (object p, object key, object default_value, PyObject* *result) except -1
+    # Inserts default_value into the dictionary p with a key of key if the
+    # key is not already present in the dictionary. If result is not NULL,
+    # then *result is set to a strong reference to either default_value,
+    # if the key was not present, or the existing value, if key was already
+    # present in the dictionary. Returns 1 if the key was present and
+    # default_value was not inserted, or 0 if the key was not present and
+    # default_value was inserted. On failure, returns -1, sets an exception,
+    # and sets *result to NULL.
+    # For clarity: if you have a strong reference to default_value before
+    # calling this function, then after it returns, you hold a strong
+    # reference to both default_value and *result (if it’s not NULL). These
+    # may refer to the same object: in that case you hold two separate
+    # references to it.
 
 cdef extern from "Python.h":
-
     ############################################################################
     # 7.4.1 Dictionary Objects
     ############################################################################
@@ -72,10 +166,24 @@ cdef extern from "Python.h":
     # NULL if the key key is not present, but without setting an
     # exception.
 
+    PyObject* PyDict_GetItemWithError(object p, object key) except? NULL
+    # Return value: Borrowed reference.
+    # Variant of PyDict_GetItem() that does not suppress exceptions. Return
+    # NULL with an exception set if an exception occurred. Return NULL
+    # without an exception set if the key wasn’t present.
+
     PyObject* PyDict_GetItemString(object p, const char *key)
     # Return value: Borrowed reference.
     # This is the same as PyDict_GetItem(), but key is specified as a
     # char*, rather than a PyObject*.
+
+    PyObject* PyDict_SetDefault(object p, object key, object default) except NULL
+    # Return value: Borrowed reference.
+    # This is the same as the Python-level dict.setdefault(). If present, it
+    # returns the value corresponding to key from the dictionary p. If the key
+    # is not in the dict, it is inserted with value defaultobj and defaultobj
+    # is returned. This function evaluates the hash function of key only once,
+    # instead of evaluating it independently for the lookup and the insertion.
 
     list PyDict_Items(object p)
     # Return value: New reference.

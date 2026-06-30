@@ -3,6 +3,7 @@
 #include "cache.h"
 
 #include <util/generic/singleton.h>
+#include <util/generic/ylimits.h>
 #include <util/system/rwlock.h>
 
 namespace NPrivate {
@@ -47,6 +48,24 @@ namespace NPrivate {
         void Update(const Key& key, const TPtr& value) {
             TWriteGuard w(Mutex);
             Cache.Update(key, value);
+        }
+
+        const TPtr GetOrNull(TArgs... args) {
+            Key key = Callbacks.GetKey(args...);
+            switch (GettersPromotionPolicy) {
+                case EGettersPromotionPolicy::Promoted: {
+                    TWriteGuard r(Mutex);
+                    if (auto iter = Cache.Find(key); iter != Cache.End())
+                        return iter.Value();
+                }
+                break;
+                case EGettersPromotionPolicy::Unpromoted: {
+                    TReadGuard r(Mutex);
+                    if (auto iter = Cache.Find(key); iter != Cache.End())
+                        return iter.Value();
+                }
+            }
+            return nullptr;
         }
 
         const TPtr Get(TArgs... args) const {
@@ -94,6 +113,16 @@ namespace NPrivate {
         template <class TCallbacks>
         static void Clear() {
             return TThreadSafeCacheSingleton<TCallbacks>::Clear();
+        }
+
+        size_t Size() const {
+            TReadGuard r(Mutex);
+            return Cache.Size();
+        }
+
+        size_t TotalSize() const {
+            TReadGuard r(Mutex);
+            return Cache.TotalSize();
         }
 
         size_t GetMaxSize() const {
@@ -191,6 +220,44 @@ namespace NPrivate {
         using TCache = TThreadSafeCache<TKey, TValue, TListType, EGettersPromotionPolicy::Promoted, TArgs...>;
     };
 
+    struct TLFUHelper {
+        template <class TKey, class TValue>
+        using TListType = TLFUList<TKey, TValue>;
+
+        template <class TKey, class TValue, class... TArgs>
+        using TCache = TThreadSafeCache<TKey, TValue, TListType, EGettersPromotionPolicy::Promoted, TArgs...>;
+    };
+
+    template <class TSizeProvider, class TValue>
+    struct TSizeProviderRemoveAtomic : TSizeProvider {
+        // TValue in this signature is TCache::TPtr, using this wrapper user don't need
+        // to handle TPtr (which is TAtomicSharedPtr<TValue>) and can just accept TValue
+        // in custom size provider. See example in unittests
+        size_t operator()(const TValue& value) const {
+            // We can pass reference to value without synchronization, because TSizeProvider::operator()
+            // is always called from methods secured by a guard
+            return TSizeProvider::operator()(*value);
+        }
+    };
+
+    template <template <class, class, class> class TTemplateListType, EGettersPromotionPolicy GettersPromotionPolicy>
+    struct TCacheWithSizeProviderHelper {
+    private:
+        template <class TSizeProvider>
+        struct TListWithProvider {
+            template <class TKey, class TValue>
+            using TListType = TTemplateListType<TKey, TValue, TSizeProviderRemoveAtomic<TSizeProvider, TValue>>;
+        };
+
+    public:
+        template <class TKey, class TValue, class TSizeProvider, class... TArgs>
+        using TCache = TThreadSafeCache<TKey, TValue, TListWithProvider<TSizeProvider>::template TListType, GettersPromotionPolicy, TArgs...>;
+    };
+
+    using TLRUWithSizeProviderHelper = TCacheWithSizeProviderHelper<TLRUList, EGettersPromotionPolicy::Promoted>;
+
+    using TLFUWithSizeProviderHelper = TCacheWithSizeProviderHelper<TLFUList, EGettersPromotionPolicy::Promoted>;
+
 }
 
 template <class TKey, class TValue, class... TArgs>
@@ -199,3 +266,11 @@ using TThreadSafeCache = typename NPrivate::TLWHelper::template TCache<TKey, TVa
 template <class TKey, class TValue, class... TArgs>
 using TThreadSafeLRUCache = typename NPrivate::TLRUHelper::template TCache<TKey, TValue, TArgs...>;
 
+template <class TKey, class TValue, class... TArgs>
+using TThreadSafeLFUCache = typename NPrivate::TLFUHelper::template TCache<TKey, TValue, TArgs...>;
+
+template <class TKey, class TValue, class TSizeProvider, class... TArgs>
+using TThreadSafeLRUCacheWithSizeProvider = typename NPrivate::TLRUWithSizeProviderHelper::template TCache<TKey, TValue, TSizeProvider, TArgs...>;
+
+template <class TKey, class TValue, class TSizeProvider, class... TArgs>
+using TThreadSafeLFUCacheWithSizeProvider = typename NPrivate::TLFUWithSizeProviderHelper::template TCache<TKey, TValue, TSizeProvider, TArgs...>;

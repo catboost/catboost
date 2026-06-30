@@ -14,19 +14,23 @@
 #ifndef ABSL_STATUS_INTERNAL_STATUSOR_INTERNAL_H_
 #define ABSL_STATUS_INTERNAL_STATUSOR_INTERNAL_H_
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 
 #include "absl/base/attributes.h"
+#include "absl/base/nullability.h"
 #include "absl/meta/type_traits.h"
 #include "absl/status/status.h"
+#include "absl/strings/string_view.h"
 #include "absl/utility/utility.h"
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 
 template <typename T>
-class ABSL_MUST_USE_RESULT StatusOr;
+class ABSL_MUST_USE_RESULT
+    StatusOr;
 
 namespace internal_statusor {
 
@@ -36,16 +40,27 @@ template <typename T, typename U, typename = void>
 struct HasConversionOperatorToStatusOr : std::false_type {};
 
 template <typename T, typename U>
-void test(char (*)[sizeof(std::declval<U>().operator absl::StatusOr<T>())]);
+void test(char (*absl_nullable)[sizeof(
+    std::declval<U>().operator absl::StatusOr<T>())]);
 
 template <typename T, typename U>
 struct HasConversionOperatorToStatusOr<T, U, decltype(test<T, U>(0))>
     : std::true_type {};
 
+// Detects whether `T` is equality-comparable.
+template <typename T, typename = void>
+struct IsEqualityComparable : std::false_type {};
+
+template <typename T>
+struct IsEqualityComparable<
+    T, std::enable_if_t<std::is_convertible<
+           decltype(std::declval<T>() == std::declval<T>()),
+           bool>::value>> : std::true_type {};
+
 // Detects whether `T` is constructible or convertible from `StatusOr<U>`.
 template <typename T, typename U>
 using IsConstructibleOrConvertibleFromStatusOr =
-    absl::disjunction<std::is_constructible<T, StatusOr<U>&>,
+    std::disjunction<std::is_constructible<T, StatusOr<U>&>,
                       std::is_constructible<T, const StatusOr<U>&>,
                       std::is_constructible<T, StatusOr<U>&&>,
                       std::is_constructible<T, const StatusOr<U>&&>,
@@ -58,7 +73,7 @@ using IsConstructibleOrConvertibleFromStatusOr =
 // `StatusOr<U>`.
 template <typename T, typename U>
 using IsConstructibleOrConvertibleOrAssignableFromStatusOr =
-    absl::disjunction<IsConstructibleOrConvertibleFromStatusOr<T, U>,
+    std::disjunction<IsConstructibleOrConvertibleFromStatusOr<T, U>,
                       std::is_assignable<T&, StatusOr<U>&>,
                       std::is_assignable<T&, const StatusOr<U>&>,
                       std::is_assignable<T&, StatusOr<U>&&>,
@@ -68,31 +83,42 @@ using IsConstructibleOrConvertibleOrAssignableFromStatusOr =
 // when `U` is `StatusOr<V>` and `T` is constructible or convertible from `V`.
 template <typename T, typename U>
 struct IsDirectInitializationAmbiguous
-    : public absl::conditional_t<
-          std::is_same<absl::remove_cv_t<absl::remove_reference_t<U>>,
-                       U>::value,
-          std::false_type,
-          IsDirectInitializationAmbiguous<
-              T, absl::remove_cv_t<absl::remove_reference_t<U>>>> {};
+    : public std::conditional_t<
+          std::is_same<absl::remove_cvref_t<U>, U>::value, std::false_type,
+          IsDirectInitializationAmbiguous<T, absl::remove_cvref_t<U>>> {};
 
 template <typename T, typename V>
 struct IsDirectInitializationAmbiguous<T, absl::StatusOr<V>>
     : public IsConstructibleOrConvertibleFromStatusOr<T, V> {};
 
+// Checks whether the conversion from U to T can be done without dangling
+// temporaries.
+// REQUIRES: T and U are references.
+template <typename T, typename U>
+using IsReferenceConversionValid = std::conjunction<  //
+    std::is_reference<T>, std::is_reference<U>,
+    // The references are convertible. This checks for
+    // lvalue/rvalue compatibility.
+    std::is_convertible<U, T>,
+    // The pointers are convertible. This checks we don't have
+    // a temporary.
+    std::is_convertible<std::remove_reference_t<U>*,
+                        std::remove_reference_t<T>*>>;
+
 // Checks against the constraints of the direction initialization, i.e. when
 // `StatusOr<T>::StatusOr(U&&)` should participate in overload resolution.
 template <typename T, typename U>
-using IsDirectInitializationValid = absl::disjunction<
+using IsDirectInitializationValid = std::disjunction<
     // Short circuits if T is basically U.
-    std::is_same<T, absl::remove_cv_t<absl::remove_reference_t<U>>>,
-    absl::negation<absl::disjunction<
-        std::is_same<absl::StatusOr<T>,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
-        std::is_same<absl::Status,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
-        std::is_same<absl::in_place_t,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
-        IsDirectInitializationAmbiguous<T, U>>>>;
+    std::is_same<T, absl::remove_cvref_t<U>>,  //
+    std::conditional_t<
+        std::is_reference_v<T>,  //
+        IsReferenceConversionValid<T, U>,
+        std::negation<std::disjunction<
+            std::is_same<absl::StatusOr<T>, absl::remove_cvref_t<U>>,
+            std::is_same<absl::Status, absl::remove_cvref_t<U>>,
+            std::is_same<std::in_place_t, absl::remove_cvref_t<U>>,
+            IsDirectInitializationAmbiguous<T, U>>>>>;
 
 // This trait detects whether `StatusOr<T>::operator=(U&&)` is ambiguous, which
 // is equivalent to whether all the following conditions are met:
@@ -106,12 +132,9 @@ using IsDirectInitializationValid = absl::disjunction<
 //   s1 = s2;  // ambiguous, `s1 = s2.ValueOrDie()` or `s1 = bool(s2)`?
 template <typename T, typename U>
 struct IsForwardingAssignmentAmbiguous
-    : public absl::conditional_t<
-          std::is_same<absl::remove_cv_t<absl::remove_reference_t<U>>,
-                       U>::value,
-          std::false_type,
-          IsForwardingAssignmentAmbiguous<
-              T, absl::remove_cv_t<absl::remove_reference_t<U>>>> {};
+    : public std::conditional_t<
+          std::is_same<absl::remove_cvref_t<U>, U>::value, std::false_type,
+          IsForwardingAssignmentAmbiguous<T, absl::remove_cvref_t<U>>> {};
 
 template <typename T, typename U>
 struct IsForwardingAssignmentAmbiguous<T, absl::StatusOr<U>>
@@ -120,32 +143,129 @@ struct IsForwardingAssignmentAmbiguous<T, absl::StatusOr<U>>
 // Checks against the constraints of the forwarding assignment, i.e. whether
 // `StatusOr<T>::operator(U&&)` should participate in overload resolution.
 template <typename T, typename U>
-using IsForwardingAssignmentValid = absl::disjunction<
+using IsForwardingAssignmentValid = std::disjunction<
     // Short circuits if T is basically U.
-    std::is_same<T, absl::remove_cv_t<absl::remove_reference_t<U>>>,
-    absl::negation<absl::disjunction<
-        std::is_same<absl::StatusOr<T>,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
-        std::is_same<absl::Status,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
-        std::is_same<absl::in_place_t,
-                     absl::remove_cv_t<absl::remove_reference_t<U>>>,
+    std::is_same<T, absl::remove_cvref_t<U>>,
+    std::negation<std::disjunction<
+        std::is_same<absl::StatusOr<T>, absl::remove_cvref_t<U>>,
+        std::is_same<absl::Status, absl::remove_cvref_t<U>>,
+        std::is_same<std::in_place_t, absl::remove_cvref_t<U>>,
         IsForwardingAssignmentAmbiguous<T, U>>>>;
+
+template <bool Value, typename T>
+using Equality = std::conditional_t<Value, T, std::negation<T>>;
+
+template <bool Explicit, typename T, typename U, bool Lifetimebound>
+using IsConstructionValid = std::conjunction<
+    Equality<Lifetimebound,
+             std::disjunction<
+                 std::is_reference<T>,
+                 type_traits_internal::IsLifetimeBoundAssignment<T, U>>>,
+    IsDirectInitializationValid<T, U&&>, std::is_constructible<T, U&&>,
+    Equality<!Explicit, std::is_convertible<U&&, T>>,
+    std::disjunction<
+        std::is_same<T, absl::remove_cvref_t<U>>,
+        std::conjunction<
+            std::conditional_t<
+                Explicit,
+                std::negation<std::is_constructible<absl::Status, U&&>>,
+                std::negation<std::is_convertible<U&&, absl::Status>>>,
+            std::negation<
+                internal_statusor::HasConversionOperatorToStatusOr<T, U&&>>>>>;
+
+template <typename T, typename U, bool Lifetimebound>
+using IsAssignmentValid = std::conjunction<
+    Equality<Lifetimebound,
+             std::disjunction<
+                 std::is_reference<T>,
+                 type_traits_internal::IsLifetimeBoundAssignment<T, U>>>,
+    std::conditional_t<std::is_reference_v<T>,
+                       IsReferenceConversionValid<T, U&&>,
+                       std::conjunction<std::is_constructible<T, U&&>,
+                                         std::is_assignable<T&, U&&>>>,
+    std::disjunction<
+        std::is_same<T, absl::remove_cvref_t<U>>,
+        std::conjunction<
+            std::negation<std::is_convertible<U&&, absl::Status>>,
+            std::negation<HasConversionOperatorToStatusOr<T, U&&>>>>,
+    IsForwardingAssignmentValid<T, U&&>>;
+
+template <bool Explicit, typename T, typename U>
+using IsConstructionFromStatusValid = std::conjunction<
+    std::negation<std::is_same<absl::StatusOr<T>, absl::remove_cvref_t<U>>>,
+    std::negation<std::is_same<T, absl::remove_cvref_t<U>>>,
+    std::negation<std::is_same<std::in_place_t, absl::remove_cvref_t<U>>>,
+    Equality<!Explicit, std::is_convertible<U, absl::Status>>,
+    std::is_constructible<absl::Status, U>,
+    std::negation<HasConversionOperatorToStatusOr<T, U>>>;
+
+template <bool Explicit, typename T, typename U, bool Lifetimebound,
+          typename UQ>
+using IsConstructionFromStatusOrValid = std::conjunction<
+    std::negation<std::is_same<T, U>>,
+    // If `T` is a reference, then U must be a compatible one.
+    std::disjunction<std::negation<std::is_reference<T>>,
+                      IsReferenceConversionValid<T, U>>,
+    Equality<Lifetimebound,
+             type_traits_internal::IsLifetimeBoundAssignment<T, U>>,
+    std::is_constructible<T, UQ>,
+    Equality<!Explicit, std::is_convertible<UQ, T>>,
+    std::negation<IsConstructibleOrConvertibleFromStatusOr<T, U>>>;
+
+template <typename T, typename U, bool Lifetimebound>
+using IsStatusOrAssignmentValid = std::conjunction<
+    std::negation<std::is_same<T, absl::remove_cvref_t<U>>>,
+    Equality<Lifetimebound,
+             type_traits_internal::IsLifetimeBoundAssignment<T, U>>,
+    std::is_constructible<T, U>, std::is_assignable<T, U>,
+    std::negation<IsConstructibleOrConvertibleOrAssignableFromStatusOr<
+        T, absl::remove_cvref_t<U>>>>;
+
+template <typename T, typename U, bool Lifetimebound>
+using IsValueOrValid = std::conjunction<
+    // If `T` is a reference, then U must be a compatible one.
+    std::disjunction<std::negation<std::is_reference<T>>,
+                      IsReferenceConversionValid<T, U>>,
+    Equality<Lifetimebound,
+             std::disjunction<
+                 std::is_reference<T>,
+                 type_traits_internal::IsLifetimeBoundAssignment<T, U>>>>;
 
 class Helper {
  public:
   // Move type-agnostic error handling to the .cc.
-  static void HandleInvalidStatusCtorArg(Status*);
-  ABSL_ATTRIBUTE_NORETURN static void Crash(const absl::Status& status);
+  static void HandleInvalidStatusCtorArg(Status* absl_nonnull);
+  [[noreturn]] static void Crash(const absl::Status& status);
 };
 
 // Construct an instance of T in `p` through placement new, passing Args... to
 // the constructor.
 // This abstraction is here mostly for the gcc performance fix.
 template <typename T, typename... Args>
-ABSL_ATTRIBUTE_NONNULL(1) void PlacementNew(void* p, Args&&... args) {
+ABSL_ATTRIBUTE_NONNULL(1)
+void PlacementNew(void* absl_nonnull p, Args&&... args) {
   new (p) T(std::forward<Args>(args)...);
 }
+
+template <typename T>
+class Reference {
+ public:
+  constexpr explicit Reference(T ref ABSL_ATTRIBUTE_LIFETIME_BOUND)
+      : payload_(std::addressof(ref)) {}
+
+  Reference(const Reference&) = default;
+  Reference& operator=(const Reference&) = default;
+  Reference& operator=(T value) {
+    payload_ = std::addressof(value);
+    return *this;
+  }
+
+  operator T() const { return static_cast<T>(*payload_); }  // NOLINT
+  T get() const { return *this; }
+
+ private:
+  std::remove_reference_t<T>* absl_nonnull payload_;
+};
 
 // Helper base class to hold the data and all operations.
 // We move all this to a base class to allow mixing with the appropriate
@@ -154,6 +274,14 @@ template <typename T>
 class StatusOrData {
   template <typename U>
   friend class StatusOrData;
+
+  decltype(auto) MaybeMoveData() {
+    if constexpr (std::is_reference_v<T>) {
+      return data_.get();
+    } else {
+      return std::move(data_);
+    }
+  }
 
  public:
   StatusOrData() = delete;
@@ -169,7 +297,7 @@ class StatusOrData {
 
   StatusOrData(StatusOrData&& other) noexcept {
     if (other.ok()) {
-      MakeValue(std::move(other.data_));
+      MakeValue(other.MaybeMoveData());
       MakeStatus();
     } else {
       MakeStatus(std::move(other.status_));
@@ -189,7 +317,7 @@ class StatusOrData {
   template <typename U>
   explicit StatusOrData(StatusOrData<U>&& other) {
     if (other.ok()) {
-      MakeValue(std::move(other.data_));
+      MakeValue(other.MaybeMoveData());
       MakeStatus();
     } else {
       MakeStatus(std::move(other.status_));
@@ -197,20 +325,13 @@ class StatusOrData {
   }
 
   template <typename... Args>
-  explicit StatusOrData(absl::in_place_t, Args&&... args)
+  explicit StatusOrData(std::in_place_t, Args&&... args)
       : data_(std::forward<Args>(args)...) {
     MakeStatus();
   }
 
-  explicit StatusOrData(const T& value) : data_(value) {
-    MakeStatus();
-  }
-  explicit StatusOrData(T&& value) : data_(std::move(value)) {
-    MakeStatus();
-  }
-
   template <typename U,
-            absl::enable_if_t<std::is_constructible<absl::Status, U&&>::value,
+            std::enable_if_t<std::is_constructible<absl::Status, U&&>::value,
                               int> = 0>
   explicit StatusOrData(U&& v) : status_(std::forward<U>(v)) {
     EnsureNotOk();
@@ -228,7 +349,7 @@ class StatusOrData {
   StatusOrData& operator=(StatusOrData&& other) {
     if (this == &other) return *this;
     if (other.ok())
-      Assign(std::move(other.data_));
+      Assign(other.MaybeMoveData());
     else
       AssignStatus(std::move(other.status_));
     return *this;
@@ -237,7 +358,9 @@ class StatusOrData {
   ~StatusOrData() {
     if (ok()) {
       status_.~Status();
-      data_.~T();
+      if constexpr (!std::is_trivially_destructible_v<T>) {
+        data_.~T();
+      }
     } else {
       status_.~Status();
     }
@@ -278,11 +401,13 @@ class StatusOrData {
     // When T is const, we need some non-const object we can cast to void* for
     // the placement new. dummy_ is that object.
     Dummy dummy_;
-    T data_;
+    std::conditional_t<std::is_reference_v<T>, Reference<T>, T> data_;
   };
 
   void Clear() {
-    if (ok()) data_.~T();
+    if constexpr (!std::is_trivially_destructible_v<T>) {
+      if (ok()) data_.~T();
+    }
   }
 
   void EnsureOk() const {
@@ -297,7 +422,8 @@ class StatusOrData {
   // argument.
   template <typename... Arg>
   void MakeValue(Arg&&... arg) {
-    internal_statusor::PlacementNew<T>(&dummy_, std::forward<Arg>(arg)...);
+    internal_statusor::PlacementNew<decltype(data_)>(&dummy_,
+                                                     std::forward<Arg>(arg)...);
   }
 
   // Construct the status (ie. status_) through placement new with the passed
@@ -306,6 +432,94 @@ class StatusOrData {
   void MakeStatus(Args&&... args) {
     internal_statusor::PlacementNew<Status>(&status_,
                                             std::forward<Args>(args)...);
+  }
+
+  template <typename U>
+  T ValueOrImpl(U&& default_value) const& {
+    if (ok()) {
+      return data_;
+    }
+    return std::forward<U>(default_value);
+  }
+
+  template <typename U>
+  T ValueOrImpl(U&& default_value) && {
+    if (ok()) {
+      return std::move(data_);
+    }
+    return std::forward<U>(default_value);
+  }
+};
+
+[[noreturn]] void ThrowBadStatusOrAccess(absl::Status status);
+
+template <typename T>
+struct OperatorBase {
+  auto& self() const { return static_cast<const StatusOr<T>&>(*this); }
+  auto& self() { return static_cast<StatusOr<T>&>(*this); }
+
+  const T& operator*() const& ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    self().EnsureOk();
+    return self().data_;
+  }
+  T& operator*() & ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    self().EnsureOk();
+    return self().data_;
+  }
+  const T&& operator*() const&& ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    self().EnsureOk();
+    return std::move(self().data_);
+  }
+  T&& operator*() && ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    self().EnsureOk();
+    return std::move(self().data_);
+  }
+
+  const T& value() const& ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    if (!self().ok()) internal_statusor::ThrowBadStatusOrAccess(self().status_);
+    return self().data_;
+  }
+  T& value() & ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    if (!self().ok()) internal_statusor::ThrowBadStatusOrAccess(self().status_);
+    return self().data_;
+  }
+  const T&& value() const&& ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    if (!self().ok()) {
+      internal_statusor::ThrowBadStatusOrAccess(std::move(self().status_));
+    }
+    return std::move(self().data_);
+  }
+  T&& value() && ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    if (!self().ok()) {
+      internal_statusor::ThrowBadStatusOrAccess(std::move(self().status_));
+    }
+    return std::move(self().data_);
+  }
+
+  const T* absl_nonnull operator->() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return std::addressof(**this);
+  }
+  T* absl_nonnull operator->() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return std::addressof(**this);
+  }
+};
+
+template <typename T>
+struct OperatorBase<T&> {
+  auto& self() const { return static_cast<const StatusOr<T&>&>(*this); }
+
+  T& operator*() const {
+    self().EnsureOk();
+    return self().data_;
+  }
+
+  T& value() const {
+    if (!self().ok()) internal_statusor::ThrowBadStatusOrAccess(self().status_);
+    return self().data_;
+  }
+
+  T* absl_nonnull operator->() const {
+    return std::addressof(**this);
   }
 };
 
@@ -349,8 +563,9 @@ struct MoveCtorBase<T, false> {
   MoveCtorBase& operator=(MoveCtorBase&&) = default;
 };
 
-template <typename T, bool = std::is_copy_constructible<T>::value&&
-                          std::is_copy_assignable<T>::value>
+template <typename T, bool = (std::is_copy_constructible<T>::value &&
+                              std::is_copy_assignable<T>::value) ||
+                             std::is_reference_v<T>>
 struct CopyAssignBase {
   CopyAssignBase() = default;
   CopyAssignBase(const CopyAssignBase&) = default;
@@ -368,8 +583,9 @@ struct CopyAssignBase<T, false> {
   CopyAssignBase& operator=(CopyAssignBase&&) = default;
 };
 
-template <typename T, bool = std::is_move_constructible<T>::value&&
-                          std::is_move_assignable<T>::value>
+template <typename T, bool = (std::is_move_constructible<T>::value &&
+                              std::is_move_assignable<T>::value) ||
+                             std::is_reference_v<T>>
 struct MoveAssignBase {
   MoveAssignBase() = default;
   MoveAssignBase(const MoveAssignBase&) = default;
@@ -387,7 +603,52 @@ struct MoveAssignBase<T, false> {
   MoveAssignBase& operator=(MoveAssignBase&&) = delete;
 };
 
-ABSL_ATTRIBUTE_NORETURN void ThrowBadStatusOrAccess(absl::Status status);
+// Used to introduce jitter into the output of printing functions for
+// `StatusOr` (i.e. `AbslStringify` and `operator<<`).
+class StringifyRandom {
+  enum BracesType {
+    kBareParens = 0,
+    kSpaceParens,
+    kBareBrackets,
+    kSpaceBrackets,
+  };
+
+  // Returns a random `BracesType` determined once per binary load.
+  static BracesType RandomBraces() {
+    static const BracesType kRandomBraces = static_cast<BracesType>(
+        (reinterpret_cast<uintptr_t>(&kRandomBraces) >> 4) % 4);
+    return kRandomBraces;
+  }
+
+ public:
+  static inline absl::string_view OpenBrackets() {
+    switch (RandomBraces()) {
+      case kBareParens:
+        return "(";
+      case kSpaceParens:
+        return "( ";
+      case kBareBrackets:
+        return "[";
+      case kSpaceBrackets:
+        return "[ ";
+    }
+    return "(";
+  }
+
+  static inline absl::string_view CloseBrackets() {
+    switch (RandomBraces()) {
+      case kBareParens:
+        return ")";
+      case kSpaceParens:
+        return " )";
+      case kBareBrackets:
+        return "]";
+      case kSpaceBrackets:
+        return " ]";
+    }
+    return ")";
+  }
+};
 
 }  // namespace internal_statusor
 ABSL_NAMESPACE_END

@@ -32,16 +32,27 @@ namespace {
 #endif
 
 # ifdef _windows_
-            // msvc does something wrong in release-build, so we temprorary  disable this branch on windows
+            // msvc does something wrong in release-build, so we temporarily  disable this branch on windows
             // https://developercommunity.visualstudio.com/content/problem/334085/release-build-has-made-wrong-optimizaion-in-base64.html
             const bool isWin = true;
 # else
             const bool isWin = false;
 # endif
-            if (!isWin && NX86::HaveAVX() && NX86::HaveAVX2()) {
+
+#if defined (_wasm_)
+            const bool haveAVX = false;
+            const bool haveAVX2 = false;
+            const bool haveSSSE3 = false;
+#else
+            const bool haveAVX = NX86::HaveAVX();
+            const bool haveAVX2 = NX86::HaveAVX2();
+            const bool haveSSSE3 = NX86::HaveSSSE3();
+#endif
+
+            if (!isWin && haveAVX && haveAVX2) {
                 Encode = avx2_base64_encode;
                 Decode = avx2_base64_decode;
-            } else if (NX86::HaveSSSE3()) {
+            } else if (haveSSSE3) {
                 Encode = ssse3_base64_encode;
                 Decode = ssse3_base64_decode;
             } else if (haveNEON64) {
@@ -151,6 +162,10 @@ static char* Base64EncodePlain(char* outstr, const unsigned char* instr, size_t 
 
 char* Base64EncodeUrl(char* outstr, const unsigned char* instr, size_t len) {
     return Base64EncodeImpl<true>(outstr, instr, len);
+}
+
+char* Base64EncodeNoPadding(char* outstr, const unsigned char* instr, size_t len) {
+    return Base64EncodeImpl<false, false>(outstr, instr, len);
 }
 
 char* Base64EncodeUrlNoPadding(char* outstr, const unsigned char* instr, size_t len) {

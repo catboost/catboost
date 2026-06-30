@@ -37,11 +37,13 @@ int main (void)
   /* { dg-output "214: 1152921504606846761" } */
   printf("res: %" PRIdLL "\n", res);
   /* { dg-output "\nres: 1152921504606846761" } */
+  CHECK(res == 1152921504606846761LL);
 
   res = (*((cls_ret_ulonglong)code))(9223372035854775808LL);
   /* { dg-output "\n9223372035854775808: 8070450533247928831" } */
   printf("res: %" PRIdLL "\n", res);
   /* { dg-output "\nres: 8070450533247928831" } */
+  CHECK(res == 8070450533247928831LL);
 
   exit(0);
 }

@@ -46,7 +46,7 @@ namespace NPrivate {
 
     public:
         //NOTE: it is important to make this syntax; using =default will lead to memset https://godbolt.org/z/vTqzK9aWr
-        TStackBasedAllocator() noexcept {};
+        TStackBasedAllocator() noexcept {}
 
         template <
             typename... TArgs,
@@ -64,7 +64,7 @@ namespace NPrivate {
                 return reinterpret_cast<T*>(&StackBasedStorage[0]);
             } else {
                 if constexpr (!UseFallbackAlloc) {
-                    Y_FAIL(
+                    Y_ABORT(
                             "Stack storage overflow. Capacity: %d, requested: %d", (int)CountOnStack, int(n));
                 }
                 return FallbackAllocator().allocate(n);
@@ -74,7 +74,7 @@ namespace NPrivate {
         void deallocate(T* p, size_type n) {
             if (p >= reinterpret_cast<T*>(&StackBasedStorage[0]) &&
                     p < reinterpret_cast<T*>(&StackBasedStorage[CountOnStack])) {
-                Y_VERIFY(IsStorageUsed);
+                Y_ABORT_UNLESS(IsStorageUsed);
                 IsStorageUsed = false;
             } else {
                 FallbackAllocator().deallocate(p, n);
@@ -82,7 +82,7 @@ namespace NPrivate {
         }
 
     private:
-        std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
+        alignas(T) char StackBasedStorage[CountOnStack][sizeof(T)];
         bool IsStorageUsed = false;
 
     private:

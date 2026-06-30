@@ -3,6 +3,7 @@
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <util/generic/cast.h>
 #include <util/system/env.h>
 #include <util/string/cast.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
@@ -81,7 +82,7 @@ namespace NCudaLib {
             NCudaLib::GetDevicesProvider().FreeDevices();
         }
 
-        AtomicSet(StopFlag, true);
+        StopFlag = true;
         HasWorkEvent.Signal();
         MpiProxyThread->join();
 
@@ -125,7 +126,7 @@ namespace NCudaLib {
     }
 
     TMpiManager::TMpiRequest::EState TMpiManager::InvokeRunningRequest(TMpiRequest* request) {
-        if (request->CancelFlag == 1) {
+        if (request->CancelFlag) {
             MPI_SAFE_CALL(MPI_Cancel(&(request->Request)));
             request->SetState(TMpiRequest::EState::Canceled);
             request->WaitEvent.Signal();
@@ -142,7 +143,7 @@ namespace NCudaLib {
                 //TODO(noxoomo): check performance impact for this method, should be negilable
                 MPI_SAFE_CALL(MPI_Get_count(&request->Status, MPI_CHAR, &length));
 
-                AtomicSet(request->ReceivedBytesCount, length);
+                request->ReceivedBytesCount = SafeIntegerCast<ui64>(length);
                 request->SetState(TMpiRequest::EState::Completed);
                 request->WaitEvent.Signal();
                 return TMpiRequest::EState::Completed;

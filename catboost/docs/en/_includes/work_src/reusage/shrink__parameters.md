@@ -4,11 +4,11 @@
 
 А zero-based index of the first tree to be used.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ shrink__ntree_start__default }}
 
@@ -18,10 +18,10 @@
 
 А zero-based index of the first tree not to be used.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ shrink__ntree_end__default }}

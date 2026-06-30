@@ -7,7 +7,7 @@
 /* { dg-do run } */
 #include "ffitest.h"
 
-signed char test_func_fn(signed char a1, signed char a2)
+static signed char test_func_fn(signed char a1, signed char a2)
 {
   signed char result;
 
@@ -26,6 +26,8 @@ static void test_func_gn(ffi_cif *cif __UNUSED__, void *rval, void **avals,
 
   a1 = *(signed char *)avals[0];
   a2 = *(signed char *)avals[1];
+  CHECK(a1 == 2);
+  CHECK(a2 == 125);
 
   *(ffi_arg *)rval = test_func_fn(a1, a2);
 
@@ -62,6 +64,7 @@ int main (void)
   /* { dg-output "2 125: 127" } */
   printf("res: %d\n", (signed char)res_call);
   /* { dg-output "\nres: 127" } */
+  CHECK((signed char)res_call == 127);
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == FFI_OK);
 
@@ -69,6 +72,7 @@ int main (void)
   /* { dg-output "\n2 125: 127" } */
   printf("res: %d\n", res_closure);
   /* { dg-output "\nres: 127" } */
+  CHECK(res_closure == 127);
 
   exit(0);
 }

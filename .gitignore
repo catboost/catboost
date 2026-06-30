@@ -26,6 +26,11 @@ test-results
 /msvs/Debug/*
 /msvs/Release/*
 
+CMakeUserPresets.json
+
+build/Debug/
+build/Release/
+
 catboost/rust-package/target/
 
 catboost/rust-package/catboost-sys/target/
@@ -41,8 +46,20 @@ catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
 catboost/tutorials/apply_model/rust/target/
 catboost/tools/limited_precision_json_diff/limited_precision_json_diff
 
+# JVM packages build artifacts
+catboost/jvm-packages/catboost4j-prediction/target/
+catboost/jvm-packages/common/target/
+
+# Python package build artifacts
+catboost/python-package/build/
+catboost/python-package/catboost.egg-info/
+catboost/python-package/dist/
+catboost/python-package/catboost/hnsw
+
 # R build artifacts
+catboost/R-package/catboost/
 catboost*.tar.gz
+catboost*.tgz
 catboost.Rcheck/
 
 # widget build artefacts
@@ -50,3 +67,8 @@ node_modules/
 **/widget/js/dist/
 **/widget/labextension
 **/widget/nbextension
+
+# Spark build artifacts
+catboost/spark/catboost4j-spark/core/src/main/resources/
+catboost/spark/catboost4j-spark/core/target/
+catboost/spark/catboost4j-spark/projects/

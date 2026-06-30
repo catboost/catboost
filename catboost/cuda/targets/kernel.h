@@ -12,6 +12,7 @@
 #include <catboost/cuda/targets/kernel/yeti_rank_pointwise.cuh>
 #include <catboost/cuda/targets/kernel/pfound_f.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
+#include <catboost/cuda/targets/user_defined.h>
 
 #include <util/generic/cast.h>
 
@@ -847,6 +848,19 @@ inline void ApproximatePointwise(const TCudaBuffer<const float, TMapping>& targe
                                  ui32 stream = 0) {
     using TKernel = NKernelHost::TPointwiseTargetImplKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, alpha, lossFunction, score, weightedDer, weightedDer2);
+}
+
+template <class TMapping>
+inline void ApproximateUserDefined(const TCudaBuffer<const float, TMapping>& target,
+                                   const TCudaBuffer<const float, TMapping>& weights,
+                                   const TCudaBuffer<const float, TMapping>& point,
+                                   const TCustomObjectiveDescriptor& objectiveDescriptor,
+                                   TCudaBuffer<float, TMapping>* value,
+                                   TCudaBuffer<float, TMapping>* weightedDer,
+                                   TCudaBuffer<float, TMapping>* weightedDer2,
+                                   ui32 stream = 0) {
+    using TKernel = NKernelHost::TUserDefinedObjectiveKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, objectiveDescriptor, target, weights, point, value, weightedDer, weightedDer2);
 }
 
 template <class TMapping>

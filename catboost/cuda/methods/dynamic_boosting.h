@@ -67,6 +67,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatBoostOptions& CatBoostOptions;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
+        const TMaybe<TCustomObjectiveDescriptor>& ObjectiveDescriptor;
 
         NPar::ILocalExecutor* LocalExecutor;
 
@@ -169,7 +170,8 @@ namespace NCatboostCuda {
             return MakeHolder<TObjective>(dataSet,
                                   Random,
                                   slice,
-                                  TargetOptions);
+                                  TargetOptions,
+                                  ObjectiveDescriptor);
         }
 
         inline ui32 MinEstimationSize(ui32 docCount) const {
@@ -502,6 +504,7 @@ namespace NCatboostCuda {
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
                          NPar::ILocalExecutor* localExecutor)
@@ -511,6 +514,7 @@ namespace NCatboostCuda {
             , CatBoostOptions(catBoostOptions)
             , Config(catBoostOptions.BoostingOptions)
             , TargetOptions(catBoostOptions.LossFunctionDescription)
+            , ObjectiveDescriptor(objectiveDescriptor)
             , LocalExecutor(localExecutor)
         {
         }

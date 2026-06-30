@@ -112,7 +112,8 @@ namespace {
         if (GetTimeZoneInformation(&tz) == TIME_ZONE_ID_INVALID) {
             ythrow TSystemError() << "Failed to get the system time zone";
         }
-        i64 utcOffsetInMinutes = -tz.Bias;
+        const LONG seasonalBias = localTime.tm_isdst > 0 ? tz.DaylightBias : tz.StandardBias;
+        i64 utcOffsetInMinutes = -(tz.Bias + seasonalBias);
 #endif
         if (utcOffsetInMinutes == 0) {
             os << 'Z';
@@ -130,7 +131,7 @@ namespace {
             os << Pad<2>(utcOffsetInMinutes % 60);
         }
     }
-}
+} // namespace
 
 template <>
 void Out<TDuration>(IOutputStream& os, TTypeTraits<TDuration>::TFuncParam duration) {
@@ -258,7 +259,7 @@ void sprint_gm_date(char* buf, time_t when, long* sec) {
 void DateToString(char* buf, const struct tm& theTm) {
     Y_ENSURE(0 <= theTm.tm_year + 1900 && theTm.tm_year + 1900 <= 9999, "invalid year " + ToString(theTm.tm_year + 1900) + ", year should be in range [0, 9999]");
 
-    sprintf(buf, "%04d%02d%02d", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday);
+    snprintf(buf, DATE_BUF_LEN, "%04d%02d%02d", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday);
 }
 
 void DateToString(char* buf, time_t when, long* sec) {
@@ -287,7 +288,7 @@ TString DateToString(time_t when, long* sec) {
 TString YearToString(const struct tm& theTm) {
     Y_ENSURE(0 <= theTm.tm_year + 1900 && theTm.tm_year + 1900 <= 9999, "invalid year " + ToString(theTm.tm_year + 1900) + ", year should be in range [0, 9999]");
     char buf[16];
-    sprintf(buf, "%04d", theTm.tm_year + 1900);
+    snprintf(buf, 16, "%04d", theTm.tm_year + 1900);
     return buf;
 }
 

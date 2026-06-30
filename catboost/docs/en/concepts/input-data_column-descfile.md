@@ -24,6 +24,7 @@ The columns description file is optional. {{ column-desc__default }}
 * [{{ cd-file__col-type__Num }}](#num)
 * [{{ cd-file__col-type__Categ }}](#categ)
 * [{{ cd-file__col-type__Text }}](#text)
+* [{{ cd-file__col-type__NumVector }}](#numvector)
 * [{{ cd-file__col-type__Auxiliary }}](#auxiliary)
 * [{{ cd-file__col-type__SampleId }}](#sampleId)
 * [{{ cd-file__col-type__Weight }}](#weight)
@@ -33,20 +34,32 @@ The columns description file is optional. {{ column-desc__default }}
 * [{{ cd-file__col-type__SubgroupId }}](#subgroupId)
 * [{{ cd-file__col-type__Timestamp }}](#timestamp)
 * [{{ cd-file__col-type__Position }}](#position)
+{% if audience == "internal" %}
+
+{% include [internal__cd-type-of-cd-to-use__desc](../yandex_specific/_includes/column_types.md) %}
+{% endif %}
 
 {% include [catboost-cd__full-desc-table-descriptions__full](../_includes/work_src/reusage-input-data/table-descriptions__full.md) %}
+{% if audience == "internal" %}
+
+{% include [catboost-cd__yandex_specific__full-desc-table-descriptions__full](../yandex_specific/_includes/reusage-input-data/table-descriptions__full.md) %}
+
+{% endif %}
 
 ## {{ input_data__title__specification }}
 
-- List each column on a new line.
-- Additional properties are set on the corresponding line.
-- Use a tab as the delimiter to separate data for a single column.
-- Columns that contain numerical features don't require descriptions. Any columns that aren't specified in the file are assumed to be `Num`.
+The file has a text format.
+
+Each line describes a single column.
+
+Adding descriptions for [{{ cd-file__col-type__Num }}](#num) columns that represent numerical features is optional. Any columns that aren't specified in the column description file are assumed to be [{{ cd-file__col-type__Num }}](#num).
 
 ## {{ input_data__title__row-format }}
 
+ Each line has two or three fields separated by a tab character (shown as `<\t>` below).
+
 ```
-<column ID (numbering starts from zero)><\t><data type><\t><feature id (optional, applicable for {{ cd-file__col-type__Num }} and {{ cd-file__col-type__Categ }} column types only)>
+<column index (numbering starts from zero)><\t><data type><\t><feature id/name (optional, applicable for feature type columns only ({{ cd-file__col-type__Num }}, {{ cd-file__col-type__Categ }}, {{ cd-file__col-type__Text }} and {{ cd-file__col-type__NumVector }})>
 ```
 
 ## {{ input_data__title__peculiarities }}

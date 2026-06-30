@@ -1,13 +1,16 @@
-import os
+import os, sys
 
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import process_command_files as pcf
 
 
-class ProcessWholeArchiveOption():
+class ProcessWholeArchiveOption:
     def __init__(self, arch, peers=None, libs=None):
         self.arch = arch.upper()
-        self.peers = { x : 0 for x in peers } if peers else None
-        self.libs = { x : 0 for x in libs } if libs else None
+        self.peers = {x: 0 for x in peers} if peers else None
+        self.libs = {x: 0 for x in libs} if libs else None
         self.start_wa_marker = '--start-wa'
         self.end_wa_marker = '--end-wa'
 

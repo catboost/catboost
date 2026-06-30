@@ -1,0 +1,14 @@
+--- contrib/tools/cython/Cython/Utils.py	(index)
++++ contrib/tools/cython/Cython/Utils.py	(working tree)
+@@ -3,9 +3,9 @@ Cython -- Things that don't belong anywhere else in particular
+ """
+ 
+ 
+-import cython
++from .Shadow import declare
+ 
+-cython.declare(
++declare(
+     os=object, sys=object, re=object, io=object, glob=object, shutil=object, tempfile=object,
+     update_wrapper=object, partial=object, wraps=object, cython_version=object,
+     _cache_function=object, _function_caches=list, _parse_file_version=object, _match_file_encoding=object,

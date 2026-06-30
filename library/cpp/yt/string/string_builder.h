@@ -1,20 +1,10 @@
 #pragma once
 
+#include "format_string.h"
+
 #include <util/generic/string.h>
 
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-// Forward declarations.
-class TStringBuilderBase;
-class TStringBuilder;
-class TDelimitedStringBuilderWrapper;
-
-template <size_t Length, class... TArgs>
-void Format(TStringBuilderBase* builder, const char (&format)[Length], TArgs&&... args);
-template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStringBuf format, TArgs&&... args);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,10 +30,8 @@ public:
     void AppendString(TStringBuf str);
     void AppendString(const char* str);
 
-    template <size_t Length, class... TArgs>
-    void AppendFormat(const char (&format)[Length], TArgs&&... args);
     template <class... TArgs>
-    void AppendFormat(TStringBuf format, TArgs&&... args);
+    void AppendFormat(TFormatString<TArgs...> format, TArgs&&... args);
 
     void Reset();
 
@@ -64,19 +52,14 @@ class TStringBuilder
     : public TStringBuilderBase
 {
 public:
-    TString Flush();
+    std::string Flush();
 
 protected:
-    TString Buffer_;
+    std::string Buffer_;
 
     void DoReset() override;
     void DoReserve(size_t size) override;
 };
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <class T>
-TString ToStringViaBuilder(const T& value, TStringBuf spec = TStringBuf("v"));
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -87,19 +70,10 @@ class TDelimitedStringBuilderWrapper
 public:
     TDelimitedStringBuilderWrapper(
         TStringBuilderBase* builder,
-        TStringBuf delimiter = TStringBuf(", "))
-        : Builder_(builder)
-        , Delimiter_(delimiter)
-    { }
+        TStringBuf delimiter = TStringBuf(", "));
 
-    TStringBuilderBase* operator->()
-    {
-        if (!FirstCall_) {
-            Builder_->AppendString(Delimiter_);
-        }
-        FirstCall_ = false;
-        return Builder_;
-    }
+    TStringBuilderBase* operator->();
+    TStringBuilderBase* operator&();
 
 private:
     TStringBuilderBase* const Builder_;

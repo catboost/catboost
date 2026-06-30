@@ -96,6 +96,18 @@ CONSTEXPR_F int days_per_4years(int yi) noexcept {
 CONSTEXPR_F int days_per_year(year_t y, month_t m) noexcept {
   return is_leap_year(y + (m > 2)) ? 366 : 365;
 }
+// The compiler cannot optimize away the check if we use
+// -fsanitize=array-bounds.
+// m is guaranteed to be in [1:12] in the caller, but the compiler cannot
+// optimize away the check even when this function is inlined into BreakTime.
+// To reduce the overhead, we use no_sanitize to skip the unnecessary
+// -fsanitize=array-bounds check. Remove no_sanitize once the missed
+// optimization is fixed.
+#if defined(__clang__) && defined(__has_cpp_attribute)
+#if __has_cpp_attribute(clang::no_sanitize)
+[[clang::no_sanitize("array-bounds")]]
+#endif
+#endif
 CONSTEXPR_F int days_per_month(year_t y, month_t m) noexcept {
   CONSTEXPR_D int k_days_per_month[1 + 12] = {
       -1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31  // non leap year
@@ -401,11 +413,11 @@ class civil_time {
       : civil_time(ct.f_) {}
 
   // Factories for the maximum/minimum representable civil_time.
-  static CONSTEXPR_F civil_time(max)() {
+  static CONSTEXPR_F auto(max)() -> civil_time {
     const auto max_year = (std::numeric_limits<std::int_least64_t>::max)();
     return civil_time(max_year, 12, 31, 23, 59, 59);
   }
-  static CONSTEXPR_F civil_time(min)() {
+  static CONSTEXPR_F auto(min)() -> civil_time {
     const auto min_year = (std::numeric_limits<std::int_least64_t>::min)();
     return civil_time(min_year, 1, 1, 0, 0, 0);
   }

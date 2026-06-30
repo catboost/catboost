@@ -155,6 +155,71 @@ namespace {
 
         return HsumI32(sum);
     }
+
+    template <class TInput, class TExtend>
+    TTriWayDotProduct<i32> TriWayDotProductInt8Avx2(
+        const TInput* lhs,
+        const TInput* rhs,
+        size_t length,
+        TExtend extend) noexcept
+    {
+        __m256i sumLL = _mm256_setzero_si256();
+        __m256i sumLR = _mm256_setzero_si256();
+        __m256i sumRR = _mm256_setzero_si256();
+
+        if (const auto leftover = length % 16; leftover != 0) {
+            const auto a = _mm_blendv_epi8(
+                    Load128i(lhs), _mm_setzero_ps(), BlendMask8[leftover]);
+            const auto b = _mm_blendv_epi8(
+                    Load128i(rhs), _mm_setzero_ps(), BlendMask8[leftover]);
+            const auto l = extend(a);
+            const auto r = extend(b);
+            sumLL = _mm256_add_epi32(sumLL, _mm256_madd_epi16(l, l));
+            sumLR = _mm256_add_epi32(sumLR, _mm256_madd_epi16(l, r));
+            sumRR = _mm256_add_epi32(sumRR, _mm256_madd_epi16(r, r));
+            lhs += leftover;
+            rhs += leftover;
+            length -= leftover;
+        }
+
+        while (length >= 32) {
+            const auto l0 = extend(Load128i(lhs));
+            const auto r0 = extend(Load128i(rhs));
+            const auto l1 = extend(Load128i(lhs + 16));
+            const auto r1 = extend(Load128i(rhs + 16));
+            sumLL = _mm256_add_epi32(sumLL, _mm256_add_epi32(_mm256_madd_epi16(l0, l0), _mm256_madd_epi16(l1, l1)));
+            sumLR = _mm256_add_epi32(sumLR, _mm256_add_epi32(_mm256_madd_epi16(l0, r0), _mm256_madd_epi16(l1, r1)));
+            sumRR = _mm256_add_epi32(sumRR, _mm256_add_epi32(_mm256_madd_epi16(r0, r0), _mm256_madd_epi16(r1, r1)));
+            lhs += 32;
+            rhs += 32;
+            length -= 32;
+        }
+
+        if (length >= 16) {
+            const auto l = extend(Load128i(lhs));
+            const auto r = extend(Load128i(rhs));
+            sumLL = _mm256_add_epi32(sumLL, _mm256_madd_epi16(l, l));
+            sumLR = _mm256_add_epi32(sumLR, _mm256_madd_epi16(l, r));
+            sumRR = _mm256_add_epi32(sumRR, _mm256_madd_epi16(r, r));
+            lhs += 16;
+            rhs += 16;
+            length -= 16;
+        }
+
+        TTriWayDotProduct<i32> result{0, 0, 0};
+        result.LL = HsumI32(sumLL);
+        result.LR = HsumI32(sumLR);
+        result.RR = HsumI32(sumRR);
+
+        for (size_t i = 0; i < length; ++i) {
+            const i32 l = lhs[i];
+            const i32 r = rhs[i];
+            result.LL += l * l;
+            result.LR += l * r;
+            result.RR += r * r;
+        }
+        return result;
+    }
 }
 
 i32 DotProductAvx2(const i8* lhs, const i8* rhs, size_t length) noexcept {
@@ -297,6 +362,233 @@ double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexc
     return HsumDouble(_mm256_add_pd(sum1, sum2));
 }
 
+template <bool computeRR>
+Y_FORCE_INLINE
+static void TriWayDotProductIterationAvx2(__m256& sumLL, __m256& sumLR, __m256& sumRR, const __m256 a, const __m256 b) {
+    sumLL = _mm256_fmadd_ps(a, a, sumLL);
+    sumLR = _mm256_fmadd_ps(a, b, sumLR);
+
+    if constexpr (computeRR) {
+        sumRR = _mm256_fmadd_ps(b, b, sumRR);
+    }
+}
+
+template <bool computeRR>
+TTriWayDotProduct<float> TriWayDotProductAvx2Impl(
+    const float* lhs,
+    const float* rhs,
+    size_t length) noexcept
+{
+    __m256 sumLL1 = _mm256_setzero_ps();
+    __m256 sumLR1 = _mm256_setzero_ps();
+    __m256 sumRR1 = _mm256_setzero_ps();
+    __m256 sumLL2 = _mm256_setzero_ps();
+    __m256 sumLR2 = _mm256_setzero_ps();
+    __m256 sumRR2 = _mm256_setzero_ps();
+
+    while (length >= 16) {
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
+        TriWayDotProductIterationAvx2<computeRR>(sumLL2, sumLR2, sumRR2, _mm256_loadu_ps(lhs + 8), _mm256_loadu_ps(rhs + 8));
+        length -= 16;
+        lhs += 16;
+        rhs += 16;
+    }
+
+    if (length >= 8) {
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, _mm256_loadu_ps(lhs + 0), _mm256_loadu_ps(rhs + 0));
+        length -= 8;
+        lhs += 8;
+        rhs += 8;
+    }
+
+    sumLL1 = _mm256_add_ps(sumLL1, sumLL2);
+    sumLR1 = _mm256_add_ps(sumLR1, sumLR2);
+
+    if (computeRR) {
+        sumRR1 = _mm256_add_ps(sumRR1, sumRR2);
+    }
+
+    if (length) {
+        static const int32_t maskTable[14] = {
+            -1, -1, -1, -1, -1, -1, -1,
+             0,  0,  0,  0,  0,  0,  0
+        };
+
+        const __m256i mask = _mm256_loadu_si256((const __m256i*)(maskTable + 7 - length));
+
+        __m256 a = _mm256_maskload_ps(lhs, mask);
+        __m256 b = _mm256_maskload_ps(rhs, mask);
+
+        TriWayDotProductIterationAvx2<computeRR>(sumLL1, sumLR1, sumRR1, a, b);
+    }
+
+    __m128 sumLL128 = _mm_add_ps(_mm256_castps256_ps128(sumLL1),
+                                _mm256_extractf128_ps(sumLL1, 1));
+    __m128 sumLR128 = _mm_add_ps(_mm256_castps256_ps128(sumLR1),
+                                _mm256_extractf128_ps(sumLR1, 1));
+
+    __m128 t0 = sumLL128;
+    __m128 t1 = sumLR128;
+
+    __m128 t2;
+    if (computeRR) {
+        t2 = _mm_add_ps(_mm256_castps256_ps128(sumRR1),
+                        _mm256_extractf128_ps(sumRR1, 1));
+    } else {
+        t2 = _mm_setzero_ps();
+    }
+
+    __m128 t3 = _mm_setzero_ps();
+
+    _MM_TRANSPOSE4_PS(t0, t1, t2, t3);
+    t0 = _mm_add_ps(t0, t1);
+    t0 = _mm_add_ps(t0, t2);
+    t0 = _mm_add_ps(t0, t3);
+
+    alignas(16) float res[4];
+    _mm_store_ps(res, t0);
+    TTriWayDotProduct<float> result{res[0], res[1], res[2]};
+    if (!computeRR) {
+        static constexpr const TTriWayDotProduct<float> def;
+        result.RR = def.RR;
+    }
+    return result;
+}
+
+TTriWayDotProduct<float> TriWayDotProductAvx2(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    if (computeRR) {
+        return TriWayDotProductAvx2Impl<true>(lhs, rhs, length);
+    } else {
+        return TriWayDotProductAvx2Impl<false>(lhs, rhs, length);
+    }
+}
+
+Y_FORCE_INLINE __m256 LoadFloatI8Rhs8Avx2(const i8* rhs) {
+    const __m128i rhsBytes = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(rhs));
+    const __m128i rhsI16 = _mm_cvtepi8_epi16(rhsBytes);
+    const __m128 rhsLo = _mm256_castps256_ps128(_mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(rhsI16)));
+    const __m128 rhsHi = _mm256_castps256_ps128(_mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(_mm_srli_si128(rhsI16, 8))));
+    return _mm256_set_m128(rhsHi, rhsLo);
+}
+
+Y_FORCE_INLINE void TriWayDotProductFloatI8IterationAvx2(
+    __m256& sumLL,
+    __m256& sumLR,
+    __m256& sumRR,
+    const float* lhs,
+    const i8* rhs) noexcept
+{
+    const __m256 l = _mm256_loadu_ps(lhs);
+    const __m256 r = LoadFloatI8Rhs8Avx2(rhs);
+    sumLL = _mm256_fmadd_ps(l, l, sumLL);
+    sumLR = _mm256_fmadd_ps(l, r, sumLR);
+    sumRR = _mm256_fmadd_ps(r, r, sumRR);
+}
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Avx2(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    __m256 sumLL1 = _mm256_setzero_ps();
+    __m256 sumLR1 = _mm256_setzero_ps();
+    __m256 sumRR1 = _mm256_setzero_ps();
+    __m256 sumLL2 = _mm256_setzero_ps();
+    __m256 sumLR2 = _mm256_setzero_ps();
+    __m256 sumRR2 = _mm256_setzero_ps();
+
+    while (length >= 16) {
+        TriWayDotProductFloatI8IterationAvx2(sumLL1, sumLR1, sumRR1, lhs, rhs);
+        TriWayDotProductFloatI8IterationAvx2(sumLL2, sumLR2, sumRR2, lhs + 8, rhs + 8);
+        lhs += 16;
+        rhs += 16;
+        length -= 16;
+    }
+
+    if (length >= 8) {
+        TriWayDotProductFloatI8IterationAvx2(sumLL1, sumLR1, sumRR1, lhs, rhs);
+        lhs += 8;
+        rhs += 8;
+        length -= 8;
+    }
+
+    sumLL1 = _mm256_add_ps(sumLL1, sumLL2);
+    sumLR1 = _mm256_add_ps(sumLR1, sumLR2);
+    sumRR1 = _mm256_add_ps(sumRR1, sumRR2);
+
+    const auto hsumPs = [](__m256 v) {
+        v = _mm256_add_ps(v, _mm256_permute2f128_ps(v, v, 1));
+        v = _mm256_hadd_ps(v, v);
+        return _mm256_cvtss_f32(_mm256_hadd_ps(v, v));
+    };
+
+    TTriWayDotProductFloatI8 result;
+    result.LL = hsumPs(sumLL1);
+    result.LR = hsumPs(sumLR1);
+    result.RR = hsumPs(sumRR1);
+
+    for (size_t i = 0; i < length; ++i) {
+        const float l = lhs[i];
+        const float r = rhs[i];
+        result.LL += l * l;
+        result.LR += l * r;
+        result.RR += r * r;
+    }
+    return result;
+}
+
+float DotProductFloatI8Avx2(const float* lhs, const i8* rhs, size_t length) noexcept {
+    if (length < 8) {
+        return DotProductSse(lhs, rhs, length);
+    }
+
+    __m256 sum1 = _mm256_setzero_ps();
+    __m256 sum2 = _mm256_setzero_ps();
+
+    while (length >= 16) {
+        sum1 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs), LoadFloatI8Rhs8Avx2(rhs), sum1);
+        sum2 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs + 8), LoadFloatI8Rhs8Avx2(rhs + 8), sum2);
+        lhs += 16;
+        rhs += 16;
+        length -= 16;
+    }
+
+    if (length >= 8) {
+        sum1 = _mm256_fmadd_ps(_mm256_loadu_ps(lhs), LoadFloatI8Rhs8Avx2(rhs), sum1);
+        lhs += 8;
+        rhs += 8;
+        length -= 8;
+    }
+
+    __m256 sum = _mm256_add_ps(sum1, sum2);
+    sum = _mm256_add_ps(sum, _mm256_permute2f128_ps(sum, sum, 1));
+    sum = _mm256_hadd_ps(sum, sum);
+    float result = _mm256_cvtss_f32(_mm256_hadd_ps(sum, sum));
+
+    for (size_t i = 0; i < length; ++i) {
+        result += lhs[i] * rhs[i];
+    }
+    return result;
+}
+
+TTriWayDotProduct<i32> TriWayDotProductI8Avx2(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    if (length < 16) {
+        return TriWayDotProductI8Sse(lhs, rhs, length);
+    }
+    return TriWayDotProductInt8Avx2(lhs, rhs, length, [](const __m128i x) {
+        return _mm256_cvtepi8_epi16(x);
+    });
+}
+
 #elif defined(ARCADIA_SSE)
 
 i32 DotProductAvx2(const i8* lhs, const i8* rhs, size_t length) noexcept {
@@ -319,6 +611,35 @@ double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexc
     return DotProductSse(lhs, rhs, length);
 }
 
+TTriWayDotProduct<float> TriWayDotProductAvx2(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    return TriWayDotProductSse(lhs, rhs, length, computeRR);
+}
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Avx2(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return TriWayDotProductFloatI8Sse(lhs, rhs, length);
+}
+
+float DotProductFloatI8Avx2(const float* lhs, const i8* rhs, size_t length) noexcept {
+    return DotProductSse(lhs, rhs, length);
+}
+
+TTriWayDotProduct<i32> TriWayDotProductI8Avx2(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return TriWayDotProductI8Sse(lhs, rhs, length);
+}
+
 #else
 
 i32 DotProductAvx2(const i8* lhs, const i8* rhs, size_t length) noexcept {
@@ -339,6 +660,35 @@ float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept
 
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept {
     return DotProductSimple(lhs, rhs, length);
+}
+
+TTriWayDotProduct<float> TriWayDotProductAvx2(
+    const float* lhs,
+    const float* rhs,
+    size_t length,
+    bool computeRR) noexcept
+{
+    return TriWayDotProductSimple(lhs, rhs, length, computeRR);
+}
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Avx2(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return TriWayDotProductFloatI8Simple(lhs, rhs, length);
+}
+
+float DotProductFloatI8Avx2(const float* lhs, const i8* rhs, size_t length) noexcept {
+    return DotProductSimple(lhs, rhs, length);
+}
+
+TTriWayDotProduct<i32> TriWayDotProductI8Avx2(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept
+{
+    return TriWayDotProductI8Simple(lhs, rhs, length);
 }
 
 #endif

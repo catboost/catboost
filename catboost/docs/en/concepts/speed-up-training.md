@@ -28,7 +28,7 @@ The default learning rate is close to optimal one, but it can be tuned to get th
 
 Command-line version parameters|     Python parameters                                    | R parameters                |
 -----------------------------|------------------------------------------------------------|-----------------------------|
-`-i`<br/><br/>`--iterations` | `iterations`<br/><br/>_Aliases:_<br/>- `num_boost_round`<br/>- `n_estimators`<br/>- `num_trees` | `--iterations`
+`-i`<br/><br/>`--iterations` | `iterations`<br/><br/>_Aliases:_<br/>- `num_boost_round`<br/>- `n_estimators`<br/>- `num_trees` | `iterations`
 `-w`<br/><br/>`--learning-rate` | `learning_rate`<br/><br/>_Alias:_`eta` | `learning_rate`
 
 {% endcut %}
@@ -105,7 +105,7 @@ For example, set the parameter to <q>0.1</q>. In this case, the training require
 
 Command-line version parameters|Python parameters|R parameters|
 ------------------|-----------------|---------------|
-`--rsm` | `rsm`<br/><br/>_Alias:_`colsample_bylevel` | `--rsm`
+`--rsm` | `rsm`<br/><br/>_Alias:_`colsample_bylevel` | `rsm`
 
 {% endcut %}
 
@@ -202,6 +202,3 @@ model_depth_eight.fit(quantized_train_dataset)
 ## Using pandas.Categorical type instead of object {#pandas-instead-of-objects}
 
 Use the pandas.Categorical type instead of the object type to speed up the preprocessing for datasets with categorical features up to 200 times.
-
-## Using numpy arrays instead pandas dataframes {#numpy-instead-of-pandas}
-Use numpy arrays instead of pandas dataframes to speed up the preprocessing for large datasets.

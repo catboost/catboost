@@ -1,5 +1,6 @@
 import logging
 
+filename = None
 eval_logger = None
 console_handler = None
 

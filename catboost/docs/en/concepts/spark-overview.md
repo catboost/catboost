@@ -1,14 +1,21 @@
 # {{ catboost-spark }} Documentation
 
-Main features 
+Main features
 -------------
 
 * Support for both Numerical and Categorical (as both One-hot and CTRs) features.
 * Reproducible training results.
 * Model interoperability with local CatBoost implementations.
 * Distributed feature evaluation (including SHAP values).
-* Spark MLLib compatible APIs for JVM languages (Java, Scala, Kotlin etc.) and PySpark. 
-* Extended Apache Spark versions support: 2.3 to 3.2.
+* Spark MLLib compatible APIs for JVM languages (Java, Scala, Kotlin etc.) and PySpark.
+* Extended Apache Spark versions support: 3.2 to 4.1.
+
+  {% cut "Previous versions" %}
+
+  CatBoost version 1.2.8 supported Apache Spark versions 3.0 - 3.5.
+  CatBoost versions before 1.2.8 supported Apache Spark versions 2.3 - 2.4 as well.
+
+  {% endcut %}
 
 
 ### [{{ catboost-spark }} installation](spark-installation.md)

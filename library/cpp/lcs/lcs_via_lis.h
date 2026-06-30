@@ -144,7 +144,7 @@ namespace NLCS {
                 for (auto it = cover.begin() + 1; it != cover.end(); ++it) {
                     auto pit = UpperBound(it->begin(), it->end(), resbuf.back(), std::greater<ui32>());
 
-                    Y_VERIFY(pit != it->end(), " ");
+                    Y_ABORT_UNLESS(pit != it->end(), " ");
 
                     resbuf.push_back(*pit);
                 }

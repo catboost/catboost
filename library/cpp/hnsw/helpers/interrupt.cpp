@@ -14,4 +14,4 @@ void CheckInterrupted() {
     if (INTERRUPTED_FUNC != nullptr){
         INTERRUPTED_FUNC();
     }
-};
+}

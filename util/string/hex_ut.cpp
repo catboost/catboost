@@ -16,4 +16,4 @@ Y_UNIT_TEST_SUITE(THexCodingTest) {
         UNIT_ASSERT_EXCEPTION(HexDecode("Hello"), yexception); //< incorrect chars
         UNIT_ASSERT_EXCEPTION(HexDecode("123"), yexception);   //< odd length
     }
-}
+} // Y_UNIT_TEST_SUITE(THexCodingTest)

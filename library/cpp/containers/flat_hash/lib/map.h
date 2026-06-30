@@ -12,10 +12,10 @@ namespace NPrivate {
 
 struct TMapKeyGetter {
     template <class T>
-    static constexpr auto& Apply(T& t) noexcept { return t.first; };
+    static constexpr auto& Apply(T& t) noexcept { return t.first; }
 
     template <class T>
-    static constexpr const auto& Apply(const T& t) noexcept { return t.first; };
+    static constexpr const auto& Apply(const T& t) noexcept { return t.first; }
 };
 
 }  // namespace NPrivate

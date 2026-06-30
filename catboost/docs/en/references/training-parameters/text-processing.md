@@ -88,13 +88,13 @@ This parameter works with `tokenizers` and `feature_calcers` parameters.
 
 ```python
 dictionaries = [{
-	'dictionaryId': 'Unigram',
+	'dictionary_id': 'Unigram',
 	'max_dictionary_size': '50000',
-	'gram_count': '1',
+	'gram_order': '1',
 },{
-	'dictionaryId': 'Bigram',
+	'dictionary_id': 'Bigram',
 	'max_dictionary_size': '50000',
-	'gram_count': '2',
+	'gram_order': '2',
 }]
 ```
 

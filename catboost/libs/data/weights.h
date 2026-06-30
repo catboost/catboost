@@ -114,12 +114,12 @@ namespace NCB {
 
         SAVELOAD(Size, Weights);
 
-        ui32 GetSize() const {
+        ui32 GetSize() const noexcept {
             return Size;
         }
 
         // sometimes it's more optimal to check once per all array instead of repeated checks in operator[]
-        bool IsTrivial() const {
+        bool IsTrivial() const noexcept {
             return (*Weights).empty();
         }
 

@@ -2,13 +2,7 @@
 # coding: utf-8
 # cython: wraparound=False
 
-
-cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
-    cdef cppclass EFeatureType:
-        bool_t operator==(EFeatureType)
-
-    cdef EFeatureType EMonoForestFeatureType_Float "NMonoForest::EFeatureType::Float"
-    cdef EFeatureType EMonoForestFeatureType_OneHot "NMonoForest::EFeatureType::OneHot"
+from catboost.libs.monoforest._monoforest cimport *
 
 
 cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
@@ -91,7 +85,7 @@ class FeatureExplanation:
             return strength
         else:
             strength = []
-            for dim in range(len(self.expected_bias)):
+            for dim in xrange(len(self.expected_bias)):
                 strength.append(self.calc_strength(dim))
             return strength
 
@@ -111,7 +105,7 @@ class FeatureExplanation:
         if dim is not None:
             values = self._calc_pdp_values(dim)
         else:
-            values = [self._calc_pdp_values(dim) for dim in range(len(self.expected_bias))]
+            values = [self._calc_pdp_values(dim) for dim in xrange(len(self.expected_bias))]
         return borders, values
 
 
@@ -124,14 +118,14 @@ cpdef to_polynom(model):
             type = "TakeGreater" if split.SplitType == EBinSplitType_TakeGreater else "TakeEqual"
             python_splits.append(Split(split.FeatureIdx, type, split.Border))
         value = []
-        for i in range(monom.Value.size()):
+        for i in xrange(monom.Value.size()):
             value.append(monom.Value[i])
         python_monoms.append(Monom(python_splits, value, monom.Weight))
     return python_monoms
 
 
 cpdef to_polynom_string(model):
-    return to_native_str(ConvertFullModelToPolynomString(dereference((<_CatBoost>model).__model)))
+    return to_str(ConvertFullModelToPolynomString(dereference((<_CatBoost>model).__model)))
 
 
 cpdef explain_features(model):
@@ -140,7 +134,17 @@ cpdef explain_features(model):
     for featureExpl in featuresExplanations:
         borders = []
         for borderExpl in featureExpl.BordersExplanations:
-            borders.append(BorderExplanation(borderExpl.Border, borderExpl.ProbabilityToSatisfy, list(borderExpl.ExpectedValueChange)))
+            borders.append(
+                BorderExplanation(
+                    borderExpl.Border,
+                    borderExpl.ProbabilityToSatisfy,
+                    array_ref_to_py(<TConstArrayRef[double]>borderExpl.ExpectedValueChange))
+            )
         feature_type = "Float" if featureExpl.FeatureType == EMonoForestFeatureType_Float else "OneHot"
-        result.append(FeatureExplanation(featureExpl.FeatureIdx, feature_type, list(featureExpl.ExpectedBias), borders))
+        result.append(
+            FeatureExplanation(
+                featureExpl.FeatureIdx,
+                feature_type,
+                array_ref_to_py(<TConstArrayRef[double]>featureExpl.ExpectedBias), borders)
+        )
     return result

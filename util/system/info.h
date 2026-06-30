@@ -11,4 +11,4 @@ namespace NSystemInfo {
     size_t GetPageSize() noexcept;
     size_t TotalMemorySize();
     size_t MaxOpenFiles();
-}
+} // namespace NSystemInfo

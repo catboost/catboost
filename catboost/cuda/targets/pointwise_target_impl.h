@@ -9,6 +9,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 namespace NCatboostCuda {
     template <class TDocLayout>
@@ -23,19 +24,24 @@ namespace NCatboostCuda {
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               TSlice slice,
-                              const NCatboostOptions::TLossDescription& targetOptions)
+                              const NCatboostOptions::TLossDescription& targetOptions,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
             : TParent(dataSet,
                       random,
-                      slice) {
+                      slice)
+            , ObjectiveDescriptor(objectiveDescriptor) {
             Init(targetOptions);
         }
 
         template <class TDataSet>
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
-                              const NCatboostOptions::TLossDescription& targetOptions)
+                              const NCatboostOptions::TLossDescription& targetOptions,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
             : TParent(dataSet,
-                      random) {
+                      random)
+            , ObjectiveDescriptor(objectiveDescriptor)
+        {
             Init(targetOptions);
         }
 
@@ -47,6 +53,7 @@ namespace NCatboostCuda {
             , Alpha(target.GetAlpha())
             , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
+            , ObjectiveDescriptor(target.GetObjectiveDescriptor())
         {
         }
 
@@ -56,6 +63,7 @@ namespace NCatboostCuda {
             , Alpha(target.GetAlpha())
             , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
+            , ObjectiveDescriptor(target.GetObjectiveDescriptor())
         {
         }
 
@@ -68,6 +76,7 @@ namespace NCatboostCuda {
             , Alpha(basedOn.GetAlpha())
             , Border(basedOn.GetBorder())
             , MetricName(basedOn.ScoreMetricName())
+            , ObjectiveDescriptor(basedOn.GetObjectiveDescriptor())
         {
         }
 
@@ -77,6 +86,7 @@ namespace NCatboostCuda {
             , Alpha(other.GetAlpha())
             , Border(other.GetBorder())
             , MetricName(other.ScoreMetricName())
+            , ObjectiveDescriptor(other.GetObjectiveDescriptor())
         {
         }
 
@@ -240,10 +250,15 @@ namespace NCatboostCuda {
             return 1;
         }
 
+        TMaybe<TCustomObjectiveDescriptor> GetObjectiveDescriptor() const {
+            return ObjectiveDescriptor;
+        }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             Type = targetOptions.GetLossFunction();
             switch (targetOptions.GetLossFunction()) {
+                case ELossFunction::PythonUserDefinedPerObject:
                 case ELossFunction::Poisson:
                 case ELossFunction::MAPE:
                 case ELossFunction::RMSE:
@@ -304,6 +319,17 @@ namespace NCatboostCuda {
             CB_ENSURE(der2Row == 0);
 
             switch (Type) {
+                case ELossFunction::PythonUserDefinedPerObject: {
+                    ApproximateUserDefined(target,
+                                           weights,
+                                           point,
+                                           *ObjectiveDescriptor,
+                                           value,
+                                           der,
+                                           der2,
+                                           stream);
+                    break;
+                }
                 case ELossFunction::CrossEntropy:
                 case ELossFunction::Logloss: {
                     ApproximateCrossEntropy(target,
@@ -338,6 +364,7 @@ namespace NCatboostCuda {
         double Border = 0;
         double VariancePower = 1.5;
         TString MetricName;
+        TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor = {};
     };
 
 }

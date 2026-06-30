@@ -1,9 +1,14 @@
 #include "static_ctr_provider.h"
 
 #include "ctr_helpers.h"
+#include "model.h"
 
+#include <util/generic/hash_set.h>
 #include <util/generic/xrange.h>
 #include <util/string/cast.h>
+
+
+using namespace NCB;
 
 
 void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
@@ -183,8 +188,10 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
     for (const auto& table : tables) {
         indexViewers.emplace_back(table->GetIndexHashViewer());
         for (const auto bucket : indexViewers.back().GetBuckets()) {
-            if (bucket.Hash != NCatboost::TBucket::InvalidHashValue) {
-                uniqueHashes.insert(bucket.Hash);
+            // make a copy because we can't pass a reference to an unaligned struct member to 'uniqueHashes' methods
+            const auto bucketHash = bucket.Hash;
+            if (bucketHash != NCatboost::TBucket::InvalidHashValue) {
+                uniqueHashes.insert(bucketHash);
             }
         }
     }
@@ -294,20 +301,32 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         return result;
     }
     THashMap<TModelCtrBase, TVector<const TCtrValueTable*>> valuesMap;
-    THashMap<TModelCtrBase, TVector<size_t>> ownerModelIdx;
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus> ctrTablesIndices;
     for (auto idx : xrange(providers.size())) {
         const auto& provider = providers[idx];
         for (const auto& [ctrBase, ctrValueTables] : provider->CtrData.LearnCtrs) {
-            valuesMap[ctrBase].push_back(&ctrValueTables);
-            ownerModelIdx[ctrBase].push_back(idx);
+            if (mergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+                auto updatedBase = ctrBase;
+                updatedBase.TargetBorderClassifierIdx = ctrTablesIndices[ctrBase].GetResultIndex(ctrBase.TargetBorderClassifierIdx);
+                valuesMap[updatedBase].push_back(&ctrValueTables);
+            } else {
+                valuesMap[ctrBase].push_back(&ctrValueTables);
+            }
+        }
+        if (mergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+            for (auto& [key, status] : ctrTablesIndices) {
+                status.FinishModel();
+            }
         }
     }
     for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
-        if (ctrValueTables.size() == 1 && ECtrTableMergePolicy::KeepAllTables != mergePolicy) {
+        if (ctrValueTables.size() == 1) {
             result->CtrData.LearnCtrs[ctrBase] = *(ctrValueTables[0]);
             continue;
         }
         switch (mergePolicy) {
+            case ECtrTableMergePolicy::KeepAllTables:
+                CB_ENSURE_INTERNAL(false, "KeepAllTables policy encountered table duplicates when merging");
             case ECtrTableMergePolicy::FailIfCtrIntersects:
                 throw TCatBoostException() << "FailIfCtrIntersects policy forbids model ctr tables intersection";
             case ECtrTableMergePolicy::LeaveMostDiversifiedTable: {
@@ -328,18 +347,6 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
                 auto& target = result->CtrData.LearnCtrs[ctrBase];
                 target.ModelCtrBase = ctrBase;
                 MergeBuckets(ctrValueTables, &target);
-                break;
-            }
-            case ECtrTableMergePolicy::KeepAllTables: {
-                for (auto tableIdx : xrange(ctrValueTables.size())) {
-                    const auto& ctrTable = ctrValueTables[tableIdx];
-                    auto updatedBase = ctrBase;
-                    updatedBase.TargetBorderClassifierIdx = ownerModelIdx[ctrBase][tableIdx];
-                    auto updatedTable = *ctrTable;
-                    updatedTable.ModelCtrBase = updatedBase;
-                    CB_ENSURE(!result->CtrData.LearnCtrs.contains(updatedBase));
-                    result->CtrData.LearnCtrs[updatedBase] = std::move(updatedTable);
-                }
                 break;
             }
             default:

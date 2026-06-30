@@ -1,5 +1,5 @@
 from . import _catboost
-from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, STRING_TYPES, fspath, _update_params_quantize_part, _process_synonyms
+from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, fspath, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
 import sys
@@ -18,6 +18,19 @@ compute_wx_test = _catboost.compute_wx_test
 TargetStats = _catboost.TargetStats
 DataMetaInfo = _catboost.DataMetaInfo
 compute_training_options = _catboost.compute_training_options
+
+
+try:
+    import polars as pl
+except ImportError:
+    # just to avoid checking (pl is not None) everywhere
+    class polars:
+        class DataFrame(object):
+            pass
+
+        class Series(object):
+            pass
+    pl = polars
 
 
 @contextmanager
@@ -171,15 +184,10 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     column_names = []
     non_feature_column_indices = []
 
+    # list of (column_idx, column_type, column_name) tuples, needed to support CD files with nonincreasing
+    # column indices
+    column_descriptions = []
 
-    def add_missed_columns(start_column_idx, end_column_idx, non_feature_column_count):
-        for missed_column_idx in range(start_column_idx, end_column_idx):
-            column_name = 'feature_%i' % (missed_column_idx - non_feature_column_count)
-            column_names.append(column_name)
-            column_type_to_indices.setdefault('Num', []).append(missed_column_idx)
-            column_dtypes[column_name] = np.float32
-
-    last_column_idx = -1
     with open(fspath(cd_file)) as f:
         for line_idx, line in enumerate(f):
             line = line.strip()
@@ -193,44 +201,59 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                 raise Exception('Wrong number of columns in cd file')
 
             column_idx = int(line_columns[0])
-            if column_idx <= last_column_idx:
-                raise Exception('Non-increasing column indices in cd file')
-
-            add_missed_columns(last_column_idx + 1, column_idx, len(non_feature_column_indices))
 
             column_type = line_columns[1]
-            if canonize_column_types:
-                column_type = column_type_synonyms_map.get(column_type, column_type)
-
-            column_type_to_indices.setdefault(column_type, []).append(column_idx)
 
             column_name = None
             if len(line_columns) == 3:
                 column_name = line_columns[2]
 
-            if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
-                feature_idx = column_idx - len(non_feature_column_indices)
-                if column_name is None:
-                    column_name = 'feature_%i' % feature_idx
-                if column_type == 'Categ':
-                    cat_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = 'category'
-                elif column_type == 'Text':
-                    text_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = object
-                elif column_type == 'NumVector':
-                    embedding_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = object
-                else:
-                    column_dtypes[column_name] = np.float32
-            else:
-                non_feature_column_indices.append(column_idx)
-                if column_name is None:
-                    column_name = column_type
+            column_descriptions.append((column_idx, column_type, column_name))
 
+    column_descriptions.sort()
+
+    def add_missed_columns(start_column_idx, end_column_idx, non_feature_column_count):
+        for missed_column_idx in range(start_column_idx, end_column_idx):
+            column_name = 'feature_%i' % (missed_column_idx - non_feature_column_count)
             column_names.append(column_name)
+            column_type_to_indices.setdefault('Num', []).append(missed_column_idx)
+            column_dtypes[column_name] = np.float32
 
-            last_column_idx = column_idx
+    last_column_idx = -1
+    for column_idx, column_type, column_name in column_descriptions:
+        if column_idx == last_column_idx:
+            raise Exception('Duplicate column indices in cd file')
+
+        add_missed_columns(last_column_idx + 1, column_idx, len(non_feature_column_indices))
+
+        if canonize_column_types:
+            column_type = column_type_synonyms_map.get(column_type, column_type)
+
+        column_type_to_indices.setdefault(column_type, []).append(column_idx)
+
+        if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
+            feature_idx = column_idx - len(non_feature_column_indices)
+            if column_name is None:
+                column_name = 'feature_%i' % feature_idx
+            if column_type == 'Categ':
+                cat_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = 'category'
+            elif column_type == 'Text':
+                text_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = object
+            elif column_type == 'NumVector':
+                embedding_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = object
+            else:
+                column_dtypes[column_name] = np.float32
+        else:
+            non_feature_column_indices.append(column_idx)
+            if column_name is None:
+                column_name = column_type
+
+        column_names.append(column_name)
+
+        last_column_idx = column_idx
 
     add_missed_columns(last_column_idx + 1, column_count, len(non_feature_column_indices))
 
@@ -251,7 +274,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
 
     Parameters
     ----------
-    label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
+    label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series or polars.DataFrame or polars.Series
         Object labels with shape (n_objects,) or (n_object, n_target_dimension)
 
     approx : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
@@ -260,22 +283,22 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     metric : string
         Metric name.
 
-    weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Object weights.
 
-    group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Object group ids.
 
-    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series or polars.Series, optional (default=None)
         Group weights.
 
-    subgroup_id : list or numpy.ndarray, optional (default=None)
+    subgroup_id : list or numpy.ndarray or polars.Series, optional (default=None)
         subgroup id for each instance.
         If not None, giving 1 dimensional array like data.
 
-    pairs : list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+    pairs : list or numpy.ndarray or pandas.DataFrame or polars.DataFrame or string or pathlib.Path
         The pairs description.
-        If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
+        If list or numpy.ndarrays or pandas.DataFrame or polars.DataFrame, giving 2 dimensional.
         The shape should be Nx2, where N is the pairs' count. The first element of the pair is
         the index of winner object in the training set. The second element of the pair is
         the index of loser object in the training set.
@@ -290,7 +313,10 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     metric results : list with metric values.
     """
     if len(label) > 0:
-        label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
+        if isinstance(label, pl.Series):
+            label = pl.DataFrame(label)
+        elif not isinstance(label, pl.DataFrame):
+            label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
     if len(approx) == 0:
         approx = [[]]
     approx = np.transpose(approx) if isinstance(approx[0], ARRAY_TYPES) else [approx]
@@ -328,7 +354,7 @@ def get_confusion_matrix(model, data, thread_count=-1):
     if not isinstance(data, Pool):
         raise CatBoostError('data must be a catboost.Pool')
 
-    return _get_confusion_matrix(model._object, data, thread_count);
+    return _get_confusion_matrix(model._object, data, thread_count)
 
 
 def get_roc_curve(model, data, thread_count=-1, plot=False):
@@ -354,7 +380,7 @@ def get_roc_curve(model, data, thread_count=-1, plot=False):
     -------
     curve points : tuple of three arrays (fpr, tpr, thresholds)
     """
-    if type(data) == Pool:
+    if isinstance(data, Pool):
         data = [data]
     if not isinstance(data, list):
         raise CatBoostError('data must be a catboost.Pool or list of pools.')
@@ -496,7 +522,7 @@ def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thre
             raise CatBoostError('Only one of the parameters data and curve should be set.')
         if model is None:
             raise CatBoostError('model and data parameters should be set when curve parameter is None.')
-        if type(data) == Pool:
+        if isinstance(data, Pool):
             data = [data]
         if not isinstance(data, list):
             raise CatBoostError('data must be a catboost.Pool or list of pools.')
@@ -516,6 +542,7 @@ def quantize(
     data_path,
     column_description=None,
     pairs=None,
+    graph=None,
     delimiter='\t',
     has_header=False,
     ignore_csv_quoting=False,
@@ -555,6 +582,9 @@ def quantize(
 
     pairs : string or pathlib.Path, [default=None]
         Path to the file with pairs description.
+
+    graph : string or pathlib.Path, [default=None]
+        Path to the file with graph description.
 
     has_header : bool, [default=False]
         If True, read column names from first line.
@@ -656,8 +686,8 @@ def quantize(
         per_float_feature_quantization,
         border_count,
         feature_border_type,
-        None, # sparse_features_conflict_fraction
-        None, # dev_efb_max_buckets
+        None,  # sparse_features_conflict_fraction
+        None,  # dev_efb_max_buckets
         nan_mode,
         input_borders,
         task_type,
@@ -666,10 +696,35 @@ def quantize(
         dev_max_subset_size_for_build_borders
     )
 
-    result = Pool(None)
-    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params, log_cout=log_cout, log_cerr=log_cerr)
+    pool = Pool(
+        data_path,
+        column_description=column_description,
+        pairs=pairs,
+        graph=graph,
+        feature_names=feature_names,
+        delimiter=delimiter,
+        has_header=has_header,
+        ignore_csv_quoting=ignore_csv_quoting,
+        thread_count=thread_count,
+        log_cout=log_cout,
+        log_cerr=log_cerr
+    )
+    pool._read(
+        data_path,
+        column_description,
+        pairs,
+        graph,
+        feature_names,
+        delimiter,
+        has_header,
+        ignore_csv_quoting,
+        thread_count,
+        params,
+        log_cout=log_cout,
+        log_cerr=log_cerr
+    )
 
-    return result
+    return pool
 
 
 def convert_to_onnx_object(model, export_parameters=None, **kwargs):
@@ -719,6 +774,7 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
     model_str = _get_onnx_model(model._object, params_string)
     onnx_model = onnx.load_model_from_string(model_str)
     return onnx_model
+
 
 def calculate_quantization_grid(values, border_count, border_type='Median'):
     assert border_count > 0, 'Border count should be > 0'

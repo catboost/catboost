@@ -1,7 +1,7 @@
 #include "brotli.h"
 
-#include <contrib/libs/brotli/include/brotli/decode.h>
-#include <contrib/libs/brotli/include/brotli/encode.h>
+#include <contrib/libs/brotli/c/include/brotli/decode.h>
+#include <contrib/libs/brotli/c/include/brotli/encode.h>
 
 #include <util/generic/yexception.h>
 #include <util/memory/addstorage.h>
@@ -21,7 +21,10 @@ namespace {
 
 class TBrotliCompress::TImpl {
 public:
-    TImpl(IOutputStream* slave, int quality)
+    TImpl(IOutputStream* slave,
+          int quality,
+          const TBrotliDictionary* dictionary,
+          size_t offset = 0)
         : Slave_(slave)
         , EncoderState_(BrotliEncoderCreateInstance(&TAllocator::Allocate, &TAllocator::Deallocate, nullptr))
     {
@@ -29,19 +32,16 @@ public:
             ythrow yexception() << "Brotli encoder initialization failed";
         }
 
-        auto res = BrotliEncoderSetParameter(
-            EncoderState_,
-            BROTLI_PARAM_QUALITY,
-            quality);
-
-        if (!res) {
-            BrotliEncoderDestroyInstance(EncoderState_);
-            ythrow yexception() << "Failed to set brotli encoder quality to " << quality;
+        if (dictionary) {
+            BrotliEncoderAttachPreparedDictionary(EncoderState_, dictionary->GetPreparedDictionary());
         }
+
+        SetEncoderParameter(BROTLI_PARAM_QUALITY, quality, "quality");
+        SetEncoderParameter(BROTLI_PARAM_STREAM_OFFSET, offset, "stream offset");
     }
 
     ~TImpl() {
-        BrotliEncoderDestroyInstance(EncoderState_);
+        FreeEncoder();
     }
 
     void Write(const void* buffer, size_t size) {
@@ -55,12 +55,25 @@ public:
     void Finish() {
         Flush();
         DoWrite(nullptr, 0, BROTLI_OPERATION_FINISH);
-        Y_VERIFY(BrotliEncoderIsFinished(EncoderState_));
+        Y_ABORT_UNLESS(BrotliEncoderIsFinished(EncoderState_));
     }
 
 private:
     IOutputStream* Slave_;
     BrotliEncoderState* EncoderState_;
+
+    void SetEncoderParameter(BrotliEncoderParameter parameter,
+                             ui32 value,
+                             TStringBuf parameterName) {
+        if (!BrotliEncoderSetParameter(EncoderState_, parameter, value)) {
+            FreeEncoder();
+            ythrow yexception() << "Failed to set brotli encoder " << parameterName << " to " << value;
+        }
+    }
+
+    void FreeEncoder() {
+        BrotliEncoderDestroyInstance(EncoderState_);
+    }
 
     void DoWrite(const void* buffer, size_t size, BrotliEncoderOperation operation) {
         size_t availableOut = 0;
@@ -91,8 +104,14 @@ private:
     }
 };
 
-TBrotliCompress::TBrotliCompress(IOutputStream* slave, int quality) {
-    Impl_.Reset(new TImpl(slave, quality));
+TBrotliCompress::TBrotliCompress(IOutputStream* slave,
+                                 int quality,
+                                 const TBrotliDictionary* dictionary,
+                                 size_t offset) {
+    Impl_.Reset(new TImpl(slave,
+                          quality,
+                          dictionary,
+                          offset));
 }
 
 TBrotliCompress::~TBrotliCompress() {
@@ -124,8 +143,10 @@ void TBrotliCompress::DoFinish() {
 
 class TBrotliDecompress::TImpl: public TAdditionalStorage<TImpl> {
 public:
-    TImpl(IInputStream* slave)
+    TImpl(IInputStream* slave,
+          const TBrotliDictionary* dictionary)
         : Slave_(slave)
+        , Dictionary_(dictionary)
     {
         InitDecoder();
     }
@@ -171,7 +192,7 @@ public:
                 ythrow yexception() << "Brotli decoder failed to decompress buffer: "
                                     << BrotliDecoderErrorString(code);
             } else if (result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT) {
-                Y_VERIFY(availableOut != size,
+                Y_ABORT_UNLESS(availableOut != size,
                          "Buffer passed to read in Brotli decoder is too small");
                 break;
             }
@@ -188,6 +209,8 @@ private:
     IInputStream* Slave_;
     BrotliDecoderState* DecoderState_;
 
+    const TBrotliDictionary* Dictionary_ = nullptr;
+
     bool SubstreamFinished_ = false;
     bool InputExhausted_ = false;
     const ui8* InputBuffer_ = nullptr;
@@ -203,6 +226,13 @@ private:
 
     void InitDecoder() {
         DecoderState_ = BrotliDecoderCreateInstance(&TAllocator::Allocate, &TAllocator::Deallocate, nullptr);
+        if (Dictionary_) {
+            BrotliDecoderAttachDictionary(
+                DecoderState_,
+                BROTLI_SHARED_DICTIONARY_RAW,
+                Dictionary_->GetSize(),
+                Dictionary_->GetData());
+        }
         if (!DecoderState_) {
             ythrow yexception() << "Brotli decoder initialization failed";
         }
@@ -213,14 +243,16 @@ private:
     }
 
     void ResetState() {
-        Y_VERIFY(BrotliDecoderIsFinished(DecoderState_));
+        Y_ABORT_UNLESS(BrotliDecoderIsFinished(DecoderState_));
         FreeDecoder();
         InitDecoder();
     }
 };
 
-TBrotliDecompress::TBrotliDecompress(IInputStream* slave, size_t bufferSize)
-    : Impl_(new (bufferSize) TImpl(slave))
+TBrotliDecompress::TBrotliDecompress(IInputStream* slave,
+                                     size_t bufferSize,
+                                     const TBrotliDictionary* dictionary)
+    : Impl_(new (bufferSize) TImpl(slave, dictionary))
 {
 }
 

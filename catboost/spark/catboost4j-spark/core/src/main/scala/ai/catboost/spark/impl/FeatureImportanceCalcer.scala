@@ -23,7 +23,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 class FeatureImportanceCalcer extends Logging {
   private[spark] def collectLeavesWeightsFromDataset(model: TFullModel, data: Pool) : Array[Double] = {
     val dataForApplication = data.quantizeForModelApplicationImpl(model)
-    
+
     val leafCount = model.GetLeafCount()
     val result = new Array[Double](leafCount)
 
@@ -205,7 +205,7 @@ class FeatureImportanceCalcer extends Logging {
 
   /**
    * Supported values of fstrType are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
-   * @param data 
+   * @param data
    *  if fstrType is PredictionDiff it is required and must contain 2 samples
    *  if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
    *   with flag to store no leaf weights.
@@ -264,7 +264,7 @@ class FeatureImportanceCalcer extends Logging {
     val dstSchema = StructType(
       DataHelpers.selectSchemaFields(dataForApplication.data.schema, outputColumns)
       :+ StructField(
-          "shapValues", 
+          "shapValues",
           if (modelDimensionsCount > 1) {
             linalg.SQLDataTypes.MatrixType
           } else {
@@ -316,7 +316,7 @@ class FeatureImportanceCalcer extends Logging {
           )
         }).toIterator
       }
-    )(RowEncoder(dstSchema), classTag[Row])
+    )(RowEncoderConstructor.construct(dstSchema), classTag[Row])
   }
 
   def calcShapInteractionValues(
@@ -445,7 +445,7 @@ class FeatureImportanceCalcer extends Logging {
           )
         }).toIterator
       }
-    )(RowEncoder(StructType(dstSchemaFields)), classTag[Row])
+    )(RowEncoderConstructor.construct(StructType(dstSchemaFields)), classTag[Row])
   }
 
   def calcInteraction(model: TFullModel) : Array[FeatureInteractionScore] = {

@@ -152,4 +152,4 @@ Y_UNIT_TEST_SUITE(TRandomNumberTest) {
             UNIT_ASSERT_EQUAL(RandomNumber<ui32>(1 << 8), el);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TRandomNumberTest)

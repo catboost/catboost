@@ -1,4 +1,4 @@
-set(SWIG_EXECUTABLE ${CMAKE_BINARY_DIR}/bin/swig${CMAKE_EXECUTABLE_SUFFIX})
+set(SWIG_EXECUTABLE ${PROJECT_BINARY_DIR}/bin/swig${CMAKE_EXECUTABLE_SUFFIX})
 set(SWIG_SOURCE_FILE_EXTENSIONS .swg)
 
 function(add_swig_jni_library TgtName)
@@ -18,7 +18,7 @@ function(add_swig_jni_library TgtName)
       CPLUSPLUS On
   )
 
-  file(RELATIVE_PATH PathInProject ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+  file(RELATIVE_PATH PathInProject ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
   string(REPLACE "/" "." JVMPackageName ${PathInProject})
   string(REPLACE "-" "_" JVMPackageName ${JVMPackageName})
   string(PREPEND JVMPackageName "ru.yandex.")
@@ -45,7 +45,7 @@ function(add_swig_jni_library TgtName)
   add_custom_command(TARGET
     ${TgtName}
     POST_BUILD COMMAND
-      ${CMAKE_COMMAND} -DJAVA_SRC_DIR=${OutDirAbs} -DJAVA_LST=${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst -P ${CMAKE_SOURCE_DIR}/build/scripts/gather_swig_java.cmake
+      ${CMAKE_COMMAND} -DJAVA_SRC_DIR=${OutDirAbs} -DJAVA_LST=${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst -P ${PROJECT_SOURCE_DIR}/build/scripts/gather_swig_java.cmake
     BYPRODUCTS ${SWIG_JNI_LIB_GEN_JAVA_FILES_LIST}
   )
 endfunction()

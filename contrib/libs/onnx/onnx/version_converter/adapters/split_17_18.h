@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,8 @@
 // Adapter for Split in default domain from version 17 to 18
 
 #pragma once
+
+#include <memory>
 
 #include "onnx/version_converter/adapters/adapter.h"
 #include "onnx/version_converter/adapters/transformers.h"
@@ -16,9 +20,9 @@ class Split_17_18 : public Adapter {
  public:
   explicit Split_17_18() : Adapter("Split", OpSetID(17), OpSetID(18)) {}
 
-  void adapt_split_17_18(std::shared_ptr<Graph>, Node* node) const {
+  void adapt_split_17_18(const std::shared_ptr<Graph>&, Node* node) const {
     const auto num_outputs = node->outputs().size();
-    SetAttribute(knum_outputs, num_outputs);
+    node->i_(knum_outputs, num_outputs);
   }
 
   Node* adapt(std::shared_ptr<Graph> graph, Node* node) const override {

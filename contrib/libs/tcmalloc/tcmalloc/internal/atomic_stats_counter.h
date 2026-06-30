@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +17,8 @@
 #define TCMALLOC_INTERNAL_ATOMIC_STATS_COUNTER_H_
 
 #include <atomic>
+#include <cstdint>
 
-#include "absl/base/macros.h"
 #include "tcmalloc/internal/config.h"
 
 GOOGLE_MALLOC_SECTION_BEGIN

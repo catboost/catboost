@@ -68,4 +68,4 @@ Y_UNIT_TEST_SUITE(TestContext) {
         UNIT_ASSERT(throwed);
         UNIT_ASSERT(!hasUncaught);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestContext)

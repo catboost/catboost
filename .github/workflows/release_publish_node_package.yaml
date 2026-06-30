@@ -1,0 +1,52 @@
+name: 'Node Package Release: Publish'
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      main_release_version:
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+      main_release_version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish catboost on NPM
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+          ref: ${{ inputs.tag }}
+          sparse-checkout: |
+            catboost/node-package
+            catboost/libs/model_interface
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+
+      - name: Publish catboost npm package
+        run: |
+          cd ${{ github.workspace }}/catboost/catboost/node-package/
+          npm install @types/node typescript@3.9.9
+          npm run package_prepublish ${{ inputs.main_release_version }}
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

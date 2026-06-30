@@ -1,0 +1,3 @@
+common:
+    - from: /concepts/about.md
+      to: /index.yaml

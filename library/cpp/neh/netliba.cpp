@@ -188,7 +188,7 @@ namespace {
                     UpdateInFly();
                     TInFly::iterator it = InFly_.find(resp->ReqId);
 
-                    Y_VERIFY(it != InFly_.end(), "incorrect incoming message");
+                    Y_ABORT_UNLESS(it != InFly_.end(), "incorrect incoming message");
 
                     TRequestRef& req = it->second;
 
@@ -220,7 +220,7 @@ namespace {
                     UpdateInFly();
                     TInFly::iterator it = InFly_.find(guid);
 
-                    Y_VERIFY(it != InFly_.end(), "incorrect complete notification");
+                    Y_ABORT_UNLESS(it != InFly_.end(), "incorrect complete notification");
 
                     it->second->OnRequestAck();
                 }
@@ -403,7 +403,7 @@ namespace {
                 }
 
                 void AddResponse(TUdpHttpResponse*) override {
-                    Y_FAIL("unexpected response in neh netliba server");
+                    Y_ABORT("unexpected response in neh netliba server");
                 }
 
                 void AddCancel(const TGUID& guid) override {
@@ -414,7 +414,7 @@ namespace {
                 }
 
                 void AddRequestAck(const TGUID&) override {
-                    Y_FAIL("unexpected acc in neh netliba server");
+                    Y_ABORT("unexpected acc in neh netliba server");
                 }
 
                 void UpdateInProcess() {

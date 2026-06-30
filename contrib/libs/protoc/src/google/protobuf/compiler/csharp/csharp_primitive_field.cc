@@ -28,19 +28,20 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/csharp/csharp_primitive_field.h"
+
 #include <sstream>
+#include <string>
+#include <utility>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-
-#include <google/protobuf/compiler/csharp/csharp_doc_comment.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_options.h>
-#include <google/protobuf/compiler/csharp/csharp_primitive_field.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/strings/str_cat.h"
+#include "google/protobuf/compiler/csharp/csharp_doc_comment.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/compiler/csharp/csharp_options.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
 
 namespace google {
 namespace protobuf {
@@ -54,8 +55,11 @@ PrimitiveFieldGenerator::PrimitiveFieldGenerator(
   is_value_type = descriptor->type() != FieldDescriptor::TYPE_STRING
       && descriptor->type() != FieldDescriptor::TYPE_BYTES;
   if (!is_value_type && !SupportsPresenceApi(descriptor_)) {
-    variables_["has_property_check"] = variables_["property_name"] + ".Length != 0";
-    variables_["other_has_property_check"] = "other." + variables_["property_name"] + ".Length != 0";
+    TProtoStringType property_name = variables_["property_name"];
+    variables_["has_property_check"] =
+        y_absl::StrCat(property_name, ".Length != 0");
+    variables_["other_has_property_check"] =
+        y_absl::StrCat("other.", property_name, ".Length != 0");
   }
 }
 
@@ -81,10 +85,12 @@ void PrimitiveFieldGenerator::GenerateMembers(io::Printer* printer) {
     printer->Print(
       variables_,
       "private readonly static $type_name$ $property_name$DefaultValue = $default_value$;\n\n");
+    TProtoStringType property_name = variables_["property_name"];
     variables_["default_value_access"] =
-      variables_["property_name"] + "DefaultValue";
+        y_absl::StrCat(property_name, "DefaultValue");
   } else {
-    variables_["default_value_access"] = variables_["default_value"];
+    TProtoStringType default_value = variables_["default_value"];
+    variables_["default_value_access"] = std::move(default_value);
   }
 
   // Declare the field itself.
@@ -215,7 +221,7 @@ void PrimitiveFieldGenerator::GenerateSerializedSizeCode(io::Printer* printer) {
   } else {
     printer->Print(
       "size += $tag_size$ + $fixed_size$;\n",
-      "fixed_size", StrCat(fixedSize),
+      "fixed_size", y_absl::StrCat(fixedSize),
       "tag_size", variables_["tag_size"]);
   }
   printer->Outdent();
@@ -296,7 +302,7 @@ void PrimitiveOneofFieldGenerator::GenerateMembers(io::Printer* printer) {
   }
   printer->Print(
     variables_,
-    "    $oneof_name$Case_ = $oneof_property_name$OneofCase.$property_name$;\n"
+    "    $oneof_name$Case_ = $oneof_property_name$OneofCase.$oneof_case_name$;\n"
     "  }\n"
     "}\n");
   if (SupportsPresenceApi(descriptor_)) {
@@ -307,7 +313,7 @@ void PrimitiveOneofFieldGenerator::GenerateMembers(io::Printer* printer) {
     printer->Print(
       variables_,
       "$access_level$ bool Has$property_name$ {\n"
-      "  get { return $oneof_name$Case_ == $oneof_property_name$OneofCase.$property_name$; }\n"
+      "  get { return $oneof_name$Case_ == $oneof_property_name$OneofCase.$oneof_case_name$; }\n"
       "}\n");
     printer->Print(
       variables_,

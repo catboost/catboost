@@ -186,7 +186,7 @@ double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairW
     if (localExecutor != nullptr) {
         NCB::ParallelMergeSort(CompareSamplesByPrediction, samples, localExecutor, &aux);
     } else {
-        Sort(*samples, CompareSamplesByPrediction);
+        StableSort(*samples, CompareSamplesByPrediction);
     }
 
     double deltaSum = 0;

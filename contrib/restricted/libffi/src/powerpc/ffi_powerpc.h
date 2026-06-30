@@ -57,12 +57,12 @@ typedef union
   double d;
 } ffi_dblfl;
 
-#if defined(__FLOAT128_TYPE__)
+#if defined(__FLOAT128_TYPE__) && defined(__HAVE_FLOAT128)
 typedef _Float128 float128;
 #elif defined(__FLOAT128__)
 typedef __float128 float128;
 #else
-typedef __int128 float128;
+typedef char float128[16] __attribute__((aligned(16)));
 #endif
 
 void FFI_HIDDEN ffi_closure_SYSV (void);

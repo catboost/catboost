@@ -3,6 +3,8 @@
 #include "ref.h"
 #include "ref_counted.h"
 
+#include <library/cpp/yt/misc/port.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +26,7 @@ public:
     explicit TBlob(
         TRefCountedTypeCookie tagCookie = GetRefCountedTypeCookie<TDefaultBlobTag>(),
         size_t size = 0,
-        bool initiailizeStorage = true,
+        bool initializeStorage = true,
         bool pageAligned = false);
 
     //! Copies a chunk of memory into a new instance.

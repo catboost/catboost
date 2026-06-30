@@ -13,6 +13,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/train_lib/options_helper.h>
 
 #include <library/cpp/json/json_value.h>
@@ -24,10 +25,15 @@
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
 
+#include <future>
 #include <type_traits>
 
 
 struct TTrainTestSplitParams;
+
+namespace NCatboostOptions {
+    struct TDatasetReadingParams;
+}
 
 
 class TGilGuard : public TNonCopyable {
@@ -47,6 +53,8 @@ void ProcessException();
 void SetPythonInterruptHandler();
 void ResetPythonInterruptHandler();
 void ThrowCppExceptionWithMessage(const TString& message);
+
+void WaitAll(TVector<std::future<void>>& futures);
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
@@ -193,6 +201,89 @@ private:
     PyObject* Stream;
 };
 
+
+template <class TFloatOrInteger>
+void AsyncSetDataFromCythonMemoryViewCOrder(
+    ui32 objCount,
+    const TFloatOrInteger* data,
+    size_t objStride,    // dim 0
+    size_t elementStride,   // dim 1
+    bool hasSeparateEmbeddingFeaturesData,
+    TConstArrayRef<ui32> mainDataFeatureIdxToDstFeatureIdx,
+    TConstArrayRef<bool> isCatFeature,  // can be empty, it means no categorical data
+    NCB::IRawObjectsOrderDataVisitor* builderVisitor,
+    NPar::ILocalExecutor* localExecutor,
+    std::future<void>* result
+) {
+    *result = std::move(
+        std::async(
+            [=]() {
+                if (isCatFeature) {
+                    NPar::ParallelFor(
+                        *localExecutor,
+                        0,
+                        objCount,
+                        [=] (ui32 objIdx) {
+                            const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                            for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
+                                const auto value = *dataPtr;
+                                if (isCatFeature[featureIdx]) {
+                                    const auto isFloat
+                                        = std::is_same<TFloatOrInteger, float>::value
+                                            || std::is_same<TFloatOrInteger, double>::value;
+                                    CB_ENSURE(
+                                        !isFloat,
+                                        "Invalid value for cat_feature[" << objIdx << "," << featureIdx << "]="
+                                         << value << " cat_features must be integer or string. Real numbers"
+                                         "and NaNs should be converted to strings."
+                                    );
+                                    const auto catValue = ToString(value);
+                                    builderVisitor->AddCatFeature(objIdx, featureIdx, catValue);
+                                } else {
+                                    builderVisitor->AddFloatFeature(objIdx, featureIdx, value);
+                                }
+                                dataPtr += elementStride;
+                            }
+                        }
+                    );
+                } else {
+                    if constexpr (std::is_same<TFloatOrInteger, float>::value) {
+                        if (elementStride == 1) {
+                            size_t featureCount = mainDataFeatureIdxToDstFeatureIdx.size();
+                            NPar::ParallelFor(
+                                *localExecutor,
+                                0,
+                                objCount,
+                                [=] (ui32 objIdx) {
+                                    const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                                    builderVisitor->AddAllFloatFeatures(
+                                        objIdx,
+                                        TConstArrayRef<float>(dataPtr, featureCount)
+                                    );
+                                }
+                            );
+                            return;
+                        }
+                    }
+                    NPar::ParallelFor(
+                        *localExecutor,
+                        0,
+                        objCount,
+                        [=] (ui32 objIdx) {
+                            const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                            for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
+                                builderVisitor->AddFloatFeature(objIdx, featureIdx, *dataPtr);
+                                dataPtr += elementStride;
+                            }
+                        }
+                    );
+                }
+            }
+        )
+    );
+}
+
+
 template <typename TFloatOrInteger>
 void SetDataFromScipyCsrSparse(
     TConstArrayRef<ui32> indptr,
@@ -264,7 +355,7 @@ void SetDataFromScipyCsrSparse(
     );
 }
 
-size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider) noexcept;
 TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);
 
 
@@ -282,3 +373,15 @@ void TrainEvalSplit(
 TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount);
 
 size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription);
+
+void GetNumFeatureValuesSample(
+    const TFullModel& model,
+    const NCatboostOptions::TDatasetReadingParams& datasetReadingParams,
+    int threadCount,
+    const TVector<ui32>& sampleIndicesVector,
+    const TVector<TString>& sampleIdsVector,
+    TVector<TArrayRef<float>>* numFeaturesColumns
+);
+
+
+TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model);

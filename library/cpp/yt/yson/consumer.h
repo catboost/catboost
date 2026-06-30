@@ -31,7 +31,7 @@ struct IYsonConsumer
     /*!
      *  \param value A scalar value.
      */
-    virtual void OnUint64Scalar(ui64 scalar) = 0;
+    virtual void OnUint64Scalar(ui64 value) = 0;
 
     //! The current item is an FP scalar (IDoubleNode).
     /*!
@@ -83,7 +83,7 @@ struct IYsonConsumer
 
     //! Starts attributes.
     /*!
-     *  An arbitrary node may be preceeded by attributes.
+     *  An arbitrary node may be preceded by attributes.
      *
      *  The events describing attributes are raised as follows:
      *  - #OnBeginAttributes

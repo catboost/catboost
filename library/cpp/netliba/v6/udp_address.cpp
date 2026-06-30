@@ -196,7 +196,7 @@ namespace NNetliba {
                 continue;
             }
             if (ptr->Mtu < 1280) {
-                fprintf(stderr, "WARNING: MTU %d is less then ipv6 minimum", ptr->Mtu);
+                fprintf(stderr, "WARNING: MTU %lu is less then ipv6 minimum", ptr->Mtu);
             }
             for (IP_ADAPTER_UNICAST_ADDRESS* addr = ptr->FirstUnicastAddress; addr; addr = addr->Next) {
                 sockaddr* x = (sockaddr*)addr->Address.lpSockaddr;
@@ -278,7 +278,7 @@ namespace NNetliba {
         char buf[1000];
         if (addr.IsIPv4()) {
             int ip = addr.GetIPv4();
-            sprintf(buf, "%d.%d.%d.%d:%d",
+            snprintf(buf, sizeof(buf), "%d.%d.%d.%d:%d",
                     (ip >> 0) & 0xff, (ip >> 8) & 0xff,
                     (ip >> 16) & 0xff, (ip >> 24) & 0xff,
                     addr.Port);
@@ -288,9 +288,9 @@ namespace NNetliba {
             *BreakAliasing<ui64>(ipv6 + 4) = addr.Interface;
             char suffix[100] = "";
             if (addr.Scope != 0) {
-                sprintf(suffix, "%%%d", addr.Scope);
+                snprintf(suffix, sizeof(suffix), "%%%d", addr.Scope);
             }
-            sprintf(buf, "[%x:%x:%x:%x:%x:%x:%x:%x%s]:%d",
+            snprintf(buf, sizeof(buf), "[%x:%x:%x:%x:%x:%x:%x:%x%s]:%d",
                     ntohs(ipv6[0]), ntohs(ipv6[1]), ntohs(ipv6[2]), ntohs(ipv6[3]),
                     ntohs(ipv6[4]), ntohs(ipv6[5]), ntohs(ipv6[6]), ntohs(ipv6[7]),
                     suffix, addr.Port);

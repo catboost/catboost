@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: 0BSD
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       tuklib_physmem.c
 /// \brief      Get the amount of physical memory
 //
 //  Author:     Lasse Collin
-//
-//  This file has been put into the public domain.
-//  You can do whatever you want with this file.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -23,22 +22,22 @@
 
 #elif defined(__OS2__)
 #	define INCL_DOSMISC
-#	include <os2.h>
+#	error #include <os2.h>
 
 #elif defined(__DJGPP__)
 #	error #include <dpmi.h>
 
 #elif defined(__VMS)
-#	include <lib$routines.h>
-#	include <syidef.h>
-#	include <ssdef.h>
+#	error #include <lib$routines.h>
+#	error #include <syidef.h>
+#	error #include <ssdef.h>
 
 #elif defined(AMIGA) || defined(__AROS__)
 #	define __USE_INLINE__
-#	include <proto/exec.h>
+#	error #include <proto/exec.h>
 
 #elif defined(__QNX__)
-#	include <sys/syspage.h>
+#	error #include <sys/syspage.h>
 #	include <string.h>
 
 #elif defined(TUKLIB_PHYSMEM_AIX)
@@ -79,12 +78,20 @@ tuklib_physmem(void)
 	uint64_t ret = 0;
 
 #if defined(_WIN32) || defined(__CYGWIN__)
+	// This requires Windows 2000 or later.
+	MEMORYSTATUSEX meminfo;
+	meminfo.dwLength = sizeof(meminfo);
+	if (GlobalMemoryStatusEx(&meminfo))
+		ret = meminfo.ullTotalPhys;
+
+/*
+	// Old version that is compatible with even Win95:
 	if ((GetVersion() & 0xFF) >= 5) {
 		// Windows 2000 and later have GlobalMemoryStatusEx() which
 		// supports reporting values greater than 4 GiB. To keep the
 		// code working also on older Windows versions, use
 		// GlobalMemoryStatusEx() conditionally.
-		HMODULE kernel32 = GetModuleHandle(TEXT("kernel32.dll"));
+		HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
 		if (kernel32 != NULL) {
 			typedef BOOL (WINAPI *gmse_type)(LPMEMORYSTATUSEX);
 			gmse_type gmse = (gmse_type)GetProcAddress(
@@ -107,6 +114,7 @@ tuklib_physmem(void)
 		GlobalMemoryStatus(&meminfo);
 		ret = meminfo.dwTotalPhys;
 	}
+*/
 
 #elif defined(__OS2__)
 	unsigned long mem;
@@ -140,7 +148,7 @@ tuklib_physmem(void)
 			ret += entries[i].end - entries[i].start + 1;
 
 #elif defined(TUKLIB_PHYSMEM_AIX)
-	ret = _system_configuration.physmem;
+	ret = (uint64_t)_system_configuration.physmem;
 
 #elif defined(TUKLIB_PHYSMEM_SYSCONF)
 	const long pagesize = sysconf(_SC_PAGESIZE);

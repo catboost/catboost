@@ -23,6 +23,7 @@ Possible values:
 - {{ fit__model-format_applecoreml }}(only datasets without categorical features are currently supported).
 - {{ fitpython__model-format_json }} — JSON format. Refer to the [CatBoost JSON model tutorial]({{ catboost-repo__json-tutorial }}) for format details.
 - {{ fitpython__model-format_onnx }} — ONNX-ML format (only datasets without categorical features are currently supported). Refer to [https://onnx.ai/](https://onnx.ai/) for details. See the [ONNX](../../../concepts/apply-onnx-ml.md) section for details on applying the resulting model.
+- {{ model-format__cpusnapshot }} — CatBoost training snapshot format (only CPU and datasets without categorical features are currently supported).
 
 **Possible types**
 

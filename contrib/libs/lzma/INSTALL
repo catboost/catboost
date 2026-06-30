@@ -16,19 +16,22 @@ XZ Utils Installation
             1.2.8. DOS
             1.2.9. z/OS
        1.3. Adding support for new platforms
-    2. configure options
+    2. configure and CMake options
        2.1. Static vs. dynamic linking of liblzma
        2.2. Optimizing xzdec and lzmadec
     3. xzgrep and other scripts
        3.1. Dependencies
        3.2. PATH
-    4. Troubleshooting
-       4.1. "No C99 compiler was found."
-       4.2. "No POSIX conforming shell (sh) was found."
-       4.3. configure works but build fails at crc32_x86.S
-       4.4. Lots of warnings about symbol visibility
-       4.5. "make check" fails
-       4.6. liblzma.so (or similar) not found when running xz
+    4. Tests
+       4.1 Testing in parallel
+       4.2 Cross compiling
+    5. Troubleshooting
+       5.1. "No C99 compiler was found."
+       5.2. "No POSIX conforming shell (sh) was found."
+       5.3. configure works but build fails at crc32_x86.S
+       5.4. Lots of warnings about symbol visibility
+       5.5. "make check" fails
+       5.6. liblzma.so (or similar) not found when running xz
 
 
 0. Preface
@@ -73,6 +76,11 @@ XZ Utils Installation
     you use CC=xlc instead, you must disable threading support
     with --disable-threads (usually not recommended).
 
+    If building a 32-bit executable, the address space available to xz
+    might be limited to 256 MiB by default. To increase the address
+    space to 2 GiB, pass LDFLAGS=-Wl,-bmaxdata:0x80000000 as an argument
+    to configure.
+
 
 1.2.2. IRIX
 
@@ -87,21 +95,15 @@ XZ Utils Installation
 
 1.2.3. MINIX 3
 
-    The default install of MINIX 3 includes Amsterdam Compiler Kit (ACK),
-    which doesn't support C99. Install GCC to compile XZ Utils.
+    Version 3.3.0 and later are supported.
 
-    MINIX 3.1.8 and older have bugs in /usr/include/stdint.h, which has
-    to be patched before XZ Utils can be compiled correctly. See
-    <http://gforge.cs.vu.nl/gf/project/minix/tracker/?action=TrackerItemEdit&tracker_item_id=537>.
+    Multithreading isn't supported because MINIX 3 doesn't have
+    pthreads. The option --disable-threads must be passed to configure
+    as this isn't autodetected.
 
-    MINIX 3.2.0 and later use a different libc and aren't affected by
-    the above bug.
-
-    XZ Utils doesn't have code to detect the amount of physical RAM and
-    number of CPU cores on MINIX 3.
-
-    See section 4.4 in this file about symbol visibility warnings (you
-    may want to pass gl_cv_cc_visibility=no to configure).
+    Note that disabling threads causes "make check" to show a few tests
+    as skipped ("SKIP"). It's only due to a few threading-dependent
+    subtests are skipped. See the matching tests/test_*.log files.
 
 
 1.2.4. OpenVMS
@@ -127,56 +129,50 @@ XZ Utils Installation
     missing from PATH (/usr/xpg4/bin or /usr/xpg6/bin). Nowadays
     /usr/xpg4/bin is added to the script PATH by default on Solaris
     (see --enable-path-for-scripts=PREFIX in section 2), but old xz
-    releases needed extra steps. See sections 4.5 and 3.2 for more
+    releases needed extra steps. See sections 5.5 and 3.2 for more
     information.
 
 
 1.2.6. Tru64
 
     If you try to use the native C compiler on Tru64 (passing CC=cc to
-    configure), you may need the workaround mention in section 4.1 in
+    configure), you may need the workaround mention in section 5.1 in
     this file (pass also ac_cv_prog_cc_c99= to configure).
 
 
 1.2.7. Windows
 
-    If it is enough to build liblzma (no command line tools):
+    The "windows" directory contains instructions for a few types
+    of builds:
 
-      - There is CMake support. It should be good enough to build
-        static liblzma or liblzma.dll with Visual Studio. The CMake
-        support may work with MinGW or MinGW-w64. Read the comment
-        in the beginning of CMakeLists.txt before running CMake!
+      - INSTALL-MinGW-w64_with_CMake.txt
+                Simple instructions how to build XZ Utils natively on
+                Windows using only CMake and a prebuilt toolchain
+                (GCC + MinGW-w64 or Clang/LLVM + MinGW-w64).
 
-      - There are Visual Studio project files under the "windows"
-        directory. See windows/INSTALL-MSVC.txt. In the future the
-        project files will be removed when CMake support is good
-        enough. Thus, please test the CMake version and help fix
-        possible issues.
+      - INSTALL-MinGW-w64_with_Autotools.txt
+                Native build under MSYS2 or cross-compilation from
+                GNU/Linux using a bash script that creates a .zip
+                and .7z archives of the binaries and documentation.
+                The related file README-Windows.txt is for the
+                resulting binary package.
 
-    To build also the command line tools:
+      - INSTALL-MSVC.txt
+                Building with MSVC / Visual Studio and CMake.
 
-      - MinGW-w64 + MSYS (32-bit and 64-bit x86): This is used
-        for building the official binary packages for Windows.
-        There is windows/build.bash to ease packaging XZ Utils with
-        MinGW(-w64) + MSYS into a redistributable .zip or .7z file.
-        See windows/INSTALL-MinGW.txt for more information.
+      - liblzma-crt-mixing.txt
+                Documentation what to take into account as a programmer
+                if liblzma.dll and the application don't use the same
+                CRT (MSVCRT or UCRT).
 
-      - MinGW + MSYS (32-bit x86): I haven't recently tested this.
+    Other choices:
 
-      - Cygwin 1.7.35 and later: NOTE that using XZ Utils >= 5.2.0
-        under Cygwin older than 1.7.35 can lead to DATA LOSS! If
-        you must use an old Cygwin version, stick to XZ Utils 5.0.x
-        which is safe under older Cygwin versions. You can check
-        the Cygwin version with the command "cygcheck -V".
+      - Cygwin: https://cygwin.com/
+        Building on Cygwin can be done like on many POSIX operating
+        systems. XZ Utils >= 5.2.0 isn't compatible with Cygwin older
+        than 1.7.35 (data loss!). 1.7.35 was released on 2015-03-04.
 
-    It may be possible to build liblzma with other toolchains too, but
-    that will probably require writing a separate makefile. Building
-    the command line tools with non-GNU toolchains will be harder than
-    building only liblzma.
-
-    Even if liblzma is built with MinGW(-w64), the resulting DLL can
-    be used by other compilers and linkers, including MSVC. See
-    windows/README-Windows.txt for details.
+      - MSYS2: https://www.msys2.org/
 
 
 1.2.8. DOS
@@ -222,19 +218,53 @@ XZ Utils Installation
     in C89 or C++.
 
 
-2. configure options
---------------------
+2. configure and CMake options
+------------------------------
 
     In most cases, the defaults are what you want. Many of the options
     below are useful only when building a size-optimized version of
     liblzma or command line tools.
 
+    configure options are those that begin with two dashes "--"
+    or "gl_".
+
+    CMake options begin with "XZ_", "TUKLIB_", or "CMAKE_". To use
+    them on the command line, prefix them with "-D", for example,
+    "cmake -DCMAKE_COMPILE_WARNING_AS_ERROR=ON".
+
+    CMAKE_BUILD_TYPE=TYPE
+                CMake only:
+
+                For release builds, CMAKE_BUILD_TYPE=Release is fine.
+                On targets where CMake defaults to -O3, the default
+                value is overridden to -O2.
+
+                Empty value (CMAKE_BUILD_TYPE=) is fine if using custom
+                optimization options. *In this package* the empty build
+                type also disables debugging code just like "Release"
+                does. To enable debugging code with empty build type,
+                use -UNDEBUG in the CFLAGS environment variable or in
+                the CMAKE_C_FLAGS CMake variable to override -DNDEBUG.
+
+                Non-standard build types like "None" do NOT disable
+                debugging code! Such non-standard build types should
+                be avoided for production builds!
+
     --enable-encoders=LIST
     --disable-encoders
-                Specify a comma-separated LIST of filter encoders to
-                build. See "./configure --help" for exact list of
-                available filter encoders. The default is to build all
-                supported encoders.
+    XZ_ENCODERS=LIST
+                Specify a LIST of filter encoders to build. In the
+                configure option the list is comma separated.
+                CMake lists are semicolon separated.
+
+                To see the exact list of available filter encoders:
+
+                  - Autotools: ./configure --help
+
+                  - CMake: Configure the tree normally first, then use
+                    "cmake -LH ." to list the cache variables.
+
+                The default is to build all supported encoders.
 
                 If LIST is empty or --disable-encoders is used, no filter
                 encoders will be built and also the code shared between
@@ -246,10 +276,12 @@ XZ Utils Installation
 
     --enable-decoders=LIST
     --disable-decoders
+    XZ_DECODERS=LIST
                 This is like --enable-encoders but for decoders. The
                 default is to build all supported decoders.
 
     --enable-match-finders=LIST
+    XZ_MATCH_FINDERS=LIST
                 liblzma includes two categories of match finders:
                 hash chains and binary trees. Hash chains (hc3 and hc4)
                 are quite fast but they don't provide the best compression
@@ -266,9 +298,11 @@ XZ Utils Installation
                 or LZMA2 filter encoders are being built.
 
     --enable-checks=LIST
+    XZ_CHECKS=LIST
                 liblzma support multiple integrity checks. CRC32 is
-                mandatory, and cannot be omitted. See "./configure --help"
-                for exact list of available integrity check types.
+                mandatory, and cannot be omitted. Supported check
+                types are "crc32", "crc64", and "sha256". By default
+                all supported check types are enabled.
 
                 liblzma and the command line tools can decompress files
                 which use unsupported integrity check type, but naturally
@@ -279,6 +313,7 @@ XZ Utils Installation
                 it is known to not cause problems.
 
     --enable-external-sha256
+    XZ_EXTERNAL_SHA256=ON
                 Try to use SHA-256 code from the operating system libc
                 or similar base system libraries. This doesn't try to
                 use OpenSSL or libgcrypt or such libraries.
@@ -315,6 +350,8 @@ XZ Utils Installation
                         time xz --test foo.xz
 
     --disable-microlzma
+    XZ_MICROLZMA_ENCODER=OFF
+    XZ_MICROLZMA_DECODER=OFF
                 Don't build MicroLZMA encoder and decoder. This omits
                 lzma_microlzma_encoder() and lzma_microlzma_decoder()
                 API functions from liblzma. These functions are needed
@@ -322,6 +359,7 @@ XZ Utils Installation
                 erofs-utils but they may be used by others too.
 
     --disable-lzip-decoder
+    XZ_LZIP_DECODER=OFF
                 Disable decompression support for .lz (lzip) files.
                 This omits the API function lzma_lzip_decoder() from
                 liblzma and .lz support from the xz tool.
@@ -330,6 +368,10 @@ XZ Utils Installation
     --disable-xzdec
     --disable-lzmadec
     --disable-lzmainfo
+    XZ_TOOL_XZ=OFF
+    XZ_TOOL_XZDEC=OFF
+    XZ_TOOL_LZMADEC=OFF
+    XZ_TOOL_LZMAINFO=OFF
                 Don't build and install the command line tool mentioned
                 in the option name.
 
@@ -339,37 +381,63 @@ XZ Utils Installation
                 a dangling man page symlink lzmadec.1 -> xzdec.1 is
                 created.
 
+    XZ_TOOL_SYMLINKS=OFF
+                Don't create the unxz and xzcat symlinks. (There is
+                no "configure" option to disable these symlinks.)
+
     --disable-lzma-links
+    XZ_TOOL_SYMLINKS_LZMA=OFF
                 Don't create symlinks for LZMA Utils compatibility.
                 This includes lzma, unlzma, and lzcat. If scripts are
                 installed, also lzdiff, lzcmp, lzgrep, lzegrep, lzfgrep,
                 lzmore, and lzless will be omitted if this option is used.
 
     --disable-scripts
+    XZ_TOOL_SCRIPTS=OFF
                 Don't install the scripts xzdiff, xzgrep, xzmore, xzless,
                 and their symlinks.
 
     --disable-doc
+    XZ_DOC=OFF
                 Don't install the documentation files to $docdir
                 (often /usr/doc/xz or /usr/local/doc/xz). Man pages
                 will still be installed. The $docdir can be changed
                 with --docdir=DIR.
 
-    --disable-assembler
-                liblzma includes some assembler optimizations. Currently
-                there is only assembler code for CRC32 and CRC64 for
-                32-bit x86.
+    --enable-doxygen
+    XZ_DOXYGEN=ON
+                Enable generation of the HTML version of the liblzma API
+                documentation using Doxygen. The resulting files are
+                installed to $docdir/api. This option assumes that
+                the 'doxygen' tool is available.
 
-                All the assembler code in liblzma is position-independent
-                code, which is suitable for use in shared libraries and
-                position-independent executables. So far only i386
-                instructions are used, but the code is optimized for i686
-                class CPUs. If you are compiling liblzma exclusively for
+                NOTE: --disable-doc or XZ_DOC=OFF don't affect this.
+
+    --disable-assembler
+    XZ_ASM_I386=OFF
+                This disables CRC32 and CRC64 assembly code on
+                32-bit x86. This option currently does nothing
+                on other architectures (not even on x86-64).
+
+                The 32-bit x86 assembly is position-independent code
+                which is suitable for use in shared libraries and
+                position-independent executables. It uses only i386
+                instructions but the code is optimized for i686 class
+                CPUs. If you are compiling liblzma exclusively for
                 pre-i686 systems, you may want to disable the assembler
                 code.
 
+                The assembly code is compatible with only certain OSes
+                and toolchains (it's not compatible with MSVC).
+
+                Since XZ Utils 5.7.1alpha, the 32-bit x86 assembly code
+                co-exists with the modern CLMUL code: CLMUL is used if
+                support for it is detected at runtime. On old processors
+                the assembly code is used.
+
     --disable-clmul-crc
-                Disable the use carryless multiplication for CRC
+    XZ_CLMUL_CRC=OFF
+                Disable the use of carryless multiplication for CRC
                 calculation even if compiler support for it is detected.
                 The code uses runtime detection of SSSE3, SSE4.1, and
                 CLMUL instructions on x86. On 32-bit x86 this currently
@@ -380,7 +448,27 @@ XZ Utils Installation
                 required extensions (-msse4.1 -mpclmul) then runtime
                 detection isn't used and the generic code is omitted.
 
+    --disable-arm64-crc32
+    XZ_ARM64_CRC32=OFF
+                Disable the use of the ARM64 CRC32 instruction extension
+                even if compiler support for it is detected. The code will
+                detect support for the instruction at runtime.
+
+                If using compiler options that unconditionally allow the
+                required extensions (-march=armv8-a+crc or -march=armv8.1-a
+                and later) then runtime detection isn't used and the
+                generic code is omitted.
+
+    --disable-loongarch-crc32
+    XZ_LOONGARCH_CRC32=OFF
+                Disable the use of the 64-bit LoongArch CRC32
+                instruction extension even if compiler support for
+                it is detected. There is no runtime detection because
+                all 64-bit LoongArch processors should support
+                the CRC32 instructions.
+
     --enable-unaligned-access
+    TUKLIB_FAST_UNALIGNED_ACCESS=ON
                 Allow liblzma to use unaligned memory access for 16-bit,
                 32-bit, and 64-bit loads and stores. This should be
                 enabled only when the hardware supports this, that is,
@@ -389,10 +477,46 @@ XZ Utils Installation
                 slow. This option shouldn't be used on systems that
                 rely on such emulation.
 
-                Unaligned access is enabled by default on x86, x86-64,
-                big endian PowerPC, some ARM, and some ARM64 systems.
+                Unaligned access is enabled by default on these:
+                  - 32-bit x86
+                  - 64-bit x86-64
+                  - 32-bit big endian PowerPC
+                  - 64-bit big endian PowerPC
+                  - 64-bit little endian PowerPC
+                  - some RISC-V [1]
+                  - some 32-bit ARM [2]
+                  - some 64-bit ARM64 [2] (NOTE: Autodetection bug
+                    if using GCC -mstrict-align, see below.)
+
+                [1] Unaligned access is enabled by default if
+                    configure sees that the C compiler
+                    #defines __riscv_misaligned_fast.
+
+                [2] Unaligned access is enabled by default if
+                    configure sees that the C compiler
+                    #defines __ARM_FEATURE_UNALIGNED:
+
+                      - ARMv7 + GCC or Clang: It works. The options
+                        -munaligned-access and -mno-unaligned-access
+                        affect this macro correctly.
+
+                      - ARM64 + Clang: It works. The options
+                        -munaligned-access, -mno-unaligned-access,
+                        and -mstrict-align affect this macro correctly.
+                        Clang >= 17 supports -mno-strict-align too.
+
+                      - ARM64 + GCC: It partially works. The macro
+                        is always #defined by GCC versions at least
+                        up to 13.2, even when using -mstrict-align.
+                        If building for strict-align ARM64, the
+                        configure option --disable-unaligned-access
+                        should be used if using a GCC version that has
+                        this issue because otherwise the performance
+                        may be degraded. It likely won't crash due to
+                        how unaligned access is done in the C code.
 
     --enable-unsafe-type-punning
+    TUKLIB_USE_UNSAFE_TYPE_PUNNING=ON
                 This enables use of code like
 
                     uint8_t *buf8 = ...;
@@ -409,6 +533,7 @@ XZ Utils Installation
                 GCC 3 and early 4.x on x86, GCC < 6 on ARMv6 and ARMv7).
 
     --enable-small
+    XZ_SMALL=ON
                 Reduce the size of liblzma by selecting smaller but
                 semantically equivalent version of some functions, and
                 omit precomputed lookup tables. This option tends to
@@ -425,6 +550,7 @@ XZ Utils Installation
                 flag(s) to CFLAGS manually.
 
     --enable-assume-ram=SIZE
+    XZ_ASSUME_RAM=SIZE
                 On the most common operating systems, XZ Utils is able to
                 detect the amount of physical memory on the system. This
                 information is used by the options --memlimit-compress,
@@ -441,6 +567,7 @@ XZ Utils Installation
                 src/common/tuklib_physmem.c for details.
 
     --enable-threads=METHOD
+    XZ_THREADS=METHOD
                 Threading support is enabled by default so normally there
                 is no need to specify this option.
 
@@ -455,14 +582,16 @@ XZ Utils Installation
                         win95   Use Windows 95 compatible threads. This
                                 is compatible with Windows XP and later
                                 too. This is the default for 32-bit x86
-                                Windows builds. The `win95' threading is
-                                incompatible with --enable-small.
+                                Windows builds. Unless the compiler
+                                supports __attribute__((__constructor__)),
+                                the 'win95' threading is incompatible with
+                                --enable-small.
 
                         vista   Use Windows Vista compatible threads. The
                                 resulting binaries won't run on Windows XP
                                 or older. This is the default for Windows
                                 excluding 32-bit x86 builds (that is, on
-                                x86-64 the default is `vista').
+                                x86-64 the default is 'vista').
 
                         no      Disable threading support. This is the
                                 same as using --disable-threads.
@@ -475,13 +604,17 @@ XZ Utils Installation
                                 one thread, something bad may happen.
 
     --enable-sandbox=METHOD
-                There is limited sandboxing support in the xz tool. If
-                built with sandbox support, it's used automatically when
-                (de)compressing exactly one file to standard output and
-                the options --files or --files0 weren't used. This is a
-                common use case, for example, (de)compressing .tar.xz
-                files via GNU tar. The sandbox is also used for
-                single-file `xz --test' or `xz --list'.
+    XZ_SANDBOX=METHOD
+                There is limited sandboxing support in the xz and xzdec
+                tools. If built with sandbox support, xz uses it
+                automatically when (de)compressing exactly one file to
+                standard output when the options --files or --files0 aren't
+                used. This is a common use case, for example,
+                (de)compressing .tar.xz files via GNU tar. The sandbox is
+                also used for single-file 'xz --test' or 'xz --list'.
+                xzdec always uses the sandbox, except when more than one
+                file are decompressed. In this case it will enable the
+                sandbox for the last file that is decompressed.
 
                 Supported METHODs:
 
@@ -493,7 +626,7 @@ XZ Utils Installation
                         no      Disable sandboxing support.
 
                         capsicum
-                                Use Capsicum (FreeBSD >= 10) for
+                                Use Capsicum (FreeBSD >= 10.2) for
                                 sandboxing. If no Capsicum support
                                 is found, configure will give an error.
 
@@ -501,23 +634,76 @@ XZ Utils Installation
                                 sandboxing. If pledge(2) isn't found,
                                 configure will give an error.
 
-    --enable-symbol-versions
-                Use symbol versioning for liblzma. This is enabled by
-                default on GNU/Linux, other GNU-based systems, and
-                FreeBSD.
+                        landlock
+                                Use Landlock (Linux >= 5.13) for
+                                sandboxing. If no Landlock support
+                                is found, configure will give an error.
+
+    --enable-symbol-versions[=VARIANT]
+    XZ_SYMBOL_VERSIONING=VARIANT
+                Use symbol versioning for liblzma shared library.
+                This is enabled by default on GNU/Linux (glibc only),
+                other GNU-based systems, and FreeBSD.
+
+                Symbol versioning is never used for static liblzma. This
+                option is ignored when not building a shared library.
+
+                Supported VARIANTs:
+
+                        no      Disable symbol versioning. This is the
+                                same as using --disable-symbol-versions.
+
+                        auto    Autodetect between "no", "linux",
+                                and "generic".
+
+                        yes     Autodetect between "linux" and
+                                "generic". This forces symbol
+                                versioning to be used when
+                                building a shared library.
+
+                        generic Generic version is the default for
+                                FreeBSD and GNU/Linux on MicroBlaze.
+
+                                This is also used on GNU/Linux when
+                                building with NVIDIA HPC Compiler
+                                because the compiler doesn't support
+                                the features required for the "linux"
+                                variant below.
+
+                        linux   Special version for GNU/Linux (glibc
+                                only). This adds a few extra symbol
+                                versions for compatibility with binaries
+                                that have been linked against a liblzma
+                                version that has been patched with
+                                "xz-5.2.2-compat-libs.patch" from
+                                RHEL/CentOS 7. That patch was used
+                                by some build tools outside of
+                                RHEL/CentOS 7 too.
 
     --enable-debug
                 This enables the assert() macro and possibly some other
                 run-time consistency checks. It makes the code slower, so
                 you normally don't want to have this enabled.
 
+                In CMake, the build type (CMAKE_BUILD_TYPE) controls if
+                -DNDEBUG is passed to the compiler. *In this package*,
+                an empty build type disables debugging code too.
+                Non-standard build types like "None" do NOT disable
+                debugging code!
+
+                To enable debugging code with empty build type in CMake,
+                use -UNDEBUG in the CFLAGS environment variable or in
+                the CMAKE_C_FLAGS CMake variable to override -DNDEBUG.
+
     --enable-werror
+    CMAKE_COMPILE_WARNING_AS_ERROR=ON (CMake >= 3.24)
                 If building with GCC, make all compiler warnings an error,
                 that abort the compilation. This may help catching bugs,
                 and should work on most systems. This has no effect on the
                 resulting binaries.
 
     --enable-path-for-scripts=PREFIX
+    (CMake determines this from the path of XZ_POSIX_SHELL)
                 If PREFIX isn't empty, PATH=PREFIX:$PATH will be set in
                 the beginning of the scripts (xzgrep and others).
                 The default is empty except on Solaris the default is
@@ -533,6 +719,36 @@ XZ Utils Installation
                 Older xz releases support a different method for setting
                 the PATH for the scripts. It is described in section 3.2
                 and is supported in this xz version too.
+
+    gl_cv_posix_shell=/path/to/bin/sh
+    XZ_POSIX_SHELL=/path/to/bin/sh
+                POSIX shell to use for xzgrep and other scripts.
+
+                  - configure should autodetect this well enough.
+                    Typically it's /bin/sh but in some cases, like
+                    Solaris, something else is used.
+
+                  - CMake build uses /bin/sh except on Solaris the
+                    default is /usr/xpg4/bin/sh.
+
+    CMAKE_DLL_NAME_WITH_SOVERSION=ON
+                CMake on native Windows (not Cygwin) only:
+
+                This changes the filename liblzma.dll to liblzma-5.dll.
+
+                The unversioned filename liblzma.dll has been used
+                since XZ Utils 5.0.0 when creating binary packages
+                using the included windows/build.bash. The same
+                unversioned filename is the default with CMake.
+                However, there are popular builds that, very
+                understandably and reasonably, use the versioned
+                filename produced by GNU Libtool.
+
+                This option should usually be left to its default value
+                (OFF). It can be set to ON if the liblzma DLL filename
+                must be compatible with the versioned filename
+                produced by GNU Libtool. For example, binaries
+                distributed in MSYS2 use a versioned DLL filename.
 
 
 2.1. Static vs. dynamic linking of liblzma
@@ -596,7 +812,7 @@ XZ Utils Installation
     a fallback xzdiff will use mkdir to securely create a temporary
     directory. Having mktemp available is still recommended since the
     mkdir fallback method isn't as robust as mktemp is. The original
-    mktemp can be found from <http://www.mktemp.org/>. On GNU, most will
+    mktemp can be found from <https://www.mktemp.org/>. On GNU, most will
     use the mktemp program from GNU coreutils instead of the original
     implementation. Both mktemp versions are fine.
 
@@ -624,10 +840,54 @@ XZ Utils Installation
                 src/scripts/xz*.in
 
 
-4. Troubleshooting
+4. Tests
+--------
+
+    The test framework can be built and run by executing "make check" in
+    the build directory. The tests are a mix of executables and POSIX
+    shell scripts (sh). All tests should pass if the default configuration
+    is used. Disabling features through the configure options may cause
+    some tests to be skipped. If any tests do not pass, see section 5.5.
+
+
+4.1. Testing in parallel
+
+    The tests can be run in parallel using the "-j" make option on systems
+    that support it. For instance, "make -j4 check" will run up to four
+    tests simultaneously.
+
+
+4.2. Cross compiling
+
+    The tests can be built without running them:
+
+        make check TESTS=
+
+    The TESTS variable is the list of tests you wish to run. Leaving it
+    empty will compile the tests without running any.
+
+    If the tests are copied to a target machine to execute, the test data
+    files in the directory tests/files must also be copied. The tests
+    search for the data files using the environment variable $srcdir,
+    expecting to find the data files under $srcdir/files/. If $srcdir
+    isn't set then it defaults to the current directory.
+
+    The shell script tests can be copied from the source directory to the
+    target machine to execute. In addition to the test files, these tests
+    will expect the following relative file paths to execute properly:
+
+        ./create_compress_files
+        ../config.h
+        ../src/xz/xz
+        ../src/xzdec/xzdec
+        ../src/scripts/xzdiff
+        ../src/scripts/xzgrep
+
+
+5. Troubleshooting
 ------------------
 
-4.1. "No C99 compiler was found."
+5.1. "No C99 compiler was found."
 
     You need a C99 compiler to build XZ Utils. If the configure script
     cannot find a C99 compiler and you think you have such a compiler
@@ -642,7 +902,7 @@ XZ Utils Installation
     support enough C99.
 
 
-4.2. "No POSIX conforming shell (sh) was found."
+5.2. "No POSIX conforming shell (sh) was found."
 
     xzgrep and other scripts need a shell that (roughly) conforms
     to POSIX. The configure script tries to find such a shell. If
@@ -652,13 +912,13 @@ XZ Utils Installation
     this error by passing --disable-scripts to configure.
 
 
-4.3. configure works but build fails at crc32_x86.S
+5.3. configure works but build fails at crc32_x86.S
 
     The easy fix is to pass --disable-assembler to the configure script.
 
     The configure script determines if assembler code can be used by
     looking at the configure triplet; there is currently no check if
-    the assembler code can actually actually be built. The x86 assembler
+    the assembler code can actually be built. The x86 assembler
     code should work on x86 GNU/Linux, *BSDs, Solaris, Darwin, MinGW,
     Cygwin, and DJGPP. On other x86 systems, there may be problems and
     the assembler code may need to be disabled with the configure option.
@@ -669,7 +929,7 @@ XZ Utils Installation
     (see INSTALL.generic).
 
 
-4.4. Lots of warnings about symbol visibility
+5.4. Lots of warnings about symbol visibility
 
     On some systems where symbol visibility isn't supported, GCC may
     still accept the visibility options and attributes, which will make
@@ -681,7 +941,7 @@ XZ Utils Installation
     using --enable-werror.
 
 
-4.5. "make check" fails
+5.5. "make check" fails
 
     If the other tests pass but test_scripts.sh fails, then the problem
     is in the scripts in src/scripts. Comparing the contents of
@@ -707,7 +967,7 @@ XZ Utils Installation
     information.
 
 
-4.6. liblzma.so (or similar) not found when running xz
+5.6. liblzma.so (or similar) not found when running xz
 
     If you installed the package with "make install" and get an error
     about liblzma.so (or a similarly named file) being missing, try

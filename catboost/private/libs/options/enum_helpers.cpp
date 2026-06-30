@@ -146,6 +146,7 @@ MakeRegister(LossInfos,
     ),
     Registree(MultiRMSE,
         EMetricAttribute::IsMultiRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MultiRMSEWithMissingValues,
         EMetricAttribute::IsMultiRegression
@@ -155,6 +156,7 @@ MakeRegister(LossInfos,
     ),
     Registree(RMSEWithUncertainty,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(RMSE,
         EMetricAttribute::IsRegression
@@ -204,6 +206,9 @@ MakeRegister(LossInfos,
     Registree(SMAPE,
         EMetricAttribute::IsRegression
     ),
+    Registree(RMSPE,
+        EMetricAttribute::IsRegression
+    ),
     Registree(Huber,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
@@ -248,6 +253,11 @@ MakeRegister(LossInfos,
     ),
     RankingRegistree(QueryRMSE, ERankingType::AbsoluteValue,
         EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
+    ),
+    RankingRegistree(GroupQuantile, ERankingType::AbsoluteValue,
+        EMetricAttribute::IsRegression
+        | EMetricAttribute::IsGroupwise
         | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(QueryAUC, ERankingType::AbsoluteValue,
@@ -436,6 +446,9 @@ MakeRegister(LossInfos,
     Registree(Tweedie,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
+    ),
+    Registree(Focal,
+        EMetricAttribute::IsBinaryClassCompatible
     )
 )
 
@@ -448,7 +461,8 @@ bool IsPlainOnlyModeLoss(ELossFunction loss) {
     return (
         loss == ELossFunction::YetiRankPairwise ||
         loss == ELossFunction::PairLogitPairwise ||
-        loss == ELossFunction::QueryCrossEntropy
+        loss == ELossFunction::QueryCrossEntropy ||
+        loss == ELossFunction::Cox
     );
 }
 
@@ -526,6 +540,7 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::LogLinQuantile,
     ELossFunction::Expectile,
     ELossFunction::MAPE,
+    ELossFunction::RMSPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
     ELossFunction::Huber,
@@ -558,7 +573,8 @@ static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::MultiClass,
     ELossFunction::MultiClassOneVsAll,
     ELossFunction::MultiLogloss,
-    ELossFunction::MultiCrossEntropy
+    ELossFunction::MultiCrossEntropy,
+    ELossFunction::Focal
 };
 
 static const TVector<ELossFunction> MultiLabelObjectives = {
@@ -572,6 +588,7 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::YetiRank,
     ELossFunction::YetiRankPairwise,
     ELossFunction::QueryRMSE,
+    ELossFunction::GroupQuantile,
     ELossFunction::QueryAUC,
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,
@@ -693,6 +710,18 @@ bool IsMultiTargetObjective(ELossFunction loss) {
 
 bool IsMultiTargetObjective(TStringBuf loss) {
     return IsMultiTargetObjective(ParseLossType(loss));
+}
+
+bool IsMultiClassCompatibleObjective(ELossFunction lossFunction) {
+    if (!IsClassificationObjective(lossFunction)) {
+        return false;
+    }
+    auto info = GetInfo(lossFunction);
+    return info->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsMultiClassCompatibleObjective(TStringBuf lossDescription) {
+    return IsMultiClassCompatibleObjective(ParseLossType(lossDescription));
 }
 
 bool IsMultiRegressionMetric(ELossFunction loss) {

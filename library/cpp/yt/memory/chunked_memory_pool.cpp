@@ -15,6 +15,8 @@ TAllocationHolder::TAllocationHolder(TMutableRef ref, TRefCountedTypeCookie cook
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, Ref_.Size());
     }
+#else
+    Y_UNUSED(cookie);
 #endif
 }
 
@@ -56,6 +58,7 @@ TChunkedMemoryPool::TChunkedMemoryPool(
     , ChunkProviderHolder_(std::move(chunkProvider))
     , ChunkProvider_(ChunkProviderHolder_.Get())
 {
+    YT_VERIFY(ChunkProviderHolder_);
     Initialize(startChunkSize);
 }
 

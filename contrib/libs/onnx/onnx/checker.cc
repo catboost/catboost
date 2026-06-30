@@ -1,22 +1,24 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (c) ONNX Project Contributors
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #include "onnx/checker.h"
+
+#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
 #include "onnx/common/file_utils.h"
 #include "onnx/common/path.h"
 #include "onnx/defs/schema.h"
 #include "onnx/defs/tensor_proto_util.h"
-#include "onnx/proto_utils.h"
 #include "onnx/shape_inference/implementation.h"
 #include "onnx/string_utils.h"
 
-#include <fstream>
-#include <iterator>
-#include <unordered_set>
-
 #ifdef _WIN32
 #include <direct.h>
+
 #include <filesystem>
 
 #else // POSIX
@@ -31,13 +33,6 @@ namespace checker {
     if (!proto.has_##field()) {                                                      \
       fail_check("Field '", #field, "' of '", #proto, "' is required but missing."); \
     }                                                                                \
-  } while (0)
-
-#define enforce_has_repeated_field(proto, field)                                              \
-  do {                                                                                        \
-    if (!proto.field##_size()) {                                                              \
-      fail_check("Repeated Field '", #field, "' of '", #proto, "' is required but missing."); \
-    }                                                                                         \
   } while (0)
 
 #define enforce_non_empty_field(proto, field)                                            \
@@ -98,11 +93,11 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
 
   const char* value_field = nullptr;
 
-#define check_data_field(field)             \
-  bool has_##field = tensor.field().size(); \
-  if (has_##field) {                        \
-    ++num_value_fields;                     \
-    value_field = #field;                   \
+#define check_data_field(field)               \
+  bool has_##field = !tensor.field().empty(); \
+  if (has_##field) {                          \
+    ++num_value_fields;                       \
+    value_field = #field;                     \
   }
 
   check_data_field(float_data);
@@ -129,80 +124,7 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
     for (const StringStringEntryProto& entry : tensor.external_data()) {
       if (entry.has_key() && entry.has_value() && entry.key() == "location") {
         has_location = true;
-#ifdef _WIN32
-        auto file_path = std::filesystem::path(utf8str_to_wstring(entry.value()));
-        if (file_path.is_absolute()) {
-          fail_check(
-              "Location of external TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be a relative path, but it is an absolute path: ",
-              entry.value());
-        }
-        auto relative_path = file_path.lexically_normal().make_preferred().wstring();
-        // Check that normalized relative path contains ".." on Windows.
-        if (relative_path.find(L"..", 0) != std::string::npos) {
-          fail_check(
-              "Data of TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be file inside the ",
-              ctx.get_model_dir(),
-              ", but the '",
-              entry.value(),
-              "' points outside the directory");
-        }
-        std::wstring data_path = path_join(utf8str_to_wstring(ctx.get_model_dir()), relative_path);
-        struct _stat buff;
-        if (_wstat(data_path.c_str(), &buff) != 0) {
-          fail_check(
-              "Data of TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be stored in ",
-              entry.value(),
-              ", but it doesn't exist or is not accessible.");
-        }
-#else // POSIX
-        if (entry.value().empty()) {
-          fail_check("Location of external TensorProto ( tensor name: ", tensor.name(), ") should not be empty.");
-        } else if (entry.value()[0] == '/') {
-          fail_check(
-              "Location of external TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be a relative path, but it is an absolute path: ",
-              entry.value());
-        }
-        std::string relative_path = clean_relative_path(entry.value());
-        // Check that normalized relative path contains ".." on POSIX
-        if (relative_path.find("..", 0) != std::string::npos) {
-          fail_check(
-              "Data of TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be file inside the ",
-              ctx.get_model_dir(),
-              ", but the '",
-              entry.value(),
-              "' points outside the directory");
-        }
-        std::string data_path = path_join(ctx.get_model_dir(), relative_path);
-        // use stat to check whether the file exists
-        struct stat buffer;
-        if (stat((data_path).c_str(), &buffer) != 0) {
-          fail_check(
-              "Data of TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be stored in ",
-              data_path,
-              ", but it doesn't exist or is not accessible.");
-        }
-        // Do not allow symlinks or directories.
-        if (!S_ISREG(buffer.st_mode)) {
-          fail_check(
-              "Data of TensorProto ( tensor name: ",
-              tensor.name(),
-              ") should be stored in ",
-              data_path,
-              ", but it is not regular file.");
-        }
-#endif
+        resolve_external_data_location(ctx.get_model_dir(), entry.value(), tensor.name());
       }
     }
     if (!has_location) {
@@ -257,6 +179,13 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
       case TensorProto::BOOL:
       case TensorProto::FLOAT16:
       case TensorProto::BFLOAT16:
+      case TensorProto::FLOAT8E4M3FN:
+      case TensorProto::FLOAT8E4M3FNUZ:
+      case TensorProto::FLOAT8E5M2:
+      case TensorProto::FLOAT8E5M2FNUZ:
+      case TensorProto::UINT4:
+      case TensorProto::INT4:
+      case TensorProto::FLOAT4E2M1:
         check_field(int32_data);
         break;
 
@@ -382,10 +311,8 @@ void check_map(const MapProto& map, const CheckerContext& ctx) {
 // Check that the index data stored in a SparseTensorProto is valid.
 // indices: a 1-dimensional tensor; indices[i] represents the
 // linearized index value for the i-th nonzero value.
-void check_sparse_tensor_indices_1(
-    const TensorProto& indices,
-    const SparseTensorProto& sparse_tensor_proto,
-    size_t nnz) {
+static void
+check_sparse_tensor_indices_1(const TensorProto& indices, const SparseTensorProto& sparse_tensor_proto, size_t nnz) {
   int dense_rank = sparse_tensor_proto.dims_size();
   int64_t dense_size = 1;
   for (int i = 0; i < dense_rank; ++i)
@@ -422,10 +349,8 @@ void check_sparse_tensor_indices_1(
 // Check that the index data stored in a SparseTensorProto is valid.
 // indices: a 2-dimensional tensor; indices[i,j] represents the j-th
 // index value for the i-th nonzero value.
-void check_sparse_tensor_indices_2(
-    const TensorProto& indices,
-    const SparseTensorProto& sparse_tensor_proto,
-    size_t nnz) {
+static void
+check_sparse_tensor_indices_2(const TensorProto& indices, const SparseTensorProto& sparse_tensor_proto, size_t nnz) {
   int dense_rank = sparse_tensor_proto.dims_size();
   if (static_cast<size_t>(indices.dims(0)) != nnz) {
     fail_check("Sparse tensor indices (", indices.name(), ") first dimension size does not equal NNZ.");
@@ -586,7 +511,7 @@ void check_attribute(const AttributeProto& attr, const CheckerContext& ctx, cons
   for (const auto& sparse_tensor : attr.sparse_tensors()) {
     check_sparse_tensor(sparse_tensor, ctx);
   }
-  if (attr.graphs().size() > 0) {
+  if (!attr.graphs().empty()) {
     CheckerContext subgraph_ctx(ctx);
     subgraph_ctx.set_is_main_graph(false);
     for (const auto& graph : attr.graphs()) {
@@ -595,7 +520,7 @@ void check_attribute(const AttributeProto& attr, const CheckerContext& ctx, cons
   }
 }
 
-void print_warning_if_has_experimental(const std::unordered_set<std::string>& used_experimental_ops) {
+static void print_warning_if_has_experimental(const std::unordered_set<std::string>& used_experimental_ops) {
   if (!used_experimental_ops.empty()) {
     std::string all_experimental_ops;
     for (const auto& op : used_experimental_ops) {
@@ -603,7 +528,7 @@ void print_warning_if_has_experimental(const std::unordered_set<std::string>& us
     }
     // Remove the last comma which is unnecessary
     all_experimental_ops.pop_back();
-    std::cout << "Warning: Model contains experimental ops:" + all_experimental_ops << std::endl;
+    std::cout << "Warning: Model contains experimental ops:" + all_experimental_ops << '\n';
   }
 }
 
@@ -622,7 +547,14 @@ void check_node(const NodeProto& node, const CheckerContext& ctx, const LexicalS
   }
   auto domain_version = dit->second;
 
+  // for ops referencing local functions, there is no schema to verify it.
+  // will add a check to verify consistency between these ops and local functions.
+  std::unordered_set<std::string> seen_attr_names{};
   for (const auto& attr : node.attribute()) {
+    if (!seen_attr_names.insert(attr.name()).second) {
+      fail_check("Attribute '", attr.name(), "' appeared multiple times.");
+    };
+
     check_attribute(attr, ctx, lex_ctx);
   }
 
@@ -634,17 +566,11 @@ void check_node(const NodeProto& node, const CheckerContext& ctx, const LexicalS
   const auto* schema = ctx.get_schema_registry()->GetSchema(node.op_type(), domain_version, node.domain());
   if (!schema) {
     if (node.domain() == ONNX_DOMAIN || node.domain() == AI_ONNX_ML_DOMAIN || node.domain() == "ai.onnx" ||
-        node.domain() == AI_ONNX_TRAINING_DOMAIN) {
-      // fail the checker if op in built-in domains has no schema
+        node.domain() == AI_ONNX_TRAINING_DOMAIN || ctx.check_custom_domain()) {
+      // fail the checker if op is in built-in domains or if it has no schema when `check_custom_domain` is true
       fail_check(
           "No Op registered for " + node.op_type() + " with domain_version of " +
           ONNX_NAMESPACE::to_string(domain_version));
-    } else {
-      // TODO: expose the registration of the op schemas appropriately in
-      // python, so we can load and register operators in other domains
-      //
-      // before we complete the above todo, let's skip the schema check for
-      // now
     }
   } else if (schema->Deprecated()) {
     fail_check(
@@ -682,8 +608,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
     lex_ctx.add(value_info.name());
   }
 
-  std::unordered_set<std::reference_wrapper<const std::string>, std::hash<std::string>, std::equal_to<std::string>>
-      initializer_name_checker;
+  std::unordered_set<std::string> initializer_name_checker;
 
   for (const auto& init : graph.initializer()) {
     enforce_has_field(init, name);
@@ -692,7 +617,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
       fail_check("Tensor initializers must have a non-empty name");
     }
 
-    if (!initializer_name_checker.insert(std::cref(name.ConstRef())).second) {
+    if (!initializer_name_checker.emplace(name).second) {
       fail_check(name + " initializer name is not unique");
     }
 
@@ -717,7 +642,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
     if (name.empty()) {
       fail_check("Sparse tensor initializers must have a non-empty name");
     }
-    if (!initializer_name_checker.insert(std::cref(name.ConstRef())).second) {
+    if (!initializer_name_checker.insert(name).second) {
       fail_check(name + " sparse initializer name is not unique across initializers and sparse_initializers");
     }
     check_sparse_tensor(sparse_init, ctx);
@@ -777,12 +702,20 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
       lex_ctx.add(output);
     }
   }
+  for (const auto& value_info : graph.output()) {
+    if (!lex_ctx.this_graph_has(value_info.name())) {
+      fail_check("Graph output '", value_info.name(), "' is not an output of any node in graph.");
+    }
+  }
+
   print_warning_if_has_experimental(used_experimental_ops);
 }
 
 // Utilify function to get the imported version of domain from opset imports
 // Returns -1 if requested domain is not found in the opset_imports
-int get_version_for_domain(const std::string& domain, const std::unordered_map<std::string, int>& opset_imports) {
+static int get_version_for_domain(
+    const std::string& domain,
+    const std::unordered_map<std::string, int>& opset_imports) {
   auto it = opset_imports.find(domain);
   if (it == opset_imports.end()) {
     return -1;
@@ -831,7 +764,7 @@ void check_opset_compatibility(
     fail_check(
         "Opset import for domain " + node.domain() + " in function op " + node.op_type() +
         "is not compatible with the version imported by model. FunctionOp imports version " +
-        ONNX_NAMESPACE::to_string(func_opset_version) + "whereas model imports version " +
+        ONNX_NAMESPACE::to_string(func_opset_version) + " whereas model imports version " +
         ONNX_NAMESPACE::to_string(model_opset_version));
   }
 }
@@ -931,7 +864,8 @@ void check_function(const FunctionProto& function, const CheckerContext& ctx, co
 
     // check whether the opset version imported for a domain by function and model are
     // compatible
-    check_opset_compatibility(node, ctx_copy, func_opset_imports, model_opset_imports);
+    if (!ctx_copy.skip_opset_compatibility_check())
+      check_opset_compatibility(node, ctx_copy, func_opset_imports, model_opset_imports);
     if (check_is_experimental_op(node)) {
       used_experimental_ops.insert(node.op_type());
     }
@@ -955,12 +889,12 @@ void check_function(const FunctionProto& function, const CheckerContext& ctx, co
   print_warning_if_has_experimental(used_experimental_ops);
 }
 
-void check_model(const ModelProto& model, CheckerContext& ctx) {
+static void check_model(const ModelProto& model, CheckerContext& ctx) {
   if (!model.ir_version()) {
     fail_check("The model does not have an ir_version set properly.");
   }
   if (model.ir_version() > IR_VERSION) {
-    fail_check("Your model ir_version is higher than the checker's.");
+    fail_check("Your model ir_version ", model.ir_version(), " is higher than the checker's (", IR_VERSION, ").");
   }
   if (model.metadata_props_size() > 1) {
     std::unordered_set<std::string> keys;
@@ -971,7 +905,6 @@ void check_model(const ModelProto& model, CheckerContext& ctx) {
       }
     }
   }
-  std::unordered_map<std::string, int> versions;
   ctx.set_ir_version(static_cast<int>(model.ir_version()));
   std::unordered_map<std::string, int> opset_imports;
   for (const auto& opset_import : model.opset_import()) {
@@ -994,10 +927,15 @@ void check_model(const ModelProto& model, CheckerContext& ctx) {
 
   if (ctx.get_ir_version() >= 0x00000008) {
     check_model_local_functions(model, ctx, lex_ctx);
+    // TODO: check consistency between local functions and ops referencing it.
   }
 }
 
-void check_model(const std::string& model_path, bool full_check) {
+void check_model(
+    const std::string& model_path,
+    bool full_check,
+    bool skip_opset_compatibility_check,
+    bool check_custom_domain) {
   ModelProto model;
   LoadProtoFromPath(model_path, model);
 
@@ -1008,6 +946,8 @@ void check_model(const std::string& model_path, bool full_check) {
     model_dir = model_path.substr(0, pos + 1);
   }
   ctx.set_model_dir(model_dir);
+  ctx.set_skip_opset_compatibility_check(skip_opset_compatibility_check);
+  ctx.set_check_custom_domain(check_custom_domain);
   check_model(model, ctx);
 
   if (full_check) {
@@ -1016,8 +956,14 @@ void check_model(const std::string& model_path, bool full_check) {
   }
 }
 
-void check_model(const ModelProto& model, bool full_check) {
+void check_model(
+    const ModelProto& model,
+    bool full_check,
+    bool skip_opset_compatibility_check,
+    bool check_custom_domain) {
   CheckerContext ctx;
+  ctx.set_skip_opset_compatibility_check(skip_opset_compatibility_check);
+  ctx.set_check_custom_domain(check_custom_domain);
   check_model(model, ctx);
   if (full_check) {
     ShapeInferenceOptions options{true, 1, false};
@@ -1028,7 +974,94 @@ void check_model(const ModelProto& model, bool full_check) {
   }
 }
 
-std::set<std::string> experimental_ops = {
+std::string resolve_external_data_location(
+    const std::string& base_dir,
+    const std::string& location,
+    const std::string& tensor_name) {
+#ifdef _WIN32
+  auto file_path = std::filesystem::path(utf8str_to_wstring(location));
+  if (file_path.is_absolute()) {
+    fail_check(
+        "Location of external TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be a relative path, but it is an absolute path: ",
+        location);
+  }
+  auto relative_path = file_path.lexically_normal().make_preferred().wstring();
+  // Check that normalized relative path contains ".." on Windows.
+  if (relative_path.find(L"..", 0) != std::string::npos) {
+    fail_check(
+        "Data of TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be file inside the ",
+        base_dir,
+        ", but the '",
+        location,
+        "' points outside the directory");
+  }
+  std::wstring data_path = path_join(utf8str_to_wstring(base_dir), relative_path);
+  struct _stat64 buff;
+  if (data_path.empty() || (data_path[0] != '#' && _wstat64(data_path.c_str(), &buff) != 0)) {
+    fail_check(
+        "Data of TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be stored in ",
+        location,
+        ", but it doesn't exist or is not accessible.");
+  }
+  return wstring_to_utf8str(data_path);
+#else // POSIX
+  if (location.empty()) {
+    fail_check("Location of external TensorProto ( tensor name: ", tensor_name, ") should not be empty.");
+  } else if (location[0] == '/') {
+    fail_check(
+        "Location of external TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be a relative path, but it is an absolute path: ",
+        location);
+  }
+  std::string relative_path = clean_relative_path(location);
+  // Check that normalized relative path contains ".." on POSIX
+  if (relative_path.find("..", 0) != std::string::npos) {
+    fail_check(
+        "Data of TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be file inside the ",
+        base_dir,
+        ", but the '",
+        location,
+        "' points outside the directory");
+  }
+  std::string data_path = path_join(base_dir, relative_path);
+  // use stat64 to check whether the file exists
+#if defined(__APPLE__) || defined(__wasm__) || !defined(__GLIBC__)
+  struct stat buffer; // APPLE, wasm and non-glic stdlibs do not have stat64
+  if (data_path.empty() || (data_path[0] != '#' && stat((data_path).c_str(), &buffer) != 0)) {
+#else
+  struct stat64 buffer{}; // All POSIX under glibc except APPLE and wasm have stat64
+  if (data_path.empty() || (data_path[0] != '#' && stat64((data_path).c_str(), &buffer) != 0)) {
+#endif
+    fail_check(
+        "Data of TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be stored in ",
+        data_path,
+        ", but it doesn't exist or is not accessible.");
+  }
+  // Do not allow symlinks or directories.
+  if (data_path.empty() || (data_path[0] != '#' && !S_ISREG(buffer.st_mode))) {
+    fail_check(
+        "Data of TensorProto ( tensor name: ",
+        tensor_name,
+        ") should be stored in ",
+        data_path,
+        ", but it is not regular file.");
+  }
+  return data_path;
+#endif
+}
+
+static std::unordered_set<std::string> experimental_ops = {
     "ATen",
     "Affine",
     "ConstantFill",
@@ -1045,9 +1078,7 @@ bool check_is_experimental_op(const NodeProto& node) {
   return (node.domain() == ONNX_DOMAIN || node.domain() == "ai.onnx") && experimental_ops.count(node.op_type());
 }
 
-#undef fail_check
 #undef enforce_has_field
-#undef enforce_has_repeated_field
 #undef enforce_non_empty_field
 
 } // namespace checker

@@ -4,6 +4,8 @@
 #include "ref.h"
 #endif
 
+#include <library/cpp/yt/misc/concepts.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +37,11 @@ Y_FORCE_INLINE TRef TRef::FromString(const TString& str)
     return FromStringBuf(str);
 }
 
+Y_FORCE_INLINE TRef TRef::FromString(const std::string& str)
+{
+    return TRef(str.data(), str.size());
+}
+
 Y_FORCE_INLINE TRef TRef::FromStringBuf(TStringBuf strBuf)
 {
     return TRef(strBuf.data(), strBuf.length());
@@ -43,8 +50,8 @@ Y_FORCE_INLINE TRef TRef::FromStringBuf(TStringBuf strBuf)
 template <class T>
 Y_FORCE_INLINE TRef TRef::FromPod(const T& data)
 {
-    static_assert(TTypeTraits<T>::IsPod || std::is_pod<T>::value, "T must be a pod-type.");
-    return TRef(&data, sizeof (data));
+    static_assert(TTypeTraits<T>::IsPod || (std::is_standard_layout_v<T> && std::is_trivial_v<T>), "T must be a pod-type.");
+    return TRef(&data, sizeof(data));
 }
 
 Y_FORCE_INLINE TStringBuf TRef::ToStringBuf() const
@@ -56,6 +63,11 @@ Y_FORCE_INLINE TRef TRef::Slice(size_t startOffset, size_t endOffset) const
 {
     YT_ASSERT(endOffset >= startOffset && endOffset <= Size());
     return TRef(Begin() + startOffset, endOffset - startOffset);
+}
+
+Y_FORCE_INLINE bool TRef::Contains(TRef other) const
+{
+    return other.Begin() >= Begin() && other.End() <= End();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,14 +93,19 @@ Y_FORCE_INLINE TMutableRef::operator TRef() const
 template <class T>
 Y_FORCE_INLINE TMutableRef TMutableRef::FromPod(T& data)
 {
-    static_assert(TTypeTraits<T>::IsPod || std::is_pod<T>::value, "T must be a pod-type.");
-    return TMutableRef(&data, sizeof (data));
+    static_assert(TTypeTraits<T>::IsPod || (std::is_standard_layout_v<T> && std::is_trivial_v<T>), "T must be a pod-type.");
+    return TMutableRef(&data, sizeof(data));
 }
 
 Y_FORCE_INLINE TMutableRef TMutableRef::FromString(TString& str)
 {
     // NB: begin() invokes CloneIfShared().
     return TMutableRef(str.begin(), str.length());
+}
+
+Y_FORCE_INLINE TMutableRef TMutableRef::FromString(std::string& str)
+{
+    return TMutableRef(str.data(), str.length());
 }
 
 Y_FORCE_INLINE TMutableRef TMutableRef::Slice(size_t startOffset, size_t endOffset) const
@@ -124,10 +141,23 @@ Y_FORCE_INLINE TSharedRef::operator TRef() const
 template <class TTag>
 Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
 {
+    static_assert(IsEmptyClass<TTag>());
     return FromString(std::move(str), GetRefCountedTypeCookie<TTag>());
 }
 
 Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
+{
+    return FromString<TDefaultSharedBlobTag>(std::move(str));
+}
+
+template <class TTag>
+Y_FORCE_INLINE TSharedRef TSharedRef::FromString(std::string str)
+{
+    static_assert(IsEmptyClass<TTag>());
+    return FromString(std::move(str), GetRefCountedTypeCookie<TTag>());
+}
+
+Y_FORCE_INLINE TSharedRef TSharedRef::FromString(std::string str)
 {
     return FromString<TDefaultSharedBlobTag>(std::move(str));
 }
@@ -140,6 +170,7 @@ Y_FORCE_INLINE TStringBuf TSharedRef::ToStringBuf() const
 template <class TTag>
 Y_FORCE_INLINE TSharedRef TSharedRef::MakeCopy(TRef ref)
 {
+    static_assert(IsEmptyClass<TTag>());
     return MakeCopy(ref, GetRefCountedTypeCookie<TTag>());
 }
 
@@ -200,9 +231,15 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
     return AllocatePageAligned<TDefaultSharedBlobTag>(size, options);
 }
 
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    return AllocateViaMmap<TDefaultSharedBlobTag>(size, options);
+}
+
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref)
 {
+    static_assert(IsEmptyClass<TTag>());
     return MakeCopy(ref, GetRefCountedTypeCookie<TTag>());
 }
 
@@ -222,13 +259,22 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Slice(void* begin, void* end
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllocateOptions options)
 {
+    static_assert(IsEmptyClass<TTag>());
     return Allocate(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options)
 {
+    static_assert(IsEmptyClass<TTag>());
     return AllocatePageAligned(size, options, GetRefCountedTypeCookie<TTag>());
+}
+
+template <class TTag>
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    static_assert(IsEmptyClass<TTag>());
+    return AllocateViaMmap(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -251,7 +297,7 @@ size_t GetByteSize(TRange<T> parts)
 template <class T>
 size_t GetByteSize(const std::vector<T>& parts)
 {
-    return GetByteSize(MakeRange(parts));
+    return GetByteSize(TRange(parts));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +506,7 @@ Y_FORCE_INLINE TSharedRefArray::TSharedRefArray(const TParts& parts, TSharedRefA
 
 template <class TParts>
 Y_FORCE_INLINE TSharedRefArray::TSharedRefArray(TParts&& parts, TSharedRefArray::TMoveParts)
-    : Impl_(NewImpl(parts.size(), 0, GetRefCountedTypeCookie<TSharedRefArrayTag>(), std::move(parts), TSharedRefArray::TMoveParts{}))
+    : Impl_(NewImpl(parts.size(), 0, GetRefCountedTypeCookie<TSharedRefArrayTag>(), std::forward<TParts>(parts), TSharedRefArray::TMoveParts{}))
 { }
 
 Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(const TSharedRefArray& other)
@@ -469,7 +515,7 @@ Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(const TSharedRefArray
     return *this;
 }
 
-Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(TSharedRefArray&& other)
+Y_FORCE_INLINE TSharedRefArray& TSharedRefArray::operator=(TSharedRefArray&& other) noexcept
 {
     Impl_ = std::move(other.Impl_);
     return *this;
@@ -523,7 +569,7 @@ TSharedRefArrayImplPtr TSharedRefArray::NewImpl(
     TRefCountedTypeCookie tagCookie,
     As&&... args)
 {
-    auto extraSpaceSize = sizeof (TSharedRef) * size + poolCapacity;
+    auto extraSpaceSize = sizeof(TSharedRef) * size + poolCapacity;
     return NewWithExtraSpace<TSharedRefArrayImpl>(
         extraSpaceSize,
         extraSpaceSize,

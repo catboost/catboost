@@ -1,42 +1,9 @@
-import atexit
-import six
-from six import iteritems, string_types, PY3
-from six.moves import range
-from json import dumps, loads, JSONEncoder
-from copy import deepcopy
-from collections import defaultdict
-import functools
-import traceback
-import numbers
-
-import sys
-if sys.version_info >= (3, 3):
-    from collections.abc import Iterable, Sequence
-else:
-    from collections import Iterable, Sequence
-import platform
-
-cimport cython
-from cython.operator cimport dereference, preincrement
-
-from libc.math cimport isnan, modf
-from libc.stdint cimport uint32_t, uint64_t
-from libc.string cimport memcpy
 from libcpp cimport bool as bool_t
-from libcpp cimport nullptr
-from libcpp.map cimport map as cmap
-from libcpp.vector cimport vector
-from libcpp.pair cimport pair
-from cpython.ref cimport PyObject
 
-from util.generic.array_ref cimport TArrayRef, TConstArrayRef
-from util.generic.hash cimport THashMap
-from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
-from util.generic.string cimport TString, TStringBuf
+from util.generic.string cimport TString
 from util.generic.vector cimport TVector
-from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
-from util.string.cast cimport StrToD, TryFromString, ToString
+from util.system.types cimport ui32, i64
+
 
 ctypedef const TString const_TString
 
@@ -53,11 +20,7 @@ cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespa
 
 cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" namespace "NPar":
     cdef cppclass TTbbLocalExecutor[false]:
-        TTbbLocalExecutor(int nThreads) nogil
-
-
-cdef extern from "catboost/private/libs/options/json_helper.h":
-    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException
+        TTbbLocalExecutor(int nThreads) except +ProcessException nogil
 
 
 cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
@@ -73,7 +36,7 @@ cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
         JSON_UINTEGER
 
     cdef cppclass TJsonValue:
-        EJsonValueType GetType()
+        EJsonValueType GetType() noexcept
         i64 GetInteger() except +ProcessException
         double GetDouble() except +ProcessException
         const TString& GetString() except +ProcessException
@@ -86,7 +49,7 @@ cdef extern from "util/stream/input.h":
 
 cdef extern from "catboost/libs/model/enums.h":
     cdef cppclass EFormulaEvaluatorType:
-        bool_t operator==(EFormulaEvaluatorType)
+        bool_t operator==(EFormulaEvaluatorType) noexcept
 
     cdef EFormulaEvaluatorType EFormulaEvaluatorType_CPU "EFormulaEvaluatorType::CPU"
     cdef EFormulaEvaluatorType EFormulaEvaluatorType_GPU "EFormulaEvaluatorType::GPU"
@@ -94,18 +57,18 @@ cdef extern from "catboost/libs/model/enums.h":
 
 cdef extern from "catboost/libs/model/scale_and_bias.h":
     cdef cppclass TScaleAndBias:
-        TScaleAndBias()
-        TScaleAndBias(double scale, TVector[double]& bias)
+        TScaleAndBias() noexcept
+        TScaleAndBias(double scale, TVector[double]& bias) except +ProcessException
 
         double Scale
         TVector[double] Bias
 
-        TVector[double]& GetBiasRef()  except +ProcessException
+        TVector[double]& GetBiasRef() noexcept
 
 
 cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass EFeatureType:
-        bool_t operator==(EFeatureType)
+        bool_t operator==(EFeatureType) noexcept
 
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
@@ -114,7 +77,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
 
 
     cdef cppclass EPredictionType:
-        bool_t operator==(EPredictionType)
+        bool_t operator==(EPredictionType) noexcept
 
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
@@ -154,4 +117,4 @@ cdef extern from "catboost/private/libs/data_types/pair.h":
         ui32 WinnerId
         ui32 LoserId
         float Weight
-        TPair(ui32 winnerId, ui32 loserId, float weight) nogil except +ProcessException
+        TPair(ui32 winnerId, ui32 loserId, float weight) noexcept

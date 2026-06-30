@@ -71,8 +71,19 @@ Possible values:
 
 ****{{ cli__params-table__title__default }}****
 
-If omitted, it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If omitted, it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
+### --input-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../../concepts/input-data_graph-description.md) for the dataset.
+
+This information is used for calculation of [](../../../features/graph-aggregated-features.md).
+
+**{{ cli__params-table__title__default }}**
+
+None
 
 ### -o, --output-path
 

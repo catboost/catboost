@@ -5,10 +5,12 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <library/cpp/json/json_writer.h>
 #include <library/cpp/json/writer/json.h>
 #include <library/cpp/json/writer/json_value.h>
 #include <library/cpp/testing/common/env.h>
 #include <library/cpp/testing/hook/hook.h>
+#include <library/cpp/testing/hook/yt_initialize_hook.h>
 
 #include <util/datetime/base.h>
 
@@ -34,20 +36,20 @@
 #include <filesystem>
 
 #if defined(_win_)
-#include <fcntl.h>
-#include <io.h>
-#include <windows.h>
-#include <crtdbg.h>
+    #include <fcntl.h>
+    #include <io.h>
+    #include <windows.h>
+    #include <crtdbg.h>
 #endif
 
 #if defined(_unix_)
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #ifdef WITH_VALGRIND
-#define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", test->unit->name.data(), test->name)
+    #define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", test->unit->name.data(), test->name)
 #else
-#define NOTE_IN_VALGRIND(test)
+    #define NOTE_IN_VALGRIND(test)
 #endif
 
 const size_t MAX_COMMENT_MESSAGE_LENGTH = 1024 * 1024; // 1 MB
@@ -271,6 +273,20 @@ public:
             EnabledSuites_.insert(name);
             EnabledTests_.insert(name);
             EnabledTests_.insert(TString() + name + "::*");
+        }
+    }
+
+    inline void FilterFromFile(TString filename) {
+        TString filterLine;
+
+        TFileInput filtersStream(filename);
+
+        while (filtersStream.ReadLine(filterLine)) {
+            if (filterLine.StartsWith("-")) {
+                Disable(filterLine.c_str() + 1);
+            } else if(filterLine.StartsWith("+")) {
+                Enable(filterLine.c_str() + 1);
+            }
         }
     }
 
@@ -522,10 +538,6 @@ private:
             .SetAsync(false)
             .SetLatency(1);
 
-        if (TString output = GetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION)) {
-            options.Environment[Y_UNITTEST_OUTPUT_CMDLINE_OPTION] = output;
-        }
-
         TShellCommand cmd(AppName, args, options);
         cmd.Run();
 
@@ -556,7 +568,7 @@ private:
                 ythrow yexception() << "Forked test finished with unknown status";
             }
             case TShellCommand::SHELL_RUNNING: {
-                Y_VERIFY(false, "This can't happen, we used sync mode, it's a bug!");
+                Y_ABORT_UNLESS(false, "This can't happen, we used sync mode, it's a bug!");
             }
             case TShellCommand::SHELL_INTERNAL_ERROR: {
                 ythrow yexception() << "Forked test failed with internal error: " << cmd.GetInternalError();
@@ -591,9 +603,10 @@ const char* const TColoredProcessor::ForkCorrectExitMsg = "--END--";
 
 class TEnumeratingProcessor: public ITestSuiteProcessor {
 public:
-    TEnumeratingProcessor(bool verbose, IOutputStream& stream) noexcept
+    TEnumeratingProcessor(bool verbose, IOutputStream& stream, bool isFileOutput = false) noexcept
         : Verbose_(verbose)
         , Stream_(stream)
+        , IsFileOutput_(isFileOutput)
     {
     }
 
@@ -614,9 +627,31 @@ public:
         return false;
     }
 
+    bool CheckAccessTest(TString suite, const char* name, const char* file, int line) override {
+        if (Verbose_) {
+            // If we processing output to file (list-path), we would use JSON, else old plain text format
+            if (IsFileOutput_) {
+                NJson::TJsonValue testObj;
+                testObj["test_suite_name"] = suite;
+                testObj["name"] = name;
+                testObj["file"] = file ? file : "";
+                testObj["line"] = line;
+                testObj["nodeid"] = suite + "::" + name;
+                NJson::WriteJson(&Stream_, &testObj);
+                Stream_.Write("\n");
+            } else {
+                Stream_ << suite << "::" << name << "\n";
+            }
+        } else {
+            Stream_ << suite << "::" << name << "\n";
+        }
+        return false;
+    }
+
 private:
     bool Verbose_;
     IOutputStream& Stream_;
+    bool IsFileOutput_;
 };
 
 #ifdef _win_
@@ -652,8 +687,8 @@ private:
 static const TWinEnvironment Instance;
 #endif // _win_
 
-static int DoList(bool verbose, IOutputStream& stream) {
-    TEnumeratingProcessor eproc(verbose, stream);
+static int DoList(bool verbose, IOutputStream& stream, bool isFileOutput = false) {
+    TEnumeratingProcessor eproc(verbose, stream, isFileOutput);
     TTestFactory::Instance().SetProcessor(&eproc);
     TTestFactory::Instance().Execute();
     return 0;
@@ -672,7 +707,8 @@ static int DoUsage(const char* progname) {
          << "  --print-times         print wall clock duration of each test\n"
          << "  --fork-tests          run each test in a separate process\n"
          << "  --trace-path          path to the trace file to be generated\n"
-         << "  --trace-path-append   path to the trace file to be appended\n";
+         << "  --trace-path-append   path to the trace file to be appended\n"
+         << "  --filter-file         path to the test filters ([+|-]test) file (" << Y_UNITTEST_TEST_FILTER_FILE_OPTION << ")\n";
     return 0;
 }
 
@@ -695,11 +731,14 @@ int NUnitTest::RunMain(int argc, char** argv) {
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = GracefulShutdownHandler;
         sa.sa_flags = SA_SIGINFO | SA_RESTART;
-        Y_VERIFY(!sigaction(SIGUSR2, &sa, nullptr));
+        Y_ABORT_UNLESS(!sigaction(SIGUSR2, &sa, nullptr));
     }
 #endif
+    InitializeYt(argc, argv);
+
     NTesting::THook::CallBeforeInit();
     InitNetworkSubSystem();
+    Singleton<::NPrivate::TTestEnv>();
 
     try {
         GetExecPath();
@@ -710,10 +749,14 @@ int NUnitTest::RunMain(int argc, char** argv) {
     try {
 #endif
         NTesting::THook::CallBeforeRun();
-        Y_DEFER { NTesting::THook::CallAfterRun(); };
+        Y_DEFER {
+            NTesting::THook::CallAfterRun();
+        };
 
         NPlugin::OnStartMain(argc, argv);
-        Y_DEFER { NPlugin::OnStopMain(argc, argv); };
+        Y_DEFER {
+            NPlugin::OnStopMain(argc, argv);
+        };
 
         TColoredProcessor processor(GetExecPath());
         IOutputStream* listStream = &Cout;
@@ -730,6 +773,32 @@ int NUnitTest::RunMain(int argc, char** argv) {
         bool forkTests = false;
         bool isForked = false;
         std::vector<std::shared_ptr<ITestSuiteProcessor>> traceProcessors;
+
+
+        // load filters from environment variable
+        TString filterFn = GetEnv(Y_UNITTEST_TEST_FILTER_FILE_OPTION);
+        if (!filterFn.empty()) {
+            processor.FilterFromFile(filterFn);
+        }
+
+        auto processJunitOption = [&](const TStringBuf& v) {
+            if (!hasJUnitProcessor) {
+                hasJUnitProcessor = true;
+                bool xmlFormat = false;
+                constexpr TStringBuf xmlPrefix = "xml:";
+                constexpr TStringBuf jsonPrefix = "json:";
+                if ((xmlFormat = v.StartsWith(xmlPrefix)) || v.StartsWith(jsonPrefix)) {
+                    TStringBuf fileName = v;
+                    const TStringBuf prefix = xmlFormat ? xmlPrefix : jsonPrefix;
+                    fileName = fileName.SubString(prefix.size(), TStringBuf::npos);
+                    const TJUnitProcessor::EOutputFormat format = xmlFormat ? TJUnitProcessor::EOutputFormat::Xml : TJUnitProcessor::EOutputFormat::Json;
+                    NUnitTest::ShouldColorizeDiff = false;
+                    traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName),
+                                                                                std::filesystem::path(argv[0]).stem().string(),
+                                                                                format));
+                }
+            }
+        };
 
         for (size_t i = 1; i < (size_t)argc; ++i) {
             const char* name = argv[i];
@@ -789,14 +858,11 @@ int NUnitTest::RunMain(int argc, char** argv) {
                 } else if (strcmp(name, "--output") == 0) {
                     ++i;
                     Y_ENSURE((int)i < argc);
-                    TString param(argv[i]);
-                    if (param.StartsWith("xml:") && !hasJUnitProcessor) {
-                        TStringBuf fileName = param;
-                        fileName = fileName.SubString(4, TStringBuf::npos);
-                        NUnitTest::ShouldColorizeDiff = false;
-                        traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName), argv[0]));
-                    }
-                    hasJUnitProcessor = true;
+                    processJunitOption(argv[i]);
+                } else if (strcmp(name, "--filter-file") == 0) {
+                    ++i;
+                    TString filename(argv[i]);
+                    processor.FilterFromFile(filename);
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {
@@ -809,17 +875,12 @@ int NUnitTest::RunMain(int argc, char** argv) {
             }
         }
         if (listTests != DONT_LIST) {
-            return DoList(listTests == LIST_VERBOSE, *listStream);
+            return DoList(listTests == LIST_VERBOSE, *listStream, listFile.Get() != nullptr);
         }
 
         if (!hasJUnitProcessor) {
-            TString oo(GetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION));
-            if (oo.StartsWith("xml:")) {
-                TStringBuf fileName = oo;
-                fileName = fileName.SubString(4, TStringBuf::npos);
-                NUnitTest::ShouldColorizeDiff = false;
-                traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName),
-                    std::filesystem::path(argv[0]).stem().string()));
+            if (TString oo = GetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION)) {
+                processJunitOption(oo);
             }
         }
 

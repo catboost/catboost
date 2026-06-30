@@ -8,11 +8,11 @@ The X-axis of the resulting chart contains values of the feature divided into bu
 The Y-axis of the resulting chart contains the following graphs:
 
 - {% include [get_feature_statistics-python__statistics__mean-target__p](python__statistics__mean-target__p.md) %}
-    
+
 - {% include [get_feature_statistics-python__statistics__mean-prediction__p](python__statistics__mean-prediction__p.md) %}
-    
+
 - {% include [get_feature_statistics-python__statistics__object-per-bin](python__statistics__object-per-bin.md) %}
-    
+
 - {% include [get_feature_statistics-python__statistics__predictions-on-varying-feature](python__statistics__predictions-on-varying-feature.md) %}
 
 The return value of the function contains the data from these graps.

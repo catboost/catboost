@@ -1,8 +1,8 @@
 DLL_JAVA(catboost4j-spark-impl)
 
-NO_WERROR()
+NO_COMPILER_WARNINGS()
 
-OWNER(
+SUBSCRIBER(
     akhropov
     g:matrixnet
 )
@@ -34,11 +34,12 @@ SRCS(
 EXTRADIR(bindings/swiglib)
 
 PEERDIR(
+    library/cpp/containers/2d_array
     library/cpp/dbg_output
     library/cpp/grid_creator
+    library/cpp/jni
     library/cpp/json
     library/cpp/par
-    library/cpp/threading/atomic
     library/cpp/threading/local_executor
     catboost/libs/cat_feature
     catboost/libs/column_description
@@ -59,34 +60,12 @@ PEERDIR(
 )
 
 IF (OS_WINDOWS)
-    ALLOCATOR(J)
+    ALLOCATOR(SYSTEM)
 ELSE()
     ALLOCATOR(MIM)
 ENDIF()
 
 STRIP()
-
-
-IF (USE_SYSTEM_JDK)
-    CFLAGS(-I${JAVA_HOME}/include)
-    IF(OS_DARWIN)
-        CFLAGS(-I${JAVA_HOME}/include/darwin)
-    ELSEIF(OS_LINUX)
-        CFLAGS(-I${JAVA_HOME}/include/linux)
-    ELSEIF(OS_WINDOWS)
-        CFLAGS(-I${JAVA_HOME}/include/win32)
-    ENDIF()
-ELSE()
-    IF (NOT OPENSOURCE OR AUTOCHECK)
-        PEERDIR(contrib/libs/jdk)
-    ELSEIF(EXPORT_CMAKE)
-        PEERDIR(build/platform/java/jni)
-    ELSE()
-        # warning instead of an error to enable configure w/o specifying JAVA_HOME
-        MESSAGE(WARNING System JDK required)
-    ENDIF()
-ENDIF()
-
 
 # needed to ensure that compatible _Unwind_* functions are used
 IF (NOT OS_WINDOWS)

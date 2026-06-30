@@ -39,4 +39,4 @@ Y_UNIT_TEST_SUITE(NiceTest) {
         UNIT_ASSERT_VALUES_EQUAL(GetPriority(), prio + 3);
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(NiceTest)

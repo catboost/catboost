@@ -1,3 +1,5 @@
+// Copyright (c) ONNX Project Contributors
+
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -5,6 +7,11 @@
 // Adapter for all ops that remove consumed_inputs
 
 #pragma once
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "onnx/version_converter/adapters/adapter.h"
 
@@ -29,16 +36,16 @@ class Split_13_12 : public Adapter {
         // Also handle raw data
         std::string raw_data = node_ptr->t(kvalue).raw();
         ONNX_ASSERTM(
-            raw_data.size() != 0 && raw_data.size() % 8 == 0,
+            !raw_data.empty() && raw_data.size() % 8 == 0,
             "Raw Data must be non-empty and size must be a multiple of 8");
-        int64_t* raw = (int64_t*)const_cast<char*>(raw_data.c_str());
+        int64_t* raw = reinterpret_cast<int64_t*>(raw_data.data());
         node->is_(ksplit, std::vector<int64_t>(raw, raw + node_ptr->t(kvalue).size_from_dim(0)));
       } else {
         node->is_(ksplit, std::forward<const std::vector<int64_t>>(int64s));
       }
       // If Constant node isn't used anywhere else, remove it
       node->removeInput(1);
-      if (const_val->uses().size() < 1) {
+      if (const_val->uses().empty()) {
         node_ptr->destroy();
       }
     } else {
@@ -48,7 +55,7 @@ class Split_13_12 : public Adapter {
           node->is_(ksplit, std::forward<const std::vector<int64_t>>(initializer.int64s()));
           node->removeInput(1);
           // Remove initializer
-          if (const_val->uses().size() < 1)
+          if (const_val->uses().empty())
             graph->eraseInitializerAndInput(const_val);
           break;
         }

@@ -78,6 +78,8 @@
                                             /* implicit barrier at the end of worksharing */    \
     macro (ompt_state_wait_barrier_implicit, 0x013)  /* implicit barrier */                      \
     macro (ompt_state_wait_barrier_explicit, 0x014)  /* explicit barrier */                      \
+    macro (ompt_state_wait_barrier_implementation, 0x015) /* implementation barrier */           \
+    macro (ompt_state_wait_barrier_teams, 0x016)          /* teams barrier */                    \
                                                                                                 \
     /* task wait states (32..63) */                                                             \
     macro (ompt_state_wait_taskwait, 0x020)  /* waiting at a taskwait */                         \
@@ -108,7 +110,7 @@
     macro (kmp_mutex_impl_queuing, 2)      /* based on some fair policy */           \
     macro (kmp_mutex_impl_speculative, 3)  /* based on HW-supported speculation */
 
-#define FOREACH_OMPT_EVENT(macro)                                                                                        \
+#define FOREACH_OMPT_HOST_EVENT(macro)                                                                                   \
                                                                                                                          \
     /*--- Mandatory Events ---*/                                                                                         \
     macro (ompt_callback_thread_begin,      ompt_callback_thread_begin_t,       1) /* thread begin                    */ \
@@ -121,17 +123,7 @@
     macro (ompt_callback_task_schedule,     ompt_callback_task_schedule_t,      6) /* task schedule                   */ \
     macro (ompt_callback_implicit_task,     ompt_callback_implicit_task_t,      7) /* implicit task                   */ \
                                                                                                                          \
-    macro (ompt_callback_target,            ompt_callback_target_t,             8) /* target                          */ \
-    macro (ompt_callback_target_data_op,    ompt_callback_target_data_op_t,     9) /* target data op                  */ \
-    macro (ompt_callback_target_submit,     ompt_callback_target_submit_t,     10) /* target  submit                  */ \
-                                                                                                                         \
     macro (ompt_callback_control_tool,      ompt_callback_control_tool_t,      11) /* control tool                    */ \
-                                                                                                                         \
-    macro (ompt_callback_device_initialize, ompt_callback_device_initialize_t, 12) /* device initialize               */ \
-    macro (ompt_callback_device_finalize,   ompt_callback_device_finalize_t,   13) /* device finalize                 */ \
-                                                                                                                         \
-    macro (ompt_callback_device_load,       ompt_callback_device_load_t,       14) /* device load                     */ \
-    macro (ompt_callback_device_unload,     ompt_callback_device_unload_t,     15) /* device unload                   */ \
                                                                                                                          \
     /* Optional Events */                                                                                                \
     macro (ompt_callback_sync_region_wait,  ompt_callback_sync_region_t,       16) /* sync region wait begin or end   */ \
@@ -144,8 +136,6 @@
     macro (ompt_callback_work,              ompt_callback_work_t,              20) /* task at work begin or end       */ \
                                                                                                                          \
     macro (ompt_callback_masked,            ompt_callback_masked_t,            21) /* task at masked begin or end     */ \
-                                                                                                                         \
-    macro (ompt_callback_target_map,        ompt_callback_target_map_t,        22) /* target map                      */ \
                                                                                                                          \
     macro (ompt_callback_sync_region,       ompt_callback_sync_region_t,       23) /* sync region begin or end        */ \
                                                                                                                          \
@@ -164,11 +154,50 @@
     macro (ompt_callback_reduction,         ompt_callback_sync_region_t,       31) /* reduction                       */ \
                                                                                                                          \
     macro (ompt_callback_dispatch,          ompt_callback_dispatch_t,          32) /* dispatch of work                */ \
+    macro (ompt_callback_error,             ompt_callback_error_t,             37) /* error                           */
+
+#define FOREACH_OMPT_DEVICE_EVENT(macro)                                                                                 \
+    /*--- Mandatory Events ---*/                                                                                         \
+    macro (ompt_callback_device_initialize, ompt_callback_device_initialize_t, 12) /* device initialize               */ \
+    macro (ompt_callback_device_finalize,   ompt_callback_device_finalize_t,   13) /* device finalize                 */ \
+                                                                                                                         \
+    macro (ompt_callback_device_load,       ompt_callback_device_load_t,       14) /* device load                     */ \
+    macro (ompt_callback_device_unload,     ompt_callback_device_unload_t,     15) /* device unload                   */
+
+#define FOREACH_OMPT_NOEMI_EVENT(macro)                                                                                  \
+    /*--- Mandatory Events ---*/                                                                                         \
+    macro (ompt_callback_target,            ompt_callback_target_t,             8) /* target                          */ \
+    macro (ompt_callback_target_data_op,    ompt_callback_target_data_op_t,     9) /* target data op                  */ \
+    macro (ompt_callback_target_submit,     ompt_callback_target_submit_t,     10) /* target  submit                  */ \
+    /* Optional Events */                                                                                                \
+    macro (ompt_callback_target_map,        ompt_callback_target_map_t,        22) /* target map                      */
+
+#define FOREACH_OMPT_EMI_EVENT(macro)                                                                                    \
+    /*--- Mandatory Events ---*/                                                                                         \
     macro (ompt_callback_target_emi,        ompt_callback_target_emi_t,        33) /* target                          */ \
     macro (ompt_callback_target_data_op_emi,ompt_callback_target_data_op_emi_t,34) /* target data op                  */ \
     macro (ompt_callback_target_submit_emi, ompt_callback_target_submit_emi_t, 35) /* target submit                   */ \
-    macro (ompt_callback_target_map_emi,    ompt_callback_target_map_emi_t,    36) /* target map                      */ \
-    macro (ompt_callback_error,             ompt_callback_error_t,             37) /* error                           */
+    /* Optional Events */                                                                                                \
+    macro (ompt_callback_target_map_emi,    ompt_callback_target_map_emi_t,    36) /* target map                      */
+
+#define FOREACH_OMPT_50_TARGET_EVENT(macro)                                                                              \
+    FOREACH_OMPT_DEVICE_EVENT(macro)                                                                                     \
+    FOREACH_OMPT_NOEMI_EVENT(macro) 
+
+#define FOREACH_OMPT_51_TARGET_EVENT(macro)                                                                              \
+    FOREACH_OMPT_DEVICE_EVENT(macro)                                                                                     \
+    FOREACH_OMPT_EMI_EVENT(macro) 
+
+#define FOREACH_OMPT_EVENT(macro)                                                                                        \
+    FOREACH_OMPT_HOST_EVENT(macro)                                                                                       \
+    FOREACH_OMPT_DEVICE_EVENT(macro)                                                                                     \
+    FOREACH_OMPT_NOEMI_EVENT(macro)                                                                                      \
+    FOREACH_OMPT_EMI_EVENT(macro)
+
+#define FOREACH_OMPT_51_EVENT(macro)                                                                                     \
+    FOREACH_OMPT_HOST_EVENT(macro)                                                                                       \
+    FOREACH_OMPT_DEVICE_EVENT(macro)                                                                                     \
+    FOREACH_OMPT_EMI_EVENT(macro)
 
 /*****************************************************************************
  * implementation specific types
@@ -183,6 +212,10 @@ typedef enum kmp_mutex_impl_t {
 /*****************************************************************************
  * definitions generated from spec
  *****************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef enum ompt_callbacks_t {
   ompt_callback_thread_begin             = 1,
@@ -386,13 +419,15 @@ typedef enum ompt_target_map_flag_t {
 } ompt_target_map_flag_t;
 
 typedef enum ompt_dependence_type_t {
-  ompt_dependence_type_in              = 1,
-  ompt_dependence_type_out             = 2,
-  ompt_dependence_type_inout           = 3,
-  ompt_dependence_type_mutexinoutset   = 4,
-  ompt_dependence_type_source          = 5,
-  ompt_dependence_type_sink            = 6,
-  ompt_dependence_type_inoutset        = 7
+  ompt_dependence_type_in               = 1,
+  ompt_dependence_type_out              = 2,
+  ompt_dependence_type_inout            = 3,
+  ompt_dependence_type_mutexinoutset    = 4,
+  ompt_dependence_type_source           = 5,
+  ompt_dependence_type_sink             = 6,
+  ompt_dependence_type_inoutset         = 7,
+  ompt_dependence_type_out_all_memory   = 34,
+  ompt_dependence_type_inout_all_memory = 35
 } ompt_dependence_type_t;
 
 typedef enum ompt_severity_t {
@@ -1375,6 +1410,14 @@ typedef ompt_record_ompt_t *(*ompt_get_record_ompt_t) (
   ompt_buffer_cursor_t current
 );
 
+#ifdef _WIN32
+__declspec(dllexport)
+#else
+__attribute__((visibility("default")))
+#endif
+ompt_start_tool_result_t *ompt_start_tool(unsigned int omp_version,
+                                          const char *runtime_version);
+
 #define ompt_id_none 0
 #define ompt_data_none {0}
 #define ompt_time_none 0
@@ -1384,5 +1427,9 @@ typedef ompt_record_ompt_t *(*ompt_get_record_ompt_t) (
 #define ompt_wait_id_none 0
 
 #define ompd_segment_none 0
+
+#if defined(__cplusplus)
+} // extern "C"
+#endif
 
 #endif /* __OMPT__ */

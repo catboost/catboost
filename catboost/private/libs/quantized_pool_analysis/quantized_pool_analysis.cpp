@@ -301,7 +301,7 @@ namespace NCB {
 
         const IQuantizedFloatValuesHolder* values = dynamic_cast<const IQuantizedFloatValuesHolder*>(feature.GetRef());
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
-        TVector<int> binNums(values->GetSize());
+        TVector<ui32> binNums(values->GetSize());
         auto binNumsWriteIter = binNums.begin();
 
         // initialized only when dataset is quantized
@@ -342,7 +342,7 @@ namespace NCB {
             sumWeightsObjectsPerBin.resize(numModelBins, 0);
         }
         for (size_t numObj = 0; numObj < binNums.size(); ++numObj) {
-            int binNum = binNums[numObj];
+            ui32 binNum = binNums[numObj];
 
             meanTarget[binNum] += target[numObj];
             meanPrediction[binNum] += prediction[numObj];
@@ -463,7 +463,7 @@ namespace NCB {
         const THashedCatValuesHolder* catFeatureHolder = catFeatureMaybe.GetRef();
         CB_ENSURE_INTERNAL(catFeatureHolder, "Cannot access values of categorical feature #" << featureNum);
 
-        TVector<int> binNums;
+        TVector<ui32> binNums;
         binNums.reserve(oneHotUniqueValues.size());
         auto blockIterator = catFeatureHolder->GetBlockIterator();
         while (auto block = blockIterator->Next(1024)) {

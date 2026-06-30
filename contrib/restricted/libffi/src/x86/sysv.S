@@ -56,8 +56,8 @@
 
 /* Handle win32 fastcall name mangling.  */
 #ifdef X86_WIN32
-# define ffi_call_i386		@ffi_call_i386@8
-# define ffi_closure_inner	@ffi_closure_inner@8
+# define ffi_call_i386		"@ffi_call_i386@8"
+# define ffi_closure_inner	"@ffi_closure_inner@8"
 #else
 # define ffi_call_i386		C(ffi_call_i386)
 # define ffi_closure_inner	C(ffi_closure_inner)
@@ -92,6 +92,7 @@
 ffi_call_i386:
 L(UW0):
 	# cfi_startproc
+	_CET_ENDBR
 #if !HAVE_FASTCALL
 	movl	4(%esp), %ecx
 	movl	8(%esp), %edx
@@ -133,7 +134,7 @@ L(pc1):
 	leal	L(store_table)(,%ecx, 8), %ebx
 #endif
 	movl	16(%ebp), %ecx		/* load result address */
-	jmp	*%ebx
+	_CET_NOTRACK jmp *%ebx
 
 	.balign	8
 L(store_table):
@@ -256,7 +257,7 @@ ENDF(ffi_call_i386)
 	andl	$X86_RET_TYPE_MASK, %eax;				\
 	leal	L(C1(load_table,N))(, %eax, 8), %edx;			\
 	movl	closure_CF(%esp), %eax;		/* optimiztic load */	\
-	jmp	*%edx
+	_CET_NOTRACK jmp *%edx
 
 #ifdef __PIC__
 # if defined X86_DARWIN || defined HAVE_HIDDEN_VISIBILITY_ATTRIBUTE
@@ -267,7 +268,7 @@ ENDF(ffi_call_i386)
 L(C1(pc,N)):								\
 	leal	L(C1(load_table,N))-L(C1(pc,N))(%edx, %eax, 8), %edx;	\
 	movl	closure_CF(%esp), %eax;		/* optimiztic load */	\
-	jmp	*%edx
+	_CET_NOTRACK jmp *%edx
 # else
 #  define FFI_CLOSURE_CALL_INNER_SAVE_EBX
 #  undef FFI_CLOSURE_CALL_INNER
@@ -286,7 +287,7 @@ L(C1(UW,UWN)):								\
 L(C1(UW,UWN)):								\
 	/* cfi_restore(%ebx); */					\
 	movl	closure_CF(%esp), %eax;		/* optimiztic load */	\
-	jmp	*%edx
+	_CET_NOTRACK jmp *%edx
 # endif /* DARWIN || HIDDEN */
 #endif /* __PIC__ */
 
@@ -296,6 +297,7 @@ L(C1(UW,UWN)):								\
 C(ffi_go_closure_EAX):
 L(UW6):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$closure_FS, %esp
 L(UW7):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -316,6 +318,7 @@ ENDF(C(ffi_go_closure_EAX))
 C(ffi_go_closure_ECX):
 L(UW9):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$closure_FS, %esp
 L(UW10):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -340,6 +343,7 @@ ENDF(C(ffi_go_closure_ECX))
 C(ffi_closure_i386):
 L(UW12):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$closure_FS, %esp
 L(UW13):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -423,6 +427,7 @@ ENDF(C(ffi_closure_i386))
 C(ffi_go_closure_STDCALL):
 L(UW21):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$closure_FS, %esp
 L(UW22):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -448,6 +453,7 @@ L(UW24):
 	# cfi_startproc
 	# cfi_def_cfa(%esp, 8)
 	# cfi_offset(%eip, -8)
+	_CET_ENDBR
 	subl	$closure_FS-4, %esp
 L(UW25):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -470,6 +476,7 @@ ENDF(C(ffi_closure_REGISTER))
 C(ffi_closure_STDCALL):
 L(UW27):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$closure_FS, %esp
 L(UW28):
 	# cfi_def_cfa_offset(closure_FS + 4)
@@ -566,6 +573,94 @@ L(UW31):
 	# cfi_endproc
 ENDF(C(ffi_closure_STDCALL))
 
+#if defined(FFI_EXEC_STATIC_TRAMP)
+	.balign	16
+	.globl	C(ffi_closure_i386_alt)
+	FFI_HIDDEN(C(ffi_closure_i386_alt))
+C(ffi_closure_i386_alt):
+	/* See the comments above trampoline_code_table. */
+	_CET_ENDBR
+	movl	4(%esp), %eax			/* Load closure in eax */
+	add	$8, %esp			/* Restore the stack */
+	jmp	C(ffi_closure_i386)
+ENDF(C(ffi_closure_i386_alt))
+
+	.balign	16
+	.globl	C(ffi_closure_REGISTER_alt)
+	FFI_HIDDEN(C(ffi_closure_REGISTER_alt))
+C(ffi_closure_REGISTER_alt):
+	/* See the comments above trampoline_code_table. */
+	_CET_ENDBR
+	movl	(%esp), %eax			/* Restore eax */
+	add	$4, %esp			/* Leave closure on stack */
+	jmp	C(ffi_closure_REGISTER)
+ENDF(C(ffi_closure_REGISTER_alt))
+
+	.balign	16
+	.globl	C(ffi_closure_STDCALL_alt)
+	FFI_HIDDEN(C(ffi_closure_STDCALL_alt))
+C(ffi_closure_STDCALL_alt):
+	/* See the comments above trampoline_code_table. */
+	_CET_ENDBR
+	movl	4(%esp), %eax			/* Load closure in eax */
+	add	$8, %esp			/* Restore the stack */
+	jmp	C(ffi_closure_STDCALL)
+ENDF(C(ffi_closure_STDCALL_alt))
+
+/*
+ * Below is the definition of the trampoline code table. Each element in
+ * the code table is a trampoline.
+ *
+ * Because we jump to the trampoline, we place a _CET_ENDBR at the
+ * beginning of the trampoline to mark it as a valid branch target. This is
+ * part of the the Intel CET (Control Flow Enforcement Technology).
+ */
+/*
+ * The trampoline uses register eax.  It saves the original value of eax on
+ * the stack.
+ *
+ * The trampoline has two parameters - target code to jump to and data for
+ * the target code. The trampoline extracts the parameters from its parameter
+ * block (see tramp_table_map()). The trampoline saves the data address on
+ * the stack. Finally, it jumps to the target code.
+ *
+ * The target code can choose to:
+ *
+ * - restore the value of eax
+ * - load the data address in a register
+ * - restore the stack pointer to what it was when the trampoline was invoked.
+ */
+#ifdef ENDBR_PRESENT
+#define X86_DATA_OFFSET		4081
+#define X86_CODE_OFFSET		4070
+#else
+#define X86_DATA_OFFSET		4085
+#define X86_CODE_OFFSET		4074
+#endif
+
+	.align	X86_TRAMP_MAP_SIZE
+	.globl	C(trampoline_code_table)
+	FFI_HIDDEN(C(trampoline_code_table))
+C(trampoline_code_table):
+	.rept	X86_TRAMP_MAP_SIZE / X86_TRAMP_SIZE
+	_CET_ENDBR
+	sub	$8, %esp
+	movl	%eax, (%esp)			/* Save %eax on stack */
+	call	1f				/* Get next PC into %eax */
+	movl	X86_DATA_OFFSET(%eax), %eax	/* Copy data into %eax */
+	movl	%eax, 4(%esp)			/* Save data on stack */
+	call	1f				/* Get next PC into %eax */
+	movl	X86_CODE_OFFSET(%eax), %eax	/* Copy code into %eax */
+	jmp	*%eax				/* Jump to code */
+1:
+	mov	(%esp), %eax
+	ret
+	.align	4
+	.endr
+ENDF(C(trampoline_code_table))
+	.align	X86_TRAMP_MAP_SIZE
+#endif /* FFI_EXEC_STATIC_TRAMP */
+
 #if !FFI_NO_RAW_API
 
 #define raw_closure_S_FS	(16+16+12)
@@ -576,6 +671,7 @@ ENDF(C(ffi_closure_STDCALL))
 C(ffi_closure_raw_SYSV):
 L(UW32):
 	# cfi_startproc
+	_CET_ENDBR
 	subl	$raw_closure_S_FS, %esp
 L(UW33):
 	# cfi_def_cfa_offset(raw_closure_S_FS + 4)
@@ -679,6 +775,7 @@ ENDF(C(ffi_closure_raw_SYSV))
 C(ffi_closure_raw_THISCALL):
 L(UW41):
 	# cfi_startproc
+	_CET_ENDBR
 	/* Rearrange the stack such that %ecx is the first argument.
 	   This means moving the return address.  */
 	popl	%edx
@@ -791,10 +888,27 @@ ENDF(C(ffi_closure_raw_THISCALL))
 #endif /* !FFI_NO_RAW_API */
 
 #ifdef X86_DARWIN
-# define COMDAT(X)							\
-        .section __TEXT,__text,coalesced,pure_instructions;		\
+/* The linker in use on earlier Darwin needs weak definitions to be
+   placed in a coalesced section.  That section should not be called
+   __TEXT,__text since that would be re-defining the attributes of the
+   .text section (which is an error for earlier tools). Here we use
+   '__textcoal_nt' which is what GCC emits for this.
+   Later linker versions are happy to use a normal section and, after
+   Darwin12 / OSX 10.8, the tools warn that using coalesced sections
+   for this is deprecated so we must switch to avoid build fails and/or
+   deprecation warnings.  */
+# if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&		\
+   __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1080
+#  define COMDAT(X)							\
+        .section __TEXT,__textcoal_nt,coalesced,pure_instructions;	\
         .weak_definition X;						\
         FFI_HIDDEN(X)
+# else
+#  define COMDAT(X)							\
+        .text;								\
+        .weak_definition X;						\
+        FFI_HIDDEN(X)
+# endif
 #elif defined __ELF__ && !(defined(__sun__) && defined(__svr4__))
 # define COMDAT(X)							\
 	.section .text.X,"axG",@progbits,X,comdat;			\
@@ -819,7 +933,37 @@ ENDF(C(__x86.get_pc_thunk.dx))
 #endif /* DARWIN || HIDDEN */
 #endif /* __PIC__ */
 
-/* Sadly, OSX cctools-as doesn't understand .cfi directives at all.  */
+/* Sadly, OSX cctools-as does not understand .cfi directives at all so
+   we build an eh frame by hand.  */
+
+#ifdef __APPLE__
+/* The cctools assembler will try to make a difference between two local
+   symbols into a relocation against, which will not work in the eh (produces
+   link-time fails).
+   To avoid this, we compute the symbol difference with a .set directive and
+   then substitute this value.  */
+# define LEN(N, P)	.set Llen$N$P,L(N)-L(P); .long Llen$N$P
+/* Note, this assume DW_CFA_advance_loc1 fits into 7 bits.  */
+# define ADV(N, P)	.set Ladv$N$P,L(N)-L(P); .byte 2, Ladv$N$P
+/* For historical reasons, the EH reg numbers for SP and FP are swapped from
+   the DWARF ones for 32b Darwin.  */
+# define SP 5
+# define FP 4
+# define ENC 0x10
+#else
+# define LEN(N, P)	.long L(N)-L(P)
+/* Assume DW_CFA_advance_loc1 fits.  */
+# define ADV(N, P)	.byte 2, L(N)-L(P)
+# define SP 4
+# define FP 5
+# define ENC 0x1b
+#endif
+
+#ifdef HAVE_AS_X86_PCREL
+# define PCREL(X)	X-.
+#else
+# define PCREL(X)	X@rel
+#endif
 
 #ifdef __APPLE__
 .section __TEXT,__eh_frame,coalesced,no_toc+strip_static_syms+live_support
@@ -831,17 +975,11 @@ EHFrame0:
 #else
 .section .eh_frame,EH_FRAME_FLAGS,@progbits
 #endif
-
-#ifdef HAVE_AS_X86_PCREL
-# define PCREL(X)	X - .
-#else
-# define PCREL(X)	X@rel
+#ifndef __APPLE__
+/* EH sections are already suitably aligned on Darwin.  */
+	.balign 4
 #endif
 
-/* Simplify advancing between labels.  Assume DW_CFA_advance_loc1 fits.  */
-#define ADV(N, P)	.byte 2, L(N)-L(P)
-
-	.balign 4
 L(CIE):
 	.set	L(set0),L(ECIE)-L(SCIE)
 	.long	L(set0)			/* CIE Length */
@@ -853,8 +991,8 @@ L(SCIE):
 	.byte	0x7c			/* CIE Data Alignment Factor */
 	.byte	0x8			/* CIE RA Column */
 	.byte	1			/* Augmentation size */
-	.byte	0x1b			/* FDE Encoding (pcrel sdata4) */
-	.byte	0xc, 4, 4		/* DW_CFA_def_cfa, %esp offset 4 */
+	.byte	ENC			/* FDE Encoding (pcrel abs/4byte) */
+	.byte	0xc, SP, 4		/* DW_CFA_def_cfa, %esp offset 4 */
 	.byte	0x80+8, 1		/* DW_CFA_offset, %eip offset 1*-4 */
 	.balign 4
 L(ECIE):
@@ -862,20 +1000,20 @@ L(ECIE):
 	.set	L(set1),L(EFDE1)-L(SFDE1)
 	.long	L(set1)			/* FDE Length */
 L(SFDE1):
-	.long	L(SFDE1)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE1, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW0))		/* Initial location */
-	.long	L(UW5)-L(UW0)		/* Address range */
+	LEN(UW5, UW0)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW1, UW0)
-	.byte	0xc, 5, 8		/* DW_CFA_def_cfa, %ebp 8 */
-	.byte	0x80+5, 2		/* DW_CFA_offset, %ebp 2*-4 */
+	.byte	0xc, FP, 8		/* DW_CFA_def_cfa, %ebp 8 */
+	.byte	0x80+FP, 2		/* DW_CFA_offset, %ebp 2*-4 */
 	ADV(UW2, UW1)
 	.byte	0x80+3, 0		/* DW_CFA_offset, %ebx 0*-4 */
 	ADV(UW3, UW2)
 	.byte	0xa			/* DW_CFA_remember_state */
-	.byte	0xc, 4, 4		/* DW_CFA_def_cfa, %esp 4 */
+	.byte	0xc, SP, 4		/* DW_CFA_def_cfa, %esp 4 */
 	.byte	0xc0+3			/* DW_CFA_restore, %ebx */
-	.byte	0xc0+5			/* DW_CFA_restore, %ebp */
+	.byte	0xc0+FP			/* DW_CFA_restore, %ebp */
 	ADV(UW4, UW3)
 	.byte	0xb			/* DW_CFA_restore_state */
 	.balign	4
@@ -884,9 +1022,9 @@ L(EFDE1):
 	.set	L(set2),L(EFDE2)-L(SFDE2)
 	.long	L(set2)			/* FDE Length */
 L(SFDE2):
-	.long	L(SFDE2)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE2, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW6))		/* Initial location */
-	.long	L(UW8)-L(UW6)		/* Address range */
+	LEN(UW8,UW6)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW7, UW6)
 	.byte	0xe, closure_FS+4	/* DW_CFA_def_cfa_offset */
@@ -896,9 +1034,9 @@ L(EFDE2):
 	.set	L(set3),L(EFDE3)-L(SFDE3)
 	.long	L(set3)			/* FDE Length */
 L(SFDE3):
-	.long	L(SFDE3)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE3, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW9))		/* Initial location */
-	.long	L(UW11)-L(UW9)		/* Address range */
+	LEN(UW11, UW9)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW10, UW9)
 	.byte	0xe, closure_FS+4	/* DW_CFA_def_cfa_offset */
@@ -908,9 +1046,9 @@ L(EFDE3):
 	.set	L(set4),L(EFDE4)-L(SFDE4)
 	.long	L(set4)			/* FDE Length */
 L(SFDE4):
-	.long	L(SFDE4)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE4, CIE)		/* FDE CIE offset */
 	.long	PCREL(L(UW12))		/* Initial location */
-	.long	L(UW20)-L(UW12)		/* Address range */
+	LEN(UW20, UW12)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW13, UW12)
 	.byte	0xe, closure_FS+4	/* DW_CFA_def_cfa_offset */
@@ -936,9 +1074,9 @@ L(EFDE4):
 	.set	L(set5),L(EFDE5)-L(SFDE5)
 	.long	L(set5)			/* FDE Length */
 L(SFDE5):
-	.long	L(SFDE5)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE5, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW21))		/* Initial location */
-	.long	L(UW23)-L(UW21)		/* Address range */
+	LEN(UW23, UW21)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW22, UW21)
 	.byte	0xe, closure_FS+4	/* DW_CFA_def_cfa_offset */
@@ -948,9 +1086,9 @@ L(EFDE5):
 	.set	L(set6),L(EFDE6)-L(SFDE6)
 	.long	L(set6)			/* FDE Length */
 L(SFDE6):
-	.long	L(SFDE6)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE6, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW24))		/* Initial location */
-	.long	L(UW26)-L(UW24)		/* Address range */
+	LEN(UW26, UW24)			/* Address range */
 	.byte	0			/* Augmentation size */
 	.byte	0xe, 8			/* DW_CFA_def_cfa_offset */
 	.byte	0x80+8, 2		/* DW_CFA_offset %eip, 2*-4 */
@@ -962,9 +1100,9 @@ L(EFDE6):
 	.set	L(set7),L(EFDE7)-L(SFDE7)
 	.long	L(set7)			/* FDE Length */
 L(SFDE7):
-	.long	L(SFDE7)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE7, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW27))		/* Initial location */
-	.long	L(UW31)-L(UW27)		/* Address range */
+	LEN(UW31, UW27)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW28, UW27)
 	.byte	0xe, closure_FS+4	/* DW_CFA_def_cfa_offset */
@@ -976,14 +1114,13 @@ L(SFDE7):
 #endif
 	.balign	4
 L(EFDE7):
-
 #if !FFI_NO_RAW_API
 	.set	L(set8),L(EFDE8)-L(SFDE8)
 	.long	L(set8)			/* FDE Length */
 L(SFDE8):
-	.long	L(SFDE8)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE8, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW32))		/* Initial location */
-	.long	L(UW40)-L(UW32)		/* Address range */
+	LEN(UW40, UW32)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW33, UW32)
 	.byte	0xe, raw_closure_S_FS+4	/* DW_CFA_def_cfa_offset */
@@ -1005,9 +1142,9 @@ L(EFDE8):
 	.set	L(set9),L(EFDE9)-L(SFDE9)
 	.long	L(set9)			/* FDE Length */
 L(SFDE9):
-	.long	L(SFDE9)-L(CIE)		/* FDE CIE offset */
+	LEN(SFDE9, CIE)			/* FDE CIE offset */
 	.long	PCREL(L(UW41))		/* Initial location */
-	.long	L(UW52)-L(UW41)		/* Address range */
+	LEN(UW52, UW41)			/* Address range */
 	.byte	0			/* Augmentation size */
 	ADV(UW42, UW41)
 	.byte	0xe, 0			/* DW_CFA_def_cfa_offset */
@@ -1044,8 +1181,12 @@ L(EFDE9):
 @feat.00 = 1
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
     .subsections_via_symbols
+# if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&		\
+   __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1070 && __clang__
+/* compact unwind is not used with GCC at present, was not present before 10.6
+   but has some bugs there, so do not emit until 10.7.  */
     .section __LD,__compact_unwind,regular,debug
 
     /* compact unwind for ffi_call_i386 */
@@ -1119,9 +1260,11 @@ L(EFDE9):
     .long    0x04000000 /* use dwarf unwind info */
     .long    0
     .long    0
+#endif /* use compact unwind */
 #endif /* __APPLE__ */
 
 #endif /* ifndef _MSC_VER */
+
 #endif /* ifdef __i386__ */
 
 #if defined __ELF__ && defined __linux__

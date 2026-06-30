@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
-import distutils.dir_util
+
 import errno
 import os
 import shutil
+import sys
+
+if sys.version_info[0] == 2:
+    import distutils.dir_util
 
 
 def makedirs_if_not_exist(dir_path):
@@ -31,7 +35,11 @@ def _main():
 
     resources_dir = os.path.join(args.dst_basedir, 'src/main/resources')
     makedirs_if_not_exist(resources_dir)
-    distutils.dir_util.copy_tree(args.src_resources_dir, resources_dir)
+
+    if sys.version_info[0] == 2:
+        distutils.dir_util.copy_tree(args.src_resources_dir, resources_dir)
+    else:
+        shutil.copytree(args.src_resources_dir, resources_dir, dirs_exist_ok=True)
 
     if args.src_sources_jar is not None:
         target_dir = os.path.join(args.dst_basedir, 'target')

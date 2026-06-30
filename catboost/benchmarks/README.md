@@ -8,7 +8,7 @@ These are benchmarks in binary classification mode. They compare CatBoost vs XGB
 
 ## Training speed: comparisons with other libraries
 
-You can find scripts to run LigthGBM/XGBoost/CatBoost CPU and GPU versions and compare its runtime in [training speed](https://github.com/catboost/benchmarks/blob/master/training_speed/) subdirectory
+You can find scripts to run LightGBM/XGBoost/CatBoost CPU and GPU versions and compare its runtime in [training speed](https://github.com/catboost/benchmarks/blob/master/training_speed/) subdirectory
 
 ## Training speed: CPU vs GPU
 

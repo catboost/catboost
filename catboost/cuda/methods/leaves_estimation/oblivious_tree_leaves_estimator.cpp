@@ -124,7 +124,7 @@ namespace NCatboostCuda {
             });
 
             //TODO(noxoomo): check change to reduceToAll and migrate all gradient descent to device side
-            //for 64 leaves cpu side code is fast enough (
+            //for 64 leaves CPU side code is fast enough (
             PartStats
                 .CreateReader()
                 .SetReadSlice(PartStats.GetMapping().DeviceSlice(0))
@@ -247,7 +247,7 @@ namespace NCatboostCuda {
     }
 
     void TObliviousTreeLeavesEstimator::Regularize(TVector<float>* point) {
-        RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(LeafWeights.begin(), LeafWeights.begin() + PointDim()), point);
+        RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(LeafWeights.data(), LeafWeights.data() + PointDim()), point);
     }
 
     void TObliviousTreeLeavesEstimator::NormalizeDerivatives(TVector<double>& derOrDer2) {

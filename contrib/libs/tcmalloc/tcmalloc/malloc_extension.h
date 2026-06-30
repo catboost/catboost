@@ -1,3 +1,4 @@
+#pragma clang system_header
 // Copyright 2019 The TCMalloc Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,31 +18,75 @@
 // tuning the internal implementation of TCMalloc. The internal implementation
 // functions use weak linkage, allowing an application to link against the
 // extensions without always linking against TCMalloc.
+//
+// Many of these APIs are also supported when built with sanitizers.
 
 #ifndef TCMALLOC_MALLOC_EXTENSION_H_
 #define TCMALLOC_MALLOC_EXTENSION_H_
 
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <limits>
 #include <map>
 #include <memory>
 #include <new>
+#include <optional>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "absl/base/attributes.h"
 #include "absl/base/macros.h"
-#include "absl/base/policy_checks.h"
-#include "absl/base/port.h"
 #include "absl/functional/function_ref.h"
+#include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "absl/types/optional.h"
 #include "absl/types/span.h"
+
+// Not all versions of Abseil provide this macro.
+// TODO(b/323943471): Remove on upgrading to version that provides the macro.
+#ifndef ABSL_DEPRECATE_AND_INLINE
+#define ABSL_DEPRECATE_AND_INLINE()
+#endif
+
+// Indicates how frequently accessed the allocation is expected to be.
+// 0   - The allocation is rarely accessed.
+// ...
+// 255 - The allocation is accessed very frequently.
+enum class __hot_cold_t : uint8_t;
+
+// TODO(ckennelly): Lifetimes
+
+namespace tcmalloc {
+
+// Alias to the newer type in the global namespace, so that existing code works
+// as is.
+using hot_cold_t = __hot_cold_t;
+
+constexpr hot_cold_t kDefaultMinHotAccessHint =
+    static_cast<tcmalloc::hot_cold_t>(2);
+
+}  // namespace tcmalloc
+
+inline bool AbslParseFlag(absl::string_view text, tcmalloc::hot_cold_t* hotness,
+                          std::string* /* error */) {
+  uint32_t value;
+  if (!absl::SimpleAtoi(text, &value)) {
+    return false;
+  }
+  // hot_cold_t is a uint8_t, so make sure the flag is within the allowable
+  // range before casting.
+  if (value > std::numeric_limits<uint8_t>::max()) {
+    return false;
+  }
+  *hotness = static_cast<tcmalloc::hot_cold_t>(value);
+  return true;
+}
+
+inline std::string AbslUnparseFlag(tcmalloc::hot_cold_t hotness) {
+  return absl::StrCat(hotness);
+}
 
 namespace tcmalloc {
 namespace tcmalloc_internal {
@@ -66,6 +111,9 @@ enum class ProfileType {
   // the profile was terminated with Stop().
   kAllocations,
 
+  // Lifetimes of sampled objects that are live during the profiling session.
+  kLifetimes,
+
   // Only present to prevent switch statements without a default clause so that
   // we can extend this enumeration without breaking code.
   kDoNotUse,
@@ -86,22 +134,126 @@ class Profile final {
     static constexpr int kMaxStackDepth = 64;
 
     int64_t sum;
-    int64_t count;  // Total added with this <stack,requested_size,...>
+    // The reported count of samples, with possible rounding up for unsample.
+    // A given sample typically corresponds to some allocated objects, and the
+    // number of objects is the quotient of weight (number of bytes requested
+    // between previous and current samples) divided by the requested size.
+    int64_t count;
 
     size_t requested_size;
     size_t requested_alignment;
     size_t allocated_size;
 
+    // Return whether the allocation was returned with
+    // tcmalloc_size_returning_operator_new or its variants.
+    bool requested_size_returning;
+
+    enum class Access : uint8_t {
+      Hot,
+      Cold,
+
+      // Only present to prevent switch statements without a default clause so
+      // that we can extend this enumeration without breaking code.
+      kDoNotUse,
+    };
+    hot_cold_t access_hint;
+    Access access_allocated;
+
+    // Whether this sample captures allocations where the deallocation event
+    // was not observed. Thus the measurements are censored in the statistical
+    // sense, see https://en.wikipedia.org/wiki/Censoring_(statistics)#Types.
+    bool is_censored = false;
+
+    // Provide the status of GWP-ASAN guarding for a given sample.
+    enum class GuardedStatus : int8_t {
+      // Conditions which represent why a sample was not guarded:
+      //
+      // The requested_size of the allocation sample is larger than the
+      // available pages which are guardable.
+      LargerThanOnePage = -1,
+      // By flag, the guarding of samples has been disabled.
+      Disabled = -2,
+      // Too many guards have been placed, any further guards will cause
+      // unexpected load on binary.
+      RateLimited = -3,
+      // The requested_size of the allocation sample is too small (= 0) to be
+      // guarded.
+      TooSmall = -4,
+      // Too many samples are already guarded.
+      NoAvailableSlots = -5,
+      // Perhaps the only true error, when the mprotect call fails.
+      MProtectFailed = -6,
+      // Used in an improved guarding selection algorithm.
+      Filtered = -7,
+      // An unexpected state, which represents that branch for selection was
+      // missed.
+      Unknown = -100,
+      // When guarding is not even considered on a sample.
+      NotAttempted = 0,
+      // The following values do not represent final states, but rather intent
+      // based on the applied algorithm for selecting guarded samples:
+      //
+      // Request guard: may still not be guarded for other reasons (see
+      //    above)
+      Requested = 1,
+      // Unused.
+      Required = 2,
+      // The result when a sample is actually guarded by GWP-ASAN.
+      Guarded = 10,
+    };
+    GuardedStatus guarded_status = GuardedStatus::Unknown;
+
+    // How the memory was allocated (new/malloc/etc.).
+    enum class AllocationType : uint8_t {
+      New,
+      Malloc,
+      AlignedMalloc,
+    };
+
+    AllocationType type;
+
     int depth;
     void* stack[kMaxStackDepth];
 
     void* user_data;
+
+    // The following vars are used by the lifetime (deallocation) profiler.
+    uint64_t profile_id;
+
+    // Timestamp of allocation.
+    absl::Time allocation_time;
+
+    // Aggregated lifetime statistics per callstack.
+    absl::Duration avg_lifetime;
+    absl::Duration stddev_lifetime;
+    absl::Duration min_lifetime;
+    absl::Duration max_lifetime;
+
+    // For the *_matched vars below we use true = "same", false = "different".
+    // When the value is unavailable the profile contains "none". For
+    // right-censored observations, CPU and thread matched values are "none".
+    std::optional<bool> allocator_deallocator_physical_cpu_matched;
+    std::optional<bool> allocator_deallocator_virtual_cpu_matched;
+    std::optional<bool> allocator_deallocator_l3_matched;
+    std::optional<bool> allocator_deallocator_numa_matched;
+    std::optional<bool> allocator_deallocator_thread_matched;
+
+    // The start address of the sampled allocation, used to calculate the
+    // residency info for the objects represented by this sampled allocation.
+    void* span_start_address;
   };
 
   void Iterate(absl::FunctionRef<void(const Sample&)> f) const;
 
-  int64_t Period() const;
   ProfileType Type() const;
+
+  // Time stamp when the profile collection started.  Returns std::nullopt if
+  // this is not available.
+  std::optional<absl::Time> StartTime() const;
+
+  // The duration the profile was collected for.  For instantaneous profiles
+  // (heap, peakheap, etc.), this returns absl::ZeroDuration().
+  absl::Duration Duration() const;
 
  private:
   explicit Profile(std::unique_ptr<const tcmalloc_internal::ProfileBase>);
@@ -133,10 +285,17 @@ class AddressRegionFactory {
                             // frequently than normal regions.
     kInfrequent ABSL_DEPRECATED("Use kInfrequentAllocation") =
         kInfrequentAllocation,
+    kMetadata,          // Metadata for TCMalloc not returned via new/malloc.
+    kInfrequentAccess,  // TCMalloc places cold allocations in these regions.
+    // Usage of the below implies numa_aware is enabled. tcmalloc will mbind the
+    // address region to the hinted socket, but also passes the hint in case
+    // mbind is not sufficient (e.g. when dealing with pre-faulted memory).
+    kNormalNumaAwareS0,  // Normal usage intended for NUMA S0 under numa_aware.
+    kNormalNumaAwareS1,  // Normal usage intended for NUMA S1 under numa_aware.
   };
 
-  AddressRegionFactory() {}
-  virtual ~AddressRegionFactory();
+  constexpr AddressRegionFactory() = default;
+  virtual ~AddressRegionFactory() = default;
 
   // Returns an AddressRegion with the specified start address and size.  hint
   // indicates how the caller intends to use the returned region (helpful for
@@ -229,7 +388,7 @@ class MallocExtension final {
   // -------------------------------------------------------------------
 
   // Gets the named property's value or a nullopt if the property is not valid.
-  static absl::optional<size_t> GetNumericProperty(absl::string_view property);
+  static std::optional<size_t> GetNumericProperty(absl::string_view property);
 
   // Marks the current thread as "idle".  This function may optionally be called
   // by threads as a hint to the malloc implementation that any thread-specific
@@ -287,42 +446,53 @@ class MallocExtension final {
   //   back in.
   static void ReleaseMemoryToSystem(size_t num_bytes);
 
-  struct MemoryLimit {
-    // Make a best effort attempt to prevent more than limit bytes of memory
-    // from being allocated by the system. In particular, if satisfying a given
-    // malloc call would require passing this limit, release as much memory to
-    // the OS as needed to stay under it if possible.
-    //
-    // If hard is set, crash if returning memory is unable to get below the
-    // limit.
-    //
-    // Note:  limit=SIZE_T_MAX implies no limit.
-    size_t limit = std::numeric_limits<size_t>::max();
-    bool hard = false;
+  enum class LimitKind { kSoft, kHard };
 
-    // Explicitly declare the ctor to put it in the google_malloc section.
-    MemoryLimit() = default;
-  };
+  // Make a best effort attempt to prevent more than limit bytes of memory
+  // from being allocated by the system. In particular, if satisfying a given
+  // malloc call would require passing this limit, release as much memory to
+  // the OS as needed to stay under it if possible.
+  //
+  // If limit_kind == kHard, crash if returning memory is unable to get below
+  // the limit.
+  static size_t GetMemoryLimit(LimitKind limit_kind);
+  static void SetMemoryLimit(size_t limit, LimitKind limit_kind);
 
-  static MemoryLimit GetMemoryLimit();
-  static void SetMemoryLimit(const MemoryLimit& limit);
-
-  // Gets the sampling rate.  Returns a value < 0 if unknown.
-  static int64_t GetProfileSamplingRate();
-  // Sets the sampling rate for heap profiles.  TCMalloc samples approximately
-  // every rate bytes allocated.
-  static void SetProfileSamplingRate(int64_t rate);
+  // Gets the sampling interval.  Returns a value < 0 if unknown.
+  static int64_t GetProfileSamplingInterval();
+  // Sets the sampling interval for heap profiles.  TCMalloc samples
+  // approximately every interval bytes allocated.
+  static void SetProfileSamplingInterval(int64_t interval);
 
   // Gets the guarded sampling rate.  Returns a value < 0 if unknown.
-  static int64_t GetGuardedSamplingRate();
-  // Sets the guarded sampling rate for sampled allocations.  TCMalloc samples
-  // approximately every rate bytes allocated, subject to implementation
-  // limitations in GWP-ASan.
+  static int64_t GetGuardedSamplingInterval();
+  // Sets the guarded sampling interval for sampled allocations.  TCMalloc
+  // samples approximately every interval bytes allocated, subject to
+  // implementation limitations in GWP-ASan.
   //
-  // Guarded samples provide probablistic protections against buffer underflow,
+  // Guarded samples provide probabilistic protections against buffer underflow,
   // overflow, and use-after-free when GWP-ASan is active (via calling
   // ActivateGuardedSampling).
-  static void SetGuardedSamplingRate(int64_t rate);
+  static void SetGuardedSamplingInterval(int64_t interval);
+
+  // The old names to get and set profile sampling intervals used "rate" to
+  // refer to intervals. Use of the below is deprecated to avoid confusion.
+  ABSL_DEPRECATE_AND_INLINE()
+  static int64_t GetProfileSamplingRate() {
+    return GetProfileSamplingInterval();
+  }
+  ABSL_DEPRECATE_AND_INLINE()
+  static void SetProfileSamplingRate(int64_t rate) {
+    SetProfileSamplingInterval(rate);
+  }
+  ABSL_DEPRECATE_AND_INLINE()
+  static int64_t GetGuardedSamplingRate() {
+    return GetGuardedSamplingInterval();
+  }
+  ABSL_DEPRECATE_AND_INLINE()
+  static void SetGuardedSamplingRate(int64_t rate) {
+    SetGuardedSamplingInterval(rate);
+  }
 
   // Switches TCMalloc to guard sampled allocations for underflow, overflow, and
   // use-after-free according to the guarded sample parameter value.
@@ -330,11 +500,6 @@ class MallocExtension final {
 
   // Gets whether TCMalloc is using per-CPU caches.
   static bool PerCpuCachesActive();
-
-  // Extension for unified agent.
-  //
-  // Should be removed in the future https://st.yandex-team.ru/UNIFIEDAGENT-321
-  static void DeactivatePerCpuCaches();
 
   // Gets the current maximum cache size per CPU cache.
   static int32_t GetMaxPerCpuCacheSize();
@@ -346,10 +511,34 @@ class MallocExtension final {
   // Sets the maximum thread cache size.  This is a whole-process limit.
   static void SetMaxTotalThreadCacheBytes(int64_t value);
 
-  // Gets the delayed subrelease interval (0 if delayed subrelease is disabled)
+  // Enables or disables background processes.
+  static bool GetBackgroundProcessActionsEnabled();
+  static void SetBackgroundProcessActionsEnabled(bool value);
+
+  // Gets and sets background process sleep time. This controls the interval
+  // granularity at which the actions are invoked.
+  static absl::Duration GetBackgroundProcessSleepInterval();
+  static void SetBackgroundProcessSleepInterval(absl::Duration value);
+
+  // Gets and sets intervals used for finding recent demand peak, short-term
+  // demand fluctuation, and long-term demand trend. Zero duration means not
+  // considering corresponding demand history for delayed subrelease. Delayed
+  // subrelease is disabled if all intervals are zero.
   static absl::Duration GetSkipSubreleaseInterval();
-  // Sets the delayed subrelease interval (0 to disable delayed subrelease)
   static void SetSkipSubreleaseInterval(absl::Duration value);
+  static absl::Duration GetSkipSubreleaseShortInterval();
+  static void SetSkipSubreleaseShortInterval(absl::Duration value);
+  static absl::Duration GetSkipSubreleaseLongInterval();
+  static void SetSkipSubreleaseLongInterval(absl::Duration value);
+
+  // Gets and sets intervals used for finding the recent short-term demand
+  // fluctuation and long-term demand trend in HugeCache. Zero duration means
+  // not considering corresponding demand history for delayed (demand-based)
+  // hugepage release. The feature is disabled if both intervals are zero.
+  static absl::Duration GetCacheDemandReleaseShortInterval();
+  static void SetCacheDemandReleaseShortInterval(absl::Duration value);
+  static absl::Duration GetCacheDemandReleaseLongInterval();
+  static void SetCacheDemandReleaseLongInterval(absl::Duration value);
 
   // Returns the estimated number of bytes that will be allocated for a request
   // of "size" bytes.  This is an estimate: an allocation of "size" bytes may
@@ -372,7 +561,7 @@ class MallocExtension final {
   // -- that is, must be exactly the pointer returned to by malloc() et al., not
   // some offset from that -- and should not have been freed yet.  p may be
   // null.
-  static absl::optional<size_t> GetAllocatedSize(const void* p);
+  static std::optional<size_t> GetAllocatedSize(const void* p);
 
   // Returns
   // * kOwned if TCMalloc allocated the memory pointed to by p, or
@@ -444,6 +633,10 @@ class MallocExtension final {
   // null if the implementation does not support profiling.
   static AllocationProfilingToken StartAllocationProfiling();
 
+  // Start recording lifetimes of objects live during this profiling
+  // session. Returns null if the implementation does not support profiling.
+  static AllocationProfilingToken StartLifetimeProfiling();
+
   // Runs housekeeping actions for the allocator off of the main allocation path
   // of new/delete.  As of 2020, this includes:
   // * Inspecting the current CPU mask and releasing memory from inaccessible
@@ -475,11 +668,31 @@ class MallocExtension final {
   // Allocator will continue to function correctly in the child, after calling fork().
   static void EnableForkSupport();
 
+  using SoftMemoryLimitCallback = void();
+  static void SetSoftMemoryLimitHandler(SoftMemoryLimitCallback* handler);
+  static SoftMemoryLimitCallback* GetSoftMemoryLimitHandler();
+
   using CreateSampleUserDataCallback = void*();
   using CopySampleUserDataCallback = void*(void*);
   using DestroySampleUserDataCallback = void(void*);
+  using ComputeSampleUserDataHashCallback = size_t(void*);
 
-  // Sets callbacks for lifetime control of custom user data attached to allocation samples
+  // Sets callbacks for lifetime control of custom user data attached to allocation samples.
+  // In general, create, copy and destroy callbacks are used with shared_ptr-like semantics:
+  // - Each non-null user_data returned will be result of the create or copy callbacks.
+  // - For each create or copy call (with result R), there will be matching destroy call with argument R.
+  // - Copy and compute_hash callbacks can be called concurrently, but any such call happens before matching destroy call.
+  // Provided functions must satisfy following requirements:
+  // - create and destroy callbacks may not call back into the allocator except for allocating or deallocating memory.
+  // - copy callback may not call back into the allocator at all.
+  // - only compute_hash may throw exceptions (TODO: can this be relaxed safely?)
+  static void SetSampleUserDataCallbacks(
+    CreateSampleUserDataCallback create,
+    CopySampleUserDataCallback copy,
+    DestroySampleUserDataCallback destroy,
+    ComputeSampleUserDataHashCallback compute_hash);
+
+  // Temporary compat shim. Use 4-argument overload instead.
   static void SetSampleUserDataCallbacks(
     CreateSampleUserDataCallback create,
     CopySampleUserDataCallback copy,
@@ -494,6 +707,9 @@ class MallocExtension final {
 // Default weak implementation returns size unchanged, but tcmalloc overrides it
 // and returns rounded up size. See the following link for details:
 // http://www.unix.com/man-page/freebsd/3/nallocx/
+// NOTE: prefer using tcmalloc_size_returning_operator_new over nallocx.
+// tcmalloc_size_returning_operator_new is more efficienct and provides tcmalloc
+// with better telemetry.
 extern "C" size_t nallocx(size_t size, int flags) noexcept;
 
 // The sdallocx function deallocates memory allocated by malloc or memalign.  It
@@ -503,16 +719,27 @@ extern "C" size_t nallocx(size_t size, int flags) noexcept;
 // uses the size to improve deallocation performance.
 extern "C" void sdallocx(void* ptr, size_t size, int flags) noexcept;
 
-namespace tcmalloc {
+#if !defined(__STDC_VERSION_STDLIB_H__) || __STDC_VERSION_STDLIB_H__ < 202311L
+// Frees ptr allocated with malloc(size) introduced in C23.
+extern "C" void free_sized(void* ptr, size_t size);
 
-// Pointer / capacity information as returned by
-// tcmalloc_size_returning_operator_new(). See
-// tcmalloc_size_returning_operator_new() for more information.
-struct sized_ptr_t {
+// Frees ptr allocated with aligned_alloc/posix_memalign with the specified size
+// and alignment introduced in C23.
+extern "C" void free_aligned_sized(void* ptr, size_t alignment, size_t size);
+#endif
+
+// Define __sized_ptr_t in the global namespace so that it can be named by the
+// __size_returning_new implementations defined in tcmalloc.cc.
+struct __sized_ptr_t {
   void* p;
   size_t n;
 };
 
+namespace tcmalloc {
+// sized_ptr_t constains pointer / capacity information as returned
+// by `tcmalloc_size_returning_operator_new()`.
+// See `tcmalloc_size_returning_operator_new()` for more information.
+using sized_ptr_t = __sized_ptr_t;
 }  // namespace tcmalloc
 
 // Allocates memory of at least the requested size.
@@ -544,24 +771,72 @@ struct sized_ptr_t {
 // new" proposal:
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0901r5.html
 extern "C" {
-tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new(size_t size);
-tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new_nothrow(
-    size_t size) noexcept;
+// The following declarations provide an alternative spelling which should be
+// used so that the compiler can identify these as allocator functions.
+__sized_ptr_t __size_returning_new(size_t size);
+__sized_ptr_t __size_returning_new_hot_cold(size_t, __hot_cold_t);
+__sized_ptr_t __size_returning_new_aligned(size_t, std::align_val_t);
+__sized_ptr_t __size_returning_new_aligned_hot_cold(size_t, std::align_val_t,
+                                                    __hot_cold_t);
 
-// Aligned size returning new is only supported for libc++ because of issues
-// with libstdcxx.so linkage. See http://b/110969867 for background.
+ABSL_DEPRECATE_AND_INLINE()
+inline __sized_ptr_t tcmalloc_size_returning_operator_new(size_t size) {
+  return __size_returning_new(size);
+}
+__sized_ptr_t tcmalloc_size_returning_operator_new_nothrow(
+    size_t size) noexcept;
+ABSL_DEPRECATE_AND_INLINE()
+inline __sized_ptr_t tcmalloc_size_returning_operator_new_hot_cold(
+    size_t size, tcmalloc::hot_cold_t hot_cold) {
+  return __size_returning_new_hot_cold(size, hot_cold);
+}
+__sized_ptr_t tcmalloc_size_returning_operator_new_hot_cold_nothrow(
+    size_t size, tcmalloc::hot_cold_t hot_cold) noexcept;
+
 #if defined(__cpp_aligned_new)
 
 // Identical to `tcmalloc_size_returning_operator_new` except that the returned
 // memory is aligned according to the `alignment` argument.
-tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new_aligned(
-    size_t size, std::align_val_t alignment);
-tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new_aligned_nothrow(
+ABSL_DEPRECATE_AND_INLINE()
+inline __sized_ptr_t tcmalloc_size_returning_operator_new_aligned(
+    size_t size, std::align_val_t alignment) {
+  return __size_returning_new_aligned(size, alignment);
+}
+__sized_ptr_t tcmalloc_size_returning_operator_new_aligned_nothrow(
     size_t size, std::align_val_t alignment) noexcept;
+ABSL_DEPRECATE_AND_INLINE()
+inline __sized_ptr_t tcmalloc_size_returning_operator_new_aligned_hot_cold(
+    size_t size, std::align_val_t alignment, tcmalloc::hot_cold_t hot_cold) {
+  return __size_returning_new_aligned_hot_cold(size, alignment, hot_cold);
+}
+__sized_ptr_t tcmalloc_size_returning_operator_new_aligned_hot_cold_nothrow(
+    size_t size, std::align_val_t alignment,
+    tcmalloc::hot_cold_t hot_cold) noexcept;
 
 #endif  // __cpp_aligned_new
 
 }  // extern "C"
+
+void* operator new(size_t size, tcmalloc::hot_cold_t hot_cold) noexcept(false);
+void* operator new(size_t size, const std::nothrow_t&,
+                   tcmalloc::hot_cold_t hot_cold) noexcept;
+void* operator new[](size_t size,
+                     tcmalloc::hot_cold_t hot_cold) noexcept(false);
+void* operator new[](size_t size, const std::nothrow_t&,
+                     tcmalloc::hot_cold_t hot_cold) noexcept;
+
+#ifdef __cpp_aligned_new
+void* operator new(size_t size, std::align_val_t alignment,
+                   tcmalloc::hot_cold_t hot_cold) noexcept(false);
+void* operator new(size_t size, std::align_val_t alignment,
+                   const std::nothrow_t&,
+                   tcmalloc::hot_cold_t hot_cold) noexcept;
+void* operator new[](size_t size, std::align_val_t alignment,
+                     tcmalloc::hot_cold_t hot_cold) noexcept(false);
+void* operator new[](size_t size, std::align_val_t alignment,
+                     const std::nothrow_t&,
+                     tcmalloc::hot_cold_t hot_cold) noexcept;
+#endif  // __cpp_aligned_new
 
 #ifndef MALLOCX_LG_ALIGN
 #define MALLOCX_LG_ALIGN(la) (la)
@@ -603,13 +878,57 @@ class ProfileBase {
   virtual void Iterate(
       absl::FunctionRef<void(const Profile::Sample&)> f) const = 0;
 
-  // The approximate interval between recorded samples of the event of interest.
-  // A period of 1 means every sample was recorded.
-  virtual int64_t Period() const = 0;
-
   // The type of profile (live objects, allocated, etc.).
   virtual ProfileType Type() const = 0;
+
+  virtual std::optional<absl::Time> StartTime() const = 0;
+
+  // The duration the profile was collected for.  For instantaneous profiles
+  // (heap, peakheap, etc.), this returns absl::ZeroDuration().
+  virtual absl::Duration Duration() const = 0;
 };
+
+enum class MadvisePreference {
+  kNever = 0x0,
+  kDontNeed = 0x1,
+  kFreeAndDontNeed = 0x3,
+  kFreeOnly = 0x2,
+};
+
+inline bool AbslParseFlag(absl::string_view text, MadvisePreference* preference,
+                          std::string* /* error */) {
+  if (text == "NEVER") {
+    *preference = MadvisePreference::kNever;
+    return true;
+  } else if (text == "DONTNEED") {
+    *preference = MadvisePreference::kDontNeed;
+    return true;
+  } else if (text == "FREE_AND_DONTNEED") {
+    *preference = MadvisePreference::kFreeAndDontNeed;
+    return true;
+  } else if (text == "FREE_ONLY") {
+    *preference = MadvisePreference::kFreeOnly;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+inline std::string AbslUnparseFlag(MadvisePreference preference) {
+  switch (preference) {
+    case MadvisePreference::kNever:
+      return "NEVER";
+    case MadvisePreference::kDontNeed:
+      return "DONTNEED";
+    case MadvisePreference::kFreeAndDontNeed:
+      return "FREE_AND_DONTNEED";
+    case MadvisePreference::kFreeOnly:
+      return "FREE_ONLY";
+  }
+
+  ABSL_UNREACHABLE();
+  return "";
+}
 
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc

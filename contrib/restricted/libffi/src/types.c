@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------------
-   types.c - Copyright (c) 1996, 1998  Red Hat, Inc.
-   
+   types.c - Copyright (c) 1996, 1998, 2024, 2025  Red Hat, Inc.
+
    Predefined ffi_types needed by libffi.
 
    Permission is hereby granted, free of charge, to any person obtaining
@@ -30,6 +30,28 @@
 
 #include <ffi.h>
 #include <ffi_common.h>
+
+/* Return a version string. */
+const char *ffi_get_version (void)
+{
+  return FFI_VERSION_STRING;
+}
+
+/* Return the version as an unsigned long value: (x * 10000 + y * 100 + z) */
+unsigned long ffi_get_version_number (void)
+{
+  return FFI_VERSION_NUMBER;
+}
+
+unsigned int ffi_get_default_abi (void)
+{
+  return FFI_DEFAULT_ABI;
+}
+
+size_t ffi_get_closure_size (void)
+{
+  return sizeof(ffi_closure);
+}
 
 /* Type definitions */
 
@@ -87,7 +109,7 @@ FFI_TYPEDEF(double, double, FFI_TYPE_DOUBLE, const);
 #endif
 
 #ifdef __alpha__
-/* Even if we're not configured to default to 128-bit long double, 
+/* Even if we're not configured to default to 128-bit long double,
    maintain binary compatibility, as -mlong-double-128 can be used
    at any time.  */
 /* Validate the hard-coded number below.  */
@@ -95,14 +117,12 @@ FFI_TYPEDEF(double, double, FFI_TYPE_DOUBLE, const);
 #  error FFI_TYPE_LONGDOUBLE out of date
 # endif
 const ffi_type ffi_type_longdouble = { 16, 16, 4, NULL };
-#elif FFI_TYPE_LONGDOUBLE != FFI_TYPE_DOUBLE
+#else
 FFI_TYPEDEF(longdouble, long double, FFI_TYPE_LONGDOUBLE, FFI_LDBL_CONST);
 #endif
 
 #ifdef FFI_TARGET_HAS_COMPLEX_TYPE
 FFI_COMPLEX_TYPEDEF(float, float, const);
 FFI_COMPLEX_TYPEDEF(double, double, const);
-#if FFI_TYPE_LONGDOUBLE != FFI_TYPE_DOUBLE
 FFI_COMPLEX_TYPEDEF(longdouble, long double, FFI_LDBL_CONST);
-#endif
 #endif

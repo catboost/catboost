@@ -12,7 +12,7 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
         UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.BlueColor()), "\\x1B[22;34m");
         UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.ForeBlue()), "\\x1B[34m");
         colors.Disable();
-        UNIT_ASSERT(colors.BlueColor().Empty());
+        UNIT_ASSERT(colors.BlueColor().empty());
     }
 
     Y_UNIT_TEST(ResettingTest) {

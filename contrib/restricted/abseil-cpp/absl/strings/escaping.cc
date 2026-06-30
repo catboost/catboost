@@ -15,22 +15,30 @@
 #include "absl/strings/escaping.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <iterator>
 #include <limits>
 #include <string>
+#include <utility>
 
+#include "absl/base/config.h"
 #include "absl/base/internal/endian.h"
 #include "absl/base/internal/raw_logging.h"
 #include "absl/base/internal/unaligned_access.h"
-#include "absl/strings/internal/char_map.h"
+#include "absl/base/macros.h"
+#include "absl/base/nullability.h"
+#include "absl/base/optimization.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/charset.h"
+#include "absl/strings/internal/append_and_overwrite.h"
 #include "absl/strings/internal/escaping.h"
-#include "absl/strings/internal/resize_uninitialized.h"
 #include "absl/strings/internal/utf8.h"
+#include "absl/strings/numbers.h"
+#include "absl/strings/resize_and_overwrite.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 
 namespace absl {
@@ -53,7 +61,8 @@ inline unsigned int hex_digit_to_int(char c) {
   return x & 0xf;
 }
 
-inline bool IsSurrogate(char32_t c, absl::string_view src, std::string* error) {
+inline bool IsSurrogate(char32_t c, absl::string_view src,
+                        std::string* absl_nullable error) {
   if (c >= 0xD800 && c <= 0xDFFF) {
     if (error) {
       *error = absl::StrCat("invalid surrogate character (0xD800-DFFF): \\",
@@ -70,47 +79,52 @@ inline bool IsSurrogate(char32_t c, absl::string_view src, std::string* error) {
 //
 //    Unescapes C escape sequences and is the reverse of CEscape().
 //
-//    If 'source' is valid, stores the unescaped string and its size in
-//    'dest' and 'dest_len' respectively, and returns true. Otherwise
-//    returns false and optionally stores the error description in
-//    'error'. Set 'error' to nullptr to disable error reporting.
+//    If `src` is valid, stores the unescaped string in `dst` and the length of
+//    unescaped string in `dst_size`, and returns true. Otherwise returns false
+//    and optionally stores the error description in `error`. Set `error` to
+//    nullptr to disable error reporting.
 //
-//    'dest' should point to a buffer that is at least as big as 'source'.
-//    'source' and 'dest' may be the same.
-//
-//     NOTE: any changes to this function must also be reflected in the older
-//     UnescapeCEscapeSequences().
+//    `src` and `dst` may use the same underlying buffer (but keep in mind
+//    that if this returns an error, it will leave both `src` and `dst` in
+//    an unspecified state because they are using the same underlying buffer.)
+//    `dst` must have at least as much space as `src`.
 // ----------------------------------------------------------------------
-bool CUnescapeInternal(absl::string_view source, bool leave_nulls_escaped,
-                       char* dest, ptrdiff_t* dest_len, std::string* error) {
-  char* d = dest;
-  const char* p = source.data();
-  const char* end = p + source.size();
-  const char* last_byte = end - 1;
 
-  // Small optimization for case where source = dest and there's no escaping
-  while (p == d && p < end && *p != '\\') p++, d++;
+bool CUnescapeInternal(absl::string_view src, bool leave_nulls_escaped,
+                       char* absl_nonnull dst, size_t* absl_nonnull dst_size,
+                       std::string* absl_nullable error) {
+  absl::string_view::size_type p = 0;  // Current src position.
+  size_t d = 0;                        // Current dst position.
 
-  while (p < end) {
-    if (*p != '\\') {
-      *d++ = *p++;
+  // When unescaping in-place, skip any prefix that does not have escaping.
+  if (src.data() == dst) {
+    while (p < src.size() && src[p] != '\\') p++, d++;
+  }
+
+  while (p < src.size()) {
+    if (src[p] != '\\') {
+      dst[d++] = src[p++];
     } else {
-      if (++p > last_byte) {  // skip past the '\\'
-        if (error) *error = "String cannot end with \\";
+      if (++p >= src.size()) {  // skip past the '\\'
+        if (error != nullptr) {
+          *error = "String cannot end with \\";
+        }
         return false;
       }
-      switch (*p) {
-        case 'a':  *d++ = '\a';  break;
-        case 'b':  *d++ = '\b';  break;
-        case 'f':  *d++ = '\f';  break;
-        case 'n':  *d++ = '\n';  break;
-        case 'r':  *d++ = '\r';  break;
-        case 't':  *d++ = '\t';  break;
-        case 'v':  *d++ = '\v';  break;
-        case '\\': *d++ = '\\';  break;
-        case '?':  *d++ = '\?';  break;    // \?  Who knew?
-        case '\'': *d++ = '\'';  break;
-        case '"':  *d++ = '\"';  break;
+      switch (src[p]) {
+          // clang-format off
+        case 'a':  dst[d++] = '\a';  break;
+        case 'b':  dst[d++] = '\b';  break;
+        case 'f':  dst[d++] = '\f';  break;
+        case 'n':  dst[d++] = '\n';  break;
+        case 'r':  dst[d++] = '\r';  break;
+        case 't':  dst[d++] = '\t';  break;
+        case 'v':  dst[d++] = '\v';  break;
+        case '\\': dst[d++] = '\\';  break;
+        case '?':  dst[d++] = '\?';  break;
+        case '\'': dst[d++] = '\'';  break;
+        case '"':  dst[d++] = '\"';  break;
+        // clang-format on
         case '0':
         case '1':
         case '2':
@@ -120,187 +134,173 @@ bool CUnescapeInternal(absl::string_view source, bool leave_nulls_escaped,
         case '6':
         case '7': {
           // octal digit: 1 to 3 digits
-          const char* octal_start = p;
-          unsigned int ch = static_cast<unsigned int>(*p - '0');  // digit 1
-          if (p < last_byte && is_octal_digit(p[1]))
-            ch = ch * 8 + static_cast<unsigned int>(*++p - '0');  // digit 2
-          if (p < last_byte && is_octal_digit(p[1]))
-            ch = ch * 8 + static_cast<unsigned int>(*++p - '0');  // digit 3
+          auto octal_start = p;
+          unsigned int ch = static_cast<unsigned int>(src[p] - '0');  // digit 1
+          if (p + 1 < src.size() && is_octal_digit(src[p + 1]))
+            ch = ch * 8 + static_cast<unsigned int>(src[++p] - '0');  // digit 2
+          if (p + 1 < src.size() && is_octal_digit(src[p + 1]))
+            ch = ch * 8 + static_cast<unsigned int>(src[++p] - '0');  // digit 3
           if (ch > 0xff) {
-            if (error) {
-              *error = "Value of \\" +
-                       std::string(octal_start,
-                                   static_cast<size_t>(p + 1 - octal_start)) +
-                       " exceeds 0xff";
+            if (error != nullptr) {
+              *error =
+                  "Value of \\" +
+                  std::string(src.substr(octal_start, p + 1 - octal_start)) +
+                  " exceeds 0xff";
             }
             return false;
           }
           if ((ch == 0) && leave_nulls_escaped) {
             // Copy the escape sequence for the null character
-            const size_t octal_size = static_cast<size_t>(p + 1 - octal_start);
-            *d++ = '\\';
-            memmove(d, octal_start, octal_size);
-            d += octal_size;
+            dst[d++] = '\\';
+            while (octal_start <= p) {
+              dst[d++] = src[octal_start++];
+            }
             break;
           }
-          *d++ = static_cast<char>(ch);
+          dst[d++] = static_cast<char>(ch);
           break;
         }
         case 'x':
         case 'X': {
-          if (p >= last_byte) {
-            if (error) *error = "String cannot end with \\x";
+          if (p + 1 >= src.size()) {
+            if (error != nullptr) {
+              *error = "String cannot end with \\x";
+            }
             return false;
-          } else if (!absl::ascii_isxdigit(static_cast<unsigned char>(p[1]))) {
-            if (error) *error = "\\x cannot be followed by a non-hex digit";
-            return false;
-          }
-          unsigned int ch = 0;
-          const char* hex_start = p;
-          while (p < last_byte &&
-                 absl::ascii_isxdigit(static_cast<unsigned char>(p[1])))
-            // Arbitrarily many hex digits
-            ch = (ch << 4) + hex_digit_to_int(*++p);
-          if (ch > 0xFF) {
-            if (error) {
-              *error = "Value of \\" +
-                       std::string(hex_start,
-                                   static_cast<size_t>(p + 1 - hex_start)) +
-                       " exceeds 0xff";
+          } else if (!absl::ascii_isxdigit(
+              static_cast<unsigned char>(src[p + 1]))) {
+            if (error != nullptr) {
+              *error = "\\x cannot be followed by a non-hex digit";
             }
             return false;
           }
+          unsigned int ch = 0;
+          auto hex_start = p;
+          while (p + 1 < src.size() &&
+                 absl::ascii_isxdigit(static_cast<unsigned char>(src[p + 1]))) {
+            // Arbitrarily many hex digits
+            ch = (ch << 4) + hex_digit_to_int(src[++p]);
+            // If ch was 0xFF at the start of this loop, the most can it can be
+            // here is (0xFF << 4) + 0xF, which is 4095, thus ch cannot overflow
+            // 32-bits here. The check below is sufficient.
+            if (ch > 0xFF) {
+              if (error != nullptr) {
+                *error = "Value of \\" +
+                         std::string(src.substr(hex_start, p + 1 - hex_start)) +
+                         " exceeds 0xff";
+              }
+              return false;
+            }
+          }
           if ((ch == 0) && leave_nulls_escaped) {
             // Copy the escape sequence for the null character
-            const size_t hex_size = static_cast<size_t>(p + 1 - hex_start);
-            *d++ = '\\';
-            memmove(d, hex_start, hex_size);
-            d += hex_size;
+            dst[d++] = '\\';
+            while (hex_start <= p) {
+              dst[d++] = src[hex_start++];
+            }
             break;
           }
-          *d++ = static_cast<char>(ch);
+          dst[d++] = static_cast<char>(ch);
           break;
         }
         case 'u': {
           // \uhhhh => convert 4 hex digits to UTF-8
           char32_t rune = 0;
-          const char* hex_start = p;
-          if (p + 4 >= end) {
-            if (error) {
-              *error = "\\u must be followed by 4 hex digits: \\" +
-                       std::string(hex_start,
-                                   static_cast<size_t>(p + 1 - hex_start));
+          auto hex_start = p;
+          if (p + 4 >= src.size()) {
+            if (error != nullptr) {
+              *error = "\\u must be followed by 4 hex digits";
             }
             return false;
           }
           for (int i = 0; i < 4; ++i) {
             // Look one char ahead.
-            if (absl::ascii_isxdigit(static_cast<unsigned char>(p[1]))) {
-              rune = (rune << 4) + hex_digit_to_int(*++p);  // Advance p.
+            if (absl::ascii_isxdigit(static_cast<unsigned char>(src[p + 1]))) {
+              rune = (rune << 4) + hex_digit_to_int(src[++p]);
             } else {
-              if (error) {
+              if (error != nullptr) {
                 *error = "\\u must be followed by 4 hex digits: \\" +
-                         std::string(hex_start,
-                                     static_cast<size_t>(p + 1 - hex_start));
+                         std::string(src.substr(hex_start, p + 1 - hex_start));
               }
               return false;
             }
           }
           if ((rune == 0) && leave_nulls_escaped) {
             // Copy the escape sequence for the null character
-            *d++ = '\\';
-            memmove(d, hex_start, 5);  // u0000
-            d += 5;
+            dst[d++] = '\\';
+            while (hex_start <= p) {
+              dst[d++] = src[hex_start++];
+            }
             break;
           }
-          if (IsSurrogate(rune, absl::string_view(hex_start, 5), error)) {
+          if (IsSurrogate(rune, src.substr(hex_start, 5), error)) {
             return false;
           }
-          d += strings_internal::EncodeUTF8Char(d, rune);
+          d += strings_internal::EncodeUTF8Char(dst + d, rune);
           break;
         }
         case 'U': {
           // \Uhhhhhhhh => convert 8 hex digits to UTF-8
           char32_t rune = 0;
-          const char* hex_start = p;
-          if (p + 8 >= end) {
-            if (error) {
-              *error = "\\U must be followed by 8 hex digits: \\" +
-                       std::string(hex_start,
-                                   static_cast<size_t>(p + 1 - hex_start));
+          auto hex_start = p;
+          if (p + 8 >= src.size()) {
+            if (error != nullptr) {
+              *error = "\\U must be followed by 8 hex digits";
             }
             return false;
           }
           for (int i = 0; i < 8; ++i) {
             // Look one char ahead.
-            if (absl::ascii_isxdigit(static_cast<unsigned char>(p[1]))) {
+            if (absl::ascii_isxdigit(static_cast<unsigned char>(src[p + 1]))) {
               // Don't change rune until we're sure this
               // is within the Unicode limit, but do advance p.
-              uint32_t newrune = (rune << 4) + hex_digit_to_int(*++p);
+              uint32_t newrune = (rune << 4) + hex_digit_to_int(src[++p]);
               if (newrune > 0x10FFFF) {
-                if (error) {
-                  *error = "Value of \\" +
-                           std::string(hex_start,
-                                       static_cast<size_t>(p + 1 - hex_start)) +
-                           " exceeds Unicode limit (0x10FFFF)";
+                if (error != nullptr) {
+                  *error =
+                      "Value of \\" +
+                      std::string(src.substr(hex_start, p + 1 - hex_start)) +
+                      " exceeds Unicode limit (0x10FFFF)";
                 }
                 return false;
               } else {
                 rune = newrune;
               }
             } else {
-              if (error) {
+              if (error != nullptr) {
                 *error = "\\U must be followed by 8 hex digits: \\" +
-                         std::string(hex_start,
-                                     static_cast<size_t>(p + 1 - hex_start));
+                         std::string(src.substr(hex_start, p + 1 - hex_start));
               }
               return false;
             }
           }
           if ((rune == 0) && leave_nulls_escaped) {
             // Copy the escape sequence for the null character
-            *d++ = '\\';
-            memmove(d, hex_start, 9);  // U00000000
-            d += 9;
+            dst[d++] = '\\';
+            // U00000000
+            while (hex_start <= p) {
+              dst[d++] = src[hex_start++];
+            }
             break;
           }
-          if (IsSurrogate(rune, absl::string_view(hex_start, 9), error)) {
+          if (IsSurrogate(rune, src.substr(hex_start, 9), error)) {
             return false;
           }
-          d += strings_internal::EncodeUTF8Char(d, rune);
+          d += strings_internal::EncodeUTF8Char(dst + d, rune);
           break;
         }
         default: {
-          if (error) *error = std::string("Unknown escape sequence: \\") + *p;
+          if (error != nullptr) {
+            *error = std::string("Unknown escape sequence: \\") + src[p];
+          }
           return false;
         }
       }
-      p++;                                 // read past letter we escaped
+      p++;  // Read past letter we escaped.
     }
   }
-  *dest_len = d - dest;
-  return true;
-}
 
-// ----------------------------------------------------------------------
-// CUnescapeInternal()
-//
-//    Same as above but uses a std::string for output. 'source' and 'dest'
-//    may be the same.
-// ----------------------------------------------------------------------
-bool CUnescapeInternal(absl::string_view source, bool leave_nulls_escaped,
-                       std::string* dest, std::string* error) {
-  strings_internal::STLStringResizeUninitialized(dest, source.size());
-
-  ptrdiff_t dest_size;
-  if (!CUnescapeInternal(source,
-                         leave_nulls_escaped,
-                         &(*dest)[0],
-                         &dest_size,
-                         error)) {
-    return false;
-  }
-  dest->erase(static_cast<size_t>(dest_size));
+  *dst_size = d;
   return true;
 }
 
@@ -361,7 +361,7 @@ std::string CEscapeInternal(absl::string_view src, bool use_hex,
 }
 
 /* clang-format off */
-constexpr unsigned char c_escaped_len[256] = {
+constexpr std::array<unsigned char, 256> kCEscapedLen = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 4, 4, 2, 4, 4,  // \t, \n, \r
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1,  // ", '
@@ -381,71 +381,258 @@ constexpr unsigned char c_escaped_len[256] = {
 };
 /* clang-format on */
 
+constexpr uint32_t MakeCEscapedLittleEndianUint32(size_t c) {
+  size_t char_len = kCEscapedLen[c];
+  if (char_len == 1) {
+    return static_cast<uint32_t>(c);
+  }
+  if (char_len == 2) {
+    switch (c) {
+      case '\n':
+        return '\\' | (static_cast<uint32_t>('n') << 8);
+      case '\r':
+        return '\\' | (static_cast<uint32_t>('r') << 8);
+      case '\t':
+        return '\\' | (static_cast<uint32_t>('t') << 8);
+      case '\"':
+        return '\\' | (static_cast<uint32_t>('\"') << 8);
+      case '\'':
+        return '\\' | (static_cast<uint32_t>('\'') << 8);
+      case '\\':
+        return '\\' | (static_cast<uint32_t>('\\') << 8);
+    }
+  }
+  return static_cast<uint32_t>('\\' | (('0' + (c / 64)) << 8) |
+                               (('0' + ((c % 64) / 8)) << 16) |
+                               (('0' + (c % 8)) << 24));
+}
+
+template <size_t... indexes>
+inline constexpr std::array<uint32_t, sizeof...(indexes)>
+MakeCEscapedLittleEndianUint32Array(std::index_sequence<indexes...>) {
+  return {MakeCEscapedLittleEndianUint32(indexes)...};
+}
+constexpr std::array<uint32_t, 256> kCEscapedLittleEndianUint32Array =
+    MakeCEscapedLittleEndianUint32Array(std::make_index_sequence<256>());
+
 // Calculates the length of the C-style escaped version of 'src'.
 // Assumes that non-printable characters are escaped using octal sequences, and
 // that UTF-8 bytes are not handled specially.
 inline size_t CEscapedLength(absl::string_view src) {
   size_t escaped_len = 0;
-  for (char c : src)
-    escaped_len += c_escaped_len[static_cast<unsigned char>(c)];
+  // The maximum value of kCEscapedLen[x] is 4, so we can escape any string of
+  // length size_t_max/4 without checking for overflow.
+  size_t unchecked_limit =
+      std::min<size_t>(src.size(), std::numeric_limits<size_t>::max() / 4);
+  size_t i = 0;
+  while (i < unchecked_limit) {
+    // Common case: No need to check for overflow.
+    escaped_len += kCEscapedLen[static_cast<unsigned char>(src[i++])];
+  }
+  while (i < src.size()) {
+    // Beyond unchecked_limit we need to check for overflow before adding.
+    size_t char_len = kCEscapedLen[static_cast<unsigned char>(src[i++])];
+    ABSL_INTERNAL_CHECK(
+        escaped_len <= std::numeric_limits<size_t>::max() - char_len,
+        "escaped_len overflow");
+    escaped_len += char_len;
+  }
   return escaped_len;
 }
 
-void CEscapeAndAppendInternal(absl::string_view src, std::string* dest) {
+void CEscapeAndAppendInternal(absl::string_view src,
+                              std::string* absl_nonnull dest) {
   size_t escaped_len = CEscapedLength(src);
   if (escaped_len == src.size()) {
     dest->append(src.data(), src.size());
     return;
   }
 
+  // We keep 3 slop bytes so that we can call `little_endian::Store32`
+  // invariably regardless of the length of the escaped character.
+  constexpr size_t kSlopBytes = 3;
   size_t cur_dest_len = dest->size();
-  strings_internal::STLStringResizeUninitialized(dest,
-                                                 cur_dest_len + escaped_len);
-  char* append_ptr = &(*dest)[cur_dest_len];
-
-  for (char c : src) {
-    size_t char_len = c_escaped_len[static_cast<unsigned char>(c)];
-    if (char_len == 1) {
-      *append_ptr++ = c;
-    } else if (char_len == 2) {
-      switch (c) {
-        case '\n':
-          *append_ptr++ = '\\';
-          *append_ptr++ = 'n';
-          break;
-        case '\r':
-          *append_ptr++ = '\\';
-          *append_ptr++ = 'r';
-          break;
-        case '\t':
-          *append_ptr++ = '\\';
-          *append_ptr++ = 't';
-          break;
-        case '\"':
-          *append_ptr++ = '\\';
-          *append_ptr++ = '\"';
-          break;
-        case '\'':
-          *append_ptr++ = '\\';
-          *append_ptr++ = '\'';
-          break;
-        case '\\':
-          *append_ptr++ = '\\';
-          *append_ptr++ = '\\';
-          break;
-      }
-    } else {
-      *append_ptr++ = '\\';
-      *append_ptr++ = '0' + static_cast<unsigned char>(c) / 64;
-      *append_ptr++ = '0' + (static_cast<unsigned char>(c) % 64) / 8;
-      *append_ptr++ = '0' + static_cast<unsigned char>(c) % 8;
-    }
-  }
+  size_t append_buf_len = cur_dest_len + escaped_len + kSlopBytes;
+  ABSL_INTERNAL_CHECK(append_buf_len > cur_dest_len,
+                      "std::string size overflow");
+  strings_internal::StringAppendAndOverwrite(
+      *dest, append_buf_len, [src, escaped_len](char* append_ptr, size_t) {
+        for (char c : src) {
+          unsigned char uc = static_cast<unsigned char>(c);
+          size_t char_len = kCEscapedLen[uc];
+          uint32_t little_endian_uint32 = kCEscapedLittleEndianUint32Array[uc];
+          little_endian::Store32(append_ptr, little_endian_uint32);
+          append_ptr += char_len;
+        }
+        return escaped_len;
+      });
 }
 
-bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
-                            size_t szdest, const signed char* unbase64,
-                            size_t* len) {
+// The two strings below provide maps from normal 6-bit characters to their
+// base64-escaped equivalent.
+// For the inverse case, see kUn(WebSafe)Base64 in the external
+// escaping.cc.
+constexpr char kBase64Chars[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+constexpr char kWebSafeBase64Chars[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+// ----------------------------------------------------------------------
+//   Take the input in groups of 4 characters and turn each
+//   character into a code 0 to 63 thus:
+//           A-Z map to 0 to 25
+//           a-z map to 26 to 51
+//           0-9 map to 52 to 61
+//           +(- for WebSafe) maps to 62
+//           /(_ for WebSafe) maps to 63
+//   There will be four numbers, all less than 64 which can be represented
+//   by a 6 digit binary number (aaaaaa, bbbbbb, cccccc, dddddd respectively).
+//   Arrange the 6 digit binary numbers into three bytes as such:
+//   aaaaaabb bbbbcccc ccdddddd
+//   Equals signs (one or two) are used at the end of the encoded block to
+//   indicate that the text was not an integer multiple of three bytes long.
+// ----------------------------------------------------------------------
+size_t Base64EscapeInternal(const unsigned char* src, size_t szsrc, char* dest,
+                            size_t szdest, const char* base64,
+                            bool do_padding) {
+  constexpr char kPad64 = '=';
+
+  constexpr size_t kMaxSize = (std::numeric_limits<size_t>::max() - 1) / 4 * 3;
+  if (ABSL_PREDICT_FALSE(szsrc > kMaxSize || szsrc * 4 > szdest * 3)) return 0;
+
+  char* cur_dest = dest;
+  const unsigned char* cur_src = src;
+
+  char* const limit_dest = dest + szdest;
+  const unsigned char* const limit_src = src + szsrc;
+
+  // (from https://tools.ietf.org/html/rfc3548)
+  // Special processing is performed if fewer than 24 bits are available
+  // at the end of the data being encoded.  A full encoding quantum is
+  // always completed at the end of a quantity.  When fewer than 24 input
+  // bits are available in an input group, zero bits are added (on the
+  // right) to form an integral number of 6-bit groups.
+  //
+  // If do_padding is true, padding at the end of the data is performed. This
+  // output padding uses the '=' character.
+
+  // Three bytes of data encodes to four characters of cyphertext.
+  // So we can pump through three-byte chunks atomically.
+  if (szsrc >= 3) {                    // "limit_src - 3" is UB if szsrc < 3.
+    while (cur_src < limit_src - 3) {  // While we have >= 32 bits.
+      uint32_t in = absl::big_endian::Load32(cur_src) >> 8;
+
+      cur_dest[0] = base64[in >> 18];
+      in &= 0x3FFFF;
+      cur_dest[1] = base64[in >> 12];
+      in &= 0xFFF;
+      cur_dest[2] = base64[in >> 6];
+      in &= 0x3F;
+      cur_dest[3] = base64[in];
+
+      cur_dest += 4;
+      cur_src += 3;
+    }
+  }
+  // To save time, we didn't update szdest or szsrc in the loop.  So do it now.
+  szdest = static_cast<size_t>(limit_dest - cur_dest);
+  szsrc = static_cast<size_t>(limit_src - cur_src);
+
+  /* now deal with the tail (<=3 bytes) */
+  switch (szsrc) {
+    case 0:
+      // Nothing left; nothing more to do.
+      break;
+    case 1: {
+      // One byte left: this encodes to two characters, and (optionally)
+      // two pad characters to round out the four-character cypherblock.
+      if (szdest < 2) return 0;
+      uint32_t in = cur_src[0];
+      cur_dest[0] = base64[in >> 2];
+      in &= 0x3;
+      cur_dest[1] = base64[in << 4];
+      cur_dest += 2;
+      szdest -= 2;
+      if (do_padding) {
+        if (szdest < 2) return 0;
+        cur_dest[0] = kPad64;
+        cur_dest[1] = kPad64;
+        cur_dest += 2;
+        szdest -= 2;
+      }
+      break;
+    }
+    case 2: {
+      // Two bytes left: this encodes to three characters, and (optionally)
+      // one pad character to round out the four-character cypherblock.
+      if (szdest < 3) return 0;
+      uint32_t in = absl::big_endian::Load16(cur_src);
+      cur_dest[0] = base64[in >> 10];
+      in &= 0x3FF;
+      cur_dest[1] = base64[in >> 4];
+      in &= 0x00F;
+      cur_dest[2] = base64[in << 2];
+      cur_dest += 3;
+      szdest -= 3;
+      if (do_padding) {
+        if (szdest < 1) return 0;
+        cur_dest[0] = kPad64;
+        cur_dest += 1;
+        szdest -= 1;
+      }
+      break;
+    }
+    case 3: {
+      // Three bytes left: same as in the big loop above.  We can't do this in
+      // the loop because the loop above always reads 4 bytes, and the fourth
+      // byte is past the end of the input.
+      if (szdest < 4) return 0;
+      uint32_t in =
+          (uint32_t{cur_src[0]} << 16) + absl::big_endian::Load16(cur_src + 1);
+      cur_dest[0] = base64[in >> 18];
+      in &= 0x3FFFF;
+      cur_dest[1] = base64[in >> 12];
+      in &= 0xFFF;
+      cur_dest[2] = base64[in >> 6];
+      in &= 0x3F;
+      cur_dest[3] = base64[in];
+      cur_dest += 4;
+      szdest -= 4;
+      break;
+    }
+    default:
+      // Should not be reached: blocks of 4 bytes are handled
+      // in the while loop before this switch statement.
+      ABSL_RAW_LOG(FATAL, "Logic problem? szsrc = %zu", szsrc);
+      break;
+  }
+  return static_cast<size_t>(cur_dest - dest);
+}
+
+std::string Base64EscapeToStringInternal(const unsigned char* src, size_t szsrc,
+                                         bool do_padding,
+                                         const char* base64_chars) {
+  std::string escaped;
+  const size_t calc_escaped_size =
+      strings_internal::CalculateBase64EscapedLenInternal(szsrc, do_padding);
+  StringResizeAndOverwrite(
+      escaped, calc_escaped_size,
+      [src, szsrc, base64_chars, do_padding](char* buf, size_t buf_size) {
+        const size_t escaped_len = Base64EscapeInternal(
+            src, szsrc, buf, buf_size, base64_chars, do_padding);
+        assert(escaped_len == buf_size);
+        return escaped_len;
+      });
+  return escaped;
+}
+
+// Reverses the mapping in Base64EscapeInternal; see that method's
+// documentation for details of the mapping.
+bool Base64UnescapeInternal(const char* absl_nullable src_param, size_t szsrc,
+                            char* absl_nullable dest, size_t szdest,
+                            const std::array<signed char, 256>& unbase64,
+                            size_t* absl_nonnull len) {
   static const char kPad64Equals = '=';
   static const char kPad64Dot = '.';
 
@@ -676,7 +863,10 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
   return ok;
 }
 
-// The arrays below were generated by the following code
+// The arrays below map base64-escaped characters back to their original values.
+// For the inverse case, see k(WebSafe)Base64Chars in the internal
+// escaping.cc.
+// These arrays were generated by the following inversion code:
 // #include <sys/time.h>
 // #include <stdlib.h>
 // #include <string.h>
@@ -703,10 +893,10 @@ bool Base64UnescapeInternal(const char* src_param, size_t szsrc, char* dest,
 //   }
 // }
 //
-// where the value of "Base64[]" was replaced by one of the base-64 conversion
-// tables from the functions below.
+// where the value of "Base64[]" was replaced by one of k(WebSafe)Base64Chars
+// in the internal escaping.cc.
 /* clang-format off */
-constexpr signed char kUnBase64[] = {
+constexpr std::array<signed char, 256> kUnBase64 = {
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
@@ -741,7 +931,7 @@ constexpr signed char kUnBase64[] = {
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1
 };
 
-constexpr signed char kUnWebSafeBase64[] = {
+constexpr std::array<signed char, 256> kUnWebSafeBase64 = {
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
     -1,      -1,      -1,      -1,      -1,      -1,      -1,      -1,
@@ -777,37 +967,30 @@ constexpr signed char kUnWebSafeBase64[] = {
 };
 /* clang-format on */
 
-constexpr char kWebSafeBase64Chars[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-
 template <typename String>
-bool Base64UnescapeInternal(const char* src, size_t slen, String* dest,
-                            const signed char* unbase64) {
+bool Base64UnescapeInternal(const char* absl_nullable src, size_t slen,
+                            String* absl_nonnull dest,
+                            const std::array<signed char, 256>& unbase64) {
   // Determine the size of the output string.  Base64 encodes every 3 bytes into
   // 4 characters.  Any leftover chars are added directly for good measure.
   const size_t dest_len = 3 * (slen / 4) + (slen % 4);
 
-  strings_internal::STLStringResizeUninitialized(dest, dest_len);
-
-  // We are getting the destination buffer by getting the beginning of the
-  // string and converting it into a char *.
-  size_t len;
-  const bool ok =
-      Base64UnescapeInternal(src, slen, &(*dest)[0], dest_len, unbase64, &len);
-  if (!ok) {
-    dest->clear();
-    return false;
-  }
-
-  // could be shorter if there was padding
-  assert(len <= dest_len);
-  dest->erase(len);
-
-  return true;
+  bool ok;
+  StringResizeAndOverwrite(
+      *dest, dest_len, [src, slen, unbase64, &ok](char* buf, size_t buf_size) {
+        size_t len;
+        ok = Base64UnescapeInternal(src, slen, buf, buf_size, unbase64, &len);
+        if (!ok) {
+          len = 0;
+        }
+        assert(len <= buf_size);  // Could be shorter if there was padding.
+        return len;
+      });
+  return ok;
 }
 
 /* clang-format off */
-constexpr char kHexValueLenient[256] = {
+constexpr std::array<uint8_t, 256> kHexValueLenient = {
     0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -826,27 +1009,43 @@ constexpr char kHexValueLenient[256] = {
     0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
+constexpr std::array<int8_t, 256> kHexValueStrict = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,  // '0'..'9'
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 'A'..'F'
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 'a'..'f'
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+};
 /* clang-format on */
 
 // This is a templated function so that T can be either a char*
 // or a string.  This works because we use the [] operator to access
 // individual characters at a time.
 template <typename T>
-void HexStringToBytesInternal(const char* from, T to, size_t num) {
+void HexStringToBytesInternal(const char* absl_nullable from, T to,
+                              size_t num) {
   for (size_t i = 0; i < num; i++) {
     to[i] = static_cast<char>(kHexValueLenient[from[i * 2] & 0xFF] << 4) +
-            (kHexValueLenient[from[i * 2 + 1] & 0xFF]);
+            static_cast<char>(kHexValueLenient[from[i * 2 + 1] & 0xFF]);
   }
 }
 
-// This is a templated function so that T can be either a char* or a
-// std::string.
-template <typename T>
-void BytesToHexStringInternal(const unsigned char* src, T dest, size_t num) {
-  auto dest_ptr = &dest[0];
-  for (auto src_ptr = src; src_ptr != (src + num); ++src_ptr, dest_ptr += 2) {
+void BytesToHexStringInternal(const unsigned char* absl_nullable src,
+                              char* dest, size_t num) {
+  for (auto src_ptr = src; src_ptr != (src + num); ++src_ptr, dest += 2) {
     const char* hex_p = &numbers_internal::kHexTable[*src_ptr * 2];
-    std::copy(hex_p, hex_p + 2, dest_ptr);
+    std::copy(hex_p, hex_p + 2, dest);
   }
 }
 
@@ -857,9 +1056,35 @@ void BytesToHexStringInternal(const unsigned char* src, T dest, size_t num) {
 //
 // See CUnescapeInternal() for implementation details.
 // ----------------------------------------------------------------------
-bool CUnescape(absl::string_view source, std::string* dest,
-               std::string* error) {
-  return CUnescapeInternal(source, kUnescapeNulls, dest, error);
+
+bool CUnescape(absl::string_view source, std::string* absl_nonnull dest,
+               std::string* absl_nullable error) {
+  bool success;
+
+  // `CUnescape()` allows for in-place unescaping, which means `source` may
+  // alias `*dest`.  However, absl::StringResizeAndOverwrite() invalidates all
+  // iterators, pointers, and references into the string, regardless whether
+  // reallocation occurs. Therefore we need to avoid calling
+  // absl::StringResizeAndOverwrite() when `source.data() ==
+  // dest->data()`. Comparing the sizes is sufficient to cover this case.
+  if (dest->size() >= source.size()) {
+    size_t dest_size = 0;
+    success = CUnescapeInternal(source, kUnescapeNulls, dest->data(),
+                                &dest_size, error);
+    ABSL_ASSERT(dest_size <= dest->size());
+    dest->erase(dest_size);
+  } else {
+    StringResizeAndOverwrite(
+        *dest, source.size(),
+        [source, error, &success](char* buf, size_t buf_size) {
+          size_t dest_size = 0;
+          success =
+              CUnescapeInternal(source, kUnescapeNulls, buf, &dest_size, error);
+          ABSL_ASSERT(dest_size <= buf_size);
+          return dest_size;
+        });
+  }
+  return success;
 }
 
 std::string CEscape(absl::string_view src) {
@@ -880,79 +1105,77 @@ std::string Utf8SafeCHexEscape(absl::string_view src) {
   return CEscapeInternal(src, true, true);
 }
 
-// ----------------------------------------------------------------------
-// Base64Unescape() - base64 decoder
-// Base64Escape() - base64 encoder
-// WebSafeBase64Unescape() - Google's variation of base64 decoder
-// WebSafeBase64Escape() - Google's variation of base64 encoder
-//
-// Check out
-// https://datatracker.ietf.org/doc/html/rfc2045 for formal description, but
-// what we care about is that...
-//   Take the encoded stuff in groups of 4 characters and turn each
-//   character into a code 0 to 63 thus:
-//           A-Z map to 0 to 25
-//           a-z map to 26 to 51
-//           0-9 map to 52 to 61
-//           +(- for WebSafe) maps to 62
-//           /(_ for WebSafe) maps to 63
-//   There will be four numbers, all less than 64 which can be represented
-//   by a 6 digit binary number (aaaaaa, bbbbbb, cccccc, dddddd respectively).
-//   Arrange the 6 digit binary numbers into three bytes as such:
-//   aaaaaabb bbbbcccc ccdddddd
-//   Equals signs (one or two) are used at the end of the encoded block to
-//   indicate that the text was not an integer multiple of three bytes long.
-// ----------------------------------------------------------------------
-
-bool Base64Unescape(absl::string_view src, std::string* dest) {
+bool Base64Unescape(absl::string_view src, std::string* absl_nonnull dest) {
   return Base64UnescapeInternal(src.data(), src.size(), dest, kUnBase64);
 }
 
-bool WebSafeBase64Unescape(absl::string_view src, std::string* dest) {
+bool WebSafeBase64Unescape(absl::string_view src,
+                           std::string* absl_nonnull dest) {
   return Base64UnescapeInternal(src.data(), src.size(), dest, kUnWebSafeBase64);
 }
 
-void Base64Escape(absl::string_view src, std::string* dest) {
-  strings_internal::Base64EscapeInternal(
-      reinterpret_cast<const unsigned char*>(src.data()), src.size(), dest,
-      true, strings_internal::kBase64Chars);
-}
-
-void WebSafeBase64Escape(absl::string_view src, std::string* dest) {
-  strings_internal::Base64EscapeInternal(
-      reinterpret_cast<const unsigned char*>(src.data()), src.size(), dest,
-      false, kWebSafeBase64Chars);
-}
-
 std::string Base64Escape(absl::string_view src) {
-  std::string dest;
-  strings_internal::Base64EscapeInternal(
-      reinterpret_cast<const unsigned char*>(src.data()), src.size(), &dest,
-      true, strings_internal::kBase64Chars);
-  return dest;
+  return Base64EscapeToStringInternal(
+      reinterpret_cast<const unsigned char*>(src.data()), src.size(), true,
+      kBase64Chars);
 }
 
 std::string WebSafeBase64Escape(absl::string_view src) {
-  std::string dest;
-  strings_internal::Base64EscapeInternal(
-      reinterpret_cast<const unsigned char*>(src.data()), src.size(), &dest,
-      false, kWebSafeBase64Chars);
-  return dest;
+  return Base64EscapeToStringInternal(
+      reinterpret_cast<const unsigned char*>(src.data()), src.size(), false,
+      kWebSafeBase64Chars);
+}
+
+bool HexStringToBytes(absl::string_view hex, std::string* absl_nonnull bytes) {
+  std::string output;
+
+  size_t num_bytes = hex.size() / 2;
+  if (hex.size() != num_bytes * 2) {
+    return false;
+  }
+
+  StringResizeAndOverwrite(
+      output, num_bytes, [hex](char* buf, size_t buf_size) {
+        auto hex_p = hex.cbegin();
+        for (size_t i = 0; i < buf_size; ++i) {
+          int h1 = absl::kHexValueStrict[static_cast<size_t>(
+              static_cast<uint8_t>(*hex_p++))];
+          int h2 = absl::kHexValueStrict[static_cast<size_t>(
+              static_cast<uint8_t>(*hex_p++))];
+          if (h1 == -1 || h2 == -1) {
+            return size_t{0};
+          }
+          buf[i] = static_cast<char>((h1 << 4) + h2);
+        }
+        return buf_size;
+      });
+
+  if (output.size() != num_bytes) {
+    return false;
+  }
+  *bytes = std::move(output);
+  return true;
 }
 
 std::string HexStringToBytes(absl::string_view from) {
   std::string result;
   const auto num = from.size() / 2;
-  strings_internal::STLStringResizeUninitialized(&result, num);
-  absl::HexStringToBytesInternal<std::string&>(from.data(), result, num);
+  StringResizeAndOverwrite(result, num, [from](char* buf, size_t buf_size) {
+    absl::HexStringToBytesInternal<char*>(from.data(), buf, buf_size);
+    return buf_size;
+  });
   return result;
 }
 
 std::string BytesToHexString(absl::string_view from) {
   std::string result;
-  strings_internal::STLStringResizeUninitialized(&result, 2 * from.size());
-  absl::BytesToHexStringInternal<std::string&>(
-      reinterpret_cast<const unsigned char*>(from.data()), result, from.size());
+  StringResizeAndOverwrite(
+      result, 2 * from.size(), [from](char* buf, size_t buf_size) {
+        absl::BytesToHexStringInternal(
+            reinterpret_cast<const unsigned char*>(from.data()), buf,
+            from.size());
+        return buf_size;
+      });
   return result;
 }
 

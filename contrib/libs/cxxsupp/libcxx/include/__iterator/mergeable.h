@@ -22,19 +22,20 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS) && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#if _LIBCPP_STD_VER >= 20
 
-template <class _Input1, class _Input2, class _Output,
-          class _Comp = ranges::less, class _Proj1 = identity, class _Proj2 = identity>
+template <class _Input1,
+          class _Input2,
+          class _Output,
+          class _Comp  = ranges::less,
+          class _Proj1 = identity,
+          class _Proj2 = identity>
 concept mergeable =
-    input_iterator<_Input1> &&
-    input_iterator<_Input2> &&
-    weakly_incrementable<_Output> &&
-    indirectly_copyable<_Input1, _Output> &&
-    indirectly_copyable<_Input2, _Output> &&
+    input_iterator<_Input1> && input_iterator<_Input2> && weakly_incrementable<_Output> &&
+    indirectly_copyable<_Input1, _Output> && indirectly_copyable<_Input2, _Output> &&
     indirect_strict_weak_order<_Comp, projected<_Input1, _Proj1>, projected<_Input2, _Proj2>>;
 
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS) && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#endif // _LIBCPP_STD_VER >= 20
 
 _LIBCPP_END_NAMESPACE_STD
 

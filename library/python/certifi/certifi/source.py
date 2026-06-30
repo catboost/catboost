@@ -6,7 +6,7 @@ pem = os.path.dirname(pem)
 pem = os.path.dirname(pem)
 pem = os.path.dirname(pem)
 pem = os.path.dirname(pem)
-pem = os.path.join(pem, 'certs', 'cacert.pem')
+pem = os.path.join(pem, "certs", "cacert.pem")
 
 
 def where():

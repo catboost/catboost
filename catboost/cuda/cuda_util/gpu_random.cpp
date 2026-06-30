@@ -39,7 +39,7 @@ namespace {
             NKernel::PoissonRand(Seeds.Get(), Result.Size(), Alphas.Get(), Result.Get(), stream.GetStream());
         }
 
-        Y_SAVELOAD_DEFINE(Seeds, Alphas, Result)
+        Y_SAVELOAD_DEFINE(Seeds, Alphas, Result);
     };
 }
 

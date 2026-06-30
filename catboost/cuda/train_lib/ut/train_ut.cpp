@@ -20,7 +20,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
         TDataProviders dataProviders;
 
-        // gpu CatBoost requires at least 4*numberof_devices documents in dataset
+        // GPU CatBoost requires at least 4*numberof_devices documents in dataset
 
         dataProviders.Learn = CreateDataProvider(
             [&](IRawFeaturesOrderDataVisitor* visitor) {

@@ -10,7 +10,9 @@
 #define _LIBCPP___CONCEPTS_CLASS_OR_ENUM_H
 
 #include <__config>
-#include <type_traits>
+#include <__type_traits/is_class.h>
+#include <__type_traits/is_enum.h>
+#include <__type_traits/is_union.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -18,19 +20,14 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#if _LIBCPP_STD_VER >= 20
 
 // Whether a type is a class type or enumeration type according to the Core wording.
 
-template<class _Tp>
+template <class _Tp>
 concept __class_or_enum = is_class_v<_Tp> || is_union_v<_Tp> || is_enum_v<_Tp>;
 
-// Work around Clang bug https://llvm.org/PR52970
-// TODO: remove this workaround once libc++ no longer has to support Clang 13 (it was fixed in Clang 14).
-template<class _Tp>
-concept __workaround_52970 = is_class_v<__uncvref_t<_Tp>> || is_union_v<__uncvref_t<_Tp>>;
-
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#endif // _LIBCPP_STD_VER >= 20
 
 _LIBCPP_END_NAMESPACE_STD
 

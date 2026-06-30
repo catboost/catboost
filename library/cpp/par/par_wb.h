@@ -195,7 +195,7 @@ namespace NPar {
         }
         i64 SetData(int tblId, ui64 versionId, TVector<TVector<char>>* p) {
             // It's not static_assert because this code can be compiled on 32-bit platform
-            Y_VERIFY(sizeof(TAtomic) >= 8);
+            Y_ABORT_UNLESS(sizeof(TAtomic) >= 8);
 
             i64 id = GenId();
             const auto dataSize = TotalSize(*p);

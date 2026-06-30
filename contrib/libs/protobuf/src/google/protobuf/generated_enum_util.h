@@ -33,10 +33,11 @@
 
 #include <type_traits>
 
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/stubs/strutil.h>
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/message_lite.h"
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -56,13 +57,13 @@ namespace internal {
 // protos. This struct and the following related functions should only be used
 // by protobuf generated code.
 struct EnumEntry {
-  StringPiece name;
+  y_absl::string_view name;
   int value;
 };
 
 // Looks up a numeric enum value given the string name.
 PROTOBUF_EXPORT bool LookUpEnumValue(const EnumEntry* enums, size_t size,
-                                     StringPiece name, int* value);
+                                     y_absl::string_view name, int* value);
 
 // Looks up an enum name given the numeric value.
 PROTOBUF_EXPORT int LookUpEnumName(const EnumEntry* enums,
@@ -78,6 +79,6 @@ PROTOBUF_EXPORT bool InitializeEnumStrings(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_GENERATED_ENUM_UTIL_H__

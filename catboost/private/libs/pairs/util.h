@@ -10,7 +10,7 @@
 #include <util/generic/vector.h>
 
 namespace NCB {
-    static const uint64_t MAX_PAIR_COUNT_ON_GPU = 1022 * 1023 / 2;  // cause 1023 is max group size for gpu
+    static const uint64_t MAX_PAIR_COUNT_ON_GPU = 1022 * 1023 / 2;  // cause 1023 is max group size for GPU
 };
 
 void GeneratePairLogitPairs(

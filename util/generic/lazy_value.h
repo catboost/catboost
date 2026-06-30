@@ -19,18 +19,18 @@ public:
         return ValueHolder.Defined();
     }
 
-    const T& GetRef() const {
+    const T& GetRef() const Y_LIFETIME_BOUND {
         if (!WasLazilyInitialized()) {
             InitDefault();
         }
         return *ValueHolder;
     }
 
-    const T& operator*() const {
+    const T& operator*() const Y_LIFETIME_BOUND {
         return GetRef();
     }
 
-    const T* operator->() const {
+    const T* operator->() const Y_LIFETIME_BOUND {
         return &GetRef();
     }
 

@@ -2,7 +2,7 @@
 
 #include "udp_address.h"
 
-#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
+#if defined(_linux_) && !defined(__ANDROID__)
 #include <contrib/libs/ibdrv/include/infiniband/verbs.h>
 #include <contrib/libs/ibdrv/include/rdma/rdma_cma.h>
 #endif
@@ -13,7 +13,7 @@ namespace NNetliba {
         int rv = (x);                                               \
         if (rv != 0) {                                              \
             fprintf(stderr, "check_z failed, errno = %d\n", errno); \
-            Y_VERIFY(0, "check_z");                                 \
+            Y_ABORT_UNLESS(0, "check_z");                                 \
         }                                                           \
     }
 
@@ -22,7 +22,7 @@ namespace NNetliba {
     const size_t MAX_INLINE_DATA_SIZE = 16;
     const int MAX_OUTSTANDING_RDMA = 10;
 
-#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
+#if defined(_linux_) && !defined(__ANDROID__)
     class TIBContext: public TThrRefBase, TNonCopyable {
         ibv_context* Context;
         ibv_pd* ProtDomain;
@@ -69,9 +69,9 @@ namespace NNetliba {
         int Port;
         int LID;
         TIntrusivePtr<TIBContext> IBCtx;
-        enum {
-            MAX_GID = 16
-        };
+
+        static constexpr int MAX_GID = 16;
+
         ibv_gid MyGidArr[MAX_GID];
 
     public:
@@ -167,7 +167,7 @@ namespace NNetliba {
             //};
             int rv = ibv_poll_cq(CQ, bufSize, res);
             if (rv < 0) {
-                Y_VERIFY(0, "ibv_poll_cq failed");
+                Y_ABORT_UNLESS(0, "ibv_poll_cq failed");
             }
             if (rv > 0) {
                 //printf("Completed wr\n");

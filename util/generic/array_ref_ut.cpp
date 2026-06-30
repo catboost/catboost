@@ -24,6 +24,46 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(constRef[0], 100);
     }
 
+    // The following commented code should cause compilation errors
+    /*
+        struct TBase {
+            int X;
+        };
+
+        struct TDerived : public TBase {
+            int Y;
+        };
+
+        Y_UNIT_TEST(TestConstructorFromPtrSizeNonCompile) {
+            TDerived x[] = {{{10}, 1}, {{20}, 2}, {{30}, 3}};
+            TArrayRef<TBase> ref(x, 3);
+
+            TArrayRef<const TBase> constRef(x, 3);
+        }
+
+        Y_UNIT_TEST(TestConstructorFromPtrsNonCompile) {
+            TDerived x[] = {{{10}, 1}, {{20}, 2}, {{30}, 3}};
+            TArrayRef<TBase> ref(std::begin(x), std::end(x));
+
+            TArrayRef<const TBase> constRef(std::begin(x), std::end(x));
+        }
+
+
+        Y_UNIT_TEST(TestConstructorFromUnrelatedPtrSizeNonCompile) {
+            float x[] = {10.0f, 20.0f, 30.0f};
+            TArrayRef<i32> ref(x, std::size(x));
+
+            TArrayRef<const i32> constRef(x, std::size(x));
+        }
+
+        Y_UNIT_TEST(TestConstructorFromUnrelatedPtrsNonCompile) {
+            float x[] = {10.0f, 20.0f, 30.0f};
+            TArrayRef<i32> ref(std::begin(x), std::end(x));
+
+            TArrayRef<const i32> constRef(std::begin(x), std::end(x));
+        }
+    */
+
     Y_UNIT_TEST(TestAccessingElements) {
         int a[]{1, 2, 3};
         TArrayRef<int> ref(a);
@@ -34,7 +74,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         ref[0] = 5;
         UNIT_ASSERT_VALUES_EQUAL(a[0], 5);
 
-        //FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
+        // FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
     }
 
     Y_UNIT_TEST(TestFrontBack) {
@@ -165,7 +205,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
 
         TArrayRef<int> bSubRef(b, size - 1);
 
-        //Testing if operator== compares values, not pointers
+        // Testing if operator== compares values, not pointers
         UNIT_ASSERT_EQUAL(cRef, bSubRef);
     }
 
@@ -210,7 +250,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(s1.size(), 1);
         UNIT_ASSERT_VALUES_EQUAL(s1[0], 3);
 
-        //FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
+        // FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
     }
 
     Y_UNIT_TEST(SubRegion) {
@@ -240,8 +280,8 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
             bytesRef,
             MakeArrayRef(std::vector<char>{0x01, 0x00, 0x02, 0x00, 0x03, 0x00}));
 
-        //should not compile
-        //as_writable_bytes(constRef);
+        // should not compile
+        // as_writable_bytes(constRef);
     }
 
     Y_UNIT_TEST(TestAsWritableBytes) {
@@ -319,4 +359,4 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         const TVector<int> constData;
         Foo(MakeConstArrayRef(constData));
     }
-}
+} // Y_UNIT_TEST_SUITE(TestArrayRef)

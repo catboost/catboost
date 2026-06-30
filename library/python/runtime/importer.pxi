@@ -108,6 +108,9 @@ class ResourceImporter(object):
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
 
+        self._before_import_callback = None
+        self._after_import_callback = None
+
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
                 k = pp + '.__init__'
@@ -118,6 +121,11 @@ class ResourceImporter(object):
         importer = copy.copy(self)
         importer._package_prefix = name + '.'
         return importer
+
+    def set_callbacks(self, before_import=None, after_import=None):
+        """Callable[[module], None]"""
+        self._before_import_callback = before_import
+        self._after_import_callback = after_import
 
     # PEP-302 finder.
     def find_module(self, fullname, path=None):
@@ -233,11 +241,23 @@ class ResourceImporter(object):
         old_mod = sys.modules.get(mod_name, None)
         sys.modules[mod_name] = mod
 
+        # __name__ and __file__ could be overwritten after execution
+        # So these two things are needed if wee want to be consistent at some point
+        initial_modname = mod.__name__
+        initial_filename = mod.__file__
+
+        if self._before_import_callback:
+            self._before_import_callback(initial_modname, initial_filename)
+
         try:
             exec code in mod.__dict__
             old_mod = sys.modules[mod_name]
         finally:
             sys.modules[mod_name] = old_mod
+
+            # "Zero-cost". Just in case import error occurs
+            if self._after_import_callback:
+                self._after_import_callback(initial_modname, initial_filename)
 
         # Some hacky modules (e.g. pygments.lexers) replace themselves in
         # `sys.modules` with proxies.

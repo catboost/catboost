@@ -18,11 +18,14 @@ namespace NNetlibaSocket {
             ACK_CANCELED,
             ACK_RESEND_NOSHMEM,
 
-            PING,
-            PONG,
+            PING,  // 10
+            PONG,  // 11
             PONG_IB,
 
             KILL,
+
+            XS_PING, // 14
+            XS_PONG, // 15
 
             CMD_END,
         };

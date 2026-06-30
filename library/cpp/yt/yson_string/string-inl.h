@@ -99,6 +99,22 @@ inline bool operator != (const TYsonStringBuf& lhs, const TYsonStringBuf& rhs)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Abseil hash support for TYsonString.
+template <class THash>
+THash AbslHashValue(THash hash, const TYsonString& str)
+{
+    return THash::combine(std::move(hash), str.AsStringBuf());
+}
+
+//! Abseil hash support for TYsonStringBuf.
+template <class THash>
+THash AbslHashValue(THash hash, const TYsonStringBuf& str)
+{
+    return THash::combine(std::move(hash), str.AsStringBuf());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT::NYson
 
 //! A hasher for TYsonString

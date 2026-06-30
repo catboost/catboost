@@ -4,6 +4,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/deque.h>
 #include <util/generic/string.h>
+#include <util/generic/ylimits.h>
 #include <util/generic/vector.h>
 
 namespace NTextProcessing::NDictionary {

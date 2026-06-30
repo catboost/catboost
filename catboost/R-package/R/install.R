@@ -3,20 +3,20 @@ catboost_download_dynlib <- function(dest_dir) {
 
   base_url <- "https://github.com/catboost/catboost/releases/download"
   if (.Platform$OS.type == "windows") {
-    src_dynlib <- "libcatboostr.dll"
-    dst_dynlib <- src_dynlib
+    src_dynlib <- sprintf("libcatboostr-windows-%s-%s.dll", R.version$arch, ver)
+    dst_dynlib <- "libcatboostr.dll"
   } else if (grepl("darwin", R.version$os)) {
-    src_dynlib <- "libcatboostr-darwin.dylib"
+    src_dynlib <- sprintf("libcatboostr-darwin-universal2-%s.dylib", ver)
     dst_dynlib <- "libcatboostr.dylib"
   } else if (.Platform$OS.type == "unix") {
-    src_dynlib <- "libcatboostr-linux.so"
+    src_dynlib <- sprintf("libcatboostr-linux-%s-%s.so", R.version$arch, ver)
     dst_dynlib <- "libcatboostr.so"
   } else {
     return(FALSE)
   }
   url <- paste(base_url, ver, src_dynlib, sep = "/")
 
-  message(sprintf("downloading CatBoost (%s - %s)", dst_dynlib, ver))
+  message(sprintf("downloading CatBoost R dynamic library binary from GitHub release (%s - %s)", dst_dynlib, ver))
   status <- tryCatch({
     if (!dir.exists(dest_dir)) {
       dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
@@ -25,10 +25,10 @@ catboost_download_dynlib <- function(dest_dir) {
     suppressWarnings(file.remove(dest_fpath))
     options(timeout = 600)
     if (download.file(url, dest_fpath, mode = "wb") == 0) {
-      message("CatBoost fetch successful")
+      message("CatBoost R dynamic library binary downloaded successfully")
       TRUE
     } else {
-      message("CatBoost download error")
+      message("CatBoost R dynamic library binary download error")
       FALSE
     }
   },

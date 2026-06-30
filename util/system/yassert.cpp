@@ -33,10 +33,10 @@ extern "C" {
 namespace {
     struct TPanicLockHolder: public TAdaptiveLock {
     };
-}
+} // namespace
 namespace NPrivate {
     [[noreturn]] Y_NO_INLINE void InternalPanicImpl(int line, const char* function, const char* expr, int, int, int, const TStringBuf file, const char* errorMessage, size_t errorMessageSize) noexcept;
-}
+} // namespace NPrivate
 
 void ::NPrivate::Panic(const TStaticBuf& file, int line, const char* function, const char* expr, const char* format, ...) noexcept {
     try {
@@ -78,10 +78,18 @@ namespace NPrivate {
         } else {
             o << "  " << function << "() failed" << Endl;
         }
-        Cerr << r << Flush;
+
+        TString backTrace;
 #ifndef WITH_VALGRIND
-        PrintBackTrace();
+        try {
+            TStringOutput backTraceOutput(backTrace);
+            FormatBackTrace(&backTraceOutput);
+        } catch (...) {
+            backTrace = "Failed to print backtrace due: " + CurrentExceptionMessage() + "\n";
+        }
 #endif
+        o << backTrace;
+        Cerr << r << Flush;
 #ifdef CLANG_COVERAGE
         if (__llvm_profile_write_file()) {
             Cerr << "Failed to dump clang coverage" << Endl;
@@ -91,4 +99,4 @@ namespace NPrivate {
     } catch (...) {
         abort();
     }
-}
+} // namespace NPrivate

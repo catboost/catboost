@@ -78,4 +78,4 @@ Y_UNIT_TEST_SUITE(TestNormalDistribution) {
         TestMD<double>(GenFunc2<double>(30, 40), 30, 40);
         TestMD<long double>(GenFunc2<long double>(40, 50), 40, 50);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestNormalDistribution)

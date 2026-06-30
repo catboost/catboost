@@ -13,7 +13,7 @@
 namespace NNetliba {
     class TCPUSet {
     public:
-        enum { MAX_SIZE = 128 };
+        static constexpr int MAX_SIZE = 128;
 
     private:
 #if defined(__FreeBSD__) && (__FreeBSD__ >= 7)
@@ -35,7 +35,7 @@ namespace NNetliba {
         void Set(size_t i) {
             CPU_SET(i, CpuInfo);
         }
-#elif defined(_linux_)
+#elif defined(_linux_) && !defined(__ANDROID__)
     public:
 #define NUMCPU ((CPU_SETSIZE > MAX_SIZE) ? 1 : (MAX_SIZE / CPU_SETSIZE))
         cpu_set_t CpuInfo[NUMCPU];

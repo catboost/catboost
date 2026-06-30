@@ -8,7 +8,7 @@
 
 #include "abort_message.h"
 #include "cxxabi.h"
-#include <__threading_support>
+#include <__thread/support.h>
 #ifndef _LIBCXXABI_HAS_NO_THREADS
 #if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
 #pragma comment(lib, "pthread")
@@ -89,7 +89,7 @@ namespace {
       // __cxa_thread_atexit() may be called arbitrarily late (for example, from
       // global destructors or atexit() handlers).
       if (std::__libcpp_tls_create(&dtors_key, run_dtors) != 0) {
-        abort_message("std::__libcpp_tls_create() failed in __cxa_thread_atexit()");
+        __abort_message("std::__libcpp_tls_create() failed in __cxa_thread_atexit()");
       }
     }
 
@@ -112,9 +112,14 @@ extern "C" {
 #ifdef HAVE___CXA_THREAD_ATEXIT_IMPL
     return __cxa_thread_atexit_impl(dtor, obj, dso_symbol);
 #else
+#ifndef __EMSCRIPTEN__
+    // Emscripten doesn't implement __cxa_thread_atexit_impl, so we can simply
+    // avoid this check.
     if (__cxa_thread_atexit_impl) {
       return __cxa_thread_atexit_impl(dtor, obj, dso_symbol);
-    } else {
+    } else
+#endif
+    {
       // Initialize the dtors std::__libcpp_tls_key (uses __cxa_guard_*() for
       // one-time initialization and __cxa_atexit() for destruction)
       static DtorsManager manager;

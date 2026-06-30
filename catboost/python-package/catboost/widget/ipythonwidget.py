@@ -20,6 +20,7 @@ class MetricWidget(DOMWidget):
     def _default_layout(self):
         return Layout(height='500px', align_self='stretch')
 
+
 class MetricVisualizer(MetricWidget):
     def __init__(self, train_dirs, subdirs=False):
         super(self.__class__, self).__init__()

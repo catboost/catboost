@@ -6,12 +6,15 @@ import sys
 import time
 import signal
 import traceback
+import warnings
 
 import __res
 from __res import importer
 
 
 def setup_test_environment():
+    if "YA_TEST_RUNNER" not in os.environ:
+        return
     try:
         from yatest_lib.ya import Ya
         import yatest.common as yc
@@ -52,7 +55,7 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     import_times = {}
 
     def norm(s):
-        return (s[:-9] if s.endswith('.__init__') else s)
+        return s[:-9] if s.endswith('.__init__') else s
 
     modules = sys.extra_modules | set(extra)
     modules = sorted(modules, key=norm)
@@ -81,12 +84,14 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
             sys.stdout.flush()
 
             s = time.time()
-            if module == '__main__':
-                importer.load_module('__main__', '__main__py')
-            elif module.endswith('.__init__'):
-                __import__(module[:-len('.__init__')])
-            else:
-                __import__(module)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+                if module == '__main__':
+                    importer.load_module('__main__', '__main__py')
+                elif module.endswith('.__init__'):
+                    __import__(module[: -len('.__init__')])
+                else:
+                    __import__(module)
 
             delay = time.time() - s
             import_times[str(module)] = delay
@@ -119,6 +124,29 @@ def main():
     setup_test_environment()
 
     skip_names = sys.argv[1:]
+
+    # SIGUSR2 is used by test_tool to teardown tests
+    if hasattr(signal, "SIGUSR2"):
+        # Dump python import tracing
+        import library.python.import_tracing.lib.regulator as regulator
+
+        # get the original handler to return control to it after dumping
+        signum = signal.SIGUSR2
+        orig_handler = signal.getsignal(signum)
+
+        if not hasattr(signal, 'raise_signal'):
+            # Only available for Python 3.8+
+            def raise_signal(signum):
+                os.kill(os.getpid(), signum)
+        else:
+            raise_signal = signal.raise_signal
+
+        def stop_tracing_handler(s, f):
+            regulator.disable(close_not_finished=True)
+            signal.signal(signal.SIGUSR2, orig_handler)
+            raise_signal(signum)
+
+        signal.signal(signal.SIGUSR2, stop_tracing_handler)
 
     try:
         import faulthandler

@@ -1,8 +1,10 @@
 #include "features_layout.h"
 
 #include "util.h"
+#include "graph.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/private/libs/quantization_schema/schema.h>
 
 #include <util/generic/algorithm.h>
@@ -26,8 +28,18 @@ bool TFeatureMetaInfo::EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity)
         std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
 }
 
+TFeatureMetaInfo::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result.InsertValue("Type"sv, ToString(Type));
+    result.InsertValue("Name"sv, Name);
+    result.InsertValue("IsSparse"sv, IsSparse);
+    result.InsertValue("IsIgnored"sv, IsIgnored);
+    result.InsertValue("IsAvailable"sv, IsAvailable);
+    return result;
+}
+
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {}, {}, {})
+    : TFeaturesLayout(featureCount, {}, {}, {}, {}, /*graph*/ false)
 {}
 
 TFeaturesLayout::TFeaturesLayout(
@@ -36,10 +48,13 @@ TFeaturesLayout::TFeaturesLayout(
     const TVector<ui32>& textFeatureIndices,
     const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
+    bool hasGraph,
     const THashMap<TString, TTagDescription>& featureTags,
     bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
+
+    HasGraph = hasGraph;
 
     ExternalIdxToMetaInfo.reserve((size_t)featureCount);
     for (auto externalFeatureIdx : xrange(featureCount)) {
@@ -146,7 +161,8 @@ TFeaturesLayout::TFeaturesLayout(
 TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
     TConstArrayRef<TColumn> columns,
     TMaybe<const TVector<TString>*> featureNames,
-    TMaybe<const THashMap<TString, TTagDescription>*> featureTags
+    TMaybe<const THashMap<TString, TTagDescription>*> featureTags,
+    bool hasGraph
 ) {
     TVector<TString> finalFeatureNames;
     if (featureNames) {
@@ -157,19 +173,32 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
     TVector<ui32> embeddingFeatureIndices;
 
     ui32 featureIdx = 0;
+
+    auto processFeatureColumn = [&](const auto& column) {
+        if (!featureNames) {
+            finalFeatureNames.push_back(column.Id);
+        }
+        if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
+            catFeatureIndices.push_back(featureIdx);
+        } else if (column.Type == EColumn::Text) {
+            textFeatureIndices.push_back(featureIdx);
+        } else if (column.Type == EColumn::NumVector) {
+            embeddingFeatureIndices.push_back(featureIdx);
+        }
+        ++featureIdx;
+    };
+
     for (const auto& column : columns) {
         if (IsFactorColumn(column.Type)) {
-            if (!featureNames) {
-                finalFeatureNames.push_back(column.Id);
+            processFeatureColumn(column);
+        } else if (column.Type == EColumn::Features) {
+            for (const auto& subColumn : column.SubColumns) {
+                if (IsFactorColumn(subColumn.Type)) {
+                    processFeatureColumn(subColumn);
+                } else {
+                    CB_ENSURE(false, "Non-feature sub column in Features column");
+                }
             }
-            if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
-                catFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::Text) {
-                textFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::NumVector) {
-                embeddingFeatureIndices.push_back(featureIdx);
-            }
-            ++featureIdx;
         }
     }
     return MakeIntrusive<TFeaturesLayout>(
@@ -178,6 +207,7 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
         textFeatureIndices,
         embeddingFeatureIndices,
         finalFeatureNames,
+        hasGraph,
         featureTags.Defined()
             ? **featureTags
             : THashMap<TString, TTagDescription>{});
@@ -195,6 +225,27 @@ void TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data) { // 'data' is moved
 }
 
 
+TFeaturesLayout::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+
+    NJson::TJsonValue features(NJson::JSON_ARRAY);
+    for (const auto& featureMetaInfo : ExternalIdxToMetaInfo) {
+        features.AppendValue(featureMetaInfo);
+    }
+    result.InsertValue("Features"sv, std::move(features));
+
+    if (!TagToExternalIndices.empty()) {
+        NJson::TJsonValue tags(NJson::JSON_MAP);
+        for (const auto& [name, value] : TagToExternalIndices) {
+            tags.InsertValue(name, VectorToJson(value));
+        }
+        result.InsertValue("Tags"sv, std::move(tags));
+    }
+
+    return result;
+}
+
+
 const TFeatureMetaInfo& TFeaturesLayout::GetInternalFeatureMetaInfo(
     ui32 internalFeatureIdx,
     EFeatureType type) const
@@ -208,7 +259,7 @@ const TFeatureMetaInfo& TFeaturesLayout::GetExternalFeatureMetaInfo(ui32 externa
     return ExternalIdxToMetaInfo[externalFeatureIdx];
 }
 
-TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const {
+TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const noexcept {
     return ExternalIdxToMetaInfo;
 }
 
@@ -226,11 +277,11 @@ EFeatureType TFeaturesLayout::GetExternalFeatureType(ui32 externalFeatureIdx) co
     return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
 }
 
-bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
+bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const noexcept {
     return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
 }
 
-bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const noexcept {
     switch (type) {
         case EFeatureType::Float:
             return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
@@ -241,41 +292,64 @@ bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeat
         case EFeatureType::Embedding:
             return (size_t)internalFeatureIdx < EmbeddingFeatureInternalIdxToExternalIdx.size();
     }
+    Y_UNREACHABLE();
 }
 
-bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const {
+bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const noexcept {
     if ((size_t)externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
         return false;
     }
     return ExternalIdxToMetaInfo[externalFeatureIdx].Type == type;
 }
 
-ui32 TFeaturesLayout::GetFloatFeatureCount() const {
+ui32 TFeaturesLayout::GetFloatFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetCatFeatureCount() const {
+ui32 TFeaturesLayout::GetFloatAggregatedFeatureCount() const noexcept {
+    if (!HasGraph) {
+        return 0;
+    }
+    ui32 size = 0;
+    for (auto& meta: ExternalIdxToMetaInfo) {
+        if (meta.Type == EFeatureType::Float && !meta.IsSparse && !meta.IsAggregated) {
+            size++;
+        }
+    }
+    return size * NCB::kFloatAggregationFeaturesCount;
+}
+
+ui32 TFeaturesLayout::GetAggregatedFeatureCount(EFeatureType type) const noexcept {
+    switch (type) {
+        case EFeatureType::Float:
+            return GetFloatAggregatedFeatureCount();
+        default:
+            return 0;
+    }
+}
+
+ui32 TFeaturesLayout::GetCatFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)CatFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetTextFeatureCount() const {
+ui32 TFeaturesLayout::GetTextFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)TextFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const {
+ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)EmbeddingFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetExternalFeatureCount() const {
+ui32 TFeaturesLayout::GetExternalFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)ExternalIdxToMetaInfo.size();
 }
 
-ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
+ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const noexcept {
     switch (type) {
         case EFeatureType::Float:
             return GetFloatFeatureCount();
@@ -286,9 +360,10 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
         case EFeatureType::Embedding:
             return GetEmbeddingFeatureCount();
     }
+    Y_UNREACHABLE();
 }
 
-bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const {
+bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const noexcept {
     return FindIf(
         ExternalIdxToMetaInfo,
         [=] (const TFeatureMetaInfo& metaInfo) {
@@ -297,7 +372,7 @@ bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const {
     );
 }
 
-void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
+void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) noexcept {
     if (externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
         return;
     }
@@ -307,30 +382,30 @@ void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
     metaInfo.IsAvailable = false;
 }
 
-void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
+void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) noexcept {
     for (auto ignoredFeature : ignoredFeatures) {
         IgnoreExternalFeature(ignoredFeature);
     }
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const noexcept {
     return FloatFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const noexcept {
     return CatFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const noexcept {
     return TextFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const noexcept {
     return EmbeddingFeatureInternalIdxToExternalIdx;
 }
 
 
-const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const {
+const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const noexcept {
     return TagToExternalIndices;
 }
 
@@ -377,7 +452,7 @@ void TFeaturesLayout::SetExternalFeatureIds(TConstArrayRef<TString> featureIds) 
     }
 }
 
-bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
+bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const noexcept {
     for (const auto& metaInfo : ExternalIdxToMetaInfo) {
         if (metaInfo.IsAvailable && !metaInfo.IsIgnored) {
             return true;

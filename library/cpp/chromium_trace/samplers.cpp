@@ -31,7 +31,7 @@ void TMemInfoSampler::Update() {
 TProxySampler::TProxySampler(TIntrusivePtr<TSharedSamplerBase> impl)
     : Impl(impl)
 {
-    Y_VERIFY(Impl);
+    Y_ABORT_UNLESS(Impl);
 }
 
 void TProxySampler::Update() {

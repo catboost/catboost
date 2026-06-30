@@ -1,10 +1,9 @@
 #include "eval_additive_metric_with_leaves.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
-
-#include <library/cpp/fast_exp/fast_exp.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
@@ -56,26 +55,23 @@ TMetricHolder EvalErrorsWithLeaves(
     const IMetric& error,
     NPar::ILocalExecutor* localExecutor
 ) {
-    CB_ENSURE(error.IsAdditiveMetric(), "EvalErrorsWithLeaves is not implemented for non-additive metric " + error.GetDescription());
-
     const auto approxDimension = approx.size();
     TVector<TVector<double>> localLeafDelta;
     ResizeRank2(approxDimension, leafDelta[0].size(), localLeafDelta);
     AssignRank2(leafDelta, &localLeafDelta);
     if (isExpApprox) {
         for (auto& deltaDimension : localLeafDelta) {
-            FastExpInplace(deltaDimension.data(), deltaDimension.size());
+            NCB::FastExpWithInfInplace(deltaDimension.data(), deltaDimension.size());
         }
     }
 
-    NPar::TLocalExecutor sequentialExecutor;
+    const size_t MaxQueryBlockSize = error.IsAdditiveMetric() ? 4096 : target[0].size();
     const auto evalMetric = [&] (int from, int to) { // objects or queries
         TVector<TConstArrayRef<double>> approxBlock(approxDimension, TArrayRef<double>{});
         TVector<TConstArrayRef<float>> targetBlock(target.size(), TArrayRef<float>{});
 
         const bool isObjectwise = error.GetErrorType() == EErrorType::PerObjectError;
         CB_ENSURE(isObjectwise || !queriesInfo.empty(), "Need queries to evaluate metric " + error.GetDescription());
-        constexpr size_t MaxQueryBlockSize = 4096;
         int maxApproxBlockSize = MaxQueryBlockSize;
         if (!isObjectwise) {
             const auto maxQuerySize = MaxElementBy(
@@ -90,6 +86,7 @@ TMetricHolder EvalErrorsWithLeaves(
         TVector<TQueryInfo> queriesInfoBlock(MaxQueryBlockSize);
 
         TMetricHolder result;
+        NPar::TLocalExecutor sequentialExecutor;
         for (int idx = from; idx < to; /*see below*/) {
             const int nextIdx = GetNextIdx(isObjectwise, queriesInfo, to, maxApproxBlockSize, idx);
             const int approxBlockSize = GetBlockSize(isObjectwise, queriesInfo, idx, nextIdx);
@@ -141,5 +138,10 @@ TMetricHolder EvalErrorsWithLeaves(
         end = queriesInfo.size();
     }
 
-    return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
+    CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
+    if (error.IsAdditiveMetric()) {
+        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
+    } else {
+        return evalMetric(begin, end);
+    }
 }

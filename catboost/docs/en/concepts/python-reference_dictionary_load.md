@@ -5,7 +5,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```
-load(frequency_dict_path, 
+load(frequency_dict_path,
      bpe_path=None)
 ```
 
@@ -33,7 +33,7 @@ The path to the input BPE dictionary file.
 
 **Data types**
 
-{{ python-type--string }} 
+{{ python-type--string }}
 
 **Default value**
 

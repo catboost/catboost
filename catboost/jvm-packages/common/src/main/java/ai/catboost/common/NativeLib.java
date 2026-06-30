@@ -5,10 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 
 public class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
+    private static final String LOCK_EXT = ".lck";
 
     /**
      * Load libName, first will try try to load libName from default location then will try to load library from JAR.
@@ -16,7 +21,8 @@ public class NativeLib {
      * @param libName
      * @throws IOException
      */
-    public static void smartLoad(final @NotNull String libName) throws IOException {
+    public static synchronized void smartLoad(final @NotNull String libName) throws IOException {
+        cleanup(libName);
         try {
             loadNativeLibraryFromJar(libName);
         } catch (IOException ioe) {
@@ -27,11 +33,9 @@ public class NativeLib {
 
     @NotNull
     private static String[] getCurrentMachineResourcesDirs() {
-        // NOTE: This is an incomplete list of all possible combinations! But CatBoost officially only supports x86_64
-        // and arm64 platfroms on Mac, and only x86_64 on Linux and Windows. If you wont support for other platforms 
-        // you'll have to build JNI from sources by yourself for your target platform and probably write your own shared
-        // library loader for shared library.
-        // On macOS this function returns paths for both arch-specific and universal binaries paths.
+        // Returns list of '<osName>-<osArch>' subdirs (like 'linux-aarch64', 'win32-x86_64')
+        // On macOS this function returns paths for both arch-specific and universal binaries paths:
+        // ('darwin-<osArch>', 'darwin-universal2').
 
         String osArch = System.getProperty("os.arch").toLowerCase();
         // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
@@ -56,7 +60,6 @@ public class NativeLib {
             if (osName.contains("win")) {
                 osName = "win32";
             }
-            // Will result in something like "linux-x86_64"
             return new String[] {osName + "-" + osArch};
         }
     }
@@ -104,14 +107,46 @@ public class NativeLib {
         final String filename = parts[parts.length - 1];
 
         parts = filename.split("\\.", 2);
-        final String prefix = parts[0];
+        final String prefix = parts[0] + "-";
         final String suffix = parts.length > 1 ? "." + parts[parts.length - 1] : null;
 
         final File libOnDisk = File.createTempFile(prefix, suffix);
         libOnDisk.deleteOnExit();
 
+        final File libOnDiskLck = new File(libOnDisk.getAbsolutePath() + LOCK_EXT);
+        libOnDiskLck.createNewFile();
+        libOnDiskLck.deleteOnExit();
+
         copyFileFromJar(pathWithinJar, libOnDisk.getPath());
 
         return libOnDisk.getAbsolutePath();
+    }
+
+    /**
+     * Delete old native libraries
+     */
+    private static void cleanup(final @NotNull String libName) {
+        final String searchPattern = libName + "-";
+
+        try (Stream<Path> dirList = Files.list(new File(System.getProperty("java.io.tmpdir")).toPath())) {
+            dirList.filter(
+                path -> !path.getFileName().toString().endsWith(LOCK_EXT)
+                    && path.getFileName()
+                        .toString()
+                        .startsWith(searchPattern))
+                .forEach(
+                    nativeLib -> {
+                        Path lckFile = Paths.get(nativeLib + LOCK_EXT);
+                        if (Files.notExists(lckFile)) {
+                            try {
+                                Files.delete(nativeLib);
+                            } catch (Exception e) {
+                                logger.error("Failed to delete old native lib", e);
+                            }
+                        }
+                    });
+        } catch (IOException e) {
+            logger.error("Failed to open directory", e);
+        }
     }
 }

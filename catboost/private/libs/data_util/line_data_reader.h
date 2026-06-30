@@ -20,15 +20,16 @@ namespace NCB {
 
     struct TDsvFormatOptions {
     public:
-        bool HasHeader;
-        char Delimiter;
-        char NumVectorDelimiter;
-        bool IgnoreCsvQuoting;
+        bool HasHeader = false;
+        char Delimiter = '\t';
+        char NumVectorDelimiter = ';';
+        bool IgnoreCsvQuoting = false;
 
     public:
+        explicit TDsvFormatOptions() = default;
         explicit TDsvFormatOptions(
-            bool hasHeader = false,
-            char delimiter = '\t',
+            bool hasHeader,
+            char delimiter,
             char numVectorDelimiter = ';',
             bool ignoreCsvQuoting = false
         )
@@ -154,6 +155,28 @@ namespace NCB {
         ui64 CurrentSubsetBlock;
         ui64 EnclosingLineIdx;
         ui64 LineIdx;
+        TString LineBuffer;
+    };
+
+    class TIndexedSubsetLineDataReader final : public ILineDataReader {
+    public:
+        // subsetIndices must be in an increasing order, duplicates are allowed
+        // it is not checked in this method for speed
+        TIndexedSubsetLineDataReader(THolder<ILineDataReader>&& lineDataReader, TVector<ui64>&& subsetIndices);
+
+        ui64 GetDataLineCount(bool estimate = false) override;
+
+        TMaybe<TString> GetHeader() override;
+
+        bool ReadLine(TString* line, ui64* lineIdx = nullptr) override;
+
+    private:
+        THolder<ILineDataReader> LineDataReader;
+        TVector<ui64> SubsetIndices;
+        TVector<ui64>::iterator CurrentIndex;
+        ui64 EnclosingLineIdx;
+
+        TMaybe<TString> Header;
         TString LineBuffer;
     };
 }

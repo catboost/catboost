@@ -117,4 +117,4 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
         UNIT_ASSERT_VALUES_EQUAL(materialized.size(), map.size());
         UNIT_ASSERT_VALUES_EQUAL(materialized.at(ETestEnum::Four), 16);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestSerializedEnum)

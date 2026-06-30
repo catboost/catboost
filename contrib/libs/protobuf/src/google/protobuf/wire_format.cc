@@ -32,30 +32,31 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/wire_format.h>
+#include "google/protobuf/wire_format.h"
 
 #include <stack>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/stringprintf.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/parse_context.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/map_field.h>
-#include <google/protobuf/map_field_inl.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/unknown_field_set.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/cord.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/dynamic_message.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/zero_copy_stream.h"
+#include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "google/protobuf/map_field.h"
+#include "google/protobuf/map_field_inl.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/parse_context.h"
+#include "google/protobuf/unknown_field_set.h"
 
 
-#include <google/protobuf/port_def.inc>
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 const size_t kMapEntryTagByteSize = 2;
 
@@ -401,7 +402,7 @@ bool WireFormat::ParseAndMergeMessageSetField(arc_ui32 field_number,
              field->type() != FieldDescriptor::TYPE_MESSAGE) {
     // This shouldn't happen as we only allow optional message extensions to
     // MessageSet.
-    GOOGLE_LOG(ERROR) << "Extensions of MessageSets must be optional messages.";
+    Y_ABSL_LOG(ERROR) << "Extensions of MessageSets must be optional messages.";
     return false;
   } else {
     Message* sub_message = message_reflection->MutableMessage(
@@ -657,9 +658,11 @@ struct WireFormat::MessageSetParser {
   const char* _InternalParse(const char* ptr, internal::ParseContext* ctx) {
     // Parse a MessageSetItem
     auto metadata = reflection->MutableInternalMetadata(msg);
+    enum class State { kNoTag, kHasType, kHasPayload, kDone };
+    State state = State::kNoTag;
+
     TProtoStringType payload;
     arc_ui32 type_id = 0;
-    bool payload_read = false;
     while (!ctx->Done(&ptr)) {
       // We use 64 bit tags in order to allow typeid's that span the whole
       // range of 32 bit numbers.
@@ -668,8 +671,11 @@ struct WireFormat::MessageSetParser {
         arc_ui64 tmp;
         ptr = ParseBigVarint(ptr, &tmp);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        type_id = tmp;
-        if (payload_read) {
+        if (state == State::kNoTag) {
+          type_id = tmp;
+          state = State::kHasType;
+        } else if (state == State::kHasPayload) {
+          type_id = tmp;
           const FieldDescriptor* field;
           if (ctx->data().pool == nullptr) {
             field = reflection->FindKnownExtensionByNumber(type_id);
@@ -696,17 +702,17 @@ struct WireFormat::MessageSetParser {
             GOOGLE_PROTOBUF_PARSER_ASSERT(value->_InternalParse(p, &tmp_ctx) &&
                                            tmp_ctx.EndedAtLimit());
           }
-          type_id = 0;
+          state = State::kDone;
         }
         continue;
       } else if (tag == WireFormatLite::kMessageSetMessageTag) {
-        if (type_id == 0) {
+        if (state == State::kNoTag) {
           arc_i32 size = ReadSize(&ptr);
           GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
           ptr = ctx->ReadString(ptr, size, &payload);
           GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-          payload_read = true;
-        } else {
+          state = State::kHasPayload;
+        } else if (state == State::kHasType) {
           // We're now parsing the payload
           const FieldDescriptor* field = nullptr;
           if (descriptor->IsExtensionNumber(type_id)) {
@@ -720,7 +726,12 @@ struct WireFormat::MessageSetParser {
           ptr = WireFormat::_InternalParseAndMergeField(
               msg, ptr, ctx, static_cast<arc_ui64>(type_id) * 8 + 2, reflection,
               field);
-          type_id = 0;
+          state = State::kDone;
+        } else {
+          arc_i32 size = ReadSize(&ptr);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          ptr = ctx->Skip(ptr, size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
         }
       } else {
         // An unknown field in MessageSetItem.
@@ -779,8 +790,8 @@ const char* WireFormat::_InternalParse(Message* msg, const char* ptr,
                                        internal::ParseContext* ctx) {
   const Descriptor* descriptor = msg->GetDescriptor();
   const Reflection* reflection = msg->GetReflection();
-  GOOGLE_DCHECK(descriptor);
-  GOOGLE_DCHECK(reflection);
+  Y_ABSL_DCHECK(descriptor);
+  Y_ABSL_DCHECK(reflection);
   if (descriptor->options().message_set_wire_format()) {
     MessageSetParser message_set{msg, descriptor, reflection};
     return message_set.ParseMessageSet(ptr, ctx);
@@ -879,7 +890,7 @@ const char* WireFormat::_InternalParseAndMergeField(
         case FieldDescriptor::TYPE_GROUP:
         case FieldDescriptor::TYPE_MESSAGE:
         case FieldDescriptor::TYPE_BYTES:
-          GOOGLE_LOG(FATAL) << "Can't reach";
+          Y_ABSL_LOG(FATAL) << "Can't reach";
           return nullptr;
       }
     } else {
@@ -1019,7 +1030,25 @@ const char* WireFormat::_InternalParseAndMergeField(
         sub_message =
             reflection->MutableMessage(msg, field, ctx->data().factory);
       }
-      return ctx->ParseMessage(sub_message, ptr);
+      ptr = ctx->ParseMessage(sub_message, ptr);
+
+      // For map entries, if the value is an unknown enum we have to push it
+      // into the unknown field set and remove it from the list.
+      if (ptr != nullptr && field->is_map()) {
+        auto* value_field = field->message_type()->map_value();
+        auto* enum_type = value_field->enum_type();
+        if (enum_type != nullptr &&
+            !internal::cpp::HasPreservingUnknownEnumSemantics(value_field) &&
+            enum_type->FindValueByNumber(
+                sub_message->GetReflection()->GetEnumValue(
+                    *sub_message, value_field)) == nullptr) {
+          reflection->MutableUnknownFields(msg)->AddLengthDelimited(
+              field->number(), sub_message->SerializeAsString());
+          reflection->RemoveLast(msg, field);
+        }
+      }
+
+      return ptr;
     }
   }
 
@@ -1070,7 +1099,7 @@ uint8_t* SerializeMapKeyWithCachedSizes(const FieldDescriptor* field,
     case FieldDescriptor::TYPE_MESSAGE:
     case FieldDescriptor::TYPE_BYTES:
     case FieldDescriptor::TYPE_ENUM:
-      GOOGLE_LOG(FATAL) << "Unsupported";
+      Y_ABSL_LOG(FATAL) << "Unsupported";
       break;
 #define CASE_TYPE(FieldType, CamelFieldType, CamelCppType)   \
   case FieldDescriptor::TYPE_##FieldType:                    \
@@ -1125,10 +1154,11 @@ static uint8_t* SerializeMapValueRefWithCachedSizes(
     case FieldDescriptor::TYPE_BYTES:
       target = stream->WriteString(2, value.GetStringValue(), target);
       break;
-    case FieldDescriptor::TYPE_MESSAGE:
-      target = WireFormatLite::InternalWriteMessage(2, value.GetMessageValue(),
+    case FieldDescriptor::TYPE_MESSAGE: {
+      auto& msg = value.GetMessageValue();
+      target = WireFormatLite::InternalWriteMessage(2, msg, msg.GetCachedSize(),
                                                     target, stream);
-      break;
+    } break;
     case FieldDescriptor::TYPE_GROUP:
       target = WireFormatLite::InternalWriteGroup(2, value.GetMessageValue(),
                                                   target, stream);
@@ -1158,7 +1188,7 @@ class MapKeySorter {
   class MapKeyComparator {
    public:
     bool operator()(const MapKey& a, const MapKey& b) const {
-      GOOGLE_DCHECK(a.type() == b.type());
+      Y_ABSL_DCHECK(a.type() == b.type());
       switch (a.type()) {
 #define CASE_TYPE(CppType, CamelCppType)                                \
   case FieldDescriptor::CPPTYPE_##CppType: {                            \
@@ -1173,7 +1203,7 @@ class MapKeySorter {
 #undef CASE_TYPE
 
         default:
-          GOOGLE_LOG(DFATAL) << "Invalid key for map field.";
+          Y_ABSL_DLOG(FATAL) << "Invalid key for map field.";
           return true;
       }
     }
@@ -1315,11 +1345,21 @@ uint8_t* WireFormat::InternalSerializeField(const FieldDescriptor* field,
       HANDLE_PRIMITIVE_TYPE(BOOL, bool, Bool, Bool)
 #undef HANDLE_PRIMITIVE_TYPE
       default:
-        GOOGLE_LOG(FATAL) << "Invalid descriptor";
+        Y_ABSL_LOG(FATAL) << "Invalid descriptor";
     }
     return target;
   }
 
+  auto get_message_from_field = [&message, &map_entries, message_reflection](
+                                    const FieldDescriptor* field, int j) {
+    if (!field->is_repeated()) {
+      return &message_reflection->GetMessage(message, field);
+    }
+    if (!map_entries.empty()) {
+      return map_entries[j];
+    }
+    return &message_reflection->GetRepeatedMessage(message, field, j);
+  };
   for (int j = 0; j < count; j++) {
     target = stream->EnsureSpace(target);
     switch (field->type()) {
@@ -1353,22 +1393,17 @@ uint8_t* WireFormat::InternalSerializeField(const FieldDescriptor* field,
       HANDLE_PRIMITIVE_TYPE(BOOL, bool, Bool, Bool)
 #undef HANDLE_PRIMITIVE_TYPE
 
-#define HANDLE_TYPE(TYPE, TYPE_METHOD, CPPTYPE_METHOD)                         \
-  case FieldDescriptor::TYPE_##TYPE:                                           \
-    target = WireFormatLite::InternalWrite##TYPE_METHOD(                       \
-        field->number(),                                                       \
-        field->is_repeated()                                                   \
-            ? (map_entries.empty()                                             \
-                   ? message_reflection->GetRepeated##CPPTYPE_METHOD(message,  \
-                                                                     field, j) \
-                   : *map_entries[j])                                          \
-            : message_reflection->Get##CPPTYPE_METHOD(message, field),         \
-        target, stream);                                                       \
-    break;
+      case FieldDescriptor::TYPE_GROUP: {
+        auto* msg = get_message_from_field(field, j);
+        target = WireFormatLite::InternalWriteGroup(field->number(), *msg,
+                                                    target, stream);
+      } break;
 
-      HANDLE_TYPE(GROUP, Group, Message)
-      HANDLE_TYPE(MESSAGE, Message, Message)
-#undef HANDLE_TYPE
+      case FieldDescriptor::TYPE_MESSAGE: {
+        auto* msg = get_message_from_field(field, j);
+        target = WireFormatLite::InternalWriteMessage(
+            field->number(), *msg, msg->GetCachedSize(), target, stream);
+      } break;
 
       case FieldDescriptor::TYPE_ENUM: {
         const EnumValueDescriptor* value =
@@ -1432,9 +1467,10 @@ uint8_t* WireFormat::InternalSerializeMessageSetItem(
   target = WireFormatLite::WriteUInt32ToArray(
       WireFormatLite::kMessageSetTypeIdNumber, field->number(), target);
   // Write message.
+  auto& msg = message_reflection->GetMessage(message, field);
   target = WireFormatLite::InternalWriteMessage(
-      WireFormatLite::kMessageSetMessageNumber,
-      message_reflection->GetMessage(message, field), target, stream);
+      WireFormatLite::kMessageSetMessageNumber, msg, msg.GetCachedSize(),
+      target, stream);
   // End group.
   target = stream->EnsureSpace(target);
   target = io::CodedOutputStream::WriteTagToArray(
@@ -1525,7 +1561,7 @@ size_t WireFormat::FieldByteSize(const FieldDescriptor* field,
 
 size_t MapKeyDataOnlyByteSize(const FieldDescriptor* field,
                               const MapKey& value) {
-  GOOGLE_DCHECK_EQ(FieldDescriptor::TypeToCppType(field->type()), value.type());
+  Y_ABSL_DCHECK_EQ(FieldDescriptor::TypeToCppType(field->type()), value.type());
   switch (field->type()) {
     case FieldDescriptor::TYPE_DOUBLE:
     case FieldDescriptor::TYPE_FLOAT:
@@ -1533,7 +1569,7 @@ size_t MapKeyDataOnlyByteSize(const FieldDescriptor* field,
     case FieldDescriptor::TYPE_MESSAGE:
     case FieldDescriptor::TYPE_BYTES:
     case FieldDescriptor::TYPE_ENUM:
-      GOOGLE_LOG(FATAL) << "Unsupported";
+      Y_ABSL_LOG(FATAL) << "Unsupported";
       return 0;
 #define CASE_TYPE(FieldType, CamelFieldType, CamelCppType) \
   case FieldDescriptor::TYPE_##FieldType:                  \
@@ -1560,7 +1596,7 @@ size_t MapKeyDataOnlyByteSize(const FieldDescriptor* field,
 #undef CASE_TYPE
 #undef FIXED_CASE_TYPE
   }
-  GOOGLE_LOG(FATAL) << "Cannot get here";
+  Y_ABSL_LOG(FATAL) << "Cannot get here";
   return 0;
 }
 
@@ -1568,7 +1604,7 @@ static size_t MapValueRefDataOnlyByteSize(const FieldDescriptor* field,
                                           const MapValueConstRef& value) {
   switch (field->type()) {
     case FieldDescriptor::TYPE_GROUP:
-      GOOGLE_LOG(FATAL) << "Unsupported";
+      Y_ABSL_LOG(FATAL) << "Unsupported";
       return 0;
 #define CASE_TYPE(FieldType, CamelFieldType, CamelCppType) \
   case FieldDescriptor::TYPE_##FieldType:                  \
@@ -1600,7 +1636,7 @@ static size_t MapValueRefDataOnlyByteSize(const FieldDescriptor* field,
 #undef CASE_TYPE
 #undef FIXED_CASE_TYPE
   }
-  GOOGLE_LOG(FATAL) << "Cannot get here";
+  Y_ABSL_LOG(FATAL) << "Cannot get here";
   return 0;
 }
 
@@ -1748,4 +1784,4 @@ size_t ComputeUnknownFieldsSize(const InternalMetadata& metadata,
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

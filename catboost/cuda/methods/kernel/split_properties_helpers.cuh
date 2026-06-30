@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/inplace_scan.cuh>
@@ -181,25 +181,7 @@ namespace NKernel {
         }
     };
 
-
-
-
-    template <int BLOCK_SIZE>
-    __forceinline__ __device__  float ComputeSum(const float* buffer, ui32 count) {
-        float sum = 0.f;
-        const ui32 tid = threadIdx.x;
-#pragma unroll 16
-        for (ui32 i = tid; i < count; i += BLOCK_SIZE) {
-            sum += __ldg(buffer + i);
-        }
-        return sum;
-    };
-
-
-
-
-
-// converts block indices in matrix to linear part index
+    // converts block indices in matrix to linear part index
     __forceinline__ __device__ int ConvertBlockToPart(int x, int y) {
         int partNo = 0;
         partNo |= (x & 1) | ((y & 1) << 1);

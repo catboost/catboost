@@ -6,8 +6,8 @@ import unittest
 
 class TestFromString(unittest.TestCase):
     def test_from_int(self):
-        self.assertEquals(FromString[int]("42"), 42)
+        self.assertEqual(FromString[int]("42"), 42)
 
 class TestToString(unittest.TestCase):
     def test_from_int(self):
-        self.assertEquals(ToString(42), "42")
+        self.assertEqual(ToString(42), "42")

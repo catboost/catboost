@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2023 Intel Corporation
+    Copyright (c) 2026 UXL Foundation Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -70,7 +71,7 @@ class affinity_partitioner_base;
 
 inline std::size_t get_initial_auto_partitioner_divisor() {
     const std::size_t factor = 4;
-    return factor * max_concurrency();
+    return factor * static_cast<std::size_t>(max_concurrency());
 }
 
 //! Defines entry point for affinity partitioner into oneTBB run-time library.
@@ -90,7 +91,7 @@ class affinity_partitioner_base: no_copy {
     /** Retains values if resulting size is the same. */
     void resize(unsigned factor) {
         // Check factor to avoid asking for number of workers while there might be no arena.
-        unsigned max_threads_in_arena = max_concurrency();
+        unsigned max_threads_in_arena = static_cast<unsigned>(max_concurrency());
         std::size_t new_size = factor ? factor * max_threads_in_arena : 0;
         if (new_size != my_size) {
             if (my_array) {
@@ -160,6 +161,7 @@ struct tree_node : public node {
 template<typename TreeNodeType>
 void fold_tree(node* n, const execution_data& ed) {
     for (;;) {
+        __TBB_ASSERT(n, nullptr);
         __TBB_ASSERT(n->m_ref_count.load(std::memory_order_relaxed) > 0, "The refcount must be positive.");
         call_itt_task_notify(releasing, n);
         if (--n->m_ref_count > 0) {
@@ -339,7 +341,7 @@ struct proportional_mode : adaptive_mode<Partition> {
         // Create the proportion from partitioner internal resources (threads) that would be used:
         // - into proportional_mode constructor to split the partitioner
         // - if Range supports the proportional_split constructor it would use proposed proportion,
-        //   otherwise, the tbb::proportional_split object will be implicitly (for Range implementor)
+        //   otherwise, the tbb::proportional_split object will be implicitly (for Range implementer)
         //   casted to tbb::split
 
         std::size_t n = self().my_divisor / my_partition::factor;
@@ -349,7 +351,7 @@ struct proportional_mode : adaptive_mode<Partition> {
     }
 };
 
-static std::size_t get_initial_partition_head() {
+inline std::size_t get_initial_partition_head() {
     int current_index = tbb::this_task_arena::current_thread_index();
     if (current_index == tbb::task_arena::not_initialized)
         current_index = 0;
@@ -377,7 +379,7 @@ struct linear_affinity_mode : proportional_mode<Partition> {
     }
 };
 
-static bool is_stolen_task(const execution_data& ed) {
+inline bool is_stolen_task(const execution_data& ed) {
     return execution_slot(ed) != original_slot(ed);
 }
 

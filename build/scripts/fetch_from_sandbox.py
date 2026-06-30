@@ -1,3 +1,4 @@
+from __future__ import print_function
 import itertools
 import json
 import logging
@@ -7,9 +8,14 @@ import random
 import subprocess
 import sys
 import time
-import urllib2
+import urllib
 import uuid
 
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import process_command_files as pcf
 import fetch_from
 
 
@@ -24,7 +30,7 @@ def parse_args():
     parser.add_argument('--resource-id', type=int, required=True)
     parser.add_argument('--custom-fetcher')
     parser.add_argument('--resource-file')
-    return parser.parse_args()
+    return parser.parse_args(pcf.get_args(sys.argv[1:]))
 
 
 class ResourceInfoError(Exception):
@@ -80,17 +86,17 @@ def _urlopen(url, data=None, headers=None):
     started = time.time()
     reqid = uuid.uuid4()
 
-    request = urllib2.Request(url, data=data, headers=headers or {})
+    request = urllib.request.Request(url, data=data, headers=headers or {})
     request.add_header('X-Request-Timeout', str(tout))
     request.add_header('X-Request-Id', str(reqid))
     request.add_header('User-Agent', 'fetch_from_sandbox.py')
-    for i in xrange(n):
+    for i in range(n):
         retry_after = i
         try:
             request.add_header('X-Request-Duration', str(int(time.time() - started)))
-            return urllib2.urlopen(request, timeout=tout).read()
+            return urllib.request.urlopen(request, timeout=tout).read()
 
-        except urllib2.HTTPError as e:
+        except urllib.request.HTTPError as e:
             logging.warning('failed to fetch URL %s with HTTP code %d: %s', url, e.code, e)
             retry_after = int(e.headers.get('Retry-After', str(retry_after)))
 
@@ -99,9 +105,8 @@ def _urlopen(url, data=None, headers=None):
 
         except Exception as e:
             logging.warning('failed to fetch URL %s: %s', url, e)
-
-        if i + 1 == n:
-            raise e
+            if i + 1 == n:
+                raise e
 
         time.sleep(retry_after)
 
@@ -199,7 +204,7 @@ def fetch(resource_id, custom_fetcher):
         except subprocess.CalledProcessError as e:
             logging.warning('failed to fetch resource %s with subprocess: %s', resource_id, e)
             time.sleep(i)
-        except urllib2.HTTPError as e:
+        except urllib.HTTPError as e:
             logging.warning('failed to fetch resource %s with HTTP code %d: %s', resource_id, e.code, e)
             if e.code not in TEMPORARY_ERROR_CODES:
                 exc_info = exc_info or sys.exc_info()
@@ -210,7 +215,7 @@ def fetch(resource_id, custom_fetcher):
             time.sleep(i)
     else:
         if exc_info:
-            raise exc_info[0], exc_info[1], exc_info[2]
+            raise exc_info[1].with_traceback(exc_info[2])
         else:
             raise Exception("No available protocol and/or server to fetch resource")
 
@@ -265,7 +270,7 @@ if __name__ == '__main__':
         main(args)
     except Exception as e:
         logging.exception(e)
-        print >>sys.stderr, open(args.abs_log_path).read()
+        print(open(args.abs_log_path).read(), file=sys.stderr)
         sys.stderr.flush()
 
         import error

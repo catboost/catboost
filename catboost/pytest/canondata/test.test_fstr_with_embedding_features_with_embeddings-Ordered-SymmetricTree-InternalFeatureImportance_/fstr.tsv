@@ -1,0 +1,17 @@
+40.55129773	{rating} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+10.4823243	9
+7.744490302	{rating} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+7.610541083	{rating} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+5.52695133	{embedding_genre} local_id=0 calcer_type=LDA
+3.770972702	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+3.767582056	{embedding_genre} local_id=1 calcer_type=KNN
+3.419753069	{embedding_review} local_id=0 calcer_type=LDA
+3.36763265	{embedding_synopsis} local_id=0 calcer_type=LDA
+2.671739498	{embedding_genre} local_id=0 calcer_type=KNN
+2.646056246	{embedding_review} local_id=0 calcer_type=KNN
+2.504699825	{embedding_synopsis} local_id=0 calcer_type=KNN
+2.089475569	date
+2.054354523	{embedding_review} local_id=1 calcer_type=KNN
+0.7863372033	theater_date
+0.6236147988	dvd_date
+0.3821771143	mpaa_film_rating

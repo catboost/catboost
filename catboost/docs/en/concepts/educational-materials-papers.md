@@ -42,3 +42,14 @@ _Andrey Gulin, Igor Kuralenok, Dimitry Pavlov. PMLR 14:63-76_
 
 The theory underlying the {{ error-function__YetiRank }} and {{ error-function__YetiRankPairwise }} modes in {{ product }}.
 
+#### [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500)
+
+_Ivan Lyzhin, Aleksei Ustimenko, Andrey Gulin, Liudmila Prokhorenkova. arXiv:2204.01500_
+
+A paper comparing previously introduced LambdaMART, YetiRank and StochasticRank and proposing an improvement to the {{ error-function__YetiRank }} approach to allow for optimizing specific ranking loss functions.
+
+#### [Gradient Boosting Performs Gaussian Process Inference](https://arxiv.org/abs/2206.05608)
+
+_Aleksei Ustimenko, Artem Beliakov, Liudmila Prokhorenkova. arXiv:2206.05608_
+
+This paper shows that gradient boosting based on symmetric decision trees can be equivalently reformulated as a kernel method that converges to the solution of a certain Kernel Ridge Regression problem. Thus, authors obtain the convergence to a Gaussian Process' posterior mean, which, in turn, allows them to easily transform gradient boosting into a sampler from the posterior to provide better knowledge uncertainty estimates through Monte-Carlo estimation of the posterior variance. It is shown that the proposed sampler allows for better knowledge uncertainty estimates leading to improved out-of-domain detection.

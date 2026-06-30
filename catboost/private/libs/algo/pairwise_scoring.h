@@ -10,6 +10,7 @@
 #include <catboost/private/libs/index_range/index_range.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 
 struct TBucketPairWeightStatistics {
@@ -442,4 +443,3 @@ void CalculatePairwiseScore(
     ui32 oneHotMaxSize,
     TPairwiseScoreCalcer* scoreCalcer
 );
-

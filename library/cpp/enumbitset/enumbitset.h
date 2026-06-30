@@ -309,7 +309,7 @@ public:
         static const size_t chunkSize = sizeof(typename TParent::TChunk) * 8;
         static const size_t numDig = chunkSize / 4;
         static const size_t highChunkBits = (BitsetSize + chunkSize - 1) % chunkSize + 1;
-        static const typename TParent::TChunk highChunkBitsMask = (typename TParent::TChunk(1) << highChunkBits) - 1;
+        static const typename TParent::TChunk highChunkBitsMask = (highChunkBits == chunkSize ? 0 : (typename TParent::TChunk(1) << highChunkBits)) - 1;
 
         Reset();
         for (size_t prev = s.length(), n = s.length() - numDig, pos = 0; prev; n -= numDig, pos += chunkSize) {

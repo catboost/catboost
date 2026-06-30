@@ -2,6 +2,7 @@
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/data/data_provider_builders.h>
+#include <catboost/libs/helpers/json_helpers.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 #include <util/generic/singleton.h>
 #include <util/stream/file.h>
@@ -101,9 +102,7 @@ CATBOOST_API const char* GetErrorString() {
 }
 
 CATBOOST_API void FreeHandle(ResultHandle* modelHandle) {
-    if (*modelHandle != nullptr) {
-        delete RESULT_PTR(*modelHandle);
-    }
+    delete RESULT_PTR(*modelHandle);
     *modelHandle = nullptr;
 }
 
@@ -191,7 +190,7 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
                             &plainJsonParams);
 
         NCatboostOptions::TOption<ETaskType> taskType("task_type", ETaskType::CPU);
-        NCatboostOptions::TJsonFieldHelper<decltype(taskType)>::Read(plainJsonParams, &taskType);
+        TJsonFieldHelper<decltype(taskType)>::Read(plainJsonParams, &taskType);
 
 
         TDataProviders dataProviders = MakeDataProviders(

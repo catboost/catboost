@@ -14,7 +14,7 @@
 
 #include "src/utf8_fix.h"
 
-#include <google/protobuf/stubs/port.h>
+#include <stdint.h>
 
 #include <algorithm>
 #include <cassert>

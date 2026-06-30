@@ -73,7 +73,7 @@ namespace NJson2Yson {
     class TSkipAttributesProxy: public TBase {
     public:
         template <typename... TArgs>
-        TSkipAttributesProxy<TBase>(TArgs&&... args)
+        TSkipAttributesProxy(TArgs&&... args)
             : TBase(std::forward<TArgs>(args)...)
         {
         }
@@ -176,4 +176,4 @@ namespace NJson2Yson {
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result);
     TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue);
-}
+} // namespace NJson2Yson

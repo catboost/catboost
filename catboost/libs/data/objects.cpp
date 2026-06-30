@@ -154,13 +154,19 @@ static bool AreCatFeaturesHashToStringEqual(
 }
 
 
-bool NCB::TCommonObjectsData::EqualTo(const NCB::TCommonObjectsData& rhs, bool ignoreSparsity) const {
-    if (!AreCatFeaturesHashToStringEqual(
-        CatFeaturesHashToString,
-        rhs.CatFeaturesHashToString,
-        ignoreSparsity))
-    {
-        return false;
+bool NCB::TCommonObjectsData::EqualTo(
+    const NCB::TCommonObjectsData& rhs,
+    bool ignoreSparsity,
+    bool ignoreCatFeaturesHashToString
+) const {
+    if (!ignoreCatFeaturesHashToString) {
+        if (!AreCatFeaturesHashToStringEqual(
+            CatFeaturesHashToString,
+            rhs.CatFeaturesHashToString,
+            ignoreSparsity))
+        {
+            return false;
+        }
     }
 
     return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) && (StoreStringColumns == rhs.StoreStringColumns) &&

@@ -31,6 +31,10 @@
 #include "absl/synchronization/internal/create_thread_identity.h"
 #include "absl/synchronization/internal/kernel_timeout.h"
 
+namespace gloop_do_not_use {
+struct SynchronizationBenchmarkPeer;
+}  // namespace gloop_do_not_use
+
 namespace absl {
 ABSL_NAMESPACE_BEGIN
 
@@ -64,7 +68,7 @@ class PerThreadSem {
  private:
   // Create the PerThreadSem associated with "identity".  Initializes count=0.
   // REQUIRES: May only be called by ThreadIdentity.
-  static void Init(base_internal::ThreadIdentity* identity);
+  static inline void Init(base_internal::ThreadIdentity* identity);
 
   // Increments "identity"'s count.
   static inline void Post(base_internal::ThreadIdentity* identity);
@@ -77,6 +81,7 @@ class PerThreadSem {
   // Permitted callers.
   friend class PerThreadSemTest;
   friend class absl::Mutex;
+  friend struct ::gloop_do_not_use::SynchronizationBenchmarkPeer;
   friend void OneTimeInitThreadIdentity(absl::base_internal::ThreadIdentity*);
 };
 
@@ -91,11 +96,20 @@ ABSL_NAMESPACE_END
 // By changing our extension points to be extern "C", we dodge this
 // check.
 extern "C" {
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemInit)(
+    absl::base_internal::ThreadIdentity* identity);
 void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPost)(
     absl::base_internal::ThreadIdentity* identity);
 bool ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemWait)(
     absl::synchronization_internal::KernelTimeout t);
+void ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemPoke)(
+    absl::base_internal::ThreadIdentity* identity);
 }  // extern "C"
+
+void absl::synchronization_internal::PerThreadSem::Init(
+    absl::base_internal::ThreadIdentity* identity) {
+  ABSL_INTERNAL_C_SYMBOL(AbslInternalPerThreadSemInit)(identity);
+}
 
 void absl::synchronization_internal::PerThreadSem::Post(
     absl::base_internal::ThreadIdentity* identity) {

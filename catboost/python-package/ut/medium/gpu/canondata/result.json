@@ -1,15 +1,18 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[GPU-1024]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-1024_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-1024_/predictions.txt"
     },
     "test.test_allow_writing_files_and_used_ram_limit[GPU-2Gb]": {
-        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.npy"
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.txt"
     },
     "test.test_approximate_shap_feature_importance[GPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_GPU_/feature_importance.npy"
     },
     "test.test_approximate_shap_feature_importance_multiclass[GPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_multirmse[GPU]": {
+        "uri": "file://test.test_approximate_shap_feature_importance_multirmse_GPU_/feature_importance.npy"
     },
     "test.test_class_names[GPU]": {
         "uri": "file://test.test_class_names_GPU_/predictions.txt"
@@ -47,6 +50,70 @@
     "test.test_ctr_target_border_count[GPU]": {
         "uri": "file://test.test_ctr_target_border_count_GPU_/model.bin"
     },
+    "test.test_custom_class_labels[GPU-label_type=boolean-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=boolean-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
     "test.test_cv[GPU]": {
         "uri": "file://test.test_cv_GPU_/catboost_training.json"
     },
@@ -71,8 +138,11 @@
     "test.test_cv_pairs_generated[GPU]": {
         "uri": "file://test.test_cv_pairs_generated_GPU_/catboost_training.json"
     },
-    "test.test_cv_query[GPU]": {
-        "uri": "file://test.test_cv_query_GPU_/catboost_training.json"
+    "test.test_cv_query[GPU-loss_function=QueryRMSE]": {
+        "uri": "file://test.test_cv_query_GPU-loss_function=QueryRMSE_/catboost_training.json"
+    },
+    "test.test_cv_query[GPU-loss_function=YetiRank]": {
+        "uri": "file://test.test_cv_query_GPU-loss_function=YetiRank_/catboost_training.json"
     },
     "test.test_cv_skip_train[GPU]": {
         "uri": "file://test.test_cv_skip_train_GPU_/catboost_training.json"
@@ -219,6 +289,9 @@
     "test.test_exact_shap_feature_importance_multiclass[GPU]": {
         "uri": "file://test.test_exact_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
     },
+    "test.test_exact_shap_feature_importance_multirmse[GPU]": {
+        "uri": "file://test.test_exact_shap_feature_importance_multirmse_GPU_/feature_importance.npy"
+    },
     "test.test_export_to_python_no_cat_features[GPU-2]": {
         "uri": "file://test.test_export_to_python_no_cat_features_GPU-2_/model.py"
     },
@@ -250,7 +323,7 @@
         "uri": "file://test.test_feature_importance_prettified_GPU_/feature_importance.txt"
     },
     "test.test_fit_and_predict_on_sliced_pools[GPU]": {
-        "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.npy"
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.txt"
     },
     "test.test_fit_data[GPU]": {
         "uri": "file://test.test_fit_data_GPU_/predictions.npy"
@@ -307,12 +380,6 @@
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=True_/model.bin"
         }
     ],
-    "test.test_multiclass_custom_class_labels[GPU-int]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_GPU-int_/predictions.txt"
-    },
-    "test.test_multiclass_custom_class_labels[GPU-string]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_GPU-string_/predictions.txt"
-    },
     "test.test_multiclass_custom_class_labels_from_files[GPU]": {
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
@@ -350,13 +417,13 @@
         "uri": "file://test.test_pool_with_timestamp_GPU_/model.bin"
     },
     "test.test_predict_class[GPU]": {
-        "uri": "file://test.test_predict_class_GPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_GPU_/predictions.txt"
     },
     "test.test_predict_class_proba[GPU]": {
         "uri": "file://test.test_predict_class_proba_GPU_/predictions.npy"
     },
     "test.test_predict_class_raw[GPU]": {
-        "uri": "file://test.test_predict_class_raw_GPU_/predictions.npy"
+        "uri": "file://test.test_predict_class_raw_GPU_/predictions.txt"
     },
     "test.test_predict_regress[GPU]": {
         "uri": "file://test.test_predict_regress_GPU_/model.bin"
@@ -456,6 +523,9 @@
     "test.test_shap_feature_importance_multiclass[GPU-TreeSHAP]": {
         "uri": "file://test.test_shap_feature_importance_multiclass_GPU-TreeSHAP_/feature_importance.npy"
     },
+    "test.test_shap_feature_importance_multirmse[GPU-IndependentTreeSHAP]": {
+        "uri": "file://test.test_shap_feature_importance_multirmse_GPU-IndependentTreeSHAP_/feature_importance.npy"
+    },
     "test.test_shap_interaction_feature_importance[GPU]": {
         "uri": "file://test.test_shap_interaction_feature_importance_GPU_/feature_importance.npy"
     },
@@ -466,7 +536,19 @@
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
     },
     "test.test_staged_predict[GPU]": {
-        "uri": "file://test.test_staged_predict_GPU_/predictions.npy"
+        "uri": "file://test.test_staged_predict_GPU_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-classification]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-classification_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-multilabel]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-multilabel_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-ranking]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-ranking_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-regression]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-regression_/predictions.txt"
     },
     "test.test_verbose_int[GPU-5]": {
         "uri": "file://test.test_verbose_int_GPU-5_/catboost_training.json"
@@ -479,5 +561,11 @@
     },
     "test.test_zero_baseline[GPU]": {
         "uri": "file://test.test_zero_baseline_GPU_/model.bin"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[GPU-isotonic]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_GPU-isotonic_/calib_classifier_predictions.tsv"
+    },
+    "test_with_sklearn.test_calibrated_classifier_cv[GPU-sigmoid]": {
+        "uri": "file://test_with_sklearn.test_calibrated_classifier_cv_GPU-sigmoid_/calib_classifier_predictions.tsv"
     }
 }
