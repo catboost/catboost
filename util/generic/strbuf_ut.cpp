@@ -2,7 +2,6 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <format>
 #include <string_view>
 
 Y_UNIT_TEST_SUITE(TStrBufTest) {
@@ -407,6 +406,10 @@ Y_UNIT_TEST_SUITE(TWtrBufTest) {
     }
 } // Y_UNIT_TEST_SUITE(TWtrBufTest)
 
+#ifdef __cpp_lib_format
+
+    #include <format>
+
 Y_UNIT_TEST_SUITE(TStrBufStdFormatTest) {
     Y_UNIT_TEST(TestFormatTStringBuf) {
         TStringBuf buf("hello");
@@ -423,3 +426,5 @@ Y_UNIT_TEST_SUITE(TStrBufStdFormatTest) {
         UNIT_ASSERT_VALUES_EQUAL(std::format("{}", buf), "");
     }
 } // Y_UNIT_TEST_SUITE(TStrBufStdFormatTest)
+
+#endif
