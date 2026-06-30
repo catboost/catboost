@@ -563,3 +563,9 @@ std::ostream& operator<<(std::ostream& os, TStringBuf buf);
 constexpr TStringBuf operator""_sb(const char* str, size_t len) {
     return TStringBuf{str, len};
 }
+
+#ifdef __cpp_lib_format
+template <typename TCharType, typename TTraits>
+struct std::formatter<TBasicStringBuf<TCharType, TTraits>, TCharType>
+    : std::formatter<std::basic_string_view<TCharType>, TCharType> {};
+#endif

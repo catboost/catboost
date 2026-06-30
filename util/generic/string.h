@@ -1366,3 +1366,9 @@ template <class TCharType, class TTraits>
 void ResizeUninitialized(TBasicString<TCharType, TTraits>& s, size_t len) {
     s.ReserveAndResize(len);
 }
+
+#ifdef __cpp_lib_format
+template <typename TCharType, typename TTraits>
+struct std::formatter<TBasicString<TCharType, TTraits>, TCharType>
+    : std::formatter<std::basic_string_view<TCharType>, TCharType> {};
+#endif
