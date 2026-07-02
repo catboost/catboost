@@ -671,6 +671,8 @@ def _resource_id(javac_bin: str) -> str:
 def _socket_path(javac_bin: str, semantic_jvm: list = None) -> str:
     """Socket path for the daemon serving this JDK and semantic flagset.
 
+    Lives in /tmp (not the cache dir) because Unix domain socket paths are
+    limited to 104 chars on macOS, and SHALLOW_ROOT can be too deep.
     The empty flagset (the common case) yields the original socket name, so
     the shared default daemon is unchanged.  A non-empty semantic flagset
     appends a hash suffix, routing the request to a dedicated side-daemon
@@ -678,10 +680,10 @@ def _socket_path(javac_bin: str, semantic_jvm: list = None) -> str:
     """
     uid = os.getuid()
     rid = _resource_id(javac_bin)
+    jh = _jar_hash()
     fh = _flagset_hash(semantic_jvm or [])
-    if fh:
-        return f"/tmp/javac-daemon-{uid}-{rid}-{fh}.sock"
-    return f"/tmp/javac-daemon-{uid}-{rid}.sock"
+    name = f"javac-daemon-{uid}-{rid}-{jh}-{fh}.sock" if fh else f"javac-daemon-{uid}-{rid}-{jh}.sock"
+    return os.path.join("/tmp", name)
 
 
 def _jar_hash() -> str:
@@ -702,10 +704,13 @@ def _jar_hash() -> str:
 
 
 def _cache_dir() -> str:
-    # Use /tmp (not TMPDIR) so the dir — and daemon logs — survive the
-    # per-node sandbox cleanup that resets TMPDIR after each build node.
-    # Keyed on the embedded jar hash; see _jar_hash() for rationale.
-    d = os.path.join("/tmp", f"javac-daemon-{_jar_hash()}")
+    # Use YA_JAVAC_DAEMON_HOME (set by the build system to SHALLOW_ROOT) so the
+    # dir — and daemon logs — survive the per-node sandbox cleanup that resets
+    # TMPDIR after each build node.  Fall back to /tmp for manual/standalone use.
+    # A subdir keyed on the jar hash isolates daemon versions and provides the
+    # content-addressed cache property (see _jar_hash() for rationale).
+    base = os.environ.get("YA_JAVAC_DAEMON_HOME", "/tmp")
+    d = os.path.join(base, "javac-daemon", _jar_hash())
     os.makedirs(d, exist_ok=True)
     return d
 
