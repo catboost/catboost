@@ -18,7 +18,11 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestIterators)
     UNIT_TEST(TestEmplaceBack1)
     UNIT_TEST(TestEmplaceBack2)
-    //UNIT_TEST(TestEbo)
+    UNIT_TEST(TestCopyConstructor)
+    UNIT_TEST(TestCopyAssignment)
+    UNIT_TEST(TestMoveConstructor)
+    UNIT_TEST(TestMoveAssignment)
+    // UNIT_TEST(TestEbo)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -376,9 +380,116 @@ private:
         }
     }
 
+    void TestCopyConstructor() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<int, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(i);
+        }
+
+        TPagedVector<int, 3> copied(v);
+
+        UNIT_ASSERT_VALUES_EQUAL(copied.size(), 10u);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 10u);
+
+        for (int i = 0; i < 10; ++i) {
+            // values are the same
+            UNIT_ASSERT_VALUES_EQUAL(v[i], i);
+            UNIT_ASSERT_VALUES_EQUAL(copied[i], i);
+
+            // but pointers are different (the elements have been copied)
+            UNIT_ASSERT_VALUES_UNEQUAL(&copied[i], &v[i]);
+        }
+
+        // Modifying the copy must not affect the original.
+        copied[0] = 999;
+        UNIT_ASSERT_VALUES_EQUAL(v[0], 0);
+    }
+
+    void TestCopyAssignment() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<int, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(i);
+        }
+
+        TPagedVector<int, 3> assigned;
+        assigned.push_back(999);
+        assigned = v;
+
+        // The source vector should remain unchanged after copy.
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 10u);
+
+        UNIT_ASSERT_VALUES_EQUAL(assigned.size(), 10u);
+        for (int i = 0; i < 10; ++i) {
+            // values are the same
+            UNIT_ASSERT_VALUES_EQUAL(v[i], i);
+            UNIT_ASSERT_VALUES_EQUAL(assigned[i], i);
+
+            // but pointers are different (the elements have been copied)
+            UNIT_ASSERT_VALUES_UNEQUAL(&assigned[i], &v[i]);
+        }
+
+        // Modifying the assigned vector must not affect the original.
+        assigned[0] = 999;
+        UNIT_ASSERT_VALUES_EQUAL(v[0], 0);
+    }
+
+    void TestMoveConstructor() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<int, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(i);
+        }
+
+        auto orig_ptr = &v[5];
+
+        TPagedVector<int, 3> moved(std::move(v));
+
+        UNIT_ASSERT_VALUES_EQUAL(moved.size(), 10u);
+
+        // the move must keep original element pointers
+        UNIT_ASSERT_VALUES_EQUAL(orig_ptr, &moved[5]);
+
+        for (int i = 0; i < 10; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(moved[i], i);
+        }
+
+        // After move, the source vector should be empty.
+        UNIT_ASSERT(v.empty());
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
+    void TestMoveAssignment() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<int, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(i);
+        }
+
+        auto orig_ptr = &v[7];
+
+        TPagedVector<int, 3> assigned;
+        assigned.push_back(999);
+        assigned = std::move(v);
+
+        UNIT_ASSERT_VALUES_EQUAL(assigned.size(), 10u);
+
+        // the move must keep original element pointers
+        UNIT_ASSERT_VALUES_EQUAL(orig_ptr, &assigned[7]);
+
+        for (int i = 0; i < 10; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(assigned[i], i);
+        }
+
+        // After move, the source vector should be empty.
+        UNIT_ASSERT(v.empty());
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
     /* This test check a potential issue with empty base class
-         * optimization. Some compilers (VC6) do not implement it
-         * correctly resulting ina wrong behavior. */
+     * optimization. Some compilers (VC6) do not implement it
+     * correctly resulting ina wrong behavior. */
     void TestEbo() {
         using NPagedVector::TPagedVector;
         // We use heap memory as test failure can corrupt vector internal

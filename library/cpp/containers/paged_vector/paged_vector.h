@@ -147,12 +147,14 @@ namespace std {
 namespace NPagedVector {
     //2-level radix tree
     template <class T, ui32 PageSize, class A>
-    class TPagedVector: private TVector<TSimpleSharedPtr<TVector<T, A>>, A> {
+    class TPagedVector {
         static_assert(PageSize, "expect PageSize");
 
         typedef TVector<T, A> TPage;
-        typedef TVector<TSimpleSharedPtr<TPage>, A> TPages;
+        typedef TVector<THolder<TPage>, A> TPages;
         typedef TPagedVector<T, PageSize, A> TSelf;
+
+        TPages Pages_;
 
     public:
         typedef NPrivate::TPagedVectorIterator<T, T, PageSize, A> iterator;
@@ -164,11 +166,29 @@ namespace NPagedVector {
         typedef const value_type& const_reference;
 
         TPagedVector() = default;
+        TPagedVector(TPagedVector&& other) noexcept = default;
+
+        TPagedVector(const TPagedVector& other) {
+            Pages_.reserve(other.Pages_.size());
+            for (auto& ptr : other.Pages_) {
+                Pages_.emplace_back(MakeHolder<TPage>(*ptr));
+            }
+        }
 
         template <typename TIter>
         TPagedVector(TIter b, TIter e) {
             append(b, e);
         }
+
+        TPagedVector& operator=(const TPagedVector& other) {
+            if (this != &other) {
+                TPagedVector tmp(other);
+                swap(tmp);
+            }
+            return *this;
+        }
+
+        TPagedVector& operator=(TPagedVector&& other) noexcept = default;
 
         iterator begin() {
             return iterator(this, 0);
@@ -203,7 +223,7 @@ namespace NPagedVector {
         }
 
         void swap(TSelf& v) {
-            TPages::swap((TPages&)v);
+            Pages_.swap(v.Pages_);
         }
 
     private:
@@ -220,23 +240,23 @@ namespace NPagedVector {
         }
 
         TPage& PageAt(size_t pnum) const {
-            return *TPages::at(pnum);
+            return *Pages_.at(pnum);
         }
 
         TPage& CurrentPage() const {
-            return *TPages::back();
+            return *Pages_.back();
         }
 
         size_t CurrentPageSize() const {
-            return TPages::empty() ? 0 : CurrentPage().size();
+            return Pages_.empty() ? 0 : CurrentPage().size();
         }
 
         size_t NPages() const {
-            return TPages::size();
+            return Pages_.size();
         }
 
         void AllocateNewPage() {
-            TPages::push_back(new TPage());
+            Pages_.emplace_back(MakeHolder<TPage>());
             CurrentPage().reserve(PageSize);
         }
 
@@ -246,7 +266,7 @@ namespace NPagedVector {
         }
 
         void PrepareAppend() {
-            if (TPages::empty() || CurrentPage().size() + 1 > PageSize)
+            if (Pages_.empty() || CurrentPage().size() + 1 > PageSize)
                 AllocateNewPage();
         }
 
@@ -256,7 +276,7 @@ namespace NPagedVector {
         }
 
         bool empty() const {
-            return TPages::empty() || (1 == NPages() && CurrentPage().empty());
+            return Pages_.empty() || (1 == NPages() && CurrentPage().empty());
         }
 
         explicit operator bool() const noexcept {
@@ -276,7 +296,7 @@ namespace NPagedVector {
 
         void pop_back() {
             if (CurrentPage().empty())
-                TPages::pop_back();
+                Pages_.pop_back();
             CurrentPage().pop_back();
         }
 
@@ -311,7 +331,7 @@ namespace NPagedVector {
             size_t pidx = InPageIndex(it.Offset);
 
             if (CurrentPage().empty())
-                TPages::pop_back();
+                Pages_.pop_back();
 
             for (size_t p = NPages() - 1; p > pnum; --p) {
                 PageAt(p - 1).push_back(PageAt(p).front());
@@ -355,11 +375,11 @@ namespace NPagedVector {
         }
 
         reference front() {
-            return TPages::front()->front();
+            return Pages_.front()->front();
         }
 
         const_reference front() const {
-            return TPages::front()->front();
+            return Pages_.front()->front();
         }
 
         reference back() {
@@ -371,7 +391,7 @@ namespace NPagedVector {
         }
 
         void clear() {
-            TPages::clear();
+            Pages_.clear();
         }
 
         void resize(size_t sz) {
@@ -387,7 +407,7 @@ namespace NPagedVector {
                 CurrentPage().resize(PageSize);
 
             if (newpages < npages)
-                TPages::resize(newpages);
+                Pages_.resize(newpages);
             else
                 for (size_t i = npages; i < newpages; ++i)
                     MakeNewPage();
@@ -399,19 +419,19 @@ namespace NPagedVector {
         }
 
         reference at(size_t idx) {
-            return TPages::at(PageNumber(idx))->at(InPageIndex(idx));
+            return Pages_.at(PageNumber(idx))->at(InPageIndex(idx));
         }
 
         const_reference at(size_t idx) const {
-            return TPages::at(PageNumber(idx))->at(InPageIndex(idx));
+            return Pages_.at(PageNumber(idx))->at(InPageIndex(idx));
         }
 
         reference operator[](size_t idx) {
-            return TPages::operator[](PageNumber(idx))->operator[](InPageIndex(idx));
+            return Pages_.operator[](PageNumber(idx))->operator[](InPageIndex(idx));
         }
 
         const_reference operator[](size_t idx) const {
-            return TPages::operator[](PageNumber(idx))->operator[](InPageIndex(idx));
+            return Pages_.operator[](PageNumber(idx))->operator[](InPageIndex(idx));
         }
 
         friend bool operator==(const TSelf& a, const TSelf& b) {
