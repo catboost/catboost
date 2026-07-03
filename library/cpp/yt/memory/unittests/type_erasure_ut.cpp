@@ -23,6 +23,14 @@ struct TCustomized
     }
 };
 
+struct TOtherCustomized
+{
+    friend int TagInvoke(TTagInvokeTag<TestCpo>, const TOtherCustomized&)
+    {
+        return 0;
+    }
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // 2 CPOs won't trigger static vtable.
@@ -251,6 +259,22 @@ TEST(TAnyObjectTest, EmptyAny)
     static_assert(!std::invocable<TTagInvokeTag<TestCpo>, decltype(any)>);
     const auto& conc = any.AnyCast<TCustomized>();
     EXPECT_EQ(conc.Value, 11);
+}
+
+TEST(TAnyObjectTest, Holds)
+{
+    using TAnyObject = TAnyObject<TOverload<TestCpo, int(const TErasedThis&)>>;
+
+    TAnyObject any{TCustomized{.Value = 42}};
+    EXPECT_TRUE(any.Holds<TCustomized>());
+    EXPECT_FALSE(any.Holds<TOtherCustomized>());
+
+    TAnyObject other{TOtherCustomized{}};
+    EXPECT_TRUE(other.Holds<TOtherCustomized>());
+    EXPECT_FALSE(other.Holds<TCustomized>());
+
+    TAnyObject empty;
+    EXPECT_FALSE(empty.Holds<TCustomized>());
 }
 
 TEST(TAnyObjectTest, CvRefCorrectness)
