@@ -15,36 +15,36 @@ namespace NPagedVector {
         struct TPagedVectorIterator {
         private:
             friend class TPagedVector<TT, PageSize, A>;
-            typedef TPagedVector<TT, PageSize, A> TVec;
-            typedef TPagedVectorIterator<T, TT, PageSize, A> TSelf;
-            size_t Offset;
-            TVec* Vector;
+            using TVec = TPagedVector<TT, PageSize, A>;
+            using TSelf = TPagedVectorIterator<T, TT, PageSize, A>;
+            size_t Offset_;
+            TVec* Vector_;
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             friend struct TPagedVectorIterator;
 
         public:
             TPagedVectorIterator()
-                : Offset()
-                , Vector()
+                : Offset_()
+                , Vector_()
             {
             }
 
             TPagedVectorIterator(TVec* vector, size_t offset)
-                : Offset(offset)
-                , Vector(vector)
+                : Offset_(offset)
+                , Vector_(vector)
             {
             }
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             TPagedVectorIterator(const TPagedVectorIterator<T1, TT1, PageSize1, A1>& it)
-                : Offset(it.Offset)
-                , Vector(it.Vector)
+                : Offset_(it.Offset_)
+                , Vector_(it.Vector_)
             {
             }
 
             T& operator*() const {
-                return (*Vector)[Offset];
+                return (*Vector_)[Offset_];
             }
 
             T* operator->() const {
@@ -53,7 +53,7 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             bool operator==(const TPagedVectorIterator<T1, TT1, PageSize1, A1>& it) const {
-                return Offset == it.Offset;
+                return Offset_ == it.Offset_;
             }
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
@@ -63,12 +63,12 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             bool operator<(const TPagedVectorIterator<T1, TT1, PageSize1, A1>& it) const {
-                return Offset < it.Offset;
+                return Offset_ < it.Offset_;
             }
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             bool operator<=(const TPagedVectorIterator<T1, TT1, PageSize1, A1>& it) const {
-                return Offset <= it.Offset;
+                return Offset_ <= it.Offset_;
             }
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
@@ -83,11 +83,11 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1, class A1>
             ptrdiff_t operator-(const TPagedVectorIterator<T1, TT1, PageSize1, A1>& it) const {
-                return Offset - it.Offset;
+                return Offset_ - it.Offset_;
             }
 
             TSelf& operator+=(ptrdiff_t off) {
-                Offset += off;
+                Offset_ += off;
                 return *this;
             }
 
@@ -126,44 +126,44 @@ namespace NPagedVector {
             }
 
             size_t GetOffset() const {
-                return Offset;
+                return Offset_;
             }
         };
-    }
-}
+    } // namespace NPrivate
+} // namespace NPagedVector
 
 namespace std {
     template <class T, class TT, ui32 PageSize, class A>
     struct iterator_traits<NPagedVector::NPrivate::TPagedVectorIterator<T, TT, PageSize, A>> {
-        typedef ptrdiff_t difference_type;
-        typedef T value_type;
-        typedef T* pointer;
-        typedef T& reference;
-        typedef random_access_iterator_tag iterator_category;
+        using difference_type = ptrdiff_t;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+        using iterator_category = random_access_iterator_tag;
     };
 
-}
+} // namespace std
 
 namespace NPagedVector {
-    //2-level radix tree
+    // 2-level radix tree
     template <class T, ui32 PageSize, class A>
     class TPagedVector {
         static_assert(PageSize, "expect PageSize");
 
-        typedef TVector<T, A> TPage;
-        typedef TVector<THolder<TPage>, A> TPages;
-        typedef TPagedVector<T, PageSize, A> TSelf;
+        using TPage = TVector<T, A>;
+        using TPages = TVector<THolder<TPage>, A>;
+        using TSelf = TPagedVector<T, PageSize, A>;
 
         TPages Pages_;
 
     public:
-        typedef NPrivate::TPagedVectorIterator<T, T, PageSize, A> iterator;
-        typedef NPrivate::TPagedVectorIterator<const T, T, PageSize, A> const_iterator;
-        typedef std::reverse_iterator<iterator> reverse_iterator;
-        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-        typedef T value_type;
-        typedef value_type& reference;
-        typedef const value_type& const_reference;
+        using iterator = NPrivate::TPagedVectorIterator<T, T, PageSize, A>;
+        using const_iterator = NPrivate::TPagedVectorIterator<const T, T, PageSize, A>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using value_type = T;
+        using reference = value_type&;
+        using const_reference = const value_type&;
 
         TPagedVector() = default;
         TPagedVector(TPagedVector&& other) noexcept = default;
@@ -266,8 +266,9 @@ namespace NPagedVector {
         }
 
         void PrepareAppend() {
-            if (Pages_.empty() || CurrentPage().size() + 1 > PageSize)
+            if (Pages_.empty() || CurrentPage().size() + 1 > PageSize) {
                 AllocateNewPage();
+            }
         }
 
     public:
@@ -283,7 +284,7 @@ namespace NPagedVector {
             return !empty();
         }
 
-        template<typename... Args>
+        template <typename... Args>
         reference emplace_back(Args&&... args) {
             PrepareAppend();
             return CurrentPage().emplace_back(std::forward<Args>(args)...);
@@ -295,8 +296,9 @@ namespace NPagedVector {
         }
 
         void pop_back() {
-            if (CurrentPage().empty())
+            if (CurrentPage().empty()) {
                 Pages_.pop_back();
+            }
             CurrentPage().pop_back();
         }
 
@@ -327,11 +329,12 @@ namespace NPagedVector {
         }
 
         iterator erase(iterator it) {
-            size_t pnum = PageNumber(it.Offset);
-            size_t pidx = InPageIndex(it.Offset);
+            size_t pnum = PageNumber(it.Offset_);
+            size_t pidx = InPageIndex(it.Offset_);
 
-            if (CurrentPage().empty())
+            if (CurrentPage().empty()) {
                 Pages_.pop_back();
+            }
 
             for (size_t p = NPages() - 1; p > pnum; --p) {
                 PageAt(p - 1).push_back(PageAt(p).front());
@@ -353,8 +356,8 @@ namespace NPagedVector {
         }
 
         iterator insert(iterator it, const value_type& v) {
-            size_t pnum = PageNumber(it.Offset);
-            size_t pidx = InPageIndex(it.Offset);
+            size_t pnum = PageNumber(it.Offset_);
+            size_t pidx = InPageIndex(it.Offset_);
 
             PrepareAppend();
 
@@ -370,8 +373,9 @@ namespace NPagedVector {
         template <typename TIter>
         void insert(iterator it, TIter b, TIter e) {
             // todo : suboptimal!
-            for (; b != e; ++b, ++it)
+            for (; b != e; ++b, ++it) {
                 it = insert(it, *b);
+            }
         }
 
         reference front() {
@@ -395,25 +399,30 @@ namespace NPagedVector {
         }
 
         void resize(size_t sz) {
-            if (sz == size())
+            if (sz == size()) {
                 return;
+            }
 
             const size_t npages = NPages();
             const size_t newwholepages = sz / PageSize;
             const size_t pagepart = sz % PageSize;
             const size_t newpages = newwholepages + bool(pagepart);
 
-            if (npages && newwholepages >= npages)
+            if (npages && newwholepages >= npages) {
                 CurrentPage().resize(PageSize);
+            }
 
-            if (newpages < npages)
+            if (newpages < npages) {
                 Pages_.resize(newpages);
-            else
-                for (size_t i = npages; i < newpages; ++i)
+            } else {
+                for (size_t i = npages; i < newpages; ++i) {
                     MakeNewPage();
+                }
+            }
 
-            if (pagepart)
+            if (pagepart) {
                 CurrentPage().resize(pagepart);
+            }
 
             Y_ABORT_UNLESS(sz == size(), "%" PRIu64 " %" PRIu64, (ui64)sz, (ui64)size());
         }
@@ -444,10 +453,9 @@ namespace NPagedVector {
     };
 
     namespace NPrivate {
-        typedef std::is_same<std::random_access_iterator_tag, std::iterator_traits<
-                                                                  TPagedVector<ui32>::iterator>::iterator_category>
-            TIteratorCheck;
+        using TIteratorCheck = std::is_same<std::random_access_iterator_tag, std::iterator_traits<
+                                                                                 TPagedVector<ui32>::iterator>::iterator_category>;
         static_assert(TIteratorCheck::value, "expect TIteratorCheck::Result");
-    }
+    } // namespace NPrivate
 
-}
+} // namespace NPagedVector

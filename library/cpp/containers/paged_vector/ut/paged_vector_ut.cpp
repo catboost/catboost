@@ -126,8 +126,9 @@ private:
         TPagedVector<char, 1> v2;
         v2.resize(v1.size());
 
-        for (size_t i = 0; i < v1.size(); ++i)
+        for (size_t i = 0; i < v1.size(); ++i) {
             v2[i] = v1[i];
+        }
 
         v2[1] = 'o'; // Replace second character.
 
@@ -336,14 +337,14 @@ private:
 
         UNIT_ASSERT(vint.rbegin() == vint.rbegin());
         // Not Standard:
-        //UNIT_ASSERT(vint.rbegin() == crvint.rbegin());
-        //UNIT_ASSERT(crvint.rbegin() == vint.rbegin());
+        // UNIT_ASSERT(vint.rbegin() == crvint.rbegin());
+        // UNIT_ASSERT(crvint.rbegin() == vint.rbegin());
         UNIT_ASSERT(crvint.rbegin() == crvint.rbegin());
 
         UNIT_ASSERT(vint.rbegin() != vint.rend());
         // Not Standard:
-        //UNIT_ASSERT(vint.rbegin() != crvint.rend());
-        //UNIT_ASSERT(crvint.rbegin() != vint.rend());
+        // UNIT_ASSERT(vint.rbegin() != crvint.rend());
+        // UNIT_ASSERT(crvint.rbegin() != vint.rend());
         UNIT_ASSERT(crvint.rbegin() != crvint.rend());
     }
 
@@ -505,8 +506,9 @@ private:
         V* pv2 = new V;
 
         pv2->resize(10);
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < 10; ++i) {
             pv2->at(i) = 2;
+        }
 
         pv1->swap(*pv2);
 
