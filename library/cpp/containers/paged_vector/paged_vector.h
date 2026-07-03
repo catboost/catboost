@@ -266,14 +266,14 @@ namespace NPagedVector {
         }
 
         void PrepareAppend() {
-            if (Pages_.empty() || CurrentPage().size() + 1 > PageSize) {
+            if (Pages_.empty() || CurrentPage().size() >= PageSize) {
                 AllocateNewPage();
             }
         }
 
     public:
         size_t size() const {
-            return empty() ? 0 : (NPages() - 1) * PageSize + CurrentPage().size();
+            return Pages_.empty() ? 0 : (NPages() - 1) * PageSize + CurrentPage().size();
         }
 
         bool empty() const {
@@ -329,19 +329,22 @@ namespace NPagedVector {
         }
 
         iterator erase(iterator it) {
-            size_t pnum = PageNumber(it.Offset_);
-            size_t pidx = InPageIndex(it.Offset_);
+            const size_t pnum = PageNumber(it.Offset_);
+            const size_t pidx = InPageIndex(it.Offset_);
 
             if (CurrentPage().empty()) {
                 Pages_.pop_back();
             }
 
-            for (size_t p = NPages() - 1; p > pnum; --p) {
-                PageAt(p - 1).push_back(PageAt(p).front());
-                PageAt(p).erase(PageAt(p).begin());
+            auto currentPageIt = Pages_.begin() + pnum;
+
+            (*currentPageIt)->erase((*currentPageIt)->begin() + pidx);
+
+            for (auto nextPageIt = currentPageIt + 1; nextPageIt != Pages_.end(); currentPageIt = nextPageIt, ++nextPageIt) {
+                (*currentPageIt)->push_back(std::move((**nextPageIt)[0]));
+                (*nextPageIt)->erase((*nextPageIt)->begin());
             }
 
-            PageAt(pnum).erase(PageAt(pnum).begin() + pidx);
             return it;
         }
 
