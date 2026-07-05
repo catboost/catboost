@@ -6,8 +6,6 @@
 
 #include <library/cpp/yt/string/format.h>
 
-#include <library/cpp/containers/cow_string/cow_string.h>
-
 #include <variant>
 
 namespace NYT::NYson {
@@ -61,7 +59,7 @@ protected:
 
 //! An owning version of TYsonStringBuf.
 /*!
- *  Internally captures the data either via TCowString or a polymorphic ref-counted holder.
+ *  Internally captures the data either via TString or a polymorphic ref-counted holder.
  */
 class TYsonString
 {
@@ -83,12 +81,6 @@ public:
     //! Zero-copy for CoW TString: retains the reference to TString in payload.
     explicit TYsonString(
         const TString& data,
-        EYsonType type = EYsonType::Node);
-
-    //! Constructs an instance from TCowString.
-    //! Zero-copy: retains the reference to TCowString in payload.
-    explicit TYsonString(
-        TCowString data,
         EYsonType type = EYsonType::Node);
 
     //! Constructs an instance from std::string.
@@ -131,7 +123,7 @@ private:
     struct TNullPayload
     { };
 
-    std::variant<TNullPayload, TSharedRangeHolderPtr, TCowString> Payload_;
+    std::variant<TNullPayload, TSharedRangeHolderPtr, TString> Payload_;
 
     const char* Begin_ = nullptr;
     ui64 Size_ : 56 = 0;

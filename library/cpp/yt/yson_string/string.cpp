@@ -84,25 +84,30 @@ TYsonString::TYsonString(
     : TYsonString(TYsonStringBuf(data, type))
 { }
 
+#ifdef TSTRING_IS_STD_STRING
 TYsonString::TYsonString(
     const TString& data,
     EYsonType type)
-    : TYsonString(TCowString(data), type)
+    : TYsonString(TYsonStringBuf(data, type))
 { }
-
+#else
 TYsonString::TYsonString(
-    TCowString data,
+    const TString& data,
     EYsonType type)
-    : Payload_(std::move(data))
-    , Begin_(std::get<TCowString>(Payload_).data())
-    , Size_(std::get<TCowString>(Payload_).length())
-    , Type_(type)
-{ }
+{
+    // NOTE: CoW TString implementation is assumed
+    // Moving the payload MUST NOT invalidate its internal pointers
+    Payload_ = data;
+    Begin_ = data.data();
+    Size_ = data.length();
+    Type_ = type;
+}
+#endif
 
 TYsonString::TYsonString(
     std::string data,
     EYsonType type)
-    : TYsonString(TCowString(std::move(data)), type)
+    : TYsonString(TString(std::move(data)), type)
 { }
 
 TYsonString::TYsonString(
@@ -141,7 +146,7 @@ TString TYsonString::ToString() const
         [&] (const TSharedRangeHolderPtr&) {
             return TString(AsStringBuf());
         },
-        [] (const TCowString& payload) {
+        [] (const TString& payload) {
             return TString(payload);
         });
 }
@@ -156,7 +161,7 @@ TSharedRef TYsonString::ToSharedRef() const
         [&] (const TSharedRangeHolderPtr& holder) {
             return TSharedRef(Begin_, Size_, holder);
         },
-        [] (const TCowString& payload) {
+        [] (const TString& payload) {
             return TSharedRef::FromString(payload);
         });
 }
