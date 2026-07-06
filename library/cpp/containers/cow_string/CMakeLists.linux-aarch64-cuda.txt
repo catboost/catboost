@@ -12,16 +12,20 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(paged_vector)
-add_subdirectory(stack_array)
-add_subdirectory(absl)
-add_subdirectory(2d_array)
-add_subdirectory(dense_hash)
-add_subdirectory(flat_hash)
-add_subdirectory(comptrie)
-add_subdirectory(compact_vector)
-add_subdirectory(stack_vector)
-add_subdirectory(cow_string)
-add_subdirectory(ring_buffer)
-add_subdirectory(intrusive_rb_tree)
-add_subdirectory(disjoint_interval_tree)
+add_library(cpp-containers-cow_string)
+
+
+target_link_libraries(cpp-containers-cow_string PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+)
+
+target_sources(cpp-containers-cow_string PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/cow_string.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/output.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/reverse.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/subst.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/cow_string/ysaveload.cpp
+)
+
