@@ -22,3 +22,12 @@ target_link_libraries(cpp-containers-absl INTERFACE
   contrib-restricted-abseil-cpp
 )
 
+target_sources(cpp-containers-absl INTERFACE
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/btree_map.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/btree_set.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_map.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_map_saveload.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_set.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/absl/flat_hash_set_saveload.h
+)
+
