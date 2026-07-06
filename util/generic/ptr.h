@@ -260,7 +260,7 @@ private:
 };
 
 template <class T, class D>
-class THolder: public TPointerBase<THolder<T, D>, T> {
+class Y_TRIVIAL_ABI THolder: public TPointerBase<THolder<T, D>, T> {
 public:
     constexpr THolder() noexcept
         : T_(nullptr)

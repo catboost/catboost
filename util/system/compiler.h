@@ -839,6 +839,19 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #endif
 
 /**
+ * @def Y_TRIVIAL_ABI
+ *
+ * Indicates that a class or structure can be considered trivial for the purpose of calls.
+ *
+ * @see https://clang.llvm.org/docs/AttributeReference.html#trivial-abi
+ */
+#if Y_HAS_CPP_ATTRIBUTE(clang::trivial_abi)
+    #define Y_TRIVIAL_ABI [[clang::trivial_abi]]
+#else
+    #define Y_TRIVIAL_ABI
+#endif
+
+/**
  * @def Y_CORO_AWAIT_ELIDABLE
  *
  * A class attribute which can be applied to a coroutine return type.
