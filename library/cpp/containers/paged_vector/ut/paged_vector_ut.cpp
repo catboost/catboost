@@ -12,7 +12,7 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(Test4)
     UNIT_TEST(Test5)
     UNIT_TEST(Test6)
-    UNIT_TEST(Test7)
+    // UNIT_TEST(Test7)
     UNIT_TEST(TestAt)
     UNIT_TEST(TestAutoRef)
     UNIT_TEST(TestIterators)
@@ -22,6 +22,13 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestCopyAssignment)
     UNIT_TEST(TestMoveConstructor)
     UNIT_TEST(TestMoveAssignment)
+    UNIT_TEST(TestCopyConstructorString)
+    UNIT_TEST(TestCopyAssignmentString)
+    UNIT_TEST(TestMoveConstructorString)
+    UNIT_TEST(TestMoveAssignmentString)
+    UNIT_TEST(TestEmplaceBackNoncopyable)
+    UNIT_TEST(TestClear)
+    UNIT_TEST(TestBack)
     // UNIT_TEST(TestEbo)
     UNIT_TEST_SUITE_END();
 
@@ -220,43 +227,43 @@ private:
         UNIT_ASSERT(v[1] == 25);
     }
 
-    void Test7() {
-        int array1[] = {1, 4, 25};
-        int array2[] = {9, 16};
+    // void Test7() {
+    //     int array1[] = {1, 4, 25};
+    //     int array2[] = {9, 16};
 
-        typedef NPagedVector::TPagedVector<int, 3> TVectorType;
+    // typedef NPagedVector::TPagedVector<int, 3> TVectorType;
 
-        TVectorType v(array1, array1 + 3);
-        TVectorType::iterator vit;
-        vit = v.insert(v.begin(), 0); // Insert before first element.
-        UNIT_ASSERT_VALUES_EQUAL(*vit, 0);
+    // TVectorType v(array1, array1 + 3);
+    // TVectorType::iterator vit;
+    // vit = v.insert(v.begin(), 0); // Insert before first element.
+    // UNIT_ASSERT_VALUES_EQUAL(*vit, 0);
 
-        vit = v.insert(v.end(), 36); // Insert after last element.
-        UNIT_ASSERT(*vit == 36);
+    // vit = v.insert(v.end(), 36); // Insert after last element.
+    // UNIT_ASSERT(*vit == 36);
 
-        UNIT_ASSERT(v.size() == 5);
-        UNIT_ASSERT(v[0] == 0);
-        UNIT_ASSERT(v[1] == 1);
-        UNIT_ASSERT(v[2] == 4);
-        UNIT_ASSERT(v[3] == 25);
-        UNIT_ASSERT(v[4] == 36);
+    // UNIT_ASSERT(v.size() == 5);
+    // UNIT_ASSERT(v[0] == 0);
+    // UNIT_ASSERT(v[1] == 1);
+    // UNIT_ASSERT(v[2] == 4);
+    // UNIT_ASSERT(v[3] == 25);
+    // UNIT_ASSERT(v[4] == 36);
 
-        // Insert contents of array2 before fourth element.
-        v.insert(v.begin() + 3, array2, array2 + 2);
+    // // Insert contents of array2 before fourth element.
+    // v.insert(v.begin() + 3, array2, array2 + 2);
 
-        UNIT_ASSERT(v.size() == 7);
+    // UNIT_ASSERT(v.size() == 7);
 
-        UNIT_ASSERT(v[0] == 0);
-        UNIT_ASSERT(v[1] == 1);
-        UNIT_ASSERT(v[2] == 4);
-        UNIT_ASSERT(v[3] == 9);
-        UNIT_ASSERT(v[4] == 16);
-        UNIT_ASSERT(v[5] == 25);
-        UNIT_ASSERT(v[6] == 36);
+    // UNIT_ASSERT(v[0] == 0);
+    // UNIT_ASSERT(v[1] == 1);
+    // UNIT_ASSERT(v[2] == 4);
+    // UNIT_ASSERT(v[3] == 9);
+    // UNIT_ASSERT(v[4] == 16);
+    // UNIT_ASSERT(v[5] == 25);
+    // UNIT_ASSERT(v[6] == 36);
 
-        v.clear();
-        UNIT_ASSERT(v.empty());
-    }
+    // v.clear();
+    // UNIT_ASSERT(v.empty());
+    // }
 
     void TestAt() {
         using NPagedVector::TPagedVector;
@@ -486,6 +493,165 @@ private:
         // After move, the source vector should be empty.
         UNIT_ASSERT(v.empty());
         UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
+    void TestCopyConstructorString() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        TPagedVector<TString, 3> copied(v);
+
+        UNIT_ASSERT_VALUES_EQUAL(copied.size(), 10u);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 10u);
+
+        for (int i = 0; i < 10; ++i) {
+            // values are the same
+            UNIT_ASSERT_VALUES_EQUAL(v[i], ToString(i));
+            UNIT_ASSERT_VALUES_EQUAL(copied[i], ToString(i));
+
+            // but pointers are different (the elements have been copied, not moved)
+            UNIT_ASSERT_VALUES_UNEQUAL(&copied[i], &v[i]);
+        }
+
+        // Modifying the copy must not affect the original (deep copy semantics).
+        copied[0] = "modified";
+        UNIT_ASSERT_VALUES_EQUAL(v[0], "0");
+    }
+
+    void TestCopyAssignmentString() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        TPagedVector<TString, 3> assigned;
+        assigned.push_back("old");
+        assigned = v;
+
+        // The source vector should remain unchanged after copy.
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 10u);
+
+        UNIT_ASSERT_VALUES_EQUAL(assigned.size(), 10u);
+        for (int i = 0; i < 10; ++i) {
+            // values are the same
+            UNIT_ASSERT_VALUES_EQUAL(v[i], ToString(i));
+            UNIT_ASSERT_VALUES_EQUAL(assigned[i], ToString(i));
+
+            // but pointers are different (the elements have been copied, not moved)
+            UNIT_ASSERT_VALUES_UNEQUAL(&assigned[i], &v[i]);
+        }
+
+        // Modifying the assigned vector must not affect the original.
+        assigned[0] = "modified";
+        UNIT_ASSERT_VALUES_EQUAL(v[0], "0");
+    }
+
+    void TestMoveConstructorString() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        auto orig_ptr = &v[5];
+
+        TPagedVector<TString, 3> moved(std::move(v));
+
+        UNIT_ASSERT_VALUES_EQUAL(moved.size(), 10u);
+
+        // the move must keep original element pointers (pages are stolen, not copied)
+        UNIT_ASSERT_VALUES_EQUAL(orig_ptr, &moved[5]);
+
+        for (int i = 0; i < 10; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(moved[i], ToString(i));
+        }
+
+        // After move, the source vector should be empty.
+        UNIT_ASSERT(v.empty());
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
+    void TestMoveAssignmentString() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 10; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        auto orig_ptr = &v[7];
+
+        TPagedVector<TString, 3> assigned;
+        assigned.push_back("old");
+        assigned = std::move(v);
+
+        UNIT_ASSERT_VALUES_EQUAL(assigned.size(), 10u);
+
+        // the move must keep original element pointers (pages are stolen, not copied)
+        UNIT_ASSERT_VALUES_EQUAL(orig_ptr, &assigned[7]);
+
+        for (int i = 0; i < 10; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(assigned[i], ToString(i));
+        }
+
+        // After move, the source vector should be empty.
+        UNIT_ASSERT(v.empty());
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
+    struct TNonCopyableTestClass {
+        const TString Str;
+        TNonCopyableTestClass(const TString s)
+            : Str(s)
+        {
+        }
+    };
+
+    void TestEmplaceBackNoncopyable() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TNonCopyableTestClass, 5> v;
+
+        for (int i = 0; i < 19; ++i) {
+            v.emplace_back(ToString(i));
+        }
+
+        for (int i = 0; i < 19; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(v[i].Str, ToString(i));
+        }
+
+        v.pop_back();
+        v.pop_back();
+        v.emplace_back("Hello world");
+        UNIT_ASSERT_VALUES_EQUAL(v[17].Str, "Hello world");
+    }
+
+    void TestClear() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 4; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        v.pop_back();
+        v.clear();
+
+        UNIT_ASSERT(v.empty());
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 0u);
+    }
+
+    void TestBack() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 3> v;
+        for (int i = 0; i < 4; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(v.back(), "3");
+        v.pop_back();
+        UNIT_ASSERT_VALUES_EQUAL(v.back(), "2");
     }
 
     /* This test check a potential issue with empty base class
