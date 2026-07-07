@@ -29,7 +29,6 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestEmplaceBackNoncopyable)
     UNIT_TEST(TestClear)
     UNIT_TEST(TestBack)
-    // UNIT_TEST(TestEbo)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -652,40 +651,6 @@ private:
         UNIT_ASSERT_VALUES_EQUAL(v.back(), "3");
         v.pop_back();
         UNIT_ASSERT_VALUES_EQUAL(v.back(), "2");
-    }
-
-    /* This test check a potential issue with empty base class
-     * optimization. Some compilers (VC6) do not implement it
-     * correctly resulting ina wrong behavior. */
-    void TestEbo() {
-        using NPagedVector::TPagedVector;
-        // We use heap memory as test failure can corrupt vector internal
-        // representation making executable crash on vector destructor invocation.
-        // We prefer a simple memory leak, internal corruption should be reveal
-        // by size or capacity checks.
-        typedef TPagedVector<int, 3> V;
-        V* pv1 = new V;
-
-        pv1->resize(1);
-        pv1->at(0) = 1;
-
-        V* pv2 = new V;
-
-        pv2->resize(10);
-        for (int i = 0; i < 10; ++i) {
-            pv2->at(i) = 2;
-        }
-
-        pv1->swap(*pv2);
-
-        UNIT_ASSERT(pv1->size() == 10);
-        UNIT_ASSERT((*pv1)[5] == 2);
-
-        UNIT_ASSERT(pv2->size() == 1);
-        UNIT_ASSERT((*pv2)[0] == 1);
-
-        delete pv2;
-        delete pv1;
     }
 };
 
