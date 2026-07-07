@@ -11,6 +11,7 @@
 #include <util/generic/cast.h>
 
 #include <algorithm>
+#include <bit>
 #include <numeric>
 #include <stdexcept>
 
