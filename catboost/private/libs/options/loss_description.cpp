@@ -52,7 +52,11 @@ ELossFunction NCatboostOptions::TLossDescription::GetLossFunction() const {
 }
 
 void NCatboostOptions::TLossDescription::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &LossFunction, &LossParams);
+    if (options.IsString()) {
+        *this = ParseLossDescription(options.GetString());
+    } else {
+        CheckedLoad(options, &LossFunction, &LossParams);
+    }
 }
 
 void NCatboostOptions::TLossDescription::Save(NJson::TJsonValue* options) const {
