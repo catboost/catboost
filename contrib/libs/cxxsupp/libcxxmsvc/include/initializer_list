@@ -49,12 +49,14 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 
 // save these macros because they can be redefined inside MSVC standard headers
 #pragma push_macro("__cpp_lib_concepts")
+#pragma push_macro("__cpp_lib_format")
 #pragma push_macro("__cpp_lib_memory_resource")
 #pragma push_macro("__cpp_lib_ranges")
 
 #include Y_MSVC_INCLUDE_NEXT(yvals.h)
 
 #pragma pop_macro("__cpp_lib_concepts")
+#pragma pop_macro("__cpp_lib_format")
 #pragma pop_macro("__cpp_lib_memory_resource")
 #pragma pop_macro("__cpp_lib_ranges")
 
