@@ -393,29 +393,6 @@ namespace NPagedVector {
             return b;
         }
 
-        // iterator insert(iterator it, const value_type& v) {
-        //     size_t pnum = PageNumber(it.Offset_);
-        //     size_t pidx = InPageIndex(it.Offset_);
-
-        // PrepareAppend();
-
-        // for (size_t p = NPages() - 1; p > pnum; --p) {
-        //     PageAt(p).insert(PageAt(p).begin(), PageAt(p - 1).back());
-        //     PageAt(p - 1).pop_back();
-        // }
-
-        // PageAt(pnum).insert(PageAt(pnum).begin() + pidx, v);
-        // return it;
-        // }
-
-        // template <typename TIter>
-        // void insert(iterator it, TIter b, TIter e) {
-        //     // todo : suboptimal!
-        //     for (; b != e; ++b, ++it) {
-        //         it = insert(it, *b);
-        //     }
-        // }
-
         reference front() {
             Y_ASSERT(CurrentPageSize_ > 0 || Pages_.size() > 1);
             return (*Pages_.front())[0];
