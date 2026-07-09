@@ -1,6 +1,7 @@
 #include "dot_product.h"
 #include "dot_product_simple.h"
 #include "dot_product_avx2.h"
+#include "dot_product_vnni.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -48,16 +49,46 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         return sum;
     }
 
+    bool HaveVnniDotProduct() {
+        return NX86::HaveAVX2() && NX86::HaveFMA() && NX86::HaveAVX512BW() && NX86::HaveAVX512VNNI();
+    }
+
     Y_UNIT_TEST(TestDotProduct8) {
         TVector<i8> a(100);
         FillWithRandomNumbers(a.data(), 179, 100);
         TVector<i8> b(100);
         FillWithRandomNumbers(b.data(), 239, 100);
 
+        const bool haveVnni = HaveVnniDotProduct();
         for (size_t i = 0; i < 30; ++i) {
             for (size_t length = 1; length + i + 1 < a.size(); ++length) {
-                UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
-                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), (SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length)));
+                const i32 expected = SimpleDotProduct<i32, i8>(a.data() + i, b.data() + i, length);
+                UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), expected);
+                UNIT_ASSERT_EQUAL(DotProductSimple(a.data() + i, b.data() + i, length), expected);
+                if (haveVnni) {
+                    UNIT_ASSERT_EQUAL(DotProductVnni(a.data() + i, b.data() + i, length), expected);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDotProduct8VnniEdges) {
+        if (!HaveVnniDotProduct()) {
+            return;
+        }
+
+        TVector<i8> a(512);
+        TVector<i8> b(512);
+        for (size_t i = 0; i < a.size(); ++i) {
+            a[i] = static_cast<i8>((i * 37) % 256 - 128);
+            b[i] = static_cast<i8>((i * 53 + 17) % 256 - 128);
+        }
+
+        for (size_t offset = 0; offset < 16; ++offset) {
+            for (size_t length = 0; length + offset <= a.size(); ++length) {
+                UNIT_ASSERT_EQUAL(
+                    DotProductVnni(a.data() + offset, b.data() + offset, length),
+                    (SimpleDotProduct<i32, i8>(a.data() + offset, b.data() + offset, length)));
             }
         }
     }

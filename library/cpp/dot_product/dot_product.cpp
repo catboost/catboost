@@ -1,6 +1,7 @@
 #include "dot_product.h"
 #include "dot_product_sse.h"
 #include "dot_product_avx2.h"
+#include "dot_product_vnni.h"
 #include "dot_product_simple.h"
 
 #include <library/cpp/sse/sse.h>
@@ -31,7 +32,6 @@ namespace NDotProductImpl {
     namespace {
         [[maybe_unused]] const int _ = [] {
             if (!FromYaTest() && GetEnv("Y_NO_AVX_IN_DOT_PRODUCT") == "" && NX86::HaveAVX2() && NX86::HaveFMA()) {
-                DotProductI8Impl = &DotProductAvx2;
                 DotProductUi8Impl = &DotProductAvx2;
                 DotProductI32Impl = &DotProductAvx2;
                 DotProductFloatImpl = &DotProductAvx2;
@@ -40,6 +40,12 @@ namespace NDotProductImpl {
                 TriWayDotProductImpl = &TriWayDotProductAvx2;
                 TriWayDotProductFloatI8Impl = &TriWayDotProductFloatI8Avx2;
                 TriWayDotProductI8Impl = &TriWayDotProductI8Avx2;
+
+                if (GetEnv("Y_NO_VNNI_IN_DOT_PRODUCT") == "" && NX86::HaveAVX512VNNI() && NX86::HaveAVX512BW()) {
+                    DotProductI8Impl = &DotProductVnni;
+                } else {
+                    DotProductI8Impl = &DotProductAvx2;
+                }
             } else {
 #ifdef ARCADIA_SSE
                 DotProductI8Impl = &DotProductSse;
