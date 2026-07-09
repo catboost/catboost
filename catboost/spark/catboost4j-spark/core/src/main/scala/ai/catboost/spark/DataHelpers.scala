@@ -19,7 +19,7 @@ import org.apache.spark.sql.functions.typedLit
 import org.apache.spark.sql.types._
 import org.apache.spark.storage.StorageLevel
 
-import ai.catboost.CatBoostError
+import ai.catboost.common.CatBoostError
 
 import ai.catboost.spark.impl.RowEncoderConstructor
 
