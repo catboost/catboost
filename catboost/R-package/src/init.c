@@ -16,6 +16,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostGetModelParams_R",              (DL_FUNC) &CatBoostGetModelParams_R,               1},
     {"CatBoostGetNumTrees_R",                 (DL_FUNC) &CatBoostGetNumTrees_R,                  1},
     {"CatBoostGetPlainParams_R",              (DL_FUNC) &CatBoostGetPlainParams_R,               1},
+    {"CatBoostGetTreeInfo_R",                 (DL_FUNC) &CatBoostGetTreeInfo_R,                  3},
     {"CatBoostHashStrings_R",                 (DL_FUNC) &CatBoostHashStrings_R,                  1},
     {"CatBoostIsGroupwiseMetric_R",           (DL_FUNC) &CatBoostIsGroupwiseMetric_R,            1},
     {"CatBoostIsNullHandle_R",                (DL_FUNC) &CatBoostIsNullHandle_R,                 1},
