@@ -28,6 +28,7 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestEmplaceBackNoncopyable)
     UNIT_TEST(TestClear)
     UNIT_TEST(TestBack)
+    UNIT_TEST(TestIterator)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -612,6 +613,37 @@ private:
         UNIT_ASSERT_VALUES_EQUAL(v.back(), "3");
         v.pop_back();
         UNIT_ASSERT_VALUES_EQUAL(v.back(), "2");
+    }
+
+    void TestIterator() {
+        using NPagedVector::TPagedVector;
+        TPagedVector<TString, 5> v;
+        for (int i = 0; i < 11; ++i) {
+            v.push_back(ToString(i));
+        }
+
+        v.emplace_back("Hello");
+        v.emplace_back("world");
+
+        auto it = v.begin();
+
+        UNIT_ASSERT_VALUES_EQUAL(it.GetIndex(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(*it, "0");
+
+        ++it;
+
+        UNIT_ASSERT_VALUES_EQUAL(it.GetIndex(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(*it, "1");
+
+        it += 5;
+
+        UNIT_ASSERT_VALUES_EQUAL(it.GetIndex(), 6);
+        UNIT_ASSERT_VALUES_EQUAL(*it, "6");
+
+        it = v.erase(it);
+
+        UNIT_ASSERT_VALUES_EQUAL(it.GetIndex(), 6);
+        UNIT_ASSERT_VALUES_EQUAL(*it, "7");
     }
 };
 

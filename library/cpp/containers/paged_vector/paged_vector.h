@@ -18,7 +18,7 @@ namespace NPagedVector {
             friend class TPagedVector<TT, PageSize>;
             using TVec = TPagedVector<TT, PageSize>;
             using TSelf = TPagedVectorIterator<T, TT, PageSize>;
-            size_t Offset_;
+            size_t Index_;
             TVec* Vector_;
 
             template <class T1, class TT1, ui32 PageSize1>
@@ -26,26 +26,26 @@ namespace NPagedVector {
 
         public:
             TPagedVectorIterator()
-                : Offset_()
+                : Index_()
                 , Vector_()
             {
             }
 
-            TPagedVectorIterator(TVec* vector, size_t offset)
-                : Offset_(offset)
+            TPagedVectorIterator(TVec* vector, size_t index)
+                : Index_(index)
                 , Vector_(vector)
             {
             }
 
             template <class T1, class TT1, ui32 PageSize1>
             TPagedVectorIterator(const TPagedVectorIterator<T1, TT1, PageSize1>& it)
-                : Offset_(it.Offset_)
+                : Index_(it.Index_)
                 , Vector_(it.Vector_)
             {
             }
 
             T& operator*() const {
-                return (*Vector_)[Offset_];
+                return (*Vector_)[Index_];
             }
 
             T* operator->() const {
@@ -54,7 +54,7 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1>
             bool operator==(const TPagedVectorIterator<T1, TT1, PageSize1>& it) const {
-                return Offset_ == it.Offset_;
+                return Index_ == it.Index_;
             }
 
             template <class T1, class TT1, ui32 PageSize1>
@@ -64,12 +64,12 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1>
             bool operator<(const TPagedVectorIterator<T1, TT1, PageSize1>& it) const {
-                return Offset_ < it.Offset_;
+                return Index_ < it.Index_;
             }
 
             template <class T1, class TT1, ui32 PageSize1>
             bool operator<=(const TPagedVectorIterator<T1, TT1, PageSize1>& it) const {
-                return Offset_ <= it.Offset_;
+                return Index_ <= it.Index_;
             }
 
             template <class T1, class TT1, ui32 PageSize1>
@@ -84,11 +84,11 @@ namespace NPagedVector {
 
             template <class T1, class TT1, ui32 PageSize1>
             ptrdiff_t operator-(const TPagedVectorIterator<T1, TT1, PageSize1>& it) const {
-                return Offset_ - it.Offset_;
+                return Index_ - it.Index_;
             }
 
             TSelf& operator+=(ptrdiff_t off) {
-                Offset_ += off;
+                Index_ += off;
                 return *this;
             }
 
@@ -126,8 +126,8 @@ namespace NPagedVector {
                 return this->operator+(-off);
             }
 
-            size_t GetOffset() const {
-                return Offset_;
+            [[nodiscard]] size_t GetIndex() const {
+                return Index_;
             }
         };
     } // namespace NPrivate
@@ -362,8 +362,8 @@ namespace NPagedVector {
                 CurrentPageSize_ = Pages_.empty() ? 0 : PageSize;
             }
 
-            size_t pidx = InPageIndex(it.Offset_);
-            for (size_t pnum = PageNumber(it.Offset_);; ++pnum) {
+            size_t pidx = InPageIndex(it.Index_);
+            for (size_t pnum = PageNumber(it.Index_);; ++pnum) {
                 TPage& page = *Pages_[pnum];
                 if (pnum + 1 == Pages_.size()) {
                     std::shift_left(page.data() + pidx, page.data() + CurrentPageSize_, 1);

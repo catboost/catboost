@@ -46,6 +46,7 @@ Iterators are random-access and are implemented as an *(owner pointer, offset)* 
 
 - Iterators are not invalidated by `push_back`/`emplace_back` (an `end()` iterator taken earlier keeps pointing to the same logical position).
 - Dereferencing goes through the vector, so an iterator is only valid while its source container is alive.
+- To get the current index of an element from an iterator, call `it.GetIndex()` — it returns the offset of the pointed-to element within the container (equivalent to `it - begin()`).
 
 
 ## Complexity
