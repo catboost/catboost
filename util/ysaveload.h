@@ -496,15 +496,11 @@ public:
         : TBase(s)
     {
         Y_UNUSED(cnt);
-        P_ = this->S_.begin();
     }
 
     inline void Insert(const TValue& v) {
-        P_ = this->S_.insert(P_, v);
+        this->S_.insert(this->S_.end(), v);
     }
-
-private:
-    typename TSetType::iterator P_;
 };
 
 template <class T1, class T2, class T3, class T4, class T5, class TValue>
