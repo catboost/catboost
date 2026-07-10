@@ -88,14 +88,12 @@ jobs:
           path: catboost
           fetch-depth: 0
 
-      # Python 3.8 and 3.9 are not included in 'macos-14' and 'windows-2022' images.
+      # Python 3.9 is not included in 'macos-14' and 'windows-2022' images.
       - if: inputs.os != 'linux'
-        name: Install python 3.8 and 3.9
+        name: Install python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.8
-            3.9
+          python-version: '3.9'
           update-environment: false
 
       # Python 3.10 is not included in 'macos-14' image.
@@ -165,7 +163,7 @@ jobs:
           mkdir -p Python
           cd Python
 
-          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13 3.14
+          for PY_VER in 3.9 3.10 3.11 3.12 3.13 3.14
           do
               PYTHON_BIN_PATH=$(ls -d ${RUNNER_TOOL_CACHE}/Python/${PY_VER}.* | sort -V | tail -n 1)/arm64/bin/python
 
@@ -229,7 +227,6 @@ jobs:
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
           New-Item -Path Python -ItemType Directory
           Set-Location -Path .\Python
-          New-Item -Path .\3.8 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.8.*\x64").FullName
           New-Item -Path .\3.9 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.9.*\x64").FullName
           New-Item -Path .\3.10 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.10.*\x64").FullName
           New-Item -Path .\3.11 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64").FullName
@@ -237,7 +234,7 @@ jobs:
           New-Item -Path .\3.13 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64").FullName
           New-Item -Path .\3.14 -ItemType SymbolicLink -Value (Get-Item "$Env:RUNNER_TOOL_CACHE\Python\3.14.*\x64").FullName
 
-          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13','3.14') {
+          foreach($PY_VER in '3.9','3.10','3.11','3.12','3.13','3.14') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools numpy cython==3.0.12
           }
 
