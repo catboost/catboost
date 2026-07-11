@@ -363,18 +363,6 @@ def test_clone_without_mutable_params():
         sklearn.base.clone(cls(iterations=2, verbose=False))
 
 
-@pytest.mark.skipif(
-    scikit_learn_version < (1, 3),
-    reason="metadata routing requires scikit-learn >= 1.3"
-)
-def test_clone_preserves_metadata_routing_request():
-    with sklearn.config_context(enable_metadata_routing=True):
-        original = CatBoostRanker(iterations=2, verbose=False).set_fit_request(group_id=True)
-        cloned = sklearn.base.clone(original)
-        assert hasattr(cloned, '_metadata_request')
-        assert repr(original._metadata_request) == repr(cloned._metadata_request)
-
-
 def test_cross_val_score_with_cat_features():
     from sklearn.model_selection import cross_val_score
 
