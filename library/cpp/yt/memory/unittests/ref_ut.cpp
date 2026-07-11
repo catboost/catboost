@@ -13,7 +13,7 @@ namespace {
 
 TEST(TSharedRefTest, Save)
 {
-    const TSharedRef expected = TSharedRef::FromString("My tests data");
+    const TSharedRef expected = TSharedRef::FromString(std::string("My tests data"));
     TStringStream s;
     ::Save(&s, expected);  // only Save supported for TSharedRef. You can ::Load serialized data to vector.
 }

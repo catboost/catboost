@@ -31,7 +31,7 @@ TEST(TYsonStringTest, SaveLoadString)
 
 TEST(TYsonStringTest, SaveLoadSharedRef)
 {
-    auto ref = TSharedRef::FromString("My tests data");
+    auto ref = TSharedRef::FromString(std::string("My tests data"));
     const TYsonString expected(ref);
     TStringStream s;
     ::Save(&s, expected);

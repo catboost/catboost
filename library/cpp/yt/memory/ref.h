@@ -162,9 +162,6 @@ public:
     //! Same as above but the memory tag is specified in #tagCookie.
     static TSharedRef FromString(std::string str, TRefCountedTypeCookie tagCookie);
 
-    //! Creates a TSharedRef from a zero-terminated C string.
-    static TSharedRef FromString(const char* str);
-
     //! Creates a TSharedRef for a given blob taking ownership of its content.
     static TSharedRef FromBlob(TBlob&& blob);
 

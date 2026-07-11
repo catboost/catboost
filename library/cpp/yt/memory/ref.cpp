@@ -380,11 +380,6 @@ TSharedRef TSharedRef::FromStringImpl(TString str, TRefCountedTypeCookie tagCook
     return TSharedRef(ref, std::move(holder));
 }
 
-TSharedRef TSharedRef::FromString(const char* str)
-{
-    return FromString(std::string(str));
-}
-
 TSharedRef TSharedRef::FromBlob(TBlob&& blob)
 {
     auto ref = TRef::FromBlob(blob);
