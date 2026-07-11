@@ -725,6 +725,10 @@ void TClientRequest::ResetConnection() {
     }
 }
 
+THolder<THttpServerConn> TClientRequest::CreateHttpConnection(const TSocket& s, size_t outputBufferSize) {
+    return MakeHolder<THttpServerConn>(s, outputBufferSize);
+}
+
 void TClientRequest::Process(void* ThreadSpecificResource) {
     THolder<TClientRequest> this_(this);
 
@@ -733,11 +737,7 @@ void TClientRequest::Process(void* ThreadSpecificResource) {
     try {
         if (!HttpConn_) {
             const size_t outputBufferSize = HttpServ()->Options().OutputBufferSize;
-            if (outputBufferSize) {
-                HttpConn_.Reset(new THttpServerConn(Socket(), outputBufferSize));
-            } else {
-                HttpConn_.Reset(new THttpServerConn(Socket()));
-            }
+            HttpConn_ = CreateHttpConnection(Socket(), outputBufferSize ? outputBufferSize : Socket().MaximumTransferUnit());
 
             auto maxRequestsPerConnection = HttpServ()->Options().MaxRequestsPerConnection;
             HttpConn_->Output()->EnableKeepAlive(HttpServ()->Options().KeepAliveEnabled && (!maxRequestsPerConnection || Conn_->ReceivedRequests < maxRequestsPerConnection));

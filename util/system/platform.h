@@ -14,6 +14,9 @@
 #elif defined(__FREERTOS__)
     #define _freertos_
     #define _rtos_
+#elif defined(__ZEPHYR__)
+    #define _zephyr_
+    #define _rtos_
 #else
     #define _unix_
 

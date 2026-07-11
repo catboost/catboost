@@ -31,7 +31,7 @@ quantize(data_path,
 
 #### Description
 
-The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset description.
+The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset.
 
 {% include [files-internal-files-internal__desc__full](../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
 
@@ -99,7 +99,7 @@ None
 
 #### Description
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 Only single char delimiters are supported. If the specified value contains more than one character, only the first one is used.
 
@@ -117,7 +117,7 @@ Only single char delimiters are supported. If the specified value contains more 
 
 #### Description
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 {% include [libsvm-note-restriction-delimiter-separated-format](../_includes/work_src/reusage-formats/note-restriction-delimiter-separated-format.md) %}
 
@@ -347,7 +347,7 @@ None ({{ fit--random_seed }})
 
 ## {{ dl__usage-examples }} {#usage-examples}
 
-The following is the input file with the dataset description:
+The following is the input file with the dataset:
 
 ```
 4	52	64	73

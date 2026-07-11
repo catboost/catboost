@@ -58,6 +58,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/comparesf2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divdf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divmodsi4.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/divsi3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/eqdf2vfp.S
@@ -71,7 +72,10 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatsisfvfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunssidfvfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/floatunssisfvfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnan2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnorm2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fp_mode.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/funder.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gedf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gesf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/gtdf2vfp.S
@@ -82,6 +86,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/ltsf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/modsi3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/muldf3vfp.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/mulsf3.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/mulsf3vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/nedf2vfp.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/negdf2vfp.S
@@ -142,7 +147,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmoddi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmodti4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsc3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divti3.c
@@ -207,7 +211,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulosi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muloti4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsc3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multi3.c
@@ -369,7 +372,31 @@ set_property(
 
 set_property(
   SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnan2.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fnorm2.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/fp_mode.c
+  APPEND
+  PROPERTY
+  COMPILE_OPTIONS
+)
+
+set_property(
+  SOURCE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/arm/funder.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -530,14 +557,6 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsc3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsf3.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -1050,14 +1069,6 @@ set_property(
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsc3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-)
-
-set_property(
-  SOURCE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsf3.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS

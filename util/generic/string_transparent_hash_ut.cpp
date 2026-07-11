@@ -15,7 +15,7 @@ using THashSetType = std::unordered_set<T, THasher, TPred>;
     // Using Abseil hash set because `std::unordered_set` is transparent only from libstdc++11.
     // Meanwhile clang-linux-x86_64-release-stl-system autocheck sets OS_SDK=ubuntu-20,
     // that support libstdc++10 by default.
-    #include <library/cpp/containers/absl_flat_hash/flat_hash_set.h>
+    #include <library/cpp/containers/absl/flat_hash_set.h>
 
 template <class T, class THasher, class TPred>
 using THashSetType = absl::flat_hash_set<T, THasher, TPred>;

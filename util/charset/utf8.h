@@ -319,7 +319,7 @@ Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigne
 //! checks for end of the buffer and returns the result of encoding
 //! @param rune           value of the current character
 //! @param[out] rune_len  length of the UTF8 byte sequence that has been written
-//! @param s              pointer to the output buffer
+//! @param[out] s         pointer to the output buffer
 //! @param tail           available size of the buffer
 inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s, size_t tail) {
     rune_len = 0;
@@ -372,7 +372,7 @@ inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned 
 //!                       the size of the output buffer, it supposes that buffer is long enough
 //! @param rune           value of the current character
 //! @param[out] rune_len  length of the UTF8 byte sequence that has been written
-//! @param s              pointer to the output buffer
+//! @param[out] s         pointer to the output buffer
 inline void WriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s) {
     if (rune < 0x80) {
         *s = static_cast<unsigned char>(rune);

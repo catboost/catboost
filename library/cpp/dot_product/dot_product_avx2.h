@@ -18,8 +18,21 @@ Y_PURE_FUNCTION
 float DotProductAvx2(const float* lhs, const float* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
+float DotProductFloatI8Avx2(const float* lhs, const i8* rhs, size_t length) noexcept;
+
+Y_PURE_FUNCTION
 double DotProductAvx2(const double* lhs, const double* rhs, size_t length) noexcept;
 
 Y_PURE_FUNCTION
 TTriWayDotProduct<float> TriWayDotProductAvx2
     (const float* lhs, const float* rhs, size_t length, bool computeRR) noexcept;
+
+TTriWayDotProductFloatI8 TriWayDotProductFloatI8Avx2(
+    const float* lhs,
+    const i8* rhs,
+    size_t length) noexcept;
+
+TTriWayDotProduct<i32> TriWayDotProductI8Avx2(
+    const i8* lhs,
+    const i8* rhs,
+    size_t length) noexcept;

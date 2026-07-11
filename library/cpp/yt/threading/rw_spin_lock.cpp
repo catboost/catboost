@@ -41,7 +41,8 @@ void TUncheckedReaderWriterSpinLock::AcquireWriterSlow() noexcept
 
 namespace {
 
-// NB: Reading this after destruction is UB, but we can't deal with Static Initialization Order Fiasco in any other feasible way :(
+// NB: Reading this after destruction is UB, but we can't deal with
+// Static Initialization Order Fiasco in any other feasible way :(
 YT_DEFINE_THREAD_LOCAL(bool, ThreadLockTrackerDestroyed, false);
 
 class TThreadLockTracker
@@ -61,13 +62,17 @@ public:
     ~TThreadLockTracker()
     {
         ThreadLockTrackerDestroyed() = true;
-    };
+    }
 
 private:
     THashSet<TCheckedReaderWriterSpinLock*> ThreadLocksAcquired_;
 };
 
-YT_DEFINE_THREAD_LOCAL(TThreadLockTracker, ThreadLockTracker);
+YT_PREVENT_TLS_CACHING static TThreadLockTracker& ThreadLockTracker()
+{
+    static thread_local TThreadLockTracker Instance;
+    return Instance;
+}
 
 } // namespace
 

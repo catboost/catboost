@@ -39,6 +39,10 @@ private:
 class TRefCounter
 {
 public:
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+    TRefCounter() noexcept;
+#endif
+
     //! Returns current number of strong references to the object.
     /*!
      * Note that you should never ever use this method in production code.
@@ -69,7 +73,22 @@ public:
     //! Decrements the weak reference counter.
     bool WeakUnref() const;
 
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+    //! Returns the raw signature word. Used only by unit tests; the coredump
+    //! walker reads the word directly from memory.
+    ui64 GetSignature() const noexcept;
+#endif
+
 private:
+#ifdef YT_ENABLE_REF_COUNTED_SIGNATURE
+    // An address-salted liveness marker. NB: Must be the first member -- the
+    // salt is its own address and a core validator keys off its offset. Stamped
+    // alive by the ctor (see -inl); poisoned at strong-death (see Unref).
+    // TRefCounter is already non-copyable (atomics below), so the salted value
+    // can't be copied astray.
+    mutable ui64 Signature_;
+#endif
+
     // NB: Must be 64 bit as TAtomicIntrusivePtr grabs refs in 64K batches.
     using TRefCount = i64;
     mutable std::atomic<TRefCount> StrongCount_ = 1;

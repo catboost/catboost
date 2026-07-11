@@ -26,7 +26,7 @@ Possible values:
 
 #### Description
 
-The name of the input file with the [dataset description](../../../concepts/input-data_values-file.md).
+The name of the input file with the [dataset](../../../concepts/input-data_values-file.md).
 
 **{{ cli__params-table__title__default }}**
 

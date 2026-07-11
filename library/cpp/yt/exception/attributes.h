@@ -2,7 +2,7 @@
 
 #include <library/cpp/yt/misc/guid.h>
 
-#include <util/generic/string.h>
+#include <string>
 
 #include <variant>
 
@@ -12,8 +12,8 @@ namespace NYT {
 
 struct TExceptionAttribute
 {
-    using TKey = TString;
-    using TValue = std::variant<i64, double, bool, TString>;
+    using TKey = std::string;
+    using TValue = std::variant<i64, double, bool, std::string>;
 
     TKey Key;
     TValue Value;

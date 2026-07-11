@@ -26,10 +26,7 @@ inline void y_deallocate(void* p) {
  */
 inline void* y_reallocate(void* p, size_t new_sz) {
     if (!new_sz) {
-        if (p) {
-            free(p);
-        }
-
+        free(p);
         return nullptr;
     }
 

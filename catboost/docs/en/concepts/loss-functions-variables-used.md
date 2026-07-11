@@ -11,7 +11,7 @@ The following common variables are used in formulas of the described metrics:
 
     $\begin{cases} c_{i} = 0{ , } & t_{i} \leqslant border \\ c_{i} = 1{ , } & t_{i} > border \end{cases}$
 
-- $w_{i}$ is the weight of the i-th object. It is set in the [dataset description](input-data_values-file.md) in columns with the `Weight`[type](input-data_column-descfile.md) (if otherwise is not stated) or in the `sample_weight` parameter of the {{ python-package }}. The default is 1 for all objects.
+- $w_{i}$ is the weight of the i-th object. It is set in the [dataset](input-data_values-file.md) in columns with the `Weight`[type](input-data_column-descfile.md) (if otherwise is not stated) or in the `sample_weight` parameter of the {{ python-package }}. The default is 1 for all objects.
 - $P$, $TP$, $TN$, $FP$, $FN$ are abbreviations for Positive, True Positive, True Negative, False Positive and False Negative.
 
     By default, $P$, $TP$, $TN$, $FP$, $FN$ use weights. For example, $TP = \sum\limits_{i=1}^{N} w_{i} [p_{i} > 0.5] c_{i}$

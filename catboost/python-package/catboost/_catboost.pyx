@@ -5829,9 +5829,11 @@ cdef class _CatBoost:
         cdef bytes py_serialized_model_str = c_serialized_model_string[:tstr.size()]
         return py_serialized_model_str
 
-    cpdef _deserialize_model(self, serialized_model_str):
-        self.model_blob = serialized_model_str
-        cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
+    cpdef _deserialize_model(self, serialized_model_blob):
+        cdef const unsigned char[::1] buf
+        buf = serialized_model_blob
+        self.model_blob = serialized_model_blob
+        cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>&buf[0], len(buf))
         self.__model.Swap(tmp_model)
         self.__metrics_history = GetTrainingMetrics(self.__model[0])
 

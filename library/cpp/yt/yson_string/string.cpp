@@ -156,8 +156,8 @@ TSharedRef TYsonString::ToSharedRef() const
         [&] (const TSharedRangeHolderPtr& holder) {
             return TSharedRef(Begin_, Size_, holder);
         },
-        [] (const TCowString& payload) {
-            return TSharedRef::FromString(payload);
+        [&] (const TCowString& payload) {
+            return TSharedRef(Begin_, Size_, MakeSharedRangeHolder(payload));
         });
 }
 

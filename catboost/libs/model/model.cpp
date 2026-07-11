@@ -1238,7 +1238,8 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
 
     size_t coreSize = ::LoadSize(&in);
     const ui8* fbPtr = reinterpret_cast<const ui8*>(in.Buf());
-    in.Skip(coreSize);
+    const size_t skippedCore = in.Skip(coreSize);
+    CB_ENSURE(skippedCore == coreSize, "Failed to skip core data in zero-copy model loading");
 
     {
         flatbuffers::Verifier verifier(fbPtr, coreSize, 64 /* max depth */, 256000000 /* max tables */);

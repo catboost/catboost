@@ -53,8 +53,39 @@ namespace macros_internal {
 template <typename T, size_t N>
 auto ArraySizeHelper(const T (&array)[N]) -> char (&)[N];
 }  // namespace macros_internal
+
+namespace base_internal {
+#if ABSL_HAVE_CPP_ATTRIBUTE(clang::nomerge)
+[[clang::nomerge]]  // Needed when this function is not inlined
+#endif
+[[noreturn]] inline void HardeningAbort() {
+#if ABSL_HAVE_CPP_ATTRIBUTE(clang::nomerge)
+  [[clang::nomerge]]  // Needed when this function is inlined
+#endif
+  ABSL_INTERNAL_IMMEDIATE_ABORT_IMPL();
+  ABSL_INTERNAL_UNREACHABLE_IMPL();
+}
+}  // namespace base_internal
 ABSL_NAMESPACE_END
 }  // namespace absl
+
+// ABSL_INTERNAL_UNEVALUATED()
+//
+// Expands into a no-op expression that contains the given expression. Used to
+// avoid unused-variable warnings in configurations that don't need to evaluate
+// the given expression (e.g., NDEBUG).
+#if ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
+// We use `decltype` here to avoid generating unnecessary code that the
+// optimizer then has to optimize away.
+// This not only improves compilation performance by reducing codegen bloat
+// and optimization work, but also guarantees fast run-time performance without
+// having to rely on the optimizer.
+#define ABSL_INTERNAL_UNEVALUATED(expr) (decltype((void)(expr))())
+#else
+// Pre-C++20, lambdas can't be inside unevaluated operands, so we're forced to
+// rely on the optimizer.
+#define ABSL_INTERNAL_UNEVALUATED(expr) (false ? (void)(expr) : void())
+#endif
 
 // ABSL_BAD_CALL_IF()
 //
@@ -93,33 +124,18 @@ ABSL_NAMESPACE_END
 // This macro is inspired by
 // https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
 #if defined(NDEBUG)
-#if ABSL_INTERNAL_CPLUSPLUS_LANG >= 202002L
-// We use `decltype` here to avoid generating unnecessary code that the
-// optimizer then has to optimize away.
-// This not only improves compilation performance by reducing codegen bloat
-// and optimization work, but also guarantees fast run-time performance without
-// having to rely on the optimizer.
-#define ABSL_ASSERT(expr) (decltype((expr) ? void() : void())())
-#else
-// Pre-C++20, lambdas can't be inside unevaluated operands, so we're forced to
-// rely on the optimizer.
-#define ABSL_ASSERT(expr) (false ? ((expr) ? void() : void()) : void())
-#endif
+#define ABSL_ASSERT(expr) ABSL_INTERNAL_UNEVALUATED((expr) ? void() : void())
 #else
 #define ABSL_ASSERT(expr)                           \
   (ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
-                             : [] { assert(false && #expr); }())  // NOLINT
+                             : assert(false && #expr))  // NOLINT
 #endif
 
 // `ABSL_INTERNAL_HARDENING_ABORT()` controls how `ABSL_HARDENING_ASSERT()`
 // aborts the program in release mode (when NDEBUG is defined). The
 // implementation should abort the program as quickly as possible and ideally it
 // should not be possible to ignore the abort request.
-#define ABSL_INTERNAL_HARDENING_ABORT()   \
-  do {                                    \
-    ABSL_INTERNAL_IMMEDIATE_ABORT_IMPL(); \
-    ABSL_INTERNAL_UNREACHABLE_IMPL();     \
-  } while (false)
+#define ABSL_INTERNAL_HARDENING_ABORT() ::absl::base_internal::HardeningAbort()
 
 // ABSL_HARDENING_ASSERT()
 //
@@ -135,7 +151,7 @@ ABSL_NAMESPACE_END
 #if (ABSL_OPTION_HARDENED == 1 || ABSL_OPTION_HARDENED == 2) && defined(NDEBUG)
 #define ABSL_HARDENING_ASSERT(expr)                 \
   (ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
-                             : [] { ABSL_INTERNAL_HARDENING_ABORT(); }())
+                             : ABSL_INTERNAL_HARDENING_ABORT())
 #else
 #define ABSL_HARDENING_ASSERT(expr) ABSL_ASSERT(expr)
 #endif
@@ -154,7 +170,7 @@ ABSL_NAMESPACE_END
 #if ABSL_OPTION_HARDENED == 1 && defined(NDEBUG)
 #define ABSL_HARDENING_ASSERT_SLOW(expr)            \
   (ABSL_PREDICT_TRUE((expr)) ? static_cast<void>(0) \
-                             : [] { ABSL_INTERNAL_HARDENING_ABORT(); }())
+                             : ABSL_INTERNAL_HARDENING_ABORT())
 #else
 #define ABSL_HARDENING_ASSERT_SLOW(expr) ABSL_ASSERT(expr)
 #endif

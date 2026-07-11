@@ -28,7 +28,7 @@ namespace NLastGetopt {
      *            the special string " -- " will be treated as end of named
      *            options: all options after it will be parsed as free args
      *       if PERMUTE is choosen, arguments will be rearranged in correct order,
-     *       if RETURN_IN_ORDER is choosen, all free args will be ommited (TODO: looks very strange)
+     *       if RETURN_IN_ORDER is choosen, all free args will be omitted (TODO: looks very strange)
      *   - Using '+' as a prefix instead '--' for long names
      *   - Using "-" as a prefix for both short and long names
      *   - Allowing unknown options
@@ -49,7 +49,7 @@ namespace NLastGetopt {
         bool AllowSingleDashForLong_ = false;                      //
         bool AllowPlusForLong_ = false;                            // using '+' instead '--' for long options
 
-        //Allows unknwon options:
+        //Allows unknown options:
         bool AllowUnknownCharOptions_ = false;
         bool AllowUnknownLongOptions_ = false;
 
@@ -78,7 +78,7 @@ namespace NLastGetopt {
 
         /**
          * Constructs TOpts from string as in getopt(3) and
-         * additionally adds help option (for '?') and svn-verstion option (for 'V')
+         * additionally adds help option (for '?') and svn-version option (for 'V')
          */
         static TOpts Default(const TStringBuf& optstring = TStringBuf()) {
             TOpts opts(optstring);
@@ -92,7 +92,7 @@ namespace NLastGetopt {
          * Throws TConfException if validation failed.
          * Check consist of:
          *    -not intersecting of names
-         *    -compability of settings, that responsable for freeArgs parsing
+         *    -compatibility of settings, that responsible for freeArgs parsing
          */
         void Validate() const;
 
@@ -549,7 +549,7 @@ namespace NLastGetopt {
 
         /**
          * Legacy, don't use. Same as `SetTrailingArgTitle`.
-         * Older versions of lastgetopt didn't have destinction between default title and title
+         * Older versions of lastgetopt didn't have distinction between default title and title
          * for the trailing argument.
          */
         void SetFreeArgDefaultTitle(const TString& title, const TString& help = TString()) {

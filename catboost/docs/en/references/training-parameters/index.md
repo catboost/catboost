@@ -379,11 +379,11 @@ Final CTR computation mode.
 
 ### [-f, --learn-set](input.md#-f)
 
-The path to the input file {% if audience == "internal" %} or table {% endif %} that contains the dataset description.
+The path to the input file {% if audience == "internal" %} or table {% endif %} that contains the dataset.
 
 ### [-t, --test-set](input.md#-t)
 
-A comma-separated list of input files that contain the validation dataset description (the format must be the same as used in the training dataset).
+A comma-separated list of input files that contain the validation dataset (the format must be the same as used in the training dataset).
 
 ### [--cd, --column-description](input.md#--cd)
 
@@ -415,11 +415,11 @@ The path to the input file that contains baseline values for the validation data
 
 ### [--delimiter](input.md#--delimiter)
 
-The delimiter character used to separate the data in the dataset description input file.
+The delimiter character used to separate the data in the dataset input file.
 
 ### [--has-header](input#--has-header)
 
-Read the column names from the first line of the dataset description file if this parameter is set.
+Read the column names from the first line of the dataset file if this parameter is set.
 
 ### [--params-files](input.md#--params-files)
 

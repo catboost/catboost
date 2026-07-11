@@ -3,6 +3,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 
+#include <array>
 #include <functional>
 #include <mutex>
 
@@ -44,14 +45,32 @@ namespace NThreading {
         virtual TData* GetData() const = 0;
     };
 
-    using TGenericLocalStorageFactory = std::function<THolder<IGenericLocalStorage>()>;
+    class IGLSContext {
+    public:
+        virtual ~IGLSContext() = default;
 
-    void SetGenericLocalStorageFactory(TGenericLocalStorageFactory factory);
-    THolder<IGenericLocalStorage> MakeGenericLocalStorage();
+        virtual bool IsCurrent() const = 0;
+        virtual THolder<IGenericLocalStorage> MakeStorage() const = 0;
+    };
+
+    // Later registrations take priority over earlier ones.
+    void RegisterGLSContext(THolder<IGLSContext> context);
+
+    namespace NDetail {
+        inline constexpr size_t MaxGLSContexts = 4;
+
+        size_t GLSContextCount();
+        const IGLSContext& GetGLSContext(size_t index);
+    }
 
     template <typename T>
     class TGenericLocalValue {
     private:
+        struct TSlot {
+            std::once_flag InitOnce;
+            THolder<IGenericLocalStorage> Storage;
+        };
+
         static const auto& Traits() {
             const static IGenericLocalStorage::TTraits traits = {
                 .Size = sizeof(T),
@@ -63,19 +82,26 @@ namespace NThreading {
         };
     public:
         T* Get() const {
-            std::call_once(InitOnce_, [this]() {
-                Storage_ = MakeGenericLocalStorage();
-            });
+            const size_t count = NDetail::GLSContextCount();
+            for (size_t index = count; index-- > 0;) {
+                const IGLSContext& context = NDetail::GetGLSContext(index);
+                if (context.IsCurrent()) {
+                    return GetMemory(ContextSlots_[index], context);
+                }
+            }
 
-            return static_cast<T*>(Storage_->GetMemory(Traits()));
+            Y_ABORT("unreachable, ContextSlots_[0] always IsCurrent");
         }
 
         T& GetRef() const {
             return *Get();
         }
     private:
-        mutable std::once_flag InitOnce_;
-        mutable THolder<IGenericLocalStorage> Storage_;
+        T* GetMemory(TSlot& slot, const IGLSContext& context) const {
+            std::call_once(slot.InitOnce, [&] { slot.Storage = context.MakeStorage(); });
+            return static_cast<T*>(slot.Storage->GetMemory(Traits()));
+        }
+    private:
+        mutable std::array<TSlot, NDetail::MaxGLSContexts> ContextSlots_;
     };
 }
-

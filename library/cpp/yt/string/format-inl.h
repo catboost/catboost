@@ -427,7 +427,9 @@ auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
 template <class TStringBuilder>
 void FormatString(TStringBuilder* builder, TStringBuf value, TStringBuf spec)
 {
-    if (!spec) {
+    // Fast path: plain "%v" (the overwhelmingly common case) and empty spec
+    // both mean "emit the string verbatim". Skip alignment/flag parsing.
+    if (spec.empty() || (spec.size() == 1 && spec.front() == NDetail::GenericSpecSymbol)) {
         builder->AppendString(value);
         return;
     }
@@ -1021,8 +1023,22 @@ concept CFormatter = CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// NB: |spec| is tiny (usually a single char), so an inline scan beats
+// the AVX2 |memchr| that |TStringBuf::Contains| dispatches to.
+Y_FORCE_INLINE bool SpecContains(TStringBuf spec, char symbol)
+{
+    for (char c : spec) {
+        if (c == symbol) {
+            return true;
+        }
+    }
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 template <CFormatter TFormatter>
-void RunFormatterAt(
+Y_FORCE_INLINE void RunFormatterAt(
     const TFormatter& formatter,
     size_t index,
     TStringBuilderBase* builder,
@@ -1031,7 +1047,7 @@ void RunFormatterAt(
     bool doubleQuotes)
 {
     // 'n' means 'nothing'; skip the argument.
-    if (!spec.Contains('n')) {
+    if (!SpecContains(spec, 'n')) {
         if (singleQuotes) {
             builder->AppendChar('\'');
         }

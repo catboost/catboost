@@ -318,7 +318,8 @@ namespace NCB {
             );
 
             auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::NEmbeddings::TCollectionPart>(in->Buf());
-            in->Skip(headerSize);
+            const size_t skippedHeader = in->Skip(headerSize);
+            CB_ENSURE(skippedHeader == headerSize, "Failed to read embedding collection part");
 
             const auto partId = GuidFromFbs(collectionPart->Id());
 

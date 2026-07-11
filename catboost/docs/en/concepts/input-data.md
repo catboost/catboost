@@ -3,8 +3,8 @@
 Input data for training, testing, and applying models can be passed as files containing:
 
 - [Columns description](input-data_column-descfile.md)
-- [Dataset description in delimiter-separated values format](input-data_values-file.md)
-- [Dataset description in extended libsvm format](input-data_libsvm.md)
+- [Dataset in delimiter-separated values format](input-data_values-file.md)
+- [Dataset in extended libsvm format](input-data_libsvm.md)
 - [Pairs description](input-data_pairs-description.md)
 - [Custom quantization borders and missing value modes](input-data_custom-borders.md)
 - [Group weights](input-data_group-weights.md)

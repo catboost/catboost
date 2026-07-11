@@ -44,10 +44,10 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/strerror.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/sysinfo.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/thread_identity.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/tracing.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/unscaledcycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/log_severity.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/throw_delegate.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
@@ -60,7 +60,6 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_non_temporal_memcpy.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/crc/internal/crc_x86_arm_combined.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/address_is_readable.cc
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/borrowed_fixup_buffer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/decode_rust_punycode.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/demangle.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/demangle_rust.cc
@@ -121,6 +120,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/seed_sequences.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/internal/status_internal.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_builder.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_payload_printer.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/statusor.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/ascii.cc
@@ -175,6 +175,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/notification.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/civil_time.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/clock.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/clock_interface.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/duration.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/format.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/civil_time_detail.cc
@@ -188,6 +189,7 @@ target_sources(contrib-restricted-abseil-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/time_zone_posix.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/zone_info_source.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/time.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/source_location.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
 )
 

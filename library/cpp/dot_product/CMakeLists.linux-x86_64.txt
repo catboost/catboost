@@ -41,3 +41,16 @@ target_sources_custom(library-cpp-dot_product
   -mbmi2
   -mfma
 )
+
+target_sources_custom(library-cpp-dot_product
+  .avx512
+  SRCS
+  ${PROJECT_SOURCE_DIR}/library/cpp/dot_product/dot_product_vnni.cpp
+  CUSTOM_FLAGS
+  -mavx512f
+  -mavx512cd
+  -mavx512bw
+  -mavx512dq
+  -mavx512vl
+  -mavx512vnni
+)

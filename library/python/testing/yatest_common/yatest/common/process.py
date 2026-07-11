@@ -292,7 +292,7 @@ class _Execution(object):
                     runtime.output_path(), "{}.{}.core".format(os.path.basename(self.command[0]), self._process.pid)
                 )
                 # Copy core dump file, because it may be overwritten
-                yatest_logger.debug("Coping core dump file from '%s' to the '%s'", core_path, new_core_path)
+                yatest_logger.debug("Copying core dump file from '%s' to the '%s'", core_path, new_core_path)
                 shutil.copyfile(core_path, new_core_path)
                 core_path = new_core_path
 

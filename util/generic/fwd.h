@@ -101,7 +101,7 @@ template <class T, class D = TDelete>
 class TAutoPtr;
 
 template <class T, class D = TDelete>
-class THolder;
+class Y_TRIVIAL_ABI THolder;
 
 template <class T, class C, class D = TDelete>
 class TRefCounted;

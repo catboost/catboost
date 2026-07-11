@@ -6,7 +6,7 @@ A list of possible methods to load the dataset from a file is given in the table
 
 ### From a file in DSV format with default columns
 
-If the columns description file is omitted,  it is assumed that the first column in the file with the dataset description defines the label value, and the other columns are the values of numerical features.
+If the columns description file is omitted,  it is assumed that the first column in the file with the dataset defines the label value, and the other columns are the values of numerical features.
 
 Usage example:
 

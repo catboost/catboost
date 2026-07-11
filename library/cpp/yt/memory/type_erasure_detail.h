@@ -304,7 +304,7 @@ public:
     // NB(arkady-e1ppa): This method may or may not work correctly
     // for dynamically-linked libraries.
     template <class T>
-    Y_FORCE_INLINE bool IsCurrentlyStored() const noexcept
+    Y_FORCE_INLINE bool HoldsType() const noexcept
     {
         return Function_ == &TVTableEntry::StaticInvoke<T>;
     }
@@ -358,9 +358,9 @@ public:
     }
 
     template <class T>
-    Y_FORCE_INLINE bool IsCurrentlyStored() const noexcept
+    Y_FORCE_INLINE bool HoldsType() const noexcept
     {
-        return TVTableEntry<TStorage, TCpo>::template IsCurrentlyStored<T>();
+        return TVTableEntry<TStorage, TCpo>::template HoldsType<T>();
     }
 
 private:

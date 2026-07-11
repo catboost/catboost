@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         r.Update((const unsigned char*)b, 15);
         r.Update((const unsigned char*)b + 15, strlen(b) - 15);
 
-        char rs[33];
+        char rs[MD5::MD5_HEX_DIGEST_LENGTH + 1];
         TString s(r.End(rs));
         s.to_lower();
 

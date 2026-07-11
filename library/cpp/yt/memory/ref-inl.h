@@ -65,6 +65,11 @@ Y_FORCE_INLINE TRef TRef::Slice(size_t startOffset, size_t endOffset) const
     return TRef(Begin() + startOffset, endOffset - startOffset);
 }
 
+Y_FORCE_INLINE bool TRef::Contains(TRef other) const
+{
+    return other.Begin() >= Begin() && other.End() <= End();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 Y_FORCE_INLINE TMutableRef::TMutableRef(void* data, size_t size)
@@ -226,6 +231,11 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
     return AllocatePageAligned<TDefaultSharedBlobTag>(size, options);
 }
 
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    return AllocateViaMmap<TDefaultSharedBlobTag>(size, options);
+}
+
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref)
 {
@@ -258,6 +268,13 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
 {
     static_assert(IsEmptyClass<TTag>());
     return AllocatePageAligned(size, options, GetRefCountedTypeCookie<TTag>());
+}
+
+template <class TTag>
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocateViaMmap(size_t size, TSharedMutableRefAllocateViaMmapOptions options)
+{
+    static_assert(IsEmptyClass<TTag>());
+    return AllocateViaMmap(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

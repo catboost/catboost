@@ -3,7 +3,7 @@
 #include <util/generic/strbuf.h>
 
 struct TParsedHttpRequest {
-    TParsedHttpRequest(const TStringBuf& str);
+    TParsedHttpRequest(const TStringBuf str Y_LIFETIME_BOUND);
 
     TStringBuf Method;
     TStringBuf Request;
@@ -11,14 +11,14 @@ struct TParsedHttpRequest {
 };
 
 struct TParsedHttpLocation {
-    TParsedHttpLocation(const TStringBuf& req);
+    TParsedHttpLocation(const TStringBuf req Y_LIFETIME_BOUND);
 
     TStringBuf Path;
     TStringBuf Cgi;
 };
 
 struct TParsedHttpFull: public TParsedHttpRequest, public TParsedHttpLocation {
-    inline TParsedHttpFull(const TStringBuf& line)
+    TParsedHttpFull(const TStringBuf line Y_LIFETIME_BOUND)
         : TParsedHttpRequest(line)
         , TParsedHttpLocation(Request)
     {

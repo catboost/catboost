@@ -28,6 +28,7 @@
     F(AVX512CD)               \
     F(AVX512BW)               \
     F(AVX512VL)               \
+    F(AVX512VNNI)             \
     F(AVX512VBMI)             \
     F(PREFETCHWT1)            \
     F(SHA)                    \
@@ -58,6 +59,7 @@
     F(AVX512CD)                                      \
     F(AVX512BW)                                      \
     F(AVX512VL)                                      \
+    F(AVX512VNNI)                                    \
     F(AVX512VBMI)                                    \
     F(PREFETCHWT1)                                   \
     F(SHA)                                           \

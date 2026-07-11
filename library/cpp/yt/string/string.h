@@ -72,7 +72,7 @@ void JoinToString(
     TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 template <std::forward_iterator TIterator, class TFormatter>
-TString JoinToString(
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
     const TFormatter& formatter,
@@ -80,7 +80,7 @@ TString JoinToString(
 
 //! A handy shortcut with default formatter.
 template <std::forward_iterator TIterator>
-TString JoinToString(
+std::string JoinToString(
     const TIterator& begin,
     const TIterator& end,
     TStringBuf delimiter = DefaultJoinToStringDelimiter);
@@ -92,24 +92,24 @@ TString JoinToString(
  *  \param delimiter A delimiter to be inserted between items; ", " by default.
  */
 template <std::ranges::range TCollection, class TFormatter>
-TString JoinToString(
+std::string JoinToString(
     TCollection&& collection,
     const TFormatter& formatter,
     TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! A handy shortcut with the default formatter.
 template <std::ranges::range TCollection>
-TString JoinToString(
+std::string JoinToString(
     TCollection&& collection,
     TStringBuf delimiter = DefaultJoinToStringDelimiter);
 
 //! Concatenates a bunch of TStringBuf-like instances into TString.
 template <class... Ts>
-TString ConcatToString(Ts... args);
+std::string ConcatToString(Ts... args);
 
 //! Converts a range of items into strings.
 template <std::forward_iterator TIter, class TFormatter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
     const TFormatter& formatter,
@@ -117,7 +117,7 @@ std::vector<TString> ConvertToStrings(
 
 //! A handy shortcut with the default formatter.
 template <std::forward_iterator TIter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     const TIter& begin,
     const TIter& end,
     size_t maxSize = std::numeric_limits<size_t>::max());
@@ -129,14 +129,14 @@ std::vector<TString> ConvertToStrings(
  *  \param maxSize Size limit for the resulting vector.
  */
 template <std::ranges::range TCollection, class TFormatter>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     TCollection&& collection,
     const TFormatter& formatter,
     size_t maxSize = std::numeric_limits<size_t>::max());
 
 //! A handy shortcut with default formatter.
 template <std::ranges::range TCollection>
-std::vector<TString> ConvertToStrings(
+std::vector<std::string> ConvertToStrings(
     TCollection&& collection,
     size_t maxSize = std::numeric_limits<size_t>::max());
 
@@ -147,6 +147,15 @@ TString UnderscoreCaseToCamelCase(TStringBuf str);
 
 void CamelCaseToUnderscoreCase(TStringBuilderBase* builder, TStringBuf str);
 TString CamelCaseToUnderscoreCase(TStringBuf str);
+
+//! ASCII case conversion returning |std::string|.
+//! TODO(babenko): likely a temporary workaround; these exist only because util's
+//! |to_lower|/|to_upper| are |TString|-based (forcing a |TString| round-trip for
+//! |std::string| callers). Drop once util gains |std::string| support.
+//! Returns a copy of |value| with every ASCII letter lowercased; non-ASCII bytes are left intact.
+std::string AsciiStringToLower(TStringBuf value);
+//! Returns a copy of |value| with every ASCII letter uppercased; non-ASCII bytes are left intact.
+std::string AsciiStringToUpper(TStringBuf value);
 
 [[nodiscard]] TStringBuf TrimLeadingWhitespaces(TStringBuf str Y_LIFETIME_BOUND);
 [[nodiscard]] TStringBuf Trim(TStringBuf str Y_LIFETIME_BOUND, TStringBuf whitespaces = " ");
