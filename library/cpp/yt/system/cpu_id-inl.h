@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "cpu_id.h"
 #endif
-#undef CPU_ID_INL_H_
 
 #ifdef __linux__
 #include <library/cpp/yt/rseq/rseq.h>

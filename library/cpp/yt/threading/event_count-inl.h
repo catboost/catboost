@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "event_count.h"
 #endif
-#undef EVENT_COUNT_INL_H_
 
 #include <library/cpp/yt/assert/assert.h>
 

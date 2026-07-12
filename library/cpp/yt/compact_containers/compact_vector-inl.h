@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "compact_vector.h"
 #endif
-#undef COMPACT_VECTOR_INL_H_
 
 #include <library/cpp/yt/assert/assert.h>
 

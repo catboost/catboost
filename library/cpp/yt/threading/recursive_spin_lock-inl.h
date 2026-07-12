@@ -3,7 +3,6 @@
 // For the sake of sane code completion.
 #include "recursive_spin_lock.h"
 #endif
-#undef RECURSIVE_SPIN_LOCK_INL_H_
 
 #include "spin_wait.h"
 
