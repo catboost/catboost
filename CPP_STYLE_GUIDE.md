@@ -9,7 +9,7 @@ This guide describes the conventions for formatting C/C++ code. Consistent code 
 Please be aware that use of imperative, object-oriented C++ (version C++14) is assumed. This means:
 - Don't use plain C. Use the new operator, not malloc. Assume that the new operator can throw an exception and doesn't return "0" for unsuccessful memory allocation.
 - Use C++ as an imperative language, not as a functional language. You can use templates, but not for things like compile-time calculations. Use range-based for, not for_each.
-- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::string -> TString, std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
+- Don't use boost, and limit use of STL (Use optimized counterparts available in /util instead of some of the parts that are poorly implemented in STL, such as std::streams -> TInputStream, TOutputStream). We don't encourage reinventing the wheel (we've already invented everything and just check the /util).
 - A restricted subset of the new C++14 syntax is in use that works with all supported compilers (see [*C++14 features* below](#c-14-features)) .
 
 Currently, there is a small subset of code in the source tree that doesn't conform to the standards outlined below (partly because some of these code blocks were written about 15+ years ago). Nevertheless, this standard must be followed when writing new code.
