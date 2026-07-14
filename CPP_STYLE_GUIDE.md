@@ -401,7 +401,7 @@ struct T {
     int X;
     double Y;
 
-    T() //this implementation can also be in a .cpp file 
+    T() //this implementation can also be in a .cpp file
         : X(0)
         , Y(1.0)
     {
