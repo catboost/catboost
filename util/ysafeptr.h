@@ -91,6 +91,8 @@ protected:
     // function should clear contents of object, easy to implement via consequent calls to
     // destructor and constructor, this function should not be called directly, use Clear()
     virtual void DestroyContents() = 0;
+    // Unpoison ObjData/RefData to mute deliberate use-after-dtor
+    void UnpoisonCounters() noexcept;
     virtual ~IObjectBase() = default;
     inline void CopyValidFlag(const IObjectBase& a) {
         ObjData &= 0x7fffffff;
@@ -207,6 +209,7 @@ public:                                                           \
 protected:                                                        \
     virtual void DestroyContents() override {                     \
         this->~classname();                                       \
+        this->UnpoisonCounters();                                 \
         int nHoldRefs = this->RefData, nHoldObjs = this->ObjData; \
         new (this) classname();                                   \
         this->RefData += nHoldRefs;                               \
