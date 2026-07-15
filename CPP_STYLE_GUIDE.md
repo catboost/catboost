@@ -18,7 +18,7 @@ Currently, there is a small subset of code in the source tree that doesn't confo
 
 - The general rule for fixing the style in old code is "one file – one style." In other words, if you are fixing an error and this involves changes to just a few lines, follow the original style in the file. If the fixed code is written in the new style, then you need to change all the code in the entire file for consistency, and in some cases even the entire code for the class (for example, if fields or methods are renamed).
 - If the author of the code doesn't agree with the style of the fixes, they can rewrite it, but the author's changes must match the style described in this guide (including the previous point).
-- Commits that fix style should be differentiated from commits that change functionality.
+- Commits that fix style should be separate from commits that change functionality.
 - Don't change the style in files that you aren't modifying, and don't change the line formatting if it follows the recommendations in this guide. Don't forget that every line has an author, and this is tracked in the VCS (e.g. svn, git, hg, etc.) log. When you change someone else's formatting, you become the author of that line without reason for it.
 
 ### Corrections to this guide
