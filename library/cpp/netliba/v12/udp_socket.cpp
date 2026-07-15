@@ -15,6 +15,7 @@
 
 namespace NNetliba_v12 {
     static const ui32 PROTO_REV = 1;
+    static bool CrcMatchByDstAddrEnabled = false;
     static inline ui32 CalcPortChecksum(const sockaddr_in6& addr);
     static inline ui64 CalcCrc(const char* buf, int size, const sockaddr_in6& addr);
 
@@ -164,29 +165,46 @@ namespace NNetliba_v12 {
         return CalcChecksum(buf, size) + CalcAddressChecksum(addr) + CalcPortChecksum(addr) + PROTO_REV;
     }
 
-    bool TUdpSocket::CrcMatches(ui64 expectedCrc, ui64 crc, const sockaddr_in6& addr) {
-        Y_ASSERT(addr.sin6_family == AF_INET6);
-
-        // determine our ip address family based on the sender address
-        // address family can not change in network, so sender address type determines type of our address used
-        const EIpType ipType = GetIpType(addr);
-        if (crc + LastLocalIpCrc[ipType] == expectedCrc) {
+    bool MatchPacketCrc(ui64 expectedCrc, ui64 crc, const sockaddr_in6* dstAddr,
+                        const TVector<ui32>& localIpCrcs, ui32* lastLocalIpCrc) {
+        if (crc + *lastLocalIpCrc == expectedCrc) {
             return true;
+        }
+
+        if (dstAddr != nullptr && dstAddr->sin6_family == AF_INET6) {
+            // IpParams is snapshotted once at socket creation: it goes stale when
+            // addresses are assigned later and never contains AnyIP (local-route)
+            // destinations. The kernel-reported destination of this very packet
+            // (IPV6_PKTINFO) has neither problem.
+            const ui32 dstIpCrc = CalcAddressChecksum(*dstAddr);
+            if (crc + dstIpCrc == expectedCrc) {
+                *lastLocalIpCrc = dstIpCrc;
+                return true;
+            }
         }
 
         // crc failed
         // check if packet was sent to different IP address
-        const TVector<ui32>& localIpCrcs = IpParams.GetLocaIpCrcs(ipType);
         for (size_t i = 0; i < localIpCrcs.size(); ++i) {
             const ui32 otherIpCrc = localIpCrcs[i];
             if (crc + otherIpCrc == expectedCrc) {
-                LastLocalIpCrc[ipType] = otherIpCrc;
+                *lastLocalIpCrc = otherIpCrc;
                 return true;
             }
         }
 
         // crc is really failed, discard packet
         return false;
+    }
+
+    bool TUdpSocket::CrcMatches(ui64 expectedCrc, ui64 crc, const TSockAddrPair& addr) {
+        Y_ASSERT(addr.RemoteAddr.sin6_family == AF_INET6);
+
+        // determine our ip address family based on the sender address
+        // address family can not change in network, so sender address type determines type of our address used
+        const EIpType ipType = GetIpType(addr.RemoteAddr);
+        const sockaddr_in6* dstAddr = CrcMatchByDstAddrEnabled ? &addr.MyAddr : nullptr;
+        return MatchPacketCrc(expectedCrc, crc, dstAddr, IpParams.GetLocaIpCrcs(ipType), &LastLocalIpCrc[ipType]);
     }
 
     bool TUdpSocket::CheckPacketIntegrity(const char* buf, const size_t size, const TSockAddrPair& addr) {
@@ -209,7 +227,7 @@ namespace NNetliba_v12 {
         const ui64 expectedCrc = *(ui64*)buf;
 
         const ui64 crc = CalcChecksum(buf + UDP_CRC_SIZE, packetDataSize + (UDP_LOW_LEVEL_HEADER_SIZE - UDP_CRC_SIZE)) + PROTO_REV;
-        if (!CrcMatches(expectedCrc, crc + PortCrc, addr.RemoteAddr)) {
+        if (!CrcMatches(expectedCrc, crc + PortCrc, addr)) {
             fprintf(stderr, "NETLIBA::TUdpSocket: udp packet crc failure %s, expected %" PRIu64 ", %" PRIu64 ", %u \n",
                     GetAddressAsString(GetUdpAddress(addr.RemoteAddr)).c_str(), expectedCrc, crc, PortCrc);
             return false;
@@ -662,6 +680,10 @@ namespace NNetliba_v12 {
 
     bool TUdpSocket::IsLocal(const TUdpAddress& address) const {
         return IpParams.IsLocal(address);
+    }
+
+    void EnableCrcMatchByDestinationAddress() {
+        CrcMatchByDstAddrEnabled = true;
     }
 
 }
