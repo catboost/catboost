@@ -26,10 +26,6 @@ Currently, there is a small subset of code in the source tree that doesn't confo
 - Like any other document that describes the preferences of a group of people, this set of conventions is the result of lengthy debates and mutual compromise. So before fixing anything in it, please approve the changes with everyone involved. If you don’t know who to go to for approval, please refrain from making changes.
 - When putting together this guide, the authors tried to streamline it as much as possible and only specify the issues that negatively affect code readability, since any additional rules do little more than upset the people who have to learn new habits. For this reason, when proposing a correction or addition, always use the following algorithm: a) justify why this issue is an eyesore for the majority of people, and therefore must be specified; b) if you have proven the first point, then suggest exactly how this issue should be specified; C) explain how the proposed specification minimizes the collective re-learning efforts of the entire team.
 
-### Tools
-
-To automatically format C++ files, use the `ya style` command. It is based on clang-format with the correct config (located at devtools/ya/handlers/style/config), which can be used separately if your editor uses clang-format directly.
-
 ## Names
 
 A name should reflect the essence of the data, the type, or the action that it names. Only commonly-used abbreviations are allowed in names. Conventional single-letter names (i, j, k) are only allowed for counters and iterators. Structures are also classes, and everything related to classes also applies to structures (unless explicitly stated otherwise).
