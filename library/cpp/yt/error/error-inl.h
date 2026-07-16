@@ -604,4 +604,24 @@ void FormatValue(TStringBuilderBase* builder, const TErrorOr<T>& error, TStringB
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class F, class... As>
+auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...))
+{
+    return functor(std::forward<As>(args)...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+inline TStringBuf GetWellKnownLoggingTag(const std::exception&)
+{
+    return "Error"_sb;
+}
+
+inline TStringBuf GetWellKnownLoggingTag(const TError&)
+{
+    return "Error"_sb;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT

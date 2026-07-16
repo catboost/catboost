@@ -475,10 +475,15 @@ void FormatValue(TStringBuilderBase* builder, const TErrorOr<T>& error, TStringB
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class F, class... As>
-auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...))
-{
-    return functor(std::forward<As>(args)...);
-}
+auto RunNoExcept(F&& functor, As&&... args) noexcept -> decltype(functor(std::forward<As>(args)...));
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Registers errors as a well-known logging tag (ADL customization point for
+//! library/cpp/yt/logging), so that |YT_TLOG_*(...).With(error)| attaches them under
+//! the "Error" key, rendered after the message in plain text.
+TStringBuf GetWellKnownLoggingTag(const std::exception&);
+TStringBuf GetWellKnownLoggingTag(const TError&);
 
 ////////////////////////////////////////////////////////////////////////////////
 
