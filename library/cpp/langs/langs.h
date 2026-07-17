@@ -170,6 +170,7 @@ enum ELanguage: unsigned {
     LANG_KRL = 153,         // Karelian Proper
     LANG_OLO = 154,         // Livvi-Karelian
     LANG_JDT = 155,         // Judeo-Tat
+    LANG_ARE = 156,         // Emirati Arabic
     LANG_MAX
 };
 
