@@ -47,8 +47,6 @@ A name should reflect the essence of the data, the type, or the action that it n
 
 - Class members begin with an uppercase letter.
 
-- Class methods begin with an uppercase letter.
-
 - Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'.
 
 - All global constants and defines are fully capitalized.
