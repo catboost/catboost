@@ -45,9 +45,13 @@ A name should reflect the essence of the data, the type, or the action that it n
 
 - Function arguments begin with a lowercase letter.
 
-- Class members begin with an uppercase letter.
+- Variables in a lambda capture list begin with a lowercase letter.
 
-- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'.
+- Class data members begin with an uppercase letter. `private` and `protected` data members must end with an underscore, whereas `public` data members must not.
+
+- Class function members begin with an uppercase letter and must not end with an underscore or other special suffix regardless of their access specifier.
+
+- Class names and type definitions (typedefs) are preceded by the prefix T, followed by the name of the class beginning with an uppercase letter. The names of virtual interfaces start with 'I'. Virtual interface is a class that contains at least one pure virtual method (including inherited) and does not contain any data members (including inherited).
 
 - All global constants and defines are fully capitalized.
 
@@ -70,7 +74,10 @@ int GetValue();
 void SetValue(int val);
 ```
 
-*Exception:* The names of functions, classes, and so on that mimic or extend functions of standard libraries (libc, stl, etc.) should follow the library's naming convention. Examples are TVector, fget, autoarray, sprintf, equivalents of the main function. These classes and functions are usually located in /util.
+*Exception:* For interoperability with external code, identifiers may follow the naming conventions required by that code. For example:
+  - `.begin()` and `.end()` methods for containers to use STL iterator conventions.
+  - `.data()` and `.size()` methods for internal buffer access.
+  - `swap` function
 
 #### Macros
 
