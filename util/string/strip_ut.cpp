@@ -4,7 +4,43 @@
 
 #include <util/charset/wide.h>
 
+#include <string_view>
+
 Y_UNIT_TEST_SUITE(TStripStringTest) {
+    Y_UNIT_TEST(TestConstexprStrip) {
+        static constexpr std::string_view stripped = StripString<std::string_view>("  \n\t abc def \r\n ");
+        static_assert(stripped == "abc def");
+
+        static constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("  \n abc \n "));
+        static_assert(strippedLeft == "abc \n ");
+
+        static constexpr std::string_view strippedRight = StripStringRight(std::string_view("  \n abc \n "));
+        static_assert(strippedRight == "  \n abc");
+
+        static constexpr std::string_view empty = StripString<std::string_view>(" \n\t\r ");
+        static_assert(empty.empty());
+
+        static constexpr std::string_view unchanged = StripString<std::string_view>("abc");
+        static_assert(unchanged == "abc");
+
+        UNIT_ASSERT_VALUES_EQUAL(stripped, "abc def");
+        UNIT_ASSERT_VALUES_EQUAL(strippedLeft, "abc \n ");
+        UNIT_ASSERT_VALUES_EQUAL(strippedRight, "  \n abc");
+    }
+
+    Y_UNIT_TEST(TestConstexprCustomStrip) {
+        static constexpr std::string_view stripped = StripString(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        static_assert(stripped == "abc");
+
+        static constexpr std::string_view strippedLeft = StripStringLeft(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        static_assert(strippedLeft == "abc//");
+
+        static constexpr std::string_view strippedRight = StripStringRight(std::string_view("//abc//"), EqualsStripAdapter('/'));
+        static_assert(strippedRight == "//abc");
+
+        UNIT_ASSERT_VALUES_EQUAL(stripped, "abc");
+    }
+
     struct TStripTest {
         TStringBuf Str;
         TStringBuf StripLeftRes;
