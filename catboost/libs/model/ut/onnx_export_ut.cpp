@@ -138,4 +138,111 @@ Y_UNIT_TEST_SUITE(TestOnnxExport) {
 
         CheckPredictionsEqual(model, importedModel, testDataProviders.Learn);
     }
+
+    Y_UNIT_TEST(TestUnusedCatFeatureModelExportImport) {
+        // A categorical feature that is present in the data but not used in the model
+        // must not shift ONNX input indices of the used categorical features.
+        auto createDataProvider = [] () {
+            return CreateDataProvider(
+                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                    TDataMetaInfo metaInfo;
+                    metaInfo.TargetType = ERawTargetType::Float;
+                    metaInfo.TargetCount = 1;
+                    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                        (ui32)3,
+                        TVector<ui32>{0, 1, 2},
+                        TVector<ui32>{},
+                        TVector<ui32>{},
+                        TVector<TString>{});
+
+                    visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+                    visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "a", "b"});
+                    visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "c", "d"});
+                    visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"e", "f", "f"});
+                    visitor->AddTarget(
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
+                    );
+                    visitor->Finish();
+                }
+            );
+        };
+
+        TDataProviders dataProviders;
+        dataProviders.Learn = createDataProvider();
+        dataProviders.Test.push_back(dataProviders.Learn);
+
+        THashMap<ui32, TString> catFeaturesHashToString = MergeCatFeaturesHashToString(*dataProviders.Learn->ObjectsData);
+
+        TFullModel model;
+        TEvalResult evalResult;
+        NJson::TJsonValue params;
+        params.InsertValue("iterations", 5);
+        params.InsertValue("random_seed", 1);
+        NJson::TJsonValue ignoredFeatures(NJson::EJsonValueType::JSON_ARRAY);
+        ignoredFeatures.AppendValue(0);
+        params.InsertValue("ignored_features", ignoredFeatures);
+        TTempDir trainDir;
+        params.InsertValue("train_dir", trainDir.Name());
+        TrainModel(
+            params,
+            nullptr,
+            {},
+            {},
+            Nothing(),
+            std::move(dataProviders),
+            Nothing(),
+            nullptr,
+            "",
+            &model,
+            {&evalResult}
+        );
+
+        UNIT_ASSERT(!model.ModelTrees->GetOneHotFeatures().empty());
+
+        TString onnxProto = NCB::ConvertTreeToOnnxProto(model, "", &catFeaturesHashToString);
+        UNIT_ASSERT(!onnxProto.empty());
+
+        TTempDir tempDir;
+        TString onnxPath = tempDir.Name() + "/model.onnx";
+        {
+            TFileOutput out(onnxPath);
+            out.Write(onnxProto);
+        }
+
+        TFullModel importedModel = ReadModel(onnxPath, EModelType::Onnx);
+
+        // The imported model contains only the used categorical features (1 and 2),
+        // so its predictions must be compared on the pool with the ignored feature removed.
+        TDataProviderPtr usedFeaturesDataProvider = CreateDataProvider(
+            [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                TDataMetaInfo metaInfo;
+                metaInfo.TargetType = ERawTargetType::Float;
+                metaInfo.TargetCount = 1;
+                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                    (ui32)2,
+                    TVector<ui32>{0, 1},
+                    TVector<ui32>{},
+                    TVector<ui32>{},
+                    TVector<TString>{});
+
+                visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+                visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"d", "c", "d"});
+                visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"e", "f", "f"});
+                visitor->AddTarget(
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
+                );
+                visitor->Finish();
+            }
+        );
+
+        auto originalPred = ApplyModelMulti(model, *createDataProvider()->ObjectsData);
+        auto importedPred = ApplyModelMulti(importedModel, *usedFeaturesDataProvider->ObjectsData);
+        UNIT_ASSERT_VALUES_EQUAL(originalPred.size(), importedPred.size());
+        for (size_t i = 0; i < originalPred.size(); ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(originalPred[i].size(), importedPred[i].size());
+            for (size_t j = 0; j < originalPred[i].size(); ++j) {
+                UNIT_ASSERT_DOUBLES_EQUAL(originalPred[i][j], importedPred[i][j], 1e-5);
+            }
+        }
+    }
 }
