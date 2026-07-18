@@ -389,6 +389,7 @@ static void AddTree(
     i64 treeIdx,
     bool isClassifierModel,
     const TVector<THashMap<int, ui32>>& oneHotValuesToIdx,
+    TConstArrayRef<int> catFeatureIdxToOnnxFeatureIdx,
     int numFloatFeatures,
     TTreesAttributes* treesAttributes) {
 
@@ -420,8 +421,6 @@ static void AddTree(
                 splitFlatFeatureIdx = split.FloatFeature.FloatFeature;
             }
         } else if (split.Type == ESplitType::OneHotFeature) {
-            splitFlatFeatureIdx = numFloatFeatures + split.OneHotFeature.CatFeatureIdx;
-            nodeMode = TModeNode::BRANCH_EQ;
             CB_ENSURE(
                 split.OneHotFeature.CatFeatureIdx < (int)oneHotValuesToIdx.size(),
                 "Invalid CatFeatureIdx in OneHotFeature split");
@@ -430,6 +429,12 @@ static void AddTree(
             CB_ENSURE(
                 it != valueMap.end(),
                 "OneHotFeature value not found in categorical mapping for feature " << split.OneHotFeature.CatFeatureIdx);
+            CB_ENSURE(
+                split.OneHotFeature.CatFeatureIdx < (int)catFeatureIdxToOnnxFeatureIdx.size()
+                    && catFeatureIdxToOnnxFeatureIdx[split.OneHotFeature.CatFeatureIdx] >= 0,
+                "No ONNX input for categorical feature " << split.OneHotFeature.CatFeatureIdx);
+            splitFlatFeatureIdx = numFloatFeatures + catFeatureIdxToOnnxFeatureIdx[split.OneHotFeature.CatFeatureIdx];
+            nodeMode = TModeNode::BRANCH_EQ;
             splitValue = static_cast<float>(it->second);
             missingValueTracksTrue = 0;
         } else {
@@ -540,6 +545,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     }
 
     TString treesInputName;
+    TVector<int> catFeatureIdxToOnnxFeatureIdx;
     if (!trees.GetOneHotFeatures().empty()) {
         // Float features input
         InitValueInfo(
@@ -548,16 +554,18 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
             numFloatFeatures,
             onnxGraph->add_input());
 
-        // String inputs and LabelEncoders for categorical features
+        // String inputs and LabelEncoders for categorical features.
+        // The flat index of an encoded categorical feature in the concatenated tensor is
+        // numFloatFeatures + its position in catFeatureEncodedNames.
         TVector<TString> catFeatureEncodedNames;
-        for (const auto& catFeature : trees.GetCatFeatures()) {
-            if (!catFeature.UsedInModel()) {
-                continue;
-            }
+        catFeatureIdxToOnnxFeatureIdx.assign(trees.GetCatFeatures().size(), -1);
+        for (const auto& oneHotFeature : trees.GetOneHotFeatures()) {
+            const auto& catFeature = trees.GetCatFeatures()[oneHotFeature.CatFeatureIndex];
             TString inputName = catFeature.FeatureId.empty()
                 ? "cat_feature_" + ToString(catFeature.Position.FlatIndex)
                 : catFeature.FeatureId;
             TString encodedName = inputName + "_encoded";
+            catFeatureIdxToOnnxFeatureIdx[oneHotFeature.CatFeatureIndex] = (int)catFeatureEncodedNames.size();
             catFeatureEncodedNames.push_back(encodedName);
 
             InitValueInfo(
@@ -565,16 +573,6 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
                 onnx::TensorProto_DataType_STRING,
                 /*secondDim*/ 1,
                 onnxGraph->add_input());
-
-            // Find corresponding OneHotFeature
-            const TOneHotFeature* oneHotFeature = nullptr;
-            for (const auto& oh : trees.GetOneHotFeatures()) {
-                if (oh.CatFeatureIndex == catFeature.Position.Index) {
-                    oneHotFeature = &oh;
-                    break;
-                }
-            }
-            CB_ENSURE_INTERNAL(oneHotFeature, "No OneHotFeature found for categorical feature " << catFeature.Position.Index);
 
             onnx::NodeProto* labelEncoderNode = onnxGraph->add_node();
             labelEncoderNode->set_domain(onnx::AI_ONNX_ML_DOMAIN);
@@ -584,8 +582,8 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
 
             TVector<TString> keysStrings;
             TVector<float> valuesFloats;
-            for (auto i : xrange(oneHotFeature->Values.size())) {
-                keysStrings.push_back(catFeaturesHashToString->at((ui32)oneHotFeature->Values[i]));
+            for (auto i : xrange(oneHotFeature.Values.size())) {
+                keysStrings.push_back(catFeaturesHashToString->at((ui32)oneHotFeature.Values[i]));
                 valuesFloats.push_back((float)i);
             }
 
@@ -695,7 +693,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
-        AddTree(trees, treeIdx, isClassifierModel, oneHotValuesToIdx, numFloatFeatures, &treesAttributes);
+        AddTree(trees, treeIdx, isClassifierModel, oneHotValuesToIdx, catFeatureIdxToOnnxFeatureIdx, numFloatFeatures, &treesAttributes);
     }
 }
 
